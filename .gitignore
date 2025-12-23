@@ -1,0 +1,84 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Build output
+dist/
+
+# Cache directories
+.test-cache/
+.benchmark-cache/
+.cache/
+.headless-test-cache/
+.headed-test-cache/
+.pw-home/
+.tmp/
+tmp/
+test-results-playwright/
+.firebase/
+
+# Local agent/workspace state
+.entire/
+.claude/settings.json
+.claude/settings.local.json
+.gemini/settings.json
+.gemini/settings.local.json
+.codex/settings.json
+.codex/settings.local.json
+
+# Logs
+*.log
+benchmark_*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Downloads and models (large files)
+downloads/
+!demo/app/downloads/
+!/demo/app/downloads/index.d.ts
+/models/*
+!/models/catalog.json
+!/models/README.md
+!/models/curated/
+!/models/curated/**/manifest.json
+!/models/curated/**/tokenizer.json
+!/models/curated/**/tokenizer.model
+!/models/curated/.gitkeep
+*.gguf
+*.safetensors
+shard_*.bin
+functiongemma-safetensors/
+
+# Benchmark results
+bench-results/
+compare_*.json
+benchmarks/vendors/results/*.json
+.tjs-bench-profile/
+
+# Test artifacts
+test-results/
+tests/results/**
+tests/results/*.json
+tests/results/*.html
+tests/results/kernel-path-grid/profiles-*/
+tests/results/**/Default/
+kernel-tests/results/
+playwright-report/
+
+# Experiments
+experimental/
+
+.firebaserc
