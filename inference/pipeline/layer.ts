@@ -1,0 +1,1041 @@
+/**
+ * Transformer layer processing (attention + FFN).
+ *
+ * This module orchestrates single-layer computation:
+ * - Input normalization
+ * - Self-attention
+ * - Residual connections
+ * - Feed-forward network (dense or MoE)
+ *
+ * Supports both standard (LLaMA-style) and sandwich norm (Gemma 3) architectures.
+ *
+ * @module inference/pipeline/layer
+ */
+
+import type { ParsedModelConfig } from './config.js';
+import type { ExpertWeights, LayerWeights, MaybeGPUBuffer, RouterWeights } from './types.js';
+import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
+import type { ExpertLoader } from './moe-impl.js';
+import type { MoERouter } from '../moe-router.js';
+import { getDevice } from '../../gpu/device.js';
+import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
+import { allowReadback } from '../../gpu/perf-guards.js';
+import {
+  runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
+  recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
+  runSiLURowSplit, recordSiLURowSplit,
+  CommandRecorder,
+  type SiLURowSplitOptions,
+} from '../../gpu/kernel-selector.js';
+import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags } from './attention.js';
+import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
+import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/**
+ * Layer context contains all state needed for layer processing.
+ */
+export interface LayerContext {
+  /** Model configuration */
+  config: ParsedModelConfig;
+  /** Layer weights map */
+  weights: Map<string, LayerWeights | Float32Array | GPUBuffer>;
+  /** KV cache instance */
+  kvCache: KVCache | SlidingWindowKVCache;
+  /** Current sequence length */
+  currentSeqLen: number;
+  /** Whether to use GPU */
+  useGPU: boolean;
+  /** Debug mode */
+  debug: boolean;
+  /** RoPE frequency buffers (global for full_attention layers) */
+  ropeFreqsCos: GPUBuffer | Float32Array | null;
+  ropeFreqsSin: GPUBuffer | Float32Array | null;
+  /** Local RoPE frequency buffers for sliding_attention layers (Gemma 3: 10K theta) */
+  ropeLocalCos?: GPUBuffer | Float32Array | null;
+  ropeLocalSin?: GPUBuffer | Float32Array | null;
+  /** Attention kernel override */
+  attentionKernelOverride: string | null;
+  /** Weight buffer config */
+  weightConfig: WeightBufferConfig;
+  /** Debug flags (mutable) */
+  debugFlags?: WeightDebugFlags;
+  /** Expert weights map (for MoE) */
+  expertWeights?: Map<string, ExpertWeights>;
+  /** Expert loader (for MoE) */
+  expertLoader?: ExpertLoader | null;
+  /** MoE router (for MoE) */
+  moeRouter?: MoERouter | null;
+  /** Layer router weights (for models with per-layer routers) */
+  layerRouterWeights?: Map<number, RouterWeights>;
+  /** Command recorder for batched GPU operations (optional) */
+  recorder?: CommandRecorder;
+}
+
+/**
+ * Layer processing result.
+ */
+export interface LayerResult {
+  /** Output hidden states (GPUBuffer or Float32Array) */
+  output: GPUBuffer | Float32Array;
+  /** Whether output is on GPU */
+  isGPU: boolean;
+}
+
+/**
+ * Sandwich norm detection result.
+ */
+export interface SandwichNormInfo {
+  /** Whether sandwich norms are used */
+  useSandwichNorm: boolean;
+  /** Has pre-feedforward norm */
+  hasPreFeedforwardNorm: boolean;
+  /** Has post-feedforward norm */
+  hasPostFeedforwardNorm: boolean;
+  /** Has post-attention norm */
+  hasPostAttentionNorm: boolean;
+}
+
+// ============================================================================
+// Kernel Wrappers (run or record based on context)
+// ============================================================================
+
+/**
+ * RMSNorm that uses record variant when recorder is provided.
+ */
+async function doRMSNorm(
+  input: GPUBuffer,
+  weight: GPUBuffer,
+  eps: number,
+  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null },
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  console.log(`[doRMSNorm-ENTER] hasRecorder=${!!recorder}, hasResidual=${!!options.residual}`);
+  if (recorder) {
+    return recordRMSNorm(recorder, input, weight, eps, options);
+  }
+  // Debug: verify residual is being passed
+  console.log(`[doRMSNorm] options.residual type=${typeof options.residual}, value=${options.residual}, hasResidual=${!!options.residual}`);
+  if (options.residual) {
+    console.log(`[doRMSNorm] Calling runRMSNorm with residual, residual.size=${options.residual.size}`);
+  }
+  return runRMSNorm(input, weight, eps, options);
+}
+
+/**
+ * ResidualAdd that uses record variant when recorder is provided.
+ */
+async function doResidualAdd(
+  a: GPUBuffer,
+  b: GPUBuffer,
+  size: number,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  console.log(`[doResidualAdd] Called with a.size=${a.size}, b.size=${b.size}, size=${size}, hasRecorder=${!!recorder}`);
+  if (recorder) {
+    return recordResidualAdd(recorder, a, b, size);
+  }
+  return runResidualAdd(a, b, size);
+}
+
+/**
+ * Matmul that uses record variant when recorder is provided.
+ */
+async function doMatmul(
+  A: GPUBuffer,
+  B: GPUBuffer,
+  M: number,
+  N: number,
+  K: number,
+  options: { transposeB?: boolean | 'auto' } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordMatmul(recorder, A, B, M, N, K, options);
+  }
+  return runMatmul(A, B, M, N, K, options);
+}
+
+/**
+ * SiLU that uses record variant when recorder is provided.
+ * Supports gated variant (SiLU with gate multiplication).
+ */
+async function doSiLU(
+  input: GPUBuffer,
+  options: { size?: number; gate?: GPUBuffer } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordSiLU(recorder, input, options);
+  }
+  return runSiLU(input, options);
+}
+
+/**
+ * GeLU that uses record variant when recorder is provided.
+ * Supports gated variant (GeGLU).
+ */
+async function doGeLU(
+  input: GPUBuffer,
+  options: { size?: number; gate?: GPUBuffer } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordGeLU(recorder, input, options);
+  }
+  return runGeLU(input, options);
+}
+
+/**
+ * SiLURowSplit that uses record variant when recorder is provided.
+ * Used for fused gate+up FFN path: splits combined output and applies activation.
+ */
+async function doSiLURowSplit(
+  input: GPUBuffer,
+  options: SiLURowSplitOptions,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordSiLURowSplit(recorder, input, options);
+  }
+  return runSiLURowSplit(input, options);
+}
+
+/**
+ * Attention that uses record variant when recorder is provided.
+ */
+async function doAttention(
+  inputBuffer: GPUBuffer,
+  layerWeights: LayerWeights | null,
+  config: AttentionConfig,
+  state: AttentionState,
+  debug: boolean,
+  debugFlags: AttentionDebugFlags,
+  getWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
+  getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordLayerAttentionGPU(
+      recorder,
+      inputBuffer,
+      layerWeights,
+      config,
+      state,
+      debug,
+      debugFlags,
+      getWeightBufferFn,
+      getNormWeightBufferFn
+    );
+  }
+  return runLayerAttentionGPU(
+    inputBuffer,
+    layerWeights,
+    config,
+    state,
+    debug,
+    debugFlags,
+    getWeightBufferFn,
+    getNormWeightBufferFn
+  );
+}
+
+// ============================================================================
+// Architecture Detection
+// ============================================================================
+
+/**
+ * Detect sandwich norm architecture (Gemma 3).
+ */
+export function detectSandwichNorm(layerWeights: LayerWeights | null): SandwichNormInfo {
+  const hasPreFeedforwardNorm = Boolean(layerWeights?.preFeedforwardNorm);
+  const hasPostFeedforwardNorm = Boolean(layerWeights?.postFeedforwardNorm);
+  const hasPostAttentionNorm = Boolean(layerWeights?.postAttentionNorm);
+
+  return {
+    useSandwichNorm: hasPreFeedforwardNorm || hasPostFeedforwardNorm,
+    hasPreFeedforwardNorm,
+    hasPostFeedforwardNorm,
+    hasPostAttentionNorm,
+  };
+}
+
+/**
+ * Check if a layer is a MoE layer.
+ */
+export function isMoELayer(
+  layerIdx: number,
+  config: ParsedModelConfig,
+  layerWeights?: LayerWeights | null
+): boolean {
+  if (!config.useMoE) return false;
+
+  // Check if layer has router weights
+  if (layerWeights?.routerWeight) return true;
+
+  // Fall back to layer_types array if available
+  const layerTypes = config.layerTypes;
+  if (Array.isArray(layerTypes) && layerIdx < layerTypes.length) {
+    return layerTypes[layerIdx] === 'moe';
+  }
+
+  // Default: assume all layers are MoE if model uses MoE
+  return true;
+}
+
+// ============================================================================
+// Main Layer Processing
+// ============================================================================
+
+/**
+ * Process a single transformer layer.
+ *
+ * This is the main orchestration function that delegates to:
+ * - processLayerGPU() for GPU execution
+ * - processLayerCPU() for CPU fallback
+ *
+ * The layer processing follows either:
+ *
+ * Standard (LLaMA-style) architecture:
+ *   1. x_norm = input_layernorm(x)
+ *   2. attn_out = attention(x_norm)
+ *   3. x = x + attn_out  // residual
+ *   4. x_norm = post_attn_norm(x)
+ *   5. ffn_out = ffn(x_norm)
+ *   6. x = x + ffn_out  // residual
+ *
+ * Sandwich norm (Gemma 3) architecture:
+ *   1. x_norm = input_layernorm(x)
+ *   2. attn_out = attention(x_norm)
+ *   3. attn_out = post_attention_layernorm(attn_out)  // BEFORE residual
+ *   4. x = x + attn_out  // residual AFTER norm
+ *   5. ffn_in = pre_feedforward_layernorm(x)
+ *   6. ffn_out = mlp(ffn_in)
+ *   7. ffn_out = post_feedforward_layernorm(ffn_out)  // BEFORE residual
+ *   8. x = x + ffn_out  // residual AFTER norm
+ *
+ * @param layerIdx - Layer index
+ * @param hiddenStates - Input hidden states (GPUBuffer or Float32Array)
+ * @param numTokens - Number of tokens in the batch
+ * @param isPrefill - Whether this is prefill (true) or decode (false)
+ * @param context - Layer processing context
+ * @returns Layer output
+ */
+export async function processLayer(
+  layerIdx: number,
+  hiddenStates: GPUBuffer | Float32Array,
+  numTokens: number,
+  isPrefill: boolean,
+  context: LayerContext
+): Promise<GPUBuffer | Float32Array> {
+  const { config, useGPU } = context;
+  const { hiddenSize } = config;
+  const size = numTokens * hiddenSize;
+
+  // Debug routing (uses debug-utils)
+  logLayer(layerIdx, 'enter', isPrefill, { numTokens });
+
+  // Debug: check path being taken for layer 0
+  if (context.debug && layerIdx === 0) {
+    console.log(`[processLayer] L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
+  }
+
+  // GPU-native path
+  if (useGPU && hiddenStates instanceof GPUBuffer) {
+    return processLayerGPU(layerIdx, hiddenStates, numTokens, isPrefill, size, context);
+  }
+
+  // CPU fallback path
+  return processLayerCPU(layerIdx, hiddenStates as Float32Array, numTokens, isPrefill, context);
+}
+
+// ============================================================================
+// GPU Layer Processing
+// ============================================================================
+
+/**
+ * GPU-native layer processing (no CPU readbacks).
+ */
+export async function processLayerGPU(
+  layerIdx: number,
+  inputBuffer: GPUBuffer,
+  numTokens: number,
+  isPrefill: boolean,
+  size: number,
+  context: LayerContext
+): Promise<GPUBuffer> {
+  // Debug entry (uses debug-utils)
+  logLayer(layerIdx, 'enter', isPrefill, { numTokens });
+
+  const device = getDevice();
+  if (!device) throw new Error('No GPU device available');
+
+  const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, attentionKernelOverride, recorder } = context;
+  const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
+
+  const layerWeights = weights.get(`layer_${layerIdx}`) as LayerWeights | undefined;
+  const sandwichNorm = detectSandwichNorm(layerWeights);
+  const lastTokenIdx = Math.max(0, numTokens - 1);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    logKernelStep('layer', { layerIdx, label: `seqLen=${numTokens} prefill=${isPrefill}` });
+    await dumpTokenVector(inputBuffer, 'layer_in', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // 1. Self-attention (returns GPU buffer)
+  // Determine layer type for RoPE frequency selection (Gemma 3: sliding vs full attention)
+  const layerType = config.layerTypes?.[layerIdx];
+  const isLocalLayer = layerType === 'sliding_attention';
+
+  // Debug: log RoPE selection for first few layers
+  if (context.debug && layerIdx < 3) {
+    console.log(`[Layer${layerIdx}] RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+  }
+
+  const attnConfig: AttentionConfig = {
+    layerIdx,
+    numTokens,
+    isPrefill,
+    numHeads,
+    numKVHeads,
+    headDim,
+    hiddenSize,
+    rmsNormEps,
+    currentSeqLen: context.currentSeqLen,
+    slidingWindow: config.slidingWindow,
+    layerType,
+    attentionKernelOverride,
+  };
+
+  // Select RoPE frequencies based on layer type:
+  // - Local (sliding_attention) layers use ropeLocalTheta (10K for Gemma 3)
+  // - Global (full_attention) layers use ropeTheta (1M for Gemma 3)
+  const attnState: AttentionState = {
+    ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
+      ? context.ropeLocalCos as GPUBuffer | null
+      : ropeFreqsCos as GPUBuffer | null,
+    ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
+      ? context.ropeLocalSin as GPUBuffer | null
+      : ropeFreqsSin as GPUBuffer | null,
+    kvCache: kvCache as unknown as import('./types.js').KVCacheInterface,
+  };
+
+  const attnOutput = await doAttention(
+    inputBuffer,
+    layerWeights ?? null,
+    attnConfig,
+    attnState,
+    context.debug,
+    {},
+    (weight, label) => getWeightBuffer(weight, label),
+    (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+    recorder
+  );
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // Debug: trace attn output (uses debug-utils)
+  if (context.debug) {
+    const stats = await getBufferStats(attnOutput);
+    if (stats) logAttn(layerIdx, isPrefill, { numTokens, kvLen: context.currentSeqLen + (isPrefill ? numTokens : 1), maxAbsOut: stats.maxAbs });
+
+    // Debug layer 0, 2, and 17 attention output specifically (2 is where decode explosion happens)
+    // NOTE: Skip detailed readback when using recorder (batched mode) - buffers aren't populated yet!
+    console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
+    if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && !recorder) {
+      if (allowReadback(`layer.attn-out.${layerIdx}`)) {
+        try {
+          const sampleSize = Math.min(128, attnOutput.size);
+          const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          const enc = device.createCommandEncoder();
+          enc.copyBufferToBuffer(attnOutput, 0, staging, 0, sampleSize);
+          device.queue.submit([enc.finish()]);
+          await staging.mapAsync(GPUMapMode.READ);
+          const data = new Float32Array(staging.getMappedRange().slice(0));
+          staging.unmap();
+          staging.destroy();
+          const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+          const nonZero = Array.from(data).filter(x => x !== 0).length;
+          console.log(`[Layer${layerIdx}] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        } catch (e) {
+          console.log(`[Layer${layerIdx}] ATTN_OUT error: ${e}`);
+        }
+      }
+    } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
+      console.log(`[Layer${layerIdx}] ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
+    }
+  }
+
+  // 2. Handle residual connection based on architecture
+  // Debug: log architecture path for layer 0, 2, and 17
+  if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
+    console.log(`[Layer${layerIdx}] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
+  }
+
+  let postAttn: GPUBuffer;
+  if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
+    // Gemma 3 path: FUSED norm attention output + residual add (1 kernel instead of 2)
+    const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
+    if (context.debug && layerIdx === 0) {
+      console.log(`[Layer0] RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
+      // Debug: verify inputBuffer (residual) has the expected embedding values
+      if (inputBuffer instanceof GPUBuffer && allowReadback(`layer.residual-check.${layerIdx}`)) {
+        try {
+          const device = getDevice();
+          const sampleSize = Math.min(128, inputBuffer.size);
+          const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          const enc = device.createCommandEncoder();
+          enc.copyBufferToBuffer(inputBuffer, 0, staging, 0, sampleSize);
+          device.queue.submit([enc.finish()]);
+          await staging.mapAsync(GPUMapMode.READ);
+          const data = new Float32Array(staging.getMappedRange().slice(0));
+          staging.unmap();
+          staging.destroy();
+          const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+          console.log(`[Layer0] INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        } catch (e) {
+          console.log(`[Layer0] INPUT_RESIDUAL error: ${e}`);
+        }
+      }
+    }
+    postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize,
+      residual: inputBuffer,  // FUSION: Add residual in same kernel
+    }, recorder);
+
+    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(attnOutput);
+    } else {
+      releaseBuffer(attnOutput);
+    }
+  } else {
+    // Standard path: residual add first
+    postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(attnOutput);
+    } else {
+      releaseBuffer(attnOutput);
+    }
+  }
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(postAttn, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // Debug: log postAttn for layer 0
+  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
+  if (context.debug && layerIdx === 0 && postAttn instanceof GPUBuffer && !recorder) {
+    if (allowReadback('layer.post-attn.0')) {
+      try {
+        await device.queue.onSubmittedWorkDone();
+        const sampleSize = Math.min(128, postAttn.size);
+        const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(postAttn, 0, staging, 0, sampleSize);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+        console.log(`[Layer0] POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) {
+        console.log(`[Layer0] POST_ATTN error: ${e}`);
+      }
+    }
+  }
+
+  // 3. Feed-forward network
+  if (sandwichNorm.useSandwichNorm) {
+    return processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
+  } else {
+    return processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
+  }
+}
+
+/**
+ * Process FFN with sandwich norm architecture (Gemma 3).
+ */
+async function processFFNWithSandwichNorm(
+  layerIdx: number,
+  postAttn: GPUBuffer,
+  numTokens: number,
+  size: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | undefined,
+  sandwichNorm: SandwichNormInfo
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const { config, weightConfig, debugFlags, recorder } = context;
+  const { hiddenSize, rmsNormEps } = config;
+  const lastTokenIdx = Math.max(0, numTokens - 1);
+
+  // Debug helper for layers 0, 2, and 17 (only runs when context.debug is true)
+  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
+  const debugLayer = async (buf: GPUBuffer, label: string) => {
+    if (!context.debug || (layerIdx !== 0 && layerIdx !== 2 && layerIdx !== 17) || !device || recorder) return;
+    if (!allowReadback(`layer.ffn.${label}.${layerIdx}`)) return;
+    try {
+      // Force GPU sync before reading
+      await device.queue.onSubmittedWorkDone();
+
+      const sampleSize = Math.min(128, buf.size);
+      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(buf, 0, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+      const nonZero = Array.from(data).filter(x => x !== 0).length;
+      console.log(`[Layer${layerIdx}] FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
+    } catch (e) {
+      console.log(`[Layer${layerIdx}] FFN_${label} error: ${e}`);
+    }
+  };
+
+  // 1. Pre-FFN norm (applied to residual stream before FFN)
+  let ffnInput = postAttn;
+  if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
+    const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
+
+    // Debug: check norm weight values for layer 0, 2, and 17
+    if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && device) {
+      if (allowReadback(`layer.pre-ffn-norm.${layerIdx}`)) {
+        try {
+          const ws = Math.min(128, normWeightBuf.size);
+          const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          const wenc = device.createCommandEncoder();
+          wenc.copyBufferToBuffer(normWeightBuf, 0, wstaging, 0, ws);
+          device.queue.submit([wenc.finish()]);
+          await wstaging.mapAsync(GPUMapMode.READ);
+          const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
+          wstaging.unmap();
+          wstaging.destroy();
+          const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
+          const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
+          console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        } catch (e) { console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS error: ${e}`); }
+      }
+    }
+
+    // Debug: check input values for layers 0 and 17
+    await debugLayer(postAttn, 'PRE_NORM_INPUT');
+
+    ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize,
+    }, recorder);
+    if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    await debugLayer(ffnInput, 'PRE_NORM_OUTPUT');
+  }
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(ffnInput, 'pre_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // 2. FFN (or MoE FFN)
+  let ffnOutput: GPUBuffer;
+  if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
+    ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
+  } else {
+    ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
+  }
+  await debugLayer(ffnOutput, 'FFN_OUT');
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(ffnOutput, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (ffnInput !== postAttn) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnInput);
+    } else {
+      releaseBuffer(ffnInput);
+    }
+  }
+
+  // Debug: trace FFN output (uses debug-utils)
+  const ffnStats = await getBufferStats(ffnOutput);
+  if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
+
+  // 3. Post-FFN norm - applied to FFN output BEFORE residual add
+  let output: GPUBuffer;
+  if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
+    const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
+
+    // FUSED: norm FFN output + residual add (1 kernel instead of 2)
+    output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize,
+      residual: postAttn,  // FUSION: Add residual in same kernel
+    }, recorder);
+
+    if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnOutput);
+    } else {
+      releaseBuffer(ffnOutput);
+    }
+  } else {
+    // Standard path: residual add without norm
+    output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnOutput);
+    } else {
+      releaseBuffer(ffnOutput);
+    }
+  }
+
+  await debugLayer(output, 'FINAL');
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(output, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // Debug: Log output magnitude for EVERY layer to track growth
+  if (context.debug && device && !recorder) {
+    if (allowReadback(`layer.output.${layerIdx}`)) {
+      try {
+        const fullSize = output.size;
+        const staging = device.createBuffer({ size: fullSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(output, 0, staging, 0, fullSize);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        // Find max value and its position
+        let maxAbs = 0;
+        let maxIdx = -1;
+        for (let i = 0; i < data.length; i++) {
+          const abs = Math.abs(data[i]);
+          if (abs > maxAbs) { maxAbs = abs; maxIdx = i; }
+        }
+        // Calculate which token this is (hiddenSize = 1152 for Gemma 3 1B)
+        const tokenIdx = Math.floor(maxIdx / hiddenSize);
+        const dimIdx = maxIdx % hiddenSize;
+        console.log(`[LAYER_OUT] L${layerIdx}: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), bufSize=${data.length}`);
+      } catch (e) { /* ignore */ }
+    }
+  }
+  // Track postAttn for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(postAttn);
+  } else {
+    releaseBuffer(postAttn);
+  }
+
+  return output;
+}
+
+/**
+ * Process FFN with standard architecture (LLaMA-style).
+ */
+async function processFFNStandard(
+  layerIdx: number,
+  postAttn: GPUBuffer,
+  numTokens: number,
+  size: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | undefined
+): Promise<GPUBuffer> {
+  const { config, weightConfig, debugFlags, recorder } = context;
+  const { hiddenSize, rmsNormEps } = config;
+
+  // 1. Post-attention norm (LLaMA-style pre-FFN norm)
+  let normedBuffer = postAttn;
+  if (layerWeights?.postAttnNorm) {
+    const normWeightBuf = getNormWeightBuffer(layerWeights.postAttnNorm, 'post_attn_norm', weightConfig, debugFlags);
+    normedBuffer = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize,
+    }, recorder);
+    if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+  }
+
+  // 2. FFN (or MoE FFN)
+  let ffnOutput: GPUBuffer;
+  if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
+    ffnOutput = await runMoEFFNGPU(layerIdx, normedBuffer, numTokens, context);
+  } else {
+    ffnOutput = await runDenseFFNGPU(layerIdx, normedBuffer, numTokens, context, layerWeights);
+  }
+
+  // 3. Residual add: ffnOutput + postAttn
+  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
+
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (normedBuffer !== postAttn) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(normedBuffer);
+    } else {
+      releaseBuffer(normedBuffer);
+    }
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(postAttn);
+    recorder.trackTemporaryBuffer(ffnOutput);
+  } else {
+    releaseBuffer(postAttn);
+    releaseBuffer(ffnOutput);
+  }
+
+  return output;
+}
+
+// ============================================================================
+// FFN Operations
+// ============================================================================
+
+/**
+ * Run dense FFN on GPU.
+ *
+ * Supports two paths:
+ * - Fused (2 matmuls): gateUp -> split+activate -> down
+ * - Separate (3 matmuls): gate, up -> activate -> down
+ */
+async function runDenseFFNGPU(
+  layerIdx: number,
+  inputBuffer: GPUBuffer,
+  numTokens: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | undefined
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  if (!device) throw new Error('No GPU device');
+
+  const { config, recorder } = context;
+  const { hiddenSize, intermediateSize, hiddenActivation } = config;
+  const lastTokenIdx = Math.max(0, numTokens - 1);
+
+  // Check for fused gate+up path (2 matmuls instead of 3)
+  if (layerWeights?.gateUp && layerWeights?.down) {
+    const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
+    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+
+    // 1. Fused gate+up projection: [numTokens, hiddenSize] @ [intermediateSize*2, hiddenSize]^T -> [numTokens, intermediateSize*2]
+    const gateUpOutput = await doMatmul(
+      inputBuffer, gateUpWeight,
+      numTokens, intermediateSize * 2, hiddenSize,
+      { transposeB: 'auto' },
+      recorder
+    );
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(gateUpOutput, 'ffn_gate_up', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: intermediateSize * 2,
+      });
+    }
+
+    if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+
+    // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
+    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    const activatedOutput = await doSiLURowSplit(gateUpOutput, {
+      numTokens,
+      dim: intermediateSize,
+      activation,
+    }, recorder);
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(activatedOutput, 'ffn_activated', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: intermediateSize,
+      });
+    }
+
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(gateUpOutput);
+    } else {
+      releaseBuffer(gateUpOutput);
+    }
+
+    // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
+    const output = await doMatmul(
+      activatedOutput, downWeight,
+      numTokens, hiddenSize, intermediateSize,
+      { transposeB: 'auto' },
+      recorder
+    );
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(output, 'ffn_down_out', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: hiddenSize,
+      });
+    }
+
+    if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(activatedOutput);
+    } else {
+      releaseBuffer(activatedOutput);
+    }
+
+    return output;
+  }
+
+  // Fallback: separate gate/up path (3 matmuls)
+  if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
+    // Return copy of input (no FFN weights)
+    console.warn(`[Layer ${layerIdx}] FFN: no weights found (gateUp=${!!layerWeights?.gateUp}, gate=${!!layerWeights?.gate}, up=${!!layerWeights?.up}, down=${!!layerWeights?.down})`);
+    const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(inputBuffer, 0, output, 0, numTokens * hiddenSize * 4);
+    device.queue.submit([encoder.finish()]);
+    return output;
+  }
+
+  // 1. Gate projection
+  const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
+  const gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
+
+  // 2. Up projection
+  const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
+  const upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(gateOutput, 'ffn_gate', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+    await dumpTokenVector(upOutput, 'ffn_up', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+  }
+
+  // 3. Activation: activation(gate) * up
+  const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
+  const activatedOutput = await activationFn(upOutput, {
+    size: numTokens * intermediateSize,
+    gate: gateOutput,
+  }, recorder);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(activatedOutput, 'ffn_activated', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+  }
+
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(gateOutput);
+    recorder.trackTemporaryBuffer(upOutput);
+  } else {
+    releaseBuffer(gateOutput);
+    releaseBuffer(upOutput);
+  }
+
+  // 4. Down projection
+  const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+  const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' }, recorder);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(output, 'ffn_down_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+    });
+  }
+
+  if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(activatedOutput);
+  } else {
+    releaseBuffer(activatedOutput);
+  }
+
+  return output;
+}
+
+/**
+ * Run MoE FFN on GPU.
+ */
+async function runMoEFFNGPU(
+  layerIdx: number,
+  inputBuffer: GPUBuffer,
+  numTokens: number,
+  context: LayerContext
+): Promise<GPUBuffer> {
+  const { config, moeRouter, expertWeights, expertLoader, layerRouterWeights } = context;
+
+  if (!moeRouter || !expertWeights || !expertLoader) {
+    throw new Error('MoE components not initialized');
+  }
+
+  // Import dynamically to avoid circular dependency
+  const { moeFeedForwardGPU } = await import('./moe-impl.js');
+
+  return moeFeedForwardGPU(
+    inputBuffer,
+    numTokens,
+    {
+      hiddenSize: config.hiddenSize,
+      intermediateSize: config.intermediateSize,
+      numExperts: config.numExperts || 8,
+      moeTopK: config.moeTopK || 2,
+      hiddenActivation: config.hiddenActivation,
+    },
+    moeRouter,
+    expertWeights,
+    expertLoader,
+    layerIdx,
+    layerRouterWeights as Map<number, import('./moe-impl.js').LayerRouterWeights> | undefined
+  );
+}
+
+// ============================================================================
+// CPU Fallback
+// ============================================================================
+
+/**
+ * CPU fallback layer processing.
+ *
+ * This is a simplified version that returns zeros since full CPU inference
+ * is not the primary use case. The main purpose is to allow the pipeline
+ * to continue even when GPU is unavailable.
+ */
+export async function processLayerCPU(
+  layerIdx: number,
+  hiddenStates: Float32Array,
+  numTokens: number,
+  isPrefill: boolean,
+  context: LayerContext
+): Promise<Float32Array> {
+  const { config } = context;
+  const { hiddenSize } = config;
+
+  // CPU fallback - return copy of input (simplified)
+  // Full CPU inference would require implementing all operations on CPU
+  console.warn(`[Layer ${layerIdx}] CPU fallback - returning input unchanged`);
+  return new Float32Array(hiddenStates);
+}

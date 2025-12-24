@@ -1,0 +1,164 @@
+/**
+ * Kernel Hints Configuration
+ *
+ * Stores kernel selection hints from the manifest or runtime overrides.
+ * These hints guide kernel selection in matmul.ts and other kernel modules.
+ *
+ * Flow:
+ * 1. Pipeline loads manifest with optimizations.kernelHints
+ * 2. Pipeline calls setKernelHints() to configure globally
+ * 3. matmul.ts calls getKernelHints() to check before selecting kernel
+ *
+ * Override priority (highest to lowest):
+ * 1. Runtime API (setKernelHints with override=true)
+ * 2. YAML profile (future)
+ * 3. Manifest defaults (optimizations.kernelHints)
+ * 4. Built-in heuristics (when no hints provided)
+ */
+
+import type { KernelHints } from '../storage/rdrr-format.js';
+
+// Module-level state
+let currentHints: KernelHints | null = null;
+let hintsSource: 'manifest' | 'profile' | 'runtime' | null = null;
+
+/**
+ * Set kernel hints from manifest or runtime override.
+ */
+export function setKernelHints(hints: KernelHints, source: 'manifest' | 'profile' | 'runtime' = 'manifest'): void {
+  // Runtime overrides everything, profile overrides manifest
+  const priority = { manifest: 0, profile: 1, runtime: 2 };
+  if (!currentHints || priority[source] >= priority[hintsSource || 'manifest']) {
+    currentHints = hints;
+    hintsSource = source;
+    console.log(`[KernelHints] Set from ${source}:`, hints);
+  }
+}
+
+/**
+ * Get current kernel hints.
+ * Returns null if no hints have been set.
+ */
+export function getKernelHints(): KernelHints | null {
+  return currentHints;
+}
+
+/**
+ * Get the source of current hints.
+ */
+export function getKernelHintsSource(): string | null {
+  return hintsSource;
+}
+
+/**
+ * Clear kernel hints (for testing or model unload).
+ */
+export function clearKernelHints(): void {
+  currentHints = null;
+  hintsSource = null;
+}
+
+/**
+ * Check if Q4K should use fused kernel or dequant path.
+ * Based on hint value or falls back to manifest q4kMatmul hint.
+ */
+export function shouldUseFusedQ4K(): boolean {
+  // Check window override first (debug flag)
+  const debugFlags = typeof window !== 'undefined'
+    ? (window as unknown as { DOPPLER_DISABLE_FUSED_Q4K?: boolean })
+    : null;
+  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return false;
+
+  // Check kernel hints
+  const hints = getKernelHints();
+  if (hints?.q4kMatmul) {
+    // 'fused_q4k' means use fused, anything else (like 'dequant_f16') means don't
+    return hints.q4kMatmul === 'fused_q4k';
+  }
+
+  // Default: use fused if available (but our benchmarks show dequant is faster)
+  // Return false to default to dequant path which is 2x faster
+  return false;
+}
+
+/**
+ * Get recommended matmul variant for F16 weights.
+ */
+export function getF16MatmulHint(): string | null {
+  const hints = getKernelHints();
+  return hints?.f16Matmul || null;
+}
+
+/**
+ * Get recommended attention kernel for prefill.
+ */
+export function getAttentionPrefillHint(): string | null {
+  const hints = getKernelHints();
+  return hints?.attentionPrefill || null;
+}
+
+/**
+ * Get recommended attention kernel for decode.
+ */
+export function getAttentionDecodeHint(): string | null {
+  const hints = getKernelHints();
+  return hints?.attentionDecode || null;
+}
+
+/**
+ * Get preferred compute precision.
+ * - 'f16': Fast F16 arithmetic (requires shader-f16)
+ * - 'f32': Compatible F32 arithmetic
+ * - 'auto': Detect at runtime (default)
+ */
+export function getComputePrecision(): 'f16' | 'f32' | 'auto' {
+  const hints = getKernelHints();
+  return hints?.computePrecision || 'auto';
+}
+
+/**
+ * Check if F16 compute should be used based on hints and GPU capabilities.
+ * @param hasShaderF16 - Whether the GPU supports shader-f16
+ */
+export function shouldUseF16Compute(hasShaderF16: boolean): boolean {
+  const precision = getComputePrecision();
+
+  if (precision === 'f16') {
+    if (!hasShaderF16) {
+      console.warn('[KernelHints] F16 compute requested but shader-f16 not available, falling back to F32');
+      return false;
+    }
+    return true;
+  }
+
+  if (precision === 'f32') {
+    return false;
+  }
+
+  // auto: use F16 if available
+  return hasShaderF16;
+}
+
+/**
+ * Get the appropriate Q4K dequant strategy based on hints.
+ * Returns 'dequant_f16' or 'dequant_f32'.
+ */
+export function getQ4KDequantStrategy(hasShaderF16: boolean): 'dequant_f16' | 'dequant_f32' {
+  const hints = getKernelHints();
+  const q4kHint = hints?.q4kMatmul;
+
+  // Explicit hint takes precedence
+  if (q4kHint === 'dequant_f32') {
+    return 'dequant_f32';
+  }
+  if (q4kHint === 'dequant_f16') {
+    if (!hasShaderF16) {
+      console.warn('[KernelHints] dequant_f16 requested but shader-f16 not available, using dequant_f32');
+      return 'dequant_f32';
+    }
+    return 'dequant_f16';
+  }
+
+  // Fall back to compute precision preference
+  return shouldUseF16Compute(hasShaderF16) ? 'dequant_f16' : 'dequant_f32';
+}

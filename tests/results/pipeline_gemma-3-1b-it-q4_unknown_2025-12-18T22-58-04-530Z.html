@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOPPLER Benchmark Report - gemma-3-1b-it-q4</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-top: 0; }
+    h2 { color: #555; border-bottom: 2px solid #4a90d9; padding-bottom: 8px; }
+    h3 { color: #666; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .metric { padding: 15px; background: #f8f9fa; border-radius: 6px; }
+    .metric-value { font-size: 28px; font-weight: bold; color: #4a90d9; }
+    .metric-label { font-size: 14px; color: #666; }
+    .metric-unit { font-size: 14px; color: #999; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    th { background: #f8f9fa; font-weight: 600; }
+    .better { color: #28a745; }
+    .worse { color: #dc3545; }
+    .chart-container { margin: 20px 0; text-align: center; }
+    .env-info { font-size: 13px; color: #666; }
+    .timestamp { font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>DOPPLER Benchmark Report</h1>
+      <p class="timestamp">Generated: 2025-12-18T22:58:04.531Z</p>
+      <div class="env-info">
+        <strong>Model:</strong> gemma-3-1b-it-q4 |
+        <strong>Browser:</strong> Chrome 143.0.0.0 |
+        <strong>GPU:</strong> unknown |
+        <strong>OS:</strong> macOS
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Results: xs prompt</h2>
+      <div class="grid">
+        <div class="metric">
+          <div class="metric-value">1440<span class="metric-unit">ms</span></div>
+          <div class="metric-label">Time to First Token</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">5<span class="metric-unit">tok/s</span></div>
+          <div class="metric-label">Prefill Throughput</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">5<span class="metric-unit">tok/s</span></div>
+          <div class="metric-label">Decode Throughput</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">267</div>
+          <div class="metric-label">GPU Submits (14 prefill + 253 decode)</div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <svg width="600" height="150" xmlns="http://www.w3.org/2000/svg"><style>
+    .chart-title { font: bold 12px sans-serif; }
+    .axis-label { font: 10px sans-serif; fill: #666; }
+    .line { fill: none; stroke: #4a90d9; stroke-width: 2; }
+    .dot { fill: #4a90d9; }
+    .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+  </style><text x="300" y="15" text-anchor="middle" class="chart-title">Decode Latency per Token</text><text x="12" y="75" text-anchor="middle" transform="rotate(-90, 12, 75)" class="axis-label">ms</text><line x1="50" y1="30" x2="580" y2="30" class="grid-line"/><text x="45" y="34" text-anchor="end" class="axis-label">256.2</text><line x1="50" y1="60" x2="580" y2="60" class="grid-line"/><text x="45" y="64" text-anchor="end" class="axis-label">211.5</text><line x1="50" y1="90" x2="580" y2="90" class="grid-line"/><text x="45" y="94" text-anchor="end" class="axis-label">166.8</text><line x1="50" y1="120" x2="580" y2="120" class="grid-line"/><text x="45" y="124" text-anchor="end" class="axis-label">122.1</text><polyline points="50,104.84782929659488 58.54838709677419,110.88990004895876 67.09677419354838,109.95002239859942 75.64516129032258,110.21855881868274 84.19354838709677,108.87587647817583 92.74193548387098,107.19752350252337 101.29032258064515,106.79471877236075 109.83870967741936,106.52618231226239 118.38709677419355,103.90795164623552 126.93548387096774,103.70654932116928 135.48387096774195,102.76667163079486 144.03225806451613,100.28270923483224 152.5806451612903,99.67850217960337 161.1290322580645,98.26868566404929 169.67741935483872,95.71758913305455 178.2258064516129,96.92600328352732 186.7741935483871,95.31478444290698 195.32258064516128,94.50917498258177 203.8709677419355,92.09234672165127 212.4193548387097,89.1384454604939 220.96774193548387,91.82381026155288 229.51612903225805,90.27972547593455 238.06451612903226,89.40698196060734 246.61290322580646,89.3398478255752 255.16129032258064,86.25167837438372 263.7096774193548,87.05728779469388 272.258064516129,86.1845442393516 280.80645161290323,81.68655823259098 289.35483870967744,83.70058184338896 297.9032258064516,81.9550947327044 306.4516129032258,80.88094885229586 315,80.20960766203487 323.5483870967742,78.7997911464808 332.09677419354836,77.7256452260572 340.64516129032256,73.6975980844913 349.1935483870968,75.10741460004539 357.741935483871,73.02625693424537 366.2903225806452,73.6975980844913 374.8387096774194,73.29479339434374 383.38709677419354,70.34089213318639 391.93548387096774,70.07235567308803 400.4838709677419,69.06534388769654 409.0322580645161,69.13247802272866 417.58064516129036,65.91004030147293 426.1290322580645,65.7757720314087 434.6774193548387,63.5603461355595 443.2258064516129,61.07638373959687 451.7741935483871,61.68059079482573 460.3225806451613,61.34492019969524 468.8709677419355,60.06937191419034 477.41935483870964,58.995226033781805 485.9677419354839,59.062360168813925 494.5161290322581,56.511263637819184 503.06451612903226,54.49724006703623 511.61290322580646,54.765776527134605 520.1612903225806,53.69163060671101 528.7096774193549,52.88602122641589 537.258064516129,51.40907057582969 545.8064516129032,49.79785173520935 554.3548387096774,47.51529166431298 562.9032258064516,49.79785173520935 571.4516129032259,47.7838281644264 580,45.63553632357922" class="line"/><circle cx="50" cy="104.84782929659488" r="3" class="dot"/><circle cx="58.54838709677419" cy="110.88990004895876" r="3" class="dot"/><circle cx="67.09677419354838" cy="109.95002239859942" r="3" class="dot"/><circle cx="75.64516129032258" cy="110.21855881868274" r="3" class="dot"/><circle cx="84.19354838709677" cy="108.87587647817583" r="3" class="dot"/><circle cx="92.74193548387098" cy="107.19752350252337" r="3" class="dot"/><circle cx="101.29032258064515" cy="106.79471877236075" r="3" class="dot"/><circle cx="109.83870967741936" cy="106.52618231226239" r="3" class="dot"/><circle cx="118.38709677419355" cy="103.90795164623552" r="3" class="dot"/><circle cx="126.93548387096774" cy="103.70654932116928" r="3" class="dot"/><circle cx="135.48387096774195" cy="102.76667163079486" r="3" class="dot"/><circle cx="144.03225806451613" cy="100.28270923483224" r="3" class="dot"/><circle cx="152.5806451612903" cy="99.67850217960337" r="3" class="dot"/><circle cx="161.1290322580645" cy="98.26868566404929" r="3" class="dot"/><circle cx="169.67741935483872" cy="95.71758913305455" r="3" class="dot"/><circle cx="178.2258064516129" cy="96.92600328352732" r="3" class="dot"/><circle cx="186.7741935483871" cy="95.31478444290698" r="3" class="dot"/><circle cx="195.32258064516128" cy="94.50917498258177" r="3" class="dot"/><circle cx="203.8709677419355" cy="92.09234672165127" r="3" class="dot"/><circle cx="212.4193548387097" cy="89.1384454604939" r="3" class="dot"/><circle cx="220.96774193548387" cy="91.82381026155288" r="3" class="dot"/><circle cx="229.51612903225805" cy="90.27972547593455" r="3" class="dot"/><circle cx="238.06451612903226" cy="89.40698196060734" r="3" class="dot"/><circle cx="246.61290322580646" cy="89.3398478255752" r="3" class="dot"/><circle cx="255.16129032258064" cy="86.25167837438372" r="3" class="dot"/><circle cx="263.7096774193548" cy="87.05728779469388" r="3" class="dot"/><circle cx="272.258064516129" cy="86.1845442393516" r="3" class="dot"/><circle cx="280.80645161290323" cy="81.68655823259098" r="3" class="dot"/><circle cx="289.35483870967744" cy="83.70058184338896" r="3" class="dot"/><circle cx="297.9032258064516" cy="81.9550947327044" r="3" class="dot"/><circle cx="306.4516129032258" cy="80.88094885229586" r="3" class="dot"/><circle cx="315" cy="80.20960766203487" r="3" class="dot"/><circle cx="323.5483870967742" cy="78.7997911464808" r="3" class="dot"/><circle cx="332.09677419354836" cy="77.7256452260572" r="3" class="dot"/><circle cx="340.64516129032256" cy="73.6975980844913" r="3" class="dot"/><circle cx="349.1935483870968" cy="75.10741460004539" r="3" class="dot"/><circle cx="357.741935483871" cy="73.02625693424537" r="3" class="dot"/><circle cx="366.2903225806452" cy="73.6975980844913" r="3" class="dot"/><circle cx="374.8387096774194" cy="73.29479339434374" r="3" class="dot"/><circle cx="383.38709677419354" cy="70.34089213318639" r="3" class="dot"/><circle cx="391.93548387096774" cy="70.07235567308803" r="3" class="dot"/><circle cx="400.4838709677419" cy="69.06534388769654" r="3" class="dot"/><circle cx="409.0322580645161" cy="69.13247802272866" r="3" class="dot"/><circle cx="417.58064516129036" cy="65.91004030147293" r="3" class="dot"/><circle cx="426.1290322580645" cy="65.7757720314087" r="3" class="dot"/><circle cx="434.6774193548387" cy="63.5603461355595" r="3" class="dot"/><circle cx="443.2258064516129" cy="61.07638373959687" r="3" class="dot"/><circle cx="451.7741935483871" cy="61.68059079482573" r="3" class="dot"/><circle cx="460.3225806451613" cy="61.34492019969524" r="3" class="dot"/><circle cx="468.8709677419355" cy="60.06937191419034" r="3" class="dot"/><circle cx="477.41935483870964" cy="58.995226033781805" r="3" class="dot"/><circle cx="485.9677419354839" cy="59.062360168813925" r="3" class="dot"/><circle cx="494.5161290322581" cy="56.511263637819184" r="3" class="dot"/><circle cx="503.06451612903226" cy="54.49724006703623" r="3" class="dot"/><circle cx="511.61290322580646" cy="54.765776527134605" r="3" class="dot"/><circle cx="520.1612903225806" cy="53.69163060671101" r="3" class="dot"/><circle cx="528.7096774193549" cy="52.88602122641589" r="3" class="dot"/><circle cx="537.258064516129" cy="51.40907057582969" r="3" class="dot"/><circle cx="545.8064516129032" cy="49.79785173520935" r="3" class="dot"/><circle cx="554.3548387096774" cy="47.51529166431298" r="3" class="dot"/><circle cx="562.9032258064516" cy="49.79785173520935" r="3" class="dot"/><circle cx="571.4516129032259" cy="47.7838281644264" r="3" class="dot"/><circle cx="580" cy="45.63553632357922" r="3" class="dot"/></svg>
+      </div>
+
+      <h3>Latency Percentiles</h3>
+      <table>
+        <tr><th>P50</th><th>P90</th><th>P99</th></tr>
+        <tr>
+          <td>181.40 ms</td>
+          <td>221.86 ms</td>
+          <td>231.16 ms</td>
+        </tr>
+      </table>
+</div>
+    <div class="card">
+      <h2>All Metrics</h2>
+      <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+<tr><td>TTFT</td><td>1440 ms</td></tr><tr><td>Prefill Time</td><td>1331 ms</td></tr><tr><td>Prefill Throughput</td><td>5 tok/s</td></tr><tr><td>Decode Time</td><td>11519 ms</td></tr><tr><td>Decode Throughput</td><td>5 tok/s</td></tr><tr><td>GPU Submits (Prefill)</td><td>14</td></tr><tr><td>GPU Submits (Decode)</td><td>253</td></tr><tr><td>GPU Readback Bytes</td><td>1024.2 KB</td></tr><tr><td>Peak VRAM</td><td>2274.1 MB</td></tr><tr><td>GPU Timestamp Available</td><td>Yes</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <p class="timestamp">Report generated by DOPPLER CLI</p>
+    </div>
+  </div>
+</body>
+</html>

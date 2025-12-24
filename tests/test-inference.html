@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DOPPLER Inference Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a2e;
+      color: #eee;
+    }
+    #log {
+      white-space: pre-wrap;
+      font-size: 12px;
+      background: #16213e;
+      padding: 10px;
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      padding: 8px 16px;
+      cursor: pointer;
+      background: #0f3460;
+      color: #eee;
+      border: 1px solid #1a5276;
+      border-radius: 4px;
+    }
+    button:hover { background: #1a5276; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    input, select {
+      padding: 8px;
+      background: #16213e;
+      color: #eee;
+      border: 1px solid #1a5276;
+      border-radius: 4px;
+    }
+    #prompt-input { width: 300px; }
+    #model-select { min-width: 180px; }
+    .error { color: #ff6b6b; }
+    .success { color: #6bff6b; }
+    .info { color: #6b9fff; }
+    .status { margin: 10px 0; padding: 10px; background: #0f3460; border-radius: 4px; }
+    #output { margin-top: 10px; padding: 10px; background: #1e3a5f; border-radius: 4px; min-height: 50px; }
+    .model-info { font-size: 11px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>DOPPLER Inference Test</h1>
+
+  <div class="controls">
+    <select id="model-select">
+      <option value="">Loading models...</option>
+    </select>
+    <input type="text" id="prompt-input" value="the color of the sky is" placeholder="Enter prompt...">
+    <button id="run-btn" disabled>Run Test</button>
+    <button id="clear-btn">Clear Log</button>
+  </div>
+
+  <div class="status">
+    <strong>Status:</strong> <span id="status-text">Initializing...</span>
+  </div>
+
+  <div id="output">
+    <strong>Output:</strong> <span id="output-text">--</span>
+  </div>
+
+  <div id="log"></div>
+
+  <script type="module">
+    // Parse query params: ?model=gemma3-1b-q4&prompt=hello&autorun=1
+    const params = new URLSearchParams(window.location.search);
+    const paramModel = params.get('model');
+    const paramPrompt = params.get('prompt');
+    const paramAutorun = params.get('autorun') === '1';
+    const paramKernelHints = params.get('kernelHints');
+    const paramAttentionKernel = params.get('attentionKernel');
+    const paramComputePrecision = params.get('computePrecision');
+    const paramQ4KMatmul = params.get('q4kMatmul');
+    const paramF16Matmul = params.get('f16Matmul');
+    const paramAttentionPrefill = params.get('attentionPrefill');
+    const paramAttentionDecode = params.get('attentionDecode');
+
+    const BASE_URL = 'http://localhost:8080/doppler/models';
+
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status-text');
+    const outputEl = document.getElementById('output-text');
+    const runBtn = document.getElementById('run-btn');
+    const promptInput = document.getElementById('prompt-input');
+    const modelSelect = document.getElementById('model-select');
+
+    function buildRuntimeOverrides() {
+      const hints = {};
+      if (paramKernelHints) {
+        try {
+          const parsed = JSON.parse(paramKernelHints);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            Object.assign(hints, parsed);
+          }
+        } catch (e) {
+          log(`WARN: Failed to parse kernelHints JSON: ${e.message}`, 'error');
+        }
+      }
+      if (paramComputePrecision) hints.computePrecision = paramComputePrecision;
+      if (paramQ4KMatmul) hints.q4kMatmul = paramQ4KMatmul;
+      if (paramF16Matmul) hints.f16Matmul = paramF16Matmul;
+      if (paramAttentionPrefill) hints.attentionPrefill = paramAttentionPrefill;
+      if (paramAttentionDecode) hints.attentionDecode = paramAttentionDecode;
+
+      const runtime = { debug: true };
+      if (paramAttentionKernel) runtime.attentionKernel = paramAttentionKernel;
+      if (Object.keys(hints).length > 0) runtime.kernelHints = hints;
+      return runtime;
+    }
+
+    // Expose state for Playwright
+    window.testState = {
+      ready: false,
+      loading: false,
+      loaded: false,
+      generating: false,
+      done: false,
+      output: '',
+      tokens: [],
+      errors: [],
+      model: null,
+    };
+
+    function log(msg, className = '') {
+      const line = document.createElement('div');
+      line.className = className;
+      const time = new Date().toISOString().slice(11, 19);
+      line.textContent = `[${time}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(msg);
+    }
+
+    function setStatus(text, className = '') {
+      statusEl.textContent = text;
+      statusEl.className = className;
+    }
+
+    // Discover available models
+    async function discoverModels() {
+      try {
+        const resp = await fetch('/api/models');
+        if (resp.ok) {
+          const models = await resp.json();
+          return models.map(m => m.id || m.name || m);
+        }
+      } catch (e) {
+        // Fallback: try common model names
+      }
+      return ['gemma3-1b-q4', 'mistral-7b-q4', 'llama3-8b-q4'];
+    }
+
+    async function initModelSelector() {
+      const models = await discoverModels();
+      modelSelect.innerHTML = '';
+
+      for (const model of models) {
+        const opt = document.createElement('option');
+        opt.value = model;
+        opt.textContent = model;
+        modelSelect.appendChild(opt);
+      }
+
+      // Select from query param or default
+      if (paramModel && models.includes(paramModel)) {
+        modelSelect.value = paramModel;
+      } else if (paramModel) {
+        // Add custom model from param even if not in list
+        const opt = document.createElement('option');
+        opt.value = paramModel;
+        opt.textContent = `${paramModel} (custom)`;
+        modelSelect.appendChild(opt);
+        modelSelect.value = paramModel;
+      }
+
+      window.testState.model = modelSelect.value;
+      runBtn.disabled = false;
+      setStatus('Ready');
+    }
+
+    async function runTest() {
+      const model = modelSelect.value;
+      const prompt = promptInput.value || 'the color of the sky is';
+      const MODEL_URL = `${BASE_URL}/${model}`;
+
+      window.testState = {
+        ready: true,
+        loading: true,
+        loaded: false,
+        generating: false,
+        done: false,
+        output: '',
+        tokens: [],
+        errors: [],
+        model,
+      };
+
+      logEl.innerHTML = '';
+      outputEl.textContent = '--';
+      runBtn.disabled = true;
+
+      try {
+        log('='.repeat(50));
+        log(`DOPPLER Inference Test: ${model}`, 'info');
+        log('='.repeat(50));
+
+        // 1. Initialize WebGPU
+        setStatus('Initializing WebGPU...', 'info');
+        log('1. Initializing WebGPU...');
+
+        const { initDevice, getDevice, getKernelCapabilities } = await import('/doppler/dist/gpu/device.js');
+        await initDevice();
+        const device = getDevice();
+        const caps = getKernelCapabilities();
+
+        log(`   GPU: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
+
+        // 2. Fetch manifest
+        setStatus('Fetching manifest...', 'info');
+        log('2. Fetching manifest...');
+
+        const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
+        if (!manifestResp.ok) throw new Error(`Failed to fetch manifest: ${manifestResp.status}`);
+        const manifest = await manifestResp.json();
+
+        log(`   Model: ${manifest.architecture || manifest.modelId}`, 'success');
+        log(`   Layers: ${manifest.config?.num_hidden_layers || '?'}, Hidden: ${manifest.config?.hidden_size || '?'}`);
+
+        // 3. Parse manifest
+        setStatus('Parsing manifest...', 'info');
+        log('3. Parsing manifest...');
+
+        const { parseManifest } = await import('/doppler/dist/storage/rdrr-format.js');
+        const modelInfo = parseManifest(JSON.stringify(manifest));
+        log(`   Parsed ${modelInfo.tensors.size} tensors`, 'success');
+
+        // 4. Create pipeline
+        setStatus('Loading model...', 'info');
+        log('4. Creating pipeline and loading model...');
+
+        const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
+
+        const loadShard = async (idx) => {
+          const shard = manifest.shards[idx];
+          if (!shard) throw new Error(`No shard at index ${idx}`);
+          log(`   Loading shard ${idx}: ${shard.fileName}`);
+          const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+          if (!resp.ok) throw new Error(`Failed to load shard ${idx}`);
+          const data = new Uint8Array(await resp.arrayBuffer());
+          log(`   Shard ${idx}: ${(data.byteLength / 1024 / 1024).toFixed(1)}MB`);
+          return data;
+        };
+
+        const pipeline = await createPipeline(modelInfo, {
+          storage: { loadShard },
+          gpu: { device },
+          baseUrl: MODEL_URL,
+          runtime: buildRuntimeOverrides(),
+          onProgress: (phase, progress, detail) => {
+            if (detail) {
+              log(`   [${phase}] ${Math.round(progress * 100)}% - ${detail}`);
+            }
+          },
+        });
+
+        log('   Model loaded!', 'success');
+        window.testState.loaded = true;
+        window.testState.loading = false;
+
+        // 5. Generate
+        setStatus('Generating...', 'info');
+        window.testState.generating = true;
+        log(`5. Generating from: "${prompt}"`);
+
+        const tokens = [];
+        const startTime = Date.now();
+
+        for await (const tokenText of pipeline.generate(prompt, {
+          maxTokens: 50,
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.9,
+        })) {
+          tokens.push(tokenText);
+          window.testState.tokens = tokens;
+          log(`   Token ${tokens.length}: "${tokenText}"`, 'info');
+          outputEl.textContent = tokens.join('');
+        }
+
+        const elapsed = Date.now() - startTime;
+        const tokPerSec = tokens.length / (elapsed / 1000);
+
+        const output = tokens.join('');
+        window.testState.output = output;
+        window.testState.generating = false;
+        window.testState.done = true;
+
+        log('='.repeat(50));
+        log(`OUTPUT: ${output}`, 'success');
+        log(`Generated ${tokens.length} tokens in ${elapsed}ms (${tokPerSec.toFixed(1)} tok/s)`);
+        log('='.repeat(50));
+
+        // Analyze output
+        const goodWords = ['blue', 'clear', 'beautiful', 'cloudy', 'dark', 'bright', 'typically', 'usually', 'sky', 'color'];
+        const hasGood = goodWords.some(w => output.toLowerCase().includes(w));
+
+        if (hasGood) {
+          setStatus('PASS - Coherent output', 'success');
+          log('STATUS: PASS - Output looks coherent!', 'success');
+        } else {
+          setStatus('CHECK - Review output', 'info');
+          log('STATUS: CHECK - Output may need review', 'info');
+        }
+
+      } catch (err) {
+        window.testState.errors.push(err.message);
+        window.testState.done = true;
+        setStatus(`ERROR: ${err.message}`, 'error');
+        log(`ERROR: ${err.message}`, 'error');
+        log(err.stack, 'error');
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    // Event listeners
+    runBtn.addEventListener('click', runTest);
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      logEl.innerHTML = '';
+      outputEl.textContent = '--';
+      setStatus('Ready');
+    });
+
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !runBtn.disabled) runTest();
+    });
+
+    modelSelect.addEventListener('change', () => {
+      window.testState.model = modelSelect.value;
+    });
+
+    // Apply prompt from query param
+    if (paramPrompt) {
+      promptInput.value = paramPrompt;
+    }
+
+    // Initialize
+    initModelSelector().then(() => {
+      window.testState.ready = true;
+      log('Ready. Select a model and click "Run Test".');
+      log(`Query params: model=${paramModel || '(default)'}, autorun=${paramAutorun}`);
+
+      // Auto-run if requested via query param
+      if (paramAutorun && modelSelect.value) {
+        log('Auto-running test...');
+        runTest();
+      }
+    });
+  </script>
+</body>
+</html>

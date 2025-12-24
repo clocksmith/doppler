@@ -1,0 +1,126 @@
+/**
+ * CLI Types - Shared type definitions for DOPPLER CLI
+ */
+
+import type { KernelHints } from '../../storage/rdrr-format.js';
+export type Command = 'run' | 'test' | 'bench' | 'debug';
+
+export type TestSuite =
+  | 'kernels'          // Kernel correctness tests (renamed from 'correctness')
+  | 'correctness'      // DEPRECATED: alias for 'kernels'
+  | 'demo'             // Demo UI test (model load + generate via app)
+  | 'converter'        // Converter UI test
+  | 'inference'        // Quick inference validation
+  | 'quick'            // Quick validation (subset of kernels)
+  | 'all';             // All tests
+
+export type BenchSuite =
+  | 'kernels'          // Kernel microbenchmarks
+  | 'inference'        // Full inference benchmark (E2E generation)
+  | 'loading'          // Model loading to GPU timing
+  | 'system'           // Storage/OPFS benchmarks
+  | 'all';             // All benchmarks
+
+// Legacy suite types for backward compatibility
+export type LegacySuite =
+  | 'bench:kernels'
+  | 'bench:pipeline'
+  | 'bench:system';
+
+export type SuiteType = TestSuite | BenchSuite | LegacySuite;
+
+export interface CLIOptions {
+  command: Command;
+  suite: SuiteType;
+  model: string;
+  baseUrl: string;
+  /** Serve files directly from disk via Playwright routing (no dev server). */
+  noServer: boolean;
+  /** Run headless (no browser window). Default is headed for GPU access. */
+  headless: boolean;
+  /** Position browser window off-screen to avoid focus stealing. */
+  minimized: boolean;
+  verbose: boolean;
+  filter: string | null;
+  timeout: number;
+  output: string | null;
+  html: string | null;       // HTML report path (bench only)
+  warmup: number;
+  runs: number;
+  maxTokens: number;         // For inference benchmarks
+  temperature: number;       // For inference benchmarks
+  prompt: string;            // Prompt size preset: xs, short, medium, long
+  text: string | null;       // Custom prompt text (overrides prompt)
+  file: string | null;       // Load prompt from file (overrides prompt)
+  compare: string | null;    // Compare against baseline
+  trace: string | null;      // Debug trace preset: quick, layers, attention, full
+  /** Layer filter for debug trace categories (does NOT enable recorder batching). */
+  traceLayers: number[] | null;
+  debugLayers: number[] | null; // Specific layers to debug
+  /** Playwright persistent profile directory.
+   *  Controls browser storage persistence, including OPFS model cache. */
+  profileDir: string | null;
+  retries: number;           // Number of retries on failure
+  quiet: boolean;            // Suppress JSON output
+  help: boolean;
+  /** Enable GPU timestamp profiling for per-kernel timing.
+   *  Requires 'timestamp-query' WebGPU feature. */
+  gpuProfile: boolean;
+  /** Kernel hint overrides (bench/debug). */
+  computePrecision: string | null;
+  q4kMatmul: string | null;
+  f16Matmul: string | null;
+  attentionPrefill: string | null;
+  attentionDecode: string | null;
+  attentionKernel: string | null;
+  kernelHints: KernelHints | null;
+
+  // Debug mode options
+  /** Enable verbose debug output during inference */
+  debug: boolean;
+  /** Stop at specific layer for inspection (debug mode) */
+  layer: number | null;
+  /** Number of tokens to encode before stopping (debug mode) */
+  tokens: number | null;
+  /** Specific kernel to trace (debug mode) */
+  kernel: string | null;
+}
+
+// Alias for backward compatibility
+export type TestOptions = CLIOptions;
+
+export interface TestResult {
+  name: string;
+  passed: boolean;
+  duration: number;
+  error?: string;
+}
+
+export interface SuiteResult {
+  suite: string;
+  passed: number;
+  failed: number;
+  skipped: number;
+  duration: number;
+  results: TestResult[];
+}
+
+export interface ComparisonResult {
+  metric: string;
+  baseline: number;
+  current: number;
+  delta: number;
+  deltaPercent: number;
+  improved: boolean;
+}
+
+export interface TTestResult {
+  tStatistic: number;
+  degreesOfFreedom: number;
+  pValue: number;
+  significant: boolean;
+  meanA: number;
+  meanB: number;
+  stdA: number;
+  stdB: number;
+}

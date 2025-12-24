@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOPPLER Benchmark Report - dcc83ea841ab6100d6b47a070329e1ba4cf78752</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-top: 0; }
+    h2 { color: #555; border-bottom: 2px solid #4a90d9; padding-bottom: 8px; }
+    h3 { color: #666; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .metric { padding: 15px; background: #f8f9fa; border-radius: 6px; }
+    .metric-value { font-size: 28px; font-weight: bold; color: #4a90d9; }
+    .metric-label { font-size: 14px; color: #666; }
+    .metric-unit { font-size: 14px; color: #999; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    th { background: #f8f9fa; font-weight: 600; }
+    .better { color: #28a745; }
+    .worse { color: #dc3545; }
+    .chart-container { margin: 20px 0; text-align: center; }
+    .env-info { font-size: 13px; color: #666; }
+    .timestamp { font-size: 12px; color: #999; }
+    .significance { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .sig-yes { background: #d4edda; color: #155724; }
+    .sig-no { background: #f8f9fa; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>DOPPLER Benchmark Report</h1>
+      <p class="timestamp">Generated: 2025-12-17T00:26:53.230Z</p>
+      <div class="env-info">
+        <strong>Model:</strong> dcc83ea841ab6100d6b47a070329e1ba4cf78752 |
+        <strong>Browser:</strong> Chrome 143.0.0.0 |
+        <strong>GPU:</strong> unknown |
+        <strong>OS:</strong> macOS
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Results: short prompt</h2>
+      <div class="grid">
+        <div class="metric">
+          <div class="metric-value">537<span class="metric-unit">ms</span></div>
+          <div class="metric-label">Time to First Token</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">44<span class="metric-unit">tok/s</span></div>
+          <div class="metric-label">Prefill Throughput</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">9<span class="metric-unit">tok/s</span></div>
+          <div class="metric-label">Decode Throughput</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">590</div>
+          <div class="metric-label">GPU Submits (26 prefill + 564 decode)</div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <svg width="600" height="150" xmlns="http://www.w3.org/2000/svg"><style>
+    .chart-title { font: bold 12px sans-serif; }
+    .axis-label { font: 10px sans-serif; fill: #666; }
+    .line { fill: none; stroke: #4a90d9; stroke-width: 2; }
+    .dot { fill: #4a90d9; }
+    .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+  </style><text x="300" y="15" text-anchor="middle" class="chart-title">Decode Latency per Token</text><text x="12" y="75" text-anchor="middle" transform="rotate(-90, 12, 75)" class="axis-label">ms</text><line x1="50" y1="30" x2="580" y2="30" class="grid-line"/><text x="45" y="34" text-anchor="end" class="axis-label">143.3</text><line x1="50" y1="60" x2="580" y2="60" class="grid-line"/><text x="45" y="64" text-anchor="end" class="axis-label">120.8</text><line x1="50" y1="90" x2="580" y2="90" class="grid-line"/><text x="45" y="94" text-anchor="end" class="axis-label">98.2</text><line x1="50" y1="120" x2="580" y2="120" class="grid-line"/><text x="45" y="124" text-anchor="end" class="axis-label">75.7</text><polyline points="50,53.85718513076907 67.66666666666667,57.848906003317516 85.33333333333334,56.119160196709814 103,53.85718513076907 120.66666666666667,47.337374324688255 138.33333333333331,108.80987582538103 156,108.14458893398125 173.66666666666669,106.28178589184866 191.33333333333334,103.88675335245792 209,101.22560610409228 226.66666666666666,98.8305736440099 244.33333333333331,97.89917204363525 262,91.1132466078879 279.6666666666667,90.71407442546302 297.33333333333337,89.78267298370508 315,85.5248373228734 332.6666666666667,83.92814906902404 350.3333333333333,81.79923115929984 368,82.46451805069961 385.66666666666663,62.106741584840854 403.3333333333333,76.87610876568509 421,72.75133057830337 438.66666666666663,70.35629803891263 456.33333333333337,68.36043760263841 474,67.42903608157212 491.6666666666667,65.83234766910604 509.33333333333337,64.36871673008997 527,61.441454772749445 544.6666666666667,57.316676506059366 562.3333333333334,53.458013027652555 580,52.792726215561146" class="line"/><circle cx="50" cy="53.85718513076907" r="3" class="dot"/><circle cx="67.66666666666667" cy="57.848906003317516" r="3" class="dot"/><circle cx="85.33333333333334" cy="56.119160196709814" r="3" class="dot"/><circle cx="103" cy="53.85718513076907" r="3" class="dot"/><circle cx="120.66666666666667" cy="47.337374324688255" r="3" class="dot"/><circle cx="138.33333333333331" cy="108.80987582538103" r="3" class="dot"/><circle cx="156" cy="108.14458893398125" r="3" class="dot"/><circle cx="173.66666666666669" cy="106.28178589184866" r="3" class="dot"/><circle cx="191.33333333333334" cy="103.88675335245792" r="3" class="dot"/><circle cx="209" cy="101.22560610409228" r="3" class="dot"/><circle cx="226.66666666666666" cy="98.8305736440099" r="3" class="dot"/><circle cx="244.33333333333331" cy="97.89917204363525" r="3" class="dot"/><circle cx="262" cy="91.1132466078879" r="3" class="dot"/><circle cx="279.6666666666667" cy="90.71407442546302" r="3" class="dot"/><circle cx="297.33333333333337" cy="89.78267298370508" r="3" class="dot"/><circle cx="315" cy="85.5248373228734" r="3" class="dot"/><circle cx="332.6666666666667" cy="83.92814906902404" r="3" class="dot"/><circle cx="350.3333333333333" cy="81.79923115929984" r="3" class="dot"/><circle cx="368" cy="82.46451805069961" r="3" class="dot"/><circle cx="385.66666666666663" cy="62.106741584840854" r="3" class="dot"/><circle cx="403.3333333333333" cy="76.87610876568509" r="3" class="dot"/><circle cx="421" cy="72.75133057830337" r="3" class="dot"/><circle cx="438.66666666666663" cy="70.35629803891263" r="3" class="dot"/><circle cx="456.33333333333337" cy="68.36043760263841" r="3" class="dot"/><circle cx="474" cy="67.42903608157212" r="3" class="dot"/><circle cx="491.6666666666667" cy="65.83234766910604" r="3" class="dot"/><circle cx="509.33333333333337" cy="64.36871673008997" r="3" class="dot"/><circle cx="527" cy="61.441454772749445" r="3" class="dot"/><circle cx="544.6666666666667" cy="57.316676506059366" r="3" class="dot"/><circle cx="562.3333333333334" cy="53.458013027652555" r="3" class="dot"/><circle cx="580" cy="52.792726215561146" r="3" class="dot"/></svg>
+      </div>
+
+      <h3>Latency Percentiles</h3>
+      <table>
+        <tr><th>P50</th><th>P90</th><th>P99</th></tr>
+        <tr>
+          <td>111.20 ms</td>
+          <td>125.40 ms</td>
+          <td>129.07 ms</td>
+        </tr>
+      </table>
+</div>
+    <div class="card">
+      <h2>All Metrics</h2>
+      <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+<tr><td>TTFT</td><td>537 ms</td></tr><tr><td>Prefill Time</td><td>454 ms</td></tr><tr><td>Prefill Throughput</td><td>44 tok/s</td></tr><tr><td>Decode Time</td><td>3359 ms</td></tr><tr><td>Decode Throughput</td><td>9 tok/s</td></tr><tr><td>GPU Submits (Prefill)</td><td>26</td></tr><tr><td>GPU Submits (Decode)</td><td>564</td></tr><tr><td>GPU Readback Bytes</td><td>1024.1 KB</td></tr><tr><td>Peak VRAM</td><td>4689.8 MB</td></tr><tr><td>GPU Timestamp Available</td><td>Yes</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <p class="timestamp">Report generated by DOPPLER Benchmark CLI</p>
+    </div>
+  </div>
+</body>
+</html>

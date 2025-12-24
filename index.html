@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOPPLER - Browser LLM</title>
+  <link rel="icon" type="image/svg+xml" href="/doppler/favicon.svg">
+  <link rel="stylesheet" href="/doppler/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header-title">DOPPLER</h1>
+      <span class="header-subtitle">Browser-native LLM Inference</span>
+      <div id="status-indicator" class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Initializing...</span>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="main-layout">
+      <!-- Sidebar: Model Selection -->
+      <aside class="sidebar" id="sidebar">
+        <section class="panel model-panel">
+          <h2 class="panel-title">Models</h2>
+          <div id="model-list" class="model-list">
+            <!-- Model items populated by model-selector.js -->
+          </div>
+          <div class="storage-info" id="storage-info">
+            <span class="storage-label">Storage:</span>
+            <span class="storage-value" id="storage-used">-- / --</span>
+          </div>
+        </section>
+
+        <section class="panel gpu-panel">
+          <h2 class="panel-title">GPU Info</h2>
+          <div class="gpu-info" id="gpu-info">
+            <div class="gpu-row">
+              <span class="gpu-label">Device</span>
+              <span class="gpu-value" id="gpu-device">--</span>
+            </div>
+            <div class="gpu-row">
+              <span class="gpu-label">VRAM Limit</span>
+              <span class="gpu-value" id="gpu-vram">--</span>
+            </div>
+            <div class="gpu-row">
+              <span class="gpu-label">Features</span>
+              <span class="gpu-value" id="gpu-features">--</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel memory-panel">
+          <h2 class="panel-title">Memory Usage</h2>
+          <div class="memory-bars" id="memory-bars">
+            <div class="memory-bar-row memory-total-row">
+              <span class="memory-label">Total</span>
+              <div class="memory-bar-container memory-bar-stacked">
+                <div class="memory-bar memory-bar-heap-stacked" id="memory-bar-heap-stacked" style="width: 0%"></div>
+                <div class="memory-bar memory-bar-gpu-stacked" id="memory-bar-gpu-stacked" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-total">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">JS Heap</span>
+              <div class="memory-bar-container">
+                <div class="memory-bar" id="memory-bar-heap" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-heap">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">GPU</span>
+              <div class="memory-bar-container">
+                <div class="memory-bar memory-bar-gpu" id="memory-bar-gpu" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-gpu">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">Cache</span>
+              <div class="memory-bar-container">
+                <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-opfs">--</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel attention-panel">
+          <h2 class="panel-title">Attention Kernel</h2>
+          <select id="attention-kernel-select" class="attention-select">
+            <option value="auto">Auto (fastest safe)</option>
+            <option value="tiled_large">Tiled large (headDim ≤ 64)</option>
+            <option value="tiled_small">Tiled small (compat)</option>
+            <option value="streaming">Streaming (slow)</option>
+          </select>
+          <div class="attention-note" id="attention-kernel-note">
+            Uses manifest default unless overridden.
+          </div>
+        </section>
+
+        <section class="panel sampling-panel">
+          <h2 class="panel-title">Sampling</h2>
+          <div class="sampling-row">
+            <label for="temperature-input">Temperature</label>
+            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1" value="1.0">
+          </div>
+          <div class="sampling-row">
+            <label for="top-p-input">Top-p</label>
+            <input id="top-p-input" class="sampling-input" type="number" min="0" max="1" step="0.05" value="0.95">
+          </div>
+          <div class="sampling-row">
+            <label for="top-k-input">Top-k</label>
+            <input id="top-k-input" class="sampling-input" type="number" min="0" max="200" step="1" value="40">
+          </div>
+        </section>
+
+        <section class="panel stats-panel">
+          <h2 class="panel-title">Performance</h2>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">Tokens/sec</span>
+              <span class="stat-value" id="stat-tps">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Memory</span>
+              <span class="stat-value" id="stat-memory">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">GPU Buffers</span>
+              <span class="stat-value" id="stat-gpu">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">KV Cache</span>
+              <span class="stat-value" id="stat-kv">--</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel convert-panel">
+          <h2 class="panel-title">Convert Model</h2>
+          <p class="convert-description">Import GGUF or HuggingFace models</p>
+          <button id="convert-btn" class="convert-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Select Files
+          </button>
+          <div id="convert-status" class="convert-status" hidden>
+            <div class="convert-progress-bar">
+              <div id="convert-progress" class="convert-progress"></div>
+            </div>
+            <span id="convert-message" class="convert-message">Ready</span>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Chat Area -->
+      <section class="chat-container" id="chat-container">
+        <!-- Progress Overlay -->
+        <div class="progress-overlay" id="progress-overlay" hidden>
+          <div class="progress-content">
+            <div class="progress-title" id="progress-title">Loading Model</div>
+            <div class="progress-phases" id="progress-phases">
+              <!-- Network Phase (only shown when downloading) -->
+              <div class="progress-phase-row" data-phase="network">
+                <span class="progress-phase-label">Network</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #3b82f6;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
+              <!-- Cache/OPFS Phase -->
+              <div class="progress-phase-row" data-phase="cache">
+                <span class="progress-phase-label">Cache</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #a855f7;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
+              <!-- VRAM Phase -->
+              <div class="progress-phase-row" data-phase="vram">
+                <span class="progress-phase-label">VRAM</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #f59e0b;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick-Start Overlay -->
+        <div class="quickstart-overlay" id="quickstart-overlay" hidden>
+          <div class="quickstart-content">
+            <!-- Storage Consent Panel -->
+            <div class="quickstart-panel" id="quickstart-consent" hidden>
+              <h3 class="quickstart-title">Download Model?</h3>
+              <div class="quickstart-info">
+                <div class="info-row">
+                  <span class="info-label">Download Size</span>
+                  <span class="info-value" id="quickstart-download-size">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Storage Available</span>
+                  <span class="info-value" id="quickstart-storage-available">--</span>
+                </div>
+              </div>
+              <p class="quickstart-note">
+                Model will be stored in your browser for offline use.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn cancel" id="quickstart-cancel">Cancel</button>
+                <button class="quickstart-btn primary" id="quickstart-confirm">Download</button>
+              </div>
+            </div>
+
+            <!-- VRAM Blocker Panel -->
+            <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
+              <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
+              <div class="quickstart-info">
+                <div class="info-row">
+                  <span class="info-label">Required</span>
+                  <span class="info-value" id="quickstart-vram-required">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Available</span>
+                  <span class="info-value" id="quickstart-vram-available">--</span>
+                </div>
+              </div>
+              <p class="quickstart-note error">
+                Your GPU does not have enough memory to run this model.
+                Try a smaller model or use a device with more VRAM.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn primary" id="quickstart-blocker-close">Close</button>
+              </div>
+            </div>
+
+            <!-- Download Progress Panel -->
+            <div class="quickstart-panel" id="quickstart-progress" hidden>
+              <h3 class="quickstart-title">Downloading Model</h3>
+              <div class="progress-bar-container quickstart-progress">
+                <div class="progress-bar" id="quickstart-progress-bar"></div>
+              </div>
+              <div class="quickstart-stats">
+                <span id="quickstart-progress-percent">0%</span>
+                <span id="quickstart-progress-speed">-- MB/s</span>
+                <span id="quickstart-progress-eta">--</span>
+              </div>
+              <div class="quickstart-detail" id="quickstart-progress-detail">
+                Preparing download...
+              </div>
+            </div>
+
+            <!-- Ready Panel -->
+            <div class="quickstart-panel" id="quickstart-ready" hidden>
+              <h3 class="quickstart-title success">Model Ready!</h3>
+              <p class="quickstart-note">
+                Model downloaded and verified. Ready to chat.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn primary" id="quickstart-run">Start Chat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+          <div class="welcome-message" id="welcome-message">
+            <h2>Welcome to DOPPLER</h2>
+            <p>Select a model from the sidebar to begin.</p>
+            <p class="requirements-note">Requires WebGPU-enabled browser (Chrome 113+, Edge 113+, or Firefox Nightly)</p>
+          </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea
+              id="chat-input"
+              class="chat-input"
+              placeholder="Type a message..."
+              rows="1"
+              disabled
+            ></textarea>
+            <button id="send-btn" class="send-btn" disabled>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-actions">
+            <button id="stop-btn" class="action-btn" hidden>Stop</button>
+            <button id="clear-btn" class="action-btn">Clear</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Error Modal -->
+    <div class="modal-overlay" id="error-modal" hidden>
+      <div class="modal-content">
+        <h3 class="modal-title">Error</h3>
+        <p class="modal-message" id="error-message"></p>
+        <button class="modal-close" id="error-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module Scripts (built from TypeScript via ./build.sh) -->
+  <script type="module" src="/doppler/dist/app/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+{
+  "version": "1.0",
+  "modelId": "tiny-test",
+  "modelType": "transformer",
+  "architecture": "test",
+  "quantization": "F32",
+  "config": {
+    "vocabSize": 1000,
+    "hiddenSize": 64,
+    "numLayers": 2,
+    "numHeads": 2,
+    "contextLength": 128
+  },
+  "tokenizer": {
+    "model": "bpe",
+    "vocabSize": 1000,
+    "bosTokenId": 1,
+    "eosTokenId": 2
+  },
+  "shards": [
+    {
+      "index": 0,
+      "fileName": "shard_00000.bin",
+      "size": 925952,
+      "hash": "b717585cb6d1928cfa7eb7b642d89b88e7d60103dd4cdadba23da2684928d91c",
+      "hashAlgorithm": "sha256"
+    }
+  ],
+  "tensors": {
+    "embed_tokens.weight": {
+      "shard": 0,
+      "offset": 0,
+      "size": 256000,
+      "shape": [
+        1000,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.attention.qkv.weight": {
+      "shard": 0,
+      "offset": 258048,
+      "size": 49152,
+      "shape": [
+        192,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.attention.o.weight": {
+      "shard": 0,
+      "offset": 307200,
+      "size": 16384,
+      "shape": [
+        64,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.ffn.up.weight": {
+      "shard": 0,
+      "offset": 323584,
+      "size": 65536,
+      "shape": [
+        256,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.ffn.down.weight": {
+      "shard": 0,
+      "offset": 389120,
+      "size": 65536,
+      "shape": [
+        64,
+        256
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.input_norm.weight": {
+      "shard": 0,
+      "offset": 454656,
+      "size": 256,
+      "shape": [
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.0.post_norm.weight": {
+      "shard": 0,
+      "offset": 458752,
+      "size": 256,
+      "shape": [
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.attention.qkv.weight": {
+      "shard": 0,
+      "offset": 462848,
+      "size": 49152,
+      "shape": [
+        192,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.attention.o.weight": {
+      "shard": 0,
+      "offset": 512000,
+      "size": 16384,
+      "shape": [
+        64,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.ffn.up.weight": {
+      "shard": 0,
+      "offset": 528384,
+      "size": 65536,
+      "shape": [
+        256,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.ffn.down.weight": {
+      "shard": 0,
+      "offset": 593920,
+      "size": 65536,
+      "shape": [
+        64,
+        256
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.input_norm.weight": {
+      "shard": 0,
+      "offset": 659456,
+      "size": 256,
+      "shape": [
+        64
+      ],
+      "dtype": "F32"
+    },
+    "layers.1.post_norm.weight": {
+      "shard": 0,
+      "offset": 663552,
+      "size": 256,
+      "shape": [
+        64
+      ],
+      "dtype": "F32"
+    },
+    "lm_head.weight": {
+      "shard": 0,
+      "offset": 667648,
+      "size": 256000,
+      "shape": [
+        1000,
+        64
+      ],
+      "dtype": "F32"
+    },
+    "final_norm.weight": {
+      "shard": 0,
+      "offset": 925696,
+      "size": 256,
+      "shape": [
+        64
+      ],
+      "dtype": "F32"
+    }
+  },
+  "moeConfig": null,
+  "totalSize": 925952,
+  "tensorCount": 15
+}

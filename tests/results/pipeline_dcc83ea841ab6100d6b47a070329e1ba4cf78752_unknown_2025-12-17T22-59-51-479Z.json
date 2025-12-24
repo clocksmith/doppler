@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2025-12-17T22:59:21.364Z",
+  "suite": "pipeline",
+  "runType": "warm",
+  "env": {
+    "browser": {
+      "name": "Chrome",
+      "version": "143.0.0.0"
+    },
+    "os": {
+      "name": "macOS",
+      "version": "10.15.7"
+    },
+    "gpu": {
+      "vendor": "unknown",
+      "device": "unknown",
+      "description": "unknown"
+    },
+    "webgpu": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasTimestampQuery": true
+    }
+  },
+  "model": {
+    "modelId": "dcc83ea841ab6100d6b47a070329e1ba4cf78752",
+    "quantization": "Q4_K_M",
+    "totalSizeBytes": 997259520,
+    "tensorCount": 314,
+    "numLayers": 26,
+    "hiddenSize": 1152
+  },
+  "workload": {
+    "promptName": "xs",
+    "promptTokens": 7,
+    "maxNewTokens": 3,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "metrics": {
+    "ttft_ms": 1485,
+    "prefill_ms": 1401,
+    "prefill_tokens_per_sec": 5,
+    "decode_ms_total": 691,
+    "decode_tokens_per_sec": 3,
+    "gpu_submit_count_prefill": 0,
+    "gpu_submit_count_decode": 0,
+    "decode_ms_per_token_p50": 344.4500000178814,
+    "decode_ms_per_token_p90": 349.0499999821186,
+    "decode_ms_per_token_p99": 351.2549999982119,
+    "gpu_readback_bytes_total": 3145752,
+    "gpu_timestamp_available": true,
+    "gpu_time_ms_prefill": 0,
+    "gpu_time_ms_decode": 0,
+    "estimated_vram_bytes_peak": 4404692992,
+    "opfs_usage_bytes": 1013681672,
+    "storage_persisted": false
+  },
+  "raw": {
+    "decode_latencies_ms": [
+      346.5999999642372,
+      343.9000000357628
+    ],
+    "submit_times_ms": [
+      0,
+      0
+    ],
+    "generated_token_ids": [
+      3824,
+      29084,
+      240928
+    ],
+    "generated_text": "limieszሬ"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "name": "@clocksmith/doppler",
+  "version": "0.1.0",
+  "description": "WebGPU-based local inference engine for quantized LLMs",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./provider": {
+      "types": "./dist/types/doppler-provider.d.ts",
+      "import": "./dist/doppler-provider.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clocksmith/doppler.git"
+  },
+  "homepage": "https://github.com/clocksmith/doppler",
+  "scripts": {
+    "start": "tsx serve.ts",
+    "dev": "tsx serve.ts --open",
+    "build": "tsc --project tsconfig.build.json",
+    "typecheck": "tsc --project tsconfig.json",
+    "typecheck:watch": "tsc --project tsconfig.json --watch",
+    "doppler": "tsx tools/doppler-cli.ts",
+    "test": "tsx tools/doppler-cli.ts test quick",
+    "test:all": "tsx tools/doppler-cli.ts test all",
+    "test:correctness": "tsx tools/doppler-cli.ts test correctness",
+    "test:inference": "tsx tools/doppler-cli.ts test inference",
+    "test:demo": "tsx tools/doppler-cli.ts test demo",
+    "test:headed": "tsx tools/doppler-cli.ts test quick --headed",
+    "test:vitest": "NODE_OPTIONS='--max-old-space-size=4096' vitest run",
+    "test:vitest:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
+    "test:vitest:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",
+    "test:vitest:coverage": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --coverage",
+    "build:benchmark": "esbuild tests/benchmark/index.ts --bundle --format=esm --outfile=dist/tests/benchmark/index.js --platform=browser",
+    "bench": "tsx tools/doppler-cli.ts bench",
+    "bench:kernels": "tsx tools/doppler-cli.ts bench kernels",
+    "bench:inference": "tsx tools/doppler-cli.ts bench inference",
+    "bench:xs": "tsx tools/doppler-cli.ts bench inference --prompt xs --headed"
+  },
+  "keywords": [
+    "doppler",
+    "webgpu",
+    "inference",
+    "llm",
+    "quantized",
+    "browser",
+    "local"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "@webgpu/types": "^0.1.68",
+    "esbuild": "^0.20.0",
+    "happy-dom": "^20.0.8",
+    "playwright": "^1.55.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "gpu/kernels/*.wgsl",
+    "README.md"
+  ]
+}

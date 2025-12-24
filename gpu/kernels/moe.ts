@@ -1,0 +1,540 @@
+/**
+ * Mixture of Experts (MoE) Kernels
+ *
+ * Provides kernels for MoE routing and token distribution:
+ * - Top-K expert selection
+ * - MoE token gathering (dispatching tokens to experts)
+ * - Scatter-add (collecting expert outputs back to tokens)
+ */
+
+import { getDevice } from '../device.js';
+import { setBufferDtype } from '../buffer-dtypes.js';
+import { acquireBuffer } from '../buffer-pool.js';
+import type { CommandRecorder } from '../command-recorder.js';
+import { WORKGROUP_SIZES } from './constants.js';
+import { dispatch, recordDispatch } from './dispatch.js';
+import { createPipeline, createUniformBufferWithView } from './utils.js';
+import type { OutputBufferOptions } from './types.js';
+
+/** MoE kernel options */
+export interface MoEOptions extends OutputBufferOptions {
+  normalize?: boolean;
+  maxTokensPerExpert?: number;
+}
+
+/** MoE gather result */
+export interface MoEGatherResult {
+  gathered: GPUBuffer;
+  tokenCounts: GPUBuffer;
+  tokenMap: GPUBuffer;
+  maxTokensPerExpert: number;
+}
+
+/**
+ * Run top-K expert selection
+ */
+export async function runTopK(
+  probs: GPUBuffer,
+  numTokens: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<{ indices: GPUBuffer; weights: GPUBuffer }> {
+  const device = getDevice();
+  const { normalize = true } = options;
+
+  const pipeline = await createPipeline('topk', 'default');
+
+  // Output buffers
+  const indicesSize = numTokens * topK * 4; // u32
+  const weightsSize = numTokens * topK * 4; // f32
+  const indices = acquireBuffer(indicesSize, undefined, 'topk_indices');
+  const weights = acquireBuffer(weightsSize, undefined, 'topk_weights');
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'topk_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, topK, true);
+      view.setUint32(12, normalize ? 1 : 0, true);
+    },
+    null,
+    device
+  );
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'topk_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: probs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+    ],
+  });
+
+  dispatch(device, pipeline, bindGroup, numTokens, 'topk');
+
+  uniformBuffer.destroy();
+
+  setBufferDtype(indices, 'u32');
+  setBufferDtype(weights, 'f32');
+
+  return { indices, weights };
+}
+
+/**
+ * Record top-K expert selection (batched, no submit)
+ */
+export async function recordTopK(
+  recorder: CommandRecorder,
+  probs: GPUBuffer,
+  numTokens: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<{ indices: GPUBuffer; weights: GPUBuffer }> {
+  const device = recorder.device;
+  const { normalize = true } = options;
+
+  const pipeline = await createPipeline('topk', 'default');
+
+  const indicesSize = numTokens * topK * 4; // u32
+  const weightsSize = numTokens * topK * 4; // f32
+  const indices = acquireBuffer(indicesSize, undefined, 'topk_indices');
+  const weights = acquireBuffer(weightsSize, undefined, 'topk_weights');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'topk_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, topK, true);
+      view.setUint32(12, normalize ? 1 : 0, true);
+    },
+    recorder
+  );
+
+  const bindGroup = device.createBindGroup({
+    label: 'topk_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: probs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+    ],
+  });
+
+  recordDispatch(recorder, pipeline, bindGroup, numTokens, 'topk');
+
+  setBufferDtype(indices, 'u32');
+  setBufferDtype(weights, 'f32');
+
+  return { indices, weights };
+}
+
+/**
+ * Run MoE gather (dispatch tokens to experts)
+ * Returns gathered hidden states organized by expert, along with token counts and mapping
+ */
+export async function runMoEGather(
+  hiddenStates: GPUBuffer,
+  expertIndices: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<MoEGatherResult> {
+  const device = getDevice();
+  const { maxTokensPerExpert = numTokens } = options;
+
+  const pipeline = await createPipeline('moe_gather', 'sparse');
+
+  // Output buffers per WGSL shader:
+  // - gathered: [numExperts, maxTokensPerExpert, hiddenSize]
+  // - tokenCounts: [numExperts]
+  // - tokenMap: [numExperts, maxTokensPerExpert, 2] (tokenIdx, kIdx)
+  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
+  const tokenCountsSize = numExperts * 4;
+  const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
+
+  const gathered = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
+  const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
+  const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
+
+  // Create uniform buffer (20 bytes: numTokens, hiddenSize, numExperts, topK, maxTokensPerExpert)
+  const uniformBuffer = createUniformBufferWithView(
+    'moe_gather_uniforms',
+    20,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, numExperts, true);
+      view.setUint32(12, topK, true);
+      view.setUint32(16, maxTokensPerExpert, true);
+    },
+    null,
+    device
+  );
+
+  // Create bind group matching WGSL bindings
+  const bindGroup = device.createBindGroup({
+    label: 'moe_gather_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: hiddenStates } },
+      { binding: 2, resource: { buffer: expertIndices } },
+      { binding: 3, resource: { buffer: gathered } },
+      { binding: 4, resource: { buffer: tokenCounts } },
+      { binding: 5, resource: { buffer: tokenMap } },
+    ],
+  });
+
+  // Batch zero-init with gather dispatch (saves 1 submit per call)
+  const encoder = device.createCommandEncoder({ label: 'moe_gather_encoder' });
+  encoder.clearBuffer(tokenCounts); // Zero-initialize tokenCounts (atomics start at 0)
+
+  const pass = encoder.beginComputePass({ label: 'moe_gather_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  setBufferDtype(gathered, 'f32');
+  setBufferDtype(tokenCounts, 'u32');
+  setBufferDtype(tokenMap, 'u32');
+
+  return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
+}
+
+/**
+ * Record MoE gather (batched, no submit)
+ */
+export async function recordMoEGather(
+  recorder: CommandRecorder,
+  hiddenStates: GPUBuffer,
+  expertIndices: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<MoEGatherResult> {
+  const device = recorder.device;
+  const { maxTokensPerExpert = numTokens } = options;
+
+  const pipeline = await createPipeline('moe_gather', 'sparse');
+
+  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
+  const tokenCountsSize = numExperts * 4;
+  const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
+
+  const gathered = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
+  const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
+  const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'moe_gather_uniforms',
+    20,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, numExperts, true);
+      view.setUint32(12, topK, true);
+      view.setUint32(16, maxTokensPerExpert, true);
+    },
+    recorder
+  );
+
+  const bindGroup = device.createBindGroup({
+    label: 'moe_gather_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: hiddenStates } },
+      { binding: 2, resource: { buffer: expertIndices } },
+      { binding: 3, resource: { buffer: gathered } },
+      { binding: 4, resource: { buffer: tokenCounts } },
+      { binding: 5, resource: { buffer: tokenMap } },
+    ],
+  });
+
+  const encoder = recorder.getEncoder();
+  encoder.clearBuffer(tokenCounts);
+
+  const pass = recorder.beginComputePass('moe_gather');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT));
+  pass.end();
+
+  setBufferDtype(gathered, 'f32');
+  setBufferDtype(tokenCounts, 'u32');
+  setBufferDtype(tokenMap, 'u32');
+
+  return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
+}
+
+/**
+ * Run scatter-add (collect expert outputs back to tokens)
+ */
+export async function runScatterAdd(
+  expertOutputs: GPUBuffer,
+  indices: GPUBuffer,
+  weights: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const { outputBuffer = null } = options;
+
+  const pipeline = await createPipeline('scatter_add', 'default');
+
+  // Output: [numTokens, hiddenSize]
+  const outputSize = numTokens * hiddenSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
+
+  // Create uniform buffer
+  // WGSL struct order: numTokens, hiddenSize, topK, numExperts
+  const uniformBuffer = createUniformBufferWithView(
+    'scatter_add_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, topK, true);      // offset 8 = topK (per WGSL struct)
+      view.setUint32(12, numExperts, true); // offset 12 = numExperts
+    },
+    null,
+    device
+  );
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'scatter_add_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+      { binding: 4, resource: { buffer: output } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'scatter_add_encoder' });
+  encoder.clearBuffer(output);
+  const pass = encoder.beginComputePass({ label: 'scatter_add_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  // WGSL main kernel: each thread handles one output element (numTokens * hiddenSize total)
+  const workgroups = Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Record scatter-add (batched, no submit)
+ */
+export async function recordScatterAdd(
+  recorder: CommandRecorder,
+  expertOutputs: GPUBuffer,
+  indices: GPUBuffer,
+  weights: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  numExperts: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<GPUBuffer> {
+  const device = recorder.device;
+  const { outputBuffer = null } = options;
+
+  const pipeline = await createPipeline('scatter_add', 'default');
+  const outputSize = numTokens * hiddenSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
+
+  // WGSL struct order: numTokens, hiddenSize, topK, numExperts
+  const uniformBuffer = createUniformBufferWithView(
+    'scatter_add_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, topK, true);      // offset 8 = topK (per WGSL struct)
+      view.setUint32(12, numExperts, true); // offset 12 = numExperts
+    },
+    recorder
+  );
+
+  const bindGroup = device.createBindGroup({
+    label: 'scatter_add_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+      { binding: 4, resource: { buffer: output } },
+    ],
+  });
+
+  recorder.getEncoder().clearBuffer(output);
+
+  const pass = recorder.beginComputePass('scatter_add');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  // WGSL main kernel: each thread handles one output element (numTokens * hiddenSize total)
+  pass.dispatchWorkgroups(Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
+  pass.end();
+
+  return output;
+}
+
+/**
+ * Run dynamic scatter-add with token offsets
+ */
+export async function runScatterAddDynamic(
+  expertOutputs: GPUBuffer,
+  indices: GPUBuffer,
+  weights: GPUBuffer,
+  tokenOffsets: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const { outputBuffer = null } = options;
+
+  const pipeline = await createPipeline('scatter_add', 'dynamic');
+
+  // Output: [numTokens, hiddenSize]
+  const outputSize = numTokens * hiddenSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'scatter_add_dynamic_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, topK, true);
+    },
+    null,
+    device
+  );
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'scatter_add_dynamic_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+      { binding: 4, resource: { buffer: tokenOffsets } },
+      { binding: 5, resource: { buffer: output } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'scatter_add_dynamic_encoder' });
+  encoder.clearBuffer(output);
+  const pass = encoder.beginComputePass({ label: 'scatter_add_dynamic_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Record dynamic scatter-add (batched, no submit)
+ */
+export async function recordScatterAddDynamic(
+  recorder: CommandRecorder,
+  expertOutputs: GPUBuffer,
+  indices: GPUBuffer,
+  weights: GPUBuffer,
+  tokenOffsets: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  topK: number,
+  options: MoEOptions = {}
+): Promise<GPUBuffer> {
+  const device = recorder.device;
+  const { outputBuffer = null } = options;
+
+  const pipeline = await createPipeline('scatter_add', 'dynamic');
+  const outputSize = numTokens * hiddenSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'scatter_add_dynamic_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, topK, true);
+    },
+    recorder
+  );
+
+  const bindGroup = device.createBindGroup({
+    label: 'scatter_add_dynamic_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+      { binding: 4, resource: { buffer: tokenOffsets } },
+      { binding: 5, resource: { buffer: output } },
+    ],
+  });
+
+  recorder.getEncoder().clearBuffer(output);
+
+  const pass = recorder.beginComputePass('scatter_add_dynamic');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
+  pass.end();
+
+  return output;
+}

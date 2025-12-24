@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // Phase 1: Emit JS to dist/
+    "noEmit": false,
+
+    // Allow JS files and check them
+    "allowJs": true,
+    "checkJs": true,
+
+    // Module system (browser ESM)
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+
+    // Strict type-checking (enable incrementally)
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": false,
+
+    // Additional checks
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Interop
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // Output (for future build step)
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+
+    // Path aliases
+    "baseUrl": ".",
+    "paths": {
+      "@doppler/*": ["./*"],
+      "@doppler/types/*": ["./types/*"],
+      "@doppler/inference/*": ["./inference/*"],
+      "@doppler/gpu/*": ["./gpu/*"],
+      "@doppler/storage/*": ["./storage/*"],
+      "@doppler/loader/*": ["./loader/*"],
+      "@doppler/tools/*": ["./tools/*"],
+      "@doppler/browser/*": ["./browser/*"],
+      "@doppler/bridge/*": ["./bridge/*"],
+      "@doppler/memory/*": ["./memory/*"],
+      "@doppler/debug/*": ["./debug/*"],
+      "@doppler/app/*": ["./app/*"]
+    },
+
+    // Skip type-checking node_modules
+    "skipLibCheck": true,
+
+    // Types
+    "types": ["node", "@webgpu/types"]
+  },
+
+  "include": [
+    "./**/*.ts",
+    "./**/*.js",
+    "./types/**/*.d.ts"
+  ],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/node_modules",
+    "**/*.spec.js",
+    "**/*.test.js",
+    "tests/**/*"
+  ]
+}

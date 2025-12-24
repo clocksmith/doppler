@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOPPLER Kernel Selection Test</title>
+</head>
+<body>
+    <h1>DOPPLER Kernel Selection Test</h1>
+    <pre id="output"></pre>
+
+    <script type="module">
+        const output = document.getElementById('output');
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        async function testKernelSelection() {
+            try {
+                log('Loading DOPPLER modules...');
+
+                // Import pipeline
+                const { createPipeline } = await import('../inference/pipeline.js');
+
+                // Fetch manifest
+                log('Fetching manifest for gemma-1b-q4-col...');
+                const response = await fetch('http://localhost:8080/models/gemma-1b-q4-col/manifest.json');
+                const manifest = await response.json();
+
+                log('\n=== Manifest Configuration ===');
+                log('Q4K Layout: ' + manifest.config?.q4kLayout);
+                log('Kernel Hints: ' + JSON.stringify(manifest.optimizations?.kernelHints, null, 2));
+
+                log('\n=== Creating Pipeline ===');
+                log('This will trigger kernel hint loading...');
+
+                // Create pipeline (this will load kernel hints)
+                const pipeline = await createPipeline(manifest);
+
+                log('\n=== Pipeline Created ===');
+                log('Check browser console for kernel selection messages:');
+                log('- [Pipeline] Kernel hints loaded from manifest');
+                log('- [Matmul] Q4K DEQUANT or Q4K FUSED');
+
+            } catch (error) {
+                log('Error: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        testKernelSelection();
+    </script>
+</body>
+</html>

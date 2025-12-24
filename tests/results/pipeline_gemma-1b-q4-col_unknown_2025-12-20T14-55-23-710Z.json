@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2025-12-20T14:55:13.607Z",
+  "suite": "pipeline",
+  "runType": "warm",
+  "env": {
+    "browser": {
+      "name": "Chrome",
+      "version": "143.0.0.0"
+    },
+    "os": {
+      "name": "macOS",
+      "version": "10.15.7"
+    },
+    "gpu": {
+      "vendor": "unknown",
+      "device": "unknown",
+      "description": "unknown"
+    },
+    "webgpu": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasTimestampQuery": true
+    }
+  },
+  "model": {
+    "modelId": "gemma-1b-q4-col",
+    "quantization": "Q4_K_M",
+    "totalSizeBytes": 1012170496,
+    "tensorCount": 340,
+    "numLayers": 26,
+    "hiddenSize": 1152
+  },
+  "workload": {
+    "promptName": "medium",
+    "promptTokens": 130,
+    "maxNewTokens": 8,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "metrics": {
+    "ttft_ms": 1682,
+    "prefill_ms": 1577,
+    "prefill_tokens_per_sec": 82,
+    "decode_ms_total": 1397,
+    "decode_tokens_per_sec": 5,
+    "gpu_submit_count_prefill": 7,
+    "gpu_submit_count_decode": 28,
+    "decode_ms_per_token_p50": 196.79999995231628,
+    "decode_ms_per_token_p90": 206.41999999284744,
+    "decode_ms_per_token_p99": 216.03199996709822,
+    "gpu_readback_bytes_total": 1048604,
+    "gpu_timestamp_available": true,
+    "gpu_time_ms_prefill": 0,
+    "gpu_time_ms_decode": 0,
+    "estimated_vram_bytes_peak": 4194169088,
+    "opfs_usage_bytes": 2724733235,
+    "storage_persisted": false
+  },
+  "raw": {
+    "decode_latencies_ms": [
+      217.0999999642372,
+      194.10000002384186,
+      196.60000002384186,
+      195,
+      196.79999995231628,
+      198.10000002384186,
+      199.30000001192093
+    ],
+    "submit_times_ms": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "generated_token_ids": [
+      478,
+      68,
+      478,
+      68,
+      478,
+      68,
+      478,
+      68
+    ],
+    "generated_text": "ð<unused62>ð<unused62>ð<unused62>ð<unused62>"
+  }
+}
