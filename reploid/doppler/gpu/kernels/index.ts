@@ -101,6 +101,13 @@ export {
   type GeLUOptions,
 } from './gelu.js';
 
+// Scale (Element-wise Multiply by Scalar)
+export {
+  runScale,
+  recordScale,
+  type ScaleOptions,
+} from './scale.js';
+
 // Gather (Embedding Lookup)
 export {
   runGather,

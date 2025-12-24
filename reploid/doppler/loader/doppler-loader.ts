@@ -1136,7 +1136,7 @@ export class DopplerLoader {
 
     const config = (this.manifest.config || {}) as ModelConfig;
     const arch = config.architectures?.[0] || (this.manifest.architecture as string) || '';
-    const isGemma3 = arch.includes('Gemma3') || config.model_type?.includes('gemma3');
+    const isGemma3 = /gemma3/i.test(arch) || /gemma3/i.test(config.model_type || '');
 
     // Check explicit manifest flag first, then fall back to architecture detection
     const explicitFlag = (config as { rms_norm_weight_offset?: boolean }).rms_norm_weight_offset;
@@ -1203,7 +1203,11 @@ export class DopplerLoader {
       for (let i = 0; i < numElements; i++) {
         offsetData[i] = 1.0 + tensor[i];
       }
-      return offsetData;
+      // Always upload to GPU to prevent double-offset in pipeline
+      // Pipeline's getNormWeightBuffer returns GPUBuffer as-is, skipping offset
+      const newBuffer = acquireBuffer(offsetData.byteLength, undefined, 'norm_offset');
+      device.queue.writeBuffer(newBuffer, 0, offsetData);
+      return newBuffer;
     }
 
     console.warn('[DopplerLoader] Unknown tensor type for norm offset');

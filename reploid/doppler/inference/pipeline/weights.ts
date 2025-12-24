@@ -136,39 +136,11 @@ export function getNormWeightBuffer(
     throw new Error('No GPU device available for norm weight buffer creation');
   }
 
-  // For Gemma 3+, apply the +1 offset: weight_effective = 1 + weight
+  // NOTE: Loader already applies +1 offset for Gemma 3+ and returns GPUBuffer.
+  // If we receive Float32Array here with rmsNormWeightOffset=true, it means
+  // the loader path was bypassed (shouldn't happen in normal flow).
   if (config.rmsNormWeightOffset) {
-    // Debug: first time only
-    if (debugFlags && !debugFlags.normOffsetDebugDone) {
-      debugFlags.normOffsetDebugDone = true;
-      console.log(`[DEBUG] WARNING: Applying +1 offset to norm weights in pipeline (may be duplicate!)`);
-    }
-
-    let f32Data: Float32Array;
-    if (weight instanceof Float32Array) {
-      f32Data = new Float32Array(weight.length);
-      for (let i = 0; i < weight.length; i++) {
-        f32Data[i] = 1.0 + weight[i];
-      }
-    } else if ('buffer' in weight && weight.buffer instanceof ArrayBuffer) {
-      // Typed array view
-      const src = new Float32Array(weight.buffer, weight.byteOffset, weight.byteLength / 4);
-      f32Data = new Float32Array(src.length);
-      for (let i = 0; i < src.length; i++) {
-        f32Data[i] = 1.0 + src[i];
-      }
-    } else {
-      // ArrayBuffer - interpret as F32
-      const src = new Float32Array(weight as ArrayBuffer);
-      f32Data = new Float32Array(src.length);
-      for (let i = 0; i < src.length; i++) {
-        f32Data[i] = 1.0 + src[i];
-      }
-    }
-
-    const buf = acquireBuffer(f32Data.byteLength, undefined, label);
-    device.queue.writeBuffer(buf, 0, f32Data as unknown as BufferSource);
-    return buf;
+    console.warn(`[getNormWeightBuffer] Received Float32Array with rmsNormWeightOffset=true - loader should have returned GPUBuffer. Uploading without re-applying offset.`);
   }
 
   // Standard path: just copy to GPU

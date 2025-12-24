@@ -33,6 +33,7 @@
     "test:inference": "tsx tools/doppler-cli.ts test inference",
     "test:demo": "tsx tools/doppler-cli.ts test demo",
     "test:headed": "tsx tools/doppler-cli.ts test quick --headed",
+    "test:batch": "npx playwright test -c tests/correctness/playwright.config.ts",
     "test:vitest": "NODE_OPTIONS='--max-old-space-size=4096' vitest run",
     "test:vitest:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
     "test:vitest:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",

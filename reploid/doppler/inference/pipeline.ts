@@ -394,6 +394,9 @@ export class InferencePipeline {
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,  // Selective layer debugging
       profile: options.profile ?? false,  // GPU timestamp profiling
+      // Batch generation options
+      batchSize: options.batchSize ?? 1,
+      stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
     };
 
     try {
@@ -453,26 +456,85 @@ export class InferencePipeline {
       const eosToken = this.tokenizer!.getSpecialTokens?.()?.eos;
       let tokensGenerated = 1;
 
+      // Mark kernel cache as warmed after first prefill
+      markKernelCacheWarmed();
+
       // Decode loop
       const decodeStart = performance.now();
+      const useBatchPath = opts.batchSize > 1 && this.useGPU && isGPUSamplingAvailable();
+
+      if (opts.debug && useBatchPath) {
+        console.log(`[Pipeline] Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
+      }
+
       while (tokensGenerated < opts.maxTokens) {
         if (options.signal?.aborted) break;
 
-        const nextToken = await this._decodeStep(generatedIds, opts);
-        generatedIds.push(nextToken);
-        tokensGenerated++;
+        if (useBatchPath) {
+          // Batch path: generate multiple tokens per GPU submit
+          const remaining = opts.maxTokens - tokensGenerated;
+          const thisBatchSize = Math.min(opts.batchSize, remaining);
+          const lastToken = generatedIds[generatedIds.length - 1];
 
-        const tokenText = this.tokenizer!.decode([nextToken], true, false);
-        yield tokenText;
-        if (options.onToken) options.onToken(nextToken, tokenText);
+          try {
+            const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
 
-        // Check stop
-        if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+            // Process batch results - yield and callback for each token
+            const batchTokens: Array<{ id: number; text: string }> = [];
+            for (const tokenId of batchResult.tokens) {
+              generatedIds.push(tokenId);
+              tokensGenerated++;
 
-        // Check stop sequences
-        if (opts.stopSequences.length > 0) {
-          const fullText = this.tokenizer!.decode(generatedIds.slice(inputIds.length), false);
-          if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
+              const tokenText = this.tokenizer!.decode([tokenId], true, false);
+              yield tokenText;
+              if (options.onToken) options.onToken(tokenId, tokenText);
+              batchTokens.push({ id: tokenId, text: tokenText });
+            }
+
+            // Call batch callback
+            if (options.onBatch) options.onBatch(batchTokens);
+
+            // Check if we hit a stop condition
+            if (batchResult.actualCount < thisBatchSize) {
+              break;  // Early stop detected
+            }
+
+            // Check stop sequences after batch
+            if (opts.stopSequences.length > 0) {
+              const fullText = this.tokenizer!.decode(generatedIds.slice(inputIds.length), false);
+              if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
+            }
+          } catch (error) {
+            // Fallback to single-token path on batch error
+            console.warn('[Pipeline] Batch decode failed, falling back to single-token:', error);
+            const nextToken = await this._decodeStep(generatedIds, opts);
+            generatedIds.push(nextToken);
+            tokensGenerated++;
+
+            const tokenText = this.tokenizer!.decode([nextToken], true, false);
+            yield tokenText;
+            if (options.onToken) options.onToken(nextToken, tokenText);
+
+            if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+          }
+        } else {
+          // Single-token path (existing behavior)
+          const nextToken = await this._decodeStep(generatedIds, opts);
+          generatedIds.push(nextToken);
+          tokensGenerated++;
+
+          const tokenText = this.tokenizer!.decode([nextToken], true, false);
+          yield tokenText;
+          if (options.onToken) options.onToken(nextToken, tokenText);
+
+          // Check stop
+          if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+
+          // Check stop sequences
+          if (opts.stopSequences.length > 0) {
+            const fullText = this.tokenizer!.decode(generatedIds.slice(inputIds.length), false);
+            if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
+          }
         }
       }
 
@@ -1096,13 +1158,18 @@ export class InferencePipeline {
       throw new Error('[Pipeline] GPU readback disabled for multi-token decode');
     }
 
-    const stopStagingBuffer = device.createBuffer({
-      size: stopBufferSize,
-      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-    });
-
+    const stopCheckMode = opts.stopCheckMode ?? 'per-token';
     const copyEncoder = device.createCommandEncoder();
-    copyEncoder.copyBufferToBuffer(stopBuffer, 0, stopStagingBuffer, 0, stopBufferSize);
+
+    // Only copy stop buffer if we recorded stop flags (per-token mode)
+    let stopStagingBuffer: GPUBuffer | null = null;
+    if (stopCheckMode === 'per-token') {
+      stopStagingBuffer = device.createBuffer({
+        size: stopBufferSize,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      });
+      copyEncoder.copyBufferToBuffer(stopBuffer, 0, stopStagingBuffer, 0, stopBufferSize);
+    }
 
     // Copy each token buffer to staging
     const tokenStagingBuffers: GPUBuffer[] = [];
@@ -1118,27 +1185,42 @@ export class InferencePipeline {
     device.queue.submit([copyEncoder.finish()]);
 
     // Map all buffers
-    await stopStagingBuffer.mapAsync(GPUMapMode.READ);
-    await Promise.all(tokenStagingBuffers.map(b => b.mapAsync(GPUMapMode.READ)));
+    const mapPromises = tokenStagingBuffers.map(b => b.mapAsync(GPUMapMode.READ));
+    if (stopStagingBuffer) {
+      mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
+    }
+    await Promise.all(mapPromises);
 
-    const stopFlags = new Uint32Array(stopStagingBuffer.getMappedRange().slice(0));
+    // Read tokens
     const tokens: number[] = [];
     for (const staging of tokenStagingBuffers) {
       const tokenId = new Uint32Array(staging.getMappedRange())[0];
       tokens.push(tokenId);
     }
 
-    stopStagingBuffer.unmap();
-    tokenStagingBuffers.forEach(b => b.unmap());
-
-    // Find first stop
+    // Find first stop based on mode
     let actualCount = N;
-    for (let i = 0; i < N; i++) {
-      if (stopFlags[i] === 1) {
-        actualCount = i + 1;
-        break;
+    if (stopCheckMode === 'per-token' && stopStagingBuffer) {
+      // Use GPU-computed stop flags
+      const stopFlags = new Uint32Array(stopStagingBuffer.getMappedRange().slice(0));
+      for (let i = 0; i < N; i++) {
+        if (stopFlags[i] === 1) {
+          actualCount = i + 1;
+          break;
+        }
+      }
+      stopStagingBuffer.unmap();
+    } else {
+      // Batch mode: check stop tokens on CPU after readback
+      for (let i = 0; i < N; i++) {
+        if (isStopToken(tokens[i], stopTokenIds, eosToken)) {
+          actualCount = i + 1;
+          break;
+        }
       }
     }
+
+    tokenStagingBuffers.forEach(b => b.unmap());
 
     // Trim to actual count
     const generatedTokens = tokens.slice(0, actualCount);
@@ -1147,7 +1229,7 @@ export class InferencePipeline {
     tokenBuffers.forEach(b => b.destroy());
     stopBuffer.destroy();
     tokenStagingBuffers.forEach(b => b.destroy());
-    stopStagingBuffer.destroy();
+    if (stopStagingBuffer) stopStagingBuffer.destroy();
 
     this.currentSeqLen += actualCount;
 

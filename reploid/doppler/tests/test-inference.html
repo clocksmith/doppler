@@ -62,6 +62,7 @@
     </select>
     <input type="text" id="prompt-input" value="the color of the sky is" placeholder="Enter prompt...">
     <button id="run-btn" disabled>Run Test</button>
+    <button id="batch-compare-btn" disabled>Batch Compare</button>
     <button id="clear-btn">Clear Log</button>
   </div>
 
@@ -337,8 +338,195 @@
       }
     }
 
+    // Batch compare test: run with batchSize=1 vs batchSize=N, compare outputs
+    async function runBatchCompare() {
+      const model = modelSelect.value;
+      const prompt = promptInput.value || 'the color of the sky is';
+      const MODEL_URL = `${BASE_URL}/${model}`;
+      const BATCH_SIZE = 4;
+      const MAX_TOKENS = 20;
+
+      window.testState = {
+        ready: true,
+        loading: true,
+        loaded: false,
+        generating: false,
+        done: false,
+        output: '',
+        tokens: [],
+        errors: [],
+        model,
+        batchCompare: { running: true, passed: null },
+      };
+
+      logEl.innerHTML = '';
+      outputEl.textContent = '--';
+      runBtn.disabled = true;
+      document.getElementById('batch-compare-btn').disabled = true;
+
+      try {
+        log('='.repeat(50));
+        log(`BATCH COMPARE TEST: ${model}`, 'info');
+        log(`Comparing batchSize=1 vs batchSize=${BATCH_SIZE} (temperature=0)`, 'info');
+        log('='.repeat(50));
+
+        // 1. Initialize WebGPU
+        setStatus('Initializing WebGPU...', 'info');
+        log('1. Initializing WebGPU...');
+
+        const { initDevice, getDevice, getKernelCapabilities } = await import('/doppler/dist/gpu/device.js');
+        await initDevice();
+        const device = getDevice();
+        const caps = getKernelCapabilities();
+
+        log(`   GPU: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
+
+        // 2. Fetch manifest
+        setStatus('Fetching manifest...', 'info');
+        log('2. Fetching manifest...');
+
+        const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
+        if (!manifestResp.ok) throw new Error(`Failed to fetch manifest: ${manifestResp.status}`);
+        const manifest = await manifestResp.json();
+
+        log(`   Model: ${manifest.architecture || manifest.modelId}`, 'success');
+
+        // 3. Parse manifest
+        setStatus('Parsing manifest...', 'info');
+        log('3. Parsing manifest...');
+
+        const { parseManifest } = await import('/doppler/dist/storage/rdrr-format.js');
+        const modelInfo = parseManifest(JSON.stringify(manifest));
+        log(`   Parsed ${modelInfo.tensors.size} tensors`, 'success');
+
+        // 4. Create pipeline
+        setStatus('Loading model...', 'info');
+        log('4. Creating pipeline and loading model...');
+
+        const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
+
+        const loadShard = async (idx) => {
+          const shard = manifest.shards[idx];
+          if (!shard) throw new Error(`No shard at index ${idx}`);
+          log(`   Loading shard ${idx}: ${shard.fileName}`);
+          const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+          if (!resp.ok) throw new Error(`Failed to load shard ${idx}`);
+          const data = new Uint8Array(await resp.arrayBuffer());
+          log(`   Shard ${idx}: ${(data.byteLength / 1024 / 1024).toFixed(1)}MB`);
+          return data;
+        };
+
+        const pipeline = await createPipeline(modelInfo, {
+          storage: { loadShard },
+          gpu: { device },
+          baseUrl: MODEL_URL,
+          runtime: buildRuntimeOverrides(),
+        });
+
+        log('   Model loaded!', 'success');
+        window.testState.loaded = true;
+        window.testState.loading = false;
+
+        // 5. Generate with batchSize=1 (baseline)
+        setStatus('Generating (batchSize=1)...', 'info');
+        window.testState.generating = true;
+        log(`5. Generating with batchSize=1 (baseline)...`);
+        log(`   Prompt: "${prompt}"`);
+
+        const tokens1 = [];
+        const start1 = Date.now();
+        for await (const tokenText of pipeline.generate(prompt, {
+          maxTokens: MAX_TOKENS,
+          temperature: 0,
+          batchSize: 1,
+        })) {
+          tokens1.push(tokenText);
+        }
+        const elapsed1 = Date.now() - start1;
+        const output1 = tokens1.join('');
+
+        log(`   Output: "${output1}"`, 'info');
+        log(`   ${tokens1.length} tokens in ${elapsed1}ms (${(tokens1.length / elapsed1 * 1000).toFixed(1)} tok/s)`);
+
+        // 6. Generate with batchSize=N
+        setStatus(`Generating (batchSize=${BATCH_SIZE})...`, 'info');
+        log(`6. Generating with batchSize=${BATCH_SIZE}...`);
+
+        const tokens2 = [];
+        let batchCount = 0;
+        const start2 = Date.now();
+        for await (const tokenText of pipeline.generate(prompt, {
+          maxTokens: MAX_TOKENS,
+          temperature: 0,
+          batchSize: BATCH_SIZE,
+          onBatch: (batch) => {
+            batchCount++;
+            log(`   Batch ${batchCount}: ${batch.length} tokens`, 'info');
+          },
+        })) {
+          tokens2.push(tokenText);
+        }
+        const elapsed2 = Date.now() - start2;
+        const output2 = tokens2.join('');
+
+        log(`   Output: "${output2}"`, 'info');
+        log(`   ${tokens2.length} tokens in ${elapsed2}ms (${(tokens2.length / elapsed2 * 1000).toFixed(1)} tok/s)`);
+        log(`   ${batchCount} batches total`);
+
+        // 7. Compare
+        log('='.repeat(50));
+        log('COMPARISON:', 'info');
+
+        const match = output1 === output2;
+        const speedup = elapsed1 / elapsed2;
+
+        window.testState.output = output2;
+        window.testState.generating = false;
+        window.testState.done = true;
+        window.testState.batchCompare.passed = match;
+        window.testState.batchCompare.running = false;
+
+        if (match) {
+          log(`PASS: Outputs match exactly!`, 'success');
+          log(`   batchSize=1: "${output1}"`, 'success');
+          log(`   batchSize=${BATCH_SIZE}: "${output2}"`, 'success');
+          log(`   Speedup: ${speedup.toFixed(2)}x`, 'info');
+          setStatus('BATCH COMPARE: PASS', 'success');
+          outputEl.textContent = `PASS - Outputs match (${speedup.toFixed(2)}x speedup)`;
+        } else {
+          log(`FAIL: Outputs differ!`, 'error');
+          log(`   batchSize=1: "${output1}"`, 'error');
+          log(`   batchSize=${BATCH_SIZE}: "${output2}"`, 'error');
+          // Show character-level diff
+          for (let i = 0; i < Math.max(output1.length, output2.length); i++) {
+            if (output1[i] !== output2[i]) {
+              log(`   First diff at position ${i}: '${output1[i] || 'EOF'}' vs '${output2[i] || 'EOF'}'`, 'error');
+              break;
+            }
+          }
+          setStatus('BATCH COMPARE: FAIL', 'error');
+          outputEl.textContent = `FAIL - Outputs differ`;
+        }
+
+        log('='.repeat(50));
+
+      } catch (err) {
+        window.testState.errors.push(err.message);
+        window.testState.done = true;
+        window.testState.batchCompare.passed = false;
+        window.testState.batchCompare.running = false;
+        setStatus(`ERROR: ${err.message}`, 'error');
+        log(`ERROR: ${err.message}`, 'error');
+        log(err.stack, 'error');
+      } finally {
+        runBtn.disabled = false;
+        document.getElementById('batch-compare-btn').disabled = false;
+      }
+    }
+
     // Event listeners
     runBtn.addEventListener('click', runTest);
+    document.getElementById('batch-compare-btn').addEventListener('click', runBatchCompare);
     document.getElementById('clear-btn').addEventListener('click', () => {
       logEl.innerHTML = '';
       outputEl.textContent = '--';
@@ -361,7 +549,8 @@
     // Initialize
     initModelSelector().then(() => {
       window.testState.ready = true;
-      log('Ready. Select a model and click "Run Test".');
+      document.getElementById('batch-compare-btn').disabled = false;
+      log('Ready. Select a model and click "Run Test" or "Batch Compare".');
       log(`Query params: model=${paramModel || '(default)'}, autorun=${paramAutorun}`);
 
       // Auto-run if requested via query param
