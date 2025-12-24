@@ -416,6 +416,20 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
   },
+  scale: {
+    default: {
+      shaderFile: 'scale.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    inplace: {
+      shaderFile: 'scale.wgsl',
+      entryPoint: 'main_inplace',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
   gather: {
     default: {
       shaderFile: 'gather.wgsl',

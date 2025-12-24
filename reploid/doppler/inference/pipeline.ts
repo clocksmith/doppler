@@ -22,6 +22,8 @@ import { Tokenizer } from './tokenizer.js';
 import { getDevice, setTrackSubmits } from '../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
+import { recordScale } from '../gpu/kernels/scale.js';
+import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats, getSubmitStats } from '../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder, type ProfileTimings } from '../gpu/command-recorder.js';
 import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
@@ -83,6 +85,20 @@ export interface GenerateOptions {
   /** Enable GPU timestamp profiling for kernel-level timing.
    *  Requires 'timestamp-query' WebGPU feature. Results logged to console. */
   profile?: boolean;
+
+  // Batch generation options
+  /** Number of tokens to generate per GPU submission batch.
+   *  Default: 1 (single-token mode for backward compatibility)
+   *  Higher values reduce GPU sync overhead but delay token streaming. */
+  batchSize?: number;
+  /** Callback invoked after each batch completes.
+   *  Receives array of {id, text} pairs for the batch. */
+  onBatch?: ((tokens: Array<{ id: number; text: string }>) => void) | null;
+  /** Stop condition checking mode for batched generation.
+   *  - 'batch': Check stop conditions after entire batch (faster, may overshoot by up to batchSize-1)
+   *  - 'per-token': Check after each token using GPU kernel (accurate, default)
+   *  Default: 'per-token' */
+  stopCheckMode?: 'batch' | 'per-token';
 }
 
 export interface LayerConfig {
@@ -1009,10 +1025,16 @@ export class InferencePipeline {
         config.vocabSize
       );
 
-      // TODO: Apply Gemma scaling if needed
-      // Currently skipped in GPU-only path - needs recordScale implementation
+      // Apply Gemma embedding scaling if needed: scale by sqrt(hidden_size)
       if (config.scaleEmbeddings) {
-        console.warn('[GPU-Only] Skipping embedding scaling - not yet implemented for batched path');
+        const scaleFactor = Math.sqrt(config.hiddenSize);
+        const prevHidden = hiddenStates;
+        hiddenStates = await recordScale(recorder, hiddenStates, scaleFactor, {
+          count: config.hiddenSize,  // 1 token * hiddenSize
+        });
+        if (prevHidden !== hiddenStates) {
+          recorder.trackTemporaryBuffer(prevHidden);
+        }
       }
 
       // 2. Process all layers
@@ -1036,26 +1058,34 @@ export class InferencePipeline {
       recorder.trackTemporaryBuffer(hiddenStates);
 
       // 4. Sample next token → write to tokenBuffers[i+1]
-      const sampledTokenBuffer = await recordArgmax(recorder, logitsBuffer, vocabSize);
+      // Use temperature-based sampling if temperature > 0, otherwise argmax
+      const temperature = opts.temperature ?? 0.7;
+      const topK = opts.topK ?? 40;
+      const sampledTokenBuffer = temperature < 0.01
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize)
+        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK });
       recorder.trackTemporaryBuffer(logitsBuffer);
 
       // Copy sampled token to tokenBuffers[i+1] for next iteration
       const encoder = recorder.getEncoder();
       encoder.copyBufferToBuffer(sampledTokenBuffer, 0, tokenBuffers[i + 1], 0, 4);
 
-      // 5. Check stop condition
-      const stopFlagBuffer = recordCheckStop(recorder, {
-        sampledTokenBuffer: tokenBuffers[i + 1],
-        eosTokenId,
-        maxTokens,
-        currentPos: currentPos + 1,
-      });
+      // 5. Check stop condition (only in 'per-token' mode)
+      const stopCheckMode = opts.stopCheckMode ?? 'per-token';
+      if (stopCheckMode === 'per-token') {
+        const stopFlagBuffer = recordCheckStop(recorder, {
+          sampledTokenBuffer: tokenBuffers[i + 1],
+          eosTokenId,
+          maxTokens,
+          currentPos: currentPos + 1,
+        });
 
-      // Copy stop flag to main stopBuffer
-      encoder.copyBufferToBuffer(stopFlagBuffer, 0, stopBuffer, i * 4, 4);
+        // Copy stop flag to main stopBuffer
+        encoder.copyBufferToBuffer(stopFlagBuffer, 0, stopBuffer, i * 4, 4);
+        recorder.trackTemporaryBuffer(stopFlagBuffer);
+      }
 
       recorder.trackTemporaryBuffer(sampledTokenBuffer);
-      recorder.trackTemporaryBuffer(stopFlagBuffer);
     }
 
     // Submit all N iterations at once
