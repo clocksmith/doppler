@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "transformersjs",
+  "name": "Transformers.js Harness",
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node benchmarks/runners/transformersjs-bench.js --workload decode-64-128-greedy --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["timing.decodeTokensPerSec", "metrics.decodeTokensPerSec"],
+      "prefillTokensPerSec": ["timing.prefillTokensPerSec", "metrics.prefillTokensPerSec"],
+      "firstTokenMs": ["timing.firstTokenMs", "metrics.firstTokenMs"],
+      "firstResponseMs": ["timing.firstResponseMs", "metrics.firstResponseMs"],
+      "prefillMs": ["timing.prefillMs", "metrics.prefillMs"],
+      "decodeMs": ["timing.decodeMs", "metrics.decodeMs"],
+      "totalRunMs": ["timing.totalRunMs", "metrics.totalRunMs"],
+      "modelLoadMs": ["timing.modelLoadMs", "metrics.modelLoadMs"],
+      "decodeMsPerTokenP50": ["timing.decodeMsPerTokenP50", "metrics.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["timing.decodeMsPerTokenP95", "metrics.decodeMsPerTokenP95"],
+      "decodeMsPerTokenP99": ["timing.decodeMsPerTokenP99", "metrics.decodeMsPerTokenP99"],
+      "peak_memory_mb": ["metrics.peak_memory_mb"],
+      "ort_profiled_total_ms": ["metrics.ort_profiled_total_ms"],
+      "ort_profiled_event_count": ["metrics.ort_profiled_event_count"],
+      "ort_top_op_total_ms": ["metrics.ort_top_op_total_ms"]
+    },
+    "metadataPaths": {
+      "version": ["env.version"],
+      "model": ["modelId"],
+      "ort_top_op_name": ["profiling.ortConsole.topOperations.0.name"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "prefillTokensPerSec",
+      "firstTokenMs",
+      "firstResponseMs",
+      "prefillMs",
+      "decodeMs",
+      "decodeMsPerTokenP50",
+      "decodeMsPerTokenP95",
+      "decodeMsPerTokenP99",
+      "totalRunMs",
+      "modelLoadMs"
+    ]
+  }
+}

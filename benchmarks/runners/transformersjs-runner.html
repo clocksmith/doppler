@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Transformers.js Bench</title></head>
+<body>
+<script type="importmap">
+{
+  "imports": {
+    "onnxruntime-common": "/node_modules/onnxruntime-common/dist/esm/index.js",
+    "onnxruntime-web": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs",
+    "onnxruntime-web/webgpu": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs"
+  }
+}
+</script>
+<script type="module">
+// ORT's WebGPU bundle creates a self-referencing Worker via import.meta.url,
+// but the baked-in URL loses the filename and resolves to the /dist directory.
+// Intercept Worker construction to rewrite that URL to the actual bundle file.
+const _OrigWorker = globalThis.Worker;
+globalThis.Worker = class extends _OrigWorker {
+  constructor(url, opts) {
+    let resolved = typeof url === 'string' ? url : url instanceof URL ? url.href : url;
+    if (typeof resolved === 'string' &&
+        resolved.includes('onnxruntime-web') &&
+        resolved.endsWith('/dist')) {
+      resolved = resolved + '/ort.webgpu.bundle.min.mjs';
+      console.log(`[tjs-bench] Worker URL rewrite: ${resolved}`);
+    }
+    super(resolved, opts);
+  }
+};
+
+// Version from query param: ?v=3 (default) or ?v=4
+const urlParams = new URLSearchParams(location.search);
+const tjsVersion = urlParams.get('v') || '3';
+const cdnBase = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
+// v4: use locally installed node_modules (same-origin, avoids cross-origin Worker issues)
+// v3: use CDN (no Worker issues)
+const cdnUrl = tjsVersion === '4'
+  ? '/node_modules/@huggingface/transformers/dist/transformers.web.min.js'
+  : `${cdnBase}@3`;
+
+console.log(`[tjs-bench] loading transformers.js from ${cdnUrl}`);
+const tjs = await import(cdnUrl);
+const { pipeline, env } = tjs;
+const TextStreamer = tjs.TextStreamer;
+
+// Local model path override via query param (serves from static server)
+const localModelPath = urlParams.get('localModelPath');
+if (localModelPath) {
+  env.allowLocalModels = true;
+  env.allowRemoteModels = false;
+  env.localModelPath = localModelPath;
+  console.log(`[tjs-bench] using local models from ${localModelPath}`);
+} else {
+  env.allowLocalModels = false;
+}
+// HF access token for gated models (passed from Node via URL param, localhost only).
+const hfToken = urlParams.get('hfToken');
+if (hfToken) {
+  env.accessToken = hfToken;
+  console.log('[tjs-bench] HF access token set');
+}
+
+// For v4: disable proxy worker (avoids blob URL import failures in headless Chrome)
+// and point WASM paths to local node_modules instead of CDN.
+if (tjsVersion === '4') {
+  const ort = await import('onnxruntime-web/webgpu');
+  ort.env.wasm.proxy = false;
+  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/';
+  globalThis.__tjsOrtWebgpu = ort;
+  console.log('[tjs-bench] ORT: proxy=off, threads=1, wasmPaths=local');
+}
+
+function setOrtProxyMode(enabled) {
+  const ort = globalThis.__tjsOrtWebgpu;
+  if (!ort?.env?.wasm) {
+    return false;
+  }
+  ort.env.wasm.proxy = enabled === true;
+  return true;
+}
+
+
+window.__tfjsReady = true;
+
+async function finalizeSessionProfiling(generator) {
+  const sessions = generator?.model?.sessions || {};
+  const entries = Object.entries(sessions);
+  const details = [];
+
+  for (const [name, session] of entries) {
+    const report = {
+      name,
+      ended: false,
+      method: null,
+      error: null,
+    };
+    try {
+      if (session && typeof session.endProfiling === 'function') {
+        await session.endProfiling();
+        report.ended = true;
+        report.method = 'session.endProfiling';
+      } else if (session?.handler?.session && typeof session.handler.session.endProfiling === 'function') {
+        await session.handler.session.endProfiling();
+        report.ended = true;
+        report.method = 'session.handler.session.endProfiling';
+      }
+    } catch (e) {
+      report.error = e?.message || String(e);
+    }
+    details.push(report);
+  }
+
+  return {
+    sessionCount: entries.length,
+    endedCount: details.filter((entry) => entry.ended).length,
+    sessions: details,
+  };
+}
+
+function pickGenerationConfigSnapshot(config) {
+  if (!config || typeof config !== 'object') return null;
+  const keys = [
+    'do_sample',
+    'temperature',
+    'top_k',
+    'top_p',
+    'repetition_penalty',
+    'no_repeat_ngram_size',
+    'length_penalty',
+    'diversity_penalty',
+    'renormalize_logits',
+    'bad_words_ids',
+    'force_words_ids',
+    'suppress_tokens',
+    'begin_suppress_tokens',
+    'forced_bos_token_id',
+    'forced_eos_token_id',
+    'num_beams',
+    'num_beam_groups',
+  ];
+  const out = {};
+  let hasAny = false;
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(config, key)) {
+      out[key] = config[key];
+      hasAny = true;
+    }
+  }
+  return hasAny ? out : null;
+}
+
+const SUPPORTED_TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
+const EXECUTION_PROVIDER_MODES = Object.freeze(['default', 'webgpu-only', 'webgpu+wasm', 'webgpu+wasm-safe']);
+
+function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode = 'default') {
+  const hybridProviderMode = providerMode === 'webgpu+wasm' || providerMode === 'webgpu+wasm-safe';
+  const forceWebgpuOnly = providerMode === 'webgpu-only';
+  const executionProviders = hybridProviderMode
+    ? ['webgpu', 'wasm']
+    : (forceWebgpuOnly ? ['webgpu'] : null);
+  const graphOptimizationLevel = providerMode === 'webgpu+wasm-safe' ? 'disabled' : null;
+  const sessionOptions = {
+    ...(executionProviders ? { executionProviders } : {}),
+    ...(graphOptimizationLevel ? { graphOptimizationLevel } : {}),
+    enableMemPattern: false,
+    ...(enableOrtProfiling ? { enableProfiling: true } : {}),
+  };
+  return {
+    device: 'webgpu',
+    dtype,
+    session_options: sessionOptions,
+  };
+}
+
+function normalizePreferredDtype(dtype) {
+  const normalized = String(dtype || 'fp16').trim().toLowerCase();
+  return SUPPORTED_TJS_DTYPES.includes(normalized) ? normalized : 'fp16';
+}
+
+function buildDtypeAttemptOrder(preferredDtype = 'fp16') {
+  const preferred = normalizePreferredDtype(preferredDtype);
+  const order = [];
+  const push = (dtype) => {
+    if (SUPPORTED_TJS_DTYPES.includes(dtype) && !order.includes(dtype)) {
+      order.push(dtype);
+    }
+  };
+  push(preferred);
+  if (preferred === 'fp16') {
+    push('q4f16');
+    push('q4');
+  } else if (preferred === 'q4') {
+    push('q4f16');
+    push('fp16');
+  } else {
+    push('q4');
+    push('fp16');
+  }
+  return order;
+}
+
+function isOrtBadAlloc(error) {
+  const message = error?.message || String(error || '');
+  return message.includes('std::bad_alloc')
+    || message.includes('ERROR_CODE: 6')
+    || message.includes('Can\'t create a session');
+}
+
+function isModelAssetError(error) {
+  const message = String(error?.message || error || '').toLowerCase();
+  return message.includes('404')
+    || message.includes('not found')
+    || message.includes('failed to fetch')
+    || message.includes('could not locate file');
+}
+
+function isWebGpuKernelSupportError(error) {
+  const message = String(error?.message || error || '').toLowerCase();
+  return message.includes('webgpuexecutionprovider')
+    && (message.includes('failed to find kernel') || message.includes('kernel is not supported'));
+}
+
+function isInt64CastKernelGap(error) {
+  const message = String(error?.message || error || '').toLowerCase();
+  return message.includes('cast')
+    && message.includes('tensor(int64)')
+    && message.includes('webgpuexecutionprovider');
+}
+
+async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16') {
+  const requestedDtype = normalizePreferredDtype(preferredDtype);
+  const dtypeAttempts = buildDtypeAttemptOrder(requestedDtype);
+  const ortProxyAttempts = globalThis.__tjsOrtWebgpu ? [false, true] : [false];
+  let lastError = null;
+  for (let dtypeIndex = 0; dtypeIndex < dtypeAttempts.length; dtypeIndex++) {
+    const dtype = dtypeAttempts[dtypeIndex];
+    for (let providerIndex = 0; providerIndex < EXECUTION_PROVIDER_MODES.length; providerIndex++) {
+      const providerMode = EXECUTION_PROVIDER_MODES[providerIndex];
+      for (let proxyIndex = 0; proxyIndex < ortProxyAttempts.length; proxyIndex++) {
+        const useOrtProxy = ortProxyAttempts[proxyIndex];
+        setOrtProxyMode(useOrtProxy);
+        try {
+          const generator = await pipeline(
+            'text-generation',
+            modelId,
+            buildPipelineOptions(enableOrtProfiling, dtype, providerMode)
+          );
+          return {
+            generator,
+            requestedDtype,
+            effectiveDtype: dtype,
+            fallbackUsed:
+              dtype !== requestedDtype || useOrtProxy === true || providerMode !== 'webgpu-only',
+            effectiveOrtProxy: useOrtProxy,
+            ortProxyFallbackUsed: useOrtProxy === true,
+            executionProviderMode: providerMode,
+            executionProviderFallbackUsed: providerMode !== 'default',
+          };
+        } catch (error) {
+          lastError = error;
+          if (isInt64CastKernelGap(error) || isWebGpuKernelSupportError(error)) {
+            throw new Error(
+              `Model "${modelId}" cannot run on Transformers.js WebGPU in this environment: ` +
+              `unsupported WebGPU kernel in ONNX graph (${error?.message || String(error)}). ` +
+              `Use a WebGPU-compatible non-GQA ONNX export or a different benchmark baseline.`
+            );
+          }
+          const hasMoreAttempts =
+            dtypeIndex < dtypeAttempts.length - 1
+            || providerIndex < EXECUTION_PROVIDER_MODES.length - 1
+            || proxyIndex < ortProxyAttempts.length - 1;
+          const shouldRetry = hasMoreAttempts && (
+            isOrtBadAlloc(error)
+            || isModelAssetError(error)
+          );
+          if (!shouldRetry) {
+            throw error;
+          }
+          const message = error?.message || String(error);
+          console.warn(
+            `[tjs-bench] model load failed (dtype=${dtype}, providers=${providerMode}, ` +
+            `ortProxy=${useOrtProxy ? 'on' : 'off'}): ${message}`
+          );
+        }
+      }
+    }
+  }
+
+  throw lastError ?? new Error('Failed to create generator session');
+}
+
+async function releaseGenerator(generator) {
+  if (!generator || typeof generator !== 'object') return;
+  const sessions = generator?.model?.sessions || {};
+  for (const session of Object.values(sessions)) {
+    try {
+      if (session && typeof session.dispose === 'function') {
+        await session.dispose();
+      }
+    } catch { /* ignore */ }
+  }
+  const releasers = [
+    [generator, generator?.dispose],
+    [generator?.model, generator?.model?.dispose],
+    [generator?.tokenizer, generator?.tokenizer?.dispose],
+  ];
+  for (const [owner, release] of releasers) {
+    try {
+      if (owner && typeof release === 'function') {
+        await release.call(owner);
+      }
+    } catch { /* ignore */ }
+  }
+}
+
+window.__primeBenchModel = async (config = {}) => {
+  const modelId = String(config?.modelId || '').trim();
+  const requestedDtype = String(config?.dtype || 'fp16').trim() || 'fp16';
+  if (!modelId) {
+    throw new Error('modelId is required for cache priming');
+  }
+  const start = performance.now();
+  const load = await loadGenerator(modelId, false, requestedDtype);
+  await releaseGenerator(load.generator);
+  return {
+    ok: true,
+    modelId,
+    primeMs: Math.max(0, performance.now() - start),
+    requestedDtype: load.requestedDtype,
+    effectiveDtype: load.effectiveDtype,
+    fallbackUsed: load.fallbackUsed === true,
+    ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
+    ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
+    executionProviderMode: load.executionProviderMode || 'webgpu-only',
+    executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
+  };
+};
+
+window.__runBench = async (config) => {
+  const {
+    modelId,
+    prompt,
+    maxNewTokens,
+    warmupRuns,
+    timedRuns,
+    cacheMode = 'warm',
+    loadMode = null,
+    profileOps,
+    profileTopN,
+    seed = 0,
+    sampling = {},
+    useChatTemplate = false,
+    dtype = 'fp16',
+  } = config;
+  const enableOrtProfiling = profileOps !== false;
+  const temperature = Number.isFinite(Number(sampling.temperature)) ? Number(sampling.temperature) : 0;
+  const topK = Number.isFinite(Number(sampling.topK)) ? Math.max(1, Math.floor(Number(sampling.topK))) : 32;
+  const topPRaw = Number.isFinite(Number(sampling.topP)) ? Number(sampling.topP) : 1;
+  const topP = Math.min(1, Math.max(topPRaw, Number.EPSILON));
+  const doSample = temperature > 0;
+  const strictDeterministicGreedy = !doSample;
+
+  // Capture WebGPU device info before model load
+  let deviceInfo = null;
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (adapter) {
+      const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+      deviceInfo = {
+        vendor: info.vendor || null,
+        architecture: info.architecture || null,
+        device: info.device || null,
+        description: info.description || null,
+        hasF16: adapter.features.has('shader-f16'),
+        hasSubgroups: adapter.features.has('subgroups'),
+        hasTimestampQuery: adapter.features.has('timestamp-query'),
+      };
+      console.log(`[tjs-bench] GPU: ${info.vendor} ${info.architecture} ${info.device}`);
+    }
+  } catch (e) {
+    console.warn(`[tjs-bench] Could not get adapter info: ${e.message}`);
+  }
+
+  // Best-effort memory snapshot (Chrome only, non-standard)
+  const memoryBefore = performance.memory ? {
+    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    totalJSHeapSize: performance.memory.totalJSHeapSize,
+    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+  } : null;
+
+  const requestedDtype = normalizePreferredDtype(dtype);
+  console.log(`[tjs-bench] loading model: ${modelId} (device=webgpu, dtype=${requestedDtype})`);
+
+  const loadStart = performance.now();
+  const load = await loadGenerator(modelId, enableOrtProfiling, requestedDtype);
+  const generator = load.generator;
+  if (load.fallbackUsed) {
+    console.log(
+      `[tjs-bench] load fallback active: dtype=${requestedDtype}->${load.effectiveDtype}, ` +
+      `providers=${load.executionProviderMode || 'webgpu-only'}, ` +
+      `ortProxy=${load.effectiveOrtProxy ? 'on' : 'off'}`
+    );
+  }
+  const modelLoadMs = performance.now() - loadStart;
+  console.log(`[tjs-bench] model loaded in ${(modelLoadMs / 1000).toFixed(1)}s`);
+  const rawGenerationConfig = (
+    generator?.model?.generation_config
+    ?? generator?.model?.generationConfig
+    ?? generator?.generation_config
+    ?? generator?.generationConfig
+    ?? null
+  );
+  const generationConfigSnapshot = pickGenerationConfigSnapshot(rawGenerationConfig);
+
+  let generationPrompt = String(prompt ?? '');
+  if (useChatTemplate) {
+    if (typeof generator?.tokenizer?.apply_chat_template !== 'function') {
+      throw new Error('chat template requested but tokenizer.apply_chat_template is unavailable');
+    }
+    const templatedPrompt = await generator.tokenizer.apply_chat_template(
+      [{ role: 'user', content: generationPrompt }],
+      { tokenize: false, add_generation_prompt: true }
+    );
+    if (typeof templatedPrompt !== 'string' || templatedPrompt.length === 0) {
+      throw new Error('chat template requested but prompt rendering returned empty content');
+    }
+    generationPrompt = templatedPrompt;
+    console.log(`[tjs-bench] chat template applied (${generationPrompt.length} chars)`);
+  }
+
+  // Count prompt tokens via the tokenizer
+  let prefillTokens = null;
+  try {
+    const encoded = generator.tokenizer.encode(generationPrompt);
+    prefillTokens = encoded.length;
+  } catch {
+    try {
+      const encoded = generator.tokenizer(generationPrompt);
+      prefillTokens = encoded?.input_ids?.size ?? encoded?.input_ids?.length ?? null;
+    } catch { /* ignore */ }
+  }
+  console.log(`[tjs-bench] prompt tokens: ${prefillTokens}`);
+
+  const totalRuns = warmupRuns + timedRuns;
+  const timedResults = [];
+  let generatedText = null;
+
+  for (let i = 0; i < totalRuns; i++) {
+    const isWarmup = i < warmupRuns;
+    const isLastRun = i === totalRuns - 1;
+    const label = isWarmup ? 'warmup' : 'timed';
+
+    let firstTokenTime = null;
+    let newTokenCount = 0;
+    const tokenTimestamps = [];
+    const lastRunParts = isLastRun ? [] : null;
+
+    // TextStreamer: use token_callback_function for true token-level timing/counting.
+    const streamer = new TextStreamer(generator.tokenizer, {
+      skip_prompt: true,
+      // Captures decoded text on the final run for correctness comparison; inert otherwise.
+      callback_function: isLastRun ? (text) => { lastRunParts.push(text); } : () => {},
+      token_callback_function: (tokens) => {
+        const now = performance.now();
+        const count = Array.isArray(tokens) ? tokens.length : 1;
+        newTokenCount += count;
+        for (let i = 0; i < count; i++) {
+          tokenTimestamps.push(now);
+        }
+        if (firstTokenTime === null) {
+          firstTokenTime = now;
+        }
+      },
+    });
+
+    const genStart = performance.now();
+
+    const generationOptions = {
+      max_new_tokens: maxNewTokens,
+      streamer,
+      do_sample: doSample,
+      num_beams: 1,
+      num_beam_groups: 1,
+    };
+    if (doSample) {
+      generationOptions.temperature = temperature;
+      generationOptions.top_k = topK;
+      generationOptions.top_p = topP;
+    } else {
+      generationOptions.temperature = 1;
+      generationOptions.top_k = 1;
+      generationOptions.top_p = 1;
+    }
+
+    const deterministicParityOverrides = {
+      repetition_penalty: 1,
+      no_repeat_ngram_size: 0,
+      length_penalty: 1,
+      diversity_penalty: 0,
+      renormalize_logits: false,
+      bad_words_ids: null,
+      force_words_ids: null,
+      suppress_tokens: [],
+      begin_suppress_tokens: [],
+      forced_bos_token_id: null,
+      forced_eos_token_id: null,
+    };
+    if (!doSample && rawGenerationConfig && typeof rawGenerationConfig === 'object') {
+      for (const [key, value] of Object.entries(deterministicParityOverrides)) {
+        if (Object.prototype.hasOwnProperty.call(rawGenerationConfig, key)) {
+          generationOptions[key] = value;
+        }
+      }
+    }
+
+    await generator(generationPrompt, generationOptions);
+
+    const genEnd = performance.now();
+    const totalMs = genEnd - genStart;
+    if (isLastRun && lastRunParts !== null) {
+      generatedText = lastRunParts.join('');
+    }
+
+    // TTFT = time until first streamer callback
+    const ttftMs = firstTokenTime !== null ? firstTokenTime - genStart : totalMs;
+    // Decode time = everything after first token
+    const decodeMs = Math.max(totalMs - ttftMs, 0.1);
+    // Decode tokens = all tokens after the first one
+    const decodeTokens = Math.max(newTokenCount - 1, 0);
+
+    // Compute per-token decode latencies from consecutive timestamps
+    const perTokenMs = [];
+    for (let t = 1; t < tokenTimestamps.length; t++) {
+      perTokenMs.push(tokenTimestamps[t] - tokenTimestamps[t - 1]);
+    }
+
+    const prefillTokensPerSecTtft = prefillTokens !== null && ttftMs > 0
+      ? prefillTokens / (ttftMs / 1000)
+      : null;
+
+  const run = {
+      ttftMs,
+      totalMs,
+      decodeMs,
+      newTokens: newTokenCount,
+      decodeTokens,
+      prefillTokens,
+      tokensPerSec: newTokenCount / (totalMs / 1000),
+      decodeTokensPerSec: decodeTokens > 0 ? decodeTokens / (decodeMs / 1000) : 0,
+      prefillTokensPerSecTtft,
+      prefillTokensPerSec: prefillTokensPerSecTtft,
+      perTokenMs,
+    };
+
+    console.log(
+      `[tjs-bench] ${label} ${i + 1}/${totalRuns}: ` +
+      `${newTokenCount} tokens in ${totalMs.toFixed(0)}ms ` +
+      `(ttft=${ttftMs.toFixed(0)}ms, ${run.tokensPerSec.toFixed(1)} tok/s, ` +
+      `decode=${run.decodeTokensPerSec.toFixed(1)} tok/s)`
+    );
+
+    if (!isWarmup) {
+      timedResults.push(run);
+    }
+  }
+
+  // Stats helpers
+  const sorted = (arr) => [...arr].sort((a, b) => a - b);
+  const median = (arr) => {
+    if (!arr.length) return 0;
+    const s = sorted(arr);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
+  };
+  const avg = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const percentile = (arr, p) => {
+    if (!arr.length) return 0;
+    const s = sorted(arr);
+    const idx = (p / 100) * (s.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (idx - lo);
+  };
+
+  const tps = timedResults.map((r) => r.tokensPerSec);
+  const decodeTps = timedResults.map((r) => r.decodeTokensPerSec);
+  const prefillTpsTtft = timedResults.map((r) => r.prefillTokensPerSecTtft).filter((v) => v !== null);
+  const ttfts = timedResults.map((r) => r.ttftMs);
+  const totalRunMs = timedResults.map((r) => r.totalMs);
+  const decodeMs = timedResults.map((r) => r.decodeMs);
+
+  // Aggregate all per-token decode latencies across timed runs
+  const allDecodeLatencies = timedResults.flatMap((r) => r.perTokenMs);
+  const medianTtftMs = median(ttfts);
+  const medianTotalRunMs = median(totalRunMs);
+  const medianDecodeMs = median(decodeMs);
+  const decodeTokensPerSec = median(decodeTps);
+  const prefillTokensPerSec = prefillTpsTtft.length > 0
+    ? median(prefillTpsTtft)
+    : 0;
+  const firstResponseMs = Number.isFinite(modelLoadMs) && Number.isFinite(medianTtftMs)
+    ? modelLoadMs + medianTtftMs
+    : null;
+
+  // Best-effort memory snapshot after inference
+  const memoryAfter = performance.memory ? {
+    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    totalJSHeapSize: performance.memory.totalJSHeapSize,
+    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+  } : null;
+
+  const ortProfiling = enableOrtProfiling
+    ? await finalizeSessionProfiling(generator)
+    : {
+        sessionCount: 0,
+        endedCount: 0,
+        sessions: [],
+      };
+
+  return {
+    modelId,
+    seed,
+    generatedText,
+    modelLoadMs,
+    warmupRuns,
+    timedRuns,
+    prompt,
+    promptRendered: generationPrompt,
+    useChatTemplate,
+    maxNewTokens,
+    sampling: {
+      temperature,
+      topK,
+      topP,
+      doSample,
+    },
+    cacheMode,
+    loadMode,
+    timing: {
+      modelLoadMs,
+      firstTokenMs: medianTtftMs,
+      firstResponseMs,
+      prefillMs: medianTtftMs,
+      decodeMs: medianDecodeMs,
+      totalRunMs: medianTotalRunMs,
+      decodeTokensPerSec,
+      prefillTokensPerSec,
+      decodeMsPerTokenP50: percentile(allDecodeLatencies, 50),
+      decodeMsPerTokenP95: percentile(allDecodeLatencies, 95),
+      decodeMsPerTokenP99: percentile(allDecodeLatencies, 99),
+      cacheMode,
+      loadMode,
+    },
+    deviceInfo,
+    metrics: {
+      decodeTokensPerSec,
+      prefillTokensPerSec,
+      firstTokenMs: medianTtftMs,
+      firstResponseMs,
+      prefillMs: medianTtftMs,
+      decodeMs: medianDecodeMs,
+      totalRunMs: medianTotalRunMs,
+      modelLoadMs,
+      decodeMsPerTokenP50: percentile(allDecodeLatencies, 50),
+      decodeMsPerTokenP95: percentile(allDecodeLatencies, 95),
+      decodeMsPerTokenP99: percentile(allDecodeLatencies, 99),
+    },
+    runs: timedResults,
+    env: {
+      library: 'transformers.js',
+      version: tjsVersion === '4' ? '4.x' : '3.x',
+      device: 'webgpu',
+      dtype: load.effectiveDtype || 'fp16',
+      requestedDtype,
+      dtypeFallbackUsed: load.effectiveDtype !== requestedDtype,
+      executionProviderMode: load.executionProviderMode || 'webgpu-only',
+      executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
+      ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
+      ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
+    },
+    profiling: {
+      enabled: enableOrtProfiling,
+      topN: Number.isFinite(profileTopN) ? Math.max(1, Math.floor(profileTopN)) : 20,
+      ort: ortProfiling,
+    },
+    generationConfig: {
+      strictDeterministicGreedy,
+      modelDefaults: generationConfigSnapshot,
+    },
+    memoryInfo: memoryBefore || memoryAfter ? { before: memoryBefore, after: memoryAfter } : null,
+  };
+};
+</script>
+</body>
+</html>

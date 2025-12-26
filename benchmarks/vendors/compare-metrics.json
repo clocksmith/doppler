@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-02-23",
+  "metrics": [
+    {
+      "id": "decodeTokensPerSec",
+      "label": "decode tok/s",
+      "unit": "tok/s",
+      "higherBetter": true,
+      "required": true
+    },
+    {
+      "id": "prefillTokensPerSec",
+      "label": "prompt tok/s (prefill)",
+      "unit": "tok/s",
+      "higherBetter": true,
+      "required": true
+    },
+    {
+      "id": "firstTokenMs",
+      "label": "first token (TTFT)",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "firstResponseMs",
+      "label": "first response (first token + load)",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "prefillMs",
+      "label": "prefill ms",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "decodeMs",
+      "label": "decode ms",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "totalRunMs",
+      "label": "total run ms",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "modelLoadMs",
+      "label": "model load",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "decodeMsPerTokenP50",
+      "label": "decode p50 ms/token",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "decodeMsPerTokenP95",
+      "label": "decode p95 ms/token",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    },
+    {
+      "id": "decodeMsPerTokenP99",
+      "label": "decode p99 ms/token",
+      "unit": "ms",
+      "higherBetter": false,
+      "required": true
+    }
+  ]
+}

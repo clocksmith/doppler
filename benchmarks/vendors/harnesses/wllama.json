@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "wllama",
+  "name": "Wllama Harness",
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node external/wllama-bench.js --workload decode-64-128-greedy --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["metrics.decodeTokensPerSec"],
+      "prefillTokensPerSec": ["metrics.prefillTokensPerSec"],
+      "firstTokenMs": ["metrics.firstTokenMs"],
+      "decodeMsPerTokenP50": ["metrics.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["metrics.decodeMsPerTokenP95"],
+      "peak_memory_mb": ["metrics.peak_memory_mb"]
+    },
+    "metadataPaths": {
+      "version": ["env.version"],
+      "model": ["model.id"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "firstTokenMs"
+    ]
+  }
+}

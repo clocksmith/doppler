@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "doppler",
+  "name": "Doppler Harness",
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node tools/doppler-cli.js bench --model-id gemma-3-1b-it-f16-f32a --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["result.timing.decodeTokensPerSec"],
+      "prefillTokensPerSec": ["result.timing.prefillTokensPerSec"],
+      "firstTokenMs": ["result.timing.firstTokenMs"],
+      "firstResponseMs": ["result.timing.firstResponseMs"],
+      "prefillMs": ["result.timing.prefillMs"],
+      "decodeMs": ["result.timing.decodeMs"],
+      "totalRunMs": ["result.timing.totalRunMs"],
+      "modelLoadMs": ["result.timing.modelLoadMs"],
+      "decodeMsPerTokenP50": ["result.timing.decodeMsPerTokenP50", "result.metrics.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["result.timing.decodeMsPerTokenP95", "result.metrics.decodeMsPerTokenP95"],
+      "decodeMsPerTokenP99": ["result.timing.decodeMsPerTokenP99", "result.metrics.decodeMsPerTokenP99"],
+      "peak_memory_mb": ["result.memoryStats.used"]
+    },
+    "metadataPaths": {
+      "version": ["result.env.version"],
+      "model": ["result.modelId"],
+      "runtimeConfigHash": ["result.runtimeConfig.runtimeConfigSha256"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "prefillTokensPerSec",
+      "firstTokenMs",
+      "firstResponseMs",
+      "prefillMs",
+      "decodeMs",
+      "decodeMsPerTokenP50",
+      "decodeMsPerTokenP95",
+      "decodeMsPerTokenP99",
+      "totalRunMs",
+      "modelLoadMs"
+    ]
+  }
+}

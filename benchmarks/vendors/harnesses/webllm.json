@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "webllm",
+  "name": "WebLLM Harness",
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node external/webllm-bench.js --workload decode-64-128-greedy --json",
+      "python external/webllm_runner.py --model Llama-3.1-8B-Instruct-q4f16_1-MLC --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["metrics.decodeTokensPerSec"],
+      "prefillTokensPerSec": ["metrics.prefillTokensPerSec"],
+      "firstTokenMs": ["metrics.firstTokenMs"],
+      "decodeMsPerTokenP50": ["metrics.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["metrics.decodeMsPerTokenP95"],
+      "peak_memory_mb": ["metrics.peak_memory_mb"]
+    },
+    "metadataPaths": {
+      "version": ["env.version"],
+      "model": ["model.id"],
+      "browser": ["env.browser"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "prefillTokensPerSec",
+      "firstTokenMs"
+    ]
+  }
+}

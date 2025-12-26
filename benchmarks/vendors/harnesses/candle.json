@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "candle",
+  "name": "Candle Harness",
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "cargo run -p candle-bench -- --json > /tmp/candle.json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["metrics.decodeTokensPerSec"],
+      "prefillTokensPerSec": ["metrics.prefillTokensPerSec"],
+      "firstTokenMs": ["metrics.firstTokenMs"],
+      "decodeMsPerTokenP50": ["metrics.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["metrics.decodeMsPerTokenP95"],
+      "peak_memory_mb": ["metrics.peak_memory_mb"]
+    },
+    "metadataPaths": {
+      "version": ["env.version"],
+      "model": ["model.id"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "firstTokenMs"
+    ]
+  }
+}
