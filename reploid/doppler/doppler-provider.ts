@@ -16,9 +16,11 @@ import { getManifest, parseManifest, type RDRRManifest } from './storage/rdrr-fo
 import { downloadModel } from './storage/downloader.js';
 import { requestPersistence, getStorageReport } from './storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from './gpu/device.js';
-import { prewarmKernels, autoTuneKernels } from './gpu/kernel-selector.js';
-import { createPipeline, type InferencePipeline } from './inference/pipeline.js';
+import { prepareKernelRuntime } from './gpu/kernel-runtime.js';
+import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from './inference/pipeline.js';
 import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from './bridge/index.js';
+import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from './adapters/lora-loader.js';
+import { getDopplerLoader } from './loader/doppler-loader.js';
 
 export const DOPPLER_PROVIDER_VERSION = '0.1.0';
 
@@ -232,11 +234,64 @@ function estimateDequantizedWeightsBytes(manifest: RDRRManifest): number {
 let pipeline: InferencePipeline | null = null;
 let currentModelId: string | null = null;
 
+const normalizeOPFSPath = (path: string): string => path.replace(/^\/+/, '');
+
+const getOPFSRoot = async (): Promise<FileSystemDirectoryHandle> => {
+  await initOPFS();
+  if (!navigator.storage?.getDirectory) {
+    throw new Error('OPFS not available');
+  }
+  return navigator.storage.getDirectory();
+};
+
+const resolveOPFSPath = async (
+  path: string,
+  createDirs: boolean
+): Promise<{ dir: FileSystemDirectoryHandle; filename: string }> => {
+  const normalized = normalizeOPFSPath(path);
+  const parts = normalized.split('/').filter(Boolean);
+  if (parts.length === 0) {
+    throw new Error('Invalid OPFS path');
+  }
+
+  const filename = parts.pop() as string;
+  let dir = await getOPFSRoot();
+
+  for (const part of parts) {
+    dir = await dir.getDirectoryHandle(part, { create: createDirs });
+  }
+
+  return { dir, filename };
+};
+
+const readOPFSFile = async (path: string): Promise<ArrayBuffer> => {
+  const { dir, filename } = await resolveOPFSPath(path, false);
+  const handle = await dir.getFileHandle(filename);
+  const file = await handle.getFile();
+  return file.arrayBuffer();
+};
+
+const writeOPFSFile = async (path: string, data: ArrayBuffer): Promise<void> => {
+  const { dir, filename } = await resolveOPFSPath(path, true);
+  const handle = await dir.getFileHandle(filename, { create: true });
+  const writable = await handle.createWritable();
+  await writable.write(data);
+  await writable.close();
+};
+
+const fetchArrayBuffer = async (url: string): Promise<ArrayBuffer> => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  }
+  return res.arrayBuffer();
+};
+
 /**
  * Initialize DOPPLER subsystem
  * @returns true if DOPPLER is available
  */
-export async function initDoppler(): Promise<boolean> {
+async function initDoppler(): Promise<boolean> {
   if (DopplerCapabilities.initialized) {
     return DopplerCapabilities.available;
   }
@@ -314,7 +369,7 @@ export async function initDoppler(): Promise<boolean> {
  * @param onProgress - Progress callback
  * @param localPath - Local file path for Native Bridge access
  */
-export async function loadModel(
+async function loadModel(
   modelId: string,
   modelUrl: string | null = null,
   onProgress: ((event: LoadProgressEvent) => void) | null = null,
@@ -443,7 +498,7 @@ export async function loadModel(
     // Prewarm kernels once per session
     if (!DopplerCapabilities.kernelsWarmed) {
       onProgress?.({ stage: 'warming', message: 'Warming GPU kernels...' });
-      await prewarmKernels();
+      await prepareKernelRuntime({ prewarm: true, prewarmMode: 'sequential' });
       DopplerCapabilities.kernelsWarmed = true;
     }
 
@@ -452,12 +507,16 @@ export async function loadModel(
       DopplerCapabilities.kernelsTuned = true;
       const tuneConfig = extractTextModelConfig(manifest);
       setTimeout(() => {
-        autoTuneKernels({
-          hiddenSize: tuneConfig.hiddenSize,
-          intermediateSize: tuneConfig.intermediateSize,
-          numHeads: tuneConfig.numHeads,
-          numKVHeads: tuneConfig.numKVHeads,
-          headDim: tuneConfig.headDim,
+        prepareKernelRuntime({
+          prewarm: false,
+          autoTune: true,
+          modelConfig: {
+            hiddenSize: tuneConfig.hiddenSize,
+            intermediateSize: tuneConfig.intermediateSize,
+            numHeads: tuneConfig.numHeads,
+            numKVHeads: tuneConfig.numKVHeads,
+            headDim: tuneConfig.headDim,
+          },
         }).catch((e: Error) => {
           console.warn('[Doppler] Kernel auto-tune failed:', e.message);
         });
@@ -535,7 +594,7 @@ export async function loadModel(
 /**
  * Unload current model
  */
-export async function unloadModel(): Promise<void> {
+async function unloadModel(): Promise<void> {
   if (pipeline) {
     if (typeof pipeline.unload === 'function') {
       await pipeline.unload();
@@ -548,12 +607,58 @@ export async function unloadModel(): Promise<void> {
 }
 
 /**
+ * Load a LoRA adapter (manifest object or URL)
+ */
+async function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void> {
+  if (!pipeline) {
+    throw new Error('No model loaded. Call loadModel() first.');
+  }
+
+  const options = {
+    readOPFS: readOPFSFile,
+    writeOPFS: writeOPFSFile,
+    fetchUrl: fetchArrayBuffer,
+  };
+
+  let lora;
+  if (typeof adapter === 'string') {
+    lora = await loadLoRAFromUrl(adapter, options);
+  } else if ((adapter as RDRRManifest).adapterType === 'lora' || (adapter as RDRRManifest).modelType === 'lora') {
+    const loader = pipeline.dopplerLoader || getDopplerLoader();
+    await loader.init();
+    lora = await loader.loadLoRAWeights(adapter as RDRRManifest);
+  } else {
+    lora = await loadLoRAFromManifest(adapter as LoRAManifest, options);
+  }
+
+  pipeline.setLoRAAdapter(lora);
+  console.log(`[Doppler] LoRA adapter loaded: ${lora.name}`);
+}
+
+/**
+ * Unload active LoRA adapter
+ */
+async function unloadLoRAAdapter(): Promise<void> {
+  if (!pipeline) return;
+  pipeline.setLoRAAdapter(null);
+  console.log('[Doppler] LoRA adapter unloaded');
+}
+
+/**
+ * Get active LoRA adapter name
+ */
+function getActiveLoRA(): string | null {
+  const active = pipeline?.getActiveLoRA() || null;
+  return active ? active.name : null;
+}
+
+/**
  * Generate text completion
  * @param prompt - Input prompt
  * @param options - Generation options
  * @returns Token stream
  */
-export async function* generate(prompt: string, options: GenerateOptions = {}): AsyncGenerator<string> {
+async function* generate(prompt: string, options: GenerateOptions = {}): AsyncGenerator<string> {
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
   }
@@ -579,12 +684,32 @@ export async function* generate(prompt: string, options: GenerateOptions = {}): 
   }
 }
 
+async function prefillKV(prompt: string, options: GenerateOptions = {}): Promise<KVCacheSnapshot> {
+  if (!pipeline) {
+    throw new Error('No model loaded. Call loadModel() first.');
+  }
+  return pipeline.prefillKVOnly(prompt, options);
+}
+
+async function* generateWithPrefixKV(
+  prefix: KVCacheSnapshot,
+  prompt: string,
+  options: GenerateOptions = {}
+): AsyncGenerator<string> {
+  if (!pipeline) {
+    throw new Error('No model loaded. Call loadModel() first.');
+  }
+  for await (const token of pipeline.generateWithPrefixKV(prefix, prompt, options)) {
+    yield token;
+  }
+}
+
 /**
  * Chat completion (matches LLM client interface)
  * @param messages - Chat messages
  * @param options - Generation options
  */
-export async function dopplerChat(messages: ChatMessage[], options: GenerateOptions = {}): Promise<ChatResponse> {
+async function dopplerChat(messages: ChatMessage[], options: GenerateOptions = {}): Promise<ChatResponse> {
   // Format messages into prompt
   const prompt = messages
     .map((m) => {
@@ -624,14 +749,14 @@ export async function dopplerChat(messages: ChatMessage[], options: GenerateOpti
 /**
  * Get list of available models
  */
-export async function getAvailableModels(): Promise<string[]> {
+async function getAvailableModels(): Promise<string[]> {
   return listModels();
 }
 
 /**
  * Get storage info
  */
-export async function getDopplerStorageInfo(): Promise<unknown> {
+async function getDopplerStorageInfo(): Promise<unknown> {
   // Provide quota + OPFS report
   return getStorageReport();
 }
@@ -639,7 +764,7 @@ export async function getDopplerStorageInfo(): Promise<unknown> {
 /**
  * Cleanup DOPPLER resources
  */
-export async function destroyDoppler(): Promise<void> {
+async function destroyDoppler(): Promise<void> {
   await unloadModel();
   destroyDevice();
 
@@ -671,6 +796,11 @@ export interface DopplerProviderInterface {
   ): Promise<boolean>;
   chat(messages: ChatMessage[], options?: GenerateOptions): Promise<ChatResponse>;
   stream(messages: ChatMessage[], options?: GenerateOptions): AsyncGenerator<string>;
+  prefillKV(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  generateWithPrefixKV(prefix: KVCacheSnapshot, prompt: string, options?: GenerateOptions): AsyncGenerator<string>;
+  loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
+  unloadLoRAAdapter(): Promise<void>;
+  getActiveLoRA(): string | null;
   getCapabilities(): DopplerCapabilitiesType;
   getModels(): Promise<string[]>;
   destroy(): Promise<void>;
@@ -708,6 +838,32 @@ export const DopplerProvider: DopplerProviderInterface = {
     for await (const token of generate(prompt, options)) {
       yield token;
     }
+  },
+
+  async prefillKV(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot> {
+    return prefillKV(prompt, options);
+  },
+
+  async *generateWithPrefixKV(
+    prefix: KVCacheSnapshot,
+    prompt: string,
+    options?: GenerateOptions
+  ): AsyncGenerator<string> {
+    for await (const token of generateWithPrefixKV(prefix, prompt, options)) {
+      yield token;
+    }
+  },
+
+  async loadLoRAAdapter(adapter: LoRAManifest | string): Promise<void> {
+    return loadLoRAAdapter(adapter);
+  },
+
+  async unloadLoRAAdapter(): Promise<void> {
+    return unloadLoRAAdapter();
+  },
+
+  getActiveLoRA(): string | null {
+    return getActiveLoRA();
   },
 
   getCapabilities(): DopplerCapabilitiesType {

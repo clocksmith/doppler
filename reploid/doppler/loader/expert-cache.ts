@@ -8,7 +8,7 @@
  */
 
 import { releaseBuffer } from '../gpu/buffer-pool.js';
-import type { ExpertWeights } from './doppler-loader.js';
+import type { ExpertWeights } from './weights.js';
 
 /**
  * Cache entry with access tracking

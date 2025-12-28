@@ -39,15 +39,6 @@ export interface ExpertSelection {
 }
 
 /**
- * Routing decision for a single token
- */
-export interface RoutingDecision {
-  tokenIdx: number;
-  selectedExperts: number[];
-  weights: number[];
-}
-
-/**
  * GPU context for computations
  */
 interface GpuContext {

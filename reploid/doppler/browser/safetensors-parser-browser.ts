@@ -7,39 +7,38 @@
  * @module browser/safetensors-parser-browser
  */
 
+import {
+  DTYPE_SIZE,
+  parseSafetensorsHeader,
+  parseSafetensorsIndexJsonText,
+  groupTensorsByLayer as groupTensorsByLayerCore,
+  calculateTotalSize as calculateTotalSizeCore,
+  type SafetensorsDtype,
+  type SafetensorsTensor as CoreSafetensorsTensor,
+  type SafetensorsIndexJson,
+} from '../formats/safetensors.js';
+import {
+  parseConfigJsonText,
+  parseTokenizerJsonText,
+  parseTokenizerConfigJsonText,
+} from '../formats/tokenizer.js';
+
+export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
+
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
-/**
- * Data types supported by safetensors
- */
-export type SafetensorsDtype =
-  | 'F64'
-  | 'F32'
-  | 'F16'
-  | 'BF16'
-  | 'I64'
-  | 'I32'
-  | 'I16'
-  | 'I8'
-  | 'U8'
-  | 'BOOL';
+export type { SafetensorsDtype, SafetensorsIndexJson };
 
 /**
  * Tensor information from safetensors file
  */
-export interface SafetensorsTensor {
-  name: string;
-  shape: number[];
-  dtype: string;
-  dtypeOriginal: string;
-  offset: number;
-  size: number;
-  elemSize: number;
+export type SafetensorsTensor = CoreSafetensorsTensor & {
   file?: File;
-  shardFile?: string;
-}
+  elemSize: number;
+  dtypeOriginal: string;
+};
 
 /**
  * Parsed safetensors file result
@@ -99,50 +98,6 @@ export interface AuxiliaryFiles {
   generationConfig?: File;
 }
 
-/**
- * Index JSON structure
- */
-export interface SafetensorsIndexJson {
-  weight_map: Record<string, string>;
-  metadata?: Record<string, unknown>;
-}
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-/**
- * Safetensors dtype to byte size
- */
-export const DTYPE_SIZE: Record<SafetensorsDtype, number> = {
-  F64: 8,
-  F32: 4,
-  F16: 2,
-  BF16: 2,
-  I64: 8,
-  I32: 4,
-  I16: 2,
-  I8: 1,
-  U8: 1,
-  BOOL: 1,
-};
-
-/**
- * Map safetensors dtype to internal names
- */
-export const DTYPE_MAP: Record<string, string> = {
-  F64: 'F64',
-  F32: 'F32',
-  F16: 'F16',
-  BF16: 'BF16',
-  I64: 'I64',
-  I32: 'I32',
-  I16: 'I16',
-  I8: 'I8',
-  U8: 'U8',
-  BOOL: 'BOOL',
-};
-
 // ============================================================================
 // Public API
 // ============================================================================
@@ -151,62 +106,32 @@ export const DTYPE_MAP: Record<string, string> = {
  * Parse safetensors header from File object
  */
 export async function parseSafetensorsFile(file: File): Promise<ParsedSafetensorsFile> {
-  // Read first 8 bytes to get header size
-  const headerSizeBlob = file.slice(0, 8);
-  const headerSizeBuffer = await headerSizeBlob.arrayBuffer();
+  const headerSizeBuffer = await file.slice(0, 8).arrayBuffer();
   const headerSizeView = new DataView(headerSizeBuffer);
-
   const headerSizeLow = headerSizeView.getUint32(0, true);
   const headerSizeHigh = headerSizeView.getUint32(4, true);
   const headerSize = headerSizeHigh * 0x100000000 + headerSizeLow;
-
   if (headerSize > 100 * 1024 * 1024) {
     throw new Error(`Header too large: ${headerSize} bytes`);
   }
 
-  // Read JSON header
-  const headerBlob = file.slice(8, 8 + headerSize);
-  const headerBuffer = await headerBlob.arrayBuffer();
-  const headerJson = new TextDecoder().decode(headerBuffer);
-  const header = JSON.parse(headerJson) as Record<string, unknown>;
+  const headerBuffer = await file.slice(8, 8 + headerSize).arrayBuffer();
+  const combined = new Uint8Array(8 + headerSize);
+  combined.set(new Uint8Array(headerSizeBuffer), 0);
+  combined.set(new Uint8Array(headerBuffer), 8);
+  const parsedHeader = parseSafetensorsHeader(combined.buffer);
 
-  // Data starts after header
-  const dataOffset = 8 + headerSize;
-
-  // Extract metadata (special __metadata__ key)
-  const metadata = (header.__metadata__ || {}) as Record<string, unknown>;
-  delete header.__metadata__;
-
-  // Parse tensor info
-  const tensors: SafetensorsTensor[] = [];
-  for (const [name, info] of Object.entries(header)) {
-    const tensorInfo = info as {
-      dtype: string;
-      shape: number[];
-      data_offsets: [number, number];
-    };
-    const { dtype, shape, data_offsets } = tensorInfo;
-    const [startOffset, endOffset] = data_offsets;
-
-    tensors.push({
-      name,
-      shape,
-      dtype: DTYPE_MAP[dtype] || dtype,
-      dtypeOriginal: dtype,
-      offset: dataOffset + startOffset,
-      size: endOffset - startOffset,
-      elemSize: DTYPE_SIZE[dtype as SafetensorsDtype] || 4,
-      file,
-    });
-  }
-
-  // Sort by offset for sequential reading
-  tensors.sort((a, b) => a.offset - b.offset);
+  const tensors: SafetensorsTensor[] = parsedHeader.tensors.map((tensor) => ({
+    ...tensor,
+    elemSize: tensor.elemSize ?? DTYPE_SIZE[tensor.dtype as SafetensorsDtype] ?? 4,
+    dtypeOriginal: tensor.dtypeOriginal ?? tensor.dtype,
+    file,
+  }));
 
   return {
-    headerSize,
-    dataOffset,
-    metadata,
+    headerSize: parsedHeader.headerSize,
+    dataOffset: parsedHeader.dataOffset,
+    metadata: parsedHeader.metadata,
     tensors,
     file,
     fileSize: file.size,
@@ -304,7 +229,12 @@ export async function* streamTensorData(
  */
 export async function parseConfigJson(configFile: File): Promise<Record<string, unknown>> {
   const text = await configFile.text();
-  return JSON.parse(text);
+  return parseConfigJsonText(text);
+}
+
+export async function parseTokenizerConfigJson(tokenizerConfigFile: File): Promise<Record<string, unknown>> {
+  const text = await tokenizerConfigFile.text();
+  return parseTokenizerConfigJsonText(text);
 }
 
 /**
@@ -312,7 +242,7 @@ export async function parseConfigJson(configFile: File): Promise<Record<string, 
  */
 export async function parseTokenizerJson(tokenizerFile: File): Promise<Record<string, unknown>> {
   const text = await tokenizerFile.text();
-  return JSON.parse(text);
+  return parseTokenizerJsonText(text);
 }
 
 /**
@@ -320,7 +250,7 @@ export async function parseTokenizerJson(tokenizerFile: File): Promise<Record<st
  */
 export async function parseIndexJson(indexFile: File): Promise<SafetensorsIndexJson> {
   const text = await indexFile.text();
-  return JSON.parse(text);
+  return parseSafetensorsIndexJsonText(text);
 }
 
 /**
@@ -383,7 +313,7 @@ export function getAuxiliaryFiles(files: File[]): AuxiliaryFiles {
  * Calculate total model size
  */
 export function calculateTotalSize(parsed: { tensors: SafetensorsTensor[] }): number {
-  return parsed.tensors.reduce((sum, t) => sum + t.size, 0);
+  return calculateTotalSizeCore(parsed);
 }
 
 /**
@@ -392,20 +322,7 @@ export function calculateTotalSize(parsed: { tensors: SafetensorsTensor[] }): nu
 export function groupTensorsByLayer(
   parsed: { tensors: SafetensorsTensor[] }
 ): Map<number, SafetensorsTensor[]> {
-  const layers = new Map<number, SafetensorsTensor[]>();
-
-  for (const tensor of parsed.tensors) {
-    const match = tensor.name.match(/layers?\.(\d+)\./);
-    if (match) {
-      const layerIdx = parseInt(match[1], 10);
-      if (!layers.has(layerIdx)) {
-        layers.set(layerIdx, []);
-      }
-      layers.get(layerIdx)!.push(tensor);
-    }
-  }
-
-  return layers;
+  return groupTensorsByLayerCore(parsed);
 }
 
 // ============================================================================

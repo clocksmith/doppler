@@ -154,7 +154,7 @@ export function setLogLevel(level: string): void {
     silent: LOG_LEVELS.SILENT,
   };
   currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS.INFO;
-  console.log(`[DOPPLER] Log level set to: ${level.toUpperCase()}`);
+  console.log(`[Doppler] Log level set to: ${level.toUpperCase()}`);
 }
 
 // Benchmark mode state
@@ -176,12 +176,12 @@ export function setBenchmarkMode(enabled: boolean): void {
     console.log = noop;
     console.debug = noop;
     console.info = noop;
-    originalConsoleLog('[DOPPLER] Benchmark mode enabled - logging silenced');
+    originalConsoleLog('[Doppler] Benchmark mode enabled - logging silenced');
   } else {
     console.log = originalConsoleLog;
     console.debug = originalConsoleDebug;
     console.info = originalConsoleInfo;
-    console.log('[DOPPLER] Benchmark mode disabled - logging restored');
+    console.log('[Doppler] Benchmark mode disabled - logging restored');
   }
 }
 
@@ -197,7 +197,7 @@ export function isBenchmarkMode(): boolean {
  */
 export function enableModules(...modules: string[]): void {
   enabledModules = new Set(modules.map((m) => m.toLowerCase()));
-  console.log(`[DOPPLER] Enabled modules: ${modules.join(', ')}`);
+  console.log(`[Doppler] Enabled modules: ${modules.join(', ')}`);
 }
 
 /**
@@ -207,7 +207,7 @@ export function disableModules(...modules: string[]): void {
   for (const m of modules) {
     disabledModules.add(m.toLowerCase());
   }
-  console.log(`[DOPPLER] Disabled modules: ${modules.join(', ')}`);
+  console.log(`[Doppler] Disabled modules: ${modules.join(', ')}`);
 }
 
 /**

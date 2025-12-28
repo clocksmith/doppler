@@ -326,56 +326,6 @@ export function canStreamFile(file: File): boolean {
 }
 
 /**
- * Get a readable stream from a file
- */
-export function getFileStream(file: File): ReadableStream<Uint8Array> {
-  if (!canStreamFile(file)) {
-    throw new Error('File streaming not supported in this browser');
-  }
-  return file.stream();
-}
-
-/**
- * Group files by type (weights, config, tokenizer)
- */
-export function categorizeModelFiles(files: File[]): {
-  weights: File[];
-  config: File | null;
-  tokenizer: File | null;
-  other: File[];
-} {
-  const result = {
-    weights: [] as File[],
-    config: null as File | null,
-    tokenizer: null as File | null,
-    other: [] as File[],
-  };
-
-  for (const file of files) {
-    const name = file.name.toLowerCase();
-    if (name.endsWith('.gguf') || name.endsWith('.safetensors') || name.endsWith('.bin')) {
-      // Skip non-weight bins like tokenizer.bin
-      if (name === 'tokenizer.bin' || name === 'tokenizer_config.bin') {
-        result.other.push(file);
-      } else {
-        result.weights.push(file);
-      }
-    } else if (name === 'config.json' || name === 'model_config.json') {
-      result.config = file;
-    } else if (name === 'tokenizer.json' || name === 'tokenizer_config.json') {
-      result.tokenizer = file;
-    } else {
-      result.other.push(file);
-    }
-  }
-
-  // Sort weight files for proper shard ordering
-  result.weights.sort((a, b) => a.name.localeCompare(b.name));
-
-  return result;
-}
-
-/**
  * Detect model format from files
  */
 export function detectModelFormat(files: File[]): 'gguf' | 'safetensors' | 'unknown' {

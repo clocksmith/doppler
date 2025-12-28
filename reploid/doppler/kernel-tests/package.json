@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "GPU kernel validation suite for Dreamer inference engine",
+  "description": "GPU kernel validation suite for Doppler inference engine",
   "scripts": {
     "test": "npm run test:unit && npm run test:gpu",
     "test:unit": "vitest run tests/unit/",

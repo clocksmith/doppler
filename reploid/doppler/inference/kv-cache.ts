@@ -1028,38 +1028,4 @@ export class SlidingWindowKVCache extends KVCache {
   }
 }
 
-/**
- * Multi-Query Attention (MQA) KV Cache
- * Uses fewer KV heads than query heads
- */
-export class MQAKVCache extends KVCache {
-  readonly numQueryHeads: number;
-  readonly numKVHeads: number;
-  readonly kvGroupSize: number;
-
-  /**
-   * @param config - Configuration with numKVHeads
-   */
-  constructor(config: KVCacheConfig & { numKVHeads?: number }) {
-    // Override numHeads for cache storage
-    const cacheConfig = {
-      ...config,
-      numHeads: config.numKVHeads || Math.ceil(config.numHeads / 8)
-    };
-    super(cacheConfig);
-
-    this.numQueryHeads = config.numHeads;
-    this.numKVHeads = cacheConfig.numHeads;
-    this.kvGroupSize = Math.ceil(this.numQueryHeads / this.numKVHeads);
-  }
-
-  /**
-   * Get the compression ratio vs full MHA
-   * @returns Compression ratio
-   */
-  getCompressionRatio(): number {
-    return this.numQueryHeads / this.numKVHeads;
-  }
-}
-
 export default KVCache;

@@ -24,10 +24,10 @@ let serverProcess: ChildProcess | null = null;
  */
 export async function runBuild(verbose: boolean): Promise<void> {
   console.log('Building kernel tests...');
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
 
   return new Promise((resolve, reject) => {
-    const build = spawn('npx', ['tsc', '--project', 'doppler/tsconfig.json'], {
+    const build = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
       cwd: projectRoot,
       stdio: verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
       shell: true,
@@ -60,7 +60,7 @@ export async function runBuild(verbose: boolean): Promise<void> {
  */
 export async function runBenchmarkBuild(verbose: boolean): Promise<void> {
   console.log('Building benchmark bundle...');
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
 
   return new Promise((resolve, reject) => {
     const build = spawn('npm', ['run', 'build:benchmark'], {
@@ -123,7 +123,7 @@ export async function ensureServerRunning(baseUrl: string, verbose: boolean): Pr
 
   console.log('Starting dev server...');
 
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
   serverProcess = spawn('npm', ['run', 'start'], {
     cwd: projectRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -246,11 +246,8 @@ async function buildModelsApiResponse(modelsDir: string): Promise<string> {
 export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): Promise<void> {
   const baseOrigin = new URL(opts.baseUrl).origin;
 
-  const projectRoot = resolve(__dirname, '../../..');
-  const dopplerDir = resolve(projectRoot, 'doppler');
-  const rootDir = projectRoot; // serve.ts default mode root
-
-  const modelsDir = join(dopplerDir, 'models');
+  const projectRoot = resolve(__dirname, '../..');
+  const modelsDir = join(projectRoot, 'models');
 
   const pattern = `${baseOrigin}/**`;
   if (opts.verbose) {
@@ -279,8 +276,6 @@ export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): P
     // Firebase-style rewrites (serve.ts default mode)
     if (pathname === '/') {
       pathname = '/landing.html';
-    } else if (pathname === '/r' || pathname.startsWith('/r/')) {
-      pathname = '/reploid.html';
     } else if (pathname === '/d') {
       pathname = '/doppler/index.html';
     } else if (pathname.startsWith('/d/')) {
@@ -293,7 +288,7 @@ export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): P
     let resolvedPathname = pathname;
     if (pathname.endsWith('.js') && !pathname.includes('node_modules')) {
       const jsPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
-      const distPath = join(dopplerDir, 'dist', jsPath);
+      const distPath = join(projectRoot, 'dist', jsPath);
       try {
         await stat(distPath);
         resolvedPathname = `/__dist__${jsPath}`;
@@ -307,13 +302,13 @@ export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): P
 
     let filePath: string;
     if (safePath.startsWith('/__dist__/')) {
-      filePath = join(dopplerDir, 'dist', safePath.slice('/__dist__/'.length));
+      filePath = join(projectRoot, 'dist', safePath.slice('/__dist__/'.length));
     } else {
-      filePath = join(rootDir, safePath);
+      filePath = join(projectRoot, safePath);
     }
 
     const resolved = resolve(filePath);
-    const allowedRoot = resolve(safePath.startsWith('/__dist__/') ? join(dopplerDir, 'dist') : rootDir);
+    const allowedRoot = resolve(safePath.startsWith('/__dist__/') ? join(projectRoot, 'dist') : projectRoot);
     if (!resolved.startsWith(allowedRoot)) {
       return route.fulfill({ status: 403, body: 'Forbidden' });
     }

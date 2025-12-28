@@ -268,35 +268,6 @@ function bfloat16ToFloat32(bf16: number): number {
 }
 
 /**
- * Convert typed array to Float32
- */
-function convertToFloat32(data: ArrayBuffer, dtype: string): Float32Array {
-  if (dtype === 'F32') {
-    return new Float32Array(data);
-  }
-
-  if (dtype === 'F16') {
-    const f16 = new Uint16Array(data);
-    const f32 = new Float32Array(f16.length);
-    for (let i = 0; i < f16.length; i++) {
-      f32[i] = float16ToFloat32(f16[i]);
-    }
-    return f32;
-  }
-
-  if (dtype === 'BF16') {
-    const bf16 = new Uint16Array(data);
-    const f32 = new Float32Array(bf16.length);
-    for (let i = 0; i < bf16.length; i++) {
-      f32[i] = bfloat16ToFloat32(bf16[i]);
-    }
-    return f32;
-  }
-
-  throw new Error(`Unsupported dtype: ${dtype}`);
-}
-
-/**
  * Check if tensor should be quantized
  */
 function shouldQuantize(tensorName: string, shape: number[]): boolean {
@@ -587,8 +558,6 @@ async function writeTensorsToShards(
     const tensorData = new Uint8Array(data);
 
     // Record tensor location
-    const tensorStartOffset = totalSize;
-
     // Add to current shard, splitting if necessary
     let remaining = tensorData;
     const tensorSpans: TensorSpan[] = [];

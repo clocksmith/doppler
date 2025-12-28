@@ -39,7 +39,9 @@ import { dequantize, dequantizeQ6K, castF32ToF16, runBF16ToF16 } from '../gpu/ke
 import { getBufferDtype, setBufferDtype, setBufferLayout, type BufferLayout } from '../gpu/buffer-dtypes.js';
 import { getKernelHints, getKernelHintsSource } from '../gpu/kernel-hints.js';
 import { ExpertCache, getExpertCache, type CacheStats } from './expert-cache.js';
+import type { ExpertWeights } from './weights.js';
 import { type KernelHints } from '../storage/rdrr-format.js';
+import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -93,23 +95,7 @@ export interface LayerWeights {
   attentionSinks?: GPUBuffer | Float32Array | null;
 }
 
-/**
- * Expert weights
- */
-export interface ExpertWeights {
-  gate?: GPUBuffer | Float32Array | null;
-  up?: GPUBuffer | Float32Array | null;
-  down?: GPUBuffer | Float32Array | null;
-  isGptOss?: boolean;
-  expertIdx?: number;
-  numExperts?: number;
-  gateUpBlocks?: GPUBuffer | null;
-  gateUpScales?: GPUBuffer | null;
-  gateUpBias?: GPUBuffer | null;
-  downBlocks?: GPUBuffer | null;
-  downScales?: GPUBuffer | null;
-  downBias?: GPUBuffer | null;
-}
+export type { ExpertWeights } from './weights.js';
 
 /**
  * Loading progress information
@@ -190,6 +176,32 @@ interface ModelConfig {
   model_type?: string;
   [key: string]: unknown;
 }
+
+interface ParsedLoRATensorName {
+  layer: number;
+  module: LoRAModuleName;
+  kind: 'a' | 'b';
+}
+
+const parseLoRATensorName = (name: string): ParsedLoRATensorName | null => {
+  const match = name.match(/layers?\.?(\d+)\.([^\.]+)\.lora_([ab])/i);
+  if (!match) return null;
+  const layer = parseInt(match[1], 10);
+  const rawModule = match[2].toLowerCase();
+  const module = LORA_MODULE_ALIASES[rawModule];
+  if (!module) return null;
+  const kind = match[3].toLowerCase() === 'a' ? 'a' : 'b';
+  return { layer, module, kind };
+};
+
+const toFloat32 = (value: GPUBuffer | Float32Array | Uint8Array | ArrayBuffer): Float32Array => {
+  if (value instanceof Float32Array) return value;
+  if (value instanceof ArrayBuffer) return new Float32Array(value);
+  if (value instanceof Uint8Array) {
+    return new Float32Array(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
+  }
+  throw new Error('LoRA tensor load returned unsupported buffer type');
+};
 
 // ============================================================================
 // DopplerLoader Class
@@ -363,6 +375,70 @@ export class DopplerLoader {
     this._configureShardCache();
     this._configureQ4KStrategy();
     console.log('[DopplerLoader] Manifest set externally');
+  }
+
+  /**
+   * Load LoRA weights from an adapter manifest (RDRR format).
+   */
+  async loadLoRAWeights(manifest: RDRRManifest): Promise<LoRAAdapter> {
+    const isLoRA = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
+    if (!isLoRA) {
+      throw new Error('Manifest is not a LoRA adapter');
+    }
+    if (!manifest.loraConfig) {
+      throw new Error('LoRA manifest missing loraConfig');
+    }
+
+    const prevManifest = this.manifest;
+    const prevLocations = new Map(this.tensorLocations);
+
+    this.manifest = manifest;
+    this._buildTensorLocations();
+
+    try {
+      const adapter: LoRAAdapter = {
+        name: manifest.name || manifest.modelId,
+        version: typeof manifest.version === 'string' ? manifest.version : String(manifest.version),
+        baseModel: manifest.baseModel,
+        rank: manifest.loraConfig.rank,
+        alpha: manifest.loraConfig.alpha,
+        targetModules: manifest.loraConfig.targetModules as LoRAModuleName[] | undefined,
+        layers: new Map(),
+      };
+
+      for (const name of this.tensorLocations.keys()) {
+        const parsed = parseLoRATensorName(name);
+        if (!parsed) continue;
+        const tensor = await this._loadTensor(name, false, true);
+        if (!tensor) continue;
+        const data = toFloat32(tensor);
+
+        const layer = adapter.layers.get(parsed.layer) || {};
+        const scale = adapter.rank > 0 ? adapter.alpha / adapter.rank : 1;
+        if (!layer[parsed.module]) {
+          layer[parsed.module] = {
+            a: new Float32Array(0),
+            b: new Float32Array(0),
+            rank: adapter.rank,
+            alpha: adapter.alpha,
+            scale,
+          };
+        }
+
+        if (parsed.kind === 'a') {
+          layer[parsed.module].a = data;
+        } else {
+          layer[parsed.module].b = data;
+        }
+
+        adapter.layers.set(parsed.layer, layer);
+      }
+
+      return adapter;
+    } finally {
+      this.manifest = prevManifest;
+      this.tensorLocations = prevLocations;
+    }
   }
 
   private _configureQ4KStrategy(): void {
@@ -1455,10 +1531,11 @@ export class DopplerLoader {
       tryLoad(['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight']),
       tryLoad(['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight']),
       tryLoad(['self_attn.o_proj.weight', 'attention.wo.weight', 'attn_output.weight']),
-      // Gemma 3: q_norm and k_norm use STANDARD RMSNorm (no +1 offset)
-      // Only layer norms (input, post_attention, pre/post_feedforward) use the (1+weight) formula
-      tryLoad(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
-      tryLoad(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
+      // Gemma 3: q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
+      // Same as layer norms - all Gemma 3 norms use (1+weight)
+      // See: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py
+      tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
+      tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
       tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight']),
       tryLoadNorm(['pre_feedforward_layernorm.weight']),
       tryLoadNorm(['post_feedforward_layernorm.weight', 'post_ffw_norm.weight']),

@@ -60,7 +60,7 @@
     <select id="model-select">
       <option value="">Loading models...</option>
     </select>
-    <input type="text" id="prompt-input" value="the color of the sky is" placeholder="Enter prompt...">
+    <input type="text" id="prompt-input" value="Instruction: Explain why the sky looks blue in one sentence. Response:" placeholder="Enter prompt...">
     <button id="run-btn" disabled>Run Test</button>
     <button id="batch-compare-btn" disabled>Batch Compare</button>
     <button id="clear-btn">Clear Log</button>
@@ -195,7 +195,7 @@
 
     async function runTest() {
       const model = modelSelect.value;
-      const prompt = promptInput.value || 'the color of the sky is';
+      const prompt = promptInput.value || 'Instruction: Explain why the sky looks blue in one sentence. Response:';
       const MODEL_URL = `${BASE_URL}/${model}`;
 
       window.testState = {
@@ -341,7 +341,7 @@
     // Batch compare test: run with batchSize=1 vs batchSize=N, compare outputs
     async function runBatchCompare() {
       const model = modelSelect.value;
-      const prompt = promptInput.value || 'the color of the sky is';
+      const prompt = promptInput.value || 'Instruction: Explain why the sky looks blue in one sentence. Response:';
       const MODEL_URL = `${BASE_URL}/${model}`;
       const BATCH_SIZE = 4;
       const MAX_TOKENS = 20;

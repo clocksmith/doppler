@@ -609,16 +609,4 @@ function buildTensorLocations(
   return tensors;
 }
 
-/**
- * Check if GGUF import is supported in this browser
- */
-export function isImportSupported(): boolean {
-  // Need OPFS and either streaming or array buffer
-  return (
-    typeof navigator !== 'undefined' &&
-    'storage' in navigator &&
-    'getDirectory' in (navigator.storage as unknown as { getDirectory?: unknown })
-  );
-}
-
 export default importGGUFFile;

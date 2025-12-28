@@ -35,6 +35,11 @@ export interface TestHarness {
   runSoftmaxTopK(device: GPUDevice, logits: Float32Array, numTokens: number, numExperts: number, topK: number): Promise<{ indices: Uint32Array; weights: Float32Array }>;
   runResidual(device: GPUDevice, x: Float32Array, residual: Float32Array): Promise<Float32Array>;
   runDequantQ4K(device: GPUDevice, quantized: Uint8Array, numBlocks: number): Promise<Float32Array>;
+  runSwiGLU(device: GPUDevice, gate: Float32Array, up: Float32Array, gateBias: Float32Array, upBias: Float32Array): Promise<Float32Array>;
+  runScale(device: GPUDevice, input: Float32Array, scale: number): Promise<Float32Array>;
+  runDequantQ6K(device: GPUDevice, quantized: Uint8Array, numBlocks: number): Promise<Float32Array>;
+  runArgmax(device: GPUDevice, logits: Float32Array): Promise<number>;
+  runSampleTopK(device: GPUDevice, logits: Float32Array, temperature: number, topK: number, randomValue: number): Promise<number>;
   references: {
     matmulRef(A: Float32Array, B: Float32Array, M: number, N: number, K: number, alpha?: number): Float32Array;
     batchMatmulRef(A: Float32Array, B: Float32Array, batch: number, M: number, N: number, K: number): Float32Array;
@@ -60,6 +65,8 @@ export interface TestHarness {
     dequantQ4_0Ref(quantized: Uint8Array, numBlocks: number): Float32Array;
     quantizeQ4_KRef(values: Float32Array, numBlocks: number): Uint8Array;
     dequantQ4_KRef(quantized: Uint8Array, numBlocks: number): Float32Array;
+    argmaxRef(logits: Float32Array): number;
+    sampleTopKRef(logits: Float32Array, temperature: number, topK: number, randomValue: number): number;
   };
 }
 

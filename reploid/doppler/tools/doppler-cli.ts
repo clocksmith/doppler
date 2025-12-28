@@ -67,12 +67,16 @@ const KERNEL_TESTS = [
   'softmax',
   'rope',
   'silu',
+  'swiglu',  // SwiGLU activation with bias
   'gather',
   'scatter-add',
   'moe-gather',
   'residual',
+  'scale',  // Element-wise scalar multiplication
   'topk',
   'dequant',
+  'dequant-q6k',  // Q6_K dequantization
+  'sample',  // GPU argmax sampling
 ] as const;
 
 const KERNEL_BENCHMARKS = [
@@ -121,6 +125,7 @@ function parseArgs(argv: string[]): CLIOptions {
     retries: 2,
     quiet: false,
     help: false,
+    perf: false,
     gpuProfile: false,
     computePrecision: null,
     q4kMatmul: null,
@@ -252,6 +257,9 @@ function parseArgs(argv: string[]): CLIOptions {
       case '-q':
         opts.quiet = true;
         break;
+      case '--perf':
+        opts.perf = true;
+        break;
       case '--gpu-profile':
         opts.gpuProfile = true;
         break;
@@ -350,21 +358,22 @@ DOPPLER CLI - Unified testing, benchmarking, and debugging
 
 Usage:
   doppler run                         Serve demo page at :8080
-  doppler test <suite> [options]      Run tests
-  doppler bench <suite> [options]     Run benchmarks
+  doppler test <suite> [options]      Run correctness tests
+  doppler test <suite> --perf         Run performance benchmarks
+  doppler bench <suite>               [DEPRECATED] Alias for test --perf
   doppler debug [options]             Interactive debugging
 
-Test Suites:
+Test Suites (correctness):
   kernels          Kernel correctness tests (matmul, attention, etc.)
   demo             Demo UI test - model load + generate via app UI
   converter        Converter UI test - GGUF/SafeTensors to RDRR
-  inference        Quick inference validation
+  inference        Quick inference validation (smoke test)
   quick            Quick validation (default) - fast subset of kernels
   all              Run all tests
 
-Benchmark Suites:
-  kernels          Kernel microbenchmarks
-  inference        Full inference benchmark (E2E tok/s)
+Test Suites (--perf mode):
+  kernels          Kernel microbenchmarks (timing)
+  inference        Full inference benchmark (tok/s)
   loading          Model loading to GPU timing
   system           Storage/OPFS benchmarks
   all              Run all benchmarks
@@ -380,9 +389,10 @@ Common Options:
   --timeout <ms>         Timeout (default: 120000)
   --output, -o <file>    Save JSON results
   --quiet, -q            Suppress JSON output to stdout
+  --perf                 Run in performance mode (measure throughput)
   --help, -h             Show this help
 
-Benchmark Options:
+Performance Options (--perf mode):
   --runs, -r <n>         Timed runs (default: 1)
   --warmup, -w <n>       Warmup runs (default: 0)
   --max-tokens, -t <n>   Max tokens to generate (default: 64)
@@ -413,11 +423,12 @@ Debug Options:
   --profile-dir <path>   Persistent browser profile dir (OPFS cache)
 
 Examples:
-  doppler run                          # Serve demo page
-  doppler test kernels --filter matmul # Only matmul tests
-  doppler bench inference --runs 3     # Full inference benchmark
-  doppler bench loading --model gemma  # Time model GPU loading
-  doppler debug --model gemma --layer 5 # Inspect layer 5 outputs
+  doppler run                               # Serve demo page
+  doppler test kernels --filter matmul      # Kernel correctness tests
+  doppler test kernels --perf               # Kernel timing benchmarks
+  doppler test inference                    # Smoke test (model loads + generates)
+  doppler test inference --perf --runs 3    # Full inference benchmark (tok/s)
+  doppler debug --model gemma --layer 5     # Inspect layer 5 outputs
 
 Notes:
   - All modes run headed by default (GPU requires browser window)
@@ -781,6 +792,102 @@ async function runCorrectnessTests(
               return { passed: ref.length === numBlocks * blockSize, refLength: ref.length };
             }
 
+            case 'swiglu': {
+              // Test SwiGLU activation: output = SiLU(gate + gate_bias) * (up + up_bias)
+              const size = 256;
+              const gate = new Float32Array(size).map(() => Math.random() * 2 - 1);
+              const up = new Float32Array(size).map(() => Math.random() * 2 - 1);
+              const gateBias = new Float32Array(size).map(() => Math.random() * 0.1 - 0.05);
+              const upBias = new Float32Array(size).map(() => Math.random() * 0.1 - 0.05);
+
+              // Reference: SwiGLU = SiLU(gate + gate_bias) * (up + up_bias)
+              const expected = new Float32Array(size);
+              for (let i = 0; i < size; i++) {
+                const gatedValue = gate[i] + gateBias[i];
+                const silu = gatedValue / (1 + Math.exp(-gatedValue));  // SiLU = x * sigmoid(x)
+                expected[i] = silu * (up[i] + upBias[i]);
+              }
+
+              const gpuResult = await harness.runSwiGLU(gpu.device, gate, up, gateBias, upBias);
+              let maxError = 0;
+              for (let i = 0; i < size; i++) {
+                maxError = Math.max(maxError, Math.abs(gpuResult[i] - expected[i]));
+              }
+              return { passed: maxError < 1e-4, maxError };
+            }
+
+            case 'scale': {
+              // Test element-wise scalar multiplication: output[i] = input[i] * scale
+              const size = 512;
+              const input = new Float32Array(size).map(() => Math.random() * 10 - 5);
+              const scale = 0.125;  // Common scaling factor (e.g., 1/sqrt(head_dim))
+
+              const expected = new Float32Array(size);
+              for (let i = 0; i < size; i++) {
+                expected[i] = input[i] * scale;
+              }
+
+              const gpuResult = await harness.runScale(gpu.device, input, scale);
+              let maxError = 0;
+              for (let i = 0; i < size; i++) {
+                maxError = Math.max(maxError, Math.abs(gpuResult[i] - expected[i]));
+              }
+              return { passed: maxError < 1e-6, maxError };
+            }
+
+            case 'dequant-q6k': {
+              // Test Q6_K dequantization (6-bit GGUF quantization)
+              // Q6_K block: 210 bytes for 256 elements
+              // Layout: ql[128] + qh[64] + scales[16] + d[2] (f16)
+              const numBlocks = 2;
+              const blockSize = 256;
+              const Q6K_BLOCK_BYTES = 210;
+              const D_OFFSET = 208;  // f16 scale offset
+
+              // Create quantized data with valid f16 scale
+              const quantized = new Uint8Array(numBlocks * Q6K_BLOCK_BYTES);
+              for (let i = 0; i < quantized.length; i++) {
+                quantized[i] = Math.floor(Math.random() * 256);
+              }
+
+              // Ensure d (f16 at offset 208) is a valid small number, not Inf/NaN
+              // Use 0x3C00 = 1.0 in f16 for each block
+              for (let b = 0; b < numBlocks; b++) {
+                const base = b * Q6K_BLOCK_BYTES + D_OFFSET;
+                quantized[base] = 0x00;     // Low byte
+                quantized[base + 1] = 0x3C; // High byte = 0x3C00 = 1.0
+              }
+
+              // Run GPU dequant
+              const gpuResult = await harness.runDequantQ6K(gpu.device, quantized, numBlocks);
+
+              // Verify output is the right size and has valid values
+              let nanCount = 0;
+              let infCount = 0;
+              for (let i = 0; i < gpuResult.length; i++) {
+                if (isNaN(gpuResult[i])) nanCount++;
+                if (!isFinite(gpuResult[i])) infCount++;
+              }
+              const passed = gpuResult.length === numBlocks * blockSize && nanCount === 0 && infCount === 0;
+              return { passed, outputLength: gpuResult.length, expectedLength: numBlocks * blockSize, nanCount, infCount };
+            }
+
+            case 'sample': {
+              // Test GPU argmax sampling
+              const vocabSize = 128;
+              const logits = new Float32Array(vocabSize).map(() => Math.random() * 10 - 5);
+
+              // Set a clear maximum for deterministic test
+              const expectedIdx = 42;
+              logits[expectedIdx] = 100;  // Clear maximum
+
+              const gpuIdx = await harness.runArgmax(gpu.device, logits);
+              const refIdx = refs.argmaxRef(logits);
+
+              const passed = gpuIdx === refIdx && gpuIdx === expectedIdx;
+              return { passed, gpuIdx, refIdx, expectedIdx };
+            }
+
             default:
               return { passed: false, error: `Unknown test: ${name}` };
           }
@@ -842,6 +949,10 @@ async function runKernelBenchmarks(
   console.log('KERNEL BENCHMARKS');
   console.log('='.repeat(60));
 
+  await page.addInitScript(() => {
+    (window as { __name?: (target: unknown, name?: string) => unknown }).__name = (target) => target;
+  });
+
   await page.goto(`${opts.baseUrl}/doppler/kernel-tests/browser/index.html`, {
     timeout: opts.timeout,
   });
@@ -864,6 +975,8 @@ async function runKernelBenchmarks(
     try {
       const result = await page.evaluate(
         async (config: { name: string; warmup: number; runs: number }) => {
+          // esbuild may inject __name helpers into evaluated bundles; define a no-op shim.
+          const __name = (target: unknown) => target;
           const { name, warmup, runs } = config;
           const harness = window.testHarness;
           const gpu = await harness.getGPU();
@@ -1529,6 +1642,13 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  // Handle deprecated 'bench' command - convert to 'test --perf'
+  if (opts.command === 'bench') {
+    console.warn('\x1b[33m[DEPRECATED]\x1b[0m "doppler bench" is deprecated. Use "doppler test --perf" instead.');
+    opts.command = 'test';
+    opts.perf = true;
+  }
+
   // Handle 'run' command - just start the server
   if (opts.command === 'run') {
     console.log('\nDOPPLER CLI - Starting demo server...');
@@ -1556,7 +1676,7 @@ async function main(): Promise<void> {
     console.log('No-server mode enabled (serving assets from disk)...');
   }
 
-  const scope = opts.command === 'bench' ? 'bench' : 'test';
+  const scope = opts.perf ? 'bench' : 'test';
   const context = await createBrowserContext(opts, { scope });
   const page = await setupPage(context, opts);
   const suites: SuiteResult[] = [];
@@ -1591,49 +1711,17 @@ async function main(): Promise<void> {
       await new Promise(() => {}); // Never resolves
 
     } else if (opts.command === 'test') {
-      // TEST SUITES
-      switch (opts.suite) {
-        case 'quick':
-          suites.push(await runCorrectnessTests(page, opts, QUICK_TESTS));
-          break;
+      // TEST SUITES - correctness or performance based on --perf flag
+      if (opts.perf) {
+        // PERFORMANCE MODE (--perf)
+        switch (opts.suite) {
+          case 'kernels':
+          case 'bench:kernels':
+            suites.push(await runKernelBenchmarks(page, opts));
+            break;
 
-        case 'kernels':
-        case 'correctness':  // Legacy alias
-          suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
-          break;
-
-        case 'inference':
-          suites.push(await runInferenceTest(page, opts));
-          break;
-
-        case 'demo':
-          suites.push(await runDemoTest(page, opts));
-          break;
-
-        case 'converter':
-          suites.push(await runConverterTest(page, opts));
-          break;
-
-        case 'all':
-          suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
-          suites.push(await runInferenceTest(page, opts));
-          break;
-
-        default:
-          console.error(`Unknown test suite: ${opts.suite}`);
-          printHelp();
-          process.exit(1);
-      }
-    } else if (opts.command === 'bench') {
-      // BENCHMARK SUITES
-      switch (opts.suite) {
-        case 'kernels':
-        case 'bench:kernels':
-          suites.push(await runKernelBenchmarks(page, opts));
-          break;
-
-        case 'inference':
-        case 'bench:pipeline':
+          case 'inference':
+          case 'bench:pipeline':
           // Full inference benchmark - close existing context
           await context.close();
 
@@ -1749,36 +1837,41 @@ async function main(): Promise<void> {
           console.error(`Unknown benchmark suite: ${opts.suite}`);
           printHelp();
           process.exit(1);
-      }
-    } else {
-      // Legacy mode: interpret suite directly
-      switch (opts.suite) {
-        case 'quick':
-          suites.push(await runCorrectnessTests(page, opts, QUICK_TESTS));
-          break;
-        case 'correctness':
-          suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
-          break;
-        case 'inference':
-          suites.push(await runInferenceTest(page, opts));
-          break;
-        case 'bench:kernels':
-        case 'kernels':
-          suites.push(await runKernelBenchmarks(page, opts));
-          break;
-        case 'bench:pipeline':
-          suites.push(await runPipelineBenchmark(page, opts));
-          break;
-        case 'all':
-          suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
-          suites.push(await runInferenceTest(page, opts));
-          suites.push(await runKernelBenchmarks(page, opts));
-          suites.push(await runPipelineBenchmark(page, opts));
-          break;
-        default:
-          console.error(`Unknown suite: ${opts.suite}`);
-          printHelp();
-          process.exit(1);
+        }
+      } else {
+        // CORRECTNESS MODE (default)
+        switch (opts.suite) {
+          case 'quick':
+            suites.push(await runCorrectnessTests(page, opts, QUICK_TESTS));
+            break;
+
+          case 'kernels':
+          case 'correctness':  // Legacy alias
+            suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
+            break;
+
+          case 'inference':
+            suites.push(await runInferenceTest(page, opts));
+            break;
+
+          case 'demo':
+            suites.push(await runDemoTest(page, opts));
+            break;
+
+          case 'converter':
+            suites.push(await runConverterTest(page, opts));
+            break;
+
+          case 'all':
+            suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
+            suites.push(await runInferenceTest(page, opts));
+            break;
+
+          default:
+            console.error(`Unknown test suite: ${opts.suite}`);
+            printHelp();
+            process.exit(1);
+        }
       }
     }
 

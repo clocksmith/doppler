@@ -1,6 +1,6 @@
 # GPU Kernel Benchmark Baselines
 
-This document describes the benchmark configurations and expected baseline performance for the Dreamer GPU kernels.
+This document describes the benchmark configurations and expected baseline performance for the Doppler GPU kernels.
 
 ## Test Configurations
 

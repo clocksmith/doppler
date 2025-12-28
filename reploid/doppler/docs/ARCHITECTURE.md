@@ -102,6 +102,7 @@ See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concret
 | `memory/` | Memory64, unified memory detection |
 | `tools/` | Conversion CLI, quantizer |
 | `bridge/` | Native Bridge for local file access |
+| `browser/` | Browser import, parsing, and conversion helpers |
 
 ---
 
@@ -139,6 +140,14 @@ releaseBuffer(buf) → returns to pool for reuse
 
 Key insight: WebGPU buffer allocation is expensive (~1ms), pooling amortizes this.
 
+### buffer-dtypes.ts - Buffer Metadata
+
+Tracks per-buffer dtype and layout metadata so kernels can select correct execution paths.
+
+### kernel-selection-cache.ts - Kernel Selection Cache
+
+Caches kernel selections and warm status to avoid repeated benchmarking on the same device.
+
 ### kernel-selector.ts - Kernel Dispatch
 
 Routes operations to optimal kernel based on capabilities:
@@ -151,6 +160,18 @@ else → matmul_f32.wgsl
 ```
 
 Auto-tuning: Benchmarks kernel variants at startup, caches best choice per device.
+
+### profiler.ts - GPU Profiling
+
+Optional marker-based profiling to collect per-op timings during debug and tuning.
+
+### partitioned-buffer-pool.ts - Multi-Model Buffer Pools
+
+Partitions buffer pools by model/expert to reduce contention during multi-model execution.
+
+### multi-model-recorder.ts - Shared Prefix Recording
+
+Records command streams across multiple models to reuse shared prefix KV and reduce overhead.
 
 ### WGSL Kernels (`gpu/kernels/`)
 
@@ -218,6 +239,22 @@ The core generate loop:
 │  5. Check stop conditions                                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### multi-pipeline-pool.ts - Concurrent Pipelines
+
+Manages a pool of inference pipelines to run multiple requests in parallel.
+
+### multi-model-network.ts - Expert Network Orchestration
+
+Schedules a network of experts and routes tasks across multiple models.
+
+### expert-router.ts - Expert Profiles
+
+Defines expert profiles and routing hints used by multi-model orchestration.
+
+### network-evolution.ts - Topology Search
+
+Evolution helpers for mutating and scoring expert network topologies.
 
 **Key Pipeline Features:**
 - GPU-native: No CPU readback until final logits sampling
@@ -328,6 +365,10 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 **Gemma 3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. DopplerLoader applies +1 offset during load for SafeTensors source (GGUF has it baked in).
 
+### multi-model-loader.ts - Base + Adapter Loading
+
+Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
+
 ---
 
 ## 4. Storage (`storage/`)
@@ -384,6 +425,18 @@ Streaming download with:
 - Shard-by-shard integrity verification
 - Resume support (partial downloads)
 
+### quickstart-downloader.ts - Curated Downloads
+
+Provides a curated model list and helpers for quickstart downloads.
+
+### preflight.ts - Requirements Check
+
+Validates GPU and storage requirements before loading a model.
+
+### quota.ts - Storage Detection
+
+Detects available storage APIs and reports quota/persistence information.
+
 ---
 
 ## 5. Memory Subsystem (`memory/`)
@@ -405,9 +458,65 @@ Apple Silicon detection for optimal buffer sharing:
 - Unified memory allows larger models (no PCIe copy)
 - Detected via `navigator.gpu.requestAdapter()` heuristics
 
+### heap-manager.ts - Heap Allocation
+
+Tracks heap allocations and segments to avoid host-memory overcommit.
+
 ---
 
-## 6. Tools (`tools/`)
+## 6. Bridge (`bridge/`)
+
+### extension-client.ts - Extension Bridge Client
+
+Connects to a browser extension to access local files outside OPFS limits.
+
+### extension/background.ts - Extension Background
+
+Handles native messaging and file operations for the extension bridge.
+
+### extension/manifest.json - Extension Manifest
+
+Defines extension permissions and background entry points.
+
+### native/native-host.ts - Native Host
+
+Implements the native host process that services file read/list commands.
+
+### native/doppler-bridge.sh and native/install.sh - Host Scripts
+
+Shell helpers for installing and running the native bridge.
+
+### protocol.ts - Bridge Protocol
+
+Defines framing, commands, and flags for bridge messaging.
+
+---
+
+## 7. Browser Import (`browser/`)
+
+### file-picker.ts - Browser File Access
+
+Uses browser file system APIs to pick and stream local model files.
+
+### gguf-parser-browser.ts - GGUF Parsing
+
+Parses GGUF metadata and tensors in the browser.
+
+### safetensors-parser-browser.ts - SafeTensors Parsing
+
+Parses SafeTensors metadata and tensor slices in the browser.
+
+### gguf-importer.ts - GGUF Import Pipeline
+
+Builds RDRR shards from GGUF inputs in-browser.
+
+### model-converter.ts - Browser Conversion
+
+Converts source formats into RDRR with progress reporting.
+
+---
+
+## 8. Tools (`tools/`)
 
 ### convert-cli.ts - Model Conversion
 
@@ -438,7 +547,7 @@ value = d * scale * q - dmin * min
 
 ---
 
-## 7. Provider API (`doppler-provider.ts`)
+## 9. Provider API (`doppler-provider.ts`)
 
 Public API for LLM client integration:
 
@@ -622,4 +731,3 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-

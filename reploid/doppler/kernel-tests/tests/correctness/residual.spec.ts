@@ -220,7 +220,8 @@ test.describe('Bias Add Kernel', () => {
       });
       device.queue.writeBuffer(biasBuffer, 0, bias);
 
-      const { runBiasAdd } = await import('../../gpu/kernels/residual.js');
+      // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+      const { runBiasAdd } = await import('/doppler/dist/gpu/kernels/residual.js');
       await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
 
       // Read back
@@ -283,7 +284,8 @@ test.describe('Bias Add Kernel', () => {
       });
       device.queue.writeBuffer(biasBuffer, 0, bias);
 
-      const { runBiasAdd } = await import('../../gpu/kernels/residual.js');
+      // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+      const { runBiasAdd } = await import('/doppler/dist/gpu/kernels/residual.js');
       await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
 
       const staging = device.createBuffer({

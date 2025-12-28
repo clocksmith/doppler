@@ -15,6 +15,7 @@ import { parseSafetensors, readTensorData, type ParsedSafetensorsFile, type Pars
 import { quantizeToQ4KM, quantizeToQ4KMRowWise, quantizeToQ4KMColumnWise, shouldQuantize, float16ToFloat32 } from './quantizer.js';
 import { writeRDRR, createTestModel, type ProgressEvent, type TensorInfo as RDRRTensorInfo } from './rdrr-writer.js';
 import type { ConversionInfo, RuntimeOptimizations, Q4KLayout, ComputePrecision } from '../storage/rdrr-format.js';
+import { parseTokenizerJsonText } from '../formats/tokenizer.js';
 
 // Converter version for reproducibility
 const CONVERTER_VERSION = '1.0.0';
@@ -687,7 +688,7 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
   const tokenizerPath = join(inputDir, 'tokenizer.json');
   try {
     const tokenizerData = await readFile(tokenizerPath, 'utf-8');
-    const tokenizerJson = JSON.parse(tokenizerData);
+    const tokenizerJson = parseTokenizerJsonText(tokenizerData);
     if (tokenizerJson.model) {
       (modelInfo as { tokenizerJson?: unknown }).tokenizerJson = tokenizerJson;
       console.log(`  Tokenizer: ${tokenizerPath}`);

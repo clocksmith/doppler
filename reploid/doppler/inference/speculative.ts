@@ -55,18 +55,6 @@ export interface KVCache {
 }
 
 /**
- * Speculative Decoding Policy Configuration
- */
-export interface SpeculativePolicy {
-  /** Number of tokens to draft in each iteration */
-  draftTokens: number;
-  /** Acceptance threshold for draft tokens (0-1) */
-  acceptanceThreshold: number;
-  /** Whether to fallback to greedy sampling on rejection */
-  fallbackToGreedy: boolean;
-}
-
-/**
  * Speculative Decoding Configuration
  */
 export interface SpeculativeConfig {
@@ -485,109 +473,6 @@ export class SpeculativeDecoder {
       totalRejected: 0,
       averageAcceptRate: 0,
     };
-  }
-}
-
-/**
- * Tree Configuration for Tree-based Speculative Decoding
- */
-export interface TreeConfig extends SpeculativeConfig {
-  /** Number of branches per node */
-  branchFactor?: number;
-  /** Maximum depth of the tree */
-  maxDepth?: number;
-}
-
-/**
- * Tree Node for Draft Tree
- */
-interface TreeNode {
-  /** Token ID (null for root) */
-  token: number | null;
-  /** Child nodes */
-  children: TreeNode[];
-  /** Cumulative log probability */
-  logprob: number;
-  /** Depth in the tree */
-  depth: number;
-}
-
-/**
- * Top-K Token Result
- */
-interface TopKToken {
-  /** Token ID */
-  token: number;
-  /** Log probability */
-  logprob: number;
-}
-
-/**
- * Tree-based speculative decoding (experimental)
- * Generates multiple candidate paths and verifies in parallel
- */
-export class TreeSpeculativeDecoder extends SpeculativeDecoder {
-  private branchFactor: number;
-  private maxDepth: number;
-
-  constructor(config: TreeConfig = {}) {
-    super(config);
-    this.branchFactor = config.branchFactor ?? 2;
-    this.maxDepth = config.maxDepth ?? 3;
-  }
-
-  /**
-   * Generate tree of draft tokens
-   */
-  async generateDraftTree(inputIds: number[], kvCache?: KVCache): Promise<TreeNode> {
-    // Build tree structure with multiple branches
-    const root: TreeNode = { token: null, children: [], logprob: 0, depth: 0 };
-
-    const buildTree = async (
-      node: TreeNode,
-      ids: number[],
-      depth: number
-    ): Promise<void> => {
-      if (depth >= this.maxDepth) return;
-
-      if (!this.draftModel) {
-        throw new Error('Draft model not set');
-      }
-
-      const { logits } = await this.draftModel.forward(ids, kvCache);
-      const logprobs = this.logSoftmax(logits);
-
-      // Get top-k tokens as branches
-      const topK = this.getTopK(logprobs, this.branchFactor);
-
-      for (const { token, logprob } of topK) {
-        const child: TreeNode = {
-          token,
-          logprob: node.logprob + logprob,
-          children: [],
-          depth: depth + 1,
-        };
-        node.children.push(child);
-
-        // Recursively build subtree
-        await buildTree(child, [...ids, token], depth + 1);
-      }
-    };
-
-    await buildTree(root, inputIds, 0);
-    return root;
-  }
-
-  /**
-   * Get top-k tokens from log probabilities
-   */
-  private getTopK(logprobs: Float32Array, k: number): TopKToken[] {
-    const indexed: TopKToken[] = [];
-    for (let i = 0; i < logprobs.length; i++) {
-      indexed.push({ token: i, logprob: logprobs[i] });
-    }
-    indexed.sort((a, b) => b.logprob - a.logprob);
-    return indexed.slice(0, k);
   }
 }
 

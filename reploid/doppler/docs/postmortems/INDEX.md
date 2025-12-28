@@ -8,7 +8,8 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
-| [Gemma 3 Magnitude Gap](#gemma3-magnitude-gap) | Dec 2025 | IN PROGRESS | GPU sync bug fixed, 2.6x gap remaining |
+| [Gemma 3 q_norm/k_norm Offset](#gemma3-qknorm-offset) | Dec 2025 | RESOLVED | Missing +1 offset for q_norm/k_norm weights |
+| [Gemma 3 Magnitude Gap](#gemma3-magnitude-gap) | Dec 2025 | SUPERSEDED | Superseded by q_norm/k_norm fix |
 | [Gemma 3 Q4K Garbage Output](#gemma3-1b-q4k-garbage-output) | Dec 2025 | RESOLVED | Q4K layout mismatch + q_norm offset |
 | [Hidden State Under-Accumulation](#hidden-state-under-accumulation) | Dec 2025 | SUPERSEDED | Merged into Garbage Output PM |
 | [Positive Bias Hidden States](#positive-bias-hidden-states) | Dec 2025 | DISPROVED | Sampling artifact, not real issue |
@@ -22,11 +23,19 @@ Quick reference for debugging history and lessons learned.
 
 ## Post-Mortem Details
 
+### Gemma3-QKNorm-Offset
+
+**Status:** RESOLVED | **File:** [GEMMA3-QKNORM-OFFSET-2025-12-25.md](GEMMA3-QKNORM-OFFSET-2025-12-25.md)
+
+Gemma 3 produced garbage output (" объ khác reino kolor...") instead of coherent text. Root cause: q_norm and k_norm weights were missing the +1 offset that ALL Gemma 3 RMSNorm layers require. Unlike Llama, Gemma 3 uses `(1 + weight)` formula for normalization. Fix: changed loader to use `tryLoadNorm()` for q_norm/k_norm, and attention.ts to use `getNormWeightBuffer()`. Model reconversion required to bake correct offsets into cached weights. After fix, output is correct: " blue, the blue, the color of".
+
+---
+
 ### Gemma3-Magnitude-Gap
 
-**Status:** IN PROGRESS | **File:** [GEMMA3-MAGNITUDE-GAP-2025-12-21.md](GEMMA3-MAGNITUDE-GAP-2025-12-21.md)
+**Status:** SUPERSEDED | **File:** [GEMMA3-MAGNITUDE-GAP-2025-12-21.md](GEMMA3-MAGNITUDE-GAP-2025-12-21.md)
 
-Found and fixed GPU sync bug in `scaleGPUBuffer()` - function returned before GPU completed scaling operation, causing pipeline to read stale data. This improved Layer 0 magnitude from 24 to 86 (3.5x improvement). However, a 2.6x gap remains vs HuggingFace reference (86 vs 227 at Layer 0). Added GELU activation default for Gemma 3. Debug logging added to attention function but not yet appearing in output - investigation paused. Next: determine why `runLayerAttentionGPU` debug logs aren't appearing, then trace Q/K/V magnitudes.
+Found and fixed GPU sync bug in `scaleGPUBuffer()` - function returned before GPU completed scaling operation, causing pipeline to read stale data. This improved Layer 0 magnitude from 24 to 86 (3.5x improvement). The remaining 2.6x gap was later resolved by the q_norm/k_norm +1 offset fix (see GEMMA3-QKNORM-OFFSET-2025-12-25.md). This postmortem is now superseded.
 
 ---
 
@@ -104,6 +113,11 @@ Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings
 - Q4K packed vs row-wise layout
 - Scale/min encoding mismatches
 - Sign handling in dequantization
+
+### Architecture-Specific Weight Processing
+- Gemma 3: ALL norms use `(1 + weight)` including q_norm/k_norm
+- Llama: No norm weight offset needed
+- Always verify against HuggingFace source for architecture quirks
 
 ### Uniform Buffer Mismatches
 - TypeScript/WGSL struct field order

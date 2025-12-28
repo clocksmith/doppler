@@ -286,6 +286,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [1, 1, 1],
       requires: ['shader-f16'],
     },
+    // Chunked decode kernel - parallelizes headDim for models with few heads (e.g., Gemma 3)
+    decode_chunked_f16kv: {
+      shaderFile: 'attention_decode_chunked_f16kv.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     // Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization
     decode_subgroup: {
       shaderFile: 'attention_decode_subgroup.wgsl',
@@ -989,12 +996,37 @@ export async function autoTuneKernels(modelConfig: Record<string, number> = {}):
 /**
  * Prewarm all supported kernel pipelines
  */
-export async function prewarmKernels(): Promise<void> {
+export async function prewarmKernels(
+  options: { mode?: 'parallel' | 'sequential' } = {}
+): Promise<void> {
   const caps = getKernelCapabilities();
-  const jobs: Promise<any>[] = [];
+  const mode = options.mode ?? 'parallel';
+  const entries = Object.entries(KERNEL_CONFIGS)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([operation, variants]) => [operation, Object.entries(variants).sort(([a], [b]) => a.localeCompare(b))] as const);
 
-  for (const [operation, variants] of Object.entries(KERNEL_CONFIGS)) {
-    for (const [variant, cfg] of Object.entries(variants)) {
+  if (mode === 'sequential') {
+    let count = 0;
+    for (const [operation, variants] of entries) {
+      for (const [variant, cfg] of variants) {
+        if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
+          continue;
+        }
+        try {
+          await createPipeline(operation, variant);
+          count += 1;
+        } catch (e: any) {
+          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+        }
+      }
+    }
+    console.log(`[KernelSelector] Prewarmed ${count} kernel pipelines`);
+    return;
+  }
+
+  const jobs: Promise<void>[] = [];
+  for (const [operation, variants] of entries) {
+    for (const [variant, cfg] of variants) {
       if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
         continue;
       }

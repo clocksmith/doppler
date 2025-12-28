@@ -29,6 +29,8 @@ import {
   CommandRecorder,
 } from '../../gpu/kernel-selector.js';
 import { isKernelDebugEnabled, dumpTokenVector, dumpKVCache, logKernelStep } from './debug-utils.js';
+import { applyLoRA } from './lora-apply.js';
+import { getLoRAModule, type LoRAAdapter } from './lora.js';
 
 /**
  * Attention configuration for a layer.
@@ -88,7 +90,8 @@ export async function runLayerAttentionGPU(
   debugFlags: AttentionDebugFlags = {},
   getWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  lora?: LoRAAdapter | null
 ): Promise<GPUBuffer> {
   // TODO: Debug logging not appearing - investigate in next session
   // See GEMMA3-MAGNITUDE-GAP-2025-12-21.md for context
@@ -166,6 +169,21 @@ export async function runLayerAttentionGPU(
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
   }
 
+  const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
+  if (loraQ && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      Q,
+      loraQ,
+      { M: numTokens, N: numHeads * headDim, K: hiddenSize },
+      getWeightBuffer
+    );
+    if (combined !== Q) {
+      releaseBuffer(Q);
+      Q = combined;
+    }
+  }
+
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
     K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
@@ -174,12 +192,42 @@ export async function runLayerAttentionGPU(
     K = acquireBuffer(kvSize * 4, undefined, 'K');
   }
 
+  const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
+  if (loraK && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      K,
+      loraK,
+      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+      getWeightBuffer
+    );
+    if (combined !== K) {
+      releaseBuffer(K);
+      K = combined;
+    }
+  }
+
   if (layerWeights.vProj && getWeightBuffer) {
     const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
     V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
   } else {
     V = acquireBuffer(kvSize * 4, undefined, 'V');
+  }
+
+  const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
+  if (loraV && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      V,
+      loraV,
+      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+      getWeightBuffer
+    );
+    if (combined !== V) {
+      releaseBuffer(V);
+      V = combined;
+    }
   }
 
   // Kernel step debug: Q/K/V projections
@@ -207,10 +255,11 @@ export async function runLayerAttentionGPU(
     logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm}` });
   }
 
-  // Note: q_norm and k_norm use STANDARD RMSNorm (no +1 offset) unlike layer norms
-  // So we use getWeightBuffer instead of getNormWeightBuffer
-  if (hasQNorm && getWeightBuffer && layerWeights.qNorm) {
-    const qNormBuf = getWeightBuffer(layerWeights.qNorm, 'q_norm');
+  // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
+  // Same as layer norms - all Gemma 3 norms use (1+weight)
+  // See: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py
+  if (hasQNorm && getNormWeightBuffer && layerWeights.qNorm) {
+    const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
     if (qElems === headDim) {
       const qNormed = await runRMSNorm(Q, qNormBuf, rmsNormEps, {
@@ -226,8 +275,8 @@ export async function runLayerAttentionGPU(
     if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
   }
 
-  if (hasKNorm && getWeightBuffer && layerWeights.kNorm) {
-    const kNormBuf = getWeightBuffer(layerWeights.kNorm, 'k_norm');
+  if (hasKNorm && getNormWeightBuffer && layerWeights.kNorm) {
+    const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
     const kElems = kNormBuf.size / 4;
     if (kElems === headDim) {
       const kNormed = await runRMSNorm(K, kNormBuf, rmsNormEps, {
@@ -355,6 +404,21 @@ export async function runLayerAttentionGPU(
     output = attnOutput;
   }
 
+  const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+  if (loraO && getWeightBuffer) {
+    const combined = await applyLoRA(
+      attnOutput,
+      output,
+      loraO,
+      { M: numTokens, N: hiddenSize, K: numHeads * headDim },
+      getWeightBuffer
+    );
+    if (combined !== output) {
+      releaseBuffer(output);
+      output = combined;
+    }
+  }
+
   // Debug: Check after o_proj for L0 prefill
   if (layerIdx === 0 && isPrefill && !debugFlags.l0OProjDebugDone && debugCheckBuffer) {
     debugFlags.l0OProjDebugDone = true;
@@ -386,7 +450,8 @@ export async function recordLayerAttentionGPU(
   debugFlags: AttentionDebugFlags = {},
   getWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  lora?: LoRAAdapter | null
 ): Promise<GPUBuffer> {
   const {
     layerIdx,
@@ -433,12 +498,44 @@ export async function recordLayerAttentionGPU(
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
   }
 
+  const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
+  if (loraQ && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      Q,
+      loraQ,
+      { M: numTokens, N: numHeads * headDim, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== Q) {
+      recorder.trackTemporaryBuffer(Q);
+      Q = combined;
+    }
+  }
+
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
     K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
     K = acquireBuffer(kvSize * 4, undefined, 'K');
+  }
+
+  const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
+  if (loraK && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      K,
+      loraK,
+      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== K) {
+      recorder.trackTemporaryBuffer(K);
+      K = combined;
+    }
   }
 
   if (layerWeights.vProj && getWeightBuffer) {
@@ -449,10 +546,26 @@ export async function recordLayerAttentionGPU(
     V = acquireBuffer(kvSize * 4, undefined, 'V');
   }
 
+  const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
+  if (loraV && getWeightBuffer) {
+    const combined = await applyLoRA(
+      normedBuffer,
+      V,
+      loraV,
+      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== V) {
+      recorder.trackTemporaryBuffer(V);
+      V = combined;
+    }
+  }
+
   // Optional per-head Q/K norm (Gemma-family)
-  // Note: q_norm and k_norm use STANDARD RMSNorm (no +1 offset) unlike layer norms
-  if (layerWeights.qNorm && getWeightBuffer) {
-    const qNormBuf = getWeightBuffer(layerWeights.qNorm, 'q_norm');
+  // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
+  if (layerWeights.qNorm && getNormWeightBuffer) {
+    const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
     if (qElems === headDim) {
       const qNormed = await recordRMSNorm(recorder, Q, qNormBuf, rmsNormEps, {
@@ -465,8 +578,8 @@ export async function recordLayerAttentionGPU(
     if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
   }
 
-  if (layerWeights.kNorm && getWeightBuffer) {
-    const kNormBuf = getWeightBuffer(layerWeights.kNorm, 'k_norm');
+  if (layerWeights.kNorm && getNormWeightBuffer) {
+    const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
     const kElems = kNormBuf.size / 4;
     if (kElems === headDim) {
       const kNormed = await recordRMSNorm(recorder, K, kNormBuf, rmsNormEps, {
@@ -557,6 +670,22 @@ export async function recordLayerAttentionGPU(
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
   } else {
     output = attnOutput;
+  }
+
+  const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+  if (loraO && getWeightBuffer) {
+    const combined = await applyLoRA(
+      attnOutput,
+      output,
+      loraO,
+      { M: numTokens, N: hiddenSize, K: numHeads * headDim },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== output) {
+      recorder.trackTemporaryBuffer(output);
+      output = combined;
+    }
   }
 
   // Track intermediate buffers for cleanup after submit (not release!)

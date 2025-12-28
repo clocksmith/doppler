@@ -109,7 +109,6 @@ interface Blake3Module {
 // ============================================================================
 
 const ALIGNMENT = 4096; // 4KB alignment for optimal disk I/O
-const _READ_CHUNK_SIZE = 1024 * 1024; // 1MB chunks for streaming reads
 const MODELS_DIR = 'doppler-models';
 
 // ============================================================================

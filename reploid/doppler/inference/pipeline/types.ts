@@ -9,6 +9,7 @@
  */
 
 import type { ParsedModelConfig } from './config.js';
+import type { LoRAAdapter } from './lora-types.js';
 
 // ============================================================================
 // Core Context Types
@@ -60,6 +61,9 @@ export interface PipelineContext {
 
   /** Batching statistics */
   batchingStats: BatchingStats;
+
+  /** Optional LoRA adapter */
+  lora?: LoRAAdapter | null;
 }
 
 /** GPU buffer result for KV cache layer */
@@ -313,7 +317,7 @@ export interface BatchingStats {
 /**
  * Buffer type that can be either GPU or CPU.
  */
-export type MaybeGPUBuffer = GPUBuffer | Float32Array;
+export type { MaybeGPUBuffer } from './buffer-types.js';
 
 /**
  * Function to decode token IDs to text (for debug logging).

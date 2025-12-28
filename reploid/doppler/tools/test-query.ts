@@ -125,7 +125,7 @@ async function launchBrowser(): Promise<{ context: BrowserContext; page: Page }>
 }
 
 async function loadModel(page: Page, baseUrl: string, model: string): Promise<void> {
-  // Use the DOPPLERDemo app that's already loaded on the page
+  // Use the DopplerDemo app that's already loaded on the page
   // This avoids module loading issues and reuses the existing infrastructure
 
   await page.evaluate(
@@ -148,7 +148,7 @@ async function loadModel(page: Page, baseUrl: string, model: string): Promise<vo
       }
 
       if (!w.dopplerDemo) {
-        throw new Error('DOPPLERDemo app not found on page');
+        throw new Error('DopplerDemo app not found on page');
       }
 
       console.log(`[Test] Looking for model matching: ${model}`);

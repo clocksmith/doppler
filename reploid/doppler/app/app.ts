@@ -192,7 +192,7 @@ async function discoverLocalModels(): Promise<RemoteModel[]> {
 /**
  * Main Demo Application
  */
-export class DOPPLERDemo {
+export class DopplerDemo {
   private modelSelector: ModelSelector | null = null;
   private chatUI: ChatUI | null = null;
   private progressUI: ProgressUI | null = null;
@@ -269,7 +269,7 @@ export class DOPPLERDemo {
    * Initialize the application
    */
   async init(): Promise<void> {
-    console.log('[DOPPLERDemo] Initializing...');
+    console.log('[DopplerDemo] Initializing...');
 
     // Get DOM references
     this.statusDot = document.querySelector('.status-dot');
@@ -337,7 +337,7 @@ export class DOPPLERDemo {
       );
     }
 
-    console.log('[DOPPLERDemo] Initialized');
+    console.log('[DopplerDemo] Initialized');
   }
 
   /**
@@ -430,7 +430,7 @@ export class DOPPLERDemo {
           Object.assign(hints, parsed as KernelHints);
         }
       } catch (err) {
-        console.warn('[DOPPLERDemo] Failed to parse kernelHints from URL:', (err as Error).message);
+        console.warn('[DopplerDemo] Failed to parse kernelHints from URL:', (err as Error).message);
       }
     }
 
@@ -448,7 +448,7 @@ export class DOPPLERDemo {
 
     if (Object.keys(hints).length > 0) {
       this.runtimeKernelHints = hints;
-      console.log('[DOPPLERDemo] Runtime kernel hints from URL:', hints);
+      console.log('[DopplerDemo] Runtime kernel hints from URL:', hints);
     }
 
     const attentionKernel = params.get('attentionKernel');
@@ -461,7 +461,7 @@ export class DOPPLERDemo {
    * Detect browser capabilities
    */
   private async _detectCapabilities(): Promise<void> {
-    console.log('[DOPPLERDemo] Detecting capabilities...');
+    console.log('[DopplerDemo] Detecting capabilities...');
 
     // WebGPU
     if (navigator.gpu) {
@@ -477,7 +477,7 @@ export class DOPPLERDemo {
           // Get adapter info for logging
           const info: Partial<GPUAdapterInfo> = (adapter as GPUAdapter & { info?: GPUAdapterInfo; requestAdapterInfo?: () => Promise<GPUAdapterInfo> }).info || (await (adapter as GPUAdapter & { requestAdapterInfo?: () => Promise<GPUAdapterInfo> }).requestAdapterInfo?.()) || {};
           console.log(
-            '[DOPPLERDemo] GPU:',
+            '[DopplerDemo] GPU:',
             info.vendor || 'unknown',
             info.architecture || info.device || 'unknown'
           );
@@ -486,7 +486,7 @@ export class DOPPLERDemo {
           this._populateGPUInfo(adapter, info as GPUAdapterInfo);
         }
       } catch (e) {
-        console.warn('[DOPPLERDemo] WebGPU init failed:', e);
+        console.warn('[DopplerDemo] WebGPU init failed:', e);
       }
     }
 
@@ -744,7 +744,7 @@ export class DOPPLERDemo {
    * Load list of cached models from storage, deduplicating by model identity
    */
   private async _loadCachedModels(): Promise<void> {
-    console.log('[DOPPLERDemo] Discovering models...');
+    console.log('[DopplerDemo] Discovering models...');
 
     // Map to deduplicate models: key -> model info with sources
     const modelMap = new Map<string, RegisteredModel>();
@@ -777,7 +777,7 @@ export class DOPPLERDemo {
 
     // 1. Discover server models (local HTTP)
     const serverModels = await discoverLocalModels();
-    console.log(`[DOPPLERDemo] Found ${serverModels.length} server models`);
+    console.log(`[DopplerDemo] Found ${serverModels.length} server models`);
 
     for (const model of serverModels) {
       const key = this._getModelKey(model.architecture, model.quantization, model.downloadSize);
@@ -799,9 +799,9 @@ export class DOPPLERDemo {
     let cachedIds: string[] = [];
     try {
       cachedIds = await listModels();
-      console.log('[DOPPLERDemo] Found cached models in OPFS:', cachedIds);
+      console.log('[DopplerDemo] Found cached models in OPFS:', cachedIds);
     } catch (err) {
-      console.warn('[DOPPLERDemo] Could not query cached models:', (err as Error).message);
+      console.warn('[DopplerDemo] Could not query cached models:', (err as Error).message);
     }
 
     for (const cachedId of cachedIds) {
@@ -840,7 +840,7 @@ export class DOPPLERDemo {
         }
       } catch (e) {
         console.warn(
-          `[DOPPLERDemo] Could not load manifest for cached model ${cachedId}:`,
+          `[DopplerDemo] Could not load manifest for cached model ${cachedId}:`,
           (e as Error).message
         );
       }
@@ -902,7 +902,7 @@ export class DOPPLERDemo {
       return getAvailabilityScore(b) - getAvailabilityScore(a);
     });
 
-    console.log(`[DOPPLERDemo] Model registry: ${MODEL_REGISTRY.length} unique models`);
+    console.log(`[DopplerDemo] Model registry: ${MODEL_REGISTRY.length} unique models`);
     this.modelSelector?.setModels(MODEL_REGISTRY as ModelInfo[]);
   }
 
@@ -951,7 +951,7 @@ export class DOPPLERDemo {
     const sourceInfo = useServer ? sources.server! : sources.browser!;
     const sourceType = useServer ? 'server' : 'browser';
 
-    console.log(`[DOPPLERDemo] Loading model: ${model.name} from ${sourceType}`);
+    console.log(`[DopplerDemo] Loading model: ${model.name} from ${sourceType}`);
     this._setStatus('loading', 'Loading model...');
     this.progressUI?.show('Loading model...');
 
@@ -1103,9 +1103,9 @@ export class DOPPLERDemo {
       this.chatUI?.focusInput();
       this._updateAttentionKernelNote();
 
-      console.log(`[DOPPLERDemo] Model loaded: ${model.name} (${model.key})`);
+      console.log(`[DopplerDemo] Model loaded: ${model.name} (${model.key})`);
     } catch (error) {
-      console.error('[DOPPLERDemo] Model load failed:', error);
+      console.error('[DopplerDemo] Model load failed:', error);
       this.progressUI?.hide();
       this._setStatus('error', 'Load failed');
       this._showError(`Failed to load model: ${(error as Error).message}`);
@@ -1137,7 +1137,7 @@ export class DOPPLERDemo {
       return;
     }
 
-    console.log(`[DOPPLERDemo] Downloading "${model.name}" from: ${downloadUrl}`);
+    console.log(`[DopplerDemo] Downloading "${model.name}" from: ${downloadUrl}`);
     this._setStatus('loading', `Downloading ${model.name}...`);
 
     try {
@@ -1166,7 +1166,7 @@ export class DOPPLERDemo {
       // Refresh models list to update sources
       await this._loadCachedModels();
 
-      console.log(`[DOPPLERDemo] Download complete: ${model.name}`);
+      console.log(`[DopplerDemo] Download complete: ${model.name}`);
 
       // Run after download if requested
       if (opts.runAfter) {
@@ -1177,7 +1177,7 @@ export class DOPPLERDemo {
         }
       }
     } catch (error) {
-      console.error('[DOPPLERDemo] Download failed:', error);
+      console.error('[DopplerDemo] Download failed:', error);
       this.modelSelector?.setDownloadProgress(model.key, 0);
       this._setStatus('error', 'Download failed');
       this._showError(`Download failed: ${(error as Error).message}`);
@@ -1196,7 +1196,7 @@ export class DOPPLERDemo {
       return;
     }
 
-    console.log(`[DOPPLERDemo] Deleting cached model: ${model.name} (${browserId})`);
+    console.log(`[DopplerDemo] Deleting cached model: ${model.name} (${browserId})`);
 
     try {
       // Unload if currently active
@@ -1219,7 +1219,7 @@ export class DOPPLERDemo {
       // Refresh models list
       await this._loadCachedModels();
     } catch (error) {
-      console.error('[DOPPLERDemo] Delete failed:', error);
+      console.error('[DopplerDemo] Delete failed:', error);
       this._showError(`Delete failed: ${(error as Error).message}`);
     }
   }
@@ -1242,7 +1242,7 @@ export class DOPPLERDemo {
       return;
     }
 
-    console.log(`[DOPPLERDemo] Generating response...`);
+    console.log(`[DopplerDemo] Generating response...`);
     this.isGenerating = true;
     this.abortController = new AbortController();
 
@@ -1286,7 +1286,7 @@ export class DOPPLERDemo {
         this.chatUI?.cancelStream();
         this._setStatus('ready', 'Stopped');
       } else {
-        console.error('[DOPPLERDemo] Generation error:', error);
+        console.error('[DopplerDemo] Generation error:', error);
         this.chatUI?.cancelStream();
         this._setStatus('error', 'Generation failed');
         this._showError(`Generation failed: ${(error as Error).message}`);
@@ -1329,7 +1329,7 @@ export class DOPPLERDemo {
       (this.pipeline as Pipeline & { clearKVCache: () => void }).clearKVCache();
     }
     this.chatUI?.clear();
-    console.log('[DOPPLERDemo] Conversation cleared');
+    console.log('[DopplerDemo] Conversation cleared');
   }
 
   /**
@@ -1475,7 +1475,7 @@ export class DOPPLERDemo {
         return;
       }
 
-      console.log(`[DOPPLERDemo] Converting ${files.length} files...`);
+      console.log(`[DopplerDemo] Converting ${files.length} files...`);
       this.isConverting = true;
       if (this.convertBtn) {
         this.convertBtn.disabled = true;
@@ -1500,7 +1500,7 @@ export class DOPPLERDemo {
         },
       });
 
-      console.log(`[DOPPLERDemo] Conversion complete: ${modelId}`);
+      console.log(`[DopplerDemo] Conversion complete: ${modelId}`);
       this._updateConvertProgress(100, `Done! Model: ${modelId}`);
 
       // Refresh model list
@@ -1515,10 +1515,10 @@ export class DOPPLERDemo {
       }, 3000);
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
-        console.log('[DOPPLERDemo] Conversion cancelled');
+        console.log('[DopplerDemo] Conversion cancelled');
         this._updateConvertProgress(0, 'Cancelled');
       } else {
-        console.error('[DOPPLERDemo] Conversion failed:', error);
+        console.error('[DopplerDemo] Conversion failed:', error);
         this._updateConvertProgress(0, `Error: ${(error as Error).message}`);
         this._showError(`Conversion failed: ${(error as Error).message}`);
       }
@@ -1639,11 +1639,11 @@ export class DOPPLERDemo {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  const app = new DOPPLERDemo();
+  const app = new DopplerDemo();
   app.init().catch(console.error);
 
   // Expose for debugging
-  (window as Window & { dopplerDemo?: DOPPLERDemo }).dopplerDemo = app;
+  (window as Window & { dopplerDemo?: DopplerDemo }).dopplerDemo = app;
 });
 
-export default DOPPLERDemo;
+export default DopplerDemo;

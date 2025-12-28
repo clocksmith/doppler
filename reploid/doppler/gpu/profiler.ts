@@ -18,15 +18,6 @@ import { allowReadback } from './perf-guards.js';
 import type { ProfileEvent, ProfileSession } from '../types/gpu.js';
 
 /**
- * Profile marker interface for scoped profiling
- */
-export interface ProfileMarker {
-  name: string;
-  start(): void;
-  end(): void;
-}
-
-/**
  * Profiling result for a single label
  */
 export interface ProfileResult {
@@ -486,26 +477,6 @@ export async function timeOperation<T>(
     result,
     timeMs: timing?.avg ?? 0,
   };
-}
-
-/**
- * Decorator-style profiling wrapper
- * @param label - Label for the operation
- * @param fn - Function to wrap
- */
-export function withProfiling<T extends (...args: any[]) => Promise<any>>(
-  label: string,
-  fn: T
-): T {
-  return (async (...args: any[]) => {
-    const profiler = getProfiler();
-    profiler.begin(label);
-    try {
-      return await fn(...args);
-    } finally {
-      profiler.end(label);
-    }
-  }) as T;
 }
 
 export default GPUProfiler;

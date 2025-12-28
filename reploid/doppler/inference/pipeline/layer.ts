@@ -30,6 +30,8 @@ import {
 import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
+import { applyLoRA } from './lora-apply.js';
+import { getLoRAModule, type LoRAAdapter } from './lora.js';
 
 // ============================================================================
 // Types
@@ -73,6 +75,8 @@ export interface LayerContext {
   layerRouterWeights?: Map<number, RouterWeights>;
   /** Command recorder for batched GPU operations (optional) */
   recorder?: CommandRecorder;
+  /** Optional LoRA adapter */
+  lora?: LoRAAdapter | null;
 }
 
 /**
@@ -216,7 +220,8 @@ async function doAttention(
   debugFlags: AttentionDebugFlags,
   getWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
-  recorder?: CommandRecorder
+  recorder?: CommandRecorder,
+  lora?: LoRAAdapter | null
 ): Promise<GPUBuffer> {
   if (recorder) {
     return recordLayerAttentionGPU(
@@ -228,7 +233,9 @@ async function doAttention(
       debug,
       debugFlags,
       getWeightBufferFn,
-      getNormWeightBufferFn
+      getNormWeightBufferFn,
+      undefined,
+      lora
     );
   }
   return runLayerAttentionGPU(
@@ -239,7 +246,9 @@ async function doAttention(
     debug,
     debugFlags,
     getWeightBufferFn,
-    getNormWeightBufferFn
+    getNormWeightBufferFn,
+    undefined,
+    lora
   );
 }
 
@@ -432,7 +441,8 @@ export async function processLayerGPU(
     {},
     (weight, label) => getWeightBuffer(weight, label),
     (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
-    recorder
+    recorder,
+    context.lora
   );
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -822,6 +832,7 @@ async function runDenseFFNGPU(
   const { config, recorder } = context;
   const { hiddenSize, intermediateSize, hiddenActivation } = config;
   const lastTokenIdx = Math.max(0, numTokens - 1);
+  const lora = context.lora || null;
 
   // Check for fused gate+up path (2 matmuls instead of 3)
   if (layerWeights?.gateUp && layerWeights?.down) {
@@ -829,12 +840,32 @@ async function runDenseFFNGPU(
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
     // 1. Fused gate+up projection: [numTokens, hiddenSize] @ [intermediateSize*2, hiddenSize]^T -> [numTokens, intermediateSize*2]
-    const gateUpOutput = await doMatmul(
+    let gateUpOutput = await doMatmul(
       inputBuffer, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
       { transposeB: 'auto' },
       recorder
     );
+
+    const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
+    if (loraGateUp) {
+      const combined = await applyLoRA(
+        inputBuffer,
+        gateUpOutput,
+        loraGateUp,
+        { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== gateUpOutput) {
+        if (recorder) {
+          recorder.trackTemporaryBuffer(gateUpOutput);
+        } else {
+          releaseBuffer(gateUpOutput);
+        }
+        gateUpOutput = combined;
+      }
+    }
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
       await dumpTokenVector(gateUpOutput, 'ffn_gate_up', {
@@ -870,12 +901,32 @@ async function runDenseFFNGPU(
     }
 
     // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
-    const output = await doMatmul(
+    let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
       { transposeB: 'auto' },
       recorder
     );
+
+    const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
+    if (loraDown) {
+      const combined = await applyLoRA(
+        activatedOutput,
+        output,
+        loraDown,
+        { M: numTokens, N: hiddenSize, K: intermediateSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== output) {
+        if (recorder) {
+          recorder.trackTemporaryBuffer(output);
+        } else {
+          releaseBuffer(output);
+        }
+        output = combined;
+      }
+    }
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
       await dumpTokenVector(output, 'ffn_down_out', {
@@ -909,13 +960,53 @@ async function runDenseFFNGPU(
 
   // 1. Gate projection
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  const gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  let gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
+
+  const loraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
+  if (loraGate) {
+    const combined = await applyLoRA(
+      inputBuffer,
+      gateOutput,
+      loraGate,
+      { M: numTokens, N: intermediateSize, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== gateOutput) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(gateOutput);
+      } else {
+        releaseBuffer(gateOutput);
+      }
+      gateOutput = combined;
+    }
+  }
 
   // 2. Up projection
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  const upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  let upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+
+  const loraUp = getLoRAModule(lora, layerIdx, 'up_proj');
+  if (loraUp) {
+    const combined = await applyLoRA(
+      inputBuffer,
+      upOutput,
+      loraUp,
+      { M: numTokens, N: intermediateSize, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== upOutput) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(upOutput);
+      } else {
+        releaseBuffer(upOutput);
+      }
+      upOutput = combined;
+    }
+  }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(gateOutput, 'ffn_gate', {
@@ -956,7 +1047,27 @@ async function runDenseFFNGPU(
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' }, recorder);
+  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' }, recorder);
+
+  const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
+  if (loraDown) {
+    const combined = await applyLoRA(
+      activatedOutput,
+      output,
+      loraDown,
+      { M: numTokens, N: hiddenSize, K: intermediateSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== output) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(output);
+      } else {
+        releaseBuffer(output);
+      }
+      output = combined;
+    }
+  }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(output, 'ffn_down_out', {

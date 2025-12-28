@@ -116,6 +116,7 @@ async function main(): Promise<void> {
     baseUrl: opts.baseUrl,
     noServer: opts.noServer,
     headless: opts.headless,
+    minimized: false,
     verbose: opts.verbose,
     filter: null,
     timeout: 60000,
@@ -144,6 +145,7 @@ async function main(): Promise<void> {
     attentionDecode: null,
     attentionKernel: null,
     kernelHints: null,
+    debug: false,
     layer: null,
     tokens: null,
     kernel: null,
@@ -156,9 +158,14 @@ async function main(): Promise<void> {
     const url = `${opts.baseUrl}/d`;
     await page.goto(url, { timeout: 30000 });
     const deleted = await page.evaluate(async (modelId: string) => {
-      const mod = await import('/doppler/dist/storage/shard-manager.js');
-      await mod.initOPFS();
-      return mod.deleteModel(modelId);
+      // Access OPFS directly in browser context
+      const root = await navigator.storage.getDirectory();
+      try {
+        await root.removeEntry(modelId, { recursive: true });
+        return true;
+      } catch {
+        return false;
+      }
     }, opts.model);
 
     if (deleted) {

@@ -1,0 +1,138 @@
+// Chunked Decode Attention Kernel (f16 KV)
+//
+// Optimized for models with few heads and large headDim (e.g., Gemma 3: 4 heads × 256 dim)
+// Uses parallel reduction across headDim within each workgroup.
+//
+// Dispatch: numHeads workgroups, each with 256 threads
+// Each thread handles one dimension of the head.
+
+enable f16;
+
+struct AttentionUniforms {
+    numHeads: u32,
+    numKVHeads: u32,
+    headDim: u32,
+    kvLen: u32,       // Current KV cache length
+    seqLen: u32,      // Query length (1 for decode)
+    scale: f32,
+    isCausal: u32,
+    startPos: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: AttentionUniforms;
+@group(0) @binding(1) var<storage, read> Q: array<f32>;
+@group(0) @binding(2) var<storage, read> K: array<f16>;
+@group(0) @binding(3) var<storage, read> V: array<f16>;
+@group(0) @binding(4) var<storage, read_write> output: array<f32>;
+
+// Shared memory for parallel reductions
+var<workgroup> shared_scores: array<f32, 2048>;  // Attention scores for each KV position
+var<workgroup> shared_partial: array<f32, 256>;   // Partial sums for reduction
+var<workgroup> shared_max: f32;
+var<workgroup> shared_sum: f32;
+var<workgroup> shared_acc: array<f32, 256>;       // Accumulated output
+
+fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
+    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
+    return queryHeadIdx / headsPerKV;
+}
+
+@compute @workgroup_size(256, 1, 1)
+fn main(
+    @builtin(local_invocation_id) local_id: vec3<u32>,
+    @builtin(workgroup_id) workgroup_id: vec3<u32>,
+) {
+    let headIdx = workgroup_id.x;
+    let tid = local_id.x;
+    let headDim = uniforms.headDim;
+    let kvLen = uniforms.kvLen;
+    let scale = uniforms.scale;
+    let kvHeadIdx = getKVHeadIdx(headIdx);
+
+    // Only threads < headDim participate in computation
+    let valid = tid < headDim;
+
+    // Load Q value for this thread's dimension
+    var q_val: f32 = 0.0;
+    if (valid) {
+        let q_offset = headIdx * headDim + tid;
+        q_val = Q[q_offset];
+    }
+
+    // Initialize accumulator
+    if (valid) {
+        shared_acc[tid] = 0.0;
+    }
+
+    // Phase 1: Compute attention scores (Q @ K^T) in parallel
+    // Each thread computes partial dot product for its dimension
+    for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
+        var k_val: f32 = 0.0;
+        if (valid) {
+            let k_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + tid;
+            k_val = f32(K[k_offset]);
+        }
+
+        // Partial dot product
+        let partial = q_val * k_val;
+        shared_partial[tid] = partial;
+        workgroupBarrier();
+
+        // Parallel reduction for dot product (thread 0 accumulates)
+        // Using sequential reduction for correctness - could optimize with tree reduction
+        if (tid == 0u) {
+            var dot: f32 = 0.0;
+            for (var d: u32 = 0u; d < headDim; d++) {
+                dot += shared_partial[d];
+            }
+            shared_scores[kPos] = dot * scale;
+        }
+        workgroupBarrier();
+    }
+
+    // Phase 2: Find max score for numerical stability
+    if (tid == 0u) {
+        var max_score: f32 = -3.402823e+38;
+        for (var k: u32 = 0u; k < kvLen; k++) {
+            max_score = max(max_score, shared_scores[k]);
+        }
+        shared_max = max_score;
+    }
+    workgroupBarrier();
+
+    let max_score = shared_max;
+
+    // Phase 3: Compute softmax weights and accumulate V
+    if (tid == 0u) {
+        var sum_exp: f32 = 0.0;
+        for (var k: u32 = 0u; k < kvLen; k++) {
+            let w = exp(shared_scores[k] - max_score);
+            shared_scores[k] = w;  // Store weight for V accumulation
+            sum_exp += w;
+        }
+        shared_sum = sum_exp;
+    }
+    workgroupBarrier();
+
+    let sum_exp = shared_sum;
+    // Use select instead of early return to maintain uniform control flow
+    let inv_sum = select(0.0, 1.0 / sum_exp, sum_exp > 0.0);
+
+    // Phase 4: Weighted sum of V (parallel across dimensions)
+    if (valid) {
+        var acc: f32 = 0.0;
+        for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
+            let v_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + tid;
+            let v_val = f32(V[v_offset]);
+            acc += shared_scores[kPos] * v_val;
+        }
+        shared_acc[tid] = acc * inv_sum;
+    }
+    workgroupBarrier();
+
+    // Phase 5: Write output
+    if (valid) {
+        let out_offset = headIdx * headDim + tid;
+        output[out_offset] = shared_acc[tid];
+    }
+}

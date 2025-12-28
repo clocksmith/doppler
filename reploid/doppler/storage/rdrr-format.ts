@@ -136,6 +136,13 @@ export interface RuntimeOptimizations {
   kernelHints?: KernelHints;
 }
 
+export interface LoRAConfig {
+  rank: number;
+  alpha: number;
+  targetModules?: string[];
+  dropout?: number;
+}
+
 export interface RDRRManifest {
   version: number | string;
   modelId: string;
@@ -158,6 +165,12 @@ export interface RDRRManifest {
   defaultWeightLayout?: WeightLayout;
   /** Conversion metadata - how this model was generated */
   conversion?: ConversionInfo;
+  /** Adapter type for non-base models */
+  adapterType?: 'lora';
+  /** Base model reference for adapter manifests */
+  baseModel?: string;
+  /** LoRA configuration for adapter manifests */
+  loraConfig?: LoRAConfig;
 }
 
 export interface ValidationResult {
@@ -198,7 +211,9 @@ function validateManifest(manifest: Partial<RDRRManifest>): ValidationResult {
     }
   }
 
-  if (manifest.architecture && typeof manifest.architecture === 'object') {
+  const isLoRAAdapter = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
+
+  if (!isLoRAAdapter && manifest.architecture && typeof manifest.architecture === 'object') {
     const arch = manifest.architecture as LayerConfig;
     const requiredFields: (keyof LayerConfig)[] = [
       'numLayers', 'hiddenSize', 'intermediateSize',
@@ -210,7 +225,7 @@ function validateManifest(manifest: Partial<RDRRManifest>): ValidationResult {
         errors.push(`Invalid architecture.${field}`);
       }
     }
-  } else if (!manifest.architecture && !manifest.config) {
+  } else if (!isLoRAAdapter && !manifest.architecture && !manifest.config) {
     errors.push('Missing architecture or config field');
   }
 

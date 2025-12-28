@@ -138,7 +138,8 @@ test.describe('Type Casting Kernels', () => {
         });
         device.queue.writeBuffer(inputBuffer, 0, bf16Data);
 
-        const { runBF16ToF32 } = await import('../../gpu/kernels/cast.js');
+        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+        const { runBF16ToF32 } = await import('/doppler/dist/gpu/kernels/cast.js');
         const outputBuffer = await runBF16ToF32(inputBuffer, numElements);
 
         const staging = device.createBuffer({
@@ -192,7 +193,8 @@ test.describe('Type Casting Kernels', () => {
         });
         device.queue.writeBuffer(inputBuffer, 0, testValues);
 
-        const { castF32ToF16 } = await import('../../gpu/kernels/cast.js');
+        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+        const { castF32ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
         const outputBuffer = await castF32ToF16(inputBuffer, numElements);
 
         const staging = device.createBuffer({
@@ -312,8 +314,8 @@ test.describe('Type Casting Kernels', () => {
         });
         device.queue.writeBuffer(inputBuffer, 0, bf16Data);
 
-        // Import and run the kernel
-        const { runBF16ToF16 } = await import('../../gpu/kernels/cast.js');
+        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+        const { runBF16ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
         const outputBuffer = await runBF16ToF16(inputBuffer, numElements, 'test_bf16_to_f16');
 
         // Read back result
@@ -432,7 +434,8 @@ test.describe('Type Casting Kernels', () => {
         });
         device.queue.writeBuffer(inputBuffer, 0, bf16Data);
 
-        const { runBF16ToF16 } = await import('../../gpu/kernels/cast.js');
+        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
+        const { runBF16ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
         const outputBuffer = await runBF16ToF16(inputBuffer, numElements, 'test_bf16_to_f16');
 
         // Read back

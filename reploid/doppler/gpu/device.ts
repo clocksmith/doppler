@@ -78,7 +78,6 @@ const FEATURES = {
 } as const;
 
 type FeatureKey = keyof typeof FEATURES;
-type FeatureValue = typeof FEATURES[FeatureKey];
 
 /**
  * Probe for WebGPU availability

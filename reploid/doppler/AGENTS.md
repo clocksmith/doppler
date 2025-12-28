@@ -49,11 +49,12 @@ Add alias to `~/.zshrc`: `alias doppler='npm run doppler --'`
 
 ### Testing
 ```bash
-doppler test quick         # Fast kernel validation (default)
-doppler test correctness   # Full kernel correctness tests
-doppler test inference     # Model load + generate test
-doppler bench inference    # Performance benchmarks
-npm run test:vitest        # CPU unit tests
+doppler test quick              # Fast kernel validation (default)
+doppler test kernels            # Full kernel correctness tests
+doppler test inference          # Model load + generate (smoke test)
+doppler test kernels --perf     # Kernel timing benchmarks
+doppler test inference --perf   # Full inference benchmark (tok/s)
+npm run test:vitest             # CPU unit tests
 ```
 
 ### Guardrails

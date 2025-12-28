@@ -22,6 +22,8 @@ import { Tokenizer } from './tokenizer.js';
 import { getDevice, setTrackSubmits } from '../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
+import { recordCheckStop } from '../gpu/kernels/check-stop.js';
+import { recordGather } from '../gpu/kernels/gather.js';
 import { recordScale } from '../gpu/kernels/scale.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats, getSubmitStats } from '../gpu/submit-tracker.js';
@@ -40,6 +42,7 @@ import {
   createKVCache,
   initTokenizer,
   loadWeights,
+  type WeightLoadResult,
   applyGemmaChatTemplate,
   applyLlama3ChatTemplate,
   isStopToken,
@@ -51,6 +54,7 @@ import { embed } from './pipeline/embed.js';
 import { processLayer, type LayerContext } from './pipeline/layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
+import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
 import type { LayerWeights, ExpertWeights, RouterWeights } from './pipeline/types.js';
 import type { DopplerLoader, LoadProgress } from '../loader/doppler-loader.js';
@@ -125,6 +129,12 @@ export interface BatchingStats {
   totalUnbatchedTimeMs: number;
 }
 
+export interface KVCacheSnapshot {
+  cache: KVCache;
+  seqLen: number;
+  tokens: number[];
+}
+
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================
@@ -186,6 +196,9 @@ export class InferencePipeline {
   // MoE router weights per layer
   layerRouterWeights: Map<number, RouterWeights> | null = null;
 
+  // LoRA adapter (optional)
+  loraAdapter: LoRAAdapter | null = null;
+
   // Debug flags (combined for both layer and logits)
   private _debugFlags: WeightDebugFlags & LogitsDebugFlags = {};
   private _decodeStepCount = 0;
@@ -193,6 +206,7 @@ export class InferencePipeline {
 
   // Progress callback
   private _onProgress: ((progress: { percent: number; message?: string; stage?: string; layer?: number; total?: number }) => void) | null = null;
+  private _preloadedWeights: WeightLoadResult | null = null;
 
   constructor() {}
 
@@ -310,7 +324,7 @@ export class InferencePipeline {
   }
 
   private async _loadWeights(): Promise<void> {
-    const result = await loadWeights(
+    const result = this._preloadedWeights || await loadWeights(
       this.manifest!,
       this.modelConfig!,
       {
@@ -351,6 +365,10 @@ export class InferencePipeline {
     if (this.modelConfig!.useMoE && this.moeRouter) {
       this.moeRouter = initMoERouter(this.modelConfig!, result.layerWeights);
     }
+  }
+
+  setPreloadedWeights(weights: WeightLoadResult): void {
+    this._preloadedWeights = weights;
   }
 
   private async _initRoPE(): Promise<void> {
@@ -426,15 +444,21 @@ export class InferencePipeline {
       this.stats.prefillTimeMs = performance.now() - prefillStart;
 
       // Debug: show input tokens
-      const inputTokenTexts = inputIds.map(id => `${id}="${this.tokenizer?.decode?.([id]) || '?'}"`).join(', ');
-      console.log(`[Pipeline] Input tokens (${inputIds.length}): ${inputTokenTexts}`);
+      if (opts.debug) {
+        const inputTokenTexts = inputIds
+          .map(id => `${id}="${this.tokenizer?.decode?.([id]) || '?'}"`)
+          .join(', ');
+        console.log(`[Pipeline] Input tokens (${inputIds.length}): ${inputTokenTexts}`);
+      }
 
       // Apply repetition penalty and sample first token
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
 
       // Debug: check logits after repetition penalty
-      const topAfterPenalty = getTopK(prefillLogits, 5, (tokens) => this.tokenizer?.decode?.(tokens) || '?');
-      console.log(`[Pipeline] After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
+      if (opts.debug) {
+        const topAfterPenalty = getTopK(prefillLogits, 5, (tokens) => this.tokenizer?.decode?.(tokens) || '?');
+        console.log(`[Pipeline] After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
+      }
 
       const firstToken = sample(prefillLogits, {
         temperature: opts.temperature,
@@ -442,7 +466,9 @@ export class InferencePipeline {
         topK: opts.topK,
       });
 
-      console.log(`[Pipeline] First token sampled: id=${firstToken} text="${this.tokenizer?.decode?.([firstToken]) || '?'}"`);
+      if (opts.debug) {
+        console.log(`[Pipeline] First token sampled: id=${firstToken} text="${this.tokenizer?.decode?.([firstToken]) || '?'}"`);
+      }
 
       generatedIds.push(firstToken);
 
@@ -556,6 +582,183 @@ export class InferencePipeline {
     }
   }
 
+  async prefillKVOnly(prompt: string, options: GenerateOptions = {}): Promise<KVCacheSnapshot> {
+    if (!this.isLoaded) throw new Error('Model not loaded');
+
+    const opts = {
+      useChatTemplate: options.useChatTemplate ?? false,
+      debug: options.debug ?? this.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? false,
+    };
+
+    let processedPrompt = prompt;
+    if (opts.useChatTemplate) {
+      if (this.modelConfig!.isGemma3) {
+        processedPrompt = applyGemmaChatTemplate(prompt);
+      } else if (this.modelConfig!.isLlama3Instruct) {
+        processedPrompt = applyLlama3ChatTemplate(prompt);
+      }
+    }
+
+    const inputIds = this.tokenizer!.encode(processedPrompt);
+    if (opts.debug) {
+      console.log(`[Pipeline] PrefillKVOnly: ${inputIds.length} tokens`);
+    }
+
+    await this._prefill(inputIds, opts);
+
+    const snapshot = this.kvCache?.clone();
+    if (!snapshot) {
+      throw new Error('KV cache unavailable after prefill');
+    }
+
+    return {
+      cache: snapshot,
+      seqLen: this.currentSeqLen,
+      tokens: inputIds,
+    };
+  }
+
+  applyKVCacheSnapshot(snapshot: KVCacheSnapshot): void {
+    this.kvCache = snapshot.cache.clone();
+    if (this.useGPU && this.kvCache) {
+      const device = getDevice();
+      if (device) {
+        this.kvCache.setGPUContext({ device });
+      }
+    }
+    this.currentSeqLen = snapshot.seqLen;
+  }
+
+  async *generateWithPrefixKV(
+    prefix: KVCacheSnapshot,
+    prompt: string,
+    options: GenerateOptions = {}
+  ): AsyncGenerator<string, void, void> {
+    if (!this.isLoaded) throw new Error('Model not loaded');
+    if (this.isGenerating) throw new Error('Generation already in progress');
+
+    this.applyKVCacheSnapshot(prefix);
+
+    this.isGenerating = true;
+    this._decodeStepCount = 0;
+    const startTime = performance.now();
+
+    const opts = {
+      maxTokens: options.maxTokens ?? 512,
+      temperature: options.temperature ?? 0.7,
+      topP: options.topP ?? 0.9,
+      topK: options.topK ?? 40,
+      repetitionPenalty: options.repetitionPenalty ?? 1.1,
+      stopSequences: options.stopSequences ?? [],
+      useSpeculative: options.useSpeculative ?? false,
+      useChatTemplate: options.useChatTemplate ?? false,
+      debug: options.debug ?? this.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? false,
+      batchSize: options.batchSize ?? 1,
+      stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
+    };
+
+    try {
+      let processedPrompt = prompt;
+      if (opts.useChatTemplate) {
+        if (this.modelConfig!.isGemma3) {
+          processedPrompt = applyGemmaChatTemplate(prompt);
+        } else if (this.modelConfig!.isLlama3Instruct) {
+          processedPrompt = applyLlama3ChatTemplate(prompt);
+        }
+      }
+
+      const inputIds = this.tokenizer!.encode(processedPrompt);
+      const generatedIds = [...prefix.tokens, ...inputIds];
+      const promptTokenCount = generatedIds.length;
+
+      const prefillStart = performance.now();
+      const prefillLogits = await this._prefill(inputIds, opts);
+      this.stats.prefillTimeMs = performance.now() - prefillStart;
+
+      applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+      const firstToken = sample(prefillLogits, {
+        temperature: opts.temperature,
+        topP: opts.topP,
+        topK: opts.topK,
+      });
+
+      generatedIds.push(firstToken);
+
+      const firstText = this.tokenizer!.decode([firstToken], true, false);
+      yield firstText;
+      if (options.onToken) options.onToken(firstToken, firstText);
+
+      const stopTokenIds = this.modelConfig!.stopTokenIds || [];
+      const eosToken = this.tokenizer!.getSpecialTokens?.()?.eos;
+      let tokensGenerated = 1;
+
+      markKernelCacheWarmed();
+
+      const decodeStart = performance.now();
+      const useBatchPath = opts.batchSize > 1 && this.useGPU && isGPUSamplingAvailable();
+
+      while (tokensGenerated < opts.maxTokens) {
+        if (options.signal?.aborted) break;
+
+        if (useBatchPath) {
+          const remaining = opts.maxTokens - tokensGenerated;
+          const thisBatchSize = Math.min(opts.batchSize, remaining);
+          const lastToken = generatedIds[generatedIds.length - 1];
+
+          try {
+            const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
+            const batchTokens: Array<{ id: number; text: string }> = [];
+            for (const tokenId of batchResult.tokens) {
+              generatedIds.push(tokenId);
+              tokensGenerated++;
+              const tokenText = this.tokenizer!.decode([tokenId], true, false);
+              yield tokenText;
+              if (options.onToken) options.onToken(tokenId, tokenText);
+              batchTokens.push({ id: tokenId, text: tokenText });
+            }
+            if (options.onBatch) options.onBatch(batchTokens);
+            if (batchResult.actualCount < thisBatchSize) break;
+            if (opts.stopSequences.length > 0) {
+              const fullText = this.tokenizer!.decode(generatedIds.slice(promptTokenCount), false);
+              if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
+            }
+          } catch (error) {
+            console.warn('[Pipeline] Batch decode failed, falling back to single-token:', error);
+            const nextToken = await this._decodeStep(generatedIds, opts);
+            generatedIds.push(nextToken);
+            tokensGenerated++;
+            const tokenText = this.tokenizer!.decode([nextToken], true, false);
+            yield tokenText;
+            if (options.onToken) options.onToken(nextToken, tokenText);
+            if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+          }
+        } else {
+          const nextToken = await this._decodeStep(generatedIds, opts);
+          generatedIds.push(nextToken);
+          tokensGenerated++;
+          const tokenText = this.tokenizer!.decode([nextToken], true, false);
+          yield tokenText;
+          if (options.onToken) options.onToken(nextToken, tokenText);
+          if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+          if (opts.stopSequences.length > 0) {
+            const fullText = this.tokenizer!.decode(generatedIds.slice(promptTokenCount), false);
+            if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
+          }
+        }
+      }
+
+      this.stats.decodeTimeMs = performance.now() - decodeStart;
+      this.stats.tokensGenerated = tokensGenerated;
+      this.stats.totalTimeMs = performance.now() - startTime;
+    } finally {
+      this.isGenerating = false;
+    }
+  }
+
   // ==========================================================================
   // Prefill and Decode
   // ==========================================================================
@@ -563,6 +766,7 @@ export class InferencePipeline {
   private async _prefill(inputIds: number[], opts: GenerateOptions): Promise<Float32Array> {
     const numTokens = inputIds.length;
     const config = this.modelConfig!;
+    const startPos = this.currentSeqLen;
 
     // Embed tokens
     const embedBufferRaw = this.weights.get('embed');
@@ -699,27 +903,29 @@ export class InferencePipeline {
     }
 
     // Debug: check final hidden states before logits (at LAST token position)
-    console.log(`[Pipeline] LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
-    if (hiddenStates instanceof GPUBuffer && allowReadback('pipeline.prefill.final-hidden')) {
-      const device = getDevice();
-      // Read from LAST token position (where logits will be computed from)
-      const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;  // F32
-      // Read the full last-token vector for accurate stats.
-      const sampleSize = config.hiddenSize * 4;
-      const staging = device.createBuffer({
-        size: sampleSize,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-      });
-      const enc = device.createCommandEncoder();
-      enc.copyBufferToBuffer(hiddenStates, lastTokenOffset, staging, 0, sampleSize);
-      device.queue.submit([enc.finish()]);
-      await staging.mapAsync(GPUMapMode.READ);
-      const data = new Float32Array(staging.getMappedRange().slice(0));
-      staging.unmap();
-      staging.destroy();
-      const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
-      const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-      console.log(`[Pipeline] FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+    if (opts.debug) {
+      console.log(`[Pipeline] LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
+      if (hiddenStates instanceof GPUBuffer && allowReadback('pipeline.prefill.final-hidden')) {
+        const device = getDevice();
+        // Read from LAST token position (where logits will be computed from)
+        const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;  // F32
+        // Read the full last-token vector for accurate stats.
+        const sampleSize = config.hiddenSize * 4;
+        const staging = device.createBuffer({
+          size: sampleSize,
+          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(hiddenStates, lastTokenOffset, staging, 0, sampleSize);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
+        const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
+        console.log(`[Pipeline] FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+      }
     }
 
     // Compute logits
@@ -734,7 +940,7 @@ export class InferencePipeline {
 
     if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
 
-    this.currentSeqLen = numTokens;
+    this.currentSeqLen = startPos + numTokens;
 
     // Extract last position logits
     const lastLogits = extractLastPositionLogits(logits, numTokens, config.vocabSize);
@@ -1021,35 +1227,22 @@ export class InferencePipeline {
     const config = this.modelConfig!;
     const recorder = createCommandRecorder('batch_decode');
 
-    // Import check-stop kernel
-    const { recordCheckStop } = await import('../gpu/kernels/check-stop.js');
-
-    // Create token storage buffer: [startToken, ...N generated tokens]
-    const tokenBufferSize = (N + 1) * 4;  // u32 array
-    const tokenBuffer = device.createBuffer({
-      size: tokenBufferSize,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-    });
-
-    // Initialize with start token
-    device.queue.writeBuffer(tokenBuffer, 0, new Uint32Array([startToken]));
+    const stopCheckMode = opts.stopCheckMode ?? 'per-token';
 
     // Create stop flags buffer: N flags (one per iteration)
-    const stopBufferSize = N * 4;
-    const stopBuffer = device.createBuffer({
-      size: stopBufferSize,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-    });
+    const stopBufferSize = stopCheckMode === 'per-token' ? N * 4 : 0;
+    const stopBuffer = stopCheckMode === 'per-token'
+      ? device.createBuffer({
+        size: stopBufferSize,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+      })
+      : null;
 
     // Get stop token config
     const stopTokenIds = config.stopTokenIds || [];
     const eosToken = this.tokenizer?.getSpecialTokens?.()?.eos;
     const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;  // fallback to 1 (common EOS)
     const maxTokens = opts.maxTokens || 1024;
-
-    // Import required kernels
-    const { recordGather } = await import('../gpu/kernels/gather.js');
-    const { recordArgmax } = await import('../gpu/kernels/sample.js');
 
     // Create single-token buffer for each iteration
     // We'll create N+1 token buffers (one for start token + N for each iteration's output)
@@ -1109,7 +1302,6 @@ export class InferencePipeline {
       }
 
       // 3. Compute logits
-      const { recordLogitsGPU } = await import('./pipeline/logits.js');
       const { logitsBuffer, vocabSize } = await recordLogitsGPU(
         recorder,
         hiddenStates,
@@ -1133,7 +1325,6 @@ export class InferencePipeline {
       encoder.copyBufferToBuffer(sampledTokenBuffer, 0, tokenBuffers[i + 1], 0, 4);
 
       // 5. Check stop condition (only in 'per-token' mode)
-      const stopCheckMode = opts.stopCheckMode ?? 'per-token';
       if (stopCheckMode === 'per-token') {
         const stopFlagBuffer = recordCheckStop(recorder, {
           sampledTokenBuffer: tokenBuffers[i + 1],
@@ -1143,7 +1334,7 @@ export class InferencePipeline {
         });
 
         // Copy stop flag to main stopBuffer
-        encoder.copyBufferToBuffer(stopFlagBuffer, 0, stopBuffer, i * 4, 4);
+        encoder.copyBufferToBuffer(stopFlagBuffer, 0, stopBuffer!, i * 4, 4);
         recorder.trackTemporaryBuffer(stopFlagBuffer);
       }
 
@@ -1158,12 +1349,11 @@ export class InferencePipeline {
       throw new Error('[Pipeline] GPU readback disabled for multi-token decode');
     }
 
-    const stopCheckMode = opts.stopCheckMode ?? 'per-token';
     const copyEncoder = device.createCommandEncoder();
 
     // Only copy stop buffer if we recorded stop flags (per-token mode)
     let stopStagingBuffer: GPUBuffer | null = null;
-    if (stopCheckMode === 'per-token') {
+    if (stopCheckMode === 'per-token' && stopBuffer) {
       stopStagingBuffer = device.createBuffer({
         size: stopBufferSize,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
@@ -1227,7 +1417,7 @@ export class InferencePipeline {
 
     // Cleanup
     tokenBuffers.forEach(b => b.destroy());
-    stopBuffer.destroy();
+    stopBuffer?.destroy();
     tokenStagingBuffers.forEach(b => b.destroy());
     if (stopStagingBuffer) stopStagingBuffer.destroy();
 
@@ -1266,6 +1456,7 @@ export class InferencePipeline {
       moeRouter: this.moeRouter,
       layerRouterWeights: this.layerRouterWeights as Map<number, { weight: GPUBuffer | Float32Array; bias: GPUBuffer | Float32Array | null }> | undefined,
       recorder,
+      lora: this.loraAdapter,
     };
   }
 
@@ -1314,9 +1505,18 @@ export class InferencePipeline {
     this.kvCache?.clear();
     this.weights.clear();
     this.expertWeights.clear();
+    this.loraAdapter = null;
     this.isLoaded = false;
     this.currentSeqLen = 0;
     console.log('[Pipeline] Unloaded');
+  }
+
+  setLoRAAdapter(adapter: LoRAAdapter | null): void {
+    this.loraAdapter = adapter;
+  }
+
+  getActiveLoRA(): LoRAAdapter | null {
+    return this.loraAdapter;
   }
 
   reset(): void {

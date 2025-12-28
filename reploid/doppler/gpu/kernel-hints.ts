@@ -82,30 +82,6 @@ export function shouldUseFusedQ4K(): boolean {
 }
 
 /**
- * Get recommended matmul variant for F16 weights.
- */
-export function getF16MatmulHint(): string | null {
-  const hints = getKernelHints();
-  return hints?.f16Matmul || null;
-}
-
-/**
- * Get recommended attention kernel for prefill.
- */
-export function getAttentionPrefillHint(): string | null {
-  const hints = getKernelHints();
-  return hints?.attentionPrefill || null;
-}
-
-/**
- * Get recommended attention kernel for decode.
- */
-export function getAttentionDecodeHint(): string | null {
-  const hints = getKernelHints();
-  return hints?.attentionDecode || null;
-}
-
-/**
  * Get preferred compute precision.
  * - 'f16': Fast F16 arithmetic (requires shader-f16)
  * - 'f32': Compatible F32 arithmetic
@@ -137,28 +113,4 @@ export function shouldUseF16Compute(hasShaderF16: boolean): boolean {
 
   // auto: use F16 if available
   return hasShaderF16;
-}
-
-/**
- * Get the appropriate Q4K dequant strategy based on hints.
- * Returns 'dequant_f16' or 'dequant_f32'.
- */
-export function getQ4KDequantStrategy(hasShaderF16: boolean): 'dequant_f16' | 'dequant_f32' {
-  const hints = getKernelHints();
-  const q4kHint = hints?.q4kMatmul;
-
-  // Explicit hint takes precedence
-  if (q4kHint === 'dequant_f32') {
-    return 'dequant_f32';
-  }
-  if (q4kHint === 'dequant_f16') {
-    if (!hasShaderF16) {
-      console.warn('[KernelHints] dequant_f16 requested but shader-f16 not available, using dequant_f32');
-      return 'dequant_f32';
-    }
-    return 'dequant_f16';
-  }
-
-  // Fall back to compute precision preference
-  return shouldUseF16Compute(hasShaderF16) ? 'dequant_f16' : 'dequant_f32';
 }

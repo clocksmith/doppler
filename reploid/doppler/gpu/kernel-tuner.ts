@@ -81,14 +81,6 @@ interface InputSizes {
 type WorkgroupSize = [number, number, number];
 
 /**
- * Kernel variant type for tracking different configurations
- */
-type KernelVariant = {
-  workgroupSize: WorkgroupSize;
-  tileSize: number;
-};
-
-/**
  * Device limits from GPU
  */
 interface DeviceLimits {

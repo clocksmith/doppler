@@ -29,7 +29,7 @@
     "doppler": "tsx tools/doppler-cli.ts",
     "test": "tsx tools/doppler-cli.ts test quick",
     "test:all": "tsx tools/doppler-cli.ts test all",
-    "test:correctness": "tsx tools/doppler-cli.ts test correctness",
+    "test:kernels": "tsx tools/doppler-cli.ts test kernels",
     "test:inference": "tsx tools/doppler-cli.ts test inference",
     "test:demo": "tsx tools/doppler-cli.ts test demo",
     "test:headed": "tsx tools/doppler-cli.ts test quick --headed",
@@ -38,11 +38,13 @@
     "test:vitest:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
     "test:vitest:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",
     "test:vitest:coverage": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --coverage",
+    "test:kernels:perf": "tsx tools/doppler-cli.ts test kernels --perf",
+    "test:inference:perf": "tsx tools/doppler-cli.ts test inference --perf",
     "build:benchmark": "esbuild tests/benchmark/index.ts --bundle --format=esm --outfile=dist/tests/benchmark/index.js --platform=browser",
-    "bench": "tsx tools/doppler-cli.ts bench",
-    "bench:kernels": "tsx tools/doppler-cli.ts bench kernels",
-    "bench:inference": "tsx tools/doppler-cli.ts bench inference",
-    "bench:xs": "tsx tools/doppler-cli.ts bench inference --prompt xs --headed"
+    "bench": "tsx tools/doppler-cli.ts test --perf",
+    "bench:kernels": "tsx tools/doppler-cli.ts test kernels --perf",
+    "bench:inference": "tsx tools/doppler-cli.ts test inference --perf",
+    "bench:xs": "tsx tools/doppler-cli.ts test inference --perf --prompt xs --headed"
   },
   "keywords": [
     "doppler",

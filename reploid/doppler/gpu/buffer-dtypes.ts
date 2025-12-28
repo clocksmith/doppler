@@ -40,20 +40,3 @@ export function getBufferLayout(buffer: GPUBuffer): BufferLayout | null {
 export function isColumnMajorBuffer(buffer: GPUBuffer): boolean {
   return getBufferLayout(buffer) === 'column';
 }
-
-export function isF16Buffer(buffer: GPUBuffer): boolean {
-  return getBufferDtype(buffer) === 'f16';
-}
-
-export function isBF16Buffer(buffer: GPUBuffer): boolean {
-  return getBufferDtype(buffer) === 'bf16';
-}
-
-export function isQuantizedBuffer(buffer: GPUBuffer): boolean {
-  const dtype = getBufferDtype(buffer);
-  return dtype === 'q4' || dtype === 'q8' || dtype === 'q4k';
-}
-
-export function isQ4KBuffer(buffer: GPUBuffer): boolean {
-  return getBufferDtype(buffer) === 'q4k';
-}

@@ -26,10 +26,13 @@ const {
   runRMSNorm = null,
   runRoPE = null,
   runSiLU = null,
+  runSwiGLURowsplitBias = null,
+  runScale = null,
   runGather = null,
   runResidualAdd = null,
   runAttention = null,
   dequantize = null,
+  dequantizeQ6K = null,
 } = kernelSelector;
 
 // Import sample kernel
@@ -52,6 +55,27 @@ import { KernelBenchmark, computeMetrics } from '../src/harness/benchmark.js';
 // Global state
 let device: GPUDevice | null = null;
 let initialized = false;
+
+/**
+ * Convert f16 (IEEE 754 half-precision) to f32
+ */
+function f16ToF32(h: number): number {
+  const sign = (h & 0x8000) >> 15;
+  const exponent = (h & 0x7C00) >> 10;
+  const mantissa = h & 0x03FF;
+
+  if (exponent === 0) {
+    // Denormalized or zero
+    if (mantissa === 0) return sign ? -0 : 0;
+    return (sign ? -1 : 1) * Math.pow(2, -14) * (mantissa / 1024);
+  } else if (exponent === 31) {
+    // Infinity or NaN
+    return mantissa === 0 ? (sign ? -Infinity : Infinity) : NaN;
+  }
+
+  // Normalized
+  return (sign ? -1 : 1) * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
+}
 
 /**
  * Initialize WebGPU device
@@ -313,6 +337,26 @@ interface TestHarnessImpl {
     topK: number,
     randomValue: number
   ): Promise<number>;
+
+  runSwiGLU(
+    dev: GPUDevice,
+    gate: Float32Array,
+    up: Float32Array,
+    gateBias: Float32Array,
+    upBias: Float32Array
+  ): Promise<Float32Array>;
+
+  runScale(
+    dev: GPUDevice,
+    input: Float32Array,
+    scale: number
+  ): Promise<Float32Array>;
+
+  runDequantQ6K(
+    dev: GPUDevice,
+    quantized: Uint8Array,
+    numBlocks: number
+  ): Promise<Float32Array>;
 }
 
 const testHarness: TestHarnessImpl = {
@@ -728,6 +772,99 @@ const testHarness: TestHarnessImpl = {
     });
     logitsBuf.destroy();
     return tokenId;
+  },
+
+  /**
+   * Run SwiGLU activation: output = SiLU(gate) * up
+   * Tests the gated SiLU variant from the silu kernel
+   */
+  async runSwiGLU(dev, gate, up, gateBias, upBias) {
+    // For testing, we pre-add bias to gate and up, then use SiLU with gating
+    const size = gate.length;
+
+    // Add biases
+    const gateWithBias = new Float32Array(size);
+    const upWithBias = new Float32Array(size);
+    for (let i = 0; i < size; i++) {
+      gateWithBias[i] = gate[i] + gateBias[i];
+      upWithBias[i] = up[i] + upBias[i];
+    }
+
+    if (!runSiLU) {
+      // Fallback to reference implementation
+      const result = new Float32Array(size);
+      for (let i = 0; i < size; i++) {
+        const silu = gateWithBias[i] / (1 + Math.exp(-gateWithBias[i]));
+        result[i] = silu * upWithBias[i];
+      }
+      return result;
+    }
+
+    const gateBuf = makeBuffer(gateWithBias);
+    const upBuf = makeBuffer(upWithBias);
+
+    // runSiLU with gate option: output = silu(gate) * up
+    const resultBuf = await runSiLU(upBuf, { size, gate: gateBuf });
+
+    const result = new Float32Array(await readBufferData(resultBuf, size * 4));
+
+    gateBuf.destroy();
+    upBuf.destroy();
+    resultBuf.destroy();
+
+    return result;
+  },
+
+  /**
+   * Run scale kernel: output[i] = input[i] * scale
+   */
+  async runScale(dev, input, scale) {
+    if (!runScale) {
+      // Fallback to reference implementation
+      const result = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        result[i] = input[i] * scale;
+      }
+      return result;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const resultBuf = await runScale(inputBuf, scale, { count: input.length });
+    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+
+    inputBuf.destroy();
+    resultBuf.destroy();
+
+    return result;
+  },
+
+  /**
+   * Run Q6_K dequantization
+   * Note: Q6K outputs f16, which we read as f16 and convert to f32
+   */
+  async runDequantQ6K(dev, quantized, numBlocks) {
+    if (!dequantizeQ6K) {
+      throw new Error('dequantizeQ6K kernel not available');
+    }
+
+    const blockSize = 256;  // Q6_K: 256 elements per block
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const outBuf = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0 });
+
+    // Q6K outputs f16 - read raw bytes and convert
+    const rawData = await readBufferData(outBuf, numBlocks * blockSize * 2);  // f16 = 2 bytes
+    const u16View = new Uint16Array(rawData);
+    const out = new Float32Array(u16View.length);
+
+    // Convert f16 to f32
+    for (let i = 0; i < u16View.length; i++) {
+      out[i] = f16ToF32(u16View[i]);
+    }
+
+    qBuf.destroy();
+    outBuf.destroy();
+
+    return out;
   },
 };
 

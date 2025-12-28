@@ -114,13 +114,6 @@ interface TransformersTokenizerType {
   decode(ids: number[], options?: { skip_special_tokens?: boolean }): string;
 }
 
-/** Transformers.js module type */
-interface TransformersModule {
-  AutoTokenizer: {
-    from_pretrained(modelId: string): Promise<TransformersTokenizerType>;
-  };
-}
-
 /** HuggingFace tokenizer.json format */
 interface HuggingFaceTokenizerJson {
   model?: {
@@ -1301,25 +1294,6 @@ export class BundledTokenizer extends BaseTokenizer {
 
     // Only trim when requested (not during streaming where spaces matter)
     return trim ? result.trim() : result;
-  }
-}
-
-/**
- * Factory function to create appropriate tokenizer
- */
-export function createTokenizer(config: TokenizerConfig): BaseTokenizer {
-  switch (config.type) {
-    case 'transformers':
-      return new TransformersTokenizer(config);
-    case 'sentencepiece':
-      return new SentencePieceTokenizer(config);
-    case 'bpe':
-      return new BPETokenizer(config);
-    case 'bundled':
-    case 'huggingface':
-      return new BundledTokenizer(config);
-    default:
-      throw new Error(`Unknown tokenizer type: ${config.type}`);
   }
 }
 

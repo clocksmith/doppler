@@ -126,13 +126,23 @@ function selectAttentionTier(
   return tier as AttentionTier;
 }
 
-function resolveAttentionVariant(tier: AttentionTier, isDecode: boolean, useF16KV: boolean): string {
+function resolveAttentionVariant(
+  tier: AttentionTier,
+  isDecode: boolean,
+  useF16KV: boolean,
+  numHeads: number,
+  headDim: number
+): string {
   const base = isDecode ? 'decode' : 'prefill';
   if (tier === 'subgroup') {
     // decode_subgroup only supports F32 KV cache
-    // Fall back to streaming for F16 KV cache
+    // Fall back to chunked for F16 KV cache (better than streaming for large headDim)
     if (useF16KV) {
-      console.warn('[Attention] decode_subgroup does not support F16 KV cache, falling back to streaming');
+      // Use chunked kernel for few heads with large headDim (e.g., Gemma 3: 4 heads × 256 dim)
+      // This parallelizes across headDim instead of running single-threaded
+      if (numHeads <= 8 && headDim >= 128) {
+        return 'decode_chunked_f16kv';
+      }
       return 'decode_streaming_f16kv';
     }
     return 'decode_subgroup';
@@ -142,6 +152,10 @@ function resolveAttentionVariant(tier: AttentionTier, isDecode: boolean, useF16K
   }
   if (tier === 'tiled_small') {
     return `${base}_small${useF16KV ? '_f16kv' : ''}`;
+  }
+  // For streaming with few heads, prefer chunked kernel
+  if (isDecode && useF16KV && numHeads <= 8 && headDim >= 128) {
+    return 'decode_chunked_f16kv';
   }
   return `${base}_streaming${useF16KV ? '_f16kv' : ''}`;
 }
@@ -171,7 +185,7 @@ function resolveAttentionPlan(
   const useF16KV = kvDtype === 'f16';
   const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV);
+  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
   return { tier, variant, workgroups, useF16KV, isDecode };

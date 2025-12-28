@@ -1,10 +1,10 @@
 # DOPPLER
 
-**Distributed On-device Pipeline Processing Large Embedded Reploid**
+**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid
 
 Browser-native LLM inference engine powered by WebGPU.
 
-**[Try it live at replo.id/d](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
+**[Try it live](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
 
 Project source is in `reploid/doppler/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
 
