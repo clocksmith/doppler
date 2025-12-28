@@ -4,7 +4,7 @@
 
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
-import { runGather } from '../../gpu/kernel-selector.js';
+import { runGather, recordGather } from '../../gpu/kernel-selector.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 
 export interface EmbedConfig {
@@ -12,6 +12,7 @@ export interface EmbedConfig {
   vocabSize: number;
   scaleEmbeddings: boolean;
   debug?: boolean;
+  recorder?: CommandRecorder;
 }
 
 export interface ValidationResult {
@@ -151,16 +152,14 @@ export async function embed(
   embedBuffer: GPUBuffer,
   config: EmbedConfig
 ): Promise<GPUBuffer> {
-  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false } = config;
+  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder } = config;
   const device = getDevice();
   const numTokens = tokenIds.length;
 
   if (!device) throw new Error('GPU device not available');
 
-  // Always log scaleEmbeddings status (to debug scaling issue)
-  console.log(`[Embed] tokens=${numTokens}, hidden=${hiddenSize}, scaleEmbeddings=${scaleEmbeddings}, debug=${debug}`);
-
   if (debug) {
+    console.log(`[Embed] tokens=${numTokens}, hidden=${hiddenSize}, scaleEmbeddings=${scaleEmbeddings}, debug=${debug}`);
     console.log(`[Embed] DEBUG tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}`);
     console.log(`[Embed] TOKEN_IDS: [${tokenIds.join(', ')}]`);
   }
@@ -168,10 +167,12 @@ export async function embed(
   const tokenIdBuffer = acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
   device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
 
-  const outputBuffer = await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize);
+  const outputBuffer = recorder
+    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize)
+    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize);
 
   // Debug: Verify first token embedding
-  if (debug && tokenIds.length > 0) {
+  if (debug && !recorder && tokenIds.length > 0) {
     const firstTokenId = tokenIds[0];
     const sampleSize = Math.min(32 * 4, hiddenSize * 4);
     const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -193,7 +194,11 @@ export async function embed(
 
     console.log(`[Embed] FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
-  releaseBuffer(tokenIdBuffer);
+  if (recorder) {
+    recorder.trackTemporaryBuffer(tokenIdBuffer);
+  } else {
+    releaseBuffer(tokenIdBuffer);
+  }
 
   if (!scaleEmbeddings) return outputBuffer;
 
@@ -201,17 +206,23 @@ export async function embed(
   const scaleFactor = Math.sqrt(hiddenSize);
 
   // Debug: check raw embedding values before scaling
-  if (debug) {
+  if (debug && !recorder) {
     const sample = await readBuffer(outputBuffer, Math.min(outputBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
     const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
     console.log(`[Embed] RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
   }
 
-  const scaledBuffer = await scaleGPUBuffer(outputBuffer, scaleFactor, numTokens * hiddenSize);
-  releaseBuffer(outputBuffer);
+  const scaledBuffer = recorder
+    ? recordScale(recorder, outputBuffer, scaleFactor, numTokens * hiddenSize)
+    : await scaleGPUBuffer(outputBuffer, scaleFactor, numTokens * hiddenSize);
+  if (recorder) {
+    recorder.trackTemporaryBuffer(outputBuffer);
+  } else {
+    releaseBuffer(outputBuffer);
+  }
 
-  if (debug) {
+  if (debug && !recorder) {
     const sample = await readBuffer(scaledBuffer, Math.min(scaledBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
     const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));

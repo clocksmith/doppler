@@ -461,13 +461,101 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       deviceInfo: this.capabilities?.adapterInfo,
     };
 
-    // Simplified tuning - just return heuristic-based result
-    // Real tuning would create attention shader variants
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(64, invocations);
+    if (!this.device) {
+      return best;
+    }
 
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
+    const attentionCandidates = candidates.filter(c => c[1] === 1);
+    if (attentionCandidates.length === 0) {
+      return best;
+    }
+
+    const maxElements = 2_000_000;
+    const totalHeadsRaw = Math.max(1, seqLen * numHeads);
+    let benchSeqLen = seqLen;
+    let totalHeads = totalHeadsRaw;
+    let totalElements = totalHeads * headDim;
+
+    if (totalElements > maxElements) {
+      benchSeqLen = Math.max(1, Math.floor(maxElements / (numHeads * headDim)));
+      totalHeads = Math.max(1, benchSeqLen * numHeads);
+      totalElements = totalHeads * headDim;
+    }
+
+    const bufferQ = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferK = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferOut = this.device.createBuffer({
+      size: totalHeads * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    const dataQ = new Float32Array(totalElements);
+    const dataK = new Float32Array(totalElements);
+    for (let i = 0; i < totalElements; i++) {
+      dataQ[i] = Math.random();
+      dataK[i] = Math.random();
+    }
+    this.device.queue.writeBuffer(bufferQ, 0, dataQ);
+    this.device.queue.writeBuffer(bufferK, 0, dataK);
+
+    for (const [wgX] of attentionCandidates) {
+      try {
+        const shader = this._createAttentionShader(wgX);
+        const pipeline = await this._createComputePipeline(shader, 'main');
+
+        const uniformBuffer = this.device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new Uint32Array([headDim, numHeads, benchSeqLen, 0]);
+        this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+        const bindGroup = this.device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferQ } },
+            { binding: 2, resource: { buffer: bufferK } },
+            { binding: 3, resource: { buffer: bufferOut } },
+          ],
+        });
+
+        const avgTime = await this._benchmarkPipeline(
+          pipeline,
+          bindGroup,
+          [totalHeads, 1, 1],
+          warmup,
+          iterations
+        );
+
+        const flops = 2 * totalHeads * headDim;
+        const gflops = avgTime > 0 ? (flops / avgTime) / 1e6 : 0;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gflops,
+            timeMs: avgTime,
+            deviceInfo: this.capabilities?.adapterInfo,
+          };
+        }
+
+        uniformBuffer.destroy();
+      } catch (e) {
+        continue;
+      }
+    }
+
+    bufferQ.destroy();
+    bufferK.destroy();
+    bufferOut.destroy();
 
     return best;
   }
@@ -492,12 +580,82 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       deviceInfo: this.capabilities?.adapterInfo,
     };
 
-    // For softmax, 1D workgroup with size based on reduction efficiency
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(256, invocations);
+    if (!this.device) {
+      return best;
+    }
 
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
+    const softmaxCandidates = candidates.filter(c => c[1] === 1);
+    if (softmaxCandidates.length === 0) {
+      return best;
+    }
+
+    const totalElements = Math.max(1, innerSize * outerSize);
+
+    const bufferIn = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferOut = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    const dataIn = new Float32Array(totalElements);
+    for (let i = 0; i < totalElements; i++) {
+      dataIn[i] = Math.random();
+    }
+    this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+
+    for (const [wgX] of softmaxCandidates) {
+      try {
+        const shader = this._createSoftmaxShader(wgX);
+        const pipeline = await this._createComputePipeline(shader, 'main');
+
+        const uniformBuffer = this.device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new Uint32Array([innerSize, outerSize, 0, 0]);
+        this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+        const bindGroup = this.device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferOut } },
+          ],
+        });
+
+        const avgTime = await this._benchmarkPipeline(
+          pipeline,
+          bindGroup,
+          [outerSize, 1, 1],
+          warmup,
+          iterations
+        );
+
+        const ops = 2 * totalElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: this.capabilities?.adapterInfo,
+          };
+        }
+
+        uniformBuffer.destroy();
+      } catch (e) {
+        continue;
+      }
+    }
+
+    bufferIn.destroy();
+    bufferOut.destroy();
 
     return best;
   }
@@ -522,12 +680,98 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       deviceInfo: this.capabilities?.adapterInfo,
     };
 
-    // RMSNorm benefits from larger workgroups for reduction
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(256, invocations);
+    if (!this.device) {
+      return best;
+    }
 
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
+    const rmsCandidates = candidates.filter(c => c[1] === 1);
+    if (rmsCandidates.length === 0) {
+      return best;
+    }
+
+    const totalElements = Math.max(1, hiddenSize * numTokens);
+
+    const bufferIn = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferWeight = this.device.createBuffer({
+      size: hiddenSize * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferOut = this.device.createBuffer({
+      size: totalElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    const dataIn = new Float32Array(totalElements);
+    const dataWeight = new Float32Array(hiddenSize);
+    for (let i = 0; i < totalElements; i++) {
+      dataIn[i] = Math.random();
+    }
+    for (let i = 0; i < hiddenSize; i++) {
+      dataWeight[i] = Math.random();
+    }
+    this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+    this.device.queue.writeBuffer(bufferWeight, 0, dataWeight);
+
+    for (const [wgX] of rmsCandidates) {
+      try {
+        const shader = this._createRMSNormShader(wgX);
+        const pipeline = await this._createComputePipeline(shader, 'main');
+
+        const uniformBuffer = this.device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new ArrayBuffer(16);
+        const uniformView = new DataView(uniformData);
+        uniformView.setUint32(0, hiddenSize, true);
+        uniformView.setUint32(4, numTokens, true);
+        uniformView.setFloat32(8, 1e-5, true);
+        uniformView.setUint32(12, 0, true);
+        this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+        const bindGroup = this.device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferWeight } },
+            { binding: 3, resource: { buffer: bufferOut } },
+          ],
+        });
+
+        const avgTime = await this._benchmarkPipeline(
+          pipeline,
+          bindGroup,
+          [numTokens, 1, 1],
+          warmup,
+          iterations
+        );
+
+        const ops = 2 * totalElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: this.capabilities?.adapterInfo,
+          };
+        }
+
+        uniformBuffer.destroy();
+      } catch (e) {
+        continue;
+      }
+    }
+
+    bufferIn.destroy();
+    bufferWeight.destroy();
+    bufferOut.destroy();
 
     return best;
   }
@@ -552,12 +796,88 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       deviceInfo: this.capabilities?.adapterInfo,
     };
 
-    // Dequant is memory-bound, smaller workgroups often better
-    const hasSubgroups = this.capabilities?.hasSubgroups;
-    const wgSize = hasSubgroups ? 64 : 256;
+    if (!this.device) {
+      return best;
+    }
 
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
+    const dequantCandidates = candidates.filter(c => c[1] === 1);
+    if (dequantCandidates.length === 0) {
+      return best;
+    }
+
+    const numElements = Math.max(1, numBlocks * 256);
+
+    const bufferIn = this.device.createBuffer({
+      size: numElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    const bufferOut = this.device.createBuffer({
+      size: numElements * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    const dataIn = new Uint32Array(numElements);
+    for (let i = 0; i < numElements; i++) {
+      dataIn[i] = i & 0xffff;
+    }
+    this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+
+    for (const [wgX] of dequantCandidates) {
+      try {
+        const shader = this._createDequantShader(wgX);
+        const pipeline = await this._createComputePipeline(shader, 'main');
+
+        const uniformBuffer = this.device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new ArrayBuffer(16);
+        const uniformView = new DataView(uniformData);
+        uniformView.setUint32(0, numElements, true);
+        uniformView.setFloat32(4, 0.01, true);
+        uniformView.setUint32(8, 0, true);
+        uniformView.setUint32(12, 0, true);
+        this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+        const bindGroup = this.device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferOut } },
+          ],
+        });
+
+        const workgroups = Math.ceil(numElements / wgX);
+        const avgTime = await this._benchmarkPipeline(
+          pipeline,
+          bindGroup,
+          [workgroups, 1, 1],
+          warmup,
+          iterations
+        );
+
+        const ops = numElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: this.capabilities?.adapterInfo,
+          };
+        }
+
+        uniformBuffer.destroy();
+      } catch (e) {
+        continue;
+      }
+    }
+
+    bufferIn.destroy();
+    bufferOut.destroy();
 
     return best;
   }
@@ -583,6 +903,50 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     };
   }
 
+  private async _benchmarkPipeline(
+    pipeline: GPUComputePipeline,
+    bindGroup: GPUBindGroup,
+    workgroups: [number, number, number],
+    warmup: number,
+    iterations: number
+  ): Promise<number> {
+    if (!this.device) {
+      return Infinity;
+    }
+
+    const [wgX, wgY, wgZ] = workgroups;
+    if (wgX === 0 || wgY === 0 || wgZ === 0) {
+      return Infinity;
+    }
+
+    for (let i = 0; i < warmup; i++) {
+      const encoder = this.device.createCommandEncoder();
+      const pass = encoder.beginComputePass();
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(wgX, wgY, wgZ);
+      pass.end();
+      this.device.queue.submit([encoder.finish()]);
+    }
+    await this.device.queue.onSubmittedWorkDone();
+
+    const times: number[] = [];
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      const encoder = this.device.createCommandEncoder();
+      const pass = encoder.beginComputePass();
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(wgX, wgY, wgZ);
+      pass.end();
+      this.device.queue.submit([encoder.finish()]);
+      await this.device.queue.onSubmittedWorkDone();
+      times.push(performance.now() - start);
+    }
+
+    return times.reduce((a, b) => a + b, 0) / times.length;
+  }
+
   /**
    * Create compute pipeline from shader source
    * @private
@@ -599,6 +963,231 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       layout: 'auto',
       compute: { module, entryPoint },
     });
+  }
+
+  private _createAttentionShader(wgSize: number): string {
+    return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  headDim: u32,
+  numHeads: u32,
+  seqLen: u32,
+  _pad: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> Q: array<f32>;
+@group(0) @binding(2) var<storage, read> K: array<f32>;
+@group(0) @binding(3) var<storage, read_write> Out: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let totalHeads = uniforms.numHeads * uniforms.seqLen;
+  let idx = wg_id.x;
+  if (idx >= totalHeads) { return; }
+
+  let headDim = uniforms.headDim;
+  let offset = idx * headDim;
+  let lane = local_id.x;
+
+  var sum: f32 = 0.0;
+  var i: u32 = lane;
+  loop {
+    if (i >= headDim) { break; }
+    sum = sum + Q[offset + i] * K[offset + i];
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = sum;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  if (lane == 0u) {
+    Out[idx] = shared[0];
+  }
+}`;
+  }
+
+  private _createSoftmaxShader(wgSize: number): string {
+    return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  innerSize: u32,
+  outerSize: u32,
+  _pad0: u32,
+  _pad1: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<f32>;
+@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let row = wg_id.x;
+  if (row >= uniforms.outerSize) { return; }
+
+  let inner = uniforms.innerSize;
+  let lane = local_id.x;
+  let offset = row * inner;
+
+  var localMax: f32 = -3.402823e+38;
+  var i: u32 = lane;
+  loop {
+    if (i >= inner) { break; }
+    localMax = max(localMax, input[offset + i]);
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localMax;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = max(shared[lane], shared[lane + stride]);
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let rowMax = shared[0];
+  var localSum: f32 = 0.0;
+  i = lane;
+  loop {
+    if (i >= inner) { break; }
+    localSum = localSum + exp(input[offset + i] - rowMax);
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localSum;
+  workgroupBarrier();
+
+  stride = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let denom = shared[0];
+  i = lane;
+  loop {
+    if (i >= inner) { break; }
+    output[offset + i] = exp(input[offset + i] - rowMax) / denom;
+    i = i + WG_SIZE;
+  }
+}`;
+  }
+
+  private _createRMSNormShader(wgSize: number): string {
+    return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  hiddenSize: u32,
+  numTokens: u32,
+  eps: f32,
+  _pad0: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<f32>;
+@group(0) @binding(2) var<storage, read> weight: array<f32>;
+@group(0) @binding(3) var<storage, read_write> output: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let tokenIdx = wg_id.x;
+  if (tokenIdx >= uniforms.numTokens) { return; }
+
+  let size = uniforms.hiddenSize;
+  let base = tokenIdx * size;
+  let lane = local_id.x;
+
+  var localSumSq: f32 = 0.0;
+  var i: u32 = lane;
+  loop {
+    if (i >= size) { break; }
+    let x = input[base + i];
+    localSumSq = localSumSq + x * x;
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localSumSq;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let invRms = 1.0 / sqrt(shared[0] / f32(size) + uniforms.eps);
+  i = lane;
+  loop {
+    if (i >= size) { break; }
+    output[base + i] = input[base + i] * invRms * weight[i];
+    i = i + WG_SIZE;
+  }
+}`;
+  }
+
+  private _createDequantShader(wgSize: number): string {
+    return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  count: u32,
+  scale: f32,
+  _pad0: u32,
+  _pad1: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<u32>;
+@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let idx = gid.x;
+  if (idx >= uniforms.count) { return; }
+  output[idx] = f32(input[idx]) * uniforms.scale;
+}`;
   }
 
   /**

@@ -12,6 +12,10 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
+const DEBUG_KERNELS = typeof window !== 'undefined'
+  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
+  : false;
+
 /** RMSNorm kernel options */
 export interface RMSNormOptions extends OutputBufferOptions {
   batchSize?: number;
@@ -48,7 +52,9 @@ export async function runRMSNorm(
   let variant = 'default';
   if (residual) {
     variant = 'residual';
-    console.log(`[RMSNorm] Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
+    if (DEBUG_KERNELS) {
+      console.log(`[RMSNorm] Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
+    }
   } else if (hiddenSize && hiddenSize <= 256) {
     variant = 'small';
   }
@@ -74,7 +80,7 @@ export async function runRMSNorm(
     null,
     device
   );
-  if (hasResidualFlag) {
+  if (DEBUG_KERNELS && hasResidualFlag) {
     console.log(`[RMSNorm] Uniform hasResidual=${hasResidualFlag}, hiddenSize=${inferredHiddenSize}, batchSize=${batchSize}`);
   }
 

@@ -166,6 +166,146 @@ export class MultiModelNetwork {
     return outputs;
   }
 
+  /**
+   * Temporal Self-Ring: Same model at N temporal states for self-reflective improvement.
+   * Based on Gödel Agent, RISE, and Reflexion research.
+   *
+   * @param expertId - The expert to use for all temporal states (typically 'base')
+   * @param task - Task with description, maxTokens, and optional convergenceThreshold
+   * @param config - Configuration for turns, temperature decay, and shortcuts
+   * @returns Final output, full history, and turns used
+   */
+  async executeTemporalRing(
+    expertId: string,
+    task: { description: string; maxTokens?: number; convergenceThreshold?: number },
+    config: {
+      turns?: number;
+      temperatureStart?: number;
+      temperatureDecay?: number;
+      temperatureMin?: number;
+      shortcutInterval?: number; // For Möbius Ring variant
+      enableShortcuts?: boolean;
+    } = {}
+  ): Promise<{
+    finalOutput: string;
+    history: Array<{ turn: number; output: string; timestamp: number; role: 'seed' | 'reflect' | 'refine' }>;
+    turnsUsed: number;
+    converged: boolean;
+  }> {
+    const {
+      turns = 5,
+      temperatureStart = 0.8,
+      temperatureDecay = 0.15,
+      temperatureMin = 0.1,
+      shortcutInterval = 2,
+      enableShortcuts = false,
+    } = config;
+
+    const history: Array<{ turn: number; output: string; timestamp: number; role: 'seed' | 'reflect' | 'refine' }> = [];
+    let currentOutput = '';
+    let converged = false;
+
+    for (let t = 0; t < turns; t++) {
+      const temperature = Math.max(temperatureMin, temperatureStart - t * temperatureDecay);
+      const role: 'seed' | 'reflect' | 'refine' = t === 0 ? 'seed' : t % 2 === 1 ? 'reflect' : 'refine';
+
+      let prompt = this.buildTemporalPrompt(task.description, t, history, currentOutput, role);
+
+      // Möbius Ring: Add shortcuts to earlier temporal states
+      if (enableShortcuts && t >= shortcutInterval) {
+        const shortcutIdx = t - shortcutInterval;
+        const shortcutEntry = history[shortcutIdx];
+        if (shortcutEntry) {
+          prompt += `\n\n### Earlier Context (turn ${shortcutIdx}):\n${shortcutEntry.output}`;
+        }
+      }
+
+      currentOutput = await this.executeExpert(expertId, prompt, {
+        ...task,
+        temperature,
+      });
+
+      history.push({
+        turn: t,
+        output: currentOutput,
+        timestamp: Date.now(),
+        role,
+      });
+
+      // Convergence detection
+      if (this.detectTemporalConvergence(currentOutput, history, task.convergenceThreshold)) {
+        converged = true;
+        break;
+      }
+    }
+
+    return {
+      finalOutput: currentOutput,
+      history,
+      turnsUsed: history.length,
+      converged,
+    };
+  }
+
+  private buildTemporalPrompt(
+    taskDescription: string,
+    turn: number,
+    history: Array<{ turn: number; output: string; role: string }>,
+    lastOutput: string,
+    role: 'seed' | 'reflect' | 'refine'
+  ): string {
+    if (role === 'seed') {
+      return `Generate code for: ${taskDescription}\n\nOutput JSON: { "code": string, "reasoning": string }`;
+    }
+
+    if (role === 'reflect') {
+      return `Review this code and identify issues:\n\n${lastOutput}\n\nOutput JSON: { "issues": string[], "severity": string, "suggestions": string[] }`;
+    }
+
+    // role === 'refine'
+    const originalTurn = turn - 2;
+    const originalOutput = history[originalTurn]?.output || lastOutput;
+    return `Improve the code based on this feedback:\n\nOriginal code:\n${originalOutput}\n\nCritique:\n${lastOutput}\n\nOutput improved JSON: { "code": string, "changes": string[], "converged": boolean }`;
+  }
+
+  private detectTemporalConvergence(
+    currentOutput: string,
+    history: Array<{ output: string }>,
+    threshold?: number
+  ): boolean {
+    if (history.length < 2) return false;
+
+    // Check for explicit convergence signal
+    if (currentOutput.includes('"converged": true') || currentOutput.includes('"converged":true')) {
+      return true;
+    }
+
+    // Check for output stability (same as previous)
+    const prevOutput = history[history.length - 1]?.output;
+    if (currentOutput === prevOutput) {
+      return true;
+    }
+
+    // Optional: similarity-based convergence (if threshold provided)
+    if (threshold !== undefined && prevOutput) {
+      const similarity = this.computeOutputSimilarity(currentOutput, prevOutput);
+      if (similarity >= threshold) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private computeOutputSimilarity(a: string, b: string): number {
+    // Simple Jaccard similarity on tokens
+    const tokensA = new Set(a.toLowerCase().split(/\s+/));
+    const tokensB = new Set(b.toLowerCase().split(/\s+/));
+    const intersection = new Set([...tokensA].filter((x) => tokensB.has(x)));
+    const union = new Set([...tokensA, ...tokensB]);
+    return union.size > 0 ? intersection.size / union.size : 0;
+  }
+
   async executeBatch(tasks: ExpertTask[], options: GenerateOptions = {}): Promise<Record<string, string>> {
     const grouped = new Map<string, ExpertTask[]>();
     for (const task of tasks) {

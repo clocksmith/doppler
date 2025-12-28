@@ -31,7 +31,8 @@ import type { CommandRecorder } from '../../gpu/command-recorder.js';
 const DEBUG_LOGITS_FLAGS = typeof window !== 'undefined'
   ? (window as unknown as { DOPPLER_DEBUG_LOGITS?: boolean })
   : null;
-const ENABLE_DEBUG_READBACKS = true; // TEMP: Always enable for debugging
+const LOGITS_DEBUG = Boolean(DEBUG_LOGITS_FLAGS?.DOPPLER_DEBUG_LOGITS);
+const ENABLE_DEBUG_READBACKS = LOGITS_DEBUG;
 
 // ============================================================================
 // Types
@@ -166,7 +167,9 @@ export async function computeLogits(
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
 ): Promise<Float32Array> {
-  console.log(`[Pipeline] LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
+  if (LOGITS_DEBUG) {
+    console.log(`[Pipeline] LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
+  }
   const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
   const { finalNorm, lmHead } = weights;
   const device = getDevice();
@@ -180,7 +183,9 @@ export async function computeLogits(
   const inputIsGPU = hiddenStates instanceof GPUBuffer;
 
   // CPU fallback path
-  console.log(`[Pipeline] LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
+  if (LOGITS_DEBUG) {
+    console.log(`[Pipeline] LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
+  }
   if (!device || !useGPU) {
     let cpuHiddenStates: Float32Array;
     if (inputIsGPU) {
@@ -302,7 +307,9 @@ export async function computeLogits(
   // Debug: Log buffer info for lm_head matmul
   const lmHeadDtype = getBufferDtype(lmHeadBuffer);
   const normedDtype = getBufferDtype(normedBuffer);
-  console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
+  if (LOGITS_DEBUG) {
+    console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
+  }
 
   // Debug: Sample lm_head weights at start of buffer to verify values look sane
   // GGUF layout: [hiddenSize, vocabSize] - row k contains all vocab weights for hidden dim k

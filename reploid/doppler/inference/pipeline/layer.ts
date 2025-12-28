@@ -117,14 +117,8 @@ async function doRMSNorm(
   options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  console.log(`[doRMSNorm-ENTER] hasRecorder=${!!recorder}, hasResidual=${!!options.residual}`);
   if (recorder) {
     return recordRMSNorm(recorder, input, weight, eps, options);
-  }
-  // Debug: verify residual is being passed
-  console.log(`[doRMSNorm] options.residual type=${typeof options.residual}, value=${options.residual}, hasResidual=${!!options.residual}`);
-  if (options.residual) {
-    console.log(`[doRMSNorm] Calling runRMSNorm with residual, residual.size=${options.residual.size}`);
   }
   return runRMSNorm(input, weight, eps, options);
 }
@@ -138,7 +132,6 @@ async function doResidualAdd(
   size: number,
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  console.log(`[doResidualAdd] Called with a.size=${a.size}, b.size=${b.size}, size=${size}, hasRecorder=${!!recorder}`);
   if (recorder) {
     return recordResidualAdd(recorder, a, b, size);
   }

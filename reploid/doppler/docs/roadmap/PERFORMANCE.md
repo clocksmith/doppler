@@ -25,9 +25,9 @@
   - [x] Attention decode kernel (subgroup) - ✅ Implemented Dec 20 (expect 2-3x overall)
   - [x] GPU-only decode loop infrastructure - ✅ Implemented Dec 20 (needs integration)
   - [x] Test & benchmark new kernels (test:kernels:perf)
-  - [ ] Fix fused Q4K thread utilization - P0 (recover 2.7x)
-- [ ] GPU timestamp profiling to identify bottleneck (P0) - benchmark metrics still 0 when timestamps available
-- [ ] Investigate 50% performance regression (P0) - was 8 tok/s, now 4 tok/s
+  - [x] Fix fused Q4K thread utilization - P0 (recover 2.7x)
+- [x] GPU timestamp profiling to identify bottleneck (P0) - metrics now populate `gpu_time_ms_*`
+- [ ] Investigate 50% performance regression (P0) - was 8 tok/s, now 4 tok/s (logits/attention logging + embed/logits batching fixed, re-benchmark)
 - [ ] Llama 3.2 models validated (P0) - 1B done, 3B pending
 
 ### Kernel Fusion Roadmap (See 1.14)
@@ -41,9 +41,9 @@
 - [ ] Parallel Q/K/V projection (P2) - 1.1-1.2x speedup
 
 ### Speedup Optimizations Roadmap (See 1.15, 1.20, 1.22)
-- [ ] Fix fused Q4K thread utilization (P0) - recover 2.7x
-- [ ] Complete workgroup auto-tuning (P1) - 1.1-1.2x speedup
-- [x] **GPU-only decode loop (P1) - 2-5x speedup** (See 1.20) — ✅ Infrastructure done Dec 20, needs integration
+- [x] Fix fused Q4K thread utilization (P0) - recover 2.7x
+- [x] Complete workgroup auto-tuning (P1) - 1.1-1.2x speedup
+- [x] **GPU-only decode loop (P1) - 2-5x speedup** (See 1.20) — ✅ Integrated in `inference/pipeline.ts` batch path
 - [x] **Attention decode kernel (P0) - 3.6-7.2x attention speedup** (See 1.22) — ✅ Implemented Dec 20, ready for testing
 - [ ] Shader constants → uniforms migration (P1) - config fidelity
 - [ ] Remove F32 intermediate allocations (P1) - 1.1-1.2x speedup
@@ -87,7 +87,7 @@
 | Tiled matmul optimization | P0 | ✅ Done | 2-3x | 16x16 shared memory tiles in `matmul_f32.wgsl` |
 | Subgroup operations | P0 | ✅ Done | 1.5x | `matmul_gemv_subgroup.wgsl` |
 | Multi-column GEMV (LM head) | P0 | ✅ Done | ~0% | 32 cols/wg in `matmul_gemv_subgroup.wgsl` - LM head not bottleneck |
-| Workgroup size auto-tuning | P1 | ⏳ Partial | 1.2-1.5x | Framework exists; only matmul benchmarks, others hardcoded |
+| Workgroup size auto-tuning | P1 | ✅ Done | 1.2-1.5x | Benchmarks added for attention/softmax/rmsnorm/dequant in `kernel-tuner.ts` |
 | FlashAttention-style fusion | P1 | ✅ Done | 2x | Tiled + online softmax, 3 device-aware tiers |
 | Fused FFN kernel (gate+up weights) | P0 | ✅ Done | 1.2-1.3x | 3→2 passes via gate+up weight concatenation |
 | Kernel uniform audit (vs constants) | P0 | ⬜ TODO | Config fidelity | Catalog kernels with baked constants (e.g. `gpu/kernels/attention*.wgsl`, `matmul_q4_fused.wgsl`), add manifest-sourced uniforms so `tools/convert-cli.ts` → `storage/rdrr-format.ts` → runtime config stay in sync |
@@ -124,8 +124,8 @@
 | FFN gate+up fusion (3→2 passes) | 1.2-1.3x | 3-5x | P0 | ✅ Done |
 | GPU sampling (no logit readback) | 1.3-1.5x | 4-6x | P0 | ✅ Done (fused decode path) |
 | Multi-column LM head GEMV | ~0% | - | P0 | ✅ Done (not bottleneck - see 1.11) |
-| GPU timestamp profiling | - | - | P0 | ⬜ TODO (identify actual bottleneck) |
-| Complete workgroup auto-tuning | 1.1-1.2x | 4.5-7x | P1 | ⬜ TODO |
+| GPU timestamp profiling | - | - | P0 | ✅ Done (metrics in `gpu_time_ms_*`) |
+| Complete workgroup auto-tuning | 1.1-1.2x | 4.5-7x | P1 | ✅ Done (kernel-tuner loops for attention/softmax/rmsnorm/dequant) |
 | Speculative decoding | 2-3x | 9-21x | P2 | ⬜ Framework ready |
 | Streaming prefill | - | - | P2 | ⬜ TODO (for long contexts) |
 
@@ -147,7 +147,7 @@
 **Remaining gap analysis:**
 - WebLLM achieves ~24 ms/token vs DOPPLER ~140 ms/token (6x gap)
 - LM head multicol optimization had no effect → bottleneck is elsewhere
-- Need GPU timestamp profiling to identify which of 156+ matmuls per forward pass is slowest
+- GPU timestamps now available to identify which kernels dominate per forward pass
 
 ### 1.6 Column-Major Weight Storage
 
@@ -342,13 +342,13 @@ out = matmul(silu_split(gateUp), down) // Pass 2
 
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
-| Add benchmark loop to `_tuneAttention()` | P1 | ⬜ TODO | Currently returns `[64, 1, 1]` |
-| Add benchmark loop to `_tuneSoftmax()` | P1 | ⬜ TODO | Currently returns `[256, 1, 1]` |
-| Add benchmark loop to `_tuneRMSNorm()` | P1 | ⬜ TODO | Currently returns `[256, 1, 1]` |
-| Add benchmark loop to `_tuneDequant()` | P1 | ⬜ TODO | Currently returns `[64, 1, 1]` |
+| Add benchmark loop to `_tuneAttention()` | P1 | ✅ Done | Benchmarks 1D workgroup sizes |
+| Add benchmark loop to `_tuneSoftmax()` | P1 | ✅ Done | Benchmarks 1D workgroup sizes |
+| Add benchmark loop to `_tuneRMSNorm()` | P1 | ✅ Done | Benchmarks 1D workgroup sizes |
+| Add benchmark loop to `_tuneDequant()` | P1 | ✅ Done | Benchmarks 1D workgroup sizes |
 
-**Current:** Only matmul has real benchmarking; others use hardcoded sizes.
-**Fix:** Add benchmark loops following `_tuneMatmul()` pattern for 1.1-1.2x improvement.
+**Current:** Matmul + attention/softmax/rmsnorm/dequant have benchmark loops.
+**Fix:** Done; kernel-tuner now evaluates 1D candidates for these kernels.
 
 ### 1.10 Precision Optimization (Q4/BF16/F16)
 
@@ -457,7 +457,7 @@ The 8x reduction in workgroups did NOT improve performance. This indicates:
 
 1. **LM head is not the dominant bottleneck** - The 26 transformer layers have 4 matmuls each (Q/K/V/O projections) plus 2 FFN matmuls = 156 matmul operations per forward pass. The single LM head matmul may be <5% of total time.
 
-2. **Need GPU timestamp profiling** - Must use `gpu/profiler.ts` to measure individual kernel execution times and identify the actual bottleneck.
+2. **GPU timestamp profiling available** - Use `gpu/profiler.ts` to measure individual kernel execution times and identify the actual bottleneck.
 
 3. **Memory bandwidth limited** - 603MB weight read per token at theoretical 200GB/s = 3ms minimum. Observed ~140ms suggests compute or other overheads dominate.
 
@@ -478,8 +478,8 @@ The 8x reduction in workgroups did NOT improve performance. This indicates:
 
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
-| GPU argmax kernel | P0 | ⬜ TODO | Return single i32 instead of full logits |
-| GPU top-k sampling | P0 | ⬜ TODO | Sample on GPU, read only token ID |
+| GPU argmax kernel | P0 | ✅ Done | Returns single u32 token ID |
+| GPU top-k sampling | P0 | ✅ Done | Samples on GPU, reads only token ID |
 | Measure readback overhead | P0 | ⬜ TODO | Isolate GPU→CPU transfer time |
 
 **Impact:** Each 128KB readback costs 2-6ms. At 8 tokens, that's 1MB total readback.
@@ -716,14 +716,14 @@ recorder.recordParallelGroup([
 
 | Optimization | Est. Speedup | Complexity | Status | Notes |
 |--------------|--------------|------------|--------|-------|
-| **GPU Timestamp Profiling** | - (diagnostic) | Low | ⬜ TODO | Identify which of 156+ matmuls is bottleneck. Use `gpu/profiler.ts`. |
+| **GPU Timestamp Profiling** | - (diagnostic) | Low | ✅ Done | Benchmarks now populate `gpu_time_ms_prefill/decode` via `gpu/profiler.ts`. |
 | **Fix Fused Q4K Thread Utilization** | 2.7x (recover) | Medium | ✅ Done | Fixed by always using multicol variant for M=1, giving 100% utilization (32 cols × 8 threads). |
 
 ##### P1 - Significant Impact
 
 | Optimization | Est. Speedup | Complexity | Status | Notes |
 |--------------|--------------|------------|--------|-------|
-| **Complete Workgroup Auto-Tuning** | 1.1-1.2x | Medium | ⏳ Partial | Only matmul has real benchmarks. Need tuning for: attention, softmax, rmsnorm, dequant, rope, silu. |
+| **Complete Workgroup Auto-Tuning** | 1.1-1.2x | Medium | ✅ Done | Benchmarks now cover attention, softmax, rmsnorm, dequant; rope/silu still hardcoded. |
 | **Shader Constants → Uniforms Migration** | Config fidelity | Medium | ⬜ TODO | Move baked constants to uniforms for runtime tuning. See 1.16. |
 | **Remove F32 Intermediate Allocations** | 1.1-1.2x | Medium | ⬜ TODO | Audit pipeline for unnecessary F32 buffers. |
 
@@ -737,15 +737,15 @@ recorder.recordParallelGroup([
 
 #### Workgroup Auto-Tuning Completion (P1)
 
-**Current state:** Only matmul has real benchmark loop in `kernel-tuner.ts`
+**Current state:** Matmul + attention/softmax/rmsnorm/dequant have benchmark loops in `kernel-tuner.ts`
 
 | Kernel | Current | Has Benchmark | TODO |
 |--------|---------|---------------|------|
 | matmul | Auto-tuned | ✅ Yes | - |
-| attention | `[64, 1, 1]` hardcoded | ❌ No | Add `_tuneAttention()` |
-| softmax | `[256, 1, 1]` hardcoded | ❌ No | Add `_tuneSoftmax()` |
-| rmsnorm | `[256, 1, 1]` hardcoded | ❌ No | Add `_tuneRMSNorm()` |
-| dequant | `[64, 1, 1]` hardcoded | ❌ No | Add `_tuneDequant()` |
+| attention | Benchmarked | ✅ Yes | - |
+| softmax | Benchmarked | ✅ Yes | - |
+| rmsnorm | Benchmarked | ✅ Yes | - |
+| dequant | Benchmarked | ✅ Yes | - |
 | rope | `[256, 1, 1]` hardcoded | ❌ No | Add `_tuneRoPE()` |
 | silu | `[256, 1, 1]` hardcoded | ❌ No | Add `_tuneSiLU()` |
 
@@ -857,7 +857,7 @@ struct KernelConfig {
 | 0 | **🔥 Fix GPU Submit Overhead** | 1.5x | P0 | Medium | ⬜ 6.3→1-2 submits/tok |
 | 1 | **🔥 Fix Dequant/GEMV Regression** | 1.3x | P0 | Medium | ⬜ Investigate root cause |
 | 2 | **Full F16 Activation Pipeline** | 1.5-2x | P0 | High | ⬜ Numerical stability verification |
-| 3 | **GPU Timestamp Profiling** | - (diagnostic) | P0 | Low | ⬜ None |
+| 3 | **GPU Timestamp Profiling** | - (diagnostic) | P0 | Low | ✅ Done |
 | 4 | **Residual+RMSNorm Fusion** | ~~1.2-1.3x~~ **~1.5%** | ~~P0~~ | Low | ✅ **Done** (minimal impact) |
 | 5 | **Quantized Matmul+RMSNorm** | 1.2-1.5x | P0 | Medium | ⬜ Custom shader |
 | 6 | **Fix Fused Q4K Utilization** | 2.7x (recover) | P0 | Medium | ✅ **Done** (multicol variant) |
@@ -1041,8 +1041,8 @@ Total: 1-2 submits, 1 readback, minimal JS overhead
 | **Loop orchestration** | Medium | ✅ Done | Record N decode iterations in single command buffer (Option A) |
 | **Early exit handling** | Medium | ✅ Done | CPU-side trim after readback (Option A) |
 | **Streaming callback** | Medium | ⬜ TODO | Optional: periodic readback every K tokens for UI |
-| **Embedding scaling** | Low | ⬜ TODO | Gemma embedding scale in batched path |
-| **Integration & testing** | Medium | ⬜ TODO | Wire into main generate loop, benchmark |
+| **Embedding scaling** | Low | ✅ Done | Gemma embedding scale in batched path |
+| **Integration & testing** | Medium | ✅ Done | Wired into `inference/pipeline.ts` generate loop |
 
 #### Stop Condition Kernel (New)
 
@@ -1099,7 +1099,7 @@ fn check_stop() {
 | `gpu/kernels/check-stop.wgsl` | ✅ Created | Stop condition kernel (checks EOS/max_tokens) |
 | `gpu/kernels/check-stop.ts` | ✅ Created | TypeScript wrapper with `recordCheckStop()` |
 | `inference/pipeline.ts` | ✅ Modified | Added `_generateNTokensGPU()` private method (Option A) |
-| `inference/pipeline/generate.ts` | ⬜ TODO | Integration point for public API |
+| `inference/pipeline.ts` | ✅ Done | Integrated batched generate loop |
 
 #### Implementation Details
 
@@ -1108,7 +1108,7 @@ fn check_stop() {
 - Each iteration: gather → layers → logits → argmax → check_stop
 - Readback all N tokens + stop flags at end
 - CPU post-process to find first EOS and trim
-- **Limitation:** Currently skips Gemma embedding scaling (needs `recordScale` implementation)
+- **Limitation:** None; embedding scaling now supported in batched path via `recordScale`.
 
 **Files:**
 - `gpu/kernels/check-stop.wgsl` - WGSL kernel for stop condition check
@@ -1162,11 +1162,10 @@ recorder.submit()  // Single submit for all N iterations!
 - Wraps `queue.submit()` calls in `gpu/device.ts`
 
 **Direct submit bypasses (inflation sources):**
-- `inference/pipeline/layer.ts` - direct submits
-- `inference/pipeline/attention.ts` - direct submits
-- `inference/pipeline/logits.ts` - direct submits
-- `inference/pipeline/embed.ts` - direct submits
-- `inference/kv-cache.ts` - direct submits
+- `inference/pipeline/attention.ts` - direct submits when recorder is not used
+- `inference/pipeline/logits.ts` - prefill now recorded; fallback still submits
+- `inference/pipeline/embed.ts` - recorder path added; fallback still submits
+- `inference/kv-cache.ts` - direct submits for non-recorded update paths
 
 **Fused decode issue:**
 - `pipeline.ts` uses `recordLogitsGPU` + `recordArgmax`
@@ -1176,12 +1175,12 @@ recorder.submit()  // Single submit for all N iterations!
 
 | Task | Priority | Status | Files |
 |------|----------|--------|-------|
-| Instrument submit counts by phase | P0 | ⬜ TODO | `gpu/submit-tracker.ts`, `gpu/device.ts` |
-| Add recorder support to embed path | P0 | ⬜ TODO | `inference/pipeline/embed.ts` |
-| Add recorder support to logits path | P0 | ⬜ TODO | `inference/pipeline/logits.ts` |
-| Add recorder support to KV cache | P0 | ⬜ TODO | `inference/kv-cache.ts` |
-| Audit unconditional readbacks | P0 | ⬜ TODO | `inference/pipeline.ts` |
-| Gate debug readbacks | P1 | ⬜ TODO | All pipeline files |
+| Instrument submit counts by phase | P0 | ✅ Done | `gpu/submit-tracker.ts`, `gpu/device.ts` |
+| Add recorder support to embed path | P0 | ✅ Done | `inference/pipeline/embed.ts` |
+| Add recorder support to logits path | P0 | ✅ Done | `inference/pipeline.ts` (prefill) |
+| Add recorder support to KV cache | P0 | ✅ Done | `inference/kv-cache.ts` |
+| Audit unconditional readbacks | P0 | ✅ Done | `inference/pipeline/logits.ts`, `inference/pipeline/embed.ts` |
+| Gate debug readbacks | P1 | ✅ Done | `window.DOPPLER_DEBUG_LOGITS`, `window.DOPPLER_DEBUG_KERNELS` |
 
 #### Target
 
@@ -1389,6 +1388,7 @@ The dequant path is 50% slower than documented. This affects BOTH column-wise an
 | Reduce GPU submit count | ⬜ TODO | Target: 1-2 submits/token |
 | Check git history for regressions | ⬜ TODO | Compare with previous commits |
 | Compare with WebLLM on same hardware | ⬜ TODO | Baseline comparison |
+| Allow GEMV for column-major weights | ✅ Done | Removed transposeB gating in `gpu/kernels/matmul.ts` |
 
 #### Files Created During Investigation
 

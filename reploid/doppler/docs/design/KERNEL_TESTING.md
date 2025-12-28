@@ -1,8 +1,9 @@
 # DOPPLER Kernel and Pipeline Testing Specification
 
-Defines a testing framework for WGSL kernels and kernel combinations in the inference pipeline.
+Defines the testing framework design for WGSL kernels and kernel combinations.
 
-See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for pipeline segment test work items.
+**Implementation status:** See `kernel-tests/TODO.md`
+**Benchmark baselines:** See `kernel-tests/BENCHMARKS.md`
 
 ---
 
@@ -12,18 +13,6 @@ See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for pipeline segment test work it
 - Provide unit tests for individual WGSL kernels.
 - Provide integration tests for kernel sequences that occur in real inference.
 - Make results interpretable across different GPUs and browsers.
-
----
-
-## Existing Kernel Test Harness
-
-Kernel unit tests and kernel microbenchmarks are implemented in `doppler/kernel-tests/`:
-
-- Correctness tests: `doppler/kernel-tests/tests/correctness/*.spec.js`
-- Microbenchmarks: `doppler/kernel-tests/tests/benchmarks/*.bench.js`
-- Browser harness: `doppler/kernel-tests/browser/`
-
-This document focuses on DOPPLER-specific pipeline segment tests and how to interpret correctness for real inference graphs.
 
 ---
 
@@ -143,12 +132,17 @@ For failures, store:
 
 ---
 
-## Recommended Layout (Non-binding)
+## Implementation Layout
 
-- Kernel unit tests and microbenchmarks: use `doppler/kernel-tests/`.
-- DOPPLER pipeline segment tests (recommended): `doppler/reploid/doppler/tests/segments/` with CPU refs and saved JSON outputs.
+| Type | Location | Notes |
+|------|----------|-------|
+| Kernel tests | `kernel-tests/tests/correctness/` | Unit tests per kernel |
+| Benchmarks | `kernel-tests/tests/benchmarks/` | Performance measurement |
+| References | `kernel-tests/src/reference/` | CPU reference implementations |
+| Harness | `kernel-tests/src/harness/` | Test utilities |
+| Browser | `kernel-tests/browser/` | WebGPU test page |
 
-This document specifies what must be tested, not how the code is organized.
+For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON outputs.
 
 ---
 

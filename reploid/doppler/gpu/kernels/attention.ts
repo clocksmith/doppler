@@ -18,6 +18,10 @@ import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js'
 import { createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
+const DEBUG_KERNELS = typeof window !== 'undefined'
+  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
+  : false;
+
 /** Attention kernel options */
 export interface AttentionOptions extends OutputBufferOptions {
   seqLen?: number;
@@ -347,10 +351,12 @@ export async function recordAttention(
     caps
   );
 
-  console.warn(
-    `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, ` +
-    `seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
-  );
+  if (DEBUG_KERNELS) {
+    console.warn(
+      `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, ` +
+      `seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
+    );
+  }
 
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);

@@ -1,0 +1,70 @@
+name: Kernel Tests
+
+on:
+  pull_request:
+    paths:
+      - 'kernel-tests/**'
+      - 'gpu/**'
+      - 'inference/**'
+      - 'loader/**'
+      - 'storage/**'
+      - '.github/workflows/kernel-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'kernel-tests/**'
+      - 'gpu/**'
+      - 'inference/**'
+      - 'loader/**'
+      - 'storage/**'
+      - '.github/workflows/kernel-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  kernel-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: kernel-tests/package-lock.json
+
+      - name: Install dependencies
+        working-directory: kernel-tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: kernel-tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run unit tests
+        working-directory: kernel-tests
+        run: npm run test:unit
+
+      - name: Run GPU kernel tests
+        working-directory: kernel-tests
+        env:
+          PLAYWRIGHT_HEADLESS: 'true'
+          PLAYWRIGHT_ANGLE: 'swiftshader'
+          PLAYWRIGHT_CHANNEL: 'none'
+        run: npm run test:gpu
+
+      - name: Kernel test report
+        if: always()
+        working-directory: kernel-tests
+        run: npm run bench:report
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-tests-results
+          path: |
+            kernel-tests/results
+            kernel-tests/test-results

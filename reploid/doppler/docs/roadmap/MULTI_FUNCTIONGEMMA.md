@@ -199,6 +199,215 @@ const merged = await network.combineOutputs(Object.values(outputs));
 
 Based on [Guided Topology Diffusion](https://arxiv.org/html/2510.07799), the network topology itself is learned:
 
+---
+
+### 2.5 Temporal Self-Ring (Single Evolving Brain)
+
+Based on research into self-referential recursive improvement systems, the Temporal Self-Ring represents a fundamentally different approach: **one model at N temporal states** rather than N distinct models.
+
+**Research Foundation:**
+- [Gödel Agent (arXiv:2410.04444)](https://arxiv.org/abs/2410.04444): Self-referential recursive self-improvement framework
+- [RISE: Recursive IntroSpEction (arXiv:2407.18219)](https://arxiv.org/abs/2407.18219): 8-24% improvement over 5 turns via multi-turn introspection
+- [Reflexion](https://www.promptingguide.ai/techniques/reflexion): Linguistic self-reflection between episodes
+- [Temporal Continuity in Cyclic Architectures (arXiv:2509.21224)](https://arxiv.org/html/2509.21224v1): Self-perpetuating loops with macro-level recurrence
+- [Small-World Networks (arXiv:2512.18094)](https://arxiv.org/abs/2512.18094): Shortcuts stabilize consensus in multi-agent systems
+
+```
+                    ┌──────────────────────────────────┐
+                    │                                  │
+                    ▼                                  │
+              ┌───────────┐                            │
+              │  FnG(t₀)  │ ─── initial prompt ───►    │
+              │  (seed)   │                            │
+              └─────┬─────┘                            │
+                    │                                  │
+                    ▼                                  │
+              ┌───────────┐                            │
+              │  FnG(t₁)  │ ─── critique t₀ ───►       │
+              │ (reflect) │                            │
+              └─────┬─────┘                            │
+                    │                                  │
+                    ▼                                  │
+              ┌───────────┐                            │
+              │  FnG(t₂)  │ ─── improve t₁ ───►        │
+              │ (refine)  │                            │
+              └─────┬─────┘                            │
+                    │                                  │
+                    ▼                                  │
+              ┌───────────┐                            │
+              │  FnG(tₙ)  │ ─── final or loop ────────►┘
+              │ (output)  │
+              └───────────┘
+
+    All nodes are the SAME MODEL with DIFFERENT PROMPTS:
+    - t₀: "Generate code for X"
+    - t₁: "Critique this code: {t₀ output}"
+    - t₂: "Improve based on critique: {t₁ output}"
+    - tₙ: "Finalize or identify remaining issues"
+```
+
+**Key Insight:** Unlike traditional multi-expert topologies where each node is a distinct LoRA-specialized model, the Temporal Self-Ring uses **temporal differentiation**. Each "node" is the same base model introspecting on its own previous output at a different time step.
+
+**Execution Flow:**
+1. t₀ (Seed): Generate initial code from task description
+2. t₁ (Reflect): Critique the t₀ output, identify issues
+3. t₂ (Refine): Improve code based on t₁ critique
+4. t₃...tₙ: Continue until convergence or turn limit
+5. Loop back for additional passes if needed
+
+**Pros:**
+- Single model in memory (~135MB q4) instead of N models
+- No LoRA swapping overhead between "experts"
+- Natural self-consistency: same model validates its own logic
+- Convergence detection: stop when output stabilizes
+- Mirrors human iterative refinement process
+
+**Cons:**
+- Latency compounds through turns (O(n) inference calls)
+- May reinforce initial errors without external signal
+- Temperature tuning critical to avoid repetition
+
+**Best For:** Tasks where iterative refinement naturally improves quality (debugging, code review, optimization)
+
+**Variant: Möbius Ring (Small-World Enhanced)**
+
+Add "shortcut" edges for temporal skip connections, inspired by [Small-World Networks](https://arxiv.org/abs/2512.18094):
+
+```
+              t₀ ───────────────────────────► tₙ
+               │ ╲                         ╱ │
+               │   ╲     (shortcuts)     ╱   │
+               │     ╲                 ╱     │
+               ▼       ╲             ╱       │
+              t₁ ───────►t₂────────►t₃──────►│
+               │         │           │       │
+               └─────────┴───────────┴───────┘
+                    (main ring flow)
+
+    Shortcuts allow:
+    - t₂ to access t₀ directly (skip t₁ summary)
+    - tₙ to see full history, not just tₙ₋₁
+```
+
+This adds shortcuts to earlier temporal states, stabilizing convergence by providing longer-range context.
+
+**WebGPU Implementation:**
+```javascript
+// Temporal Self-Ring execution in Doppler
+const executeTemporalRing = async (task, turns = 5) => {
+  const history = [];
+  let currentOutput = null;
+
+  for (let t = 0; t < turns; t++) {
+    const prompt = buildTemporalPrompt(task, t, history, currentOutput);
+
+    // Same model, different temporal context
+    currentOutput = await network.executeExpert('base', prompt, {
+      temperature: getTemperatureForTurn(t), // Lower as t increases
+      maxTokens: task.maxTokens
+    });
+
+    history.push({ turn: t, output: currentOutput, timestamp: Date.now() });
+
+    // Early termination if model signals completion
+    if (detectConvergence(currentOutput, history)) {
+      break;
+    }
+  }
+
+  return { finalOutput: currentOutput, history, turnsUsed: history.length };
+};
+
+const buildTemporalPrompt = (task, turn, history, lastOutput) => {
+  if (turn === 0) {
+    return `Generate code for: ${task.description}\n\nOutput JSON: { "code": string, "reasoning": string }`;
+  }
+
+  const critique = turn % 2 === 1; // Odd turns critique, even turns improve
+
+  if (critique) {
+    return `Review this code and identify issues:\n\n${lastOutput}\n\nOutput JSON: { "issues": string[], "severity": string }`;
+  }
+
+  return `Improve the code based on this feedback:\n\nOriginal: ${history[turn-2]?.output}\nCritique: ${lastOutput}\n\nOutput improved JSON: { "code": string, "changes": string[] }`;
+};
+
+const getTemperatureForTurn = (turn) => {
+  // Start creative, become more focused
+  return Math.max(0.1, 0.8 - (turn * 0.15));
+};
+
+const detectConvergence = (output, history) => {
+  if (history.length < 2) return false;
+  const prev = history[history.length - 1]?.output;
+  // Simple convergence: output unchanged or explicitly signals done
+  return output === prev || output.includes('"converged": true');
+};
+```
+
+**Möbius Ring Implementation:**
+```javascript
+// Möbius Ring with small-world shortcuts
+const executeMobiusRing = async (task, turns = 5, shortcutInterval = 2) => {
+  const history = [];
+  let currentOutput = null;
+
+  for (let t = 0; t < turns; t++) {
+    // Build context with shortcuts to earlier states
+    const shortcuts = [];
+    if (t >= shortcutInterval) {
+      // Add shortcut to t - shortcutInterval
+      const shortcutIdx = t - shortcutInterval;
+      shortcuts.push({ turn: shortcutIdx, output: history[shortcutIdx]?.output });
+    }
+
+    const prompt = buildMobiusPrompt(task, t, history, currentOutput, shortcuts);
+
+    currentOutput = await network.executeExpert('base', prompt, {
+      temperature: getTemperatureForTurn(t),
+      maxTokens: task.maxTokens
+    });
+
+    history.push({ turn: t, output: currentOutput, timestamp: Date.now() });
+
+    if (detectConvergence(currentOutput, history)) {
+      break;
+    }
+  }
+
+  return { finalOutput: currentOutput, history, turnsUsed: history.length };
+};
+
+const buildMobiusPrompt = (task, turn, history, lastOutput, shortcuts) => {
+  let prompt = buildTemporalPrompt(task, turn, history, lastOutput);
+
+  if (shortcuts.length > 0) {
+    prompt += '\n\n### Earlier Context (shortcuts):\n';
+    for (const sc of shortcuts) {
+      prompt += `Turn ${sc.turn}: ${sc.output}\n`;
+    }
+  }
+
+  return prompt;
+};
+```
+
+**Memory Profile:**
+- Single FunctionGemma instance: ~135MB (q4)
+- KV cache per turn: ~50MB (reused with prefix caching)
+- Total for 5-turn ring: ~185MB (vs ~675MB for 5 distinct experts)
+- **Savings:** ~73% memory reduction
+
+**Research Validation:**
+| Framework | Key Idea | Same Model? | Improvement |
+|-----------|----------|-------------|-------------|
+| Gödel Agent | Self-referential recursive modification | Yes | Self-modifying agents |
+| RISE | Multi-turn introspection with fine-tuning | Yes | 8-24% over 5 turns |
+| Reflexion | Linguistic self-reflection between episodes | Yes | Persistent learning |
+| Temporal Continuity | Output becomes next input in loop | Yes | Macro-level recurrence |
+
+---
+
 ```javascript
 // Topology is learned per-task-type
 const learnedTopologies = {
@@ -968,34 +1177,7 @@ Reploid orchestrates the FunctionGemma network using this Doppler infrastructure
 
 ## 12. Implementation Roadmap
 
-### Phase 1: Single-Model LoRA Support
-- [x] Extend RDRR format for LoRA manifests
-- [x] Implement `loadLoRAWeights()` in DopplerLoader
-- [ ] Add LoRA merge kernel (`W' = W + scale * A @ B`)
-- [ ] Test with single FunctionGemma + one LoRA
-
-### Phase 2: KV Cache Prefix Sharing
-- [x] Add `prefillKVOnly()` to InferencePipeline
-- [x] Implement `startPos` continuation in attention kernels
-- [x] Create `MultiModelRecorder` with shared prefix support
-- [ ] Benchmark: measure KV reuse savings
-
-### Phase 3: Multi-Expert Routing
-- [x] Implement `MultiModelLoader` for base + N adapters
-- [x] Add `BufferPool` partitioning
-- [x] Create `ExpertRouter` (embedding-based selection)
-- [ ] Basic round-robin expert selection
-
-### Phase 4: Parallel Execution
-- [ ] Multiple command encoders per expert
-- [ ] Workgroup scheduling for concurrent execution
-- [x] Output combination strategies (voting, weighted avg)
-
-### Phase 5: Genetic Evolution
-- [ ] Integrate with ArenaHarness for expert competition
-- [ ] Implement topology mutations
-- [ ] LoRA adapter evolution via merging
-- [ ] Store winning configurations in ReflectionStore
+Implementation tasks are tracked in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md` (root) to avoid drift across roadmap files. This document stays focused on architecture and research context.
 
 ---
 
@@ -1104,6 +1286,18 @@ Based on CodeCoR and Self-Planning results, projected improvements over single F
 ### Caching & Performance
 - [LMCache: KV Cache Management](https://arxiv.org/pdf/2510.09665)
 - [Prompt Cache](https://arxiv.org/html/2412.19442v3)
+
+### Temporal Self-Reflection & Recursive Improvement
+- [Gödel Agent: Self-Referential Recursive Improvement (arXiv:2410.04444)](https://arxiv.org/abs/2410.04444)
+- [Darwin Gödel Machine (Sakana AI)](https://sakana.ai/dgm/)
+- [RISE: Recursive IntroSpEction (arXiv:2407.18219)](https://arxiv.org/abs/2407.18219)
+- [RISE Project Page](https://cohenqu.github.io/rise.github.io/)
+- [Reflexion: Linguistic Self-Reflection](https://www.promptingguide.ai/techniques/reflexion)
+- [Temporal Continuity in Cyclic Architectures (arXiv:2509.21224)](https://arxiv.org/html/2509.21224v1)
+- [Self-Reflection in LLM Agents (arXiv:2405.06682)](https://arxiv.org/abs/2405.06682)
+- [Small-World Networks for Multi-Agent LLMs (arXiv:2512.18094)](https://arxiv.org/abs/2512.18094)
+- [Building Narrow Self-Improving Agents (Emergence AI)](https://www.emergence.ai/blog/building-narrow-self-improving-agents)
+- [Towards Autonomous Agents and Recursive Intelligence (Emergence AI)](https://www.emergence.ai/blog/towards-autonomous-agents-and-recursive-intelligence)
 
 ---
 

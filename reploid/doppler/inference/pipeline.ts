@@ -120,6 +120,8 @@ export interface PipelineStats {
   totalTimeMs: number;
   prefillTimeMs: number;
   decodeTimeMs: number;
+  gpuTimePrefillMs?: number;
+  gpuTimeDecodeMs?: number;
 }
 
 export interface BatchingStats {
@@ -133,6 +135,17 @@ export interface KVCacheSnapshot {
   cache: KVCache;
   seqLen: number;
   tokens: number[];
+}
+
+function sumProfileTimings(timings: ProfileTimings | null | undefined): number | null {
+  if (!timings || Object.keys(timings).length === 0) return null;
+  let total = 0;
+  for (const value of Object.values(timings)) {
+    if (Number.isFinite(value)) {
+      total += value;
+    }
+  }
+  return total;
 }
 
 // ============================================================================
@@ -169,7 +182,14 @@ export class InferencePipeline {
   storageContext: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } | null = null;
 
   // Stats
-  stats: PipelineStats = { tokensGenerated: 0, totalTimeMs: 0, prefillTimeMs: 0, decodeTimeMs: 0 };
+  stats: PipelineStats = {
+    tokensGenerated: 0,
+    totalTimeMs: 0,
+    prefillTimeMs: 0,
+    decodeTimeMs: 0,
+    gpuTimePrefillMs: undefined,
+    gpuTimeDecodeMs: undefined,
+  };
   batchingStats: BatchingStats = { batchedForwardCalls: 0, unbatchedForwardCalls: 0, totalBatchedTimeMs: 0, totalUnbatchedTimeMs: 0 };
 
   // Base URL for loading assets
@@ -398,6 +418,8 @@ export class InferencePipeline {
 
     this.isGenerating = true;
     this._decodeStepCount = 0;
+    this.stats.gpuTimePrefillMs = undefined;
+    this.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
 
     const opts = {
@@ -584,6 +606,7 @@ export class InferencePipeline {
 
   async prefillKVOnly(prompt: string, options: GenerateOptions = {}): Promise<KVCacheSnapshot> {
     if (!this.isLoaded) throw new Error('Model not loaded');
+    this.stats.gpuTimePrefillMs = undefined;
 
     const opts = {
       useChatTemplate: options.useChatTemplate ?? false,
@@ -643,6 +666,8 @@ export class InferencePipeline {
 
     this.isGenerating = true;
     this._decodeStepCount = 0;
+    this.stats.gpuTimePrefillMs = undefined;
+    this.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
 
     const opts = {
@@ -767,6 +792,7 @@ export class InferencePipeline {
     const numTokens = inputIds.length;
     const config = this.modelConfig!;
     const startPos = this.currentSeqLen;
+    this.stats.gpuTimePrefillMs = undefined;
 
     // Embed tokens
     const embedBufferRaw = this.weights.get('embed');
@@ -778,11 +804,44 @@ export class InferencePipeline {
       console.log(`[Pipeline] Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedBuffer?.size ?? 'N/A'}`);
     }
 
+    // Create CommandRecorder for batched GPU operations
+    // This reduces GPU submits from 260+ per forward pass to 1
+    const device = getDevice();
+    // Disable CommandRecorder in full debug mode to allow per-layer GPU readbacks.
+    // But if debugLayers is set, keep recorder enabled and flush only at checkpoints.
+    const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
+    const disableBatching = opts.debug && !useCheckpoints;
+    const createRecorder = (label: string) => {
+      if (!device || disableBatching) return undefined;
+      return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
+    };
+    const recorder = createRecorder('prefill');
+    const context = this._buildLayerContext(recorder);
+    let gpuTimePrefillMs = 0;
+    let hasGpuTimePrefill = false;
+    const recordProfile = async (rec: CommandRecorder | undefined) => {
+      if (!opts.profile || !rec?.isProfilingEnabled()) return;
+      const timings = await rec.resolveProfileTimings();
+      const total = sumProfileTimings(timings);
+      if (total !== null) {
+        gpuTimePrefillMs += total;
+        hasGpuTimePrefill = true;
+      }
+    };
+
+    // Enable submit tracking for benchmarking
+    const benchmarkSubmits = opts.debug;
+    if (benchmarkSubmits) {
+      setTrackSubmits(true);
+      resetSubmitStats();
+    }
+
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
       scaleEmbeddings: config.scaleEmbeddings,
       debug: opts.debug,
+      recorder,
     });
 
     // Debug: check hidden states after embedding
@@ -794,23 +853,6 @@ export class InferencePipeline {
       const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
       console.log(`[Pipeline] After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
       console.log(`[Pipeline] After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
-    }
-
-    // Create CommandRecorder for batched GPU operations
-    // This reduces GPU submits from 260+ per forward pass to 1
-    const device = getDevice();
-    // Disable CommandRecorder in full debug mode to allow per-layer GPU readbacks.
-    // But if debugLayers is set, keep recorder enabled and flush only at checkpoints.
-    const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableBatching = opts.debug && !useCheckpoints;
-    const recorder = device && !disableBatching ? createCommandRecorder('prefill') : undefined;
-    const context = this._buildLayerContext(recorder);
-
-    // Enable submit tracking for benchmarking
-    const benchmarkSubmits = opts.debug;
-    if (benchmarkSubmits) {
-      setTrackSubmits(true);
-      resetSubmitStats();
     }
 
     // Process all layers
@@ -831,6 +873,7 @@ export class InferencePipeline {
       // Flush recorder at checkpoint to enable GPU readback
       if (isCheckpoint && currentRecorder) {
         await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
         currentRecorder = undefined;  // Clear so debug readback works
       }
 
@@ -877,7 +920,7 @@ export class InferencePipeline {
 
       // Recreate recorder after checkpoint to continue batching for remaining layers
       if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
-        currentRecorder = device ? createCommandRecorder('prefill-cont') : undefined;
+        currentRecorder = createRecorder('prefill-cont');
       }
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
@@ -889,11 +932,6 @@ export class InferencePipeline {
           releaseBuffer(prevStates);
         }
       }
-    }
-
-    // Submit batched commands (cleanup happens automatically in submit)
-    if (currentRecorder) {
-      await currentRecorder.submitAndWait();
     }
 
     // Log submit stats after layer loop
@@ -928,22 +966,49 @@ export class InferencePipeline {
       }
     }
 
-    // Compute logits
-    const logits = await computeLogits(
-      hiddenStates,
-      numTokens,
-      this._getLogitsWeights(),
-      this._getLogitsConfig(),
-      this.useGPU,
-      this._debugFlags
-    );
+    if (hasGpuTimePrefill) {
+      this.stats.gpuTimePrefillMs = gpuTimePrefillMs;
+    }
 
-    if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
+    // Compute logits (record into prefill recorder when available to avoid extra submits)
+    let logits: Float32Array;
+    let logitsVocabSize = config.vocabSize;
+    if (currentRecorder) {
+      const recorded = await recordLogitsGPU(
+        currentRecorder,
+        hiddenStates as GPUBuffer,
+        numTokens,
+        this._getLogitsWeights(),
+        this._getLogitsConfig()
+      );
+      logitsVocabSize = recorded.vocabSize;
+      if (hiddenStates instanceof GPUBuffer) {
+        currentRecorder.trackTemporaryBuffer(hiddenStates);
+      }
+
+      await currentRecorder.submitAndWait();
+      await recordProfile(currentRecorder);
+
+      const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * 4);
+      releaseBuffer(recorded.logitsBuffer);
+      logits = new Float32Array(logitsData);
+    } else {
+      logits = await computeLogits(
+        hiddenStates,
+        numTokens,
+        this._getLogitsWeights(),
+        this._getLogitsConfig(),
+        this.useGPU,
+        this._debugFlags
+      );
+
+      if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
+    }
 
     this.currentSeqLen = startPos + numTokens;
 
     // Extract last position logits
-    const lastLogits = extractLastPositionLogits(logits, numTokens, config.vocabSize);
+    const lastLogits = extractLastPositionLogits(logits, numTokens, logitsVocabSize);
 
     // Log prefill logits for debug
     if (opts.debug) {
@@ -974,27 +1039,6 @@ export class InferencePipeline {
       console.log(`[Decode][${this._decodeStepCount}] token="${tokenText}" pos=${this.currentSeqLen}`);
     }
 
-    // Embed single token
-    const embedBufferRaw = this.weights.get('embed');
-    if (!(embedBufferRaw instanceof GPUBuffer)) {
-      throw new Error('Embed buffer not found or not a GPUBuffer');
-    }
-    let hiddenStates = await embed([lastToken], embedBufferRaw, {
-      hiddenSize: config.hiddenSize,
-      vocabSize: config.vocabSize,
-      scaleEmbeddings: config.scaleEmbeddings,
-    });
-
-    // Debug: check embedding output for decode step 1
-    if (opts.debug && this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
-      const embedData = await readBuffer(hiddenStates);
-      const embedArr = new Float32Array(embedData);
-      const sample = embedArr.slice(0, 5);
-      const maxAbs = Math.max(...embedArr.map(Math.abs));
-      const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
-      console.log(`[Decode][1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
-    }
-
     // Create CommandRecorder for batched GPU operations
     const device = getDevice();
     // Disable CommandRecorder in debug mode to allow per-step debug readbacks.
@@ -1006,6 +1050,28 @@ export class InferencePipeline {
         : createCommandRecorder('decode');
     }
     const context = this._buildLayerContext(recorder);
+
+    // Embed single token
+    const embedBufferRaw = this.weights.get('embed');
+    if (!(embedBufferRaw instanceof GPUBuffer)) {
+      throw new Error('Embed buffer not found or not a GPUBuffer');
+    }
+    let hiddenStates = await embed([lastToken], embedBufferRaw, {
+      hiddenSize: config.hiddenSize,
+      vocabSize: config.vocabSize,
+      scaleEmbeddings: config.scaleEmbeddings,
+      recorder,
+    });
+
+    // Debug: check embedding output for decode step 1
+    if (opts.debug && this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
+      const embedData = await readBuffer(hiddenStates);
+      const embedArr = new Float32Array(embedData);
+      const sample = embedArr.slice(0, 5);
+      const maxAbs = Math.max(...embedArr.map(Math.abs));
+      const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
+      console.log(`[Decode][1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
+    }
 
     // Enable submit tracking for first decode step benchmarking
     const benchmarkSubmits = this._decodeStepCount <= 3 && opts.debug;
@@ -1097,6 +1163,10 @@ export class InferencePipeline {
       // Resolve and log profiling timings (use warn so it's not silenced by benchmark mode)
       if (opts.profile && recorder.isProfilingEnabled()) {
         const timings = await recorder.resolveProfileTimings();
+        const total = sumProfileTimings(timings);
+        if (total !== null) {
+          this.stats.gpuTimeDecodeMs = (this.stats.gpuTimeDecodeMs ?? 0) + total;
+        }
         if (timings) {
           console.warn(`[Profile] Decode step ${this._decodeStepCount}:`);
           console.warn(CommandRecorder.formatProfileReport(timings));
@@ -1116,6 +1186,10 @@ export class InferencePipeline {
       // Use warn so it's not silenced by benchmark mode
       if (opts.profile && recorder.isProfilingEnabled()) {
         const timings = await recorder.resolveProfileTimings();
+        const total = sumProfileTimings(timings);
+        if (total !== null) {
+          this.stats.gpuTimeDecodeMs = (this.stats.gpuTimeDecodeMs ?? 0) + total;
+        }
         if (timings) {
           console.warn(`[Profile] Decode step ${this._decodeStepCount} (layers only):`);
           console.warn(CommandRecorder.formatProfileReport(timings));
@@ -1225,7 +1299,9 @@ export class InferencePipeline {
   ): Promise<{ tokens: number[], actualCount: number }> {
     const device = getDevice();
     const config = this.modelConfig!;
-    const recorder = createCommandRecorder('batch_decode');
+    const recorder = opts.profile
+      ? createProfilingRecorder('batch_decode')
+      : createCommandRecorder('batch_decode');
 
     const stopCheckMode = opts.stopCheckMode ?? 'per-token';
 
@@ -1421,6 +1497,14 @@ export class InferencePipeline {
     tokenStagingBuffers.forEach(b => b.destroy());
     if (stopStagingBuffer) stopStagingBuffer.destroy();
 
+    if (opts.profile && recorder.isProfilingEnabled()) {
+      const timings = await recorder.resolveProfileTimings();
+      const total = sumProfileTimings(timings);
+      if (total !== null) {
+        this.stats.gpuTimeDecodeMs = (this.stats.gpuTimeDecodeMs ?? 0) + total;
+      }
+    }
+
     this.currentSeqLen += actualCount;
 
     return { tokens: generatedTokens, actualCount };
@@ -1524,7 +1608,14 @@ export class InferencePipeline {
     this.currentSeqLen = 0;
     this._decodeStepCount = 0;
     this._debugFlags = {};
-    this.stats = { tokensGenerated: 0, totalTimeMs: 0, prefillTimeMs: 0, decodeTimeMs: 0 };
+    this.stats = {
+      tokensGenerated: 0,
+      totalTimeMs: 0,
+      prefillTimeMs: 0,
+      decodeTimeMs: 0,
+      gpuTimePrefillMs: undefined,
+      gpuTimeDecodeMs: undefined,
+    };
   }
 }
 

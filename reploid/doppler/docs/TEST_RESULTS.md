@@ -2,22 +2,32 @@
 
 Index of DOPPLER validation sessions across different hardware and browsers.
 
+## Quick Status
+
+| Platform | Status | Last Tested |
+|----------|--------|-------------|
+| Apple M3 (macOS) | Working | Dec 2025 |
+| AMD Strix Halo (Linux) | Blocked (headless) | Dec 2025 |
+| NVIDIA | Untested | - |
+
+---
+
 This file is a human-readable log. Store machine-readable benchmark outputs as JSON using
-`docs/spec/BENCHMARK_HARNESS.md` so results can be compared automatically.
+`docs/design/BENCHMARK_HARNESS.md` so results can be compared automatically.
 
 See also:
-- `docs/spec/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema.
-- `docs/spec/KERNEL_TESTING.md` for WGSL kernel and pipeline segment testing.
-- `doppler/kernel-tests/TODO.md` for the implemented kernel test harness.
-- `doppler/kernel-tests/BENCHMARKS.md` for kernel microbenchmark baselines.
+- `docs/design/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema
+- `docs/design/KERNEL_TESTING.md` for WGSL kernel testing specification
+- `kernel-tests/TODO.md` for implementation status
+- `kernel-tests/BENCHMARKS.md` for kernel microbenchmark baselines
 
 ## Result Artifacts (Recommended)
 
 | Artifact | Purpose | Suggested Path |
 |----------|---------|----------------|
-| Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `doppler/reploid/doppler/tests/results/` |
-| Kernel correctness JSON/HTML | per-kernel correctness | `doppler/kernel-tests/results/` |
-| Kernel benchmark JSON/HTML | per-kernel timings | `doppler/kernel-tests/results/` |
+| Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `tests/test-results/` |
+| Kernel correctness JSON/HTML | per-kernel correctness | `kernel-tests/test-results/` |
+| Kernel benchmark JSON/HTML | per-kernel timings | `kernel-tests/test-results/` |
 
 If a run does not have a JSON artifact yet, record the session here and file it as follow-up work.
 
@@ -116,13 +126,13 @@ For each performance session, record:
 
 Preferred output:
 
-- A JSON file per run matching `docs/spec/BENCHMARK_HARNESS.md`.
+- A JSON file per run matching `docs/design/BENCHMARK_HARNESS.md`
 - A short narrative summary in this document for context and troubleshooting.
 
 To avoid instruction drift, prefer linking to the canonical runner docs:
 
-- Kernel tests and microbenchmarks: `doppler/kernel-tests/TODO.md` and `doppler/kernel-tests/BENCHMARKS.md`
-- DOPPLER end-to-end tests: `doppler/reploid/doppler/tests/` and `doppler/reploid/doppler/tests/helpers/test-config.ts`
+- Kernel tests and microbenchmarks: `kernel-tests/TODO.md` and `kernel-tests/BENCHMARKS.md`
+- End-to-end inference tests: `tests/test-inference.html`
 
 ## Known Issues by Platform
 

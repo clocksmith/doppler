@@ -396,6 +396,12 @@ export class PipelineBenchmark {
 
     // Get pipeline stats
     const pipelineStats = this.pipeline.getStats();
+    if (pipelineStats.gpuTimePrefillMs !== undefined) {
+      gpuTimePrefillMs = pipelineStats.gpuTimePrefillMs;
+    }
+    if (pipelineStats.gpuTimeDecodeMs !== undefined) {
+      gpuTimeDecodeMs = pipelineStats.gpuTimeDecodeMs;
+    }
 
     // Get buffer pool stats for peak VRAM
     const bufferStats = getBufferPool().getStats();

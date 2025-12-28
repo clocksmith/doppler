@@ -18,6 +18,10 @@ import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayou
 import { shouldUseFusedQ4K } from '../kernel-hints.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 
+const DEBUG_KERNELS = typeof window !== 'undefined'
+  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
+  : false;
+
 /**
  * Debug flag to disable fused Q4K kernels.
  * When true, Q4K weights will be dequantized first, then use standard matmul.
@@ -133,7 +137,7 @@ function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): bo
     // DEBUG: Force transposeB=true to test if that's the correct setting
     const result = DEBUG_FORCE_TRANSPOSE_TRUE ? true : !isColMajor;
     // Log first 50 calls to avoid flooding
-    if (_transposeDebugCount < 50) {
+    if (DEBUG_KERNELS && _transposeDebugCount < 50) {
       _transposeDebugCount++;
       console.log(`[resolveTransposeB] isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
     }
@@ -254,9 +258,8 @@ function selectMatmulVariantAndFlags(
       } else {
         useQ4KFused = true;
         if (mode === 'record') {
-          const MULTICOL_THRESHOLD = 256;
           if (M === 1) {
-            variant = N > MULTICOL_THRESHOLD ? 'q4_fused_multicol' : 'q4_fused';
+            variant = 'q4_fused_multicol';
           } else {
             variant = 'q4_fused_batched';
           }
@@ -276,7 +279,7 @@ function selectMatmulVariantAndFlags(
       outputDtype: requestedOutputDtype,
     });
 
-    useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32' && transposeB;
+    useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32';
     if (useGemv) {
       if (capabilities.hasSubgroups) {
         const MULTICOL_THRESHOLD = 256;
@@ -457,7 +460,7 @@ export async function runMatmul(
   } = options;
 
   // Debug: log what options are being passed
-  if (_runMatmulDebugCount < 20) {
+  if (DEBUG_KERNELS && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     console.log(`[runMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
@@ -507,7 +510,7 @@ export async function runMatmul(
     options
   );
 
-  if (bDtype === 'q4k') {
+  if (DEBUG_KERNELS && bDtype === 'q4k') {
     if (useQ4KFused) {
       console.log(
         `[Matmul] Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} ` +
@@ -521,7 +524,7 @@ export async function runMatmul(
   }
 
   // Debug: Log kernel selection for large matmuls (lm_head projection)
-  if (N > 100000) {
+  if (DEBUG_KERNELS && N > 100000) {
     console.log(`[Pipeline] MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
 
@@ -603,7 +606,7 @@ export async function recordMatmul(
   } = options;
 
   // Debug: log what options are being passed
-  if (_recordMatmulDebugCount < 20) {
+  if (DEBUG_KERNELS && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     console.log(`[recordMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
