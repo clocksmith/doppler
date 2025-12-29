@@ -437,11 +437,16 @@ export async function createBrowserContext(
 
   const { chromium } = await import('playwright');
 
-  return chromium.launchPersistentContext(userDataDir, {
+  const context = await chromium.launchPersistentContext(userDataDir, {
     headless: opts.headless,
     devtools: Boolean(!opts.headless && options.devtools),
     args,
   });
+
+  // Set default timeout from CLI options (default 120s, vs Playwright's 30s)
+  context.setDefaultTimeout(opts.timeout);
+
+  return context;
 }
 
 export async function setupPage(context: BrowserContext, opts: CLIOptions): Promise<Page> {

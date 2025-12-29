@@ -233,6 +233,12 @@ async function main(): Promise<void> {
         }
       }
 
+      // Shortcut: /d redirects to the demo app
+      if (pathname === '/d' || pathname === '/d/') {
+        res.writeHead(302, { 'Location': '/' });
+        return res.end();
+      }
+
       // Standalone mode: serve index.html at /
       // Also strip /doppler/ prefix for compatibility with old paths
       if (pathname.startsWith('/doppler/')) {
