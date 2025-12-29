@@ -2,9 +2,20 @@
 
 **D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid
 
-Browser-native LLM inference engine powered by WebGPU.
+Browser-native WebGPU inference engine enabling tight CPU↔GPU co-evolution with [Reploid](https://github.com/clocksmith/reploid).
 
 **[Try it live](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
+
+## Why This Works
+
+Doppler and Reploid share a browser process. Kernel updates apply without process restart.
+
+| Capability | Claim |
+|------------|-------|
+| **80% native performance** | [WebLLM 2024](https://arxiv.org/abs/2412.15803) |
+| **JIT kernel generation** | Hours → seconds ([nnJIT MobiSys 2024](https://dl.acm.org/doi/10.1145/3643832.3661892)) |
+| **Kernel hot-swap** | Runtime shader creation ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
+| **Shared memory** | CPU↔GPU via SharedArrayBuffer ([WgPy 2025](https://arxiv.org/pdf/2503.00279), [WebGPU Explainer](https://gpuweb.github.io/gpuweb/explainer/)) |
 
 Project source is in `reploid/doppler/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
 
