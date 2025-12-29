@@ -152,6 +152,15 @@ export {
   type SampleResult,
 } from './sample.js';
 
+// Fused FFN (Tier 2 P0)
+export {
+  runFusedFFN,
+  recordFusedFFN,
+  calculateFusedFFNSavings,
+  type FusedFFNOptions,
+  type FFNActivation,
+} from './ffn_fused.js';
+
 // Re-export CommandRecorder types for convenience
 export {
   CommandRecorder,
@@ -160,3 +169,37 @@ export {
   type RecorderOptions,
   type ProfileTimings,
 } from '../command-recorder.js';
+
+// Re-export benchmark utilities
+export {
+  benchmarkMatmul,
+  benchmarkAttentionDecode,
+  benchmarkRMSNorm,
+  benchmarkSiLU,
+  benchmarkDecodePass,
+  compareBenchmarks,
+  exportBenchmarkJSON,
+  printBenchmarkReport,
+  type KernelBenchmarkResult,
+  type BenchmarkComparison,
+  type BenchmarkReport,
+  type BenchmarkConfig,
+} from '../kernel-benchmark.js';
+
+// Re-export profiling utilities
+export {
+  isProfilingEnabled,
+  setProfilingEnabled,
+  clearProfile,
+  startProfileSession,
+  recordProfileEntry,
+  profileAsync,
+  profileSync,
+  profileKernel,
+  getProfileReport,
+  printProfileReport,
+  exportProfileJSON,
+  analyzeDecodePerformance,
+  type ProfileEntry,
+  type ProfileReport,
+} from '../perf-profiler.js';

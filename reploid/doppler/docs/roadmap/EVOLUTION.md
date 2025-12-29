@@ -1,6 +1,6 @@
 # Phase 5: Evolution
 
-**Status:** Design
+**Status:** In Progress (Tier 1 Infrastructure Complete)
 **Prerequisites:** Phase 4 (P2P distribution)
 **Goal:** Enable model evolution via LoRA adapters and kernel improvements without retraining.
 
@@ -8,7 +8,8 @@
 
 ## Milestones
 
-- [ ] Static adapter loading from local files (P0)
+- [x] Static adapter loading from local files (P0) - COMPLETE
+- [x] Adapter registry with OPFS/IndexedDB persistence (P0) - COMPLETE
 - [ ] Adapter registry with P2P distribution (P0)
 - [ ] User profile with automatic adapter selection (P1)
 - [ ] Micro-LoRA training on corrections (P2)
@@ -18,15 +19,17 @@
 
 ## Work Items
 
-### 5.1 Adapter Infrastructure
+### 5.1 Adapter Infrastructure (Tier 1 - COMPLETE)
 
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
-| LoRA weight loading | P0 | ⬜ TODO | Apply delta to base weights |
-| Adapter manifest format | P0 | ⬜ TODO | ID, target experts, rank, size |
-| Local adapter registry | P0 | ⬜ TODO | OPFS storage |
-| Adapter composition (multiple LoRAs) | P1 | ⬜ TODO | Merge strategy |
-| Adapter enable/disable API | P0 | ⬜ TODO | Runtime switching |
+| LoRA weight loading | P0 | ✅ DONE | `loadLoRAWeights()` - OPFS/URL support |
+| Adapter manifest format | P0 | ✅ DONE | JSON Schema + TypeScript types |
+| Local adapter registry | P0 | ✅ DONE | IndexedDB + memory storage |
+| Adapter composition (multiple LoRAs) | P1 | ✅ DONE | Weighted sum merge strategy |
+| Adapter enable/disable API | P0 | ✅ DONE | `AdapterManager` class |
+| Safetensors support | P1 | ✅ DONE | F16/BF16 conversion |
+| Unit tests | P0 | ✅ DONE | 40+ test cases |
 
 ### 5.2 P2P Adapter Distribution
 
@@ -123,13 +126,20 @@ interface AdapterManifest {
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `adapters/lora-loader.ts` | LoRA weight application |
-| `adapters/registry.ts` | Local adapter storage |
-| `adapters/matcher.ts` | Profile → adapter matching |
-| `p2p/adapter-protocol.ts` | P2P adapter distribution |
-| `evolution/micro-lora.ts` | Self-healing training |
+| File | Purpose | Status |
+|------|---------|--------|
+| `adapters/index.ts` | Module exports | ✅ |
+| `adapters/adapter-manifest.ts` | JSON Schema + types | ✅ |
+| `adapters/lora-loader.ts` | LoRA weight loading | ✅ |
+| `adapters/adapter-manager.ts` | Enable/disable API | ✅ |
+| `adapters/adapter-registry.ts` | Persistent storage | ✅ |
+| `tests/unit/lora-infrastructure.test.ts` | Unit tests | ✅ |
+| `inference/pipeline/lora.ts` | Module lookup | ✅ (existing) |
+| `inference/pipeline/lora-apply.ts` | GPU application | ✅ (existing) |
+| `inference/pipeline/lora-types.ts` | Core types | ✅ (existing) |
+| `adapters/matcher.ts` | Profile → adapter matching | ⬜ TODO |
+| `p2p/adapter-protocol.ts` | P2P adapter distribution | ⬜ TODO |
+| `evolution/micro-lora.ts` | Self-healing training | ⬜ TODO |
 
 ---
 

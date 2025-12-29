@@ -44,3 +44,42 @@ export type {
 export type { LoRAAdapter, LoRAModuleName } from './inference/pipeline/lora.js';
 export type { NetworkGenome, EvolutionConfig } from './inference/network-evolution.js';
 export type { ExpertNode, ExpertTask } from './inference/multi-model-network.js';
+
+// LoRA Adapter Infrastructure (Tier 1 P0 - RSI Foundation)
+export {
+  // Manifest
+  ADAPTER_MANIFEST_SCHEMA,
+  validateManifest,
+  parseManifest,
+  serializeManifest,
+  createManifest,
+  computeLoRAScale,
+  // Loader
+  loadLoRAWeights,
+  loadLoRAFromManifest,
+  loadLoRAFromUrl,
+  loadLoRAFromSafetensors,
+  // Manager
+  AdapterManager,
+  getAdapterManager,
+  resetAdapterManager,
+  // Registry
+  AdapterRegistry,
+  getAdapterRegistry,
+  resetAdapterRegistry,
+  createMemoryRegistry,
+} from './adapters/index.js';
+
+export type {
+  AdapterManifest,
+  AdapterMetadata,
+  AdapterTensorSpec,
+  LoRALoadOptions,
+  LoRAWeightsResult,
+  AdapterState,
+  EnableAdapterOptions,
+  AdapterStackOptions,
+  AdapterManagerEvents,
+  AdapterRegistryEntry,
+  AdapterQueryOptions,
+} from './adapters/index.js';

@@ -131,6 +131,54 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
   },
+  // Fused FFN kernels (Tier 2 P0)
+  ffn_fused: {
+    default: {
+      shaderFile: 'ffn_fused.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['subgroups'],
+    },
+    multi: {
+      shaderFile: 'ffn_fused.wgsl',
+      entryPoint: 'main_multi',
+      workgroupSize: [256, 1, 1],
+      requires: ['subgroups'],
+    },
+    f16: {
+      shaderFile: 'ffn_fused.wgsl',
+      entryPoint: 'main_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+    batched: {
+      shaderFile: 'ffn_fused.wgsl',
+      entryPoint: 'main_batched',
+      workgroupSize: [256, 1, 1],
+      requires: ['subgroups'],
+    },
+  },
+  // Optimized attention decode (Tier 2 P0)
+  attention_decode_optimized: {
+    default: {
+      shaderFile: 'attention_decode_optimized.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['subgroups'],
+    },
+    multihead: {
+      shaderFile: 'attention_decode_optimized.wgsl',
+      entryPoint: 'main_multihead',
+      workgroupSize: [256, 1, 1],
+      requires: ['subgroups'],
+    },
+    f16kv: {
+      shaderFile: 'attention_decode_optimized.wgsl',
+      entryPoint: 'main_f16kv',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+  },
   dequant: {
     subgroup: {
       shaderFile: 'dequant_subgroup.wgsl',
