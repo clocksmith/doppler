@@ -28,6 +28,7 @@ const DEBUG_KERNELS = typeof window !== 'undefined'
 
 /** Kernel constants matching WGSL */
 const WG_SIZE = 256;
+const COLS_PER_WG = 4;  // For multi-workgroup variant
 const MAX_MEDIUM_N = 4096;
 
 /** Fused MatmulRMSNorm kernel options */
@@ -138,8 +139,8 @@ export async function runMatmulRMSNormFused(
 
   // Calculate workgroups
   let workgroups: number;
-  if (variant === 'small') {
-    workgroups = 1;  // Single workgroup for small N
+  if (variant === 'small' || variant === 'medium') {
+    workgroups = 1;  // Single workgroup for small/medium N
   } else {
     workgroups = Math.ceil(N / COLS_PER_WG);
   }
@@ -224,8 +225,8 @@ export async function recordMatmulRMSNormFused(
 
   // Calculate workgroups
   let workgroups: number;
-  if (variant === 'small') {
-    workgroups = 1;
+  if (variant === 'small' || variant === 'medium') {
+    workgroups = 1;  // Single workgroup for small/medium N
   } else {
     workgroups = Math.ceil(N / COLS_PER_WG);
   }
@@ -246,7 +247,10 @@ export async function recordMatmulRMSNormFused(
  *
  * The fused kernel is beneficial when:
  * - M = 1 (decode, not prefill)
- * - N <= 4096 (single-workgroup RMSNorm reduction)
+ * - N <= 256 (small variant works well, medium variant has parallelism issues)
+ *
+ * For N > 256, the parallelism loss from single-workgroup execution
+ * outweighs the dispatch reduction benefit of fusion.
  */
 export function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean {
   // Only beneficial for decode (M=1)
@@ -254,10 +258,9 @@ export function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean {
     return false;
   }
 
-  // Current implementation supports N <= 4096 for single-workgroup
-  // - small variant: N <= 256
-  // - medium variant: N <= 4096
-  if (N > MAX_MEDIUM_N) {
+  // Currently only enable for small N where single-workgroup is efficient
+  // TODO: Implement multi-workgroup medium variant for larger N
+  if (N > WG_SIZE) {
     return false;
   }
 

@@ -107,16 +107,13 @@ fn main(
     // For larger N, spawn multiple workgroups and do global reduction
 
     // Reduce sum of squares across columns in this workgroup
-    if (tid < COLS_PER_WG) {
-        // Only first COLS_PER_WG threads participate
-        for (var stride: u32 = COLS_PER_WG / 2u; stride > 0u; stride = stride >> 1u) {
-            if (tid < stride && tid + stride < COLS_PER_WG) {
-                shared_sum_sq[tid] = shared_sum_sq[tid] + shared_sum_sq[tid + stride];
-            }
-            workgroupBarrier();
+    // All threads must participate in barriers, so move barrier outside condition
+    for (var stride: u32 = COLS_PER_WG / 2u; stride > 0u; stride = stride >> 1u) {
+        if (tid < stride && tid + stride < COLS_PER_WG) {
+            shared_sum_sq[tid] = shared_sum_sq[tid] + shared_sum_sq[tid + stride];
         }
+        workgroupBarrier();
     }
-    workgroupBarrier();
 
     // For single-workgroup: compute RMS and normalize
     // Thread 0 has partial sum; need global sum across all workgroups

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2025-12-29T20:12:42.517Z",
+  "suite": "pipeline",
+  "runType": "warm",
+  "env": {
+    "browser": {
+      "name": "Chrome",
+      "version": "143.0.0.0"
+    },
+    "os": {
+      "name": "macOS",
+      "version": "10.15.7"
+    },
+    "gpu": {
+      "vendor": "unknown",
+      "device": "unknown",
+      "description": "unknown"
+    },
+    "webgpu": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasTimestampQuery": true
+    }
+  },
+  "model": {
+    "modelId": "fa1e42a34b200b10a411be67f4d2c82cc2283c79",
+    "quantization": "Q4_K_M",
+    "totalSizeBytes": 1012170496,
+    "tensorCount": 340,
+    "numLayers": 26,
+    "hiddenSize": 1152
+  },
+  "workload": {
+    "promptName": "xs",
+    "promptTokens": 7,
+    "maxNewTokens": 10,
+    "sampling": {
+      "temperature": 0.7,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "metrics": {
+    "ttft_ms": 426,
+    "prefill_ms": 318,
+    "prefill_tokens_per_sec": 22,
+    "decode_ms_total": 514,
+    "decode_tokens_per_sec": 18,
+    "gpu_submit_count_prefill": 2,
+    "gpu_submit_count_decode": 18,
+    "gpu_submit_count_total": 21,
+    "gpu_allocation_count_total": 8688,
+    "gpu_readback_count_total": 11,
+    "decode_ms_per_token_p50": 54.89999997615814,
+    "decode_ms_per_token_p90": 60.88000004291535,
+    "decode_ms_per_token_p99": 74.1280000257492,
+    "gpu_readback_bytes_total": 1048612,
+    "gpu_timestamp_available": true,
+    "gpu_time_ms_prefill": 0,
+    "gpu_time_ms_decode": 0,
+    "estimated_vram_bytes_peak": 3399047936,
+    "opfs_usage_bytes": 1026633831,
+    "storage_persisted": false
+  },
+  "raw": {
+    "decode_latencies_ms": [
+      75.60000002384186,
+      53.200000047683716,
+      53.59999990463257,
+      55.800000071525574,
+      56.60000002384186,
+      53.5,
+      54.89999997615814,
+      53.299999952316284,
+      57.200000047683716
+    ],
+    "submit_times_ms": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "generated_token_ids": [
+      9528,
+      44109,
+      5281,
+      16861,
+      17446,
+      5872,
+      138835,
+      1721,
+      160393,
+      811
+    ],
+    "generated_text": "}` dejar direction GO emissions factorsDame\";ToAddone"
+  }
+}

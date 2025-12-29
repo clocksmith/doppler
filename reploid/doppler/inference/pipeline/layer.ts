@@ -676,18 +676,15 @@ async function processFFNWithSandwichNorm(
     && layerWeights?.down
     && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
 
-  if (layerIdx === 0 && numTokens === 1) {
-    console.log(`[FUSED DEBUG] numTokens=${numTokens}, useMoE=${config.useMoE}, hasPostFFNorm=${sandwichNorm.hasPostFeedforwardNorm}, hasNormWeight=${!!layerWeights?.postFeedforwardNorm}, hasDown=${!!layerWeights?.down}, canUse=${canUseFusedDownNorm}`);
-  }
-
   let ffnOutput: GPUBuffer;
   let usedFusedDownNorm = false;
 
   if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
     ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
-  } else if (canUseFusedDownNorm && layerWeights?.gateUp && layerWeights?.down && layerWeights?.postFeedforwardNorm) {
-    // FUSED PATH: gate+up -> activation -> down+norm+residual (single kernel for last step)
-    if (layerIdx === 0) console.log('[FUSED] Using fused down+norm kernel for layer 0');
+  } else if (canUseFusedDownNorm && layerWeights?.down && layerWeights?.postFeedforwardNorm &&
+             (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
+    // FUSED PATH: gate+up (or separate gate/up) -> activation -> down+norm+residual (single kernel for last step)
+    if (layerIdx === 0) console.warn('[FUSED] Using fused down+norm kernel for layer 0');
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,  // residual for post-FFN norm
@@ -1155,57 +1152,106 @@ async function runDenseFFNWithFusedPostNormGPU(
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
 
-  // Must have gateUp and down weights for fused path
-  if (!layerWeights.gateUp || !layerWeights.down || !layerWeights.postFeedforwardNorm) {
-    throw new Error('Missing weights for fused FFN path');
+  // Must have down weights and post-FFN norm, plus either gateUp OR separate gate/up
+  if (!layerWeights.down || !layerWeights.postFeedforwardNorm) {
+    throw new Error('Missing down or norm weights for fused FFN path');
+  }
+  const hasFusedGateUp = !!layerWeights.gateUp;
+  const hasSeparateGateUp = !!layerWeights.gate && !!layerWeights.up;
+  if (!hasFusedGateUp && !hasSeparateGateUp) {
+    throw new Error('Missing gate/up weights for fused FFN path');
   }
 
-  const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
   const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
 
-  // 1. Fused gate+up projection
-  let gateUpOutput = await doMatmul(
-    inputBuffer, gateUpWeight,
-    numTokens, intermediateSize * 2, hiddenSize,
-    { transposeB: 'auto' },
-    recorder
-  );
+  let activatedOutput: GPUBuffer;
 
-  const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
-  if (loraGateUp) {
-    const combined = await applyLoRA(
-      inputBuffer,
-      gateUpOutput,
-      loraGateUp,
-      { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
-      getWeightBuffer,
+  if (hasFusedGateUp) {
+    // Fused gate+up path
+    const gateUpWeight = getWeightBuffer(layerWeights.gateUp!, 'ffn_gate_up');
+
+    // 1. Fused gate+up projection
+    let gateUpOutput = await doMatmul(
+      inputBuffer, gateUpWeight,
+      numTokens, intermediateSize * 2, hiddenSize,
+      { transposeB: 'auto' },
       recorder
     );
-    if (combined !== gateUpOutput) {
-      if (recorder) {
-        recorder.trackTemporaryBuffer(gateUpOutput);
-      } else {
-        releaseBuffer(gateUpOutput);
+
+    const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
+    if (loraGateUp) {
+      const combined = await applyLoRA(
+        inputBuffer,
+        gateUpOutput,
+        loraGateUp,
+        { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== gateUpOutput) {
+        if (recorder) {
+          recorder.trackTemporaryBuffer(gateUpOutput);
+        } else {
+          releaseBuffer(gateUpOutput);
+        }
+        gateUpOutput = combined;
       }
-      gateUpOutput = combined;
     }
-  }
 
-  if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+    if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
 
-  // 2. Split + Activation
-  const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
-  const activatedOutput = await doSiLURowSplit(gateUpOutput, {
-    numTokens,
-    dim: intermediateSize,
-    activation,
-  }, recorder);
+    // 2. Split + Activation
+    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    activatedOutput = await doSiLURowSplit(gateUpOutput, {
+      numTokens,
+      dim: intermediateSize,
+      activation,
+    }, recorder);
 
-  if (recorder) {
-    recorder.trackTemporaryBuffer(gateUpOutput);
+    if (recorder) {
+      recorder.trackTemporaryBuffer(gateUpOutput);
+    } else {
+      releaseBuffer(gateUpOutput);
+    }
   } else {
-    releaseBuffer(gateUpOutput);
+    // Separate gate/up path
+    const gateWeight = getWeightBuffer(layerWeights.gate!, 'ffn_gate');
+    const upWeight = getWeightBuffer(layerWeights.up!, 'ffn_up');
+
+    // 1a. Gate projection
+    const gateOutput = await doMatmul(
+      inputBuffer, gateWeight,
+      numTokens, intermediateSize, hiddenSize,
+      { transposeB: 'auto' },
+      recorder
+    );
+    if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
+
+    // 1b. Up projection
+    const upOutput = await doMatmul(
+      inputBuffer, upWeight,
+      numTokens, intermediateSize, hiddenSize,
+      { transposeB: 'auto' },
+      recorder
+    );
+    if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+
+    // 2. Activation: activation(gate) * up
+    // The activation function handles both the activation and element-wise multiply
+    const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
+    activatedOutput = await activationFn(upOutput, {
+      size: numTokens * intermediateSize,
+      gate: gateOutput,
+    }, recorder);
+
+    if (recorder) {
+      recorder.trackTemporaryBuffer(gateOutput);
+      recorder.trackTemporaryBuffer(upOutput);
+    } else {
+      releaseBuffer(gateOutput);
+      releaseBuffer(upOutput);
+    }
   }
 
   // 3. FUSED: Down projection + RMSNorm + Residual (single kernel!)
