@@ -453,7 +453,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     // For attention, test 1D workgroups
     const { seqLen = 2048, numHeads = 32, headDim = 128 } = inputSizes;
 
-    const best: TuneResult = {
+    let best: TuneResult = {
       optimalWorkgroupSize: [64, 1, 1],
       optimalTileSize: 64,
       throughput: 0,
@@ -572,7 +572,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   ): Promise<TuneResult> {
     const { innerSize = 32000, outerSize = 1 } = inputSizes;
 
-    const best: TuneResult = {
+    let best: TuneResult = {
       optimalWorkgroupSize: [256, 1, 1],
       optimalTileSize: 256,
       throughput: 0,
@@ -672,7 +672,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   ): Promise<TuneResult> {
     const { hiddenSize = 4096, numTokens = 1 } = inputSizes;
 
-    const best: TuneResult = {
+    let best: TuneResult = {
       optimalWorkgroupSize: [256, 1, 1],
       optimalTileSize: 256,
       throughput: 0,
@@ -788,7 +788,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   ): Promise<TuneResult> {
     const { numBlocks = 1000 } = inputSizes;
 
-    const best: TuneResult = {
+    let best: TuneResult = {
       optimalWorkgroupSize: [64, 1, 1],
       optimalTileSize: 64,
       throughput: 0,

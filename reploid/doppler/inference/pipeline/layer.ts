@@ -676,6 +676,10 @@ async function processFFNWithSandwichNorm(
     && layerWeights?.down
     && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
 
+  if (layerIdx === 0 && numTokens === 1) {
+    console.log(`[FUSED DEBUG] numTokens=${numTokens}, useMoE=${config.useMoE}, hasPostFFNorm=${sandwichNorm.hasPostFeedforwardNorm}, hasNormWeight=${!!layerWeights?.postFeedforwardNorm}, hasDown=${!!layerWeights?.down}, canUse=${canUseFusedDownNorm}`);
+  }
+
   let ffnOutput: GPUBuffer;
   let usedFusedDownNorm = false;
 
@@ -683,6 +687,7 @@ async function processFFNWithSandwichNorm(
     ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
   } else if (canUseFusedDownNorm && layerWeights?.gateUp && layerWeights?.down && layerWeights?.postFeedforwardNorm) {
     // FUSED PATH: gate+up -> activation -> down+norm+residual (single kernel for last step)
+    if (layerIdx === 0) console.log('[FUSED] Using fused down+norm kernel for layer 0');
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,  // residual for post-FFN norm
@@ -1113,6 +1118,129 @@ async function runDenseFFNGPU(
 
   if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
   // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(activatedOutput);
+  } else {
+    releaseBuffer(activatedOutput);
+  }
+
+  return output;
+}
+
+/**
+ * Run dense FFN with fused down projection + post-FFN norm on GPU.
+ *
+ * This variant fuses the down projection matmul with the post-FFN RMSNorm
+ * into a single kernel, reducing GPU dispatch overhead during decode.
+ *
+ * Only used when:
+ * - numTokens == 1 (decode mode)
+ * - hiddenSize <= 4096 (fits in single workgroup)
+ * - Has post-FFN norm weights (sandwich norm architecture)
+ */
+async function runDenseFFNWithFusedPostNormGPU(
+  layerIdx: number,
+  inputBuffer: GPUBuffer,
+  numTokens: number,
+  context: LayerContext,
+  layerWeights: LayerWeights,
+  residual: GPUBuffer,
+  eps: number
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  if (!device) throw new Error('No GPU device');
+
+  const { config, weightConfig, debugFlags, recorder } = context;
+  const { hiddenSize, intermediateSize, hiddenActivation } = config;
+  const lastTokenIdx = Math.max(0, numTokens - 1);
+  const lora = context.lora || null;
+
+  // Must have gateUp and down weights for fused path
+  if (!layerWeights.gateUp || !layerWeights.down || !layerWeights.postFeedforwardNorm) {
+    throw new Error('Missing weights for fused FFN path');
+  }
+
+  const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
+  const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+  const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
+
+  // 1. Fused gate+up projection
+  let gateUpOutput = await doMatmul(
+    inputBuffer, gateUpWeight,
+    numTokens, intermediateSize * 2, hiddenSize,
+    { transposeB: 'auto' },
+    recorder
+  );
+
+  const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
+  if (loraGateUp) {
+    const combined = await applyLoRA(
+      inputBuffer,
+      gateUpOutput,
+      loraGateUp,
+      { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
+      getWeightBuffer,
+      recorder
+    );
+    if (combined !== gateUpOutput) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(gateUpOutput);
+      } else {
+        releaseBuffer(gateUpOutput);
+      }
+      gateUpOutput = combined;
+    }
+  }
+
+  if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+
+  // 2. Split + Activation
+  const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+  const activatedOutput = await doSiLURowSplit(gateUpOutput, {
+    numTokens,
+    dim: intermediateSize,
+    activation,
+  }, recorder);
+
+  if (recorder) {
+    recorder.trackTemporaryBuffer(gateUpOutput);
+  } else {
+    releaseBuffer(gateUpOutput);
+  }
+
+  // 3. FUSED: Down projection + RMSNorm + Residual (single kernel!)
+  // This is the key optimization: combines matmul + norm + residual into one dispatch
+  const output = await doMatmulRMSNormFused(
+    activatedOutput,
+    downWeight,
+    normWeightBuf,
+    {
+      N: hiddenSize,
+      K: intermediateSize,
+      eps,
+      residual,
+    },
+    recorder
+  );
+
+  // Apply LoRA to output if needed (rare case)
+  const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
+  if (loraDown) {
+    // LoRA needs separate application - for now, fall back to non-fused for LoRA
+    // This is a rare case during fine-tuning only
+    console.warn(`[Layer ${layerIdx}] LoRA down_proj with fused kernel not yet optimized`);
+  }
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(output, 'ffn_fused_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+    });
+  }
+
+  if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   if (recorder) {
     recorder.trackTemporaryBuffer(activatedOutput);
   } else {

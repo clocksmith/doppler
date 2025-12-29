@@ -431,6 +431,101 @@ export async function benchmarkSiLU(
 }
 
 /**
+ * Benchmark fused Matmul+RMSNorm kernel
+ *
+ * Compares separate matmul + rmsnorm vs fused kernel for decode (M=1)
+ */
+export async function benchmarkMatmulRMSNormFused(
+  N: number,  // hiddenSize (output)
+  K: number,  // intermediateSize (input)
+  options: BenchmarkConfig = {}
+): Promise<{
+  separate: KernelBenchmarkResult;
+  fused: KernelBenchmarkResult;
+  comparison: BenchmarkComparison;
+}> {
+  const config = { ...DEFAULT_CONFIG, ...options };
+
+  // Import fused kernel
+  const { runMatmulRMSNormFused, shouldUseFusedMatmulRMSNorm } = await import('./kernels/matmul_rmsnorm_fused.js');
+
+  if (!shouldUseFusedMatmulRMSNorm(1, N)) {
+    throw new Error(`Fused kernel not supported for N=${N} (max 4096)`);
+  }
+
+  const input = createTestBuffer(K * 4, 'bench_input');
+  const weight = createTestBuffer(K * N * 4, 'bench_weight');
+  const normWeight = createTestBuffer(N * 4, 'bench_norm_weight');
+  const residual = createTestBuffer(N * 4, 'bench_residual');
+
+  // Benchmark separate: matmul + rmsnorm
+  const separateResult = await benchmarkKernel(
+    'matmul+rmsnorm',
+    'separate',
+    {
+      M: 1, N, K,
+      readBytes: (K + K * N + N + N) * 4,  // input + weight + norm_weight + residual
+      writeBytes: N * 4,
+    },
+    async () => {
+      const matmulOut = await runMatmul(input, weight, 1, N, K);
+      const normOut = await runRMSNorm(matmulOut, normWeight, 1e-6, {
+        batchSize: 1,
+        hiddenSize: N,
+        residual,
+      });
+      releaseBuffer(matmulOut);
+      releaseBuffer(normOut);
+    },
+    config.warmupIterations,
+    config.timedIterations
+  );
+
+  // Benchmark fused: matmul+rmsnorm in one kernel
+  const fusedResult = await benchmarkKernel(
+    'matmul+rmsnorm',
+    'fused',
+    {
+      M: 1, N, K,
+      readBytes: (K + K * N + N + N) * 4,
+      writeBytes: N * 4,
+    },
+    async () => {
+      const out = await runMatmulRMSNormFused(input, weight, normWeight, {
+        N, K,
+        eps: 1e-6,
+        residual,
+      });
+      releaseBuffer(out);
+    },
+    config.warmupIterations,
+    config.timedIterations
+  );
+
+  releaseBuffer(input);
+  releaseBuffer(weight);
+  releaseBuffer(normWeight);
+  releaseBuffer(residual);
+
+  // Calculate comparison
+  const speedup = separateResult.latency.median_ms / fusedResult.latency.median_ms;
+  const comparison: BenchmarkComparison = {
+    baseline: separateResult,
+    optimized: fusedResult,
+    speedup,
+    latency_reduction_pct: (1 - fusedResult.latency.median_ms / separateResult.latency.median_ms) * 100,
+    throughput_increase_pct: (speedup - 1) * 100,
+  };
+
+  console.log(`[Benchmark] Matmul+RMSNorm (N=${N}, K=${K}):`);
+  console.log(`  Separate: ${separateResult.latency.median_ms.toFixed(3)}ms`);
+  console.log(`  Fused:    ${fusedResult.latency.median_ms.toFixed(3)}ms`);
+  console.log(`  Speedup:  ${speedup.toFixed(2)}x`);
+
+  return { separate: separateResult, fused: fusedResult, comparison };
+}
+
+/**
  * Run comprehensive decode benchmark (one token generation)
  */
 export async function benchmarkDecodePass(

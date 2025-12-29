@@ -188,6 +188,7 @@ export {
   benchmarkAttentionDecode,
   benchmarkRMSNorm,
   benchmarkSiLU,
+  benchmarkMatmulRMSNormFused,
   benchmarkDecodePass,
   compareBenchmarks,
   exportBenchmarkJSON,
