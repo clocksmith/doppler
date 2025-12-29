@@ -1110,6 +1110,21 @@ async function runInferenceTest(
   testParams.set('model', opts.model);
   testParams.set('autorun', '1');
   appendKernelOverrideParams(testParams, opts);
+
+  // Add debug/profiling params
+  if (opts.trace) {
+    testParams.set('trace', opts.trace);
+  }
+  if (opts.debugLayers && opts.debugLayers.length > 0) {
+    testParams.set('debugLayers', opts.debugLayers.join(','));
+  }
+  if (opts.perf || opts.gpuProfile) {
+    testParams.set('profile', '1');
+  }
+  if (opts.verbose) {
+    testParams.set('debug', '1');
+  }
+
   const testUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${testParams.toString()}`;
   console.log(`  URL: ${testUrl}`);
 
