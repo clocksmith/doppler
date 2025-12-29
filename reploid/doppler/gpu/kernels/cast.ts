@@ -16,6 +16,9 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import type { OutputBufferOptions } from './types.js';
 
+/** Debug flag for cast kernel logging */
+const DEBUG_CAST = false;
+
 /** Cast kernel options */
 export interface CastOptions extends OutputBufferOptions {}
 
@@ -131,7 +134,7 @@ export async function runBF16ToF32(
   numElements: number,
   name: string = 'bf16_to_f32_output'
 ): Promise<GPUBuffer> {
-  console.log(`[BF16ToF32] Entry: numElements=${numElements}, name=${name}, inputSize=${input.size}`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] Entry: numElements=${numElements}, name=${name}, inputSize=${input.size}`);
   const device = getDevice();
 
   // Check for size limits (handle chunking if needed)
@@ -139,7 +142,7 @@ export async function runBF16ToF32(
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
   const outputSize = numElements * 4; // F32
-  console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
 
   if (outputSize > maxBufferSize) {
     throw new Error(
@@ -179,10 +182,10 @@ export async function runBF16ToF32(
   }
 
   const pipeline = await createPipeline('bf16_to_f32', 'default');
-  console.log(`[BF16ToF32] Pipeline created`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] Pipeline created`);
 
   const output = acquireBuffer(outputSize, undefined, name);
-  console.log(`[BF16ToF32] Output buffer acquired, size=${output.size}`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] Output buffer acquired, size=${output.size}`);
 
   const uniformBuffer = createUniformBufferWithView(
     'bf16_to_f32_uniforms',
@@ -193,7 +196,7 @@ export async function runBF16ToF32(
     null,
     device
   );
-  console.log(`[BF16ToF32] Uniform: numElements=${numElements}`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] Uniform: numElements=${numElements}`);
 
   const bindGroup = device.createBindGroup({
     label: 'bf16_to_f32_bind_group',
@@ -204,7 +207,7 @@ export async function runBF16ToF32(
       { binding: 2, resource: { buffer: output } },
     ],
   });
-  console.log(`[BF16ToF32] BindGroup created`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] BindGroup created`);
 
   // Each thread processes 2 BF16 values (1 u32), so divide by 2 for thread count
   // Then divide by 256 for workgroup count
@@ -218,7 +221,7 @@ export async function runBF16ToF32(
     ? [workgroups, 1, 1]
     : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
 
-  console.log(
+  if (DEBUG_CAST) console.log(
     `[BF16ToF32] Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups ` +
     `for ${numPairs} pairs (${numElements} elements)`
   );
@@ -226,7 +229,7 @@ export async function runBF16ToF32(
 
   // Wait for GPU work to complete before returning
   await device.queue.onSubmittedWorkDone();
-  console.log(`[BF16ToF32] GPU work completed`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] GPU work completed`);
 
   uniformBuffer.destroy();
 
@@ -344,7 +347,7 @@ async function runBF16ToF32Chunked(
   const outputSize = numElements * 4;
   const output = acquireBuffer(outputSize, undefined, name);
 
-  console.log(`[BF16ToF32] Chunking: ${numElements} elements in ${numChunks} chunks`);
+  if (DEBUG_CAST) console.log(`[BF16ToF32] Chunking: ${numElements} elements in ${numChunks} chunks`);
 
   for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
     const chunkStart = chunkIdx * maxElementsPerChunk;

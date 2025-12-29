@@ -476,7 +476,7 @@ export async function runMatmul(
   const requestedOutputDtype = options.outputDtype || 'f32';
 
   // Warn if B buffer dtype is unknown - this can cause wrong kernel selection
-  if (!rawBDtype && M <= 2) {
+  if (DEBUG_KERNELS && !rawBDtype && M <= 2) {
     console.warn(`[runMatmul] B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
   // Narrow to matmul-supported dtypes

@@ -2,6 +2,10 @@
  * Token sampling from logits with temperature, top-k, top-p, and repetition penalty.
  */
 
+const DEBUG_SAMPLING = typeof window !== 'undefined'
+  ? Boolean((window as unknown as { DOPPLER_DEBUG_SAMPLING?: boolean }).DOPPLER_DEBUG_SAMPLING)
+  : false;
+
 export interface SamplingOptions {
   temperature: number;
   topP: number;
@@ -193,11 +197,13 @@ export function logitsSanity(
     { id: 1, name: 'BOS' },  // Check BOS token
     { id: 2, name: 'EOS' },  // Check EOS token
   ];
-  const debugLogits = debugTokens
-    .filter(t => t.id < logits.length)
-    .map(t => `${t.name}:${logits[t.id]?.toFixed(2)}`)
-    .join(', ');
-  console.log(`[Pipeline] ${label} specific: ${debugLogits}`);
+  if (DEBUG_SAMPLING) {
+    const debugLogits = debugTokens
+      .filter(t => t.id < logits.length)
+      .map(t => `${t.name}:${logits[t.id]?.toFixed(2)}`)
+      .join(', ');
+    console.log(`[Pipeline] ${label} specific: ${debugLogits}`);
+  }
 
   for (let i = 0; i < logits.length; i++) {
     const v = logits[i];
@@ -214,10 +220,12 @@ export function logitsSanity(
   const top5 = getTopK(logits, 5, decode);
   const top5Str = top5.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ');
 
-  console.log(`[Pipeline] ${label} logits: min=${min.toFixed(2)}, max=${max.toFixed(2)} | top-5: ${top5Str}`);
+  if (DEBUG_SAMPLING) {
+    console.log(`[Pipeline] ${label} logits: min=${min.toFixed(2)}, max=${max.toFixed(2)} | top-5: ${top5Str}`);
 
-  if (nanCount > 0 || infCount > 0) {
-    console.warn(`[Pipeline] ${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
+    if (nanCount > 0 || infCount > 0) {
+      console.warn(`[Pipeline] ${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
+    }
   }
 
   return { min, max, nanCount, infCount, top5 };

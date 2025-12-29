@@ -8,15 +8,17 @@
 
 The industry is fixated on a false dichotomy: **privacy vs. performance**. That is boring.
 
-Reploid's value proposition is **Capability**. We are building the only architecture capable of running a 600B+ parameter model on a MacBook Air without lobotomizing the weights.
+Reploid's value proposition is **Capability**. The architecture is designed to eventually run a 600B+ parameter model on a MacBook Air without lobotomizing the weights.
 
 We achieve this by inverting the standard stack. Instead of bringing the data to a centralized model, we mount a **Distributed Mixture-of-Experts (MoE)** directly to the browser runtime via DOPPLER. The P2P mesh becomes an infinite-capacity cache tier for model weights.
 
-**What we're building:**
+**Vision (Phase 3+):**
 
 - **Infrastructure:** A 600B+ parameter MoE mounted over P2P WebRTC mesh
 - **Intelligence:** Hierarchical routers that stream specialized expert clusters on demand
 - **Evolution:** LoRA adapters distributed as delta shards that upgrade model capabilities
+
+> **Current state:** Phase 1 (performance parity with 1-3B models) is in progress. The 600B+ MoE capability is Phase 3+ — see roadmap below.
 
 We trade bandwidth (which is cheap) for intelligence (which is expensive). This delivers datacenter-grade capability on consumer-grade hardware. The big players can't pivot because their valuation depends on renting H100s.
 

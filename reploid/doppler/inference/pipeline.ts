@@ -89,6 +89,13 @@ export interface GenerateOptions {
   /** Enable GPU timestamp profiling for kernel-level timing.
    *  Requires 'timestamp-query' WebGPU feature. Results logged to console. */
   profile?: boolean;
+  /** Log benchmark stats (TTFT, prefill time, decode speed) after generation.
+   *  Default: false */
+  benchmark?: boolean;
+  /** Explicitly disable GPU command batching for debugging.
+   *  When true, each GPU operation is submitted individually.
+   *  Default: false */
+  disableBatching?: boolean;
 
   // Batch generation options
   /** Number of tokens to generate per GPU submission batch.
@@ -434,6 +441,8 @@ export class InferencePipeline {
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,  // Selective layer debugging
       profile: options.profile ?? false,  // GPU timestamp profiling
+      benchmark: options.benchmark ?? false,  // Benchmark stats logging
+      disableBatching: options.disableBatching ?? false,  // Explicit batching control
       // Batch generation options
       batchSize: options.batchSize ?? 1,
       stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
@@ -594,11 +603,13 @@ export class InferencePipeline {
         console.log(`[Pipeline] Generated ${tokensGenerated} tokens in ${this.stats.totalTimeMs.toFixed(0)}ms`);
       }
 
-      // Always log benchmark stats
-      const ttft = this.stats.prefillTimeMs;
-      const decodeTokens = tokensGenerated - 1; // First token comes from prefill
-      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.stats.decodeTimeMs * 1000) : 0;
-      console.log(`[Benchmark] TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+      // Log benchmark stats when enabled
+      if (opts.benchmark) {
+        const ttft = this.stats.prefillTimeMs;
+        const decodeTokens = tokensGenerated - 1; // First token comes from prefill
+        const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.stats.decodeTimeMs * 1000) : 0;
+        console.log(`[Benchmark] TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+      }
     } finally {
       this.isGenerating = false;
     }
@@ -682,6 +693,8 @@ export class InferencePipeline {
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,
+      benchmark: options.benchmark ?? false,
+      disableBatching: options.disableBatching ?? false,
       batchSize: options.batchSize ?? 1,
       stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
     };
@@ -807,10 +820,10 @@ export class InferencePipeline {
     // Create CommandRecorder for batched GPU operations
     // This reduces GPU submits from 260+ per forward pass to 1
     const device = getDevice();
-    // Disable CommandRecorder in full debug mode to allow per-layer GPU readbacks.
-    // But if debugLayers is set, keep recorder enabled and flush only at checkpoints.
+    // Disable CommandRecorder only when explicitly requested via opts.disableBatching.
+    // This allows per-layer GPU readbacks for debugging without affecting normal debug logging.
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableBatching = opts.debug && !useCheckpoints;
+    const disableBatching = opts.disableBatching === true;
     const createRecorder = (label: string) => {
       if (!device || disableBatching) return undefined;
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
