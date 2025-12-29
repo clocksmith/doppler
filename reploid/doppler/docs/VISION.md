@@ -52,7 +52,7 @@ A frontier-class model (e.g., DeepSeek-V3, 671B parameters) is not a monolithic 
 | OPFS | 10-50GB | ~50ms | Cold experts, cached shards |
 | P2P Swarm | Unlimited | ~200ms | Rare experts, full model |
 
-See [PHASE_3_SCALE.md](roadmap/PHASE_3_SCALE.md) for detailed tiered memory architecture.
+See [MEMORY_TIERS.md](internals/MEMORY_TIERS.md) for detailed tiered memory architecture.
 
 **Result:** 600B model on consumer hardware.
 
@@ -215,13 +215,15 @@ DOPPLER: Draft model = small model weights
 
 ## Phased Roadmap
 
-| Phase | Goal | Status | Roadmap |
-|-------|------|--------|---------|
-| **1** | Performance Parity | In Progress | [PHASE_1_PERFORMANCE.md](roadmap/PHASE_1_PERFORMANCE.md) |
-| **2** | MoE Efficiency | Partial | [PHASE_2_MOE.md](roadmap/PHASE_2_MOE.md) |
-| **3** | Scale Beyond WebLLM | Planned | [PHASE_3_SCALE.md](roadmap/PHASE_3_SCALE.md) |
-| **4** | P2P Distribution | Design | [PHASE_4_P2P.md](roadmap/PHASE_4_P2P.md) |
-| **5** | Evolution | Design | [PHASE_5_EVOLUTION.md](roadmap/PHASE_5_EVOLUTION.md) |
+| Phase | Goal | Status |
+|-------|------|--------|
+| **1** | Performance Parity | In Progress |
+| **2** | MoE Efficiency | Partial |
+| **3** | Scale Beyond WebLLM | Planned |
+| **4** | P2P Distribution | Design |
+| **5** | Evolution | Design |
+
+**Task tracking:** See `feature-log/doppler/*.jsonl` for detailed task database.
 
 ```
 Phase 1: Performance Parity ──┐

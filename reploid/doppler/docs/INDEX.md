@@ -4,23 +4,29 @@ Quick index for DOPPLER documentation.
 
 ---
 
-## Vision & Roadmap
+## Vision & Task Tracking
 
 **Start here:** [VISION.md](VISION.md) - Capability thesis and phased roadmap overview.
 
-| Phase | Goal | Status | Roadmap |
-|-------|------|--------|---------|
-| 1 | Performance Parity | In Progress | [PHASE_1_PERFORMANCE.md](roadmap/PHASE_1_PERFORMANCE.md) |
-| 2 | MoE Efficiency | Partial | [PHASE_2_MOE.md](roadmap/PHASE_2_MOE.md) |
-| 3 | Scale Beyond WebLLM | Planned | [PHASE_3_SCALE.md](roadmap/PHASE_3_SCALE.md) |
-| 4 | P2P Distribution | Design | [PHASE_4_P2P.md](roadmap/PHASE_4_P2P.md) |
-| 5 | Evolution | Design | [PHASE_5_EVOLUTION.md](roadmap/PHASE_5_EVOLUTION.md) |
+**Task tracking:** All tasks are tracked in the feature-log system:
+- `feature-log/doppler/*.jsonl` - JSONL database of all features and tasks
+- `/feature-log-query --status planned` - Query planned tasks
+- `/feature-log-query --priority P0` - Query P0 tasks
 
-**Infrastructure:**
+---
 
-| Feature | Status | Roadmap |
-|---------|--------|---------|
-| YAML Kernel Config | Planned | [KERNEL_CONFIG_SYSTEM.md](roadmap/KERNEL_CONFIG_SYSTEM.md) |
+## Technical Internals
+
+Deep-dives on kernel implementations and optimization strategies:
+
+| Topic | Content |
+|-------|---------|
+| [Quantization](internals/QUANTIZATION.md) | Q4K layouts, column-wise optimization, GPU coalescing |
+| [Matmul](internals/MATMUL.md) | Thread utilization, GEMV variants, LM head optimization |
+| [Attention](internals/ATTENTION.md) | Decode kernel, barrier analysis, subgroup optimization |
+| [Fusion](internals/FUSION.md) | Kernel fusion opportunities, optimization matrix |
+| [MoE](internals/MOE.md) | Expert paging, sparsity exploitation, routing |
+| [Memory Tiers](internals/MEMORY_TIERS.md) | Tiered architecture, tensor parallelism, P2P mesh |
 
 ---
 
@@ -40,7 +46,6 @@ Quick index for DOPPLER documentation.
 | Document | Content |
 |----------|---------|
 | [Model Support](plans/MODEL_SUPPORT.md) | Model compatibility matrix |
-| [DRY Refactoring Plan](roadmap/DRY_REFACTORING.md) | Consolidated DRY/refactor plan and status |
 | [Competitive Analysis](analysis/COMPETITIVE.md) | WebLLM, WeInfer, Transformers.js comparison |
 | [RDRR Format](spec/RDRR_FORMAT.md) | Model format specification |
 
@@ -66,7 +71,3 @@ Quick index for DOPPLER documentation.
 Notes and incident writeups live in `docs/postmortems/`.
 
 *Last updated: December 2025*
-
-<!-- DOPPLER_KERNEL_OVERRIDES -->
-## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.

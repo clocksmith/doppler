@@ -24,6 +24,7 @@ import {
   runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
   runSiLURowSplit, recordSiLURowSplit,
+  runMatmulRMSNormFused, recordMatmulRMSNormFused, shouldUseFusedMatmulRMSNorm,
   CommandRecorder,
   type SiLURowSplitOptions,
 } from '../../gpu/kernel-selector.js';
@@ -199,6 +200,23 @@ async function doSiLURowSplit(
     return recordSiLURowSplit(recorder, input, options);
   }
   return runSiLURowSplit(input, options);
+}
+
+/**
+ * Fused Matmul + RMSNorm that uses record variant when recorder is provided.
+ * Used for down projection + post-FFN norm fusion during decode (M=1).
+ */
+async function doMatmulRMSNormFused(
+  input: GPUBuffer,
+  weight: GPUBuffer,
+  normWeight: GPUBuffer,
+  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null },
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordMatmulRMSNormFused(recorder, input, weight, normWeight, options);
+  }
+  return runMatmulRMSNormFused(input, weight, normWeight, options);
 }
 
 /**
@@ -649,9 +667,28 @@ async function processFFNWithSandwichNorm(
   }
 
   // 2. FFN (or MoE FFN)
+  // Check if we can use fused down+norm kernel (decode only, dense FFN with post-FFN norm)
+  const canUseFusedDownNorm = numTokens === 1
+    && !config.useMoE
+    && !isMoELayer(layerIdx, config, layerWeights)
+    && sandwichNorm.hasPostFeedforwardNorm
+    && layerWeights?.postFeedforwardNorm
+    && layerWeights?.down
+    && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
+
   let ffnOutput: GPUBuffer;
+  let usedFusedDownNorm = false;
+
   if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
     ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
+  } else if (canUseFusedDownNorm && layerWeights?.gateUp && layerWeights?.down && layerWeights?.postFeedforwardNorm) {
+    // FUSED PATH: gate+up -> activation -> down+norm+residual (single kernel for last step)
+    ffnOutput = await runDenseFFNWithFusedPostNormGPU(
+      layerIdx, ffnInput, numTokens, context, layerWeights,
+      postAttn,  // residual for post-FFN norm
+      rmsNormEps
+    );
+    usedFusedDownNorm = true;
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
@@ -675,8 +712,12 @@ async function processFFNWithSandwichNorm(
   if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
 
   // 3. Post-FFN norm - applied to FFN output BEFORE residual add
+  // Skip if we already used fused down+norm kernel
   let output: GPUBuffer;
-  if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
+  if (usedFusedDownNorm) {
+    // Fused kernel already applied norm + residual
+    output = ffnOutput;
+  } else if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
 
     // FUSED: norm FFN output + residual add (1 kernel instead of 2)

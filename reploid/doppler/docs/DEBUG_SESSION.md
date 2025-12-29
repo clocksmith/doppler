@@ -150,9 +150,9 @@ if (layerIdx === 0 && !recorder) {
 - `gpu/kernels/matmul_q4_fused.wgsl` - Q4_K dequantization kernel
 - `inference/pipeline/sampling.ts` - specific token logit tracking
 
-## Phase 1 Context
+## Performance Context
 
-See `docs/roadmap/PHASE_1_PERFORMANCE.md` for overall status. Target: 40+ tok/s decode on Gemma 3 1B.
+Target: 40+ tok/s decode on Gemma 3 1B. See `feature-log/doppler/inference.jsonl` for task tracking.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

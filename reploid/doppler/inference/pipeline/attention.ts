@@ -31,6 +31,7 @@ import {
 import { isKernelDebugEnabled, dumpTokenVector, dumpKVCache, logKernelStep } from './debug-utils.js';
 import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
+import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 
 /**
  * Attention configuration for a layer.
@@ -159,11 +160,16 @@ export async function runLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
+  // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
+  const useF16Activations = state.kvCache?.kvDtype === 'f16';
   let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
 
   if (layerWeights.qProj && getWeightBuffer) {
     const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
   } else {
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
@@ -186,7 +192,10 @@ export async function runLayerAttentionGPU(
 
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
     K = acquireBuffer(kvSize * 4, undefined, 'K');
@@ -209,7 +218,10 @@ export async function runLayerAttentionGPU(
 
   if (layerWeights.vProj && getWeightBuffer) {
     const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
   } else {
     V = acquireBuffer(kvSize * 4, undefined, 'V');
@@ -327,11 +339,17 @@ export async function runLayerAttentionGPU(
   if (hasCache) {
     if (state.kvCache.kvDtype === 'f16') {
       const kElems = kvSize;
-      const kF16 = await castF32ToF16(K, kElems);
-      const vF16 = await castF32ToF16(V, kElems);
-      state.kvCache.updateFromGPU(layerIdx, kF16, vF16, currentSeqLen, numTokens);
-      releaseBuffer(kF16);
-      releaseBuffer(vF16);
+      const kDtype = getBufferDtype(K);
+      const vDtype = getBufferDtype(V);
+
+      const kForCache = kDtype === 'f16' ? K : await castF32ToF16(K, kElems);
+      const vForCache = vDtype === 'f16' ? V : await castF32ToF16(V, kElems);
+
+      state.kvCache.updateFromGPU(layerIdx, kForCache, vForCache, currentSeqLen, numTokens);
+
+      // Only release if we created new buffers
+      if (kDtype !== 'f16') releaseBuffer(kForCache);
+      if (vDtype !== 'f16') releaseBuffer(vForCache);
     } else {
       state.kvCache.updateFromGPU(layerIdx, K, V, currentSeqLen, numTokens);
     }
@@ -488,11 +506,16 @@ export async function recordLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
+  // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
+  const useF16Activations = state.kvCache?.kvDtype === 'f16';
   let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
 
   if (layerWeights.qProj && getWeightBuffer) {
     const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
   } else {
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
@@ -516,7 +539,10 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
     K = acquireBuffer(kvSize * 4, undefined, 'K');
@@ -540,7 +566,10 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.vProj && getWeightBuffer) {
     const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
+    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+      transposeB: 'auto',
+      outputDtype: useF16Activations ? 'f16' : undefined,
+    });
     if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
   } else {
     V = acquireBuffer(kvSize * 4, undefined, 'V');
@@ -618,12 +647,17 @@ export async function recordLayerAttentionGPU(
     const enc = recorder.getEncoder();
     if (state.kvCache.kvDtype === 'f16') {
       const kElems = kvSize;
-      const kF16 = await recordCastF32ToF16(recorder, K, kElems);
-      const vF16 = await recordCastF32ToF16(recorder, V, kElems);
-      state.kvCache.recordUpdateFromGPU(enc, layerIdx, kF16, vF16, currentSeqLen, numTokens);
-      // Track for cleanup after submit (not release!) - buffers are used by recorded copy ops
-      recorder.trackTemporaryBuffer(kF16);
-      recorder.trackTemporaryBuffer(vF16);
+      const kDtype = getBufferDtype(K);
+      const vDtype = getBufferDtype(V);
+
+      const kForCache = kDtype === 'f16' ? K : await recordCastF32ToF16(recorder, K, kElems);
+      const vForCache = vDtype === 'f16' ? V : await recordCastF32ToF16(recorder, V, kElems);
+
+      state.kvCache.recordUpdateFromGPU(enc, layerIdx, kForCache, vForCache, currentSeqLen, numTokens);
+
+      // Track for cleanup after submit (not release!) - only if we created new buffers
+      if (kDtype !== 'f16') recorder.trackTemporaryBuffer(kForCache);
+      if (vDtype !== 'f16') recorder.trackTemporaryBuffer(vForCache);
     } else {
       state.kvCache.recordUpdateFromGPU(enc, layerIdx, K, V, currentSeqLen, numTokens);
     }

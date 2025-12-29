@@ -157,7 +157,7 @@ Weight shards use CDN (HuggingFace). P2P is for **dynamic components** that bene
 └─────────────────────────────────────────────────────┘
 ```
 
-See [P2P Roadmap](docs/roadmap/PHASE_4_P2P.md) and [Competitive Analysis](docs/analysis/COMPETITIVE.md#p2p-and-evolution-potential) for details.
+See [Memory Tiers](docs/internals/MEMORY_TIERS.md) and [Competitive Analysis](docs/analysis/COMPETITIVE.md#p2p-and-evolution-potential) for details.
 
 ## Documentation
 

@@ -369,6 +369,35 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
   },
+  // Fused GEMV + RMSNorm for decode (M=1)
+  // Combines down projection matmul with RMSNorm in single kernel
+  matmul_rmsnorm_fused: {
+    default: {
+      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    small: {
+      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      entryPoint: 'gemv_rmsnorm_small',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    // Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)
+    medium: {
+      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      entryPoint: 'gemv_rmsnorm_medium',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    phase1: {
+      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      entryPoint: 'gemv_rmsnorm_phase1',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
   softmax: {
     default: {
       shaderFile: 'softmax.wgsl',

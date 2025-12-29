@@ -161,6 +161,18 @@ export {
   type FFNActivation,
 } from './ffn_fused.js';
 
+// Fused Matmul + RMSNorm (P0 - 1.2-1.5x decode speedup)
+export {
+  selectMatmulRMSNormFusedVariant,
+  runMatmulRMSNormFused,
+  recordMatmulRMSNormFused,
+  shouldUseFusedMatmulRMSNorm,
+  type MatmulRMSNormFusedOptions,
+} from './matmul_rmsnorm_fused.js';
+
+// Re-export for convenience in layer.ts integration
+export { recordMatmulRMSNormFused as doRecordMatmulRMSNormFused } from './matmul_rmsnorm_fused.js';
+
 // Re-export CommandRecorder types for convenience
 export {
   CommandRecorder,

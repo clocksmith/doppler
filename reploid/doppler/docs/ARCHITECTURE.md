@@ -721,7 +721,7 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 ## Related Documentation
 
 - `docs/GEMMA3-DEBUG-POSTMORTEM.md` - Q4_K quantizer bug analysis
-- `roadmap/PHASE_4_P2P.md` - P2P model distribution
+- `docs/internals/MEMORY_TIERS.md` - Tiered memory and P2P architecture
 - `docs/spec/RDRR_FORMAT.md` - RDRR format specification
 
 ---
