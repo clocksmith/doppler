@@ -1782,7 +1782,7 @@ async function main(): Promise<void> {
       if (opts.kernel) debugParams.set('kernel', opts.kernel);
       appendKernelOverrideParams(debugParams, opts);
 
-      const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1`;
+      const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1&autorun=1`;
       console.log(`  URL: ${debugUrl}`);
 
       await page.goto(debugUrl, { timeout: opts.timeout });
