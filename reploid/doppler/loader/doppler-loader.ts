@@ -594,15 +594,39 @@ export class DopplerLoader {
       onProgress({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
     }
 
-    // Track shard loading with progress
+    // Track shard loading with progress (only count each shard once)
+    // Suppress shard progress during layer phase to avoid noisy interleaved logs
+    const loadedShardIndices = new Set<number>();
+    let inLayerPhase = false;
     const originalLoadShard = this._loadShard.bind(this);
     this._loadShard = async (shardIndex: number): Promise<ArrayBuffer> => {
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
       const data = await originalLoadShard(shardIndex);
-      bytesLoaded += shardSize;
-      shardsLoaded++;
-      reportProgress('shards', 0.1 + (bytesLoaded / totalBytes) * 0.7);
+
+      // Only count bytes and report progress for first load of each shard
+      if (!loadedShardIndices.has(shardIndex)) {
+        loadedShardIndices.add(shardIndex);
+        bytesLoaded += shardSize;
+        shardsLoaded++;
+        // Only show shard progress before layer phase
+        if (!inLayerPhase) {
+          const pct = 0.1 + Math.min(bytesLoaded / totalBytes, 1.0) * 0.7;
+          const speed = getSpeed();
+          if (onProgress) {
+            onProgress({
+              stage: 'shards',
+              progress: pct,
+              shard: shardsLoaded,
+              totalShards,
+              bytesLoaded,
+              totalBytes,
+              bytesPerSecond: speed,
+              message: `Shard ${shardsLoaded}/${totalShards} • ${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} • ${formatBytes(speed)}/s`,
+            });
+          }
+        }
+      }
       return data;
     };
 
@@ -619,12 +643,15 @@ export class DopplerLoader {
                       32;
     console.log(`[DopplerLoader] Loading ${numLayers} layers`);
 
+    inLayerPhase = true;  // Suppress shard progress during layer loading
+
     for (let l = 0; l < numLayers; l++) {
       await this._loadLayer(l, onProgress);
 
       if (onProgress) {
-        const layerProgress = 0.1 + (bytesLoaded / totalBytes) * 0.7;
-        const speed = getSpeed();
+        // Layers phase: progress from 80% to 85% based on layer count
+        const layerFraction = (l + 1) / numLayers;
+        const layerProgress = 0.80 + layerFraction * 0.05;
         onProgress({
           stage: 'layers',
           layer: l + 1,
@@ -634,8 +661,8 @@ export class DopplerLoader {
           totalShards,
           bytesLoaded,
           totalBytes,
-          bytesPerSecond: speed,
-          message: `Layer ${l + 1}/${numLayers} • ${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} • ${formatBytes(speed)}/s`,
+          bytesPerSecond: 0,
+          message: `Layer ${l + 1}/${numLayers}`,
         });
       }
     }

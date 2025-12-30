@@ -858,7 +858,12 @@ export class InferencePipeline {
     });
 
     // Debug: check hidden states after embedding
+    // IMPORTANT: Must flush recorder before reading buffer (GPU operations are batched)
     if (opts.debug && hiddenStates instanceof GPUBuffer) {
+      if (recorder) {
+        await recorder.submitAndWait();
+        await recordProfile(recorder);
+      }
       const sample = await readBuffer(hiddenStates, Math.min(512, hiddenStates.size));
       const f32 = new Float32Array(sample);
       const nanCount = f32.filter(x => !Number.isFinite(x)).length;
@@ -872,7 +877,8 @@ export class InferencePipeline {
     if (opts.debug) {
       console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     }
-    let currentRecorder = recorder;
+    // Create new recorder after debug flush (recorder was submitted)
+    let currentRecorder = opts.debug && recorder ? createRecorder('layers') : recorder;
     for (let l = 0; l < config.numLayers; l++) {
       // Update context recorder in case it changed at checkpoint
       context.recorder = currentRecorder;

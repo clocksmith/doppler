@@ -217,28 +217,56 @@ export function createHttpShardLoader(
   manifest: RDRRManifest,
   log?: (msg: string, level?: string) => void
 ): (idx: number) => Promise<Uint8Array> {
+  const totalShards = manifest.shards?.length || 0;
+  const shardCache = new Map<number, Uint8Array>();
+  const pendingLoads = new Map<number, Promise<Uint8Array>>();
+  let shardsLoaded = 0;
+  let totalBytesLoaded = 0;
+  const loadStartTime = Date.now();
+
   return async (idx: number): Promise<Uint8Array> => {
     const shard = manifest.shards[idx];
     if (!shard) {
       throw new Error(`No shard at index ${idx}`);
     }
 
-    if (log) {
-      log(`Loading shard ${idx}: ${shard.filename}`);
+    // Return cached shard if already loaded
+    if (shardCache.has(idx)) {
+      return shardCache.get(idx)!;
     }
 
-    const resp = await fetch(`${baseUrl}/${shard.filename}`);
-    if (!resp.ok) {
-      throw new Error(`Failed to load shard ${idx}: ${resp.status}`);
+    // Wait for pending load if one is in progress (avoid duplicate fetches)
+    if (pendingLoads.has(idx)) {
+      return pendingLoads.get(idx)!;
     }
 
-    const data = new Uint8Array(await resp.arrayBuffer());
+    // Start new load and track it as pending
+    const shardStartTime = Date.now();
+    const loadPromise = (async (): Promise<Uint8Array> => {
+      const resp = await fetch(`${baseUrl}/${shard.filename}`);
+      if (!resp.ok) {
+        throw new Error(`Failed to load shard ${idx}: ${resp.status}`);
+      }
 
-    if (log) {
-      log(`Shard ${idx}: ${(data.byteLength / 1024 / 1024).toFixed(1)}MB`);
-    }
+      const data = new Uint8Array(await resp.arrayBuffer());
+      shardCache.set(idx, data);
+      pendingLoads.delete(idx);
+      shardsLoaded++;
+      totalBytesLoaded += data.byteLength;
 
-    return data;
+      // Note: Individual shard progress is now reported through pipeline onProgress callback
+      // to avoid noisy duplicate logging. Log summary only when all shards loaded.
+      if (log && shardsLoaded === totalShards) {
+        const totalElapsed = (Date.now() - loadStartTime) / 1000;
+        const avgSpeed = totalElapsed > 0 ? totalBytesLoaded / totalElapsed : 0;
+        log(`All ${totalShards} shards loaded: ${(totalBytesLoaded / 1024 / 1024).toFixed(1)}MB in ${totalElapsed.toFixed(1)}s (${(avgSpeed / 1024 / 1024).toFixed(0)} MB/s avg)`);
+      }
+
+      return data;
+    })();
+
+    pendingLoads.set(idx, loadPromise);
+    return loadPromise;
   };
 }
 
