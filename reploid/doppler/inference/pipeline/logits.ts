@@ -18,6 +18,7 @@ import { recordRMSNorm } from '../../gpu/kernels/rmsnorm.js';
 import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
+import { kernelTrace, traceStep } from './kernel-trace.js';
 
 // ============================================================================
 // Debug Configuration
@@ -263,6 +264,11 @@ export async function computeLogits(
     hiddenSize,
   });
 
+  // Trace final norm output
+  if (kernelTrace.enabled) {
+    await traceStep('rmsnorm', 'final_norm', -1, normedBuffer, [numTokens, hiddenSize]);
+  }
+
   // Debug: check post-norm values at LAST token position (used for logits)
   if (ENABLE_DEBUG_READBACKS && allowReadback('logits.debug.post-norm')) {
     // Hidden state for LAST token is at offset (numTokens-1) * hiddenSize
@@ -361,6 +367,11 @@ export async function computeLogits(
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
   });
+
+  // Trace lm_head output
+  if (kernelTrace.enabled) {
+    await traceStep('matmul', 'lm_head', -1, logitsBuffer, [numTokens, matmulVocabSize]);
+  }
 
   // DEBUG: Manual dot product verification for token "blue" (3730)
   // This checks if the matmul is computing the correct values

@@ -96,6 +96,11 @@
     // Import debug module for kernel tracing
     import { setDebugCategories, getDebugConfig, resetDebugConfig } from '/doppler/dist/inference/pipeline/debug-utils.js';
     import { getLogHistory, clearLogHistory, setLogLevel } from '/doppler/dist/debug/index.js';
+    // Import kernel hints for displaying config
+    import { getKernelHints, getKernelHintsSource } from '/doppler/dist/gpu/kernel-hints.js';
+    import { getKernelCapabilities } from '/doppler/dist/gpu/device.js';
+    // Import kernel pipeline trace for systematic debugging
+    import { kernelTrace } from '/doppler/dist/inference/pipeline/kernel-trace.js';
 
     // Parse query params: ?model=gemma3-1b-q4&prompt=hello&autorun=1
     const params = new URLSearchParams(window.location.search);
@@ -124,13 +129,106 @@
     window.testState = createTestState();
 
     /**
-     * Display kernel execution trace with indentation for parallelization.
-     * Parses log history and shows kernels in execution order.
+     * Display kernel configuration immediately after device/manifest load.
+     * Shows which kernels will be used based on GPU caps and manifest hints.
      */
-    function displayKernelTrace() {
+    function displayKernelConfig(manifest, caps) {
+      const lines = [];
+
+      // GPU capabilities
+      lines.push('═══ GPU Capabilities ═══');
+      lines.push(`  Device: ${caps.adapterInfo?.device || caps.adapterInfo?.architecture || 'Unknown'}`);
+      lines.push(`  F16:    ${caps.hasF16 ? '✓' : '✗'}  Subgroups: ${caps.hasSubgroups ? '✓' : '✗'}  Timestamps: ${caps.hasTimestampQuery ? '✓' : '✗'}`);
+
+      // Kernel hints from manifest
+      const manifestHints = manifest.optimizations?.kernelHints || manifest.config?.kernelHints || {};
+      const runtimeHints = runtimeOverrides.kernelHints || {};
+      const activeHints = getKernelHints() || {};
+      const source = getKernelHintsSource() || 'default';
+
+      lines.push('');
+      lines.push('═══ Kernel Configuration ═══');
+      lines.push(`  Source: ${source}`);
+
+      // Show each kernel type and what will be used
+      const computePrec = activeHints.computePrecision || (caps.hasF16 ? 'f16' : 'f32');
+      const q4kMatmul = activeHints.q4kMatmul || 'dequant_f16';
+      const f16Matmul = activeHints.f16Matmul || 'auto';
+      const attnPrefill = activeHints.attentionPrefill || 'auto';
+      const attnDecode = activeHints.attentionDecode || 'auto';
+
+      lines.push('');
+      lines.push('  Kernel Selection:');
+      lines.push(`    computePrecision:  ${computePrec}`);
+      lines.push(`    q4kMatmul:         ${q4kMatmul}`);
+      lines.push(`    f16Matmul:         ${f16Matmul}`);
+      lines.push(`    attentionPrefill:  ${attnPrefill}`);
+      lines.push(`    attentionDecode:   ${attnDecode}`);
+
+      // Show layer execution order
+      const numLayers = manifest.config?.num_hidden_layers || manifest.numLayers || '?';
+      lines.push('');
+      lines.push('═══ Execution Order (per token) ═══');
+      lines.push('  embed');
+      lines.push(`  for layer in 0..${numLayers}:`);
+      lines.push('    ├─ rmsnorm (input)');
+      lines.push('    ├─ attention');
+      lines.push('    │   ├─ Q matmul');
+      lines.push('    │   ├─ K matmul');
+      lines.push('    │   ├─ V matmul  (parallel)');
+      lines.push('    │   ├─ RoPE');
+      lines.push('    │   ├─ KV cache update');
+      lines.push('    │   ├─ QK matmul → softmax → V matmul');
+      lines.push('    │   └─ O matmul');
+      lines.push('    ├─ residual add');
+      lines.push('    ├─ rmsnorm (post-attn)');
+      lines.push('    ├─ ffn');
+      lines.push('    │   ├─ gate matmul');
+      lines.push('    │   ├─ up matmul   (parallel)');
+      lines.push('    │   ├─ silu + mul');
+      lines.push('    │   └─ down matmul');
+      lines.push('    └─ residual add');
+      lines.push('  rmsnorm (final)');
+      lines.push('  lm_head matmul');
+      lines.push('  sample (argmax/topk)');
+
+      const traceText = lines.join('\n');
+      kernelTraceContent.textContent = traceText;
+      kernelTraceEl.style.display = 'block';
+
+      // Console log for CLI visibility
+      console.log('\n' + '='.repeat(50));
+      console.log('KERNEL CONFIGURATION');
+      console.log('='.repeat(50));
+      console.log(traceText);
+      console.log('='.repeat(50) + '\n');
+    }
+
+    /**
+     * Update kernel trace with runtime execution log after generation.
+     */
+    function appendExecutionLog() {
       if (!traceEnabled) return;
 
-      const history = getLogHistory({ last: 500 });
+      // Display kernel pipeline trace if enabled
+      if (runtimeOverrides.trace && kernelTrace.enabled) {
+        const timeline = kernelTrace.getTimeline();
+        kernelTraceContent.textContent += '\n\n' + timeline;
+
+        // Also log to console for CLI visibility
+        console.log('\n' + timeline);
+
+        // Check for anomalies
+        const anomaly = kernelTrace.findAnomaly();
+        if (anomaly) {
+          console.log(`\n⚠️  ANOMALY DETECTED: ${anomaly.message}`);
+        }
+
+        // Disable trace after displaying
+        kernelTrace.disable();
+      }
+
+      const history = getLogHistory({ last: 200 });
       const kernelLogs = history.filter(entry =>
         entry.module === 'Layer' ||
         entry.module === 'Attention' ||
@@ -138,49 +236,17 @@
         entry.module === 'Logits' ||
         entry.module === 'Pipeline' ||
         entry.message.includes('kernel') ||
-        entry.message.includes('matmul') ||
-        entry.message.includes('rmsnorm') ||
-        entry.message.includes('attention') ||
-        entry.message.includes('softmax') ||
-        entry.message.includes('rope')
+        entry.message.includes('matmul')
       );
 
-      if (kernelLogs.length === 0) {
-        kernelTraceContent.textContent = '(No kernel trace captured. Enable debug mode.)';
-        return;
+      if (kernelLogs.length > 0) {
+        let traceLines = ['\n═══ Execution Log ═══'];
+        for (const entry of kernelLogs.slice(-50)) {
+          const time = entry.perfTime.toFixed(1).padStart(8);
+          traceLines.push(`${time}ms [${entry.module}] ${entry.message}`);
+        }
+        kernelTraceContent.textContent += traceLines.join('\n');
       }
-
-      // Build trace with indentation
-      // Parallel ops are indented together under a batch marker
-      let traceLines = [];
-      let currentBatch = null;
-      let batchDepth = 0;
-
-      for (const entry of kernelLogs) {
-        const time = entry.perfTime.toFixed(1).padStart(8);
-        const module = entry.module.padEnd(10);
-
-        // Detect batch start/end
-        if (entry.message.includes('batch') || entry.message.includes('parallel')) {
-          batchDepth = 1;
-          currentBatch = entry.message;
-        }
-
-        // Indent based on module hierarchy
-        let indent = '';
-        if (entry.module === 'Attention' || entry.module === 'FFN') {
-          indent = '  '; // Sub-layer operations
-        }
-        if (entry.message.includes('Q proj') || entry.message.includes('K proj') ||
-            entry.message.includes('V proj') || entry.message.includes('O proj')) {
-          indent = '    '; // Projection operations (parallel)
-        }
-
-        traceLines.push(`${time}ms [${module}] ${indent}${entry.message}`);
-      }
-
-      kernelTraceContent.textContent = traceLines.join('\n');
-      kernelTraceEl.style.display = 'block';
     }
 
     function log(msg, className = '') {
@@ -251,8 +317,17 @@
         } else {
           setDebugCategories({ layer: true, attn: true, ffn: true, logits: true, perf: true });
         }
-        kernelTraceContent.textContent = 'Capturing kernel trace...';
-        kernelTraceEl.style.display = 'block';
+      }
+
+      // Enable kernel pipeline trace (for systematic debugging)
+      if (runtimeOverrides.trace) {
+        const traceLayers = runtimeOverrides.debugLayers || [];
+        kernelTrace.enable({
+          layers: traceLayers,
+          breakOnAnomaly: runtimeOverrides.trace === 'break',
+          explosionThreshold: 10,
+        });
+        log('   Kernel pipeline trace enabled', 'info');
       }
 
       try {
@@ -305,6 +380,9 @@
         window.testState.loaded = true;
         window.testState.loading = false;
 
+        // Display kernel configuration immediately
+        displayKernelConfig(manifest, caps);
+
         // 4. Generate
         setStatus('Generating...', 'info');
         window.testState.generating = true;
@@ -331,8 +409,8 @@
         const elapsed = Date.now() - startTime;
         const tokPerSec = tokens.length / (elapsed / 1000);
 
-        // Display kernel trace if enabled
-        displayKernelTrace();
+        // Append execution log if tracing enabled
+        appendExecutionLog();
 
         const output = tokens.join('');
         window.testState.output = output;

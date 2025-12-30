@@ -468,24 +468,19 @@ npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep "FFN.*down\|F
 
 **Fix**: Track values at every stage BEFORE normalization.
 
-### Pattern F: Hidden State Explosion (UNSOLVED)
-**Postmortem**: [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](postmortems/POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md)
+### Pattern F: Hidden State Explosion
+**Postmortem**: [postmortems/INDEX.md](postmortems/INDEX.md) - See q_norm/k_norm and Q4K sections
 
-**Symptom**: maxAbs grows from ~20 to 800+ through layers. Output is garbage.
+**Symptom**: maxAbs grows from ~20 to 800+ through layers. Output is garbage Unicode.
 
-**Current status**: Under investigation. q_norm/k_norm offset bug was fixed, improved output from Arabic to English words, but still wrong.
+**Root cause**: q_norm/k_norm weights missing +1 offset (Gemma 3 uses `(1 + weight)` formula for ALL norms), combined with Q4K layout mismatch causing fallback to dequantized weights.
 
 **Quick check**:
 ```bash
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
-  grep "LAYER.*maxAbs" | \
-  awk -F'maxAbs=' '{print $2}' | head -10
+doppler debug 2>&1 | grep -E "TRACE|explosion"
 ```
 
-**Hypotheses**:
-1. Model weight corruption during conversion (compare against HuggingFace)
-2. Attention kernel bug in layers 14-17 (local attention layers)
-3. RoPE frequency mismatch
+**Fix**: Use `getNormWeightBuffer()` for q_norm/k_norm in attention.ts. Reconvert model after loader fix.
 
 ---
 
@@ -806,7 +801,7 @@ await recorder.submitAndWait();
 | Kernel outputs zeros | 'auto' layout mismatch | [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md) | Fixed |
 | Decode broken, prefill works | SiLU gating bug | (this guide, Pattern A) | Fixed |
 | Softmax test failure | Uniform buffer layout swapped | [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md) | Fixed |
-| **Hidden state explosion** | Unknown (layers 14-17) | [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](postmortems/POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md) | **UNSOLVED** |
+| Hidden state explosion | q_norm/k_norm +1 offset + Q4K layout | [postmortems/INDEX.md](postmortems/INDEX.md) | Fixed |
 
 ---
 
@@ -819,7 +814,7 @@ When debugging DOPPLER issues:
 3. **Check value ranges** - maxAbs explosion is a red flag
 4. **Verify shapes** - Buffer sizes must match expected dimensions
 5. **Test boundaries** - Token IDs, sequence lengths, layer indices
-6. **Read postmortems** - Similar bugs have been solved before
+6. **Check postmortems index** - See `docs/postmortems/INDEX.md` for common patterns and lessons learned
 7. **Compare references** - llama.cpp or transformers.js as ground truth
 
 ### Key Files to Instrument
@@ -835,7 +830,7 @@ When debugging DOPPLER issues:
 
 ---
 
-*Last updated: 2025-12-18*
+*Last updated: 2025-12-29*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

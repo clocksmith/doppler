@@ -139,6 +139,8 @@ export interface GGUFConfig {
   expertCount?: number;
   expertUsedCount?: number;
   tokenizer: GGUFTokenizer;
+  /** Allow additional unknown fields from GGUF header */
+  [key: string]: unknown;
 }
 
 export interface GGUFParseResult {

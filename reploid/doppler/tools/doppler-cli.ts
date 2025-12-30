@@ -93,6 +93,57 @@ const KERNEL_BENCHMARKS = [
 const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'] as const;
 
 // ============================================================================
+// Kernel Profile Presets
+// ============================================================================
+
+/**
+ * Predefined kernel configurations for quick swapping.
+ * Use --kernel-profile <name> to apply a preset.
+ */
+const KERNEL_PROFILES: Record<string, KernelHints> = {
+  /** Fast: Optimized for speed on modern GPUs with F16/subgroups */
+  fast: {
+    computePrecision: 'f16',
+    q4kMatmul: 'dequant_f16',
+    f16Matmul: 'gemv_subgroup',
+    attentionPrefill: 'tiled_large',
+    attentionDecode: 'streaming',
+  },
+  /** Safe: Conservative settings for maximum compatibility */
+  safe: {
+    computePrecision: 'f32',
+    q4kMatmul: 'dequant_f32',
+    f16Matmul: 'auto',
+    attentionPrefill: 'auto',
+    attentionDecode: 'auto',
+  },
+  /** Debug: Full precision with detailed tracing */
+  debug: {
+    computePrecision: 'f32',
+    q4kMatmul: 'dequant_f32',
+    f16Matmul: 'auto',
+    attentionPrefill: 'auto',
+    attentionDecode: 'auto',
+  },
+  /** Fused: Use fused Q4K kernel (experimental) */
+  fused: {
+    computePrecision: 'f16',
+    q4kMatmul: 'fused_q4k',
+    f16Matmul: 'gemv_subgroup',
+    attentionPrefill: 'tiled_large',
+    attentionDecode: 'streaming',
+  },
+  /** Apple: Optimized for Apple Silicon (M1/M2/M3) */
+  apple: {
+    computePrecision: 'f16',
+    q4kMatmul: 'dequant_f16',  // 2x faster than fused on M3
+    f16Matmul: 'gemv_subgroup',
+    attentionPrefill: 'tiled_large',
+    attentionDecode: 'streaming',
+  },
+};
+
+// ============================================================================
 // Argument Parsing
 // ============================================================================
 
@@ -134,6 +185,7 @@ function parseArgs(argv: string[]): CLIOptions {
     attentionDecode: null,
     attentionKernel: null,
     kernelHints: null,
+    kernelProfile: null,
     // Debug mode options
     debug: false,
     layer: null,
@@ -186,6 +238,19 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--verbose':
       case '-v':
         opts.verbose = true;
+        break;
+      // Simplified suite flags
+      case '--inference':
+        opts.suite = 'inference';
+        break;
+      case '--kernels':
+        opts.suite = 'kernels';
+        break;
+      case '--full':
+        opts.suite = 'all';
+        break;
+      case '--break':
+        opts.trace = 'break';
         break;
       case '--filter':
       case '-f':
@@ -284,6 +349,24 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--attention-kernel':
         opts.attentionKernel = tokens.shift() || null;
         break;
+      case '--kernel-profile':
+      case '-k': {
+        const profileName = tokens.shift() || '';
+        if (profileName === 'list') {
+          console.log('\nAvailable kernel profiles:');
+          for (const [name, hints] of Object.entries(KERNEL_PROFILES)) {
+            console.log(`  ${name.padEnd(10)} ${JSON.stringify(hints)}`);
+          }
+          console.log('');
+          process.exit(0);
+        }
+        if (!KERNEL_PROFILES[profileName]) {
+          const available = Object.keys(KERNEL_PROFILES).join(', ');
+          throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
+        }
+        opts.kernelProfile = profileName;
+        break;
+      }
       case '--kernel-hints': {
         const raw = tokens.shift() || '';
         try {
@@ -319,10 +402,15 @@ function parseArgs(argv: string[]): CLIOptions {
 }
 
 function buildKernelHints(opts: CLIOptions): KernelHints | null {
+  // Priority (low to high): profile preset -> kernelHints JSON -> individual flags
   const hints: KernelHints = {
+    // 1. Apply profile preset (lowest priority)
+    ...(opts.kernelProfile ? KERNEL_PROFILES[opts.kernelProfile] : {}),
+    // 2. Merge explicit --kernel-hints JSON
     ...(opts.kernelHints ?? {}),
   };
 
+  // 3. Individual flags override everything (highest priority)
   if (opts.computePrecision) hints.computePrecision = opts.computePrecision as KernelHints['computePrecision'];
   if (opts.q4kMatmul) hints.q4kMatmul = opts.q4kMatmul as KernelHints['q4kMatmul'];
   if (opts.f16Matmul) hints.f16Matmul = opts.f16Matmul as KernelHints['f16Matmul'];
@@ -354,87 +442,58 @@ function normalizeSuite(suite: string): SuiteType {
 
 function printHelp(): void {
   console.log(`
-DOPPLER CLI - Unified testing, benchmarking, and debugging
+DOPPLER CLI - Test, Benchmark, Debug
 
-Usage:
-  doppler run                         Serve demo page at :8080
-  doppler test <suite> [options]      Run correctness tests
-  doppler test <suite> --perf         Run performance benchmarks
-  doppler bench <suite>               [DEPRECATED] Alias for test --perf
-  doppler debug [options]             Interactive debugging
+Three commands, three purposes:
 
-Test Suites (correctness):
-  kernels          Kernel correctness tests (matmul, attention, etc.)
-  demo             Demo UI test - model load + generate via app UI
-  converter        Converter UI test - GGUF/SafeTensors to RDRR
-  inference        Quick inference validation (smoke test)
-  quick            Quick validation (default) - fast subset of kernels
-  all              Run all tests
+  doppler test   →  Correctness (does it work?)
+  doppler bench  →  Performance (how fast?)
+  doppler debug  →  Debugging (why is it broken?)
 
-Test Suites (--perf mode):
-  kernels          Kernel microbenchmarks (timing)
-  inference        Full inference benchmark (tok/s)
-  loading          Model loading to GPU timing
-  system           Storage/OPFS benchmarks
-  all              Run all benchmarks
+═══════════════════════════════════════════════════════════════
+
+TEST - Correctness Tests
+  doppler test                        Quick kernel tests (default)
+  doppler test --full                 Full test suite (all kernels)
+  doppler test --inference            Model loads + generates (smoke test)
+  doppler test --filter matmul        Filter to specific kernel
+
+BENCH - Performance Benchmarks
+  doppler bench                       Full inference benchmark (tok/s)
+  doppler bench --kernels             Kernel microbenchmarks only
+  doppler bench --runs 3              Multiple runs for statistics
+  doppler bench --compare base.json   Compare against baseline
+
+DEBUG - Interactive Debugging (with kernel trace)
+  doppler debug                       Debug mode (trace enabled)
+  doppler debug --break               Stop on first anomaly (NaN/explosion)
+  doppler debug --trace-layers 0,5    Trace only specific layers
+  doppler debug --layer 5             Stop at layer 5 for inspection
+
+═══════════════════════════════════════════════════════════════
 
 Common Options:
-  --model, -m <name>     Model name (default: gemma-3-1b-it-q4)
-  --base-url, -u <url>   Server URL (default: http://localhost:8080)
-  --no-server            Serve assets from disk via Playwright routing
-  --headless             Run without browser window (default: headed)
-  --minimized, --no-focus  Position browser off-screen to avoid focus stealing
-  --verbose, -v          Show all browser console logs
-  --filter, -f <name>    Filter by name (e.g., "matmul")
+  --model, -m <name>     Model (default: gemma-3-1b-it-q4)
+  --verbose, -v          Show browser console logs
+  --headless             Run without browser window
   --timeout <ms>         Timeout (default: 120000)
   --output, -o <file>    Save JSON results
-  --quiet, -q            Suppress JSON output to stdout
-  --perf                 Run in performance mode (measure throughput)
   --help, -h             Show this help
 
-Performance Options (--perf mode):
-  --runs, -r <n>         Timed runs (default: 1)
-  --warmup, -w <n>       Warmup runs (default: 0)
-  --max-tokens, -t <n>   Max tokens to generate (default: 64)
-  --temperature <n>      Sampling temperature (default: 0.7)
-  --prompt, -p <size>    Prompt preset: xs, short, medium, long (default: medium)
-  --text <string>        Custom prompt text (overrides --prompt)
-  --file <path>          Load prompt from file (overrides --prompt)
-  --html <file>          HTML report path
-  --compare, -c <file>   Compare against baseline JSON
-  --retries <n>          Number of retries on failure (default: 2)
-
-Kernel Override Options (bench/debug):
-  --force-fused-q4k             Shorthand for --q4k-matmul fused_q4k
-  --compute-precision <auto|f16|f32>  Preferred compute precision
-  --q4k-matmul <auto|fused_q4k|dequant_f16|dequant_f32>
-  --f16-matmul <auto|gemv_subgroup>
-  --attention-prefill <auto|tiled_large|tiled_small|streaming>
-  --attention-decode <auto|tiled_large|tiled_small|streaming>
-  --attention-kernel <auto|tiled_large|tiled_small|streaming>
-  --kernel-hints <json>         JSON object of kernel hints (merged with flags)
-
-Debug Options:
-  --layer <n>            Stop at specific layer for inspection
-  --tokens <n>           Number of tokens to encode before stopping
-  --kernel <name>        Trace specific kernel (e.g., "matmul", "attention")
-  --trace <preset>       Enable debug tracing: quick, layers, attention, full
-  --debug-layers <list>  Checkpoint layers for debug (e.g., "0,12,25")
-  --profile-dir <path>   Persistent browser profile dir (OPFS cache)
+Kernel Overrides:
+  --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
+  --compute-precision <f16|f32>
+  --q4k-matmul <fused_q4k|dequant_f16|dequant_f32>
 
 Examples:
-  doppler run                               # Serve demo page
-  doppler test kernels --filter matmul      # Kernel correctness tests
-  doppler test kernels --perf               # Kernel timing benchmarks
-  doppler test inference                    # Smoke test (model loads + generates)
-  doppler test inference --perf --runs 3    # Full inference benchmark (tok/s)
-  doppler debug --model gemma --layer 5     # Inspect layer 5 outputs
+  doppler test                    # Quick correctness check
+  doppler bench --runs 3          # Benchmark with 3 runs
+  doppler debug --model gemma-3   # Debug with trace enabled
 
 Notes:
-  - All modes run headed by default (GPU requires browser window)
-  - Use --headless only for CI environments with software GPU
-  - Dev server auto-starts if not running
-  - Exit code 0 = pass, 1 = fail (CI-friendly)
+  - Headed mode by default (GPU needs browser window)
+  - Dev server auto-starts at localhost:8080
+  - Exit code: 0=pass, 1=fail
 `);
 }
 
@@ -1657,11 +1716,19 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Handle deprecated 'bench' command - convert to 'test --perf'
+  // Handle 'bench' command - performance mode
   if (opts.command === 'bench') {
-    console.warn('\x1b[33m[DEPRECATED]\x1b[0m "doppler bench" is deprecated. Use "doppler test --perf" instead.');
-    opts.command = 'test';
     opts.perf = true;
+    // Default to inference benchmark unless --kernels specified
+    if (opts.suite === 'quick') {
+      opts.suite = 'inference';
+    }
+  }
+
+  // Handle 'debug' command - enable trace by default
+  if (opts.command === 'debug') {
+    opts.trace = opts.trace || 'quick';  // Enable trace by default
+    opts.debug = true;
   }
 
   // Handle 'run' command - just start the server

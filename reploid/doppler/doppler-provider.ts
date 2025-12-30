@@ -688,7 +688,9 @@ async function prefillKV(prompt: string, options: GenerateOptions = {}): Promise
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
   }
-  return pipeline.prefillKVOnly(prompt, options);
+  // Extract pipeline-compatible options (exclude provider-specific onToken)
+  const { onToken: _unused, ...pipelineOptions } = options;
+  return pipeline.prefillKVOnly(prompt, pipelineOptions);
 }
 
 async function* generateWithPrefixKV(
@@ -699,7 +701,10 @@ async function* generateWithPrefixKV(
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
   }
-  for await (const token of pipeline.generateWithPrefixKV(prefix, prompt, options)) {
+  // Extract pipeline-compatible options (exclude provider-specific onToken)
+  const { onToken, ...pipelineOptions } = options;
+  for await (const token of pipeline.generateWithPrefixKV(prefix, prompt, pipelineOptions)) {
+    if (onToken) onToken(token);
     yield token;
   }
 }

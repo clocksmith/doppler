@@ -7,29 +7,45 @@ description: Debug DOPPLER WebGPU inference issues. Use when investigating model
 
 You are debugging DOPPLER, a browser-native WebGPU LLM inference engine.
 
-## CRITICAL: Systematic Debugging Workflow
+## CLI Commands (Simplified)
 
-When debugging inference issues, follow this systematic workflow:
+The DOPPLER CLI has 3 commands:
+
+```bash
+doppler test   # Correctness (does it work?)
+doppler bench  # Performance (how fast?)
+doppler debug  # Debugging (why is it broken?)
+```
+
+## CRITICAL: Systematic Debugging Workflow
 
 ### Step 1: Run Kernel Correctness Tests FIRST
 
 ```bash
-# From doppler/reploid directory (browser opens by default)
-npm run doppler -- test correctness
+doppler test                    # Quick kernel tests
+doppler test --full             # All kernel tests
+doppler test --filter matmul    # Specific kernel
 ```
 
 If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused by broken kernels.
 
-**Expected results:** All tests PASS except scatter-add (pre-existing issue)
-
-### Step 2: Verify End-to-End Pipeline
+### Step 2: Debug with Kernel Trace
 
 ```bash
-# Quick inference test with debug output
-npm run doppler -- bench inference --prompt xs --debug
+# Debug mode with trace enabled by default
+doppler debug
 
-# Watch specific debug patterns
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "LAYER|FINAL|logits|Generated"
+# Break on first anomaly (NaN/Inf/explosion)
+doppler debug --break
+
+# Trace specific layers
+doppler debug --trace-layers 0,5,10
+```
+
+The kernel trace shows exactly where values explode:
+```
+⚠️ [TRACE] Value explosion at L1.post_attn_norm: 5.29 → 105.64 (20.0x)
+⚠️ [TRACE] Value explosion at L10.post_attn_norm: 0.56 → 410.82 (736.0x)
 ```
 
 ### Step 3: Compare Against Reference Implementation
@@ -124,46 +140,41 @@ npm run doppler -- test correctness --filter matmul-q4k
 ### Kernel Testing
 
 ```bash
-# All kernel tests (browser opens automatically)
-npm run doppler -- test correctness
-
-# Specific kernel
-npm run doppler -- test correctness --filter matmul
-npm run doppler -- test correctness --filter softmax
-npm run doppler -- test correctness --filter rmsnorm
-
-# Q4K quantized matmul tests
-npm run doppler -- test correctness --filter q4k
+doppler test                      # Quick kernel tests
+doppler test --full               # All kernel tests
+doppler test --filter matmul      # Specific kernel
+doppler test --filter q4k         # Q4K quantized matmul tests
 ```
 
 ### Inference Debugging
 
 ```bash
-# Quick debug (xs = "The color of the sky is")
-npm run doppler -- bench inference --prompt xs --debug
+# Debug mode with kernel trace
+doppler debug
 
-# Layer-by-layer hidden state tracking
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "LAYER_[0-9]+_LAST"
+# Debug with verbose output
+doppler debug --verbose
 
-# Final hidden state and logits
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|logits|top-5"
+# Break on first anomaly
+doppler debug --break
 
-# Attention/KV cache debugging
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "KV|ATTN|attention"
+# Watch trace output
+doppler debug --verbose 2>&1 | grep -E "TRACE|ANOMALY"
+```
 
-# FFN debugging
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "FFN|SiLU|gate"
+### Benchmarking
 
-# All output (verbose)
-npm run doppler -- bench inference --prompt xs --debug --verbose 2>&1 | head -200
+```bash
+doppler bench                     # Full inference benchmark
+doppler bench --kernels           # Kernel microbenchmarks
+doppler bench --runs 3            # Multiple runs for statistics
 ```
 
 ### Headless Mode (CI)
 
 ```bash
-# For CI pipelines where no display is available
-npm run doppler -- test correctness --headless
-npm run doppler -- bench inference --prompt xs --headless
+doppler test --headless
+doppler bench --headless
 ```
 
 ---
@@ -247,11 +258,11 @@ Each layer has 4 norms:
 vim doppler/gpu/kernels/matmul.ts
 
 # 2. Rebuild (required after any .ts changes)
-npm run build:doppler
+npm run build
 
 # 3. Test
-npm run doppler -- test correctness --filter matmul
-npm run doppler -- bench inference --prompt xs --debug
+doppler test --filter matmul       # Kernel correctness
+doppler debug                      # Debug with trace
 ```
 
 **IMPORTANT:** The browser loads JavaScript from `/doppler/dist/`, not TypeScript directly. Changes to `.ts` files won't take effect until rebuilt.
@@ -260,13 +271,9 @@ npm run doppler -- bench inference --prompt xs --debug
 
 ## Resources
 
-1. **Troubleshooting Guide**: `doppler/docs/DOPPLER-TROUBLESHOOTING.md`
-2. **Postmortems**: `doppler/docs/postmortems/`
-   - SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md - Uniform buffer layout swapped
-   - POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md - Hidden state debugging
-   - GEMMA3-DEBUG-POSTMORTEM.md - Q4_K quantization issues
-3. **Architecture**: `doppler/docs/ARCHITECTURE.md`
-4. **TODO**: `doppler/docs/TODO.md` - Current known issues
+- **Troubleshooting Guide**: `docs/DOPPLER-TROUBLESHOOTING.md`
+- **Architecture**: `docs/ARCHITECTURE.md`
+- **Postmortems Index**: `docs/postmortems/INDEX.md` - Key takeaways from resolved bugs
 
 ---
 
@@ -274,66 +281,6 @@ npm run doppler -- bench inference --prompt xs --debug
 
 - **doppler-benchmark**: Run performance benchmarks
 - **model-convert**: Convert GGUF/SafeTensors to RDRR format
-
----
-
-## Current Bug: Gemma 3 "postwar" Output (2025-12-18)
-
-### Status: UNSOLVED
-
-**Symptom**: Model outputs "postwarabisavits Stevens..." instead of "blue" for prompt "The color of the sky is"
-
-### Key Discovery: Hidden States are 10-30x SMALLER than HuggingFace
-
-| Layer | HuggingFace | DOPPLER | Issue |
-|-------|-------------|---------|-------|
-| After Layer 0 | 227 | 24.47 | 9x too small |
-| After Layer 16 | 8,384 | 316.91 | 26x too small |
-| Before final norm | 15,168 | 821 | 18x too small |
-
-**The issue is UNDER-accumulation through residual connections.**
-
-### Already Verified CORRECT
-
-1. **BF16 norm weights** - Match exactly after conversion
-2. **+1 norm weight offset** - Applied once (not duplicated)
-3. **Residual add kernel** - Does proper `a + b`
-4. **GELU activation** - Uses correct tanh approximation (0.044715)
-5. **Model naming** - Standardized to `gemma-3-1b-it-q4`
-
-### NOT YET TRIED
-
-1. **Embedding scaling verification** - Is ×√hidden_size applied correctly?
-2. **Attention Q/K/V magnitude comparison** - Layer-by-layer vs HuggingFace
-3. **Q4K dequantization during matmul** - Actual output values
-4. **FFN intermediate values** - Gate, up, activation magnitudes
-
-### Likely Root Causes
-
-1. **Embedding scaling** (40%) - May not be scaling by √1152
-2. **Attention magnitude** (30%) - Q4K matmul producing too-small outputs
-3. **FFN magnitude** (20%) - Gate/up projections under-scaled
-4. **RMSNorm bug** (10%) - Dividing by wrong value
-
-### Reference Comparison Script
-
-```python
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-model = AutoModelForCausalLM.from_pretrained('google/gemma-3-1b-it', torch_dtype=torch.bfloat16)
-tokenizer = AutoTokenizer.from_pretrained('google/gemma-3-1b-it')
-inputs = tokenizer('The color of the sky is', return_tensors='pt')
-with torch.no_grad():
-    outputs = model(**inputs, output_hidden_states=True)
-for i, h in enumerate(outputs.hidden_states):
-    print(f'Layer {i}: maxAbs={h[0,-1,:].float().abs().max().item():.2f}')
-# Expected: Layer 0=227, Layer 16=8384, Final=60
-```
-
-### Postmortems
-
-- `docs/postmortems/HIDDEN-STATE-UNDERACCUMULATION-2025-12-18.md` - Latest
-- `docs/postmortems/POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md` - Previous (disproved)
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

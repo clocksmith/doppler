@@ -32,6 +32,7 @@ import { isKernelDebugEnabled, dumpTokenVector, dumpKVCache, logKernelStep } fro
 import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
+import { kernelTrace, traceStep } from './kernel-trace.js';
 
 /**
  * Attention configuration for a layer.
@@ -134,6 +135,11 @@ export async function runLayerAttentionGPU(
       hiddenSize,
     });
     if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+
+    // Trace input norm output
+    if (kernelTrace.enabled) {
+      await traceStep('rmsnorm', `L${layerIdx}.input_norm`, layerIdx, normedBuffer, [numTokens, hiddenSize]);
+    }
 
     if (isKernelDebugEnabled(layerIdx)) {
       logKernelStep('rmsnorm', { layerIdx, label: 'input_norm', size: numTokens * hiddenSize });
@@ -242,6 +248,13 @@ export async function runLayerAttentionGPU(
     }
   }
 
+  // Trace Q/K/V projections
+  if (kernelTrace.enabled) {
+    await traceStep('matmul', `L${layerIdx}.q_proj`, layerIdx, Q, [numTokens, numHeads * headDim]);
+    await traceStep('matmul', `L${layerIdx}.k_proj`, layerIdx, K, [numTokens, numKVHeads * headDim]);
+    await traceStep('matmul', `L${layerIdx}.v_proj`, layerIdx, V, [numTokens, numKVHeads * headDim]);
+  }
+
   // Kernel step debug: Q/K/V projections
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('matmul', { layerIdx, label: 'Q_proj', M: numTokens, N: numHeads * headDim, K: hiddenSize });
@@ -273,6 +286,9 @@ export async function runLayerAttentionGPU(
   if (hasQNorm && getNormWeightBuffer && layerWeights.qNorm) {
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
+    if (layerIdx === 0 && isPrefill) {
+      console.log(`[Attention] Layer 0 Q_NORM: qElems=${qElems}, headDim=${headDim}, match=${qElems === headDim}, bufSize=${qNormBuf.size}`);
+    }
     if (qElems === headDim) {
       const qNormed = await runRMSNorm(Q, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,
@@ -314,6 +330,12 @@ export async function runLayerAttentionGPU(
     await runRoPE(K, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
       numHeads: numKVHeads, headDim, startPos: currentSeqLen,
     });
+
+    // Trace RoPE outputs
+    if (kernelTrace.enabled) {
+      await traceStep('rope', `L${layerIdx}.q_rope`, layerIdx, Q, [numTokens, numHeads * headDim]);
+      await traceStep('rope', `L${layerIdx}.k_rope`, layerIdx, K, [numTokens, numKVHeads * headDim]);
+    }
   }
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('rope', { layerIdx, label: `startPos=${currentSeqLen}` });
@@ -394,6 +416,11 @@ export async function runLayerAttentionGPU(
     slidingWindow: effectiveSlidingWindow,
   });
 
+  // Trace attention output
+  if (kernelTrace.enabled) {
+    await traceStep('attention', `L${layerIdx}.attention`, layerIdx, attnOutput, [numTokens, numHeads * headDim]);
+  }
+
   // Kernel step debug: attention output
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('attention', { layerIdx, label: `seqLen=${numTokens} kvLen=${kvLenForAttention}` });
@@ -412,6 +439,11 @@ export async function runLayerAttentionGPU(
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
+
+    // Trace output projection
+    if (kernelTrace.enabled) {
+      await traceStep('matmul', `L${layerIdx}.o_proj`, layerIdx, output, [numTokens, hiddenSize]);
+    }
 
     // Kernel step debug: output projection
     if (isKernelDebugEnabled(layerIdx)) {

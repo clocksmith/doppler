@@ -47,13 +47,24 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 ### CLI Setup
 Add alias to `~/.zshrc`: `alias doppler='npm run doppler --'`
 
-### Testing
+### CLI Commands (3 modes)
 ```bash
-doppler test quick              # Fast kernel validation (default)
-doppler test kernels            # Full kernel correctness tests
-doppler test inference          # Model load + generate (smoke test)
-doppler test kernels --perf     # Kernel timing benchmarks
-doppler test inference --perf   # Full inference benchmark (tok/s)
+# TEST - Correctness (does it work?)
+doppler test                    # Quick kernel tests
+doppler test --inference        # Model loads + generates (smoke test)
+doppler test --full             # Full test suite
+
+# BENCH - Performance (how fast?)
+doppler bench                   # Full inference benchmark (tok/s)
+doppler bench --kernels         # Kernel microbenchmarks
+doppler bench --runs 3          # Multiple runs
+
+# DEBUG - Debugging (why is it broken?)
+doppler debug                   # Debug with kernel trace enabled
+doppler debug --break           # Stop on first anomaly (NaN/explosion)
+doppler debug --trace-layers 0,5  # Trace specific layers
+
+# CPU tests
 npm run test:vitest             # CPU unit tests
 ```
 

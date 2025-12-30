@@ -1108,9 +1108,11 @@ export async function prewarmKernels(
         continue;
       }
       jobs.push(
-        createPipeline(operation, variant).catch((e) => {
-          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
-        })
+        createPipeline(operation, variant)
+          .then(() => {}) // Ignore the pipeline result
+          .catch((e) => {
+            console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+          })
       );
     }
   }

@@ -26,41 +26,37 @@ You are running performance benchmarks for DOPPLER, a browser-native WebGPU LLM 
 
 ## Quick Start (CLI)
 
-The CLI handles building, server startup, and benchmarks automatically. From `doppler/reploid/`:
+The CLI has 3 simple commands. For benchmarks, use `doppler bench`:
 
 ```bash
-# Quick benchmark with xs prompt (headed) - fastest iteration
-doppler bench inference --prompt xs --headed
+# Full inference benchmark (default)
+doppler bench
 
-# Standard benchmarks
-doppler bench inference                        # Headless (default: gemma3-1b-q4)
-doppler bench inference --headed               # With visible browser window
+# Kernel microbenchmarks
+doppler bench --kernels
 
-# Custom options
-doppler bench inference --headed --prompt medium    # Different prompt size
-doppler bench inference --prompt short --runs 3     # Multiple runs for statistics
-doppler --help                                      # Show all options
+# Multiple runs for statistics
+doppler bench --runs 3
+
+# Compare against baseline
+doppler bench --compare baseline.json
+
+# Show help
+doppler --help
 ```
 
 **CLI Options:**
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--model, -m` | Model name in models/ | gemma3-1b-q4 |
-| `--suite, -s` | quick, pipeline, full, system | pipeline |
-| `--prompt, -p` | xs, short, medium, long | medium |
-| `--runs, -r` | Number of timed runs | 3 |
-| `--warmup, -w` | Number of warmup runs | 2 |
-| `--max-tokens, -t` | Max tokens to generate | 128 |
-| `--output, -o` | Additional JSON output path | (none) |
-| `--html` | Custom HTML report path | auto-generated |
+| `--model, -m` | Model name in models/ | gemma-3-1b-it-q4 |
+| `--kernels` | Kernel microbenchmarks only | false |
+| `--runs, -r` | Number of timed runs | 1 |
+| `--warmup, -w` | Number of warmup runs | 0 |
+| `--max-tokens, -t` | Max tokens to generate | 64 |
+| `--output, -o` | JSON output path | (none) |
 | `--compare, -c` | Baseline JSON for comparison | (none) |
-| `--retries` | Retry failed runs | 2 |
-| `--verbose, -v` | Show all browser logs | false |
-| `--quiet, -q` | Suppress JSON to stdout | false |
-| `--headed` | Show browser window | false |
-| `--debug` | Enable debug GPU readbacks | false |
-
-**Debug Flag Note:** The `--debug` flag enables verbose layer-by-layer GPU readbacks. This significantly slows benchmarks (adds GPU sync points). Only use for debugging, not performance measurement.
+| `--verbose, -v` | Show browser logs | false |
+| `--headless` | Run without browser window | false |
 
 **Auto-generated outputs:**
 ```

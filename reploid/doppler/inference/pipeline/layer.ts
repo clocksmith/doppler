@@ -33,6 +33,7 @@ import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type Wei
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
 import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
+import { kernelTrace, traceStep } from './kernel-trace.js';
 
 // ============================================================================
 // Types
@@ -115,13 +116,21 @@ async function doRMSNorm(
   input: GPUBuffer,
   weight: GPUBuffer,
   eps: number,
-  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null },
+  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordRMSNorm(recorder, input, weight, eps, options);
+  const result = recorder
+    ? await recordRMSNorm(recorder, input, weight, eps, options)
+    : await runRMSNorm(input, weight, eps, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder) {
+    const layer = options.layerIdx ?? -1;
+    const label = options.label ?? 'rmsnorm';
+    await traceStep('rmsnorm', label, layer, result, [options.batchSize, options.hiddenSize]);
   }
-  return runRMSNorm(input, weight, eps, options);
+
+  return result;
 }
 
 /**
@@ -131,12 +140,19 @@ async function doResidualAdd(
   a: GPUBuffer,
   b: GPUBuffer,
   size: number,
-  recorder?: CommandRecorder
+  recorder?: CommandRecorder,
+  traceOptions?: { label?: string; layerIdx?: number }
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordResidualAdd(recorder, a, b, size);
+  const result = recorder
+    ? await recordResidualAdd(recorder, a, b, size)
+    : await runResidualAdd(a, b, size);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder && traceOptions) {
+    await traceStep('residual_add', traceOptions.label ?? 'residual', traceOptions.layerIdx ?? -1, result, [size]);
   }
-  return runResidualAdd(a, b, size);
+
+  return result;
 }
 
 /**
@@ -148,13 +164,21 @@ async function doMatmul(
   M: number,
   N: number,
   K: number,
-  options: { transposeB?: boolean | 'auto' } = {},
+  options: { transposeB?: boolean | 'auto'; label?: string; layerIdx?: number } = {},
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordMatmul(recorder, A, B, M, N, K, options);
+  const result = recorder
+    ? await recordMatmul(recorder, A, B, M, N, K, options)
+    : await runMatmul(A, B, M, N, K, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder) {
+    const layer = options.layerIdx ?? -1;
+    const label = options.label ?? 'matmul';
+    await traceStep('matmul', label, layer, result, [M, N]);
   }
-  return runMatmul(A, B, M, N, K, options);
+
+  return result;
 }
 
 /**
@@ -163,13 +187,19 @@ async function doMatmul(
  */
 async function doSiLU(
   input: GPUBuffer,
-  options: { size?: number; gate?: GPUBuffer } = {},
+  options: { size?: number; gate?: GPUBuffer; label?: string; layerIdx?: number } = {},
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordSiLU(recorder, input, options);
+  const result = recorder
+    ? await recordSiLU(recorder, input, options)
+    : await runSiLU(input, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder && options.size) {
+    await traceStep('silu', options.label ?? 'silu', options.layerIdx ?? -1, result, [options.size]);
   }
-  return runSiLU(input, options);
+
+  return result;
 }
 
 /**
@@ -178,13 +208,19 @@ async function doSiLU(
  */
 async function doGeLU(
   input: GPUBuffer,
-  options: { size?: number; gate?: GPUBuffer } = {},
+  options: { size?: number; gate?: GPUBuffer; label?: string; layerIdx?: number } = {},
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordGeLU(recorder, input, options);
+  const result = recorder
+    ? await recordGeLU(recorder, input, options)
+    : await runGeLU(input, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder && options.size) {
+    await traceStep('gelu', options.label ?? 'gelu', options.layerIdx ?? -1, result, [options.size]);
   }
-  return runGeLU(input, options);
+
+  return result;
 }
 
 /**
@@ -193,13 +229,19 @@ async function doGeLU(
  */
 async function doSiLURowSplit(
   input: GPUBuffer,
-  options: SiLURowSplitOptions,
+  options: SiLURowSplitOptions & { label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordSiLURowSplit(recorder, input, options);
+  const result = recorder
+    ? await recordSiLURowSplit(recorder, input, options)
+    : await runSiLURowSplit(input, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder) {
+    await traceStep('silu_row_split', options.label ?? 'ffn_activation', options.layerIdx ?? -1, result, [options.numTokens, options.dim]);
   }
-  return runSiLURowSplit(input, options);
+
+  return result;
 }
 
 /**
@@ -210,13 +252,19 @@ async function doMatmulRMSNormFused(
   input: GPUBuffer,
   weight: GPUBuffer,
   normWeight: GPUBuffer,
-  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null },
+  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
-  if (recorder) {
-    return recordMatmulRMSNormFused(recorder, input, weight, normWeight, options);
+  const result = recorder
+    ? await recordMatmulRMSNormFused(recorder, input, weight, normWeight, options)
+    : await runMatmulRMSNormFused(input, weight, normWeight, options);
+
+  // Trace the kernel output
+  if (kernelTrace.enabled && !recorder) {
+    await traceStep('matmul_rmsnorm_fused', options.label ?? 'ffn_fused', options.layerIdx ?? -1, result, [1, options.N]);
   }
-  return runMatmulRMSNormFused(input, weight, normWeight, options);
+
+  return result;
 }
 
 /**
@@ -528,6 +576,8 @@ export async function processLayerGPU(
       batchSize: numTokens,
       hiddenSize,
       residual: inputBuffer,  // FUSION: Add residual in same kernel
+      label: `L${layerIdx}.post_attn_norm`,
+      layerIdx,
     }, recorder);
 
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
@@ -539,7 +589,7 @@ export async function processLayerGPU(
     }
   } else {
     // Standard path: residual add first
-    postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder);
+    postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder, { label: `L${layerIdx}.post_attn_residual`, layerIdx });
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput);
@@ -657,6 +707,8 @@ async function processFFNWithSandwichNorm(
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
+      label: `L${layerIdx}.pre_ffn_norm`,
+      layerIdx,
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     await debugLayer(ffnInput, 'PRE_NORM_OUTPUT');
@@ -727,6 +779,8 @@ async function processFFNWithSandwichNorm(
       batchSize: numTokens,
       hiddenSize,
       residual: postAttn,  // FUSION: Add residual in same kernel
+      label: `L${layerIdx}.post_ffn_norm`,
+      layerIdx,
     }, recorder);
 
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
@@ -738,7 +792,7 @@ async function processFFNWithSandwichNorm(
     }
   } else {
     // Standard path: residual add without norm
-    output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
+    output = await doResidualAdd(ffnOutput, postAttn, size, recorder, { label: `L${layerIdx}.post_ffn_residual`, layerIdx });
     if (recorder) {
       recorder.trackTemporaryBuffer(ffnOutput);
     } else {
@@ -810,6 +864,8 @@ async function processFFNStandard(
     normedBuffer = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
+      label: `L${layerIdx}.post_attn_norm`,
+      layerIdx,
     }, recorder);
     if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   }
@@ -823,7 +879,7 @@ async function processFFNStandard(
   }
 
   // 3. Residual add: ffnOutput + postAttn
-  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
+  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder, { label: `L${layerIdx}.ffn_residual`, layerIdx });
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (normedBuffer !== postAttn) {
@@ -879,7 +935,7 @@ async function runDenseFFNGPU(
     let gateUpOutput = await doMatmul(
       inputBuffer, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto' },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx },
       recorder
     );
 
@@ -919,6 +975,8 @@ async function runDenseFFNGPU(
       numTokens,
       dim: intermediateSize,
       activation,
+      label: `L${layerIdx}.ffn_activation`,
+      layerIdx,
     }, recorder);
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -940,7 +998,7 @@ async function runDenseFFNGPU(
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
-      { transposeB: 'auto' },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx },
       recorder
     );
 
@@ -996,7 +1054,7 @@ async function runDenseFFNGPU(
 
   // 1. Gate projection
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  let gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  let gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
 
   const loraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
@@ -1021,7 +1079,7 @@ async function runDenseFFNGPU(
 
   // 2. Up projection
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  let upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
+  let upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
 
   const loraUp = getLoRAModule(lora, layerIdx, 'up_proj');
@@ -1062,6 +1120,8 @@ async function runDenseFFNGPU(
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
+    label: `L${layerIdx}.ffn_activation`,
+    layerIdx,
   }, recorder);
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -1083,7 +1143,7 @@ async function runDenseFFNGPU(
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' }, recorder);
+  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx }, recorder);
 
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {

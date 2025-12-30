@@ -322,7 +322,8 @@ export function calculateTotalSize(parsed: { tensors: SafetensorsTensor[] }): nu
 export function groupTensorsByLayer(
   parsed: { tensors: SafetensorsTensor[] }
 ): Map<number, SafetensorsTensor[]> {
-  return groupTensorsByLayerCore(parsed);
+  // Cast to browser type - core tensors are a subset of browser tensors
+  return groupTensorsByLayerCore(parsed) as Map<number, SafetensorsTensor[]>;
 }
 
 // ============================================================================

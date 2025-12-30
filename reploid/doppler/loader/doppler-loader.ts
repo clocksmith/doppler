@@ -255,6 +255,7 @@ export class DopplerLoader {
 
   // Internal tracking
   private _normOffsetLogged = false;
+  private _normOffsetDebugLogged = false;
 
   constructor() {
     // All properties initialized above
@@ -1267,6 +1268,16 @@ export class DopplerLoader {
         offsetData[i] = 1.0 + data[i];
       }
 
+      // Debug: log first norm weight transformation (once per model load)
+      if (!this._normOffsetDebugLogged) {
+        this._normOffsetDebugLogged = true;
+        const beforeMin = Math.min(...Array.from(data.slice(0, Math.min(256, numElements))));
+        const beforeMax = Math.max(...Array.from(data.slice(0, Math.min(256, numElements))));
+        const afterMin = Math.min(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
+        const afterMax = Math.max(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
+        console.log(`[DopplerLoader] Norm +1 offset: before=[${beforeMin.toFixed(3)}, ${beforeMax.toFixed(3)}] after=[${afterMin.toFixed(3)}, ${afterMax.toFixed(3)}]`);
+      }
+
       releaseBuffer(tensor);
       const newBuffer = acquireBuffer(offsetData.byteLength, undefined, 'norm_offset');
       device.queue.writeBuffer(newBuffer, 0, offsetData);
@@ -1548,6 +1559,12 @@ export class DopplerLoader {
     weights.oProj = oProj;
     weights.qNorm = qNorm;
     weights.kNorm = kNorm;
+
+    // Log q_norm/k_norm loading status for layer 0 only
+    if (layerIdx === 0) {
+      const hasOffset = this._needsNormWeightOffset();
+      console.log(`[DopplerLoader] Layer 0 norm weights: qNorm=${qNorm ? 'found' : 'null'}, kNorm=${kNorm ? 'found' : 'null'}, offset=${hasOffset ? '+1 applied' : 'none'}`);
+    }
     weights.postAttentionNorm = postAttentionNorm;
     weights.preFeedforwardNorm = preFeedforwardNorm;
     weights.postFeedforwardNorm = postFeedforwardNorm;

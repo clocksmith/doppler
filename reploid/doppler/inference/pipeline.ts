@@ -56,13 +56,13 @@ import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLo
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
-import type { LayerWeights, ExpertWeights, RouterWeights } from './pipeline/types.js';
+import type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult } from './pipeline/types.js';
 import type { DopplerLoader, LoadProgress } from '../loader/doppler-loader.js';
 import type { LogitsDebugFlags } from './pipeline/logits.js';
 import { getDopplerLoader } from '../loader/doppler-loader.js';
 
 // Re-export types for external use
-export type { LayerWeights, ExpertWeights, RouterWeights };
+export type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult };
 export { PipelineContexts };
 
 // ============================================================================
