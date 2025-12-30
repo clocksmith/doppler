@@ -22,7 +22,6 @@ import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice } from '../../debug/index.js';
-import { verbose as loaderVerbose } from '../../loader/log.js';
 import type { KernelHints, RDRRManifest } from '../../storage/rdrr-format.js';
 import type { LayerWeights, RouterWeights } from './types.js';
 
@@ -472,7 +471,7 @@ export async function loadWeights(
     onProgress: onProgress || ((info) => {
       // Shard and layer progress are logged by loader with source info
       if (info.stage !== 'layers' && info.stage !== 'shards') {
-        loaderVerbose(`${info.stage}: ${Math.round(info.progress * 100)}%`);
+        log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%`);
       }
     }),
   });

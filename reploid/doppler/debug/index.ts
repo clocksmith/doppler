@@ -1,17 +1,57 @@
 /**
- * DOPPLER Debug Module - Unified Logging, Debugging, and Testing
+ * DOPPLER Debug Module - Unified Logging and Tracing
  *
- * Centralizes all debug/logging functionality across the DOPPLER project.
- * Provides consistent log levels, module tags, tensor inspection, and
- * integration with GPU profiler.
+ * Single source of truth for all logging and debugging.
  *
- * Usage:
- *   import { log, tensor, setLogLevel } from '../debug/index.js';
+ * ## Log Levels (verbosity - how much to show)
+ *   silent  - nothing
+ *   error   - errors only
+ *   warn    - errors + warnings
+ *   info    - normal operation (default)
+ *   verbose - detailed info
+ *   debug   - everything
  *
+ * ## Trace Categories (what to show when tracing)
+ *   loader  - model loading (shards, weights)
+ *   kernels - GPU kernel execution
+ *   logits  - logit computation
+ *   embed   - embedding layer
+ *   attn    - attention computation
+ *   ffn     - feed-forward network
+ *   kv      - KV cache operations
+ *   sample  - token sampling
+ *   buffers - GPU buffer stats (expensive!)
+ *   perf    - timing info
+ *   all     - everything
+ *
+ * ## Usage
+ *   import { log, trace, setLogLevel, setTrace } from '../debug/index.js';
+ *
+ *   // Log levels (verbosity)
  *   log.info('Pipeline', 'Model loaded');
- *   log.debug('Attention', `heads=${numHeads}, dim=${headDim}`);
- *   tensor.inspect(buffer, 'qkv_output', { shape: [numTokens, hiddenSize] });
- *   setLogLevel('debug'); // Enable all debug logs
+ *   log.verbose('Loader', 'Shard 0 from OPFS');
+ *   log.debug('Attention', `heads=${numHeads}`);
+ *
+ *   // Trace categories (only logs if category enabled)
+ *   trace.loader('Loading shard 0 from OPFS');
+ *   trace.kernels('matmul M=1 K=1152 N=1024');
+ *   trace.logits({ min: -2.3, max: 15.7 });
+ *
+ *   // Configure
+ *   setLogLevel('verbose');
+ *   setTrace('kernels,logits');       // enable specific
+ *   setTrace('all,-buffers');         // all except buffers
+ *   setTrace(false);                  // disable all
+ *
+ * ## CLI Flags → URL Params (auto-mapped)
+ *   --verbose, -v     →  ?log=verbose
+ *   --debug           →  ?log=debug
+ *   --quiet, -q       →  ?log=silent
+ *   --trace           →  ?trace=all
+ *   --trace kernels   →  ?trace=kernels
+ *   --trace all,-buf  →  ?trace=all,-buffers
+ *   --layers 0,5      →  ?layers=0,5
+ *   --break           →  ?break=1
  *
  * @module debug
  */
@@ -21,15 +61,34 @@
 // ============================================================================
 
 /**
- * Log level values
+ * Log level values (higher = less verbose)
  */
 export const LOG_LEVELS = {
   DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  SILENT: 4,
+  VERBOSE: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+  SILENT: 5,
 } as const;
+
+/**
+ * Trace categories
+ */
+export const TRACE_CATEGORIES = [
+  'loader',   // Model loading (shards, weights)
+  'kernels',  // GPU kernel execution
+  'logits',   // Logit computation
+  'embed',    // Embedding layer
+  'attn',     // Attention
+  'ffn',      // Feed-forward
+  'kv',       // KV cache
+  'sample',   // Token sampling
+  'buffers',  // GPU buffer stats (expensive!)
+  'perf',     // Timing
+] as const;
+
+export type TraceCategory = (typeof TRACE_CATEGORIES)[number];
 
 export type LogLevel = keyof typeof LOG_LEVELS;
 export type LogLevelValue = (typeof LOG_LEVELS)[LogLevel];
@@ -113,6 +172,7 @@ export interface LogHistoryFilter {
 export interface DebugSnapshot {
   timestamp: string;
   logLevel: string | undefined;
+  traceCategories: TraceCategory[];
   enabledModules: string[];
   disabledModules: string[];
   recentLogs: Array<{
@@ -138,6 +198,13 @@ const MAX_HISTORY = 1000;
 // GPU device reference for tensor inspection
 let gpuDevice: GPUDevice | null = null;
 
+// Trace categories state
+let enabledTraceCategories = new Set<TraceCategory>();
+let traceLayerFilter: number[] = [];  // Empty = all layers
+let traceDecodeStep = 0;
+let traceMaxDecodeSteps = 0;  // 0 = unlimited
+let traceBreakOnAnomaly = false;
+
 // ============================================================================
 // Configuration Functions
 // ============================================================================
@@ -148,6 +215,7 @@ let gpuDevice: GPUDevice | null = null;
 export function setLogLevel(level: string): void {
   const levelMap: Record<string, LogLevelValue> = {
     debug: LOG_LEVELS.DEBUG,
+    verbose: LOG_LEVELS.VERBOSE,
     info: LOG_LEVELS.INFO,
     warn: LOG_LEVELS.WARN,
     error: LOG_LEVELS.ERROR,
@@ -155,6 +223,135 @@ export function setLogLevel(level: string): void {
   };
   currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS.INFO;
   console.log(`[Doppler] Log level set to: ${level.toUpperCase()}`);
+}
+
+/**
+ * Get current log level name.
+ */
+export function getLogLevel(): string {
+  for (const [name, value] of Object.entries(LOG_LEVELS)) {
+    if (value === currentLogLevel) return name.toLowerCase();
+  }
+  return 'info';
+}
+
+/**
+ * Set trace categories.
+ *
+ * @param categories - Comma-separated categories, 'all', false to disable, or array
+ *   Examples:
+ *   - 'kernels,logits' - enable kernels and logits
+ *   - 'all' - enable all categories
+ *   - 'all,-buffers' - all except buffers
+ *   - false - disable all tracing
+ *   - ['kernels', 'logits'] - array form
+ */
+export function setTrace(
+  categories: string | TraceCategory[] | false,
+  options?: { layers?: number[]; maxDecodeSteps?: number; breakOnAnomaly?: boolean }
+): void {
+  // Handle false = disable all
+  if (categories === false) {
+    enabledTraceCategories.clear();
+    console.log('[Doppler] Trace disabled');
+    return;
+  }
+
+  // Parse string into array
+  const catArray = typeof categories === 'string'
+    ? categories.split(',').map(s => s.trim())
+    : categories;
+
+  // Clear and rebuild
+  enabledTraceCategories.clear();
+
+  // Check for 'all' first
+  const hasAll = catArray.includes('all');
+  if (hasAll) {
+    for (const cat of TRACE_CATEGORIES) {
+      enabledTraceCategories.add(cat);
+    }
+  }
+
+  // Add inclusions and handle exclusions (prefixed with -)
+  for (const cat of catArray) {
+    if (cat === 'all') continue;
+
+    if (cat.startsWith('-')) {
+      const exclude = cat.slice(1) as TraceCategory;
+      enabledTraceCategories.delete(exclude);
+    } else if (TRACE_CATEGORIES.includes(cat as TraceCategory)) {
+      enabledTraceCategories.add(cat as TraceCategory);
+    }
+  }
+
+  // Apply options
+  if (options?.layers) {
+    traceLayerFilter = options.layers;
+  }
+  if (options?.maxDecodeSteps !== undefined) {
+    traceMaxDecodeSteps = options.maxDecodeSteps;
+  }
+  if (options?.breakOnAnomaly !== undefined) {
+    traceBreakOnAnomaly = options.breakOnAnomaly;
+  }
+
+  const enabled = [...enabledTraceCategories].join(',') || 'none';
+  console.log(`[Doppler] Trace categories: ${enabled}`);
+}
+
+/**
+ * Get enabled trace categories.
+ */
+export function getTrace(): TraceCategory[] {
+  return [...enabledTraceCategories];
+}
+
+/**
+ * Check if a trace category is enabled.
+ */
+export function isTraceEnabled(category: TraceCategory, layerIdx?: number): boolean {
+  if (!enabledTraceCategories.has(category)) return false;
+
+  // Check layer filter
+  if (layerIdx !== undefined && traceLayerFilter.length > 0) {
+    if (!traceLayerFilter.includes(layerIdx)) return false;
+  }
+
+  // Check decode step limit
+  if (traceMaxDecodeSteps > 0 && traceDecodeStep > traceMaxDecodeSteps) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Increment decode step counter (call after each decode step).
+ */
+export function incrementDecodeStep(): number {
+  return ++traceDecodeStep;
+}
+
+/**
+ * Reset decode step counter (call at start of generation).
+ */
+export function resetDecodeStep(): void {
+  traceDecodeStep = 0;
+}
+
+/**
+ * Get current decode step.
+ */
+export function getDecodeStep(): number {
+  return traceDecodeStep;
+}
+
+/**
+ * Check if we should break on anomaly.
+ */
+export function shouldBreakOnAnomaly(): boolean {
+  return traceBreakOnAnomaly;
 }
 
 // Benchmark mode state
@@ -165,13 +362,10 @@ const originalConsoleInfo = console.info;
 
 /**
  * Enable benchmark mode - silences all console.log/debug/info calls.
- * Use this during performance benchmarks to eliminate logging overhead.
- * Errors and warnings are still logged.
  */
 export function setBenchmarkMode(enabled: boolean): void {
   benchmarkMode = enabled;
   if (enabled) {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const noop = () => {};
     console.log = noop;
     console.debug = noop;
@@ -226,6 +420,48 @@ export function setGPUDevice(device: GPUDevice): void {
 }
 
 // ============================================================================
+// URL Parameter Auto-Detection
+// ============================================================================
+
+/**
+ * Initialize logging and tracing from URL parameters.
+ * Called automatically in browser environment.
+ *
+ * Supported params:
+ *   ?log=verbose          - Set log level
+ *   ?trace=kernels,logits - Enable specific trace categories
+ *   ?trace=all,-buffers   - All categories except buffers
+ *   ?layers=0,5           - Filter to specific layers
+ *   ?break=1              - Break on anomaly (NaN/explosion)
+ */
+export function initFromUrlParams(): void {
+  if (typeof window === 'undefined') return;
+
+  const params = new URLSearchParams(window.location.search);
+
+  // Log level
+  const logLevel = params.get('log');
+  if (logLevel) {
+    setLogLevel(logLevel);
+  }
+
+  // Trace categories
+  const traceParam = params.get('trace');
+  if (traceParam) {
+    const layers = params.get('layers')?.split(',').map(Number).filter(n => !isNaN(n));
+    const breakOn = params.get('break') === '1';
+    setTrace(traceParam, { layers, breakOnAnomaly: breakOn });
+  }
+
+  // Debug mode (legacy param support)
+  const debugParam = params.get('debug');
+  if (debugParam === '1' && !traceParam) {
+    setTrace('all');
+    setLogLevel('verbose');
+  }
+}
+
+// ============================================================================
 // Internal Helpers
 // ============================================================================
 
@@ -254,6 +490,15 @@ function shouldLog(module: string, level: LogLevelValue): boolean {
 function formatMessage(module: string, message: string): string {
   const timestamp = performance.now().toFixed(1);
   return `[${timestamp}ms][${module}] ${message}`;
+}
+
+/**
+ * Format a trace message with category tag.
+ */
+function formatTraceMessage(category: TraceCategory, message: string, layerIdx?: number): string {
+  const timestamp = performance.now().toFixed(1);
+  const layerTag = layerIdx !== undefined ? `L${layerIdx}:` : '';
+  return `[${timestamp}ms][TRACE:${category}] ${layerTag}${message}`;
 }
 
 /**
@@ -300,7 +545,7 @@ function f16ToF32(h: number): number {
  */
 export const log = {
   /**
-   * Debug level logging (verbose).
+   * Debug level logging (most verbose).
    */
   debug(module: string, message: string, data?: unknown): void {
     if (!shouldLog(module, LOG_LEVELS.DEBUG)) return;
@@ -310,6 +555,20 @@ export const log = {
       console.debug(formatted, data);
     } else {
       console.debug(formatted);
+    }
+  },
+
+  /**
+   * Verbose level logging (detailed operational info).
+   */
+  verbose(module: string, message: string, data?: unknown): void {
+    if (!shouldLog(module, LOG_LEVELS.VERBOSE)) return;
+    const formatted = formatMessage(module, message);
+    storeLog('VERBOSE', module, message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
     }
   },
 
@@ -361,6 +620,155 @@ export const log = {
   always(module: string, message: string, data?: unknown): void {
     const formatted = formatMessage(module, message);
     storeLog('ALWAYS', module, message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+};
+
+// ============================================================================
+// Trace Interface
+// ============================================================================
+
+/**
+ * Trace logging interface - only logs if category is enabled.
+ */
+export const trace = {
+  /**
+   * Trace model loading operations.
+   */
+  loader(message: string, data?: unknown): void {
+    if (!isTraceEnabled('loader')) return;
+    const formatted = formatTraceMessage('loader', message);
+    storeLog('TRACE:loader', 'Loader', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace kernel execution.
+   */
+  kernels(message: string, data?: unknown): void {
+    if (!isTraceEnabled('kernels')) return;
+    const formatted = formatTraceMessage('kernels', message);
+    storeLog('TRACE:kernels', 'Kernels', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace logit computation.
+   */
+  logits(message: string, data?: unknown): void {
+    if (!isTraceEnabled('logits')) return;
+    const formatted = formatTraceMessage('logits', message);
+    storeLog('TRACE:logits', 'Logits', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace embedding layer.
+   */
+  embed(message: string, data?: unknown): void {
+    if (!isTraceEnabled('embed')) return;
+    const formatted = formatTraceMessage('embed', message);
+    storeLog('TRACE:embed', 'Embed', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace attention computation.
+   */
+  attn(layerIdx: number, message: string, data?: unknown): void {
+    if (!isTraceEnabled('attn', layerIdx)) return;
+    const formatted = formatTraceMessage('attn', message, layerIdx);
+    storeLog('TRACE:attn', `Attn:L${layerIdx}`, message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace feed-forward network.
+   */
+  ffn(layerIdx: number, message: string, data?: unknown): void {
+    if (!isTraceEnabled('ffn', layerIdx)) return;
+    const formatted = formatTraceMessage('ffn', message, layerIdx);
+    storeLog('TRACE:ffn', `FFN:L${layerIdx}`, message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace KV cache operations.
+   */
+  kv(layerIdx: number, message: string, data?: unknown): void {
+    if (!isTraceEnabled('kv', layerIdx)) return;
+    const formatted = formatTraceMessage('kv', message, layerIdx);
+    storeLog('TRACE:kv', `KV:L${layerIdx}`, message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace token sampling.
+   */
+  sample(message: string, data?: unknown): void {
+    if (!isTraceEnabled('sample')) return;
+    const formatted = formatTraceMessage('sample', message);
+    storeLog('TRACE:sample', 'Sample', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace buffer stats (expensive - requires GPU readback).
+   */
+  buffers(message: string, data?: unknown): void {
+    if (!isTraceEnabled('buffers')) return;
+    const formatted = formatTraceMessage('buffers', message);
+    storeLog('TRACE:buffers', 'Buffers', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
+
+  /**
+   * Trace performance timing.
+   */
+  perf(message: string, data?: unknown): void {
+    if (!isTraceEnabled('perf')) return;
+    const formatted = formatTraceMessage('perf', message);
+    storeLog('TRACE:perf', 'Perf', message, data);
     if (data !== undefined) {
       console.log(formatted, data);
     } else {
@@ -679,6 +1087,7 @@ export function getDebugSnapshot(): DebugSnapshot {
     logLevel: Object.keys(LOG_LEVELS).find(
       (k) => LOG_LEVELS[k as LogLevel] === currentLogLevel
     ),
+    traceCategories: [...enabledTraceCategories],
     enabledModules: [...enabledModules],
     disabledModules: [...disabledModules],
     recentLogs: logHistory.slice(-50).map((e) => ({
@@ -692,87 +1101,6 @@ export function getDebugSnapshot(): DebugSnapshot {
   };
 }
 
-// ============================================================================
-// Pipeline Debug Categories Integration
-// ============================================================================
-
-import {
-  setDebugCategories,
-  resetDebugConfig,
-  getDebugConfig,
-  DEBUG_PRESETS,
-  type DebugCategory,
-  type DebugConfig as PipelineDebugConfig,
-} from '../inference/pipeline/debug-utils.js';
-
-export type { DebugCategory, PipelineDebugConfig };
-export { DEBUG_PRESETS };
-
-/**
- * Main debug control function for pipeline categories.
- *
- * Usage in browser console:
- *   DOPPLER.debug({ embed: true, logits: true })  // Enable categories
- *   DOPPLER.debug('quick')                         // Use preset
- *   DOPPLER.debug('off')                           // Disable all
- *   DOPPLER.debug()                                // Show current config
- *
- * @param config - Categories object, preset name, or 'off'
- * @param options - Additional options (layers, maxDecodeSteps, etc.)
- */
-export function debug(
-  config?: Partial<Record<DebugCategory, boolean>> | keyof typeof DEBUG_PRESETS | 'off',
-  options?: Partial<Omit<PipelineDebugConfig, 'categories'>>
-): PipelineDebugConfig {
-  if (config === undefined) {
-    const current = getDebugConfig();
-    console.log('Pipeline debug config:', current);
-    console.log('Presets:', Object.keys(DEBUG_PRESETS).join(', '), '+ off');
-    console.log('Categories: embed, layer, attn, ffn, kv, logits, sample, io, perf, all');
-    return current;
-  }
-
-  if (config === 'off') {
-    resetDebugConfig();
-    console.log('Pipeline debug disabled');
-    return getDebugConfig();
-  }
-
-  if (typeof config === 'string') {
-    const preset = DEBUG_PRESETS[config as keyof typeof DEBUG_PRESETS];
-    if (preset) {
-      setDebugCategories(preset, options);
-      console.log(`Pipeline debug preset '${config}' enabled:`, preset);
-    } else {
-      console.error(`Unknown preset: ${config}. Available: ${Object.keys(DEBUG_PRESETS).join(', ')}`);
-    }
-    return getDebugConfig();
-  }
-
-  setDebugCategories(config, options);
-  console.log('Pipeline debug categories:', config);
-  return getDebugConfig();
-}
-
-/**
- * Quick enable for specific layer debugging.
- */
-export function debugLayer(
-  layerIdx: number | number[],
-  categories?: Partial<Record<DebugCategory, boolean>>
-): void {
-  const layers = Array.isArray(layerIdx) ? layerIdx : [layerIdx];
-  setDebugCategories(categories || { layer: true, attn: true, ffn: true }, { layers });
-  console.log(`Debug enabled for layer(s) ${layers.join(', ')}`);
-}
-
-/**
- * Quick buffer stats toggle (expensive - requires GPU readback).
- */
-export function debugBuffers(enabled: boolean = true): void {
-  setDebugCategories({}, { bufferStats: enabled });
-  console.log(`Buffer stats ${enabled ? 'enabled (expensive!)' : 'disabled'}`);
-}
 
 // ============================================================================
 // Browser Console Global API
@@ -782,24 +1110,22 @@ export function debugBuffers(enabled: boolean = true): void {
  * DOPPLER debug API exposed to browser console.
  */
 export interface DopplerDebugAPI {
-  // Pipeline debug
-  debug: typeof debug;
-  debugLayer: typeof debugLayer;
-  debugBuffers: typeof debugBuffers;
-  presets: typeof DEBUG_PRESETS;
-  getConfig: typeof getDebugConfig;
-  resetDebug: typeof resetDebugConfig;
-  // Module logging
+  // Trace categories
+  trace: typeof trace;
+  setTrace: typeof setTrace;
+  getTrace: typeof getTrace;
+  // Log levels
   log: typeof log;
   setLogLevel: typeof setLogLevel;
-  setBenchmarkMode: typeof setBenchmarkMode;
-  isBenchmarkMode: typeof isBenchmarkMode;
-  enableModules: typeof enableModules;
-  disableModules: typeof disableModules;
+  getLogLevel: typeof getLogLevel;
   // Tensor inspection
   tensor: typeof tensor;
+  inspect: typeof tensor.inspect;
   // Performance
   perf: typeof perf;
+  // Other
+  setBenchmarkMode: typeof setBenchmarkMode;
+  isBenchmarkMode: typeof isBenchmarkMode;
   // History
   getLogHistory: typeof getLogHistory;
   printLogSummary: typeof printLogSummary;
@@ -807,20 +1133,23 @@ export interface DopplerDebugAPI {
 }
 
 const DOPPLER_API: DopplerDebugAPI = {
-  debug,
-  debugLayer,
-  debugBuffers,
-  presets: DEBUG_PRESETS,
-  getConfig: getDebugConfig,
-  resetDebug: resetDebugConfig,
+  // Trace categories
+  trace,
+  setTrace,
+  getTrace,
+  // Log levels
   log,
   setLogLevel,
+  getLogLevel,
+  // Tensor inspection
+  tensor,
+  inspect: tensor.inspect.bind(tensor),
+  // Performance
+  perf,
+  // Other
   setBenchmarkMode,
   isBenchmarkMode,
-  enableModules,
-  disableModules,
-  tensor,
-  perf,
+  // History
   getLogHistory,
   printLogSummary,
   getDebugSnapshot,
@@ -832,6 +1161,13 @@ if (typeof window !== 'undefined') {
     ...((window as any).DOPPLER || {}),
     ...DOPPLER_API,
   };
+
+  // Auto-init from URL params on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFromUrlParams);
+  } else {
+    initFromUrlParams();
+  }
 }
 
 // ============================================================================
@@ -840,12 +1176,14 @@ if (typeof window !== 'undefined') {
 
 export default {
   log,
+  trace,
   tensor,
   perf,
-  debug,
-  debugLayer,
-  debugBuffers,
   setLogLevel,
+  getLogLevel,
+  setTrace,
+  getTrace,
+  isTraceEnabled,
   setBenchmarkMode,
   isBenchmarkMode,
   setGPUDevice,
@@ -856,6 +1194,7 @@ export default {
   clearLogHistory,
   printLogSummary,
   getDebugSnapshot,
+  initFromUrlParams,
   LOG_LEVELS,
-  DEBUG_PRESETS,
+  TRACE_CATEGORIES,
 };

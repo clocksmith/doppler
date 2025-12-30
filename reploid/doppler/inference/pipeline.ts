@@ -58,7 +58,6 @@ import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
 import type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult } from './pipeline/types.js';
 import type { DopplerLoader, LoadProgress } from '../loader/doppler-loader.js';
-import { verbose as loaderVerbose } from '../loader/log.js';
 import type { LogitsDebugFlags } from './pipeline/logits.js';
 import { getDopplerLoader } from '../loader/doppler-loader.js';
 
@@ -361,7 +360,7 @@ export class InferencePipeline {
           // Shard and layer progress are logged by the loader with source info (RAM/OPFS/network)
           // Only log other stages here to avoid duplicate logs
           if (info.stage !== 'layers' && info.stage !== 'shards') {
-            loaderVerbose(`${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
+            log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
           }
           // Forward to UI callback if set
           if (this._onProgress) {

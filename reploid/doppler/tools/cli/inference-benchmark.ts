@@ -54,21 +54,17 @@ function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptT
 
   let traceInit = '';
   if (opts.trace) {
+    // Map old presets to new trace categories
+    const traceCategories = opts.trace === 'full' ? 'all' : opts.trace === 'quick' ? 'logits,sample' : opts.trace;
+    const traceLayers = opts.traceLayers?.length ? opts.traceLayers : [];
     traceInit = `
-      const preset = bench.DEBUG_PRESETS['${opts.trace}'] || bench.DEBUG_PRESETS.quick;
-      const traceLayers = ${opts.traceLayers?.length ? JSON.stringify(opts.traceLayers) : 'null'};
-      const options = {
-        bufferStats: ${opts.trace === 'full'},
-        ...(Array.isArray(traceLayers) && traceLayers.length ? { layers: traceLayers } : {}),
-      };
-      // Set on bundled debug-utils (always present in build:benchmark output).
-      bench.setDebugCategories(preset, options);
-      // Also attempt to set on live pipeline debug-utils (when inference code is external, not bundled).
-      try {
-        const live = await import('/d/inference/pipeline/debug-utils.js');
-        live.setDebugCategories(preset, options);
-      } catch {}
-      console.log('[Trace] Debug categories enabled: ${opts.trace}');
+      // Set trace categories (unified API)
+      const traceCategories = '${traceCategories}';
+      const traceLayers = ${JSON.stringify(traceLayers)};
+      const traceOptions = traceLayers.length ? { layers: traceLayers } : {};
+      bench.setTrace(traceCategories, traceOptions);
+      bench.setLogLevel('verbose');
+      console.log('[Trace] Categories enabled: ' + traceCategories);
     `;
   }
 

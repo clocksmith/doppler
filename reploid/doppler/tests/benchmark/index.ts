@@ -20,11 +20,8 @@ export {
   formatBenchmarkSummary,
 } from './pipeline-benchmark.js';
 
-// Debug utilities (bundled by build:benchmark so CLI --trace works without extra HTTP modules)
-export { setDebugCategories, DEBUG_PRESETS } from '../../inference/pipeline/debug-utils.js';
-
-// Benchmark mode (silences console.log for clean timing)
-export { setBenchmarkMode, isBenchmarkMode } from '../../debug/index.js';
+// Debug utilities (unified in debug/index.ts)
+export { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from '../../debug/index.js';
 
 // System benchmarks
 export {

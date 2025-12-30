@@ -311,9 +311,16 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--file':
         opts.file = tokens.shift() || null;
         break;
-      case '--trace':
-        opts.trace = tokens.shift() || 'quick';
+      case '--trace': {
+        // --trace with no arg = 'all', --trace <categories> = specific categories
+        const nextToken = tokens[0];
+        if (!nextToken || nextToken.startsWith('-')) {
+          opts.trace = 'all';  // Default to all categories
+        } else {
+          opts.trace = tokens.shift()!;  // Use provided categories
+        }
         break;
+      }
       case '--trace-layers': {
         const layersArg = tokens.shift() || '';
         if (layersArg) {
@@ -504,11 +511,19 @@ Headless Mode (default):
   Uses --headless=new with real GPU acceleration (not SwiftShader).
   No browser window, no focus stealing, full GPU compute support.
 
-Log Levels (in browser: ?log=<level>):
-  silent   Nothing except errors
-  info     Phase starts/ends, totals (default for test/bench)
-  verbose  + Per-shard source, per-layer timing
-  trace    + Tensor shapes, dequant ops, buffer details
+Log Levels (--verbose/-v, --quiet/-q → ?log=<level>):
+  silent   Nothing except errors (--quiet)
+  info     Phase starts/ends, totals (default)
+  verbose  Per-shard source, per-layer timing (--verbose)
+  debug    Full internal details
+
+Trace Categories (--trace [categories] → ?trace=<categories>):
+  --trace              Enable all trace categories
+  --trace kernels      Trace only kernel execution
+  --trace logits,attn  Trace logits and attention
+  --trace all,-buffers Trace all except buffers (expensive)
+
+  Categories: loader, kernels, logits, embed, attn, ffn, kv, sample, buffers, perf
 
 Kernel Overrides:
   --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
@@ -1201,25 +1216,41 @@ async function runInferenceTest(
   testParams.set('autorun', '1');
   appendKernelOverrideParams(testParams, opts);
 
-  // Add debug/profiling params
-  if (opts.trace) {
-    testParams.set('trace', opts.trace);
-    testParams.set('log', 'trace');  // Trace implies trace-level loader logs
+  // Add debug/profiling params - unified CLI → URL mapping
+  // Log level: --verbose → ?log=verbose, --quiet → ?log=silent
+  if (opts.quiet) {
+    testParams.set('log', 'silent');
   } else if (opts.verbose) {
     testParams.set('log', 'verbose');
-  } else if (opts.quiet) {
-    testParams.set('log', 'silent');
   }
-  // Default: 'info' level (handled by log.ts)
+  // Note: default is 'info' (handled by debug/index.ts)
 
-  if (opts.debugLayers && opts.debugLayers.length > 0) {
-    testParams.set('debugLayers', opts.debugLayers.join(','));
+  // Trace categories: --trace → ?trace=all, --trace kernels,logits → ?trace=kernels,logits
+  if (opts.trace) {
+    testParams.set('trace', opts.trace);
+    // Trace also implies verbose logging for full context
+    if (!opts.quiet && !testParams.has('log')) {
+      testParams.set('log', 'verbose');
+    }
   }
+
+  // Layer filter: --trace-layers 0,5 → ?layers=0,5
+  if (opts.traceLayers && opts.traceLayers.length > 0) {
+    testParams.set('layers', opts.traceLayers.join(','));
+  }
+  // Legacy support
+  if (opts.debugLayers && opts.debugLayers.length > 0) {
+    testParams.set('layers', opts.debugLayers.join(','));
+  }
+
+  // Break on anomaly: --break → ?break=1
+  if (opts.trace === 'break') {
+    testParams.set('trace', 'all');
+    testParams.set('break', '1');
+  }
+
   if (opts.perf || opts.gpuProfile) {
     testParams.set('profile', '1');
-  }
-  if (opts.verbose) {
-    testParams.set('debug', '1');
   }
 
   const testUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${testParams.toString()}`;
@@ -1830,20 +1861,30 @@ async function main(): Promise<void> {
         console.error(`  [browser error] ${err.message}`);
       });
 
-      // Navigate to debug page with params
+      // Navigate to debug page with params - unified CLI → URL mapping
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
-      debugParams.set('log', 'trace');  // Debug mode enables trace by default
+
+      // Debug mode: default to all trace categories and verbose logging
+      debugParams.set('log', 'verbose');
+      debugParams.set('trace', opts.trace || 'all');
+
+      // Layer filter: --trace-layers 0,5 → ?layers=0,5
+      if (opts.traceLayers && opts.traceLayers.length > 0) {
+        debugParams.set('layers', opts.traceLayers.join(','));
+      }
+
+      // Break on anomaly: --break → ?break=1
+      if (opts.trace === 'break') {
+        debugParams.set('trace', 'all');
+        debugParams.set('break', '1');
+      }
+
+      // Legacy layer/kernel params
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
       if (opts.kernel) debugParams.set('kernel', opts.kernel);
-      if (opts.trace) {
-        debugParams.set('trace', opts.trace);
-        debugParams.set('log', 'trace');  // Trace overrides to trace level
-      }
-      if (opts.traceLayers && opts.traceLayers.length > 0) {
-        debugParams.set('debugLayers', opts.traceLayers.join(','));
-      }
+
       appendKernelOverrideParams(debugParams, opts);
 
       const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1&autorun=1`;
