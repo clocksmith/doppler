@@ -35,8 +35,8 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;       // [query_len, num_heads, head_dim]
-@group(0) @binding(2) var<storage, read> K: array<f32>;       // [seq_len, numKVHeads, head_dim]
-@group(0) @binding(3) var<storage, read> V: array<f32>;       // [seq_len, numKVHeads, head_dim]
+@group(0) @binding(2) var<storage, read> K: array<f32>;       // [seq_len, num_kv_heads, head_dim]
+@group(0) @binding(3) var<storage, read> V: array<f32>;       // [seq_len, num_kv_heads, head_dim]
 @group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
 
 // Shared memory for tiled K/V slices

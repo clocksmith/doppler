@@ -48,22 +48,22 @@ fn find_topk_phase1(
     let temperature = u.temperature;
 
     // Each thread finds max in its assigned range
-    var localMax: f32 = -3.402823e+38;  // -FLT_MAX
-    var localMaxIdx: u32 = 0u;
+    var local_max: f32 = -3.402823e+38;  // -FLT_MAX
+    var local_maxIdx: u32 = 0u;
 
     // Stride through vocabulary
     var idx = globalIdx;
-    while (idx < vocabSize) {
+    while (idx < vocab_size) {
         let val = logits[idx] / temperature;
-        if (val > localMax) {
-            localMax = val;
-            localMaxIdx = idx;
+        if (val > local_max) {
+            local_max = val;
+            local_max_idx = idx;
         }
         idx = idx + WORKGROUP_SIZE * 256u;  // 256 workgroups assumed
     }
 
-    shared_values[thread_idx] = localMax;
-    shared_indices[threadIdx] = localMaxIdx;
+    shared_values[thread_idx] = local_max;
+    shared_indices[thread_idx] = local_maxIdx;
     workgroupBarrier();
 
     // Reduce within workgroup to find workgroup's top value
@@ -72,7 +72,7 @@ fn find_topk_phase1(
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
-                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
+                shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -99,7 +99,7 @@ fn find_topk_phase2(
     // Assume <= 256 workgroups from phase 1
     if (thread_idx < 256u) {
         shared_values[thread_idx] = topkLogits[threadIdx];
-        shared_indices[threadIdx] = topkIndices[threadIdx];
+        shared_indices[thread_idx] = topkIndices[threadIdx];
     }
     workgroupBarrier();
 
@@ -146,7 +146,7 @@ fn softmax_and_sample(
     // Load top-k logits
     if (thread_idx < topK) {
         shared_values[thread_idx] = topkLogits[threadIdx];
-        shared_indices[threadIdx] = topkIndices[threadIdx];
+        shared_indices[thread_idx] = topkIndices[threadIdx];
     }
     workgroupBarrier();
 
@@ -199,21 +199,21 @@ fn sample_single_pass(
     let random_val = u.random_value;
 
     // Phase 1: Find global max
-    var localMax: f32 = -3.402823e+38;
-    var localMaxIdx: u32 = 0u;
+    var local_max: f32 = -3.402823e+38;
+    var local_maxIdx: u32 = 0u;
 
     var idx = gid.x;
-    while (idx < vocabSize) {
+    while (idx < vocab_size) {
         let val = logits[idx] / temperature;
-        if (val > localMax) {
-            localMax = val;
-            localMaxIdx = idx;
+        if (val > local_max) {
+            local_max = val;
+            local_max_idx = idx;
         }
         idx = idx + numWg.x * WORKGROUP_SIZE;
     }
 
-    shared_values[thread_idx] = localMax;
-    shared_indices[threadIdx] = localMaxIdx;
+    shared_values[thread_idx] = local_max;
+    shared_indices[thread_idx] = local_maxIdx;
     workgroupBarrier();
 
     // Reduce to find workgroup max
@@ -222,7 +222,7 @@ fn sample_single_pass(
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
-                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
+                shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -253,21 +253,21 @@ fn argmax(
     let vocab_size = u.vocab_size;
 
     // Each thread finds max in its chunk
-    var localMax: f32 = -3.402823e+38;
-    var localMaxIdx: u32 = 0u;
+    var local_max: f32 = -3.402823e+38;
+    var local_maxIdx: u32 = 0u;
 
     var idx = globalIdx;
-    while (idx < vocabSize) {
+    while (idx < vocab_size) {
         let val = logits[idx];
-        if (val > localMax) {
-            localMax = val;
-            localMaxIdx = idx;
+        if (val > local_max) {
+            local_max = val;
+            local_max_idx = idx;
         }
         idx = idx + numWg.x * WORKGROUP_SIZE;
     }
 
-    shared_values[thread_idx] = localMax;
-    shared_indices[threadIdx] = localMaxIdx;
+    shared_values[thread_idx] = local_max;
+    shared_indices[thread_idx] = local_maxIdx;
     workgroupBarrier();
 
     // Reduce within workgroup
@@ -276,7 +276,7 @@ fn argmax(
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
-                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
+                shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -299,7 +299,7 @@ fn argmax_reduce(
 
     // Load workgroup maxes (up to 256)
     shared_values[thread_idx] = topkLogits[threadIdx];
-    shared_indices[threadIdx] = topkIndices[threadIdx];
+    shared_indices[thread_idx] = topkIndices[threadIdx];
     workgroupBarrier();
 
     // Reduce
@@ -308,7 +308,7 @@ fn argmax_reduce(
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
-                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
+                shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
