@@ -113,7 +113,7 @@ npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "DopplerLo
 **Expected norm weight ranges for Gemma 3:**
 - `input_layernorm`: min ~2.5, max ~55 (before +1 offset)
 - `post_attention_layernorm`: min ~-1, max ~28
-- `q_norm, k_norm`: min ~-0.75, max ~1.2 (NO +1 offset - standard RMSNorm)
+- `q_norm, k_norm`: min ~0.25, max ~2.2 (WITH +1 offset - Gemma3RMSNorm)
 
 ### 3. Tokenizer Verification
 
@@ -225,8 +225,8 @@ Gemma 3 uses different RoPE bases for local vs global attention:
 Pattern: layers where `i % 6 === 0` are global, others are local.
 
 ### Norm Weight Offset
-Gemma 3 uses `output = x * (1 + weight) / rms` for layer norms.
-**BUT**: `q_norm` and `k_norm` use standard RMSNorm (no +1 offset).
+Gemma 3 uses `output = x * (1 + weight) / rms` for ALL norms.
+This includes `q_norm` and `k_norm` - they also use Gemma3RMSNorm with +1 offset.
 
 ### Sandwich Norm Structure
 Each layer has 4 norms:
