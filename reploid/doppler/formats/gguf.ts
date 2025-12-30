@@ -155,6 +155,7 @@ export interface GGUFParseResult {
   totalTensorSize: number;
   headerSize: number;
   fileSize?: number;
+  filePath?: string;
 }
 
 export type ParsedGGUF = GGUFParseResult;

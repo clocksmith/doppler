@@ -3,17 +3,18 @@
  *
  * Converts GGUF and safetensors models to RDRR format in the browser.
  * Supports:
- * - GGUF files (via gguf-importer.js)
+ * - GGUF files
  * - Single safetensors files
  * - Sharded HuggingFace models (multiple safetensors + config)
- * - Optional Q4_K_M quantization
  *
  * Output is written to OPFS (Origin Private File System).
+ *
+ * Uses shared types and functions from tools/convert-core.ts
  *
  * @module browser/model-converter
  */
 
-import { parseGGUFHeader, GGUFParseResult } from './gguf-parser-browser.js';
+import { parseGGUFHeader } from './gguf-parser-browser.js';
 import {
   parseSafetensorsFile,
   parseSafetensorsSharded,
@@ -25,9 +26,7 @@ import {
   getAuxiliaryFiles,
   calculateTotalSize,
   SafetensorsParseResult,
-  ModelFormat,
-  AuxiliaryFiles,
-  TensorInfo,
+  TensorInfo as BrowserTensorInfo,
   ModelConfig,
 } from './safetensors-parser-browser.js';
 import {
@@ -36,139 +35,47 @@ import {
   saveManifest,
   deleteModel,
 } from '../storage/shard-manager.js';
-import { SHARD_SIZE, RDRR_VERSION, generateShardFilename } from '../storage/rdrr-format.js';
+import { SHARD_SIZE, generateShardFilename } from '../storage/rdrr-format.js';
+
+// Import shared types and functions from convert-core
+import {
+  ConvertStage,
+  sanitizeModelId,
+  formatBytes,
+  extractArchitecture,
+  createManifest,
+  type ConvertStageType,
+  type ConvertProgress,
+  type ConvertOptions as CoreConvertOptions,
+  type ShardInfo,
+  type TensorSpan,
+  type TensorLocation,
+  type TensorLocationSingle,
+  type TensorLocationMulti,
+  type RDRRManifest,
+  type ParsedModel,
+  type TensorInfo,
+} from '../tools/convert-core.js';
+
+// Re-export types for consumers
+export {
+  ConvertStage,
+  type ConvertStageType,
+  type ConvertProgress,
+  type ShardInfo,
+  type TensorLocation,
+  type RDRRManifest,
+};
 
 // ============================================================================
-// Types
+// Browser-specific Types
 // ============================================================================
 
 /**
- * Conversion stages
+ * Browser conversion options (extends core with File[] input)
  */
-export const ConvertStage = {
-  DETECTING: 'detecting',
-  PARSING: 'parsing',
-  QUANTIZING: 'quantizing',
-  WRITING: 'writing',
-  MANIFEST: 'manifest',
-  COMPLETE: 'complete',
-  ERROR: 'error',
-} as const;
-
-export type ConvertStageType = (typeof ConvertStage)[keyof typeof ConvertStage];
-
-/**
- * Conversion progress payload
- */
-export interface ConvertProgress {
-  stage: ConvertStageType;
-  message: string;
-  format?: string;
-  modelId?: string;
-  tensorCount?: number;
-  totalSize?: string;
-  current?: number;
-  total?: number;
-  percent?: number;
-  shardCount?: number;
-  error?: Error;
-}
-
-/**
- * Conversion options
- */
-export interface ConvertOptions {
-  modelId?: string;
-  quantize?: 'q4_k_m' | 'f16' | 'f32' | null;
-  onProgress?: (progress: ConvertProgress) => void;
-  signal?: AbortSignal;
-}
-
-/**
- * Shard info
- */
-export interface ShardInfo {
-  index: number;
-  filename: string;
-  size: number;
-  hash: string;
-  offset: number;
-}
-
-/**
- * Tensor span for multi-shard tensors
- */
-export interface TensorSpan {
-  shardIndex: number;
-  offset: number;
-  size: number;
-}
-
-/**
- * Tensor location (single shard)
- */
-export interface TensorLocationSingle {
-  shard: number;
-  offset: number;
-  size: number;
-  shape: number[];
-  dtype: string;
-}
-
-/**
- * Tensor location (multi shard)
- */
-export interface TensorLocationMulti {
-  spans: TensorSpan[];
-  size: number;
-  shape: number[];
-  dtype: string;
-}
-
-export type TensorLocation = TensorLocationSingle | TensorLocationMulti;
-
-/**
- * Architecture config
- */
-export interface ArchitectureConfig {
-  numLayers: number;
-  hiddenSize: number;
-  intermediateSize: number;
-  numAttentionHeads: number;
-  numKeyValueHeads: number;
-  headDim: number;
-  vocabSize: number;
-  maxSeqLen: number;
-  ropeTheta?: number;
-}
-
-/**
- * Tokenizer info in manifest
- */
-export interface TokenizerInfo {
-  type: string;
-  vocabSize: number;
-}
-
-/**
- * RDRR manifest
- */
-export interface RDRRManifest {
-  version: number | string;
-  modelId: string;
-  modelType: string;
-  quantization: string;
-  architecture: ArchitectureConfig;
-  shards: ShardInfo[];
-  tensors: Record<string, TensorLocation>;
-  totalSize: number;
-  hashAlgorithm: string;
-  tokenizer?: TokenizerInfo;
-  metadata: {
-    source: string;
-    convertedAt: string;
-    hasTokenizer?: boolean;
-  };
+export interface ConvertOptions extends CoreConvertOptions {
+  // Browser-specific: no additional options needed
 }
 
 /**
@@ -186,7 +93,7 @@ interface GGUFModelConfig {
 }
 
 /**
- * Internal tensor info - more flexible than SafetensorsTensor
+ * Internal tensor info with browser File reference
  */
 interface InternalTensorInfo {
   name: string;
@@ -224,11 +131,11 @@ interface WriteResult {
 }
 
 // ============================================================================
-// Helper Functions
+// Browser-specific Helper Functions
 // ============================================================================
 
 /**
- * Compute SHA-256 hash
+ * Compute SHA-256 hash using Web Crypto API
  */
 async function computeSHA256(data: ArrayBuffer | Uint8Array): Promise<string> {
   const buffer = data instanceof ArrayBuffer ? data : data.buffer as ArrayBuffer;
@@ -237,73 +144,6 @@ async function computeSHA256(data: ArrayBuffer | Uint8Array): Promise<string> {
   return Array.from(hashArray)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-}
-
-/**
- * Float16 to Float32 conversion
- */
-function float16ToFloat32(h: number): number {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const frac = h & 0x3ff;
-
-  if (exp === 0) {
-    if (frac === 0) return sign ? -0 : 0;
-    return (sign ? -1 : 1) * Math.pow(2, -14) * (frac / 1024);
-  }
-  if (exp === 31) {
-    return frac ? NaN : sign ? -Infinity : Infinity;
-  }
-  return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + frac / 1024);
-}
-
-/**
- * BFloat16 to Float32 conversion
- */
-function bfloat16ToFloat32(bf16: number): number {
-  const f32View = new Float32Array(1);
-  const u32View = new Uint32Array(f32View.buffer);
-  u32View[0] = bf16 << 16;
-  return f32View[0];
-}
-
-/**
- * Check if tensor should be quantized
- */
-function shouldQuantize(tensorName: string, shape: number[]): boolean {
-  const numElements = shape.reduce((a, b) => a * b, 1);
-  if (numElements < 1024) return false;
-
-  const lower = tensorName.toLowerCase();
-  if (lower.includes('embed') || lower.includes('lm_head')) return false;
-  if (lower.includes('norm') || lower.includes('ln_')) return false;
-  if (lower.endsWith('.bias') || lower.endsWith('_bias')) return false;
-
-  return true;
-}
-
-/**
- * Sanitize model ID
- */
-function sanitizeModelId(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 64) || 'converted-model'
-  );
-}
-
-/**
- * Format bytes for display
- */
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
 // ============================================================================
@@ -318,7 +158,7 @@ function formatBytes(bytes: number): string {
  * @returns Model ID
  */
 export async function convertModel(files: File[], options: ConvertOptions = {}): Promise<string> {
-  const { modelId: userModelId, quantize, onProgress, signal } = options;
+  const { modelId: userModelId, onProgress, signal } = options;
 
   let modelId: string | null = null;
   let modelDir: FileSystemDirectoryHandle | null = null;
@@ -351,11 +191,10 @@ export async function convertModel(files: File[], options: ConvertOptions = {}):
     let tokenizerJson: unknown = null;
 
     if (format.type === 'gguf') {
-      // Handle GGUF - delegate to existing importer logic
       modelInfo = await parseGGUFModel(format.ggufFile!, onProgress, signal);
     } else if (format.type === 'single') {
       const parsed = await parseSafetensorsFile(format.safetensorsFile!);
-      modelInfo = { tensors: parsed.tensors, config: parsed.config };
+      modelInfo = { tensors: parsed.tensors as InternalTensorInfo[], config: parsed.config };
       if (auxiliary.config) {
         config = await parseConfigJson(auxiliary.config);
         modelInfo.config = config;
@@ -366,7 +205,7 @@ export async function convertModel(files: File[], options: ConvertOptions = {}):
         indexJson = await parseIndexJson(format.indexFile);
       }
       const parsed = await parseSafetensorsSharded(format.safetensorsFiles!, indexJson);
-      modelInfo = { tensors: parsed.tensors, config: parsed.config };
+      modelInfo = { tensors: parsed.tensors as InternalTensorInfo[], config: parsed.config };
       if (auxiliary.config) {
         config = await parseConfigJson(auxiliary.config);
         modelInfo.config = config;
@@ -400,21 +239,40 @@ export async function convertModel(files: File[], options: ConvertOptions = {}):
 
     // Process tensors and write shards
     const result = await writeTensorsToShards(modelInfo, modelDir, shardInfos, {
-      quantize,
       onProgress,
       signal,
     });
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    // Create manifest
+    // Create manifest using shared function
     onProgress?.({
       stage: ConvertStage.MANIFEST,
       message: 'Creating manifest...',
     });
 
-    const manifest = createManifest(modelInfo, shardInfos, config, tokenizerJson);
-    manifest.modelId = modelId;
+    // Convert to ParsedModel format for createManifest
+    const parsedModel: ParsedModel = {
+      tensors: modelInfo.tensors.map(t => ({
+        name: t.name,
+        shape: t.shape,
+        dtype: t.dtype,
+        size: t.size,
+        offset: t.offset,
+      })),
+      config: (config || modelInfo.config || {}) as ParsedModel['config'],
+      architecture: modelInfo.architecture,
+      quantization: modelInfo.quantization || 'F16',
+      tokenizerJson,
+    };
+
+    const manifest = createManifest(
+      modelId,
+      parsedModel,
+      shardInfos,
+      result.tensorLocations,
+      'browser-converter'
+    );
 
     // Save manifest
     await saveManifest(JSON.stringify(manifest, null, 2));
@@ -513,12 +371,11 @@ async function writeTensorsToShards(
   modelDir: FileSystemDirectoryHandle,
   shardInfos: ShardInfo[],
   options: {
-    quantize?: string | null;
     onProgress?: (progress: ConvertProgress) => void;
     signal?: AbortSignal;
   }
 ): Promise<WriteResult> {
-  const { quantize, onProgress, signal } = options;
+  const { onProgress, signal } = options;
   const tensors = modelInfo.tensors;
   const totalTensors = tensors.length;
 
@@ -544,7 +401,7 @@ async function writeTensorsToShards(
     });
 
     // Read tensor data
-    let data = await readTensorData(tensor as TensorInfo);
+    let data = await readTensorData(tensor as BrowserTensorInfo);
 
     // Handle GGUF format (data is relative to tensorDataOffset)
     if (modelInfo.format === 'gguf' && modelInfo.tensorDataOffset && modelInfo.file) {
@@ -553,14 +410,11 @@ async function writeTensorsToShards(
       data = await blob.arrayBuffer();
     }
 
-    // Optionally quantize (TODO: implement Q4_K_M in browser)
-    // For now, pass through as-is
     const tensorData = new Uint8Array(data);
 
-    // Record tensor location
-    // Add to current shard, splitting if necessary
-    let remaining = tensorData;
+    // Track tensor spans across shards
     const tensorSpans: TensorSpan[] = [];
+    let remaining = tensorData;
 
     while (remaining.length > 0) {
       const availableInShard = SHARD_SIZE - currentShardSize;
@@ -587,7 +441,7 @@ async function writeTensorsToShards(
       }
     }
 
-    // Record tensor location in manifest format
+    // Record tensor location
     if (tensorSpans.length === 1) {
       tensorLocations[tensor.name] = {
         shard: tensorSpans[0].shardIndex,
@@ -652,164 +506,6 @@ async function flushShard(
 }
 
 /**
- * Create RDRR manifest
- */
-function createManifest(
-  modelInfo: ModelInfo,
-  shardInfos: ShardInfo[],
-  config: ModelConfig | null,
-  tokenizerJson: unknown
-): RDRRManifest {
-  const architecture = extractArchitecture(modelInfo, config);
-
-  const manifest: RDRRManifest = {
-    version: RDRR_VERSION,
-    modelId: 'converted-model',
-    modelType: config?.architectures?.[0] || modelInfo.architecture || 'unknown',
-    quantization: modelInfo.quantization || 'F16',
-    architecture,
-    shards: shardInfos,
-    tensors: buildTensorMap(modelInfo.tensors, shardInfos),
-    totalSize: shardInfos.reduce((sum, s) => sum + s.size, 0),
-    hashAlgorithm: 'sha256',
-    metadata: {
-      source: 'browser-converter',
-      convertedAt: new Date().toISOString(),
-    },
-  };
-
-  // Include tokenizer if available
-  if (tokenizerJson) {
-    const tokenizer = tokenizerJson as { model?: { vocab?: unknown[] | Record<string, unknown> } };
-    manifest.tokenizer = {
-      type: 'bundled',
-      vocabSize:
-        (tokenizer.model?.vocab as unknown[])?.length ||
-        Object.keys((tokenizer.model?.vocab as Record<string, unknown>) || {}).length,
-    };
-    // Store tokenizer separately or embed
-    manifest.metadata.hasTokenizer = true;
-  }
-
-  return manifest;
-}
-
-/**
- * Extract architecture info from model
- */
-function extractArchitecture(
-  modelInfo: ModelInfo,
-  config: ModelConfig | null
-): ArchitectureConfig {
-  if (config) {
-    const numLayers = (config.num_hidden_layers ?? config.n_layer ?? 32) as number;
-    const hiddenSize = (config.hidden_size ?? config.n_embd ?? 4096) as number;
-    const intermediateSize = (config.intermediate_size ?? config.n_inner ?? 11008) as number;
-    const numHeads = (config.num_attention_heads ?? config.n_head ?? 32) as number;
-    const numKVHeads = (config.num_key_value_heads ?? numHeads) as number;
-    const headDimFromConfig = (config.head_dim ?? Math.floor(hiddenSize / numHeads)) as number;
-    const vocabSize = (config.vocab_size ?? 32000) as number;
-    const maxSeqLen = (config.max_position_embeddings ?? config.n_positions ?? 2048) as number;
-    const ropeTheta = (config.rope_theta ?? 10000) as number;
-
-    return {
-      numLayers,
-      hiddenSize,
-      intermediateSize,
-      numAttentionHeads: numHeads,
-      numKeyValueHeads: numKVHeads,
-      headDim: headDimFromConfig,
-      vocabSize,
-      maxSeqLen,
-      ropeTheta,
-    };
-  }
-
-  // Fallback for GGUF
-  if (modelInfo.config) {
-    const c = modelInfo.config as GGUFModelConfig;
-    return {
-      numLayers: (c.blockCount ?? 32) as number,
-      hiddenSize: (c.embeddingLength ?? 4096) as number,
-      intermediateSize: (c.feedForwardLength ?? 11008) as number,
-      numAttentionHeads: (c.attentionHeadCount ?? 32) as number,
-      numKeyValueHeads: (c.attentionHeadCountKV ?? 32) as number,
-      headDim: Math.floor(((c.embeddingLength ?? 4096) as number) / ((c.attentionHeadCount ?? 32) as number)),
-      vocabSize: (c.vocabSize ?? 32000) as number,
-      maxSeqLen: (c.contextLength ?? 2048) as number,
-    };
-  }
-
-  return {
-    numLayers: 32,
-    hiddenSize: 4096,
-    intermediateSize: 11008,
-    numAttentionHeads: 32,
-    numKeyValueHeads: 32,
-    headDim: 128,
-    vocabSize: 32000,
-    maxSeqLen: 2048,
-  };
-}
-
-/**
- * Build tensor location map for manifest
- */
-function buildTensorMap(
-  tensors: InternalTensorInfo[],
-  shardInfos: ShardInfo[]
-): Record<string, TensorLocation> {
-  const tensorMap: Record<string, TensorLocation> = {};
-
-  let globalOffset = 0;
-  for (const tensor of tensors) {
-    const startShard = Math.floor(globalOffset / SHARD_SIZE);
-    const offsetInShard = globalOffset % SHARD_SIZE;
-
-    if (offsetInShard + tensor.size <= SHARD_SIZE) {
-      // Fits in single shard
-      tensorMap[tensor.name] = {
-        shard: startShard,
-        offset: offsetInShard,
-        size: tensor.size,
-        shape: tensor.shape,
-        dtype: tensor.dtype,
-      };
-    } else {
-      // Spans multiple shards
-      const spans: TensorSpan[] = [];
-      let remaining = tensor.size;
-      let currentShard = startShard;
-      let currentOffset = offsetInShard;
-
-      while (remaining > 0) {
-        const available = SHARD_SIZE - currentOffset;
-        const chunkSize = Math.min(remaining, available);
-        spans.push({
-          shardIndex: currentShard,
-          offset: currentOffset,
-          size: chunkSize,
-        });
-        remaining -= chunkSize;
-        currentShard++;
-        currentOffset = 0;
-      }
-
-      tensorMap[tensor.name] = {
-        spans,
-        size: tensor.size,
-        shape: tensor.shape,
-        dtype: tensor.dtype,
-      };
-    }
-
-    globalOffset += tensor.size;
-  }
-
-  return tensorMap;
-}
-
-/**
  * Check if conversion is supported in this browser
  */
 export function isConversionSupported(): boolean {
@@ -861,7 +557,7 @@ export async function pickModelFiles(): Promise<File[]> {
   }
 
   // Ultimate fallback: input element
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
@@ -880,7 +576,6 @@ async function collectFilesFromDirectory(
   dirHandle: FileSystemDirectoryHandle,
   files: File[] = []
 ): Promise<File[]> {
-  // Use type assertion for directory iteration - handles may have values() or be async iterable
   const entries = (dirHandle as unknown as { values(): AsyncIterable<FileSystemHandle> }).values();
   for await (const entry of entries) {
     if (entry.kind === 'file') {
@@ -894,9 +589,6 @@ async function collectFilesFromDirectory(
       ) {
         files.push(file);
       }
-    } else if (entry.kind === 'directory') {
-      // Don't recurse into subdirectories for model files
-      // HuggingFace models are flat
     }
   }
   return files;

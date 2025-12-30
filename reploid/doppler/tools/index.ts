@@ -85,3 +85,32 @@ export type {
   WriteResult,
   ProgressEvent,
 } from './rdrr-writer.js';
+
+// Conversion Core - Shared types and functions for model conversion
+export {
+  ConvertStage,
+  sanitizeModelId,
+  formatBytes,
+  shouldQuantize as shouldQuantizeCore,
+  extractArchitecture,
+  buildTensorMap,
+  createManifest,
+  convertModel,
+} from './convert-core.js';
+
+export type {
+  TensorInfo,
+  ParsedModel,
+  ConvertProgress,
+  ConvertOptions,
+  ConvertIO,
+  ConvertResult,
+  ShardInfo as CoreShardInfo,
+  TensorSpan,
+  TensorLocationSingle,
+  TensorLocationMulti,
+  TensorLocation,
+  RDRRManifest,
+  ArchitectureConfig,
+  ConvertStageType,
+} from './convert-core.js';

@@ -365,7 +365,9 @@ for await (const token of pipeline.generate('Hello')) {
 ## Related Files
 
 - `storage/rdrr-format.ts`: Parser and validation
-- `tools/rdrr-writer.ts`: Writer for conversion
+- `tools/convert-core.ts`: Platform-agnostic conversion types and functions
+- `tools/rdrr-writer.ts`: Node.js writer for CLI conversion
+- `browser/model-converter.ts`: Browser conversion with OPFS output
 - `storage/shard-manager.ts`: OPFS shard management
 - `storage/downloader.ts`: Resumable downloads
 

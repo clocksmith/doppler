@@ -34,6 +34,7 @@ import {
   type WriterOptions,
 } from './rdrr-writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from './quantizer.js';
+import { shouldQuantize as shouldQuantizeCore } from './convert-core.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -253,11 +254,15 @@ async function convertSafetensors(
     log(`Filtered to ${tensors.length} text-only tensors`);
   }
 
+  // Detect the original dtype from the first weight tensor (most are the same dtype)
+  const firstWeight = tensors.find((t: SafetensorsTensor) => t.name.includes('.weight'));
+  const originalDtype = firstWeight?.dtype?.toUpperCase() || 'F32';
+
   // Create modelInfo
   const modelInfo: ModelInfo = {
     modelName: opts.modelId || basename(inputPath),
     architecture: arch,
-    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : 'F32',
+    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : originalDtype,
     config,
     tokenizerConfig,
     tokenizerJson: parsed.tokenizerJson,
@@ -282,10 +287,12 @@ async function convertSafetensors(
     const tensorWithPath = { ...tensor, filePath: tensor.filePath || tensor.shardPath || inputPath };
     const data = await readTensorData(tensorWithPath);
 
-    // Quantize if requested
+    // Quantize if requested (uses shared shouldQuantize logic)
     if (opts.quantize === 'q4_k_m') {
       const isEmbedding = info.name.includes('embed') || info.name.includes('lm_head');
-      if (!isEmbedding || opts.quantizeEmbeddings) {
+
+      // Use shared logic + embedding override
+      if (shouldQuantizeCore(info.name, info.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
         log(`Quantizing ${info.name} to Q4_K_M`);
         const f32 = new Float32Array(data);
         const q4 = await quantizeToQ4KM(f32);
@@ -294,9 +301,30 @@ async function convertSafetensors(
     }
 
     if (opts.quantize === 'f16' && tensor.dtype !== 'F16') {
-      log(`Converting ${info.name} to F16`);
-      const f32 = new Float32Array(data);
-      // Convert F32 array to F16 array element by element
+      log(`Converting ${info.name} from ${tensor.dtype} to F16`);
+
+      // Handle different input dtypes
+      let f32: Float32Array;
+      if (tensor.dtype === 'BF16') {
+        // Convert BF16 to F32 first
+        const bf16Data = new Uint16Array(data);
+        f32 = new Float32Array(bf16Data.length);
+        for (let i = 0; i < bf16Data.length; i++) {
+          // BF16 to F32: shift left by 16 bits (BF16 is just truncated F32)
+          const bits = bf16Data[i] << 16;
+          const f32View = new Float32Array(1);
+          new Uint32Array(f32View.buffer)[0] = bits;
+          f32[i] = f32View[0];
+        }
+      } else if (tensor.dtype === 'F32') {
+        f32 = new Float32Array(data);
+      } else {
+        // For other dtypes, assume F32 interpretation (may need extension)
+        log(`Warning: Unknown dtype ${tensor.dtype}, treating as F32`);
+        f32 = new Float32Array(data);
+      }
+
+      // Convert F32 to F16
       const f16 = new Uint16Array(f32.length);
       for (let i = 0; i < f32.length; i++) {
         f16[i] = float32ToFloat16(f32[i]);
@@ -313,7 +341,7 @@ async function convertSafetensors(
     shardSize: opts.shardSize * 1024 * 1024,
     modelId: opts.modelId || basename(inputPath),
     architecture: arch,
-    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : 'F32',
+    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : originalDtype,
   };
 
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
@@ -330,34 +358,58 @@ async function convertGGUF(
   const parsed = await parseGGUFFile(inputPath);
   log(`Found ${parsed.tensors.length} tensors`);
 
-  // Extract model config from GGUF metadata
-  const metadata = parsed.config;
-  const arch = (metadata.general_architecture as string) || 'llama';
-  const modelName = (metadata.general_name as string) || basename(inputPath, '.gguf');
+  // Use the already parsed GGUF config
+  const ggufConfig = parsed.config;
+  const arch = ggufConfig.architecture || parsed.architecture || 'llama';
+  const modelName = parsed.modelName || basename(inputPath, '.gguf');
 
+  // Map GGUF config to HuggingFace-style config that DOPPLER expects
   const config: Record<string, unknown> = {
-    architectures: [arch],
+    architectures: [arch + 'ForCausalLM'], // e.g., "gemma2" -> "gemma2ForCausalLM"
     model_type: arch,
-    hidden_size: metadata[`${arch}.embedding_length`] || metadata.embedding_length,
-    num_hidden_layers: metadata[`${arch}.block_count`] || metadata.block_count,
-    num_attention_heads: metadata[`${arch}.attention.head_count`] || metadata.head_count,
-    num_key_value_heads: metadata[`${arch}.attention.head_count_kv`] || metadata.head_count_kv,
-    vocab_size: metadata[`${arch}.vocab_size`] || metadata.vocab_size,
-    intermediate_size: metadata[`${arch}.feed_forward_length`] || metadata.feed_forward_length,
-    rms_norm_eps: metadata[`${arch}.attention.layer_norm_rms_epsilon`] || 1e-5,
-    rope_theta: metadata[`${arch}.rope.freq_base`] || 10000,
-    max_position_embeddings: metadata[`${arch}.context_length`] || 4096,
+    hidden_size: ggufConfig.embeddingLength,
+    num_hidden_layers: ggufConfig.blockCount,
+    num_attention_heads: ggufConfig.attentionHeadCount,
+    num_key_value_heads: ggufConfig.attentionHeadCountKV,
+    vocab_size: ggufConfig.vocabSize,
+    intermediate_size: ggufConfig.feedForwardLength,
+    rms_norm_eps: ggufConfig.attentionLayerNormRMSEpsilon || ggufConfig.attentionLayerNormEpsilon || 1e-5,
+    rope_theta: ggufConfig.ropeFreqBase || 10000,
+    max_position_embeddings: ggufConfig.contextLength || 8192,
   };
 
   log(`Architecture: ${arch}`);
   log(`Model: ${modelName}`);
 
   const tensors = parsed.tensors;
+
+  // Extract tokenizer from GGUF
+  const ggufTokenizer = ggufConfig.tokenizer;
+  log(`Tokenizer: ${ggufTokenizer?.model || 'unknown'}, ${ggufTokenizer?.tokens?.length || 0} tokens`);
+
   const modelInfo: ModelInfo = {
     modelName: opts.modelId || modelName,
     architecture: arch,
     quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : parsed.quantization || 'F32',
     config,
+    // Pass GGUF tokenizer data for bundling
+    tokenizer: ggufTokenizer ? {
+      model: ggufTokenizer.model,
+      tokens: ggufTokenizer.tokens,
+      scores: ggufTokenizer.scores,
+      tokenTypes: ggufTokenizer.tokenTypes,
+      merges: ggufTokenizer.merges,
+      bosTokenId: ggufTokenizer.bosTokenId,
+      eosTokenId: ggufTokenizer.eosTokenId,
+      padTokenId: ggufTokenizer.padTokenId,
+      unkTokenId: ggufTokenizer.unkTokenId,
+      sepTokenId: ggufTokenizer.sepTokenId,
+      clsTokenId: ggufTokenizer.clsTokenId,
+      maskTokenId: ggufTokenizer.maskTokenId,
+      addBosToken: ggufTokenizer.addBosToken,
+      addEosToken: ggufTokenizer.addEosToken,
+      addSpacePrefix: ggufTokenizer.addSpacePrefix,
+    } : undefined,
     tensors: tensors.map(t => ({
       name: t.name,
       shape: t.shape,
@@ -387,7 +439,8 @@ async function convertGGUF(
       quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : parsed.quantization || 'F32',
     };
 
-    return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
+    const result = await writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
+    return result;
   } finally {
     await fileHandle.close();
   }

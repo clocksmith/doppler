@@ -75,6 +75,11 @@ The incumbent. Uses Apache TVM compiler for optimized WebGPU kernels.
 
 Source: [WebLLM GitHub #683](https://github.com/mlc-ai/web-llm/issues/683), Dec 2025
 
+**Notable missing models (as of Dec 2025):**
+- **Gemma 3** (all variants) - DOPPLER's opportunity
+- **Llama 3.3** - Latest Llama release
+- **Phi-4** - Latest Microsoft model
+
 **Quantization formats:** q4f16 (4-bit weights, f16 compute), q4f32, q0f16, q0f32
 
 **API:** OpenAI-compatible
@@ -233,6 +238,23 @@ From [ACM WWW 2025](https://dl.acm.org/doi/10.1145/3696410.3714553):
 
 **Reading speed reference:** 25-30 tok/s is considered above human reading speed.
 
+### User-Collected Benchmarks (December 2025)
+
+**Hardware:** MacBook M3 Air 24GB, Chrome
+
+| Framework | Model | Prefill | Decode | Notes |
+|-----------|-------|---------|--------|-------|
+| **WebLLM** | gemma-2-9b-it-q4f16_1-MLC | 42.5 tok/s | **11.2 tok/s** | chat.webllm.ai |
+| **Doppler** | gemma-3-1b-it-q4 | TBD | TBD | Needs testing |
+| **MediaPipe** | Gemma-3-1B-LiteRT | TBD | TBD | Access gated |
+
+**Benchmark prompt:** `The color of the sky is`
+
+**Key observations:**
+- WebLLM decode speed (11.2 tok/s) is the baseline to beat on M3 Air
+- MediaPipe models transitioning from Kaggle to HuggingFace `litert-community` - currently gated
+- Doppler 1B model should theoretically be faster than WebLLM 9B model
+
 ---
 
 ### Transformers.js (Hugging Face)
@@ -291,6 +313,27 @@ Source: [MediaPipe Web Guide](https://ai.google.dev/edge/mediapipe/solutions/gen
 **Key insight:** Google solved 2GB ArrayBuffer limit with custom data copying routines.
 
 **Limitation:** Primarily Gemma-focused, limited non-Google model support.
+
+**Key insight (Dec 2025):** MediaPipe uses **LiteRT (WASM-based)**, NOT pure WebGPU. This may create a performance gap vs WebGPU-native frameworks like DOPPLER and WebLLM.
+
+**Access status (Dec 2025):**
+- Models transitioning from Kaggle to HuggingFace `litert-community`
+- Models are **gated** - require HuggingFace approval
+- New LiteRT-LM format (`.litertlm`) replacing `.task` files
+- Demo: https://mediapipe-studio.webapps.google.com/studio/demo/llm_inference
+
+---
+
+## Doppler Competitive Advantages (December 2025)
+
+| Advantage | vs WebLLM | vs MediaPipe | vs Transformers.js |
+|-----------|-----------|--------------|-------------------|
+| **Gemma 3 support** | They don't have it | Gated access | Crashes (#1469) |
+| **Pure WebGPU** | Draw (both WebGPU) | LiteRT uses WASM | Draw |
+| **No access gates** | Draw | HF approval needed | Draw |
+| **Custom WGSL kernels** | TVM black-box | LiteRT runtime | ONNX ops |
+| **MoE support** | Both have it | No MoE | No MoE |
+| **Flash Attention** | TVM-compiled | Unknown | No |
 
 ---
 

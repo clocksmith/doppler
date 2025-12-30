@@ -512,11 +512,18 @@ Builds RDRR shards from GGUF inputs in-browser.
 
 ### model-converter.ts - Browser Conversion
 
-Converts source formats into RDRR with progress reporting.
+Converts source formats into RDRR with progress reporting. Uses shared types and functions from `tools/convert-core.ts` for consistent manifest generation and architecture extraction.
 
 ---
 
 ## 8. Tools (`tools/`)
+
+### convert-core.ts - Shared Conversion Core
+
+Platform-agnostic types and pure functions shared between CLI and browser converters:
+- **Types**: `TensorInfo`, `ParsedModel`, `ConvertOptions`, `RDRRManifest`, `ShardInfo`, `TensorLocation`
+- **Functions**: `sanitizeModelId()`, `formatBytes()`, `shouldQuantize()`, `extractArchitecture()`, `buildTensorMap()`, `createManifest()`
+- **I/O Adapter**: `ConvertIO` interface for platform-specific file operations
 
 ### convert-cli.ts - Model Conversion
 
@@ -714,7 +721,9 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 | `storage/rdrr-format.ts` | 363 | RDRR format parsing |
 | `storage/shard-manager.ts` | 764 | OPFS shard management |
 | `tools/quantizer.ts` | 349 | Q4_K quantization |
-| `tools/convert-cli.ts` | 599 | Model conversion CLI |
+| `tools/convert-core.ts` | 400 | Shared conversion types/functions |
+| `tools/convert-cli.ts` | 476 | Model conversion CLI |
+| `browser/model-converter.ts` | 597 | Browser model conversion |
 
 ---
 
