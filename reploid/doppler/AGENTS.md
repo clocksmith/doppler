@@ -72,9 +72,11 @@ npm run bench -- --kernels      # Kernel microbenchmarks
 npm run bench -- --runs 3       # Multiple runs
 
 # DEBUG - Debugging (why is it broken?)
-npm run debug                   # Debug with kernel trace enabled
+npm run debug                   # Debug with all trace categories enabled
 npm run debug -- --break        # Stop on first anomaly (NaN/explosion)
-npm run debug -- --trace-layers 0,5  # Trace specific layers
+npm run debug -- --trace kernels,attn  # Trace specific categories
+npm run debug -- --trace all,-buffers  # All except expensive buffer stats
+npm run debug -- --layers 0,5   # Filter to specific layers
 ```
 
 ### Common CLI Flags
@@ -83,32 +85,44 @@ npm run debug -- --trace-layers 0,5  # Trace specific layers
 |------|-------------|---------|
 | `--model, -m <name>` | Model to use | `gemma-3-1b-it-q4` |
 | `--verbose, -v` | Verbose loader logs | off |
-| `--trace` | Trace-level logs | off (on for debug) |
-| `--quiet` | Suppress logs | off |
+| `--trace [cats]` | Trace categories (all if no arg) | off (on for debug) |
+| `--quiet, -q` | Suppress logs | off |
+| `--layers <n,n>` | Filter trace to specific layers | all |
 | `--headed` | Show browser window | off (headless default) |
 | `--timeout <ms>` | Test timeout | 120000 |
 | `--output, -o <file>` | Save JSON results | none |
 | `--kernel-profile, -k` | Preset: fast/safe/debug/fused/apple | none |
 
 ### Log Levels
-Control loader output verbosity with CLI flags or browser URL params:
+Control output verbosity:
 
-| CLI Flag | URL Param | Level | Shows |
-|----------|-----------|-------|-------|
-| (default) | `?log=info` | info | Phase starts/ends, totals |
-| `--verbose` | `?log=verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
-| `--trace` | `?log=trace` | trace | + Tensor shapes, dequant ops, buffer details |
-| `--quiet` | `?log=silent` | silent | Errors only |
+| CLI Flag | URL Param | Shows |
+|----------|-----------|-------|
+| (default) | `?log=info` | Phase starts/ends, totals |
+| `--verbose, -v` | `?log=verbose` | + Per-shard source, per-layer timing |
+| `--debug` | `?log=debug` | Full debug output |
+| `--quiet, -q` | `?log=silent` | Errors only |
+
+### Trace Categories
+Control what gets traced with modular categories:
+
+| CLI | URL | Effect |
+|-----|-----|--------|
+| `--trace` | `?trace=all` | All trace categories |
+| `--trace kernels,logits` | `?trace=kernels,logits` | Specific categories |
+| `--trace all,-buffers` | `?trace=all,-buffers` | All except buffers |
+
+**Categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`
 
 **Defaults by mode:**
-- `test`, `bench`: info (clean output)
-- `debug`: verbose (shows shard sources and layer timing)
+- `test`, `bench`: trace off (clean output)
+- `debug`: `--trace` enabled (all categories)
 
 **Shard source logs (verbose+):**
 ```
 [Loader] Shard 0: RAM (64.0 MB)
 [Loader] Shard 1: OPFS (64.0 MB, 0.05s)
-[Loader]  Shard 2: network (64.0 MB, 0.31s @ 206.5 MB/s)
+[Loader] Shard 2: network (64.0 MB, 0.31s @ 206.5 MB/s)
 ```
 
 ### Guardrails

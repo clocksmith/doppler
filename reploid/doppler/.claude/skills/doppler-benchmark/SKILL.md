@@ -53,11 +53,14 @@ npm run bench -- --compare baseline.json
 | `--output, -o` | JSON output path | (none) |
 | `--compare, -c` | Baseline JSON for comparison | (none) |
 | `--verbose, -v` | Verbose loader logs (per-shard/layer) | false |
-| `--trace` | Trace-level logs (tensor details) | false |
-| `--quiet` | Suppress all loader logs | false |
+| `--trace [cats]` | Trace categories (all if no arg) | false |
+| `--quiet, -q` | Suppress all loader logs | false |
 | `--headed` | Show browser window | false (headless default) |
 
-**Log Levels:** `?log=silent|info|verbose|trace` in browser URL
+**Log Levels:** `?log=silent|info|verbose|debug` in browser URL
+**Trace Categories:** `?trace=kernels,logits` or `?trace=all,-buffers`
+
+Available trace categories: `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`
 
 **Auto-generated outputs:**
 ```

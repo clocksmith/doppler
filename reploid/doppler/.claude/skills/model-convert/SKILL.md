@@ -60,7 +60,7 @@ npm run bench
 # http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>
 ```
 
-**Log Levels:** Add `--verbose` for per-shard/layer timing, `--trace` for tensor details.
+**Log Levels:** Add `--verbose` for per-shard/layer timing, `--trace` for tensor details (or `--trace loader` for just loader trace).
 
 ## Workflow
 

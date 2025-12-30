@@ -78,14 +78,20 @@ If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused 
 ### Step 2: Debug with Kernel Trace
 
 ```bash
-# Debug mode with trace enabled by default
+# Debug mode with trace enabled by default (all categories)
 npm run debug
 
 # Break on first anomaly (NaN/Inf/explosion)
 npm run debug -- --break
 
-# Trace specific layers
-npm run debug -- --trace-layers 0,5,10
+# Trace specific categories
+npm run debug -- --trace kernels,attn
+
+# Trace all except expensive buffer readbacks
+npm run debug -- --trace all,-buffers
+
+# Filter to specific layers
+npm run debug -- --layers 0,5,10
 ```
 
 The kernel trace shows exactly where values explode:
@@ -195,14 +201,20 @@ npm test -- --filter q4k          # Q4K quantized matmul tests
 ### Inference Debugging
 
 ```bash
-# Debug mode with trace enabled by default
+# Debug mode with all trace categories enabled
 npm run debug
 
-# Explicit trace flag (same as default)
-npm run debug -- --trace
+# Specific trace categories
+npm run debug -- --trace kernels,logits
+
+# All categories except expensive buffer stats
+npm run debug -- --trace all,-buffers
 
 # Break on first anomaly
 npm run debug -- --break
+
+# Filter to specific layers
+npm run debug -- --layers 0,5
 
 # Watch trace output
 npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
@@ -210,18 +222,30 @@ npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
 
 ### Log Levels
 
-Control loader output verbosity:
+Control output verbosity:
 
-| Flag | Level | Shows |
-|------|-------|-------|
-| (default) | `info` | Phase starts/ends, totals |
-| `--verbose` | `verbose` | + Per-shard source, per-layer timing |
-| `--trace` | `trace` | + Tensor shapes, dequant ops, buffer details |
-| `--quiet` | `silent` | Errors only |
+| Flag | URL Param | Shows |
+|------|-----------|-------|
+| (default) | `?log=info` | Phase starts/ends, totals |
+| `--verbose, -v` | `?log=verbose` | + Per-shard source, per-layer timing |
+| `--debug` | `?log=debug` | + Full debug output |
+| `--quiet, -q` | `?log=silent` | Errors only |
 
-**Browser URL:** `?log=verbose` or `?log=trace`
+### Trace Categories (Modular)
 
-**Debug mode defaults to `trace`** - shows tensor shapes, dequant ops, and value explosions.
+Control what gets traced with categories:
+
+| CLI | URL | Effect |
+|-----|-----|--------|
+| `--trace` | `?trace=all` | Enable all trace categories |
+| `--trace kernels,logits` | `?trace=kernels,logits` | Specific categories |
+| `--trace all,-buffers` | `?trace=all,-buffers` | All except buffers |
+
+**Available categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`
+
+**Expensive:** `buffers` does GPU readbacks - exclude unless needed.
+
+**Debug mode defaults to `--trace`** (all categories) - shows tensor shapes, kernel execution, and value explosions.
 
 ### Benchmarking
 
