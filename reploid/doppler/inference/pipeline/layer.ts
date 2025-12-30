@@ -261,7 +261,7 @@ async function doMatmulRMSNormFused(
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder) {
-    await traceStep('matmul_rmsnorm_fused', options.label ?? 'ffn_fused', options.layerIdx ?? -1, result, [1, options.N]);
+    await traceStep('fused_matmul_rmsnorm', options.label ?? 'fused_matmul_rmsnorm', options.layerIdx ?? -1, result, [1, options.N]);
   }
 
   return result;
@@ -810,26 +810,27 @@ async function processFFNWithSandwichNorm(
   if (context.debug && device && !recorder) {
     if (allowReadback(`layer.output.${layerIdx}`)) {
       try {
-        const fullSize = output.size;
-        const staging = device.createBuffer({ size: fullSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        // Only read valid elements (numTokens * hiddenSize), not full pooled buffer
+        const validSize = numTokens * hiddenSize * 4;
+        const staging = device.createBuffer({ size: validSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
         const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(output, 0, staging, 0, fullSize);
+        enc.copyBufferToBuffer(output, 0, staging, 0, validSize);
         device.queue.submit([enc.finish()]);
         await staging.mapAsync(GPUMapMode.READ);
         const data = new Float32Array(staging.getMappedRange().slice(0));
         staging.unmap();
         staging.destroy();
-        // Find max value and its position
+        // Find max value and its position within valid range
         let maxAbs = 0;
         let maxIdx = -1;
         for (let i = 0; i < data.length; i++) {
           const abs = Math.abs(data[i]);
           if (abs > maxAbs) { maxAbs = abs; maxIdx = i; }
         }
-        // Calculate which token this is (hiddenSize = 1152 for Gemma 3 1B)
+        // Calculate which token this is
         const tokenIdx = Math.floor(maxIdx / hiddenSize);
         const dimIdx = maxIdx % hiddenSize;
-        console.log(`[LAYER_OUT] L${layerIdx}: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), bufSize=${data.length}`);
+        console.log(`[LAYER_OUT] L${layerIdx}: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
       } catch (e) { /* ignore */ }
     }
   }
@@ -1338,7 +1339,7 @@ async function runDenseFFNWithFusedPostNormGPU(
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(output, 'ffn_fused_out', {
+    await dumpTokenVector(output, 'fused_ffn_out', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: hiddenSize,

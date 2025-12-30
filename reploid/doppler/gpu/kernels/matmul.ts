@@ -91,8 +91,11 @@ export function selectMatmulKernel(options: MatmulOptions = {}): string {
     return useVec4 ? 'f16_vec4' : 'f16';
   }
 
-  // Mixed precision: f32 activations, f16 weights, f32 output.
-  if (outputDtype === 'f32' && preferF16 && weightsAreF16 && capabilities.hasF16) {
+  // Mixed precision: f32 activations, f16 weights.
+  // Use f16w_f32a kernel regardless of output dtype - it will produce f32 output,
+  // and cast to f16 if needed afterwards. This is better than using f32 kernel
+  // which can't read f16 weights at all!
+  if (preferF16 && weightsAreF16 && capabilities.hasF16) {
     return 'f16w_f32a';
   }
 

@@ -24,7 +24,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
 
       try {
         // Fetch the fused FFN shader
-        const response = await fetch('/gpu/kernels/ffn_fused.wgsl');
+        const response = await fetch('/gpu/kernels/fused_ffn.wgsl');
         if (!response.ok) {
           return { success: false, error: `Failed to fetch shader: ${response.status}` };
         }
@@ -32,7 +32,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
 
         // Try to compile it
         const module = gpu.device.createShaderModule({
-          label: 'ffn_fused_test',
+          label: 'fused_ffn_test',
           code: source,
         });
 

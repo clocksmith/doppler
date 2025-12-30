@@ -7,9 +7,9 @@
 | Category | Count | Examples |
 |----------|-------|----------|
 | Attention | 9 | `attention.wgsl`, `attention_decode_*.wgsl` |
-| Matmul | 8 | `matmul_f16.wgsl`, `matmul_q4_fused.wgsl`, `matmul_gemv*.wgsl` |
+| Matmul | 8 | `matmul_f16.wgsl`, `fused_matmul_q4.wgsl`, `matmul_gemv*.wgsl` |
 | Dequant | 5 | `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
-| Fused | 3 | `ffn_fused.wgsl`, `matmul_rmsnorm_fused.wgsl` |
+| Fused | 4 | `fused_ffn.wgsl`, `fused_matmul_rmsnorm.wgsl`, `fused_matmul_q4.wgsl`, `fused_swiglu.wgsl` |
 | Other | 16 | `rmsnorm.wgsl`, `rope.wgsl`, `softmax.wgsl`, `silu.wgsl` |
 
 ## Reusability Mechanisms
@@ -92,7 +92,7 @@ fn main() {
 
 | Kernel | Entry Points | Purpose |
 |--------|-------------|---------|
-| `matmul_q4_fused.wgsl` | 3 | Q4_K quantized matmul (GEMV, multicol, batched) |
+| `fused_matmul_q4.wgsl` | 3 | Q4_K quantized matmul (GEMV, multicol, batched) |
 | `rmsnorm.wgsl` | 4 | RMSNorm with optional fused residual |
 | `attention.wgsl` | 2 | Prefill attention (small/large) |
 | `attention_decode_*.wgsl` | 1-3 | Decode attention variants |
@@ -100,9 +100,9 @@ fn main() {
 
 ## Naming Conventions
 
+- `fused_*.wgsl` - Multiple ops in one kernel (fused_ffn, fused_matmul_rmsnorm, etc.)
 - `*_f16.wgsl` - F16 weights/activations
 - `*_f32.wgsl` - F32 weights/activations
 - `*_q4*.wgsl` - Q4_K quantized
-- `*_fused.wgsl` - Multiple ops in one kernel
 - `*_subgroup.wgsl` - Uses subgroup operations
 - `*_decode*.wgsl` - Optimized for M=1 decode

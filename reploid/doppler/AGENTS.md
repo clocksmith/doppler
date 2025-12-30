@@ -44,18 +44,31 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 - **Kernels:** Custom WGSL shaders for RMSNorm, attention, FFN operations
 - **OPFS:** Origin Private File System for persistent model storage
 
-### CLI Commands (4 modes)
+### CLI Commands (5 scripts)
+
+| Script | Purpose | Page Launched |
+|--------|---------|---------------|
+| `npm start` | Dev server | `http://localhost:8080/` (index.html) |
+| `npm test` | Kernel correctness | `/doppler/kernel-tests/browser/index.html` |
+| `npm run bench` | Performance | `/doppler/tests/test-inference.html` |
+| `npm run debug` | Debugging | `/doppler/tests/test-inference.html?debug=1` |
+| `npm run build` | Compile TS | (no browser) |
+
 ```bash
-npm start                       # Serve demo app
+# START - Dev server
+npm start                       # Serve at localhost:8080
+npm start -- --port 3000        # Custom port
+npm start -- --open             # Auto-open browser
 
 # TEST - Correctness (does it work?)
 npm test                        # Quick kernel tests
-npm test -- inference           # Model loads + generates (smoke test)
-npm test -- all                 # Full test suite
+npm test -- --inference         # Model loads + generates (smoke test)
+npm test -- --full              # Full test suite
+npm test -- --filter matmul     # Filter to specific kernel
 
 # BENCH - Performance (how fast?)
 npm run bench                   # Full inference benchmark (tok/s)
-npm run bench -- kernels        # Kernel microbenchmarks
+npm run bench -- --kernels      # Kernel microbenchmarks
 npm run bench -- --runs 3       # Multiple runs
 
 # DEBUG - Debugging (why is it broken?)
@@ -63,6 +76,19 @@ npm run debug                   # Debug with kernel trace enabled
 npm run debug -- --break        # Stop on first anomaly (NaN/explosion)
 npm run debug -- --trace-layers 0,5  # Trace specific layers
 ```
+
+### Common CLI Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--model, -m <name>` | Model to use | `gemma-3-1b-it-q4` |
+| `--verbose, -v` | Verbose loader logs | off |
+| `--trace` | Trace-level logs | off (on for debug) |
+| `--quiet` | Suppress logs | off |
+| `--headless` | No browser window | off |
+| `--timeout <ms>` | Test timeout | 120000 |
+| `--output, -o <file>` | Save JSON results | none |
+| `--kernel-profile, -k` | Preset: fast/safe/debug/fused/apple | none |
 
 ### Log Levels
 Control loader output verbosity with CLI flags or browser URL params:

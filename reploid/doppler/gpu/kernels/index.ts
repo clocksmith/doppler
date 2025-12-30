@@ -159,7 +159,7 @@ export {
   calculateFusedFFNSavings,
   type FusedFFNOptions,
   type FFNActivation,
-} from './ffn_fused.js';
+} from './fused_ffn.js';
 
 // Fused Matmul + RMSNorm (P0 - 1.2-1.5x decode speedup)
 export {
@@ -168,10 +168,10 @@ export {
   recordMatmulRMSNormFused,
   shouldUseFusedMatmulRMSNorm,
   type MatmulRMSNormFusedOptions,
-} from './matmul_rmsnorm_fused.js';
+} from './fused_matmul_rmsnorm.js';
 
 // Re-export for convenience in layer.ts integration
-export { recordMatmulRMSNormFused as doRecordMatmulRMSNormFused } from './matmul_rmsnorm_fused.js';
+export { recordMatmulRMSNormFused as doRecordMatmulRMSNormFused } from './fused_matmul_rmsnorm.js';
 
 // Re-export CommandRecorder types for convenience
 export {

@@ -151,7 +151,7 @@ function parseArgs(argv: string[]): CLIOptions {
   const opts: CLIOptions = {
     command: 'test',
     suite: 'quick',
-    model: 'llama-3.2-1b-instruct-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
+    model: 'gemma-3-1b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     noServer: false,
     headless: false,  // Default to headed (required for GPU access)

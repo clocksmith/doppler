@@ -8,6 +8,7 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
+| [Buffer Pool Trace False Positives](#buffer-pool-trace-false-positives) | Dec 2025 | RESOLVED | Trace reading garbage from buffer pool padding |
 | [Gemma 3 q_norm/k_norm Offset](#gemma3-qknorm-offset) | Dec 2025 | RESOLVED | Missing +1 offset for q_norm/k_norm weights |
 | [Gemma 3 Magnitude Gap](#gemma3-magnitude-gap) | Dec 2025 | SUPERSEDED | Superseded by q_norm/k_norm fix |
 | [Gemma 3 Q4K Garbage Output](#gemma3-1b-q4k-garbage-output) | Dec 2025 | RESOLVED | Q4K layout mismatch + q_norm offset |
@@ -22,6 +23,14 @@ Quick reference for debugging history and lessons learned.
 ---
 
 ## Post-Mortem Details
+
+### Buffer-Pool-Trace-False-Positives
+
+**Status:** RESOLVED | **File:** [BUFFER-POOL-TRACE-FALSE-POSITIVES-2025-12-30.md](BUFFER-POOL-TRACE-FALSE-POSITIVES-2025-12-30.md)
+
+Kernel trace showed alarming "explosions" with values 78714.59 and 462351.88 during decode. These were false positives caused by trace system reading garbage from buffer pool padding. Buffer pool rounds up allocations (4608→8192 bytes), so decode buffers had 896 floats of stale/uninitialized data. Trace iterated over full `arr.length` instead of valid element count from shape. Key clue: "token=1" in single-token decode is impossible. Fix: use shape to bound iteration in `snapshotFromArray()` and debug readbacks. Also fixed matmul kernel selection (f16w_f32a) and fused kernel naming mismatch.
+
+---
 
 ### Gemma3-QKNorm-Offset
 
@@ -127,6 +136,8 @@ Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings
 - Sampling only first N values hides real distribution
 - Command batching affects readback timing
 - Position-specific values differ from global stats
+- Buffer pool padding contains garbage - always use shape to bound reads
+- "token=1" in single-token decode means reading out of bounds
 
 ---
 

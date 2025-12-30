@@ -96,7 +96,7 @@ export async function runMatmulRMSNormFused(
     console.log(`[MatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
   }
 
-  const pipeline = await createPipeline('matmul_rmsnorm_fused', variant);
+  const pipeline = await createPipeline('fused_matmul_rmsnorm', variant);
 
   // Output buffer: [1, N] floats
   const outputSize = N * 4;
@@ -183,7 +183,7 @@ export async function recordMatmulRMSNormFused(
     console.log(`[recordMatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
   }
 
-  const pipeline = await createPipeline('matmul_rmsnorm_fused', variant);
+  const pipeline = await createPipeline('fused_matmul_rmsnorm', variant);
 
   // Output buffer
   const outputSize = N * 4;
@@ -258,9 +258,9 @@ export function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean {
     return false;
   }
 
-  // Currently only enable for small N where single-workgroup is efficient
-  // TODO: Implement multi-workgroup medium variant for larger N
-  if (N > WG_SIZE) {
+  // Enable for small and medium N where single-workgroup is efficient
+  // Medium variant handles N up to 4096 (e.g., Gemma 3 hiddenSize=1152)
+  if (N > MAX_MEDIUM_N) {
     return false;
   }
 

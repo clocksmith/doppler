@@ -131,7 +131,10 @@ export function snapshotFromArray(
   let infCount = 0;
   let validCount = 0;
 
-  for (let i = 0; i < arr.length; i++) {
+  // Only iterate over valid elements based on shape, not full buffer (pool may have padding)
+  const numElements = shape.reduce((a, b) => a * b, 1);
+  const limit = Math.min(arr.length, numElements);
+  for (let i = 0; i < limit; i++) {
     const v = arr[i];
     if (Number.isNaN(v)) {
       nanCount++;

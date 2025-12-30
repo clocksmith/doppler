@@ -37,6 +37,24 @@ npm run debug
 
 ---
 
+## Step 0: Check Known Issues First
+
+Before debugging, scan the postmortems for known patterns. The current issue may be related, but may not be.
+
+```bash
+cat docs/postmortems/INDEX.md | grep -A 30 "Common Patterns"
+```
+
+Common failure patterns:
+- Garbage Unicode → Q4K layout or matmul transposeB
+- "token=1" in single-token decode → buffer pool padding (false positive)
+- Silent kernel failures → WebGPU 'auto' layout issues
+- Gemma 3 norms → check +1 weight offset
+
+Full history: `docs/postmortems/INDEX.md`
+
+---
+
 ## CLI Commands (3 Distinct Modes)
 
 ```bash
@@ -45,7 +63,7 @@ npm run bench    # Performance (tok/s benchmarks)
 npm run debug    # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
 ```
 
-## CRITICAL: Systematic Debugging Workflow
+## Systematic Debugging Workflow
 
 ### Step 1: Run Kernel Correctness Tests FIRST
 

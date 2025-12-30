@@ -106,20 +106,20 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
     },
     // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
     q4_fused: {
-      shaderFile: 'matmul_q4_fused.wgsl',
+      shaderFile: 'fused_matmul_q4.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
     },
     q4_fused_batched: {
-      shaderFile: 'matmul_q4_fused.wgsl',
+      shaderFile: 'fused_matmul_q4.wgsl',
       entryPoint: 'main_batched',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
     },
     // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
     q4_fused_multicol: {
-      shaderFile: 'matmul_q4_fused.wgsl',
+      shaderFile: 'fused_matmul_q4.wgsl',
       entryPoint: 'main_multicol',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
@@ -132,27 +132,27 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
     },
   },
   // Fused FFN kernels (Tier 2 P0)
-  ffn_fused: {
+  fused_ffn: {
     default: {
-      shaderFile: 'ffn_fused.wgsl',
+      shaderFile: 'fused_ffn.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['subgroups'],
     },
     multi: {
-      shaderFile: 'ffn_fused.wgsl',
+      shaderFile: 'fused_ffn.wgsl',
       entryPoint: 'main_multi',
       workgroupSize: [256, 1, 1],
       requires: ['subgroups'],
     },
     f16: {
-      shaderFile: 'ffn_fused.wgsl',
+      shaderFile: 'fused_ffn.wgsl',
       entryPoint: 'main_f16',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
     },
     batched: {
-      shaderFile: 'ffn_fused.wgsl',
+      shaderFile: 'fused_ffn.wgsl',
       entryPoint: 'main_batched',
       workgroupSize: [256, 1, 1],
       requires: ['subgroups'],
@@ -371,28 +371,28 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
   },
   // Fused GEMV + RMSNorm for decode (M=1)
   // Combines down projection matmul with RMSNorm in single kernel
-  matmul_rmsnorm_fused: {
+  fused_matmul_rmsnorm: {
     default: {
-      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      shaderFile: 'fused_matmul_rmsnorm.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     small: {
-      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      shaderFile: 'fused_matmul_rmsnorm.wgsl',
       entryPoint: 'gemv_rmsnorm_small',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     // Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)
     medium: {
-      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      shaderFile: 'fused_matmul_rmsnorm.wgsl',
       entryPoint: 'gemv_rmsnorm_medium',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     phase1: {
-      shaderFile: 'matmul_rmsnorm_fused.wgsl',
+      shaderFile: 'fused_matmul_rmsnorm.wgsl',
       entryPoint: 'gemv_rmsnorm_phase1',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -629,7 +629,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
   },
   swiglu: {
     rowsplit_bias: {
-      shaderFile: 'swiglu.wgsl',
+      shaderFile: 'fused_swiglu.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],

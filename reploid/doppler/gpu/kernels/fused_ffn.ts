@@ -1,6 +1,9 @@
 /**
  * Fused FFN Kernel (Tier 2 P0)
  *
+ * EXPERIMENTAL: Not currently wired into layer.ts.
+ * Complete gate+up fusion kernel, kept for future integration.
+ *
  * Fuses gate + up weight projections with activation for:
  * - 2x reduction in input reads
  * - Elimination of intermediate buffers

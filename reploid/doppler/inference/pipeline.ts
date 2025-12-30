@@ -1087,7 +1087,9 @@ export class InferencePipeline {
 
     // Debug: check embedding output for decode step 1
     if (opts.debug && this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
-      const embedData = await readBuffer(hiddenStates);
+      // Only read valid elements (1 token * hiddenSize), not full pooled buffer
+      const validSize = config.hiddenSize * 4;
+      const embedData = await readBuffer(hiddenStates, validSize);
       const embedArr = new Float32Array(embedData);
       const sample = embedArr.slice(0, 5);
       const maxAbs = Math.max(...embedArr.map(Math.abs));
