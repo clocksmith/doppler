@@ -8,203 +8,207 @@
  * because count_and_map and gather_tokens use different subsets of bindings.
  *
  * Input:
- *   - hiddenStates [numTokens, hiddenSize]
- *   - indices [numTokens, topK] - selected expert indices per token
+ *   - hidden_states [num_tokens, hidden_size]
+ *   - indices [num_tokens, top_k] - selected expert indices per token
  *
  * Output:
- *   - gathered [numExperts, maxTokensPerExpert, hiddenSize]
- *   - tokenCounts [numExperts] - actual token count per expert
- *   - tokenMap [numExperts, maxTokensPerExpert] - original token index mapping
+ *   - gathered [num_experts, max_tokens_per_expert, hidden_size]
+ *   - token_counts [num_experts] - actual token count per expert
+ *   - token_map [num_experts, max_tokens_per_expert] - original token index mapping
  */
 
-struct MoEGatherUniforms {
-    numTokens: u32,          // Number of input tokens
-    hiddenSize: u32,         // Hidden dimension
-    numExperts: u32,         // Number of experts
-    topK: u32,               // Number of experts per token
-    maxTokensPerExpert: u32, // Max tokens any expert can receive
+// Tunable workgroup sizes
+override WORKGROUP_SIZE_MAIN: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
+
+struct Uniforms {
+    num_tokens: u32,            // Number of input tokens
+    hidden_size: u32,           // Hidden dimension
+    num_experts: u32,           // Number of experts
+    top_k: u32,                 // Number of experts per token
+    max_tokens_per_expert: u32, // Max tokens any expert can receive
     _pad1: u32,
     _pad2: u32,
     _pad3: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: MoEGatherUniforms;
-@group(0) @binding(1) var<storage, read> hiddenStates: array<f32>;      // [numTokens, hiddenSize]
-@group(0) @binding(2) var<storage, read> expertIndices: array<u32>;     // [numTokens, topK]
-@group(0) @binding(3) var<storage, read_write> gathered: array<f32>;    // [numExperts, maxTokensPerExpert, hiddenSize]
-@group(0) @binding(4) var<storage, read_write> tokenCounts: array<atomic<u32>>; // [numExperts]
-@group(0) @binding(5) var<storage, read_write> tokenMap: array<u32>;    // [numExperts, maxTokensPerExpert, 2] (tokenIdx, kIdx)
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> hidden_states: array<f32>;      // [num_tokens, hidden_size]
+@group(0) @binding(2) var<storage, read> expert_indices: array<u32>;     // [num_tokens, top_k]
+@group(0) @binding(3) var<storage, read_write> gathered: array<f32>;     // [num_experts, max_tokens_per_expert, hidden_size]
+@group(0) @binding(4) var<storage, read_write> token_counts: array<atomic<u32>>; // [num_experts]
+@group(0) @binding(5) var<storage, read_write> token_map: array<u32>;    // [num_experts, max_tokens_per_expert, 2] (token_idx, k_idx)
 
 // Phase 1: Count tokens per expert and build token map
-// Run with numTokens * topK threads
-@compute @workgroup_size(256, 1, 1)
+// Run with num_tokens * top_k threads
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn count_and_map(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let totalSlots = uniforms.numTokens * uniforms.topK;
+    let total_slots = u.num_tokens * u.top_k;
 
-    if (tid >= totalSlots) {
+    if (tid >= total_slots) {
         return;
     }
 
-    let tokenIdx = tid / uniforms.topK;
-    let kIdx = tid % uniforms.topK;
-    let expertIdx = expertIndices[tid];
+    let token_idx = tid / u.top_k;
+    let k_idx = tid % u.top_k;
+    let expert_idx = expert_indices[tid];
 
     // Atomically increment token count for this expert and get slot
-    let slot = atomicAdd(&tokenCounts[expertIdx], 1u);
+    let slot = atomicAdd(&token_counts[expert_idx], 1u);
 
     // Store mapping: which original token goes to this slot
-    if (slot < uniforms.maxTokensPerExpert) {
-        let mapBase = expertIdx * uniforms.maxTokensPerExpert * 2u + slot * 2u;
-        tokenMap[mapBase] = tokenIdx;
-        tokenMap[mapBase + 1u] = kIdx;
+    if (slot < u.max_tokens_per_expert) {
+        let map_base = expert_idx * u.max_tokens_per_expert * 2u + slot * 2u;
+        token_map[map_base] = token_idx;
+        token_map[map_base + 1u] = k_idx;
     }
 }
 
 // Phase 2: Gather hidden states based on token map
-// Run with numExperts * maxTokensPerExpert * (hiddenSize / 4) threads
-@compute @workgroup_size(256, 1, 1)
+// Run with num_experts * max_tokens_per_expert * (hidden_size / 4) threads
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn gather_tokens(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let maxTokensPerExpert = uniforms.maxTokensPerExpert;
-    let numExperts = uniforms.numExperts;
+    let hidden_size = u.hidden_size;
+    let max_tokens_per_expert = u.max_tokens_per_expert;
+    let num_experts = u.num_experts;
 
-    let elementsPerExpert = maxTokensPerExpert * hiddenSize;
-    let totalElements = numExperts * elementsPerExpert;
+    let elements_per_expert = max_tokens_per_expert * hidden_size;
+    let total_elements = num_experts * elements_per_expert;
 
-    if (tid >= totalElements) {
+    if (tid >= total_elements) {
         return;
     }
 
     // Decode position
-    let expertIdx = tid / elementsPerExpert;
-    let withinExpert = tid % elementsPerExpert;
-    let slotIdx = withinExpert / hiddenSize;
-    let dimIdx = withinExpert % hiddenSize;
+    let expert_idx = tid / elements_per_expert;
+    let within_expert = tid % elements_per_expert;
+    let slot_idx = within_expert / hidden_size;
+    let dim_idx = within_expert % hidden_size;
 
     // Check if this slot is valid (within actual token count)
-    let actualCount = atomicLoad(&tokenCounts[expertIdx]);
-    if (slotIdx >= actualCount) {
+    let actual_count = atomicLoad(&token_counts[expert_idx]);
+    if (slot_idx >= actual_count) {
         // Zero out unused slots
         gathered[tid] = 0.0;
         return;
     }
 
     // Look up original token index from map
-    let mapBase = expertIdx * maxTokensPerExpert * 2u + slotIdx * 2u;
-    let tokenIdx = tokenMap[mapBase];
+    let map_base = expert_idx * max_tokens_per_expert * 2u + slot_idx * 2u;
+    let token_idx = token_map[map_base];
 
     // Gather from original hidden states
-    let srcIdx = tokenIdx * hiddenSize + dimIdx;
-    gathered[tid] = hiddenStates[srcIdx];
+    let src_idx = token_idx * hidden_size + dim_idx;
+    gathered[tid] = hidden_states[src_idx];
 }
 
 // Combined single-pass version for small models
 // Each workgroup handles one expert
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn gather_single_pass(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let expertIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let numTokens = uniforms.numTokens;
-    let topK = uniforms.topK;
-    let maxTokensPerExpert = uniforms.maxTokensPerExpert;
+    let expert_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let hidden_size = u.hidden_size;
+    let num_tokens = u.num_tokens;
+    let top_k = u.top_k;
+    let max_tokens_per_expert = u.max_tokens_per_expert;
 
-    if (expertIdx >= uniforms.numExperts) {
+    if (expert_idx >= u.num_experts) {
         return;
     }
 
     // Phase 1: Count tokens for this expert (thread 0 only)
-    var tokenCount: u32 = 0u;
-    if (threadIdx == 0u) {
-        for (var t: u32 = 0u; t < numTokens; t = t + 1u) {
-            for (var k: u32 = 0u; k < topK; k = k + 1u) {
-                if (expertIndices[t * topK + k] == expertIdx) {
-                    if (tokenCount < maxTokensPerExpert) {
-                        let mapBase = expertIdx * maxTokensPerExpert * 2u + tokenCount * 2u;
-                        tokenMap[mapBase] = t;
-                        tokenMap[mapBase + 1u] = k;
-                        tokenCount = tokenCount + 1u;
+    var token_count: u32 = 0u;
+    if (thread_idx == 0u) {
+        for (var t: u32 = 0u; t < num_tokens; t = t + 1u) {
+            for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+                if (expert_indices[t * top_k + k] == expert_idx) {
+                    if (token_count < max_tokens_per_expert) {
+                        let map_base = expert_idx * max_tokens_per_expert * 2u + token_count * 2u;
+                        token_map[map_base] = t;
+                        token_map[map_base + 1u] = k;
+                        token_count = token_count + 1u;
                     }
                 }
             }
         }
-        atomicStore(&tokenCounts[expertIdx], tokenCount);
+        atomicStore(&token_counts[expert_idx], token_count);
     }
 
     workgroupBarrier();
 
     // Phase 2: Gather (all threads participate)
-    let actualCount = atomicLoad(&tokenCounts[expertIdx]);
-    let elementsPerSlot = hiddenSize;
-    let totalWork = actualCount * elementsPerSlot;
-    let workPerThread = (totalWork + 255u) / 256u;
+    let actual_count = atomicLoad(&token_counts[expert_idx]);
+    let elements_per_slot = hidden_size;
+    let total_work = actual_count * elements_per_slot;
+    let work_per_thread = (total_work + 255u) / 256u;
 
-    for (var i: u32 = 0u; i < workPerThread; i = i + 1u) {
-        let workIdx = threadIdx * workPerThread + i;
-        if (workIdx >= totalWork) {
+    for (var i: u32 = 0u; i < work_per_thread; i = i + 1u) {
+        let work_idx = thread_idx * work_per_thread + i;
+        if (work_idx >= total_work) {
             break;
         }
 
-        let slotIdx = workIdx / hiddenSize;
-        let dimIdx = workIdx % hiddenSize;
+        let slot_idx = work_idx / hidden_size;
+        let dim_idx = work_idx % hidden_size;
 
-        let mapBase = expertIdx * maxTokensPerExpert * 2u + slotIdx * 2u;
-        let tokenIdx = tokenMap[mapBase];
+        let map_base = expert_idx * max_tokens_per_expert * 2u + slot_idx * 2u;
+        let token_idx = token_map[map_base];
 
-        let srcIdx = tokenIdx * hiddenSize + dimIdx;
-        let dstIdx = expertIdx * maxTokensPerExpert * hiddenSize + slotIdx * hiddenSize + dimIdx;
+        let src_idx = token_idx * hidden_size + dim_idx;
+        let dst_idx = expert_idx * max_tokens_per_expert * hidden_size + slot_idx * hidden_size + dim_idx;
 
-        gathered[dstIdx] = hiddenStates[srcIdx];
+        gathered[dst_idx] = hidden_states[src_idx];
     }
 }
 
 // Optimized version: Gather with vec4 loads
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn gather_tokens_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let maxTokensPerExpert = uniforms.maxTokensPerExpert;
-    let numExperts = uniforms.numExperts;
-    let vec4PerToken = hiddenSize / 4u;
+    let hidden_size = u.hidden_size;
+    let max_tokens_per_expert = u.max_tokens_per_expert;
+    let num_experts = u.num_experts;
+    let vec4_per_token = hidden_size / 4u;
 
-    let vec4PerExpert = maxTokensPerExpert * vec4PerToken;
-    let totalVec4s = numExperts * vec4PerExpert;
+    let vec4_per_expert = max_tokens_per_expert * vec4_per_token;
+    let total_vec4s = num_experts * vec4_per_expert;
 
-    if (tid >= totalVec4s) {
+    if (tid >= total_vec4s) {
         return;
     }
 
     // Decode position
-    let expertIdx = tid / vec4PerExpert;
-    let withinExpert = tid % vec4PerExpert;
-    let slotIdx = withinExpert / vec4PerToken;
-    let vec4Idx = withinExpert % vec4PerToken;
+    let expert_idx = tid / vec4_per_expert;
+    let within_expert = tid % vec4_per_expert;
+    let slot_idx = within_expert / vec4_per_token;
+    let vec4_idx = within_expert % vec4_per_token;
 
     // Check if slot is valid
-    let actualCount = atomicLoad(&tokenCounts[expertIdx]);
-    let dstBase = tid * 4u;
+    let actual_count = atomicLoad(&token_counts[expert_idx]);
+    let dst_base = tid * 4u;
 
-    if (slotIdx >= actualCount) {
-        gathered[dstBase] = 0.0;
-        gathered[dstBase + 1u] = 0.0;
-        gathered[dstBase + 2u] = 0.0;
-        gathered[dstBase + 3u] = 0.0;
+    if (slot_idx >= actual_count) {
+        gathered[dst_base] = 0.0;
+        gathered[dst_base + 1u] = 0.0;
+        gathered[dst_base + 2u] = 0.0;
+        gathered[dst_base + 3u] = 0.0;
         return;
     }
 
     // Look up original token
-    let mapBase = expertIdx * maxTokensPerExpert * 2u + slotIdx * 2u;
-    let tokenIdx = tokenMap[mapBase];
+    let map_base = expert_idx * max_tokens_per_expert * 2u + slot_idx * 2u;
+    let token_idx = token_map[map_base];
 
     // Gather 4 elements
-    let srcBase = tokenIdx * hiddenSize + vec4Idx * 4u;
-    gathered[dstBase] = hiddenStates[srcBase];
-    gathered[dstBase + 1u] = hiddenStates[srcBase + 1u];
-    gathered[dstBase + 2u] = hiddenStates[srcBase + 2u];
-    gathered[dstBase + 3u] = hiddenStates[srcBase + 3u];
+    let src_base = token_idx * hidden_size + vec4_idx * 4u;
+    gathered[dst_base] = hidden_states[src_base];
+    gathered[dst_base + 1u] = hidden_states[src_base + 1u];
+    gathered[dst_base + 2u] = hidden_states[src_base + 2u];
+    gathered[dst_base + 3u] = hidden_states[src_base + 3u];
 }

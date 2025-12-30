@@ -27,8 +27,8 @@ struct Uniforms {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> logits: array<f32>;              // [vocabSize]
 @group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [1] - selected token
-@group(0) @binding(3) var<storage, read_write> topkIndices: array<u32>;    // [topK] - intermediate
-@group(0) @binding(4) var<storage, read_write> topkLogits: array<f32>;     // [topK] - intermediate
+@group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;    // [topK] - intermediate
+@group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;     // [topK] - intermediate
 
 // Shared memory for workgroup-level reduction
 var<workgroup> shared_values: array<f32, 256>;
@@ -81,8 +81,8 @@ fn find_topk_phase1(
 
     // Thread 0 writes workgroup result
     if (thread_idx == 0u) {
-        topkLogits[wgid.x] = shared_values[0];
-        topkIndices[wgid.x] = shared_indices[0];
+        topk_logits[wgid.x] = shared_values[0];
+        topk_indices[wgid.x] = shared_indices[0];
     }
 }
 
@@ -98,14 +98,14 @@ fn find_topk_phase2(
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
     if (thread_idx < 256u) {
-        shared_values[thread_idx] = topkLogits[threadIdx];
-        shared_indices[thread_idx] = topkIndices[threadIdx];
+        shared_values[thread_idx] = topk_logits[threadIdx];
+        shared_indices[thread_idx] = topk_indices[threadIdx];
     }
     workgroupBarrier();
 
     // Thread 0 does partial selection sort for top-k
     if (thread_idx == 0u) {
-        for (var k: u32 = 0u; k < topK && k < 256u; k = k + 1u) {
+        for (var k: u32 = 0u; k < top_k && k < 256u; k = k + 1u) {
             var max_idx = k;
             var max_val = shared_values[k];
 
@@ -127,9 +127,9 @@ fn find_topk_phase2(
         }
 
         // Write sorted top-k back
-        for (var k: u32 = 0u; k < topK; k = k + 1u) {
-            topkLogits[k] = shared_values[k];
-            topkIndices[k] = shared_indices[k];
+        for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+            topk_logits[k] = shared_values[k];
+            topk_indices[k] = shared_indices[k];
         }
     }
 }
@@ -144,9 +144,9 @@ fn softmax_and_sample(
     let random_val = u.random_value;
 
     // Load top-k logits
-    if (thread_idx < topK) {
-        shared_values[thread_idx] = topkLogits[threadIdx];
-        shared_indices[thread_idx] = topkIndices[threadIdx];
+    if (thread_idx < top_k) {
+        shared_values[thread_idx] = topk_logits[threadIdx];
+        shared_indices[thread_idx] = topk_indices[threadIdx];
     }
     workgroupBarrier();
 
@@ -154,33 +154,33 @@ fn softmax_and_sample(
     if (thread_idx == 0u) {
         // Find max for numerical stability
         var max_val: f32 = shared_values[0];
-        for (var i: u32 = 1u; i < topK; i = i + 1u) {
+        for (var i: u32 = 1u; i < top_k; i = i + 1u) {
             max_val = max(maxVal, shared_values[i]);
         }
 
         // Compute exp and sum
-        var expSum: f32 = 0.0;
-        for (var i: u32 = 0u; i < topK; i = i + 1u) {
-            let expVal = exp(shared_values[i] - max_val);
-            shared_values[i] = expVal;
-            expSum = expSum + expVal;
+        var exp_sum: f32 = 0.0;
+        for (var i: u32 = 0u; i < top_k; i = i + 1u) {
+            let exp_val = exp(shared_values[i] - max_val);
+            shared_values[i] = exp_val;
+            expSum = expSum + exp_val;
         }
 
         // Normalize to probabilities and sample
-        let invSum = 1.0 / expSum;
-        var cumProb: f32 = 0.0;
-        var selectedToken: u32 = shared_indices[topK - 1u];  // Default to last
+        let inv_sum = 1.0 / exp_sum;
+        var cum_prob: f32 = 0.0;
+        var selected_token: u32 = shared_indices[top_k - 1u];  // Default to last
 
-        for (var i: u32 = 0u; i < topK; i = i + 1u) {
-            let prob = shared_values[i] * invSum;
-            cumProb = cumProb + prob;
-            if (cumProb >= randomVal) {
-                selectedToken = shared_indices[i];
+        for (var i: u32 = 0u; i < top_k; i = i + 1u) {
+            let prob = shared_values[i] * inv_sum;
+            cum_prob = cumProb + prob;
+            if (cum_prob >= random_val) {
+                selected_token = shared_indices[i];
                 break;
             }
         }
 
-        output[0] = selectedToken;
+        output[0] = selected_token;
     }
 }
 
@@ -190,7 +190,7 @@ fn softmax_and_sample(
 fn sample_single_pass(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
-    @builtin(num_workgroups) numWg: vec3<u32>
+    @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
     let thread_idx = lid.x;
     let vocab_size = u.vocab_size;
@@ -209,7 +209,7 @@ fn sample_single_pass(
             local_max = val;
             local_max_idx = idx;
         }
-        idx = idx + numWg.x * WORKGROUP_SIZE;
+        idx = idx + num_wg.x * WORKGROUP_SIZE;
     }
 
     shared_values[thread_idx] = local_max;
@@ -230,7 +230,7 @@ fn sample_single_pass(
     }
 
     // For single workgroup, thread 0 can do everything
-    if (thread_idx == 0u && numWg.x == 1u) {
+    if (thread_idx == 0u && num_wg.x == 1u) {
         // We have top-1, but need top-k
         // For small vocab, just do the full selection
         // This simplified version selects top-1 only (greedy)
@@ -246,7 +246,7 @@ fn argmax(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wgid: vec3<u32>,
-    @builtin(num_workgroups) numWg: vec3<u32>
+    @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
     let thread_idx = lid.x;
     let global_idx = gid.x;
@@ -263,7 +263,7 @@ fn argmax(
             local_max = val;
             local_max_idx = idx;
         }
-        idx = idx + numWg.x * WORKGROUP_SIZE;
+        idx = idx + num_wg.x * WORKGROUP_SIZE;
     }
 
     shared_values[thread_idx] = local_max;
@@ -285,8 +285,8 @@ fn argmax(
 
     // Write workgroup result to global memory
     if (thread_idx == 0u) {
-        topkLogits[wgid.x] = shared_values[0];
-        topkIndices[wgid.x] = shared_indices[0];
+        topk_logits[wgid.x] = shared_values[0];
+        topk_indices[wgid.x] = shared_indices[0];
     }
 }
 
@@ -298,8 +298,8 @@ fn argmax_reduce(
     let thread_idx = lid.x;
 
     // Load workgroup maxes (up to 256)
-    shared_values[thread_idx] = topkLogits[threadIdx];
-    shared_indices[thread_idx] = topkIndices[threadIdx];
+    shared_values[thread_idx] = topk_logits[threadIdx];
+    shared_indices[thread_idx] = topk_indices[threadIdx];
     workgroupBarrier();
 
     // Reduce
