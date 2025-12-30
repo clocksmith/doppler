@@ -5,6 +5,10 @@
  * Used for efficient embedding lookup on GPU without CPU readback.
  */
 
+// Tunable workgroup sizes
+override WORKGROUP_SIZE_MAIN: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
+
 struct Uniforms {
     num_tokens: u32,      // Number of tokens to gather
     hidden_size: u32,     // Embedding dimension
@@ -12,29 +16,29 @@ struct Uniforms {
     transpose: u32,       // 1 if embeddings are [hidden_size, vocab_size] (GGUF layout), 0 otherwise
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> indices: array<u32>;      // Token IDs [num_tokens]
 @group(0) @binding(2) var<storage, read> embeddings: array<f32>;   // Embedding matrix [vocab_size, hidden_size]
 @group(0) @binding(3) var<storage, read_write> output: array<f32>; // Output [num_tokens, hidden_size]
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let total_elements = uniforms.num_tokens * uniforms.hidden_size;
+    let total_elements = u.num_tokens * u.hidden_size;
 
     if (tid >= total_elements) {
         return;
     }
 
     // Compute token index and dimension index
-    let token_idx = tid / uniforms.hidden_size;
-    let dim_idx = tid % uniforms.hidden_size;
+    let token_idx = tid / u.hidden_size;
+    let dim_idx = tid % u.hidden_size;
 
     // Get the token ID (with bounds check)
     let token_id = indices[token_idx];
 
     // Bounds check on vocab
-    if (token_id >= uniforms.vocab_size) {
+    if (token_id >= u.vocab_size) {
         output[tid] = 0.0;
         return;
     }
@@ -43,20 +47,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     // For GGUF layout [hidden_size, vocab_size]: offset = dim_idx * vocab_size + token_id
     // For standard layout [vocab_size, hidden_size]: offset = token_id * hidden_size + dim_idx
     var embed_offset: u32;
-    if (uniforms.transpose == 1u) {
-        embed_offset = dim_idx * uniforms.vocab_size + token_id;
+    if (u.transpose == 1u) {
+        embed_offset = dim_idx * u.vocab_size + token_id;
     } else {
-        embed_offset = token_id * uniforms.hidden_size + dim_idx;
+        embed_offset = token_id * u.hidden_size + dim_idx;
     }
     output[tid] = embeddings[embed_offset];
 }
 
 // Vectorized version for better memory throughput
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn gather_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let vec4_per_row = uniforms.hidden_size / 4u;
-    let total_vec4s = uniforms.num_tokens * vec4_per_row;
+    let vec4_per_row = u.hidden_size / 4u;
+    let total_vec4s = u.num_tokens * vec4_per_row;
 
     if (tid >= total_vec4s) {
         return;
@@ -70,7 +74,7 @@ fn gather_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let token_id = indices[token_idx];
 
     // Bounds check
-    if (token_id >= uniforms.vocab_size) {
+    if (token_id >= u.vocab_size) {
         let out_base = tid * 4u;
         output[out_base] = 0.0;
         output[out_base + 1u] = 0.0;
@@ -83,15 +87,15 @@ fn gather_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let out_base = tid * 4u;
     let dim_base = vec4_idx * 4u;
 
-    if (uniforms.transpose == 1u) {
+    if (u.transpose == 1u) {
         // Transposed layout [hidden_size, vocab_size]: elements are strided by vocab_size
-        output[out_base] = embeddings[(dim_base) * uniforms.vocab_size + token_id];
-        output[out_base + 1u] = embeddings[(dim_base + 1u) * uniforms.vocab_size + token_id];
-        output[out_base + 2u] = embeddings[(dim_base + 2u) * uniforms.vocab_size + token_id];
-        output[out_base + 3u] = embeddings[(dim_base + 3u) * uniforms.vocab_size + token_id];
+        output[out_base] = embeddings[(dim_base) * u.vocab_size + token_id];
+        output[out_base + 1u] = embeddings[(dim_base + 1u) * u.vocab_size + token_id];
+        output[out_base + 2u] = embeddings[(dim_base + 2u) * u.vocab_size + token_id];
+        output[out_base + 3u] = embeddings[(dim_base + 3u) * u.vocab_size + token_id];
     } else {
         // Standard layout [vocab_size, hidden_size]: elements are contiguous
-        let embed_base = token_id * uniforms.hidden_size + dim_base;
+        let embed_base = token_id * u.hidden_size + dim_base;
         output[out_base] = embeddings[embed_base];
         output[out_base + 1u] = embeddings[embed_base + 1u];
         output[out_base + 2u] = embeddings[embed_base + 2u];

@@ -14,17 +14,17 @@
  */
 
 // Configuration
-const WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;  // Max top-k supported
 
-struct SampleUniforms {
-    vocabSize: u32,
-    topK: u32,
+struct Uniforms {
+    vocab_size: u32,
+    top_k: u32,
     temperature: f32,
-    randomValue: f32,  // Pre-generated random [0,1) for sampling
+    random_value: f32,  // Pre-generated random [0,1) for sampling
 }
 
-@group(0) @binding(0) var<uniform> uniforms: SampleUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> logits: array<f32>;              // [vocabSize]
 @group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [1] - selected token
 @group(0) @binding(3) var<storage, read_write> topkIndices: array<u32>;    // [topK] - intermediate
@@ -36,16 +36,16 @@ var<workgroup> shared_indices: array<u32, 256>;
 
 // Phase 1: Find local max in each workgroup for parallel top-k
 // Each thread scans a chunk of vocabulary, keeps local top element
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn find_topk_phase1(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wgid: vec3<u32>
 ) {
-    let threadIdx = lid.x;
-    let globalIdx = gid.x;
-    let vocabSize = uniforms.vocabSize;
-    let temperature = uniforms.temperature;
+    let thread_idx = lid.x;
+    let global_idx = gid.x;
+    let vocab_size = u.vocab_size;
+    let temperature = u.temperature;
 
     // Each thread finds max in its assigned range
     var localMax: f32 = -3.402823e+38;  // -FLT_MAX
@@ -88,12 +88,12 @@ fn find_topk_phase1(
 
 // Phase 2: Merge workgroup results and select final top-k
 // Single workgroup sorts and selects top-k from workgroup results
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn find_topk_phase2(
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
-    let threadIdx = lid.x;
-    let topK = uniforms.topK;
+    let thread_idx = lid.x;
+    let top_k = u.top_k;
 
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
@@ -135,13 +135,13 @@ fn find_topk_phase2(
 }
 
 // Phase 3: Softmax on top-k and sample
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_and_sample(
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
-    let threadIdx = lid.x;
-    let topK = uniforms.topK;
-    let randomVal = uniforms.randomValue;
+    let thread_idx = lid.x;
+    let top_k = u.top_k;
+    let random_val = u.random_value;
 
     // Load top-k logits
     if (threadIdx < topK) {
@@ -186,17 +186,17 @@ fn softmax_and_sample(
 
 // Combined single-pass version for smaller vocabularies (<= 65536)
 // Uses hierarchical reduction within single kernel
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn sample_single_pass(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(num_workgroups) numWg: vec3<u32>
 ) {
-    let threadIdx = lid.x;
-    let vocabSize = uniforms.vocabSize;
-    let topK = min(uniforms.topK, MAX_TOP_K);
-    let temperature = uniforms.temperature;
-    let randomVal = uniforms.randomValue;
+    let thread_idx = lid.x;
+    let vocab_size = u.vocab_size;
+    let top_k = min(u.top_k, MAX_TOP_K);
+    let temperature = u.temperature;
+    let random_val = u.random_value;
 
     // Phase 1: Find global max
     var localMax: f32 = -3.402823e+38;
@@ -241,16 +241,16 @@ fn sample_single_pass(
 }
 
 // Greedy argmax for deterministic decoding (temperature=0 equivalent)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn argmax(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wgid: vec3<u32>,
     @builtin(num_workgroups) numWg: vec3<u32>
 ) {
-    let threadIdx = lid.x;
-    let globalIdx = gid.x;
-    let vocabSize = uniforms.vocabSize;
+    let thread_idx = lid.x;
+    let global_idx = gid.x;
+    let vocab_size = u.vocab_size;
 
     // Each thread finds max in its chunk
     var localMax: f32 = -3.402823e+38;
@@ -291,11 +291,11 @@ fn argmax(
 }
 
 // Final reduction for argmax across workgroups
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn argmax_reduce(
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
-    let threadIdx = lid.x;
+    let thread_idx = lid.x;
 
     // Load workgroup maxes (up to 256)
     shared_values[threadIdx] = topkLogits[threadIdx];

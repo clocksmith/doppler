@@ -179,7 +179,7 @@ override THREADS_PER_OUTPUT: u32 = 64u;
 
 var<workgroup> multi_sg_sums: array<f32, 32>;  // 4 outputs * 4 subgroups * 2 (gate+up)
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multi(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -254,7 +254,7 @@ fn main_multi(
 }
 
 // F16 weights variant - optimized for memory bandwidth
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_f16(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -334,7 +334,7 @@ fn main_f16(
 
 // Batched variant for prefill (M > 1)
 // Each workgroup handles one output element across all batch items
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_batched(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
