@@ -1,0 +1,11 @@
+{
+  "variant": [
+    { "match": { "isF16": true }, "value": "gelu_f16" },
+    { "match": {}, "value": "gelu" }
+  ],
+  "overrides": [
+    { "match": { "useRowsplit": true }, "value": { "USE_ROWSPLIT": true } },
+    { "match": { "hasGate": true }, "value": { "HAS_GATE": true } },
+    { "match": {}, "value": {} }
+  ]
+}

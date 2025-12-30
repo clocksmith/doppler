@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "inplace": true }, "value": "inplace" },
+    { "match": {}, "value": "default" }
+  ]
+}

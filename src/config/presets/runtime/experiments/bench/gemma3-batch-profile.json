@@ -1,0 +1,34 @@
+{
+  "extends": "bench",
+  "model": "gemma-3-1b-it-wq4k",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
+      "benchmark": {
+        "run": {
+          "profile": true,
+          "captureMemoryTimeSeries": true,
+          "memoryTimeSeriesIntervalMs": 50,
+          "warmupRuns": 1,
+          "timedRuns": 3
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": {
+        "maxTokens": 64,
+        "batchSize": 8
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "generation": {
+        "disableCommandBatching": false,
+        "disableMultiTokenDecode": false
+      }
+    }
+  }
+}

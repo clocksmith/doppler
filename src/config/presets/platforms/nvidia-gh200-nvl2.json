@@ -1,0 +1,44 @@
+{
+  "name": "nvidia-gh200-nvl2",
+  "description": "NVIDIA GH200 NVL2 (2 Superchips connected via NVLink)",
+  "emulation": {
+    "enabled": true,
+    "targetChip": "gh200-nvl2",
+    "timingMode": "functional",
+    "gpuSpec": {
+      "name": "H200",
+      "vramBytes": 154618822656,
+      "hbmBandwidthBytesPerSec": 4800000000000,
+      "fp16Tflops": 1979
+    },
+    "cpuSpec": {
+      "name": "Grace",
+      "cores": 72,
+      "memoryBytes": 515396075520,
+      "memoryBandwidthBytesPerSec": 546000000000
+    },
+    "topology": {
+      "gpuCount": 2,
+      "gpusPerNode": 2,
+      "nodeCount": 1,
+      "cpuCount": 2
+    },
+    "nvlink": {
+      "bandwidthBytesPerSec": 900000000000,
+      "latencyUs": 1.0
+    },
+    "nvlinkC2C": {
+      "bandwidthBytesPerSec": 900000000000,
+      "latencyUs": 0.5,
+      "coherent": true
+    },
+    "parallelism": {
+      "tensorParallel": { "enabled": true, "degree": 2 },
+      "pipelineParallel": { "enabled": false, "stages": 1 },
+      "dataParallel": { "enabled": false, "degree": 1 },
+      "expertParallel": { "enabled": false, "degree": 1 }
+    },
+    "statsEnabled": true,
+    "logOperations": false
+  }
+}

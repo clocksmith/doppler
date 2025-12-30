@@ -1,0 +1,11 @@
+{
+  "variant": [
+    { "match": { "isF16": true, "isSmall": true }, "value": "small_f16" },
+    { "match": { "isF16": true }, "value": "default_f16" },
+    { "match": { "residual": true }, "value": "residual" },
+    { "match": { "hasSubgroups": true, "isSmall": true }, "value": "small_subgroup" },
+    { "match": { "hasSubgroups": true }, "value": "subgroup" },
+    { "match": { "isSmall": true }, "value": "small" },
+    { "match": {}, "value": "default" }
+  ]
+}

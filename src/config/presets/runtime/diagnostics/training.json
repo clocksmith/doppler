@@ -1,0 +1,22 @@
+{
+  "name": "training",
+  "description": "Training harness preset (runs tests under tests/harness.html).",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": { "intent": "verify" },
+      "benchmark": {
+        "run": {
+          "warmupRuns": 2,
+          "timedRuns": 8
+        }
+      },
+      "harness": {
+        "mode": "training",
+        "autorun": false,
+        "skipLoad": true,
+        "modelId": null
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "gpt-oss-moe-v1",
+  "description": "Deterministic GPT-OSS MoE kernel routing profile.",
+  "router": {
+    "topk": [
+      {
+        "match": { "hasF16": true, "hasSubgroups": true, "routerDtype": "f16", "weightsDtype": "f16" },
+        "value": "gptoss_router_topk"
+      },
+      {
+        "match": { "hasF16": true, "routerDtype": "f16", "weightsDtype": "f16" },
+        "value": "fused_f16_w16"
+      },
+      {
+        "match": { "routerDtype": "f16" },
+        "value": "fused_f16"
+      },
+      {
+        "match": {},
+        "value": "fused"
+      }
+    ]
+  },
+  "dequant": {
+    "mxfp4Expert": [
+      {
+        "match": {
+          "hasF16": true,
+          "hasSubgroups": true,
+          "outputDtype": "f16",
+          "groupSize": 32,
+          "tileShape": "vec4"
+        },
+        "value": "mxfp4_expert_fused_f16"
+      },
+      {
+        "match": {
+          "hasF16": true,
+          "outputDtype": "f16"
+        },
+        "value": "mxfp4_expert_f16"
+      },
+      {
+        "match": {},
+        "value": "mxfp4_expert"
+      }
+    ]
+  }
+}

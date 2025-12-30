@@ -1,0 +1,15 @@
+{
+  "gpuLoaderPath": [
+    { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K"] }, "useFusedQ4K": true }, "value": "q4k_fused" },
+    { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K"] } }, "value": "q4k_dequant" },
+    { "match": { "dtype": "Q6_K" }, "value": "q6k" },
+    { "match": { "dtype": "BF16" }, "value": "bf16" },
+    { "match": {}, "value": "float" }
+  ],
+  "cpuLoaderPath": [
+    { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K", "Q6_K"] } }, "value": "raw" },
+    { "match": { "dtype": "BF16" }, "value": "bf16_to_f32" },
+    { "match": { "dtype": "F16" }, "value": "f16_to_f32" },
+    { "match": {}, "value": "f32" }
+  ]
+}

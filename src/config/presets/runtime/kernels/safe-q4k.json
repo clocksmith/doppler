@@ -1,0 +1,16 @@
+{
+  "name": "safe-q4k",
+  "description": "Maximum compatibility Q4K path. Uses dequant-to-F32, no fusion, no subgroups required.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "kernelPath": "gemma2-q4k-dequant-f32a"
+    }
+  }
+}

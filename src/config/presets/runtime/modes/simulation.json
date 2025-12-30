@@ -1,0 +1,25 @@
+{
+  "name": "simulation",
+  "description": "Simulation preset for GH200/GB200 pod emulation",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
+      "harness": {
+        "mode": "simulation",
+        "autorun": true,
+        "skipLoad": false,
+        "modelId": null
+      }
+    },
+    "emulation": {
+      "enabled": true,
+      "targetChip": "gh200",
+      "timingMode": "functional",
+      "statsEnabled": true,
+      "logOperations": false
+    }
+  }
+}

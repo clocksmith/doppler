@@ -1,0 +1,302 @@
+/**
+ * Kernel Thresholds Schema
+ *
+ * Centralized configuration for kernel selection thresholds and magic numbers.
+ * These values control when variant selection switches between kernel implementations.
+ *
+ * @module config/schema/kernel-thresholds
+ */
+
+/**
+ * Thresholds for matrix multiplication kernel variant selection.
+ */
+export interface MatmulThresholdsSchema {
+  /**
+   * N dimension threshold for selecting multicol GEMV variants.
+   * When N >= threshold, use multicol variant for reduced workgroup count.
+   * @default 256
+   */
+  multicolThreshold: number;
+
+  /**
+   * Minimum prefill rows required before selecting the tiled f16 matmul variant.
+   * For very short prefill batches, base f16 matmul can be faster than tiled.
+   * @default 32
+   */
+  tiledPrefillMinRows: number;
+}
+
+export declare const DEFAULT_MATMUL_THRESHOLDS: MatmulThresholdsSchema;
+
+/**
+ * Thresholds for RMSNorm kernel variant selection.
+ */
+export interface RmsnormThresholdsSchema {
+  /**
+   * Hidden size threshold for selecting small vs default variant.
+   * When hiddenSize <= threshold, use small variant (single workgroup).
+   * @default 256
+   */
+  smallThreshold: number;
+}
+
+export declare const DEFAULT_RMSNORM_THRESHOLDS: RmsnormThresholdsSchema;
+
+/**
+ * Thresholds for softmax kernel variant selection.
+ */
+export interface SoftmaxThresholdsSchema {
+  /**
+   * Inner size threshold for selecting small vs default variant.
+   * When innerSize <= threshold, use small variant.
+   * @default 256
+   */
+  smallThreshold: number;
+}
+
+export declare const DEFAULT_SOFTMAX_THRESHOLDS: SoftmaxThresholdsSchema;
+
+/**
+ * Thresholds for fused FFN kernel variant selection.
+ */
+export interface FfnThresholdsSchema {
+  /**
+   * Intermediate size threshold for selecting multi-output variant.
+   * When intermediateSize <= threshold, use multi variant.
+   * @default 1024
+   */
+  multiOutputThreshold: number;
+}
+
+export declare const DEFAULT_FFN_THRESHOLDS: FfnThresholdsSchema;
+
+/**
+ * Thresholds for sampling kernel selection.
+ */
+export interface SampleThresholdsSchema {
+  /**
+   * Vocab size threshold for argmax reduce variant selection.
+   * When vocabSize > threshold, use argmax_reduce.
+   * @default 65536
+   */
+  argmaxReduceVocabThreshold: number;
+
+  /**
+   * Max topK for single-pass sampling.
+   * When topK <= threshold, use single-pass sampling.
+   * @default 100
+   */
+  singlePassTopKThreshold: number;
+}
+
+export declare const DEFAULT_SAMPLE_THRESHOLDS: SampleThresholdsSchema;
+
+/**
+ * Default values for RoPE (Rotary Position Embedding) kernel.
+ */
+export interface RopeDefaultsSchema {
+  /**
+   * Default theta value for RoPE frequency computation.
+   * Most models use 10000.0; some (Gemma 3) use higher values.
+   * @default 10000.0
+   */
+  defaultTheta: number;
+
+  /**
+   * Default uniform buffer size in bytes for RoPE params.
+   * @default 32
+   */
+  uniformSize: number;
+
+  /**
+   * Default start position for RoPE.
+   * @default 0
+   */
+  defaultStartPos: number;
+}
+
+export declare const DEFAULT_ROPE_DEFAULTS: RopeDefaultsSchema;
+
+/**
+ * Defaults for kernel tuner limits when device limits are unavailable.
+ */
+export interface TunerLimitsSchema {
+  maxComputeWorkgroupSizeX: number;
+  maxComputeWorkgroupSizeY: number;
+  maxComputeInvocationsPerWorkgroup: number;
+}
+
+export declare const DEFAULT_TUNER_LIMITS: TunerLimitsSchema;
+
+/**
+ * Thresholds for attention kernel variant selection.
+ */
+export interface AttentionThresholdsSchema {
+  /**
+   * Maximum KV length before switching from chunked to streaming attention.
+   * Used by decode_chunked_f16kv variant.
+   * @default 2048
+   */
+  chunkedMaxKVLen: number;
+
+  /**
+   * Minimum head dimension for chunked attention kernel eligibility.
+   * Chunked kernels require headDim >= this value.
+   * @default 128
+   */
+  minHeadDimForChunked: number;
+
+  /**
+   * Head dimension thresholds for tier selection.
+   * tier3: headDim <= 64, tier2: headDim <= 128, tier1: headDim <= 256
+   */
+  tierHeadDimLimits: {
+    tier3: number;
+    tier2: number;
+    tier1: number;
+  };
+
+  /**
+   * Minimum shared memory requirements per tier (in bytes).
+   */
+  tierMinSharedMemory: {
+    tier3: number;
+    tier2: number;
+    tier1: number;
+  };
+
+  /**
+   * Maximum head dimension for large tiled attention.
+   * @default 64
+   */
+  largeMaxHeadDim: number;
+
+  /**
+   * Maximum head dimension for small tiled attention.
+   * @default 256
+   */
+  smallMaxHeadDim: number;
+
+  /**
+   * Maximum head dimension for subgroup attention.
+   * @default 256
+   */
+  subgroupMaxHeadDim: number;
+
+  /**
+   * Shared memory requirement for large tiled attention (F32 KV).
+   * @default 20480
+   */
+  largeSharedF32: number;
+
+  /**
+   * Shared memory requirement for large tiled attention (F16 KV).
+   * @default 49152
+   */
+  largeSharedF16: number;
+
+  /**
+   * Shared memory requirement for small tiled attention (F32 KV).
+   * @default 8192
+   */
+  smallSharedF32: number;
+
+  /**
+   * Shared memory requirement for small tiled attention (F16 KV).
+   * @default 4096
+   */
+  smallSharedF16: number;
+
+  /**
+   * Shared memory requirement for subgroup attention.
+   * @default 8192
+   */
+  subgroupShared: number;
+}
+
+export declare const DEFAULT_ATTENTION_THRESHOLDS: AttentionThresholdsSchema;
+
+/**
+ * Thresholds for fused matmul+norm kernel variant selection.
+ */
+export interface FusedMatmulThresholdsSchema {
+  /**
+   * Maximum N dimension for "medium" (multi-column) fused variant.
+   * Beyond this, fall back to separate kernels or alternative dispatch.
+   * @default 4096
+   */
+  maxMediumN: number;
+
+  /**
+   * Maximum K dimension for fused GEMV+RMSNorm selection.
+   * When K exceeds this threshold, prefer separate kernels for better throughput.
+   * @default 8192
+   */
+  maxMediumK: number;
+
+  /**
+   * Columns per workgroup for multi-column dispatch.
+   * Each workgroup processes this many output columns.
+   * @default 4
+   */
+  colsPerWg: number;
+}
+
+export declare const DEFAULT_FUSED_MATMUL_THRESHOLDS: FusedMatmulThresholdsSchema;
+
+/**
+ * Configuration for cast kernel dispatch.
+ */
+export interface CastThresholdsSchema {
+  /**
+   * Maximum workgroups per dimension before falling back to 2D dispatch.
+   * @default 65535
+   */
+  maxWorkgroupsPerDim: number;
+}
+
+export declare const DEFAULT_CAST_THRESHOLDS: CastThresholdsSchema;
+
+/**
+ * Bytes per element for each data type.
+ */
+export declare const DTYPE_SIZES: Record<string, number>;
+
+/**
+ * Get byte size for a dtype string.
+ * Throws if dtype is unknown.
+ */
+export declare function getDtypeSize(dtype: string): number;
+
+/**
+ * All kernel thresholds in a single configuration object.
+ */
+export interface KernelThresholdsConfigSchema {
+  matmul: MatmulThresholdsSchema;
+  rmsnorm: RmsnormThresholdsSchema;
+  softmax: SoftmaxThresholdsSchema;
+  ffn: FfnThresholdsSchema;
+  sample: SampleThresholdsSchema;
+  rope: RopeDefaultsSchema;
+  attention: AttentionThresholdsSchema;
+  fusedMatmul: FusedMatmulThresholdsSchema;
+  cast: CastThresholdsSchema;
+  tuner: TunerLimitsSchema;
+}
+
+export declare const DEFAULT_KERNEL_THRESHOLDS: KernelThresholdsConfigSchema;
+
+/**
+ * Get the current kernel thresholds configuration.
+ */
+export declare function getKernelThresholds(): KernelThresholdsConfigSchema;
+
+/**
+ * Override kernel thresholds (merges with current config).
+ */
+export declare function setKernelThresholds(overrides: Partial<KernelThresholdsConfigSchema>): void;
+
+/**
+ * Reset kernel thresholds to defaults.
+ */
+export declare function resetKernelThresholds(): void;

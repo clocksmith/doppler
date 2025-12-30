@@ -1,0 +1,32 @@
+{
+  "name": "bench",
+  "description": "Benchmark configuration with clean output and performance settings",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "calibrate"
+      },
+      "debug": {
+        "logOutput": {
+          "stdout": true,
+          "file": null
+        },
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 64
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    }
+  }
+}

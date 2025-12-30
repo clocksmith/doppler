@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "inputDtype": "f16", "modDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "default" }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "hiddenActivation": [
+    { "match": { "activation": { "in": ["silu", "swiglu"] } }, "value": "silu" },
+    { "match": { "activation": { "in": ["gelu", "geglu"] } }, "value": "gelu" },
+    { "match": {}, "value": "silu" }
+  ],
+  "tracePath": [
+    { "match": { "useRecorder": true }, "value": "fused" },
+    { "match": {}, "value": "debug-sync" }
+  ],
+  "pipelineModules": [
+    { "match": { "modelTypeLower": { "in": ["diffusion"] } }, "value": ["./diffusion/pipeline.js"] },
+    { "match": { "modelTypeLower": { "in": ["energy"] } }, "value": ["./energy/pipeline.js"] },
+    {
+      "match": {
+        "modelTypeLower": {
+          "in": [
+            "dream_structured",
+            "dream_intent_posterior_head",
+            "dream_d1_to2_bridge",
+            "dream_synthesis",
+            "dream_energy_compose",
+            "structured_json_head",
+            "structured-json-head",
+            "dream-intent-posterior-head",
+            "dream-d1-to2-bridge",
+            "dream-synthesis",
+            "dream-energy-compose"
+          ]
+        }
+      },
+      "value": ["./structured/json-head-pipeline.js"]
+    },
+    {
+      "match": {
+        "modelTypeLower": {
+          "in": [
+            "energy_row_head",
+            "energy-row-head",
+            "dream_energy_head",
+            "dream-energy-head",
+            "d1-to2-bridge-diffusion",
+            "synthesis-mixer-diffusion",
+            "ebrm-diffusion"
+          ]
+        }
+      },
+      "value": ["./energy-head/row-head-pipeline.js"]
+    },
+    { "match": {}, "value": [] }
+  ],
+  "embeddingSemanticStyle": [
+    { "match": { "modelId": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
+    { "match": { "presetId": { "in": ["embeddinggemma"] } }, "value": "embeddinggemma" },
+    { "match": { "manifestModelType": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
+    { "match": {}, "value": "default" }
+  ]
+}

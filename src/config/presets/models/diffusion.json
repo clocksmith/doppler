@@ -1,0 +1,10 @@
+{
+  "id": "diffusion",
+  "name": "Diffusion",
+  "modelType": "diffusion",
+  "detection": {
+    "configPatterns": {
+      "_class_name": "StableDiffusion3Pipeline"
+    }
+  }
+}

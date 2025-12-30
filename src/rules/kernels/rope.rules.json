@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "useF16": true }, "value": "default_f16" },
+    { "match": {}, "value": "default" }
+  ]
+}

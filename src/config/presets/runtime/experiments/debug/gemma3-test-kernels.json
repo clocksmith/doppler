@@ -1,0 +1,11 @@
+{
+  "extends": "modes/debug",
+  "model": "gemma-3-1b-it-wq4k",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      }
+    }
+  }
+}

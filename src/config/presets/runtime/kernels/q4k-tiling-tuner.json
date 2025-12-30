@@ -1,0 +1,25 @@
+{
+  "name": "q4k-tiling-tuner",
+  "description": "Q4K kernel tuning with trace enabled for optimization experiments",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["kernels", "ffn"],
+          "maxDecodeSteps": 5
+        }
+      }
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "kernelPath": "gemma2-q4k-fused-f32a"
+    }
+  }
+}

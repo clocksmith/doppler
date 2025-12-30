@@ -1,0 +1,37 @@
+{
+  "id": "mixtral",
+  "name": "Mixtral (MoE)",
+  "extends": "transformer",
+  "modelType": "mixtral",
+
+  "inference": {
+    "attention": {
+      "slidingWindow": 4096
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "rmsNormEps": 1e-5
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<s>",
+    "eosTokens": ["</s>"],
+    "addBosToken": true
+  },
+
+  "tensorPatterns": {
+    "ffn": {
+      "gate": ["layers.{layer}.block_sparse_moe.experts.{expert}.w1.weight"],
+      "up": ["layers.{layer}.block_sparse_moe.experts.{expert}.w3.weight"],
+      "down": ["layers.{layer}.block_sparse_moe.experts.{expert}.w2.weight"]
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": ["mixtral", "MixtralForCausalLM"],
+    "configPatterns": {
+      "num_local_experts": 8
+    }
+  }
+}

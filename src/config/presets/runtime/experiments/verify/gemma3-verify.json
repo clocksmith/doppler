@@ -1,0 +1,33 @@
+{
+  "extends": "bench",
+  "model": "gemma-3-1b-it-f16-f16a",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": {
+        "maxTokens": 64
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    }
+  }
+}

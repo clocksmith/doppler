@@ -1,0 +1,63 @@
+/**
+ * Config Module Index
+ *
+ * Central export for config-as-code architecture.
+ *
+ * Platform and kernel registry initialization:
+ * - Platform detection and registry loading happen automatically in gpu/device.js
+ * - Call initDevice() to initialize both GPU and config systems
+ * - Use getPlatformConfig() from device.js to access resolved platform config
+ * - Kernel selection in gpu/kernels/* uses platform preferences automatically
+ *
+ * @module config
+ */
+
+// Schema types
+export * from './schema/index.js';
+
+// Preset loader
+export {
+  getPreset,
+  listPresets,
+  resolvePreset,
+  detectPreset,
+  resolveConfig,
+  PRESET_REGISTRY,
+  PRESET_DETECTION_ORDER,
+} from './loader.js';
+
+// Runtime config registry
+export {
+  getRuntimeConfig,
+  setRuntimeConfig,
+  resetRuntimeConfig,
+} from './runtime.js';
+
+// Training config registry
+export {
+  DEFAULT_TRAINING_CONFIG,
+  createTrainingConfig,
+  getTrainingConfig,
+  setTrainingConfig,
+  resetTrainingConfig,
+  type TrainingConfigSchema,
+  type TrainingConfigOverrides,
+} from './training-defaults.js';
+
+// Backward registry loader
+export {
+  loadBackwardRegistry,
+} from './backward-registry-loader.js';
+
+// Config merge (manifest + runtime → merged with source tracking)
+export {
+  mergeConfig,
+  formatConfigSources,
+  getValuesBySource,
+  summarizeSources,
+  type ConfigSource,
+  type MergedConfig,
+  type MergedInferenceConfig,
+  type ManifestInput,
+  type RuntimeInferenceOverrides,
+} from './merge.js';

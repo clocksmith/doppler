@@ -1,0 +1,62 @@
+{
+  "name": "baseline",
+  "description": "Benchmark baseline captured 2026-01-20 (warm run).",
+  "extends": "modes/bench",
+  "runtime": {
+    "shared": {
+      "benchmark": {
+        "output": {
+          "schemaVersion": 1
+        },
+        "run": {
+          "promptName": "medium",
+          "maxNewTokens": 128,
+          "runType": "warm",
+          "warmupRuns": 1,
+          "timedRuns": 3,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "debug": false,
+          "profile": true,
+          "captureMemoryTimeSeries": true,
+          "memoryTimeSeriesIntervalMs": 50
+        },
+        "stats": {
+          "outlierIqrMultiplier": 1.5,
+          "warmupStabilityPercent": 10,
+          "thermalSlowdownPercent": 10,
+          "minSamplesForComparison": 3
+        },
+        "comparison": {
+          "regressionThresholdPercent": 10,
+          "failOnRegression": true
+        },
+        "baselines": {
+          "enabled": true,
+          "file": "tests/baselines.json",
+          "failOnOutOfRange": true,
+          "requireQualityOk": true
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": {
+        "batchSize": 1,
+        "maxTokens": 64,
+        "stopCheckMode": "batch"
+      },
+      "sampling": {
+        "temperature": 0,
+        "topP": 0.95,
+        "topK": 50,
+        "repetitionPenalty": 1,
+        "greedyThreshold": 0.01,
+        "repetitionPenaltyWindow": 100
+      }
+    }
+  }
+}

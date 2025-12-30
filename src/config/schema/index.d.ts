@@ -1,0 +1,737 @@
+/**
+ * Schema Index
+ *
+ * Re-exports all schema definitions for easy importing.
+ *
+ * Naming Convention:
+ * - *Schema: Type definitions (interface structure)
+ * - *Config: Runtime instances (validated values)
+ * - *Raw: Unparsed input (from manifest/file)
+ * - *Options: Function parameters
+ *
+ * @module config/schema
+ */
+
+// =============================================================================
+// Manifest Schema
+// =============================================================================
+export {
+  // Constants
+  RDRR_VERSION,
+  SHARD_SIZE,
+  TENSORS_FILENAME,
+  MAX_HEADER_SIZE,
+  HEADER_READ_SIZE,
+  DEFAULT_RMS_NORM_EPS,
+  DEFAULT_HIGH_PRECISION_EPS,
+
+  // Types
+  type HashAlgorithm,
+  type ModelType,
+  type ComponentGroupType,
+  type WeightLayout,
+  type QuantizationValue,
+
+  // Schemas
+  type ArchitectureSchema,
+  type ShardSchema,
+  type TensorSpanSchema,
+  type TensorSchema,
+  type TensorMapSchema,
+  type TensorRole,
+  type ComponentGroupSchema,
+  type MoEConfigSchema,
+  type TokenizerSchema,
+  type RuntimeOptimizationsSchema,
+  type QuantizationInfoSchema,
+  type ConversionInfoSchema,
+  type ManifestSchema,
+  type AdapterConfigSchema,
+  type ProvenanceSchema,
+
+  // Inference config (embedded in manifest)
+  type ManifestInferenceSchema,
+  type ManifestAttentionSchema,
+  type ManifestNormalizationSchema,
+  type ManifestFFNSchema,
+  type ManifestRoPESchema,
+  type ManifestOutputSchema,
+  type ManifestLayerPatternSchema,
+  type ManifestChatTemplateSchema,
+  DEFAULT_MANIFEST_INFERENCE,
+
+  // Helpers
+  isV1Manifest,
+  hasMoEConfig,
+  validateManifestInference,
+  hasInferenceConfig,
+} from './manifest.schema.js';
+
+// =============================================================================
+// Kernel Path Schema
+// =============================================================================
+export {
+  type KernelPathSchema,
+  type KernelPathRef,
+  type KernelStepSchema,
+  type LayerKernelPathSchema,
+  type LayerOverrideSchema,
+  type BuiltinKernelPathId,
+  DEFAULT_ENTRY,
+  DEFAULT_INPUT,
+  DEFAULT_OUTPUT,
+} from './kernel-path.schema.js';
+
+// =============================================================================
+// Inference Schema
+// =============================================================================
+export {
+  type RoPEConfigSchema,
+  type AttentionSchema,
+  type NormalizationSchema,
+  type FFNSchema,
+  type LayerPipelineOp,
+  type LayerPipelineNormWeight,
+  type LayerPipelineStepSchema,
+  type LayerPipelineOverrideSchema,
+  type LayerPipelineSchema,
+  type OutputSchema,
+  type LayerType,
+  type GlobalLayerPattern,
+  type LayerPatternSchema,
+  type InferenceConfigSchema,
+  type SamplingSchema,
+  type TokenizerConfigSchema,
+  computeGlobalLayers,
+} from './inference.schema.js';
+
+// =============================================================================
+// Diffusion Schema
+// =============================================================================
+export {
+  type DiffusionConfigSchema,
+  type DiffusionSchedulerConfigSchema,
+  type DiffusionLatentConfigSchema,
+  type DiffusionTextEncoderConfigSchema,
+  type DiffusionDecodeConfigSchema,
+  type DiffusionTilingConfigSchema,
+  type DiffusionSwapperConfigSchema,
+  type DiffusionQuantizationConfigSchema,
+  type DiffusionBackendConfigSchema,
+  type DiffusionScaffoldConfigSchema,
+  type DiffusionSchedulerType,
+  type DiffusionDtype,
+  type DiffusionQuantDtype,
+  type DiffusionSwapperStrategy,
+  type DiffusionBackendPipeline,
+  DEFAULT_DIFFUSION_SCHEDULER_CONFIG,
+  DEFAULT_DIFFUSION_LATENT_CONFIG,
+  DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG,
+  DEFAULT_DIFFUSION_DECODE_CONFIG,
+  DEFAULT_DIFFUSION_TILING_CONFIG,
+  DEFAULT_DIFFUSION_SWAPPER_CONFIG,
+  DEFAULT_DIFFUSION_QUANTIZATION_CONFIG,
+  DEFAULT_DIFFUSION_BACKEND_CONFIG,
+  DEFAULT_DIFFUSION_CONFIG,
+} from './diffusion.schema.js';
+
+// =============================================================================
+// Energy Schema
+// =============================================================================
+export {
+  type EnergyStateConfigSchema,
+  type EnergyInitConfigSchema,
+  type EnergyTargetConfigSchema,
+  type EnergyLoopConfigSchema,
+  type EnergyDiagnosticsConfigSchema,
+  type EnergyQuintelRulesConfigSchema,
+  type EnergyQuintelWeightsConfigSchema,
+  type EnergyQuintelClampConfigSchema,
+  type EnergyQuintelConfigSchema,
+  type EnergyConfigSchema,
+  type EnergyModelConfigSchema,
+  DEFAULT_ENERGY_STATE_CONFIG,
+  DEFAULT_ENERGY_INIT_CONFIG,
+  DEFAULT_ENERGY_TARGET_CONFIG,
+  DEFAULT_ENERGY_LOOP_CONFIG,
+  DEFAULT_ENERGY_DIAGNOSTICS_CONFIG,
+  DEFAULT_ENERGY_QUINTEL_RULES,
+  DEFAULT_ENERGY_QUINTEL_WEIGHTS,
+  DEFAULT_ENERGY_QUINTEL_CLAMP,
+  DEFAULT_ENERGY_QUINTEL_CONFIG,
+  DEFAULT_ENERGY_CONFIG,
+} from './energy.schema.js';
+
+// =============================================================================
+// Conversion Schema
+// =============================================================================
+export {
+  // Types
+  type QuantizationType,
+  type ConversionStageType,
+
+  // Constants
+  ConversionStage,
+
+  // Schemas
+  type TensorInfoSchema,
+  type ParsedModelSchema,
+  type RawModelConfigSchema,
+  type ConversionOptionsSchema,
+  type ConversionProgressSchema,
+  type WriterOptionsSchema,
+  type TensorLocationSchema,
+  type WriteResultSchema,
+  type ConversionIOSchema,
+} from './conversion.schema.js';
+
+// =============================================================================
+// Converter Schema
+// =============================================================================
+export {
+  // Types
+  type ComputePrecision,
+  type ConverterQuantizationConfigSchema,
+  type ConverterShardingConfigSchema,
+  type ConverterStreamingConfigSchema,
+  type ConverterHttpConfigSchema,
+  type ConverterWeightLayoutConfigSchema,
+  type ConverterManifestConfigSchema,
+  type ConverterInferenceConfigSchema,
+  type ConverterOutputConfigSchema,
+  type ConverterPresetConfigSchema,
+  type ConverterConfigSchema,
+
+  // Defaults
+  DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
+  DEFAULT_CONVERTER_SHARDING_CONFIG,
+  DEFAULT_CONVERTER_STREAMING_CONFIG,
+  DEFAULT_CONVERTER_HTTP_CONFIG,
+  DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
+  DEFAULT_CONVERTER_MANIFEST_CONFIG,
+  DEFAULT_CONVERTER_INFERENCE_CONFIG,
+  DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  DEFAULT_CONVERTER_PRESET_CONFIG,
+  DEFAULT_CONVERTER_CONFIG,
+
+  // Factory
+  createConverterConfig,
+} from './converter.schema.js';
+
+// =============================================================================
+// Preset Schema
+// =============================================================================
+export {
+  type PresetSchema,
+  type TensorPatternSchema,
+  type DetectionPatternSchema,
+  type ResolvedConfigSchema,
+} from './preset.schema.js';
+
+// =============================================================================
+// Loading Schema
+// =============================================================================
+export {
+  // Types
+  type ShardCacheConfigSchema,
+  type MemoryManagementConfigSchema,
+  type PrefetchConfigSchema,
+  type OpfsPathConfigSchema,
+  type ExpertCacheConfigSchema,
+  type LoadingConfigSchema,
+
+  // Defaults
+  DEFAULT_Q4K_LAYOUT,
+  DEFAULT_SHARD_CACHE_CONFIG,
+  DEFAULT_MEMORY_MANAGEMENT_CONFIG,
+  DEFAULT_PREFETCH_CONFIG,
+  DEFAULT_OPFS_PATH_CONFIG,
+  DEFAULT_EXPERT_CACHE_CONFIG,
+  DEFAULT_LOADING_CONFIG,
+} from './loading.schema.js';
+
+// =============================================================================
+// Kernel Registry Schema
+// =============================================================================
+export {
+  // Types
+  type GpuFeature,
+  type BindingType,
+  type BindingSchema,
+  type UniformFieldType,
+  type UniformFieldSchema,
+  type UniformsSchema,
+  type WgslOverridesSchema,
+  type KernelVariantSchema,
+  type OperationSchema,
+  type KernelRegistrySchema,
+  type ResolvedKernelConfig,
+
+  // Functions
+  mergeBindings,
+  resolveKernelConfig,
+} from './kernel-registry.schema.js';
+
+// =============================================================================
+// Platform Schema
+// =============================================================================
+export {
+  // Types
+  type PlatformDetectionSchema,
+  type MemoryHintsSchema,
+  type PlatformSchema,
+  type RuntimeCapabilities,
+  type ResolvedPlatformConfig,
+  type PlatformRegistrySchema,
+} from './platform.schema.js';
+
+// =============================================================================
+// Storage Schema
+// =============================================================================
+export {
+  // Types
+  type QuotaConfigSchema,
+  type VramEstimationConfigSchema,
+  type StorageAlignmentConfigSchema,
+  type StorageFullConfigSchema,
+
+  // Defaults
+  DEFAULT_QUOTA_CONFIG,
+  DEFAULT_VRAM_ESTIMATION_CONFIG,
+  DEFAULT_STORAGE_ALIGNMENT_CONFIG,
+  DEFAULT_STORAGE_FULL_CONFIG,
+} from './storage.schema.js';
+
+// =============================================================================
+// Inference Defaults Schema
+// =============================================================================
+export {
+  // Types
+  type BatchingDefaultsSchema,
+  type ComputeDefaultsSchema,
+  type LargeWeightConfigSchema,
+  type SamplingDefaultsSchema,
+  type GenerationDefaultsSchema,
+  type TokenizerDefaultsSchema,
+  type InferenceDefaultsConfigSchema,
+  type ModelInferenceOverrides,
+
+  // Defaults
+  DEFAULT_BATCHING_DEFAULTS,
+  DEFAULT_COMPUTE_DEFAULTS,
+  DEFAULT_LARGE_WEIGHT_CONFIG,
+  DEFAULT_SAMPLING_DEFAULTS,
+  DEFAULT_GENERATION_CONFIG,
+  DEFAULT_TOKENIZER_DEFAULTS,
+  DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+  DEFAULT_PRESET_INFERENCE_CONFIG,
+} from './inference-defaults.schema.js';
+
+// =============================================================================
+// Distribution Schema
+// =============================================================================
+export {
+  // Types
+  type DistributionConfigSchema,
+
+  // Defaults
+  DEFAULT_DISTRIBUTION_CONFIG,
+} from './distribution.schema.js';
+
+// =============================================================================
+// MoE Runtime Schema
+// =============================================================================
+export {
+  // Types
+  type RouterDtype,
+  type MoERoutingConfigSchema,
+  type MoECacheConfigSchema,
+  type MoERuntimeConfigSchema,
+
+  // Defaults
+  DEFAULT_MOE_ROUTING_CONFIG,
+  DEFAULT_MOE_CACHE_CONFIG,
+  DEFAULT_MOE_RUNTIME_CONFIG,
+} from './moe.schema.js';
+
+// =============================================================================
+// KV Cache Schema
+// =============================================================================
+export {
+  // Types
+  type KVDtype,
+  type KVLayout,
+  type KVCacheConfigSchema,
+
+  // Defaults
+  DEFAULT_KVCACHE_CONFIG,
+
+  // Thresholds
+  PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
+} from './kvcache.schema.js';
+
+// =============================================================================
+// GPU Cache Schema
+// =============================================================================
+export {
+  // Types
+  type GpuCacheConfigSchema,
+
+  // Defaults
+  DEFAULT_GPU_CACHE_CONFIG,
+} from './gpu-cache.schema.js';
+
+// =============================================================================
+// Tuner Schema
+// =============================================================================
+export {
+  // Types
+  type TunerConfigSchema,
+
+  // Defaults
+  DEFAULT_TUNER_CONFIG,
+} from './tuner.schema.js';
+
+// =============================================================================
+// Debug Schema
+// =============================================================================
+export {
+  // Types
+  type LogOutputConfigSchema,
+  type LogHistoryConfigSchema,
+  type LogLevelConfigSchema,
+  type LogLevel,
+  type TraceCategory,
+  type TraceConfigSchema,
+  type PipelineDebugCategory,
+  type PipelineDebugConfigSchema,
+  type ProfilerConfigSchema,
+  type PerfGuardsConfigSchema,
+  type ProbeStage,
+  type ProbeConfigSchema,
+  type DebugConfigSchema,
+
+  // Constants
+  LOG_LEVELS,
+
+  // Defaults
+  DEFAULT_LOG_OUTPUT_CONFIG,
+  DEFAULT_LOG_HISTORY_CONFIG,
+  DEFAULT_LOG_LEVEL_CONFIG,
+  DEFAULT_TRACE_CONFIG,
+  DEFAULT_PIPELINE_DEBUG_CONFIG,
+  DEFAULT_PROFILER_CONFIG,
+  DEFAULT_PERF_GUARDS_CONFIG,
+  DEFAULT_DEBUG_CONFIG,
+} from './debug.schema.js';
+
+// =============================================================================
+// Benchmark Schema
+// =============================================================================
+export {
+  // Types
+  type BenchmarkOutputConfig,
+  type BenchmarkRunConfig,
+  type BenchmarkStatsConfig,
+  type BenchmarkComparisonConfig,
+  type BenchmarkConfig,
+
+  // Defaults
+  DEFAULT_BENCHMARK_OUTPUT_CONFIG,
+  DEFAULT_BENCHMARK_RUN_CONFIG,
+  DEFAULT_BENCHMARK_STATS_CONFIG,
+  DEFAULT_BENCHMARK_COMPARISON_CONFIG,
+  DEFAULT_BENCHMARK_BASELINE_CONFIG,
+  DEFAULT_BENCHMARK_CONFIG,
+} from './benchmark.schema.js';
+
+// =============================================================================
+// Hot-Swap Schema
+// =============================================================================
+export {
+  // Types
+  type HotSwapSignerSchema,
+  type HotSwapConfigSchema,
+
+  // Defaults
+  DEFAULT_HOTSWAP_CONFIG,
+} from './hotswap.schema.js';
+
+// =============================================================================
+// Buffer Pool Schema
+// =============================================================================
+export {
+  // Types
+  type BufferPoolBucketConfigSchema,
+  type BufferPoolLimitsConfigSchema,
+  type BufferPoolAlignmentConfigSchema,
+  type BufferPoolBudgetConfigSchema,
+  type BufferPoolConfigSchema,
+
+  // Defaults
+  DEFAULT_BUFFER_POOL_BUCKET_CONFIG,
+  DEFAULT_BUFFER_POOL_LIMITS_CONFIG,
+  DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG,
+  DEFAULT_BUFFER_POOL_BUDGET_CONFIG,
+  DEFAULT_BUFFER_POOL_CONFIG,
+} from './buffer-pool.schema.js';
+
+// =============================================================================
+// Memory Limits Schema
+// =============================================================================
+export {
+  // Types
+  type HeapTestingConfigSchema,
+  type SegmentTestingConfigSchema,
+  type AddressSpaceConfigSchema,
+  type SegmentAllocationConfigSchema,
+  type EmulatedStorageConfigSchema,
+  type MemoryLimitsConfigSchema,
+
+  // Defaults
+  DEFAULT_HEAP_TESTING_CONFIG,
+  DEFAULT_SEGMENT_TESTING_CONFIG,
+  DEFAULT_ADDRESS_SPACE_CONFIG,
+  DEFAULT_SEGMENT_ALLOCATION_CONFIG,
+  DEFAULT_EMULATED_STORAGE_CONFIG,
+  DEFAULT_MEMORY_LIMITS_CONFIG,
+} from './memory-limits.schema.js';
+
+// =============================================================================
+// Bridge Schema
+// =============================================================================
+export {
+  // Types
+  type BridgeConfigSchema,
+
+  // Defaults
+  DEFAULT_BRIDGE_CONFIG,
+} from './bridge.schema.js';
+
+// =============================================================================
+// LoRA Schema
+// =============================================================================
+export {
+  type LoraConfigSchema,
+  DEFAULT_LORA_CONFIG,
+} from './lora.schema.js';
+
+// =============================================================================
+// Training Schema
+// =============================================================================
+export {
+  type TrainingOptimizerConfigSchema,
+  type TrainingGradientConfigSchema,
+  type TrainingLossScalingConfigSchema,
+  type TrainingPrecisionConfigSchema,
+  type TrainingAttentionConfigSchema,
+  type TrainingSettingsSchema,
+  DEFAULT_TRAINING_OPTIMIZER_CONFIG,
+  DEFAULT_TRAINING_GRADIENT_CONFIG,
+  DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
+  DEFAULT_TRAINING_PRECISION_CONFIG,
+  DEFAULT_TRAINING_ATTENTION_CONFIG,
+  DEFAULT_TRAINING_SETTINGS,
+} from './training.schema.js';
+
+// =============================================================================
+// Backward Registry Schema
+// =============================================================================
+export {
+  type BackwardRegistryOpSchema,
+  type BackwardRegistrySchema,
+  validateBackwardRegistry,
+} from './backward-registry.schema.js';
+
+// =============================================================================
+// Unit Constants (Invariants)
+// =============================================================================
+export {
+  KB,
+  MB,
+  GB,
+  formatBytes,
+  formatBytesCompact,
+} from './units.schema.js';
+
+// =============================================================================
+// Quantization Defaults Schema
+// =============================================================================
+export {
+  // Types
+  type WeightQuantType,
+  type EmbeddingQuantType,
+  type QuantizationDefaultsSchema,
+
+  // Defaults
+  DEFAULT_QUANTIZATION_DEFAULTS,
+} from './quantization-defaults.schema.js';
+
+// =============================================================================
+// Quantization Constants (Invariants)
+// =============================================================================
+export {
+  QK_K,
+  Q4K_BLOCK_BYTES,
+  Q6K_BLOCK_BYTES,
+  Q8_0_BLOCK_BYTES,
+  Q8_0_BLOCK_SIZE,
+  K_SCALE_SIZE,
+  QK4_K_BLOCK_SIZE,
+  padToQ4KBlock,
+  q4kBlockCount,
+} from './quantization.schema.js';
+
+// =============================================================================
+// Kernel Thresholds Schema
+// =============================================================================
+export {
+  // Types
+  type MatmulThresholdsSchema,
+  type RmsnormThresholdsSchema,
+  type RopeDefaultsSchema,
+  type AttentionThresholdsSchema,
+  type CastThresholdsSchema,
+  type KernelThresholdsConfigSchema,
+  type SoftmaxThresholdsSchema,
+  type FfnThresholdsSchema,
+  type SampleThresholdsSchema,
+
+  // Constants
+  DTYPE_SIZES,
+  getDtypeSize,
+
+  // Defaults
+  DEFAULT_MATMUL_THRESHOLDS,
+  DEFAULT_RMSNORM_THRESHOLDS,
+  DEFAULT_SOFTMAX_THRESHOLDS,
+  DEFAULT_FFN_THRESHOLDS,
+  DEFAULT_SAMPLE_THRESHOLDS,
+  DEFAULT_ROPE_DEFAULTS,
+  DEFAULT_ATTENTION_THRESHOLDS,
+  DEFAULT_CAST_THRESHOLDS,
+  DEFAULT_KERNEL_THRESHOLDS,
+
+  // Functions
+  getKernelThresholds,
+  setKernelThresholds,
+  resetKernelThresholds,
+} from './kernel-thresholds.schema.js';
+
+// =============================================================================
+// Kernel Warmup Schema
+// =============================================================================
+export {
+  // Types
+  type KernelWarmupConfigSchema,
+
+  // Defaults
+  DEFAULT_KERNEL_WARMUP_CONFIG,
+} from './kernel-warmup.schema.js';
+
+// =============================================================================
+// Shared Runtime Schema
+// =============================================================================
+export {
+  // Types
+  type KernelRegistryConfigSchema,
+  type SharedRuntimeConfigSchema,
+
+  // Defaults
+  DEFAULT_KERNEL_REGISTRY_CONFIG,
+  DEFAULT_SHARED_RUNTIME_CONFIG,
+} from './shared-runtime.schema.js';
+
+// =============================================================================
+// Tooling Schema
+// =============================================================================
+export {
+  // Types
+  type ToolingConfigSchema,
+  type ToolingIntent,
+  type ToolingDiagnosticsMode,
+
+  // Constants
+  TOOLING_INTENTS,
+  TOOLING_DIAGNOSTICS,
+
+  // Defaults
+  DEFAULT_TOOLING_CONFIG,
+} from './tooling.schema.js';
+
+// =============================================================================
+// Harness Schema
+// =============================================================================
+export {
+  // Types
+  type HarnessConfigSchema,
+  type HarnessMode,
+
+  // Defaults
+  DEFAULT_HARNESS_CONFIG,
+} from './harness.schema.js';
+
+// =============================================================================
+// Speculative Schema
+// =============================================================================
+export {
+  // Types
+  type SpeculativeConfigSchema,
+
+  // Defaults
+  DEFAULT_SPECULATIVE_CONFIG,
+} from './speculative.schema.js';
+
+// =============================================================================
+// Emulation Schema
+// =============================================================================
+export {
+  // Types
+  type EmulatedChipType,
+  type EmulationTimingMode,
+  type EmulatedGPUSpec,
+  type EmulatedCPUSpec,
+  type NVLinkSpec,
+  type NVLinkC2CSpec,
+  type EmulatedClusterTopology,
+  type TensorParallelConfig,
+  type PipelineParallelConfig,
+  type DataParallelConfig,
+  type ExpertParallelConfig,
+  type EmulatedParallelismConfig,
+  type EmulatedTimingScaling,
+  type LocalResourceTier,
+  type LocalResourceMapping,
+  type EmulationConfigSchema,
+  type VirtualGPUStats,
+  type NVLinkStats,
+  type EmulationStats,
+
+  // Defaults
+  DEFAULT_GH200_GPU_SPEC,
+  DEFAULT_GH200_CPU_SPEC,
+  DEFAULT_NVLINK_SPEC,
+  DEFAULT_NVLINK_C2C_SPEC,
+  DEFAULT_PARALLELISM_CONFIG,
+  DEFAULT_EMULATION_CONFIG,
+
+  // Factory
+  createEmulationConfig,
+  getChipPreset,
+} from './emulation.schema.js';
+
+// =============================================================================
+// Doppler Master Config
+// =============================================================================
+export {
+  // Types
+  type RuntimeConfigSchema,
+  type DopplerConfigSchema,
+
+  // Defaults
+  DEFAULT_RUNTIME_CONFIG,
+  DEFAULT_DOPPLER_CONFIG,
+
+  // Factory
+  createDopplerConfig,
+} from './doppler.schema.js';

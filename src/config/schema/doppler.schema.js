@@ -1,0 +1,302 @@
+import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
+import { DEFAULT_INFERENCE_DEFAULTS_CONFIG } from './inference-defaults.schema.js';
+import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
+import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
+
+// =============================================================================
+// Runtime Config (all non-model-specific settings)
+// =============================================================================
+
+export const DEFAULT_RUNTIME_CONFIG = {
+  shared: DEFAULT_SHARED_RUNTIME_CONFIG,
+  loading: DEFAULT_LOADING_CONFIG,
+  inference: DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+  emulation: DEFAULT_EMULATION_CONFIG,
+};
+
+// =============================================================================
+// Master Doppler Config
+// =============================================================================
+
+export const DEFAULT_DOPPLER_CONFIG = {
+  model: undefined,
+  runtime: DEFAULT_RUNTIME_CONFIG,
+};
+
+// =============================================================================
+// Factory Function
+// =============================================================================
+
+export function createDopplerConfig(
+  overrides
+) {
+  if (!overrides) {
+    return { ...DEFAULT_DOPPLER_CONFIG };
+  }
+
+  const runtimeOverrides = overrides.runtime ?? {};
+  const runtime = overrides.runtime
+    ? mergeRuntimeConfig(DEFAULT_RUNTIME_CONFIG, runtimeOverrides)
+    : { ...DEFAULT_RUNTIME_CONFIG };
+  const config = {
+    model: overrides.model ?? DEFAULT_DOPPLER_CONFIG.model,
+    runtime,
+  };
+
+  applyCalibrateDefaults(config.runtime, runtimeOverrides);
+  return config;
+}
+
+function mergeRuntimeConfig(
+  base,
+  overrides
+) {
+  return {
+    shared: overrides.shared
+      ? mergeSharedRuntimeConfig(base.shared, overrides.shared)
+      : { ...base.shared },
+    loading: overrides.loading
+      ? mergeLoadingConfig(base.loading, overrides.loading)
+      : { ...base.loading },
+    inference: overrides.inference
+      ? mergeInferenceConfig(base.inference, overrides.inference)
+      : { ...base.inference },
+    emulation: overrides.emulation
+      ? mergeEmulationConfig(base.emulation, overrides.emulation)
+      : { ...base.emulation },
+  };
+}
+
+function mergeSharedRuntimeConfig(
+  base,
+  overrides
+) {
+  return {
+    debug: overrides.debug
+      ? mergeDebugConfig(base.debug, overrides.debug)
+      : { ...base.debug },
+    benchmark: overrides.benchmark
+      ? mergeBenchmarkConfig(base.benchmark, overrides.benchmark)
+      : { ...base.benchmark },
+    harness: overrides.harness
+      ? { ...base.harness, ...overrides.harness }
+      : { ...base.harness },
+    tooling: overrides.tooling
+      ? { ...base.tooling, ...overrides.tooling }
+      : { ...base.tooling },
+    platform: overrides.platform ?? base.platform,
+    kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
+    kernelThresholds: overrides.kernelThresholds
+      ? mergeKernelThresholds(base.kernelThresholds, overrides.kernelThresholds)
+      : { ...base.kernelThresholds },
+    kernelWarmup: overrides.kernelWarmup
+      ? { ...base.kernelWarmup, ...overrides.kernelWarmup }
+      : { ...base.kernelWarmup },
+    bufferPool: overrides.bufferPool
+      ? {
+          bucket: { ...base.bufferPool.bucket, ...overrides.bufferPool.bucket },
+          limits: { ...base.bufferPool.limits, ...overrides.bufferPool.limits },
+          alignment: { ...base.bufferPool.alignment, ...overrides.bufferPool.alignment },
+        }
+      : { ...base.bufferPool },
+    gpuCache: { ...base.gpuCache, ...overrides.gpuCache },
+    tuner: { ...base.tuner, ...overrides.tuner },
+    memory: overrides.memory
+      ? {
+          heapTesting: { ...base.memory.heapTesting, ...overrides.memory.heapTesting },
+          segmentTesting: { ...base.memory.segmentTesting, ...overrides.memory.segmentTesting },
+          addressSpace: { ...base.memory.addressSpace, ...overrides.memory.addressSpace },
+          segmentAllocation: { ...base.memory.segmentAllocation, ...overrides.memory.segmentAllocation },
+        }
+      : { ...base.memory },
+    hotSwap: overrides.hotSwap
+      ? {
+          ...base.hotSwap,
+          ...overrides.hotSwap,
+          trustedSigners: overrides.hotSwap.trustedSigners ?? base.hotSwap.trustedSigners,
+        }
+      : { ...base.hotSwap },
+    intentBundle: overrides.intentBundle
+      ? { ...base.intentBundle, ...overrides.intentBundle }
+      : { ...base.intentBundle },
+    bridge: { ...base.bridge, ...overrides.bridge },
+  };
+}
+
+function mergeLoadingConfig(
+  base,
+  overrides
+) {
+  return {
+    storage: overrides.storage
+      ? {
+          quota: { ...base.storage.quota, ...overrides.storage.quota },
+          vramEstimation: { ...base.storage.vramEstimation, ...overrides.storage.vramEstimation },
+          alignment: { ...base.storage.alignment, ...overrides.storage.alignment },
+          backend: overrides.storage.backend
+            ? {
+                backend: overrides.storage.backend.backend ?? base.storage.backend.backend,
+                opfs: { ...base.storage.backend.opfs, ...overrides.storage.backend.opfs },
+                indexeddb: { ...base.storage.backend.indexeddb, ...overrides.storage.backend.indexeddb },
+                memory: { ...base.storage.backend.memory, ...overrides.storage.backend.memory },
+                streaming: { ...base.storage.backend.streaming, ...overrides.storage.backend.streaming },
+              }
+            : { ...base.storage.backend },
+        }
+      : { ...base.storage },
+    distribution: { ...base.distribution, ...overrides.distribution },
+    shardCache: { ...base.shardCache, ...overrides.shardCache },
+    memoryManagement: { ...base.memoryManagement, ...overrides.memoryManagement },
+    prefetch: { ...base.prefetch, ...overrides.prefetch },
+    opfsPath: { ...base.opfsPath, ...overrides.opfsPath },
+    expertCache: { ...base.expertCache, ...overrides.expertCache },
+    allowF32UpcastNonMatmul: overrides.allowF32UpcastNonMatmul ?? base.allowF32UpcastNonMatmul,
+  };
+}
+
+function mergeInferenceConfig(
+  base,
+  overrides
+) {
+  return {
+    prompt: overrides.prompt ?? base.prompt,
+    debugTokens: overrides.debugTokens ?? base.debugTokens,
+    batching: { ...base.batching, ...overrides.batching },
+    sampling: { ...base.sampling, ...overrides.sampling },
+    compute: { ...base.compute, ...overrides.compute },
+    tokenizer: { ...base.tokenizer, ...overrides.tokenizer },
+    largeWeights: { ...base.largeWeights, ...overrides.largeWeights },
+    kvcache: { ...base.kvcache, ...overrides.kvcache },
+    diffusion: overrides.diffusion
+      ? {
+          ...base.diffusion,
+          ...overrides.diffusion,
+          scheduler: { ...base.diffusion.scheduler, ...overrides.diffusion.scheduler },
+          latent: { ...base.diffusion.latent, ...overrides.diffusion.latent },
+          textEncoder: { ...base.diffusion.textEncoder, ...overrides.diffusion.textEncoder },
+          decode: {
+            ...base.diffusion.decode,
+            ...overrides.diffusion.decode,
+            tiling: { ...base.diffusion.decode.tiling, ...overrides.diffusion.decode?.tiling },
+          },
+          swapper: { ...base.diffusion.swapper, ...overrides.diffusion.swapper },
+          quantization: { ...base.diffusion.quantization, ...overrides.diffusion.quantization },
+        }
+      : { ...base.diffusion },
+    energy: overrides.energy
+      ? {
+          ...base.energy,
+          ...overrides.energy,
+          problem: overrides.energy.problem ?? base.energy.problem,
+          state: { ...base.energy.state, ...overrides.energy.state },
+          init: { ...base.energy.init, ...overrides.energy.init },
+          target: { ...base.energy.target, ...overrides.energy.target },
+          loop: { ...base.energy.loop, ...overrides.energy.loop },
+          diagnostics: { ...base.energy.diagnostics, ...overrides.energy.diagnostics },
+          quintel: overrides.energy.quintel
+            ? {
+                ...base.energy.quintel,
+                ...overrides.energy.quintel,
+                rules: { ...base.energy.quintel.rules, ...overrides.energy.quintel.rules },
+                weights: { ...base.energy.quintel.weights, ...overrides.energy.quintel.weights },
+                clamp: { ...base.energy.quintel.clamp, ...overrides.energy.quintel.clamp },
+              }
+            : { ...base.energy.quintel },
+        }
+      : { ...base.energy },
+    moe: overrides.moe
+      ? {
+          routing: { ...base.moe.routing, ...overrides.moe.routing },
+          cache: { ...base.moe.cache, ...overrides.moe.cache },
+        }
+      : { ...base.moe },
+    speculative: { ...base.speculative, ...overrides.speculative },
+    generation: { ...base.generation, ...overrides.generation },
+    pipeline: overrides.pipeline ?? base.pipeline,
+    kernelPath: overrides.kernelPath ?? base.kernelPath,
+    chatTemplate: overrides.chatTemplate
+      ? { ...base.chatTemplate, ...overrides.chatTemplate }
+      : base.chatTemplate,
+    // Model-specific inference overrides (merged with manifest.inference at load time)
+    modelOverrides: overrides.modelOverrides ?? base.modelOverrides,
+  };
+}
+
+function mergeKernelThresholds(
+  base,
+  overrides
+) {
+  return {
+    ...base,
+    ...overrides,
+    matmul: { ...base.matmul, ...overrides.matmul },
+    rmsnorm: { ...base.rmsnorm, ...overrides.rmsnorm },
+    rope: { ...base.rope, ...overrides.rope },
+    attention: { ...base.attention, ...overrides.attention },
+    fusedMatmul: { ...base.fusedMatmul, ...overrides.fusedMatmul },
+    cast: { ...base.cast, ...overrides.cast },
+  };
+}
+
+function mergeDebugConfig(
+  base,
+  overrides
+) {
+  if (!overrides) {
+    return { ...base };
+  }
+
+  return {
+    logOutput: { ...base.logOutput, ...overrides.logOutput },
+    logHistory: { ...base.logHistory, ...overrides.logHistory },
+    logLevel: { ...base.logLevel, ...overrides.logLevel },
+    trace: { ...base.trace, ...overrides.trace },
+    pipeline: { ...base.pipeline, ...overrides.pipeline },
+    probes: overrides.probes ?? base.probes,
+    profiler: { ...base.profiler, ...overrides.profiler },
+    perfGuards: { ...base.perfGuards, ...overrides.perfGuards },
+  };
+}
+
+function applyCalibrateDefaults(runtime, runtimeOverrides) {
+  const intent = runtime?.shared?.tooling?.intent;
+  if (intent !== 'calibrate') return;
+
+  const warmupOverrides = runtimeOverrides?.shared?.kernelWarmup;
+  const hasPrewarmOverride = warmupOverrides
+    && Object.prototype.hasOwnProperty.call(warmupOverrides, 'prewarm');
+  if (!hasPrewarmOverride) {
+    runtime.shared.kernelWarmup = {
+      ...runtime.shared.kernelWarmup,
+      prewarm: true,
+    };
+  }
+}
+
+function mergeBenchmarkConfig(
+  base,
+  overrides
+) {
+  if (!overrides) {
+    return { ...base };
+  }
+
+  return {
+    output: { ...base.output, ...overrides.output },
+    run: { ...base.run, ...overrides.run },
+    stats: { ...base.stats, ...overrides.stats },
+    comparison: { ...base.comparison, ...overrides.comparison },
+    baselines: { ...base.baselines, ...overrides.baselines },
+  };
+}
+
+function mergeEmulationConfig(
+  base,
+  overrides
+) {
+  if (!overrides) {
+    return { ...base };
+  }
+
+  return createEmulationConfig(overrides);
+}

@@ -1,0 +1,16 @@
+{
+  "name": "energy-demo",
+  "description": "Energy harness preset for the energy demo manifest.",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": { "intent": "verify" },
+      "harness": {
+        "mode": "energy",
+        "autorun": true,
+        "skipLoad": false,
+        "modelId": "energy-demo"
+      }
+    }
+  }
+}

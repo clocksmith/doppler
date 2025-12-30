@@ -1,0 +1,48 @@
+{
+  "biasAddCode": [
+    {
+      "match": { "logitsDtype": "f16", "biasDtype": "f16" },
+      "value": {
+        "logitsType": "f16",
+        "biasType": "f16",
+        "logitsRead": "f32(logits[idx])",
+        "biasRead": "f32(bias[e])",
+        "logitsWrite": "logits[idx] = f16(value);",
+        "enableF16": "enable f16;\n"
+      }
+    },
+    {
+      "match": { "logitsDtype": "f16" },
+      "value": {
+        "logitsType": "f16",
+        "biasType": "f32",
+        "logitsRead": "f32(logits[idx])",
+        "biasRead": "bias[e]",
+        "logitsWrite": "logits[idx] = f16(value);",
+        "enableF16": "enable f16;\n"
+      }
+    },
+    {
+      "match": { "biasDtype": "f16" },
+      "value": {
+        "logitsType": "f32",
+        "biasType": "f16",
+        "logitsRead": "logits[idx]",
+        "biasRead": "f32(bias[e])",
+        "logitsWrite": "logits[idx] = value;",
+        "enableF16": "enable f16;\n"
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "logitsType": "f32",
+        "biasType": "f32",
+        "logitsRead": "logits[idx]",
+        "biasRead": "bias[e]",
+        "logitsWrite": "logits[idx] = value;",
+        "enableF16": ""
+      }
+    }
+  ]
+}

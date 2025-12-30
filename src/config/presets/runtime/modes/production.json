@@ -1,0 +1,38 @@
+{
+  "name": "production",
+  "description": "Production configuration with optimized settings",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": null
+        },
+        "logLevel": {
+          "defaultLogLevel": "error"
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 4096
+      },
+      "sampling": {
+        "temperature": 0.7
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      }
+    }
+  }
+}

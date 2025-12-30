@@ -1,0 +1,10 @@
+{
+  "statsVariant": [
+    { "match": { "isF16": true }, "value": "stats_f16" },
+    { "match": {}, "value": "stats" }
+  ],
+  "applyVariant": [
+    { "match": { "isF16": true }, "value": "apply_f16" },
+    { "match": {}, "value": "apply" }
+  ]
+}

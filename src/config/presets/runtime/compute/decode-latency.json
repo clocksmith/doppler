@@ -1,0 +1,17 @@
+{
+  "name": "decode-latency",
+  "description": "Decode latency profile: immediate readback and minimal ringing for fastest token-to-token response.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      }
+    }
+  }
+}

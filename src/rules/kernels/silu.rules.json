@@ -1,0 +1,21 @@
+{
+  "variant": [
+    { "match": { "isF16": true }, "value": "default_f16" },
+    { "match": {}, "value": "default" }
+  ],
+  "overrides": [
+    { "match": { "useRowsplit": true }, "value": { "USE_ROWSPLIT": true } },
+    { "match": { "useSplit": true }, "value": { "USE_SPLIT": true } },
+    { "match": { "hasGate": true }, "value": { "HAS_GATE": true } },
+    { "match": { "useVec4": true }, "value": { "USE_VEC4": true } },
+    { "match": {}, "value": {} }
+  ],
+  "activationOp": [
+    { "match": { "activation": "gelu" }, "value": "gelu" },
+    { "match": {}, "value": "silu" }
+  ],
+  "swigluRowsplitBiasVariant": [
+    { "match": { "isF16": true }, "value": "rowsplit_bias_f16" },
+    { "match": {}, "value": "rowsplit_bias" }
+  ]
+}

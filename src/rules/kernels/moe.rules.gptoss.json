@@ -1,0 +1,105 @@
+{
+  "routerTopKVariant": [
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "inputDtype": "f16",
+        "weightsDtype": "f16"
+      },
+      "value": "gptoss_router_topk"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "inputDtype": "f16",
+        "weightsDtype": "f16"
+      },
+      "value": "fused_f16_w16"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "inputDtype": "f16"
+      },
+      "value": "fused_f16"
+    }
+  ],
+  "vendorQuirkProfile": [
+    {
+      "match": {
+        "vendor": {
+          "contains": ["intel", "amd"]
+        }
+      },
+      "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": "scalar",
+        "routerWorkgroupSize": 128,
+        "maxTokensPerExpertScale": 0.85
+      }
+    },
+    {
+      "match": {
+        "vendor": {
+          "contains": ["nvidia", "apple", "qualcomm"]
+        }
+      },
+      "value": {
+        "preferVec4Dequant": true,
+        "dequantTileShape": "vec4",
+        "routerWorkgroupSize": 256,
+        "maxTokensPerExpertScale": 1.0
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": "scalar",
+        "routerWorkgroupSize": 128,
+        "maxTokensPerExpertScale": 0.9
+      }
+    }
+  ],
+  "dequantVariant": [
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "outputDtype": "f16",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "dequantTileShape": "vec4",
+        "groupSize": 32
+      },
+      "value": "mxfp4_expert_fused_f16"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "outputDtype": "f16",
+        "hasF16": true
+      },
+      "value": "mxfp4_expert_f16"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss"
+      },
+      "value": "mxfp4_expert"
+    }
+  ],
+  "shapePolicy": [
+    {
+      "match": { "modelType": "gpt-oss" },
+      "value": {
+        "hiddenSizeDivisor": 32,
+        "intermediateSizeDivisor": 32,
+        "groupSize": 32,
+        "gateUpRowsplit": true
+      }
+    }
+  ]
+}

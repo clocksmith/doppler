@@ -1,0 +1,61 @@
+{
+  "tier": [
+    { "match": { "canSubgroup": true }, "value": "subgroup" },
+    { "match": { "canLarge": true }, "value": "tiled_large" },
+    { "match": { "canSmall": true }, "value": "tiled_small" },
+    { "match": { "isDecode": true }, "value": "streaming" },
+    { "match": {}, "value": "streaming" }
+  ],
+  "phase": [
+    { "match": { "isDecode": true }, "value": "decode" },
+    { "match": {}, "value": "prefill" }
+  ],
+  "suffix": [
+    { "match": { "useF16": true }, "value": "_f16" },
+    { "match": { "useF16KV": true }, "value": "_f16kv" },
+    { "match": {}, "value": "" }
+  ],
+  "chunkedVariant": [
+    { "match": { "useF16": true }, "value": "decode_chunked_f16" },
+    { "match": {}, "value": "decode_chunked_f16kv" }
+  ],
+  "pagedVariant": [
+    { "match": { "useF16": true }, "value": "decode_paged_f16" },
+    { "match": {}, "value": "decode_paged_f16kv" }
+  ],
+  "optimizedVariant": [
+    { "match": { "useF16": true }, "value": "decode_online_f16" },
+    { "match": {}, "value": "decode_online_f16kv" }
+  ],
+  "tieredVariant": [
+    { "match": { "useF16": true }, "value": "decode_tiered_f16" },
+    { "match": {}, "value": "decode_tiered_f16kv" }
+  ],
+  "tieredQuantVariant": [
+    { "match": { "mode": "int4" }, "value": "decode_tiered_int4_f16kv" },
+    { "match": { "mode": "int8" }, "value": "decode_tiered_int8_f16kv" },
+    { "match": {}, "value": "decode_tiered_int8_f16kv" }
+  ],
+  "variant": [
+    { "match": { "canUseDecodeOptimized": true }, "value": { "context": "optimizedVariant" } },
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "isDecode": true,
+        "tier": "subgroup",
+        "canUseDecodeSubgroup": true
+      },
+      "value": "decode_subgroup"
+    },
+    { "match": { "isPaged": true, "isDecode": true, "canUseChunked": true }, "value": { "context": "pagedVariant" } },
+    { "match": { "tier": "subgroup", "useF16KV": true, "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
+    { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "prefill_streaming{suffix}" } },
+    { "match": { "tier": "subgroup", "canUseDecodeSubgroup": true }, "value": "decode_subgroup" },
+    { "match": { "tier": "subgroup" }, "value": "prefill_streaming" },
+    { "match": { "tier": "tiled_large" }, "value": { "template": "{base}{suffix}" } },
+    { "match": { "tier": "tiled_small" }, "value": { "template": "prefill_small{suffix}" } },
+    { "match": { "tier": "streaming", "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
+    { "match": { "tier": "streaming" }, "value": { "template": "prefill_streaming{suffix}" } },
+    { "match": {}, "value": { "template": "prefill_streaming{suffix}" } }
+  ]
+}

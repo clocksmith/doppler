@@ -1,0 +1,16 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "nvidia-rtx40",
+  "name": "NVIDIA RTX 40 Series",
+  "detection": {
+    "vendor": "nvidia",
+    "device": "rtx 40"
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": false,
+    "bufferAlignment": 256,
+    "optimalShardSize": 134217728,
+    "maxBufferPoolSize": 8589934592
+  },
+  "notes": "NVIDIA RTX 4090/4080/4070 series - Ada Lovelace architecture, subgroups, F16, large VRAM"
+}

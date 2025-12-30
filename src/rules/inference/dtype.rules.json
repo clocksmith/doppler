@@ -1,0 +1,66 @@
+{
+  "f16OrF32": [
+    { "match": { "useF16": true }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "f16OrF32FromDtype": [
+    { "match": { "dtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "f16OrF32FromBytes": [
+    { "match": { "bytesPerElement": { "lte": 2 } }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "f16OrF32FromToken": [
+    { "match": { "token": "F16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "f16IfCap": [
+    { "match": { "hasF16": true }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "bothF16": [
+    { "match": { "aDtype": "f16", "bDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "f16OrFallback": [
+    { "match": { "kvDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": { "context": "fallback" } }
+  ],
+  "f16OrFallbackByFlag": [
+    { "match": { "useF16": true }, "value": "f16" },
+    { "match": {}, "value": { "context": "fallback" } }
+  ],
+  "bytesPerElement": [
+    { "match": { "dtype": "f16" }, "value": 2 },
+    { "match": {}, "value": 4 }
+  ],
+  "dtypeFromSize": [
+    { "match": { "bytesPerElement": 2 }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "bytesFromDtype": [
+    { "match": { "dtype": "f16" }, "value": 2 },
+    { "match": {}, "value": 4 }
+  ],
+  "matmulDtype": [
+    { "match": { "dtype": { "in": ["f16", "bf16"] } }, "value": "f16" },
+    { "match": { "dtype": "q4k" }, "value": "q4k" },
+    { "match": {}, "value": "f32" }
+  ],
+  "logitsDtype": [
+    { "match": { "logitsDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "kvCacheDtype": [
+    { "match": { "forceF32": true }, "value": "f32" },
+    { "match": { "requested": "f16", "useGPU": true, "hasF16": true }, "value": "f16" },
+    { "match": { "requested": "f16" }, "value": "f32" },
+    { "match": { "requested": "f32" }, "value": "f32" },
+    { "match": {}, "value": "f32" }
+  ],
+  "lmHeadChunkWeightDtype": [
+    { "match": { "preferF16": true, "lmHeadDtype": "f16", "hasF16": true }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ]
+}

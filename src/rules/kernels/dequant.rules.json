@@ -1,0 +1,54 @@
+{
+  "variant": [
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "hasSubgroups": true,
+        "wantsF16Out": true
+      },
+      "value": "subgroup_f16out"
+    },
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "hasSubgroups": true
+      },
+      "value": "subgroup"
+    },
+    { "match": { "hasSubgroups": true, "wantsF16Out": true, "useVec4": true }, "value": "subgroup_vec4_f16out" },
+    { "match": { "hasSubgroups": true, "wantsF16Out": true }, "value": "subgroup_f16out" },
+    { "match": { "hasSubgroups": true, "useVec4": true }, "value": "subgroup_vec4" },
+    { "match": { "hasSubgroups": true }, "value": "subgroup" },
+    { "match": { "wantsF16Out": true, "useVec4": true }, "value": "subgroup_vec4_f16out" },
+    { "match": { "wantsF16Out": true }, "value": "subgroup_f16out" },
+    { "match": { "useVec4": true }, "value": "shared_vec4" },
+    { "match": {}, "value": "shared" }
+  ],
+  "mxfp4ExpertVariant": [
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "outputDtype": "f16",
+        "dequantTileShape": "vec4",
+        "groupSize": 32
+      },
+      "value": "mxfp4_expert_fused_f16"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "outputDtype": "f16"
+      },
+      "value": "mxfp4_expert_f16"
+    },
+    {
+      "match": { "modelType": "gpt-oss" },
+      "value": "mxfp4_expert"
+    },
+    { "match": { "outputDtype": "f16" }, "value": "mxfp4_expert_f16" },
+    { "match": {}, "value": "mxfp4_expert" }
+  ]
+}
