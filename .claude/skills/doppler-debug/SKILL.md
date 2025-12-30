@@ -204,14 +204,20 @@ npm test -- --filter q4k          # Q4K quantized matmul tests
 ### Inference Debugging
 
 ```bash
-# Debug mode with trace enabled by default
+# Debug mode (trace enabled by default)
 npm run debug
 
-# Explicit trace flag (same as default)
-npm run debug -- --trace
+# Specific trace categories
+npm run debug -- --trace kernels,attn,ffn
 
-# Break on first anomaly
+# All except expensive buffer stats
+npm run debug -- --trace all,-buffers
+
+# Break on first anomaly (NaN/Inf/explosion)
 npm run debug -- --break
+
+# Watch specific layers
+npm run debug -- --layers 0,5,10
 
 # Watch trace output
 npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
@@ -219,18 +225,30 @@ npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
 
 ### Log Levels
 
-Control loader output verbosity:
+Control output verbosity:
 
-| Flag | Level | Shows |
-|------|-------|-------|
-| (default) | `info` | Phase starts/ends, totals |
-| `--verbose` | `verbose` | + Per-shard source, per-layer timing |
-| `--trace` | `trace` | + Tensor shapes, dequant ops, buffer details |
-| `--quiet` | `silent` | Errors only |
+| CLI Flag | URL Param | Level | Shows |
+|----------|-----------|-------|-------|
+| (default) | `?log=info` | info | Phase starts/ends, totals |
+| `--verbose, -v` | `?log=verbose` | verbose | + Per-shard source, per-layer timing |
+| `--debug` | `?log=debug` | debug | + Everything |
+| `--quiet, -q` | `?log=silent` | silent | Errors only |
 
-**Browser URL:** `?log=verbose` or `?log=trace`
+### Trace Categories
 
-**Debug mode defaults to `trace`** - shows tensor shapes, dequant ops, and value explosions.
+Control what gets traced (orthogonal to log level):
+
+| CLI Flag | URL Param | Effect |
+|----------|-----------|--------|
+| `--trace` | `?trace=all` | Enable all categories |
+| `--trace kernels,logits` | `?trace=kernels,logits` | Specific categories |
+| `--trace all,-buffers` | `?trace=all,-buffers` | Exclusion syntax |
+| `--layers 0,5` | `?layers=0,5` | Trace specific layers |
+| `--break` | `?break=1` | Stop on first anomaly |
+
+**Categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`, `all`
+
+**Debug mode defaults to `--trace all,-buffers`** - shows everything except expensive buffer stats.
 
 ### Benchmarking
 
