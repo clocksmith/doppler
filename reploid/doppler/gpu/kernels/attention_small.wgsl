@@ -91,7 +91,7 @@ fn main(
     let num_head_tiles = (head_dim + HEAD_TILE - 1u) / HEAD_TILE;
 
     for (var kv_block: u32 = 0u; kv_block < num_kv_blocks; kv_block = kv_block + 1u) {
-        let kv_blockStart = kv_block * BLOCK_SIZE;
+        let kv_block_start = kv_block * BLOCK_SIZE;
 
         var scores: array<f32, 32>;
         for (var k_init: u32 = 0u; k_init < BLOCK_SIZE; k_init = k_init + 1u) {
@@ -104,7 +104,7 @@ fn main(
             let tile_len = min(HEAD_TILE, head_dim - d0);
 
             // Load K slice for this block into shared memory.
-            let key_pos_load = kv_blockStart + thread_idx;
+            let key_pos_load = kv_block_start + thread_idx;
             if (key_pos_load < seq_len) {
                 let k_offset = key_pos_load * u.num_kv_heads * head_dim + kv_head_idx * head_dim + d0;
                 for (var td: u32 = 0u; td < tile_len; td = td + 1u) {
@@ -120,7 +120,7 @@ fn main(
 
             if (valid_query) {
                 for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
-                    let key_pos = kv_blockStart + k;
+                    let key_pos = kv_block_start + k;
                     if (key_pos >= seq_len) { continue; }
                     if (is_masked(query_pos, key_pos)) { continue; }
 
@@ -139,7 +139,7 @@ fn main(
         if (valid_query) {
             var block_max: f32 = -3.402823e+38;
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
-                let key_pos = kv_blockStart + k;
+                let key_pos = kv_block_start + k;
                 if (key_pos >= seq_len) { continue; }
                 if (is_masked(query_pos, key_pos)) { continue; }
 
@@ -163,7 +163,7 @@ fn main(
             let d0 = ht * HEAD_TILE;
             let tile_len = min(HEAD_TILE, head_dim - d0);
 
-            let key_pos_load = kv_blockStart + thread_idx;
+            let key_pos_load = kv_block_start + thread_idx;
             if (key_pos_load < seq_len) {
                 let v_offset = key_pos_load * u.num_kv_heads * head_dim + kv_head_idx * head_dim + d0;
                 for (var td: u32 = 0u; td < tile_len; td = td + 1u) {
@@ -179,7 +179,7 @@ fn main(
 
             if (valid_query) {
                 for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
-                    let key_pos = kv_blockStart + k;
+                    let key_pos = kv_block_start + k;
                     if (key_pos >= seq_len) { continue; }
                     if (is_masked(query_pos, key_pos)) { continue; }
 

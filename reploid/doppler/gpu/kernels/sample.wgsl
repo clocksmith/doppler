@@ -62,17 +62,17 @@ fn find_topk_phase1(
         idx = idx + WORKGROUP_SIZE * 256u;  // 256 workgroups assumed
     }
 
-    shared_values[threadIdx] = localMax;
+    shared_values[thread_idx] = localMax;
     shared_indices[threadIdx] = localMaxIdx;
     workgroupBarrier();
 
     // Reduce within workgroup to find workgroup's top value
     var stride = 128u;
     while (stride > 0u) {
-        if (threadIdx < stride) {
-            if (shared_values[threadIdx + stride] > shared_values[threadIdx]) {
-                shared_values[threadIdx] = shared_values[threadIdx + stride];
-                shared_indices[threadIdx] = shared_indices[threadIdx + stride];
+        if (thread_idx < stride) {
+            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+                shared_values[thread_idx] = shared_values[thread_idx + stride];
+                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -80,7 +80,7 @@ fn find_topk_phase1(
     }
 
     // Thread 0 writes workgroup result
-    if (threadIdx == 0u) {
+    if (thread_idx == 0u) {
         topkLogits[wgid.x] = shared_values[0];
         topkIndices[wgid.x] = shared_indices[0];
     }
@@ -97,14 +97,14 @@ fn find_topk_phase2(
 
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
-    if (threadIdx < 256u) {
-        shared_values[threadIdx] = topkLogits[threadIdx];
+    if (thread_idx < 256u) {
+        shared_values[thread_idx] = topkLogits[threadIdx];
         shared_indices[threadIdx] = topkIndices[threadIdx];
     }
     workgroupBarrier();
 
     // Thread 0 does partial selection sort for top-k
-    if (threadIdx == 0u) {
+    if (thread_idx == 0u) {
         for (var k: u32 = 0u; k < topK && k < 256u; k = k + 1u) {
             var maxIdx = k;
             var maxVal = shared_values[k];
@@ -144,14 +144,14 @@ fn softmax_and_sample(
     let random_val = u.random_value;
 
     // Load top-k logits
-    if (threadIdx < topK) {
-        shared_values[threadIdx] = topkLogits[threadIdx];
+    if (thread_idx < topK) {
+        shared_values[thread_idx] = topkLogits[threadIdx];
         shared_indices[threadIdx] = topkIndices[threadIdx];
     }
     workgroupBarrier();
 
     // Thread 0 does softmax and sampling
-    if (threadIdx == 0u) {
+    if (thread_idx == 0u) {
         // Find max for numerical stability
         var maxVal: f32 = shared_values[0];
         for (var i: u32 = 1u; i < topK; i = i + 1u) {
@@ -212,17 +212,17 @@ fn sample_single_pass(
         idx = idx + numWg.x * WORKGROUP_SIZE;
     }
 
-    shared_values[threadIdx] = localMax;
+    shared_values[thread_idx] = localMax;
     shared_indices[threadIdx] = localMaxIdx;
     workgroupBarrier();
 
     // Reduce to find workgroup max
     var stride = 128u;
     while (stride > 0u) {
-        if (threadIdx < stride) {
-            if (shared_values[threadIdx + stride] > shared_values[threadIdx]) {
-                shared_values[threadIdx] = shared_values[threadIdx + stride];
-                shared_indices[threadIdx] = shared_indices[threadIdx + stride];
+        if (thread_idx < stride) {
+            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+                shared_values[thread_idx] = shared_values[thread_idx + stride];
+                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -230,7 +230,7 @@ fn sample_single_pass(
     }
 
     // For single workgroup, thread 0 can do everything
-    if (threadIdx == 0u && numWg.x == 1u) {
+    if (thread_idx == 0u && numWg.x == 1u) {
         // We have top-1, but need top-k
         // For small vocab, just do the full selection
         // This simplified version selects top-1 only (greedy)
@@ -266,17 +266,17 @@ fn argmax(
         idx = idx + numWg.x * WORKGROUP_SIZE;
     }
 
-    shared_values[threadIdx] = localMax;
+    shared_values[thread_idx] = localMax;
     shared_indices[threadIdx] = localMaxIdx;
     workgroupBarrier();
 
     // Reduce within workgroup
     var stride = 128u;
     while (stride > 0u) {
-        if (threadIdx < stride) {
-            if (shared_values[threadIdx + stride] > shared_values[threadIdx]) {
-                shared_values[threadIdx] = shared_values[threadIdx + stride];
-                shared_indices[threadIdx] = shared_indices[threadIdx + stride];
+        if (thread_idx < stride) {
+            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+                shared_values[thread_idx] = shared_values[thread_idx + stride];
+                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
@@ -284,7 +284,7 @@ fn argmax(
     }
 
     // Write workgroup result to global memory
-    if (threadIdx == 0u) {
+    if (thread_idx == 0u) {
         topkLogits[wgid.x] = shared_values[0];
         topkIndices[wgid.x] = shared_indices[0];
     }
@@ -298,24 +298,24 @@ fn argmax_reduce(
     let thread_idx = lid.x;
 
     // Load workgroup maxes (up to 256)
-    shared_values[threadIdx] = topkLogits[threadIdx];
+    shared_values[thread_idx] = topkLogits[threadIdx];
     shared_indices[threadIdx] = topkIndices[threadIdx];
     workgroupBarrier();
 
     // Reduce
     var stride = 128u;
     while (stride > 0u) {
-        if (threadIdx < stride) {
-            if (shared_values[threadIdx + stride] > shared_values[threadIdx]) {
-                shared_values[threadIdx] = shared_values[threadIdx + stride];
-                shared_indices[threadIdx] = shared_indices[threadIdx + stride];
+        if (thread_idx < stride) {
+            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+                shared_values[thread_idx] = shared_values[thread_idx + stride];
+                shared_indices[threadIdx] = shared_indices[thread_idx + stride];
             }
         }
         workgroupBarrier();
         stride = stride / 2u;
     }
 
-    if (threadIdx == 0u) {
+    if (thread_idx == 0u) {
         output[0] = shared_indices[0];
     }
 }
