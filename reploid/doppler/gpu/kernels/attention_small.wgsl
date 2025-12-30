@@ -17,9 +17,10 @@
 //
 // workgroup_size = BLOCK_SIZE (one thread per query position in the block).
 
-const BLOCK_SIZE: u32 = 32u;   // Sequence tile size
-const HEAD_TILE: u32 = 32u;    // Head dimension tile
-const MAX_HEAD_DIM: u32 = 256u;
+override BLOCK_SIZE: u32 = 32u;   // Sequence tile size
+override HEAD_TILE: u32 = 32u;    // Head dimension tile
+override MAX_HEAD_DIM: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 32u;  // Workgroup size
 
 struct AttentionUniforms {
     numHeads: u32,       // Number of query heads

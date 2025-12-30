@@ -4,6 +4,7 @@
 // models with headDim beyond tiled support. Uses two-pass softmax and
 // reads K/V directly from storage. Slower but compatible.
 
+override WORKGROUP_SIZE: u32 = 1u;
 const MAX_HEAD_DIM: u32 = 256u;
 
 struct AttentionUniforms {

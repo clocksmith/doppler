@@ -6,7 +6,7 @@
  *   npx tsx tools/convert-cli.ts <input> <output> [options]
  *
  * Examples:
- *   npx tsx tools/convert-cli.ts ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/*/  models/gemma-1b
+ *   npx tsx tools/convert-cli.ts ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/HASH/  models/gemma-1b
  *   npx tsx tools/convert-cli.ts model.gguf models/my-model --quantize q4_k_m
  *   npx tsx tools/convert-cli.ts --test ./test-model  # Create tiny test fixture
  */
@@ -278,7 +278,9 @@ async function convertSafetensors(
     }
 
     // Read raw tensor data from safetensors file
-    const data = await readTensorData(tensor.filePath || inputPath, tensor);
+    // Ensure tensor has filePath set for reading
+    const tensorWithPath = { ...tensor, filePath: tensor.filePath || tensor.shardPath || inputPath };
+    const data = await readTensorData(tensorWithPath);
 
     // Quantize if requested
     if (opts.quantize === 'q4_k_m') {
@@ -294,7 +296,11 @@ async function convertSafetensors(
     if (opts.quantize === 'f16' && tensor.dtype !== 'F16') {
       log(`Converting ${info.name} to F16`);
       const f32 = new Float32Array(data);
-      const f16 = float32ToFloat16(f32);
+      // Convert F32 array to F16 array element by element
+      const f16 = new Uint16Array(f32.length);
+      for (let i = 0; i < f32.length; i++) {
+        f16[i] = float32ToFloat16(f32[i]);
+      }
       return f16.buffer;
     }
 

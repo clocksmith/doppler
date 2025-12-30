@@ -47,7 +47,7 @@ fn main(
     // Use f32 accumulator for numerical stability during summation
     var sum: f32 = 0.0;
 
-    let num_tiles = (uniforms.K + TILE_SIZE - 1u) / TILE_SIZE;
+    let num_tiles = (u.K + TILE_SIZE - 1u) / TILE_SIZE;
     let tile_idx = local_row * TILE_SIZE + local_col;
 
     for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
@@ -55,19 +55,19 @@ fn main(
         let b_row = t * TILE_SIZE + local_row;
 
         // Load tile from A
-        if (row < uniforms.M && a_col < uniforms.K) {
-            tileA[tile_idx] = A[row * uniforms.K + a_col];
+        if (row < u.M && a_col < u.K) {
+            tileA[tile_idx] = A[row * u.K + a_col];
         } else {
             tileA[tile_idx] = f16(0.0);
         }
 
         // Load tile from B (handle transpose)
-        if (b_row < uniforms.K && col < uniforms.N) {
-            if (uniforms.transposeB == 0u) {
-                tileB[tile_idx] = B[b_row * uniforms.N + col];
+        if (b_row < u.K && col < u.N) {
+            if (u.transpose_b == 0u) {
+                tileB[tile_idx] = B[b_row * u.N + col];
             } else {
                 // B is [N, K], access element [col, b_row]
-                tileB[tile_idx] = B[col * uniforms.K + b_row];
+                tileB[tile_idx] = B[col * u.K + b_row];
             }
         } else {
             tileB[tile_idx] = f16(0.0);
@@ -86,14 +86,14 @@ fn main(
     }
 
     // Write result back as f16
-    if (row < uniforms.M && col < uniforms.N) {
-        C[row * uniforms.N + col] = f16(sum * uniforms.alpha);
+    if (row < u.M && col < u.N) {
+        C[row * u.N + col] = f16(sum * u.alpha);
     }
 }
 
 // Alternative entry point for vec4 f16 loads (2x throughput on some hardware)
 // This requires K and N to be multiples of 4
-@compute @workgroup_size(16, 16, 1)
+@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>
@@ -105,7 +105,7 @@ fn main_vec4(
 
     var sum: vec4<f32> = vec4<f32>(0.0);
 
-    let num_tiles = (uniforms.K + TILE_SIZE - 1u) / TILE_SIZE;
+    let num_tiles = (u.K + TILE_SIZE - 1u) / TILE_SIZE;
     let tile_idx = local_row * TILE_SIZE + local_col;
 
     for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
@@ -113,18 +113,18 @@ fn main_vec4(
         let b_row = t * TILE_SIZE + local_row;
 
         // Load A tile (single element per thread)
-        if (row < uniforms.M && a_col < uniforms.K) {
-            tileA[tile_idx] = A[row * uniforms.K + a_col];
+        if (row < u.M && a_col < u.K) {
+            tileA[tile_idx] = A[row * u.K + a_col];
         } else {
             tileA[tile_idx] = f16(0.0);
         }
 
         // Load B tile (handle transpose)
-        if (b_row < uniforms.K && col < uniforms.N) {
-            if (uniforms.transposeB == 0u) {
-                tileB[tile_idx] = B[b_row * uniforms.N + col];
+        if (b_row < u.K && col < u.N) {
+            if (u.transpose_b == 0u) {
+                tileB[tile_idx] = B[b_row * u.N + col];
             } else {
-                tileB[tile_idx] = B[col * uniforms.K + b_row];
+                tileB[tile_idx] = B[col * u.K + b_row];
             }
         } else {
             tileB[tile_idx] = f16(0.0);
@@ -144,7 +144,7 @@ fn main_vec4(
     }
 
     // Write results
-    if (row < uniforms.M && col < uniforms.N) {
-        C[row * uniforms.N + col] = f16(sum.x * uniforms.alpha);
+    if (row < u.M && col < u.N) {
+        C[row * u.N + col] = f16(sum.x * u.alpha);
     }
 }

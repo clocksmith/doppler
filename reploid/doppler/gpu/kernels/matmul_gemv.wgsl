@@ -11,17 +11,20 @@
 
 enable f16;
 
-const WG_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
-    M: u32,      // Always 1 for GEMV
-    N: u32,      // Output dimension (# of output columns)
-    K: u32,      // Inner dimension (dot product length)
-    alpha: f32,  // Scaling factor
-    transposeB: u32,  // Expected to be 1 (B stored as [N,K])
+    M: u32,           // Always 1 for GEMV
+    N: u32,           // Output dimension (# of output columns)
+    K: u32,           // Inner dimension (dot product length)
+    alpha: f32,       // Scaling factor
+    transpose_b: u32, // Expected to be 1 (B stored as [N,K])
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
@@ -29,7 +32,7 @@ struct Uniforms {
 // Shared memory for parallel reduction
 var<workgroup> shared_sum: array<f32, 256>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
@@ -38,7 +41,7 @@ fn main(
     let col = wg_id.x;  // Output column this workgroup computes
     let local_id = lid.x;
 
-    if (col >= uniforms.N) {
+    if (col >= u.N) {
         return;
     }
 
@@ -46,11 +49,11 @@ fn main(
     var partial_sum: f32 = 0.0;
 
     // B is stored transposed [N, K], so B[col, k] = B[col * K + k]
-    let b_row_offset = col * uniforms.K;
+    let b_row_offset = col * u.K;
 
     // Stride through K with workgroup-sized steps
     var k: u32 = local_id;
-    for (; k < uniforms.K; k = k + WG_SIZE) {
+    for (; k < u.K; k = k + WORKGROUP_SIZE) {
         let a_val = A[k];
         let b_val = f32(B[b_row_offset + k]);
         partial_sum = partial_sum + a_val * b_val;
@@ -62,7 +65,7 @@ fn main(
 
     // Parallel reduction in shared memory
     // Tree reduction: 256 -> 128 -> 64 -> 32 -> 16 -> 8 -> 4 -> 2 -> 1
-    for (var stride: u32 = WG_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
         if (local_id < stride) {
             shared_sum[local_id] = shared_sum[local_id] + shared_sum[local_id + stride];
         }
@@ -71,6 +74,6 @@ fn main(
 
     // Thread 0 writes the final result
     if (local_id == 0u) {
-        C[col] = shared_sum[0] * uniforms.alpha;
+        C[col] = shared_sum[0] * u.alpha;
     }
 }

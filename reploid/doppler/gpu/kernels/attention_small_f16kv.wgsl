@@ -5,8 +5,9 @@
 
 enable f16;
 
-const BLOCK_SIZE: u32 = 32u;
-const HEAD_TILE: u32 = 32u;
+override WORKGROUP_SIZE: u32 = 32u;
+override BLOCK_SIZE: u32 = 32u;
+override HEAD_TILE: u32 = 32u;
 const MAX_HEAD_DIM: u32 = 256u;
 
 struct AttentionUniforms {

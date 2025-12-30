@@ -4,6 +4,7 @@
 
 enable f16;
 
+override WORKGROUP_SIZE: u32 = 1u;
 const MAX_HEAD_DIM: u32 = 256u;
 
 struct AttentionUniforms {

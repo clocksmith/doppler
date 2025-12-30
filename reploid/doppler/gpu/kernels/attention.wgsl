@@ -7,8 +7,10 @@
 // Based on Flash Attention principles adapted for WebGPU.
 
 // Tile sizes for blocked attention
-const BLOCK_SIZE: u32 = 64u;  // Sequence tile size
-const HEAD_TILE: u32 = 64u;   // Head dimension tile
+override BLOCK_SIZE: u32 = 64u;  // Sequence tile size
+override HEAD_TILE: u32 = 64u;   // Head dimension tile
+override WORKGROUP_SIZE: u32 = 64u;  // Main kernel workgroup size
+override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size
 
 struct AttentionUniforms {
     numHeads: u32,       // Number of query heads
