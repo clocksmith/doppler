@@ -101,7 +101,7 @@ fn silu_gate_interleaved(
     }
 
     let gate_idx = idx * 2u;
-    let up_idx = gateIdx + 1u;
+    let up_idx = gate_idx + 1u;
 
     let g = input[gate_idx];
     let up = input[up_idx];

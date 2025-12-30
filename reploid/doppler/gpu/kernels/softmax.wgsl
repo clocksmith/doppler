@@ -39,7 +39,7 @@ fn main(
         return;
     }
 
-    let base_offset = row_idx * innerSize;
+    let base_offset = row_idx * inner_size;
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find maximum (for numerical stability)
@@ -121,7 +121,7 @@ fn softmax_small(
         return;
     }
 
-    let base_offset = row_idx * innerSize;
+    let base_offset = row_idx * inner_size;
 
     // Load and scale value
     var val: f32 = -3.402823e+38;
@@ -182,7 +182,7 @@ fn softmax_online(
         return;
     }
 
-    let base_offset = row_idx * innerSize;
+    let base_offset = row_idx * inner_size;
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Online algorithm: track max and sum simultaneously
@@ -254,7 +254,7 @@ fn softmax_inplace(
         return;
     }
 
-    let base_offset = row_idx * innerSize;
+    let base_offset = row_idx * inner_size;
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max
@@ -325,7 +325,7 @@ fn log_softmax(
         return;
     }
 
-    let base_offset = row_idx * innerSize;
+    let base_offset = row_idx * inner_size;
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max

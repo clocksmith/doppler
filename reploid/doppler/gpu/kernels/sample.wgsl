@@ -49,7 +49,7 @@ fn find_topk_phase1(
 
     // Each thread finds max in its assigned range
     var local_max: f32 = -3.402823e+38;  // -FLT_MAX
-    var local_maxIdx: u32 = 0u;
+    var local_max_idx: u32 = 0u;
 
     // Stride through vocabulary
     var idx = global_idx;
@@ -63,7 +63,7 @@ fn find_topk_phase1(
     }
 
     shared_values[thread_idx] = local_max;
-    shared_indices[thread_idx] = local_maxIdx;
+    shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
     // Reduce within workgroup to find workgroup's top value
@@ -98,8 +98,8 @@ fn find_topk_phase2(
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
     if (thread_idx < 256u) {
-        shared_values[thread_idx] = topk_logits[threadIdx];
-        shared_indices[thread_idx] = topk_indices[threadIdx];
+        shared_values[thread_idx] = topk_logits[thread_idx];
+        shared_indices[thread_idx] = topk_indices[thread_idx];
     }
     workgroupBarrier();
 
@@ -145,8 +145,8 @@ fn softmax_and_sample(
 
     // Load top-k logits
     if (thread_idx < top_k) {
-        shared_values[thread_idx] = topk_logits[threadIdx];
-        shared_indices[thread_idx] = topk_indices[threadIdx];
+        shared_values[thread_idx] = topk_logits[thread_idx];
+        shared_indices[thread_idx] = topk_indices[thread_idx];
     }
     workgroupBarrier();
 
@@ -155,7 +155,7 @@ fn softmax_and_sample(
         // Find max for numerical stability
         var max_val: f32 = shared_values[0];
         for (var i: u32 = 1u; i < top_k; i = i + 1u) {
-            max_val = max(maxVal, shared_values[i]);
+            max_val = max(max_val, shared_values[i]);
         }
 
         // Compute exp and sum
@@ -163,7 +163,7 @@ fn softmax_and_sample(
         for (var i: u32 = 0u; i < top_k; i = i + 1u) {
             let exp_val = exp(shared_values[i] - max_val);
             shared_values[i] = exp_val;
-            expSum = expSum + exp_val;
+            exp_sum = exp_sum + exp_val;
         }
 
         // Normalize to probabilities and sample
@@ -173,7 +173,7 @@ fn softmax_and_sample(
 
         for (var i: u32 = 0u; i < top_k; i = i + 1u) {
             let prob = shared_values[i] * inv_sum;
-            cum_prob = cumProb + prob;
+            cum_prob = cum_prob + prob;
             if (cum_prob >= random_val) {
                 selected_token = shared_indices[i];
                 break;
@@ -200,7 +200,7 @@ fn sample_single_pass(
 
     // Phase 1: Find global max
     var local_max: f32 = -3.402823e+38;
-    var local_maxIdx: u32 = 0u;
+    var local_max_idx: u32 = 0u;
 
     var idx = gid.x;
     while (idx < vocab_size) {
@@ -213,7 +213,7 @@ fn sample_single_pass(
     }
 
     shared_values[thread_idx] = local_max;
-    shared_indices[thread_idx] = local_maxIdx;
+    shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
     // Reduce to find workgroup max
@@ -254,7 +254,7 @@ fn argmax(
 
     // Each thread finds max in its chunk
     var local_max: f32 = -3.402823e+38;
-    var local_maxIdx: u32 = 0u;
+    var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
     while (idx < vocab_size) {
@@ -267,7 +267,7 @@ fn argmax(
     }
 
     shared_values[thread_idx] = local_max;
-    shared_indices[thread_idx] = local_maxIdx;
+    shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
     // Reduce within workgroup
@@ -298,8 +298,8 @@ fn argmax_reduce(
     let thread_idx = lid.x;
 
     // Load workgroup maxes (up to 256)
-    shared_values[thread_idx] = topk_logits[threadIdx];
-    shared_indices[thread_idx] = topk_indices[threadIdx];
+    shared_values[thread_idx] = topk_logits[thread_idx];
+    shared_indices[thread_idx] = topk_indices[thread_idx];
     workgroupBarrier();
 
     // Reduce

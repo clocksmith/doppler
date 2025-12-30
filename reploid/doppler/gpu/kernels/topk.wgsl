@@ -45,12 +45,12 @@ fn main(
         return;
     }
 
-    let base_offset = token_idx * numExperts;
+    let base_offset = token_idx * num_experts;
 
     // Load probabilities into shared memory (first numExperts threads)
     if (thread_idx < num_experts) {
-        shared_probs[threadIdx] = probs[base_offset + threadIdx];
-        shared_indices[threadIdx] = threadIdx;
+        shared_probs[thread_idx] = probs[base_offset + threadIdx];
+        shared_indices[thread_idx] = threadIdx;
     }
     workgroupBarrier();
 
@@ -88,7 +88,7 @@ fn main(
         }
 
         // Write output indices and weights
-        let out_base = token_idx * topK;
+        let out_base = token_idx * top_k;
         let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
@@ -109,11 +109,11 @@ fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 
     let num_experts = u.num_experts;
-    let base_offset = token_idx * numExperts;
+    let base_offset = token_idx * num_experts;
 
     // Find top 2 in a single pass
     var top1_idx: u32 = 0u;
-    var top1_val: f32 = probs[baseOffset];
+    var top1_val: f32 = probs[base_offset];
     var top2_idx: u32 = 1u;
     var top2_val: f32 = probs[base_offset + 1u];
 
@@ -170,12 +170,12 @@ fn softmax_topk(
         return;
     }
 
-    let base_offset = token_idx * numExperts;
+    let base_offset = token_idx * num_experts;
 
     // Load logits and find max (for numerical stability)
     if (thread_idx < num_experts) {
-        shared_probs[threadIdx] = probs[base_offset + threadIdx];
-        shared_indices[threadIdx] = threadIdx;
+        shared_probs[thread_idx] = probs[base_offset + threadIdx];
+        shared_indices[thread_idx] = threadIdx;
     }
     workgroupBarrier();
 
@@ -184,13 +184,13 @@ fn softmax_topk(
         // Find max
         var max_val: f32 = shared_probs[0];
         for (var i: u32 = 1u; i < num_experts; i = i + 1u) {
-            max_val = max(maxVal, shared_probs[i]);
+            max_val = max(max_val, shared_probs[i]);
         }
 
         // Compute exp and sum
         var exp_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_experts; i = i + 1u) {
-            let exp_val = exp(shared_probs[i] - maxVal);
+            let exp_val = exp(shared_probs[i] - max_val);
             shared_probs[i] = exp_val;
             exp_sum = exp_sum + exp_val;
         }
@@ -207,7 +207,7 @@ fn softmax_topk(
             var max_prob = shared_probs[k];
 
             for (var i: u32 = k + 1u; i < num_experts; i = i + 1u) {
-                if (shared_probs[i] > maxProb) {
+                if (shared_probs[i] > max_prob) {
                     max_prob = shared_probs[i];
                     max_idx = i;
                 }
@@ -229,7 +229,7 @@ fn softmax_topk(
             weight_sum = weight_sum + shared_probs[k];
         }
 
-        let out_base = token_idx * topK;
+        let out_base = token_idx * top_k;
         let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {

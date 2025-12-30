@@ -5,21 +5,21 @@
 //
 // Supports 2D dispatch for large tensors (>65535 workgroups).
 
-const WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUPS_X: u32 = 65535u;
 
 struct Uniforms {
-    numElements: u32,
-    inputOffset: u32,   // Element offset for input (in BF16 elements)
-    outputOffset: u32,  // Element offset for output (in F32 elements)
+    num_elements: u32,
+    input_offset: u32,   // Element offset for input (in BF16 elements)
+    output_offset: u32,  // Element offset for output (in F32 elements)
     _pad: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<u32>;  // BF16 packed as u32 (2 per u32)
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     // Support 2D dispatch for large tensors (>65535*256 elements)
     // When using 2D dispatch: linear_idx = x + y * MAX_WORKGROUPS_X * WORKGROUP_SIZE
@@ -29,13 +29,13 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let local_pair_idx = linear_idx;
     let local_elem_idx = local_pair_idx * 2u;
 
-    if (local_elem_idx >= uniforms.numElements) {
+    if (local_elem_idx >= u.num_elements) {
         return;
     }
 
     // Apply offsets for chunked processing
-    let input_pair_idx = (uniforms.inputOffset / 2u) + local_pair_idx;
-    let output_elem_idx = uniforms.outputOffset + local_elem_idx;
+    let input_pair_idx = (u.input_offset / 2u) + local_pair_idx;
+    let output_elem_idx = u.output_offset + local_elem_idx;
 
     let packed = input[input_pair_idx];
 
@@ -47,17 +47,17 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     // Convert by shifting to F32 position
     output[output_elem_idx] = bitcast<f32>(bf16_lo << 16u);
 
-    if (local_elem_idx + 1u < uniforms.numElements) {
+    if (local_elem_idx + 1u < u.num_elements) {
         output[output_elem_idx + 1u] = bitcast<f32>(bf16_hi << 16u);
     }
 }
 
 // Single-element version for odd-sized tensors
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_single(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.numElements) {
+    if (idx >= u.num_elements) {
         return;
     }
 
