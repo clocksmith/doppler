@@ -1,74 +1,155 @@
 /**
- * Loader logging utility with trace support.
+ * Unified logging system for DOPPLER loader.
  *
- * Default: Show shard sources and layer timing
- * Trace:   Show tensor-level details (enabled via setTrace(true) or DOPPLER_TRACE env)
+ * Log levels (progressive - each includes all levels below it):
+ *   silent  - nothing
+ *   error   - errors only
+ *   info    - phase starts/ends, totals (default for test/bench)
+ *   verbose - per-shard source, per-layer timing (default for debug)
+ *   trace   - tensor shapes, dequant ops, buffer details
+ *
+ * Configuration priority:
+ *   1. Explicit setLogLevel() call
+ *   2. URL param: ?log=verbose or ?trace (sets trace)
+ *   3. CLI flag: --verbose, --trace, --quiet
+ *   4. Command default: test=info, bench=info, debug=verbose
  *
  * @module loader/log
  */
 
 // ============================================================================
+// Types
+// ============================================================================
+
+export type LogLevel = 'silent' | 'error' | 'info' | 'verbose' | 'trace';
+
+const LEVEL_PRIORITY: Record<LogLevel, number> = {
+  silent: 0,
+  error: 1,
+  info: 2,
+  verbose: 3,
+  trace: 4,
+};
+
+// ============================================================================
 // State
 // ============================================================================
 
-let traceEnabled = false;
+let currentLevel: LogLevel = 'info';  // Default
 
-// Check for browser/node environment
-const getEnvTrace = (): boolean => {
-  // Browser: check URL param
+// ============================================================================
+// Auto-detect from environment
+// ============================================================================
+
+function detectLevel(): LogLevel {
+  // Browser: check URL params
   if (typeof window !== 'undefined' && window.location) {
     const params = new URLSearchParams(window.location.search);
-    return params.has('trace') || params.has('DOPPLER_TRACE');
+
+    // Explicit log level
+    const logParam = params.get('log');
+    if (logParam && logParam in LEVEL_PRIORITY) {
+      return logParam as LogLevel;
+    }
+
+    // Shorthand flags
+    if (params.has('trace') || params.has('DOPPLER_TRACE')) return 'trace';
+    if (params.has('verbose')) return 'verbose';
+    if (params.has('quiet')) return 'silent';
   }
-  // Node: check env var
+
+  // Node: check env vars
   if (typeof process !== 'undefined' && process.env) {
-    return process.env.DOPPLER_TRACE === '1' || process.env.DOPPLER_TRACE === 'true';
+    const envLog = process.env.DOPPLER_LOG;
+    if (envLog && envLog in LEVEL_PRIORITY) {
+      return envLog as LogLevel;
+    }
+    if (process.env.DOPPLER_TRACE === '1') return 'trace';
+    if (process.env.DOPPLER_VERBOSE === '1') return 'verbose';
+    if (process.env.DOPPLER_QUIET === '1') return 'silent';
   }
-  return false;
-};
+
+  return 'info';  // Default
+}
 
 // Initialize from environment
-traceEnabled = getEnvTrace();
+currentLevel = detectLevel();
 
 // ============================================================================
 // API
 // ============================================================================
 
 /**
- * Enable or disable trace-level logging
+ * Set the log level explicitly
  */
-export function setTrace(enabled: boolean): void {
-  traceEnabled = enabled;
+export function setLogLevel(level: LogLevel): void {
+  currentLevel = level;
 }
 
 /**
- * Check if trace logging is enabled
+ * Get current log level
  */
-export function isTraceEnabled(): boolean {
-  return traceEnabled;
+export function getLogLevel(): LogLevel {
+  return currentLevel;
 }
 
 /**
- * Standard log (always shown)
- * Use for: phase starts, completions, timing, shard sources
+ * Check if a level would be logged
  */
-export function log(message: string): void {
-  console.log(`[Loader] ${message}`);
+export function shouldLog(level: LogLevel): boolean {
+  return LEVEL_PRIORITY[level] <= LEVEL_PRIORITY[currentLevel];
 }
 
+// ============================================================================
+// Log Functions
+// ============================================================================
+
+const PREFIX = '[Loader]';
+
 /**
- * Trace log (only when trace enabled)
- * Use for: tensor details, dequant ops, buffer sizes, debug info
+ * Error log (level: error+)
  */
-export function trace(message: string): void {
-  if (traceEnabled) {
-    console.log(`[Loader:trace] ${message}`);
+export function error(message: string, ...args: unknown[]): void {
+  if (shouldLog('error')) {
+    console.error(`${PREFIX} ${message}`, ...args);
   }
 }
 
 /**
- * Warning (always shown)
+ * Warning log (level: error+)
  */
-export function warn(message: string): void {
-  console.warn(`[Loader] ${message}`);
+export function warn(message: string, ...args: unknown[]): void {
+  if (shouldLog('error')) {
+    console.warn(`${PREFIX} ${message}`, ...args);
+  }
+}
+
+/**
+ * Info log (level: info+)
+ * Use for: phase starts/ends, model loaded, totals
+ */
+export function log(message: string, ...args: unknown[]): void {
+  if (shouldLog('info')) {
+    console.log(`${PREFIX} ${message}`, ...args);
+  }
+}
+
+/**
+ * Verbose log (level: verbose+)
+ * Use for: per-shard source, per-layer timing
+ */
+export function verbose(message: string, ...args: unknown[]): void {
+  if (shouldLog('verbose')) {
+    console.log(`${PREFIX} ${message}`, ...args);
+  }
+}
+
+/**
+ * Trace log (level: trace only)
+ * Use for: tensor shapes, dequant details, buffer sizes
+ */
+export function trace(message: string, ...args: unknown[]): void {
+  if (shouldLog('trace')) {
+    console.log(`${PREFIX}:trace ${message}`, ...args);
+  }
 }

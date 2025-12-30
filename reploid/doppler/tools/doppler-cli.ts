@@ -474,11 +474,19 @@ DEBUG - Interactive Debugging (with kernel trace)
 
 Common Options:
   --model, -m <name>     Model (default: gemma-3-1b-it-q4)
-  --verbose, -v          Show browser console logs
+  --verbose, -v          Verbose loader logs (per-shard, per-layer)
+  --trace                Trace-level logs (tensor details, dequant ops)
+  --quiet                Suppress all loader logs
   --headless             Run without browser window
   --timeout <ms>         Timeout (default: 120000)
   --output, -o <file>    Save JSON results
   --help, -h             Show this help
+
+Log Levels (in browser: ?log=<level>):
+  silent   Nothing except errors
+  info     Phase starts/ends, totals (default for test/bench)
+  verbose  + Per-shard source, per-layer timing
+  trace    + Tensor shapes, dequant ops, buffer details
 
 Kernel Overrides:
   --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
@@ -1173,7 +1181,14 @@ async function runInferenceTest(
   // Add debug/profiling params
   if (opts.trace) {
     testParams.set('trace', opts.trace);
+    testParams.set('log', 'trace');  // Trace implies trace-level loader logs
+  } else if (opts.verbose) {
+    testParams.set('log', 'verbose');
+  } else if (opts.quiet) {
+    testParams.set('log', 'silent');
   }
+  // Default: 'info' level (handled by log.ts)
+
   if (opts.debugLayers && opts.debugLayers.length > 0) {
     testParams.set('debugLayers', opts.debugLayers.join(','));
   }
@@ -1777,10 +1792,14 @@ async function main(): Promise<void> {
       // Navigate to debug page with params
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
+      debugParams.set('log', 'verbose');  // Debug mode defaults to verbose
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
       if (opts.kernel) debugParams.set('kernel', opts.kernel);
-      if (opts.trace) debugParams.set('trace', opts.trace);  // Add trace param (defaults to 'quick')
+      if (opts.trace) {
+        debugParams.set('trace', opts.trace);
+        debugParams.set('log', 'trace');  // Trace overrides to trace level
+      }
       if (opts.traceLayers && opts.traceLayers.length > 0) {
         debugParams.set('debugLayers', opts.traceLayers.join(','));
       }

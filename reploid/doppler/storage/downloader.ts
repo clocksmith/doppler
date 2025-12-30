@@ -39,6 +39,7 @@ import {
   formatBytes,
   isIndexedDBAvailable,
 } from './quota.js';
+import { verbose, warn, trace } from '../loader/log.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -198,7 +199,7 @@ async function initDB(): Promise<IDBDatabase | null> {
   if (db) return db;
 
   if (!isIndexedDBAvailable()) {
-    console.warn('IndexedDB not available, download resume will not work');
+    warn('IndexedDB unavailable, download resume will not work');
     return null;
   }
 
@@ -391,7 +392,7 @@ async function downloadShard(
   const elapsed = (performance.now() - startTime) / 1000;
   const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
   const speedStr = formatBytes(speed) + '/s';
-  console.log(`[Downloader] Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
+  verbose(` Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
 
   return buffer.buffer;
 }
@@ -461,7 +462,7 @@ export async function downloadModel(
       try {
         await loadShard(idx, { verify: true });
       } catch (err) {
-        console.warn(`[downloader] Shard ${idx} failed verification, re-downloading`, err);
+        warn(` Shard ${idx} failed verification, re-downloading`, err);
         state.completedShards.delete(idx);
         await deleteShard(idx);
       }
@@ -617,13 +618,13 @@ export async function downloadModel(
       if (hasBundledTokenizer) {
         try {
           const tokenizerUrl = `${baseUrl}/${tokenizer!.file}`;
-          console.log(`[Downloader] Fetching bundled tokenizer from ${tokenizerUrl}`);
+          verbose(` Fetching bundled tokenizer from ${tokenizerUrl}`);
           const tokenizerResponse = await fetchWithRetry(tokenizerUrl);
           const tokenizerJson = await tokenizerResponse.text();
           await saveTokenizer(tokenizerJson);
-          console.log('[Downloader] Saved bundled tokenizer.json');
+          verbose('Saved bundled tokenizer.json');
         } catch (err) {
-          console.warn('[Downloader] Failed to download tokenizer.json:', (err as Error).message);
+          warn(' Failed to download tokenizer.json:', (err as Error).message);
           // Non-fatal - model will fall back to HuggingFace tokenizer
         }
       }

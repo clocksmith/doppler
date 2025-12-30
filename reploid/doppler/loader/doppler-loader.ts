@@ -43,7 +43,7 @@ import type { ExpertWeights } from './weights.js';
 import { type KernelHints } from '../storage/rdrr-format.js';
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
 import { formatBytes } from '../storage/quota.js';
-import { log, trace, warn } from './log.js';
+import { log, verbose, trace, warn } from './log.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -284,7 +284,7 @@ export class DopplerLoader {
       // Refresh LRU order
       this.shardCache.delete(shardIndex);
       this.shardCache.set(shardIndex, cached);
-      log(`Shard ${shardIndex}: RAM${sizeStr ? ` (${sizeStr})` : ''}`);
+      verbose(`Shard ${shardIndex}: RAM${sizeStr ? ` (${sizeStr})` : ''}`);
       return cached;
     }
 
@@ -324,7 +324,7 @@ export class DopplerLoader {
       }
 
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-      log(`Shard ${shardIndex}: custom (${sizeStr}, ${elapsed}s)`);
+      verbose(`Shard ${shardIndex}: custom (${sizeStr}, ${elapsed}s)`);
       return arrayBuffer;
     }
 
@@ -338,7 +338,7 @@ export class DopplerLoader {
       }
     }
     const opfsElapsed = ((performance.now() - opfsStart) / 1000).toFixed(2);
-    log(`Shard ${shardIndex}: OPFS (${sizeStr}, ${opfsElapsed}s)`);
+    verbose(`Shard ${shardIndex}: OPFS (${sizeStr}, ${opfsElapsed}s)`);
     return data;
   }
 
@@ -655,7 +655,7 @@ export class DopplerLoader {
       const layerStart = performance.now();
       await this._loadLayer(l, onProgress);
       const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
-      log(`  Layer ${l}: ${layerElapsed}s`);
+      verbose(`  Layer ${l}: ${layerElapsed}s`);
 
       if (onProgress) {
         // Layers phase: progress from 80% to 85% based on layer count
@@ -729,7 +729,7 @@ export class DopplerLoader {
         originalShape: tensorInfo.originalShape,
       });
     }
-    console.log(`[DopplerLoader] Tensor map: ${this.tensorLocations.size} tensors`);
+    trace(`Tensor map: ${this.tensorLocations.size} tensors`);
   }
 
   /**
@@ -758,22 +758,22 @@ export class DopplerLoader {
         return this._loadTensor(altName, toGPU, silent);
       }
       if (!silent) {
-        console.warn(`[DopplerLoader] Tensor not found: ${name}`);
+        warn(`Tensor not found: ${name}`);
       }
       return null;
     }
 
     // Debug: Log tensor loading details for attention weights
     if (name.includes('attn_k') || name.includes('k_proj')) {
-      console.log(`[DopplerLoader] Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
+      trace(`Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
     }
 
     // Fast path for multi-shard tensors when uploading to GPU
     if (location.spans && toGPU) {
-      console.log(`[DopplerLoader] Loading tensor "${name}" via spans path (${location.spans.length} spans, dtype=${location.dtype})`);
+      trace(`Loading tensor "${name}" via spans path (${location.spans.length} spans, dtype=${location.dtype})`);
       const device = getDevice();
       if (!device) {
-        console.warn('[DopplerLoader] GPU device not available; falling back to CPU assembly');
+        warn(' GPU device not available; falling back to CPU assembly');
       } else {
         // Quantized tensors
         if (location.dtype === 'Q4_K_M' || location.dtype === 'Q4_K') {
@@ -798,7 +798,7 @@ export class DopplerLoader {
                               name.toLowerCase().includes('embed') ||
                               name.toLowerCase().includes('wte');
           if (this.useFusedQ4K && isMatmulWeight && !isEmbedding && caps?.hasSubgroups && !isPackedQ4K) {
-            console.log(`[DopplerLoader] Loading Q4K weight: ${name} (size=${location.size})`);
+            trace(`Loading Q4K weight: ${name} (size=${location.size})`);
             const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
             let tensorOffset = 0;
             for (const span of location.spans) {
@@ -821,11 +821,7 @@ export class DopplerLoader {
           if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && isPackedQ4K) {
             const [rows, cols] = location.shape;
             const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
-            console.warn(
-              `[DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul): ${name} ` +
-              `shape=[${rows},${cols}] size=${location.size} expectedRowwise=${expectedRowwise}. ` +
-              `Falling back to dequantized weights for correctness.`
-            );
+            trace(`Packed Q4K weight ${name} [${rows},${cols}] incompatible with fused matmul, using dequant`);
           }
           const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
           let tensorOffset = 0;
@@ -866,7 +862,7 @@ export class DopplerLoader {
 
         // Q6_K tensors (6-bit quantization)
         if (location.dtype === 'Q6_K') {
-          console.log(`[DopplerLoader] Loading Q6_K tensor "${name}" via spans path (${location.spans.length} spans)`);
+          trace(`Loading Q6_K tensor "${name}" via spans path (${location.spans.length} spans)`);
           const Q6K_BLOCK_BYTES = 210;
           const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
           let tensorOffset = 0;
@@ -883,9 +879,9 @@ export class DopplerLoader {
           }
 
           const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
-          console.log(`[DopplerLoader] Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * 256 * 2} (f16)`);
+          trace(`Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * 256 * 2} (f16)`);
           const dequantized = await dequantizeQ6K(quantBuffer, numBlocks, { outputDtype: 'f16' });
-          console.log(`[DopplerLoader] Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
+          trace(`Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
 
           // DEBUG: Sample dequantized values for embedding verification
           if (name.includes('embd') || name.includes('embed')) {
@@ -911,7 +907,7 @@ export class DopplerLoader {
               else { f = Math.pow(2, exp - 15) * (1 + mant / 1024); }
               f32Samples.push(sign ? -f : f);
             }
-            console.log(`[DopplerLoader] DEBUG embed dequant first16: [${f32Samples.map(x => x.toFixed(4)).join(', ')}]`);
+            trace(`DEBUG embed dequant first16: [${f32Samples.map(x => x.toFixed(4)).join(', ')}]`);
           }
 
           releaseBuffer(quantBuffer);
@@ -922,7 +918,7 @@ export class DopplerLoader {
 
         // BF16 tensors
         if (location.dtype === 'BF16') {
-          console.log(`[DopplerLoader] Loading BF16 tensor "${name}" with ${location.spans.length} spans, total size=${location.size}`);
+          trace(`Loading BF16 tensor "${name}" with ${location.spans.length} spans, total size=${location.size}`);
           const srcBuffer = acquireBuffer(location.size, undefined, `${name}_bf16`);
           let tensorOffset = 0;
           for (const span of location.spans) {
@@ -935,7 +931,7 @@ export class DopplerLoader {
             const bytes = new Uint8Array(data, span.offset, span.size);
             device.queue.writeBuffer(srcBuffer, tensorOffset, bytes);
             tensorOffset += span.size;
-            console.log(`[DopplerLoader] Wrote span ${span.shardIndex}: offset=${tensorOffset}, first4bytes=[${bytes[0]}, ${bytes[1]}, ${bytes[2]}, ${bytes[3]}]`);
+            trace(`Wrote span ${span.shardIndex}: offset=${tensorOffset}, first4bytes=[${bytes[0]}, ${bytes[1]}, ${bytes[2]}, ${bytes[3]}]`);
           }
 
           const numElements = location.size / 2;
@@ -952,12 +948,12 @@ export class DopplerLoader {
               const f16Buffer = await runBF16ToF16(srcBuffer, numElements, name);
               releaseBuffer(srcBuffer);
               this.gpuBuffers.add(f16Buffer);
-              console.log(`[DopplerLoader] BF16→F16 for matmul weight: ${name} (${numElements} elements, spans path)`);
+              trace(`BF16→F16 for matmul weight: ${name} (${numElements} elements, spans path)`);
               return this._applyBufferLayout(f16Buffer, location);
             }
 
             // Standard path: BF16 → F32
-            console.log(`[DopplerLoader] Converting BF16→F32: ${numElements} elements`);
+            trace(`Converting BF16→F32: ${numElements} elements`);
             const dstBuffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, name);
             releaseBuffer(srcBuffer);
             if (dstBuffer instanceof GPUBuffer) {
@@ -1042,7 +1038,7 @@ export class DopplerLoader {
                             name.toLowerCase().includes('embed') ||
                             name.toLowerCase().includes('wte');
         if (this.useFusedQ4K && isMatmulWeight && !isEmbedding && caps?.hasSubgroups && !isPackedQ4K) {
-          console.log(`[DopplerLoader] Loading Q4K weight (single-shard): ${name} (size=${location.size})`);
+          trace(`Loading Q4K weight (single-shard): ${name} (size=${location.size})`);
           const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
           device!.queue.writeBuffer(q4kBuffer, 0, new Uint8Array(shardData));
           setBufferDtype(q4kBuffer, 'q4k');
@@ -1052,12 +1048,7 @@ export class DopplerLoader {
 
         if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && isPackedQ4K) {
           const [rows, cols] = location.shape;
-          const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
-          console.warn(
-            `[DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul): ${name} ` +
-            `shape=[${rows},${cols}] size=${location.size} expectedRowwise=${expectedRowwise}. ` +
-            `Falling back to dequantized weights for correctness.`
-          );
+          trace(`Packed Q4K weight ${name} [${rows},${cols}] incompatible with fused matmul, using dequant`);
         }
 
         // Standard dequant path: dequantize to f16 or f32
@@ -1076,9 +1067,9 @@ export class DopplerLoader {
             outputDtype = caps?.hasF16 ? 'f16' : 'f32';
           }
         }
-        console.log(`[DopplerLoader] Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, outputDtype=${outputDtype}, expectedOutput=${numBlocks * 256 * (outputDtype === 'f16' ? 2 : 4)}`);
+        trace(`Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, outputDtype=${outputDtype}, expectedOutput=${numBlocks * 256 * (outputDtype === 'f16' ? 2 : 4)}`);
         const dequantized = await dequantize(quantBuffer, numBlocks, { outputDtype });
-        console.log(`[DopplerLoader] Dequantized ${name}: resultSize=${dequantized.size}`);
+        trace(`Dequantized ${name}: resultSize=${dequantized.size}`);
 
         releaseBuffer(quantBuffer);
         this.gpuBuffers.add(dequantized);
@@ -1092,15 +1083,15 @@ export class DopplerLoader {
     if (location.dtype === 'Q6_K') {
       if (toGPU) {
         const device = getDevice();
-        console.log(`[DopplerLoader] Loading Q6_K tensor "${name}" (single-shard), size=${location.size}`);
+        trace(`Loading Q6_K tensor "${name}" (single-shard), size=${location.size}`);
         const Q6K_BLOCK_BYTES = 210;
         const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
         device!.queue.writeBuffer(quantBuffer, 0, new Uint8Array(shardData));
 
         const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
-        console.log(`[DopplerLoader] Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * 256 * 2} (f16)`);
+        trace(`Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * 256 * 2} (f16)`);
         const dequantized = await dequantizeQ6K(quantBuffer, numBlocks, { outputDtype: 'f16' });
-        console.log(`[DopplerLoader] Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
+        trace(`Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
 
         releaseBuffer(quantBuffer);
         this.gpuBuffers.add(dequantized);
@@ -1128,7 +1119,7 @@ export class DopplerLoader {
           const f16Buffer = await runBF16ToF16(srcBuffer, numElements, name);
           releaseBuffer(srcBuffer);
           this.gpuBuffers.add(f16Buffer);
-          console.log(`[DopplerLoader] BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
+          trace(`BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
           return this._applyBufferLayout(f16Buffer, location);
         }
 
@@ -1233,7 +1224,7 @@ export class DopplerLoader {
       const expertCacheSize = (moe.numExpertsPerToken * 2) + 1;
       // Cap at reasonable maximum (16 shards = ~1GB at 64MB/shard)
       this.maxShardCacheEntries = Math.min(16, Math.max(4, expertCacheSize));
-      console.log(`[DopplerLoader] MoE shard cache: ${this.maxShardCacheEntries} entries (${moe.numExpertsPerToken} experts/token)`);
+      trace(`MoE shard cache: ${this.maxShardCacheEntries} entries (${moe.numExpertsPerToken} experts/token)`);
     } else {
       // Dense model - keep default
       this.maxShardCacheEntries = 2;
@@ -1248,7 +1239,7 @@ export class DopplerLoader {
    */
   private _needsNormWeightOffset(): boolean {
     if (!this.manifest) {
-      console.log('[DopplerLoader] _needsNormWeightOffset: no manifest');
+      trace(' _needsNormWeightOffset: no manifest');
       return false;
     }
 
@@ -1262,7 +1253,7 @@ export class DopplerLoader {
 
     if (needsOffset && !this._normOffsetLogged) {
       this._normOffsetLogged = true;
-      console.log('[DopplerLoader] Applying +1 norm weight offset for Gemma 3 layer norms');
+      trace(' Applying +1 norm weight offset for Gemma 3 layer norms');
     }
 
     return needsOffset;
@@ -1280,7 +1271,7 @@ export class DopplerLoader {
   ): Promise<GPUBuffer | Float32Array> {
     const device = getDevice();
     if (!device) {
-      console.warn('[DopplerLoader] No GPU device for norm offset');
+      warn(' No GPU device for norm offset');
       return tensor;
     }
 
@@ -1316,7 +1307,7 @@ export class DopplerLoader {
         const beforeMax = Math.max(...Array.from(data.slice(0, Math.min(256, numElements))));
         const afterMin = Math.min(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
         const afterMax = Math.max(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
-        console.log(`[DopplerLoader] Norm +1 offset: before=[${beforeMin.toFixed(3)}, ${beforeMax.toFixed(3)}] after=[${afterMin.toFixed(3)}, ${afterMax.toFixed(3)}]`);
+        trace(`Norm +1 offset: before=[${beforeMin.toFixed(3)}, ${beforeMax.toFixed(3)}] after=[${afterMin.toFixed(3)}, ${afterMax.toFixed(3)}]`);
       }
 
       releaseBuffer(tensor);
@@ -1338,7 +1329,7 @@ export class DopplerLoader {
       return newBuffer;
     }
 
-    console.warn('[DopplerLoader] Unknown tensor type for norm offset');
+    warn(' Unknown tensor type for norm offset');
     return tensor;
   }
 
@@ -1371,38 +1362,38 @@ export class DopplerLoader {
     numElements: number,
     name: string
   ): Promise<GPUBuffer> {
-    console.log(`[_convertBF16ToF32GPU] Importing cast.js...`);
+    trace(`[BF16→F32] Importing cast.js...`);
     const castModule = await import('../gpu/kernels/cast.js');
-    console.log(`[_convertBF16ToF32GPU] castModule keys:`, Object.keys(castModule));
+    trace(`[BF16→F32] castModule keys:`, Object.keys(castModule));
     const { runBF16ToF32 } = castModule;
-    console.log(`[_convertBF16ToF32GPU] runBF16ToF32 type: ${typeof runBF16ToF32}`);
+    trace(`[BF16→F32] runBF16ToF32 type: ${typeof runBF16ToF32}`);
     const result = await runBF16ToF32(srcBuffer, numElements, name);
-    console.log(`[_convertBF16ToF32GPU] runBF16ToF32 returned, result.size=${result?.size}`);
+    trace(`[BF16→F32] runBF16ToF32 returned, result.size=${result?.size}`);
 
     // Debug: Verify conversion produced non-zero values
     if (name.includes('embed') && name.includes('embed_tokens')) {
       try {
-        console.log(`[_convertBF16ToF32GPU] Checking embed buffer for non-zeros...`);
+        trace(`[BF16→F32] Checking embed buffer for non-zeros...`);
         const device = getDevice();
         const sampleSize = Math.min(1024, result.size);
-        console.log(`[_convertBF16ToF32GPU] Creating staging buffer size=${sampleSize}`);
+        trace(`[BF16→F32] Creating staging buffer size=${sampleSize}`);
         const stagingBuffer = device!.createBuffer({
           size: sampleSize,
           usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
-        console.log(`[_convertBF16ToF32GPU] Copying to staging buffer...`);
+        trace(`[BF16→F32] Copying to staging buffer...`);
         const encoder = device!.createCommandEncoder();
         encoder.copyBufferToBuffer(result, 0, stagingBuffer, 0, sampleSize);
         device!.queue.submit([encoder.finish()]);
-        console.log(`[_convertBF16ToF32GPU] Mapping staging buffer...`);
+        trace(`[BF16→F32] Mapping staging buffer...`);
         await stagingBuffer.mapAsync(GPUMapMode.READ);
-        console.log(`[_convertBF16ToF32GPU] Reading data...`);
+        trace(`[BF16→F32] Reading data...`);
         const data = new Float32Array(stagingBuffer.getMappedRange().slice(0));
         stagingBuffer.unmap();
         stagingBuffer.destroy();
         const nonZero = Array.from(data).filter(x => x !== 0);
         const nanCount = data.filter(x => !Number.isFinite(x)).length;
-        console.log(`[BF16→F32 CHECK] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        trace(`[BF16→F32] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
       } catch (err) {
         console.error(`[_convertBF16ToF32GPU] ERROR checking embed buffer:`, (err as Error).message);
       }
@@ -1502,7 +1493,7 @@ export class DopplerLoader {
     }
 
     if (!this.embeddings) {
-      console.warn('[DopplerLoader] Embeddings not found');
+      warn(' Embeddings not found');
     }
   }
 
@@ -1604,7 +1595,7 @@ export class DopplerLoader {
     // Log q_norm/k_norm loading status for layer 0 only
     if (layerIdx === 0) {
       const hasOffset = this._needsNormWeightOffset();
-      console.log(`[DopplerLoader] Layer 0 norm weights: qNorm=${qNorm ? 'found' : 'null'}, kNorm=${kNorm ? 'found' : 'null'}, offset=${hasOffset ? '+1 applied' : 'none'}`);
+      trace(`Layer 0 norm weights: qNorm=${qNorm ? 'found' : 'null'}, kNorm=${kNorm ? 'found' : 'null'}, offset=${hasOffset ? '+1 applied' : 'none'}`);
     }
     weights.postAttentionNorm = postAttentionNorm;
     weights.preFeedforwardNorm = preFeedforwardNorm;
@@ -1626,7 +1617,7 @@ export class DopplerLoader {
         weights.ffnGateUp = ffnGateUp;
         weights.ffnGate = null;
         weights.ffnUp = null;
-        console.log(`[DopplerLoader] Layer ${layerIdx}: Using fused gate_up_proj for 2-pass FFN`);
+        trace(`Layer ${layerIdx}: Using fused gate_up_proj for 2-pass FFN`);
       } else {
         // Separate path: use gate and up individually (3-pass FFN)
         weights.ffnGate = ffnGate;
@@ -1668,19 +1659,19 @@ export class DopplerLoader {
             const elems = buf.size / 4;
             // Preserve column-major layout through the f32→f16 downcast
             const wasColumnMajor = isColumnMajorBuffer(buf);
-            console.log(`[DopplerLoader] Layer ${layerIdx} downcasting ${key}: bufSize=${buf.size}, elems=${elems}, expectedF16=${elems * 2}, columnMajor=${wasColumnMajor}`);
+            trace(`Layer ${layerIdx} downcasting ${key}: bufSize=${buf.size}, elems=${elems}, expectedF16=${elems * 2}, columnMajor=${wasColumnMajor}`);
             try {
               const f16buf = await castF32ToF16(buf, elems);
               // Copy layout metadata to the new buffer
               if (wasColumnMajor) {
                 setBufferLayout(f16buf, 'column');
               }
-              console.log(`[DopplerLoader] Layer ${layerIdx} ${key} downcast result: f16Size=${f16buf.size}`);
+              trace(`Layer ${layerIdx} ${key} downcast result: f16Size=${f16buf.size}`);
               releaseBuffer(buf);
               (weights as unknown as Record<string, GPUBuffer | Float32Array | null>)[key] = f16buf;
               this.gpuBuffers.add(f16buf);
             } catch (e) {
-              console.warn(`[DopplerLoader] Failed to downcast ${key} to f16:`, (e as Error).message);
+              warn(`Failed to downcast ${key} to f16:`, (e as Error).message);
             }
           }
         }
@@ -1739,7 +1730,7 @@ export class DopplerLoader {
 
     // Don't await - let it run in background
     Promise.all(promises).catch((e) => {
-      console.warn('[DopplerLoader] Expert prefetch error:', e);
+      warn(' Expert prefetch error:', e);
     });
   }
 
@@ -1771,7 +1762,7 @@ export class DopplerLoader {
       return this.experts.get(key)!;
     }
 
-    console.log(`[DopplerLoader] Loading expert ${expertIdx} for layer ${layerIdx}`);
+    trace(`Loading expert ${expertIdx} for layer ${layerIdx}`);
 
     // Pre-load only the shards containing this expert's tensors
     await this._preloadShardsForExpert(layerIdx, expertIdx);
@@ -1779,7 +1770,7 @@ export class DopplerLoader {
     // Get tensor names from manifest if available (for logging/debugging)
     const tensorNames = getTensorsForExpert(layerIdx, expertIdx);
     if (tensorNames.length > 0) {
-      console.log(`[DopplerLoader] Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
+      trace(`Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
     }
 
     const prefix = `layers.${layerIdx}.block_sparse_moe.experts.${expertIdx}`;
@@ -1854,7 +1845,7 @@ export class DopplerLoader {
                 weights[k] = f16buf;
                 this.gpuBuffers.add(f16buf);
               } catch (e) {
-                console.warn(`[DopplerLoader] Failed to downcast expert ${k} to f16:`, (e as Error).message);
+                warn(`Failed to downcast expert ${k} to f16:`, (e as Error).message);
               }
             }
           }
@@ -1912,7 +1903,7 @@ export class DopplerLoader {
     }
 
     if (!this.finalNorm) {
-      console.warn('[DopplerLoader] Final norm not found');
+      warn(' Final norm not found');
     }
 
     this.lmHead = (await this._loadTensor('language_model.lm_head.weight', true, true) ||
@@ -1920,10 +1911,10 @@ export class DopplerLoader {
                   await this._loadTensor('output.weight', true, true)) as GPUBuffer | Float32Array | null;
 
     if (!this.lmHead && this.embeddings) {
-      console.log('[DopplerLoader] Using tied embeddings as LM head');
+      trace(' Using tied embeddings as LM head');
       this.lmHead = this.embeddings;
     } else if (!this.lmHead) {
-      console.warn('[DopplerLoader] LM head not found');
+      warn(' LM head not found');
     }
 
     // Downcast LM head to f16
@@ -1938,7 +1929,7 @@ export class DopplerLoader {
           this.lmHead = f16buf;
           this.gpuBuffers.add(f16buf);
         } catch (e) {
-          console.warn('[DopplerLoader] Failed to downcast lmHead to f16:', (e as Error).message);
+          warn(' Failed to downcast lmHead to f16:', (e as Error).message);
         }
       }
     }
@@ -1992,7 +1983,7 @@ export class DopplerLoader {
    * Unload model and free resources
    */
   async unload(): Promise<void> {
-    console.log('[DopplerLoader] Unloading model...');
+    trace(' Unloading model...');
 
     for (const buffer of this.gpuBuffers) {
       releaseBuffer(buffer);
@@ -2017,7 +2008,7 @@ export class DopplerLoader {
     this.shardCache.clear();
     this._normOffsetLogged = false;
 
-    console.log('[DopplerLoader] Model unloaded');
+    trace(' Model unloaded');
   }
 }
 
