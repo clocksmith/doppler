@@ -7,7 +7,7 @@ enable f16;
 override WORKGROUP_SIZE: u32 = 1u;
 const MAX_HEAD_DIM: u32 = 256u;
 
-struct AttentionUniforms {
+struct Uniforms {
     numHeads: u32,
     numKVHeads: u32,
     headDim: u32,
@@ -18,36 +18,36 @@ struct AttentionUniforms {
     startPos: u32,  // Absolute position offset for causal masking
 }
 
-@group(0) @binding(0) var<uniform> uniforms: AttentionUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
 fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
-    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
+    let headsPerKV = u.numHeads / u.numKVHeads;
     return queryHeadIdx / headsPerKV;
 }
 
 fn isMasked(queryPos: u32, keyPos: u32) -> bool {
-    if (uniforms.isCausal == 0u) { return false; }
+    if (u.isCausal == 0u) { return false; }
     // Use absolute position (queryPos + startPos) for correct causal masking during decode
-    return keyPos > (queryPos + uniforms.startPos);
+    return keyPos > (queryPos + u.startPos);
 }
 
 @compute @workgroup_size(1, 1, 1)
 fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
     let linear = wg_id.x;
-    let numHeads = uniforms.numHeads;
+    let numHeads = u.numHeads;
     let headIdx = linear % numHeads;
     let queryPos = linear / numHeads;
 
-    if (queryPos >= uniforms.queryLen) { return; }
+    if (queryPos >= u.queryLen) { return; }
 
     let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = uniforms.headDim;
-    let seqLen = uniforms.seqLen;
-    let scale = uniforms.scale;
+    let headDim = u.headDim;
+    let seqLen = u.seqLen;
+    let scale = u.scale;
 
     var q_local: array<f32, 256>;
     let q_offset = queryPos * numHeads * headDim + headIdx * headDim;
@@ -58,7 +58,7 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
     var maxScore: f32 = -3.402823e+38;
     for (var kPos: u32 = 0u; kPos < seqLen; kPos = kPos + 1u) {
         if (isMasked(queryPos, kPos)) { continue; }
-        let k_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+        let k_offset = kPos * u.numKVHeads * headDim + kvHeadIdx * headDim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
             dot = dot + q_local[d] * f32(K[k_offset + d]);
@@ -75,8 +75,8 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
 
     for (var kPos: u32 = 0u; kPos < seqLen; kPos = kPos + 1u) {
         if (isMasked(queryPos, kPos)) { continue; }
-        let k_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
-        let v_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+        let k_offset = kPos * u.numKVHeads * headDim + kvHeadIdx * headDim;
+        let v_offset = kPos * u.numKVHeads * headDim + kvHeadIdx * headDim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
             dot = dot + q_local[d] * f32(K[k_offset + d]);

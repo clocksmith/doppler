@@ -10,18 +10,18 @@ override BLOCK_SIZE: u32 = 32u;
 override HEAD_TILE: u32 = 32u;
 const MAX_HEAD_DIM: u32 = 256u;
 
-struct AttentionUniforms {
-    numHeads: u32,
-    numKVHeads: u32,
-    headDim: u32,
-    seqLen: u32,
-    queryLen: u32,
+struct Uniforms {
+    num_heads: u32,
+    num_kv_heads: u32,
+    head_dim: u32,
+    seq_len: u32,
+    query_len: u32,
     scale: f32,
-    isCausal: u32,
-    startPos: u32,  // Absolute position offset for causal masking
+    is_causal: u32,
+    start_pos: u32,  // Absolute position offset for causal masking
 }
 
-@group(0) @binding(0) var<uniform> uniforms: AttentionUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
@@ -31,14 +31,14 @@ var<workgroup> shared_K: array<f16, BLOCK_SIZE * HEAD_TILE>;
 var<workgroup> shared_V: array<f16, BLOCK_SIZE * HEAD_TILE>;
 
 fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
-    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
+    let headsPerKV = u.num_heads / u.num_kv_heads;
     return queryHeadIdx / headsPerKV;
 }
 
 fn isMasked(queryPos: u32, keyPos: u32) -> bool {
-    if (uniforms.isCausal == 0u) { return false; }
-    // Use absolute position (queryPos + startPos) for correct causal masking during decode
-    return keyPos > (queryPos + uniforms.startPos);
+    if (u.is_causal == 0u) { return false; }
+    // Use absolute position (queryPos + start_pos) for correct causal masking during decode
+    return keyPos > (queryPos + u.start_pos);
 }
 
 @compute @workgroup_size(32, 1, 1)
@@ -47,26 +47,26 @@ fn main(
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let linear = wg_id.x;
-    let numHeads = uniforms.numHeads;
-    let headIdx = linear % numHeads;
-    let queryBlockIdx = linear / numHeads;
+    let num_heads = u.num_heads;
+    let headIdx = linear % num_heads;
+    let queryBlockIdx = linear / num_heads;
     let threadIdx = local_id.x;
 
     let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = uniforms.headDim;
-    let seqLen = uniforms.seqLen;
-    let queryLen = uniforms.queryLen;
-    let scale = uniforms.scale;
+    let head_dim = u.head_dim;
+    let seq_len = u.seq_len;
+    let query_len = u.query_len;
+    let scale = u.scale;
 
     let queryPos = queryBlockIdx * BLOCK_SIZE + threadIdx;
-    let validQuery = queryPos < queryLen;
+    let validQuery = queryPos < query_len;
 
     var q_local: array<f32, 256>;
     var acc: array<f32, 256>;
 
     if (validQuery) {
-        let q_offset = queryPos * numHeads * headDim + headIdx * headDim;
-        for (var d: u32 = 0u; d < headDim; d = d + 1u) {
+        let q_offset = queryPos * num_heads * head_dim + headIdx * head_dim;
+        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
             q_local[d] = Q[q_offset + d];
             acc[d] = 0.0;
         }
@@ -75,8 +75,8 @@ fn main(
     var m_i: f32 = -3.402823e+38;
     var l_i: f32 = 0.0;
 
-    let numKVBlocks = (seqLen + BLOCK_SIZE - 1u) / BLOCK_SIZE;
-    let numHeadTiles = (headDim + HEAD_TILE - 1u) / HEAD_TILE;
+    let numKVBlocks = (seq_len + BLOCK_SIZE - 1u) / BLOCK_SIZE;
+    let numHeadTiles = (head_dim + HEAD_TILE - 1u) / HEAD_TILE;
 
     for (var kvBlock: u32 = 0u; kvBlock < numKVBlocks; kvBlock = kvBlock + 1u) {
         let kvBlockStart = kvBlock * BLOCK_SIZE;
@@ -88,11 +88,11 @@ fn main(
 
         for (var ht: u32 = 0u; ht < numHeadTiles; ht = ht + 1u) {
             let d0 = ht * HEAD_TILE;
-            let tileLen = min(HEAD_TILE, headDim - d0);
+            let tileLen = min(HEAD_TILE, head_dim - d0);
 
             let keyPosLoad = kvBlockStart + threadIdx;
-            if (keyPosLoad < seqLen) {
-                let k_offset = keyPosLoad * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + d0;
+            if (keyPosLoad < seq_len) {
+                let k_offset = keyPosLoad * u.num_kv_heads * head_dim + kvHeadIdx * head_dim + d0;
                 for (var td: u32 = 0u; td < tileLen; td = td + 1u) {
                     shared_K[threadIdx * HEAD_TILE + td] = K[k_offset + td];
                 }
@@ -107,7 +107,7 @@ fn main(
             if (validQuery) {
                 for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                     let keyPos = kvBlockStart + k;
-                    if (keyPos >= seqLen) { continue; }
+                    if (keyPos >= seq_len) { continue; }
                     if (isMasked(queryPos, keyPos)) { continue; }
 
                     var dot_partial: f32 = 0.0;
@@ -126,7 +126,7 @@ fn main(
             var block_max: f32 = -3.402823e+38;
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                 let keyPos = kvBlockStart + k;
-                if (keyPos >= seqLen) { continue; }
+                if (keyPos >= seq_len) { continue; }
                 if (isMasked(queryPos, keyPos)) { continue; }
 
                 let s = scores[k] * scale;
@@ -138,20 +138,20 @@ fn main(
             let correction = exp(m_i - m_new);
 
             l_i = l_i * correction;
-            for (var d: u32 = 0u; d < headDim; d = d + 1u) {
+            for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
                 acc[d] = acc[d] * correction;
             }
         }
 
-        // Accumulate V contribution by tiling headDim again.
+        // Accumulate V contribution by tiling head_dim again.
         // Barriers must be in uniform control flow, so only the math is guarded.
         for (var ht: u32 = 0u; ht < numHeadTiles; ht = ht + 1u) {
             let d0 = ht * HEAD_TILE;
-            let tileLen = min(HEAD_TILE, headDim - d0);
+            let tileLen = min(HEAD_TILE, head_dim - d0);
 
             let keyPosLoad = kvBlockStart + threadIdx;
-            if (keyPosLoad < seqLen) {
-                let v_offset = keyPosLoad * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + d0;
+            if (keyPosLoad < seq_len) {
+                let v_offset = keyPosLoad * u.num_kv_heads * head_dim + kvHeadIdx * head_dim + d0;
                 for (var td: u32 = 0u; td < tileLen; td = td + 1u) {
                     shared_V[threadIdx * HEAD_TILE + td] = V[v_offset + td];
                 }
@@ -166,7 +166,7 @@ fn main(
             if (validQuery) {
                 for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                     let keyPos = kvBlockStart + k;
-                    if (keyPos >= seqLen) { continue; }
+                    if (keyPos >= seq_len) { continue; }
                     if (isMasked(queryPos, keyPos)) { continue; }
 
                     let p = exp(scores[k] - m_new);
@@ -190,8 +190,8 @@ fn main(
     }
 
     if (validQuery && l_i > 0.0) {
-        let out_offset = queryPos * numHeads * headDim + headIdx * headDim;
-        for (var d: u32 = 0u; d < headDim; d = d + 1u) {
+        let out_offset = queryPos * num_heads * head_dim + headIdx * head_dim;
+        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
             output[out_offset + d] = acc[d] / l_i;
         }
     }

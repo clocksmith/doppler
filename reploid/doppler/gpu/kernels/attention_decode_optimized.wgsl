@@ -19,24 +19,27 @@ enable f16;
 enable subgroups;
 
 struct Uniforms {
-    seqLen: u32,        // Always 1 for decode
-    kvLen: u32,         // Current KV cache length
-    numHeads: u32,      // Number of query heads
-    numKVHeads: u32,    // Number of KV heads (GQA support)
-    headDim: u32,       // Head dimension (typically 64, 128, or 256)
+    seq_len: u32,        // Always 1 for decode
+    kv_len: u32,         // Current KV cache length
+    num_heads: u32,      // Number of query heads
+    num_kv_heads: u32,   // Number of KV heads (GQA support)
+    head_dim: u32,       // Head dimension (typically 64, 128, or 256)
+    _pad0: u32,          // 16-byte alignment padding
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
 @group(0) @binding(2) var<storage, read> K_cache: array<f32>;
 @group(0) @binding(3) var<storage, read> V_cache: array<f32>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
 // Workgroup size for decode: 256 threads
-const WG_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
 // Chunk size for KV cache processing (matches workgroup size)
-const CHUNK_SIZE: u32 = 256u;
+override CHUNK_SIZE: u32 = 256u;
 
 // Shared memory for Q vector and partial results
 var<workgroup> shared_q: array<f32, 256>;       // Q values for this head
@@ -49,7 +52,7 @@ var<workgroup> sg_sum: array<f32, 8>;           // Subgroup sums
 var<workgroup> global_max: f32;
 var<workgroup> global_sum: f32;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
@@ -58,15 +61,15 @@ fn main(
 ) {
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
-    let headDim = uniforms.headDim;
-    let kvLen = uniforms.kvLen;
+    let head_dim = u.head_dim;
+    let kv_len = u.kv_len;
 
     // GQA: map query head to KV head
-    let heads_per_kv = uniforms.numHeads / uniforms.numKVHeads;
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
 
     let subgroup_id = tid / subgroup_size;
-    let num_subgroups = min(8u, (WG_SIZE + subgroup_size - 1u) / subgroup_size);
+    let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
 
     // Scale factor for attention
     let scale = 1.0 / sqrt(f32(headDim));
@@ -96,7 +99,7 @@ fn main(
         // Compute dot product Q @ K^T for this position
         var score: f32 = 0.0;
         if (valid_k) {
-            let k_base = k_pos * uniforms.numKVHeads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
 
             // Vectorized dot product (4 elements at a time)
             for (var d = 0u; d < headDim; d += 4u) {
@@ -191,7 +194,7 @@ fn main(
             // Add contribution from this chunk
             for (var k = 0u; k < min(CHUNK_SIZE, kvLen - chunk * CHUNK_SIZE); k++) {
                 let k_pos_inner = chunk * CHUNK_SIZE + k;
-                let v_offset = k_pos_inner * uniforms.numKVHeads * headDim + kv_head_idx * headDim + tid;
+                let v_offset = k_pos_inner * u.num_kv_heads * headDim + kv_head_idx * headDim + tid;
                 let attn_weight = shared_scores[k];
                 out_accum += attn_weight * V_cache[v_offset];
             }
@@ -217,20 +220,20 @@ fn main_multihead(
 ) {
     // For models with many heads (32+), process 4 heads per workgroup
     let heads_per_wg = 4u;
-    let threads_per_head = WG_SIZE / heads_per_wg;  // 64 threads per head
+    let threads_per_head = WORKGROUP_SIZE / heads_per_wg;  // 64 threads per head
 
     let base_head = workgroup_id.x * heads_per_wg;
     let head_in_wg = local_id.x / threads_per_head;
     let tid_in_head = local_id.x % threads_per_head;
     let head_idx = base_head + head_in_wg;
 
-    if (head_idx >= uniforms.numHeads) {
+    if (head_idx >= u.num_heads) {
         return;
     }
 
-    let headDim = uniforms.headDim;
-    let kvLen = uniforms.kvLen;
-    let heads_per_kv = uniforms.numHeads / uniforms.numKVHeads;
+    let head_dim = u.head_dim;
+    let kv_len = u.kv_len;
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
     let scale = 1.0 / sqrt(f32(headDim));
 
@@ -259,7 +262,7 @@ fn main_multihead(
         // Compute attention score
         var score: f32 = -1e38;
         if (valid_k) {
-            let k_base = k_pos * uniforms.numKVHeads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
             var dot: f32 = 0.0;
             for (var d = 0u; d < headDim; d++) {
                 dot += shared_q[q_base + d] * K_cache[k_base + d];
@@ -278,7 +281,7 @@ fn main_multihead(
         // Accumulate V contribution
         if (tid_in_head < headDim && valid_k) {
             out_accum *= rescale;
-            let v_offset = k_pos * uniforms.numKVHeads * headDim + kv_head_idx * headDim + tid_in_head;
+            let v_offset = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim + tid_in_head;
             out_accum += exp_score * V_cache[v_offset];
         }
     }
@@ -304,14 +307,14 @@ fn main_f16kv(
 ) {
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
-    let headDim = uniforms.headDim;
-    let kvLen = uniforms.kvLen;
+    let head_dim = u.head_dim;
+    let kv_len = u.kv_len;
 
-    let heads_per_kv = uniforms.numHeads / uniforms.numKVHeads;
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
 
     let subgroup_id = tid / subgroup_size;
-    let num_subgroups = min(8u, (WG_SIZE + subgroup_size - 1u) / subgroup_size);
+    let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
 
     let scale = 1.0 / sqrt(f32(headDim));
 
@@ -327,13 +330,13 @@ fn main_f16kv(
     var out_accum: f32 = 0.0;
 
     // Process in chunks
-    for (var k_start = 0u; k_start < kvLen; k_start += WG_SIZE) {
+    for (var k_start = 0u; k_start < kvLen; k_start += WORKGROUP_SIZE) {
         let k_pos = k_start + tid;
         let valid_k = k_pos < kvLen;
 
         var score: f32 = -1e38;
         if (valid_k) {
-            let k_base = k_pos * uniforms.numKVHeads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
             var dot: f32 = 0.0;
 
             // K cache is F16, load and convert
@@ -396,9 +399,9 @@ fn main_f16kv(
         // Accumulate V (F16 cache)
         if (tid < headDim) {
             out_accum *= rescale;
-            for (var k = 0u; k < min(WG_SIZE, kvLen - k_start); k++) {
+            for (var k = 0u; k < min(WORKGROUP_SIZE, kvLen - k_start); k++) {
                 let k_pos_inner = k_start + k;
-                let v_base = k_pos_inner * uniforms.numKVHeads * headDim + kv_head_idx * headDim;
+                let v_base = k_pos_inner * u.num_kv_heads * headDim + kv_head_idx * headDim;
 
                 // Read packed F16 V values
                 let v_packed = V_cache[v_base + tid / 2u];

@@ -30,17 +30,20 @@ const QK_K: u32 = 256u;           // Elements per super-block
 const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
-const WG_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     M: u32,                // Batch size (usually 1 for decode)
-    hiddenSize: u32,       // Input dimension
-    intermediateSize: u32, // Output dimension (per gate/up)
+    hidden_size: u32,      // Input dimension
+    intermediate_size: u32, // Output dimension (per gate/up)
     alpha: f32,            // Scale factor
     activation: u32,       // 0=silu, 1=gelu
+    _pad0: u32,            // 16-byte alignment padding
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
 @group(0) @binding(2) var<storage, read> W_gate: array<f32>;  // [intermediateSize, hiddenSize]
 @group(0) @binding(3) var<storage, read> W_up: array<f32>;    // [intermediateSize, hiddenSize]
@@ -65,7 +68,7 @@ fn gelu(x: f32) -> f32 {
 
 // Fused FFN forward for F32 weights
 // One workgroup computes one output element
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -74,8 +77,8 @@ fn main(
 ) {
     let out_idx = wg_id.x;
     let tid = lid.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let intermediateSize = uniforms.intermediateSize;
+    let hiddenSize = u.hidden_size;
+    let intermediateSize = u.intermediate_size;
 
     if (out_idx >= intermediateSize) {
         return;
@@ -159,13 +162,13 @@ fn main(
 
         // Apply activation and multiply
         var activated: f32;
-        if (uniforms.activation == 0u) {
+        if (u.activation == 0u) {
             activated = silu(final_gate);
         } else {
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * uniforms.alpha;
+        output[out_idx] = activated * final_up * u.alpha;
     }
 }
 
@@ -188,8 +191,8 @@ fn main_multi(
     let tid_in_out = tid % THREADS_PER_OUTPUT;
     let out_idx = wg_id.x * OUTPUTS_PER_WG + out_in_wg;
 
-    let hiddenSize = uniforms.hiddenSize;
-    let intermediateSize = uniforms.intermediateSize;
+    let hiddenSize = u.hidden_size;
+    let intermediateSize = u.intermediate_size;
 
     if (out_idx >= intermediateSize) {
         return;
@@ -240,13 +243,13 @@ fn main_multi(
         }
 
         var activated: f32;
-        if (uniforms.activation == 0u) {
+        if (u.activation == 0u) {
             activated = silu(final_gate);
         } else {
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * uniforms.alpha;
+        output[out_idx] = activated * final_up * u.alpha;
     }
 }
 
@@ -260,8 +263,8 @@ fn main_f16(
 ) {
     let out_idx = wg_id.x;
     let tid = lid.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let intermediateSize = uniforms.intermediateSize;
+    let hiddenSize = u.hidden_size;
+    let intermediateSize = u.intermediate_size;
 
     if (out_idx >= intermediateSize) {
         return;
@@ -319,13 +322,13 @@ fn main_f16(
         }
 
         var activated: f32;
-        if (uniforms.activation == 0u) {
+        if (u.activation == 0u) {
             activated = silu(final_gate);
         } else {
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * uniforms.alpha;
+        output[out_idx] = activated * final_up * u.alpha;
     }
 }
 
@@ -341,9 +344,9 @@ fn main_batched(
     let out_idx = wg_id.x;
     let batch_idx = wg_id.y;
     let tid = lid.x;
-    let hiddenSize = uniforms.hiddenSize;
-    let intermediateSize = uniforms.intermediateSize;
-    let M = uniforms.M;
+    let hiddenSize = u.hidden_size;
+    let intermediateSize = u.intermediate_size;
+    let M = u.M;
 
     if (out_idx >= intermediateSize || batch_idx >= M) {
         return;
@@ -389,13 +392,13 @@ fn main_batched(
         }
 
         var activated: f32;
-        if (uniforms.activation == 0u) {
+        if (u.activation == 0u) {
             activated = silu(final_gate);
         } else {
             activated = gelu(final_gate);
         }
 
         let out_offset = batch_idx * intermediateSize + out_idx;
-        output[out_offset] = activated * final_up * uniforms.alpha;
+        output[out_offset] = activated * final_up * u.alpha;
     }
 }

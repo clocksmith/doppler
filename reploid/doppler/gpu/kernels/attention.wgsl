@@ -12,18 +12,18 @@ override HEAD_TILE: u32 = 64u;   // Head dimension tile
 override WORKGROUP_SIZE: u32 = 64u;  // Main kernel workgroup size
 override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size
 
-struct AttentionUniforms {
-    numHeads: u32,       // Number of query heads
-    numKVHeads: u32,     // Number of KV heads (for GQA)
-    headDim: u32,        // Dimension per head
-    seqLen: u32,         // Current sequence length (for KV)
-    queryLen: u32,       // Query length (1 for decode, seqLen for prefill)
-    scale: f32,          // 1/sqrt(headDim)
-    isCausal: u32,       // Apply causal mask (1 = yes)
-    startPos: u32,  // Absolute position offset for causal masking
+struct Uniforms {
+    num_heads: u32,       // Number of query heads
+    num_kv_heads: u32,    // Number of KV heads (for GQA)
+    head_dim: u32,        // Dimension per head
+    seq_len: u32,         // Current sequence length (for KV)
+    query_len: u32,       // Query length (1 for decode, seqLen for prefill)
+    scale: f32,           // 1/sqrt(head_dim)
+    is_causal: u32,       // Apply causal mask (1 = yes)
+    start_pos: u32,       // Absolute position offset for causal masking
 }
 
-@group(0) @binding(0) var<uniform> uniforms: AttentionUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;       // [queryLen, numHeads, headDim]
 @group(0) @binding(2) var<storage, read> K: array<f32>;       // [seqLen, numKVHeads, headDim]
 @group(0) @binding(3) var<storage, read> V: array<f32>;       // [seqLen, numKVHeads, headDim]
