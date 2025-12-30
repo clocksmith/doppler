@@ -52,7 +52,7 @@ fn find_topk_phase1(
     var local_maxIdx: u32 = 0u;
 
     // Stride through vocabulary
-    var idx = globalIdx;
+    var idx = global_idx;
     while (idx < vocab_size) {
         let val = logits[idx] / temperature;
         if (val > local_max) {
@@ -106,23 +106,23 @@ fn find_topk_phase2(
     // Thread 0 does partial selection sort for top-k
     if (thread_idx == 0u) {
         for (var k: u32 = 0u; k < topK && k < 256u; k = k + 1u) {
-            var maxIdx = k;
-            var maxVal = shared_values[k];
+            var max_idx = k;
+            var max_val = shared_values[k];
 
             for (var i: u32 = k + 1u; i < 256u; i = i + 1u) {
-                if (shared_values[i] > maxVal) {
-                    maxVal = shared_values[i];
-                    maxIdx = i;
+                if (shared_values[i] > max_val) {
+                    max_val = shared_values[i];
+                    max_idx = i;
                 }
             }
 
-            if (maxIdx != k) {
-                let tmpVal = shared_values[k];
-                let tmpIdx = shared_indices[k];
-                shared_values[k] = shared_values[maxIdx];
-                shared_indices[k] = shared_indices[maxIdx];
-                shared_values[maxIdx] = tmpVal;
-                shared_indices[maxIdx] = tmpIdx;
+            if (max_idx != k) {
+                let tmp_val = shared_values[k];
+                let tmp_idx = shared_indices[k];
+                shared_values[k] = shared_values[max_idx];
+                shared_indices[k] = shared_indices[max_idx];
+                shared_values[max_idx] = tmp_val;
+                shared_indices[max_idx] = tmp_idx;
             }
         }
 
@@ -153,15 +153,15 @@ fn softmax_and_sample(
     // Thread 0 does softmax and sampling
     if (thread_idx == 0u) {
         // Find max for numerical stability
-        var maxVal: f32 = shared_values[0];
+        var max_val: f32 = shared_values[0];
         for (var i: u32 = 1u; i < topK; i = i + 1u) {
-            maxVal = max(maxVal, shared_values[i]);
+            max_val = max(maxVal, shared_values[i]);
         }
 
         // Compute exp and sum
         var expSum: f32 = 0.0;
         for (var i: u32 = 0u; i < topK; i = i + 1u) {
-            let expVal = exp(shared_values[i] - maxVal);
+            let expVal = exp(shared_values[i] - max_val);
             shared_values[i] = expVal;
             expSum = expSum + expVal;
         }
@@ -256,7 +256,7 @@ fn argmax(
     var local_max: f32 = -3.402823e+38;
     var local_maxIdx: u32 = 0u;
 
-    var idx = globalIdx;
+    var idx = global_idx;
     while (idx < vocab_size) {
         let val = logits[idx];
         if (val > local_max) {
