@@ -77,22 +77,22 @@ fn main(
 ) {
     let out_idx = wg_id.x;
     let tid = lid.x;
-    let hiddenSize = u.hidden_size;
-    let intermediateSize = u.intermediate_size;
+    let hidden_size = u.hidden_size;
+    let intermediate_size = u.intermediate_size;
 
-    if (out_idx >= intermediateSize) {
+    if (out_idx >= intermediate_size) {
         return;
     }
 
     let subgroup_id = tid / sg_size;
-    let num_subgroups = (WG_SIZE + sg_size - 1u) / sg_size;
+    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
 
     // Phase 1: Load input into shared memory (cooperatively)
     // Each thread loads multiple elements
-    let loads_per_thread = (hiddenSize + WG_SIZE - 1u) / WG_SIZE;
+    let loads_per_thread = (hiddenSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
     for (var i = 0u; i < loads_per_thread; i++) {
-        let idx = tid + i * WG_SIZE;
-        if (idx < hiddenSize) {
+        let idx = tid + i * WORKGROUP_SIZE;
+        if (idx < hidden_size) {
             shared_input[idx % 256u] = input[idx];
         }
     }
@@ -103,13 +103,13 @@ fn main(
     var up_sum: f32 = 0.0;
 
     // Each thread processes a portion of the hidden dimension
-    let elements_per_thread = (hiddenSize + WG_SIZE - 1u) / WG_SIZE;
+    let elements_per_thread = (hiddenSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
     let start_idx = tid * elements_per_thread;
     let end_idx = min(start_idx + elements_per_thread, hiddenSize);
 
     // Weight offsets for this output element
-    let gate_base = out_idx * hiddenSize;
-    let up_base = out_idx * hiddenSize;
+    let gate_base = out_idx * hidden_size;
+    let up_base = out_idx * hidden_size;
 
     // Vectorized dot product (4 elements at a time)
     for (var k = start_idx; k < end_idx; k += 4u) {
@@ -191,10 +191,10 @@ fn main_multi(
     let tid_in_out = tid % THREADS_PER_OUTPUT;
     let out_idx = wg_id.x * OUTPUTS_PER_WG + out_in_wg;
 
-    let hiddenSize = u.hidden_size;
-    let intermediateSize = u.intermediate_size;
+    let hidden_size = u.hidden_size;
+    let intermediate_size = u.intermediate_size;
 
-    if (out_idx >= intermediateSize) {
+    if (out_idx >= intermediate_size) {
         return;
     }
 
@@ -208,11 +208,11 @@ fn main_multi(
     var gate_sum: f32 = 0.0;
     var up_sum: f32 = 0.0;
 
-    let gate_base = out_idx * hiddenSize;
-    let up_base = out_idx * hiddenSize;
+    let gate_base = out_idx * hidden_size;
+    let up_base = out_idx * hidden_size;
 
     // Strided access pattern
-    for (var k = tid_in_out; k < hiddenSize; k += THREADS_PER_OUTPUT) {
+    for (var k = tid_in_out; k < hidden_size; k += THREADS_PER_OUTPUT) {
         let x = shared_input[k % 256u];
         gate_sum += x * W_gate[gate_base + k];
         up_sum += x * W_up[up_base + k];
@@ -263,18 +263,18 @@ fn main_f16(
 ) {
     let out_idx = wg_id.x;
     let tid = lid.x;
-    let hiddenSize = u.hidden_size;
-    let intermediateSize = u.intermediate_size;
+    let hidden_size = u.hidden_size;
+    let intermediate_size = u.intermediate_size;
 
-    if (out_idx >= intermediateSize) {
+    if (out_idx >= intermediate_size) {
         return;
     }
 
     let subgroup_id = tid / sg_size;
-    let num_subgroups = (WG_SIZE + sg_size - 1u) / sg_size;
+    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
 
     // Load input
-    if (tid < hiddenSize) {
+    if (tid < hidden_size) {
         shared_input[tid] = input[tid];
     }
     workgroupBarrier();
@@ -282,11 +282,11 @@ fn main_f16(
     var gate_sum: f32 = 0.0;
     var up_sum: f32 = 0.0;
 
-    // Each thread handles stride of WG_SIZE
-    let gate_base = out_idx * hiddenSize;
-    let up_base = out_idx * hiddenSize;
+    // Each thread handles stride of WORKGROUP_SIZE
+    let gate_base = out_idx * hidden_size;
+    let up_base = out_idx * hidden_size;
 
-    for (var k = tid; k < hiddenSize; k += WG_SIZE) {
+    for (var k = tid; k < hidden_size; k += WORKGROUP_SIZE) {
         let x = shared_input[k];
 
         // Read F16 weights (packed as u32)
@@ -344,20 +344,20 @@ fn main_batched(
     let out_idx = wg_id.x;
     let batch_idx = wg_id.y;
     let tid = lid.x;
-    let hiddenSize = u.hidden_size;
-    let intermediateSize = u.intermediate_size;
+    let hidden_size = u.hidden_size;
+    let intermediate_size = u.intermediate_size;
     let M = u.M;
 
-    if (out_idx >= intermediateSize || batch_idx >= M) {
+    if (out_idx >= intermediate_size || batch_idx >= M) {
         return;
     }
 
     let subgroup_id = tid / sg_size;
-    let num_subgroups = (WG_SIZE + sg_size - 1u) / sg_size;
+    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
 
     // Load input for this batch item
-    let input_base = batch_idx * hiddenSize;
-    if (tid < hiddenSize) {
+    let input_base = batch_idx * hidden_size;
+    if (tid < hidden_size) {
         shared_input[tid] = input[input_base + tid];
     }
     workgroupBarrier();
@@ -365,10 +365,10 @@ fn main_batched(
     var gate_sum: f32 = 0.0;
     var up_sum: f32 = 0.0;
 
-    let gate_base = out_idx * hiddenSize;
-    let up_base = out_idx * hiddenSize;
+    let gate_base = out_idx * hidden_size;
+    let up_base = out_idx * hidden_size;
 
-    for (var k = tid; k < hiddenSize; k += WG_SIZE) {
+    for (var k = tid; k < hidden_size; k += WORKGROUP_SIZE) {
         let x = shared_input[k];
         gate_sum += x * W_gate[gate_base + k];
         up_sum += x * W_up[up_base + k];
@@ -398,7 +398,7 @@ fn main_batched(
             activated = gelu(final_gate);
         }
 
-        let out_offset = batch_idx * intermediateSize + out_idx;
+        let out_offset = batch_idx * intermediate_size + out_idx;
         output[out_offset] = activated * final_up * u.alpha;
     }
 }

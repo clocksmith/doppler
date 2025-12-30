@@ -72,11 +72,11 @@ fn main(
     let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
 
     // Scale factor for attention
-    let scale = 1.0 / sqrt(f32(headDim));
+    let scale = 1.0 / sqrt(f32(head_dim));
 
     // Phase 1: Load Q vector into shared memory
-    if (tid < headDim) {
-        let q_offset = head_idx * headDim + tid;
+    if (tid < head_dim) {
+        let q_offset = head_idx * head_dim + tid;
         shared_q[tid] = Q[q_offset];
     }
     workgroupBarrier();
@@ -90,20 +90,20 @@ fn main(
 
     // Phase 2: Process KV cache in chunks using online softmax
     // Each thread processes one K position per chunk iteration
-    let num_chunks = (kvLen + CHUNK_SIZE - 1u) / CHUNK_SIZE;
+    let num_chunks = (kv_len + CHUNK_SIZE - 1u) / CHUNK_SIZE;
 
     for (var chunk = 0u; chunk < num_chunks; chunk++) {
         let k_pos = chunk * CHUNK_SIZE + tid;
-        let valid_k = k_pos < kvLen;
+        let valid_k = k_pos < kv_len;
 
         // Compute dot product Q @ K^T for this position
         var score: f32 = 0.0;
         if (valid_k) {
-            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
 
             // Vectorized dot product (4 elements at a time)
-            for (var d = 0u; d < headDim; d += 4u) {
-                if (d + 3u < headDim) {
+            for (var d = 0u; d < head_dim; d += 4u) {
+                if (d + 3u < head_dim) {
                     let q0 = shared_q[d];
                     let q1 = shared_q[d + 1u];
                     let q2 = shared_q[d + 2u];
@@ -117,7 +117,7 @@ fn main(
                     score += q0 * k0 + q1 * k1 + q2 * k2 + q3 * k3;
                 } else {
                     // Handle remainder
-                    for (var dd = d; dd < headDim; dd++) {
+                    for (var dd = d; dd < head_dim; dd++) {
                         score += shared_q[dd] * K_cache[k_base + dd];
                     }
                 }
@@ -187,14 +187,14 @@ fn main(
 
         // Accumulate weighted V values
         // Each thread handles one dimension of output
-        if (tid < headDim) {
+        if (tid < head_dim) {
             // Rescale previous accumulator
             out_accum *= rescale;
 
             // Add contribution from this chunk
             for (var k = 0u; k < min(CHUNK_SIZE, kvLen - chunk * CHUNK_SIZE); k++) {
                 let k_pos_inner = chunk * CHUNK_SIZE + k;
-                let v_offset = k_pos_inner * u.num_kv_heads * headDim + kv_head_idx * headDim + tid;
+                let v_offset = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
                 let attn_weight = shared_scores[k];
                 out_accum += attn_weight * V_cache[v_offset];
             }
@@ -203,15 +203,15 @@ fn main(
     }
 
     // Phase 3: Finalize output (divide by sum)
-    if (tid < headDim) {
-        let out_offset = head_idx * headDim + tid;
+    if (tid < head_dim) {
+        let out_offset = head_idx * head_dim + tid;
         output[out_offset] = out_accum / running_sum;
     }
 }
 
 // Alternative: Parallel-head variant for models with many heads
 // Processes multiple heads per workgroup for better occupancy
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multihead(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
@@ -235,14 +235,14 @@ fn main_multihead(
     let kv_len = u.kv_len;
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
-    let scale = 1.0 / sqrt(f32(headDim));
+    let scale = 1.0 / sqrt(f32(head_dim));
 
     // Each head gets a slice of shared memory
     let q_base = head_in_wg * 64u;
 
     // Load Q vector for this head
-    if (tid_in_head < headDim) {
-        let q_offset = head_idx * headDim + tid_in_head;
+    if (tid_in_head < head_dim) {
+        let q_offset = head_idx * head_dim + tid_in_head;
         shared_q[q_base + tid_in_head] = Q[q_offset];
     }
     workgroupBarrier();
@@ -255,16 +255,16 @@ fn main_multihead(
     // Process KV cache - each thread in head group processes multiple K positions
     let k_stride = threads_per_head;
 
-    for (var k_start = 0u; k_start < kvLen; k_start += k_stride) {
+    for (var k_start = 0u; k_start < kv_len; k_start += k_stride) {
         let k_pos = k_start + tid_in_head;
-        let valid_k = k_pos < kvLen;
+        let valid_k = k_pos < kv_len;
 
         // Compute attention score
         var score: f32 = -1e38;
         if (valid_k) {
-            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             var dot: f32 = 0.0;
-            for (var d = 0u; d < headDim; d++) {
+            for (var d = 0u; d < head_dim; d++) {
                 dot += shared_q[q_base + d] * K_cache[k_base + d];
             }
             score = dot * scale;
@@ -279,9 +279,9 @@ fn main_multihead(
         running_max = new_max;
 
         // Accumulate V contribution
-        if (tid_in_head < headDim && valid_k) {
+        if (tid_in_head < head_dim && valid_k) {
             out_accum *= rescale;
-            let v_offset = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim + tid_in_head;
+            let v_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid_in_head;
             out_accum += exp_score * V_cache[v_offset];
         }
     }
@@ -291,14 +291,14 @@ fn main_multihead(
     // For simplicity, use shared memory reduction
 
     // Write partial output
-    if (tid_in_head < headDim) {
-        let out_offset = head_idx * headDim + tid_in_head;
+    if (tid_in_head < head_dim) {
+        let out_offset = head_idx * head_dim + tid_in_head;
         output[out_offset] = out_accum / running_sum;
     }
 }
 
 // F16 KV cache variant - optimized for memory bandwidth
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_f16kv(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
@@ -316,11 +316,11 @@ fn main_f16kv(
     let subgroup_id = tid / subgroup_size;
     let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
 
-    let scale = 1.0 / sqrt(f32(headDim));
+    let scale = 1.0 / sqrt(f32(head_dim));
 
     // Load Q (F32) into shared memory
-    if (tid < headDim) {
-        let q_offset = head_idx * headDim + tid;
+    if (tid < head_dim) {
+        let q_offset = head_idx * head_dim + tid;
         shared_q[tid] = Q[q_offset];
     }
     workgroupBarrier();
@@ -330,17 +330,17 @@ fn main_f16kv(
     var out_accum: f32 = 0.0;
 
     // Process in chunks
-    for (var k_start = 0u; k_start < kvLen; k_start += WORKGROUP_SIZE) {
+    for (var k_start = 0u; k_start < kv_len; k_start += WORKGROUP_SIZE) {
         let k_pos = k_start + tid;
-        let valid_k = k_pos < kvLen;
+        let valid_k = k_pos < kv_len;
 
         var score: f32 = -1e38;
         if (valid_k) {
-            let k_base = k_pos * u.num_kv_heads * headDim + kv_head_idx * headDim;
+            let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             var dot: f32 = 0.0;
 
             // K cache is F16, load and convert
-            for (var d = 0u; d < headDim; d += 2u) {
+            for (var d = 0u; d < head_dim; d += 2u) {
                 let q0 = shared_q[d];
                 let q1 = shared_q[d + 1u];
 
@@ -397,11 +397,11 @@ fn main_f16kv(
         running_max = new_max;
 
         // Accumulate V (F16 cache)
-        if (tid < headDim) {
+        if (tid < head_dim) {
             out_accum *= rescale;
             for (var k = 0u; k < min(WORKGROUP_SIZE, kvLen - k_start); k++) {
                 let k_pos_inner = k_start + k;
-                let v_base = k_pos_inner * u.num_kv_heads * headDim + kv_head_idx * headDim;
+                let v_base = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
 
                 // Read packed F16 V values
                 let v_packed = V_cache[v_base + tid / 2u];
@@ -414,8 +414,8 @@ fn main_f16kv(
         workgroupBarrier();
     }
 
-    if (tid < headDim) {
-        let out_offset = head_idx * headDim + tid;
+    if (tid < head_dim) {
+        let out_offset = head_idx * head_dim + tid;
         output[out_offset] = out_accum / running_sum;
     }
 }

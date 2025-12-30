@@ -1,23 +1,26 @@
 // Matrix Multiplication Kernel - f16 weights, f32 activations
 //
 // A is f32 (activations), B is f16 (weights), C is f32.
-// C[M,N] = A[M,K] * B[K,N]  (or B^T when transposeB=1)
+// C[M,N] = A[M,K] * B[K,N]  (or B^T when transpose_b=1)
 // This reduces weight bandwidth and leverages f16 load/throughput
 // while keeping f32 outputs for compatibility with f32-only ops.
 
 enable f16;
 
-const TILE_SIZE: u32 = 16u;
+override TILE_SIZE: u32 = 16u;
 
 struct Uniforms {
     M: u32,
     N: u32,
     K: u32,
     alpha: f32,
-    transposeB: u32,  // 0 = normal, 1 = B is stored transposed [N,K]
+    transpose_b: u32,  // 0 = normal, 1 = B is stored transposed [N,K]
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;

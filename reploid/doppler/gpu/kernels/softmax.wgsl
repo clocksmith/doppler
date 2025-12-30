@@ -7,16 +7,16 @@
 //
 // Supports softmax along last dimension (axis=-1).
 
-const WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
-struct SoftmaxUniforms {
-    innerSize: u32,    // Size of dimension to softmax over
-    outerSize: u32,    // Product of all other dimensions
-    temperature: f32,  // Temperature scaling (divide logits by this before softmax)
+struct Uniforms {
+    inner_size: u32,    // Size of dimension to softmax over
+    outer_size: u32,    // Product of all other dimensions
+    temperature: f32,   // Temperature scaling (divide logits by this before softmax)
     _pad: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: SoftmaxUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
@@ -25,17 +25,17 @@ var<workgroup> shared_max: array<f32, 256>;
 var<workgroup> shared_sum: array<f32, 256>;
 
 // Main softmax kernel - one workgroup per row
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let rowIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let innerSize = uniforms.innerSize;
-    let temperature = uniforms.temperature;
+    let row_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let inner_size = u.inner_size;
+    let temperature = u.temperature;
 
-    if (rowIdx >= uniforms.outerSize) {
+    if (rowIdx >= u.outer_size) {
         return;
     }
 
@@ -107,17 +107,17 @@ fn main(
 
 // Optimized version for small inner size (<= 256)
 // Each thread handles one element
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_small(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let rowIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let innerSize = uniforms.innerSize;
-    let temperature = uniforms.temperature;
+    let row_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let inner_size = u.inner_size;
+    let temperature = u.temperature;
 
-    if (rowIdx >= uniforms.outerSize) {
+    if (rowIdx >= u.outer_size) {
         return;
     }
 
@@ -168,17 +168,17 @@ fn softmax_small(
 
 // Online softmax - single pass algorithm
 // More memory efficient but requires careful implementation
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_online(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let rowIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let innerSize = uniforms.innerSize;
-    let temperature = uniforms.temperature;
+    let row_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let inner_size = u.inner_size;
+    let temperature = u.temperature;
 
-    if (rowIdx >= uniforms.outerSize) {
+    if (rowIdx >= u.outer_size) {
         return;
     }
 
@@ -240,17 +240,17 @@ fn softmax_online(
 }
 
 // In-place softmax (output = input buffer)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_inplace(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let rowIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let innerSize = uniforms.innerSize;
-    let temperature = uniforms.temperature;
+    let row_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let inner_size = u.inner_size;
+    let temperature = u.temperature;
 
-    if (rowIdx >= uniforms.outerSize) {
+    if (rowIdx >= u.outer_size) {
         return;
     }
 
@@ -311,17 +311,17 @@ fn softmax_inplace(
 }
 
 // Log softmax - useful for cross-entropy loss
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn log_softmax(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let rowIdx = wg_id.x;
-    let threadIdx = local_id.x;
-    let innerSize = uniforms.innerSize;
-    let temperature = uniforms.temperature;
+    let row_idx = wg_id.x;
+    let thread_idx = local_id.x;
+    let inner_size = u.inner_size;
+    let temperature = u.temperature;
 
-    if (rowIdx >= uniforms.outerSize) {
+    if (rowIdx >= u.outer_size) {
         return;
     }
 

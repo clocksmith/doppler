@@ -42,17 +42,17 @@ var<workgroup> row_sum: array<f32, 256>;
 // Get KV head index for grouped query attention
 fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
     // GQA: multiple query heads share one KV head
-    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
+    let headsPerKV = u.num_heads / u.num_kv_heads;
     return queryHeadIdx / headsPerKV;
 }
 
 // Check if position should be masked (causal attention)
 fn isMasked(queryPos: u32, keyPos: u32) -> bool {
-    if (uniforms.isCausal == 0u) {
+    if (u.is_causal == 0u) {
         return false;
     }
     // For causal attention, query can only attend to keys at same or earlier positions
-    return keyPos > (queryPos + uniforms.startPos);
+    return keyPos > (queryPos + u.start_pos);
 }
 
 // Main attention kernel - one workgroup per (query_block, head)
@@ -65,15 +65,15 @@ fn main(
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let linear = wg_id.x;
-    let headIdx = linear % uniforms.numHeads;
-    let queryBlockIdx = linear / uniforms.numHeads;
+    let headIdx = linear % u.num_heads;
+    let queryBlockIdx = linear / u.num_heads;
     let threadIdx = local_id.x;
 
     let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = uniforms.headDim;
-    let seqLen = uniforms.seqLen;
-    let queryLen = uniforms.queryLen;
-    let scale = uniforms.scale;
+    let headDim = u.head_dim;
+    let seqLen = u.seq_len;
+    let queryLen = u.query_len;
+    let scale = u.scale;
 
     // Query position this thread handles
     let queryPos = queryBlockIdx * BLOCK_SIZE + threadIdx;
@@ -92,7 +92,7 @@ fn main(
     // Load query for this thread into registers
     var q_local: array<f32, 64>;
     if (validQuery) {
-        let q_offset = queryPos * uniforms.numHeads * headDim + headIdx * headDim;
+        let q_offset = queryPos * u.num_heads * headDim + headIdx * headDim;
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
             q_local[d] = Q[q_offset + d];
         }
@@ -107,7 +107,7 @@ fn main(
         // Collaborative load of K block into shared memory
         let kLoadIdx = kvBlockStart + threadIdx;
         if (kLoadIdx < seqLen) {
-            let k_offset = kLoadIdx * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+            let k_offset = kLoadIdx * u.num_kv_heads * headDim + kvHeadIdx * headDim;
             for (var d: u32 = 0u; d < headDim; d = d + 1u) {
                 shared_K[threadIdx * headDim + d] = K[k_offset + d];
             }
@@ -120,7 +120,7 @@ fn main(
         // Load V block
         let vLoadIdx = kvBlockStart + threadIdx;
         if (vLoadIdx < seqLen) {
-            let v_offset = vLoadIdx * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+            let v_offset = vLoadIdx * u.num_kv_heads * headDim + kvHeadIdx * headDim;
             for (var d: u32 = 0u; d < headDim; d = d + 1u) {
                 shared_V[threadIdx * headDim + d] = V[v_offset + d];
             }
@@ -189,7 +189,7 @@ fn main(
 
     // Normalize by sum and write output
     if (validQuery && l_i > 0.0) {
-        let out_offset = queryPos * uniforms.numHeads * headDim + headIdx * headDim;
+        let out_offset = queryPos * u.num_heads * headDim + headIdx * headDim;
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
             output[out_offset + d] = acc[d] / l_i;
         }
@@ -208,9 +208,9 @@ fn attention_decode(
     let threadIdx = local_id.x;
 
     let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = uniforms.headDim;
-    let seqLen = uniforms.seqLen;
-    let scale = uniforms.scale;
+    let headDim = u.head_dim;
+    let seqLen = u.seq_len;
+    let scale = u.scale;
 
     // Each thread handles a subset of key positions
     let keysPerThread = (seqLen + 255u) / 256u;
@@ -232,7 +232,7 @@ fn attention_decode(
         if (keyPos >= seqLen) { break; }
 
         // Causal: can attend to all previous positions (query is at end)
-        let k_offset = keyPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+        let k_offset = keyPos * u.num_kv_heads * headDim + kvHeadIdx * headDim;
 
         var score: f32 = 0.0;
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
@@ -287,7 +287,7 @@ fn attention_decode(
 
     for (var i: u32 = 0u; i < local_count; i = i + 1u) {
         let keyPos = threadIdx * keysPerThread + i;
-        let v_offset = keyPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim;
+        let v_offset = keyPos * u.num_kv_heads * headDim + kvHeadIdx * headDim;
         let weight = local_scores[i] / global_sum;
 
         for (var d: u32 = 0u; d < headDim; d = d + 1u) {
