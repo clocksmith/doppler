@@ -1044,7 +1044,312 @@ Note: WeInfer itself is not a threat (stale since Feb 2025), but its techniques 
 
 ---
 
-*Last updated: December 20, 2025*
+*Last updated: December 30, 2025*
+
+---
+
+## Related Open Source Projects & Open Issues
+
+### Major Related Projects
+
+| Project | Description | Stars | Status |
+|---------|-------------|-------|--------|
+| [WebLLM](https://github.com/mlc-ai/web-llm) | High-performance in-browser LLM inference | 17k | Active |
+| [Transformers.js](https://github.com/huggingface/transformers.js) | HuggingFace ML for the web | - | Active |
+| [wgpu](https://github.com/gfx-rs/wgpu) | Rust cross-platform WebGPU API | - | Active |
+| [Burn](https://github.com/tracel-ai/burn) | Rust deep learning with WGPU backend | - | Active |
+| [Candle](https://github.com/huggingface/candle) | Minimalist Rust ML framework | - | WebGPU requested |
+| [ONNX Runtime](https://github.com/microsoft/onnxruntime) | Microsoft's ONNX inference | - | Active |
+
+---
+
+### Unassigned/Open Issues by Project
+
+#### WebLLM (mlc-ai/web-llm)
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#711](https://github.com/mlc-ai/web-llm/issues/711) | WebLLM model provider for Vercel AI SDK | Unassigned |
+| [#707](https://github.com/mlc-ai/web-llm/issues/707) | Roadmap: XGrammar, Phi-4, Gemma3 support | Open |
+| [#718](https://github.com/mlc-ai/web-llm/issues/718) | Project activity status | Unassigned |
+
+Full list: [Unassigned issues](https://github.com/mlc-ai/web-llm/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee)
+
+#### Transformers.js (huggingface)
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#1469](https://github.com/huggingface/transformers.js/issues/1469) | WebGPU JSEP crashes on Gemma 3 (1b-it) | Dec 2025 |
+| [#1416](https://github.com/huggingface/transformers.js/issues/1416) | Rotary interleaved attention not supported (MobileLLM) | Open |
+| [#1425](https://github.com/huggingface/transformers.js/issues/1425) | text-to-speech-webgpu build fails | Open |
+| [#1380](https://github.com/huggingface/transformers.js/issues/1380) | WebGPU crash on translation pipeline | Open |
+| [#1317](https://github.com/huggingface/transformers.js/issues/1317) | WebGPU broken with q8 decoders | Open |
+| [#1289](https://github.com/huggingface/transformers.js/issues/1289) | WebGPU not used in webgpu-chat | Open |
+| [#1205](https://github.com/huggingface/transformers.js/issues/1205) | WebGPU crash on Android Chrome | Open |
+
+#### ONNX Runtime Web (microsoft)
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#26295](https://github.com/microsoft/onnxruntime/issues/26295) | WebGPU from Python documentation | Oct 2025 |
+| [#26216](https://github.com/microsoft/onnxruntime/issues/26216) | WebGPU EP in onnxruntime-node | Oct 2025 |
+| [#26107](https://github.com/microsoft/onnxruntime/issues/26107) | Custom WebGPU device not used | Sep 2025 |
+| [#24442](https://github.com/microsoft/onnxruntime/issues/24442) | Incorrect predictions on Intel GPUs | Open |
+| [#20876](https://github.com/microsoft/onnxruntime/issues/20876) | WebGPU unavailable in Service Worker | Open |
+
+#### wgpu (gfx-rs)
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#7197](https://github.com/gfx-rs/wgpu/issues/7197) | Mesh Shaders tracking issue | Open |
+| [#8010](https://github.com/gfx-rs/wgpu/issues/8010) | Learning resources feedback | Open |
+
+Full list: [wgpu issues](https://github.com/gfx-rs/wgpu/issues)
+
+#### Candle (huggingface)
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#344](https://github.com/huggingface/candle/issues/344) | **WebGPU support** (31+ 👍, highly requested) | Open |
+| [#346](https://github.com/huggingface/candle/issues/346) | AMD hardware support | Open |
+
+Full list: [Candle issues](https://github.com/huggingface/candle/issues)
+
+#### Burn (tracel-ai)
+
+- WebGPU backend via `burn-wgpu` crate
+- Issues: [burn issues](https://github.com/tracel-ai/burn/issues)
+
+---
+
+### High-Impact Contribution Opportunities
+
+| Issue | Project | Why It Matters | DOPPLER Relevance |
+|-------|---------|----------------|-------------------|
+| Gemma 3 WebGPU crash (#1469) | Transformers.js | Directly related to Doppler's Gemma 3 support | **High** - shared debugging insights |
+| WebGPU support (#344) | Candle | 31+ votes, would enable Rust→WASM→WebGPU ML | Medium - potential future backend |
+| MobileLLM rotary attention (#1416) | Transformers.js | Missing kernel implementation | Medium - DOPPLER has custom RoPE |
+| WebGPU in Service Worker (#20876) | ONNX Runtime | Enables extension-based inference | Medium - same browser constraints |
+| Custom GPUDevice (#26107) | ONNX Runtime | Needed for shared device scenarios | Low - different architecture |
+
+---
+
+### Cross-Project Architecture Comparison
+
+| Aspect | Gamma (PyTorch) | Doppler (WGSL) | WebLLM (TVM) | Transformers.js (ONNX) |
+|--------|-----------------|----------------|--------------|------------------------|
+| Runtime | Native Python | Browser WebGPU | Browser WebGPU | Browser WebGPU/WASM |
+| Acceleration | CUDA/MPS | WebGPU shaders | TVM-compiled | ONNX Runtime |
+| Performance | ~100% native | ~80% native | ~80% native | ~60-80% native |
+| Model format | HuggingFace/GGUF | RDRR (64MB shards) | TVM compiled | ONNX |
+| Max model | Unlimited | 60GB (theoretical) | ~31GB VRAM | **4GB hard limit** |
+| MoE support | Yes | Yes (custom) | Yes (Mixtral) | No |
+| Custom kernels | No | **Yes (WGSL)** | No (TVM) | No (ONNX ops) |
+| RSI potential | No | **Yes** | No | No |
+
+### WGSL vs PyTorch Design Philosophy
+
+DOPPLER accepts ~20% kernel performance gap vs compiled approaches because it enables:
+- **Expert paging** (90GB MoE on 8GB VRAM)
+- **P2P shard distribution**
+- **LoRA hot-swap** at runtime
+- **Reploid can evolve kernels** during execution
+
+The WGSL kernels in `doppler/reploid/doppler/gpu/kernels/` mirror PyTorch ops but are hand-written for WebGPU's compute model with entry point variants for different batch sizes (GEMV vs GEMM, decode vs prefill).
+
+---
+
+### Ecosystem Gaps DOPPLER Could Fill
+
+| Gap | Current State | DOPPLER Opportunity |
+|-----|---------------|---------------------|
+| Browser MoE beyond WebLLM | Only WebLLM has Mixtral | Custom expert paging, larger models |
+| Kernel hot-swap | No one does this | RSI-driven kernel evolution |
+| P2P model distribution | No browser P2P exists | WebTorrent/IPFS shard sharing |
+| LoRA runtime loading | WebLLM requires recompile | Dynamic adapter hot-swap |
+| >4GB in ONNX ecosystem | Hard WASM limit | DOPPLER has no WASM dependency |
+| Flash Attention in browser | Only DOPPLER | Validated differentiator |
+
+---
+
+## Additional Projects & Emerging Standards
+
+### Hand-Tuned WebGPU Inference
+
+| Project | Description | Status | Notes |
+|---------|-------------|--------|-------|
+| [token-hawk](https://github.com/kayvr/token-hawk) | Hand-written LLaMA WebGPU inference | Active | 37 tok/s on 4090 (7B-f16), GGML format only |
+| [Ratchet](https://github.com/huggingface/ratchet) | HuggingFace cross-platform browser ML | Active | Rust/WASM, Whisper + Phi support, GGUF native |
+| [whisper-web](https://github.com/xenova/whisper-web) | Real-time speech recognition in browser | Active | Uses Transformers.js + ONNX Runtime |
+| [browser-llm-webgpu](https://github.com/hannes-sistemica/browser-llm-webgpu) | Reasoning model PoC in browser | PoC | WebGPU acceleration demo |
+
+### token-hawk Details
+
+> "TokenHawk is fast. On a 4090 using 7B-f16, TokenHawk clocks in at 37 tk/s with room for improvement."
+
+- **Limitations**: Only 7B models (VRAM constraint), 512 token context tested
+- **Dependencies**: Google Dawn (CLI), no deps for web
+- **Relevance to DOPPLER**: Similar hand-tuned WGSL approach, validates direct kernel strategy
+
+Source: [token-hawk GitHub](https://github.com/kayvr/token-hawk)
+
+### Ratchet Details
+
+> "A toolkit for developers to integrate performant AI functionality into existing production applications."
+
+**Key Features:**
+- Single model implementation for both full precision and quantized
+- Transparent GGUF support - pull from HuggingFace, parse on-the-fly, transcode to WebGPU format
+- IndexedDB caching (no ONNX conversion needed)
+- TensorFlow.js-style memory allocator
+
+**Challenge noted:** "WebGPU hasn't proliferated as fast and as widely as expected. Need fast WASM SIMD backend for compatibility."
+
+Source: [Ratchet GitHub](https://github.com/huggingface/ratchet), [RFC: Ratchet V1](https://github.com/huggingface/ratchet/discussions/187)
+
+---
+
+### WebNN - Emerging Browser ML Standard
+
+| Aspect | Current State (Dec 2025) |
+|--------|--------------------------|
+| Status | Preview - NOT production ready |
+| Chrome | Available with flags |
+| Edge | Available with flags |
+| Safari | Not available |
+| Firefox | Not available |
+
+**Major 2025 Changes:**
+- **May 2025**: DirectML deprecated at Microsoft Build
+- WebNN now uses Windows ML → OpenVINO for hardware acceleration
+- Backend order: ONNX Runtime → DirectML → TFLite (Windows), Core ML → TFLite (Apple)
+
+**Key Issues (from Nov 2025 W3C meeting):**
+
+| Issue | Description | Impact |
+|-------|-------------|--------|
+| [#901](https://github.com/webmachinelearning/webnn/issues/901) | Separate graph building from weight loading | 3x peak memory reduction |
+| [#883](https://github.com/webmachinelearning/webnn/issues/883) | Dynamic shape support (symbolic sizes) | Flexible input dimensions |
+| Performance | GroupQueryAttention = 24 WebNN ops | SLM needs macro ops |
+| Memory | Can't use all available memory during graph building | Efficiency concern |
+
+**Requirements:** Windows 11 24H2+, `kWebNNOnnxRuntime` flag
+
+Sources: [W3C WebNN Spec](https://www.w3.org/TR/webnn/), [WebNN Overview](https://learn.microsoft.com/en-us/windows/ai/directml/webnn-overview), [W3C Meeting Nov 2025](https://www.w3.org/2025/11/09-webmachinelearning-minutes.html)
+
+---
+
+### FlashAttention Implementations
+
+| Project | Implementation | Status |
+|---------|----------------|--------|
+| **DOPPLER** | Custom WGSL (tiled, multi-tier) | Production |
+| **ONNX Runtime** | WebGPU/WGSL ([PR #24400](https://github.com/microsoft/onnxruntime/pull/24400)) | Active |
+| **WebLLM** | TVM-compiled | Production |
+
+**ONNX Runtime FlashAttention (April 2025):** Fixed Unicode characters in WGSL comments causing Windows logging failures.
+
+---
+
+### Apache TVM WebGPU Status
+
+| Item | Status | Notes |
+|------|--------|-------|
+| WebGPU Runtime | Stable | JavaScript-first, async API |
+| FP16 Support | [Tracking #14905](https://github.com/apache/tvm/issues/14905) | WGSL codegen needed |
+| Subgroup Shuffle | [Draft PR #17699](https://github.com/apache/tvm/pull/17699) | Warp-level primitives |
+
+Source: [TVM GitHub](https://github.com/apache/tvm)
+
+---
+
+### whisper.cpp / Whisper WebGPU
+
+| Variant | Runtime | Notes |
+|---------|---------|-------|
+| [whisper.cpp WASM](https://ggml.ai/whisper.cpp/) | WASM SIMD | Official demo, CPU-only |
+| [Whisper WebGPU](https://huggingface.co/spaces/Xenova/realtime-whisper-webgpu) | WebGPU + ONNX | Real-time, 100 languages, ~200MB model |
+| [whisper-web](https://github.com/xenova/whisper-web) | Transformers.js | Chrome-only WebGPU branch |
+
+**Whisper WebGPU features:**
+- Real-time in-browser processing
+- 100 language transcription/translation
+- Offline after initial load
+- Uses Transformers.js + ONNX Runtime Web
+
+Sources: [whisper.cpp](https://github.com/ggml-org/whisper.cpp), [whisper-web](https://github.com/xenova/whisper-web)
+
+---
+
+### llama.cpp WebGPU Backend
+
+The llama.cpp project has experimental WebGPU support via Dawn:
+
+> "WebGPU allows cross-platform access to the GPU from supported browsers. They utilize Emscripten to compile ggml's WebGPU backend to WebAssembly."
+
+**Current limitations:**
+- Requires Dawn library locally
+- Emscripten doesn't officially support WebGPU bindings yet
+- Uses Dawn's `emdawnwebgpu` bindings
+
+Source: [llama.cpp build docs](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md)
+
+---
+
+### WebGPU Browser Implementation Issues
+
+| Browser | Issues | Notes |
+|---------|--------|-------|
+| **Chrome/Edge** | Multi-GPU limitations, power management bugs | WebGPU since v113 (April 2023) |
+| **Firefox** | 90% spec compliance, crashes on invalid shaders | 3 full-time devs only, v141+ |
+| **Safari** | Buffer limits (256MB-993MB), shipped June 2025 | Safari 26 |
+
+**Shader Compilation Pain Points:**
+- Complex LLM kernels take seconds to compile on first use
+- Mobile devices can timeout entirely
+- Chrome 141: New Tint IR backend = **7x speed improvement** for shader compilation
+
+**Critical Issues:**
+- 35% of users affected by WebGPU compatibility issues
+- Buffer size limits prevent large model deployment
+- "GpuProcessHost: The GPU process died due to out of memory" - no recovery mechanism
+
+Sources: [WebGPU Bugs Article](https://medium.com/@marcelo.emmerich/webgpu-bugs-are-holding-back-the-browser-ai-revolution-27d5f8c1dfca), [Chrome 141 WebGPU](https://developer.chrome.com/blog/new-in-webgpu-141)
+
+---
+
+### Additional MediaPipe Issues
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| [#5974](https://github.com/google-ai-edge/mediapipe/issues/5974) | GPU implementation not in repo | May 2025, Unresolved |
+| [#6093](https://github.com/google-ai-edge/mediapipe/issues/6093) | Invalid TFLite Flatbuffer (gemma3-1b-it-q4) | Sep 2025 |
+| [#6100](https://github.com/google-ai-edge/mediapipe/issues/6100) | Can't measure WASM memory usage | Sep 2025 |
+| [#5468](https://github.com/google-ai-edge/mediapipe/issues/5468) | No pre-download benchmark for device capability | Feature request |
+
+Source: [MediaPipe Issues](https://github.com/google-ai-edge/mediapipe/issues)
+
+---
+
+### Competitive Positioning Summary
+
+| Approach | Projects | Tradeoff |
+|----------|----------|----------|
+| **TVM-compiled** | WebLLM | Auto-tuned, frozen at compile |
+| **ONNX Runtime** | Transformers.js | Broad model support, 4GB limit |
+| **Hand-tuned WGSL** | DOPPLER, token-hawk | Maximum control, manual optimization |
+| **Rust + WASM** | Ratchet, Candle | Type safety, WASM fallback |
+| **Google-native** | MediaPipe | Gemma-focused, stable |
+
+**DOPPLER's unique position:** Only project combining:
+1. Hand-tuned WGSL kernels (like token-hawk)
+2. MoE support (like WebLLM)
+3. RSI/kernel evolution capability (unique)
+4. P2P distribution architecture (planned, unique)
+
+---
+
+*Additional findings added: December 30, 2025*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
