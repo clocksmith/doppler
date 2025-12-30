@@ -182,6 +182,22 @@ export function logitsSanity(
   let nanCount = 0;
   let infCount = 0;
 
+  // ALWAYS log HuggingFace reference tokens for debugging
+  // HF reference top-10: 496(" a"), 3187("often"), 3730("blue"), 14456("constantly"),
+  // 4781("usually"), 9199("changing"), 614("an"), 2462("always"), 711("not"), 11082("typically")
+  const hfReferenceTokens = [
+    { id: 496, name: ' a', hfLogit: 17.875 },
+    { id: 3187, name: ' often', hfLogit: 16.5 },
+    { id: 3730, name: ' blue', hfLogit: 16.0 },
+    { id: 14456, name: ' constantly', hfLogit: 14.5625 },
+    { id: 4781, name: ' usually', hfLogit: 14.5625 },
+  ];
+  const hfLogits = hfReferenceTokens
+    .filter(t => t.id < logits.length)
+    .map(t => `${t.name.trim()}:DOPPLER=${logits[t.id]?.toFixed(2)}/HF=${t.hfLogit.toFixed(2)}`)
+    .join(', ');
+  console.log(`[HF_COMPARE] ${label}: ${hfLogits}`);
+
   // Debug: Compare logits for specific tokens
   // "▁blue" = 3730, "▁BLUENRG" = 77590, "▁sky" = 7217
   // Plus the garbage tokens to understand why they have high logits
