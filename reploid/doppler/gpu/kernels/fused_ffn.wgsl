@@ -89,7 +89,7 @@ fn main(
 
     // Phase 1: Load input into shared memory (cooperatively)
     // Each thread loads multiple elements
-    let loads_per_thread = (hiddenSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let loads_per_thread = (hidden_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
     for (var i = 0u; i < loads_per_thread; i++) {
         let idx = tid + i * WORKGROUP_SIZE;
         if (idx < hidden_size) {

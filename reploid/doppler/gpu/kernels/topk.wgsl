@@ -21,8 +21,8 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> probs: array<f32>;           // [numTokens, numExperts]
-@group(0) @binding(2) var<storage, read_write> outIndices: array<u32>; // [numTokens, topK]
-@group(0) @binding(3) var<storage, read_write> outWeights: array<f32>; // [numTokens, topK]
+@group(0) @binding(2) var<storage, read_write> out_indices: array<u32>; // [numTokens, topK]
+@group(0) @binding(3) var<storage, read_write> out_weights: array<f32>; // [numTokens, topK]
 
 // Workgroup shared memory for sorting
 // Supports up to 256 experts (covers DeepSeek-V2's 160, Snowflake Arctic's 128, etc.)
@@ -59,41 +59,41 @@ fn main(
     if (thread_idx == 0u) {
         // Find top-k by partial selection sort
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            var maxIdx = k;
-            var maxVal = shared_probs[k];
+            var max_idx = k;
+            var max_val = shared_probs[k];
 
             // Find maximum in remaining elements
             for (var i: u32 = k + 1u; i < num_experts; i = i + 1u) {
                 if (shared_probs[i] > maxVal) {
-                    maxVal = shared_probs[i];
-                    maxIdx = i;
+                    max_val = shared_probs[i];
+                    max_idx = i;
                 }
             }
 
             // Swap if needed
-            if (maxIdx != k) {
-                let tmpProb = shared_probs[k];
-                let tmpIdx = shared_indices[k];
-                shared_probs[k] = shared_probs[maxIdx];
-                shared_indices[k] = shared_indices[maxIdx];
-                shared_probs[maxIdx] = tmpProb;
-                shared_indices[maxIdx] = tmpIdx;
+            if (max_idx != k) {
+                let tmp_prob = shared_probs[k];
+                let tmp_idx = shared_indices[k];
+                shared_probs[k] = shared_probs[max_idx];
+                shared_indices[k] = shared_indices[max_idx];
+                shared_probs[max_idx] = tmp_prob;
+                shared_indices[max_idx] = tmp_idx;
             }
         }
 
         // Compute weight sum for normalization
-        var weightSum: f32 = 0.0;
+        var weight_sum: f32 = 0.0;
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            weightSum = weightSum + shared_probs[k];
+            weight_sum = weightSum + shared_probs[k];
         }
 
         // Write output indices and weights
-        let outBase = token_idx * topK;
-        let invSum = select(1.0, 1.0 / weightSum, u.normalize == 1u && weightSum > 0.0);
+        let out_base = token_idx * topK;
+        let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            outIndices[outBase + k] = shared_indices[k];
-            outWeights[outBase + k] = shared_probs[k] * invSum;
+            out_indices[out_base + k] = shared_indices[k];
+            out_weights[out_base + k] = shared_probs[k] * inv_sum;
         }
     }
 }
@@ -119,11 +119,11 @@ fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     // Ensure top1 >= top2
     if (top2Val > top1Val) {
-        let tmpIdx = top1Idx;
+        let tmp_idx = top1Idx;
         let tmpVal = top1Val;
         top1Idx = top2Idx;
         top1Val = top2Val;
-        top2Idx = tmpIdx;
+        top2Idx = tmp_idx;
         top2Val = tmpVal;
     }
 
@@ -142,15 +142,15 @@ fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 
     // Renormalize weights
-    let weightSum = top1Val + top2Val;
-    let invSum = select(1.0, 1.0 / weightSum, u.normalize == 1u && weightSum > 0.0);
+    let weight_sum = top1Val + top2Val;
+    let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
     // Write output
-    let outBase = token_idx * 2u;
-    outIndices[outBase] = top1Idx;
-    outIndices[outBase + 1u] = top2Idx;
-    outWeights[outBase] = top1Val * invSum;
-    outWeights[outBase + 1u] = top2Val * invSum;
+    let out_base = token_idx * 2u;
+    out_indices[out_base] = top1Idx;
+    out_indices[out_base + 1u] = top2Idx;
+    out_weights[out_base] = top1Val * inv_sum;
+    out_weights[out_base + 1u] = top2Val * inv_sum;
 }
 
 // Fused softmax + top-k for efficiency
@@ -182,9 +182,9 @@ fn softmax_topk(
     // Thread 0 does softmax + top-k
     if (thread_idx == 0u) {
         // Find max
-        var maxVal: f32 = shared_probs[0];
+        var max_val: f32 = shared_probs[0];
         for (var i: u32 = 1u; i < num_experts; i = i + 1u) {
-            maxVal = max(maxVal, shared_probs[i]);
+            max_val = max(maxVal, shared_probs[i]);
         }
 
         // Compute exp and sum
@@ -203,38 +203,38 @@ fn softmax_topk(
 
         // Partial selection sort for top-k
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            var maxIdx = k;
-            var maxProb = shared_probs[k];
+            var max_idx = k;
+            var max_prob = shared_probs[k];
 
             for (var i: u32 = k + 1u; i < num_experts; i = i + 1u) {
                 if (shared_probs[i] > maxProb) {
-                    maxProb = shared_probs[i];
-                    maxIdx = i;
+                    max_prob = shared_probs[i];
+                    max_idx = i;
                 }
             }
 
-            if (maxIdx != k) {
-                let tmpProb = shared_probs[k];
-                let tmpIdx = shared_indices[k];
-                shared_probs[k] = shared_probs[maxIdx];
-                shared_indices[k] = shared_indices[maxIdx];
-                shared_probs[maxIdx] = tmpProb;
-                shared_indices[maxIdx] = tmpIdx;
+            if (max_idx != k) {
+                let tmp_prob = shared_probs[k];
+                let tmp_idx = shared_indices[k];
+                shared_probs[k] = shared_probs[max_idx];
+                shared_indices[k] = shared_indices[max_idx];
+                shared_probs[max_idx] = tmp_prob;
+                shared_indices[max_idx] = tmp_idx;
             }
         }
 
         // Renormalize top-k weights
-        var weightSum: f32 = 0.0;
+        var weight_sum: f32 = 0.0;
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            weightSum = weightSum + shared_probs[k];
+            weight_sum = weightSum + shared_probs[k];
         }
 
-        let outBase = token_idx * topK;
-        let invSum = select(1.0, 1.0 / weightSum, u.normalize == 1u && weightSum > 0.0);
+        let out_base = token_idx * topK;
+        let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            outIndices[outBase + k] = shared_indices[k];
-            outWeights[outBase + k] = shared_probs[k] * invSum;
+            out_indices[out_base + k] = shared_indices[k];
+            out_weights[out_base + k] = shared_probs[k] * inv_sum;
         }
     }
 }

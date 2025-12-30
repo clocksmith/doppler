@@ -14,6 +14,11 @@ const QK_K: u32 = 256u;
 const SUBBLOCK_SIZE: u32 = 32u;
 const NUM_SUBBLOCKS: u32 = 8u;
 
+// Tunable workgroup sizes
+override WORKGROUP_SIZE_MAIN: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
+override WORKGROUP_SIZE_F16: u32 = 256u;
+
 struct Uniforms {
     num_blocks: u32,
     output_offset: u32,
@@ -27,7 +32,7 @@ struct Q4KBlock {
     qs: array<u32, 32>,        // 128 bytes of 4-bit values
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> quantized: array<Q4KBlock>;
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
@@ -107,7 +112,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
     }
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -116,7 +121,7 @@ fn main(
     let block_idx = workgroup_id.x;
     let elem_idx = local_id.x;
 
-    if (block_idx >= uniforms.num_blocks) {
+    if (block_idx >= u.num_blocks) {
         return;
     }
 
@@ -151,13 +156,13 @@ fn main(
     let dequant = scale * f32(q) - min_val;
 
     // Write output
-    let out_idx = uniforms.output_offset + block_idx * QK_K + elem_idx;
+    let out_idx = u.output_offset + block_idx * QK_K + elem_idx;
     output[out_idx] = dequant;
 }
 
 // Vectorized version - each thread handles 4 elements
 // Workgroup processes one block with 64 threads
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn main_vec4(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>
@@ -165,7 +170,7 @@ fn main_vec4(
     let block_idx = workgroup_id.x;
     let thread_idx = local_id.x;
 
-    if (block_idx >= uniforms.num_blocks) {
+    if (block_idx >= u.num_blocks) {
         return;
     }
 
@@ -195,7 +200,7 @@ fn main_vec4(
     let scale = d * shared_scales[subblock_idx];
     let min_val = dmin * shared_mins[subblock_idx];
 
-    let out_base = uniforms.output_offset + block_idx * QK_K + base_elem;
+    let out_base = u.output_offset + block_idx * QK_K + base_elem;
 
     // llama.cpp formula: dequant = d * scale * q - dmin * min
     output[out_base + 0u] = scale * f32(get_q4(block.qs, base_elem + 0u)) - min_val;
@@ -205,7 +210,7 @@ fn main_vec4(
 }
 
 // FP16 output variant for when downstream consumers want f16
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_F16, 1, 1)
 fn main_f16_out(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>
@@ -213,7 +218,7 @@ fn main_f16_out(
     let block_idx = workgroup_id.x;
     let elem_idx = local_id.x;
 
-    if (block_idx >= uniforms.num_blocks) {
+    if (block_idx >= u.num_blocks) {
         return;
     }
 
@@ -242,6 +247,6 @@ fn main_f16_out(
     let dequant = scale * f32(q) - min_val;
 
     // Note: This writes f32, but caller can cast if needed
-    let out_idx = uniforms.output_offset + block_idx * QK_K + elem_idx;
+    let out_idx = u.output_offset + block_idx * QK_K + elem_idx;
     output[out_idx] = dequant;
 }

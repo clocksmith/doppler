@@ -53,12 +53,12 @@ fn main(
     let kv_head_idx = get_kv_head_idx(head_idx);
 
     // Only threads < headDim participate in computation
-    let valid = tid < headDim;
+    let valid = tid < head_dim;
 
     // Load Q value for this thread's dimension
     var q_val: f32 = 0.0;
     if (valid) {
-        let q_offset = headIdx * headDim + tid;
+        let q_offset = head_idx * head_dim + tid;
         q_val = Q[q_offset];
     }
 
@@ -69,10 +69,10 @@ fn main(
 
     // Phase 1: Compute attention scores (Q @ K^T) in parallel
     // Each thread computes partial dot product for its dimension
-    for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
+    for (var kPos: u32 = 0u; k_pos < kv_len; kPos++) {
         var k_val: f32 = 0.0;
         if (valid) {
-            let k_offset = kPos * u.num_kv_heads * headDim + kvHeadIdx * headDim + tid;
+            let k_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
             k_val = f32(K[k_offset]);
         }
 
@@ -85,10 +85,10 @@ fn main(
         // Using sequential reduction for correctness - could optimize with tree reduction
         if (tid == 0u) {
             var dot: f32 = 0.0;
-            for (var d: u32 = 0u; d < headDim; d++) {
+            for (var d: u32 = 0u; d < head_dim; d++) {
                 dot += shared_partial[d];
             }
-            shared_scores[kPos] = dot * scale;
+            shared_scores[k_pos] = dot * scale;
         }
         workgroupBarrier();
     }
@@ -124,10 +124,10 @@ fn main(
     // Phase 4: Weighted sum of V (parallel across dimensions)
     if (valid) {
         var acc: f32 = 0.0;
-        for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
-            let v_offset = kPos * u.num_kv_heads * headDim + kvHeadIdx * headDim + tid;
+        for (var kPos: u32 = 0u; k_pos < kv_len; kPos++) {
+            let v_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
             let v_val = f32(V[v_offset]);
-            acc += shared_scores[kPos] * v_val;
+            acc += shared_scores[k_pos] * v_val;
         }
         shared_acc[tid] = acc * inv_sum;
     }
@@ -135,7 +135,7 @@ fn main(
 
     // Phase 5: Write output
     if (valid) {
-        let out_offset = headIdx * headDim + tid;
+        let out_offset = head_idx * head_dim + tid;
         output[out_offset] = shared_acc[tid];
     }
 }

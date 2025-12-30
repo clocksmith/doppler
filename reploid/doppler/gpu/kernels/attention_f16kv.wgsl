@@ -39,19 +39,19 @@ var<workgroup> row_max: array<f32, 256>;
 var<workgroup> row_sum: array<f32, 256>;
 
 // Get KV head index for grouped query attention
-fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
+fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     // GQA: multiple query heads share one KV head
-    let headsPerKV = u.num_heads / u.num_kv_heads;
-    return queryHeadIdx / headsPerKV;
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
+    return query_head_idx / heads_per_kv;
 }
 
 // Check if position should be masked (causal attention)
-fn isMasked(queryPos: u32, keyPos: u32) -> bool {
+fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     if (u.is_causal == 0u) {
         return false;
     }
     // For causal attention, query can only attend to keys at same or earlier positions
-    return keyPos > (queryPos + u.start_pos);
+    return key_pos > (query_pos + u.start_pos);
 }
 
 // Main attention kernel - one workgroup per (query_block, head)

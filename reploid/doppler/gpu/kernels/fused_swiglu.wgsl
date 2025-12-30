@@ -32,20 +32,20 @@ fn silu(x: f32) -> f32 {
     return x * sigmoid(x);
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
-    let total = uniforms.num_tokens * uniforms.dim;
+    let total = u.num_tokens * u.dim;
     if (idx >= total) {
         return;
     }
 
-    let token_idx = idx / uniforms.dim;
-    let dim_idx = idx % uniforms.dim;
+    let token_idx = idx / u.dim;
+    let dim_idx = idx % u.dim;
 
-    let row_base = token_idx * uniforms.dim * 2u;
+    let row_base = token_idx * u.dim * 2u;
     let gate = input[row_base + dim_idx] + bias[dim_idx];
-    let up = input[row_base + uniforms.dim + dim_idx] + bias[uniforms.dim + dim_idx];
+    let up = input[row_base + u.dim + dim_idx] + bias[u.dim + dim_idx];
 
     output[idx] = silu(gate) * up;
 }
