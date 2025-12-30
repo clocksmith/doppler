@@ -1304,24 +1304,43 @@ export class DopplerLoader {
     }
 
     if (tensor instanceof GPUBuffer) {
-      // Use actual element count if provided, otherwise fall back to buffer size
-      // Buffer pool rounds up to power of 2, so tensor.size may include garbage padding
-      const numElements = actualNumElements ?? Math.floor(tensor.size / 4);
-      const dataSize = numElements * 4;
+      // Check buffer dtype to determine element size
+      const dtype = getBufferDtype(tensor);
+      const isF16 = dtype === 'f16' || dtype === 'bf16';
+      const bytesPerElement = isF16 ? 2 : 4;
+
+      // Use actual element count if provided, otherwise infer from buffer size
+      const numElements = actualNumElements ?? Math.floor(tensor.size / bytesPerElement);
+      const dataSize = numElements * bytesPerElement;
+
+      // Ensure we don't read past the buffer
+      const readSize = Math.min(dataSize, tensor.size);
 
       const stagingBuffer = device.createBuffer({
-        size: dataSize,
+        size: readSize,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
       });
 
       const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(tensor, 0, stagingBuffer, 0, dataSize);
+      encoder.copyBufferToBuffer(tensor, 0, stagingBuffer, 0, readSize);
       device.queue.submit([encoder.finish()]);
 
       await stagingBuffer.mapAsync(GPUMapMode.READ);
-      const data = new Float32Array(stagingBuffer.getMappedRange().slice(0));
+      const rawData = stagingBuffer.getMappedRange().slice(0);
       stagingBuffer.unmap();
       stagingBuffer.destroy();
+
+      // Convert to F32 for offset calculation
+      let data: Float32Array;
+      if (isF16) {
+        const u16Data = new Uint16Array(rawData);
+        data = new Float32Array(u16Data.length);
+        for (let i = 0; i < u16Data.length; i++) {
+          data[i] = this._f16ToF32(u16Data[i]);
+        }
+      } else {
+        data = new Float32Array(rawData);
+      }
 
       const offsetData = new Float32Array(numElements);
       for (let i = 0; i < numElements; i++) {

@@ -8,16 +8,16 @@
 // - SiLU(gate) * up (LLaMA SwiGLU FFN pattern)
 // - SiLU with optional bias add
 
-const WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
-struct SiLUUniforms {
+struct Uniforms {
     size: u32,          // Total number of elements
-    hasBias: u32,       // 1 if bias should be added before activation
-    hasGate: u32,       // 1 if using gated variant (SiLU(gate) * up)
+    has_bias: u32,      // 1 if bias should be added before activation
+    has_gate: u32,      // 1 if using gated variant (SiLU(gate) * up)
     _pad: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: SiLUUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 @group(0) @binding(3) var<storage, read> gate: array<f32>;   // For gated variant
@@ -35,13 +35,13 @@ fn silu(x: f32) -> f32 {
 
 // Basic SiLU activation
 // output = x * sigmoid(x)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -50,13 +50,13 @@ fn main(
 }
 
 // SiLU with bias: output = silu(x + bias)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_bias(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -69,13 +69,13 @@ fn silu_bias(
 //   up = input @ W_up
 //   gate = input @ W_gate
 //   output = SiLU(gate) * up
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_gate(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -89,22 +89,22 @@ fn silu_gate(
 // Fused gated SiLU with interleaved input
 // Input format: [gate0, up0, gate1, up1, ...]
 // Useful when gate and up are stored interleaved
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_gate_interleaved(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
-    let halfSize = uniforms.size / 2u;
+    let half_size = u.size / 2u;
 
-    if (idx >= halfSize) {
+    if (idx >= half_size) {
         return;
     }
 
-    let gateIdx = idx * 2u;
-    let upIdx = gateIdx + 1u;
+    let gate_idx = idx * 2u;
+    let up_idx = gateIdx + 1u;
 
-    let g = input[gateIdx];
-    let up = input[upIdx];
+    let g = input[gate_idx];
+    let up = input[up_idx];
 
     output[idx] = silu(g) * up;
 }
@@ -112,71 +112,71 @@ fn silu_gate_interleaved(
 // Fused gated SiLU with split input
 // First half of input is gate, second half is up
 // Input format: [gate0, gate1, ..., gateN, up0, up1, ..., upN]
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_gate_split(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
-    let halfSize = uniforms.size / 2u;
+    let half_size = u.size / 2u;
 
-    if (idx >= halfSize) {
+    if (idx >= half_size) {
         return;
     }
 
     let g = input[idx];           // First half: gate
-    let up = input[idx + halfSize];  // Second half: up
+    let up = input[idx + half_size];  // Second half: up
 
     output[idx] = silu(g) * up;
 }
 
 // Vectorized SiLU (process 4 elements per thread)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
-    let baseIdx = global_id.x * 4u;
+    let base_idx = global_id.x * 4u;
 
-    if (baseIdx >= uniforms.size) {
+    if (base_idx >= u.size) {
         return;
     }
 
     // Process up to 4 elements
-    let remaining = min(4u, uniforms.size - baseIdx);
+    let remaining = min(4u, u.size - base_idx);
 
     for (var i: u32 = 0u; i < remaining; i = i + 1u) {
-        let x = input[baseIdx + i];
-        output[baseIdx + i] = silu(x);
+        let x = input[base_idx + i];
+        output[base_idx + i] = silu(x);
     }
 }
 
 // Vectorized gated SiLU
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_gate_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
-    let baseIdx = global_id.x * 4u;
+    let base_idx = global_id.x * 4u;
 
-    if (baseIdx >= uniforms.size) {
+    if (base_idx >= u.size) {
         return;
     }
 
-    let remaining = min(4u, uniforms.size - baseIdx);
+    let remaining = min(4u, u.size - base_idx);
 
     for (var i: u32 = 0u; i < remaining; i = i + 1u) {
-        let up = input[baseIdx + i];
-        let g = gate[baseIdx + i];
-        output[baseIdx + i] = silu(g) * up;
+        let up = input[base_idx + i];
+        let g = gate[base_idx + i];
+        output[base_idx + i] = silu(g) * up;
     }
 }
 
 // In-place SiLU (modifies input buffer)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_inplace(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -186,13 +186,13 @@ fn silu_inplace(
 
 // GELU activation for comparison (used in some models)
 // GELU(x) ≈ 0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x^3)))
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gelu(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -209,13 +209,13 @@ fn gelu(
 }
 
 // Gated GELU (GeGLU) - similar pattern to SwiGLU
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn geglu(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -236,13 +236,13 @@ fn geglu(
 }
 
 // ReLU for simple comparison/fallback
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn relu(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -250,13 +250,13 @@ fn relu(
 }
 
 // Leaky ReLU
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn leaky_relu(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -268,13 +268,13 @@ fn leaky_relu(
 
 // Fused SiLU + element-wise multiply (common pattern)
 // output = SiLU(a) * b
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_mul(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
@@ -287,20 +287,20 @@ fn silu_mul(
 // Row-split gated SiLU (for fused gate+up FFN)
 // Input format: [numTokens, 2*dim] where each row is [gate[0..dim), up[0..dim)]
 // Output format: [numTokens, dim]
-// uniforms.size = numTokens * dim (output size)
-@compute @workgroup_size(256, 1, 1)
+// u.size = numTokens * dim (output size)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_gate_rowsplit(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
     // size is the output size (numTokens * dim)
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
     // Calculate position in output
-    // uniforms.size = numTokens * dim, so dim = size / numTokens
+    // u.size = numTokens * dim, so dim = size / numTokens
     // But we need dim to be passed in uniforms. For now, assume hasBias encodes dim.
     // Actually, let's use: idx maps to output[token, d], input has [token, gate_d, up_d]
     // The input has 2x the elements of output, so:
@@ -315,14 +315,14 @@ fn silu_gate_rowsplit(
     // Best: Just require the fused path to pre-calculate indices
     //
     // Simplest approach: input is [N, 2D], output is [N, D]
-    // Total output elements = N * D = uniforms.size
-    // Total input elements = N * 2D = 2 * uniforms.size
+    // Total output elements = N * D = u.size
+    // Total input elements = N * 2D = 2 * u.size
     // For output[i], we need input[2*row*D + col] and input[2*row*D + D + col]
     // where row = i / D and col = i % D
     // But we need D! Use hasGate to encode log2(D) or similar...
     //
     // Actually simplest: assume dim is passed via hasBias field (repurposed)
-    let dim = uniforms.hasBias;  // Repurposed: hasBias stores dim for rowsplit variant
+    let dim = u.has_bias;  // Repurposed: hasBias stores dim for rowsplit variant
     let token_idx = idx / dim;
     let dim_idx = idx % dim;
 
@@ -336,17 +336,17 @@ fn silu_gate_rowsplit(
 // Row-split gated GELU (GeGLU) variant for models using GELU activation
 // Input format: [numTokens, 2*dim] where each row is [gate[0..dim), up[0..dim)]
 // Output format: [numTokens, dim]
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn geglu_rowsplit(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 
-    let dim = uniforms.hasBias;  // Repurposed: hasBias stores dim for rowsplit variant
+    let dim = u.has_bias;  // Repurposed: hasBias stores dim for rowsplit variant
     let token_idx = idx / dim;
     let dim_idx = idx % dim;
 
@@ -367,13 +367,13 @@ fn geglu_rowsplit(
 // Batched SiLU with separate batch dimension
 // input shape: [batchSize, hiddenSize]
 // Each thread handles one element
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn silu_batched(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let idx = global_id.x;
 
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
 

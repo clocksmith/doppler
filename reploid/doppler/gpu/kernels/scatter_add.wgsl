@@ -7,67 +7,69 @@
  * For MoE: output[token] = sum over k of (weight[token,k] * expert_output[expert[token,k], token])
  */
 
-struct ScatterAddUniforms {
-    numTokens: u32,      // Number of tokens
-    hiddenSize: u32,     // Hidden dimension
-    topK: u32,           // Number of experts per token
-    numExperts: u32,     // Total number of experts
+override WORKGROUP_SIZE: u32 = 256u;
+
+struct Uniforms {
+    num_tokens: u32,     // Number of tokens
+    hidden_size: u32,    // Hidden dimension
+    top_k: u32,          // Number of experts per token
+    num_experts: u32,    // Total number of experts
 }
 
-@group(0) @binding(0) var<uniform> uniforms: ScatterAddUniforms;
-@group(0) @binding(1) var<storage, read> expertOutputs: array<f32>;  // [numExperts, numTokens, hiddenSize]
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> expert_outputs: array<f32>;  // [numExperts, numTokens, hiddenSize]
 @group(0) @binding(2) var<storage, read> indices: array<u32>;         // [numTokens, topK]
 @group(0) @binding(3) var<storage, read> weights: array<f32>;         // [numTokens, topK]
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;    // [numTokens, hiddenSize]
 
 // Main kernel: each thread handles one output element
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let totalElements = uniforms.numTokens * uniforms.hiddenSize;
+    let total_elements = u.num_tokens * u.hidden_size;
 
-    if (tid >= totalElements) {
+    if (tid >= total_elements) {
         return;
     }
 
-    let tokenIdx = tid / uniforms.hiddenSize;
-    let dimIdx = tid % uniforms.hiddenSize;
-    let topK = uniforms.topK;
-    let hiddenSize = uniforms.hiddenSize;
-    let numTokens = uniforms.numTokens;
+    let token_idx = tid / u.hidden_size;
+    let dim_idx = tid % u.hidden_size;
+    let top_k = u.top_k;
+    let hidden_size = u.hidden_size;
+    let num_tokens = u.num_tokens;
 
     // Accumulate weighted expert outputs
     var sum: f32 = 0.0;
-    let routingBase = tokenIdx * topK;
+    let routing_base = token_idx * top_k;
 
-    for (var k: u32 = 0u; k < topK; k = k + 1u) {
-        let expertIdx = indices[routingBase + k];
-        let weight = weights[routingBase + k];
+    for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+        let expert_idx = indices[routing_base + k];
+        let weight = weights[routing_base + k];
 
         // Expert output layout: [numExperts, numTokens, hiddenSize]
-        let expertOffset = expertIdx * numTokens * hiddenSize + tokenIdx * hiddenSize + dimIdx;
-        sum = sum + weight * expertOutputs[expertOffset];
+        let expert_offset = expert_idx * num_tokens * hidden_size + token_idx * hidden_size + dim_idx;
+        sum = sum + weight * expert_outputs[expert_offset];
     }
 
     output[tid] = sum;
 }
 
 // Vectorized version (4 elements per thread)
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE / 4u, 1, 1)
 fn scatter_add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let vec4Count = uniforms.numTokens * (uniforms.hiddenSize / 4u);
+    let vec4Count = u.num_tokens * (u.hidden_size / 4u);
 
     if (tid >= vec4Count) {
         return;
     }
 
-    let hiddenSize = uniforms.hiddenSize;
-    let numTokens = uniforms.numTokens;
-    let topK = uniforms.topK;
+    let hidden_size = u.hidden_size;
+    let num_tokens = u.num_tokens;
+    let top_k = u.top_k;
     let vec4PerToken = hiddenSize / 4u;
 
-    let tokenIdx = tid / vec4PerToken;
+    let token_idx = tid / vec4PerToken;
     let vec4Idx = tid % vec4PerToken;
     let dimBase = vec4Idx * 4u;
 
@@ -77,14 +79,14 @@ fn scatter_add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     var sum2: f32 = 0.0;
     var sum3: f32 = 0.0;
 
-    let routingBase = tokenIdx * topK;
+    let routing_base = token_idx * top_k;
 
-    for (var k: u32 = 0u; k < topK; k = k + 1u) {
-        let expertIdx = indices[routingBase + k];
-        let weight = weights[routingBase + k];
+    for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+        let expert_idx = indices[routing_base + k];
+        let weight = weights[routing_base + k];
 
         // Expert output layout: [numExperts, numTokens, hiddenSize]
-        let expertBase = expertIdx * numTokens * hiddenSize + tokenIdx * hiddenSize + dimBase;
+        let expertBase = expert_idx * num_tokens * hidden_size + token_idx * hidden_size + dimBase;
 
         sum0 = sum0 + weight * expertOutputs[expertBase];
         sum1 = sum1 + weight * expertOutputs[expertBase + 1u];
@@ -92,7 +94,7 @@ fn scatter_add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
         sum3 = sum3 + weight * expertOutputs[expertBase + 3u];
     }
 
-    let outBase = tokenIdx * hiddenSize + dimBase;
+    let outBase = token_idx * hidden_size + dimBase;
     output[outBase] = sum0;
     output[outBase + 1u] = sum1;
     output[outBase + 2u] = sum2;
@@ -117,31 +119,31 @@ struct ScatterAddDynamicUniforms {
 @group(0) @binding(5) var<storage, read_write> outputDyn: array<f32>;     // [numTokens, hiddenSize]
 
 // Dynamic scatter with per-expert token offset lookup
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn scatter_add_dynamic(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let totalElements = uniforms_dyn.numTokens * uniforms_dyn.hiddenSize;
+    let total_elements = uniforms_dyn.numTokens * uniforms_dyn.hiddenSize;
 
-    if (tid >= totalElements) {
+    if (tid >= total_elements) {
         return;
     }
 
-    let tokenIdx = tid / uniforms_dyn.hiddenSize;
-    let dimIdx = tid % uniforms_dyn.hiddenSize;
-    let topK = uniforms_dyn.topK;
-    let hiddenSize = uniforms_dyn.hiddenSize;
+    let token_idx = tid / uniforms_dyn.hiddenSize;
+    let dim_idx = tid % uniforms_dyn.hiddenSize;
+    let top_k = uniforms_dyn.topK;
+    let hidden_size = uniforms_dyn.hiddenSize;
 
     var sum: f32 = 0.0;
-    let routingBase = tokenIdx * topK;
+    let routing_base = token_idx * top_k;
 
-    for (var k: u32 = 0u; k < topK; k = k + 1u) {
-        let expertIdx = routingIndices[routingBase + k];
+    for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+        let expert_idx = routingIndices[routingBase + k];
         let weight = routingWeights[routingBase + k];
 
         // Look up where this token's data is stored for this expert
-        // tokenOffsets[tokenIdx * topK + k] gives the offset into expertOutputsFlat
+        // tokenOffsets[token_idx * top_k + k] gives the offset into expertOutputsFlat
         let dataOffset = tokenOffsets[routingBase + k];
-        let expertDataIdx = dataOffset * hiddenSize + dimIdx;
+        let expertDataIdx = dataOffset * hidden_size + dim_idx;
 
         sum = sum + weight * expertOutputsFlat[expertDataIdx];
     }
@@ -150,30 +152,30 @@ fn scatter_add_dynamic(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 
 // In-place accumulation version (adds to existing output)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn scatter_add_accumulate(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
-    let totalElements = uniforms.numTokens * uniforms.hiddenSize;
+    let total_elements = u.num_tokens * u.hidden_size;
 
-    if (tid >= totalElements) {
+    if (tid >= total_elements) {
         return;
     }
 
-    let tokenIdx = tid / uniforms.hiddenSize;
-    let dimIdx = tid % uniforms.hiddenSize;
-    let topK = uniforms.topK;
-    let hiddenSize = uniforms.hiddenSize;
-    let numTokens = uniforms.numTokens;
+    let token_idx = tid / u.hidden_size;
+    let dim_idx = tid % u.hidden_size;
+    let top_k = u.top_k;
+    let hidden_size = u.hidden_size;
+    let num_tokens = u.num_tokens;
 
     var sum: f32 = 0.0;
-    let routingBase = tokenIdx * topK;
+    let routing_base = token_idx * top_k;
 
-    for (var k: u32 = 0u; k < topK; k = k + 1u) {
-        let expertIdx = indices[routingBase + k];
-        let weight = weights[routingBase + k];
+    for (var k: u32 = 0u; k < top_k; k = k + 1u) {
+        let expert_idx = indices[routing_base + k];
+        let weight = weights[routing_base + k];
 
-        let expertOffset = expertIdx * numTokens * hiddenSize + tokenIdx * hiddenSize + dimIdx;
-        sum = sum + weight * expertOutputs[expertOffset];
+        let expert_offset = expert_idx * num_tokens * hidden_size + token_idx * hidden_size + dim_idx;
+        sum = sum + weight * expert_outputs[expert_offset];
     }
 
     // Accumulate to existing value
