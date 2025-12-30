@@ -360,6 +360,40 @@ npm run debug                      # Debug with trace
 
 ---
 
+## Debug API (for code instrumentation)
+
+When adding debug logging to DOPPLER code:
+
+```typescript
+import { log, trace, setTrace, setLogLevel } from '../debug/index.js';
+
+// Log levels (verbosity - always shown at that level)
+log.info('Pipeline', 'Model loaded');
+log.verbose('Loader', 'Shard 0 from OPFS');
+log.debug('Attention', `heads=${numHeads}`);
+log.warn('KVCache', 'Cache miss');
+log.error('Kernel', 'Dispatch failed');
+
+// Trace categories (only shown when category enabled)
+trace.loader('Loading shard 0 from OPFS');
+trace.kernels('matmul M=1 K=1152 N=1024');
+trace.attn(layerIdx, 'Q maxAbs=1.2');
+trace.ffn(layerIdx, 'gate maxAbs=5.3');
+trace.logits({ min: -2.3, max: 15.7 });
+trace.kv('Cache hit for pos 42');
+trace.sample('topK=40, temp=0.7');
+trace.buffers('Pool: 12 active, 3 free');
+trace.perf('Layer 5: 2.3ms');
+
+// Configure at runtime
+setLogLevel('verbose');           // Show more
+setTrace('kernels,logits');       // Enable specific categories
+setTrace('all,-buffers');         // All except buffers
+setTrace(false);                  // Disable all tracing
+```
+
+---
+
 ## Resources
 
 - **Troubleshooting Guide**: `docs/DOPPLER-TROUBLESHOOTING.md`
