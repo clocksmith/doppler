@@ -45,8 +45,8 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> W_gate: array<f32>;  // [intermediateSize, hiddenSize]
-@group(0) @binding(3) var<storage, read> W_up: array<f32>;    // [intermediateSize, hiddenSize]
+@group(0) @binding(2) var<storage, read> W_gate: array<f32>;  // [intermediate_size, hidden_size]
+@group(0) @binding(3) var<storage, read> W_up: array<f32>;    // [intermediate_size, hidden_size]
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
 // Shared memory for input vector (reused for gate and up)

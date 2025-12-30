@@ -141,7 +141,7 @@ fn main(
     }
 }
 
-// Optimized single-workgroup variant for small N (hiddenSize <= 256)
+// Optimized single-workgroup variant for small N (hidden_size <= 256)
 // All output columns computed by one workgroup, RMSNorm in single pass
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gemv_rmsnorm_small(
@@ -187,7 +187,7 @@ fn gemv_rmsnorm_small(
 }
 
 // Medium variant for N up to ~4096 (single workgroup, multiple elements per thread)
-// Handles Gemma 3's hiddenSize=1152 and similar models
+// Handles Gemma 3's hidden_size=1152 and similar models
 // Each thread computes ceil(N/256) output columns sequentially
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gemv_rmsnorm_medium(

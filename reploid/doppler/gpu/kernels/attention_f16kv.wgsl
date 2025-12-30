@@ -101,10 +101,10 @@ fn main(
     let num_kv_blocks = (seq_len + BLOCK_SIZE - 1u) / BLOCK_SIZE;
 
     for (var kv_block: u32 = 0u; kv_block < num_kv_blocks; kv_block = kv_block + 1u) {
-        let kv_blockStart = kv_block * BLOCK_SIZE;
+        let kv_block_start = kv_block * BLOCK_SIZE;
 
         // Collaborative load of K block into shared memory
-        let k_load_idx = kv_blockStart + thread_idx;
+        let k_load_idx = kv_block_start + thread_idx;
         if (k_load_idx < seq_len) {
             let k_offset = k_load_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
@@ -117,7 +117,7 @@ fn main(
         }
 
         // Load V block
-        let v_load_idx = kv_blockStart + thread_idx;
+        let v_load_idx = kv_block_start + thread_idx;
         if (v_load_idx < seq_len) {
             let v_offset = v_load_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
@@ -137,7 +137,7 @@ fn main(
             var block_max: f32 = -3.402823e+38;
 
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
-                let key_pos = kv_blockStart + k;
+                let key_pos = kv_block_start + k;
                 if (key_pos >= seq_len) { continue; }
 
                 // Check causal mask
@@ -166,7 +166,7 @@ fn main(
 
             // Add contribution from this block
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
-                let key_pos = kv_blockStart + k;
+                let key_pos = kv_block_start + k;
                 if (key_pos >= seq_len) { continue; }
                 if (is_masked(query_pos, key_pos)) { continue; }
 
