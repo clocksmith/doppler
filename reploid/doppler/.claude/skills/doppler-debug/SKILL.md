@@ -7,14 +7,42 @@ description: Debug DOPPLER WebGPU inference issues. Use when investigating model
 
 You are debugging DOPPLER, a browser-native WebGPU LLM inference engine.
 
-## CLI Commands (Simplified)
+---
 
-The DOPPLER CLI has 3 commands:
+## ⛔ CRITICAL: USE THE RIGHT COMMAND ⛔
+
+**When debugging inference issues, you MUST use:**
+```bash
+doppler debug --model <model-name>
+```
+
+**NEVER use `doppler test --inference` for debugging.** That is for smoke tests only.
+
+| Task | Correct Command | WRONG Command |
+|------|-----------------|---------------|
+| Debug garbage output | `doppler debug --model X` | ~~`doppler test --inference`~~ |
+| Debug with trace | `doppler debug --model X` | ~~`doppler test --inference --model X`~~ |
+| Break on anomaly | `doppler debug --break` | ~~`doppler test --break`~~ |
+
+**The `debug` command:**
+- Enables kernel trace automatically
+- Keeps browser open for inspection
+- Shows tensor stats at each pipeline step
+- Detects NaN/Inf/explosions
+
+**The `test --inference` command:**
+- Just checks if model loads and generates tokens
+- No trace, no debugging info
+- Closes immediately after
+
+---
+
+## CLI Commands (3 Distinct Modes)
 
 ```bash
-doppler test   # Correctness (does it work?)
-doppler bench  # Performance (how fast?)
-doppler debug  # Debugging (why is it broken?)
+doppler test   # Correctness (kernel unit tests)
+doppler bench  # Performance (tok/s benchmarks)
+doppler debug  # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
 ```
 
 ## CRITICAL: Systematic Debugging Workflow
@@ -149,18 +177,33 @@ doppler test --filter q4k         # Q4K quantized matmul tests
 ### Inference Debugging
 
 ```bash
-# Debug mode with kernel trace
+# Debug mode with kernel trace (defaults to verbose logging)
 doppler debug
 
-# Debug with verbose output
-doppler debug --verbose
+# Debug with trace-level logging (tensor details, dequant ops)
+doppler debug --trace
 
 # Break on first anomaly
 doppler debug --break
 
 # Watch trace output
-doppler debug --verbose 2>&1 | grep -E "TRACE|ANOMALY"
+doppler debug 2>&1 | grep -E "TRACE|ANOMALY"
 ```
+
+### Log Levels
+
+Control loader output verbosity:
+
+| Flag | Level | Shows |
+|------|-------|-------|
+| (default) | `info` | Phase starts/ends, totals |
+| `--verbose` | `verbose` | + Per-shard source, per-layer timing |
+| `--trace` | `trace` | + Tensor shapes, dequant ops, buffer details |
+| `--quiet` | `silent` | Errors only |
+
+**Browser URL:** `?log=verbose` or `?log=trace`
+
+**Debug mode defaults to `verbose`** - shows shard loading sources and layer timing.
 
 ### Benchmarking
 

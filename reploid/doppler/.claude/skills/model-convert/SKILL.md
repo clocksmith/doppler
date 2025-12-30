@@ -47,12 +47,20 @@ npx tsx doppler/reploid/doppler/tools/convert-cli.ts --test ./test-model
 ## Testing the Converted Model
 
 ```bash
-# Run inference test (server auto-starts)
-npm run test:inference -- --model <model-name> --headed
+# Quick smoke test (does it load and generate?)
+doppler test --inference --model <model-name>
+
+# Debug mode (for investigating issues)
+doppler debug --model <model-name>
+
+# Benchmark performance
+doppler bench --model <model-name>
 
 # Or test manually in browser (requires npm start first)
 # http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>
 ```
+
+**Log Levels:** Add `--verbose` for per-shard/layer timing, `--trace` for tensor details.
 
 ## Workflow
 

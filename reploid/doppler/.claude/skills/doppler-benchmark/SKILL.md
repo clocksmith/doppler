@@ -55,8 +55,12 @@ doppler --help
 | `--max-tokens, -t` | Max tokens to generate | 64 |
 | `--output, -o` | JSON output path | (none) |
 | `--compare, -c` | Baseline JSON for comparison | (none) |
-| `--verbose, -v` | Show browser logs | false |
+| `--verbose, -v` | Verbose loader logs (per-shard/layer) | false |
+| `--trace` | Trace-level logs (tensor details) | false |
+| `--quiet` | Suppress all loader logs | false |
 | `--headless` | Run without browser window | false |
+
+**Log Levels:** `?log=silent|info|verbose|trace` in browser URL
 
 **Auto-generated outputs:**
 ```
