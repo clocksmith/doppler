@@ -75,23 +75,32 @@ npm test -- --filter matmul     # Specific kernel
 
 If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused by broken kernels.
 
-### Step 2: Debug with Kernel Trace
+### Step 2: Debug with Trace Categories
 
 ```bash
-# Debug mode with trace enabled by default
+# Debug mode (trace enabled by default)
 npm run debug
 
 # Break on first anomaly (NaN/Inf/explosion)
 npm run debug -- --break
 
+# Trace specific categories
+npm run debug -- --trace kernels,logits
+npm run debug -- --trace attn,ffn
+
+# Trace everything except expensive buffer stats
+npm run debug -- --trace all,-buffers
+
 # Trace specific layers
-npm run debug -- --trace-layers 0,5,10
+npm run debug -- --layers 0,5,10
 ```
+
+**Trace categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`, `all`
 
 The kernel trace shows exactly where values explode:
 ```
-⚠️ [TRACE] Value explosion at L1.post_attn_norm: 5.29 → 105.64 (20.0x)
-⚠️ [TRACE] Value explosion at L10.post_attn_norm: 0.56 → 410.82 (736.0x)
+[TRACE:attn] L1 Q maxAbs=5.29 → post_norm maxAbs=105.64 (20.0x explosion)
+[TRACE:attn] L10 Q maxAbs=0.56 → post_norm maxAbs=410.82 (736.0x explosion)
 ```
 
 ### Step 3: Compare Against Reference Implementation
@@ -307,10 +316,11 @@ Each layer has 4 norms:
 | `inference/pipeline.ts` | Overall flow, token loop |
 | `inference/pipeline/layer.ts` | Per-layer processing |
 | `inference/pipeline/attention.ts` | KV cache, RoPE, attention |
-| `inference/pipeline/ffn.ts` | FFN gate/up/down projections |
+| `inference/pipeline/moe-impl.ts` | FFN/MoE gate/up/down projections |
 | `inference/pipeline/logits.ts` | Final projection, sampling |
 | `gpu/kernels/matmul.ts` | Q4K selection, dispatch |
 | `loader/doppler-loader.ts` | Weight loading, norm offset |
+| `debug/index.ts` | Unified logging and trace API |
 
 ---
 

@@ -4,6 +4,8 @@
 
 Browser-native WebGPU inference engine enabling tight CPU↔GPU co-evolution with [Reploid](https://github.com/clocksmith/reploid).
 
+Together, a recursive co-evolution: inference powers agency, agency reshapes inference.
+
 **[Try it live](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
 
 ## Why This Works
