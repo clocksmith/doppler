@@ -55,7 +55,7 @@ npm run bench -- --compare baseline.json
 | `--verbose, -v` | Verbose loader logs (per-shard/layer) | false |
 | `--trace` | Trace-level logs (tensor details) | false |
 | `--quiet` | Suppress all loader logs | false |
-| `--headless` | Run without browser window | false |
+| `--headed` | Show browser window | false (headless default) |
 
 **Log Levels:** `?log=silent|info|verbose|trace` in browser URL
 

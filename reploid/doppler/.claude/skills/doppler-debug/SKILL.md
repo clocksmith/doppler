@@ -231,11 +231,16 @@ npm run bench -- --kernels        # Kernel microbenchmarks
 npm run bench -- --runs 3         # Multiple runs for statistics
 ```
 
-### Headless Mode (CI)
+### Headed Mode (Debugging)
 
 ```bash
-npm test -- --headless
-npm run bench -- --headless
+# Default is headless with real GPU
+npm test                         # Headless (no window)
+npm run bench                    # Headless (no window)
+
+# Use --headed for visible browser window (debugging)
+npm test -- --headed             # Show browser
+npm run debug -- --headed        # Debug with visible browser
 ```
 
 ---

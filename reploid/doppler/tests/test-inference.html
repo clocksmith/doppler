@@ -4,85 +4,42 @@
   <meta charset="UTF-8">
   <title>DOPPLER Inference Test</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: monospace;
-      padding: 20px;
-      background: #1a1a2e;
-      color: #eee;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      background: #000;
+      color: #fff;
+      padding: 24px;
+      line-height: 1.5;
     }
-    #log {
+    h1 { font-size: 14px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px; }
+    #status { color: #666; font-size: 12px; margin-bottom: 16px; }
+    #results { display: none; }
+    #results.show { display: block; }
+    .section { margin-bottom: 16px; }
+    .label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .value { font-size: 13px; }
+    .output {
+      background: #111;
+      padding: 12px;
+      border-left: 2px solid #333;
       white-space: pre-wrap;
-      font-size: 12px;
-      background: #16213e;
-      padding: 10px;
-      max-height: 60vh;
-      overflow-y: auto;
-      margin-top: 10px;
+      word-break: break-word;
     }
-    .controls {
-      margin-bottom: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    button {
-      padding: 8px 16px;
-      cursor: pointer;
-      background: #0f3460;
-      color: #eee;
-      border: 1px solid #1a5276;
-      border-radius: 4px;
-    }
-    button:hover { background: #1a5276; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    input, select {
-      padding: 8px;
-      background: #16213e;
-      color: #eee;
-      border: 1px solid #1a5276;
-      border-radius: 4px;
-    }
-    #prompt-input { width: 300px; }
-    #model-select { min-width: 180px; }
-    .error { color: #ff6b6b; }
-    .success { color: #6bff6b; }
-    .info { color: #6b9fff; }
-    .status { margin: 10px 0; padding: 10px; background: #0f3460; border-radius: 4px; }
-    #output { margin-top: 10px; padding: 10px; background: #1e3a5f; border-radius: 4px; min-height: 50px; }
-    .model-info { font-size: 11px; color: #888; margin-top: 4px; }
+    .stats { display: flex; gap: 24px; }
+    .stat { }
+    .stat-value { font-size: 18px; font-weight: 600; }
+    .stat-label { font-size: 11px; color: #666; }
+    .pass { color: #fff; }
+    .fail { color: #666; }
   </style>
 </head>
 <body>
-  <h1>DOPPLER Inference Test</h1>
-
-  <div class="controls">
-    <select id="model-select">
-      <option value="">Loading models...</option>
-    </select>
-    <input type="text" id="prompt-input" value="Instruction: Explain why the sky looks blue in one sentence. Response:" placeholder="Enter prompt...">
-    <button id="run-btn" disabled>Run Test</button>
-    <button id="batch-compare-btn" disabled>Batch Compare</button>
-    <button id="clear-btn">Clear Log</button>
-  </div>
-
-  <div class="status">
-    <strong>Status:</strong> <span id="status-text">Initializing...</span>
-  </div>
-
-  <div id="kernel-trace" style="display: none; margin-bottom: 10px;">
-    <strong>Kernel Trace:</strong>
-    <pre id="kernel-trace-content" style="background: #0d1a2d; padding: 10px; font-size: 11px; max-height: 200px; overflow-y: auto; margin: 5px 0; border-radius: 4px;"></pre>
-  </div>
-
-  <div id="output">
-    <strong>Output:</strong> <span id="output-text">--</span>
-  </div>
-
-  <div id="log"></div>
+  <h1>DOPPLER INFERENCE TEST</h1>
+  <div id="status">Initializing...</div>
+  <div id="results"></div>
 
   <script type="module">
-    // Import shared test harness utilities
     import {
       discoverModels,
       parseRuntimeOverridesFromURL,
@@ -93,555 +50,149 @@
     } from '/doppler/dist/inference/test-harness.js';
     import { createPipeline } from '/doppler/dist/inference/pipeline.js';
     import { getDevice } from '/doppler/dist/gpu/device.js';
-    // Import debug module for kernel tracing
-    import { setDebugCategories, getDebugConfig, resetDebugConfig } from '/doppler/dist/inference/pipeline/debug-utils.js';
-    import { getLogHistory, clearLogHistory, setLogLevel } from '/doppler/dist/debug/index.js';
-    // Import kernel hints for displaying config
-    import { getKernelHints, getKernelHintsSource } from '/doppler/dist/gpu/kernel-hints.js';
-    import { getKernelCapabilities } from '/doppler/dist/gpu/device.js';
-    // Import kernel pipeline trace for systematic debugging
-    import { kernelTrace } from '/doppler/dist/inference/pipeline/kernel-trace.js';
+    import { getKernelHints } from '/doppler/dist/gpu/kernel-hints.js';
 
-    // Parse query params: ?model=gemma3-1b-q4&prompt=hello&autorun=1
+    // Parse query params
     const params = new URLSearchParams(window.location.search);
-    const paramModel = params.get('model');
-    const paramPrompt = params.get('prompt');
+    const paramModel = params.get('model') || 'gemma-3-1b-it-q4';
     const paramAutorun = params.get('autorun') === '1';
-
-    // Parse runtime overrides using shared utility
     const runtimeOverrides = parseRuntimeOverridesFromURL(params);
 
     const BASE_URL = 'http://localhost:8080/doppler/models';
 
-    const logEl = document.getElementById('log');
-    const statusEl = document.getElementById('status-text');
-    const outputEl = document.getElementById('output-text');
-    const runBtn = document.getElementById('run-btn');
-    const promptInput = document.getElementById('prompt-input');
-    const modelSelect = document.getElementById('model-select');
-    const kernelTraceEl = document.getElementById('kernel-trace');
-    const kernelTraceContent = document.getElementById('kernel-trace-content');
-
-    // Check if trace mode is enabled
-    const traceEnabled = runtimeOverrides.trace || runtimeOverrides.debug || runtimeOverrides.profile;
-
-    // Expose state for Playwright (using shared test state structure)
+    // Test state for Playwright
     window.testState = createTestState();
 
-    /**
-     * Display kernel configuration immediately after device/manifest load.
-     * Shows which kernels will be used based on GPU caps and manifest hints.
-     */
-    function displayKernelConfig(manifest, caps) {
-      const lines = [];
+    async function run() {
+      const MODEL_URL = `${BASE_URL}/${paramModel}`;
+      const prompt = 'The color of the sky is';
 
-      // GPU capabilities
-      lines.push('═══ GPU Capabilities ═══');
-      lines.push(`  Device: ${caps.adapterInfo?.device || caps.adapterInfo?.architecture || 'Unknown'}`);
-      lines.push(`  F16:    ${caps.hasF16 ? '✓' : '✗'}  Subgroups: ${caps.hasSubgroups ? '✓' : '✗'}  Timestamps: ${caps.hasTimestampQuery ? '✓' : '✗'}`);
-
-      // Kernel hints from manifest
-      const manifestHints = manifest.optimizations?.kernelHints || manifest.config?.kernelHints || {};
-      const runtimeHints = runtimeOverrides.kernelHints || {};
-      const activeHints = getKernelHints() || {};
-      const source = getKernelHintsSource() || 'default';
-
-      lines.push('');
-      lines.push('═══ Kernel Configuration ═══');
-      lines.push(`  Source: ${source}`);
-
-      // Show each kernel type and what will be used
-      const computePrec = activeHints.computePrecision || (caps.hasF16 ? 'f16' : 'f32');
-      const q4kMatmul = activeHints.q4kMatmul || 'dequant_f16';
-      const f16Matmul = activeHints.f16Matmul || 'auto';
-      const attnPrefill = activeHints.attentionPrefill || 'auto';
-      const attnDecode = activeHints.attentionDecode || 'auto';
-
-      lines.push('');
-      lines.push('  Kernel Selection:');
-      lines.push(`    computePrecision:  ${computePrec}`);
-      lines.push(`    q4kMatmul:         ${q4kMatmul}`);
-      lines.push(`    f16Matmul:         ${f16Matmul}`);
-      lines.push(`    attentionPrefill:  ${attnPrefill}`);
-      lines.push(`    attentionDecode:   ${attnDecode}`);
-
-      // Show layer execution order
-      const numLayers = manifest.config?.num_hidden_layers || manifest.numLayers || '?';
-      lines.push('');
-      lines.push('═══ Execution Order (per token) ═══');
-      lines.push('  embed');
-      lines.push(`  for layer in 0..${numLayers}:`);
-      lines.push('    ├─ rmsnorm (input)');
-      lines.push('    ├─ attention');
-      lines.push('    │   ├─ Q matmul');
-      lines.push('    │   ├─ K matmul');
-      lines.push('    │   ├─ V matmul  (parallel)');
-      lines.push('    │   ├─ RoPE');
-      lines.push('    │   ├─ KV cache update');
-      lines.push('    │   ├─ QK matmul → softmax → V matmul');
-      lines.push('    │   └─ O matmul');
-      lines.push('    ├─ residual add');
-      lines.push('    ├─ rmsnorm (post-attn)');
-      lines.push('    ├─ ffn');
-      lines.push('    │   ├─ gate matmul');
-      lines.push('    │   ├─ up matmul   (parallel)');
-      lines.push('    │   ├─ silu + mul');
-      lines.push('    │   └─ down matmul');
-      lines.push('    └─ residual add');
-      lines.push('  rmsnorm (final)');
-      lines.push('  lm_head matmul');
-      lines.push('  sample (argmax/topk)');
-
-      const traceText = lines.join('\n');
-      kernelTraceContent.textContent = traceText;
-      kernelTraceEl.style.display = 'block';
-
-      // Console log for CLI visibility
-      console.log('\n' + '='.repeat(50));
-      console.log('KERNEL CONFIGURATION');
-      console.log('='.repeat(50));
-      console.log(traceText);
-      console.log('='.repeat(50) + '\n');
-    }
-
-    /**
-     * Update kernel trace with runtime execution log after generation.
-     */
-    function appendExecutionLog() {
-      if (!traceEnabled) return;
-
-      // Display kernel pipeline trace if enabled
-      if (runtimeOverrides.trace && kernelTrace.enabled) {
-        const timeline = kernelTrace.getTimeline();
-        kernelTraceContent.textContent += '\n\n' + timeline;
-
-        // Also log to console for CLI visibility
-        console.log('\n' + timeline);
-
-        // Check for anomalies
-        const anomaly = kernelTrace.findAnomaly();
-        if (anomaly) {
-          console.log(`\n⚠️  ANOMALY DETECTED: ${anomaly.message}`);
-        }
-
-        // Disable trace after displaying
-        kernelTrace.disable();
-      }
-
-      const history = getLogHistory({ last: 200 });
-      const kernelLogs = history.filter(entry =>
-        entry.module === 'Layer' ||
-        entry.module === 'Attention' ||
-        entry.module === 'FFN' ||
-        entry.module === 'Logits' ||
-        entry.module === 'Pipeline' ||
-        entry.message.includes('kernel') ||
-        entry.message.includes('matmul')
-      );
-
-      if (kernelLogs.length > 0) {
-        let traceLines = ['\n═══ Execution Log ═══'];
-        for (const entry of kernelLogs.slice(-50)) {
-          const time = entry.perfTime.toFixed(1).padStart(8);
-          traceLines.push(`${time}ms [${entry.module}] ${entry.message}`);
-        }
-        kernelTraceContent.textContent += traceLines.join('\n');
-      }
-    }
-
-    function log(msg, className = '') {
-      const line = document.createElement('div');
-      line.className = className;
-      const time = new Date().toISOString().slice(11, 19);
-      line.textContent = `[${time}] ${msg}`;
-      logEl.appendChild(line);
-      logEl.scrollTop = logEl.scrollHeight;
-      console.log(msg);
-    }
-
-    function setStatus(text, className = '') {
-      statusEl.textContent = text;
-      statusEl.className = className;
-    }
-
-    async function initModelSelector() {
-      const models = await discoverModels();
-      modelSelect.innerHTML = '';
-
-      for (const model of models) {
-        const opt = document.createElement('option');
-        opt.value = typeof model === 'string' ? model : model.id;
-        opt.textContent = typeof model === 'string' ? model : model.name;
-        modelSelect.appendChild(opt);
-      }
-
-      // Select from query param or default
-      const modelIds = models.map(m => typeof m === 'string' ? m : m.id);
-      if (paramModel && modelIds.includes(paramModel)) {
-        modelSelect.value = paramModel;
-      } else if (paramModel) {
-        // Add custom model from param even if not in list
-        const opt = document.createElement('option');
-        opt.value = paramModel;
-        opt.textContent = `${paramModel} (custom)`;
-        modelSelect.appendChild(opt);
-        modelSelect.value = paramModel;
-      }
-
-      window.testState.model = modelSelect.value;
-      runBtn.disabled = false;
-      setStatus('Ready');
-    }
-
-    async function runTest() {
-      const model = modelSelect.value;
-      const prompt = promptInput.value || 'Instruction: Explain why the sky looks blue in one sentence. Response:';
-      const MODEL_URL = `${BASE_URL}/${model}`;
-
-      // Reset test state
-      window.testState = createTestState();
-      window.testState.ready = true;
-      window.testState.loading = true;
-      window.testState.model = model;
-
-      logEl.innerHTML = '';
-      outputEl.textContent = '--';
-      runBtn.disabled = true;
-
-      // Enable debug categories for tracing if requested
-      if (traceEnabled) {
-        clearLogHistory();
-        setLogLevel('debug');
-        if (runtimeOverrides.trace === 'full') {
-          setDebugCategories({ all: true });
-        } else {
-          setDebugCategories({ layer: true, attn: true, ffn: true, logits: true, perf: true });
-        }
-      }
-
-      // Enable kernel pipeline trace (for systematic debugging)
-      if (runtimeOverrides.trace) {
-        const traceLayers = runtimeOverrides.debugLayers || [];
-        kernelTrace.enable({
-          layers: traceLayers,
-          breakOnAnomaly: runtimeOverrides.trace === 'break',
-          explosionThreshold: 10,
-        });
-        log('   Kernel pipeline trace enabled', 'info');
-      }
+      console.log('1. Initializing WebGPU...');
 
       try {
-        log('='.repeat(50));
-        log(`DOPPLER Inference Test: ${model}`, 'info');
-        log('='.repeat(50));
-
-        // 1. Initialize WebGPU (using shared utility)
-        setStatus('Initializing WebGPU...', 'info');
-        log('1. Initializing WebGPU...');
-
+        // 1. Init GPU
         const caps = await initializeDevice();
         const device = getDevice();
+        console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
 
-        log(`   GPU: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
+        // Log kernel hints
+        const hints = getKernelHints();
+        if (hints) {
+          console.log(`[KernelHints] Set from runtime: ${JSON.stringify(hints)}`);
+        }
 
-        // 2. Fetch manifest (using shared utility)
-        setStatus('Fetching manifest...', 'info');
-        log('2. Fetching manifest...');
-
+        // 2. Load manifest
+        console.log('2. Loading manifest...');
         const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
+        console.log(`[Model] ${manifest.architecture || paramModel}, ${manifest.config?.num_hidden_layers} layers`);
 
-        log(`   Model: ${manifest.architecture || manifest.modelId}`, 'success');
-        log(`   Layers: ${manifest.config?.num_hidden_layers || '?'}, Hidden: ${manifest.config?.hidden_size || '?'}`);
-        log(`   Parsed ${manifest.tensors.size} tensors`, 'success');
-
-        // 3. Create pipeline (using shared shard loader)
-        setStatus('Loading model...', 'info');
-        log('3. Creating pipeline and loading model...');
-
-        const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => log(`   ${msg}`));
+        // 3. Create pipeline
+        console.log('3. Loading model weights...');
+        const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
 
         const pipeline = await createPipeline(manifest, {
           storage: { loadShard },
           gpu: { device },
           baseUrl: MODEL_URL,
           runtime: {
-            debug: true,
+            debug: runtimeOverrides.debug,
             attentionKernel: runtimeOverrides.attentionKernel || 'auto',
             kernelHints: runtimeOverrides.kernelHints,
           },
-          onProgress: (progress) => {
-            if (progress.message) {
-              log(`   [${progress.stage || 'loading'}] ${Math.round(progress.percent)}% - ${progress.message}`);
-            }
-          },
         });
 
-        log('   Model loaded!', 'success');
         window.testState.loaded = true;
-        window.testState.loading = false;
+        console.log('[Model] Loaded');
 
-        // Display kernel configuration immediately
-        displayKernelConfig(manifest, caps);
-
-        // 4. Generate
-        setStatus('Generating...', 'info');
-        window.testState.generating = true;
-        log(`4. Generating from: "${prompt}"`);
-
+        // 4. Generate - console.log only, no DOM updates
+        console.log(`4. Generating from: "${prompt}"`);
         const tokens = [];
-        const startTime = Date.now();
+        const startTime = performance.now();
 
         for await (const tokenText of pipeline.generate(prompt, {
           maxTokens: 8,
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.9,
-          debug: runtimeOverrides.debug,
-          profile: runtimeOverrides.profile,
-          debugLayers: runtimeOverrides.debugLayers,
+          temperature: 0,
         })) {
           tokens.push(tokenText);
-          window.testState.tokens = tokens;
-          log(`   Token ${tokens.length}: "${tokenText}"`, 'info');
-          outputEl.textContent = tokens.join('');
+          console.log(`[Token] ${tokens.length}: "${tokenText}"`);
         }
 
-        const elapsed = Date.now() - startTime;
+        const elapsed = performance.now() - startTime;
         const tokPerSec = tokens.length / (elapsed / 1000);
-
-        // Append execution log if tracing enabled
-        appendExecutionLog();
-
         const output = tokens.join('');
+
         window.testState.output = output;
-        window.testState.generating = false;
+        window.testState.tokens = tokens;
         window.testState.done = true;
 
-        log('='.repeat(50));
-        log(`OUTPUT: ${output}`, 'success');
-        log(`Generated ${tokens.length} tokens in ${elapsed}ms (${tokPerSec.toFixed(1)} tok/s)`);
-        log('='.repeat(50));
+        console.log(`[Done] ${tokens.length} tokens in ${elapsed.toFixed(0)}ms (${tokPerSec.toFixed(1)} tok/s)`);
+        console.log(`[Output] ${output}`);
 
-        // Analyze output
-        const goodWords = ['blue', 'clear', 'beautiful', 'cloudy', 'dark', 'bright', 'typically', 'usually', 'sky', 'color'];
-        const hasGood = goodWords.some(w => output.toLowerCase().includes(w));
-
-        if (hasGood) {
-          setStatus('PASS - Coherent output', 'success');
-          log('STATUS: PASS - Output looks coherent!', 'success');
-        } else {
-          setStatus('CHECK - Review output', 'info');
-          log('STATUS: CHECK - Output may need review', 'info');
-        }
-
-      } catch (err) {
-        window.testState.errors.push(err.message);
-        window.testState.done = true;
-        setStatus(`ERROR: ${err.message}`, 'error');
-        log(`ERROR: ${err.message}`, 'error');
-        log(err.stack, 'error');
-      } finally {
-        runBtn.disabled = false;
-      }
-    }
-
-    // Batch compare test: run with batchSize=1 vs batchSize=N, compare outputs
-    async function runBatchCompare() {
-      const model = modelSelect.value;
-      const prompt = promptInput.value || 'Instruction: Explain why the sky looks blue in one sentence. Response:';
-      const MODEL_URL = `${BASE_URL}/${model}`;
-      const BATCH_SIZE = 4;
-      const MAX_TOKENS = 20;
-
-      // Reset test state
-      window.testState = createTestState();
-      window.testState.ready = true;
-      window.testState.loading = true;
-      window.testState.model = model;
-      window.testState.batchCompare = { running: true, passed: null };
-
-      logEl.innerHTML = '';
-      outputEl.textContent = '--';
-      runBtn.disabled = true;
-      document.getElementById('batch-compare-btn').disabled = true;
-
-      try {
-        log('='.repeat(50));
-        log(`BATCH COMPARE TEST: ${model}`, 'info');
-        log(`Comparing batchSize=1 vs batchSize=${BATCH_SIZE} (temperature=0)`, 'info');
-        log('='.repeat(50));
-
-        // 1. Initialize WebGPU (using shared utility)
-        setStatus('Initializing WebGPU...', 'info');
-        log('1. Initializing WebGPU...');
-
-        const caps = await initializeDevice();
-        const device = getDevice();
-
-        log(`   GPU: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
-
-        // 2. Fetch manifest (using shared utility)
-        setStatus('Fetching manifest...', 'info');
-        log('2. Fetching manifest...');
-
-        const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
-
-        log(`   Model: ${manifest.architecture || manifest.modelId}`, 'success');
-        log(`   Parsed ${manifest.tensors.size} tensors`, 'success');
-
-        // 3. Create pipeline (using shared shard loader)
-        setStatus('Loading model...', 'info');
-        log('3. Creating pipeline and loading model...');
-
-        const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => log(`   ${msg}`));
-
-        const pipeline = await createPipeline(manifest, {
-          storage: { loadShard },
-          gpu: { device },
-          baseUrl: MODEL_URL,
-          runtime: {
-            debug: true,
-            attentionKernel: runtimeOverrides.attentionKernel || 'auto',
-            kernelHints: runtimeOverrides.kernelHints,
-          },
+        // 5. Single DOM update at end
+        renderResults({
+          model: paramModel,
+          prompt,
+          output,
+          tokens: tokens.length,
+          elapsed: elapsed.toFixed(0),
+          tokPerSec: tokPerSec.toFixed(1),
+          passed: tokens.length > 0,
         });
 
-        log('   Model loaded!', 'success');
-        window.testState.loaded = true;
-        window.testState.loading = false;
-
-        // 4. Generate with batchSize=1 (baseline)
-        setStatus('Generating (batchSize=1)...', 'info');
-        window.testState.generating = true;
-        log(`4. Generating with batchSize=1 (baseline)...`);
-        log(`   Prompt: "${prompt}"`);
-
-        const tokens1 = [];
-        const start1 = Date.now();
-        for await (const tokenText of pipeline.generate(prompt, {
-          maxTokens: MAX_TOKENS,
-          temperature: 0,
-          batchSize: 1,
-        })) {
-          tokens1.push(tokenText);
-        }
-        const elapsed1 = Date.now() - start1;
-        const output1 = tokens1.join('');
-
-        log(`   Output: "${output1}"`, 'info');
-        log(`   ${tokens1.length} tokens in ${elapsed1}ms (${(tokens1.length / elapsed1 * 1000).toFixed(1)} tok/s)`);
-
-        // 5. Generate with batchSize=N
-        setStatus(`Generating (batchSize=${BATCH_SIZE})...`, 'info');
-        log(`5. Generating with batchSize=${BATCH_SIZE}...`);
-
-        const tokens2 = [];
-        let batchCount = 0;
-        const start2 = Date.now();
-        for await (const tokenText of pipeline.generate(prompt, {
-          maxTokens: MAX_TOKENS,
-          temperature: 0,
-          batchSize: BATCH_SIZE,
-          onBatch: (batch) => {
-            batchCount++;
-            log(`   Batch ${batchCount}: ${batch.length} tokens`, 'info');
-          },
-        })) {
-          tokens2.push(tokenText);
-        }
-        const elapsed2 = Date.now() - start2;
-        const output2 = tokens2.join('');
-
-        log(`   Output: "${output2}"`, 'info');
-        log(`   ${tokens2.length} tokens in ${elapsed2}ms (${(tokens2.length / elapsed2 * 1000).toFixed(1)} tok/s)`);
-        log(`   ${batchCount} batches total`);
-
-        // 7. Compare
-        log('='.repeat(50));
-        log('COMPARISON:', 'info');
-
-        const match = output1 === output2;
-        const speedup = elapsed1 / elapsed2;
-
-        window.testState.output = output2;
-        window.testState.generating = false;
+      } catch (e) {
+        console.error(`[Error] ${e.message}`);
+        console.error(e.stack);
+        window.testState.errors.push(e.message);
         window.testState.done = true;
-        window.testState.batchCompare.passed = match;
-        window.testState.batchCompare.running = false;
-
-        if (match) {
-          log(`PASS: Outputs match exactly!`, 'success');
-          log(`   batchSize=1: "${output1}"`, 'success');
-          log(`   batchSize=${BATCH_SIZE}: "${output2}"`, 'success');
-          log(`   Speedup: ${speedup.toFixed(2)}x`, 'info');
-          setStatus('BATCH COMPARE: PASS', 'success');
-          outputEl.textContent = `PASS - Outputs match (${speedup.toFixed(2)}x speedup)`;
-        } else {
-          log(`FAIL: Outputs differ!`, 'error');
-          log(`   batchSize=1: "${output1}"`, 'error');
-          log(`   batchSize=${BATCH_SIZE}: "${output2}"`, 'error');
-          // Show character-level diff
-          for (let i = 0; i < Math.max(output1.length, output2.length); i++) {
-            if (output1[i] !== output2[i]) {
-              log(`   First diff at position ${i}: '${output1[i] || 'EOF'}' vs '${output2[i] || 'EOF'}'`, 'error');
-              break;
-            }
-          }
-          setStatus('BATCH COMPARE: FAIL', 'error');
-          outputEl.textContent = `FAIL - Outputs differ`;
-        }
-
-        log('='.repeat(50));
-
-      } catch (err) {
-        window.testState.errors.push(err.message);
-        window.testState.done = true;
-        window.testState.batchCompare.passed = false;
-        window.testState.batchCompare.running = false;
-        setStatus(`ERROR: ${err.message}`, 'error');
-        log(`ERROR: ${err.message}`, 'error');
-        log(err.stack, 'error');
-      } finally {
-        runBtn.disabled = false;
-        document.getElementById('batch-compare-btn').disabled = false;
+        document.getElementById('status').textContent = `Error: ${e.message}`;
+        document.getElementById('status').classList.add('fail');
       }
     }
 
-    // Event listeners
-    runBtn.addEventListener('click', runTest);
-    document.getElementById('batch-compare-btn').addEventListener('click', runBatchCompare);
-    document.getElementById('clear-btn').addEventListener('click', () => {
-      logEl.innerHTML = '';
-      outputEl.textContent = '--';
-      setStatus('Ready');
-    });
-
-    promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !runBtn.disabled) runTest();
-    });
-
-    modelSelect.addEventListener('change', () => {
-      window.testState.model = modelSelect.value;
-    });
-
-    // Apply prompt from query param
-    if (paramPrompt) {
-      promptInput.value = paramPrompt;
+    function renderResults(r) {
+      const container = document.getElementById('results');
+      container.innerHTML = `
+        <div class="section">
+          <div class="label">Model</div>
+          <div class="value">${r.model}</div>
+        </div>
+        <div class="section">
+          <div class="label">Prompt</div>
+          <div class="value">${r.prompt}</div>
+        </div>
+        <div class="section">
+          <div class="label">Output</div>
+          <div class="output">${r.output}</div>
+        </div>
+        <div class="section stats">
+          <div class="stat">
+            <div class="stat-value">${r.tokens}</div>
+            <div class="stat-label">tokens</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">${r.elapsed}ms</div>
+            <div class="stat-label">total</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">${r.tokPerSec}</div>
+            <div class="stat-label">tok/s</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="${r.passed ? 'pass' : 'fail'}">${r.passed ? 'PASS' : 'FAIL'}</div>
+        </div>
+      `;
+      container.classList.add('show');
+      document.getElementById('status').style.display = 'none';
     }
 
-    // Initialize
-    initModelSelector().then(() => {
-      window.testState.ready = true;
-      document.getElementById('batch-compare-btn').disabled = false;
-      log('Ready. Select a model and click "Run Test" or "Batch Compare".');
-      log(`Query params: model=${paramModel || '(default)'}, autorun=${paramAutorun}`);
-
-      // Auto-run if requested via query param
-      if (paramAutorun && modelSelect.value) {
-        log('Auto-running test...');
-        runTest();
-      }
-    });
+    // Auto-run if requested
+    if (paramAutorun) {
+      document.getElementById('status').textContent = 'Running...';
+      run();
+    } else {
+      document.getElementById('status').textContent = 'Add ?autorun=1 to URL to run';
+    }
   </script>
 </body>
 </html>

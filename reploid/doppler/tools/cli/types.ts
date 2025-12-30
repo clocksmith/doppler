@@ -36,10 +36,16 @@ export interface CLIOptions {
   baseUrl: string;
   /** Serve files directly from disk via Playwright routing (no dev server). */
   noServer: boolean;
-  /** Run headless (no browser window). Default is headed for GPU access. */
+  /** Run headless (no browser window). Default is headless with real GPU. */
   headless: boolean;
   /** Position browser window off-screen to avoid focus stealing. */
   minimized: boolean;
+  /** Try to connect to existing Chrome via CDP before launching new instance.
+   *  Avoids focus stealing by reusing already-open browser window.
+   *  Start Chrome with: chrome --remote-debugging-port=9222 */
+  reuseBrowser: boolean;
+  /** CDP endpoint URL for reuseBrowser mode. Default: http://localhost:9222 */
+  cdpEndpoint: string;
   verbose: boolean;
   filter: string | null;
   timeout: number;
@@ -69,6 +75,7 @@ export interface CLIOptions {
    *  Requires 'timestamp-query' WebGPU feature. */
   gpuProfile: boolean;
   /** Kernel hint overrides (bench/debug). */
+  kernelProfile: string | null;
   computePrecision: string | null;
   q4kMatmul: string | null;
   f16Matmul: string | null;

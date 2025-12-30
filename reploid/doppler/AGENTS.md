@@ -85,7 +85,7 @@ npm run debug -- --trace-layers 0,5  # Trace specific layers
 | `--verbose, -v` | Verbose loader logs | off |
 | `--trace` | Trace-level logs | off (on for debug) |
 | `--quiet` | Suppress logs | off |
-| `--headless` | No browser window | off |
+| `--headed` | Show browser window | off (headless default) |
 | `--timeout <ms>` | Test timeout | 120000 |
 | `--output, -o <file>` | Save JSON results | none |
 | `--kernel-profile, -k` | Preset: fast/safe/debug/fused/apple | none |

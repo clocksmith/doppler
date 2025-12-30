@@ -398,6 +398,21 @@ process.on('SIGTERM', () => {
 
 export type BrowserProfileScope = 'test' | 'bench';
 
+/**
+ * Check if Chrome is running with CDP enabled at the given endpoint
+ */
+async function isCDPAvailable(endpoint: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1000);
+    const response = await fetch(`${endpoint}/json/version`, { signal: controller.signal });
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function createBrowserContext(
   opts: CLIOptions,
   options: { scope?: BrowserProfileScope; devtools?: boolean } = {}
@@ -425,7 +440,31 @@ export async function createBrowserContext(
     ? resolve(dopplerRoot, opts.profileDir)
     : resolve(dopplerRoot, defaultDirName);
 
-  const args = ['--enable-unsafe-webgpu', '--enable-features=Vulkan'];
+  const args = ['--enable-unsafe-webgpu'];
+
+  // For headless mode with real GPU (not SwiftShader), use --headless=new
+  // See: https://developer.chrome.com/blog/supercharge-web-ai-testing
+  if (opts.headless) {
+    args.push('--headless=new');  // New headless mode (supports GPU)
+
+    if (process.platform === 'darwin') {
+      // macOS: Chrome uses Metal directly for WebGPU, not Vulkan
+      // Just need --headless=new, Metal backend is automatic
+      args.push('--use-angle=metal');  // Explicit Metal backend
+    } else {
+      // Linux/Windows: Use Vulkan backend
+      args.push(
+        '--enable-features=Vulkan',
+        '--use-angle=vulkan',       // Use Vulkan backend for ANGLE
+        '--disable-vulkan-surface', // Required for headless (no display surface)
+        '--no-sandbox',             // Often needed in containerized environments
+      );
+    }
+  } else {
+    // Headed mode: enable Vulkan features for better performance
+    args.push('--enable-features=Vulkan');
+  }
+
   if (!opts.headless && options.devtools) {
     args.push('--auto-open-devtools-for-tabs');
   }
@@ -437,8 +476,34 @@ export async function createBrowserContext(
 
   const { chromium } = await import('playwright');
 
+  // Try to connect to existing Chrome via CDP to avoid focus stealing
+  if (opts.reuseBrowser && !opts.headless) {
+    const cdpAvailable = await isCDPAvailable(opts.cdpEndpoint);
+    if (cdpAvailable) {
+      try {
+        console.log(`Connecting to existing Chrome at ${opts.cdpEndpoint}...`);
+        const browser = await chromium.connectOverCDP(opts.cdpEndpoint);
+        const contexts = browser.contexts();
+        const context = contexts[0] || await browser.newContext();
+        context.setDefaultTimeout(opts.timeout);
+        console.log('Connected to existing browser (no focus steal)');
+        return context;
+      } catch (err) {
+        console.log(`CDP connection failed: ${(err as Error).message}`);
+        console.log('Falling back to launching new browser...');
+      }
+    } else if (opts.verbose) {
+      console.log(`No Chrome with CDP at ${opts.cdpEndpoint}, launching new browser...`);
+      console.log('TIP: To avoid focus stealing, start Chrome with:');
+      console.log('  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222');
+    }
+  }
+
+  // Fall back to launching persistent context
+  // Note: When using --headless=new in args for GPU support, set headless: false
+  // to prevent Playwright from adding its own (old) headless flag
   const context = await chromium.launchPersistentContext(userDataDir, {
-    headless: opts.headless,
+    headless: false,  // We handle headless via args (--headless=new for GPU support)
     devtools: Boolean(!opts.headless && options.devtools),
     args,
   });

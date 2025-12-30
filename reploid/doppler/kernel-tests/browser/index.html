@@ -1,64 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Doppler Kernel Tests</title>
+  <title>DOPPLER Kernel Tests</title>
   <style>
-    body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #e0e0e0; }
-    h1 { color: #4fc3f7; }
-    .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
-    .ready { background: #164e63; }
-    .error { background: #b71c1c; }
-    .loading { background: #e65100; }
-    #capabilities { margin: 20px 0; padding: 10px; background: #2d2d2d; border-radius: 4px; }
-    #log { white-space: pre-wrap; background: #2d2d2d; padding: 10px; border-radius: 4px; max-height: 400px; overflow-y: auto; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      background: #000;
+      color: #fff;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    h1 { font-size: 14px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px; }
+    #results { display: none; }
+    #results.show { display: block; }
+    .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #222; }
+    .row:last-child { border-bottom: none; }
+    .pass { color: #fff; }
+    .fail { color: #888; text-decoration: line-through; }
+    .time { color: #666; font-size: 12px; }
+    #summary { margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; font-weight: 600; }
+    #status { color: #666; font-size: 12px; }
   </style>
 </head>
 <body>
-  <h1>Doppler GPU Kernel Test Runner</h1>
-  <div id="status" class="status loading">Initializing WebGPU...</div>
-  <div id="capabilities"></div>
-  <div id="log"></div>
+  <h1>DOPPLER KERNEL TESTS</h1>
+  <div id="status">Initializing...</div>
+  <div id="results"></div>
 
   <script type="module">
-    // Import the test harness - compiled test-page.js is in same directory
     import { testHarness, getGPU } from './test-page.js';
 
-    const log = (msg) => {
-      const logEl = document.getElementById('log');
-      logEl.textContent += msg + '\n';
-      console.log(msg);
-    };
+    // All logging goes to console only - Playwright captures it
+    const results = [];
+    let startTime = 0;
 
-    // Wait for GPU initialization (test-page.js initializes on DOMContentLoaded)
-    window.addEventListener('DOMContentLoaded', async () => {
+    async function run() {
+      console.log('[KernelTests] Starting...');
+      document.getElementById('status').textContent = 'Running tests...';
+
       try {
-        log('Waiting for WebGPU initialization...');
-
-        // Give it a moment to initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Try to get the GPU
+        // Wait for GPU init
+        await new Promise(r => setTimeout(r, 100));
         const gpu = await getGPU();
 
-        if (!gpu || !gpu.device) {
+        if (!gpu?.device) {
           throw new Error('WebGPU device not available');
         }
 
-        document.getElementById('status').textContent = 'Ready';
-        document.getElementById('status').className = 'status ready';
+        console.log(`[GPU] ${gpu.adapterInfo?.description || 'unknown'}, ${gpu.capabilities?.hasF16 ? 'f16' : 'f32'}/${gpu.capabilities?.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${((gpu.adapterInfo?.memorySize || 0) / 1e9).toFixed(1)}GB`);
 
-        log('WebGPU initialized successfully');
-        log(`Test harness available: ${!!window.testHarness}`);
-        log(`References available: ${!!window.testHarness?.references}`);
+        // Tests are run by Playwright calling window.testHarness
+        // This page just initializes and waits
+        document.getElementById('status').textContent = 'Ready';
+        console.log('[KernelTests] Ready for test execution');
+
+        // Expose render function for Playwright to call when done
+        window.renderResults = (testResults) => {
+          const container = document.getElementById('results');
+          let passed = 0, failed = 0, totalTime = 0;
+
+          for (const r of testResults) {
+            const row = document.createElement('div');
+            row.className = `row ${r.passed ? 'pass' : 'fail'}`;
+            row.innerHTML = `<span>${r.passed ? '✓' : '✗'} ${r.name}</span><span class="time">${r.duration}ms</span>`;
+            container.appendChild(row);
+
+            if (r.passed) passed++; else failed++;
+            totalTime += r.duration;
+          }
+
+          const summary = document.createElement('div');
+          summary.id = 'summary';
+          summary.textContent = `${passed}/${passed + failed} PASSED  ${totalTime}ms`;
+          container.appendChild(summary);
+
+          container.classList.add('show');
+          document.getElementById('status').style.display = 'none';
+        };
 
       } catch (e) {
+        console.error(`[KernelTests] Error: ${e.message}`);
         document.getElementById('status').textContent = `Error: ${e.message}`;
-        document.getElementById('status').className = 'status error';
-        log(`ERROR: ${e.message}`);
-        log(e.stack);
         window.kernelTestError = e.message;
       }
-    });
+    }
+
+    run();
   </script>
 </body>
 </html>

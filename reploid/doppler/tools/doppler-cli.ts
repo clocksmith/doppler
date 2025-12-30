@@ -154,8 +154,10 @@ function parseArgs(argv: string[]): CLIOptions {
     model: 'gemma-3-1b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     noServer: false,
-    headless: false,  // Default to headed (required for GPU access)
+    headless: true,   // Default to headless (real GPU via --headless=new)
     minimized: false, // Position window off-screen when true
+    reuseBrowser: true, // Try to connect to existing Chrome via CDP first
+    cdpEndpoint: 'http://localhost:9222', // CDP endpoint for reuseBrowser
     verbose: false,
     filter: null,
     timeout: 120000,
@@ -217,9 +219,23 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--headless':
         opts.headless = true;
         break;
+      case '--headed':
+      case '--no-headless':
+        opts.headless = false;
+        break;
       case '--minimized':
       case '--no-focus':
         opts.minimized = true;
+        break;
+      case '--reuse-browser':
+        opts.reuseBrowser = true;
+        break;
+      case '--no-reuse-browser':
+      case '--new-browser':
+        opts.reuseBrowser = false;
+        break;
+      case '--cdp-endpoint':
+        opts.cdpEndpoint = tokens.shift() || opts.cdpEndpoint;
         break;
       // Debug mode options
       case '--debug':
@@ -477,10 +493,16 @@ Common Options:
   --verbose, -v          Verbose loader logs (per-shard, per-layer)
   --trace                Trace-level logs (tensor details, dequant ops)
   --quiet                Suppress all loader logs
-  --headless             Run without browser window
+  --headed               Show browser window (default: headless with real GPU)
+  --no-reuse-browser     Always launch new browser (don't try CDP)
+  --cdp-endpoint <url>   CDP endpoint (default: http://localhost:9222)
   --timeout <ms>         Timeout (default: 120000)
   --output, -o <file>    Save JSON results
   --help, -h             Show this help
+
+Headless Mode (default):
+  Uses --headless=new with real GPU acceleration (not SwiftShader).
+  No browser window, no focus stealing, full GPU compute support.
 
 Log Levels (in browser: ?log=<level>):
   silent   Nothing except errors
@@ -499,7 +521,8 @@ Examples:
   doppler debug --model gemma-3   # Debug with trace enabled
 
 Notes:
-  - Headed mode by default (GPU needs browser window)
+  - Headless mode by default (real GPU via --headless=new)
+  - Use --headed for visible browser window (debugging)
   - Dev server auto-starts at localhost:8080
   - Exit code: 0=pass, 1=fail
 `);
@@ -1732,7 +1755,9 @@ async function main(): Promise<void> {
   }
 
   // Handle 'bench' command - performance mode
+  // Convert 'bench' to 'test --perf' so it uses the same code path
   if (opts.command === 'bench') {
+    opts.command = 'test';  // Use test infrastructure with perf mode
     opts.perf = true;
     // Default to inference benchmark unless --kernels specified
     if (opts.suite === 'quick') {

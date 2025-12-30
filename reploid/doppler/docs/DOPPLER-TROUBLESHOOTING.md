@@ -2,7 +2,7 @@
 
 Comprehensive debugging strategies for DOPPLER WebGPU inference issues. Written for future developers and Claude agents.
 
-**Note:** All CLI commands now run headed (visible browser) by default. Use `--headless` for CI.
+**Note:** All CLI commands now run headless by default with real GPU (via `--headless=new`). Use `--headed` for visible browser window during debugging.
 
 ---
 
