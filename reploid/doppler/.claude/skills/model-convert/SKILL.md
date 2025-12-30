@@ -48,13 +48,13 @@ npx tsx doppler/reploid/doppler/tools/convert-cli.ts --test ./test-model
 
 ```bash
 # Quick smoke test (does it load and generate?)
-doppler test --inference --model <model-name>
+npm test -- inference
 
 # Debug mode (for investigating issues)
-doppler debug --model <model-name>
+npm run debug
 
 # Benchmark performance
-doppler bench --model <model-name>
+npm run bench
 
 # Or test manually in browser (requires npm start first)
 # http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>

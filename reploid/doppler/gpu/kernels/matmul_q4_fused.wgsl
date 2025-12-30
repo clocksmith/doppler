@@ -122,11 +122,9 @@ fn main(
         let block_start = local_id * blocks_per_thread;
         let block_end = min(block_start + blocks_per_thread, num_blocks);
 
-        // B_q4k layout: for row `col`, blocks are at col * num_blocks + block_idx
-        let row_block_offset = col * num_blocks;
-
+        // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         for (var b: u32 = block_start; b < block_end; b = b + 1u) {
-        let block = B_q4k[row_block_offset + b];
+        let block = B_q4k[b * uniforms.N + col];
 
         // Extract super-block scale and min
         let d = unpack_f16_lo(block.d_dmin);
@@ -247,11 +245,11 @@ fn main_multicol(
 
     if (is_valid) {
         let num_blocks = uniforms.num_blocks_per_row;
-        let row_block_offset = col * num_blocks;
 
+        // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         // Each of the 8 threads processes every 8th block
         for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
-            let block = B_q4k[row_block_offset + b];
+            let block = B_q4k[b * uniforms.N + col];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
@@ -341,11 +339,11 @@ fn main_batched(
     // Only do work if this output cell is valid
     if (is_valid) {
         let num_blocks = uniforms.num_blocks_per_row;
-        let row_block_offset = col * num_blocks;
 
+        // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         // Each thread processes every 64th block (instead of 16th)
         for (var b: u32 = local_id; b < num_blocks; b = b + THREADS_PER_COL) {
-            let block = B_q4k[row_block_offset + b];
+            let block = B_q4k[b * uniforms.N + col];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;

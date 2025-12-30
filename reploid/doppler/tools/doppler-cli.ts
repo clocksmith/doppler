@@ -1759,6 +1759,14 @@ async function main(): Promise<void> {
   console.log(`Command: ${opts.command}`);
   console.log(`Suite: ${opts.suite}`);
   console.log(`Base URL: ${opts.baseUrl}`);
+
+  // Warn if running test --inference (smoke test) when they probably want debug
+  if (opts.command === 'test' && opts.suite === 'inference') {
+    console.log('\n\x1b[33m' + '⚠'.repeat(30) + '\x1b[0m');
+    console.log('\x1b[33mNOTE: "test --inference" is a SMOKE TEST only.\x1b[0m');
+    console.log('\x1b[33mFor debugging with kernel trace, use: doppler debug\x1b[0m');
+    console.log('\x1b[33m' + '⚠'.repeat(30) + '\x1b[0m\n');
+  }
   if (opts.profileDir) {
     console.log(`Profile Dir: ${opts.profileDir}`);
   }
@@ -1789,10 +1797,18 @@ async function main(): Promise<void> {
       if (opts.tokens !== null) console.log(`  Encode tokens: ${opts.tokens}`);
       if (opts.kernel) console.log(`  Trace kernel: ${opts.kernel}`);
 
+      // Forward browser console logs to terminal
+      page.on('console', (msg) => {
+        console.log(`  [browser] ${msg.text()}`);
+      });
+      page.on('pageerror', (err) => {
+        console.error(`  [browser error] ${err.message}`);
+      });
+
       // Navigate to debug page with params
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
-      debugParams.set('log', 'verbose');  // Debug mode defaults to verbose
+      debugParams.set('log', 'trace');  // Debug mode enables trace by default
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
       if (opts.kernel) debugParams.set('kernel', opts.kernel);

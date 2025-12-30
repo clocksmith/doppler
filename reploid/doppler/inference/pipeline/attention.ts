@@ -95,8 +95,6 @@ export async function runLayerAttentionGPU(
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   lora?: LoRAAdapter | null
 ): Promise<GPUBuffer> {
-  // TODO: Debug logging not appearing - investigate in next session
-  // See GEMMA3-MAGNITUDE-GAP-2025-12-21.md for context
   const {
     layerIdx,
     numTokens,

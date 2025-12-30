@@ -187,26 +187,57 @@ DOPPLER.debugBuffers(true)                   // Enable buffer inspection
 | `perf` | Performance timing |
 | `all` | Enable everything |
 
+### Log Levels (Unified System)
+
+DOPPLER uses a unified logging system controlled by CLI flags or browser URL params:
+
+| CLI Flag | URL Param | Level | Shows |
+|----------|-----------|-------|-------|
+| (default) | `?log=info` | info | Phase starts/ends, totals |
+| `--verbose` | `?log=verbose` | verbose | + Per-shard source, per-layer timing |
+| `--trace` | `?log=trace` | trace | + Tensor shapes, dequant ops, buffer details |
+| `--quiet` | `?log=silent` | silent | Errors only |
+
+**Defaults by mode:**
+- `test`, `bench`: info (clean summaries)
+- `debug`: verbose (shows shard sources and layer timing)
+
+**Example output at verbose level:**
+```
+[Loader] Shards: 0-15 (640.0 MB total)
+[Loader] Shard 0: RAM (64.0 MB)
+[Loader] Shard 1: OPFS (64.0 MB, 0.05s)
+[Loader]  Shard 2: network (64.0 MB, 0.31s @ 206.5 MB/s)
+...
+[Loader] Layers: 0-25
+[Loader]   Layer 0: 0.12s
+[Loader]   Layer 1: 0.08s
+...
+[Loader] Complete: 640.0 MB in 2.34s (273.5 MB/s)
+```
+
 ### CLI Log Forwarding (IMPORTANT)
 
 The DOPPLER CLI (`doppler-cli.ts`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
 
 ```
-[Benchmark], [Pipeline], [Loader], [DopplerLoader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN
+[Benchmark], [Pipeline], [Loader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN
 ```
 
 **If your logs don't appear:**
-1. Check your grep pattern includes the tag (e.g., `Layer` to match `[Layer0]`)
-2. Use `--verbose` to see all browser console output
+1. Check your grep pattern includes the tag (e.g., `Loader` to match loader output)
+2. Use `--verbose` to enable verbose-level loader logs
 3. Some debug readbacks skip when using CommandRecorder (batched mode) - this is by design
 
 ```bash
-# Common patterns that WORK with the CLI filter
-doppler bench inference --prompt xs 2>&1 | grep -E "Layer[0-9]" | head -50
-doppler bench inference --prompt xs 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
+# Show shard sources and layer timing
+doppler bench --verbose 2>&1 | grep -E "Loader.*Shard|Loader.*Layer"
 
-# All output, no filtering
-doppler bench inference --prompt xs --verbose 2>&1 | head -100
+# Show everything including tensor details
+doppler debug --trace 2>&1 | head -200
+
+# Quiet mode (errors only)
+doppler bench --quiet
 ```
 
 ### OPFS Cache Persistence (Faster Reruns)

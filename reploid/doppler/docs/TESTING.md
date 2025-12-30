@@ -53,12 +53,13 @@
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `doppler test quick` | Kernel validation (quick) | CI, before commits |
-| `doppler test kernels` | Full kernel correctness | After GPU kernel changes |
-| `doppler test inference` | Model load + generate | After pipeline changes |
+| `doppler test` | Quick kernel tests | CI, before commits |
+| `doppler test --full` | Full kernel correctness | After GPU kernel changes |
+| `doppler test --inference` | Model load + generate | After pipeline changes |
 | `npm run test:vitest` | CPU unit tests | After non-GPU code changes |
-| `doppler test kernels --perf` | Kernel benchmarks | Before/after kernel optimizations |
-| `doppler test inference --perf` | Inference benchmarks | Before/after pipeline optimizations |
+| `doppler bench` | Inference benchmark | Performance measurement |
+| `doppler bench --kernels` | Kernel benchmarks | Before/after kernel optimizations |
+| `doppler debug` | Debug with trace | Investigating inference bugs |
 
 ## Test Systems
 
@@ -121,30 +122,44 @@ npm run test:vitest:ui        # Interactive UI
 npm run test:vitest:coverage  # With coverage report
 ```
 
-### 4. Performance Benchmarks (`--perf`)
+### 4. Performance Benchmarks (`doppler bench`)
 
-Add `--perf` flag to any test command for performance measurement.
+Use `doppler bench` for performance measurement.
 
 ```bash
-# Inference benchmark with xs prompt (headed)
-doppler test inference --perf --prompt xs --headed
+# Full inference benchmark
+doppler bench
 
-# Full inference benchmark (headless)
-doppler test inference --perf
+# Kernel microbenchmarks
+doppler bench --kernels
 
-# With visible browser
-doppler test inference --perf --headed
+# Multiple runs for statistics
+doppler bench --runs 3
 
-# Custom prompt size
-doppler test inference --perf --headed --prompt medium
-
-# Kernel benchmarks
-doppler test kernels --perf
+# Custom prompt size (xs, short, medium, long)
+doppler bench --prompt xs
 ```
 
 **Prompt sizes:** `xs` (6-10 tokens), `short`, `medium`, `long`
 
-> **Note:** `doppler bench` is deprecated. Use `doppler test --perf` instead.
+### 5. Log Levels
+
+Control loader output verbosity with CLI flags:
+
+| CLI Flag | Level | Shows |
+|----------|-------|-------|
+| (default) | info | Phase starts/ends, totals |
+| `--verbose` | verbose | + Per-shard source, per-layer timing |
+| `--trace` | trace | + Tensor shapes, dequant ops |
+| `--quiet` | silent | Errors only |
+
+```bash
+# Show shard sources (RAM/OPFS/network)
+doppler bench --verbose
+
+# Quiet mode for CI
+doppler test --quiet
+```
 
 ## Prerequisites
 

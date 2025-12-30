@@ -26,23 +26,20 @@ You are running performance benchmarks for DOPPLER, a browser-native WebGPU LLM 
 
 ## Quick Start (CLI)
 
-The CLI has 3 simple commands. For benchmarks, use `doppler bench`:
+The CLI has 3 simple commands. For benchmarks, use `npm run bench`:
 
 ```bash
 # Full inference benchmark (default)
-doppler bench
+npm run bench
 
 # Kernel microbenchmarks
-doppler bench --kernels
+npm run bench -- --kernels
 
 # Multiple runs for statistics
-doppler bench --runs 3
+npm run bench -- --runs 3
 
 # Compare against baseline
-doppler bench --compare baseline.json
-
-# Show help
-doppler --help
+npm run bench -- --compare baseline.json
 ```
 
 **CLI Options:**
@@ -147,7 +144,7 @@ if (history.length >= 2) {
 ## Workflow
 
 **CLI (Recommended):**
-1. Run: `doppler bench inference --prompt xs --headed` (quick) or `doppler bench inference` (full)
+1. Run: `npm run bench` (full) or `npm run bench -- --prompt xs` (quick)
 2. Results auto-save to `tests/results/` (both JSON + HTML report)
 
    Server auto-starts if not running.
@@ -164,10 +161,10 @@ if (history.length >= 2) {
 **A/B Testing with Welch's t-test:**
 ```bash
 # Save baseline
-doppler bench inference -o baseline.json
+npm run bench -- -o baseline.json
 
 # Make changes, then compare
-doppler bench inference --compare baseline.json
+npm run bench -- --compare baseline.json
 
 # Output includes:
 # - Delta% for each metric (TTFT, throughput, latency)
@@ -207,13 +204,13 @@ Run benchmarks and filter output:
 
 ```bash
 # Quick benchmark with xs prompt (uses "The color of the sky is")
-doppler bench inference --prompt xs --headed
+npm run bench -- --prompt xs
 
 # With verbose output filtering
-doppler bench inference --prompt xs --verbose 2>&1 | grep -E "logits|top-5|sampled" | head -20
+npm run bench -- --prompt xs --verbose 2>&1 | grep -E "logits|top-5|sampled" | head -20
 
 # Check layer outputs
-doppler bench inference --prompt xs --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
+npm run bench -- --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
 ```
 
 ## Related Skills

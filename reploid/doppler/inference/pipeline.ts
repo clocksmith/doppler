@@ -824,10 +824,9 @@ export class InferencePipeline {
     // Create CommandRecorder for batched GPU operations
     // This reduces GPU submits from 260+ per forward pass to 1
     const device = getDevice();
-    // Disable CommandRecorder only when explicitly requested via opts.disableBatching.
-    // This allows per-layer GPU readbacks for debugging without affecting normal debug logging.
+    // Disable CommandRecorder in debug mode to allow per-step debug readbacks (same as decode).
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableBatching = opts.disableBatching === true;
+    const disableBatching = opts.disableBatching === true || opts.debug === true;
     const createRecorder = (label: string) => {
       if (!device || disableBatching) return undefined;
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
@@ -881,8 +880,8 @@ export class InferencePipeline {
     if (opts.debug) {
       console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     }
-    // Create new recorder after debug flush (recorder was submitted)
-    let currentRecorder = opts.debug && recorder ? createRecorder('layers') : recorder;
+    // Track current recorder (undefined in debug mode to enable per-layer readbacks)
+    let currentRecorder = recorder;
     for (let l = 0; l < config.numLayers; l++) {
       // Update context recorder in case it changed at checkpoint
       context.recorder = currentRecorder;

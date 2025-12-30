@@ -39,34 +39,41 @@ doppler bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TO
 
 See postmortem for full hypothesis ranking and next steps.
 
-## Log Filtering
+## Log Levels
 
-The benchmark CLI filters browser console logs. Only these tags are forwarded to stdout:
+Control loader output verbosity with CLI flags:
 
-```
-[Benchmark], [Pipeline], [Loader], [DopplerLoader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN
-```
+| CLI Flag | Level | Shows |
+|----------|-------|-------|
+| (default) | info | Phase starts/ends, totals |
+| `--verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
+| `--trace` | trace | + Tensor shapes, dequant ops, buffer details |
+| `--quiet` | silent | Errors only |
+
+**Defaults by mode:**
+- `bench`: info
+- `debug`: verbose (shows shard sources and layer timing)
 
 ### Common Grep Patterns
 
 ```bash
+# Debug with verbose loader output
+doppler debug 2>&1 | grep -E "Loader.*Shard|Loader.*Layer" | head -50
+
 # Layer-by-layer debug output
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "Layer[0-9]" | head -50
+doppler debug 2>&1 | grep -E "Layer[0-9]" | head -50
 
 # Full debug with logits and generated text
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
+doppler debug 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
 
 # Position-specific hidden state debug
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN" | head -20
+doppler debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN" | head -20
 
-# Kernel selection debugging
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "MATMUL|variant=" | head -20
-
-# All output (no grep filter)
-doppler bench inference --prompt xs --debug --verbose 2>&1 | head -100
+# Trace-level output (tensor details)
+doppler debug --trace 2>&1 | head -200
 ```
 
-**If logs don't appear:** Check your grep pattern includes the tag (e.g., `Layer` for `[Layer0]` logs).
+**If logs don't appear:** Check your grep pattern includes the tag (e.g., `Loader` for loader output).
 
 ## Debug Flag
 

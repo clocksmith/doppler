@@ -44,28 +44,45 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 - **Kernels:** Custom WGSL shaders for RMSNorm, attention, FFN operations
 - **OPFS:** Origin Private File System for persistent model storage
 
-### CLI Setup
-Add alias to `~/.zshrc`: `alias doppler='npm run doppler --'`
-
-### CLI Commands (3 modes)
+### CLI Commands (4 modes)
 ```bash
+npm start                       # Serve demo app
+
 # TEST - Correctness (does it work?)
-doppler test                    # Quick kernel tests
-doppler test --inference        # Model loads + generates (smoke test)
-doppler test --full             # Full test suite
+npm test                        # Quick kernel tests
+npm test -- inference           # Model loads + generates (smoke test)
+npm test -- all                 # Full test suite
 
 # BENCH - Performance (how fast?)
-doppler bench                   # Full inference benchmark (tok/s)
-doppler bench --kernels         # Kernel microbenchmarks
-doppler bench --runs 3          # Multiple runs
+npm run bench                   # Full inference benchmark (tok/s)
+npm run bench -- kernels        # Kernel microbenchmarks
+npm run bench -- --runs 3       # Multiple runs
 
 # DEBUG - Debugging (why is it broken?)
-doppler debug                   # Debug with kernel trace enabled
-doppler debug --break           # Stop on first anomaly (NaN/explosion)
-doppler debug --trace-layers 0,5  # Trace specific layers
+npm run debug                   # Debug with kernel trace enabled
+npm run debug -- --break        # Stop on first anomaly (NaN/explosion)
+npm run debug -- --trace-layers 0,5  # Trace specific layers
+```
 
-# CPU tests
-npm run test:vitest             # CPU unit tests
+### Log Levels
+Control loader output verbosity with CLI flags or browser URL params:
+
+| CLI Flag | URL Param | Level | Shows |
+|----------|-----------|-------|-------|
+| (default) | `?log=info` | info | Phase starts/ends, totals |
+| `--verbose` | `?log=verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
+| `--trace` | `?log=trace` | trace | + Tensor shapes, dequant ops, buffer details |
+| `--quiet` | `?log=silent` | silent | Errors only |
+
+**Defaults by mode:**
+- `test`, `bench`: info (clean output)
+- `debug`: verbose (shows shard sources and layer timing)
+
+**Shard source logs (verbose+):**
+```
+[Loader] Shard 0: RAM (64.0 MB)
+[Loader] Shard 1: OPFS (64.0 MB, 0.05s)
+[Loader]  Shard 2: network (64.0 MB, 0.31s @ 206.5 MB/s)
 ```
 
 ### Guardrails

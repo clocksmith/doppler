@@ -339,8 +339,7 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   // Config values with family-based defaults
   // Explicit config > family default > universal default
   const rmsNormEps = config.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon ?? (isGemma3 ? 1e-6 : 1e-5);
-  // Gemma 3 uses GELU activation, not SiLU (affects FFN gate activation)
-  const hiddenActivation = normalizeActivation(config.hidden_activation ?? config.hidden_act ?? (isGemma3 ? 'gelu' : undefined));
+  const hiddenActivation = normalizeActivation(config.hidden_activation ?? config.hidden_act);
   const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
 
   // DOPPLER-specific architectural quirks (explicit config overrides family detection)

@@ -13,16 +13,16 @@ You are debugging DOPPLER, a browser-native WebGPU LLM inference engine.
 
 **When debugging inference issues, you MUST use:**
 ```bash
-doppler debug --model <model-name>
+npm run debug
 ```
 
-**NEVER use `doppler test --inference` for debugging.** That is for smoke tests only.
+**NEVER use `npm test -- inference` for debugging.** That is for smoke tests only.
 
 | Task | Correct Command | WRONG Command |
 |------|-----------------|---------------|
-| Debug garbage output | `doppler debug --model X` | ~~`doppler test --inference`~~ |
-| Debug with trace | `doppler debug --model X` | ~~`doppler test --inference --model X`~~ |
-| Break on anomaly | `doppler debug --break` | ~~`doppler test --break`~~ |
+| Debug garbage output | `npm run debug` | ~~`npm test -- inference`~~ |
+| Debug with trace | `npm run debug` | ~~`npm test -- inference`~~ |
+| Break on anomaly | `npm run debug -- --break` | ~~`npm test -- --break`~~ |
 
 **The `debug` command:**
 - Enables kernel trace automatically
@@ -30,7 +30,7 @@ doppler debug --model <model-name>
 - Shows tensor stats at each pipeline step
 - Detects NaN/Inf/explosions
 
-**The `test --inference` command:**
+**The `test -- inference` command:**
 - Just checks if model loads and generates tokens
 - No trace, no debugging info
 - Closes immediately after
@@ -40,9 +40,9 @@ doppler debug --model <model-name>
 ## CLI Commands (3 Distinct Modes)
 
 ```bash
-doppler test   # Correctness (kernel unit tests)
-doppler bench  # Performance (tok/s benchmarks)
-doppler debug  # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
+npm test         # Correctness (kernel unit tests)
+npm run bench    # Performance (tok/s benchmarks)
+npm run debug    # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
 ```
 
 ## CRITICAL: Systematic Debugging Workflow
@@ -50,9 +50,9 @@ doppler debug  # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
 ### Step 1: Run Kernel Correctness Tests FIRST
 
 ```bash
-doppler test                    # Quick kernel tests
-doppler test --full             # All kernel tests
-doppler test --filter matmul    # Specific kernel
+npm test                        # Quick kernel tests
+npm test -- --full              # All kernel tests
+npm test -- --filter matmul     # Specific kernel
 ```
 
 If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused by broken kernels.
@@ -61,13 +61,13 @@ If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused 
 
 ```bash
 # Debug mode with trace enabled by default
-doppler debug
+npm run debug
 
 # Break on first anomaly (NaN/Inf/explosion)
-doppler debug --break
+npm run debug -- --break
 
 # Trace specific layers
-doppler debug --trace-layers 0,5,10
+npm run debug -- --trace-layers 0,5,10
 ```
 
 The kernel trace shows exactly where values explode:
@@ -135,7 +135,7 @@ cat model/manifest.json | jq '{
 
 ```bash
 # Check weight statistics during loading
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "DopplerLoader.*weight|norm.*min|norm.*max"
+npm run debug 2>&1 | grep -E "weight|norm.*min|norm.*max"
 ```
 
 **Expected norm weight ranges for Gemma 3:**
@@ -157,8 +157,8 @@ console.log(tokens);  // Should match HuggingFace tokenizer output
 For Q4_K models, verify dequantization produces correct values:
 
 ```bash
-npm run doppler -- test correctness --filter dequant
-npm run doppler -- test correctness --filter matmul-q4k
+npm test -- --filter dequant
+npm test -- --filter matmul-q4k
 ```
 
 ---
@@ -168,26 +168,26 @@ npm run doppler -- test correctness --filter matmul-q4k
 ### Kernel Testing
 
 ```bash
-doppler test                      # Quick kernel tests
-doppler test --full               # All kernel tests
-doppler test --filter matmul      # Specific kernel
-doppler test --filter q4k         # Q4K quantized matmul tests
+npm test                          # Quick kernel tests
+npm test -- --full                # All kernel tests
+npm test -- --filter matmul       # Specific kernel
+npm test -- --filter q4k          # Q4K quantized matmul tests
 ```
 
 ### Inference Debugging
 
 ```bash
-# Debug mode with kernel trace (defaults to verbose logging)
-doppler debug
+# Debug mode with trace enabled by default
+npm run debug
 
-# Debug with trace-level logging (tensor details, dequant ops)
-doppler debug --trace
+# Explicit trace flag (same as default)
+npm run debug -- --trace
 
 # Break on first anomaly
-doppler debug --break
+npm run debug -- --break
 
 # Watch trace output
-doppler debug 2>&1 | grep -E "TRACE|ANOMALY"
+npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
 ```
 
 ### Log Levels
@@ -203,21 +203,21 @@ Control loader output verbosity:
 
 **Browser URL:** `?log=verbose` or `?log=trace`
 
-**Debug mode defaults to `verbose`** - shows shard loading sources and layer timing.
+**Debug mode defaults to `trace`** - shows tensor shapes, dequant ops, and value explosions.
 
 ### Benchmarking
 
 ```bash
-doppler bench                     # Full inference benchmark
-doppler bench --kernels           # Kernel microbenchmarks
-doppler bench --runs 3            # Multiple runs for statistics
+npm run bench                     # Full inference benchmark
+npm run bench -- --kernels        # Kernel microbenchmarks
+npm run bench -- --runs 3         # Multiple runs for statistics
 ```
 
 ### Headless Mode (CI)
 
 ```bash
-doppler test --headless
-doppler bench --headless
+npm test -- --headless
+npm run bench -- --headless
 ```
 
 ---
@@ -250,10 +250,7 @@ doppler bench --headless
 
 **Check with:**
 ```bash
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
-  grep "LAYER.*maxAbs" | \
-  awk -F'maxAbs=' '{print $2}' | \
-  awk -F',' '{if ($1 > 500) print "WARNING: Explosion detected: " $1}'
+npm run debug 2>&1 | grep "LAYER.*maxAbs"
 ```
 
 ---
@@ -304,8 +301,8 @@ vim doppler/gpu/kernels/matmul.ts
 npm run build
 
 # 3. Test
-doppler test --filter matmul       # Kernel correctness
-doppler debug                      # Debug with trace
+npm test -- --filter matmul        # Kernel correctness
+npm run debug                      # Debug with trace
 ```
 
 **IMPORTANT:** The browser loads JavaScript from `/doppler/dist/`, not TypeScript directly. Changes to `.ts` files won't take effect until rebuilt.

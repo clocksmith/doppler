@@ -255,6 +255,10 @@ export class DopplerLoader {
   // Default is false; opt-in via manifest kernel hints.
   useFusedQ4K = false;
 
+  // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
+  // When set, dequantized matmul weights need layout='column' for transposeB=false
+  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null = null;
+
   // Internal tracking
   private _normOffsetLogged = false;
   private _normOffsetDebugLogged = false;
@@ -273,6 +277,11 @@ export class DopplerLoader {
   }
 
   /**
+   * Shard load result with source metadata
+   */
+  private _lastShardSource: { source: 'RAM' | 'OPFS' | 'custom' | 'network'; elapsed: number } | null = null;
+
+  /**
    * Load shard using custom loader or OPFS
    */
   private async _loadShard(shardIndex: number): Promise<ArrayBuffer> {
@@ -284,6 +293,7 @@ export class DopplerLoader {
       // Refresh LRU order
       this.shardCache.delete(shardIndex);
       this.shardCache.set(shardIndex, cached);
+      this._lastShardSource = { source: 'RAM', elapsed: 0 };
       verbose(`Shard ${shardIndex}: RAM${sizeStr ? ` (${sizeStr})` : ''}`);
       return cached;
     }
@@ -323,8 +333,9 @@ export class DopplerLoader {
         }
       }
 
-      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-      verbose(`Shard ${shardIndex}: custom (${sizeStr}, ${elapsed}s)`);
+      const elapsed = (performance.now() - startTime) / 1000;
+      this._lastShardSource = { source: 'custom', elapsed };
+      verbose(`Shard ${shardIndex}: custom (${sizeStr}, ${elapsed.toFixed(2)}s)`);
       return arrayBuffer;
     }
 
@@ -337,8 +348,9 @@ export class DopplerLoader {
         this.shardCache.delete(oldestKey);
       }
     }
-    const opfsElapsed = ((performance.now() - opfsStart) / 1000).toFixed(2);
-    verbose(`Shard ${shardIndex}: OPFS (${sizeStr}, ${opfsElapsed}s)`);
+    const elapsed = (performance.now() - opfsStart) / 1000;
+    this._lastShardSource = { source: 'OPFS', elapsed };
+    verbose(`Shard ${shardIndex}: OPFS (${sizeStr}, ${elapsed.toFixed(2)}s)`);
     return data;
   }
 
@@ -472,6 +484,7 @@ export class DopplerLoader {
     }
 
     this.useFusedQ4K = useFused;
+    this.q4kLayout = (q4kLayout as 'flat' | 'row_wise' | 'column_wise') ?? null;
 
     if (q4kHint || q4kLayout) {
       trace(`Q4K: fused=${this.useFusedQ4K}, matmul=${q4kHint ?? 'unset'}, layout=${q4kLayout ?? 'unset'}`);
@@ -618,6 +631,10 @@ export class DopplerLoader {
         if (!inLayerPhase) {
           const pct = 0.1 + Math.min(bytesLoaded / totalBytes, 1.0) * 0.7;
           const speed = getSpeed();
+          // Include source info from _lastShardSource (matches console log)
+          const sourceInfo = this._lastShardSource;
+          const sourceStr = sourceInfo ? sourceInfo.source : 'unknown';
+          const elapsedStr = sourceInfo && sourceInfo.elapsed > 0 ? ` ${sourceInfo.elapsed.toFixed(2)}s` : '';
           if (onProgress) {
             onProgress({
               stage: 'shards',
@@ -627,7 +644,7 @@ export class DopplerLoader {
               bytesLoaded,
               totalBytes,
               bytesPerSecond: speed,
-              message: `Shard ${shardsLoaded}/${totalShards} • ${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} • ${formatBytes(speed)}/s`,
+              message: `Shard ${shardIndex}: ${sourceStr} (${formatBytes(shardSize)}${elapsedStr})`,
             });
           }
         }
@@ -853,10 +870,14 @@ export class DopplerLoader {
 
           releaseBuffer(quantBuffer);
           this.gpuBuffers.add(dequantized);
-          // GGUF stores ALL weights as [ne0, ne1] where ne1 rows of ne0 elements.
-          // This is the TRANSPOSE of the weight matrix (e.g., [kv_dim, hidden] instead of [hidden, kv_dim]).
-          // The shader with transposeB=true handles this: it reads B[n*K + k] and transposes to get B^T.
-          // So we do NOT mark GGUF weights as column-major - let them use the default transposeB=true.
+
+          // Handle weight layout based on q4kLayout setting:
+          // - column_wise: weights were pre-transposed during conversion, use transposeB=false
+          // - otherwise: GGUF convention (weights are [N,K]), use transposeB=true (default)
+          if (this.q4kLayout === 'column_wise' && isMatmulWeight) {
+            setBufferLayout(dequantized, 'column');
+          }
+
           return dequantized;
         }
 
@@ -1073,7 +1094,14 @@ export class DopplerLoader {
 
         releaseBuffer(quantBuffer);
         this.gpuBuffers.add(dequantized);
-        // GGUF stores ALL weights transposed - use default transposeB=true (no column layout)
+
+        // Handle weight layout based on q4kLayout setting:
+        // - column_wise: weights were pre-transposed during conversion, use transposeB=false
+        // - otherwise: GGUF convention (weights are [N,K]), use transposeB=true (default)
+        if (this.q4kLayout === 'column_wise' && isMatmulWeight) {
+          setBufferLayout(dequantized, 'column');
+        }
+
         return dequantized;
       }
       return new Uint8Array(shardData);
