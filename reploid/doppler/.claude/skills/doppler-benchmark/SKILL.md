@@ -216,6 +216,10 @@ npm run bench -- --prompt xs --verbose 2>&1 | grep -E "logits|top-5|sampled" | h
 npm run bench -- --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
 ```
 
+## Resources
+
+- **Style Guides**: `docs/style/` - WGSL, TypeScript, and general coding conventions
+
 ## Related Skills
 
 - **doppler-debug**: For investigating inference issues found during benchmarking

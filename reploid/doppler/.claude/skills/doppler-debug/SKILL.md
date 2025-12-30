@@ -361,6 +361,7 @@ npm run debug                      # Debug with trace
 - **Troubleshooting Guide**: `docs/DOPPLER-TROUBLESHOOTING.md`
 - **Architecture**: `docs/ARCHITECTURE.md`
 - **Postmortems Index**: `docs/postmortems/INDEX.md` - Key takeaways from resolved bugs
+- **Style Guides**: `docs/style/` - WGSL, TypeScript, and general coding conventions
 
 ---
 

@@ -22,6 +22,11 @@ doppler/
 - Read `reploid/doppler/docs/spec/RDRR_FORMAT.md` for model format specification
 - Review `reploid/doppler/inference/` for pipeline implementation
 
+### Style Guides
+- [Coding Guide](docs/style/CODING_GUIDE.md) - Architecture, file organization, naming
+- [TypeScript Style Guide](docs/style/TYPESCRIPT_STYLE_GUIDE.md) - Config-as-code, kernel wrappers
+- [WGSL Style Guide](docs/style/WGSL_STYLE_GUIDE.md) - Shader structure, constants vs uniforms
+
 ### Key Paths (relative to `reploid/doppler/`)
 - `inference/` - Pipeline, attention, FFN, embeddings
 - `gpu/` - WebGPU device management, buffer pools
