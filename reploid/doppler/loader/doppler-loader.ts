@@ -42,6 +42,7 @@ import { ExpertCache, getExpertCache, type CacheStats } from './expert-cache.js'
 import type { ExpertWeights } from './weights.js';
 import { type KernelHints } from '../storage/rdrr-format.js';
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
+import { formatBytes } from '../storage/quota.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -274,15 +275,20 @@ export class DopplerLoader {
    * Load shard using custom loader or OPFS
    */
   private async _loadShard(shardIndex: number): Promise<ArrayBuffer> {
+    const shardInfo = this.manifest?.shards?.[shardIndex];
+    const sizeStr = shardInfo ? formatBytes(shardInfo.size) : '';
+
     if (this.shardCache.has(shardIndex)) {
       const cached = this.shardCache.get(shardIndex)!;
       // Refresh LRU order
       this.shardCache.delete(shardIndex);
       this.shardCache.set(shardIndex, cached);
+      console.log(`[DopplerLoader] Shard ${shardIndex}: RAM cache${sizeStr ? ` (${sizeStr})` : ''}`);
       return cached;
     }
 
     if (this.customLoadShard) {
+      const startTime = performance.now();
       let data: Uint8Array | ArrayBuffer = await this.customLoadShard(shardIndex);
 
       // Verify hash if enabled
@@ -316,9 +322,12 @@ export class DopplerLoader {
         }
       }
 
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      console.log(`[DopplerLoader] Shard ${shardIndex}: custom${sizeStr ? ` (${sizeStr}, ${elapsed}s)` : ''}`);
       return arrayBuffer;
     }
 
+    const opfsStart = performance.now();
     const data = await loadShardFromOPFS(shardIndex);
     this.shardCache.set(shardIndex, data);
     if (this.shardCache.size > this.maxShardCacheEntries) {
@@ -327,6 +336,8 @@ export class DopplerLoader {
         this.shardCache.delete(oldestKey);
       }
     }
+    const opfsElapsed = ((performance.now() - opfsStart) / 1000).toFixed(2);
+    console.log(`[DopplerLoader] Shard ${shardIndex}: OPFS${sizeStr ? ` (${sizeStr}, ${opfsElapsed}s)` : ''}`);
     return data;
   }
 
@@ -644,9 +655,13 @@ export class DopplerLoader {
     console.log(`[DopplerLoader] Loading ${numLayers} layers`);
 
     inLayerPhase = true;  // Suppress shard progress during layer loading
+    const layersStartTime = performance.now();
 
     for (let l = 0; l < numLayers; l++) {
+      const layerStart = performance.now();
       await this._loadLayer(l, onProgress);
+      const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
+      console.log(`[DopplerLoader] Layer ${l}/${numLayers - 1}: ${layerElapsed}s → GPU`);
 
       if (onProgress) {
         // Layers phase: progress from 80% to 85% based on layer count
@@ -666,6 +681,9 @@ export class DopplerLoader {
         });
       }
     }
+
+    const layersTotalTime = ((performance.now() - layersStartTime) / 1000).toFixed(2);
+    console.log(`[DopplerLoader] All ${numLayers} layers loaded in ${layersTotalTime}s`);
 
     // Load final norm and LM head
     reportProgress('gpu_transfer', 0.85, 'Loading final weights...');

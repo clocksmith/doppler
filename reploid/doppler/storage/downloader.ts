@@ -345,6 +345,7 @@ async function downloadShard(
   options: { signal?: AbortSignal; onProgress?: (p: ShardProgress) => void } = {}
 ): Promise<ArrayBuffer> {
   const { signal, onProgress } = options;
+  const startTime = performance.now();
 
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) {
@@ -386,6 +387,11 @@ async function downloadShard(
     buffer.set(chunk, offset);
     offset += chunk.length;
   }
+
+  const elapsed = (performance.now() - startTime) / 1000;
+  const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
+  const speedStr = formatBytes(speed) + '/s';
+  console.log(`[Downloader] Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
 
   return buffer.buffer;
 }

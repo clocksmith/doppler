@@ -1780,6 +1780,10 @@ async function main(): Promise<void> {
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
       if (opts.kernel) debugParams.set('kernel', opts.kernel);
+      if (opts.trace) debugParams.set('trace', opts.trace);  // Add trace param (defaults to 'quick')
+      if (opts.traceLayers && opts.traceLayers.length > 0) {
+        debugParams.set('debugLayers', opts.traceLayers.join(','));
+      }
       appendKernelOverrideParams(debugParams, opts);
 
       const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1&autorun=1`;
