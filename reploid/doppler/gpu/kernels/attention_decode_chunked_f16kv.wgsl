@@ -69,7 +69,7 @@ fn main(
 
     // Phase 1: Compute attention scores (Q @ K^T) in parallel
     // Each thread computes partial dot product for its dimension
-    for (var kPos: u32 = 0u; k_pos < kv_len; kPos++) {
+    for (var k_pos: u32 = 0u; k_pos < kv_len; k_pos++) {
         var k_val: f32 = 0.0;
         if (valid) {
             let k_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
@@ -96,7 +96,7 @@ fn main(
     // Phase 2: Find max score for numerical stability
     if (tid == 0u) {
         var max_score: f32 = -3.402823e+38;
-        for (var k: u32 = 0u; k < kvLen; k++) {
+        for (var k: u32 = 0u; k < kv_len; k++) {
             max_score = max(max_score, shared_scores[k]);
         }
         shared_max = max_score;
@@ -108,7 +108,7 @@ fn main(
     // Phase 3: Compute softmax weights and accumulate V
     if (tid == 0u) {
         var sum_exp: f32 = 0.0;
-        for (var k: u32 = 0u; k < kvLen; k++) {
+        for (var k: u32 = 0u; k < kv_len; k++) {
             let w = exp(shared_scores[k] - max_score);
             shared_scores[k] = w;  // Store weight for V accumulation
             sum_exp += w;
@@ -124,7 +124,7 @@ fn main(
     // Phase 4: Weighted sum of V (parallel across dimensions)
     if (valid) {
         var acc: f32 = 0.0;
-        for (var kPos: u32 = 0u; k_pos < kv_len; kPos++) {
+        for (var k_pos: u32 = 0u; k_pos < kv_len; k_pos++) {
             let v_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
             let v_val = f32(V[v_offset]);
             acc += shared_scores[k_pos] * v_val;

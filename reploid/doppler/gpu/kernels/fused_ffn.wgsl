@@ -103,9 +103,9 @@ fn main(
     var up_sum: f32 = 0.0;
 
     // Each thread processes a portion of the hidden dimension
-    let elements_per_thread = (hiddenSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let elements_per_thread = (hidden_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
     let start_idx = tid * elements_per_thread;
-    let end_idx = min(start_idx + elements_per_thread, hiddenSize);
+    let end_idx = min(start_idx + elements_per_thread, hidden_size);
 
     // Weight offsets for this output element
     let gate_base = out_idx * hidden_size;
@@ -173,9 +173,9 @@ fn main(
 }
 
 // Optimized variant: Multiple outputs per workgroup
-// For better GPU utilization when intermediateSize is small
-const OUTPUTS_PER_WG: u32 = 4u;
-const THREADS_PER_OUTPUT: u32 = 64u;
+// For better GPU utilization when intermediate_size is small
+override OUTPUTS_PER_WG: u32 = 4u;
+override THREADS_PER_OUTPUT: u32 = 64u;
 
 var<workgroup> multi_sg_sums: array<f32, 32>;  // 4 outputs * 4 subgroups * 2 (gate+up)
 
@@ -199,7 +199,7 @@ fn main_multi(
     }
 
     // Load input (first 64 threads load for all outputs)
-    if (tid < min(256u, hiddenSize)) {
+    if (tid < min(256u, hidden_size)) {
         shared_input[tid] = input[tid];
     }
     workgroupBarrier();

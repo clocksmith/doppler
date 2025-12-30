@@ -84,7 +84,7 @@ fn main(
         // Compute weight sum for normalization
         var weight_sum: f32 = 0.0;
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            weight_sum = weightSum + shared_probs[k];
+            weight_sum = weight_sum + shared_probs[k];
         }
 
         // Write output indices and weights
@@ -112,45 +112,45 @@ fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
     let base_offset = token_idx * numExperts;
 
     // Find top 2 in a single pass
-    var top1Idx: u32 = 0u;
-    var top1Val: f32 = probs[baseOffset];
-    var top2Idx: u32 = 1u;
-    var top2Val: f32 = probs[base_offset + 1u];
+    var top1_idx: u32 = 0u;
+    var top1_val: f32 = probs[baseOffset];
+    var top2_idx: u32 = 1u;
+    var top2_val: f32 = probs[base_offset + 1u];
 
     // Ensure top1 >= top2
-    if (top2Val > top1Val) {
-        let tmp_idx = top1Idx;
-        let tmpVal = top1Val;
-        top1Idx = top2Idx;
-        top1Val = top2Val;
-        top2Idx = tmp_idx;
-        top2Val = tmpVal;
+    if (top2_val > top1_val) {
+        let tmp_idx = top1_idx;
+        let tmp_val = top1_val;
+        top1_idx = top2_idx;
+        top1_val = top2_val;
+        top2_idx = tmp_idx;
+        top2_val = tmp_val;
     }
 
     // Scan remaining experts
     for (var i: u32 = 2u; i < num_experts; i = i + 1u) {
         let val = probs[base_offset + i];
-        if (val > top1Val) {
-            top2Idx = top1Idx;
-            top2Val = top1Val;
-            top1Idx = i;
-            top1Val = val;
-        } else if (val > top2Val) {
-            top2Idx = i;
-            top2Val = val;
+        if (val > top1_val) {
+            top2_idx = top1_idx;
+            top2_val = top1_val;
+            top1_idx = i;
+            top1_val = val;
+        } else if (val > top2_val) {
+            top2_idx = i;
+            top2_val = val;
         }
     }
 
     // Renormalize weights
-    let weight_sum = top1Val + top2Val;
+    let weight_sum = top1_val + top2_val;
     let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
 
     // Write output
     let out_base = token_idx * 2u;
-    out_indices[out_base] = top1Idx;
-    out_indices[out_base + 1u] = top2Idx;
-    out_weights[out_base] = top1Val * inv_sum;
-    out_weights[out_base + 1u] = top2Val * inv_sum;
+    out_indices[out_base] = top1_idx;
+    out_indices[out_base + 1u] = top2_idx;
+    out_weights[out_base] = top1_val * inv_sum;
+    out_weights[out_base + 1u] = top2_val * inv_sum;
 }
 
 // Fused softmax + top-k for efficiency
@@ -188,17 +188,17 @@ fn softmax_topk(
         }
 
         // Compute exp and sum
-        var expSum: f32 = 0.0;
+        var exp_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_experts; i = i + 1u) {
-            let expVal = exp(shared_probs[i] - maxVal);
-            shared_probs[i] = expVal;
-            expSum = expSum + expVal;
+            let exp_val = exp(shared_probs[i] - maxVal);
+            shared_probs[i] = exp_val;
+            exp_sum = exp_sum + exp_val;
         }
 
         // Normalize to get probabilities
-        let invExpSum = 1.0 / expSum;
+        let inv_exp_sum = 1.0 / exp_sum;
         for (var i: u32 = 0u; i < num_experts; i = i + 1u) {
-            shared_probs[i] = shared_probs[i] * invExpSum;
+            shared_probs[i] = shared_probs[i] * inv_exp_sum;
         }
 
         // Partial selection sort for top-k
@@ -226,7 +226,7 @@ fn softmax_topk(
         // Renormalize top-k weights
         var weight_sum: f32 = 0.0;
         for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            weight_sum = weightSum + shared_probs[k];
+            weight_sum = weight_sum + shared_probs[k];
         }
 
         let out_base = token_idx * topK;

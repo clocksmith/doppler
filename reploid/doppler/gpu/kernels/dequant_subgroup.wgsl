@@ -17,6 +17,9 @@ enable subgroups;
 const QK_K: u32 = 256u;
 const SUBBLOCK_SIZE: u32 = 32u;
 
+// Tunable workgroup sizes
+override WORKGROUP_SIZE: u32 = 64u;
+
 // Uniforms
 struct Uniforms {
     num_blocks: u32,    // Total number of Q4_K blocks
@@ -37,7 +40,7 @@ struct Q4KBlock {
     qs: array<u32, 32>,    // 128 bytes of quantized values
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> quantized: array<Q4KBlock>;
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
@@ -112,7 +115,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
     }
 }
 
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
@@ -123,8 +126,8 @@ fn main(
 
     // Use block 0 for out-of-bounds threads to maintain uniform control flow
     // (required for subgroup operations)
-    let safe_block_idx = select(block_idx, 0u, block_idx >= uniforms.num_blocks);
-    let in_bounds = block_idx < uniforms.num_blocks;
+    let safe_block_idx = select(block_idx, 0u, block_idx >= u.num_blocks);
+    let in_bounds = block_idx < u.num_blocks;
 
     let block = quantized[safe_block_idx];
 
@@ -160,14 +163,14 @@ fn main(
 
     // Write output only for in-bounds threads
     if (in_bounds) {
-        let out_idx = uniforms.output_offset + block_idx * QK_K + elem_idx;
+        let out_idx = u.output_offset + block_idx * QK_K + elem_idx;
         output[out_idx] = dequant;
     }
 }
 
 // Entry point for processing multiple elements per thread (4x unroll)
 // Supports 2D dispatch for large tensors (>65535 workgroups)
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
@@ -180,8 +183,8 @@ fn main_vec4(
 
     // Use block 0 for out-of-bounds threads to maintain uniform control flow
     // (required for subgroup operations)
-    let safe_block_idx = select(block_idx, 0u, block_idx >= uniforms.num_blocks);
-    let in_bounds = block_idx < uniforms.num_blocks;
+    let safe_block_idx = select(block_idx, 0u, block_idx >= u.num_blocks);
+    let in_bounds = block_idx < u.num_blocks;
 
     let block = quantized[safe_block_idx];
     let d = unpack_f16_lo(block.d);
@@ -207,7 +210,7 @@ fn main_vec4(
     // Process 4 elements (only write if in bounds)
     // llama.cpp formula: dequant = d * scale * q - dmin * min
     if (in_bounds) {
-        let out_base = uniforms.output_offset + block_idx * QK_K + base_elem;
+        let out_base = u.output_offset + block_idx * QK_K + base_elem;
 
         for (var i: u32 = 0u; i < 4u; i = i + 1u) {
             let q = get_q4(block.qs, base_elem + i);

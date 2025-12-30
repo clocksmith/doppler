@@ -43,14 +43,14 @@ struct Uniforms {
 var<workgroup> shared_K: array<f32, BLOCK_SIZE * HEAD_TILE>;
 var<workgroup> shared_V: array<f32, BLOCK_SIZE * HEAD_TILE>;
 
-fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
-    let headsPerKV = u.num_heads / u.num_kv_heads;
-    return queryHeadIdx / headsPerKV;
+fn get_kv_head_idx(query_head_idx: u32) -> u32 {
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
+    return query_head_idx / heads_per_kv;
 }
 
-fn isMasked(queryPos: u32, keyPos: u32) -> bool {
+fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     if (u.is_causal == 0u) { return false; }
-    return keyPos > (queryPos + u.start_pos);
+    return key_pos > (query_pos + u.start_pos);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

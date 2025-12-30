@@ -192,7 +192,7 @@ fn main(
             out_accum *= rescale;
 
             // Add contribution from this chunk
-            for (var k = 0u; k < min(CHUNK_SIZE, kvLen - chunk * CHUNK_SIZE); k++) {
+            for (var k = 0u; k < min(CHUNK_SIZE, kv_len - chunk * CHUNK_SIZE); k++) {
                 let k_pos_inner = chunk * CHUNK_SIZE + k;
                 let v_offset = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
                 let attn_weight = shared_scores[k];
@@ -399,7 +399,7 @@ fn main_f16kv(
         // Accumulate V (F16 cache)
         if (tid < head_dim) {
             out_accum *= rescale;
-            for (var k = 0u; k < min(WORKGROUP_SIZE, kvLen - k_start); k++) {
+            for (var k = 0u; k < min(WORKGROUP_SIZE, kv_len - k_start); k++) {
                 let k_pos_inner = k_start + k;
                 let v_base = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
 
