@@ -43,6 +43,7 @@ import type { ExpertWeights } from './weights.js';
 import { type KernelHints } from '../storage/rdrr-format.js';
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
 import { formatBytes } from '../storage/quota.js';
+import { log, trace, warn } from './log.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -268,7 +269,7 @@ export class DopplerLoader {
   setCustomShardLoader(loadShardFn: CustomShardLoader, options: CustomShardLoaderOptions = {}): void {
     this.customLoadShard = loadShardFn;
     this.verifyCustomShards = options.verify !== false;
-    console.log('[DopplerLoader] Custom shard loader configured');
+    log('Custom shard loader configured');
   }
 
   /**
@@ -283,7 +284,7 @@ export class DopplerLoader {
       // Refresh LRU order
       this.shardCache.delete(shardIndex);
       this.shardCache.set(shardIndex, cached);
-      console.log(`[DopplerLoader] Shard ${shardIndex}: RAM cache${sizeStr ? ` (${sizeStr})` : ''}`);
+      log(`Shard ${shardIndex}: RAM${sizeStr ? ` (${sizeStr})` : ''}`);
       return cached;
     }
 
@@ -323,7 +324,7 @@ export class DopplerLoader {
       }
 
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-      console.log(`[DopplerLoader] Shard ${shardIndex}: custom${sizeStr ? ` (${sizeStr}, ${elapsed}s)` : ''}`);
+      log(`Shard ${shardIndex}: custom (${sizeStr}, ${elapsed}s)`);
       return arrayBuffer;
     }
 
@@ -337,7 +338,7 @@ export class DopplerLoader {
       }
     }
     const opfsElapsed = ((performance.now() - opfsStart) / 1000).toFixed(2);
-    console.log(`[DopplerLoader] Shard ${shardIndex}: OPFS${sizeStr ? ` (${sizeStr}, ${opfsElapsed}s)` : ''}`);
+    log(`Shard ${shardIndex}: OPFS (${sizeStr}, ${opfsElapsed}s)`);
     return data;
   }
 
@@ -345,7 +346,7 @@ export class DopplerLoader {
    * Initialize loader and detect capabilities
    */
   async init(): Promise<void> {
-    console.log('[DopplerLoader] Initializing...');
+    log('Initializing...');
 
     // Detect memory capabilities
     this.memoryCapabilities = await getMemoryCapabilities();
@@ -369,12 +370,13 @@ export class DopplerLoader {
     // Initialize OPFS
     await initOPFS();
 
-    console.log('[DopplerLoader] Initialized:', {
-      memory64: this.memoryCapabilities.hasMemory64,
-      unified: this.isUnifiedMemory,
-      f16: this.gpuCapabilities.hasF16,
-      subgroups: this.gpuCapabilities.hasSubgroups,
-    });
+    const caps = [
+      this.gpuCapabilities.hasF16 ? 'f16' : null,
+      this.gpuCapabilities.hasSubgroups ? 'subgroups' : null,
+      this.memoryCapabilities.hasMemory64 ? 'mem64' : null,
+      this.isUnifiedMemory ? 'unified' : null,
+    ].filter(Boolean).join(', ');
+    log(`Initialized (${caps})`);
   }
 
   /**
@@ -386,7 +388,7 @@ export class DopplerLoader {
     this.isMoE = manifest.moeConfig != null || (config?.num_local_experts ?? 0) > 1;
     this._configureShardCache();
     this._configureQ4KStrategy();
-    console.log('[DopplerLoader] Manifest set externally');
+    trace('Manifest set externally');
   }
 
   /**
@@ -472,12 +474,7 @@ export class DopplerLoader {
     this.useFusedQ4K = useFused;
 
     if (q4kHint || q4kLayout) {
-      console.log('[DopplerLoader] Q4K strategy:', {
-        fused: this.useFusedQ4K,
-        q4kMatmul: q4kHint ?? 'unset',
-        q4kLayout: q4kLayout ?? 'unset',
-        hintSource,
-      });
+      trace(`Q4K: fused=${this.useFusedQ4K}, matmul=${q4kHint ?? 'unset'}, layout=${q4kLayout ?? 'unset'}`);
     }
   }
 
@@ -513,7 +510,7 @@ export class DopplerLoader {
       this.manifest = preservedManifest;
     }
 
-    console.log(`[DopplerLoader] Loading model: ${modelId}`);
+    log(`Loading: ${modelId}`);
     this.modelId = modelId;
 
     // If using custom shard loader (bridge), manifest should be set externally
@@ -540,10 +537,7 @@ export class DopplerLoader {
 
     // Enforce dense/MoE gating based on hardware
     if (!this.isMoE && !this.isUnifiedMemory) {
-      console.warn(
-        '[DopplerLoader] Dense model on discrete GPU - performance will be severely limited. ' +
-        'Consider using an MoE model for better performance.'
-      );
+      warn('Dense model on discrete GPU - performance limited. Consider MoE model.');
     }
 
     // Verify integrity if requested (only for OPFS path)
@@ -652,7 +646,7 @@ export class DopplerLoader {
                       config?.n_layer ||
                       (this.manifest.architecture as { numLayers?: number } | undefined)?.numLayers ||
                       32;
-    console.log(`[DopplerLoader] Loading ${numLayers} layers`);
+    log(`Layers: 0-${numLayers - 1}`);
 
     inLayerPhase = true;  // Suppress shard progress during layer loading
     const layersStartTime = performance.now();
@@ -661,7 +655,7 @@ export class DopplerLoader {
       const layerStart = performance.now();
       await this._loadLayer(l, onProgress);
       const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
-      console.log(`[DopplerLoader] Layer ${l}/${numLayers - 1}: ${layerElapsed}s → GPU`);
+      log(`  Layer ${l}: ${layerElapsed}s`);
 
       if (onProgress) {
         // Layers phase: progress from 80% to 85% based on layer count
@@ -683,7 +677,7 @@ export class DopplerLoader {
     }
 
     const layersTotalTime = ((performance.now() - layersStartTime) / 1000).toFixed(2);
-    console.log(`[DopplerLoader] All ${numLayers} layers loaded in ${layersTotalTime}s`);
+    log(`Layers: ${numLayers} complete (${layersTotalTime}s)`);
 
     // Load final norm and LM head
     reportProgress('gpu_transfer', 0.85, 'Loading final weights...');
@@ -694,7 +688,9 @@ export class DopplerLoader {
     }
 
     this.isLoaded = true;
-    console.log(`[DopplerLoader] Model loaded: ${modelId}`);
+    const totalTime = ((Date.now() - loadStartTime) / 1000).toFixed(2);
+    const avgSpeed = formatBytes(bytesLoaded / (Date.now() - loadStartTime) * 1000);
+    log(`Complete: ${formatBytes(bytesLoaded)} in ${totalTime}s (${avgSpeed}/s)`);
 
     return (this.manifest.config as ModelConfig) || {};
   }
@@ -706,7 +702,7 @@ export class DopplerLoader {
     this.tensorLocations.clear();
 
     if (!this.manifest?.tensors) {
-      console.warn('[DopplerLoader] No tensor locations in manifest');
+      warn('No tensor locations in manifest');
       return;
     }
 
