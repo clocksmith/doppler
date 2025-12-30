@@ -40,39 +40,39 @@ var<workgroup> row_max: array<f32, 256>;
 var<workgroup> row_sum: array<f32, 256>;
 
 // Get KV head index for grouped query attention
-fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
+fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     // GQA: multiple query heads share one KV head
-    let headsPerKV = u.num_heads / u.num_kv_heads;
-    return queryHeadIdx / headsPerKV;
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
+    return query_head_idx / heads_per_kv;
 }
 
 // Check if position should be masked (causal attention)
-fn isMasked(queryPos: u32, keyPos: u32) -> bool {
+fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     if (u.is_causal == 0u) {
         return false;
     }
     // For causal attention, query can only attend to keys at same or earlier positions
-    return keyPos > (queryPos + u.start_pos);
+    return key_pos > (query_pos + u.start_pos);
 }
 
 // Main attention kernel - one workgroup per (query_block, head)
 // Workgroups are dispatched linearly as: numQueryBlocks * numHeads.
 // headIdx and queryBlockIdx are derived from workgroup_id.x.
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let linear = wg_id.x;
-    let headIdx = linear % u.num_heads;
-    let queryBlockIdx = linear / u.num_heads;
-    let threadIdx = local_id.x;
+    let head_idx = linear % u.num_heads;
+    let query_block_idx = linear / u.num_heads;
+    let thread_idx = local_id.x;
 
-    let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = u.head_dim;
-    let seqLen = u.seq_len;
-    let queryLen = u.query_len;
+    let kv_head_idx = get_kv_head_idx(head_idx);
+    let head_dim = u.head_dim;
+    let seq_len = u.seq_len;
+    let query_len = u.query_len;
     let scale = u.scale;
 
     // Query position this thread handles
@@ -101,8 +101,8 @@ fn main(
     // Process key-value blocks
     let numKVBlocks = (seqLen + BLOCK_SIZE - 1u) / BLOCK_SIZE;
 
-    for (var kvBlock: u32 = 0u; kvBlock < numKVBlocks; kvBlock = kvBlock + 1u) {
-        let kvBlockStart = kvBlock * BLOCK_SIZE;
+    for (var kv_block: u32 = 0u; kv_block < num_kv_blocks; kv_block = kv_block + 1u) {
+        let kv_block_start = kv_block * BLOCK_SIZE;
 
         // Collaborative load of K block into shared memory
         let kLoadIdx = kvBlockStart + threadIdx;
@@ -142,7 +142,7 @@ fn main(
                 if (keyPos >= seqLen) { continue; }
 
                 // Check causal mask
-                if (isMasked(queryPos, keyPos)) { continue; }
+                if (is_masked(query_pos, key_pos)) { continue; }
 
                 // Compute Q @ K^T for this position
                 var score: f32 = 0.0;
@@ -169,7 +169,7 @@ fn main(
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                 let keyPos = kvBlockStart + k;
                 if (keyPos >= seqLen) { continue; }
-                if (isMasked(queryPos, keyPos)) { continue; }
+                if (is_masked(query_pos, key_pos)) { continue; }
 
                 let score = shared_scores[threadIdx * BLOCK_SIZE + k];
                 let p = exp(score - m_new);
@@ -198,18 +198,18 @@ fn main(
 
 // Simplified single-query attention for decode step
 // More efficient when queryLen == 1
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(DECODE_WORKGROUP_SIZE, 1, 1)
 fn attention_decode(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let headIdx = wg_id.x;
-    let threadIdx = local_id.x;
+    let thread_idx = local_id.x;
 
-    let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = u.head_dim;
-    let seqLen = u.seq_len;
+    let kv_head_idx = get_kv_head_idx(head_idx);
+    let head_dim = u.head_dim;
+    let seq_len = u.seq_len;
     let scale = u.scale;
 
     // Each thread handles a subset of key positions

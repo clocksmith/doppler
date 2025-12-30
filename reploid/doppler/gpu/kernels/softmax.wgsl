@@ -35,31 +35,31 @@ fn main(
     let inner_size = u.inner_size;
     let temperature = u.temperature;
 
-    if (rowIdx >= u.outer_size) {
+    if (row_idx >= u.outer_size) {
         return;
     }
 
-    let baseOffset = rowIdx * innerSize;
-    let elementsPerThread = (innerSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let base_offset = row_idx * innerSize;
+    let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find maximum (for numerical stability)
     var local_max: f32 = -3.402823e+38;
 
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let val = input[baseOffset + idx] / temperature;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let val = input[base_offset + idx] / temperature;
             local_max = max(local_max, val);
         }
     }
 
-    shared_max[threadIdx] = local_max;
+    shared_max[thread_idx] = local_max;
     workgroupBarrier();
 
     // Parallel reduction for max
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_max[threadIdx] = max(shared_max[threadIdx], shared_max[threadIdx + stride]);
+        if (thread_idx < stride) {
+            shared_max[thread_idx] = max(shared_max[thread_idx], shared_max[thread_idx + stride]);
         }
         workgroupBarrier();
     }
@@ -69,22 +69,22 @@ fn main(
     // Pass 2: Compute exp(x - max) and sum
     var local_sum: f32 = 0.0;
 
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let val = input[baseOffset + idx] / temperature;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let val = input[base_offset + idx] / temperature;
             let exp_val = exp(val - global_max);
             local_sum = local_sum + exp_val;
         }
     }
 
-    shared_sum[threadIdx] = local_sum;
+    shared_sum[thread_idx] = local_sum;
     workgroupBarrier();
 
     // Parallel reduction for sum
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_sum[threadIdx] = shared_sum[threadIdx] + shared_sum[threadIdx + stride];
+        if (thread_idx < stride) {
+            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
         workgroupBarrier();
     }
@@ -95,12 +95,12 @@ fn main(
     workgroupBarrier();
 
     // Pass 3: Normalize and write output
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let val = input[baseOffset + idx] / temperature;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let val = input[base_offset + idx] / temperature;
             let exp_val = exp(val - global_max);
-            output[baseOffset + idx] = exp_val * inv_sum;
+            output[base_offset + idx] = exp_val * inv_sum;
         }
     }
 }
@@ -117,25 +117,25 @@ fn softmax_small(
     let inner_size = u.inner_size;
     let temperature = u.temperature;
 
-    if (rowIdx >= u.outer_size) {
+    if (row_idx >= u.outer_size) {
         return;
     }
 
-    let baseOffset = rowIdx * innerSize;
+    let base_offset = row_idx * innerSize;
 
     // Load and scale value
     var val: f32 = -3.402823e+38;
-    if (threadIdx < innerSize) {
-        val = input[baseOffset + threadIdx] / temperature;
+    if (thread_idx < inner_size) {
+        val = input[base_offset + thread_idx] / temperature;
     }
 
     // Find max
-    shared_max[threadIdx] = val;
+    shared_max[thread_idx] = val;
     workgroupBarrier();
 
     for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_max[threadIdx] = max(shared_max[threadIdx], shared_max[threadIdx + stride]);
+        if (thread_idx < stride) {
+            shared_max[thread_idx] = max(shared_max[thread_idx], shared_max[thread_idx + stride]);
         }
         workgroupBarrier();
     }
@@ -144,16 +144,16 @@ fn softmax_small(
 
     // Compute exp and sum
     var exp_val: f32 = 0.0;
-    if (threadIdx < innerSize) {
+    if (thread_idx < inner_size) {
         exp_val = exp(val - global_max);
     }
 
-    shared_sum[threadIdx] = exp_val;
+    shared_sum[thread_idx] = exp_val;
     workgroupBarrier();
 
     for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_sum[threadIdx] = shared_sum[threadIdx] + shared_sum[threadIdx + stride];
+        if (thread_idx < stride) {
+            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
         workgroupBarrier();
     }
@@ -161,8 +161,8 @@ fn softmax_small(
     let global_sum = shared_sum[0];
 
     // Write normalized output
-    if (threadIdx < innerSize) {
-        output[baseOffset + threadIdx] = exp_val / global_sum;
+    if (thread_idx < inner_size) {
+        output[base_offset + thread_idx] = exp_val / global_sum;
     }
 }
 
@@ -178,21 +178,21 @@ fn softmax_online(
     let inner_size = u.inner_size;
     let temperature = u.temperature;
 
-    if (rowIdx >= u.outer_size) {
+    if (row_idx >= u.outer_size) {
         return;
     }
 
-    let baseOffset = rowIdx * innerSize;
-    let elementsPerThread = (innerSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let base_offset = row_idx * innerSize;
+    let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Online algorithm: track max and sum simultaneously
     var m: f32 = -3.402823e+38;  // Running max
     var d: f32 = 0.0;            // Running sum of exp(x - m)
 
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let x = input[baseOffset + idx] / temperature;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let x = input[base_offset + idx] / temperature;
 
             // Update running max and rescale sum
             let m_new = max(m, x);
@@ -202,23 +202,23 @@ fn softmax_online(
     }
 
     // Store for reduction
-    shared_max[threadIdx] = m;
-    shared_sum[threadIdx] = d;
+    shared_max[thread_idx] = m;
+    shared_sum[thread_idx] = d;
     workgroupBarrier();
 
     // Pairwise reduction combining (max, sum) pairs
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            let m1 = shared_max[threadIdx];
-            let d1 = shared_sum[threadIdx];
-            let m2 = shared_max[threadIdx + stride];
-            let d2 = shared_sum[threadIdx + stride];
+        if (thread_idx < stride) {
+            let m1 = shared_max[thread_idx];
+            let d1 = shared_sum[thread_idx];
+            let m2 = shared_max[thread_idx + stride];
+            let d2 = shared_sum[thread_idx + stride];
 
             let m_new = max(m1, m2);
             let d_new = d1 * exp(m1 - m_new) + d2 * exp(m2 - m_new);
 
-            shared_max[threadIdx] = m_new;
-            shared_sum[threadIdx] = d_new;
+            shared_max[thread_idx] = m_new;
+            shared_sum[thread_idx] = d_new;
         }
         workgroupBarrier();
     }
@@ -230,11 +230,11 @@ fn softmax_online(
     workgroupBarrier();
 
     // Write normalized output
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let x = input[baseOffset + idx] / temperature;
-            output[baseOffset + idx] = exp(x - global_max) * inv_sum;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let x = input[base_offset + idx] / temperature;
+            output[base_offset + idx] = exp(x - global_max) * inv_sum;
         }
     }
 }
@@ -250,28 +250,28 @@ fn softmax_inplace(
     let inner_size = u.inner_size;
     let temperature = u.temperature;
 
-    if (rowIdx >= u.outer_size) {
+    if (row_idx >= u.outer_size) {
         return;
     }
 
-    let baseOffset = rowIdx * innerSize;
-    let elementsPerThread = (innerSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let base_offset = row_idx * innerSize;
+    let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max
     var local_max: f32 = -3.402823e+38;
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            local_max = max(local_max, output[baseOffset + idx] / temperature);
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            local_max = max(local_max, output[base_offset + idx] / temperature);
         }
     }
 
-    shared_max[threadIdx] = local_max;
+    shared_max[thread_idx] = local_max;
     workgroupBarrier();
 
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_max[threadIdx] = max(shared_max[threadIdx], shared_max[threadIdx + stride]);
+        if (thread_idx < stride) {
+            shared_max[thread_idx] = max(shared_max[thread_idx], shared_max[thread_idx + stride]);
         }
         workgroupBarrier();
     }
@@ -279,21 +279,21 @@ fn softmax_inplace(
 
     // Pass 2: exp and sum
     var local_sum: f32 = 0.0;
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let exp_val = exp(output[baseOffset + idx] / temperature - global_max);
-            output[baseOffset + idx] = exp_val;  // Store intermediate
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let exp_val = exp(output[base_offset + idx] / temperature - global_max);
+            output[base_offset + idx] = exp_val;  // Store intermediate
             local_sum = local_sum + exp_val;
         }
     }
 
-    shared_sum[threadIdx] = local_sum;
+    shared_sum[thread_idx] = local_sum;
     workgroupBarrier();
 
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_sum[threadIdx] = shared_sum[threadIdx] + shared_sum[threadIdx + stride];
+        if (thread_idx < stride) {
+            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
         workgroupBarrier();
     }
@@ -302,10 +302,10 @@ fn softmax_inplace(
     workgroupBarrier();
 
     // Pass 3: Normalize
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            output[baseOffset + idx] = output[baseOffset + idx] * inv_sum;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            output[base_offset + idx] = output[base_offset + idx] * inv_sum;
         }
     }
 }
@@ -321,28 +321,28 @@ fn log_softmax(
     let inner_size = u.inner_size;
     let temperature = u.temperature;
 
-    if (rowIdx >= u.outer_size) {
+    if (row_idx >= u.outer_size) {
         return;
     }
 
-    let baseOffset = rowIdx * innerSize;
-    let elementsPerThread = (innerSize + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    let base_offset = row_idx * innerSize;
+    let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max
     var local_max: f32 = -3.402823e+38;
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            local_max = max(local_max, input[baseOffset + idx] / temperature);
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            local_max = max(local_max, input[base_offset + idx] / temperature);
         }
     }
 
-    shared_max[threadIdx] = local_max;
+    shared_max[thread_idx] = local_max;
     workgroupBarrier();
 
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_max[threadIdx] = max(shared_max[threadIdx], shared_max[threadIdx + stride]);
+        if (thread_idx < stride) {
+            shared_max[thread_idx] = max(shared_max[thread_idx], shared_max[thread_idx + stride]);
         }
         workgroupBarrier();
     }
@@ -350,19 +350,19 @@ fn log_softmax(
 
     // Pass 2: Sum of exp
     var local_sum: f32 = 0.0;
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            local_sum = local_sum + exp(input[baseOffset + idx] / temperature - global_max);
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            local_sum = local_sum + exp(input[base_offset + idx] / temperature - global_max);
         }
     }
 
-    shared_sum[threadIdx] = local_sum;
+    shared_sum[thread_idx] = local_sum;
     workgroupBarrier();
 
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (threadIdx < stride) {
-            shared_sum[threadIdx] = shared_sum[threadIdx] + shared_sum[threadIdx + stride];
+        if (thread_idx < stride) {
+            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
         workgroupBarrier();
     }
@@ -371,11 +371,11 @@ fn log_softmax(
     workgroupBarrier();
 
     // Write log softmax: log(exp(x - max) / sum) = (x - max) - log(sum)
-    for (var i: u32 = 0u; i < elementsPerThread; i = i + 1u) {
-        let idx = threadIdx * elementsPerThread + i;
-        if (idx < innerSize) {
-            let x = input[baseOffset + idx] / temperature;
-            output[baseOffset + idx] = (x - global_max) - log_sum;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < inner_size) {
+            let x = input[base_offset + idx] / temperature;
+            output[base_offset + idx] = (x - global_max) - log_sum;
         }
     }
 }

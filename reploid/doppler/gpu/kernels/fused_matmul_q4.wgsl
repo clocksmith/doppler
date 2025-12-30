@@ -19,14 +19,17 @@ const QK_K: u32 = 256u;           // Elements per super-block
 const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
-const WG_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
-    M: u32,           // Always 1 for GEMV
-    N: u32,           // Output dimension
-    K: u32,           // Inner dimension (must be multiple of 256 for Q4_K)
+    M: u32,                   // Always 1 for GEMV
+    N: u32,                   // Output dimension
+    K: u32,                   // Inner dimension (must be multiple of 256 for Q4_K)
     alpha: f32,
     num_blocks_per_row: u32,  // K / 256
+    _pad0: u32,               // 16-byte alignment padding
+    _pad1: u32,
+    _pad2: u32,
 }
 
 // Q4_K block structure (144 bytes)
@@ -37,7 +40,7 @@ struct Q4KBlock {
     qs: array<u32, 32>,   // 128 bytes of 4-bit quantized values
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
@@ -99,7 +102,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
     }
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -110,21 +113,21 @@ fn main(
     let local_id = lid.x;
 
     // Track validity - NO early return to maintain uniform control flow for subgroupAdd
-    let is_valid = col < uniforms.N;
+    let is_valid = col < u.N;
 
     var partial_sum: f32 = 0.0;
 
     // Only do work if this column is valid
     if (is_valid) {
         // Each thread processes some Q4_K blocks
-        let num_blocks = uniforms.num_blocks_per_row;
-        let blocks_per_thread = (num_blocks + WG_SIZE - 1u) / WG_SIZE;
+        let num_blocks = u.num_blocks_per_row;
+        let blocks_per_thread = (num_blocks + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
         let block_start = local_id * blocks_per_thread;
         let block_end = min(block_start + blocks_per_thread, num_blocks);
 
         // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         for (var b: u32 = block_start; b < block_end; b = b + 1u) {
-        let block = B_q4k[b * uniforms.N + col];
+        let block = B_q4k[b * u.N + col];
 
         // Extract super-block scale and min
         let d = unpack_f16_lo(block.d_dmin);
@@ -184,7 +187,7 @@ fn main(
 
     // Inter-subgroup reduction via shared memory
     let subgroup_id = local_id / sg_size;
-    let num_subgroups = (WG_SIZE + sg_size - 1u) / sg_size;
+    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
 
     if (sg_id == 0u) {
         wg_sums[subgroup_id] = sg_sum;
@@ -198,7 +201,7 @@ fn main(
         for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
             final_sum = final_sum + wg_sums[i];
         }
-        C[col] = final_sum * uniforms.alpha;
+        C[col] = final_sum * u.alpha;
     }
 }
 
@@ -215,13 +218,13 @@ fn main(
 // - Much better GPU occupancy and throughput
 //
 // Workgroup layout: 256 threads = 8 threads per column × 32 columns
-const COLS_PER_WG: u32 = 32u;
-const THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
+override COLS_PER_WG: u32 = 32u;
+override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
 
 // Shared memory for reduction: 32 columns × 8 max subgroups = 256
 var<workgroup> multicol_sums: array<f32, 256>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -239,17 +242,17 @@ fn main_multicol(
     let col = wg_id.x * COLS_PER_WG + col_in_wg;
 
     // Track validity
-    let is_valid = col < uniforms.N;
+    let is_valid = col < u.N;
 
     var partial_sum: f32 = 0.0;
 
     if (is_valid) {
-        let num_blocks = uniforms.num_blocks_per_row;
+        let num_blocks = u.num_blocks_per_row;
 
         // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         // Each of the 8 threads processes every 8th block
         for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
-            let block = B_q4k[b * uniforms.N + col];
+            let block = B_q4k[b * u.N + col];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
@@ -301,7 +304,7 @@ fn main_multicol(
         for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
             final_sum = final_sum + multicol_sums[base + i];
         }
-        C[col] = final_sum * uniforms.alpha;
+        C[col] = final_sum * u.alpha;
     }
 }
 
@@ -313,8 +316,8 @@ fn main_multicol(
 // IMPORTANT: Previous version used 16 threads per column which caused subgroup
 // mixing when sg_size=32 (two columns in same subgroup). This version uses
 // 64 threads per column to ensure correct subgroup reduction.
-const TILE_M: u32 = 4u;
-const THREADS_PER_COL: u32 = 64u;
+override TILE_M: u32 = 4u;
+override THREADS_PER_COL: u32 = 64u;
 const MAX_SUBGROUPS_PER_ROW: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
 
 // Shared memory for per-row subgroup reduction: 4 rows × 16 max subgroups = 64
@@ -332,18 +335,18 @@ fn main_batched(
     let col = wg_id.x;  // One column per workgroup X (no more /16 mixing)
 
     // Track validity - NO early return to maintain uniform control flow for subgroupAdd
-    let is_valid = row < uniforms.M && col < uniforms.N;
+    let is_valid = row < u.M && col < u.N;
 
     var partial_sum: f32 = 0.0;
 
     // Only do work if this output cell is valid
     if (is_valid) {
-        let num_blocks = uniforms.num_blocks_per_row;
+        let num_blocks = u.num_blocks_per_row;
 
         // B_q4k layout: column-major [K/256, N] - block b for column col is at b * N + col
         // Each thread processes every 64th block (instead of 16th)
         for (var b: u32 = local_id; b < num_blocks; b = b + THREADS_PER_COL) {
-            let block = B_q4k[b * uniforms.N + col];
+            let block = B_q4k[b * u.N + col];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
@@ -356,8 +359,8 @@ fn main_batched(
                 for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 1u) {
                     let elem = sb * SUBBLOCK_SIZE + i;
                     let k = k_base + elem;
-                    if (k < uniforms.K) {
-                        let a_val = A[row * uniforms.K + k];
+                    if (k < u.K) {
+                        let a_val = A[row * u.K + k];
                         let q = get_q4(block.qs, elem);
                         let w = scale * f32(q) - min_val;
                         partial_sum = partial_sum + a_val * w;
@@ -386,6 +389,6 @@ fn main_batched(
         for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
             final_sum = final_sum + batched_wg_sums[lid.y * MAX_SUBGROUPS_PER_ROW + i];
         }
-        C[row * uniforms.N + col] = final_sum * uniforms.alpha;
+        C[row * u.N + col] = final_sum * u.alpha;
     }
 }

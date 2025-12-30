@@ -3,12 +3,14 @@
  *
  * Computes: output = SiLU(gate + gate_bias) * (up + up_bias)
  *
- * input layout: [numTokens, 2 * dim] flattened, row-major
+ * input layout: [num_tokens, 2 * dim] flattened, row-major
  *   row = [gate[0..dim), up[0..dim)]
  * bias layout: [2 * dim]
  *   bias = [gate_bias[0..dim), up_bias[0..dim)]
- * output layout: [numTokens, dim]
+ * output layout: [num_tokens, dim]
  */
+
+override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     num_tokens: u32,
@@ -17,7 +19,7 @@ struct Uniforms {
     _pad1: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 @group(0) @binding(3) var<storage, read> bias: array<f32>;

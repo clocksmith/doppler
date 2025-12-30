@@ -22,6 +22,9 @@ const QH_OFFSET: u32 = 128u;    // 64 bytes
 const SCALES_OFFSET: u32 = 192u; // 16 bytes
 const D_OFFSET: u32 = 208u;     // 2 bytes
 
+// Tunable workgroup size
+override WORKGROUP_SIZE: u32 = 256u;
+
 struct Uniforms {
     num_blocks: u32,
     output_offset: u32,
@@ -29,7 +32,7 @@ struct Uniforms {
     _pad1: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> quantized: array<u32>;
 @group(0) @binding(2) var<storage, read_write> output: array<f16>;
 
@@ -66,16 +69,16 @@ fn unpack_f16(packed: u32) -> f32 {
     return unpack2x16float(packed).x;
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>
 ) {
     // Handle 2D dispatch for large block counts (> 65535)
-    let block_idx = workgroup_id.x + workgroup_id.y * uniforms.workgroups_x;
+    let block_idx = workgroup_id.x + workgroup_id.y * u.workgroups_x;
     let elem_idx = local_id.x;
 
-    if (block_idx >= uniforms.num_blocks) {
+    if (block_idx >= u.num_blocks) {
         return;
     }
 
@@ -132,6 +135,6 @@ fn main(
     // Dequantize: output = d * scale * q
     let dequant = d * scale * f32(q);
 
-    let out_idx = uniforms.output_offset + block_idx * QK_K + elem_idx;
+    let out_idx = u.output_offset + block_idx * QK_K + elem_idx;
     output[out_idx] = f16(dequant);
 }

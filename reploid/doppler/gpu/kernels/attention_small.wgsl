@@ -44,31 +44,31 @@ var<workgroup> shared_K: array<f32, BLOCK_SIZE * HEAD_TILE>;
 var<workgroup> shared_V: array<f32, BLOCK_SIZE * HEAD_TILE>;
 
 fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
-    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
+    let headsPerKV = u.num_heads / u.num_kv_heads;
     return queryHeadIdx / headsPerKV;
 }
 
 fn isMasked(queryPos: u32, keyPos: u32) -> bool {
-    if (uniforms.isCausal == 0u) { return false; }
-    return keyPos > (queryPos + uniforms.startPos);
+    if (u.is_causal == 0u) { return false; }
+    return keyPos > (queryPos + u.start_pos);
 }
 
-@compute @workgroup_size(32, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let linear = wg_id.x;
-    let numHeads = uniforms.numHeads;
+    let numHeads = u.num_heads;
     let headIdx = linear % numHeads;
     let queryBlockIdx = linear / numHeads;
     let threadIdx = local_id.x;
 
     let kvHeadIdx = getKVHeadIdx(headIdx);
-    let headDim = uniforms.headDim;
-    let seqLen = uniforms.seqLen;
-    let queryLen = uniforms.queryLen;
-    let scale = uniforms.scale;
+    let headDim = u.head_dim;
+    let seqLen = u.seq_len;
+    let queryLen = u.query_len;
+    let scale = u.scale;
 
     let queryPos = queryBlockIdx * BLOCK_SIZE + threadIdx;
     let validQuery = queryPos < queryLen;
@@ -106,7 +106,7 @@ fn main(
             // Load K slice for this block into shared memory.
             let keyPosLoad = kvBlockStart + threadIdx;
             if (keyPosLoad < seqLen) {
-                let k_offset = keyPosLoad * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + d0;
+                let k_offset = keyPosLoad * u.num_kv_heads * headDim + kvHeadIdx * headDim + d0;
                 for (var td: u32 = 0u; td < tileLen; td = td + 1u) {
                     shared_K[threadIdx * HEAD_TILE + td] = K[k_offset + td];
                 }
@@ -165,7 +165,7 @@ fn main(
 
             let keyPosLoad = kvBlockStart + threadIdx;
             if (keyPosLoad < seqLen) {
-                let v_offset = keyPosLoad * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + d0;
+                let v_offset = keyPosLoad * u.num_kv_heads * headDim + kvHeadIdx * headDim + d0;
                 for (var td: u32 = 0u; td < tileLen; td = td + 1u) {
                     shared_V[threadIdx * HEAD_TILE + td] = V[v_offset + td];
                 }

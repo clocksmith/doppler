@@ -10,15 +10,21 @@
 
 enable subgroups;
 
+// Workgroup size for decode
+override WORKGROUP_SIZE: u32 = 256u;
+
 struct Uniforms {
-    seqLen: u32,        // Always 1 for decode
-    kvLen: u32,         // Current KV cache length
-    numHeads: u32,      // Number of query heads
-    numKVHeads: u32,    // Number of KV heads (GQA support)
-    headDim: u32,       // Head dimension
+    seq_len: u32,        // Always 1 for decode
+    kv_len: u32,         // Current KV cache length
+    num_heads: u32,      // Number of query heads
+    num_kv_heads: u32,   // Number of KV heads (GQA support)
+    head_dim: u32,       // Head dimension
+    _pad0: u32,          // 16-byte alignment padding
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
 @group(0) @binding(2) var<storage, read> K_cache: array<f32>;
 @group(0) @binding(3) var<storage, read> V_cache: array<f32>;
@@ -30,7 +36,7 @@ var<workgroup> subgroup_sums: array<f32, 8>;  // For 8 subgroups of size 32
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
@@ -39,29 +45,29 @@ fn main(
 ) {
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
-    let headDim = uniforms.headDim;
-    let kvLen = uniforms.kvLen;
-    let valid_thread = tid < headDim;
+    let head_dim = u.head_dim;
+    let kv_len = u.kv_len;
+    let valid_thread = tid < head_dim;
     let subgroup_id = tid / subgroup_size;
-    let num_subgroups = (headDim + subgroup_size - 1u) / subgroup_size;
+    let num_subgroups = (head_dim + subgroup_size - 1u) / subgroup_size;
 
     // GQA: map query head to KV head
-    let kv_head_idx = head_idx / (uniforms.numHeads / uniforms.numKVHeads);
+    let kv_head_idx = head_idx / (u.num_heads / u.num_kv_heads);
 
     // Load Q value for this thread
     var q_val = 0.0;
     if (valid_thread) {
-        let q_offset = head_idx * headDim + tid;
+        let q_offset = head_idx * head_dim + tid;
         q_val = Q[q_offset];
     }
 
-    let scale = 1.0 / sqrt(f32(headDim));
+    let scale = 1.0 / sqrt(f32(head_dim));
 
     // Phase 1: Compute attention scores (Q @ K^T)
-    for (var k = 0u; k < kvLen; k++) {
+    for (var k = 0u; k < kv_len; k++) {
         var k_val = 0.0;
         if (valid_thread) {
-            let k_offset = k * uniforms.numKVHeads * headDim + kv_head_idx * headDim + tid;
+            let k_offset = k * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
             k_val = K_cache[k_offset];
         }
 
@@ -89,7 +95,7 @@ fn main(
     // Phase 2: Softmax - find max
     var max_score = -1e38;
     if (valid_thread) {
-        for (var k = tid; k < kvLen; k += headDim) {
+        for (var k = tid; k < kv_len; k += head_dim) {
             max_score = max(max_score, scores[k]);
         }
     }
@@ -115,7 +121,7 @@ fn main(
     // Compute exp and sum
     var sum_exp = 0.0;
     if (valid_thread) {
-        for (var k = tid; k < kvLen; k += headDim) {
+        for (var k = tid; k < kv_len; k += head_dim) {
             let exp_val = exp(scores[k] - global_max);
             scores[k] = exp_val;
             sum_exp += exp_val;
@@ -142,7 +148,7 @@ fn main(
 
     // Normalize
     if (valid_thread) {
-        for (var k = tid; k < kvLen; k += headDim) {
+        for (var k = tid; k < kv_len; k += head_dim) {
             scores[k] /= global_sum;
         }
     }
@@ -151,14 +157,14 @@ fn main(
     // Phase 3: Weighted sum (scores @ V)
     var output_val = 0.0;
     if (valid_thread) {
-        for (var k = 0u; k < kvLen; k++) {
-            let v_offset = k * uniforms.numKVHeads * headDim + kv_head_idx * headDim + tid;
+        for (var k = 0u; k < kv_len; k++) {
+            let v_offset = k * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
             let v_val = V_cache[v_offset];
             output_val += scores[k] * v_val;
         }
 
         // Write output
-        let out_offset = head_idx * headDim + tid;
+        let out_offset = head_idx * head_dim + tid;
         output[out_offset] = output_val;
     }
 }

@@ -8,8 +8,8 @@
 // 4. Loop unrolling for better ILP
 //
 // A is f32 (activations), B is f16 (weights), C is f32.
-// transposeB=0: B is [K, N] (GGUF/column-major), access B[k * N + col]
-// transposeB=1: B is [N, K] (SafeTensors/row-major), access B[col * K + k]
+// transpose_b=0: B is [K, N] (GGUF/column-major), access B[k * N + col]
+// transpose_b=1: B is [N, K] (SafeTensors/row-major), access B[col * K + k]
 //
 // IMPORTANT: This kernel maintains uniform control flow for subgroup operations.
 // All threads execute subgroupAdd - invalid threads contribute 0.
@@ -17,7 +17,7 @@
 enable f16;
 enable subgroups;
 
-const WG_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;
 const COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
 const THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
 const MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
@@ -27,11 +27,13 @@ struct Uniforms {
     N: u32,
     K: u32,
     alpha: f32,
-    transposeB: u32,
+    transpose_b: u32,
     workgroups_x: u32,  // For 2D dispatch when N > 65535*4
+    _pad0: u32,
+    _pad1: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
@@ -40,7 +42,7 @@ struct Uniforms {
 // Size: 16 subgroups * 4 columns = 64 (supports sg_size >= 4)
 var<workgroup> wg_sums: array<f32, 64>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
@@ -56,12 +58,12 @@ fn main(
 
     // Global output column (supports 2D dispatch for large N)
     // Linear workgroup ID = wg_id.y * workgroups_x + wg_id.x
-    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
     let base_col = wg_linear * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
     // Track validity - NO early return to maintain uniform control flow
-    let is_valid = col < uniforms.N;
+    let is_valid = col < u.N;
 
     // Each thread computes partial sum for its assigned k values
     var partial_sum: f32 = 0.0;
@@ -69,17 +71,17 @@ fn main(
     // Only do work if this column is valid
     if (is_valid) {
         // Process K in chunks, each thread handles K/64 elements
-        let k_per_thread = (uniforms.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
+        let k_per_thread = (u.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
         let k_start = thread_in_col * k_per_thread;
-        let k_end = min(k_start + k_per_thread, uniforms.K);
+        let k_end = min(k_start + k_per_thread, u.K);
 
         // Main loop - process 4 elements at a time when aligned
         var k = k_start;
         let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
 
-        if (uniforms.transposeB == 1u) {
+        if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
-            let b_row_offset = col * uniforms.K;
+            let b_row_offset = col * u.K;
 
             for (; k < k_aligned_end; k = k + 4u) {
                 let a0 = A[k];
@@ -106,16 +108,16 @@ fn main(
                 let a2 = A[k + 2u];
                 let a3 = A[k + 3u];
 
-                let b0 = f32(B[k * uniforms.N + col]);
-                let b1 = f32(B[(k + 1u) * uniforms.N + col]);
-                let b2 = f32(B[(k + 2u) * uniforms.N + col]);
-                let b3 = f32(B[(k + 3u) * uniforms.N + col]);
+                let b0 = f32(B[k * u.N + col]);
+                let b1 = f32(B[(k + 1u) * u.N + col]);
+                let b2 = f32(B[(k + 2u) * u.N + col]);
+                let b3 = f32(B[(k + 3u) * u.N + col]);
 
                 partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + A[k] * f32(B[k * uniforms.N + col]);
+                partial_sum = partial_sum + A[k] * f32(B[k * u.N + col]);
             }
         }
     }
@@ -140,7 +142,7 @@ fn main(
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
             final_sum = final_sum + wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + i];
         }
-        C[col] = final_sum * uniforms.alpha;
+        C[col] = final_sum * u.alpha;
     }
 }
 
@@ -160,7 +162,7 @@ const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but
 // Shared memory: 32 columns × 8 values = 256
 var<workgroup> multicol_wg_sums: array<f32, 256>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
@@ -175,28 +177,28 @@ fn main_multicol(
     let thread_in_col = local_id % MULTICOL_THREADS_PER_COL;
 
     // Global output column (supports 2D dispatch)
-    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
     let base_col = wg_linear * MULTICOL_COLS_PER_WG;
     let col = base_col + col_in_wg;
 
     // Track validity
-    let is_valid = col < uniforms.N;
+    let is_valid = col < u.N;
 
     var partial_sum: f32 = 0.0;
 
     if (is_valid) {
         // Each of 8 threads splits K
-        let k_per_thread = (uniforms.K + MULTICOL_THREADS_PER_COL - 1u) / MULTICOL_THREADS_PER_COL;
+        let k_per_thread = (u.K + MULTICOL_THREADS_PER_COL - 1u) / MULTICOL_THREADS_PER_COL;
         let k_start = thread_in_col * k_per_thread;
-        let k_end = min(k_start + k_per_thread, uniforms.K);
+        let k_end = min(k_start + k_per_thread, u.K);
 
         // Unroll by 4 for ILP
         var k = k_start;
         let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
 
-        if (uniforms.transposeB == 1u) {
+        if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
-            let b_row_offset = col * uniforms.K;
+            let b_row_offset = col * u.K;
 
             for (; k < k_aligned_end; k = k + 4u) {
                 let a0 = A[k];
@@ -223,16 +225,16 @@ fn main_multicol(
                 let a2 = A[k + 2u];
                 let a3 = A[k + 3u];
 
-                let b0 = f32(B[k * uniforms.N + col]);
-                let b1 = f32(B[(k + 1u) * uniforms.N + col]);
-                let b2 = f32(B[(k + 2u) * uniforms.N + col]);
-                let b3 = f32(B[(k + 3u) * uniforms.N + col]);
+                let b0 = f32(B[k * u.N + col]);
+                let b1 = f32(B[(k + 1u) * u.N + col]);
+                let b2 = f32(B[(k + 2u) * u.N + col]);
+                let b3 = f32(B[(k + 3u) * u.N + col]);
 
                 partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + A[k] * f32(B[k * uniforms.N + col]);
+                partial_sum = partial_sum + A[k] * f32(B[k * u.N + col]);
             }
         }
     }
@@ -248,12 +250,12 @@ fn main_multicol(
         for (var i: u32 = 0u; i < MULTICOL_THREADS_PER_COL; i = i + 1u) {
             final_sum = final_sum + multicol_wg_sums[base + i];
         }
-        C[col] = final_sum * uniforms.alpha;
+        C[col] = final_sum * u.alpha;
     }
 }
 
 // Alternative entry point with vec4 weight loads (requires K % 4 == 0)
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_vec4(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
@@ -266,25 +268,25 @@ fn main_vec4(
     let thread_in_col = local_id % THREADS_PER_COL;
 
     // Global output column (supports 2D dispatch for large N)
-    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
     let base_col = wg_linear * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
     // Track validity - NO early return to maintain uniform control flow
-    let is_valid = col < uniforms.N;
+    let is_valid = col < u.N;
 
     var partial_sum: f32 = 0.0;
 
     if (is_valid) {
         // K is guaranteed to be multiple of 4
-        let K4 = uniforms.K / 4u;
+        let K4 = u.K / 4u;
         let k4_per_thread = (K4 + THREADS_PER_COL - 1u) / THREADS_PER_COL;
         let k4_start = thread_in_col * k4_per_thread;
         let k4_end = min(k4_start + k4_per_thread, K4);
 
-        if (uniforms.transposeB == 1u) {
+        if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
-            let b_row_offset = col * uniforms.K;
+            let b_row_offset = col * u.K;
 
             for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
                 let k = k4 * 4u;
@@ -308,10 +310,10 @@ fn main_vec4(
                 let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
 
                 let b = vec4<f32>(
-                    f32(B[k * uniforms.N + col]),
-                    f32(B[(k + 1u) * uniforms.N + col]),
-                    f32(B[(k + 2u) * uniforms.N + col]),
-                    f32(B[(k + 3u) * uniforms.N + col])
+                    f32(B[k * u.N + col]),
+                    f32(B[(k + 1u) * u.N + col]),
+                    f32(B[(k + 2u) * u.N + col]),
+                    f32(B[(k + 3u) * u.N + col])
                 );
 
                 partial_sum = partial_sum + dot(a, b);
@@ -336,6 +338,6 @@ fn main_vec4(
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
             final_sum = final_sum + wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + i];
         }
-        C[col] = final_sum * uniforms.alpha;
+        C[col] = final_sum * u.alpha;
     }
 }

@@ -12,18 +12,18 @@
 //
 // Expected speedup: 1.2-1.5x for post-FFN normalization path
 
-const WG_SIZE: u32 = 256u;
-const COLS_PER_WG: u32 = 4u;
-const THREADS_PER_COL: u32 = 64u;  // WG_SIZE / COLS_PER_WG
+override WORKGROUP_SIZE: u32 = 256u;
+override COLS_PER_WG: u32 = 4u;
+override THREADS_PER_COL: u32 = 64u;  // WORKGROUP_SIZE / COLS_PER_WG
 
 struct Uniforms {
-    N: u32,             // Output dimension (hiddenSize)
-    K: u32,             // Input dimension (intermediateSize)
+    N: u32,             // Output dimension (hidden_size)
+    K: u32,             // Input dimension (intermediate_size)
     eps: f32,           // RMSNorm epsilon
-    hasResidual: u32,   // 1 if residual provided, 0 otherwise
+    has_residual: u32,  // 1 if residual provided, 0 otherwise
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;       // [1, K] - activation from FFN
 @group(0) @binding(2) var<storage, read> weight: array<f32>;      // [K, N] - down projection weight
 @group(0) @binding(3) var<storage, read> norm_weight: array<f32>; // [N] - RMSNorm weight
@@ -47,7 +47,7 @@ var<workgroup> shared_sum_sq: array<f32, 256>;   // Sum of squares for reduction
 // Note: This kernel requires N <= WG_SIZE * COLS_PER_WG for single-pass RMSNorm.
 // For larger N, use the multi-workgroup variant.
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -55,8 +55,8 @@ fn main(
     @builtin(num_workgroups) num_wgs: vec3<u32>
 ) {
     let tid = local_id.x;
-    let N = uniforms.N;
-    let K = uniforms.K;
+    let N = u.N;
+    let K = u.K;
 
     // Each workgroup handles COLS_PER_WG columns of output
     let col_in_wg = tid / THREADS_PER_COL;  // Which column within this workgroup (0-3)
@@ -129,11 +129,11 @@ fn main(
         // For multi-WG: would need global sum here
         // For now: just use local (works for small N)
         let mean_sq = local_sum_sq / f32(min(COLS_PER_WG, N));
-        let inv_rms = 1.0 / sqrt(mean_sq + uniforms.eps);
+        let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 
         var result = val * inv_rms * norm_weight[global_col];
 
-        if (uniforms.hasResidual == 1u) {
+        if (u.has_residual == 1u) {
             result = result + residual[global_col];
         }
 
@@ -143,13 +143,13 @@ fn main(
 
 // Optimized single-workgroup variant for small N (hiddenSize <= 256)
 // All output columns computed by one workgroup, RMSNorm in single pass
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gemv_rmsnorm_small(
     @builtin(local_invocation_id) local_id: vec3<u32>
 ) {
     let tid = local_id.x;
-    let N = uniforms.N;
-    let K = uniforms.K;
+    let N = u.N;
+    let K = u.K;
 
     // Each thread computes one output column (for N <= 256)
     var dot_sum: f32 = 0.0;
@@ -174,12 +174,12 @@ fn gemv_rmsnorm_small(
 
     // Compute inverse RMS
     let mean_sq = shared_sum_sq[0] / f32(N);
-    let inv_rms = 1.0 / sqrt(mean_sq + uniforms.eps);
+    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 
     // Write normalized output
     if (tid < N) {
         var result = shared_output[tid] * inv_rms * norm_weight[tid];
-        if (uniforms.hasResidual == 1u) {
+        if (u.has_residual == 1u) {
             result = result + residual[tid];
         }
         output[tid] = result;
@@ -189,13 +189,13 @@ fn gemv_rmsnorm_small(
 // Medium variant for N up to ~4096 (single workgroup, multiple elements per thread)
 // Handles Gemma 3's hiddenSize=1152 and similar models
 // Each thread computes ceil(N/256) output columns sequentially
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gemv_rmsnorm_medium(
     @builtin(local_invocation_id) local_id: vec3<u32>
 ) {
     let tid = local_id.x;
-    let N = uniforms.N;
-    let K = uniforms.K;
+    let N = u.N;
+    let K = u.K;
 
     // Each thread handles multiple output columns
     let cols_per_thread = (N + 255u) / 256u;  // ceil(N/256)
@@ -232,14 +232,14 @@ fn gemv_rmsnorm_medium(
 
     // Compute inverse RMS (all threads read the same value)
     let mean_sq = shared_sum_sq[0] / f32(N);
-    let inv_rms = 1.0 / sqrt(mean_sq + uniforms.eps);
+    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 
     // Phase 3: Normalize outputs in-place
     for (var c: u32 = 0u; c < cols_per_thread; c = c + 1u) {
         let col = tid + c * 256u;
         if (col < N) {
             var result = output[col] * inv_rms * norm_weight[col];
-            if (uniforms.hasResidual == 1u) {
+            if (u.has_residual == 1u) {
                 result = result + residual[col];
             }
             output[col] = result;
@@ -251,15 +251,15 @@ fn gemv_rmsnorm_medium(
 // Phase 1: Each workgroup computes output columns and partial sum of squares
 // Phase 2: Separate kernel reduces partials and normalizes
 // This entry point is Phase 1 only
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn gemv_rmsnorm_phase1(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
     let tid = local_id.x;
-    let N = uniforms.N;
-    let K = uniforms.K;
+    let N = u.N;
+    let K = u.K;
 
     let col_in_wg = tid / THREADS_PER_COL;
     let thread_in_col = tid % THREADS_PER_COL;

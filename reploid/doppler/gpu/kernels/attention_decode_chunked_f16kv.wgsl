@@ -8,18 +8,21 @@
 
 enable f16;
 
-struct AttentionUniforms {
-    numHeads: u32,
-    numKVHeads: u32,
-    headDim: u32,
-    kvLen: u32,       // Current KV cache length
-    seqLen: u32,      // Query length (1 for decode)
+// Workgroup size for decode
+override WORKGROUP_SIZE: u32 = 256u;
+
+struct Uniforms {
+    num_heads: u32,
+    num_kv_heads: u32,
+    head_dim: u32,
+    kv_len: u32,       // Current KV cache length
+    seq_len: u32,      // Query length (1 for decode)
     scale: f32,
-    isCausal: u32,
-    startPos: u32,
+    is_causal: u32,
+    start_pos: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: AttentionUniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
@@ -32,22 +35,22 @@ var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
 var<workgroup> shared_acc: array<f32, 256>;       // Accumulated output
 
-fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {
-    let headsPerKV = uniforms.numHeads / uniforms.numKVHeads;
-    return queryHeadIdx / headsPerKV;
+fn get_kv_head_idx(query_head_idx: u32) -> u32 {
+    let heads_per_kv = u.num_heads / u.num_kv_heads;
+    return query_head_idx / heads_per_kv;
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
 ) {
-    let headIdx = workgroup_id.x;
+    let head_idx = workgroup_id.x;
     let tid = local_id.x;
-    let headDim = uniforms.headDim;
-    let kvLen = uniforms.kvLen;
-    let scale = uniforms.scale;
-    let kvHeadIdx = getKVHeadIdx(headIdx);
+    let head_dim = u.head_dim;
+    let kv_len = u.kv_len;
+    let scale = u.scale;
+    let kv_head_idx = get_kv_head_idx(head_idx);
 
     // Only threads < headDim participate in computation
     let valid = tid < headDim;
@@ -69,7 +72,7 @@ fn main(
     for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
         var k_val: f32 = 0.0;
         if (valid) {
-            let k_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + tid;
+            let k_offset = kPos * u.num_kv_heads * headDim + kvHeadIdx * headDim + tid;
             k_val = f32(K[k_offset]);
         }
 
@@ -122,7 +125,7 @@ fn main(
     if (valid) {
         var acc: f32 = 0.0;
         for (var kPos: u32 = 0u; kPos < kvLen; kPos++) {
-            let v_offset = kPos * uniforms.numKVHeads * headDim + kvHeadIdx * headDim + tid;
+            let v_offset = kPos * u.num_kv_heads * headDim + kvHeadIdx * headDim + tid;
             let v_val = f32(V[v_offset]);
             acc += shared_scores[kPos] * v_val;
         }

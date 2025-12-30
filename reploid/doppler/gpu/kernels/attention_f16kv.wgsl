@@ -57,7 +57,7 @@ fn isMasked(queryPos: u32, keyPos: u32) -> bool {
 // Main attention kernel - one workgroup per (query_block, head)
 // Workgroups are dispatched linearly as: numQueryBlocks * numHeads.
 // headIdx and queryBlockIdx are derived from workgroup_id.x.
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -197,7 +197,7 @@ fn main(
 
 // Simplified single-query attention for decode step
 // More efficient when queryLen == 1
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(DECODE_WORKGROUP_SIZE, 1, 1)
 fn attention_decode(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,

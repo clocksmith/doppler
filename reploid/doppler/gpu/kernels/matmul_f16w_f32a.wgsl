@@ -28,7 +28,7 @@ struct Uniforms {
 var<workgroup> tileA: array<f32, 256>;
 var<workgroup> tileB: array<f16, 256>;
 
-@compute @workgroup_size(16, 16, 1)
+@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>
@@ -40,25 +40,25 @@ fn main(
 
     var sum: f32 = 0.0;
 
-    let num_tiles = (uniforms.K + TILE_SIZE - 1u) / TILE_SIZE;
+    let num_tiles = (u.K + TILE_SIZE - 1u) / TILE_SIZE;
     let tile_idx = local_row * TILE_SIZE + local_col;
 
     for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
         let a_col = t * TILE_SIZE + local_col;
         let b_row = t * TILE_SIZE + local_row;
 
-        if (row < uniforms.M && a_col < uniforms.K) {
-            tileA[tile_idx] = A[row * uniforms.K + a_col];
+        if (row < u.M && a_col < u.K) {
+            tileA[tile_idx] = A[row * u.K + a_col];
         } else {
             tileA[tile_idx] = 0.0;
         }
 
-        if (b_row < uniforms.K && col < uniforms.N) {
-            if (uniforms.transposeB == 0u) {
-                tileB[tile_idx] = B[b_row * uniforms.N + col];
+        if (b_row < u.K && col < u.N) {
+            if (u.transpose_b == 0u) {
+                tileB[tile_idx] = B[b_row * u.N + col];
             } else {
                 // B is [N, K], access element [col, b_row]
-                tileB[tile_idx] = B[col * uniforms.K + b_row];
+                tileB[tile_idx] = B[col * u.K + b_row];
             }
         } else {
             tileB[tile_idx] = f16(0.0);
@@ -75,8 +75,8 @@ fn main(
         workgroupBarrier();
     }
 
-    if (row < uniforms.M && col < uniforms.N) {
-        C[row * uniforms.N + col] = sum * uniforms.alpha;
+    if (row < u.M && col < u.N) {
+        C[row * u.N + col] = sum * u.alpha;
     }
 }
 

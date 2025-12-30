@@ -15,6 +15,11 @@
 //
 // Where nibble is 0-15 (representing -8 to +7 signed 4-bit)
 
+// Tunable workgroup sizes
+override WORKGROUP_SIZE_MAIN: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
+override WORKGROUP_SIZE_EXPERT: u32 = 256u;
+
 struct Uniforms {
     total_elements: u32,    // Total output elements
     num_groups: u32,        // Groups per row (e.g., 90)
@@ -22,7 +27,7 @@ struct Uniforms {
     row_stride: u32,        // Stride between rows in output
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> blocks: array<u32>;  // Packed U8 as U32
 @group(0) @binding(2) var<storage, read> scales: array<u32>;  // Packed U8 as U32
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
@@ -57,7 +62,7 @@ fn get_scale(scale_data: u32, idx: u32) -> f32 {
     return f32(scale_byte) / 127.0;
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -65,13 +70,13 @@ fn main(
 ) {
     let elem_idx = global_id.x;
 
-    if (elem_idx >= uniforms.total_elements) {
+    if (elem_idx >= u.total_elements) {
         return;
     }
 
     // Compute which group this element belongs to
-    let group_idx = elem_idx / uniforms.group_size;
-    let intra_group_idx = elem_idx % uniforms.group_size;
+    let group_idx = elem_idx / u.group_size;
+    let intra_group_idx = elem_idx % u.group_size;
 
     // Get scale for this group
     let scale_word_idx = group_idx / 4u;
@@ -95,19 +100,19 @@ fn main(
 }
 
 // Vectorized version - each thread handles 4 elements
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn main_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let base_elem = global_id.x * 4u;
 
-    if (base_elem >= uniforms.total_elements) {
+    if (base_elem >= u.total_elements) {
         return;
     }
 
     // Compute group for base element
-    let group_idx = base_elem / uniforms.group_size;
-    let intra_group_base = base_elem % uniforms.group_size;
+    let group_idx = base_elem / u.group_size;
+    let intra_group_base = base_elem % u.group_size;
 
     // Get scale for this group (all 4 elements should be in same group typically)
     let scale_word_idx = group_idx / 4u;
@@ -121,7 +126,7 @@ fn main_vec4(
     // Process 4 consecutive nibbles
     for (var i = 0u; i < 4u; i = i + 1u) {
         let elem_idx = base_elem + i;
-        if (elem_idx >= uniforms.total_elements) {
+        if (elem_idx >= u.total_elements) {
             break;
         }
 
@@ -145,35 +150,38 @@ struct ExpertUniforms {
     out_dim: u32,           // Output dimension
     num_groups: u32,        // Groups per row (90 for GPT-OSS)
     total_output: u32,      // Total output elements for this expert
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> expert_uniforms: ExpertUniforms;
+@group(0) @binding(0) var<uniform> eu: ExpertUniforms;
 @group(0) @binding(1) var<storage, read> expert_blocks: array<u32>;
 @group(0) @binding(2) var<storage, read> expert_scales: array<u32>;
 @group(0) @binding(3) var<storage, read_write> expert_output: array<f32>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_EXPERT, 1, 1)
 fn main_expert(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let out_elem = global_id.x;
 
-    if (out_elem >= expert_uniforms.total_output) {
+    if (out_elem >= eu.total_output) {
         return;
     }
 
     // Output layout: [out_dim, group_size * num_groups]
     // For out_dim=5760, num_groups=90, group_size=32: output is [5760, 2880]
-    let row_idx = out_elem / (expert_uniforms.num_groups * 32u);
-    let col_idx = out_elem % (expert_uniforms.num_groups * 32u);
+    let row_idx = out_elem / (eu.num_groups * 32u);
+    let col_idx = out_elem % (eu.num_groups * 32u);
     let group_in_row = col_idx / 32u;
     let elem_in_group = col_idx % 32u;
 
     // Input blocks layout: [num_experts, out_dim, num_groups, 16] as U8
     // = [num_experts, out_dim, num_groups, 4] as U32
-    let expert_offset = expert_uniforms.expert_idx;
-    let blocks_per_expert = expert_uniforms.out_dim * expert_uniforms.num_groups * 4u;
-    let blocks_per_row = expert_uniforms.num_groups * 4u;
+    let expert_offset = eu.expert_idx;
+    let blocks_per_expert = eu.out_dim * eu.num_groups * 4u;
+    let blocks_per_row = eu.num_groups * 4u;
 
     let block_word_idx = expert_offset * blocks_per_expert
                        + row_idx * blocks_per_row
@@ -186,8 +194,8 @@ fn main_expert(
 
     // Input scales layout: [num_experts, out_dim, num_groups] as U8
     // = [num_experts, out_dim, ceil(num_groups/4)] as U32
-    let scales_per_expert = expert_uniforms.out_dim * ((expert_uniforms.num_groups + 3u) / 4u);
-    let scales_per_row = (expert_uniforms.num_groups + 3u) / 4u;
+    let scales_per_expert = eu.out_dim * ((eu.num_groups + 3u) / 4u);
+    let scales_per_row = (eu.num_groups + 3u) / 4u;
 
     let scale_word_idx = expert_offset * scales_per_expert
                        + row_idx * scales_per_row
