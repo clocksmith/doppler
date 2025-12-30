@@ -12,15 +12,18 @@ struct Uniforms {
     _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+override WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> a: array<f32>;
 @group(0) @binding(2) var<storage, read> b: array<f32>;
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
     output[idx] = a[idx] + b[idx];
@@ -29,20 +32,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // In-place version: output = output + b
 // Note: Caller should copy 'a' to 'output' first, then call this kernel
 // This avoids requiring a different bind group layout with read_write on 'a'
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn add_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
     output[idx] = output[idx] + b[idx];
 }
 
 // Vectorized version for better throughput
-@compute @workgroup_size(64, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x * 4u;
-    let size = uniforms.size;
+    let size = u.size;
 
     if (idx >= size) {
         return;
@@ -64,11 +67,11 @@ fn add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 
 // Fused residual + scale: output = a + scale * b
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn add_scaled(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
-    if (idx >= uniforms.size) {
+    if (idx >= u.size) {
         return;
     }
-    output[idx] = a[idx] + uniforms.scale * b[idx];
+    output[idx] = a[idx] + u.scale * b[idx];
 }

@@ -2,7 +2,7 @@
 //
 // Tiled matrix multiplication using FP16 for improved throughput.
 // Requires 'shader-f16' feature enabled.
-// C[M,N] = A[M,K] * B[K,N]  (or B^T when transposeB=1)
+// C[M,N] = A[M,K] * B[K,N]  (or B^T when transpose_b=1)
 //
 // Uses FP16 for storage and computation, with optional FP32 accumulation
 // for better numerical stability.
@@ -10,19 +10,21 @@
 enable f16;
 
 // Tile dimensions - can use larger tiles with f16 due to smaller footprint
-const TILE_SIZE: u32 = 16u;
-const TILE_ELEMS: u32 = 256u;  // TILE_SIZE * TILE_SIZE
+override TILE_SIZE: u32 = 16u;
 
 // Uniforms for matrix dimensions
 struct Uniforms {
-    M: u32,     // Rows of A and C
-    N: u32,     // Cols of B and C (or rows of B when transposed)
-    K: u32,     // Cols of A, Rows of B (or cols of B when transposed)
-    alpha: f32, // Scaling factor
-    transposeB: u32,  // 0 = normal, 1 = B is stored transposed [N,K] -> treat as [K,N]
+    M: u32,           // Rows of A and C
+    N: u32,           // Cols of B and C (or rows of B when transposed)
+    K: u32,           // Cols of A, Rows of B (or cols of B when transposed)
+    alpha: f32,       // Scaling factor
+    transpose_b: u32, // 0 = normal, 1 = B is stored transposed [N,K] -> treat as [K,N]
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f16>;
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f16>;
@@ -31,7 +33,7 @@ struct Uniforms {
 var<workgroup> tileA: array<f16, 256>;
 var<workgroup> tileB: array<f16, 256>;
 
-@compute @workgroup_size(16, 16, 1)
+@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
