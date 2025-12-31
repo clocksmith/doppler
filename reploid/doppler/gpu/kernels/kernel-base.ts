@@ -4,7 +4,7 @@
 
 import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline } from './utils.js';
+import { getPipelineFast } from './utils.js';
 
 export abstract class KernelBase {
   protected readonly device: GPUDevice;
@@ -18,7 +18,7 @@ export abstract class KernelBase {
     variant: string,
     bindGroupLayout: GPUBindGroupLayout | null = null
   ): Promise<GPUComputePipeline> {
-    return createPipeline(operation, variant, bindGroupLayout);
+    return getPipelineFast(operation, variant, bindGroupLayout);
   }
 
   protected dispatchKernel(
