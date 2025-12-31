@@ -679,6 +679,7 @@ input[type="radio"] {
 /* --- Progress Bar --- */
 .progress {
   height: 8px;
+  overflow: hidden;
 }
 
 .progress-fill {

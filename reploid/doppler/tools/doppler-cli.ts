@@ -160,7 +160,7 @@ function parseArgs(argv: string[]): CLIOptions {
     cdpEndpoint: 'http://localhost:9222', // CDP endpoint for reuseBrowser
     verbose: false,
     filter: null,
-    timeout: 120000,
+    timeout: 300000,
     output: null,
     html: null,
     warmup: 0,
@@ -503,7 +503,7 @@ Common Options:
   --headed               Show browser window (default: headless with real GPU)
   --no-reuse-browser     Always launch new browser (don't try CDP)
   --cdp-endpoint <url>   CDP endpoint (default: http://localhost:9222)
-  --timeout <ms>         Timeout (default: 120000)
+  --timeout <ms>         Timeout (default: 300000)
   --output, -o <file>    Save JSON results
   --help, -h             Show this help
 

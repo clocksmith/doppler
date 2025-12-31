@@ -16,6 +16,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js';
 import { createUniformBufferWithView } from './utils.js';
+import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions } from './types.js';
 
 const DEBUG_KERNELS = typeof window !== 'undefined'
@@ -336,7 +337,7 @@ export async function runAttention(
 
   kernel.dispatch(pipeline, bindGroup, plan.workgroups);
 
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
 
   return output;
 }
