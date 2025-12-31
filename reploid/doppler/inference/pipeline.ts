@@ -1252,6 +1252,21 @@ export class InferencePipeline {
       stagingBuffer.unmap();
       stagingBuffer.destroy();
 
+      // DEBUG: Check for invalid token IDs
+      if (nextToken > config.vocabSize) {
+        console.error(`[DECODE BUG] Invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
+        console.error(`[DECODE BUG] Token as hex: 0x${nextToken.toString(16)}`);
+        // Read logits to check their values
+        const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
+        const logitArr = new Float32Array(logitSample);
+        const maxLogit = Math.max(...logitArr);
+        const minLogit = Math.min(...logitArr);
+        const hasNaN = logitArr.some(v => isNaN(v));
+        const hasInf = logitArr.some(v => !isFinite(v));
+        console.error(`[DECODE BUG] Logits: max=${maxLogit}, min=${minLogit}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+        console.error(`[DECODE BUG] First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
+      }
+
       releaseBuffer(sampleOutputBuffer);
 
       // Log submit stats

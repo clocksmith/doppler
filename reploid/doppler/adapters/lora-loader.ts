@@ -247,9 +247,43 @@ export async function loadLoRAWeights(
   // Verify checksum if provided
   let checksumValid: boolean | undefined;
   if (manifest.checksum && !options.skipVerify) {
-    // For checksum verification, we'd need the full weights file
-    // This is a placeholder - actual implementation depends on weights format
-    checksumValid = true; // TODO: Implement full checksum verification
+    const algorithm = manifest.checksumAlgorithm || 'sha256';
+    if (algorithm !== 'sha256') {
+      console.warn(`[LoRA] Unsupported checksum algorithm: ${algorithm}, skipping verification`);
+    } else if (manifest.weightsPath) {
+      // Compute checksum of the weights file
+      const weightsData = await fetchWithBase(manifest.weightsPath);
+      const computedHash = await computeSHA256(weightsData);
+      checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
+      if (!checksumValid) {
+        console.warn(`[LoRA] Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+      }
+    } else if (manifest.tensors && manifest.tensors.length > 0) {
+      // For inline tensors, compute checksum over concatenated tensor data
+      const tensorBuffers: ArrayBuffer[] = [];
+      for (const tensor of manifest.tensors) {
+        if (tensor.base64) {
+          const decoded = decodeBase64ToFloat32(tensor.base64);
+          tensorBuffers.push((decoded.buffer as ArrayBuffer).slice(decoded.byteOffset, decoded.byteOffset + decoded.byteLength));
+        } else if (tensor.data) {
+          tensorBuffers.push(new Float32Array(tensor.data).buffer);
+        }
+      }
+      if (tensorBuffers.length > 0) {
+        const totalSize = tensorBuffers.reduce((sum, buf) => sum + buf.byteLength, 0);
+        const combined = new Uint8Array(totalSize);
+        let offset = 0;
+        for (const buf of tensorBuffers) {
+          combined.set(new Uint8Array(buf), offset);
+          offset += buf.byteLength;
+        }
+        const computedHash = await computeSHA256(combined.buffer);
+        checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
+        if (!checksumValid) {
+          console.warn(`[LoRA] Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+        }
+      }
+    }
   }
 
   return {

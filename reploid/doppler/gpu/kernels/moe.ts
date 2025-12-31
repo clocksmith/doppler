@@ -178,7 +178,10 @@ export async function runMoEGather(
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
-  const pipeline = await createPipeline('moe_gather', 'sparse', explicitLayout);
+
+  // Two-phase approach: count_and_map builds token assignments, gather copies hidden states
+  const countPipeline = await createPipeline('moe_gather', 'count', explicitLayout);
+  const gatherPipeline = await createPipeline('moe_gather', 'gather', explicitLayout);
 
   // Output buffers per WGSL shader:
   // - gathered: [numExperts, maxTokensPerExpert, hiddenSize]
@@ -224,17 +227,24 @@ export async function runMoEGather(
     ],
   });
 
-  // Batch zero-init with gather dispatch (saves 1 submit per call)
+  // Phase 1: Count tokens per expert and build token map
   const encoder = device.createCommandEncoder({ label: 'moe_gather_encoder' });
   encoder.clearBuffer(tokenCounts); // Zero-initialize tokenCounts (atomics start at 0)
 
-  const pass = encoder.beginComputePass({ label: 'moe_gather_pass' });
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
+  const countPass = encoder.beginComputePass({ label: 'moe_gather_count_pass' });
+  countPass.setPipeline(countPipeline);
+  countPass.setBindGroup(0, bindGroup);
+  const countWorkgroups = Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT);
+  countPass.dispatchWorkgroups(countWorkgroups);
+  countPass.end();
 
-  const workgroups = Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT);
-  pass.dispatchWorkgroups(workgroups);
-  pass.end();
+  // Phase 2: Gather hidden states based on token map
+  const gatherPass = encoder.beginComputePass({ label: 'moe_gather_gather_pass' });
+  gatherPass.setPipeline(gatherPipeline);
+  gatherPass.setBindGroup(0, bindGroup);
+  const gatherWorkgroups = Math.ceil((numExperts * maxTokensPerExpert * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+  gatherPass.dispatchWorkgroups(gatherWorkgroups);
+  gatherPass.end();
 
   device.queue.submit([encoder.finish()]);
 
@@ -265,7 +275,10 @@ export async function recordMoEGather(
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
-  const pipeline = await createPipeline('moe_gather', 'sparse', explicitLayout);
+
+  // Two-phase approach: count_and_map builds token assignments, gather copies hidden states
+  const countPipeline = await createPipeline('moe_gather', 'count', explicitLayout);
+  const gatherPipeline = await createPipeline('moe_gather', 'gather', explicitLayout);
 
   const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
   const tokenCountsSize = numExperts * 4;
@@ -309,11 +322,19 @@ export async function recordMoEGather(
   const encoder = recorder.getEncoder();
   encoder.clearBuffer(tokenCounts);
 
-  const pass = recorder.beginComputePass('moe_gather');
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  pass.dispatchWorkgroups(Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT));
-  pass.end();
+  // Phase 1: Count tokens per expert and build token map
+  const countPass = recorder.beginComputePass('moe_gather_count');
+  countPass.setPipeline(countPipeline);
+  countPass.setBindGroup(0, bindGroup);
+  countPass.dispatchWorkgroups(Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT));
+  countPass.end();
+
+  // Phase 2: Gather hidden states based on token map
+  const gatherPass = recorder.beginComputePass('moe_gather_gather');
+  gatherPass.setPipeline(gatherPipeline);
+  gatherPass.setBindGroup(0, bindGroup);
+  gatherPass.dispatchWorkgroups(Math.ceil((numExperts * maxTokensPerExpert * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
+  gatherPass.end();
 
   setBufferDtype(gathered, 'f32');
   setBufferDtype(tokenCounts, 'u32');
