@@ -1116,7 +1116,8 @@ export class InferencePipeline {
       const path = recorder ? 'fused' : 'debug-sync';
       console.log(`[Decode] Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
     }
-    const context = this._buildLayerContext(recorder);
+    // Pass isDecodeMode=true to enable pre-allocated buffer usage
+    const context = this._buildLayerContext(recorder, true);
 
     // Reset ping-pong state at start of each decode step
     this.decodeBufferManager.resetPingPong();
@@ -1166,9 +1167,14 @@ export class InferencePipeline {
     for (let l = 0; l < config.numLayers; l++) {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
+
+      // Swap ping-pong buffers after each layer so next layer writes to alternate buffer
+      this.decodeBufferManager.swapPingPong();
+
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         // Don't release pre-allocated decode buffers - they're managed by DecodeBufferManager
-        const isPreAllocated = prevStates === decodeHiddenBuffer;
+        const decodeAltBuffer = this.decodeBufferManager.getHiddenBuffer();
+        const isPreAllocated = prevStates === decodeHiddenBuffer || prevStates === decodeAltBuffer;
         if (!isPreAllocated) {
           // When using recorder, track for deferred cleanup after submit
           // (releasing now would allow pool reuse before recorded ops execute)
@@ -1594,7 +1600,7 @@ export class InferencePipeline {
   // Context and Config Builders
   // ==========================================================================
 
-  private _buildLayerContext(recorder?: CommandRecorder): LayerContext {
+  private _buildLayerContext(recorder?: CommandRecorder, isDecodeMode: boolean = false): LayerContext {
     const config = this.modelConfig!;
     const { getWeightBuffer, getNormWeightBuffer } = createWeightBufferHelpers(
       this._getWeightBufferConfig(),
@@ -1621,6 +1627,8 @@ export class InferencePipeline {
       layerRouterWeights: this.layerRouterWeights as Map<number, { weight: GPUBuffer | Float32Array; bias: GPUBuffer | Float32Array | null }> | undefined,
       recorder,
       lora: this.loraAdapter,
+      // Pass decode buffers only during decode mode (M=1)
+      decodeBuffers: isDecodeMode && this.decodeBufferManager.hasBuffers() ? this.decodeBufferManager : null,
     };
   }
 

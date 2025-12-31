@@ -34,6 +34,7 @@ import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTo
 import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
+import type { DecodeBufferManager } from '../decode-buffers.js';
 
 // Track if we've logged one-time messages (avoid spam)
 let loggedFusedDownNorm = false;
@@ -82,6 +83,8 @@ export interface LayerContext {
   recorder?: CommandRecorder;
   /** Optional LoRA adapter */
   lora?: LoRAAdapter | null;
+  /** Pre-allocated decode buffers (for M=1 decode optimization) */
+  decodeBuffers?: DecodeBufferManager | null;
 }
 
 /**
@@ -119,7 +122,7 @@ async function doRMSNorm(
   input: GPUBuffer,
   weight: GPUBuffer,
   eps: number,
-  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null; label?: string; layerIdx?: number },
+  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
   const result = recorder
@@ -144,11 +147,12 @@ async function doResidualAdd(
   b: GPUBuffer,
   size: number,
   recorder?: CommandRecorder,
-  traceOptions?: { label?: string; layerIdx?: number }
+  traceOptions?: { label?: string; layerIdx?: number; outputBuffer?: GPUBuffer | null }
 ): Promise<GPUBuffer> {
+  const options = traceOptions?.outputBuffer ? { outputBuffer: traceOptions.outputBuffer } : {};
   const result = recorder
-    ? await recordResidualAdd(recorder, a, b, size)
-    : await runResidualAdd(a, b, size);
+    ? await recordResidualAdd(recorder, a, b, size, options)
+    : await runResidualAdd(a, b, size, options);
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && traceOptions) {
@@ -255,7 +259,7 @@ async function doMatmulRMSNormFused(
   input: GPUBuffer,
   weight: GPUBuffer,
   normWeight: GPUBuffer,
-  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; label?: string; layerIdx?: number },
+  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
   const result = recorder
@@ -649,8 +653,13 @@ async function processFFNWithSandwichNorm(
   sandwichNorm: SandwichNormInfo
 ): Promise<GPUBuffer> {
   const device = getDevice();
-  const { config, weightConfig, debugFlags, recorder } = context;
+  const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
+
+  // For decode (M=1), get pre-allocated output buffer to avoid allocation
+  const decodeOutputBuffer = numTokens === 1 && decodeBuffers
+    ? decodeBuffers.getOutputHiddenBuffer()
+    : null;
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
   // Debug helper for layers 0, 2, and 17 (only runs when context.debug is true)
@@ -743,10 +752,12 @@ async function processFFNWithSandwichNorm(
       console.log('[FUSED] Using fused down+norm kernel');
       loggedFusedDownNorm = true;
     }
+    // Pass pre-allocated decode buffer for output when available
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,  // residual for post-FFN norm
-      rmsNormEps
+      rmsNormEps,
+      decodeOutputBuffer
     );
     usedFusedDownNorm = true;
   } else {
@@ -781,10 +792,12 @@ async function processFFNWithSandwichNorm(
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
 
     // FUSED: norm FFN output + residual add (1 kernel instead of 2)
+    // Use pre-allocated decode buffer for output when available
     output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
       residual: postAttn,  // FUSION: Add residual in same kernel
+      outputBuffer: decodeOutputBuffer,  // Use pre-allocated buffer for decode
       label: `L${layerIdx}.post_ffn_norm`,
       layerIdx,
     }, recorder);
@@ -798,7 +811,12 @@ async function processFFNWithSandwichNorm(
     }
   } else {
     // Standard path: residual add without norm
-    output = await doResidualAdd(ffnOutput, postAttn, size, recorder, { label: `L${layerIdx}.post_ffn_residual`, layerIdx });
+    // Use pre-allocated decode buffer for output when available
+    output = await doResidualAdd(ffnOutput, postAttn, size, recorder, {
+      label: `L${layerIdx}.post_ffn_residual`,
+      layerIdx,
+      outputBuffer: decodeOutputBuffer,
+    });
     if (recorder) {
       recorder.trackTemporaryBuffer(ffnOutput);
     } else {
@@ -861,8 +879,13 @@ async function processFFNStandard(
   context: LayerContext,
   layerWeights: LayerWeights | undefined
 ): Promise<GPUBuffer> {
-  const { config, weightConfig, debugFlags, recorder } = context;
+  const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
+
+  // For decode (M=1), get pre-allocated output buffer to avoid allocation
+  const decodeOutputBuffer = numTokens === 1 && decodeBuffers
+    ? decodeBuffers.getOutputHiddenBuffer()
+    : null;
 
   // 1. Post-attention norm (LLaMA-style pre-FFN norm)
   let normedBuffer = postAttn;
@@ -886,7 +909,12 @@ async function processFFNStandard(
   }
 
   // 3. Residual add: ffnOutput + postAttn
-  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder, { label: `L${layerIdx}.ffn_residual`, layerIdx });
+  // Use pre-allocated decode buffer for output when available
+  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder, {
+    label: `L${layerIdx}.ffn_residual`,
+    layerIdx,
+    outputBuffer: decodeOutputBuffer,
+  });
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (normedBuffer !== postAttn) {
@@ -1209,7 +1237,8 @@ async function runDenseFFNWithFusedPostNormGPU(
   context: LayerContext,
   layerWeights: LayerWeights,
   residual: GPUBuffer,
-  eps: number
+  eps: number,
+  outputBuffer?: GPUBuffer | null
 ): Promise<GPUBuffer> {
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
@@ -1323,6 +1352,7 @@ async function runDenseFFNWithFusedPostNormGPU(
 
   // 3. FUSED: Down projection + RMSNorm + Residual (single kernel!)
   // This is the key optimization: combines matmul + norm + residual into one dispatch
+  // Use pre-allocated decode buffer for output when available
   const output = await doMatmulRMSNormFused(
     activatedOutput,
     downWeight,
@@ -1332,6 +1362,7 @@ async function runDenseFFNWithFusedPostNormGPU(
       K: intermediateSize,
       eps,
       residual,
+      outputBuffer,
     },
     recorder
   );
