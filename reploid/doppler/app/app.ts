@@ -87,7 +87,11 @@ interface StatsElements {
 interface GPUElements {
   device: HTMLElement | null;
   vram: HTMLElement | null;
+  vramLabel: HTMLElement | null;
+  ram: HTMLElement | null;
+  ramRow: HTMLElement | null;
   features: HTMLElement | null;
+  unifiedNote: HTMLElement | null;
 }
 
 /**
@@ -227,7 +231,11 @@ export class DopplerDemo {
   private gpuElements: GPUElements = {
     device: null,
     vram: null,
+    vramLabel: null,
+    ram: null,
+    ramRow: null,
     features: null,
+    unifiedNote: null,
   };
 
   // Memory bar elements
@@ -291,7 +299,11 @@ export class DopplerDemo {
     this.gpuElements = {
       device: document.querySelector('#gpu-device'),
       vram: document.querySelector('#gpu-vram'),
+      vramLabel: document.querySelector('#gpu-vram-label'),
+      ram: document.querySelector('#gpu-ram'),
+      ramRow: document.querySelector('#gpu-ram-row'),
       features: document.querySelector('#gpu-features'),
+      unifiedNote: document.querySelector('#gpu-unified-note'),
     };
 
     // Memory bar elements
@@ -596,15 +608,30 @@ export class DopplerDemo {
     this.gpuElements.device.textContent = deviceName;
     this.gpuElements.device.title = deviceName;
 
-    // VRAM limit (from adapter limits)
+    // Detect unified memory architecture (Apple Silicon, etc)
+    const isUnifiedMemory = this._isUnifiedMemoryArchitecture(info);
+
+    // System RAM (for unified memory systems)
+    const deviceMemoryGB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    if (isUnifiedMemory && deviceMemoryGB && this.gpuElements.ramRow && this.gpuElements.ram) {
+      this.gpuElements.ram.textContent = `${deviceMemoryGB} GB`;
+      this.gpuElements.ramRow.hidden = false;
+    }
+
+    // Buffer limit (WebGPU's max buffer size - conservative on unified memory)
     const limits = (adapter.limits || {}) as GPUSupportedLimits & { maxBufferSize?: number; maxStorageBufferBindingSize?: number };
     const maxBufferSize = limits.maxBufferSize || 0;
     const maxStorageSize = limits.maxStorageBufferBindingSize || 0;
-    const vramLimit = Math.max(maxBufferSize, maxStorageSize);
-    if (vramLimit > 0) {
-      this.gpuElements.vram!.textContent = this._formatBytes(vramLimit);
+    const bufferLimit = Math.max(maxBufferSize, maxStorageSize);
+    if (bufferLimit > 0) {
+      this.gpuElements.vram!.textContent = this._formatBytes(bufferLimit);
     } else {
       this.gpuElements.vram!.textContent = 'Unknown';
+    }
+
+    // Show unified memory note
+    if (isUnifiedMemory && this.gpuElements.unifiedNote) {
+      this.gpuElements.unifiedNote.hidden = false;
     }
 
     // Features
@@ -613,6 +640,37 @@ export class DopplerDemo {
     if (this.capabilities.subgroups) features.push('Subgroups');
     if (adapter.features.has('timestamp-query')) features.push('Timestamps');
     this.gpuElements.features!.textContent = features.length > 0 ? features.join(', ') : 'Basic';
+  }
+
+  /**
+   * Detect unified memory architecture (Apple Silicon, integrated GPUs)
+   */
+  private _isUnifiedMemoryArchitecture(info: GPUAdapterInfo): boolean {
+    const arch = info.architecture?.toLowerCase() || '';
+    const vendor = info.vendor?.toLowerCase() || '';
+    const desc = info.description?.toLowerCase() || '';
+
+    // Apple Silicon (M1/M2/M3/M4) uses unified memory
+    if (vendor.includes('apple') || arch.includes('apple') || desc.includes('apple')) {
+      return true;
+    }
+
+    // Metal GPU on macOS is unified memory
+    if (desc.includes('metal')) {
+      return true;
+    }
+
+    // Check platform for macOS with ARM (Apple Silicon)
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes('mac') && (ua.includes('arm') || navigator.platform === 'MacIntel')) {
+      // MacIntel on ARM is Apple Silicon via Rosetta or native
+      // Modern Macs with M-series report various things, but if we see Metal, it's unified
+      if (desc.includes('metal') || vendor.includes('apple')) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

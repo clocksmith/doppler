@@ -42,14 +42,21 @@
               <span class="gpu-label">Device</span>
               <span class="gpu-value" id="gpu-device">--</span>
             </div>
+            <div class="gpu-row" id="gpu-ram-row" hidden>
+              <span class="gpu-label">System RAM</span>
+              <span class="gpu-value" id="gpu-ram">--</span>
+            </div>
             <div class="gpu-row">
-              <span class="gpu-label">VRAM Limit</span>
+              <span class="gpu-label" id="gpu-vram-label">Buffer Limit</span>
               <span class="gpu-value" id="gpu-vram">--</span>
             </div>
             <div class="gpu-row">
               <span class="gpu-label">Features</span>
               <span class="gpu-value" id="gpu-features">--</span>
             </div>
+          </div>
+          <div class="gpu-note" id="gpu-unified-note" hidden>
+            Unified memory: GPU shares system RAM
           </div>
         </section>
 
@@ -142,10 +149,10 @@
         <section class="panel memory-actions-panel">
           <h2 class="panel-title">Memory Control</h2>
           <div class="memory-actions">
-            <button id="unload-model-btn" class="memory-action-btn" disabled title="Unload current model from GPU memory">
+            <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
               Unload Model
             </button>
-            <button id="clear-memory-btn" class="memory-action-btn" title="Clear all GPU buffers and caches">
+            <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
               Clear All Memory
             </button>
           </div>
@@ -157,17 +164,17 @@
         <section class="panel convert-panel">
           <h2 class="panel-title">Convert Model</h2>
           <p class="convert-description">Import GGUF or HuggingFace models</p>
-          <button id="convert-btn" class="convert-btn">
+          <button id="convert-btn" class="btn btn-primary w-full">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
             Select Files
           </button>
           <div id="convert-status" class="convert-status" hidden>
-            <div class="convert-progress-bar">
-              <div id="convert-progress" class="convert-progress"></div>
+            <div class="progress progress-sm">
+              <div id="convert-progress" class="progress-fill"></div>
             </div>
-            <span id="convert-message" class="convert-message">Ready</span>
+            <span id="convert-message" class="type-caption">Ready</span>
           </div>
         </section>
       </aside>
@@ -182,16 +189,16 @@
               <!-- Source Phase (dynamically labeled: Network/Disk/Cache) -->
               <div class="progress-phase-row" data-phase="source">
                 <span class="progress-phase-label">Source</span>
-                <div class="progress-bar-container">
-                  <div class="progress-bar progress-phase-bar"></div>
+                <div class="progress">
+                  <div class="progress-fill"></div>
                 </div>
                 <span class="progress-phase-value">--</span>
               </div>
               <!-- GPU Phase -->
               <div class="progress-phase-row" data-phase="gpu">
                 <span class="progress-phase-label">GPU</span>
-                <div class="progress-bar-container">
-                  <div class="progress-bar progress-phase-bar"></div>
+                <div class="progress">
+                  <div class="progress-fill"></div>
                 </div>
                 <span class="progress-phase-value">--</span>
               </div>
@@ -219,8 +226,8 @@
                 Model will be stored in your browser for offline use.
               </p>
               <div class="quickstart-actions">
-                <button class="quickstart-btn cancel" id="quickstart-cancel">Cancel</button>
-                <button class="quickstart-btn primary" id="quickstart-confirm">Download</button>
+                <button class="btn" id="quickstart-cancel">Cancel</button>
+                <button class="btn btn-primary" id="quickstart-confirm">Download</button>
               </div>
             </div>
 
@@ -242,15 +249,15 @@
                 Try a smaller model or use a device with more VRAM.
               </p>
               <div class="quickstart-actions">
-                <button class="quickstart-btn primary" id="quickstart-blocker-close">Close</button>
+                <button class="btn btn-primary" id="quickstart-blocker-close">Close</button>
               </div>
             </div>
 
             <!-- Download Progress Panel -->
             <div class="quickstart-panel" id="quickstart-progress" hidden>
               <h3 class="quickstart-title">Downloading Model</h3>
-              <div class="progress-bar-container quickstart-progress">
-                <div class="progress-bar" id="quickstart-progress-bar"></div>
+              <div class="progress quickstart-progress">
+                <div class="progress-fill" id="quickstart-progress-bar"></div>
               </div>
               <div class="quickstart-stats">
                 <span id="quickstart-progress-percent">0%</span>
@@ -269,7 +276,7 @@
                 Model downloaded and verified. Ready to chat.
               </p>
               <div class="quickstart-actions">
-                <button class="quickstart-btn primary" id="quickstart-run">Start Chat</button>
+                <button class="btn btn-primary" id="quickstart-run">Start Chat</button>
               </div>
             </div>
           </div>
@@ -294,15 +301,15 @@
               rows="1"
               disabled
             ></textarea>
-            <button id="send-btn" class="send-btn" disabled>
+            <button id="send-btn" class="btn btn-primary send-btn" disabled>
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
               </svg>
             </button>
           </div>
           <div class="chat-actions">
-            <button id="stop-btn" class="action-btn" hidden>Stop</button>
-            <button id="clear-btn" class="action-btn">Clear</button>
+            <button id="stop-btn" class="btn" hidden>Stop</button>
+            <button id="clear-btn" class="btn">Clear</button>
           </div>
         </div>
       </section>
@@ -313,7 +320,7 @@
       <div class="modal-content">
         <h3 class="modal-title">Error</h3>
         <p class="modal-message" id="error-message"></p>
-        <button class="modal-close" id="error-close">Close</button>
+        <button class="btn" id="error-close">Close</button>
       </div>
     </div>
   </div>
