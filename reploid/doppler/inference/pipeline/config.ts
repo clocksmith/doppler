@@ -229,8 +229,6 @@ export function inferAttentionParams(
     if (qShape && kShape) break;
   }
 
-  console.log(`[Config] inferAttentionParams: found q=${qName} shape=${JSON.stringify(qShape)}, k=${kName} shape=${JSON.stringify(kShape)}, hiddenSize=${hiddenSize}, knownNumHeads=${knownNumHeads}`);
-
   if (!qShape || !kShape) return null;
 
   const qOutDim = qShape[0] === hiddenSize ? qShape[1] : qShape[0];
@@ -331,6 +329,7 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   const vocabSize = vocabCandidates.length > 0 ? Math.max(...vocabCandidates) : 32000;
 
   // Infer attention params if missing
+  console.log(`[Config] parseModelConfig: before inference numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}, hasTensors=${!!manifest.tensors}, tensorCount=${Object.keys(manifest.tensors ?? {}).length}`);
   if (!numHeads || !headDim) {
     const inferred = inferAttentionParams(manifest, hiddenSize, numHeads ?? null);
     if (inferred) {
@@ -338,16 +337,30 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
       numKVHeads = numKVHeads ?? inferred.numKVHeads;
       headDim = headDim ?? inferred.headDim;
       console.log(`[Config] Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
+    } else {
+      console.log(`[Config] WARNING: inferAttentionParams returned null`);
     }
   }
 
   numHeads = numHeads ?? 32;
   numKVHeads = numKVHeads ?? numHeads;
-  const inferredHeadDim = headDim ?? Math.floor(hiddenSize / numHeads);
+
+  // Detect Gemma 2 early for head_dim fallback
+  const isGemma2Early = isGemma2Model(rawConfig, manifest);
+
+  // For Gemma 2, explicitly set head_dim to 256 if inference failed
+  // Gemma 2 uses expanded attention: Q out = 4096, K/V out = 2048, hidden = 3584
+  let finalHeadDim = headDim;
   if (!headDim) {
-    console.log(`[Config] WARNING: headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${inferredHeadDim}`);
+    if (isGemma2Early && hiddenSize === 3584 && numHeads === 16) {
+      finalHeadDim = 256;  // Gemma 2 9B uses head_dim=256, not 3584/16=224
+      console.log(`[Config] Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)`);
+    } else {
+      finalHeadDim = Math.floor(hiddenSize / numHeads);
+      console.log(`[Config] WARNING: headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${finalHeadDim}`);
+    }
   }
-  headDim = inferredHeadDim;
+  headDim = finalHeadDim;
 
   // RoPE scaling
   const ropeScaling = config.rope_scaling;
@@ -391,12 +404,19 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     defaultRopeTheta = 50000;  // Uses YARN 32x scaling for 128K context
   }
 
-  // Generate layer_types for Gemma 3 if not present in config
-  // Gemma 3 uses sliding_window_pattern to determine which layers are global (full_attention)
-  // Every Nth layer is global (full_attention), others are local (sliding_attention)
+  // Generate layer_types for Gemma 2/3 if not present in config
+  // Gemma 2: alternating global (even) / local (odd) - every other layer
+  // Gemma 3: sliding_window_pattern to determine which layers are global (full_attention)
   // Pattern: layer 0, N, 2N, 3N... are global; others are local
   let layerTypes: string[] | null = Array.isArray(config.layer_types) ? config.layer_types : null;
-  if (!layerTypes && isGemma3) {
+  if (!layerTypes && isGemma2) {
+    // Gemma 2 uses alternating layers: even = global (full), odd = local (sliding)
+    // Reference: https://github.com/vllm-project/vllm/issues/6595
+    layerTypes = Array.from({ length: numLayers }, (_, i) =>
+      i % 2 === 0 ? 'full_attention' : 'sliding_attention'
+    );
+    console.log(`[Config] Gemma 2 layer_types: alternating full/sliding (${numLayers} layers)`);
+  } else if (!layerTypes && isGemma3) {
     const pattern = config.sliding_window_pattern ?? 6;  // Default to 6 if not specified
     layerTypes = Array.from({ length: numLayers }, (_, i) =>
       i % pattern === 0 ? 'full_attention' : 'sliding_attention'
@@ -418,7 +438,8 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     useMoE: (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1,
     numExperts: config.num_local_experts ?? config.num_experts ?? 8,
     moeTopK,
-    slidingWindow: config.sliding_window ?? null,
+    // Gemma 2 uses 4096 sliding window for local attention layers
+    slidingWindow: config.sliding_window ?? (isGemma2 ? 4096 : null),
     ropeTheta: config.rope_theta ?? config.ropeFreqBase ?? defaultRopeTheta,
     ropeLocalTheta,
     ropeScale,
