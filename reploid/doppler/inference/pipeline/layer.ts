@@ -418,7 +418,7 @@ export async function processLayer(
 
   // Debug: check path being taken for layer 0
   if (context.debug && layerIdx === 0) {
-    log.debug('Layer', `L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
+    trace.ffn(0, `routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
   }
 
   // GPU-native path
@@ -470,7 +470,7 @@ export async function processLayerGPU(
 
   // Debug: log RoPE selection for first few layers
   if (context.debug && layerIdx < 3) {
-    log.debug('Layer', `L${layerIdx} RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+    trace.attn(layerIdx, `RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
   const attnConfig: AttentionConfig = {
@@ -531,7 +531,7 @@ export async function processLayerGPU(
 
     // Debug layer 0, 2, and 17 attention output specifically (2 is where decode explosion happens)
     // NOTE: Skip detailed readback when using recorder (batched mode) - buffers aren't populated yet!
-    log.debug('Layer', `L${layerIdx} attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
+    trace.attn(layerIdx, `attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
     if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && !recorder) {
       if (allowReadback(`layer.attn-out.${layerIdx}`)) {
         try {
@@ -546,20 +546,20 @@ export async function processLayerGPU(
           staging.destroy();
           const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
           const nonZero = Array.from(data).filter(x => x !== 0).length;
-          log.debug('Layer', `L${layerIdx} ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+          trace.attn(layerIdx, `ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
         } catch (e) {
-          log.debug('Layer', `L${layerIdx} ATTN_OUT error: ${e}`);
+          trace.attn(layerIdx, `ATTN_OUT error: ${e}`);
         }
       }
     } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
-      log.debug('Layer', `L${layerIdx} ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
+      trace.attn(layerIdx, `ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
     }
   }
 
   // 2. Handle residual connection based on architecture
   // Debug: log architecture path for layer 0, 2, and 17
   if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
-    log.debug('Layer', `L${layerIdx} ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
+    trace.attn(layerIdx, `ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
   }
 
   let postAttn: GPUBuffer;
@@ -589,7 +589,7 @@ export async function processLayerGPU(
     // Gemma 3 path: FUSED norm attention output + residual add (1 kernel instead of 2)
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
     if (context.debug && layerIdx === 0) {
-      log.debug('Layer', `L0 RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
+      trace.attn(0, `RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
       // Debug: verify inputBuffer (residual) has the expected embedding values
       if (inputBuffer instanceof GPUBuffer && allowReadback(`layer.residual-check.${layerIdx}`)) {
         try {
@@ -604,9 +604,9 @@ export async function processLayerGPU(
           staging.unmap();
           staging.destroy();
           const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-          log.debug('Layer', `L0 INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+          trace.attn(0, `INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
         } catch (e) {
-          log.debug('Layer', `L0 INPUT_RESIDUAL error: ${e}`);
+          trace.attn(0, `INPUT_RESIDUAL error: ${e}`);
         }
       }
     }
@@ -656,9 +656,9 @@ export async function processLayerGPU(
         staging.unmap();
         staging.destroy();
         const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-        log.debug('Layer', `L0 POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        trace.attn(0, `POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
       } catch (e) {
-        log.debug('Layer', `L0 POST_ATTN error: ${e}`);
+        trace.attn(0, `POST_ATTN error: ${e}`);
       }
     }
   }
@@ -713,9 +713,9 @@ async function processFFNWithSandwichNorm(
       staging.destroy();
       const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
       const nonZero = Array.from(data).filter(x => x !== 0).length;
-      log.debug('Layer', `L${layerIdx} FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
+      trace.ffn(layerIdx, `${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
     } catch (e) {
-      log.debug('Layer', `L${layerIdx} FFN_${label} error: ${e}`);
+      trace.ffn(layerIdx, `${label} error: ${e}`);
     }
   };
 
@@ -739,8 +739,8 @@ async function processFFNWithSandwichNorm(
           wstaging.destroy();
           const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
           const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
-          log.debug('Layer', `L${layerIdx} PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-        } catch (e) { log.debug('Layer', `L${layerIdx} PRE_FFN_NORM_WEIGHTS error: ${e}`); }
+          trace.ffn(layerIdx, `PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        } catch (e) { trace.ffn(layerIdx, `PRE_FFN_NORM_WEIGHTS error: ${e}`); }
       }
     }
 
@@ -780,7 +780,7 @@ async function processFFNWithSandwichNorm(
              (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     // FUSED PATH: gate+up (or separate gate/up) -> activation -> down+norm+residual (single kernel for last step)
     if (layerIdx === 0 && !loggedFusedDownNorm) {
-      log.debug('Layer', 'Using fused down+norm kernel');
+      trace.ffn(0, 'Using fused down+norm kernel');
       loggedFusedDownNorm = true;
     }
     // Pass pre-allocated decode buffer for output when available
@@ -885,7 +885,7 @@ async function processFFNWithSandwichNorm(
         // Calculate which token this is
         const tokenIdx = Math.floor(maxIdx / hiddenSize);
         const dimIdx = maxIdx % hiddenSize;
-        log.debug('Layer', `L${layerIdx} LAYER_OUT: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
+        trace.ffn(layerIdx, `LAYER_OUT: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
       } catch (e) { /* ignore */ }
     }
   }

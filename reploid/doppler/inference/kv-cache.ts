@@ -13,6 +13,7 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js'
 import { getBufferDtype, setBufferDtype } from '../gpu/buffer-dtypes.js';
 import { allowReadback } from '../gpu/perf-guards.js';
 import type { KVCacheConfig as ImportedKVCacheConfig } from '../types/inference.js';
+import { log } from '../debug/index.js';
 
 /**
  * KV Cache Configuration
@@ -713,11 +714,11 @@ export class KVCache {
    */
   private _migrateToGPU(device: GPUDevice): void {
     if (this.layout === 'paged') {
-      console.warn('[KVCache] GPU migration not supported for paged layout');
+      log.warn('KVCache', 'GPU migration not supported for paged layout');
       return;
     }
 
-    console.log(`[KVCache] Migrating ${this.currentSeqLen} positions to GPU...`);
+    log.info('KVCache', `Migrating ${this.currentSeqLen} positions to GPU...`);
     const sizePerLayer = this.maxSeqLen * this.kvSize;
 
     for (let l = 0; l < this.numLayers; l++) {
@@ -760,7 +761,7 @@ export class KVCache {
     }
 
     this.useGPU = true;
-    console.log('[KVCache] Migration complete');
+    log.info('KVCache', 'Migration complete');
   }
 
   /**

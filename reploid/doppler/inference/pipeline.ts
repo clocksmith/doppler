@@ -980,9 +980,9 @@ export class InferencePipeline {
                 if (av > maxAbs) maxAbs = av;
               }
               const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
-              console.log(`[Pipeline] LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+              log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
             } catch (e) {
-              console.log(`[Pipeline] LAYER_${l}_LAST: error reading buffer: ${e}`);
+              log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
             }
           }
         }
@@ -1012,7 +1012,7 @@ export class InferencePipeline {
 
     // Debug: check final hidden states before logits (at LAST token position)
     if (opts.debug) {
-      console.log(`[Pipeline] LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
+      log.debug('Pipeline', `LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
       if (hiddenStates instanceof GPUBuffer && allowReadback('pipeline.prefill.final-hidden')) {
         const device = getDevice();
         // Read from LAST token position (where logits will be computed from)
@@ -1032,7 +1032,7 @@ export class InferencePipeline {
         staging.destroy();
         const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
         const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-        console.log(`[Pipeline] FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+        log.debug('Pipeline', `FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
       }
     }
 
@@ -1088,9 +1088,9 @@ export class InferencePipeline {
     // Debug: check KV cache state after prefill
     if (opts.debug) {
       if (this.kvCache?.hasGPUCache?.()) {
-        console.log(`[Pipeline] KV cache active after prefill: seqLen=${this.kvCache.layers?.[0]?.seqLen ?? '?'}`);
+        log.debug('Pipeline', `KV cache active after prefill: seqLen=${this.kvCache.layers?.[0]?.seqLen ?? '?'}`);
       } else {
-        console.log(`[Pipeline] WARNING: KV cache NOT active after prefill! hasGPUCache=${this.kvCache?.hasGPUCache?.()}`);
+        log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this.kvCache?.hasGPUCache?.()}`);
       }
     }
 
@@ -1106,7 +1106,7 @@ export class InferencePipeline {
     const isDebugStep = opts.debug && this._decodeStepCount <= 5;
     if (isDebugStep) {
       const tokenText = this.tokenizer?.decode?.([lastToken]) || '?';
-      console.log(`[Decode][${this._decodeStepCount}] token="${tokenText}" pos=${this.currentSeqLen}`);
+      log.debug('Decode', `[${this._decodeStepCount}] token="${tokenText}" pos=${this.currentSeqLen}`);
     }
 
     // Create CommandRecorder for batched GPU operations
@@ -1122,7 +1122,7 @@ export class InferencePipeline {
     // Log decode path once (first decode step only)
     if (this._decodeStepCount === 1) {
       const path = recorder ? 'fused' : 'debug-sync';
-      console.log(`[Decode] Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
+      log.debug('Decode', `Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
     }
     // Pass isDecodeMode=true to enable pre-allocated buffer usage
     const context = this._buildLayerContext(recorder, true);
@@ -1157,7 +1157,7 @@ export class InferencePipeline {
       const sample = embedArr.slice(0, 5);
       const maxAbs = Math.max(...embedArr.map(Math.abs));
       const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
-      console.log(`[Decode][1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
+      log.debug('Decode', `[1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
     }
 
     // Enable submit tracking for first decode step benchmarking
@@ -1170,7 +1170,7 @@ export class InferencePipeline {
     // Debug: check KV cache status for decode
     const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
     if (opts.debug && this._decodeStepCount === 1) {
-      console.log(`[Decode] KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
+      log.debug('Decode', `KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
     }
 
     // Process all layers
@@ -1250,12 +1250,12 @@ export class InferencePipeline {
       stagingBuffer.destroy();
 
       // DEBUG: Log every token for debugging
-      console.log(`[DECODE] Step ${this._decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
+      log.debug('Decode', `Step ${this._decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
       // DEBUG: Check for invalid token IDs
       if (nextToken > config.vocabSize) {
-        console.log(`[DECODE BUG] Invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
-        console.log(`[DECODE BUG] Token as hex: 0x${nextToken.toString(16)}`);
+        log.warn('Decode', `Invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
+        log.warn('Decode', `Token as hex: 0x${nextToken.toString(16)}`);
         // Read logits to check their values
         const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
         const logitArr = new Float32Array(logitSample);
@@ -1263,8 +1263,8 @@ export class InferencePipeline {
         const minLogit = Math.min(...logitArr);
         const hasNaN = logitArr.some(v => isNaN(v));
         const hasInf = logitArr.some(v => !isFinite(v));
-        console.log(`[DECODE BUG] Logits: max=${maxLogit}, min=${minLogit}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
-        console.log(`[DECODE BUG] First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
+        log.warn('Decode', `Logits: max=${maxLogit}, min=${minLogit}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+        log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
       }
 
       releaseBuffer(sampleOutputBuffer);
@@ -1283,8 +1283,8 @@ export class InferencePipeline {
           this.stats.gpuTimeDecodeMs = (this.stats.gpuTimeDecodeMs ?? 0) + total;
         }
         if (timings) {
-          console.warn(`[Profile] Decode step ${this._decodeStepCount}:`);
-          console.warn(CommandRecorder.formatProfileReport(timings));
+          log.warn('Profile', `Decode step ${this._decodeStepCount}:`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
         }
       }
 
@@ -1306,8 +1306,8 @@ export class InferencePipeline {
           this.stats.gpuTimeDecodeMs = (this.stats.gpuTimeDecodeMs ?? 0) + total;
         }
         if (timings) {
-          console.warn(`[Profile] Decode step ${this._decodeStepCount} (layers only):`);
-          console.warn(CommandRecorder.formatProfileReport(timings));
+          log.warn('Profile', `Decode step ${this._decodeStepCount} (layers only):`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
         }
       }
     }
@@ -1337,7 +1337,7 @@ export class InferencePipeline {
           staging.destroy();
           const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
           const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-          console.log(`[Decode][1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+          log.debug('Decode', `[1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
         }
       }
     }
@@ -1710,7 +1710,7 @@ export class InferencePipeline {
     this.loraAdapter = null;
     this.isLoaded = false;
     this.currentSeqLen = 0;
-    console.log('[Pipeline] Unloaded');
+    log.info('Pipeline', 'Unloaded');
   }
 
   setLoRAAdapter(adapter: LoRAAdapter | null): void {

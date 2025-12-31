@@ -10,6 +10,7 @@
  */
 
 import type { SpecialTokens } from '../types/inference.js';
+import { log } from '../debug/index.js';
 
 /** Tokenizer Configuration */
 export interface TokenizerConfig {
@@ -305,10 +306,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     try {
       // Parse the SentencePiece model protobuf
       await this._parseModelProto(modelData);
-      console.log(`[SentencePiece] Loaded ${this.pieces.size} pieces (${this.algorithm})`);
+      log.info('Tokenizer', `Loaded ${this.pieces.size} pieces (${this.algorithm})`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn('[SentencePiece] Failed to parse model, using byte fallback:', message);
+      log.warn('Tokenizer', `Failed to parse model, using byte fallback: ${message}`);
       this._initByteFallback();
     }
   }
@@ -850,7 +851,7 @@ export class BundledTokenizer extends BaseTokenizer {
   private _loadHuggingFaceFormat(hf: HuggingFaceTokenizerJson): void {
     const model = hf.model!;
     this.type = (model.type?.toLowerCase() as 'bpe' | 'unigram') || 'bpe';
-    console.log(`[BundledTokenizer] HuggingFace model.type="${model.type}", using type="${this.type}"`);
+    log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.type}"`);
     let maxId = -1;
 
     // Handle vocab based on type
@@ -932,7 +933,7 @@ export class BundledTokenizer extends BaseTokenizer {
     // Sort special tokens by length (longest first) for greedy matching
     this.specialTokenPatterns.sort((a, b) => b.content.length - a.content.length);
     // Debug: log special tokens
-    console.log('[BundledTokenizer] Special token patterns:', this.specialTokenPatterns.map(t => `${t.id}:"${t.content}"`).join(', '));
+    log.debug('Tokenizer', `Special token patterns: ${this.specialTokenPatterns.map(t => `${t.id}:"${t.content}"`).join(', ')}`);
 
     // Some models add special tokens with IDs above the base vocab range.
     // Keep vocabSize aligned to the maximum ID + 1 to match embedding/LM-head shapes.
@@ -956,34 +957,34 @@ export class BundledTokenizer extends BaseTokenizer {
     const hasSentencePieceStyle = this.vocab.has('▁the') || this.vocab.has('▁a') || this.vocab.has('▁is');
     if (hasGptStyle && !hasSentencePieceStyle) {
       this.spacePrefixChar = 'Ġ';
-      console.log('[BundledTokenizer] Detected GPT-style space prefix (Ġ)');
+      log.debug('Tokenizer', 'Detected GPT-style space prefix');
     } else if (hasSentencePieceStyle && !hasGptStyle) {
       this.spacePrefixChar = '▁';
-      console.log('[BundledTokenizer] Detected SentencePiece-style space prefix (▁)');
+      log.debug('Tokenizer', 'Detected SentencePiece-style space prefix');
     } else if (hasGptStyle && hasSentencePieceStyle) {
       // Both styles exist - prefer GPT style for Llama-family models
       this.spacePrefixChar = 'Ġ';
-      console.log('[BundledTokenizer] Both space styles found, defaulting to GPT-style (Ġ)');
+      log.debug('Tokenizer', 'Both space styles found, defaulting to GPT-style');
     } else {
       // Neither style found - might be byte-level or no space prefix needed
       this.addSpacePrefix = false;
-      console.log('[BundledTokenizer] No space prefix tokens found, disabling space prefix');
+      log.debug('Tokenizer', 'No space prefix tokens found, disabling space prefix');
     }
 
-    console.log(`[BundledTokenizer] Loaded HuggingFace ${this.vocabSize} tokens (${this.type}), ${this.specialTokenPatterns.length} special patterns, ${this.merges.length} merges, spacePrefixChar='${this.spacePrefixChar}'`);
+    log.info('Tokenizer', `Loaded HuggingFace ${this.vocabSize} tokens (${this.type}), ${this.specialTokenPatterns.length} special patterns, ${this.merges.length} merges`);
     // Debug: show sample vocab entries (look for common words)
     const commonWords = ['the', '▁the', 'Ġthe', 'a', '▁a', 'is', '▁is', 'user', '▁user', 'u', 's', 'e', 'r'];
     const foundTokens = commonWords.map(w => {
       const id = this.vocab.get(w);
       return id !== undefined ? `"${w}"=${id}` : null;
     }).filter(Boolean);
-    console.log('[BundledTokenizer] Common tokens in vocab:', foundTokens.join(', ') || 'NONE FOUND');
+    log.debug('Tokenizer', `Common tokens in vocab: ${foundTokens.join(', ') || 'NONE FOUND'}`);
     // Show first few merges (escape whitespace)
     if (this.merges.length > 0) {
       const escapedMerges = this.merges.slice(0, 5).map(m =>
         String(m).replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/ /g, '␣')
       );
-      console.log('[BundledTokenizer] First 5 merges:', escapedMerges.join(' | '));
+      log.debug('Tokenizer', `First 5 merges: ${escapedMerges.join(' | ')}`);
     }
   }
 
@@ -1035,7 +1036,7 @@ export class BundledTokenizer extends BaseTokenizer {
         eos: specialTokensRaw.eos ?? specialTokensRaw.eos_token_id ?? 2,
         unk: specialTokensRaw.unk ?? specialTokensRaw.unk_token_id ?? 0,
       };
-      console.log(`[BundledTokenizer] Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
+      log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
     }
 
     this.addBosToken = tokenizerJson.addBosToken !== false;
@@ -1053,21 +1054,21 @@ export class BundledTokenizer extends BaseTokenizer {
 
     if (hasGptStyle && !hasSentencePieceStyle) {
       this.spacePrefixChar = 'Ġ';
-      console.log('[BundledTokenizer] Detected GPT-style space prefix (Ġ)');
+      log.debug('Tokenizer', 'Detected GPT-style space prefix');
     } else if (hasSentencePieceStyle && !hasGptStyle) {
       this.spacePrefixChar = '▁';
-      console.log('[BundledTokenizer] Detected SentencePiece-style space prefix (▁)');
+      log.debug('Tokenizer', 'Detected SentencePiece-style space prefix');
     } else if (hasGptStyle && hasSentencePieceStyle) {
       // Both exist - prefer GPT-style for Llama 3 compatibility
       this.spacePrefixChar = 'Ġ';
-      console.log('[BundledTokenizer] Both space prefix styles found, using GPT-style (Ġ)');
+      log.debug('Tokenizer', 'Both space prefix styles found, using GPT-style');
     } else {
       // Default to SentencePiece style
       this.spacePrefixChar = '▁';
-      console.log('[BundledTokenizer] No space prefix tokens found, defaulting to SentencePiece-style (▁)');
+      log.debug('Tokenizer', 'No space prefix tokens found, defaulting to SentencePiece-style');
     }
 
-    console.log(`[BundledTokenizer] Loaded ${this.vocabSize} tokens (${this.type})`);
+    log.info('Tokenizer', `Loaded ${this.vocabSize} tokens (${this.type})`);
   }
 
   encode(text: string): number[] {
@@ -1314,7 +1315,7 @@ export class Tokenizer {
     // Check for bundled or HuggingFace tokenizer first (eliminates transformers.js dependency)
     const isBundled = tokenizerConfig.type === 'bundled' || tokenizerConfig.type === 'huggingface';
     if (isBundled && tokenizerConfig.file) {
-      console.log(`[Tokenizer] Loading ${tokenizerConfig.type} tokenizer from ${tokenizerConfig.file}`);
+      log.info('Tokenizer', `Loading ${tokenizerConfig.type} tokenizer from ${tokenizerConfig.file}`);
       this.backend = new BundledTokenizer(tokenizerConfig);
 
       const baseUrl = options.baseUrl;
@@ -1332,7 +1333,7 @@ export class Tokenizer {
           tokenizerJson = await response.json();
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          console.warn(`[Tokenizer] Failed to fetch bundled tokenizer from URL: ${message}`);
+          log.warn('Tokenizer', `Failed to fetch bundled tokenizer from URL: ${message}`);
         }
       } else {
         // Try to load from OPFS (for cached models)
@@ -1344,7 +1345,7 @@ export class Tokenizer {
           }
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          console.warn(`[Tokenizer] Failed to load bundled tokenizer from OPFS: ${message}`);
+          log.warn('Tokenizer', `Failed to load bundled tokenizer from OPFS: ${message}`);
         }
       }
 
@@ -1370,7 +1371,7 @@ export class Tokenizer {
 
     if (hfModel) {
       // Use Transformers.js for HuggingFace models (fallback)
-      console.log(`[Tokenizer] Loading from HuggingFace: ${hfModel}`);
+      log.info('Tokenizer', `Loading from HuggingFace: ${hfModel}`);
       this.backend = new TransformersTokenizer({
         modelId: hfModel,
         ...tokenizerConfig
@@ -1442,13 +1443,13 @@ export class Tokenizer {
                       manifest.tokenizer?.vocabSize;
     if ((archLower.includes('mistral') || archLower.includes('mixtral')) && vocabSize === 32768) {
       // Mistral v0.3+ with extended vocabulary needs the official tokenizer
-      console.log(`[Tokenizer] Detected Mistral v0.3+ (vocab_size=32768), using official tokenizer`);
+      log.info('Tokenizer', 'Detected Mistral v0.3+ (vocab_size=32768), using official tokenizer');
       return 'mistralai/Mistral-7B-Instruct-v0.3';
     }
 
     for (const [key, hfModel] of Object.entries(archToHF)) {
       if (archLower.includes(key)) {
-        console.log(`[Tokenizer] Inferred HuggingFace model from architecture "${arch}": ${hfModel}`);
+        log.info('Tokenizer', `Inferred HuggingFace model from architecture "${arch}": ${hfModel}`);
         return hfModel;
       }
     }
@@ -1458,7 +1459,7 @@ export class Tokenizer {
     if (modelType) {
       for (const [key, hfModel] of Object.entries(archToHF)) {
         if (modelType.toLowerCase().includes(key)) {
-          console.log(`[Tokenizer] Inferred HuggingFace model from model_type "${modelType}": ${hfModel}`);
+          log.info('Tokenizer', `Inferred HuggingFace model from model_type "${modelType}": ${hfModel}`);
           return hfModel;
         }
       }

@@ -16,6 +16,7 @@ import { initDevice, getDevice, getKernelCapabilities, type KernelCapabilities }
 import { parseManifest, type RDRRManifest, type KernelHints } from '../storage/rdrr-format.js';
 import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
+import { log as debugLog } from '../debug/index.js';
 
 // ============================================================================
 // Types
@@ -142,7 +143,7 @@ export function parseRuntimeOverridesFromURL(
         Object.assign(hints, parsed);
       }
     } catch (e) {
-      console.warn('[test-harness] Failed to parse kernelHints JSON:', (e as Error).message);
+      debugLog.warn('TestHarness', `Failed to parse kernelHints JSON: ${(e as Error).message}`);
     }
   }
 
