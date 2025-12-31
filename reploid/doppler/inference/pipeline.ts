@@ -273,10 +273,11 @@ export class InferencePipeline {
 
     // Set kernel hints from manifest (if present), otherwise apply defaults.
     const kernelHints = manifest.optimizations?.kernelHints as KernelHints | undefined;
+    let hintsSource = 'manifest';
     if (kernelHints) {
       setKernelHints(kernelHints, 'manifest');
-      console.log('[Pipeline] Kernel hints loaded from manifest:', kernelHints);
     } else {
+      hintsSource = 'defaults';
       const quant = String(manifest.quantization || '').toLowerCase();
       const defaultHints: KernelHints = {
         computePrecision: 'auto',
@@ -285,15 +286,22 @@ export class InferencePipeline {
         attentionDecode: 'streaming',
       };
       if (quant.includes('q4')) {
-        defaultHints.q4kMatmul = 'dequant_f16';
+        // Estimate param count: ~12 * hidden^2 * layers (rough transformer formula)
+        const h = this.modelConfig.hiddenSize;
+        const L = this.modelConfig.numLayers;
+        const estParams = 12 * h * h * L;
+        const isLargeModel = estParams > 4e9; // >4B params
+
+        // Large models: fused_q4k saves 4x memory (keeps weights compressed)
+        // Small models: dequant_f16 is ~2x faster (memory fits anyway)
+        defaultHints.q4kMatmul = isLargeModel ? 'fused_q4k' : 'dequant_f16';
       }
       setKernelHints(defaultHints, 'manifest');
-      console.log('[Pipeline] Kernel hints defaulted for manifest:', defaultHints);
     }
 
     if (this._runtimeKernelHints) {
+      hintsSource = 'runtime';
       setKernelHints(this._runtimeKernelHints, 'runtime');
-      console.log('[Pipeline] Kernel hints overridden at runtime:', this._runtimeKernelHints);
     }
 
     const manifestKernel = manifest.optimizations?.attentionKernel || manifest.attentionKernel || manifest.runtime?.attentionKernel;
@@ -302,15 +310,10 @@ export class InferencePipeline {
       this.attentionKernelOverride = this.manifestAttentionKernelDefault;
     }
 
-    console.log('[Pipeline] Model config:', {
-      numLayers: this.modelConfig.numLayers,
-      hiddenSize: this.modelConfig.hiddenSize,
-      vocabSize: this.modelConfig.vocabSize,
-      numHeads: this.modelConfig.numHeads,
-      numKVHeads: this.modelConfig.numKVHeads,
-      headDim: this.modelConfig.headDim,
-      useMoE: this.modelConfig.useMoE,
-    });
+    // Single compact model summary line
+    const cfg = this.modelConfig;
+    const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK || 2})` : '';
+    console.log(`[Pipeline] ${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, hints=${hintsSource}`);
 
     // Initialize tokenizer
     this.tokenizer = await initTokenizer(manifest, this.baseUrl ?? undefined);
@@ -579,13 +582,25 @@ export class InferencePipeline {
           }
         } else {
           // Single-token path (existing behavior)
+          const tokenStart = performance.now();
           const nextToken = await this._decodeStep(generatedIds, opts);
+          const tokenTime = performance.now() - tokenStart;
           generatedIds.push(nextToken);
           tokensGenerated++;
 
           const tokenText = this.tokenizer!.decode([nextToken], true, false);
           yield tokenText;
           if (options.onToken) options.onToken(nextToken, tokenText);
+
+          // Log per-token timing (debug/benchmark mode only)
+          if (opts.debug || opts.benchmark) {
+            const elapsedMs = performance.now() - decodeStart;
+            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+            console.log(
+              `[Decode] #${tokensGenerated} "${tokenText}" ` +
+              `${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`
+            );
+          }
 
           // Check stop
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
@@ -778,12 +793,25 @@ export class InferencePipeline {
             if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
           }
         } else {
+          const tokenStart = performance.now();
           const nextToken = await this._decodeStep(generatedIds, opts);
+          const tokenTime = performance.now() - tokenStart;
           generatedIds.push(nextToken);
           tokensGenerated++;
           const tokenText = this.tokenizer!.decode([nextToken], true, false);
           yield tokenText;
           if (options.onToken) options.onToken(nextToken, tokenText);
+
+          // Log per-token timing (debug/benchmark mode only)
+          if (opts.debug || opts.benchmark) {
+            const elapsedMs = performance.now() - decodeStart;
+            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+            console.log(
+              `[Decode] #${tokensGenerated} "${tokenText}" ` +
+              `${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`
+            );
+          }
+
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
           if (opts.stopSequences.length > 0) {
             const fullText = this.tokenizer!.decode(generatedIds.slice(promptTokenCount), false);
@@ -1069,6 +1097,11 @@ export class InferencePipeline {
       recorder = opts.profile
         ? createProfilingRecorder('decode')
         : createCommandRecorder('decode');
+    }
+    // Log decode path once (first decode step only)
+    if (this._decodeStepCount === 1) {
+      const path = recorder ? 'fused' : 'debug-sync';
+      console.log(`[Decode] Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
     }
     const context = this._buildLayerContext(recorder);
 

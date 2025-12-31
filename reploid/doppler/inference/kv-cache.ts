@@ -188,9 +188,10 @@ export class KVCache {
         this.layers[l] = {
           keysGPU,
           valuesGPU,
-          // Keep CPU shadow for fallback/debugging
-          keys: new Float32Array(sizePerLayer),
-          values: new Float32Array(sizePerLayer),
+          // Use empty CPU arrays in GPU mode - saves ~2.7GB for 9B models
+          // CPU shadows are only allocated on-demand if migrateFromGPU() is called
+          keys: new Float32Array(0),
+          values: new Float32Array(0),
           seqLen: 0
         };
         setBufferDtype(keysGPU, this.kvDtype);
@@ -773,12 +774,20 @@ export class KVCache {
     const device = getDevice();
     if (!device) return;
 
+    const sizePerLayer = this.maxSeqLen * this.kvSize;
+
     for (let l = 0; l < this.numLayers; l++) {
       const layer = this.layers[l] as ContiguousLayerCache;
       if (!layer.keysGPU || !layer.valuesGPU) continue;
 
       const usedSize = layer.seqLen * this.kvSize * 4;
       if (usedSize === 0) continue;
+
+      // Allocate CPU arrays on-demand if empty (lazy allocation from GPU mode)
+      if (layer.keys.length === 0) {
+        layer.keys = new Float32Array(sizePerLayer);
+        layer.values = new Float32Array(sizePerLayer);
+      }
 
       // Create staging buffers for readback
       const keysStaging = device.createBuffer({

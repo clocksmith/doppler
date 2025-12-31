@@ -22,6 +22,9 @@ const DEBUG_KERNELS = typeof window !== 'undefined'
   ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
   : false;
 
+// Track if we've logged the attention tier selection (avoid spam)
+let loggedAttentionTier = false;
+
 /** Attention kernel options */
 export interface AttentionOptions extends OutputBufferOptions {
   seqLen?: number;
@@ -111,7 +114,10 @@ function selectAttentionTier(
   if (!tier) {
     if (canSubgroup) {
       tier = 'subgroup';
-      console.log(`[Attention] Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+      if (!loggedAttentionTier) {
+        console.log(`[Attention] Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+        loggedAttentionTier = true;
+      }
     } else if (canLarge) {
       tier = 'tiled_large';
     } else if (canSmall) {
@@ -130,21 +136,38 @@ function selectAttentionTier(
   return tier as AttentionTier;
 }
 
+// Max KV length supported by chunked attention kernel (limited by shared memory)
+const CHUNKED_ATTN_MAX_KV_LEN = 2048;
+
+// Track if we've logged chunked kernel selection
+let loggedChunkedKernel = false;
+
 function resolveAttentionVariant(
   tier: AttentionTier,
   isDecode: boolean,
   useF16KV: boolean,
   numHeads: number,
-  headDim: number
+  headDim: number,
+  kvLen: number
 ): string {
   const base = isDecode ? 'decode' : 'prefill';
+
+  // Check if chunked kernel is viable:
+  // - Decode only (seqLen=1)
+  // - F16 KV cache
+  // - Large headDim (parallelizes across dimensions)
+  // - KV length within shared memory limit
+  const canUseChunked = isDecode && useF16KV && headDim >= 128 && kvLen <= CHUNKED_ATTN_MAX_KV_LEN;
+
   if (tier === 'subgroup') {
     // decode_subgroup only supports F32 KV cache
-    // Fall back to chunked for F16 KV cache (better than streaming for large headDim)
+    // Fall back to chunked for F16 KV cache (much faster than streaming)
     if (useF16KV) {
-      // Use chunked kernel for few heads with large headDim (e.g., Gemma 3: 4 heads × 256 dim)
-      // This parallelizes across headDim instead of running single-threaded
-      if (numHeads <= 8 && headDim >= 128) {
+      if (canUseChunked) {
+        if (!loggedChunkedKernel) {
+          console.log(`[Attention] Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+          loggedChunkedKernel = true;
+        }
         return 'decode_chunked_f16kv';
       }
       return 'decode_streaming_f16kv';
@@ -157,8 +180,12 @@ function resolveAttentionVariant(
   if (tier === 'tiled_small') {
     return `${base}_small${useF16KV ? '_f16kv' : ''}`;
   }
-  // For streaming with few heads, prefer chunked kernel
-  if (isDecode && useF16KV && numHeads <= 8 && headDim >= 128) {
+  // For streaming tier, prefer chunked if viable
+  if (canUseChunked) {
+    if (!loggedChunkedKernel) {
+      console.log(`[Attention] Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+      loggedChunkedKernel = true;
+    }
     return 'decode_chunked_f16kv';
   }
   return `${base}_streaming${useF16KV ? '_f16kv' : ''}`;
@@ -179,6 +206,7 @@ function calculateAttentionWorkgroups(tier: AttentionTier, seqLen: number, numHe
 
 function resolveAttentionPlan(
   seqLen: number,
+  kvLen: number,
   headDim: number,
   numHeads: number,
   attentionKernel: string | null,
@@ -189,7 +217,7 @@ function resolveAttentionPlan(
   const useF16KV = kvDtype === 'f16';
   const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim);
+  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
   return { tier, variant, workgroups, useF16KV, isDecode };
@@ -257,6 +285,7 @@ export async function runAttention(
   const kvDtype = getBufferDtype(K) || 'f32';
   const plan = resolveAttentionPlan(
     seqLen,
+    kvLen,
     headDim,
     numHeads,
     attentionKernel,
@@ -343,6 +372,7 @@ export async function recordAttention(
   const kvDtype = getBufferDtype(K) || 'f32';
   const plan = resolveAttentionPlan(
     seqLen,
+    kvLen,
     headDim,
     numHeads,
     attentionKernel,

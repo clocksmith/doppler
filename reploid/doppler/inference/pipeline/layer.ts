@@ -35,6 +35,9 @@ import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 
+// Track if we've logged one-time messages (avoid spam)
+let loggedFusedDownNorm = false;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -736,7 +739,10 @@ async function processFFNWithSandwichNorm(
   } else if (canUseFusedDownNorm && layerWeights?.down && layerWeights?.postFeedforwardNorm &&
              (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     // FUSED PATH: gate+up (or separate gate/up) -> activation -> down+norm+residual (single kernel for last step)
-    if (layerIdx === 0) console.warn('[FUSED] Using fused down+norm kernel for layer 0');
+    if (layerIdx === 0 && !loggedFusedDownNorm) {
+      console.log('[FUSED] Using fused down+norm kernel');
+      loggedFusedDownNorm = true;
+    }
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,  // residual for post-FFN norm

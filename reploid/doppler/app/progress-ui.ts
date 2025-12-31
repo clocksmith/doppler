@@ -109,10 +109,10 @@ export class ProgressUI {
     label.textContent = config.label;
 
     const barContainer = document.createElement('div');
-    barContainer.className = 'progress-bar-container';
+    barContainer.className = 'progress';
 
     const bar = document.createElement('div');
-    bar.className = 'progress-bar progress-phase-bar';
+    bar.className = 'progress-fill';
     bar.style.backgroundColor = config.color;
     bar.style.width = '0%';
     barContainer.appendChild(bar);
@@ -138,7 +138,7 @@ export class ProgressUI {
       if (row) {
         this.phases.set(phase, {
           row,
-          bar: row.querySelector('.progress-phase-bar') as HTMLElement,
+          bar: row.querySelector('.progress-fill') as HTMLElement,
           label: row.querySelector('.progress-phase-label') as HTMLElement,
           value: row.querySelector('.progress-phase-value') as HTMLElement,
         });

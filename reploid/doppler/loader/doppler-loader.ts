@@ -44,6 +44,7 @@ import { type KernelHints } from '../storage/rdrr-format.js';
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { getBufferPool } from '../gpu/buffer-pool.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -247,6 +248,9 @@ export class DopplerLoader {
   shardCache = new Map<number, ArrayBuffer>();
   maxShardCacheEntries = 2;  // Updated dynamically in _configureShardCache()
 
+  // In-flight shard fetches - deduplicates concurrent requests for the same shard
+  private shardFetchPromises = new Map<number, Promise<ArrayBuffer>>();
+
   // Custom shard loader (for Native Bridge support)
   customLoadShard: CustomShardLoader | null = null;
   verifyCustomShards = true;
@@ -262,9 +266,76 @@ export class DopplerLoader {
   // Internal tracking
   private _normOffsetLogged = false;
   private _normOffsetDebugLogged = false;
+  private _memoryLogInterval: ReturnType<typeof setInterval> | null = null;
+  private _loadStartTime = 0;
 
   constructor() {
     // All properties initialized above
+  }
+
+  /**
+   * Log comprehensive memory stats during loading
+   */
+  private _logMemoryStats(phase: string): void {
+    const elapsed = ((performance.now() - this._loadStartTime) / 1000).toFixed(1);
+    const stats: string[] = [`[${elapsed}s] Memory (${phase}):`];
+
+    // JS Heap (Chrome only)
+    const perfMemory = (performance as Performance & {
+      memory?: {
+        usedJSHeapSize?: number;
+        totalJSHeapSize?: number;
+        jsHeapSizeLimit?: number;
+      };
+    }).memory;
+
+    if (perfMemory) {
+      const usedHeap = perfMemory.usedJSHeapSize || 0;
+      const totalHeap = perfMemory.totalJSHeapSize || 0;
+      const heapLimit = perfMemory.jsHeapSizeLimit || 0;
+      stats.push(`Heap=${formatBytes(usedHeap)}/${formatBytes(totalHeap)} (limit=${formatBytes(heapLimit)})`);
+    }
+
+    // GPU buffer pool stats
+    try {
+      const pool = getBufferPool();
+      const poolStats = pool.getStats();
+      stats.push(`GPU=${formatBytes(poolStats.currentBytesAllocated)} (${poolStats.activeBuffers} active, ${poolStats.pooledBuffers} pooled, peak=${formatBytes(poolStats.peakBytesAllocated)})`);
+    } catch {
+      // Buffer pool not initialized yet
+    }
+
+    // Shard cache stats
+    const shardCacheBytes = Array.from(this.shardCache.values()).reduce((sum, ab) => sum + ab.byteLength, 0);
+    stats.push(`ShardCache=${formatBytes(shardCacheBytes)} (${this.shardCache.size} shards)`);
+
+    // Loaded model state
+    stats.push(`Layers=${this.layers.size}, GPUBuffers=${this.gpuBuffers.size}`);
+
+    log.info('Loader', stats.join(' | '));
+  }
+
+  /**
+   * Start periodic memory logging during load
+   */
+  private _startMemoryLogging(): void {
+    this._loadStartTime = performance.now();
+    this._logMemoryStats('start');
+    // Log memory every 30s during loading (was 5s - too noisy)
+    this._memoryLogInterval = setInterval(() => {
+      this._logMemoryStats('loading');
+    }, 30000);
+  }
+
+  /**
+   * Stop periodic memory logging
+   */
+  private _stopMemoryLogging(): void {
+    if (this._memoryLogInterval) {
+      clearInterval(this._memoryLogInterval);
+      this._memoryLogInterval = null;
+    }
+    this._logMemoryStats('complete');
   }
 
   /**
@@ -282,12 +353,14 @@ export class DopplerLoader {
   private _lastShardSource: { source: 'RAM' | 'OPFS' | 'custom' | 'network'; elapsed: number } | null = null;
 
   /**
-   * Load shard using custom loader or OPFS
+   * Load shard using custom loader or OPFS.
+   * Deduplicates concurrent requests - if shard is already being fetched, waits for that fetch.
    */
   private async _loadShard(shardIndex: number): Promise<ArrayBuffer> {
     const shardInfo = this.manifest?.shards?.[shardIndex];
     const sizeStr = shardInfo ? formatBytes(shardInfo.size) : '';
 
+    // 1. Check cache first
     if (this.shardCache.has(shardIndex)) {
       const cached = this.shardCache.get(shardIndex)!;
       // Refresh LRU order
@@ -298,6 +371,29 @@ export class DopplerLoader {
       return cached;
     }
 
+    // 2. Check if fetch is already in-flight - deduplicate concurrent requests
+    if (this.shardFetchPromises.has(shardIndex)) {
+      log.verbose('Loader', `Shard ${shardIndex}: waiting for in-flight fetch`);
+      return this.shardFetchPromises.get(shardIndex)!;
+    }
+
+    // 3. Start the actual fetch and store the promise for deduplication
+    const fetchPromise = this._doLoadShard(shardIndex, sizeStr);
+    this.shardFetchPromises.set(shardIndex, fetchPromise);
+
+    try {
+      const result = await fetchPromise;
+      return result;
+    } finally {
+      // Remove from in-flight map when done (success or error)
+      this.shardFetchPromises.delete(shardIndex);
+    }
+  }
+
+  /**
+   * Actually load the shard (called by _loadShard after deduplication check)
+   */
+  private async _doLoadShard(shardIndex: number, sizeStr: string): Promise<ArrayBuffer> {
     if (this.customLoadShard) {
       const startTime = performance.now();
       let data: Uint8Array | ArrayBuffer = await this.customLoadShard(shardIndex);
@@ -325,22 +421,27 @@ export class DopplerLoader {
         arrayBuffer = data;
       }
 
-      this.shardCache.set(shardIndex, arrayBuffer);
-      if (this.shardCache.size > this.maxShardCacheEntries) {
-        const oldestKey = this.shardCache.keys().next().value;
-        if (oldestKey !== undefined) {
-          this.shardCache.delete(oldestKey);
-        }
-      }
+      this._addToShardCache(shardIndex, arrayBuffer);
 
       const elapsed = (performance.now() - startTime) / 1000;
       this._lastShardSource = { source: 'custom', elapsed };
-      log.verbose('Loader', `Shard ${shardIndex}: custom (${sizeStr}, ${elapsed.toFixed(2)}s)`);
+      log.verbose('Loader', `Shard ${shardIndex}: network (${sizeStr}, ${elapsed.toFixed(2)}s)`);
       return arrayBuffer;
     }
 
     const opfsStart = performance.now();
     const data = await loadShardFromOPFS(shardIndex);
+    this._addToShardCache(shardIndex, data);
+    const elapsed = (performance.now() - opfsStart) / 1000;
+    this._lastShardSource = { source: 'OPFS', elapsed };
+    log.verbose('Loader', `Shard ${shardIndex}: OPFS (${sizeStr}, ${elapsed.toFixed(2)}s)`);
+    return data;
+  }
+
+  /**
+   * Add shard to cache with LRU eviction
+   */
+  private _addToShardCache(shardIndex: number, data: ArrayBuffer): void {
     this.shardCache.set(shardIndex, data);
     if (this.shardCache.size > this.maxShardCacheEntries) {
       const oldestKey = this.shardCache.keys().next().value;
@@ -348,10 +449,6 @@ export class DopplerLoader {
         this.shardCache.delete(oldestKey);
       }
     }
-    const elapsed = (performance.now() - opfsStart) / 1000;
-    this._lastShardSource = { source: 'OPFS', elapsed };
-    log.verbose('Loader', `Shard ${shardIndex}: OPFS (${sizeStr}, ${elapsed.toFixed(2)}s)`);
-    return data;
   }
 
   /**
@@ -533,6 +630,9 @@ export class DopplerLoader {
     log.info('Loader', `Loading: ${modelId}`);
     this.modelId = modelId;
 
+    // Start periodic memory logging
+    this._startMemoryLogging();
+
     // If using custom shard loader (bridge), manifest should be set externally
     if (!this.customLoadShard) {
       await openModelDirectory(modelId);
@@ -681,6 +781,28 @@ export class DopplerLoader {
       const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
       log.verbose('Loader', `  Layer ${l}: ${layerElapsed}s`);
 
+      // Yield to event loop after each layer to allow GC of temporary ArrayBuffers.
+      // Without this, tight async loops accumulate garbage (420 tensors × ~15MB = 6GB).
+      await new Promise(r => setTimeout(r, 0));
+
+      // Periodically flush shard cache during OPFS loading to reduce JS heap pressure.
+      // Dense models access shards sequentially, so keeping old shards cached wastes memory.
+      // Skip for network loading (customLoadShard) - re-fetching is expensive.
+      // Flush every 4 layers or when cache exceeds 256MB (4 shards at 64MB each).
+      const cacheBytes = Array.from(this.shardCache.values()).reduce((sum, ab) => sum + ab.byteLength, 0);
+      const shouldFlushCache = !this.customLoadShard && l > 0 && (l % 4 === 0 || cacheBytes > 256 * 1024 * 1024);
+      if (shouldFlushCache) {
+        this.shardCache.clear();
+        debugTrace.loader(`Layer ${l}: flushed shard cache (${formatBytes(cacheBytes)})`);
+      }
+      // Flush GPU queue periodically to release Chrome's internal staging memory
+      if (l > 0 && l % 4 === 0) {
+        const device = getDevice();
+        if (device) {
+          await device.queue.onSubmittedWorkDone();
+        }
+      }
+
       if (onProgress) {
         // Layers phase: progress from 80% to 85% based on layer count
         const layerFraction = (l + 1) / numLayers;
@@ -715,6 +837,16 @@ export class DopplerLoader {
     const totalTime = ((Date.now() - loadStartTime) / 1000).toFixed(2);
     const avgSpeed = formatBytes(bytesLoaded / (Date.now() - loadStartTime) * 1000);
     log.info('Loader', `Complete: ${formatBytes(bytesLoaded)} in ${totalTime}s (${avgSpeed}/s)`);
+
+    // Clear shard cache after loading - weights are now in GPU memory
+    // This frees JS heap memory that was holding ArrayBuffer copies of model shards
+    const cachedShards = this.shardCache.size;
+    const cachedBytes = Array.from(this.shardCache.values()).reduce((sum, ab) => sum + ab.byteLength, 0);
+    this.shardCache.clear();
+    debugTrace.loader(`Cleared shard cache: ${cachedShards} shards, ${formatBytes(cachedBytes)} freed from JS heap`);
+
+    // Stop periodic memory logging and log final stats
+    this._stopMemoryLogging();
 
     return (this.manifest.config as ModelConfig) || {};
   }
@@ -1015,7 +1147,8 @@ export class DopplerLoader {
     }
 
     // Load shard data into CPU memory (single-shard or CPU path)
-    let shardData: ArrayBuffer;
+    // Use Uint8Array views to avoid copying 420+ tensors (~6GB of garbage)
+    let shardView: Uint8Array;
     if (location.spans) {
       const chunks: Uint8Array[] = [];
       for (const span of location.spans) {
@@ -1034,10 +1167,11 @@ export class DopplerLoader {
         combined.set(chunk, offset);
         offset += chunk.length;
       }
-      shardData = combined.buffer;
+      shardView = combined;
     } else {
       const fullShard = await this._loadShard(location.shardIndex);
-      shardData = fullShard.slice(location.offset, location.offset + location.size);
+      // Use a view instead of slice() to avoid copying - saves ~6GB of garbage for 9B models
+      shardView = new Uint8Array(fullShard, location.offset, location.size);
     }
 
     // Handle quantized data
@@ -1068,7 +1202,7 @@ export class DopplerLoader {
         if (this.useFusedQ4K && isMatmulWeight && !isEmbedding && caps?.hasSubgroups && !isPackedQ4K) {
           debugTrace.loader(`Loading Q4K weight (single-shard): ${name} (size=${location.size})`);
           const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
-          device!.queue.writeBuffer(q4kBuffer, 0, new Uint8Array(shardData));
+          device!.queue.writeBuffer(q4kBuffer, 0, shardView as GPUAllowSharedBufferSource);
           setBufferDtype(q4kBuffer, 'q4k');
           this.gpuBuffers.add(q4kBuffer);
           return q4kBuffer;
@@ -1081,7 +1215,7 @@ export class DopplerLoader {
 
         // Standard dequant path: dequantize to f16 or f32
         const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-        device!.queue.writeBuffer(quantBuffer, 0, new Uint8Array(shardData));
+        device!.queue.writeBuffer(quantBuffer, 0, shardView as GPUAllowSharedBufferSource);
 
         const numBlocks = Math.ceil(location.size / 144);
         let outputDtype: 'f16' | 'f32' = 'f32';
@@ -1111,7 +1245,7 @@ export class DopplerLoader {
 
         return dequantized;
       }
-      return new Uint8Array(shardData);
+      return shardView;
     }
 
     // Handle Q6_K data (single-shard path)
@@ -1121,7 +1255,7 @@ export class DopplerLoader {
         debugTrace.loader(`Loading Q6_K tensor "${name}" (single-shard), size=${location.size}`);
         const Q6K_BLOCK_BYTES = 210;
         const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-        device!.queue.writeBuffer(quantBuffer, 0, new Uint8Array(shardData));
+        device!.queue.writeBuffer(quantBuffer, 0, shardView as GPUAllowSharedBufferSource);
 
         const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
         debugTrace.loader(`Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * 256 * 2} (f16)`);
@@ -1133,18 +1267,17 @@ export class DopplerLoader {
         // GGUF stores ALL weights transposed - use default transposeB=true (no column layout)
         return dequantized;
       }
-      return new Uint8Array(shardData);
+      return shardView;
     }
 
     // Handle BF16 data
     if (location.dtype === 'BF16') {
       if (toGPU) {
         const device = getDevice();
-        const bf16Bytes = new Uint8Array(shardData);
-        const srcBuffer = acquireBuffer(bf16Bytes.byteLength, undefined, `${name}_bf16`);
-        device!.queue.writeBuffer(srcBuffer, 0, bf16Bytes);
+        const srcBuffer = acquireBuffer(shardView.byteLength, undefined, `${name}_bf16`);
+        device!.queue.writeBuffer(srcBuffer, 0, shardView as GPUAllowSharedBufferSource);
 
-        const numElements = bf16Bytes.byteLength / 2;
+        const numElements = shardView.byteLength / 2;
         const caps = this.gpuCapabilities || getKernelCapabilities();
         const isMatmulWeight = this._shouldDequantizeToF16(name);
 
@@ -1168,8 +1301,8 @@ export class DopplerLoader {
         return dstBuffer;
       }
 
-      // CPU path
-      const bf16 = new Uint16Array(shardData);
+      // CPU path - need to slice for typed array alignment
+      const bf16 = new Uint16Array(shardView.slice().buffer);
       const f32 = new Float32Array(bf16.length);
       const tmp = new ArrayBuffer(4);
       const u32View = new Uint32Array(tmp);
@@ -1185,19 +1318,20 @@ export class DopplerLoader {
     if (toGPU) {
       const device = getDevice();
       const buffer = acquireBuffer(location.size, undefined, name);
-      device!.queue.writeBuffer(buffer, 0, new Uint8Array(shardData));
+      device!.queue.writeBuffer(buffer, 0, shardView as GPUAllowSharedBufferSource);
       this.gpuBuffers.add(buffer);
       return this._applyBufferLayout(buffer, location);
     } else {
+      // CPU path - need to slice for typed array alignment
       if (location.dtype === 'F16') {
-        const f16 = new Uint16Array(shardData);
+        const f16 = new Uint16Array(shardView.slice().buffer);
         const f32 = new Float32Array(f16.length);
         for (let i = 0; i < f16.length; i++) {
           f32[i] = this._f16ToF32(f16[i]);
         }
         return f32;
       }
-      return new Float32Array(shardData);
+      return new Float32Array(shardView.slice().buffer);
     }
   }
 
@@ -1260,8 +1394,14 @@ export class DopplerLoader {
       // Cap at reasonable maximum (16 shards = ~1GB at 64MB/shard)
       this.maxShardCacheEntries = Math.min(16, Math.max(4, expertCacheSize));
       debugTrace.loader(`MoE shard cache: ${this.maxShardCacheEntries} entries (${moe.numExpertsPerToken} experts/token)`);
+    } else if (this.customLoadShard) {
+      // Network loading: use larger cache to avoid re-fetching shards.
+      // Network is slow; re-fetching wastes bandwidth. Trade memory for fewer requests.
+      // 16 shards = ~1GB at 64MB/shard, fits comfortably in most devices.
+      this.maxShardCacheEntries = 16;
+      debugTrace.loader(`Network shard cache: ${this.maxShardCacheEntries} entries (avoiding re-fetch)`);
     } else {
-      // Dense model - keep default
+      // OPFS (disk) loading - keep small cache, disk reads are fast
       this.maxShardCacheEntries = 2;
     }
   }
@@ -2038,6 +2178,12 @@ export class DopplerLoader {
    */
   async unload(): Promise<void> {
     debugTrace.loader(' Unloading model...');
+
+    // Stop memory logging if still running
+    if (this._memoryLogInterval) {
+      clearInterval(this._memoryLogInterval);
+      this._memoryLogInterval = null;
+    }
 
     for (const buffer of this.gpuBuffers) {
       releaseBuffer(buffer);

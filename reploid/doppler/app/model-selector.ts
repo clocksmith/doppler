@@ -250,24 +250,24 @@ export class ModelSelector {
 
     if (hasServer && hasBrowser) {
       // Both server and cache available - prefer cache, show toggle
-      sourceBadge = '<span class="source-badge source-cache" title="Cached in browser">Cache</span>';
+      sourceBadge = '<span class="badge badge-filled" title="Cached in browser">Cache</span>';
       sourceTooltip = 'Also available from dev server';
       runTooltip = 'Load from browser cache into GPU memory';
-      secondaryBtn = `<button class="model-btn secondary delete" ${isDownloading ? 'disabled' : ''} title="Remove cached copy from browser storage">Clear</button>`;
+      secondaryBtn = `<button class="btn delete" ${isDownloading ? 'disabled' : ''} title="Remove cached copy from browser storage">Clear</button>`;
     } else if (hasServer) {
       sourceBadge = isLocalServer
-        ? '<span class="source-badge source-disk" title="Local dev server">Disk</span>'
-        : '<span class="source-badge source-network" title="Remote server">Network</span>';
+        ? '<span class="badge border-ghost" title="Local dev server">Disk</span>'
+        : '<span class="badge border-info" title="Remote server">Network</span>';
       runTooltip = 'Load weights from server into GPU memory';
-      secondaryBtn = `<button class="model-btn secondary cache" ${isDownloading ? 'disabled' : ''} title="Copy to browser storage (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
+      secondaryBtn = `<button class="btn cache" ${isDownloading ? 'disabled' : ''} title="Copy to browser storage (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
     } else if (hasBrowser) {
-      sourceBadge = '<span class="source-badge source-cache" title="Cached in browser">Cache</span>';
+      sourceBadge = '<span class="badge badge-filled" title="Cached in browser">Cache</span>';
       runTooltip = 'Load from browser cache into GPU memory';
-      secondaryBtn = `<button class="model-btn secondary delete" ${isDownloading ? 'disabled' : ''} title="Remove from browser storage">Delete</button>`;
+      secondaryBtn = `<button class="btn delete" ${isDownloading ? 'disabled' : ''} title="Remove from browser storage">Delete</button>`;
     } else if (hasRemote) {
-      sourceBadge = '<span class="source-badge source-network" title="Download required">Network</span>';
+      sourceBadge = '<span class="badge border-info" title="Download required">Network</span>';
       runTooltip = 'Download to browser storage, then load into GPU memory';
-      secondaryBtn = `<button class="model-btn secondary download-only" ${isDownloading ? 'disabled' : ''} title="Download without running (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
+      secondaryBtn = `<button class="btn download-only" ${isDownloading ? 'disabled' : ''} title="Download without running (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
     }
 
     // Build unified action buttons
@@ -276,7 +276,7 @@ export class ModelSelector {
 
     if (isReady || hasRemote) {
       actionsHtml = `
-        <button class="model-btn primary run" data-source="${preferredSource}" ${isDownloading || isLoaded ? 'disabled' : ''} title="${runTooltip}">
+        <button class="btn btn-primary run" data-source="${preferredSource}" ${isDownloading || isLoaded ? 'disabled' : ''} title="${runTooltip}">
           ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : (isLoaded ? 'Running' : 'Run')}
         </button>
         ${secondaryBtn}
@@ -284,19 +284,19 @@ export class ModelSelector {
     }
 
     item.innerHTML = `
-      <div class="model-header">
-        <div class="model-name">${this._escapeHtml(model.name)}</div>
+      <div class="flex justify-between items-center">
+        <div class="type-h2">${this._escapeHtml(model.name)}</div>
         ${sourceBadge}
       </div>
-      <div class="model-meta">${metaText}</div>
+      <div class="type-caption muted">${metaText}</div>
       <div class="model-actions">${actionsHtml}</div>
     `;
 
     // Bind events
-    const runBtn = item.querySelector('.model-btn.run');
-    const cacheBtn = item.querySelector('.model-btn.cache');
-    const downloadOnlyBtn = item.querySelector('.model-btn.download-only');
-    const deleteBtn = item.querySelector('.model-btn.delete');
+    const runBtn = item.querySelector('.btn.run');
+    const cacheBtn = item.querySelector('.btn.cache');
+    const downloadOnlyBtn = item.querySelector('.btn.download-only');
+    const deleteBtn = item.querySelector('.btn.delete');
 
     if (runBtn) {
       runBtn.addEventListener('click', (e) => {
