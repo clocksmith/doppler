@@ -14,7 +14,8 @@
 // Types
 // ============================================================================
 
-export type ProgressPhase = 'network' | 'cache' | 'vram';
+export type ProgressPhase = 'source' | 'gpu';
+export type SourceType = 'network' | 'disk' | 'cache';
 
 export interface PhaseProgress {
   phase: ProgressPhase;
@@ -44,10 +45,18 @@ export class ProgressUI {
 
   // Phase configuration
   private static readonly PHASE_CONFIG: Record<ProgressPhase, { label: string; color: string }> = {
-    network: { label: 'Network', color: '#3b82f6' },  // Blue - downloading from internet
-    cache: { label: 'Cache', color: '#22c55e' },      // Green - reading from OPFS
-    vram: { label: 'VRAM', color: '#f59e0b' },        // Amber - uploading to GPU
+    source: { label: 'Source', color: '#3b82f6' },    // Blue - data source (dynamic label)
+    gpu: { label: 'GPU', color: '#f59e0b' },          // Amber - uploading to GPU
   };
+
+  // Source type labels and colors
+  private static readonly SOURCE_CONFIG: Record<SourceType, { label: string; color: string }> = {
+    network: { label: 'Network', color: '#3b82f6' },  // Blue - downloading from internet
+    disk: { label: 'Disk', color: '#8b5cf6' },        // Purple - loading from local server
+    cache: { label: 'Cache', color: '#22c55e' },      // Green - reading from OPFS
+  };
+
+  private currentSourceType: SourceType = 'cache';
 
   /**
    * @param container - Container element for progress overlay
@@ -79,8 +88,8 @@ export class ProgressUI {
     this.phasesContainer.className = 'progress-phases';
     content.appendChild(this.phasesContainer);
 
-    // Create phase bars
-    for (const phase of ['network', 'cache', 'vram'] as ProgressPhase[]) {
+    // Create phase bars (simplified: source + gpu)
+    for (const phase of ['source', 'gpu'] as ProgressPhase[]) {
       this._createPhaseBar(phase);
     }
   }
@@ -124,7 +133,7 @@ export class ProgressUI {
    * Initialize existing phase elements from HTML
    */
   private _initPhaseElements(): void {
-    for (const phase of ['network', 'cache', 'vram'] as ProgressPhase[]) {
+    for (const phase of ['source', 'gpu'] as ProgressPhase[]) {
       const row = this.phasesContainer.querySelector(`[data-phase="${phase}"]`) as HTMLElement;
       if (row) {
         this.phases.set(phase, {
@@ -134,6 +143,20 @@ export class ProgressUI {
           value: row.querySelector('.progress-phase-value') as HTMLElement,
         });
       }
+    }
+  }
+
+  /**
+   * Set the source type (network, disk, or cache)
+   * Updates the source phase label and color
+   */
+  setSourceType(type: SourceType): void {
+    this.currentSourceType = type;
+    const sourceElements = this.phases.get('source');
+    if (sourceElements) {
+      const config = ProgressUI.SOURCE_CONFIG[type];
+      sourceElements.label.textContent = config.label;
+      sourceElements.bar.style.backgroundColor = config.color;
     }
   }
 
@@ -196,11 +219,11 @@ export class ProgressUI {
 
   /**
    * Legacy single-bar progress (for backwards compatibility)
-   * Maps to VRAM phase
+   * Maps to GPU phase
    */
   setProgress(percent: number, detail?: string): void {
     this.setPhaseProgress({
-      phase: 'vram',
+      phase: 'gpu',
       percent,
       message: detail,
     });

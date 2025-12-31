@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOPPLER - Browser LLM</title>
   <link rel="icon" type="image/svg+xml" href="/doppler/favicon.svg">
-  <link rel="stylesheet" href="/doppler/mono.css">
+  <link rel="stylesheet" href="/doppler/rd.css">
+  <link rel="stylesheet" href="/doppler/doppler-app.css">
 </head>
 <body>
   <div id="app">
     <!-- Header -->
     <header class="header">
       <h1 class="header-title">DOPPLER</h1>
-      <span class="header-subtitle">Browser-native LLM Inference</span>
+      <span class="header-subtitle">LLM Inference entirely local in browser with only JavaScript and WGSL</span>
       <div id="status-indicator" class="status-indicator">
         <span class="status-dot"></span>
         <span class="status-text">Initializing...</span>
@@ -138,6 +139,21 @@
           </div>
         </section>
 
+        <section class="panel memory-actions-panel">
+          <h2 class="panel-title">Memory Control</h2>
+          <div class="memory-actions">
+            <button id="unload-model-btn" class="memory-action-btn" disabled title="Unload current model from GPU memory">
+              Unload Model
+            </button>
+            <button id="clear-memory-btn" class="memory-action-btn" title="Clear all GPU buffers and caches">
+              Clear All Memory
+            </button>
+          </div>
+          <div class="swap-indicator" id="swap-indicator" hidden>
+            <span class="swap-warning">Swapping to disk detected</span>
+          </div>
+        </section>
+
         <section class="panel convert-panel">
           <h2 class="panel-title">Convert Model</h2>
           <p class="convert-description">Import GGUF or HuggingFace models</p>
@@ -163,25 +179,17 @@
           <div class="progress-content">
             <div class="progress-title" id="progress-title">Loading Model</div>
             <div class="progress-phases" id="progress-phases">
-              <!-- Network Phase (only shown when downloading) -->
-              <div class="progress-phase-row" data-phase="network">
-                <span class="progress-phase-label">Network</span>
+              <!-- Source Phase (dynamically labeled: Network/Disk/Cache) -->
+              <div class="progress-phase-row" data-phase="source">
+                <span class="progress-phase-label">Source</span>
                 <div class="progress-bar-container">
                   <div class="progress-bar progress-phase-bar"></div>
                 </div>
                 <span class="progress-phase-value">--</span>
               </div>
-              <!-- Cache/OPFS Phase -->
-              <div class="progress-phase-row" data-phase="cache">
-                <span class="progress-phase-label">Cache</span>
-                <div class="progress-bar-container">
-                  <div class="progress-bar progress-phase-bar"></div>
-                </div>
-                <span class="progress-phase-value">--</span>
-              </div>
-              <!-- VRAM Phase -->
-              <div class="progress-phase-row" data-phase="vram">
-                <span class="progress-phase-label">VRAM</span>
+              <!-- GPU Phase -->
+              <div class="progress-phase-row" data-phase="gpu">
+                <span class="progress-phase-label">GPU</span>
                 <div class="progress-bar-container">
                   <div class="progress-bar progress-phase-bar"></div>
                 </div>

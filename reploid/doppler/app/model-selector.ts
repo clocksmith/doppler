@@ -239,95 +239,80 @@ export class ModelSelector {
 
     const isLoaded = model.key === this.activeModelId;
 
-    // Build tooltips based on source
-    const serverRunTooltip = 'Load weights from dev server into GPU memory.';
-    const cachedRunTooltip = 'Load weights from browser cache (OPFS) into GPU memory.';
-    const cacheTooltip = `Copy model from server to browser storage (OPFS). Uses ~${this._formatBytes(model.downloadSize || 0)} of browser storage.`;
-    const clearCacheTooltip = 'Remove cached copy from browser storage.';
-    const deleteTooltip = 'Permanently remove model from browser storage.';
-    const downloadTooltip = `Download model to browser storage (OPFS). Uses ~${this._formatBytes(model.downloadSize || 0)} of browser storage.`;
-    const dlRunTooltip = 'Download to browser storage, then immediately load into GPU memory.';
+    // Determine source badge and tooltips
+    const sourceUrl = sources.server?.url || sources.browser?.url || sources.remote?.url || '';
+    const isLocalServer = sourceUrl.match(/^(https?:\/\/)?(localhost|127\.0\.0\.1|0\.0\.0\.0|file:)/i);
 
-    // Build action buttons based on available sources
-    let actionsHtml = '';
-    if (isReady) {
-      if (hasServer && hasBrowser) {
-        actionsHtml = `
-          <button class="model-btn run run-server" data-source="server" ${isDownloading || isLoaded ? 'disabled' : ''} title="${serverRunTooltip}">
-            Run (Server)
-          </button>
-          <button class="model-btn run run-cached" data-source="browser" ${isDownloading || isLoaded ? 'disabled' : ''} title="${cachedRunTooltip}">
-            Run (Cached)
-          </button>
-          <button class="model-btn delete" ${isDownloading ? 'disabled' : ''} title="${clearCacheTooltip}">
-            Clear Cache
-          </button>
-        `;
-      } else if (hasServer) {
-        actionsHtml = `
-          <button class="model-btn run" data-source="server" ${isDownloading || isLoaded ? 'disabled' : ''} title="${serverRunTooltip}">
-            ${isLoaded ? 'Running' : 'Run (Server)'}
-          </button>
-          <button class="model-btn cache" ${isDownloading ? 'disabled' : ''} title="${cacheTooltip}">
-            Cache
-          </button>
-        `;
-      } else {
-        actionsHtml = `
-          <button class="model-btn run" data-source="browser" ${isDownloading || isLoaded ? 'disabled' : ''} title="${cachedRunTooltip}">
-            ${isLoaded ? 'Running' : 'Run (Cached)'}
-          </button>
-          <button class="model-btn delete" ${isDownloading ? 'disabled' : ''} title="${deleteTooltip}">
-            Delete
-          </button>
-        `;
-      }
+    let sourceBadge = '';
+    let sourceTooltip = '';
+    let runTooltip = '';
+    let secondaryBtn = '';
+
+    if (hasServer && hasBrowser) {
+      // Both server and cache available - prefer cache, show toggle
+      sourceBadge = '<span class="source-badge source-cache" title="Cached in browser">Cache</span>';
+      sourceTooltip = 'Also available from dev server';
+      runTooltip = 'Load from browser cache into GPU memory';
+      secondaryBtn = `<button class="model-btn secondary delete" ${isDownloading ? 'disabled' : ''} title="Remove cached copy from browser storage">Clear</button>`;
+    } else if (hasServer) {
+      sourceBadge = isLocalServer
+        ? '<span class="source-badge source-disk" title="Local dev server">Disk</span>'
+        : '<span class="source-badge source-network" title="Remote server">Network</span>';
+      runTooltip = 'Load weights from server into GPU memory';
+      secondaryBtn = `<button class="model-btn secondary cache" ${isDownloading ? 'disabled' : ''} title="Copy to browser storage (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
+    } else if (hasBrowser) {
+      sourceBadge = '<span class="source-badge source-cache" title="Cached in browser">Cache</span>';
+      runTooltip = 'Load from browser cache into GPU memory';
+      secondaryBtn = `<button class="model-btn secondary delete" ${isDownloading ? 'disabled' : ''} title="Remove from browser storage">Delete</button>`;
     } else if (hasRemote) {
-      const quickStartTooltip = 'One-click setup: checks VRAM, downloads to browser storage, then runs.';
-      if (model.quickStartAvailable) {
-        actionsHtml = `
-          <button class="model-btn quick-start" ${isDownloading ? 'disabled' : ''} title="${quickStartTooltip}">
-            Quick Start
-          </button>
-          <button class="model-btn download" ${isDownloading ? 'disabled' : ''} title="${downloadTooltip}">
-            ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : 'Download'}
-          </button>
-        `;
-      } else {
-        actionsHtml = `
-          <button class="model-btn download" ${isDownloading ? 'disabled' : ''} title="${downloadTooltip}">
-            ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : 'Download'}
-          </button>
-          <button class="model-btn download-run" ${isDownloading ? 'disabled' : ''} title="${dlRunTooltip}">
-            DL & Run
-          </button>
-        `;
-      }
+      sourceBadge = '<span class="source-badge source-network" title="Download required">Network</span>';
+      runTooltip = 'Download to browser storage, then load into GPU memory';
+      secondaryBtn = `<button class="model-btn secondary download-only" ${isDownloading ? 'disabled' : ''} title="Download without running (~${this._formatBytes(model.downloadSize || 0)})">Save</button>`;
+    }
+
+    // Build unified action buttons
+    let actionsHtml = '';
+    const preferredSource = hasBrowser ? 'browser' : (hasServer ? 'server' : 'remote');
+
+    if (isReady || hasRemote) {
+      actionsHtml = `
+        <button class="model-btn primary run" data-source="${preferredSource}" ${isDownloading || isLoaded ? 'disabled' : ''} title="${runTooltip}">
+          ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : (isLoaded ? 'Running' : 'Run')}
+        </button>
+        ${secondaryBtn}
+      `;
     }
 
     item.innerHTML = `
-      <div class="model-name">${this._escapeHtml(model.name)}</div>
+      <div class="model-header">
+        <div class="model-name">${this._escapeHtml(model.name)}</div>
+        ${sourceBadge}
+      </div>
       <div class="model-meta">${metaText}</div>
       <div class="model-actions">${actionsHtml}</div>
     `;
 
     // Bind events
-    const runBtns = item.querySelectorAll('.model-btn.run');
+    const runBtn = item.querySelector('.model-btn.run');
     const cacheBtn = item.querySelector('.model-btn.cache');
-    const downloadBtn = item.querySelector('.model-btn.download');
-    const downloadRunBtn = item.querySelector('.model-btn.download-run');
+    const downloadOnlyBtn = item.querySelector('.model-btn.download-only');
     const deleteBtn = item.querySelector('.model-btn.delete');
-    const quickStartBtn = item.querySelector('.model-btn.quick-start');
 
-    runBtns.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+    if (runBtn) {
+      runBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (model.key !== this.activeModelId) {
-          const preferredSource = (btn as HTMLElement).dataset.source || undefined;
-          this.onSelect(model, { preferredSource });
+          const source = (runBtn as HTMLElement).dataset.source;
+          if (source === 'remote') {
+            // Remote models: trigger quick-start flow (VRAM check -> download -> run)
+            this.onQuickStart(model);
+          } else {
+            // Local models: run directly
+            this.onSelect(model, { preferredSource: source });
+          }
         }
       });
-    });
+    }
 
     if (cacheBtn) {
       cacheBtn.addEventListener('click', (e) => {
@@ -336,24 +321,10 @@ export class ModelSelector {
       });
     }
 
-    if (downloadBtn) {
-      downloadBtn.addEventListener('click', (e) => {
+    if (downloadOnlyBtn) {
+      downloadOnlyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.onDownload(model);
-      });
-    }
-
-    if (downloadRunBtn) {
-      downloadRunBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.onDownload(model, { runAfter: true });
-      });
-    }
-
-    if (quickStartBtn) {
-      quickStartBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.onQuickStart(model);
       });
     }
 
@@ -369,10 +340,14 @@ export class ModelSelector {
       });
     }
 
-    // Click on item to run (if ready)
+    // Click on item to run (if ready or remote)
     item.addEventListener('click', () => {
-      if (isReady && model.key !== this.activeModelId) {
-        this.onSelect(model);
+      if (model.key !== this.activeModelId) {
+        if (isReady) {
+          this.onSelect(model);
+        } else if (hasRemote) {
+          this.onQuickStart(model);
+        }
       }
     });
 

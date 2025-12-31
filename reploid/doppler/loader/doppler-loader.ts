@@ -475,7 +475,16 @@ export class DopplerLoader {
     const q4kHint = hints?.q4kMatmul;
     const q4kLayout = (this.manifest?.config as { q4kLayout?: string } | undefined)?.q4kLayout;
 
-    let useFused = q4kHint === 'fused_q4k';
+    // Default to fused Q4K when subgroups are available (4x memory savings)
+    // Explicit 'dequant_f16' or 'dequant_f32' opts out of fused path
+    const caps = this.gpuCapabilities || getKernelCapabilities();
+    const hasSubgroups = caps?.hasSubgroups ?? false;
+    const explicitDequant = q4kHint === 'dequant_f16' || q4kHint === 'dequant_f32';
+
+    let useFused = hasSubgroups && !explicitDequant;
+    if (q4kHint === 'fused_q4k') {
+      useFused = true; // Explicit fused request
+    }
     if (typeof window !== 'undefined' && (window as any).DOPPLER_DISABLE_FUSED_Q4K) {
       useFused = false;
     }
@@ -486,9 +495,7 @@ export class DopplerLoader {
     this.useFusedQ4K = useFused;
     this.q4kLayout = (q4kLayout as 'flat' | 'row_wise' | 'column_wise') ?? null;
 
-    if (q4kHint || q4kLayout) {
-      debugTrace.loader(`Q4K: fused=${this.useFusedQ4K}, matmul=${q4kHint ?? 'unset'}, layout=${q4kLayout ?? 'unset'}`);
-    }
+    debugTrace.loader(`Q4K strategy: fused=${this.useFusedQ4K}, hint=${q4kHint ?? 'auto'}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}`);
   }
 
   /**

@@ -247,6 +247,11 @@ export class DopplerDemo {
   private attentionKernelSelect: HTMLSelectElement | null = null;
   private attentionKernelNote: HTMLElement | null = null;
   private manifestAttentionKernelDefault: string | null = null;
+
+  // Memory control UI
+  private unloadModelBtn: HTMLButtonElement | null = null;
+  private clearMemoryBtn: HTMLButtonElement | null = null;
+  private swapIndicator: HTMLElement | null = null;
   private runtimeKernelHints: KernelHints | null = null;
   private runtimeAttentionKernel: string | null = null;
 
@@ -306,6 +311,11 @@ export class DopplerDemo {
     this.attentionKernelSelect = document.querySelector('#attention-kernel-select');
     this.attentionKernelNote = document.querySelector('#attention-kernel-note');
     this._readRuntimeOverridesFromURL();
+
+    // Memory control elements
+    this.unloadModelBtn = document.querySelector('#unload-model-btn');
+    this.clearMemoryBtn = document.querySelector('#clear-memory-btn');
+    this.swapIndicator = document.querySelector('#swap-indicator');
 
     this.temperatureInput = document.querySelector('#temperature-input');
     this.topPInput = document.querySelector('#top-p-input');
@@ -415,6 +425,14 @@ export class DopplerDemo {
         this.convertBtn.disabled = true;
         this.convertBtn.title = 'Model conversion requires File System Access API (Chrome/Edge)';
       }
+    }
+
+    // Memory control buttons
+    if (this.unloadModelBtn) {
+      this.unloadModelBtn.addEventListener('click', () => this._unloadCurrentModel());
+    }
+    if (this.clearMemoryBtn) {
+      this.clearMemoryBtn.addEventListener('click', () => this._clearAllMemory());
     }
   }
 
@@ -683,6 +701,20 @@ export class DopplerDemo {
 
       if (this.memoryElements.totalValue) {
         this.memoryElements.totalValue.textContent = this._formatBytes(totalUsed);
+      }
+
+      // Detect potential swapping (total > device memory)
+      // navigator.deviceMemory gives RAM in GB (approximate)
+      const deviceMemoryGB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+      if (deviceMemoryGB && this.swapIndicator) {
+        const physicalRamBytes = deviceMemoryGB * 1024 * 1024 * 1024;
+        // Show swap warning if we're using more than 90% of reported device memory
+        // (deviceMemory is capped/rounded, so actual RAM may be higher)
+        if (totalUsed > physicalRamBytes * 0.9) {
+          this.swapIndicator.hidden = false;
+        } else {
+          this.swapIndicator.hidden = true;
+        }
       }
     }
   }
@@ -967,12 +999,14 @@ export class DopplerDemo {
       let manifest: RDRRManifest;
       let loadShardFn: (idx: number) => Promise<ArrayBuffer>;
 
-      // Track loading source for multi-phase progress
-      const isNetworkLoad = useServer;
+      // Track loading source for progress - distinguish between network/disk/cache
+      const isLocalServer = sourceInfo.url?.match(/^(https?:\/\/)?(localhost|127\.0\.0\.1|0\.0\.0\.0|file:)/i);
+      const sourceType = useServer ? (isLocalServer ? 'disk' : 'network') : 'cache';
+      this.progressUI?.setSourceType(sourceType as import('./progress-ui.js').SourceType);
 
       if (useServer) {
-        // Load from HTTP (dev server) - show network phase
-        this.progressUI?.setPhaseProgress({ phase: 'network', percent: 5, message: 'Fetching manifest...' });
+        // Load from HTTP - show source phase
+        this.progressUI?.setPhaseProgress({ phase: 'source', percent: 5, message: 'Fetching manifest...' });
         const manifestUrl = `${sourceInfo.url}/manifest.json`;
         const response = await fetch(manifestUrl);
         if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
@@ -987,22 +1021,19 @@ export class DopplerDemo {
           return await res.arrayBuffer();
         };
       } else {
-        // Load from OPFS (browser cache) - show cache phase
+        // Load from OPFS (browser cache) - show source phase (labeled "Cache")
         await openModelDirectory(sourceInfo.id);
-        this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 5, message: 'Loading manifest...' });
+        this.progressUI?.setPhaseProgress({ phase: 'source', percent: 5, message: 'Loading manifest...' });
         const manifestJson = await loadManifestFromOPFS();
         manifest = parseManifest(manifestJson);
-
-        // Mark network as skipped (model already cached)
-        this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Cached' });
 
         // Create OPFS shard loader
         const { loadShard } = await import('../storage/shard-manager.js');
         loadShardFn = (idx: number) => loadShard(idx);
       }
 
-      // Initialize GPU - show VRAM phase starting
-      this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 5, message: 'Initializing...' });
+      // Initialize GPU - show GPU phase starting
+      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 5, message: 'Initializing...' });
 
       // Capture manifest default attention kernel preference.
       this.manifestAttentionKernelDefault =
@@ -1018,7 +1049,7 @@ export class DopplerDemo {
       const heapManager = getHeapManager();
       await heapManager.init();
 
-      this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 10, message: 'Creating pipeline...' });
+      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 10, message: 'Creating pipeline...' });
 
       // Create pipeline with multi-phase progress tracking
       this.pipeline = await createPipeline(manifest as unknown as import('../inference/pipeline/config.js').Manifest, {
@@ -1051,46 +1082,39 @@ export class DopplerDemo {
         }) => {
           const stage = progress.stage || 'layers';
 
-          // Map loader stages to UI phases
+          // Map loader stages to UI phases (simplified: source + gpu)
           if (stage === 'manifest' || stage === 'shards') {
-            // Shard loading: network (HTTP) or cache (OPFS)
-            // Show bytes here - they make sense for raw shard data
-            const phase = isNetworkLoad ? 'network' : 'cache';
+            // Shard loading from source
             this.progressUI?.setPhaseProgress({
-              phase,
+              phase: 'source',
               percent: Math.min(100, progress.percent * 1.2), // Scale to show some progress
               bytesLoaded: progress.bytesLoaded,
               totalBytes: progress.totalBytes,
               speed: progress.bytesPerSecond,
             });
           } else if (stage === 'layers' || stage === 'gpu_transfer') {
-            // Mark network/cache complete once we're processing layers
-            if (isNetworkLoad) {
-              this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Complete' });
-            } else {
-              this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 100, message: 'Complete' });
-            }
+            // Mark source complete, show GPU progress
+            this.progressUI?.setPhaseProgress({ phase: 'source', percent: 100, message: 'Complete' });
 
-            // VRAM phase: show layer progress (not bytes - they inflate after dequant)
-            const vramPercent = 10 + (progress.percent * 0.9);
+            // GPU phase: show layer progress
+            const gpuPercent = 10 + (progress.percent * 0.9);
             let message: string;
             if (progress.layer !== undefined && progress.total) {
               message = `Layer ${progress.layer}/${progress.total}`;
             } else if (stage === 'gpu_transfer') {
               message = 'Uploading weights...';
             } else {
-              message = `${Math.round(vramPercent)}%`;
+              message = `${Math.round(gpuPercent)}%`;
             }
             this.progressUI?.setPhaseProgress({
-              phase: 'vram',
-              percent: vramPercent,
+              phase: 'gpu',
+              percent: gpuPercent,
               message,
             });
           } else if (stage === 'complete') {
             // All phases complete
-            this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Done' });
-            this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 100, message: 'Done' });
-            this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 100, message: 'Ready' });
+            this.progressUI?.setPhaseProgress({ phase: 'source', percent: 100, message: 'Done' });
+            this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 100, message: 'Ready' });
           }
         },
       });
@@ -1102,6 +1126,7 @@ export class DopplerDemo {
       this.chatUI?.setInputEnabled(true);
       this.chatUI?.focusInput();
       this._updateAttentionKernelNote();
+      this._updateInitialStats();
 
       console.log(`[DopplerDemo] Model loaded: ${model.name} (${model.key})`);
     } catch (error) {
@@ -1403,6 +1428,132 @@ export class DopplerDemo {
           this.statsElements.kv.textContent = `${kvStats.seqLen}/${kvStats.maxSeqLen}`;
         }
       }
+    }
+  }
+
+  /**
+   * Update initial stats after model load (before generation starts)
+   */
+  private _updateInitialStats(): void {
+    // Show TPS as "Ready" before generation starts
+    if (this.statsElements.tps) {
+      this.statsElements.tps.textContent = 'Ready';
+    }
+
+    // Show memory usage
+    if (this.statsElements.memory) {
+      const heap = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize;
+      if (heap) {
+        const usedMB = (heap / 1024 / 1024).toFixed(0);
+        this.statsElements.memory.textContent = `${usedMB} MB`;
+      }
+    }
+
+    // Show GPU buffer count if available
+    if (this.statsElements.gpu && this.pipeline) {
+      const bufferPool = (this.pipeline as Pipeline & { getBufferPool?: () => { getStats?: () => { activeBuffers: number } } }).getBufferPool?.();
+      if (bufferPool && typeof bufferPool.getStats === 'function') {
+        const stats = bufferPool.getStats();
+        this.statsElements.gpu.textContent = `${stats.activeBuffers}`;
+      } else {
+        this.statsElements.gpu.textContent = 'N/A';
+      }
+    }
+
+    // Show KV cache as "0/max" initially
+    if (this.statsElements.kv && this.pipeline) {
+      const kvStats = (this.pipeline as Pipeline & { getKVCacheStats?: () => { seqLen: number; maxSeqLen: number } }).getKVCacheStats?.();
+      if (kvStats) {
+        this.statsElements.kv.textContent = `${kvStats.seqLen}/${kvStats.maxSeqLen}`;
+      } else {
+        this.statsElements.kv.textContent = '0';
+      }
+    }
+
+    // Enable unload button
+    if (this.unloadModelBtn) {
+      this.unloadModelBtn.disabled = false;
+    }
+  }
+
+  /**
+   * Unload the current model from GPU memory
+   */
+  private async _unloadCurrentModel(): Promise<void> {
+    if (!this.pipeline) {
+      console.log('[DopplerDemo] No model loaded');
+      return;
+    }
+
+    console.log('[DopplerDemo] Unloading current model...');
+    this._setStatus('loading', 'Unloading model...');
+
+    try {
+      // Call pipeline unload if available
+      if (typeof (this.pipeline as Pipeline & { unload?: () => Promise<void> }).unload === 'function') {
+        await (this.pipeline as Pipeline & { unload: () => Promise<void> }).unload();
+      }
+
+      this.pipeline = null;
+      this.currentModel = null;
+      this.modelSelector?.setActiveModel(null);
+      this.chatUI?.setInputEnabled(false);
+
+      // Reset stats
+      if (this.statsElements.tps) this.statsElements.tps.textContent = '--';
+      if (this.statsElements.memory) this.statsElements.memory.textContent = '--';
+      if (this.statsElements.gpu) this.statsElements.gpu.textContent = '--';
+      if (this.statsElements.kv) this.statsElements.kv.textContent = '--';
+
+      // Disable unload button
+      if (this.unloadModelBtn) {
+        this.unloadModelBtn.disabled = true;
+      }
+
+      this._setStatus('ready', 'Model unloaded');
+      this._updateMemoryStats();
+      console.log('[DopplerDemo] Model unloaded');
+    } catch (error) {
+      console.error('[DopplerDemo] Unload failed:', error);
+      this._setStatus('error', 'Unload failed');
+    }
+  }
+
+  /**
+   * Clear all GPU memory (buffers, caches, heap)
+   */
+  private async _clearAllMemory(): Promise<void> {
+    console.log('[DopplerDemo] Clearing all memory...');
+    this._setStatus('loading', 'Clearing memory...');
+
+    try {
+      // First unload the model if loaded
+      if (this.pipeline) {
+        await this._unloadCurrentModel();
+      }
+
+      // Destroy buffer pool
+      const { destroyBufferPool } = await import('../gpu/buffer-pool.js');
+      destroyBufferPool();
+
+      // Reset heap manager
+      const { getHeapManager } = await import('../memory/heap-manager.js');
+      const heapManager = getHeapManager();
+      if (heapManager && typeof heapManager.reset === 'function') {
+        heapManager.reset();
+      }
+
+      // Force garbage collection hint (may or may not work)
+      if (typeof (globalThis as typeof globalThis & { gc?: () => void }).gc === 'function') {
+        (globalThis as typeof globalThis & { gc: () => void }).gc();
+      }
+
+      this._setStatus('ready', 'Memory cleared');
+      this._updateMemoryStats();
+      console.log('[DopplerDemo] All memory cleared');
+    } catch (error) {
+      console.error('[DopplerDemo] Clear memory failed:', error);
+      this._setStatus('error', 'Clear failed');
     }
   }
 

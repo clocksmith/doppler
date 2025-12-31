@@ -61,6 +61,10 @@ export function clearKernelHints(): void {
 /**
  * Check if Q4K should use fused kernel or dequant path.
  * Based on hint value or falls back to manifest q4kMatmul hint.
+ *
+ * Default: true (use fused) - keeps ~5GB Q4K weights in VRAM instead of ~20GB F16.
+ * Trade-off: fused is slower per-token but fits large models in memory.
+ * For maximum speed on models that fit dequantized, set q4kMatmul: 'dequant_f16'.
  */
 export function shouldUseFusedQ4K(): boolean {
   // Check window override first (debug flag)
@@ -76,9 +80,10 @@ export function shouldUseFusedQ4K(): boolean {
     return hints.q4kMatmul === 'fused_q4k';
   }
 
-  // Default: use fused if available (but our benchmarks show dequant is faster)
-  // Return false to default to dequant path which is 2x faster
-  return false;
+  // Default: use fused to keep Q4K weights compressed in VRAM (4x memory savings)
+  // This matches the loader's default behavior when subgroups are available.
+  // Trade-off: ~2x slower inference, but large models (9B+) actually fit in RAM.
+  return true;
 }
 
 /**
