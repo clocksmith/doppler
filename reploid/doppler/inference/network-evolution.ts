@@ -18,9 +18,10 @@ export interface NetworkEdgeGene {
 
 export interface NetworkGenome {
   topology: {
-    type: 'ring' | 'tree' | 'mesh' | 'dag';
+    type: 'chain' | 'ring' | 'tree' | 'mesh' | 'dag';
     depth?: number;
     branchingFactor?: number;
+    maxIterations?: number;  // For circular ring
   };
   nodes: NetworkNodeGene[];
   edges: NetworkEdgeGene[];
@@ -43,7 +44,7 @@ export interface EvolutionConfig {
 export const mutateGenome = (genome: NetworkGenome, mutationRate: number = 0.1): NetworkGenome => {
   const mutated = JSON.parse(JSON.stringify(genome)) as NetworkGenome;
   if (Math.random() < mutationRate) {
-    const types: NetworkGenome['topology']['type'][] = ['ring', 'tree', 'mesh', 'dag'];
+    const types: NetworkGenome['topology']['type'][] = ['chain', 'ring', 'tree', 'mesh', 'dag'];
     mutated.topology.type = types[Math.floor(Math.random() * types.length)];
   }
 

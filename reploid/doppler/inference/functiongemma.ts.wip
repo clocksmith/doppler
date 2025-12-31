@@ -668,7 +668,7 @@ export class FunctionGemma {
     }
 
     const randomGenome = (): NetworkGenome => {
-      const types: NetworkGenome['topology']['type'][] = ['ring', 'tree', 'mesh', 'dag'];
+      const types: NetworkGenome['topology']['type'][] = ['chain', 'ring', 'tree', 'mesh', 'dag'];
       const nodeCount = Math.min(experts.length, Math.floor(Math.random() * 4) + 2);
       const selectedExperts = this.shuffleArray([...experts]).slice(0, nodeCount);
 

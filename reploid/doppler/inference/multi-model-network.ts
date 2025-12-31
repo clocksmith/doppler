@@ -153,7 +153,12 @@ export class MultiModelNetwork {
     return this.collectText(generator);
   }
 
-  async executeRing(expertIds: string[], prompt: string, options: GenerateOptions = {}): Promise<string[]> {
+  /**
+   * Chain: Sequential pipeline where each expert runs once.
+   * Output of each expert becomes input to the next.
+   * @returns Array of all outputs in order
+   */
+  async executeChain(expertIds: string[], prompt: string, options: GenerateOptions = {}): Promise<string[]> {
     const outputs: string[] = [];
     let currentPrompt = prompt;
 
@@ -164,6 +169,54 @@ export class MultiModelNetwork {
     }
 
     return outputs;
+  }
+
+  /**
+   * @deprecated Use executeChain instead
+   */
+  async executeRing(expertIds: string[], prompt: string, options: GenerateOptions = {}): Promise<string[]> {
+    return this.executeChain(expertIds, prompt, options);
+  }
+
+  /**
+   * Circular Ring: Loops through all experts multiple times until convergence.
+   * Each full loop checks if output has stabilized.
+   * @returns Final converged output and iteration count
+   */
+  async executeCircularRing(
+    expertIds: string[],
+    prompt: string,
+    options: GenerateOptions = {},
+    config: { maxIterations?: number; convergenceThreshold?: number } = {}
+  ): Promise<{ output: string; iterations: number; converged: boolean }> {
+    const { maxIterations = 3, convergenceThreshold = 0.95 } = config;
+    let current = prompt;
+    let prevOutput = '';
+    let iterations = 0;
+
+    for (let iter = 0; iter < maxIterations; iter++) {
+      iterations++;
+      for (const id of expertIds) {
+        const output = await this.executeExpert(id, current, {
+          ...options,
+          // Decay temperature across iterations for refinement
+          temperature: (options.temperature ?? 0.7) * Math.pow(0.9, iter),
+        });
+        current = output;
+      }
+
+      // Check convergence after each full loop
+      if (current === prevOutput) {
+        return { output: current, iterations, converged: true };
+      }
+      const similarity = this.computeOutputSimilarity(current, prevOutput);
+      if (similarity >= convergenceThreshold) {
+        return { output: current, iterations, converged: true };
+      }
+      prevOutput = current;
+    }
+
+    return { output: current, iterations, converged: false };
   }
 
   /**
@@ -429,7 +482,8 @@ export class MultiModelNetwork {
       return this.combineOutputs(outputs, combiner);
     }
 
-    if (genome.topology.type === 'ring') {
+    // Chain: sequential pipeline, each expert runs once
+    if (genome.topology.type === 'chain') {
       const ordered = genome.nodes.map((node) => node.id);
       const outputs: string[] = [];
       let current = prompt;
@@ -446,6 +500,39 @@ export class MultiModelNetwork {
         current = output;
       }
       return combiner ? this.combineOutputs(outputs, combiner) : outputs[outputs.length - 1] ?? '';
+    }
+
+    // Ring: true circular - loops through all experts until convergence
+    if (genome.topology.type === 'ring') {
+      const ordered = genome.nodes.map((node) => node.id);
+      const maxIterations = genome.topology.maxIterations ?? 3;
+      const outputs: string[] = [];
+      let current = prompt;
+      let prevOutput = '';
+
+      for (let iter = 0; iter < maxIterations; iter++) {
+        for (const id of ordered) {
+          const gene = nodeLookup.get(id);
+          const nodeOptions = { ...options };
+          if (typeof gene?.temperature === 'number') {
+            // Decay temperature across iterations
+            nodeOptions.temperature = gene.temperature * Math.pow(0.9, iter);
+          }
+          const output = await this.executeExpert(id, current, nodeOptions, {
+            adapterName: gene?.adapter,
+          });
+          outputs.push(output);
+          current = output;
+        }
+
+        // Check convergence after each full loop
+        if (current === prevOutput || this.computeOutputSimilarity(current, prevOutput) > 0.95) {
+          break;
+        }
+        prevOutput = current;
+      }
+
+      return combiner ? this.combineOutputs(outputs, combiner) : current;
     }
 
     const outputs = await this.executeGraph(genome, prompt, options, router);

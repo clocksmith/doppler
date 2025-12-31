@@ -1779,8 +1779,10 @@ export class DopplerLoader {
       // See: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py
       tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
       tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
-      tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight']),
-      tryLoadNorm(['pre_feedforward_layernorm.weight']),
+      tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight']),
+      // Gemma 2: ffn_norm.weight is the pre-FFN norm (NOT post-attention)
+      // Gemma 3: pre_feedforward_layernorm.weight
+      tryLoadNorm(['pre_feedforward_layernorm.weight', 'ffn_norm.weight']),
       tryLoadNorm(['post_feedforward_layernorm.weight', 'post_ffw_norm.weight']),
     ]);
 
