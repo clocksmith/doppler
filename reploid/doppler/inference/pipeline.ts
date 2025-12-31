@@ -1223,7 +1223,11 @@ export class InferencePipeline {
           });
 
       // Track buffers for cleanup after submit
-      recorder.trackTemporaryBuffer(hiddenStates);
+      // BUT don't track pre-allocated ping-pong buffers - they're managed by DecodeBufferManager
+      const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+      if (!isPreAllocated) {
+        recorder.trackTemporaryBuffer(hiddenStates);
+      }
       recorder.trackTemporaryBuffer(logitsBuffer);
 
       // NOW submit everything at once (layers + logits + sampling)
@@ -1252,19 +1256,26 @@ export class InferencePipeline {
       // DEBUG: Log every token for debugging
       log.debug('Decode', `Step ${this._decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
-      // DEBUG: Check for invalid token IDs
-      if (nextToken > config.vocabSize) {
-        log.warn('Decode', `Invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
-        log.warn('Decode', `Token as hex: 0x${nextToken.toString(16)}`);
+      // DEBUG: Check for invalid or suspicious token IDs
+      if (nextToken > config.vocabSize || nextToken === 0) {
+        log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
         // Read logits to check their values
-        const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
-        const logitArr = new Float32Array(logitSample);
-        const maxLogit = Math.max(...logitArr);
-        const minLogit = Math.min(...logitArr);
-        const hasNaN = logitArr.some(v => isNaN(v));
-        const hasInf = logitArr.some(v => !isFinite(v));
-        log.warn('Decode', `Logits: max=${maxLogit}, min=${minLogit}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
-        log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
+        if (allowReadback('pipeline.decode.debug-logits')) {
+          const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
+          const logitArr = new Float32Array(logitSample);
+          const maxLogit = Math.max(...logitArr);
+          const minLogit = Math.min(...logitArr);
+          const hasNaN = logitArr.some(v => isNaN(v));
+          const hasInf = logitArr.some(v => !isFinite(v));
+          // Find argmax manually
+          let argmaxIdx = 0, argmaxVal = logitArr[0];
+          for (let i = 1; i < logitArr.length; i++) {
+            if (logitArr[i] > argmaxVal) { argmaxVal = logitArr[i]; argmaxIdx = i; }
+          }
+          log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+          log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
+          log.warn('Decode', `Logits[0..3]: ${Array.from(logitArr.slice(0, 4)).map(v => v.toFixed(4)).join(', ')}`);
+        }
       }
 
       releaseBuffer(sampleOutputBuffer);
