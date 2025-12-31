@@ -19,6 +19,7 @@ import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
+import { log } from '../../debug/index.js';
 
 // ============================================================================
 // Debug Configuration
@@ -194,7 +195,7 @@ export async function computeLogits(
   const device = getDevice();
 
   if (!finalNorm || !lmHead) {
-    console.warn('[Pipeline] Final norm or LM head not loaded, returning zeros');
+    log.warn('Pipeline', 'Final norm or LM head not loaded, returning zeros');
     return new Float32Array(vocabSize);
   }
 
@@ -715,7 +716,7 @@ export async function computeLogitsGPU(
   }
 
   if (!finalNorm || !lmHead) {
-    console.warn('[Pipeline] Final norm or LM head not loaded');
+    log.warn('Pipeline', 'Final norm or LM head not loaded');
     return null;
   }
 

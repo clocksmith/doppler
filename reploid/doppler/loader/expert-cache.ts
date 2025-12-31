@@ -8,6 +8,7 @@
  */
 
 import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { log, trace } from '../debug/index.js';
 import type { ExpertWeights } from './weights.js';
 
 /**
@@ -70,14 +71,14 @@ export class ExpertCache {
    */
   async autoTune(): Promise<void> {
     if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
-      console.log('[ExpertCache] WebGPU not available, using default 2GB');
+      log.info('ExpertCache', 'WebGPU not available, using default 2GB');
       return;
     }
 
     try {
       const adapter = await (navigator as any).gpu.requestAdapter();
       if (!adapter) {
-        console.log('[ExpertCache] No GPU adapter, using default 2GB');
+        log.info('ExpertCache', 'No GPU adapter, using default 2GB');
         return;
       }
 
@@ -92,9 +93,9 @@ export class ExpertCache {
       );
 
       this.maxBytes = autoSize;
-      console.log(`[ExpertCache] Auto-tuned to ${(this.maxBytes / 1024 / 1024).toFixed(0)}MB (maxBuffer: ${(maxBufferSize / 1024 / 1024).toFixed(0)}MB)`);
+      log.info('ExpertCache', `Auto-tuned to ${(this.maxBytes / 1024 / 1024).toFixed(0)}MB (maxBuffer: ${(maxBufferSize / 1024 / 1024).toFixed(0)}MB)`);
     } catch (e) {
-      console.warn('[ExpertCache] Auto-tune failed, using default 2GB:', e);
+      log.warn('ExpertCache', 'Auto-tune failed, using default 2GB:', e);
     }
   }
 
@@ -235,7 +236,7 @@ export class ExpertCache {
         this.pinExpert(layer, expertIdx);
       }
     }
-    console.log(`[ExpertCache] Pinned ${sharedExpertIndices.length} shared experts across ${numLayers} layers`);
+    log.info('ExpertCache', `Pinned ${sharedExpertIndices.length} shared experts across ${numLayers} layers`);
   }
 
   /**
@@ -259,7 +260,7 @@ export class ExpertCache {
     this.cache.delete(key);
     this.evictions++;
 
-    console.log(`[ExpertCache] Evicted expert ${key}, freed ${(entry.sizeBytes / 1024 / 1024).toFixed(1)}MB`);
+    trace.loader(`Evicted expert ${key}, freed ${(entry.sizeBytes / 1024 / 1024).toFixed(1)}MB`);
   }
 
   /**
@@ -325,7 +326,7 @@ export class ExpertCache {
     this.currentBytes = 0;
     this.inUse.clear();
     // Note: pinned is NOT cleared - shared experts stay pinned
-    console.log('[ExpertCache] Cache cleared');
+    log.info('ExpertCache', 'Cache cleared');
   }
 
   /**

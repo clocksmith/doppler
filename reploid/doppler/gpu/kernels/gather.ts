@@ -12,10 +12,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
+import { trace } from '../../debug/index.js';
 
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
@@ -49,9 +46,7 @@ export async function runGather(
   const bufferDtype = getBufferDtype(embeddings);
   const detectedDtype = embeddingDtype || bufferDtype || 'f32';
   const useF16 = detectedDtype === 'f16' && caps.hasF16;
-  if (DEBUG_KERNELS) {
-    console.log(`[Gather] numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
-  }
+  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
 
   // Select kernel variant based on dtype and vec4 preference
   let variant: string;

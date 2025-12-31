@@ -12,6 +12,7 @@
 
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
+import { log } from '../../debug/index.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
 
 // ============================================================================
@@ -123,7 +124,7 @@ export function getNormWeightBuffer(
   // Debug: Log whether weight is GPUBuffer (first time only)
   if (debugFlags && !debugFlags.normBufferTypeLogged) {
     debugFlags.normBufferTypeLogged = true;
-    console.log(`[DEBUG] getNormWeightBuffer: weight is GPUBuffer=${weight instanceof GPUBuffer}, label=${label}`);
+    log.debug('Weights', `getNormWeightBuffer: weight is GPUBuffer=${weight instanceof GPUBuffer}, label=${label}`);
   }
 
   if (weight instanceof GPUBuffer) {
@@ -140,7 +141,7 @@ export function getNormWeightBuffer(
   // If we receive Float32Array here with rmsNormWeightOffset=true, it means
   // the loader path was bypassed (shouldn't happen in normal flow).
   if (config.rmsNormWeightOffset) {
-    console.warn(`[getNormWeightBuffer] Received Float32Array with rmsNormWeightOffset=true - loader should have returned GPUBuffer. Uploading without re-applying offset.`);
+    log.warn('Weights', 'getNormWeightBuffer: Received Float32Array with rmsNormWeightOffset=true - loader should have returned GPUBuffer. Uploading without re-applying offset.');
   }
 
   // Standard path: just copy to GPU
@@ -168,7 +169,7 @@ export function getGPUWeightBuffer(
     return weight;
   }
   // Weight not on GPU - this shouldn't happen if loader is working correctly
-  console.warn(`[Pipeline] Weight ${label} not on GPU, uploading`);
+  log.warn('Weights', `Weight ${label} not on GPU, uploading`);
   return getWeightBuffer(weight, label);
 }
 

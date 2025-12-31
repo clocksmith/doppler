@@ -7,6 +7,7 @@
 
 import type { GpuCapabilities, GpuLimits } from '../types/gpu.js';
 import { wrapQueueForTracking, TRACK_SUBMITS, setTrackSubmits } from './submit-tracker.js';
+import { log } from '../debug/index.js';
 
 // Re-export types for convenience
 export type { GpuCapabilities, GpuLimits };
@@ -223,7 +224,7 @@ export async function initDevice(): Promise<GPUDevice> {
     });
   } catch (e) {
     // Fallback: request device without optional features
-    console.warn('[DOPPLER GPU] Failed to request device with features, trying minimal config:', (e as Error).message);
+    log.warn('GPU', `Failed to request device with features, trying minimal config: ${(e as Error).message}`);
     gpuDevice = await adapter.requestDevice();
   }
 
@@ -233,7 +234,7 @@ export async function initDevice(): Promise<GPUDevice> {
 
   // Set up device lost handler
   gpuDevice.lost.then((info) => {
-    console.error('[DOPPLER GPU] Device lost:', info.message, 'Reason:', info.reason);
+    log.error('GPU', `Device lost: ${info.message}, Reason: ${info.reason}`);
     gpuDevice = null;
     kernelCapabilities = null;
   });

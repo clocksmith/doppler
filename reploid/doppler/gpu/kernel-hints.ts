@@ -17,6 +17,7 @@
  */
 
 import type { KernelHints } from '../storage/rdrr-format.js';
+import { log } from '../debug/index.js';
 
 // Module-level state
 let currentHints: KernelHints | null = null;
@@ -31,7 +32,7 @@ export function setKernelHints(hints: KernelHints, source: 'manifest' | 'profile
   if (!currentHints || priority[source] >= priority[hintsSource || 'manifest']) {
     currentHints = hints;
     hintsSource = source;
-    console.log(`[KernelHints] Set from ${source}:`, hints);
+    log.debug('KernelHints', `Set from ${source}: ${JSON.stringify(hints)}`);
   }
 }
 
@@ -106,7 +107,7 @@ export function shouldUseF16Compute(hasShaderF16: boolean): boolean {
 
   if (precision === 'f16') {
     if (!hasShaderF16) {
-      console.warn('[KernelHints] F16 compute requested but shader-f16 not available, falling back to F32');
+      log.warn('KernelHints', 'F16 compute requested but shader-f16 not available, falling back to F32');
       return false;
     }
     return true;

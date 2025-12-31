@@ -16,6 +16,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback } from './perf-guards.js';
 import type { ProfileEvent, ProfileSession } from '../types/gpu.js';
+import { log } from '../debug/index.js';
 
 /**
  * Profiling result for a single label
@@ -132,7 +133,7 @@ export class GPUProfiler {
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
     } catch (e) {
-      console.warn('[GPUProfiler] Failed to create timestamp query resources:', e);
+      log.warn('GPUProfiler', `Failed to create timestamp query resources: ${e}`);
       this.hasTimestampQuery = false;
     }
   }
@@ -143,7 +144,7 @@ export class GPUProfiler {
    */
   begin(label: string): void {
     if (this.activeLabels.has(label)) {
-      console.warn(`[GPUProfiler] Label "${label}" already active`);
+      log.warn('GPUProfiler', `Label "${label}" already active`);
       return;
     }
 
@@ -154,7 +155,7 @@ export class GPUProfiler {
       this.nextQueryIndex += 2; // Reserve start and end slots
 
       if (queryIndex >= this.queryCapacity * 2) {
-        console.warn('[GPUProfiler] Query capacity exceeded, resetting');
+        log.warn('GPUProfiler', 'Query capacity exceeded, resetting');
         this.nextQueryIndex = 0;
       }
 
@@ -177,7 +178,7 @@ export class GPUProfiler {
   end(label: string): void {
     const active = this.activeLabels.get(label);
     if (!active) {
-      console.warn(`[GPUProfiler] No active measurement for label "${label}"`);
+      log.warn('GPUProfiler', `No active measurement for label "${label}"`);
       return;
     }
 
@@ -248,7 +249,7 @@ export class GPUProfiler {
     }
 
     if (!this.device || !this.querySet || !this.queryBuffer || !this.readbackBuffer) {
-      console.warn('[GPUProfiler] Missing required resources for resolve');
+      log.warn('GPUProfiler', 'Missing required resources for resolve');
       return;
     }
 

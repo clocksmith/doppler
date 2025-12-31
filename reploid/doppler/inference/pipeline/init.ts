@@ -238,18 +238,14 @@ export async function initRoPEFrequencies(
     localFreqs = computeRoPEFreqsForTheta(
       ropeLocalTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
     );
-    console.log(
-      `[Pipeline] Dual RoPE: local theta=${ropeLocalTheta}, global theta=${ropeTheta}`
-    );
+    log.debug('Pipeline', `Dual RoPE: local theta=${ropeLocalTheta}, global theta=${ropeTheta}`);
   }
 
   if (isYarn) {
     const yarnFactor = ropeScaling?.factor || ropeScale;
     const yarnBetaFast = ropeScaling?.beta_fast || 32;
     const yarnBetaSlow = ropeScaling?.beta_slow || 1;
-    console.log(
-      `[Pipeline] YARN RoPE: factor=${yarnFactor}, beta_fast=${yarnBetaFast}, beta_slow=${yarnBetaSlow}`
-    );
+    log.debug('Pipeline', `YARN RoPE: factor=${yarnFactor}, beta_fast=${yarnBetaFast}, beta_slow=${yarnBetaSlow}`);
   }
 
   // Upload to GPU if available
@@ -269,10 +265,7 @@ export async function initRoPEFrequencies(
       device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
     }
 
-    console.log(
-      `[Pipeline] RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, ` +
-      `headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`
-    );
+    log.debug('Pipeline', `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`);
 
     return {
       cos: cosBuffer,
@@ -282,10 +275,7 @@ export async function initRoPEFrequencies(
     };
   }
 
-  console.log(
-    `[Pipeline] RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, ` +
-    `headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`
-  );
+  log.debug('Pipeline', `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`);
 
   return {
     cos: globalFreqs.cos,
@@ -329,9 +319,7 @@ export function createKVCache(
     const FALLBACK_MAX_SEQ = 4096;
     cacheMaxSeqLen = Math.min(modelMaxSeqLen, FALLBACK_MAX_SEQ);
     cacheLayout = 'contiguous';
-    console.warn(
-      `[Pipeline] Paged GPU KV cache not supported. Capping KV cache to ${cacheMaxSeqLen} tokens.`
-    );
+    log.warn('Pipeline', `Paged GPU KV cache not supported. Capping KV cache to ${cacheMaxSeqLen} tokens.`);
   }
 
   // Use f16 KV cache when supported to reduce VRAM
@@ -361,13 +349,7 @@ export function createKVCache(
 
   if (debug) {
     const isSliding = kvCache instanceof SlidingWindowKVCache;
-    console.log('[Pipeline] KV cache:', {
-      type: kvCache?.constructor?.name || 'unknown',
-      kvDtype: kvCache.kvDtype,
-      layout: kvCache.layout,
-      maxSeqLen: kvCache.maxSeqLen,
-      windowSize: isSliding ? kvCache.windowSize : null,
-    });
+    log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);
   }
 
   return kvCache;
@@ -450,7 +432,7 @@ export async function loadWeights(
 
   // Configure custom shard loader if provided (Native Bridge)
   if (storageContext?.loadShard) {
-    console.log('[Pipeline] Using custom shard loader (Native Bridge or external)');
+    log.debug('Pipeline', 'Using custom shard loader (Native Bridge or external)');
     const loadShard = async (index: number): Promise<Uint8Array> => {
       const data = await storageContext.loadShard(index);
       return data instanceof Uint8Array ? data : new Uint8Array(data);
@@ -491,7 +473,7 @@ export async function loadWeights(
 
   if (dopplerLoader.lmHead && dopplerLoader.lmHead === dopplerLoader.embeddings) {
     useTiedEmbeddings = true;
-    console.log('[Pipeline] Using tied embeddings for LM head (will use transposeB)');
+    log.debug('Pipeline', 'Using tied embeddings for LM head (will use transposeB)');
 
     // Get actual vocab size from embedding tensor shape
     const embeddingTensorNames = [
@@ -507,9 +489,7 @@ export async function loadWeights(
         // GGUF stores embeddings as [hidden_size, vocab_size], so take shape[1] for vocab
         // PyTorch convention is [vocab_size, hidden_size] but GGML uses column-major
         embeddingVocabSize = loc.shape.length === 2 ? Math.max(loc.shape[0], loc.shape[1]) : loc.shape[0];
-        console.log(
-          `[Pipeline] Embedding matrix shape: [${loc.shape.join(', ')}], vocab size: ${embeddingVocabSize} (tokenizer: ${modelConfig.vocabSize})`
-        );
+        log.debug('Pipeline', `Embedding matrix shape: [${loc.shape.join(', ')}], vocab size: ${embeddingVocabSize} (tokenizer: ${modelConfig.vocabSize})`);
         break;
       }
     }
@@ -527,7 +507,7 @@ export async function loadWeights(
         });
       }
     }
-    console.log('[Pipeline] MoE model - experts will be loaded on demand');
+    log.debug('Pipeline', 'MoE model - experts will be loaded on demand');
   }
 
   return {
@@ -635,10 +615,7 @@ export function initMoERouter(
     const weights = layerWeights.get(`layer_${l}`);
     if (weights?.routerWeight) {
       router.loadWeights(weights.routerWeight, weights.routerBias || null);
-      console.log(
-        `[Pipeline] Loaded MoE router from layer ${l}` +
-        (weights.routerBias ? ' (with bias)' : '')
-      );
+      log.debug('Pipeline', `Loaded MoE router from layer ${l}${weights.routerBias ? ' (with bias)' : ''}`);
       break;
     }
   }
@@ -683,7 +660,7 @@ export function fuseQKVWeights(
 ): void {
   const device = getDevice();
   if (!device) {
-    console.log('[QKV Fusion] No GPU device, skipping fusion');
+    log.debug('QKV Fusion', 'No GPU device, skipping fusion');
     return;
   }
 
@@ -693,7 +670,7 @@ export function fuseQKVWeights(
   const vSize = numKVHeads * headDim;
   const qkvSize = qSize + kSize + vSize;
 
-  console.log(`[QKV Fusion] Fusing Q/K/V weights for ${numLayers} layers (${qSize}+${kSize}+${vSize}=${qkvSize})`);
+  log.debug('QKV Fusion', `Fusing Q/K/V weights for ${numLayers} layers (${qSize}+${kSize}+${vSize}=${qkvSize})`);
 
   let fusedCount = 0;
   for (let l = 0; l < numLayers; l++) {
@@ -716,7 +693,7 @@ export function fuseQKVWeights(
 
     // Validate: should be 2 (F16) or 4 (F32)
     if (bytesPerElement !== 2 && bytesPerElement !== 4) {
-      console.log(`[QKV Fusion] Layer ${l}: unsupported dtype (${bytesPerElement} bytes/elem), skipping`);
+      log.debug('QKV Fusion', `Layer ${l}: unsupported dtype (${bytesPerElement} bytes/elem), skipping`);
       continue;
     }
 
@@ -759,5 +736,5 @@ export function fuseQKVWeights(
     fusedCount++;
   }
 
-  console.log(`[QKV Fusion] Fused ${fusedCount}/${numLayers} layers`);
+  log.debug('QKV Fusion', `Fused ${fusedCount}/${numLayers} layers`);
 }

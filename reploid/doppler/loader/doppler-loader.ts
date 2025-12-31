@@ -1122,7 +1122,7 @@ export class DopplerLoader {
             }
             return dstBuffer;
           } catch (err) {
-            console.error(`[DopplerLoader] BF16 conversion failed:`, err);
+            log.error('Loader', 'BF16 conversion failed:', err);
             throw err;
           }
         }
@@ -1595,7 +1595,7 @@ export class DopplerLoader {
         const nanCount = data.filter(x => !Number.isFinite(x)).length;
         debugTrace.loader(`[BF16→F32] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
       } catch (err) {
-        console.error(`[_convertBF16ToF32GPU] ERROR checking embed buffer:`, (err as Error).message);
+        log.error('Loader', 'BF16→F32 embed buffer check error:', (err as Error).message);
       }
     }
 

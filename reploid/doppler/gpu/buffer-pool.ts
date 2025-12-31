@@ -8,6 +8,7 @@
 import { getDevice, getDeviceLimits } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import type { GpuBufferHandle, BufferRequest } from '../types/gpu.js';
+import { log, trace } from '../debug/index.js';
 
 /**
  * Pool statistics
@@ -233,7 +234,7 @@ export class BufferPool {
    */
   release(buffer: GPUBuffer): void {
     if (!this.activeBuffers.has(buffer)) {
-      console.warn('[BufferPool] Releasing buffer not tracked as active');
+      log.warn('BufferPool', 'Releasing buffer not tracked as active');
       return;
     }
 
@@ -326,7 +327,7 @@ export class BufferPool {
    */
   detectLeaks(thresholdMs: number = 60000): BufferMetadata[] {
     if (!this.debugMode) {
-      console.warn('[BufferPool] Leak detection requires debug mode');
+      log.warn('BufferPool', 'Leak detection requires debug mode');
       return [];
     }
 

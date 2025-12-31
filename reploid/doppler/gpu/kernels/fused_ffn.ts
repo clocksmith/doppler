@@ -23,10 +23,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
+import { trace } from '../../debug/index.js';
 
 /** FFN activation type */
 export type FFNActivation = 'silu' | 'gelu';
@@ -148,12 +145,7 @@ export async function runFusedFFN(
   const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
 
-  if (DEBUG_KERNELS) {
-    console.log(
-      `[FusedFFN] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, ` +
-      `intermediate=${intermediateSize}, activation=${activation}`
-    );
-  }
+  trace.ffn(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
@@ -228,12 +220,7 @@ export async function recordFusedFFN(
   const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
 
-  if (DEBUG_KERNELS) {
-    console.log(
-      `[FusedFFN record] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, ` +
-      `intermediate=${intermediateSize}, activation=${activation}`
-    );
-  }
+  trace.ffn(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);

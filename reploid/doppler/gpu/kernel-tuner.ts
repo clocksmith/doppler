@@ -9,6 +9,7 @@
 
 import { getDevice, getKernelCapabilities, getDeviceLimits } from './device.js';
 import { GPUProfiler } from './profiler.js';
+import { log } from '../debug/index.js';
 
 // Cache key prefix
 const CACHE_PREFIX = 'doppler_kernel_tune_';
@@ -174,7 +175,7 @@ export class KernelTuner {
         this.cache = new Map(Object.entries(data));
       }
     } catch (e) {
-      console.warn('[KernelTuner] Failed to load cache:', e);
+      log.warn('KernelTuner', `Failed to load cache: ${e}`);
     }
   }
 
@@ -192,7 +193,7 @@ export class KernelTuner {
       const data = Object.fromEntries(this.cache);
       localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (e) {
-      console.warn('[KernelTuner] Failed to save cache:', e);
+      log.warn('KernelTuner', `Failed to save cache: ${e}`);
     }
   }
 

@@ -17,6 +17,7 @@ import type { ExpertWeights, LayerWeights, MaybeGPUBuffer, RouterWeights } from 
 import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import type { ExpertLoader } from './moe-impl.js';
 import type { MoERouter } from '../moe-router.js';
+import { log, trace } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
@@ -417,7 +418,7 @@ export async function processLayer(
 
   // Debug: check path being taken for layer 0
   if (context.debug && layerIdx === 0) {
-    console.log(`[processLayer] L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
+    log.debug('Layer', `L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
   }
 
   // GPU-native path
@@ -469,7 +470,7 @@ export async function processLayerGPU(
 
   // Debug: log RoPE selection for first few layers
   if (context.debug && layerIdx < 3) {
-    console.log(`[Layer${layerIdx}] RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+    log.debug('Layer', `L${layerIdx} RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
   const attnConfig: AttentionConfig = {
@@ -530,7 +531,7 @@ export async function processLayerGPU(
 
     // Debug layer 0, 2, and 17 attention output specifically (2 is where decode explosion happens)
     // NOTE: Skip detailed readback when using recorder (batched mode) - buffers aren't populated yet!
-    console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
+    log.debug('Layer', `L${layerIdx} attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
     if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && !recorder) {
       if (allowReadback(`layer.attn-out.${layerIdx}`)) {
         try {
@@ -545,20 +546,20 @@ export async function processLayerGPU(
           staging.destroy();
           const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
           const nonZero = Array.from(data).filter(x => x !== 0).length;
-          console.log(`[Layer${layerIdx}] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+          log.debug('Layer', `L${layerIdx} ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
         } catch (e) {
-          console.log(`[Layer${layerIdx}] ATTN_OUT error: ${e}`);
+          log.debug('Layer', `L${layerIdx} ATTN_OUT error: ${e}`);
         }
       }
     } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
-      console.log(`[Layer${layerIdx}] ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
+      log.debug('Layer', `L${layerIdx} ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
     }
   }
 
   // 2. Handle residual connection based on architecture
   // Debug: log architecture path for layer 0, 2, and 17
   if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
-    console.log(`[Layer${layerIdx}] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
+    log.debug('Layer', `L${layerIdx} ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
   }
 
   let postAttn: GPUBuffer;
@@ -588,7 +589,7 @@ export async function processLayerGPU(
     // Gemma 3 path: FUSED norm attention output + residual add (1 kernel instead of 2)
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
     if (context.debug && layerIdx === 0) {
-      console.log(`[Layer0] RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
+      log.debug('Layer', `L0 RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
       // Debug: verify inputBuffer (residual) has the expected embedding values
       if (inputBuffer instanceof GPUBuffer && allowReadback(`layer.residual-check.${layerIdx}`)) {
         try {
@@ -603,9 +604,9 @@ export async function processLayerGPU(
           staging.unmap();
           staging.destroy();
           const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-          console.log(`[Layer0] INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+          log.debug('Layer', `L0 INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
         } catch (e) {
-          console.log(`[Layer0] INPUT_RESIDUAL error: ${e}`);
+          log.debug('Layer', `L0 INPUT_RESIDUAL error: ${e}`);
         }
       }
     }
@@ -655,9 +656,9 @@ export async function processLayerGPU(
         staging.unmap();
         staging.destroy();
         const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-        console.log(`[Layer0] POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        log.debug('Layer', `L0 POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
       } catch (e) {
-        console.log(`[Layer0] POST_ATTN error: ${e}`);
+        log.debug('Layer', `L0 POST_ATTN error: ${e}`);
       }
     }
   }
@@ -712,9 +713,9 @@ async function processFFNWithSandwichNorm(
       staging.destroy();
       const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
       const nonZero = Array.from(data).filter(x => x !== 0).length;
-      console.log(`[Layer${layerIdx}] FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
+      log.debug('Layer', `L${layerIdx} FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
     } catch (e) {
-      console.log(`[Layer${layerIdx}] FFN_${label} error: ${e}`);
+      log.debug('Layer', `L${layerIdx} FFN_${label} error: ${e}`);
     }
   };
 
@@ -738,8 +739,8 @@ async function processFFNWithSandwichNorm(
           wstaging.destroy();
           const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
           const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
-          console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-        } catch (e) { console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS error: ${e}`); }
+          log.debug('Layer', `L${layerIdx} PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        } catch (e) { log.debug('Layer', `L${layerIdx} PRE_FFN_NORM_WEIGHTS error: ${e}`); }
       }
     }
 
@@ -779,7 +780,7 @@ async function processFFNWithSandwichNorm(
              (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     // FUSED PATH: gate+up (or separate gate/up) -> activation -> down+norm+residual (single kernel for last step)
     if (layerIdx === 0 && !loggedFusedDownNorm) {
-      console.log('[FUSED] Using fused down+norm kernel');
+      log.debug('Layer', 'Using fused down+norm kernel');
       loggedFusedDownNorm = true;
     }
     // Pass pre-allocated decode buffer for output when available
@@ -884,7 +885,7 @@ async function processFFNWithSandwichNorm(
         // Calculate which token this is
         const tokenIdx = Math.floor(maxIdx / hiddenSize);
         const dimIdx = maxIdx % hiddenSize;
-        console.log(`[LAYER_OUT] L${layerIdx}: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
+        log.debug('Layer', `L${layerIdx} LAYER_OUT: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
       } catch (e) { /* ignore */ }
     }
   }
@@ -1111,7 +1112,7 @@ async function runDenseFFNGPU(
   // Fallback: separate gate/up path (3 matmuls)
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
     // Return copy of input (no FFN weights)
-    console.warn(`[Layer ${layerIdx}] FFN: no weights found (gateUp=${!!layerWeights?.gateUp}, gate=${!!layerWeights?.gate}, up=${!!layerWeights?.up}, down=${!!layerWeights?.down})`);
+    log.warn('Layer', `L${layerIdx} FFN: no weights found (gateUp=${!!layerWeights?.gateUp}, gate=${!!layerWeights?.gate}, up=${!!layerWeights?.up}, down=${!!layerWeights?.down})`);
     const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
     const encoder = device.createCommandEncoder();
     encoder.copyBufferToBuffer(inputBuffer, 0, output, 0, numTokens * hiddenSize * 4);
@@ -1404,7 +1405,7 @@ async function runDenseFFNWithFusedPostNormGPU(
   if (loraDown) {
     // LoRA needs separate application - for now, fall back to non-fused for LoRA
     // This is a rare case during fine-tuning only
-    console.warn(`[Layer ${layerIdx}] LoRA down_proj with fused kernel not yet optimized`);
+    log.warn('Layer', `L${layerIdx} LoRA down_proj with fused kernel not yet optimized`);
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -1485,6 +1486,6 @@ export async function processLayerCPU(
 
   // CPU fallback - return copy of input (simplified)
   // Full CPU inference would require implementing all operations on CPU
-  console.warn(`[Layer ${layerIdx}] CPU fallback - returning input unchanged`);
+  log.warn('Layer', `L${layerIdx} CPU fallback - returning input unchanged`);
   return new Float32Array(hiddenStates);
 }

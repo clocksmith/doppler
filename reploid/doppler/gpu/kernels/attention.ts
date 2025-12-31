@@ -18,10 +18,7 @@ import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js'
 import { createUniformBufferWithView } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
+import { log, trace } from '../../debug/index.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -100,17 +97,11 @@ function selectAttentionTier(
   let tier = attentionKernel;
 
   if (tier === 'tiled_large' && !canLarge) {
-    console.warn(
-      `[Attention] Requested tiled_large but device doesn't support it ` +
-      `(headDim=${headDim}, shared=${sharedLimit}). Falling back.`
-    );
+    log.warn('Attention', `Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
     tier = null;
   }
   if (tier === 'tiled_small' && !canSmall) {
-    console.warn(
-      `[Attention] Requested tiled_small but device doesn't support it ` +
-      `(headDim=${headDim}, shared=${sharedLimit}). Falling back.`
-    );
+    log.warn('Attention', `Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
     tier = null;
   }
 
@@ -118,7 +109,7 @@ function selectAttentionTier(
     if (canSubgroup) {
       tier = 'subgroup';
       if (!loggedAttentionTier) {
-        console.log(`[Attention] Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+        trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
         loggedAttentionTier = true;
       }
     } else if (canLarge) {
@@ -128,10 +119,7 @@ function selectAttentionTier(
     } else if (isDecode) {
       tier = 'streaming';
     } else {
-      console.warn(
-        `[Attention] No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). ` +
-        `Falling back to streaming. Expect slow prefill.`
-      );
+      log.warn('Attention', `No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`);
       tier = 'streaming';
     }
   }
@@ -168,7 +156,7 @@ function resolveAttentionVariant(
     if (useF16KV) {
       if (canUseChunked) {
         if (!loggedChunkedKernel) {
-          console.log(`[Attention] Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+          trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
           loggedChunkedKernel = true;
         }
         return 'decode_chunked_f16kv';
@@ -186,7 +174,7 @@ function resolveAttentionVariant(
   // For streaming tier, prefer chunked if viable
   if (canUseChunked) {
     if (!loggedChunkedKernel) {
-      console.log(`[Attention] Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+      trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
       loggedChunkedKernel = true;
     }
     return 'decode_chunked_f16kv';
@@ -389,12 +377,7 @@ export async function recordAttention(
     caps
   );
 
-  if (DEBUG_KERNELS) {
-    console.warn(
-      `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, ` +
-      `seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
-    );
-  }
+  trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
 
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);

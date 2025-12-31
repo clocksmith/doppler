@@ -19,10 +19,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
+import { trace } from '../../debug/index.js';
 
 /** Kernel constant matching WGSL */
 const WG_SIZE = 256;
@@ -74,9 +71,7 @@ export async function runMatmulResidualFused(
     outputBuffer = null,
   } = options;
 
-  if (DEBUG_KERNELS) {
-    console.log(`[MatmulResidualFused] N=${N}, K=${K}, alpha=${alpha}`);
-  }
+  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}`);
 
   const pipeline = await getPipelineFast('fused_matmul_residual', 'default');
 

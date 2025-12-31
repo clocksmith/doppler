@@ -17,6 +17,7 @@
  */
 
 import { trackSubmit } from './perf-guards.js';
+import { log, trace } from '../debug/index.js';
 
 /** Whether to track submits (disable in production for perf) */
 export let TRACK_SUBMITS = false;
@@ -73,9 +74,9 @@ export function setTrackSubmits(enabled: boolean): void {
   TRACK_SUBMITS = enabled;
   if (enabled) {
     resetSubmitStats();
-    console.log('[SubmitTracker] Enabled');
+    log.debug('SubmitTracker', 'Enabled');
   } else {
-    console.log('[SubmitTracker] Disabled');
+    log.debug('SubmitTracker', 'Disabled');
   }
 }
 
@@ -193,8 +194,8 @@ export function getAllPhaseSubmitStats(): PhaseSubmitStats {
  */
 export function logSubmitStats(label: string = 'Forward pass'): void {
   const stats = getSubmitStats();
-  console.log(
-    `[SubmitTracker] ${label}: ${stats.count} submits, ` +
+  trace.perf(
+    `SubmitTracker ${label}: ${stats.count} submits, ` +
     `total=${stats.totalMs.toFixed(2)}ms, ` +
     `avg=${stats.avgMs.toFixed(3)}ms, ` +
     `range=[${stats.minMs.toFixed(3)}-${stats.maxMs.toFixed(3)}ms]`
@@ -202,11 +203,11 @@ export function logSubmitStats(label: string = 'Forward pass'): void {
 
   // Log by source if available
   if (stats.bySource && stats.bySource.size > 0) {
-    console.log('[SubmitTracker] Submits by source:');
+    trace.perf('SubmitTracker: Submits by source:');
     const sorted = Array.from(stats.bySource.entries()).sort((a, b) => b[1] - a[1]);
     for (const [source, count] of sorted) {
       const pct = ((count / stats.count) * 100).toFixed(1);
-      console.log(`  ${source}: ${count} (${pct}%)`);
+      trace.perf(`  ${source}: ${count} (${pct}%)`);
     }
   }
 }
@@ -217,13 +218,13 @@ export function logSubmitStats(label: string = 'Forward pass'): void {
  */
 export function logAllPhaseSubmitStats(label: string = 'All phases'): void {
   const allStats = getAllPhaseSubmitStats();
-  console.log(`[SubmitTracker] ${label}:`);
+  trace.perf(`SubmitTracker ${label}:`);
 
   for (const phase of ['prefill', 'decode', 'other'] as const) {
     const stats = allStats[phase];
     if (stats.count === 0) continue;
 
-    console.log(
+    trace.perf(
       `  ${phase}: ${stats.count} submits, ` +
       `total=${stats.totalMs.toFixed(2)}ms, ` +
       `avg=${stats.avgMs.toFixed(3)}ms`
@@ -234,7 +235,7 @@ export function logAllPhaseSubmitStats(label: string = 'All phases'): void {
       const sorted = Array.from(stats.bySource.entries()).sort((a, b) => b[1] - a[1]);
       for (const [source, count] of sorted) {
         const pct = ((count / stats.count) * 100).toFixed(1);
-        console.log(`    ${source}: ${count} (${pct}%)`);
+        trace.perf(`    ${source}: ${count} (${pct}%)`);
       }
     }
   }

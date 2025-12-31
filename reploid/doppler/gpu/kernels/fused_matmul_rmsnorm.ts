@@ -21,10 +21,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
+import { trace } from '../../debug/index.js';
 
 /** Kernel constants matching WGSL */
 const WG_SIZE = 256;
@@ -92,9 +89,7 @@ export async function runMatmulRMSNormFused(
   // Select variant based on output size
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  if (DEBUG_KERNELS) {
-    console.log(`[MatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
-  }
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
 
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 
@@ -179,9 +174,7 @@ export async function recordMatmulRMSNormFused(
   // Select variant
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  if (DEBUG_KERNELS) {
-    console.log(`[recordMatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
-  }
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
 
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 

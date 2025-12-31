@@ -10,6 +10,7 @@ import { ModelSelector, ModelInfo, ModelSources } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
 import { ProgressUI } from './progress-ui.js';
 import { QuickStartUI } from './quickstart-ui.js';
+import { log } from '../debug/index.js';
 
 // Quick-start downloader
 import {
@@ -184,7 +185,7 @@ async function discoverLocalModels(): Promise<RemoteModel[]> {
       };
     });
   } catch (e) {
-    console.warn('[Discovery] Failed to fetch models from API:', e);
+    log.debug('Discovery', 'Failed to fetch models from API:', e);
     return [];
   }
 }
@@ -282,7 +283,7 @@ export class DopplerDemo {
    * Initialize the application
    */
   async init(): Promise<void> {
-    console.log('[DopplerDemo] Initializing...');
+    log.info('App', 'Initializing...');
 
     // Get DOM references
     this.statusDot = document.querySelector('.status-dot');
@@ -359,7 +360,7 @@ export class DopplerDemo {
       );
     }
 
-    console.log('[DopplerDemo] Initialized');
+    log.info('App', 'Initialized');
   }
 
   /**
@@ -394,7 +395,7 @@ export class DopplerDemo {
     this.quickStartUI = new QuickStartUI(container, {
       onDownloadComplete: (modelId) => this._onQuickStartComplete(modelId),
       onRunModel: (modelId) => this._runQuickStartModel(modelId),
-      onCancel: () => console.log('[QuickStart] Cancelled by user'),
+      onCancel: () => log.debug('QuickStart', 'Cancelled by user'),
     });
 
     // Attention kernel override dropdown
@@ -460,7 +461,7 @@ export class DopplerDemo {
           Object.assign(hints, parsed as KernelHints);
         }
       } catch (err) {
-        console.warn('[DopplerDemo] Failed to parse kernelHints from URL:', (err as Error).message);
+        log.warn('App', 'Failed to parse kernelHints from URL:', (err as Error).message);
       }
     }
 
@@ -478,7 +479,7 @@ export class DopplerDemo {
 
     if (Object.keys(hints).length > 0) {
       this.runtimeKernelHints = hints;
-      console.log('[DopplerDemo] Runtime kernel hints from URL:', hints);
+      log.debug('App', 'Runtime kernel hints from URL:', hints);
     }
 
     const attentionKernel = params.get('attentionKernel');
@@ -491,7 +492,7 @@ export class DopplerDemo {
    * Detect browser capabilities
    */
   private async _detectCapabilities(): Promise<void> {
-    console.log('[DopplerDemo] Detecting capabilities...');
+    log.debug('App', 'Detecting capabilities...');
 
     // WebGPU
     if (navigator.gpu) {
@@ -506,17 +507,13 @@ export class DopplerDemo {
 
           // Get adapter info for logging
           const info: Partial<GPUAdapterInfo> = (adapter as GPUAdapter & { info?: GPUAdapterInfo; requestAdapterInfo?: () => Promise<GPUAdapterInfo> }).info || (await (adapter as GPUAdapter & { requestAdapterInfo?: () => Promise<GPUAdapterInfo> }).requestAdapterInfo?.()) || {};
-          console.log(
-            '[DopplerDemo] GPU:',
-            info.vendor || 'unknown',
-            info.architecture || info.device || 'unknown'
-          );
+          log.info('GPU', `${info.vendor || 'unknown'} ${info.architecture || info.device || 'unknown'}`);
 
           // Populate GPU info panel
           this._populateGPUInfo(adapter, info as GPUAdapterInfo);
         }
       } catch (e) {
-        console.warn('[DopplerDemo] WebGPU init failed:', e);
+        log.warn('App', 'WebGPU init failed:', e);
       }
     }
 
@@ -588,7 +585,7 @@ export class DopplerDemo {
 
     // 3. Last resort: vendor + device (log for future mapping)
     if (vendor && device) {
-      console.log(`[GPU] Unknown device: vendor=${vendor}, device=${device}, arch=${arch}`);
+      log.info('GPU', `Unknown device: vendor=${vendor}, device=${device}, arch=${arch}`);
       // Capitalize vendor
       const vendorName = vendor.charAt(0).toUpperCase() + vendor.slice(1);
       return `${vendorName} GPU`;
@@ -847,7 +844,7 @@ export class DopplerDemo {
    * Load list of cached models from storage, deduplicating by model identity
    */
   private async _loadCachedModels(): Promise<void> {
-    console.log('[DopplerDemo] Discovering models...');
+    log.debug('App', 'Discovering models...');
 
     // Map to deduplicate models: key -> model info with sources
     const modelMap = new Map<string, RegisteredModel>();
@@ -880,7 +877,7 @@ export class DopplerDemo {
 
     // 1. Discover server models (local HTTP)
     const serverModels = await discoverLocalModels();
-    console.log(`[DopplerDemo] Found ${serverModels.length} server models`);
+    log.debug('App', `Found ${serverModels.length} server models`);
 
     for (const model of serverModels) {
       const key = this._getModelKey(model.architecture, model.quantization, model.downloadSize);
@@ -902,9 +899,9 @@ export class DopplerDemo {
     let cachedIds: string[] = [];
     try {
       cachedIds = await listModels();
-      console.log('[DopplerDemo] Found cached models in OPFS:', cachedIds);
+      log.debug('App', 'Found cached models in OPFS:', cachedIds);
     } catch (err) {
-      console.warn('[DopplerDemo] Could not query cached models:', (err as Error).message);
+      log.warn('App', 'Could not query cached models:', (err as Error).message);
     }
 
     for (const cachedId of cachedIds) {
@@ -942,10 +939,7 @@ export class DopplerDemo {
           );
         }
       } catch (e) {
-        console.warn(
-          `[DopplerDemo] Could not load manifest for cached model ${cachedId}:`,
-          (e as Error).message
-        );
+        log.warn('App', `Could not load manifest for cached model ${cachedId}:`, (e as Error).message);
       }
     }
 
@@ -1005,7 +999,7 @@ export class DopplerDemo {
       return getAvailabilityScore(b) - getAvailabilityScore(a);
     });
 
-    console.log(`[DopplerDemo] Model registry: ${MODEL_REGISTRY.length} unique models`);
+    log.info('App', `Model registry: ${MODEL_REGISTRY.length} unique models`);
     this.modelSelector?.setModels(MODEL_REGISTRY as ModelInfo[]);
   }
 
@@ -1054,7 +1048,7 @@ export class DopplerDemo {
     const sourceInfo = useServer ? sources.server! : sources.browser!;
     const sourceType = useServer ? 'server' : 'browser';
 
-    console.log(`[DopplerDemo] Loading model: ${model.name} from ${sourceType}`);
+    log.info('App', `Loading model: ${model.name} from ${sourceType}`);
     this._setStatus('loading', 'Loading model...');
     this.progressUI?.show('Loading model...');
 
@@ -1199,9 +1193,9 @@ export class DopplerDemo {
       this._updateAttentionKernelNote();
       this._updateInitialStats();
 
-      console.log(`[DopplerDemo] Model loaded: ${model.name} (${model.key})`);
+      log.info('App', `Model loaded: ${model.name} (${model.key})`);
     } catch (error) {
-      console.error('[DopplerDemo] Model load failed:', error);
+      log.error('App', 'Model load failed:', error);
       this.progressUI?.hide();
       this._setStatus('error', 'Load failed');
       this._showError(`Failed to load model: ${(error as Error).message}`);
@@ -1233,7 +1227,7 @@ export class DopplerDemo {
       return;
     }
 
-    console.log(`[DopplerDemo] Downloading "${model.name}" from: ${downloadUrl}`);
+    log.info('App', `Downloading "${model.name}" from: ${downloadUrl}`);
     this._setStatus('loading', `Downloading ${model.name}...`);
 
     try {
@@ -1262,7 +1256,7 @@ export class DopplerDemo {
       // Refresh models list to update sources
       await this._loadCachedModels();
 
-      console.log(`[DopplerDemo] Download complete: ${model.name}`);
+      log.info('App', `Download complete: ${model.name}`);
 
       // Run after download if requested
       if (opts.runAfter) {
@@ -1273,7 +1267,7 @@ export class DopplerDemo {
         }
       }
     } catch (error) {
-      console.error('[DopplerDemo] Download failed:', error);
+      log.error('App', 'Download failed:', error);
       this.modelSelector?.setDownloadProgress(model.key, 0);
       this._setStatus('error', 'Download failed');
       this._showError(`Download failed: ${(error as Error).message}`);
@@ -1292,7 +1286,7 @@ export class DopplerDemo {
       return;
     }
 
-    console.log(`[DopplerDemo] Deleting cached model: ${model.name} (${browserId})`);
+    log.info('App', `Deleting cached model: ${model.name} (${browserId})`);
 
     try {
       // Unload if currently active
@@ -1315,7 +1309,7 @@ export class DopplerDemo {
       // Refresh models list
       await this._loadCachedModels();
     } catch (error) {
-      console.error('[DopplerDemo] Delete failed:', error);
+      log.error('App', 'Delete failed:', error);
       this._showError(`Delete failed: ${(error as Error).message}`);
     }
   }
@@ -1338,7 +1332,7 @@ export class DopplerDemo {
       return;
     }
 
-    console.log(`[DopplerDemo] Generating response...`);
+    log.debug('App', 'Generating response...');
     this.isGenerating = true;
     this.abortController = new AbortController();
 
@@ -1382,7 +1376,7 @@ export class DopplerDemo {
         this.chatUI?.cancelStream();
         this._setStatus('ready', 'Stopped');
       } else {
-        console.error('[DopplerDemo] Generation error:', error);
+        log.error('App', 'Generation error:', error);
         this.chatUI?.cancelStream();
         this._setStatus('error', 'Generation failed');
         this._showError(`Generation failed: ${(error as Error).message}`);
@@ -1425,7 +1419,7 @@ export class DopplerDemo {
       (this.pipeline as Pipeline & { clearKVCache: () => void }).clearKVCache();
     }
     this.chatUI?.clear();
-    console.log('[DopplerDemo] Conversation cleared');
+    log.debug('App', 'Conversation cleared');
   }
 
   /**
@@ -1552,11 +1546,11 @@ export class DopplerDemo {
    */
   private async _unloadCurrentModel(): Promise<void> {
     if (!this.pipeline) {
-      console.log('[DopplerDemo] No model loaded');
+      log.debug('App', 'No model loaded');
       return;
     }
 
-    console.log('[DopplerDemo] Unloading current model...');
+    log.info('App', 'Unloading current model...');
     this._setStatus('loading', 'Unloading model...');
 
     try {
@@ -1583,9 +1577,9 @@ export class DopplerDemo {
 
       this._setStatus('ready', 'Model unloaded');
       this._updateMemoryStats();
-      console.log('[DopplerDemo] Model unloaded');
+      log.info('App', 'Model unloaded');
     } catch (error) {
-      console.error('[DopplerDemo] Unload failed:', error);
+      log.error('App', 'Unload failed:', error);
       this._setStatus('error', 'Unload failed');
     }
   }
@@ -1594,7 +1588,7 @@ export class DopplerDemo {
    * Clear all GPU memory (buffers, caches, heap)
    */
   private async _clearAllMemory(): Promise<void> {
-    console.log('[DopplerDemo] Clearing all memory...');
+    log.info('App', 'Clearing all memory...');
     this._setStatus('loading', 'Clearing memory...');
 
     try {
@@ -1621,9 +1615,9 @@ export class DopplerDemo {
 
       this._setStatus('ready', 'Memory cleared');
       this._updateMemoryStats();
-      console.log('[DopplerDemo] All memory cleared');
+      log.info('App', 'All memory cleared');
     } catch (error) {
-      console.error('[DopplerDemo] Clear memory failed:', error);
+      log.error('App', 'Clear memory failed:', error);
       this._setStatus('error', 'Clear failed');
     }
   }
@@ -1685,7 +1679,7 @@ export class DopplerDemo {
         return;
       }
 
-      console.log(`[DopplerDemo] Converting ${files.length} files...`);
+      log.info('App', `Converting ${files.length} files...`);
       this.isConverting = true;
       if (this.convertBtn) {
         this.convertBtn.disabled = true;
@@ -1710,7 +1704,7 @@ export class DopplerDemo {
         },
       });
 
-      console.log(`[DopplerDemo] Conversion complete: ${modelId}`);
+      log.info('App', `Conversion complete: ${modelId}`);
       this._updateConvertProgress(100, `Done! Model: ${modelId}`);
 
       // Refresh model list
@@ -1725,10 +1719,10 @@ export class DopplerDemo {
       }, 3000);
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
-        console.log('[DopplerDemo] Conversion cancelled');
+        log.info('App', 'Conversion cancelled');
         this._updateConvertProgress(0, 'Cancelled');
       } else {
-        console.error('[DopplerDemo] Conversion failed:', error);
+        log.error('App', 'Conversion failed:', error);
         this._updateConvertProgress(0, `Error: ${(error as Error).message}`);
         this._showError(`Conversion failed: ${(error as Error).message}`);
       }
@@ -1766,11 +1760,11 @@ export class DopplerDemo {
       return;
     }
 
-    console.log(`[QuickStart] Starting download for ${modelId}`);
+    log.info('QuickStart', `Starting download for ${modelId}`);
 
     const result = await downloadQuickStartModel(modelId, {
       onPreflightComplete: (preflight) => {
-        console.log('[QuickStart] Preflight:', preflight);
+        log.debug('QuickStart', 'Preflight:', preflight);
 
         // Show VRAM blocker if needed
         if (!preflight.vram.sufficient) {
@@ -1806,9 +1800,9 @@ export class DopplerDemo {
       this.quickStartUI?.showReady(modelId);
     } else if (result.blockedByPreflight) {
       // Already showing VRAM blocker
-      console.log('[QuickStart] Blocked by preflight:', result.error);
+      log.debug('QuickStart', 'Blocked by preflight:', result.error);
     } else if (result.userDeclined) {
-      console.log('[QuickStart] User declined');
+      log.debug('QuickStart', 'User declined');
       this.quickStartUI?.hide();
     } else {
       this.quickStartUI?.showError(result.error || 'Download failed');
@@ -1819,7 +1813,7 @@ export class DopplerDemo {
    * Handle quick-start download completion
    */
   private async _onQuickStartComplete(modelId: string): Promise<void> {
-    console.log(`[QuickStart] Download complete for ${modelId}`);
+    log.info('QuickStart', `Download complete for ${modelId}`);
     // Refresh model list to show the downloaded model
     await this._loadCachedModels();
   }
@@ -1828,7 +1822,7 @@ export class DopplerDemo {
    * Run model after quick-start download
    */
   private async _runQuickStartModel(modelId: string): Promise<void> {
-    console.log(`[QuickStart] Running model ${modelId}`);
+    log.info('QuickStart', `Running model ${modelId}`);
 
     // Find the model in registry and select it
     const model = MODEL_REGISTRY.find((m) => m.key === modelId || m.sources.browser?.id === modelId);

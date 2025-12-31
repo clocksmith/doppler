@@ -10,6 +10,7 @@
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { getBufferDtype, setBufferDtype, isColumnMajorBuffer, type BufferDType } from '../buffer-dtypes.js';
+import { log, trace } from '../../debug/index.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
@@ -143,7 +144,7 @@ function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): bo
     // Log first 50 calls to avoid flooding
     if (DEBUG_KERNELS && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      console.log(`[resolveTransposeB] isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
+      log.debug('Matmul', `resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
     }
     return result;
   }
@@ -255,10 +256,8 @@ function selectMatmulVariantAndFlags(
             'Consider using a dequantized model (F16) as fallback.'
           );
         }
-        console.warn(
-          '[Matmul] Q4K fused requested but no subgroup support. Falling back to dequant path. ' +
-          'Your GPU/browser may not support WebGPU subgroups.'
-        );
+        log.warn('Matmul', 'Q4K fused requested but no subgroup support. Falling back to dequant path. ' +
+          'Your GPU/browser may not support WebGPU subgroups.');
       } else {
         useQ4KFused = true;
         if (mode === 'record') {
@@ -467,7 +466,7 @@ export async function runMatmul(
   if (DEBUG_KERNELS && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
-    console.log(`[runMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
   }
 
   const transposeB = resolveTransposeB(B, transposeBOption);
@@ -481,7 +480,7 @@ export async function runMatmul(
 
   // Warn if B buffer dtype is unknown - this can cause wrong kernel selection
   if (DEBUG_KERNELS && !rawBDtype && M <= 2) {
-    console.warn(`[runMatmul] B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
+    log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
   // Narrow to matmul-supported dtypes
   const aDtype = toMatmulDtype(rawADtype);
@@ -516,20 +515,15 @@ export async function runMatmul(
 
   if (DEBUG_KERNELS && bDtype === 'q4k') {
     if (useQ4KFused) {
-      console.log(
-        `[Matmul] Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} ` +
-        '(WARNING: 2.3x slower than dequant)'
-      );
+      trace.kernels(`Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} (WARNING: 2.3x slower than dequant)`);
     } else {
-      console.log(
-        `[Matmul] Q4K DEQUANT: M=${M}, N=${N}, K=${K}, will dequant first then matmul with variant=${variant}`
-      );
+      trace.kernels(`Q4K DEQUANT: M=${M}, N=${N}, K=${K}, will dequant first then matmul with variant=${variant}`);
     }
   }
 
   // Debug: Log kernel selection for large matmuls (lm_head projection)
   if (DEBUG_KERNELS && N > 100000) {
-    console.log(`[Pipeline] MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
+    trace.kernels(`MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
 
   const config = getKernelConfig('matmul', variant);
@@ -618,7 +612,7 @@ export async function recordMatmul(
   if (DEBUG_KERNELS && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
-    console.log(`[recordMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
   }
 
   const transposeB = resolveTransposeB(B, transposeBOption);

@@ -8,6 +8,7 @@ import { getDevice, getKernelCapabilities, getDeviceLimits } from '../device.js'
 import type { CommandRecorder } from '../command-recorder.js';
 import { getKernelTuner } from '../kernel-tuner.js';
 import { getUniformCache } from '../uniform-cache.js';
+import { log, trace } from '../../debug/index.js';
 
 /** Shader source cache (loaded via fetch) */
 const shaderSourceCache = new Map<string, string>();
@@ -764,10 +765,7 @@ export function validateAttentionLimits(seqLen: number, numHeads: number, headDi
   const tileSize = 64; // TILE_SIZE in attention.wgsl
   const sharedMemRequired = tileSize * headDim * 4 * 2; // K and V tiles
   if (sharedMemRequired > limits.maxComputeWorkgroupStorageSize) {
-    console.warn(
-      `[KernelSelector] Attention may be slow: tile requires ${sharedMemRequired} bytes ` +
-      `but device has ${limits.maxComputeWorkgroupStorageSize} bytes shared memory.`
-    );
+    log.warn('KernelSelector', `Attention may be slow: tile requires ${sharedMemRequired} bytes but device has ${limits.maxComputeWorkgroupStorageSize} bytes shared memory.`);
   }
 }
 
@@ -789,7 +787,7 @@ export async function loadShaderSource(filename: string): Promise<string> {
     shaderSourceCache.set(filename, source);
     return source;
   } catch (error) {
-    console.error(`[KernelSelector] Failed to load shader ${filename}:`, error);
+    log.error('KernelSelector', `Failed to load shader ${filename}: ${error}`);
     throw error;
   }
 }
@@ -836,8 +834,13 @@ export async function compileShader(device: GPUDevice, source: string, label: st
   const compilationInfo = await module.getCompilationInfo();
   if (compilationInfo.messages.length > 0) {
     for (const msg of compilationInfo.messages) {
-      const type = msg.type === 'error' ? 'ERROR' : msg.type === 'warning' ? 'WARN' : 'INFO';
-      console.log(`[DEBUG compileShader ${label}] ${type}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      if (msg.type === 'error') {
+        log.error('compileShader', `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      } else if (msg.type === 'warning') {
+        log.warn('compileShader', `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      } else {
+        log.debug('compileShader', `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      }
     }
     if (compilationInfo.messages.some(m => m.type === 'error')) {
       throw new Error(`Shader compilation failed for ${label}`);
@@ -1060,7 +1063,7 @@ export async function getTunedWorkgroupSize(
     const tuneResult = await tuner.tuneKernel(operation, inputSizes);
     return tuneResult.optimalWorkgroupSize;
   } catch (e: any) {
-    console.warn(`[KernelSelector] Tuning failed for ${operation}, using defaults:`, e.message);
+    log.warn('KernelSelector', `Tuning failed for ${operation}, using defaults: ${e.message}`);
     // Return defaults based on operation
     switch (operation) {
       case 'matmul':
@@ -1121,7 +1124,7 @@ export async function autoTuneKernels(modelConfig: Record<string, number> = {}):
     numBlocks: 1000,
   });
 
-  console.log('[KernelSelector] Auto-tuning complete:', results);
+  log.debug('KernelSelector', `Auto-tuning complete: ${JSON.stringify(results)}`);
   return results;
 }
 
@@ -1148,11 +1151,11 @@ export async function prewarmKernels(
           await createPipeline(operation, variant);
           count += 1;
         } catch (e: any) {
-          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+          log.warn('KernelSelector', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
         }
       }
     }
-    console.log(`[KernelSelector] Prewarmed ${count} kernel pipelines`);
+    log.debug('KernelSelector', `Prewarmed ${count} kernel pipelines`);
     return;
   }
 
@@ -1166,14 +1169,14 @@ export async function prewarmKernels(
         createPipeline(operation, variant)
           .then(() => {}) // Ignore the pipeline result
           .catch((e) => {
-            console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+            log.warn('KernelSelector', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
           })
       );
     }
   }
 
   await Promise.all(jobs);
-  console.log(`[KernelSelector] Prewarmed ${jobs.length} kernel pipelines`);
+  log.debug('KernelSelector', `Prewarmed ${jobs.length} kernel pipelines`);
 }
 
 /** Options for uniform buffer creation */
