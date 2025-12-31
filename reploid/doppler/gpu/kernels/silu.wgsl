@@ -23,9 +23,12 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read> gate: array<f32>;   // For gated variant
 @group(0) @binding(4) var<storage, read> bias: array<f32>;   // Optional bias
 
-// Sigmoid helper
+// Sigmoid helper with clamping to prevent exp overflow
+// For x > 15, sigmoid(x) ≈ 1.0
+// For x < -15, sigmoid(x) ≈ 0.0
 fn sigmoid(x: f32) -> f32 {
-    return 1.0 / (1.0 + exp(-x));
+    let clamped = clamp(x, -15.0, 15.0);
+    return 1.0 / (1.0 + exp(-clamped));
 }
 
 // SiLU helper

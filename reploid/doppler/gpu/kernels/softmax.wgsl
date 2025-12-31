@@ -90,7 +90,8 @@ fn main(
     }
 
     let global_sum = shared_sum[0];
-    let inv_sum = 1.0 / global_sum;
+    // Guard against division by zero when all exp values underflow
+    let inv_sum = select(0.0, 1.0 / global_sum, global_sum > 0.0);
 
     workgroupBarrier();
 
@@ -159,10 +160,12 @@ fn softmax_small(
     }
 
     let global_sum = shared_sum[0];
+    // Guard against division by zero when all exp values underflow
+    let inv_sum = select(0.0, 1.0 / global_sum, global_sum > 0.0);
 
     // Write normalized output
     if (thread_idx < inner_size) {
-        output[base_offset + thread_idx] = exp_val / global_sum;
+        output[base_offset + thread_idx] = exp_val * inv_sum;
     }
 }
 
@@ -225,7 +228,8 @@ fn softmax_online(
 
     let global_max = shared_max[0];
     let global_sum = shared_sum[0];
-    let inv_sum = 1.0 / global_sum;
+    // Guard against division by zero when all exp values underflow
+    let inv_sum = select(0.0, 1.0 / global_sum, global_sum > 0.0);
 
     workgroupBarrier();
 
@@ -297,7 +301,8 @@ fn softmax_inplace(
         }
         workgroupBarrier();
     }
-    let inv_sum = 1.0 / shared_sum[0];
+    // Guard against division by zero when all exp values underflow
+    let inv_sum = select(0.0, 1.0 / shared_sum[0], shared_sum[0] > 0.0);
 
     workgroupBarrier();
 

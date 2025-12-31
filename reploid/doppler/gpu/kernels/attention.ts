@@ -227,11 +227,12 @@ function createAttentionUniformBuffer(
     causal: boolean;
     startPos: number;
     attnSoftcap: number;
+    slidingWindow: number;
   }
 ): GPUBuffer {
   return createUniformBufferWithView(
     'attention_uniforms',
-    48, // 36 bytes used + 12 padding for 16-byte alignment
+    48, // 40 bytes used + 8 padding for 16-byte alignment
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -242,6 +243,7 @@ function createAttentionUniformBuffer(
       view.setUint32(24, params.causal ? 1 : 0, true);
       view.setUint32(28, params.startPos, true);
       view.setFloat32(32, params.attnSoftcap, true); // Gemma 2: 50.0, 0 = disabled
+      view.setUint32(36, params.slidingWindow, true); // Sliding window size, 0 = disabled
     },
     recorder,
     device
@@ -271,6 +273,7 @@ export async function runAttention(
     attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
+    slidingWindow = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -305,6 +308,7 @@ export async function runAttention(
     causal,
     startPos,
     attnSoftcap,
+    slidingWindow,
   });
 
   // Create bind group
@@ -360,6 +364,7 @@ export async function recordAttention(
     attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
+    slidingWindow = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -395,6 +400,7 @@ export async function recordAttention(
     causal,
     startPos,
     attnSoftcap,
+    slidingWindow,
   });
 
   const bindGroup = device.createBindGroup({

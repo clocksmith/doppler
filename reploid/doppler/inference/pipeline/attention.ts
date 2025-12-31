@@ -449,13 +449,10 @@ export async function runLayerAttentionGPU(
   }
 
   // Sliding window attention for specific layers
+  // The kernel now handles both causal AND sliding window masking together.
+  // We no longer need to disable causal masking for sliding layers.
   const isLayerSliding = layerType === 'sliding_attention';
   const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
-
-  if (!isPrefill && isLayerSliding && slidingWindow) {
-    causalForAttention = false;
-    startPosForMask = 0;
-  }
 
   if (kvLenForAttention <= 0) {
     throw new Error(`Invalid kvLen ${kvLenForAttention} at layer ${layerIdx}`);
@@ -823,13 +820,10 @@ export async function recordLayerAttentionGPU(
   }
 
   // Sliding window attention for specific layers
+  // The kernel now handles both causal AND sliding window masking together.
+  // We no longer need to disable causal masking for sliding layers.
   const isLayerSliding = layerType === 'sliding_attention';
   const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
-
-  if (!isPrefill && isLayerSliding && slidingWindow) {
-    causalForAttention = false;
-    startPosForMask = 0;
-  }
 
   if (kvLenForAttention <= 0) {
     throw new Error(`Invalid kvLen ${kvLenForAttention} at layer ${layerIdx}`);

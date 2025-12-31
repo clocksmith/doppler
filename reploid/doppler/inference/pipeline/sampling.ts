@@ -128,10 +128,18 @@ export function sample(logits: Float32Array, opts: SamplingOptions): number {
     candidates = filtered;
   }
 
-  // Renormalize
+  // Renormalize with guard against zero sum
   const probSum = candidates.reduce((s, c) => s + c.prob, 0);
-  for (const c of candidates) {
-    c.prob /= probSum;
+  if (probSum > 0) {
+    for (const c of candidates) {
+      c.prob /= probSum;
+    }
+  } else {
+    // If all probabilities are zero, fall back to uniform distribution
+    const uniformProb = 1.0 / candidates.length;
+    for (const c of candidates) {
+      c.prob = uniformProb;
+    }
   }
 
   if (debug) {

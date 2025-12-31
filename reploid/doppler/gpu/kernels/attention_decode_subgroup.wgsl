@@ -26,6 +26,7 @@ struct Uniforms {
     causal: u32,          // Causal masking flag
     start_pos: u32,       // Start position for RoPE
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
+    sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -39,6 +40,20 @@ var<workgroup> scores: array<f32, 2048>;
 var<workgroup> subgroup_sums: array<f32, 8>;  // For 8 subgroups of size 32
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
+
+// Check if position should be masked (sliding window attention)
+// For decode, query_pos = start_pos (we're at the latest position)
+fn is_masked(key_pos: u32) -> bool {
+    let abs_query = u.start_pos;
+    let abs_key = key_pos;
+    // Causal mask (key must be <= query position)
+    if (u.causal != 0u && abs_key > abs_query) { return true; }
+    // Sliding window mask
+    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+    }
+    return false;
+}
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
@@ -95,6 +110,10 @@ fn main(
             // Gemma 2 attention softcapping
             if (u.attn_softcap > 0.0) {
                 s = tanh(s / u.attn_softcap) * u.attn_softcap;
+            }
+            // Apply masking (causal + sliding window)
+            if (is_masked(k)) {
+                s = -1e38;
             }
             scores[k] = s;
         }

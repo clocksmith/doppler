@@ -21,6 +21,7 @@ struct Uniforms {
     is_causal: u32,       // Apply causal mask (1 = yes)
     start_pos: u32,       // Absolute position offset for causal masking
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
+    sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -46,13 +47,17 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     return query_head_idx / heads_per_kv;
 }
 
-// Check if position should be masked (causal attention)
+// Check if position should be masked (causal + sliding window attention)
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
-    if (u.is_causal == 0u) {
-        return false;
+    let abs_query = query_pos + u.start_pos;
+    let abs_key = key_pos;
+    // Causal mask
+    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
+    // Sliding window mask
+    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
     }
-    // For causal attention, query can only attend to keys at same or earlier positions
-    return key_pos > (query_pos + u.start_pos);
+    return false;
 }
 
 // Main attention kernel - one workgroup per (query_block, head)
@@ -193,10 +198,12 @@ fn main(
     }
 
     // Normalize by sum and write output
-    if (valid_query && l_i > 0.0) {
+    // Always write output when valid_query - write zeros if l_i is 0 to avoid garbage
+    if (valid_query) {
         let out_offset = query_pos * u.num_heads * head_dim + head_idx * head_dim;
+        let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            output[out_offset + d] = acc[d] / l_i;
+            output[out_offset + d] = acc[d] * inv_l_i;
         }
     }
 }

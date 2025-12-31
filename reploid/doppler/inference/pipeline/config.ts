@@ -397,11 +397,14 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
 
   // RoPE theta defaults by architecture:
   // - Gemma 3, Qwen3, Mixtral: 1,000,000
+  // - Gemma 2: 500,000 (NOT 10,000 - would cause 50x error in position encoding)
   // - Kimi K2: 50,000 (with YARN scaling)
   // - Others: 10,000
   let defaultRopeTheta = 10000;
   if (isGemma3 || isQwen3 || isMixtral) {
     defaultRopeTheta = 1000000;
+  } else if (isGemma2) {
+    defaultRopeTheta = 500000;  // Gemma 2 uses 500K, not 10K
   } else if (isKimiK2) {
     defaultRopeTheta = 50000;  // Uses YARN 32x scaling for 128K context
   }

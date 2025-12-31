@@ -21,6 +21,7 @@ struct Uniforms {
     is_causal: u32,
     start_pos: u32,
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
+    sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -39,6 +40,20 @@ var<workgroup> shared_acc: array<f32, 256>;       // Accumulated output
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     return query_head_idx / heads_per_kv;
+}
+
+// Check if position should be masked (sliding window attention)
+// For decode, query_pos = start_pos (we're at the latest position)
+fn is_masked(key_pos: u32) -> bool {
+    let abs_query = u.start_pos;
+    let abs_key = key_pos;
+    // Causal mask (key must be <= query position)
+    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
+    // Sliding window mask
+    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+    }
+    return false;
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -93,6 +108,10 @@ fn main(
             // Gemma 2 attention softcapping
             if (u.attn_softcap > 0.0) {
                 s = tanh(s / u.attn_softcap) * u.attn_softcap;
+            }
+            // Apply masking (causal + sliding window)
+            if (is_masked(k_pos)) {
+                s = -3.402823e+38;  // -FLT_MAX
             }
             shared_scores[k_pos] = s;
         }

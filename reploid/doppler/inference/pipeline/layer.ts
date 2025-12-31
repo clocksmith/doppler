@@ -19,7 +19,7 @@ import type { ExpertLoader } from './moe-impl.js';
 import type { MoERouter } from '../moe-router.js';
 import { log, trace } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import {
   runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
@@ -30,7 +30,7 @@ import {
   CommandRecorder,
   type SiLURowSplitOptions,
 } from '../../gpu/kernel-selector.js';
-import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
+import { getBufferDtype, isColumnMajorBuffer } from '../../gpu/buffer-dtypes.js';
 import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags, type AttentionResult } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
@@ -693,10 +693,10 @@ async function processFFNWithSandwichNorm(
     : null;
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
-  // Debug helper for layers 0, 2, and 17 (only runs when context.debug is true)
+  // Debug helper for layers 0, 2, 5, and 17 (only runs when context.debug is true)
   // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
   const debugLayer = async (buf: GPUBuffer, label: string) => {
-    if (!context.debug || (layerIdx !== 0 && layerIdx !== 2 && layerIdx !== 17) || !device || recorder) return;
+    if (!context.debug || (layerIdx !== 0 && layerIdx !== 2 && layerIdx !== 5 && layerIdx !== 17) || !device || recorder) return;
     if (!allowReadback(`layer.ffn.${label}.${layerIdx}`)) return;
     try {
       // Force GPU sync before reading
@@ -724,8 +724,8 @@ async function processFFNWithSandwichNorm(
   if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
 
-    // Debug: check norm weight values for layer 0, 2, and 17
-    if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && device) {
+    // Debug: check norm weight values for layer 0, 2, 5, and 17
+    if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 5 || layerIdx === 17) && device) {
       if (allowReadback(`layer.pre-ffn-norm.${layerIdx}`)) {
         try {
           const ws = Math.min(128, normWeightBuf.size);
@@ -763,13 +763,20 @@ async function processFFNWithSandwichNorm(
 
   // 2. FFN (or MoE FFN)
   // Check if we can use fused down+norm kernel (decode only, dense FFN with post-FFN norm)
+  // The fused kernel assumes column-major weights (no transpose needed).
+  // For row-major weights, we must fall back to separate matmul which handles transpose.
+  const downWeightIsColumnMajor = layerWeights?.down instanceof GPUBuffer
+    ? isColumnMajorBuffer(layerWeights.down)
+    : false;
+
   const canUseFusedDownNorm = numTokens === 1
     && !config.useMoE
     && !isMoELayer(layerIdx, config, layerWeights)
     && sandwichNorm.hasPostFeedforwardNorm
     && layerWeights?.postFeedforwardNorm
     && layerWeights?.down
-    && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
+    && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize)
+    && downWeightIsColumnMajor;  // Only use fused kernel if weight format is compatible
 
   let ffnOutput: GPUBuffer;
   let usedFusedDownNorm = false;

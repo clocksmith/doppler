@@ -17,6 +17,7 @@ struct Uniforms {
     is_causal: u32,
     start_pos: u32,  // Absolute position offset for causal masking
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
+    sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -31,9 +32,15 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
 }
 
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
-    if (u.is_causal == 0u) { return false; }
-    // Use absolute position (query_pos + start_pos) for correct causal masking during decode
-    return key_pos > (query_pos + u.start_pos);
+    let abs_query = query_pos + u.start_pos;
+    let abs_key = key_pos;
+    // Causal mask
+    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
+    // Sliding window mask
+    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+    }
+    return false;
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
