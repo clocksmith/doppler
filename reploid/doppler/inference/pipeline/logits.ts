@@ -48,6 +48,7 @@ export interface LogitsConfig {
   rmsNormEps: number;
   useTiedEmbeddings: boolean;
   embeddingVocabSize: number | null;
+  finalLogitSoftcapping: number | null;  // Gemma 2: 30.0 - applies tanh(x/cap)*cap
 }
 
 /**
@@ -135,6 +136,23 @@ export function matmulCPU(
   return result;
 }
 
+/**
+ * Apply softcapping to logits (Gemma 2 style).
+ *
+ * Computes: logits = tanh(logits / cap) * cap
+ *
+ * This bounds logits to [-cap, cap] with smooth transitions,
+ * preventing extreme values from dominating softmax.
+ *
+ * @param logits - Logits tensor to modify in-place
+ * @param cap - Softcap value (Gemma 2 default: 30.0)
+ */
+export function applySoftcapping(logits: Float32Array, cap: number): void {
+  for (let i = 0; i < logits.length; i++) {
+    logits[i] = Math.tanh(logits[i] / cap) * cap;
+  }
+}
+
 // ============================================================================
 // Main Logits Computation
 // ============================================================================
@@ -196,7 +214,12 @@ export async function computeLogits(
       cpuHiddenStates = hiddenStates as Float32Array;
     }
     const normed = rmsNormCPU(cpuHiddenStates, finalNorm as Float32Array, rmsNormEps);
-    return matmulCPU(normed, lmHead as Float32Array, numTokens, vocabSize, hiddenSize);
+    const logits = matmulCPU(normed, lmHead as Float32Array, numTokens, vocabSize, hiddenSize);
+    // Apply Gemma 2 softcapping if configured
+    if (config.finalLogitSoftcapping) {
+      applySoftcapping(logits, config.finalLogitSoftcapping);
+    }
+    return logits;
   }
 
   // GPU path
@@ -646,10 +669,19 @@ export async function computeLogits(
         paddedLogits[dstOffset + i] = -Infinity;
       }
     }
+    // Apply Gemma 2 softcapping if configured
+    if (config.finalLogitSoftcapping) {
+      applySoftcapping(paddedLogits, config.finalLogitSoftcapping);
+    }
     return paddedLogits;
   }
 
-  return new Float32Array(logitsData);
+  const logits = new Float32Array(logitsData);
+  // Apply Gemma 2 softcapping if configured
+  if (config.finalLogitSoftcapping) {
+    applySoftcapping(logits, config.finalLogitSoftcapping);
+  }
+  return logits;
 }
 
 /**

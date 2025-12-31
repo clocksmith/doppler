@@ -12,12 +12,18 @@
 // - Each thread handles one dimension of Q vector
 // - Subgroup reductions for scores and weighted sums
 
+// Uniforms must match TypeScript createAttentionUniformBuffer() layout exactly:
+// offset 0: numHeads, offset 4: numKVHeads, offset 8: headDim,
+// offset 12: kvLen, offset 16: seqLen, offset 20: scale, offset 24: causal, offset 28: startPos
 struct Uniforms {
-    seqLen: u32,        // Always 1 for decode
-    kvLen: u32,         // Current KV cache length
     numHeads: u32,      // Number of query heads
     numKVHeads: u32,    // Number of KV heads (GQA support)
     headDim: u32,       // Head dimension (256 for Gemma)
+    kvLen: u32,         // Current KV cache length
+    seqLen: u32,        // Always 1 for decode
+    scale: f32,         // Attention scale (1/sqrt(headDim))
+    causal: u32,        // Causal masking flag
+    startPos: u32,      // Start position for RoPE
 }
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;

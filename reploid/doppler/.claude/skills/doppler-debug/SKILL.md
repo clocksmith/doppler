@@ -91,7 +91,7 @@ npm run debug -- --trace kernels,attn
 npm run debug -- --trace all,-buffers
 
 # Filter to specific layers
-npm run debug -- --layers 0,5,10
+npm run debug -- --trace-layers 0,5,10
 ```
 
 The kernel trace shows exactly where values explode:
@@ -214,7 +214,7 @@ npm run debug -- --trace all,-buffers
 npm run debug -- --break
 
 # Filter to specific layers
-npm run debug -- --layers 0,5
+npm run debug -- --trace-layers 0,5
 
 # Watch trace output
 npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
@@ -279,6 +279,7 @@ npm run debug -- --headed        # Debug with visible browser
 | Zero logits | KV cache not populated | `grep "KV\|hasGPUCache"` |
 | NaN/Inf values | Scale overflow | Check dequant d/dmin values |
 | First token OK, rest garbage | Decode position bug | Check `startPos` in RoPE |
+| Logits inverted (neg vs HF pos) | Gemma 2: missing +1 offset or softcap | Check `isGemma2` detection |
 
 ---
 
@@ -299,6 +300,26 @@ npm run debug -- --headed        # Debug with visible browser
 ```bash
 npm run debug 2>&1 | grep "LAYER.*maxAbs"
 ```
+
+---
+
+## Gemma 2 Specific Issues
+
+### Norm Weight Offset (shared with Gemma 3)
+Gemma 2 also uses `output = x * (1 + weight) / rms` for ALL RMSNorm layers.
+This is the same as Gemma 3 - both require the +1 offset.
+
+### Logit Softcapping
+Gemma 2 applies softcapping to prevent extreme logit values:
+- **Final logits**: `tanh(logits / 30.0) * 30.0`
+- **Attention scores**: `tanh(scores / 50.0) * 50.0`
+
+If logits appear inverted (DOPPLER negative vs HuggingFace positive), check:
+1. Missing +1 norm weight offset
+2. Missing logit softcapping
+
+### Sliding Window Attention
+Gemma 2 uses interleaved local (4096 tokens) and global (8192 tokens) attention.
 
 ---
 

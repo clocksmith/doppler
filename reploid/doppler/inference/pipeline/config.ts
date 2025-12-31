@@ -48,7 +48,10 @@ export interface RawConfig {
   quantization_config?: { quant_method?: string };
   // DOPPLER-specific config (can be set in manifest to override family defaults)
   scale_embeddings?: boolean;        // Gemma: scale by sqrt(hiddenSize)
-  rms_norm_weight_offset?: boolean;  // Gemma 3: add +1 to norm weights
+  rms_norm_weight_offset?: boolean;  // Gemma 2/3: add +1 to norm weights
+  // Gemma 2 softcapping (tanh-based value capping)
+  final_logit_softcapping?: number;  // Gemma 2: 30.0, Gemma 3: null
+  attn_logit_softcapping?: number;   // Gemma 2: 50.0, Gemma 3: null
 }
 
 export interface RopeScalingConfig {
@@ -122,6 +125,7 @@ export interface ParsedModelConfig {
   scaleEmbeddings: boolean;
   hiddenActivation: ActivationType;
   isGemma3: boolean;
+  isGemma2: boolean;
   isLlama3Instruct: boolean;
   isQwen3: boolean;
   isGptOss: boolean;
@@ -129,12 +133,24 @@ export interface ParsedModelConfig {
   layerTypes: string[] | null;
   attentionBias: boolean;
   embeddingScale?: number;
+  // Gemma 2 softcapping
+  finalLogitSoftcapping: number | null;  // Gemma 2: 30.0
+  attnLogitSoftcapping: number | null;   // Gemma 2: 50.0
 }
 
 export function isGemma3Model(config: RawConfig, manifest: Manifest): boolean {
   const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /gemma/i.test(arch) || /gemma/i.test(modelType);
+  // Match gemma3 specifically, not gemma2 or generic gemma
+  // Gemma 3 uses sliding window attention, rmsNormWeightOffset, and different RoPE
+  return /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType);
+}
+
+export function isGemma2Model(config: RawConfig, manifest: Manifest): boolean {
+  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
+  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
+  // Match gemma2 specifically
+  return /gemma.*2|gemma2/i.test(arch) || /gemma.*2|gemma2/i.test(modelType);
 }
 
 export function isLlama3InstructModel(config: RawConfig, manifest: Manifest): boolean {
@@ -330,6 +346,7 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
 
   // Model family detection (used for defaults, not hard branches)
   const isGemma3 = isGemma3Model(rawConfig, manifest);
+  const isGemma2 = isGemma2Model(rawConfig, manifest);
   const isLlama3Instruct = isLlama3InstructModel(rawConfig, manifest);
   const isQwen3 = isQwen3Model(rawConfig, manifest);
   const isKimiK2 = isKimiK2Model(rawConfig, manifest);
@@ -343,8 +360,10 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
 
   // DOPPLER-specific architectural quirks (explicit config overrides family detection)
-  const scaleEmbeddings = config.scale_embeddings ?? isGemma3;
-  const rmsNormWeightOffset = config.rms_norm_weight_offset ?? isGemma3;
+  // Both Gemma 2 and Gemma 3 use (1 + weight) formula for RMSNorm
+  const isGemmaFamily = isGemma2 || isGemma3;
+  const scaleEmbeddings = config.scale_embeddings ?? isGemmaFamily;
+  const rmsNormWeightOffset = config.rms_norm_weight_offset ?? isGemmaFamily;
 
   // RoPE theta defaults by architecture:
   // - Gemma 3, Qwen3, Mixtral: 1,000,000
@@ -397,11 +416,15 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     scaleEmbeddings,
     hiddenActivation,
     isGemma3,
+    isGemma2,
     isLlama3Instruct,
     isQwen3,
     isGptOss,
     stopTokenIds: getStopTokenIds(rawConfig, manifest),
     layerTypes,
     attentionBias: config.attention_bias ?? false,
+    // Gemma 2 softcapping (defaults: 30.0 for logits, 50.0 for attention)
+    finalLogitSoftcapping: config.final_logit_softcapping ?? (isGemma2 ? 30.0 : null),
+    attnLogitSoftcapping: config.attn_logit_softcapping ?? (isGemma2 ? 50.0 : null),
   };
 }

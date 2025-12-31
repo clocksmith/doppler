@@ -1593,6 +1593,7 @@ export class InferencePipeline {
       rmsNormEps: config.rmsNormEps,
       useTiedEmbeddings: this.useTiedEmbeddings,
       embeddingVocabSize: this.embeddingVocabSize,
+      finalLogitSoftcapping: config.finalLogitSoftcapping,
     };
   }
 

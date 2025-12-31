@@ -25,7 +25,8 @@
     "test": "tsx tools/doppler-cli.ts test",
     "bench": "tsx tools/doppler-cli.ts bench",
     "debug": "tsx tools/doppler-cli.ts debug",
-    "build": "tsc --project tsconfig.build.json"
+    "build": "tsc --project tsconfig.build.json",
+    "build:benchmark": "node -e \"const esbuild = require('esbuild'); const files = require('fs').readdirSync('tests/benchmark').filter(f => f.endsWith('.ts')); files.forEach(f => esbuild.buildSync({ entryPoints: ['tests/benchmark/' + f], outfile: 'tests/benchmark/' + f.replace('.ts', '.js'), format: 'esm', platform: 'browser', target: 'es2022', bundle: false }));\""
   },
   "keywords": [
     "doppler",

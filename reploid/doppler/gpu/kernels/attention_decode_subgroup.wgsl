@@ -13,15 +13,18 @@ enable subgroups;
 // Workgroup size for decode
 override WORKGROUP_SIZE: u32 = 256u;
 
+// Uniforms must match TypeScript createAttentionUniformBuffer() layout exactly:
+// offset 0: numHeads, offset 4: numKVHeads, offset 8: headDim,
+// offset 12: kvLen, offset 16: seqLen, offset 20: scale, offset 24: causal, offset 28: startPos
 struct Uniforms {
-    seq_len: u32,        // Always 1 for decode
-    kv_len: u32,         // Current KV cache length
-    num_heads: u32,      // Number of query heads
-    num_kv_heads: u32,   // Number of KV heads (GQA support)
-    head_dim: u32,       // Head dimension
-    _pad0: u32,          // 16-byte alignment padding
-    _pad1: u32,
-    _pad2: u32,
+    num_heads: u32,       // Number of query heads
+    num_kv_heads: u32,    // Number of KV heads (GQA support)
+    head_dim: u32,        // Head dimension
+    kv_len: u32,          // Current KV cache length
+    seq_len: u32,         // Always 1 for decode
+    scale: f32,           // Attention scale (1/sqrt(headDim))
+    causal: u32,          // Causal masking flag
+    start_pos: u32,       // Start position for RoPE
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

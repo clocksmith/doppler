@@ -62,8 +62,8 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 ```bash
 # START - Dev server
 npm start                       # Serve at localhost:8080
-npm start -- --port 3000        # Custom port
-npm start -- --open             # Auto-open browser
+npx tsx serve.ts --port 3000    # Custom port (use npx directly)
+npx tsx serve.ts --open         # Auto-open browser
 
 # TEST - Correctness (does it work?)
 npm test                        # Quick kernel tests
@@ -81,7 +81,7 @@ npm run debug                   # Debug with all trace categories enabled
 npm run debug -- --break        # Stop on first anomaly (NaN/explosion)
 npm run debug -- --trace kernels,attn  # Trace specific categories
 npm run debug -- --trace all,-buffers  # All except expensive buffer stats
-npm run debug -- --layers 0,5   # Filter to specific layers
+npm run debug -- --trace-layers 0,5   # Filter to specific layers
 ```
 
 ### Common CLI Flags
@@ -92,7 +92,7 @@ npm run debug -- --layers 0,5   # Filter to specific layers
 | `--verbose, -v` | Verbose loader logs | off |
 | `--trace [cats]` | Trace categories (all if no arg) | off (on for debug) |
 | `--quiet, -q` | Suppress logs | off |
-| `--layers <n,n>` | Filter trace to specific layers | all |
+| `--trace-layers <n,n>` | Filter trace to specific layers | all |
 | `--headed` | Show browser window | off (headless default) |
 | `--timeout <ms>` | Test timeout | 120000 |
 | `--output, -o <file>` | Save JSON results | none |
@@ -135,6 +135,60 @@ Control what gets traced with modular categories:
 - Validate tensor shapes at kernel boundaries
 - Use BF16 for weights, F32 for activations
 - Test with multiple quantization levels (Q4, Q8, F16)
+
+### Kernel Tests
+
+Available kernel test suites (`npm test -- --filter <name>`):
+
+| Kernel | Description |
+|--------|-------------|
+| `matmul` | Matrix multiplication (f16/f32) |
+| `matmul-q4k` | Q4_K quantized matmul |
+| `matmul-q4k-large` | Large Q4_K matmul |
+| `attention` | Flash attention variants |
+| `rmsnorm` | RMS normalization |
+| `softmax` | Softmax with online normalization |
+| `rope` | Rotary position embeddings |
+| `silu` | SiLU activation |
+| `swiglu` | SwiGLU activation (gated) |
+| `gather` | Embedding lookup |
+| `scatter-add` | MoE output combination |
+| `moe-gather` | Token gathering by expert |
+| `residual` | Residual addition |
+| `topk` | Top-K selection |
+| `dequant` | Dequantization (shared memory) |
+| `dequant-q6k` | Q6_K dequantization |
+| `scale` | Tensor scaling |
+| `sample` | GPU-side sampling |
+
+### CLI Tools
+
+Located in `tools/`:
+
+```bash
+# Convert GGUF/SafeTensors to RDRR format
+npx tsx tools/convert-cli.ts <input> <output> [options]
+  --shard-size <MB>      Shard size in MB (default: 64)
+  --quantize <type>      Override quantization (q4_k_m, q6_k, q8_0, f16)
+  --quantize-embeddings  Also quantize embedding weights
+  --test                 Create tiny test fixture
+
+# Examples:
+npx tsx tools/convert-cli.ts model.gguf models/my-model
+npx tsx tools/convert-cli.ts model.gguf models/my-model --quantize q4_k_m
+
+# Serve GGUF or RDRR models (auto-converts if needed)
+npx tsx tools/serve-cli.ts <input> [options]
+  --port, -p <n>         Server port (default: 8765)
+  --output, -o <dir>     Output directory for converted RDRR
+  --keep                 Keep converted RDRR after exit
+  --no-open              Don't auto-open browser
+  --doppler-url <url>    Base URL for DOPPLER app (default: localhost:5173)
+
+# Examples:
+npx tsx tools/serve-cli.ts model.gguf
+npx tsx tools/serve-cli.ts ./my-rdrr-folder --port 9000
+```
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

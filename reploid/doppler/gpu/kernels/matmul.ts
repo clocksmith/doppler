@@ -384,8 +384,8 @@ function createMatmulUniformBuffer(
   recorder: CommandRecorder | null,
   device: GPUDevice
 ): GPUBuffer {
-  const needsWorkgroupsX = uniformWorkgroupsX !== undefined;
-  const uniformSize = needsWorkgroupsX ? 24 : 20;
+  // Shader struct is 32 bytes: M, N, K, alpha, transpose_b/num_blocks, workgroups_x/_pad0, _pad1, _pad2
+  const uniformSize = 32;
 
   return createUniformBufferWithView(
     label,
@@ -401,9 +401,9 @@ function createMatmulUniformBuffer(
       } else {
         view.setUint32(16, transposeB ? 1 : 0, true);
       }
-      if (needsWorkgroupsX && uniformWorkgroupsX !== undefined) {
-        view.setUint32(20, uniformWorkgroupsX, true);
-      }
+      // workgroups_x (or _pad0 if not needed)
+      view.setUint32(20, uniformWorkgroupsX ?? 0, true);
+      // _pad1, _pad2 - leave as zeros (already zero-initialized)
     },
     recorder,
     device

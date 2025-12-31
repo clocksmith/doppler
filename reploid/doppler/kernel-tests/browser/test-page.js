@@ -8,7 +8,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// ../gpu/perf-guards.ts
+// gpu/perf-guards.ts
 function trackSubmit() {
   if (config.trackSubmitCount) {
     counters.submits++;
@@ -46,7 +46,7 @@ function allowReadback(reason) {
 }
 var DEFAULT_CONFIG, config, counters;
 var init_perf_guards = __esm({
-  "../gpu/perf-guards.ts"() {
+  "gpu/perf-guards.ts"() {
     DEFAULT_CONFIG = {
       allowGPUReadback: true,
       // Default to allowed for backward compatibility
@@ -65,9 +65,10 @@ var init_perf_guards = __esm({
   }
 });
 
-// ../gpu/submit-tracker.ts
+// gpu/submit-tracker.ts
 function recordSubmit(durationMs, source) {
-  if (!TRACK_SUBMITS) return;
+  if (!TRACK_SUBMITS)
+    return;
   submitCount++;
   submitTimes.push(durationMs);
   totalSubmitMs += durationMs;
@@ -88,7 +89,8 @@ function recordSubmit(durationMs, source) {
 }
 function extractSourceFromStack() {
   const stack = new Error().stack;
-  if (!stack) return "unknown";
+  if (!stack)
+    return "unknown";
   const lines = stack.split("\n");
   for (let i = 3; i < lines.length; i++) {
     const line = lines[i];
@@ -116,7 +118,7 @@ function wrapQueueForTracking(queue) {
 }
 var TRACK_SUBMITS, submitCount, submitTimes, totalSubmitMs, maxSubmitMs, minSubmitMs, submitSources, currentPhase, phaseStats;
 var init_submit_tracker = __esm({
-  "../gpu/submit-tracker.ts"() {
+  "gpu/submit-tracker.ts"() {
     init_perf_guards();
     TRACK_SUBMITS = false;
     submitCount = 0;
@@ -134,7 +136,7 @@ var init_submit_tracker = __esm({
   }
 });
 
-// ../gpu/device.ts
+// gpu/device.ts
 function isWebGPUAvailable() {
   return typeof navigator !== "undefined" && "gpu" in navigator;
 }
@@ -289,7 +291,7 @@ function getDeviceLimits() {
 }
 var gpuDevice, kernelCapabilities, FEATURES;
 var init_device = __esm({
-  "../gpu/device.ts"() {
+  "gpu/device.ts"() {
     init_submit_tracker();
     gpuDevice = null;
     kernelCapabilities = null;
@@ -302,380 +304,10 @@ var init_device = __esm({
   }
 });
 
-// ../gpu/buffer-pool.ts
-var buffer_pool_exports = {};
-__export(buffer_pool_exports, {
-  BufferPool: () => BufferPool,
-  BufferUsage: () => BufferUsage,
-  acquireBuffer: () => acquireBuffer,
-  createBufferPool: () => createBufferPool,
-  createStagingBuffer: () => createStagingBuffer,
-  createUniformBuffer: () => createUniformBuffer,
-  createUploadBuffer: () => createUploadBuffer,
-  destroyBufferPool: () => destroyBufferPool,
-  getBufferPool: () => getBufferPool,
-  readBuffer: () => readBuffer,
-  releaseBuffer: () => releaseBuffer,
-  uploadData: () => uploadData,
-  withBuffer: () => withBuffer
-});
-function alignTo(size, alignment) {
-  return Math.ceil(size / alignment) * alignment;
-}
-function getSizeBucket(size, maxAllowedSize = Infinity) {
-  const minBucket = 256;
-  if (size <= minBucket) return minBucket;
-  const largeThreshold = 32 * 1024 * 1024;
-  if (size >= largeThreshold) {
-    const largeStep = 16 * 1024 * 1024;
-    const bucket2 = Math.ceil(size / largeStep) * largeStep;
-    if (bucket2 > maxAllowedSize) {
-      return alignTo(size, 256);
-    }
-    return bucket2;
-  }
-  const bits = 32 - Math.clz32(size - 1);
-  const bucket = Math.pow(2, bits);
-  if (bucket > maxAllowedSize) {
-    return alignTo(size, 256);
-  }
-  return bucket;
-}
-function getBufferPool() {
-  if (!globalPool) {
-    globalPool = new BufferPool();
-  }
-  return globalPool;
-}
-function createBufferPool(debugMode) {
-  return new BufferPool(debugMode);
-}
-function destroyBufferPool() {
-  if (globalPool) {
-    globalPool.destroy();
-    globalPool = null;
-  }
-}
-async function withBuffer(size, usage, fn) {
-  const pool = getBufferPool();
-  const buffer = pool.acquire(size, usage);
-  try {
-    return await fn(buffer);
-  } finally {
-    pool.release(buffer);
-  }
-}
-var BufferUsage, BufferPool, globalPool, createStagingBuffer, createUploadBuffer, createUniformBuffer, acquireBuffer, releaseBuffer, uploadData, readBuffer;
-var init_buffer_pool = __esm({
-  "../gpu/buffer-pool.ts"() {
-    init_device();
-    init_perf_guards();
-    BufferUsage = {
-      STORAGE: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      STORAGE_READ: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      UNIFORM: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      STAGING_READ: GPUMapMode.READ | GPUBufferUsage.COPY_DST,
-      STAGING_WRITE: GPUMapMode.WRITE | GPUBufferUsage.COPY_SRC
-    };
-    BufferPool = class {
-      // Pools organized by usage and size bucket
-      // Map<usage, Map<sizeBucket, GPUBuffer[]>>
-      pools;
-      // Active buffers (currently in use)
-      activeBuffers;
-      // Buffer metadata for leak detection (debug mode)
-      bufferMetadata;
-      // Statistics
-      stats;
-      // Configuration
-      config;
-      // Debug mode flag
-      debugMode;
-      constructor(debugMode = false) {
-        this.pools = /* @__PURE__ */ new Map();
-        this.activeBuffers = /* @__PURE__ */ new Set();
-        this.bufferMetadata = /* @__PURE__ */ new Map();
-        this.debugMode = debugMode;
-        this.stats = {
-          allocations: 0,
-          reuses: 0,
-          totalBytesAllocated: 0,
-          peakBytesAllocated: 0,
-          currentBytesAllocated: 0
-        };
-        this.config = {
-          maxPoolSizePerBucket: 8,
-          // Max buffers per size bucket
-          maxTotalPooledBuffers: 64,
-          // Max total pooled buffers
-          enablePooling: true,
-          alignmentBytes: 256
-          // WebGPU buffer alignment
-        };
-      }
-      /**
-       * Get or create a buffer of the specified size
-       */
-      acquire(size, usage = BufferUsage.STORAGE, label = "pooled_buffer") {
-        const device2 = getDevice();
-        if (!device2) {
-          throw new Error("Device not initialized");
-        }
-        const limits = getDeviceLimits();
-        const maxSize = limits?.maxBufferSize || Infinity;
-        const maxStorageSize = limits?.maxStorageBufferBindingSize || Infinity;
-        const isStorageBuffer = (usage & GPUBufferUsage.STORAGE) !== 0;
-        const alignedSize = alignTo(size, this.config.alignmentBytes);
-        const maxAllowedBucket = isStorageBuffer ? Math.min(maxSize, maxStorageSize) : maxSize;
-        const bucket = getSizeBucket(alignedSize, maxAllowedBucket);
-        if (bucket > maxSize) {
-          throw new Error(
-            `Buffer size ${bucket} exceeds device maxBufferSize (${maxSize}). Requested: ${size} bytes, bucketed to: ${bucket} bytes.`
-          );
-        }
-        if (isStorageBuffer && bucket > maxStorageSize) {
-          throw new Error(
-            `Storage buffer size ${bucket} exceeds device maxStorageBufferBindingSize (${maxStorageSize}). Consider splitting into smaller buffers or using a different strategy.`
-          );
-        }
-        if (this.config.enablePooling) {
-          const pooled = this._getFromPool(bucket, usage);
-          if (pooled) {
-            this.activeBuffers.add(pooled);
-            this.stats.reuses++;
-            if (this.debugMode) {
-              this._trackBuffer(pooled, bucket, usage, label);
-            }
-            return pooled;
-          }
-        }
-        const buffer = device2.createBuffer({
-          label: `${label}_${bucket}`,
-          size: bucket,
-          usage
-        });
-        this.activeBuffers.add(buffer);
-        this.stats.allocations++;
-        this.stats.totalBytesAllocated += bucket;
-        this.stats.currentBytesAllocated += bucket;
-        this.stats.peakBytesAllocated = Math.max(
-          this.stats.peakBytesAllocated,
-          this.stats.currentBytesAllocated
-        );
-        trackAllocation(bucket, label);
-        if (this.debugMode) {
-          this._trackBuffer(buffer, bucket, usage, label);
-        }
-        return buffer;
-      }
-      /**
-       * Release a buffer back to the pool
-       */
-      release(buffer) {
-        if (!this.activeBuffers.has(buffer)) {
-          console.warn("[BufferPool] Releasing buffer not tracked as active");
-          return;
-        }
-        this.activeBuffers.delete(buffer);
-        if (this.debugMode) {
-          this.bufferMetadata.delete(buffer);
-        }
-        if (!this.config.enablePooling) {
-          buffer.destroy();
-          this.stats.currentBytesAllocated -= buffer.size;
-          return;
-        }
-        const bucket = buffer.size;
-        const usage = buffer.usage;
-        if (!this.pools.has(usage)) {
-          this.pools.set(usage, /* @__PURE__ */ new Map());
-        }
-        const usagePool = this.pools.get(usage);
-        if (!usagePool.has(bucket)) {
-          usagePool.set(bucket, []);
-        }
-        const bucketPool = usagePool.get(bucket);
-        if (bucketPool.length < this.config.maxPoolSizePerBucket && this._getTotalPooledCount() < this.config.maxTotalPooledBuffers) {
-          bucketPool.push(buffer);
-        } else {
-          buffer.destroy();
-          this.stats.currentBytesAllocated -= buffer.size;
-        }
-      }
-      /**
-       * Get a buffer from the pool if available
-       */
-      _getFromPool(bucket, usage) {
-        const usagePool = this.pools.get(usage);
-        if (!usagePool) return null;
-        const bucketPool = usagePool.get(bucket);
-        if (!bucketPool || bucketPool.length === 0) return null;
-        return bucketPool.pop();
-      }
-      /**
-       * Get total count of pooled buffers
-       */
-      _getTotalPooledCount() {
-        let count = 0;
-        for (const usagePool of this.pools.values()) {
-          for (const bucketPool of usagePool.values()) {
-            count += bucketPool.length;
-          }
-        }
-        return count;
-      }
-      /**
-       * Track buffer metadata for leak detection (debug mode)
-       */
-      _trackBuffer(buffer, size, usage, label) {
-        const metadata = {
-          size,
-          usage,
-          label,
-          acquiredAt: Date.now()
-        };
-        if (Error.captureStackTrace) {
-          const obj = {};
-          Error.captureStackTrace(obj);
-          metadata.stackTrace = obj.stack;
-        }
-        this.bufferMetadata.set(buffer, metadata);
-      }
-      /**
-       * Detect leaked buffers (debug mode)
-       */
-      detectLeaks(thresholdMs = 6e4) {
-        if (!this.debugMode) {
-          console.warn("[BufferPool] Leak detection requires debug mode");
-          return [];
-        }
-        const now = Date.now();
-        const leaks = [];
-        for (const [buffer, metadata] of this.bufferMetadata.entries()) {
-          if (this.activeBuffers.has(buffer)) {
-            const age = now - metadata.acquiredAt;
-            if (age > thresholdMs) {
-              leaks.push(metadata);
-            }
-          }
-        }
-        return leaks;
-      }
-      /**
-       * Create a staging buffer for CPU readback
-       */
-      createStagingBuffer(size) {
-        return this.acquire(size, BufferUsage.STAGING_READ, "staging_read");
-      }
-      /**
-       * Create a staging buffer for CPU upload
-       */
-      createUploadBuffer(size) {
-        return this.acquire(size, BufferUsage.STAGING_WRITE, "staging_write");
-      }
-      /**
-       * Create a uniform buffer
-       */
-      createUniformBuffer(size) {
-        const alignedSize = alignTo(size, 256);
-        return this.acquire(alignedSize, BufferUsage.UNIFORM, "uniform");
-      }
-      /**
-       * Upload data to GPU buffer
-       */
-      uploadData(buffer, data, offset = 0) {
-        const device2 = getDevice();
-        if (!device2) {
-          throw new Error("Device not initialized");
-        }
-        device2.queue.writeBuffer(buffer, offset, data);
-      }
-      /**
-       * Read data from GPU buffer
-       * NOTE: GPU readbacks are expensive (0.5-2ms overhead per call). Use sparingly.
-       */
-      async readBuffer(buffer, size = buffer.size) {
-        if (!allowReadback("BufferPool.readBuffer")) {
-          return new ArrayBuffer(0);
-        }
-        const device2 = getDevice();
-        if (!device2) {
-          throw new Error("Device not initialized");
-        }
-        const staging = this.createStagingBuffer(size);
-        const encoder = device2.createCommandEncoder({ label: "readback_encoder" });
-        encoder.copyBufferToBuffer(buffer, 0, staging, 0, size);
-        device2.queue.submit([encoder.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = staging.getMappedRange(0, size).slice(0);
-        staging.unmap();
-        this.release(staging);
-        return data;
-      }
-      /**
-       * Clear all pooled buffers
-       */
-      clearPool() {
-        for (const usagePool of this.pools.values()) {
-          for (const bucketPool of usagePool.values()) {
-            for (const buffer of bucketPool) {
-              buffer.destroy();
-              this.stats.currentBytesAllocated -= buffer.size;
-            }
-            bucketPool.length = 0;
-          }
-        }
-        this.pools.clear();
-      }
-      /**
-       * Destroy all buffers (active and pooled)
-       */
-      destroy() {
-        for (const buffer of this.activeBuffers) {
-          buffer.destroy();
-        }
-        this.activeBuffers.clear();
-        this.bufferMetadata.clear();
-        this.clearPool();
-        this.stats.currentBytesAllocated = 0;
-      }
-      /**
-       * Get pool statistics
-       */
-      getStats() {
-        return {
-          ...this.stats,
-          activeBuffers: this.activeBuffers.size,
-          pooledBuffers: this._getTotalPooledCount(),
-          hitRate: this.stats.allocations > 0 ? (this.stats.reuses / (this.stats.allocations + this.stats.reuses) * 100).toFixed(1) + "%" : "0%"
-        };
-      }
-      /**
-       * Configure pool settings
-       */
-      configure(config2) {
-        Object.assign(this.config, config2);
-      }
-    };
-    globalPool = null;
-    createStagingBuffer = (size) => getBufferPool().createStagingBuffer(size);
-    createUploadBuffer = (size) => getBufferPool().createUploadBuffer(size);
-    createUniformBuffer = (size) => getBufferPool().createUniformBuffer(size);
-    acquireBuffer = (size, usage, label) => getBufferPool().acquire(size, usage, label);
-    releaseBuffer = (buffer) => getBufferPool().release(buffer);
-    uploadData = (buffer, data, offset) => getBufferPool().uploadData(buffer, data, offset);
-    readBuffer = (buffer, size) => getBufferPool().readBuffer(buffer, size);
-  }
-});
-
-// browser/test-page.ts
-init_device();
-
-// ../gpu/buffer-dtypes.ts
-var dtypeMap = /* @__PURE__ */ new WeakMap();
-var layoutMap = /* @__PURE__ */ new WeakMap();
+// gpu/buffer-dtypes.ts
 function setBufferDtype(buffer, dtype) {
-  if (buffer) dtypeMap.set(buffer, dtype);
+  if (buffer)
+    dtypeMap.set(buffer, dtype);
 }
 function getBufferDtype(buffer) {
   return buffer ? dtypeMap.get(buffer) ?? null : null;
@@ -686,647 +318,580 @@ function getBufferLayout(buffer) {
 function isColumnMajorBuffer(buffer) {
   return getBufferLayout(buffer) === "column";
 }
-
-// ../gpu/kernel-hints.ts
-var currentHints = null;
-var hintsSource = null;
-function setKernelHints(hints, source = "manifest") {
-  const priority = { manifest: 0, profile: 1, runtime: 2 };
-  if (!currentHints || priority[source] >= priority[hintsSource || "manifest"]) {
-    currentHints = hints;
-    hintsSource = source;
-    console.log(`[KernelHints] Set from ${source}:`, hints);
+var dtypeMap, layoutMap;
+var init_buffer_dtypes = __esm({
+  "gpu/buffer-dtypes.ts"() {
+    dtypeMap = /* @__PURE__ */ new WeakMap();
+    layoutMap = /* @__PURE__ */ new WeakMap();
   }
-}
-function getKernelHints() {
-  return currentHints;
-}
-function shouldUseFusedQ4K() {
-  const debugFlags = typeof window !== "undefined" ? window : null;
-  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return false;
-  const hints = getKernelHints();
-  if (hints?.q4kMatmul) {
-    return hints.q4kMatmul === "fused_q4k";
-  }
-  return false;
-}
-
-// ../gpu/kernel-selector.ts
-var kernel_selector_exports = {};
-__export(kernel_selector_exports, {
-  CommandRecorder: () => CommandRecorder,
-  KERNEL_CONFIGS: () => KERNEL_CONFIGS,
-  autoTuneKernels: () => autoTuneKernels,
-  castF32ToF16: () => castF32ToF16,
-  clearKernelCaches: () => clearKernelCaches,
-  clearPipelineCache: () => clearPipelineCache,
-  compileShader: () => compileShader,
-  createCommandRecorder: () => createCommandRecorder,
-  createDequantBindGroupLayout: () => createDequantBindGroupLayout,
-  createMatmulBindGroupLayout: () => createMatmulBindGroupLayout,
-  createPipeline: () => createPipeline,
-  createProfilingRecorder: () => createProfilingRecorder,
-  dequantize: () => dequantize,
-  dequantizeMXFP4: () => dequantizeMXFP4,
-  dequantizeMXFP4Expert: () => dequantizeMXFP4Expert,
-  dequantizeQ6K: () => dequantizeQ6K,
-  getCacheStats: () => getCacheStats,
-  getKernelConfig: () => getKernelConfig,
-  getOrCreateBindGroupLayout: () => getOrCreateBindGroupLayout,
-  getOrCreatePipelineLayout: () => getOrCreatePipelineLayout,
-  getTunedWorkgroupSize: () => getTunedWorkgroupSize,
-  hasRequiredFeatures: () => hasRequiredFeatures,
-  isGPUSamplingAvailable: () => isGPUSamplingAvailable,
-  loadShaderSource: () => loadShaderSource,
-  prewarmKernels: () => prewarmKernels,
-  recordArgmax: () => recordArgmax,
-  recordAttention: () => recordAttention,
-  recordBiasAdd: () => recordBiasAdd,
-  recordCastF32ToF16: () => recordCastF32ToF16,
-  recordDequantize: () => recordDequantize,
-  recordGather: () => recordGather,
-  recordGeLU: () => recordGeLU,
-  recordMatmul: () => recordMatmul,
-  recordRMSNorm: () => recordRMSNorm,
-  recordResidualAdd: () => recordResidualAdd,
-  recordRoPE: () => recordRoPE,
-  recordSiLU: () => recordSiLU,
-  recordSiLURowSplit: () => recordSiLURowSplit,
-  recordSoftmax: () => recordSoftmax,
-  runArgmax: () => runArgmax,
-  runAttention: () => runAttention,
-  runBF16ToF16: () => runBF16ToF16,
-  runBF16ToF32: () => runBF16ToF32,
-  runBiasAdd: () => runBiasAdd,
-  runGPUSample: () => runGPUSample,
-  runGather: () => runGather,
-  runGeLU: () => runGeLU,
-  runMatmul: () => runMatmul,
-  runMoEGather: () => runMoEGather,
-  runRMSNorm: () => runRMSNorm,
-  runResidualAdd: () => runResidualAdd,
-  runRoPE: () => runRoPE,
-  runScatterAdd: () => runScatterAdd,
-  runScatterAddDynamic: () => runScatterAddDynamic,
-  runSiLU: () => runSiLU,
-  runSiLURowSplit: () => runSiLURowSplit,
-  runSoftmax: () => runSoftmax,
-  runSoftmaxTopK: () => runSoftmaxTopK,
-  runSwiGLURowsplitBias: () => runSwiGLURowsplitBias,
-  runTopK: () => runTopK,
-  selectDequantKernel: () => selectDequantKernel,
-  selectMatmulKernel: () => selectMatmulKernel,
-  selectRMSNormKernel: () => selectRMSNormKernel,
-  validateAttentionLimits: () => validateAttentionLimits
 });
 
-// ../gpu/kernels/utils.ts
-init_device();
-
-// ../gpu/kernel-tuner.ts
-init_device();
-
-// ../gpu/profiler.ts
-init_device();
-init_perf_guards();
-var GPUProfiler = class {
-  device;
-  hasTimestampQuery;
-  // Query set for timestamp queries (if supported)
-  querySet = null;
-  queryBuffer = null;
-  readbackBuffer = null;
-  queryCapacity = 256;
-  // Max number of timestamp pairs
-  // Tracking state
-  activeLabels = /* @__PURE__ */ new Map();
-  nextQueryIndex = 0;
-  pendingResolves = [];
-  // Results storage
-  results = /* @__PURE__ */ new Map();
-  // CPU fallback timing
-  cpuTimings = /* @__PURE__ */ new Map();
-  /**
-   * @param device - WebGPU device (uses global if not provided)
-   */
-  constructor(device2 = null) {
-    this.device = device2 || getDevice();
-    this.hasTimestampQuery = this.device?.features?.has(FEATURES.TIMESTAMP_QUERY) ?? false;
-    if (this.hasTimestampQuery && this.device) {
-      this._initQueryResources();
-    }
-  }
-  /**
-   * Initialize GPU query resources
-   * @private
-   */
-  _initQueryResources() {
-    if (!this.device) return;
-    try {
-      this.querySet = this.device.createQuerySet({
-        type: "timestamp",
-        count: this.queryCapacity * 2
-        // Start and end for each measurement
-      });
-      this.queryBuffer = this.device.createBuffer({
-        size: this.queryCapacity * 2 * 8,
-        usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC
-      });
-      this.readbackBuffer = this.device.createBuffer({
-        size: this.queryCapacity * 2 * 8,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
-      });
-    } catch (e) {
-      console.warn("[GPUProfiler] Failed to create timestamp query resources:", e);
-      this.hasTimestampQuery = false;
-    }
-  }
-  /**
-   * Begin timing a labeled region
-   * @param label - Unique label for this measurement
-   */
-  begin(label) {
-    if (this.activeLabels.has(label)) {
-      console.warn(`[GPUProfiler] Label "${label}" already active`);
-      return;
-    }
-    const startTime = performance.now();
-    if (this.hasTimestampQuery) {
-      const queryIndex = this.nextQueryIndex;
-      this.nextQueryIndex += 2;
-      if (queryIndex >= this.queryCapacity * 2) {
-        console.warn("[GPUProfiler] Query capacity exceeded, resetting");
+// gpu/profiler.ts
+var GPUProfiler;
+var init_profiler = __esm({
+  "gpu/profiler.ts"() {
+    init_device();
+    init_perf_guards();
+    GPUProfiler = class {
+      device;
+      hasTimestampQuery;
+      // Query set for timestamp queries (if supported)
+      querySet = null;
+      queryBuffer = null;
+      readbackBuffer = null;
+      queryCapacity = 256;
+      // Max number of timestamp pairs
+      // Tracking state
+      activeLabels = /* @__PURE__ */ new Map();
+      nextQueryIndex = 0;
+      pendingResolves = [];
+      // Results storage
+      results = /* @__PURE__ */ new Map();
+      // CPU fallback timing
+      cpuTimings = /* @__PURE__ */ new Map();
+      /**
+       * @param device - WebGPU device (uses global if not provided)
+       */
+      constructor(device2 = null) {
+        this.device = device2 || getDevice();
+        this.hasTimestampQuery = this.device?.features?.has(FEATURES.TIMESTAMP_QUERY) ?? false;
+        if (this.hasTimestampQuery && this.device) {
+          this._initQueryResources();
+        }
+      }
+      /**
+       * Initialize GPU query resources
+       * @private
+       */
+      _initQueryResources() {
+        if (!this.device)
+          return;
+        try {
+          this.querySet = this.device.createQuerySet({
+            type: "timestamp",
+            count: this.queryCapacity * 2
+            // Start and end for each measurement
+          });
+          this.queryBuffer = this.device.createBuffer({
+            size: this.queryCapacity * 2 * 8,
+            usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC
+          });
+          this.readbackBuffer = this.device.createBuffer({
+            size: this.queryCapacity * 2 * 8,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
+          });
+        } catch (e) {
+          console.warn("[GPUProfiler] Failed to create timestamp query resources:", e);
+          this.hasTimestampQuery = false;
+        }
+      }
+      /**
+       * Begin timing a labeled region
+       * @param label - Unique label for this measurement
+       */
+      begin(label) {
+        if (this.activeLabels.has(label)) {
+          console.warn(`[GPUProfiler] Label "${label}" already active`);
+          return;
+        }
+        const startTime = performance.now();
+        if (this.hasTimestampQuery) {
+          const queryIndex = this.nextQueryIndex;
+          this.nextQueryIndex += 2;
+          if (queryIndex >= this.queryCapacity * 2) {
+            console.warn("[GPUProfiler] Query capacity exceeded, resetting");
+            this.nextQueryIndex = 0;
+          }
+          this.activeLabels.set(label, {
+            startQueryIndex: queryIndex,
+            cpuStartTime: startTime
+          });
+        } else {
+          this.activeLabels.set(label, {
+            cpuStartTime: startTime
+          });
+        }
+      }
+      /**
+       * End timing a labeled region
+       * @param label - Label started with begin()
+       */
+      end(label) {
+        const active = this.activeLabels.get(label);
+        if (!active) {
+          console.warn(`[GPUProfiler] No active measurement for label "${label}"`);
+          return;
+        }
+        const endTime = performance.now();
+        this.activeLabels.delete(label);
+        if (this.hasTimestampQuery && "startQueryIndex" in active) {
+          this.pendingResolves.push({
+            label,
+            startIndex: active.startQueryIndex,
+            endIndex: active.startQueryIndex + 1,
+            cpuStartTime: active.cpuStartTime,
+            cpuEndTime: endTime
+          });
+        } else {
+          this._recordResult(label, endTime - active.cpuStartTime);
+        }
+      }
+      /**
+       * Write timestamp to query set within a compute pass
+       * Call this instead of begin/end when inside a pass
+       * @param pass - Compute pass encoder
+       * @param label - Label for this measurement
+       * @param isEnd - true for end timestamp
+       */
+      writeTimestamp(pass, label, isEnd = false) {
+        if (!this.hasTimestampQuery || !this.querySet)
+          return;
+        let queryIndex;
+        if (!isEnd) {
+          queryIndex = this.nextQueryIndex;
+          this.nextQueryIndex += 2;
+          this.activeLabels.set(label, {
+            startQueryIndex: queryIndex,
+            cpuStartTime: performance.now()
+          });
+        } else {
+          const active = this.activeLabels.get(label);
+          if (!active || !("startQueryIndex" in active))
+            return;
+          queryIndex = active.startQueryIndex + 1;
+          this.activeLabels.delete(label);
+          this.pendingResolves.push({
+            label,
+            startIndex: active.startQueryIndex,
+            endIndex: queryIndex,
+            cpuStartTime: active.cpuStartTime,
+            cpuEndTime: performance.now()
+          });
+        }
+        pass.writeTimestamp(this.querySet, queryIndex);
+      }
+      /**
+       * Resolve pending timestamp queries and update results
+       * Call this after command buffer submission
+       */
+      async resolve() {
+        if (!this.hasTimestampQuery || this.pendingResolves.length === 0) {
+          return;
+        }
+        if (!this.device || !this.querySet || !this.queryBuffer || !this.readbackBuffer) {
+          console.warn("[GPUProfiler] Missing required resources for resolve");
+          return;
+        }
+        const encoder = this.device.createCommandEncoder();
+        const maxIndex = Math.max(...this.pendingResolves.map((p) => p.endIndex)) + 1;
+        encoder.resolveQuerySet(this.querySet, 0, maxIndex, this.queryBuffer, 0);
+        encoder.copyBufferToBuffer(
+          this.queryBuffer,
+          0,
+          this.readbackBuffer,
+          0,
+          maxIndex * 8
+        );
+        this.device.queue.submit([encoder.finish()]);
+        if (!allowReadback("GPUProfiler.resolve")) {
+          return;
+        }
+        await this.readbackBuffer.mapAsync(GPUMapMode.READ);
+        const timestamps = new BigUint64Array(this.readbackBuffer.getMappedRange());
+        for (const pending of this.pendingResolves) {
+          const startNs = timestamps[pending.startIndex];
+          const endNs = timestamps[pending.endIndex];
+          const durationMs = Number(endNs - startNs) / 1e6;
+          if (durationMs < 0 || durationMs > 6e4) {
+            this._recordResult(pending.label, pending.cpuEndTime - pending.cpuStartTime);
+          } else {
+            this._recordResult(pending.label, durationMs);
+          }
+        }
+        this.readbackBuffer.unmap();
+        this.pendingResolves = [];
         this.nextQueryIndex = 0;
       }
-      this.activeLabels.set(label, {
-        startQueryIndex: queryIndex,
-        cpuStartTime: startTime
-      });
-    } else {
-      this.activeLabels.set(label, {
-        cpuStartTime: startTime
-      });
-    }
-  }
-  /**
-   * End timing a labeled region
-   * @param label - Label started with begin()
-   */
-  end(label) {
-    const active = this.activeLabels.get(label);
-    if (!active) {
-      console.warn(`[GPUProfiler] No active measurement for label "${label}"`);
-      return;
-    }
-    const endTime = performance.now();
-    this.activeLabels.delete(label);
-    if (this.hasTimestampQuery && "startQueryIndex" in active) {
-      this.pendingResolves.push({
-        label,
-        startIndex: active.startQueryIndex,
-        endIndex: active.startQueryIndex + 1,
-        cpuStartTime: active.cpuStartTime,
-        cpuEndTime: endTime
-      });
-    } else {
-      this._recordResult(label, endTime - active.cpuStartTime);
-    }
-  }
-  /**
-   * Write timestamp to query set within a compute pass
-   * Call this instead of begin/end when inside a pass
-   * @param pass - Compute pass encoder
-   * @param label - Label for this measurement
-   * @param isEnd - true for end timestamp
-   */
-  writeTimestamp(pass, label, isEnd = false) {
-    if (!this.hasTimestampQuery || !this.querySet) return;
-    let queryIndex;
-    if (!isEnd) {
-      queryIndex = this.nextQueryIndex;
-      this.nextQueryIndex += 2;
-      this.activeLabels.set(label, {
-        startQueryIndex: queryIndex,
-        cpuStartTime: performance.now()
-      });
-    } else {
-      const active = this.activeLabels.get(label);
-      if (!active || !("startQueryIndex" in active)) return;
-      queryIndex = active.startQueryIndex + 1;
-      this.activeLabels.delete(label);
-      this.pendingResolves.push({
-        label,
-        startIndex: active.startQueryIndex,
-        endIndex: queryIndex,
-        cpuStartTime: active.cpuStartTime,
-        cpuEndTime: performance.now()
-      });
-    }
-    pass.writeTimestamp(this.querySet, queryIndex);
-  }
-  /**
-   * Resolve pending timestamp queries and update results
-   * Call this after command buffer submission
-   */
-  async resolve() {
-    if (!this.hasTimestampQuery || this.pendingResolves.length === 0) {
-      return;
-    }
-    if (!this.device || !this.querySet || !this.queryBuffer || !this.readbackBuffer) {
-      console.warn("[GPUProfiler] Missing required resources for resolve");
-      return;
-    }
-    const encoder = this.device.createCommandEncoder();
-    const maxIndex = Math.max(...this.pendingResolves.map((p) => p.endIndex)) + 1;
-    encoder.resolveQuerySet(this.querySet, 0, maxIndex, this.queryBuffer, 0);
-    encoder.copyBufferToBuffer(
-      this.queryBuffer,
-      0,
-      this.readbackBuffer,
-      0,
-      maxIndex * 8
-    );
-    this.device.queue.submit([encoder.finish()]);
-    if (!allowReadback("GPUProfiler.resolve")) {
-      return;
-    }
-    await this.readbackBuffer.mapAsync(GPUMapMode.READ);
-    const timestamps = new BigUint64Array(this.readbackBuffer.getMappedRange());
-    for (const pending of this.pendingResolves) {
-      const startNs = timestamps[pending.startIndex];
-      const endNs = timestamps[pending.endIndex];
-      const durationMs = Number(endNs - startNs) / 1e6;
-      if (durationMs < 0 || durationMs > 6e4) {
-        this._recordResult(pending.label, pending.cpuEndTime - pending.cpuStartTime);
-      } else {
-        this._recordResult(pending.label, durationMs);
-      }
-    }
-    this.readbackBuffer.unmap();
-    this.pendingResolves = [];
-    this.nextQueryIndex = 0;
-  }
-  /**
-   * Record a timing result
-   * @private
-   */
-  _recordResult(label, timeMs) {
-    if (!this.results.has(label)) {
-      this.results.set(label, {
-        times: [],
-        min: Infinity,
-        max: -Infinity,
-        sum: 0,
-        count: 0
-      });
-    }
-    const result = this.results.get(label);
-    result.times.push(timeMs);
-    result.min = Math.min(result.min, timeMs);
-    result.max = Math.max(result.max, timeMs);
-    result.sum += timeMs;
-    result.count++;
-    if (result.times.length > 100) {
-      const removed = result.times.shift();
-      result.sum -= removed;
-      result.count--;
-      if (result.times.length % 20 === 0) {
-        result.min = Math.min(...result.times);
-        result.max = Math.max(...result.times);
-      }
-    }
-  }
-  /**
-   * Get profiling results
-   */
-  getResults() {
-    const output = {};
-    for (const [label, data] of this.results) {
-      output[label] = {
-        avg: data.sum / data.count,
-        min: data.min,
-        max: data.max,
-        count: data.count,
-        total: data.sum
-      };
-    }
-    return output;
-  }
-  /**
-   * Get result for a specific label
-   * @param label - Label to get result for
-   */
-  getResult(label) {
-    const data = this.results.get(label);
-    if (!data) return null;
-    return {
-      avg: data.sum / data.count,
-      min: data.min,
-      max: data.max,
-      count: data.count,
-      total: data.sum
-    };
-  }
-  /**
-   * Reset all profiling data
-   */
-  reset() {
-    this.results.clear();
-    this.activeLabels.clear();
-    this.pendingResolves = [];
-    this.nextQueryIndex = 0;
-  }
-  /**
-   * Get formatted report string
-   */
-  getReport() {
-    const results = this.getResults();
-    const labels = Object.keys(results).sort();
-    if (labels.length === 0) {
-      return "No profiling data collected";
-    }
-    let report = "GPU Profiler Results\n";
-    report += "\u2500".repeat(60) + "\n";
-    report += "Label".padEnd(30) + "Avg (ms)".padStart(10) + "Min".padStart(10) + "Max".padStart(10) + "\n";
-    report += "\u2500".repeat(60) + "\n";
-    for (const label of labels) {
-      const r = results[label];
-      report += label.padEnd(30);
-      report += r.avg.toFixed(3).padStart(10);
-      report += r.min.toFixed(3).padStart(10);
-      report += r.max.toFixed(3).padStart(10);
-      report += "\n";
-    }
-    return report;
-  }
-  /**
-   * Check if timestamp queries are available
-   */
-  isGPUTimingAvailable() {
-    return this.hasTimestampQuery;
-  }
-  /**
-   * Destroy profiler resources
-   */
-  destroy() {
-    if (this.querySet) {
-      this.querySet.destroy();
-      this.querySet = null;
-    }
-    if (this.queryBuffer) {
-      this.queryBuffer.destroy();
-      this.queryBuffer = null;
-    }
-    if (this.readbackBuffer) {
-      this.readbackBuffer.destroy();
-      this.readbackBuffer = null;
-    }
-    this.results.clear();
-    this.activeLabels.clear();
-  }
-};
-
-// ../gpu/kernel-tuner.ts
-var CACHE_PREFIX = "doppler_kernel_tune_";
-var DEFAULT_WARMUP = 3;
-var DEFAULT_ITERATIONS = 10;
-var KernelTuner = class {
-  device;
-  profiler;
-  limits;
-  capabilities;
-  cache;
-  constructor() {
-    this.device = null;
-    this.profiler = null;
-    this.limits = null;
-    this.capabilities = null;
-    this.cache = /* @__PURE__ */ new Map();
-  }
-  /**
-   * Initialize the tuner
-   */
-  async init() {
-    this.device = getDevice();
-    if (!this.device) {
-      throw new Error("GPU device not initialized");
-    }
-    this.profiler = new GPUProfiler(this.device);
-    this.limits = getDeviceLimits();
-    this.capabilities = getKernelCapabilities();
-    this._loadCache();
-  }
-  /**
-   * Get device signature for cache key
-   * @private
-   */
-  _getDeviceSignature() {
-    const info = this.capabilities?.adapterInfo || { vendor: "", architecture: "", device: "" };
-    return `${info.vendor}_${info.architecture}_${info.device}`.replace(/[^a-zA-Z0-9]/g, "_");
-  }
-  /**
-   * Load cached tuning results from localStorage
-   * @private
-   */
-  _loadCache() {
-    if (typeof localStorage === "undefined") return;
-    const signature = this._getDeviceSignature();
-    const cacheKey = CACHE_PREFIX + signature;
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const data = JSON.parse(cached);
-        this.cache = new Map(Object.entries(data));
-      }
-    } catch (e) {
-      console.warn("[KernelTuner] Failed to load cache:", e);
-    }
-  }
-  /**
-   * Save cached results to localStorage
-   * @private
-   */
-  _saveCache() {
-    if (typeof localStorage === "undefined") return;
-    const signature = this._getDeviceSignature();
-    const cacheKey = CACHE_PREFIX + signature;
-    try {
-      const data = Object.fromEntries(this.cache);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    } catch (e) {
-      console.warn("[KernelTuner] Failed to save cache:", e);
-    }
-  }
-  /**
-   * Generate workgroup size candidates based on device limits
-   * @private
-   */
-  _generateWorkgroupCandidates() {
-    const maxX = this.limits?.maxComputeWorkgroupSizeX || 256;
-    const maxY = this.limits?.maxComputeWorkgroupSizeY || 256;
-    const maxInvocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const candidates = [];
-    for (const x of [64, 128, 256, 512]) {
-      if (x <= maxX && x <= maxInvocations) {
-        candidates.push([x, 1, 1]);
-      }
-    }
-    for (const x of [8, 16, 32]) {
-      for (const y of [8, 16, 32]) {
-        if (x <= maxX && y <= maxY && x * y <= maxInvocations) {
-          candidates.push([x, y, 1]);
+      /**
+       * Record a timing result
+       * @private
+       */
+      _recordResult(label, timeMs) {
+        if (!this.results.has(label)) {
+          this.results.set(label, {
+            times: [],
+            min: Infinity,
+            max: -Infinity,
+            sum: 0,
+            count: 0
+          });
+        }
+        const result = this.results.get(label);
+        result.times.push(timeMs);
+        result.min = Math.min(result.min, timeMs);
+        result.max = Math.max(result.max, timeMs);
+        result.sum += timeMs;
+        result.count++;
+        if (result.times.length > 100) {
+          const removed = result.times.shift();
+          result.sum -= removed;
+          result.count--;
+          if (result.times.length % 20 === 0) {
+            result.min = Math.min(...result.times);
+            result.max = Math.max(...result.times);
+          }
         }
       }
-    }
-    return candidates;
-  }
-  /**
-   * Tune a kernel by running benchmarks
-   * @param kernelName - Name of kernel to tune
-   * @param inputSizes - Input dimensions for tuning
-   * @param options - Tuning options
-   * @returns Promise resolving to tuning result
-   */
-  async tuneKernel(kernelName, inputSizes, options = {}) {
-    const {
-      warmup = DEFAULT_WARMUP,
-      iterations = DEFAULT_ITERATIONS,
-      forceRetune = false
-    } = options;
-    const cacheKey = `${kernelName}_${JSON.stringify(inputSizes)}`;
-    if (!forceRetune && this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey);
-    }
-    const candidates = this._generateWorkgroupCandidates();
-    let bestResult;
-    switch (kernelName) {
-      case "matmul":
-        bestResult = await this._tuneMatmul(inputSizes, candidates, warmup, iterations);
-        break;
-      case "attention":
-        bestResult = await this._tuneAttention(inputSizes, candidates, warmup, iterations);
-        break;
-      case "softmax":
-        bestResult = await this._tuneSoftmax(inputSizes, candidates, warmup, iterations);
-        break;
-      case "rmsnorm":
-        bestResult = await this._tuneRMSNorm(inputSizes, candidates, warmup, iterations);
-        break;
-      case "dequant":
-        bestResult = await this._tuneDequant(inputSizes, candidates, warmup, iterations);
-        break;
-      default:
-        bestResult = await this._tuneGeneric(kernelName, inputSizes, candidates, warmup, iterations);
-    }
-    this.cache.set(cacheKey, bestResult);
-    this._saveCache();
-    return bestResult;
-  }
-  /**
-   * Tune matmul kernel
-   * @private
-   */
-  async _tuneMatmul(inputSizes, candidates, warmup, iterations) {
-    const { M = 1024, N = 1024, K = 1024 } = inputSizes;
-    const matmulCandidates = candidates.filter((c) => c[1] > 1);
-    let best = {
-      optimalWorkgroupSize: [16, 16, 1],
-      optimalTileSize: 16,
-      throughput: 0,
-      timeMs: Infinity,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-    if (!this.device) {
-      return best;
-    }
-    const bufferA = this.device.createBuffer({
-      size: M * K * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-    });
-    const bufferB = this.device.createBuffer({
-      size: K * N * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-    });
-    const bufferC = this.device.createBuffer({
-      size: M * N * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
-    });
-    const dataA = new Float32Array(M * K);
-    const dataB = new Float32Array(K * N);
-    for (let i = 0; i < dataA.length; i++) dataA[i] = Math.random();
-    for (let i = 0; i < dataB.length; i++) dataB[i] = Math.random();
-    this.device.queue.writeBuffer(bufferA, 0, dataA);
-    this.device.queue.writeBuffer(bufferB, 0, dataB);
-    for (const [wgX, wgY] of matmulCandidates) {
-      try {
-        const shader = this._createMatmulShader(wgX, wgY);
-        const pipeline = await this._createComputePipeline(shader, "main");
-        const uniformBuffer = this.device.createBuffer({
-          size: 16,
-          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        const uniformData = new Uint32Array([M, N, K, 0]);
-        this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
-        const bindGroup = this.device.createBindGroup({
-          layout: pipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: { buffer: uniformBuffer } },
-            { binding: 1, resource: { buffer: bufferA } },
-            { binding: 2, resource: { buffer: bufferB } },
-            { binding: 3, resource: { buffer: bufferC } }
-          ]
-        });
-        for (let i = 0; i < warmup; i++) {
-          const encoder = this.device.createCommandEncoder();
-          const pass = encoder.beginComputePass();
-          pass.setPipeline(pipeline);
-          pass.setBindGroup(0, bindGroup);
-          pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
-          pass.end();
-          this.device.queue.submit([encoder.finish()]);
-        }
-        await this.device.queue.onSubmittedWorkDone();
-        const times = [];
-        for (let i = 0; i < iterations; i++) {
-          const start = performance.now();
-          const encoder = this.device.createCommandEncoder();
-          const pass = encoder.beginComputePass();
-          pass.setPipeline(pipeline);
-          pass.setBindGroup(0, bindGroup);
-          pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
-          pass.end();
-          this.device.queue.submit([encoder.finish()]);
-          await this.device.queue.onSubmittedWorkDone();
-          times.push(performance.now() - start);
-        }
-        const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-        const flops = 2 * M * N * K;
-        const gflops = flops / avgTime / 1e6;
-        if (avgTime < best.timeMs) {
-          best = {
-            optimalWorkgroupSize: [wgX, wgY, 1],
-            optimalTileSize: wgX,
-            throughput: gflops,
-            timeMs: avgTime,
-            deviceInfo: this.capabilities?.adapterInfo
+      /**
+       * Get profiling results
+       */
+      getResults() {
+        const output = {};
+        for (const [label, data] of this.results) {
+          output[label] = {
+            avg: data.sum / data.count,
+            min: data.min,
+            max: data.max,
+            count: data.count,
+            total: data.sum
           };
         }
-        uniformBuffer.destroy();
-      } catch (e) {
-        continue;
+        return output;
       }
-    }
-    bufferA.destroy();
-    bufferB.destroy();
-    bufferC.destroy();
-    return best;
+      /**
+       * Get result for a specific label
+       * @param label - Label to get result for
+       */
+      getResult(label) {
+        const data = this.results.get(label);
+        if (!data)
+          return null;
+        return {
+          avg: data.sum / data.count,
+          min: data.min,
+          max: data.max,
+          count: data.count,
+          total: data.sum
+        };
+      }
+      /**
+       * Reset all profiling data
+       */
+      reset() {
+        this.results.clear();
+        this.activeLabels.clear();
+        this.pendingResolves = [];
+        this.nextQueryIndex = 0;
+      }
+      /**
+       * Get formatted report string
+       */
+      getReport() {
+        const results = this.getResults();
+        const labels = Object.keys(results).sort();
+        if (labels.length === 0) {
+          return "No profiling data collected";
+        }
+        let report = "GPU Profiler Results\n";
+        report += "\u2500".repeat(60) + "\n";
+        report += "Label".padEnd(30) + "Avg (ms)".padStart(10) + "Min".padStart(10) + "Max".padStart(10) + "\n";
+        report += "\u2500".repeat(60) + "\n";
+        for (const label of labels) {
+          const r = results[label];
+          report += label.padEnd(30);
+          report += r.avg.toFixed(3).padStart(10);
+          report += r.min.toFixed(3).padStart(10);
+          report += r.max.toFixed(3).padStart(10);
+          report += "\n";
+        }
+        return report;
+      }
+      /**
+       * Check if timestamp queries are available
+       */
+      isGPUTimingAvailable() {
+        return this.hasTimestampQuery;
+      }
+      /**
+       * Destroy profiler resources
+       */
+      destroy() {
+        if (this.querySet) {
+          this.querySet.destroy();
+          this.querySet = null;
+        }
+        if (this.queryBuffer) {
+          this.queryBuffer.destroy();
+          this.queryBuffer = null;
+        }
+        if (this.readbackBuffer) {
+          this.readbackBuffer.destroy();
+          this.readbackBuffer = null;
+        }
+        this.results.clear();
+        this.activeLabels.clear();
+      }
+    };
   }
-  /**
-   * Create matmul shader with specified workgroup size
-   * @private
-   */
-  _createMatmulShader(wgX, wgY) {
-    return `
+});
+
+// gpu/kernel-tuner.ts
+async function getKernelTuner() {
+  if (!globalTuner) {
+    globalTuner = new KernelTuner();
+    await globalTuner.init();
+  }
+  return globalTuner;
+}
+var CACHE_PREFIX, DEFAULT_WARMUP, DEFAULT_ITERATIONS, KernelTuner, globalTuner;
+var init_kernel_tuner = __esm({
+  "gpu/kernel-tuner.ts"() {
+    init_device();
+    init_profiler();
+    CACHE_PREFIX = "doppler_kernel_tune_";
+    DEFAULT_WARMUP = 3;
+    DEFAULT_ITERATIONS = 10;
+    KernelTuner = class {
+      device;
+      profiler;
+      limits;
+      capabilities;
+      cache;
+      constructor() {
+        this.device = null;
+        this.profiler = null;
+        this.limits = null;
+        this.capabilities = null;
+        this.cache = /* @__PURE__ */ new Map();
+      }
+      /**
+       * Initialize the tuner
+       */
+      async init() {
+        this.device = getDevice();
+        if (!this.device) {
+          throw new Error("GPU device not initialized");
+        }
+        this.profiler = new GPUProfiler(this.device);
+        this.limits = getDeviceLimits();
+        this.capabilities = getKernelCapabilities();
+        this._loadCache();
+      }
+      /**
+       * Get device signature for cache key
+       * @private
+       */
+      _getDeviceSignature() {
+        const info = this.capabilities?.adapterInfo || { vendor: "", architecture: "", device: "" };
+        return `${info.vendor}_${info.architecture}_${info.device}`.replace(/[^a-zA-Z0-9]/g, "_");
+      }
+      /**
+       * Load cached tuning results from localStorage
+       * @private
+       */
+      _loadCache() {
+        if (typeof localStorage === "undefined")
+          return;
+        const signature = this._getDeviceSignature();
+        const cacheKey = CACHE_PREFIX + signature;
+        try {
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const data = JSON.parse(cached);
+            this.cache = new Map(Object.entries(data));
+          }
+        } catch (e) {
+          console.warn("[KernelTuner] Failed to load cache:", e);
+        }
+      }
+      /**
+       * Save cached results to localStorage
+       * @private
+       */
+      _saveCache() {
+        if (typeof localStorage === "undefined")
+          return;
+        const signature = this._getDeviceSignature();
+        const cacheKey = CACHE_PREFIX + signature;
+        try {
+          const data = Object.fromEntries(this.cache);
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch (e) {
+          console.warn("[KernelTuner] Failed to save cache:", e);
+        }
+      }
+      /**
+       * Generate workgroup size candidates based on device limits
+       * @private
+       */
+      _generateWorkgroupCandidates() {
+        const maxX = this.limits?.maxComputeWorkgroupSizeX || 256;
+        const maxY = this.limits?.maxComputeWorkgroupSizeY || 256;
+        const maxInvocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
+        const candidates = [];
+        for (const x of [64, 128, 256, 512]) {
+          if (x <= maxX && x <= maxInvocations) {
+            candidates.push([x, 1, 1]);
+          }
+        }
+        for (const x of [8, 16, 32]) {
+          for (const y of [8, 16, 32]) {
+            if (x <= maxX && y <= maxY && x * y <= maxInvocations) {
+              candidates.push([x, y, 1]);
+            }
+          }
+        }
+        return candidates;
+      }
+      /**
+       * Tune a kernel by running benchmarks
+       * @param kernelName - Name of kernel to tune
+       * @param inputSizes - Input dimensions for tuning
+       * @param options - Tuning options
+       * @returns Promise resolving to tuning result
+       */
+      async tuneKernel(kernelName, inputSizes, options = {}) {
+        const {
+          warmup = DEFAULT_WARMUP,
+          iterations = DEFAULT_ITERATIONS,
+          forceRetune = false
+        } = options;
+        const cacheKey = `${kernelName}_${JSON.stringify(inputSizes)}`;
+        if (!forceRetune && this.cache.has(cacheKey)) {
+          return this.cache.get(cacheKey);
+        }
+        const candidates = this._generateWorkgroupCandidates();
+        let bestResult;
+        switch (kernelName) {
+          case "matmul":
+            bestResult = await this._tuneMatmul(inputSizes, candidates, warmup, iterations);
+            break;
+          case "attention":
+            bestResult = await this._tuneAttention(inputSizes, candidates, warmup, iterations);
+            break;
+          case "softmax":
+            bestResult = await this._tuneSoftmax(inputSizes, candidates, warmup, iterations);
+            break;
+          case "rmsnorm":
+            bestResult = await this._tuneRMSNorm(inputSizes, candidates, warmup, iterations);
+            break;
+          case "dequant":
+            bestResult = await this._tuneDequant(inputSizes, candidates, warmup, iterations);
+            break;
+          default:
+            bestResult = await this._tuneGeneric(kernelName, inputSizes, candidates, warmup, iterations);
+        }
+        this.cache.set(cacheKey, bestResult);
+        this._saveCache();
+        return bestResult;
+      }
+      /**
+       * Tune matmul kernel
+       * @private
+       */
+      async _tuneMatmul(inputSizes, candidates, warmup, iterations) {
+        const { M = 1024, N = 1024, K = 1024 } = inputSizes;
+        const matmulCandidates = candidates.filter((c) => c[1] > 1);
+        let best = {
+          optimalWorkgroupSize: [16, 16, 1],
+          optimalTileSize: 16,
+          throughput: 0,
+          timeMs: Infinity,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+        if (!this.device) {
+          return best;
+        }
+        const bufferA = this.device.createBuffer({
+          size: M * K * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferB = this.device.createBuffer({
+          size: K * N * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferC = this.device.createBuffer({
+          size: M * N * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+        });
+        const dataA = new Float32Array(M * K);
+        const dataB = new Float32Array(K * N);
+        for (let i = 0; i < dataA.length; i++)
+          dataA[i] = Math.random();
+        for (let i = 0; i < dataB.length; i++)
+          dataB[i] = Math.random();
+        this.device.queue.writeBuffer(bufferA, 0, dataA);
+        this.device.queue.writeBuffer(bufferB, 0, dataB);
+        for (const [wgX, wgY] of matmulCandidates) {
+          try {
+            const shader = this._createMatmulShader(wgX, wgY);
+            const pipeline = await this._createComputePipeline(shader, "main");
+            const uniformBuffer = this.device.createBuffer({
+              size: 16,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            const uniformData = new Uint32Array([M, N, K, 0]);
+            this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+            const bindGroup = this.device.createBindGroup({
+              layout: pipeline.getBindGroupLayout(0),
+              entries: [
+                { binding: 0, resource: { buffer: uniformBuffer } },
+                { binding: 1, resource: { buffer: bufferA } },
+                { binding: 2, resource: { buffer: bufferB } },
+                { binding: 3, resource: { buffer: bufferC } }
+              ]
+            });
+            for (let i = 0; i < warmup; i++) {
+              const encoder = this.device.createCommandEncoder();
+              const pass = encoder.beginComputePass();
+              pass.setPipeline(pipeline);
+              pass.setBindGroup(0, bindGroup);
+              pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
+              pass.end();
+              this.device.queue.submit([encoder.finish()]);
+            }
+            await this.device.queue.onSubmittedWorkDone();
+            const times = [];
+            for (let i = 0; i < iterations; i++) {
+              const start = performance.now();
+              const encoder = this.device.createCommandEncoder();
+              const pass = encoder.beginComputePass();
+              pass.setPipeline(pipeline);
+              pass.setBindGroup(0, bindGroup);
+              pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
+              pass.end();
+              this.device.queue.submit([encoder.finish()]);
+              await this.device.queue.onSubmittedWorkDone();
+              times.push(performance.now() - start);
+            }
+            const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+            const flops = 2 * M * N * K;
+            const gflops = flops / avgTime / 1e6;
+            if (avgTime < best.timeMs) {
+              best = {
+                optimalWorkgroupSize: [wgX, wgY, 1],
+                optimalTileSize: wgX,
+                throughput: gflops,
+                timeMs: avgTime,
+                deviceInfo: this.capabilities?.adapterInfo
+              };
+            }
+            uniformBuffer.destroy();
+          } catch (e) {
+            continue;
+          }
+        }
+        bufferA.destroy();
+        bufferB.destroy();
+        bufferC.destroy();
+        return best;
+      }
+      /**
+       * Create matmul shader with specified workgroup size
+       * @private
+       */
+      _createMatmulShader(wgX, wgY) {
+        return `
 struct Uniforms {
     M: u32, N: u32, K: u32, _pad: u32,
 }
@@ -1347,161 +912,685 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
     C[row * uniforms.N + col] = sum;
 }`;
-  }
-  /**
-   * Tune attention kernel
-   * @private
-   */
-  async _tuneAttention(inputSizes, candidates, warmup, iterations) {
-    const { seqLen = 2048, numHeads = 32, headDim = 128 } = inputSizes;
-    const best = {
-      optimalWorkgroupSize: [64, 1, 1],
-      optimalTileSize: 64,
-      throughput: 0,
-      timeMs: Infinity,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(64, invocations);
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
-    return best;
-  }
-  /**
-   * Tune softmax kernel
-   * @private
-   */
-  async _tuneSoftmax(inputSizes, candidates, warmup, iterations) {
-    const { innerSize = 32e3, outerSize = 1 } = inputSizes;
-    const best = {
-      optimalWorkgroupSize: [256, 1, 1],
-      optimalTileSize: 256,
-      throughput: 0,
-      timeMs: Infinity,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(256, invocations);
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
-    return best;
-  }
-  /**
-   * Tune RMSNorm kernel
-   * @private
-   */
-  async _tuneRMSNorm(inputSizes, candidates, warmup, iterations) {
-    const { hiddenSize = 4096, numTokens = 1 } = inputSizes;
-    const best = {
-      optimalWorkgroupSize: [256, 1, 1],
-      optimalTileSize: 256,
-      throughput: 0,
-      timeMs: Infinity,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-    const invocations = this.limits?.maxComputeInvocationsPerWorkgroup || 256;
-    const wgSize = Math.min(256, invocations);
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
-    return best;
-  }
-  /**
-   * Tune dequantization kernel
-   * @private
-   */
-  async _tuneDequant(inputSizes, candidates, warmup, iterations) {
-    const { numBlocks = 1e3 } = inputSizes;
-    const best = {
-      optimalWorkgroupSize: [64, 1, 1],
-      optimalTileSize: 64,
-      throughput: 0,
-      timeMs: Infinity,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-    const hasSubgroups = this.capabilities?.hasSubgroups;
-    const wgSize = hasSubgroups ? 64 : 256;
-    best.optimalWorkgroupSize = [wgSize, 1, 1];
-    best.optimalTileSize = wgSize;
-    return best;
-  }
-  /**
-   * Generic tuning for unknown kernels
-   * @private
-   */
-  async _tuneGeneric(kernelName, inputSizes, candidates, warmup, iterations) {
-    return {
-      optimalWorkgroupSize: [256, 1, 1],
-      optimalTileSize: 256,
-      throughput: 0,
-      timeMs: 0,
-      deviceInfo: this.capabilities?.adapterInfo
-    };
-  }
-  /**
-   * Create compute pipeline from shader source
-   * @private
-   */
-  async _createComputePipeline(shaderSource, entryPoint) {
-    if (!this.device) {
-      throw new Error("Device not initialized");
-    }
-    const module = this.device.createShaderModule({ code: shaderSource });
-    return await this.device.createComputePipelineAsync({
-      layout: "auto",
-      compute: { module, entryPoint }
-    });
-  }
-  /**
-   * Get cached tuning result
-   * @param kernelName - Kernel name
-   * @param inputSizes - Input sizes
-   * @returns Cached result or null
-   */
-  getCachedResult(kernelName, inputSizes) {
-    const cacheKey = `${kernelName}_${JSON.stringify(inputSizes)}`;
-    return this.cache.get(cacheKey) || null;
-  }
-  /**
-   * Clear all cached results
-   */
-  clearCache() {
-    this.cache.clear();
-    if (typeof localStorage !== "undefined") {
-      const signature = this._getDeviceSignature();
-      localStorage.removeItem(CACHE_PREFIX + signature);
-    }
-  }
-  /**
-   * Get all cached results
-   * @returns Object with all cached results
-   */
-  getAllCachedResults() {
-    return Object.fromEntries(this.cache);
-  }
-  /**
-   * Destroy tuner resources
-   */
-  destroy() {
-    if (this.profiler) {
-      this.profiler.destroy();
-    }
-  }
-};
-var globalTuner = null;
-async function getKernelTuner() {
-  if (!globalTuner) {
-    globalTuner = new KernelTuner();
-    await globalTuner.init();
-  }
-  return globalTuner;
+      }
+      /**
+       * Tune attention kernel
+       * @private
+       */
+      async _tuneAttention(inputSizes, candidates, warmup, iterations) {
+        const { seqLen = 2048, numHeads = 32, headDim = 128 } = inputSizes;
+        let best = {
+          optimalWorkgroupSize: [64, 1, 1],
+          optimalTileSize: 64,
+          throughput: 0,
+          timeMs: Infinity,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+        if (!this.device) {
+          return best;
+        }
+        const attentionCandidates = candidates.filter((c) => c[1] === 1);
+        if (attentionCandidates.length === 0) {
+          return best;
+        }
+        const maxElements = 2e6;
+        const totalHeadsRaw = Math.max(1, seqLen * numHeads);
+        let benchSeqLen = seqLen;
+        let totalHeads = totalHeadsRaw;
+        let totalElements = totalHeads * headDim;
+        if (totalElements > maxElements) {
+          benchSeqLen = Math.max(1, Math.floor(maxElements / (numHeads * headDim)));
+          totalHeads = Math.max(1, benchSeqLen * numHeads);
+          totalElements = totalHeads * headDim;
+        }
+        const bufferQ = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferK = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferOut = this.device.createBuffer({
+          size: totalHeads * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+        });
+        const dataQ = new Float32Array(totalElements);
+        const dataK = new Float32Array(totalElements);
+        for (let i = 0; i < totalElements; i++) {
+          dataQ[i] = Math.random();
+          dataK[i] = Math.random();
+        }
+        this.device.queue.writeBuffer(bufferQ, 0, dataQ);
+        this.device.queue.writeBuffer(bufferK, 0, dataK);
+        for (const [wgX] of attentionCandidates) {
+          try {
+            const shader = this._createAttentionShader(wgX);
+            const pipeline = await this._createComputePipeline(shader, "main");
+            const uniformBuffer = this.device.createBuffer({
+              size: 16,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            const uniformData = new Uint32Array([headDim, numHeads, benchSeqLen, 0]);
+            this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+            const bindGroup = this.device.createBindGroup({
+              layout: pipeline.getBindGroupLayout(0),
+              entries: [
+                { binding: 0, resource: { buffer: uniformBuffer } },
+                { binding: 1, resource: { buffer: bufferQ } },
+                { binding: 2, resource: { buffer: bufferK } },
+                { binding: 3, resource: { buffer: bufferOut } }
+              ]
+            });
+            const avgTime = await this._benchmarkPipeline(
+              pipeline,
+              bindGroup,
+              [totalHeads, 1, 1],
+              warmup,
+              iterations
+            );
+            const flops = 2 * totalHeads * headDim;
+            const gflops = avgTime > 0 ? flops / avgTime / 1e6 : 0;
+            if (avgTime < best.timeMs) {
+              best = {
+                optimalWorkgroupSize: [wgX, 1, 1],
+                optimalTileSize: wgX,
+                throughput: gflops,
+                timeMs: avgTime,
+                deviceInfo: this.capabilities?.adapterInfo
+              };
+            }
+            uniformBuffer.destroy();
+          } catch (e) {
+            continue;
+          }
+        }
+        bufferQ.destroy();
+        bufferK.destroy();
+        bufferOut.destroy();
+        return best;
+      }
+      /**
+       * Tune softmax kernel
+       * @private
+       */
+      async _tuneSoftmax(inputSizes, candidates, warmup, iterations) {
+        const { innerSize = 32e3, outerSize = 1 } = inputSizes;
+        let best = {
+          optimalWorkgroupSize: [256, 1, 1],
+          optimalTileSize: 256,
+          throughput: 0,
+          timeMs: Infinity,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+        if (!this.device) {
+          return best;
+        }
+        const softmaxCandidates = candidates.filter((c) => c[1] === 1);
+        if (softmaxCandidates.length === 0) {
+          return best;
+        }
+        const totalElements = Math.max(1, innerSize * outerSize);
+        const bufferIn = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferOut = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+        });
+        const dataIn = new Float32Array(totalElements);
+        for (let i = 0; i < totalElements; i++) {
+          dataIn[i] = Math.random();
+        }
+        this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+        for (const [wgX] of softmaxCandidates) {
+          try {
+            const shader = this._createSoftmaxShader(wgX);
+            const pipeline = await this._createComputePipeline(shader, "main");
+            const uniformBuffer = this.device.createBuffer({
+              size: 16,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            const uniformData = new Uint32Array([innerSize, outerSize, 0, 0]);
+            this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+            const bindGroup = this.device.createBindGroup({
+              layout: pipeline.getBindGroupLayout(0),
+              entries: [
+                { binding: 0, resource: { buffer: uniformBuffer } },
+                { binding: 1, resource: { buffer: bufferIn } },
+                { binding: 2, resource: { buffer: bufferOut } }
+              ]
+            });
+            const avgTime = await this._benchmarkPipeline(
+              pipeline,
+              bindGroup,
+              [outerSize, 1, 1],
+              warmup,
+              iterations
+            );
+            const ops = 2 * totalElements;
+            const gops = avgTime > 0 ? ops / avgTime / 1e6 : 0;
+            if (avgTime < best.timeMs) {
+              best = {
+                optimalWorkgroupSize: [wgX, 1, 1],
+                optimalTileSize: wgX,
+                throughput: gops,
+                timeMs: avgTime,
+                deviceInfo: this.capabilities?.adapterInfo
+              };
+            }
+            uniformBuffer.destroy();
+          } catch (e) {
+            continue;
+          }
+        }
+        bufferIn.destroy();
+        bufferOut.destroy();
+        return best;
+      }
+      /**
+       * Tune RMSNorm kernel
+       * @private
+       */
+      async _tuneRMSNorm(inputSizes, candidates, warmup, iterations) {
+        const { hiddenSize = 4096, numTokens = 1 } = inputSizes;
+        let best = {
+          optimalWorkgroupSize: [256, 1, 1],
+          optimalTileSize: 256,
+          throughput: 0,
+          timeMs: Infinity,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+        if (!this.device) {
+          return best;
+        }
+        const rmsCandidates = candidates.filter((c) => c[1] === 1);
+        if (rmsCandidates.length === 0) {
+          return best;
+        }
+        const totalElements = Math.max(1, hiddenSize * numTokens);
+        const bufferIn = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferWeight = this.device.createBuffer({
+          size: hiddenSize * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferOut = this.device.createBuffer({
+          size: totalElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+        });
+        const dataIn = new Float32Array(totalElements);
+        const dataWeight = new Float32Array(hiddenSize);
+        for (let i = 0; i < totalElements; i++) {
+          dataIn[i] = Math.random();
+        }
+        for (let i = 0; i < hiddenSize; i++) {
+          dataWeight[i] = Math.random();
+        }
+        this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+        this.device.queue.writeBuffer(bufferWeight, 0, dataWeight);
+        for (const [wgX] of rmsCandidates) {
+          try {
+            const shader = this._createRMSNormShader(wgX);
+            const pipeline = await this._createComputePipeline(shader, "main");
+            const uniformBuffer = this.device.createBuffer({
+              size: 16,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            const uniformData = new ArrayBuffer(16);
+            const uniformView = new DataView(uniformData);
+            uniformView.setUint32(0, hiddenSize, true);
+            uniformView.setUint32(4, numTokens, true);
+            uniformView.setFloat32(8, 1e-5, true);
+            uniformView.setUint32(12, 0, true);
+            this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+            const bindGroup = this.device.createBindGroup({
+              layout: pipeline.getBindGroupLayout(0),
+              entries: [
+                { binding: 0, resource: { buffer: uniformBuffer } },
+                { binding: 1, resource: { buffer: bufferIn } },
+                { binding: 2, resource: { buffer: bufferWeight } },
+                { binding: 3, resource: { buffer: bufferOut } }
+              ]
+            });
+            const avgTime = await this._benchmarkPipeline(
+              pipeline,
+              bindGroup,
+              [numTokens, 1, 1],
+              warmup,
+              iterations
+            );
+            const ops = 2 * totalElements;
+            const gops = avgTime > 0 ? ops / avgTime / 1e6 : 0;
+            if (avgTime < best.timeMs) {
+              best = {
+                optimalWorkgroupSize: [wgX, 1, 1],
+                optimalTileSize: wgX,
+                throughput: gops,
+                timeMs: avgTime,
+                deviceInfo: this.capabilities?.adapterInfo
+              };
+            }
+            uniformBuffer.destroy();
+          } catch (e) {
+            continue;
+          }
+        }
+        bufferIn.destroy();
+        bufferWeight.destroy();
+        bufferOut.destroy();
+        return best;
+      }
+      /**
+       * Tune dequantization kernel
+       * @private
+       */
+      async _tuneDequant(inputSizes, candidates, warmup, iterations) {
+        const { numBlocks = 1e3 } = inputSizes;
+        let best = {
+          optimalWorkgroupSize: [64, 1, 1],
+          optimalTileSize: 64,
+          throughput: 0,
+          timeMs: Infinity,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+        if (!this.device) {
+          return best;
+        }
+        const dequantCandidates = candidates.filter((c) => c[1] === 1);
+        if (dequantCandidates.length === 0) {
+          return best;
+        }
+        const numElements = Math.max(1, numBlocks * 256);
+        const bufferIn = this.device.createBuffer({
+          size: numElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        const bufferOut = this.device.createBuffer({
+          size: numElements * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+        });
+        const dataIn = new Uint32Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          dataIn[i] = i & 65535;
+        }
+        this.device.queue.writeBuffer(bufferIn, 0, dataIn);
+        for (const [wgX] of dequantCandidates) {
+          try {
+            const shader = this._createDequantShader(wgX);
+            const pipeline = await this._createComputePipeline(shader, "main");
+            const uniformBuffer = this.device.createBuffer({
+              size: 16,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            const uniformData = new ArrayBuffer(16);
+            const uniformView = new DataView(uniformData);
+            uniformView.setUint32(0, numElements, true);
+            uniformView.setFloat32(4, 0.01, true);
+            uniformView.setUint32(8, 0, true);
+            uniformView.setUint32(12, 0, true);
+            this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+            const bindGroup = this.device.createBindGroup({
+              layout: pipeline.getBindGroupLayout(0),
+              entries: [
+                { binding: 0, resource: { buffer: uniformBuffer } },
+                { binding: 1, resource: { buffer: bufferIn } },
+                { binding: 2, resource: { buffer: bufferOut } }
+              ]
+            });
+            const workgroups = Math.ceil(numElements / wgX);
+            const avgTime = await this._benchmarkPipeline(
+              pipeline,
+              bindGroup,
+              [workgroups, 1, 1],
+              warmup,
+              iterations
+            );
+            const ops = numElements;
+            const gops = avgTime > 0 ? ops / avgTime / 1e6 : 0;
+            if (avgTime < best.timeMs) {
+              best = {
+                optimalWorkgroupSize: [wgX, 1, 1],
+                optimalTileSize: wgX,
+                throughput: gops,
+                timeMs: avgTime,
+                deviceInfo: this.capabilities?.adapterInfo
+              };
+            }
+            uniformBuffer.destroy();
+          } catch (e) {
+            continue;
+          }
+        }
+        bufferIn.destroy();
+        bufferOut.destroy();
+        return best;
+      }
+      /**
+       * Generic tuning for unknown kernels
+       * @private
+       */
+      async _tuneGeneric(kernelName, inputSizes, candidates, warmup, iterations) {
+        return {
+          optimalWorkgroupSize: [256, 1, 1],
+          optimalTileSize: 256,
+          throughput: 0,
+          timeMs: 0,
+          deviceInfo: this.capabilities?.adapterInfo
+        };
+      }
+      async _benchmarkPipeline(pipeline, bindGroup, workgroups, warmup, iterations) {
+        if (!this.device) {
+          return Infinity;
+        }
+        const [wgX, wgY, wgZ] = workgroups;
+        if (wgX === 0 || wgY === 0 || wgZ === 0) {
+          return Infinity;
+        }
+        for (let i = 0; i < warmup; i++) {
+          const encoder = this.device.createCommandEncoder();
+          const pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, bindGroup);
+          pass.dispatchWorkgroups(wgX, wgY, wgZ);
+          pass.end();
+          this.device.queue.submit([encoder.finish()]);
+        }
+        await this.device.queue.onSubmittedWorkDone();
+        const times = [];
+        for (let i = 0; i < iterations; i++) {
+          const start = performance.now();
+          const encoder = this.device.createCommandEncoder();
+          const pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, bindGroup);
+          pass.dispatchWorkgroups(wgX, wgY, wgZ);
+          pass.end();
+          this.device.queue.submit([encoder.finish()]);
+          await this.device.queue.onSubmittedWorkDone();
+          times.push(performance.now() - start);
+        }
+        return times.reduce((a, b) => a + b, 0) / times.length;
+      }
+      /**
+       * Create compute pipeline from shader source
+       * @private
+       */
+      async _createComputePipeline(shaderSource, entryPoint) {
+        if (!this.device) {
+          throw new Error("Device not initialized");
+        }
+        const module = this.device.createShaderModule({ code: shaderSource });
+        return await this.device.createComputePipelineAsync({
+          layout: "auto",
+          compute: { module, entryPoint }
+        });
+      }
+      _createAttentionShader(wgSize) {
+        return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  headDim: u32,
+  numHeads: u32,
+  seqLen: u32,
+  _pad: u32,
 }
 
-// ../gpu/kernels/utils.ts
-var shaderSourceCache = /* @__PURE__ */ new Map();
-var shaderModuleCache = /* @__PURE__ */ new Map();
-var pipelineCache = /* @__PURE__ */ new Map();
-var bindGroupLayoutCache = /* @__PURE__ */ new Map();
-var pipelineLayoutCache = /* @__PURE__ */ new Map();
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> Q: array<f32>;
+@group(0) @binding(2) var<storage, read> K: array<f32>;
+@group(0) @binding(3) var<storage, read_write> Out: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let totalHeads = uniforms.numHeads * uniforms.seqLen;
+  let idx = wg_id.x;
+  if (idx >= totalHeads) { return; }
+
+  let headDim = uniforms.headDim;
+  let offset = idx * headDim;
+  let lane = local_id.x;
+
+  var sum: f32 = 0.0;
+  var i: u32 = lane;
+  loop {
+    if (i >= headDim) { break; }
+    sum = sum + Q[offset + i] * K[offset + i];
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = sum;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  if (lane == 0u) {
+    Out[idx] = shared[0];
+  }
+}`;
+      }
+      _createSoftmaxShader(wgSize) {
+        return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  innerSize: u32,
+  outerSize: u32,
+  _pad0: u32,
+  _pad1: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<f32>;
+@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let row = wg_id.x;
+  if (row >= uniforms.outerSize) { return; }
+
+  let inner = uniforms.innerSize;
+  let lane = local_id.x;
+  let offset = row * inner;
+
+  var localMax: f32 = -3.402823e+38;
+  var i: u32 = lane;
+  loop {
+    if (i >= inner) { break; }
+    localMax = max(localMax, input[offset + i]);
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localMax;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = max(shared[lane], shared[lane + stride]);
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let rowMax = shared[0];
+  var localSum: f32 = 0.0;
+  i = lane;
+  loop {
+    if (i >= inner) { break; }
+    localSum = localSum + exp(input[offset + i] - rowMax);
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localSum;
+  workgroupBarrier();
+
+  stride = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let denom = shared[0];
+  i = lane;
+  loop {
+    if (i >= inner) { break; }
+    output[offset + i] = exp(input[offset + i] - rowMax) / denom;
+    i = i + WG_SIZE;
+  }
+}`;
+      }
+      _createRMSNormShader(wgSize) {
+        return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  hiddenSize: u32,
+  numTokens: u32,
+  eps: f32,
+  _pad0: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<f32>;
+@group(0) @binding(2) var<storage, read> weight: array<f32>;
+@group(0) @binding(3) var<storage, read_write> output: array<f32>;
+
+var<workgroup> shared: array<f32, WG_SIZE>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(
+  @builtin(workgroup_id) wg_id: vec3<u32>,
+  @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+  let tokenIdx = wg_id.x;
+  if (tokenIdx >= uniforms.numTokens) { return; }
+
+  let size = uniforms.hiddenSize;
+  let base = tokenIdx * size;
+  let lane = local_id.x;
+
+  var localSumSq: f32 = 0.0;
+  var i: u32 = lane;
+  loop {
+    if (i >= size) { break; }
+    let x = input[base + i];
+    localSumSq = localSumSq + x * x;
+    i = i + WG_SIZE;
+  }
+
+  shared[lane] = localSumSq;
+  workgroupBarrier();
+
+  var stride: u32 = WG_SIZE / 2u;
+  loop {
+    if (stride == 0u) { break; }
+    if (lane < stride) {
+      shared[lane] = shared[lane] + shared[lane + stride];
+    }
+    workgroupBarrier();
+    stride = stride / 2u;
+  }
+
+  let invRms = 1.0 / sqrt(shared[0] / f32(size) + uniforms.eps);
+  i = lane;
+  loop {
+    if (i >= size) { break; }
+    output[base + i] = input[base + i] * invRms * weight[i];
+    i = i + WG_SIZE;
+  }
+}`;
+      }
+      _createDequantShader(wgSize) {
+        return `
+const WG_SIZE: u32 = ${wgSize}u;
+
+struct Uniforms {
+  count: u32,
+  scale: f32,
+  _pad0: u32,
+  _pad1: u32,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<u32>;
+@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+
+@compute @workgroup_size(${wgSize}, 1, 1)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let idx = gid.x;
+  if (idx >= uniforms.count) { return; }
+  output[idx] = f32(input[idx]) * uniforms.scale;
+}`;
+      }
+      /**
+       * Get cached tuning result
+       * @param kernelName - Kernel name
+       * @param inputSizes - Input sizes
+       * @returns Cached result or null
+       */
+      getCachedResult(kernelName, inputSizes) {
+        const cacheKey = `${kernelName}_${JSON.stringify(inputSizes)}`;
+        return this.cache.get(cacheKey) || null;
+      }
+      /**
+       * Clear all cached results
+       */
+      clearCache() {
+        this.cache.clear();
+        if (typeof localStorage !== "undefined") {
+          const signature = this._getDeviceSignature();
+          localStorage.removeItem(CACHE_PREFIX + signature);
+        }
+      }
+      /**
+       * Get all cached results
+       * @returns Object with all cached results
+       */
+      getAllCachedResults() {
+        return Object.fromEntries(this.cache);
+      }
+      /**
+       * Destroy tuner resources
+       */
+      destroy() {
+        if (this.profiler) {
+          this.profiler.destroy();
+        }
+      }
+    };
+    globalTuner = null;
+  }
+});
+
+// gpu/kernels/utils.ts
 function getKernelBasePath() {
   if (typeof location !== "undefined") {
     const path = location.pathname;
@@ -1511,569 +1600,10 @@ function getKernelBasePath() {
   }
   return "/gpu/kernels";
 }
-var KERNEL_BASE_PATH = getKernelBasePath();
-var KERNEL_CONFIGS = {
-  matmul: {
-    f16: {
-      shaderFile: "matmul_f16.wgsl",
-      entryPoint: "main",
-      workgroupSize: [16, 16, 1],
-      requires: ["shader-f16"]
-    },
-    f16_vec4: {
-      shaderFile: "matmul_f16.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [16, 16, 1],
-      requires: ["shader-f16"]
-    },
-    f16w_f32a: {
-      shaderFile: "matmul_f16w_f32a.wgsl",
-      entryPoint: "main",
-      workgroupSize: [16, 16, 1],
-      requires: ["shader-f16"]
-    },
-    f16w_f32a_naive: {
-      shaderFile: "matmul_f16w_f32a_naive.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    },
-    // Optimized GEMV for M=1 decode: uses shared memory for A vector
-    gemv: {
-      shaderFile: "matmul_gemv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    },
-    // Subgroup-optimized GEMV - 1.5x faster using subgroupAdd
-    gemv_subgroup: {
-      shaderFile: "matmul_gemv_subgroup.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    gemv_subgroup_vec4: {
-      shaderFile: "matmul_gemv_subgroup.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    // Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup
-    // Reduces workgroups from 65K to 8K for vocab=262144
-    gemv_subgroup_multicol: {
-      shaderFile: "matmul_gemv_subgroup.wgsl",
-      entryPoint: "main_multicol",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
-    q4_fused: {
-      shaderFile: "matmul_q4_fused.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    q4_fused_batched: {
-      shaderFile: "matmul_q4_fused.wgsl",
-      entryPoint: "main_batched",
-      workgroupSize: [64, 4, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
-    q4_fused_multicol: {
-      shaderFile: "matmul_q4_fused.wgsl",
-      entryPoint: "main_multicol",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16", "subgroups"]
-    },
-    f32: {
-      shaderFile: "matmul_f32.wgsl",
-      entryPoint: "main",
-      workgroupSize: [16, 16, 1],
-      requires: []
-    }
-  },
-  dequant: {
-    subgroup: {
-      shaderFile: "dequant_subgroup.wgsl",
-      entryPoint: "main",
-      workgroupSize: [64, 1, 1],
-      requires: ["subgroups"]
-    },
-    subgroup_vec4: {
-      shaderFile: "dequant_subgroup.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: ["subgroups"]
-    },
-    subgroup_f16out: {
-      shaderFile: "dequant_f16_out.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["subgroups", "shader-f16"]
-    },
-    subgroup_vec4_f16out: {
-      shaderFile: "dequant_f16_out.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: ["subgroups", "shader-f16"]
-    },
-    shared: {
-      shaderFile: "dequant_shared.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    shared_vec4: {
-      shaderFile: "dequant_shared.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    },
-    shared_f16out: {
-      shaderFile: "dequant_f16_out.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    },
-    shared_vec4_f16out: {
-      shaderFile: "dequant_f16_out.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: ["shader-f16"]
-    },
-    // MXFP4 dequantization (GPT-OSS)
-    mxfp4: {
-      shaderFile: "dequant_mxfp4.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    mxfp4_vec4: {
-      shaderFile: "dequant_mxfp4.wgsl",
-      entryPoint: "main_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    },
-    mxfp4_expert: {
-      shaderFile: "dequant_mxfp4.wgsl",
-      entryPoint: "main_expert",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    // Q6_K dequantization (GGUF 6-bit quantization)
-    q6k_f16out: {
-      shaderFile: "dequant_q6k.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    }
-  },
-  attention: {
-    prefill: {
-      shaderFile: "attention.wgsl",
-      entryPoint: "main",
-      workgroupSize: [64, 1, 1],
-      requires: [],
-      validate: validateAttentionLimits
-    },
-    decode: {
-      shaderFile: "attention.wgsl",
-      entryPoint: "attention_decode",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    prefill_small: {
-      shaderFile: "attention_small.wgsl",
-      entryPoint: "main",
-      workgroupSize: [32, 1, 1],
-      requires: [],
-      validate: validateAttentionLimits
-    },
-    decode_small: {
-      shaderFile: "attention_small.wgsl",
-      entryPoint: "main",
-      workgroupSize: [32, 1, 1],
-      requires: []
-    },
-    prefill_streaming: {
-      shaderFile: "attention_streaming.wgsl",
-      entryPoint: "main",
-      workgroupSize: [1, 1, 1],
-      requires: [],
-      validate: validateAttentionLimits
-    },
-    decode_streaming: {
-      shaderFile: "attention_streaming.wgsl",
-      entryPoint: "main",
-      workgroupSize: [1, 1, 1],
-      requires: []
-    },
-    prefill_f16kv: {
-      shaderFile: "attention_f16kv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [64, 1, 1],
-      requires: ["shader-f16"],
-      validate: validateAttentionLimits
-    },
-    decode_f16kv: {
-      shaderFile: "attention_f16kv.wgsl",
-      entryPoint: "attention_decode",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    },
-    prefill_small_f16kv: {
-      shaderFile: "attention_small_f16kv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [32, 1, 1],
-      requires: ["shader-f16"],
-      validate: validateAttentionLimits
-    },
-    decode_small_f16kv: {
-      shaderFile: "attention_small_f16kv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [32, 1, 1],
-      requires: ["shader-f16"]
-    },
-    prefill_streaming_f16kv: {
-      shaderFile: "attention_streaming_f16kv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [1, 1, 1],
-      requires: ["shader-f16"],
-      validate: validateAttentionLimits
-    },
-    decode_streaming_f16kv: {
-      shaderFile: "attention_streaming_f16kv.wgsl",
-      entryPoint: "main",
-      workgroupSize: [1, 1, 1],
-      requires: ["shader-f16"]
-    },
-    // Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization
-    decode_subgroup: {
-      shaderFile: "attention_decode_subgroup.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      // headDim threads per workgroup
-      requires: ["subgroups"]
-    }
-  },
-  rmsnorm: {
-    default: {
-      shaderFile: "rmsnorm.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    small: {
-      shaderFile: "rmsnorm.wgsl",
-      entryPoint: "rmsnorm_small",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    residual: {
-      shaderFile: "rmsnorm.wgsl",
-      entryPoint: "rmsnorm_inplace_residual",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  softmax: {
-    default: {
-      shaderFile: "softmax.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    small: {
-      shaderFile: "softmax.wgsl",
-      entryPoint: "softmax_small",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    online: {
-      shaderFile: "softmax.wgsl",
-      entryPoint: "softmax_online",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  rope: {
-    default: {
-      shaderFile: "rope.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    compute_freqs: {
-      shaderFile: "rope.wgsl",
-      entryPoint: "rope_compute_freqs",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    qk: {
-      shaderFile: "rope.wgsl",
-      entryPoint: "rope_qk",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    ntk: {
-      shaderFile: "rope.wgsl",
-      entryPoint: "rope_ntk_scaled",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    yarn: {
-      shaderFile: "rope.wgsl",
-      entryPoint: "rope_yarn",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  silu: {
-    default: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gate: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "silu_gate",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gate_split: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "silu_gate_split",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    vec4: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "silu_vec4",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gelu: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "gelu",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    geglu: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "geglu",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gate_rowsplit: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "silu_gate_rowsplit",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    geglu_rowsplit: {
-      shaderFile: "silu.wgsl",
-      entryPoint: "geglu_rowsplit",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  gather: {
-    default: {
-      shaderFile: "gather.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    vec4: {
-      shaderFile: "gather.wgsl",
-      entryPoint: "gather_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    },
-    // F16 embeddings → F32 output (for weight-tied lm_head optimization)
-    f16: {
-      shaderFile: "gather_f16.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    },
-    f16_vec4: {
-      shaderFile: "gather_f16.wgsl",
-      entryPoint: "gather_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: ["shader-f16"]
-    }
-  },
-  residual: {
-    default: {
-      shaderFile: "residual.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    vec4: {
-      shaderFile: "residual.wgsl",
-      entryPoint: "add_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    }
-  },
-  topk: {
-    default: {
-      shaderFile: "topk.wgsl",
-      entryPoint: "main",
-      workgroupSize: [32, 1, 1],
-      requires: []
-    },
-    small: {
-      shaderFile: "topk.wgsl",
-      entryPoint: "topk_2_small",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    fused: {
-      shaderFile: "topk.wgsl",
-      entryPoint: "softmax_topk",
-      workgroupSize: [32, 1, 1],
-      requires: []
-    }
-  },
-  scatter_add: {
-    default: {
-      shaderFile: "scatter_add.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    vec4: {
-      shaderFile: "scatter_add.wgsl",
-      entryPoint: "scatter_add_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    },
-    dynamic: {
-      shaderFile: "scatter_add.wgsl",
-      entryPoint: "scatter_add_dynamic",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    accumulate: {
-      shaderFile: "scatter_add.wgsl",
-      entryPoint: "scatter_add_accumulate",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  moe_gather: {
-    count: {
-      shaderFile: "moe_gather.wgsl",
-      entryPoint: "count_and_map",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gather: {
-      shaderFile: "moe_gather.wgsl",
-      entryPoint: "gather_tokens",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    gather_vec4: {
-      shaderFile: "moe_gather.wgsl",
-      entryPoint: "gather_tokens_vec4",
-      workgroupSize: [64, 1, 1],
-      requires: []
-    },
-    single_pass: {
-      shaderFile: "moe_gather.wgsl",
-      entryPoint: "gather_single_pass",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  swiglu: {
-    rowsplit_bias: {
-      shaderFile: "swiglu.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  bias_add: {
-    default: {
-      shaderFile: "bias_add.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  cast: {
-    f32_to_f16: {
-      shaderFile: "cast_f32_to_f16.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    }
-  },
-  sample: {
-    argmax: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "argmax",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    argmax_reduce: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "argmax_reduce",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    find_topk_phase1: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "find_topk_phase1",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    find_topk_phase2: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "find_topk_phase2",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    softmax_and_sample: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "softmax_and_sample",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    },
-    single_pass: {
-      shaderFile: "sample.wgsl",
-      entryPoint: "sample_single_pass",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  bf16_to_f32: {
-    default: {
-      shaderFile: "bf16_to_f32.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: []
-    }
-  },
-  bf16_to_f16: {
-    default: {
-      shaderFile: "bf16_to_f16.wgsl",
-      entryPoint: "main",
-      workgroupSize: [256, 1, 1],
-      requires: ["shader-f16"]
-    }
-  }
-};
 function validateAttentionLimits(seqLen, numHeads, headDim) {
   const limits = getDeviceLimits();
-  if (!limits) return;
+  if (!limits)
+    return;
   const workgroupInvocations = seqLen * numHeads;
   if (workgroupInvocations > limits.maxComputeWorkgroupsPerDimension) {
     throw new Error(
@@ -2114,9 +1644,12 @@ async function loadShaderSource(filename) {
 }
 function hasRequiredFeatures(required, capabilities) {
   for (const feature of required) {
-    if (feature === "shader-f16" && !capabilities.hasF16) return false;
-    if (feature === "subgroups" && !capabilities.hasSubgroups) return false;
-    if (feature === "subgroups-f16" && !capabilities.hasSubgroups) return false;
+    if (feature === "shader-f16" && !capabilities.hasF16)
+      return false;
+    if (feature === "subgroups" && !capabilities.hasSubgroups)
+      return false;
+    if (feature === "subgroups-f16" && !capabilities.hasSubgroups)
+      return false;
   }
   return true;
 }
@@ -2305,16 +1838,37 @@ async function autoTuneKernels(modelConfig = {}) {
   console.log("[KernelSelector] Auto-tuning complete:", results);
   return results;
 }
-async function prewarmKernels() {
+async function prewarmKernels(options = {}) {
   const caps = getKernelCapabilities();
+  const mode = options.mode ?? "parallel";
+  const entries = Object.entries(KERNEL_CONFIGS).sort(([a], [b]) => a.localeCompare(b)).map(([operation, variants]) => [operation, Object.entries(variants).sort(([a], [b]) => a.localeCompare(b))]);
+  if (mode === "sequential") {
+    let count = 0;
+    for (const [operation, variants] of entries) {
+      for (const [variant, cfg] of variants) {
+        if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
+          continue;
+        }
+        try {
+          await createPipeline(operation, variant);
+          count += 1;
+        } catch (e) {
+          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+        }
+      }
+    }
+    console.log(`[KernelSelector] Prewarmed ${count} kernel pipelines`);
+    return;
+  }
   const jobs = [];
-  for (const [operation, variants] of Object.entries(KERNEL_CONFIGS)) {
-    for (const [variant, cfg] of Object.entries(variants)) {
+  for (const [operation, variants] of entries) {
+    for (const [variant, cfg] of variants) {
       if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
         continue;
       }
       jobs.push(
-        createPipeline(operation, variant).catch((e) => {
+        createPipeline(operation, variant).then(() => {
+        }).catch((e) => {
           console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
         })
       );
@@ -2346,12 +1900,1047 @@ function createUniformBufferWithView(label, byteLength, writer, recorder, device
   writer(view);
   return createUniformBufferFromData(label, data, recorder, deviceOverride);
 }
+var shaderSourceCache, shaderModuleCache, pipelineCache, bindGroupLayoutCache, pipelineLayoutCache, KERNEL_BASE_PATH, KERNEL_CONFIGS;
+var init_utils = __esm({
+  "gpu/kernels/utils.ts"() {
+    init_device();
+    init_kernel_tuner();
+    shaderSourceCache = /* @__PURE__ */ new Map();
+    shaderModuleCache = /* @__PURE__ */ new Map();
+    pipelineCache = /* @__PURE__ */ new Map();
+    bindGroupLayoutCache = /* @__PURE__ */ new Map();
+    pipelineLayoutCache = /* @__PURE__ */ new Map();
+    KERNEL_BASE_PATH = getKernelBasePath();
+    KERNEL_CONFIGS = {
+      matmul: {
+        f16: {
+          shaderFile: "matmul_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [16, 16, 1],
+          requires: ["shader-f16"]
+        },
+        f16_vec4: {
+          shaderFile: "matmul_f16.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [16, 16, 1],
+          requires: ["shader-f16"]
+        },
+        f16w_f32a: {
+          shaderFile: "matmul_f16w_f32a.wgsl",
+          entryPoint: "main",
+          workgroupSize: [16, 16, 1],
+          requires: ["shader-f16"]
+        },
+        f16w_f32a_naive: {
+          shaderFile: "matmul_f16w_f32a_naive.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        // Optimized GEMV for M=1 decode: uses shared memory for A vector
+        gemv: {
+          shaderFile: "matmul_gemv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        // Subgroup-optimized GEMV - 1.5x faster using subgroupAdd
+        gemv_subgroup: {
+          shaderFile: "matmul_gemv_subgroup.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        gemv_subgroup_vec4: {
+          shaderFile: "matmul_gemv_subgroup.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        // Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup
+        // Reduces workgroups from 65K to 8K for vocab=262144
+        gemv_subgroup_multicol: {
+          shaderFile: "matmul_gemv_subgroup.wgsl",
+          entryPoint: "main_multicol",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
+        q4_fused: {
+          shaderFile: "fused_matmul_q4.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        q4_fused_batched: {
+          shaderFile: "fused_matmul_q4.wgsl",
+          entryPoint: "main_batched",
+          workgroupSize: [64, 4, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
+        q4_fused_multicol: {
+          shaderFile: "fused_matmul_q4.wgsl",
+          entryPoint: "main_multicol",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        f32: {
+          shaderFile: "matmul_f32.wgsl",
+          entryPoint: "main",
+          workgroupSize: [16, 16, 1],
+          requires: []
+        }
+      },
+      // Fused FFN kernels (Tier 2 P0)
+      fused_ffn: {
+        default: {
+          shaderFile: "fused_ffn.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        multi: {
+          shaderFile: "fused_ffn.wgsl",
+          entryPoint: "main_multi",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        f16: {
+          shaderFile: "fused_ffn.wgsl",
+          entryPoint: "main_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        },
+        batched: {
+          shaderFile: "fused_ffn.wgsl",
+          entryPoint: "main_batched",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        }
+      },
+      // Optimized attention decode (Tier 2 P0)
+      attention_decode_optimized: {
+        default: {
+          shaderFile: "attention_decode_optimized.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        multihead: {
+          shaderFile: "attention_decode_optimized.wgsl",
+          entryPoint: "main_multihead",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        f16kv: {
+          shaderFile: "attention_decode_optimized.wgsl",
+          entryPoint: "main_f16kv",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"]
+        }
+      },
+      dequant: {
+        subgroup: {
+          shaderFile: "dequant_subgroup.wgsl",
+          entryPoint: "main",
+          workgroupSize: [64, 1, 1],
+          requires: ["subgroups"]
+        },
+        subgroup_vec4: {
+          shaderFile: "dequant_subgroup.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: ["subgroups"]
+        },
+        subgroup_f16out: {
+          shaderFile: "dequant_f16_out.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups", "shader-f16"]
+        },
+        subgroup_vec4_f16out: {
+          shaderFile: "dequant_f16_out.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: ["subgroups", "shader-f16"]
+        },
+        shared: {
+          shaderFile: "dequant_shared.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        shared_vec4: {
+          shaderFile: "dequant_shared.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        },
+        shared_f16out: {
+          shaderFile: "dequant_f16_out.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        shared_vec4_f16out: {
+          shaderFile: "dequant_f16_out.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: ["shader-f16"]
+        },
+        // MXFP4 dequantization (GPT-OSS)
+        mxfp4: {
+          shaderFile: "dequant_mxfp4.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        mxfp4_vec4: {
+          shaderFile: "dequant_mxfp4.wgsl",
+          entryPoint: "main_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        },
+        mxfp4_expert: {
+          shaderFile: "dequant_mxfp4.wgsl",
+          entryPoint: "main_expert",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        // Q6_K dequantization (GGUF 6-bit quantization)
+        q6k_f16out: {
+          shaderFile: "dequant_q6k.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        }
+      },
+      attention: {
+        prefill: {
+          shaderFile: "attention.wgsl",
+          entryPoint: "main",
+          workgroupSize: [64, 1, 1],
+          requires: [],
+          validate: validateAttentionLimits
+        },
+        decode: {
+          shaderFile: "attention.wgsl",
+          entryPoint: "attention_decode",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        prefill_small: {
+          shaderFile: "attention_small.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: [],
+          validate: validateAttentionLimits
+        },
+        decode_small: {
+          shaderFile: "attention_small.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: []
+        },
+        prefill_streaming: {
+          shaderFile: "attention_streaming.wgsl",
+          entryPoint: "main",
+          workgroupSize: [1, 1, 1],
+          requires: [],
+          validate: validateAttentionLimits
+        },
+        decode_streaming: {
+          shaderFile: "attention_streaming.wgsl",
+          entryPoint: "main",
+          workgroupSize: [1, 1, 1],
+          requires: []
+        },
+        prefill_f16kv: {
+          shaderFile: "attention_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [64, 1, 1],
+          requires: ["shader-f16"],
+          validate: validateAttentionLimits
+        },
+        decode_f16kv: {
+          shaderFile: "attention_f16kv.wgsl",
+          entryPoint: "attention_decode",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        prefill_small_f16kv: {
+          shaderFile: "attention_small_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: ["shader-f16"],
+          validate: validateAttentionLimits
+        },
+        decode_small_f16kv: {
+          shaderFile: "attention_small_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: ["shader-f16"]
+        },
+        prefill_streaming_f16kv: {
+          shaderFile: "attention_streaming_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [1, 1, 1],
+          requires: ["shader-f16"],
+          validate: validateAttentionLimits
+        },
+        decode_streaming_f16kv: {
+          shaderFile: "attention_streaming_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [1, 1, 1],
+          requires: ["shader-f16"]
+        },
+        // Chunked decode kernel - parallelizes headDim for models with few heads (e.g., Gemma 3)
+        decode_chunked_f16kv: {
+          shaderFile: "attention_decode_chunked_f16kv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        // Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization
+        decode_subgroup: {
+          shaderFile: "attention_decode_subgroup.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          // headDim threads per workgroup
+          requires: ["subgroups"]
+        }
+      },
+      rmsnorm: {
+        default: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        small: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "rmsnorm_small",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        residual: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "rmsnorm_inplace_residual",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      // Fused GEMV + RMSNorm for decode (M=1)
+      // Combines down projection matmul with RMSNorm in single kernel
+      fused_matmul_rmsnorm: {
+        default: {
+          shaderFile: "fused_matmul_rmsnorm.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        small: {
+          shaderFile: "fused_matmul_rmsnorm.wgsl",
+          entryPoint: "gemv_rmsnorm_small",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        // Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)
+        medium: {
+          shaderFile: "fused_matmul_rmsnorm.wgsl",
+          entryPoint: "gemv_rmsnorm_medium",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        phase1: {
+          shaderFile: "fused_matmul_rmsnorm.wgsl",
+          entryPoint: "gemv_rmsnorm_phase1",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      softmax: {
+        default: {
+          shaderFile: "softmax.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        small: {
+          shaderFile: "softmax.wgsl",
+          entryPoint: "softmax_small",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        online: {
+          shaderFile: "softmax.wgsl",
+          entryPoint: "softmax_online",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      rope: {
+        default: {
+          shaderFile: "rope.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        compute_freqs: {
+          shaderFile: "rope.wgsl",
+          entryPoint: "rope_compute_freqs",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        qk: {
+          shaderFile: "rope.wgsl",
+          entryPoint: "rope_qk",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        ntk: {
+          shaderFile: "rope.wgsl",
+          entryPoint: "rope_ntk_scaled",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        yarn: {
+          shaderFile: "rope.wgsl",
+          entryPoint: "rope_yarn",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      silu: {
+        default: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gate: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "silu_gate",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gate_split: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "silu_gate_split",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        vec4: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "silu_vec4",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gelu: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "gelu",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        geglu: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "geglu",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gate_rowsplit: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "silu_gate_rowsplit",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        geglu_rowsplit: {
+          shaderFile: "silu.wgsl",
+          entryPoint: "geglu_rowsplit",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      scale: {
+        default: {
+          shaderFile: "scale.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        inplace: {
+          shaderFile: "scale.wgsl",
+          entryPoint: "main_inplace",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      gather: {
+        default: {
+          shaderFile: "gather.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        vec4: {
+          shaderFile: "gather.wgsl",
+          entryPoint: "gather_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        },
+        // F16 embeddings → F32 output (for weight-tied lm_head optimization)
+        f16: {
+          shaderFile: "gather_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        f16_vec4: {
+          shaderFile: "gather_f16.wgsl",
+          entryPoint: "gather_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: ["shader-f16"]
+        }
+      },
+      residual: {
+        default: {
+          shaderFile: "residual.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        vec4: {
+          shaderFile: "residual.wgsl",
+          entryPoint: "add_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        }
+      },
+      topk: {
+        default: {
+          shaderFile: "topk.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: []
+        },
+        small: {
+          shaderFile: "topk.wgsl",
+          entryPoint: "topk_2_small",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        fused: {
+          shaderFile: "topk.wgsl",
+          entryPoint: "softmax_topk",
+          workgroupSize: [32, 1, 1],
+          requires: []
+        }
+      },
+      scatter_add: {
+        default: {
+          shaderFile: "scatter_add.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        vec4: {
+          shaderFile: "scatter_add.wgsl",
+          entryPoint: "scatter_add_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        },
+        dynamic: {
+          shaderFile: "scatter_add.wgsl",
+          entryPoint: "scatter_add_dynamic",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        accumulate: {
+          shaderFile: "scatter_add.wgsl",
+          entryPoint: "scatter_add_accumulate",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      moe_gather: {
+        count: {
+          shaderFile: "moe_gather.wgsl",
+          entryPoint: "count_and_map",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gather: {
+          shaderFile: "moe_gather.wgsl",
+          entryPoint: "gather_tokens",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        gather_vec4: {
+          shaderFile: "moe_gather.wgsl",
+          entryPoint: "gather_tokens_vec4",
+          workgroupSize: [64, 1, 1],
+          requires: []
+        },
+        single_pass: {
+          shaderFile: "moe_gather.wgsl",
+          entryPoint: "gather_single_pass",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      swiglu: {
+        rowsplit_bias: {
+          shaderFile: "fused_swiglu.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      bias_add: {
+        default: {
+          shaderFile: "bias_add.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      cast: {
+        f32_to_f16: {
+          shaderFile: "cast_f32_to_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        }
+      },
+      sample: {
+        argmax: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "argmax",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        argmax_reduce: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "argmax_reduce",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        find_topk_phase1: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "find_topk_phase1",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        find_topk_phase2: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "find_topk_phase2",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        softmax_and_sample: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "softmax_and_sample",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        single_pass: {
+          shaderFile: "sample.wgsl",
+          entryPoint: "sample_single_pass",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      bf16_to_f32: {
+        default: {
+          shaderFile: "bf16_to_f32.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      bf16_to_f16: {
+        default: {
+          shaderFile: "bf16_to_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        }
+      }
+    };
+  }
+});
 
-// ../gpu/kernels/matmul.ts
-init_device();
-init_buffer_pool();
+// gpu/buffer-pool.ts
+var buffer_pool_exports = {};
+__export(buffer_pool_exports, {
+  BufferPool: () => BufferPool,
+  BufferUsage: () => BufferUsage,
+  acquireBuffer: () => acquireBuffer,
+  createBufferPool: () => createBufferPool,
+  createStagingBuffer: () => createStagingBuffer,
+  createUniformBuffer: () => createUniformBuffer,
+  createUploadBuffer: () => createUploadBuffer,
+  destroyBufferPool: () => destroyBufferPool,
+  getBufferPool: () => getBufferPool,
+  readBuffer: () => readBuffer,
+  releaseBuffer: () => releaseBuffer,
+  uploadData: () => uploadData,
+  withBuffer: () => withBuffer
+});
+function alignTo(size, alignment) {
+  return Math.ceil(size / alignment) * alignment;
+}
+function getSizeBucket(size, maxAllowedSize = Infinity) {
+  const minBucket = 256;
+  if (size <= minBucket)
+    return minBucket;
+  const largeThreshold = 32 * 1024 * 1024;
+  if (size >= largeThreshold) {
+    const largeStep = 16 * 1024 * 1024;
+    const bucket2 = Math.ceil(size / largeStep) * largeStep;
+    if (bucket2 > maxAllowedSize) {
+      return alignTo(size, 256);
+    }
+    return bucket2;
+  }
+  const bits = 32 - Math.clz32(size - 1);
+  const bucket = Math.pow(2, bits);
+  if (bucket > maxAllowedSize) {
+    return alignTo(size, 256);
+  }
+  return bucket;
+}
+function getBufferPool() {
+  if (!globalPool) {
+    globalPool = new BufferPool();
+  }
+  return globalPool;
+}
+function createBufferPool(debugMode) {
+  return new BufferPool(debugMode);
+}
+function destroyBufferPool() {
+  if (globalPool) {
+    globalPool.destroy();
+    globalPool = null;
+  }
+}
+async function withBuffer(size, usage, fn) {
+  const pool = getBufferPool();
+  const buffer = pool.acquire(size, usage);
+  try {
+    return await fn(buffer);
+  } finally {
+    pool.release(buffer);
+  }
+}
+var BufferUsage, BufferPool, globalPool, createStagingBuffer, createUploadBuffer, createUniformBuffer, acquireBuffer, releaseBuffer, uploadData, readBuffer;
+var init_buffer_pool = __esm({
+  "gpu/buffer-pool.ts"() {
+    init_device();
+    init_perf_guards();
+    BufferUsage = {
+      STORAGE: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      STORAGE_READ: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      UNIFORM: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      STAGING_READ: GPUMapMode.READ | GPUBufferUsage.COPY_DST,
+      STAGING_WRITE: GPUMapMode.WRITE | GPUBufferUsage.COPY_SRC
+    };
+    BufferPool = class {
+      // Pools organized by usage and size bucket
+      // Map<usage, Map<sizeBucket, GPUBuffer[]>>
+      pools;
+      // Active buffers (currently in use)
+      activeBuffers;
+      // Buffer metadata for leak detection (debug mode)
+      bufferMetadata;
+      // Statistics
+      stats;
+      // Configuration
+      config;
+      // Debug mode flag
+      debugMode;
+      constructor(debugMode = false) {
+        this.pools = /* @__PURE__ */ new Map();
+        this.activeBuffers = /* @__PURE__ */ new Set();
+        this.bufferMetadata = /* @__PURE__ */ new Map();
+        this.debugMode = debugMode;
+        this.stats = {
+          allocations: 0,
+          reuses: 0,
+          totalBytesAllocated: 0,
+          peakBytesAllocated: 0,
+          currentBytesAllocated: 0
+        };
+        this.config = {
+          maxPoolSizePerBucket: 8,
+          // Max buffers per size bucket
+          maxTotalPooledBuffers: 64,
+          // Max total pooled buffers
+          enablePooling: true,
+          alignmentBytes: 256
+          // WebGPU buffer alignment
+        };
+      }
+      /**
+       * Get or create a buffer of the specified size
+       */
+      acquire(size, usage = BufferUsage.STORAGE, label = "pooled_buffer") {
+        const device2 = getDevice();
+        if (!device2) {
+          throw new Error("Device not initialized");
+        }
+        const limits = getDeviceLimits();
+        const maxSize = limits?.maxBufferSize || Infinity;
+        const maxStorageSize = limits?.maxStorageBufferBindingSize || Infinity;
+        const isStorageBuffer = (usage & GPUBufferUsage.STORAGE) !== 0;
+        const alignedSize = alignTo(size, this.config.alignmentBytes);
+        const maxAllowedBucket = isStorageBuffer ? Math.min(maxSize, maxStorageSize) : maxSize;
+        const bucket = getSizeBucket(alignedSize, maxAllowedBucket);
+        if (bucket > maxSize) {
+          throw new Error(
+            `Buffer size ${bucket} exceeds device maxBufferSize (${maxSize}). Requested: ${size} bytes, bucketed to: ${bucket} bytes.`
+          );
+        }
+        if (isStorageBuffer && bucket > maxStorageSize) {
+          throw new Error(
+            `Storage buffer size ${bucket} exceeds device maxStorageBufferBindingSize (${maxStorageSize}). Consider splitting into smaller buffers or using a different strategy.`
+          );
+        }
+        if (this.config.enablePooling) {
+          const pooled = this._getFromPool(bucket, usage);
+          if (pooled) {
+            this.activeBuffers.add(pooled);
+            this.stats.reuses++;
+            if (this.debugMode) {
+              this._trackBuffer(pooled, bucket, usage, label);
+            }
+            return pooled;
+          }
+        }
+        const buffer = device2.createBuffer({
+          label: `${label}_${bucket}`,
+          size: bucket,
+          usage
+        });
+        this.activeBuffers.add(buffer);
+        this.stats.allocations++;
+        this.stats.totalBytesAllocated += bucket;
+        this.stats.currentBytesAllocated += bucket;
+        this.stats.peakBytesAllocated = Math.max(
+          this.stats.peakBytesAllocated,
+          this.stats.currentBytesAllocated
+        );
+        trackAllocation(bucket, label);
+        if (this.debugMode) {
+          this._trackBuffer(buffer, bucket, usage, label);
+        }
+        return buffer;
+      }
+      /**
+       * Release a buffer back to the pool
+       */
+      release(buffer) {
+        if (!this.activeBuffers.has(buffer)) {
+          console.warn("[BufferPool] Releasing buffer not tracked as active");
+          return;
+        }
+        this.activeBuffers.delete(buffer);
+        if (this.debugMode) {
+          this.bufferMetadata.delete(buffer);
+        }
+        if (!this.config.enablePooling) {
+          buffer.destroy();
+          this.stats.currentBytesAllocated -= buffer.size;
+          return;
+        }
+        const bucket = buffer.size;
+        const usage = buffer.usage;
+        if (!this.pools.has(usage)) {
+          this.pools.set(usage, /* @__PURE__ */ new Map());
+        }
+        const usagePool = this.pools.get(usage);
+        if (!usagePool.has(bucket)) {
+          usagePool.set(bucket, []);
+        }
+        const bucketPool = usagePool.get(bucket);
+        if (bucketPool.length < this.config.maxPoolSizePerBucket && this._getTotalPooledCount() < this.config.maxTotalPooledBuffers) {
+          bucketPool.push(buffer);
+        } else {
+          buffer.destroy();
+          this.stats.currentBytesAllocated -= buffer.size;
+        }
+      }
+      /**
+       * Get a buffer from the pool if available
+       */
+      _getFromPool(bucket, usage) {
+        const usagePool = this.pools.get(usage);
+        if (!usagePool)
+          return null;
+        const bucketPool = usagePool.get(bucket);
+        if (!bucketPool || bucketPool.length === 0)
+          return null;
+        return bucketPool.pop();
+      }
+      /**
+       * Get total count of pooled buffers
+       */
+      _getTotalPooledCount() {
+        let count = 0;
+        for (const usagePool of this.pools.values()) {
+          for (const bucketPool of usagePool.values()) {
+            count += bucketPool.length;
+          }
+        }
+        return count;
+      }
+      /**
+       * Track buffer metadata for leak detection (debug mode)
+       */
+      _trackBuffer(buffer, size, usage, label) {
+        const metadata = {
+          size,
+          usage,
+          label,
+          acquiredAt: Date.now()
+        };
+        if (Error.captureStackTrace) {
+          const obj = {};
+          Error.captureStackTrace(obj);
+          metadata.stackTrace = obj.stack;
+        }
+        this.bufferMetadata.set(buffer, metadata);
+      }
+      /**
+       * Detect leaked buffers (debug mode)
+       */
+      detectLeaks(thresholdMs = 6e4) {
+        if (!this.debugMode) {
+          console.warn("[BufferPool] Leak detection requires debug mode");
+          return [];
+        }
+        const now = Date.now();
+        const leaks = [];
+        for (const [buffer, metadata] of this.bufferMetadata.entries()) {
+          if (this.activeBuffers.has(buffer)) {
+            const age = now - metadata.acquiredAt;
+            if (age > thresholdMs) {
+              leaks.push(metadata);
+            }
+          }
+        }
+        return leaks;
+      }
+      /**
+       * Create a staging buffer for CPU readback
+       */
+      createStagingBuffer(size) {
+        return this.acquire(size, BufferUsage.STAGING_READ, "staging_read");
+      }
+      /**
+       * Create a staging buffer for CPU upload
+       */
+      createUploadBuffer(size) {
+        return this.acquire(size, BufferUsage.STAGING_WRITE, "staging_write");
+      }
+      /**
+       * Create a uniform buffer
+       */
+      createUniformBuffer(size) {
+        const alignedSize = alignTo(size, 256);
+        return this.acquire(alignedSize, BufferUsage.UNIFORM, "uniform");
+      }
+      /**
+       * Upload data to GPU buffer
+       */
+      uploadData(buffer, data, offset = 0) {
+        const device2 = getDevice();
+        if (!device2) {
+          throw new Error("Device not initialized");
+        }
+        device2.queue.writeBuffer(buffer, offset, data);
+      }
+      /**
+       * Read data from GPU buffer
+       * NOTE: GPU readbacks are expensive (0.5-2ms overhead per call). Use sparingly.
+       */
+      async readBuffer(buffer, size = buffer.size) {
+        if (!allowReadback("BufferPool.readBuffer")) {
+          return new ArrayBuffer(0);
+        }
+        const device2 = getDevice();
+        if (!device2) {
+          throw new Error("Device not initialized");
+        }
+        const staging = this.createStagingBuffer(size);
+        const encoder = device2.createCommandEncoder({ label: "readback_encoder" });
+        encoder.copyBufferToBuffer(buffer, 0, staging, 0, size);
+        device2.queue.submit([encoder.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = staging.getMappedRange(0, size).slice(0);
+        staging.unmap();
+        this.release(staging);
+        return data;
+      }
+      /**
+       * Clear all pooled buffers
+       */
+      clearPool() {
+        for (const usagePool of this.pools.values()) {
+          for (const bucketPool of usagePool.values()) {
+            for (const buffer of bucketPool) {
+              buffer.destroy();
+              this.stats.currentBytesAllocated -= buffer.size;
+            }
+            bucketPool.length = 0;
+          }
+        }
+        this.pools.clear();
+      }
+      /**
+       * Destroy all buffers (active and pooled)
+       */
+      destroy() {
+        for (const buffer of this.activeBuffers) {
+          buffer.destroy();
+        }
+        this.activeBuffers.clear();
+        this.bufferMetadata.clear();
+        this.clearPool();
+        this.stats.currentBytesAllocated = 0;
+      }
+      /**
+       * Get pool statistics
+       */
+      getStats() {
+        return {
+          ...this.stats,
+          activeBuffers: this.activeBuffers.size,
+          pooledBuffers: this._getTotalPooledCount(),
+          hitRate: this.stats.allocations > 0 ? (this.stats.reuses / (this.stats.allocations + this.stats.reuses) * 100).toFixed(1) + "%" : "0%"
+        };
+      }
+      /**
+       * Configure pool settings
+       */
+      configure(config2) {
+        Object.assign(this.config, config2);
+      }
+    };
+    globalPool = null;
+    createStagingBuffer = (size) => getBufferPool().createStagingBuffer(size);
+    createUploadBuffer = (size) => getBufferPool().createUploadBuffer(size);
+    createUniformBuffer = (size) => getBufferPool().createUniformBuffer(size);
+    acquireBuffer = (size, usage, label) => getBufferPool().acquire(size, usage, label);
+    releaseBuffer = (buffer) => getBufferPool().release(buffer);
+    uploadData = (buffer, data, offset) => getBufferPool().uploadData(buffer, data, offset);
+    readBuffer = (buffer, size) => getBufferPool().readBuffer(buffer, size);
+  }
+});
 
-// ../gpu/kernels/dispatch.ts
+// gpu/kernels/dispatch.ts
 function dispatch(device2, pipeline, bindGroup, workgroups, label = "compute") {
   const encoder = device2.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
@@ -2376,8 +2965,307 @@ function recordDispatch(recorder, pipeline, bindGroup, workgroups, label = "comp
   }
   pass.end();
 }
+var init_dispatch = __esm({
+  "gpu/kernels/dispatch.ts"() {
+  }
+});
 
-// ../gpu/kernels/kernel-base.ts
+// gpu/kernels/fused_matmul_rmsnorm.ts
+var fused_matmul_rmsnorm_exports = {};
+__export(fused_matmul_rmsnorm_exports, {
+  recordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
+  runMatmulRMSNormFused: () => runMatmulRMSNormFused,
+  selectMatmulRMSNormFusedVariant: () => selectMatmulRMSNormFusedVariant,
+  shouldUseFusedMatmulRMSNorm: () => shouldUseFusedMatmulRMSNorm
+});
+function selectMatmulRMSNormFusedVariant(N) {
+  if (N <= WG_SIZE) {
+    return "small";
+  }
+  if (N <= MAX_MEDIUM_N) {
+    return "medium";
+  }
+  return "default";
+}
+async function runMatmulRMSNormFused(input, weight, normWeight, options) {
+  const device2 = getDevice();
+  const {
+    N,
+    K,
+    eps = 1e-5,
+    residual = null,
+    outputBuffer = null
+  } = options;
+  const variant = selectMatmulRMSNormFusedVariant(N);
+  if (DEBUG_KERNELS6) {
+    console.log(`[MatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  }
+  const pipeline = await createPipeline("fused_matmul_rmsnorm", variant);
+  const outputSize = N * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "matmul_rmsnorm_fused_uniforms",
+    16,
+    (view) => {
+      view.setUint32(0, N, true);
+      view.setUint32(4, K, true);
+      view.setFloat32(8, eps, true);
+      view.setUint32(12, residual ? 1 : 0, true);
+    },
+    null,
+    device2
+  );
+  const residualBuffer = residual || device2.createBuffer({
+    label: "matmul_rmsnorm_residual_placeholder",
+    size: 4,
+    usage: GPUBufferUsage.STORAGE
+  });
+  const bindGroup = device2.createBindGroup({
+    label: "matmul_rmsnorm_fused_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: weight } },
+      { binding: 3, resource: { buffer: normWeight } },
+      { binding: 4, resource: { buffer: output } },
+      { binding: 5, resource: { buffer: residualBuffer } }
+    ]
+  });
+  let workgroups;
+  if (variant === "small" || variant === "medium") {
+    workgroups = 1;
+  } else {
+    workgroups = Math.ceil(N / COLS_PER_WG);
+  }
+  dispatch(device2, pipeline, bindGroup, workgroups, "matmul_rmsnorm_fused");
+  uniformBuffer.destroy();
+  if (!residual)
+    residualBuffer.destroy();
+  setBufferDtype(output, "f32");
+  return output;
+}
+async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, options) {
+  const device2 = recorder.device;
+  const {
+    N,
+    K,
+    eps = 1e-5,
+    residual = null,
+    outputBuffer = null
+  } = options;
+  const variant = selectMatmulRMSNormFusedVariant(N);
+  if (DEBUG_KERNELS6) {
+    console.log(`[recordMatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  }
+  const pipeline = await createPipeline("fused_matmul_rmsnorm", variant);
+  const outputSize = N * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "matmul_rmsnorm_fused_uniforms",
+    16,
+    (view) => {
+      view.setUint32(0, N, true);
+      view.setUint32(4, K, true);
+      view.setFloat32(8, eps, true);
+      view.setUint32(12, residual ? 1 : 0, true);
+    },
+    recorder
+  );
+  const residualBuffer = residual || device2.createBuffer({
+    label: "matmul_rmsnorm_residual_placeholder",
+    size: 4,
+    usage: GPUBufferUsage.STORAGE
+  });
+  const bindGroup = device2.createBindGroup({
+    label: "matmul_rmsnorm_fused_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: weight } },
+      { binding: 3, resource: { buffer: normWeight } },
+      { binding: 4, resource: { buffer: output } },
+      { binding: 5, resource: { buffer: residualBuffer } }
+    ]
+  });
+  let workgroups;
+  if (variant === "small" || variant === "medium") {
+    workgroups = 1;
+  } else {
+    workgroups = Math.ceil(N / COLS_PER_WG);
+  }
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, "matmul_rmsnorm_fused");
+  if (!residual) {
+    recorder.trackTemporaryBuffer(residualBuffer);
+  }
+  setBufferDtype(output, "f32");
+  return output;
+}
+function shouldUseFusedMatmulRMSNorm(M, N) {
+  if (M !== 1) {
+    return false;
+  }
+  if (N > MAX_MEDIUM_N) {
+    return false;
+  }
+  return true;
+}
+var DEBUG_KERNELS6, WG_SIZE, COLS_PER_WG, MAX_MEDIUM_N;
+var init_fused_matmul_rmsnorm = __esm({
+  "gpu/kernels/fused_matmul_rmsnorm.ts"() {
+    init_device();
+    init_buffer_dtypes();
+    init_buffer_pool();
+    init_dispatch();
+    init_utils();
+    DEBUG_KERNELS6 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+    WG_SIZE = 256;
+    COLS_PER_WG = 4;
+    MAX_MEDIUM_N = 4096;
+  }
+});
+
+// kernel-tests/browser/test-page.ts
+init_device();
+init_buffer_dtypes();
+
+// gpu/kernel-hints.ts
+var currentHints = null;
+var hintsSource = null;
+function setKernelHints(hints, source = "manifest") {
+  const priority = { manifest: 0, profile: 1, runtime: 2 };
+  if (!currentHints || priority[source] >= priority[hintsSource || "manifest"]) {
+    currentHints = hints;
+    hintsSource = source;
+    console.log(`[KernelHints] Set from ${source}:`, hints);
+  }
+}
+function getKernelHints() {
+  return currentHints;
+}
+function shouldUseFusedQ4K() {
+  const debugFlags = typeof window !== "undefined" ? window : null;
+  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
+    return false;
+  const hints = getKernelHints();
+  if (hints?.q4kMatmul) {
+    return hints.q4kMatmul === "fused_q4k";
+  }
+  return false;
+}
+
+// gpu/kernel-selector.ts
+var kernel_selector_exports = {};
+__export(kernel_selector_exports, {
+  CommandRecorder: () => CommandRecorder,
+  KERNEL_CONFIGS: () => KERNEL_CONFIGS,
+  analyzeDecodePerformance: () => analyzeDecodePerformance,
+  autoTuneKernels: () => autoTuneKernels,
+  benchmarkAttentionDecode: () => benchmarkAttentionDecode,
+  benchmarkDecodePass: () => benchmarkDecodePass,
+  benchmarkMatmul: () => benchmarkMatmul,
+  benchmarkMatmulRMSNormFused: () => benchmarkMatmulRMSNormFused,
+  benchmarkRMSNorm: () => benchmarkRMSNorm,
+  benchmarkSiLU: () => benchmarkSiLU,
+  calculateFusedFFNSavings: () => calculateFusedFFNSavings,
+  castF32ToF16: () => castF32ToF16,
+  clearKernelCaches: () => clearKernelCaches,
+  clearPipelineCache: () => clearPipelineCache,
+  clearProfile: () => clearProfile,
+  compareBenchmarks: () => compareBenchmarks,
+  compileShader: () => compileShader,
+  createCommandRecorder: () => createCommandRecorder,
+  createDequantBindGroupLayout: () => createDequantBindGroupLayout,
+  createMatmulBindGroupLayout: () => createMatmulBindGroupLayout,
+  createPipeline: () => createPipeline,
+  createProfilingRecorder: () => createProfilingRecorder,
+  dequantize: () => dequantize,
+  dequantizeMXFP4: () => dequantizeMXFP4,
+  dequantizeMXFP4Expert: () => dequantizeMXFP4Expert,
+  dequantizeQ6K: () => dequantizeQ6K,
+  doRecordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
+  exportBenchmarkJSON: () => exportBenchmarkJSON,
+  exportProfileJSON: () => exportProfileJSON,
+  getCacheStats: () => getCacheStats,
+  getKernelConfig: () => getKernelConfig,
+  getOrCreateBindGroupLayout: () => getOrCreateBindGroupLayout,
+  getOrCreatePipelineLayout: () => getOrCreatePipelineLayout,
+  getProfileReport: () => getProfileReport,
+  getTunedWorkgroupSize: () => getTunedWorkgroupSize,
+  hasRequiredFeatures: () => hasRequiredFeatures,
+  isGPUSamplingAvailable: () => isGPUSamplingAvailable,
+  isProfilingEnabled: () => isProfilingEnabled,
+  loadShaderSource: () => loadShaderSource,
+  prewarmKernels: () => prewarmKernels,
+  printBenchmarkReport: () => printBenchmarkReport,
+  printProfileReport: () => printProfileReport,
+  profileAsync: () => profileAsync,
+  profileKernel: () => profileKernel,
+  profileSync: () => profileSync,
+  recordArgmax: () => recordArgmax,
+  recordAttention: () => recordAttention,
+  recordBiasAdd: () => recordBiasAdd,
+  recordCastF32ToF16: () => recordCastF32ToF16,
+  recordDequantize: () => recordDequantize,
+  recordFusedFFN: () => recordFusedFFN,
+  recordGather: () => recordGather,
+  recordGeLU: () => recordGeLU,
+  recordMatmul: () => recordMatmul,
+  recordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
+  recordProfileEntry: () => recordProfileEntry,
+  recordRMSNorm: () => recordRMSNorm,
+  recordResidualAdd: () => recordResidualAdd,
+  recordRoPE: () => recordRoPE,
+  recordScale: () => recordScale,
+  recordSiLU: () => recordSiLU,
+  recordSiLURowSplit: () => recordSiLURowSplit,
+  recordSoftmax: () => recordSoftmax,
+  runArgmax: () => runArgmax,
+  runAttention: () => runAttention,
+  runBF16ToF16: () => runBF16ToF16,
+  runBF16ToF32: () => runBF16ToF32,
+  runBiasAdd: () => runBiasAdd,
+  runFusedFFN: () => runFusedFFN,
+  runGPUSample: () => runGPUSample,
+  runGather: () => runGather,
+  runGeLU: () => runGeLU,
+  runMatmul: () => runMatmul,
+  runMatmulRMSNormFused: () => runMatmulRMSNormFused,
+  runMoEGather: () => runMoEGather,
+  runRMSNorm: () => runRMSNorm,
+  runResidualAdd: () => runResidualAdd,
+  runRoPE: () => runRoPE,
+  runScale: () => runScale,
+  runScatterAdd: () => runScatterAdd,
+  runScatterAddDynamic: () => runScatterAddDynamic,
+  runSiLU: () => runSiLU,
+  runSiLURowSplit: () => runSiLURowSplit,
+  runSoftmax: () => runSoftmax,
+  runSoftmaxTopK: () => runSoftmaxTopK,
+  runSwiGLURowsplitBias: () => runSwiGLURowsplitBias,
+  runTopK: () => runTopK,
+  selectDequantKernel: () => selectDequantKernel,
+  selectMatmulKernel: () => selectMatmulKernel,
+  selectMatmulRMSNormFusedVariant: () => selectMatmulRMSNormFusedVariant,
+  selectRMSNormKernel: () => selectRMSNormKernel,
+  setProfilingEnabled: () => setProfilingEnabled,
+  shouldUseFusedMatmulRMSNorm: () => shouldUseFusedMatmulRMSNorm,
+  startProfileSession: () => startProfileSession,
+  validateAttentionLimits: () => validateAttentionLimits
+});
+
+// gpu/kernels/index.ts
+init_utils();
+
+// gpu/kernels/matmul.ts
+init_device();
+init_buffer_dtypes();
+init_buffer_pool();
+
+// gpu/kernels/kernel-base.ts
+init_dispatch();
+init_utils();
 var KernelBase = class {
   device;
   constructor(device2) {
@@ -2394,7 +3282,7 @@ var KernelBase = class {
   }
 };
 
-// ../gpu/kernels/constants.ts
+// gpu/kernels/constants.ts
 var WORKGROUP_SIZES = {
   /** Default workgroup size for most kernels */
   DEFAULT: 256,
@@ -2492,16 +3380,33 @@ var ALIGNMENT = {
   /** Vertex buffer alignment */
   VERTEX: 4
 };
+var PERFORMANCE = {
+  /** Number of warmup runs for benchmarks */
+  WARMUP_RUNS: 5,
+  /** Number of timed runs for benchmarks */
+  TIMED_RUNS: 20,
+  /** Default timeout for operations (ms) */
+  DEFAULT_TIMEOUT: 12e4,
+  /** Max buffer pool size per bucket */
+  MAX_POOL_SIZE_PER_BUCKET: 8,
+  /** Max total pooled buffers */
+  MAX_TOTAL_POOLED_BUFFERS: 64
+};
 
-// ../gpu/kernels/matmul.ts
+// gpu/kernels/matmul.ts
+init_utils();
+var DEBUG_KERNELS = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
 function isFusedQ4KDisabled() {
   const debugFlags = typeof window !== "undefined" ? window : null;
-  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return true;
+  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
+    return true;
   return !shouldUseFusedQ4K();
 }
 function toMatmulDtype(dtype) {
-  if (dtype === "f16") return "f16";
-  if (dtype === "q4k") return "q4k";
+  if (dtype === "f16")
+    return "f16";
+  if (dtype === "q4k")
+    return "q4k";
   return "f32";
 }
 function selectMatmulKernel(options = {}) {
@@ -2518,7 +3423,7 @@ function selectMatmulKernel(options = {}) {
   if (outputDtype === "f16" && preferF16 && inputsAreF16 && capabilities.hasF16) {
     return useVec4 ? "f16_vec4" : "f16";
   }
-  if (outputDtype === "f32" && preferF16 && weightsAreF16 && capabilities.hasF16) {
+  if (preferF16 && weightsAreF16 && capabilities.hasF16) {
     return "f16w_f32a";
   }
   return "f32";
@@ -2540,7 +3445,7 @@ function resolveTransposeB(B, transposeBOption) {
   if (transposeBOption === "auto") {
     const isColMajor = isColumnMajorBuffer(B);
     const result = DEBUG_FORCE_TRANSPOSE_TRUE ? true : !isColMajor;
-    if (_transposeDebugCount < 50) {
+    if (DEBUG_KERNELS && _transposeDebugCount < 50) {
       _transposeDebugCount++;
       console.log(`[resolveTransposeB] isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
     }
@@ -2615,9 +3520,8 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
       } else {
         useQ4KFused = true;
         if (mode === "record") {
-          const MULTICOL_THRESHOLD = 256;
           if (M === 1) {
-            variant = N > MULTICOL_THRESHOLD ? "q4_fused_multicol" : "q4_fused";
+            variant = "q4_fused_multicol";
           } else {
             variant = "q4_fused_batched";
           }
@@ -2635,7 +3539,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
       bDtype: effectiveBDtype,
       outputDtype: requestedOutputDtype
     });
-    useGemv = M === 1 && effectiveBDtype === "f16" && aDtype === "f32" && transposeB;
+    useGemv = M === 1 && effectiveBDtype === "f16" && aDtype === "f32";
     if (useGemv) {
       if (capabilities.hasSubgroups) {
         const MULTICOL_THRESHOLD = 256;
@@ -2707,8 +3611,7 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config2) {
   return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
 }
 function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device2) {
-  const needsWorkgroupsX = uniformWorkgroupsX !== void 0;
-  const uniformSize = needsWorkgroupsX ? 24 : 20;
+  const uniformSize = 32;
   return createUniformBufferWithView(
     label,
     uniformSize,
@@ -2723,9 +3626,7 @@ function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transpose
       } else {
         view.setUint32(16, transposeB ? 1 : 0, true);
       }
-      if (needsWorkgroupsX && uniformWorkgroupsX !== void 0) {
-        view.setUint32(20, uniformWorkgroupsX, true);
-      }
+      view.setUint32(20, uniformWorkgroupsX ?? 0, true);
     },
     recorder,
     device2
@@ -2767,7 +3668,7 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
-  if (_runMatmulDebugCount < 20) {
+  if (DEBUG_KERNELS && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     console.log(`[runMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
@@ -2777,7 +3678,7 @@ async function runMatmul(A, B, M, N, K, options = {}) {
   const rawADtype = getBufferDtype(A);
   const rawBDtype = getBufferDtype(B);
   const requestedOutputDtype = options.outputDtype || "f32";
-  if (!rawBDtype && M <= 2) {
+  if (DEBUG_KERNELS && !rawBDtype && M <= 2) {
     console.warn(`[runMatmul] B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
   const aDtype = toMatmulDtype(rawADtype);
@@ -2807,7 +3708,7 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     requestedOutputDtype,
     options
   );
-  if (bDtype === "q4k") {
+  if (DEBUG_KERNELS && bDtype === "q4k") {
     if (useQ4KFused) {
       console.log(
         `[Matmul] Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} (WARNING: 2.3x slower than dequant)`
@@ -2818,7 +3719,7 @@ async function runMatmul(A, B, M, N, K, options = {}) {
       );
     }
   }
-  if (N > 1e5) {
+  if (DEBUG_KERNELS && N > 1e5) {
     console.log(`[Pipeline] MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
   const config2 = getKernelConfig("matmul", variant);
@@ -2877,7 +3778,7 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
-  if (_recordMatmulDebugCount < 20) {
+  if (DEBUG_KERNELS && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     console.log(`[recordMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
@@ -2956,9 +3857,12 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   return C;
 }
 
-// ../gpu/kernels/dequant.ts
+// gpu/kernels/dequant.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 function selectDequantKernel(options = {}) {
   const capabilities = getKernelCapabilities();
   const { useVec4 = true, outputDtype = "f32" } = options;
@@ -3218,9 +4122,12 @@ async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
   return output;
 }
 
-// ../gpu/kernels/attention.ts
+// gpu/kernels/attention.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_utils();
+var DEBUG_KERNELS2 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
 var AttentionKernel = class extends KernelBase {
   async getPipeline(variant) {
     return this.getPipelineFor("attention", variant);
@@ -3270,9 +4177,15 @@ function selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedL
   }
   return tier;
 }
-function resolveAttentionVariant(tier, isDecode, useF16KV) {
+function resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim) {
   const base = isDecode ? "decode" : "prefill";
   if (tier === "subgroup") {
+    if (useF16KV) {
+      if (numHeads <= 8 && headDim >= 128) {
+        return "decode_chunked_f16kv";
+      }
+      return "decode_streaming_f16kv";
+    }
     return "decode_subgroup";
   }
   if (tier === "tiled_large") {
@@ -3280,6 +4193,9 @@ function resolveAttentionVariant(tier, isDecode, useF16KV) {
   }
   if (tier === "tiled_small") {
     return `${base}_small${useF16KV ? "_f16kv" : ""}`;
+  }
+  if (isDecode && useF16KV && numHeads <= 8 && headDim >= 128) {
+    return "decode_chunked_f16kv";
   }
   return `${base}_streaming${useF16KV ? "_f16kv" : ""}`;
 }
@@ -3299,7 +4215,7 @@ function resolveAttentionPlan(seqLen, headDim, numHeads, attentionKernel, kvDtyp
   const useF16KV = kvDtype === "f16";
   const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV);
+  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
   return { tier, variant, workgroups, useF16KV, isDecode };
 }
@@ -3405,9 +4321,11 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     sharedLimit,
     caps
   );
-  console.warn(
-    `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
-  );
+  if (DEBUG_KERNELS2) {
+    console.warn(
+      `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
+    );
+  }
   const kernel = new AttentionKernel(device2);
   const pipeline = await kernel.getPipeline(plan.variant);
   const outputSize = seqLen * numHeads * headDim * 4;
@@ -3442,9 +4360,13 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
   return output;
 }
 
-// ../gpu/kernels/rmsnorm.ts
+// gpu/kernels/rmsnorm.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
+var DEBUG_KERNELS3 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
 function selectRMSNormKernel(options = {}) {
   const { residual = null, hiddenSize = null } = options;
   if (residual) {
@@ -3460,6 +4382,9 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   let variant = "default";
   if (residual) {
     variant = "residual";
+    if (DEBUG_KERNELS3) {
+      console.log(`[RMSNorm] Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || weight.size / 4}, batchSize=${batchSize}`);
+    }
   } else if (hiddenSize && hiddenSize <= 256) {
     variant = "small";
   }
@@ -3467,6 +4392,7 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   const inferredHiddenSize = hiddenSize || weight.size / 4;
   const outputSize = batchSize * inferredHiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "rmsnorm_output");
+  const hasResidualFlag = residual ? 1 : 0;
   const uniformBuffer = createUniformBufferWithView(
     "rmsnorm_uniforms",
     16,
@@ -3474,11 +4400,14 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
       view.setUint32(0, inferredHiddenSize, true);
       view.setUint32(4, batchSize, true);
       view.setFloat32(8, eps, true);
-      view.setUint32(12, 0, true);
+      view.setUint32(12, hasResidualFlag, true);
     },
     null,
     device2
   );
+  if (DEBUG_KERNELS3 && hasResidualFlag) {
+    console.log(`[RMSNorm] Uniform hasResidual=${hasResidualFlag}, hiddenSize=${inferredHiddenSize}, batchSize=${batchSize}`);
+  }
   const residualBuffer = residual || device2.createBuffer({
     label: "rmsnorm_residual_placeholder",
     size: 4,
@@ -3497,7 +4426,8 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   });
   dispatch(device2, pipeline, bindGroup, batchSize, "rmsnorm");
   uniformBuffer.destroy();
-  if (!residual) residualBuffer.destroy();
+  if (!residual)
+    residualBuffer.destroy();
   setBufferDtype(output, "f32");
   return output;
 }
@@ -3549,9 +4479,12 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
   return output;
 }
 
-// ../gpu/kernels/softmax.ts
+// gpu/kernels/softmax.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 async function runSoftmax(input, axis, options = {}) {
   const device2 = getDevice();
   const { batchSize = 1, size, temperature = 1, outputBuffer = null } = options;
@@ -3654,8 +4587,11 @@ async function recordSoftmax(recorder, input, axis, options = {}) {
   return output;
 }
 
-// ../gpu/kernels/rope.ts
+// gpu/kernels/rope.ts
 init_device();
+init_buffer_dtypes();
+init_dispatch();
+init_utils();
 async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
   const device2 = getDevice();
   const {
@@ -3737,9 +4673,12 @@ async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options =
   return input;
 }
 
-// ../gpu/kernels/silu.ts
+// gpu/kernels/silu.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 async function runSiLU(input, options = {}) {
   const device2 = getDevice();
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
@@ -3906,9 +4845,12 @@ async function recordSiLU(recorder, input, options = {}) {
   return output;
 }
 
-// ../gpu/kernels/gelu.ts
+// gpu/kernels/gelu.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 async function runGeLU(input, options = {}) {
   const device2 = getDevice();
   const { size, gate = null, outputBuffer = null } = options;
@@ -3978,17 +4920,94 @@ async function recordGeLU(recorder, input, options = {}) {
   return output;
 }
 
-// ../gpu/kernels/gather.ts
+// gpu/kernels/scale.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
+async function runScale(input, scale, options = {}) {
+  const device2 = getDevice();
+  const { count, outputBuffer = null, inplace = false } = options;
+  const inferredCount = count ?? Math.floor(input.size / 4);
+  const variant = inplace ? "inplace" : "default";
+  const pipeline = await createPipeline("scale", variant);
+  const outputSize = inferredCount * 4;
+  const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "scale_uniforms",
+    8,
+    (view) => {
+      view.setUint32(0, inferredCount, true);
+      view.setFloat32(4, scale, true);
+    },
+    null,
+    device2
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "scale_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } }
+    ]
+  });
+  const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
+  dispatch(device2, pipeline, bindGroup, workgroups, "scale");
+  uniformBuffer.destroy();
+  setBufferDtype(output, "f32");
+  return output;
+}
+async function recordScale(recorder, input, scale, options = {}) {
+  const device2 = recorder.device;
+  const { count, outputBuffer = null, inplace = false } = options;
+  const inferredCount = count ?? Math.floor(input.size / 4);
+  const variant = inplace ? "inplace" : "default";
+  const pipeline = await createPipeline("scale", variant);
+  const outputSize = inferredCount * 4;
+  const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "scale_uniforms",
+    8,
+    (view) => {
+      view.setUint32(0, inferredCount, true);
+      view.setFloat32(4, scale, true);
+    },
+    recorder
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "scale_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } }
+    ]
+  });
+  const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, "scale");
+  setBufferDtype(output, "f32");
+  return output;
+}
+
+// gpu/kernels/gather.ts
+init_device();
+init_buffer_dtypes();
+init_buffer_pool();
+init_dispatch();
+init_utils();
+var DEBUG_KERNELS4 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
 async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
   const device2 = getDevice();
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = true } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = false } = options;
   const caps = getKernelCapabilities();
   const bufferDtype = getBufferDtype(embeddings);
   const detectedDtype = embeddingDtype || bufferDtype || "f32";
   const useF16 = detectedDtype === "f16" && caps.hasF16;
-  console.log(`[Gather] numTokens=${numTokens}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}, hasF16=${caps.hasF16}`);
+  if (DEBUG_KERNELS4) {
+    console.log(`[Gather] numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
+  }
   let variant;
   if (useF16) {
     variant = useVec4 ? "f16_vec4" : "f16";
@@ -4028,7 +5047,7 @@ async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, 
 }
 async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
   const device2 = recorder.device;
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = true } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = false } = options;
   const caps = getKernelCapabilities();
   const detectedDtype = embeddingDtype || getBufferDtype(embeddings) || "f32";
   const useF16 = detectedDtype === "f16" && caps.hasF16;
@@ -4068,9 +5087,12 @@ async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize
   return output;
 }
 
-// ../gpu/kernels/residual.ts
+// gpu/kernels/residual.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 async function runResidualAdd(a, b, size, options = {}) {
   const device2 = getDevice();
   const { useVec4 = true, outputBuffer = null } = options;
@@ -4191,9 +5213,12 @@ async function recordBiasAdd(recorder, data, bias, numTokens, dim, options = {})
   return data;
 }
 
-// ../gpu/kernels/moe.ts
+// gpu/kernels/moe.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
   const device2 = getDevice();
   const { normalize = true } = options;
@@ -4363,10 +5388,14 @@ async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffset
   return output;
 }
 
-// ../gpu/kernels/cast.ts
+// gpu/kernels/cast.ts
 init_device();
+init_buffer_dtypes();
 init_buffer_pool();
+init_dispatch();
+init_utils();
 init_perf_guards();
+var DEBUG_CAST = false;
 async function castF32ToF16(input, numElements, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
@@ -4429,13 +5458,15 @@ async function recordCastF32ToF16(recorder, input, numElements, options = {}) {
   return output;
 }
 async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
-  console.log(`[BF16ToF32] Entry: numElements=${numElements}, name=${name}, inputSize=${input.size}`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] Entry: numElements=${numElements}, name=${name}, inputSize=${input.size}`);
   const device2 = getDevice();
   const limits = device2.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
   const outputSize = numElements * 4;
-  console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
   if (outputSize > maxBufferSize) {
     throw new Error(
       `BF16\u2192F32 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}). This often happens for large-vocab models when converting embeddings/LM head. Enable F16 and use BF16\u2192F16 weights, or run on a device with a higher maxBufferSize.`
@@ -4467,9 +5498,11 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
     }
   }
   const pipeline = await createPipeline("bf16_to_f32", "default");
-  console.log(`[BF16ToF32] Pipeline created`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] Pipeline created`);
   const output = acquireBuffer(outputSize, void 0, name);
-  console.log(`[BF16ToF32] Output buffer acquired, size=${output.size}`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] Output buffer acquired, size=${output.size}`);
   const uniformBuffer = createUniformBufferWithView(
     "bf16_to_f32_uniforms",
     16,
@@ -4479,7 +5512,8 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
     null,
     device2
   );
-  console.log(`[BF16ToF32] Uniform: numElements=${numElements}`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] Uniform: numElements=${numElements}`);
   const bindGroup = device2.createBindGroup({
     label: "bf16_to_f32_bind_group",
     layout: pipeline.getBindGroupLayout(0),
@@ -4489,17 +5523,20 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
       { binding: 2, resource: { buffer: output } }
     ]
   });
-  console.log(`[BF16ToF32] BindGroup created`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] BindGroup created`);
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
   const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
   const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
-  console.log(
-    `[BF16ToF32] Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`
-  );
+  if (DEBUG_CAST)
+    console.log(
+      `[BF16ToF32] Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`
+    );
   dispatch(device2, pipeline, bindGroup, dispatchSize, "bf16_to_f32");
   await device2.queue.onSubmittedWorkDone();
-  console.log(`[BF16ToF32] GPU work completed`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] GPU work completed`);
   uniformBuffer.destroy();
   setBufferDtype(output, "f32");
   return output;
@@ -4580,7 +5617,8 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
   const outputSize = numElements * 4;
   const output = acquireBuffer(outputSize, void 0, name);
-  console.log(`[BF16ToF32] Chunking: ${numElements} elements in ${numChunks} chunks`);
+  if (DEBUG_CAST)
+    console.log(`[BF16ToF32] Chunking: ${numElements} elements in ${numChunks} chunks`);
   for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
     const chunkStart = chunkIdx * maxElementsPerChunk;
     const chunkEnd = Math.min((chunkIdx + 1) * maxElementsPerChunk, numElements);
@@ -4621,9 +5659,10 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
   return output;
 }
 
-// ../gpu/kernels/sample.ts
+// gpu/kernels/sample.ts
 init_device();
 init_buffer_pool();
+init_utils();
 init_perf_guards();
 function getSampleBindGroupLayout(device2) {
   return getOrCreateBindGroupLayout(
@@ -4646,7 +5685,8 @@ async function runArgmax(logits, vocabSize) {
     throw new Error("[Sample] GPU readback disabled for argmax");
   }
   const device2 = getDevice();
-  if (!device2) throw new Error("GPU device not initialized");
+  if (!device2)
+    throw new Error("GPU device not initialized");
   const argmaxPipeline = await createSamplePipeline(device2, "argmax");
   const reducePipeline = await createSamplePipeline(device2, "argmax_reduce");
   const workgroupSize = WORKGROUP_SIZES.DEFAULT;
@@ -4733,7 +5773,8 @@ async function runGPUSample(logits, vocabSize, options = {}) {
     return runArgmax(logits, vocabSize);
   }
   const device2 = getDevice();
-  if (!device2) throw new Error("GPU device not initialized");
+  if (!device2)
+    throw new Error("GPU device not initialized");
   const randomValue = randomSeed !== void 0 ? seededRandom(randomSeed) : Math.random();
   const phase1Pipeline = await createSamplePipeline(device2, "find_topk_phase1");
   const phase2Pipeline = await createSamplePipeline(device2, "find_topk_phase2");
@@ -4864,7 +5905,173 @@ function isGPUSamplingAvailable() {
   return getDevice() !== null;
 }
 
-// ../gpu/command-recorder.ts
+// gpu/kernels/fused_ffn.ts
+init_device();
+init_buffer_dtypes();
+init_buffer_pool();
+init_utils();
+var DEBUG_KERNELS5 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+var FusedFFNKernel = class extends KernelBase {
+  async getPipeline(variant) {
+    return this.getPipelineFor("ffn_fused", variant);
+  }
+  dispatch(pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
+    this.dispatchKernel(pipeline, bindGroup, [workgroupsX, workgroupsY, 1], "ffn_fused");
+  }
+  record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
+    this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], "ffn_fused");
+  }
+};
+function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
+  if (intermediateSize <= 1024 && batchSize === 1) {
+    return "multi";
+  }
+  if (batchSize > 1) {
+    return "batched";
+  }
+  if (weightDtype === "f16") {
+    return "f16";
+  }
+  return "default";
+}
+function createFFNUniformBuffer(device2, recorder, params) {
+  return createUniformBufferWithView(
+    "ffn_fused_uniforms",
+    20,
+    (view) => {
+      view.setUint32(0, params.M, true);
+      view.setUint32(4, params.hiddenSize, true);
+      view.setUint32(8, params.intermediateSize, true);
+      view.setFloat32(12, params.alpha, true);
+      view.setUint32(16, params.activation === "silu" ? 0 : 1, true);
+    },
+    recorder,
+    device2
+  );
+}
+async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, options = {}) {
+  const device2 = getDevice();
+  const {
+    batchSize = 1,
+    activation = "silu",
+    alpha = 1,
+    outputBuffer = null
+  } = options;
+  const weightDtype = getBufferDtype(W_gate);
+  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  if (DEBUG_KERNELS5) {
+    console.log(
+      `[FusedFFN] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`
+    );
+  }
+  const kernel = new FusedFFNKernel(device2);
+  const pipeline = await kernel.getPipeline(variant);
+  const outputSize = batchSize * intermediateSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "ffn_fused_output");
+  const uniformBuffer = createFFNUniformBuffer(device2, null, {
+    M: batchSize,
+    hiddenSize,
+    intermediateSize,
+    alpha,
+    activation
+  });
+  const bindGroup = device2.createBindGroup({
+    label: "ffn_fused_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: W_gate } },
+      { binding: 3, resource: { buffer: W_up } },
+      { binding: 4, resource: { buffer: output } }
+    ]
+  });
+  let workgroupsX;
+  let workgroupsY = 1;
+  if (variant === "multi") {
+    const outputsPerWg = 4;
+    workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === "batched") {
+    workgroupsX = intermediateSize;
+    workgroupsY = batchSize;
+  } else {
+    workgroupsX = intermediateSize;
+  }
+  kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
+  uniformBuffer.destroy();
+  return output;
+}
+async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, intermediateSize, options = {}) {
+  const device2 = recorder.device;
+  const {
+    batchSize = 1,
+    activation = "silu",
+    alpha = 1,
+    outputBuffer = null
+  } = options;
+  const weightDtype = getBufferDtype(W_gate);
+  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  if (DEBUG_KERNELS5) {
+    console.log(
+      `[FusedFFN record] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`
+    );
+  }
+  const kernel = new FusedFFNKernel(device2);
+  const pipeline = await kernel.getPipeline(variant);
+  const outputSize = batchSize * intermediateSize * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "ffn_fused_output");
+  const uniformBuffer = createFFNUniformBuffer(device2, recorder, {
+    M: batchSize,
+    hiddenSize,
+    intermediateSize,
+    alpha,
+    activation
+  });
+  const bindGroup = device2.createBindGroup({
+    label: "ffn_fused_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: W_gate } },
+      { binding: 3, resource: { buffer: W_up } },
+      { binding: 4, resource: { buffer: output } }
+    ]
+  });
+  let workgroupsX;
+  let workgroupsY = 1;
+  if (variant === "multi") {
+    const outputsPerWg = 4;
+    workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === "batched") {
+    workgroupsX = intermediateSize;
+    workgroupsY = batchSize;
+  } else {
+    workgroupsX = intermediateSize;
+  }
+  kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
+  return output;
+}
+function calculateFusedFFNSavings(batchSize, hiddenSize, intermediateSize) {
+  const inputBytes = batchSize * hiddenSize * 4;
+  const intermediateBytes = batchSize * intermediateSize * 4;
+  const separateBytes = 2 * inputBytes + 3 * intermediateBytes;
+  const fusedBytes = inputBytes + intermediateBytes;
+  const savingsBytes = separateBytes - fusedBytes;
+  const savingsPct = savingsBytes / separateBytes * 100;
+  return {
+    separateBytes,
+    fusedBytes,
+    savingsBytes,
+    savingsPct
+  };
+}
+
+// gpu/kernels/index.ts
+init_fused_matmul_rmsnorm();
+init_fused_matmul_rmsnorm();
+
+// gpu/command-recorder.ts
 init_device();
 init_perf_guards();
 var CommandRecorder = class _CommandRecorder {
@@ -5073,7 +6280,8 @@ var CommandRecorder = class _CommandRecorder {
    * Use if an error occurs during recording.
    */
   abort() {
-    if (this.submitted) return;
+    if (this.submitted)
+      return;
     for (const buffer of this.tempBuffers) {
       buffer.destroy();
     }
@@ -5178,7 +6386,647 @@ function createProfilingRecorder(label = "profiled_recorder") {
   return new CommandRecorder(null, label, { profile: true });
 }
 
-// src/reference/index.ts
+// gpu/kernel-benchmark.ts
+init_device();
+init_buffer_pool();
+var DEFAULT_CONFIG2 = {
+  warmupIterations: PERFORMANCE.WARMUP_RUNS,
+  timedIterations: PERFORMANCE.TIMED_RUNS,
+  modelConfig: {
+    hiddenSize: 1152,
+    // Gemma 3 1B
+    intermediateSize: 6912,
+    // Gemma 3 1B
+    numHeads: 4,
+    // Gemma 3 1B
+    numKVHeads: 1,
+    // Gemma 3 1B (GQA)
+    headDim: 256,
+    // Gemma 3 1B
+    vocabSize: 262144,
+    // Gemma 3 1B
+    numLayers: 26
+    // Gemma 3 1B
+  }
+};
+function calculateStats(times) {
+  const sorted = [...times].sort((a, b) => a - b);
+  const n = sorted.length;
+  const mean = times.reduce((a, b) => a + b, 0) / n;
+  const variance = times.reduce((sum, t) => sum + (t - mean) ** 2, 0) / n;
+  const stddev = Math.sqrt(variance);
+  return {
+    median: sorted[Math.floor(n / 2)],
+    min: sorted[0],
+    max: sorted[n - 1],
+    p95: sorted[Math.floor(n * 0.95)],
+    p99: sorted[Math.floor(n * 0.99)],
+    stddev,
+    mean
+  };
+}
+function estimateFLOPS(kernel, config2, latencyMs) {
+  let flops = 0;
+  switch (kernel) {
+    case "matmul":
+      flops = 2 * (config2.M || 1) * (config2.N || 1) * (config2.K || 1);
+      break;
+    case "attention":
+      const qk = 2 * (config2.seqLen || 1) * (config2.kvLen || 1) * (config2.headDim || 128) * (config2.numHeads || 1);
+      const sm = 5 * (config2.seqLen || 1) * (config2.kvLen || 1) * (config2.numHeads || 1);
+      const v = 2 * (config2.seqLen || 1) * (config2.kvLen || 1) * (config2.headDim || 128) * (config2.numHeads || 1);
+      flops = qk + sm + v;
+      break;
+    case "rmsnorm":
+      flops = 4 * (config2.size || 1);
+      break;
+    case "silu":
+      flops = 2 * (config2.size || 1);
+      break;
+    default:
+      flops = config2.size || config2.elements || 1;
+  }
+  const gflops = flops / (latencyMs * 1e6);
+  const theoretical = 1e4;
+  return { gflops, theoretical };
+}
+function createTestBuffer(size, label) {
+  const buffer = acquireBuffer(size, void 0, label);
+  const device2 = getDevice();
+  const data = new Float32Array(size / 4);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (Math.random() - 0.5) * 2;
+  }
+  device2.queue.writeBuffer(buffer, 0, data);
+  return buffer;
+}
+async function benchmarkKernel(name, variant, config2, runFn, warmupIterations, timedIterations) {
+  const device2 = getDevice();
+  for (let i = 0; i < warmupIterations; i++) {
+    await runFn();
+    await device2.queue.onSubmittedWorkDone();
+  }
+  const times = [];
+  for (let i = 0; i < timedIterations; i++) {
+    const start = performance.now();
+    await runFn();
+    await device2.queue.onSubmittedWorkDone();
+    times.push(performance.now() - start);
+  }
+  const stats = calculateStats(times);
+  const flopsInfo = estimateFLOPS(name, config2, stats.median);
+  const readBytes = config2.readBytes || config2.size * 4 || 0;
+  const writeBytes = config2.writeBytes || config2.size * 4 || 0;
+  const totalBytes = readBytes + writeBytes;
+  const gbPerSec = totalBytes / (stats.median * 1e6);
+  return {
+    kernel: name,
+    variant,
+    config: config2,
+    latency: {
+      median_ms: stats.median,
+      min_ms: stats.min,
+      max_ms: stats.max,
+      p95_ms: stats.p95,
+      p99_ms: stats.p99,
+      stddev_ms: stats.stddev
+    },
+    throughput: {
+      gb_per_sec: gbPerSec,
+      elements_per_sec: (config2.size || config2.elements || 1) / (stats.median / 1e3)
+    },
+    flops: {
+      gflops: flopsInfo.gflops,
+      theoretical_gflops: flopsInfo.theoretical,
+      efficiency_pct: flopsInfo.gflops / flopsInfo.theoretical * 100
+    },
+    memory: {
+      read_bytes: readBytes,
+      write_bytes: writeBytes,
+      total_bytes: totalBytes
+    },
+    iterations: timedIterations,
+    warmup_iterations: warmupIterations,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  };
+}
+async function benchmarkMatmul(M, N, K, options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2, ...options };
+  const device2 = getDevice();
+  const A = createTestBuffer(M * K * 4, "bench_A");
+  const B = createTestBuffer(K * N * 4, "bench_B");
+  const result = await benchmarkKernel(
+    "matmul",
+    "f32",
+    {
+      M,
+      N,
+      K,
+      readBytes: (M * K + K * N) * 4,
+      writeBytes: M * N * 4
+    },
+    async () => {
+      const C = await runMatmul(A, B, M, N, K);
+      releaseBuffer(C);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  releaseBuffer(A);
+  releaseBuffer(B);
+  return result;
+}
+async function benchmarkAttentionDecode(numHeads, headDim, kvLen, options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2, ...options };
+  const Q = createTestBuffer(numHeads * headDim * 4, "bench_Q");
+  const K = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_K");
+  const V = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_V");
+  const result = await benchmarkKernel(
+    "attention",
+    "decode",
+    {
+      seqLen: 1,
+      kvLen,
+      numHeads,
+      headDim,
+      readBytes: (numHeads * headDim + 2 * kvLen * numHeads * headDim) * 4,
+      writeBytes: numHeads * headDim * 4
+    },
+    async () => {
+      const out = await runAttention(Q, K, V, null, numHeads, headDim, {
+        seqLen: 1,
+        kvLen,
+        numKVHeads: numHeads
+      });
+      releaseBuffer(out);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  releaseBuffer(Q);
+  releaseBuffer(K);
+  releaseBuffer(V);
+  return result;
+}
+async function benchmarkRMSNorm(batchSize, hiddenSize, options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2, ...options };
+  const size = batchSize * hiddenSize;
+  const input = createTestBuffer(size * 4, "bench_input");
+  const weight = createTestBuffer(hiddenSize * 4, "bench_weight");
+  const result = await benchmarkKernel(
+    "rmsnorm",
+    "default",
+    {
+      batchSize,
+      hiddenSize,
+      size,
+      readBytes: (size + hiddenSize) * 4,
+      writeBytes: size * 4
+    },
+    async () => {
+      const out = await runRMSNorm(input, weight, 1e-6, { batchSize, hiddenSize });
+      releaseBuffer(out);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  releaseBuffer(input);
+  releaseBuffer(weight);
+  return result;
+}
+async function benchmarkSiLU(size, options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2, ...options };
+  const input = createTestBuffer(size * 4, "bench_input");
+  const result = await benchmarkKernel(
+    "silu",
+    "default",
+    {
+      size,
+      readBytes: size * 4,
+      writeBytes: size * 4
+    },
+    async () => {
+      const out = await runSiLU(input, { size });
+      releaseBuffer(out);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  releaseBuffer(input);
+  return result;
+}
+async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2, ...options };
+  const { runMatmulRMSNormFused: runMatmulRMSNormFused2, shouldUseFusedMatmulRMSNorm: shouldUseFusedMatmulRMSNorm2 } = await Promise.resolve().then(() => (init_fused_matmul_rmsnorm(), fused_matmul_rmsnorm_exports));
+  if (!shouldUseFusedMatmulRMSNorm2(1, N)) {
+    throw new Error(`Fused kernel not supported for N=${N} (max 4096)`);
+  }
+  const input = createTestBuffer(K * 4, "bench_input");
+  const weight = createTestBuffer(K * N * 4, "bench_weight");
+  const normWeight = createTestBuffer(N * 4, "bench_norm_weight");
+  const residual = createTestBuffer(N * 4, "bench_residual");
+  const separateResult = await benchmarkKernel(
+    "matmul+rmsnorm",
+    "separate",
+    {
+      M: 1,
+      N,
+      K,
+      readBytes: (K + K * N + N + N) * 4,
+      // input + weight + norm_weight + residual
+      writeBytes: N * 4
+    },
+    async () => {
+      const matmulOut = await runMatmul(input, weight, 1, N, K);
+      const normOut = await runRMSNorm(matmulOut, normWeight, 1e-6, {
+        batchSize: 1,
+        hiddenSize: N,
+        residual
+      });
+      releaseBuffer(matmulOut);
+      releaseBuffer(normOut);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  const fusedResult = await benchmarkKernel(
+    "matmul+rmsnorm",
+    "fused",
+    {
+      M: 1,
+      N,
+      K,
+      readBytes: (K + K * N + N + N) * 4,
+      writeBytes: N * 4
+    },
+    async () => {
+      const out = await runMatmulRMSNormFused2(input, weight, normWeight, {
+        N,
+        K,
+        eps: 1e-6,
+        residual
+      });
+      releaseBuffer(out);
+    },
+    config2.warmupIterations,
+    config2.timedIterations
+  );
+  releaseBuffer(input);
+  releaseBuffer(weight);
+  releaseBuffer(normWeight);
+  releaseBuffer(residual);
+  const speedup = separateResult.latency.median_ms / fusedResult.latency.median_ms;
+  const comparison = {
+    baseline: separateResult,
+    optimized: fusedResult,
+    speedup,
+    latency_reduction_pct: (1 - fusedResult.latency.median_ms / separateResult.latency.median_ms) * 100,
+    throughput_increase_pct: (speedup - 1) * 100
+  };
+  console.log(`[Benchmark] Matmul+RMSNorm (N=${N}, K=${K}):`);
+  console.log(`  Separate: ${separateResult.latency.median_ms.toFixed(3)}ms`);
+  console.log(`  Fused:    ${fusedResult.latency.median_ms.toFixed(3)}ms`);
+  console.log(`  Speedup:  ${speedup.toFixed(2)}x`);
+  return { separate: separateResult, fused: fusedResult, comparison };
+}
+async function benchmarkDecodePass(options = {}) {
+  const config2 = { ...DEFAULT_CONFIG2.modelConfig, ...options.modelConfig };
+  const device2 = getDevice();
+  const limits = getDeviceLimits();
+  const caps = getKernelCapabilities();
+  const results = [];
+  console.log("[Benchmark] Starting decode pass benchmark...");
+  console.log(`[Benchmark] Model config: hidden=${config2.hiddenSize}, intermediate=${config2.intermediateSize}, heads=${config2.numHeads}`);
+  console.log("[Benchmark] Running RMSNorm...");
+  results.push(await benchmarkRMSNorm(1, config2.hiddenSize, options));
+  console.log("[Benchmark] Running QKV projection...");
+  const qkvDim = (config2.numHeads + 2 * config2.numKVHeads) * config2.headDim;
+  results.push(await benchmarkMatmul(1, qkvDim, config2.hiddenSize, options));
+  console.log("[Benchmark] Running Attention decode...");
+  const kvLen = 512;
+  results.push(await benchmarkAttentionDecode(config2.numHeads, config2.headDim, kvLen, options));
+  console.log("[Benchmark] Running output projection...");
+  results.push(await benchmarkMatmul(1, config2.hiddenSize, config2.numHeads * config2.headDim, options));
+  console.log("[Benchmark] Running FFN gate+up...");
+  results.push(await benchmarkMatmul(1, config2.intermediateSize * 2, config2.hiddenSize, options));
+  console.log("[Benchmark] Running SiLU...");
+  results.push(await benchmarkSiLU(config2.intermediateSize, options));
+  console.log("[Benchmark] Running FFN down...");
+  results.push(await benchmarkMatmul(1, config2.hiddenSize, config2.intermediateSize, options));
+  console.log("[Benchmark] Running final RMSNorm...");
+  results.push(await benchmarkRMSNorm(1, config2.hiddenSize, options));
+  console.log("[Benchmark] Running LM head...");
+  results.push(await benchmarkMatmul(1, config2.vocabSize, config2.hiddenSize, options));
+  const perLayerLatency = results.slice(0, 8).reduce((sum, r) => sum + r.latency.median_ms, 0);
+  const lmHeadLatency = results[8].latency.median_ms;
+  const totalDecodeLatency = perLayerLatency * config2.numLayers + lmHeadLatency;
+  const tokPerSec = 1e3 / totalDecodeLatency;
+  const sortedByLatency = [...results].sort((a, b) => b.latency.median_ms - a.latency.median_ms);
+  const bottleneck = sortedByLatency[0];
+  const bottleneckPct = bottleneck.latency.median_ms / totalDecodeLatency * 100;
+  const report = {
+    device_info: {
+      vendor: "WebGPU",
+      architecture: "Unknown",
+      max_workgroup_size: limits?.maxComputeInvocationsPerWorkgroup || 256,
+      max_shared_memory: limits?.maxComputeWorkgroupStorageSize || 16384,
+      has_f16: caps.hasF16,
+      has_subgroups: caps.hasSubgroups
+    },
+    model_config: {
+      name: "Gemma 3 1B",
+      hidden_size: config2.hiddenSize,
+      intermediate_size: config2.intermediateSize,
+      num_heads: config2.numHeads,
+      num_kv_heads: config2.numKVHeads,
+      head_dim: config2.headDim,
+      num_layers: config2.numLayers,
+      vocab_size: config2.vocabSize
+    },
+    results,
+    comparisons: [],
+    summary: {
+      total_decode_latency_ms: totalDecodeLatency,
+      estimated_tok_per_sec: tokPerSec,
+      bottleneck_kernel: `${bottleneck.kernel}/${bottleneck.variant}`,
+      bottleneck_percentage: bottleneckPct
+    },
+    generated_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  console.log("\n=== Benchmark Summary ===");
+  console.log(`Total decode latency: ${totalDecodeLatency.toFixed(2)}ms`);
+  console.log(`Estimated tokens/sec: ${tokPerSec.toFixed(1)}`);
+  console.log(`Bottleneck: ${bottleneck.kernel} (${bottleneckPct.toFixed(1)}%)`);
+  return report;
+}
+function compareBenchmarks(baseline, optimized) {
+  const speedup = baseline.latency.median_ms / optimized.latency.median_ms;
+  const latencyReduction = (baseline.latency.median_ms - optimized.latency.median_ms) / baseline.latency.median_ms * 100;
+  const throughputIncrease = (optimized.throughput.gb_per_sec - baseline.throughput.gb_per_sec) / baseline.throughput.gb_per_sec * 100;
+  return {
+    baseline,
+    optimized,
+    speedup,
+    latency_reduction_pct: latencyReduction,
+    throughput_increase_pct: throughputIncrease
+  };
+}
+function exportBenchmarkJSON(report) {
+  return JSON.stringify(report, null, 2);
+}
+function printBenchmarkReport(report) {
+  console.log("\n" + "=".repeat(60));
+  console.log("KERNEL BENCHMARK REPORT");
+  console.log("=".repeat(60));
+  console.log("\nDevice Info:");
+  console.log(`  Max Workgroup Size: ${report.device_info.max_workgroup_size}`);
+  console.log(`  Max Shared Memory: ${(report.device_info.max_shared_memory / 1024).toFixed(1)}KB`);
+  console.log(`  F16 Support: ${report.device_info.has_f16}`);
+  console.log(`  Subgroup Support: ${report.device_info.has_subgroups}`);
+  console.log("\nModel Config:");
+  console.log(`  Name: ${report.model_config.name}`);
+  console.log(`  Hidden Size: ${report.model_config.hidden_size}`);
+  console.log(`  Intermediate Size: ${report.model_config.intermediate_size}`);
+  console.log(`  Heads: ${report.model_config.num_heads} (KV: ${report.model_config.num_kv_heads})`);
+  console.log("\nKernel Results:");
+  console.log("-".repeat(60));
+  console.log("Kernel           | Latency (ms) | GB/s    | GFLOPS");
+  console.log("-".repeat(60));
+  for (const r of report.results) {
+    console.log(
+      `${(r.kernel + "/" + r.variant).padEnd(16)} | ${r.latency.median_ms.toFixed(3).padStart(12)} | ${r.throughput.gb_per_sec.toFixed(2).padStart(7)} | ${r.flops.gflops.toFixed(1).padStart(7)}`
+    );
+  }
+  console.log("-".repeat(60));
+  console.log("\nSummary:");
+  console.log(`  Total Decode Latency: ${report.summary.total_decode_latency_ms.toFixed(2)}ms`);
+  console.log(`  Estimated Tokens/sec: ${report.summary.estimated_tok_per_sec.toFixed(1)}`);
+  console.log(`  Bottleneck: ${report.summary.bottleneck_kernel} (${report.summary.bottleneck_percentage.toFixed(1)}%)`);
+  if (report.comparisons.length > 0) {
+    console.log("\nComparisons:");
+    for (const c of report.comparisons) {
+      console.log(`  ${c.baseline.kernel}: ${c.speedup.toFixed(2)}x speedup`);
+    }
+  }
+  console.log("\n" + "=".repeat(60));
+}
+
+// gpu/perf-profiler.ts
+init_device();
+var profilingEnabled = false;
+var profileEntries = [];
+var profileStartTime = 0;
+function isProfilingEnabled() {
+  if (typeof window !== "undefined") {
+    return Boolean(window.DOPPLER_PROFILE);
+  }
+  return profilingEnabled;
+}
+function setProfilingEnabled(enabled) {
+  profilingEnabled = enabled;
+  if (typeof window !== "undefined") {
+    window.DOPPLER_PROFILE = enabled;
+  }
+}
+function clearProfile() {
+  profileEntries = [];
+  profileStartTime = 0;
+}
+function startProfileSession() {
+  clearProfile();
+  profileStartTime = performance.now();
+}
+function recordProfileEntry(name, category, startTime, endTime, metadata) {
+  if (!isProfilingEnabled())
+    return;
+  profileEntries.push({
+    name,
+    category,
+    startTime,
+    endTime,
+    duration: endTime - startTime,
+    metadata
+  });
+}
+async function profileAsync(name, category, fn, metadata) {
+  if (!isProfilingEnabled()) {
+    return fn();
+  }
+  const startTime = performance.now();
+  try {
+    const result = await fn();
+    const endTime = performance.now();
+    recordProfileEntry(name, category, startTime, endTime, metadata);
+    return result;
+  } catch (error) {
+    const endTime = performance.now();
+    recordProfileEntry(name, category, startTime, endTime, { ...metadata, error: true });
+    throw error;
+  }
+}
+function profileSync(name, category, fn, metadata) {
+  if (!isProfilingEnabled()) {
+    return fn();
+  }
+  const startTime = performance.now();
+  try {
+    const result = fn();
+    const endTime = performance.now();
+    recordProfileEntry(name, category, startTime, endTime, metadata);
+    return result;
+  } catch (error) {
+    const endTime = performance.now();
+    recordProfileEntry(name, category, startTime, endTime, { ...metadata, error: true });
+    throw error;
+  }
+}
+async function profileKernel(name, dispatchFn, metadata) {
+  if (!isProfilingEnabled()) {
+    dispatchFn();
+    return;
+  }
+  const device2 = getDevice();
+  const startTime = performance.now();
+  dispatchFn();
+  await device2.queue.onSubmittedWorkDone();
+  const endTime = performance.now();
+  recordProfileEntry(name, "kernel", startTime, endTime, metadata);
+}
+function getProfileReport() {
+  const entries = [...profileEntries];
+  const totalTime = entries.reduce((sum, e) => sum + e.duration, 0);
+  const kernelEntries = entries.filter((e) => e.category === "kernel");
+  const memoryEntries = entries.filter((e) => e.category === "memory");
+  const syncEntries = entries.filter((e) => e.category === "sync");
+  const otherEntries = entries.filter((e) => e.category === "other");
+  const kernelTime = kernelEntries.reduce((sum, e) => sum + e.duration, 0);
+  const memoryTime = memoryEntries.reduce((sum, e) => sum + e.duration, 0);
+  const syncTime = syncEntries.reduce((sum, e) => sum + e.duration, 0);
+  const otherTime = otherEntries.reduce((sum, e) => sum + e.duration, 0);
+  const byName = /* @__PURE__ */ new Map();
+  for (const entry of entries) {
+    const existing = byName.get(entry.name) || { totalTime: 0, count: 0 };
+    existing.totalTime += entry.duration;
+    existing.count += 1;
+    byName.set(entry.name, existing);
+  }
+  const breakdown = Array.from(byName.entries()).map(([name, stats]) => ({
+    name,
+    totalTime: stats.totalTime,
+    count: stats.count,
+    avgTime: stats.totalTime / stats.count,
+    pctOfTotal: stats.totalTime / totalTime * 100
+  })).sort((a, b) => b.totalTime - a.totalTime);
+  const bottlenecks = [];
+  if (syncEntries.length > entries.length * 0.1) {
+    bottlenecks.push({
+      name: "Excessive GPU Syncs",
+      impact: syncTime / totalTime,
+      suggestion: "Use CommandRecorder to batch operations and reduce syncs"
+    });
+  }
+  if (memoryTime > kernelTime) {
+    bottlenecks.push({
+      name: "Memory Bandwidth Bound",
+      impact: memoryTime / totalTime,
+      suggestion: "Consider kernel fusion to reduce memory traffic"
+    });
+  }
+  const smallKernels = kernelEntries.filter((e) => e.duration < 0.1);
+  if (smallKernels.length > kernelEntries.length * 0.5) {
+    const smallKernelTime = smallKernels.reduce((sum, e) => sum + e.duration, 0);
+    bottlenecks.push({
+      name: "Kernel Launch Overhead",
+      impact: smallKernelTime / totalTime,
+      suggestion: "Batch small kernels or increase work per kernel"
+    });
+  }
+  for (const item of breakdown.slice(0, 3)) {
+    if (item.pctOfTotal > 30) {
+      bottlenecks.push({
+        name: `${item.name} dominates (${item.pctOfTotal.toFixed(1)}%)`,
+        impact: item.pctOfTotal / 100,
+        suggestion: `Optimize ${item.name} or check if it's using optimal variant`
+      });
+    }
+  }
+  return {
+    entries,
+    summary: {
+      totalTime,
+      kernelTime,
+      memoryTime,
+      syncTime,
+      otherTime,
+      kernelCount: kernelEntries.length,
+      memoryOps: memoryEntries.length,
+      syncOps: syncEntries.length
+    },
+    breakdown,
+    bottlenecks
+  };
+}
+function printProfileReport(report) {
+  const r = report || getProfileReport();
+  console.log("\n" + "=".repeat(60));
+  console.log("PERFORMANCE PROFILE REPORT");
+  console.log("=".repeat(60));
+  console.log("\nSummary:");
+  console.log(`  Total Time: ${r.summary.totalTime.toFixed(2)}ms`);
+  console.log(`  Kernel Time: ${r.summary.kernelTime.toFixed(2)}ms (${(r.summary.kernelTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  console.log(`  Memory Time: ${r.summary.memoryTime.toFixed(2)}ms (${(r.summary.memoryTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  console.log(`  Sync Time: ${r.summary.syncTime.toFixed(2)}ms (${(r.summary.syncTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  console.log(`  Kernel Count: ${r.summary.kernelCount}`);
+  console.log("\nTop Operations:");
+  console.log("-".repeat(60));
+  console.log("Operation                    | Time (ms) | Count | % Total");
+  console.log("-".repeat(60));
+  for (const item of r.breakdown.slice(0, 10)) {
+    console.log(
+      `${item.name.padEnd(28)} | ${item.totalTime.toFixed(2).padStart(9)} | ${item.count.toString().padStart(5)} | ${item.pctOfTotal.toFixed(1).padStart(7)}%`
+    );
+  }
+  if (r.bottlenecks.length > 0) {
+    console.log("\nBottlenecks:");
+    console.log("-".repeat(60));
+    for (const b of r.bottlenecks) {
+      console.log(`  [${(b.impact * 100).toFixed(0)}%] ${b.name}`);
+      console.log(`       Fix: ${b.suggestion}`);
+    }
+  }
+  console.log("\n" + "=".repeat(60));
+}
+function exportProfileJSON(report) {
+  return JSON.stringify(report || getProfileReport(), null, 2);
+}
+function analyzeDecodePerformance(tokensGenerated, totalTimeMs, targetTokPerSec = 40) {
+  const currentTokPerSec = tokensGenerated / totalTimeMs * 1e3;
+  const gap = targetTokPerSec / currentTokPerSec;
+  const suggestions = [];
+  if (gap > 5) {
+    suggestions.push("Critical: Enable CommandRecorder for batched execution");
+    suggestions.push("Critical: Verify GEMV kernels are being used for M=1 matmuls");
+    suggestions.push("Critical: Check if subgroups are available and enabled");
+  }
+  if (gap > 3) {
+    suggestions.push("Use fused FFN kernel to reduce memory bandwidth");
+    suggestions.push("Enable optimized decode attention kernel");
+    suggestions.push("Profile individual kernels to find dominant operation");
+  }
+  if (gap > 1.5) {
+    suggestions.push("Consider F16 KV cache to reduce memory traffic");
+    suggestions.push("Tune workgroup sizes for your GPU");
+    suggestions.push("Check for unnecessary GPU syncs");
+  }
+  return {
+    currentTokPerSec,
+    targetTokPerSec,
+    gap,
+    suggestions
+  };
+}
+
+// kernel-tests/src/reference/index.ts
 var reference_exports = {};
 __export(reference_exports, {
   argmaxRef: () => argmaxRef,
@@ -5227,7 +7075,7 @@ __export(reference_exports, {
   topkRef: () => topkRef
 });
 
-// src/reference/matmul.ts
+// kernel-tests/src/reference/matmul.ts
 function matmulRef(A, B, M, N, K, alpha = 1) {
   const C = new Float32Array(M * N);
   for (let m = 0; m < M; m++) {
@@ -5271,7 +7119,7 @@ function matvecRef(A, x, M, K) {
   return y;
 }
 
-// src/reference/softmax.ts
+// kernel-tests/src/reference/softmax.ts
 function softmaxRef(input, innerSize, outerSize, temperature = 1) {
   const output = new Float32Array(input.length);
   for (let row = 0; row < outerSize; row++) {
@@ -5330,7 +7178,7 @@ function softmaxInplaceRef(input, innerSize, outerSize, temperature = 1) {
   return input;
 }
 
-// src/reference/silu.ts
+// kernel-tests/src/reference/silu.ts
 function silu(x) {
   return x / (1 + Math.exp(-x));
 }
@@ -5365,7 +7213,7 @@ function siluInplaceRef(input) {
   return input;
 }
 
-// src/reference/rmsnorm.ts
+// kernel-tests/src/reference/rmsnorm.ts
 function rmsNormRef(input, weight, batchSize, hiddenSize, eps = 1e-6) {
   const output = new Float32Array(input.length);
   for (let b = 0; b < batchSize; b++) {
@@ -5400,7 +7248,7 @@ function rmsNormNoWeightRef(input, batchSize, hiddenSize, eps = 1e-6) {
   return output;
 }
 
-// src/reference/rope.ts
+// kernel-tests/src/reference/rope.ts
 function computeRopeFreqs(dim, maxSeqLen, base = 1e4) {
   const halfDim = dim / 2;
   const cos = new Float32Array(maxSeqLen * halfDim);
@@ -5454,7 +7302,7 @@ function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0
   return output;
 }
 
-// src/reference/attention.ts
+// kernel-tests/src/reference/attention.ts
 function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
   const output = new Float32Array(seqLen * numHeads * headDim);
   const scale = 1 / Math.sqrt(headDim);
@@ -5500,7 +7348,8 @@ function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mas
   return output;
 }
 function createCausalMask(seqLen, kvLen = null) {
-  if (kvLen === null) kvLen = seqLen;
+  if (kvLen === null)
+    kvLen = seqLen;
   const mask = new Float32Array(seqLen * kvLen);
   for (let i = 0; i < seqLen; i++) {
     for (let j = 0; j < kvLen; j++) {
@@ -5517,7 +7366,7 @@ function mqaRef(Q, K, V, seqLen, kvLen, numHeads, headDim, mask = null) {
   return attentionRef(Q, K, V, seqLen, kvLen, numHeads, 1, headDim, mask);
 }
 
-// src/reference/topk.ts
+// kernel-tests/src/reference/topk.ts
 function topkRef(probs, numTokens, numExperts, topK, normalize = true) {
   const indices = new Uint32Array(numTokens * topK);
   const weights = new Float32Array(numTokens * topK);
@@ -5577,7 +7426,7 @@ function softmaxTopkRef(logits, numTokens, numExperts, topK, normalize = true) {
   return { indices, weights };
 }
 
-// src/reference/scatter-add.ts
+// kernel-tests/src/reference/scatter-add.ts
 function scatterAddRef(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK) {
   const output = new Float32Array(numTokens * hiddenSize);
   for (let token = 0; token < numTokens; token++) {
@@ -5611,7 +7460,7 @@ function scatterAddAccumulateRef(expertOutputs, indices, weights, numTokens, hid
   return output;
 }
 
-// src/reference/moe-gather.ts
+// kernel-tests/src/reference/moe-gather.ts
 function moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
   const tokenCounts = new Uint32Array(numExperts);
   for (let t = 0; t < numTokens; t++) {
@@ -5665,7 +7514,7 @@ function moeComputeAssignmentsRef(expertIndices, numTokens, numExperts, topK) {
   return { tokenCounts, expertOffsets, totalAssignments: offset };
 }
 
-// src/reference/gather.ts
+// kernel-tests/src/reference/gather.ts
 function gatherRef(embeddings, indices, vocabSize, embedDim) {
   const seqLen = indices.length;
   const output = new Float32Array(seqLen * embedDim);
@@ -5709,7 +7558,7 @@ function gatherWithPosRef(embeddings, posEmbeddings, indices, vocabSize, embedDi
   return output;
 }
 
-// src/reference/residual.ts
+// kernel-tests/src/reference/residual.ts
 function residualAddRef(x, residual) {
   const output = new Float32Array(x.length);
   for (let i = 0; i < x.length; i++) {
@@ -5731,13 +7580,14 @@ function scaledResidualAddRef(x, residual, scale) {
   return output;
 }
 
-// src/reference/dequant.ts
+// kernel-tests/src/reference/dequant.ts
 function float16ToFloat32(bits) {
   const sign = bits >> 15 & 1;
   const exp = bits >> 10 & 31;
   const frac = bits & 1023;
   if (exp === 0) {
-    if (frac === 0) return sign ? -0 : 0;
+    if (frac === 0)
+      return sign ? -0 : 0;
     return (sign ? -1 : 1) * Math.pow(2, -14) * (frac / 1024);
   }
   if (exp === 31) {
@@ -5832,8 +7682,10 @@ function findMinMax(data, offset, length) {
   let max = -Infinity;
   for (let i = 0; i < length; i++) {
     const val = data[offset + i];
-    if (val < min) min = val;
-    if (val > max) max = val;
+    if (val < min)
+      min = val;
+    if (val > max)
+      max = val;
   }
   return { min, max };
 }
@@ -5860,9 +7712,12 @@ function quantizeQ4_KBlockRef(data, offset) {
   let maxScale = 0;
   let maxMinOffset = 0;
   for (let i = 0; i < 8; i++) {
-    if (scales[i] > maxScale) maxScale = scales[i];
-    if (minOffsets[i] > maxMinOffset) maxMinOffset = minOffsets[i];
-    if (minOffsets[i] < 0) minOffsets[i] = 0;
+    if (scales[i] > maxScale)
+      maxScale = scales[i];
+    if (minOffsets[i] > maxMinOffset)
+      maxMinOffset = minOffsets[i];
+    if (minOffsets[i] < 0)
+      minOffsets[i] = 0;
   }
   const d = maxScale / 63;
   const dmin = maxMinOffset / 63;
@@ -5960,7 +7815,7 @@ function dequantQ4_KRef(quantized, numBlocks) {
   return out;
 }
 
-// src/reference/sample.ts
+// kernel-tests/src/reference/sample.ts
 function argmaxRef(logits) {
   let maxIdx = 0;
   let maxVal = logits[0];
@@ -5988,7 +7843,8 @@ function softmaxWithTemp(logits, temperature) {
   }
   let max = scaled[0];
   for (let i = 1; i < scaled.length; i++) {
-    if (scaled[i] > max) max = scaled[i];
+    if (scaled[i] > max)
+      max = scaled[i];
   }
   let sum = 0;
   for (let i = 0; i < scaled.length; i++) {
@@ -6024,7 +7880,7 @@ function seededRandom2(seed) {
   return x - Math.floor(x);
 }
 
-// src/harness/tolerance.ts
+// kernel-tests/src/harness/tolerance.ts
 var KERNEL_TOLERANCES = {
   matmul_f32: { rtol: 1e-5, atol: 1e-6 },
   matmul_f16: { rtol: 0.01, atol: 1e-3 },
@@ -6116,7 +7972,7 @@ function generateTestData(size, seed = 42, options = {}) {
   return data;
 }
 
-// browser/test-page.ts
+// kernel-tests/browser/test-page.ts
 var {
   runMatmul: runMatmul2 = null,
   runSoftmax: runSoftmax2 = null,
@@ -6127,10 +7983,13 @@ var {
   runRMSNorm: runRMSNorm2 = null,
   runRoPE: runRoPE2 = null,
   runSiLU: runSiLU2 = null,
+  runSwiGLURowsplitBias: runSwiGLURowsplitBias2 = null,
+  runScale: runScale2 = null,
   runGather: runGather2 = null,
   runResidualAdd: runResidualAdd2 = null,
   runAttention: runAttention2 = null,
-  dequantize: dequantize2 = null
+  dequantize: dequantize2 = null,
+  dequantizeQ6K: dequantizeQ6K2 = null
 } = kernel_selector_exports;
 var bufferPool = null;
 try {
@@ -6140,8 +7999,22 @@ try {
 }
 var device = null;
 var initialized = false;
+function f16ToF32(h) {
+  const sign = (h & 32768) >> 15;
+  const exponent = (h & 31744) >> 10;
+  const mantissa = h & 1023;
+  if (exponent === 0) {
+    if (mantissa === 0)
+      return sign ? -0 : 0;
+    return (sign ? -1 : 1) * Math.pow(2, -14) * (mantissa / 1024);
+  } else if (exponent === 31) {
+    return mantissa === 0 ? sign ? -Infinity : Infinity : NaN;
+  }
+  return (sign ? -1 : 1) * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
+}
 async function initGPU() {
-  if (device) return device;
+  if (device)
+    return device;
   device = await initDevice();
   if (!device) {
     throw new Error("WebGPU not available");
@@ -6513,6 +8386,74 @@ var testHarness = {
     });
     logitsBuf.destroy();
     return tokenId;
+  },
+  /**
+   * Run SwiGLU activation: output = SiLU(gate) * up
+   * Tests the gated SiLU variant from the silu kernel
+   */
+  async runSwiGLU(dev, gate, up, gateBias, upBias) {
+    const size = gate.length;
+    const gateWithBias = new Float32Array(size);
+    const upWithBias = new Float32Array(size);
+    for (let i = 0; i < size; i++) {
+      gateWithBias[i] = gate[i] + gateBias[i];
+      upWithBias[i] = up[i] + upBias[i];
+    }
+    if (!runSiLU2) {
+      const result2 = new Float32Array(size);
+      for (let i = 0; i < size; i++) {
+        const silu2 = gateWithBias[i] / (1 + Math.exp(-gateWithBias[i]));
+        result2[i] = silu2 * upWithBias[i];
+      }
+      return result2;
+    }
+    const gateBuf = makeBuffer(gateWithBias);
+    const upBuf = makeBuffer(upWithBias);
+    const resultBuf = await runSiLU2(upBuf, { size, gate: gateBuf });
+    const result = new Float32Array(await readBufferData(resultBuf, size * 4));
+    gateBuf.destroy();
+    upBuf.destroy();
+    resultBuf.destroy();
+    return result;
+  },
+  /**
+   * Run scale kernel: output[i] = input[i] * scale
+   */
+  async runScale(dev, input, scale) {
+    if (!runScale2) {
+      const result2 = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        result2[i] = input[i] * scale;
+      }
+      return result2;
+    }
+    const inputBuf = makeBuffer(input);
+    const resultBuf = await runScale2(inputBuf, scale, { count: input.length });
+    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+    inputBuf.destroy();
+    resultBuf.destroy();
+    return result;
+  },
+  /**
+   * Run Q6_K dequantization
+   * Note: Q6K outputs f16, which we read as f16 and convert to f32
+   */
+  async runDequantQ6K(dev, quantized, numBlocks) {
+    if (!dequantizeQ6K2) {
+      throw new Error("dequantizeQ6K kernel not available");
+    }
+    const blockSize = 256;
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const outBuf = await dequantizeQ6K2(qBuf, numBlocks, { outputOffset: 0 });
+    const rawData = await readBufferData(outBuf, numBlocks * blockSize * 2);
+    const u16View = new Uint16Array(rawData);
+    const out = new Float32Array(u16View.length);
+    for (let i = 0; i < u16View.length; i++) {
+      out[i] = f16ToF32(u16View[i]);
+    }
+    qBuf.destroy();
+    outBuf.destroy();
+    return out;
   }
 };
 window.testHarness = testHarness;
