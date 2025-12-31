@@ -33,7 +33,7 @@ import {
   type WriteResult,
   type WriterOptions,
 } from './rdrr-writer.js';
-import { quantizeToQ4KM, float32ToFloat16 } from './quantizer.js';
+import { quantizeToQ4KM, float32ToFloat16, float16ToFloat32 } from './quantizer.js';
 import { shouldQuantize as shouldQuantizeCore } from './convert-core.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -293,10 +293,38 @@ async function convertSafetensors(
 
       // Use shared logic + embedding override
       if (shouldQuantizeCore(info.name, info.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
+        const expectedElements = info.shape.reduce((a, b) => a * b, 1);
+
+        // Handle different input dtypes - convert to F32 first
+        let f32: Float32Array;
+        if (tensor.dtype === 'BF16') {
+          const bf16Data = new Uint16Array(data);
+          f32 = new Float32Array(bf16Data.length);
+          for (let i = 0; i < bf16Data.length; i++) {
+            const bits = bf16Data[i] << 16;
+            const f32View = new Float32Array(1);
+            new Uint32Array(f32View.buffer)[0] = bits;
+            f32[i] = f32View[0];
+          }
+        } else if (tensor.dtype === 'F16') {
+          const f16Data = new Uint16Array(data);
+          f32 = new Float32Array(f16Data.length);
+          for (let i = 0; i < f16Data.length; i++) {
+            f32[i] = float16ToFloat32(f16Data[i]);
+          }
+        } else {
+          f32 = new Float32Array(data);
+        }
+
+        // Skip quantization if data size doesn't match shape (already packed/quantized)
+        if (f32.length !== expectedElements) {
+          log(`Skipping Q4_K_M for ${info.name}: size mismatch (${f32.length} vs ${expectedElements}, dtype=${tensor.dtype})`);
+          return data;
+        }
+
         log(`Quantizing ${info.name} to Q4_K_M`);
-        const f32 = new Float32Array(data);
-        const q4 = await quantizeToQ4KM(f32);
-        return q4.buffer;
+        const q4 = quantizeToQ4KM(f32, info.shape);
+        return q4.quantized.buffer;
       }
     }
 
