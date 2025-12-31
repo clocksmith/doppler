@@ -13,7 +13,7 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 /** RoPE kernel options */
@@ -41,7 +41,7 @@ export async function runRoPE(
     ropeTheta = 10000.0,
   } = options;
 
-  const pipeline = await createPipeline('rope', 'default');
+  const pipeline = await getPipelineFast('rope', 'default');
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 
@@ -105,7 +105,7 @@ export async function recordRoPE(
     headDim = 64,
   } = options;
 
-  const pipeline = await createPipeline('rope', 'default');
+  const pipeline = await getPipelineFast('rope', 'default');
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 

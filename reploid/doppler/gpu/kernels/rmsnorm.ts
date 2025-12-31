@@ -9,7 +9,7 @@ import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 const DEBUG_KERNELS = typeof window !== 'undefined'
@@ -59,7 +59,7 @@ export async function runRMSNorm(
     variant = 'small';
   }
 
-  const pipeline = await createPipeline('rmsnorm', variant);
+  const pipeline = await getPipelineFast('rmsnorm', variant);
 
   // Create output buffer if not provided
   const inferredHiddenSize = hiddenSize || (weight.size / 4);
@@ -137,7 +137,7 @@ export async function recordRMSNorm(
 
   // Select kernel variant
   const variant = selectRMSNormKernel(options);
-  const pipeline = await createPipeline('rmsnorm', variant);
+  const pipeline = await getPipelineFast('rmsnorm', variant);
 
   // Output buffer
   const output = outputBuffer || acquireBuffer(inputSize, undefined, 'rmsnorm_output');

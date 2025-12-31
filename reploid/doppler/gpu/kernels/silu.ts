@@ -13,7 +13,7 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 /** SiLU kernel options */
@@ -35,7 +35,7 @@ export async function runSiLU(
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
 
   const variant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
-  const pipeline = await createPipeline('silu', variant);
+  const pipeline = await getPipelineFast('silu', variant);
 
   const inferredSize = size || (input.size / 4);
   const outputSize = inferredSize * 4;
@@ -90,7 +90,7 @@ export async function runSwiGLURowsplitBias(
   const device = getDevice();
   const { outputBuffer = null, biasOffset = 0 } = options;
 
-  const pipeline = await createPipeline('swiglu', 'rowsplit_bias');
+  const pipeline = await getPipelineFast('swiglu', 'rowsplit_bias');
 
   const outputSize = numTokens * dim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'swiglu_output');
@@ -151,7 +151,7 @@ export async function runSiLURowSplit(
   const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
 
   const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
-  const pipeline = await createPipeline('silu', variant);
+  const pipeline = await getPipelineFast('silu', variant);
 
   const outputSize = numTokens * dim * 4;  // f32 elements
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
@@ -202,7 +202,7 @@ export async function recordSiLURowSplit(
   const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
 
   const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
-  const pipeline = await createPipeline('silu', variant);
+  const pipeline = await getPipelineFast('silu', variant);
 
   const outputSize = numTokens * dim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
@@ -249,7 +249,7 @@ export async function recordSiLU(
   const { size, gate = null, outputBuffer = null } = options;
 
   const variant = gate ? 'gate' : 'default';
-  const pipeline = await createPipeline('silu', variant);
+  const pipeline = await getPipelineFast('silu', variant);
 
   const inferredSize = size || (input.size / 4);
   const outputSize = inferredSize * 4;

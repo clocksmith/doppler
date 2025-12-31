@@ -12,7 +12,7 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 /** Residual kernel options */
@@ -35,7 +35,7 @@ export async function runResidualAdd(
   const { useVec4 = true, outputBuffer = null } = options;
 
   const variant = useVec4 ? 'vec4' : 'default';
-  const pipeline = await createPipeline('residual', variant);
+  const pipeline = await getPipelineFast('residual', variant);
 
   const outputSize = size * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
@@ -88,7 +88,7 @@ export async function runBiasAdd(
   const device = getDevice();
   const { dataOffset = 0, biasOffset = 0 } = options;
 
-  const pipeline = await createPipeline('bias_add', 'default');
+  const pipeline = await getPipelineFast('bias_add', 'default');
 
   // Bias add is in-place, no output buffer creation needed
   const output = data;
@@ -139,7 +139,7 @@ export async function recordResidualAdd(
   const device = recorder.device;
   const { outputBuffer = null } = options;
 
-  const pipeline = await createPipeline('residual', 'default');
+  const pipeline = await getPipelineFast('residual', 'default');
 
   const outputSize = size * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
@@ -187,7 +187,7 @@ export async function recordBiasAdd(
   const device = recorder.device;
   const { dataOffset = 0, biasOffset = 0 } = options;
 
-  const pipeline = await createPipeline('bias_add', 'default');
+  const pipeline = await getPipelineFast('bias_add', 'default');
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
