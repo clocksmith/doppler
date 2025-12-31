@@ -10,7 +10,7 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 const DEBUG_KERNELS = typeof window !== 'undefined'
@@ -60,7 +60,7 @@ export async function runGather(
   } else {
     variant = useVec4 ? 'vec4' : 'default';
   }
-  const pipeline = await createPipeline('gather', variant);
+  const pipeline = await getPipelineFast('gather', variant);
 
   const outputSize = numTokens * hiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
@@ -131,7 +131,7 @@ export async function recordGather(
   } else {
     variant = useVec4 ? 'vec4' : 'default';
   }
-  const pipeline = await createPipeline('gather', variant);
+  const pipeline = await getPipelineFast('gather', variant);
 
   const outputSize = numTokens * hiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');

@@ -14,8 +14,9 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { ALIGNMENT, GPU_LIMITS, QUANTIZATION, TILE_SIZES } from './constants.js';
-import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
+import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayout, getCachedPipeline, createPipeline, getPipelineFast } from './utils.js';
 import { shouldUseFusedQ4K } from '../kernel-hints.js';
+import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 
 const DEBUG_KERNELS = typeof window !== 'undefined'
@@ -533,7 +534,12 @@ export async function runMatmul(
 
   const config = getKernelConfig('matmul', variant);
   const kernel = new MatmulKernel(device);
-  const pipeline = await kernel.getPipeline(variant);
+
+  // Fast path: use synchronously cached pipeline if available
+  let pipeline = getCachedPipeline('matmul', variant);
+  if (!pipeline) {
+    pipeline = await createPipeline('matmul', variant);
+  }
 
   const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
     variant,
@@ -577,7 +583,7 @@ export async function runMatmul(
   });
 
   kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
 
   setBufferDtype(C, actualOutputDtype);
   return C;
@@ -652,7 +658,12 @@ export async function recordMatmul(
 
   const config = getKernelConfig('matmul', variant);
   const kernel = new MatmulKernel(device);
-  const pipeline = await kernel.getPipeline(variant);
+
+  // Fast path: use synchronously cached pipeline if available
+  let pipeline = getCachedPipeline('matmul', variant);
+  if (!pipeline) {
+    pipeline = await createPipeline('matmul', variant);
+  }
 
   const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
     variant,

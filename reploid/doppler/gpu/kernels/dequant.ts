@@ -14,7 +14,8 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
+import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions, OutputDtypeOptions, OutputOffsetOptions, Vec4Options } from './types.js';
 
 /** Dequantization kernel options */
@@ -107,7 +108,7 @@ export async function dequantize(
 
   // Select kernel
   const variant = selectDequantKernel({ ...options, outputDtype });
-  const pipeline = await createPipeline('dequant', variant);
+  const pipeline = await getPipelineFast('dequant', variant);
 
   // Q4_K_M: 256 elements per block
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
@@ -145,7 +146,8 @@ export async function dequantize(
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   dispatch(device, pipeline, bindGroup, workgroups, 'dequant');
 
-  uniformBuffer.destroy();
+  // Release uniform buffer back to cache (or destroy if not cached)
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
 
   return output;
@@ -167,7 +169,7 @@ export async function dequantizeMXFP4(
     groupSize = 32,  // 32 elements per group (16 bytes * 2 nibbles)
   } = options;
 
-  const pipeline = await createPipeline('dequant', 'mxfp4');
+  const pipeline = await getPipelineFast('dequant', 'mxfp4');
 
   const outputSize = totalElements * 4; // F32 output
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'mxfp4_dequant_output');
@@ -206,7 +208,7 @@ export async function dequantizeMXFP4(
   ];
   dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_dequant');
 
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, 'f32');
 
   return output;
@@ -227,7 +229,7 @@ export async function dequantizeMXFP4Expert(
   const device = getDevice();
   const { outputBuffer = null } = options;
 
-  const pipeline = await createPipeline('dequant', 'mxfp4_expert');
+  const pipeline = await getPipelineFast('dequant', 'mxfp4_expert');
 
   // Output is [out_dim, num_groups * 32] as F32
   const totalOutput = outDim * numGroups * 32;
@@ -269,7 +271,7 @@ export async function dequantizeMXFP4Expert(
   ];
   dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_expert');
 
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, 'f32');
 
   return output;
@@ -302,7 +304,7 @@ export async function dequantizeQ6K(
   } = options;
 
   // Q6_K only has f16 output kernel currently
-  const pipeline = await createPipeline('dequant', 'q6k_f16out');
+  const pipeline = await getPipelineFast('dequant', 'q6k_f16out');
 
   // Q6_K: 256 elements per block
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
@@ -350,7 +352,7 @@ export async function dequantizeQ6K(
 
   dispatch(device, pipeline, bindGroup, workgroups, 'q6k_dequant');
 
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
 
   return output;
@@ -374,7 +376,7 @@ export async function recordDequantize(
 
   // Select kernel
   const variant = selectDequantKernel({ ...options, outputDtype });
-  const pipeline = await createPipeline('dequant', variant);
+  const pipeline = await getPipelineFast('dequant', variant);
 
   // Q4_K: 256 elements per block
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;

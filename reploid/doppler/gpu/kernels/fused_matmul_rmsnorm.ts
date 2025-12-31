@@ -19,7 +19,7 @@ import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
 const DEBUG_KERNELS = typeof window !== 'undefined'
@@ -96,7 +96,7 @@ export async function runMatmulRMSNormFused(
     console.log(`[MatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
   }
 
-  const pipeline = await createPipeline('fused_matmul_rmsnorm', variant);
+  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 
   // Output buffer: [1, N] floats
   const outputSize = N * 4;
@@ -183,7 +183,7 @@ export async function recordMatmulRMSNormFused(
     console.log(`[recordMatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
   }
 
-  const pipeline = await createPipeline('fused_matmul_rmsnorm', variant);
+  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 
   // Output buffer
   const outputSize = N * 4;
