@@ -130,6 +130,41 @@ Control what gets traced with modular categories:
 [Loader] Shard 2: network (64.0 MB, 0.31s @ 206.5 MB/s)
 ```
 
+### Logging Convention
+
+**IMPORTANT:** All library code MUST use the unified debug module instead of raw `console.*` calls.
+
+```typescript
+// Import the debug module
+import { log, trace } from '../debug/index.js';
+
+// DON'T - raw console calls bypass log level control
+console.log('[Pipeline] Model loaded');           // ❌
+console.warn('[Attention] Fallback to CPU');      // ❌
+
+// DO - use the debug module
+log.info('Pipeline', 'Model loaded');             // ✓
+log.warn('Attention', 'Fallback to CPU');         // ✓
+log.debug('Matmul', `M=${M}, N=${N}, K=${K}`);    // ✓
+
+// For trace categories (only logs if category enabled)
+trace.kernels(`matmul M=${M} N=${N}`);            // ✓
+trace.attn(layerIdx, 'Using chunked decode');     // ✓
+trace.loader('Shard 0 from OPFS');                // ✓
+```
+
+**Why this matters:**
+- `setLogLevel('silent')` silences all output
+- `setBenchmarkMode(true)` mutes logs during benchmarks
+- `enableModules('Pipeline')` filters to specific modules
+- `getLogHistory()` captures logs for debugging
+- Consistent formatting with timestamps
+
+**Exceptions (raw console OK):**
+- CLI tools in `tools/` - direct terminal output
+- Test files in `kernel-tests/` - test harness output
+- One-time startup messages in `device.ts`
+
 ### Guardrails
 - All GPU operations must handle device loss gracefully
 - Validate tensor shapes at kernel boundaries

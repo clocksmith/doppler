@@ -547,6 +547,93 @@ function createUniforms(uniforms: KernelUniforms) {
 
 ---
 
+## Logging
+
+All library code MUST use the unified debug module (`debug/index.ts`) instead of raw `console.*` calls.
+
+### Import
+
+```typescript
+import { log, trace } from '../debug/index.js';
+```
+
+### Log Levels
+
+Use the appropriate log level based on message importance:
+
+```typescript
+log.error('Module', 'Critical failure');        // Always shown (except silent)
+log.warn('Module', 'Recoverable issue');        // Shown at warn+ level
+log.info('Module', 'Normal operation');         // Shown at info+ level (default)
+log.verbose('Module', 'Detailed info');         // Shown at verbose+ level
+log.debug('Module', 'Implementation detail');   // Shown at debug level only
+```
+
+### Trace Categories
+
+For kernel/pipeline debugging, use trace categories:
+
+```typescript
+trace.loader('Shard 0 from OPFS');              // Model loading
+trace.kernels(`matmul M=${M} N=${N} K=${K}`);   // Kernel execution
+trace.attn(layerIdx, 'Using chunked decode');   // Attention (layer-aware)
+trace.ffn(layerIdx, 'SwiGLU activation');       // FFN (layer-aware)
+trace.logits('Top-5 tokens computed');          // Logit computation
+trace.sample('Greedy: selected token 42');      // Token sampling
+trace.kv(layerIdx, 'Cache updated');            // KV cache ops
+trace.buffers('Pool: 128MB allocated');         // Buffer stats (expensive!)
+trace.perf('Layer 0: 12.5ms');                  // Performance timing
+```
+
+### DON'T: Raw Console Calls
+
+```typescript
+// BAD - bypasses log level control, no history, inconsistent format
+console.log('[Pipeline] Model loaded');
+console.warn('[Attention] Fallback to CPU');
+console.log(`[Matmul] M=${M}, N=${N}`);
+
+// GOOD - respects log level, captured in history, consistent format
+log.info('Pipeline', 'Model loaded');
+log.warn('Attention', 'Fallback to CPU');
+trace.kernels(`Matmul M=${M}, N=${N}`);
+```
+
+### Module Naming
+
+Use consistent module names matching the file/class:
+
+| File | Module Name |
+|------|-------------|
+| `gpu/kernels/matmul.ts` | `'Matmul'` |
+| `gpu/kernels/attention.ts` | `'Attention'` |
+| `inference/pipeline/layer.ts` | `'Layer'` or `'Pipeline'` |
+| `loader/doppler-loader.ts` | `'Loader'` |
+| `app/app.ts` | `'App'` or `'DopplerDemo'` |
+
+### Exceptions
+
+Raw `console.*` is acceptable in:
+
+1. **CLI tools** (`tools/*.ts`) - Direct terminal output
+2. **Test files** (`kernel-tests/`) - Test harness output
+3. **Benchmarks** - Formatted results tables
+4. **One-time startup** - GPU device info in `device.ts`
+
+### Browser Console API
+
+The debug module exposes `window.DOPPLER` for runtime debugging:
+
+```javascript
+// In browser console
+DOPPLER.setLogLevel('debug');
+DOPPLER.setTrace('kernels,attn');
+DOPPLER.printLogSummary(20);
+DOPPLER.getDebugSnapshot();
+```
+
+---
+
 ## See Also
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions

@@ -728,25 +728,73 @@ const testHarness: TestHarnessImpl = {
    * kernel-selector API: runAttention(Q, K, V, mask, numHeads, headDim, options)
    * options: { seqLen, kvLen, numKVHeads, scale, causal }
    *
-   * NOTE: GPU attention kernel currently has workgroup storage limit issues (>32KB),
-   * so we fall back to reference implementation for now.
+   * Uses production kernel selector which automatically chooses appropriate tier
+   * (subgroup, tiled_small, streaming) based on device capabilities.
    */
   async runAttention(dev, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
-    // TODO: Fix attention.wgsl workgroup storage (49KB > 32KB max)
-    // For now, always use reference implementation
-    return references.attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask);
+    if (!runAttention) {
+      // Fallback to reference if kernel not available
+      return references.attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask);
+    }
+
+    // Create GPU buffers
+    const qBuf = makeBuffer(Q);
+    const kBuf = makeBuffer(K);
+    const vBuf = makeBuffer(V);
+
+    // Run attention via kernel selector (handles tier selection automatically)
+    const outBuf = await runAttention(qBuf, kBuf, vBuf, mask ? makeBuffer(mask) : null, numHeads, headDim, {
+      seqLen,
+      kvLen,
+      numKVHeads,
+      scale: 1 / Math.sqrt(headDim),
+      causal: true,
+    });
+
+    // Read back result
+    const out = new Float32Array(await readBufferData(outBuf, seqLen * numHeads * headDim * 4));
+    qBuf.destroy();
+    kBuf.destroy();
+    vBuf.destroy();
+    outBuf.destroy();
+    return out;
   },
 
   /**
-   * Run MoE gather
-   * TODO: GPU kernel has bugs (wrong token counts), using reference for now
+   * Run MoE gather - dispatches tokens to experts
+   * Now uses the fixed two-phase GPU kernel (count_and_map + gather_tokens)
    */
   async runMoEGather(dev, tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
-    // TODO: Fix moe_gather.wgsl kernel (produces incorrect token counts)
-    const result = references.moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK);
+    if (!runMoEGather) {
+      // Fallback to reference if kernel not available
+      const result = references.moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK);
+      return {
+        gatheredTokens: result.gatheredTokens,
+        tokenCounts: result.tokenCounts,
+      };
+    }
+
+    // Create GPU buffers
+    const tokensBuf = makeBuffer(tokens);
+    const indicesBuf = makeBuffer(expertIndices);
+
+    // Run MoE gather via kernel selector
+    const result = await runMoEGather(tokensBuf, indicesBuf, numTokens, hiddenSize, numExperts, topK);
+
+    // Read back results
+    const maxTokensPerExpert = result.maxTokensPerExpert;
+    const gatheredTokens = new Float32Array(await readBufferData(result.gathered, numExperts * maxTokensPerExpert * hiddenSize * 4));
+    const tokenCounts = new Uint32Array(await readBufferData(result.tokenCounts, numExperts * 4));
+
+    tokensBuf.destroy();
+    indicesBuf.destroy();
+    result.gathered.destroy();
+    result.tokenCounts.destroy();
+    result.tokenMap.destroy();
+
     return {
-      gatheredTokens: result.gatheredTokens,
-      tokenCounts: result.tokenCounts,
+      gatheredTokens,
+      tokenCounts,
     };
   },
 
