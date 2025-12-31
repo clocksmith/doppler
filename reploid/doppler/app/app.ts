@@ -612,9 +612,22 @@ export class DopplerDemo {
     const isUnifiedMemory = this._isUnifiedMemoryArchitecture(info);
 
     // System RAM (for unified memory systems)
+    // Note: navigator.deviceMemory caps at 8GB for privacy
+    // Override with ?ram=24 URL param to show actual RAM
+    const urlParams = new URLSearchParams(window.location.search);
+    const ramOverride = urlParams.get('ram');
     const deviceMemoryGB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-    if (isUnifiedMemory && deviceMemoryGB && this.gpuElements.ramRow && this.gpuElements.ram) {
-      this.gpuElements.ram.textContent = `${deviceMemoryGB} GB`;
+    if (isUnifiedMemory && this.gpuElements.ramRow && this.gpuElements.ram) {
+      if (ramOverride) {
+        this.gpuElements.ram.textContent = `${ramOverride} GB`;
+      } else if (deviceMemoryGB && deviceMemoryGB >= 8) {
+        // 8GB is the max reported, actual RAM is likely higher
+        this.gpuElements.ram.textContent = '8+ GB';
+      } else if (deviceMemoryGB) {
+        this.gpuElements.ram.textContent = `${deviceMemoryGB} GB`;
+      } else {
+        this.gpuElements.ram.textContent = 'Unknown';
+      }
       this.gpuElements.ramRow.hidden = false;
     }
 
