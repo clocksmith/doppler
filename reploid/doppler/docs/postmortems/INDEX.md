@@ -8,6 +8,7 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
+| [Ping-Pong Buffer Release](#pingpong-buffer-release) | Dec 2025 | RESOLVED | Index-based lookup missed buffer B after odd layers |
 | [Buffer Pool Trace False Positives](#buffer-pool-trace-false-positives) | Dec 2025 | RESOLVED | Trace reading garbage from buffer pool padding |
 | [Gemma 3 q_norm/k_norm Offset](#gemma3-qknorm-offset) | Dec 2025 | RESOLVED | Missing +1 offset for q_norm/k_norm weights |
 | [Gemma 3 Magnitude Gap](#gemma3-magnitude-gap) | Dec 2025 | SUPERSEDED | Superseded by q_norm/k_norm fix |
@@ -23,6 +24,14 @@ Quick reference for debugging history and lessons learned.
 ---
 
 ## Post-Mortem Details
+
+### PingPong-Buffer-Release
+
+**Status:** RESOLVED | **File:** [PINGPONG-BUFFER-RELEASE-2025-12-31.md](PINGPONG-BUFFER-RELEASE-2025-12-31.md)
+
+Decode regression after ping-pong buffer optimization (d1b40f0). Two pre-allocated buffers A and B alternate as input/output across layers. After odd layers (1, 3, 5...), buffer release check used `getHiddenBuffer()` which returns index-dependent value. When index swapped back to 0, both `decodeHiddenBuffer` and `decodeAltBuffer` pointed to A, causing B to be incorrectly released. Fix: capture both buffers upfront before the layer loop using `getHiddenBuffer()` (A) and `getOutputHiddenBuffer()` (B). Lesson: index-based lookups are fragile in alternating systems; test buffer lifecycle across multiple iterations.
+
+---
 
 ### Buffer-Pool-Trace-False-Positives
 
@@ -113,6 +122,11 @@ Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings
 ---
 
 ## Common Patterns
+
+### Buffer Lifecycle Bugs
+- Ping-pong release: index-based lookup missed alternate buffer after swap
+- Test buffer reuse across multiple iterations (not just one layer)
+- Capture references upfront if they need to remain stable
 
 ### Silent WebGPU Failures
 - MoE explicit layout: no error, kernel just didn't run

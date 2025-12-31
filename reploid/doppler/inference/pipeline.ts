@@ -32,7 +32,7 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder, type P
 import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
 import type { KernelHints } from '../storage/rdrr-format.js';
 import { allowReadback } from '../gpu/perf-guards.js';
-import { log, setGPUDevice } from '../debug/index.js';
+import { log, trace, setGPUDevice } from '../debug/index.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK, type SamplingOptions } from './pipeline/sampling.js';
@@ -319,7 +319,7 @@ export class InferencePipeline {
     // Single compact model summary line
     const cfg = this.modelConfig;
     const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK || 2})` : '';
-    console.log(`[Pipeline] ${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, hints=${hintsSource}`);
+    log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, hints=${hintsSource}`);
 
     // Initialize tokenizer
     this.tokenizer = await initTokenizer(manifest, this.baseUrl ?? undefined);
@@ -327,7 +327,7 @@ export class InferencePipeline {
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
       if (tokenizerVocabSize !== this.modelConfig.vocabSize) {
         // Don't override - use model's vocab size for embedding compatibility
-        console.log(`[Pipeline] Tokenizer vocabSize=${tokenizerVocabSize} differs from model=${this.modelConfig.vocabSize}, using model size`);
+        log.info('Pipeline', `Tokenizer vocabSize=${tokenizerVocabSize} differs from model=${this.modelConfig.vocabSize}, using model size`);
       }
     }
 
@@ -356,7 +356,7 @@ export class InferencePipeline {
     await this._initRoPE();
 
     this.isLoaded = true;
-    console.log('[Pipeline] Model loaded successfully');
+    log.info('Pipeline', 'Model loaded successfully');
   }
 
   private async _loadWeights(): Promise<void> {
@@ -480,13 +480,13 @@ export class InferencePipeline {
       if (opts.useChatTemplate) {
         if (this.modelConfig!.isGemma3) {
           processedPrompt = applyGemmaChatTemplate(prompt);
-          if (opts.debug) console.log('[Pipeline] Applied Gemma chat template');
+          if (opts.debug) log.debug('Pipeline', 'Applied Gemma chat template');
         } else if (this.modelConfig!.isLlama3Instruct) {
           processedPrompt = applyLlama3ChatTemplate(prompt);
-          if (opts.debug) console.log('[Pipeline] Applied Llama 3 chat template');
+          if (opts.debug) log.debug('Pipeline', 'Applied Llama 3 chat template');
         } else if (this.modelConfig!.isGptOss) {
           processedPrompt = applyGptOssChatTemplate(prompt);
-          if (opts.debug) console.log('[Pipeline] Applied GPT-OSS chat template');
+          if (opts.debug) log.debug('Pipeline', 'Applied GPT-OSS chat template');
         }
       }
 
@@ -495,7 +495,7 @@ export class InferencePipeline {
       const generatedIds = [...inputIds];
 
       if (opts.debug) {
-        console.log(`[Pipeline] Input: ${inputIds.length} tokens`);
+        log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
       }
 
       // Prefill
@@ -508,7 +508,7 @@ export class InferencePipeline {
         const inputTokenTexts = inputIds
           .map(id => `${id}="${this.tokenizer?.decode?.([id]) || '?'}"`)
           .join(', ');
-        console.log(`[Pipeline] Input tokens (${inputIds.length}): ${inputTokenTexts}`);
+        log.debug('Pipeline', `Input tokens (${inputIds.length}): ${inputTokenTexts}`);
       }
 
       // Apply repetition penalty and sample first token
@@ -517,7 +517,7 @@ export class InferencePipeline {
       // Debug: check logits after repetition penalty
       if (opts.debug) {
         const topAfterPenalty = getTopK(prefillLogits, 5, (tokens) => this.tokenizer?.decode?.(tokens) || '?');
-        console.log(`[Pipeline] After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
+        log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
       }
 
       const firstToken = sample(prefillLogits, {
@@ -527,7 +527,7 @@ export class InferencePipeline {
       });
 
       if (opts.debug) {
-        console.log(`[Pipeline] First token sampled: id=${firstToken} text="${this.tokenizer?.decode?.([firstToken]) || '?'}"`);
+        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${this.tokenizer?.decode?.([firstToken]) || '?'}"`);
       }
 
       generatedIds.push(firstToken);
@@ -550,7 +550,7 @@ export class InferencePipeline {
       const useBatchPath = opts.batchSize > 1 && this.useGPU && isGPUSamplingAvailable();
 
       if (opts.debug && useBatchPath) {
-        console.log(`[Pipeline] Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
+        log.debug('Pipeline', `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
       }
 
       while (tokensGenerated < opts.maxTokens) {
@@ -592,7 +592,7 @@ export class InferencePipeline {
             }
           } catch (error) {
             // Fallback to single-token path on batch error
-            console.warn('[Pipeline] Batch decode failed, falling back to single-token:', error);
+            log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
             const nextToken = await this._decodeStep(generatedIds, opts);
             generatedIds.push(nextToken);
             tokensGenerated++;
@@ -619,10 +619,7 @@ export class InferencePipeline {
           if (opts.debug || opts.benchmark) {
             const elapsedMs = performance.now() - decodeStart;
             const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
-            console.log(
-              `[Decode] #${tokensGenerated} "${tokenText}" ` +
-              `${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`
-            );
+            log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
           }
 
           // Check stop
@@ -641,7 +638,7 @@ export class InferencePipeline {
       this.stats.totalTimeMs = performance.now() - startTime;
 
       if (opts.debug) {
-        console.log(`[Pipeline] Generated ${tokensGenerated} tokens in ${this.stats.totalTimeMs.toFixed(0)}ms`);
+        log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.stats.totalTimeMs.toFixed(0)}ms`);
       }
 
       // Log benchmark stats when enabled
@@ -649,7 +646,7 @@ export class InferencePipeline {
         const ttft = this.stats.prefillTimeMs;
         const decodeTokens = tokensGenerated - 1; // First token comes from prefill
         const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.stats.decodeTimeMs * 1000) : 0;
-        console.log(`[Benchmark] TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+        log.info('Benchmark', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
       }
     } finally {
       this.isGenerating = false;
@@ -680,7 +677,7 @@ export class InferencePipeline {
 
     const inputIds = this.tokenizer!.encode(processedPrompt);
     if (opts.debug) {
-      console.log(`[Pipeline] PrefillKVOnly: ${inputIds.length} tokens`);
+      log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
 
     await this._prefill(inputIds, opts);
@@ -810,7 +807,7 @@ export class InferencePipeline {
               if (opts.stopSequences.some(seq => fullText.endsWith(seq))) break;
             }
           } catch (error) {
-            console.warn('[Pipeline] Batch decode failed, falling back to single-token:', error);
+            log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
             const nextToken = await this._decodeStep(generatedIds, opts);
             generatedIds.push(nextToken);
             tokensGenerated++;
@@ -833,10 +830,7 @@ export class InferencePipeline {
           if (opts.debug || opts.benchmark) {
             const elapsedMs = performance.now() - decodeStart;
             const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
-            console.log(
-              `[Decode] #${tokensGenerated} "${tokenText}" ` +
-              `${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`
-            );
+            log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
           }
 
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
@@ -872,7 +866,7 @@ export class InferencePipeline {
     }
     const embedBuffer = embedBufferRaw;
     if (opts.debug) {
-      console.log(`[Pipeline] Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedBuffer?.size ?? 'N/A'}`);
+      log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedBuffer?.size ?? 'N/A'}`);
     }
 
     // Create CommandRecorder for batched GPU operations
@@ -926,13 +920,13 @@ export class InferencePipeline {
       const nanCount = f32.filter(x => !Number.isFinite(x)).length;
       const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
       const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
-      console.log(`[Pipeline] After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
-      console.log(`[Pipeline] After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
+      log.debug('Pipeline', `After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
+      log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
     }
 
     // Process all layers
     if (opts.debug) {
-      console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
+      log.debug('Pipeline', `LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     }
     // Track current recorder (undefined in debug mode to enable per-layer readbacks)
     let currentRecorder = recorder;
@@ -1136,8 +1130,10 @@ export class InferencePipeline {
     // Reset ping-pong state at start of each decode step
     this.decodeBufferManager.resetPingPong();
 
-    // Get pre-allocated hidden buffer for decode (avoids pool allocation)
-    const decodeHiddenBuffer = this.decodeBufferManager.getHiddenBuffer();
+    // Get BOTH pre-allocated ping-pong buffers upfront (avoids index-based lookup issues)
+    // These are the two buffers that alternate as input/output across layers
+    const decodeHiddenBuffer = this.decodeBufferManager.getHiddenBuffer();      // A (input at even layers)
+    const decodeAltBuffer = this.decodeBufferManager.getOutputHiddenBuffer();   // B (input at odd layers)
 
     // Embed single token
     const embedBufferRaw = this.weights.get('embed');
@@ -1187,7 +1183,8 @@ export class InferencePipeline {
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         // Don't release pre-allocated decode buffers - they're managed by DecodeBufferManager
-        const decodeAltBuffer = this.decodeBufferManager.getHiddenBuffer();
+        // Use the pre-captured buffers (A and B) captured before the loop, not getHiddenBuffer()
+        // which would return different values based on current ping-pong index
         const isPreAllocated = prevStates === decodeHiddenBuffer || prevStates === decodeAltBuffer;
         if (!isPreAllocated) {
           // When using recorder, track for deferred cleanup after submit

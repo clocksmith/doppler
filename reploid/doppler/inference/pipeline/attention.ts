@@ -37,6 +37,7 @@ import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
+import { log, trace } from '../../debug/index.js';
 
 /**
  * Attention configuration for a layer.
@@ -220,7 +221,7 @@ export async function runLayerAttentionGPU(
     releaseBuffer(qkvOutput);
 
     if (layerIdx === 0 && isPrefill) {
-      console.log(`[Attention] Layer 0 using fused QKV path: ${qSize_}+${kSize_}+${vSize_}=${qkvSize}`);
+      trace.attn(layerIdx, `Using fused QKV path: ${qSize_}+${kSize_}+${vSize_}=${qkvSize}`);
     }
   } else {
     // STANDARD PATH: Separate Q/K/V matmuls
@@ -342,7 +343,7 @@ export async function runLayerAttentionGPU(
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
     if (layerIdx === 0 && isPrefill) {
-      console.log(`[Attention] Layer 0 Q_NORM: qElems=${qElems}, headDim=${headDim}, match=${qElems === headDim}, bufSize=${qNormBuf.size}`);
+      trace.attn(layerIdx, `Q_NORM: qElems=${qElems}, headDim=${headDim}, match=${qElems === headDim}, bufSize=${qNormBuf.size}`);
     }
     if (qElems === headDim) {
       const qNormed = await runRMSNorm(Q, qNormBuf, rmsNormEps, {
@@ -437,7 +438,7 @@ export async function runLayerAttentionGPU(
 
     // Kernel step debug: KV cache state after update
     if (isKernelDebugEnabled(layerIdx)) {
-      console.log(`[KERNEL][L${layerIdx}] KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
+      trace.kv(layerIdx, `KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
       await dumpKVCache(state.kvCache as unknown as import('../kv-cache.js').KVCache, layerIdx);
     }
   } else {
@@ -512,7 +513,7 @@ export async function runLayerAttentionGPU(
       residualFused = true;
 
       if (layerIdx === 0 && !isPrefill) {
-        console.log(`[Attention] Layer 0 using fused o_proj+residual path`);
+        trace.attn(layerIdx, `Using fused o_proj+residual path`);
       }
     } else {
       // STANDARD PATH: o_proj matmul only (residual will be added by layer.ts)

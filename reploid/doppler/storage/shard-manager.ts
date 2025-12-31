@@ -19,6 +19,7 @@ import {
   type HashAlgorithm,
 } from './rdrr-format.js';
 import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quota.js';
+import { log } from '../debug/index.js';
 
 // Re-export for consumers that import from shard-manager
 export { getManifest } from './rdrr-format.js';
@@ -142,7 +143,7 @@ async function initBlake3(requiredAlgorithm: HashAlgorithm | null = null): Promi
       return;
     }
   } catch (e) {
-    console.warn('BLAKE3 WASM module not available:', (e as Error).message);
+    log.warn('ShardManager', `BLAKE3 WASM module not available: ${(e as Error).message}`);
   }
 
   // If BLAKE3 is explicitly required and not available, fail
@@ -446,7 +447,7 @@ export async function loadShardSync(
     }
     // If sync access not supported, fall back to async
     if ((error as Error).name === 'NotSupportedError') {
-      console.warn('Sync access not supported, falling back to async read');
+      log.warn('ShardManager', 'Sync access not supported, falling back to async read');
       const buffer = await loadShard(shardIndex);
       return new Uint8Array(buffer, offset, length);
     }

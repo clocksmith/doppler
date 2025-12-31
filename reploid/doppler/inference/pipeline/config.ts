@@ -3,6 +3,8 @@
  * Handles HuggingFace, GGUF, and llama.cpp config formats.
  */
 
+import { log } from '../../debug/index.js';
+
 export type ActivationType = 'silu' | 'gelu';
 
 export interface RawConfig {
@@ -329,16 +331,16 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   const vocabSize = vocabCandidates.length > 0 ? Math.max(...vocabCandidates) : 32000;
 
   // Infer attention params if missing
-  console.log(`[Config] parseModelConfig: before inference numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}, hasTensors=${!!manifest.tensors}, tensorCount=${Object.keys(manifest.tensors ?? {}).length}`);
+  log.debug('Config', `parseModelConfig: before inference numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}, hasTensors=${!!manifest.tensors}, tensorCount=${Object.keys(manifest.tensors ?? {}).length}`);
   if (!numHeads || !headDim) {
     const inferred = inferAttentionParams(manifest, hiddenSize, numHeads ?? null);
     if (inferred) {
       numHeads = numHeads ?? inferred.numHeads;
       numKVHeads = numKVHeads ?? inferred.numKVHeads;
       headDim = headDim ?? inferred.headDim;
-      console.log(`[Config] Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
+      log.debug('Config', `Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
     } else {
-      console.log(`[Config] WARNING: inferAttentionParams returned null`);
+      log.warn('Config', 'inferAttentionParams returned null');
     }
   }
 
@@ -354,10 +356,10 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   if (!headDim) {
     if (isGemma2Early && hiddenSize === 3584 && numHeads === 16) {
       finalHeadDim = 256;  // Gemma 2 9B uses head_dim=256, not 3584/16=224
-      console.log(`[Config] Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)`);
+      log.debug('Config', 'Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)');
     } else {
       finalHeadDim = Math.floor(hiddenSize / numHeads);
-      console.log(`[Config] WARNING: headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${finalHeadDim}`);
+      log.warn('Config', `headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${finalHeadDim}`);
     }
   }
   headDim = finalHeadDim;
@@ -415,7 +417,7 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     layerTypes = Array.from({ length: numLayers }, (_, i) =>
       i % 2 === 0 ? 'full_attention' : 'sliding_attention'
     );
-    console.log(`[Config] Gemma 2 layer_types: alternating full/sliding (${numLayers} layers)`);
+    log.debug('Config', `Gemma 2 layer_types: alternating full/sliding (${numLayers} layers)`);
   } else if (!layerTypes && isGemma3) {
     const pattern = config.sliding_window_pattern ?? 6;  // Default to 6 if not specified
     layerTypes = Array.from({ length: numLayers }, (_, i) =>

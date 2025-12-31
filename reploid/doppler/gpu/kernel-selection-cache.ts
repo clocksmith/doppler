@@ -7,6 +7,8 @@
  * @module gpu/kernel-selection-cache
  */
 
+import { log } from '../debug/index.js';
+
 let isWarmed = false;
 
 /**
@@ -15,6 +17,6 @@ let isWarmed = false;
 export function markWarmed(): void {
   if (!isWarmed) {
     isWarmed = true;
-    console.log('[KernelCache] Warmed');
+    log.debug('KernelCache', 'Warmed');
   }
 }

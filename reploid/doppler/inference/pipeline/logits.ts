@@ -19,7 +19,7 @@ import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
-import { log } from '../../debug/index.js';
+import { log, trace } from '../../debug/index.js';
 
 // ============================================================================
 // Debug Configuration
@@ -188,7 +188,7 @@ export async function computeLogits(
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
 ): Promise<Float32Array> {
   if (LOGITS_DEBUG) {
-    console.log(`[Pipeline] LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
+    trace.logits(`LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
   }
   const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
   const { finalNorm, lmHead } = weights;
@@ -204,7 +204,7 @@ export async function computeLogits(
 
   // CPU fallback path
   if (LOGITS_DEBUG) {
-    console.log(`[Pipeline] LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
+    trace.logits(`LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
   }
   if (!device || !useGPU) {
     let cpuHiddenStates: Float32Array;
@@ -267,7 +267,7 @@ export async function computeLogits(
     staging.unmap();
     staging.destroy();
     const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-    console.log(`[Pipeline] BEFORE_FINAL_NORM[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`BEFORE_FINAL_NORM[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
 
     // Also read FULL final norm weights
     const wsSize = normWeightBuffer.size;
@@ -280,7 +280,7 @@ export async function computeLogits(
     wstaging.unmap();
     wstaging.destroy();
     const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
-    console.log(`[Pipeline] FULL_FINAL_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, size=${wdata.length}, first5=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`FULL_FINAL_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, size=${wdata.length}, first5=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
@@ -309,7 +309,7 @@ export async function computeLogits(
     staging.destroy();
     const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
     const nonZero = Array.from(data).filter(x => x !== 0).length;
-    console.log(`[Pipeline] LAST_TOKEN_HIDDEN[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`LAST_TOKEN_HIDDEN[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   // Debug: Check hidden state after final norm
@@ -338,7 +338,7 @@ export async function computeLogits(
   const lmHeadDtype = getBufferDtype(lmHeadBuffer);
   const normedDtype = getBufferDtype(normedBuffer);
   if (LOGITS_DEBUG) {
-    console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
+    trace.logits(`LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
   }
 
   // Debug: Sample lm_head weights at start of buffer to verify values look sane
@@ -384,7 +384,7 @@ export async function computeLogits(
 
     const maxAbs = Math.max(...values.map(x => Math.abs(x)));
     const nonZero = values.filter(x => x !== 0).length;
-    console.log(`[Pipeline] LM_HEAD_SAMPLE: dtype=${lmHeadDtype}, bufSize=${lmHeadBuffer.size}, maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${values.length}, first8=[${values.slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`LM_HEAD_SAMPLE: dtype=${lmHeadDtype}, bufSize=${lmHeadBuffer.size}, maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${values.length}, first8=[${values.slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
@@ -469,8 +469,8 @@ export async function computeLogits(
       fullDot += hData[i] * embValues[i];
     }
 
-    console.log(`[Pipeline] MANUAL_DOT_CHECK[blue=${blueTokenId}]: nDims=${embValues.length}, hidden[0..3]=[${Array.from(hData.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}], emb[0..3]=[${Array.from(embValues.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}]`);
-    console.log(`[Pipeline] MANUAL_DOT_CHECK[blue=${blueTokenId}]: fullDot(${embValues.length}dims)=${fullDot.toFixed(4)}`);
+    trace.logits(`MANUAL_DOT_CHECK[blue=${blueTokenId}]: nDims=${embValues.length}, hidden[0..3]=[${Array.from(hData.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}], emb[0..3]=[${Array.from(embValues.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`MANUAL_DOT_CHECK[blue=${blueTokenId}]: fullDot(${embValues.length}dims)=${fullDot.toFixed(4)}`);
     const partialDot = fullDot; // For compatibility with below code
 
     // Also read the GPU-computed logit for "blue" directly from logitsBuffer
@@ -487,7 +487,7 @@ export async function computeLogits(
 
     // Compare partial dot product (128 dims) with extrapolated full
     const extrapolatedFull = partialDot * (hiddenSize / numSamples);
-    console.log(`[Pipeline] LOGIT_COMPARE[blue=${blueTokenId}]: gpuLogit=${gpuLogit.toFixed(4)}, cpuPartial(${numSamples}dims)=${partialDot.toFixed(4)}, extrapolated=${extrapolatedFull.toFixed(4)}, ratio=${(gpuLogit / extrapolatedFull).toFixed(4)}`);
+    trace.logits(`LOGIT_COMPARE[blue=${blueTokenId}]: gpuLogit=${gpuLogit.toFixed(4)}, cpuPartial(${numSamples}dims)=${partialDot.toFixed(4)}, extrapolated=${extrapolatedFull.toFixed(4)}, ratio=${(gpuLogit / extrapolatedFull).toFixed(4)}`);
 
     // Also check token 36889 (_scripts) which is winning
     const scriptsTokenId = 36889;
@@ -501,7 +501,7 @@ export async function computeLogits(
     scriptsStaging.unmap();
     scriptsStaging.destroy();
 
-    console.log(`[Pipeline] LOGIT_CHECK[_scripts=${scriptsTokenId}]: gpuLogit=${scriptsLogit.toFixed(4)}, vs blue=${gpuLogit.toFixed(4)}, diff=${(scriptsLogit - gpuLogit).toFixed(4)}`);
+    trace.logits(`LOGIT_CHECK[_scripts=${scriptsTokenId}]: gpuLogit=${scriptsLogit.toFixed(4)}, vs blue=${gpuLogit.toFixed(4)}, diff=${(scriptsLogit - gpuLogit).toFixed(4)}`);
 
     // Compare embedding values for _scripts vs blue
     // Read 128 embedding dimensions for _scripts (same as blue)
@@ -551,9 +551,9 @@ export async function computeLogits(
     const blueExtrapolated = blueDot * (hiddenSize / numSamples);
     const scriptsExtrapolated = scriptsDot * (hiddenSize / numSamples);
 
-    console.log(`[Pipeline] EMB_COMPARE: blue[0..3]=[${embValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}], _scripts[0..3]=[${scriptsEmbValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}]`);
-    console.log(`[Pipeline] DOT_COMPARE[${numSamples}dims]: blueDot=${blueDot.toFixed(4)}, scriptsDot=${scriptsDot.toFixed(4)}`);
-    console.log(`[Pipeline] DOT_EXTRAPOLATED: blueEst=${blueExtrapolated.toFixed(2)}, scriptsEst=${scriptsExtrapolated.toFixed(2)}, actualBlue=${gpuLogit.toFixed(2)}, actualScripts=${scriptsLogit.toFixed(2)}`);
+    trace.logits(`EMB_COMPARE: blue[0..3]=[${embValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}], _scripts[0..3]=[${scriptsEmbValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`DOT_COMPARE[${numSamples}dims]: blueDot=${blueDot.toFixed(4)}, scriptsDot=${scriptsDot.toFixed(4)}`);
+    trace.logits(`DOT_EXTRAPOLATED: blueEst=${blueExtrapolated.toFixed(2)}, scriptsEst=${scriptsExtrapolated.toFixed(2)}, actualBlue=${gpuLogit.toFixed(2)}, actualScripts=${scriptsLogit.toFixed(2)}`);
 
     // Check if maybe the GPU is using the WRONG token position (row 0 instead of row 6)
     // Read hidden state at position 0 and compute dot product with _scripts
@@ -573,8 +573,8 @@ export async function computeLogits(
     }
     const scriptsExtrapolatedPos0 = scriptsDotPos0 * (hiddenSize / numSamples);
 
-    console.log(`[Pipeline] POS0_CHECK: hidden0[0..3]=[${Array.from(h0Data.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}]`);
-    console.log(`[Pipeline] SCRIPTS_POS0_DOT: dot=${scriptsDotPos0.toFixed(4)}, extrapolated=${scriptsExtrapolatedPos0.toFixed(2)}, actualScripts=${scriptsLogit.toFixed(2)}`);
+    trace.logits(`POS0_CHECK: hidden0[0..3]=[${Array.from(h0Data.slice(0, 4)).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`SCRIPTS_POS0_DOT: dot=${scriptsDotPos0.toFixed(4)}, extrapolated=${scriptsExtrapolatedPos0.toFixed(2)}, actualScripts=${scriptsLogit.toFixed(2)}`);
 
     // Also check what logit the GPU computed at position 0 for _scripts
     const scriptsPos0Offset = (0 * matmulVocabSize + scriptsTokenId) * 4;  // Row 0
@@ -587,7 +587,7 @@ export async function computeLogits(
     sp0Staging.unmap();
     sp0Staging.destroy();
 
-    console.log(`[Pipeline] GPU_LOGIT_BY_POS[_scripts]: pos0=${scriptsLogitPos0.toFixed(2)}, pos6=${scriptsLogit.toFixed(2)}, diff=${(scriptsLogit - scriptsLogitPos0).toFixed(2)}`);
+    trace.logits(`GPU_LOGIT_BY_POS[_scripts]: pos0=${scriptsLogitPos0.toFixed(2)}, pos6=${scriptsLogit.toFixed(2)}, diff=${(scriptsLogit - scriptsLogitPos0).toFixed(2)}`);
 
     // Verify by using gather kernel to read _scripts embedding and compare with manual read
     // Import runGather to read the embedding for token 36889
@@ -611,7 +611,7 @@ export async function computeLogits(
     gStaging.unmap();
     gStaging.destroy();
 
-    console.log(`[Pipeline] GATHER_VS_MANUAL[_scripts]: gather[0..3]=[${Array.from(gatherVals).slice(0, 4).map(x => x.toFixed(4)).join(', ')}], manual[0..3]=[${scriptsEmbValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.logits(`GATHER_VS_MANUAL[_scripts]: gather[0..3]=[${Array.from(gatherVals).slice(0, 4).map(x => x.toFixed(4)).join(', ')}], manual[0..3]=[${scriptsEmbValues.slice(0, 4).map(x => x.toFixed(4)).join(', ')}]`);
 
     // Read full embedding via gather and compute full dot product
     const fullGStaging = device.createBuffer({ size: hiddenSize * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -641,7 +641,7 @@ export async function computeLogits(
       cpuFullDot += fullHiddenVals[i] * fullGatherVals[i];
     }
 
-    console.log(`[Pipeline] FULL_DOT_PRODUCT[_scripts]: cpuFullDot=${cpuFullDot.toFixed(4)}, gpuLogit=${scriptsLogit.toFixed(4)}, diff=${(scriptsLogit - cpuFullDot).toFixed(4)}`);
+    trace.logits(`FULL_DOT_PRODUCT[_scripts]: cpuFullDot=${cpuFullDot.toFixed(4)}, gpuLogit=${scriptsLogit.toFixed(4)}, diff=${(scriptsLogit - cpuFullDot).toFixed(4)}`);
   }
 
   // 4. Read back logits

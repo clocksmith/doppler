@@ -2,6 +2,8 @@
  * Token sampling from logits with temperature, top-k, top-p, and repetition penalty.
  */
 
+import { log, trace } from '../../debug/index.js';
+
 const DEBUG_SAMPLING = typeof window !== 'undefined'
   ? Boolean((window as unknown as { DOPPLER_DEBUG_SAMPLING?: boolean }).DOPPLER_DEBUG_SAMPLING)
   : false;
@@ -88,7 +90,7 @@ export function sample(logits: Float32Array, opts: SamplingOptions): number {
     }
     if (debug) {
       const text = decode?.([maxIdx]) ?? '?';
-      console.log(`[Sampling] Greedy: id=${maxIdx} "${text}" logit=${maxVal.toFixed(4)}`);
+      trace.sample(`Greedy: id=${maxIdx} "${text}" logit=${maxVal.toFixed(4)}`);
     }
     return maxIdx;
   }
@@ -137,7 +139,7 @@ export function sample(logits: Float32Array, opts: SamplingOptions): number {
       const text = decode?.([c.token]) ?? '?';
       return `"${text}"(${(c.prob * 100).toFixed(1)}%)`;
     });
-    console.log(`[Sampling] Top-5 (temp=${temperature}, topK=${topK}, topP=${topP}): ${top5.join(', ')}`);
+    trace.sample(`Top-5 (temp=${temperature}, topK=${topK}, topP=${topP}): ${top5.join(', ')}`);
   }
 
   // Sample from distribution
@@ -196,7 +198,7 @@ export function logitsSanity(
     .filter(t => t.id < logits.length)
     .map(t => `${t.name.trim()}:DOPPLER=${logits[t.id]?.toFixed(2)}/HF=${t.hfLogit.toFixed(2)}`)
     .join(', ');
-  console.log(`[HF_COMPARE] ${label}: ${hfLogits}`);
+  trace.sample(`[HF_COMPARE] ${label}: ${hfLogits}`);
 
   // Debug: Compare logits for specific tokens
   // "▁blue" = 3730, "▁BLUENRG" = 77590, "▁sky" = 7217
@@ -218,7 +220,7 @@ export function logitsSanity(
       .filter(t => t.id < logits.length)
       .map(t => `${t.name}:${logits[t.id]?.toFixed(2)}`)
       .join(', ');
-    console.log(`[Pipeline] ${label} specific: ${debugLogits}`);
+    trace.sample(`${label} specific: ${debugLogits}`);
   }
 
   for (let i = 0; i < logits.length; i++) {
@@ -237,10 +239,10 @@ export function logitsSanity(
   const top5Str = top5.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ');
 
   if (DEBUG_SAMPLING) {
-    console.log(`[Pipeline] ${label} logits: min=${min.toFixed(2)}, max=${max.toFixed(2)} | top-5: ${top5Str}`);
+    trace.sample(`${label} logits: min=${min.toFixed(2)}, max=${max.toFixed(2)} | top-5: ${top5Str}`);
 
     if (nanCount > 0 || infCount > 0) {
-      console.warn(`[Pipeline] ${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
+      log.warn('Sampling', `${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
     }
   }
 

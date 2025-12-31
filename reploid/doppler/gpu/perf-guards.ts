@@ -5,6 +5,8 @@
  * disabled in production or gated behind debug mode.
  */
 
+import { log, trace } from '../debug/index.js';
+
 /**
  * Performance configuration
  */
@@ -100,7 +102,7 @@ export function trackSubmit(): void {
   if (config.trackSubmitCount) {
     counters.submits++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Submit #${counters.submits}`);
+      trace.perf(`PerfGuard: Submit #${counters.submits}`);
     }
   }
 }
@@ -112,7 +114,7 @@ export function trackAllocation(size: number, label?: string): void {
   if (config.trackAllocations) {
     counters.allocations++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Allocation #${counters.allocations}: ${size} bytes (${label || 'unlabeled'})`);
+      trace.buffers(`PerfGuard: Allocation #${counters.allocations}: ${size} bytes (${label || 'unlabeled'})`);
     }
   }
 }
@@ -123,12 +125,12 @@ export function trackAllocation(size: number, label?: string): void {
  */
 export function allowReadback(reason?: string): boolean {
   if (!config.allowGPUReadback) {
-    const message = `[PerfGuard] GPU readback blocked: ${reason || 'unknown reason'}`;
+    const message = `PerfGuard: GPU readback blocked: ${reason || 'unknown reason'}`;
     if (config.strictMode) {
       throw new Error(message);
     }
     if (config.logExpensiveOps) {
-      console.warn(message);
+      log.warn('PerfGuard', message);
     }
     return false;
   }
@@ -136,7 +138,7 @@ export function allowReadback(reason?: string): boolean {
   if (config.trackSubmitCount) {
     counters.readbacks++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Readback #${counters.readbacks}: ${reason || 'unknown'}`);
+      trace.perf(`PerfGuard: Readback #${counters.readbacks}: ${reason || 'unknown'}`);
     }
   }
 
@@ -160,7 +162,7 @@ export function getPerfSummary(): string {
  * Log performance summary to console
  */
 export function logPerfSummary(): void {
-  console.log(getPerfSummary());
+  trace.perf(getPerfSummary());
 }
 
 /**

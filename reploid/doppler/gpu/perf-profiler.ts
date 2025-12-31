@@ -11,6 +11,7 @@
  */
 
 import { getDevice } from './device.js';
+import { log } from '../debug/index.js';
 
 /** Profile entry for a single operation */
 export interface ProfileEntry {
@@ -292,39 +293,39 @@ export function getProfileReport(): ProfileReport {
 export function printProfileReport(report?: ProfileReport): void {
   const r = report || getProfileReport();
 
-  console.log('\n' + '='.repeat(60));
-  console.log('PERFORMANCE PROFILE REPORT');
-  console.log('='.repeat(60));
+  log.info('Profile', '='.repeat(60));
+  log.info('Profile', 'PERFORMANCE PROFILE REPORT');
+  log.info('Profile', '='.repeat(60));
 
-  console.log('\nSummary:');
-  console.log(`  Total Time: ${r.summary.totalTime.toFixed(2)}ms`);
-  console.log(`  Kernel Time: ${r.summary.kernelTime.toFixed(2)}ms (${((r.summary.kernelTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
-  console.log(`  Memory Time: ${r.summary.memoryTime.toFixed(2)}ms (${((r.summary.memoryTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
-  console.log(`  Sync Time: ${r.summary.syncTime.toFixed(2)}ms (${((r.summary.syncTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
-  console.log(`  Kernel Count: ${r.summary.kernelCount}`);
+  log.info('Profile', 'Summary:');
+  log.info('Profile', `  Total Time: ${r.summary.totalTime.toFixed(2)}ms`);
+  log.info('Profile', `  Kernel Time: ${r.summary.kernelTime.toFixed(2)}ms (${((r.summary.kernelTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
+  log.info('Profile', `  Memory Time: ${r.summary.memoryTime.toFixed(2)}ms (${((r.summary.memoryTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
+  log.info('Profile', `  Sync Time: ${r.summary.syncTime.toFixed(2)}ms (${((r.summary.syncTime / r.summary.totalTime) * 100).toFixed(1)}%)`);
+  log.info('Profile', `  Kernel Count: ${r.summary.kernelCount}`);
 
-  console.log('\nTop Operations:');
-  console.log('-'.repeat(60));
-  console.log('Operation                    | Time (ms) | Count | % Total');
-  console.log('-'.repeat(60));
+  log.info('Profile', 'Top Operations:');
+  log.info('Profile', '-'.repeat(60));
+  log.info('Profile', 'Operation                    | Time (ms) | Count | % Total');
+  log.info('Profile', '-'.repeat(60));
 
   for (const item of r.breakdown.slice(0, 10)) {
-    console.log(
+    log.info('Profile',
       `${item.name.padEnd(28)} | ${item.totalTime.toFixed(2).padStart(9)} | ` +
       `${item.count.toString().padStart(5)} | ${item.pctOfTotal.toFixed(1).padStart(7)}%`
     );
   }
 
   if (r.bottlenecks.length > 0) {
-    console.log('\nBottlenecks:');
-    console.log('-'.repeat(60));
+    log.info('Profile', 'Bottlenecks:');
+    log.info('Profile', '-'.repeat(60));
     for (const b of r.bottlenecks) {
-      console.log(`  [${(b.impact * 100).toFixed(0)}%] ${b.name}`);
-      console.log(`       Fix: ${b.suggestion}`);
+      log.info('Profile', `  [${(b.impact * 100).toFixed(0)}%] ${b.name}`);
+      log.info('Profile', `       Fix: ${b.suggestion}`);
     }
   }
 
-  console.log('\n' + '='.repeat(60));
+  log.info('Profile', '='.repeat(60));
 }
 
 /**

@@ -591,7 +591,7 @@ export async function downloadModel(
           // Collect errors instead of swallowing them
           if (error.name !== 'AbortError') {
             downloadErrors.push(error);
-            console.error('[Downloader] Shard download failed:', error.message);
+            log.error('Downloader', `Shard download failed: ${error.message}`);
           }
         });
         downloadPromises.add(promise);

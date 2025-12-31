@@ -26,6 +26,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
+import { log } from '../debug/index.js';
 
 /** Statistics about recorded operations */
 export interface RecorderStats {
@@ -131,7 +132,7 @@ export class CommandRecorder {
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
     } catch (e) {
-      console.warn('[CommandRecorder] Failed to initialize profiling:', e);
+      log.warn('CommandRecorder', `Failed to initialize profiling: ${e}`);
       this.profilingEnabled = false;
     }
   }

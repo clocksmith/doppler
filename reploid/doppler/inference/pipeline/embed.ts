@@ -5,6 +5,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { runGather, recordGather } from '../../gpu/kernel-selector.js';
+import { log, trace } from '../../debug/index.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 
 export interface EmbedConfig {
@@ -161,9 +162,8 @@ export async function embed(
   if (!device) throw new Error('GPU device not available');
 
   if (debug) {
-    console.log(`[Embed] tokens=${numTokens}, hidden=${hiddenSize}, scaleEmbeddings=${scaleEmbeddings}, debug=${debug}`);
-    console.log(`[Embed] DEBUG tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}`);
-    console.log(`[Embed] TOKEN_IDS: [${tokenIds.join(', ')}]`);
+    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}`);
+    trace.embed(`TOKEN_IDS: [${tokenIds.join(', ')}]`);
   }
 
   const tokenIdBuffer = acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
@@ -195,7 +195,7 @@ export async function embed(
     const std = Math.sqrt(variance);
     const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
 
-    console.log(`[Embed] FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.embed(`FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
   if (recorder) {
     recorder.trackTemporaryBuffer(tokenIdBuffer);
@@ -213,7 +213,7 @@ export async function embed(
     const sample = await readBuffer(outputBuffer, Math.min(outputBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
     const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
-    console.log(`[Embed] RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
+    trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
   }
 
   const scaledBuffer = recorder
@@ -229,8 +229,8 @@ export async function embed(
     const sample = await readBuffer(scaledBuffer, Math.min(scaledBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
     const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
-    console.log(`[Embed] SCALED (after *${scaleFactor.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}, buffer.label=${scaledBuffer.label}, buffer.size=${scaledBuffer.size}`);
-    console.log(`[Embed] RETURNING buffer with first8=[${Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
+    trace.embed(`SCALED (after *${scaleFactor.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}, buffer.label=${scaledBuffer.label}, buffer.size=${scaledBuffer.size}`);
+    trace.embed(`RETURNING buffer with first8=[${Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
     if (f32.some(x => !Number.isFinite(x))) {
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');
     }
@@ -275,9 +275,9 @@ export async function validateEmbedding(
 
   const mean = sum / f32.length;
 
-  console.log(`[${label}] tokens=${numTokens}, hidden=${hiddenSize}`);
-  console.log(`[${label}] min=${min.toFixed(4)}, max=${max.toFixed(4)}, mean=${mean.toFixed(4)}`);
-  console.log(`[${label}] zeros=${zeros}/${f32.length}, NaN=${nanCount}, Inf=${infCount}`);
+  trace.embed(`${label}: tokens=${numTokens}, hidden=${hiddenSize}`);
+  trace.embed(`${label}: min=${min.toFixed(4)}, max=${max.toFixed(4)}, mean=${mean.toFixed(4)}`);
+  trace.embed(`${label}: zeros=${zeros}/${f32.length}, NaN=${nanCount}, Inf=${infCount}`);
 
   return { min, max, mean, zeros, nanCount, infCount };
 }

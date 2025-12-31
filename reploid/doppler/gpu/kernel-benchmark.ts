@@ -17,6 +17,7 @@ import { runRMSNorm } from './kernels/rmsnorm.js';
 import { runAttention } from './kernels/attention.js';
 import { runSiLU } from './kernels/silu.js';
 import { PERFORMANCE } from './kernels/constants.js';
+import { log, trace } from '../debug/index.js';
 
 /** Benchmark result for a single kernel */
 export interface KernelBenchmarkResult {
@@ -517,10 +518,7 @@ export async function benchmarkMatmulRMSNormFused(
     throughput_increase_pct: (speedup - 1) * 100,
   };
 
-  console.log(`[Benchmark] Matmul+RMSNorm (N=${N}, K=${K}):`);
-  console.log(`  Separate: ${separateResult.latency.median_ms.toFixed(3)}ms`);
-  console.log(`  Fused:    ${fusedResult.latency.median_ms.toFixed(3)}ms`);
-  console.log(`  Speedup:  ${speedup.toFixed(2)}x`);
+  trace.perf(`Benchmark: Matmul+RMSNorm (N=${N}, K=${K}): Separate: ${separateResult.latency.median_ms.toFixed(3)}ms, Fused: ${fusedResult.latency.median_ms.toFixed(3)}ms, Speedup: ${speedup.toFixed(2)}x`);
 
   return { separate: separateResult, fused: fusedResult, comparison };
 }
@@ -538,45 +536,44 @@ export async function benchmarkDecodePass(
 
   const results: KernelBenchmarkResult[] = [];
 
-  console.log('[Benchmark] Starting decode pass benchmark...');
-  console.log(`[Benchmark] Model config: hidden=${config.hiddenSize}, intermediate=${config.intermediateSize}, heads=${config.numHeads}`);
+  trace.perf(`Benchmark: Starting decode pass benchmark... Model config: hidden=${config.hiddenSize}, intermediate=${config.intermediateSize}, heads=${config.numHeads}`);
 
   // 1. RMSNorm (input normalization)
-  console.log('[Benchmark] Running RMSNorm...');
+  trace.perf('Benchmark: Running RMSNorm...');
   results.push(await benchmarkRMSNorm(1, config.hiddenSize, options));
 
   // 2. QKV projection matmul
-  console.log('[Benchmark] Running QKV projection...');
+  trace.perf('Benchmark: Running QKV projection...');
   const qkvDim = (config.numHeads + 2 * config.numKVHeads) * config.headDim;
   results.push(await benchmarkMatmul(1, qkvDim, config.hiddenSize, options));
 
   // 3. Attention (decode)
-  console.log('[Benchmark] Running Attention decode...');
+  trace.perf('Benchmark: Running Attention decode...');
   const kvLen = 512; // Simulate 512 token context
   results.push(await benchmarkAttentionDecode(config.numHeads, config.headDim, kvLen, options));
 
   // 4. Output projection matmul
-  console.log('[Benchmark] Running output projection...');
+  trace.perf('Benchmark: Running output projection...');
   results.push(await benchmarkMatmul(1, config.hiddenSize, config.numHeads * config.headDim, options));
 
   // 5. FFN gate+up projection
-  console.log('[Benchmark] Running FFN gate+up...');
+  trace.perf('Benchmark: Running FFN gate+up...');
   results.push(await benchmarkMatmul(1, config.intermediateSize * 2, config.hiddenSize, options));
 
   // 6. SiLU activation
-  console.log('[Benchmark] Running SiLU...');
+  trace.perf('Benchmark: Running SiLU...');
   results.push(await benchmarkSiLU(config.intermediateSize, options));
 
   // 7. FFN down projection
-  console.log('[Benchmark] Running FFN down...');
+  trace.perf('Benchmark: Running FFN down...');
   results.push(await benchmarkMatmul(1, config.hiddenSize, config.intermediateSize, options));
 
   // 8. Final RMSNorm
-  console.log('[Benchmark] Running final RMSNorm...');
+  trace.perf('Benchmark: Running final RMSNorm...');
   results.push(await benchmarkRMSNorm(1, config.hiddenSize, options));
 
   // 9. LM head projection
-  console.log('[Benchmark] Running LM head...');
+  trace.perf('Benchmark: Running LM head...');
   results.push(await benchmarkMatmul(1, config.vocabSize, config.hiddenSize, options));
 
   // Calculate summary
@@ -620,10 +617,7 @@ export async function benchmarkDecodePass(
     generated_at: new Date().toISOString(),
   };
 
-  console.log('\n=== Benchmark Summary ===');
-  console.log(`Total decode latency: ${totalDecodeLatency.toFixed(2)}ms`);
-  console.log(`Estimated tokens/sec: ${tokPerSec.toFixed(1)}`);
-  console.log(`Bottleneck: ${bottleneck.kernel} (${bottleneckPct.toFixed(1)}%)`);
+  trace.perf(`Benchmark Summary: Total decode latency: ${totalDecodeLatency.toFixed(2)}ms, Estimated tokens/sec: ${tokPerSec.toFixed(1)}, Bottleneck: ${bottleneck.kernel} (${bottleneckPct.toFixed(1)}%)`);
 
   return report;
 }
@@ -659,29 +653,29 @@ export function exportBenchmarkJSON(report: BenchmarkReport): string {
  * Print benchmark report to console
  */
 export function printBenchmarkReport(report: BenchmarkReport): void {
-  console.log('\n' + '='.repeat(60));
-  console.log('KERNEL BENCHMARK REPORT');
-  console.log('='.repeat(60));
+  log.info('Benchmark', '='.repeat(60));
+  log.info('Benchmark', 'KERNEL BENCHMARK REPORT');
+  log.info('Benchmark', '='.repeat(60));
 
-  console.log('\nDevice Info:');
-  console.log(`  Max Workgroup Size: ${report.device_info.max_workgroup_size}`);
-  console.log(`  Max Shared Memory: ${(report.device_info.max_shared_memory / 1024).toFixed(1)}KB`);
-  console.log(`  F16 Support: ${report.device_info.has_f16}`);
-  console.log(`  Subgroup Support: ${report.device_info.has_subgroups}`);
+  log.info('Benchmark', 'Device Info:');
+  log.info('Benchmark', `  Max Workgroup Size: ${report.device_info.max_workgroup_size}`);
+  log.info('Benchmark', `  Max Shared Memory: ${(report.device_info.max_shared_memory / 1024).toFixed(1)}KB`);
+  log.info('Benchmark', `  F16 Support: ${report.device_info.has_f16}`);
+  log.info('Benchmark', `  Subgroup Support: ${report.device_info.has_subgroups}`);
 
-  console.log('\nModel Config:');
-  console.log(`  Name: ${report.model_config.name}`);
-  console.log(`  Hidden Size: ${report.model_config.hidden_size}`);
-  console.log(`  Intermediate Size: ${report.model_config.intermediate_size}`);
-  console.log(`  Heads: ${report.model_config.num_heads} (KV: ${report.model_config.num_kv_heads})`);
+  log.info('Benchmark', 'Model Config:');
+  log.info('Benchmark', `  Name: ${report.model_config.name}`);
+  log.info('Benchmark', `  Hidden Size: ${report.model_config.hidden_size}`);
+  log.info('Benchmark', `  Intermediate Size: ${report.model_config.intermediate_size}`);
+  log.info('Benchmark', `  Heads: ${report.model_config.num_heads} (KV: ${report.model_config.num_kv_heads})`);
 
-  console.log('\nKernel Results:');
-  console.log('-'.repeat(60));
-  console.log('Kernel           | Latency (ms) | GB/s    | GFLOPS');
-  console.log('-'.repeat(60));
+  log.info('Benchmark', 'Kernel Results:');
+  log.info('Benchmark', '-'.repeat(60));
+  log.info('Benchmark', 'Kernel           | Latency (ms) | GB/s    | GFLOPS');
+  log.info('Benchmark', '-'.repeat(60));
 
   for (const r of report.results) {
-    console.log(
+    log.info('Benchmark',
       `${(r.kernel + '/' + r.variant).padEnd(16)} | ` +
       `${r.latency.median_ms.toFixed(3).padStart(12)} | ` +
       `${r.throughput.gb_per_sec.toFixed(2).padStart(7)} | ` +
@@ -689,18 +683,18 @@ export function printBenchmarkReport(report: BenchmarkReport): void {
     );
   }
 
-  console.log('-'.repeat(60));
-  console.log('\nSummary:');
-  console.log(`  Total Decode Latency: ${report.summary.total_decode_latency_ms.toFixed(2)}ms`);
-  console.log(`  Estimated Tokens/sec: ${report.summary.estimated_tok_per_sec.toFixed(1)}`);
-  console.log(`  Bottleneck: ${report.summary.bottleneck_kernel} (${report.summary.bottleneck_percentage.toFixed(1)}%)`);
+  log.info('Benchmark', '-'.repeat(60));
+  log.info('Benchmark', 'Summary:');
+  log.info('Benchmark', `  Total Decode Latency: ${report.summary.total_decode_latency_ms.toFixed(2)}ms`);
+  log.info('Benchmark', `  Estimated Tokens/sec: ${report.summary.estimated_tok_per_sec.toFixed(1)}`);
+  log.info('Benchmark', `  Bottleneck: ${report.summary.bottleneck_kernel} (${report.summary.bottleneck_percentage.toFixed(1)}%)`);
 
   if (report.comparisons.length > 0) {
-    console.log('\nComparisons:');
+    log.info('Benchmark', 'Comparisons:');
     for (const c of report.comparisons) {
-      console.log(`  ${c.baseline.kernel}: ${c.speedup.toFixed(2)}x speedup`);
+      log.info('Benchmark', `  ${c.baseline.kernel}: ${c.speedup.toFixed(2)}x speedup`);
     }
   }
 
-  console.log('\n' + '='.repeat(60));
+  log.info('Benchmark', '='.repeat(60));
 }

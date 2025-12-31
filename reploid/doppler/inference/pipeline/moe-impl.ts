@@ -28,6 +28,7 @@ import {
   runSwiGLURowsplitBias,
 } from '../../gpu/kernel-selector.js';
 import { MoERouter, createExpertExecutionPlan, combineExpertOutputs } from '../moe-router.js';
+import { log } from '../../debug/index.js';
 import type { ExpertWeights } from './types.js';
 
 // ============================================================================
@@ -285,16 +286,15 @@ export async function moeFeedForwardGPU(
   if (layerIdx === 0) {
     const logitsData = await readBuffer(logitsBuffer, numTokens * numExperts * 4);
     const logitsF32 = new Float32Array(logitsData);
-    console.log(`[DEBUG MoE L${layerIdx}] Router logits (first ${Math.min(numExperts, 8)} experts):`,
-      Array.from(logitsF32.slice(0, Math.min(numExperts, 8))).map(v => v.toFixed(4)).join(', '));
+    log.debug('MoE', `L${layerIdx} Router logits (first ${Math.min(numExperts, 8)} experts): ${Array.from(logitsF32.slice(0, Math.min(numExperts, 8))).map(v => v.toFixed(4)).join(', ')}`);
 
     const indicesData = await readBuffer(indicesBuffer, numTokens * topK * 4);
     const indicesU32 = new Uint32Array(indicesData);
-    console.log(`[DEBUG MoE L${layerIdx}] Expert indices (topK=${topK}):`, Array.from(indicesU32));
+    log.debug('MoE', `L${layerIdx} Expert indices (topK=${topK}): ${Array.from(indicesU32)}`);
 
     const weightsData = await readBuffer(weightsBuffer, numTokens * topK * 4);
     const weightsF32 = new Float32Array(weightsData);
-    console.log(`[DEBUG MoE L${layerIdx}] Expert weights:`, Array.from(weightsF32).map(v => v.toFixed(4)));
+    log.debug('MoE', `L${layerIdx} Expert weights: ${Array.from(weightsF32).map(v => v.toFixed(4))}`);
   }
 
   // Clean up logits buffer
@@ -340,8 +340,8 @@ export async function moeFeedForwardGPU(
         nonZeroCounts.push(`e${e}:${tokenCountsCPU[e]}`);
       }
     }
-    console.log(`[DEBUG MoE L${layerIdx}] Token counts:`, nonZeroCounts.length > 0 ? nonZeroCounts.join(', ') : 'ALL ZERO');
-    console.log(`[DEBUG MoE L${layerIdx}] Total tokens mapped:`, Array.from(tokenCountsCPU).reduce((a, b) => a + b, 0));
+    log.debug('MoE', `L${layerIdx} Token counts: ${nonZeroCounts.length > 0 ? nonZeroCounts.join(', ') : 'ALL ZERO'}`);
+    log.debug('MoE', `L${layerIdx} Total tokens mapped: ${Array.from(tokenCountsCPU).reduce((a, b) => a + b, 0)}`);
   }
 
   // Build tokenOffsets for scatter-add
@@ -368,7 +368,7 @@ export async function moeFeedForwardGPU(
     if (tokenOffsetsCPU[i] === 0xFFFFFFFF) {
       const tokenIdx = Math.floor(i / topK);
       const kIdx = i % topK;
-      console.error(`[DEBUG MoE] Missing offset at i=${i} (token=${tokenIdx}, k=${kIdx})`);
+      log.error('MoE', `Missing offset at i=${i} (token=${tokenIdx}, k=${kIdx})`);
       throw new Error(`[MoE] tokenOffsets incomplete at i=${i}`);
     }
   }
@@ -484,7 +484,7 @@ async function runGptOssExpert(
 
   if (!weights.gateUpBlocks || !weights.gateUpScales || !weights.gateUpBias ||
       !weights.downBlocks || !weights.downScales) {
-    console.warn(`[MoE] GPT-OSS expert ${expertIdx} missing tensors, skipping`);
+    log.warn('MoE', `GPT-OSS expert ${expertIdx} missing tensors, skipping`);
     return;
   }
 
@@ -627,7 +627,7 @@ async function runExpertCPU(
   const weights = expertWeights.get(key);
 
   if (!weights || !weights.gate || !weights.up || !weights.down) {
-    console.warn(`[MoE] Expert ${expertIdx} weights not available for layer ${layerIdx}`);
+    log.warn('MoE', `Expert ${expertIdx} weights not available for layer ${layerIdx}`);
     return new Float32Array(input.length);
   }
 

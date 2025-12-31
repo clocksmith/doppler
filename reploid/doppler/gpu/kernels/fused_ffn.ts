@@ -145,7 +145,7 @@ export async function runFusedFFN(
   const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
 
-  trace.ffn(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
@@ -220,7 +220,7 @@ export async function recordFusedFFN(
   const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
 
-  trace.ffn(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);

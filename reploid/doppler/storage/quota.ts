@@ -9,6 +9,8 @@
  * @module storage/quota
  */
 
+import { log } from '../debug/index.js';
+
 /**
  * Storage quota information
  */
@@ -142,7 +144,7 @@ export async function getQuotaInfo(): Promise<QuotaInfo> {
       criticalSpace: available < CRITICAL_SPACE_THRESHOLD
     };
   } catch (error) {
-    console.warn('Failed to get storage quota:', error);
+    log.warn('Quota', `Failed to get storage quota: ${(error as Error).message}`);
     return {
       usage: 0,
       quota: 0,
@@ -172,7 +174,7 @@ export async function isPersisted(): Promise<boolean> {
     persistenceState = await navigator.storage.persisted();
     return persistenceState;
   } catch (error) {
-    console.warn('Failed to check persistence status:', error);
+    log.warn('Quota', `Failed to check persistence status: ${(error as Error).message}`);
     persistenceState = false;
     return false;
   }
