@@ -25,6 +25,7 @@
 
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
+import { getUniformCache } from './uniform-cache.js';
 
 /** Statistics about recorded operations */
 export interface RecorderStats {
@@ -169,21 +170,21 @@ export class CommandRecorder {
 
   /**
    * Create a uniform buffer, write data, and track for cleanup.
-   * Convenience method for the common uniform buffer pattern.
+   * Uses content-addressed caching for identical uniform data.
    *
    * @param data - Data to write
    * @param label - Buffer label
    * @returns GPUBuffer
    */
   createUniformBuffer(data: ArrayBuffer | ArrayBufferView, label: string = 'uniforms'): GPUBuffer {
-    const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
-    const buffer = this.createTempBuffer(
-      byteLength,
-      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label
-    );
-    this.device.queue.writeBuffer(buffer, 0, data as GPUAllowSharedBufferSource);
-    return buffer;
+    // Convert ArrayBufferView to ArrayBuffer for caching
+    const arrayBuffer = data instanceof ArrayBuffer
+      ? data
+      : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+
+    // Use content-addressed cache for uniform buffers
+    // Cache handles creation, writeBuffer, and lifecycle - no cleanup needed
+    return getUniformCache().getOrCreate(arrayBuffer, label);
   }
 
   /**

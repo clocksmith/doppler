@@ -49,8 +49,8 @@ fn main(
 
     // Load probabilities into shared memory (first numExperts threads)
     if (thread_idx < num_experts) {
-        shared_probs[thread_idx] = probs[base_offset + threadIdx];
-        shared_indices[thread_idx] = threadIdx;
+        shared_probs[thread_idx] = probs[base_offset + thread_idx];
+        shared_indices[thread_idx] = thread_idx;
     }
     workgroupBarrier();
 
@@ -64,7 +64,7 @@ fn main(
 
             // Find maximum in remaining elements
             for (var i: u32 = k + 1u; i < num_experts; i = i + 1u) {
-                if (shared_probs[i] > maxVal) {
+                if (shared_probs[i] > max_val) {
                     max_val = shared_probs[i];
                     max_idx = i;
                 }
@@ -174,8 +174,8 @@ fn softmax_topk(
 
     // Load logits and find max (for numerical stability)
     if (thread_idx < num_experts) {
-        shared_probs[thread_idx] = probs[base_offset + threadIdx];
-        shared_indices[thread_idx] = threadIdx;
+        shared_probs[thread_idx] = probs[base_offset + thread_idx];
+        shared_indices[thread_idx] = thread_idx;
     }
     workgroupBarrier();
 

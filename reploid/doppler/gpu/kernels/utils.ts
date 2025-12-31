@@ -7,6 +7,7 @@
 import { getDevice, getKernelCapabilities, getDeviceLimits } from '../device.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { getKernelTuner } from '../kernel-tuner.js';
+import { getUniformCache } from '../uniform-cache.js';
 
 /** Shader source cache (loaded via fetch) */
 const shaderSourceCache = new Map<string, string>();
@@ -901,6 +902,35 @@ export function getOrCreatePipelineLayout(
 }
 
 /**
+ * Synchronously get a cached pipeline, or null if not cached.
+ * Use this for fast path when you know the pipeline should be warm.
+ */
+export function getCachedPipeline(
+  operation: string,
+  variant: string
+): GPUComputePipeline | null {
+  const cacheKey = `${operation}:${variant}`;
+  return pipelineCache.get(cacheKey) || null;
+}
+
+/**
+ * Get a pipeline, using synchronous cache lookup when available.
+ * Falls back to async compilation if not cached.
+ * This is the preferred way to get pipelines in hot paths.
+ */
+export async function getPipelineFast(
+  operation: string,
+  variant: string,
+  bindGroupLayout: GPUBindGroupLayout | null = null
+): Promise<GPUComputePipeline> {
+  const cached = getCachedPipeline(operation, variant);
+  if (cached) {
+    return cached;
+  }
+  return createPipeline(operation, variant, bindGroupLayout);
+}
+
+/**
  * Create a compute pipeline for a kernel
  */
 export async function createPipeline(
@@ -1121,28 +1151,47 @@ export async function prewarmKernels(
   console.log(`[KernelSelector] Prewarmed ${jobs.length} kernel pipelines`);
 }
 
+/** Options for uniform buffer creation */
+export interface UniformBufferOptions {
+  /** Use content-addressed cache for reuse (default: true) */
+  useCache?: boolean;
+}
+
 export function createUniformBufferFromData(
   label: string,
   data: ArrayBuffer | ArrayBufferView,
   recorder?: CommandRecorder | null,
-  deviceOverride?: GPUDevice | null
+  deviceOverride?: GPUDevice | null,
+  options?: UniformBufferOptions
 ): GPUBuffer {
   if (recorder) {
     return recorder.createUniformBuffer(data, label);
   }
 
+  // Convert ArrayBufferView to ArrayBuffer for caching
+  const arrayBuffer = data instanceof ArrayBuffer
+    ? data
+    : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+
+  // Use cache by default for non-recorder paths
+  const useCache = options?.useCache ?? true;
+  if (useCache && !deviceOverride) {
+    return getUniformCache().getOrCreate(arrayBuffer, label);
+  }
+
+  // Fallback to direct creation (for custom device or explicit no-cache)
   const device = deviceOverride ?? getDevice();
   if (!device) {
     throw new Error('GPU device not initialized');
   }
 
-  const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
+  const byteLength = arrayBuffer.byteLength;
   const buffer = device.createBuffer({
     label,
     size: byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
-  device.queue.writeBuffer(buffer, 0, data as GPUAllowSharedBufferSource);
+  device.queue.writeBuffer(buffer, 0, arrayBuffer);
   return buffer;
 }
 

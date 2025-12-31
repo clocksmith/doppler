@@ -13,6 +13,8 @@ export interface EmbedConfig {
   scaleEmbeddings: boolean;
   debug?: boolean;
   recorder?: CommandRecorder;
+  /** Pre-allocated output buffer (avoids pool allocation) */
+  outputBuffer?: GPUBuffer;
 }
 
 export interface ValidationResult {
@@ -152,7 +154,7 @@ export async function embed(
   embedBuffer: GPUBuffer,
   config: EmbedConfig
 ): Promise<GPUBuffer> {
-  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder } = config;
+  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput } = config;
   const device = getDevice();
   const numTokens = tokenIds.length;
 
@@ -167,9 +169,10 @@ export async function embed(
   const tokenIdBuffer = acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
   device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
 
+  // Use pre-allocated output buffer if provided, otherwise acquire from pool
   const outputBuffer = recorder
-    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize)
-    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize);
+    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput })
+    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput });
 
   // Debug: Verify first token embedding
   if (debug && !recorder && tokenIds.length > 0) {

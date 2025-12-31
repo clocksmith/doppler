@@ -18,6 +18,7 @@
 import { MoERouter } from './moe-router.js';
 import { SpeculativeDecoder } from './speculative.js';
 import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
+import { DecodeBufferManager } from './decode-buffers.js';
 import { Tokenizer } from './tokenizer.js';
 import { getDevice, setTrackSubmits } from '../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
@@ -226,6 +227,9 @@ export class InferencePipeline {
   // LoRA adapter (optional)
   loraAdapter: LoRAAdapter | null = null;
 
+  // Decode buffer manager for pre-allocated decode buffers
+  private decodeBufferManager = new DecodeBufferManager();
+
   // Debug flags (combined for both layer and logits)
   private _debugFlags: WeightDebugFlags & LogitsDebugFlags = {};
   private _decodeStepCount = 0;
@@ -397,6 +401,15 @@ export class InferencePipeline {
     // Initialize MoE router with weights
     if (this.modelConfig!.useMoE && this.moeRouter) {
       this.moeRouter = initMoERouter(this.modelConfig!, result.layerWeights);
+    }
+
+    // Initialize decode buffers for efficient decode-step execution
+    if (this.useGPU && this.modelConfig) {
+      this.decodeBufferManager.ensureBuffers({
+        hiddenSize: this.modelConfig.hiddenSize,
+        intermediateSize: this.modelConfig.intermediateSize,
+        enablePingPong: true,  // Enable ping-pong for 2C
+      });
     }
   }
 
@@ -1105,6 +1118,12 @@ export class InferencePipeline {
     }
     const context = this._buildLayerContext(recorder);
 
+    // Reset ping-pong state at start of each decode step
+    this.decodeBufferManager.resetPingPong();
+
+    // Get pre-allocated hidden buffer for decode (avoids pool allocation)
+    const decodeHiddenBuffer = this.decodeBufferManager.getHiddenBuffer();
+
     // Embed single token
     const embedBufferRaw = this.weights.get('embed');
     if (!(embedBufferRaw instanceof GPUBuffer)) {
@@ -1115,6 +1134,7 @@ export class InferencePipeline {
       vocabSize: config.vocabSize,
       scaleEmbeddings: config.scaleEmbeddings,
       recorder,
+      outputBuffer: decodeHiddenBuffer ?? undefined,  // Use pre-allocated buffer
     });
 
     // Debug: check embedding output for decode step 1
@@ -1147,12 +1167,16 @@ export class InferencePipeline {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-        // When using recorder, track for deferred cleanup after submit
-        // (releasing now would allow pool reuse before recorded ops execute)
-        if (recorder) {
-          recorder.trackTemporaryBuffer(prevStates);
-        } else {
-          releaseBuffer(prevStates);
+        // Don't release pre-allocated decode buffers - they're managed by DecodeBufferManager
+        const isPreAllocated = prevStates === decodeHiddenBuffer;
+        if (!isPreAllocated) {
+          // When using recorder, track for deferred cleanup after submit
+          // (releasing now would allow pool reuse before recorded ops execute)
+          if (recorder) {
+            recorder.trackTemporaryBuffer(prevStates);
+          } else {
+            releaseBuffer(prevStates);
+          }
         }
       }
     }
@@ -1665,6 +1689,7 @@ export class InferencePipeline {
     this.currentSeqLen = 0;
     this._decodeStepCount = 0;
     this._debugFlags = {};
+    this.decodeBufferManager.resetPingPong();
     this.stats = {
       tokensGenerated: 0,
       totalTimeMs: 0,
@@ -1673,6 +1698,13 @@ export class InferencePipeline {
       gpuTimePrefillMs: undefined,
       gpuTimeDecodeMs: undefined,
     };
+  }
+
+  /**
+   * Release all GPU resources (call when unloading model)
+   */
+  releaseGPUResources(): void {
+    this.decodeBufferManager.release();
   }
 }
 
