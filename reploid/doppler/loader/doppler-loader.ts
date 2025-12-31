@@ -35,7 +35,7 @@ import {
 } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
-import { dequantize, dequantizeQ6K, castF32ToF16, runBF16ToF16 } from '../gpu/kernel-selector.js';
+import { dequantize, dequantizeQ6K, dequantizeQ8_0, castF32ToF16, runBF16ToF16 } from '../gpu/kernel-selector.js';
 import { getBufferDtype, setBufferDtype, setBufferLayout, type BufferLayout } from '../gpu/buffer-dtypes.js';
 import { getKernelHints, getKernelHintsSource } from '../gpu/kernel-hints.js';
 import { ExpertCache, getExpertCache, type CacheStats } from './expert-cache.js';
@@ -1069,6 +1069,36 @@ export class DopplerLoader {
             }
             debugTrace.loader(`DEBUG embed dequant first16: [${f32Samples.map(x => x.toFixed(4)).join(', ')}]`);
           }
+
+          releaseBuffer(quantBuffer);
+          this.gpuBuffers.add(dequantized);
+          // GGUF stores ALL weights transposed - use default transposeB=true (no column layout)
+          return dequantized;
+        }
+
+        // Q8_0 tensors (8-bit quantization)
+        if (location.dtype === 'Q8_0') {
+          debugTrace.loader(`Loading Q8_0 tensor "${name}" via spans path (${location.spans.length} spans)`);
+          const Q8_0_BLOCK_BYTES = 34;  // 2 bytes scale + 32 bytes quants
+          const Q8_0_BLOCK_SIZE = 32;
+          const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
+          let tensorOffset = 0;
+          for (const span of location.spans) {
+            const data = await this._loadShard(span.shardIndex);
+            if (span.offset + span.size > data.byteLength) {
+              throw new Error(
+                `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
+              );
+            }
+            const bytes = new Uint8Array(data, span.offset, span.size);
+            device.queue.writeBuffer(quantBuffer, tensorOffset, bytes);
+            tensorOffset += span.size;
+          }
+
+          const numBlocks = Math.floor(location.size / Q8_0_BLOCK_BYTES);
+          debugTrace.loader(`Dequantizing Q8_0 ${name}: size=${location.size}, numBlocks=${numBlocks}, expectedOutput=${numBlocks * Q8_0_BLOCK_SIZE * 2} (f16)`);
+          const dequantized = await dequantizeQ8_0(quantBuffer, numBlocks, { outputDtype: 'f16' });
+          debugTrace.loader(`Dequantized Q8_0 ${name}: resultSize=${dequantized.size}`);
 
           releaseBuffer(quantBuffer);
           this.gpuBuffers.add(dequantized);

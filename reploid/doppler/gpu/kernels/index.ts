@@ -47,6 +47,7 @@ export {
   createDequantBindGroupLayout,
   dequantize,
   dequantizeQ6K,
+  dequantizeQ8_0,
   dequantizeMXFP4,
   dequantizeMXFP4Expert,
   recordDequantize,

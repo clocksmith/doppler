@@ -258,7 +258,16 @@ async function convertSafetensors(
   const firstWeight = tensors.find((t: SafetensorsTensor) => t.name.includes('.weight'));
   const originalDtype = firstWeight?.dtype?.toUpperCase() || 'F32';
 
-  // Create modelInfo
+  // Filter out tensors without valid shape (e.g., metadata entries)
+  const validTensors = tensors.filter((t: SafetensorsTensor) => {
+    if (!t.shape || !Array.isArray(t.shape)) {
+      log(`Skipping tensor without shape: ${t.name}`);
+      return false;
+    }
+    return true;
+  });
+
+  // Create modelInfo with adjusted dtypes for quantized tensors
   const modelInfo: ModelInfo = {
     modelName: opts.modelId || basename(inputPath),
     architecture: arch,
@@ -266,15 +275,27 @@ async function convertSafetensors(
     config,
     tokenizerConfig,
     tokenizerJson: parsed.tokenizerJson,
-    tensors: tensors.map((t: SafetensorsTensor) => ({
-      name: t.name,
-      shape: t.shape,
-      dtype: t.dtype,
-    })),
+    tensors: validTensors.map((t: SafetensorsTensor) => {
+      // Determine the output dtype based on quantization settings
+      let outputDtype = t.dtype;
+      if (opts.quantize === 'q4_k_m') {
+        const isEmbedding = t.name.includes('embed') || t.name.includes('lm_head');
+        if (shouldQuantizeCore(t.name, t.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
+          outputDtype = 'Q4_K_M';
+        }
+      } else if (opts.quantize === 'f16' && t.dtype !== 'F16') {
+        outputDtype = 'F16';
+      }
+      return {
+        name: t.name,
+        shape: t.shape,
+        dtype: outputDtype,
+      };
+    }),
   };
 
   // Create tensor data getter
-  const tensorMap = new Map(tensors.map((t: SafetensorsTensor) => [t.name, t]));
+  const tensorMap = new Map(validTensors.map((t: SafetensorsTensor) => [t.name, t]));
 
   const getTensorData = async (info: TensorInfo): Promise<ArrayBuffer> => {
     const tensor = tensorMap.get(info.name);
@@ -294,9 +315,24 @@ async function convertSafetensors(
       // Use shared logic + embedding override
       if (shouldQuantizeCore(info.name, info.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
         log(`Quantizing ${info.name} to Q4_K_M`);
-        const f32 = new Float32Array(data);
-        const q4 = await quantizeToQ4KM(f32);
-        return q4.buffer;
+
+        // Convert to F32 based on source dtype
+        let f32: Float32Array;
+        if (tensor.dtype === 'BF16') {
+          const bf16Data = new Uint16Array(data);
+          f32 = new Float32Array(bf16Data.length);
+          for (let i = 0; i < bf16Data.length; i++) {
+            const bits = bf16Data[i] << 16;
+            const f32View = new Float32Array(1);
+            new Uint32Array(f32View.buffer)[0] = bits;
+            f32[i] = f32View[0];
+          }
+        } else {
+          f32 = new Float32Array(data);
+        }
+
+        const q4 = quantizeToQ4KM(f32, info.shape);
+        return q4.quantized.buffer;
       }
     }
 

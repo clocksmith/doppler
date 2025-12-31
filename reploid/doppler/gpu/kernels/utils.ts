@@ -256,6 +256,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
     },
+    // Q8_0 dequantization (GGUF 8-bit quantization)
+    q8_0_f16out: {
+      shaderFile: 'dequant_q8_0.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [32, 1, 1],
+      requires: ['shader-f16'],
+    },
   },
   attention: {
     prefill: {

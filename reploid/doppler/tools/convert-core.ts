@@ -251,6 +251,10 @@ export function formatBytes(bytes: number): string {
  * Check if tensor should be quantized based on name and shape
  */
 export function shouldQuantize(tensorName: string, shape: number[]): boolean {
+  if (!shape || !Array.isArray(shape) || shape.length === 0) {
+    console.warn(`[shouldQuantize] Invalid shape for tensor "${tensorName}":`, shape);
+    return false;
+  }
   const numElements = shape.reduce((a, b) => a * b, 1);
   if (numElements < 1024) return false;
 

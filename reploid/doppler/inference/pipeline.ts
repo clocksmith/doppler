@@ -1368,6 +1368,20 @@ export class InferencePipeline {
       if (logitsResult) {
         const { logitsBuffer, vocabSize } = logitsResult;
 
+        // DEBUG: Check logits for decode
+        if (opts.debug && this._decodeStepCount <= 3 && allowReadback('pipeline.decode.debug-logits')) {
+          const logitSample = await readBuffer(logitsBuffer, Math.min(vocabSize * 4, 4096));
+          const logitArr = new Float32Array(logitSample);
+          const maxLogit = Math.max(...logitArr);
+          const minLogit = Math.min(...logitArr);
+          let argmaxIdx = 0, argmaxVal = logitArr[0];
+          for (let i = 1; i < logitArr.length; i++) {
+            if (logitArr[i] > argmaxVal) { argmaxVal = logitArr[i]; argmaxIdx = i; }
+          }
+          log.warn('Decode', `[${this._decodeStepCount}] Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}`);
+          log.warn('Decode', `[${this._decodeStepCount}] First 10: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
+        }
+
         const nextToken = opts.temperature < 0.01
           ? await runArgmax(logitsBuffer, vocabSize)
           : await runGPUSample(logitsBuffer, vocabSize, {

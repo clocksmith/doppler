@@ -359,6 +359,91 @@ export async function dequantizeQ6K(
 }
 
 /**
+ * Q8_0 block size in bytes (34 bytes per 32 elements)
+ */
+const Q8_0_BLOCK_BYTES = 34;
+
+/**
+ * Q8_0 block size in elements
+ */
+const Q8_0_BLOCK_SIZE = 32;
+
+/**
+ * Run Q8_0 dequantization
+ *
+ * Q8_0 format: 34 bytes per 32 elements
+ * - d: 2 bytes (f16 scale)
+ * - qs: 32 bytes (int8 quantized values)
+ *
+ * Dequant: output[i] = d * qs[i]
+ */
+export async function dequantizeQ8_0(
+  quantized: GPUBuffer,
+  numBlocks: number,
+  options: DequantOptions = {}
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const {
+    outputOffset = 0,
+    outputBuffer = null,
+    outputDtype = 'f16',  // Q8_0 outputs f16 for now
+  } = options;
+
+  // Q8_0 only has f16 output kernel currently
+  const pipeline = await getPipelineFast('dequant', 'q8_0_f16out');
+
+  // Q8_0: 32 elements per block
+  const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = numBlocks * Q8_0_BLOCK_SIZE * bytesPerElem;
+
+  // Create output buffer if not provided
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'q8_0_dequant_output');
+
+  // Calculate workgroups for 2D dispatch
+  const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
+  const workgroupsX = Math.min(numBlocks, maxWorkgroups);
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'q8_0_dequant_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, outputOffset, true);
+      view.setUint32(8, workgroupsX, true); // workgroups_x for 2D dispatch
+      view.setUint32(12, 0, true); // padding
+    },
+    null,
+    device
+  );
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'q8_0_dequant_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: quantized } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  // One workgroup per block, handle 2D dispatch for large counts
+  const workgroups: [number, number, number] = [
+    workgroupsX,
+    numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
+    1
+  ];
+
+  dispatch(device, pipeline, bindGroup, workgroups, 'q8_0_dequant');
+
+  releaseUniformBuffer(uniformBuffer);
+  setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
+
+  return output;
+}
+
+/**
  * Record Q4_K_M dequantization (batched, no submit)
  */
 export async function recordDequantize(
