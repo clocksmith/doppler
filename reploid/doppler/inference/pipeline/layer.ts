@@ -25,10 +25,12 @@ import {
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused, shouldUseFusedMatmulRMSNorm,
+  runMatmulResidualFused, recordMatmulResidualFused, shouldUseFusedMatmulResidual,
   CommandRecorder,
   type SiLURowSplitOptions,
 } from '../../gpu/kernel-selector.js';
-import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags } from './attention.js';
+import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
+import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags, type AttentionResult } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
 import { applyLoRA } from './lora-apply.js';
@@ -288,7 +290,7 @@ async function doAttention(
   getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   recorder?: CommandRecorder,
   lora?: LoRAAdapter | null
-): Promise<GPUBuffer> {
+): Promise<AttentionResult> {
   if (recorder) {
     return recordLayerAttentionGPU(
       recorder,
@@ -483,6 +485,10 @@ export async function processLayerGPU(
     slidingWindow: config.slidingWindow,
     layerType,
     attentionKernelOverride,
+    // Pass residual buffer for decode mode to enable fused o_proj + residual
+    residualBuffer: numTokens === 1 ? inputBuffer : null,
+    // Gemma 2 attention softcapping (50.0)
+    attnSoftcap: config.attnLogitSoftcapping ?? 0,
   };
 
   // Select RoPE frequencies based on layer type:
@@ -498,7 +504,7 @@ export async function processLayerGPU(
     kvCache: kvCache as unknown as import('./types.js').KVCacheInterface,
   };
 
-  const attnOutput = await doAttention(
+  const attnResult = await doAttention(
     inputBuffer,
     layerWeights ?? null,
     attnConfig,
@@ -510,6 +516,8 @@ export async function processLayerGPU(
     recorder,
     context.lora
   );
+  const attnOutput = attnResult.output;
+  const residualFused = attnResult.residualFused;
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
@@ -550,11 +558,33 @@ export async function processLayerGPU(
   // 2. Handle residual connection based on architecture
   // Debug: log architecture path for layer 0, 2, and 17
   if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
-    console.log(`[Layer${layerIdx}] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
+    console.log(`[Layer${layerIdx}] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
   }
 
   let postAttn: GPUBuffer;
-  if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
+  if (residualFused) {
+    // Fused path: residual was already added in attention o_proj
+    // attnOutput already contains the residual, no need to add it again
+    postAttn = attnOutput;
+    // Note: For sandwich norm models, we may still need post-attention norm
+    // but without adding residual again (residual is already in attnOutput)
+    if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
+      const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
+      postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        // No residual - it's already fused into attnOutput
+        label: `L${layerIdx}.post_attn_norm`,
+        layerIdx,
+      }, recorder);
+      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+      if (recorder) {
+        recorder.trackTemporaryBuffer(attnOutput);
+      } else {
+        releaseBuffer(attnOutput);
+      }
+    }
+  } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     // Gemma 3 path: FUSED norm attention output + residual add (1 kernel instead of 2)
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
     if (context.debug && layerIdx === 0) {
@@ -945,6 +975,8 @@ async function processFFNStandard(
  * Supports two paths:
  * - Fused (2 matmuls): gateUp -> split+activate -> down
  * - Separate (3 matmuls): gate, up -> activate -> down
+ *
+ * TODO: For decode mode (numTokens=1), can optionally fuse down_proj + residual.
  */
 async function runDenseFFNGPU(
   layerIdx: number,

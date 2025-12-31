@@ -139,6 +139,27 @@ export async function recordTopK(
   return { indices, weights };
 }
 
+// Cached explicit bind group layout for MoE gather (all 6 bindings)
+// See docs/postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md for why this is needed
+let moeGatherBindGroupLayout: GPUBindGroupLayout | null = null;
+
+function getMoEGatherBindGroupLayout(device: GPUDevice): GPUBindGroupLayout {
+  if (moeGatherBindGroupLayout) return moeGatherBindGroupLayout;
+
+  moeGatherBindGroupLayout = device.createBindGroupLayout({
+    label: 'moe_gather_explicit_layout',
+    entries: [
+      { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+    ],
+  });
+  return moeGatherBindGroupLayout;
+}
+
 /**
  * Run MoE gather (dispatch tokens to experts)
  * Returns gathered hidden states organized by expert, along with token counts and mapping
@@ -155,7 +176,9 @@ export async function runMoEGather(
   const device = getDevice();
   const { maxTokensPerExpert = numTokens } = options;
 
-  const pipeline = await createPipeline('moe_gather', 'sparse');
+  // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
+  const explicitLayout = getMoEGatherBindGroupLayout(device);
+  const pipeline = await createPipeline('moe_gather', 'sparse', explicitLayout);
 
   // Output buffers per WGSL shader:
   // - gathered: [numExperts, maxTokensPerExpert, hiddenSize]
@@ -169,25 +192,28 @@ export async function runMoEGather(
   const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
   const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
 
-  // Create uniform buffer (20 bytes: numTokens, hiddenSize, numExperts, topK, maxTokensPerExpert)
+  // Create uniform buffer (32 bytes to match WGSL struct with padding)
   const uniformBuffer = createUniformBufferWithView(
     'moe_gather_uniforms',
-    20,
+    32,
     (view) => {
       view.setUint32(0, numTokens, true);
       view.setUint32(4, hiddenSize, true);
       view.setUint32(8, numExperts, true);
       view.setUint32(12, topK, true);
       view.setUint32(16, maxTokensPerExpert, true);
+      view.setUint32(20, 0, true); // _pad1
+      view.setUint32(24, 0, true); // _pad2
+      view.setUint32(28, 0, true); // _pad3
     },
     null,
     device
   );
 
-  // Create bind group matching WGSL bindings
+  // Create bind group with explicit layout (all 6 bindings)
   const bindGroup = device.createBindGroup({
     label: 'moe_gather_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: hiddenStates } },
@@ -237,7 +263,9 @@ export async function recordMoEGather(
   const device = recorder.device;
   const { maxTokensPerExpert = numTokens } = options;
 
-  const pipeline = await createPipeline('moe_gather', 'sparse');
+  // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
+  const explicitLayout = getMoEGatherBindGroupLayout(device);
+  const pipeline = await createPipeline('moe_gather', 'sparse', explicitLayout);
 
   const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
   const tokenCountsSize = numExperts * 4;
@@ -247,22 +275,27 @@ export async function recordMoEGather(
   const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
   const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
 
+  // Create uniform buffer (32 bytes to match WGSL struct with padding)
   const uniformBuffer = createUniformBufferWithView(
     'moe_gather_uniforms',
-    20,
+    32,
     (view) => {
       view.setUint32(0, numTokens, true);
       view.setUint32(4, hiddenSize, true);
       view.setUint32(8, numExperts, true);
       view.setUint32(12, topK, true);
       view.setUint32(16, maxTokensPerExpert, true);
+      view.setUint32(20, 0, true); // _pad1
+      view.setUint32(24, 0, true); // _pad2
+      view.setUint32(28, 0, true); // _pad3
     },
     recorder
   );
 
+  // Create bind group with explicit layout (all 6 bindings)
   const bindGroup = device.createBindGroup({
     label: 'moe_gather_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: hiddenStates } },

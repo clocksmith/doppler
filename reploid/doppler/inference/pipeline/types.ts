@@ -228,6 +228,12 @@ export interface LayerWeights {
   kProj: GPUBuffer | Float32Array;
   vProj: GPUBuffer | Float32Array;
   oProj: GPUBuffer | Float32Array;
+  /** Fused Q/K/V projection (runtime-generated for 3→1 matmul optimization) */
+  qkvProj?: GPUBuffer | null;
+  /** Sizes for splitting fused QKV output: [qSize, kSize, vSize] in elements */
+  qkvSizes?: [number, number, number];
+  /** Data type of fused QKV weights (f16 or f32) */
+  qkvDtype?: 'f16' | 'f32';
 
   // FFN (dense layers)
   postAttentionNorm?: GPUBuffer | Float32Array;

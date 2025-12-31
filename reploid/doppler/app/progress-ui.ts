@@ -43,17 +43,17 @@ export class ProgressUI {
   }> = new Map();
   private isVisible = false;
 
-  // Phase configuration
-  private static readonly PHASE_CONFIG: Record<ProgressPhase, { label: string; color: string }> = {
-    source: { label: 'Source', color: '#3b82f6' },    // Blue - data source (dynamic label)
-    gpu: { label: 'GPU', color: '#f59e0b' },          // Amber - uploading to GPU
+  // Phase configuration (rd.css compliant - uses --fg for all fills)
+  private static readonly PHASE_CONFIG: Record<ProgressPhase, { label: string }> = {
+    source: { label: 'Source' },    // Dynamic label based on source type
+    gpu: { label: 'GPU' },          // Uploading to GPU
   };
 
-  // Source type labels and colors
-  private static readonly SOURCE_CONFIG: Record<SourceType, { label: string; color: string }> = {
-    network: { label: 'Network', color: '#3b82f6' },  // Blue - downloading from internet
-    disk: { label: 'Disk', color: '#8b5cf6' },        // Purple - loading from local server
-    cache: { label: 'Cache', color: '#22c55e' },      // Green - reading from OPFS
+  // Source type labels (styling via row class, not color)
+  private static readonly SOURCE_CONFIG: Record<SourceType, { label: string; rowClass: string }> = {
+    network: { label: 'Network', rowClass: 'progress-phase-network' },   // border-info style
+    disk: { label: 'Disk', rowClass: 'progress-phase-disk' },            // border-ghost style
+    cache: { label: 'Cache', rowClass: 'progress-phase-cache' },         // border-elevated style
   };
 
   private currentSourceType: SourceType = 'cache';
@@ -95,7 +95,7 @@ export class ProgressUI {
   }
 
   /**
-   * Create a single phase bar
+   * Create a single phase bar (uses rd.css .progress and .progress-fill classes)
    */
   private _createPhaseBar(phase: ProgressPhase): void {
     const config = ProgressUI.PHASE_CONFIG[phase];
@@ -113,12 +113,11 @@ export class ProgressUI {
 
     const bar = document.createElement('div');
     bar.className = 'progress-fill';
-    bar.style.backgroundColor = config.color;
     bar.style.width = '0%';
     barContainer.appendChild(bar);
 
     const value = document.createElement('span');
-    value.className = 'progress-phase-value';
+    value.className = 'progress-phase-value muted';
     value.textContent = '--';
 
     row.appendChild(label);
@@ -148,7 +147,7 @@ export class ProgressUI {
 
   /**
    * Set the source type (network, disk, or cache)
-   * Updates the source phase label and color
+   * Updates the source phase label and row class (rd.css compliant)
    */
   setSourceType(type: SourceType): void {
     this.currentSourceType = type;
@@ -156,7 +155,9 @@ export class ProgressUI {
     if (sourceElements) {
       const config = ProgressUI.SOURCE_CONFIG[type];
       sourceElements.label.textContent = config.label;
-      sourceElements.bar.style.backgroundColor = config.color;
+      // Remove previous source type classes and add new one
+      sourceElements.row.classList.remove('progress-phase-network', 'progress-phase-disk', 'progress-phase-cache');
+      sourceElements.row.classList.add(config.rowClass);
     }
   }
 

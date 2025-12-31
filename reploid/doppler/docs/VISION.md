@@ -56,6 +56,10 @@ See [MEMORY_TIERS.md](internals/MEMORY_TIERS.md) for detailed tiered memory arch
 
 **Result:** 600B model on consumer hardware.
 
+**MoE Inference Research:**
+- [MoBiLE (arXiv:2510.12357)](https://arxiv.org/abs/2510.12357): 1.6-1.7× speedup via mixture of big-little experts on consumer GPU
+- [HybriMoE (DAC 2025)](https://arxiv.org/abs/2504.05897): Hybrid CPU-GPU scheduling with 1.33× prefill / 1.70× decode speedup
+
 ---
 
 ## Architectural Bets
@@ -151,7 +155,11 @@ WebLLM uses Apache TVM to pre-compile model-specific WGSL kernels with auto-tuni
 
 > "Evaluations show that WebLLM can retain up to 80% native performance on the same device."
 >
-> Source: [WebLLM Paper (arXiv:2412.15803)](https://arxiv.org/abs/2412.15803)
+> Source: [WebLLM: A High-Performance In-Browser LLM Inference Engine (arXiv:2412.15803)](https://arxiv.org/abs/2412.15803)
+
+**Additional WebGPU Inference Research:**
+- [WeInfer (WWW 2025)](https://dl.acm.org/doi/10.1145/3696410.3714553): 3.76× speedup over WebLLM via buffer reuse and async pipelining
+- [nnJIT (MobiSys 2024)](https://dl.acm.org/doi/10.1145/3643832.3661892): JIT kernel generation for in-browser inference, 8.2× faster than baselines
 
 **DOPPLER accepts ~20% kernel performance gap** because:
 1. Large MoE models can't fit in VRAM anyway (paging required)
@@ -256,6 +264,26 @@ Phase 2: MoE Efficiency ──────┤
 | [COMPETITIVE.md](analysis/COMPETITIVE.md) | Competitor analysis |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current system design |
 | [DOPPLER-TROUBLESHOOTING.md](DOPPLER-TROUBLESHOOTING.md) | Troubleshooting guide |
+
+---
+
+## References
+
+### WebGPU & Browser Inference
+1. MLC Team. (2024). [WebLLM: A High-Performance In-Browser LLM Inference Engine](https://arxiv.org/abs/2412.15803). arXiv.
+2. Chen, Z. et al. (2025). [WeInfer: Unleashing the Power of WebGPU on LLM Inference](https://dl.acm.org/doi/10.1145/3696410.3714553). ACM WWW 2025.
+3. Jiang, S. et al. (2024). [nnJIT: Empowering In-Browser Deep Learning Inference](https://dl.acm.org/doi/10.1145/3643832.3661892). MobiSys 2024.
+4. Google. (2024). [WebAssembly and WebGPU Enhancements for Web AI](https://developer.chrome.com/blog/io24-webassembly-webgpu-1). Chrome Developers.
+
+### MoE & Expert Paging
+5. Zhao, Y. et al. (2025). [MoBiLE: Efficient Mixture-of-Experts Inference on Consumer GPU](https://arxiv.org/abs/2510.12357). arXiv.
+6. Zhang, Y. et al. (2025). [HybriMoE: Hybrid CPU-GPU Scheduling and Cache Management](https://arxiv.org/abs/2504.05897). DAC 2025.
+7. NVIDIA. (2025). [Mixture of Experts Powers Frontier AI Models](https://blogs.nvidia.com/blog/mixture-of-experts-frontier-models/).
+
+### Browser Capabilities
+8. [WebGPU Browser Support (Can I Use)](https://caniuse.com/webgpu)
+9. [SharedArrayBuffer (MDN)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer)
+10. [Cross-Origin Isolation Guide (web.dev)](https://web.dev/articles/cross-origin-isolation-guide)
 
 ---
 

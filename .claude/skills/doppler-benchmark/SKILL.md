@@ -1,6 +1,8 @@
 ---
 name: doppler-benchmark
-description: Run DOPPLER performance benchmarks. Use when measuring inference speed, comparing against baselines, or tracking performance regressions. Outputs JSON results per the BENCHMARK_HARNESS spec.
+description: Run DOPPLER performance benchmarks. Use when measuring inference speed, comparing against baselines, or tracking performance regressions. Outputs JSON results per the BENCHMARK_HARNESS spec. (project)
+metadata:
+  short-description: DOPPLER performance benchmarks
 ---
 
 # DOPPLER Benchmark Skill

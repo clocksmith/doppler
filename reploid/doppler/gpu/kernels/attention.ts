@@ -36,6 +36,8 @@ export interface AttentionOptions extends OutputBufferOptions {
   startPos?: number;
   attentionKernel?: string | null;
   slidingWindow?: number;
+  /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
+  attnSoftcap?: number;
 }
 
 type AttentionTier = 'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming';
@@ -236,11 +238,12 @@ function createAttentionUniformBuffer(
     scale: number;
     causal: boolean;
     startPos: number;
+    attnSoftcap: number;
   }
 ): GPUBuffer {
   return createUniformBufferWithView(
     'attention_uniforms',
-    32,
+    48, // 36 bytes used + 12 padding for 16-byte alignment
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -250,6 +253,7 @@ function createAttentionUniformBuffer(
       view.setFloat32(20, params.scale, true);
       view.setUint32(24, params.causal ? 1 : 0, true);
       view.setUint32(28, params.startPos, true);
+      view.setFloat32(32, params.attnSoftcap, true); // Gemma 2: 50.0, 0 = disabled
     },
     recorder,
     device
@@ -278,6 +282,7 @@ export async function runAttention(
     startPos = 0,
     attentionKernel = null,
     outputBuffer = null,
+    attnSoftcap = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -311,6 +316,7 @@ export async function runAttention(
     scale,
     causal,
     startPos,
+    attnSoftcap,
   });
 
   // Create bind group
@@ -365,6 +371,7 @@ export async function recordAttention(
     startPos = 0,
     attentionKernel = null,
     outputBuffer = null,
+    attnSoftcap = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -404,6 +411,7 @@ export async function recordAttention(
     scale,
     causal,
     startPos,
+    attnSoftcap,
   });
 
   const bindGroup = device.createBindGroup({

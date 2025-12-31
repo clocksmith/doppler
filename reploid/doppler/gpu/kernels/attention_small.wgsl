@@ -31,6 +31,7 @@ struct Uniforms {
     scale: f32,           // 1/sqrt(head_dim)
     is_causal: u32,       // Apply causal mask (1 = yes)
     start_pos: u32,       // Absolute position offset for causal masking
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -143,7 +144,11 @@ fn main(
                 if (key_pos >= seq_len) { continue; }
                 if (is_masked(query_pos, key_pos)) { continue; }
 
-                let s = scores[k] * scale;
+                var s = scores[k] * scale;
+                // Gemma 2 attention softcapping
+                if (u.attn_softcap > 0.0) {
+                    s = tanh(s / u.attn_softcap) * u.attn_softcap;
+                }
                 scores[k] = s;
                 block_max = max(block_max, s);
             }

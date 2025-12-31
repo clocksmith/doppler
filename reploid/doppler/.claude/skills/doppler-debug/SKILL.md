@@ -1,6 +1,8 @@
 ---
 name: doppler-debug
-description: Debug DOPPLER WebGPU inference issues. Use when investigating model output problems, kernel bugs, hidden state explosions, or decode failures in the browser-based LLM inference engine.
+description: Debug DOPPLER WebGPU inference issues. Use when investigating model output problems, kernel bugs, hidden state explosions, or decode failures in the browser-based LLM inference engine. (project)
+metadata:
+  short-description: Debug DOPPLER inference issues
 ---
 
 # DOPPLER Debug Skill
@@ -75,29 +77,32 @@ npm test -- --filter matmul     # Specific kernel
 
 If any kernel fails, **FIX IT FIRST** - inference bugs are almost always caused by broken kernels.
 
-### Step 2: Debug with Kernel Trace
+### Step 2: Debug with Trace Categories
 
 ```bash
-# Debug mode with trace enabled by default (all categories)
+# Debug mode (trace enabled by default)
 npm run debug
 
 # Break on first anomaly (NaN/Inf/explosion)
 npm run debug -- --break
 
 # Trace specific categories
-npm run debug -- --trace kernels,attn
+npm run debug -- --trace kernels,logits
+npm run debug -- --trace attn,ffn
 
-# Trace all except expensive buffer readbacks
+# Trace everything except expensive buffer stats
 npm run debug -- --trace all,-buffers
 
-# Filter to specific layers
-npm run debug -- --trace-layers 0,5,10
+# Trace specific layers
+npm run debug -- --layers 0,5,10
 ```
+
+**Trace categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`, `all`
 
 The kernel trace shows exactly where values explode:
 ```
-⚠️ [TRACE] Value explosion at L1.post_attn_norm: 5.29 → 105.64 (20.0x)
-⚠️ [TRACE] Value explosion at L10.post_attn_norm: 0.56 → 410.82 (736.0x)
+[TRACE:attn] L1 Q maxAbs=5.29 → post_norm maxAbs=105.64 (20.0x explosion)
+[TRACE:attn] L10 Q maxAbs=0.56 → post_norm maxAbs=410.82 (736.0x explosion)
 ```
 
 ### Step 3: Compare Against Reference Implementation
@@ -201,20 +206,20 @@ npm test -- --filter q4k          # Q4K quantized matmul tests
 ### Inference Debugging
 
 ```bash
-# Debug mode with all trace categories enabled
+# Debug mode (trace enabled by default)
 npm run debug
 
 # Specific trace categories
-npm run debug -- --trace kernels,logits
+npm run debug -- --trace kernels,attn,ffn
 
-# All categories except expensive buffer stats
+# All except expensive buffer stats
 npm run debug -- --trace all,-buffers
 
-# Break on first anomaly
+# Break on first anomaly (NaN/Inf/explosion)
 npm run debug -- --break
 
-# Filter to specific layers
-npm run debug -- --trace-layers 0,5
+# Watch specific layers
+npm run debug -- --layers 0,5,10
 
 # Watch trace output
 npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
@@ -224,28 +229,28 @@ npm run debug 2>&1 | grep -E "TRACE|ANOMALY"
 
 Control output verbosity:
 
-| Flag | URL Param | Shows |
-|------|-----------|-------|
-| (default) | `?log=info` | Phase starts/ends, totals |
-| `--verbose, -v` | `?log=verbose` | + Per-shard source, per-layer timing |
-| `--debug` | `?log=debug` | + Full debug output |
-| `--quiet, -q` | `?log=silent` | Errors only |
+| CLI Flag | URL Param | Level | Shows |
+|----------|-----------|-------|-------|
+| (default) | `?log=info` | info | Phase starts/ends, totals |
+| `--verbose, -v` | `?log=verbose` | verbose | + Per-shard source, per-layer timing |
+| `--debug` | `?log=debug` | debug | + Everything |
+| `--quiet, -q` | `?log=silent` | silent | Errors only |
 
-### Trace Categories (Modular)
+### Trace Categories
 
-Control what gets traced with categories:
+Control what gets traced (orthogonal to log level):
 
-| CLI | URL | Effect |
-|-----|-----|--------|
-| `--trace` | `?trace=all` | Enable all trace categories |
+| CLI Flag | URL Param | Effect |
+|----------|-----------|--------|
+| `--trace` | `?trace=all` | Enable all categories |
 | `--trace kernels,logits` | `?trace=kernels,logits` | Specific categories |
-| `--trace all,-buffers` | `?trace=all,-buffers` | All except buffers |
+| `--trace all,-buffers` | `?trace=all,-buffers` | Exclusion syntax |
+| `--layers 0,5` | `?layers=0,5` | Trace specific layers |
+| `--break` | `?break=1` | Stop on first anomaly |
 
-**Available categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`
+**Categories:** `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`, `all`
 
-**Expensive:** `buffers` does GPU readbacks - exclude unless needed.
-
-**Debug mode defaults to `--trace`** (all categories) - shows tensor shapes, kernel execution, and value explosions.
+**Debug mode defaults to `--trace all,-buffers`** - shows everything except expensive buffer stats.
 
 ### Benchmarking
 
@@ -279,7 +284,6 @@ npm run debug -- --headed        # Debug with visible browser
 | Zero logits | KV cache not populated | `grep "KV\|hasGPUCache"` |
 | NaN/Inf values | Scale overflow | Check dequant d/dmin values |
 | First token OK, rest garbage | Decode position bug | Check `startPos` in RoPE |
-| Logits inverted (neg vs HF pos) | Gemma 2: missing +1 offset or softcap | Check `isGemma2` detection |
 
 ---
 
@@ -300,26 +304,6 @@ npm run debug -- --headed        # Debug with visible browser
 ```bash
 npm run debug 2>&1 | grep "LAYER.*maxAbs"
 ```
-
----
-
-## Gemma 2 Specific Issues
-
-### Norm Weight Offset (shared with Gemma 3)
-Gemma 2 also uses `output = x * (1 + weight) / rms` for ALL RMSNorm layers.
-This is the same as Gemma 3 - both require the +1 offset.
-
-### Logit Softcapping
-Gemma 2 applies softcapping to prevent extreme logit values:
-- **Final logits**: `tanh(logits / 30.0) * 30.0`
-- **Attention scores**: `tanh(scores / 50.0) * 50.0`
-
-If logits appear inverted (DOPPLER negative vs HuggingFace positive), check:
-1. Missing +1 norm weight offset
-2. Missing logit softcapping
-
-### Sliding Window Attention
-Gemma 2 uses interleaved local (4096 tokens) and global (8192 tokens) attention.
 
 ---
 
@@ -352,10 +336,11 @@ Each layer has 4 norms:
 | `inference/pipeline.ts` | Overall flow, token loop |
 | `inference/pipeline/layer.ts` | Per-layer processing |
 | `inference/pipeline/attention.ts` | KV cache, RoPE, attention |
-| `inference/pipeline/ffn.ts` | FFN gate/up/down projections |
+| `inference/pipeline/moe-impl.ts` | FFN/MoE gate/up/down projections |
 | `inference/pipeline/logits.ts` | Final projection, sampling |
 | `gpu/kernels/matmul.ts` | Q4K selection, dispatch |
 | `loader/doppler-loader.ts` | Weight loading, norm offset |
+| `debug/index.ts` | Unified logging and trace API |
 
 ---
 
@@ -377,12 +362,45 @@ npm run debug                      # Debug with trace
 
 ---
 
+## Debug API (for code instrumentation)
+
+When adding debug logging to DOPPLER code:
+
+```typescript
+import { log, trace, setTrace, setLogLevel } from '../debug/index.js';
+
+// Log levels (verbosity - always shown at that level)
+log.info('Pipeline', 'Model loaded');
+log.verbose('Loader', 'Shard 0 from OPFS');
+log.debug('Attention', `heads=${numHeads}`);
+log.warn('KVCache', 'Cache miss');
+log.error('Kernel', 'Dispatch failed');
+
+// Trace categories (only shown when category enabled)
+trace.loader('Loading shard 0 from OPFS');
+trace.kernels('matmul M=1 K=1152 N=1024');
+trace.attn(layerIdx, 'Q maxAbs=1.2');
+trace.ffn(layerIdx, 'gate maxAbs=5.3');
+trace.logits({ min: -2.3, max: 15.7 });
+trace.kv('Cache hit for pos 42');
+trace.sample('topK=40, temp=0.7');
+trace.buffers('Pool: 12 active, 3 free');
+trace.perf('Layer 5: 2.3ms');
+
+// Configure at runtime
+setLogLevel('verbose');           // Show more
+setTrace('kernels,logits');       // Enable specific categories
+setTrace('all,-buffers');         // All except buffers
+setTrace(false);                  // Disable all tracing
+```
+
+---
+
 ## Resources
 
 - **Troubleshooting Guide**: `docs/DOPPLER-TROUBLESHOOTING.md`
 - **Architecture**: `docs/ARCHITECTURE.md`
 - **Postmortems Index**: `docs/postmortems/INDEX.md` - Key takeaways from resolved bugs
-- **Style Guides**: `docs/style/` - WGSL, TypeScript, and general coding conventions
 
 ---
 

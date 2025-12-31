@@ -20,6 +20,7 @@ struct Uniforms {
     scale: f32,           // 1/sqrt(head_dim)
     is_causal: u32,       // Apply causal mask (1 = yes)
     start_pos: u32,       // Absolute position offset for causal masking
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -150,6 +151,11 @@ fn main(
                 }
                 score = score * scale;
 
+                // Gemma 2 attention softcapping
+                if (u.attn_softcap > 0.0) {
+                    score = tanh(score / u.attn_softcap) * u.attn_softcap;
+                }
+
                 block_max = max(block_max, score);
                 shared_scores[thread_idx * BLOCK_SIZE + k] = score;
             }
@@ -238,6 +244,11 @@ fn attention_decode(
             score = score + q_local[d] * f32(K[k_offset + d]);
         }
         score = score * scale;
+
+        // Gemma 2 attention softcapping
+        if (u.attn_softcap > 0.0) {
+            score = tanh(score / u.attn_softcap) * u.attn_softcap;
+        }
 
         local_scores[i] = score;
         local_max = max(local_max, score);

@@ -16,6 +16,7 @@ struct Uniforms {
     scale: f32,
     is_causal: u32,
     start_pos: u32,  // Absolute position offset for causal masking
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -64,6 +65,10 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
             dot = dot + q_local[d] * f32(K[k_offset + d]);
         }
         dot = dot * scale;
+        // Gemma 2 attention softcapping
+        if (u.attn_softcap > 0.0) {
+            dot = tanh(dot / u.attn_softcap) * u.attn_softcap;
+        }
         max_score = max(max_score, dot);
     }
 
@@ -82,6 +87,10 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
             dot = dot + q_local[d] * f32(K[k_offset + d]);
         }
         dot = dot * scale;
+        // Gemma 2 attention softcapping
+        if (u.attn_softcap > 0.0) {
+            dot = tanh(dot / u.attn_softcap) * u.attn_softcap;
+        }
         let w = exp(dot - max_score);
         sum_exp = sum_exp + w;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {

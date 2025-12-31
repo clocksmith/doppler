@@ -173,6 +173,14 @@ export {
 // Re-export for convenience in layer.ts integration
 export { recordMatmulRMSNormFused as doRecordMatmulRMSNormFused } from './fused_matmul_rmsnorm.js';
 
+// Fused Matmul + Residual (P1 - eliminates 1 dispatch per layer for attention output)
+export {
+  runMatmulResidualFused,
+  recordMatmulResidualFused,
+  shouldUseFusedMatmulResidual,
+  type MatmulResidualFusedOptions,
+} from './fused_matmul_residual.js';
+
 // Re-export CommandRecorder types for convenience
 export {
   CommandRecorder,
@@ -198,6 +206,14 @@ export {
   type BenchmarkReport,
   type BenchmarkConfig,
 } from '../kernel-benchmark.js';
+
+// Split QKV
+export {
+  runSplitQKV,
+  recordSplitQKV,
+  type SplitQKVOptions,
+  type SplitQKVResult,
+} from './split_qkv.js';
 
 // Re-export profiling utilities
 export {

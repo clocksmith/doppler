@@ -15,14 +15,14 @@ override WORKGROUP_SIZE: u32 = 256u;
 struct Uniforms {
     num_tokens: u32,
     dim: u32,
+    bias_offset: u32,  // byte offset into bias buffer (divide by 4 for F32 index)
     _pad0: u32,
-    _pad1: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read_write> output: array<f32>;
-@group(0) @binding(3) var<storage, read> bias: array<f32>;
+@group(0) @binding(2) var<storage, read> bias: array<f32>;
+@group(0) @binding(3) var<storage, read_write> output: array<f32>;
 
 fn sigmoid(x: f32) -> f32 {
     return 1.0 / (1.0 + exp(-x));
@@ -43,9 +43,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let token_idx = idx / u.dim;
     let dim_idx = idx % u.dim;
 
+    // bias_offset is in bytes, convert to F32 index
+    let bias_base = u.bias_offset / 4u;
+
     let row_base = token_idx * u.dim * 2u;
-    let gate = input[row_base + dim_idx] + bias[dim_idx];
-    let up = input[row_base + u.dim + dim_idx] + bias[u.dim + dim_idx];
+    let gate = input[row_base + dim_idx] + bias[bias_base + dim_idx];
+    let up = input[row_base + u.dim + dim_idx] + bias[bias_base + u.dim + dim_idx];
 
     output[idx] = silu(gate) * up;
 }

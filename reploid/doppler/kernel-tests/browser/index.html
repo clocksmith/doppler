@@ -2,30 +2,23 @@
 <html>
 <head>
   <title>DOPPLER Kernel Tests</title>
+  <link rel="stylesheet" href="/doppler/rd.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-      background: #000;
-      color: #fff;
-      padding: 24px;
-      line-height: 1.5;
-    }
-    h1 { font-size: 14px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px; }
+    /* Test page layout only - all component styling from rd.css */
+    body { padding: var(--space-lg); }
+    h1 { margin-bottom: var(--space-md); }
     #results { display: none; }
     #results.show { display: block; }
-    .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #222; }
+    .row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: var(--border-sm) solid var(--fg); }
     .row:last-child { border-bottom: none; }
-    .pass { color: #fff; }
-    .fail { color: #888; text-decoration: line-through; }
-    .time { color: #666; font-size: 12px; }
-    #summary { margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; font-weight: 600; }
-    #status { color: #666; font-size: 12px; }
+    .pass { }
+    .fail { opacity: var(--opacity-muted); text-decoration: line-through; }
+    #summary { margin-top: var(--space-md); padding-top: var(--space-md); border-top: var(--border-sm) solid var(--fg); font-weight: 600; }
   </style>
 </head>
 <body>
-  <h1>DOPPLER KERNEL TESTS</h1>
-  <div id="status">Initializing...</div>
+  <h1 class="type-h1">DOPPLER KERNEL TESTS</h1>
+  <div id="status" class="muted type-caption">Initializing...</div>
   <div id="results"></div>
 
   <script type="module">
@@ -63,7 +56,7 @@
           for (const r of testResults) {
             const row = document.createElement('div');
             row.className = `row ${r.passed ? 'pass' : 'fail'}`;
-            row.innerHTML = `<span>${r.passed ? '✓' : '✗'} ${r.name}</span><span class="time">${r.duration}ms</span>`;
+            row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption muted">${r.duration}ms</span>`;
             container.appendChild(row);
 
             if (r.passed) passed++; else failed++;
@@ -72,7 +65,7 @@
 
           const summary = document.createElement('div');
           summary.id = 'summary';
-          summary.textContent = `${passed}/${passed + failed} PASSED  ${totalTime}ms`;
+          summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span class="muted">${totalTime}ms</span>`;
           container.appendChild(summary);
 
           container.classList.add('show');
@@ -82,6 +75,7 @@
       } catch (e) {
         console.error(`[KernelTests] Error: ${e.message}`);
         document.getElementById('status').textContent = `Error: ${e.message}`;
+        document.getElementById('status').classList.add('border-error');
         window.kernelTestError = e.message;
       }
     }

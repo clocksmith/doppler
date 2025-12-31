@@ -574,6 +574,21 @@ export function applyLlama3ChatTemplate(prompt: string): string {
 }
 
 /**
+ * Apply GPT-OSS chat template to a prompt.
+ *
+ * Format: <|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>final<|message|>
+ *
+ * The model expects specific channels (analysis, commentary, final).
+ * For basic completion, we use the 'final' channel which produces visible output.
+ *
+ * @param prompt - Raw user prompt
+ * @returns Formatted prompt with chat template
+ */
+export function applyGptOssChatTemplate(prompt: string): string {
+  return `<|start|>user<|message|>${prompt}<|end|><|start|>assistant<|channel|>final<|message|>`;
+}
+
+/**
  * Check if a token is a stop token.
  *
  * @param token - Token ID to check
@@ -647,4 +662,102 @@ export function initSpeculativeDecoder(manifest: Manifest): SpeculativeDecoder |
   return new SpeculativeDecoder({
     numDraftTokens: manifest.draftModel.numTokens || 5,
   });
+}
+
+// ============================================================================
+// QKV Fusion
+// ============================================================================
+
+/**
+ * Fuse Q/K/V projection weights into a single QKV weight for optimized inference.
+ *
+ * This enables 3→1 matmul fusion: instead of 3 separate matmuls for Q, K, V projections,
+ * we do one larger matmul and split the output. This saves 2 dispatch barriers.
+ *
+ * @param layerWeights - Layer weights map
+ * @param modelConfig - Parsed model configuration
+ */
+export function fuseQKVWeights(
+  layerWeights: Map<string, LayerWeights>,
+  modelConfig: ParsedModelConfig
+): void {
+  const device = getDevice();
+  if (!device) {
+    console.log('[QKV Fusion] No GPU device, skipping fusion');
+    return;
+  }
+
+  const { numLayers, numHeads, numKVHeads, headDim, hiddenSize } = modelConfig;
+  const qSize = numHeads * headDim;
+  const kSize = numKVHeads * headDim;
+  const vSize = numKVHeads * headDim;
+  const qkvSize = qSize + kSize + vSize;
+
+  console.log(`[QKV Fusion] Fusing Q/K/V weights for ${numLayers} layers (${qSize}+${kSize}+${vSize}=${qkvSize})`);
+
+  let fusedCount = 0;
+  for (let l = 0; l < numLayers; l++) {
+    const weights = layerWeights.get(`layer_${l}`);
+    if (!weights) continue;
+
+    // Skip if already fused or if weights are not GPUBuffers
+    if (weights.qkvProj) continue;
+    if (!(weights.qProj instanceof GPUBuffer) ||
+        !(weights.kProj instanceof GPUBuffer) ||
+        !(weights.vProj instanceof GPUBuffer)) {
+      continue;
+    }
+
+    // Detect bytes per element from actual buffer size
+    // Q buffer should be [qSize, hiddenSize] = qSize * hiddenSize elements
+    const qExpectedElements = qSize * hiddenSize;
+    const qBufferSize = weights.qProj.size;
+    const bytesPerElement = qBufferSize / qExpectedElements;
+
+    // Validate: should be 2 (F16) or 4 (F32)
+    if (bytesPerElement !== 2 && bytesPerElement !== 4) {
+      console.log(`[QKV Fusion] Layer ${l}: unsupported dtype (${bytesPerElement} bytes/elem), skipping`);
+      continue;
+    }
+
+    const dtype = bytesPerElement === 2 ? 'f16' : 'f32';
+
+    // Create fused QKV buffer: [qkvSize, hiddenSize] row-major
+    // Each row is concatenated: [q_row, k_row, v_row]
+    const qkvBuffer = device.createBuffer({
+      label: `layer_${l}_qkv_proj`,
+      size: qkvSize * hiddenSize * bytesPerElement,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+
+    // Copy Q, K, V weights into fused buffer
+    // Q: [qSize, hiddenSize] → offset 0
+    // K: [kSize, hiddenSize] → offset qSize * hiddenSize * bytesPerElement
+    // V: [vSize, hiddenSize] → offset (qSize + kSize) * hiddenSize * bytesPerElement
+    const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
+    encoder.copyBufferToBuffer(
+      weights.qProj, 0,
+      qkvBuffer, 0,
+      qSize * hiddenSize * bytesPerElement
+    );
+    encoder.copyBufferToBuffer(
+      weights.kProj, 0,
+      qkvBuffer, qSize * hiddenSize * bytesPerElement,
+      kSize * hiddenSize * bytesPerElement
+    );
+    encoder.copyBufferToBuffer(
+      weights.vProj, 0,
+      qkvBuffer, (qSize + kSize) * hiddenSize * bytesPerElement,
+      vSize * hiddenSize * bytesPerElement
+    );
+    device.queue.submit([encoder.finish()]);
+
+    // Store fused buffer, sizes, and dtype
+    weights.qkvProj = qkvBuffer;
+    weights.qkvSizes = [qSize, kSize, vSize];
+    weights.qkvDtype = dtype;
+    fusedCount++;
+  }
+
+  console.log(`[QKV Fusion] Fused ${fusedCount}/${numLayers} layers`);
 }

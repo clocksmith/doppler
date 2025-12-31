@@ -399,6 +399,16 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
   },
+  // Fused GEMV + Residual for decode (M=1)
+  // Combines output projection matmul with residual add in single kernel
+  fused_matmul_residual: {
+    default: {
+      shaderFile: 'matmul_gemv_residual.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
   softmax: {
     default: {
       shaderFile: 'softmax.wgsl',
@@ -627,6 +637,12 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    sparse: {
+      shaderFile: 'moe_gather.wgsl',
+      entryPoint: 'count_and_map',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
   },
   swiglu: {
     rowsplit_bias: {
@@ -650,6 +666,15 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
+    },
+  },
+  // Split fused QKV output into separate Q, K, V buffers
+  split_qkv: {
+    default: {
+      shaderFile: 'split_qkv.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
     },
   },
   sample: {

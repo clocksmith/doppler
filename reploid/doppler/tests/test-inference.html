@@ -3,40 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>DOPPLER Inference Test</title>
+  <link rel="stylesheet" href="/doppler/rd.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-      background: #000;
-      color: #fff;
-      padding: 24px;
-      line-height: 1.5;
-    }
-    h1 { font-size: 14px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px; }
-    #status { color: #666; font-size: 12px; margin-bottom: 16px; }
+    /* Test page layout only - all component styling from rd.css */
+    body { padding: var(--space-lg); }
+    h1 { margin-bottom: var(--space-md); }
+    #status { margin-bottom: var(--space-md); }
     #results { display: none; }
     #results.show { display: block; }
-    .section { margin-bottom: 16px; }
-    .label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .value { font-size: 13px; }
+    .section { margin-bottom: var(--space-md); }
     .output {
-      background: #111;
-      padding: 12px;
-      border-left: 2px solid #333;
+      padding: var(--space-sm);
+      border-left: var(--border-md) solid var(--fg);
       white-space: pre-wrap;
       word-break: break-word;
     }
-    .stats { display: flex; gap: 24px; }
-    .stat { }
+    .stats { display: flex; gap: var(--space-lg); }
     .stat-value { font-size: 18px; font-weight: 600; }
-    .stat-label { font-size: 11px; color: #666; }
-    .pass { color: #fff; }
-    .fail { color: #666; }
   </style>
 </head>
 <body>
-  <h1>DOPPLER INFERENCE TEST</h1>
-  <div id="status">Initializing...</div>
+  <h1 class="type-h1">DOPPLER INFERENCE TEST</h1>
+  <div id="status" class="muted type-caption">Initializing...</div>
   <div id="results"></div>
 
   <script type="module">
@@ -112,6 +100,7 @@
         for await (const tokenText of pipeline.generate(prompt, {
           maxTokens: 8,
           temperature: 0,
+          useChatTemplate: true,
         })) {
           tokens.push(tokenText);
           console.log(`[Token] ${tokens.length}: "${tokenText}"`);
@@ -145,7 +134,7 @@
         window.testState.errors.push(e.message);
         window.testState.done = true;
         document.getElementById('status').textContent = `Error: ${e.message}`;
-        document.getElementById('status').classList.add('fail');
+        document.getElementById('status').classList.add('border-error');
       }
     }
 
@@ -153,33 +142,33 @@
       const container = document.getElementById('results');
       container.innerHTML = `
         <div class="section">
-          <div class="label">Model</div>
-          <div class="value">${r.model}</div>
+          <div class="type-label muted">Model</div>
+          <div>${r.model}</div>
         </div>
         <div class="section">
-          <div class="label">Prompt</div>
-          <div class="value">${r.prompt}</div>
+          <div class="type-label muted">Prompt</div>
+          <div>${r.prompt}</div>
         </div>
         <div class="section">
-          <div class="label">Output</div>
+          <div class="type-label muted">Output</div>
           <div class="output">${r.output}</div>
         </div>
         <div class="section stats">
           <div class="stat">
             <div class="stat-value">${r.tokens}</div>
-            <div class="stat-label">tokens</div>
+            <div class="type-caption muted">tokens</div>
           </div>
           <div class="stat">
             <div class="stat-value">${r.elapsed}ms</div>
-            <div class="stat-label">total</div>
+            <div class="type-caption muted">total</div>
           </div>
           <div class="stat">
             <div class="stat-value">${r.tokPerSec}</div>
-            <div class="stat-label">tok/s</div>
+            <div class="type-caption muted">tok/s</div>
           </div>
         </div>
         <div class="section">
-          <div class="${r.passed ? 'pass' : 'fail'}">${r.passed ? 'PASS' : 'FAIL'}</div>
+          <div class="${r.passed ? 'badge badge-filled' : 'badge border-error muted'}">${r.passed ? 'PASS' : 'FAIL'}</div>
         </div>
       `;
       container.classList.add('show');

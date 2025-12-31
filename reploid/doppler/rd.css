@@ -698,6 +698,23 @@ input[type="radio"] {
   100% { transform: translateX(400%); }
 }
 
+/* Progress phase rows - differentiate source types via border-left */
+.progress-phase-row {
+  padding-left: var(--space-sm);
+}
+
+.progress-phase-network {
+  border-left: var(--border-md) dotted var(--fg);
+}
+
+.progress-phase-disk {
+  border-left: var(--border-md) dashed var(--fg);
+}
+
+.progress-phase-cache {
+  border-left: var(--border-lg) solid var(--fg);
+}
+
 /* --- Cards --- inherits padding/borders from shared patterns */
 
 /* --- Lists --- */
@@ -794,6 +811,43 @@ th {
   max-width: 400px;
 }
 
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 280px;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-icon {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.toast-message {
+  flex: 1;
+}
+
+.toast-close {
+  font-size: 12px;
+  opacity: var(--opacity-secondary);
+  cursor: pointer;
+}
+
+.toast-success {
+  border-left: var(--border-lg) solid var(--fg);
+}
+
 .toast-error {
   border-style: double;
   border-width: var(--border-lg);
@@ -805,6 +859,70 @@ th {
 
 .toast-info {
   border-style: dotted;
+}
+
+/* --- Error UI (boot failure) --- */
+.error-ui {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: var(--space-lg);
+}
+
+.error-ui-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.error-ui-header::before {
+  content: '\26A0';
+  font-size: 1.5em;
+}
+
+.error-ui-description {
+  opacity: var(--opacity-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
+}
+
+.error-ui-message {
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
+  font-family: var(--font-a);
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border: var(--border-lg) dashed var(--fg);
+}
+
+.error-ui-details summary {
+  cursor: pointer;
+  opacity: var(--opacity-secondary);
+  padding: var(--space-sm) 0;
+}
+
+.error-ui-stack {
+  padding: var(--space-md);
+  font-size: 11px;
+  overflow-x: auto;
+  opacity: var(--opacity-muted);
+  border: var(--border-sm) dotted var(--fg);
+}
+
+.error-ui-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+}
+
+.error-ui-hint {
+  font-size: 12px;
+  opacity: var(--opacity-muted);
+  margin-top: var(--space-lg);
 }
 
 /* --- Code blocks --- */

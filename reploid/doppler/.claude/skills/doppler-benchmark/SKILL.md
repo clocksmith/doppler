@@ -1,6 +1,8 @@
 ---
 name: doppler-benchmark
-description: Run DOPPLER performance benchmarks. Use when measuring inference speed, comparing against baselines, or tracking performance regressions. Outputs JSON results per the BENCHMARK_HARNESS spec.
+description: Run DOPPLER performance benchmarks. Use when measuring inference speed, comparing against baselines, or tracking performance regressions. Outputs JSON results per the BENCHMARK_HARNESS spec. (project)
+metadata:
+  short-description: DOPPLER performance benchmarks
 ---
 
 # DOPPLER Benchmark Skill
@@ -53,14 +55,11 @@ npm run bench -- --compare baseline.json
 | `--output, -o` | JSON output path | (none) |
 | `--compare, -c` | Baseline JSON for comparison | (none) |
 | `--verbose, -v` | Verbose loader logs (per-shard/layer) | false |
-| `--trace [cats]` | Trace categories (all if no arg) | false |
-| `--quiet, -q` | Suppress all loader logs | false |
+| `--trace` | Trace-level logs (tensor details) | false |
+| `--quiet` | Suppress all loader logs | false |
 | `--headed` | Show browser window | false (headless default) |
 
-**Log Levels:** `?log=silent|info|verbose|debug` in browser URL
-**Trace Categories:** `?trace=kernels,logits` or `?trace=all,-buffers`
-
-Available trace categories: `loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`, `buffers`, `perf`
+**Log Levels:** `?log=silent|info|verbose|trace` in browser URL
 
 **Auto-generated outputs:**
 ```
@@ -215,10 +214,6 @@ npm run bench -- --prompt xs --verbose 2>&1 | grep -E "logits|top-5|sampled" | h
 # Check layer outputs
 npm run bench -- --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
 ```
-
-## Resources
-
-- **Style Guides**: `docs/style/` - WGSL, TypeScript, and general coding conventions
 
 ## Related Skills
 

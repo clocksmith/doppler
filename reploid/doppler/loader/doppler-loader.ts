@@ -1420,15 +1420,21 @@ export class DopplerLoader {
 
     const config = (this.manifest.config || {}) as ModelConfig;
     const arch = config.architectures?.[0] || (this.manifest.architecture as string) || '';
-    const isGemma3 = /gemma3/i.test(arch) || /gemma3/i.test(config.model_type || '');
+    const modelType = config.model_type || '';
+
+    // Both Gemma 2 and Gemma 3 use (1 + weight) formula for RMSNorm
+    const isGemma2 = /gemma.*2|gemma2/i.test(arch) || /gemma.*2|gemma2/i.test(modelType);
+    const isGemma3 = /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType);
+    const isGemmaFamily = isGemma2 || isGemma3;
 
     // Check explicit manifest flag first, then fall back to architecture detection
     const explicitFlag = (config as { rms_norm_weight_offset?: boolean }).rms_norm_weight_offset;
-    const needsOffset = explicitFlag ?? isGemma3;
+    const needsOffset = explicitFlag ?? isGemmaFamily;
 
     if (needsOffset && !this._normOffsetLogged) {
       this._normOffsetLogged = true;
-      debugTrace.loader(' Applying +1 norm weight offset for Gemma 3 layer norms');
+      const family = isGemma2 ? 'Gemma 2' : 'Gemma 3';
+      debugTrace.loader(` Applying +1 norm weight offset for ${family} layer norms`);
     }
 
     return needsOffset;

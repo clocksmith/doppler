@@ -26,6 +26,10 @@ import {
   recordRoPE,
   recordAttention,
   recordCastF32ToF16,
+  recordSplitQKV,
+  runMatmulResidualFused,
+  recordMatmulResidualFused,
+  shouldUseFusedMatmulResidual,
   CommandRecorder,
 } from '../../gpu/kernel-selector.js';
 import { isKernelDebugEnabled, dumpTokenVector, dumpKVCache, logKernelStep } from './debug-utils.js';
@@ -50,6 +54,10 @@ export interface AttentionConfig {
   slidingWindow?: number | null;
   layerType?: string;
   attentionKernelOverride?: string | null;
+  /** Residual buffer for fused o_proj + residual add (decode only) */
+  residualBuffer?: GPUBuffer | null;
+  /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
+  attnSoftcap?: number;
 }
 
 /**
@@ -59,6 +67,16 @@ export interface AttentionState {
   ropeFreqsCos: GPUBuffer | null;
   ropeFreqsSin: GPUBuffer | null;
   kvCache: KVCacheInterface;
+}
+
+/**
+ * Result from attention layer execution.
+ */
+export interface AttentionResult {
+  /** Output buffer after attention + o_proj */
+  output: GPUBuffer;
+  /** Whether the attention residual was fused into o_proj (layer.ts should skip residual add) */
+  residualFused: boolean;
 }
 
 /**
@@ -94,7 +112,7 @@ export async function runLayerAttentionGPU(
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   lora?: LoRAAdapter | null
-): Promise<GPUBuffer> {
+): Promise<AttentionResult> {
   const {
     layerIdx,
     numTokens,
@@ -108,6 +126,8 @@ export async function runLayerAttentionGPU(
     slidingWindow,
     layerType,
     attentionKernelOverride,
+    residualBuffer,
+    attnSoftcap = 0,
   } = config;
 
   const device = getDevice();
@@ -117,7 +137,7 @@ export async function runLayerAttentionGPU(
   if (!layerWeights) {
     // Return zeros if no weights
     const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
-    return output;
+    return { output, residualFused: false };
   }
 
   const qSize = numTokens * numHeads * headDim;
@@ -168,81 +188,118 @@ export async function runLayerAttentionGPU(
   const useF16Activations = state.kvCache?.kvDtype === 'f16';
   let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
 
-  if (layerWeights.qProj && getWeightBuffer) {
-    const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
-  } else {
-    Q = acquireBuffer(qSize * 4, undefined, 'Q');
-  }
+  // Check for fused QKV path (3→1 matmul optimization)
+  const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
+                  getLoRAModule(lora, layerIdx, 'k_proj') ||
+                  getLoRAModule(lora, layerIdx, 'v_proj');
+  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA && !useF16Activations;
 
-  const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
-  if (loraQ && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      Q,
-      loraQ,
-      { M: numTokens, N: numHeads * headDim, K: hiddenSize },
-      getWeightBuffer
-    );
-    if (combined !== Q) {
-      releaseBuffer(Q);
-      Q = combined;
+  if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
+    // FUSED PATH: Single matmul for Q/K/V, then split
+    const [qSize_, kSize_, vSize_] = layerWeights.qkvSizes;
+    const qkvSize = qSize_ + kSize_ + vSize_;
+
+    // One fused matmul instead of 3 separate ones
+    const qkvOutput = await runMatmul(normedBuffer, layerWeights.qkvProj, numTokens, qkvSize, hiddenSize, {
+      transposeB: 'auto',
+    });
+
+    // Split fused output into Q, K, V
+    const { runSplitQKV } = await import('../../gpu/kernels/split_qkv.js');
+    const split = await runSplitQKV(qkvOutput, {
+      numTokens,
+      qSize: qSize_,
+      kSize: kSize_,
+      vSize: vSize_,
+    });
+    Q = split.Q;
+    K = split.K;
+    V = split.V;
+
+    // Release fused buffer
+    releaseBuffer(qkvOutput);
+
+    if (layerIdx === 0 && isPrefill) {
+      console.log(`[Attention] Layer 0 using fused QKV path: ${qSize_}+${kSize_}+${vSize_}=${qkvSize}`);
     }
-  }
-
-  if (layerWeights.kProj && getWeightBuffer) {
-    const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
-    K = acquireBuffer(kvSize * 4, undefined, 'K');
-  }
-
-  const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
-  if (loraK && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      K,
-      loraK,
-      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-      getWeightBuffer
-    );
-    if (combined !== K) {
-      releaseBuffer(K);
-      K = combined;
+    // STANDARD PATH: Separate Q/K/V matmuls
+    if (layerWeights.qProj && getWeightBuffer) {
+      const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
+      Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
+    } else {
+      Q = acquireBuffer(qSize * 4, undefined, 'Q');
     }
-  }
 
-  if (layerWeights.vProj && getWeightBuffer) {
-    const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
-  } else {
-    V = acquireBuffer(kvSize * 4, undefined, 'V');
-  }
+    const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
+    if (loraQ && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        Q,
+        loraQ,
+        { M: numTokens, N: numHeads * headDim, K: hiddenSize },
+        getWeightBuffer
+      );
+      if (combined !== Q) {
+        releaseBuffer(Q);
+        Q = combined;
+      }
+    }
 
-  const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
-  if (loraV && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      V,
-      loraV,
-      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-      getWeightBuffer
-    );
-    if (combined !== V) {
-      releaseBuffer(V);
-      V = combined;
+    if (layerWeights.kProj && getWeightBuffer) {
+      const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
+      K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
+    } else {
+      K = acquireBuffer(kvSize * 4, undefined, 'K');
+    }
+
+    const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
+    if (loraK && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        K,
+        loraK,
+        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+        getWeightBuffer
+      );
+      if (combined !== K) {
+        releaseBuffer(K);
+        K = combined;
+      }
+    }
+
+    if (layerWeights.vProj && getWeightBuffer) {
+      const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
+      V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
+    } else {
+      V = acquireBuffer(kvSize * 4, undefined, 'V');
+    }
+
+    const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
+    if (loraV && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        V,
+        loraV,
+        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+        getWeightBuffer
+      );
+      if (combined !== V) {
+        releaseBuffer(V);
+        V = combined;
+      }
     }
   }
 
@@ -412,6 +469,7 @@ export async function runLayerAttentionGPU(
     startPos: startPosForMask,
     attentionKernel: attentionKernelOverride || undefined,
     slidingWindow: effectiveSlidingWindow,
+    attnSoftcap,
   });
 
   // Trace attention output
@@ -431,39 +489,66 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(attnOutput, 'L0 attention output (before o_proj, GPU)', numTokens, numHeads * headDim);
   }
 
-  // 6. Output projection
+  // 6. Output projection (with optional fused residual for decode)
   let output: GPUBuffer;
+  let residualFused = false;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
-    output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
+    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+
+    // Use fused o_proj + residual for decode when possible
+    const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
+                        residualBuffer &&
+                        !loraO &&
+                        getBufferDtype(oProjBuf) === 'f16';  // GEMV kernel expects f16 weights
+
+    if (canUseFused && residualBuffer) {
+      // FUSED PATH: o_proj matmul + residual add in one dispatch
+      output = await runMatmulResidualFused(attnOutput, oProjBuf, residualBuffer, {
+        N: hiddenSize,
+        K: numHeads * headDim,
+        residual: residualBuffer,
+      });
+      residualFused = true;
+
+      if (layerIdx === 0 && !isPrefill) {
+        console.log(`[Attention] Layer 0 using fused o_proj+residual path`);
+      }
+    } else {
+      // STANDARD PATH: o_proj matmul only (residual will be added by layer.ts)
+      output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
+    }
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
 
     // Trace output projection
     if (kernelTrace.enabled) {
-      await traceStep('matmul', `L${layerIdx}.o_proj`, layerIdx, output, [numTokens, hiddenSize]);
+      await traceStep('matmul', `L${layerIdx}.o_proj${residualFused ? '+residual' : ''}`, layerIdx, output, [numTokens, hiddenSize]);
     }
 
     // Kernel step debug: output projection
     if (isKernelDebugEnabled(layerIdx)) {
-      logKernelStep('matmul', { layerIdx, label: 'O_proj', M: numTokens, N: hiddenSize, K: numHeads * headDim });
+      logKernelStep('matmul', { layerIdx, label: residualFused ? 'O_proj+residual' : 'O_proj', M: numTokens, N: hiddenSize, K: numHeads * headDim });
       await dumpTokenVector(output, 'o_proj_out', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: hiddenSize });
     }
   } else {
     output = attnOutput;
   }
 
-  const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-  if (loraO && getWeightBuffer) {
-    const combined = await applyLoRA(
-      attnOutput,
-      output,
-      loraO,
-      { M: numTokens, N: hiddenSize, K: numHeads * headDim },
-      getWeightBuffer
-    );
-    if (combined !== output) {
-      releaseBuffer(output);
-      output = combined;
+  // Apply LoRA to output projection if present (only if not using fused path)
+  if (!residualFused) {
+    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+    if (loraO && getWeightBuffer) {
+      const combined = await applyLoRA(
+        attnOutput,
+        output,
+        loraO,
+        { M: numTokens, N: hiddenSize, K: numHeads * headDim },
+        getWeightBuffer
+      );
+      if (combined !== output) {
+        releaseBuffer(output);
+        output = combined;
+      }
     }
   }
 
@@ -479,7 +564,7 @@ export async function runLayerAttentionGPU(
   releaseBuffer(V);
   if (output !== attnOutput) releaseBuffer(attnOutput);
 
-  return output;
+  return { output, residualFused };
 }
 
 /**
@@ -500,7 +585,7 @@ export async function recordLayerAttentionGPU(
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   lora?: LoRAAdapter | null
-): Promise<GPUBuffer> {
+): Promise<AttentionResult> {
   const {
     layerIdx,
     numTokens,
@@ -514,11 +599,13 @@ export async function recordLayerAttentionGPU(
     slidingWindow,
     layerType,
     attentionKernelOverride,
+    residualBuffer,
+    attnSoftcap = 0,
   } = config;
 
   if (!layerWeights) {
     const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
-    return output;
+    return { output, residualFused: false };
   }
 
   const qSize = numTokens * numHeads * headDim;
@@ -540,84 +627,116 @@ export async function recordLayerAttentionGPU(
   const useF16Activations = state.kvCache?.kvDtype === 'f16';
   let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
 
-  if (layerWeights.qProj && getWeightBuffer) {
-    const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
-  } else {
-    Q = acquireBuffer(qSize * 4, undefined, 'Q');
-  }
+  // Check for fused QKV path (3→1 matmul optimization)
+  const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
+                  getLoRAModule(lora, layerIdx, 'k_proj') ||
+                  getLoRAModule(lora, layerIdx, 'v_proj');
+  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA && !useF16Activations;
 
-  const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
-  if (loraQ && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      Q,
-      loraQ,
-      { M: numTokens, N: numHeads * headDim, K: hiddenSize },
-      getWeightBuffer,
-      recorder
-    );
-    if (combined !== Q) {
-      recorder.trackTemporaryBuffer(Q);
-      Q = combined;
+  if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
+    // FUSED PATH: Single matmul for Q/K/V, then split
+    const [qSize_, kSize_, vSize_] = layerWeights.qkvSizes;
+    const qkvSizeTotal = qSize_ + kSize_ + vSize_;
+
+    // One fused matmul instead of 3 separate ones
+    const qkvOutput = await recordMatmul(recorder, normedBuffer, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
+      transposeB: 'auto',
+    });
+
+    // Split fused output into Q, K, V
+    const split = await recordSplitQKV(recorder, qkvOutput, {
+      numTokens,
+      qSize: qSize_,
+      kSize: kSize_,
+      vSize: vSize_,
+    });
+    Q = split.Q;
+    K = split.K;
+    V = split.V;
+
+    // Track fused buffer for cleanup
+    recorder.trackTemporaryBuffer(qkvOutput);
+  } else {
+    // STANDARD PATH: Separate Q/K/V matmuls
+    if (layerWeights.qProj && getWeightBuffer) {
+      const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
+      Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
+    } else {
+      Q = acquireBuffer(qSize * 4, undefined, 'Q');
     }
-  }
 
-  if (layerWeights.kProj && getWeightBuffer) {
-    const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
-  } else {
-    K = acquireBuffer(kvSize * 4, undefined, 'K');
-  }
-
-  const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
-  if (loraK && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      K,
-      loraK,
-      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-      getWeightBuffer,
-      recorder
-    );
-    if (combined !== K) {
-      recorder.trackTemporaryBuffer(K);
-      K = combined;
+    const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
+    if (loraQ && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        Q,
+        loraQ,
+        { M: numTokens, N: numHeads * headDim, K: hiddenSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== Q) {
+        recorder.trackTemporaryBuffer(Q);
+        Q = combined;
+      }
     }
-  }
 
-  if (layerWeights.vProj && getWeightBuffer) {
-    const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-      transposeB: 'auto',
-      outputDtype: useF16Activations ? 'f16' : undefined,
-    });
-    if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
-  } else {
-    V = acquireBuffer(kvSize * 4, undefined, 'V');
-  }
+    if (layerWeights.kProj && getWeightBuffer) {
+      const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
+      K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
+    } else {
+      K = acquireBuffer(kvSize * 4, undefined, 'K');
+    }
 
-  const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
-  if (loraV && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normedBuffer,
-      V,
-      loraV,
-      { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-      getWeightBuffer,
-      recorder
-    );
-    if (combined !== V) {
-      recorder.trackTemporaryBuffer(V);
-      V = combined;
+    const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
+    if (loraK && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        K,
+        loraK,
+        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== K) {
+        recorder.trackTemporaryBuffer(K);
+        K = combined;
+      }
+    }
+
+    if (layerWeights.vProj && getWeightBuffer) {
+      const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
+      V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: useF16Activations ? 'f16' : undefined,
+      });
+      if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
+    } else {
+      V = acquireBuffer(kvSize * 4, undefined, 'V');
+    }
+
+    const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
+    if (loraV && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normedBuffer,
+        V,
+        loraV,
+        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== V) {
+        recorder.trackTemporaryBuffer(V);
+        V = combined;
+      }
     }
   }
 
@@ -724,31 +843,55 @@ export async function recordLayerAttentionGPU(
     startPos: startPosForMask,
     attentionKernel: attentionKernelOverride || undefined,
     slidingWindow: effectiveSlidingWindow,
+    attnSoftcap,
   });
 
-  // 6. Output projection
+  // 6. Output projection (with optional fused residual for decode)
   let output: GPUBuffer;
+  let residualFused = false;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
-    output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
+    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+
+    // Use fused o_proj + residual for decode when possible
+    const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
+                        residualBuffer &&
+                        !loraO &&
+                        getBufferDtype(oProjBuf) === 'f16';
+
+    if (canUseFused && residualBuffer) {
+      // FUSED PATH: o_proj matmul + residual add in one dispatch
+      output = await recordMatmulResidualFused(recorder, attnOutput, oProjBuf, residualBuffer, {
+        N: hiddenSize,
+        K: numHeads * headDim,
+        residual: residualBuffer,
+      });
+      residualFused = true;
+    } else {
+      // STANDARD PATH: o_proj matmul only
+      output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
+    }
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
   } else {
     output = attnOutput;
   }
 
-  const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-  if (loraO && getWeightBuffer) {
-    const combined = await applyLoRA(
-      attnOutput,
-      output,
-      loraO,
-      { M: numTokens, N: hiddenSize, K: numHeads * headDim },
-      getWeightBuffer,
-      recorder
-    );
-    if (combined !== output) {
-      recorder.trackTemporaryBuffer(output);
-      output = combined;
+  // Apply LoRA to output projection if present (only if not using fused path)
+  if (!residualFused) {
+    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+    if (loraO && getWeightBuffer) {
+      const combined = await applyLoRA(
+        attnOutput,
+        output,
+        loraO,
+        { M: numTokens, N: hiddenSize, K: numHeads * headDim },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined !== output) {
+        recorder.trackTemporaryBuffer(output);
+        output = combined;
+      }
     }
   }
 
@@ -761,5 +904,5 @@ export async function recordLayerAttentionGPU(
   recorder.trackTemporaryBuffer(V);
   if (output !== attnOutput) recorder.trackTemporaryBuffer(attnOutput);
 
-  return output;
+  return { output, residualFused };
 }

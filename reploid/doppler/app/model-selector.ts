@@ -151,7 +151,7 @@ export class ModelSelector {
 
     if (this.models.length === 0) {
       this.listElement.innerHTML = `
-        <div class="model-item" style="text-align: center; color: var(--text-muted);">
+        <div class="model-item muted" style="text-align: center;">
           No models available
         </div>
       `;

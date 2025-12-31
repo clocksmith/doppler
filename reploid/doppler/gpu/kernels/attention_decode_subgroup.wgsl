@@ -25,6 +25,7 @@ struct Uniforms {
     scale: f32,           // Attention scale (1/sqrt(headDim))
     causal: u32,          // Causal masking flag
     start_pos: u32,       // Start position for RoPE
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -90,7 +91,12 @@ fn main(
             for (var s = 0u; s < num_subgroups; s++) {
                 total += subgroup_sums[s];
             }
-            scores[k] = total * scale;
+            var s = total * scale;
+            // Gemma 2 attention softcapping
+            if (u.attn_softcap > 0.0) {
+                s = tanh(s / u.attn_softcap) * u.attn_softcap;
+            }
+            scores[k] = s;
         }
         workgroupBarrier();
     }

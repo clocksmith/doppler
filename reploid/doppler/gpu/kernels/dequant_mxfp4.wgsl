@@ -35,8 +35,10 @@ struct Uniforms {
 // Workgroup shared memory for scales
 var<workgroup> shared_scale: f32;
 
-// Extract 4-bit nibble from packed bytes
-fn get_nibble(byte_data: u32, nibble_idx: u32) -> i32 {
+// Extract 4-bit nibble from packed bytes and decode as E2M1 FP4
+// MXFP4 E2M1 format: 1 sign bit, 2 exponent bits (bias=1), 1 mantissa bit
+// Layout: S | E1 | E0 | M
+fn get_nibble(byte_data: u32, nibble_idx: u32) -> f32 {
     // Each U32 contains 4 bytes, each byte contains 2 nibbles
     let byte_idx = nibble_idx / 2u;
     let is_high = nibble_idx % 2u;
@@ -49,17 +51,44 @@ fn get_nibble(byte_data: u32, nibble_idx: u32) -> i32 {
         nibble = byte_val & 0xFu;
     }
 
-    // Convert to signed: 0-15 -> -8 to +7
-    return i32(nibble) - 8;
+    // Decode E2M1 FP4:
+    // nibble = SEEM (4 bits)
+    // S = sign bit (bit 3)
+    // E = exponent (bits 2-1), bias = 1
+    // M = mantissa (bit 0)
+    let sign_bit = (nibble >> 3u) & 1u;
+    let exp = (nibble >> 1u) & 3u;  // 2-bit exponent
+    let mantissa = nibble & 1u;     // 1-bit mantissa
+
+    var value: f32;
+    if (exp == 0u) {
+        // Subnormal: value = (-1)^S * 0.5 * M
+        value = f32(mantissa) * 0.5;
+    } else {
+        // Normal: value = (-1)^S * (1 + 0.5*M) * 2^(E-1)
+        let m = 1.0 + f32(mantissa) * 0.5;
+        value = m * pow(2.0, f32(exp) - 1.0);
+    }
+
+    // Apply sign
+    if (sign_bit == 1u) {
+        value = -value;
+    }
+    return value;
 }
 
-// Get scale value from packed scales array
+// Get scale value from packed scales array (E8M0 format)
 fn get_scale(scale_data: u32, idx: u32) -> f32 {
     let byte_idx = idx % 4u;
     let scale_byte = (scale_data >> (byte_idx * 8u)) & 0xFFu;
-    // Normalize scale: U8 [0, 255] -> [-1, 1] range approximately
-    // MXFP4 typically uses scale as a simple multiplier
-    return f32(scale_byte) / 127.0;
+    // E8M0 format: 8-bit exponent, no mantissa
+    // scale = 2^(exponent - 127) where 127 is the IEEE bias
+    // Special cases: 0 = zero, 255 = NaN (we treat as 0)
+    if (scale_byte == 0u || scale_byte == 255u) {
+        return 0.0;
+    }
+    let exponent = i32(scale_byte) - 127;
+    return pow(2.0, f32(exponent));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
@@ -192,16 +221,18 @@ fn main_expert(
     let nibble_in_word = elem_in_group % 8u;
     let nibble_val = get_nibble(block_word, nibble_in_word);
 
-    // Input scales layout: [num_experts, out_dim, num_groups] as U8
-    // = [num_experts, out_dim, ceil(num_groups/4)] as U32
-    let scales_per_expert = eu.out_dim * ((eu.num_groups + 3u) / 4u);
-    let scales_per_row = (eu.num_groups + 3u) / 4u;
+    // Input scales layout: [num_experts, out_dim, num_groups] as contiguous U8 bytes
+    // Calculate byte offset, then convert to U32 word index
+    let scales_bytes_per_expert = eu.out_dim * eu.num_groups;
+    let scales_bytes_per_row = eu.num_groups;
 
-    let scale_word_idx = expert_offset * scales_per_expert
-                       + row_idx * scales_per_row
-                       + (group_in_row / 4u);
+    let scale_byte_offset = expert_offset * scales_bytes_per_expert
+                          + row_idx * scales_bytes_per_row
+                          + group_in_row;
+    let scale_word_idx = scale_byte_offset / 4u;
+    let scale_byte_in_word = scale_byte_offset % 4u;
     let scale_word = expert_scales[scale_word_idx];
-    let scale = get_scale(scale_word, group_in_row % 4u);
+    let scale = get_scale(scale_word, scale_byte_in_word);
 
     expert_output[out_elem] = f32(nibble_val) * scale;
 }

@@ -1,6 +1,8 @@
 ---
 name: doppler-debug
-description: Debug DOPPLER WebGPU inference issues. Use when investigating model output problems, kernel bugs, hidden state explosions, or decode failures in the browser-based LLM inference engine.
+description: Debug DOPPLER WebGPU inference issues. Use when investigating model output problems, kernel bugs, hidden state explosions, or decode failures in the browser-based LLM inference engine. (project)
+metadata:
+  short-description: Debug DOPPLER inference issues
 ---
 
 # DOPPLER Debug Skill

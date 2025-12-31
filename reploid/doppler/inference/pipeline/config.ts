@@ -212,14 +212,24 @@ export function inferAttentionParams(
 
   let qShape: number[] | undefined;
   let kShape: number[] | undefined;
+  let qName: string | undefined;
+  let kName: string | undefined;
 
   for (const [name, tensor] of Object.entries(tensors)) {
     const lower = name.toLowerCase();
     // Match HuggingFace (q_proj, self_attn.q) and GGUF (attn_q) naming patterns
-    if (lower.includes('q_proj') || lower.includes('self_attn.q') || lower.includes('attn_q.weight')) qShape = tensor?.shape;
-    if (lower.includes('k_proj') || lower.includes('self_attn.k') || lower.includes('attn_k.weight')) kShape = tensor?.shape;
+    if (lower.includes('q_proj') || lower.includes('self_attn.q') || lower.includes('attn_q.weight')) {
+      qShape = tensor?.shape;
+      qName = name;
+    }
+    if (lower.includes('k_proj') || lower.includes('self_attn.k') || lower.includes('attn_k.weight')) {
+      kShape = tensor?.shape;
+      kName = name;
+    }
     if (qShape && kShape) break;
   }
+
+  console.log(`[Config] inferAttentionParams: found q=${qName} shape=${JSON.stringify(qShape)}, k=${kName} shape=${JSON.stringify(kShape)}, hiddenSize=${hiddenSize}, knownNumHeads=${knownNumHeads}`);
 
   if (!qShape || !kShape) return null;
 
@@ -327,12 +337,17 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
       numHeads = numHeads ?? inferred.numHeads;
       numKVHeads = numKVHeads ?? inferred.numKVHeads;
       headDim = headDim ?? inferred.headDim;
+      console.log(`[Config] Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
     }
   }
 
   numHeads = numHeads ?? 32;
   numKVHeads = numKVHeads ?? numHeads;
-  headDim = headDim ?? Math.floor(hiddenSize / numHeads);
+  const inferredHeadDim = headDim ?? Math.floor(hiddenSize / numHeads);
+  if (!headDim) {
+    console.log(`[Config] WARNING: headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${inferredHeadDim}`);
+  }
+  headDim = inferredHeadDim;
 
   // RoPE scaling
   const ropeScaling = config.rope_scaling;

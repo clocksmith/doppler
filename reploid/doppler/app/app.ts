@@ -1671,18 +1671,6 @@ export class DopplerDemo {
   }
 
   /**
-   * Generate demo response (placeholder until real pipeline)
-   */
-  private _generateDemoResponse(message: string): string {
-    const responses = [
-      "I'm a demo response from DOPPLER! The real model isn't loaded yet, but once you connect the inference pipeline, I'll generate actual responses using WebGPU acceleration.",
-      "This is a placeholder response. When the full DOPPLER pipeline is connected, you'll see real LLM outputs with streaming tokens and performance metrics.",
-      "Hello! I'm simulating what the chat experience will be like. The actual inference will run entirely in your browser using WebGPU for acceleration.",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  }
-
-  /**
    * Handle model conversion
    */
   private async _handleConvert(): Promise<void> {

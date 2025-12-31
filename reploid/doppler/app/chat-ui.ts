@@ -262,7 +262,7 @@ export class ChatUI {
 
       // Add cancelled indicator
       const contentEl = this.currentStreamElement.querySelector('.message-content')!;
-      contentEl.innerHTML += '<span style="color: var(--text-muted);"> [stopped]</span>';
+      contentEl.innerHTML += '<span class="muted"> [stopped]</span>';
 
       const statsEl = this.currentStreamElement.querySelector('.message-stats')!;
       const elapsed = performance.now() - this.streamStartTime;

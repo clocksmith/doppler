@@ -20,6 +20,7 @@ struct Uniforms {
     scale: f32,
     is_causal: u32,
     start_pos: u32,
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -88,7 +89,12 @@ fn main(
             for (var d: u32 = 0u; d < head_dim; d++) {
                 dot += shared_partial[d];
             }
-            shared_scores[k_pos] = dot * scale;
+            var s = dot * scale;
+            // Gemma 2 attention softcapping
+            if (u.attn_softcap > 0.0) {
+                s = tanh(s / u.attn_softcap) * u.attn_softcap;
+            }
+            shared_scores[k_pos] = s;
         }
         workgroupBarrier();
     }

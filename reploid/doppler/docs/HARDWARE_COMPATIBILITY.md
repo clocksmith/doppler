@@ -24,10 +24,12 @@ Testing status for Gemma 3 1B and other DOPPLER models across different GPU/brow
 
 | Browser | Version | WebGPU Status | F16 Support | Subgroups | Notes |
 |---------|---------|---------------|-------------|-----------|-------|
-| Chrome | 113+ | ✓ Stable | ✓ | ✓ | Best compatibility |
+| Chrome | 113+ | ✓ Stable | ✓ | ✓ | Best compatibility; Android 121+ |
 | Edge | 113+ | ✓ Stable | ✓ | ✓ | Chromium-based |
-| Safari | 18+ | ✓ Stable | ✓ | Partial | macOS/iOS only |
-| Firefox | 141+ | ⚠️ Experimental | Partial | Partial | Enable in about:config |
+| Safari | 26+ | ✓ Stable | ✓ | ✓ | macOS Tahoe/iOS 26+; 17.4-18.x behind flag |
+| Firefox | 141+ | ✓ Stable (Windows) | ✓ | ✓ | macOS 145+; Linux/Android behind flag |
+
+**Sources:** [Can I Use WebGPU](https://caniuse.com/webgpu), [web.dev WebGPU announcement](https://web.dev/blog/webgpu-supported-major-browsers), [Mozilla GFX Blog](https://mozillagfx.wordpress.com/2025/07/15/shipping-webgpu-on-windows-in-firefox-141/)
 
 ## Known Issues by Platform
 

@@ -31,6 +31,79 @@ import { MoERouter, createExpertExecutionPlan, combineExpertOutputs } from '../m
 import type { ExpertWeights } from './types.js';
 
 // ============================================================================
+// MXFP4 Dequantization Cache (avoids re-dequantizing same expert weights)
+// ============================================================================
+
+interface CachedExpertWeight {
+  gateUp: GPUBuffer;
+  down: GPUBuffer;
+  lastUsed: number;
+}
+
+// Cache key: "layer_expert_type" -> dequantized weight
+const dequantCache = new Map<string, CachedExpertWeight>();
+const DEQUANT_CACHE_MAX_ENTRIES = 128; // ~128 experts cached (4 layers × 32 experts)
+let dequantCacheHits = 0;
+let dequantCacheMisses = 0;
+
+function getDequantCacheKey(layerIdx: number, expertIdx: number): string {
+  return `${layerIdx}_${expertIdx}`;
+}
+
+function getCachedDequant(layerIdx: number, expertIdx: number): CachedExpertWeight | undefined {
+  const key = getDequantCacheKey(layerIdx, expertIdx);
+  const cached = dequantCache.get(key);
+  if (cached) {
+    cached.lastUsed = performance.now();
+    dequantCacheHits++;
+  }
+  return cached;
+}
+
+function setCachedDequant(layerIdx: number, expertIdx: number, gateUp: GPUBuffer, down: GPUBuffer): void {
+  const key = getDequantCacheKey(layerIdx, expertIdx);
+  dequantCacheMisses++;
+
+  // Evict oldest entries if cache is full
+  if (dequantCache.size >= DEQUANT_CACHE_MAX_ENTRIES) {
+    let oldestKey = '';
+    let oldestTime = Infinity;
+    for (const [k, v] of dequantCache.entries()) {
+      if (v.lastUsed < oldestTime) {
+        oldestTime = v.lastUsed;
+        oldestKey = k;
+      }
+    }
+    if (oldestKey) {
+      const evicted = dequantCache.get(oldestKey);
+      if (evicted) {
+        evicted.gateUp.destroy();
+        evicted.down.destroy();
+      }
+      dequantCache.delete(oldestKey);
+    }
+  }
+
+  dequantCache.set(key, { gateUp, down, lastUsed: performance.now() });
+}
+
+/** Clear the dequantization cache (call on model unload). */
+export function clearDequantCache(): void {
+  for (const cached of dequantCache.values()) {
+    cached.gateUp.destroy();
+    cached.down.destroy();
+  }
+  dequantCache.clear();
+  dequantCacheHits = 0;
+  dequantCacheMisses = 0;
+}
+
+/** Get cache stats for debugging. */
+export function getDequantCacheStats(): { hits: number; misses: number; size: number } {
+  return { hits: dequantCacheHits, misses: dequantCacheMisses, size: dequantCache.size };
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -328,6 +401,7 @@ export async function moeFeedForwardGPU(
         gathered,
         expertOutputs,
         weights,
+        layerIdx,
         expertIdx,
         count,
         inputOffset,
@@ -380,11 +454,13 @@ export async function moeFeedForwardGPU(
 
 /**
  * Run GPT-OSS style expert (MXFP4 quantized).
+ * Uses dequant cache to avoid re-dequantizing same expert weights.
  */
 async function runGptOssExpert(
   gathered: GPUBuffer,
   expertOutputs: GPUBuffer,
   weights: MoEExpertWeights,
+  layerIdx: number,
   expertIdx: number,
   count: number,
   inputOffset: number,
@@ -412,23 +488,35 @@ async function runGptOssExpert(
     return;
   }
 
-  // Dequantize expert weights
-  const gateUpWeight = await dequantizeMXFP4Expert(
-    weights.gateUpBlocks,
-    weights.gateUpScales,
-    expertIdx,
-    totalExperts,
-    outDim,
-    gateUpGroups
-  );
-  const downWeight = await dequantizeMXFP4Expert(
-    weights.downBlocks,
-    weights.downScales,
-    expertIdx,
-    totalExperts,
-    hiddenSize,
-    downGroups
-  );
+  // Check dequant cache first
+  let gateUpWeight: GPUBuffer;
+  let downWeight: GPUBuffer;
+  const cached = getCachedDequant(layerIdx, expertIdx);
+
+  if (cached) {
+    // Use cached dequantized weights
+    gateUpWeight = cached.gateUp;
+    downWeight = cached.down;
+  } else {
+    // Dequantize and cache
+    gateUpWeight = await dequantizeMXFP4Expert(
+      weights.gateUpBlocks,
+      weights.gateUpScales,
+      expertIdx,
+      totalExperts,
+      outDim,
+      gateUpGroups
+    );
+    downWeight = await dequantizeMXFP4Expert(
+      weights.downBlocks,
+      weights.downScales,
+      expertIdx,
+      totalExperts,
+      hiddenSize,
+      downGroups
+    );
+    setCachedDequant(layerIdx, expertIdx, gateUpWeight, downWeight);
+  }
 
   // gate_up projection: [count, hiddenSize] x [hiddenSize, outDim]
   const gateUpOut = await runMatmul(
@@ -439,7 +527,7 @@ async function runGptOssExpert(
     hiddenSize,
     { transposeB: 'auto', aOffset: inputOffset }
   );
-  releaseBuffer(gateUpWeight);
+  // Don't release cached weights
 
   // SwiGLU with per-expert bias: output [count, intermediateSize]
   const biasOffset = expertIdx * outDim * 4;
@@ -461,7 +549,7 @@ async function runGptOssExpert(
     intermediateSize,
     { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset }
   );
-  releaseBuffer(downWeight);
+  // Don't release cached weights
   releaseBuffer(activated);
 
   // Add down bias in-place (optional)

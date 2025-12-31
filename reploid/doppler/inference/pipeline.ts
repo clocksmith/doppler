@@ -46,9 +46,11 @@ import {
   type WeightLoadResult,
   applyGemmaChatTemplate,
   applyLlama3ChatTemplate,
+  applyGptOssChatTemplate,
   isStopToken,
   initMoERouter,
   initSpeculativeDecoder,
+  fuseQKVWeights,
   type PipelineContexts,
 } from './pipeline/init.js';
 import { embed } from './pipeline/embed.js';
@@ -403,6 +405,11 @@ export class InferencePipeline {
       this.moeRouter = initMoERouter(this.modelConfig!, result.layerWeights);
     }
 
+    // Fuse Q/K/V projection weights for 3→1 matmul optimization
+    if (this.useGPU && this.modelConfig) {
+      fuseQKVWeights(result.layerWeights, this.modelConfig);
+    }
+
     // Initialize decode buffers for efficient decode-step execution
     if (this.useGPU && this.modelConfig) {
       this.decodeBufferManager.ensureBuffers({
@@ -477,6 +484,9 @@ export class InferencePipeline {
         } else if (this.modelConfig!.isLlama3Instruct) {
           processedPrompt = applyLlama3ChatTemplate(prompt);
           if (opts.debug) console.log('[Pipeline] Applied Llama 3 chat template');
+        } else if (this.modelConfig!.isGptOss) {
+          processedPrompt = applyGptOssChatTemplate(prompt);
+          if (opts.debug) console.log('[Pipeline] Applied GPT-OSS chat template');
         }
       }
 
@@ -663,6 +673,8 @@ export class InferencePipeline {
         processedPrompt = applyGemmaChatTemplate(prompt);
       } else if (this.modelConfig!.isLlama3Instruct) {
         processedPrompt = applyLlama3ChatTemplate(prompt);
+      } else if (this.modelConfig!.isGptOss) {
+        processedPrompt = applyGptOssChatTemplate(prompt);
       }
     }
 
@@ -737,6 +749,8 @@ export class InferencePipeline {
           processedPrompt = applyGemmaChatTemplate(prompt);
         } else if (this.modelConfig!.isLlama3Instruct) {
           processedPrompt = applyLlama3ChatTemplate(prompt);
+        } else if (this.modelConfig!.isGptOss) {
+          processedPrompt = applyGptOssChatTemplate(prompt);
         }
       }
 
