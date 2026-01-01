@@ -30,8 +30,8 @@ Thumbs.db
 .env.*.local
 
 # Downloads and models (large files)
-reploid/doppler/downloads/
-reploid/doppler/models/
+downloads/
+models/
 *.gguf
 shard_*.bin
 

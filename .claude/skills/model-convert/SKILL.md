@@ -13,24 +13,24 @@ Convert models to DOPPLER's RDRR format and verify they work.
 
 ```bash
 # From HuggingFace directory with quantization
-npx tsx doppler/reploid/doppler/tools/convert-cli.ts \
+npx tsx tools/convert-cli.ts \
   ~/models/Llama-3.2-1B \
-  doppler/reploid/doppler/models/llama-1b \
+  models/llama-1b \
   --quantize q4_k_m
 
 # From GGUF file
-npx tsx doppler/reploid/doppler/tools/convert-cli.ts \
+npx tsx tools/convert-cli.ts \
   ~/models/model.gguf \
-  doppler/reploid/doppler/models/model-name
+  models/model-name
 
 # Multimodal to text-only (strips vision tower)
-npx tsx doppler/reploid/doppler/tools/convert-cli.ts \
+npx tsx tools/convert-cli.ts \
   ~/models/gemma-3-4b-it \
-  doppler/reploid/doppler/models/gemma-4b-text \
+  models/gemma-4b-text \
   --text-only --quantize q4_k_m
 
 # Create tiny test fixture
-npx tsx doppler/reploid/doppler/tools/convert-cli.ts --test ./test-model
+npx tsx tools/convert-cli.ts --test ./test-model
 ```
 
 ## Options
@@ -116,9 +116,9 @@ models/<model-name>/
 
 ## Reference
 
-- Model support matrix: `doppler/reploid/doppler/docs/plans/MODEL_SUPPORT.md`
-- RDRR format spec: `doppler/reploid/doppler/docs/spec/RDRR_FORMAT.md`
-- Troubleshooting: `doppler/reploid/doppler/docs/DOPPLER-TROUBLESHOOTING.md`
+- Model support matrix: `docs/plans/MODEL_SUPPORT.md`
+- RDRR format spec: `docs/spec/RDRR_FORMAT.md`
+- Troubleshooting: `docs/DOPPLER-TROUBLESHOOTING.md`
 
 ## Related Skills
 

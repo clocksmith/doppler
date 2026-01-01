@@ -1,0 +1,45 @@
+{
+  "id": "gemma3",
+  "name": "Gemma 3",
+  "extends": "transformer",
+
+  "architecture": {
+    "headDim": 256,
+    "ropeTheta": 1000000
+  },
+
+  "inference": {
+    "attention": {
+      "slidingWindow": 1024,
+      "attnLogitSoftcapping": null,
+      "queryKeyNorm": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": true,
+      "rmsNormEps": 1e-6,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true
+    },
+    "output": {
+      "finalLogitSoftcapping": null
+    },
+    "layerPattern": {
+      "type": "alternating",
+      "globalPattern": "every_n",
+      "globalPatternN": 6
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<bos>",
+    "eosTokens": ["<eos>", "<end_of_turn>"],
+    "addBosToken": true
+  },
+
+  "detection": {
+    "architecturePatterns": ["gemma3", "Gemma3ForCausalLM", "gemma-3"],
+    "configPatterns": {
+      "rope_theta": 1000000
+    }
+  }
+}

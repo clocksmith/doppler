@@ -1,0 +1,175 @@
+/**
+ * Inference Schema Definitions
+ *
+ * Configuration for model inference behavior.
+ * These are runtime settings that affect how the model executes.
+ *
+ * @module config/schema/inference
+ */
+
+// =============================================================================
+// Attention Schema
+// =============================================================================
+
+/** Attention mechanism configuration */
+export interface AttentionSchema {
+  /** Use sliding window attention */
+  slidingWindow?: number | null;
+  /** Softcap attention logits before softmax */
+  attnLogitSoftcapping?: number | null;
+  /** Use query-key normalization */
+  queryKeyNorm?: boolean;
+  /** RoPE scaling type */
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+  /** RoPE scaling factor */
+  ropeScalingFactor?: number;
+}
+
+// =============================================================================
+// Normalization Schema
+// =============================================================================
+
+/** Normalization configuration */
+export interface NormalizationSchema {
+  /** Add 1.0 to RMSNorm weights (Gemma-style) */
+  rmsNormWeightOffset?: boolean;
+  /** RMSNorm epsilon */
+  rmsNormEps?: number;
+  /** Use post-attention norm */
+  postAttentionNorm?: boolean;
+  /** Use pre-feedforward norm */
+  preFeedforwardNorm?: boolean;
+  /** Use post-feedforward norm */
+  postFeedforwardNorm?: boolean;
+}
+
+// =============================================================================
+// FFN Schema
+// =============================================================================
+
+/** Feed-forward network configuration */
+export interface FFNSchema {
+  /** Activation function */
+  activation?: 'silu' | 'gelu' | 'relu' | 'swiglu';
+  /** Use gated FFN (SwiGLU) */
+  gatedFFN?: boolean;
+  /** Use fused gate+up projection */
+  fusedGateUp?: boolean;
+}
+
+// =============================================================================
+// Output Schema
+// =============================================================================
+
+/** Output/sampling configuration */
+export interface OutputSchema {
+  /** Softcap final logits */
+  finalLogitSoftcapping?: number | null;
+  /** Tie embeddings to output */
+  tieWordEmbeddings?: boolean;
+}
+
+// =============================================================================
+// Layer Pattern Schema
+// =============================================================================
+
+/** Layer type for hybrid models */
+export type LayerType = 'attention' | 'mamba' | 'rwkv';
+
+/** Global layer pattern (computed at runtime from numLayers) */
+export type GlobalLayerPattern =
+  | 'even'       // Layers 0, 2, 4, ... are global (Gemma 2)
+  | 'odd'        // Layers 1, 3, 5, ... are global
+  | 'every_n';   // Every Nth layer is global (Gemma 3: every 6th)
+
+/** Layer pattern for hybrid architectures */
+export interface LayerPatternSchema {
+  /** Pattern type: 'all_attention', 'alternating', 'custom' */
+  type: 'all_attention' | 'alternating' | 'custom';
+  /** For 'alternating': pattern for global/full attention layers */
+  globalPattern?: GlobalLayerPattern;
+  /** For 'alternating' with 'every_n': the N value (e.g., 6 for Gemma 3) */
+  globalPatternN?: number;
+  /** @deprecated Use globalPattern instead */
+  attentionLayers?: number[];
+  /** For 'custom': explicit layer type mapping */
+  layerTypes?: LayerType[];
+}
+
+/**
+ * Compute global attention layer indices from pattern.
+ * Used at runtime when numLayers is known.
+ */
+export function computeGlobalLayers(
+  pattern: LayerPatternSchema,
+  numLayers: number
+): number[] {
+  if (pattern.attentionLayers) {
+    // Legacy: use explicit array (filtered to valid range)
+    return pattern.attentionLayers.filter(i => i < numLayers);
+  }
+
+  if (!pattern.globalPattern) {
+    // Default: all layers are global
+    return Array.from({ length: numLayers }, (_, i) => i);
+  }
+
+  switch (pattern.globalPattern) {
+    case 'even':
+      return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % 2 === 0);
+    case 'odd':
+      return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % 2 === 1);
+    case 'every_n': {
+      const n = pattern.globalPatternN ?? 6;
+      return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % n === 0);
+    }
+    default:
+      return Array.from({ length: numLayers }, (_, i) => i);
+  }
+}
+
+// =============================================================================
+// Full Inference Config Schema
+// =============================================================================
+
+/** Complete inference configuration */
+export interface InferenceConfigSchema {
+  attention?: AttentionSchema;
+  normalization?: NormalizationSchema;
+  ffn?: FFNSchema;
+  output?: OutputSchema;
+  layerPattern?: LayerPatternSchema;
+}
+
+// =============================================================================
+// Sampling Schema
+// =============================================================================
+
+/** Sampling parameters */
+export interface SamplingSchema {
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+  repetitionPenalty?: number;
+  maxTokens?: number;
+}
+
+// =============================================================================
+// Tokenizer Runtime Schema
+// =============================================================================
+
+/** Tokenizer runtime configuration */
+export interface TokenizerConfigSchema {
+  /** BOS token string */
+  bosToken?: string;
+  /** EOS token strings (can be multiple) */
+  eosTokens?: string[];
+  /** Pad token string */
+  padToken?: string;
+  /** Add BOS token to input */
+  addBosToken?: boolean;
+  /** Add EOS token to output */
+  addEosToken?: boolean;
+  /** Chat template (jinja2-style) */
+  chatTemplate?: string;
+}

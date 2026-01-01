@@ -1,0 +1,24 @@
+{
+  "id": "kimi_k2",
+  "name": "Kimi K2",
+  "extends": "transformer",
+
+  "architecture": {
+    "ropeTheta": 50000
+  },
+
+  "inference": {
+    "attention": {
+      "ropeScalingType": "yarn",
+      "ropeScalingFactor": 32
+    },
+    "normalization": {
+      "rmsNormEps": 1e-5
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": ["kimi_k2", "KimiK2ForCausalLM", "kimi-k2"],
+    "modelTypePatterns": ["kimi"]
+  }
+}

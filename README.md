@@ -19,14 +19,11 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 | **Kernel hot-swap** | Runtime shader creation ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
 | **Shared memory** | CPU↔GPU via SharedArrayBuffer ([WgPy 2025](https://arxiv.org/pdf/2503.00279), [WebGPU Explainer](https://gpuweb.github.io/gpuweb/explainer/)) |
 
-Project source is in `reploid/doppler/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
-
-See the main [README](reploid/doppler/README.md) for full documentation.
+See [GUIDE.md](GUIDE.md) for full documentation.
 
 ## Quick Start
 
 ```bash
-cd reploid/doppler
 npm install
 npm start         # Dev server at http://localhost:8080
 npm run bench     # Run benchmarks
