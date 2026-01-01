@@ -10,7 +10,7 @@
  * @module app/quickstart-ui
  */
 
-import { formatBytes } from '../storage/quota.js';
+import { formatBytes } from '../src/storage/quota.js';
 
 // ============================================================================
 // Types and Interfaces

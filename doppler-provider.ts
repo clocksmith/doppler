@@ -3,24 +3,24 @@
  * Registers DOPPLER as a local WebGPU option in llm-client.js
  */
 
-import { getMemoryCapabilities, type MemoryCapabilities } from './memory/capability.js';
-import { getHeapManager } from './memory/heap-manager.js';
+import { getMemoryCapabilities, type MemoryCapabilities } from './src/memory/capability.js';
+import { getHeapManager } from './src/memory/heap-manager.js';
 import {
   initOPFS,
   openModelDirectory,
   verifyIntegrity,
   listModels,
   loadManifestFromOPFS,
-} from './storage/shard-manager.js';
-import { getManifest, parseManifest, type RDRRManifest } from './storage/rdrr-format.js';
-import { downloadModel } from './storage/downloader.js';
-import { requestPersistence, getStorageReport } from './storage/quota.js';
-import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from './gpu/device.js';
-import { prepareKernelRuntime } from './gpu/kernel-runtime.js';
-import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from './inference/pipeline.js';
-import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from './bridge/index.js';
-import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from './adapters/lora-loader.js';
-import { getDopplerLoader } from './loader/doppler-loader.js';
+} from './src/storage/shard-manager.js';
+import { getManifest, parseManifest, type RDRRManifest } from './src/storage/rdrr-format.js';
+import { downloadModel } from './src/storage/downloader.js';
+import { requestPersistence, getStorageReport } from './src/storage/quota.js';
+import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from './src/gpu/device.js';
+import { prepareKernelRuntime } from './src/gpu/kernel-runtime.js';
+import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from './src/inference/pipeline.js';
+import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from './src/bridge/index.js';
+import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from './src/adapters/lora-loader.js';
+import { getDopplerLoader } from './src/loader/doppler-loader.js';
 
 export const DOPPLER_PROVIDER_VERSION = '0.1.0';
 

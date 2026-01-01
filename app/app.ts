@@ -10,14 +10,14 @@ import { ModelSelector, ModelInfo, ModelSources } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
 import { ProgressUI } from './progress-ui.js';
 import { QuickStartUI } from './quickstart-ui.js';
-import { log } from '../debug/index.js';
+import { log } from '../src/debug/index.js';
 
 // Quick-start downloader
 import {
   downloadQuickStartModel,
   QUICKSTART_MODELS,
   type QuickStartDownloadResult,
-} from '../storage/quickstart-downloader.js';
+} from '../src/storage/quickstart-downloader.js';
 
 // Browser model converter
 import {
@@ -26,22 +26,22 @@ import {
   isConversionSupported,
   ConvertStage,
   ConvertProgress,
-} from '../browser/browser-converter.js';
+} from '../src/browser/browser-converter.js';
 
 // DOPPLER pipeline imports
-import { createPipeline, Pipeline } from '../inference/pipeline.js';
-import { downloadModel, DownloadProgress } from '../storage/downloader.js';
+import { createPipeline, Pipeline } from '../src/inference/pipeline.js';
+import { downloadModel, DownloadProgress } from '../src/storage/downloader.js';
 import {
   listModels,
   openModelDirectory,
   loadManifestFromOPFS,
   deleteModel as deleteModelFromOPFS,
-} from '../storage/shard-manager.js';
-import { parseManifest, RDRRManifest, type KernelHints } from '../storage/rdrr-format.js';
-import { getMemoryCapabilities, MemoryCapabilities } from '../memory/capability.js';
-import { getHeapManager, HeapManager } from '../memory/heap-manager.js';
-import { getBufferPool } from '../gpu/buffer-pool.js';
-import { initDevice, getKernelCapabilities, getDevice, KernelCapabilities } from '../gpu/device.js';
+} from '../src/storage/shard-manager.js';
+import { parseManifest, RDRRManifest, type KernelHints } from '../src/storage/rdrr-format.js';
+import { getMemoryCapabilities, MemoryCapabilities } from '../src/memory/capability.js';
+import { getHeapManager, HeapManager } from '../src/memory/heap-manager.js';
+import { getBufferPool } from '../src/gpu/buffer-pool.js';
+import { initDevice, getKernelCapabilities, getDevice, KernelCapabilities } from '../src/gpu/device.js';
 
 // ============================================================================
 // Types

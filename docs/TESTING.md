@@ -1,6 +1,6 @@
 # DOPPLER Testing Guide
 
-> For cross-project test strategy and Ouroboros testing, see [deco/TEST_PLAN.md](../../../../TEST_PLAN.md)
+> For cross-project test strategy and Ouroboros testing, see [TEST_PLAN.md](../../TEST_PLAN.md)
 
 ## Test Architecture
 
@@ -39,8 +39,8 @@
 
 | Doc | Purpose |
 |-----|---------|
-| [deco/TEST_PLAN.md](../../../../TEST_PLAN.md) | Cross-project test strategy |
-| [deco/OUROBOROS.md](../../../../OUROBOROS.md) | Category-2t architecture |
+| [TEST_PLAN.md](../../TEST_PLAN.md) | Cross-project test strategy |
+| [ARCHITECTURE.md](../../ARCHITECTURE.md) | Category-2t architecture |
 | `docs/design/KERNEL_TESTING.md` | Testing specification/design |
 | `docs/design/BENCHMARK_HARNESS.md` | Benchmark methodology |
 | `docs/TEST_RESULTS.md` | Test session log |

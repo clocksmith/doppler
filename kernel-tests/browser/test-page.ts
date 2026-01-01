@@ -4,16 +4,16 @@
 
 // Import from main doppler repo (relative path from kernel-tests/browser/)
 // When served from doppler/, paths are relative to that root
-import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../gpu/device.js';
+import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../src/gpu/device.js';
 
 // Import buffer dtype tracking for Q4K matmul testing
-import { setBufferDtype } from '../../gpu/buffer-dtypes.js';
+import { setBufferDtype } from '../../src/gpu/buffer-dtypes.js';
 
 // Import kernel hints to enable fused Q4K path for testing
-import { setKernelHints } from '../../gpu/kernel-hints.js';
+import { setKernelHints } from '../../src/gpu/kernel-hints.js';
 
 // Import kernel functions - some may not exist, so we import what's available
-import * as kernelSelector from '../../gpu/kernel-selector.js';
+import * as kernelSelector from '../../src/gpu/kernel-selector.js';
 
 // Destructure available functions with defaults
 const {
@@ -36,12 +36,12 @@ const {
 } = kernelSelector;
 
 // Import sample kernel
-import * as sampleKernel from '../../gpu/kernels/sample.js';
+import * as sampleKernel from '../../src/gpu/kernels/sample.js';
 
 // Optional buffer pool
 let bufferPool: any = null;
 try {
-  bufferPool = await import('../../gpu/buffer-pool.js');
+  bufferPool = await import('../../src/gpu/buffer-pool.js');
 } catch (e) {
   console.warn('Buffer pool not available:', (e as Error).message);
 }
