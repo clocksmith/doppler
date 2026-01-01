@@ -67,6 +67,36 @@ npm run debug    # Debugging (trace + inspection) ← USE THIS FOR DEBUGGING
 
 ## Systematic Debugging Workflow
 
+### Step 0: Use Warm Mode for Fast Iteration
+
+**When debugging inference (not model loading), use warm mode to skip reloading the model:**
+
+```bash
+# First run: load model, keep browser open
+npm run debug -- --warm
+
+# Subsequent runs: skip loading, reuse pipeline in GPU RAM
+npm run debug -- --skip-load
+```
+
+This saves 10-30 seconds per iteration by keeping the model in GPU memory.
+
+**For even faster iteration with Chrome CDP:**
+```bash
+# Terminal 1: Start Chrome with remote debugging
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --enable-unsafe-webgpu
+
+# Terminal 2: Runs connect to existing Chrome, reuse model
+npm run debug -- --skip-load
+```
+
+**When to NOT use warm mode:**
+- Debugging model loading issues
+- Testing different models
+- Testing OPFS cache behavior
+
+---
+
 ### Step 1: Run Kernel Correctness Tests FIRST
 
 ```bash
@@ -208,6 +238,10 @@ npm test -- --filter q4k          # Q4K quantized matmul tests
 ```bash
 # Debug mode (trace enabled by default)
 npm run debug
+
+# WARM MODE - Skip model reload for fast iteration
+npm run debug -- --warm         # First run: load + keep browser open
+npm run debug -- --skip-load    # Next runs: reuse pipeline in GPU RAM
 
 # Specific trace categories
 npm run debug -- --trace kernels,attn,ffn

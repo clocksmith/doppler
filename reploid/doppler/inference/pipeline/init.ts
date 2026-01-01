@@ -16,6 +16,7 @@ import type { ParsedModelConfig, Manifest } from './config.js';
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities, type KernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
+import { setBufferLayout } from '../../gpu/buffer-dtypes.js';
 import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
@@ -395,6 +396,11 @@ export interface WeightLoadResult {
   useTiedEmbeddings: boolean;
   /** Vocab size from embedding tensor (may differ from tokenizer) */
   embeddingVocabSize: number | null;
+  /**
+   * Whether embeddings use GGUF layout [hidden_size, vocab_size] and need transpose in gather.
+   * True for GGUF-converted models where shape[0] < shape[1].
+   */
+  embeddingTranspose: boolean;
   /** Per-layer router weights for MoE */
   layerRouterWeights: Map<number, RouterWeights>;
 }
@@ -467,32 +473,39 @@ export async function loadWeights(
     }
   }
 
-  // Check for tied embeddings
+  // Check for tied embeddings and detect embedding layout
   let useTiedEmbeddings = false;
   let embeddingVocabSize: number | null = null;
+  let embeddingTranspose = false;
+
+  // Get actual vocab size and layout from embedding tensor shape
+  const embeddingTensorNames = [
+    'language_model.model.embed_tokens.weight',
+    'model.embed_tokens.weight',
+    'embed_tokens.weight',
+    'token_embd.weight',
+    'wte.weight',
+  ];
+  for (const name of embeddingTensorNames) {
+    const loc = dopplerLoader.tensorLocations.get(name);
+    if (loc?.shape && loc.shape.length === 2) {
+      // GGUF stores embeddings as [hidden_size, vocab_size]
+      // PyTorch convention is [vocab_size, hidden_size]
+      // For LLMs, vocab_size >> hidden_size, so if shape[0] < shape[1], it's GGUF layout
+      const isGGUFLayout = loc.shape[0] < loc.shape[1];
+      embeddingTranspose = isGGUFLayout;
+      embeddingVocabSize = isGGUFLayout ? loc.shape[1] : loc.shape[0];
+      log.debug('Pipeline', `Embedding matrix shape: [${loc.shape.join(', ')}], layout: ${isGGUFLayout ? 'GGUF [H,V]' : 'PyTorch [V,H]'}, transpose: ${embeddingTranspose}`);
+
+      // Note: Buffer layout NOT set here - the lm_head matmul uses transposeB=true by default
+      // which correctly handles tied embeddings with GGUF [H,V] layout
+      break;
+    }
+  }
 
   if (dopplerLoader.lmHead && dopplerLoader.lmHead === dopplerLoader.embeddings) {
     useTiedEmbeddings = true;
     log.debug('Pipeline', 'Using tied embeddings for LM head (will use transposeB)');
-
-    // Get actual vocab size from embedding tensor shape
-    const embeddingTensorNames = [
-      'language_model.model.embed_tokens.weight',
-      'model.embed_tokens.weight',
-      'embed_tokens.weight',
-      'token_embd.weight',
-      'wte.weight',
-    ];
-    for (const name of embeddingTensorNames) {
-      const loc = dopplerLoader.tensorLocations.get(name);
-      if (loc?.shape) {
-        // GGUF stores embeddings as [hidden_size, vocab_size], so take shape[1] for vocab
-        // PyTorch convention is [vocab_size, hidden_size] but GGML uses column-major
-        embeddingVocabSize = loc.shape.length === 2 ? Math.max(loc.shape[0], loc.shape[1]) : loc.shape[0];
-        log.debug('Pipeline', `Embedding matrix shape: [${loc.shape.join(', ')}], vocab size: ${embeddingVocabSize} (tokenizer: ${modelConfig.vocabSize})`);
-        break;
-      }
-    }
   }
 
   // Collect per-layer router weights for MoE
@@ -517,6 +530,7 @@ export async function loadWeights(
     finalNorm: dopplerLoader.finalNorm,
     useTiedEmbeddings,
     embeddingVocabSize,
+    embeddingTranspose,
     layerRouterWeights,
   };
 }

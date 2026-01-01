@@ -193,6 +193,9 @@ function parseArgs(argv: string[]): CLIOptions {
     layer: null,
     tokens: null,
     kernel: null,
+    // Warm mode options
+    skipLoad: false,
+    warm: false,
   };
 
   const tokens = [...argv];
@@ -250,6 +253,15 @@ function parseArgs(argv: string[]): CLIOptions {
         break;
       case '--kernel':
         opts.kernel = tokens.shift() || null;
+        break;
+      // Warm mode options (preserve model in GPU RAM)
+      case '--skip-load':
+        opts.skipLoad = true;
+        break;
+      case '--warm':
+        opts.warm = true;
+        opts.headless = false;  // Warm mode requires headed browser
+        opts.reuseBrowser = true;  // Enable CDP reuse
         break;
       case '--verbose':
       case '-v':
@@ -506,6 +518,17 @@ Common Options:
   --timeout <ms>         Timeout (default: 300000)
   --output, -o <file>    Save JSON results
   --help, -h             Show this help
+
+Warm Mode (preserve model in GPU RAM):
+  --warm                 Keep browser open with model loaded for reuse
+  --skip-load            Skip model loading (use existing window.pipeline)
+
+  Usage:
+    1. First run: doppler debug --warm  (loads model, keeps browser open)
+    2. Next runs: doppler debug --skip-load  (reuses loaded model via CDP)
+
+  Start Chrome with CDP first for best results:
+    /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222
 
 Headless Mode (default):
   Uses --headless=new with real GPU acceleration (not SwiftShader).
@@ -1884,6 +1907,9 @@ async function main(): Promise<void> {
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
       if (opts.kernel) debugParams.set('kernel', opts.kernel);
+
+      // Warm mode: skip loading if --skip-load
+      if (opts.skipLoad) debugParams.set('skipLoad', '1');
 
       appendKernelOverrideParams(debugParams, opts);
 

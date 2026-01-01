@@ -16,6 +16,12 @@ export interface EmbedConfig {
   recorder?: CommandRecorder;
   /** Pre-allocated output buffer (avoids pool allocation) */
   outputBuffer?: GPUBuffer;
+  /**
+   * True if embeddings are stored as [hidden_size, vocab_size] (GGUF layout).
+   * False if embeddings are stored as [vocab_size, hidden_size] (PyTorch layout).
+   * Default: false. GGUF-converted models typically need transpose=true.
+   */
+  transpose?: boolean;
 }
 
 export interface ValidationResult {
@@ -155,14 +161,14 @@ export async function embed(
   embedBuffer: GPUBuffer,
   config: EmbedConfig
 ): Promise<GPUBuffer> {
-  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput } = config;
+  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false } = config;
   const device = getDevice();
   const numTokens = tokenIds.length;
 
   if (!device) throw new Error('GPU device not available');
 
   if (debug) {
-    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}`);
+    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}`);
     trace.embed(`TOKEN_IDS: [${tokenIds.join(', ')}]`);
   }
 
@@ -171,8 +177,8 @@ export async function embed(
 
   // Use pre-allocated output buffer if provided, otherwise acquire from pool
   const outputBuffer = recorder
-    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput })
-    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput });
+    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput, transpose })
+    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput, transpose });
 
   // Debug: Verify first token embedding
   if (debug && !recorder && tokenIds.length > 0) {

@@ -44,6 +44,7 @@
     const params = new URLSearchParams(window.location.search);
     const paramModel = params.get('model') || 'gemma-3-1b-it-q4';
     const paramAutorun = params.get('autorun') === '1';
+    const paramSkipLoad = params.get('skipLoad') === '1';
     const runtimeOverrides = parseRuntimeOverridesFromURL(params);
 
     const BASE_URL = 'http://localhost:8080/doppler/models';
@@ -51,46 +52,60 @@
     // Test state for Playwright
     window.testState = createTestState();
 
+    // Check if pipeline already exists from previous warm run
+    const existingPipeline = window.pipeline;
+
     async function run() {
       const MODEL_URL = `${BASE_URL}/${paramModel}`;
       const prompt = 'The color of the sky is';
 
-      console.log('1. Initializing WebGPU...');
-
       try {
-        // 1. Init GPU
-        const caps = await initializeDevice();
-        const device = getDevice();
-        console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
+        let pipeline;
 
-        // Log kernel hints
-        const hints = getKernelHints();
-        if (hints) {
-          console.log(`[KernelHints] Set from runtime: ${JSON.stringify(hints)}`);
+        // Skip loading if --skip-load and pipeline already exists
+        if (paramSkipLoad && existingPipeline) {
+          console.log('[Warm] Reusing existing pipeline from previous run');
+          pipeline = existingPipeline;
+          window.testState.loaded = true;
+        } else {
+          console.log('1. Initializing WebGPU...');
+
+          // 1. Init GPU
+          const caps = await initializeDevice();
+          const device = getDevice();
+          console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
+
+          // Log kernel hints
+          const hints = getKernelHints();
+          if (hints) {
+            console.log(`[KernelHints] Set from runtime: ${JSON.stringify(hints)}`);
+          }
+
+          // 2. Load manifest
+          console.log('2. Loading manifest...');
+          const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
+          console.log(`[Model] ${manifest.architecture || paramModel}, ${manifest.config?.num_hidden_layers} layers`);
+
+          // 3. Create pipeline
+          console.log('3. Loading model weights...');
+          const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
+
+          pipeline = await createPipeline(manifest, {
+            storage: { loadShard },
+            gpu: { device },
+            baseUrl: MODEL_URL,
+            runtime: {
+              debug: runtimeOverrides.debug,
+              attentionKernel: runtimeOverrides.attentionKernel || 'auto',
+              kernelHints: runtimeOverrides.kernelHints,
+            },
+          });
+
+          // Expose pipeline globally for warm mode reuse
+          window.pipeline = pipeline;
+          window.testState.loaded = true;
+          console.log('[Model] Loaded (pipeline stored in window.pipeline for reuse)');
         }
-
-        // 2. Load manifest
-        console.log('2. Loading manifest...');
-        const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
-        console.log(`[Model] ${manifest.architecture || paramModel}, ${manifest.config?.num_hidden_layers} layers`);
-
-        // 3. Create pipeline
-        console.log('3. Loading model weights...');
-        const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
-
-        const pipeline = await createPipeline(manifest, {
-          storage: { loadShard },
-          gpu: { device },
-          baseUrl: MODEL_URL,
-          runtime: {
-            debug: runtimeOverrides.debug,
-            attentionKernel: runtimeOverrides.attentionKernel || 'auto',
-            kernelHints: runtimeOverrides.kernelHints,
-          },
-        });
-
-        window.testState.loaded = true;
-        console.log('[Model] Loaded');
 
         // 4. Generate - console.log only, no DOM updates
         console.log(`4. Generating from: "${prompt}"`);

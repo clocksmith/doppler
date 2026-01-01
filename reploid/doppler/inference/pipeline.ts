@@ -222,6 +222,7 @@ export class InferencePipeline {
   // Tied embeddings
   useTiedEmbeddings = false;
   embeddingVocabSize: number | null = null;
+  embeddingTranspose = false;  // True for GGUF [H,V] layout
 
   // MoE router weights per layer
   layerRouterWeights: Map<number, RouterWeights> | null = null;
@@ -395,6 +396,7 @@ export class InferencePipeline {
 
     this.useTiedEmbeddings = result.useTiedEmbeddings;
     this.embeddingVocabSize = result.embeddingVocabSize;
+    this.embeddingTranspose = result.embeddingTranspose;
     this.layerRouterWeights = result.layerRouterWeights;
 
     // Store DopplerLoader reference for expert loading
@@ -906,6 +908,7 @@ export class InferencePipeline {
       scaleEmbeddings: config.scaleEmbeddings,
       debug: opts.debug,
       recorder,
+      transpose: this.embeddingTranspose,
     });
 
     // Debug: check hidden states after embedding
@@ -1146,6 +1149,7 @@ export class InferencePipeline {
       scaleEmbeddings: config.scaleEmbeddings,
       recorder,
       outputBuffer: decodeHiddenBuffer ?? undefined,  // Use pre-allocated buffer
+      transpose: this.embeddingTranspose,
     });
 
     // Debug: check embedding output for decode step 1

@@ -93,6 +93,12 @@ export interface CLIOptions {
   tokens: number | null;
   /** Specific kernel to trace (debug mode) */
   kernel: string | null;
+
+  // Warm mode options (preserve model in GPU RAM)
+  /** Skip model loading, assume pipeline already exists in window.pipeline */
+  skipLoad: boolean;
+  /** Keep browser open with model loaded for subsequent runs */
+  warm: boolean;
 }
 
 // Alias for backward compatibility

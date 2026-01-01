@@ -82,6 +82,24 @@ npm run debug -- --break        # Stop on first anomaly (NaN/explosion)
 npm run debug -- --trace kernels,attn  # Trace specific categories
 npm run debug -- --trace all,-buffers  # All except expensive buffer stats
 npm run debug -- --trace-layers 0,5   # Filter to specific layers
+
+# WARM MODE - Fast iteration (skip model reload)
+# Use when debugging inference, not model loading itself.
+# First run loads model, subsequent runs reuse it in GPU RAM.
+
+# Option 1: Use Chrome with CDP (recommended)
+# Terminal 1: Start Chrome with remote debugging
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --enable-unsafe-webgpu
+
+# Terminal 2: First run loads model, keeps browser open
+npm run debug -- --warm
+
+# Terminal 2: Subsequent runs skip loading
+npm run debug -- --skip-load    # Reuses pipeline from window.pipeline
+
+# Option 2: Manual browser reuse
+npm run debug -- --headed       # Keep browser visible
+# Then on next run, pipeline persists if using same browser via CDP
 ```
 
 ### Common CLI Flags
@@ -94,6 +112,8 @@ npm run debug -- --trace-layers 0,5   # Filter to specific layers
 | `--quiet, -q` | Suppress logs | off |
 | `--trace-layers <n,n>` | Filter trace to specific layers | all |
 | `--headed` | Show browser window | off (headless default) |
+| `--warm` | Keep browser open with model loaded | off |
+| `--skip-load` | Skip model loading, reuse existing pipeline | off |
 | `--timeout <ms>` | Test timeout | 120000 |
 | `--output, -o <file>` | Save JSON results | none |
 | `--kernel-profile, -k` | Preset: fast/safe/debug/fused/apple | none |

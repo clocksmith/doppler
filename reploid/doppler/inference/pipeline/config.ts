@@ -431,6 +431,12 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
   // RoPE local theta for sliding attention layers (Gemma 3: 10K vs 1M global)
   const ropeLocalTheta = config.rope_local_base_freq ?? null;
 
+  // Log critical Gemma 2 settings before returning
+  if (isGemma2) {
+    const slidingWindowVal = config.sliding_window ?? 4096;
+    log.info('Config', `Gemma 2: ropeTheta=500000, slidingWindow=${slidingWindowVal}, attnSoftcap=50.0, logitSoftcap=30.0`);
+  }
+
   return {
     numLayers,
     hiddenSize,
@@ -445,7 +451,8 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     moeTopK,
     // Gemma 2 uses 4096 sliding window for local attention layers
     slidingWindow: config.sliding_window ?? (isGemma2 ? 4096 : null),
-    ropeTheta: config.rope_theta ?? config.ropeFreqBase ?? defaultRopeTheta,
+    // Gemma 2 REQUIRES 500K - many GGUF conversions incorrectly have 10K in manifest
+    ropeTheta: isGemma2 ? 500000 : (config.rope_theta ?? config.ropeFreqBase ?? defaultRopeTheta),
     ropeLocalTheta,
     ropeScale,
     ropeScalingType,
