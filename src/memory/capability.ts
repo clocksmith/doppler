@@ -11,6 +11,11 @@
  */
 
 import { detectUnifiedMemory, type UnifiedMemoryInfo } from './unified-detect.js';
+import {
+  DEFAULT_HEAP_TESTING_CONFIG,
+  DEFAULT_SEGMENT_TESTING_CONFIG,
+  DEFAULT_ADDRESS_SPACE_CONFIG,
+} from '../config/schema/memory-limits.schema.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -78,10 +83,9 @@ async function probeMemory64(): Promise<boolean> {
  * Tests allocation limits without OOM
  */
 async function probeMaxHeapSize(): Promise<number> {
-  const GB = 1024 * 1024 * 1024;
-  const testSizes = [16 * GB, 8 * GB, 4 * GB, 2 * GB, 1 * GB];
+  const { heapTestSizes, fallbackMaxHeapBytes } = DEFAULT_HEAP_TESTING_CONFIG;
 
-  for (const size of testSizes) {
+  for (const size of heapTestSizes) {
     try {
       // Try to create a WASM memory of this size
       const pages = Math.ceil(size / 65536); // 64KB pages
@@ -92,7 +96,7 @@ async function probeMaxHeapSize(): Promise<number> {
     }
   }
 
-  return 1 * GB; // Fallback to 1GB
+  return fallbackMaxHeapBytes;
 }
 
 /**
@@ -100,16 +104,12 @@ async function probeMaxHeapSize(): Promise<number> {
  * Returns max size per ArrayBuffer and recommended segment count
  */
 function probeSegmentedLimits(): SegmentedLimits {
-  const MB = 1024 * 1024;
-  const GB = 1024 * MB;
+  const { segmentTestSizes, safeSegmentSizeBytes } = DEFAULT_SEGMENT_TESTING_CONFIG;
+  const { targetAddressSpaceBytes } = DEFAULT_ADDRESS_SPACE_CONFIG;
 
-  // Test actual allocation limits - browsers often can't allocate large ArrayBuffers
-  // Start with smaller sizes that are more likely to succeed
-  const testSizes = [1 * GB, 512 * MB, 256 * MB, 128 * MB];
+  let maxSegmentSize = safeSegmentSizeBytes; // Safe default
 
-  let maxSegmentSize = 256 * MB; // Safe default
-
-  for (const size of testSizes) {
+  for (const size of segmentTestSizes) {
     try {
       // Actually try to allocate to see if it works
       const testBuffer = new ArrayBuffer(size);
@@ -124,7 +124,7 @@ function probeSegmentedLimits(): SegmentedLimits {
 
   return {
     maxSegmentSize,
-    recommendedSegments: Math.ceil((8 * GB) / maxSegmentSize), // Target ~8GB address space
+    recommendedSegments: Math.ceil(targetAddressSpaceBytes / maxSegmentSize),
   };
 }
 

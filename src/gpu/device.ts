@@ -3,11 +3,17 @@
  *
  * Handles WebGPU adapter/device setup with comprehensive feature detection
  * for optimal kernel selection.
+ *
+ * Also initializes the platform loader and kernel registry for config-as-code
+ * kernel selection based on detected GPU hardware.
  */
 
 import type { GpuCapabilities, GpuLimits } from '../types/gpu.js';
 import { wrapQueueForTracking, TRACK_SUBMITS, setTrackSubmits } from './submit-tracker.js';
 import { log } from '../debug/index.js';
+
+// Platform and kernel registry types (dynamic import to avoid circular deps)
+import type { ResolvedPlatformConfig, RuntimeCapabilities } from '../config/schema/platform.schema.js';
 
 // Re-export types for convenience
 export type { GpuCapabilities, GpuLimits };
@@ -67,6 +73,12 @@ export interface DeviceLimits {
 // Cached device and capabilities
 let gpuDevice: GPUDevice | null = null;
 let kernelCapabilities: KernelCapabilities | null = null;
+
+// Cached platform config (set during initDevice)
+let resolvedPlatformConfig: ResolvedPlatformConfig | null = null;
+
+// Track whether platform/registry initialization has been attempted
+let platformInitialized = false;
 
 /**
  * Feature flags detected during initialization
@@ -190,6 +202,41 @@ function buildLimits(adapter: GPUAdapter): Record<string, GPUSize64> {
 }
 
 /**
+ * Initialize platform loader and kernel registry.
+ * Called automatically during initDevice() after adapter is obtained.
+ *
+ * @param adapter - GPU adapter for platform detection
+ */
+async function initializePlatformAndRegistry(adapter: GPUAdapter): Promise<void> {
+  if (platformInitialized) {
+    return;
+  }
+
+  platformInitialized = true;
+
+  try {
+    // Dynamic import to avoid circular dependencies and enable hotswap
+    const [platformLoader, kernelRegistry] = await Promise.all([
+      import('../config/platforms/loader.js'),
+      import('../config/kernels/registry.js'),
+    ]);
+
+    // Initialize platform detection with the adapter
+    resolvedPlatformConfig = await platformLoader.initializePlatform(adapter);
+
+    // Preload kernel registry (cached for subsequent calls)
+    await kernelRegistry.getRegistry();
+
+    log.debug('GPU', 'Platform: ' + resolvedPlatformConfig.platform.name + ' (' + resolvedPlatformConfig.platform.id + ')');
+    log.debug('GPU', 'Capabilities: f16=' + resolvedPlatformConfig.capabilities.hasF16 + ', subgroups=' + resolvedPlatformConfig.capabilities.hasSubgroups);
+  } catch (e) {
+    // Platform/registry init is optional - kernel selection will use fallbacks
+    log.warn('GPU', 'Platform/registry init failed (non-fatal): ' + (e as Error).message);
+    resolvedPlatformConfig = null;
+  }
+}
+
+/**
  * Initialize WebGPU device with optimal features
  * @returns GPU device
  * @throws Error if WebGPU is unavailable or device creation fails
@@ -209,6 +256,10 @@ export async function initDevice(): Promise<GPUDevice> {
     throw new Error('Failed to get WebGPU adapter');
   }
 
+  // Initialize platform loader and kernel registry early (before device creation)
+  // This allows platform-specific config to be available for kernel selection
+  await initializePlatformAndRegistry(adapter);
+
   // Detect available features
   const availableFeatures = detectFeatures(adapter);
   const requestedFeatures = buildFeatureRequests(availableFeatures);
@@ -224,7 +275,7 @@ export async function initDevice(): Promise<GPUDevice> {
     });
   } catch (e) {
     // Fallback: request device without optional features
-    log.warn('GPU', `Failed to request device with features, trying minimal config: ${(e as Error).message}`);
+    log.warn('GPU', 'Failed to request device with features, trying minimal config: ' + (e as Error).message);
     gpuDevice = await adapter.requestDevice();
   }
 
@@ -234,9 +285,11 @@ export async function initDevice(): Promise<GPUDevice> {
 
   // Set up device lost handler
   gpuDevice.lost.then((info) => {
-    log.error('GPU', `Device lost: ${info.message}, Reason: ${info.reason}`);
+    log.error('GPU', 'Device lost: ' + info.message + ', Reason: ' + info.reason);
     gpuDevice = null;
     kernelCapabilities = null;
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
   });
 
   // Wrap queue for submit tracking (when enabled)
@@ -263,7 +316,7 @@ export async function initDevice(): Promise<GPUDevice> {
     kernelCapabilities.hasF16 && 'f16',
     kernelCapabilities.hasSubgroups && 'subgroups',
   ].filter(Boolean).join('/') || 'basic';
-  console.log(`[GPU] ${adapterInfo.vendor || 'unknown'} ${adapterInfo.architecture || adapterInfo.device || ''}, ${features}, ${(kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(1)}GB`);
+  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(1) + 'GB');
 
   return gpuDevice;
 }
@@ -289,6 +342,22 @@ export function getDevice(): GPUDevice | null {
 }
 
 /**
+ * Get the resolved platform configuration (call after initDevice)
+ * @returns Platform config with capabilities, or null if not initialized or detection failed
+ */
+export function getPlatformConfig(): ResolvedPlatformConfig | null {
+  return resolvedPlatformConfig;
+}
+
+/**
+ * Check if platform and registry are initialized
+ * @returns True if platform detection succeeded
+ */
+export function isPlatformInitialized(): boolean {
+  return platformInitialized && resolvedPlatformConfig !== null;
+}
+
+/**
  * Destroy the device and clear cache
  */
 export function destroyDevice(): void {
@@ -296,6 +365,8 @@ export function destroyDevice(): void {
     gpuDevice.destroy();
     gpuDevice = null;
     kernelCapabilities = null;
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
   }
 }
 

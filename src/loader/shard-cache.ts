@@ -14,6 +14,8 @@ import type { RDRRManifest } from '../storage/rdrr-format.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import type { CustomShardLoader, ShardSourceInfo } from './loader-types.js';
+import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
+import { DEFAULT_SHARD_CACHE_CONFIG } from '../config/schema/loading.schema.js';
 
 /**
  * Configuration for shard cache
@@ -23,6 +25,8 @@ export interface ShardCacheConfig {
   customLoader?: CustomShardLoader;
   verifyHashes?: boolean;
   manifest?: RDRRManifest;
+  /** Loading config for cache sizing */
+  loadingConfig?: ShardCacheConfigSchema;
 }
 
 /**
@@ -34,6 +38,7 @@ export class ShardCache {
   private customLoader: CustomShardLoader | null = null;
   private verifyHashes: boolean;
   private manifest: RDRRManifest | null = null;
+  private loadingConfig: ShardCacheConfigSchema;
 
   // In-flight shard fetches - deduplicates concurrent requests
   private fetchPromises = new Map<number, Promise<ArrayBuffer>>();
@@ -46,6 +51,7 @@ export class ShardCache {
     this.customLoader = config.customLoader ?? null;
     this.verifyHashes = config.verifyHashes ?? true;
     this.manifest = config.manifest ?? null;
+    this.loadingConfig = config.loadingConfig ?? DEFAULT_SHARD_CACHE_CONFIG;
   }
 
   /**
@@ -63,6 +69,9 @@ export class ShardCache {
     }
     if (config.manifest !== undefined) {
       this.manifest = config.manifest;
+    }
+    if (config.loadingConfig !== undefined) {
+      this.loadingConfig = config.loadingConfig;
     }
   }
 
@@ -224,26 +233,28 @@ export class ShardCache {
   /**
    * Configure cache size based on model type.
    * For MoE models, cache enough shards for 2x top-k experts + 1 dense shard.
-   * For dense models, keep the default (2 shards).
+   * For dense models, keep the default (configurable via loadingConfig).
    */
   configureForModel(manifest: RDRRManifest | null, hasCustomLoader: boolean): void {
     if (!manifest) return;
     this.manifest = manifest;
 
+    const { opfsEntries, networkEntries, moeMaxEntries } = this.loadingConfig;
+
     const moe = manifest.moeConfig;
     if (moe && moe.numExpertsPerToken > 0) {
       // For MoE: cache 2x top-k experts (for current + next layer prefetch) + 1 dense shard
       const expertCacheSize = (moe.numExpertsPerToken * 2) + 1;
-      // Cap at reasonable maximum (16 shards = ~1GB at 64MB/shard)
-      this.maxEntries = Math.min(16, Math.max(4, expertCacheSize));
+      // Cap at configurable maximum
+      this.maxEntries = Math.min(moeMaxEntries, Math.max(4, expertCacheSize));
       debugTrace.loader(`MoE shard cache: ${this.maxEntries} entries (${moe.numExpertsPerToken} experts/token)`);
     } else if (hasCustomLoader) {
       // Network loading: use larger cache to avoid re-fetching shards.
-      this.maxEntries = 16;
+      this.maxEntries = networkEntries;
       debugTrace.loader(`Network shard cache: ${this.maxEntries} entries (avoiding re-fetch)`);
     } else {
       // OPFS (disk) loading - keep small cache, disk reads are fast
-      this.maxEntries = 2;
+      this.maxEntries = opfsEntries;
     }
   }
 }
@@ -251,6 +262,13 @@ export class ShardCache {
 /**
  * Create a new shard cache with default settings
  */
-export function createShardCache(maxEntries = 2): ShardCache {
-  return new ShardCache({ maxEntries });
+export function createShardCache(
+  maxEntries?: number,
+  loadingConfig?: ShardCacheConfigSchema
+): ShardCache {
+  const config = loadingConfig ?? DEFAULT_SHARD_CACHE_CONFIG;
+  return new ShardCache({
+    maxEntries: maxEntries ?? config.opfsEntries,
+    loadingConfig: config,
+  });
 }

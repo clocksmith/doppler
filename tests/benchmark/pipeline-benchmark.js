@@ -123,12 +123,12 @@ class PipelineBenchmark {
   // Model Loading
   // ==========================================================================
   async loadModel() {
-    const { createPipeline } = await import("../../inference/pipeline.js");
-    const { initDevice, hasFeature, FEATURES } = await import("../../gpu/device.js");
-    const { createProfiler } = await import("../../gpu/profiler.js");
-    const { getBufferPool } = await import("../../gpu/buffer-pool.js");
-    const { downloadModel } = await import("../../storage/downloader.js");
-    const { modelExists, initOPFS } = await import("../../storage/shard-manager.js");
+    const { createPipeline } = await import("../../src/inference/pipeline.js");
+    const { initDevice, hasFeature, FEATURES } = await import("../../src/gpu/device.js");
+    const { createProfiler } = await import("../../src/gpu/profiler.js");
+    const { getBufferPool } = await import("../../src/gpu/buffer-pool.js");
+    const { downloadModel } = await import("../../src/storage/downloader.js");
+    const { modelExists, initOPFS } = await import("../../src/storage/shard-manager.js");
     const loadStart = performance.now();
     const device = await initDevice();
     if (!device) {
@@ -188,9 +188,9 @@ class PipelineBenchmark {
   // Inference
   // ==========================================================================
   async runInference(prompt, isWarmup) {
-    const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import("../../gpu/submit-tracker.js");
-    const { getBufferPool } = await import("../../gpu/buffer-pool.js");
-    const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import("../../gpu/perf-guards.js");
+    const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import("../../src/gpu/submit-tracker.js");
+    const { getBufferPool } = await import("../../src/gpu/buffer-pool.js");
+    const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import("../../src/gpu/perf-guards.js");
     setTrackSubmits(true);
     resetSubmitStats();
     resetReadbackTracking();

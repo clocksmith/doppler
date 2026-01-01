@@ -27,6 +27,10 @@
       "type": "alternating",
       "globalPattern": "every_n",
       "globalPatternN": 6
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000
     }
   },
 

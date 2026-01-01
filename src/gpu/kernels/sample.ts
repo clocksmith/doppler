@@ -16,6 +16,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { DEFAULT_SAMPLING_DEFAULTS } from '../../config/index.js';
 
 export interface SampleOptions {
   temperature?: number;
@@ -180,13 +181,13 @@ export async function runGPUSample(
   }
 
   const {
-    temperature = 1.0,
-    topK = 40,
+    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
+    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < 0.01) {
+  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
     return runArgmax(logits, vocabSize);
   }
 
@@ -383,13 +384,13 @@ export async function recordGPUSample(
   options: SampleOptions = {}
 ): Promise<GPUBuffer> {
   const {
-    temperature = 1.0,
-    topK = 40,
+    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
+    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < 0.01) {
+  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
     return recordArgmax(recorder, logits, vocabSize);
   }
 

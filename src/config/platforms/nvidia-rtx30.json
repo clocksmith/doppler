@@ -1,0 +1,27 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "nvidia-rtx30",
+  "name": "NVIDIA RTX 30 Series",
+  "detection": {
+    "vendor": "nvidia",
+    "device": "rtx 30"
+  },
+  "kernelOverrides": {
+    "matmul": {
+      "preferred": "q4_fused"
+    },
+    "attention": {
+      "preferred": "decode_subgroup"
+    },
+    "dequant": {
+      "preferred": "subgroup_f16out"
+    }
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": false,
+    "bufferAlignment": 256,
+    "optimalShardSize": 134217728,
+    "maxBufferPoolSize": 4294967296
+  },
+  "notes": "NVIDIA RTX 3090/3080/3070 series - Ampere architecture, subgroups, F16"
+}

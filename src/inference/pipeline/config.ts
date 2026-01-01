@@ -2,31 +2,19 @@
  * Model configuration parsing and normalization.
  * Handles HuggingFace, GGUF, and llama.cpp config formats.
  *
- * @deprecated MIGRATION PATH
- * This file uses if-statement based model detection (isGemma2Model, isLlama3Model, etc.)
- * which should be migrated to the config-as-code preset system:
+ * This module now uses the preset-based config-as-code system:
+ * - JSON presets in config/presets/*.json define model family defaults
+ * - resolveConfig() merges preset defaults with manifest overrides
+ * - toParsedConfig() adapts ResolvedConfigSchema to ParsedModelConfig
  *
- *   import { detectPreset, resolveConfig } from '../../config/index.js';
- *
- *   // Old way:
- *   const isGemma2 = isGemma2Model(config, manifest);
- *   const slidingWindow = isGemma2 ? 4096 : null;
- *
- *   // New way:
- *   const presetId = detectPreset(config, manifest.architecture);
- *   const resolved = resolveConfig(manifest, presetId);
- *   const slidingWindow = resolved.inference.attention.slidingWindow;
- *
- * The preset-based approach:
- * 1. Uses JSON files (config/presets/*.json) instead of if-statements
- * 2. Supports inheritance ("extends": "transformer")
- * 3. Pattern-based detection (architecturePatterns, configPatterns)
- * 4. Single source of truth for model family defaults
+ * For legacy code, parseModelConfig() still works but now uses presets internally.
  *
  * See: config/loader.ts, config/presets/, config/schema/
  */
 
 import { log } from '../../debug/index.js';
+import type { ResolvedConfigSchema } from '../../config/schema/index.js';
+import { resolveConfig } from '../../config/loader.js';
 
 export type ActivationType = 'silu' | 'gelu';
 
@@ -167,25 +155,25 @@ export interface ParsedModelConfig {
   queryPreAttnScalar: number;            // Gemma 2: 256, standard: sqrt(head_dim)
 }
 
+// =============================================================================
+// Model Detection Functions (kept for backward compatibility and edge cases)
+// =============================================================================
+
 export function isGemma3Model(config: RawConfig, manifest: Manifest): boolean {
   const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  // Match gemma3 specifically, not gemma2 or generic gemma
-  // Gemma 3 uses sliding window attention, rmsNormWeightOffset, and different RoPE
   return /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType);
 }
 
 export function isGemma2Model(config: RawConfig, manifest: Manifest): boolean {
   const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  // Match gemma2 specifically
   return /gemma.*2|gemma2/i.test(arch) || /gemma.*2|gemma2/i.test(modelType);
 }
 
 export function isLlama3InstructModel(config: RawConfig, manifest: Manifest): boolean {
   const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelId = manifest?.modelId ?? '';
-  // Check for Llama 3 architecture and instruction-tuned variant
   const isLlama3 = /llama.*3|llama3/i.test(arch) || /llama.*3|llama3/i.test(modelId);
   const isInstruct = /instruct|chat|it(?:-|$)/i.test(modelId);
   return isLlama3 && isInstruct;
@@ -225,12 +213,15 @@ export function normalizeActivation(activation: string | undefined): ActivationT
 
 export function getStopTokenIds(config: RawConfig, manifest: Manifest): number[] {
   const eosTokenId = manifest?.eos_token_id ?? config?.eos_token_id ?? config?.text_config?.eos_token_id;
-
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
   if (isGemma3Model(config, manifest)) return [1, 106];
   return [];
 }
+
+// =============================================================================
+// Tensor Inference Functions
+// =============================================================================
 
 export function inferAttentionParams(
   manifest: Manifest,
@@ -241,19 +232,14 @@ export function inferAttentionParams(
 
   let qShape: number[] | undefined;
   let kShape: number[] | undefined;
-  let qName: string | undefined;
-  let kName: string | undefined;
 
   for (const [name, tensor] of Object.entries(tensors)) {
     const lower = name.toLowerCase();
-    // Match HuggingFace (q_proj, self_attn.q) and GGUF (attn_q) naming patterns
     if (lower.includes('q_proj') || lower.includes('self_attn.q') || lower.includes('attn_q.weight')) {
       qShape = tensor?.shape;
-      qName = name;
     }
     if (lower.includes('k_proj') || lower.includes('self_attn.k') || lower.includes('attn_k.weight')) {
       kShape = tensor?.shape;
-      kName = name;
     }
     if (qShape && kShape) break;
   }
@@ -321,7 +307,7 @@ export function inferVocabSize(manifest: Manifest): number | null {
       lower.endsWith('wte.weight') ||
       lower.endsWith('tok_embeddings.weight') ||
       lower.endsWith('word_embeddings.weight') ||
-      lower.endsWith('token_embd.weight');  // GGUF naming
+      lower.endsWith('token_embd.weight');
     const isLmHead = lower.includes('lm_head.weight') || lower.endsWith('output.weight');
 
     if (!isEmbedding && !isLmHead) continue;
@@ -336,177 +322,212 @@ export function inferVocabSize(manifest: Manifest): number | null {
   return null;
 }
 
-export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
+// =============================================================================
+// Preset-Based Config Adapter
+// =============================================================================
+
+/**
+ * Convert ResolvedConfigSchema to ParsedModelConfig.
+ *
+ * This adapter function enables gradual migration from the legacy if-statement
+ * based parseModelConfig() to the preset-based resolveConfig() system.
+ *
+ * @param resolved - ResolvedConfigSchema from resolveConfig()
+ * @param manifest - Original manifest (for fields not yet in presets)
+ * @returns ParsedModelConfig compatible with existing pipeline code
+ */
+export function toParsedConfig(
+  resolved: ResolvedConfigSchema,
+  manifest: Manifest
+): ParsedModelConfig {
   const rawConfig = (manifest.config ?? {}) as RawConfig;
   const config: RawConfig = rawConfig.text_config ?? rawConfig;
+  const arch = resolved.architecture;
+  const inf = resolved.inference;
 
-  // Normalize GGUF camelCase to snake_case
-  const hiddenSize = config.hidden_size ?? config.n_embd ?? config.embeddingLength ?? 4096;
-  const numLayers = config.num_hidden_layers ?? config.n_layer ?? config.blockCount ?? 32;
-  const intermediateSize = config.intermediate_size ?? config.n_inner ?? config.feedForwardLength ?? hiddenSize * 4;
+  // Compute layer types from layerPattern
+  let layerTypes: string[] | null = null;
+  if (inf.layerPattern?.type === 'alternating') {
+    const numLayers = arch.numLayers;
+    const pattern = inf.layerPattern.globalPattern;
+    const patternN = inf.layerPattern.globalPatternN ?? 6;
 
-  let numHeads = config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount;
-  let numKVHeads = config.num_key_value_heads ?? config.attentionHeadCountKV;
-  let headDim = config.head_dim;
-
-  // Vocab size from multiple sources
-  const vocabCandidates: number[] = [];
-  if (config.vocab_size && config.vocab_size > 0) vocabCandidates.push(config.vocab_size);
-  if (manifest.tokenizer?.vocab_size) vocabCandidates.push(manifest.tokenizer.vocab_size);
-  const inferredVocab = inferVocabSize(manifest);
-  if (inferredVocab) vocabCandidates.push(inferredVocab);
-  const vocabSize = vocabCandidates.length > 0 ? Math.max(...vocabCandidates) : 32000;
-
-  // Infer attention params if missing
-  log.debug('Config', `parseModelConfig: before inference numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}, hasTensors=${!!manifest.tensors}, tensorCount=${Object.keys(manifest.tensors ?? {}).length}`);
-  if (!numHeads || !headDim) {
-    const inferred = inferAttentionParams(manifest, hiddenSize, numHeads ?? null);
-    if (inferred) {
-      numHeads = numHeads ?? inferred.numHeads;
-      numKVHeads = numKVHeads ?? inferred.numKVHeads;
-      headDim = headDim ?? inferred.headDim;
-      log.debug('Config', `Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
-    } else {
-      log.warn('Config', 'inferAttentionParams returned null');
+    if (pattern === 'even') {
+      layerTypes = Array.from({ length: numLayers }, (_, i) =>
+        i % 2 === 0 ? 'full_attention' : 'sliding_attention'
+      );
+    } else if (pattern === 'odd') {
+      layerTypes = Array.from({ length: numLayers }, (_, i) =>
+        i % 2 === 1 ? 'full_attention' : 'sliding_attention'
+      );
+    } else if (pattern === 'every_n') {
+      layerTypes = Array.from({ length: numLayers }, (_, i) =>
+        i % patternN === 0 ? 'full_attention' : 'sliding_attention'
+      );
     }
   }
 
-  numHeads = numHeads ?? 32;
-  numKVHeads = numKVHeads ?? numHeads;
+  // Compute queryPreAttnScalar
+  const headDim = arch.headDim;
+  const isGemma2 = resolved.preset === 'gemma2';
+  const queryPreAttnScalar = config.query_pre_attn_scalar ?? (isGemma2 ? headDim : Math.sqrt(headDim));
 
-  // Detect Gemma 2 early for head_dim fallback
-  const isGemma2Early = isGemma2Model(rawConfig, manifest);
+  // Get stop token IDs from manifest/config (not yet in presets)
+  const stopTokenIds = getStopTokenIds(config, manifest);
 
-  // For Gemma 2, explicitly set head_dim to 256 if inference failed
-  // Gemma 2 uses expanded attention: Q out = 4096, K/V out = 2048, hidden = 3584
-  let finalHeadDim = headDim;
-  if (!headDim) {
-    if (isGemma2Early && hiddenSize === 3584 && numHeads === 16) {
-      finalHeadDim = 256;  // Gemma 2 9B uses head_dim=256, not 3584/16=224
-      log.debug('Config', 'Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)');
-    } else {
-      finalHeadDim = Math.floor(hiddenSize / numHeads);
-      log.warn('Config', `headDim not inferred from weights, falling back to hiddenSize/numHeads = ${hiddenSize}/${numHeads} = ${finalHeadDim}`);
-    }
-  }
-  headDim = finalHeadDim;
+  // Get MoE config from manifest (not yet in presets)
+  const useMoE = (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1;
+  const numExperts = config.num_local_experts ?? config.num_experts ?? 8;
+  const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
 
-  // RoPE scaling
+  // RoPE scaling config (combine preset + manifest)
   const ropeScaling = config.rope_scaling;
-  let ropeScale = 1.0;
-  let ropeScalingType: string | null = null;
+  let ropeScale = inf.rope?.ropeScalingFactor ?? 1.0;
+  let ropeScalingType: string | null = inf.rope?.ropeScalingType ?? null;
   if (ropeScaling && typeof ropeScaling === 'object') {
-    ropeScalingType = ropeScaling.type ?? ropeScaling.rope_type ?? 'linear';
+    ropeScalingType = ropeScalingType ?? ropeScaling.type ?? ropeScaling.rope_type ?? null;
     const factor = ropeScaling.factor;
     if (factor && factor > 0) ropeScale = factor;
   }
 
-  // Model family detection (used for defaults, not hard branches)
-  const isGemma3 = isGemma3Model(rawConfig, manifest);
-  const isGemma2 = isGemma2Model(rawConfig, manifest);
-  const isLlama3Instruct = isLlama3InstructModel(rawConfig, manifest);
-  const isQwen3 = isQwen3Model(rawConfig, manifest);
-  const isKimiK2 = isKimiK2Model(rawConfig, manifest);
-  const isMixtral = isMixtralModel(rawConfig, manifest);
-  const isGptOss = isGptOssModel(rawConfig, manifest);
-
-  // Config values with family-based defaults
-  // Explicit config > family default > universal default
-  const rmsNormEps = config.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon ?? (isGemma3 ? 1e-6 : 1e-5);
-  const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
-
-  // DOPPLER-specific architectural quirks (explicit config overrides family detection)
-  // Both Gemma 2 and Gemma 3 use (1 + weight) formula for RMSNorm
-  const isGemmaFamily = isGemma2 || isGemma3;
-  // Gemma 2/3 use GELU (gelu_pytorch_tanh), others default to SiLU
-  const defaultActivation = isGemmaFamily ? 'gelu' : undefined;
-  const hiddenActivation = normalizeActivation(config.hidden_activation ?? config.hidden_act ?? defaultActivation);
-  const scaleEmbeddings = config.scale_embeddings ?? isGemmaFamily;
-  const rmsNormWeightOffset = config.rms_norm_weight_offset ?? isGemmaFamily;
-
-  // RoPE theta defaults by architecture (use manifest value if available):
-  // - Gemma 3, Qwen3, Mixtral: 1,000,000 (defaults)
-  // - Gemma 2: 10,000 (official HuggingFace config)
-  // - Kimi K2: 50,000 (with YARN scaling)
-  // - Others: 10,000
-  let defaultRopeTheta = 10000;
-  if (isGemma3 || isQwen3 || isMixtral) {
-    defaultRopeTheta = 1000000;
-  } else if (isKimiK2) {
-    defaultRopeTheta = 50000;  // Uses YARN 32x scaling for 128K context
-  }
-  // Note: Gemma 2 uses 10K (same as default), not 500K as previously thought
-
-  // Generate layer_types for Gemma 2/3 if not present in config
-  // Gemma 2: alternating global (even) / local (odd) - every other layer
-  // Gemma 3: sliding_window_pattern to determine which layers are global (full_attention)
-  // Pattern: layer 0, N, 2N, 3N... are global; others are local
-  let layerTypes: string[] | null = Array.isArray(config.layer_types) ? config.layer_types : null;
-  if (!layerTypes && isGemma2) {
-    // Gemma 2 uses alternating layers: even = global (full), odd = local (sliding)
-    // Reference: https://github.com/vllm-project/vllm/issues/6595
-    layerTypes = Array.from({ length: numLayers }, (_, i) =>
-      i % 2 === 0 ? 'full_attention' : 'sliding_attention'
-    );
-    log.debug('Config', `Gemma 2 layer_types: alternating full/sliding (${numLayers} layers)`);
-  } else if (!layerTypes && isGemma3) {
-    const pattern = config.sliding_window_pattern ?? 6;  // Default to 6 if not specified
-    layerTypes = Array.from({ length: numLayers }, (_, i) =>
-      i % pattern === 0 ? 'full_attention' : 'sliding_attention'
-    );
-  }
-
-  // RoPE local theta for sliding attention layers
-  // Gemma 2: global=10K, local=10K (same theta for both, alternating attention pattern)
-  // Gemma 3: global=1M, local=10K (every 6th layer is global)
-  const ropeLocalTheta = config.rope_local_base_freq ?? (isGemma3 ? 10000 : null);
-
-  // Log critical Gemma 2 settings before returning
-  if (isGemma2) {
-    const slidingWindowVal = config.sliding_window ?? 4096;
-    const ropeVal = config.rope_theta ?? 10000;
-    log.info('Config', `Gemma 2: ropeTheta=${ropeVal}, ropeLocalTheta=${ropeLocalTheta}, slidingWindow=${slidingWindowVal}, attnSoftcap=50.0, logitSoftcap=30.0, queryPreAttnScalar=${finalHeadDim}`);
-  }
+  // Determine if this is a Gemma family model for scaleEmbeddings
+  const isGemmaFamily = resolved.preset === 'gemma2' || resolved.preset === 'gemma3' || resolved.preset === 'functiongemma';
 
   return {
-    numLayers,
-    hiddenSize,
-    intermediateSize,
-    numHeads,
-    numKVHeads,
-    headDim,
-    vocabSize,
-    maxSeqLen: config.max_position_embeddings ?? config.contextLength ?? 4096,
-    useMoE: (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1,
-    numExperts: config.num_local_experts ?? config.num_experts ?? 8,
+    numLayers: arch.numLayers,
+    hiddenSize: arch.hiddenSize,
+    intermediateSize: arch.intermediateSize,
+    numHeads: arch.numAttentionHeads,
+    numKVHeads: arch.numKeyValueHeads,
+    headDim: arch.headDim,
+    vocabSize: arch.vocabSize,
+    maxSeqLen: arch.maxSeqLen,
+    useMoE,
+    numExperts,
     moeTopK,
-    // Gemma 2 uses 4096 sliding window for local attention layers
-    slidingWindow: config.sliding_window ?? (isGemma2 ? 4096 : null),
-    // Use manifest rope_theta for all models (Gemma 2 official config uses 10K, not 500K)
-    ropeTheta: config.rope_theta ?? config.ropeFreqBase ?? defaultRopeTheta,
-    ropeLocalTheta,
+    slidingWindow: inf.attention?.slidingWindow ?? null,
+    ropeTheta: inf.rope?.ropeTheta ?? arch.ropeTheta ?? 10000,
+    ropeLocalTheta: inf.rope?.ropeLocalTheta ?? null,
     ropeScale,
     ropeScalingType,
     ropeScaling: ropeScaling ? { ...ropeScaling, factor: ropeScale } : null,
     quantization: (manifest.quantization as string) ?? 'f16',
     quantMethod: config.quantization_config?.quant_method ?? null,
-    rmsNormEps,
-    rmsNormWeightOffset,
-    scaleEmbeddings,
-    hiddenActivation,
-    isGemma3,
-    isGemma2,
-    isLlama3Instruct,
-    isQwen3,
-    isGptOss,
-    stopTokenIds: getStopTokenIds(rawConfig, manifest),
+    rmsNormEps: inf.normalization?.rmsNormEps ?? arch.rmsNormEps ?? 1e-5,
+    rmsNormWeightOffset: inf.normalization?.rmsNormWeightOffset ?? false,
+    scaleEmbeddings: config.scale_embeddings ?? isGemmaFamily,
+    hiddenActivation: (inf.ffn?.activation as ActivationType) ?? 'silu',
+    isGemma3: resolved.preset === 'gemma3',
+    isGemma2: resolved.preset === 'gemma2',
+    isLlama3Instruct: resolved.preset === 'llama3',
+    isQwen3: resolved.preset === 'qwen3',
+    isGptOss: false,
+    stopTokenIds,
     layerTypes,
     attentionBias: config.attention_bias ?? false,
-    // Gemma 2 softcapping (defaults: 30.0 for logits, 50.0 for attention)
-    finalLogitSoftcapping: config.final_logit_softcapping ?? (isGemma2 ? 30.0 : null),
-    attnLogitSoftcapping: config.attn_logit_softcapping ?? (isGemma2 ? 50.0 : null),
-    // Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16)
-    // This is 16x different and critical for correct attention behavior
-    queryPreAttnScalar: config.query_pre_attn_scalar ?? (isGemma2 ? finalHeadDim : Math.sqrt(finalHeadDim)),
+    finalLogitSoftcapping: inf.output?.finalLogitSoftcapping ?? null,
+    attnLogitSoftcapping: inf.attention?.attnLogitSoftcapping ?? null,
+    queryPreAttnScalar,
   };
+}
+
+/**
+ * Convert pipeline Manifest to config ManifestSchema for resolveConfig().
+ */
+function toManifestSchema(manifest: Manifest): import('../../config/schema/index.js').ManifestSchema {
+  return {
+    version: 1,
+    modelId: manifest.modelId ?? manifest.model_id ?? 'unknown',
+    modelType: (manifest.architecture as string) ?? 'transformer',
+    quantization: manifest.quantization ?? 'f16',
+    hashAlgorithm: 'sha256' as const,
+    totalSize: 0,
+    architecture: manifest.architecture ?? 'transformer',
+    shards: [],
+    config: manifest.config as Record<string, unknown>,
+    tokenizer: manifest.tokenizer as unknown as import('../../config/schema/index.js').TokenizerSchema | undefined,
+  };
+}
+
+// =============================================================================
+// Main Entry Point - Uses Preset-Based Resolution
+// =============================================================================
+
+/**
+ * Parse model configuration from manifest using preset-based resolution.
+ *
+ * This is the main entry point that uses the config-as-code preset system.
+ * It internally calls resolveConfig() and then converts to ParsedModelConfig.
+ *
+ * @param manifest - Model manifest
+ * @returns ParsedModelConfig for pipeline consumption
+ */
+export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
+  // Convert pipeline Manifest to config ManifestSchema
+  const manifestSchema = toManifestSchema(manifest);
+
+  // Use preset-based resolution
+  const resolved = resolveConfig(manifestSchema);
+
+  // Log which preset was detected
+  log.debug('Config', `Detected preset: ${resolved.preset}`);
+
+  // Convert to ParsedModelConfig for backward compatibility
+  const parsed = toParsedConfig(resolved, manifest);
+
+  // Attention params inference still needed for some models
+  const rawConfig = (manifest.config ?? {}) as RawConfig;
+  const config: RawConfig = rawConfig.text_config ?? rawConfig;
+
+  // Check if we need to infer attention params
+  let numHeads = parsed.numHeads;
+  let numKVHeads = parsed.numKVHeads;
+  let headDim = parsed.headDim;
+
+  const hasConfiguredHeads = config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount;
+  if (!hasConfiguredHeads && manifest.tensors) {
+    log.debug('Config', `parseModelConfig: inferring attention params from tensors`);
+    const inferred = inferAttentionParams(manifest, parsed.hiddenSize, null);
+    if (inferred) {
+      numHeads = inferred.numHeads;
+      numKVHeads = inferred.numKVHeads;
+      headDim = inferred.headDim;
+      log.debug('Config', `Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
+    }
+  }
+
+  // Infer vocab size if needed
+  let vocabSize = parsed.vocabSize;
+  const vocabCandidates: number[] = [];
+  if (config.vocab_size && config.vocab_size > 0) vocabCandidates.push(config.vocab_size);
+  if (manifest.tokenizer?.vocab_size) vocabCandidates.push(manifest.tokenizer.vocab_size);
+  const inferredVocab = inferVocabSize(manifest);
+  if (inferredVocab) vocabCandidates.push(inferredVocab);
+  if (vocabCandidates.length > 0) {
+    vocabSize = Math.max(...vocabCandidates);
+  }
+
+  // Handle Gemma 2 special case for head_dim
+  const isGemma2Early = isGemma2Model(rawConfig, manifest);
+  if (!config.head_dim && isGemma2Early && parsed.hiddenSize === 3584 && numHeads === 16) {
+    headDim = 256;
+    log.debug('Config', 'Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)');
+  }
+
+  // Build final config with inferred values
+  const finalConfig: ParsedModelConfig = {
+    ...parsed,
+    numHeads,
+    numKVHeads,
+    headDim,
+    vocabSize,
+    queryPreAttnScalar: config.query_pre_attn_scalar ?? (isGemma2Early ? headDim : Math.sqrt(headDim)),
+  };
+
+  // Log critical Gemma 2 settings
+  if (finalConfig.isGemma2) {
+    log.info('Config', `Gemma 2: ropeTheta=${finalConfig.ropeTheta}, ropeLocalTheta=${finalConfig.ropeLocalTheta}, slidingWindow=${finalConfig.slidingWindow}, attnSoftcap=${finalConfig.attnLogitSoftcapping}, logitSoftcap=${finalConfig.finalLogitSoftcapping}, queryPreAttnScalar=${finalConfig.queryPreAttnScalar}`);
+  }
+
+  return finalConfig;
 }

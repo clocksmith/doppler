@@ -1,0 +1,28 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "apple-m2",
+  "name": "Apple M2 Series",
+  "detection": {
+    "vendor": "apple",
+    "architecture": "gpu-family-apple-8"
+  },
+  "kernelOverrides": {
+    "matmul": {
+      "preferred": "gemv_subgroup",
+      "avoid": ["f32"]
+    },
+    "attention": {
+      "preferred": "decode_subgroup"
+    },
+    "dequant": {
+      "preferred": "subgroup_f16out"
+    }
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": true,
+    "bufferAlignment": 256,
+    "optimalShardSize": 67108864,
+    "maxBufferPoolSize": 1073741824
+  },
+  "notes": "Apple M2 series (M2, M2 Pro, M2 Max, M2 Ultra) - gpu-family-apple-8, subgroups, F16"
+}

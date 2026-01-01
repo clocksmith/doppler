@@ -25,7 +25,7 @@ import type {
 } from './types.js';
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
 import { getPrompt } from './prompts.js';
-import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from '../../inference/pipeline/init.js';
+import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from '../../src/inference/pipeline/init.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -187,12 +187,12 @@ export class PipelineBenchmark {
   // ==========================================================================
 
   private async loadModel(): Promise<LoadMetrics> {
-    const { createPipeline } = await import('../../inference/pipeline.js');
-    const { initDevice, hasFeature, FEATURES } = await import('../../gpu/device.js');
-    const { createProfiler } = await import('../../gpu/profiler.js');
-    const { getBufferPool } = await import('../../gpu/buffer-pool.js');
-    const { downloadModel } = await import('../../storage/downloader.js');
-    const { modelExists, initOPFS } = await import('../../storage/shard-manager.js');
+    const { createPipeline } = await import('../../src/inference/pipeline.js');
+    const { initDevice, hasFeature, FEATURES } = await import('../../src/gpu/device.js');
+    const { createProfiler } = await import('../../src/gpu/profiler.js');
+    const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
+    const { downloadModel } = await import('../../src/storage/downloader.js');
+    const { modelExists, initOPFS } = await import('../../src/storage/shard-manager.js');
 
     const loadStart = performance.now();
 
@@ -279,9 +279,9 @@ export class PipelineBenchmark {
   // ==========================================================================
 
   private async runInference(prompt: string, isWarmup: boolean): Promise<TimedRunResult> {
-    const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import('../../gpu/submit-tracker.js');
-    const { getBufferPool } = await import('../../gpu/buffer-pool.js');
-    const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import('../../gpu/perf-guards.js');
+    const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import('../../src/gpu/submit-tracker.js');
+    const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
+    const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import('../../src/gpu/perf-guards.js');
 
     // Enable submit tracking
     setTrackSubmits(true);

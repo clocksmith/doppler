@@ -182,7 +182,7 @@ Open in browser while dev server is running:
 ## Adding New Tests
 
 ### Kernel Tests
-Add to `kernel-tests/src/` and update `doppler-cli.ts` switch statement.
+Add to `kernel-tests/src/` and update `cli/index.ts` switch statement.
 
 ### Inference Tests
 Modify `tests/test-inference.html` for test logic.

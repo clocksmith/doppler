@@ -1,0 +1,7 @@
+{
+  "maxSeqLen": 4096,
+  "kvDtype": "f32",
+  "layout": "contiguous",
+  "pageSize": 256,
+  "windowSize": 1024
+}

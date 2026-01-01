@@ -2,7 +2,7 @@
  * CLI Types - Shared type definitions for DOPPLER CLI
  */
 
-import type { KernelHints } from '../../storage/rdrr-format.js';
+import type { KernelHints } from '../../src/storage/rdrr-format.js';
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
 export type TestSuite =

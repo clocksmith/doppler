@@ -1093,7 +1093,7 @@ export class DopplerDemo {
         manifest = parseManifest(manifestJson);
 
         // Create OPFS shard loader
-        const { loadShard } = await import('../storage/shard-manager.js');
+        const { loadShard } = await import('../src/storage/shard-manager.js');
         loadShardFn = (idx: number) => loadShard(idx);
       }
 
@@ -1117,7 +1117,7 @@ export class DopplerDemo {
       this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 10, message: 'Creating pipeline...' });
 
       // Create pipeline with multi-phase progress tracking
-      this.pipeline = await createPipeline(manifest as unknown as import('../inference/pipeline/config.js').Manifest, {
+      this.pipeline = await createPipeline(manifest as unknown as import('../src/inference/pipeline/config.js').Manifest, {
         gpu: {
           capabilities: gpuCaps,
           device: device,
@@ -1598,11 +1598,11 @@ export class DopplerDemo {
       }
 
       // Destroy buffer pool
-      const { destroyBufferPool } = await import('../gpu/buffer-pool.js');
+      const { destroyBufferPool } = await import('../src/gpu/buffer-pool.js');
       destroyBufferPool();
 
       // Reset heap manager
-      const { getHeapManager } = await import('../memory/heap-manager.js');
+      const { getHeapManager } = await import('../src/memory/heap-manager.js');
       const heapManager = getHeapManager();
       if (heapManager && typeof heapManager.reset === 'function') {
         heapManager.reset();

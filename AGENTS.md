@@ -10,14 +10,20 @@ Repository: https://github.com/clocksmith/doppler
 ```
 doppler/
 ├── README.md                 ← Overview and quick start
-├── GUIDE.md                  ← Full documentation
 ├── AGENTS.md                 ← Agent instructions (this file)
 ├── CLAUDE.md → AGENTS.md
 ├── EMOJI.md                  ← Approved Unicode symbols
-├── inference/                ← Pipeline, attention, FFN
-├── gpu/                      ← WebGPU device, buffer pools
-├── storage/                  ← OPFS shard manager
-├── loader/                   ← GGUF parsing, RDRR manifest
+├── src/                      ← Source code
+│   ├── inference/            ← Pipeline, attention, FFN
+│   ├── gpu/                  ← WebGPU device, buffer pools
+│   ├── storage/              ← OPFS shard manager
+│   ├── loader/               ← GGUF parsing, RDRR manifest
+│   ├── browser/              ← Browser-specific code
+│   ├── memory/               ← Memory management
+│   ├── debug/                ← Logging and tracing
+│   └── ...                   ← Other source modules
+├── app/                      ← Demo UI application
+├── cli/                      ← CLI entry point
 ├── kernel-tests/             ← GPU kernel validation
 ├── tools/                    ← CLI utilities
 └── docs/                     ← Documentation
@@ -26,7 +32,7 @@ doppler/
 ### Before Starting
 - Read `docs/ARCHITECTURE.md` for system overview
 - Read `docs/spec/RDRR_FORMAT.md` for model format specification
-- Review `inference/` for pipeline implementation
+- Review `src/inference/` for pipeline implementation
 
 ### Style Guides
 - [Coding Guide](docs/style/CODING_GUIDE.md) - Architecture, file organization, naming
@@ -34,10 +40,10 @@ doppler/
 - [WGSL Style Guide](docs/style/WGSL_STYLE_GUIDE.md) - Shader structure, constants vs uniforms
 
 ### Key Paths
-- `inference/` - Pipeline, attention, FFN, embeddings
-- `gpu/` - WebGPU device management, buffer pools
-- `storage/` - OPFS shard manager, model loading
-- `loader/` - GGUF parsing, .rdrr manifest handling
+- `src/inference/` - Pipeline, attention, FFN, embeddings
+- `src/gpu/` - WebGPU device management, buffer pools
+- `src/storage/` - OPFS shard manager, model loading
+- `src/loader/` - GGUF parsing, .rdrr manifest handling
 - `kernel-tests/` - GPU kernel validation tests
 - `app/` - Demo UI application
 - `tools/` - CLI utilities (convert, serve, debug)
@@ -224,31 +230,31 @@ Available kernel test suites (`npm test -- --filter <name>`):
 
 ### CLI Tools
 
-Located in `tools/`:
+**Model Converter** (`src/converter/node-converter.ts`):
 
 ```bash
 # Convert GGUF/SafeTensors to RDRR format
-npx tsx tools/node-converter.ts <input> <output> [options]
+npx tsx src/converter/node-converter.ts <input> <output> [options]
   --shard-size <MB>      Shard size in MB (default: 64)
   --quantize <type>      Override quantization (q4_k_m, q6_k, q8_0, f16)
   --quantize-embeddings  Also quantize embedding weights
   --test                 Create tiny test fixture
 
 # Examples:
-npx tsx tools/node-converter.ts model.gguf models/my-model
-npx tsx tools/node-converter.ts model.gguf models/my-model --quantize q4_k_m
+npx tsx src/converter/node-converter.ts model.gguf models/my-model
+npx tsx src/converter/node-converter.ts model.gguf models/my-model --quantize q4_k_m
+```
 
-# Serve GGUF or RDRR models (auto-converts if needed)
-npx tsx tools/serve-cli.ts <input> [options]
-  --port, -p <n>         Server port (default: 8765)
-  --output, -o <dir>     Output directory for converted RDRR
-  --keep                 Keep converted RDRR after exit
-  --no-open              Don't auto-open browser
-  --doppler-url <url>    Base URL for DOPPLER app (default: localhost:5173)
+**Dev Server** (`serve.ts`):
 
-# Examples:
-npx tsx tools/serve-cli.ts model.gguf
-npx tsx tools/serve-cli.ts ./my-rdrr-folder --port 9000
+```bash
+npx tsx serve.ts [options]
+  --port, -p <n>         Server port (default: 8080)
+  --open                 Auto-open browser
+
+# Or use npm start
+npm start
+npm start -- --port 3000
 ```
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->

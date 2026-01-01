@@ -4,8 +4,6 @@
 
 Browser-native WebGPU inference engine enabling tight CPU↔GPU co-evolution with [Reploid](https://github.com/clocksmith/reploid).
 
-Together, a recursive co-evolution: inference powers agency, agency reshapes inference.
-
 **[Try it live](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
 
 ## Why This Works
@@ -19,7 +17,25 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 | **Kernel hot-swap** | Runtime shader creation ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
 | **Shared memory** | CPU↔GPU via SharedArrayBuffer ([WgPy 2025](https://arxiv.org/pdf/2503.00279), [WebGPU Explainer](https://gpuweb.github.io/gpuweb/explainer/)) |
 
-See [GUIDE.md](GUIDE.md) for full documentation.
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Demo UI                          │
+├─────────────────────────────────────────────────────┤
+│             DOPPLER Inference Pipeline              │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐            │
+│  │ Tokenize │→│ Forward  │→│ Sample   │→ tokens    │
+│  └──────────┘ └──────────┘ └──────────┘            │
+├─────────────────────────────────────────────────────┤
+│              GPU Kernels (WebGPU)                   │
+│  MatMul │ RMSNorm │ RoPE │ Attention │ SiLU        │
+├─────────────────────────────────────────────────────┤
+│           Memory / Buffer Management                │
+├─────────────────────────────────────────────────────┤
+│  Storage (OPFS)  │  RDRR Loader  │  Tokenizer      │
+└─────────────────────────────────────────────────────┘
+```
 
 ## Quick Start
 
@@ -28,6 +44,38 @@ npm install
 npm start         # Dev server at http://localhost:8080
 npm run bench     # Run benchmarks
 ```
+
+## Why Pure JS + WGSL
+
+DOPPLER uses **JavaScript orchestration** with **hand-written WGSL kernels**. No TVM compiler, no WASM runtime.
+
+**The math:** GPU compute is 96% of decode time. JS orchestration is 2%. Optimizing 2% with WASM doesn't matter.
+
+| | WebLLM (TVM/WASM) | DOPPLER (JS/WGSL) |
+|---|---|---|
+| Unit of distribution | Compiled model binary | Weight shards + shared kernels |
+| Runtime LoRA | Impossible (fused at compile) | Hot-swap at runtime |
+| Expert paging | Fixed at compile | Dynamic (bind different buffers) |
+| Device-specific kernels | One binary fits all | Per-device optimization |
+| Debugging | Hard (compiled) | Chrome DevTools |
+
+## Model Support
+
+| Architecture | Examples | Status |
+|-------------|----------|--------|
+| Gemma | Gemma 3 1B, 4B | Full support |
+| LLaMA | LLaMA 2/3, Mistral | Full support |
+| Mixtral | Mixtral 8x7B | MoE support |
+| GPT-OSS | GPT-OSS 20B MoE | Experimental |
+
+## Documentation
+
+See [docs/INDEX.md](docs/INDEX.md) for full documentation.
+
+## Requirements
+
+- WebGPU browser (Chrome 113+, Edge 113+, Firefox Nightly)
+- GPU with 4GB+ VRAM for 7B models
 
 ## Related
 
@@ -44,3 +92,7 @@ npm run bench     # Run benchmarks
 - [DeepSeek-V3](https://arxiv.org/abs/2412.19437) - Multi-head Latent Attention, 671B MoE
 - [Kimi K2](https://arxiv.org/abs/2507.20534) - 1T parameter MoE, agentic intelligence
 - [Dr. Doppler](https://megaman.fandom.com/wiki/Dr._Doppler) - Mega Man X3
+
+## License
+
+MIT

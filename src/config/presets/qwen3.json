@@ -15,6 +15,9 @@
     "normalization": {
       "rmsNormWeightOffset": false,
       "rmsNormEps": 1e-6
+    },
+    "rope": {
+      "ropeTheta": 1000000
     }
   },
 

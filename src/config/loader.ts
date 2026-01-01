@@ -15,7 +15,9 @@ import type {
   TokenizerConfigSchema,
   ManifestSchema,
   RawModelConfigSchema,
+  LoadingConfigSchema,
 } from './schema/index.js';
+import { DEFAULT_LOADING_CONFIG } from './schema/index.js';
 
 // =============================================================================
 // Preset Registry
@@ -233,6 +235,11 @@ export function resolveConfig(
       ...manifestInference.output,
     },
     layerPattern: presetInference.layerPattern ?? baseInference.layerPattern,
+    rope: {
+      ...baseInference.rope,
+      ...presetInference.rope,
+      ...manifestInference.rope,
+    },
   };
 
   // Merge tokenizer config
@@ -250,6 +257,9 @@ export function resolveConfig(
     maxTokens: 2048,
   };
 
+  // Merge loading config: defaults + preset overrides
+  const loading = mergeLoadingConfig(preset.loading);
+
   return {
     preset: id,
     modelType: preset.modelType || manifest.modelType || 'transformer',
@@ -257,6 +267,7 @@ export function resolveConfig(
     inference,
     tokenizer,
     sampling,
+    loading,
   };
 }
 
@@ -298,6 +309,11 @@ function extractInferenceFromConfig(
     output: {
       finalLogitSoftcapping: config.final_logit_softcapping as number | null | undefined,
       tieWordEmbeddings: config.tie_word_embeddings as boolean | undefined,
+    },
+    rope: {
+      ropeTheta: (config.rope_theta ?? config.ropeFreqBase) as number | undefined,
+      ropeScalingType: config.rope_scaling_type as 'linear' | 'dynamic' | 'yarn' | null | undefined,
+      ropeScalingFactor: config.rope_scaling_factor as number | undefined,
     },
   };
 }
@@ -346,6 +362,50 @@ function getDefaultInferenceConfig(): Required<InferenceConfigSchema> {
     layerPattern: {
       type: 'all_attention',
     },
+    rope: {
+      ropeTheta: 10000,
+      ropeLocalTheta: undefined,
+      ropeScalingType: null,
+      ropeScalingFactor: 1.0,
+      yarnBetaFast: 32,
+      yarnBetaSlow: 1,
+      yarnOriginalMaxPos: 4096,
+    },
+  };
+}
+
+// =============================================================================
+// Loading Config Merge
+// =============================================================================
+
+/**
+ * Merge loading config with defaults.
+ * Preset values override defaults.
+ */
+function mergeLoadingConfig(
+  presetLoading: Partial<LoadingConfigSchema> | undefined
+): LoadingConfigSchema {
+  if (!presetLoading) {
+    return DEFAULT_LOADING_CONFIG;
+  }
+
+  return {
+    shardCache: {
+      ...DEFAULT_LOADING_CONFIG.shardCache,
+      ...presetLoading.shardCache,
+    },
+    memoryManagement: {
+      ...DEFAULT_LOADING_CONFIG.memoryManagement,
+      ...presetLoading.memoryManagement,
+    },
+    opfsPath: {
+      ...DEFAULT_LOADING_CONFIG.opfsPath,
+      ...presetLoading.opfsPath,
+    },
+    expertCache: {
+      ...DEFAULT_LOADING_CONFIG.expertCache,
+      ...presetLoading.expertCache,
+    },
   };
 }
 
@@ -368,6 +428,7 @@ function deepMergePresets(parent: PresetSchema, child: PresetSchema): PresetSche
     sampling: mergePartial(parent.sampling, child.sampling),
     tensorPatterns: mergeTensorPatterns(parent.tensorPatterns, child.tensorPatterns),
     detection: child.detection ?? parent.detection,
+    loading: mergePartial(parent.loading, child.loading),
   };
 }
 

@@ -1,0 +1,1075 @@
+{
+  "$schema": "./kernel-registry.schema.json",
+  "version": "1.0",
+  "operations": {
+    "matmul": {
+      "description": "Matrix multiplication kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "A", "type": "read-only-storage" },
+        { "index": 2, "name": "B", "type": "read-only-storage" },
+        { "index": 3, "name": "C", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "N", "type": "u32", "offset": 4 },
+          { "name": "K", "type": "u32", "offset": 8 },
+          { "name": "alpha", "type": "f32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "f16": {
+          "wgsl": "matmul_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16, 16, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16_vec4": {
+          "wgsl": "matmul_f16.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [16, 16, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16w_f32a": {
+          "wgsl": "matmul_f16w_f32a.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16, 16, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16w_f32a_naive": {
+          "wgsl": "matmul_f16w_f32a_naive.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "gemv": {
+          "wgsl": "matmul_gemv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector"
+        },
+        "gemv_subgroup": {
+          "wgsl": "matmul_gemv_subgroup.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd"
+        },
+        "gemv_subgroup_vec4": {
+          "wgsl": "matmul_gemv_subgroup.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"]
+        },
+        "gemv_subgroup_multicol": {
+          "wgsl": "matmul_gemv_subgroup.wgsl",
+          "entryPoint": "main_multicol",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup"
+        },
+        "q4_fused": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
+        },
+        "q4_fused_batched": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main_batched",
+          "workgroup": [64, 4, 1],
+          "requires": ["shader-f16", "subgroups"]
+        },
+        "q4_fused_multicol": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main_multicol",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup"
+        },
+        "f32": {
+          "wgsl": "matmul_f32.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16, 16, 1],
+          "requires": []
+        }
+      }
+    },
+    "fused_ffn": {
+      "description": "Fused FFN kernels (Tier 2 P0)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "gate_weights", "type": "read-only-storage" },
+        { "index": 3, "name": "up_weights", "type": "read-only-storage" },
+        { "index": 4, "name": "down_weights", "type": "read-only-storage" },
+        { "index": 5, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "hidden_size", "type": "u32", "offset": 0 },
+          { "name": "intermediate_size", "type": "u32", "offset": 4 },
+          { "name": "num_tokens", "type": "u32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "fused_ffn.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "multi": {
+          "wgsl": "fused_ffn.wgsl",
+          "entryPoint": "main_multi",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "f16": {
+          "wgsl": "fused_ffn.wgsl",
+          "entryPoint": "main_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"]
+        },
+        "batched": {
+          "wgsl": "fused_ffn.wgsl",
+          "entryPoint": "main_batched",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        }
+      }
+    },
+    "attention_decode_optimized": {
+      "description": "Optimized attention decode kernels (Tier 2 P0)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "Q", "type": "read-only-storage" },
+        { "index": 2, "name": "K", "type": "read-only-storage" },
+        { "index": 3, "name": "V", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "seq_len", "type": "u32", "offset": 0 },
+          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "head_dim", "type": "u32", "offset": 8 },
+          { "name": "kv_seq_len", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "attention_decode_optimized.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "multihead": {
+          "wgsl": "attention_decode_optimized.wgsl",
+          "entryPoint": "main_multihead",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "f16kv": {
+          "wgsl": "attention_decode_optimized.wgsl",
+          "entryPoint": "main_f16kv",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"]
+        }
+      }
+    },
+    "dequant": {
+      "description": "Dequantization kernels for various quant formats",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "quantized", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_blocks", "type": "u32", "offset": 0 },
+          { "name": "block_size", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "subgroup": {
+          "wgsl": "dequant_subgroup.wgsl",
+          "entryPoint": "main",
+          "workgroup": [64, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "subgroup_vec4": {
+          "wgsl": "dequant_subgroup.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "subgroup_f16out": {
+          "wgsl": "dequant_f16_out.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups", "shader-f16"]
+        },
+        "subgroup_vec4_f16out": {
+          "wgsl": "dequant_f16_out.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["subgroups", "shader-f16"]
+        },
+        "shared": {
+          "wgsl": "dequant_shared.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "shared_vec4": {
+          "wgsl": "dequant_shared.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "shared_f16out": {
+          "wgsl": "dequant_f16_out.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "shared_vec4_f16out": {
+          "wgsl": "dequant_f16_out.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "mxfp4": {
+          "wgsl": "dequant_mxfp4.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "description": "MXFP4 dequantization (GPT-OSS)"
+        },
+        "mxfp4_vec4": {
+          "wgsl": "dequant_mxfp4.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "mxfp4_expert": {
+          "wgsl": "dequant_mxfp4.wgsl",
+          "entryPoint": "main_expert",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "q6k_f16out": {
+          "wgsl": "dequant_q6k.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Q6_K dequantization (GGUF 6-bit quantization)"
+        },
+        "q8_0_f16out": {
+          "wgsl": "dequant_q8_0.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Q8_0 dequantization (GGUF 8-bit quantization)"
+        }
+      }
+    },
+    "attention": {
+      "description": "Flash attention kernels for prefill and decode",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "Q", "type": "read-only-storage" },
+        { "index": 2, "name": "K", "type": "read-only-storage" },
+        { "index": 3, "name": "V", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "seq_len", "type": "u32", "offset": 0 },
+          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "head_dim", "type": "u32", "offset": 8 },
+          { "name": "kv_seq_len", "type": "u32", "offset": 12 },
+          { "name": "scale", "type": "f32", "offset": 16 }
+        ]
+      },
+      "variants": {
+        "prefill": {
+          "wgsl": "attention.wgsl",
+          "entryPoint": "main",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "decode": {
+          "wgsl": "attention.wgsl",
+          "entryPoint": "attention_decode",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "prefill_small": {
+          "wgsl": "attention_small.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": []
+        },
+        "decode_small": {
+          "wgsl": "attention_small.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": []
+        },
+        "prefill_streaming": {
+          "wgsl": "attention_streaming.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": []
+        },
+        "decode_streaming": {
+          "wgsl": "attention_streaming.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": []
+        },
+        "prefill_f16kv": {
+          "wgsl": "attention_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_f16kv": {
+          "wgsl": "attention_f16kv.wgsl",
+          "entryPoint": "attention_decode",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "prefill_small_f16kv": {
+          "wgsl": "attention_small_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_small_f16kv": {
+          "wgsl": "attention_small_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "prefill_streaming_f16kv": {
+          "wgsl": "attention_streaming_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_streaming_f16kv": {
+          "wgsl": "attention_streaming_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_chunked_f16kv": {
+          "wgsl": "attention_decode_chunked_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Chunked decode kernel - parallelizes headDim for models with few heads"
+        },
+        "decode_subgroup": {
+          "wgsl": "attention_decode_subgroup.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"],
+          "description": "Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization"
+        }
+      }
+    },
+    "rmsnorm": {
+      "description": "RMS normalization kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "hidden_size", "type": "u32", "offset": 0 },
+          { "name": "num_tokens", "type": "u32", "offset": 4 },
+          { "name": "eps", "type": "f32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "small": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "rmsnorm_small",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "residual": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "rmsnorm_inplace_residual",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "fused_matmul_rmsnorm": {
+      "description": "Fused GEMV + RMSNorm for decode (M=1)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weights", "type": "read-only-storage" },
+        { "index": 3, "name": "norm_weight", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "N", "type": "u32", "offset": 4 },
+          { "name": "K", "type": "u32", "offset": 8 },
+          { "name": "eps", "type": "f32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "fused_matmul_rmsnorm.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "small": {
+          "wgsl": "fused_matmul_rmsnorm.wgsl",
+          "entryPoint": "gemv_rmsnorm_small",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "medium": {
+          "wgsl": "fused_matmul_rmsnorm.wgsl",
+          "entryPoint": "gemv_rmsnorm_medium",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "description": "Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)"
+        },
+        "phase1": {
+          "wgsl": "fused_matmul_rmsnorm.wgsl",
+          "entryPoint": "gemv_rmsnorm_phase1",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "fused_matmul_residual": {
+      "description": "Fused GEMV + Residual for decode (M=1)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weights", "type": "read-only-storage" },
+        { "index": 3, "name": "residual", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "N", "type": "u32", "offset": 4 },
+          { "name": "K", "type": "u32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "matmul_gemv_residual.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "softmax": {
+      "description": "Softmax kernels with online normalization",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "inner_size", "type": "u32", "offset": 0 },
+          { "name": "outer_size", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "softmax.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "small": {
+          "wgsl": "softmax.wgsl",
+          "entryPoint": "softmax_small",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "online": {
+          "wgsl": "softmax.wgsl",
+          "entryPoint": "softmax_online",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "rope": {
+      "description": "Rotary position embeddings kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "freqs", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "seq_len", "type": "u32", "offset": 0 },
+          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "head_dim", "type": "u32", "offset": 8 },
+          { "name": "offset", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rope.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "compute_freqs": {
+          "wgsl": "rope.wgsl",
+          "entryPoint": "rope_compute_freqs",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "qk": {
+          "wgsl": "rope.wgsl",
+          "entryPoint": "rope_qk",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "ntk": {
+          "wgsl": "rope.wgsl",
+          "entryPoint": "rope_ntk_scaled",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "yarn": {
+          "wgsl": "rope.wgsl",
+          "entryPoint": "rope_yarn",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "silu": {
+      "description": "SiLU/GELU activation kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gate": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "silu_gate",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gate_split": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "silu_gate_split",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "vec4": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "silu_vec4",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gelu": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "gelu",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "geglu": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "geglu",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gate_rowsplit": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "silu_gate_rowsplit",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "geglu_rowsplit": {
+          "wgsl": "silu.wgsl",
+          "entryPoint": "geglu_rowsplit",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "scale": {
+      "description": "Tensor scaling kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "scale", "type": "f32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "scale.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "inplace": {
+          "wgsl": "scale.wgsl",
+          "entryPoint": "main_inplace",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "gather": {
+      "description": "Embedding lookup kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "embeddings", "type": "read-only-storage" },
+        { "index": 2, "name": "indices", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "vocab_size", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "num_tokens", "type": "u32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "gather.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "vec4": {
+          "wgsl": "gather.wgsl",
+          "entryPoint": "gather_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "f16": {
+          "wgsl": "gather_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)"
+        },
+        "f16_vec4": {
+          "wgsl": "gather_f16.wgsl",
+          "entryPoint": "gather_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    },
+    "residual": {
+      "description": "Residual addition kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "residual", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "residual.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "vec4": {
+          "wgsl": "residual.wgsl",
+          "entryPoint": "add_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "topk": {
+      "description": "Top-K selection kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "values", "type": "storage" },
+        { "index": 3, "name": "indices", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "k", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "topk.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": []
+        },
+        "small": {
+          "wgsl": "topk.wgsl",
+          "entryPoint": "topk_2_small",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "fused": {
+          "wgsl": "topk.wgsl",
+          "entryPoint": "softmax_topk",
+          "workgroup": [32, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "scatter_add": {
+      "description": "MoE output combination kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "indices", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "num_indices", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "scatter_add.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "vec4": {
+          "wgsl": "scatter_add.wgsl",
+          "entryPoint": "scatter_add_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "dynamic": {
+          "wgsl": "scatter_add.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "accumulate": {
+          "wgsl": "scatter_add.wgsl",
+          "entryPoint": "scatter_add_accumulate",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "moe_gather": {
+      "description": "Token gathering by expert kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "expert_assignments", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "num_experts", "type": "u32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "count": {
+          "wgsl": "moe_gather.wgsl",
+          "entryPoint": "count_and_map",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gather": {
+          "wgsl": "moe_gather.wgsl",
+          "entryPoint": "gather_tokens",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gather_vec4": {
+          "wgsl": "moe_gather.wgsl",
+          "entryPoint": "gather_tokens_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": []
+        },
+        "single_pass": {
+          "wgsl": "moe_gather.wgsl",
+          "entryPoint": "gather_single_pass",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "sparse": {
+          "wgsl": "moe_gather.wgsl",
+          "entryPoint": "count_and_map",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "swiglu": {
+      "description": "SwiGLU activation (gated) kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "gate", "type": "read-only-storage" },
+        { "index": 2, "name": "up", "type": "read-only-storage" },
+        { "index": 3, "name": "bias", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "rowsplit_bias": {
+          "wgsl": "fused_swiglu.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "bias_add": {
+      "description": "Bias addition kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "bias", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "bias_add.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "cast": {
+      "description": "Type casting kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "f32_to_f16": {
+          "wgsl": "cast_f32_to_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    },
+    "split_qkv": {
+      "description": "Split fused QKV output into separate Q, K, V buffers",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "fused_qkv", "type": "read-only-storage" },
+        { "index": 2, "name": "Q", "type": "storage" },
+        { "index": 3, "name": "K", "type": "storage" },
+        { "index": 4, "name": "V", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "seq_len", "type": "u32", "offset": 0 },
+          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "head_dim", "type": "u32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "split_qkv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "sample": {
+      "description": "GPU-side sampling kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "logits", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "vocab_size", "type": "u32", "offset": 0 },
+          { "name": "temperature", "type": "f32", "offset": 4 },
+          { "name": "top_k", "type": "u32", "offset": 8 },
+          { "name": "top_p", "type": "f32", "offset": 12 },
+          { "name": "random_seed", "type": "u32", "offset": 16 }
+        ]
+      },
+      "variants": {
+        "argmax": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "argmax",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "argmax_reduce": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "argmax_reduce",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "find_topk_phase1": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "find_topk_phase1",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "find_topk_phase2": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "find_topk_phase2",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "softmax_and_sample": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "softmax_and_sample",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "single_pass": {
+          "wgsl": "sample.wgsl",
+          "entryPoint": "sample_single_pass",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "bf16_to_f32": {
+      "description": "BF16 to F32 conversion",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "bf16_to_f32.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "bf16_to_f16": {
+      "description": "BF16 to F16 conversion",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "bf16_to_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    }
+  }
+}

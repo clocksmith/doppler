@@ -33,6 +33,7 @@ import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
 import type { KernelHints } from '../storage/rdrr-format.js';
 import { allowReadback } from '../gpu/perf-guards.js';
 import { log, trace, setGPUDevice } from '../debug/index.js';
+import { DEFAULT_SAMPLING_DEFAULTS, DEFAULT_BATCHING_DEFAULTS } from '../config/index.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK, type SamplingOptions } from './pipeline/sampling.js';
@@ -458,11 +459,11 @@ export class InferencePipeline {
     const startTime = performance.now();
 
     const opts = {
-      maxTokens: options.maxTokens ?? 512,
-      temperature: options.temperature ?? 0.7,
-      topP: options.topP ?? 0.9,
-      topK: options.topK ?? 40,
-      repetitionPenalty: options.repetitionPenalty ?? 1.1,
+      maxTokens: options.maxTokens ?? DEFAULT_BATCHING_DEFAULTS.maxTokens,
+      temperature: options.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature,
+      topP: options.topP ?? DEFAULT_SAMPLING_DEFAULTS.topP,
+      topK: options.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK,
+      repetitionPenalty: options.repetitionPenalty ?? DEFAULT_SAMPLING_DEFAULTS.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
       useChatTemplate: options.useChatTemplate ?? false,
@@ -724,11 +725,11 @@ export class InferencePipeline {
     const startTime = performance.now();
 
     const opts = {
-      maxTokens: options.maxTokens ?? 512,
-      temperature: options.temperature ?? 0.7,
-      topP: options.topP ?? 0.9,
-      topK: options.topK ?? 40,
-      repetitionPenalty: options.repetitionPenalty ?? 1.1,
+      maxTokens: options.maxTokens ?? DEFAULT_BATCHING_DEFAULTS.maxTokens,
+      temperature: options.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature,
+      topP: options.topP ?? DEFAULT_SAMPLING_DEFAULTS.topP,
+      topK: options.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK,
+      repetitionPenalty: options.repetitionPenalty ?? DEFAULT_SAMPLING_DEFAULTS.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
       useChatTemplate: options.useChatTemplate ?? false,
@@ -1221,8 +1222,8 @@ export class InferencePipeline {
       );
 
       // Continue recording sampling into same command buffer (no submit yet)
-      // Use argmax for greedy (temperature < 0.01) or top-k sampling for temperature >= 0.01
-      const sampleOutputBuffer = opts.temperature < 0.01
+      // Use argmax for greedy (temperature below threshold) or top-k sampling otherwise
+      const sampleOutputBuffer = opts.temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
         ? await recordArgmax(recorder, logitsBuffer, vocabSize)
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
@@ -1375,7 +1376,7 @@ export class InferencePipeline {
       if (logitsResult) {
         const { logitsBuffer, vocabSize } = logitsResult;
 
-        const nextToken = opts.temperature < 0.01
+        const nextToken = opts.temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
           ? await runArgmax(logitsBuffer, vocabSize)
           : await runGPUSample(logitsBuffer, vocabSize, {
               temperature: opts.temperature,
@@ -1521,10 +1522,10 @@ export class InferencePipeline {
       recorder.trackTemporaryBuffer(hiddenStates);
 
       // 4. Sample next token → write to tokenBuffers[i+1]
-      // Use temperature-based sampling if temperature > 0, otherwise argmax
-      const temperature = opts.temperature ?? 0.7;
-      const topK = opts.topK ?? 40;
-      const sampledTokenBuffer = temperature < 0.01
+      // Use temperature-based sampling if above threshold, otherwise argmax
+      const temperature = opts.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature;
+      const topK = opts.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK;
+      const sampledTokenBuffer = temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
         ? await recordArgmax(recorder, logitsBuffer, vocabSize)
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK });
       recorder.trackTemporaryBuffer(logitsBuffer);

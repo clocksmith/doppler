@@ -29,7 +29,7 @@ import {
   AdapterRegistry,
   createMemoryRegistry,
   resetAdapterRegistry,
-} from '../../adapters/index.js';
+} from '../../src/adapters/index.js';
 
 // ============================================================================
 // Test Fixtures

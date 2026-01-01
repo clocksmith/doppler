@@ -7,7 +7,7 @@
  * @module tests/benchmark/types
  */
 
-import type { KernelHints } from '../../storage/rdrr-format.js';
+import type { KernelHints } from '../../src/storage/rdrr-format.js';
 
 // ============================================================================
 // Result Schema (matches BENCHMARK_HARNESS.md)

@@ -6,8 +6,8 @@ import {
   resolvePreset,
   detectPreset,
   resolveConfig,
-} from '../../config/loader.js';
-import type { ManifestSchema, RawModelConfigSchema } from '../../config/schema/index.js';
+} from '../../src/config/loader.js';
+import type { ManifestSchema, RawModelConfigSchema } from '../../src/config/schema/index.js';
 
 describe('config/loader', () => {
   describe('getPreset', () => {

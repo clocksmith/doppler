@@ -1,0 +1,6 @@
+{
+  "$schema": "../schema/bridge.schema.ts",
+  "$comment": "Default bridge configuration for DOPPLER native messaging host",
+  "maxReadSizeBytes": 104857600,
+  "allowedDirectories": "/Users:/home:/tmp:/var/tmp"
+}

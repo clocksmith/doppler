@@ -3,6 +3,12 @@
  *
  * Central export for config-as-code architecture.
  *
+ * Platform and kernel registry initialization:
+ * - Platform detection and registry loading happen automatically in gpu/device.ts
+ * - Call initDevice() to initialize both GPU and config systems
+ * - Use getPlatformConfig() from device.ts to access resolved platform config
+ * - Kernel selection in kernels/selection.js uses platform preferences automatically
+ *
  * @module config
  */
 
@@ -18,3 +24,13 @@ export {
   resolveConfig,
   PRESET_REGISTRY,
 } from './loader.js';
+
+// Kernel registry (JS modules - dynamic import for hotswap)
+// Auto-initialized by gpu/device.ts during initDevice()
+// Use: const { getRegistry, getRegistrySync } = await import('./kernels/registry.js');
+// Use: const { selectMatmul, selectAttention } = await import('./kernels/selection.js');
+
+// Platform loader (JS modules - dynamic import for hotswap)
+// Auto-initialized by gpu/device.ts during initDevice()
+// Use: const { getPlatform, getCapabilities } = await import('./platforms/loader.js');
+// Alternative: import { getPlatformConfig } from '../gpu/device.js';

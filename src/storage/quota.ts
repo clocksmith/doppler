@@ -10,6 +10,7 @@
  */
 
 import { log } from '../debug/index.js';
+import { DEFAULT_QUOTA_CONFIG } from '../config/index.js';
 
 /**
  * Storage quota information
@@ -76,9 +77,9 @@ export interface StorageReport {
  */
 export type StorageCallback = (info: QuotaInfo) => void;
 
-// Thresholds for space warnings
-const LOW_SPACE_THRESHOLD = 500 * 1024 * 1024; // 500MB
-const CRITICAL_SPACE_THRESHOLD = 100 * 1024 * 1024; // 100MB
+// Thresholds from config
+const LOW_SPACE_THRESHOLD = DEFAULT_QUOTA_CONFIG.lowSpaceThresholdBytes;
+const CRITICAL_SPACE_THRESHOLD = DEFAULT_QUOTA_CONFIG.criticalSpaceThresholdBytes;
 
 // Cached persistence state
 let persistenceState: boolean | null = null;
@@ -339,7 +340,7 @@ export class QuotaExceededError extends Error {
 export function monitorStorage(
   onLowSpace: StorageCallback | null,
   onCriticalSpace: StorageCallback | null,
-  intervalMs = 30000
+  intervalMs = DEFAULT_QUOTA_CONFIG.monitorIntervalMs
 ): () => void {
   let wasLow = false;
   let wasCritical = false;

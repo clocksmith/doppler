@@ -6,10 +6,10 @@
  * 2. Fused: RMSNorm with residual parameter (1 kernel dispatch)
  */
 
-import { initDevice } from './src/gpu/device.js';
-import { acquireBuffer, releaseBuffer } from './src/gpu/buffer-pool.js';
-import { runRMSNorm } from './src/gpu/kernels/rmsnorm.js';
-import { runResidualAdd } from './src/gpu/kernels/residual.js';
+import { initDevice } from '../src/gpu/device.js';
+import { acquireBuffer, releaseBuffer } from '../src/gpu/buffer-pool.js';
+import { runRMSNorm } from '../src/gpu/kernels/rmsnorm.js';
+import { runResidualAdd } from '../src/gpu/kernels/residual.js';
 
 async function benchmarkResidualRMSNorm() {
   console.log('Initializing WebGPU...');

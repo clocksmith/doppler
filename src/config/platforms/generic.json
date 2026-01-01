@@ -1,0 +1,15 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "generic",
+  "name": "Generic WebGPU Device",
+  "detection": {},
+  "isGeneric": true,
+  "kernelOverrides": {},
+  "memoryHints": {
+    "preferUnifiedMemory": false,
+    "bufferAlignment": 256,
+    "optimalShardSize": 67108864,
+    "maxBufferPoolSize": 1073741824
+  },
+  "notes": "Fallback configuration for unknown GPU devices. Uses conservative settings."
+}

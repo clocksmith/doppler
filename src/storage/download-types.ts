@@ -7,6 +7,7 @@
  */
 
 import type { RDRRManifest } from './rdrr-format.js';
+import { DEFAULT_DISTRIBUTION_CONFIG } from '../config/index.js';
 
 /**
  * Download progress information
@@ -116,11 +117,13 @@ export interface SpeedTracker {
  */
 export type ProgressCallback = (progress: DownloadProgress) => void;
 
-// Constants
+// Constants (IndexedDB)
 export const DB_NAME = 'doppler-download-state';
 export const DB_VERSION = 1;
 export const STORE_NAME = 'downloads';
-export const DEFAULT_CONCURRENCY = 3;
-export const MAX_RETRIES = 3;
-export const INITIAL_RETRY_DELAY = 1000;
-export const MAX_RETRY_DELAY = 30000;
+
+// Re-export from config for backwards compatibility
+export const DEFAULT_CONCURRENCY = DEFAULT_DISTRIBUTION_CONFIG.concurrentDownloads;
+export const MAX_RETRIES = DEFAULT_DISTRIBUTION_CONFIG.maxRetries;
+export const INITIAL_RETRY_DELAY = DEFAULT_DISTRIBUTION_CONFIG.initialRetryDelayMs;
+export const MAX_RETRY_DELAY = DEFAULT_DISTRIBUTION_CONFIG.maxRetryDelayMs;

@@ -10,13 +10,14 @@
 import { getDevice, getKernelCapabilities, getDeviceLimits } from './device.js';
 import { GPUProfiler } from './profiler.js';
 import { log } from '../debug/index.js';
+import { DEFAULT_TUNER_CONFIG } from '../config/schema/index.js';
 
-// Cache key prefix
-const CACHE_PREFIX = 'doppler_kernel_tune_';
+// Cache key prefix from config
+const CACHE_PREFIX = DEFAULT_TUNER_CONFIG.cacheKeyPrefix;
 
-// Default tuning iterations
-const DEFAULT_WARMUP = 3;
-const DEFAULT_ITERATIONS = 10;
+// Default tuning iterations from config
+const DEFAULT_WARMUP = DEFAULT_TUNER_CONFIG.defaultWarmupIterations;
+const DEFAULT_ITERATIONS = DEFAULT_TUNER_CONFIG.defaultTimedIterations;
 
 /**
  * Device information for cache keys

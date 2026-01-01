@@ -20,6 +20,9 @@ import {
 } from './rdrr-format.js';
 import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quota.js';
 import { log } from '../debug/index.js';
+import type { OpfsPathConfigSchema } from '../config/schema/loading.schema.js';
+import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
+import { DEFAULT_STORAGE_ALIGNMENT_CONFIG } from '../config/schema/storage.schema.js';
 
 // Re-export for consumers that import from shard-manager
 export { getManifest } from './rdrr-format.js';
@@ -109,8 +112,11 @@ interface Blake3Module {
 // Constants
 // ============================================================================
 
-const ALIGNMENT = 4096; // 4KB alignment for optimal disk I/O
-const MODELS_DIR = 'doppler-models';
+// Use config value for alignment (default: 4KB for optimal disk I/O)
+const ALIGNMENT = DEFAULT_STORAGE_ALIGNMENT_CONFIG.bufferAlignmentBytes;
+
+// Storage config - can be overridden via setOpfsPathConfig()
+let opfsPathConfig: OpfsPathConfigSchema = DEFAULT_OPFS_PATH_CONFIG;
 
 // ============================================================================
 // Module State
@@ -121,6 +127,20 @@ let modelsDir: FileSystemDirectoryHandle | null = null;
 let currentModelDir: FileSystemDirectoryHandle | null = null;
 let blake3Module: Blake3Module | null = null;
 let hashAlgorithm: HashAlgorithm | null = null;
+
+/**
+ * Set OPFS path configuration
+ */
+export function setOpfsPathConfig(config: OpfsPathConfigSchema): void {
+  opfsPathConfig = config;
+}
+
+/**
+ * Get current OPFS path configuration
+ */
+export function getOpfsPathConfig(): OpfsPathConfigSchema {
+  return opfsPathConfig;
+}
 
 // ============================================================================
 // BLAKE3/SHA256 Hashing
@@ -266,7 +286,7 @@ export async function initOPFS(): Promise<void> {
 
   try {
     rootDir = await navigator.storage.getDirectory();
-    modelsDir = await rootDir.getDirectoryHandle(MODELS_DIR, { create: true });
+    modelsDir = await rootDir.getDirectoryHandle(opfsPathConfig.opfsRootDir, { create: true });
   } catch (error) {
     throw new Error(`Failed to initialize OPFS: ${(error as Error).message}`);
   }

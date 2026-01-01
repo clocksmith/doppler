@@ -164,7 +164,7 @@ async function printDiagnostics(result: DiagnosticResult) {
     console.log('  - Dequant F16 path: 2.3x faster than fused Q4K');
     console.log('');
     console.log('Run benchmark:');
-    console.log(`  npx tsx tools/doppler-cli.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
+    console.log(`  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
   }
 
   console.log('='.repeat(70));

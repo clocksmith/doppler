@@ -1,0 +1,24 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "apple-m1",
+  "name": "Apple M1 Series",
+  "detection": {
+    "vendor": "apple",
+    "architecture": "gpu-family-apple-7"
+  },
+  "kernelOverrides": {
+    "matmul": {
+      "avoid": ["f32"]
+    },
+    "attention": {
+      "avoid": ["decode_streaming"]
+    }
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": true,
+    "bufferAlignment": 256,
+    "optimalShardSize": 67108864,
+    "maxBufferPoolSize": 536870912
+  },
+  "notes": "Apple M1 series (M1, M1 Pro, M1 Max, M1 Ultra) - gpu-family-apple-7, no subgroups in early Chrome versions"
+}

@@ -1,0 +1,14 @@
+{
+  "batching": {
+    "batchSize": 1,
+    "maxTokens": 512,
+    "stopCheckMode": "per-token"
+  },
+  "sampling": {
+    "temperature": 0.7,
+    "topP": 0.9,
+    "topK": 40,
+    "repetitionPenalty": 1.1,
+    "greedyThreshold": 0.01
+  }
+}

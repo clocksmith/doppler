@@ -30,6 +30,7 @@ import {
 import { MoERouter, createExpertExecutionPlan, combineExpertOutputs } from '../moe-router.js';
 import { log } from '../../debug/index.js';
 import type { ExpertWeights } from './types.js';
+import { DEFAULT_MOE_CACHE_CONFIG } from '../../config/schema/index.js';
 
 // ============================================================================
 // MXFP4 Dequantization Cache (avoids re-dequantizing same expert weights)
@@ -43,7 +44,8 @@ interface CachedExpertWeight {
 
 // Cache key: "layer_expert_type" -> dequantized weight
 const dequantCache = new Map<string, CachedExpertWeight>();
-const DEQUANT_CACHE_MAX_ENTRIES = 128; // ~128 experts cached (4 layers × 32 experts)
+// Use config value for max cache entries (default: 128 ~= 4 layers x 32 experts)
+let dequantCacheMaxEntries = DEFAULT_MOE_CACHE_CONFIG.dequantCacheMaxEntries;
 let dequantCacheHits = 0;
 let dequantCacheMisses = 0;
 
@@ -66,7 +68,7 @@ function setCachedDequant(layerIdx: number, expertIdx: number, gateUp: GPUBuffer
   dequantCacheMisses++;
 
   // Evict oldest entries if cache is full
-  if (dequantCache.size >= DEQUANT_CACHE_MAX_ENTRIES) {
+  if (dequantCache.size >= dequantCacheMaxEntries) {
     let oldestKey = '';
     let oldestTime = Infinity;
     for (const [k, v] of dequantCache.entries()) {
@@ -100,8 +102,13 @@ export function clearDequantCache(): void {
 }
 
 /** Get cache stats for debugging. */
-export function getDequantCacheStats(): { hits: number; misses: number; size: number } {
-  return { hits: dequantCacheHits, misses: dequantCacheMisses, size: dequantCache.size };
+export function getDequantCacheStats(): { hits: number; misses: number; size: number; maxEntries: number } {
+  return { hits: dequantCacheHits, misses: dequantCacheMisses, size: dequantCache.size, maxEntries: dequantCacheMaxEntries };
+}
+
+/** Configure dequant cache max entries at runtime. */
+export function setDequantCacheMaxEntries(maxEntries: number): void {
+  dequantCacheMaxEntries = maxEntries;
 }
 
 // ============================================================================

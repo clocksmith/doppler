@@ -75,6 +75,8 @@ import {
 } from './dtype-utils.js';
 
 import { ShardCache, createShardCache } from './shard-cache.js';
+import type { LoadingConfigSchema, MemoryManagementConfigSchema } from '../config/schema/loading.schema.js';
+import { DEFAULT_LOADING_CONFIG, DEFAULT_MEMORY_MANAGEMENT_CONFIG } from '../config/schema/loading.schema.js';
 
 // Re-export types for backward compatibility
 export type {
@@ -157,7 +159,10 @@ export class DopplerLoader {
   tensorLocations = new Map<string, TensorLocation>();
 
   // Shard cache (LRU with request deduplication)
-  shardCache: ShardCache = createShardCache(2);
+  shardCache: ShardCache;
+
+  // Loading configuration
+  private loadingConfig: LoadingConfigSchema = DEFAULT_LOADING_CONFIG;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   // Default is false; opt-in via manifest kernel hints.
@@ -173,8 +178,12 @@ export class DopplerLoader {
   private _memoryLogInterval: ReturnType<typeof setInterval> | null = null;
   private _loadStartTime = 0;
 
-  constructor() {
-    // All properties initialized above
+  constructor(loadingConfig?: LoadingConfigSchema) {
+    this.loadingConfig = loadingConfig ?? DEFAULT_LOADING_CONFIG;
+    this.shardCache = createShardCache(
+      this.loadingConfig.shardCache.opfsEntries,
+      this.loadingConfig.shardCache
+    );
   }
 
   /**
@@ -224,10 +233,11 @@ export class DopplerLoader {
   private _startMemoryLogging(): void {
     this._loadStartTime = performance.now();
     this._logMemoryStats('start');
-    // Log memory every 30s during loading (was 5s - too noisy)
+    // Log memory periodically during loading (configurable, default 30s)
+    const logIntervalMs = this.loadingConfig.memoryManagement.logIntervalMs;
     this._memoryLogInterval = setInterval(() => {
       this._logMemoryStats('loading');
-    }, 30000);
+    }, logIntervalMs);
   }
 
   /**
@@ -592,14 +602,14 @@ export class DopplerLoader {
       // Periodically flush shard cache during OPFS loading to reduce JS heap pressure.
       // Dense models access shards sequentially, so keeping old shards cached wastes memory.
       // Skip for network loading (customLoadShard) - re-fetching is expensive.
-      // Flush every 4 layers or when cache exceeds 256MB (4 shards at 64MB each).
+      const { flushIntervalLayers, flushThresholdBytes, gpuQueueFlushLayers } = this.loadingConfig.memoryManagement;
       const cacheBytes = this.shardCache.totalBytes;
-      const shouldFlushCache = !this.shardCache.hasCustomLoader && l > 0 && (l % 4 === 0 || cacheBytes > 256 * 1024 * 1024);
+      const shouldFlushCache = !this.shardCache.hasCustomLoader && l > 0 && (l % flushIntervalLayers === 0 || cacheBytes > flushThresholdBytes);
       if (shouldFlushCache) {
         this.shardCache.clear();
       }
       // Flush GPU queue periodically to release Chrome's internal staging memory
-      if (l > 0 && l % 4 === 0) {
+      if (l > 0 && l % gpuQueueFlushLayers === 0) {
         const device = getDevice();
         if (device) {
           await device.queue.onSubmittedWorkDone();

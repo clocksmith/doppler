@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { Tokenizer } from '../../inference/tokenizer.js';
-import { MultiModelNetwork } from '../../inference/multi-model-network.js';
-import { MultiPipelinePool } from '../../inference/multi-pipeline-pool.js';
-import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipeline.js';
-import type { MultiModelLoader } from '../../loader/multi-model-loader.js';
-import type { NetworkGenome } from '../../inference/network-evolution.js';
-import type { LoRAAdapter } from '../../inference/pipeline/lora.js';
+import { Tokenizer } from '../../src/inference/tokenizer.js';
+import { MultiModelNetwork } from '../../src/inference/multi-model-network.js';
+import { MultiPipelinePool } from '../../src/inference/multi-pipeline-pool.js';
+import type { InferencePipeline, KVCacheSnapshot } from '../../src/inference/pipeline.js';
+import type { MultiModelLoader } from '../../src/loader/multi-model-loader.js';
+import type { NetworkGenome } from '../../src/inference/network-evolution.js';
+import type { LoRAAdapter } from '../../src/inference/pipeline/lora.js';
 
 class FakePipeline {
   adapterName = 'base';

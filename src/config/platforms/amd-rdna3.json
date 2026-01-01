@@ -1,0 +1,24 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "amd-rdna3",
+  "name": "AMD RDNA 3",
+  "detection": {
+    "vendor": "amd",
+    "architecture": "rdna3"
+  },
+  "kernelOverrides": {
+    "matmul": {
+      "preferred": "gemv_subgroup"
+    },
+    "attention": {
+      "preferred": "decode_subgroup"
+    }
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": false,
+    "bufferAlignment": 256,
+    "optimalShardSize": 134217728,
+    "maxBufferPoolSize": 4294967296
+  },
+  "notes": "AMD RX 7900 series - RDNA 3 architecture, subgroups, F16"
+}

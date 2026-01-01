@@ -218,7 +218,7 @@ DOPPLER uses a unified logging system controlled by CLI flags or browser URL par
 
 ### CLI Log Forwarding (IMPORTANT)
 
-The DOPPLER CLI (`doppler-cli.ts`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
+The DOPPLER CLI (`cli/index.ts`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
 
 ```
 [Benchmark], [Pipeline], [Loader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN

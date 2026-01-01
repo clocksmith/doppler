@@ -1,0 +1,32 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "apple-m3",
+  "name": "Apple M3 Series",
+  "detection": {
+    "vendor": "apple",
+    "architecture": "gpu-family-apple-9"
+  },
+  "kernelOverrides": {
+    "matmul": {
+      "preferred": "gemv_subgroup",
+      "avoid": ["f32"],
+      "workgroupOverrides": {
+        "q4_fused": [128, 1, 1]
+      }
+    },
+    "attention": {
+      "preferred": "decode_subgroup",
+      "avoid": ["decode_streaming"]
+    },
+    "dequant": {
+      "preferred": "subgroup_f16out"
+    }
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": true,
+    "bufferAlignment": 256,
+    "optimalShardSize": 67108864,
+    "maxBufferPoolSize": 2147483648
+  },
+  "notes": "Apple M3 series (M3, M3 Pro, M3 Max, M3 Ultra) - gpu-family-apple-9, subgroups, F16"
+}

@@ -8,8 +8,8 @@ import {
   type PackerTensorInput,
   type TensorLocationSingle,
   type TensorLocationMulti,
-} from '../../converter/shard-packer.js';
-import type { TensorInfoSchema } from '../../config/schema/index.js';
+} from '../../src/converter/shard-packer.js';
+import type { TensorInfoSchema } from '../../src/config/schema/index.js';
 
 /**
  * In-memory mock implementation of ShardIO for testing.

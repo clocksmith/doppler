@@ -13,24 +13,24 @@ Convert models to DOPPLER's RDRR format and verify they work.
 
 ```bash
 # From HuggingFace directory with quantization
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/models/Llama-3.2-1B \
   models/llama-1b \
   --quantize q4_k_m
 
 # From GGUF file
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/models/model.gguf \
   models/model-name
 
 # Multimodal to text-only (strips vision tower)
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/models/gemma-3-4b-it \
   models/gemma-4b-text \
   --text-only --quantize q4_k_m
 
 # Create tiny test fixture
-npx tsx tools/convert-cli.ts --test ./test-model
+npx tsx src/converter/node-converter.ts --test ./test-model
 ```
 
 ## Options

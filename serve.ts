@@ -239,15 +239,15 @@ async function main(): Promise<void> {
         return res.end();
       }
 
-      // Standalone mode: serve index.html at /
+      // Standalone mode: serve app/index.html at /
       // Also strip /doppler/ prefix for compatibility with old paths
       if (pathname.startsWith('/doppler/')) {
         pathname = pathname.replace('/doppler/', '/');
       } else if (pathname === '/doppler') {
-        pathname = '/index.html';
+        pathname = '/app/index.html';
       }
       if (pathname === '/' || pathname === '') {
-        pathname = '/index.html';
+        pathname = '/app/index.html';
       }
 
       // Serve JS files from dist/ (TypeScript is compiled there)

@@ -7,11 +7,16 @@
 import { statSync, readdirSync } from 'fs';
 import { promises as fsPromises } from 'fs';
 import { resolve, normalize, join } from 'path';
+import { DEFAULT_BRIDGE_CONFIG } from '../../config/schema/bridge.schema.js';
+import { DEFAULT_DISTRIBUTION_CONFIG } from '../../config/schema/distribution.schema.js';
 
+// Protocol constants (must not change - these are wire format)
 const MAGIC = 0x5245504C; // "REPL"
 const HEADER_SIZE = 16;
-const MAX_CHUNK_SIZE = 8 * 1024 * 1024; // 8MB
-const MAX_READ_SIZE = 100 * 1024 * 1024; // 100MB max per request to prevent OOM
+
+// Configurable limits from schema
+const MAX_CHUNK_SIZE = DEFAULT_DISTRIBUTION_CONFIG.maxChunkSizeBytes;
+const MAX_READ_SIZE = DEFAULT_BRIDGE_CONFIG.maxReadSizeBytes;
 
 const CMD_PING = 0x00;
 const CMD_PONG = 0x01;
@@ -28,8 +33,10 @@ const ERR_PERMISSION_DENIED = 2;
 const ERR_IO_ERROR = 3;
 const ERR_INVALID_REQUEST = 4;
 
-const DEFAULT_ALLOWED_DIRS = '/Users:/home:/tmp:/var/tmp';
-const ALLOWED_DIRS = (process.env.DOPPLER_ALLOWED_DIRS || DEFAULT_ALLOWED_DIRS).split(':');
+// Allowed directories from config (can be overridden via environment variable)
+const ALLOWED_DIRS = (
+  process.env.DOPPLER_ALLOWED_DIRS || DEFAULT_BRIDGE_CONFIG.allowedDirectories
+).split(':');
 
 export interface BinaryMessage {
   type: 'binary';

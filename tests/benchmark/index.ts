@@ -21,7 +21,7 @@ export {
 } from './pipeline-benchmark.js';
 
 // Debug utilities (unified in debug/index.ts)
-export { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from '../../debug/index.js';
+export { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from '../../src/debug/index.js';
 
 // System benchmarks
 export {

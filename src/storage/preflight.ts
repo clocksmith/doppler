@@ -11,6 +11,7 @@
 
 import { getMemoryCapabilities, type MemoryCapabilities } from '../memory/capability.js';
 import { getQuotaInfo, formatBytes, type QuotaInfo } from './quota.js';
+import { DEFAULT_VRAM_ESTIMATION_CONFIG } from '../config/index.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -137,9 +138,8 @@ function estimateAvailableVRAM(memCaps: MemoryCapabilities): number {
 
   // Unified memory: use estimated system memory (leave headroom)
   if (info.isUnified && info.estimatedMemoryGB) {
-    // Assume 50% of unified memory available for GPU
-    // (rest is used by OS, apps, etc.)
-    return (info.estimatedMemoryGB * GB) * 0.5;
+    // Use configured ratio of unified memory available for GPU
+    return (info.estimatedMemoryGB * GB) * DEFAULT_VRAM_ESTIMATION_CONFIG.unifiedMemoryRatio;
   }
 
   // Discrete GPU: use maxBufferSize as heuristic
@@ -149,8 +149,8 @@ function estimateAvailableVRAM(memCaps: MemoryCapabilities): number {
     return info.limits.maxBufferSize;
   }
 
-  // Fallback: assume 2GB (conservative for most GPUs)
-  return 2 * GB;
+  // Fallback: use configured fallback VRAM
+  return DEFAULT_VRAM_ESTIMATION_CONFIG.fallbackVramBytes;
 }
 
 /**
@@ -304,7 +304,7 @@ export async function runPreflightChecks(
   if (!gpu.isUnified && vram.sufficient) {
     // Discrete GPU with borderline VRAM
     const headroom = vram.available - vram.required;
-    if (headroom < 500 * MB) {
+    if (headroom < DEFAULT_VRAM_ESTIMATION_CONFIG.lowVramHeadroomBytes) {
       warnings.push('Low VRAM headroom - may cause issues with longer contexts');
     }
   }

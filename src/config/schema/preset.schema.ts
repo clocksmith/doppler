@@ -13,6 +13,7 @@ import type {
   TokenizerConfigSchema,
   SamplingSchema,
 } from './inference.schema.js';
+import type { LoadingConfigSchema } from './loading.schema.js';
 
 // =============================================================================
 // Preset Schema
@@ -49,6 +50,9 @@ export interface PresetSchema {
 
   /** Model family detection patterns */
   detection?: DetectionPatternSchema;
+
+  /** Loading behavior configuration */
+  loading?: Partial<LoadingConfigSchema>;
 }
 
 // =============================================================================
@@ -123,4 +127,7 @@ export interface ResolvedConfigSchema {
 
   /** Sampling defaults */
   sampling: SamplingSchema;
+
+  /** Loading behavior configuration */
+  loading: LoadingConfigSchema;
 }

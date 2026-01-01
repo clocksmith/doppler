@@ -7,6 +7,7 @@
  */
 
 import { getDevice } from './device.js';
+import { DEFAULT_GPU_CACHE_CONFIG } from '../config/schema/gpu-cache.schema.js';
 
 interface UniformCacheEntry {
   buffer: GPUBuffer;
@@ -56,7 +57,10 @@ export class UniformBufferCache {
   private readonly maxEntries: number;
   private readonly maxAgeMs: number;
 
-  constructor(maxEntries: number = 256, maxAgeMs: number = 60000) {
+  constructor(
+    maxEntries: number = DEFAULT_GPU_CACHE_CONFIG.uniformCacheMaxEntries,
+    maxAgeMs: number = DEFAULT_GPU_CACHE_CONFIG.uniformCacheMaxAgeMs
+  ) {
     this.maxEntries = maxEntries;
     this.maxAgeMs = maxAgeMs;
   }

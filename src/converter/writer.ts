@@ -23,6 +23,7 @@ import { log } from '../debug/index.js';
 import {
   // Constants
   SHARD_SIZE as SCHEMA_SHARD_SIZE,
+  DEFAULT_STORAGE_ALIGNMENT_CONFIG,
   // Schema types
   type HashAlgorithm,
   type ModelType,
@@ -43,7 +44,8 @@ import {
 // ============================================================================
 
 const DEFAULT_SHARD_SIZE = SCHEMA_SHARD_SIZE;
-const ALIGNMENT = 4096;
+// Use config value for alignment (default: 4KB for optimal disk I/O)
+const ALIGNMENT = DEFAULT_STORAGE_ALIGNMENT_CONFIG.bufferAlignmentBytes;
 
 // ============================================================================
 // Re-exports for Backward Compatibility

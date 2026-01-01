@@ -8,6 +8,45 @@
  */
 
 // =============================================================================
+// RoPE (Rotary Position Embedding)
+// =============================================================================
+
+/** RoPE configuration for positional embeddings */
+export interface RoPEConfigSchema {
+  /** Base frequency for RoPE (default 10000, modern models use 1000000) */
+  ropeTheta?: number;
+
+  /** Local RoPE theta for sliding window layers (Gemma 3 uses 10000) */
+  ropeLocalTheta?: number;
+
+  /** RoPE scaling type */
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+
+  /** RoPE scaling factor */
+  ropeScalingFactor?: number;
+
+  /** YARN beta_fast parameter */
+  yarnBetaFast?: number;
+
+  /** YARN beta_slow parameter */
+  yarnBetaSlow?: number;
+
+  /** YARN original max position embeddings */
+  yarnOriginalMaxPos?: number;
+}
+
+/** Default RoPE configuration */
+export const DEFAULT_ROPE_CONFIG: RoPEConfigSchema = {
+  ropeTheta: 10000,
+  ropeLocalTheta: undefined,
+  ropeScalingType: null,
+  ropeScalingFactor: 1.0,
+  yarnBetaFast: 32,
+  yarnBetaSlow: 1,
+  yarnOriginalMaxPos: 4096,
+};
+
+// =============================================================================
 // Attention Schema
 // =============================================================================
 
@@ -19,9 +58,9 @@ export interface AttentionSchema {
   attnLogitSoftcapping?: number | null;
   /** Use query-key normalization */
   queryKeyNorm?: boolean;
-  /** RoPE scaling type */
+  /** @deprecated Use RoPEConfigSchema.ropeScalingType instead */
   ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
-  /** RoPE scaling factor */
+  /** @deprecated Use RoPEConfigSchema.ropeScalingFactor instead */
   ropeScalingFactor?: number;
 }
 
@@ -139,6 +178,7 @@ export interface InferenceConfigSchema {
   ffn?: FFNSchema;
   output?: OutputSchema;
   layerPattern?: LayerPatternSchema;
+  rope?: RoPEConfigSchema;
 }
 
 // =============================================================================

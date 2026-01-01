@@ -1,0 +1,11 @@
+{
+  "$schema": "../schema/distribution.schema.json",
+  "version": "1.0",
+  "concurrentDownloads": 3,
+  "maxRetries": 3,
+  "initialRetryDelayMs": 1000,
+  "maxRetryDelayMs": 30000,
+  "maxChunkSizeBytes": 8388608,
+  "cdnBasePath": null,
+  "progressUpdateIntervalMs": 100
+}

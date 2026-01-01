@@ -9,6 +9,10 @@ import { getDevice, getDeviceLimits } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import type { GpuBufferHandle, BufferRequest } from '../types/gpu.js';
 import { log, trace } from '../debug/index.js';
+import {
+  type BufferPoolConfigSchema,
+  DEFAULT_BUFFER_POOL_CONFIG,
+} from '../config/schema/index.js';
 
 /**
  * Pool statistics
@@ -77,21 +81,25 @@ function alignTo(size: number, alignment: number): number {
 /**
  * Get size bucket for pooling (power of 2 rounding)
  */
-function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number {
-  // Minimum bucket: 256 bytes
-  const minBucket = 256;
+function getSizeBucket(
+  size: number,
+  maxAllowedSize: number = Infinity,
+  bucketConfig = DEFAULT_BUFFER_POOL_CONFIG.bucket
+): number {
+  // Minimum bucket from config
+  const minBucket = bucketConfig.minBucketSizeBytes;
   if (size <= minBucket) return minBucket;
 
   // Avoid power-of-two rounding for very large buffers.
   // For weights and large activations, rounding 600MB → 1GB can cause OOM even when the
   // exact-sized buffer would fit. Use coarse-grained bucketing to retain most pooling
   // benefits without 2x blowups.
-  const largeThreshold = 32 * 1024 * 1024; // 32MB
+  const largeThreshold = bucketConfig.largeBufferThresholdBytes;
   if (size >= largeThreshold) {
-    const largeStep = 16 * 1024 * 1024; // 16MB
+    const largeStep = bucketConfig.largeBufferStepBytes;
     const bucket = Math.ceil(size / largeStep) * largeStep;
     if (bucket > maxAllowedSize) {
-      return alignTo(size, 256);
+      return alignTo(size, minBucket);
     }
     return bucket;
   }
@@ -104,7 +112,7 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
 
   // If bucket exceeds device limit, fall back to aligned size
   if (bucket > maxAllowedSize) {
-    return alignTo(size, 256);
+    return alignTo(size, minBucket);
   }
   return bucket;
 }
@@ -129,14 +137,18 @@ export class BufferPool {
   // Configuration
   private config: PoolConfig;
 
+  // Schema-based configuration
+  private schemaConfig: BufferPoolConfigSchema;
+
   // Debug mode flag
   private debugMode: boolean;
 
-  constructor(debugMode: boolean = false) {
+  constructor(debugMode: boolean = false, schemaConfig?: BufferPoolConfigSchema) {
     this.pools = new Map();
     this.activeBuffers = new Set();
     this.bufferMetadata = new Map();
     this.debugMode = debugMode;
+    this.schemaConfig = schemaConfig ?? DEFAULT_BUFFER_POOL_CONFIG;
 
     this.stats = {
       allocations: 0,
@@ -146,11 +158,12 @@ export class BufferPool {
       currentBytesAllocated: 0,
     };
 
+    // Initialize from schema config
     this.config = {
-      maxPoolSizePerBucket: 8,       // Max buffers per size bucket
-      maxTotalPooledBuffers: 64,     // Max total pooled buffers
+      maxPoolSizePerBucket: this.schemaConfig.limits.maxBuffersPerBucket,
+      maxTotalPooledBuffers: this.schemaConfig.limits.maxTotalPooledBuffers,
       enablePooling: true,
-      alignmentBytes: 256,           // WebGPU buffer alignment
+      alignmentBytes: this.schemaConfig.alignment.alignmentBytes,
     };
   }
 
@@ -172,7 +185,7 @@ export class BufferPool {
     // Align size and compute bucket, respecting device limits
     const alignedSize = alignTo(size, this.config.alignmentBytes);
     const maxAllowedBucket = isStorageBuffer ? Math.min(maxSize, maxStorageSize) : maxSize;
-    const bucket = getSizeBucket(alignedSize, maxAllowedBucket);
+    const bucket = getSizeBucket(alignedSize, maxAllowedBucket, this.schemaConfig.bucket);
 
     if (bucket > maxSize) {
       throw new Error(
@@ -484,8 +497,8 @@ export function getBufferPool(): BufferPool {
 /**
  * Create a standalone buffer pool
  */
-export function createBufferPool(debugMode?: boolean): BufferPool {
-  return new BufferPool(debugMode);
+export function createBufferPool(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema): BufferPool {
+  return new BufferPool(debugMode, schemaConfig);
 }
 
 /**

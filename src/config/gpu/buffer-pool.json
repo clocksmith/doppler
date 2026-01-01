@@ -1,0 +1,16 @@
+{
+  "$schema": "../schema/buffer-pool.schema.ts",
+  "$comment": "Default buffer pool configuration for DOPPLER GPU memory management",
+  "bucket": {
+    "minBucketSizeBytes": 256,
+    "largeBufferThresholdBytes": 33554432,
+    "largeBufferStepBytes": 16777216
+  },
+  "limits": {
+    "maxBuffersPerBucket": 8,
+    "maxTotalPooledBuffers": 64
+  },
+  "alignment": {
+    "alignmentBytes": 256
+  }
+}

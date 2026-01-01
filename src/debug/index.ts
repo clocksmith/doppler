@@ -56,6 +56,8 @@
  * @module debug
  */
 
+import { DEFAULT_DEBUG_CONFIG } from '../config/schema/debug.schema.js';
+
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
@@ -193,7 +195,7 @@ let currentLogLevel: LogLevelValue = LOG_LEVELS.INFO;
 let enabledModules = new Set<string>();
 let disabledModules = new Set<string>();
 let logHistory: LogEntry[] = [];
-const MAX_HISTORY = 1000;
+const MAX_HISTORY = DEFAULT_DEBUG_CONFIG.logHistory.maxLogHistoryEntries;
 
 // GPU device reference for tensor inspection
 let gpuDevice: GPUDevice | null = null;

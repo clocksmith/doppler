@@ -21,7 +21,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Results export (JSON) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
 | Results directory | ✅ Implemented | `tests/results/` |
 | Comparison utilities | ✅ Implemented | `tests/benchmark/results-storage.ts` |
-| CLI tool | ✅ Implemented | `tools/doppler-cli.ts` |
+| CLI tool | ✅ Implemented | `cli/index.ts` |
 
 ### Claude Skill
 
@@ -137,7 +137,7 @@ Each benchmark suite runs:
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
 
-**CLI note:** When running via `tools/doppler-cli.ts`, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
+**CLI note:** When running via `cli/index.ts`, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
 
 - `warm`: reuse the same `--profile-dir`
 - `cold`: use a fresh `--profile-dir` (or delete the profile dir)

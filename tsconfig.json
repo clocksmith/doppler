@@ -48,17 +48,17 @@
     // Path aliases
     "baseUrl": ".",
     "paths": {
-      "@doppler/*": ["./*"],
-      "@doppler/types/*": ["./types/*"],
-      "@doppler/inference/*": ["./inference/*"],
-      "@doppler/gpu/*": ["./gpu/*"],
-      "@doppler/storage/*": ["./storage/*"],
-      "@doppler/loader/*": ["./loader/*"],
+      "@doppler/*": ["./src/*"],
+      "@doppler/types/*": ["./src/types/*"],
+      "@doppler/inference/*": ["./src/inference/*"],
+      "@doppler/gpu/*": ["./src/gpu/*"],
+      "@doppler/storage/*": ["./src/storage/*"],
+      "@doppler/loader/*": ["./src/loader/*"],
       "@doppler/tools/*": ["./tools/*"],
-      "@doppler/browser/*": ["./browser/*"],
-      "@doppler/bridge/*": ["./bridge/*"],
-      "@doppler/memory/*": ["./memory/*"],
-      "@doppler/debug/*": ["./debug/*"],
+      "@doppler/browser/*": ["./src/browser/*"],
+      "@doppler/bridge/*": ["./src/bridge/*"],
+      "@doppler/memory/*": ["./src/memory/*"],
+      "@doppler/debug/*": ["./src/debug/*"],
       "@doppler/app/*": ["./app/*"]
     },
 

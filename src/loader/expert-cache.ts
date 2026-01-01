@@ -10,6 +10,8 @@
 import { releaseBuffer } from '../gpu/buffer-pool.js';
 import { log, trace } from '../debug/index.js';
 import type { ExpertWeights } from './weights.js';
+import type { ExpertCacheConfigSchema } from '../config/schema/loading.schema.js';
+import { DEFAULT_EXPERT_CACHE_CONFIG } from '../config/schema/loading.schema.js';
 
 /**
  * Cache entry with access tracking
@@ -45,6 +47,7 @@ export class ExpertCache {
   private maxBytes: number;
   private currentBytes = 0;
   private accessCounter = 0;
+  private config: ExpertCacheConfigSchema;
 
   // Statistics
   private hits = 0;
@@ -59,10 +62,12 @@ export class ExpertCache {
 
   /**
    * Create expert cache
-   * @param maxBytes Maximum cache size in bytes (default: 2GB)
+   * @param maxBytes Maximum cache size in bytes (uses config default if not specified)
+   * @param config Expert cache configuration
    */
-  constructor(maxBytes: number = 2 * 1024 * 1024 * 1024) {
-    this.maxBytes = maxBytes;
+  constructor(maxBytes?: number, config?: ExpertCacheConfigSchema) {
+    this.config = config ?? DEFAULT_EXPERT_CACHE_CONFIG;
+    this.maxBytes = maxBytes ?? this.config.defaultSizeBytes;
   }
 
   /**
@@ -70,32 +75,35 @@ export class ExpertCache {
    * Call this after WebGPU is initialized
    */
   async autoTune(): Promise<void> {
+    const { defaultSizeBytes, maxBufferPercentage } = this.config;
+    const defaultSizeMB = (defaultSizeBytes / 1024 / 1024).toFixed(0);
+
     if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
-      log.info('ExpertCache', 'WebGPU not available, using default 2GB');
+      log.info('ExpertCache', `WebGPU not available, using default ${defaultSizeMB}MB`);
       return;
     }
 
     try {
       const adapter = await (navigator as any).gpu.requestAdapter();
       if (!adapter) {
-        log.info('ExpertCache', 'No GPU adapter, using default 2GB');
+        log.info('ExpertCache', `No GPU adapter, using default ${defaultSizeMB}MB`);
         return;
       }
 
       const limits = adapter.limits;
       const maxBufferSize = limits?.maxBufferSize || 256 * 1024 * 1024;
 
-      // Heuristic: Use up to 2GB or 25% of max buffer size, whichever is smaller
+      // Heuristic: Use up to default size or configured percentage of max buffer size, whichever is smaller
       // This leaves room for model weights, KV cache, and activations
       const autoSize = Math.min(
-        2 * 1024 * 1024 * 1024, // 2GB cap
-        Math.floor(maxBufferSize * 0.25)
+        defaultSizeBytes,
+        Math.floor(maxBufferSize * maxBufferPercentage)
       );
 
       this.maxBytes = autoSize;
       log.info('ExpertCache', `Auto-tuned to ${(this.maxBytes / 1024 / 1024).toFixed(0)}MB (maxBuffer: ${(maxBufferSize / 1024 / 1024).toFixed(0)}MB)`);
     } catch (e) {
-      log.warn('ExpertCache', 'Auto-tune failed, using default 2GB:', e);
+      log.warn('ExpertCache', `Auto-tune failed, using default ${defaultSizeMB}MB:`, e);
     }
   }
 
@@ -369,9 +377,9 @@ let globalCache: ExpertCache | null = null;
 /**
  * Get global expert cache instance
  */
-export function getExpertCache(): ExpertCache {
+export function getExpertCache(config?: ExpertCacheConfigSchema): ExpertCache {
   if (!globalCache) {
-    globalCache = new ExpertCache();
+    globalCache = new ExpertCache(undefined, config);
   }
   return globalCache;
 }
@@ -379,8 +387,8 @@ export function getExpertCache(): ExpertCache {
 /**
  * Create new expert cache with custom size
  */
-export function createExpertCache(maxBytes?: number): ExpertCache {
-  return new ExpertCache(maxBytes);
+export function createExpertCache(maxBytes?: number, config?: ExpertCacheConfigSchema): ExpertCache {
+  return new ExpertCache(maxBytes, config);
 }
 
 export default ExpertCache;
