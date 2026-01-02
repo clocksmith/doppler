@@ -263,6 +263,10 @@ export {
   type LogLevelConfigSchema,
   type TraceCategory,
   type TraceConfigSchema,
+  type PipelineDebugCategory,
+  type PipelineDebugConfigSchema,
+  type ProbeStage,
+  type ProbeConfigSchema,
   type DebugConfigSchema,
 
   // Defaults
@@ -270,6 +274,7 @@ export {
   DEFAULT_LOG_HISTORY_CONFIG,
   DEFAULT_LOG_LEVEL_CONFIG,
   DEFAULT_TRACE_CONFIG,
+  DEFAULT_PIPELINE_DEBUG_CONFIG,
   DEFAULT_DEBUG_CONFIG,
 } from './debug.schema.js';
 

@@ -117,6 +117,91 @@ export const DEFAULT_TRACE_CONFIG: TraceConfigSchema = {
 };
 
 // =============================================================================
+// Pipeline Debug Config (debug-utils)
+// =============================================================================
+
+/** Debug categories for pipeline debug-utils (kernel/layer inspection) */
+export type PipelineDebugCategory =
+  | 'embed'
+  | 'layer'
+  | 'attn'
+  | 'ffn'
+  | 'kv'
+  | 'logits'
+  | 'sample'
+  | 'io'
+  | 'perf'
+  | 'kernel'
+  | 'all';
+
+/**
+ * Pipeline debug configuration.
+ *
+ * Controls debug-utils categories and expensive readback helpers.
+ */
+export interface PipelineDebugConfigSchema {
+  /** Enable pipeline debug (default: false) */
+  enabled: boolean;
+  /** Debug categories to enable (default: none) */
+  categories: PipelineDebugCategory[];
+  /** Filter to specific layer indices (null = all layers) */
+  layers: number[] | null;
+  /** Maximum decode steps to log (0 = unlimited) */
+  maxDecodeSteps: number;
+  /** Warn if maxAbs exceeds this */
+  maxAbsThreshold: number;
+  /** Enable expensive GPU buffer stats */
+  bufferStats: boolean;
+}
+
+/** Default pipeline debug configuration */
+export const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema = {
+  enabled: false,
+  categories: [],
+  layers: null,
+  maxDecodeSteps: 0,
+  maxAbsThreshold: 10000,
+  bufferStats: false,
+};
+
+// =============================================================================
+// Probe Config
+// =============================================================================
+
+/** Pipeline probe stages */
+export type ProbeStage =
+  | 'embed_out'
+  | 'attn_out'
+  | 'post_attn'
+  | 'ffn_in'
+  | 'ffn_out'
+  | 'layer_out'
+  | 'pre_final_norm'
+  | 'final_norm'
+  | 'logits';
+
+/**
+ * Probe configuration for targeted value inspection.
+ *
+ * Probes read specific token/dimension values from GPU buffers at
+ * named pipeline stages.
+ */
+export interface ProbeConfigSchema {
+  /** Optional probe id (included in logs) */
+  id?: string;
+  /** Stage to probe */
+  stage: ProbeStage;
+  /** Restrict to specific layers (null = all layers) */
+  layers: number[] | null;
+  /** Token indices to sample (null = default to token 0) */
+  tokens: number[] | null;
+  /** Dimension indices to sample */
+  dims: number[];
+  /** Override trace category (defaults to stage category) */
+  category?: TraceCategory;
+}
+
+// =============================================================================
 // Complete Debug Config
 // =============================================================================
 
@@ -130,6 +215,8 @@ export interface DebugConfigSchema {
   logHistory: LogHistoryConfigSchema;
   logLevel: LogLevelConfigSchema;
   trace: TraceConfigSchema;
+  pipeline: PipelineDebugConfigSchema;
+  probes: ProbeConfigSchema[];
 }
 
 /** Default debug configuration */
@@ -138,4 +225,6 @@ export const DEFAULT_DEBUG_CONFIG: DebugConfigSchema = {
   logHistory: DEFAULT_LOG_HISTORY_CONFIG,
   logLevel: DEFAULT_LOG_LEVEL_CONFIG,
   trace: DEFAULT_TRACE_CONFIG,
+  pipeline: DEFAULT_PIPELINE_DEBUG_CONFIG,
+  probes: [],
 };
