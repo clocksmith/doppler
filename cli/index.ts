@@ -2011,12 +2011,6 @@ async function main(): Promise<void> {
         debugParams.set('break', '1');
       }
 
-      // Enable detailed logits debugging when trace includes 'logits'
-      const traceCategories = opts.trace || 'all';
-      if (traceCategories === 'all' || traceCategories.includes('logits')) {
-        debugParams.set('debugLogits', '1');
-      }
-
       // Legacy layer/kernel params
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
       if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));

@@ -2,11 +2,7 @@
  * Token sampling from logits with temperature, top-k, top-p, and repetition penalty.
  */
 
-import { log, trace } from '../../debug/index.js';
-
-const DEBUG_SAMPLING = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_SAMPLING?: boolean }).DOPPLER_DEBUG_SAMPLING)
-  : false;
+import { log, trace, isTraceEnabled } from '../../debug/index.js';
 
 export interface SamplingOptions {
   temperature: number;
@@ -210,14 +206,13 @@ export function logitsSanity(
   }
 
   const top5 = getTopK(logits, 5, decode);
-  const top5Str = top5.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ');
-
-  if (DEBUG_SAMPLING) {
+  if (isTraceEnabled('sample')) {
+    const top5Str = top5.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ');
     trace.sample(`${label} logits: min=${min.toFixed(2)}, max=${max.toFixed(2)} | top-5: ${top5Str}`);
+  }
 
-    if (nanCount > 0 || infCount > 0) {
-      log.warn('Sampling', `${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
-    }
+  if (nanCount > 0 || infCount > 0) {
+    log.warn('Sampling', `${label} logits have ${nanCount} NaN, ${infCount} Inf values`);
   }
 
   return { min, max, nanCount, infCount, top5 };

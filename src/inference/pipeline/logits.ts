@@ -16,30 +16,11 @@ import { runMatmul, runRMSNorm } from '../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../gpu/kernels/rmsnorm.js';
 import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
-import { allowReadback } from '../../gpu/perf-guards.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
-import { log, trace } from '../../debug/index.js';
+import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import type { ProbeConfigSchema } from '../../config/schema/index.js';
 import { runProbes } from './probes.js';
-
-// ============================================================================
-// Debug Configuration
-// ============================================================================
-
-/**
- * Enable detailed debug logging with GPU readbacks.
- * Set window.DOPPLER_DEBUG_LOGITS = true to enable.
- * WARNING: Adds 3-4 extra GPU submits per token when enabled!
- */
-function isLogitsDebugEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  return Boolean((window as unknown as { DOPPLER_DEBUG_LOGITS?: boolean }).DOPPLER_DEBUG_LOGITS);
-}
-
-// Use getter functions so flag is checked at runtime (not module load time)
-const LOGITS_DEBUG = { get enabled() { return isLogitsDebugEnabled(); } };
-const ENABLE_DEBUG_READBACKS = { get enabled() { return isLogitsDebugEnabled(); } };
 
 // ============================================================================
 // Types
@@ -193,7 +174,7 @@ export async function computeLogits(
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   debugProbes?: ProbeConfigSchema[] | null
 ): Promise<Float32Array> {
-  if (LOGITS_DEBUG.enabled) {
+  if (isTraceEnabled('logits')) {
     trace.logits(`LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
   }
   const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
@@ -209,7 +190,7 @@ export async function computeLogits(
   const inputIsGPU = hiddenStates instanceof GPUBuffer;
 
   // CPU fallback path
-  if (LOGITS_DEBUG.enabled) {
+  if (isTraceEnabled('logits')) {
     trace.logits(`LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
   }
   if (!device || !useGPU) {
@@ -269,36 +250,6 @@ export async function computeLogits(
     await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, 100);
   }
 
-  // Debug: Always log hidden state BEFORE final norm for last token
-  if (ENABLE_DEBUG_READBACKS.enabled && allowReadback('logits.debug.pre-norm')) {
-    const lastTokenOffset = (numTokens - 1) * hiddenSize * 4;
-    // Read full last-token vector for accurate maxAbs comparisons vs HF.
-    const sampleSize = hiddenSize * 4;
-    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(inputBuffer, lastTokenOffset, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = new Float32Array(staging.getMappedRange().slice(0));
-    staging.unmap();
-    staging.destroy();
-    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-    trace.logits(`BEFORE_FINAL_NORM[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-
-    // Also read FULL final norm weights
-    const wsSize = normWeightBuffer.size;
-    const wstaging = device.createBuffer({ size: wsSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const wenc = device.createCommandEncoder();
-    wenc.copyBufferToBuffer(normWeightBuffer, 0, wstaging, 0, wsSize);
-    device.queue.submit([wenc.finish()]);
-    await wstaging.mapAsync(GPUMapMode.READ);
-    const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
-    wstaging.unmap();
-    wstaging.destroy();
-    const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
-    trace.logits(`FULL_FINAL_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, size=${wdata.length}, first5=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-  }
-
   const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
@@ -312,25 +263,6 @@ export async function computeLogits(
   // Trace final norm output
   if (kernelTrace.enabled) {
     await traceStep('rmsnorm', 'final_norm', -1, normedBuffer, [numTokens, hiddenSize]);
-  }
-
-  // Debug: check post-norm values at LAST token position (used for logits)
-  if (ENABLE_DEBUG_READBACKS.enabled && allowReadback('logits.debug.post-norm')) {
-    // Hidden state for LAST token is at offset (numTokens-1) * hiddenSize
-    const lastTokenOffset = (numTokens - 1) * hiddenSize * 4;  // F32
-    // Read full last-token vector for accurate maxAbs comparisons vs HF.
-    const sampleSize = hiddenSize * 4;
-    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(normedBuffer, lastTokenOffset, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = new Float32Array(staging.getMappedRange().slice(0));
-    staging.unmap();
-    staging.destroy();
-    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-    const nonZero = Array.from(data).filter(x => x !== 0).length;
-    trace.logits(`LAST_TOKEN_HIDDEN[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   // Debug: Check hidden state after final norm
@@ -358,54 +290,8 @@ export async function computeLogits(
   // Debug: Log buffer info for lm_head matmul
   const lmHeadDtype = getBufferDtype(lmHeadBuffer);
   const normedDtype = getBufferDtype(normedBuffer);
-  if (LOGITS_DEBUG.enabled) {
+  if (isTraceEnabled('logits')) {
     trace.logits(`LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
-  }
-
-  // Debug: Sample lm_head weights at start of buffer to verify values look sane
-  // GGUF layout: [hiddenSize, vocabSize] - row k contains all vocab weights for hidden dim k
-  if (ENABLE_DEBUG_READBACKS.enabled && allowReadback('logits.debug.lm-head')) {
-    const bytesPerElem = lmHeadDtype === 'f16' ? 2 : 4;
-    // Sample from the start of the buffer (first hidden dimension's weights)
-    const sampleSize = Math.min(64, lmHeadBuffer.size);
-    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(lmHeadBuffer, 0, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const rawData = staging.getMappedRange().slice(0);
-
-    // Convert F16 to F32 for display
-    let values: number[];
-    if (lmHeadDtype === 'f16') {
-      const u16 = new Uint16Array(rawData);
-      const f32 = new Float32Array(u16.length);
-      for (let i = 0; i < u16.length; i++) {
-        const h = u16[i];
-        const sign = (h & 0x8000) >> 15;
-        const exp = (h & 0x7C00) >> 10;
-        const mant = h & 0x03FF;
-        let f: number;
-        if (exp === 0) {
-          f = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
-        } else if (exp === 31) {
-          f = mant === 0 ? Infinity : NaN;
-        } else {
-          f = Math.pow(2, exp - 15) * (1 + mant / 1024);
-        }
-        f32[i] = sign ? -f : f;
-      }
-      values = Array.from(f32);
-    } else {
-      values = Array.from(new Float32Array(rawData));
-    }
-
-    staging.unmap();
-    staging.destroy();
-
-    const maxAbs = Math.max(...values.map(x => Math.abs(x)));
-    const nonZero = values.filter(x => x !== 0).length;
-    trace.logits(`LM_HEAD_SAMPLE: dtype=${lmHeadDtype}, bufSize=${lmHeadBuffer.size}, maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${values.length}, first8=[${values.slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true

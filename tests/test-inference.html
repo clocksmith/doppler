@@ -51,12 +51,6 @@
       setRuntimeConfig(runtimeOverrides.runtimeConfig);
     }
 
-    // Enable detailed logits debugging if requested via URL
-    if (params.get('debugLogits') === '1') {
-      window.DOPPLER_DEBUG_LOGITS = true;
-      console.log('[Debug] DOPPLER_DEBUG_LOGITS enabled - full GPU readbacks active');
-    }
-
     const BASE_URL = 'http://localhost:8080/doppler/models';
 
     // Test state for Playwright
