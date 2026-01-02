@@ -1566,8 +1566,8 @@ export class InferencePipeline {
       const temperature = opts.temperature ?? samplingDefaults.temperature;
       const topK = opts.topK ?? samplingDefaults.topK;
       const sampledTokenBuffer = temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId })
-        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK, padTokenId });
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
+        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK, padTokenId, logitSoftcap });
       recorder.trackTemporaryBuffer(logitsBuffer);
 
       // Copy sampled token to tokenBuffers[i+1] for next iteration
