@@ -255,21 +255,37 @@ async function main(): Promise<void> {
       // Note: /doppler/ prefix was already stripped above, so pathname is like /dist/config/...
       if ((pathname.endsWith('.js') || pathname.endsWith('.json')) && !pathname.includes('node_modules')) {
         const jsPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-        // Try dist/src/ first (where tsc outputs src/** files), then dist/
-        const distSrcPath = join(dopplerDir, 'dist', 'src', jsPath.replace(/^dist\//, ''));
-        const distPath = join(dopplerDir, 'dist', jsPath);
-        // Try dist/src/ first for src/** paths
-        try {
-          const distSrcStats = await stat(distSrcPath);
-          return serveFile(distSrcPath, distSrcStats, req, res);
-        } catch {
-          // Try dist/ directly
+        const pathWithoutDist = jsPath.replace(/^dist\//, '');
+        // Try multiple locations in order:
+        // 1. dist/src/<path> - where tsc outputs src/** files
+        // 2. dist/<path> - for test/benchmark outputs
+        // 3. src/<path> - for raw JS files not processed by tsc (kernels, platforms)
+        const candidates = [
+          join(dopplerDir, 'dist', 'src', pathWithoutDist),
+          join(dopplerDir, 'dist', jsPath),
+          join(dopplerDir, 'src', pathWithoutDist),
+        ];
+        for (const candidate of candidates) {
           try {
-            const distStats = await stat(distPath);
-            return serveFile(distPath, distStats, req, res);
+            const stats = await stat(candidate);
+            return serveFile(candidate, stats, req, res);
           } catch {
-            // Fall through to normal resolution (for vendor JS, etc.)
+            // Try next candidate
           }
+        }
+        // Fall through to normal resolution (for vendor JS, etc.)
+      }
+
+      // Serve WGSL shader files from src/gpu/kernels/
+      // Requested at /gpu/kernels/*.wgsl but files are in src/gpu/kernels/
+      if (pathname.endsWith('.wgsl')) {
+        const wgslPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        const srcPath = join(dopplerDir, 'src', wgslPath);
+        try {
+          const stats = await stat(srcPath);
+          return serveFile(srcPath, stats, req, res);
+        } catch {
+          // Fall through to normal resolution
         }
       }
 

@@ -377,6 +377,7 @@ export class InferencePipeline {
       {
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
+        baseUrl: this.baseUrl ?? undefined,
         onProgress: (info: { stage: string; progress: number; message?: string; layer?: number; total?: number; shard?: number; totalShards?: number }) => {
           // Shard and layer progress are logged by the loader with source info (RAM/OPFS/network)
           // Only log other stages here to avoid duplicate logs
@@ -410,7 +411,7 @@ export class InferencePipeline {
     this.embeddingTranspose = result.embeddingTranspose;
     this.layerRouterWeights = result.layerRouterWeights;
 
-    // Store DopplerLoader reference for expert loading
+    // Store DopplerLoader reference for expert loading (singleton already configured in loadWeights)
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
     // Initialize MoE router with weights

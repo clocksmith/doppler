@@ -16,6 +16,7 @@
 
 import { readFile } from 'fs/promises';
 import { resolve, join } from 'path';
+import { log } from './index.js';
 
 interface DiagnosticResult {
   modelPath: string;
@@ -66,7 +67,7 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
       result.issues.push(`Warning: Q4K layout is "${q4kLayout}" (expected "column_wise" for best performance)`);
       result.recommendations.push('Re-convert model with --q4k-layout column_wise for 14% speedup');
     } else {
-      console.log('OK Q4K layout: column_wise (optimal)');
+      log.info('KernelDiag', 'OK Q4K layout: column_wise (optimal)');
     }
 
     // Check kernel hints
@@ -81,7 +82,7 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
       result.recommendations.push('  --f16-matmul gemv_subgroup --attention-prefill tiled_large \\');
       result.recommendations.push('  --attention-decode streaming --tuned-device "Apple M3"');
     } else {
-      console.log('OK Kernel hints present');
+      log.info('KernelDiag', 'OK Kernel hints present');
 
       // Verify each hint
       const checks = [
@@ -99,13 +100,13 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
         } else if (value !== check.expected) {
           result.issues.push(`Warning: kernelHints.${check.field} = "${value}" (expected "${check.expected}" for ${check.reason})`);
         } else {
-          console.log(`OK ${check.field}: ${value} - ${check.reason}`);
+          log.info('KernelDiag', `OK ${check.field}: ${value} - ${check.reason}`);
         }
       }
 
       // Check benchmark result
       if (kernelHints.benchmarkTokPerSec) {
-        console.log(`Benchmark: Documented performance: ${kernelHints.benchmarkTokPerSec} tok/s`);
+        log.info('KernelDiag', `Benchmark: Documented performance: ${kernelHints.benchmarkTokPerSec} tok/s`);
         if (kernelHints.benchmarkTokPerSec < 7) {
           result.issues.push(`Warning: Documented performance (${kernelHints.benchmarkTokPerSec} tok/s) is below expected (8 tok/s)`);
         }
@@ -125,65 +126,58 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
 }
 
 async function printDiagnostics(result: DiagnosticResult) {
-  console.log('\n' + '='.repeat(70));
-  console.log('DOPPLER Kernel Diagnostics');
-  console.log('='.repeat(70));
-  console.log(`Model: ${result.modelPath}`);
-  console.log(`Manifest: ${result.manifestValid ? 'OK Valid' : 'ERROR Invalid'}`);
-  console.log('');
+  log.info('KernelDiag', '='.repeat(70));
+  log.info('KernelDiag', 'DOPPLER Kernel Diagnostics');
+  log.info('KernelDiag', '='.repeat(70));
+  log.info('KernelDiag', `Model: ${result.modelPath}`);
+  log.info('KernelDiag', `Manifest: ${result.manifestValid ? 'OK Valid' : 'ERROR Invalid'}`);
 
   if (result.q4kLayout) {
     const layoutStatus = result.q4kLayout === 'column_wise' ? 'OK' : 'WARNING';
-    console.log(`Q4K Layout: ${layoutStatus} ${result.q4kLayout}`);
+    log.info('KernelDiag', `Q4K Layout: ${layoutStatus} ${result.q4kLayout}`);
   }
 
   if (result.hasKernelHints) {
-    console.log('Kernel Hints: OK Present\n');
+    log.info('KernelDiag', 'Kernel Hints: OK Present');
   } else {
-    console.log('Kernel Hints: ERROR Missing\n');
+    log.warn('KernelDiag', 'Kernel Hints: ERROR Missing');
   }
 
   if (result.issues.length > 0) {
-    console.log('Issues Found:');
-    result.issues.forEach(issue => console.log('  ' + issue));
-    console.log('');
+    log.warn('KernelDiag', 'Issues Found:');
+    result.issues.forEach(issue => log.warn('KernelDiag', `  ${issue}`));
   }
 
   if (result.recommendations.length > 0) {
-    console.log('Recommendations:');
-    result.recommendations.forEach(rec => console.log('  ' + rec));
-    console.log('');
+    log.info('KernelDiag', 'Recommendations:');
+    result.recommendations.forEach(rec => log.info('KernelDiag', `  ${rec}`));
   }
 
   if (result.issues.length === 0 && result.hasKernelHints) {
-    console.log('Model is optimally configured!');
-    console.log('');
-    console.log('Expected Performance:');
-    console.log('  - Gemma 3 1B: ~8 tok/s (Apple M3)');
-    console.log('  - Column-wise layout: +14% vs flat');
-    console.log('  - Dequant F16 path: 2.3x faster than fused Q4K');
-    console.log('');
-    console.log('Run benchmark:');
-    console.log(`  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
+    log.info('KernelDiag', 'Model is optimally configured!');
+    log.info('KernelDiag', 'Expected Performance:');
+    log.info('KernelDiag', '  - Gemma 3 1B: ~8 tok/s (Apple M3)');
+    log.info('KernelDiag', '  - Column-wise layout: +14% vs flat');
+    log.info('KernelDiag', '  - Dequant F16 path: 2.3x faster than fused Q4K');
+    log.info('KernelDiag', 'Run benchmark:');
+    log.info('KernelDiag', `  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
   }
 
-  console.log('='.repeat(70));
+  log.info('KernelDiag', '='.repeat(70));
 }
 
 async function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    console.log('Usage: npx tsx debug/diagnose-kernels.ts <model-path>');
-    console.log('');
-    console.log('Example:');
-    console.log('  npx tsx debug/diagnose-kernels.ts models/gemma-1b-q4-col');
-    console.log('');
-    console.log('Checks:');
-    console.log('  - Manifest validity');
-    console.log('  - Q4K layout configuration (should be column_wise)');
-    console.log('  - Kernel hints presence and correctness');
-    console.log('  - Expected vs actual configuration');
+    log.info('KernelDiag', 'Usage: npx tsx debug/diagnose-kernels.ts <model-path>');
+    log.info('KernelDiag', 'Example:');
+    log.info('KernelDiag', '  npx tsx debug/diagnose-kernels.ts models/gemma-1b-q4-col');
+    log.info('KernelDiag', 'Checks:');
+    log.info('KernelDiag', '  - Manifest validity');
+    log.info('KernelDiag', '  - Q4K layout configuration (should be column_wise)');
+    log.info('KernelDiag', '  - Kernel hints presence and correctness');
+    log.info('KernelDiag', '  - Expected vs actual configuration');
     process.exit(0);
   }
 
@@ -196,6 +190,6 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error('Fatal error:', error);
+  log.error('KernelDiag', `Fatal error: ${(error as Error).message}`);
   process.exit(1);
 });

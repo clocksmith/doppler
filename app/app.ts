@@ -1844,7 +1844,7 @@ export class DopplerDemo {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   const app = new DopplerDemo();
-  app.init().catch(console.error);
+  app.init().catch((err) => log.error('App', 'Initialization failed', err));
 
   // Expose for debugging
   (window as Window & { dopplerDemo?: DopplerDemo }).dopplerDemo = app;

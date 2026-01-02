@@ -459,6 +459,8 @@ export interface LoadWeightsOptions {
    * happens during download. Enable for extra safety when loading from untrusted sources.
    */
   verifyHashes?: boolean;
+  /** Base URL for HTTP-based loading (e.g., test harnesses) */
+  baseUrl?: string;
 }
 
 /**
@@ -474,10 +476,19 @@ export async function loadWeights(
   modelConfig: ParsedModelConfig,
   options: LoadWeightsOptions = {}
 ): Promise<WeightLoadResult> {
-  const { storageContext, onProgress, verifyHashes = false, loadingConfig } = options;
+  const { storageContext, onProgress, verifyHashes = false, loadingConfig, baseUrl } = options;
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
   await dopplerLoader.init();
+
+  const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
+  if (baseUrl && tensorsFile) {
+    const base = baseUrl.replace(/\/$/, '');
+    const filename = tensorsFile.replace(/^\/+/, '');
+    dopplerLoader.setTensorsJsonUrl(`${base}/${filename}`);
+  } else {
+    dopplerLoader.setTensorsJsonUrl(null);
+  }
 
   // Configure custom shard loader if provided (Native Bridge)
   if (storageContext?.loadShard) {

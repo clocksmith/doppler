@@ -177,6 +177,7 @@ export class DopplerLoader {
   private _normOffsetDebugLogged = false;
   private _memoryLogInterval: ReturnType<typeof setInterval> | null = null;
   private _loadStartTime = 0;
+  private _tensorsJsonUrl: string | null = null;
 
   constructor(loadingConfig?: LoadingConfigSchema) {
     this.loadingConfig = loadingConfig ?? getRuntimeConfig().loading;
@@ -273,6 +274,13 @@ export class DopplerLoader {
    */
   setCustomShardLoader(loadShardFn: CustomShardLoader, options: CustomShardLoaderOptions = {}): void {
     this.shardCache.setCustomLoader(loadShardFn, options.verify !== false);
+  }
+
+  /**
+   * Set URL for loading tensors.json via HTTP (for test harnesses with custom shard loaders)
+   */
+  setTensorsJsonUrl(url: string | null): void {
+    this._tensorsJsonUrl = url;
   }
 
   /**
@@ -688,26 +696,43 @@ export class DopplerLoader {
     if (this.manifest?.tensorsFile) {
       debugTrace.loader(`Loading external tensor map: ${this.manifest.tensorsFile}`);
 
-      // Try to load tensors.json (only from OPFS path, not custom loader)
+      let tensorsJsonRaw: string | null = null;
+
+      // Try OPFS first (for downloaded models)
       if (!this.shardCache.hasCustomLoader) {
-        const tensorsJson = await loadTensorsFromOPFS();
-        if (tensorsJson) {
-          const tensorMap = parseTensorMap(tensorsJson);
-          for (const [name, info] of Object.entries(tensorMap)) {
-            this.tensorLocations.set(name, {
-              shardIndex: info.shard,
-              offset: info.offset,
-              size: info.size,
-              shape: info.shape,
-              dtype: info.dtype,
-              spans: info.spans,
-              layout: info.layout,
-              originalShape: info.originalShape,
-            });
+        tensorsJsonRaw = await loadTensorsFromOPFS();
+      }
+
+      // Try HTTP if we have a tensors URL set (for HTTP-based testing)
+      if (!tensorsJsonRaw && this._tensorsJsonUrl) {
+        try {
+          const resp = await fetch(this._tensorsJsonUrl);
+          if (resp.ok) {
+            tensorsJsonRaw = await resp.text();
+            debugTrace.loader(`Loaded tensors.json via HTTP: ${this._tensorsJsonUrl}`);
           }
-          debugTrace.loader(`Loaded ${this.tensorLocations.size} tensors from tensors.json`);
-          return;
+        } catch (e) {
+          log.warn('Loader', `Failed to load tensors.json from ${this._tensorsJsonUrl}: ${(e as Error).message}`);
         }
+      }
+
+      if (tensorsJsonRaw) {
+        // Parse the tensor map (returns TensorMap with 'shard' property from rdrr format)
+        const tensorsJson = parseTensorMap(tensorsJsonRaw);
+        for (const [name, info] of Object.entries(tensorsJson)) {
+          this.tensorLocations.set(name, {
+            shardIndex: info.shard,  // Map 'shard' to 'shardIndex'
+            offset: info.offset,
+            size: info.size,
+            shape: info.shape,
+            dtype: info.dtype,
+            spans: info.spans,
+            layout: info.layout,
+            originalShape: info.originalShape,
+          });
+        }
+        debugTrace.loader(`Loaded ${this.tensorLocations.size} tensors from tensors.json`);
+        return;
       }
     }
 

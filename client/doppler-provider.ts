@@ -21,6 +21,7 @@ import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from '..
 import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from '../src/bridge/index.js';
 import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from '../src/adapters/lora-loader.js';
 import { getDopplerLoader } from '../src/loader/doppler-loader.js';
+import { log } from '../src/debug/index.js';
 
 export const DOPPLER_PROVIDER_VERSION = '0.1.0';
 
@@ -297,11 +298,11 @@ async function initDoppler(): Promise<boolean> {
   }
 
   try {
-    console.log('[Doppler] Initializing...');
+    log.info('DopplerProvider', 'Initializing...');
 
     // Check WebGPU availability
     if (!navigator.gpu) {
-      console.warn('[Doppler] WebGPU not available');
+      log.warn('DopplerProvider', 'WebGPU not available');
       DopplerCapabilities.initialized = true;
       return false;
     }
@@ -314,7 +315,7 @@ async function initDoppler(): Promise<boolean> {
     // Initialize WebGPU device
     const device = await initDevice();
     if (!device) {
-      console.warn('[Doppler] Failed to initialize WebGPU device');
+      log.warn('DopplerProvider', 'Failed to initialize WebGPU device');
       DopplerCapabilities.initialized = true;
       return false;
     }
@@ -352,10 +353,10 @@ async function initDoppler(): Promise<boolean> {
     DopplerCapabilities.available = true;
     DopplerCapabilities.initialized = true;
 
-    console.log('[Doppler] Initialized successfully:', DopplerCapabilities);
+    log.info('DopplerProvider', 'Initialized successfully', DopplerCapabilities);
     return true;
   } catch (err) {
-    console.error('[Doppler] Init failed:', err);
+    log.error('DopplerProvider', 'Init failed', err);
     DopplerCapabilities.initialized = true;
     DopplerCapabilities.available = false;
     return false;
@@ -380,14 +381,14 @@ async function loadModel(
   }
 
   try {
-    console.log(`[Doppler] Loading model: ${modelId}`);
+    log.info('DopplerProvider', `Loading model: ${modelId}`);
 
     let manifest: RDRRManifest | null = null;
     let useBridge = false;
 
     // Check if we should use Native Bridge for local path access
     if (localPath && isBridgeAvailable()) {
-      console.log(`[Doppler] Using Native Bridge for local path: ${localPath}`);
+      log.info('DopplerProvider', `Using Native Bridge for local path: ${localPath}`);
       useBridge = true;
 
       try {
@@ -405,14 +406,14 @@ async function loadModel(
         const manifestJson = new TextDecoder().decode(manifestBytes);
         manifest = parseManifest(manifestJson);
 
-        console.log(`[Doppler] Loaded manifest via bridge: ${manifest.modelId}`);
+        log.info('DopplerProvider', `Loaded manifest via bridge: ${manifest.modelId}`);
         if (onProgress) onProgress({ stage: 'manifest', message: 'Manifest loaded via bridge' });
 
         // Store bridge client and local path for shard access during inference
         DopplerCapabilities.bridgeClient = bridgeClient;
         DopplerCapabilities.localPath = localPath;
       } catch (err) {
-        console.error('[Doppler] Failed to load via bridge:', err);
+        log.error('DopplerProvider', 'Failed to load via bridge', err);
         throw new Error(`Native Bridge error: ${(err as Error).message}`);
       }
     } else {
@@ -438,7 +439,7 @@ async function loadModel(
       }
 
       if (!integrity.valid && modelUrl) {
-        console.log(`[Doppler] Model not cached, downloading from ${modelUrl}`);
+        log.info('DopplerProvider', `Model not cached, downloading from ${modelUrl}`);
         const success = await downloadModel(modelUrl, onProgress as ((progress: unknown) => void) | undefined);
         if (!success) {
           throw new Error('Failed to download model');
@@ -470,7 +471,7 @@ async function loadModel(
 
       const limits = getDeviceLimits();
       if (limits?.maxBufferSize && estimate.totalBytes > limits.maxBufferSize * 0.8) {
-        console.warn('[Doppler] Estimated GPU usage near device limits');
+        log.warn('DopplerProvider', 'Estimated GPU usage near device limits');
       }
       onProgress?.({
         stage: 'estimate',
@@ -478,7 +479,7 @@ async function loadModel(
         estimate,
       });
     } catch (e) {
-      console.warn('[Doppler] Failed to estimate GPU memory:', (e as Error).message);
+      log.warn('DopplerProvider', 'Failed to estimate GPU memory', e);
     }
 
     // Check model size against capabilities
@@ -490,9 +491,7 @@ async function loadModel(
 
     // Check if MoE required for dGPU
     if (!DopplerCapabilities.IS_UNIFIED_MEMORY && !manifest.moeConfig) {
-      console.warn(
-        '[Doppler] Dense model on discrete GPU - performance will be limited'
-      );
+      log.warn('DopplerProvider', 'Dense model on discrete GPU - performance will be limited');
     }
 
     // Prewarm kernels once per session
@@ -518,7 +517,7 @@ async function loadModel(
             headDim: tuneConfig.headDim,
           },
         }).catch((e: Error) => {
-          console.warn('[Doppler] Kernel auto-tune failed:', e.message);
+          log.warn('DopplerProvider', 'Kernel auto-tune failed', e);
         });
       }, 0);
     }
@@ -542,7 +541,7 @@ async function loadModel(
         const shardInfo = manifestRef.shards[idx];
         if (!shardInfo) throw new Error(`Invalid shard index: ${idx}`);
         const shardPath = `${basePath}${shardInfo.filename}`;
-        console.log(`[Doppler] Loading shard ${idx} via bridge: ${shardPath}`);
+        log.info('DopplerProvider', `Loading shard ${idx} via bridge: ${shardPath}`);
         const data = await bridgeClient.read(shardPath, 0, shardInfo.size);
         return data;
       };
@@ -583,10 +582,10 @@ async function loadModel(
 
     currentModelId = modelId;
     DopplerCapabilities.currentModelId = modelId;
-    console.log(`[Doppler] Model loaded: ${modelId}`);
+    log.info('DopplerProvider', `Model loaded: ${modelId}`);
     return true;
   } catch (err) {
-    console.error('[Doppler] Failed to load model:', err);
+    log.error('DopplerProvider', 'Failed to load model', err);
     throw err;
   }
 }
@@ -603,7 +602,7 @@ async function unloadModel(): Promise<void> {
   }
   currentModelId = null;
   DopplerCapabilities.currentModelId = null;
-  console.log('[Doppler] Model unloaded');
+  log.info('DopplerProvider', 'Model unloaded');
 }
 
 /**
@@ -632,7 +631,7 @@ async function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): P
   }
 
   pipeline.setLoRAAdapter(lora);
-  console.log(`[Doppler] LoRA adapter loaded: ${lora.name}`);
+  log.info('DopplerProvider', `LoRA adapter loaded: ${lora.name}`);
 }
 
 /**
@@ -641,7 +640,7 @@ async function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): P
 async function unloadLoRAAdapter(): Promise<void> {
   if (!pipeline) return;
   pipeline.setLoRAAdapter(null);
-  console.log('[Doppler] LoRA adapter unloaded');
+  log.info('DopplerProvider', 'LoRA adapter unloaded');
 }
 
 /**
@@ -820,7 +819,7 @@ async function dopplerChat(messages: ChatMessage[], options: GenerateOptions = {
       const encoded = pipeline.tokenizer.encode(prompt);
       promptTokens = encoded.length;
     } catch (e) {
-      console.warn('[Doppler] Failed to count prompt tokens:', (e as Error).message);
+      log.warn('DopplerProvider', 'Failed to count prompt tokens', e);
     }
   }
 
@@ -870,7 +869,7 @@ async function destroyDoppler(): Promise<void> {
 
   DopplerCapabilities.initialized = false;
   DopplerCapabilities.available = false;
-  console.log('[Doppler] Destroyed');
+  log.info('DopplerProvider', 'Destroyed');
 }
 
 /**

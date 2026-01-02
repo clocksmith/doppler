@@ -1242,13 +1242,7 @@ export default {
 };
 
 // ============================================================================
-// Re-exports from debug utilities
+// Node-only debug utilities
 // ============================================================================
-
-// Tensor debug utilities (SafeTensors/RDRR comparison)
-export {
-  bf16ToF32,
-  readSafetensorsTensor,
-  readRDRRTensor,
-  checkTensorStats,
-} from './tensor.js';
+// Tensor debug utilities (SafeTensors/RDRR comparison) are Node-only.
+// Import directly from './tensor.js' when needed in Node.js scripts.
