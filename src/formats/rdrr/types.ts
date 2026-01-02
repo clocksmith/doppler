@@ -14,6 +14,7 @@ import {
   type ModelType as SchemaModelType,
   type ComponentGroupType as SchemaComponentGroupType,
   type WeightLayout as SchemaWeightLayout,
+  type QuantizationInfoSchema,
   type ShardSchema,
   type ComponentGroupSchema,
   type MoEConfigSchema,
@@ -32,6 +33,7 @@ export type HashAlgorithm = SchemaHashAlgorithm;
 export type ModelType = SchemaModelType;
 export type ComponentGroupType = SchemaComponentGroupType;
 export type WeightLayout = SchemaWeightLayout;
+export type QuantizationInfo = QuantizationInfoSchema;
 
 // =============================================================================
 // Kernel Types
@@ -122,6 +124,7 @@ export interface RDRRManifest {
   modelId: string;
   modelType: ModelType;
   quantization: string;
+  quantizationInfo?: QuantizationInfo;
   hashAlgorithm?: HashAlgorithm;
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
@@ -161,6 +164,7 @@ export interface CreateManifestOptions {
   modelId: string;
   modelType: ModelType;
   quantization: string;
+  quantizationInfo?: QuantizationInfo;
   hashAlgorithm?: HashAlgorithm;
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;

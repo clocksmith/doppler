@@ -63,6 +63,7 @@ export function createManifest(options: CreateManifestOptions): RDRRManifest {
     modelId: options.modelId,
     modelType: options.modelType,
     quantization: options.quantization,
+    quantizationInfo: options.quantizationInfo,
     hashAlgorithm: options.hashAlgorithm,
     architecture: options.architecture,
     groups: options.groups,

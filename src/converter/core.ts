@@ -26,6 +26,7 @@ import {
   type TensorSpanSchema,
   type TensorSchema,
   type TokenizerSchema,
+  type QuantizationInfoSchema,
   type ManifestSchema,
   ConversionStage as SchemaConversionStage,
 } from '../config/schema/index.js';
@@ -102,6 +103,7 @@ export interface RDRRManifest {
   modelId: string;
   modelType: string;
   quantization: string;
+  quantizationInfo?: QuantizationInfoSchema;
   architecture: ArchitectureConfig;
   shards: ShardInfo[];
   tensors: Record<string, TensorLocation>;

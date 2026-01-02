@@ -575,11 +575,6 @@ export async function processLayerGPU(
   });
 
   // 2. Handle residual connection based on architecture
-  // Debug: log architecture path for layer 0, 2, and 17
-  if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
-    trace.attn(layerIdx, `ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}, residualFused=${residualFused}`);
-  }
-
   let postAttn: GPUBuffer;
   if (residualFused) {
     // Fused path: residual was already added in attention o_proj
@@ -606,28 +601,6 @@ export async function processLayerGPU(
   } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     // Gemma 3 path: FUSED norm attention output + residual add (1 kernel instead of 2)
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
-    if (context.debug && layerIdx === 0) {
-      trace.attn(0, `RESIDUAL_DEBUG: inputBuffer.size=${inputBuffer.size}, attnOutput.size=${attnOutput.size}, hasRecorder=${!!recorder}`);
-      // Debug: verify inputBuffer (residual) has the expected embedding values
-      if (inputBuffer instanceof GPUBuffer && allowReadback(`layer.residual-check.${layerIdx}`)) {
-        try {
-          const device = getDevice();
-          const sampleSize = Math.min(128, inputBuffer.size);
-          const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-          const enc = device.createCommandEncoder();
-          enc.copyBufferToBuffer(inputBuffer, 0, staging, 0, sampleSize);
-          device.queue.submit([enc.finish()]);
-          await staging.mapAsync(GPUMapMode.READ);
-          const data = new Float32Array(staging.getMappedRange().slice(0));
-          staging.unmap();
-          staging.destroy();
-          const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-          trace.attn(0, `INPUT_RESIDUAL: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-        } catch (e) {
-          trace.attn(0, `INPUT_RESIDUAL error: ${e}`);
-        }
-      }
-    }
     postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
@@ -658,28 +631,6 @@ export async function processLayerGPU(
     await dumpTokenVector(postAttn, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
-  // Debug: log postAttn for layer 0
-  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
-  if (context.debug && layerIdx === 0 && postAttn instanceof GPUBuffer && !recorder) {
-    if (allowReadback('layer.post-attn.0')) {
-      try {
-        await device.queue.onSubmittedWorkDone();
-        const sampleSize = Math.min(128, postAttn.size);
-        const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(postAttn, 0, staging, 0, sampleSize);
-        device.queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = new Float32Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
-        const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-        trace.attn(0, `POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-      } catch (e) {
-        trace.attn(0, `POST_ATTN error: ${e}`);
-      }
-    }
-  }
   await runProbes('post_attn', postAttn, {
     layerIdx,
     numTokens,
@@ -708,7 +659,6 @@ async function processFFNWithSandwichNorm(
   layerWeights: LayerWeights | undefined,
   sandwichNorm: SandwichNormInfo
 ): Promise<GPUBuffer> {
-  const device = getDevice();
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
 
@@ -718,59 +668,10 @@ async function processFFNWithSandwichNorm(
     : null;
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
-  // Debug helper for layers 0, 2, 5, and 17 (only runs when context.debug is true)
-  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
-  const debugLayer = async (buf: GPUBuffer, label: string) => {
-    if (!context.debug || (layerIdx !== 0 && layerIdx !== 2 && layerIdx !== 5 && layerIdx !== 17) || !device || recorder) return;
-    if (!allowReadback(`layer.ffn.${label}.${layerIdx}`)) return;
-    try {
-      // Force GPU sync before reading
-      await device.queue.onSubmittedWorkDone();
-
-      const sampleSize = Math.min(128, buf.size);
-      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-      const enc = device.createCommandEncoder();
-      enc.copyBufferToBuffer(buf, 0, staging, 0, sampleSize);
-      device.queue.submit([enc.finish()]);
-      await staging.mapAsync(GPUMapMode.READ);
-      const data = new Float32Array(staging.getMappedRange().slice(0));
-      staging.unmap();
-      staging.destroy();
-      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-      const nonZero = Array.from(data).filter(x => x !== 0).length;
-      trace.ffn(layerIdx, `${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
-    } catch (e) {
-      trace.ffn(layerIdx, `${label} error: ${e}`);
-    }
-  };
-
   // 1. Pre-FFN norm (applied to residual stream before FFN)
   let ffnInput = postAttn;
   if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
-
-    // Debug: check norm weight values for layer 0, 2, 5, and 17
-    if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 5 || layerIdx === 17) && device) {
-      if (allowReadback(`layer.pre-ffn-norm.${layerIdx}`)) {
-        try {
-          const ws = Math.min(128, normWeightBuf.size);
-          const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-          const wenc = device.createCommandEncoder();
-          wenc.copyBufferToBuffer(normWeightBuf, 0, wstaging, 0, ws);
-          device.queue.submit([wenc.finish()]);
-          await wstaging.mapAsync(GPUMapMode.READ);
-          const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
-          wstaging.unmap();
-          wstaging.destroy();
-          const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
-          const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
-          trace.ffn(layerIdx, `PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-        } catch (e) { trace.ffn(layerIdx, `PRE_FFN_NORM_WEIGHTS error: ${e}`); }
-      }
-    }
-
-    // Debug: check input values for layers 0 and 17
-    await debugLayer(postAttn, 'PRE_NORM_INPUT');
 
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
@@ -779,7 +680,6 @@ async function processFFNWithSandwichNorm(
       layerIdx,
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
-    await debugLayer(ffnInput, 'PRE_NORM_OUTPUT');
   }
 
   await runProbes('ffn_in', ffnInput, {
@@ -834,7 +734,6 @@ async function processFFNWithSandwichNorm(
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
-  await debugLayer(ffnOutput, 'FFN_OUT');
   await runProbes('ffn_out', ffnOutput, {
     layerIdx,
     numTokens,
@@ -902,7 +801,6 @@ async function processFFNWithSandwichNorm(
     }
   }
 
-  await debugLayer(output, 'FINAL');
   await runProbes('layer_out', output, {
     layerIdx,
     numTokens,
@@ -915,52 +813,6 @@ async function processFFNWithSandwichNorm(
     await dumpTokenVector(output, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
-  // Debug: Log output magnitude for EVERY layer to track growth
-  if (context.debug && device && !recorder) {
-    if (allowReadback(`layer.output.${layerIdx}`)) {
-      try {
-        // Only read valid elements (numTokens * hiddenSize), not full pooled buffer
-        const validSize = numTokens * hiddenSize * 4;
-        const staging = device.createBuffer({ size: validSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(output, 0, staging, 0, validSize);
-        device.queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = new Float32Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
-        // Find max value and its position within valid range
-        let maxAbs = 0;
-        let maxIdx = -1;
-        for (let i = 0; i < data.length; i++) {
-          const abs = Math.abs(data[i]);
-          if (abs > maxAbs) { maxAbs = abs; maxIdx = i; }
-        }
-        // Calculate which token this is
-        const tokenIdx = Math.floor(maxIdx / hiddenSize);
-        const dimIdx = maxIdx % hiddenSize;
-        trace.ffn(layerIdx, `LAYER_OUT: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
-
-        // Dump per-token maxAbs at key layers to compare with HuggingFace
-        if ((layerIdx === 0 || layerIdx === 12 || layerIdx === 25) && numTokens > 1) {
-          const perTokenMax: number[] = [];
-          const lastTokenFirst5: number[] = [];
-          for (let t = 0; t < numTokens; t++) {
-            let tMax = 0;
-            for (let d = 0; d < hiddenSize; d++) {
-              const val = data[t * hiddenSize + d];
-              const abs = Math.abs(val);
-              if (abs > tMax) tMax = abs;
-              if (t === numTokens - 1 && d < 5) lastTokenFirst5.push(val);
-            }
-            perTokenMax.push(tMax);
-          }
-          trace.ffn(layerIdx, `PER_TOKEN_MAXABS: [${perTokenMax.map(v => v.toFixed(2)).join(', ')}]`);
-          trace.ffn(layerIdx, `LAST_TOKEN_FIRST5: [${lastTokenFirst5.map(v => v.toFixed(4)).join(', ')}]`);
-        }
-      } catch (e) { log.error('Layer', `[LAYER_OUT] Error: ${e}`); }
-    }
-  }
   // Track postAttn for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
     recorder.trackTemporaryBuffer(postAttn);

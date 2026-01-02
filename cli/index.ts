@@ -152,7 +152,7 @@ function parseArgs(argv: string[]): CLIOptions {
   const opts: CLIOptions = {
     command: 'test',
     suite: 'quick',
-    model: 'gemma-3-1b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
+    model: 'gemma-2-2b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     config: null,           // Config preset or path
     runtimeConfig: null,    // Loaded runtime config (merged with defaults)
@@ -528,7 +528,7 @@ DEBUG - Interactive Debugging (with kernel trace)
 ═══════════════════════════════════════════════════════════════
 
 Common Options:
-  --model, -m <name>     Model (default: gemma-3-1b-it-q4)
+  --model, -m <name>     Model (default: gemma-2-2b-it-q4)
   --config <ref>         Load config (preset name, path, URL, or inline JSON)
   --dump-config          Print resolved config and exit
   --list-presets         List available config presets

@@ -8,12 +8,1154 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// gpu/perf-guards.ts
+// ../src/config/schema/manifest.schema.ts
+var SHARD_SIZE;
+var init_manifest_schema = __esm({
+  "../src/config/schema/manifest.schema.ts"() {
+    SHARD_SIZE = 64 * 1024 * 1024;
+  }
+});
+
+// ../src/config/schema/inference.schema.ts
+var init_inference_schema = __esm({
+  "../src/config/schema/inference.schema.ts"() {
+  }
+});
+
+// ../src/config/schema/conversion.schema.ts
+var init_conversion_schema = __esm({
+  "../src/config/schema/conversion.schema.ts"() {
+  }
+});
+
+// ../src/config/schema/loading.schema.ts
+var DEFAULT_SHARD_CACHE_CONFIG, DEFAULT_MEMORY_MANAGEMENT_CONFIG, DEFAULT_OPFS_PATH_CONFIG, DEFAULT_EXPERT_CACHE_CONFIG, DEFAULT_LOADING_CONFIG;
+var init_loading_schema = __esm({
+  "../src/config/schema/loading.schema.ts"() {
+    DEFAULT_SHARD_CACHE_CONFIG = {
+      opfsEntries: 2,
+      networkEntries: 16,
+      moeMaxEntries: 16
+    };
+    DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
+      flushIntervalLayers: 4,
+      flushThresholdBytes: 256 * 1024 * 1024,
+      // 256MB
+      gpuQueueFlushLayers: 4,
+      logIntervalMs: 3e4
+      // 30 seconds
+    };
+    DEFAULT_OPFS_PATH_CONFIG = {
+      opfsRootDir: "doppler-models"
+    };
+    DEFAULT_EXPERT_CACHE_CONFIG = {
+      defaultSizeBytes: 2 * 1024 * 1024 * 1024,
+      // 2GB
+      maxBufferPercentage: 0.25
+      // 25% of max buffer
+    };
+    DEFAULT_LOADING_CONFIG = {
+      shardCache: DEFAULT_SHARD_CACHE_CONFIG,
+      memoryManagement: DEFAULT_MEMORY_MANAGEMENT_CONFIG,
+      opfsPath: DEFAULT_OPFS_PATH_CONFIG,
+      expertCache: DEFAULT_EXPERT_CACHE_CONFIG
+    };
+  }
+});
+
+// ../src/config/schema/kernel-registry.schema.ts
+var init_kernel_registry_schema = __esm({
+  "../src/config/schema/kernel-registry.schema.ts"() {
+  }
+});
+
+// ../src/config/schema/storage.schema.ts
+var DEFAULT_QUOTA_CONFIG, DEFAULT_VRAM_ESTIMATION_CONFIG, DEFAULT_STORAGE_ALIGNMENT_CONFIG, DEFAULT_STORAGE_FULL_CONFIG;
+var init_storage_schema = __esm({
+  "../src/config/schema/storage.schema.ts"() {
+    DEFAULT_QUOTA_CONFIG = {
+      lowSpaceThresholdBytes: 500 * 1024 * 1024,
+      // 500MB
+      criticalSpaceThresholdBytes: 100 * 1024 * 1024,
+      // 100MB
+      monitorIntervalMs: 3e4
+      // 30 seconds
+    };
+    DEFAULT_VRAM_ESTIMATION_CONFIG = {
+      unifiedMemoryRatio: 0.5,
+      // 50% of system RAM
+      fallbackVramBytes: 2 * 1024 * 1024 * 1024,
+      // 2GB
+      lowVramHeadroomBytes: 500 * 1024 * 1024
+      // 500MB
+    };
+    DEFAULT_STORAGE_ALIGNMENT_CONFIG = {
+      bufferAlignmentBytes: 4096
+      // 4KB alignment (typical page size)
+    };
+    DEFAULT_STORAGE_FULL_CONFIG = {
+      quota: DEFAULT_QUOTA_CONFIG,
+      vramEstimation: DEFAULT_VRAM_ESTIMATION_CONFIG,
+      alignment: DEFAULT_STORAGE_ALIGNMENT_CONFIG
+    };
+  }
+});
+
+// ../src/config/schema/inference-defaults.schema.ts
+var DEFAULT_BATCHING_DEFAULTS, DEFAULT_SAMPLING_DEFAULTS, DEFAULT_TOKENIZER_DEFAULTS, DEFAULT_INFERENCE_DEFAULTS_CONFIG;
+var init_inference_defaults_schema = __esm({
+  "../src/config/schema/inference-defaults.schema.ts"() {
+    DEFAULT_BATCHING_DEFAULTS = {
+      batchSize: 1,
+      maxTokens: 512,
+      stopCheckMode: "per-token"
+    };
+    DEFAULT_SAMPLING_DEFAULTS = {
+      temperature: 0.7,
+      topP: 0.9,
+      topK: 40,
+      repetitionPenalty: 1.1,
+      greedyThreshold: 0.01
+    };
+    DEFAULT_TOKENIZER_DEFAULTS = {
+      addBosToken: true,
+      addEosToken: false
+    };
+    DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
+      batching: DEFAULT_BATCHING_DEFAULTS,
+      sampling: DEFAULT_SAMPLING_DEFAULTS,
+      tokenizer: DEFAULT_TOKENIZER_DEFAULTS
+    };
+  }
+});
+
+// ../src/config/schema/distribution.schema.ts
+var DEFAULT_DISTRIBUTION_CONFIG;
+var init_distribution_schema = __esm({
+  "../src/config/schema/distribution.schema.ts"() {
+    DEFAULT_DISTRIBUTION_CONFIG = {
+      concurrentDownloads: 3,
+      maxRetries: 3,
+      initialRetryDelayMs: 1e3,
+      maxRetryDelayMs: 3e4,
+      maxChunkSizeBytes: 8 * 1024 * 1024,
+      // 8MB
+      cdnBasePath: null,
+      progressUpdateIntervalMs: 100
+    };
+  }
+});
+
+// ../src/config/schema/moe.schema.ts
+var DEFAULT_MOE_ROUTING_CONFIG, DEFAULT_MOE_CACHE_CONFIG, DEFAULT_MOE_RUNTIME_CONFIG;
+var init_moe_schema = __esm({
+  "../src/config/schema/moe.schema.ts"() {
+    DEFAULT_MOE_ROUTING_CONFIG = {
+      numExperts: 8,
+      topK: 2,
+      normalizeWeights: true,
+      routerDtype: "f32"
+    };
+    DEFAULT_MOE_CACHE_CONFIG = {
+      dequantCacheMaxEntries: 128
+    };
+    DEFAULT_MOE_RUNTIME_CONFIG = {
+      routing: DEFAULT_MOE_ROUTING_CONFIG,
+      cache: DEFAULT_MOE_CACHE_CONFIG
+    };
+  }
+});
+
+// ../src/config/schema/kvcache.schema.ts
+var DEFAULT_KVCACHE_CONFIG;
+var init_kvcache_schema = __esm({
+  "../src/config/schema/kvcache.schema.ts"() {
+    DEFAULT_KVCACHE_CONFIG = {
+      maxSeqLen: 4096,
+      kvDtype: "f32",
+      layout: "contiguous",
+      pageSize: 256,
+      windowSize: 1024
+    };
+  }
+});
+
+// ../src/config/schema/gpu-cache.schema.ts
+var DEFAULT_GPU_CACHE_CONFIG;
+var init_gpu_cache_schema = __esm({
+  "../src/config/schema/gpu-cache.schema.ts"() {
+    DEFAULT_GPU_CACHE_CONFIG = {
+      uniformCacheMaxEntries: 256,
+      uniformCacheMaxAgeMs: 6e4
+      // 60 seconds
+    };
+  }
+});
+
+// ../src/config/schema/tuner.schema.ts
+var DEFAULT_TUNER_CONFIG;
+var init_tuner_schema = __esm({
+  "../src/config/schema/tuner.schema.ts"() {
+    DEFAULT_TUNER_CONFIG = {
+      cacheKeyPrefix: "doppler_kernel_tune_",
+      defaultWarmupIterations: 3,
+      defaultTimedIterations: 10
+    };
+  }
+});
+
+// ../src/config/schema/debug.schema.ts
+var DEFAULT_LOG_OUTPUT_CONFIG, DEFAULT_LOG_HISTORY_CONFIG, DEFAULT_LOG_LEVEL_CONFIG, DEFAULT_TRACE_CONFIG, DEFAULT_PIPELINE_DEBUG_CONFIG, DEFAULT_DEBUG_CONFIG;
+var init_debug_schema = __esm({
+  "../src/config/schema/debug.schema.ts"() {
+    DEFAULT_LOG_OUTPUT_CONFIG = {
+      stdout: true,
+      file: null,
+      append: true
+    };
+    DEFAULT_LOG_HISTORY_CONFIG = {
+      maxLogHistoryEntries: 1e3
+    };
+    DEFAULT_LOG_LEVEL_CONFIG = {
+      defaultLogLevel: "info"
+    };
+    DEFAULT_TRACE_CONFIG = {
+      enabled: false,
+      categories: ["all"],
+      layers: null,
+      maxDecodeSteps: 0,
+      file: null
+    };
+    DEFAULT_PIPELINE_DEBUG_CONFIG = {
+      enabled: false,
+      categories: [],
+      layers: null,
+      maxDecodeSteps: 0,
+      maxAbsThreshold: 1e4,
+      bufferStats: false
+    };
+    DEFAULT_DEBUG_CONFIG = {
+      logOutput: DEFAULT_LOG_OUTPUT_CONFIG,
+      logHistory: DEFAULT_LOG_HISTORY_CONFIG,
+      logLevel: DEFAULT_LOG_LEVEL_CONFIG,
+      trace: DEFAULT_TRACE_CONFIG,
+      pipeline: DEFAULT_PIPELINE_DEBUG_CONFIG,
+      probes: []
+    };
+  }
+});
+
+// ../src/config/schema/buffer-pool.schema.ts
+var DEFAULT_BUFFER_POOL_BUCKET_CONFIG, DEFAULT_BUFFER_POOL_LIMITS_CONFIG, DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG, DEFAULT_BUFFER_POOL_CONFIG;
+var init_buffer_pool_schema = __esm({
+  "../src/config/schema/buffer-pool.schema.ts"() {
+    DEFAULT_BUFFER_POOL_BUCKET_CONFIG = {
+      minBucketSizeBytes: 256,
+      // 256 bytes
+      largeBufferThresholdBytes: 32 * 1024 * 1024,
+      // 32MB
+      largeBufferStepBytes: 16 * 1024 * 1024
+      // 16MB
+    };
+    DEFAULT_BUFFER_POOL_LIMITS_CONFIG = {
+      maxBuffersPerBucket: 8,
+      maxTotalPooledBuffers: 64
+    };
+    DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG = {
+      alignmentBytes: 256
+      // WebGPU buffer alignment
+    };
+    DEFAULT_BUFFER_POOL_CONFIG = {
+      bucket: DEFAULT_BUFFER_POOL_BUCKET_CONFIG,
+      limits: DEFAULT_BUFFER_POOL_LIMITS_CONFIG,
+      alignment: DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG
+    };
+  }
+});
+
+// ../src/config/schema/memory-limits.schema.ts
+var MB, GB, DEFAULT_HEAP_TESTING_CONFIG, DEFAULT_SEGMENT_TESTING_CONFIG, DEFAULT_ADDRESS_SPACE_CONFIG, DEFAULT_SEGMENT_ALLOCATION_CONFIG, DEFAULT_MEMORY_LIMITS_CONFIG;
+var init_memory_limits_schema = __esm({
+  "../src/config/schema/memory-limits.schema.ts"() {
+    MB = 1024 * 1024;
+    GB = 1024 * MB;
+    DEFAULT_HEAP_TESTING_CONFIG = {
+      heapTestSizes: [16 * GB, 8 * GB, 4 * GB, 2 * GB, 1 * GB],
+      fallbackMaxHeapBytes: 1 * GB
+    };
+    DEFAULT_SEGMENT_TESTING_CONFIG = {
+      segmentTestSizes: [1 * GB, 512 * MB, 256 * MB, 128 * MB],
+      safeSegmentSizeBytes: 256 * MB
+    };
+    DEFAULT_ADDRESS_SPACE_CONFIG = {
+      targetAddressSpaceBytes: 8 * GB
+    };
+    DEFAULT_SEGMENT_ALLOCATION_CONFIG = {
+      fallbackSegmentSizeBytes: 4 * GB,
+      segmentFallbackSizes: [512 * MB, 256 * MB, 128 * MB]
+    };
+    DEFAULT_MEMORY_LIMITS_CONFIG = {
+      heapTesting: DEFAULT_HEAP_TESTING_CONFIG,
+      segmentTesting: DEFAULT_SEGMENT_TESTING_CONFIG,
+      addressSpace: DEFAULT_ADDRESS_SPACE_CONFIG,
+      segmentAllocation: DEFAULT_SEGMENT_ALLOCATION_CONFIG
+    };
+  }
+});
+
+// ../src/config/schema/bridge.schema.ts
+var DEFAULT_BRIDGE_CONFIG;
+var init_bridge_schema = __esm({
+  "../src/config/schema/bridge.schema.ts"() {
+    DEFAULT_BRIDGE_CONFIG = {
+      maxReadSizeBytes: 100 * 1024 * 1024,
+      // 100MB
+      allowedDirectories: "/Users:/home:/tmp:/var/tmp"
+    };
+  }
+});
+
+// ../src/config/schema/doppler.schema.ts
+function createDopplerConfig(overrides) {
+  if (!overrides) {
+    return { ...DEFAULT_DOPPLER_CONFIG };
+  }
+  return {
+    model: overrides.model ?? DEFAULT_DOPPLER_CONFIG.model,
+    runtime: overrides.runtime ? mergeRuntimeConfig(DEFAULT_RUNTIME_CONFIG, overrides.runtime) : { ...DEFAULT_RUNTIME_CONFIG },
+    platform: overrides.platform
+  };
+}
+function mergeRuntimeConfig(base, overrides) {
+  return {
+    distribution: { ...base.distribution, ...overrides.distribution },
+    storage: overrides.storage ? {
+      quota: { ...base.storage.quota, ...overrides.storage.quota },
+      vramEstimation: { ...base.storage.vramEstimation, ...overrides.storage.vramEstimation },
+      alignment: { ...base.storage.alignment, ...overrides.storage.alignment }
+    } : { ...base.storage },
+    loading: overrides.loading ? {
+      shardCache: { ...base.loading.shardCache, ...overrides.loading.shardCache },
+      memoryManagement: { ...base.loading.memoryManagement, ...overrides.loading.memoryManagement },
+      opfsPath: { ...base.loading.opfsPath, ...overrides.loading.opfsPath },
+      expertCache: { ...base.loading.expertCache, ...overrides.loading.expertCache }
+    } : { ...base.loading },
+    inference: overrides.inference ? {
+      batching: { ...base.inference.batching, ...overrides.inference.batching },
+      sampling: { ...base.inference.sampling, ...overrides.inference.sampling },
+      tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer }
+    } : { ...base.inference },
+    kvcache: { ...base.kvcache, ...overrides.kvcache },
+    moe: overrides.moe ? {
+      routing: { ...base.moe.routing, ...overrides.moe.routing },
+      cache: { ...base.moe.cache, ...overrides.moe.cache }
+    } : { ...base.moe },
+    bufferPool: overrides.bufferPool ? {
+      bucket: { ...base.bufferPool.bucket, ...overrides.bufferPool.bucket },
+      limits: { ...base.bufferPool.limits, ...overrides.bufferPool.limits },
+      alignment: { ...base.bufferPool.alignment, ...overrides.bufferPool.alignment }
+    } : { ...base.bufferPool },
+    gpuCache: { ...base.gpuCache, ...overrides.gpuCache },
+    tuner: { ...base.tuner, ...overrides.tuner },
+    memory: overrides.memory ? {
+      heapTesting: { ...base.memory.heapTesting, ...overrides.memory.heapTesting },
+      segmentTesting: { ...base.memory.segmentTesting, ...overrides.memory.segmentTesting },
+      addressSpace: { ...base.memory.addressSpace, ...overrides.memory.addressSpace },
+      segmentAllocation: { ...base.memory.segmentAllocation, ...overrides.memory.segmentAllocation }
+    } : { ...base.memory },
+    debug: overrides.debug ? {
+      logOutput: { ...base.debug.logOutput, ...overrides.debug.logOutput },
+      logHistory: { ...base.debug.logHistory, ...overrides.debug.logHistory },
+      logLevel: { ...base.debug.logLevel, ...overrides.debug.logLevel },
+      trace: { ...base.debug.trace, ...overrides.debug.trace },
+      pipeline: { ...base.debug.pipeline, ...overrides.debug.pipeline },
+      probes: overrides.debug.probes ?? base.debug.probes
+    } : { ...base.debug },
+    bridge: { ...base.bridge, ...overrides.bridge }
+  };
+}
+var DEFAULT_RUNTIME_CONFIG, DEFAULT_DOPPLER_CONFIG;
+var init_doppler_schema = __esm({
+  "../src/config/schema/doppler.schema.ts"() {
+    init_distribution_schema();
+    init_storage_schema();
+    init_loading_schema();
+    init_inference_defaults_schema();
+    init_kvcache_schema();
+    init_moe_schema();
+    init_buffer_pool_schema();
+    init_gpu_cache_schema();
+    init_tuner_schema();
+    init_memory_limits_schema();
+    init_debug_schema();
+    init_bridge_schema();
+    DEFAULT_RUNTIME_CONFIG = {
+      distribution: DEFAULT_DISTRIBUTION_CONFIG,
+      storage: DEFAULT_STORAGE_FULL_CONFIG,
+      loading: DEFAULT_LOADING_CONFIG,
+      inference: DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+      kvcache: DEFAULT_KVCACHE_CONFIG,
+      moe: DEFAULT_MOE_RUNTIME_CONFIG,
+      bufferPool: DEFAULT_BUFFER_POOL_CONFIG,
+      gpuCache: DEFAULT_GPU_CACHE_CONFIG,
+      tuner: DEFAULT_TUNER_CONFIG,
+      memory: DEFAULT_MEMORY_LIMITS_CONFIG,
+      debug: DEFAULT_DEBUG_CONFIG,
+      bridge: DEFAULT_BRIDGE_CONFIG
+    };
+    DEFAULT_DOPPLER_CONFIG = {
+      model: void 0,
+      runtime: DEFAULT_RUNTIME_CONFIG,
+      platform: void 0
+    };
+  }
+});
+
+// ../src/config/schema/index.ts
+var init_schema = __esm({
+  "../src/config/schema/index.ts"() {
+    init_manifest_schema();
+    init_inference_schema();
+    init_conversion_schema();
+    init_loading_schema();
+    init_kernel_registry_schema();
+    init_storage_schema();
+    init_inference_defaults_schema();
+    init_distribution_schema();
+    init_moe_schema();
+    init_kvcache_schema();
+    init_gpu_cache_schema();
+    init_tuner_schema();
+    init_debug_schema();
+    init_buffer_pool_schema();
+    init_memory_limits_schema();
+    init_bridge_schema();
+    init_doppler_schema();
+  }
+});
+
+// ../src/config/runtime.ts
+function getRuntimeConfig() {
+  return runtimeConfig;
+}
+var runtimeConfig;
+var init_runtime = __esm({
+  "../src/config/runtime.ts"() {
+    init_schema();
+    runtimeConfig = createDopplerConfig().runtime;
+  }
+});
+
+// ../src/debug/index.ts
+function setLogLevel(level) {
+  const levelMap = {
+    debug: LOG_LEVELS.DEBUG,
+    verbose: LOG_LEVELS.VERBOSE,
+    info: LOG_LEVELS.INFO,
+    warn: LOG_LEVELS.WARN,
+    error: LOG_LEVELS.ERROR,
+    silent: LOG_LEVELS.SILENT
+  };
+  currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS.INFO;
+  console.log(`[Doppler] Log level set to: ${level.toUpperCase()}`);
+}
+function getLogLevel() {
+  for (const [name, value] of Object.entries(LOG_LEVELS)) {
+    if (value === currentLogLevel)
+      return name.toLowerCase();
+  }
+  return "info";
+}
+function setTrace(categories, options) {
+  if (categories === false) {
+    enabledTraceCategories.clear();
+    console.log("[Doppler] Trace disabled");
+    return;
+  }
+  const catArray = typeof categories === "string" ? categories.split(",").map((s) => s.trim()) : categories;
+  enabledTraceCategories.clear();
+  const hasAll = catArray.includes("all");
+  if (hasAll) {
+    for (const cat of TRACE_CATEGORIES) {
+      enabledTraceCategories.add(cat);
+    }
+  }
+  for (const cat of catArray) {
+    if (cat === "all")
+      continue;
+    if (cat.startsWith("-")) {
+      const exclude = cat.slice(1);
+      enabledTraceCategories.delete(exclude);
+    } else if (TRACE_CATEGORIES.includes(cat)) {
+      enabledTraceCategories.add(cat);
+    }
+  }
+  if (options?.layers) {
+    traceLayerFilter = options.layers;
+  }
+  if (options?.maxDecodeSteps !== void 0) {
+    traceMaxDecodeSteps = options.maxDecodeSteps;
+  }
+  if (options?.breakOnAnomaly !== void 0) {
+    traceBreakOnAnomaly = options.breakOnAnomaly;
+  }
+  const enabled = [...enabledTraceCategories].join(",") || "none";
+  console.log(`[Doppler] Trace categories: ${enabled}`);
+}
+function getTrace() {
+  return [...enabledTraceCategories];
+}
+function isTraceEnabled(category, layerIdx) {
+  if (!enabledTraceCategories.has(category))
+    return false;
+  if (layerIdx !== void 0 && traceLayerFilter.length > 0) {
+    if (!traceLayerFilter.includes(layerIdx))
+      return false;
+  }
+  if (traceMaxDecodeSteps > 0 && traceDecodeStep > traceMaxDecodeSteps) {
+    return false;
+  }
+  return true;
+}
+function setBenchmarkMode(enabled) {
+  benchmarkMode = enabled;
+  if (enabled) {
+    const noop = () => {
+    };
+    console.log = noop;
+    console.debug = noop;
+    console.info = noop;
+    originalConsoleLog("[Doppler] Benchmark mode enabled - logging silenced");
+  } else {
+    console.log = originalConsoleLog;
+    console.debug = originalConsoleDebug;
+    console.info = originalConsoleInfo;
+    console.log("[Doppler] Benchmark mode disabled - logging restored");
+  }
+}
+function isBenchmarkMode() {
+  return benchmarkMode;
+}
+function initFromUrlParams() {
+  if (typeof window === "undefined")
+    return;
+  const params = new URLSearchParams(window.location.search);
+  const logLevel = params.get("log");
+  if (logLevel) {
+    setLogLevel(logLevel);
+  }
+  const traceParam = params.get("trace");
+  if (traceParam) {
+    const layers = params.get("layers")?.split(",").map(Number).filter((n) => !isNaN(n));
+    const breakOn = params.get("break") === "1";
+    setTrace(traceParam, { layers, breakOnAnomaly: breakOn });
+  }
+  const debugParam = params.get("debug");
+  if (debugParam === "1" && !traceParam) {
+    setTrace("all");
+    setLogLevel("verbose");
+  }
+}
+function shouldLog(module, level) {
+  if (level < currentLogLevel)
+    return false;
+  const moduleLower = module.toLowerCase();
+  if (enabledModules.size > 0 && !enabledModules.has(moduleLower)) {
+    return false;
+  }
+  if (disabledModules.has(moduleLower)) {
+    return false;
+  }
+  return true;
+}
+function formatMessage(module, message) {
+  const timestamp = performance.now().toFixed(1);
+  return `[${timestamp}ms][${module}] ${message}`;
+}
+function formatTraceMessage(category, message, layerIdx) {
+  const timestamp = performance.now().toFixed(1);
+  const layerTag = layerIdx !== void 0 ? `L${layerIdx}:` : "";
+  return `[${timestamp}ms][TRACE:${category}] ${layerTag}${message}`;
+}
+function storeLog(level, module, message, data) {
+  logHistory.push({
+    time: Date.now(),
+    perfTime: performance.now(),
+    level,
+    module,
+    message,
+    data
+  });
+  const maxHistory = getRuntimeConfig().debug.logHistory.maxLogHistoryEntries;
+  if (logHistory.length > maxHistory) {
+    logHistory.shift();
+  }
+}
+function f16ToF32(h) {
+  const sign = h >> 15 & 1;
+  const exp = h >> 10 & 31;
+  const mant = h & 1023;
+  if (exp === 0) {
+    return (sign ? -1 : 1) * Math.pow(2, -14) * (mant / 1024);
+  } else if (exp === 31) {
+    return mant === 0 ? sign ? -Infinity : Infinity : NaN;
+  }
+  return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + mant / 1024);
+}
+function getLogHistory(filter = {}) {
+  let history = [...logHistory];
+  if (filter.level) {
+    history = history.filter((h) => h.level === filter.level.toUpperCase());
+  }
+  if (filter.module) {
+    const m = filter.module.toLowerCase();
+    history = history.filter((h) => h.module.toLowerCase().includes(m));
+  }
+  if (filter.last) {
+    history = history.slice(-filter.last);
+  }
+  return history;
+}
+function printLogSummary(count = 20) {
+  const recent = logHistory.slice(-count);
+  console.log("=== Recent Logs ===");
+  for (const entry of recent) {
+    const time = entry.perfTime.toFixed(1);
+    console.log(`[${time}ms][${entry.level}][${entry.module}] ${entry.message}`);
+  }
+  console.log("===================");
+}
+function getDebugSnapshot() {
+  return {
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    logLevel: Object.keys(LOG_LEVELS).find(
+      (k) => LOG_LEVELS[k] === currentLogLevel
+    ),
+    traceCategories: [...enabledTraceCategories],
+    enabledModules: [...enabledModules],
+    disabledModules: [...disabledModules],
+    recentLogs: logHistory.slice(-50).map((e) => ({
+      time: e.perfTime.toFixed(1),
+      level: e.level,
+      module: e.module,
+      message: e.message
+    })),
+    errorCount: logHistory.filter((e) => e.level === "ERROR").length,
+    warnCount: logHistory.filter((e) => e.level === "WARN").length
+  };
+}
+var LOG_LEVELS, TRACE_CATEGORIES, currentLogLevel, enabledModules, disabledModules, logHistory, gpuDevice, enabledTraceCategories, traceLayerFilter, traceDecodeStep, traceMaxDecodeSteps, traceBreakOnAnomaly, benchmarkMode, originalConsoleLog, originalConsoleDebug, originalConsoleInfo, log, trace, tensor, perf, DOPPLER_API;
+var init_debug = __esm({
+  "../src/debug/index.ts"() {
+    init_runtime();
+    LOG_LEVELS = {
+      DEBUG: 0,
+      VERBOSE: 1,
+      INFO: 2,
+      WARN: 3,
+      ERROR: 4,
+      SILENT: 5
+    };
+    TRACE_CATEGORIES = [
+      "loader",
+      // Model loading (shards, weights)
+      "kernels",
+      // GPU kernel execution
+      "logits",
+      // Logit computation
+      "embed",
+      // Embedding layer
+      "attn",
+      // Attention
+      "ffn",
+      // Feed-forward
+      "kv",
+      // KV cache
+      "sample",
+      // Token sampling
+      "buffers",
+      // GPU buffer stats (expensive!)
+      "perf"
+      // Timing
+    ];
+    currentLogLevel = LOG_LEVELS.INFO;
+    enabledModules = /* @__PURE__ */ new Set();
+    disabledModules = /* @__PURE__ */ new Set();
+    logHistory = [];
+    gpuDevice = null;
+    enabledTraceCategories = /* @__PURE__ */ new Set();
+    traceLayerFilter = [];
+    traceDecodeStep = 0;
+    traceMaxDecodeSteps = 0;
+    traceBreakOnAnomaly = false;
+    benchmarkMode = false;
+    originalConsoleLog = console.log;
+    originalConsoleDebug = console.debug;
+    originalConsoleInfo = console.info;
+    log = {
+      /**
+       * Debug level logging (most verbose).
+       */
+      debug(module, message, data) {
+        if (!shouldLog(module, LOG_LEVELS.DEBUG))
+          return;
+        const formatted = formatMessage(module, message);
+        storeLog("DEBUG", module, message, data);
+        if (data !== void 0) {
+          console.debug(formatted, data);
+        } else {
+          console.debug(formatted);
+        }
+      },
+      /**
+       * Verbose level logging (detailed operational info).
+       */
+      verbose(module, message, data) {
+        if (!shouldLog(module, LOG_LEVELS.VERBOSE))
+          return;
+        const formatted = formatMessage(module, message);
+        storeLog("VERBOSE", module, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Info level logging (normal operations).
+       */
+      info(module, message, data) {
+        if (!shouldLog(module, LOG_LEVELS.INFO))
+          return;
+        const formatted = formatMessage(module, message);
+        storeLog("INFO", module, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Warning level logging.
+       */
+      warn(module, message, data) {
+        if (!shouldLog(module, LOG_LEVELS.WARN))
+          return;
+        const formatted = formatMessage(module, message);
+        storeLog("WARN", module, message, data);
+        if (data !== void 0) {
+          console.warn(formatted, data);
+        } else {
+          console.warn(formatted);
+        }
+      },
+      /**
+       * Error level logging.
+       */
+      error(module, message, data) {
+        if (!shouldLog(module, LOG_LEVELS.ERROR))
+          return;
+        const formatted = formatMessage(module, message);
+        storeLog("ERROR", module, message, data);
+        if (data !== void 0) {
+          console.error(formatted, data);
+        } else {
+          console.error(formatted);
+        }
+      },
+      /**
+       * Always log regardless of level (for critical messages).
+       */
+      always(module, message, data) {
+        const formatted = formatMessage(module, message);
+        storeLog("ALWAYS", module, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      }
+    };
+    trace = {
+      /**
+       * Trace model loading operations.
+       */
+      loader(message, data) {
+        if (!isTraceEnabled("loader"))
+          return;
+        const formatted = formatTraceMessage("loader", message);
+        storeLog("TRACE:loader", "Loader", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace kernel execution.
+       */
+      kernels(message, data) {
+        if (!isTraceEnabled("kernels"))
+          return;
+        const formatted = formatTraceMessage("kernels", message);
+        storeLog("TRACE:kernels", "Kernels", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace logit computation.
+       */
+      logits(message, data) {
+        if (!isTraceEnabled("logits"))
+          return;
+        const formatted = formatTraceMessage("logits", message);
+        storeLog("TRACE:logits", "Logits", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace embedding layer.
+       */
+      embed(message, data) {
+        if (!isTraceEnabled("embed"))
+          return;
+        const formatted = formatTraceMessage("embed", message);
+        storeLog("TRACE:embed", "Embed", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace attention computation.
+       */
+      attn(layerIdx, message, data) {
+        if (!isTraceEnabled("attn", layerIdx))
+          return;
+        const formatted = formatTraceMessage("attn", message, layerIdx);
+        storeLog("TRACE:attn", `Attn:L${layerIdx}`, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace feed-forward network.
+       */
+      ffn(layerIdx, message, data) {
+        if (!isTraceEnabled("ffn", layerIdx))
+          return;
+        const formatted = formatTraceMessage("ffn", message, layerIdx);
+        storeLog("TRACE:ffn", `FFN:L${layerIdx}`, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace KV cache operations.
+       */
+      kv(layerIdx, message, data) {
+        if (!isTraceEnabled("kv", layerIdx))
+          return;
+        const formatted = formatTraceMessage("kv", message, layerIdx);
+        storeLog("TRACE:kv", `KV:L${layerIdx}`, message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace token sampling.
+       */
+      sample(message, data) {
+        if (!isTraceEnabled("sample"))
+          return;
+        const formatted = formatTraceMessage("sample", message);
+        storeLog("TRACE:sample", "Sample", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace buffer stats (expensive - requires GPU readback).
+       */
+      buffers(message, data) {
+        if (!isTraceEnabled("buffers"))
+          return;
+        const formatted = formatTraceMessage("buffers", message);
+        storeLog("TRACE:buffers", "Buffers", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      },
+      /**
+       * Trace performance timing.
+       */
+      perf(message, data) {
+        if (!isTraceEnabled("perf"))
+          return;
+        const formatted = formatTraceMessage("perf", message);
+        storeLog("TRACE:perf", "Perf", message, data);
+        if (data !== void 0) {
+          console.log(formatted, data);
+        } else {
+          console.log(formatted);
+        }
+      }
+    };
+    tensor = {
+      /**
+       * Inspect a GPU or CPU tensor and log statistics.
+       */
+      async inspect(buffer, label, options = {}) {
+        const { shape = [], maxPrint = 8, checkNaN = true } = options;
+        let data;
+        let isGPU = false;
+        if (buffer && typeof buffer.mapAsync === "function") {
+          const gpuBuffer = buffer;
+          await gpuBuffer.mapAsync(GPUMapMode.READ);
+          data = new Float32Array(gpuBuffer.getMappedRange().slice(0));
+          gpuBuffer.unmap();
+        } else if (buffer && buffer.size !== void 0 && gpuDevice) {
+          isGPU = true;
+          const gpuBuffer = buffer;
+          const readSize = Math.min(gpuBuffer.size, 4096);
+          const staging = gpuDevice.createBuffer({
+            label: `debug_staging_${label}`,
+            size: readSize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+          });
+          const encoder = gpuDevice.createCommandEncoder();
+          encoder.copyBufferToBuffer(gpuBuffer, 0, staging, 0, readSize);
+          gpuDevice.queue.submit([encoder.finish()]);
+          await staging.mapAsync(GPUMapMode.READ);
+          data = new Float32Array(staging.getMappedRange().slice(0));
+          staging.unmap();
+          staging.destroy();
+        } else if (buffer instanceof Float32Array || buffer instanceof Float64Array) {
+          data = buffer instanceof Float32Array ? buffer : new Float32Array(buffer);
+        } else if (buffer instanceof Uint16Array) {
+          data = new Float32Array(buffer.length);
+          for (let i = 0; i < buffer.length; i++) {
+            data[i] = f16ToF32(buffer[i]);
+          }
+        } else {
+          log.warn("Debug", `Cannot inspect tensor "${label}": unknown type`);
+          return null;
+        }
+        let min = Infinity, max = -Infinity, sum = 0, sumSq = 0;
+        let nanCount = 0, infCount = 0, zeroCount = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = data[i];
+          if (Number.isNaN(v)) {
+            nanCount++;
+            continue;
+          }
+          if (!Number.isFinite(v)) {
+            infCount++;
+            continue;
+          }
+          if (v === 0)
+            zeroCount++;
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+          sum += v;
+          sumSq += v * v;
+        }
+        const validCount = data.length - nanCount - infCount;
+        const mean = validCount > 0 ? sum / validCount : 0;
+        const variance = validCount > 0 ? sumSq / validCount - mean * mean : 0;
+        const std = Math.sqrt(Math.max(0, variance));
+        const stats = {
+          label,
+          shape,
+          size: data.length,
+          isGPU,
+          min,
+          max,
+          mean,
+          std,
+          nanCount,
+          infCount,
+          zeroCount,
+          zeroPercent: (zeroCount / data.length * 100).toFixed(1),
+          first: Array.from(data.slice(0, maxPrint)).map((v) => v.toFixed(4)),
+          last: Array.from(data.slice(-maxPrint)).map((v) => v.toFixed(4))
+        };
+        const shapeStr = shape.length > 0 ? `[${shape.join("x")}]` : `[${data.length}]`;
+        log.debug(
+          "Tensor",
+          `${label} ${shapeStr}: min=${min.toFixed(4)}, max=${max.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}`
+        );
+        if (checkNaN && (nanCount > 0 || infCount > 0)) {
+          log.warn("Tensor", `${label} has ${nanCount} NaN and ${infCount} Inf values!`);
+        }
+        return stats;
+      },
+      /**
+       * Compare two tensors element-wise.
+       */
+      compare(a, b, label, tolerance = 1e-5) {
+        if (a.length !== b.length) {
+          log.error("Tensor", `${label}: size mismatch ${a.length} vs ${b.length}`);
+          return { label, match: false, error: "size_mismatch", maxDiff: 0, maxDiffIdx: 0, avgDiff: 0, mismatchCount: 0, mismatchPercent: "0" };
+        }
+        let maxDiff = 0, maxDiffIdx = 0;
+        let sumDiff = 0;
+        let mismatchCount = 0;
+        for (let i = 0; i < a.length; i++) {
+          const diff = Math.abs(a[i] - b[i]);
+          sumDiff += diff;
+          if (diff > maxDiff) {
+            maxDiff = diff;
+            maxDiffIdx = i;
+          }
+          if (diff > tolerance) {
+            mismatchCount++;
+          }
+        }
+        const avgDiff = sumDiff / a.length;
+        const match = mismatchCount === 0;
+        const result = {
+          label,
+          match,
+          maxDiff,
+          maxDiffIdx,
+          avgDiff,
+          mismatchCount,
+          mismatchPercent: (mismatchCount / a.length * 100).toFixed(2)
+        };
+        if (match) {
+          log.debug("Tensor", `${label}: MATCH (maxDiff=${maxDiff.toExponential(2)})`);
+        } else {
+          log.warn(
+            "Tensor",
+            `${label}: MISMATCH ${mismatchCount}/${a.length} (${result.mismatchPercent}%) maxDiff=${maxDiff.toFixed(6)} at idx=${maxDiffIdx}`
+          );
+        }
+        return result;
+      },
+      /**
+       * Check tensor for common issues.
+       */
+      healthCheck(data, label) {
+        const issues = [];
+        const allZero = data.every((v) => v === 0);
+        if (allZero) {
+          issues.push("ALL_ZEROS");
+        }
+        const hasNaN = data.some((v) => Number.isNaN(v));
+        const hasInf = data.some((v) => !Number.isFinite(v) && !Number.isNaN(v));
+        if (hasNaN)
+          issues.push("HAS_NAN");
+        if (hasInf)
+          issues.push("HAS_INF");
+        const maxAbs = Math.max(...Array.from(data).map(Math.abs).filter(Number.isFinite));
+        if (maxAbs > 1e6)
+          issues.push(`EXTREME_VALUES (max=${maxAbs.toExponential(2)})`);
+        const tinyCount = data.filter((v) => Math.abs(v) > 0 && Math.abs(v) < 1e-30).length;
+        if (tinyCount > data.length * 0.1) {
+          issues.push(`POTENTIAL_UNDERFLOW (${tinyCount} tiny values)`);
+        }
+        const healthy = issues.length === 0;
+        if (healthy) {
+          log.debug("Tensor", `${label}: healthy`);
+        } else {
+          log.warn("Tensor", `${label}: issues found - ${issues.join(", ")}`);
+        }
+        return { label, healthy, issues };
+      }
+    };
+    perf = {
+      marks: /* @__PURE__ */ new Map(),
+      /**
+       * Start a timing mark.
+       */
+      mark(label) {
+        this.marks.set(label, performance.now());
+      },
+      /**
+       * End a timing mark and log duration.
+       */
+      measure(label, module = "Perf") {
+        const start = this.marks.get(label);
+        if (start === void 0) {
+          log.warn(module, `No mark found for "${label}"`);
+          return 0;
+        }
+        const duration = performance.now() - start;
+        this.marks.delete(label);
+        log.debug(module, `${label}: ${duration.toFixed(2)}ms`);
+        return duration;
+      },
+      /**
+       * Time an async operation.
+       */
+      async time(label, fn) {
+        const start = performance.now();
+        const result = await fn();
+        const durationMs = performance.now() - start;
+        log.debug("Perf", `${label}: ${durationMs.toFixed(2)}ms`);
+        return { result, durationMs };
+      }
+    };
+    DOPPLER_API = {
+      // Trace categories
+      trace,
+      setTrace,
+      getTrace,
+      // Log levels
+      log,
+      setLogLevel,
+      getLogLevel,
+      // Tensor inspection
+      tensor,
+      inspect: tensor.inspect.bind(tensor),
+      // Performance
+      perf,
+      // Other
+      setBenchmarkMode,
+      isBenchmarkMode,
+      // History
+      getLogHistory,
+      printLogSummary,
+      getDebugSnapshot
+    };
+    if (typeof window !== "undefined") {
+      window.DOPPLER = {
+        ...window.DOPPLER || {},
+        ...DOPPLER_API
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initFromUrlParams);
+      } else {
+        initFromUrlParams();
+      }
+    }
+  }
+});
+
+// ../src/gpu/perf-guards.ts
 function trackSubmit() {
   if (config.trackSubmitCount) {
     counters.submits++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Submit #${counters.submits}`);
+      trace.perf(`PerfGuard: Submit #${counters.submits}`);
     }
   }
 }
@@ -21,32 +1163,33 @@ function trackAllocation(size, label) {
   if (config.trackAllocations) {
     counters.allocations++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Allocation #${counters.allocations}: ${size} bytes (${label || "unlabeled"})`);
+      trace.buffers(`PerfGuard: Allocation #${counters.allocations}: ${size} bytes (${label || "unlabeled"})`);
     }
   }
 }
 function allowReadback(reason) {
   if (!config.allowGPUReadback) {
-    const message = `[PerfGuard] GPU readback blocked: ${reason || "unknown reason"}`;
+    const message = `PerfGuard: GPU readback blocked: ${reason || "unknown reason"}`;
     if (config.strictMode) {
       throw new Error(message);
     }
     if (config.logExpensiveOps) {
-      console.warn(message);
+      log.warn("PerfGuard", message);
     }
     return false;
   }
   if (config.trackSubmitCount) {
     counters.readbacks++;
     if (config.logExpensiveOps) {
-      console.log(`[PerfGuard] Readback #${counters.readbacks}: ${reason || "unknown"}`);
+      trace.perf(`PerfGuard: Readback #${counters.readbacks}: ${reason || "unknown"}`);
     }
   }
   return true;
 }
 var DEFAULT_CONFIG, config, counters;
 var init_perf_guards = __esm({
-  "gpu/perf-guards.ts"() {
+  "../src/gpu/perf-guards.ts"() {
+    init_debug();
     DEFAULT_CONFIG = {
       allowGPUReadback: true,
       // Default to allowed for backward compatibility
@@ -65,7 +1208,7 @@ var init_perf_guards = __esm({
   }
 });
 
-// gpu/submit-tracker.ts
+// ../src/gpu/submit-tracker.ts
 function recordSubmit(durationMs, source) {
   if (!TRACK_SUBMITS)
     return;
@@ -118,8 +1261,9 @@ function wrapQueueForTracking(queue) {
 }
 var TRACK_SUBMITS, submitCount, submitTimes, totalSubmitMs, maxSubmitMs, minSubmitMs, submitSources, currentPhase, phaseStats;
 var init_submit_tracker = __esm({
-  "gpu/submit-tracker.ts"() {
+  "../src/gpu/submit-tracker.ts"() {
     init_perf_guards();
+    init_debug();
     TRACK_SUBMITS = false;
     submitCount = 0;
     submitTimes = [];
@@ -136,7 +1280,293 @@ var init_submit_tracker = __esm({
   }
 });
 
-// gpu/device.ts
+// ../src/config/platforms/loader.js
+var loader_exports = {};
+__export(loader_exports, {
+  clearPlatformCache: () => clearPlatformCache,
+  detectPlatform: () => detectPlatform,
+  getBufferAlignment: () => getBufferAlignment,
+  getCapabilities: () => getCapabilities,
+  getKernelOverride: () => getKernelOverride,
+  getMemoryHints: () => getMemoryHints,
+  getPlatform: () => getPlatform,
+  getPreferredVariant: () => getPreferredVariant,
+  getResolvedPlatformConfig: () => getResolvedPlatformConfig,
+  getWgslOverrides: () => getWgslOverrides,
+  getWorkgroupOverride: () => getWorkgroupOverride,
+  initializePlatform: () => initializePlatform,
+  prefersUnifiedMemory: () => prefersUnifiedMemory,
+  setPlatformsBaseUrl: () => setPlatformsBaseUrl,
+  shouldAvoidVariant: () => shouldAvoidVariant
+});
+function setPlatformsBaseUrl(baseUrl) {
+  platformsBaseUrl = baseUrl;
+  platformCache.clear();
+  currentPlatform = null;
+}
+async function loadPlatformConfig(platformId) {
+  if (platformCache.has(platformId)) {
+    return platformCache.get(platformId) || null;
+  }
+  const baseUrl = platformsBaseUrl || new URL("./", import.meta.url).href;
+  const url = `${baseUrl}${platformId}.json`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return null;
+    }
+    const config2 = await response.json();
+    platformCache.set(platformId, config2);
+    return config2;
+  } catch {
+    return null;
+  }
+}
+async function detectPlatform(adapterInfo) {
+  const vendor = adapterInfo.vendor?.toLowerCase() || "";
+  const architecture = adapterInfo.architecture?.toLowerCase() || "";
+  const device2 = adapterInfo.device?.toLowerCase() || "";
+  const description = adapterInfo.description?.toLowerCase() || "";
+  for (const platformId of PLATFORM_FILES) {
+    const config2 = await loadPlatformConfig(platformId);
+    if (!config2)
+      continue;
+    const detection = config2.detection;
+    let matches = true;
+    if (detection.vendor && !vendor.includes(detection.vendor.toLowerCase())) {
+      matches = false;
+    }
+    if (detection.architecture && !architecture.includes(detection.architecture.toLowerCase())) {
+      matches = false;
+    }
+    if (detection.device && !device2.includes(detection.device.toLowerCase())) {
+      matches = false;
+    }
+    if (detection.description && !description.includes(detection.description.toLowerCase())) {
+      matches = false;
+    }
+    if (matches && !config2.isGeneric) {
+      currentPlatform = config2;
+      return config2;
+    }
+  }
+  const genericConfig = await loadPlatformConfig("generic");
+  if (genericConfig) {
+    currentPlatform = genericConfig;
+    return genericConfig;
+  }
+  const fallback = {
+    id: "unknown",
+    name: "Unknown Platform",
+    detection: {},
+    isGeneric: true
+  };
+  currentPlatform = fallback;
+  return fallback;
+}
+async function initializePlatform(adapter) {
+  const adapterInfo = adapter.info;
+  const platform = await detectPlatform(adapterInfo);
+  const features = adapter.features;
+  currentCapabilities = {
+    hasF16: features.has("shader-f16"),
+    hasSubgroups: features.has("subgroups"),
+    subgroupSize: features.has("subgroups") ? 32 : void 0,
+    // TODO: detect actual size
+    maxWorkgroupSize: adapter.limits.maxComputeWorkgroupSizeX,
+    maxSharedMemory: adapter.limits.maxComputeWorkgroupStorageSize,
+    maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
+    maxBufferSize: adapter.limits.maxBufferSize
+  };
+  return {
+    platform,
+    capabilities: currentCapabilities
+  };
+}
+function getPlatform() {
+  if (!currentPlatform) {
+    throw new Error("Platform not initialized. Call initializePlatform() first.");
+  }
+  return currentPlatform;
+}
+function getCapabilities() {
+  if (!currentCapabilities) {
+    throw new Error("Platform not initialized. Call initializePlatform() first.");
+  }
+  return currentCapabilities;
+}
+function getKernelOverride(operation) {
+  const platform = getPlatform();
+  return platform.kernelOverrides?.[operation];
+}
+function getPreferredVariant(operation) {
+  return getKernelOverride(operation)?.preferred;
+}
+function shouldAvoidVariant(operation, variant) {
+  const override = getKernelOverride(operation);
+  return override?.avoid?.includes(variant) ?? false;
+}
+function getWorkgroupOverride(operation, variant) {
+  const override = getKernelOverride(operation);
+  return override?.workgroupOverrides?.[variant];
+}
+function getWgslOverrides(operation, variant) {
+  const override = getKernelOverride(operation);
+  return override?.wgslOverrides?.[variant];
+}
+function getMemoryHints() {
+  return getPlatform().memoryHints;
+}
+function prefersUnifiedMemory() {
+  return getMemoryHints()?.preferUnifiedMemory ?? false;
+}
+function getBufferAlignment() {
+  return getMemoryHints()?.bufferAlignment ?? 256;
+}
+function clearPlatformCache() {
+  platformCache.clear();
+  currentPlatform = null;
+  currentCapabilities = null;
+}
+function getResolvedPlatformConfig() {
+  return {
+    platform: getPlatform(),
+    capabilities: getCapabilities()
+  };
+}
+var currentPlatform, currentCapabilities, platformCache, platformsBaseUrl, PLATFORM_FILES;
+var init_loader = __esm({
+  "../src/config/platforms/loader.js"() {
+    currentPlatform = null;
+    currentCapabilities = null;
+    platformCache = /* @__PURE__ */ new Map();
+    platformsBaseUrl = null;
+    PLATFORM_FILES = [
+      "apple-m3",
+      "apple-m2",
+      "apple-m1",
+      "nvidia-rtx40",
+      "nvidia-rtx30",
+      "amd-rdna3",
+      "generic"
+      // Fallback
+    ];
+  }
+});
+
+// ../src/config/kernels/registry.js
+var registry_exports = {};
+__export(registry_exports, {
+  clearRegistryCache: () => clearRegistryCache,
+  getAvailableVariants: () => getAvailableVariants,
+  getOperation: () => getOperation,
+  getRegistry: () => getRegistry,
+  getRegistrySync: () => getRegistrySync,
+  getVariant: () => getVariant,
+  getVariantNames: () => getVariantNames,
+  isVariantAvailable: () => isVariantAvailable,
+  mergeBindings: () => mergeBindings2,
+  resolveKernelConfig: () => resolveKernelConfig2,
+  setRegistryUrl: () => setRegistryUrl
+});
+function setRegistryUrl(url) {
+  registryUrl = url;
+  cachedRegistry = null;
+}
+async function getRegistry() {
+  if (cachedRegistry) {
+    return cachedRegistry;
+  }
+  const url = registryUrl || new URL("./registry.json", import.meta.url).href;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load kernel registry from ${url}: ${response.status}`);
+  }
+  cachedRegistry = await response.json();
+  return cachedRegistry;
+}
+function getRegistrySync() {
+  if (!cachedRegistry) {
+    throw new Error("Kernel registry not loaded. Call await getRegistry() first.");
+  }
+  return cachedRegistry;
+}
+function clearRegistryCache() {
+  cachedRegistry = null;
+}
+function getOperation(operation) {
+  const registry = getRegistrySync();
+  return registry.operations[operation];
+}
+function getVariant(operation, variant) {
+  const op = getOperation(operation);
+  return op?.variants[variant];
+}
+function getVariantNames(operation) {
+  const op = getOperation(operation);
+  return op ? Object.keys(op.variants) : [];
+}
+function isVariantAvailable(operation, variant, capabilities) {
+  const variantSchema = getVariant(operation, variant);
+  if (!variantSchema)
+    return false;
+  const requires = variantSchema.requires || [];
+  for (const req of requires) {
+    if (req === "shader-f16" && !capabilities.hasF16)
+      return false;
+    if (req === "subgroups" && !capabilities.hasSubgroups)
+      return false;
+    if (req === "subgroups-f16" && (!capabilities.hasSubgroups || !capabilities.hasF16))
+      return false;
+  }
+  return true;
+}
+function getAvailableVariants(operation, capabilities) {
+  return getVariantNames(operation).filter((v) => isVariantAvailable(operation, v, capabilities));
+}
+function mergeBindings2(base, override) {
+  if (!override || override.length === 0) {
+    return [...base];
+  }
+  const result = [...base];
+  for (const binding of override) {
+    const existingIdx = result.findIndex((b) => b.index === binding.index);
+    if (existingIdx >= 0) {
+      result[existingIdx] = binding;
+    } else {
+      result.push(binding);
+    }
+  }
+  return result.sort((a, b) => a.index - b.index);
+}
+function resolveKernelConfig2(operation, variant) {
+  const opSchema = getOperation(operation);
+  const variantSchema = getVariant(operation, variant);
+  if (!opSchema || !variantSchema) {
+    return null;
+  }
+  return {
+    operation,
+    variant,
+    wgsl: variantSchema.wgsl,
+    entryPoint: variantSchema.entryPoint,
+    workgroup: variantSchema.workgroup,
+    requires: variantSchema.requires ?? [],
+    bindings: mergeBindings2(opSchema.baseBindings, variantSchema.bindingsOverride),
+    uniforms: variantSchema.uniformsOverride ?? opSchema.baseUniforms,
+    wgslOverrides: variantSchema.wgslOverrides ?? {},
+    sharedMemory: variantSchema.sharedMemory ?? 0
+  };
+}
+var cachedRegistry, registryUrl;
+var init_registry = __esm({
+  "../src/config/kernels/registry.js"() {
+    cachedRegistry = null;
+    registryUrl = null;
+  }
+});
+
+// ../src/gpu/device.ts
 function isWebGPUAvailable() {
   return typeof navigator !== "undefined" && "gpu" in navigator;
 }
@@ -202,9 +1632,28 @@ function buildLimits(adapter) {
     maxUniformBufferBindingSize: adapterLimits.maxUniformBufferBindingSize
   };
 }
+async function initializePlatformAndRegistry(adapter) {
+  if (platformInitialized) {
+    return;
+  }
+  platformInitialized = true;
+  try {
+    const [platformLoader, kernelRegistry] = await Promise.all([
+      Promise.resolve().then(() => (init_loader(), loader_exports)),
+      Promise.resolve().then(() => (init_registry(), registry_exports))
+    ]);
+    resolvedPlatformConfig = await platformLoader.initializePlatform(adapter);
+    await kernelRegistry.getRegistry();
+    log.debug("GPU", "Platform: " + resolvedPlatformConfig.platform.name + " (" + resolvedPlatformConfig.platform.id + ")");
+    log.debug("GPU", "Capabilities: f16=" + resolvedPlatformConfig.capabilities.hasF16 + ", subgroups=" + resolvedPlatformConfig.capabilities.hasSubgroups);
+  } catch (e) {
+    log.warn("GPU", "Platform/registry init failed (non-fatal): " + e.message);
+    resolvedPlatformConfig = null;
+  }
+}
 async function initDevice() {
-  if (gpuDevice) {
-    return gpuDevice;
+  if (gpuDevice2) {
+    return gpuDevice2;
   }
   if (!isWebGPUAvailable()) {
     throw new Error("WebGPU is not available in this browser");
@@ -213,36 +1662,39 @@ async function initDevice() {
   if (!adapter) {
     throw new Error("Failed to get WebGPU adapter");
   }
+  await initializePlatformAndRegistry(adapter);
   const availableFeatures = detectFeatures(adapter);
   const requestedFeatures = buildFeatureRequests(availableFeatures);
   const limits = buildLimits(adapter);
   const adapterInfo = adapter.info || { vendor: "unknown", architecture: "unknown", device: "unknown", description: "" };
   try {
-    gpuDevice = await adapter.requestDevice({
+    gpuDevice2 = await adapter.requestDevice({
       requiredFeatures: requestedFeatures,
       requiredLimits: limits
     });
   } catch (e) {
-    console.warn("[DOPPLER GPU] Failed to request device with features, trying minimal config:", e.message);
-    gpuDevice = await adapter.requestDevice();
+    log.warn("GPU", "Failed to request device with features, trying minimal config: " + e.message);
+    gpuDevice2 = await adapter.requestDevice();
   }
-  if (!gpuDevice) {
+  if (!gpuDevice2) {
     throw new Error("Failed to create WebGPU device");
   }
-  gpuDevice.lost.then((info) => {
-    console.error("[DOPPLER GPU] Device lost:", info.message, "Reason:", info.reason);
-    gpuDevice = null;
+  gpuDevice2.lost.then((info) => {
+    log.error("GPU", "Device lost: " + info.message + ", Reason: " + info.reason);
+    gpuDevice2 = null;
     kernelCapabilities = null;
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
   });
-  wrapQueueForTracking(gpuDevice.queue);
+  wrapQueueForTracking(gpuDevice2.queue);
   kernelCapabilities = {
-    hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
-    hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
-    hasF16: gpuDevice.features.has(FEATURES.SHADER_F16),
-    hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
-    maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
-    maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
-    maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
+    hasSubgroups: gpuDevice2.features.has(FEATURES.SUBGROUPS),
+    hasSubgroupsF16: gpuDevice2.features.has(FEATURES.SUBGROUPS_F16),
+    hasF16: gpuDevice2.features.has(FEATURES.SHADER_F16),
+    hasTimestampQuery: gpuDevice2.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: gpuDevice2.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: gpuDevice2.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: gpuDevice2.limits.maxComputeWorkgroupStorageSize,
     adapterInfo: {
       vendor: adapterInfo.vendor || "unknown",
       architecture: adapterInfo.architecture || "unknown",
@@ -254,8 +1706,8 @@ async function initDevice() {
     kernelCapabilities.hasF16 && "f16",
     kernelCapabilities.hasSubgroups && "subgroups"
   ].filter(Boolean).join("/") || "basic";
-  console.log(`[GPU] ${adapterInfo.vendor || "unknown"} ${adapterInfo.architecture || adapterInfo.device || ""}, ${features}, ${(kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(1)}GB`);
-  return gpuDevice;
+  console.log("[GPU] " + (adapterInfo.vendor || "unknown") + " " + (adapterInfo.architecture || adapterInfo.device || "") + ", " + features + ", " + (kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(1) + "GB");
+  return gpuDevice2;
 }
 function getKernelCapabilities() {
   if (!kernelCapabilities) {
@@ -264,37 +1716,40 @@ function getKernelCapabilities() {
   return { ...kernelCapabilities };
 }
 function getDevice() {
-  return gpuDevice;
+  return gpuDevice2;
 }
 function hasFeature(feature) {
-  if (!gpuDevice) {
+  if (!gpuDevice2) {
     return false;
   }
-  return gpuDevice.features.has(feature);
+  return gpuDevice2.features.has(feature);
 }
 function getDeviceLimits() {
-  if (!gpuDevice) {
+  if (!gpuDevice2) {
     return null;
   }
   return {
-    maxStorageBufferBindingSize: gpuDevice.limits.maxStorageBufferBindingSize,
-    maxBufferSize: gpuDevice.limits.maxBufferSize,
-    maxComputeWorkgroupSizeX: gpuDevice.limits.maxComputeWorkgroupSizeX,
-    maxComputeWorkgroupSizeY: gpuDevice.limits.maxComputeWorkgroupSizeY,
-    maxComputeWorkgroupSizeZ: gpuDevice.limits.maxComputeWorkgroupSizeZ,
-    maxComputeInvocationsPerWorkgroup: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
-    maxComputeWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
-    maxStorageBuffersPerShaderStage: gpuDevice.limits.maxStorageBuffersPerShaderStage,
-    maxUniformBufferBindingSize: gpuDevice.limits.maxUniformBufferBindingSize,
-    maxComputeWorkgroupsPerDimension: gpuDevice.limits.maxComputeWorkgroupsPerDimension
+    maxStorageBufferBindingSize: gpuDevice2.limits.maxStorageBufferBindingSize,
+    maxBufferSize: gpuDevice2.limits.maxBufferSize,
+    maxComputeWorkgroupSizeX: gpuDevice2.limits.maxComputeWorkgroupSizeX,
+    maxComputeWorkgroupSizeY: gpuDevice2.limits.maxComputeWorkgroupSizeY,
+    maxComputeWorkgroupSizeZ: gpuDevice2.limits.maxComputeWorkgroupSizeZ,
+    maxComputeInvocationsPerWorkgroup: gpuDevice2.limits.maxComputeInvocationsPerWorkgroup,
+    maxComputeWorkgroupStorageSize: gpuDevice2.limits.maxComputeWorkgroupStorageSize,
+    maxStorageBuffersPerShaderStage: gpuDevice2.limits.maxStorageBuffersPerShaderStage,
+    maxUniformBufferBindingSize: gpuDevice2.limits.maxUniformBufferBindingSize,
+    maxComputeWorkgroupsPerDimension: gpuDevice2.limits.maxComputeWorkgroupsPerDimension
   };
 }
-var gpuDevice, kernelCapabilities, FEATURES;
+var gpuDevice2, kernelCapabilities, resolvedPlatformConfig, platformInitialized, FEATURES;
 var init_device = __esm({
-  "gpu/device.ts"() {
+  "../src/gpu/device.ts"() {
     init_submit_tracker();
-    gpuDevice = null;
+    init_debug();
+    gpuDevice2 = null;
     kernelCapabilities = null;
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
     FEATURES = {
       SHADER_F16: "shader-f16",
       SUBGROUPS: "subgroups",
@@ -304,7 +1759,7 @@ var init_device = __esm({
   }
 });
 
-// gpu/buffer-dtypes.ts
+// ../src/gpu/buffer-dtypes.ts
 function setBufferDtype(buffer, dtype) {
   if (buffer)
     dtypeMap.set(buffer, dtype);
@@ -320,18 +1775,19 @@ function isColumnMajorBuffer(buffer) {
 }
 var dtypeMap, layoutMap;
 var init_buffer_dtypes = __esm({
-  "gpu/buffer-dtypes.ts"() {
+  "../src/gpu/buffer-dtypes.ts"() {
     dtypeMap = /* @__PURE__ */ new WeakMap();
     layoutMap = /* @__PURE__ */ new WeakMap();
   }
 });
 
-// gpu/profiler.ts
+// ../src/gpu/profiler.ts
 var GPUProfiler;
 var init_profiler = __esm({
-  "gpu/profiler.ts"() {
+  "../src/gpu/profiler.ts"() {
     init_device();
     init_perf_guards();
+    init_debug();
     GPUProfiler = class {
       device;
       hasTimestampQuery;
@@ -381,7 +1837,7 @@ var init_profiler = __esm({
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
           });
         } catch (e) {
-          console.warn("[GPUProfiler] Failed to create timestamp query resources:", e);
+          log.warn("GPUProfiler", `Failed to create timestamp query resources: ${e}`);
           this.hasTimestampQuery = false;
         }
       }
@@ -391,7 +1847,7 @@ var init_profiler = __esm({
        */
       begin(label) {
         if (this.activeLabels.has(label)) {
-          console.warn(`[GPUProfiler] Label "${label}" already active`);
+          log.warn("GPUProfiler", `Label "${label}" already active`);
           return;
         }
         const startTime = performance.now();
@@ -399,7 +1855,7 @@ var init_profiler = __esm({
           const queryIndex = this.nextQueryIndex;
           this.nextQueryIndex += 2;
           if (queryIndex >= this.queryCapacity * 2) {
-            console.warn("[GPUProfiler] Query capacity exceeded, resetting");
+            log.warn("GPUProfiler", "Query capacity exceeded, resetting");
             this.nextQueryIndex = 0;
           }
           this.activeLabels.set(label, {
@@ -419,7 +1875,7 @@ var init_profiler = __esm({
       end(label) {
         const active = this.activeLabels.get(label);
         if (!active) {
-          console.warn(`[GPUProfiler] No active measurement for label "${label}"`);
+          log.warn("GPUProfiler", `No active measurement for label "${label}"`);
           return;
         }
         const endTime = performance.now();
@@ -479,7 +1935,7 @@ var init_profiler = __esm({
           return;
         }
         if (!this.device || !this.querySet || !this.queryBuffer || !this.readbackBuffer) {
-          console.warn("[GPUProfiler] Missing required resources for resolve");
+          log.warn("GPUProfiler", "Missing required resources for resolve");
           return;
         }
         const encoder = this.device.createCommandEncoder();
@@ -635,7 +2091,10 @@ var init_profiler = __esm({
   }
 });
 
-// gpu/kernel-tuner.ts
+// ../src/gpu/kernel-tuner.ts
+function getTunerConfig() {
+  return getRuntimeConfig().tuner;
+}
 async function getKernelTuner() {
   if (!globalTuner) {
     globalTuner = new KernelTuner();
@@ -643,14 +2102,13 @@ async function getKernelTuner() {
   }
   return globalTuner;
 }
-var CACHE_PREFIX, DEFAULT_WARMUP, DEFAULT_ITERATIONS, KernelTuner, globalTuner;
+var KernelTuner, globalTuner;
 var init_kernel_tuner = __esm({
-  "gpu/kernel-tuner.ts"() {
+  "../src/gpu/kernel-tuner.ts"() {
     init_device();
     init_profiler();
-    CACHE_PREFIX = "doppler_kernel_tune_";
-    DEFAULT_WARMUP = 3;
-    DEFAULT_ITERATIONS = 10;
+    init_debug();
+    init_runtime();
     KernelTuner = class {
       device;
       profiler;
@@ -693,7 +2151,7 @@ var init_kernel_tuner = __esm({
         if (typeof localStorage === "undefined")
           return;
         const signature = this._getDeviceSignature();
-        const cacheKey = CACHE_PREFIX + signature;
+        const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
         try {
           const cached = localStorage.getItem(cacheKey);
           if (cached) {
@@ -701,7 +2159,7 @@ var init_kernel_tuner = __esm({
             this.cache = new Map(Object.entries(data));
           }
         } catch (e) {
-          console.warn("[KernelTuner] Failed to load cache:", e);
+          log.warn("KernelTuner", `Failed to load cache: ${e}`);
         }
       }
       /**
@@ -712,12 +2170,12 @@ var init_kernel_tuner = __esm({
         if (typeof localStorage === "undefined")
           return;
         const signature = this._getDeviceSignature();
-        const cacheKey = CACHE_PREFIX + signature;
+        const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
         try {
           const data = Object.fromEntries(this.cache);
           localStorage.setItem(cacheKey, JSON.stringify(data));
         } catch (e) {
-          console.warn("[KernelTuner] Failed to save cache:", e);
+          log.warn("KernelTuner", `Failed to save cache: ${e}`);
         }
       }
       /**
@@ -752,8 +2210,8 @@ var init_kernel_tuner = __esm({
        */
       async tuneKernel(kernelName, inputSizes, options = {}) {
         const {
-          warmup = DEFAULT_WARMUP,
-          iterations = DEFAULT_ITERATIONS,
+          warmup = getTunerConfig().defaultWarmupIterations,
+          iterations = getTunerConfig().defaultTimedIterations,
           forceRetune = false
         } = options;
         const cacheKey = `${kernelName}_${JSON.stringify(inputSizes)}`;
@@ -1567,7 +3025,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         this.cache.clear();
         if (typeof localStorage !== "undefined") {
           const signature = this._getDeviceSignature();
-          localStorage.removeItem(CACHE_PREFIX + signature);
+          localStorage.removeItem(getTunerConfig().cacheKeyPrefix + signature);
         }
       }
       /**
@@ -1590,7 +3048,179 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 });
 
-// gpu/kernels/utils.ts
+// ../src/gpu/uniform-cache.ts
+function hashArrayBuffer(data) {
+  const view = new Uint8Array(data);
+  let hash = 2166136261;
+  for (let i = 0; i < view.length; i++) {
+    hash ^= view[i];
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+function releaseUniformBuffer(buffer) {
+  const cache = getUniformCache();
+  if (cache.isCached(buffer)) {
+    cache.release(buffer);
+  } else {
+    buffer.destroy();
+  }
+}
+function getUniformCache() {
+  if (!globalUniformCache) {
+    globalUniformCache = new UniformBufferCache();
+  }
+  return globalUniformCache;
+}
+var UniformBufferCache, globalUniformCache;
+var init_uniform_cache = __esm({
+  "../src/gpu/uniform-cache.ts"() {
+    init_device();
+    init_runtime();
+    UniformBufferCache = class {
+      cache = /* @__PURE__ */ new Map();
+      stats = {
+        hits: 0,
+        misses: 0,
+        evictions: 0,
+        currentSize: 0
+      };
+      maxEntries;
+      maxAgeMs;
+      constructor(maxEntries = getRuntimeConfig().gpuCache.uniformCacheMaxEntries, maxAgeMs = getRuntimeConfig().gpuCache.uniformCacheMaxAgeMs) {
+        this.maxEntries = maxEntries;
+        this.maxAgeMs = maxAgeMs;
+      }
+      /**
+       * Get or create a uniform buffer with the given contents.
+       * Returns a cached buffer if one exists with identical data.
+       */
+      getOrCreate(data, label) {
+        const hash = hashArrayBuffer(data);
+        const existing = this.cache.get(hash);
+        if (existing) {
+          existing.lastUsed = performance.now();
+          existing.refCount++;
+          this.stats.hits++;
+          return existing.buffer;
+        }
+        this.stats.misses++;
+        const device2 = getDevice();
+        if (!device2) {
+          throw new Error("GPU device not initialized");
+        }
+        const buffer = device2.createBuffer({
+          label: `${label}_cached`,
+          size: data.byteLength,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        device2.queue.writeBuffer(buffer, 0, data);
+        if (this.cache.size >= this.maxEntries) {
+          this.evictLRU();
+        }
+        this.cache.set(hash, {
+          buffer,
+          lastUsed: performance.now(),
+          refCount: 1
+        });
+        this.stats.currentSize = this.cache.size;
+        return buffer;
+      }
+      /**
+       * Release a reference to a cached buffer.
+       * Buffer is NOT destroyed - it stays in cache for reuse.
+       * Call this instead of buffer.destroy() for cached uniforms.
+       */
+      release(buffer) {
+        for (const [hash, entry] of this.cache) {
+          if (entry.buffer === buffer) {
+            entry.refCount = Math.max(0, entry.refCount - 1);
+            return;
+          }
+        }
+      }
+      /**
+       * Evict least recently used entry
+       */
+      evictLRU() {
+        let oldestHash = null;
+        let oldestTime = Infinity;
+        for (const [hash, entry] of this.cache) {
+          if (entry.refCount === 0 && entry.lastUsed < oldestTime) {
+            oldestTime = entry.lastUsed;
+            oldestHash = hash;
+          }
+        }
+        if (oldestHash === null) {
+          for (const [hash, entry] of this.cache) {
+            if (entry.lastUsed < oldestTime) {
+              oldestTime = entry.lastUsed;
+              oldestHash = hash;
+            }
+          }
+        }
+        if (oldestHash) {
+          const entry = this.cache.get(oldestHash);
+          if (entry) {
+            entry.buffer.destroy();
+            this.cache.delete(oldestHash);
+            this.stats.evictions++;
+            this.stats.currentSize = this.cache.size;
+          }
+        }
+      }
+      /**
+       * Evict stale entries (older than maxAgeMs)
+       */
+      evictStale() {
+        const now = performance.now();
+        let evicted = 0;
+        for (const [hash, entry] of this.cache) {
+          if (entry.refCount === 0 && now - entry.lastUsed > this.maxAgeMs) {
+            entry.buffer.destroy();
+            this.cache.delete(hash);
+            evicted++;
+          }
+        }
+        this.stats.evictions += evicted;
+        this.stats.currentSize = this.cache.size;
+        return evicted;
+      }
+      /**
+       * Clear all cached buffers
+       */
+      clear() {
+        for (const entry of this.cache.values()) {
+          entry.buffer.destroy();
+        }
+        this.cache.clear();
+        this.stats.currentSize = 0;
+      }
+      /**
+       * Check if a buffer is managed by this cache
+       */
+      isCached(buffer) {
+        for (const entry of this.cache.values()) {
+          if (entry.buffer === buffer) {
+            return true;
+          }
+        }
+        return false;
+      }
+      /**
+       * Get cache statistics
+       */
+      getStats() {
+        const total = this.stats.hits + this.stats.misses;
+        const hitRate = total > 0 ? (this.stats.hits / total * 100).toFixed(1) + "%" : "0%";
+        return { ...this.stats, hitRate };
+      }
+    };
+    globalUniformCache = null;
+  }
+});
+
+// ../src/gpu/kernels/utils.ts
 function getKernelBasePath() {
   if (typeof location !== "undefined") {
     const path = location.pathname;
@@ -1619,9 +3249,7 @@ function validateAttentionLimits(seqLen, numHeads, headDim) {
   const tileSize = 64;
   const sharedMemRequired = tileSize * headDim * 4 * 2;
   if (sharedMemRequired > limits.maxComputeWorkgroupStorageSize) {
-    console.warn(
-      `[KernelSelector] Attention may be slow: tile requires ${sharedMemRequired} bytes but device has ${limits.maxComputeWorkgroupStorageSize} bytes shared memory.`
-    );
+    log.warn("KernelSelector", `Attention may be slow: tile requires ${sharedMemRequired} bytes but device has ${limits.maxComputeWorkgroupStorageSize} bytes shared memory.`);
   }
 }
 async function loadShaderSource(filename) {
@@ -1638,7 +3266,7 @@ async function loadShaderSource(filename) {
     shaderSourceCache.set(filename, source);
     return source;
   } catch (error) {
-    console.error(`[KernelSelector] Failed to load shader ${filename}:`, error);
+    log.error("KernelSelector", `Failed to load shader ${filename}: ${error}`);
     throw error;
   }
 }
@@ -1668,8 +3296,13 @@ async function compileShader(device2, source, label) {
   const compilationInfo = await module.getCompilationInfo();
   if (compilationInfo.messages.length > 0) {
     for (const msg of compilationInfo.messages) {
-      const type = msg.type === "error" ? "ERROR" : msg.type === "warning" ? "WARN" : "INFO";
-      console.log(`[DEBUG compileShader ${label}] ${type}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      if (msg.type === "error") {
+        log.error("compileShader", `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      } else if (msg.type === "warning") {
+        log.warn("compileShader", `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      } else {
+        log.debug("compileShader", `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+      }
     }
     if (compilationInfo.messages.some((m) => m.type === "error")) {
       throw new Error(`Shader compilation failed for ${label}`);
@@ -1723,6 +3356,17 @@ function getOrCreatePipelineLayout(label, bindGroupLayouts, deviceOverride = nul
   });
   pipelineLayoutCache.set(label, layout);
   return layout;
+}
+function getCachedPipeline(operation, variant) {
+  const cacheKey = `${operation}:${variant}`;
+  return pipelineCache.get(cacheKey) || null;
+}
+async function getPipelineFast(operation, variant, bindGroupLayout = null) {
+  const cached = getCachedPipeline(operation, variant);
+  if (cached) {
+    return cached;
+  }
+  return createPipeline(operation, variant, bindGroupLayout);
 }
 async function createPipeline(operation, variant, bindGroupLayout = null) {
   const cacheKey = `${operation}:${variant}`;
@@ -1783,7 +3427,7 @@ async function getTunedWorkgroupSize(operation, inputSizes = {}) {
     const tuneResult = await tuner.tuneKernel(operation, inputSizes);
     return tuneResult.optimalWorkgroupSize;
   } catch (e) {
-    console.warn(`[KernelSelector] Tuning failed for ${operation}, using defaults:`, e.message);
+    log.warn("KernelSelector", `Tuning failed for ${operation}, using defaults: ${e.message}`);
     switch (operation) {
       case "matmul":
         return [16, 16, 1];
@@ -1835,7 +3479,7 @@ async function autoTuneKernels(modelConfig = {}) {
   results.dequant = await tuner.tuneKernel("dequant", {
     numBlocks: 1e3
   });
-  console.log("[KernelSelector] Auto-tuning complete:", results);
+  log.debug("KernelSelector", `Auto-tuning complete: ${JSON.stringify(results)}`);
   return results;
 }
 async function prewarmKernels(options = {}) {
@@ -1853,11 +3497,11 @@ async function prewarmKernels(options = {}) {
           await createPipeline(operation, variant);
           count += 1;
         } catch (e) {
-          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+          log.warn("KernelSelector", `Prewarm failed for ${operation}/${variant}: ${e.message}`);
         }
       }
     }
-    console.log(`[KernelSelector] Prewarmed ${count} kernel pipelines`);
+    log.debug("KernelSelector", `Prewarmed ${count} kernel pipelines`);
     return;
   }
   const jobs = [];
@@ -1869,29 +3513,34 @@ async function prewarmKernels(options = {}) {
       jobs.push(
         createPipeline(operation, variant).then(() => {
         }).catch((e) => {
-          console.warn(`[KernelSelector] Prewarm failed for ${operation}/${variant}:`, e.message);
+          log.warn("KernelSelector", `Prewarm failed for ${operation}/${variant}: ${e.message}`);
         })
       );
     }
   }
   await Promise.all(jobs);
-  console.log(`[KernelSelector] Prewarmed ${jobs.length} kernel pipelines`);
+  log.debug("KernelSelector", `Prewarmed ${jobs.length} kernel pipelines`);
 }
-function createUniformBufferFromData(label, data, recorder, deviceOverride) {
+function createUniformBufferFromData(label, data, recorder, deviceOverride, options) {
   if (recorder) {
     return recorder.createUniformBuffer(data, label);
+  }
+  const arrayBuffer = data instanceof ArrayBuffer ? data : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+  const useCache = options?.useCache ?? true;
+  if (useCache && !deviceOverride) {
+    return getUniformCache().getOrCreate(arrayBuffer, label);
   }
   const device2 = deviceOverride ?? getDevice();
   if (!device2) {
     throw new Error("GPU device not initialized");
   }
-  const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
+  const byteLength = arrayBuffer.byteLength;
   const buffer = device2.createBuffer({
     label,
     size: byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
   });
-  device2.queue.writeBuffer(buffer, 0, data);
+  device2.queue.writeBuffer(buffer, 0, arrayBuffer);
   return buffer;
 }
 function createUniformBufferWithView(label, byteLength, writer, recorder, deviceOverride) {
@@ -1902,9 +3551,11 @@ function createUniformBufferWithView(label, byteLength, writer, recorder, device
 }
 var shaderSourceCache, shaderModuleCache, pipelineCache, bindGroupLayoutCache, pipelineLayoutCache, KERNEL_BASE_PATH, KERNEL_CONFIGS;
 var init_utils = __esm({
-  "gpu/kernels/utils.ts"() {
+  "../src/gpu/kernels/utils.ts"() {
     init_device();
     init_kernel_tuner();
+    init_uniform_cache();
+    init_debug();
     shaderSourceCache = /* @__PURE__ */ new Map();
     shaderModuleCache = /* @__PURE__ */ new Map();
     pipelineCache = /* @__PURE__ */ new Map();
@@ -2114,6 +3765,13 @@ var init_utils = __esm({
           entryPoint: "main",
           workgroupSize: [256, 1, 1],
           requires: ["shader-f16"]
+        },
+        // Q8_0 dequantization (GGUF 8-bit quantization)
+        q8_0_f16out: {
+          shaderFile: "dequant_q8_0.wgsl",
+          entryPoint: "main",
+          workgroupSize: [32, 1, 1],
+          requires: ["shader-f16"]
         }
       },
       attention: {
@@ -2256,6 +3914,16 @@ var init_utils = __esm({
         phase1: {
           shaderFile: "fused_matmul_rmsnorm.wgsl",
           entryPoint: "gemv_rmsnorm_phase1",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        }
+      },
+      // Fused GEMV + Residual for decode (M=1)
+      // Combines output projection matmul with residual add in single kernel
+      fused_matmul_residual: {
+        default: {
+          shaderFile: "matmul_gemv_residual.wgsl",
+          entryPoint: "main",
           workgroupSize: [256, 1, 1],
           requires: []
         }
@@ -2487,6 +4155,12 @@ var init_utils = __esm({
           entryPoint: "gather_single_pass",
           workgroupSize: [256, 1, 1],
           requires: []
+        },
+        sparse: {
+          shaderFile: "moe_gather.wgsl",
+          entryPoint: "count_and_map",
+          workgroupSize: [256, 1, 1],
+          requires: []
         }
       },
       swiglu: {
@@ -2511,6 +4185,15 @@ var init_utils = __esm({
           entryPoint: "main",
           workgroupSize: [256, 1, 1],
           requires: ["shader-f16"]
+        }
+      },
+      // Split fused QKV output into separate Q, K, V buffers
+      split_qkv: {
+        default: {
+          shaderFile: "split_qkv.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: []
         }
       },
       sample: {
@@ -2571,7 +4254,7 @@ var init_utils = __esm({
   }
 });
 
-// gpu/buffer-pool.ts
+// ../src/gpu/buffer-pool.ts
 var buffer_pool_exports = {};
 __export(buffer_pool_exports, {
   BufferPool: () => BufferPool,
@@ -2591,23 +4274,23 @@ __export(buffer_pool_exports, {
 function alignTo(size, alignment) {
   return Math.ceil(size / alignment) * alignment;
 }
-function getSizeBucket(size, maxAllowedSize = Infinity) {
-  const minBucket = 256;
+function getSizeBucket(size, maxAllowedSize = Infinity, bucketConfig = getRuntimeConfig().bufferPool.bucket) {
+  const minBucket = bucketConfig.minBucketSizeBytes;
   if (size <= minBucket)
     return minBucket;
-  const largeThreshold = 32 * 1024 * 1024;
+  const largeThreshold = bucketConfig.largeBufferThresholdBytes;
   if (size >= largeThreshold) {
-    const largeStep = 16 * 1024 * 1024;
+    const largeStep = bucketConfig.largeBufferStepBytes;
     const bucket2 = Math.ceil(size / largeStep) * largeStep;
     if (bucket2 > maxAllowedSize) {
-      return alignTo(size, 256);
+      return alignTo(size, minBucket);
     }
     return bucket2;
   }
   const bits = 32 - Math.clz32(size - 1);
   const bucket = Math.pow(2, bits);
   if (bucket > maxAllowedSize) {
-    return alignTo(size, 256);
+    return alignTo(size, minBucket);
   }
   return bucket;
 }
@@ -2617,8 +4300,8 @@ function getBufferPool() {
   }
   return globalPool;
 }
-function createBufferPool(debugMode) {
-  return new BufferPool(debugMode);
+function createBufferPool(debugMode, schemaConfig) {
+  return new BufferPool(debugMode, schemaConfig);
 }
 function destroyBufferPool() {
   if (globalPool) {
@@ -2637,9 +4320,11 @@ async function withBuffer(size, usage, fn) {
 }
 var BufferUsage, BufferPool, globalPool, createStagingBuffer, createUploadBuffer, createUniformBuffer, acquireBuffer, releaseBuffer, uploadData, readBuffer;
 var init_buffer_pool = __esm({
-  "gpu/buffer-pool.ts"() {
+  "../src/gpu/buffer-pool.ts"() {
     init_device();
     init_perf_guards();
+    init_debug();
+    init_runtime();
     BufferUsage = {
       STORAGE: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
       STORAGE_READ: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -2659,13 +4344,16 @@ var init_buffer_pool = __esm({
       stats;
       // Configuration
       config;
+      // Schema-based configuration
+      schemaConfig;
       // Debug mode flag
       debugMode;
-      constructor(debugMode = false) {
+      constructor(debugMode = false, schemaConfig) {
         this.pools = /* @__PURE__ */ new Map();
         this.activeBuffers = /* @__PURE__ */ new Set();
         this.bufferMetadata = /* @__PURE__ */ new Map();
         this.debugMode = debugMode;
+        this.schemaConfig = schemaConfig ?? getRuntimeConfig().bufferPool;
         this.stats = {
           allocations: 0,
           reuses: 0,
@@ -2674,13 +4362,10 @@ var init_buffer_pool = __esm({
           currentBytesAllocated: 0
         };
         this.config = {
-          maxPoolSizePerBucket: 8,
-          // Max buffers per size bucket
-          maxTotalPooledBuffers: 64,
-          // Max total pooled buffers
+          maxPoolSizePerBucket: this.schemaConfig.limits.maxBuffersPerBucket,
+          maxTotalPooledBuffers: this.schemaConfig.limits.maxTotalPooledBuffers,
           enablePooling: true,
-          alignmentBytes: 256
-          // WebGPU buffer alignment
+          alignmentBytes: this.schemaConfig.alignment.alignmentBytes
         };
       }
       /**
@@ -2697,7 +4382,7 @@ var init_buffer_pool = __esm({
         const isStorageBuffer = (usage & GPUBufferUsage.STORAGE) !== 0;
         const alignedSize = alignTo(size, this.config.alignmentBytes);
         const maxAllowedBucket = isStorageBuffer ? Math.min(maxSize, maxStorageSize) : maxSize;
-        const bucket = getSizeBucket(alignedSize, maxAllowedBucket);
+        const bucket = getSizeBucket(alignedSize, maxAllowedBucket, this.schemaConfig.bucket);
         if (bucket > maxSize) {
           throw new Error(
             `Buffer size ${bucket} exceeds device maxBufferSize (${maxSize}). Requested: ${size} bytes, bucketed to: ${bucket} bytes.`
@@ -2743,7 +4428,7 @@ var init_buffer_pool = __esm({
        */
       release(buffer) {
         if (!this.activeBuffers.has(buffer)) {
-          console.warn("[BufferPool] Releasing buffer not tracked as active");
+          log.warn("BufferPool", "Releasing buffer not tracked as active");
           return;
         }
         this.activeBuffers.delete(buffer);
@@ -2818,7 +4503,7 @@ var init_buffer_pool = __esm({
        */
       detectLeaks(thresholdMs = 6e4) {
         if (!this.debugMode) {
-          console.warn("[BufferPool] Leak detection requires debug mode");
+          log.warn("BufferPool", "Leak detection requires debug mode");
           return [];
         }
         const now = Date.now();
@@ -2940,7 +4625,7 @@ var init_buffer_pool = __esm({
   }
 });
 
-// gpu/kernels/dispatch.ts
+// ../src/gpu/kernels/dispatch.ts
 function dispatch(device2, pipeline, bindGroup, workgroups, label = "compute") {
   const encoder = device2.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
@@ -2966,11 +4651,11 @@ function recordDispatch(recorder, pipeline, bindGroup, workgroups, label = "comp
   pass.end();
 }
 var init_dispatch = __esm({
-  "gpu/kernels/dispatch.ts"() {
+  "../src/gpu/kernels/dispatch.ts"() {
   }
 });
 
-// gpu/kernels/fused_matmul_rmsnorm.ts
+// ../src/gpu/kernels/fused_matmul_rmsnorm.ts
 var fused_matmul_rmsnorm_exports = {};
 __export(fused_matmul_rmsnorm_exports, {
   recordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
@@ -2997,10 +4682,8 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
     outputBuffer = null
   } = options;
   const variant = selectMatmulRMSNormFusedVariant(N);
-  if (DEBUG_KERNELS6) {
-    console.log(`[MatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
-  }
-  const pipeline = await createPipeline("fused_matmul_rmsnorm", variant);
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  const pipeline = await getPipelineFast("fused_matmul_rmsnorm", variant);
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -3055,10 +4738,8 @@ async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, opt
     outputBuffer = null
   } = options;
   const variant = selectMatmulRMSNormFusedVariant(N);
-  if (DEBUG_KERNELS6) {
-    console.log(`[recordMatmulRMSNormFused] N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
-  }
-  const pipeline = await createPipeline("fused_matmul_rmsnorm", variant);
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  const pipeline = await getPipelineFast("fused_matmul_rmsnorm", variant);
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -3111,26 +4792,27 @@ function shouldUseFusedMatmulRMSNorm(M, N) {
   }
   return true;
 }
-var DEBUG_KERNELS6, WG_SIZE, COLS_PER_WG, MAX_MEDIUM_N;
+var WG_SIZE, COLS_PER_WG, MAX_MEDIUM_N;
 var init_fused_matmul_rmsnorm = __esm({
-  "gpu/kernels/fused_matmul_rmsnorm.ts"() {
+  "../src/gpu/kernels/fused_matmul_rmsnorm.ts"() {
     init_device();
     init_buffer_dtypes();
     init_buffer_pool();
     init_dispatch();
     init_utils();
-    DEBUG_KERNELS6 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+    init_debug();
     WG_SIZE = 256;
     COLS_PER_WG = 4;
     MAX_MEDIUM_N = 4096;
   }
 });
 
-// kernel-tests/browser/test-page.ts
+// browser/test-page.ts
 init_device();
 init_buffer_dtypes();
 
-// gpu/kernel-hints.ts
+// ../src/gpu/kernel-hints.ts
+init_debug();
 var currentHints = null;
 var hintsSource = null;
 function setKernelHints(hints, source = "manifest") {
@@ -3138,7 +4820,7 @@ function setKernelHints(hints, source = "manifest") {
   if (!currentHints || priority[source] >= priority[hintsSource || "manifest"]) {
     currentHints = hints;
     hintsSource = source;
-    console.log(`[KernelHints] Set from ${source}:`, hints);
+    log.debug("KernelHints", `Set from ${source}: ${JSON.stringify(hints)}`);
   }
 }
 function getKernelHints() {
@@ -3152,10 +4834,10 @@ function shouldUseFusedQ4K() {
   if (hints?.q4kMatmul) {
     return hints.q4kMatmul === "fused_q4k";
   }
-  return false;
+  return true;
 }
 
-// gpu/kernel-selector.ts
+// ../src/gpu/kernel-selector.ts
 var kernel_selector_exports = {};
 __export(kernel_selector_exports, {
   CommandRecorder: () => CommandRecorder,
@@ -3184,6 +4866,7 @@ __export(kernel_selector_exports, {
   dequantizeMXFP4: () => dequantizeMXFP4,
   dequantizeMXFP4Expert: () => dequantizeMXFP4Expert,
   dequantizeQ6K: () => dequantizeQ6K,
+  dequantizeQ8_0: () => dequantizeQ8_0,
   doRecordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
   exportBenchmarkJSON: () => exportBenchmarkJSON,
   exportProfileJSON: () => exportProfileJSON,
@@ -3213,6 +4896,7 @@ __export(kernel_selector_exports, {
   recordGeLU: () => recordGeLU,
   recordMatmul: () => recordMatmul,
   recordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
+  recordMatmulResidualFused: () => recordMatmulResidualFused,
   recordProfileEntry: () => recordProfileEntry,
   recordRMSNorm: () => recordRMSNorm,
   recordResidualAdd: () => recordResidualAdd,
@@ -3221,6 +4905,7 @@ __export(kernel_selector_exports, {
   recordSiLU: () => recordSiLU,
   recordSiLURowSplit: () => recordSiLURowSplit,
   recordSoftmax: () => recordSoftmax,
+  recordSplitQKV: () => recordSplitQKV,
   runArgmax: () => runArgmax,
   runAttention: () => runAttention,
   runBF16ToF16: () => runBF16ToF16,
@@ -3232,6 +4917,7 @@ __export(kernel_selector_exports, {
   runGeLU: () => runGeLU,
   runMatmul: () => runMatmul,
   runMatmulRMSNormFused: () => runMatmulRMSNormFused,
+  runMatmulResidualFused: () => runMatmulResidualFused,
   runMoEGather: () => runMoEGather,
   runRMSNorm: () => runRMSNorm,
   runResidualAdd: () => runResidualAdd,
@@ -3243,6 +4929,7 @@ __export(kernel_selector_exports, {
   runSiLURowSplit: () => runSiLURowSplit,
   runSoftmax: () => runSoftmax,
   runSoftmaxTopK: () => runSoftmaxTopK,
+  runSplitQKV: () => runSplitQKV,
   runSwiGLURowsplitBias: () => runSwiGLURowsplitBias,
   runTopK: () => runTopK,
   selectDequantKernel: () => selectDequantKernel,
@@ -3251,19 +4938,21 @@ __export(kernel_selector_exports, {
   selectRMSNormKernel: () => selectRMSNormKernel,
   setProfilingEnabled: () => setProfilingEnabled,
   shouldUseFusedMatmulRMSNorm: () => shouldUseFusedMatmulRMSNorm,
+  shouldUseFusedMatmulResidual: () => shouldUseFusedMatmulResidual,
   startProfileSession: () => startProfileSession,
   validateAttentionLimits: () => validateAttentionLimits
 });
 
-// gpu/kernels/index.ts
+// ../src/gpu/kernels/index.ts
 init_utils();
 
-// gpu/kernels/matmul.ts
+// ../src/gpu/kernels/matmul.ts
 init_device();
 init_buffer_dtypes();
+init_debug();
 init_buffer_pool();
 
-// gpu/kernels/kernel-base.ts
+// ../src/gpu/kernels/kernel-base.ts
 init_dispatch();
 init_utils();
 var KernelBase = class {
@@ -3272,7 +4961,7 @@ var KernelBase = class {
     this.device = device2;
   }
   async getPipelineFor(operation, variant, bindGroupLayout = null) {
-    return createPipeline(operation, variant, bindGroupLayout);
+    return getPipelineFast(operation, variant, bindGroupLayout);
   }
   dispatchKernel(pipeline, bindGroup, workgroups, label) {
     dispatch(this.device, pipeline, bindGroup, workgroups, label);
@@ -3282,7 +4971,7 @@ var KernelBase = class {
   }
 };
 
-// gpu/kernels/constants.ts
+// ../src/gpu/kernels/constants.ts
 var WORKGROUP_SIZES = {
   /** Default workgroup size for most kernels */
   DEFAULT: 256,
@@ -3393,9 +5082,9 @@ var PERFORMANCE = {
   MAX_TOTAL_POOLED_BUFFERS: 64
 };
 
-// gpu/kernels/matmul.ts
+// ../src/gpu/kernels/matmul.ts
 init_utils();
-var DEBUG_KERNELS = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+init_uniform_cache();
 function isFusedQ4KDisabled() {
   const debugFlags = typeof window !== "undefined" ? window : null;
   if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
@@ -3440,14 +5129,13 @@ var MatmulKernel = class extends KernelBase {
   }
 };
 var _transposeDebugCount = 0;
-var DEBUG_FORCE_TRANSPOSE_TRUE = false;
 function resolveTransposeB(B, transposeBOption) {
   if (transposeBOption === "auto") {
     const isColMajor = isColumnMajorBuffer(B);
-    const result = DEBUG_FORCE_TRANSPOSE_TRUE ? true : !isColMajor;
-    if (DEBUG_KERNELS && _transposeDebugCount < 50) {
+    const result = !isColMajor;
+    if (isTraceEnabled("kernels") && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      console.log(`[resolveTransposeB] isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
+      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size}`);
     }
     return result;
   }
@@ -3514,9 +5202,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
             "Q4_K fused matmul requires subgroup support. Your GPU/browser may not support WebGPU subgroups. Consider using a dequantized model (F16) as fallback."
           );
         }
-        console.warn(
-          "[Matmul] Q4K fused requested but no subgroup support. Falling back to dequant path. Your GPU/browser may not support WebGPU subgroups."
-        );
+        log.warn("Matmul", "Q4K fused requested but no subgroup support. Falling back to dequant path. Your GPU/browser may not support WebGPU subgroups.");
       } else {
         useQ4KFused = true;
         if (mode === "record") {
@@ -3668,18 +5354,18 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
-  if (DEBUG_KERNELS && _runMatmulDebugCount < 20) {
+  if (isTraceEnabled("kernels") && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
-    console.log(`[runMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
   }
   const transposeB = resolveTransposeB(B, transposeBOption);
   validateMatmulDimensions("runMatmul", M, N, K);
   const rawADtype = getBufferDtype(A);
   const rawBDtype = getBufferDtype(B);
   const requestedOutputDtype = options.outputDtype || "f32";
-  if (DEBUG_KERNELS && !rawBDtype && M <= 2) {
-    console.warn(`[runMatmul] B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
+  if (isTraceEnabled("kernels") && !rawBDtype && M <= 2) {
+    log.warn("Matmul", `runMatmul: B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
   const aDtype = toMatmulDtype(rawADtype);
   const bDtype = toMatmulDtype(rawBDtype);
@@ -3708,23 +5394,22 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     requestedOutputDtype,
     options
   );
-  if (DEBUG_KERNELS && bDtype === "q4k") {
+  if (isTraceEnabled("kernels") && bDtype === "q4k") {
     if (useQ4KFused) {
-      console.log(
-        `[Matmul] Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} (WARNING: 2.3x slower than dequant)`
-      );
+      trace.kernels(`Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} (WARNING: 2.3x slower than dequant)`);
     } else {
-      console.log(
-        `[Matmul] Q4K DEQUANT: M=${M}, N=${N}, K=${K}, will dequant first then matmul with variant=${variant}`
-      );
+      trace.kernels(`Q4K DEQUANT: M=${M}, N=${N}, K=${K}, will dequant first then matmul with variant=${variant}`);
     }
   }
-  if (DEBUG_KERNELS && N > 1e5) {
-    console.log(`[Pipeline] MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
+  if (isTraceEnabled("kernels") && N > 1e5) {
+    trace.kernels(`MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
   const config2 = getKernelConfig("matmul", variant);
   const kernel = new MatmulKernel(device2);
-  const pipeline = await kernel.getPipeline(variant);
+  let pipeline = getCachedPipeline("matmul", variant);
+  if (!pipeline) {
+    pipeline = await createPipeline("matmul", variant);
+  }
   const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
     variant,
     M,
@@ -3762,7 +5447,7 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     ]
   });
   kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(C, actualOutputDtype);
   return C;
 }
@@ -3778,10 +5463,10 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
-  if (DEBUG_KERNELS && _recordMatmulDebugCount < 20) {
+  if (isTraceEnabled("kernels") && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
-    console.log(`[recordMatmul] M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
   }
   const transposeB = resolveTransposeB(B, transposeBOption);
   validateMatmulDimensions("recordMatmul", M, N, K);
@@ -3815,7 +5500,10 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   );
   const config2 = getKernelConfig("matmul", variant);
   const kernel = new MatmulKernel(device2);
-  const pipeline = await kernel.getPipeline(variant);
+  let pipeline = getCachedPipeline("matmul", variant);
+  if (!pipeline) {
+    pipeline = await createPipeline("matmul", variant);
+  }
   const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
     variant,
     M,
@@ -3857,12 +5545,13 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   return C;
 }
 
-// gpu/kernels/dequant.ts
+// ../src/gpu/kernels/dequant.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_dispatch();
 init_utils();
+init_uniform_cache();
 function selectDequantKernel(options = {}) {
   const capabilities = getKernelCapabilities();
   const { useVec4 = true, outputDtype = "f32" } = options;
@@ -3923,7 +5612,7 @@ async function dequantize(quantized, numBlocks, options = {}) {
     outputDtype = "f32"
   } = options;
   const variant = selectDequantKernel({ ...options, outputDtype });
-  const pipeline = await createPipeline("dequant", variant);
+  const pipeline = await getPipelineFast("dequant", variant);
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
   const outputSize = numBlocks * QK_K * bytesPerElem;
@@ -3951,7 +5640,7 @@ async function dequantize(quantized, numBlocks, options = {}) {
   });
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   dispatch(device2, pipeline, bindGroup, workgroups, "dequant");
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
   return output;
 }
@@ -3962,7 +5651,7 @@ async function dequantizeMXFP4(blocks, scales, totalElements, numGroups, options
     groupSize = 32
     // 32 elements per group (16 bytes * 2 nibbles)
   } = options;
-  const pipeline = await createPipeline("dequant", "mxfp4");
+  const pipeline = await getPipelineFast("dequant", "mxfp4");
   const outputSize = totalElements * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "mxfp4_dequant_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -3994,14 +5683,14 @@ async function dequantizeMXFP4(blocks, scales, totalElements, numGroups, options
     1
   ];
   dispatch(device2, pipeline, bindGroup, dispatchSize, "mxfp4_dequant");
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, "f32");
   return output;
 }
 async function dequantizeMXFP4Expert(blocks, scales, expertIdx, numExperts, outDim, numGroups, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
-  const pipeline = await createPipeline("dequant", "mxfp4_expert");
+  const pipeline = await getPipelineFast("dequant", "mxfp4_expert");
   const totalOutput = outDim * numGroups * 32;
   const outputSize = totalOutput * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "mxfp4_expert_output");
@@ -4035,7 +5724,7 @@ async function dequantizeMXFP4Expert(blocks, scales, expertIdx, numExperts, outD
     1
   ];
   dispatch(device2, pipeline, bindGroup, dispatchSize, "mxfp4_expert");
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, "f32");
   return output;
 }
@@ -4047,7 +5736,7 @@ async function dequantizeQ6K(quantized, numBlocks, options = {}) {
     outputDtype = "f16"
     // Q6_K always outputs f16 for now
   } = options;
-  const pipeline = await createPipeline("dequant", "q6k_f16out");
+  const pipeline = await getPipelineFast("dequant", "q6k_f16out");
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
   const outputSize = numBlocks * QK_K * bytesPerElem;
@@ -4081,7 +5770,53 @@ async function dequantizeQ6K(quantized, numBlocks, options = {}) {
     1
   ];
   dispatch(device2, pipeline, bindGroup, workgroups, "q6k_dequant");
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
+  setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
+  return output;
+}
+var Q8_0_BLOCK_SIZE = 32;
+async function dequantizeQ8_0(quantized, numBlocks, options = {}) {
+  const device2 = getDevice();
+  const {
+    outputOffset = 0,
+    outputBuffer = null,
+    outputDtype = "f16"
+    // Q8_0 outputs f16 for now
+  } = options;
+  const pipeline = await getPipelineFast("dequant", "q8_0_f16out");
+  const bytesPerElem = outputDtype === "f16" ? 2 : 4;
+  const outputSize = numBlocks * Q8_0_BLOCK_SIZE * bytesPerElem;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "q8_0_dequant_output");
+  const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
+  const workgroupsX = Math.min(numBlocks, maxWorkgroups);
+  const uniformBuffer = createUniformBufferWithView(
+    "q8_0_dequant_uniforms",
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, outputOffset, true);
+      view.setUint32(8, workgroupsX, true);
+      view.setUint32(12, 0, true);
+    },
+    null,
+    device2
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "q8_0_dequant_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: quantized } },
+      { binding: 2, resource: { buffer: output } }
+    ]
+  });
+  const workgroups = [
+    workgroupsX,
+    numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
+    1
+  ];
+  dispatch(device2, pipeline, bindGroup, workgroups, "q8_0_dequant");
+  releaseUniformBuffer(uniformBuffer);
   setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
   return output;
 }
@@ -4093,7 +5828,7 @@ async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
     outputDtype = "f32"
   } = options;
   const variant = selectDequantKernel({ ...options, outputDtype });
-  const pipeline = await createPipeline("dequant", variant);
+  const pipeline = await getPipelineFast("dequant", variant);
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
   const outputSize = numBlocks * QK_K * bytesPerElem;
@@ -4122,12 +5857,14 @@ async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
   return output;
 }
 
-// gpu/kernels/attention.ts
+// ../src/gpu/kernels/attention.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_utils();
-var DEBUG_KERNELS2 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+init_uniform_cache();
+init_debug();
+var loggedAttentionTier = false;
 var AttentionKernel = class extends KernelBase {
   async getPipeline(variant) {
     return this.getPipelineFor("attention", variant);
@@ -4147,21 +5884,20 @@ function selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedL
   const canSubgroup = caps.hasSubgroups && headDim <= DIMENSION_LIMITS.ATTENTION_SUBGROUP_MAX_HEAD_DIM && sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_SUBGROUP_SHARED && isDecode;
   let tier = attentionKernel;
   if (tier === "tiled_large" && !canLarge) {
-    console.warn(
-      `[Attention] Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`
-    );
+    log.warn("Attention", `Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
     tier = null;
   }
   if (tier === "tiled_small" && !canSmall) {
-    console.warn(
-      `[Attention] Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`
-    );
+    log.warn("Attention", `Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
     tier = null;
   }
   if (!tier) {
     if (canSubgroup) {
       tier = "subgroup";
-      console.log(`[Attention] Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+      if (!loggedAttentionTier) {
+        trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+        loggedAttentionTier = true;
+      }
     } else if (canLarge) {
       tier = "tiled_large";
     } else if (canSmall) {
@@ -4169,19 +5905,24 @@ function selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedL
     } else if (isDecode) {
       tier = "streaming";
     } else {
-      console.warn(
-        `[Attention] No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`
-      );
+      log.warn("Attention", `No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`);
       tier = "streaming";
     }
   }
   return tier;
 }
-function resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim) {
+var CHUNKED_ATTN_MAX_KV_LEN = 2048;
+var loggedChunkedKernel = false;
+function resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen) {
   const base = isDecode ? "decode" : "prefill";
+  const canUseChunked = isDecode && useF16KV && headDim >= 128 && kvLen <= CHUNKED_ATTN_MAX_KV_LEN;
   if (tier === "subgroup") {
     if (useF16KV) {
-      if (numHeads <= 8 && headDim >= 128) {
+      if (canUseChunked) {
+        if (!loggedChunkedKernel) {
+          trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+          loggedChunkedKernel = true;
+        }
         return "decode_chunked_f16kv";
       }
       return "decode_streaming_f16kv";
@@ -4194,7 +5935,11 @@ function resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim) {
   if (tier === "tiled_small") {
     return `${base}_small${useF16KV ? "_f16kv" : ""}`;
   }
-  if (isDecode && useF16KV && numHeads <= 8 && headDim >= 128) {
+  if (canUseChunked) {
+    if (!loggedChunkedKernel) {
+      trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+      loggedChunkedKernel = true;
+    }
     return "decode_chunked_f16kv";
   }
   return `${base}_streaming${useF16KV ? "_f16kv" : ""}`;
@@ -4211,18 +5956,19 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   }
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
-function resolveAttentionPlan(seqLen, headDim, numHeads, attentionKernel, kvDtype, sharedLimit, caps) {
+function resolveAttentionPlan(seqLen, kvLen, headDim, numHeads, attentionKernel, kvDtype, sharedLimit, caps) {
   const useF16KV = kvDtype === "f16";
   const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim);
+  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
   return { tier, variant, workgroups, useF16KV, isDecode };
 }
 function createAttentionUniformBuffer(device2, recorder, params) {
   return createUniformBufferWithView(
     "attention_uniforms",
-    32,
+    48,
+    // 40 bytes used + 8 padding for 16-byte alignment
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -4232,6 +5978,8 @@ function createAttentionUniformBuffer(device2, recorder, params) {
       view.setFloat32(20, params.scale, true);
       view.setUint32(24, params.causal ? 1 : 0, true);
       view.setUint32(28, params.startPos, true);
+      view.setFloat32(32, params.attnSoftcap, true);
+      view.setUint32(36, params.slidingWindow, true);
     },
     recorder,
     device2
@@ -4247,7 +5995,9 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     causal = true,
     startPos = 0,
     attentionKernel = null,
-    outputBuffer = null
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0
   } = options;
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
@@ -4255,6 +6005,7 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
   const kvDtype = getBufferDtype(K) || "f32";
   const plan = resolveAttentionPlan(
     seqLen,
+    kvLen,
     headDim,
     numHeads,
     attentionKernel,
@@ -4274,7 +6025,9 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     seqLen,
     scale,
     causal,
-    startPos
+    startPos,
+    attnSoftcap,
+    slidingWindow
   });
   const bindGroup = device2.createBindGroup({
     label: "attention_bind_group",
@@ -4293,7 +6046,7 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     );
   }
   kernel.dispatch(pipeline, bindGroup, plan.workgroups);
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
   return output;
 }
 async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, options = {}) {
@@ -4306,7 +6059,9 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     causal = true,
     startPos = 0,
     attentionKernel = null,
-    outputBuffer = null
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0
   } = options;
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
@@ -4314,6 +6069,7 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
   const kvDtype = getBufferDtype(K) || "f32";
   const plan = resolveAttentionPlan(
     seqLen,
+    kvLen,
     headDim,
     numHeads,
     attentionKernel,
@@ -4321,11 +6077,7 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     sharedLimit,
     caps
   );
-  if (DEBUG_KERNELS2) {
-    console.warn(
-      `[ATTN] recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`
-    );
-  }
+  trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
   const kernel = new AttentionKernel(device2);
   const pipeline = await kernel.getPipeline(plan.variant);
   const outputSize = seqLen * numHeads * headDim * 4;
@@ -4338,7 +6090,9 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     seqLen,
     scale,
     causal,
-    startPos
+    startPos,
+    attnSoftcap,
+    slidingWindow
   });
   const bindGroup = device2.createBindGroup({
     label: "attention_bind_group",
@@ -4360,13 +6114,13 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
   return output;
 }
 
-// gpu/kernels/rmsnorm.ts
+// ../src/gpu/kernels/rmsnorm.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_dispatch();
 init_utils();
-var DEBUG_KERNELS3 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+init_debug();
 function selectRMSNormKernel(options = {}) {
   const { residual = null, hiddenSize = null } = options;
   if (residual) {
@@ -4382,13 +6136,11 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   let variant = "default";
   if (residual) {
     variant = "residual";
-    if (DEBUG_KERNELS3) {
-      console.log(`[RMSNorm] Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || weight.size / 4}, batchSize=${batchSize}`);
-    }
+    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || weight.size / 4}, batchSize=${batchSize}`);
   } else if (hiddenSize && hiddenSize <= 256) {
     variant = "small";
   }
-  const pipeline = await createPipeline("rmsnorm", variant);
+  const pipeline = await getPipelineFast("rmsnorm", variant);
   const inferredHiddenSize = hiddenSize || weight.size / 4;
   const outputSize = batchSize * inferredHiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "rmsnorm_output");
@@ -4405,8 +6157,8 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
     null,
     device2
   );
-  if (DEBUG_KERNELS3 && hasResidualFlag) {
-    console.log(`[RMSNorm] Uniform hasResidual=${hasResidualFlag}, hiddenSize=${inferredHiddenSize}, batchSize=${batchSize}`);
+  if (hasResidualFlag) {
+    trace.kernels(`RMSNorm: Uniform hasResidual=${hasResidualFlag}, hiddenSize=${inferredHiddenSize}, batchSize=${batchSize}`);
   }
   const residualBuffer = residual || device2.createBuffer({
     label: "rmsnorm_residual_placeholder",
@@ -4442,7 +6194,7 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
   const inferredHiddenSize = hiddenSize || weight.size / 4;
   const inputSize = batchSize * inferredHiddenSize * 4;
   const variant = selectRMSNormKernel(options);
-  const pipeline = await createPipeline("rmsnorm", variant);
+  const pipeline = await getPipelineFast("rmsnorm", variant);
   const output = outputBuffer || acquireBuffer(inputSize, void 0, "rmsnorm_output");
   const uniformBuffer = createUniformBufferWithView(
     "rmsnorm_uniforms",
@@ -4479,7 +6231,7 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
   return output;
 }
 
-// gpu/kernels/softmax.ts
+// ../src/gpu/kernels/softmax.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -4587,7 +6339,7 @@ async function recordSoftmax(recorder, input, axis, options = {}) {
   return output;
 }
 
-// gpu/kernels/rope.ts
+// ../src/gpu/kernels/rope.ts
 init_device();
 init_buffer_dtypes();
 init_dispatch();
@@ -4599,7 +6351,7 @@ async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
     headDim = 64,
     ropeTheta = 1e4
   } = options;
-  const pipeline = await createPipeline("rope", "default");
+  const pipeline = await getPipelineFast("rope", "default");
   const uniformBuffer = createUniformBufferWithView(
     "rope_uniforms",
     32,
@@ -4639,7 +6391,7 @@ async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options =
     numHeads = 1,
     headDim = 64
   } = options;
-  const pipeline = await createPipeline("rope", "default");
+  const pipeline = await getPipelineFast("rope", "default");
   const uniformBuffer = createUniformBufferWithView(
     "rope_uniforms",
     32,
@@ -4673,7 +6425,7 @@ async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options =
   return input;
 }
 
-// gpu/kernels/silu.ts
+// ../src/gpu/kernels/silu.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -4683,7 +6435,7 @@ async function runSiLU(input, options = {}) {
   const device2 = getDevice();
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
   const variant = gate ? "gate" : useVec4 ? "vec4" : "default";
-  const pipeline = await createPipeline("silu", variant);
+  const pipeline = await getPipelineFast("silu", variant);
   const inferredSize = size || input.size / 4;
   const outputSize = inferredSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_output");
@@ -4717,7 +6469,7 @@ async function runSiLU(input, options = {}) {
 async function runSwiGLURowsplitBias(input, bias, numTokens, dim, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null, biasOffset = 0 } = options;
-  const pipeline = await createPipeline("swiglu", "rowsplit_bias");
+  const pipeline = await getPipelineFast("swiglu", "rowsplit_bias");
   const outputSize = numTokens * dim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "swiglu_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -4750,7 +6502,7 @@ async function runSiLURowSplit(input, options) {
   const device2 = getDevice();
   const { numTokens, dim, activation = "silu", outputBuffer = null } = options;
   const variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
-  const pipeline = await createPipeline("silu", variant);
+  const pipeline = await getPipelineFast("silu", variant);
   const outputSize = numTokens * dim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_rowsplit_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -4783,7 +6535,7 @@ async function recordSiLURowSplit(recorder, input, options) {
   const device2 = recorder.device;
   const { numTokens, dim, activation = "silu", outputBuffer = null } = options;
   const variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
-  const pipeline = await createPipeline("silu", variant);
+  const pipeline = await getPipelineFast("silu", variant);
   const outputSize = numTokens * dim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_rowsplit_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -4813,7 +6565,7 @@ async function recordSiLU(recorder, input, options = {}) {
   const device2 = recorder.device;
   const { size, gate = null, outputBuffer = null } = options;
   const variant = gate ? "gate" : "default";
-  const pipeline = await createPipeline("silu", variant);
+  const pipeline = await getPipelineFast("silu", variant);
   const inferredSize = size || input.size / 4;
   const outputSize = inferredSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_output");
@@ -4845,7 +6597,7 @@ async function recordSiLU(recorder, input, options = {}) {
   return output;
 }
 
-// gpu/kernels/gelu.ts
+// ../src/gpu/kernels/gelu.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -4920,7 +6672,7 @@ async function recordGeLU(recorder, input, options = {}) {
   return output;
 }
 
-// gpu/kernels/scale.ts
+// ../src/gpu/kernels/scale.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -4936,7 +6688,7 @@ async function runScale(input, scale, options = {}) {
   const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
   const uniformBuffer = createUniformBufferWithView(
     "scale_uniforms",
-    8,
+    16,
     (view) => {
       view.setUint32(0, inferredCount, true);
       view.setFloat32(4, scale, true);
@@ -4969,7 +6721,7 @@ async function recordScale(recorder, input, scale, options = {}) {
   const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
   const uniformBuffer = createUniformBufferWithView(
     "scale_uniforms",
-    8,
+    16,
     (view) => {
       view.setUint32(0, inferredCount, true);
       view.setFloat32(4, scale, true);
@@ -4991,13 +6743,13 @@ async function recordScale(recorder, input, scale, options = {}) {
   return output;
 }
 
-// gpu/kernels/gather.ts
+// ../src/gpu/kernels/gather.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_dispatch();
 init_utils();
-var DEBUG_KERNELS4 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+init_debug();
 async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
   const device2 = getDevice();
   const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = false } = options;
@@ -5005,16 +6757,14 @@ async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, 
   const bufferDtype = getBufferDtype(embeddings);
   const detectedDtype = embeddingDtype || bufferDtype || "f32";
   const useF16 = detectedDtype === "f16" && caps.hasF16;
-  if (DEBUG_KERNELS4) {
-    console.log(`[Gather] numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
-  }
+  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
   let variant;
   if (useF16) {
     variant = useVec4 ? "f16_vec4" : "f16";
   } else {
     variant = useVec4 ? "vec4" : "default";
   }
-  const pipeline = await createPipeline("gather", variant);
+  const pipeline = await getPipelineFast("gather", variant);
   const outputSize = numTokens * hiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gather_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -5057,7 +6807,7 @@ async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize
   } else {
     variant = useVec4 ? "vec4" : "default";
   }
-  const pipeline = await createPipeline("gather", variant);
+  const pipeline = await getPipelineFast("gather", variant);
   const outputSize = numTokens * hiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gather_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -5087,7 +6837,7 @@ async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize
   return output;
 }
 
-// gpu/kernels/residual.ts
+// ../src/gpu/kernels/residual.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -5097,7 +6847,7 @@ async function runResidualAdd(a, b, size, options = {}) {
   const device2 = getDevice();
   const { useVec4 = true, outputBuffer = null } = options;
   const variant = useVec4 ? "vec4" : "default";
-  const pipeline = await createPipeline("residual", variant);
+  const pipeline = await getPipelineFast("residual", variant);
   const outputSize = size * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "residual_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -5127,7 +6877,7 @@ async function runResidualAdd(a, b, size, options = {}) {
 async function runBiasAdd(data, bias, numTokens, dim, options = {}) {
   const device2 = getDevice();
   const { dataOffset = 0, biasOffset = 0 } = options;
-  const pipeline = await createPipeline("bias_add", "default");
+  const pipeline = await getPipelineFast("bias_add", "default");
   const output = data;
   const uniformBuffer = createUniformBufferWithView(
     "bias_add_uniforms",
@@ -5158,7 +6908,7 @@ async function runBiasAdd(data, bias, numTokens, dim, options = {}) {
 async function recordResidualAdd(recorder, a, b, size, options = {}) {
   const device2 = recorder.device;
   const { outputBuffer = null } = options;
-  const pipeline = await createPipeline("residual", "default");
+  const pipeline = await getPipelineFast("residual", "default");
   const outputSize = size * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "residual_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -5187,7 +6937,7 @@ async function recordResidualAdd(recorder, a, b, size, options = {}) {
 async function recordBiasAdd(recorder, data, bias, numTokens, dim, options = {}) {
   const device2 = recorder.device;
   const { dataOffset = 0, biasOffset = 0 } = options;
-  const pipeline = await createPipeline("bias_add", "default");
+  const pipeline = await getPipelineFast("bias_add", "default");
   const uniformBuffer = createUniformBufferWithView(
     "bias_add_uniforms",
     16,
@@ -5213,7 +6963,7 @@ async function recordBiasAdd(recorder, data, bias, numTokens, dim, options = {})
   return data;
 }
 
-// gpu/kernels/moe.ts
+// ../src/gpu/kernels/moe.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
@@ -5255,10 +7005,29 @@ async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
   setBufferDtype(weights, "f32");
   return { indices, weights };
 }
+var moeGatherBindGroupLayout = null;
+function getMoEGatherBindGroupLayout(device2) {
+  if (moeGatherBindGroupLayout)
+    return moeGatherBindGroupLayout;
+  moeGatherBindGroupLayout = device2.createBindGroupLayout({
+    label: "moe_gather_explicit_layout",
+    entries: [
+      { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
+      { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
+      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
+      { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
+      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
+      { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }
+    ]
+  });
+  return moeGatherBindGroupLayout;
+}
 async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device2 = getDevice();
   const { maxTokensPerExpert = numTokens } = options;
-  const pipeline = await createPipeline("moe_gather", "sparse");
+  const explicitLayout = getMoEGatherBindGroupLayout(device2);
+  const countPipeline = await createPipeline("moe_gather", "count", explicitLayout);
+  const gatherPipeline = await createPipeline("moe_gather", "gather", explicitLayout);
   const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
   const tokenCountsSize = numExperts * 4;
   const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
@@ -5267,20 +7036,23 @@ async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, 
   const tokenMap = acquireBuffer(tokenMapSize, void 0, "moe_token_map");
   const uniformBuffer = createUniformBufferWithView(
     "moe_gather_uniforms",
-    20,
+    32,
     (view) => {
       view.setUint32(0, numTokens, true);
       view.setUint32(4, hiddenSize, true);
       view.setUint32(8, numExperts, true);
       view.setUint32(12, topK, true);
       view.setUint32(16, maxTokensPerExpert, true);
+      view.setUint32(20, 0, true);
+      view.setUint32(24, 0, true);
+      view.setUint32(28, 0, true);
     },
     null,
     device2
   );
   const bindGroup = device2.createBindGroup({
     label: "moe_gather_bind_group",
-    layout: pipeline.getBindGroupLayout(0),
+    layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: hiddenStates } },
@@ -5292,12 +7064,18 @@ async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, 
   });
   const encoder = device2.createCommandEncoder({ label: "moe_gather_encoder" });
   encoder.clearBuffer(tokenCounts);
-  const pass = encoder.beginComputePass({ label: "moe_gather_pass" });
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  const workgroups = Math.ceil(numTokens * topK / WORKGROUP_SIZES.DEFAULT);
-  pass.dispatchWorkgroups(workgroups);
-  pass.end();
+  const countPass = encoder.beginComputePass({ label: "moe_gather_count_pass" });
+  countPass.setPipeline(countPipeline);
+  countPass.setBindGroup(0, bindGroup);
+  const countWorkgroups = Math.ceil(numTokens * topK / WORKGROUP_SIZES.DEFAULT);
+  countPass.dispatchWorkgroups(countWorkgroups);
+  countPass.end();
+  const gatherPass = encoder.beginComputePass({ label: "moe_gather_gather_pass" });
+  gatherPass.setPipeline(gatherPipeline);
+  gatherPass.setBindGroup(0, bindGroup);
+  const gatherWorkgroups = Math.ceil(numExperts * maxTokensPerExpert * hiddenSize / WORKGROUP_SIZES.DEFAULT);
+  gatherPass.dispatchWorkgroups(gatherWorkgroups);
+  gatherPass.end();
   device2.queue.submit([encoder.finish()]);
   uniformBuffer.destroy();
   setBufferDtype(gathered, "f32");
@@ -5388,14 +7166,14 @@ async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffset
   return output;
 }
 
-// gpu/kernels/cast.ts
+// ../src/gpu/kernels/cast.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_dispatch();
 init_utils();
 init_perf_guards();
-var DEBUG_CAST = false;
+init_debug();
 async function castF32ToF16(input, numElements, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
@@ -5458,15 +7236,13 @@ async function recordCastF32ToF16(recorder, input, numElements, options = {}) {
   return output;
 }
 async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] Entry: numElements=${numElements}, name=${name}, inputSize=${input.size}`);
+  trace.kernels(`BF16ToF32: Entry numElements=${numElements}, name=${name}, inputSize=${input.size}`);
   const device2 = getDevice();
   const limits = device2.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
   const outputSize = numElements * 4;
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
+  trace.kernels(`BF16ToF32: outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
   if (outputSize > maxBufferSize) {
     throw new Error(
       `BF16\u2192F32 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}). This often happens for large-vocab models when converting embeddings/LM head. Enable F16 and use BF16\u2192F16 weights, or run on a device with a higher maxBufferSize.`
@@ -5492,17 +7268,15 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
       stagingIn.unmap();
       stagingIn.destroy();
       const nonZeroBytes = Array.from(inData).filter((x) => x !== 0).length;
-      console.log(`[BF16ToF32] INPUT CHECK: nonZeroBytes=${nonZeroBytes}/${inData.length}, first16=[${Array.from(inData.slice(0, 16)).join(", ")}]`);
+      trace.kernels(`BF16ToF32: INPUT CHECK nonZeroBytes=${nonZeroBytes}/${inData.length}, first16=[${Array.from(inData.slice(0, 16)).join(", ")}]`);
     } catch (err) {
-      console.error(`[BF16ToF32] INPUT CHECK failed:`, err.message);
+      log.error("BF16ToF32", `INPUT CHECK failed: ${err.message}`);
     }
   }
   const pipeline = await createPipeline("bf16_to_f32", "default");
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] Pipeline created`);
+  trace.kernels("BF16ToF32: Pipeline created");
   const output = acquireBuffer(outputSize, void 0, name);
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] Output buffer acquired, size=${output.size}`);
+  trace.kernels(`BF16ToF32: Output buffer acquired, size=${output.size}`);
   const uniformBuffer = createUniformBufferWithView(
     "bf16_to_f32_uniforms",
     16,
@@ -5512,8 +7286,7 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
     null,
     device2
   );
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] Uniform: numElements=${numElements}`);
+  trace.kernels(`BF16ToF32: Uniform numElements=${numElements}`);
   const bindGroup = device2.createBindGroup({
     label: "bf16_to_f32_bind_group",
     layout: pipeline.getBindGroupLayout(0),
@@ -5523,20 +7296,15 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
       { binding: 2, resource: { buffer: output } }
     ]
   });
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] BindGroup created`);
+  trace.kernels("BF16ToF32: BindGroup created");
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
   const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
   const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
-  if (DEBUG_CAST)
-    console.log(
-      `[BF16ToF32] Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`
-    );
+  trace.kernels(`BF16ToF32: Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`);
   dispatch(device2, pipeline, bindGroup, dispatchSize, "bf16_to_f32");
   await device2.queue.onSubmittedWorkDone();
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] GPU work completed`);
+  trace.kernels("BF16ToF32: GPU work completed");
   uniformBuffer.destroy();
   setBufferDtype(output, "f32");
   return output;
@@ -5617,8 +7385,7 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
   const outputSize = numElements * 4;
   const output = acquireBuffer(outputSize, void 0, name);
-  if (DEBUG_CAST)
-    console.log(`[BF16ToF32] Chunking: ${numElements} elements in ${numChunks} chunks`);
+  trace.kernels(`BF16ToF32: Chunking ${numElements} elements in ${numChunks} chunks`);
   for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
     const chunkStart = chunkIdx * maxElementsPerChunk;
     const chunkEnd = Math.min((chunkIdx + 1) * maxElementsPerChunk, numElements);
@@ -5659,11 +7426,22 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
   return output;
 }
 
-// gpu/kernels/sample.ts
+// ../src/gpu/kernels/sample.ts
 init_device();
 init_buffer_pool();
 init_utils();
 init_perf_guards();
+
+// ../src/config/index.ts
+init_schema();
+
+// ../src/config/loader.ts
+init_schema();
+
+// ../src/config/index.ts
+init_runtime();
+
+// ../src/gpu/kernels/sample.ts
 function getSampleBindGroupLayout(device2) {
   return getOrCreateBindGroupLayout(
     "sample_bind_group_layout",
@@ -5680,7 +7458,7 @@ function getSampleBindGroupLayout(device2) {
 async function createSamplePipeline(device2, entryPoint) {
   return createPipeline("sample", entryPoint, getSampleBindGroupLayout(device2));
 }
-async function runArgmax(logits, vocabSize) {
+async function runArgmax(logits, vocabSize, options = {}) {
   if (!allowReadback("sample.runArgmax")) {
     throw new Error("[Sample] GPU readback disabled for argmax");
   }
@@ -5694,14 +7472,18 @@ async function runArgmax(logits, vocabSize) {
   const tempLogits = acquireBuffer(workgroupSize * 4, void 0, "argmax_temp_logits");
   const tempIndices = acquireBuffer(workgroupSize * 4, void 0, "argmax_temp_indices");
   const outputBuffer = acquireBuffer(4, void 0, "argmax_output");
+  const padTokenId = options.padTokenId ?? 4294967295;
+  const logitSoftcap = options.logitSoftcap ?? 0;
   const uniformBuffer = createUniformBufferWithView(
     "argmax_uniforms",
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, 1, true);
       view.setFloat32(8, 1, true);
       view.setFloat32(12, 0, true);
+      view.setUint32(16, padTokenId, true);
+      view.setFloat32(20, logitSoftcap, true);
     },
     null,
     device2
@@ -5765,12 +7547,14 @@ async function runGPUSample(logits, vocabSize, options = {}) {
     throw new Error("[Sample] GPU readback disabled for sampling");
   }
   const {
-    temperature = 1,
-    topK = 40,
-    randomSeed
+    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
+    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
+    randomSeed,
+    padTokenId,
+    logitSoftcap = 0
   } = options;
-  if (temperature < 0.01) {
-    return runArgmax(logits, vocabSize);
+  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
+    return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
   }
   const device2 = getDevice();
   if (!device2)
@@ -5786,12 +7570,14 @@ async function runGPUSample(logits, vocabSize, options = {}) {
   const outputBuffer = acquireBuffer(4, void 0, "sample_output");
   const uniformBuffer = createUniformBufferWithView(
     "sample_uniforms",
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, topK, true);
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
+      view.setUint32(16, padTokenId ?? 4294967295, true);
+      view.setFloat32(20, logitSoftcap, true);
     },
     null,
     device2
@@ -5843,7 +7629,7 @@ async function runGPUSample(logits, vocabSize, options = {}) {
   releaseBuffer(outputBuffer);
   return tokenId;
 }
-async function recordArgmax(recorder, logits, vocabSize) {
+async function recordArgmax(recorder, logits, vocabSize, options = {}) {
   const device2 = recorder.device;
   const argmaxPipeline = await createSamplePipeline(device2, "argmax");
   const reducePipeline = await createSamplePipeline(device2, "argmax_reduce");
@@ -5851,14 +7637,18 @@ async function recordArgmax(recorder, logits, vocabSize) {
   const tempLogits = acquireBuffer(256 * 4, void 0, "argmax_temp_logits");
   const tempIndices = acquireBuffer(256 * 4, void 0, "argmax_temp_indices");
   const outputBuffer = acquireBuffer(4, void 0, "argmax_output");
+  const padTokenId = options.padTokenId ?? 4294967295;
+  const logitSoftcap = options.logitSoftcap ?? 0;
   const uniformBuffer = createUniformBufferWithView(
     "argmax_uniforms",
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, 1, true);
       view.setFloat32(8, 1, true);
       view.setFloat32(12, 0, true);
+      view.setUint32(16, padTokenId, true);
+      view.setFloat32(20, logitSoftcap, true);
     },
     recorder
   );
@@ -5905,12 +7695,12 @@ function isGPUSamplingAvailable() {
   return getDevice() !== null;
 }
 
-// gpu/kernels/fused_ffn.ts
+// ../src/gpu/kernels/fused_ffn.ts
 init_device();
 init_buffer_dtypes();
 init_buffer_pool();
 init_utils();
-var DEBUG_KERNELS5 = typeof window !== "undefined" ? Boolean(window.DOPPLER_DEBUG_KERNELS) : false;
+init_debug();
 var FusedFFNKernel = class extends KernelBase {
   async getPipeline(variant) {
     return this.getPipelineFor("ffn_fused", variant);
@@ -5959,11 +7749,7 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
   } = options;
   const weightDtype = getBufferDtype(W_gate);
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
-  if (DEBUG_KERNELS5) {
-    console.log(
-      `[FusedFFN] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`
-    );
-  }
+  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
   const outputSize = batchSize * intermediateSize * 4;
@@ -6011,11 +7797,7 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
   } = options;
   const weightDtype = getBufferDtype(W_gate);
   const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
-  if (DEBUG_KERNELS5) {
-    console.log(
-      `[FusedFFN record] variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`
-    );
-  }
+  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
   const outputSize = batchSize * intermediateSize * 4;
@@ -6067,13 +7849,112 @@ function calculateFusedFFNSavings(batchSize, hiddenSize, intermediateSize) {
   };
 }
 
-// gpu/kernels/index.ts
+// ../src/gpu/kernels/index.ts
 init_fused_matmul_rmsnorm();
 init_fused_matmul_rmsnorm();
 
-// gpu/command-recorder.ts
+// ../src/gpu/kernels/fused_matmul_residual.ts
+init_device();
+init_buffer_dtypes();
+init_buffer_pool();
+init_dispatch();
+init_utils();
+init_debug();
+function shouldUseFusedMatmulResidual(M) {
+  return M === 1;
+}
+async function runMatmulResidualFused(input, weight, residual, options) {
+  const device2 = getDevice();
+  const {
+    N,
+    K,
+    alpha = 1,
+    outputBuffer = null
+  } = options;
+  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}`);
+  const pipeline = await getPipelineFast("fused_matmul_residual", "default");
+  const output = outputBuffer || acquireBuffer(N * 4, void 0, "matmul_residual_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "matmul_residual_uniforms",
+    32,
+    // 8 u32s
+    (view) => {
+      view.setUint32(0, 1, true);
+      view.setUint32(4, N, true);
+      view.setUint32(8, K, true);
+      view.setFloat32(12, alpha, true);
+      view.setUint32(16, 1, true);
+      view.setUint32(20, 0, true);
+      view.setUint32(24, 0, true);
+      view.setUint32(28, 0, true);
+    },
+    null,
+    device2
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "matmul_residual_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: weight } },
+      { binding: 3, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: residual } }
+    ]
+  });
+  const workgroups = N;
+  dispatch(device2, pipeline, bindGroup, workgroups, "matmul_residual_fused");
+  uniformBuffer.destroy();
+  setBufferDtype(output, "f32");
+  return output;
+}
+async function recordMatmulResidualFused(recorder, input, weight, residual, options) {
+  const device2 = recorder.device;
+  const {
+    N,
+    K,
+    alpha = 1,
+    outputBuffer = null
+  } = options;
+  const pipeline = await getPipelineFast("fused_matmul_residual", "default");
+  const output = outputBuffer || acquireBuffer(N * 4, void 0, "matmul_residual_output");
+  const uniformBuffer = createUniformBufferWithView(
+    "matmul_residual_uniforms",
+    32,
+    (view) => {
+      view.setUint32(0, 1, true);
+      view.setUint32(4, N, true);
+      view.setUint32(8, K, true);
+      view.setFloat32(12, alpha, true);
+      view.setUint32(16, 1, true);
+      view.setUint32(20, 0, true);
+      view.setUint32(24, 0, true);
+      view.setUint32(28, 0, true);
+    },
+    recorder
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "matmul_residual_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: weight } },
+      { binding: 3, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: residual } }
+    ]
+  });
+  const workgroups = N;
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, "matmul_residual_fused");
+  setBufferDtype(output, "f32");
+  return output;
+}
+
+// ../src/gpu/command-recorder.ts
 init_device();
 init_perf_guards();
+init_uniform_cache();
+init_debug();
 var CommandRecorder = class _CommandRecorder {
   device;
   label;
@@ -6134,7 +8015,7 @@ var CommandRecorder = class _CommandRecorder {
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
       });
     } catch (e) {
-      console.warn("[CommandRecorder] Failed to initialize profiling:", e);
+      log.warn("CommandRecorder", `Failed to initialize profiling: ${e}`);
       this.profilingEnabled = false;
     }
   }
@@ -6168,21 +8049,15 @@ var CommandRecorder = class _CommandRecorder {
   }
   /**
    * Create a uniform buffer, write data, and track for cleanup.
-   * Convenience method for the common uniform buffer pattern.
+   * Uses content-addressed caching for identical uniform data.
    *
    * @param data - Data to write
    * @param label - Buffer label
    * @returns GPUBuffer
    */
   createUniformBuffer(data, label = "uniforms") {
-    const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
-    const buffer = this.createTempBuffer(
-      byteLength,
-      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label
-    );
-    this.device.queue.writeBuffer(buffer, 0, data);
-    return buffer;
+    const arrayBuffer = data instanceof ArrayBuffer ? data : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    return getUniformCache().getOrCreate(arrayBuffer, label);
   }
   /**
    * Begin a compute pass on the encoder.
@@ -6386,9 +8261,10 @@ function createProfilingRecorder(label = "profiled_recorder") {
   return new CommandRecorder(null, label, { profile: true });
 }
 
-// gpu/kernel-benchmark.ts
+// ../src/gpu/kernel-benchmark.ts
 init_device();
 init_buffer_pool();
+init_debug();
 var DEFAULT_CONFIG2 = {
   warmupIterations: PERFORMANCE.WARMUP_RUNS,
   timedIterations: PERFORMANCE.TIMED_RUNS,
@@ -6683,10 +8559,7 @@ async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
     latency_reduction_pct: (1 - fusedResult.latency.median_ms / separateResult.latency.median_ms) * 100,
     throughput_increase_pct: (speedup - 1) * 100
   };
-  console.log(`[Benchmark] Matmul+RMSNorm (N=${N}, K=${K}):`);
-  console.log(`  Separate: ${separateResult.latency.median_ms.toFixed(3)}ms`);
-  console.log(`  Fused:    ${fusedResult.latency.median_ms.toFixed(3)}ms`);
-  console.log(`  Speedup:  ${speedup.toFixed(2)}x`);
+  trace.perf(`Benchmark: Matmul+RMSNorm (N=${N}, K=${K}): Separate: ${separateResult.latency.median_ms.toFixed(3)}ms, Fused: ${fusedResult.latency.median_ms.toFixed(3)}ms, Speedup: ${speedup.toFixed(2)}x`);
   return { separate: separateResult, fused: fusedResult, comparison };
 }
 async function benchmarkDecodePass(options = {}) {
@@ -6695,27 +8568,26 @@ async function benchmarkDecodePass(options = {}) {
   const limits = getDeviceLimits();
   const caps = getKernelCapabilities();
   const results = [];
-  console.log("[Benchmark] Starting decode pass benchmark...");
-  console.log(`[Benchmark] Model config: hidden=${config2.hiddenSize}, intermediate=${config2.intermediateSize}, heads=${config2.numHeads}`);
-  console.log("[Benchmark] Running RMSNorm...");
+  trace.perf(`Benchmark: Starting decode pass benchmark... Model config: hidden=${config2.hiddenSize}, intermediate=${config2.intermediateSize}, heads=${config2.numHeads}`);
+  trace.perf("Benchmark: Running RMSNorm...");
   results.push(await benchmarkRMSNorm(1, config2.hiddenSize, options));
-  console.log("[Benchmark] Running QKV projection...");
+  trace.perf("Benchmark: Running QKV projection...");
   const qkvDim = (config2.numHeads + 2 * config2.numKVHeads) * config2.headDim;
   results.push(await benchmarkMatmul(1, qkvDim, config2.hiddenSize, options));
-  console.log("[Benchmark] Running Attention decode...");
+  trace.perf("Benchmark: Running Attention decode...");
   const kvLen = 512;
   results.push(await benchmarkAttentionDecode(config2.numHeads, config2.headDim, kvLen, options));
-  console.log("[Benchmark] Running output projection...");
+  trace.perf("Benchmark: Running output projection...");
   results.push(await benchmarkMatmul(1, config2.hiddenSize, config2.numHeads * config2.headDim, options));
-  console.log("[Benchmark] Running FFN gate+up...");
+  trace.perf("Benchmark: Running FFN gate+up...");
   results.push(await benchmarkMatmul(1, config2.intermediateSize * 2, config2.hiddenSize, options));
-  console.log("[Benchmark] Running SiLU...");
+  trace.perf("Benchmark: Running SiLU...");
   results.push(await benchmarkSiLU(config2.intermediateSize, options));
-  console.log("[Benchmark] Running FFN down...");
+  trace.perf("Benchmark: Running FFN down...");
   results.push(await benchmarkMatmul(1, config2.hiddenSize, config2.intermediateSize, options));
-  console.log("[Benchmark] Running final RMSNorm...");
+  trace.perf("Benchmark: Running final RMSNorm...");
   results.push(await benchmarkRMSNorm(1, config2.hiddenSize, options));
-  console.log("[Benchmark] Running LM head...");
+  trace.perf("Benchmark: Running LM head...");
   results.push(await benchmarkMatmul(1, config2.vocabSize, config2.hiddenSize, options));
   const perLayerLatency = results.slice(0, 8).reduce((sum, r) => sum + r.latency.median_ms, 0);
   const lmHeadLatency = results[8].latency.median_ms;
@@ -6753,10 +8625,7 @@ async function benchmarkDecodePass(options = {}) {
     },
     generated_at: (/* @__PURE__ */ new Date()).toISOString()
   };
-  console.log("\n=== Benchmark Summary ===");
-  console.log(`Total decode latency: ${totalDecodeLatency.toFixed(2)}ms`);
-  console.log(`Estimated tokens/sec: ${tokPerSec.toFixed(1)}`);
-  console.log(`Bottleneck: ${bottleneck.kernel} (${bottleneckPct.toFixed(1)}%)`);
+  trace.perf(`Benchmark Summary: Total decode latency: ${totalDecodeLatency.toFixed(2)}ms, Estimated tokens/sec: ${tokPerSec.toFixed(1)}, Bottleneck: ${bottleneck.kernel} (${bottleneckPct.toFixed(1)}%)`);
   return report;
 }
 function compareBenchmarks(baseline, optimized) {
@@ -6775,44 +8644,129 @@ function exportBenchmarkJSON(report) {
   return JSON.stringify(report, null, 2);
 }
 function printBenchmarkReport(report) {
-  console.log("\n" + "=".repeat(60));
-  console.log("KERNEL BENCHMARK REPORT");
-  console.log("=".repeat(60));
-  console.log("\nDevice Info:");
-  console.log(`  Max Workgroup Size: ${report.device_info.max_workgroup_size}`);
-  console.log(`  Max Shared Memory: ${(report.device_info.max_shared_memory / 1024).toFixed(1)}KB`);
-  console.log(`  F16 Support: ${report.device_info.has_f16}`);
-  console.log(`  Subgroup Support: ${report.device_info.has_subgroups}`);
-  console.log("\nModel Config:");
-  console.log(`  Name: ${report.model_config.name}`);
-  console.log(`  Hidden Size: ${report.model_config.hidden_size}`);
-  console.log(`  Intermediate Size: ${report.model_config.intermediate_size}`);
-  console.log(`  Heads: ${report.model_config.num_heads} (KV: ${report.model_config.num_kv_heads})`);
-  console.log("\nKernel Results:");
-  console.log("-".repeat(60));
-  console.log("Kernel           | Latency (ms) | GB/s    | GFLOPS");
-  console.log("-".repeat(60));
+  log.info("Benchmark", "=".repeat(60));
+  log.info("Benchmark", "KERNEL BENCHMARK REPORT");
+  log.info("Benchmark", "=".repeat(60));
+  log.info("Benchmark", "Device Info:");
+  log.info("Benchmark", `  Max Workgroup Size: ${report.device_info.max_workgroup_size}`);
+  log.info("Benchmark", `  Max Shared Memory: ${(report.device_info.max_shared_memory / 1024).toFixed(1)}KB`);
+  log.info("Benchmark", `  F16 Support: ${report.device_info.has_f16}`);
+  log.info("Benchmark", `  Subgroup Support: ${report.device_info.has_subgroups}`);
+  log.info("Benchmark", "Model Config:");
+  log.info("Benchmark", `  Name: ${report.model_config.name}`);
+  log.info("Benchmark", `  Hidden Size: ${report.model_config.hidden_size}`);
+  log.info("Benchmark", `  Intermediate Size: ${report.model_config.intermediate_size}`);
+  log.info("Benchmark", `  Heads: ${report.model_config.num_heads} (KV: ${report.model_config.num_kv_heads})`);
+  log.info("Benchmark", "Kernel Results:");
+  log.info("Benchmark", "-".repeat(60));
+  log.info("Benchmark", "Kernel           | Latency (ms) | GB/s    | GFLOPS");
+  log.info("Benchmark", "-".repeat(60));
   for (const r of report.results) {
-    console.log(
+    log.info(
+      "Benchmark",
       `${(r.kernel + "/" + r.variant).padEnd(16)} | ${r.latency.median_ms.toFixed(3).padStart(12)} | ${r.throughput.gb_per_sec.toFixed(2).padStart(7)} | ${r.flops.gflops.toFixed(1).padStart(7)}`
     );
   }
-  console.log("-".repeat(60));
-  console.log("\nSummary:");
-  console.log(`  Total Decode Latency: ${report.summary.total_decode_latency_ms.toFixed(2)}ms`);
-  console.log(`  Estimated Tokens/sec: ${report.summary.estimated_tok_per_sec.toFixed(1)}`);
-  console.log(`  Bottleneck: ${report.summary.bottleneck_kernel} (${report.summary.bottleneck_percentage.toFixed(1)}%)`);
+  log.info("Benchmark", "-".repeat(60));
+  log.info("Benchmark", "Summary:");
+  log.info("Benchmark", `  Total Decode Latency: ${report.summary.total_decode_latency_ms.toFixed(2)}ms`);
+  log.info("Benchmark", `  Estimated Tokens/sec: ${report.summary.estimated_tok_per_sec.toFixed(1)}`);
+  log.info("Benchmark", `  Bottleneck: ${report.summary.bottleneck_kernel} (${report.summary.bottleneck_percentage.toFixed(1)}%)`);
   if (report.comparisons.length > 0) {
-    console.log("\nComparisons:");
+    log.info("Benchmark", "Comparisons:");
     for (const c of report.comparisons) {
-      console.log(`  ${c.baseline.kernel}: ${c.speedup.toFixed(2)}x speedup`);
+      log.info("Benchmark", `  ${c.baseline.kernel}: ${c.speedup.toFixed(2)}x speedup`);
     }
   }
-  console.log("\n" + "=".repeat(60));
+  log.info("Benchmark", "=".repeat(60));
 }
 
-// gpu/perf-profiler.ts
+// ../src/gpu/kernels/split_qkv.ts
 init_device();
+init_buffer_dtypes();
+init_buffer_pool();
+init_dispatch();
+init_utils();
+async function runSplitQKV(qkvBuffer, options) {
+  const device2 = getDevice();
+  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const pipeline = await getPipelineFast("split_qkv", "default");
+  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, void 0, "Q");
+  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, void 0, "K");
+  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, void 0, "V");
+  const uniformBuffer = createUniformBufferWithView(
+    "split_qkv_uniforms",
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, qSize, true);
+      view.setUint32(8, kSize, true);
+      view.setUint32(12, vSize, true);
+    },
+    null,
+    device2
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "split_qkv_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: qkvBuffer } },
+      { binding: 2, resource: { buffer: Q } },
+      { binding: 3, resource: { buffer: K } },
+      { binding: 4, resource: { buffer: V } }
+    ]
+  });
+  const totalElements = numTokens * (qSize + kSize + vSize);
+  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
+  dispatch(device2, pipeline, bindGroup, workgroups, "split_qkv");
+  uniformBuffer.destroy();
+  setBufferDtype(Q, "f32");
+  setBufferDtype(K, "f32");
+  setBufferDtype(V, "f32");
+  return { Q, K, V };
+}
+async function recordSplitQKV(recorder, qkvBuffer, options) {
+  const device2 = recorder.device;
+  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const pipeline = await getPipelineFast("split_qkv", "default");
+  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, void 0, "Q");
+  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, void 0, "K");
+  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, void 0, "V");
+  const uniformBuffer = createUniformBufferWithView(
+    "split_qkv_uniforms",
+    16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, qSize, true);
+      view.setUint32(8, kSize, true);
+      view.setUint32(12, vSize, true);
+    },
+    recorder
+  );
+  const bindGroup = device2.createBindGroup({
+    label: "split_qkv_bind_group",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: qkvBuffer } },
+      { binding: 2, resource: { buffer: Q } },
+      { binding: 3, resource: { buffer: K } },
+      { binding: 4, resource: { buffer: V } }
+    ]
+  });
+  const totalElements = numTokens * (qSize + kSize + vSize);
+  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, "split_qkv");
+  setBufferDtype(Q, "f32");
+  setBufferDtype(K, "f32");
+  setBufferDtype(V, "f32");
+  return { Q, K, V };
+}
+
+// ../src/gpu/perf-profiler.ts
+init_device();
+init_debug();
 var profilingEnabled = false;
 var profileEntries = [];
 var profileStartTime = 0;
@@ -6968,33 +8922,34 @@ function getProfileReport() {
 }
 function printProfileReport(report) {
   const r = report || getProfileReport();
-  console.log("\n" + "=".repeat(60));
-  console.log("PERFORMANCE PROFILE REPORT");
-  console.log("=".repeat(60));
-  console.log("\nSummary:");
-  console.log(`  Total Time: ${r.summary.totalTime.toFixed(2)}ms`);
-  console.log(`  Kernel Time: ${r.summary.kernelTime.toFixed(2)}ms (${(r.summary.kernelTime / r.summary.totalTime * 100).toFixed(1)}%)`);
-  console.log(`  Memory Time: ${r.summary.memoryTime.toFixed(2)}ms (${(r.summary.memoryTime / r.summary.totalTime * 100).toFixed(1)}%)`);
-  console.log(`  Sync Time: ${r.summary.syncTime.toFixed(2)}ms (${(r.summary.syncTime / r.summary.totalTime * 100).toFixed(1)}%)`);
-  console.log(`  Kernel Count: ${r.summary.kernelCount}`);
-  console.log("\nTop Operations:");
-  console.log("-".repeat(60));
-  console.log("Operation                    | Time (ms) | Count | % Total");
-  console.log("-".repeat(60));
+  log.info("Profile", "=".repeat(60));
+  log.info("Profile", "PERFORMANCE PROFILE REPORT");
+  log.info("Profile", "=".repeat(60));
+  log.info("Profile", "Summary:");
+  log.info("Profile", `  Total Time: ${r.summary.totalTime.toFixed(2)}ms`);
+  log.info("Profile", `  Kernel Time: ${r.summary.kernelTime.toFixed(2)}ms (${(r.summary.kernelTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  log.info("Profile", `  Memory Time: ${r.summary.memoryTime.toFixed(2)}ms (${(r.summary.memoryTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  log.info("Profile", `  Sync Time: ${r.summary.syncTime.toFixed(2)}ms (${(r.summary.syncTime / r.summary.totalTime * 100).toFixed(1)}%)`);
+  log.info("Profile", `  Kernel Count: ${r.summary.kernelCount}`);
+  log.info("Profile", "Top Operations:");
+  log.info("Profile", "-".repeat(60));
+  log.info("Profile", "Operation                    | Time (ms) | Count | % Total");
+  log.info("Profile", "-".repeat(60));
   for (const item of r.breakdown.slice(0, 10)) {
-    console.log(
+    log.info(
+      "Profile",
       `${item.name.padEnd(28)} | ${item.totalTime.toFixed(2).padStart(9)} | ${item.count.toString().padStart(5)} | ${item.pctOfTotal.toFixed(1).padStart(7)}%`
     );
   }
   if (r.bottlenecks.length > 0) {
-    console.log("\nBottlenecks:");
-    console.log("-".repeat(60));
+    log.info("Profile", "Bottlenecks:");
+    log.info("Profile", "-".repeat(60));
     for (const b of r.bottlenecks) {
-      console.log(`  [${(b.impact * 100).toFixed(0)}%] ${b.name}`);
-      console.log(`       Fix: ${b.suggestion}`);
+      log.info("Profile", `  [${(b.impact * 100).toFixed(0)}%] ${b.name}`);
+      log.info("Profile", `       Fix: ${b.suggestion}`);
     }
   }
-  console.log("\n" + "=".repeat(60));
+  log.info("Profile", "=".repeat(60));
 }
 function exportProfileJSON(report) {
   return JSON.stringify(report || getProfileReport(), null, 2);
@@ -7026,7 +8981,7 @@ function analyzeDecodePerformance(tokensGenerated, totalTimeMs, targetTokPerSec 
   };
 }
 
-// kernel-tests/src/reference/index.ts
+// src/reference/index.ts
 var reference_exports = {};
 __export(reference_exports, {
   argmaxRef: () => argmaxRef,
@@ -7075,7 +9030,7 @@ __export(reference_exports, {
   topkRef: () => topkRef
 });
 
-// kernel-tests/src/reference/matmul.ts
+// src/reference/matmul.ts
 function matmulRef(A, B, M, N, K, alpha = 1) {
   const C = new Float32Array(M * N);
   for (let m = 0; m < M; m++) {
@@ -7119,7 +9074,7 @@ function matvecRef(A, x, M, K) {
   return y;
 }
 
-// kernel-tests/src/reference/softmax.ts
+// src/reference/softmax.ts
 function softmaxRef(input, innerSize, outerSize, temperature = 1) {
   const output = new Float32Array(input.length);
   for (let row = 0; row < outerSize; row++) {
@@ -7178,7 +9133,7 @@ function softmaxInplaceRef(input, innerSize, outerSize, temperature = 1) {
   return input;
 }
 
-// kernel-tests/src/reference/silu.ts
+// src/reference/silu.ts
 function silu(x) {
   return x / (1 + Math.exp(-x));
 }
@@ -7213,7 +9168,7 @@ function siluInplaceRef(input) {
   return input;
 }
 
-// kernel-tests/src/reference/rmsnorm.ts
+// src/reference/rmsnorm.ts
 function rmsNormRef(input, weight, batchSize, hiddenSize, eps = 1e-6) {
   const output = new Float32Array(input.length);
   for (let b = 0; b < batchSize; b++) {
@@ -7248,7 +9203,7 @@ function rmsNormNoWeightRef(input, batchSize, hiddenSize, eps = 1e-6) {
   return output;
 }
 
-// kernel-tests/src/reference/rope.ts
+// src/reference/rope.ts
 function computeRopeFreqs(dim, maxSeqLen, base = 1e4) {
   const halfDim = dim / 2;
   const cos = new Float32Array(maxSeqLen * halfDim);
@@ -7302,7 +9257,7 @@ function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0
   return output;
 }
 
-// kernel-tests/src/reference/attention.ts
+// src/reference/attention.ts
 function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
   const output = new Float32Array(seqLen * numHeads * headDim);
   const scale = 1 / Math.sqrt(headDim);
@@ -7366,7 +9321,7 @@ function mqaRef(Q, K, V, seqLen, kvLen, numHeads, headDim, mask = null) {
   return attentionRef(Q, K, V, seqLen, kvLen, numHeads, 1, headDim, mask);
 }
 
-// kernel-tests/src/reference/topk.ts
+// src/reference/topk.ts
 function topkRef(probs, numTokens, numExperts, topK, normalize = true) {
   const indices = new Uint32Array(numTokens * topK);
   const weights = new Float32Array(numTokens * topK);
@@ -7426,7 +9381,7 @@ function softmaxTopkRef(logits, numTokens, numExperts, topK, normalize = true) {
   return { indices, weights };
 }
 
-// kernel-tests/src/reference/scatter-add.ts
+// src/reference/scatter-add.ts
 function scatterAddRef(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK) {
   const output = new Float32Array(numTokens * hiddenSize);
   for (let token = 0; token < numTokens; token++) {
@@ -7460,7 +9415,7 @@ function scatterAddAccumulateRef(expertOutputs, indices, weights, numTokens, hid
   return output;
 }
 
-// kernel-tests/src/reference/moe-gather.ts
+// src/reference/moe-gather.ts
 function moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
   const tokenCounts = new Uint32Array(numExperts);
   for (let t = 0; t < numTokens; t++) {
@@ -7514,7 +9469,7 @@ function moeComputeAssignmentsRef(expertIndices, numTokens, numExperts, topK) {
   return { tokenCounts, expertOffsets, totalAssignments: offset };
 }
 
-// kernel-tests/src/reference/gather.ts
+// src/reference/gather.ts
 function gatherRef(embeddings, indices, vocabSize, embedDim) {
   const seqLen = indices.length;
   const output = new Float32Array(seqLen * embedDim);
@@ -7558,7 +9513,7 @@ function gatherWithPosRef(embeddings, posEmbeddings, indices, vocabSize, embedDi
   return output;
 }
 
-// kernel-tests/src/reference/residual.ts
+// src/reference/residual.ts
 function residualAddRef(x, residual) {
   const output = new Float32Array(x.length);
   for (let i = 0; i < x.length; i++) {
@@ -7580,7 +9535,7 @@ function scaledResidualAddRef(x, residual, scale) {
   return output;
 }
 
-// kernel-tests/src/reference/dequant.ts
+// src/reference/dequant.ts
 function float16ToFloat32(bits) {
   const sign = bits >> 15 & 1;
   const exp = bits >> 10 & 31;
@@ -7815,7 +9770,7 @@ function dequantQ4_KRef(quantized, numBlocks) {
   return out;
 }
 
-// kernel-tests/src/reference/sample.ts
+// src/reference/sample.ts
 function argmaxRef(logits) {
   let maxIdx = 0;
   let maxVal = logits[0];
@@ -7880,7 +9835,7 @@ function seededRandom2(seed) {
   return x - Math.floor(x);
 }
 
-// kernel-tests/src/harness/tolerance.ts
+// src/harness/tolerance.ts
 var KERNEL_TOLERANCES = {
   matmul_f32: { rtol: 1e-5, atol: 1e-6 },
   matmul_f16: { rtol: 0.01, atol: 1e-3 },
@@ -7972,7 +9927,7 @@ function generateTestData(size, seed = 42, options = {}) {
   return data;
 }
 
-// kernel-tests/browser/test-page.ts
+// browser/test-page.ts
 var {
   runMatmul: runMatmul2 = null,
   runSoftmax: runSoftmax2 = null,
@@ -7999,7 +9954,7 @@ try {
 }
 var device = null;
 var initialized = false;
-function f16ToF32(h) {
+function f16ToF322(h) {
   const sign = (h & 32768) >> 15;
   const exponent = (h & 31744) >> 10;
   const mantissa = h & 1023;
@@ -8347,21 +10302,56 @@ var testHarness = {
    * kernel-selector API: runAttention(Q, K, V, mask, numHeads, headDim, options)
    * options: { seqLen, kvLen, numKVHeads, scale, causal }
    *
-   * NOTE: GPU attention kernel currently has workgroup storage limit issues (>32KB),
-   * so we fall back to reference implementation for now.
+   * Uses production kernel selector which automatically chooses appropriate tier
+   * (subgroup, tiled_small, streaming) based on device capabilities.
    */
   async runAttention(dev, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
-    return attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask);
+    if (!runAttention2) {
+      return attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask);
+    }
+    const qBuf = makeBuffer(Q);
+    const kBuf = makeBuffer(K);
+    const vBuf = makeBuffer(V);
+    const outBuf = await runAttention2(qBuf, kBuf, vBuf, mask ? makeBuffer(mask) : null, numHeads, headDim, {
+      seqLen,
+      kvLen,
+      numKVHeads,
+      scale: 1 / Math.sqrt(headDim),
+      causal: true
+    });
+    const out = new Float32Array(await readBufferData(outBuf, seqLen * numHeads * headDim * 4));
+    qBuf.destroy();
+    kBuf.destroy();
+    vBuf.destroy();
+    outBuf.destroy();
+    return out;
   },
   /**
-   * Run MoE gather
-   * TODO: GPU kernel has bugs (wrong token counts), using reference for now
+   * Run MoE gather - dispatches tokens to experts
+   * Now uses the fixed two-phase GPU kernel (count_and_map + gather_tokens)
    */
   async runMoEGather(dev, tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
-    const result = moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK);
+    if (!runMoEGather2) {
+      const result2 = moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK);
+      return {
+        gatheredTokens: result2.gatheredTokens,
+        tokenCounts: result2.tokenCounts
+      };
+    }
+    const tokensBuf = makeBuffer(tokens);
+    const indicesBuf = makeBuffer(expertIndices);
+    const result = await runMoEGather2(tokensBuf, indicesBuf, numTokens, hiddenSize, numExperts, topK);
+    const maxTokensPerExpert = result.maxTokensPerExpert;
+    const gatheredTokens = new Float32Array(await readBufferData(result.gathered, numExperts * maxTokensPerExpert * hiddenSize * 4));
+    const tokenCounts = new Uint32Array(await readBufferData(result.tokenCounts, numExperts * 4));
+    tokensBuf.destroy();
+    indicesBuf.destroy();
+    result.gathered.destroy();
+    result.tokenCounts.destroy();
+    result.tokenMap.destroy();
     return {
-      gatheredTokens: result.gatheredTokens,
-      tokenCounts: result.tokenCounts
+      gatheredTokens,
+      tokenCounts
     };
   },
   /**
@@ -8449,7 +10439,7 @@ var testHarness = {
     const u16View = new Uint16Array(rawData);
     const out = new Float32Array(u16View.length);
     for (let i = 0; i < u16View.length; i++) {
-      out[i] = f16ToF32(u16View[i]);
+      out[i] = f16ToF322(u16View[i]);
     }
     qBuf.destroy();
     outBuf.destroy();

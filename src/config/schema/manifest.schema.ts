@@ -51,6 +51,27 @@ export type ComponentGroupType =
 /** Weight storage layout */
 export type WeightLayout = 'row' | 'column';
 
+/** Quantization value (string for forward compatibility) */
+export type QuantizationValue =
+  | 'q4_k_m'
+  | 'q6_k'
+  | 'q8_0'
+  | 'f16'
+  | 'bf16'
+  | 'f32'
+  | string;
+
+/** Quantization metadata for different weight groups */
+export interface QuantizationInfoSchema {
+  weights: QuantizationValue;
+  embeddings?: QuantizationValue;
+  lmHead?: QuantizationValue;
+  activations?: QuantizationValue;
+  kvCache?: QuantizationValue;
+  compute?: QuantizationValue;
+  variantTag?: string;
+}
+
 // =============================================================================
 // Architecture Schema
 // =============================================================================
@@ -193,6 +214,7 @@ export interface ManifestSchema {
   modelId: string;
   modelType: ModelType;
   quantization: string;
+  quantizationInfo?: QuantizationInfoSchema;
   hashAlgorithm: HashAlgorithm;
   totalSize: number;
 

@@ -33,6 +33,7 @@ import {
   type TensorMapSchema,
   type ConversionInfoSchema,
   type RuntimeOptimizationsSchema,
+  type QuantizationInfoSchema,
   type TensorLocationSchema,
   type TensorInfoSchema,
   type WriterOptionsSchema,
@@ -137,6 +138,7 @@ export interface ModelInfo {
   modelName?: string;
   architecture?: string;
   quantization?: string;
+  quantizationInfo?: QuantizationInfoSchema;
   config?: Record<string, unknown>;
   tokenizer?: TokenizerConfig;
   tokenizerConfig?: TokenizerConfig;
@@ -213,6 +215,7 @@ export class RDRRWriter {
     modelType: 'transformer' as ModelType,
     architecture: 'llama',
     quantization: 'Q4_K_M',
+    quantizationInfo: undefined as QuantizationInfoSchema | undefined,
     hashAlgorithm: 'sha256' as HashAlgorithm,
     config: {} as Record<string, unknown>,
     tokenizer: {} as Record<string, unknown>,
@@ -239,6 +242,7 @@ export class RDRRWriter {
     this.manifest.modelType = this.modelType;
     this.manifest.architecture = options.architecture ?? 'llama';
     this.manifest.quantization = options.quantization ?? 'Q4_K_M';
+    this.manifest.quantizationInfo = options.quantizationInfo;
     this.manifest.hashAlgorithm = this.hashAlgorithm;
     if (this.transposeWeights) {
       this.manifest.defaultWeightLayout = 'column';
@@ -998,6 +1002,7 @@ export async function writeRDRR(
     modelId: modelInfo.modelName || (config?.modelId as string) || 'model',
     architecture: modelInfo.architecture || (config?.architectures as string[])?.[0] || 'llama',
     quantization: modelInfo.quantization || options.quantization || 'Q4_K_M',
+    quantizationInfo: modelInfo.quantizationInfo ?? options.quantizationInfo,
     ...options,
   });
 

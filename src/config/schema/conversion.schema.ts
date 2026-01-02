@@ -6,7 +6,7 @@
  * @module config/schema/conversion
  */
 
-import type { HashAlgorithm, ModelType, WeightLayout } from './manifest.schema.js';
+import type { HashAlgorithm, ModelType, WeightLayout, QuantizationInfoSchema } from './manifest.schema.js';
 
 // =============================================================================
 // Tensor Info Schema
@@ -140,6 +140,7 @@ export interface WriterOptionsSchema {
   modelType?: ModelType;
   architecture?: string;
   quantization?: string;
+  quantizationInfo?: QuantizationInfoSchema;
   /** Pre-transpose weights for column-major access */
   transposeWeights?: boolean;
   /** Fuse gate+up projections for FFN */

@@ -11,7 +11,6 @@ import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
-import { allowReadback } from '../perf-guards.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import type { OutputBufferOptions } from './types.js';
@@ -153,30 +152,6 @@ export async function runBF16ToF32(
   if (outputSize > maxBindingSize) {
     // Need to chunk - output buffer can exist, but must be bound in smaller ranges.
     return runBF16ToF32Chunked(input, numElements, name, maxBindingSize);
-  }
-
-  // DEBUG: Verify input buffer has non-zero data before conversion
-  if (name.includes('embed') && allowReadback('cast.debugInput')) {
-    try {
-      const sampleSize = Math.min(256, input.size);
-      const stagingIn = device.createBuffer({
-        size: sampleSize,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        label: 'bf16_input_debug_staging',
-      });
-      const encIn = device.createCommandEncoder();
-      encIn.copyBufferToBuffer(input, 0, stagingIn, 0, sampleSize);
-      device.queue.submit([encIn.finish()]);
-      await device.queue.onSubmittedWorkDone();
-      await stagingIn.mapAsync(GPUMapMode.READ);
-      const inData = new Uint8Array(stagingIn.getMappedRange().slice(0));
-      stagingIn.unmap();
-      stagingIn.destroy();
-      const nonZeroBytes = Array.from(inData).filter(x => x !== 0).length;
-      trace.kernels(`BF16ToF32: INPUT CHECK nonZeroBytes=${nonZeroBytes}/${inData.length}, first16=[${Array.from(inData.slice(0, 16)).join(', ')}]`);
-    } catch (err) {
-      log.error('BF16ToF32', `INPUT CHECK failed: ${(err as Error).message}`);
-    }
   }
 
   const pipeline = await createPipeline('bf16_to_f32', 'default');

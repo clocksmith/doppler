@@ -38,13 +38,14 @@ export async function runScale(
   const outputSize = inferredCount * 4;
   const output = inplace ? input : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
 
-  // Create uniform buffer
+  // Create uniform buffer (16 bytes to match WGSL struct with padding)
   const uniformBuffer = createUniformBufferWithView(
     'scale_uniforms',
-    8,
+    16,
     (view) => {
       view.setUint32(0, inferredCount, true);
       view.setFloat32(4, scale, true);
+      // _pad0 and _pad1 at offsets 8 and 12 (unused)
     },
     null,
     device
@@ -89,13 +90,14 @@ export async function recordScale(
   const outputSize = inferredCount * 4;
   const output = inplace ? input : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
 
-  // Create uniform buffer via recorder (tracked for cleanup)
+  // Create uniform buffer via recorder (tracked for cleanup, 16 bytes to match WGSL)
   const uniformBuffer = createUniformBufferWithView(
     'scale_uniforms',
-    8,
+    16,
     (view) => {
       view.setUint32(0, inferredCount, true);
       view.setFloat32(4, scale, true);
+      // _pad0 and _pad1 at offsets 8 and 12 (unused)
     },
     recorder
   );

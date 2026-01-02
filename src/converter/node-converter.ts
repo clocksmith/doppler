@@ -38,7 +38,7 @@ import {
   type WriterOptions,
 } from './writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from './quantizer.js';
-import { shouldQuantize as shouldQuantizeCore } from './core.js';
+import { shouldQuantize as shouldQuantizeCore, sanitizeModelId } from './core.js';
 
 // Import config-as-code preset detection
 import {
@@ -46,6 +46,7 @@ import {
   resolvePreset,
   type ModelType,
   type RawModelConfigSchema,
+  type QuantizationInfoSchema,
 } from '../config/index.js';
 import { log as debugLog } from '../debug/index.js';
 
@@ -173,6 +174,98 @@ function detectModelTypeFromPreset(
   }
 
   return { presetId, modelType };
+}
+
+function normalizeQuantTag(value: string | null | undefined): string {
+  if (!value) return 'f16';
+  const lower = value.toLowerCase();
+  if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4') return 'q4_k_m';
+  if (lower === 'q6_k' || lower === 'q6k') return 'q6_k';
+  if (lower === 'q8_0' || lower === 'q8') return 'q8_0';
+  if (lower === 'f16' || lower === 'fp16' || lower === 'float16') return 'f16';
+  if (lower === 'bf16' || lower === 'bfloat16') return 'bf16';
+  if (lower === 'f32' || lower === 'fp32' || lower === 'float32') return 'f32';
+  return lower;
+}
+
+function resolveManifestQuantization(quantize: ConvertOptions['quantize'], fallback: string): string {
+  if (quantize === 'q4_k_m') return 'Q4_K_M';
+  if (quantize === 'f16') return 'F16';
+  if (quantize === 'f32') return 'F32';
+  return fallback;
+}
+
+function isEmbeddingTensorName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return (
+    lower.includes('embed') ||
+    lower.includes('tok_embeddings') ||
+    lower.includes('token_embd')
+  );
+}
+
+function isLmHeadTensorName(name: string): boolean {
+  const lower = name.toLowerCase();
+  if (lower.includes('lm_head')) return true;
+  if (lower.endsWith('output.weight')) return true;
+  return lower.includes('output') && lower.includes('weight') && !lower.includes('attn');
+}
+
+function findTensorDtype(
+  tensors: Array<{ name: string; dtype: string }>,
+  matcher: (name: string) => boolean
+): string | null {
+  const match = tensors.find((t) => matcher(t.name));
+  return match?.dtype ?? null;
+}
+
+function buildVariantTag(info: QuantizationInfoSchema): string {
+  const weights = info.weights;
+  const embeddings = info.embeddings ?? info.weights;
+  const parts = [`w${weights}`, `emb${embeddings}`];
+  const lmHead = info.lmHead ?? embeddings;
+  if (lmHead !== embeddings) {
+    parts.push(`head${lmHead}`);
+  }
+  return parts.join('-');
+}
+
+function buildQuantizationInfo(
+  opts: ConvertOptions,
+  originalDtype: string,
+  embedDtype: string | null,
+  lmHeadDtype: string | null
+): QuantizationInfoSchema {
+  const weights = normalizeQuantTag(opts.quantize ?? originalDtype);
+  let embeddings = normalizeQuantTag(embedDtype ?? originalDtype);
+  let lmHead = normalizeQuantTag(lmHeadDtype ?? embeddings);
+
+  if (opts.quantize === 'q4_k_m') {
+    if (opts.quantizeEmbeddings) {
+      embeddings = weights;
+      lmHead = weights;
+    }
+  } else if (opts.quantize === 'f16') {
+    embeddings = 'f16';
+    lmHead = 'f16';
+  } else if (opts.quantize === 'f32') {
+    embeddings = 'f32';
+    lmHead = 'f32';
+  }
+
+  const info: QuantizationInfoSchema = {
+    weights,
+    embeddings,
+    lmHead: lmHead !== embeddings ? lmHead : undefined,
+  };
+  info.variantTag = buildVariantTag(info);
+  return info;
+}
+
+function resolveModelId(modelId: string | null, baseName: string, variantTag: string | undefined): string {
+  if (modelId) return modelId;
+  const base = sanitizeModelId(baseName);
+  return variantTag ? `${base}-${variantTag}` : base;
 }
 
 function printHelp(): void {

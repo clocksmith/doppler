@@ -163,33 +163,6 @@ export async function runLayerAttentionGPU(
       await traceStep('rmsnorm', `L${layerIdx}.input_norm`, layerIdx, normedBuffer, [numTokens, hiddenSize]);
     }
 
-    // DEBUG: Dump normed input values at layer 0 prefill
-    if (layerIdx === 0 && isPrefill && numTokens > 1) {
-      try {
-        const stagingBuf = device.createBuffer({
-          size: normedBuffer.size,
-          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-        });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(normedBuffer, 0, stagingBuf, 0, normedBuffer.size);
-        device.queue.submit([enc.finish()]);
-        await stagingBuf.mapAsync(GPUMapMode.READ);
-        const normedData = new Float32Array(stagingBuf.getMappedRange().slice(0));
-        stagingBuf.unmap();
-        stagingBuf.destroy();
-
-        // Last token, first 8 elements
-        const lastStart = (numTokens - 1) * hiddenSize;
-        const normedLastFirst8 = Array.from(normedData.slice(lastStart, lastStart + 8));
-        trace.attn(layerIdx, `NORMED_INPUT posLast_first8: [${normedLastFirst8.map(v => v.toFixed(4)).join(', ')}]`);
-        // Also BOS for comparison
-        const normedBosFirst8 = Array.from(normedData.slice(0, 8));
-        trace.attn(layerIdx, `NORMED_INPUT pos0_first8: [${normedBosFirst8.map(v => v.toFixed(4)).join(', ')}]`);
-      } catch (e) {
-        log.error('Attention', `[L0_NORM_DEBUG] Error dumping normed input: ${e}`);
-      }
-    }
-
     if (isKernelDebugEnabled(layerIdx)) {
       logKernelStep('rmsnorm', { layerIdx, label: 'input_norm', size: numTokens * hiddenSize });
       await dumpTokenVector(normedBuffer, 'input_norm_out', {
@@ -310,73 +283,6 @@ export async function runLayerAttentionGPU(
     if (layerWeights.vProj && getWeightBuffer) {
       const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
 
-      // DEBUG: Dump V_proj weight values at layer 0 prefill
-      if (layerIdx === 0 && isPrefill && numTokens > 1) {
-        try {
-          const weightStagingBuf = device.createBuffer({
-            size: vProjBuf.size,
-            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-          });
-          const enc = device.createCommandEncoder();
-          enc.copyBufferToBuffer(vProjBuf, 0, weightStagingBuf, 0, vProjBuf.size);
-          device.queue.submit([enc.finish()]);
-          await weightStagingBuf.mapAsync(GPUMapMode.READ);
-          const mapped = weightStagingBuf.getMappedRange().slice(0);
-
-          // V_proj is stored as F16
-          const f16View = new Uint16Array(mapped);
-
-          // Show raw F16 bits for first 8 values
-          const rawF16First8 = Array.from(f16View.slice(0, 8));
-          trace.attn(layerIdx, `V_proj F16 raw bits: [${rawF16First8.map(v => '0x' + v.toString(16).padStart(4, '0')).join(', ')}]`);
-
-          // Convert F16 to F32
-          const weightData = new Float32Array(8);
-          for (let i = 0; i < 8; i++) {
-            const f16 = f16View[i];
-            const sign = (f16 >> 15) & 0x1;
-            const exp = (f16 >> 10) & 0x1F;
-            const frac = f16 & 0x3FF;
-            let f32: number;
-            if (exp === 0) {
-              if (frac === 0) {
-                f32 = sign ? -0 : 0;
-              } else {
-                f32 = (sign ? -1 : 1) * Math.pow(2, -14) * (frac / 1024);
-              }
-            } else if (exp === 31) {
-              f32 = frac === 0 ? (sign ? -Infinity : Infinity) : NaN;
-            } else {
-              f32 = (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + frac / 1024);
-            }
-            weightData[i] = f32;
-          }
-          weightStagingBuf.unmap();
-          weightStagingBuf.destroy();
-
-          const vWeightFirst8 = Array.from(weightData);
-          trace.attn(layerIdx, `V_proj_weight[0,:8]: [${vWeightFirst8.map(v => v.toFixed(6)).join(', ')}]`);
-          trace.attn(layerIdx, `vProjBuf.size=${vProjBuf.size}, expected=${numKVHeads * headDim * hiddenSize * 2} (F16)`);
-
-          // Also check if values at row 0 col 100 match HF (0.005676)
-          const f16at100 = f16View[100];
-          const sign100 = (f16at100 >> 15) & 0x1;
-          const exp100 = (f16at100 >> 10) & 0x1F;
-          const frac100 = f16at100 & 0x3FF;
-          let f32at100: number;
-          if (exp100 === 0) {
-            f32at100 = frac100 === 0 ? 0 : (sign100 ? -1 : 1) * Math.pow(2, -14) * (frac100 / 1024);
-          } else if (exp100 === 31) {
-            f32at100 = frac100 === 0 ? (sign100 ? -Infinity : Infinity) : NaN;
-          } else {
-            f32at100 = (sign100 ? -1 : 1) * Math.pow(2, exp100 - 15) * (1 + frac100 / 1024);
-          }
-          trace.attn(layerIdx, `V_proj[0,100]=${f32at100.toFixed(6)} (HF expects 0.005676)`);
-        } catch (e) {
-          log.error('Attention', `[L0_WEIGHT_DEBUG] Error dumping V_proj weights: ${e}`);
-        }
-      }
-
       V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
         transposeB: 'auto',
         outputDtype: useF16Activations ? 'f16' : undefined,
@@ -477,29 +383,6 @@ export async function runLayerAttentionGPU(
   if (normedBuffer !== inputBuffer) releaseBuffer(normedBuffer);
 
   // 3. RoPE
-  // DEBUG: Dump Q before RoPE at positions 0 and last
-  if (layerIdx === 0 && isPrefill && numTokens > 1) {
-    try {
-      const device = getDevice();
-      const stagingBuf = device.createBuffer({
-        size: Q.size,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-      const enc = device.createCommandEncoder();
-      enc.copyBufferToBuffer(Q, 0, stagingBuf, 0, Q.size);
-      device.queue.submit([enc.finish()]);
-      await stagingBuf.mapAsync(GPUMapMode.READ);
-      const qData = new Float32Array(stagingBuf.getMappedRange().slice(0));
-      stagingBuf.unmap();
-      stagingBuf.destroy();
-
-      const headSize = numHeads * headDim;
-      const q0First8 = Array.from(qData.slice(0, 8));
-      const qLastFirst8 = Array.from(qData.slice((numTokens - 1) * headSize, (numTokens - 1) * headSize + 8));
-      trace.attn(layerIdx, `Q_BEFORE_ROPE pos0_first8: [${q0First8.map(v => v.toFixed(4)).join(', ')}]`);
-      trace.attn(layerIdx, `Q_BEFORE_ROPE posLast_first8: [${qLastFirst8.map(v => v.toFixed(4)).join(', ')}]`);
-    } catch (e) { log.error('Attention', `[L0_ROPE_DEBUG] Error dumping Q before RoPE: ${e}`); }
-  }
 
   if (state.ropeFreqsCos && state.ropeFreqsSin) {
     await runRoPE(Q, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
@@ -508,47 +391,6 @@ export async function runLayerAttentionGPU(
     await runRoPE(K, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
       numHeads: numKVHeads, headDim, startPos: currentSeqLen,
     });
-
-    // DEBUG: Dump Q after RoPE at positions 0 and last
-    if (layerIdx === 0 && isPrefill && numTokens > 1) {
-      try {
-        const device = getDevice();
-        const stagingBuf = device.createBuffer({
-          size: Q.size,
-          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-        });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(Q, 0, stagingBuf, 0, Q.size);
-        device.queue.submit([enc.finish()]);
-        await stagingBuf.mapAsync(GPUMapMode.READ);
-        const qData = new Float32Array(stagingBuf.getMappedRange().slice(0));
-        stagingBuf.unmap();
-        stagingBuf.destroy();
-
-        const headSize = numHeads * headDim;
-        const q0First8 = Array.from(qData.slice(0, 8));
-        const qLastFirst8 = Array.from(qData.slice((numTokens - 1) * headSize, (numTokens - 1) * headSize + 8));
-        trace.attn(layerIdx, `Q_AFTER_ROPE pos0_first8: [${q0First8.map(v => v.toFixed(4)).join(', ')}]`);
-        trace.attn(layerIdx, `Q_AFTER_ROPE posLast_first8: [${qLastFirst8.map(v => v.toFixed(4)).join(', ')}]`);
-
-        // Also dump V values
-        const vStagingBuf = device.createBuffer({
-          size: V.size,
-          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-        });
-        const vEnc = device.createCommandEncoder();
-        vEnc.copyBufferToBuffer(V, 0, vStagingBuf, 0, V.size);
-        device.queue.submit([vEnc.finish()]);
-        await vStagingBuf.mapAsync(GPUMapMode.READ);
-        const vData = new Float32Array(vStagingBuf.getMappedRange().slice(0));
-        vStagingBuf.unmap();
-        vStagingBuf.destroy();
-
-        const kvHeadSize = numKVHeads * headDim;
-        const vLastFirst8 = Array.from(vData.slice((numTokens - 1) * kvHeadSize, (numTokens - 1) * kvHeadSize + 8));
-        trace.attn(layerIdx, `V_proj posLast_first8: [${vLastFirst8.map(v => v.toFixed(4)).join(', ')}]`);
-      } catch (e) { log.error('Attention', `[L0_ROPE_DEBUG] Error dumping Q/V: ${e}`); }
-    }
 
     // Trace RoPE outputs
     if (kernelTrace.enabled) {

@@ -298,21 +298,6 @@ export async function moeFeedForwardGPU(
     { normalize: moeRouter.normalizeWeights }
   );
 
-  // DEBUG: Read back expert indices to verify (layer 0 only)
-  if (layerIdx === 0) {
-    const logitsData = await readBuffer(logitsBuffer, numTokens * numExperts * 4);
-    const logitsF32 = new Float32Array(logitsData);
-    log.debug('MoE', `L${layerIdx} Router logits (first ${Math.min(numExperts, 8)} experts): ${Array.from(logitsF32.slice(0, Math.min(numExperts, 8))).map(v => v.toFixed(4)).join(', ')}`);
-
-    const indicesData = await readBuffer(indicesBuffer, numTokens * topK * 4);
-    const indicesU32 = new Uint32Array(indicesData);
-    log.debug('MoE', `L${layerIdx} Expert indices (topK=${topK}): ${Array.from(indicesU32)}`);
-
-    const weightsData = await readBuffer(weightsBuffer, numTokens * topK * 4);
-    const weightsF32 = new Float32Array(weightsData);
-    log.debug('MoE', `L${layerIdx} Expert weights: ${Array.from(weightsF32).map(v => v.toFixed(4))}`);
-  }
-
   // Clean up logits buffer
   releaseBuffer(logitsBuffer);
 
@@ -347,18 +332,6 @@ export async function moeFeedForwardGPU(
   const tokenMapElems = numExperts * maxTokensPerExpert * 2;
   const tokenMapData = await readBuffer(tokenMap, tokenMapElems * 4);
   const tokenMapCPU = new Uint32Array(tokenMapData);
-
-  // DEBUG: Log token counts per expert (layer 0 only)
-  if (layerIdx === 0) {
-    const nonZeroCounts: string[] = [];
-    for (let e = 0; e < numExperts; e++) {
-      if (tokenCountsCPU[e] > 0) {
-        nonZeroCounts.push(`e${e}:${tokenCountsCPU[e]}`);
-      }
-    }
-    log.debug('MoE', `L${layerIdx} Token counts: ${nonZeroCounts.length > 0 ? nonZeroCounts.join(', ') : 'ALL ZERO'}`);
-    log.debug('MoE', `L${layerIdx} Total tokens mapped: ${Array.from(tokenCountsCPU).reduce((a, b) => a + b, 0)}`);
-  }
 
   // Build tokenOffsets for scatter-add
   const tokenOffsetsCPU = new Uint32Array(numTokens * topK);

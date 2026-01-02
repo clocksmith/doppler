@@ -26,6 +26,7 @@ export {
   type ModelType,
   type ComponentGroupType,
   type WeightLayout,
+  type QuantizationValue,
 
   // Schemas
   type ArchitectureSchema,
@@ -38,6 +39,7 @@ export {
   type TokenizerSchema,
   type KernelHintsSchema,
   type RuntimeOptimizationsSchema,
+  type QuantizationInfoSchema,
   type ConversionInfoSchema,
   type ManifestSchema,
 
