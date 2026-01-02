@@ -22,6 +22,10 @@ struct Uniforms {
     top_k: u32,
     temperature: f32,
     random_value: f32,  // Pre-generated random [0,1) for sampling
+    pad_token_id: u32,
+    pad0: u32,
+    pad1: u32,
+    pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -46,6 +50,7 @@ fn find_topk_phase1(
     let global_idx = gid.x;
     let vocab_size = u.vocab_size;
     let temperature = u.temperature;
+    let pad_id = u.pad_token_id;
 
     // Each thread finds max in its assigned range
     var local_max: f32 = -3.402823e+38;  // -FLT_MAX
@@ -54,10 +59,12 @@ fn find_topk_phase1(
     // Stride through vocabulary
     var idx = global_idx;
     while (idx < vocab_size) {
-        let val = logits[idx] / temperature;
-        if (val > local_max) {
-            local_max = val;
-            local_max_idx = idx;
+        if (idx != pad_id) {
+            let val = logits[idx] / temperature;
+            if (val > local_max) {
+                local_max = val;
+                local_max_idx = idx;
+            }
         }
         idx = idx + WORKGROUP_SIZE * 256u;  // 256 workgroups assumed
     }
@@ -197,6 +204,7 @@ fn sample_single_pass(
     let top_k = min(u.top_k, MAX_TOP_K);
     let temperature = u.temperature;
     let random_val = u.random_value;
+    let pad_id = u.pad_token_id;
 
     // Phase 1: Find global max
     var local_max: f32 = -3.402823e+38;
@@ -204,10 +212,12 @@ fn sample_single_pass(
 
     var idx = gid.x;
     while (idx < vocab_size) {
-        let val = logits[idx] / temperature;
-        if (val > local_max) {
-            local_max = val;
-            local_max_idx = idx;
+        if (idx != pad_id) {
+            let val = logits[idx] / temperature;
+            if (val > local_max) {
+                local_max = val;
+                local_max_idx = idx;
+            }
         }
         idx = idx + num_wg.x * WORKGROUP_SIZE;
     }
@@ -251,6 +261,7 @@ fn argmax(
     let thread_idx = lid.x;
     let global_idx = gid.x;
     let vocab_size = u.vocab_size;
+    let pad_id = u.pad_token_id;
 
     // Each thread finds max in its chunk
     var local_max: f32 = -3.402823e+38;
@@ -258,10 +269,12 @@ fn argmax(
 
     var idx = global_idx;
     while (idx < vocab_size) {
-        let val = logits[idx];
-        if (val > local_max) {
-            local_max = val;
-            local_max_idx = idx;
+        if (idx != pad_id) {
+            let val = logits[idx];
+            if (val > local_max) {
+                local_max = val;
+                local_max_idx = idx;
+            }
         }
         idx = idx + num_wg.x * WORKGROUP_SIZE;
     }

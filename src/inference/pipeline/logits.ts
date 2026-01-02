@@ -20,6 +20,8 @@ import { allowReadback } from '../../gpu/perf-guards.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import { log, trace } from '../../debug/index.js';
+import type { ProbeConfigSchema } from '../../config/schema/index.js';
+import { runProbes } from './probes.js';
 
 // ============================================================================
 // Debug Configuration
@@ -188,7 +190,8 @@ export async function computeLogits(
   useGPU: boolean,
   debugFlags: LogitsDebugFlags = {},
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  debugProbes?: ProbeConfigSchema[] | null
 ): Promise<Float32Array> {
   if (LOGITS_DEBUG.enabled) {
     trace.logits(`LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
@@ -223,6 +226,11 @@ export async function computeLogits(
     if (config.finalLogitSoftcapping) {
       applySoftcapping(logits, config.finalLogitSoftcapping);
     }
+    await runProbes('logits_final', logits, {
+      numTokens,
+      hiddenSize: vocabSize,
+      probes: debugProbes,
+    });
     return logits;
   }
 
@@ -237,6 +245,11 @@ export async function computeLogits(
     device.queue.writeBuffer(inputBuffer, 0, hiddenStates as unknown as BufferSource);
     inputBufferOwned = true;
   }
+  await runProbes('pre_final_norm', inputBuffer, {
+    numTokens,
+    hiddenSize,
+    probes: debugProbes,
+  });
 
   // 2. Apply final RMSNorm
   let normWeightBuffer: GPUBuffer;
@@ -289,6 +302,11 @@ export async function computeLogits(
   const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
+  });
+  await runProbes('final_norm', normedBuffer, {
+    numTokens,
+    hiddenSize,
+    probes: debugProbes,
   });
 
   // Trace final norm output
@@ -393,6 +411,11 @@ export async function computeLogits(
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
+  });
+  await runProbes('logits', logitsBuffer, {
+    numTokens,
+    hiddenSize: matmulVocabSize,
+    probes: debugProbes,
   });
 
   // Trace lm_head output
@@ -677,6 +700,11 @@ export async function computeLogits(
     if (config.finalLogitSoftcapping) {
       applySoftcapping(paddedLogits, config.finalLogitSoftcapping);
     }
+    await runProbes('logits_final', paddedLogits, {
+      numTokens,
+      hiddenSize: vocabSize,
+      probes: debugProbes,
+    });
     return paddedLogits;
   }
 
@@ -685,6 +713,11 @@ export async function computeLogits(
   if (config.finalLogitSoftcapping) {
     applySoftcapping(logits, config.finalLogitSoftcapping);
   }
+  await runProbes('logits_final', logits, {
+    numTokens,
+    hiddenSize: vocabSize,
+    probes: debugProbes,
+  });
   return logits;
 }
 

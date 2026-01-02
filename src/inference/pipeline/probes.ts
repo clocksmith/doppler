@@ -24,6 +24,7 @@ const STAGE_DEFAULT_CATEGORY: Record<ProbeStage, TraceCategory> = {
   pre_final_norm: 'logits',
   final_norm: 'logits',
   logits: 'logits',
+  logits_final: 'logits',
 };
 
 function matchesLayer(layers: number[] | null | undefined, layerIdx?: number): boolean {
@@ -68,7 +69,6 @@ function getTraceLogger(category: TraceCategory, layerIdx?: number): TraceLogger
       return (message: string) => trace.perf(message);
     case 'all':
     default: {
-      const fallback = STAGE_DEFAULT_CATEGORY.embed_out;
       return (message: string) => trace.embed(message);
     }
   }
@@ -79,7 +79,7 @@ function getTraceLogger(category: TraceCategory, layerIdx?: number): TraceLogger
  */
 export async function runProbes(
   stage: ProbeStage,
-  buffer: GPUBuffer,
+  buffer: GPUBuffer | Float32Array,
   options: {
     layerIdx?: number;
     numTokens: number;
@@ -93,12 +93,13 @@ export async function runProbes(
   if (!buffer) return;
   if (recorder) return;
 
-  const device = getDevice();
-  if (!device) return;
+  const isCpuBuffer = buffer instanceof Float32Array;
+  const device = isCpuBuffer ? null : getDevice();
+  if (!isCpuBuffer && !device) return;
 
   const stageProbes = probes.filter((probe) => probe.stage === stage);
   if (stageProbes.length === 0) return;
-  if (!allowReadback(`probe.${stage}`)) return;
+  if (!isCpuBuffer && !allowReadback(`probe.${stage}`)) return;
 
   for (const probe of stageProbes) {
     if (!matchesLayer(probe.layers, layerIdx)) continue;
@@ -122,11 +123,17 @@ export async function runProbes(
           values.push(`${dimIdx}=out_of_range`);
           continue;
         }
+        if (isCpuBuffer) {
+          const idx = tokenIdx * hiddenSize + dimIdx;
+          const value = (buffer as Float32Array)[idx];
+          values.push(`${dimIdx}=${value.toFixed(4)}`);
+          continue;
+        }
         const offset = (tokenIdx * hiddenSize + dimIdx) * 4;
-        const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(buffer, offset, staging, 0, 4);
-        device.queue.submit([enc.finish()]);
+        const staging = device!.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc = device!.createCommandEncoder();
+        enc.copyBufferToBuffer(buffer as GPUBuffer, offset, staging, 0, 4);
+        device!.queue.submit([enc.finish()]);
         await staging.mapAsync(GPUMapMode.READ);
         const value = new Float32Array(staging.getMappedRange().slice(0))[0];
         staging.unmap();

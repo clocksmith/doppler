@@ -42,6 +42,7 @@
 import { readBuffer } from '../../gpu/buffer-pool.js';
 import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { log } from '../../debug/index.js';
+import type { PipelineDebugConfigSchema } from '../../config/schema/index.js';
 
 // ============================================================================
 // Debug Configuration
@@ -113,6 +114,39 @@ export function setDebugCategories(
 export function resetDebugConfig(): void {
   config = { ...defaultConfig, categories: {} };
   decodeStep = 0;
+}
+
+/**
+ * Apply pipeline debug config (runtime.debug.pipeline) to debug-utils.
+ */
+export function applyPipelineDebugConfig(pipeline?: PipelineDebugConfigSchema | null): void {
+  if (!pipeline) return;
+
+  const shouldEnable = pipeline.enabled || (pipeline.categories && pipeline.categories.length > 0);
+  if (!shouldEnable) {
+    resetDebugConfig();
+    return;
+  }
+
+  const categories = pipeline.categories && pipeline.categories.length > 0
+    ? pipeline.categories
+    : ['all'];
+
+  const categoryMap: Partial<Record<DebugCategory, boolean>> = {};
+  if (categories.includes('all')) {
+    categoryMap.all = true;
+  } else {
+    for (const cat of categories) {
+      categoryMap[cat] = true;
+    }
+  }
+
+  setDebugCategories(categoryMap, {
+    layers: pipeline.layers ?? undefined,
+    maxDecodeSteps: pipeline.maxDecodeSteps ?? undefined,
+    maxAbsThreshold: pipeline.maxAbsThreshold ?? undefined,
+    bufferStats: pipeline.bufferStats ?? undefined,
+  });
 }
 
 /**

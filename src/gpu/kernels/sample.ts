@@ -22,6 +22,7 @@ export interface SampleOptions {
   temperature?: number;
   topK?: number;
   randomSeed?: number;
+  padTokenId?: number;
 }
 
 export interface SampleResult {
@@ -61,7 +62,8 @@ async function createSamplePipeline(device: GPUDevice, entryPoint: string): Prom
  */
 export async function runArgmax(
   logits: GPUBuffer,
-  vocabSize: number
+  vocabSize: number,
+  options: SampleOptions = {}
 ): Promise<number> {
   if (!allowReadback('sample.runArgmax')) {
     throw new Error('[Sample] GPU readback disabled for argmax');
@@ -84,14 +86,16 @@ export async function runArgmax(
   const outputBuffer = acquireBuffer(4, undefined, 'argmax_output');
 
   // Uniforms
+  const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);  // vocabSize
       view.setUint32(4, 1, true);           // topK (unused for argmax)
       view.setFloat32(8, 1.0, true);        // temperature (unused)
       view.setFloat32(12, 0.0, true);       // randomValue (unused)
+      view.setUint32(16, padTokenId, true); // padTokenId (optional)
     },
     null,
     device
@@ -184,11 +188,12 @@ export async function runGPUSample(
     temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
     topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
+    padTokenId,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
-    return runArgmax(logits, vocabSize);
+    return runArgmax(logits, vocabSize, { padTokenId });
   }
 
   const device = getDevice();
@@ -216,12 +221,13 @@ export async function runGPUSample(
   // Uniforms
   const uniformBuffer = createUniformBufferWithView(
     'sample_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, topK, true);
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
+      view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
     },
     null,
     device
@@ -299,7 +305,8 @@ export async function runGPUSample(
 export async function recordArgmax(
   recorder: CommandRecorder,
   logits: GPUBuffer,
-  vocabSize: number
+  vocabSize: number,
+  options: SampleOptions = {}
 ): Promise<GPUBuffer> {
   const device = recorder.device;
 
@@ -315,14 +322,16 @@ export async function recordArgmax(
   const outputBuffer = acquireBuffer(4, undefined, 'argmax_output');
 
   // Uniforms
+  const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, 1, true);
       view.setFloat32(8, 1.0, true);
       view.setFloat32(12, 0.0, true);
+      view.setUint32(16, padTokenId, true);
     },
     recorder
   );
@@ -387,11 +396,12 @@ export async function recordGPUSample(
     temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
     topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
+    padTokenId,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
-    return recordArgmax(recorder, logits, vocabSize);
+    return recordArgmax(recorder, logits, vocabSize, { padTokenId });
   }
 
   const device = recorder.device;
@@ -417,12 +427,13 @@ export async function recordGPUSample(
   // Uniforms
   const uniformBuffer = createUniformBufferWithView(
     'sample_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, vocabSize, true);
       view.setUint32(4, topK, true);
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
+      view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
     },
     recorder
   );

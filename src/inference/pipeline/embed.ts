@@ -7,6 +7,8 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.
 import { runGather, recordGather } from '../../gpu/kernel-selector.js';
 import { log, trace } from '../../debug/index.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
+import type { ProbeConfigSchema } from '../../config/schema/index.js';
+import { runProbes } from './probes.js';
 
 export interface EmbedConfig {
   hiddenSize: number;
@@ -14,6 +16,7 @@ export interface EmbedConfig {
   scaleEmbeddings: boolean;
   debug?: boolean;
   recorder?: CommandRecorder;
+  debugProbes?: ProbeConfigSchema[];
   /** Pre-allocated output buffer (avoids pool allocation) */
   outputBuffer?: GPUBuffer;
   /**
@@ -209,7 +212,15 @@ export async function embed(
     releaseBuffer(tokenIdBuffer);
   }
 
-  if (!scaleEmbeddings) return outputBuffer;
+  if (!scaleEmbeddings) {
+    await runProbes('embed_out', outputBuffer, {
+      numTokens,
+      hiddenSize,
+      probes: config.debugProbes,
+      recorder,
+    });
+    return outputBuffer;
+  }
 
   // Apply Gemma scaling: sqrt(hiddenSize)
   const scaleFactor = Math.sqrt(hiddenSize);
@@ -241,6 +252,12 @@ export async function embed(
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');
     }
   }
+  await runProbes('embed_out', scaledBuffer, {
+    numTokens,
+    hiddenSize,
+    probes: config.debugProbes,
+    recorder,
+  });
 
   return scaledBuffer;
 }

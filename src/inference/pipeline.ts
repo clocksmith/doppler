@@ -58,6 +58,7 @@ import {
 import { embed } from './pipeline/embed.js';
 import { processLayer, type LayerContext } from './pipeline/layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
+import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
@@ -258,6 +259,7 @@ export class InferencePipeline {
       this.runtimeConfig = getRuntimeConfig();
     }
     applyDebugConfig(this.runtimeConfig.debug, { respectUrlParams: true });
+    applyPipelineDebugConfig(this.runtimeConfig.debug.pipeline);
 
     if (contexts.gpu?.device) {
       this.gpuContext = { device: contexts.gpu.device };
@@ -929,6 +931,7 @@ export class InferencePipeline {
       debug: opts.debug,
       recorder,
       transpose: this.embeddingTranspose,
+      debugProbes: this.runtimeConfig.debug.probes,
     });
 
     // Debug: check hidden states after embedding
@@ -1092,7 +1095,10 @@ export class InferencePipeline {
         this._getLogitsWeights(),
         this._getLogitsConfig(),
         this.useGPU,
-        this._debugFlags
+        this._debugFlags,
+        undefined,
+        undefined,
+        this.runtimeConfig.debug.probes
       );
 
       if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
@@ -1171,6 +1177,7 @@ export class InferencePipeline {
       recorder,
       outputBuffer: decodeHiddenBuffer ?? undefined,  // Use pre-allocated buffer
       transpose: this.embeddingTranspose,
+      debugProbes: this.runtimeConfig.debug.probes,
     });
 
     // Debug: check embedding output for decode step 1
@@ -1228,6 +1235,7 @@ export class InferencePipeline {
     // NOTE: Disable GPU sampling for models with finalLogitSoftcapping (Gemma 2)
     // because the GPU path doesn't apply the softcapping transformation
     const needsSoftcapping = !!config.finalLogitSoftcapping;
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
     const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !needsSoftcapping;
     const useFusedDecode = recorder && useGPUSampling && hiddenStates instanceof GPUBuffer;
 
@@ -1244,10 +1252,11 @@ export class InferencePipeline {
       // Continue recording sampling into same command buffer (no submit yet)
       // Use argmax for greedy (temperature below threshold) or top-k sampling otherwise
       const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize)
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId })
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
             topK: opts.topK,
+            padTokenId,
           });
 
       // Track buffers for cleanup after submit
@@ -1397,10 +1406,11 @@ export class InferencePipeline {
         const { logitsBuffer, vocabSize } = logitsResult;
 
         const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-          ? await runArgmax(logitsBuffer, vocabSize)
+          ? await runArgmax(logitsBuffer, vocabSize, { padTokenId })
           : await runGPUSample(logitsBuffer, vocabSize, {
               temperature: opts.temperature,
               topK: opts.topK,
+              padTokenId,
             });
 
         releaseBuffer(logitsBuffer);
@@ -1416,7 +1426,10 @@ export class InferencePipeline {
       this._getLogitsWeights(),
       this._getLogitsConfig(),
       this.useGPU,
-      this._debugFlags
+      this._debugFlags,
+      undefined,
+      undefined,
+      this.runtimeConfig.debug.probes
     );
 
     if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
@@ -1432,6 +1445,7 @@ export class InferencePipeline {
       temperature: opts.temperature,
       topP: opts.topP,
       topK: opts.topK,
+      padTokenId,
     });
 
     this.currentSeqLen++;
@@ -1472,6 +1486,7 @@ export class InferencePipeline {
     // Get stop token config
     const stopTokenIds = config.stopTokenIds || [];
     const eosToken = this.tokenizer?.getSpecialTokens?.()?.eos;
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
     const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;  // fallback to 1 (common EOS)
     const maxTokens = opts.maxTokens || 1024;
 
@@ -1547,8 +1562,8 @@ export class InferencePipeline {
       const temperature = opts.temperature ?? samplingDefaults.temperature;
       const topK = opts.topK ?? samplingDefaults.topK;
       const sampledTokenBuffer = temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize)
-        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK });
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId })
+        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK, padTokenId });
       recorder.trackTemporaryBuffer(logitsBuffer);
 
       // Copy sampled token to tokenBuffers[i+1] for next iteration
@@ -1690,6 +1705,7 @@ export class InferencePipeline {
       attentionKernelOverride: this.attentionKernelOverride,
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this._debugFlags,
+      debugProbes: this.runtimeConfig.debug.probes,
       expertWeights: this.expertWeights,
       expertLoader: this.dopplerLoader as ExpertLoader | null,
       moeRouter: this.moeRouter,

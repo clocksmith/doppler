@@ -178,7 +178,8 @@ export type ProbeStage =
   | 'layer_out'
   | 'pre_final_norm'
   | 'final_norm'
-  | 'logits';
+  | 'logits'
+  | 'logits_final';
 
 /**
  * Probe configuration for targeted value inspection.
@@ -192,9 +193,9 @@ export interface ProbeConfigSchema {
   /** Stage to probe */
   stage: ProbeStage;
   /** Restrict to specific layers (null = all layers) */
-  layers: number[] | null;
+  layers?: number[] | null;
   /** Token indices to sample (null = default to token 0) */
-  tokens: number[] | null;
+  tokens?: number[] | null;
   /** Dimension indices to sample */
   dims: number[];
   /** Override trace category (defaults to stage category) */

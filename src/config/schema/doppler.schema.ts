@@ -253,6 +253,8 @@ function mergeRuntimeConfig(
           logHistory: { ...base.debug.logHistory, ...overrides.debug.logHistory },
           logLevel: { ...base.debug.logLevel, ...overrides.debug.logLevel },
           trace: { ...base.debug.trace, ...overrides.debug.trace },
+          pipeline: { ...base.debug.pipeline, ...overrides.debug.pipeline },
+          probes: overrides.debug.probes ?? base.debug.probes,
         }
       : { ...base.debug },
     bridge: { ...base.bridge, ...overrides.bridge },

@@ -155,6 +155,71 @@ export class ConfigLoader {
         }
       }
     }
+
+    // Validate pipeline debug categories
+    const validPipelineCategories = [
+      'embed', 'layer', 'attn', 'ffn', 'kv', 'logits',
+      'sample', 'io', 'perf', 'kernel', 'all'
+    ];
+    if (debug.pipeline?.categories) {
+      for (const cat of debug.pipeline.categories) {
+        if (!validPipelineCategories.includes(cat)) {
+          throw new Error(
+            `Invalid pipeline debug category "${cat}". Valid: ${validPipelineCategories.join(', ')}`
+          );
+        }
+      }
+    }
+    if (debug.pipeline?.maxDecodeSteps !== undefined && debug.pipeline.maxDecodeSteps < 0) {
+      throw new Error('debug.pipeline.maxDecodeSteps must be >= 0');
+    }
+    if (debug.pipeline?.maxAbsThreshold !== undefined && debug.pipeline.maxAbsThreshold <= 0) {
+      throw new Error('debug.pipeline.maxAbsThreshold must be > 0');
+    }
+
+    // Validate probes
+    const validProbeStages = [
+      'embed_out', 'attn_out', 'post_attn', 'ffn_in', 'ffn_out',
+      'layer_out', 'pre_final_norm', 'final_norm', 'logits', 'logits_final'
+    ];
+    if (debug.probes !== undefined) {
+      if (!Array.isArray(debug.probes)) {
+        throw new Error('debug.probes must be an array');
+      }
+      for (const probe of debug.probes) {
+        if (!probe || typeof probe !== 'object') {
+          throw new Error('debug.probes entries must be objects');
+        }
+        const stage = (probe as { stage?: string }).stage;
+        if (!stage || !validProbeStages.includes(stage)) {
+          throw new Error(
+            `Invalid probe stage "${stage}". Valid: ${validProbeStages.join(', ')}`
+          );
+        }
+        const dims = (probe as { dims?: unknown }).dims;
+        if (!Array.isArray(dims) || dims.some((d) => typeof d !== 'number')) {
+          throw new Error('debug.probes.dims must be an array of numbers');
+        }
+        const layers = (probe as { layers?: unknown }).layers;
+        if (layers !== null && layers !== undefined) {
+          if (!Array.isArray(layers) || layers.some((d) => typeof d !== 'number')) {
+            throw new Error('debug.probes.layers must be null or an array of numbers');
+          }
+        }
+        const tokens = (probe as { tokens?: unknown }).tokens;
+        if (tokens !== null && tokens !== undefined) {
+          if (!Array.isArray(tokens) || tokens.some((d) => typeof d !== 'number')) {
+            throw new Error('debug.probes.tokens must be null or an array of numbers');
+          }
+        }
+        const category = (probe as { category?: string }).category;
+        if (category && !validCategories.includes(category)) {
+          throw new Error(
+            `Invalid probe category "${category}". Valid: ${validCategories.join(', ')}`
+          );
+        }
+      }
+    }
   }
 
   /**

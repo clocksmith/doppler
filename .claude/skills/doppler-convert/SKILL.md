@@ -3,64 +3,116 @@ name: doppler-convert
 description: Convert GGUF or SafeTensors models to RDRR format and test them in DOPPLER. Use when the user wants to add a new model, convert weights, or verify model loading. (project)
 ---
 
-# Pre-Flight Checks (Mandatory)
+# DOPPLER Convert Skill
+
+This skill guides model conversion from GGUF/SafeTensors to DOPPLER's RDRR format.
+
+## When to Use This Skill
+
+- Converting a new model for use in DOPPLER
+- Re-converting with different quantization settings
+- Extracting text model from multimodal model
+- Creating test fixtures for development
+
+## Pre-Flight Checks (Mandatory)
+
+Before starting conversion, verify:
 
 ```bash
-# Verify source exists
+# 1. Verify source model exists
 ls -lh INPUT_PATH
 
-# Check disk space - need 2x model size free
+# 2. Check available disk space (need 2x model size)
 df -h .
+
+# 3. For HuggingFace models, check the cache location
+ls ~/.cache/huggingface/hub/models--ORG--MODEL/snapshots/
 ```
 
-# Conversion Commands
+If disk space is insufficient, conversion will fail partway and leave corrupted output.
+
+## Conversion Commands
 
 ```bash
-# From HuggingFace directory with quantization (recommended)
-npx tsx tools/convert-cli.ts INPUT_DIR models/OUTPUT_NAME --quantize q4_k_m
+# Standard conversion with Q4_K_M quantization (recommended for most models)
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --quantize q4_k_m
 
-# From GGUF file
-npx tsx tools/convert-cli.ts INPUT.gguf models/OUTPUT_NAME
+# From GGUF file (already quantized)
+npx tsx src/converter/node-converter.ts INPUT.gguf models/OUTPUT_NAME
 
-# Multimodal to text-only (strips vision tower)
-npx tsx tools/convert-cli.ts INPUT_DIR models/OUTPUT_NAME --text-only --quantize q4_k_m
+# Keep full FP16 precision (for debugging quantization issues)
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --quantize f16
 
-# Keep full precision for debugging
-npx tsx tools/convert-cli.ts INPUT_DIR models/OUTPUT_NAME --quantize f16
+# Multimodal to text-only (Gemma 3, PaliGemma, LLaVA)
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --text-only --quantize q4_k_m
+
+# Create tiny test fixture for development
+npx tsx src/converter/node-converter.ts --test ./test-model
 ```
 
-# Options Reference
+## Conversion Options
 
-| Flag | Description |
-|------|-------------|
-| `--quantize q4_k_m` | Quantize to Q4_K_M (recommended) |
-| `--quantize f16` | Keep FP16 precision |
-| `--text-only` | Extract text model from multimodal |
-| `--shard-size <mb>` | Shard size in MB (default: 64) |
-| `--verbose` | Show detailed progress |
+| Flag | Description | When to Use |
+|------|-------------|-------------|
+| `--quantize q4_k_m` | 4-bit quantization | Default, good quality/size tradeoff |
+| `--quantize f16` | Full FP16 precision | Debugging, reference testing |
+| `--quantize-embeddings` | Also quantize embeddings | When size is critical |
+| `--text-only` | Strip vision/audio towers | Multimodal → text-only |
+| `--shard-size <mb>` | Shard size (default: 64) | Tune for network/storage |
+| `--model-id <id>` | Override model ID | Custom naming |
+| `--verbose` | Detailed progress | Debugging conversion |
+| `--fast` | Pre-load shards | Faster but uses more RAM |
 
-# Post-Conversion Verification (Mandatory)
+## Post-Conversion Verification (Mandatory)
 
-Never mark conversion complete until verified:
+Never report conversion complete until verified:
 
 ```bash
-# Check manifest exists and has correct layer count
-cat models/OUTPUT_NAME/manifest.json | grep -E "num_layers|tensor_count"
+# 1. Check manifest exists and looks correct
+cat models/OUTPUT_NAME/manifest.json | grep -E "\"architecture\"|\"tensorCount\"|\"num_hidden_layers\""
 
-# Test inference actually works
+# 2. Check shard files exist
+ls -lh models/OUTPUT_NAME/
+
+# 3. Test inference actually works
 npm run debug -- -m OUTPUT_NAME 2>&1 | grep -E "Done|Output|Error"
 ```
 
-If verification fails, delete corrupted output and report error.
+If verification fails:
+1. Delete the corrupted output: `rm -rf models/OUTPUT_NAME`
+2. Check error message for cause
+3. Re-run with `--verbose` to diagnose
 
-# Common Issues
+## Supported Input Formats
 
-| Issue | Fix |
-|-------|-----|
-| "Unknown architecture" | Check MODEL_SUPPORT.md |
-| Large output size | Add `--quantize q4_k_m` |
-| Missing tensors | Add `--text-only` for multimodal |
+| Format | Source | Example Path |
+|--------|--------|--------------|
+| HuggingFace directory | `transformers` download | `~/.cache/huggingface/hub/models--google--gemma-2-2b-it/snapshots/abc123/` |
+| SafeTensors files | Direct download | `./model.safetensors` or directory with multiple |
+| GGUF file | llama.cpp conversion | `./model-Q4_K_M.gguf` |
+| Sharded index | Large HF models | Directory with `model.safetensors.index.json` |
 
-# Related Skills
+## Common Issues and Fixes
 
-Use `doppler-debug` if inference fails. Use `doppler-benchmark` to measure performance.
+| Error | Cause | Fix |
+|-------|-------|-----|
+| "Unknown architecture" | Unsupported model type | Check `docs/plans/TARGET_MODELS.md` |
+| "ENOSPC" or disk full | Insufficient space | Free up 2x model size |
+| Missing config values | Incomplete HF config | Converter infers from shapes |
+| Large output size | No quantization flag | Add `--quantize q4_k_m` |
+| Missing tensors | Multimodal model | Add `--text-only` flag |
+| Inference fails after convert | Weight layout issue | Try `--quantize f16` to isolate |
+
+## Reference Files
+
+For detailed information, consult these files:
+
+- **Model support matrix**: `docs/plans/TARGET_MODELS.md`
+- **RDRR format spec**: `docs/design/RDRR_FORMAT.md`
+- **Converter source**: `src/converter/node-converter.ts`
+- **Troubleshooting**: `docs/DOPPLER-TROUBLESHOOTING.md`
+
+## Related Skills
+
+- Use `doppler-debug` if converted model produces wrong output
+- Use `doppler-benchmark` to measure converted model performance
