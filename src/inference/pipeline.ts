@@ -1253,11 +1253,12 @@ export class InferencePipeline {
       // Continue recording sampling into same command buffer (no submit yet)
       // Use argmax for greedy (temperature below threshold) or top-k sampling otherwise
       const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId })
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
             topK: opts.topK,
             padTokenId,
+            logitSoftcap,
           });
 
       // Track buffers for cleanup after submit
@@ -1407,11 +1408,12 @@ export class InferencePipeline {
         const { logitsBuffer, vocabSize } = logitsResult;
 
         const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-          ? await runArgmax(logitsBuffer, vocabSize, { padTokenId })
+          ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
           : await runGPUSample(logitsBuffer, vocabSize, {
               temperature: opts.temperature,
               topK: opts.topK,
               padTokenId,
+              logitSoftcap,
             });
 
         releaseBuffer(logitsBuffer);
@@ -1488,6 +1490,7 @@ export class InferencePipeline {
     const stopTokenIds = config.stopTokenIds || [];
     const eosToken = this.tokenizer?.getSpecialTokens?.()?.eos;
     const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+    const logitSoftcap = config.finalLogitSoftcapping ?? 0;
     const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;  // fallback to 1 (common EOS)
     const maxTokens = opts.maxTokens || 1024;
 
