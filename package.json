@@ -51,7 +51,7 @@
     "@webgpu/types": "^0.1.68",
     "esbuild": "^0.20.0",
     "happy-dom": "^20.0.8",
-    "playwright": "^1.55.1",
+    "playwright": "^1.57.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
