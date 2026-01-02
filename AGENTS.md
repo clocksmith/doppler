@@ -119,6 +119,9 @@ npm run debug -- --headed       # Keep browser visible
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--model, -m <name>` | Model to use | `gemma-3-1b-it-q4` |
+| `--config <ref>` | Load config preset | none |
+| `--dump-config` | Print resolved config | off |
+| `--list-presets` | List available presets | off |
 | `--verbose, -v` | Verbose loader logs | off |
 | `--trace [cats]` | Trace categories (all if no arg) | off (on for debug) |
 | `--quiet, -q` | Suppress logs | off |
@@ -129,6 +132,71 @@ npm run debug -- --headed       # Keep browser visible
 | `--timeout <ms>` | Test timeout | 120000 |
 | `--output, -o <file>` | Save JSON results | none |
 | `--kernel-profile, -k` | Preset: fast/safe/debug/fused/apple | none |
+
+### Config System
+
+The CLI supports a config-as-code pattern for managing runtime settings:
+
+```bash
+# Use built-in preset
+npm run debug -- --config debug
+
+# Use file path
+npm run bench -- --config ./my-config.json
+
+# Use inline JSON
+npm run test -- --config '{"runtime":{"debug":{"trace":{"enabled":true}}}}'
+
+# List available presets
+npx tsx cli/index.ts --list-presets
+
+# Dump resolved config
+npx tsx cli/index.ts --dump-config --config debug
+```
+
+**Preset Locations** (searched in order):
+1. Project: `./.doppler/*.json`
+2. User: `~/.doppler/presets/*.json`
+3. Built-in: `src/config/presets/*.json`
+
+**Built-in Presets:**
+
+| Preset | Description |
+|--------|-------------|
+| `default` | Balanced settings for general use |
+| `debug` | Verbose logging, tracing enabled, headed browser |
+| `bench` | Silent output, deterministic sampling (temp=0) |
+| `production` | Error-only logging, optimized settings |
+| `low-memory` | Reduced KV cache, smaller buffers |
+| `ci` | File logging, headless, short timeout |
+
+**Config Structure:**
+
+```json
+{
+  "extends": "default",
+  "runtime": {
+    "debug": {
+      "logOutput": { "stdout": true, "file": "./logs/doppler.log" },
+      "logLevel": { "defaultLogLevel": "verbose" },
+      "trace": { "enabled": true, "categories": ["kernels", "attn"] }
+    },
+    "inference": {
+      "sampling": { "temperature": 0.7, "maxTokens": 2048 }
+    },
+    "kvcache": { "kvDtype": "f16", "maxSeqLen": 8192 }
+  },
+  "cli": {
+    "headed": true,
+    "timeout": 600000
+  }
+}
+```
+
+**Config Files:**
+- `cli/config/config-resolver.ts` - Name/path/URL resolution
+- `cli/config/config-loader.ts` - Load, validate, merge with defaults
+- `cli/config/config-composer.ts` - Handle extends inheritance
 
 ### Log Levels
 Control output verbosity:

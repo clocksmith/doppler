@@ -5,6 +5,19 @@ description: Run DOPPLER performance benchmarks. Use when measuring inference sp
 
 # DOPPLER Benchmark
 
+## Using Config Presets
+
+```bash
+# Use built-in bench preset (silent output, deterministic sampling)
+npm run bench -- --config bench -m MODEL
+
+# Use CI preset (file logging, short timeout)
+npm run bench -- --config ci -m MODEL
+
+# List available presets
+npx tsx cli/index.ts --list-presets
+```
+
 ## Fast Iteration (use --skip-load after first run!)
 
 ```bash
@@ -35,3 +48,25 @@ npm run build && npm run bench -- -m MODEL --skip-load 2>&1 | grep --line-buffer
 - `decode_tokens_per_sec` - Main throughput metric
 - `ttft_ms` - Time to first token
 - `prefill_tokens_per_sec` - Prefill speed
+
+## CI Benchmarking
+
+Use the CI preset with file logging:
+
+```bash
+npm run bench -- --config ci -m MODEL -o results.json
+```
+
+Or create a custom CI config:
+
+```json
+{
+  "extends": "bench",
+  "runtime": {
+    "debug": {
+      "logOutput": { "stdout": false, "file": "./ci-logs/bench.log" }
+    }
+  },
+  "cli": { "timeout": 180000 }
+}
+```

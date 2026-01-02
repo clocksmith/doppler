@@ -8,6 +8,31 @@
  */
 
 // =============================================================================
+// Log Output Config
+// =============================================================================
+
+/**
+ * Configuration for log output destinations.
+ *
+ * Controls where logs are written: stdout, file, or both.
+ */
+export interface LogOutputConfigSchema {
+  /** Write logs to stdout/console (default: true) */
+  stdout: boolean;
+  /** Path to log file (null = no file output) */
+  file: string | null;
+  /** Append to existing file vs overwrite (default: true) */
+  append: boolean;
+}
+
+/** Default log output configuration */
+export const DEFAULT_LOG_OUTPUT_CONFIG: LogOutputConfigSchema = {
+  stdout: true,
+  file: null,
+  append: true,
+};
+
+// =============================================================================
 // Log History Config
 // =============================================================================
 
@@ -50,20 +75,45 @@ export const DEFAULT_LOG_LEVEL_CONFIG: LogLevelConfigSchema = {
 // Trace Config
 // =============================================================================
 
+/** Available trace categories */
+export type TraceCategory =
+  | 'loader'
+  | 'kernels'
+  | 'logits'
+  | 'embed'
+  | 'attn'
+  | 'ffn'
+  | 'kv'
+  | 'sample'
+  | 'buffers'
+  | 'perf'
+  | 'all';
+
 /**
- * Configuration for trace decoding limits.
+ * Configuration for trace output.
  *
- * Controls maximum decode steps to trace before automatically
- * disabling trace output to prevent log flooding.
+ * Controls trace categories, output destination, and limits.
  */
 export interface TraceConfigSchema {
+  /** Enable tracing (default: false) */
+  enabled: boolean;
+  /** Trace categories to enable (default: all) */
+  categories: TraceCategory[];
+  /** Filter to specific layer indices (null = all layers) */
+  layers: number[] | null;
   /** Maximum decode steps to trace (0 = unlimited) */
   maxDecodeSteps: number;
+  /** Path to trace file for JSONL output (null = no file) */
+  file: string | null;
 }
 
 /** Default trace configuration */
 export const DEFAULT_TRACE_CONFIG: TraceConfigSchema = {
+  enabled: false,
+  categories: ['all'],
+  layers: null,
   maxDecodeSteps: 0,
+  file: null,
 };
 
 // =============================================================================
@@ -73,9 +123,10 @@ export const DEFAULT_TRACE_CONFIG: TraceConfigSchema = {
 /**
  * Complete debug configuration schema.
  *
- * Combines log history, log level, and trace settings.
+ * Combines log output, log history, log level, and trace settings.
  */
 export interface DebugConfigSchema {
+  logOutput: LogOutputConfigSchema;
   logHistory: LogHistoryConfigSchema;
   logLevel: LogLevelConfigSchema;
   trace: TraceConfigSchema;
@@ -83,6 +134,7 @@ export interface DebugConfigSchema {
 
 /** Default debug configuration */
 export const DEFAULT_DEBUG_CONFIG: DebugConfigSchema = {
+  logOutput: DEFAULT_LOG_OUTPUT_CONFIG,
   logHistory: DEFAULT_LOG_HISTORY_CONFIG,
   logLevel: DEFAULT_LOG_LEVEL_CONFIG,
   trace: DEFAULT_TRACE_CONFIG,

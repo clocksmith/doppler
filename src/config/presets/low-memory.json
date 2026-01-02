@@ -1,0 +1,28 @@
+{
+  "$schema": "../schema/runtime-config.schema.json",
+  "name": "low-memory",
+  "description": "Low memory configuration for constrained environments",
+  "extends": "default",
+  "runtime": {
+    "kvcache": {
+      "maxSeqLen": 2048,
+      "kvDtype": "f16",
+      "pageSize": 128
+    },
+    "moe": {
+      "cache": {
+        "dequantCacheMaxEntries": 2
+      }
+    },
+    "debug": {
+      "logHistory": {
+        "maxLogHistoryEntries": 100
+      }
+    },
+    "inference": {
+      "sampling": {
+        "maxTokens": 512
+      }
+    }
+  }
+}

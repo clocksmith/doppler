@@ -5,6 +5,22 @@ description: Debug DOPPLER WebGPU inference issues. Use when investigating model
 
 # DOPPLER Debug
 
+## Using Config Presets
+
+```bash
+# Use built-in debug preset (verbose logging, trace enabled, headed browser)
+npm run debug -- --config debug -m MODEL
+
+# Use custom config file
+npm run debug -- --config ./my-debug-config.json -m MODEL
+
+# List available presets
+npx tsx cli/index.ts --list-presets
+
+# Dump resolved config
+npx tsx cli/index.ts --dump-config --config debug
+```
+
 ## Fast Iteration (use --skip-load after first run!)
 
 ```bash
@@ -36,3 +52,19 @@ npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | grep --line-buffer
 - `"TRACE|ANOMALY"` - Problems
 - `"maxAbs"` - Hidden state magnitudes
 - `"RoPE|hasLocal"` - RoPE config
+
+## Log Output to File
+
+Create a custom config to log to file:
+
+```json
+{
+  "extends": "debug",
+  "runtime": {
+    "debug": {
+      "logOutput": { "stdout": true, "file": "./logs/debug.log" },
+      "trace": { "file": "./logs/trace.jsonl" }
+    }
+  }
+}
+```

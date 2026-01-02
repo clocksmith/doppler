@@ -1,0 +1,68 @@
+{
+  "$schema": "../schema/runtime-config.schema.json",
+  "name": "default",
+  "description": "Default DOPPLER configuration with balanced settings",
+  "runtime": {
+    "inference": {
+      "sampling": {
+        "temperature": 0.7,
+        "topK": 50,
+        "topP": 0.95,
+        "repetitionPenalty": 1.0,
+        "maxTokens": 2048,
+        "greedyThreshold": 0.01
+      }
+    },
+    "kvcache": {
+      "maxSeqLen": 8192,
+      "layout": "contiguous",
+      "pageSize": 256,
+      "kvDtype": "f32"
+    },
+    "debug": {
+      "logOutput": {
+        "stdout": true,
+        "file": null,
+        "append": true
+      },
+      "logHistory": {
+        "maxLogHistoryEntries": 1000
+      },
+      "logLevel": {
+        "defaultLogLevel": "info"
+      },
+      "trace": {
+        "enabled": false,
+        "categories": ["all"],
+        "layers": null,
+        "maxDecodeSteps": 0,
+        "file": null
+      }
+    },
+    "moe": {
+      "routing": {
+        "topK": 2,
+        "routerDtype": "f32",
+        "normalizeWeights": true
+      },
+      "cache": {
+        "dequantCacheMaxEntries": 8
+      }
+    },
+    "storage": {
+      "alignment": {
+        "bufferAlignmentBytes": 256
+      }
+    },
+    "distribution": {
+      "cdnBasePath": "https://huggingface.co",
+      "progressUpdateIntervalMs": 100
+    }
+  },
+  "cli": {
+    "headed": false,
+    "warm": false,
+    "timeout": 300000,
+    "kernelProfile": null
+  }
+}

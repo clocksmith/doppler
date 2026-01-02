@@ -245,6 +245,7 @@ function mergeRuntimeConfig(
       : { ...base.memory },
     debug: overrides.debug
       ? {
+          logOutput: { ...base.debug.logOutput, ...overrides.debug.logOutput },
           logHistory: { ...base.debug.logHistory, ...overrides.debug.logHistory },
           logLevel: { ...base.debug.logLevel, ...overrides.debug.logLevel },
           trace: { ...base.debug.trace, ...overrides.debug.trace },

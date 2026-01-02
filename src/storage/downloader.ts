@@ -71,6 +71,7 @@ import {
   MAX_RETRIES,
   INITIAL_RETRY_DELAY,
   MAX_RETRY_DELAY,
+  PROGRESS_UPDATE_INTERVAL_MS,
 } from './download-types.js';
 
 // ============================================================================
@@ -391,9 +392,17 @@ export async function downloadModel(
     speed: 0
   };
   const shardProgress = new Map<number, number>();
+  let lastProgressUpdate = 0; // Throttle progress callbacks
 
-  const updateProgress = (currentShard: number | null): void => {
+  const updateProgress = (currentShard: number | null, force = false): void => {
     const now = Date.now();
+
+    // Throttle progress updates (unless forced for completion events)
+    if (!force && now - lastProgressUpdate < PROGRESS_UPDATE_INTERVAL_MS) {
+      return;
+    }
+    lastProgressUpdate = now;
+
     const timeDelta = (now - speedTracker.lastTime) / 1000;
     if (timeDelta >= 1) {
       speedTracker.speed = (downloadedBytes - speedTracker.lastBytes) / timeDelta;
@@ -452,7 +461,7 @@ export async function downloadModel(
 
       // Save progress
       await saveDownloadState(state!);
-      updateProgress(null);
+      updateProgress(null, true); // Force update on shard completion
 
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
@@ -524,7 +533,7 @@ export async function downloadModel(
       // Clean up download state
       await deleteDownloadState(storageModelId);
 
-      updateProgress(null);
+      updateProgress(null, true); // Force final update
       return true;
     }
 

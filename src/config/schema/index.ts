@@ -258,12 +258,15 @@ export {
 // =============================================================================
 export {
   // Types
+  type LogOutputConfigSchema,
   type LogHistoryConfigSchema,
   type LogLevelConfigSchema,
+  type TraceCategory,
   type TraceConfigSchema,
   type DebugConfigSchema,
 
   // Defaults
+  DEFAULT_LOG_OUTPUT_CONFIG,
   DEFAULT_LOG_HISTORY_CONFIG,
   DEFAULT_LOG_LEVEL_CONFIG,
   DEFAULT_TRACE_CONFIG,

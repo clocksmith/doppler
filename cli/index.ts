@@ -28,6 +28,7 @@ import type {
   SuiteResult,
 } from './helpers/types.js';
 import type { KernelHints } from '../src/storage/rdrr-format.js';
+import { loadConfig, listPresets, dumpConfig } from './config/index.js';
 
 import {
   runBuild,
@@ -153,6 +154,9 @@ function parseArgs(argv: string[]): CLIOptions {
     suite: 'quick',
     model: 'gemma-3-1b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
+    config: null,           // Config preset or path
+    dumpConfig: false,      // Dump resolved config and exit
+    listPresets: false,     // List available presets and exit
     noServer: false,
     headless: true,   // Default to headless (real GPU via --headless=new)
     minimized: false, // Position window off-screen when true
@@ -207,6 +211,15 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--help':
       case '-h':
         opts.help = true;
+        break;
+      case '--config':
+        opts.config = tokens.shift() || null;
+        break;
+      case '--dump-config':
+        opts.dumpConfig = true;
+        break;
+      case '--list-presets':
+        opts.listPresets = true;
         break;
       case '--model':
       case '-m':
@@ -509,6 +522,9 @@ DEBUG - Interactive Debugging (with kernel trace)
 
 Common Options:
   --model, -m <name>     Model (default: gemma-3-1b-it-q4)
+  --config <ref>         Load config (preset name, path, URL, or inline JSON)
+  --dump-config          Print resolved config and exit
+  --list-presets         List available config presets
   --verbose, -v          Verbose loader logs (per-shard, per-layer)
   --trace                Trace-level logs (tensor details, dequant ops)
   --quiet                Suppress all loader logs
@@ -518,6 +534,15 @@ Common Options:
   --timeout <ms>         Timeout (default: 300000)
   --output, -o <file>    Save JSON results
   --help, -h             Show this help
+
+Config System:
+  --config debug               Use built-in 'debug' preset
+  --config ./my-config.json    Load from file path
+  --config '{"runtime":...}'   Inline JSON config
+
+  Built-in presets: default, debug, bench, production, low-memory, ci
+  User presets: ~/.doppler/presets/*.json
+  Project presets: ./.doppler/*.json
 
 Warm Mode (preserve model in GPU RAM):
   --warm                 Keep browser open with model loaded for reuse
@@ -1809,6 +1834,65 @@ async function main(): Promise<void> {
   if (opts.help) {
     printHelp();
     process.exit(0);
+  }
+
+  // Handle --list-presets
+  if (opts.listPresets) {
+    console.log('\nAvailable Config Presets:\n');
+    const presets = await listPresets();
+    const grouped = presets.reduce((acc, p) => {
+      if (!acc[p.source]) acc[p.source] = [];
+      acc[p.source].push(p);
+      return acc;
+    }, {} as Record<string, typeof presets>);
+
+    for (const [source, items] of Object.entries(grouped)) {
+      console.log(`  ${source.toUpperCase()}:`);
+      for (const preset of items) {
+        console.log(`    ${preset.name.padEnd(15)} ${preset.path}`);
+      }
+      console.log('');
+    }
+    process.exit(0);
+  }
+
+  // Handle --dump-config
+  if (opts.dumpConfig) {
+    const configRef = opts.config || 'default';
+    try {
+      const loaded = await loadConfig(configRef);
+      console.log('\n' + dumpConfig(loaded));
+    } catch (err) {
+      console.error(`Failed to load config "${configRef}": ${(err as Error).message}`);
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+
+  // Load config if specified
+  let loadedConfig: Awaited<ReturnType<typeof loadConfig>> | null = null;
+  if (opts.config) {
+    try {
+      loadedConfig = await loadConfig(opts.config);
+      console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
+
+      // Apply runtime config to opts
+      const runtime = loadedConfig.runtime;
+      if (runtime.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+      if (runtime.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+      if (runtime.debug?.trace?.enabled) opts.trace = runtime.debug.trace.categories?.join(',') || 'all';
+      if (runtime.inference?.sampling?.temperature !== undefined) opts.temperature = runtime.inference.sampling.temperature;
+
+      // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
+      const cli = loadedConfig.raw.cli as Record<string, unknown> | undefined;
+      if (cli) {
+        if (cli.headed) opts.headless = false;
+        if (typeof cli.timeout === 'number') opts.timeout = cli.timeout;
+      }
+    } catch (err) {
+      console.error(`Failed to load config "${opts.config}": ${(err as Error).message}`);
+      process.exit(1);
+    }
   }
 
   // Handle 'bench' command - performance mode

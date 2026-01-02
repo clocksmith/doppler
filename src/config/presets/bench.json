@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/runtime-config.schema.json",
+  "name": "bench",
+  "description": "Benchmark configuration with clean output and performance settings",
+  "extends": "default",
+  "runtime": {
+    "debug": {
+      "logOutput": {
+        "stdout": true,
+        "file": null
+      },
+      "logLevel": {
+        "defaultLogLevel": "silent"
+      },
+      "trace": {
+        "enabled": false
+      }
+    },
+    "inference": {
+      "sampling": {
+        "temperature": 0,
+        "maxTokens": 64
+      }
+    }
+  },
+  "cli": {
+    "headed": false,
+    "timeout": 300000
+  }
+}

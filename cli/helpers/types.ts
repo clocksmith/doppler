@@ -34,6 +34,12 @@ export interface CLIOptions {
   suite: SuiteType;
   model: string;
   baseUrl: string;
+  /** Config preset or path (resolves: name -> path -> URL -> inline JSON) */
+  config: string | null;
+  /** Dump resolved config and exit */
+  dumpConfig: boolean;
+  /** List available presets and exit */
+  listPresets: boolean;
   /** Serve files directly from disk via Playwright routing (no dev server). */
   noServer: boolean;
   /** Run headless (no browser window). Default is headless with real GPU. */

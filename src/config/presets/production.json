@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/runtime-config.schema.json",
+  "name": "production",
+  "description": "Production configuration with optimized settings",
+  "extends": "default",
+  "runtime": {
+    "debug": {
+      "logOutput": {
+        "stdout": false,
+        "file": null
+      },
+      "logLevel": {
+        "defaultLogLevel": "error"
+      },
+      "logHistory": {
+        "maxLogHistoryEntries": 100
+      },
+      "trace": {
+        "enabled": false
+      }
+    },
+    "inference": {
+      "sampling": {
+        "temperature": 0.7,
+        "maxTokens": 4096
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16"
+    }
+  },
+  "cli": {
+    "headed": false
+  }
+}

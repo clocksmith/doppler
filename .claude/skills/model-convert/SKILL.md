@@ -53,16 +53,20 @@ npx tsx src/converter/node-converter.ts --test ./test-model
 npm test -- inference
 
 # Debug mode (for investigating issues)
-npm run debug
+npm run debug -- --config debug
 
 # Benchmark performance
-npm run bench
+npm run bench -- --config bench
 
 # Or test manually in browser (requires npm start first)
 # http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>
 ```
 
+**Config Presets:** Use `--config debug` for verbose logging, `--config bench` for clean output.
+
 **Log Levels:** Add `--verbose` for per-shard/layer timing, `--trace` for tensor details.
+
+**List Presets:** `npx tsx cli/index.ts --list-presets`
 
 ## Workflow
 
