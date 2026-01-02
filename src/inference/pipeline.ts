@@ -567,9 +567,8 @@ export class InferencePipeline {
 
       // Decode loop
       const decodeStart = performance.now();
-      // Batch path can't handle softcapping (Gemma 2) yet - fall back to single-token decode
-      const needsSoftcapping = !!this.modelConfig?.finalLogitSoftcapping;
-      const useBatchPath = opts.batchSize > 1 && this.useGPU && isGPUSamplingAvailable() && !needsSoftcapping;
+      // GPU sampling now supports softcapping (Gemma 2) via logitSoftcap uniform
+      const useBatchPath = opts.batchSize > 1 && this.useGPU && isGPUSamplingAvailable();
 
       if (opts.debug && useBatchPath) {
         log.debug('Pipeline', `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
