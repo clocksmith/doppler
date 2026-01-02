@@ -17,6 +17,8 @@ import { parseManifest, type RDRRManifest, type KernelHints } from '../storage/r
 import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
 import { log as debugLog } from '../debug/index.js';
+import type { RuntimeConfigSchema } from '../config/schema/index.js';
+import { setRuntimeConfig } from '../config/runtime.js';
 
 // ============================================================================
 // Types
@@ -43,6 +45,7 @@ export interface RuntimeOverrides {
   debug?: boolean;
   attentionKernel?: string;
   kernelHints?: KernelHints;
+  runtimeConfig?: Partial<RuntimeConfigSchema>;
   /** Enable GPU timestamp profiling */
   profile?: boolean;
   /** Trace level: 'quick' | 'full' */
@@ -193,6 +196,19 @@ export function parseRuntimeOverridesFromURL(
       .filter(n => !isNaN(n));
   }
 
+  // Runtime config (full or partial)
+  const runtimeConfigRaw = params.get('runtimeConfig');
+  if (runtimeConfigRaw) {
+    try {
+      const parsed = JSON.parse(runtimeConfigRaw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        runtime.runtimeConfig = parsed as Partial<RuntimeConfigSchema>;
+      }
+    } catch (e) {
+      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${(e as Error).message}`);
+    }
+  }
+
   // Attach hints if any were specified
   if (Object.keys(hints).length > 0) {
     runtime.kernelHints = hints;
@@ -317,6 +333,9 @@ export async function initializeInference(
 ): Promise<InitializeResult> {
   const log = options.log || ((msg: string) => console.log(`[test-harness] ${msg}`));
   const onProgress = options.onProgress || (() => {});
+  if (options.runtime?.runtimeConfig) {
+    setRuntimeConfig(options.runtime.runtimeConfig);
+  }
 
   // 1. Initialize WebGPU
   onProgress('init', 0, 'Initializing WebGPU...');

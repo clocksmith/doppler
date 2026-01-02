@@ -36,6 +36,7 @@
       initializeDevice,
       createTestState,
     } from '/doppler/dist/inference/test-harness.js';
+    import { setRuntimeConfig } from '/doppler/dist/config/index.js';
     import { createPipeline } from '/doppler/dist/inference/pipeline.js';
     import { getDevice } from '/doppler/dist/gpu/device.js';
     import { getKernelHints } from '/doppler/dist/gpu/kernel-hints.js';
@@ -46,6 +47,9 @@
     const paramAutorun = params.get('autorun') === '1';
     const paramSkipLoad = params.get('skipLoad') === '1';
     const runtimeOverrides = parseRuntimeOverridesFromURL(params);
+    if (runtimeOverrides.runtimeConfig) {
+      setRuntimeConfig(runtimeOverrides.runtimeConfig);
+    }
 
     // Enable detailed logits debugging if requested via URL
     if (params.get('debugLogits') === '1') {

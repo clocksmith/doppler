@@ -1,15 +1,16 @@
 {
-  "$schema": "../schema/runtime-config.schema.json",
   "name": "default",
   "description": "Default DOPPLER configuration with balanced settings",
   "runtime": {
     "inference": {
+      "batching": {
+        "maxTokens": 2048
+      },
       "sampling": {
         "temperature": 0.7,
         "topK": 50,
         "topP": 0.95,
         "repetitionPenalty": 1.0,
-        "maxTokens": 2048,
         "greedyThreshold": 0.01
       }
     },

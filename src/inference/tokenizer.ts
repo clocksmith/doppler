@@ -11,7 +11,7 @@
 
 import type { SpecialTokens } from '../types/inference.js';
 import { log } from '../debug/index.js';
-import { DEFAULT_TOKENIZER_DEFAULTS } from '../config/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /** Tokenizer Configuration */
 export interface TokenizerConfig {
@@ -179,6 +179,7 @@ abstract class BaseTokenizer {
   addEosToken: boolean;
 
   constructor(config: TokenizerConfig = {}) {
+    const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     this.vocabSize = config.vocabSize || 32000;
     this.specialTokens = {
       pad: config.padToken ?? 0,
@@ -187,8 +188,8 @@ abstract class BaseTokenizer {
       unk: config.unkToken ?? 0,
       ...config.specialTokens
     };
-    this.addBosToken = config.addBosToken ?? DEFAULT_TOKENIZER_DEFAULTS.addBosToken;
-    this.addEosToken = config.addEosToken ?? DEFAULT_TOKENIZER_DEFAULTS.addEosToken;
+    this.addBosToken = config.addBosToken ?? runtimeDefaults.addBosToken;
+    this.addEosToken = config.addEosToken ?? runtimeDefaults.addEosToken;
   }
 
   /**
@@ -942,9 +943,10 @@ export class BundledTokenizer extends BaseTokenizer {
       this.vocabSize = Math.max(this.vocabSize, maxId + 1);
     }
 
-    // Handle behavior flags (use HF config if present, else defaults)
-    this.addBosToken = hf.add_bos_token ?? DEFAULT_TOKENIZER_DEFAULTS.addBosToken;
-    this.addEosToken = hf.add_eos_token ?? DEFAULT_TOKENIZER_DEFAULTS.addEosToken;
+    // Handle behavior flags (use HF config if present, else runtime defaults)
+    const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
+    this.addBosToken = hf.add_bos_token ?? runtimeDefaults.addBosToken;
+    this.addEosToken = hf.add_eos_token ?? runtimeDefaults.addEosToken;
     // NOTE: Default to FALSE for add_prefix_space - HuggingFace tokenizers typically
     // don't add a space prefix to the first token. Models like Gemma, Llama use
     // the normalizer/pre_tokenizer to handle spaces within text, not at the start.
@@ -1040,8 +1042,9 @@ export class BundledTokenizer extends BaseTokenizer {
       log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
     }
 
-    this.addBosToken = tokenizerJson.addBosToken ?? DEFAULT_TOKENIZER_DEFAULTS.addBosToken;
-    this.addEosToken = tokenizerJson.addEosToken ?? DEFAULT_TOKENIZER_DEFAULTS.addEosToken;
+    const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
+    this.addBosToken = tokenizerJson.addBosToken ?? runtimeDefaults.addBosToken;
+    this.addEosToken = tokenizerJson.addEosToken ?? runtimeDefaults.addEosToken;
     // NOTE: Default to FALSE - first word shouldn't get space prefix
     // Space prefixes are only for words that follow a space in original text
     this.addSpacePrefix = tokenizerJson.addSpacePrefix === true;

@@ -25,16 +25,16 @@ import { DEFAULT_LOADING_CONFIG } from './schema/index.js';
 
 // Import presets statically for bundling
 // In a real implementation, these would be loaded dynamically or bundled
-import transformerPreset from './presets/transformer.json' with { type: 'json' };
-import gemma2Preset from './presets/gemma2.json' with { type: 'json' };
-import gemma3Preset from './presets/gemma3.json' with { type: 'json' };
-import functiongemmaPreset from './presets/functiongemma.json' with { type: 'json' };
-import llama3Preset from './presets/llama3.json' with { type: 'json' };
-import mixtralPreset from './presets/mixtral.json' with { type: 'json' };
-import deepseekPreset from './presets/deepseek.json' with { type: 'json' };
-import mambaPreset from './presets/mamba.json' with { type: 'json' };
-import qwen3Preset from './presets/qwen3.json' with { type: 'json' };
-import kimiK2Preset from './presets/kimi-k2.json' with { type: 'json' };
+import transformerPreset from './presets/models/transformer.json' with { type: 'json' };
+import gemma2Preset from './presets/models/gemma2.json' with { type: 'json' };
+import gemma3Preset from './presets/models/gemma3.json' with { type: 'json' };
+import functiongemmaPreset from './presets/models/functiongemma.json' with { type: 'json' };
+import llama3Preset from './presets/models/llama3.json' with { type: 'json' };
+import mixtralPreset from './presets/models/mixtral.json' with { type: 'json' };
+import deepseekPreset from './presets/models/deepseek.json' with { type: 'json' };
+import mambaPreset from './presets/models/mamba.json' with { type: 'json' };
+import qwen3Preset from './presets/models/qwen3.json' with { type: 'json' };
+import kimiK2Preset from './presets/models/kimi-k2.json' with { type: 'json' };
 
 /** Registry of all available presets */
 const PRESET_REGISTRY: Record<string, PresetSchema> = {

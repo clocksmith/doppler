@@ -11,7 +11,7 @@ import { getDevice } from '../gpu/device.js';
 import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import type { ExpertPlan, RouterConfig } from '../types/inference.js';
-import { DEFAULT_MOE_ROUTING_CONFIG } from '../config/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * MoE Router Configuration (extended)
@@ -91,10 +91,11 @@ export class MoERouter {
   private _gateWeightGPU: GPUBuffer | null = null;
 
   constructor(config: MoEConfig) {
-    this.numExperts = config.numExperts || DEFAULT_MOE_ROUTING_CONFIG.numExperts;
-    this.topK = config.topK || DEFAULT_MOE_ROUTING_CONFIG.topK;
+    const runtimeDefaults = getRuntimeConfig().moe.routing;
+    this.numExperts = config.numExperts || runtimeDefaults.numExperts;
+    this.topK = config.topK || runtimeDefaults.topK;
     this.hiddenSize = config.hiddenSize || 4096;  // hiddenSize is model-specific, no global default
-    this.normalizeWeights = config.normalizeWeights ?? DEFAULT_MOE_ROUTING_CONFIG.normalizeWeights;
+    this.normalizeWeights = config.normalizeWeights ?? runtimeDefaults.normalizeWeights;
 
     // Track active experts for the current batch
     this.activeExperts = new Set<number>();

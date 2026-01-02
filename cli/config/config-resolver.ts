@@ -40,7 +40,7 @@ export interface ResolverOptions {
 // Constants
 // =============================================================================
 
-const BUILTIN_PRESETS_DIR = resolve(import.meta.dirname, '../../src/config/presets');
+const BUILTIN_PRESETS_DIR = resolve(import.meta.dirname, '../../src/config/presets/runtime');
 const DEFAULT_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 // =============================================================================

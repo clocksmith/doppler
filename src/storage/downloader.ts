@@ -67,11 +67,11 @@ import {
   DB_NAME,
   DB_VERSION,
   STORE_NAME,
-  DEFAULT_CONCURRENCY,
-  MAX_RETRIES,
-  INITIAL_RETRY_DELAY,
-  MAX_RETRY_DELAY,
-  PROGRESS_UPDATE_INTERVAL_MS,
+  getDefaultConcurrency,
+  getMaxRetries,
+  getInitialRetryDelayMs,
+  getMaxRetryDelayMs,
+  getProgressUpdateIntervalMs,
 } from './download-types.js';
 
 // ============================================================================
@@ -193,9 +193,10 @@ async function deleteDownloadState(modelId: string): Promise<void> {
  */
 async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<Response> {
   let lastError: Error | undefined;
-  let delay = INITIAL_RETRY_DELAY;
+  const maxRetries = getMaxRetries();
+  let delay = getInitialRetryDelayMs();
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
         ...options,
@@ -220,9 +221,9 @@ async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<R
         throw error;
       }
 
-      if (attempt < MAX_RETRIES) {
+      if (attempt < maxRetries) {
         await new Promise(r => setTimeout(r, delay));
-        delay = Math.min(delay * 2, MAX_RETRY_DELAY);
+        delay = Math.min(delay * 2, getMaxRetryDelayMs());
       }
     }
   }
@@ -303,7 +304,7 @@ export async function downloadModel(
   options: DownloadOptions = {}
 ): Promise<boolean> {
   const {
-    concurrency = DEFAULT_CONCURRENCY,
+    concurrency = getDefaultConcurrency(),
     requestPersist = true,
     modelId: overrideModelId = undefined
   } = options;
@@ -398,7 +399,7 @@ export async function downloadModel(
     const now = Date.now();
 
     // Throttle progress updates (unless forced for completion events)
-    if (!force && now - lastProgressUpdate < PROGRESS_UPDATE_INTERVAL_MS) {
+    if (!force && now - lastProgressUpdate < getProgressUpdateIntervalMs()) {
       return;
     }
     lastProgressUpdate = now;

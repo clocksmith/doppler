@@ -16,6 +16,7 @@ import { log, trace as debugTrace } from '../debug/index.js';
 import type { CustomShardLoader, ShardSourceInfo } from './loader-types.js';
 import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
 import { DEFAULT_SHARD_CACHE_CONFIG } from '../config/schema/loading.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * Configuration for shard cache
@@ -51,7 +52,7 @@ export class ShardCache {
     this.customLoader = config.customLoader ?? null;
     this.verifyHashes = config.verifyHashes ?? true;
     this.manifest = config.manifest ?? null;
-    this.loadingConfig = config.loadingConfig ?? DEFAULT_SHARD_CACHE_CONFIG;
+    this.loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache ?? DEFAULT_SHARD_CACHE_CONFIG;
   }
 
   /**
@@ -266,7 +267,7 @@ export function createShardCache(
   maxEntries?: number,
   loadingConfig?: ShardCacheConfigSchema
 ): ShardCache {
-  const config = loadingConfig ?? DEFAULT_SHARD_CACHE_CONFIG;
+  const config = loadingConfig ?? getRuntimeConfig().loading.shardCache ?? DEFAULT_SHARD_CACHE_CONFIG;
   return new ShardCache({
     maxEntries: maxEntries ?? config.opfsEntries,
     loadingConfig: config,

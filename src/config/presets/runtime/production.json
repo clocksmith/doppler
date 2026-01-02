@@ -1,5 +1,4 @@
 {
-  "$schema": "../schema/runtime-config.schema.json",
   "name": "production",
   "description": "Production configuration with optimized settings",
   "extends": "default",
@@ -20,9 +19,11 @@
       }
     },
     "inference": {
-      "sampling": {
-        "temperature": 0.7,
+      "batching": {
         "maxTokens": 4096
+      },
+      "sampling": {
+        "temperature": 0.7
       }
     },
     "kvcache": {

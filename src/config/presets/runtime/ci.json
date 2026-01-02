@@ -1,5 +1,4 @@
 {
-  "$schema": "../schema/runtime-config.schema.json",
   "name": "ci",
   "description": "CI/CD configuration with file logging and headless mode",
   "extends": "default",
@@ -20,9 +19,11 @@
       }
     },
     "inference": {
-      "sampling": {
-        "temperature": 0,
+      "batching": {
         "maxTokens": 32
+      },
+      "sampling": {
+        "temperature": 0
       }
     }
   },

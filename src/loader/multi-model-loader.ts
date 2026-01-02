@@ -6,7 +6,7 @@
 
 import { loadWeights, type WeightLoadResult } from '../inference/pipeline/init.js';
 import { parseModelConfig, type Manifest } from '../inference/pipeline/config.js';
-import { InferencePipeline } from '../inference/pipeline.js';
+import { InferencePipeline, type PipelineContexts } from '../inference/pipeline.js';
 import { getDopplerLoader } from './doppler-loader.js';
 import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from '../adapters/lora-loader.js';
 import type { LoRAAdapter } from '../inference/pipeline/lora.js';
@@ -65,7 +65,7 @@ export class MultiModelLoader {
   }
 
   async createSharedPipeline(
-    contexts: { gpu?: { device?: GPUDevice }; storage?: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } } = {}
+    contexts: PipelineContexts = {}
   ): Promise<InferencePipeline> {
     if (!this.baseManifest || !this.baseWeights) {
       throw new Error('Base model not loaded');

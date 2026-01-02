@@ -56,7 +56,8 @@
  * @module debug
  */
 
-import { DEFAULT_DEBUG_CONFIG } from '../config/schema/debug.schema.js';
+import type { DebugConfigSchema } from '../config/schema/debug.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -195,7 +196,6 @@ let currentLogLevel: LogLevelValue = LOG_LEVELS.INFO;
 let enabledModules = new Set<string>();
 let disabledModules = new Set<string>();
 let logHistory: LogEntry[] = [];
-const MAX_HISTORY = DEFAULT_DEBUG_CONFIG.logHistory.maxLogHistoryEntries;
 
 // GPU device reference for tensor inspection
 let gpuDevice: GPUDevice | null = null;
@@ -300,6 +300,45 @@ export function setTrace(
 
   const enabled = [...enabledTraceCategories].join(',') || 'none';
   console.log(`[Doppler] Trace categories: ${enabled}`);
+}
+
+/**
+ * Apply debug config defaults unless URL params already set them.
+ */
+export function applyDebugConfig(
+  config: DebugConfigSchema,
+  options: { respectUrlParams?: boolean } = {}
+): void {
+  const respectUrlParams = options.respectUrlParams !== false;
+  let hasLogParam = false;
+  let hasTraceParam = false;
+
+  if (respectUrlParams && typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    hasLogParam = params.has('log');
+    hasTraceParam = params.has('trace');
+  }
+
+  if (!hasLogParam && config.logLevel?.defaultLogLevel) {
+    const desired = config.logLevel.defaultLogLevel;
+    if (desired && desired !== getLogLevel()) {
+      setLogLevel(desired);
+    }
+  }
+
+  if (!hasTraceParam) {
+    if (config.trace?.enabled) {
+      const categories = config.trace.categories?.length
+        ? config.trace.categories
+        : ['all'];
+      setTrace(categories, {
+        layers: config.trace.layers ?? undefined,
+        maxDecodeSteps: config.trace.maxDecodeSteps || undefined,
+      });
+    } else if (getTrace().length > 0) {
+      setTrace(false);
+    }
+  }
 }
 
 /**
@@ -516,7 +555,8 @@ function storeLog(level: string, module: string, message: string, data?: unknown
     data,
   });
 
-  if (logHistory.length > MAX_HISTORY) {
+  const maxHistory = getRuntimeConfig().debug.logHistory.maxLogHistoryEntries;
+  if (logHistory.length > maxHistory) {
     logHistory.shift();
   }
 }

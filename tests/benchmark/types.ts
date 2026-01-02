@@ -8,6 +8,7 @@
  */
 
 import type { KernelHints } from '../../src/storage/rdrr-format.js';
+import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 
 // ============================================================================
 // Result Schema (matches BENCHMARK_HARNESS.md)
@@ -287,6 +288,8 @@ export interface BenchmarkConfig {
     attentionKernel?: string;
     kernelHints?: KernelHints;
   };
+  /** Full runtime config overrides */
+  runtimeConfig?: Partial<RuntimeConfigSchema>;
 }
 
 // ============================================================================

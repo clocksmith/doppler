@@ -10,7 +10,7 @@
  */
 
 import { log } from '../debug/index.js';
-import { DEFAULT_QUOTA_CONFIG } from '../config/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * Storage quota information
@@ -77,9 +77,9 @@ export interface StorageReport {
  */
 export type StorageCallback = (info: QuotaInfo) => void;
 
-// Thresholds from config
-const LOW_SPACE_THRESHOLD = DEFAULT_QUOTA_CONFIG.lowSpaceThresholdBytes;
-const CRITICAL_SPACE_THRESHOLD = DEFAULT_QUOTA_CONFIG.criticalSpaceThresholdBytes;
+function getQuotaConfig() {
+  return getRuntimeConfig().storage.quota;
+}
 
 // Cached persistence state
 let persistenceState: boolean | null = null;
@@ -141,8 +141,8 @@ export async function getQuotaInfo(): Promise<QuotaInfo> {
       available,
       usagePercent: quota > 0 ? (usage / quota) * 100 : 0,
       persisted,
-      lowSpace: available < LOW_SPACE_THRESHOLD,
-      criticalSpace: available < CRITICAL_SPACE_THRESHOLD
+      lowSpace: available < getQuotaConfig().lowSpaceThresholdBytes,
+      criticalSpace: available < getQuotaConfig().criticalSpaceThresholdBytes
     };
   } catch (error) {
     log.warn('Quota', `Failed to get storage quota: ${(error as Error).message}`);
@@ -340,7 +340,7 @@ export class QuotaExceededError extends Error {
 export function monitorStorage(
   onLowSpace: StorageCallback | null,
   onCriticalSpace: StorageCallback | null,
-  intervalMs = DEFAULT_QUOTA_CONFIG.monitorIntervalMs
+  intervalMs = getQuotaConfig().monitorIntervalMs
 ): () => void {
   let wasLow = false;
   let wasCritical = false;

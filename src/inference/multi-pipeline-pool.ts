@@ -77,6 +77,7 @@ export class MultiPipelinePool {
         ...this.defaultContexts.runtime,
         ...contexts.runtime,
       },
+      runtimeConfig: contexts.runtimeConfig ?? this.defaultContexts.runtimeConfig,
     };
   }
 

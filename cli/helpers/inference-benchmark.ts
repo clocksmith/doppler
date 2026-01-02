@@ -39,6 +39,9 @@ function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptT
     debugLayers: opts.debugLayers,
     profile: opts.gpuProfile,  // GPU timestamp profiling for per-kernel timing
   };
+  if (opts.runtimeConfig) {
+    configObj.runtimeConfig = opts.runtimeConfig;
+  }
   if (Object.keys(runtime).length > 0) {
     configObj.runtime = runtime;
   }

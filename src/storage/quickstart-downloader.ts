@@ -19,7 +19,7 @@ import {
   GEMMA_1B_REQUIREMENTS,
 } from './preflight.js';
 import { formatBytes } from './quota.js';
-import { CDN_BASE_PATH } from './download-types.js';
+import { getCdnBasePath } from './download-types.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -84,13 +84,15 @@ export interface QuickStartDownloadResult {
  * Configure this based on your hosting setup.
  * Default uses config value (null = same-origin /doppler/models/ path for Firebase Hosting or local dev)
  */
-let CDN_BASE_URL = CDN_BASE_PATH ?? '';
+let cdnBaseOverride: string | null = null;
 
 /**
  * Get the auto-detected or configured CDN base URL
  */
 function getEffectiveCDNBaseUrl(): string {
-  if (CDN_BASE_URL) return CDN_BASE_URL;
+  const runtimeBase = getCdnBasePath();
+  const base = cdnBaseOverride ?? runtimeBase ?? '';
+  if (base) return base;
 
   // Auto-detect: use same origin for Firebase Hosting or local dev
   if (typeof window !== 'undefined') {
@@ -104,7 +106,7 @@ function getEffectiveCDNBaseUrl(): string {
  * Set the CDN base URL for model downloads
  */
 export function setCDNBaseUrl(url: string): void {
-  CDN_BASE_URL = url.replace(/\/$/, ''); // Remove trailing slash
+  cdnBaseOverride = url.replace(/\/$/, ''); // Remove trailing slash
 }
 
 /**

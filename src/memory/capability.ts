@@ -11,11 +11,7 @@
  */
 
 import { detectUnifiedMemory, type UnifiedMemoryInfo } from './unified-detect.js';
-import {
-  DEFAULT_HEAP_TESTING_CONFIG,
-  DEFAULT_SEGMENT_TESTING_CONFIG,
-  DEFAULT_ADDRESS_SPACE_CONFIG,
-} from '../config/schema/memory-limits.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -83,7 +79,7 @@ async function probeMemory64(): Promise<boolean> {
  * Tests allocation limits without OOM
  */
 async function probeMaxHeapSize(): Promise<number> {
-  const { heapTestSizes, fallbackMaxHeapBytes } = DEFAULT_HEAP_TESTING_CONFIG;
+  const { heapTestSizes, fallbackMaxHeapBytes } = getRuntimeConfig().memory.heapTesting;
 
   for (const size of heapTestSizes) {
     try {
@@ -104,8 +100,8 @@ async function probeMaxHeapSize(): Promise<number> {
  * Returns max size per ArrayBuffer and recommended segment count
  */
 function probeSegmentedLimits(): SegmentedLimits {
-  const { segmentTestSizes, safeSegmentSizeBytes } = DEFAULT_SEGMENT_TESTING_CONFIG;
-  const { targetAddressSpaceBytes } = DEFAULT_ADDRESS_SPACE_CONFIG;
+  const { segmentTestSizes, safeSegmentSizeBytes } = getRuntimeConfig().memory.segmentTesting;
+  const { targetAddressSpaceBytes } = getRuntimeConfig().memory.addressSpace;
 
   let maxSegmentSize = safeSegmentSizeBytes; // Safe default
 

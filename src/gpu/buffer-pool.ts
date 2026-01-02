@@ -9,10 +9,8 @@ import { getDevice, getDeviceLimits } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import type { GpuBufferHandle, BufferRequest } from '../types/gpu.js';
 import { log, trace } from '../debug/index.js';
-import {
-  type BufferPoolConfigSchema,
-  DEFAULT_BUFFER_POOL_CONFIG,
-} from '../config/schema/index.js';
+import type { BufferPoolConfigSchema } from '../config/schema/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * Pool statistics
@@ -84,7 +82,7 @@ function alignTo(size: number, alignment: number): number {
 function getSizeBucket(
   size: number,
   maxAllowedSize: number = Infinity,
-  bucketConfig = DEFAULT_BUFFER_POOL_CONFIG.bucket
+  bucketConfig = getRuntimeConfig().bufferPool.bucket
 ): number {
   // Minimum bucket from config
   const minBucket = bucketConfig.minBucketSizeBytes;
@@ -148,7 +146,7 @@ export class BufferPool {
     this.activeBuffers = new Set();
     this.bufferMetadata = new Map();
     this.debugMode = debugMode;
-    this.schemaConfig = schemaConfig ?? DEFAULT_BUFFER_POOL_CONFIG;
+    this.schemaConfig = schemaConfig ?? getRuntimeConfig().bufferPool;
 
     this.stats = {
       allocations: 0,

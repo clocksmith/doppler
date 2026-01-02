@@ -1,5 +1,4 @@
 {
-  "$schema": "../schema/runtime-config.schema.json",
   "name": "low-memory",
   "description": "Low memory configuration for constrained environments",
   "extends": "default",
@@ -20,7 +19,7 @@
       }
     },
     "inference": {
-      "sampling": {
+      "batching": {
         "maxTokens": 512
       }
     }

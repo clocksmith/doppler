@@ -14,7 +14,7 @@ import { getBufferDtype, setBufferDtype } from '../gpu/buffer-dtypes.js';
 import { allowReadback } from '../gpu/perf-guards.js';
 import type { KVCacheConfig as ImportedKVCacheConfig } from '../types/inference.js';
 import { log } from '../debug/index.js';
-import { DEFAULT_KVCACHE_CONFIG } from '../config/schema/kvcache.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * KV Cache Configuration
@@ -124,15 +124,16 @@ export class KVCache {
    * @param config - KV cache configuration
    */
   constructor(config: KVCacheConfig) {
+    const runtimeKV = getRuntimeConfig().kvcache;
     this.numLayers = config.numLayers;
     this.numHeads = config.numHeads;
     this.headDim = config.headDim;
     // Use config defaults from schema
-    this.maxSeqLen = config.maxSeqLen || DEFAULT_KVCACHE_CONFIG.maxSeqLen;
+    this.maxSeqLen = config.maxSeqLen || runtimeKV.maxSeqLen;
     this.useGPU = config.useGPU || false;
-    this.layout = config.layout || DEFAULT_KVCACHE_CONFIG.layout;
-    this.pageSize = config.pageSize || DEFAULT_KVCACHE_CONFIG.pageSize;
-    this.kvDtype = config.kvDtype || DEFAULT_KVCACHE_CONFIG.kvDtype;
+    this.layout = config.layout || runtimeKV.layout;
+    this.pageSize = config.pageSize || runtimeKV.pageSize;
+    this.kvDtype = config.kvDtype || runtimeKV.kvDtype;
     this.bytesPerElem = this.kvDtype === 'f16' ? 2 : 4;
 
     // Size of one KV pair per position
@@ -858,7 +859,7 @@ export class SlidingWindowKVCache extends KVCache {
    */
   constructor(config: KVCacheConfig & { windowSize?: number }) {
     super(config);
-    this.windowSize = config.windowSize || DEFAULT_KVCACHE_CONFIG.windowSize;
+    this.windowSize = config.windowSize || getRuntimeConfig().kvcache.windowSize;
     this.totalTokensSeen = 0;
   }
 

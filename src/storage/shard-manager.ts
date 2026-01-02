@@ -21,8 +21,7 @@ import {
 import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quota.js';
 import { log } from '../debug/index.js';
 import type { OpfsPathConfigSchema } from '../config/schema/loading.schema.js';
-import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
-import { DEFAULT_STORAGE_ALIGNMENT_CONFIG } from '../config/schema/storage.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // Re-export for consumers that import from shard-manager
 export { getManifest } from './rdrr-format.js';
@@ -112,11 +111,12 @@ interface Blake3Module {
 // Constants
 // ============================================================================
 
-// Use config value for alignment (default: 4KB for optimal disk I/O)
-const ALIGNMENT = DEFAULT_STORAGE_ALIGNMENT_CONFIG.bufferAlignmentBytes;
+function getAlignmentBytes(): number {
+  return getRuntimeConfig().storage.alignment.bufferAlignmentBytes;
+}
 
 // Storage config - can be overridden via setOpfsPathConfig()
-let opfsPathConfig: OpfsPathConfigSchema = DEFAULT_OPFS_PATH_CONFIG;
+let opfsPathConfigOverride: OpfsPathConfigSchema | null = null;
 
 // ============================================================================
 // Module State
@@ -132,14 +132,14 @@ let hashAlgorithm: HashAlgorithm | null = null;
  * Set OPFS path configuration
  */
 export function setOpfsPathConfig(config: OpfsPathConfigSchema): void {
-  opfsPathConfig = config;
+  opfsPathConfigOverride = config;
 }
 
 /**
  * Get current OPFS path configuration
  */
 export function getOpfsPathConfig(): OpfsPathConfigSchema {
-  return opfsPathConfig;
+  return opfsPathConfigOverride ?? getRuntimeConfig().loading.opfsPath;
 }
 
 // ============================================================================
@@ -286,7 +286,8 @@ export async function initOPFS(): Promise<void> {
 
   try {
     rootDir = await navigator.storage.getDirectory();
-    modelsDir = await rootDir.getDirectoryHandle(opfsPathConfig.opfsRootDir, { create: true });
+    const { opfsRootDir } = getOpfsPathConfig();
+    modelsDir = await rootDir.getDirectoryHandle(opfsRootDir, { create: true });
   } catch (error) {
     throw new Error(`Failed to initialize OPFS: ${(error as Error).message}`);
   }
@@ -344,7 +345,8 @@ export async function writeShard(
     const writable = await fileHandle.createWritable();
 
     // Write data with proper alignment consideration
-    const alignedSize = Math.ceil(data.byteLength / ALIGNMENT) * ALIGNMENT;
+    const alignment = getAlignmentBytes();
+    const alignedSize = Math.ceil(data.byteLength / alignment) * alignment;
     if (alignedSize !== data.byteLength) {
       // Pad to alignment boundary (optional, depends on requirements)
       await writable.write(data);
@@ -437,11 +439,12 @@ export async function loadShardSync(
   }
 
   // Align offset to 4KB boundary for optimal reads
-  const alignedOffset = Math.floor(offset / ALIGNMENT) * ALIGNMENT;
+  const alignment = getAlignmentBytes();
+  const alignedOffset = Math.floor(offset / alignment) * alignment;
   const offsetDelta = offset - alignedOffset;
 
   const readLength = length ?? (shardInfo.size - offset);
-  const alignedLength = Math.ceil((readLength + offsetDelta) / ALIGNMENT) * ALIGNMENT;
+  const alignedLength = Math.ceil((readLength + offsetDelta) / alignment) * alignment;
 
   try {
     const fileHandle = await currentModelDir.getFileHandle(shardInfo.filename);

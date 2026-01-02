@@ -1,5 +1,4 @@
 {
-  "$schema": "../schema/runtime-config.schema.json",
   "name": "debug",
   "description": "Debug configuration with verbose logging and tracing enabled",
   "extends": "default",

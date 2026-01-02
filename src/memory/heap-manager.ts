@@ -11,7 +11,7 @@
 
 import { getMemoryCapabilities, type MemoryStrategy, type SegmentedLimits } from './capability.js';
 import { AddressTable } from './address-table.js';
-import { DEFAULT_SEGMENT_ALLOCATION_CONFIG } from '../config/schema/memory-limits.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // ============================================================================
 // Constants
@@ -122,7 +122,7 @@ export class HeapManager {
         err
       );
       this.strategy = 'SEGMENTED';
-      const { fallbackSegmentSizeBytes } = DEFAULT_SEGMENT_ALLOCATION_CONFIG;
+      const { fallbackSegmentSizeBytes } = getRuntimeConfig().memory.segmentAllocation;
       await this._initSegmented({ maxSegmentSize: fallbackSegmentSizeBytes, recommendedSegments: 8 });
     }
   }
@@ -161,7 +161,7 @@ export class HeapManager {
       return segment;
     } catch (e) {
       // If allocation fails, try smaller sizes
-      const { segmentFallbackSizes } = DEFAULT_SEGMENT_ALLOCATION_CONFIG;
+      const { segmentFallbackSizes } = getRuntimeConfig().memory.segmentAllocation;
 
       for (const size of segmentFallbackSizes) {
         if (size >= segmentSize) continue; // Already tried this size

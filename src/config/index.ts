@@ -25,6 +25,13 @@ export {
   PRESET_REGISTRY,
 } from './loader.js';
 
+// Runtime config registry
+export {
+  getRuntimeConfig,
+  setRuntimeConfig,
+  resetRuntimeConfig,
+} from './runtime.js';
+
 // Kernel registry (JS modules - dynamic import for hotswap)
 // Auto-initialized by gpu/device.ts during initDevice()
 // Use: const { getRegistry, getRegistrySync } = await import('./kernels/registry.js');

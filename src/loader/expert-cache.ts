@@ -12,6 +12,7 @@ import { log, trace } from '../debug/index.js';
 import type { ExpertWeights } from './weights.js';
 import type { ExpertCacheConfigSchema } from '../config/schema/loading.schema.js';
 import { DEFAULT_EXPERT_CACHE_CONFIG } from '../config/schema/loading.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * Cache entry with access tracking
@@ -66,8 +67,16 @@ export class ExpertCache {
    * @param config Expert cache configuration
    */
   constructor(maxBytes?: number, config?: ExpertCacheConfigSchema) {
-    this.config = config ?? DEFAULT_EXPERT_CACHE_CONFIG;
+    this.config = config ?? getRuntimeConfig().loading.expertCache ?? DEFAULT_EXPERT_CACHE_CONFIG;
     this.maxBytes = maxBytes ?? this.config.defaultSizeBytes;
+  }
+
+  /**
+   * Update cache configuration at runtime.
+   */
+  configure(config: ExpertCacheConfigSchema, maxBytes?: number): void {
+    this.config = config;
+    this.maxBytes = maxBytes ?? config.defaultSizeBytes;
   }
 
   /**
@@ -379,7 +388,11 @@ let globalCache: ExpertCache | null = null;
  */
 export function getExpertCache(config?: ExpertCacheConfigSchema): ExpertCache {
   if (!globalCache) {
-    globalCache = new ExpertCache(undefined, config);
+    const resolvedConfig = config ?? getRuntimeConfig().loading.expertCache;
+    globalCache = new ExpertCache(undefined, resolvedConfig);
+  } else {
+    const resolvedConfig = config ?? getRuntimeConfig().loading.expertCache;
+    globalCache.configure(resolvedConfig);
   }
   return globalCache;
 }
@@ -388,7 +401,8 @@ export function getExpertCache(config?: ExpertCacheConfigSchema): ExpertCache {
  * Create new expert cache with custom size
  */
 export function createExpertCache(maxBytes?: number, config?: ExpertCacheConfigSchema): ExpertCache {
-  return new ExpertCache(maxBytes, config);
+  const resolvedConfig = config ?? getRuntimeConfig().loading.expertCache;
+  return new ExpertCache(maxBytes, resolvedConfig);
 }
 
 export default ExpertCache;

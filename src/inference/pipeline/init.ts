@@ -25,6 +25,8 @@ import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice } from '../../debug/index.js';
 import type { KernelHints, RDRRManifest } from '../../storage/rdrr-format.js';
 import type { LayerWeights, RouterWeights } from './types.js';
+import type { KVCacheConfigSchema, RuntimeConfigSchema, LoadingConfigSchema } from '../../config/schema/index.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 // ============================================================================
 // Types
@@ -50,6 +52,8 @@ export interface PipelineContexts {
     debug?: boolean;
     kernelHints?: KernelHints;
   };
+  /** Full runtime config (merged with defaults) */
+  runtimeConfig?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema;
   /** Progress callback for weight loading */
   onProgress?: (progress: { percent: number; message?: string }) => void;
 }
@@ -315,17 +319,26 @@ export async function initRoPEFrequencies(
 export function createKVCache(
   modelConfig: ParsedModelConfig,
   useGPU: boolean,
-  debug: boolean = false
+  debug: boolean = false,
+  runtimeConfig?: KVCacheConfigSchema
 ): KVCache | SlidingWindowKVCache {
-  const modelMaxSeqLen = modelConfig.maxSeqLen || 4096;
-  const slidingWindow = Number(modelConfig.slidingWindow || 0) || null;
+  const runtimeKV = runtimeConfig ?? getRuntimeConfig().kvcache;
+  const modelMaxSeqLen = modelConfig.maxSeqLen || runtimeKV.maxSeqLen || 4096;
+  let slidingWindow = Number(modelConfig.slidingWindow || 0) || null;
 
   let cacheMaxSeqLen = modelMaxSeqLen;
-  let cacheLayout: 'contiguous' | 'paged' = cacheMaxSeqLen > 8192 ? 'paged' : 'contiguous';
+  if (Number.isFinite(runtimeKV.maxSeqLen) && runtimeKV.maxSeqLen > 0) {
+    cacheMaxSeqLen = Math.min(cacheMaxSeqLen, runtimeKV.maxSeqLen);
+  }
+
+  let cacheLayout: 'contiguous' | 'paged' = runtimeKV.layout ?? (cacheMaxSeqLen > 8192 ? 'paged' : 'contiguous');
 
   // Sliding-window attention only needs a bounded KV cache
   if (slidingWindow && Number.isFinite(slidingWindow) && slidingWindow > 0) {
-    cacheMaxSeqLen = Math.min(modelMaxSeqLen, slidingWindow);
+    if (runtimeKV.windowSize > 0) {
+      slidingWindow = Math.min(slidingWindow, runtimeKV.windowSize);
+    }
+    cacheMaxSeqLen = Math.min(cacheMaxSeqLen, slidingWindow);
     cacheLayout = 'contiguous';
   }
 
@@ -342,7 +355,13 @@ export function createKVCache(
   // See: https://github.com/ggerganov/llama.cpp/issues/8853
   const gpuCaps = getKernelCapabilities();
   const forceF32KV = modelConfig.isGemma2;
-  const kvDtype: 'f16' | 'f32' = (!forceF32KV && useGPU && gpuCaps.hasF16) ? 'f16' : 'f32';
+  let kvDtype: 'f16' | 'f32' = runtimeKV.kvDtype;
+  if (kvDtype === 'f16' && (!useGPU || !gpuCaps.hasF16)) {
+    kvDtype = 'f32';
+  }
+  if (forceF32KV) {
+    kvDtype = 'f32';
+  }
   if (forceF32KV && debug) {
     log.debug('Pipeline', `Forcing F32 KV cache for Gemma 2 (precision fix)`);
   }
@@ -355,6 +374,7 @@ export function createKVCache(
     useGPU,
     layout: cacheLayout,
     kvDtype,
+    pageSize: runtimeKV.pageSize,
   };
 
   let kvCache: KVCache | SlidingWindowKVCache;
@@ -362,7 +382,7 @@ export function createKVCache(
   if (modelConfig.slidingWindow) {
     kvCache = new SlidingWindowKVCache({
       ...cacheConfig,
-      windowSize: modelConfig.slidingWindow,
+      windowSize: slidingWindow ?? modelConfig.slidingWindow,
     });
   } else {
     kvCache = new KVCache(cacheConfig);
@@ -429,6 +449,8 @@ export interface WeightLoadResult {
 export interface LoadWeightsOptions {
   /** Custom storage context for shard loading */
   storageContext?: { loadShard?: (shardIdx: number) => Promise<ArrayBuffer | Uint8Array> };
+  /** Runtime loading configuration overrides */
+  loadingConfig?: LoadingConfigSchema;
   /** Progress callback */
   onProgress?: (info: { stage: string; progress: number }) => void;
   /**
@@ -451,9 +473,9 @@ export async function loadWeights(
   modelConfig: ParsedModelConfig,
   options: LoadWeightsOptions = {}
 ): Promise<WeightLoadResult> {
-  const { storageContext, onProgress, verifyHashes = false } = options;
+  const { storageContext, onProgress, verifyHashes = false, loadingConfig } = options;
 
-  const dopplerLoader = getDopplerLoader();
+  const dopplerLoader = getDopplerLoader(loadingConfig);
   await dopplerLoader.init();
 
   // Configure custom shard loader if provided (Native Bridge)

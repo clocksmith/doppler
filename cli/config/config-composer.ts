@@ -46,34 +46,34 @@ export class ConfigComposer {
    */
   async compose(ref: string): Promise<ComposedConfig> {
     const visited = new Set<string>();
-    const chain: string[] = [];
+    const stack: string[] = [];
 
-    return this.composeRecursive(ref, visited, chain, 0);
+    return this.composeRecursive(ref, visited, stack, 0);
   }
 
   private async composeRecursive(
     ref: string,
     visited: Set<string>,
-    chain: string[],
+    stack: string[],
     depth: number
   ): Promise<ComposedConfig> {
     // Cycle detection
     const normalizedRef = this.normalizeRef(ref);
     if (visited.has(normalizedRef)) {
       throw new Error(
-        `Circular extends detected: ${[...chain, ref].join(' -> ')}`
+        `Circular extends detected: ${[...stack, normalizedRef].join(' -> ')}`
       );
     }
 
     // Depth limit
     if (depth > this.maxDepth) {
       throw new Error(
-        `Extends chain too deep (max ${this.maxDepth}): ${chain.join(' -> ')}`
+        `Extends chain too deep (max ${this.maxDepth}): ${stack.join(' -> ')}`
       );
     }
 
     visited.add(normalizedRef);
-    chain.push(normalizedRef);
+    stack.push(normalizedRef);
 
     // Resolve and parse config
     const resolved = await this.resolver.resolve(ref);
@@ -82,14 +82,15 @@ export class ConfigComposer {
     // If no extends, return as-is
     if (!raw.extends) {
       const { extends: _, ...config } = raw;
-      return { config, chain: [...chain] };
+      stack.pop();
+      return { config, chain: [normalizedRef] };
     }
 
     // Recursively resolve parent
     const parent = await this.composeRecursive(
       raw.extends,
       visited,
-      chain,
+      stack,
       depth + 1
     );
 
@@ -97,7 +98,8 @@ export class ConfigComposer {
     const { extends: _, ...childConfig } = raw;
     const merged = this.deepMerge(parent.config, childConfig);
 
-    return { config: merged, chain: parent.chain };
+    stack.pop();
+    return { config: merged, chain: [...parent.chain, normalizedRef] };
   }
 
   /**

@@ -75,8 +75,8 @@ import {
 } from './dtype-utils.js';
 
 import { ShardCache, createShardCache } from './shard-cache.js';
-import type { LoadingConfigSchema, MemoryManagementConfigSchema } from '../config/schema/loading.schema.js';
-import { DEFAULT_LOADING_CONFIG, DEFAULT_MEMORY_MANAGEMENT_CONFIG } from '../config/schema/loading.schema.js';
+import type { LoadingConfigSchema } from '../config/schema/loading.schema.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // Re-export types for backward compatibility
 export type {
@@ -162,7 +162,7 @@ export class DopplerLoader {
   shardCache: ShardCache;
 
   // Loading configuration
-  private loadingConfig: LoadingConfigSchema = DEFAULT_LOADING_CONFIG;
+  private loadingConfig: LoadingConfigSchema = getRuntimeConfig().loading;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   // Default is false; opt-in via manifest kernel hints.
@@ -179,11 +179,28 @@ export class DopplerLoader {
   private _loadStartTime = 0;
 
   constructor(loadingConfig?: LoadingConfigSchema) {
-    this.loadingConfig = loadingConfig ?? DEFAULT_LOADING_CONFIG;
+    this.loadingConfig = loadingConfig ?? getRuntimeConfig().loading;
     this.shardCache = createShardCache(
       this.loadingConfig.shardCache.opfsEntries,
       this.loadingConfig.shardCache
     );
+  }
+
+  /**
+   * Update loading configuration and related caches.
+   */
+  setLoadingConfig(config: LoadingConfigSchema): void {
+    this.loadingConfig = config;
+    this.shardCache.configure({
+      loadingConfig: config.shardCache,
+      maxEntries: config.shardCache.opfsEntries,
+    });
+    if (this.manifest) {
+      this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
+    }
+    if (this.expertCache) {
+      this.expertCache.configure(config.expertCache);
+    }
   }
 
   /**
@@ -1860,9 +1877,11 @@ let globalLoader: DopplerLoader | null = null;
 /**
  * Get global DopplerLoader instance
  */
-export function getDopplerLoader(): DopplerLoader {
+export function getDopplerLoader(loadingConfig?: LoadingConfigSchema): DopplerLoader {
   if (!globalLoader) {
-    globalLoader = new DopplerLoader();
+    globalLoader = new DopplerLoader(loadingConfig);
+  } else if (loadingConfig) {
+    globalLoader.setLoadingConfig(loadingConfig);
   }
   return globalLoader;
 }
@@ -1870,8 +1889,8 @@ export function getDopplerLoader(): DopplerLoader {
 /**
  * Create new DopplerLoader instance
  */
-export function createDopplerLoader(): DopplerLoader {
-  return new DopplerLoader();
+export function createDopplerLoader(loadingConfig?: LoadingConfigSchema): DopplerLoader {
+  return new DopplerLoader(loadingConfig);
 }
 
 export default DopplerLoader;

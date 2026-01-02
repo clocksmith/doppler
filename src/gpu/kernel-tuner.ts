@@ -10,14 +10,11 @@
 import { getDevice, getKernelCapabilities, getDeviceLimits } from './device.js';
 import { GPUProfiler } from './profiler.js';
 import { log } from '../debug/index.js';
-import { DEFAULT_TUNER_CONFIG } from '../config/schema/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
-// Cache key prefix from config
-const CACHE_PREFIX = DEFAULT_TUNER_CONFIG.cacheKeyPrefix;
-
-// Default tuning iterations from config
-const DEFAULT_WARMUP = DEFAULT_TUNER_CONFIG.defaultWarmupIterations;
-const DEFAULT_ITERATIONS = DEFAULT_TUNER_CONFIG.defaultTimedIterations;
+function getTunerConfig() {
+  return getRuntimeConfig().tuner;
+}
 
 /**
  * Device information for cache keys
@@ -167,7 +164,7 @@ export class KernelTuner {
     if (typeof localStorage === 'undefined') return;
 
     const signature = this._getDeviceSignature();
-    const cacheKey = CACHE_PREFIX + signature;
+    const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
 
     try {
       const cached = localStorage.getItem(cacheKey);
@@ -188,7 +185,7 @@ export class KernelTuner {
     if (typeof localStorage === 'undefined') return;
 
     const signature = this._getDeviceSignature();
-    const cacheKey = CACHE_PREFIX + signature;
+    const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
 
     try {
       const data = Object.fromEntries(this.cache);
@@ -241,8 +238,8 @@ export class KernelTuner {
     options: TuneConfig = {}
   ): Promise<TuneResult> {
     const {
-      warmup = DEFAULT_WARMUP,
-      iterations = DEFAULT_ITERATIONS,
+      warmup = getTunerConfig().defaultWarmupIterations,
+      iterations = getTunerConfig().defaultTimedIterations,
       forceRetune = false,
     } = options;
 
@@ -1210,7 +1207,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     this.cache.clear();
     if (typeof localStorage !== 'undefined') {
       const signature = this._getDeviceSignature();
-      localStorage.removeItem(CACHE_PREFIX + signature);
+      localStorage.removeItem(getTunerConfig().cacheKeyPrefix + signature);
     }
   }
 

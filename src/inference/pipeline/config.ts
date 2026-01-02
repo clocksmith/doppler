@@ -3,13 +3,13 @@
  * Handles HuggingFace, GGUF, and llama.cpp config formats.
  *
  * This module now uses the preset-based config-as-code system:
- * - JSON presets in config/presets/*.json define model family defaults
+ * - JSON presets in config/presets/models/*.json define model family defaults
  * - resolveConfig() merges preset defaults with manifest overrides
  * - toParsedConfig() adapts ResolvedConfigSchema to ParsedModelConfig
  *
  * For legacy code, parseModelConfig() still works but now uses presets internally.
  *
- * See: config/loader.ts, config/presets/, config/schema/
+ * See: config/loader.ts, config/presets/models/, config/schema/
  */
 
 import { log } from '../../debug/index.js';

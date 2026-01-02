@@ -30,7 +30,7 @@ import {
 import { MoERouter, createExpertExecutionPlan, combineExpertOutputs } from '../moe-router.js';
 import { log } from '../../debug/index.js';
 import type { ExpertWeights } from './types.js';
-import { DEFAULT_MOE_CACHE_CONFIG } from '../../config/schema/index.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 // ============================================================================
 // MXFP4 Dequantization Cache (avoids re-dequantizing same expert weights)
@@ -45,9 +45,13 @@ interface CachedExpertWeight {
 // Cache key: "layer_expert_type" -> dequantized weight
 const dequantCache = new Map<string, CachedExpertWeight>();
 // Use config value for max cache entries (default: 128 ~= 4 layers x 32 experts)
-let dequantCacheMaxEntries = DEFAULT_MOE_CACHE_CONFIG.dequantCacheMaxEntries;
+let dequantCacheMaxEntriesOverride: number | null = null;
 let dequantCacheHits = 0;
 let dequantCacheMisses = 0;
+
+function getDequantCacheMaxEntries(): number {
+  return dequantCacheMaxEntriesOverride ?? getRuntimeConfig().moe.cache.dequantCacheMaxEntries;
+}
 
 function getDequantCacheKey(layerIdx: number, expertIdx: number): string {
   return `${layerIdx}_${expertIdx}`;
@@ -68,7 +72,7 @@ function setCachedDequant(layerIdx: number, expertIdx: number, gateUp: GPUBuffer
   dequantCacheMisses++;
 
   // Evict oldest entries if cache is full
-  if (dequantCache.size >= dequantCacheMaxEntries) {
+  if (dequantCache.size >= getDequantCacheMaxEntries()) {
     let oldestKey = '';
     let oldestTime = Infinity;
     for (const [k, v] of dequantCache.entries()) {
@@ -103,12 +107,17 @@ export function clearDequantCache(): void {
 
 /** Get cache stats for debugging. */
 export function getDequantCacheStats(): { hits: number; misses: number; size: number; maxEntries: number } {
-  return { hits: dequantCacheHits, misses: dequantCacheMisses, size: dequantCache.size, maxEntries: dequantCacheMaxEntries };
+  return {
+    hits: dequantCacheHits,
+    misses: dequantCacheMisses,
+    size: dequantCache.size,
+    maxEntries: getDequantCacheMaxEntries(),
+  };
 }
 
 /** Configure dequant cache max entries at runtime. */
 export function setDequantCacheMaxEntries(maxEntries: number): void {
-  dequantCacheMaxEntries = maxEntries;
+  dequantCacheMaxEntriesOverride = maxEntries;
 }
 
 // ============================================================================

@@ -7,7 +7,7 @@
  */
 
 import type { RDRRManifest } from './rdrr-format.js';
-import { DEFAULT_DISTRIBUTION_CONFIG } from '../config/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
  * Download progress information
@@ -122,10 +122,30 @@ export const DB_NAME = 'doppler-download-state';
 export const DB_VERSION = 1;
 export const STORE_NAME = 'downloads';
 
-// Re-export from config for backwards compatibility
-export const DEFAULT_CONCURRENCY = DEFAULT_DISTRIBUTION_CONFIG.concurrentDownloads;
-export const MAX_RETRIES = DEFAULT_DISTRIBUTION_CONFIG.maxRetries;
-export const INITIAL_RETRY_DELAY = DEFAULT_DISTRIBUTION_CONFIG.initialRetryDelayMs;
-export const MAX_RETRY_DELAY = DEFAULT_DISTRIBUTION_CONFIG.maxRetryDelayMs;
-export const CDN_BASE_PATH = DEFAULT_DISTRIBUTION_CONFIG.cdnBasePath;
-export const PROGRESS_UPDATE_INTERVAL_MS = DEFAULT_DISTRIBUTION_CONFIG.progressUpdateIntervalMs;
+export function getDistributionConfig() {
+  return getRuntimeConfig().distribution;
+}
+
+export function getDefaultConcurrency(): number {
+  return getDistributionConfig().concurrentDownloads;
+}
+
+export function getMaxRetries(): number {
+  return getDistributionConfig().maxRetries;
+}
+
+export function getInitialRetryDelayMs(): number {
+  return getDistributionConfig().initialRetryDelayMs;
+}
+
+export function getMaxRetryDelayMs(): number {
+  return getDistributionConfig().maxRetryDelayMs;
+}
+
+export function getCdnBasePath(): string | null {
+  return getDistributionConfig().cdnBasePath;
+}
+
+export function getProgressUpdateIntervalMs(): number {
+  return getDistributionConfig().progressUpdateIntervalMs;
+}

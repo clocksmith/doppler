@@ -32,8 +32,9 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder, type P
 import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
 import type { KernelHints } from '../storage/rdrr-format.js';
 import { allowReadback } from '../gpu/perf-guards.js';
-import { log, trace, setGPUDevice } from '../debug/index.js';
-import { DEFAULT_SAMPLING_DEFAULTS, DEFAULT_BATCHING_DEFAULTS } from '../config/index.js';
+import { log, trace, setGPUDevice, applyDebugConfig } from '../debug/index.js';
+import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import type { RuntimeConfigSchema } from '../config/schema/index.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK, type SamplingOptions } from './pipeline/sampling.js';
@@ -180,6 +181,7 @@ export class InferencePipeline {
   isLoaded = false;
   isGenerating = false;
   currentSeqLen = 0;
+  runtimeConfig: RuntimeConfigSchema = getRuntimeConfig();
 
   // DopplerLoader instance
   dopplerLoader: DopplerLoader | null = null;
@@ -250,6 +252,13 @@ export class InferencePipeline {
   // ==========================================================================
 
   async initialize(contexts: PipelineContexts = {}): Promise<void> {
+    if (contexts.runtimeConfig) {
+      this.runtimeConfig = setRuntimeConfig(contexts.runtimeConfig);
+    } else {
+      this.runtimeConfig = getRuntimeConfig();
+    }
+    applyDebugConfig(this.runtimeConfig.debug, { respectUrlParams: true });
+
     if (contexts.gpu?.device) {
       this.gpuContext = { device: contexts.gpu.device };
       this.useGPU = true;
@@ -334,7 +343,7 @@ export class InferencePipeline {
     }
 
     // Initialize KV cache
-    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug);
+    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.kvcache);
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {
@@ -367,6 +376,7 @@ export class InferencePipeline {
       this.modelConfig!,
       {
         storageContext: this.storageContext ?? undefined,
+        loadingConfig: this.runtimeConfig.loading,
         onProgress: (info: { stage: string; progress: number; message?: string; layer?: number; total?: number; shard?: number; totalShards?: number }) => {
           // Shard and layer progress are logged by the loader with source info (RAM/OPFS/network)
           // Only log other stages here to avoid duplicate logs
@@ -401,7 +411,7 @@ export class InferencePipeline {
     this.layerRouterWeights = result.layerRouterWeights;
 
     // Store DopplerLoader reference for expert loading
-    this.dopplerLoader = getDopplerLoader();
+    this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
     // Initialize MoE router with weights
     if (this.modelConfig!.useMoE && this.moeRouter) {
@@ -458,12 +468,16 @@ export class InferencePipeline {
     this.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
 
+    const runtimeDefaults = this.runtimeConfig.inference;
+    const samplingDefaults = runtimeDefaults.sampling;
+    const batchingDefaults = runtimeDefaults.batching;
+
     const opts = {
-      maxTokens: options.maxTokens ?? DEFAULT_BATCHING_DEFAULTS.maxTokens,
-      temperature: options.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature,
-      topP: options.topP ?? DEFAULT_SAMPLING_DEFAULTS.topP,
-      topK: options.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK,
-      repetitionPenalty: options.repetitionPenalty ?? DEFAULT_SAMPLING_DEFAULTS.repetitionPenalty,
+      maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
+      temperature: options.temperature ?? samplingDefaults.temperature,
+      topP: options.topP ?? samplingDefaults.topP,
+      topK: options.topK ?? samplingDefaults.topK,
+      repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
       useChatTemplate: options.useChatTemplate ?? false,
@@ -473,8 +487,8 @@ export class InferencePipeline {
       benchmark: options.benchmark ?? false,  // Benchmark stats logging
       disableBatching: options.disableBatching ?? false,  // Explicit batching control
       // Batch generation options
-      batchSize: options.batchSize ?? 1,
-      stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
+      batchSize: options.batchSize ?? batchingDefaults.batchSize,
+      stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
 
     try {
@@ -724,12 +738,16 @@ export class InferencePipeline {
     this.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
 
+    const runtimeDefaults = this.runtimeConfig.inference;
+    const samplingDefaults = runtimeDefaults.sampling;
+    const batchingDefaults = runtimeDefaults.batching;
+
     const opts = {
-      maxTokens: options.maxTokens ?? DEFAULT_BATCHING_DEFAULTS.maxTokens,
-      temperature: options.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature,
-      topP: options.topP ?? DEFAULT_SAMPLING_DEFAULTS.topP,
-      topK: options.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK,
-      repetitionPenalty: options.repetitionPenalty ?? DEFAULT_SAMPLING_DEFAULTS.repetitionPenalty,
+      maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
+      temperature: options.temperature ?? samplingDefaults.temperature,
+      topP: options.topP ?? samplingDefaults.topP,
+      topK: options.topK ?? samplingDefaults.topK,
+      repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
       useChatTemplate: options.useChatTemplate ?? false,
@@ -738,8 +756,8 @@ export class InferencePipeline {
       profile: options.profile ?? false,
       benchmark: options.benchmark ?? false,
       disableBatching: options.disableBatching ?? false,
-      batchSize: options.batchSize ?? 1,
-      stopCheckMode: options.stopCheckMode ?? 'per-token' as const,
+      batchSize: options.batchSize ?? batchingDefaults.batchSize,
+      stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
 
     try {
@@ -1223,7 +1241,7 @@ export class InferencePipeline {
 
       // Continue recording sampling into same command buffer (no submit yet)
       // Use argmax for greedy (temperature below threshold) or top-k sampling otherwise
-      const sampleOutputBuffer = opts.temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
+      const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
         ? await recordArgmax(recorder, logitsBuffer, vocabSize)
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
@@ -1376,7 +1394,7 @@ export class InferencePipeline {
       if (logitsResult) {
         const { logitsBuffer, vocabSize } = logitsResult;
 
-        const nextToken = opts.temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
+        const nextToken = opts.temperature < samplingDefaults.greedyThreshold
           ? await runArgmax(logitsBuffer, vocabSize)
           : await runGPUSample(logitsBuffer, vocabSize, {
               temperature: opts.temperature,
@@ -1523,9 +1541,9 @@ export class InferencePipeline {
 
       // 4. Sample next token → write to tokenBuffers[i+1]
       // Use temperature-based sampling if above threshold, otherwise argmax
-      const temperature = opts.temperature ?? DEFAULT_SAMPLING_DEFAULTS.temperature;
-      const topK = opts.topK ?? DEFAULT_SAMPLING_DEFAULTS.topK;
-      const sampledTokenBuffer = temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold
+      const temperature = opts.temperature ?? samplingDefaults.temperature;
+      const topK = opts.topK ?? samplingDefaults.topK;
+      const sampledTokenBuffer = temperature < samplingDefaults.greedyThreshold
         ? await recordArgmax(recorder, logitsBuffer, vocabSize)
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK });
       recorder.trackTemporaryBuffer(logitsBuffer);

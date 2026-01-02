@@ -26,6 +26,7 @@ import type {
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
 import { getPrompt } from './prompts.js';
 import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from '../../src/inference/pipeline/init.js';
+import { setRuntimeConfig } from '../../src/config/runtime.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -187,6 +188,10 @@ export class PipelineBenchmark {
   // ==========================================================================
 
   private async loadModel(): Promise<LoadMetrics> {
+    if (this.config.runtimeConfig) {
+      setRuntimeConfig(this.config.runtimeConfig);
+    }
+
     const { createPipeline } = await import('../../src/inference/pipeline.js');
     const { initDevice, hasFeature, FEATURES } = await import('../../src/gpu/device.js');
     const { createProfiler } = await import('../../src/gpu/profiler.js');

@@ -3,6 +3,7 @@
  */
 
 import type { KernelHints } from '../../src/storage/rdrr-format.js';
+import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
 export type TestSuite =
@@ -36,6 +37,8 @@ export interface CLIOptions {
   baseUrl: string;
   /** Config preset or path (resolves: name -> path -> URL -> inline JSON) */
   config: string | null;
+  /** Loaded runtime config (merged with defaults) */
+  runtimeConfig: RuntimeConfigSchema | null;
   /** Dump resolved config and exit */
   dumpConfig: boolean;
   /** List available presets and exit */

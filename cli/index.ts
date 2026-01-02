@@ -155,6 +155,7 @@ function parseArgs(argv: string[]): CLIOptions {
     model: 'gemma-3-1b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     config: null,           // Config preset or path
+    runtimeConfig: null,    // Loaded runtime config (merged with defaults)
     dumpConfig: false,      // Dump resolved config and exit
     listPresets: false,     // List available presets and exit
     noServer: false,
@@ -475,6 +476,12 @@ function appendKernelOverrideParams(params: URLSearchParams, opts: CLIOptions): 
   }
   if (opts.attentionKernel) {
     params.set('attentionKernel', opts.attentionKernel);
+  }
+}
+
+function appendRuntimeConfigParams(params: URLSearchParams, opts: CLIOptions): void {
+  if (opts.runtimeConfig) {
+    params.set('runtimeConfig', JSON.stringify(opts.runtimeConfig));
   }
 }
 
@@ -1266,6 +1273,7 @@ async function runInferenceTest(
   testParams.set('model', opts.model);
   testParams.set('autorun', '1');
   appendKernelOverrideParams(testParams, opts);
+  appendRuntimeConfigParams(testParams, opts);
 
   // Add debug/profiling params - unified CLI → URL mapping
   // Log level: --verbose → ?log=verbose, --quiet → ?log=silent
@@ -1418,6 +1426,7 @@ async function runDemoTest(
     console.log('\n  Step 1: Opening demo page...');
     const demoParams = new URLSearchParams();
     appendKernelOverrideParams(demoParams, opts);
+    appendRuntimeConfigParams(demoParams, opts);
     const demoUrl = `${opts.baseUrl}/d${demoParams.toString() ? `?${demoParams.toString()}` : ''}`;
     await page.goto(demoUrl, { timeout: 30000 });
     await page.waitForTimeout(2000);
@@ -1875,6 +1884,7 @@ async function main(): Promise<void> {
     try {
       loadedConfig = await loadConfig(opts.config);
       console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
+      opts.runtimeConfig = loadedConfig.runtime;
 
       // Apply runtime config to opts
       const runtime = loadedConfig.runtime;
@@ -1882,6 +1892,7 @@ async function main(): Promise<void> {
       if (runtime.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
       if (runtime.debug?.trace?.enabled) opts.trace = runtime.debug.trace.categories?.join(',') || 'all';
       if (runtime.inference?.sampling?.temperature !== undefined) opts.temperature = runtime.inference.sampling.temperature;
+      if (runtime.inference?.batching?.maxTokens !== undefined) opts.maxTokens = runtime.inference.batching.maxTokens;
 
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
       const cli = loadedConfig.raw.cli as Record<string, unknown> | undefined;
@@ -2005,6 +2016,7 @@ async function main(): Promise<void> {
       if (opts.skipLoad) debugParams.set('skipLoad', '1');
 
       appendKernelOverrideParams(debugParams, opts);
+      appendRuntimeConfigParams(debugParams, opts);
 
       const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1&autorun=1`;
       console.log(`  URL: ${debugUrl}`);
@@ -2107,6 +2119,7 @@ async function main(): Promise<void> {
           loadParams.set('model', opts.model);
           loadParams.set('benchmark', 'loading');
           appendKernelOverrideParams(loadParams, opts);
+          appendRuntimeConfigParams(loadParams, opts);
           const loadUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${loadParams.toString()}`;
           await page.goto(loadUrl, { timeout: opts.timeout });
 
