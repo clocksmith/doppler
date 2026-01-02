@@ -250,17 +250,26 @@ async function main(): Promise<void> {
         pathname = '/app/index.html';
       }
 
-      // Serve JS files from dist/ (TypeScript is compiled there)
+      // Serve JS and JSON files from dist/ (TypeScript is compiled there)
       // This handles: tests/benchmark/, inference/, gpu/, etc.
-      if (pathname.endsWith('.js') && !pathname.includes('node_modules')) {
-        // Strip /doppler/ prefix if present (added by /d/* rewrite)
-        const jsPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
+      // Note: /doppler/ prefix was already stripped above, so pathname is like /dist/config/...
+      if ((pathname.endsWith('.js') || pathname.endsWith('.json')) && !pathname.includes('node_modules')) {
+        const jsPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        // Try dist/src/ first (where tsc outputs src/** files), then dist/
+        const distSrcPath = join(dopplerDir, 'dist', 'src', jsPath.replace(/^dist\//, ''));
         const distPath = join(dopplerDir, 'dist', jsPath);
+        // Try dist/src/ first for src/** paths
         try {
-          const distStats = await stat(distPath);
-          return serveFile(distPath, distStats, req, res);
+          const distSrcStats = await stat(distSrcPath);
+          return serveFile(distSrcPath, distSrcStats, req, res);
         } catch {
-          // Fall through to normal resolution (for vendor JS, etc.)
+          // Try dist/ directly
+          try {
+            const distStats = await stat(distPath);
+            return serveFile(distPath, distStats, req, res);
+          } catch {
+            // Fall through to normal resolution (for vendor JS, etc.)
+          }
         }
       }
 

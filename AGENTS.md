@@ -14,7 +14,12 @@ doppler/
 │   ├── gpu/              # WebGPU device, buffer pools, kernels
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── loader/           # GGUF parsing, RDRR manifest
-│   ├── config/           # Schemas, presets, runtime config
+│   ├── config/
+│   │   ├── schema/       # Runtime/model schemas + defaults
+│   │   ├── presets/
+│   │   │   ├── runtime/  # Runtime presets (default/debug/bench/etc)
+│   │   │   └── models/   # Model family presets (gemma/llama/etc)
+│   │   └── runtime.ts    # Runtime config registry (get/set)
 │   ├── memory/           # Heap management, capability detection
 │   └── debug/            # Logging and tracing
 ├── kernel-tests/         # GPU kernel validation
@@ -27,6 +32,7 @@ doppler/
 - Read `docs/ARCHITECTURE.md` for system overview
 - Read `docs/spec/RDRR_FORMAT.md` for model format specification
 - Review `src/inference/pipeline.ts` for inference flow
+- Review `src/config/runtime.ts` and `cli/config/` for runtime config plumbing
 
 ### Style Guides
 - [Coding Guide](docs/style/CODING_GUIDE.md) - Architecture, naming
@@ -54,7 +60,7 @@ npm run debug -- --trace kernels # Trace specific categories
 | Flag | Description |
 |------|-------------|
 | `--model, -m <name>` | Model to use (default: gemma-3-1b-it-q4) |
-| `--config <preset>` | Load config preset (debug, bench, production) |
+| `--config <preset>` | Load runtime preset or config file |
 | `--trace [cats]` | Trace categories: kernels, attn, ffn, kv, sample |
 | `--verbose, -v` | Verbose output |
 | `--quiet, -q` | Suppress logs |
@@ -66,6 +72,18 @@ npm run debug -- --trace kernels # Trace specific categories
 npm run debug -- --config debug              # Use preset
 npm run bench -- --config ./my-config.json   # Use file
 ```
+
+**Preset Rules:**
+- Runtime presets live in `src/config/presets/runtime`. CLI only loads these.
+- Model presets live in `src/config/presets/models`. Loader uses these for model detection.
+- Do not mix model presets with runtime presets.
+
+**Runtime Config Plumbing:**
+- CLI `--config` loads a runtime config (merged with defaults) and passes it via the `runtimeConfig` URL param to the browser harness.
+- Test harnesses parse `runtimeConfig` and call `setRuntimeConfig()` before pipeline/loader init.
+- For per-instance overrides, pass `PipelineContexts.runtimeConfig` to `createPipeline()`.
+- Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
+- Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is deprecated but mapped for back-compat in `src/config/runtime.ts`.
 
 **Development Guide:**
 
@@ -92,6 +110,8 @@ log.info('Pipeline', 'Model loaded');
 log.warn('Attention', 'Fallback to CPU');
 trace.kernels(`matmul M=${M} N=${N}`);
 ```
+
+Exceptions: `tools/`, `kernel-tests/`, and one-time startup messages in `src/gpu/device.ts`.
 
 ### Guardrails
 - Handle GPU device loss gracefully
@@ -123,5 +143,19 @@ npx tsx src/converter/node-converter.ts model.gguf ./output
 # Dev server
 npx tsx serve.ts --port 3000
 ```
+
+### Build Artifacts
+- `dist/` is built output for browser usage. If runtime changes affect browser code, run `npm run build`.
+- `tests/benchmark/*.js` are generated from TS. After editing `tests/benchmark/*.ts`, run `npm run build:benchmark`.
+
+### Skills
+- Project skills (from `.claude/skills/`):
+  - `doppler-debug`: debug inference issues. Read `.claude/skills/doppler-debug/SKILL.md`.
+  - `doppler-benchmark`: run performance benchmarks. Read `.claude/skills/doppler-benchmark/SKILL.md`.
+  - `model-convert`: convert models to RDRR. Read `.claude/skills/model-convert/SKILL.md`.
+- System skills:
+  - `skill-creator`: create or update Codex skills. Read `/Users/xyz/.codex/skills/.system/skill-creator/SKILL.md`.
+  - `skill-installer`: list or install skills. Read `/Users/xyz/.codex/skills/.system/skill-installer/SKILL.md`.
+- When a skill is named or its description matches the task, open the SKILL.md first and follow it.
 
 See `docs/KERNEL_COMPATIBILITY.md` for kernel overrides and runtime modes.

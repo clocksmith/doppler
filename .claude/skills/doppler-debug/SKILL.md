@@ -21,17 +21,19 @@ npx tsx cli/index.ts --list-presets
 npx tsx cli/index.ts --dump-config --config debug
 ```
 
+Note: `--config` loads runtime presets only. Model presets are separate.
+
 ## Fast Iteration (use --skip-load after first run!)
 
 ```bash
 # First run - loads model (~30s), keeps browser open
-npm run debug -- -m MODEL --warm 2>&1 | grep --line-buffered -E "Config|Token|Done|Output" | sed '/Done/q'
+npm run debug -- --config debug -m MODEL --warm 2>&1 | grep --line-buffered -E "Config|Token|Done|Output" | sed '/Done/q'
 
 # Subsequent runs - reuses model, ~12s inference only
-npm run debug -- -m MODEL --skip-load 2>&1 | grep --line-buffered -E "Config|Token|Done|Output" | sed '/Done/q'
+npm run debug -- --config debug -m MODEL --skip-load 2>&1 | grep --line-buffered -E "Config|Token|Done|Output" | sed '/Done/q'
 
 # With trace
-npm run debug -- -m MODEL --skip-load --trace attn 2>&1 | grep --line-buffered -E "TRACE|Token|Done" | sed '/Done/q'
+npm run debug -- --config debug -m MODEL --skip-load --trace attn 2>&1 | grep --line-buffered -E "TRACE|Token|Done" | sed '/Done/q'
 ```
 
 ## Key: `sed '/Done/q'` exits after Done line
@@ -43,7 +45,7 @@ npm run debug -- -m MODEL --skip-load --trace attn 2>&1 | grep --line-buffered -
 ## After Code Changes
 
 ```bash
-npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | grep --line-buffered -E "Token|Done|Output" | sed '/Done/q'
+npm run build && npm run debug -- --config debug -m MODEL --skip-load 2>&1 | grep --line-buffered -E "Token|Done|Output" | sed '/Done/q'
 ```
 
 ## Grep Patterns

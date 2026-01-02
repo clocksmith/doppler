@@ -24,7 +24,7 @@ let serverProcess: ChildProcess | null = null;
  */
 export async function runBuild(verbose: boolean): Promise<void> {
   console.log('Building kernel tests...');
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
 
   return new Promise((resolve, reject) => {
     const build = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
@@ -60,7 +60,7 @@ export async function runBuild(verbose: boolean): Promise<void> {
  */
 export async function runBenchmarkBuild(verbose: boolean): Promise<void> {
   console.log('Building benchmark bundle...');
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
 
   return new Promise((resolve, reject) => {
     const build = spawn('npm', ['run', 'build:benchmark'], {
@@ -123,7 +123,7 @@ export async function ensureServerRunning(baseUrl: string, verbose: boolean): Pr
 
   console.log('Starting dev server...');
 
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
   serverProcess = spawn('npm', ['run', 'start'], {
     cwd: projectRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -246,7 +246,7 @@ async function buildModelsApiResponse(modelsDir: string): Promise<string> {
 export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): Promise<void> {
   const baseOrigin = new URL(opts.baseUrl).origin;
 
-  const projectRoot = resolve(__dirname, '../../..');
+  const projectRoot = resolve(__dirname, '../..');
   const modelsDir = join(projectRoot, 'models');
 
   const pattern = `${baseOrigin}/**`;

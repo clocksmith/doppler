@@ -18,21 +18,23 @@ npm run bench -- --config ci -m MODEL
 npx tsx cli/index.ts --list-presets
 ```
 
+Note: `--config` loads runtime presets only. Model presets are separate.
+
 ## Fast Iteration (use --skip-load after first run!)
 
 ```bash
 # First run - loads model (~30s), keeps browser open
-npm run bench -- -m MODEL --warm 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
+npm run bench -- --config bench -m MODEL --warm 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
 
 # Subsequent runs - reuses model in GPU RAM
-npm run bench -- -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
+npm run bench -- --config bench -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
 
 # Multiple runs for statistics
-npm run bench -- -m MODEL --skip-load --runs 3
+npm run bench -- --config bench -m MODEL --skip-load --runs 3
 
 # Save and compare
-npm run bench -- -m MODEL -o baseline.json
-npm run bench -- -m MODEL --compare baseline.json
+npm run bench -- --config bench -m MODEL -o baseline.json
+npm run bench -- --config bench -m MODEL --compare baseline.json
 ```
 
 ## Key: `sed '/Done/q'` exits after Done line
@@ -40,7 +42,7 @@ npm run bench -- -m MODEL --compare baseline.json
 ## After Code Changes
 
 ```bash
-npm run build && npm run bench -- -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|Done" | sed '/Done/q'
+npm run build && npm run bench -- --config bench -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|Done" | sed '/Done/q'
 ```
 
 ## Key Metrics

@@ -1,8 +1,6 @@
 ---
 name: model-convert
 description: Convert GGUF or SafeTensors models to RDRR format and test them in DOPPLER. Use when the user wants to add a new model, convert weights, or verify model loading. (project)
-metadata:
-  short-description: Convert models to RDRR format
 ---
 
 # Model Conversion Skill
@@ -50,7 +48,7 @@ npx tsx src/converter/node-converter.ts --test ./test-model
 
 ```bash
 # Quick smoke test (does it load and generate?)
-npm test -- inference
+npm test -- --inference
 
 # Debug mode (for investigating issues)
 npm run debug -- --config debug
@@ -62,7 +60,7 @@ npm run bench -- --config bench
 # http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>
 ```
 
-**Config Presets:** Use `--config debug` for verbose logging, `--config bench` for clean output.
+**Config Presets:** `--config` loads runtime presets (not model presets). Use `--config debug` for verbose logging, `--config bench` for clean output.
 
 **Log Levels:** Add `--verbose` for per-shard/layer timing, `--trace` for tensor details.
 
@@ -132,4 +130,3 @@ models/<model-name>/
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-
