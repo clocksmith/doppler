@@ -1139,26 +1139,17 @@ function getCapabilityTier(caps: KernelCapabilities): 1 | 2 | 3 {
 
 ### Debugging Kernel Selection
 
-Enable verbose logging to see kernel selection decisions:
+Enable kernel trace output to see kernel selection decisions:
 
-```typescript
-// In browser console
-localStorage.setItem('DOPPLER_DEBUG_KERNELS', 'true');
+```bash
+# CLI (preferred): trace only kernels
+npm run debug -- --trace kernels
 
-// Output during inference (Gemma 3 1B example):
-// [Pipeline] MATMUL: M=1, N=1152, K=1152, variant=gemv_subgroup, aDtype=f32, bDtype=f16
-// [Pipeline] ATTENTION: tier=small, variant=decode_small_f16kv, headDim=256
+# Config-driven (repeatable)
+npm run debug -- --config '{"runtime":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}'
 ```
 
-**Force Specific Kernels (Testing):**
-
-```typescript
-// Override kernel selection for debugging
-window.DOPPLER_FORCE_KERNELS = {
-  matmul: 'f32',           // Disable F16
-  attention: 'prefill',    // Force tiled (may fail on large headDim)
-};
-```
+Use kernel hint flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`).
 
 ---
 
@@ -1167,4 +1158,3 @@ window.DOPPLER_FORCE_KERNELS = {
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-

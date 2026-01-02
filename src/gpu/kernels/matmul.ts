@@ -10,7 +10,7 @@
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { getBufferDtype, setBufferDtype, isColumnMajorBuffer, type BufferDType } from '../buffer-dtypes.js';
-import { log, trace } from '../../debug/index.js';
+import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
@@ -19,10 +19,6 @@ import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayou
 import { shouldUseFusedQ4K } from '../kernel-hints.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
-
-const DEBUG_KERNELS = typeof window !== 'undefined'
-  ? Boolean((window as unknown as { DOPPLER_DEBUG_KERNELS?: boolean }).DOPPLER_DEBUG_KERNELS)
-  : false;
 
 /**
  * Debug flag to disable fused Q4K kernels.
@@ -142,9 +138,9 @@ function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): bo
     // DEBUG: Force transposeB=true to test if that's the correct setting
     const result = DEBUG_FORCE_TRANSPOSE_TRUE ? true : !isColMajor;
     // Log first 50 calls to avoid flooding
-    if (DEBUG_KERNELS && _transposeDebugCount < 50) {
+    if (isTraceEnabled('kernels') && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      log.debug('Matmul', `resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
+      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
     }
     return result;
   }
@@ -463,7 +459,7 @@ export async function runMatmul(
   } = options;
 
   // Debug: log what options are being passed
-  if (DEBUG_KERNELS && _runMatmulDebugCount < 20) {
+  if (isTraceEnabled('kernels') && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
@@ -479,7 +475,7 @@ export async function runMatmul(
   const requestedOutputDtype = options.outputDtype || 'f32';
 
   // Warn if B buffer dtype is unknown - this can cause wrong kernel selection
-  if (DEBUG_KERNELS && !rawBDtype && M <= 2) {
+  if (isTraceEnabled('kernels') && !rawBDtype && M <= 2) {
     log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
   // Narrow to matmul-supported dtypes
@@ -513,7 +509,7 @@ export async function runMatmul(
     options
   );
 
-  if (DEBUG_KERNELS && bDtype === 'q4k') {
+  if (isTraceEnabled('kernels') && bDtype === 'q4k') {
     if (useQ4KFused) {
       trace.kernels(`Q4K FUSED: M=${M}, N=${N}, K=${K}, variant=${variant} (WARNING: 2.3x slower than dequant)`);
     } else {
@@ -522,7 +518,7 @@ export async function runMatmul(
   }
 
   // Debug: Log kernel selection for large matmuls (lm_head projection)
-  if (DEBUG_KERNELS && N > 100000) {
+  if (isTraceEnabled('kernels') && N > 100000) {
     trace.kernels(`MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
 
@@ -609,7 +605,7 @@ export async function recordMatmul(
   } = options;
 
   // Debug: log what options are being passed
-  if (DEBUG_KERNELS && _recordMatmulDebugCount < 20) {
+  if (isTraceEnabled('kernels') && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
     const isColMajor = isColumnMajorBuffer(B);
     trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
