@@ -103,7 +103,7 @@ async function detectAMDUnified(adapter: GPUAdapter | null): Promise<AMDUnifiedI
   const architecture = ((info as { architecture?: string }).architecture || '').toLowerCase();
 
   // Debug: log what we receive
-  console.log('[UnifiedDetect] AMD check:', { vendor, device, description, architecture });
+  console.log('[Loader] UnifiedDetect AMD check:', JSON.stringify({ vendor, device, description, architecture }));
 
   // Check vendor OR architecture for AMD identification
   // Some drivers report vendor as "unknown" but architecture as "rdna-X"
