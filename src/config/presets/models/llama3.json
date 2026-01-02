@@ -1,0 +1,36 @@
+{
+  "id": "llama3",
+  "name": "Llama 3",
+  "extends": "transformer",
+
+  "architecture": {
+    "ropeTheta": 500000
+  },
+
+  "inference": {
+    "attention": {
+      "slidingWindow": null,
+      "attnLogitSoftcapping": null
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "rmsNormEps": 1e-5
+    },
+    "rope": {
+      "ropeTheta": 500000
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<|begin_of_text|>",
+    "eosTokens": ["<|eot_id|>", "<|end_of_text|>"],
+    "addBosToken": true
+  },
+
+  "detection": {
+    "architecturePatterns": ["llama3", "Llama3ForCausalLM", "LlamaForCausalLM"],
+    "configPatterns": {
+      "rope_theta": 500000
+    }
+  }
+}

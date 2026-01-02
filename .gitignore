@@ -32,7 +32,7 @@ Thumbs.db
 
 # Downloads and models (large files)
 downloads/
-models/
+/models/
 *.gguf
 *.safetensors
 shard_*.bin

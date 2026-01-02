@@ -1,0 +1,36 @@
+{
+  "id": "qwen3",
+  "name": "Qwen 3",
+  "extends": "transformer",
+
+  "architecture": {
+    "ropeTheta": 1000000
+  },
+
+  "inference": {
+    "attention": {
+      "slidingWindow": null,
+      "queryKeyNorm": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "rmsNormEps": 1e-6
+    },
+    "rope": {
+      "ropeTheta": 1000000
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<|im_start|>",
+    "eosTokens": ["<|im_end|>", "<|endoftext|>"],
+    "addBosToken": false
+  },
+
+  "detection": {
+    "architecturePatterns": ["qwen3", "Qwen3ForCausalLM", "Qwen2ForCausalLM"],
+    "configPatterns": {
+      "model_type": "qwen2"
+    }
+  }
+}

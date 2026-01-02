@@ -1,0 +1,32 @@
+{
+  "id": "functiongemma",
+  "name": "FunctionGemma",
+  "extends": "gemma3",
+
+  "tokenizer": {
+    "bosToken": "<bos>",
+    "eosTokens": ["<eos>", "<end_of_turn>"],
+    "addBosToken": true,
+    "chatTemplate": "gemma3",
+    "specialTokens": {
+      "startOfTurn": "<start_of_turn>",
+      "endOfTurn": "<end_of_turn>",
+      "functionDeclarations": "<function_declarations>",
+      "functionCalls": "<function_calls>",
+      "functionResponses": "<function_responses>"
+    }
+  },
+
+  "sampling": {
+    "temperature": 0.7,
+    "topK": 40,
+    "topP": 0.95,
+    "repetitionPenalty": 1.0,
+    "maxTokens": 4096
+  },
+
+  "detection": {
+    "architecturePatterns": ["functiongemma", "FunctionGemmaForCausalLM"],
+    "modelTypePatterns": ["functiongemma"]
+  }
+}
