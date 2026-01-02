@@ -20,7 +20,7 @@
  *   // ... record operations ...
  *   recorder.submit();
  *   const timings = await recorder.resolveProfileTimings();
- *   console.log(timings); // { 'matmul_q_proj': 2.5, 'rmsnorm': 0.3, ... }
+ *   log.info('CommandRecorder', 'Kernel timings', timings);
  */
 
 import { getDevice, hasFeature, FEATURES } from './device.js';

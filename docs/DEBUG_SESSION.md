@@ -39,20 +39,27 @@ doppler bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TO
 
 See postmortem for full hypothesis ranking and next steps.
 
-## Log Levels
+## Log Levels (verbosity)
 
-Control loader output verbosity with CLI flags:
+Control general log verbosity with CLI flags:
 
 | CLI Flag | Level | Shows |
 |----------|-------|-------|
 | (default) | info | Phase starts/ends, totals |
 | `--verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
-| `--trace` | trace | + Tensor shapes, dequant ops, buffer details |
 | `--quiet` | silent | Errors only |
 
+## Trace (categories)
+
+Trace is separate from log level. Use it for tensor/kernel details:
+
+- `--trace` (all categories)
+- `--trace kernels,attn`
+- `--trace all,-buffers`
+
 **Defaults by mode:**
-- `bench`: info
-- `debug`: verbose (shows shard sources and layer timing)
+- `bench`: log=info, trace off
+- `debug`: log=verbose, trace on (all categories)
 
 ### Common Grep Patterns
 
@@ -164,4 +171,3 @@ Target: 40+ tok/s decode on Gemma 3 1B. See `feature-log/doppler/inference.jsonl
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-

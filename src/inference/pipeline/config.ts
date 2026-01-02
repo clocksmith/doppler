@@ -393,6 +393,10 @@ export function toParsedConfig(
   // Determine if this is a Gemma family model for scaleEmbeddings
   const isGemmaFamily = resolved.preset === 'gemma2' || resolved.preset === 'gemma3' || resolved.preset === 'functiongemma';
 
+  const resolvedActivation =
+    (inf.ffn?.activation as ActivationType | undefined) ??
+    normalizeActivation(config.hidden_activation ?? config.hidden_act);
+
   return {
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
@@ -416,7 +420,7 @@ export function toParsedConfig(
     rmsNormEps: inf.normalization?.rmsNormEps ?? arch.rmsNormEps ?? 1e-5,
     rmsNormWeightOffset: inf.normalization?.rmsNormWeightOffset ?? false,
     scaleEmbeddings: config.scale_embeddings ?? isGemmaFamily,
-    hiddenActivation: (inf.ffn?.activation as ActivationType) ?? 'silu',
+    hiddenActivation: resolvedActivation,
     isGemma3: resolved.preset === 'gemma3',
     isGemma2: resolved.preset === 'gemma2',
     isLlama3Instruct: resolved.preset === 'llama3',

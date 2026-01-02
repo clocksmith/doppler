@@ -112,6 +112,7 @@ trace.kernels(`matmul M=${M} N=${N}`);
 ```
 
 Exceptions: `tools/`, `kernel-tests/`, and one-time startup messages in `src/gpu/device.ts`.
+Also acceptable: CLI entry points (`cli/`, `serve.ts`, `src/converter/node-converter.ts`) for direct terminal output.
 
 ### Guardrails
 - Handle GPU device loss gracefully

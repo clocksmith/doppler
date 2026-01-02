@@ -16,7 +16,7 @@
  *
  *   // After inference, analyze
  *   const anomaly = kernelTrace.findAnomaly();
- *   console.log(kernelTrace.getTimeline());
+ *   log.info('KernelTrace', kernelTrace.getTimeline());
  *
  * @module inference/pipeline/kernel-trace
  */
@@ -318,7 +318,7 @@ class KernelTrace {
   }
 
   /**
-   * Log an anomaly to console with visual markers.
+   * Log an anomaly via the debug module with visual markers.
    */
   private logAnomaly(anomaly: Anomaly): void {
     const marker = anomaly.severity === 'critical' ? '🚨' : '⚠️';
@@ -425,7 +425,7 @@ class KernelTrace {
   }
 
   /**
-   * Dump the last N steps with full details to console.
+   * Dump the last N steps with full details via debug log/trace.
    */
   dumpLastNSteps(n: number = 5): void {
     const steps = this.getLastNSteps(n);

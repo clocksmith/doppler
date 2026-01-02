@@ -92,7 +92,7 @@ export interface GenerateOptions {
   debugLayers?: number[];
   signal?: AbortSignal;
   /** Enable GPU timestamp profiling for kernel-level timing.
-   *  Requires 'timestamp-query' WebGPU feature. Results logged to console. */
+   *  Requires 'timestamp-query' WebGPU feature. Results logged via debug module. */
   profile?: boolean;
   /** Log benchmark stats (TTFT, prefill time, decode speed) after generation.
    *  Default: false */

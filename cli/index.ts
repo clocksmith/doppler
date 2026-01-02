@@ -1974,12 +1974,22 @@ async function main(): Promise<void> {
       if (opts.tokens !== null) console.log(`  Encode tokens: ${opts.tokens}`);
       if (opts.kernel) console.log(`  Trace kernel: ${opts.kernel}`);
 
+      // Track generation completion for auto-close
+      let generationDone = false;
+      let generationError = false;
+
       // Forward browser console logs to terminal
       page.on('console', (msg) => {
-        console.log(`  [browser] ${msg.text()}`);
+        const text = msg.text();
+        console.log(`  [browser] ${text}`);
+        // Detect generation completion
+        if (text.startsWith('[Done]') || text.startsWith('[Output]')) {
+          generationDone = true;
+        }
       });
       page.on('pageerror', (err) => {
         console.error(`  [browser error] ${err.message}`);
+        generationError = true;
       });
 
       // Navigate to debug page with params - unified CLI → URL mapping
@@ -2023,10 +2033,33 @@ async function main(): Promise<void> {
 
       await page.goto(debugUrl, { timeout: opts.timeout });
 
-      // Keep browser open for inspection
-      console.log('\nDebug mode active. Browser will stay open until manually closed.');
-      console.log('Press Ctrl+C to exit.\n');
-      await new Promise(() => {}); // Never resolves
+      // Auto-close behavior depends on headless mode
+      if (!opts.headless) {
+        // Headed mode: keep browser open for manual inspection
+        console.log('\nDebug mode active. Browser will stay open until manually closed.');
+        console.log('Press Ctrl+C to exit.\n');
+        await new Promise(() => {}); // Never resolves
+      } else {
+        // Headless mode: wait for generation to complete, then auto-close
+        console.log('\nWaiting for generation to complete...\n');
+
+        // Poll for completion (check every 100ms)
+        const startTime = Date.now();
+        const maxWait = opts.timeout || 300000;
+        while (!generationDone && !generationError) {
+          await new Promise(r => setTimeout(r, 100));
+          if (Date.now() - startTime > maxWait) {
+            console.error('\nTimeout waiting for generation to complete');
+            break;
+          }
+        }
+
+        // Small delay to capture final output
+        await new Promise(r => setTimeout(r, 500));
+
+        await context.close();
+        process.exit(generationError ? 1 : 0);
+      }
 
     } else if (opts.command === 'test') {
       // TEST SUITES - correctness or performance based on --perf flag

@@ -170,6 +170,8 @@ export function registerQuickStartModel(config: RemoteModelConfig): void {
  *
  * @example
  * ```typescript
+ * import { log } from '../debug/index.js';
+ *
  * const result = await downloadQuickStartModel('gemma-1b-instruct', {
  *   onProgress: (p) => updateProgressBar(p.percent),
  *   onStorageConsent: async (required, available) => {
@@ -178,9 +180,9 @@ export function registerQuickStartModel(config: RemoteModelConfig): void {
  * });
  *
  * if (result.success) {
- *   console.log('Model ready!');
+ *   log.info('Quickstart', 'Model ready!');
  * } else if (result.blockedByPreflight) {
- *   console.error('Blocked:', result.preflight?.blockers);
+ *   log.warn('Quickstart', 'Blocked by preflight', result.preflight?.blockers);
  * }
  * ```
  */

@@ -10,7 +10,7 @@
  *   // ... dispatch compute pass ...
  *   profiler.end('matmul');
  *   await profiler.resolve();
- *   console.log(profiler.getResults());
+ *   log.info('GPUProfiler', 'Results', profiler.getResults());
  */
 
 import { getDevice, hasFeature, FEATURES } from './device.js';

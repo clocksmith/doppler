@@ -615,10 +615,11 @@ Use consistent module names matching the file/class:
 
 Raw `console.*` is acceptable in:
 
-1. **CLI tools** (`tools/*.ts`) - Direct terminal output
-2. **Test files** (`kernel-tests/`) - Test harness output
-3. **Benchmarks** - Formatted results tables
-4. **One-time startup** - GPU device info in `device.ts`
+1. **CLI entry points** (`cli/`, `serve.ts`, `src/converter/node-converter.ts`) - Direct terminal output
+2. **Tools** (`tools/*.ts`) - Direct terminal output
+3. **Test files** (`kernel-tests/`, `tests/`) - Test harness output
+4. **Benchmarks** - Formatted results tables
+5. **One-time startup** - GPU device info in `device.ts`
 
 ### Browser Console API
 

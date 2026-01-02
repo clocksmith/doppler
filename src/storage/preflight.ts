@@ -261,9 +261,11 @@ async function checkGPU(memCaps: MemoryCapabilities): Promise<GPUCheckResult> {
  *
  * @example
  * ```typescript
+ * import { log } from '../debug/index.js';
+ *
  * const result = await runPreflightChecks(GEMMA_1B_REQUIREMENTS);
  * if (!result.canProceed) {
- *   console.error('Cannot download:', result.blockers.join(', '));
+ *   log.error('Preflight', 'Cannot download', result.blockers);
  * }
  * ```
  */

@@ -486,8 +486,13 @@ export async function processLayerGPU(
     slidingWindow: config.slidingWindow,
     layerType,
     attentionKernelOverride,
-    // Pass residual buffer for decode mode to enable fused o_proj + residual
-    residualBuffer: numTokens === 1 ? inputBuffer : null,
+    // Pass residual buffer for decode mode to enable fused o_proj + residual.
+    // For sandwich-norm models with post-attention norm (Gemma 2/3),
+    // we must NOT fuse residual into attention output because HF expects:
+    // residual + norm(attn_output), not norm(attn_output + residual).
+    residualBuffer: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
+      ? inputBuffer
+      : null,
     // Gemma 2 attention softcapping (50.0)
     attnSoftcap: config.attnLogitSoftcapping ?? 0,
     // Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16)

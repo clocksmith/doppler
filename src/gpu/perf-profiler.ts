@@ -7,7 +7,7 @@
  * Usage:
  * 1. Enable profiling: window.DOPPLER_PROFILE = true
  * 2. Run inference
- * 3. View results: console.log(getProfileReport())
+ * 3. View results: log.info('Profile', 'Report', getProfileReport())
  */
 
 import { getDevice } from './device.js';
@@ -288,7 +288,7 @@ export function getProfileReport(): ProfileReport {
 }
 
 /**
- * Print profile report to console
+ * Print profile report via debug log
  */
 export function printProfileReport(report?: ProfileReport): void {
   const r = report || getProfileReport();

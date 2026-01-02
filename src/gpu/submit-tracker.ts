@@ -9,7 +9,7 @@
  *
  *   // After forward pass:
  *   const stats = getSubmitStats();
- *   console.log(`Submits: ${stats.count}, Total time: ${stats.totalMs.toFixed(2)}ms`);
+ *   log.info('SubmitTracker', `Submits: ${stats.count}, Total time: ${stats.totalMs.toFixed(2)}ms`);
  *
  * To enable tracking, set TRACK_SUBMITS = true and wrap queue.submit calls.
  *
