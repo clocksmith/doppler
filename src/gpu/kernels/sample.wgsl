@@ -23,9 +23,18 @@ struct Uniforms {
     temperature: f32,
     random_value: f32,  // Pre-generated random [0,1) for sampling
     pad_token_id: u32,
-    pad0: u32,
+    logit_softcap: f32,  // Gemma 2: 30.0, 0.0 = disabled
     pad1: u32,
     pad2: u32,
+}
+
+// Apply softcapping: softcap * tanh(x / softcap)
+// Returns x unchanged if softcap <= 0
+fn apply_softcap(x: f32, softcap: f32) -> f32 {
+    if (softcap <= 0.0) {
+        return x;
+    }
+    return softcap * tanh(x / softcap);
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -51,6 +60,7 @@ fn find_topk_phase1(
     let vocab_size = u.vocab_size;
     let temperature = u.temperature;
     let pad_id = u.pad_token_id;
+    let softcap = u.logit_softcap;
 
     // Each thread finds max in its assigned range
     var local_max: f32 = -3.402823e+38;  // -FLT_MAX
@@ -60,7 +70,8 @@ fn find_topk_phase1(
     var idx = global_idx;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = logits[idx] / temperature;
+            // Apply softcapping before temperature scaling
+            let val = apply_softcap(logits[idx], softcap) / temperature;
             if (val > local_max) {
                 local_max = val;
                 local_max_idx = idx;
@@ -205,6 +216,7 @@ fn sample_single_pass(
     let temperature = u.temperature;
     let random_val = u.random_value;
     let pad_id = u.pad_token_id;
+    let softcap = u.logit_softcap;
 
     // Phase 1: Find global max
     var local_max: f32 = -3.402823e+38;
@@ -213,7 +225,8 @@ fn sample_single_pass(
     var idx = gid.x;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = logits[idx] / temperature;
+            // Apply softcapping before temperature scaling
+            let val = apply_softcap(logits[idx], softcap) / temperature;
             if (val > local_max) {
                 local_max = val;
                 local_max_idx = idx;
@@ -262,6 +275,7 @@ fn argmax(
     let global_idx = gid.x;
     let vocab_size = u.vocab_size;
     let pad_id = u.pad_token_id;
+    let softcap = u.logit_softcap;
 
     // Each thread finds max in its chunk
     var local_max: f32 = -3.402823e+38;
@@ -270,7 +284,8 @@ fn argmax(
     var idx = global_idx;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = logits[idx];
+            // Apply softcapping (argmax is greedy, no temperature)
+            let val = apply_softcap(logits[idx], softcap);
             if (val > local_max) {
                 local_max = val;
                 local_max_idx = idx;

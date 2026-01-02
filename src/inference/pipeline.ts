@@ -1234,11 +1234,10 @@ export class InferencePipeline {
 
     // FUSED DECODE PATH: Record layers + logits + sampling in single command buffer
     // This reduces GPU syncs from 7+ per token to 2, enabling ~3-4x speedup
-    // NOTE: Disable GPU sampling for models with finalLogitSoftcapping (Gemma 2)
-    // because the GPU path doesn't apply the softcapping transformation
-    const needsSoftcapping = !!config.finalLogitSoftcapping;
+    // GPU sampling now supports softcapping (Gemma 2) via logitSoftcap uniform
+    const logitSoftcap = config.finalLogitSoftcapping ?? 0;
     const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
-    const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !needsSoftcapping;
+    const useGPUSampling = this.useGPU && isGPUSamplingAvailable();
     const useFusedDecode = recorder && useGPUSampling && hiddenStates instanceof GPUBuffer;
 
     if (useFusedDecode) {

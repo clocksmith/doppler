@@ -23,6 +23,7 @@ export interface SampleOptions {
   topK?: number;
   randomSeed?: number;
   padTokenId?: number;
+  logitSoftcap?: number;  // Gemma 2: 30.0, 0 = disabled
 }
 
 export interface SampleResult {
@@ -87,15 +88,17 @@ export async function runArgmax(
 
   // Uniforms
   const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
+  const logitSoftcap = options.logitSoftcap ?? 0;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
     32,
     (view) => {
-      view.setUint32(0, vocabSize, true);  // vocabSize
-      view.setUint32(4, 1, true);           // topK (unused for argmax)
-      view.setFloat32(8, 1.0, true);        // temperature (unused)
-      view.setFloat32(12, 0.0, true);       // randomValue (unused)
-      view.setUint32(16, padTokenId, true); // padTokenId (optional)
+      view.setUint32(0, vocabSize, true);     // vocabSize
+      view.setUint32(4, 1, true);             // topK (unused for argmax)
+      view.setFloat32(8, 1.0, true);          // temperature (unused)
+      view.setFloat32(12, 0.0, true);         // randomValue (unused)
+      view.setUint32(16, padTokenId, true);   // padTokenId
+      view.setFloat32(20, logitSoftcap, true); // logitSoftcap (Gemma 2: 30.0)
     },
     null,
     device
@@ -189,11 +192,12 @@ export async function runGPUSample(
     topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
     padTokenId,
+    logitSoftcap = 0,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
-    return runArgmax(logits, vocabSize, { padTokenId });
+    return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
   }
 
   const device = getDevice();
@@ -228,6 +232,7 @@ export async function runGPUSample(
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
       view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
+      view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
     },
     null,
     device
@@ -323,6 +328,7 @@ export async function recordArgmax(
 
   // Uniforms
   const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
+  const logitSoftcap = options.logitSoftcap ?? 0;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
     32,
@@ -332,6 +338,7 @@ export async function recordArgmax(
       view.setFloat32(8, 1.0, true);
       view.setFloat32(12, 0.0, true);
       view.setUint32(16, padTokenId, true);
+      view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
     },
     recorder
   );
@@ -397,11 +404,12 @@ export async function recordGPUSample(
     topK = DEFAULT_SAMPLING_DEFAULTS.topK,
     randomSeed,
     padTokenId,
+    logitSoftcap = 0,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
-    return recordArgmax(recorder, logits, vocabSize, { padTokenId });
+    return recordArgmax(recorder, logits, vocabSize, { padTokenId, logitSoftcap });
   }
 
   const device = recorder.device;
@@ -434,6 +442,7 @@ export async function recordGPUSample(
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
       view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
+      view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
     },
     recorder
   );
