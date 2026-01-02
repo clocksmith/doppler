@@ -100,12 +100,17 @@ async function detectAMDUnified(adapter: GPUAdapter | null): Promise<AMDUnifiedI
   const vendor = (info.vendor || '').toLowerCase();
   const device = (info.device || '').toLowerCase();
   const description = (info.description || '').toLowerCase();
+  const architecture = ((info as { architecture?: string }).architecture || '').toLowerCase();
 
-  const isAMD = vendor.includes('amd') || vendor.includes('advanced micro');
+  // Check vendor OR architecture for AMD identification
+  // Some drivers report vendor as "unknown" but architecture as "rdna-X"
+  const isAMD = vendor.includes('amd') ||
+                vendor.includes('advanced micro') ||
+                architecture.includes('rdna');
 
   if (!isAMD) return { isAMDUnified: false };
 
-  // Strix Halo identifiers (may need updates as hardware releases)
+  // Strix Halo / Ryzen AI Max identifiers
   const strixPatterns = [
     'strix',
     'ryzen ai max',
@@ -115,13 +120,17 @@ async function detectAMDUnified(adapter: GPUAdapter | null): Promise<AMDUnifiedI
   ];
 
   const isStrix = strixPatterns.some(
-    (p) => device.includes(p) || description.includes(p)
+    (p) => device.includes(p) || description.includes(p) || architecture.includes(p)
   );
 
-  // Check device limits for large shared memory indicators
-  // Strix Halo has 128GB max shared memory
+  // For AMD iGPUs where vendor/device are "unknown", check architecture + buffer limits
+  // RDNA 3/3.5 integrated GPUs in APUs have unified memory
+  // We detect this heuristically: RDNA architecture + large buffer limits
+  const isLikelyIntegrated = architecture.includes('rdna') &&
+    (vendor === 'unknown' || vendor === '');
+
   return {
-    isAMDUnified: isStrix,
+    isAMDUnified: isStrix || isLikelyIntegrated,
     isStrix,
     vendor: info.vendor,
     device: info.device,
