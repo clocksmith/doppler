@@ -135,7 +135,7 @@ function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): bo
     // Log first 50 calls to avoid flooding
     if (isTraceEnabled('kernels') && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size} (DEBUG_FORCE=${DEBUG_FORCE_TRANSPOSE_TRUE})`);
+      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size}`);
     }
     return result;
   }
