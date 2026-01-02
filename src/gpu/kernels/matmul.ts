@@ -128,15 +128,10 @@ type MatmulSelectionMode = 'run' | 'record';
 // Debug counter to limit logging
 let _transposeDebugCount = 0;
 
-// DEBUG: Set to true to force transposeB=true for all 'auto' matmuls
-const DEBUG_FORCE_TRANSPOSE_TRUE = false;
-
 function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): boolean {
   if (transposeBOption === 'auto') {
     const isColMajor = isColumnMajorBuffer(B);
-    // Original logic: transposeB = !isColMajor (column-major -> false, row-major -> true)
-    // DEBUG: Force transposeB=true to test if that's the correct setting
-    const result = DEBUG_FORCE_TRANSPOSE_TRUE ? true : !isColMajor;
+    const result = !isColMajor;
     // Log first 50 calls to avoid flooding
     if (isTraceEnabled('kernels') && _transposeDebugCount < 50) {
       _transposeDebugCount++;
