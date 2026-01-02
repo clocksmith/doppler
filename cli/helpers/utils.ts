@@ -204,6 +204,19 @@ function parseByteRange(rangeHeader: string | undefined, size: number): { start:
   return { start, end: Math.min(end, size - 1) };
 }
 
+function formatQuantizationSummary(manifest: Record<string, unknown>): string | null {
+  const info = manifest.quantizationInfo as Record<string, unknown> | undefined;
+  if (info && typeof info === 'object') {
+    const variantTag = typeof info.variantTag === 'string' ? info.variantTag : null;
+    if (variantTag) return variantTag;
+    const weights = typeof info.weights === 'string' ? info.weights : null;
+    const embeddings = typeof info.embeddings === 'string' ? info.embeddings : null;
+    if (weights && embeddings) return `w${weights}-emb${embeddings}`;
+    if (weights) return `w${weights}`;
+  }
+  return typeof manifest.quantization === 'string' ? manifest.quantization : null;
+}
+
 async function buildModelsApiResponse(modelsDir: string): Promise<string> {
   try {
     const entries = await readdir(modelsDir, { withFileTypes: true });
@@ -221,7 +234,7 @@ async function buildModelsApiResponse(modelsDir: string): Promise<string> {
           path: `models/${entry.name}`,
           name: entry.name,
           architecture: manifest.architecture || config.architectures?.[0] || null,
-          quantization: manifest.quantization || null,
+          quantization: formatQuantizationSummary(manifest) || null,
           size: textConfig.hidden_size ? `${textConfig.num_hidden_layers || 0}L/${textConfig.hidden_size}H` : null,
           downloadSize: totalSize,
           vocabSize: textConfig.vocab_size || null,

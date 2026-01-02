@@ -265,7 +265,8 @@ function buildQuantizationInfo(
 function resolveModelId(modelId: string | null, baseName: string, variantTag: string | undefined): string {
   if (modelId) return modelId;
   const base = sanitizeModelId(baseName);
-  return variantTag ? `${base}-${variantTag}` : base;
+  if (!variantTag) return base;
+  return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
 }
 
 function printHelp(): void {
@@ -284,7 +285,7 @@ Options:
   --quantize, -q <type> Quantize weights: q4_k_m, f16, f32 (default: preserve)
   --quantize-embeddings Also quantize embedding table
   --shard-size <mb>     Shard size in MB (default: 64)
-  --model-id <id>       Override model ID in manifest
+  --model-id <id>       Override model ID in manifest (default appends quant tag like -wq4_k_m-embf16)
   --text-only           Extract only text model from multimodal
   --fast                Pre-load all shards into memory (faster, more RAM)
   --verbose, -v         Show detailed progress
@@ -348,6 +349,7 @@ interface ModelInfo {
   modelName?: string;
   architecture?: string;
   quantization?: string;
+  quantizationInfo?: QuantizationInfoSchema;
   config?: Record<string, unknown>;
   tokenizer?: Record<string, unknown>;
   tokenizerConfig?: Record<string, unknown>;
@@ -412,11 +414,21 @@ async function convertSafetensors(
     return true;
   });
 
+  const embedDtypeRaw = findTensorDtype(validTensors, isEmbeddingTensorName);
+  const lmHeadDtypeRaw = findTensorDtype(validTensors, isLmHeadTensorName);
+  const quantizationInfo = buildQuantizationInfo(opts, originalDtype, embedDtypeRaw, lmHeadDtypeRaw);
+  const baseModelId = typeof configRec._name_or_path === 'string'
+    ? configRec._name_or_path
+    : basename(inputPath);
+  const resolvedModelId = resolveModelId(opts.modelId, baseModelId, quantizationInfo.variantTag);
+  const manifestQuantization = resolveManifestQuantization(opts.quantize, originalDtype);
+
   // Create modelInfo with adjusted dtypes for quantized tensors
   const modelInfo: ModelInfo = {
-    modelName: opts.modelId || basename(inputPath),
+    modelName: resolvedModelId,
     architecture: arch,
-    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : originalDtype,
+    quantization: manifestQuantization,
+    quantizationInfo,
     config,
     tokenizerConfig,
     tokenizerJson: parsed.tokenizerJson,
@@ -521,10 +533,11 @@ async function convertSafetensors(
   verboseLog(`Writing RDRR to: ${outputPath}`);
   const writerOpts: WriterOptions = {
     shardSize: opts.shardSize * 1024 * 1024,
-    modelId: opts.modelId || basename(inputPath),
+    modelId: resolvedModelId,
     modelType,
     architecture: arch,
-    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : originalDtype,
+    quantization: manifestQuantization,
+    quantizationInfo,
   };
 
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
@@ -578,10 +591,22 @@ async function convertGGUF(
   const ggufTokenizer = ggufConfig.tokenizer;
   verboseLog(`Tokenizer: ${ggufTokenizer?.model || 'unknown'}, ${ggufTokenizer?.tokens?.length || 0} tokens`);
 
+  const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
+  const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
+  const quantizationInfo = buildQuantizationInfo(
+    opts,
+    parsed.quantization || 'F32',
+    embedDtypeRaw,
+    lmHeadDtypeRaw
+  );
+  const resolvedModelId = resolveModelId(opts.modelId, modelName, quantizationInfo.variantTag);
+  const manifestQuantization = resolveManifestQuantization(opts.quantize, parsed.quantization || 'F32');
+
   const modelInfo: ModelInfo = {
-    modelName: opts.modelId || modelName,
+    modelName: resolvedModelId,
     architecture: arch,
-    quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : parsed.quantization || 'F32',
+    quantization: manifestQuantization,
+    quantizationInfo,
     config,
     // Pass GGUF tokenizer data for bundling
     tokenizer: ggufTokenizer ? {
@@ -626,10 +651,11 @@ async function convertGGUF(
     verboseLog(`Writing RDRR to: ${outputPath}`);
     const writerOpts: WriterOptions = {
       shardSize: opts.shardSize * 1024 * 1024,
-      modelId: opts.modelId || modelName,
+      modelId: resolvedModelId,
       modelType,
       architecture: arch,
-      quantization: opts.quantize === 'q4_k_m' ? 'Q4_K_M' : opts.quantize === 'f16' ? 'F16' : parsed.quantization || 'F32',
+      quantization: manifestQuantization,
+      quantizationInfo,
     };
 
     const result = await writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
