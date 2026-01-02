@@ -171,6 +171,7 @@ export class DopplerLoader {
   // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
   // When set, dequantized matmul weights need layout='column' for transposeB=false
   q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null = null;
+  keepF32Weights = false;
 
   // Internal tracking
   private _normOffsetLogged = false;
@@ -409,6 +410,7 @@ export class DopplerLoader {
     const hints = (runtimeHints ?? manifestHints) as KernelHints | undefined;
     const hintSource = getKernelHintsSource() ?? (manifestHints ? 'manifest' : 'unset');
     const q4kHint = hints?.q4kMatmul;
+    const computePrecision = hints?.computePrecision;
     const q4kLayout = (this.manifest?.config as { q4kLayout?: string } | undefined)?.q4kLayout;
 
     // Default to fused Q4K when subgroups are available (4x memory savings)
@@ -430,8 +432,9 @@ export class DopplerLoader {
 
     this.useFusedQ4K = useFused;
     this.q4kLayout = (q4kLayout as 'flat' | 'row_wise' | 'column_wise') ?? null;
+    this.keepF32Weights = q4kHint === 'dequant_f32' || computePrecision === 'f32';
 
-    debugTrace.loader(`Q4K strategy: fused=${this.useFusedQ4K}, hint=${q4kHint ?? 'auto'}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}`);
+    debugTrace.loader(`Q4K strategy: fused=${this.useFusedQ4K}, hint=${q4kHint ?? 'auto'}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}, keepF32=${this.keepF32Weights}`);
   }
 
   /**
@@ -1534,6 +1537,10 @@ export class DopplerLoader {
         if (buf instanceof GPUBuffer) {
           const dtype = getBufferDtype(buf) || 'f32';
           if (dtype === 'f32') {
+            if (this.keepF32Weights) {
+              debugTrace.loader(`Layer ${layerIdx} keeping ${key} in f32 (keepF32Weights=true)`);
+              continue;
+            }
             const elems = buf.size / 4;
             // Preserve column-major layout through the f32→f16 downcast
             const wasColumnMajor = isColumnMajorBuffer(buf);

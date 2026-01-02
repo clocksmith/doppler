@@ -153,7 +153,7 @@ npx tsx serve.ts --port 3000
 - Project skills (from `.claude/skills/`):
   - `doppler-debug`: debug inference issues. Read `.claude/skills/doppler-debug/SKILL.md`.
   - `doppler-benchmark`: run performance benchmarks. Read `.claude/skills/doppler-benchmark/SKILL.md`.
-  - `model-convert`: convert models to RDRR. Read `.claude/skills/model-convert/SKILL.md`.
+  - `doppler-convert`: convert models to RDRR. Read `.claude/skills/doppler-convert/SKILL.md`.
 - System skills:
   - `skill-creator`: create or update Codex skills. Read `/Users/xyz/.codex/skills/.system/skill-creator/SKILL.md`.
   - `skill-installer`: list or install skills. Read `/Users/xyz/.codex/skills/.system/skill-installer/SKILL.md`.

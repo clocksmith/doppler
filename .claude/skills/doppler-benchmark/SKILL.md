@@ -3,72 +3,54 @@ name: doppler-benchmark
 description: Run DOPPLER performance benchmarks. Use when measuring inference speed, comparing against baselines, or tracking performance regressions. Outputs JSON results per the BENCHMARK_HARNESS spec. (project)
 ---
 
-# DOPPLER Benchmark
+# Key Metrics
 
-## Using Config Presets
+| Metric | Description | Target |
+|--------|-------------|--------|
+| `decode_tokens_per_sec` | Main throughput metric | Higher is better |
+| `ttft_ms` | Time to first token (latency) | Lower is better |
+| `prefill_tokens_per_sec` | Prompt processing speed | Context-dependent |
+| `p99_latency_ms` | Tail latency | Flag if >100ms |
 
-```bash
-# Use built-in bench preset (silent output, deterministic sampling)
-npm run bench -- --config bench -m MODEL
-
-# Use CI preset (file logging, short timeout)
-npm run bench -- --config ci -m MODEL
-
-# List available presets
-npx tsx cli/index.ts --list-presets
-```
-
-Note: `--config` loads runtime presets only. Model presets are separate.
-
-## Fast Iteration (use --skip-load after first run!)
+# Standard Commands
 
 ```bash
-# First run - loads model (~30s), keeps browser open
-npm run bench -- --config bench -m MODEL --warm 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
+# Quick benchmark - exits after completion
+npm run bench -- -m MODEL 2>&1 | grep -E "tok/s|TTFT|Done"
 
-# Subsequent runs - reuses model in GPU RAM
-npm run bench -- --config bench -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|TTFT|Done" | sed '/Done/q'
+# Multiple runs for statistical confidence
+npm run bench -- -m MODEL --runs 3 2>&1 | sed '/Done/q'
 
-# Multiple runs for statistics
-npm run bench -- --config bench -m MODEL --skip-load --runs 3
-
-# Save and compare
-npm run bench -- --config bench -m MODEL -o baseline.json
-npm run bench -- --config bench -m MODEL --compare baseline.json
+# Save baseline for comparison
+npm run bench -- -m MODEL -o baseline.json
+npm run bench -- -m MODEL --compare baseline.json
 ```
 
-## Key: `sed '/Done/q'` exits after Done line
-
-## After Code Changes
+# Fast Iteration
 
 ```bash
-npm run build && npm run bench -- --config bench -m MODEL --skip-load 2>&1 | grep --line-buffered -E "tok/s|Done" | sed '/Done/q'
+# First run loads model, subsequent runs reuse GPU memory
+npm run bench -- -m MODEL --skip-load 2>&1 | sed '/Done/q'
+
+# After code changes - rebuild then benchmark
+npm run build && npm run bench -- -m MODEL --skip-load 2>&1 | sed '/Done/q'
 ```
 
-## Key Metrics
+# Regression Detection
 
-- `decode_tokens_per_sec` - Main throughput metric
-- `ttft_ms` - Time to first token
-- `prefill_tokens_per_sec` - Prefill speed
+When asked "Is this slower?", always:
 
-## CI Benchmarking
+1. Run benchmark on current code with `--runs 3`
+2. Compare against saved baseline JSON if available
+3. Report decode_tokens_per_sec difference as percentage
+4. Flag regressions >5% as significant
 
-Use the CI preset with file logging:
+# Interpretation Guidelines
 
-```bash
-npm run bench -- --config ci -m MODEL -o results.json
-```
+- **Prefill vs Decode**: Prefill is memory-bound, decode is compute-bound
+- **Batch size 1**: Standard for interactive inference
+- **Cold vs Warm**: First run includes model loading, use `--skip-load` for warm
 
-Or create a custom CI config:
+# Key Grep Patterns
 
-```json
-{
-  "extends": "bench",
-  "runtime": {
-    "debug": {
-      "logOutput": { "stdout": false, "file": "./ci-logs/bench.log" }
-    }
-  },
-  "cli": { "timeout": 180000 }
-}
-```
+`"tok/s|TTFT|latency"` - Performance metrics. `"regression|slower"` - Problems.

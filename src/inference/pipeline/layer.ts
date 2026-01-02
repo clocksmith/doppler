@@ -41,6 +41,7 @@ import type { DecodeBufferManager } from '../decode-buffers.js';
 
 // Track if we've logged one-time messages (avoid spam)
 let loggedFusedDownNorm = false;
+let loggedL17StageDump = false;
 
 // ============================================================================
 // Types
@@ -527,6 +528,26 @@ export async function processLayerGPU(
   const attnOutput = attnResult.output;
   const residualFused = attnResult.residualFused;
 
+  // DEBUG: Track dim 334 through Layer 1 to find explosion source
+  if (context.debug && layerIdx === 1 && numTokens > 1 && device && allowReadback('layer.dim334.l1')) {
+    try {
+      const dimIdx = 334;
+      const readDim = async (buf: GPUBuffer, label: string) => {
+        const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(buf, dimIdx * 4, staging, 0, 4);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+        staging.unmap();
+        staging.destroy();
+        trace.attn(layerIdx, `L1_DIM334 ${label}=${value.toFixed(4)}`);
+      };
+      await readDim(inputBuffer, 'input');
+      await readDim(attnOutput, 'attnOutput');
+    } catch (e) { trace.attn(1, `L1_DIM334 error: ${e}`); }
+  }
+
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
@@ -560,6 +581,37 @@ export async function processLayerGPU(
       }
     } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
       trace.attn(layerIdx, `ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
+    }
+    if (layerIdx === 17 && numTokens > 1 && !recorder && device && allowReadback('layer.attn.dim334')) {
+      try {
+        const tokenIdx = 0;
+        const dimIdx = 334;
+        const scalarOffset = (tokenIdx * hiddenSize + dimIdx) * 4;
+        const readScalarAt = async (buf: GPUBuffer, offset: number) => {
+          const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          const enc = device.createCommandEncoder();
+          enc.copyBufferToBuffer(buf, offset, staging, 0, 4);
+          device.queue.submit([enc.finish()]);
+          await staging.mapAsync(GPUMapMode.READ);
+          const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+          staging.unmap();
+          staging.destroy();
+          return value;
+        };
+        const inputVal = await readScalarAt(inputBuffer, scalarOffset);
+        const attnVal = await readScalarAt(attnOutput, scalarOffset);
+        let weightVal: number | null = null;
+        if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
+          const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
+          weightVal = await readScalarAt(normWeightBuf, dimIdx * 4);
+          if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) {
+            releaseBuffer(normWeightBuf);
+          }
+        }
+        trace.attn(layerIdx, `DIM334 input=${inputVal.toFixed(4)} attn=${attnVal.toFixed(4)} postAttnW=${weightVal !== null ? weightVal.toFixed(4) : 'n/a'}`);
+      } catch (e) {
+        trace.attn(layerIdx, `DIM334 error: ${e}`);
+      }
     }
   }
 
@@ -725,6 +777,79 @@ async function processFFNWithSandwichNorm(
       trace.ffn(layerIdx, `${label} error: ${e}`);
     }
   };
+  const shouldDumpL17Stage = !!device && context.debug && layerIdx === 17 && numTokens > 1 && !recorder && !loggedL17StageDump;
+  const validBytes = numTokens * hiddenSize * 4;
+  let deferredFfnInput: GPUBuffer | null = null;
+  let deferredFfnOutput: GPUBuffer | null = null;
+  const shouldTraceDim334 = !!device && context.debug && !recorder && numTokens > 1;  // Trace all layers
+  const allowDim334 = shouldTraceDim334 && allowReadback(`layer.dim334.L${layerIdx}`);
+  const readDim334 = async (buf: GPUBuffer | null, label: string, tokenIdx = 0) => {
+    if (!allowDim334 || !buf) return;
+    try {
+      const dimIdx = 334;
+      const offset = (tokenIdx * hiddenSize + dimIdx) * 4;
+      if (offset + 4 > validBytes) {
+        trace.ffn(layerIdx, `DIM334 ${label}: out of bounds (offset=${offset}, validBytes=${validBytes})`);
+        return;
+      }
+      const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(buf, offset, staging, 0, 4);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+      staging.unmap();
+      staging.destroy();
+      trace.ffn(layerIdx, `DIM334 ${label}[${tokenIdx}]=${value.toFixed(4)}`);
+    } catch (e) {
+      trace.ffn(layerIdx, `DIM334 ${label} error: ${e}`);
+    }
+  };
+  const readWeight334 = async (buf: GPUBuffer, label: string) => {
+    if (!allowDim334) return;
+    try {
+      const dimIdx = 334;
+      const offset = dimIdx * 4;
+      const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(buf, offset, staging, 0, 4);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+      staging.unmap();
+      staging.destroy();
+      trace.ffn(layerIdx, `DIM334 ${label}=${value.toFixed(4)}`);
+    } catch (e) {
+      trace.ffn(layerIdx, `DIM334 ${label} error: ${e}`);
+    }
+  };
+  const readStageValue = async (
+    buf: GPUBuffer | null,
+    label: string,
+    tokenIdx: number,
+    dimIdx: number
+  ) => {
+    if (!shouldDumpL17Stage || !buf) return;
+    if (!allowReadback(`layer.ffn.l17.${label}`)) return;
+    try {
+      const offset = (tokenIdx * hiddenSize + dimIdx) * 4;
+      if (offset + 4 > validBytes) {
+        trace.ffn(layerIdx, `L17_IDX ${label}: out of bounds (offset=${offset}, validBytes=${validBytes})`);
+        return;
+      }
+      const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(buf, offset, staging, 0, 4);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+      staging.unmap();
+      staging.destroy();
+      trace.ffn(layerIdx, `L17_IDX token=${tokenIdx} dim=${dimIdx} ${label}=${value.toFixed(4)}`);
+    } catch (e) {
+      trace.ffn(layerIdx, `L17_IDX ${label} error: ${e}`);
+    }
+  };
 
   // 1. Pre-FFN norm (applied to residual stream before FFN)
   let ffnInput = postAttn;
@@ -753,6 +878,7 @@ async function processFFNWithSandwichNorm(
 
     // Debug: check input values for layers 0 and 17
     await debugLayer(postAttn, 'PRE_NORM_INPUT');
+    await readDim334(postAttn, 'postAttn');
 
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
@@ -762,6 +888,7 @@ async function processFFNWithSandwichNorm(
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     await debugLayer(ffnInput, 'PRE_NORM_OUTPUT');
+    await readDim334(ffnInput, 'preFfnNorm');
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -809,6 +936,7 @@ async function processFFNWithSandwichNorm(
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
   await debugLayer(ffnOutput, 'FFN_OUT');
+  await readDim334(ffnOutput, 'ffnOut');
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(ffnOutput, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
@@ -818,6 +946,8 @@ async function processFFNWithSandwichNorm(
   if (ffnInput !== postAttn) {
     if (recorder) {
       recorder.trackTemporaryBuffer(ffnInput);
+    } else if (shouldDumpL17Stage) {
+      deferredFfnInput = ffnInput;
     } else {
       releaseBuffer(ffnInput);
     }
@@ -830,11 +960,47 @@ async function processFFNWithSandwichNorm(
   // 3. Post-FFN norm - applied to FFN output BEFORE residual add
   // Skip if we already used fused down+norm kernel
   let output: GPUBuffer;
+  // DEBUG: Log which branch and track dim 334 across layers
+  if (context.debug && layerIdx === 17) {
+    trace.ffn(layerIdx, `POST_FFN_BRANCH: usedFused=${usedFusedDownNorm}, hasSandwich=${sandwichNorm.hasPostFeedforwardNorm}, hasWeight=${!!layerWeights?.postFeedforwardNorm}`);
+  }
+  // DEBUG: Check dim 334 at every layer to find where explosion starts
+  if (context.debug && numTokens > 1 && device && allowReadback('layer.dim334.all')) {
+    try {
+      const dimIdx = 334;
+      const offset = dimIdx * 4;
+      const staging = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(postAttn, offset, staging, 0, 4);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+      staging.unmap();
+      staging.destroy();
+      // Always log dim 334 for layers 0-5 and when large for others
+      if (layerIdx <= 5 || Math.abs(value) > 10) {
+        trace.ffn(layerIdx, `DIM334_TRACE postAttn[334]=${value.toFixed(4)}`);
+      }
+      // Also log FFN output at dim 334 for layer 0
+      if (layerIdx === 0) {
+        const staging2 = device.createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc2 = device.createCommandEncoder();
+        enc2.copyBufferToBuffer(ffnOutput, offset, staging2, 0, 4);
+        device.queue.submit([enc2.finish()]);
+        await staging2.mapAsync(GPUMapMode.READ);
+        const ffnVal = new Float32Array(staging2.getMappedRange().slice(0))[0];
+        staging2.unmap();
+        staging2.destroy();
+        trace.ffn(layerIdx, `DIM334_TRACE ffnOutput[334]=${ffnVal.toFixed(4)}`);
+      }
+    } catch (e) { /* ignore */ }
+  }
   if (usedFusedDownNorm) {
     // Fused kernel already applied norm + residual
     output = ffnOutput;
   } else if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
+    await readWeight334(normWeightBuf, 'postFfnNormW');
 
     // FUSED: norm FFN output + residual add (1 kernel instead of 2)
     // Use pre-allocated decode buffer for output when available
@@ -851,6 +1017,8 @@ async function processFFNWithSandwichNorm(
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
       recorder.trackTemporaryBuffer(ffnOutput);
+    } else if (shouldDumpL17Stage) {
+      deferredFfnOutput = ffnOutput;
     } else {
       releaseBuffer(ffnOutput);
     }
@@ -870,6 +1038,7 @@ async function processFFNWithSandwichNorm(
   }
 
   await debugLayer(output, 'FINAL');
+  await readDim334(output, 'layerOut');
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(output, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
@@ -900,6 +1069,13 @@ async function processFFNWithSandwichNorm(
         const tokenIdx = Math.floor(maxIdx / hiddenSize);
         const dimIdx = maxIdx % hiddenSize;
         trace.ffn(layerIdx, `LAYER_OUT: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), validElems=${data.length}`);
+        if (shouldDumpL17Stage && layerIdx === 17) {
+          await readStageValue(postAttn, 'POST_ATTN', tokenIdx, dimIdx);
+          await readStageValue(deferredFfnInput, 'PRE_FFN_NORM', tokenIdx, dimIdx);
+          await readStageValue(deferredFfnOutput, 'FFN_OUT', tokenIdx, dimIdx);
+          await readStageValue(output, 'LAYER_OUT', tokenIdx, dimIdx);
+          loggedL17StageDump = true;
+        }
 
         // Dump per-token maxAbs at key layers to compare with HuggingFace
         if ((layerIdx === 0 || layerIdx === 12 || layerIdx === 25) && numTokens > 1) {
@@ -920,6 +1096,12 @@ async function processFFNWithSandwichNorm(
         }
       } catch (e) { log.error('Layer', `[LAYER_OUT] Error: ${e}`); }
     }
+  }
+  if (deferredFfnInput) {
+    releaseBuffer(deferredFfnInput);
+  }
+  if (deferredFfnOutput) {
+    releaseBuffer(deferredFfnOutput);
   }
   // Track postAttn for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {

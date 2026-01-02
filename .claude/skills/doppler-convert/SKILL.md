@@ -1,5 +1,5 @@
 ---
-name: model-convert
+name: doppler-convert
 description: Convert GGUF or SafeTensors models to RDRR format and test them in DOPPLER. Use when the user wants to add a new model, convert weights, or verify model loading. (project)
 ---
 
