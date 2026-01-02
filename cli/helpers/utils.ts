@@ -284,16 +284,23 @@ export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): P
       pathname = '/doppler' + pathname;
     }
 
-    // Prefer JS from dist/ when available (matches serve.ts behavior).
+    // Prefer JS/JSON from dist/src when available (matches serve.ts behavior).
     let resolvedPathname = pathname;
-    if (pathname.endsWith('.js') && !pathname.includes('node_modules')) {
-      const jsPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
-      const distPath = join(projectRoot, 'dist', jsPath);
+    if ((pathname.endsWith('.js') || pathname.endsWith('.json')) && !pathname.includes('node_modules')) {
+      const assetPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
+      const distRelative = assetPath.replace(/^dist\//, '');
+      const distSrcPath = join(projectRoot, 'dist', 'src', distRelative);
       try {
-        await stat(distPath);
-        resolvedPathname = `/__dist__${jsPath}`;
+        await stat(distSrcPath);
+        resolvedPathname = `/__dist_src__/${distRelative}`;
       } catch {
-        // fall through
+        const distPath = join(projectRoot, 'dist', distRelative);
+        try {
+          await stat(distPath);
+          resolvedPathname = `/__dist__/${distRelative}`;
+        } catch {
+          // fall through
+        }
       }
     }
 
@@ -301,14 +308,20 @@ export async function installLocalDopplerRoutes(page: Page, opts: CLIOptions): P
     const safePath = resolvedPathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
 
     let filePath: string;
-    if (safePath.startsWith('/__dist__/')) {
+    if (safePath.startsWith('/__dist_src__/')) {
+      filePath = join(projectRoot, 'dist', 'src', safePath.slice('/__dist_src__/'.length));
+    } else if (safePath.startsWith('/__dist__/')) {
       filePath = join(projectRoot, 'dist', safePath.slice('/__dist__/'.length));
     } else {
       filePath = join(projectRoot, safePath);
     }
 
     const resolved = resolve(filePath);
-    const allowedRoot = resolve(safePath.startsWith('/__dist__/') ? join(projectRoot, 'dist') : projectRoot);
+    const allowedRoot = safePath.startsWith('/__dist_src__/')
+      ? resolve(join(projectRoot, 'dist', 'src'))
+      : safePath.startsWith('/__dist__/')
+        ? resolve(join(projectRoot, 'dist'))
+        : resolve(projectRoot);
     if (!resolved.startsWith(allowedRoot)) {
       return route.fulfill({ status: 403, body: 'Forbidden' });
     }
@@ -440,7 +453,11 @@ export async function createBrowserContext(
     ? resolve(dopplerRoot, opts.profileDir)
     : resolve(dopplerRoot, defaultDirName);
 
-  const args = ['--enable-unsafe-webgpu'];
+  const args = [
+    '--enable-unsafe-webgpu',
+    '--disable-crash-reporter',
+    '--disable-crashpad',
+  ];
 
   // For headless mode with real GPU (not SwiftShader), use --headless=new
   // See: https://developer.chrome.com/blog/supercharge-web-ai-testing
