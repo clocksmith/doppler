@@ -143,6 +143,10 @@ export interface DopplerConfigSchema {
   platform?: Partial<PlatformSchema>;
 }
 
+export interface DopplerConfigOverrides extends Partial<Omit<DopplerConfigSchema, 'runtime'>> {
+  runtime?: Partial<RuntimeConfigSchema>;
+}
+
 /** Default Doppler configuration (no model loaded) */
 export const DEFAULT_DOPPLER_CONFIG: DopplerConfigSchema = {
   model: undefined,
@@ -173,7 +177,7 @@ export const DEFAULT_DOPPLER_CONFIG: DopplerConfigSchema = {
  * ```
  */
 export function createDopplerConfig(
-  overrides?: Partial<DopplerConfigSchema>
+  overrides?: DopplerConfigOverrides
 ): DopplerConfigSchema {
   if (!overrides) {
     return { ...DEFAULT_DOPPLER_CONFIG };

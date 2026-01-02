@@ -68,7 +68,7 @@ export class ConfigComposer {
     // Depth limit
     if (depth > this.maxDepth) {
       throw new Error(
-        `Extends chain too deep (max ${this.maxDepth}): ${stack.join(' -> ')}`
+        `Extends chain too deep (max ${this.maxDepth}): ${[...stack, normalizedRef].join(' -> ')}`
       );
     }
 

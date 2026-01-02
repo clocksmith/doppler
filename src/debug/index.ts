@@ -329,8 +329,8 @@ export function applyDebugConfig(
   if (!hasTraceParam) {
     if (config.trace?.enabled) {
       const categories = config.trace.categories?.length
-        ? config.trace.categories
-        : ['all'];
+        ? config.trace.categories.join(',')
+        : 'all';
       setTrace(categories, {
         layers: config.trace.layers ?? undefined,
         maxDecodeSteps: config.trace.maxDecodeSteps || undefined,

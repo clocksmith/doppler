@@ -6,7 +6,7 @@ import {
   runFullBenchmark,
   formatBenchmarkSummary
 } from "./pipeline-benchmark.js";
-import { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from "../../debug/index.js";
+import { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from "../../src/debug/index.js";
 import {
   SystemBenchmark,
   runSystemBenchmark,

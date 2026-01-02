@@ -112,6 +112,7 @@ export interface KVCacheConfig {
   useGPU: boolean;
   layout: 'contiguous' | 'paged';
   kvDtype: 'f16' | 'f32';
+  pageSize?: number;
   slidingWindow?: number;
 }
 

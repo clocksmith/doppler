@@ -1123,6 +1123,7 @@ export class InferencePipeline {
     const lastToken = currentIds[currentIds.length - 1];
     const numTokens = 1;
     const config = this.modelConfig!;
+    const samplingDefaults = this.runtimeConfig.inference.sampling;
 
     this._decodeStepCount++;
     const isDebugStep = opts.debug && this._decodeStepCount <= 5;
@@ -1451,6 +1452,7 @@ export class InferencePipeline {
   ): Promise<{ tokens: number[], actualCount: number }> {
     const device = getDevice();
     const config = this.modelConfig!;
+    const samplingDefaults = this.runtimeConfig.inference.sampling;
     const recorder = opts.profile
       ? createProfilingRecorder('batch_decode')
       : createCommandRecorder('batch_decode');

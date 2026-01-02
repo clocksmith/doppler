@@ -1,6 +1,7 @@
 import { DEFAULT_BENCHMARK_CONFIG } from "./types.js";
 import { getPrompt } from "./prompts.js";
-import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from "../../inference/pipeline/init.js";
+import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from "../../src/inference/pipeline/init.js";
+import { setRuntimeConfig } from "../../src/config/runtime.js";
 let readbackBytesTotal = 0;
 function resetReadbackTracking() {
   readbackBytesTotal = 0;
@@ -123,6 +124,9 @@ class PipelineBenchmark {
   // Model Loading
   // ==========================================================================
   async loadModel() {
+    if (this.config.runtimeConfig) {
+      setRuntimeConfig(this.config.runtimeConfig);
+    }
     const { createPipeline } = await import("../../src/inference/pipeline.js");
     const { initDevice, hasFeature, FEATURES } = await import("../../src/gpu/device.js");
     const { createProfiler } = await import("../../src/gpu/profiler.js");
