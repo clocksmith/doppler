@@ -198,6 +198,33 @@ npx tsx cli/index.ts --dump-config --config debug
 - `cli/config/config-loader.ts` - Load, validate, merge with defaults
 - `cli/config/config-composer.ts` - Handle extends inheritance
 
+### Config System: Development Guide
+
+**Purpose:** Configs are the development interface. Adjust behavior without editing source files. Test variations instantly. Capture working configurations as artifacts.
+
+**Two tiers of constants:**
+
+1. **Invariants** — Format specs, protocol constants, algorithm-intrinsic values. Hardcoded. Not configurable.
+2. **Tunables** — Values developers adjust during iteration. Cache sizes, thresholds, dtypes, feature flags. Live in schemas.
+
+**Workflow:**
+
+Change configs, not code. When debugging, switch to a debug preset. When benchmarking, use a clean preset. When testing edge cases, override specific values. The feedback loop stays tight because nothing rebuilds.
+
+**When building features:**
+
+Ask: "Will I tweak this while developing?" If yes, make it configurable from the start. The overhead is minimal. The flexibility pays off immediately.
+
+**Presets capture knowledge:**
+
+A working configuration is documentation. When something finally works after tuning, save the config. When sharing repro steps, share the config. When onboarding, point to presets.
+
+**Source files consume configs, don't define tunables:**
+
+Schemas are the source of truth for adjustable values. Source files import defaults. This separation means configs can change without touching implementation.
+
+**The goal:** Maximize iteration speed. Configs are cheaper to change than code. Use them.
+
 ### Log Levels
 Control output verbosity:
 
