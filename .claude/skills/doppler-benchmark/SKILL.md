@@ -5,7 +5,7 @@ description: Run DOPPLER performance benchmarks to measure throughput, compare a
 
 # DOPPLER Benchmark Skill
 
-This skill guides systematic performance measurement of DOPPLER inference.
+Use this skill to measure DOPPLER inference performance.
 
 ## Key Metrics
 
@@ -43,7 +43,7 @@ npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/Benchmark complete/q'
 npm run build && npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/Benchmark complete/q'
 ```
 
-The `sed '/Benchmark complete/q'` pattern exits immediately after benchmark completes.
+Use `sed '/Benchmark complete/q'` to exit immediately after benchmark completes.
 
 ## Regression Detection Protocol
 

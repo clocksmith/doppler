@@ -1,18 +1,11 @@
 ---
 name: doppler-convert
-description: Convert GGUF or SafeTensors models to RDRR format and test them in DOPPLER. Use when the user wants to add a new model, convert weights, or verify model loading. (project)
+description: Convert GGUF or SafeTensors models to DOPPLER's RDRR format and verify they load in the browser runtime. Use when adding a new model, re-quantizing weights, or creating test fixtures. (project)
 ---
 
 # DOPPLER Convert Skill
 
-This skill guides model conversion from GGUF/SafeTensors to DOPPLER's RDRR format.
-
-## When to Use This Skill
-
-- Converting a new model for use in DOPPLER
-- Re-converting with different quantization settings
-- Extracting text model from multimodal model
-- Creating test fixtures for development
+Use this skill to convert models from GGUF/SafeTensors to DOPPLER's RDRR format.
 
 ## Pre-Flight Checks (Mandatory)
 
@@ -29,7 +22,7 @@ df -h .
 ls ~/.cache/huggingface/hub/models--ORG--MODEL/snapshots/
 ```
 
-If disk space is insufficient, conversion will fail partway and leave corrupted output.
+Ensure disk space; insufficient space can leave corrupted output.
 
 ## Conversion Commands
 

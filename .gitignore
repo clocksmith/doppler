@@ -9,6 +9,7 @@ dist/
 .test-cache/
 .benchmark-cache/
 .headless-test-cache/
+.headed-test-cache/
 
 # Logs
 *.log
@@ -33,8 +34,13 @@ Thumbs.db
 downloads/
 models/
 *.gguf
+*.safetensors
 shard_*.bin
+functiongemma-safetensors/
 
 # Test artifacts
 test-results/
+tests/results/*.json
+tests/results/*.html
+kernel-tests/results/
 playwright-report/

@@ -5,7 +5,7 @@ description: Debug DOPPLER WebGPU inference issues such as gibberish output, hid
 
 # DOPPLER Debug Skill
 
-This skill guides systematic debugging of WebGPU inference issues in DOPPLER.
+Use this skill to debug WebGPU inference issues in DOPPLER.
 
 ## Triage First (Do This Before Running Commands)
 
@@ -91,7 +91,7 @@ npm run debug -- -m MODEL --skip-load --trace ffn 2>&1 | sed '/Done/q'
 npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | sed '/Done/q'
 ```
 
-The `sed '/Done/q'` pattern exits immediately after generation completes.
+Use `sed '/Done/q'` to exit immediately after generation completes.
 
 ## Comparing Against HuggingFace Reference
 
