@@ -25,6 +25,7 @@ import {
   RDRR_VERSION,
   generateShardFilename,
 } from '../storage/rdrr-format.js';
+import { log } from '../debug/index.js';
 
 // Header size to read for parsing (10MB should cover any GGUF header)
 const HEADER_READ_SIZE = 10 * 1024 * 1024;
@@ -415,7 +416,7 @@ async function bufferToShards(
   const totalDataSize = file.size - tensorDataOffset;
   const expectedShards = Math.ceil(totalDataSize / SHARD_SIZE);
 
-  console.warn('[GGUF Import] Using buffer fallback - large files may cause memory issues');
+  log.warn('GGUF Import', 'Using buffer fallback - large files may cause memory issues');
 
   let shardIndex = 0;
   let offset = tensorDataOffset;

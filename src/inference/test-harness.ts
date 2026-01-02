@@ -64,7 +64,7 @@ export interface InferenceHarnessOptions {
   runtime?: RuntimeOverrides;
   /** Progress callback */
   onProgress?: (phase: string, progress: number, detail?: string) => void;
-  /** Log function (default: console.log) */
+  /** Log function (default: debug log) */
   log?: (msg: string, level?: string) => void;
 }
 
@@ -331,7 +331,7 @@ export async function initializeInference(
   modelUrl: string,
   options: InferenceHarnessOptions = {}
 ): Promise<InitializeResult> {
-  const log = options.log || ((msg: string) => console.log(`[test-harness] ${msg}`));
+  const log = options.log || ((msg: string) => debugLog.info('TestHarness', msg));
   const onProgress = options.onProgress || (() => {});
   if (options.runtime?.runtimeConfig) {
     setRuntimeConfig(options.runtime.runtimeConfig);

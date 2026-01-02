@@ -9,6 +9,7 @@ import { promises as fsPromises } from 'fs';
 import { resolve, normalize, join } from 'path';
 import { DEFAULT_BRIDGE_CONFIG } from '../../config/schema/bridge.schema.js';
 import { DEFAULT_DISTRIBUTION_CONFIG } from '../../config/schema/distribution.schema.js';
+import { log } from '../../debug/index.js';
 
 // Protocol constants (must not change - these are wire format)
 const MAGIC = 0x5245504C; // "REPL"
@@ -322,7 +323,7 @@ async function main(): Promise<void> {
         const msgLen = buffer.readUInt32LE(0);
 
         if (msgLen === 0 || msgLen > 1024 * 1024) {
-          console.error('[DopplerBridge] Invalid message length:', msgLen);
+          log.error('DopplerBridge', `Invalid message length: ${msgLen}`);
           buffer = buffer.slice(4);
           continue;
         }
@@ -343,7 +344,7 @@ async function main(): Promise<void> {
           }
         } catch (err) {
           const error = err as Error;
-          console.error('[DopplerBridge] Error handling message:', error.message);
+          log.error('DopplerBridge', `Error handling message: ${error.message}`);
         }
       }
     }
@@ -355,7 +356,7 @@ async function main(): Promise<void> {
 }
 
 main().catch(err => {
-  console.error('[DopplerBridge] Fatal error:', err);
+  log.error('DopplerBridge', `Fatal error: ${(err as Error).message}`);
   process.exit(1);
 });
 

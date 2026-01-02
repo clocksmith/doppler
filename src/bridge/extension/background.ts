@@ -11,6 +11,8 @@
  * @module bridge/extension/background
  */
 
+import { log } from '../../debug/index.js';
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -60,11 +62,11 @@ const messageQueues = new Map<string, unknown[]>();
 
 function handleWebConnection(webPort: chrome.runtime.Port): void {
   if (webPort.name !== 'doppler-bridge') {
-    console.warn('[DopplerBridge] Unknown connection:', webPort.name);
+    log.warn('DopplerBridge', `Unknown connection: ${webPort.name}`);
     return;
   }
 
-  console.log('[DopplerBridge] Web page connected');
+  log.info('DopplerBridge', 'Web page connected');
 
   const portId = crypto.randomUUID();
   let nativePort: chrome.runtime.Port;
@@ -72,9 +74,9 @@ function handleWebConnection(webPort: chrome.runtime.Port): void {
   // Connect to native host
   try {
     nativePort = chrome.runtime.connectNative(NATIVE_HOST_NAME);
-    console.log('[DopplerBridge] Connected to native host');
+    log.info('DopplerBridge', 'Connected to native host');
   } catch (err) {
-    console.error('[DopplerBridge] Failed to connect to native host:', err);
+    log.error('DopplerBridge', `Failed to connect to native host: ${(err as Error).message}`);
     webPort.postMessage({
       type: 'error',
       message: `Failed to connect to native host: ${(err as Error).message}`,
@@ -97,14 +99,14 @@ function handleWebConnection(webPort: chrome.runtime.Port): void {
 
   // Handle web page disconnect
   webPort.onDisconnect.addListener(() => {
-    console.log('[DopplerBridge] Web page disconnected');
+    log.info('DopplerBridge', 'Web page disconnected');
     cleanupConnection(portId);
   });
 
   // Handle native host disconnect
   nativePort.onDisconnect.addListener(() => {
     const error = chrome.runtime.lastError;
-    console.log('[DopplerBridge] Native host disconnected:', error?.message);
+    log.warn('DopplerBridge', `Native host disconnected: ${error?.message || 'unknown'}`);
 
     // Notify web page
     try {
@@ -131,7 +133,7 @@ chrome.runtime.onConnectExternal.addListener(handleWebConnection);
 function handleWebMessage(portId: string, message: WebMessage): void {
   const conn = connections.get(portId);
   if (!conn) {
-    console.error('[DopplerBridge] No connection for port:', portId);
+    log.error('DopplerBridge', `No connection for port: ${portId}`);
     return;
   }
 
@@ -149,7 +151,7 @@ function handleWebMessage(portId: string, message: WebMessage): void {
       reqId: message.reqId,
     });
   } else {
-    console.warn('[DopplerBridge] Unknown message type from web:', (message as { type: string }).type);
+    log.warn('DopplerBridge', `Unknown message type from web: ${(message as { type: string }).type}`);
   }
 }
 
@@ -159,7 +161,7 @@ function handleWebMessage(portId: string, message: WebMessage): void {
 function handleNativeMessage(portId: string, message: NativeMessage): void {
   const conn = connections.get(portId);
   if (!conn) {
-    console.error('[DopplerBridge] No connection for port:', portId);
+    log.error('DopplerBridge', `No connection for port: ${portId}`);
     return;
   }
 
@@ -175,7 +177,7 @@ function handleNativeMessage(portId: string, message: NativeMessage): void {
       message: message.message,
     });
   } else {
-    console.warn('[DopplerBridge] Unknown message type from native:', (message as { type: string }).type);
+    log.warn('DopplerBridge', `Unknown message type from native: ${(message as { type: string }).type}`);
   }
 }
 
@@ -204,4 +206,4 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
   }
 });
 
-console.log('[DopplerBridge] Background script loaded');
+log.info('DopplerBridge', 'Background script loaded');

@@ -12,6 +12,7 @@
 import type { LoRAAdapter, LoRAModuleWeights } from '../inference/pipeline/lora-types.js';
 import type { AdapterManifest } from './adapter-manifest.js';
 import { loadLoRAWeights, type LoRALoadOptions, type LoRAWeightsResult } from './lora-loader.js';
+import { log } from '../debug/index.js';
 
 /**
  * Helper to get the length of a MaybeGPUBuffer.
@@ -602,7 +603,7 @@ export class AdapterManager {
 
           // Only Float32Array can be merged on CPU
           if (!isFloat32Array(mod.a) || !isFloat32Array(mod.b)) {
-            console.warn('[AdapterManager] Cannot merge GPUBuffer weights on CPU, skipping');
+            log.warn('AdapterManager', 'Cannot merge GPUBuffer weights on CPU, skipping');
             continue;
           }
 

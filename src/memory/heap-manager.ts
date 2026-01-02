@@ -12,6 +12,7 @@
 import { getMemoryCapabilities, type MemoryStrategy, type SegmentedLimits } from './capability.js';
 import { AddressTable } from './address-table.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { log } from '../debug/index.js';
 
 // ============================================================================
 // Constants
@@ -96,7 +97,7 @@ export class HeapManager {
     }
 
     this.initialized = true;
-    console.log(`[HeapManager] Initialized with strategy: ${this.strategy}`);
+    log.info('HeapManager', `Initialized with strategy: ${this.strategy}`);
   }
 
   /**
@@ -113,13 +114,14 @@ export class HeapManager {
         maximum: maxPages,
         // memory64: true would go here when syntax is finalized
       });
-      console.log(
-        `[HeapManager] Memory64 heap: ${initialPages} initial pages, ${maxPages} max`
+      log.info(
+        'HeapManager',
+        `Memory64 heap: ${initialPages} initial pages, ${maxPages} max`
       );
     } catch (err) {
-      console.error(
-        '[HeapManager] Memory64 init failed, falling back to segmented:',
-        err
+      log.error(
+        'HeapManager',
+        `Memory64 init failed, falling back to segmented: ${(err as Error).message}`
       );
       this.strategy = 'SEGMENTED';
       const { fallbackSegmentSizeBytes } = getRuntimeConfig().memory.segmentAllocation;
@@ -137,8 +139,9 @@ export class HeapManager {
     // Pre-allocate first segment
     this._allocateSegment();
 
-    console.log(
-      `[HeapManager] Segmented heap: ${limits.maxSegmentSize / GB}GB per segment`
+    log.info(
+      'HeapManager',
+      `Segmented heap: ${limits.maxSegmentSize / GB}GB per segment`
     );
   }
 
@@ -155,8 +158,9 @@ export class HeapManager {
         used: 0,
       };
       this.segments.push(segment);
-      console.log(
-        `[HeapManager] Allocated segment ${segment.index}: ${(segmentSize / MB).toFixed(0)}MB`
+      log.info(
+        'HeapManager',
+        `Allocated segment ${segment.index}: ${(segmentSize / MB).toFixed(0)}MB`
       );
       return segment;
     } catch (e) {
@@ -174,7 +178,7 @@ export class HeapManager {
           this.segments.push(segment);
           // Update address table's segment size for consistency
           this.addressTable!.segmentSize = size;
-          console.warn(`[HeapManager] Allocation fallback to ${size / MB}MB segment`);
+          log.warn('HeapManager', `Allocation fallback to ${size / MB}MB segment`);
           return segment;
         } catch {
           continue;

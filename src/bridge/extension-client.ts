@@ -26,6 +26,7 @@ import {
   type FlagType,
   type ListEntry,
 } from './protocol.js';
+import { log } from '../debug/index.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -314,7 +315,7 @@ export class ExtensionBridgeClient {
    */
   private _handleMessage(message: BinaryMessage): void {
     if (message.type !== 'binary' || !message.data) {
-      console.warn('[ExtensionBridge] Unexpected message type:', message.type);
+      log.warn('ExtensionBridge', `Unexpected message type: ${message.type}`);
       return;
     }
 
@@ -322,13 +323,13 @@ export class ExtensionBridgeClient {
     const data = new Uint8Array(message.data);
 
     if (data.length < HEADER_SIZE) {
-      console.error('[ExtensionBridge] Message too short');
+      log.error('ExtensionBridge', 'Message too short');
       return;
     }
 
     const header = decodeHeader(data.buffer);
     if (!header) {
-      console.error('[ExtensionBridge] Invalid message header');
+      log.error('ExtensionBridge', 'Invalid message header');
       return;
     }
 
@@ -398,7 +399,7 @@ export class ExtensionBridgeClient {
         break;
 
       default:
-        console.warn('[ExtensionBridge] Unknown command:', header.cmd);
+        log.warn('ExtensionBridge', `Unknown command: ${header.cmd}`);
     }
   }
 
@@ -419,7 +420,7 @@ export class ExtensionBridgeClient {
    */
   private _handleDisconnect(): void {
     const error = chrome.runtime?.lastError;
-    console.warn('[ExtensionBridge] Disconnected:', error?.message || 'unknown');
+    log.warn('ExtensionBridge', `Disconnected: ${error?.message || 'unknown'}`);
 
     this.port = null;
     this.status = BridgeStatus.DISCONNECTED;

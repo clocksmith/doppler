@@ -10,6 +10,7 @@
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName, type LoRAModuleWeights } from '../inference/pipeline/lora.js';
 import type { AdapterManifest, AdapterTensorSpec } from './adapter-manifest.js';
 import { validateManifest } from './adapter-manifest.js';
+import { log } from '../debug/index.js';
 
 // ============================================================================
 // Types
@@ -249,14 +250,14 @@ export async function loadLoRAWeights(
   if (manifest.checksum && !options.skipVerify) {
     const algorithm = manifest.checksumAlgorithm || 'sha256';
     if (algorithm !== 'sha256') {
-      console.warn(`[LoRA] Unsupported checksum algorithm: ${algorithm}, skipping verification`);
+      log.warn('LoRA', `Unsupported checksum algorithm: ${algorithm}, skipping verification`);
     } else if (manifest.weightsPath) {
       // Compute checksum of the weights file
       const weightsData = await fetchWithBase(manifest.weightsPath);
       const computedHash = await computeSHA256(weightsData);
       checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
       if (!checksumValid) {
-        console.warn(`[LoRA] Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+        log.warn('LoRA', `Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
       }
     } else if (manifest.tensors && manifest.tensors.length > 0) {
       // For inline tensors, compute checksum over concatenated tensor data
@@ -280,7 +281,7 @@ export async function loadLoRAWeights(
         const computedHash = await computeSHA256(combined.buffer);
         checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
         if (!checksumValid) {
-          console.warn(`[LoRA] Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+          log.warn('LoRA', `Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
         }
       }
     }
@@ -318,7 +319,7 @@ export async function loadLoRAFromManifest(
   for (const tensor of tensors) {
     const parsed = parseTensorName(tensor.name);
     if (!parsed) {
-      console.warn(`[LoRA] Skipping unrecognized tensor: ${tensor.name}`);
+      log.warn('LoRA', `Skipping unrecognized tensor: ${tensor.name}`);
       continue;
     }
 
@@ -394,7 +395,7 @@ export function applyDeltaWeights(
 
   // This is a placeholder for direct weight fusion
   // In practice, LoRA is applied dynamically during forward pass
-  console.warn('[LoRA] Direct weight fusion not implemented - use runtime application');
+  log.warn('LoRA', 'Direct weight fusion not implemented - use runtime application');
   return baseWeight;
 }
 
@@ -458,7 +459,7 @@ export async function loadLoRAFromSafetensors(
         }
       }
     } else {
-      console.warn(`[LoRA] Unsupported dtype ${tensorInfo.dtype} for tensor ${tensorName}`);
+      log.warn('LoRA', `Unsupported dtype ${tensorInfo.dtype} for tensor ${tensorName}`);
       continue;
     }
 
