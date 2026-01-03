@@ -25,15 +25,33 @@ let hintsSource: 'manifest' | 'profile' | 'runtime' | null = null;
 
 /**
  * Set kernel hints from manifest or runtime override.
+ *
+ * Higher priority sources MERGE with existing hints, not replace.
+ * This allows runtime to override specific hints while keeping defaults.
  */
 export function setKernelHints(hints: KernelHints, source: 'manifest' | 'profile' | 'runtime' = 'manifest'): void {
   // Runtime overrides everything, profile overrides manifest
   const priority = { manifest: 0, profile: 1, runtime: 2 };
-  if (!currentHints || priority[source] >= priority[hintsSource || 'manifest']) {
-    currentHints = hints;
+  const currentPriority = priority[hintsSource || 'manifest'];
+  const newPriority = priority[source];
+
+  if (!currentHints) {
+    // First hints - just set them
+    currentHints = { ...hints };
     hintsSource = source;
-    log.debug('KernelHints', `Set from ${source}: ${JSON.stringify(hints)}`);
+    log.debug('KernelHints', `Set from ${source}: ${JSON.stringify(currentHints)}`);
+  } else if (newPriority > currentPriority) {
+    // Higher priority source - MERGE new hints over existing
+    // This lets runtime override specific fields while keeping defaults
+    currentHints = { ...currentHints, ...hints };
+    hintsSource = source;
+    log.debug('KernelHints', `Merged from ${source}: ${JSON.stringify(hints)} -> ${JSON.stringify(currentHints)}`);
+  } else if (newPriority === currentPriority) {
+    // Same priority - merge (later call wins per-field)
+    currentHints = { ...currentHints, ...hints };
+    log.debug('KernelHints', `Updated from ${source}: ${JSON.stringify(currentHints)}`);
   }
+  // Lower priority hints are ignored
 }
 
 /**
