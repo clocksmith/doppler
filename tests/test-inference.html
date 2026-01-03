@@ -61,7 +61,8 @@
 
     async function run() {
       const MODEL_URL = `${BASE_URL}/${paramModel}`;
-      const prompt = 'The color of the sky is';
+      const configPrompt = runtimeOverrides.runtimeConfig?.inference?.prompt;
+      const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
 
       try {
         let pipeline;

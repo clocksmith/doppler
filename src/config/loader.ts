@@ -240,6 +240,7 @@ export function resolveConfig(
       ...presetInference.rope,
       ...manifestInference.rope,
     },
+    pipeline: manifestInference.pipeline ?? presetInference.pipeline ?? baseInference.pipeline,
   };
 
   // Merge tokenizer config
@@ -310,6 +311,7 @@ function extractInferenceFromConfig(
       finalLogitSoftcapping: config.final_logit_softcapping as number | null | undefined,
       tieWordEmbeddings: config.tie_word_embeddings as boolean | undefined,
     },
+    pipeline: config.pipeline as InferenceConfigSchema['pipeline'],
     rope: {
       ropeTheta: (config.rope_theta ?? config.ropeFreqBase) as number | undefined,
       ropeScalingType: config.rope_scaling_type as 'linear' | 'dynamic' | 'yarn' | null | undefined,
@@ -371,6 +373,7 @@ function getDefaultInferenceConfig(): Required<InferenceConfigSchema> {
       yarnBetaSlow: 1,
       yarnOriginalMaxPos: 4096,
     },
+    pipeline: null,
   };
 }
 

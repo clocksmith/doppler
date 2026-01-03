@@ -103,8 +103,12 @@ interface MemoryElements {
   heapValue: HTMLElement | null;
   gpuBar: HTMLElement | null;
   gpuValue: HTMLElement | null;
+  kvBar: HTMLElement | null;
+  kvValue: HTMLElement | null;
   opfsBar: HTMLElement | null;
   opfsValue: HTMLElement | null;
+  headroomBar: HTMLElement | null;
+  headroomValue: HTMLElement | null;
   // Stacked total bar
   heapStackedBar: HTMLElement | null;
   gpuStackedBar: HTMLElement | null;
@@ -245,12 +249,20 @@ export class DopplerDemo {
     heapValue: null,
     gpuBar: null,
     gpuValue: null,
+    kvBar: null,
+    kvValue: null,
     opfsBar: null,
     opfsValue: null,
+    headroomBar: null,
+    headroomValue: null,
     heapStackedBar: null,
     gpuStackedBar: null,
     totalValue: null,
   };
+  private memoryCapabilities: MemoryCapabilities | null = null;
+  private estimatedSystemMemoryBytes: number | null = null;
+  private gpuBufferLimitBytes: number | null = null;
+  private isUnifiedMemory = false;
 
   // Attention kernel UI
   private attentionKernelSelect: HTMLSelectElement | null = null;
@@ -313,8 +325,12 @@ export class DopplerDemo {
       heapValue: document.querySelector('#memory-heap'),
       gpuBar: document.querySelector('#memory-bar-gpu'),
       gpuValue: document.querySelector('#memory-gpu'),
+      kvBar: document.querySelector('#memory-bar-kv'),
+      kvValue: document.querySelector('#memory-kv'),
       opfsBar: document.querySelector('#memory-bar-opfs'),
       opfsValue: document.querySelector('#memory-opfs'),
+      headroomBar: document.querySelector('#memory-bar-headroom'),
+      headroomValue: document.querySelector('#memory-headroom'),
       // Stacked total bar
       heapStackedBar: document.querySelector('#memory-bar-heap-stacked'),
       gpuStackedBar: document.querySelector('#memory-bar-gpu-stacked'),
@@ -607,6 +623,7 @@ export class DopplerDemo {
 
     // Detect unified memory architecture (Apple Silicon, etc)
     const isUnifiedMemory = this._isUnifiedMemoryArchitecture(info);
+    this.isUnifiedMemory = isUnifiedMemory;
 
     // System RAM (for unified memory systems)
     // Note: navigator.deviceMemory caps at 8GB for privacy
@@ -614,13 +631,20 @@ export class DopplerDemo {
     const urlParams = new URLSearchParams(window.location.search);
     const ramOverride = urlParams.get('ram');
     const deviceMemoryGB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const GB = 1024 * 1024 * 1024;
     if (isUnifiedMemory && this.gpuElements.ramRow && this.gpuElements.ram) {
       if (ramOverride) {
+        const parsedOverride = Number.parseFloat(ramOverride);
+        if (Number.isFinite(parsedOverride)) {
+          this.estimatedSystemMemoryBytes = parsedOverride * GB;
+        }
         this.gpuElements.ram.textContent = `${ramOverride} GB`;
       } else if (deviceMemoryGB && deviceMemoryGB >= 8) {
         // 8GB is the max reported, actual RAM is likely higher
+        this.estimatedSystemMemoryBytes = deviceMemoryGB * GB;
         this.gpuElements.ram.textContent = '8+ GB';
       } else if (deviceMemoryGB) {
+        this.estimatedSystemMemoryBytes = deviceMemoryGB * GB;
         this.gpuElements.ram.textContent = `${deviceMemoryGB} GB`;
       } else {
         this.gpuElements.ram.textContent = 'Unknown';
@@ -633,6 +657,7 @@ export class DopplerDemo {
     const maxBufferSize = limits.maxBufferSize || 0;
     const maxStorageSize = limits.maxStorageBufferBindingSize || 0;
     const bufferLimit = Math.max(maxBufferSize, maxStorageSize);
+    this.gpuBufferLimitBytes = bufferLimit > 0 ? bufferLimit : null;
     if (bufferLimit > 0) {
       this.gpuElements.vram!.textContent = this._formatBytes(bufferLimit);
     } else {
@@ -703,7 +728,8 @@ export class DopplerDemo {
     if (!this.memoryElements.heapBar) return;
 
     let usedHeap = 0;
-    let usedGpu = 0;
+    let usedGpuPool = 0;
+    let usedKv = 0;
     let totalLimit = 0;
 
     // JS Heap (from performance.memory if available - Chrome only)
@@ -725,22 +751,42 @@ export class DopplerDemo {
     }
 
     // GPU buffer usage (from buffer pool)
+    let poolStats: { peakBytesAllocated?: number; currentBytesAllocated?: number } | null = null;
     try {
       const bufferPool = getBufferPool();
-      const poolStats = bufferPool.getStats();
-      usedGpu = poolStats.currentBytesAllocated || 0;
-      // Use peak as a rough limit, or device max buffer size
-      const gpuLimit = Math.max(poolStats.peakBytesAllocated, 4 * 1024 * 1024 * 1024); // At least 4GB scale
-      const gpuPercent = Math.min(100, (usedGpu / gpuLimit) * 100);
-
-      this.memoryElements.gpuBar!.style.width = `${gpuPercent}%`;
-      this.memoryElements.gpuValue!.textContent = this._formatBytes(usedGpu);
-
-      // Use GPU limit for total if larger than heap limit
-      if (gpuLimit > totalLimit) totalLimit = gpuLimit;
+      poolStats = bufferPool.getStats();
+      usedGpuPool = poolStats.currentBytesAllocated || 0;
     } catch {
       this.memoryElements.gpuValue!.textContent = '--';
     }
+
+    // KV cache usage (if pipeline exposes it)
+    if (this.pipeline && typeof (this.pipeline as Pipeline & { getMemoryStats?: () => { kvCache?: { allocated?: number } } }).getMemoryStats === 'function') {
+      const memStats = (this.pipeline as Pipeline & { getMemoryStats: () => { kvCache?: { allocated?: number } } }).getMemoryStats();
+      if (memStats?.kvCache?.allocated) {
+        usedKv = memStats.kvCache.allocated;
+      }
+    }
+
+    const usedGpuTotal = usedGpuPool + usedKv;
+    const minGpuLimit = 4 * 1024 * 1024 * 1024;
+    const peakBytes = poolStats?.peakBytesAllocated || 0;
+    const gpuLimit = this.gpuBufferLimitBytes || Math.max(peakBytes, usedGpuTotal, minGpuLimit);
+    const gpuPercent = Math.min(100, (usedGpuTotal / gpuLimit) * 100);
+
+    if (this.memoryElements.gpuBar && this.memoryElements.gpuValue) {
+      this.memoryElements.gpuBar.style.width = `${gpuPercent}%`;
+      this.memoryElements.gpuValue.textContent = this._formatBytes(usedGpuTotal);
+    }
+
+    if (this.memoryElements.kvBar && this.memoryElements.kvValue) {
+      const kvPercent = Math.min(100, (usedKv / gpuLimit) * 100);
+      this.memoryElements.kvBar.style.width = `${kvPercent}%`;
+      this.memoryElements.kvValue.textContent = usedKv > 0 ? this._formatBytes(usedKv) : '--';
+    }
+
+    // Use GPU limit for total if larger than heap limit
+    if (gpuLimit > totalLimit) totalLimit = gpuLimit;
 
     // OPFS cache storage (async, but we'll update on next cycle)
     if (this.memoryElements.opfsBar && this.memoryElements.opfsValue) {
@@ -758,11 +804,11 @@ export class DopplerDemo {
 
     // Update stacked total bar
     if (this.memoryElements.heapStackedBar && this.memoryElements.gpuStackedBar) {
-      const totalUsed = usedHeap + usedGpu;
+      const totalUsed = usedHeap + usedGpuTotal;
       // Calculate percentages relative to combined limit (or reasonable max)
       const combinedLimit = Math.max(totalLimit, 8 * 1024 * 1024 * 1024); // At least 8GB scale
       const heapStackedPercent = Math.min(50, (usedHeap / combinedLimit) * 100);
-      const gpuStackedPercent = Math.min(50, (usedGpu / combinedLimit) * 100);
+      const gpuStackedPercent = Math.min(50, (usedGpuTotal / combinedLimit) * 100);
 
       this.memoryElements.heapStackedBar.style.width = `${heapStackedPercent}%`;
       this.memoryElements.gpuStackedBar.style.width = `${gpuStackedPercent}%`;
@@ -784,7 +830,35 @@ export class DopplerDemo {
           this.swapIndicator.hidden = true;
         }
       }
+
+      if (this.memoryElements.headroomValue && this.memoryElements.headroomBar) {
+        const estimatedTotal = this._getEstimatedSystemMemoryBytes();
+        const headroomBytes = this._estimateHeadroomBytes(totalUsed, estimatedTotal);
+        if (headroomBytes === null || !estimatedTotal) {
+          this.memoryElements.headroomValue.textContent = '--';
+          this.memoryElements.headroomBar.style.width = '0%';
+        } else {
+          const headroomPercent = Math.min(100, (headroomBytes / estimatedTotal) * 100);
+          this.memoryElements.headroomValue.textContent = this._formatBytes(headroomBytes);
+          this.memoryElements.headroomBar.style.width = `${headroomPercent}%`;
+        }
+      }
     }
+  }
+
+  private _getEstimatedSystemMemoryBytes(): number | null {
+    if (this.estimatedSystemMemoryBytes) {
+      return this.estimatedSystemMemoryBytes;
+    }
+    const estimatedGB = this.memoryCapabilities?.unifiedMemoryInfo?.estimatedMemoryGB;
+    return estimatedGB ? estimatedGB * 1024 * 1024 * 1024 : null;
+  }
+
+  private _estimateHeadroomBytes(totalUsedBytes: number, estimatedTotalBytes: number | null): number | null {
+    if (!this.isUnifiedMemory || !estimatedTotalBytes) {
+      return null;
+    }
+    return Math.max(0, estimatedTotalBytes - totalUsedBytes);
   }
 
   /**
@@ -1111,6 +1185,13 @@ export class DopplerDemo {
       const device = getDevice() || (await initDevice());
       const gpuCaps = getKernelCapabilities();
       const memCaps = await getMemoryCapabilities();
+      this.memoryCapabilities = memCaps;
+      if (!this.estimatedSystemMemoryBytes && memCaps.unifiedMemoryInfo.estimatedMemoryGB) {
+        this.estimatedSystemMemoryBytes = memCaps.unifiedMemoryInfo.estimatedMemoryGB * 1024 * 1024 * 1024;
+      }
+      if (memCaps.isUnifiedMemory) {
+        this.isUnifiedMemory = true;
+      }
       const heapManager = getHeapManager();
       await heapManager.init();
 

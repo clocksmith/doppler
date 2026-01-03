@@ -36,6 +36,8 @@ import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, ty
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
 import { runProbes } from './probes.js';
+import type { CompiledLayerPipeline } from './layer-plan.js';
+import { getLayerPlanSteps } from './layer-plan.js';
 import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
@@ -66,6 +68,8 @@ export interface LayerContext {
   debug: boolean;
   /** Config-driven probes */
   debugProbes?: ProbeConfigSchema[];
+  /** Optional layer pipeline plan (JSON-configured) */
+  pipelinePlan?: CompiledLayerPipeline | null;
   /** RoPE frequency buffers (global for full_attention layers) */
   ropeFreqsCos: GPUBuffer | Float32Array | null;
   ropeFreqsSin: GPUBuffer | Float32Array | null;
@@ -462,6 +466,10 @@ export async function processLayerGPU(
   const sandwichNorm = detectSandwichNorm(layerWeights);
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
+  if (context.pipelinePlan) {
+    return processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm);
+  }
+
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     logKernelStep('layer', { layerIdx, label: `seqLen=${numTokens} prefill=${isPrefill}` });
     await dumpTokenVector(inputBuffer, 'layer_in', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
@@ -645,6 +653,292 @@ export async function processLayerGPU(
   } else {
     return processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
   }
+}
+
+// ============================================================================
+// Configurable Layer Pipeline (JSON-Driven)
+// ============================================================================
+
+function resolveNormWeightForPlan(
+  weight: 'input' | 'post_attention' | 'post_attn' | 'pre_ffn' | 'post_ffn',
+  layerWeights: LayerWeights | undefined
+): GPUBuffer | Float32Array | null {
+  if (!layerWeights) return null;
+  switch (weight) {
+    case 'input':
+      return layerWeights.inputNorm;
+    case 'post_attention':
+      return layerWeights.postAttentionNorm ?? layerWeights.postAttnNorm ?? null;
+    case 'post_attn':
+      return layerWeights.postAttnNorm ?? layerWeights.postAttentionNorm ?? null;
+    case 'pre_ffn':
+      return layerWeights.preFeedforwardNorm ?? null;
+    case 'post_ffn':
+      return layerWeights.postFeedforwardNorm ?? null;
+    default:
+      return null;
+  }
+}
+
+async function processLayerPlanGPU(
+  layerIdx: number,
+  inputBuffer: GPUBuffer,
+  numTokens: number,
+  isPrefill: boolean,
+  size: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | undefined,
+  sandwichNorm: SandwichNormInfo
+): Promise<GPUBuffer> {
+  const { config, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, attentionKernelOverride, recorder } = context;
+  const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
+
+  if (!context.pipelinePlan) {
+    throw new Error('Layer pipeline plan missing from context');
+  }
+
+  const steps = getLayerPlanSteps(context.pipelinePlan, layerIdx);
+  const device = getDevice();
+  if (!device) throw new Error('No GPU device available');
+
+  const layerType = config.layerTypes?.[layerIdx];
+  const isLocalLayer = layerType === 'sliding_attention';
+  const attnState: AttentionState = {
+    ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
+      ? context.ropeLocalCos as GPUBuffer | null
+      : ropeFreqsCos as GPUBuffer | null,
+    ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
+      ? context.ropeLocalSin as GPUBuffer | null
+      : ropeFreqsSin as GPUBuffer | null,
+    kvCache: kvCache as unknown as import('./types.js').KVCacheInterface,
+  };
+
+  const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
+
+  const slots = new Map<string, GPUBuffer>();
+  const refCounts = new Map<GPUBuffer, number>();
+  const protectedBuffers = new Set<GPUBuffer>([inputBuffer]);
+
+  const addRef = (buf: GPUBuffer): void => {
+    refCounts.set(buf, (refCounts.get(buf) ?? 0) + 1);
+  };
+  const releaseRef = (buf: GPUBuffer): void => {
+    const next = (refCounts.get(buf) ?? 0) - 1;
+    if (next > 0) {
+      refCounts.set(buf, next);
+      return;
+    }
+    refCounts.delete(buf);
+    if (protectedBuffers.has(buf)) return;
+    if (recorder) {
+      recorder.trackTemporaryBuffer(buf);
+    } else {
+      releaseBuffer(buf);
+    }
+  };
+  const getSlot = (name: string): GPUBuffer => {
+    const key = name.trim() || 'state';
+    const buf = slots.get(key);
+    if (!buf) {
+      throw new Error(`Layer pipeline missing slot "${key}" at L${layerIdx}`);
+    }
+    return buf;
+  };
+  const setSlot = (name: string, buf: GPUBuffer): void => {
+    const key = name.trim() || 'state';
+    const prev = slots.get(key);
+    if (prev && prev !== buf) {
+      releaseRef(prev);
+    }
+    slots.set(key, buf);
+    addRef(buf);
+  };
+  const clearSlot = (name: string): void => {
+    const key = name.trim() || 'state';
+    const prev = slots.get(key);
+    if (!prev) return;
+    slots.delete(key);
+    releaseRef(prev);
+  };
+
+  setSlot('state', inputBuffer);
+
+  // Helper to clean up all slots except 'state' (used in finally for exception safety)
+  const cleanupSlots = (): void => {
+    for (const [name, buf] of slots) {
+      if (name === 'state' || protectedBuffers.has(buf)) continue;
+      const refs = refCounts.get(buf) ?? 0;
+      if (refs > 0) {
+        refCounts.delete(buf);
+        if (recorder) {
+          recorder.trackTemporaryBuffer(buf);
+        } else {
+          releaseBuffer(buf);
+        }
+      }
+    }
+  };
+
+  try {
+    for (const step of steps) {
+      switch (step.op) {
+        case 'save': {
+          const src = getSlot(step.src);
+          setSlot(step.name!, src);
+          break;
+        }
+        case 'load': {
+          const src = getSlot(step.name!);
+          setSlot(step.dst, src);
+          break;
+        }
+        case 'attention': {
+          const src = getSlot(step.src);
+          const residual = step.residual ? getSlot(step.residual) : null;
+          const residualBuffer = residual && allowResidualFuse ? residual : null;
+
+          const attnConfig: AttentionConfig = {
+            layerIdx,
+            numTokens,
+            isPrefill,
+            numHeads,
+            numKVHeads,
+            headDim,
+            hiddenSize,
+            rmsNormEps,
+            currentSeqLen: context.currentSeqLen,
+            slidingWindow: config.slidingWindow,
+            layerType,
+            attentionKernelOverride,
+            residualBuffer,
+            attnSoftcap: config.attnLogitSoftcapping ?? 0,
+            queryPreAttnScalar: config.queryPreAttnScalar,
+            skipInputNorm: step.skipInputNorm === true,
+          };
+
+          const result = await doAttention(
+            src,
+            layerWeights ?? null,
+            attnConfig,
+            attnState,
+            context.debug,
+            {},
+            (weight, label) => getWeightBuffer(weight, label),
+            (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+            recorder,
+            context.lora
+          );
+
+          setSlot(step.dst, result.output);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, result.output, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'rmsnorm': {
+          const src = getSlot(step.src);
+          const weight = resolveNormWeightForPlan(step.weight!, layerWeights);
+          if (!weight) {
+            throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
+          }
+          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
+          const residual = step.residual ? getSlot(step.residual) : null;
+          const output = await doRMSNorm(src, normWeightBuf, rmsNormEps, {
+            batchSize: numTokens,
+            hiddenSize,
+            residual,
+            label: `L${layerIdx}.rmsnorm_${step.weight}`,
+            layerIdx,
+          }, recorder);
+          if (!(weight instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+          setSlot(step.dst, output);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, output, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'ffn': {
+          const src = getSlot(step.src);
+          let output: GPUBuffer;
+          const useMoe = step.variant === 'moe'
+            || (step.variant === 'auto' && config.useMoE && isMoELayer(layerIdx, config, layerWeights));
+          if (useMoe) {
+            output = await runMoEFFNGPU(layerIdx, src, numTokens, context);
+          } else {
+            output = await runDenseFFNGPU(layerIdx, src, numTokens, context, layerWeights);
+          }
+          setSlot(step.dst, output);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, output, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'residual_add': {
+          const a = getSlot(step.a ?? 'state');
+          const b = getSlot(step.b ?? 'residual');
+          const output = await doResidualAdd(a, b, size, recorder, {
+            label: `L${layerIdx}.residual_add`,
+            layerIdx,
+          });
+          setSlot(step.dst, output);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, output, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'noop':
+          break;
+        default:
+          throw new Error(`Unknown layer pipeline op "${step.op}" at L${layerIdx}`);
+      }
+    }
+
+    // Normal cleanup: release all slots except 'state'
+    for (const name of Array.from(slots.keys())) {
+      if (name !== 'state') {
+        clearSlot(name);
+      }
+    }
+  } catch (err) {
+    // On error, clean up all allocated buffers to prevent leaks
+    cleanupSlots();
+    throw err;
+  }
+
+  const output = getSlot('state');
+  await runProbes('layer_out', output, {
+    layerIdx,
+    numTokens,
+    hiddenSize,
+    probes: context.debugProbes,
+    recorder,
+  });
+
+  return output;
 }
 
 /**

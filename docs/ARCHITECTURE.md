@@ -240,6 +240,59 @@ The core generate loop:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+**Layer Pipeline Plans (experimental):**
+
+The default layer order is fixed and optimized in `src/inference/pipeline/layer.ts`. For advanced experimentation, you can supply a JSON plan under `inference.pipeline` (model preset) or `runtime.inference.pipeline` (runtime override) to reorder or skip layer steps. The plan executes via a small interpreter and is slower than the default path.
+
+Example (LLaMA-style residuals):
+
+```json
+{
+  "inference": {
+    "pipeline": {
+      "steps": [
+        { "op": "save", "name": "residual" },
+        { "op": "attention" },
+        { "op": "residual_add", "a": "state", "b": "residual" },
+        { "op": "save", "name": "residual" },
+        { "op": "rmsnorm", "weight": "post_attn" },
+        { "op": "ffn" },
+        { "op": "residual_add", "a": "state", "b": "residual" }
+      ]
+    }
+  }
+}
+```
+
+**Norm weight names** (canonical):
+- `input` - input layernorm
+- `post_attn` - post-attention norm (preferred; `post_attention` is deprecated)
+- `pre_ffn` - pre-feedforward norm (Gemma 2/3 sandwich)
+- `post_ffn` - post-feedforward norm (Gemma 2/3 sandwich)
+
+**Skipping operations:**
+- To skip input norm in attention: `{ "op": "attention", "skipInputNorm": true }`
+- To skip FFN entirely: omit the `ffn` step, or use `{ "op": "noop" }` as placeholder
+- Per-layer overrides can provide different step lists for specific layers
+
+Example (skip FFN on layer 0):
+```json
+{
+  "steps": [
+    { "op": "save", "name": "residual" },
+    { "op": "attention" },
+    { "op": "residual_add", "a": "state", "b": "residual" }
+  ],
+  "overrides": [
+    { "layers": [0], "steps": [
+      { "op": "attention" }
+    ]}
+  ]
+}
+```
+
+**Runtime presets:** See `src/config/presets/runtime/gemma2-pipeline.json` for a complete Gemma 2 example.
+
 ### multi-pipeline-pool.ts - Concurrent Pipelines
 
 Manages a pool of inference pipelines to run multiple requests in parallel.

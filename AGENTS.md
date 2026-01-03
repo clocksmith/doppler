@@ -85,6 +85,11 @@ npm run bench -- --config ./my-config.json   # Use file
 - Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
 - Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is deprecated but mapped for back-compat in `src/config/runtime.ts`.
 
+**Layer Pipeline Plans (experimental):**
+- Model presets may define `inference.pipeline` to drive per-layer step order.
+- Runtime overrides can supply `runtime.inference.pipeline` for ad-hoc experiments.
+- When unset, DOPPLER uses the optimized hardcoded layer path.
+
 **Development Guide:**
 
 Configs are the development interface. Change behavior without editing source files.
@@ -113,6 +118,18 @@ trace.kernels(`matmul M=${M} N=${N}`);
 
 Exceptions: `tools/`, `kernel-tests/`, and one-time startup messages in `src/gpu/device.ts`.
 Also acceptable: CLI entry points (`cli/`, `serve.ts`, `src/converter/node-converter.ts`) for direct terminal output.
+
+### Debug Probes
+
+Prefer config-driven probes over ad-hoc readbacks:
+
+- `runtime.debug.probes` targets specific tokens/dims without code edits.
+- Use `logits_final` probes for post-softcap comparisons on Gemma 2/3.
+
+### Quantization Naming
+
+- Manifests can include `quantizationInfo` with per-group precision (weights vs embeddings).
+- Converter default modelId suffix: `w<weights>-emb<embeddings>` (override with `--model-id`).
 
 ### Guardrails
 - Handle GPU device loss gracefully

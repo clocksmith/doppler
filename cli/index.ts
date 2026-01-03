@@ -173,6 +173,7 @@ function parseArgs(argv: string[]): CLIOptions {
     maxTokens: 8,
     temperature: 0.7,
     prompt: 'medium',
+    promptProvided: false,
     text: null,
     file: null,
     compare: null,
@@ -326,6 +327,7 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--prompt':
       case '-p':
         opts.prompt = tokens.shift() || 'medium';
+        opts.promptProvided = true;
         break;
       case '--compare':
       case '-c':
@@ -482,6 +484,19 @@ function appendKernelOverrideParams(params: URLSearchParams, opts: CLIOptions): 
 function appendRuntimeConfigParams(params: URLSearchParams, opts: CLIOptions): void {
   if (opts.runtimeConfig) {
     params.set('runtimeConfig', JSON.stringify(opts.runtimeConfig));
+  }
+}
+
+function resolvePromptOverride(opts: CLIOptions): string | null {
+  if (opts.text) return opts.text;
+  if (opts.promptProvided) return opts.prompt;
+  return null;
+}
+
+function appendPromptParams(params: URLSearchParams, opts: CLIOptions): void {
+  const prompt = resolvePromptOverride(opts);
+  if (prompt) {
+    params.set('prompt', prompt);
   }
 }
 
@@ -1271,6 +1286,7 @@ async function runInferenceTest(
 
   const testParams = new URLSearchParams();
   testParams.set('model', opts.model);
+  appendPromptParams(testParams, opts);
   testParams.set('autorun', '1');
   appendKernelOverrideParams(testParams, opts);
   appendRuntimeConfigParams(testParams, opts);
@@ -1894,6 +1910,12 @@ async function main(): Promise<void> {
       if (runtime.inference?.sampling?.temperature !== undefined) opts.temperature = runtime.inference.sampling.temperature;
       if (runtime.inference?.batching?.maxTokens !== undefined) opts.maxTokens = runtime.inference.batching.maxTokens;
 
+      // Apply kernel hints from config (can be overridden by CLI flags)
+      const configKernelHints = (loadedConfig.raw.runtime as Record<string, unknown> | undefined)?.kernelHints as KernelHints | undefined;
+      if (configKernelHints) {
+        opts.kernelHints = { ...configKernelHints, ...opts.kernelHints };
+      }
+
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
       const cli = loadedConfig.raw.cli as Record<string, unknown> | undefined;
       if (cli) {
@@ -1995,6 +2017,7 @@ async function main(): Promise<void> {
       // Navigate to debug page with params - unified CLI → URL mapping
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
+      appendPromptParams(debugParams, opts);
 
       // Debug mode: default to all trace categories and verbose logging
       debugParams.set('log', 'verbose');

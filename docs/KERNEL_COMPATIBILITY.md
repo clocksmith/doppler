@@ -4,16 +4,32 @@ This chart separates **packing/layout** (how weights are stored in RDRR) from **
 
 ## Runtime Kernel Modes (Overrides)
 
-Use CLI overrides to force runtime kernel mode (without repacking):
+Use CLI overrides or config files to force runtime kernel mode (without repacking):
 
 ```bash
-# Shorthand: force Q4K fused matmul
-doppler bench inference --model gemma-1b-q4-row --force-fused-q4k
+# Via config file (recommended for reproducibility)
+npm run bench -- -m MODEL --config kernel-config.json
 
-# JSON kernel hints (merged with flags)
-doppler bench inference --model gemma-1b-q4-row \
-  --kernel-hints '{"q4kMatmul":"fused_q4k","computePrecision":"f16"}'
+# Shorthand CLI flag
+npm run bench -- -m MODEL --force-fused-q4k
+
+# JSON kernel hints via CLI (merged with config/flags)
+npm run bench -- -m MODEL --kernel-hints '{"q4kMatmul":"fused_q4k","computePrecision":"f16"}'
 ```
+
+Example `kernel-config.json`:
+```json
+{
+  "runtime": {
+    "kernelHints": {
+      "q4kMatmul": "fused_q4k",
+      "computePrecision": "f16"
+    }
+  }
+}
+```
+
+Priority (low to high): config file → `--kernel-hints` JSON → individual CLI flags (e.g., `--force-fused-q4k`).
 
 Supported runtime hints:
 - `computePrecision`: `auto | f16 | f32`

@@ -1,0 +1,23 @@
+{
+  "name": "gemma2-pipeline",
+  "description": "Gemma 2 explicit layer pipeline (all norms as separate steps)",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "pipeline": {
+        "steps": [
+          { "op": "save", "name": "residual" },
+          { "op": "rmsnorm", "weight": "input" },
+          { "op": "attention", "skipInputNorm": true },
+          { "op": "rmsnorm", "weight": "post_attn" },
+          { "op": "residual_add", "a": "state", "b": "residual" },
+          { "op": "save", "name": "residual" },
+          { "op": "rmsnorm", "weight": "pre_ffn" },
+          { "op": "ffn" },
+          { "op": "rmsnorm", "weight": "post_ffn" },
+          { "op": "residual_add", "a": "state", "b": "residual" }
+        ]
+      }
+    }
+  }
+}

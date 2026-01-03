@@ -57,6 +57,8 @@ export interface AttentionConfig {
   attentionKernelOverride?: string | null;
   /** Residual buffer for fused o_proj + residual add (decode only) */
   residualBuffer?: GPUBuffer | null;
+  /** Skip input RMSNorm even if weights are present */
+  skipInputNorm?: boolean;
   /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
   attnSoftcap?: number;
   /** Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16). */
@@ -132,6 +134,7 @@ export async function runLayerAttentionGPU(
     residualBuffer,
     attnSoftcap = 0,
     queryPreAttnScalar,
+    skipInputNorm = false,
   } = config;
 
   const device = getDevice();
@@ -149,7 +152,7 @@ export async function runLayerAttentionGPU(
 
   // 1. Input norm
   let normedBuffer = inputBuffer;
-  if (layerWeights.inputNorm && getNormWeightBuffer) {
+  if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
 
     normedBuffer = await runRMSNorm(inputBuffer, normWeightBuf, rmsNormEps, {
@@ -613,6 +616,7 @@ export async function recordLayerAttentionGPU(
     residualBuffer,
     attnSoftcap = 0,
     queryPreAttnScalar,
+    skipInputNorm = false,
   } = config;
 
   if (!layerWeights) {
@@ -625,7 +629,7 @@ export async function recordLayerAttentionGPU(
 
   // 1. Input norm
   let normedBuffer = inputBuffer;
-  if (layerWeights.inputNorm && getNormWeightBuffer) {
+  if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     normedBuffer = await recordRMSNorm(recorder, inputBuffer, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,

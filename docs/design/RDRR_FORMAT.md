@@ -68,6 +68,12 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
   "modelId": "gemma-2-2b-it-q4",
   "modelType": "transformer",
   "quantization": "Q4_K_M",
+  "quantizationInfo": {
+    "weights": "q4_k_m",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "variantTag": "wq4_k_m-embf16"
+  },
   "hashAlgorithm": "sha256",
   "architecture": {
     "numLayers": 26,
@@ -196,6 +202,32 @@ Tensor locations are stored in a separate `tensors.json` file:
 | `layout` | string? | `"row"` (default) or `"column"` (pre-transposed) |
 | `spans` | array? | For multi-shard tensors (see below) |
 
+### Quantization Metadata (Optional)
+
+`quantizationInfo` provides structured precision details per weight group so
+embeddings and lm_head can be distinguished from core weights.
+
+```json
+{
+  "quantizationInfo": {
+    "weights": "q4_k_m",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "variantTag": "wq4_k_m-embf16"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `weights` | string | Quantization for main weights (`q4_k_m`, `f16`, etc.) |
+| `embeddings` | string? | Quantization for embedding table |
+| `lmHead` | string? | Quantization for LM head (if different from embeddings) |
+| `activations` | string? | Activation precision (optional) |
+| `kvCache` | string? | KV cache dtype (optional) |
+| `compute` | string? | Compute precision hint (optional) |
+| `variantTag` | string? | Canonical name suffix (`wq4_k_m-embf16`) used by converter defaults |
+
 ### Multi-Shard Tensors
 
 For tensors spanning multiple shards, use the `spans` field:
@@ -223,6 +255,7 @@ For tensors spanning multiple shards, use the `spans` field:
 |-------|------|-------------|
 | `tokenizer` | object | Tokenizer configuration |
 | `moeConfig` | object | Mixture-of-experts configuration |
+| `quantizationInfo` | object | Structured quantization metadata (weights vs embeddings) |
 | `runtimeOptimizations` | object | Hints for kernel selection |
 | `blake3Full` | string | Full-model BLAKE3 hash |
 | `adapterType` | string | Adapter type (e.g. `lora`) |

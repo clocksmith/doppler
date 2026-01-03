@@ -221,6 +221,8 @@ function mergeRuntimeConfig(
           batching: { ...base.inference.batching, ...overrides.inference.batching },
           sampling: { ...base.inference.sampling, ...overrides.inference.sampling },
           tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer },
+          prompt: overrides.inference.prompt ?? base.inference.prompt,
+          pipeline: overrides.inference.pipeline ?? base.inference.pipeline,
         }
       : { ...base.inference },
     kvcache: { ...base.kvcache, ...overrides.kvcache },

@@ -21,7 +21,7 @@ import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
 import { DecodeBufferManager } from './decode-buffers.js';
 import { Tokenizer } from './tokenizer.js';
 import { getDevice, setTrackSubmits } from '../gpu/device.js';
-import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
+import { getBufferPool as getGlobalBufferPool, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
 import { recordCheckStop } from '../gpu/kernels/check-stop.js';
 import { recordGather } from '../gpu/kernels/gather.js';
@@ -60,6 +60,7 @@ import { processLayer, type LayerContext } from './pipeline/layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
+import { resolveLayerPipeline, type CompiledLayerPipeline } from './pipeline/layer-plan.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
 import type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult } from './pipeline/types.js';
@@ -222,6 +223,8 @@ export class InferencePipeline {
 
   // Debug
   debug = false;
+  // Optional layer pipeline plan (JSON-configured)
+  layerPipelinePlan: CompiledLayerPipeline | null = null;
 
   // Tied embeddings
   useTiedEmbeddings = false;
@@ -287,6 +290,7 @@ export class InferencePipeline {
   async loadModel(manifest: Manifest): Promise<void> {
     this.manifest = manifest;
     this.modelConfig = parseModelConfig(manifest);
+    this._resolveLayerPipeline();
 
     if (manifest.optimizations?.debug || manifest.runtime?.debug) this.debug = true;
 
@@ -1291,28 +1295,34 @@ export class InferencePipeline {
       stagingBuffer.unmap();
       stagingBuffer.destroy();
 
-      // DEBUG: Log every token for debugging
       log.debug('Decode', `Step ${this._decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
-      // DEBUG: Check for invalid or suspicious token IDs
+      // Check for invalid or suspicious token IDs
       if (nextToken > config.vocabSize || nextToken === 0) {
         log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
-        // Read logits to check their values
         if (allowReadback('pipeline.decode.debug-logits')) {
-          const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
-          const logitArr = new Float32Array(logitSample);
-          const maxLogit = Math.max(...logitArr);
-          const minLogit = Math.min(...logitArr);
-          const hasNaN = logitArr.some(v => isNaN(v));
-          const hasInf = logitArr.some(v => !isFinite(v));
-          // Find argmax manually
-          let argmaxIdx = 0, argmaxVal = logitArr[0];
-          for (let i = 1; i < logitArr.length; i++) {
-            if (logitArr[i] > argmaxVal) { argmaxVal = logitArr[i]; argmaxIdx = i; }
+          try {
+            const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
+            const logitArr = new Float32Array(logitSample);
+            const maxLogit = Math.max(...logitArr);
+            const minLogit = Math.min(...logitArr);
+            const hasNaN = logitArr.some((v) => Number.isNaN(v));
+            const hasInf = logitArr.some((v) => !Number.isFinite(v));
+            // Find argmax manually
+            let argmaxIdx = 0;
+            let argmaxVal = logitArr[0];
+            for (let i = 1; i < logitArr.length; i++) {
+              if (logitArr[i] > argmaxVal) {
+                argmaxVal = logitArr[i];
+                argmaxIdx = i;
+              }
+            }
+            log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+            log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map((v) => v.toFixed(4)).join(', ')}`);
+            log.warn('Decode', `Logit[0] (pad): ${logitArr[0].toFixed(4)}, Logit[${argmaxIdx}]: ${argmaxVal.toFixed(4)}`);
+          } catch (e) {
+            log.warn('Decode', `Failed to read logits: ${(e as Error).message}`);
           }
-          log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
-          log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map(v => v.toFixed(4)).join(', ')}`);
-          log.warn('Decode', `Logits[0..3]: ${Array.from(logitArr.slice(0, 4)).map(v => v.toFixed(4)).join(', ')}`);
         }
       }
 
@@ -1518,6 +1528,8 @@ export class InferencePipeline {
     // Record N decode iterations
     for (let i = 0; i < N; i++) {
       const currentPos = this.currentSeqLen + i;
+      // Update context position for each iteration so layers use correct KV cache slot and RoPE position
+      context.currentSeqLen = currentPos;
 
       // 1. Embed: Read tokenBuffers[i] → hidden states
       let hiddenStates = await recordGather(
@@ -1709,6 +1721,7 @@ export class InferencePipeline {
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this._debugFlags,
       debugProbes: this.runtimeConfig.debug.probes,
+      pipelinePlan: this.layerPipelinePlan,
       expertWeights: this.expertWeights,
       expertLoader: this.dopplerLoader as ExpertLoader | null,
       moeRouter: this.moeRouter,
@@ -1718,6 +1731,19 @@ export class InferencePipeline {
       // Pass decode buffers only during decode mode (M=1)
       decodeBuffers: isDecodeMode && this.decodeBufferManager.hasBuffers() ? this.decodeBufferManager : null,
     };
+  }
+
+  private _resolveLayerPipeline(): void {
+    if (!this.modelConfig) return;
+    const runtimePlan = this.runtimeConfig.inference.pipeline ?? null;
+    const modelPlan = this.modelConfig.layerPipeline ?? null;
+    this.layerPipelinePlan = resolveLayerPipeline(modelPlan, runtimePlan, this.modelConfig.numLayers);
+    if (this.layerPipelinePlan) {
+      log.info(
+        'Pipeline',
+        `Layer pipeline plan enabled (source=${this.layerPipelinePlan.source}, steps=${this.layerPipelinePlan.steps.length}, overrides=${this.layerPipelinePlan.overrides.length})`
+      );
+    }
   }
 
   private _getWeightBufferConfig(): WeightBufferConfig {
@@ -1760,6 +1786,48 @@ export class InferencePipeline {
 
   getBatchingStats(): BatchingStats {
     return { ...this.batchingStats };
+  }
+
+  getMemoryStats(): {
+    used: number;
+    pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number };
+    kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number };
+  } {
+    const stats: {
+      used: number;
+      pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number };
+      kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number };
+    } = { used: 0 };
+
+    try {
+      const poolStats = getGlobalBufferPool().getStats();
+      stats.pool = poolStats;
+      stats.used += poolStats.currentBytesAllocated || 0;
+    } catch {
+      // Buffer pool not initialized yet.
+    }
+
+    if (this.kvCache) {
+      const kvStats = this.kvCache.getMemoryStats();
+      stats.kvCache = kvStats;
+      stats.used += kvStats.allocated || 0;
+    }
+
+    return stats;
+  }
+
+  getKVCacheStats(): { seqLen: number; maxSeqLen: number } | null {
+    if (!this.kvCache) return null;
+    const { seqLen, maxSeqLen } = this.kvCache.getMemoryStats();
+    return { seqLen, maxSeqLen };
+  }
+
+  getBufferPool(): ReturnType<typeof getGlobalBufferPool> | null {
+    try {
+      return getGlobalBufferPool();
+    } catch {
+      return null;
+    }
   }
 
   async unload(): Promise<void> {

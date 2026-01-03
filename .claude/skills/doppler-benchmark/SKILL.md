@@ -23,6 +23,9 @@ Use this skill to measure DOPPLER inference performance.
 # Quick benchmark - single run
 npm run bench -- -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|GPU Submits"
 
+# Fix decode length for apples-to-apples comparisons
+npm run bench -- -m MODEL --max-tokens 64 --runs 3
+
 # Multiple runs for statistical confidence (recommended)
 npm run bench -- -m MODEL --runs 3 2>&1 | sed '/Benchmark complete/q'
 
@@ -87,6 +90,36 @@ Or create a custom config for CI:
   "cli": { "timeout": 300000 }
 }
 ```
+
+## Kernel Configuration
+
+Test different kernel variants via `--config` or CLI flags:
+
+```bash
+# Via config file
+npm run bench -- -m MODEL --config kernel-config.json
+
+# Via CLI flags
+npm run bench -- -m MODEL --force-fused-q4k
+npm run bench -- -m MODEL --kernel-hints '{"q4kMatmul":"fused_q4k","computePrecision":"f16"}'
+```
+
+Example `kernel-config.json`:
+```json
+{
+  "runtime": {
+    "kernelHints": {
+      "computePrecision": "auto | f16 | f32",
+      "q4kMatmul": "auto | fused_q4k | dequant_f16 | dequant_f32",
+      "f16Matmul": "auto | gemv_subgroup",
+      "attentionPrefill": "auto | tiled_large | tiled_small | streaming",
+      "attentionDecode": "auto | tiled_large | tiled_small | streaming"
+    }
+  }
+}
+```
+
+CLI flags override config file values. Use this to A/B test kernel variants.
 
 ## Interpretation Guidelines
 

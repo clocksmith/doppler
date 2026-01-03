@@ -10,7 +10,7 @@
  * @module config/schema/inference-defaults
  */
 
-import type { SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
+import type { LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
 
 // =============================================================================
 // Batching Defaults
@@ -101,6 +101,9 @@ export interface InferenceDefaultsConfigSchema {
   batching: BatchingDefaultsSchema;
   sampling: SamplingDefaultsSchema;
   tokenizer: TokenizerDefaultsSchema;
+  /** Optional default prompt text for test harnesses */
+  prompt?: string | null;
+  pipeline?: LayerPipelineSchema | null;
 }
 
 /** Default inference configuration */
@@ -108,4 +111,6 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema = 
   batching: DEFAULT_BATCHING_DEFAULTS,
   sampling: DEFAULT_SAMPLING_DEFAULTS,
   tokenizer: DEFAULT_TOKENIZER_DEFAULTS,
+  prompt: null,
+  pipeline: null,
 };

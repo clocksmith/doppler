@@ -52,7 +52,7 @@ npx tsx src/converter/node-converter.ts --test ./test-model
 | `--quantize-embeddings` | Also quantize embeddings | When size is critical |
 | `--text-only` | Strip vision/audio towers | Multimodal → text-only |
 | `--shard-size <mb>` | Shard size (default: 64) | Tune for network/storage |
-| `--model-id <id>` | Override model ID | Custom naming |
+| `--model-id <id>` | Override model ID | Custom naming (default uses quant tag) |
 | `--verbose` | Detailed progress | Debugging conversion |
 | `--fast` | Pre-load shards | Faster but uses more RAM |
 
@@ -62,7 +62,7 @@ Never report conversion complete until verified:
 
 ```bash
 # 1. Check manifest exists and looks correct
-cat models/OUTPUT_NAME/manifest.json | grep -E "\"architecture\"|\"tensorCount\"|\"num_hidden_layers\""
+cat models/OUTPUT_NAME/manifest.json | grep -E "\"architecture\"|\"tensorCount\"|\"num_hidden_layers\"|\"quantizationInfo\""
 
 # 2. Check shard files exist
 ls -lh models/OUTPUT_NAME/
@@ -95,6 +95,15 @@ If verification fails:
 | Large output size | No quantization flag | Add `--quantize q4_k_m` |
 | Missing tensors | Multimodal model | Add `--text-only` flag |
 | Inference fails after convert | Weight layout issue | Try `--quantize f16` to isolate |
+
+## Naming Convention (Derived from Conversion Flags)
+
+By default the converter appends a quantization tag to `modelId`:
+
+- Weights + embeddings tag: `w<weights>-emb<embeddings>`
+- Example: `gemma-2-2b-it-wq4_k_m-embf16`
+
+Override with `--model-id` if you need a custom name.
 
 ## Reference Files
 

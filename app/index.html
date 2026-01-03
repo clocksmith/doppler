@@ -187,11 +187,27 @@
               <span class="memory-value" id="memory-gpu">--</span>
             </div>
             <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">KV Cache</span>
+              <div class="memory-bar-container">
+                <div class="memory-bar memory-bar-kv" id="memory-bar-kv" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-kv">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
               <span class="memory-label">Cache</span>
               <div class="memory-bar-container">
                 <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
               </div>
               <span class="memory-value" id="memory-opfs">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label" title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
+                Headroom
+              </span>
+              <div class="memory-bar-container">
+                <div class="memory-bar memory-bar-headroom" id="memory-bar-headroom" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-headroom">--</span>
             </div>
           </div>
         </section>

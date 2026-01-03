@@ -16,7 +16,7 @@ Use this skill to debug WebGPU inference issues in DOPPLER.
 | Single dimension spike | Same dim# exploding across all layers | Weight corruption or index misalignment |
 | NaN/Inf values | `NaN` appearing in trace output | Numerical overflow in attention or FFN |
 | Repeating tokens | Same token generated repeatedly | KV cache corruption or attention mask bug |
-| Wrong token probabilities | Top-k tokens different from HF | Final logit softcapping not applied |
+| Wrong token probabilities | Top-k tokens different from HF | Compare `logits_final` (post-softcap) vs HF |
 | PAD token wins | `<pad>` selected or repeated | pad_token_id not masked in sampling |
 
 ## Quick Diagnostic Commands

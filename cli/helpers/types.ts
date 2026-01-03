@@ -65,6 +65,7 @@ export interface CLIOptions {
   maxTokens: number;         // For inference benchmarks
   temperature: number;       // For inference benchmarks
   prompt: string;            // Prompt size preset: xs, short, medium, long
+  promptProvided: boolean;   // Whether --prompt was explicitly set
   text: string | null;       // Custom prompt text (overrides prompt)
   file: string | null;       // Load prompt from file (overrides prompt)
   compare: string | null;    // Compare against baseline

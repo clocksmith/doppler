@@ -1,3 +1,5 @@
+import type { ProbeStage } from './debug.schema.js';
+
 /**
  * Inference Schema Definitions
  *
@@ -97,6 +99,59 @@ export interface FFNSchema {
 }
 
 // =============================================================================
+// Layer Pipeline Schema
+// =============================================================================
+
+export type LayerPipelineOp =
+  | 'save'
+  | 'load'
+  | 'attention'
+  | 'rmsnorm'
+  | 'ffn'
+  | 'residual_add'
+  | 'noop';
+
+export type LayerPipelineNormWeight =
+  | 'input'
+  | 'post_attention'
+  | 'post_attn'
+  | 'pre_ffn'
+  | 'post_ffn';
+
+export interface LayerPipelineStepSchema {
+  op: LayerPipelineOp;
+  /** Source slot (default: "state") */
+  src?: string;
+  /** Destination slot (default: "state") */
+  dst?: string;
+  /** Slot name for save/load operations */
+  name?: string;
+  /** Norm weight selector (rmsnorm only) */
+  weight?: LayerPipelineNormWeight;
+  /** Residual slot for fused ops (optional) */
+  residual?: string | null;
+  /** Residual add inputs (defaults: a="state", b="residual") */
+  a?: string;
+  b?: string;
+  /** FFN variant override */
+  variant?: 'auto' | 'dense' | 'moe';
+  /** Skip input norm inside attention (use when providing explicit rmsnorm) */
+  skipInputNorm?: boolean;
+  /** Optional probe stage to emit for this step */
+  probeStage?: ProbeStage;
+}
+
+export interface LayerPipelineOverrideSchema {
+  layers: number[];
+  steps: LayerPipelineStepSchema[];
+}
+
+export interface LayerPipelineSchema {
+  steps: LayerPipelineStepSchema[];
+  overrides?: LayerPipelineOverrideSchema[];
+}
+
+// =============================================================================
 // Output Schema
 // =============================================================================
 
@@ -179,6 +234,7 @@ export interface InferenceConfigSchema {
   output?: OutputSchema;
   layerPattern?: LayerPatternSchema;
   rope?: RoPEConfigSchema;
+  pipeline?: LayerPipelineSchema | null;
 }
 
 // =============================================================================

@@ -13,7 +13,7 @@
  */
 
 import { log } from '../../debug/index.js';
-import type { ResolvedConfigSchema } from '../../config/schema/index.js';
+import type { LayerPipelineSchema, ResolvedConfigSchema } from '../../config/schema/index.js';
 import { resolveConfig } from '../../config/loader.js';
 
 export type ActivationType = 'silu' | 'gelu';
@@ -153,6 +153,8 @@ export interface ParsedModelConfig {
   attnLogitSoftcapping: number | null;   // Gemma 2: 50.0
   // Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16)
   queryPreAttnScalar: number;            // Gemma 2: 256, standard: sqrt(head_dim)
+  // Optional layer pipeline override from model presets
+  layerPipeline?: LayerPipelineSchema | null;
 }
 
 // =============================================================================
@@ -432,6 +434,7 @@ export function toParsedConfig(
     finalLogitSoftcapping: inf.output?.finalLogitSoftcapping ?? null,
     attnLogitSoftcapping: inf.attention?.attnLogitSoftcapping ?? null,
     queryPreAttnScalar,
+    layerPipeline: inf.pipeline ?? null,
   };
 }
 

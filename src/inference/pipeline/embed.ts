@@ -237,9 +237,16 @@ export async function embed(
     ? recordScale(recorder, outputBuffer, scaleFactor, numTokens * hiddenSize)
     : await scaleGPUBuffer(outputBuffer, scaleFactor, numTokens * hiddenSize);
   if (recorder) {
-    recorder.trackTemporaryBuffer(outputBuffer);
+    // Only track if we created this buffer (not pre-allocated)
+    // Pre-allocated buffers are managed by the caller (e.g., DecodeBufferManager)
+    if (!preAllocatedOutput) {
+      recorder.trackTemporaryBuffer(outputBuffer);
+    }
   } else {
-    releaseBuffer(outputBuffer);
+    // For sync path: only release if not pre-allocated
+    if (!preAllocatedOutput) {
+      releaseBuffer(outputBuffer);
+    }
   }
 
   if (debug && !recorder) {
