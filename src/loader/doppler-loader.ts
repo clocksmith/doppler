@@ -999,7 +999,7 @@ export class DopplerLoader {
           }
         }
 
-        // Other dtypes
+        // Other dtypes (F16, F32)
         const buffer = acquireBuffer(location.size, undefined, name);
         let tensorOffset = 0;
         for (const span of location.spans) {
@@ -1014,6 +1014,14 @@ export class DopplerLoader {
           tensorOffset += span.size;
         }
         this.gpuBuffers.add(buffer);
+
+        // Tag buffer with its dtype so kernels know the data format
+        if (location.dtype === 'F16') {
+          setBufferDtype(buffer, 'f16');
+        } else if (location.dtype === 'F32') {
+          setBufferDtype(buffer, 'f32');
+        }
+
         return applyBufferLayout(buffer, location);
       }
     }

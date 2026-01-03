@@ -35,7 +35,7 @@ import {
   writeRDRR,
   createTestModel,
   type WriteResult,
-  type WriterOptions,
+  type WriteRDRROptions,
 } from './writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from './quantizer.js';
 import { shouldQuantize as shouldQuantizeCore, sanitizeModelId } from './core.js';
@@ -238,6 +238,39 @@ function normalizeQuantTag(value: string | null | undefined): string {
   return lower;
 }
 
+/**
+ * Validate that a quantization type is supported for conversion.
+ *
+ * Currently implemented:
+ * - q4k: Q4_K_M block quantization
+ * - f16, f32: Float formats (and bf16 auto-converted to f16)
+ *
+ * Not yet implemented (will error):
+ * - q6k, q8_0: Other block quantization
+ * - fp8e4, fp8e5: Float8 formats
+ * - i4, i8: Integer formats
+ */
+function validateQuantType(value: string | null, flagName: string): void {
+  if (!value) return;
+  const normalized = normalizeQuantTag(value);
+
+  // Supported types
+  const supported = ['q4k', 'f16', 'bf16', 'f32'];
+  if (supported.includes(normalized)) return;
+
+  // Not yet implemented
+  const planned = ['q6k', 'q8_0', 'fp8e4', 'fp8e5', 'i4', 'i8'];
+  if (planned.includes(normalized)) {
+    throw new Error(
+      `Quantization type "${normalized}" is not yet implemented.\n` +
+      `Supported types: ${supported.join(', ')}\n` +
+      `Planned types: ${planned.join(', ')}`
+    );
+  }
+
+  throw new Error(`Unknown quantization type: "${value}" (flag: ${flagName})`);
+}
+
 function resolveManifestQuantization(quantize: string | null, fallback: string): string {
   if (!quantize) return fallback;
   const normalized = normalizeQuantTag(quantize);
@@ -327,10 +360,12 @@ function buildVariantTag(info: QuantizationInfoSchema): string {
  * Build quantization info from conversion options.
  *
  * Handles all component quantization with proper defaults:
- * - weights: from --quantize or original dtype
- * - embeddings: from --embed-quant or defaults to original dtype (usually f16/bf16)
+ * - weights: from --weight-quant or original dtype (WebGPU-safe)
+ * - embeddings: from --embed-quant or defaults to original dtype (WebGPU-safe)
  * - lmHead: from --head-quant or defaults to embeddings
  * - vision/audio/tts/projector: from explicit flags only
+ *
+ * All float formats are normalized to WebGPU-safe types (bf16 → f16).
  */
 function buildQuantizationInfo(
   opts: ConvertOptions,
@@ -341,9 +376,16 @@ function buildQuantizationInfo(
   hasAudio = false,
   hasProjector = false
 ): QuantizationInfoSchema {
-  const weights = normalizeQuantTag(opts.weightQuant ?? originalDtype);
+  // Validate all explicit quantization flags
+  validateQuantType(opts.weightQuant, '--weight-quant');
+  validateQuantType(opts.embedQuant, '--embed-quant');
+  validateQuantType(opts.headQuant, '--head-quant');
+  validateQuantType(opts.visionQuant, '--vision-quant');
+  validateQuantType(opts.audioQuant, '--audio-quant');
+  validateQuantType(opts.projectorQuant, '--projector-quant');
 
   // WebGPU only supports F16/F32 for floats - BF16 must convert to F16
+  // This must be applied to ALL stored dtypes so naming matches storage
   const webgpuSafe = (dtype: string): string => {
     const normalized = normalizeQuantTag(dtype);
     // BF16 not supported in WebGPU, convert to F16
@@ -351,20 +393,28 @@ function buildQuantizationInfo(
     return normalized;
   };
 
-  // Embeddings: explicit flag > original dtype (converted to WebGPU-safe)
+  // Weights: explicit flag > original dtype, always WebGPU-safe
+  const weights = webgpuSafe(opts.weightQuant ?? originalDtype);
+
+  // Embeddings: explicit flag > original dtype (WebGPU-safe)
   let embeddings: string;
   if (opts.embedQuant) {
     embeddings = webgpuSafe(opts.embedQuant);
   } else {
-    embeddings = webgpuSafe(embedDtype || 'f16');
+    embeddings = webgpuSafe(embedDtype || originalDtype);
   }
 
-  // Head: explicit flag > embeddings
+  // Head: explicit flag > original head dtype > embeddings
+  // Only add explicit lmHead if it differs from embeddings
   let lmHead: string;
   if (opts.headQuant) {
     lmHead = webgpuSafe(opts.headQuant);
+  } else if (lmHeadDtype) {
+    // Model has explicit lm_head tensor with known dtype
+    lmHead = webgpuSafe(lmHeadDtype);
   } else {
-    lmHead = webgpuSafe(lmHeadDtype || '') || embeddings;
+    // No explicit lm_head, will use embeddings (tied weights)
+    lmHead = embeddings;
   }
 
   const info: QuantizationInfoSchema = {
@@ -733,7 +783,7 @@ async function convertSafetensors(
 
   // Write RDRR
   verboseLog(`Writing RDRR to: ${outputPath}`);
-  const writerOpts: WriterOptions = {
+  const writerOpts: WriteRDRROptions = {
     shardSize: opts.shardSize * 1024 * 1024,
     modelId: resolvedModelId,
     modelType,
@@ -741,6 +791,17 @@ async function convertSafetensors(
     quantization: manifestQuantization,
     quantizationInfo,
   };
+
+  // Add kernel hints if specified
+  if (opts.kernelHints) {
+    try {
+      writerOpts.optimizations = {
+        kernelHints: JSON.parse(opts.kernelHints),
+      };
+    } catch (e) {
+      throw new Error(`Invalid --kernel-hints JSON: ${(e as Error).message}`);
+    }
+  }
 
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
 }
@@ -851,7 +912,7 @@ async function convertGGUF(
 
   try {
     verboseLog(`Writing RDRR to: ${outputPath}`);
-    const writerOpts: WriterOptions = {
+    const writerOpts: WriteRDRROptions = {
       shardSize: opts.shardSize * 1024 * 1024,
       modelId: resolvedModelId,
       modelType,
@@ -859,6 +920,17 @@ async function convertGGUF(
       quantization: manifestQuantization,
       quantizationInfo,
     };
+
+    // Add kernel hints if specified
+    if (opts.kernelHints) {
+      try {
+        writerOpts.optimizations = {
+          kernelHints: JSON.parse(opts.kernelHints),
+        };
+      } catch (e) {
+        throw new Error(`Invalid --kernel-hints JSON: ${(e as Error).message}`);
+      }
+    }
 
     const result = await writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
     return result;
