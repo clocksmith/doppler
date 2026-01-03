@@ -1,0 +1,404 @@
+// Fused Q4_K Matmul Kernel - W4A16
+// Directly computes C = A * dequant(B_q4k) without separate dequant pass
+//
+// For M=1 decode (GEMV): C[N] = A[K] * B_q4k^T[N,K]
+// B_q4k is stored in Q4_K format: [N * ceil(K/256) * 144 bytes]
+//
+// Key optimizations:
+// 1. Fused dequant + matmul - eliminates memory round-trip (2-3x speedup)
+// 2. Subgroup operations for reduction
+// 3. On-the-fly dequantization in registers
+//
+// A is f32 (activations), B_q4k is Q4_K quantized weights, C is f32.
+
+enable subgroups;
+
+// Q4_K constants
+const QK_K: u32 = 256u;           // Elements per super-block
+const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
+const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
+
+override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
+const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
+
+struct Uniforms {
+    M: u32,                   // Always 1 for GEMV
+    N: u32,                   // Output dimension
+    K: u32,                   // Inner dimension (may be non-256-aligned)
+    alpha: f32,
+    num_blocks_per_row: u32,  // ceil(K / 256)
+    _pad0: u32,               // 16-byte alignment padding
+    _pad1: u32,
+    _pad2: u32,
+}
+
+// Q4_K block structure (144 bytes)
+// Layout: d(2) + dmin(2) + scales(12) + qs(128)
+struct Q4KBlock {
+    d_dmin: u32,          // d (f16) and dmin (f16) packed
+    scales: array<u32, 3>, // 12 bytes of packed 6-bit scales
+    qs: array<u32, 32>,   // 128 bytes of 4-bit quantized values
+}
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> A: array<f32>;
+@group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
+@group(0) @binding(3) var<storage, read_write> C: array<f32>;
+
+// Shared memory for subgroup reduction
+var<workgroup> wg_sums: array<f32, MAX_SUBGROUPS>;
+
+// Extract f16 from packed u32
+fn unpack_f16_lo(packed: u32) -> f32 {
+    return unpack2x16float(packed).x;
+}
+
+fn unpack_f16_hi(packed: u32) -> f32 {
+    return unpack2x16float(packed).y;
+}
+
+// Get byte from scales array
+fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    return (scales[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+}
+
+// llama.cpp Q4_K scale/min extraction
+fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
+    var sc: u32;
+    var mn: u32;
+
+    if (j < 4u) {
+        sc = get_scale_byte(scales, j) & 63u;
+        mn = get_scale_byte(scales, j + 4u) & 63u;
+    } else {
+        let q_j = get_scale_byte(scales, j + 4u);
+        let q_lo = get_scale_byte(scales, j - 4u);
+        let q_hi = get_scale_byte(scales, j);
+        sc = (q_j & 0xFu) | ((q_lo >> 6u) << 4u);
+        mn = (q_j >> 4u) | ((q_hi >> 6u) << 4u);
+    }
+    return vec2<u32>(sc, mn);
+}
+
+// Extract 4-bit quantized value from qs array
+fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
+    let chunk = idx / 64u;
+    let pos_in_chunk = idx % 64u;
+    let use_upper = pos_in_chunk >= 32u;
+    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
+    let byte_idx = chunk * 32u + byte_in_range;
+
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    let byte_val = (qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+
+    if (use_upper) {
+        return (byte_val >> 4u) & 0xFu;
+    } else {
+        return byte_val & 0xFu;
+    }
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let col = wg_id.x;  // Output column this workgroup computes
+    let local_id = lid.x;
+
+    // Track validity - NO early return to maintain uniform control flow for subgroupAdd
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    // Only do work if this column is valid
+    if (is_valid) {
+        // Each thread processes some Q4_K blocks
+        let num_blocks = u.num_blocks_per_row;
+        let tail_size = u.K & 255u;
+        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
+        let blocks_per_thread = (num_blocks + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+        let block_start = local_id * blocks_per_thread;
+        let block_end = min(block_start + blocks_per_thread, num_blocks);
+        let full_end = min(block_end, full_blocks);
+
+        // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
+        for (var b: u32 = block_start; b < full_end; b = b + 1u) {
+            let block = B_q4k[col * num_blocks + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
+
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
+
+                let sb_base = sb * SUBBLOCK_SIZE;
+
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let elem0 = sb_base + i;
+                    let elem1 = sb_base + i + 1u;
+                    let elem2 = sb_base + i + 2u;
+                    let elem3 = sb_base + i + 3u;
+
+                    let k0 = k_base + elem0;
+                    let k1 = k_base + elem1;
+                    let k2 = k_base + elem2;
+                    let k3 = k_base + elem3;
+
+                    let a0 = A[k0];
+                    let a1 = A[k1];
+                    let a2 = A[k2];
+                    let a3 = A[k3];
+
+                    let q0 = get_q4(block.qs, elem0);
+                    let q1 = get_q4(block.qs, elem1);
+                    let q2 = get_q4(block.qs, elem2);
+                    let q3 = get_q4(block.qs, elem3);
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+
+        if (tail_size > 0u) {
+            let tail_block = full_blocks;
+            if (tail_block >= block_start && tail_block < block_end) {
+                let block = B_q4k[col * num_blocks + tail_block];
+                let d = unpack_f16_lo(block.d_dmin);
+                let dmin = unpack_f16_hi(block.d_dmin);
+                let k_base = tail_block * QK_K;
+
+                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                    let sb_base = sb * SUBBLOCK_SIZE;
+                    if (sb_base >= tail_size) {
+                        break;
+                    }
+                    let sm = get_scale_min_k4(block.scales, sb);
+                    let scale = d * f32(sm.x);
+                    let min_val = dmin * f32(sm.y);
+
+                    for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                        let elem0 = sb_base + i;
+                        let elem1 = sb_base + i + 1u;
+                        let elem2 = sb_base + i + 2u;
+                        let elem3 = sb_base + i + 3u;
+
+                        let k0 = k_base + elem0;
+                        let k1 = k_base + elem1;
+                        let k2 = k_base + elem2;
+                        let k3 = k_base + elem3;
+
+                        var a0: f32 = 0.0;
+                        var a1: f32 = 0.0;
+                        var a2: f32 = 0.0;
+                        var a3: f32 = 0.0;
+                        if (k0 < u.K) { a0 = A[k0]; }
+                        if (k1 < u.K) { a1 = A[k1]; }
+                        if (k2 < u.K) { a2 = A[k2]; }
+                        if (k3 < u.K) { a3 = A[k3]; }
+
+                        let q0 = get_q4(block.qs, elem0);
+                        let q1 = get_q4(block.qs, elem1);
+                        let q2 = get_q4(block.qs, elem2);
+                        let q3 = get_q4(block.qs, elem3);
+
+                        let w0 = scale * f32(q0) - min_val;
+                        let w1 = scale * f32(q1) - min_val;
+                        let w2 = scale * f32(q2) - min_val;
+                        let w3 = scale * f32(q3) - min_val;
+
+                        partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    }
+                }
+            }
+        }
+    }  // end if (is_valid)
+
+    // Subgroup reduction - ALL threads must execute (uniform control flow)
+    let sg_sum = subgroupAdd(partial_sum);
+
+    // Inter-subgroup reduction via shared memory
+    let subgroup_id = local_id / sg_size;
+    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
+
+    if (sg_id == 0u) {
+        wg_sums[subgroup_id] = sg_sum;
+    }
+
+    workgroupBarrier();
+
+    // Thread 0 does final reduction and writes result (only if valid column)
+    if (local_id == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
+            final_sum = final_sum + wg_sums[i];
+        }
+        C[col] = final_sum * u.alpha;
+    }
+}
+
+// ============================================================================
+// Multi-column GEMV for large vocab (LM head)
+// ============================================================================
+// For large N (e.g., vocab=262144), single-column-per-workgroup is inefficient:
+// - 262K workgroups with only ~5 blocks per thread
+// - GPU launch overhead dominates
+//
+// This variant processes COLS_PER_WG columns per workgroup:
+// - 262144/32 = 8192 workgroups (32x fewer)
+// - Each thread processes multiple columns, amortizing A loads
+// - Much better GPU occupancy and throughput
+//
+// Workgroup layout: 256 threads = 8 threads per column × 32 columns
+override COLS_PER_WG: u32 = 32u;
+override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
+
+// Shared memory for reduction (one slot per thread)
+var<workgroup> multicol_sums: array<f32, MAX_WORKGROUP_SIZE>;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_multicol(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+
+    // Which column within this workgroup (0..31)
+    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
+    // Which thread within the column (0..7)
+    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
+
+    // Global column index
+    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+
+    // Track validity
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let num_blocks = u.num_blocks_per_row;
+        let tail_size = u.K & 255u;
+        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
+
+        // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
+        // Each of the 8 threads processes every 8th block
+        for (var b: u32 = tid_in_col; b < full_blocks; b = b + THREADS_PER_COL_GEMV) {
+            let block = B_q4k[col * num_blocks + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
+
+            // Process all 8 sub-blocks
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
+                let sb_base = sb * SUBBLOCK_SIZE;
+
+                // Unroll by 4 for better ILP
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let k0 = k_base + sb_base + i;
+                    let k1 = k0 + 1u;
+                    let k2 = k0 + 2u;
+                    let k3 = k0 + 3u;
+
+                    let a0 = A[k0];
+                    let a1 = A[k1];
+                    let a2 = A[k2];
+                    let a3 = A[k3];
+
+                    let q0 = get_q4(block.qs, sb_base + i);
+                    let q1 = get_q4(block.qs, sb_base + i + 1u);
+                    let q2 = get_q4(block.qs, sb_base + i + 2u);
+                    let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+
+        if (tail_size > 0u) {
+            let tail_block = full_blocks;
+            if (tail_block % THREADS_PER_COL_GEMV == tid_in_col) {
+                let block = B_q4k[col * num_blocks + tail_block];
+                let d = unpack_f16_lo(block.d_dmin);
+                let dmin = unpack_f16_hi(block.d_dmin);
+                let k_base = tail_block * QK_K;
+
+                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                    let sb_base = sb * SUBBLOCK_SIZE;
+                    if (sb_base >= tail_size) {
+                        break;
+                    }
+                    let sm = get_scale_min_k4(block.scales, sb);
+                    let scale = d * f32(sm.x);
+                    let min_val = dmin * f32(sm.y);
+
+                    for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                        let k0 = k_base + sb_base + i;
+                        let k1 = k0 + 1u;
+                        let k2 = k0 + 2u;
+                        let k3 = k0 + 3u;
+
+                        var a0: f32 = 0.0;
+                        var a1: f32 = 0.0;
+                        var a2: f32 = 0.0;
+                        var a3: f32 = 0.0;
+                        if (k0 < u.K) { a0 = A[k0]; }
+                        if (k1 < u.K) { a1 = A[k1]; }
+                        if (k2 < u.K) { a2 = A[k2]; }
+                        if (k3 < u.K) { a3 = A[k3]; }
+
+                        let q0 = get_q4(block.qs, sb_base + i);
+                        let q1 = get_q4(block.qs, sb_base + i + 1u);
+                        let q2 = get_q4(block.qs, sb_base + i + 2u);
+                        let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                        let w0 = scale * f32(q0) - min_val;
+                        let w1 = scale * f32(q1) - min_val;
+                        let w2 = scale * f32(q2) - min_val;
+                        let w3 = scale * f32(q3) - min_val;
+
+                        partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    }
+                }
+            }
+        }
+    }
+
+    // Reduction within each column's 8 threads
+    // Use shared memory since threads for one column may span multiple subgroups
+    multicol_sums[local_id] = partial_sum;
+    workgroupBarrier();
+
+    // Thread 0 of each column reduces its 8 values
+    if (tid_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        let base = col_in_wg * THREADS_PER_COL_GEMV;
+        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
+            final_sum = final_sum + multicol_sums[base + i];
+        }
+        C[col] = final_sum * u.alpha;
+    }
+}

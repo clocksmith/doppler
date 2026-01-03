@@ -1,0 +1,89 @@
+// Matrix Multiplication Kernel - f16 weights, f32 activations
+//
+// A is f32 (activations), B is f16 (weights), C is f32.
+// C[M,N] = A[M,K] * B[K,N]  (or B^T when transpose_b=1)
+// This reduces weight bandwidth and leverages f16 load/throughput
+// while keeping f32 outputs for compatibility with f32-only ops.
+
+enable f16;
+
+const MAX_TILE_SIZE: u32 = 16u;
+const TILE_AREA: u32 = MAX_TILE_SIZE * MAX_TILE_SIZE;
+
+override TILE_SIZE: u32 = 16u;  // Must be <= MAX_TILE_SIZE
+
+struct Uniforms {
+    M: u32,
+    N: u32,
+    K: u32,
+    alpha: f32,
+    transpose_b: u32,  // 0 = normal, 1 = B is stored transposed [N,K]
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
+}
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> A: array<f32>;
+@group(0) @binding(2) var<storage, read> B: array<f16>;
+@group(0) @binding(3) var<storage, read_write> C: array<f32>;
+
+var<workgroup> tileA: array<f32, TILE_AREA>;
+// Keep workgroup storage in f32 for broader Vulkan/Dawn compatibility on mobile.
+var<workgroup> tileB: array<f32, TILE_AREA>;
+
+@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
+fn main(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(local_invocation_id) lid: vec3<u32>
+) {
+    if (TILE_SIZE > MAX_TILE_SIZE) {
+        return;
+    }
+
+    let row = gid.x;
+    let col = gid.y;
+    let local_row = lid.x;
+    let local_col = lid.y;
+
+    var sum: f32 = 0.0;
+
+    let num_tiles = (u.K + TILE_SIZE - 1u) / TILE_SIZE;
+    let tile_idx = local_row * TILE_SIZE + local_col;
+
+    for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
+        let a_col = t * TILE_SIZE + local_col;
+        let b_row = t * TILE_SIZE + local_row;
+
+        if (row < u.M && a_col < u.K) {
+            tileA[tile_idx] = A[row * u.K + a_col];
+        } else {
+            tileA[tile_idx] = 0.0;
+        }
+
+        if (b_row < u.K && col < u.N) {
+            if (u.transpose_b == 0u) {
+                tileB[tile_idx] = f32(B[b_row * u.N + col]);
+            } else {
+                // B is [N, K], access element [col, b_row]
+                tileB[tile_idx] = f32(B[col * u.K + b_row]);
+            }
+        } else {
+            tileB[tile_idx] = 0.0;
+        }
+
+        workgroupBarrier();
+
+        for (var k: u32 = 0u; k < TILE_SIZE; k = k + 1u) {
+            let a_val = tileA[local_row * TILE_SIZE + k];
+            let b_val = tileB[k * TILE_SIZE + local_col];
+            sum = sum + a_val * b_val;
+        }
+
+        workgroupBarrier();
+    }
+
+    if (row < u.M && col < u.N) {
+        C[row * u.N + col] = sum * u.alpha;
+    }
+}
