@@ -21,6 +21,10 @@ struct Uniforms {
     K: u32,             // Input dimension (intermediate_size)
     eps: f32,           // RMSNorm epsilon
     has_residual: u32,  // 1 if residual provided, 0 otherwise
+    transpose_b: u32,   // 1 if weight is [N,K] (row-major), 0 if [K,N] (column-major)
+    _pad0: u32,         // Padding to 24 bytes for alignment
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -72,8 +76,10 @@ fn main(
         let k_end = min(k_start + k_per_thread, K);
 
         for (var k: u32 = k_start; k < k_end; k = k + 1u) {
-            // Row-major weight: weight[k * N + global_col]
-            dot_sum = dot_sum + input[k] * weight[k * N + global_col];
+            // transpose_b=1: weight is [N,K], access weight[global_col * K + k]
+            // transpose_b=0: weight is [K,N], access weight[k * N + global_col]
+            let w_idx = select(k * N + global_col, global_col * K + k, u.transpose_b == 1u);
+            dot_sum = dot_sum + input[k] * weight[w_idx];
         }
     }
 
@@ -155,7 +161,8 @@ fn gemv_rmsnorm_small(
     var dot_sum: f32 = 0.0;
     if (tid < N) {
         for (var k: u32 = 0u; k < K; k = k + 1u) {
-            dot_sum = dot_sum + input[k] * weight[k * N + tid];
+            let w_idx = select(k * N + tid, tid * K + k, u.transpose_b == 1u);
+            dot_sum = dot_sum + input[k] * weight[w_idx];
         }
     }
 
@@ -210,7 +217,8 @@ fn gemv_rmsnorm_medium(
             // Compute dot product for this column
             var dot_sum: f32 = 0.0;
             for (var k: u32 = 0u; k < K; k = k + 1u) {
-                dot_sum = dot_sum + input[k] * weight[k * N + col];
+                let w_idx = select(k * N + col, col * K + k, u.transpose_b == 1u);
+                dot_sum = dot_sum + input[k] * weight[w_idx];
             }
 
             // Store to output buffer (will normalize in-place later)
@@ -273,7 +281,8 @@ fn gemv_rmsnorm_phase1(
         let k_end = min(k_start + k_per_thread, K);
 
         for (var k: u32 = k_start; k < k_end; k = k + 1u) {
-            dot_sum = dot_sum + input[k] * weight[k * N + global_col];
+            let w_idx = select(k * N + global_col, global_col * K + k, u.transpose_b == 1u);
+            dot_sum = dot_sum + input[k] * weight[w_idx];
         }
     }
 

@@ -1002,7 +1002,7 @@ export class DopplerDemo {
           addModel(
             key,
             {
-              name: manifest.name || this._formatModelName(cachedId),
+              name: manifest.modelId || this._formatModelName(cachedId),
               architecture: arch as string,
               size: paramStr,
               quantization: quant,

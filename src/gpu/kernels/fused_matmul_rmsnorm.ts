@@ -38,6 +38,13 @@ export interface MatmulRMSNormFusedOptions extends OutputBufferOptions {
   eps?: number;
   /** Optional residual buffer to add to output */
   residual?: GPUBuffer | null;
+  /**
+   * Whether weight matrix is stored transposed.
+   * - true: weight is [N,K] (row-major/SafeTensors), needs transpose access
+   * - false: weight is [K,N] (column-major/pre-transposed), direct access
+   * Default: true (matches GGUF convention)
+   */
+  transposeB?: boolean;
 }
 
 /**
@@ -84,12 +91,13 @@ export async function runMatmulRMSNormFused(
     eps = 1e-5,
     residual = null,
     outputBuffer = null,
+    transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
   // Select variant based on output size
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
 
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 
@@ -97,15 +105,17 @@ export async function runMatmulRMSNormFused(
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
 
-  // Create uniform buffer
+  // Create uniform buffer (8 u32/f32 = 32 bytes, padded for alignment)
   const uniformBuffer = createUniformBufferWithView(
     'matmul_rmsnorm_fused_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, N, true);
       view.setUint32(4, K, true);
       view.setFloat32(8, eps, true);
       view.setUint32(12, residual ? 1 : 0, true);
+      view.setUint32(16, transposeB ? 1 : 0, true);
+      // Padding bytes 20-31 are zero-initialized
     },
     null,
     device
@@ -169,12 +179,13 @@ export async function recordMatmulRMSNormFused(
     eps = 1e-5,
     residual = null,
     outputBuffer = null,
+    transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
   // Select variant
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
 
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
 
@@ -182,15 +193,17 @@ export async function recordMatmulRMSNormFused(
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
 
-  // Uniform buffer via recorder
+  // Uniform buffer via recorder (8 u32/f32 = 32 bytes, padded for alignment)
   const uniformBuffer = createUniformBufferWithView(
     'matmul_rmsnorm_fused_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, N, true);
       view.setUint32(4, K, true);
       view.setFloat32(8, eps, true);
       view.setUint32(12, residual ? 1 : 0, true);
+      view.setUint32(16, transposeB ? 1 : 0, true);
+      // Padding bytes 20-31 are zero-initialized
     },
     recorder
   );

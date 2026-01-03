@@ -27,17 +27,20 @@ Ensure disk space; insufficient space can leave corrupted output.
 ## Conversion Commands
 
 ```bash
-# Standard conversion with Q4_K_M quantization (recommended for most models)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --quantize q4_k_m
+# Standard conversion with Q4K weights (recommended)
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w q4k
 
 # From GGUF file (already quantized)
 npx tsx src/converter/node-converter.ts INPUT.gguf models/OUTPUT_NAME
 
 # Keep full FP16 precision (for debugging quantization issues)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --quantize f16
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w f16
+
+# Explicit embeddings quantization
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w q4k -e f16
 
 # Multimodal to text-only (Gemma 3, PaliGemma, LLaVA)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --text-only --quantize q4_k_m
+npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --text-only -w q4k
 
 # Create tiny test fixture for development
 npx tsx src/converter/node-converter.ts --test ./test-model
@@ -45,14 +48,31 @@ npx tsx src/converter/node-converter.ts --test ./test-model
 
 ## Conversion Options
 
+### Quantization Options
+
 | Flag | Description | When to Use |
 |------|-------------|-------------|
-| `--quantize q4_k_m` | 4-bit quantization | Default, good quality/size tradeoff |
-| `--quantize f16` | Full FP16 precision | Debugging, reference testing |
-| `--quantize-embeddings` | Also quantize embeddings | When size is critical |
+| `--weight-quant, -w <type>` | Weight quantization: q4k, f16, f32 | Main model weights |
+| `--embed-quant, -e <type>` | Embedding quantization | Keep embeddings at higher precision |
+| `--head-quant <type>` | LM head quantization | Keep output head at higher precision |
+| `--vision-quant <type>` | Vision encoder quantization | Multimodal models |
+| `--audio-quant <type>` | Audio encoder quantization | Speech models |
+| `--projector-quant <type>` | Cross-modal projector | Multimodal models |
+
+### Runtime Hints (stored in manifest, not filename)
+
+| Flag | Description | When to Use |
+|------|-------------|-------------|
+| `--compute-precision <p>` | f16, f32, or auto | Suggest compute precision |
+| `--kernel-hints <json>` | JSON kernel selection hints | Fine-grained kernel control |
+
+### General Options
+
+| Flag | Description | When to Use |
+|------|-------------|-------------|
 | `--text-only` | Strip vision/audio towers | Multimodal → text-only |
 | `--shard-size <mb>` | Shard size (default: 64) | Tune for network/storage |
-| `--model-id <id>` | Override model ID | Custom naming (default uses quant tag) |
+| `--model-id <id>` | Override model ID | Custom naming |
 | `--verbose` | Detailed progress | Debugging conversion |
 | `--fast` | Pre-load shards | Faster but uses more RAM |
 
@@ -96,12 +116,42 @@ If verification fails:
 | Missing tensors | Multimodal model | Add `--text-only` flag |
 | Inference fails after convert | Weight layout issue | Try `--quantize f16` to isolate |
 
-## Naming Convention (Derived from Conversion Flags)
+## Naming Convention
 
-By default the converter appends a quantization tag to `modelId`:
+DOPPLER uses a concise naming convention that describes **storage only** (not runtime):
 
-- Weights + embeddings tag: `w<weights>-emb<embeddings>`
-- Example: `gemma-2-2b-it-wq4_k_m-embf16`
+```
+{model-name}-w{weights}[-e{embeddings}][-h{head}][-v{vision}][-a{audio}][-p{projector}]
+```
+
+### Component Prefixes
+
+| Prefix | Component | When Included |
+|--------|-----------|---------------|
+| `w` | Weights | Always (required) |
+| `e` | Embeddings | When different from weights |
+| `h` | Head | When different from embeddings |
+| `v` | Vision | Multimodal with vision encoder |
+| `a` | Audio | Speech models |
+| `p` | Projector | Multimodal models |
+
+### Quantization Tokens
+
+| Token | Description | Token | Description |
+|-------|-------------|-------|-------------|
+| `q4k` | Q4_K_M block quant | `f16` | Float16 |
+| `q6k` | Q6_K block quant | `bf16` | BFloat16 |
+| `q8_0` | Q8_0 quant | `f32` | Float32 |
+
+### Examples
+
+| Command | Resulting Model ID |
+|---------|-------------------|
+| `-w q4k` | `gemma-2b-wq4k` (if embeds same) |
+| `-w q4k` (bf16 source) | `gemma-2b-wq4k-ebf16` |
+| `-w q4k -e f16` | `gemma-2b-wq4k-ef16` |
+| `-w q4k -e f16 --head-quant f32` | `gemma-2b-wq4k-ef16-hf32` |
+| `-w q4k --vision-quant f16` | `qwen2-vl-7b-wq4k-vf16` |
 
 Override with `--model-id` if you need a custom name.
 

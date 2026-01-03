@@ -270,7 +270,7 @@ async function doMatmulRMSNormFused(
   input: GPUBuffer,
   weight: GPUBuffer,
   normWeight: GPUBuffer,
-  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
+  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
   const result = recorder
@@ -990,11 +990,17 @@ async function processFFNWithSandwichNorm(
 
   // 2. FFN (or MoE FFN)
   // Check if we can use fused down+norm kernel (decode only, dense FFN with post-FFN norm)
-  // The fused kernel assumes column-major weights (no transpose needed).
-  // For row-major weights, we must fall back to separate matmul which handles transpose.
+  // The fused kernel now supports both column-major and row-major (transposed) weights.
+  // BUT: the fused kernel only supports F32 weights - not Q4K or F16 quantized weights.
   const downWeightIsColumnMajor = layerWeights?.down instanceof GPUBuffer
     ? isColumnMajorBuffer(layerWeights.down)
     : false;
+
+  // Check weight dtype - fused kernel requires F32 weights
+  const downWeightDtype = layerWeights?.down instanceof GPUBuffer
+    ? getBufferDtype(layerWeights.down)
+    : null;
+  const downWeightIsF32 = downWeightDtype === 'f32' || downWeightDtype === null;
 
   const canUseFusedDownNorm = numTokens === 1
     && !config.useMoE
@@ -1002,8 +1008,9 @@ async function processFFNWithSandwichNorm(
     && sandwichNorm.hasPostFeedforwardNorm
     && layerWeights?.postFeedforwardNorm
     && layerWeights?.down
-    && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize)
-    && downWeightIsColumnMajor;  // Only use fused kernel if weight format is compatible
+    && downWeightIsF32  // Fused kernel only supports F32, not Q4K/F16
+    && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
+  // Note: transposeB=true for row-major GGUF weights, transposeB=false for column-major
 
   let ffnOutput: GPUBuffer;
   let usedFusedDownNorm = false;
@@ -1014,14 +1021,16 @@ async function processFFNWithSandwichNorm(
              (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     // FUSED PATH: gate+up (or separate gate/up) -> activation -> down+norm+residual (single kernel for last step)
     if (layerIdx === 0 && !loggedFusedDownNorm) {
-      trace.ffn(0, 'Using fused down+norm kernel');
+      trace.ffn(0, `Using fused down+norm kernel (transposeB=${!downWeightIsColumnMajor})`);
       loggedFusedDownNorm = true;
     }
     // Pass pre-allocated decode buffer for output when available
+    // transposeB: true if weights are row-major (GGUF default), false if column-major
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,  // residual for post-FFN norm
       rmsNormEps,
+      !downWeightIsColumnMajor,  // transposeB
       decodeOutputBuffer
     );
     usedFusedDownNorm = true;
@@ -1510,6 +1519,7 @@ async function runDenseFFNWithFusedPostNormGPU(
   layerWeights: LayerWeights,
   residual: GPUBuffer,
   eps: number,
+  transposeB: boolean,
   outputBuffer?: GPUBuffer | null
 ): Promise<GPUBuffer> {
   const device = getDevice();
@@ -1635,6 +1645,7 @@ async function runDenseFFNWithFusedPostNormGPU(
       eps,
       residual,
       outputBuffer,
+      transposeB,  // true for GGUF row-major, false for column-major
     },
     recorder
   );

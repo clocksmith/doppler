@@ -53,23 +53,92 @@ export type WeightLayout = 'row' | 'column';
 
 /** Quantization value (string for forward compatibility) */
 export type QuantizationValue =
-  | 'q4_k_m'
-  | 'q6_k'
-  | 'q8_0'
-  | 'f16'
-  | 'bf16'
-  | 'f32'
-  | string;
+  | 'q4k'      // Q4_K_M block quantization (canonical short form)
+  | 'q6k'      // Q6_K block quantization
+  | 'q8_0'     // Q8_0 quantization
+  | 'f16'      // Float16
+  | 'bf16'     // BFloat16
+  | 'f32'      // Float32
+  | 'fp8e4'    // Float8 E4M3
+  | 'fp8e5'    // Float8 E5M2
+  | 'i8'       // Int8
+  | 'i4'       // Int4
+  | string;    // Allow future extensions
 
-/** Quantization metadata for different weight groups */
+/**
+ * Quantization metadata for different weight groups.
+ *
+ * Naming convention (storage-only, no runtime info):
+ * - Base model: `{name}-w{weights}[-e{embeddings}][-h{head}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]`
+ * - Standalone adapter: `{base}-w{quant}+{type}-{name}-{quant}r{rank}`
+ * - Merged adapter: `{name}-w{weights}~{type}-{name}-{quant}r{rank}`
+ *
+ * Examples:
+ * - `gemma-2b-wq4k` (weights Q4K, embeddings default to weights)
+ * - `gemma-2b-wq4k-ef16` (weights Q4K, embeddings F16)
+ * - `llama-8b-wq4k-ef16-hf16` (with separate head)
+ * - `qwen2-vl-7b-wq4k-vf16-pf16` (multimodal with vision + projector)
+ * - `gemma-2b-wq4k+lora-coding-f16r16` (standalone adapter)
+ * - `gemma-2b-wq4k~lora-coding-f16r16` (merged adapter)
+ */
 export interface QuantizationInfoSchema {
+  // Core text model components
   weights: QuantizationValue;
   embeddings?: QuantizationValue;
   lmHead?: QuantizationValue;
-  activations?: QuantizationValue;
+
+  // Multimodal components
+  vision?: QuantizationValue;      // Vision encoder (ViT, SigLIP, CLIP)
+  audio?: QuantizationValue;       // Audio encoder (Whisper, wav2vec)
+  tts?: QuantizationValue;         // TTS decoder
+  projector?: QuantizationValue;   // Cross-modal projection layers
+
+  // Runtime hints (NOT included in variantTag - these are runtime, not storage)
   kvCache?: QuantizationValue;
   compute?: QuantizationValue;
+
+  // Generated variant tag for modelId suffix
   variantTag?: string;
+}
+
+/**
+ * Adapter configuration for LoRA/QLoRA adapters.
+ */
+export interface AdapterConfigSchema {
+  /** Adapter type */
+  type: 'lora' | 'qlora';
+  /** Adapter name/purpose (e.g., 'coding', 'roleplay', 'japanese') */
+  name: string;
+  /** LoRA rank */
+  rank: number;
+  /** LoRA alpha scaling factor */
+  alpha?: number;
+  /** Quantization of adapter weights */
+  quant: QuantizationValue;
+  /** Target modules */
+  targetModules?: string[];
+  /** Dropout rate during training */
+  dropout?: number;
+}
+
+/**
+ * Model provenance for frankenmodels and merges.
+ */
+export interface ProvenanceSchema {
+  /** Source models used in merge */
+  sources: string[];
+  /** Merge method (e.g., 'slerp', 'ties', 'dare', 'linear') */
+  method?: string;
+  /** Merge parameters (method-specific) */
+  params?: Record<string, unknown>;
+  /** Adapters applied before merge */
+  adapters?: string[];
+  /** Original model this was derived from */
+  baseModel?: string;
+  /** Conversion/creation timestamp */
+  createdAt?: string;
+  /** Tool used for merge/conversion */
+  tool?: string;
 }
 
 // =============================================================================
@@ -240,6 +309,19 @@ export interface ManifestSchema {
   moeConfig?: MoEConfigSchema | null;
   optimizations?: RuntimeOptimizationsSchema;
   conversion?: ConversionInfoSchema;
+
+  // Adapter support (for LoRA/QLoRA)
+  /** Adapter type - present only for adapter manifests */
+  adapterType?: 'lora' | 'qlora';
+  /** Base model compatibility - required for adapter manifests */
+  baseCompatibility?: string[];
+  /** Merged adapter info - present when adapter is baked into weights */
+  mergedAdapter?: AdapterConfigSchema;
+  /** Adapter config - full config for standalone adapter manifests */
+  adapterConfig?: AdapterConfigSchema;
+
+  // Provenance (for merged/frankenstein models)
+  provenance?: ProvenanceSchema;
 
   // Legacy field aliases
   name?: string;

@@ -65,14 +65,14 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
 ```json
 {
   "version": 1,
-  "modelId": "gemma-2-2b-it-q4",
+  "modelId": "gemma-2-2b-it-wq4k-ef16",
   "modelType": "transformer",
   "quantization": "Q4_K_M",
   "quantizationInfo": {
-    "weights": "q4_k_m",
+    "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
-    "variantTag": "wq4_k_m-embf16"
+    "variantTag": "wq4k-ef16"
   },
   "hashAlgorithm": "sha256",
   "architecture": {
@@ -210,23 +210,79 @@ embeddings and lm_head can be distinguished from core weights.
 ```json
 {
   "quantizationInfo": {
-    "weights": "q4_k_m",
+    "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
-    "variantTag": "wq4_k_m-embf16"
+    "variantTag": "wq4k-ef16"
   }
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `weights` | string | Quantization for main weights (`q4_k_m`, `f16`, etc.) |
+| `weights` | string | Quantization for main weights (`q4k`, `f16`, etc.) |
 | `embeddings` | string? | Quantization for embedding table |
 | `lmHead` | string? | Quantization for LM head (if different from embeddings) |
-| `activations` | string? | Activation precision (optional) |
-| `kvCache` | string? | KV cache dtype (optional) |
-| `compute` | string? | Compute precision hint (optional) |
-| `variantTag` | string? | Canonical name suffix (`wq4_k_m-embf16`) used by converter defaults |
+| `vision` | string? | Vision encoder quantization (multimodal models) |
+| `audio` | string? | Audio encoder quantization (speech models) |
+| `tts` | string? | TTS decoder quantization |
+| `projector` | string? | Cross-modal projector quantization |
+| `kvCache` | string? | KV cache dtype hint (runtime, not storage) |
+| `compute` | string? | Compute precision hint (runtime, not storage) |
+| `variantTag` | string? | Canonical name suffix for modelId |
+
+### Naming Convention
+
+DOPPLER uses a concise naming convention that describes **storage only** (not runtime behavior):
+
+```
+{model-name}-w{weights}[-e{embeddings}][-h{head}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
+```
+
+**Component prefixes:**
+
+| Prefix | Component | Description |
+|--------|-----------|-------------|
+| `w` | Weights | Transformer layer weights (required) |
+| `e` | Embeddings | Token embedding table |
+| `h` | Head | LM head / output projection |
+| `v` | Vision | Vision encoder (ViT, SigLIP, CLIP) |
+| `a` | Audio | Audio encoder (Whisper, wav2vec) |
+| `t` | TTS | Text-to-speech decoder |
+| `p` | Projector | Cross-modal projection layers |
+
+**Quantization tokens:**
+
+| Token | Description | Token | Description |
+|-------|-------------|-------|-------------|
+| `q4k` | Q4_K_M block quant | `f16` | Float16 |
+| `q6k` | Q6_K block quant | `bf16` | BFloat16 |
+| `q8_0` | Q8_0 quant | `f32` | Float32 |
+| `i4` | Int4 | `fp8e4` | Float8 E4M3 |
+| `i8` | Int8 | `fp8e5` | Float8 E5M2 |
+
+**Examples:**
+
+| Model ID | Description |
+|----------|-------------|
+| `gemma-2b-wq4k` | Weights Q4K, embeddings default to weights |
+| `gemma-2b-wq4k-ef16` | Weights Q4K, embeddings F16 |
+| `llama-8b-wq4k-ef16-hf16` | With explicit head quantization |
+| `qwen2-vl-7b-wq4k-vf16-pf16` | Multimodal with vision + projector |
+| `phi-3.5-mini-wq4k-ebf16` | BFloat16 embeddings |
+
+**Adapter naming:**
+
+For adapters (separate or merged), the naming extends with `+` or `~`:
+
+| Pattern | Meaning |
+|---------|---------|
+| `+lora-{name}-{quant}r{rank}` | Standalone adapter (separate file) |
+| `~lora-{name}-{quant}r{rank}` | Merged adapter (baked into weights) |
+
+Examples:
+- `gemma-2b-wq4k+lora-coding-f16r16` — Standalone coding adapter
+- `gemma-2b-wq4k~lora-instruct-f16r32` — Instruct adapter merged in
 
 ### Multi-Shard Tensors
 

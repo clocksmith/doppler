@@ -18,6 +18,8 @@ import {
   type ShardSchema,
   type ComponentGroupSchema,
   type MoEConfigSchema,
+  type AdapterConfigSchema,
+  type ProvenanceSchema,
 } from '../../config/schema/index.js';
 
 // =============================================================================
@@ -112,13 +114,6 @@ export interface RuntimeOptimizations {
   kernelHints?: KernelHints;
 }
 
-export interface LoRAConfig {
-  rank: number;
-  alpha: number;
-  targetModules?: string[];
-  dropout?: number;
-}
-
 export interface RDRRManifest {
   version: number | string;
   modelId: string;
@@ -144,13 +139,31 @@ export interface RDRRManifest {
   blake3Full?: string;
   defaultWeightLayout?: WeightLayout;
   metadata?: Record<string, unknown>;
-  adapterType?: 'lora';
+
+  // Adapter support (for LoRA/QLoRA)
+  /** Adapter type - present only for adapter manifests */
+  adapterType?: 'lora' | 'qlora';
+  /** Base model compatibility - required for adapter manifests */
+  baseCompatibility?: string[];
+  /** Merged adapter info - present when adapter is baked into weights */
+  mergedAdapter?: AdapterConfigSchema;
+  /** Adapter config - full config for standalone adapter manifests */
+  adapterConfig?: AdapterConfigSchema;
+
+  // Provenance (for merged/frankenstein models)
+  provenance?: ProvenanceSchema;
+
+  // LoRA adapter fields (used by adapter loading system)
   baseModel?: string;
-  loraConfig?: LoRAConfig;
-  /** @deprecated Use tensorsFile */
+  loraConfig?: {
+    rank: number;
+    alpha: number;
+    targetModules?: string[];
+    dropout?: number;
+  };
+
+  // Legacy inline tensors (use tensorsFile for new manifests)
   tensors?: Record<string, TensorLocation>;
-  /** @deprecated Use modelId */
-  name?: string;
 }
 
 export type TensorMap = Record<string, TensorLocation>;
@@ -179,4 +192,10 @@ export interface CreateManifestOptions {
   conversion?: ConversionInfo;
   blake3Full?: string;
   metadata?: Record<string, unknown>;
+  // Adapter support
+  adapterType?: 'lora' | 'qlora';
+  baseCompatibility?: string[];
+  mergedAdapter?: AdapterConfigSchema;
+  adapterConfig?: AdapterConfigSchema;
+  provenance?: ProvenanceSchema;
 }

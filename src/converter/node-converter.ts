@@ -55,8 +55,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 interface ConvertOptions {
   input: string;
   output: string;
-  quantize: 'q4_k_m' | 'f16' | 'f32' | null;
-  quantizeEmbeddings: boolean;
+  weightQuant: string | null;     // Weight quantization
+  embedQuant: string | null;      // Embedding quantization
+  headQuant: string | null;       // LM head quantization
+  visionQuant: string | null;     // Vision encoder quantization
+  audioQuant: string | null;      // Audio encoder quantization
+  projectorQuant: string | null;  // Cross-modal projector quantization
+  computePrecision: 'f16' | 'f32' | 'auto' | null;  // Runtime compute precision hint
+  kernelHints: string | null;     // JSON string of kernel hints
   shardSize: number;
   modelId: string | null;
   textOnly: boolean;
@@ -70,8 +76,14 @@ function parseArgs(argv: string[]): ConvertOptions {
   const opts: ConvertOptions = {
     input: '',
     output: '',
-    quantize: null,
-    quantizeEmbeddings: false,
+    weightQuant: null,
+    embedQuant: null,
+    headQuant: null,
+    visionQuant: null,
+    audioQuant: null,
+    projectorQuant: null,
+    computePrecision: null,
+    kernelHints: null,
     shardSize: 64,
     modelId: null,
     textOnly: false,
@@ -96,19 +108,34 @@ function parseArgs(argv: string[]): ConvertOptions {
           opts.output = argv[++i];
         }
         break;
-      case '--quantize':
-      case '-q':
-        const qVal = argv[++i]?.toLowerCase();
-        if (qVal === 'q4_k_m' || qVal === 'q4' || qVal === 'q4k') {
-          opts.quantize = 'q4_k_m';
-        } else if (qVal === 'f16') {
-          opts.quantize = 'f16';
-        } else if (qVal === 'f32') {
-          opts.quantize = 'f32';
+      case '--weight-quant':
+      case '-w':
+        opts.weightQuant = argv[++i] || null;
+        break;
+      case '--embed-quant':
+      case '-e':
+        opts.embedQuant = argv[++i] || null;
+        break;
+      case '--head-quant':
+        opts.headQuant = argv[++i] || null;
+        break;
+      case '--vision-quant':
+        opts.visionQuant = argv[++i] || null;
+        break;
+      case '--audio-quant':
+        opts.audioQuant = argv[++i] || null;
+        break;
+      case '--projector-quant':
+        opts.projectorQuant = argv[++i] || null;
+        break;
+      case '--compute-precision':
+        const cp = argv[++i]?.toLowerCase();
+        if (cp === 'f16' || cp === 'f32' || cp === 'auto') {
+          opts.computePrecision = cp;
         }
         break;
-      case '--quantize-embeddings':
-        opts.quantizeEmbeddings = true;
+      case '--kernel-hints':
+        opts.kernelHints = argv[++i] || null;
         break;
       case '--shard-size':
         opts.shardSize = parseInt(argv[++i] || '64', 10);
@@ -176,23 +203,49 @@ function detectModelTypeFromPreset(
   return { presetId, modelType };
 }
 
+/**
+ * Normalize quantization tag to canonical short form.
+ *
+ * DOPPLER naming uses concise storage-only tags:
+ * - q4k = Q4_K_M block quantization (the only Q4 we support)
+ * - q6k = Q6_K block quantization
+ * - q8_0 = Q8_0 quantization
+ * - f16/bf16/f32 = Float formats
+ * - fp8e4/fp8e5 = Float8 formats
+ * - i4/i8 = Integer formats
+ */
 function normalizeQuantTag(value: string | null | undefined): string {
   if (!value) return 'f16';
   const lower = value.toLowerCase();
-  if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4') return 'q4_k_m';
-  if (lower === 'q6_k' || lower === 'q6k') return 'q6_k';
+
+  // Q4_K_M variants → q4k (canonical short form)
+  if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4' || lower === 'q4km') return 'q4k';
+  // Q6_K variants → q6k
+  if (lower === 'q6_k' || lower === 'q6k' || lower === 'q6') return 'q6k';
+  // Q8_0 (keep as-is, common format)
   if (lower === 'q8_0' || lower === 'q8') return 'q8_0';
+  // Float formats
   if (lower === 'f16' || lower === 'fp16' || lower === 'float16') return 'f16';
   if (lower === 'bf16' || lower === 'bfloat16') return 'bf16';
   if (lower === 'f32' || lower === 'fp32' || lower === 'float32') return 'f32';
+  // Float8 formats
+  if (lower === 'fp8e4' || lower === 'fp8e4m3' || lower === 'e4m3') return 'fp8e4';
+  if (lower === 'fp8e5' || lower === 'fp8e5m2' || lower === 'e5m2') return 'fp8e5';
+  // Integer formats
+  if (lower === 'i8' || lower === 'int8') return 'i8';
+  if (lower === 'i4' || lower === 'int4') return 'i4';
+
   return lower;
 }
 
-function resolveManifestQuantization(quantize: ConvertOptions['quantize'], fallback: string): string {
-  if (quantize === 'q4_k_m') return 'Q4_K_M';
-  if (quantize === 'f16') return 'F16';
-  if (quantize === 'f32') return 'F32';
-  return fallback;
+function resolveManifestQuantization(quantize: string | null, fallback: string): string {
+  if (!quantize) return fallback;
+  const normalized = normalizeQuantTag(quantize);
+  // Return uppercase for manifest field (display format)
+  if (normalized === 'q4k') return 'Q4_K_M';
+  if (normalized === 'q6k') return 'Q6_K';
+  if (normalized === 'q8_0') return 'Q8_0';
+  return normalized.toUpperCase();
 }
 
 function isEmbeddingTensorName(name: string): boolean {
@@ -219,38 +272,99 @@ function findTensorDtype(
   return match?.dtype ?? null;
 }
 
+/**
+ * Build variant tag for model naming.
+ *
+ * Format: w{weights}[-e{embeddings}][-h{head}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
+ *
+ * Components are only included if they differ from defaults:
+ * - embeddings defaults to weights
+ * - head defaults to embeddings
+ * - multimodal components only included if present
+ *
+ * Examples:
+ * - "wq4k" (weights Q4K, embeddings same)
+ * - "wq4k-ef16" (weights Q4K, embeddings F16)
+ * - "wq4k-ef16-hf16" (with explicit head)
+ * - "wq4k-vf16-pf16" (multimodal with vision + projector)
+ */
 function buildVariantTag(info: QuantizationInfoSchema): string {
   const weights = info.weights;
-  const embeddings = info.embeddings ?? info.weights;
-  const parts = [`w${weights}`, `emb${embeddings}`];
+  const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
-  if (lmHead !== embeddings) {
-    parts.push(`head${lmHead}`);
+
+  // Start with weights (always present)
+  const parts = [`w${weights}`];
+
+  // Add embeddings only if different from weights
+  if (embeddings !== weights) {
+    parts.push(`e${embeddings}`);
   }
+
+  // Add head only if different from embeddings
+  if (lmHead !== embeddings) {
+    parts.push(`h${lmHead}`);
+  }
+
+  // Multimodal components (only if present)
+  if (info.vision) {
+    parts.push(`v${info.vision}`);
+  }
+  if (info.audio) {
+    parts.push(`a${info.audio}`);
+  }
+  if (info.tts) {
+    parts.push(`t${info.tts}`);
+  }
+  if (info.projector) {
+    parts.push(`p${info.projector}`);
+  }
+
   return parts.join('-');
 }
 
+/**
+ * Build quantization info from conversion options.
+ *
+ * Handles all component quantization with proper defaults:
+ * - weights: from --quantize or original dtype
+ * - embeddings: from --embed-quant or defaults to original dtype (usually f16/bf16)
+ * - lmHead: from --head-quant or defaults to embeddings
+ * - vision/audio/tts/projector: from explicit flags only
+ */
 function buildQuantizationInfo(
   opts: ConvertOptions,
   originalDtype: string,
   embedDtype: string | null,
-  lmHeadDtype: string | null
+  lmHeadDtype: string | null,
+  hasVision = false,
+  hasAudio = false,
+  hasProjector = false
 ): QuantizationInfoSchema {
-  const weights = normalizeQuantTag(opts.quantize ?? originalDtype);
-  let embeddings = normalizeQuantTag(embedDtype ?? originalDtype);
-  let lmHead = normalizeQuantTag(lmHeadDtype ?? embeddings);
+  const weights = normalizeQuantTag(opts.weightQuant ?? originalDtype);
 
-  if (opts.quantize === 'q4_k_m') {
-    if (opts.quantizeEmbeddings) {
-      embeddings = weights;
-      lmHead = weights;
-    }
-  } else if (opts.quantize === 'f16') {
-    embeddings = 'f16';
-    lmHead = 'f16';
-  } else if (opts.quantize === 'f32') {
-    embeddings = 'f32';
-    lmHead = 'f32';
+  // WebGPU only supports F16/F32 for floats - BF16 must convert to F16
+  const webgpuSafe = (dtype: string): string => {
+    const normalized = normalizeQuantTag(dtype);
+    // BF16 not supported in WebGPU, convert to F16
+    if (normalized === 'bf16') return 'f16';
+    return normalized;
+  };
+
+  // Embeddings: explicit flag > original dtype (converted to WebGPU-safe)
+  let embeddings: string;
+  if (opts.embedQuant) {
+    embeddings = webgpuSafe(opts.embedQuant);
+  } else {
+    embeddings = webgpuSafe(embedDtype || 'f16');
+  }
+
+  // Head: explicit flag > embeddings
+  let lmHead: string;
+  if (opts.headQuant) {
+    lmHead = webgpuSafe(opts.headQuant);
+  } else {
+    lmHead = webgpuSafe(lmHeadDtype || '') || embeddings;
   }
 
   const info: QuantizationInfoSchema = {
@@ -258,6 +372,31 @@ function buildQuantizationInfo(
     embeddings,
     lmHead: lmHead !== embeddings ? lmHead : undefined,
   };
+
+  // Multimodal components (only if present in model and explicitly set)
+  if (hasVision && opts.visionQuant) {
+    info.vision = normalizeQuantTag(opts.visionQuant);
+  } else if (hasVision && !opts.textOnly) {
+    info.vision = 'f16';
+  }
+
+  if (hasAudio && opts.audioQuant) {
+    info.audio = normalizeQuantTag(opts.audioQuant);
+  } else if (hasAudio) {
+    info.audio = 'f16';
+  }
+
+  if (hasProjector && opts.projectorQuant) {
+    info.projector = normalizeQuantTag(opts.projectorQuant);
+  } else if (hasProjector && !opts.textOnly) {
+    info.projector = 'f16';
+  }
+
+  // Runtime hints (not included in variantTag)
+  if (opts.computePrecision) {
+    info.compute = opts.computePrecision;
+  }
+
   info.variantTag = buildVariantTag(info);
   return info;
 }
@@ -281,35 +420,68 @@ Arguments:
   <input>               HuggingFace directory or GGUF file path
   <output>              Output directory for RDRR model
 
-Options:
-  --quantize, -q <type> Quantize weights: q4_k_m, f16, f32 (default: preserve)
-  --quantize-embeddings Also quantize embedding table
+Quantization Options:
+  --weight-quant, -w <type>  Weight quantization: q4k, f16, f32 (default: preserve original)
+  --embed-quant, -e <type>   Embedding quantization (default: preserve original)
+  --head-quant <type>        LM head quantization (default: same as embeddings)
+  --vision-quant <type>      Vision encoder quantization (multimodal models)
+  --audio-quant <type>       Audio encoder quantization (speech models)
+  --projector-quant <type>   Cross-modal projector quantization
+
+Runtime Hints (stored in manifest, not in filename):
+  --compute-precision <p> Compute precision hint: f16, f32, auto
+  --kernel-hints <json>   JSON object with kernel selection hints
+
+General Options:
   --shard-size <mb>     Shard size in MB (default: 64)
-  --model-id <id>       Override model ID in manifest (default appends quant tag like -wq4_k_m-embf16)
+  --model-id <id>       Override model ID in manifest
   --text-only           Extract only text model from multimodal
   --fast                Pre-load all shards into memory (faster, more RAM)
   --verbose, -v         Show detailed progress
   --test [path]         Create tiny test fixture at path (default: ./test-model)
   --help, -h            Show this help
 
-Examples:
-  # Convert HuggingFace model with Q4 quantization
-  npx tsx converter/node-converter.ts \\
-    ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/*/ \\
-    models/gemma-1b \\
-    --quantize q4_k_m
+Naming Convention:
+  Model IDs use format: {name}-w{weights}[-e{embeddings}][-h{head}][-v{vision}]...
 
-  # Convert GGUF file
-  npx tsx converter/node-converter.ts model.gguf models/my-model
+  Examples:
+    gemma-2b-wq4k           Weights Q4K, embeddings default to weights
+    gemma-2b-wq4k-ef16      Weights Q4K, embeddings F16
+    llama-8b-wq4k-ef16-hf16 With separate head quantization
+    qwen2-vl-7b-wq4k-vf16   Multimodal with vision encoder
+
+  Quantization tokens:
+    q4k = Q4_K_M block quant    f16 = Float16       bf16 = BFloat16
+    q6k = Q6_K block quant      f32 = Float32       fp8e4/fp8e5 = Float8
+    q8_0 = Q8_0 quant           i4/i8 = Integer
+
+Examples:
+  # Convert with Q4K weights, keep embeddings as original (bf16/f16)
+  npx tsx src/converter/node-converter.ts \\
+    ~/.cache/huggingface/hub/models--google--gemma-2-2b-it/snapshots/*/ \\
+    models/gemma-2b \\
+    -w q4k
+
+  # Explicit embeddings and head quantization
+  npx tsx src/converter/node-converter.ts input models/output \\
+    -w q4k -e f16 --head-quant f16
+
+  # Multimodal with explicit vision quantization
+  npx tsx src/converter/node-converter.ts input models/output \\
+    -w q4k --vision-quant f16 --projector-quant f16
+
+  # Set runtime compute precision hint
+  npx tsx src/converter/node-converter.ts input models/output \\
+    -w q4k --compute-precision f16
 
   # Multimodal to text-only
-  npx tsx converter/node-converter.ts \\
+  npx tsx src/converter/node-converter.ts \\
     ~/models/gemma-3-4b-it \\
     models/gemma-4b-text \\
-    --text-only --quantize q4_k_m
+    --text-only -w q4k
 
   # Create tiny test fixture
-  npx tsx converter/node-converter.ts --test ./test-model
+  npx tsx src/converter/node-converter.ts --test ./test-model
 `);
 }
 
@@ -384,16 +556,32 @@ async function convertSafetensors(
   verboseLog(`Model type: ${modelType}`);
   verboseLog(`Config: ${JSON.stringify(config, null, 2).slice(0, 500)}...`);
 
+  // Detect multimodal components
+  const visionPatterns = ['vision_', 'vision_tower', 'vision_model', 'image_encoder'];
+  const audioPatterns = ['audio_', 'audio_encoder', 'whisper', 'wav2vec'];
+  const projectorPatterns = ['multi_modal_projector', 'mm_projector', 'projector'];
+
+  const hasVision = parsed.tensors.some((t: SafetensorsTensor) =>
+    visionPatterns.some(p => t.name.toLowerCase().includes(p)));
+  const hasAudio = parsed.tensors.some((t: SafetensorsTensor) =>
+    audioPatterns.some(p => t.name.toLowerCase().includes(p)));
+  const hasProjector = parsed.tensors.some((t: SafetensorsTensor) =>
+    projectorPatterns.some(p => t.name.toLowerCase().includes(p)));
+
+  if (hasVision) verboseLog('Detected vision encoder');
+  if (hasAudio) verboseLog('Detected audio encoder');
+  if (hasProjector) verboseLog('Detected multimodal projector');
+
   // Filter text-only if requested
   let tensors = parsed.tensors;
   if (opts.textOnly) {
     const textOnlyPatterns = ['language_model', 'model.', 'lm_head', 'embed_tokens'];
-    const visionPatterns = ['vision_', 'vision_tower', 'multi_modal_projector', 'image_newline'];
+    const excludePatterns = [...visionPatterns, ...audioPatterns, ...projectorPatterns, 'image_newline'];
 
     tensors = tensors.filter((t: SafetensorsTensor) => {
-      const isVision = visionPatterns.some(p => t.name.includes(p));
-      if (isVision) {
-        verboseLog(`Skipping vision tensor: ${t.name}`);
+      const isMultimodal = excludePatterns.some(p => t.name.toLowerCase().includes(p));
+      if (isMultimodal) {
+        verboseLog(`Skipping multimodal tensor: ${t.name}`);
         return false;
       }
       return true;
@@ -416,12 +604,45 @@ async function convertSafetensors(
 
   const embedDtypeRaw = findTensorDtype(validTensors, isEmbeddingTensorName);
   const lmHeadDtypeRaw = findTensorDtype(validTensors, isLmHeadTensorName);
-  const quantizationInfo = buildQuantizationInfo(opts, originalDtype, embedDtypeRaw, lmHeadDtypeRaw);
+  const quantizationInfo = buildQuantizationInfo(
+    opts, originalDtype, embedDtypeRaw, lmHeadDtypeRaw,
+    hasVision && !opts.textOnly,
+    hasAudio,
+    hasProjector && !opts.textOnly
+  );
   const baseModelId = typeof configRec._name_or_path === 'string'
     ? configRec._name_or_path
     : basename(inputPath);
   const resolvedModelId = resolveModelId(opts.modelId, baseModelId, quantizationInfo.variantTag);
-  const manifestQuantization = resolveManifestQuantization(opts.quantize, originalDtype);
+  const manifestQuantization = resolveManifestQuantization(opts.weightQuant, originalDtype);
+
+  // Helper to determine output dtype for a tensor based on its type
+  // WebGPU only supports F16/F32 - BF16 must convert to F16
+  const toWebGPUDtype = (dtype: string): string => {
+    if (dtype === 'q4k') return 'Q4_K_M';
+    if (dtype === 'bf16') return 'F16';  // WebGPU doesn't support BF16
+    return dtype.toUpperCase();
+  };
+
+  const getOutputDtype = (name: string, shape: number[], originalDtype: string): string => {
+    const isEmbedding = isEmbeddingTensorName(name);
+    const isHead = isLmHeadTensorName(name);
+
+    if (isEmbedding) {
+      return toWebGPUDtype(quantizationInfo.embeddings);
+    }
+    if (isHead) {
+      const headQuant = quantizationInfo.lmHead ?? quantizationInfo.embeddings;
+      return toWebGPUDtype(headQuant);
+    }
+    // Regular weight tensor
+    if (shouldQuantizeCore(name, shape)) {
+      return toWebGPUDtype(quantizationInfo.weights);
+    }
+    // Non-quantized tensor - still need WebGPU-safe dtype
+    if (originalDtype === 'BF16') return 'F16';
+    return originalDtype;
+  };
 
   // Create modelInfo with adjusted dtypes for quantized tensors
   const modelInfo: ModelInfo = {
@@ -432,24 +653,12 @@ async function convertSafetensors(
     config,
     tokenizerConfig,
     tokenizerJson: parsed.tokenizerJson,
-    tensors: validTensors.map((t: SafetensorsTensor) => {
-      // Determine the output dtype based on quantization settings
-      let outputDtype = t.dtype;
-      if (opts.quantize === 'q4_k_m') {
-        const isEmbedding = t.name.includes('embed') || t.name.includes('lm_head');
-        if (shouldQuantizeCore(t.name, t.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
-          outputDtype = 'Q4_K_M';
-        }
-      } else if (opts.quantize === 'f16' && t.dtype !== 'F16') {
-        outputDtype = 'F16';
-      }
-      return {
-        name: t.name,
-        shape: t.shape,
-        dtype: outputDtype,
-        size: t.size,
-      };
-    }),
+    tensors: validTensors.map((t: SafetensorsTensor) => ({
+      name: t.name,
+      shape: t.shape,
+      dtype: getOutputDtype(t.name, t.shape, t.dtype),
+      size: t.size,
+    })),
   };
 
   // Create tensor data getter
@@ -462,49 +671,44 @@ async function convertSafetensors(
     }
 
     // Read raw tensor data from safetensors file
-    // Ensure tensor has filePath set for reading
     const tensorWithPath = { ...tensor, filePath: tensor.filePath || tensor.shardPath || inputPath };
     const data = await readTensorData(tensorWithPath);
 
-    // Quantize if requested (uses shared shouldQuantize logic)
-    if (opts.quantize === 'q4_k_m') {
-      const isEmbedding = info.name.includes('embed') || info.name.includes('lm_head');
+    // Determine target dtype from quantizationInfo
+    const targetDtype = getOutputDtype(info.name, info.shape, tensor.dtype);
 
-      // Use shared logic + embedding override
-      if (shouldQuantizeCore(info.name, info.shape) || (isEmbedding && opts.quantizeEmbeddings)) {
-        verboseLog(`Quantizing ${info.name} to Q4_K_M`);
+    // Quantize to Q4_K_M if needed
+    if (targetDtype === 'Q4_K_M') {
+      verboseLog(`Quantizing ${info.name} to Q4_K_M`);
 
-        // Convert to F32 based on source dtype
-        let f32: Float32Array;
-        if (tensor.dtype === 'BF16') {
-          const bf16Data = new Uint16Array(data);
-          f32 = new Float32Array(bf16Data.length);
-          for (let i = 0; i < bf16Data.length; i++) {
-            const bits = bf16Data[i] << 16;
-            const f32View = new Float32Array(1);
-            new Uint32Array(f32View.buffer)[0] = bits;
-            f32[i] = f32View[0];
-          }
-        } else {
-          f32 = new Float32Array(data);
-        }
-
-        const q4 = quantizeToQ4KM(f32, info.shape);
-        return q4.quantized.buffer as ArrayBuffer;
-      }
-    }
-
-    if (opts.quantize === 'f16' && tensor.dtype !== 'F16') {
-      verboseLog(`Converting ${info.name} from ${tensor.dtype} to F16`);
-
-      // Handle different input dtypes
+      // Convert to F32 based on source dtype
       let f32: Float32Array;
       if (tensor.dtype === 'BF16') {
-        // Convert BF16 to F32 first
         const bf16Data = new Uint16Array(data);
         f32 = new Float32Array(bf16Data.length);
         for (let i = 0; i < bf16Data.length; i++) {
-          // BF16 to F32: shift left by 16 bits (BF16 is just truncated F32)
+          const bits = bf16Data[i] << 16;
+          const f32View = new Float32Array(1);
+          new Uint32Array(f32View.buffer)[0] = bits;
+          f32[i] = f32View[0];
+        }
+      } else {
+        f32 = new Float32Array(data);
+      }
+
+      const q4 = quantizeToQ4KM(f32, info.shape);
+      return q4.quantized.buffer as ArrayBuffer;
+    }
+
+    // Convert to F16 if needed
+    if (targetDtype === 'F16' && tensor.dtype !== 'F16') {
+      verboseLog(`Converting ${info.name} from ${tensor.dtype} to F16`);
+
+      let f32: Float32Array;
+      if (tensor.dtype === 'BF16') {
+        const bf16Data = new Uint16Array(data);
+        f32 = new Float32Array(bf16Data.length);
+        for (let i = 0; i < bf16Data.length; i++) {
           const bits = bf16Data[i] << 16;
           const f32View = new Float32Array(1);
           new Uint32Array(f32View.buffer)[0] = bits;
@@ -513,12 +717,10 @@ async function convertSafetensors(
       } else if (tensor.dtype === 'F32') {
         f32 = new Float32Array(data);
       } else {
-        // For other dtypes, assume F32 interpretation (may need extension)
         verboseLog(`Warning: Unknown dtype ${tensor.dtype}, treating as F32`);
         f32 = new Float32Array(data);
       }
 
-      // Convert F32 to F16
       const f16 = new Uint16Array(f32.length);
       for (let i = 0; i < f32.length; i++) {
         f16[i] = float32ToFloat16(f32[i]);
@@ -600,7 +802,7 @@ async function convertGGUF(
     lmHeadDtypeRaw
   );
   const resolvedModelId = resolveModelId(opts.modelId, modelName, quantizationInfo.variantTag);
-  const manifestQuantization = resolveManifestQuantization(opts.quantize, parsed.quantization || 'F32');
+  const manifestQuantization = resolveManifestQuantization(opts.weightQuant, parsed.quantization || 'F32');
 
   const modelInfo: ModelInfo = {
     modelName: resolvedModelId,
@@ -714,8 +916,11 @@ async function main(): Promise<void> {
   console.log(`Converting ${format.toUpperCase()} model...`);
   console.log(`  Input: ${inputPath}`);
   console.log(`  Output: ${outputPath}`);
-  if (opts.quantize) {
-    console.log(`  Quantization: ${opts.quantize}`);
+  if (opts.weightQuant) {
+    console.log(`  Weight quantization: ${opts.weightQuant}`);
+  }
+  if (opts.embedQuant) {
+    console.log(`  Embed quantization: ${opts.embedQuant}`);
   }
 
   try {

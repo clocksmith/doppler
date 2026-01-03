@@ -360,7 +360,7 @@ export class DopplerLoader {
 
     try {
       const adapter: LoRAAdapter = {
-        name: manifest.name || manifest.modelId,
+        name: manifest.modelId,
         version: typeof manifest.version === 'string' ? manifest.version : String(manifest.version),
         baseModel: manifest.baseModel,
         rank: manifest.loraConfig.rank,
@@ -1192,6 +1192,14 @@ export class DopplerLoader {
       const buffer = acquireBuffer(location.size, undefined, name);
       device!.queue.writeBuffer(buffer, 0, shardView as GPUAllowSharedBufferSource);
       this.gpuBuffers.add(buffer);
+
+      // Tag buffer with its dtype so kernels know the data format
+      if (location.dtype === 'F16') {
+        setBufferDtype(buffer, 'f16');
+      } else if (location.dtype === 'F32') {
+        setBufferDtype(buffer, 'f32');
+      }
+
       return applyBufferLayout(buffer, location);
     } else {
       // CPU path - need to slice for typed array alignment

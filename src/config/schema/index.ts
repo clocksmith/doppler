@@ -42,6 +42,8 @@ export {
   type QuantizationInfoSchema,
   type ConversionInfoSchema,
   type ManifestSchema,
+  type AdapterConfigSchema,
+  type ProvenanceSchema,
 
   // Helpers
   isV1Manifest,
