@@ -44,6 +44,11 @@ function hashArrayBuffer(data: ArrayBuffer | SharedArrayBuffer): string {
  *
  * Provides content-addressed caching for uniform buffers. Buffers with
  * identical contents share the same GPU buffer, reducing allocation overhead.
+ *
+ * IMPORTANT: Evicted buffers are NOT destroyed immediately. They are queued
+ * for deferred destruction to avoid use-after-destroy bugs when command
+ * buffers reference cached uniforms that get evicted before submit.
+ * Call flushPendingDestruction() after GPU work completes.
  */
 export class UniformBufferCache {
   private cache: Map<string, UniformCacheEntry> = new Map();
@@ -53,6 +58,9 @@ export class UniformBufferCache {
     evictions: 0,
     currentSize: 0,
   };
+
+  /** Buffers evicted from cache, awaiting destruction after GPU work completes */
+  private pendingDestruction: GPUBuffer[] = [];
 
   private readonly maxEntries: number;
   private readonly maxAgeMs: number;
@@ -128,7 +136,9 @@ export class UniformBufferCache {
   }
 
   /**
-   * Evict least recently used entry
+   * Evict least recently used entry.
+   * IMPORTANT: Buffer is NOT destroyed immediately - it's queued for deferred
+   * destruction to avoid use-after-destroy bugs with pending command buffers.
    */
   private evictLRU(): void {
     let oldestHash: string | null = null;
@@ -155,7 +165,8 @@ export class UniformBufferCache {
     if (oldestHash) {
       const entry = this.cache.get(oldestHash);
       if (entry) {
-        entry.buffer.destroy();
+        // DON'T destroy immediately - defer until GPU work completes
+        this.pendingDestruction.push(entry.buffer);
         this.cache.delete(oldestHash);
         this.stats.evictions++;
         this.stats.currentSize = this.cache.size;
@@ -164,7 +175,8 @@ export class UniformBufferCache {
   }
 
   /**
-   * Evict stale entries (older than maxAgeMs)
+   * Evict stale entries (older than maxAgeMs).
+   * Buffers are queued for deferred destruction.
    */
   evictStale(): number {
     const now = performance.now();
@@ -172,7 +184,8 @@ export class UniformBufferCache {
 
     for (const [hash, entry] of this.cache) {
       if (entry.refCount === 0 && now - entry.lastUsed > this.maxAgeMs) {
-        entry.buffer.destroy();
+        // DON'T destroy immediately - defer until GPU work completes
+        this.pendingDestruction.push(entry.buffer);
         this.cache.delete(hash);
         evicted++;
       }
@@ -184,14 +197,43 @@ export class UniformBufferCache {
   }
 
   /**
-   * Clear all cached buffers
+   * Clear all cached buffers.
+   * Also flushes any pending destruction queue.
    */
   clear(): void {
+    // Flush pending destruction first
+    this.flushPendingDestruction();
+
+    // Destroy all cached buffers
     for (const entry of this.cache.values()) {
       entry.buffer.destroy();
     }
     this.cache.clear();
     this.stats.currentSize = 0;
+  }
+
+  /**
+   * Destroy all buffers in the pending destruction queue.
+   * Call this after GPU work completes (e.g., after onSubmittedWorkDone).
+   *
+   * This is critical for avoiding use-after-destroy bugs: when the uniform
+   * cache evicts a buffer that's still referenced by a pending command buffer,
+   * the buffer is queued here instead of being destroyed immediately.
+   */
+  flushPendingDestruction(): number {
+    const count = this.pendingDestruction.length;
+    for (const buffer of this.pendingDestruction) {
+      buffer.destroy();
+    }
+    this.pendingDestruction = [];
+    return count;
+  }
+
+  /**
+   * Get the number of buffers pending destruction.
+   */
+  getPendingDestructionCount(): number {
+    return this.pendingDestruction.length;
   }
 
   /**
@@ -209,10 +251,10 @@ export class UniformBufferCache {
   /**
    * Get cache statistics
    */
-  getStats(): UniformCacheStats & { hitRate: string } {
+  getStats(): UniformCacheStats & { hitRate: string; pendingDestruction: number } {
     const total = this.stats.hits + this.stats.misses;
     const hitRate = total > 0 ? ((this.stats.hits / total) * 100).toFixed(1) + '%' : '0%';
-    return { ...this.stats, hitRate };
+    return { ...this.stats, hitRate, pendingDestruction: this.pendingDestruction.length };
   }
 }
 

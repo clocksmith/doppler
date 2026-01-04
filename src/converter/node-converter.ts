@@ -44,6 +44,7 @@ import { shouldQuantize as shouldQuantizeCore, sanitizeModelId } from './core.js
 import {
   detectPreset,
   resolvePreset,
+  DEFAULT_QUANTIZATION_DEFAULTS,
   type ModelType,
   type RawModelConfigSchema,
   type QuantizationInfoSchema,
@@ -427,19 +428,19 @@ function buildQuantizationInfo(
   if (hasVision && opts.visionQuant) {
     info.vision = normalizeQuantTag(opts.visionQuant);
   } else if (hasVision && !opts.textOnly) {
-    info.vision = 'f16';
+    info.vision = DEFAULT_QUANTIZATION_DEFAULTS.visionDtype;
   }
 
   if (hasAudio && opts.audioQuant) {
     info.audio = normalizeQuantTag(opts.audioQuant);
   } else if (hasAudio) {
-    info.audio = 'f16';
+    info.audio = DEFAULT_QUANTIZATION_DEFAULTS.audioDtype;
   }
 
   if (hasProjector && opts.projectorQuant) {
     info.projector = normalizeQuantTag(opts.projectorQuant);
   } else if (hasProjector && !opts.textOnly) {
-    info.projector = 'f16';
+    info.projector = DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype;
   }
 
   // Runtime hints (not included in variantTag)

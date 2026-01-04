@@ -8,116 +8,134 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
-| [Ping-Pong Buffer Release](#pingpong-buffer-release) | Dec 2025 | RESOLVED | Index-based lookup missed buffer B after odd layers |
-| [Buffer Pool Trace False Positives](#buffer-pool-trace-false-positives) | Dec 2025 | RESOLVED | Trace reading garbage from buffer pool padding |
-| [Gemma 3 q_norm/k_norm Offset](#gemma3-qknorm-offset) | Dec 2025 | RESOLVED | Missing +1 offset for q_norm/k_norm weights |
-| [Gemma 3 Magnitude Gap](#gemma3-magnitude-gap) | Dec 2025 | SUPERSEDED | Superseded by q_norm/k_norm fix |
-| [Gemma 3 Q4K Garbage Output](#gemma3-1b-q4k-garbage-output) | Dec 2025 | RESOLVED | Q4K layout mismatch + q_norm offset |
-| [Hidden State Under-Accumulation](#hidden-state-under-accumulation) | Dec 2025 | SUPERSEDED | Merged into Garbage Output PM |
-| [Positive Bias Hidden States](#positive-bias-hidden-states) | Dec 2025 | DISPROVED | Sampling artifact, not real issue |
-| [Softmax Uniform Buffer](#softmax-uniform-buffer) | Dec 2025 | RESOLVED | Swapped innerSize/outerSize |
-| [Pipeline Verification](#pipeline-verification) | Dec 2025 | RESOLVED | Identified FFN explosion |
-| [Gemma 3 Debug](#gemma3-debug) | Dec 2025 | RESOLVED | Q4K quantization format mismatch |
-| [MoE Explicit Layout](#moe-explicit-layout) | Dec 2025 | RESOLVED | WebGPU 'auto' layout binding mismatch |
-| [BF16 2D Dispatch](#bf16-2d-dispatch) | Dec 2025 | RESOLVED | 2D dispatch without linearization |
+| [Performance Gaps (F16)](#2026-01-03-performance-gaps) | 2026-01-03 | **OPEN** | F16 activations partially implemented (3 gaps) |
+| [Batched Decode Repetition](#2026-01-03-batched-decode-repetition) | 2026-01-03 | **OPEN** | Uniform cache eviction destroys pending buffers |
+| [Ping-Pong Buffer Release](#2025-12-31-pingpong-buffer-release) | 2025-12-31 | RESOLVED | Index-based lookup missed buffer B after odd layers |
+| [Buffer Pool Trace False Positives](#2025-12-30-buffer-pool-trace-false-positives) | 2025-12-30 | RESOLVED | Trace reading garbage from buffer pool padding |
+| [Gemma 3 q_norm/k_norm Offset](#2025-12-25-gemma3-qknorm-offset) | 2025-12-25 | RESOLVED | Missing +1 offset for q_norm/k_norm weights |
+| [MoE Explicit Layout](#2025-12-22-moe-explicit-layout) | 2025-12-22 | RESOLVED | WebGPU 'auto' layout binding mismatch |
+| [Gemma 3 Magnitude Gap](#2025-12-21-gemma3-magnitude-gap) | 2025-12-21 | SUPERSEDED | Superseded by q_norm/k_norm fix |
+| [BF16 2D Dispatch](#2025-12-20-bf16-2d-dispatch) | 2025-12-20 | RESOLVED | 2D dispatch without linearization |
+| [Pipeline Verification](#2025-12-19-pipeline-verification) | 2025-12-19 | RESOLVED | Identified FFN explosion |
+| [Gemma 3 Q4K Garbage Output](#2025-12-18-gemma3-q4k-garbage-output) | 2025-12-18 | RESOLVED | Q4K layout mismatch + q_norm offset |
+| [Hidden State Under-Accumulation](#2025-12-18-hidden-state-underaccumulation) | 2025-12-18 | SUPERSEDED | Merged into Garbage Output PM |
+| [Positive Bias Hidden States](#2025-12-17-positive-bias-hidden-states) | 2025-12-17 | DISPROVED | Sampling artifact, not real issue |
+| [Softmax Uniform Buffer](#2025-12-17-softmax-uniform-buffer) | 2025-12-17 | RESOLVED | Swapped innerSize/outerSize |
+| [Gemma 3 Debug](#2025-12-16-gemma3-debug) | 2025-12-16 | RESOLVED | Q4K quantization format mismatch |
 
 ---
 
 ## Post-Mortem Details
 
-### PingPong-Buffer-Release
+### 2026-01-03-performance-gaps
 
-**Status:** RESOLVED | **File:** [PINGPONG-BUFFER-RELEASE-2025-12-31.md](PINGPONG-BUFFER-RELEASE-2025-12-31.md)
+**Status:** OPEN | **File:** [2026-01-03-performance-gaps.md](2026-01-03-performance-gaps.md)
 
-Decode regression after ping-pong buffer optimization (d1b40f0). Two pre-allocated buffers A and B alternate as input/output across layers. After odd layers (1, 3, 5...), buffer release check used `getHiddenBuffer()` which returns index-dependent value. When index swapped back to 0, both `decodeHiddenBuffer` and `decodeAltBuffer` pointed to A, causing B to be incorrectly released. Fix: capture both buffers upfront before the layer loop using `getHiddenBuffer()` (A) and `getOutputHiddenBuffer()` (B). Lesson: index-based lookups are fragile in alternating systems; test buffer lifecycle across multiple iterations.
-
----
-
-### Buffer-Pool-Trace-False-Positives
-
-**Status:** RESOLVED | **File:** [BUFFER-POOL-TRACE-FALSE-POSITIVES-2025-12-30.md](BUFFER-POOL-TRACE-FALSE-POSITIVES-2025-12-30.md)
-
-Kernel trace showed alarming "explosions" with values 78714.59 and 462351.88 during decode. These were false positives caused by trace system reading garbage from buffer pool padding. Buffer pool rounds up allocations (4608→8192 bytes), so decode buffers had 896 floats of stale/uninitialized data. Trace iterated over full `arr.length` instead of valid element count from shape. Key clue: "token=1" in single-token decode is impossible. Fix: use shape to bound iteration in `snapshotFromArray()` and debug readbacks. Also fixed matmul kernel selection (f16w_f32a) and fused kernel naming mismatch.
+DOPPLER decode is 2.5x slower than WebLLM on Gemma 2 2B. F16 activations were implemented to reduce bandwidth, but review found 3 critical gaps: (1) `doRMSNorm` wrapper in layer.ts doesn't accept/pass `activationDtype`, so all RMSNorm uses F32; (2) F16 RMSNorm shader lacks residual variants, forcing Gemma 2/3 sandwich-norm to F32; (3) GeGLU F16 shader exists in silu_f16.wgsl but gelu.ts doesn't use it. Result: only matmul outputs are F16, achieving 32% of expected 2x bandwidth reduction.
 
 ---
 
-### Gemma3-QKNorm-Offset
+### 2026-01-03-batched-decode-repetition
 
-**Status:** RESOLVED | **File:** [GEMMA3-QKNORM-OFFSET-2025-12-25.md](GEMMA3-QKNORM-OFFSET-2025-12-25.md)
+**Status:** OPEN (workaround applied) | **File:** [2026-01-03-batched-decode-repetition.md](2026-01-03-batched-decode-repetition.md)
 
-Gemma 3 produced garbage output (" объ khác reino kolor...") instead of coherent text. Root cause: q_norm and k_norm weights were missing the +1 offset that ALL Gemma 3 RMSNorm layers require. Unlike Llama, Gemma 3 uses `(1 + weight)` formula for normalization. Fix: changed loader to use `tryLoadNorm()` for q_norm/k_norm, and attention.ts to use `getNormWeightBuffer()`. Model reconversion required to bake correct offsets into cached weights. After fix, output is correct: " blue, the blue, the color of".
-
----
-
-### Gemma3-Magnitude-Gap
-
-**Status:** SUPERSEDED | **File:** [GEMMA3-MAGNITUDE-GAP-2025-12-21.md](GEMMA3-MAGNITUDE-GAP-2025-12-21.md)
-
-Found and fixed GPU sync bug in `scaleGPUBuffer()` - function returned before GPU completed scaling operation, causing pipeline to read stale data. This improved Layer 0 magnitude from 24 to 86 (3.5x improvement). The remaining 2.6x gap was later resolved by the q_norm/k_norm +1 offset fix (see GEMMA3-QKNORM-OFFSET-2025-12-25.md). This postmortem is now superseded.
+Batched decode (batchSize > 1) produces repetitive output after ~12 tokens while single-token decode works correctly. Root cause hypothesis: uniform buffer cache (256 max entries) evicts LRU entries and DESTROYS the GPU buffer while still referenced by pending command buffers. Workaround: `batchSize: 1` in defaults.json. Fix requires deferred buffer destruction after command buffer completion.
 
 ---
 
-### Gemma3-1B-Q4K-GARBAGE-OUTPUT
+### 2025-12-31-pingpong-buffer-release
 
-**Status:** RESOLVED | **File:** [GEMMA3-1B-Q4K-GARBAGE-OUTPUT-2025-12-18.md](GEMMA3-1B-Q4K-GARBAGE-OUTPUT-2025-12-18.md)
+**Status:** RESOLVED | **File:** [2025-12-31-pingpong-buffer-release.md](2025-12-31-pingpong-buffer-release.md)
 
-Q4K weights stored in packed 256-block stream incompatible with DOPPLER's row-wise fused matmul addressing. Matrices with K not divisible by 256 (Gemma: K=1152) had corrupted Q/K/V projections. Secondary issue: missing `(1+weight)` offset for q_norm/k_norm. Debug logging artifact under-reported hidden state magnitudes. Fix: loader fallback dequantizes packed Q4K to F16 for correctness. Model now outputs "blue" correctly with HuggingFace-matching hidden state magnitudes.
-
----
-
-### Hidden-State-Under-Accumulation
-
-**Status:** SUPERSEDED | **File:** [HIDDEN-STATE-UNDERACCUMULATION-2025-12-18.md](HIDDEN-STATE-UNDERACCUMULATION-2025-12-18.md)
-
-Observed hidden states 10-30x smaller than HuggingFace reference. Investigation identified embedding was correct but layer 0 output was 9x smaller than expected. Hypothesized Q4K dequantization scale factors were wrong. This postmortem was superseded by GEMMA3-1B-Q4K-GARBAGE-OUTPUT which identified the actual root cause: Q4K layout mismatch causing fallback to dequantized weights, plus debug sampling artifact that under-reported true magnitudes. The "under-accumulation" was partially measurement error.
+Decode regression after ping-pong buffer optimization. Two pre-allocated buffers A and B alternate as input/output across layers. After odd layers, buffer release check used `getHiddenBuffer()` which returns index-dependent value, causing B to be incorrectly released. Fix: capture both buffers upfront before the layer loop.
 
 ---
 
-### Positive-Bias-Hidden-States
+### 2025-12-30-buffer-pool-trace-false-positives
 
-**Status:** DISPROVED | **File:** [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md)
+**Status:** RESOLVED | **File:** [2025-12-30-buffer-pool-trace-false-positives.md](2025-12-30-buffer-pool-trace-false-positives.md)
 
-Initially observed all-positive hidden states at last token position. Extensive investigation fixed attention variant selection bug, workgroup dispatch bug, and debug readback timing issues. Later discovered the "positive bias" was a sampling artifact - debug only read 5 values, not full 1152-dim vector. Full vector shows mixed positive/negative signs throughout all 26 layers. Key learning: position-specific debugging critical; global buffer stats hide position-specific issues. Hypothesis was wrong but investigation improved debug infrastructure.
-
----
-
-### Softmax-Uniform-Buffer
-
-**Status:** RESOLVED | **File:** [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md)
-
-Softmax kernel failed correctness tests with maxError=0.137 (should be <1e-5). Root cause: TypeScript wrote `batchSize` at offset 0, `inferredSize` at offset 4, but WGSL expected `innerSize` at offset 0, `outerSize` at offset 4. Swapped dimensions caused wrong workgroup dispatch and misaligned row boundaries. Fix: corrected uniform buffer writes in `runSoftmax` and `recordSoftmax`. Note: attention uses inline softmax, so this didn't affect main inference. Lesson: uniform buffer layout is error-prone; add comments documenting WGSL struct layout.
+Kernel trace showed alarming "explosions" during decode. False positives caused by trace reading garbage from buffer pool padding. Fix: use shape to bound iteration in debug readbacks.
 
 ---
 
-### Pipeline-Verification
+### 2025-12-25-gemma3-qknorm-offset
 
-**Status:** RESOLVED | **File:** [PIPELINE-VERIFICATION-POSTMORTEM.md](PIPELINE-VERIFICATION-POSTMORTEM.md)
+**Status:** RESOLVED | **File:** [2025-12-25-gemma3-qknorm-offset.md](2025-12-25-gemma3-qknorm-offset.md)
 
-Systematic verification identified FFN down projection explosion (min=-3078, max=756) causing near-uniform logits (~3% top token confidence) and garbage output (Telugu, Kannada, Japanese scripts). Post-FFN sandwich norm masked the explosion by normalizing values. Verified embedding, gather, scaling, Q4K dequant were correct. The explosion was later traced to Q4K quantization format mismatch (see GEMMA3-DEBUG-POSTMORTEM). Lesson: sandwich norms can mask issues; track values through full pipeline; near-uniform logits indicate corruption.
-
----
-
-### Gemma3-Debug
-
-**Status:** RESOLVED | **File:** [GEMMA3-DEBUG-POSTMORTEM.md](GEMMA3-DEBUG-POSTMORTEM.md)
-
-Model output `<unused16>` tokens instead of coherent text. Hidden states showed positive bias accumulation (all values positive when negatives expected). Root cause: quantizer produced data in wrong format - used `q * scale + min` instead of llama.cpp's `d * sc * q - dmin * min`. Negative weights dequantized as positive, accumulating bias through 26 layers. Fix: rewrote `quantizeQ4KBlock()` to match llama.cpp byte layout. Lesson: format compatibility matters; "close enough" isn't good enough for quantization.
+Gemma 3 produced garbage output. Root cause: q_norm and k_norm weights were missing the +1 offset that ALL Gemma 3 RMSNorm layers require. Fix: use `tryLoadNorm()` for q_norm/k_norm with `getNormWeightBuffer()` in attention.ts.
 
 ---
 
-### MoE-Explicit-Layout
+### 2025-12-22-moe-explicit-layout
 
-**Status:** RESOLVED | **File:** [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](MOE-EXPLICIT-LAYOUT-POSTMORTEM.md)
+**Status:** RESOLVED | **File:** [2025-12-22-moe-explicit-layout.md](2025-12-22-moe-explicit-layout.md)
 
-MoE gather kernel compiled successfully but didn't execute - `tokenCounts` array was all zeros. Root cause: shader has 6 bindings but `count_and_map` entry point only uses 4. WebGPU's `layout: 'auto'` creates layout with only used bindings, causing silent mismatch when creating bind group with all 6 entries. No validation error thrown. Fix: created explicit bind group layout with all 6 bindings. Lesson: avoid 'auto' layout for multi-entry-point shaders; silent WebGPU failures are dangerous.
+MoE gather kernel compiled but didn't execute - `tokenCounts` was all zeros. WebGPU's `layout: 'auto'` creates layout with only used bindings, causing silent mismatch. Fix: create explicit bind group layout with all 6 bindings.
 
 ---
 
-### BF16-2D-Dispatch
+### 2025-12-21-gemma3-magnitude-gap
 
-**Status:** RESOLVED | **File:** [BF16-2D-DISPATCH-POSTMORTEM.md](BF16-2D-DISPATCH-POSTMORTEM.md)
+**Status:** SUPERSEDED | **File:** [2025-12-21-gemma3-magnitude-gap.md](2025-12-21-gemma3-magnitude-gap.md)
 
-Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings for token IDs >8192 returned zeros. Root cause: BF16->F32 kernel used 2D dispatch for tensors exceeding 65535 workgroups, but kernel only used `global_id.x`, ignoring `global_id.y`. Only first ~33M elements converted. Fix: compute linear index from 2D dispatch using `workgroupsX` uniform. Lesson: always linearize 2D dispatch; large vocab models expose bugs; pass dispatch info to kernels for correct linearization.
+Found GPU sync bug in `scaleGPUBuffer()`. The remaining gap was later resolved by the q_norm/k_norm +1 offset fix (see 2025-12-25-gemma3-qknorm-offset.md).
+
+---
+
+### 2025-12-20-bf16-2d-dispatch
+
+**Status:** RESOLVED | **File:** [2025-12-20-bf16-2d-dispatch.md](2025-12-20-bf16-2d-dispatch.md)
+
+Large vocab models produced garbage output. BF16->F32 kernel used 2D dispatch but only used `global_id.x`, ignoring `global_id.y`. Fix: compute linear index from 2D dispatch using `workgroupsX` uniform.
+
+---
+
+### 2025-12-19-pipeline-verification
+
+**Status:** RESOLVED | **File:** [2025-12-19-pipeline-verification.md](2025-12-19-pipeline-verification.md)
+
+Systematic verification identified FFN down projection explosion causing near-uniform logits. The explosion was later traced to Q4K quantization format mismatch.
+
+---
+
+### 2025-12-18-gemma3-q4k-garbage-output
+
+**Status:** RESOLVED | **File:** [2025-12-18-gemma3-q4k-garbage-output.md](2025-12-18-gemma3-q4k-garbage-output.md)
+
+Q4K weights stored in packed 256-block stream incompatible with row-wise fused matmul addressing. Fix: loader fallback dequantizes packed Q4K to F16 for correctness.
+
+---
+
+### 2025-12-18-hidden-state-underaccumulation
+
+**Status:** SUPERSEDED | **File:** [2025-12-18-hidden-state-underaccumulation.md](2025-12-18-hidden-state-underaccumulation.md)
+
+Superseded by 2025-12-18-gemma3-q4k-garbage-output which identified the actual root cause.
+
+---
+
+### 2025-12-17-positive-bias-hidden-states
+
+**Status:** DISPROVED | **File:** [2025-12-17-positive-bias-hidden-states.md](2025-12-17-positive-bias-hidden-states.md)
+
+"Positive bias" was a sampling artifact - debug only read 5 values, not full 1152-dim vector. Investigation fixed real bugs (attention variant selection, workgroup dispatch, debug readback timing).
+
+---
+
+### 2025-12-17-softmax-uniform-buffer
+
+**Status:** RESOLVED | **File:** [2025-12-17-softmax-uniform-buffer.md](2025-12-17-softmax-uniform-buffer.md)
+
+Softmax kernel failed with maxError=0.137. TypeScript wrote uniform fields in wrong order vs WGSL struct layout. Fix: corrected uniform buffer writes.
+
+---
+
+### 2025-12-16-gemma3-debug
+
+**Status:** RESOLVED | **File:** [2025-12-16-gemma3-debug.md](2025-12-16-gemma3-debug.md)
+
+Model output `<unused16>` tokens. Root cause: quantizer used wrong format - `q * scale + min` instead of llama.cpp's `d * sc * q - dmin * min`. Fix: rewrote `quantizeQ4KBlock()` to match llama.cpp byte layout.
 
 ---
 
@@ -125,8 +143,8 @@ Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings
 
 ### Buffer Lifecycle Bugs
 - Ping-pong release: index-based lookup missed alternate buffer after swap
-- Test buffer reuse across multiple iterations (not just one layer)
-- Capture references upfront if they need to remain stable
+- Uniform cache eviction: destroying buffers still referenced by pending command buffers
+- Defer buffer destruction until after GPU command completion
 
 ### Silent WebGPU Failures
 - MoE explicit layout: no error, kernel just didn't run
@@ -135,29 +153,22 @@ Large vocab models (Gemma 262K, Mistral 32K) produced garbage output. Embeddings
 ### Quantization Format Bugs
 - Q4K packed vs row-wise layout
 - Scale/min encoding mismatches
-- Sign handling in dequantization
 
 ### Architecture-Specific Weight Processing
 - Gemma 3: ALL norms use `(1 + weight)` including q_norm/k_norm
-- Llama: No norm weight offset needed
 - Always verify against HuggingFace source for architecture quirks
 
 ### Uniform Buffer Mismatches
-- TypeScript/WGSL struct field order
-- Always add comments documenting expected layout
+- TypeScript/WGSL struct field order must match exactly
 
 ### Debug Instrumentation Errors
 - Sampling only first N values hides real distribution
-- Command batching affects readback timing
-- Position-specific values differ from global stats
 - Buffer pool padding contains garbage - always use shape to bound reads
-- "token=1" in single-token decode means reading out of bounds
+
+### Incomplete Feature Wiring
+- F16 activations: shaders exist but wrappers don't pass dtype through
+- Always trace config values end-to-end: schema -> context -> wrapper -> kernel
 
 ---
 
-*Last updated: December 2025*
-
-<!-- DOPPLER_KERNEL_OVERRIDES -->
-## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-
+*Last updated: January 2026*

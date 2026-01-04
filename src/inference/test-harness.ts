@@ -52,6 +52,8 @@ export interface RuntimeOverrides {
   trace?: string;
   /** Specific layers to debug checkpoint */
   debugLayers?: number[];
+  /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
+  configChain?: string[];
 }
 
 /**
@@ -206,6 +208,20 @@ export function parseRuntimeOverridesFromURL(
       }
     } catch (e) {
       debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${(e as Error).message}`);
+    }
+  }
+
+  // Config chain (for debugging)
+  const configChainRaw = params.get('configChain');
+  if (configChainRaw) {
+    try {
+      const parsed = JSON.parse(configChainRaw);
+      if (Array.isArray(parsed)) {
+        runtime.configChain = parsed;
+        debugLog.info('TestHarness', `Config chain: ${parsed.join(' → ')}`);
+      }
+    } catch (e) {
+      debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${(e as Error).message}`);
     }
   }
 

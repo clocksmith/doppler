@@ -40,6 +40,34 @@ export const DEFAULT_BATCHING_DEFAULTS: BatchingDefaultsSchema = {
 };
 
 // =============================================================================
+// Compute Defaults
+// =============================================================================
+
+/**
+ * Default compute precision configuration.
+ *
+ * Controls dtype for intermediate activations and compute operations.
+ * F16 reduces memory bandwidth by 2x but may have precision implications.
+ */
+export interface ComputeDefaultsSchema {
+  /** Dtype for hidden state activations (default: 'f32', experimental: 'f16') */
+  activationDtype: 'f16' | 'f32';
+
+  /** Parameter count threshold for "large model" classification (default: 4e9 = 4B params) */
+  largeModelParamThreshold: number;
+
+  /** Multiplier for estimating model params from hidden^2 × layers (default: 12) */
+  paramEstimationMultiplier: number;
+}
+
+/** Default compute configuration */
+export const DEFAULT_COMPUTE_DEFAULTS: ComputeDefaultsSchema = {
+  activationDtype: 'f32',  // Safe default, F16 is experimental
+  largeModelParamThreshold: 4e9,  // 4B parameters
+  paramEstimationMultiplier: 12,  // Rough approximation: 12 * hidden^2 * layers
+};
+
+// =============================================================================
 // Sampling Defaults
 // =============================================================================
 
@@ -53,6 +81,9 @@ export const DEFAULT_BATCHING_DEFAULTS: BatchingDefaultsSchema = {
 export interface SamplingDefaultsSchema extends Required<Omit<SamplingSchema, 'maxTokens'>> {
   /** Temperature below this uses greedy decoding (default: 0.01) */
   greedyThreshold: number;
+
+  /** Number of recent tokens to consider for repetition penalty (default: 100) */
+  repetitionPenaltyWindow: number;
 }
 
 /** Default sampling configuration */
@@ -62,6 +93,7 @@ export const DEFAULT_SAMPLING_DEFAULTS: SamplingDefaultsSchema = {
   topK: 40,
   repetitionPenalty: 1.1,
   greedyThreshold: 0.01,
+  repetitionPenaltyWindow: 100,
 };
 
 // =============================================================================
@@ -95,11 +127,12 @@ export const DEFAULT_TOKENIZER_DEFAULTS: TokenizerDefaultsSchema = {
 /**
  * Complete inference defaults configuration schema.
  *
- * Combines batching, sampling, and tokenizer defaults for the inference pipeline.
+ * Combines batching, sampling, compute, and tokenizer defaults for the inference pipeline.
  */
 export interface InferenceDefaultsConfigSchema {
   batching: BatchingDefaultsSchema;
   sampling: SamplingDefaultsSchema;
+  compute: ComputeDefaultsSchema;
   tokenizer: TokenizerDefaultsSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
@@ -110,6 +143,7 @@ export interface InferenceDefaultsConfigSchema {
 export const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema = {
   batching: DEFAULT_BATCHING_DEFAULTS,
   sampling: DEFAULT_SAMPLING_DEFAULTS,
+  compute: DEFAULT_COMPUTE_DEFAULTS,
   tokenizer: DEFAULT_TOKENIZER_DEFAULTS,
   prompt: null,
   pipeline: null,

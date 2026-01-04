@@ -116,13 +116,15 @@ export class ConfigComposer {
 
   /**
    * Normalize a ref for cycle detection.
+   * Note: Preserves case for file paths (case-sensitive filesystems).
    */
   private normalizeRef(ref: string): string {
     // Inline JSON: use hash-like identifier
     if (ref.trim().startsWith('{')) {
       return `inline:${ref.length}:${ref.slice(0, 50)}`;
     }
-    return ref.toLowerCase();
+    // Preserve case - on case-sensitive FS, "Foo.json" and "foo.json" are different
+    return ref.trim();
   }
 
   /**

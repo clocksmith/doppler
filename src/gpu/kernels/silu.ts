@@ -8,18 +8,74 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { Tensor, createTensor, type TensorDtype, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
+// =============================================================================
+// SiLU Variant Lookup
+// =============================================================================
+
+/**
+ * SiLU variant lookup table keyed by "${base}/${f16}".
+ * Replaces string concatenation for F16 variant selection.
+ */
+const SILU_VARIANTS: Record<string, string> = {
+  'default/false': 'default',
+  'default/true': 'default_f16',
+  'vec4/false': 'vec4',
+  'vec4/true': 'vec4_f16',
+  'gate/false': 'gate',
+  'gate/true': 'gate_f16',
+  'gate_rowsplit/false': 'gate_rowsplit',
+  'gate_rowsplit/true': 'gate_rowsplit_f16',
+  'geglu_rowsplit/false': 'geglu_rowsplit',
+  'geglu_rowsplit/true': 'geglu_rowsplit_f16',
+};
+
+/**
+ * Select SiLU variant based on base variant and F16 mode.
+ */
+function selectSiLUVariant(base: string, isF16: boolean): string {
+  const key = `${base}/${isF16}`;
+  return SILU_VARIANTS[key] ?? base;
+}
+
+/**
+ * Check if F16 can be used based on tensor dtype.
+ */
+function canUseF16(input: Tensor): boolean {
+  return input.dtype === 'f16';
+}
+
+/**
+ * Create bind group entries for SiLU, optionally adding gate binding.
+ */
+function createSiLUBindGroupEntries(
+  uniformBuffer: GPUBuffer,
+  input: Tensor,
+  output: GPUBuffer,
+  gate: Tensor | null
+): GPUBindGroupEntry[] {
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: input.buffer } },
+    { binding: 2, resource: { buffer: output } },
+  ];
+  if (gate) {
+    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
+  }
+  return entries;
+}
+
 /** SiLU kernel options */
 export interface SiLUOptions extends OutputBufferOptions {
   size?: number | null;
-  gate?: GPUBuffer | null;
+  gate?: Tensor | null;
   useVec4?: boolean;
   biasOffset?: number;
 }
@@ -28,17 +84,22 @@ export interface SiLUOptions extends OutputBufferOptions {
  * Run SiLU activation
  */
 export async function runSiLU(
-  input: GPUBuffer,
+  input: Tensor,
   options: SiLUOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
 
-  const variant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
+  // Select variant using lookup table
+  const baseVariant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
+  const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast('silu', variant);
 
-  const inferredSize = size || (input.size / 4);
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || (input.buffer.size / bytesPerElement);
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
 
   // Create uniform buffer
@@ -52,16 +113,8 @@ export async function runSiLU(
     device
   );
 
-  // Create bind group
-  // WGSL bindings: 0=uniforms, 1=input, 2=output, 3=gate, 4=bias
-  const entries: GPUBindGroupEntry[] = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
-    { binding: 2, resource: { buffer: output } },
-  ];
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gate } });
-  }
+  // Create bind group using helper
+  const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
 
   const bindGroup = device.createBindGroup({
     label: 'silu_bind_group',
@@ -74,25 +127,26 @@ export async function runSiLU(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], 'silu_output');
 }
 
 /**
  * Run SwiGLU with row-split bias
  */
 export async function runSwiGLURowsplitBias(
-  input: GPUBuffer,
-  bias: GPUBuffer,
+  input: Tensor,
+  bias: Tensor,
   numTokens: number,
   dim: number,
   options: SiLUOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { outputBuffer = null, biasOffset = 0 } = options;
 
   const pipeline = await getPipelineFast('swiglu', 'rowsplit_bias');
 
-  const outputSize = numTokens * dim * 4;
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'swiglu_output');
 
   // Create uniform buffer
@@ -114,8 +168,8 @@ export async function runSwiGLURowsplitBias(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: bias } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } },
       { binding: 3, resource: { buffer: output } },
     ],
   });
@@ -125,7 +179,7 @@ export async function runSwiGLURowsplitBias(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], 'swiglu_output');
 }
 
 /**
@@ -144,16 +198,23 @@ export interface SiLURowSplitOptions extends OutputBufferOptions {
  * Output: [numTokens, dim] = activation(gate) * up
  */
 export async function runSiLURowSplit(
-  input: GPUBuffer,
+  input: Tensor,
   options: SiLURowSplitOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
 
-  const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
+  // Select variant (append _f16 for F16 mode)
+  let variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  if (isF16) {
+    variant = variant + '_f16';
+  }
   const pipeline = await getPipelineFast('silu', variant);
 
-  const outputSize = numTokens * dim * 4;  // f32 elements
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
 
   // Create uniform buffer
@@ -176,7 +237,7 @@ export async function runSiLURowSplit(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
@@ -185,9 +246,8 @@ export async function runSiLURowSplit(
   dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
 
   uniformBuffer.destroy();
-  setBufferDtype(output, 'f32');
 
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
 }
 
 /**
@@ -195,16 +255,23 @@ export async function runSiLURowSplit(
  */
 export async function recordSiLURowSplit(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   options: SiLURowSplitOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
 
-  const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
+  // Select variant (append _f16 for F16 mode)
+  let variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  if (isF16) {
+    variant = variant + '_f16';
+  }
   const pipeline = await getPipelineFast('silu', variant);
 
-  const outputSize = numTokens * dim * 4;
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
 
   // Uniform buffer
@@ -224,7 +291,7 @@ export async function recordSiLURowSplit(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
@@ -232,8 +299,7 @@ export async function recordSiLURowSplit(
   const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
 }
 
 /**
@@ -242,17 +308,22 @@ export async function recordSiLURowSplit(
  */
 export async function recordSiLU(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   options: SiLUOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { size, gate = null, outputBuffer = null } = options;
 
-  const variant = gate ? 'gate' : 'default';
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
+  // Select variant using lookup table
+  const baseVariant = gate ? 'gate' : 'default';
+  const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast('silu', variant);
 
-  const inferredSize = size || (input.size / 4);
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || (input.buffer.size / bytesPerElement);
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
 
   // Uniform buffer
@@ -265,18 +336,8 @@ export async function recordSiLU(
     recorder
   );
 
-  // Bind group entries - gate variant needs binding 3
-  const gateBuffer = gate || input; // Use input as dummy if no gate
-  const entries: GPUBindGroupEntry[] = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
-    { binding: 2, resource: { buffer: output } },
-  ];
-
-  // Add gate binding for gate variant
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
-  }
+  // Create bind group using helper
+  const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
 
   const bindGroup = device.createBindGroup({
     label: 'silu_bind_group',
@@ -287,6 +348,5 @@ export async function recordSiLU(
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu');
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], 'silu_output');
 }

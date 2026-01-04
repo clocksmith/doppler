@@ -196,6 +196,8 @@ export function resolveConfig(
     : extractArchitectureFromConfig(manifest.config || {});
 
   // Merge architecture: preset defaults + manifest values
+  // Note: Uses nullish coalesce (??) so null values fall through to next level.
+  // This means explicit null in manifest = "use preset/default".
   const presetArch = preset.architecture || {};
   const architecture: ArchitectureSchema = {
     numLayers: manifestArch.numLayers ?? presetArch.numLayers ?? 32,
@@ -211,6 +213,9 @@ export function resolveConfig(
   };
 
   // Merge inference config
+  // Note: Uses object spread, so explicit null in manifest/preset OVERRIDES base.
+  // This differs from architecture (which uses ?? and ignores null).
+  // Rationale: null values in inference (e.g., slidingWindow: null) mean "disabled".
   const baseInference = getDefaultInferenceConfig();
   const presetInference = preset.inference || {};
   const manifestInference = extractInferenceFromConfig(manifest.config || {});

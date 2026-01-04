@@ -42,6 +42,18 @@ function getKernelBasePath(): string {
 
 const KERNEL_BASE_PATH = getKernelBasePath();
 
+/** Variant-specific metadata for table-driven kernel configuration */
+export interface VariantMetadata {
+  /** Columns processed per workgroup (matmul multicol variants) */
+  colsPerWg?: number;
+  /** Tile size for M dimension (batched matmul variants) */
+  tileM?: number;
+  /** Output buffer binding index (gather F16 output variants) */
+  outputBinding?: number;
+  /** Maximum KV length for chunked attention */
+  maxKVLen?: number;
+}
+
 /** Kernel configuration */
 export interface KernelConfig {
   shaderFile: string;
@@ -49,6 +61,12 @@ export interface KernelConfig {
   workgroupSize: [number, number, number];
   requires: string[];
   validate?: (seqLen: number, numHeads: number, headDim: number) => void;
+  /** Output dtype for variants that output to specific precision */
+  outputDtype?: 'f16' | 'f32';
+  /** Tile size for attention/matmul kernels */
+  tileSize?: number;
+  /** Additional variant-specific configuration */
+  variantMetadata?: VariantMetadata;
 }
 
 /** All kernel configurations by operation and variant */
@@ -59,12 +77,14 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main',
       workgroupSize: [16, 16, 1],
       requires: ['shader-f16'],
+      outputDtype: 'f16',
     },
     f16_vec4: {
       shaderFile: 'matmul_f16.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [16, 16, 1],
       requires: ['shader-f16'],
+      outputDtype: 'f16',
     },
     f16w_f32a: {
       shaderFile: 'matmul_f16w_f32a.wgsl',
@@ -105,6 +125,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main_multicol',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
+      variantMetadata: { colsPerWg: 32 },
     },
     // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
     q4_fused: {
@@ -118,6 +139,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main_batched',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
+      variantMetadata: { tileM: 4 },
     },
     // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
     q4_fused_multicol: {
@@ -125,6 +147,24 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main_multicol',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
+      variantMetadata: { colsPerWg: 32 },
+    },
+    // F16 output variants - same as above but output to f16 buffer
+    q4_fused_multicol_f16: {
+      shaderFile: 'fused_matmul_q4.wgsl',
+      entryPoint: 'main_multicol_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
+      variantMetadata: { colsPerWg: 32 },
+    },
+    q4_fused_batched_f16: {
+      shaderFile: 'fused_matmul_q4.wgsl',
+      entryPoint: 'main_batched_f16',
+      workgroupSize: [64, 4, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
+      variantMetadata: { tileM: 4 },
     },
     f32: {
       shaderFile: 'matmul_f32.wgsl',
@@ -349,6 +389,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
+      variantMetadata: { maxKVLen: 2048 },
     },
     // Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization
     decode_subgroup: {
@@ -376,6 +417,19 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'rmsnorm_inplace_residual',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    // F16 variants for reduced memory bandwidth
+    default_f16: {
+      shaderFile: 'rmsnorm_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    small_f16: {
+      shaderFile: 'rmsnorm_f16.wgsl',
+      entryPoint: 'rmsnorm_small_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
   },
   // Fused GEMV + RMSNorm for decode (M=1)
@@ -518,6 +572,37 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    // F16 variants for reduced memory bandwidth
+    default_f16: {
+      shaderFile: 'silu_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    gate_f16: {
+      shaderFile: 'silu_f16.wgsl',
+      entryPoint: 'silu_gate_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    vec4_f16: {
+      shaderFile: 'silu_f16.wgsl',
+      entryPoint: 'silu_vec4_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    gate_rowsplit_f16: {
+      shaderFile: 'silu_f16.wgsl',
+      entryPoint: 'silu_gate_rowsplit_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    geglu_rowsplit_f16: {
+      shaderFile: 'silu_f16.wgsl',
+      entryPoint: 'geglu_rowsplit_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
   },
   scale: {
     default: {
@@ -558,6 +643,40 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'gather_vec4',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
+    },
+    // F32 embeddings → F16 output (for F16 activation mode)
+    f16_out: {
+      shaderFile: 'gather.wgsl',
+      entryPoint: 'gather_f16_out',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+      variantMetadata: { outputBinding: 1 },
+    },
+    vec4_f16_out: {
+      shaderFile: 'gather.wgsl',
+      entryPoint: 'gather_vec4_f16_out',
+      workgroupSize: [64, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+      variantMetadata: { outputBinding: 1 },
+    },
+    // F16 embeddings → F16 output (for F16 activation mode with F16 embeddings)
+    f16_f16_out: {
+      shaderFile: 'gather_f16.wgsl',
+      entryPoint: 'gather_f16_out',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+      variantMetadata: { outputBinding: 1 },
+    },
+    f16_vec4_f16_out: {
+      shaderFile: 'gather_f16.wgsl',
+      entryPoint: 'gather_vec4_f16_out',
+      workgroupSize: [64, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+      variantMetadata: { outputBinding: 1 },
     },
   },
   residual: {

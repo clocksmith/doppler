@@ -189,6 +189,6 @@ Layer 25: maxAbs=15168.00  # Before final norm
 
 ## Related Documentation
 
-- [HIDDEN-STATE-UNDERACCUMULATION-2025-12-18.md](HIDDEN-STATE-UNDERACCUMULATION-2025-12-18.md) - Previous investigation
-- [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md) - Earlier hypothesis (disproved)
+- [2025-12-18-hidden-state-underaccumulation.md](2025-12-18-hidden-state-underaccumulation.md) - Previous investigation
+- [2025-12-17-positive-bias-hidden-states.md](2025-12-17-positive-bias-hidden-states.md) - Earlier hypothesis (disproved)
 - [DOPPLER-TROUBLESHOOTING.md](../DOPPLER-TROUBLESHOOTING.md) - Debug guide

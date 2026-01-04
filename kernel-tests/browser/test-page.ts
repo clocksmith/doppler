@@ -9,6 +9,9 @@ import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } fro
 // Import buffer dtype tracking for Q4K matmul testing
 import { setBufferDtype } from '../../src/gpu/buffer-dtypes.js';
 
+// Import tensor abstraction for Tensor-based kernels
+import { createTensor, type Tensor } from '../../src/gpu/tensor.js';
+
 // Import kernel hints to enable fused Q4K path for testing
 import { setKernelHints } from '../../src/gpu/kernel-hints.js';
 
@@ -463,17 +466,18 @@ const testHarness: TestHarnessImpl = {
     }
 
     const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [outerSize, innerSize], 'softmax_input');
 
-    const resultBuf = await runSoftmax(inputBuf, -1, {
+    const resultTensor = await runSoftmax(inputTensor, -1, {
       batchSize: outerSize,
       size: innerSize,
       temperature,
     });
 
-    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
 
     inputBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -542,8 +546,10 @@ const testHarness: TestHarnessImpl = {
     const indicesBuf = makeBuffer(indices);
     const weightsBuf = makeBuffer(weights);
 
-    const resultBuf = await runScatterAdd(
-      expertBuf,
+    // Wrap expertBuf in Tensor (MoE kernels now use Tensor abstraction)
+    const expertTensor = createTensor(expertBuf, 'f32', [numExperts, numTokens, hiddenSize], 'expert_outputs');
+    const resultTensor = await runScatterAdd(
+      expertTensor,
       indicesBuf,
       weightsBuf,
       numTokens,
@@ -552,12 +558,12 @@ const testHarness: TestHarnessImpl = {
       topK
     );
 
-    const result = new Float32Array(await readBufferData(resultBuf, numTokens * hiddenSize * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, numTokens * hiddenSize * 4));
 
     expertBuf.destroy();
     indicesBuf.destroy();
     weightsBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -778,17 +784,20 @@ const testHarness: TestHarnessImpl = {
     const tokensBuf = makeBuffer(tokens);
     const indicesBuf = makeBuffer(expertIndices);
 
-    // Run MoE gather via kernel selector
-    const result = await runMoEGather(tokensBuf, indicesBuf, numTokens, hiddenSize, numExperts, topK);
+    // Wrap tokensBuf in Tensor (MoE kernels now use Tensor abstraction)
+    const tokensTensor = createTensor(tokensBuf, 'f32', [numTokens, hiddenSize], 'moe_input');
 
-    // Read back results
+    // Run MoE gather via kernel selector
+    const result = await runMoEGather(tokensTensor, indicesBuf, numTokens, hiddenSize, numExperts, topK);
+
+    // Read back results (result.gathered is now a Tensor)
     const maxTokensPerExpert = result.maxTokensPerExpert;
-    const gatheredTokens = new Float32Array(await readBufferData(result.gathered, numExperts * maxTokensPerExpert * hiddenSize * 4));
+    const gatheredTokens = new Float32Array(await readBufferData(result.gathered.buffer, numExperts * maxTokensPerExpert * hiddenSize * 4));
     const tokenCounts = new Uint32Array(await readBufferData(result.tokenCounts, numExperts * 4));
 
     tokensBuf.destroy();
     indicesBuf.destroy();
-    result.gathered.destroy();
+    result.gathered.buffer.destroy();
     result.tokenCounts.destroy();
     result.tokenMap.destroy();
 

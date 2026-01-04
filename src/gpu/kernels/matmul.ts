@@ -9,7 +9,8 @@
  */
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { getBufferDtype, setBufferDtype, isColumnMajorBuffer, type BufferDType } from '../buffer-dtypes.js';
+import { Tensor, createTensor, type TensorDtype } from '../tensor.js';
+import { type WeightBuffer, getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
@@ -19,6 +20,30 @@ import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayou
 import { shouldUseFusedQ4K } from '../kernel-hints.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
+
+// =============================================================================
+// Q4K Variant Lookup Tables
+// =============================================================================
+
+/**
+ * Q4K fused variant lookup table keyed by "${m1}/${f16out}".
+ * Replaces duplicated if-else chains in selectMatmulVariantAndFlags.
+ */
+const Q4K_FUSED_VARIANTS: Record<string, string> = {
+  'true/true': 'q4_fused_multicol_f16',
+  'true/false': 'q4_fused_multicol',
+  'false/true': 'q4_fused_batched_f16',
+  'false/false': 'q4_fused_batched',
+};
+
+/**
+ * Select Q4K fused variant based on M dimension and output dtype.
+ */
+function selectQ4KFusedVariant(isM1: boolean, wantF16Output: boolean): string {
+  const key = `${isM1}/${wantF16Output}`;
+  return Q4K_FUSED_VARIANTS[key] ?? 'q4_fused_batched';
+}
 
 /**
  * Debug flag to disable fused Q4K kernels.
@@ -43,9 +68,9 @@ export function isFusedQ4KDisabled(): boolean {
 /** Matmul-supported buffer types (includes q4k for fused W4A16) */
 type MatmulDtype = 'f16' | 'f32' | 'q4k';
 
-/** Helper to narrow BufferDType to matmul-supported types */
-function toMatmulDtype(dtype: BufferDType | null): MatmulDtype {
-  if (dtype === 'f16') return 'f16';
+/** Helper to narrow TensorDtype to matmul-supported types */
+function toMatmulDtype(dtype: TensorDtype | 'q4k' | 'bf16' | 'q8' | null | undefined): MatmulDtype {
+  if (dtype === 'f16' || dtype === 'bf16') return 'f16';  // bf16 weights use f16 kernel
   if (dtype === 'q4k') return 'q4k';
   return 'f32';
 }
@@ -128,14 +153,18 @@ type MatmulSelectionMode = 'run' | 'record';
 // Debug counter to limit logging
 let _transposeDebugCount = 0;
 
-function resolveTransposeB(B: GPUBuffer, transposeBOption: boolean | 'auto'): boolean {
+function resolveTransposeB(B: GPUBuffer | WeightBuffer, transposeBOption: boolean | 'auto'): boolean {
   if (transposeBOption === 'auto') {
-    const isColMajor = isColumnMajorBuffer(B);
+    // Get layout from WeightBuffer (buffer-dtypes WeakMap removed)
+    const weightLayout = getLayout(B);
+    const buffer = getBuffer(B);
+    // WeightBuffer has explicit layout; raw GPUBuffer defaults to row-major
+    const isColMajor = weightLayout === 'column';
     const result = !isColMajor;
     // Log first 50 calls to avoid flooding
     if (isTraceEnabled('kernels') && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size}`);
+      trace.kernels(`resolveTransposeB: layout=${weightLayout}, isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${buffer.size}`);
     }
     return result;
   }
@@ -251,15 +280,9 @@ function selectMatmulVariantAndFlags(
           'Your GPU/browser may not support WebGPU subgroups.');
       } else {
         useQ4KFused = true;
-        if (mode === 'record') {
-          if (M === 1) {
-            variant = 'q4_fused_multicol';
-          } else {
-            variant = 'q4_fused_batched';
-          }
-        } else {
-          variant = M === 1 ? 'q4_fused_multicol' : 'q4_fused_batched';
-        }
+        const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
+        // Use lookup table for Q4K variant selection
+        variant = selectQ4KFusedVariant(M === 1, wantF16Output);
       }
     }
   }
@@ -276,8 +299,9 @@ function selectMatmulVariantAndFlags(
     useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32';
     if (useGemv) {
       if (capabilities.hasSubgroups) {
-        const MULTICOL_THRESHOLD = 256;
-        if (N > MULTICOL_THRESHOLD) {
+        // Use configurable threshold from schema
+        const { multicolThreshold } = getKernelThresholds().matmul;
+        if (N > multicolThreshold) {
           variant = 'gemv_subgroup_multicol';
         } else {
           variant = 'gemv_subgroup';
@@ -299,9 +323,11 @@ function resolveMatmulOutput(
   N: number,
   outputBuffer: GPUBuffer | null
 ): { output: GPUBuffer; outputSize: number; cBindingSize: number; actualOutputDtype: 'f16' | 'f32' } {
-  const outputsF16 = variant === 'f16' || variant === 'f16_vec4';
+  // Use kernel config's outputDtype instead of string matching
+  const config = getKernelConfig('matmul', variant);
+  const outputsF16 = config.outputDtype === 'f16';
   const elementSize = outputsF16 ? 2 : 4;
-  const actualOutputDtype = outputsF16 ? 'f16' : 'f32';
+  const actualOutputDtype: 'f16' | 'f32' = outputsF16 ? 'f16' : 'f32';
   const outputSize = M * N * elementSize;
   const cBindingSize = Math.ceil(outputSize / 4) * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_output');
@@ -314,7 +340,7 @@ function calculateMatmulDispatch(
   useGemv: boolean,
   M: number,
   N: number,
-  config: { workgroupSize: [number, number, number] }
+  config: { workgroupSize: [number, number, number]; variantMetadata?: { colsPerWg?: number; tileM?: number } }
 ): { workgroups: [number, number, number]; uniformWorkgroupsX?: number } {
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
   const [wgX, wgY] = config.workgroupSize;
@@ -322,8 +348,12 @@ function calculateMatmulDispatch(
   let workgroupsY = 1;
   let uniformWorkgroupsX: number | undefined;
 
+  // Get colsPerWg from variantMetadata (default 4 for non-multicol GEMV)
+  const colsPerWg = config.variantMetadata?.colsPerWg ?? 4;
+  // Get tileM from variantMetadata (default 4 for batched variants)
+  const tileM = config.variantMetadata?.tileM ?? 4;
+
   if (useGemv && (variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol')) {
-    const colsPerWg = variant === 'gemv_subgroup_multicol' ? 32 : 4;
     const gemvWorkgroupsX = Math.ceil(N / colsPerWg);
     if (gemvWorkgroupsX > maxWorkgroups) {
       workgroupsX = maxWorkgroups;
@@ -340,14 +370,18 @@ function calculateMatmulDispatch(
     if (variant === 'q4_fused') {
       workgroupsX = N;
       workgroupsY = 1;
-    } else if (variant === 'q4_fused_multicol') {
-      const colsPerWg = 32;
+    } else if (config.variantMetadata?.colsPerWg) {
+      // Multicol variants: q4_fused_multicol, q4_fused_multicol_f16
       workgroupsX = Math.ceil(N / colsPerWg);
       workgroupsY = 1;
-    } else {
-      const tileM = 4;
+    } else if (config.variantMetadata?.tileM) {
+      // Batched variants: q4_fused_batched, q4_fused_batched_f16
       workgroupsX = N;
       workgroupsY = Math.ceil(M / tileM);
+    } else {
+      // Fallback for q4_fused (1 col per workgroup)
+      workgroupsX = N;
+      workgroupsY = 1;
     }
   } else if (useGemv) {
     workgroupsX = N;
@@ -434,15 +468,19 @@ let _runMatmulDebugCount = 0;
 
 /**
  * Run matrix multiplication
+ *
+ * @param A - Activation tensor (Tensor with explicit dtype)
+ * @param B - Weight buffer (GPUBuffer or WeightBuffer)
+ * @returns Output tensor with computed dtype
  */
 export async function runMatmul(
-  A: GPUBuffer,
-  B: GPUBuffer,
+  A: Tensor,
+  B: GPUBuffer | WeightBuffer,
   M: number,
   N: number,
   K: number,
   options: MatmulOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     alpha = 1.0,
@@ -453,35 +491,37 @@ export async function runMatmul(
     cOffset = 0,
   } = options;
 
+  // Extract underlying GPUBuffer from WeightBuffer if needed
+  const bBuffer = getBuffer(B);
+  const weightDtype = getWeightDtype(B);
+
   // Debug: log what options are being passed
   if (isTraceEnabled('kernels') && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
-    const isColMajor = isColumnMajorBuffer(B);
-    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    const weightLayout = getLayout(B);
+    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, weightLayout=${weightLayout}, weightDtype=${weightDtype}`);
   }
 
   const transposeB = resolveTransposeB(B, transposeBOption);
 
   validateMatmulDimensions('runMatmul', M, N, K);
 
-  // Infer dtypes for safe kernel selection.
-  const rawADtype = getBufferDtype(A);
-  const rawBDtype = getBufferDtype(B);
-  const requestedOutputDtype = options.outputDtype || 'f32';
+  // Get activation dtype from Tensor, weight dtype from WeightBuffer or options
+  const aDtype = toMatmulDtype(A.dtype);
+  // Prefer WeightBuffer dtype, fall back to options.bDtype
+  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
+  const requestedOutputDtype = options.outputDtype || A.dtype;
 
   // Warn if B buffer dtype is unknown - this can cause wrong kernel selection
-  if (isTraceEnabled('kernels') && !rawBDtype && M <= 2) {
-    log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
+  if (isTraceEnabled('kernels') && !weightDtype && !options.bDtype && M <= 2) {
+    log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${bBuffer.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
-  // Narrow to matmul-supported dtypes
-  const aDtype = toMatmulDtype(rawADtype);
-  const bDtype = toMatmulDtype(rawBDtype);
 
   validateMatmulOffsets('runMatmul', aOffset, bOffset, cOffset);
   const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
     'runMatmul',
-    A,
-    B,
+    A.buffer,
+    bBuffer,
     M,
     N,
     K,
@@ -556,22 +596,38 @@ export async function runMatmul(
     device
   );
 
+  // Q4K F16 variants use binding 4 for output (F16), F32 variants use binding 3
+  const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } },
+  ];
+
+  if (isQ4KF16) {
+    // F16 output at binding 4, dummy at binding 3 (shader declares both)
+    const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
+    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
+    entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+  } else {
+    entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+    // Only add binding 4 for Q4K F32 variants (shader declares it)
+    if (useQ4KFused) {
+      const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
+      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
+    }
+  }
+
   const bindGroup = device.createBindGroup({
     label: 'matmul_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: A, offset: aOffset, size: aBindingSize } },
-      { binding: 2, resource: { buffer: B, offset: bOffset, size: bBindingSize } },
-      { binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } },
-    ],
+    entries,
   });
 
   kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
   releaseUniformBuffer(uniformBuffer);
 
-  setBufferDtype(C, actualOutputDtype);
-  return C;
+  return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
 }
 
 // Debug counter for recordMatmul
@@ -579,16 +635,21 @@ let _recordMatmulDebugCount = 0;
 
 /**
  * Record matrix multiplication (batched, no submit)
+ *
+ * @param recorder - Command recorder for batched execution
+ * @param A - Activation tensor (Tensor with explicit dtype)
+ * @param B - Weight buffer (GPUBuffer or WeightBuffer)
+ * @returns Output tensor with computed dtype
  */
 export async function recordMatmul(
   recorder: CommandRecorder,
-  A: GPUBuffer,
-  B: GPUBuffer,
+  A: Tensor,
+  B: GPUBuffer | WeightBuffer,
   M: number,
   N: number,
   K: number,
   options: MatmulOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     alpha = 1.0,
@@ -599,26 +660,31 @@ export async function recordMatmul(
     cOffset = 0,
   } = options;
 
+  // Extract underlying GPUBuffer from WeightBuffer if needed
+  const bBuffer = getBuffer(B);
+  const weightDtype = getWeightDtype(B);
+
   // Debug: log what options are being passed
   if (isTraceEnabled('kernels') && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
-    const isColMajor = isColumnMajorBuffer(B);
-    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    const weightLayout = getLayout(B);
+    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, weightLayout=${weightLayout}, weightDtype=${weightDtype}`);
   }
 
   const transposeB = resolveTransposeB(B, transposeBOption);
   validateMatmulDimensions('recordMatmul', M, N, K);
 
-  // Infer dtypes (narrowed to matmul-supported types)
-  const aDtype = toMatmulDtype(getBufferDtype(A));
-  const bDtype = toMatmulDtype(getBufferDtype(B));
-  const requestedOutputDtype = options.outputDtype || 'f32';
+  // Get activation dtype from Tensor, weight dtype from WeightBuffer or options
+  const aDtype = toMatmulDtype(A.dtype);
+  // Prefer WeightBuffer dtype, fall back to options.bDtype
+  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
+  const requestedOutputDtype = options.outputDtype || A.dtype;
 
   validateMatmulOffsets('recordMatmul', aOffset, bOffset, cOffset);
   const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
     'recordMatmul',
-    A,
-    B,
+    A.buffer,
+    bBuffer,
     M,
     N,
     K,
@@ -680,18 +746,34 @@ export async function recordMatmul(
     device
   );
 
+  // Q4K F16 variants use binding 4 for output (F16), F32 variants use binding 3
+  const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } },
+  ];
+
+  if (isQ4KF16) {
+    // F16 output at binding 4, dummy at binding 3 (shader declares both)
+    const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
+    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
+    entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+  } else {
+    entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+    // Only add binding 4 for Q4K F32 variants (shader declares it)
+    if (useQ4KFused) {
+      const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
+      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
+    }
+  }
+
   const bindGroup = device.createBindGroup({
     label: 'matmul_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: A, offset: aOffset, size: aBindingSize } },
-      { binding: 2, resource: { buffer: B, offset: bOffset, size: bBindingSize } },
-      { binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } },
-    ],
+    entries,
   });
 
   kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups);
-  setBufferDtype(C, actualOutputDtype);
-  return C;
+  return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
 }

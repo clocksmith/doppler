@@ -109,6 +109,20 @@ export class ConfigResolver {
       try {
         await access(path);
         const content = await readFile(path, 'utf-8');
+
+        // Warn if project/user preset shadows a builtin
+        if (source !== 'builtin') {
+          const builtinPath = join(BUILTIN_PRESETS_DIR, filename);
+          try {
+            await access(builtinPath);
+            console.warn(
+              `[Config] ${source} preset "${name}" shadows built-in preset`
+            );
+          } catch {
+            // No builtin with same name, no warning needed
+          }
+        }
+
         return { source, path, content, name };
       } catch {
         // Continue to next search path

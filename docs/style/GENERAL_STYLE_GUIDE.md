@@ -1,4 +1,4 @@
-# DOPPLER Coding Guide
+# DOPPLER General Style Guide
 
 General coding conventions and patterns for the DOPPLER codebase.
 
@@ -143,6 +143,54 @@ interface RuntimeUniforms {
 
 ---
 
+## Loader Layer Configuration
+
+The loader transforms raw weight files (GGUF/SafeTensors) into GPU buffers. It has its own config concerns separate from inference.
+
+### Quantization Format Constants
+
+Format-specific constants (block sizes, byte layouts) are **invariants** derived from the quantization spec. Import from a single source:
+
+```typescript
+// DON'T: Compute or redefine format constants locally
+const blockBytes = 2 + 2 + K_SCALE_SIZE + QK_K / 2;  // Computing Q4K block size
+const Q4K_BLOCK_BYTES = 144;  // Redefined locally
+
+// DO: Import from quantization-constants.ts
+import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
+```
+
+### Dtype Defaults
+
+Default dtypes for conversion should come from config, not hardcoded strings:
+
+```typescript
+// DON'T: Hardcoded dtype strings scattered across converter
+const outputDtype = options.dtype || 'f16';
+const embeddingDtype = options.embeddingDtype || 'f16';
+
+// DO: Reference schema defaults
+import { getQuantizationDefaults } from '../config/schema/index.js';
+const defaults = getQuantizationDefaults();
+const outputDtype = options.dtype ?? defaults.defaultWeightDtype;
+const embeddingDtype = options.embeddingDtype ?? defaults.defaultEmbeddingDtype;
+```
+
+### Memory Limits
+
+Cache sizes and memory thresholds should come from config:
+
+```typescript
+// DON'T: Hardcoded memory limits
+const maxCacheSize = 256 * 1024 * 1024;  // 256MB
+
+// DO: Reference config schema
+import { getStorageDefaults } from '../config/schema/index.js';
+const maxCacheSize = getStorageDefaults().expertCache.maxSize;
+```
+
+---
+
 ## File Organization
 
 ```
@@ -194,7 +242,7 @@ doppler/
 |---------|---------|---------|
 | `kebab-case.ts` | `model-config.ts` | TypeScript modules |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
-| `UPPER_CASE.md` | `CODING_GUIDE.md` | Documentation |
+| `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |
 
 ### Types
 

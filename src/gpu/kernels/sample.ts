@@ -17,6 +17,7 @@ import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout
 import { allowReadback } from '../perf-guards.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { DEFAULT_SAMPLING_DEFAULTS } from '../../config/index.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 export interface SampleOptions {
   temperature?: number;
@@ -196,7 +197,8 @@ export async function runGPUSample(
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
+  const { greedyThreshold } = getRuntimeConfig().inference.sampling;
+  if (temperature < greedyThreshold) {
     return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
   }
 
@@ -319,11 +321,11 @@ export async function recordArgmax(
   const argmaxPipeline = await createSamplePipeline(device, 'argmax');
   const reducePipeline = await createSamplePipeline(device, 'argmax_reduce');
 
-  const numWorkgroups = Math.min(256, Math.ceil(vocabSize / 256));
+  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
 
   // Buffers
-  const tempLogits = acquireBuffer(256 * 4, undefined, 'argmax_temp_logits');
-  const tempIndices = acquireBuffer(256 * 4, undefined, 'argmax_temp_indices');
+  const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
+  const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
   const outputBuffer = acquireBuffer(4, undefined, 'argmax_output');
 
   // Uniforms
@@ -408,7 +410,8 @@ export async function recordGPUSample(
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
+  const { greedyThreshold } = getRuntimeConfig().inference.sampling;
+  if (temperature < greedyThreshold) {
     return recordArgmax(recorder, logits, vocabSize, { padTokenId, logitSoftcap });
   }
 
@@ -425,11 +428,11 @@ export async function recordGPUSample(
   const phase3Pipeline = await createSamplePipeline(device, 'softmax_and_sample');
 
   // Workgroups for phase 1
-  const numWorkgroups = Math.min(256, Math.ceil(vocabSize / 256));
+  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
 
   // Buffers
-  const topkLogits = acquireBuffer(256 * 4, undefined, 'topk_logits');
-  const topkIndices = acquireBuffer(256 * 4, undefined, 'topk_indices');
+  const topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
+  const topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
   const outputBuffer = acquireBuffer(4, undefined, 'sample_output');
 
   // Uniforms

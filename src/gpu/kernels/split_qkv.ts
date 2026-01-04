@@ -6,9 +6,9 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { createTensor, type Tensor, type TensorDtype, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
@@ -19,41 +19,44 @@ export interface SplitQKVOptions {
   qSize: number;  // numHeads * headDim
   kSize: number;  // numKVHeads * headDim
   vSize: number;  // numKVHeads * headDim
-  /** Pre-allocated Q output buffer */
-  qBuffer?: GPUBuffer | null;
-  /** Pre-allocated K output buffer */
-  kBuffer?: GPUBuffer | null;
-  /** Pre-allocated V output buffer */
-  vBuffer?: GPUBuffer | null;
+  /** Pre-allocated Q output tensor */
+  qTensor?: Tensor | null;
+  /** Pre-allocated K output tensor */
+  kTensor?: Tensor | null;
+  /** Pre-allocated V output tensor */
+  vTensor?: Tensor | null;
 }
 
 /** Split QKV result */
 export interface SplitQKVResult {
-  Q: GPUBuffer;
-  K: GPUBuffer;
-  V: GPUBuffer;
+  Q: Tensor;
+  K: Tensor;
+  V: Tensor;
 }
 
 /**
- * Split fused QKV output into separate Q, K, V buffers.
+ * Split fused QKV output into separate Q, K, V tensors.
  *
- * @param qkvBuffer - Fused QKV output [numTokens, qSize + kSize + vSize]
+ * @param qkvTensor - Fused QKV output [numTokens, qSize + kSize + vSize]
  * @param options - Split configuration
- * @returns Separate Q, K, V buffers
+ * @returns Separate Q, K, V tensors
  */
 export async function runSplitQKV(
-  qkvBuffer: GPUBuffer,
+  qkvTensor: Tensor,
   options: SplitQKVOptions
 ): Promise<SplitQKVResult> {
   const device = getDevice();
-  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
   const pipeline = await getPipelineFast('split_qkv', 'default');
 
+  const outputDtype: TensorDtype = qkvTensor.dtype;
+  const bytesPerElement = dtypeBytes(outputDtype);
+
   // Allocate output buffers if not provided
-  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, undefined, 'Q');
-  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, undefined, 'K');
-  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, undefined, 'V');
+  const qBuffer = qTensor?.buffer || acquireBuffer(numTokens * qSize * bytesPerElement, undefined, 'Q');
+  const kBuffer = kTensor?.buffer || acquireBuffer(numTokens * kSize * bytesPerElement, undefined, 'K');
+  const vBuffer = vTensor?.buffer || acquireBuffer(numTokens * vSize * bytesPerElement, undefined, 'V');
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -75,10 +78,10 @@ export async function runSplitQKV(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: qkvBuffer } },
-      { binding: 2, resource: { buffer: Q } },
-      { binding: 3, resource: { buffer: K } },
-      { binding: 4, resource: { buffer: V } },
+      { binding: 1, resource: { buffer: qkvTensor.buffer } },
+      { binding: 2, resource: { buffer: qBuffer } },
+      { binding: 3, resource: { buffer: kBuffer } },
+      { binding: 4, resource: { buffer: vBuffer } },
     ],
   });
 
@@ -89,9 +92,9 @@ export async function runSplitQKV(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(Q, 'f32');
-  setBufferDtype(K, 'f32');
-  setBufferDtype(V, 'f32');
+  const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');
+  const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], 'K');
+  const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], 'V');
 
   return { Q, K, V };
 }
@@ -101,18 +104,21 @@ export async function runSplitQKV(
  */
 export async function recordSplitQKV(
   recorder: CommandRecorder,
-  qkvBuffer: GPUBuffer,
+  qkvTensor: Tensor,
   options: SplitQKVOptions
 ): Promise<SplitQKVResult> {
   const device = recorder.device;
-  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
   const pipeline = await getPipelineFast('split_qkv', 'default');
 
+  const outputDtype: TensorDtype = qkvTensor.dtype;
+  const bytesPerElement = dtypeBytes(outputDtype);
+
   // Allocate output buffers if not provided
-  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, undefined, 'Q');
-  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, undefined, 'K');
-  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, undefined, 'V');
+  const qBuffer = qTensor?.buffer || acquireBuffer(numTokens * qSize * bytesPerElement, undefined, 'Q');
+  const kBuffer = kTensor?.buffer || acquireBuffer(numTokens * kSize * bytesPerElement, undefined, 'K');
+  const vBuffer = vTensor?.buffer || acquireBuffer(numTokens * vSize * bytesPerElement, undefined, 'V');
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -133,10 +139,10 @@ export async function recordSplitQKV(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: qkvBuffer } },
-      { binding: 2, resource: { buffer: Q } },
-      { binding: 3, resource: { buffer: K } },
-      { binding: 4, resource: { buffer: V } },
+      { binding: 1, resource: { buffer: qkvTensor.buffer } },
+      { binding: 2, resource: { buffer: qBuffer } },
+      { binding: 3, resource: { buffer: kBuffer } },
+      { binding: 4, resource: { buffer: vBuffer } },
     ],
   });
 
@@ -145,9 +151,9 @@ export async function recordSplitQKV(
   const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'split_qkv');
 
-  setBufferDtype(Q, 'f32');
-  setBufferDtype(K, 'f32');
-  setBufferDtype(V, 'f32');
+  const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');
+  const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], 'K');
+  const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], 'V');
 
   return { Q, K, V };
 }

@@ -74,13 +74,56 @@ kvLenForAttention = gpuBuffers.seqLen;
 
 This reads the CPU-side `seqLen` which IS updated during recording. But something else must be wrong because the tokens diverge.
 
-### Alternative Hypotheses
+### Primary Hypothesis: Uniform Cache Eviction (2026-01-03 investigation)
 
-1. **Uniform buffer cache collision** - Content-addressed cache might return wrong buffer if hash collides (unlikely - different content = different hash)
+The uniform buffer cache in `src/gpu/uniform-cache.ts` has 256 max entries. When full, it evicts LRU entries and **destroys** the GPU buffer immediately:
 
-2. **Hidden state buffer reuse** - DecodeBufferManager ping-pong might be incorrect in batched mode
+```typescript
+// uniform-cache.ts:158
+private evictLRU(): void {
+  // ... find oldest entry
+  entry.buffer.destroy();  // DESTROYS buffer still in pending command buffer!
+}
+```
 
-3. **Attention mask computation** - `startPosForMask` might be wrong for iterations > 0
+**Why this explains the bug:**
+- Each decode step creates ~10+ uniform buffers per layer × 26 layers = ~260+ per token
+- Batched recording creates N iterations worth of commands BEFORE any execute
+- After ~12 tokens (3 batches × 4), cache hits 256 capacity
+- Eviction destroys buffer that's still referenced by pending (not yet executed) commands
+- GPU reads garbage data → wrong attention → repetitive output
+
+**Supporting evidence:**
+- Bug manifests after EXACTLY 3 batches (12 tokens) - deterministic, not random
+- First 12 tokens are identical between batchSize=1 and batchSize=4
+- Divergence at token 13 = exactly when cache likely overflows
+
+**Fix direction:** Don't destroy evicted buffers immediately. Either:
+1. Mark as "pending destruction" and destroy after `onSubmittedWorkDone()` callback
+2. Increase cache size for batched mode
+3. Disable caching during batched recording (use fresh buffers per iteration)
+
+### Secondary Issue: isDecodeMode=false
+
+The batched path at `pipeline.ts:1499` passes `isDecodeMode=false`:
+```typescript
+const context = this._buildLayerContext(recorder);  // isDecodeMode defaults to false
+```
+
+While single-token path at `pipeline.ts:1141` passes `true`:
+```typescript
+const context = this._buildLayerContext(recorder, true);  // isDecodeMode = TRUE
+```
+
+This means batched decode doesn't use pre-allocated decode buffers from `DecodeBufferManager`, potentially causing more buffer churn and cache pressure.
+
+### Ruled Out Hypotheses
+
+1. **Uniform buffer cache collision** - Content-addressed cache uses FNV-1a hash on 40 bytes, collision probability is low
+
+2. **Hidden state buffer reuse** - DecodeBufferManager ping-pong is correct (verified)
+
+3. **Attention mask computation** - `startPosForMask` updates correctly (verified via logging)
 
 ## Workaround
 
@@ -102,7 +145,9 @@ Batching would provide 37% speedup if working.
 
 ## Files Involved
 
-- `src/inference/pipeline.ts:1509-1677` - `_generateNTokensGPU()`
+- `src/inference/pipeline.ts:1499-1677` - `_generateNTokensGPU()` (batched decode)
+- `src/inference/pipeline.ts:1141` - Single-token decode (`isDecodeMode=true`)
+- `src/gpu/uniform-cache.ts:133-163` - LRU eviction with buffer destruction
 - `src/inference/pipeline/attention.ts:791-860` - `recordAttention()`
 - `src/inference/kv-cache.ts:398-439` - `recordUpdateFromGPU()`
 - `src/gpu/kernels/rope.ts:94-150` - `recordRoPE()`
@@ -116,12 +161,40 @@ npm run debug -- -m gemma-2-2b-it --prompt "The sky is" --max-tokens 32 --temper
 # Compare with batchSize: 1
 ```
 
+## Investigation Progress (2026-01-03)
+
+### Confirmed Behavior
+- With `batchSize=4`, tokens 1-12 are IDENTICAL to `batchSize=1`
+- Divergence occurs at token 13 (exactly after 3 batches)
+- Pattern: `batchSize=1` produces "be", `batchSize=4` produces "go"
+- After divergence, enters repetition loop: "go to the city of the day" repeating
+
+### Ruled Out
+- ❌ RoPE positions (logged, increment correctly)
+- ❌ `context.currentSeqLen` updates (updates correctly in loop)
+- ❌ KV cache `layer.seqLen` (updates correctly via `recordUpdateFromGPU`)
+- ❌ Uniform buffer hash collisions (FNV-1a on 40 bytes, low collision probability)
+
+### Current Hypotheses
+1. **Attention startPos/kvLen mismatch** - The attention uniform buffer may have stale values
+2. **Decoder buffer misuse** - `_generateNTokensGPU` doesn't pass `isDecodeMode=true` to `_buildLayerContext`
+3. **Cross-batch state corruption** - Something accumulates incorrectly across batch boundaries
+
+### Key Observation
+The bug manifests after EXACTLY 3 batches (12 tokens). This suggests:
+- The bug isn't random - it's deterministic
+- Something accumulates or corrupts after a specific pattern
+- Likely related to how batch boundaries interact with KV cache or context state
+
 ## Next Steps
 
-1. Add per-layer `kvLen` logging in `recordAttention()` to trace exact values
-2. Dump attention mask values for iteration 0 vs iteration 1
-3. Check if hidden state buffers are being reused incorrectly
-4. Consider if WebGPU needs explicit barriers between iterations (shouldn't - command order is preserved)
+1. Add explicit logging in `_generateNTokensGPU` to trace:
+   - `this.currentSeqLen` at batch start
+   - `context.currentSeqLen` for each iteration
+   - `layer.seqLen` after each `recordUpdateFromGPU`
+2. Test with `batchSize=2` and `batchSize=8` to see if divergence pattern changes
+3. Compare attention uniform buffer contents between single-token and batch paths
+4. Check if `isDecodeMode=true` affects the bug (pass to `_buildLayerContext`)
 
 ## Lessons Learned
 

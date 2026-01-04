@@ -107,6 +107,13 @@ export interface Manifest {
     debug?: boolean;
   };
   attentionKernel?: string;
+  // Quantization info with runtime hints
+  quantizationInfo?: {
+    weights?: string;
+    embeddings?: string;
+    lmHead?: string;
+    compute?: string;  // Runtime compute precision hint (f16, f32)
+  };
 }
 
 export interface AttentionParams {

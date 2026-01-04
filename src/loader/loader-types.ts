@@ -6,6 +6,8 @@
  * @module loader/loader-types
  */
 
+import type { WeightBuffer } from '../gpu/weight-buffer.js';
+
 /**
  * Tensor location in loaded model
  */
@@ -27,10 +29,10 @@ export interface TensorLocation {
  */
 export interface LayerWeights {
   inputNorm: GPUBuffer | Float32Array | null;
-  qProj: GPUBuffer | Float32Array | null;
-  kProj: GPUBuffer | Float32Array | null;
-  vProj: GPUBuffer | Float32Array | null;
-  oProj: GPUBuffer | Float32Array | null;
+  qProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  kProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  vProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  oProj: GPUBuffer | WeightBuffer | Float32Array | null;
   qNorm: GPUBuffer | Float32Array | null;
   kNorm: GPUBuffer | Float32Array | null;
   postAttentionNorm: GPUBuffer | Float32Array | null;
@@ -38,17 +40,17 @@ export interface LayerWeights {
   postFeedforwardNorm: GPUBuffer | Float32Array | null;
   postNorm: GPUBuffer | Float32Array | null;
   postAttnNorm: GPUBuffer | Float32Array | null;
-  ffnGate: GPUBuffer | Float32Array | null;
-  ffnUp: GPUBuffer | Float32Array | null;
-  ffnDown: GPUBuffer | Float32Array | null;
+  ffnGate: GPUBuffer | WeightBuffer | Float32Array | null;
+  ffnUp: GPUBuffer | WeightBuffer | Float32Array | null;
+  ffnDown: GPUBuffer | WeightBuffer | Float32Array | null;
   /** Fused gate+up projection [intermediateSize*2, hiddenSize] for 2-pass FFN */
-  ffnGateUp?: GPUBuffer | Float32Array | null;
+  ffnGateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   // Aliases for pipeline compatibility
-  gate?: GPUBuffer | Float32Array | null;
-  up?: GPUBuffer | Float32Array | null;
-  down?: GPUBuffer | Float32Array | null;
+  gate?: GPUBuffer | WeightBuffer | Float32Array | null;
+  up?: GPUBuffer | WeightBuffer | Float32Array | null;
+  down?: GPUBuffer | WeightBuffer | Float32Array | null;
   /** Fused gate+up for pipeline compatibility */
-  gateUp?: GPUBuffer | Float32Array | null;
+  gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   routerWeight?: GPUBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   attentionSinks?: GPUBuffer | Float32Array | null;

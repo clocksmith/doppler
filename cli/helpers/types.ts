@@ -39,6 +39,8 @@ export interface CLIOptions {
   config: string | null;
   /** Loaded runtime config (merged with defaults) */
   runtimeConfig: RuntimeConfigSchema | null;
+  /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
+  configChain: string[] | null;
   /** Dump resolved config and exit */
   dumpConfig: boolean;
   /** List available presets and exit */

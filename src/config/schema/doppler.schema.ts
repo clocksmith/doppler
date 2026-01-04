@@ -194,6 +194,16 @@ export function createDopplerConfig(
 
 /**
  * Deep merge runtime config with overrides.
+ *
+ * Note: This merge may run twice in the CLI→browser flow:
+ * 1. CLI: config-loader.ts deepMerge() processes user config with defaults
+ * 2. Browser: setRuntimeConfig() calls this when config arrives via URL
+ *
+ * This is intentional - the double merge is idempotent for fully-specified
+ * configs (CLI passes complete merged config), but allows browser-only
+ * overrides to also work correctly.
+ *
+ * Uses object spread for most fields. Missing nested objects fall back to base.
  */
 function mergeRuntimeConfig(
   base: RuntimeConfigSchema,
@@ -220,6 +230,7 @@ function mergeRuntimeConfig(
       ? {
           batching: { ...base.inference.batching, ...overrides.inference.batching },
           sampling: { ...base.inference.sampling, ...overrides.inference.sampling },
+          compute: { ...base.inference.compute, ...overrides.inference.compute },
           tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer },
           prompt: overrides.inference.prompt ?? base.inference.prompt,
           pipeline: overrides.inference.pipeline ?? base.inference.pipeline,

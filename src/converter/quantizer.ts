@@ -5,9 +5,14 @@
  * @module converter/quantizer
  */
 
-const QK_K = 256;
-const K_SCALE_SIZE = 12;
-const QK4_K_BLOCK_SIZE = 144;
+/** Q4K block size in elements (256 weights per block) */
+export const QK_K = 256;
+
+/** K-means scale size for Q4K */
+export const K_SCALE_SIZE = 12;
+
+/** Q4K block size in bytes (144 bytes per 256 weights) */
+export const QK4_K_BLOCK_SIZE = 144;
 
 export interface QuantizeResult {
   quantized: Uint8Array;
@@ -485,5 +490,3 @@ export function getQuantizedSize(shape: number[]): number {
   const numBlocks = Math.ceil(numElements / QK_K);
   return numBlocks * QK4_K_BLOCK_SIZE;
 }
-
-export { QK_K, QK4_K_BLOCK_SIZE };

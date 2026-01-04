@@ -86,19 +86,35 @@ function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptT
         // Use console.warn since benchmark mode only silences log/debug/info
         console.warn('[Benchmark] ' + phase + ': ' + current + '/' + total);
       };
-      progress('Loading model', 1, 1);
-      const config = ${config};
-      const harness = new bench.PipelineBenchmark(config);
-      progress('Running benchmark', 1, 1);
-      const result = await harness.run();
-      progress('Complete', 1, 1);
 
-      // Restore logging (if it was disabled)
-      if (!debugMode) {
-        bench.setBenchmarkMode(false);
+      try {
+        progress('Loading model', 1, 1);
+        const config = ${config};
+        const harness = new bench.PipelineBenchmark(config);
+        progress('Running benchmark', 1, 1);
+        const result = await harness.run();
+        progress('Complete', 1, 1);
+
+        // Restore logging (if it was disabled)
+        if (!debugMode) {
+          bench.setBenchmarkMode(false);
+        }
+
+        // Emit standardized completion signals for CLI/automation detection
+        console.log('[DOPPLER:RESULT] ' + JSON.stringify(result));
+        console.log('[DOPPLER:DONE] ' + JSON.stringify({ status: 'success', elapsed: result.metrics?.total_ms || 0 }));
+
+        return result;
+      } catch (err) {
+        // Restore logging before error signal
+        if (!debugMode) {
+          bench.setBenchmarkMode(false);
+        }
+        // Emit standardized error signals for CLI/automation detection
+        console.log('[DOPPLER:ERROR] ' + JSON.stringify({ error: err.message }));
+        console.log('[DOPPLER:DONE] ' + JSON.stringify({ status: 'error', elapsed: 0, error: err.message }));
+        throw err;
       }
-
-      return result;
     })()
   `;
 }

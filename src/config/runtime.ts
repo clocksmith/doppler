@@ -9,6 +9,7 @@
 
 import type { RuntimeConfigSchema } from './schema/index.js';
 import { createDopplerConfig, DEFAULT_BATCHING_DEFAULTS } from './schema/index.js';
+import { log } from '../debug/index.js';
 
 let runtimeConfig: RuntimeConfigSchema = createDopplerConfig().runtime;
 
@@ -33,14 +34,15 @@ export function setRuntimeConfig(
 
   const merged = createDopplerConfig({ runtime: overrides }).runtime;
 
-  // Back-compat: allow inference.sampling.maxTokens to override batching.maxTokens
-  // when batching hasn't been explicitly customized.
+  // Migrate deprecated sampling.maxTokens to batching.maxTokens
   const sampling = merged.inference.sampling as typeof merged.inference.sampling & { maxTokens?: number };
-  if (
-    sampling.maxTokens !== undefined &&
-    merged.inference.batching.maxTokens === DEFAULT_BATCHING_DEFAULTS.maxTokens
-  ) {
-    merged.inference.batching.maxTokens = sampling.maxTokens;
+  if (sampling.maxTokens !== undefined) {
+    log.warn('Config', 'inference.sampling.maxTokens is deprecated, use inference.batching.maxTokens instead');
+    // Only migrate if batching.maxTokens is still at default (user didn't explicitly set it)
+    if (merged.inference.batching.maxTokens === DEFAULT_BATCHING_DEFAULTS.maxTokens) {
+      merged.inference.batching.maxTokens = sampling.maxTokens;
+      log.debug('Config', `Migrated sampling.maxTokens=${sampling.maxTokens} to batching.maxTokens`);
+    }
   }
 
   runtimeConfig = merged;

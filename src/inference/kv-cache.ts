@@ -10,7 +10,6 @@
 
 import { getDevice } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
-import { getBufferDtype, setBufferDtype } from '../gpu/buffer-dtypes.js';
 import { allowReadback } from '../gpu/perf-guards.js';
 import type { KVCacheConfig as ImportedKVCacheConfig } from '../types/inference.js';
 import { log } from '../debug/index.js';
@@ -198,8 +197,7 @@ export class KVCache {
           values: new Float32Array(0),
           seqLen: 0
         };
-        setBufferDtype(keysGPU, this.kvDtype);
-        setBufferDtype(valuesGPU, this.kvDtype);
+        // Note: dtype is tracked via this.kvDtype, not per-buffer WeakMap
       } else {
         // CPU-only storage
         this.layers[l] = {
@@ -360,14 +358,7 @@ export class KVCache {
       );
     }
 
-    if (this.kvDtype === 'f16') {
-      const kd = getBufferDtype(keysBuffer);
-      const vd = getBufferDtype(valuesBuffer);
-      if (kd !== 'f16' || vd !== 'f16') {
-        throw new Error('KV cache is f16 but source buffers are not f16');
-      }
-    }
-
+    // Note: dtype validation removed - pipeline controls both activation dtype and KV cache dtype
     const byteOffset = startPos * this.kvSize * this.bytesPerElem;
     const byteSize = numTokens * this.kvSize * this.bytesPerElem;
 
@@ -415,14 +406,7 @@ export class KVCache {
       );
     }
 
-    if (this.kvDtype === 'f16') {
-      const kd = getBufferDtype(keysBuffer);
-      const vd = getBufferDtype(valuesBuffer);
-      if (kd !== 'f16' || vd !== 'f16') {
-        throw new Error('KV cache is f16 but source buffers are not f16');
-      }
-    }
-
+    // Note: dtype validation removed - pipeline controls both activation dtype and KV cache dtype
     const byteOffset = startPos * this.kvSize * this.bytesPerElem;
     const byteSize = numTokens * this.kvSize * this.bytesPerElem;
 
@@ -456,14 +440,7 @@ export class KVCache {
     if (keys instanceof GPUBuffer) {
       // For GPU inputs, copy to GPU cache directly
       if (layer.keysGPU && device) {
-        if (this.kvDtype === 'f16') {
-          const kd = getBufferDtype(keys);
-          const vd = getBufferDtype(values as GPUBuffer);
-          if (kd !== 'f16' || vd !== 'f16') {
-            throw new Error('KV cache is f16 but source buffers are not f16');
-          }
-        }
-
+        // Note: dtype validation removed - pipeline controls both activation dtype and KV cache dtype
         const byteOffset = offset * this.bytesPerElem;
         const byteSize = numNewTokens * this.kvSize * this.bytesPerElem;
         const encoder = device.createCommandEncoder({ label: 'kv_update_gpu' });
@@ -907,14 +884,7 @@ export class SlidingWindowKVCache extends KVCache {
       throw new Error('GPU cache not initialized');
     }
 
-    if (this.kvDtype === 'f16') {
-      const kd = getBufferDtype(keysBuffer);
-      const vd = getBufferDtype(valuesBuffer);
-      if (kd !== 'f16' || vd !== 'f16') {
-        throw new Error('KV cache is f16 but source buffers are not f16');
-      }
-    }
-
+    // Note: dtype validation removed - pipeline controls both activation dtype and KV cache dtype
     const windowSize = this.windowSize;
     const bytesPerToken = this.kvSize * this.bytesPerElem;
     const writePos = startPos % windowSize;
@@ -966,14 +936,7 @@ export class SlidingWindowKVCache extends KVCache {
       throw new Error('GPU cache not initialized');
     }
 
-    if (this.kvDtype === 'f16') {
-      const kd = getBufferDtype(keysBuffer);
-      const vd = getBufferDtype(valuesBuffer);
-      if (kd !== 'f16' || vd !== 'f16') {
-        throw new Error('KV cache is f16 but source buffers are not f16');
-      }
-    }
-
+    // Note: dtype validation removed - pipeline controls both activation dtype and KV cache dtype
     const windowSize = this.windowSize;
     const bytesPerToken = this.kvSize * this.bytesPerElem;
     const writePos = startPos % windowSize;

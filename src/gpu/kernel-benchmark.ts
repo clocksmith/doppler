@@ -12,6 +12,7 @@
 
 import { getDevice, getDeviceLimits, getKernelCapabilities } from './device.js';
 import { acquireBuffer, releaseBuffer } from './buffer-pool.js';
+import { createTensor } from './tensor.js';
 import { runMatmul } from './kernels/matmul.js';
 import { runRMSNorm } from './kernels/rmsnorm.js';
 import { runAttention } from './kernels/attention.js';
@@ -293,6 +294,7 @@ export async function benchmarkMatmul(
 
   const A = createTestBuffer(M * K * 4, 'bench_A');
   const B = createTestBuffer(K * N * 4, 'bench_B');
+  const tensorA = createTensor(A, 'f32', [M, K], 'bench_A');
 
   const result = await benchmarkKernel(
     'matmul',
@@ -303,8 +305,8 @@ export async function benchmarkMatmul(
       writeBytes: M * N * 4,
     },
     async () => {
-      const C = await runMatmul(A, B, M, N, K);
-      releaseBuffer(C);
+      const C = await runMatmul(tensorA, B, M, N, K);
+      releaseBuffer(C.buffer);
     },
     config.warmupIterations,
     config.timedIterations
@@ -327,9 +329,12 @@ export async function benchmarkAttentionDecode(
 ): Promise<KernelBenchmarkResult> {
   const config = { ...DEFAULT_CONFIG, ...options };
 
-  const Q = createTestBuffer(numHeads * headDim * 4, 'bench_Q');
-  const K = createTestBuffer(kvLen * numHeads * headDim * 4, 'bench_K');
-  const V = createTestBuffer(kvLen * numHeads * headDim * 4, 'bench_V');
+  const QBuf = createTestBuffer(numHeads * headDim * 4, 'bench_Q');
+  const KBuf = createTestBuffer(kvLen * numHeads * headDim * 4, 'bench_K');
+  const VBuf = createTestBuffer(kvLen * numHeads * headDim * 4, 'bench_V');
+  const Q = createTensor(QBuf, 'f32', [1, numHeads * headDim], 'bench_Q');
+  const K = createTensor(KBuf, 'f32', [kvLen, numHeads * headDim], 'bench_K');
+  const V = createTensor(VBuf, 'f32', [kvLen, numHeads * headDim], 'bench_V');
 
   const result = await benchmarkKernel(
     'attention',
@@ -348,15 +353,15 @@ export async function benchmarkAttentionDecode(
         kvLen,
         numKVHeads: numHeads,
       });
-      releaseBuffer(out);
+      releaseBuffer(out.buffer);
     },
     config.warmupIterations,
     config.timedIterations
   );
 
-  releaseBuffer(Q);
-  releaseBuffer(K);
-  releaseBuffer(V);
+  releaseBuffer(QBuf);
+  releaseBuffer(KBuf);
+  releaseBuffer(VBuf);
 
   return result;
 }
@@ -374,6 +379,7 @@ export async function benchmarkRMSNorm(
   const size = batchSize * hiddenSize;
   const input = createTestBuffer(size * 4, 'bench_input');
   const weight = createTestBuffer(hiddenSize * 4, 'bench_weight');
+  const inputTensor = createTensor(input, 'f32', [batchSize, hiddenSize], 'bench_input');
 
   const result = await benchmarkKernel(
     'rmsnorm',
@@ -386,8 +392,8 @@ export async function benchmarkRMSNorm(
       writeBytes: size * 4,
     },
     async () => {
-      const out = await runRMSNorm(input, weight, 1e-6, { batchSize, hiddenSize });
-      releaseBuffer(out);
+      const out = await runRMSNorm(inputTensor, weight, 1e-6, { batchSize, hiddenSize });
+      releaseBuffer(out.buffer);
     },
     config.warmupIterations,
     config.timedIterations
@@ -409,6 +415,7 @@ export async function benchmarkSiLU(
   const config = { ...DEFAULT_CONFIG, ...options };
 
   const input = createTestBuffer(size * 4, 'bench_input');
+  const inputTensor = createTensor(input, 'f32', [size], 'bench_input');
 
   const result = await benchmarkKernel(
     'silu',
@@ -419,8 +426,8 @@ export async function benchmarkSiLU(
       writeBytes: size * 4,
     },
     async () => {
-      const out = await runSiLU(input, { size });
-      releaseBuffer(out);
+      const out = await runSiLU(inputTensor, { size });
+      releaseBuffer(out.buffer);
     },
     config.warmupIterations,
     config.timedIterations
@@ -458,6 +465,8 @@ export async function benchmarkMatmulRMSNormFused(
   const weight = createTestBuffer(K * N * 4, 'bench_weight');
   const normWeight = createTestBuffer(N * 4, 'bench_norm_weight');
   const residual = createTestBuffer(N * 4, 'bench_residual');
+  const inputTensor = createTensor(input, 'f32', [1, K], 'bench_input');
+  const residualTensor = createTensor(residual, 'f32', [1, N], 'bench_residual');
 
   // Benchmark separate: matmul + rmsnorm
   const separateResult = await benchmarkKernel(
@@ -469,14 +478,14 @@ export async function benchmarkMatmulRMSNormFused(
       writeBytes: N * 4,
     },
     async () => {
-      const matmulOut = await runMatmul(input, weight, 1, N, K);
+      const matmulOut = await runMatmul(inputTensor, weight, 1, N, K);
       const normOut = await runRMSNorm(matmulOut, normWeight, 1e-6, {
         batchSize: 1,
         hiddenSize: N,
-        residual,
+        residual: residualTensor,
       });
-      releaseBuffer(matmulOut);
-      releaseBuffer(normOut);
+      releaseBuffer(matmulOut.buffer);
+      releaseBuffer(normOut.buffer);
     },
     config.warmupIterations,
     config.timedIterations
@@ -492,12 +501,12 @@ export async function benchmarkMatmulRMSNormFused(
       writeBytes: N * 4,
     },
     async () => {
-      const out = await runMatmulRMSNormFused(input, weight, normWeight, {
+      const out = await runMatmulRMSNormFused(inputTensor, weight, normWeight, {
         N, K,
         eps: 1e-6,
-        residual,
+        residual: residual,  // fused kernel still takes GPUBuffer for residual
       });
-      releaseBuffer(out);
+      releaseBuffer(out.buffer);
     },
     config.warmupIterations,
     config.timedIterations

@@ -15,18 +15,16 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { createTensor, type Tensor } from '../tensor.js';
+import { type WeightBuffer, getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { WORKGROUP_SIZES } from './constants.js';
+import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
-
-/** Kernel constants matching WGSL */
-const WG_SIZE = 256;
-const COLS_PER_WG = 4;  // For multi-workgroup variant
-const MAX_MEDIUM_N = 4096;
 
 /** Fused MatmulRMSNorm kernel options */
 export interface MatmulRMSNormFusedOptions extends OutputBufferOptions {
@@ -50,19 +48,20 @@ export interface MatmulRMSNormFusedOptions extends OutputBufferOptions {
 /**
  * Select fused kernel variant based on output size
  *
- * - small: N <= 256 (one element per thread)
- * - medium: 256 < N <= 4096 (multiple elements per thread, single workgroup)
- * - default: N > 4096 (multi-workgroup, but RMSNorm is incomplete - avoid)
+ * - small: N <= WORKGROUP_SIZES.DEFAULT (one element per thread)
+ * - medium: N <= fusedMatmul.maxMediumN (multiple elements per thread, single workgroup)
+ * - default: N > maxMediumN (multi-workgroup, but RMSNorm is incomplete - avoid)
  */
 export function selectMatmulRMSNormFusedVariant(N: number): string {
-  if (N <= WG_SIZE) {
+  const thresholds = getKernelThresholds().fusedMatmul;
+  if (N <= WORKGROUP_SIZES.DEFAULT) {
     return 'small';  // Single workgroup, one element per thread
   }
-  if (N <= MAX_MEDIUM_N) {
+  if (N <= thresholds.maxMediumN) {
     return 'medium';  // Single workgroup, multiple elements per thread
   }
   // For very large N, fall back to default (incomplete RMSNorm)
-  // In practice, should not use fused kernel for N > 4096
+  // In practice, should not use fused kernel for N > maxMediumN
   return 'default';
 }
 
@@ -72,18 +71,18 @@ export function selectMatmulRMSNormFusedVariant(N: number): string {
  * Combines down projection matmul (M=1) with RMSNorm in a single kernel.
  * Use this for the post-FFN normalization path during decode.
  *
- * @param input - Input activation buffer [1, K]
- * @param weight - Down projection weight buffer [K, N] (row-major)
+ * @param input - Input activation tensor [1, K]
+ * @param weight - Down projection weight buffer (GPUBuffer or WeightBuffer)
  * @param normWeight - RMSNorm weight buffer [N]
  * @param options - Kernel options including N, K dimensions
- * @returns Output buffer [1, N] with normalized result
+ * @returns Output tensor [1, N] with normalized result
  */
 export async function runMatmulRMSNormFused(
-  input: GPUBuffer,
-  weight: GPUBuffer,
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
   normWeight: GPUBuffer,
   options: MatmulRMSNormFusedOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     N,
@@ -93,6 +92,8 @@ export async function runMatmulRMSNormFused(
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
+
+  const weightBuffer = getBuffer(weight);
 
   // Select variant based on output size
   const variant = selectMatmulRMSNormFusedVariant(N);
@@ -134,8 +135,8 @@ export async function runMatmulRMSNormFused(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: normWeight } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } },
@@ -147,7 +148,7 @@ export async function runMatmulRMSNormFused(
   if (variant === 'small' || variant === 'medium') {
     workgroups = 1;  // Single workgroup for small/medium N
   } else {
-    workgroups = Math.ceil(N / COLS_PER_WG);
+    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
   }
 
   dispatch(device, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
@@ -156,8 +157,8 @@ export async function runMatmulRMSNormFused(
   uniformBuffer.destroy();
   if (!residual) residualBuffer.destroy();
 
-  setBufferDtype(output, 'f32');
-  return output;
+  // Output dtype matches input dtype
+  return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
 /**
@@ -167,11 +168,11 @@ export async function runMatmulRMSNormFused(
  */
 export async function recordMatmulRMSNormFused(
   recorder: CommandRecorder,
-  input: GPUBuffer,
-  weight: GPUBuffer,
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
   normWeight: GPUBuffer,
   options: MatmulRMSNormFusedOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     N,
@@ -181,6 +182,8 @@ export async function recordMatmulRMSNormFused(
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
+
+  const weightBuffer = getBuffer(weight);
 
   // Select variant
   const variant = selectMatmulRMSNormFusedVariant(N);
@@ -221,8 +224,8 @@ export async function recordMatmulRMSNormFused(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: normWeight } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } },
@@ -234,7 +237,7 @@ export async function recordMatmulRMSNormFused(
   if (variant === 'small' || variant === 'medium') {
     workgroups = 1;  // Single workgroup for small/medium N
   } else {
-    workgroups = Math.ceil(N / COLS_PER_WG);
+    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
   }
 
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
@@ -244,8 +247,8 @@ export async function recordMatmulRMSNormFused(
     recorder.trackTemporaryBuffer(residualBuffer);
   }
 
-  setBufferDtype(output, 'f32');
-  return output;
+  // Output dtype matches input dtype
+  return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
 /**
@@ -265,8 +268,8 @@ export function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean {
   }
 
   // Enable for small and medium N where single-workgroup is efficient
-  // Medium variant handles N up to 4096 (e.g., Gemma 3 hiddenSize=1152)
-  if (N > MAX_MEDIUM_N) {
+  // Medium variant handles N up to maxMediumN (e.g., Gemma 3 hiddenSize=1152)
+  if (N > getKernelThresholds().fusedMatmul.maxMediumN) {
     return false;
   }
 

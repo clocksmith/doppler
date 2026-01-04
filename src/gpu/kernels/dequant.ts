@@ -9,10 +9,11 @@
  */
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, type Tensor, type TensorDtype } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES } from './constants.js';
+import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader/quantization-constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
@@ -98,7 +99,7 @@ export async function dequantize(
   quantized: GPUBuffer,
   numBlocks: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     outputOffset = 0,
@@ -148,9 +149,9 @@ export async function dequantize(
 
   // Release uniform buffer back to cache (or destroy if not cached)
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
 
-  return output;
+  const dtype: TensorDtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }
 
 /**
@@ -162,7 +163,7 @@ export async function dequantizeMXFP4(
   totalElements: number,
   numGroups: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     outputBuffer = null,
@@ -209,9 +210,8 @@ export async function dequantizeMXFP4(
   dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_dequant');
 
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, 'f32');
 
-  return output;
+  return createTensor(output, 'f32', [totalElements], 'mxfp4_dequant_output');
 }
 
 /**
@@ -225,7 +225,7 @@ export async function dequantizeMXFP4Expert(
   outDim: number,
   numGroups: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { outputBuffer = null } = options;
 
@@ -272,15 +272,9 @@ export async function dequantizeMXFP4Expert(
   dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_expert');
 
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, 'f32');
 
-  return output;
+  return createTensor(output, 'f32', [outDim, numGroups * 32], 'mxfp4_expert_output');
 }
-
-/**
- * Q6_K block size in bytes (210 bytes per 256 elements)
- */
-const Q6K_BLOCK_BYTES = 210;
 
 /**
  * Run Q6_K dequantization
@@ -295,7 +289,7 @@ export async function dequantizeQ6K(
   quantized: GPUBuffer,
   numBlocks: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     outputOffset = 0,
@@ -353,20 +347,10 @@ export async function dequantizeQ6K(
   dispatch(device, pipeline, bindGroup, workgroups, 'q6k_dequant');
 
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
 
-  return output;
+  const dtype: TensorDtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  return createTensor(output, dtype, [numBlocks * QK_K], 'q6k_dequant_output');
 }
-
-/**
- * Q8_0 block size in bytes (34 bytes per 32 elements)
- */
-const Q8_0_BLOCK_BYTES = 34;
-
-/**
- * Q8_0 block size in elements
- */
-const Q8_0_BLOCK_SIZE = 32;
 
 /**
  * Run Q8_0 dequantization
@@ -381,7 +365,7 @@ export async function dequantizeQ8_0(
   quantized: GPUBuffer,
   numBlocks: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     outputOffset = 0,
@@ -438,9 +422,9 @@ export async function dequantizeQ8_0(
   dispatch(device, pipeline, bindGroup, workgroups, 'q8_0_dequant');
 
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
 
-  return output;
+  const dtype: TensorDtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  return createTensor(output, dtype, [numBlocks * Q8_0_BLOCK_SIZE], 'q8_0_dequant_output');
 }
 
 /**
@@ -451,7 +435,7 @@ export async function recordDequantize(
   quantized: GPUBuffer,
   numBlocks: number,
   options: DequantOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     outputOffset = 0,
@@ -496,6 +480,6 @@ export async function recordDequantize(
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
 
-  setBufferDtype(output, outputDtype === 'f16' ? 'f16' : 'f32');
-  return output;
+  const dtype: TensorDtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }

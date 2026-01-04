@@ -2,13 +2,14 @@
  * Token embedding lookup with optional Gemma scaling.
  */
 
-import { getDevice } from '../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { runGather, recordGather } from '../../gpu/kernel-selector.js';
 import { log, trace } from '../../debug/index.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import type { ProbeConfigSchema } from '../../config/schema/index.js';
 import { runProbes } from './probes.js';
+import { createTensor, type Tensor, type TensorDtype } from '../../gpu/tensor.js';
 
 export interface EmbedConfig {
   hiddenSize: number;
@@ -25,6 +26,17 @@ export interface EmbedConfig {
    * Default: false. GGUF-converted models typically need transpose=true.
    */
   transpose?: boolean;
+  /**
+   * Output activation dtype. When 'f16', outputs F16 for reduced memory bandwidth.
+   * Default: 'f32'
+   */
+  activationDtype?: 'f16' | 'f32';
+  /**
+   * Embedding buffer dtype. When 'f16', uses F16 gather kernel.
+   * Must match the actual dtype of the embedding buffer.
+   * Default: 'f32'
+   */
+  embeddingDtype?: 'f16' | 'f32';
 }
 
 export interface ValidationResult {
@@ -49,7 +61,25 @@ const scaleShaderCode = `
   }
 `;
 
+// F16 scale shader: F16 input → F16 output (for F16 activation mode)
+const scaleShaderCodeF16 = `
+  enable f16;
+
+  struct Uniforms { scale: f32, count: u32 }
+  @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+  @group(0) @binding(1) var<storage, read> input: array<f16>;
+  @group(0) @binding(2) var<storage, read_write> output: array<f16>;
+
+  @compute @workgroup_size(256)
+  fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    if (gid.x >= uniforms.count) { return; }
+    // Read F16, compute in F32 for precision, write F16
+    output[gid.x] = f16(f32(input[gid.x]) * uniforms.scale);
+  }
+`;
+
 let scalePipeline: GPUComputePipeline | null = null;
+let scalePipelineF16: GPUComputePipeline | null = null;
 
 /**
  * Record scale operation (batched, no submit)
@@ -58,10 +88,12 @@ export function recordScale(
   recorder: CommandRecorder,
   inputBuffer: GPUBuffer,
   scale: number,
-  count: number
+  count: number,
+  useF16: boolean = false
 ): GPUBuffer {
   const device = recorder.device;
-  const outputBuffer = acquireBuffer(count * 4, undefined, 'scaled_embed');
+  const bytesPerElement = useF16 ? 2 : 4;
+  const outputBuffer = acquireBuffer(count * bytesPerElement, undefined, 'scaled_embed');
 
   const uniformData = new ArrayBuffer(8);
   const uniformView = new DataView(uniformData);
@@ -70,17 +102,30 @@ export function recordScale(
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'scale_uniforms');
 
-  // Cache pipeline
-  if (!scalePipeline) {
-    const shaderModule = device.createShaderModule({ code: scaleShaderCode });
-    scalePipeline = device.createComputePipeline({
-      layout: 'auto',
-      compute: { module: shaderModule, entryPoint: 'main' },
-    });
+  // Select and cache appropriate pipeline
+  let pipeline: GPUComputePipeline;
+  if (useF16) {
+    if (!scalePipelineF16) {
+      const shaderModule = device.createShaderModule({ code: scaleShaderCodeF16 });
+      scalePipelineF16 = device.createComputePipeline({
+        layout: 'auto',
+        compute: { module: shaderModule, entryPoint: 'main' },
+      });
+    }
+    pipeline = scalePipelineF16;
+  } else {
+    if (!scalePipeline) {
+      const shaderModule = device.createShaderModule({ code: scaleShaderCode });
+      scalePipeline = device.createComputePipeline({
+        layout: 'auto',
+        compute: { module: shaderModule, entryPoint: 'main' },
+      });
+    }
+    pipeline = scalePipeline;
   }
 
   const bindGroup = device.createBindGroup({
-    layout: scalePipeline.getBindGroupLayout(0),
+    layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: inputBuffer } },
@@ -89,7 +134,7 @@ export function recordScale(
   });
 
   const pass = recorder.beginComputePass('scale');
-  pass.setPipeline(scalePipeline);
+  pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
   pass.dispatchWorkgroups(Math.ceil(count / 256));
   pass.end();
@@ -104,12 +149,14 @@ export function recordScale(
 export async function scaleGPUBuffer(
   inputBuffer: GPUBuffer,
   scale: number,
-  count: number
+  count: number,
+  useF16: boolean = false
 ): Promise<GPUBuffer> {
   const device = getDevice();
   if (!device) throw new Error('GPU device not available');
 
-  const outputBuffer = acquireBuffer(count * 4, undefined, 'scaled_embed');
+  const bytesPerElement = useF16 ? 2 : 4;
+  const outputBuffer = acquireBuffer(count * bytesPerElement, undefined, 'scaled_embed');
 
   const uniformData = new ArrayBuffer(8);
   const uniformView = new DataView(uniformData);
@@ -123,17 +170,30 @@ export async function scaleGPUBuffer(
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-  // Cache pipeline
-  if (!scalePipeline) {
-    const shaderModule = device.createShaderModule({ code: scaleShaderCode });
-    scalePipeline = device.createComputePipeline({
-      layout: 'auto',
-      compute: { module: shaderModule, entryPoint: 'main' },
-    });
+  // Select and cache appropriate pipeline
+  let pipeline: GPUComputePipeline;
+  if (useF16) {
+    if (!scalePipelineF16) {
+      const shaderModule = device.createShaderModule({ code: scaleShaderCodeF16 });
+      scalePipelineF16 = device.createComputePipeline({
+        layout: 'auto',
+        compute: { module: shaderModule, entryPoint: 'main' },
+      });
+    }
+    pipeline = scalePipelineF16;
+  } else {
+    if (!scalePipeline) {
+      const shaderModule = device.createShaderModule({ code: scaleShaderCode });
+      scalePipeline = device.createComputePipeline({
+        layout: 'auto',
+        compute: { module: shaderModule, entryPoint: 'main' },
+      });
+    }
+    pipeline = scalePipeline;
   }
 
   const bindGroup = device.createBindGroup({
-    layout: scalePipeline.getBindGroupLayout(0),
+    layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: inputBuffer } },
@@ -143,7 +203,7 @@ export async function scaleGPUBuffer(
 
   const encoder = device.createCommandEncoder();
   const pass = encoder.beginComputePass();
-  pass.setPipeline(scalePipeline);
+  pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
   pass.dispatchWorkgroups(Math.ceil(count / 256));
   pass.end();
@@ -163,15 +223,20 @@ export async function embed(
   tokenIds: number[],
   embedBuffer: GPUBuffer,
   config: EmbedConfig
-): Promise<GPUBuffer> {
-  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false } = config;
+): Promise<Tensor> {
+  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false, activationDtype = 'f32', embeddingDtype = 'f32' } = config;
   const device = getDevice();
   const numTokens = tokenIds.length;
 
   if (!device) throw new Error('GPU device not available');
 
+  // Check if F16 output is requested and supported
+  const caps = getKernelCapabilities();
+  const useF16 = activationDtype === 'f16' && caps.hasF16;
+  const dtype: TensorDtype = useF16 ? 'f16' : 'f32';
+
   if (debug) {
-    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}`);
+    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, activationDtype=${activationDtype}, useF16=${useF16}`);
     trace.embed(`TOKEN_IDS: [${tokenIds.join(', ')}]`);
   }
 
@@ -179,9 +244,17 @@ export async function embed(
   device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
 
   // Use pre-allocated output buffer if provided, otherwise acquire from pool
-  const outputBuffer = recorder
-    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput, transpose })
-    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, { outputBuffer: preAllocatedOutput, transpose });
+  // Pass outputDtype to enable F16 output when in F16 activation mode
+  // Pass embeddingDtype so gather kernel uses correct input format
+  const gatherOptions = {
+    outputBuffer: preAllocatedOutput,
+    transpose,
+    outputDtype: useF16 ? 'f16' as const : 'f32' as const,
+    embeddingDtype,
+  };
+  const gatherOutput = recorder
+    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions);
 
   // Debug: Verify first token embedding
   if (debug && !recorder && tokenIds.length > 0) {
@@ -189,7 +262,7 @@ export async function embed(
     const sampleSize = Math.min(32 * 4, hiddenSize * 4);
     const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
     const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(outputBuffer, 0, staging, 0, sampleSize);
+    enc.copyBufferToBuffer(gatherOutput.buffer, 0, staging, 0, sampleSize);
     device.queue.submit([enc.finish()]);
     await staging.mapAsync(GPUMapMode.READ);
     const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -213,13 +286,13 @@ export async function embed(
   }
 
   if (!scaleEmbeddings) {
-    await runProbes('embed_out', outputBuffer, {
+    await runProbes('embed_out', gatherOutput.buffer, {
       numTokens,
       hiddenSize,
       probes: config.debugProbes,
       recorder,
     });
-    return outputBuffer;
+    return gatherOutput;
   }
 
   // Apply Gemma scaling: sqrt(hiddenSize)
@@ -227,25 +300,25 @@ export async function embed(
 
   // Debug: check raw embedding values before scaling
   if (debug && !recorder) {
-    const sample = await readBuffer(outputBuffer, Math.min(outputBuffer.size, numTokens * hiddenSize * 4));
+    const sample = await readBuffer(gatherOutput.buffer, Math.min(gatherOutput.buffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
     const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
     trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
   }
 
   const scaledBuffer = recorder
-    ? recordScale(recorder, outputBuffer, scaleFactor, numTokens * hiddenSize)
-    : await scaleGPUBuffer(outputBuffer, scaleFactor, numTokens * hiddenSize);
+    ? recordScale(recorder, gatherOutput.buffer, scaleFactor, numTokens * hiddenSize, useF16)
+    : await scaleGPUBuffer(gatherOutput.buffer, scaleFactor, numTokens * hiddenSize, useF16);
   if (recorder) {
     // Only track if we created this buffer (not pre-allocated)
     // Pre-allocated buffers are managed by the caller (e.g., DecodeBufferManager)
     if (!preAllocatedOutput) {
-      recorder.trackTemporaryBuffer(outputBuffer);
+      recorder.trackTemporaryBuffer(gatherOutput.buffer);
     }
   } else {
     // For sync path: only release if not pre-allocated
     if (!preAllocatedOutput) {
-      releaseBuffer(outputBuffer);
+      releaseBuffer(gatherOutput.buffer);
     }
   }
 
@@ -266,7 +339,7 @@ export async function embed(
     recorder,
   });
 
-  return scaledBuffer;
+  return createTensor(scaledBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
 }
 
 export async function validateEmbedding(

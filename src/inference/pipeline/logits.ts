@@ -15,7 +15,8 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.
 import { runMatmul, runRMSNorm } from '../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../gpu/kernels/rmsnorm.js';
-import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
+import { createTensor, type Tensor } from '../../gpu/tensor.js';
+import { type WeightBuffer, isWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
@@ -43,7 +44,7 @@ export interface LogitsConfig {
  */
 export interface LogitsWeights {
   finalNorm: GPUBuffer | Float32Array;
-  lmHead: GPUBuffer | Float32Array;
+  lmHead: GPUBuffer | Float32Array | WeightBuffer;
 }
 
 /**
@@ -250,11 +251,13 @@ export async function computeLogits(
     await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, 100);
   }
 
-  const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
+  // Wrap input buffer as Tensor for RMSNorm
+  const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'logits_input');
+  const normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
   });
-  await runProbes('final_norm', normedBuffer, {
+  await runProbes('final_norm', normedTensor.buffer, {
     numTokens,
     hiddenSize,
     probes: debugProbes,
@@ -262,23 +265,26 @@ export async function computeLogits(
 
   // Trace final norm output
   if (kernelTrace.enabled) {
-    await traceStep('rmsnorm', 'final_norm', -1, normedBuffer, [numTokens, hiddenSize]);
+    await traceStep('rmsnorm', 'final_norm', -1, normedTensor.buffer, [numTokens, hiddenSize]);
   }
 
   // Debug: Check hidden state after final norm
   if (!debugFlags.afterFinalNormDebugDone && debugCheckBuffer) {
     debugFlags.afterFinalNormDebugDone = true;
-    await debugCheckBuffer(normedBuffer, 'After final norm', numTokens);
+    await debugCheckBuffer(normedTensor.buffer, 'After final norm', numTokens);
   }
 
   // 3. Project to vocab via LM head
-  let lmHeadBuffer: GPUBuffer;
+  let lmHeadBuffer: GPUBuffer | WeightBuffer;
   let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
     lmHeadBuffer = lmHead;
+  } else if (isWeightBuffer(lmHead)) {
+    lmHeadBuffer = lmHead;
   } else {
-    lmHeadBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
-    device.queue.writeBuffer(lmHeadBuffer, 0, lmHead as unknown as BufferSource);
+    const rawBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
+    device.queue.writeBuffer(rawBuffer, 0, lmHead as unknown as BufferSource);
+    lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
   }
 
@@ -288,17 +294,18 @@ export async function computeLogits(
     : vocabSize;
 
   // Debug: Log buffer info for lm_head matmul
-  const lmHeadDtype = getBufferDtype(lmHeadBuffer);
-  const normedDtype = getBufferDtype(normedBuffer);
+  const lmHeadGPU = isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer;
+  const lmHeadDtype = getWeightDtype(lmHeadBuffer);  // dtype from WeightBuffer metadata
+  const normedDtype = normedTensor.dtype;
   if (isTraceEnabled('logits')) {
-    trace.logits(`LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}, bufLabel=${lmHeadBuffer.label}`);
+    trace.logits(`LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadGPU.size}, bufLabel=${lmHeadGPU.label}`);
   }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
-  const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+  const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
   });
-  await runProbes('logits', logitsBuffer, {
+  await runProbes('logits', logitsTensor.buffer, {
     numTokens,
     hiddenSize: matmulVocabSize,
     probes: debugProbes,
@@ -306,18 +313,18 @@ export async function computeLogits(
 
   // Trace lm_head output
   if (kernelTrace.enabled) {
-    await traceStep('matmul', 'lm_head', -1, logitsBuffer, [numTokens, matmulVocabSize]);
+    await traceStep('matmul', 'lm_head', -1, logitsTensor.buffer, [numTokens, matmulVocabSize]);
   }
 
   // 4. Read back logits
-  const logitsData = await readBuffer(logitsBuffer, numTokens * matmulVocabSize * 4);
+  const logitsData = await readBuffer(logitsTensor.buffer, numTokens * matmulVocabSize * 4);
 
   // Cleanup
   if (inputBufferOwned) releaseBuffer(inputBuffer);
-  releaseBuffer(normedBuffer);
-  releaseBuffer(logitsBuffer);
+  releaseBuffer(normedTensor.buffer);
+  releaseBuffer(logitsTensor.buffer);
   if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
-  if (lmHeadBufferOwned) releaseBuffer(lmHeadBuffer);
+  if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
 
   // Pad with -Infinity if matmulVocabSize < vocabSize
   if (matmulVocabSize < vocabSize) {
@@ -417,19 +424,24 @@ export async function computeLogitsGPU(
     device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
   }
 
-  const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
+  // Wrap input buffer as Tensor for RMSNorm
+  const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'logits_input');
+  const normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
   });
 
   // Project to vocab via LM head
-  let lmHeadBuffer: GPUBuffer;
+  let lmHeadBuffer: GPUBuffer | WeightBuffer;
   let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
     lmHeadBuffer = lmHead;
+  } else if (isWeightBuffer(lmHead)) {
+    lmHeadBuffer = lmHead;
   } else {
-    lmHeadBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
-    device.queue.writeBuffer(lmHeadBuffer, 0, lmHead as unknown as BufferSource);
+    const rawBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
+    device.queue.writeBuffer(rawBuffer, 0, lmHead as unknown as BufferSource);
+    lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
   }
 
@@ -437,17 +449,17 @@ export async function computeLogitsGPU(
     ? embeddingVocabSize
     : vocabSize;
 
-  const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+  const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
   });
 
   // Cleanup intermediate buffers (but keep logitsBuffer)
   if (inputBufferOwned) releaseBuffer(inputBuffer);
-  releaseBuffer(normedBuffer);
+  releaseBuffer(normedTensor.buffer);
   if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
-  if (lmHeadBufferOwned) releaseBuffer(lmHeadBuffer);
+  if (lmHeadBufferOwned) releaseBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
 
-  return { logitsBuffer, vocabSize: matmulVocabSize };
+  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };
 }
 
 /**
@@ -487,30 +499,36 @@ export async function recordLogitsGPU(
     recorder.device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
   }
 
+  // Wrap input buffer as Tensor for RMSNorm
+  const inputTensor = createTensor(hiddenStates, 'f32', [numTokens, hiddenSize], 'logits_input');
+
   // Record RMSNorm (no submit)
-  const normedBuffer = await recordRMSNorm(recorder, hiddenStates, normWeightBuffer, rmsNormEps, {
+  const normedTensor = await recordRMSNorm(recorder, inputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
   });
 
   // Get LM head buffer
-  let lmHeadBuffer: GPUBuffer;
+  let lmHeadBuffer: GPUBuffer | WeightBuffer;
   if (lmHead instanceof GPUBuffer) {
     lmHeadBuffer = lmHead;
+  } else if (isWeightBuffer(lmHead)) {
+    lmHeadBuffer = lmHead;
   } else {
-    lmHeadBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
-    recorder.device.queue.writeBuffer(lmHeadBuffer, 0, lmHead as unknown as BufferSource);
+    const rawBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
+    recorder.device.queue.writeBuffer(rawBuffer, 0, lmHead as unknown as BufferSource);
+    lmHeadBuffer = rawBuffer;
   }
 
   // Record matmul (no submit)
-  const logitsBuffer = await recordMatmul(recorder, normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+  const logitsTensor = await recordMatmul(recorder, normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
   });
 
   // Track intermediate buffer for cleanup after submit
-  recorder.trackTemporaryBuffer(normedBuffer);
+  recorder.trackTemporaryBuffer(normedTensor.buffer);
 
-  return { logitsBuffer, vocabSize: matmulVocabSize };
+  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };
 }
 
 /**

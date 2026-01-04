@@ -8,7 +8,7 @@
  */
 
 import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
-import { DEFAULT_RUNTIME_CONFIG } from '../../src/config/schema/index.js';
+import { DEFAULT_RUNTIME_CONFIG, LOG_LEVELS } from '../../src/config/schema/index.js';
 import { ConfigComposer, type ComposedConfig } from './config-composer.js';
 import { ConfigResolver, listPresets as listPresetsFromResolver } from './config-resolver.js';
 
@@ -78,6 +78,12 @@ export class ConfigLoader {
 
   /**
    * Deep merge config with defaults.
+   *
+   * Note: This merge happens in CLI before passing to browser. The browser-side
+   * setRuntimeConfig() does another merge with defaults. This double-merge is
+   * intentional: CLI merge ensures valid structure for validation/logging,
+   * browser merge provides safety net if config is modified or partially applied.
+   * Both merges are idempotent (cumulative deep merge), so double-applying is safe.
    */
   private mergeWithDefaults(config: Record<string, unknown>): RuntimeConfigSchema {
     return this.deepMerge(
@@ -130,13 +136,12 @@ export class ConfigLoader {
   private validateDebugConfig(debug: RuntimeConfigSchema['debug']): void {
     if (!debug) return;
 
-    // Validate log level
-    const validLevels = ['debug', 'verbose', 'info', 'warn', 'error', 'silent'];
+    // Validate log level (uses LOG_LEVELS from schema to stay in sync)
     if (debug.logLevel?.defaultLogLevel) {
       const level = debug.logLevel.defaultLogLevel;
-      if (!validLevels.includes(level)) {
+      if (!LOG_LEVELS.includes(level as typeof LOG_LEVELS[number])) {
         throw new Error(
-          `Invalid log level "${level}". Valid: ${validLevels.join(', ')}`
+          `Invalid log level "${level}". Valid: ${LOG_LEVELS.join(', ')}`
         );
       }
     }

@@ -13,16 +13,16 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, dtypeBytes } from '../tensor.js';
+import type { Tensor, TensorDtype } from '../tensor.js';
+import { type WeightBuffer, getBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { WORKGROUP_SIZES } from './constants.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
-
-/** Kernel constant matching WGSL */
-const WG_SIZE = 256;
 
 /** Fused MatmulResidual kernel options */
 export interface MatmulResidualFusedOptions extends OutputBufferOptions {
@@ -32,8 +32,6 @@ export interface MatmulResidualFusedOptions extends OutputBufferOptions {
   K: number;
   /** Scaling factor (default: 1.0) */
   alpha?: number;
-  /** Residual buffer to add to output */
-  residual: GPUBuffer;
 }
 
 /**
@@ -51,18 +49,18 @@ export function shouldUseFusedMatmulResidual(M: number): boolean {
  * Combines output projection matmul (M=1) with residual add in a single kernel.
  * Use this for the attention output path during decode.
  *
- * @param input - Input activation buffer [1, K] (attention output before o_proj)
- * @param weight - Output projection weight buffer [K, N] (row-major, stored as [N,K] transposed)
- * @param residual - Residual buffer [1, N] (original input to add)
+ * @param input - Input activation tensor [1, K] (attention output before o_proj)
+ * @param weight - Output projection weight buffer (GPUBuffer or WeightBuffer)
+ * @param residual - Residual tensor [1, N] (original input to add)
  * @param options - Kernel options including N, K dimensions
- * @returns Output buffer [1, N] with projected + residual result
+ * @returns Output tensor [1, N] with projected + residual result
  */
 export async function runMatmulResidualFused(
-  input: GPUBuffer,
-  weight: GPUBuffer,
-  residual: GPUBuffer,
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
+  residual: Tensor,
   options: MatmulResidualFusedOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     N,
@@ -71,11 +69,14 @@ export async function runMatmulResidualFused(
     outputBuffer = null,
   } = options;
 
-  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}`);
+  const weightBuffer = getBuffer(weight);
+  const outputDtype: TensorDtype = input.dtype;
+
+  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
 
   const pipeline = await getPipelineFast('fused_matmul_residual', 'default');
 
-  const output = outputBuffer || acquireBuffer(N * 4, undefined, 'matmul_residual_output');
+  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
 
   // Create uniform buffer (same layout as matmul_gemv)
   const uniformBuffer = createUniformBufferWithView(
@@ -101,10 +102,10 @@ export async function runMatmulResidualFused(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual } },
+      { binding: 4, resource: { buffer: residual.buffer } },
     ],
   });
 
@@ -113,9 +114,8 @@ export async function runMatmulResidualFused(
   dispatch(device, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
 
   uniformBuffer.destroy();
-  setBufferDtype(output, 'f32');
 
-  return output;
+  return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
 }
 
 /**
@@ -123,11 +123,11 @@ export async function runMatmulResidualFused(
  */
 export async function recordMatmulResidualFused(
   recorder: CommandRecorder,
-  input: GPUBuffer,
-  weight: GPUBuffer,
-  residual: GPUBuffer,
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
+  residual: Tensor,
   options: MatmulResidualFusedOptions
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     N,
@@ -136,9 +136,12 @@ export async function recordMatmulResidualFused(
     outputBuffer = null,
   } = options;
 
+  const weightBuffer = getBuffer(weight);
+  const outputDtype: TensorDtype = input.dtype;
+
   const pipeline = await getPipelineFast('fused_matmul_residual', 'default');
 
-  const output = outputBuffer || acquireBuffer(N * 4, undefined, 'matmul_residual_output');
+  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -163,10 +166,10 @@ export async function recordMatmulResidualFused(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual } },
+      { binding: 4, resource: { buffer: residual.buffer } },
     ],
   });
 
@@ -174,7 +177,5 @@ export async function recordMatmulResidualFused(
   const workgroups = N;
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
 
-  setBufferDtype(output, 'f32');
-
-  return output;
+  return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
 }

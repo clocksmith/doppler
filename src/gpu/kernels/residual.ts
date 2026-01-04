@@ -7,10 +7,10 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
-import { WORKGROUP_SIZES } from './constants.js';
+import { Tensor, createTensor, inferOutputDtype, dtypeBytes } from '../tensor.js';
+import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
@@ -26,18 +26,21 @@ export interface ResidualOptions extends OutputBufferOptions {
  * Run residual add (element-wise addition)
  */
 export async function runResidualAdd(
-  a: GPUBuffer,
-  b: GPUBuffer,
+  a: Tensor,
+  b: Tensor,
   size: number,
   options: ResidualOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { useVec4 = true, outputBuffer = null } = options;
+
+  const outputDtype = inferOutputDtype(a, b);
+  const bytesPerElement = dtypeBytes(outputDtype);
 
   const variant = useVec4 ? 'vec4' : 'default';
   const pipeline = await getPipelineFast('residual', variant);
 
-  const outputSize = size * 4;
+  const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
 
   // Create uniform buffer
@@ -57,8 +60,8 @@ export async function runResidualAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a } },
-      { binding: 2, resource: { buffer: b } },
+      { binding: 1, resource: { buffer: a.buffer } },
+      { binding: 2, resource: { buffer: b.buffer } },
       { binding: 3, resource: { buffer: output } },
     ],
   });
@@ -66,32 +69,29 @@ export async function runResidualAdd(
   // residual.wgsl: main uses @workgroup_size(256), add_vec4 uses @workgroup_size(64)
   // vec4 variant: 64 threads × 4 elements = 256 elements per workgroup
   const workgroups = useVec4
-    ? Math.ceil(size / 256)
+    ? Math.ceil(size / VEC4_ELEMENTS_PER_WG)
     : Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
   dispatch(device, pipeline, bindGroup, workgroups, 'residual');
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, outputDtype, [size], 'residual_output');
 }
 
 /**
  * Run bias add
  */
 export async function runBiasAdd(
-  data: GPUBuffer,
-  bias: GPUBuffer,
+  data: Tensor,
+  bias: Tensor,
   numTokens: number,
   dim: number,
   options: ResidualOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { dataOffset = 0, biasOffset = 0 } = options;
 
   const pipeline = await getPipelineFast('bias_add', 'default');
-
-  // Bias add is in-place, no output buffer creation needed
-  const output = data;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -113,8 +113,8 @@ export async function runBiasAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: data } },
-      { binding: 2, resource: { buffer: bias } },
+      { binding: 1, resource: { buffer: data.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } },
     ],
   });
 
@@ -123,7 +123,8 @@ export async function runBiasAdd(
 
   uniformBuffer.destroy();
 
-  return output;
+  // Bias add is in-place, return tensor with same buffer
+  return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
 }
 
 /**
@@ -131,17 +132,20 @@ export async function runBiasAdd(
  */
 export async function recordResidualAdd(
   recorder: CommandRecorder,
-  a: GPUBuffer,
-  b: GPUBuffer,
+  a: Tensor,
+  b: Tensor,
   size: number,
   options: ResidualOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { outputBuffer = null } = options;
 
+  const outputDtype = inferOutputDtype(a, b);
+  const bytesPerElement = dtypeBytes(outputDtype);
+
   const pipeline = await getPipelineFast('residual', 'default');
 
-  const outputSize = size * 4;
+  const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
 
   // Uniform buffer
@@ -160,8 +164,8 @@ export async function recordResidualAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a } },
-      { binding: 2, resource: { buffer: b } },
+      { binding: 1, resource: { buffer: a.buffer } },
+      { binding: 2, resource: { buffer: b.buffer } },
       { binding: 3, resource: { buffer: output } },
     ],
   });
@@ -169,8 +173,7 @@ export async function recordResidualAdd(
   const workgroups = Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'residual');
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, outputDtype, [size], 'residual_output');
 }
 
 /**
@@ -178,12 +181,12 @@ export async function recordResidualAdd(
  */
 export async function recordBiasAdd(
   recorder: CommandRecorder,
-  data: GPUBuffer,
-  bias: GPUBuffer,
+  data: Tensor,
+  bias: Tensor,
   numTokens: number,
   dim: number,
   options: ResidualOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { dataOffset = 0, biasOffset = 0 } = options;
 
@@ -208,13 +211,14 @@ export async function recordBiasAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: data } },
-      { binding: 2, resource: { buffer: bias } },
+      { binding: 1, resource: { buffer: data.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } },
     ],
   });
 
   const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'bias_add');
 
-  return data; // In-place operation
+  // Bias add is in-place, return tensor with same buffer
+  return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
 }

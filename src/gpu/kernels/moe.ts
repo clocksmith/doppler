@@ -8,8 +8,8 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, type Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -24,7 +24,7 @@ export interface MoEOptions extends OutputBufferOptions {
 
 /** MoE gather result */
 export interface MoEGatherResult {
-  gathered: GPUBuffer;
+  gathered: Tensor;
   tokenCounts: GPUBuffer;
   tokenMap: GPUBuffer;
   maxTokensPerExpert: number;
@@ -81,9 +81,6 @@ export async function runTopK(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(indices, 'u32');
-  setBufferDtype(weights, 'f32');
-
   return { indices, weights };
 }
 
@@ -133,9 +130,6 @@ export async function recordTopK(
 
   recordDispatch(recorder, pipeline, bindGroup, numTokens, 'topk');
 
-  setBufferDtype(indices, 'u32');
-  setBufferDtype(weights, 'f32');
-
   return { indices, weights };
 }
 
@@ -165,7 +159,7 @@ function getMoEGatherBindGroupLayout(device: GPUDevice): GPUBindGroupLayout {
  * Returns gathered hidden states organized by expert, along with token counts and mapping
  */
 export async function runMoEGather(
-  hiddenStates: GPUBuffer,
+  hiddenStates: Tensor,
   expertIndices: GPUBuffer,
   numTokens: number,
   hiddenSize: number,
@@ -187,11 +181,12 @@ export async function runMoEGather(
   // - gathered: [numExperts, maxTokensPerExpert, hiddenSize]
   // - tokenCounts: [numExperts]
   // - tokenMap: [numExperts, maxTokensPerExpert, 2] (tokenIdx, kIdx)
-  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
+  const bytesPerElement = hiddenStates.dtype === 'f16' ? 2 : 4;
+  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement;
   const tokenCountsSize = numExperts * 4;
   const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
 
-  const gathered = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
+  const gatheredBuffer = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
   const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
   const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
 
@@ -219,9 +214,9 @@ export async function runMoEGather(
     layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: hiddenStates } },
+      { binding: 1, resource: { buffer: hiddenStates.buffer } },
       { binding: 2, resource: { buffer: expertIndices } },
-      { binding: 3, resource: { buffer: gathered } },
+      { binding: 3, resource: { buffer: gatheredBuffer } },
       { binding: 4, resource: { buffer: tokenCounts } },
       { binding: 5, resource: { buffer: tokenMap } },
     ],
@@ -250,9 +245,12 @@ export async function runMoEGather(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(gathered, 'f32');
-  setBufferDtype(tokenCounts, 'u32');
-  setBufferDtype(tokenMap, 'u32');
+  const gathered = createTensor(
+    gatheredBuffer,
+    hiddenStates.dtype,
+    [numExperts, maxTokensPerExpert, hiddenSize],
+    'moe_gathered'
+  );
 
   return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
@@ -262,7 +260,7 @@ export async function runMoEGather(
  */
 export async function recordMoEGather(
   recorder: CommandRecorder,
-  hiddenStates: GPUBuffer,
+  hiddenStates: Tensor,
   expertIndices: GPUBuffer,
   numTokens: number,
   hiddenSize: number,
@@ -280,11 +278,12 @@ export async function recordMoEGather(
   const countPipeline = await createPipeline('moe_gather', 'count', explicitLayout);
   const gatherPipeline = await createPipeline('moe_gather', 'gather', explicitLayout);
 
-  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
+  const bytesPerElement = hiddenStates.dtype === 'f16' ? 2 : 4;
+  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement;
   const tokenCountsSize = numExperts * 4;
   const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
 
-  const gathered = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
+  const gatheredBuffer = acquireBuffer(gatheredSize, undefined, 'moe_gathered');
   const tokenCounts = acquireBuffer(tokenCountsSize, undefined, 'moe_token_counts');
   const tokenMap = acquireBuffer(tokenMapSize, undefined, 'moe_token_map');
 
@@ -311,9 +310,9 @@ export async function recordMoEGather(
     layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: hiddenStates } },
+      { binding: 1, resource: { buffer: hiddenStates.buffer } },
       { binding: 2, resource: { buffer: expertIndices } },
-      { binding: 3, resource: { buffer: gathered } },
+      { binding: 3, resource: { buffer: gatheredBuffer } },
       { binding: 4, resource: { buffer: tokenCounts } },
       { binding: 5, resource: { buffer: tokenMap } },
     ],
@@ -336,9 +335,12 @@ export async function recordMoEGather(
   gatherPass.dispatchWorkgroups(Math.ceil((numExperts * maxTokensPerExpert * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
   gatherPass.end();
 
-  setBufferDtype(gathered, 'f32');
-  setBufferDtype(tokenCounts, 'u32');
-  setBufferDtype(tokenMap, 'u32');
+  const gathered = createTensor(
+    gatheredBuffer,
+    hiddenStates.dtype,
+    [numExperts, maxTokensPerExpert, hiddenSize],
+    'moe_gathered'
+  );
 
   return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
@@ -347,7 +349,7 @@ export async function recordMoEGather(
  * Run scatter-add (collect expert outputs back to tokens)
  */
 export async function runScatterAdd(
-  expertOutputs: GPUBuffer,
+  expertOutputs: Tensor,
   indices: GPUBuffer,
   weights: GPUBuffer,
   numTokens: number,
@@ -355,15 +357,16 @@ export async function runScatterAdd(
   numExperts: number,
   topK: number,
   options: MoEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { outputBuffer = null } = options;
 
   const pipeline = await createPipeline('scatter_add', 'default');
 
   // Output: [numTokens, hiddenSize]
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
+  const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
 
   // Create uniform buffer
   // WGSL struct order: numTokens, hiddenSize, topK, numExperts
@@ -386,16 +389,16 @@ export async function runScatterAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
-      { binding: 4, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 
   // Dispatch
   const encoder = device.createCommandEncoder({ label: 'scatter_add_encoder' });
-  encoder.clearBuffer(output);
+  encoder.clearBuffer(outputBuf);
   const pass = encoder.beginComputePass({ label: 'scatter_add_pass' });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
@@ -409,7 +412,7 @@ export async function runScatterAdd(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
 /**
@@ -417,7 +420,7 @@ export async function runScatterAdd(
  */
 export async function recordScatterAdd(
   recorder: CommandRecorder,
-  expertOutputs: GPUBuffer,
+  expertOutputs: Tensor,
   indices: GPUBuffer,
   weights: GPUBuffer,
   numTokens: number,
@@ -425,13 +428,14 @@ export async function recordScatterAdd(
   numExperts: number,
   topK: number,
   options: MoEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { outputBuffer = null } = options;
 
   const pipeline = await createPipeline('scatter_add', 'default');
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
+  const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_output');
 
   // WGSL struct order: numTokens, hiddenSize, topK, numExperts
   const uniformBuffer = createUniformBufferWithView(
@@ -451,14 +455,14 @@ export async function recordScatterAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
-      { binding: 4, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 
-  recorder.getEncoder().clearBuffer(output);
+  recorder.getEncoder().clearBuffer(outputBuf);
 
   const pass = recorder.beginComputePass('scatter_add');
   pass.setPipeline(pipeline);
@@ -467,14 +471,14 @@ export async function recordScatterAdd(
   pass.dispatchWorkgroups(Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
   pass.end();
 
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
 /**
  * Run dynamic scatter-add with token offsets
  */
 export async function runScatterAddDynamic(
-  expertOutputs: GPUBuffer,
+  expertOutputs: Tensor,
   indices: GPUBuffer,
   weights: GPUBuffer,
   tokenOffsets: GPUBuffer,
@@ -482,15 +486,16 @@ export async function runScatterAddDynamic(
   hiddenSize: number,
   topK: number,
   options: MoEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { outputBuffer = null } = options;
 
   const pipeline = await createPipeline('scatter_add', 'dynamic');
 
   // Output: [numTokens, hiddenSize]
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
+  const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -511,17 +516,17 @@ export async function runScatterAddDynamic(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
       { binding: 4, resource: { buffer: tokenOffsets } },
-      { binding: 5, resource: { buffer: output } },
+      { binding: 5, resource: { buffer: outputBuf } },
     ],
   });
 
   // Dispatch
   const encoder = device.createCommandEncoder({ label: 'scatter_add_dynamic_encoder' });
-  encoder.clearBuffer(output);
+  encoder.clearBuffer(outputBuf);
   const pass = encoder.beginComputePass({ label: 'scatter_add_dynamic_pass' });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
@@ -534,7 +539,7 @@ export async function runScatterAddDynamic(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_dynamic_output');
 }
 
 /**
@@ -542,7 +547,7 @@ export async function runScatterAddDynamic(
  */
 export async function recordScatterAddDynamic(
   recorder: CommandRecorder,
-  expertOutputs: GPUBuffer,
+  expertOutputs: Tensor,
   indices: GPUBuffer,
   weights: GPUBuffer,
   tokenOffsets: GPUBuffer,
@@ -550,13 +555,14 @@ export async function recordScatterAddDynamic(
   hiddenSize: number,
   topK: number,
   options: MoEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { outputBuffer = null } = options;
 
   const pipeline = await createPipeline('scatter_add', 'dynamic');
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
+  const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'scatter_add_dynamic_output');
 
   const uniformBuffer = createUniformBufferWithView(
     'scatter_add_dynamic_uniforms',
@@ -574,15 +580,15 @@ export async function recordScatterAddDynamic(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
       { binding: 4, resource: { buffer: tokenOffsets } },
-      { binding: 5, resource: { buffer: output } },
+      { binding: 5, resource: { buffer: outputBuf } },
     ],
   });
 
-  recorder.getEncoder().clearBuffer(output);
+  recorder.getEncoder().clearBuffer(outputBuf);
 
   const pass = recorder.beginComputePass('scatter_add_dynamic');
   pass.setPipeline(pipeline);
@@ -590,5 +596,5 @@ export async function recordScatterAddDynamic(
   pass.dispatchWorkgroups(Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
   pass.end();
 
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_dynamic_output');
 }

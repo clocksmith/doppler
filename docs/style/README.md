@@ -6,7 +6,7 @@ Coding conventions for the DOPPLER codebase.
 
 | Guide | Scope |
 |-------|-------|
-| [Coding Guide](./CODING_GUIDE.md) | Architecture, file organization, naming, error handling |
+| [General Style Guide](./GENERAL_STYLE_GUIDE.md) | Architecture, file organization, naming, error handling |
 | [TypeScript Style Guide](./TYPESCRIPT_STYLE_GUIDE.md) | Kernel wrappers, config-as-code, rule maps |
 | [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) | Shader structure, constants vs uniforms, bindings |
 
@@ -31,4 +31,4 @@ manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
 |---------|---------|-----|
 | `kebab-case.ts` | `model-config.ts` | TypeScript |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
-| `UPPER_CASE.md` | `CODING_GUIDE.md` | Documentation |
+| `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |

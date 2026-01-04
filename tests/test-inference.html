@@ -40,6 +40,7 @@
     import { createPipeline } from '/doppler/dist/inference/pipeline.js';
     import { getDevice } from '/doppler/dist/gpu/device.js';
     import { getKernelHints } from '/doppler/dist/gpu/kernel-hints.js';
+    import { SIGNALS } from '/doppler/dist/debug/index.js';
 
     // Parse query params
     const params = new URLSearchParams(window.location.search);
@@ -137,8 +138,9 @@
         window.testState.tokens = tokens;
         window.testState.done = true;
 
-        console.log(`[Done] ${tokens.length} tokens in ${elapsed.toFixed(0)}ms (${tokPerSec.toFixed(1)} tok/s)`);
-        console.log(`[Output] ${output}`);
+        // Emit standardized completion signals for CLI/automation detection
+        console.log(`${SIGNALS.RESULT} ${JSON.stringify({ output, tokens: tokens.length, elapsed, tokensPerSecond: tokPerSec })}`);
+        console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'success', elapsed, tokens: tokens.length, tokensPerSecond: tokPerSec })}`);
 
         // 5. Single DOM update at end
         renderResults({
@@ -152,10 +154,12 @@
         });
 
       } catch (e) {
-        console.error(`[Error] ${e.message}`);
         console.error(e.stack);
         window.testState.errors.push(e.message);
         window.testState.done = true;
+        // Emit standardized error signals for CLI/automation detection
+        console.log(`${SIGNALS.ERROR} ${JSON.stringify({ error: e.message })}`);
+        console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'error', elapsed: 0, error: e.message })}`);
         document.getElementById('status').textContent = `Error: ${e.message}`;
         document.getElementById('status').classList.add('border-error');
       }

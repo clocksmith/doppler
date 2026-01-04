@@ -8,7 +8,6 @@
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
-import { getBufferDtype, setBufferLayout, type BufferLayout } from '../gpu/buffer-dtypes.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import type { TensorLocation } from './loader-types.js';
 
@@ -46,15 +45,15 @@ export async function convertBF16ToF32GPU(
   debugTrace.loader(`[BF16→F32] castModule keys:`, Object.keys(castModule));
   const { runBF16ToF32 } = castModule;
   debugTrace.loader(`[BF16→F32] runBF16ToF32 type: ${typeof runBF16ToF32}`);
-  const result = await runBF16ToF32(srcBuffer, numElements, name);
-  debugTrace.loader(`[BF16→F32] runBF16ToF32 returned, result.size=${result?.size}`);
+  const resultTensor = await runBF16ToF32(srcBuffer, [numElements], name);
+  debugTrace.loader(`[BF16→F32] runBF16ToF32 returned, result.size=${resultTensor.buffer?.size}`);
 
   // Debug: Verify conversion produced non-zero values
   if (name.includes('embed') && name.includes('embed_tokens')) {
     try {
       debugTrace.loader(`[BF16→F32] Checking embed buffer for non-zeros...`);
       const device = getDevice();
-      const sampleSize = Math.min(1024, result.size);
+      const sampleSize = Math.min(1024, resultTensor.buffer.size);
       debugTrace.loader(`[BF16→F32] Creating staging buffer size=${sampleSize}`);
       const stagingBuffer = device!.createBuffer({
         size: sampleSize,
@@ -62,7 +61,7 @@ export async function convertBF16ToF32GPU(
       });
       debugTrace.loader(`[BF16→F32] Copying to staging buffer...`);
       const encoder = device!.createCommandEncoder();
-      encoder.copyBufferToBuffer(result, 0, stagingBuffer, 0, sampleSize);
+      encoder.copyBufferToBuffer(resultTensor.buffer, 0, stagingBuffer, 0, sampleSize);
       device!.queue.submit([encoder.finish()]);
       debugTrace.loader(`[BF16→F32] Mapping staging buffer...`);
       await stagingBuffer.mapAsync(GPUMapMode.READ);
@@ -78,7 +77,7 @@ export async function convertBF16ToF32GPU(
     }
   }
 
-  return result;
+  return resultTensor.buffer;
 }
 
 /**
@@ -153,12 +152,12 @@ export function isEmbeddingWeight(name: string): boolean {
 
 /**
  * Apply layout metadata to a GPU buffer if the tensor has column-major storage.
- * This enables matmul to use transposeB=false for faster access.
+ * Note: Layout is now tracked via WeightBuffer for matmul weights.
+ * This function is kept for API compatibility but is a no-op for non-matmul weights (norms).
  */
-export function applyBufferLayout(buffer: GPUBuffer, location: TensorLocation): GPUBuffer {
-  if (location.layout === 'column') {
-    setBufferLayout(buffer, 'column');
-  }
+export function applyBufferLayout(buffer: GPUBuffer, _location: TensorLocation): GPUBuffer {
+  // Note: WeakMap layout tracking removed - layout is stored in WeightBuffer
+  // For non-matmul weights (norms), layout doesn't affect kernel selection
   return buffer;
 }
 
@@ -167,11 +166,14 @@ export function applyBufferLayout(buffer: GPUBuffer, location: TensorLocation): 
  *
  * IMPORTANT: actualNumElements must be provided to avoid reading garbage padding
  * from the buffer pool's power-of-2 bucketing.
+ *
+ * @param bufferDtype - Optional dtype for GPU buffer (defaults to 'f32')
  */
 export async function applyNormWeightOffset(
   tensor: GPUBuffer | Float32Array,
   actualNumElements?: number,
-  normOffsetDebugLogged = false
+  normOffsetDebugLogged = false,
+  bufferDtype: 'f16' | 'f32' | 'bf16' = 'f32'
 ): Promise<{ tensor: GPUBuffer | Float32Array; debugLogged: boolean }> {
   const device = getDevice();
   if (!device) {
@@ -182,9 +184,8 @@ export async function applyNormWeightOffset(
   let debugLogged = normOffsetDebugLogged;
 
   if (tensor instanceof GPUBuffer) {
-    // Check buffer dtype to determine element size
-    const dtype = getBufferDtype(tensor);
-    const isF16 = dtype === 'f16' || dtype === 'bf16';
+    // Use provided dtype to determine element size (WeakMap tracking removed)
+    const isF16 = bufferDtype === 'f16' || bufferDtype === 'bf16';
     const bytesPerElement = isF16 ? 2 : 4;
 
     // Use actual element count if provided, otherwise infer from buffer size

@@ -7,9 +7,9 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { createTensor, type Tensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
@@ -27,17 +27,18 @@ export interface SoftmaxOptions extends OutputBufferOptions {
  * Run softmax operation
  */
 export async function runSoftmax(
-  input: GPUBuffer,
+  input: Tensor,
   axis: number,
   options: SoftmaxOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { batchSize = 1, size, temperature = 1.0, outputBuffer = null } = options;
 
-  const inferredSize = size || (input.size / (batchSize * 4));
+  const bytesPerElement = input.dtype === 'f16' ? 2 : 4;
+  const inferredSize = size || (input.buffer.size / (batchSize * bytesPerElement));
   const pipeline = await createPipeline('softmax', 'default');
 
-  const outputSize = batchSize * inferredSize * 4;
+  const outputSize = batchSize * inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
 
   // Create uniform buffer
@@ -60,7 +61,7 @@ export async function runSoftmax(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
@@ -69,7 +70,7 @@ export async function runSoftmax(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, input.dtype, [batchSize, inferredSize], 'softmax_output');
 }
 
 /**
@@ -124,9 +125,6 @@ export async function runSoftmaxTopK(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(indices, 'u32');
-  setBufferDtype(weights, 'f32');
-
   return { indices, weights };
 }
 
@@ -135,10 +133,10 @@ export async function runSoftmaxTopK(
  */
 export async function recordSoftmax(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   axis: number,
   options: SoftmaxOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     batchSize = 1,
@@ -146,10 +144,11 @@ export async function recordSoftmax(
     outputBuffer = null,
   } = options;
 
-  const inferredSeqLen = seqLen || (input.size / (batchSize * 4));
+  const bytesPerElement = input.dtype === 'f16' ? 2 : 4;
+  const inferredSeqLen = seqLen || (input.buffer.size / (batchSize * bytesPerElement));
   const pipeline = await createPipeline('softmax', 'default');
 
-  const outputSize = batchSize * inferredSeqLen * 4;
+  const outputSize = batchSize * inferredSeqLen * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
 
   // Uniform buffer
@@ -171,13 +170,12 @@ export async function recordSoftmax(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
 
   recordDispatch(recorder, pipeline, bindGroup, batchSize, 'softmax');
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, input.dtype, [batchSize, inferredSeqLen], 'softmax_output');
 }

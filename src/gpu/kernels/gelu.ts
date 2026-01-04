@@ -5,36 +5,52 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { Tensor, createTensor, type TensorDtype, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 
+/**
+ * Check if F16 can be used based on tensor dtype.
+ */
+function canUseF16(input: Tensor): boolean {
+  return input.dtype === 'f16';
+}
+
 /** GeLU kernel options */
 export interface GeLUOptions extends OutputBufferOptions {
   size?: number | null;
-  gate?: GPUBuffer | null;
+  gate?: Tensor | null;
 }
 
 /**
  * Run GeLU activation
  */
 export async function runGeLU(
-  input: GPUBuffer,
+  input: Tensor,
   options: GeLUOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { size, gate = null, outputBuffer = null } = options;
 
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
   // Select gated variant when gate buffer is provided
-  const variant = gate ? 'geglu' : 'gelu';
+  // Use F16 variants when dtype is 'f16' (geglu_rowsplit_f16 in silu_f16.wgsl)
+  let variant: string;
+  if (gate) {
+    variant = isF16 ? 'geglu_rowsplit_f16' : 'geglu';
+  } else {
+    variant = 'gelu';  // No F16 gelu (non-gated) variant - use F32
+  }
   const pipeline = await createPipeline('silu', variant);
 
-  const inferredSize = size || (input.size / 4);
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || (input.buffer.size / bytesPerElement);
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gelu_output');
 
   // Create uniform buffer
@@ -50,13 +66,13 @@ export async function runGeLU(
 
   // Create bind group
   // WGSL bindings: 0=uniforms, 1=input, 2=output, 3=gate, 4=bias
-  const gateBuffer = gate || input;
+  const gateBuffer = gate ? gate.buffer : input.buffer;
   const bindGroup = device.createBindGroup({
     label: 'gelu_bind_group',
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
       { binding: 3, resource: { buffer: gateBuffer } },
     ],
@@ -67,7 +83,7 @@ export async function runGeLU(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], 'gelu_output');
 }
 
 /**
@@ -76,18 +92,27 @@ export async function runGeLU(
  */
 export async function recordGeLU(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   options: GeLUOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { size, gate = null, outputBuffer = null } = options;
 
+  const isF16 = canUseF16(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+
   // Select gated variant when gate buffer is provided
-  const variant = gate ? 'geglu' : 'gelu';
+  // Use F16 variants when dtype is 'f16' (geglu_rowsplit_f16 in silu_f16.wgsl)
+  let variant: string;
+  if (gate) {
+    variant = isF16 ? 'geglu_rowsplit_f16' : 'geglu';
+  } else {
+    variant = 'gelu';  // No F16 gelu (non-gated) variant - use F32
+  }
   const pipeline = await createPipeline('silu', variant);
 
-  const inferredSize = size || (input.size / 4);
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || (input.buffer.size / bytesPerElement);
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gelu_output');
 
   // Uniform buffer
@@ -101,16 +126,15 @@ export async function recordGeLU(
   );
 
   // Bind group entries - gate variant needs binding 3
-  const gateBuffer = gate || input; // Use input as dummy if no gate
   const entries: GPUBindGroupEntry[] = [
     { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
+    { binding: 1, resource: { buffer: input.buffer } },
     { binding: 2, resource: { buffer: output } },
   ];
 
   // Add gate binding for gated variant
   if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
+    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
   }
 
   const bindGroup = device.createBindGroup({
@@ -122,6 +146,5 @@ export async function recordGeLU(
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'gelu');
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], 'gelu_output');
 }

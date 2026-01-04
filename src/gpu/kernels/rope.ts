@@ -8,13 +8,16 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
-import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { Tensor, createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
+
+// Get RoPE defaults from schema
+const getRopeDefaults = () => getKernelThresholds().rope;
 
 /** RoPE kernel options */
 export interface RoPEOptions extends OutputBufferOptions {
@@ -28,28 +31,29 @@ export interface RoPEOptions extends OutputBufferOptions {
  * Run RoPE operation
  */
 export async function runRoPE(
-  input: GPUBuffer,
+  input: Tensor,
   freqsCos: GPUBuffer,
   freqsSin: GPUBuffer,
   seqLen: number,
   options: RoPEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
+  const ropeDefaults = getRopeDefaults();
   const {
     numHeads = 1,
     headDim = 64,
-    ropeTheta = 10000.0,
+    ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
   const pipeline = await getPipelineFast('rope', 'default');
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 
-  // Create uniform buffer (32 bytes to match WGSL struct)
+  // Create uniform buffer (size from schema to match WGSL struct)
   // struct RoPEUniforms { seqLen, numHeads, headDim, startPos, ropeBase, ropeScale, _pad0, _pad1 }
   const uniformBuffer = createUniformBufferWithView(
     'rope_uniforms',
-    32,
+    ropeDefaults.uniformSize,
     (view) => {
       view.setUint32(0, seqLen, true);          // seqLen
       view.setUint32(4, numHeads, true);        // numHeads
@@ -68,7 +72,7 @@ export async function runRoPE(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } },
     ],
@@ -84,8 +88,8 @@ export async function runRoPE(
 
   uniformBuffer.destroy();
 
-  // Return input buffer (modified in-place by shader)
-  return input;
+  // Return tensor wrapping input buffer (modified in-place by shader)
+  return createTensor(input.buffer, input.dtype, [...input.shape], 'rope_output');
 }
 
 /**
@@ -93,33 +97,35 @@ export async function runRoPE(
  */
 export async function recordRoPE(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   freqsCos: GPUBuffer,
   freqsSin: GPUBuffer,
   seqLen: number,
   options: RoPEOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
+  const ropeDefaults = getRopeDefaults();
   const {
     numHeads = 1,
     headDim = 64,
+    ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
   const pipeline = await getPipelineFast('rope', 'default');
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 
-  // Uniform buffer (32 bytes to match WGSL struct)
+  // Uniform buffer (size from schema to match WGSL struct)
   // struct RoPEUniforms { seqLen, numHeads, headDim, startPos, ropeBase, ropeScale, _pad0, _pad1 }
   const uniformBuffer = createUniformBufferWithView(
     'rope_uniforms',
-    32,
+    ropeDefaults.uniformSize,
     (view) => {
       view.setUint32(0, seqLen, true);          // seqLen
       view.setUint32(4, numHeads, true);        // numHeads
       view.setUint32(8, headDim, true);         // headDim
       view.setUint32(12, options.startPos || 0, true);  // startPos
-      view.setFloat32(16, 10000.0, true);       // ropeBase (default)
+      view.setFloat32(16, ropeTheta, true);     // ropeBase from options or schema default
       view.setFloat32(20, 1.0, true);           // ropeScale (default 1.0)
     },
     recorder
@@ -131,7 +137,7 @@ export async function recordRoPE(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } },
     ],
@@ -144,7 +150,6 @@ export async function recordRoPE(
   const workgroups = Math.ceil((seqLen * numHeads * halfDim) / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'rope');
 
-  setBufferDtype(input, 'f32');
-  // Return input buffer (modified in-place by shader)
-  return input;
+  // Return tensor wrapping input buffer (modified in-place by shader)
+  return createTensor(input.buffer, input.dtype, [...input.shape], 'rope_output');
 }

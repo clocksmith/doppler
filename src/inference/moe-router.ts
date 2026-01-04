@@ -10,6 +10,7 @@
 import { getDevice } from '../gpu/device.js';
 import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
+import { createTensor, type Tensor } from '../gpu/tensor.js';
 import type { ExpertPlan, RouterConfig } from '../types/inference.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
@@ -195,8 +196,10 @@ export class MoERouter {
 
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
     // Result: [numTokens, numExperts]
-    const logitsBuffer = await runMatmul(
-      hiddenStates,
+    // Wrap hiddenStates in a Tensor for runMatmul
+    const hiddenStatesTensor = createTensor(hiddenStates, 'f32', [numTokens, this.hiddenSize], 'moe_hidden_states');
+    const logitsTensor = await runMatmul(
+      hiddenStatesTensor,
       gateWeightBuffer,
       numTokens,           // M
       this.numExperts,     // N
@@ -210,10 +213,10 @@ export class MoERouter {
     // Add bias on GPU if present (GPT-OSS style)
     if (this.gateBias) {
       const biasBuffer = await this._getGateBiasBuffer(device);
-      await this._addBiasInPlace(logitsBuffer, biasBuffer, numTokens, device);
+      await this._addBiasInPlace(logitsTensor.buffer, biasBuffer, numTokens, device);
     }
 
-    return logitsBuffer;
+    return logitsTensor.buffer;
   }
 
   /**

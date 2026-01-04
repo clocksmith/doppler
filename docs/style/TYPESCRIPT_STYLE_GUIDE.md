@@ -123,6 +123,37 @@ export async function runKernel(
 
 ---
 
+## run/record Function Parity
+
+Kernels that support both immediate (`run*`) and batched (`record*`) execution MUST keep both implementations in sync.
+
+```typescript
+// DON'T: Divergent implementations
+export async function runGather(...) {
+  const workgroups = Math.ceil(numElements / (WORKGROUP_SIZES.VEC4_THREADS * 4));
+}
+export async function recordGather(...) {
+  const workgroups = Math.ceil(numElements / 256);  // Different constant!
+}
+
+// DO: Share the calculation
+const GATHER_ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;  // 64 × 4 = 256
+
+export async function runGather(...) {
+  const workgroups = Math.ceil(numElements / GATHER_ELEMENTS_PER_WG);
+}
+export async function recordGather(...) {
+  const workgroups = Math.ceil(numElements / GATHER_ELEMENTS_PER_WG);
+}
+```
+
+**Checklist when editing `run*` functions:**
+1. Does a corresponding `record*` function exist?
+2. Are both using the same constants?
+3. Are both producing identical GPU dispatches?
+
+---
+
 ## Config Maps Over If/Else
 
 ### DON'T: Decision Trees
@@ -266,6 +297,63 @@ export const FEATURE_VARIANTS: Record<string, Array<{ features: string[]; varian
     { features: [], variant: 'rope_standard' },
   ],
 };
+```
+
+### Vec4 Workgroup Pattern
+
+When a kernel processes 4 elements per thread (vec4), document the relationship:
+
+```typescript
+// gpu/kernels/constants.ts
+export const WORKGROUP_SIZES = {
+  DEFAULT: 256,           // Standard scalar kernels
+  VEC4_THREADS: 64,       // Vec4 kernels: 64 threads × 4 elements = 256 elements
+};
+
+// DON'T: Bare literal in vec4 dispatch
+const workgroups = Math.ceil(numElements / 256);  // Where does 256 come from?
+
+// DO: Express the relationship explicitly
+const ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;  // 64 × 4 = 256
+const workgroups = Math.ceil(numElements / ELEMENTS_PER_WG);
+```
+
+This pattern applies to: `gather.ts`, `residual.ts`, and any kernel using `vec4<f16>` or `vec4<f32>` loads.
+
+---
+
+## Quantization Format Constants
+
+Centralize quantization block sizes in a single module. Format-specific constants are **invariants** derived from the quantization spec—they should never be redefined.
+
+```typescript
+// loader/quantization-constants.ts
+export { QK_K, K_SCALE_SIZE } from '../converter/quantizer.js';
+
+// Block byte sizes - derived from format spec, never hardcode elsewhere
+export const Q4K_BLOCK_BYTES = 144;   // Q4_K: 2 + 2 + K_SCALE_SIZE + QK_K/2
+export const Q6K_BLOCK_BYTES = 210;   // Q6_K: QK_K/2 + QK_K/4 + QK_K/16 + QK_K
+export const Q8_0_BLOCK_BYTES = 34;   // Q8_0: 2 + QK_K (scale + quants)
+export const Q8_0_BLOCK_SIZE = 32;    // Elements per Q8_0 block
+```
+
+### DON'T: Redefine Format Constants
+
+```typescript
+// BAD - redefined in multiple files, easy to drift
+// doppler-loader.ts:
+const Q4K_K = 256;
+const Q4K_BLOCK_BYTES = 144;
+
+// dequant.ts:
+const Q6K_BLOCK_BYTES = 210;  // Same constant, different file
+
+// Bare magic number in calculation:
+const numBlocks = buffer.byteLength / 144;  // What is 144?
+
+// GOOD - import from single source
+import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
+const numBlocks = buffer.byteLength / Q4K_BLOCK_BYTES;
 ```
 
 ---
@@ -545,6 +633,27 @@ function createUniforms(uniforms: KernelUniforms) {
 }
 ```
 
+### DON'T: Use Bare Fallback Literals
+
+```typescript
+// BAD - fallback hides the source of truth
+const wgSize = options.workgroupSize || 256;
+const maxSeq = config.maxSeqLen || 4096;
+const maxTokens = opts.maxTokens || 1024;
+
+// GOOD - reference named constant
+const wgSize = options.workgroupSize ?? WORKGROUP_SIZES.DEFAULT;
+
+// GOOD - required values should fail fast, not silently default
+const maxSeq = config.maxSeqLen;
+if (maxSeq === undefined) throw new Error('maxSeqLen is required');
+
+// GOOD - use config schema defaults
+const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTokens;
+```
+
+**Rule:** If a value has a fallback, the fallback must be a named constant or config getter. If the value is truly required, don't provide a fallback—fail fast with a descriptive error.
+
 ---
 
 ## Logging
@@ -638,4 +747,4 @@ DOPPLER.getDebugSnapshot();
 ## See Also
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
-- [Coding Guide](./CODING_GUIDE.md) - General patterns
+- [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns

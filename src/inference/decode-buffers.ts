@@ -33,6 +33,8 @@ export interface DecodeBufferConfig {
   intermediateSize: number;
   /** Enable ping-pong buffers (alternating between two hidden buffers) */
   enablePingPong?: boolean;
+  /** Activation dtype for hidden buffers - 'f16' uses 2 bytes, 'f32' uses 4 bytes (default) */
+  activationDtype?: 'f16' | 'f32';
 }
 
 /**
@@ -56,7 +58,8 @@ export class DecodeBufferManager {
     // Check if we already have matching buffers
     if (this.buffers && this.config &&
         this.config.hiddenSize === config.hiddenSize &&
-        this.config.intermediateSize === config.intermediateSize) {
+        this.config.intermediateSize === config.intermediateSize &&
+        this.config.activationDtype === config.activationDtype) {
       return this.buffers;
     }
 
@@ -72,8 +75,10 @@ export class DecodeBufferManager {
 
     // Allocate buffers
     // For decode, we process 1 token at a time (M=1)
-    const hiddenBytes = config.hiddenSize * 4; // F32
-    const intermediateBytes = config.intermediateSize * 4; // F32
+    // F16 activations use 2 bytes per element, F32 uses 4 bytes
+    const bytesPerElement = config.activationDtype === 'f16' ? 2 : 4;
+    const hiddenBytes = config.hiddenSize * bytesPerElement;
+    const intermediateBytes = config.intermediateSize * bytesPerElement;
 
     const hidden = device.createBuffer({
       label: 'decode_hidden',
@@ -175,13 +180,14 @@ export class DecodeBufferManager {
   /**
    * Get buffer sizes for debugging.
    */
-  getStats(): { hiddenBytes: number; intermediateBytes: number; totalBytes: number } | null {
+  getStats(): { hiddenBytes: number; intermediateBytes: number; totalBytes: number; activationDtype: 'f16' | 'f32' } | null {
     if (!this.config) return null;
-    const hiddenBytes = this.config.hiddenSize * 4;
-    const intermediateBytes = this.config.intermediateSize * 4;
+    const bytesPerElement = this.config.activationDtype === 'f16' ? 2 : 4;
+    const hiddenBytes = this.config.hiddenSize * bytesPerElement;
+    const intermediateBytes = this.config.intermediateSize * bytesPerElement;
     const bufferCount = this.buffers?.hiddenAlt ? 4 : 3;
     const totalBytes = hiddenBytes * (bufferCount - 1) + intermediateBytes;
-    return { hiddenBytes, intermediateBytes, totalBytes };
+    return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype ?? 'f32' };
   }
 
   /**

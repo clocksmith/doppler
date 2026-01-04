@@ -35,7 +35,7 @@ doppler/
 - Review `src/config/runtime.ts` and `cli/config/` for runtime config plumbing
 
 ### Style Guides
-- [Coding Guide](docs/style/CODING_GUIDE.md) - Architecture, naming
+- [General Style Guide](docs/style/GENERAL_STYLE_GUIDE.md) - Architecture, naming
 - [TypeScript Guide](docs/style/TYPESCRIPT_STYLE_GUIDE.md) - Config-as-code, kernel wrappers
 - [WGSL Guide](docs/style/WGSL_STYLE_GUIDE.md) - Shader structure
 

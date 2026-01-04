@@ -4,9 +4,10 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import { createTensor, dtypeBytes } from '../tensor.js';
+import type { Tensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
@@ -24,19 +25,20 @@ export interface ScaleOptions extends OutputBufferOptions {
  * Run scale operation: output = input * scale
  */
 export async function runScale(
-  input: GPUBuffer,
+  input: Tensor,
   scale: number,
   options: ScaleOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { count, outputBuffer = null, inplace = false } = options;
 
-  const inferredCount = count ?? Math.floor(input.size / 4);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
   const variant = inplace ? 'inplace' : 'default';
   const pipeline = await createPipeline('scale', variant);
 
-  const outputSize = inferredCount * 4;
-  const output = inplace ? input : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
+  const outputSize = inferredCount * bytesPerElement;
+  const outputBuf = inplace ? input.buffer : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
 
   // Create uniform buffer (16 bytes to match WGSL struct with padding)
   const uniformBuffer = createUniformBufferWithView(
@@ -57,8 +59,8 @@ export async function runScale(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
     ],
   });
 
@@ -66,9 +68,8 @@ export async function runScale(
   dispatch(device, pipeline, bindGroup, workgroups, 'scale');
 
   uniformBuffer.destroy();
-  setBufferDtype(output, 'f32');
 
-  return output;
+  return createTensor(outputBuf, input.dtype, [...input.shape], 'scale_output');
 }
 
 /**
@@ -76,19 +77,20 @@ export async function runScale(
  */
 export async function recordScale(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   scale: number,
   options: ScaleOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { count, outputBuffer = null, inplace = false } = options;
 
-  const inferredCount = count ?? Math.floor(input.size / 4);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
   const variant = inplace ? 'inplace' : 'default';
   const pipeline = await createPipeline('scale', variant);
 
-  const outputSize = inferredCount * 4;
-  const output = inplace ? input : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
+  const outputSize = inferredCount * bytesPerElement;
+  const outputBuf = inplace ? input.buffer : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));
 
   // Create uniform buffer via recorder (tracked for cleanup, 16 bytes to match WGSL)
   const uniformBuffer = createUniformBufferWithView(
@@ -108,15 +110,13 @@ export async function recordScale(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
     ],
   });
 
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'scale');
 
-  setBufferDtype(output, 'f32');
-
-  return output;
+  return createTensor(outputBuf, input.dtype, [...input.shape], 'scale_output');
 }

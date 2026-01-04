@@ -16,7 +16,7 @@ import type { ParsedModelConfig, Manifest } from './config.js';
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities, type KernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
-import { setBufferLayout } from '../../gpu/buffer-dtypes.js';
+import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
@@ -428,9 +428,9 @@ export interface WeightLoadResult {
   /** Layer weights map (layer_0, layer_1, etc.) */
   layerWeights: Map<string, LayerWeights>;
   /** Embedding buffer */
-  embeddings: GPUBuffer | Float32Array | null;
-  /** LM head buffer */
-  lmHead: GPUBuffer | Float32Array | null;
+  embeddings: GPUBuffer | WeightBuffer | Float32Array | null;
+  /** LM head buffer (WeightBuffer for matmul metadata) */
+  lmHead: GPUBuffer | WeightBuffer | Float32Array | null;
   /** Final norm buffer */
   finalNorm: GPUBuffer | Float32Array | null;
   /** Whether embeddings are tied to LM head */

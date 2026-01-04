@@ -56,6 +56,12 @@ export const DEFAULT_LOG_HISTORY_CONFIG: LogHistoryConfigSchema = {
 // Log Level Config
 // =============================================================================
 
+/** Valid log levels */
+export const LOG_LEVELS = ['debug', 'verbose', 'info', 'warn', 'error', 'silent'] as const;
+
+/** Log level type */
+export type LogLevel = typeof LOG_LEVELS[number];
+
 /**
  * Configuration for default log level.
  *
@@ -63,7 +69,7 @@ export const DEFAULT_LOG_HISTORY_CONFIG: LogHistoryConfigSchema = {
  */
 export interface LogLevelConfigSchema {
   /** Default log level (debug, verbose, info, warn, error, silent) */
-  defaultLogLevel: string;
+  defaultLogLevel: LogLevel;
 }
 
 /** Default log level configuration */
@@ -152,6 +158,8 @@ export interface PipelineDebugConfigSchema {
   maxAbsThreshold: number;
   /** Enable expensive GPU buffer stats */
   bufferStats: boolean;
+  /** Maximum bytes to readback for debug samples (default: 512) */
+  readbackSampleSize: number;
 }
 
 /** Default pipeline debug configuration */
@@ -162,6 +170,7 @@ export const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema = {
   maxDecodeSteps: 0,
   maxAbsThreshold: 10000,
   bufferStats: false,
+  readbackSampleSize: 512,
 };
 
 // =============================================================================

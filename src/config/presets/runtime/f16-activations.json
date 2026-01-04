@@ -1,0 +1,12 @@
+{
+  "name": "f16-activations",
+  "description": "Experimental F16 activations for reduced memory bandwidth",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      }
+    }
+  }
+}

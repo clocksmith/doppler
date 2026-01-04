@@ -3,6 +3,7 @@
  */
 
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 export interface SamplingOptions {
   temperature: number;
@@ -40,7 +41,8 @@ export function applyRepetitionPenalty(
 ): void {
   if (penalty === 1.0) return;
 
-  const seen = new Set(previousTokens.slice(-100));
+  const window = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
+  const seen = new Set(previousTokens.slice(-window));
   for (const token of seen) {
     if (token < logits.length) {
       logits[token] = logits[token] > 0

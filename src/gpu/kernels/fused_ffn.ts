@@ -17,8 +17,8 @@
  */
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { getBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, Tensor, TensorDtype } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { createUniformBufferWithView } from './utils.js';
@@ -65,7 +65,7 @@ class FusedFFNKernel extends KernelBase {
 
 function selectFFNVariant(
   batchSize: number,
-  weightDtype: 'f16' | 'f32' | null,
+  inputDtype: TensorDtype,
   intermediateSize: number
 ): string {
   // For small intermediate sizes, use multi-output variant
@@ -78,8 +78,8 @@ function selectFFNVariant(
     return 'batched';
   }
 
-  // For F16 weights
-  if (weightDtype === 'f16') {
+  // For F16 inputs
+  if (inputDtype === 'f16') {
     return 'f16';
   }
 
@@ -127,13 +127,13 @@ function createFFNUniformBuffer(
  * @returns Output tensor [batchSize, intermediateSize]
  */
 export async function runFusedFFN(
-  input: GPUBuffer,
+  input: Tensor,
   W_gate: GPUBuffer,
   W_up: GPUBuffer,
   hiddenSize: number,
   intermediateSize: number,
   options: FusedFFNOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     batchSize = 1,
@@ -142,8 +142,7 @@ export async function runFusedFFN(
     outputBuffer = null,
   } = options;
 
-  const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
-  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
 
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
@@ -169,7 +168,7 @@ export async function runFusedFFN(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: W_gate } },
       { binding: 3, resource: { buffer: W_up } },
       { binding: 4, resource: { buffer: output } },
@@ -194,7 +193,7 @@ export async function runFusedFFN(
 
   uniformBuffer.destroy();
 
-  return output;
+  return createTensor(output, input.dtype, [batchSize, intermediateSize], 'ffn_fused_output');
 }
 
 /**
@@ -202,13 +201,13 @@ export async function runFusedFFN(
  */
 export async function recordFusedFFN(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   W_gate: GPUBuffer,
   W_up: GPUBuffer,
   hiddenSize: number,
   intermediateSize: number,
   options: FusedFFNOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     batchSize = 1,
@@ -217,8 +216,7 @@ export async function recordFusedFFN(
     outputBuffer = null,
   } = options;
 
-  const weightDtype = getBufferDtype(W_gate) as 'f16' | 'f32' | null;
-  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
 
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
@@ -241,7 +239,7 @@ export async function recordFusedFFN(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: W_gate } },
       { binding: 3, resource: { buffer: W_up } },
       { binding: 4, resource: { buffer: output } },
@@ -263,7 +261,7 @@ export async function recordFusedFFN(
 
   kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
 
-  return output;
+  return createTensor(output, input.dtype, [batchSize, intermediateSize], 'ffn_fused_output');
 }
 
 /**

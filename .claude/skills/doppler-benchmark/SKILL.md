@@ -7,6 +7,22 @@ description: Run DOPPLER performance benchmarks to measure throughput, compare a
 
 Use this skill to measure DOPPLER inference performance.
 
+## Completion Signals
+
+DOPPLER emits standardized signals for CLI/automation detection:
+
+| Signal | Meaning |
+|--------|---------|
+| `[DOPPLER:DONE]` | Task completed (success or error) - always emitted at end |
+| `[DOPPLER:RESULT]` | Full benchmark result JSON - emitted before DONE |
+| `[DOPPLER:ERROR]` | Error occurred - emitted before DONE on failure |
+
+Example output:
+```
+[DOPPLER:RESULT] {"schemaVersion":1,"metrics":{"decode_tokens_per_sec":42.5,...}}
+[DOPPLER:DONE] {"status":"success","elapsed":1234}
+```
+
 ## Key Metrics
 
 | Metric | Description | Interpretation |
@@ -16,6 +32,36 @@ Use this skill to measure DOPPLER inference performance.
 | `prefill_tokens_per_sec` | Prompt processing speed | Higher is better for long prompts |
 | `decode_ms_per_token_p99` | 99th percentile per-token decode latency (ms) | Flag if >100ms for interactive use |
 | `estimated_vram_bytes_peak` | Peak GPU memory usage (bytes) | Lower means more headroom |
+
+## Discovery Commands
+
+Before benchmarking, discover available models and current configuration:
+
+```bash
+# List quick-start models available for download
+grep -A2 "modelId:" src/storage/quickstart-downloader.ts | grep modelId
+
+# List model presets (shows supported model families and their configs)
+ls src/config/presets/models/
+
+# See what precision "auto" resolves to at runtime (look for "F16 compute" or "F32")
+npm run debug -- -m MODEL --trace kernels 2>&1 | grep -iE "f16|f32|precision|shader-f16" | head -10
+
+# Check GPU capabilities (shader-f16 determines if F16 is available)
+npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
+```
+
+**Common Model Names:**
+- `gemma-3-1b-it-q4` - Gemma 3 1B (Q4_K quantized, ~500MB)
+- `gemma-2-2b-it-q4` - Gemma 2 2B (Q4_K quantized, ~1.2GB)
+- `llama-3.2-1b-q4` - Llama 3.2 1B (Q4_K quantized, ~700MB)
+
+**First-Time Setup:** Models must be downloaded before benchmarking. On first run, the browser will fetch from HuggingFace and cache to OPFS. Subsequent runs use the cached model. If you see "Not found" errors, the model download may have failed - check network/CORS.
+
+**Compute Precision** (see `src/gpu/kernel-hints.ts`):
+- `auto` (default): Uses F16 if GPU has `shader-f16` feature, else F32
+- `f16`: Force 16-bit compute (faster, requires shader-f16 support)
+- `f32`: Force 32-bit compute (slower, useful for debugging precision issues)
 
 ## Standard Benchmark Commands
 
@@ -27,26 +73,29 @@ npm run bench -- -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|GPU Submits"
 npm run bench -- -m MODEL --max-tokens 64 --runs 3
 
 # Multiple runs for statistical confidence (recommended)
-npm run bench -- -m MODEL --runs 3 2>&1 | sed '/Benchmark complete/q'
+npm run bench -- -m MODEL --runs 3 2>&1 | sed '/DOPPLER:DONE/q'
 
 # Save results to JSON for later comparison
 npm run bench -- -m MODEL --runs 3 -o results.json
 
 # Compare against saved baseline
 npm run bench -- -m MODEL --compare baseline.json
+
+# Extract full result JSON
+npm run bench -- -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
 ```
 
 ## Fast Iteration Pattern
 
 ```bash
 # Quick single run (minimal warmup)
-npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/Benchmark complete/q'
+npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then benchmark
-npm run build && npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/Benchmark complete/q'
+npm run build && npm run bench -- -m MODEL --runs 1 --warmup 0 2>&1 | sed '/DOPPLER:DONE/q'
 ```
 
-Use `sed '/Benchmark complete/q'` to exit immediately after benchmark completes.
+Use `sed '/DOPPLER:DONE/q'` to exit immediately after benchmark completes.
 
 ## Regression Detection Protocol
 
@@ -134,6 +183,8 @@ CLI flags override config file values. Use this to A/B test kernel variants.
 
 | Pattern | Purpose |
 |---------|---------|
+| `"DOPPLER:DONE\|DOPPLER:ERROR"` | Check completion status |
+| `"DOPPLER:RESULT"` | Extract full result JSON |
 | `"tok/s\|tokens_per"` | Find throughput metrics |
 | `"TTFT\|ttft"` | Find latency metrics |
 | `"memory\|Memory"` | Find memory usage |

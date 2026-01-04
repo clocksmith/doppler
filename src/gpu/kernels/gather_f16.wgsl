@@ -104,3 +104,80 @@ fn gather_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
         output[out_base + 3u] = f32(embeddings[embed_base + 3u]);
     }
 }
+
+// =============================================================================
+// F16 Input → F16 Output Variants
+// For F16 activation mode with F16 embeddings (no dtype conversion)
+// =============================================================================
+
+@group(0) @binding(4) var<storage, read_write> output_f16: array<f16>;
+
+@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
+fn gather_f16_out(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let tid = gid.x;
+    let total_elements = u.num_tokens * u.hidden_size;
+
+    if (tid >= total_elements) {
+        return;
+    }
+
+    let token_idx = tid / u.hidden_size;
+    let dim_idx = tid % u.hidden_size;
+    let token_id = indices[token_idx];
+
+    if (token_id >= u.vocab_size) {
+        output_f16[tid] = f16(0.0);
+        return;
+    }
+
+    var embed_offset: u32;
+    if (u.transpose == 1u) {
+        embed_offset = dim_idx * u.vocab_size + token_id;
+    } else {
+        embed_offset = token_id * u.hidden_size + dim_idx;
+    }
+    // F16 → F16: no conversion needed
+    output_f16[tid] = embeddings[embed_offset];
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
+fn gather_vec4_f16_out(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let tid = gid.x;
+    let vec4_per_row = u.hidden_size / 4u;
+    let total_vec4s = u.num_tokens * vec4_per_row;
+
+    if (tid >= total_vec4s) {
+        return;
+    }
+
+    let token_idx = tid / vec4_per_row;
+    let vec4_idx = tid % vec4_per_row;
+    let token_id = indices[token_idx];
+
+    if (token_id >= u.vocab_size) {
+        let out_base = tid * 4u;
+        output_f16[out_base] = f16(0.0);
+        output_f16[out_base + 1u] = f16(0.0);
+        output_f16[out_base + 2u] = f16(0.0);
+        output_f16[out_base + 3u] = f16(0.0);
+        return;
+    }
+
+    let out_base = tid * 4u;
+    let dim_base = vec4_idx * 4u;
+
+    if (u.transpose == 1u) {
+        // Transposed layout [hidden_size, vocab_size]: elements are strided
+        output_f16[out_base] = embeddings[(dim_base) * u.vocab_size + token_id];
+        output_f16[out_base + 1u] = embeddings[(dim_base + 1u) * u.vocab_size + token_id];
+        output_f16[out_base + 2u] = embeddings[(dim_base + 2u) * u.vocab_size + token_id];
+        output_f16[out_base + 3u] = embeddings[(dim_base + 3u) * u.vocab_size + token_id];
+    } else {
+        // Standard layout [vocab_size, hidden_size]: elements are contiguous
+        let embed_base = token_id * u.hidden_size + dim_base;
+        output_f16[out_base] = embeddings[embed_base];
+        output_f16[out_base + 1u] = embeddings[embed_base + 1u];
+        output_f16[out_base + 2u] = embeddings[embed_base + 2u];
+        output_f16[out_base + 3u] = embeddings[embed_base + 3u];
+    }
+}

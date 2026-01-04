@@ -35,7 +35,7 @@ Prior documentation was inconsistent:
 
 | Source | Claim |
 |--------|-------|
-| `GEMMA3-1B-Q4K-GARBAGE-OUTPUT-2025-12-18.md` | q_norm/k_norm SHOULD have +1 offset |
+| `2025-12-18-gemma3-q4k-garbage-output.md` | q_norm/k_norm SHOULD have +1 offset |
 | `docs/TODO.md` (before fix) | q_norm/k_norm should NOT have +1 offset |
 | Current code (before fix) | q_norm/k_norm did NOT have +1 offset |
 
@@ -154,6 +154,6 @@ Performance unchanged at 13-18 tok/s decode, ~750ms TTFT.
 
 ## Related Documentation
 
-- [GEMMA3-1B-Q4K-GARBAGE-OUTPUT-2025-12-18.md](GEMMA3-1B-Q4K-GARBAGE-OUTPUT-2025-12-18.md) - Previous investigation that identified q_norm/k_norm as needing offset
-- [GEMMA3-MAGNITUDE-GAP-2025-12-21.md](GEMMA3-MAGNITUDE-GAP-2025-12-21.md) - Investigation of hidden state magnitude issues (now superseded by this fix)
+- [2025-12-18-gemma3-q4k-garbage-output.md](2025-12-18-gemma3-q4k-garbage-output.md) - Previous investigation that identified q_norm/k_norm as needing offset
+- [2025-12-21-gemma3-magnitude-gap.md](2025-12-21-gemma3-magnitude-gap.md) - Investigation of hidden state magnitude issues (now superseded by this fix)
 - [HuggingFace modeling_gemma3.py](https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py) - Authoritative reference

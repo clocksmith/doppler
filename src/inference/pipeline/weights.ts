@@ -14,6 +14,7 @@ import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
+import { type WeightBuffer, isWeightBuffer, getBuffer } from '../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Types
@@ -51,7 +52,7 @@ export interface WeightDebugFlags {
  * @returns True if value is a LayerWeights object
  */
 export function isLayerWeights(value: unknown): value is LayerWeights {
-  return value !== null && typeof value === 'object' && !ArrayBuffer.isView(value) && !('getMappedRange' in (value as object));
+  return value !== null && typeof value === 'object' && !ArrayBuffer.isView(value) && !('getMappedRange' in (value as object)) && !isWeightBuffer(value);
 }
 
 /**
@@ -77,17 +78,22 @@ export function getLayerWeights(
 /**
  * Get or create GPU buffer for a weight tensor.
  *
- * If the weight is already a GPUBuffer, returns it directly.
+ * If the weight is a WeightBuffer, returns it unchanged (preserves dtype/layout for matmul).
+ * If the weight is a GPUBuffer, returns it directly.
  * Otherwise, allocates a new buffer and uploads the data.
  *
- * @param weight - Weight data (GPUBuffer or CPU array)
+ * @param weight - Weight data (GPUBuffer, WeightBuffer, or CPU array)
  * @param label - Debug label for the buffer
- * @returns GPUBuffer ready for use
+ * @returns GPUBuffer or WeightBuffer ready for use in matmul
  */
 export function getWeightBuffer(
-  weight: GPUBuffer | Float32Array | ArrayBuffer,
+  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer,
   label: string
-): GPUBuffer {
+): GPUBuffer | WeightBuffer {
+  // Preserve WeightBuffer to maintain dtype/layout for matmul
+  if (isWeightBuffer(weight)) {
+    return weight;
+  }
   if (weight instanceof GPUBuffer) {
     return weight;
   }
@@ -157,20 +163,25 @@ export function getNormWeightBuffer(
  * This is primarily used in batched command paths where we expect
  * weights to already be on GPU. If not, logs a warning and uploads.
  *
- * @param weight - Weight data (should be GPUBuffer)
+ * @param weight - Weight data (should be GPUBuffer or WeightBuffer)
  * @param label - Debug label for the buffer
  * @returns GPUBuffer ready for use
  */
 export function getGPUWeightBuffer(
-  weight: GPUBuffer | Float32Array | ArrayBuffer,
+  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer,
   label: string
 ): GPUBuffer {
+  // Handle WeightBuffer by extracting underlying GPUBuffer
+  if (isWeightBuffer(weight)) {
+    return weight.buffer;
+  }
   if (weight instanceof GPUBuffer) {
     return weight;
   }
   // Weight not on GPU - this shouldn't happen if loader is working correctly
   log.warn('Weights', `Weight ${label} not on GPU, uploading`);
-  return getWeightBuffer(weight, label);
+  // At this point weight is Float32Array or ArrayBuffer, so getWeightBuffer returns GPUBuffer
+  return getWeightBuffer(weight, label) as GPUBuffer;
 }
 
 // ============================================================================
@@ -195,7 +206,7 @@ export function createWeightBufferHelpers(
     /**
      * Get or create GPU buffer for a weight tensor.
      */
-    getWeightBuffer: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) =>
+    getWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) =>
       getWeightBuffer(weight, label),
 
     /**
@@ -207,7 +218,7 @@ export function createWeightBufferHelpers(
     /**
      * Get GPU weight buffer, ensuring it's on GPU.
      */
-    getGPUWeightBuffer: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) =>
+    getGPUWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) =>
       getGPUWeightBuffer(weight, label),
   };
 }

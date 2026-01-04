@@ -5,61 +5,79 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { Tensor, createTensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
 
 /** RMSNorm kernel options */
 export interface RMSNormOptions extends OutputBufferOptions {
   batchSize?: number;
   hiddenSize?: number | null;
-  residual?: GPUBuffer | null;
+  residual?: Tensor | null;
 }
 
 /**
- * Select RMSNorm kernel variant
+ * Check if F16 can be used based on tensor dtypes.
+ * F16 shader requires F16 input, and F16 residual if present.
  */
-export function selectRMSNormKernel(options: RMSNormOptions = {}): string {
+function canUseF16(input: Tensor, residual: Tensor | null): boolean {
+  if (input.dtype !== 'f16') return false;
+  if (residual && residual.dtype !== 'f16') return false;
+  return true;
+}
+
+/**
+ * Select RMSNorm kernel variant based on options and tensor dtypes.
+ */
+export function selectRMSNormKernel(options: RMSNormOptions = {}, isF16: boolean = false): string {
   const { residual = null, hiddenSize = null } = options;
+  const { smallThreshold } = getKernelThresholds().rmsnorm;
+
   if (residual) {
-    return 'residual';
-  } else if (hiddenSize !== null && hiddenSize <= 256) {
-    return 'small';
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return isF16 ? 'small_f16' : 'residual_small';
+    }
+    return isF16 ? 'default_f16' : 'residual';
+  } else if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+    return isF16 ? 'small_f16' : 'small';
   }
-  return 'default';
+  return isF16 ? 'default_f16' : 'default';
 }
 
 /**
  * Run RMSNorm
  */
 export async function runRMSNorm(
-  input: GPUBuffer,
+  input: Tensor,
   weight: GPUBuffer,
   eps: number = 1e-5,
   options: RMSNormOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null } = options;
 
-  // Select variant
-  let variant = 'default';
+  // Check if F16 can be used based on tensor dtypes
+  const isF16 = canUseF16(input, residual);
+  const variant = selectRMSNormKernel(options, isF16);
+  trace.kernels(`RMSNorm: input.dtype=${input.dtype}, isF16=${isF16}, variant=${variant}`);
+
   if (residual) {
-    variant = 'residual';
-    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
-  } else if (hiddenSize && hiddenSize <= 256) {
-    variant = 'small';
+    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.buffer.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
   }
 
   const pipeline = await getPipelineFast('rmsnorm', variant);
 
   // Create output buffer if not provided
+  // Weight buffer is always F32, so hidden size = weight.size / 4
   const inferredHiddenSize = hiddenSize || (weight.size / 4);
-  const outputSize = batchSize * inferredHiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const bytesPerElement = isF16 ? 2 : 4;
+  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
   // Create uniform buffer
   const hasResidualFlag = residual ? 1 : 0;
@@ -80,7 +98,7 @@ export async function runRMSNorm(
   }
 
   // Shader expects 5 bindings - create placeholder when no residual (uniform flags it as unused)
-  const residualBuffer = residual || device.createBuffer({
+  const residualBuffer = residual?.buffer || device.createBuffer({
     label: 'rmsnorm_residual_placeholder',
     size: 4,
     usage: GPUBufferUsage.STORAGE,
@@ -92,9 +110,9 @@ export async function runRMSNorm(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weight } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: outputBuf } },
       { binding: 4, resource: { buffer: residualBuffer } },
     ],
   });
@@ -104,8 +122,7 @@ export async function runRMSNorm(
   uniformBuffer.destroy();
   if (!residual) residualBuffer.destroy();
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
 }
 
 /**
@@ -113,11 +130,11 @@ export async function runRMSNorm(
  */
 export async function recordRMSNorm(
   recorder: CommandRecorder,
-  input: GPUBuffer,
+  input: Tensor,
   weight: GPUBuffer,
   eps: number = 1e-5,
   options: RMSNormOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     batchSize = 1,
@@ -126,16 +143,19 @@ export async function recordRMSNorm(
     outputBuffer = null,
   } = options;
 
-  // Infer hidden size from weight buffer
+  // Infer hidden size from weight buffer (weight is always F32)
   const inferredHiddenSize = hiddenSize || (weight.size / 4);
-  const inputSize = batchSize * inferredHiddenSize * 4;
 
-  // Select kernel variant
-  const variant = selectRMSNormKernel(options);
+  // Check if F16 can be used based on tensor dtypes
+  const isF16 = canUseF16(input, residual);
+  const variant = selectRMSNormKernel(options, isF16);
+  const bytesPerElement = isF16 ? 2 : 4;
+  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
+
   const pipeline = await getPipelineFast('rmsnorm', variant);
 
   // Output buffer
-  const output = outputBuffer || acquireBuffer(inputSize, undefined, 'rmsnorm_output');
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -151,7 +171,7 @@ export async function recordRMSNorm(
   );
 
   // Shader expects 5 bindings - create placeholder when no residual (uniform flags it as unused)
-  const residualBuffer = residual || device.createBuffer({
+  const residualBuffer = residual?.buffer || device.createBuffer({
     label: 'rmsnorm_residual_placeholder',
     size: 4,
     usage: GPUBufferUsage.STORAGE,
@@ -163,9 +183,9 @@ export async function recordRMSNorm(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weight } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: outputBuf } },
       { binding: 4, resource: { buffer: residualBuffer } },
     ],
   });
@@ -177,6 +197,5 @@ export async function recordRMSNorm(
     recorder.trackTemporaryBuffer(residualBuffer);
   }
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
 }

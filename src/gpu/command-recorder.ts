@@ -278,11 +278,15 @@ export class CommandRecorder {
 
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).
+   * Also flushes the uniform cache's pending destruction queue to clean up
+   * any evicted buffers that were referenced by this command buffer.
    * @returns Promise that resolves when GPU work is done
    */
   async submitAndWait(): Promise<void> {
     this.submit();
     await this.device.queue.onSubmittedWorkDone();
+    // Safe to destroy evicted uniform buffers now that GPU work is complete
+    getUniformCache().flushPendingDestruction();
   }
 
   /**

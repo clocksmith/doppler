@@ -12,6 +12,9 @@ export const WORKGROUP_SIZES = {
   /** Default workgroup size for most kernels */
   DEFAULT: 256,
 
+  /** Vec4 workgroup thread count (64 threads × 4 elements = 256 elements) */
+  VEC4_THREADS: 64,
+
   /** Attention kernels (large blocks) */
   ATTENTION_LARGE_BLOCK: 64,
 
@@ -35,6 +38,9 @@ export const WORKGROUP_SIZES = {
   /** MoE workgroup size */
   MOE: 256,
 } as const;
+
+/** Derived: Vec4 elements per workgroup (VEC4_THREADS × 4) */
+export const VEC4_ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;  // 256
 
 /**
  * WebGPU limits (spec-level defaults)

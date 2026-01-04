@@ -189,12 +189,14 @@ export {
 export {
   // Types
   type BatchingDefaultsSchema,
+  type ComputeDefaultsSchema,
   type SamplingDefaultsSchema,
   type TokenizerDefaultsSchema,
   type InferenceDefaultsConfigSchema,
 
   // Defaults
   DEFAULT_BATCHING_DEFAULTS,
+  DEFAULT_COMPUTE_DEFAULTS,
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
@@ -270,6 +272,7 @@ export {
   type LogOutputConfigSchema,
   type LogHistoryConfigSchema,
   type LogLevelConfigSchema,
+  type LogLevel,
   type TraceCategory,
   type TraceConfigSchema,
   type PipelineDebugCategory,
@@ -277,6 +280,9 @@ export {
   type ProbeStage,
   type ProbeConfigSchema,
   type DebugConfigSchema,
+
+  // Constants
+  LOG_LEVELS,
 
   // Defaults
   DEFAULT_LOG_OUTPUT_CONFIG,
@@ -333,6 +339,48 @@ export {
   // Defaults
   DEFAULT_BRIDGE_CONFIG,
 } from './bridge.schema.js';
+
+// =============================================================================
+// Quantization Defaults Schema
+// =============================================================================
+export {
+  // Types
+  type WeightQuantType,
+  type EmbeddingQuantType,
+  type QuantizationDefaultsSchema,
+
+  // Defaults
+  DEFAULT_QUANTIZATION_DEFAULTS,
+} from './quantization-defaults.schema.js';
+
+// =============================================================================
+// Kernel Thresholds Schema
+// =============================================================================
+export {
+  // Types
+  type MatmulThresholdsSchema,
+  type RmsnormThresholdsSchema,
+  type RopeDefaultsSchema,
+  type AttentionThresholdsSchema,
+  type CastThresholdsSchema,
+  type KernelThresholdsConfigSchema,
+
+  // Constants
+  DTYPE_SIZES,
+
+  // Defaults
+  DEFAULT_MATMUL_THRESHOLDS,
+  DEFAULT_RMSNORM_THRESHOLDS,
+  DEFAULT_ROPE_DEFAULTS,
+  DEFAULT_ATTENTION_THRESHOLDS,
+  DEFAULT_CAST_THRESHOLDS,
+  DEFAULT_KERNEL_THRESHOLDS,
+
+  // Functions
+  getKernelThresholds,
+  setKernelThresholds,
+  resetKernelThresholds,
+} from './kernel-thresholds.schema.js';
 
 // =============================================================================
 // Doppler Master Config

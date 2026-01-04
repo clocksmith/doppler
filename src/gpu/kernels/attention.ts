@@ -10,18 +10,32 @@
  */
 
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../device.js';
-import { getBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, type Tensor, type TensorDtype } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js';
-import { createUniformBufferWithView } from './utils.js';
+import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
+import { createUniformBufferWithView, getKernelConfig } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions } from './types.js';
 import { log, trace } from '../../debug/index.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
+
+/**
+ * Get max KV length for chunked attention from kernel config.
+ * Cached for performance since it's called frequently.
+ */
+let _chunkedMaxKVLen: number | null = null;
+function getChunkedMaxKVLen(): number {
+  if (_chunkedMaxKVLen === null) {
+    const config = getKernelConfig('attention', 'decode_chunked_f16kv');
+    _chunkedMaxKVLen = config.variantMetadata?.maxKVLen ?? 2048;
+  }
+  return _chunkedMaxKVLen;
+}
 
 /** Attention kernel options */
 export interface AttentionOptions extends OutputBufferOptions {
@@ -127,9 +141,6 @@ function selectAttentionTier(
   return tier as AttentionTier;
 }
 
-// Max KV length supported by chunked attention kernel (limited by shared memory)
-const CHUNKED_ATTN_MAX_KV_LEN = 2048;
-
 // Track if we've logged chunked kernel selection
 let loggedChunkedKernel = false;
 
@@ -147,8 +158,10 @@ function resolveAttentionVariant(
   // - Decode only (seqLen=1)
   // - F16 KV cache
   // - Large headDim (parallelizes across dimensions)
-  // - KV length within shared memory limit
-  const canUseChunked = isDecode && useF16KV && headDim >= 128 && kvLen <= CHUNKED_ATTN_MAX_KV_LEN;
+  // - KV length within shared memory limit (from kernel config)
+  const chunkedMaxKVLen = getChunkedMaxKVLen();
+  const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
+  const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
 
   if (tier === 'subgroup') {
     // decode_subgroup only supports F32 KV cache
@@ -254,14 +267,14 @@ function createAttentionUniformBuffer(
  * Run attention operation
  */
 export async function runAttention(
-  Q: GPUBuffer,
-  K: GPUBuffer,
-  V: GPUBuffer,
+  Q: Tensor,
+  K: Tensor,
+  V: Tensor,
   mask: GPUBuffer | null,
   numHeads: number,
   headDim: number,
   options: AttentionOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const {
     seqLen = 1,
@@ -279,7 +292,7 @@ export async function runAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  const kvDtype = getBufferDtype(K) || 'f32';
+  const kvDtype: TensorDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
@@ -293,9 +306,10 @@ export async function runAttention(
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
 
-  // Create output buffer if not provided
+  // Output is always f32 (attention scores computed in f32)
+  const outputDtype: TensorDtype = 'f32';
   const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   // Create uniform buffer
   const uniformBuffer = createAttentionUniformBuffer(device, null, {
@@ -317,10 +331,10 @@ export async function runAttention(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: Q } },
-      { binding: 2, resource: { buffer: K } },
-      { binding: 3, resource: { buffer: V } },
-      { binding: 4, resource: { buffer: output } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: K.buffer } },
+      { binding: 3, resource: { buffer: V.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 
@@ -331,13 +345,11 @@ export async function runAttention(
     );
   }
 
-
-
   kernel.dispatch(pipeline, bindGroup, plan.workgroups);
 
   releaseUniformBuffer(uniformBuffer);
 
-  return output;
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
 }
 
 /**
@@ -345,14 +357,14 @@ export async function runAttention(
  */
 export async function recordAttention(
   recorder: CommandRecorder,
-  Q: GPUBuffer,
-  K: GPUBuffer,
-  V: GPUBuffer,
+  Q: Tensor,
+  K: Tensor,
+  V: Tensor,
   mask: GPUBuffer | null,
   numHeads: number,
   headDim: number,
   options: AttentionOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const {
     seqLen = 1,
@@ -370,7 +382,7 @@ export async function recordAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  const kvDtype = getBufferDtype(K) || 'f32';
+  const kvDtype: TensorDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
@@ -387,8 +399,10 @@ export async function recordAttention(
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
 
+  // Output is always f32 (attention scores computed in f32)
+  const outputDtype: TensorDtype = 'f32';
   const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   const uniformBuffer = createAttentionUniformBuffer(device, recorder, {
     numHeads,
@@ -408,10 +422,10 @@ export async function recordAttention(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: Q } },
-      { binding: 2, resource: { buffer: K } },
-      { binding: 3, resource: { buffer: V } },
-      { binding: 4, resource: { buffer: output } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: K.buffer } },
+      { binding: 3, resource: { buffer: V.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 
@@ -424,5 +438,5 @@ export async function recordAttention(
 
   kernel.record(recorder, pipeline, bindGroup, plan.workgroups);
 
-  return output;
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
 }

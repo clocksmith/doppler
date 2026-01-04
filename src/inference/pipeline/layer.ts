@@ -31,7 +31,8 @@ import {
   CommandRecorder,
   type SiLURowSplitOptions,
 } from '../../gpu/kernel-selector.js';
-import { getBufferDtype, isColumnMajorBuffer } from '../../gpu/buffer-dtypes.js';
+import { Tensor, createTensor, type TensorDtype } from '../../gpu/tensor.js';
+import { type WeightBuffer, isWeightBuffer, getBuffer, getLayout, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState, type AttentionDebugFlags, type AttentionResult } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
@@ -57,7 +58,7 @@ export interface LayerContext {
   /** Model configuration */
   config: ParsedModelConfig;
   /** Layer weights map */
-  weights: Map<string, LayerWeights | Float32Array | GPUBuffer>;
+  weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer>;
   /** KV cache instance */
   kvCache: KVCache | SlidingWindowKVCache;
   /** Current sequence length */
@@ -96,6 +97,8 @@ export interface LayerContext {
   lora?: LoRAAdapter | null;
   /** Pre-allocated decode buffers (for M=1 decode optimization) */
   decodeBuffers?: DecodeBufferManager | null;
+  /** Activation dtype for hidden states (default: 'f32', experimental: 'f16') */
+  activationDtype?: 'f16' | 'f32';
 }
 
 /**
@@ -128,14 +131,15 @@ export interface SandwichNormInfo {
 
 /**
  * RMSNorm that uses record variant when recorder is provided.
+ * Input and residual are Tensor, returns Tensor.
  */
 async function doRMSNorm(
-  input: GPUBuffer,
+  input: Tensor,
   weight: GPUBuffer,
   eps: number,
-  options: { batchSize: number; hiddenSize: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
+  options: { batchSize: number; hiddenSize: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const result = recorder
     ? await recordRMSNorm(recorder, input, weight, eps, options)
     : await runRMSNorm(input, weight, eps, options);
@@ -144,7 +148,7 @@ async function doRMSNorm(
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'rmsnorm';
-    await traceStep('rmsnorm', label, layer, result, [options.batchSize, options.hiddenSize]);
+    await traceStep('rmsnorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
   }
 
   return result;
@@ -152,14 +156,16 @@ async function doRMSNorm(
 
 /**
  * ResidualAdd that uses record variant when recorder is provided.
+ * Accepts Tensor for inputs, returns Tensor.
+ * The residual kernel still operates on raw GPUBuffers internally.
  */
 async function doResidualAdd(
-  a: GPUBuffer,
-  b: GPUBuffer,
+  a: Tensor,
+  b: Tensor,
   size: number,
   recorder?: CommandRecorder,
   traceOptions?: { label?: string; layerIdx?: number; outputBuffer?: GPUBuffer | null }
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const options = traceOptions?.outputBuffer ? { outputBuffer: traceOptions.outputBuffer } : {};
   const result = recorder
     ? await recordResidualAdd(recorder, a, b, size, options)
@@ -167,7 +173,7 @@ async function doResidualAdd(
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && traceOptions) {
-    await traceStep('residual_add', traceOptions.label ?? 'residual', traceOptions.layerIdx ?? -1, result, [size]);
+    await traceStep('residual_add', traceOptions.label ?? 'residual', traceOptions.layerIdx ?? -1, result.buffer, [size]);
   }
 
   return result;
@@ -175,16 +181,17 @@ async function doResidualAdd(
 
 /**
  * Matmul that uses record variant when recorder is provided.
+ * A is activation Tensor, B is weight (GPUBuffer or WeightBuffer), returns Tensor.
  */
 async function doMatmul(
-  A: GPUBuffer,
-  B: GPUBuffer,
+  A: Tensor,
+  B: GPUBuffer | WeightBuffer,
   M: number,
   N: number,
   K: number,
-  options: { transposeB?: boolean | 'auto'; label?: string; layerIdx?: number } = {},
+  options: { transposeB?: boolean | 'auto'; label?: string; layerIdx?: number; outputDtype?: 'f16' | 'f32' } = {},
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const result = recorder
     ? await recordMatmul(recorder, A, B, M, N, K, options)
     : await runMatmul(A, B, M, N, K, options);
@@ -193,7 +200,7 @@ async function doMatmul(
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'matmul';
-    await traceStep('matmul', label, layer, result, [M, N]);
+    await traceStep('matmul', label, layer, result.buffer, [M, N]);
   }
 
   return result;
@@ -202,19 +209,20 @@ async function doMatmul(
 /**
  * SiLU that uses record variant when recorder is provided.
  * Supports gated variant (SiLU with gate multiplication).
+ * Input and gate are Tensor, returns Tensor.
  */
 async function doSiLU(
-  input: GPUBuffer,
-  options: { size?: number; gate?: GPUBuffer; label?: string; layerIdx?: number } = {},
+  input: Tensor,
+  options: { size?: number; gate?: Tensor | null; label?: string; layerIdx?: number } = {},
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const result = recorder
     ? await recordSiLU(recorder, input, options)
     : await runSiLU(input, options);
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && options.size) {
-    await traceStep('silu', options.label ?? 'silu', options.layerIdx ?? -1, result, [options.size]);
+    await traceStep('silu', options.label ?? 'silu', options.layerIdx ?? -1, result.buffer, [options.size]);
   }
 
   return result;
@@ -223,19 +231,20 @@ async function doSiLU(
 /**
  * GeLU that uses record variant when recorder is provided.
  * Supports gated variant (GeGLU).
+ * Input and gate are Tensor, returns Tensor.
  */
 async function doGeLU(
-  input: GPUBuffer,
-  options: { size?: number; gate?: GPUBuffer; label?: string; layerIdx?: number } = {},
+  input: Tensor,
+  options: { size?: number; gate?: Tensor | null; label?: string; layerIdx?: number } = {},
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const result = recorder
     ? await recordGeLU(recorder, input, options)
     : await runGeLU(input, options);
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && options.size) {
-    await traceStep('gelu', options.label ?? 'gelu', options.layerIdx ?? -1, result, [options.size]);
+    await traceStep('gelu', options.label ?? 'gelu', options.layerIdx ?? -1, result.buffer, [options.size]);
   }
 
   return result;
@@ -244,19 +253,20 @@ async function doGeLU(
 /**
  * SiLURowSplit that uses record variant when recorder is provided.
  * Used for fused gate+up FFN path: splits combined output and applies activation.
+ * Input is Tensor, returns Tensor.
  */
 async function doSiLURowSplit(
-  input: GPUBuffer,
-  options: SiLURowSplitOptions & { label?: string; layerIdx?: number },
+  input: Tensor,
+  options: Omit<SiLURowSplitOptions, 'activationDtype'> & { label?: string; layerIdx?: number },
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const result = recorder
     ? await recordSiLURowSplit(recorder, input, options)
     : await runSiLURowSplit(input, options);
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder) {
-    await traceStep('silu_row_split', options.label ?? 'ffn_activation', options.layerIdx ?? -1, result, [options.numTokens, options.dim]);
+    await traceStep('silu_row_split', options.label ?? 'ffn_activation', options.layerIdx ?? -1, result.buffer, [options.numTokens, options.dim]);
   }
 
   return result;
@@ -265,37 +275,48 @@ async function doSiLURowSplit(
 /**
  * Fused Matmul + RMSNorm that uses record variant when recorder is provided.
  * Used for down projection + post-FFN norm fusion during decode (M=1).
+ * Input is Tensor, residual is Tensor, returns Tensor.
  */
 async function doMatmulRMSNormFused(
-  input: GPUBuffer,
-  weight: GPUBuffer,
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
   normWeight: GPUBuffer,
-  options: { N: number; K: number; eps: number; residual?: GPUBuffer | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number },
+  options: { N: number; K: number; eps: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number },
   recorder?: CommandRecorder
-): Promise<GPUBuffer> {
-  const result = recorder
-    ? await recordMatmulRMSNormFused(recorder, input, weight, normWeight, options)
-    : await runMatmulRMSNormFused(input, weight, normWeight, options);
+): Promise<Tensor> {
+  // The fused kernel takes Tensor input but residual is still GPUBuffer
+  const fusedOptions = {
+    N: options.N,
+    K: options.K,
+    eps: options.eps,
+    residual: options.residual?.buffer ?? null,
+    outputBuffer: options.outputBuffer,
+    transposeB: options.transposeB,
+  };
+  const resultTensor = recorder
+    ? await recordMatmulRMSNormFused(recorder, input, weight, normWeight, fusedOptions)
+    : await runMatmulRMSNormFused(input, weight, normWeight, fusedOptions);
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder) {
-    await traceStep('fused_matmul_rmsnorm', options.label ?? 'fused_matmul_rmsnorm', options.layerIdx ?? -1, result, [1, options.N]);
+    await traceStep('fused_matmul_rmsnorm', options.label ?? 'fused_matmul_rmsnorm', options.layerIdx ?? -1, resultTensor.buffer, [1, options.N]);
   }
 
-  return result;
+  return resultTensor;
 }
 
 /**
  * Attention that uses record variant when recorder is provided.
+ * Input is Tensor for dtype-aware processing.
  */
 async function doAttention(
-  inputBuffer: GPUBuffer,
+  inputTensor: Tensor,
   layerWeights: LayerWeights | null,
   config: AttentionConfig,
   state: AttentionState,
   debug: boolean,
   debugFlags: AttentionDebugFlags,
-  getWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
+  getWeightBufferFn: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer | WeightBuffer,
   getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   recorder?: CommandRecorder,
   lora?: LoRAAdapter | null
@@ -303,7 +324,7 @@ async function doAttention(
   if (recorder) {
     return recordLayerAttentionGPU(
       recorder,
-      inputBuffer,
+      inputTensor,
       layerWeights,
       config,
       state,
@@ -316,7 +337,7 @@ async function doAttention(
     );
   }
   return runLayerAttentionGPU(
-    inputBuffer,
+    inputTensor,
     layerWeights,
     config,
     state,
@@ -444,6 +465,7 @@ export async function processLayer(
 
 /**
  * GPU-native layer processing (no CPU readbacks).
+ * Internally uses Tensor for dtype-aware pipeline, returns GPUBuffer for compatibility.
  */
 export async function processLayerGPU(
   layerIdx: number,
@@ -462,6 +484,12 @@ export async function processLayerGPU(
   const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, attentionKernelOverride, recorder } = context;
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 
+  // Determine activation dtype from context (defaults to f32)
+  const activationDtype: TensorDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+
+  // Wrap input buffer as Tensor for dtype-aware processing
+  const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
+
   const layerWeights = weights.get(`layer_${layerIdx}`) as LayerWeights | undefined;
   const sandwichNorm = detectSandwichNorm(layerWeights);
   const lastTokenIdx = Math.max(0, numTokens - 1);
@@ -475,7 +503,7 @@ export async function processLayerGPU(
     await dumpTokenVector(inputBuffer, 'layer_in', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
-  // 1. Self-attention (returns GPU buffer)
+  // 1. Self-attention (returns GPU buffer - attention module not yet migrated to Tensor)
   // Determine layer type for RoPE frequency selection (Gemma 3: sliding vs full attention)
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = layerType === 'sliding_attention';
@@ -498,12 +526,12 @@ export async function processLayerGPU(
     slidingWindow: config.slidingWindow,
     layerType,
     attentionKernelOverride,
-    // Pass residual buffer for decode mode to enable fused o_proj + residual.
+    // Pass residual tensor for decode mode to enable fused o_proj + residual.
     // For sandwich-norm models with post-attention norm (Gemma 2/3),
     // we must NOT fuse residual into attention output because HF expects:
     // residual + norm(attn_output), not norm(attn_output + residual).
-    residualBuffer: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
-      ? inputBuffer
+    residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
+      ? inputTensor
       : null,
     // Gemma 2 attention softcapping (50.0)
     attnSoftcap: config.attnLogitSoftcapping ?? 0,
@@ -525,7 +553,7 @@ export async function processLayerGPU(
   };
 
   const attnResult = await doAttention(
-    inputBuffer,
+    inputTensor,
     layerWeights ?? null,
     attnConfig,
     attnState,
@@ -536,28 +564,29 @@ export async function processLayerGPU(
     recorder,
     context.lora
   );
+  // Attention now returns Tensor directly
   const attnOutput = attnResult.output;
   const residualFused = attnResult.residualFused;
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(attnOutput.buffer, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // Debug: trace attn output (uses debug-utils)
   if (context.debug) {
-    const stats = await getBufferStats(attnOutput);
+    const stats = await getBufferStats(attnOutput.buffer);
     if (stats) logAttn(layerIdx, isPrefill, { numTokens, kvLen: context.currentSeqLen + (isPrefill ? numTokens : 1), maxAbsOut: stats.maxAbs });
 
     // Debug layer 0, 2, and 17 attention output specifically (2 is where decode explosion happens)
     // NOTE: Skip detailed readback when using recorder (batched mode) - buffers aren't populated yet!
-    trace.attn(layerIdx, `attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
-    if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && !recorder) {
+    trace.attn(layerIdx, `attnOutput type check: isGPU=${attnOutput.buffer instanceof GPUBuffer}, type=${typeof attnOutput.buffer}, constructor=${attnOutput.buffer?.constructor?.name}, isPrefill=${isPrefill}`);
+    if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput.buffer instanceof GPUBuffer && !recorder) {
       if (allowReadback(`layer.attn-out.${layerIdx}`)) {
         try {
-          const sampleSize = Math.min(128, attnOutput.size);
+          const sampleSize = Math.min(128, attnOutput.buffer.size);
           const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
           const enc = device.createCommandEncoder();
-          enc.copyBufferToBuffer(attnOutput, 0, staging, 0, sampleSize);
+          enc.copyBufferToBuffer(attnOutput.buffer, 0, staging, 0, sampleSize);
           device.queue.submit([enc.finish()]);
           await staging.mapAsync(GPUMapMode.READ);
           const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -570,11 +599,11 @@ export async function processLayerGPU(
           trace.attn(layerIdx, `ATTN_OUT error: ${e}`);
         }
       }
-    } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
+    } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput.buffer instanceof GPUBuffer && recorder) {
       trace.attn(layerIdx, `ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
     }
   }
-  await runProbes('attn_out', attnOutput, {
+  await runProbes('attn_out', attnOutput.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -583,7 +612,7 @@ export async function processLayerGPU(
   });
 
   // 2. Handle residual connection based on architecture
-  let postAttn: GPUBuffer;
+  let postAttn: Tensor;
   if (residualFused) {
     // Fused path: residual was already added in attention o_proj
     // attnOutput already contains the residual, no need to add it again
@@ -601,9 +630,9 @@ export async function processLayerGPU(
       }, recorder);
       if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
       if (recorder) {
-        recorder.trackTemporaryBuffer(attnOutput);
+        recorder.trackTemporaryBuffer(attnOutput.buffer);
       } else {
-        releaseBuffer(attnOutput);
+        releaseBuffer(attnOutput.buffer);
       }
     }
   } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
@@ -612,7 +641,7 @@ export async function processLayerGPU(
     postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-      residual: inputBuffer,  // FUSION: Add residual in same kernel
+      residual: inputTensor,  // FUSION: Add residual in same kernel
       label: `L${layerIdx}.post_attn_norm`,
       layerIdx,
     }, recorder);
@@ -620,26 +649,26 @@ export async function processLayerGPU(
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
-      recorder.trackTemporaryBuffer(attnOutput);
+      recorder.trackTemporaryBuffer(attnOutput.buffer);
     } else {
-      releaseBuffer(attnOutput);
+      releaseBuffer(attnOutput.buffer);
     }
   } else {
     // Standard path: residual add first
-    postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder, { label: `L${layerIdx}.post_attn_residual`, layerIdx });
+    postAttn = await doResidualAdd(attnOutput, inputTensor, size, recorder, { label: `L${layerIdx}.post_attn_residual`, layerIdx });
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
-      recorder.trackTemporaryBuffer(attnOutput);
+      recorder.trackTemporaryBuffer(attnOutput.buffer);
     } else {
-      releaseBuffer(attnOutput);
+      releaseBuffer(attnOutput.buffer);
     }
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(postAttn, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(postAttn.buffer, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
-  await runProbes('post_attn', postAttn, {
+  await runProbes('post_attn', postAttn.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -647,12 +676,15 @@ export async function processLayerGPU(
     recorder,
   });
 
-  // 3. Feed-forward network
+  // 3. Feed-forward network - returns Tensor, extract buffer for return
+  let outputTensor: Tensor;
   if (sandwichNorm.useSandwichNorm) {
-    return processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
+    outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
   } else {
-    return processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
+    outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
   }
+
+  return outputTensor.buffer;
 }
 
 // ============================================================================
@@ -793,9 +825,15 @@ async function processLayerPlanGPU(
           break;
         }
         case 'attention': {
-          const src = getSlot(step.src);
-          const residual = step.residual ? getSlot(step.residual) : null;
-          const residualBuffer = residual && allowResidualFuse ? residual : null;
+          const srcBuf = getSlot(step.src);
+          const residualBuf = step.residual ? getSlot(step.residual) : null;
+
+          // Wrap GPUBuffer in Tensor for doAttention
+          const activationDtype: TensorDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
+          const residualTensor = (residualBuf && allowResidualFuse)
+            ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
+            : null;
 
           const attnConfig: AttentionConfig = {
             layerIdx,
@@ -810,14 +848,14 @@ async function processLayerPlanGPU(
             slidingWindow: config.slidingWindow,
             layerType,
             attentionKernelOverride,
-            residualBuffer,
+            residualTensor,
             attnSoftcap: config.attnLogitSoftcapping ?? 0,
             queryPreAttnScalar: config.queryPreAttnScalar,
             skipInputNorm: step.skipInputNorm === true,
           };
 
           const result = await doAttention(
-            src,
+            srcTensor,
             layerWeights ?? null,
             attnConfig,
             attnState,
@@ -829,9 +867,10 @@ async function processLayerPlanGPU(
             context.lora
           );
 
-          setSlot(step.dst, result.output);
+          // Attention result.output is now a Tensor - extract buffer for slot storage
+          setSlot(step.dst, result.output.buffer);
           if (step.probeStage) {
-            await runProbes(step.probeStage, result.output, {
+            await runProbes(step.probeStage, result.output.buffer, {
               layerIdx,
               numTokens,
               hiddenSize,
@@ -842,24 +881,28 @@ async function processLayerPlanGPU(
           break;
         }
         case 'rmsnorm': {
-          const src = getSlot(step.src);
+          const srcBuf = getSlot(step.src);
           const weight = resolveNormWeightForPlan(step.weight!, layerWeights);
           if (!weight) {
             throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
           }
           const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
-          const residual = step.residual ? getSlot(step.residual) : null;
-          const output = await doRMSNorm(src, normWeightBuf, rmsNormEps, {
+          const residualBuf = step.residual ? getSlot(step.residual) : null;
+          // Wrap GPUBuffers in Tensor for doRMSNorm
+          const activationDtype: TensorDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
+          const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
+          const outputTensor = await doRMSNorm(srcTensor, normWeightBuf, rmsNormEps, {
             batchSize: numTokens,
             hiddenSize,
-            residual,
+            residual: residualTensor,
             label: `L${layerIdx}.rmsnorm_${step.weight}`,
             layerIdx,
           }, recorder);
           if (!(weight instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
-          setSlot(step.dst, output);
+          setSlot(step.dst, outputTensor.buffer);
           if (step.probeStage) {
-            await runProbes(step.probeStage, output, {
+            await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
               numTokens,
               hiddenSize,
@@ -870,18 +913,21 @@ async function processLayerPlanGPU(
           break;
         }
         case 'ffn': {
-          const src = getSlot(step.src);
-          let output: GPUBuffer;
+          const srcBuf = getSlot(step.src);
+          // Wrap GPUBuffer in Tensor for FFN functions
+          const activationDtype: TensorDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
+          let outputTensor: Tensor;
           const useMoe = step.variant === 'moe'
             || (step.variant === 'auto' && config.useMoE && isMoELayer(layerIdx, config, layerWeights));
           if (useMoe) {
-            output = await runMoEFFNGPU(layerIdx, src, numTokens, context);
+            outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, context);
           } else {
-            output = await runDenseFFNGPU(layerIdx, src, numTokens, context, layerWeights);
+            outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, context, layerWeights);
           }
-          setSlot(step.dst, output);
+          setSlot(step.dst, outputTensor.buffer);
           if (step.probeStage) {
-            await runProbes(step.probeStage, output, {
+            await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
               numTokens,
               hiddenSize,
@@ -892,15 +938,19 @@ async function processLayerPlanGPU(
           break;
         }
         case 'residual_add': {
-          const a = getSlot(step.a ?? 'state');
-          const b = getSlot(step.b ?? 'residual');
-          const output = await doResidualAdd(a, b, size, recorder, {
+          const aBuf = getSlot(step.a ?? 'state');
+          const bBuf = getSlot(step.b ?? 'residual');
+          // Wrap GPUBuffers in Tensor for doResidualAdd
+          const activationDtype: TensorDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
+          const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
+          const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {
             label: `L${layerIdx}.residual_add`,
             layerIdx,
           });
-          setSlot(step.dst, output);
+          setSlot(step.dst, outputTensor.buffer);
           if (step.probeStage) {
-            await runProbes(step.probeStage, output, {
+            await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
               numTokens,
               hiddenSize,
@@ -943,16 +993,17 @@ async function processLayerPlanGPU(
 
 /**
  * Process FFN with sandwich norm architecture (Gemma 3).
+ * Input and output are Tensor for dtype-aware processing.
  */
 async function processFFNWithSandwichNorm(
   layerIdx: number,
-  postAttn: GPUBuffer,
+  postAttn: Tensor,
   numTokens: number,
   size: number,
   context: LayerContext,
   layerWeights: LayerWeights | undefined,
   sandwichNorm: SandwichNormInfo
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
 
@@ -976,7 +1027,7 @@ async function processFFNWithSandwichNorm(
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   }
 
-  await runProbes('ffn_in', ffnInput, {
+  await runProbes('ffn_in', ffnInput.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -985,21 +1036,24 @@ async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(ffnInput, 'pre_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(ffnInput.buffer, 'pre_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // 2. FFN (or MoE FFN)
   // Check if we can use fused down+norm kernel (decode only, dense FFN with post-FFN norm)
   // The fused kernel now supports both column-major and row-major (transposed) weights.
   // BUT: the fused kernel only supports F32 weights - not Q4K or F16 quantized weights.
-  const downWeightIsColumnMajor = layerWeights?.down instanceof GPUBuffer
-    ? isColumnMajorBuffer(layerWeights.down)
+  const downWeight = layerWeights?.down;
+  // Note: getLayout/getWeightDtype handle both WeightBuffer and raw GPUBuffer
+  // Float32Array means CPU fallback (row-major, f32)
+  const downWeightIsColumnMajor = downWeight && !(downWeight instanceof Float32Array)
+    ? getLayout(downWeight) === 'column'
     : false;
 
   // Check weight dtype - fused kernel requires F32 weights
-  const downWeightDtype = layerWeights?.down instanceof GPUBuffer
-    ? getBufferDtype(layerWeights.down)
-    : null;
+  const downWeightDtype = downWeight && !(downWeight instanceof Float32Array)
+    ? getWeightDtype(downWeight)
+    : 'f32';
   const downWeightIsF32 = downWeightDtype === 'f32' || downWeightDtype === null;
 
   const canUseFusedDownNorm = numTokens === 1
@@ -1012,7 +1066,7 @@ async function processFFNWithSandwichNorm(
     && shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
   // Note: transposeB=true for row-major GGUF weights, transposeB=false for column-major
 
-  let ffnOutput: GPUBuffer;
+  let ffnOutput: Tensor;
   let usedFusedDownNorm = false;
 
   if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
@@ -1037,7 +1091,7 @@ async function processFFNWithSandwichNorm(
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
-  await runProbes('ffn_out', ffnOutput, {
+  await runProbes('ffn_out', ffnOutput.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -1046,25 +1100,25 @@ async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(ffnOutput, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(ffnOutput.buffer, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (ffnInput !== postAttn) {
     if (recorder) {
-      recorder.trackTemporaryBuffer(ffnInput);
+      recorder.trackTemporaryBuffer(ffnInput.buffer);
     } else {
-      releaseBuffer(ffnInput);
+      releaseBuffer(ffnInput.buffer);
     }
   }
 
   // Debug: trace FFN output (uses debug-utils)
-  const ffnStats = await getBufferStats(ffnOutput);
+  const ffnStats = await getBufferStats(ffnOutput.buffer);
   if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
 
   // 3. Post-FFN norm - applied to FFN output BEFORE residual add
   // Skip if we already used fused down+norm kernel
-  let output: GPUBuffer;
+  let output: Tensor;
   if (usedFusedDownNorm) {
     // Fused kernel already applied norm + residual
     output = ffnOutput;
@@ -1085,9 +1139,9 @@ async function processFFNWithSandwichNorm(
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
-      recorder.trackTemporaryBuffer(ffnOutput);
+      recorder.trackTemporaryBuffer(ffnOutput.buffer);
     } else {
-      releaseBuffer(ffnOutput);
+      releaseBuffer(ffnOutput.buffer);
     }
   } else {
     // Standard path: residual add without norm
@@ -1098,13 +1152,13 @@ async function processFFNWithSandwichNorm(
       outputBuffer: decodeOutputBuffer,
     });
     if (recorder) {
-      recorder.trackTemporaryBuffer(ffnOutput);
+      recorder.trackTemporaryBuffer(ffnOutput.buffer);
     } else {
-      releaseBuffer(ffnOutput);
+      releaseBuffer(ffnOutput.buffer);
     }
   }
 
-  await runProbes('layer_out', output, {
+  await runProbes('layer_out', output.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -1113,14 +1167,14 @@ async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(output, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(output.buffer, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // Track postAttn for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
-    recorder.trackTemporaryBuffer(postAttn);
+    recorder.trackTemporaryBuffer(postAttn.buffer);
   } else {
-    releaseBuffer(postAttn);
+    releaseBuffer(postAttn.buffer);
   }
 
   return output;
@@ -1128,15 +1182,16 @@ async function processFFNWithSandwichNorm(
 
 /**
  * Process FFN with standard architecture (LLaMA-style).
+ * Input and output are Tensor for dtype-aware processing.
  */
 async function processFFNStandard(
   layerIdx: number,
-  postAttn: GPUBuffer,
+  postAttn: Tensor,
   numTokens: number,
   size: number,
   context: LayerContext,
   layerWeights: LayerWeights | undefined
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
 
@@ -1146,10 +1201,10 @@ async function processFFNStandard(
     : null;
 
   // 1. Post-attention norm (LLaMA-style pre-FFN norm)
-  let normedBuffer = postAttn;
+  let normedTensor = postAttn;
   if (layerWeights?.postAttnNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttnNorm, 'post_attn_norm', weightConfig, debugFlags);
-    normedBuffer = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+    normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
       label: `L${layerIdx}.post_attn_norm`,
@@ -1157,7 +1212,7 @@ async function processFFNStandard(
     }, recorder);
     if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   }
-  await runProbes('ffn_in', normedBuffer, {
+  await runProbes('ffn_in', normedTensor.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -1166,13 +1221,13 @@ async function processFFNStandard(
   });
 
   // 2. FFN (or MoE FFN)
-  let ffnOutput: GPUBuffer;
+  let ffnOutput: Tensor;
   if (config.useMoE && isMoELayer(layerIdx, config, layerWeights)) {
-    ffnOutput = await runMoEFFNGPU(layerIdx, normedBuffer, numTokens, context);
+    ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);
   } else {
-    ffnOutput = await runDenseFFNGPU(layerIdx, normedBuffer, numTokens, context, layerWeights);
+    ffnOutput = await runDenseFFNGPU(layerIdx, normedTensor, numTokens, context, layerWeights);
   }
-  await runProbes('ffn_out', ffnOutput, {
+  await runProbes('ffn_out', ffnOutput.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -1187,7 +1242,7 @@ async function processFFNStandard(
     layerIdx,
     outputBuffer: decodeOutputBuffer,
   });
-  await runProbes('layer_out', output, {
+  await runProbes('layer_out', output.buffer, {
     layerIdx,
     numTokens,
     hiddenSize,
@@ -1196,19 +1251,19 @@ async function processFFNStandard(
   });
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
-  if (normedBuffer !== postAttn) {
+  if (normedTensor !== postAttn) {
     if (recorder) {
-      recorder.trackTemporaryBuffer(normedBuffer);
+      recorder.trackTemporaryBuffer(normedTensor.buffer);
     } else {
-      releaseBuffer(normedBuffer);
+      releaseBuffer(normedTensor.buffer);
     }
   }
   if (recorder) {
-    recorder.trackTemporaryBuffer(postAttn);
-    recorder.trackTemporaryBuffer(ffnOutput);
+    recorder.trackTemporaryBuffer(postAttn.buffer);
+    recorder.trackTemporaryBuffer(ffnOutput.buffer);
   } else {
-    releaseBuffer(postAttn);
-    releaseBuffer(ffnOutput);
+    releaseBuffer(postAttn.buffer);
+    releaseBuffer(ffnOutput.buffer);
   }
 
   return output;
@@ -1225,15 +1280,15 @@ async function processFFNStandard(
  * - Fused (2 matmuls): gateUp -> split+activate -> down
  * - Separate (3 matmuls): gate, up -> activate -> down
  *
- * TODO: For decode mode (numTokens=1), can optionally fuse down_proj + residual.
+ * Input and output are Tensor for dtype-aware processing.
  */
 async function runDenseFFNGPU(
   layerIdx: number,
-  inputBuffer: GPUBuffer,
+  inputTensor: Tensor,
   numTokens: number,
   context: LayerContext,
   layerWeights: LayerWeights | undefined
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
 
@@ -1248,42 +1303,45 @@ async function runDenseFFNGPU(
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
     // 1. Fused gate+up projection: [numTokens, hiddenSize] @ [intermediateSize*2, hiddenSize]^T -> [numTokens, intermediateSize*2]
+    const useF16 = inputTensor.dtype === 'f16';
     let gateUpOutput = await doMatmul(
-      inputBuffer, gateUpWeight,
+      inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx, outputDtype: useF16 ? 'f16' : undefined },
       recorder
     );
 
     const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
     if (loraGateUp) {
       const combined = await applyLoRA(
-        inputBuffer,
+        inputTensor,
         gateUpOutput,
         loraGateUp,
         { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
         getWeightBuffer,
         recorder
       );
-      if (combined !== gateUpOutput) {
+      if (combined.buffer !== gateUpOutput.buffer) {
         if (recorder) {
-          recorder.trackTemporaryBuffer(gateUpOutput);
+          recorder.trackTemporaryBuffer(gateUpOutput.buffer);
         } else {
-          releaseBuffer(gateUpOutput);
+          releaseBuffer(gateUpOutput.buffer);
         }
         gateUpOutput = combined;
       }
     }
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(gateUpOutput, 'ffn_gate_up', {
+      await dumpTokenVector(gateUpOutput.buffer, 'ffn_gate_up', {
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: intermediateSize * 2,
       });
     }
 
-    if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+    if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
+      releaseBuffer(isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
+    }
 
     // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
     const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
@@ -1296,7 +1354,7 @@ async function runDenseFFNGPU(
     }, recorder);
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(activatedOutput, 'ffn_activated', {
+      await dumpTokenVector(activatedOutput.buffer, 'ffn_activated', {
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: intermediateSize,
@@ -1305,16 +1363,16 @@ async function runDenseFFNGPU(
 
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
-      recorder.trackTemporaryBuffer(gateUpOutput);
+      recorder.trackTemporaryBuffer(gateUpOutput.buffer);
     } else {
-      releaseBuffer(gateUpOutput);
+      releaseBuffer(gateUpOutput.buffer);
     }
 
     // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: useF16 ? 'f16' : undefined },
       recorder
     );
 
@@ -1328,30 +1386,32 @@ async function runDenseFFNGPU(
         getWeightBuffer,
         recorder
       );
-      if (combined !== output) {
+      if (combined.buffer !== output.buffer) {
         if (recorder) {
-          recorder.trackTemporaryBuffer(output);
+          recorder.trackTemporaryBuffer(output.buffer);
         } else {
-          releaseBuffer(output);
+          releaseBuffer(output.buffer);
         }
         output = combined;
       }
     }
 
     if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(output, 'ffn_down_out', {
+      await dumpTokenVector(output.buffer, 'ffn_down_out', {
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: hiddenSize,
       });
     }
 
-    if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+    if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+      releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    }
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
-      recorder.trackTemporaryBuffer(activatedOutput);
+      recorder.trackTemporaryBuffer(activatedOutput.buffer);
     } else {
-      releaseBuffer(activatedOutput);
+      releaseBuffer(activatedOutput.buffer);
     }
 
     return output;
@@ -1361,33 +1421,36 @@ async function runDenseFFNGPU(
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
     // Return copy of input (no FFN weights)
     log.warn('Layer', `L${layerIdx} FFN: no weights found (gateUp=${!!layerWeights?.gateUp}, gate=${!!layerWeights?.gate}, up=${!!layerWeights?.up}, down=${!!layerWeights?.down})`);
-    const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
+    const outputBuffer = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
     const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(inputBuffer, 0, output, 0, numTokens * hiddenSize * 4);
+    encoder.copyBufferToBuffer(inputTensor.buffer, 0, outputBuffer, 0, numTokens * hiddenSize * 4);
     device.queue.submit([encoder.finish()]);
-    return output;
+    return createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'ffn_output_copy');
   }
 
   // 1. Gate projection
+  const useF16 = inputTensor.dtype === 'f16';
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  let gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx }, recorder);
-  if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
+  let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: useF16 ? 'f16' : undefined }, recorder);
+  if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+    releaseBuffer(isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+  }
 
   const loraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
   if (loraGate) {
     const combined = await applyLoRA(
-      inputBuffer,
+      inputTensor,
       gateOutput,
       loraGate,
       { M: numTokens, N: intermediateSize, K: hiddenSize },
       getWeightBuffer,
       recorder
     );
-    if (combined !== gateOutput) {
+    if (combined.buffer !== gateOutput.buffer) {
       if (recorder) {
-        recorder.trackTemporaryBuffer(gateOutput);
+        recorder.trackTemporaryBuffer(gateOutput.buffer);
       } else {
-        releaseBuffer(gateOutput);
+        releaseBuffer(gateOutput.buffer);
       }
       gateOutput = combined;
     }
@@ -1395,36 +1458,38 @@ async function runDenseFFNGPU(
 
   // 2. Up projection
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  let upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx }, recorder);
-  if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+  let upOutput = await doMatmul(inputTensor, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx, outputDtype: useF16 ? 'f16' : undefined }, recorder);
+  if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+    releaseBuffer(isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+  }
 
   const loraUp = getLoRAModule(lora, layerIdx, 'up_proj');
   if (loraUp) {
     const combined = await applyLoRA(
-      inputBuffer,
+      inputTensor,
       upOutput,
       loraUp,
       { M: numTokens, N: intermediateSize, K: hiddenSize },
       getWeightBuffer,
       recorder
     );
-    if (combined !== upOutput) {
+    if (combined.buffer !== upOutput.buffer) {
       if (recorder) {
-        recorder.trackTemporaryBuffer(upOutput);
+        recorder.trackTemporaryBuffer(upOutput.buffer);
       } else {
-        releaseBuffer(upOutput);
+        releaseBuffer(upOutput.buffer);
       }
       upOutput = combined;
     }
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(gateOutput, 'ffn_gate', {
+    await dumpTokenVector(gateOutput.buffer, 'ffn_gate', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
     });
-    await dumpTokenVector(upOutput, 'ffn_up', {
+    await dumpTokenVector(upOutput.buffer, 'ffn_up', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
@@ -1441,7 +1506,7 @@ async function runDenseFFNGPU(
   }, recorder);
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(activatedOutput, 'ffn_activated', {
+    await dumpTokenVector(activatedOutput.buffer, 'ffn_activated', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
@@ -1450,16 +1515,16 @@ async function runDenseFFNGPU(
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
-    recorder.trackTemporaryBuffer(gateOutput);
-    recorder.trackTemporaryBuffer(upOutput);
+    recorder.trackTemporaryBuffer(gateOutput.buffer);
+    recorder.trackTemporaryBuffer(upOutput.buffer);
   } else {
-    releaseBuffer(gateOutput);
-    releaseBuffer(upOutput);
+    releaseBuffer(gateOutput.buffer);
+    releaseBuffer(upOutput.buffer);
   }
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx }, recorder);
+  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: useF16 ? 'f16' : undefined }, recorder);
 
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {
@@ -1471,30 +1536,32 @@ async function runDenseFFNGPU(
       getWeightBuffer,
       recorder
     );
-    if (combined !== output) {
+    if (combined.buffer !== output.buffer) {
       if (recorder) {
-        recorder.trackTemporaryBuffer(output);
+        recorder.trackTemporaryBuffer(output.buffer);
       } else {
-        releaseBuffer(output);
+        releaseBuffer(output.buffer);
       }
       output = combined;
     }
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(output, 'ffn_down_out', {
+    await dumpTokenVector(output.buffer, 'ffn_down_out', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: hiddenSize,
     });
   }
 
-  if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+  if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+    releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+  }
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
-    recorder.trackTemporaryBuffer(activatedOutput);
+    recorder.trackTemporaryBuffer(activatedOutput.buffer);
   } else {
-    releaseBuffer(activatedOutput);
+    releaseBuffer(activatedOutput.buffer);
   }
 
   return output;
@@ -1513,15 +1580,15 @@ async function runDenseFFNGPU(
  */
 async function runDenseFFNWithFusedPostNormGPU(
   layerIdx: number,
-  inputBuffer: GPUBuffer,
+  inputTensor: Tensor,
   numTokens: number,
   context: LayerContext,
   layerWeights: LayerWeights,
-  residual: GPUBuffer,
+  residualTensor: Tensor,
   eps: number,
   transposeB: boolean,
   outputBuffer?: GPUBuffer | null
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
 
@@ -1543,7 +1610,8 @@ async function runDenseFFNWithFusedPostNormGPU(
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
   const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
 
-  let activatedOutput: GPUBuffer;
+  let activatedOutput: Tensor;
+  const useF16 = inputTensor.dtype === 'f16';
 
   if (hasFusedGateUp) {
     // Fused gate+up path
@@ -1551,33 +1619,35 @@ async function runDenseFFNWithFusedPostNormGPU(
 
     // 1. Fused gate+up projection
     let gateUpOutput = await doMatmul(
-      inputBuffer, gateUpWeight,
+      inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto' },
+      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined },
       recorder
     );
 
     const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
     if (loraGateUp) {
       const combined = await applyLoRA(
-        inputBuffer,
+        inputTensor,
         gateUpOutput,
         loraGateUp,
         { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
         getWeightBuffer,
         recorder
       );
-      if (combined !== gateUpOutput) {
+      if (combined.buffer !== gateUpOutput.buffer) {
         if (recorder) {
-          recorder.trackTemporaryBuffer(gateUpOutput);
+          recorder.trackTemporaryBuffer(gateUpOutput.buffer);
         } else {
-          releaseBuffer(gateUpOutput);
+          releaseBuffer(gateUpOutput.buffer);
         }
         gateUpOutput = combined;
       }
     }
 
-    if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+    if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
+      releaseBuffer(isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
+    }
 
     // 2. Split + Activation
     const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
@@ -1588,9 +1658,9 @@ async function runDenseFFNWithFusedPostNormGPU(
     }, recorder);
 
     if (recorder) {
-      recorder.trackTemporaryBuffer(gateUpOutput);
+      recorder.trackTemporaryBuffer(gateUpOutput.buffer);
     } else {
-      releaseBuffer(gateUpOutput);
+      releaseBuffer(gateUpOutput.buffer);
     }
   } else {
     // Separate gate/up path
@@ -1599,21 +1669,25 @@ async function runDenseFFNWithFusedPostNormGPU(
 
     // 1a. Gate projection
     const gateOutput = await doMatmul(
-      inputBuffer, gateWeight,
+      inputTensor, gateWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto' },
+      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined },
       recorder
     );
-    if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
+    if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+      releaseBuffer(isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+    }
 
     // 1b. Up projection
     const upOutput = await doMatmul(
-      inputBuffer, upWeight,
+      inputTensor, upWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto' },
+      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined },
       recorder
     );
-    if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+    if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+      releaseBuffer(isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+    }
 
     // 2. Activation: activation(gate) * up
     // The activation function handles both the activation and element-wise multiply
@@ -1624,18 +1698,18 @@ async function runDenseFFNWithFusedPostNormGPU(
     }, recorder);
 
     if (recorder) {
-      recorder.trackTemporaryBuffer(gateOutput);
-      recorder.trackTemporaryBuffer(upOutput);
+      recorder.trackTemporaryBuffer(gateOutput.buffer);
+      recorder.trackTemporaryBuffer(upOutput.buffer);
     } else {
-      releaseBuffer(gateOutput);
-      releaseBuffer(upOutput);
+      releaseBuffer(gateOutput.buffer);
+      releaseBuffer(upOutput.buffer);
     }
   }
 
   // 3. FUSED: Down projection + RMSNorm + Residual (single kernel!)
   // This is the key optimization: combines matmul + norm + residual into one dispatch
   // Use pre-allocated decode buffer for output when available
-  const output = await doMatmulRMSNormFused(
+  const outputTensor = await doMatmulRMSNormFused(
     activatedOutput,
     downWeight,
     normWeightBuf,
@@ -1643,7 +1717,7 @@ async function runDenseFFNWithFusedPostNormGPU(
       N: hiddenSize,
       K: intermediateSize,
       eps,
-      residual,
+      residual: residualTensor,
       outputBuffer,
       transposeB,  // true for GGUF row-major, false for column-major
     },
@@ -1659,33 +1733,36 @@ async function runDenseFFNWithFusedPostNormGPU(
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(output, 'fused_ffn_out', {
+    await dumpTokenVector(outputTensor.buffer, 'fused_ffn_out', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: hiddenSize,
     });
   }
 
-  if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+  if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+    releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+  }
   if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   if (recorder) {
-    recorder.trackTemporaryBuffer(activatedOutput);
+    recorder.trackTemporaryBuffer(activatedOutput.buffer);
   } else {
-    releaseBuffer(activatedOutput);
+    releaseBuffer(activatedOutput.buffer);
   }
 
-  return output;
+  return outputTensor;
 }
 
 /**
  * Run MoE FFN on GPU.
+ * Input and output are Tensor for dtype-aware processing.
  */
 async function runMoEFFNGPU(
   layerIdx: number,
-  inputBuffer: GPUBuffer,
+  inputTensor: Tensor,
   numTokens: number,
   context: LayerContext
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const { config, moeRouter, expertWeights, expertLoader, layerRouterWeights } = context;
 
   if (!moeRouter || !expertWeights || !expertLoader) {
@@ -1695,8 +1772,9 @@ async function runMoEFFNGPU(
   // Import dynamically to avoid circular dependency
   const { moeFeedForwardGPU } = await import('./moe-impl.js');
 
-  return moeFeedForwardGPU(
-    inputBuffer,
+  // MoE implementation still uses GPUBuffer - wrap/unwrap at boundaries
+  const outputBuffer = await moeFeedForwardGPU(
+    inputTensor.buffer,
     numTokens,
     {
       hiddenSize: config.hiddenSize,
@@ -1711,6 +1789,9 @@ async function runMoEFFNGPU(
     layerIdx,
     layerRouterWeights as Map<number, import('./moe-impl.js').LayerRouterWeights> | undefined
   );
+
+  // Wrap output in Tensor, preserving dtype from input
+  return createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');
 }
 
 // ============================================================================

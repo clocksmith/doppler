@@ -16,6 +16,7 @@
 
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { createTensor, type Tensor } from '../../gpu/tensor.js';
 import {
   runMatmul,
   runSiLU,
@@ -302,8 +303,10 @@ export async function moeFeedForwardGPU(
   releaseBuffer(logitsBuffer);
 
   // 3. Gather tokens by expert on GPU (sparse MoE execution)
+  // Wrap inputBuffer in Tensor (MoE always uses F32)
+  const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'moe_input');
   const { gathered, tokenCounts, tokenMap, maxTokensPerExpert } = await runMoEGather(
-    inputBuffer,
+    inputTensor,
     indicesBuffer,
     numTokens,
     hiddenSize,
@@ -416,8 +419,15 @@ export async function moeFeedForwardGPU(
   }
 
   // 5. Dynamic scatter-add: combine expert outputs weighted by routing probabilities
-  const outputBuffer = await runScatterAddDynamic(
+  // Wrap expertOutputs in Tensor (MoE uses F32)
+  const expertOutputsTensor = createTensor(
     expertOutputs,
+    'f32',
+    [numExperts, maxTokensPerExpert, hiddenSize],
+    'moe_expert_outputs'
+  );
+  const outputTensor = await runScatterAddDynamic(
+    expertOutputsTensor,
     indicesBuffer,
     weightsBuffer,
     tokenOffsets,
@@ -427,14 +437,14 @@ export async function moeFeedForwardGPU(
   );
 
   // Cleanup
-  releaseBuffer(gathered);
+  releaseBuffer(gathered.buffer);
   releaseBuffer(tokenMap);
   releaseBuffer(expertOutputs);
   releaseBuffer(tokenOffsets);
   releaseBuffer(indicesBuffer);
   releaseBuffer(weightsBuffer);
 
-  return outputBuffer;
+  return outputTensor.buffer;
 }
 
 // ============================================================================
@@ -446,7 +456,7 @@ export async function moeFeedForwardGPU(
  * Uses dequant cache to avoid re-dequantizing same expert weights.
  */
 async function runGptOssExpert(
-  gathered: GPUBuffer,
+  gathered: Tensor,
   expertOutputs: GPUBuffer,
   weights: MoEExpertWeights,
   layerIdx: number,
@@ -487,8 +497,8 @@ async function runGptOssExpert(
     gateUpWeight = cached.gateUp;
     downWeight = cached.down;
   } else {
-    // Dequantize and cache
-    gateUpWeight = await dequantizeMXFP4Expert(
+    // Dequantize and cache (extract .buffer from Tensor)
+    const gateUpTensor = await dequantizeMXFP4Expert(
       weights.gateUpBlocks,
       weights.gateUpScales,
       expertIdx,
@@ -496,7 +506,7 @@ async function runGptOssExpert(
       outDim,
       gateUpGroups
     );
-    downWeight = await dequantizeMXFP4Expert(
+    const downTensor = await dequantizeMXFP4Expert(
       weights.downBlocks,
       weights.downScales,
       expertIdx,
@@ -504,6 +514,8 @@ async function runGptOssExpert(
       hiddenSize,
       downGroups
     );
+    gateUpWeight = gateUpTensor.buffer;
+    downWeight = downTensor.buffer;
     setCachedDequant(layerIdx, expertIdx, gateUpWeight, downWeight);
   }
 
@@ -520,14 +532,15 @@ async function runGptOssExpert(
 
   // SwiGLU with per-expert bias: output [count, intermediateSize]
   const biasOffset = expertIdx * outDim * 4;
+  const biasTensor = createTensor(weights.gateUpBias, 'f32', [outDim], 'moe_gate_up_bias');
   const activated = await runSwiGLURowsplitBias(
     gateUpOut,
-    weights.gateUpBias,
+    biasTensor,
     count,
     intermediateSize,
     { biasOffset }
   );
-  releaseBuffer(gateUpOut);
+  releaseBuffer(gateUpOut.buffer);
 
   // down projection to expertOutputs slice
   await runMatmul(
@@ -539,12 +552,15 @@ async function runGptOssExpert(
     { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset }
   );
   // Don't release cached weights
-  releaseBuffer(activated);
+  releaseBuffer(activated.buffer);
 
   // Add down bias in-place (optional)
   if (weights.downBias) {
     const downBiasOffset = expertIdx * hiddenSize * 4;
-    await runBiasAdd(expertOutputs, weights.downBias, count, hiddenSize, {
+    // Wrap expertOutputs and downBias in Tensor for runBiasAdd
+    const expertOutputsTensor = createTensor(expertOutputs, 'f32', [count, hiddenSize], 'expert_outputs');
+    const downBiasTensor = createTensor(weights.downBias, 'f32', [hiddenSize], 'down_bias');
+    await runBiasAdd(expertOutputsTensor, downBiasTensor, count, hiddenSize, {
       dataOffset: outputOffset,
       biasOffset: downBiasOffset,
     });
@@ -555,7 +571,7 @@ async function runGptOssExpert(
  * Run Mixtral-style expert (gate/up/down).
  */
 async function runMixtralExpert(
-  gathered: GPUBuffer,
+  gathered: Tensor,
   expertOutputs: GPUBuffer,
   weights: MoEExpertWeights,
   count: number,
@@ -588,8 +604,8 @@ async function runMixtralExpert(
     size: count * intermediateSize,
     gate: gateOut,
   });
-  releaseBuffer(gateOut);
-  releaseBuffer(upOut);
+  releaseBuffer(gateOut.buffer);
+  releaseBuffer(upOut.buffer);
 
   await runMatmul(
     activated,
@@ -599,7 +615,7 @@ async function runMixtralExpert(
     intermediateSize,
     { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset }
   );
-  releaseBuffer(activated);
+  releaseBuffer(activated.buffer);
 }
 
 /**
@@ -629,15 +645,16 @@ async function runExpertCPU(
     return new Float32Array(input.length);
   }
 
-  // 1. Create input buffer
+  // 1. Create input buffer and wrap in Tensor
   const inputBuffer = acquireBuffer(input.byteLength, undefined, 'expert_input');
   device.queue.writeBuffer(inputBuffer, 0, input as unknown as BufferSource);
+  const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'expert_input');
 
   // 2. Gate projection
-  const gateOutput = await runMatmul(inputBuffer, weights.gate as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
+  const gateOutput = await runMatmul(inputTensor, weights.gate as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 3. Up projection
-  const upOutput = await runMatmul(inputBuffer, weights.up as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
+  const upOutput = await runMatmul(inputTensor, weights.up as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 4. Activation
   const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
@@ -650,14 +667,14 @@ async function runExpertCPU(
   const output = await runMatmul(activatedOutput, weights.down as GPUBuffer, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' });
 
   // 6. Read output back
-  const outputData = await readBuffer(output, input.byteLength);
+  const outputData = await readBuffer(output.buffer, input.byteLength);
 
   // Cleanup
   releaseBuffer(inputBuffer);
-  releaseBuffer(gateOutput);
-  releaseBuffer(upOutput);
-  releaseBuffer(activatedOutput);
-  releaseBuffer(output);
+  releaseBuffer(gateOutput.buffer);
+  releaseBuffer(upOutput.buffer);
+  releaseBuffer(activatedOutput.buffer);
+  releaseBuffer(output.buffer);
 
   return new Float32Array(outputData);
 }

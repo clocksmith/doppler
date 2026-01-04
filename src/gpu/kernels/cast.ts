@@ -7,14 +7,47 @@
  */
 
 import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
+import { createTensor, Tensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import type { OutputBufferOptions } from './types.js';
-import { log, trace } from '../../debug/index.js';
+import { trace } from '../../debug/index.js';
+import { DTYPE_SIZES } from '../../config/schema/index.js';
+
+// =============================================================================
+// Dispatch Helpers
+// =============================================================================
+
+/**
+ * Calculate 2D dispatch for large workgroup counts.
+ * WebGPU has a limit of 65535 workgroups per dimension.
+ */
+function calculate2DDispatch(workgroups: number): [number, number, number] {
+  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
+  return workgroups <= maxWorkgroupsPerDim
+    ? [workgroups, 1, 1]
+    : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+}
+
+/**
+ * LCM utility for alignment calculations.
+ */
+function lcm(a: number, b: number): number {
+  const gcd = (x: number, y: number): number => {
+    let a0 = x;
+    let b0 = y;
+    while (b0 !== 0) {
+      const t = b0;
+      b0 = a0 % b0;
+      a0 = t;
+    }
+    return a0;
+  };
+  return (a / gcd(a, b)) * b;
+}
 
 /** Cast kernel options */
 export interface CastOptions extends OutputBufferOptions {}
@@ -23,16 +56,17 @@ export interface CastOptions extends OutputBufferOptions {}
  * Cast F32 buffer to F16 on GPU
  */
 export async function castF32ToF16(
-  input: GPUBuffer,
-  numElements: number,
+  input: Tensor,
   options: CastOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = getDevice();
   const { outputBuffer = null } = options;
+  const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f32_to_f16');
 
-  const output = outputBuffer || acquireBuffer(numElements * 2, undefined, 'cast_f32_to_f16_output');
+  const outputSize = numElements * DTYPE_SIZES.f16;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f32_to_f16_output');
 
   const uniformBuffer = createUniformBufferWithView(
     'cast_f32_to_f16_uniforms',
@@ -49,18 +83,14 @@ export async function castF32ToF16(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
 
-  // WebGPU has a limit of 65535 workgroups per dimension
   // Use 2D dispatch for large tensors (like embeddings with 300M+ elements)
   const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize: [number, number, number] = workgroups <= maxWorkgroupsPerDim
-    ? [workgroups, 1, 1]
-    : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
 
   dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
 
@@ -70,8 +100,7 @@ export async function castF32ToF16(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(output, 'f16');
-  return output;
+  return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
 }
 
 /**
@@ -79,16 +108,17 @@ export async function castF32ToF16(
  */
 export async function recordCastF32ToF16(
   recorder: CommandRecorder,
-  input: GPUBuffer,
-  numElements: number,
+  input: Tensor,
   options: CastOptions = {}
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
   const device = recorder.device;
   const { outputBuffer = null } = options;
+  const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f32_to_f16');
 
-  const output = outputBuffer || acquireBuffer(numElements * 2, undefined, 'cast_f32_to_f16_output');
+  const outputSize = numElements * DTYPE_SIZES.f16;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f32_to_f16_output');
 
   const uniformBuffer = createUniformBufferWithView(
     'cast_f32_to_f16_uniforms',
@@ -104,23 +134,18 @@ export async function recordCastF32ToF16(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
     ],
   });
 
-  // WebGPU has a limit of 65535 workgroups per dimension
   // Use 2D dispatch for large tensors
   const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize: [number, number, number] = workgroups <= maxWorkgroupsPerDim
-    ? [workgroups, 1, 1]
-    : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
 
   recordDispatch(recorder, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
 
-  setBufferDtype(output, 'f16');
-  return output;
+  return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
 }
 
 /**
@@ -128,9 +153,10 @@ export async function recordCastF32ToF16(
  */
 export async function runBF16ToF32(
   input: GPUBuffer,
-  numElements: number,
+  shape: readonly number[],
   name: string = 'bf16_to_f32_output'
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   trace.kernels(`BF16ToF32: Entry numElements=${numElements}, name=${name}, inputSize=${input.size}`);
   const device = getDevice();
 
@@ -138,7 +164,7 @@ export async function runBF16ToF32(
   const limits = device.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
-  const outputSize = numElements * 4; // F32
+  const outputSize = numElements * DTYPE_SIZES.f32;
   trace.kernels(`BF16ToF32: outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
 
   if (outputSize > maxBufferSize) {
@@ -151,7 +177,7 @@ export async function runBF16ToF32(
 
   if (outputSize > maxBindingSize) {
     // Need to chunk - output buffer can exist, but must be bound in smaller ranges.
-    return runBF16ToF32Chunked(input, numElements, name, maxBindingSize);
+    return runBF16ToF32Chunked(input, shape, name, maxBindingSize);
   }
 
   const pipeline = await createPipeline('bf16_to_f32', 'default');
@@ -186,13 +212,7 @@ export async function runBF16ToF32(
   // Then divide by 256 for workgroup count
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-
-  // WebGPU has a limit of 65535 workgroups per dimension
-  // Use 2D dispatch for large tensors
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize: [number, number, number] = workgroups <= maxWorkgroupsPerDim
-    ? [workgroups, 1, 1]
-    : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
 
   trace.kernels(`BF16ToF32: Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`);
   dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f32');
@@ -203,8 +223,7 @@ export async function runBF16ToF32(
 
   uniformBuffer.destroy();
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, 'f32', [...shape], name);
 }
 
 /**
@@ -212,16 +231,17 @@ export async function runBF16ToF32(
  */
 export async function runBF16ToF16(
   input: GPUBuffer,
-  numElements: number,
+  shape: readonly number[],
   name: string = 'bf16_to_f16_output'
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   const device = getDevice();
   const pipeline = await createPipeline('bf16_to_f16', 'default');
 
   const limits = device.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
-  const outputSize = numElements * 2; // F16
+  const outputSize = numElements * DTYPE_SIZES.f16;
 
   if (outputSize > maxBufferSize) {
     throw new Error(
@@ -260,18 +280,14 @@ export async function runBF16ToF16(
 
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize: [number, number, number] = workgroups <= maxWorkgroupsPerDim
-    ? [workgroups, 1, 1]
-    : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
 
   dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f16');
   await device.queue.onSubmittedWorkDone();
 
   uniformBuffer.destroy();
 
-  setBufferDtype(output, 'f16');
-  return output;
+  return createTensor(output, 'f16', [...shape], name);
 }
 
 /**
@@ -279,34 +295,22 @@ export async function runBF16ToF16(
  */
 async function runBF16ToF32Chunked(
   input: GPUBuffer,
-  numElements: number,
+  shape: readonly number[],
   name: string,
   maxBindingSize: number
-): Promise<GPUBuffer> {
+): Promise<Tensor> {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   const device = getDevice();
   const pipeline = await createPipeline('bf16_to_f32', 'default');
 
   // Calculate chunk size
   const alignmentBytes = device.limits.minStorageBufferOffsetAlignment;
-  const lcm = (a: number, b: number): number => {
-    const gcd = (x: number, y: number): number => {
-      let a0 = x;
-      let b0 = y;
-      while (b0 !== 0) {
-        const t = b0;
-        b0 = a0 % b0;
-        a0 = t;
-      }
-      return a0;
-    };
-    return (a / gcd(a, b)) * b;
-  };
 
-  const inElemAlign = Math.max(1, Math.floor(alignmentBytes / 2)); // BF16 elements
-  const outElemAlign = Math.max(1, Math.floor(alignmentBytes / 4)); // F32 elements
+  const inElemAlign = Math.max(1, Math.floor(alignmentBytes / DTYPE_SIZES.bf16)); // BF16 elements
+  const outElemAlign = Math.max(1, Math.floor(alignmentBytes / DTYPE_SIZES.f32)); // F32 elements
   const elemAlign = lcm(inElemAlign, outElemAlign);
 
-  let maxElementsPerChunk = Math.floor(maxBindingSize / 4); // F32 output bytes
+  let maxElementsPerChunk = Math.floor(maxBindingSize / DTYPE_SIZES.f32); // F32 output bytes
   maxElementsPerChunk -= maxElementsPerChunk % elemAlign;
   if (maxElementsPerChunk <= 0) {
     throw new Error(`BF16→F32 chunk size underflow (maxBindingSize=${maxBindingSize}, alignment=${alignmentBytes})`);
@@ -314,7 +318,7 @@ async function runBF16ToF32Chunked(
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
 
   // Create full output buffer
-  const outputSize = numElements * 4;
+  const outputSize = numElements * DTYPE_SIZES.f32;
   const output = acquireBuffer(outputSize, undefined, name);
 
   trace.kernels(`BF16ToF32: Chunking ${numElements} elements in ${numChunks} chunks`);
@@ -336,11 +340,11 @@ async function runBF16ToF32Chunked(
       device
     );
 
-    const inputOffsetBytes = chunkStart * 2;
-    const outputOffsetBytes = chunkStart * 4;
+    const inputOffsetBytes = chunkStart * DTYPE_SIZES.bf16;
+    const outputOffsetBytes = chunkStart * DTYPE_SIZES.f32;
     const inputPairs = Math.ceil(chunkSize / 2);
-    const inputSizeBytes = inputPairs * 4;
-    const outputSizeBytes = chunkSize * 4;
+    const inputSizeBytes = inputPairs * DTYPE_SIZES.f32; // Pairs read as u32
+    const outputSizeBytes = chunkSize * DTYPE_SIZES.f32;
 
     const bindGroup = device.createBindGroup({
       label: `bf16_to_f32_chunk${chunkIdx}_bind_group`,
@@ -355,18 +359,12 @@ async function runBF16ToF32Chunked(
     // Each thread processes 2 BF16 values
     const numPairs = Math.ceil(chunkSize / 2);
     const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-
-    // Use 2D dispatch for large chunks
-    const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-    const dispatchSize: [number, number, number] = workgroups <= maxWorkgroupsPerDim
-      ? [workgroups, 1, 1]
-      : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+    const dispatchSize = calculate2DDispatch(workgroups);
 
     dispatch(device, pipeline, bindGroup, dispatchSize, `bf16_to_f32_chunk${chunkIdx}`);
 
     uniformBuffer.destroy();
   }
 
-  setBufferDtype(output, 'f32');
-  return output;
+  return createTensor(output, 'f32', [...shape], name);
 }

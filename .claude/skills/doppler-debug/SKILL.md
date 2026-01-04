@@ -19,11 +19,27 @@ Use this skill to debug WebGPU inference issues in DOPPLER.
 | Wrong token probabilities | Top-k tokens different from HF | Compare `logits_final` (post-softcap) vs HF |
 | PAD token wins | `<pad>` selected or repeated | pad_token_id not masked in sampling |
 
+## Completion Signals
+
+DOPPLER emits standardized signals for CLI/automation detection:
+
+| Signal | Meaning |
+|--------|---------|
+| `[DOPPLER:DONE]` | Task completed (success or error) - always emitted at end |
+| `[DOPPLER:RESULT]` | Full result payload (JSON) - emitted before DONE |
+| `[DOPPLER:ERROR]` | Error occurred - emitted before DONE on failure |
+
+Example output:
+```
+[DOPPLER:RESULT] {"output":"blue","tokens":8,"elapsed":1234.5,"tokensPerSecond":6.5}
+[DOPPLER:DONE] {"status":"success","elapsed":1234.5,"tokens":8,"tokensPerSecond":6.5}
+```
+
 ## Quick Diagnostic Commands
 
 ```bash
 # Step 1: Quick sanity check - does it produce any output?
-npm run debug -- -m MODEL 2>&1 | grep -E "Done|Output|Error"
+npm run debug -- -m MODEL 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
 
 # Step 2: Check for obvious errors in logs
 npm run debug -- -m MODEL 2>&1 | grep -E "Error|NaN|Inf|ANOMALY"
@@ -82,16 +98,16 @@ npm run debug -- --config gemma2-debug -m MODEL 2>&1 | grep -E "PROBE|Output"
 
 ```bash
 # First run: loads model into GPU memory (~30s)
-npm run debug -- -m MODEL --trace ffn 2>&1 | sed '/Done/q'
+npm run debug -- -m MODEL --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
 
 # Subsequent runs: reuses model, much faster (~5s)
-npm run debug -- -m MODEL --skip-load --trace ffn 2>&1 | sed '/Done/q'
+npm run debug -- -m MODEL --skip-load --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then run
-npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | sed '/Done/q'
+npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
 ```
 
-Use `sed '/Done/q'` to exit immediately after generation completes.
+Use `sed '/DOPPLER:DONE/q'` to exit immediately after generation completes.
 
 ## Comparing Against HuggingFace Reference
 
@@ -124,8 +140,9 @@ Once you identify the failure class, apply the appropriate fix:
 
 | Pattern | Purpose |
 |---------|---------|
+| `"DOPPLER:DONE\|DOPPLER:ERROR"` | Check completion status |
+| `"DOPPLER:RESULT"` | Extract full result JSON |
 | `"maxAbs\|ANOMALY\|NaN\|Inf"` | Find numerical problems |
-| `"Config\|Done\|Output"` | Quick status check |
 | `"TRACE:attn\|TRACE:ffn"` | Filter specific traces |
 | `"Error\|error\|ERROR"` | Find error messages |
 | `"LAYER_OUT"` | Track hidden state magnitudes per layer |

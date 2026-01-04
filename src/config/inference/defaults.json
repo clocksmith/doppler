@@ -10,5 +10,8 @@
     "topK": 40,
     "repetitionPenalty": 1.1,
     "greedyThreshold": 0.01
+  },
+  "compute": {
+    "activationDtype": "f32"
   }
 }

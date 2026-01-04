@@ -414,4 +414,4 @@ struct Uniforms {
 ## See Also
 
 - [TypeScript Style Guide](./TYPESCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
-- [Coding Guide](./CODING_GUIDE.md) - General patterns
+- [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns

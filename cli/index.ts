@@ -156,6 +156,7 @@ function parseArgs(argv: string[]): CLIOptions {
     baseUrl: 'http://localhost:8080',
     config: null,           // Config preset or path
     runtimeConfig: null,    // Loaded runtime config (merged with defaults)
+    configChain: null,      // Config inheritance chain for debugging
     dumpConfig: false,      // Dump resolved config and exit
     listPresets: false,     // List available presets and exit
     noServer: false,
@@ -488,6 +489,9 @@ function appendKernelOverrideParams(params: URLSearchParams, opts: CLIOptions): 
 function appendRuntimeConfigParams(params: URLSearchParams, opts: CLIOptions): void {
   if (opts.runtimeConfig) {
     params.set('runtimeConfig', JSON.stringify(opts.runtimeConfig));
+  }
+  if (opts.configChain) {
+    params.set('configChain', JSON.stringify(opts.configChain));
   }
 }
 
@@ -1905,6 +1909,7 @@ async function main(): Promise<void> {
       loadedConfig = await loadConfig(opts.config);
       console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
       opts.runtimeConfig = loadedConfig.runtime;
+      opts.configChain = loadedConfig.chain;
 
       // Apply runtime config to opts
       const runtime = loadedConfig.runtime;
@@ -2008,9 +2013,12 @@ async function main(): Promise<void> {
       page.on('console', (msg) => {
         const text = msg.text();
         console.log(`  [browser] ${text}`);
-        // Detect generation completion
-        if (text.startsWith('[Done]') || text.startsWith('[Output]')) {
+        // Detect generation completion via standardized signals
+        // [DOPPLER:DONE] is the canonical completion signal
+        if (text.startsWith('[DOPPLER:DONE]')) {
           generationDone = true;
+        } else if (text.startsWith('[DOPPLER:ERROR]')) {
+          generationError = true;
         }
       });
       page.on('pageerror', (err) => {

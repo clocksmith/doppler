@@ -4,10 +4,12 @@
  * @module loader/weights
  */
 
+import type { WeightBuffer } from '../gpu/weight-buffer.js';
+
 export interface ExpertWeights {
-  gate?: GPUBuffer | Float32Array | null;
-  up?: GPUBuffer | Float32Array | null;
-  down?: GPUBuffer | Float32Array | null;
+  gate?: GPUBuffer | WeightBuffer | Float32Array | null;
+  up?: GPUBuffer | WeightBuffer | Float32Array | null;
+  down?: GPUBuffer | WeightBuffer | Float32Array | null;
   isGptOss?: boolean;
   expertIdx?: number;
   numExperts?: number;

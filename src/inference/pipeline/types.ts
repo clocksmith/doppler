@@ -10,6 +10,7 @@
 
 import type { ParsedModelConfig } from './config.js';
 import type { LoRAAdapter } from './lora-types.js';
+import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Core Context Types
@@ -29,8 +30,8 @@ export interface PipelineContext {
   /** Parsed model configuration */
   config: ParsedModelConfig;
 
-  /** Weight buffers map (name -> GPUBuffer | Float32Array) */
-  weights: Map<string, GPUBuffer | Float32Array>;
+  /** Weight buffers map (name -> GPUBuffer | WeightBuffer | Float32Array) */
+  weights: Map<string, GPUBuffer | WeightBuffer | Float32Array>;
 
   /** KV cache instance */
   kvCache: KVCacheInterface;
@@ -219,17 +220,23 @@ export interface LayerConfig {
 }
 
 /**
+ * Weight type that can be a raw GPUBuffer, a typed WeightBuffer, or CPU Float32Array.
+ * WeightBuffer provides explicit dtype/layout metadata; GPUBuffer uses WeakMap tracking.
+ */
+export type LayerWeightBuffer = GPUBuffer | WeightBuffer | Float32Array;
+
+/**
  * Weights for a single transformer layer.
  */
 export interface LayerWeights {
   // Attention
   inputNorm: GPUBuffer | Float32Array;
-  qProj: GPUBuffer | Float32Array;
-  kProj: GPUBuffer | Float32Array;
-  vProj: GPUBuffer | Float32Array;
-  oProj: GPUBuffer | Float32Array;
+  qProj: LayerWeightBuffer;
+  kProj: LayerWeightBuffer;
+  vProj: LayerWeightBuffer;
+  oProj: LayerWeightBuffer;
   /** Fused Q/K/V projection (runtime-generated for 3→1 matmul optimization) */
-  qkvProj?: GPUBuffer | null;
+  qkvProj?: GPUBuffer | WeightBuffer | null;
   /** Sizes for splitting fused QKV output: [qSize, kSize, vSize] in elements */
   qkvSizes?: [number, number, number];
   /** Data type of fused QKV weights (f16 or f32) */
@@ -238,10 +245,10 @@ export interface LayerWeights {
   // FFN (dense layers)
   postAttentionNorm?: GPUBuffer | Float32Array;
   postAttnNorm?: GPUBuffer | Float32Array;  // LLaMA-style pre-FFN norm
-  gate?: GPUBuffer | Float32Array;
-  up?: GPUBuffer | Float32Array;
-  down?: GPUBuffer | Float32Array;
-  gateUp?: GPUBuffer | Float32Array;  // Fused gate+up for 2-pass FFN
+  gate?: LayerWeightBuffer;
+  up?: LayerWeightBuffer;
+  down?: LayerWeightBuffer;
+  gateUp?: LayerWeightBuffer;  // Fused gate+up for 2-pass FFN
 
   // Sandwich norms (Gemma 3)
   preFeedforwardNorm?: GPUBuffer | Float32Array;
@@ -259,9 +266,9 @@ export interface LayerWeights {
  * Weights for a single MoE expert.
  */
 export interface ExpertWeights {
-  gate: GPUBuffer | Float32Array;
-  up: GPUBuffer | Float32Array;
-  down: GPUBuffer | Float32Array;
+  gate: LayerWeightBuffer;
+  up: LayerWeightBuffer;
+  down: LayerWeightBuffer;
 }
 
 /**
