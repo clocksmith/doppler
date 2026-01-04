@@ -502,7 +502,7 @@ export class InferencePipeline {
       // Apply chat template if requested
       let processedPrompt = prompt;
       if (opts.useChatTemplate) {
-        if (this.modelConfig!.isGemma3) {
+        if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
           processedPrompt = applyGemmaChatTemplate(prompt);
           if (opts.debug) log.debug('Pipeline', 'Applied Gemma chat template');
         } else if (this.modelConfig!.isLlama3Instruct) {
@@ -691,7 +691,7 @@ export class InferencePipeline {
 
     let processedPrompt = prompt;
     if (opts.useChatTemplate) {
-      if (this.modelConfig!.isGemma3) {
+      if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
         processedPrompt = applyGemmaChatTemplate(prompt);
       } else if (this.modelConfig!.isLlama3Instruct) {
         processedPrompt = applyLlama3ChatTemplate(prompt);
@@ -771,7 +771,7 @@ export class InferencePipeline {
     try {
       let processedPrompt = prompt;
       if (opts.useChatTemplate) {
-        if (this.modelConfig!.isGemma3) {
+        if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
           processedPrompt = applyGemmaChatTemplate(prompt);
         } else if (this.modelConfig!.isLlama3Instruct) {
           processedPrompt = applyLlama3ChatTemplate(prompt);
