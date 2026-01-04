@@ -34,7 +34,7 @@ export interface BatchingDefaultsSchema {
 
 /** Default batching configuration */
 export const DEFAULT_BATCHING_DEFAULTS: BatchingDefaultsSchema = {
-  batchSize: 8,
+  batchSize: 1,  // Compare single-token
   maxTokens: 512,
   stopCheckMode: 'per-token',
 };

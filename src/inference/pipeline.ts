@@ -499,11 +499,8 @@ export class InferencePipeline {
     try {
       // Apply chat template if requested (config-driven)
       let processedPrompt = prompt;
-      console.log(`[ChatTemplate] useChatTemplate=${opts.useChatTemplate} chatTemplateType=${this.modelConfig!.chatTemplateType}`);
       if (opts.useChatTemplate && this.modelConfig!.chatTemplateType) {
         processedPrompt = applyChatTemplate(prompt, this.modelConfig!.chatTemplateType);
-        console.log(`[ChatTemplate] Applied ${this.modelConfig!.chatTemplateType} template`);
-        console.log(`[ChatTemplate] Processed prompt: ${JSON.stringify(processedPrompt)}`);
         if (opts.debug) log.debug('Pipeline', `Applied ${this.modelConfig!.chatTemplateType} chat template`);
       }
 
@@ -1187,7 +1184,6 @@ export class InferencePipeline {
 
     // Debug: check KV cache status for decode
     const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
-    console.log(`[Decode] step=${this._decodeStepCount} currentSeqLen=${context.currentSeqLen} hasGPUCache=${hasGPUCache}`);
     if (opts.debug && this._decodeStepCount === 1) {
       log.debug('Decode', `KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
     }
