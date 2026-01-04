@@ -380,5 +380,5 @@ export const DEFAULT_BENCHMARK_CONFIG: Partial<BenchmarkConfig> = {
     topP: 1,
   },
   debug: false,
-  useChatTemplate: false,
+  useChatTemplate: undefined,  // Auto-detect based on model name
 };

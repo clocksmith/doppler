@@ -46,9 +46,7 @@ import {
   initTokenizer,
   loadWeights,
   type WeightLoadResult,
-  applyGemmaChatTemplate,
-  applyLlama3ChatTemplate,
-  applyGptOssChatTemplate,
+  applyChatTemplate,
   isStopToken,
   initMoERouter,
   initSpeculativeDecoder,
@@ -499,19 +497,14 @@ export class InferencePipeline {
     };
 
     try {
-      // Apply chat template if requested
+      // Apply chat template if requested (config-driven)
       let processedPrompt = prompt;
-      if (opts.useChatTemplate) {
-        if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
-          processedPrompt = applyGemmaChatTemplate(prompt);
-          if (opts.debug) log.debug('Pipeline', 'Applied Gemma chat template');
-        } else if (this.modelConfig!.isLlama3Instruct) {
-          processedPrompt = applyLlama3ChatTemplate(prompt);
-          if (opts.debug) log.debug('Pipeline', 'Applied Llama 3 chat template');
-        } else if (this.modelConfig!.isGptOss) {
-          processedPrompt = applyGptOssChatTemplate(prompt);
-          if (opts.debug) log.debug('Pipeline', 'Applied GPT-OSS chat template');
-        }
+      console.log(`[ChatTemplate] useChatTemplate=${opts.useChatTemplate} chatTemplateType=${this.modelConfig!.chatTemplateType}`);
+      if (opts.useChatTemplate && this.modelConfig!.chatTemplateType) {
+        processedPrompt = applyChatTemplate(prompt, this.modelConfig!.chatTemplateType);
+        console.log(`[ChatTemplate] Applied ${this.modelConfig!.chatTemplateType} template`);
+        console.log(`[ChatTemplate] Processed prompt: ${JSON.stringify(processedPrompt)}`);
+        if (opts.debug) log.debug('Pipeline', `Applied ${this.modelConfig!.chatTemplateType} chat template`);
       }
 
       // Tokenize
@@ -690,14 +683,8 @@ export class InferencePipeline {
     };
 
     let processedPrompt = prompt;
-    if (opts.useChatTemplate) {
-      if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
-        processedPrompt = applyGemmaChatTemplate(prompt);
-      } else if (this.modelConfig!.isLlama3Instruct) {
-        processedPrompt = applyLlama3ChatTemplate(prompt);
-      } else if (this.modelConfig!.isGptOss) {
-        processedPrompt = applyGptOssChatTemplate(prompt);
-      }
+    if (opts.useChatTemplate && this.modelConfig!.chatTemplateType) {
+      processedPrompt = applyChatTemplate(prompt, this.modelConfig!.chatTemplateType);
     }
 
     const inputIds = this.tokenizer!.encode(processedPrompt);
@@ -770,14 +757,8 @@ export class InferencePipeline {
 
     try {
       let processedPrompt = prompt;
-      if (opts.useChatTemplate) {
-        if (this.modelConfig!.isGemma3 || this.modelConfig!.isGemma2) {
-          processedPrompt = applyGemmaChatTemplate(prompt);
-        } else if (this.modelConfig!.isLlama3Instruct) {
-          processedPrompt = applyLlama3ChatTemplate(prompt);
-        } else if (this.modelConfig!.isGptOss) {
-          processedPrompt = applyGptOssChatTemplate(prompt);
-        }
+      if (opts.useChatTemplate && this.modelConfig!.chatTemplateType) {
+        processedPrompt = applyChatTemplate(prompt, this.modelConfig!.chatTemplateType);
       }
 
       const inputIds = this.tokenizer!.encode(processedPrompt);
@@ -1206,6 +1187,7 @@ export class InferencePipeline {
 
     // Debug: check KV cache status for decode
     const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
+    console.log(`[Decode] step=${this._decodeStepCount} currentSeqLen=${context.currentSeqLen} hasGPUCache=${hasGPUCache}`);
     if (opts.debug && this._decodeStepCount === 1) {
       log.debug('Decode', `KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
     }
@@ -1491,7 +1473,7 @@ export class InferencePipeline {
     const stopBuffer = stopCheckMode === 'per-token'
       ? device.createBuffer({
         size: stopBufferSize,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
       })
       : null;
 
@@ -1591,7 +1573,7 @@ export class InferencePipeline {
           sampledTokenBuffer: tokenBuffers[i + 1],
           eosTokenId,
           maxTokens,
-          currentPos: currentPos + 1,
+          currentPos: i + 1,  // Generated token count, not sequence position
         });
 
         // Copy stop flag to main stopBuffer
@@ -1654,6 +1636,7 @@ export class InferencePipeline {
     if (stopCheckMode === 'per-token' && stopStagingBuffer) {
       // Use GPU-computed stop flags
       const stopFlags = new Uint32Array(stopStagingBuffer.getMappedRange().slice(0));
+      console.log(`[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
       for (let i = 0; i < N; i++) {
         if (stopFlags[i] === 1) {
           actualCount = i + 1;

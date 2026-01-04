@@ -172,6 +172,7 @@ function parseArgs(argv: string[]): CLIOptions {
     runs: 1,
     maxTokens: 8,
     temperature: 0.7,
+    noChat: false,
     prompt: 'medium',
     promptProvided: false,
     text: null,
@@ -323,6 +324,9 @@ function parseArgs(argv: string[]): CLIOptions {
         break;
       case '--temperature':
         opts.temperature = parseFloat(tokens.shift() || '0.7');
+        break;
+      case '--no-chat':
+        opts.noChat = true;
         break;
       case '--prompt':
       case '-p':
@@ -2017,6 +2021,9 @@ async function main(): Promise<void> {
       // Navigate to debug page with params - unified CLI → URL mapping
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
+      debugParams.set('maxTokens', String(opts.maxTokens));
+      debugParams.set('temperature', String(opts.temperature));
+      if (opts.noChat) debugParams.set('noChat', '1');
       appendPromptParams(debugParams, opts);
 
       // Debug mode: default to all trace categories and verbose logging

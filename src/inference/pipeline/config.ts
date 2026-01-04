@@ -155,6 +155,8 @@ export interface ParsedModelConfig {
   queryPreAttnScalar: number;            // Gemma 2: 256, standard: sqrt(head_dim)
   // Optional layer pipeline override from model presets
   layerPipeline?: LayerPipelineSchema | null;
+  // Chat template type from preset (gemma, llama3, gpt-oss, or null)
+  chatTemplateType?: string | null;
 }
 
 // =============================================================================
@@ -435,6 +437,7 @@ export function toParsedConfig(
     attnLogitSoftcapping: inf.attention?.attnLogitSoftcapping ?? null,
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,
+    chatTemplateType: inf.chatTemplate?.type ?? null,
   };
 }
 

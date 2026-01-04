@@ -28,6 +28,9 @@
     "layerPattern": {
       "type": "alternating",
       "globalPattern": "odd"
+    },
+    "chatTemplate": {
+      "type": "gemma"
     }
   },
 

@@ -99,6 +99,22 @@ export interface FFNSchema {
 }
 
 // =============================================================================
+// Chat Template Schema
+// =============================================================================
+
+/** Built-in chat template types */
+export type ChatTemplateType = 'gemma' | 'llama3' | 'gpt-oss' | null;
+
+/** Chat template configuration for instruct models */
+export interface ChatTemplateSchema {
+  /** Template type identifier (gemma, llama3, gpt-oss) */
+  type?: ChatTemplateType;
+
+  /** Custom template with {prompt} placeholder (overrides type) */
+  custom?: string;
+}
+
+// =============================================================================
 // Layer Pipeline Schema
 // =============================================================================
 
@@ -235,6 +251,8 @@ export interface InferenceConfigSchema {
   layerPattern?: LayerPatternSchema;
   rope?: RoPEConfigSchema;
   pipeline?: LayerPipelineSchema | null;
+  /** Chat template for instruct models */
+  chatTemplate?: ChatTemplateSchema;
 }
 
 // =============================================================================

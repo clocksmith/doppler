@@ -10,7 +10,8 @@ const DEFAULT_BENCHMARK_CONFIG = {
     topP: 1
   },
   debug: false,
-  useChatTemplate: false
+  useChatTemplate: void 0
+  // Auto-detect based on model name
 };
 export {
   DEFAULT_BENCHMARK_CONFIG

@@ -241,6 +241,10 @@ export function resolveConfig(
       ...manifestInference.rope,
     },
     pipeline: manifestInference.pipeline ?? presetInference.pipeline ?? baseInference.pipeline,
+    chatTemplate: {
+      ...baseInference.chatTemplate,
+      ...presetInference.chatTemplate,
+    },
   };
 
   // Merge tokenizer config
@@ -374,6 +378,9 @@ function getDefaultInferenceConfig(): Required<InferenceConfigSchema> {
       yarnOriginalMaxPos: 4096,
     },
     pipeline: null,
+    chatTemplate: {
+      type: null,
+    },
   };
 }
 
@@ -506,6 +513,9 @@ function mergeInference(
     ffn: mergePartial(parent.ffn, child.ffn),
     output: mergePartial(parent.output, child.output),
     layerPattern: child.layerPattern ?? parent.layerPattern,
+    rope: mergePartial(parent.rope, child.rope),
+    pipeline: child.pipeline ?? parent.pipeline,
+    chatTemplate: mergePartial(parent.chatTemplate, child.chatTemplate),
   };
 }
 

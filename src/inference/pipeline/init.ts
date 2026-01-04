@@ -637,6 +637,27 @@ export function applyGptOssChatTemplate(prompt: string): string {
 }
 
 /**
+ * Apply chat template based on template type from config.
+ * This is the config-driven entry point for chat templates.
+ *
+ * @param prompt - Raw user prompt
+ * @param templateType - Template type from preset config ('gemma', 'llama3', 'gpt-oss', or null)
+ * @returns Formatted prompt (or original if no template type)
+ */
+export function applyChatTemplate(prompt: string, templateType: string | null | undefined): string {
+  switch (templateType) {
+    case 'gemma':
+      return applyGemmaChatTemplate(prompt);
+    case 'llama3':
+      return applyLlama3ChatTemplate(prompt);
+    case 'gpt-oss':
+      return applyGptOssChatTemplate(prompt);
+    default:
+      return prompt;
+  }
+}
+
+/**
  * Check if a token is a stop token.
  *
  * @param token - Token ID to check

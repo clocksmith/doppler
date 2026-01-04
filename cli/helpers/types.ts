@@ -64,6 +64,7 @@ export interface CLIOptions {
   runs: number;
   maxTokens: number;         // For inference benchmarks
   temperature: number;       // For inference benchmarks
+  noChat: boolean;           // Disable chat template
   prompt: string;            // Prompt size preset: xs, short, medium, long
   promptProvided: boolean;   // Whether --prompt was explicitly set
   text: string | null;       // Custom prompt text (overrides prompt)

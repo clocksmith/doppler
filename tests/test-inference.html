@@ -63,6 +63,9 @@
       const MODEL_URL = `${BASE_URL}/${paramModel}`;
       const configPrompt = runtimeOverrides.runtimeConfig?.inference?.prompt;
       const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
+      const maxTokens = parseInt(params.get('maxTokens') || '8', 10);
+      const temperature = parseFloat(params.get('temperature') || '0');
+      const useChatTemplate = params.get('noChat') !== '1';
 
       try {
         let pipeline;
@@ -118,9 +121,9 @@
         const startTime = performance.now();
 
         for await (const tokenText of pipeline.generate(prompt, {
-          maxTokens: 8,
-          temperature: 0,
-          useChatTemplate: true,
+          maxTokens,
+          temperature,
+          useChatTemplate,
         })) {
           tokens.push(tokenText);
           console.log(`[Token] ${tokens.length}: "${tokenText}"`);

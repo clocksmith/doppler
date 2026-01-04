@@ -18,6 +18,9 @@
     },
     "rope": {
       "ropeTheta": 500000
+    },
+    "chatTemplate": {
+      "type": "llama3"
     }
   },
 

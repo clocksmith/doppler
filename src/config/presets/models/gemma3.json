@@ -34,6 +34,9 @@
     "rope": {
       "ropeTheta": 1000000,
       "ropeLocalTheta": 10000
+    },
+    "chatTemplate": {
+      "type": "gemma"
     }
   },
 
