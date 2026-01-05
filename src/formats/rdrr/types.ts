@@ -20,6 +20,7 @@ import {
   type MoEConfigSchema,
   type AdapterConfigSchema,
   type ProvenanceSchema,
+  type KernelPlanSchema,
 } from '../../config/schema/index.js';
 
 // =============================================================================
@@ -41,10 +42,7 @@ export type QuantizationInfo = QuantizationInfoSchema;
 // Kernel Types
 // =============================================================================
 
-export type AttentionKernel = 'auto' | 'tiled_large' | 'tiled_small' | 'streaming';
-export type MatmulKernel = 'auto' | 'fused_q4k' | 'dequant_f16' | 'dequant_f32' | 'gemv_subgroup';
 export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise';
-export type ComputePrecision = 'f16' | 'f32' | 'auto';
 
 // =============================================================================
 // Manifest Types
@@ -84,16 +82,6 @@ export interface TensorLocation {
   originalShape?: number[];
 }
 
-export interface KernelHints {
-  computePrecision?: ComputePrecision;
-  q4kMatmul?: MatmulKernel;
-  f16Matmul?: MatmulKernel;
-  attentionPrefill?: AttentionKernel;
-  attentionDecode?: AttentionKernel;
-  tunedDevice?: string;
-  benchmarkTokPerSec?: number;
-}
-
 export interface ConversionInfo {
   source: string;
   convertedAt: string;
@@ -110,8 +98,7 @@ export interface ConversionInfo {
 }
 
 export interface RuntimeOptimizations {
-  attentionKernel?: AttentionKernel;
-  kernelHints?: KernelHints;
+  kernelPlan?: KernelPlanSchema;
 }
 
 export interface RDRRManifest {

@@ -742,7 +742,7 @@ export class RDRRWriter {
   }
 
   /**
-   * Set runtime optimizations including kernel hints.
+   * Set runtime optimizations including kernel plan overrides.
    * These are embedded in the manifest as defaults; YAML profiles can override at runtime.
    */
   setOptimizations(optimizations: RuntimeOptimizationsSchema): void {
@@ -987,7 +987,7 @@ export interface WriteRDRROptions extends WriterOptions {
   onProgress?: (event: ProgressEvent) => void;
   /** Conversion metadata - how the model was generated */
   conversion?: ConversionInfoSchema;
-  /** Runtime optimizations including kernel hints */
+  /** Runtime optimizations including kernel plan overrides */
   optimizations?: RuntimeOptimizationsSchema;
 }
 
@@ -1041,7 +1041,7 @@ export async function writeRDRR(
       writer.setConversion(options.conversion);
     }
 
-    // Set runtime optimizations (including kernel hints) if provided
+    // Set runtime optimizations (including kernel plan) if provided
     if (options.optimizations) {
       writer.setOptimizations(options.optimizations);
     }

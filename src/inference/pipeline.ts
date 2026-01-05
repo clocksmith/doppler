@@ -30,19 +30,24 @@ import { recordScale } from '../gpu/kernels/scale.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats, getSubmitStats } from '../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder, type ProfileTimings } from '../gpu/command-recorder.js';
-import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
-import type { KernelHints } from '../storage/rdrr-format.js';
 import { allowReadback } from '../gpu/perf-guards.js';
 import { getUniformCache } from '../gpu/uniform-cache.js';
 import { log, trace, setGPUDevice, applyDebugConfig } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import {
+  resolveKernelPlan,
+  setKernelPlan,
+  logKernelPlanSummary,
+  getKernelPlan,
+  getKernelPlanSource,
+  type KernelPlanSource,
+} from '../config/kernel-plan.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK, type SamplingOptions } from './pipeline/sampling.js';
 import { parseModelConfig, type ParsedModelConfig, type Manifest } from './pipeline/config.js';
 import {
-  normalizeAttentionKernel,
   initRoPEFrequencies,
   createKVCache,
   initTokenizer,
@@ -60,11 +65,11 @@ import { processLayer, type LayerContext } from './pipeline/layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
-import { resolveLayerPipeline, type CompiledLayerPipeline } from './pipeline/layer-plan.js';
+import { compileLayerPipeline, resolveLayerPipeline, type CompiledLayerPipeline } from './pipeline/layer-plan.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { ExpertLoader } from './pipeline/moe-impl.js';
 import type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult } from './pipeline/types.js';
-import { type WeightBuffer, isWeightBuffer, getWeightDtype } from '../gpu/weight-buffer.js';
+import { type WeightBuffer, type CpuWeightBuffer, isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../gpu/weight-buffer.js';
 import type { DopplerLoader, LoadProgress } from '../loader/doppler-loader.js';
 import type { LogitsDebugFlags } from './pipeline/logits.js';
 import { getDopplerLoader } from '../loader/doppler-loader.js';
@@ -72,6 +77,40 @@ import { getDopplerLoader } from '../loader/doppler-loader.js';
 // Re-export types for external use
 export type { LayerWeights, ExpertWeights, RouterWeights, GenerationResult };
 export { PipelineContexts };
+
+// =============================================================================
+// Debug Helpers
+// =============================================================================
+
+function f16ToF32(h: number): number {
+  const sign = (h >> 15) & 0x1;
+  const exp = (h >> 10) & 0x1f;
+  const mant = h & 0x3ff;
+
+  if (exp === 0) {
+    if (mant === 0) return sign ? -0 : 0;
+    const f = mant / 1024 * Math.pow(2, -14);
+    return sign ? -f : f;
+  }
+  if (exp === 31) {
+    return mant ? NaN : (sign ? -Infinity : Infinity);
+  }
+
+  const f = (1 + mant / 1024) * Math.pow(2, exp - 15);
+  return sign ? -f : f;
+}
+
+function decodeReadback(buffer: ArrayBuffer, dtype: 'f16' | 'f32'): Float32Array {
+  if (dtype === 'f32') {
+    return new Float32Array(buffer);
+  }
+  const src = new Uint16Array(buffer);
+  const out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i++) {
+    out[i] = f16ToF32(src[i]);
+  }
+  return out;
+}
 
 // ============================================================================
 // TypeScript Interfaces
@@ -177,7 +216,7 @@ export class InferencePipeline {
   // Model state
   manifest: Manifest | null = null;
   modelConfig: ParsedModelConfig | null = null;
-  weights: Map<string, LayerWeights | GPUBuffer | WeightBuffer | Float32Array | null> = new Map();
+  weights: Map<string, LayerWeights | GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null> = new Map();
   expertWeights: Map<string, ExpertWeights> = new Map();
 
   // Runtime state
@@ -219,8 +258,6 @@ export class InferencePipeline {
   ropeLocalSin: Float32Array | GPUBuffer | null = null;
 
   // Attention kernel override
-  attentionKernelOverride: 'tiled_large' | 'tiled_small' | 'streaming' | null = null;
-  manifestAttentionKernelDefault: 'tiled_large' | 'tiled_small' | 'streaming' | null = null;
 
   // Debug
   debug = false;
@@ -244,7 +281,7 @@ export class InferencePipeline {
   // Debug flags (combined for both layer and logits)
   private _debugFlags: WeightDebugFlags & LogitsDebugFlags = {};
   private _decodeStepCount = 0;
-  private _runtimeKernelHints: KernelHints | null = null;
+  private _runtimeKernelPlan: RuntimeConfigSchema['inference']['kernelPlan'] | null = null;
 
   // Progress callback
   private _onProgress: ((progress: { percent: number; message?: string; stage?: string; layer?: number; total?: number }) => void) | null = null;
@@ -273,12 +310,9 @@ export class InferencePipeline {
     if (contexts.storage) this.storageContext = contexts.storage;
     if (contexts.baseUrl) this.baseUrl = contexts.baseUrl;
 
-    if (contexts.runtime?.attentionKernel) {
-      this.attentionKernelOverride = normalizeAttentionKernel(contexts.runtime.attentionKernel);
-    }
     if (contexts.runtime?.debug) this.debug = true;
-    if (contexts.runtime?.kernelHints) {
-      this._runtimeKernelHints = contexts.runtime.kernelHints;
+    if (contexts.runtime?.kernelPlan) {
+      this._runtimeKernelPlan = contexts.runtime.kernelPlan;
     }
     if (contexts.onProgress) this._onProgress = contexts.onProgress;
 
@@ -291,54 +325,26 @@ export class InferencePipeline {
   async loadModel(manifest: Manifest): Promise<void> {
     this.manifest = manifest;
     this.modelConfig = parseModelConfig(manifest);
-    this._resolveLayerPipeline();
 
     if (manifest.optimizations?.debug || manifest.runtime?.debug) this.debug = true;
 
-    // Set kernel hints from manifest (if present), otherwise apply defaults.
-    const kernelHints = manifest.optimizations?.kernelHints as KernelHints | undefined;
-    let hintsSource = 'manifest';
-    if (kernelHints) {
-      setKernelHints(kernelHints, 'manifest');
-    } else {
-      hintsSource = 'defaults';
-      const quant = String(manifest.quantization || '').toLowerCase();
-      const defaultHints: KernelHints = {
-        computePrecision: 'auto',
-        f16Matmul: 'gemv_subgroup',
-        attentionPrefill: 'tiled_large',
-        attentionDecode: 'streaming',
-      };
-      if (quant.includes('q4')) {
-        // Estimate param count using config multiplier (rough transformer formula)
-        const computeConfig = getRuntimeConfig().inference.compute;
-        const h = this.modelConfig.hiddenSize;
-        const L = this.modelConfig.numLayers;
-        const estParams = computeConfig.paramEstimationMultiplier * h * h * L;
-        const isLargeModel = estParams > computeConfig.largeModelParamThreshold;
-
-        // Large models: fused_q4k saves 4x memory (keeps weights compressed)
-        // Small models: dequant_f16 is ~2x faster (memory fits anyway)
-        defaultHints.q4kMatmul = isLargeModel ? 'fused_q4k' : 'dequant_f16';
-      }
-      setKernelHints(defaultHints, 'manifest');
-    }
-
-    if (this._runtimeKernelHints) {
-      hintsSource = 'runtime';
-      setKernelHints(this._runtimeKernelHints, 'runtime');
-    }
-
-    const manifestKernel = manifest.optimizations?.attentionKernel || manifest.attentionKernel || manifest.runtime?.attentionKernel;
-    this.manifestAttentionKernelDefault = normalizeAttentionKernel(manifestKernel);
-    if (!this.attentionKernelOverride && this.manifestAttentionKernelDefault) {
-      this.attentionKernelOverride = this.manifestAttentionKernelDefault;
-    }
+    const modelKernelPlan = manifest.optimizations?.kernelPlan ?? null;
+    const runtimeKernelPlan = this._runtimeKernelPlan ?? this.runtimeConfig.inference.kernelPlan ?? null;
+    const { plan: mergedKernelPlan, source: mergedSource } = resolveKernelPlan(modelKernelPlan, runtimeKernelPlan);
+    const { plan: resolvedKernelPlan, source: resolvedSource } = this._applyKernelPlanDefaults(
+      mergedKernelPlan,
+      mergedSource,
+      manifest
+    );
+    setKernelPlan(resolvedKernelPlan, resolvedSource);
+    logKernelPlanSummary('KernelPlan');
+    this._resolveLayerPipeline();
 
     // Single compact model summary line
     const cfg = this.modelConfig;
     const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK || 2})` : '';
-    log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, hints=${hintsSource}`);
+    const q4kStrategy = resolvedKernelPlan?.q4kStrategy ?? 'auto';
+    log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, kernelPlan=${resolvedSource}, q4k=${q4kStrategy}`);
 
     // Initialize tokenizer
     this.tokenizer = await initTokenizer(manifest, this.baseUrl ?? undefined);
@@ -872,14 +878,19 @@ export class InferencePipeline {
 
     // Embed tokens
     const embedBufferRaw = this.weights.get('embed');
-    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
-      throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
+    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+      throw new Error('Embed buffer not found or not a supported buffer type');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
     // Get embedding dtype for gather kernel (F16 embeddings need F16 gather kernel)
-    const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
+    const embedDtype = isWeightBuffer(embedBufferRaw)
+      ? getWeightDtype(embedBufferRaw)
+      : isCpuWeightBuffer(embedBufferRaw)
+        ? embedBufferRaw.dtype
+        : null;
     if (opts.debug) {
-      log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedBuffer?.size ?? 'N/A'}, dtype=${embedDtype}`);
+      const embedSize = embedBuffer instanceof GPUBuffer ? embedBuffer.size : 'N/A';
+      log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
     }
 
     // Create CommandRecorder for batched GPU operations
@@ -913,6 +924,9 @@ export class InferencePipeline {
       resetSubmitStats();
     }
 
+    const activationDtype = this.runtimeConfig.inference.compute?.activationDtype ?? 'f32';
+    const activationBytes = activationDtype === 'f16' ? 2 : 4;
+
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
@@ -921,7 +935,7 @@ export class InferencePipeline {
       recorder,
       transpose: this.embeddingTranspose,
       debugProbes: this.runtimeConfig.debug.probes,
-      activationDtype: this.runtimeConfig.inference.compute?.activationDtype ?? 'f32',
+      activationDtype,
       embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
     });
 
@@ -934,7 +948,7 @@ export class InferencePipeline {
       }
       const debugReadbackSize = getRuntimeConfig().debug.pipeline.readbackSampleSize;
       const sample = await readBuffer(hiddenStates, Math.min(debugReadbackSize, hiddenStates.size));
-      const f32 = new Float32Array(sample);
+      const f32 = decodeReadback(sample, activationDtype);
       const nanCount = f32.filter(x => !Number.isFinite(x)).length;
       const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
       const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
@@ -979,17 +993,17 @@ export class InferencePipeline {
           if (allowReadback(`pipeline.prefill.layer-${l}`)) {
             try {
               // Read the full last-token vector to match reference maxAbs (HF hooks use full hidden_size).
-              const sampleSize = config.hiddenSize * 4;
+              const sampleSize = config.hiddenSize * activationBytes;
               const staging = device.createBuffer({
                 size: sampleSize,
                 usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
               });
               const enc = device.createCommandEncoder();
-              const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;
+              const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
               enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
               device.queue.submit([enc.finish()]);
               await staging.mapAsync(GPUMapMode.READ);
-              const data = new Float32Array(staging.getMappedRange().slice(0));
+              const data = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
               staging.unmap();
               staging.destroy();
               let min = Infinity;
@@ -1040,9 +1054,9 @@ export class InferencePipeline {
       if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
         const device = getDevice();
         // Read from LAST token position (where logits will be computed from)
-        const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;  // F32
+        const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
         // Read the full last-token vector for accurate stats.
-        const sampleSize = config.hiddenSize * 4;
+        const sampleSize = config.hiddenSize * activationBytes;
         const staging = device.createBuffer({
           size: sampleSize,
           usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
@@ -1051,7 +1065,7 @@ export class InferencePipeline {
         enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
         device.queue.submit([enc.finish()]);
         await staging.mapAsync(GPUMapMode.READ);
-        const data = new Float32Array(staging.getMappedRange().slice(0));
+        const data = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
         staging.unmap();
         staging.destroy();
         const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
@@ -1067,7 +1081,9 @@ export class InferencePipeline {
     // Compute logits (record into prefill recorder when available to avoid extra submits)
     let logits: Float32Array;
     let logitsVocabSize = config.vocabSize;
-    if (currentRecorder) {
+    const lmHead = this.weights.get('lm_head');
+    const canRecordLogits = !!currentRecorder && !!lmHead && !isCpuWeightBuffer(lmHead);
+    if (currentRecorder && canRecordLogits) {
       const recorded = await recordLogitsGPU(
         currentRecorder,
         currentHiddenBuffer,
@@ -1085,6 +1101,10 @@ export class InferencePipeline {
       releaseBuffer(recorded.logitsBuffer);
       logits = new Float32Array(logitsData);
     } else {
+      if (currentRecorder) {
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
+      }
       logits = await computeLogits(
         currentHiddenBuffer,
         numTokens,
@@ -1163,11 +1183,18 @@ export class InferencePipeline {
 
     // Embed single token
     const embedBufferRaw = this.weights.get('embed');
-    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
-      throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
+    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+      throw new Error('Embed buffer not found or not a supported buffer type');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-    const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
+    const embedDtype = isWeightBuffer(embedBufferRaw)
+      ? getWeightDtype(embedBufferRaw)
+      : isCpuWeightBuffer(embedBufferRaw)
+        ? embedBufferRaw.dtype
+        : null;
+    const activationDtype = this.runtimeConfig.inference.compute?.activationDtype ?? 'f32';
+    const activationBytes = activationDtype === 'f16' ? 2 : 4;
+
     const embedTensor = await embed([lastToken], embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
@@ -1176,7 +1203,7 @@ export class InferencePipeline {
       outputBuffer: decodeHiddenBuffer ?? undefined,  // Use pre-allocated buffer
       transpose: this.embeddingTranspose,
       debugProbes: this.runtimeConfig.debug.probes,
-      activationDtype: this.runtimeConfig.inference.compute?.activationDtype ?? 'f32',
+      activationDtype,
       embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
     });
     // Extract buffer from embed tensor for layer processing
@@ -1185,9 +1212,9 @@ export class InferencePipeline {
     // Debug: check embedding output for decode step 1
     if (opts.debug && this._decodeStepCount === 1) {
       // Only read valid elements (1 token * hiddenSize), not full pooled buffer
-      const validSize = config.hiddenSize * 4;
+      const validSize = config.hiddenSize * activationBytes;
       const embedData = await readBuffer(hiddenStates, validSize);
-      const embedArr = new Float32Array(embedData);
+      const embedArr = decodeReadback(embedData, activationDtype);
       const sample = embedArr.slice(0, 5);
       const maxAbs = Math.max(...embedArr.map(Math.abs));
       const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
@@ -1237,7 +1264,8 @@ export class InferencePipeline {
     // GPU sampling now supports softcapping (Gemma 2) via logitSoftcap uniform
     const logitSoftcap = config.finalLogitSoftcapping ?? 0;
     const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
-    const useGPUSampling = this.useGPU && isGPUSamplingAvailable();
+    const lmHeadIsCpu = isCpuWeightBuffer(this.weights.get('lm_head'));
+    const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !lmHeadIsCpu;
     const useFusedDecode = recorder && useGPUSampling;
 
     if (useFusedDecode) {
@@ -1408,9 +1436,6 @@ export class InferencePipeline {
         this._getLogitsConfig(),
         this._debugFlags
       );
-
-      releaseBuffer(hiddenStates);
-
       if (logitsResult) {
         const { logitsBuffer, vocabSize } = logitsResult;
 
@@ -1424,6 +1449,7 @@ export class InferencePipeline {
             });
 
         releaseBuffer(logitsBuffer);
+        releaseBuffer(hiddenStates);
         this.currentSeqLen++;
         return nextToken;
       }
@@ -1481,6 +1507,10 @@ export class InferencePipeline {
     const recorder = opts.profile
       ? createProfilingRecorder('batch_decode')
       : createCommandRecorder('batch_decode');
+    const lmHead = this.weights.get('lm_head');
+    if (lmHead && isCpuWeightBuffer(lmHead)) {
+      throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');
+    }
 
     const stopCheckMode = opts.stopCheckMode ?? 'per-token';
 
@@ -1518,6 +1548,9 @@ export class InferencePipeline {
     // Build context for layer processing (decode mode enables pre-allocated buffers)
     const context = this._buildLayerContext(recorder, true);
     const embedBufferRaw = this.weights.get('embed');
+    if (isCpuWeightBuffer(embedBufferRaw)) {
+      throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
+    }
     if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
       throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
     }
@@ -1723,7 +1756,6 @@ export class InferencePipeline {
       ropeFreqsSin: this.ropeFreqsSin,
       ropeLocalCos: this.ropeLocalCos,  // Gemma 3: Local RoPE for sliding_attention layers
       ropeLocalSin: this.ropeLocalSin,
-      attentionKernelOverride: this.attentionKernelOverride,
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this._debugFlags,
       debugProbes: this.runtimeConfig.debug.probes,
@@ -1743,6 +1775,19 @@ export class InferencePipeline {
 
   private _resolveLayerPipeline(): void {
     if (!this.modelConfig) return;
+    const kernelPlan = getKernelPlan();
+    if (kernelPlan?.layerPipeline) {
+      this.layerPipelinePlan = {
+        ...compileLayerPipeline(kernelPlan.layerPipeline, this.modelConfig.numLayers),
+        source: 'kernelPlan',
+      };
+      const kernelSource = getKernelPlanSource();
+      log.info(
+        'Pipeline',
+        `Layer pipeline plan enabled (source=kernelPlan:${kernelSource}, steps=${this.layerPipelinePlan.steps.length}, overrides=${this.layerPipelinePlan.overrides.length})`
+      );
+      return;
+    }
     const runtimePlan = this.runtimeConfig.inference.pipeline ?? null;
     const modelPlan = this.modelConfig.layerPipeline ?? null;
     this.layerPipelinePlan = resolveLayerPipeline(modelPlan, runtimePlan, this.modelConfig.numLayers);
@@ -1752,6 +1797,43 @@ export class InferencePipeline {
         `Layer pipeline plan enabled (source=${this.layerPipelinePlan.source}, steps=${this.layerPipelinePlan.steps.length}, overrides=${this.layerPipelinePlan.overrides.length})`
       );
     }
+  }
+
+  private _applyKernelPlanDefaults(
+    plan: RuntimeConfigSchema['inference']['kernelPlan'] | null,
+    source: KernelPlanSource,
+    manifest: Manifest
+  ): { plan: RuntimeConfigSchema['inference']['kernelPlan'] | null; source: KernelPlanSource } {
+    const quant = String(manifest.quantization || '').toLowerCase();
+    if (!quant.includes('q4')) {
+      return { plan, source };
+    }
+
+    if (plan?.q4kStrategy) {
+      return { plan, source };
+    }
+
+    const computeConfig = this.runtimeConfig.inference.compute;
+    const h = this.modelConfig?.hiddenSize ?? 0;
+    const L = this.modelConfig?.numLayers ?? 0;
+    if (!h || !L) {
+      return { plan, source };
+    }
+
+    const estParams = computeConfig.paramEstimationMultiplier * h * h * L;
+    const isLargeModel = estParams > computeConfig.largeModelParamThreshold;
+    const q4kStrategy = isLargeModel ? 'fused_q4k' : 'dequant_f16';
+
+    if (plan) {
+      return { plan: { ...plan, q4kStrategy }, source };
+    }
+
+    const autoPlan: RuntimeConfigSchema['inference']['kernelPlan'] = {
+      mode: 'patch',
+      q4kStrategy,
+    };
+    const autoSource: KernelPlanSource = source === 'none' ? 'auto' : source;
+    return { plan: autoPlan, source: autoSource };
   }
 
   private _getWeightBufferConfig(): WeightBufferConfig {
@@ -1766,7 +1848,7 @@ export class InferencePipeline {
     if (!finalNorm || !(finalNorm instanceof GPUBuffer || finalNorm instanceof Float32Array)) {
       throw new Error('Final norm not found or invalid type');
     }
-    if (!lmHead || !(lmHead instanceof GPUBuffer || lmHead instanceof Float32Array || isWeightBuffer(lmHead))) {
+    if (!lmHead || !(lmHead instanceof GPUBuffer || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead))) {
       throw new Error('LM head not found or invalid type');
     }
     return { finalNorm, lmHead };
@@ -1781,6 +1863,8 @@ export class InferencePipeline {
       useTiedEmbeddings: this.useTiedEmbeddings,
       embeddingVocabSize: this.embeddingVocabSize,
       finalLogitSoftcapping: config.finalLogitSoftcapping,
+      largeWeights: this.runtimeConfig.inference.largeWeights,
+      activationDtype: this.runtimeConfig.inference.compute?.activationDtype ?? 'f32',
     };
   }
 
@@ -1843,6 +1927,7 @@ export class InferencePipeline {
     this.weights.clear();
     this.expertWeights.clear();
     this.loraAdapter = null;
+    setKernelPlan(null, 'none');
     this.isLoaded = false;
     this.currentSeqLen = 0;
     log.info('Pipeline', 'Unloaded');

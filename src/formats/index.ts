@@ -46,7 +46,6 @@ export type {
   LayerConfig,
   ComponentGroup,
   MoEConfig,
-  KernelHints,
   ConversionInfo,
   ValidationResult,
 } from './rdrr/index.js';

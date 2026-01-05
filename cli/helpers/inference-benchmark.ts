@@ -12,18 +12,8 @@ import type { CLIOptions } from './types.js';
 import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLocalDopplerRoutes } from './utils.js';
 
 function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptText: string | null): string {
-  const kernelHints: Record<string, unknown> = {
-    ...(opts.kernelHints ?? {}),
-  };
-  if (opts.computePrecision) kernelHints.computePrecision = opts.computePrecision;
-  if (opts.q4kMatmul) kernelHints.q4kMatmul = opts.q4kMatmul;
-  if (opts.f16Matmul) kernelHints.f16Matmul = opts.f16Matmul;
-  if (opts.attentionPrefill) kernelHints.attentionPrefill = opts.attentionPrefill;
-  if (opts.attentionDecode) kernelHints.attentionDecode = opts.attentionDecode;
-
   const runtime: Record<string, unknown> = {};
-  if (opts.attentionKernel) runtime.attentionKernel = opts.attentionKernel;
-  if (Object.keys(kernelHints).length > 0) runtime.kernelHints = kernelHints;
+  if (opts.kernelPlan) runtime.kernelPlan = opts.kernelPlan;
 
   const configObj: Record<string, unknown> = {
     modelPath,

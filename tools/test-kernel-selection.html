@@ -28,18 +28,18 @@
 
                 log('\n=== Manifest Configuration ===');
                 log('Q4K Layout: ' + manifest.config?.q4kLayout);
-                log('Kernel Hints: ' + JSON.stringify(manifest.optimizations?.kernelHints, null, 2));
+                log('Kernel Plan: ' + JSON.stringify(manifest.optimizations?.kernelPlan, null, 2));
 
                 log('\n=== Creating Pipeline ===');
-                log('This will trigger kernel hint loading...');
+                log('This will trigger kernel plan loading...');
 
-                // Create pipeline (this will load kernel hints)
+                // Create pipeline (this will load kernel plan)
                 const pipeline = await createPipeline(manifest);
 
                 log('\n=== Pipeline Created ===');
                 log('Check browser console for kernel selection messages:');
-                log('- [Pipeline] Kernel hints loaded from manifest');
-                log('- [Matmul] Q4K DEQUANT or Q4K FUSED');
+                log('- [Pipeline] Kernel plan loaded from manifest');
+                log('- [Matmul] Q4K strategy or variant overrides');
 
             } catch (error) {
                 log('Error: ' + error.message);

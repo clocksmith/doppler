@@ -63,7 +63,7 @@ interface ConvertOptions {
   audioQuant: string | null;      // Audio encoder quantization
   projectorQuant: string | null;  // Cross-modal projector quantization
   computePrecision: 'f16' | 'f32' | 'auto' | null;  // Runtime compute precision hint
-  kernelHints: string | null;     // JSON string of kernel hints
+  kernelPlan: string | null;      // JSON string of kernel plan
   shardSize: number;
   modelId: string | null;
   textOnly: boolean;
@@ -84,7 +84,7 @@ function parseArgs(argv: string[]): ConvertOptions {
     audioQuant: null,
     projectorQuant: null,
     computePrecision: null,
-    kernelHints: null,
+    kernelPlan: null,
     shardSize: 64,
     modelId: null,
     textOnly: false,
@@ -135,8 +135,8 @@ function parseArgs(argv: string[]): ConvertOptions {
           opts.computePrecision = cp;
         }
         break;
-      case '--kernel-hints':
-        opts.kernelHints = argv[++i] || null;
+      case '--kernel-plan':
+        opts.kernelPlan = argv[++i] || null;
         break;
       case '--shard-size':
         opts.shardSize = parseInt(argv[++i] || '64', 10);
@@ -479,9 +479,9 @@ Quantization Options:
   --audio-quant <type>       Audio encoder quantization (speech models)
   --projector-quant <type>   Cross-modal projector quantization
 
-Runtime Hints (stored in manifest, not in filename):
+Runtime Plan (stored in manifest, not in filename):
   --compute-precision <p> Compute precision hint: f16, f32, auto
-  --kernel-hints <json>   JSON object with kernel selection hints
+  --kernel-plan <json>    JSON object with kernel plan overrides
 
 General Options:
   --shard-size <mb>     Shard size in MB (default: 64)
@@ -793,14 +793,14 @@ async function convertSafetensors(
     quantizationInfo,
   };
 
-  // Add kernel hints if specified
-  if (opts.kernelHints) {
+  // Add kernel plan if specified
+  if (opts.kernelPlan) {
     try {
       writerOpts.optimizations = {
-        kernelHints: JSON.parse(opts.kernelHints),
+        kernelPlan: JSON.parse(opts.kernelPlan),
       };
     } catch (e) {
-      throw new Error(`Invalid --kernel-hints JSON: ${(e as Error).message}`);
+      throw new Error(`Invalid --kernel-plan JSON: ${(e as Error).message}`);
     }
   }
 
@@ -922,14 +922,14 @@ async function convertGGUF(
       quantizationInfo,
     };
 
-    // Add kernel hints if specified
-    if (opts.kernelHints) {
+    // Add kernel plan if specified
+    if (opts.kernelPlan) {
       try {
         writerOpts.optimizations = {
-          kernelHints: JSON.parse(opts.kernelHints),
+          kernelPlan: JSON.parse(opts.kernelPlan),
         };
       } catch (e) {
-        throw new Error(`Invalid --kernel-hints JSON: ${(e as Error).message}`);
+        throw new Error(`Invalid --kernel-plan JSON: ${(e as Error).message}`);
       }
     }
 

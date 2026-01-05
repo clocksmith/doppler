@@ -41,11 +41,21 @@ import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
 import { dequantize, dequantizeQ6K, castF32ToF16, runBF16ToF16 } from '../gpu/kernel-selector.js';
 import { createTensor } from '../gpu/tensor.js';
-import { createWeightBuffer, isWeightBuffer, getWeightDtype, getLayout, type WeightBuffer, type WeightDtype, type WeightLayout } from '../gpu/weight-buffer.js';
-import { getKernelHints, getKernelHintsSource } from '../gpu/kernel-hints.js';
+import {
+  createWeightBuffer,
+  createCpuWeightBuffer,
+  isWeightBuffer,
+  isCpuWeightBuffer,
+  getWeightDtype,
+  getLayout,
+  type WeightBuffer,
+  type WeightDtype,
+  type WeightLayout,
+  type CpuWeightBuffer,
+} from '../gpu/weight-buffer.js';
 import { ExpertCache, getExpertCache, type CacheStats } from './expert-cache.js';
 import type { ExpertWeights } from './weights.js';
-import { type KernelHints } from '../storage/rdrr-format.js';
+import { getKernelPlanQ4KStrategy, getKernelPlanSource, getKernelPlanStrict } from '../config/kernel-plan.js';
 import { LORA_MODULE_ALIASES, type LoRAAdapter, type LoRAModuleName } from '../inference/pipeline/lora.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
@@ -78,6 +88,7 @@ import {
 
 import { ShardCache, createShardCache } from './shard-cache.js';
 import type { LoadingConfigSchema } from '../config/schema/loading.schema.js';
+import { DTYPE_SIZES } from '../config/schema/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 // Re-export types for backward compatibility
@@ -114,11 +125,14 @@ const parseLoRATensorName = (name: string): ParsedLoRATensorName | null => {
   return { layer, module, kind };
 };
 
-const toFloat32 = (value: GPUBuffer | Float32Array | Uint8Array | ArrayBuffer | WeightBuffer): Float32Array => {
+const toFloat32 = (value: GPUBuffer | Float32Array | Uint8Array | ArrayBuffer | WeightBuffer | CpuWeightBuffer): Float32Array => {
   if (value instanceof Float32Array) return value;
   if (value instanceof ArrayBuffer) return new Float32Array(value);
   if (value instanceof Uint8Array) {
     return new Float32Array(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
+  }
+  if (isCpuWeightBuffer(value)) {
+    return value.data;
   }
   // WeightBuffer: should not happen for LoRA loading (toGPU=false), but handle for type safety
   if (isWeightBuffer(value)) {
@@ -147,10 +161,10 @@ export class DopplerLoader {
 
   // Loaded state
   isLoaded = false;
-  embeddings: GPUBuffer | WeightBuffer | Float32Array | null = null;
+  embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null = null;
   layers = new Map<number, LayerWeights>();
   experts = new Map<string, ExpertWeights>();
-  lmHead: GPUBuffer | WeightBuffer | Float32Array | null = null;
+  lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null = null;
   finalNorm: GPUBuffer | Float32Array | null = null;
 
   // Memory management
@@ -171,7 +185,7 @@ export class DopplerLoader {
   private loadingConfig: LoadingConfigSchema = getRuntimeConfig().loading;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
-  // Default is false; opt-in via manifest kernel hints.
+  // Default is false; opt-in via manifest kernel plan.
   useFusedQ4K = false;
 
   // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
@@ -411,36 +425,126 @@ export class DopplerLoader {
   }
 
   private _configureQ4KStrategy(): void {
-    const runtimeHints = getKernelHints();
-    const manifestHints = this.manifest?.optimizations?.kernelHints as KernelHints | undefined;
-    const hints = (runtimeHints ?? manifestHints) as KernelHints | undefined;
-    const hintSource = getKernelHintsSource() ?? (manifestHints ? 'manifest' : 'unset');
-    const q4kHint = hints?.q4kMatmul;
-    const computePrecision = hints?.computePrecision;
+    const q4kStrategy = getKernelPlanQ4KStrategy();
+    const planSource = getKernelPlanSource();
+    const strict = getKernelPlanStrict();
     const q4kLayout = (this.manifest?.config as { q4kLayout?: string } | undefined)?.q4kLayout;
 
     // Default to fused Q4K when subgroups are available (4x memory savings)
     // Explicit 'dequant_f16' or 'dequant_f32' opts out of fused path
     const caps = this.gpuCapabilities || getKernelCapabilities();
     const hasSubgroups = caps?.hasSubgroups ?? false;
-    const explicitDequant = q4kHint === 'dequant_f16' || q4kHint === 'dequant_f32';
+    const wantsFused = q4kStrategy === 'fused_q4k';
+    const wantsDequant = q4kStrategy === 'dequant_f16' || q4kStrategy === 'dequant_f32';
+    let useFused = q4kStrategy === 'auto' ? hasSubgroups && !wantsDequant : wantsFused;
 
-    let useFused = hasSubgroups && !explicitDequant;
-    if (q4kHint === 'fused_q4k') {
-      useFused = true; // Explicit fused request
-    }
     if (typeof window !== 'undefined' && (window as any).DOPPLER_DISABLE_FUSED_Q4K) {
       useFused = false;
     }
     if (q4kLayout === 'column_wise') {
       useFused = false;
     }
+    if (wantsFused && !useFused) {
+      const message = `Q4K fused requested but unavailable (subgroups=${hasSubgroups}, layout=${q4kLayout ?? 'default'}).`;
+      if (strict) {
+        throw new Error(message);
+      }
+      log.warn('Loader', message);
+    }
 
     this.useFusedQ4K = useFused;
     this.q4kLayout = (q4kLayout as 'flat' | 'row_wise' | 'column_wise') ?? null;
-    this.keepF32Weights = q4kHint === 'dequant_f32' || computePrecision === 'f32';
+    this.keepF32Weights = q4kStrategy === 'dequant_f32';
 
-    debugTrace.loader(`Q4K strategy: fused=${this.useFusedQ4K}, hint=${q4kHint ?? 'auto'}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}, keepF32=${this.keepF32Weights}`);
+    debugTrace.loader(`Q4K strategy: fused=${this.useFusedQ4K}, strategy=${q4kStrategy}, source=${planSource}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}, keepF32=${this.keepF32Weights}`);
+  }
+
+  // ==========================================================================
+  // Large Weight Handling (Embeddings / LM Head)
+  // ==========================================================================
+
+  private _getLargeWeightConfig() {
+    return getRuntimeConfig().inference.largeWeights;
+  }
+
+  private _getLargeWeightMaxBytes(): number | null {
+    const config = this._getLargeWeightConfig();
+    if (!config?.enabled) return null;
+    const device = getDevice();
+    if (!device) return null;
+    const safety = Math.min(Math.max(config.safetyRatio ?? 0.9, 0.1), 1);
+    const maxBinding = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
+    return Math.floor(maxBinding * safety);
+  }
+
+  private _estimateMatmulWeightBytes(
+    name: string,
+    location: TensorLocation
+  ): { bytes: number; dtype: WeightDtype } | null {
+    if (!location.shape || location.shape.length === 0) return null;
+    const numElements = location.shape.reduce((a, b) => a * b, 1);
+    if (!Number.isFinite(numElements) || numElements <= 0) return null;
+
+    const caps = this.gpuCapabilities || getKernelCapabilities();
+    const hasF16 = caps?.hasF16 ?? false;
+    const isMatmulWeight = shouldDequantizeToF16(name);
+
+    let dtype: WeightDtype = 'f32';
+    switch (location.dtype) {
+      case 'F16':
+        dtype = 'f16';
+        break;
+      case 'BF16':
+        dtype = hasF16 && isMatmulWeight ? 'f16' : 'f32';
+        break;
+      case 'Q4_K':
+      case 'Q4_K_M':
+        dtype = (hasF16 && isMatmulWeight && !this.keepF32Weights) ? 'f16' : 'f32';
+        break;
+      case 'Q6_K':
+        dtype = 'f16';
+        break;
+      default:
+        dtype = location.dtype === 'F32' ? 'f32' : 'f32';
+        break;
+    }
+
+    const bytesPerElement = DTYPE_SIZES[dtype === 'f16' ? 'f16' : 'f32'];
+    return { bytes: numElements * bytesPerElement, dtype };
+  }
+
+  private _resolveWeightLayout(location: TensorLocation, name: string): WeightLayout {
+    if (location.layout === 'column') return 'column';
+    if (isEmbeddingWeight(name) && location.shape?.length === 2) {
+      const [dim0, dim1] = location.shape;
+      if (dim0 < dim1) {
+        return 'column';
+      }
+    }
+    return 'row';
+  }
+
+  private _shouldStreamLargeWeight(name: string, location: TensorLocation, label: string): boolean {
+    const maxBytes = this._getLargeWeightMaxBytes();
+    if (!maxBytes) return false;
+    const estimate = this._estimateMatmulWeightBytes(name, location);
+    if (!estimate) return false;
+    if (estimate.bytes <= maxBytes) return false;
+    const canStream = location.dtype === 'F16' || location.dtype === 'F32' || location.dtype === 'BF16';
+    if (!canStream) {
+      log.warn(
+        'Loader',
+        `${label} weight "${name}" (${formatBytes(estimate.bytes)}) exceeds GPU binding limit (${formatBytes(maxBytes)}) ` +
+        `but dtype ${location.dtype} cannot be streamed. Regenerate with F16/F32 weights.`
+      );
+      return false;
+    }
+    log.warn(
+      'Loader',
+      `${label} weight "${name}" (${formatBytes(estimate.bytes)}) exceeds GPU binding limit (${formatBytes(maxBytes)}). ` +
+      'Using CPU-backed streaming.'
+    );
+    return true;
   }
 
   /**
@@ -872,14 +976,7 @@ export class DopplerLoader {
           const numBlocks = Math.ceil(location.size / 144);
           let outputDtype: 'f16' | 'f32' = 'f32';
           if (isMatmulWeight) {
-            const q4kHint = (this.manifest?.optimizations?.kernelHints as KernelHints | undefined)?.q4kMatmul;
-            if (q4kHint === 'dequant_f32') {
-              outputDtype = 'f32';
-            } else if (q4kHint === 'dequant_f16' || !q4kHint) {
-              outputDtype = caps?.hasF16 ? 'f16' : 'f32';
-            } else {
-              outputDtype = caps?.hasF16 ? 'f16' : 'f32';
-            }
+            outputDtype = this.keepF32Weights ? 'f32' : (caps?.hasF16 ? 'f16' : 'f32');
           }
           const dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
           const dequantized = dequantizedTensor.buffer;
@@ -1115,16 +1212,9 @@ export class DopplerLoader {
 
         const numBlocks = Math.ceil(location.size / 144);
         let outputDtype: 'f16' | 'f32' = 'f32';
-        if (isMatmulWeight) {
-          const q4kHint = (this.manifest?.optimizations?.kernelHints as KernelHints | undefined)?.q4kMatmul;
-          if (q4kHint === 'dequant_f32') {
-            outputDtype = 'f32';
-          } else if (q4kHint === 'dequant_f16' || !q4kHint) {
-            outputDtype = caps?.hasF16 ? 'f16' : 'f32';
-          } else {
-            outputDtype = caps?.hasF16 ? 'f16' : 'f32';
+          if (isMatmulWeight) {
+            outputDtype = this.keepF32Weights ? 'f32' : (caps?.hasF16 ? 'f16' : 'f32');
           }
-        }
         debugTrace.loader(`Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, outputDtype=${outputDtype}, expectedOutput=${numBlocks * 256 * (outputDtype === 'f16' ? 2 : 4)}`);
         const dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
         const dequantized = dequantizedTensor.buffer;
@@ -1393,18 +1483,65 @@ export class DopplerLoader {
       'transformer.wte.weight',
     ];
 
+    const maybeDowncastEmbeddings = async (name: string, loc?: TensorLocation): Promise<void> => {
+      const caps = getKernelCapabilities();
+      if (!caps.hasF16 || this.keepF32Weights) return;
+
+      const current = this.embeddings;
+      if (!current || current instanceof Float32Array || isCpuWeightBuffer(current)) {
+        return;
+      }
+
+      const dtype = isWeightBuffer(current)
+        ? current.dtype
+        : (loc?.dtype === 'F16' ? 'f16' : 'f32');
+      if (dtype !== 'f32') {
+        return;
+      }
+
+      const buffer = isWeightBuffer(current) ? current.buffer : current;
+      const elems = buffer.size / 4;
+      const inputTensor = createTensor(buffer, 'f32', [elems], 'embed_f32');
+      const f16Tensor = await castF32ToF16(inputTensor);
+
+      const layout = isWeightBuffer(current)
+        ? current.layout
+        : (loc ? this._resolveWeightLayout(loc, name) : 'row');
+      const shape = isWeightBuffer(current)
+        ? Array.from(current.shape)
+        : (loc?.shape ?? [elems]);
+      const newWeightBuffer = createWeightBuffer(f16Tensor.buffer, 'f16', layout, shape, name);
+
+      releaseBuffer(buffer);
+      this.embeddings = newWeightBuffer;
+      this.gpuBuffers.add(f16Tensor.buffer);
+    };
+
     for (const name of embeddingNames) {
-      const tensor = await this._loadTensor(name, true, true);
+      const loc = this.tensorLocations.get(name);
+      const shouldStream = loc ? this._shouldStreamLargeWeight(name, loc, 'Embedding') : false;
+      const tensor = await this._loadTensor(name, !shouldStream, true);
+      if (shouldStream && tensor && !(tensor instanceof Float32Array)) {
+        throw new Error(`[Loader] Embedding "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc?.dtype ?? 'unknown'}).`);
+      }
       if (tensor && (tensor instanceof GPUBuffer || isWeightBuffer(tensor) || tensor instanceof Float32Array)) {
         // For GGUF tied embeddings (used as lm_head), need column layout
         // GGUF stores embeddings as [hidden_size, vocab_size] (column-major)
         // When used as lm_head, matmul needs transposeB=false
-        const loc = this.tensorLocations.get(name);
         log.info('Loader', `Embeddings tensor loaded: name=${name}, hasShape=${!!loc?.shape}, shape=${loc?.shape ? `[${loc.shape.join(',')}]` : 'none'}, isWeightBuffer=${isWeightBuffer(tensor)}`);
 
         // WeightBuffer already has layout set correctly from _loadTensor
         if (isWeightBuffer(tensor)) {
           this.embeddings = tensor;
+          await maybeDowncastEmbeddings(name, loc);
+          break;
+        }
+
+        if (tensor instanceof Float32Array && loc?.shape && shouldStream) {
+          const layout = this._resolveWeightLayout(loc, name);
+          const dtype: WeightDtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+          this.embeddings = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
+          log.warn('Loader', `Embeddings stored on CPU for chunked gather (layout=${layout})`);
           break;
         }
 
@@ -1418,10 +1555,12 @@ export class DopplerLoader {
             const dtype: WeightDtype = loc.dtype === 'F16' ? 'f16' : 'f32';
             this.embeddings = createWeightBuffer(tensor, dtype, 'column', loc.shape, name);
             log.info('Loader', `Created WeightBuffer with column layout for embeddings`);
+            await maybeDowncastEmbeddings(name, loc);
             break;
           }
         }
         this.embeddings = tensor;
+        await maybeDowncastEmbeddings(name, loc);
         break;
       }
     }
@@ -1906,9 +2045,35 @@ export class DopplerLoader {
       log.warn('Loader', ' Final norm not found');
     }
 
-    this.lmHead = (await this._loadTensor('language_model.lm_head.weight', true, true) ||
-                  await this._loadTensor('lm_head.weight', true, true) ||
-                  await this._loadTensor('output.weight', true, true)) as GPUBuffer | Float32Array | null;
+    const lmHeadNames = [
+      'language_model.lm_head.weight',
+      'lm_head.weight',
+      'output.weight',
+    ];
+    let lmHeadName: string | null = null;
+    let lmHeadLoc: TensorLocation | undefined;
+    for (const name of lmHeadNames) {
+      const loc = this.tensorLocations.get(name);
+      if (!loc) continue;
+      const shouldStream = this._shouldStreamLargeWeight(name, loc, 'LM head');
+      const tensor = await this._loadTensor(name, !shouldStream, true);
+      if (shouldStream && tensor && !(tensor instanceof Float32Array)) {
+        throw new Error(`[Loader] LM head "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc.dtype}).`);
+      }
+      if (tensor && (tensor instanceof GPUBuffer || isWeightBuffer(tensor) || tensor instanceof Float32Array)) {
+        lmHeadName = name;
+        lmHeadLoc = loc;
+        if (tensor instanceof Float32Array && shouldStream) {
+          const layout = this._resolveWeightLayout(loc, name);
+          const dtype: WeightDtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+          this.lmHead = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
+          log.warn('Loader', `LM head stored on CPU for chunked matmul (layout=${layout})`);
+        } else {
+          this.lmHead = tensor as GPUBuffer | WeightBuffer | Float32Array;
+        }
+        break;
+      }
+    }
 
     if (!this.lmHead && this.embeddings) {
       debugTrace.loader(' Using tied embeddings as LM head');
@@ -1919,18 +2084,38 @@ export class DopplerLoader {
 
     // Downcast LM head to f16
     const caps = getKernelCapabilities();
-    if (caps.hasF16 && this.lmHead instanceof GPUBuffer && this.lmHead !== this.embeddings) {
-      const dtype = getWeightDtype(this.lmHead) || 'f32';
-      if (dtype === 'f32') {
-        try {
-          const elems = this.lmHead.size / 4;
-          const inputTensor = createTensor(this.lmHead, 'f32', [elems], 'lmHead_f32');
-          const f16Tensor = await castF32ToF16(inputTensor);
-          releaseBuffer(this.lmHead);
-          this.lmHead = f16Tensor.buffer;
-          this.gpuBuffers.add(f16Tensor.buffer);
-        } catch (e) {
-          log.warn('Loader', `Failed to downcast lmHead to f16: ${(e as Error).message}`);
+    if (caps.hasF16 && !this.keepF32Weights && this.lmHead && !isCpuWeightBuffer(this.lmHead)) {
+      const tiedToEmbeddings =
+        this.lmHead === this.embeddings ||
+        (isWeightBuffer(this.lmHead) && isWeightBuffer(this.embeddings) && this.lmHead.buffer === this.embeddings.buffer) ||
+        (this.lmHead instanceof GPUBuffer && isWeightBuffer(this.embeddings) && this.lmHead === this.embeddings.buffer);
+
+      if (!tiedToEmbeddings) {
+        const dtype = isWeightBuffer(this.lmHead)
+          ? this.lmHead.dtype
+          : (lmHeadLoc?.dtype === 'F16' ? 'f16' : 'f32');
+        if (dtype === 'f32') {
+          try {
+            const buffer = isWeightBuffer(this.lmHead) ? this.lmHead.buffer : this.lmHead;
+            if (!(buffer instanceof GPUBuffer)) {
+              return;
+            }
+            const elems = buffer.size / 4;
+            const inputTensor = createTensor(buffer, 'f32', [elems], 'lmHead_f32');
+            const f16Tensor = await castF32ToF16(inputTensor);
+            const layout = isWeightBuffer(this.lmHead)
+              ? this.lmHead.layout
+              : (lmHeadLoc ? this._resolveWeightLayout(lmHeadLoc, lmHeadName ?? 'lm_head') : 'row');
+            const shape = isWeightBuffer(this.lmHead)
+              ? Array.from(this.lmHead.shape)
+              : (lmHeadLoc?.shape ?? [elems]);
+            const newWeightBuffer = createWeightBuffer(f16Tensor.buffer, 'f16', layout, shape, lmHeadName ?? 'lm_head');
+            releaseBuffer(buffer);
+            this.lmHead = newWeightBuffer;
+            this.gpuBuffers.add(f16Tensor.buffer);
+          } catch (e) {
+            log.warn('Loader', `Failed to downcast lmHead to f16: ${(e as Error).message}`);
+          }
         }
       }
     }

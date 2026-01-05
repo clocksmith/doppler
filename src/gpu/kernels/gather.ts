@@ -8,7 +8,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
-import { dispatch, recordDispatch } from './dispatch.js';
+import { dispatch, dispatchIndirect, recordDispatch, recordDispatchIndirect } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
@@ -73,6 +73,10 @@ export interface GatherOptions extends OutputBufferOptions {
    * Default: false (RDRR format uses PyTorch layout from SafeTensors).
    */
   transpose?: boolean;
+  /** Optional indirect dispatch buffer for GPU-driven workgroup counts. */
+  indirectBuffer?: GPUBuffer | null;
+  /** Byte offset into indirect dispatch buffer (default: 0). */
+  indirectOffset?: number;
 }
 
 /**
@@ -89,7 +93,15 @@ export async function runGather(
   options: GatherOptions = {}
 ): Promise<Tensor> {
   const device = getDevice();
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, outputDtype = 'f32', transpose = false } = options;
+  const {
+    useVec4 = true,
+    outputBuffer = null,
+    embeddingDtype,
+    outputDtype = 'f32',
+    transpose = false,
+    indirectBuffer = null,
+    indirectOffset = 0,
+  } = options;
 
   // Detect embedding dtype (F16 embeddings enable optimized lm_head)
   const caps = getKernelCapabilities();
@@ -142,7 +154,11 @@ export async function runGather(
   const workgroups = useVec4
     ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
     : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'gather');
+  if (indirectBuffer) {
+    dispatchIndirect(device, pipeline, bindGroup, indirectBuffer, indirectOffset, 'gather');
+  } else {
+    dispatch(device, pipeline, bindGroup, workgroups, 'gather');
+  }
 
   uniformBuffer.destroy();
 
@@ -164,7 +180,15 @@ export async function recordGather(
   options: GatherOptions = {}
 ): Promise<Tensor> {
   const device = recorder.device;
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, outputDtype = 'f32', transpose = false } = options;
+  const {
+    useVec4 = true,
+    outputBuffer = null,
+    embeddingDtype,
+    outputDtype = 'f32',
+    transpose = false,
+    indirectBuffer = null,
+    indirectOffset = 0,
+  } = options;
 
   // Detect embedding dtype (same logic as runGather)
   const caps = getKernelCapabilities();
@@ -215,7 +239,11 @@ export async function recordGather(
   const workgroups = useVec4
     ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
     : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'gather');
+  if (indirectBuffer) {
+    recordDispatchIndirect(recorder, pipeline, bindGroup, indirectBuffer, indirectOffset, 'gather');
+  } else {
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'gather');
+  }
 
   const actualDtype: TensorDtype = useF16Output ? 'f16' : 'f32';
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');

@@ -97,16 +97,13 @@ export interface Manifest {
   // RDRR manifest extensions
   optimizations?: {
     useBatching?: boolean;
-    attentionKernel?: string;
     debug?: boolean;
-    kernelHints?: Record<string, unknown>;
+    kernelPlan?: Record<string, unknown>;
   };
   runtime?: {
     useBatching?: boolean;
-    attentionKernel?: string;
     debug?: boolean;
   };
-  attentionKernel?: string;
   // Quantization info with runtime hints
   quantizationInfo?: {
     weights?: string;
@@ -158,6 +155,7 @@ export interface ParsedModelConfig {
   // Gemma 2 softcapping
   finalLogitSoftcapping: number | null;  // Gemma 2: 30.0
   attnLogitSoftcapping: number | null;   // Gemma 2: 50.0
+  queryKeyNorm: boolean;
   // Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16)
   queryPreAttnScalar: number;            // Gemma 2: 256, standard: sqrt(head_dim)
   // Optional layer pipeline override from model presets
@@ -442,6 +440,7 @@ export function toParsedConfig(
     attentionBias: config.attention_bias ?? false,
     finalLogitSoftcapping: inf.output?.finalLogitSoftcapping ?? null,
     attnLogitSoftcapping: inf.attention?.attnLogitSoftcapping ?? null,
+    queryKeyNorm: inf.attention?.queryKeyNorm ?? false,
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType: inf.chatTemplate?.type ?? null,

@@ -18,12 +18,13 @@
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
-import { createTensor, Tensor, TensorDtype } from '../tensor.js';
+import { createTensor, Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
+import { getBuffer, getWeightDtype, type WeightBuffer } from '../weight-buffer.js';
 
 /** FFN activation type */
 export type FFNActivation = 'silu' | 'gelu';
@@ -40,7 +41,7 @@ export interface FusedFFNOptions extends OutputBufferOptions {
 
 class FusedFFNKernel extends KernelBase {
   async getPipeline(variant: string): Promise<GPUComputePipeline> {
-    return this.getPipelineFor('ffn_fused', variant);
+    return this.getPipelineFor('fused_ffn', variant);
   }
 
   dispatch(
@@ -49,7 +50,7 @@ class FusedFFNKernel extends KernelBase {
     workgroupsX: number,
     workgroupsY: number = 1
   ): void {
-    this.dispatchKernel(pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'ffn_fused');
+    this.dispatchKernel(pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
 
   record(
@@ -59,28 +60,26 @@ class FusedFFNKernel extends KernelBase {
     workgroupsX: number,
     workgroupsY: number = 1
   ): void {
-    this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'ffn_fused');
+    this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
 }
 
 function selectFFNVariant(
   batchSize: number,
-  inputDtype: TensorDtype,
+  weightDtype: 'f16' | 'f32',
   intermediateSize: number
 ): string {
   // For small intermediate sizes, use multi-output variant
-  if (intermediateSize <= 1024 && batchSize === 1) {
-    return 'multi';
-  }
-
-  // For batched execution
   if (batchSize > 1) {
     return 'batched';
   }
 
-  // For F16 inputs
-  if (inputDtype === 'f16') {
+  if (weightDtype === 'f16') {
     return 'f16';
+  }
+
+  if (intermediateSize <= 1024) {
+    return 'multi';
   }
 
   // Default F32 variant
@@ -99,8 +98,8 @@ function createFFNUniformBuffer(
   }
 ): GPUBuffer {
   return createUniformBufferWithView(
-    'ffn_fused_uniforms',
-    20,
+    'fused_ffn_uniforms',
+    32,
     (view) => {
       view.setUint32(0, params.M, true);
       view.setUint32(4, params.hiddenSize, true);
@@ -128,8 +127,8 @@ function createFFNUniformBuffer(
  */
 export async function runFusedFFN(
   input: Tensor,
-  W_gate: GPUBuffer,
-  W_up: GPUBuffer,
+  W_gate: GPUBuffer | WeightBuffer,
+  W_up: GPUBuffer | WeightBuffer,
   hiddenSize: number,
   intermediateSize: number,
   options: FusedFFNOptions = {}
@@ -142,7 +141,20 @@ export async function runFusedFFN(
     outputBuffer = null,
   } = options;
 
-  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
+  if (input.dtype !== 'f32') {
+    throw new Error('Fused FFN requires f32 activations');
+  }
+
+  const gateDtype = getWeightDtype(W_gate) ?? 'f32';
+  const upDtype = getWeightDtype(W_up) ?? 'f32';
+  if (gateDtype !== upDtype) {
+    throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
+  }
+  if (gateDtype !== 'f16' && gateDtype !== 'f32') {
+    throw new Error(`Fused FFN does not support ${gateDtype} weights`);
+  }
+
+  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
 
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
@@ -151,7 +163,7 @@ export async function runFusedFFN(
 
   // Create output buffer
   const outputSize = batchSize * intermediateSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'ffn_fused_output');
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
 
   // Create uniform buffer
   const uniformBuffer = createFFNUniformBuffer(device, null, {
@@ -164,13 +176,13 @@ export async function runFusedFFN(
 
   // Create bind group
   const bindGroup = device.createBindGroup({
-    label: 'ffn_fused_bind_group',
+    label: 'fused_ffn_bind_group',
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: W_gate } },
-      { binding: 3, resource: { buffer: W_up } },
+      { binding: 2, resource: { buffer: getBuffer(W_gate) } },
+      { binding: 3, resource: { buffer: getBuffer(W_up) } },
       { binding: 4, resource: { buffer: output } },
     ],
   });
@@ -193,7 +205,7 @@ export async function runFusedFFN(
 
   uniformBuffer.destroy();
 
-  return createTensor(output, input.dtype, [batchSize, intermediateSize], 'ffn_fused_output');
+  return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
 /**
@@ -202,8 +214,8 @@ export async function runFusedFFN(
 export async function recordFusedFFN(
   recorder: CommandRecorder,
   input: Tensor,
-  W_gate: GPUBuffer,
-  W_up: GPUBuffer,
+  W_gate: GPUBuffer | WeightBuffer,
+  W_up: GPUBuffer | WeightBuffer,
   hiddenSize: number,
   intermediateSize: number,
   options: FusedFFNOptions = {}
@@ -216,7 +228,20 @@ export async function recordFusedFFN(
     outputBuffer = null,
   } = options;
 
-  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
+  if (input.dtype !== 'f32') {
+    throw new Error('Fused FFN requires f32 activations');
+  }
+
+  const gateDtype = getWeightDtype(W_gate) ?? 'f32';
+  const upDtype = getWeightDtype(W_up) ?? 'f32';
+  if (gateDtype !== upDtype) {
+    throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
+  }
+  if (gateDtype !== 'f16' && gateDtype !== 'f32') {
+    throw new Error(`Fused FFN does not support ${gateDtype} weights`);
+  }
+
+  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
 
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
 
@@ -224,7 +249,7 @@ export async function recordFusedFFN(
   const pipeline = await kernel.getPipeline(variant);
 
   const outputSize = batchSize * intermediateSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'ffn_fused_output');
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
 
   const uniformBuffer = createFFNUniformBuffer(device, recorder, {
     M: batchSize,
@@ -235,13 +260,13 @@ export async function recordFusedFFN(
   });
 
   const bindGroup = device.createBindGroup({
-    label: 'ffn_fused_bind_group',
+    label: 'fused_ffn_bind_group',
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: W_gate } },
-      { binding: 3, resource: { buffer: W_up } },
+      { binding: 2, resource: { buffer: getBuffer(W_gate) } },
+      { binding: 3, resource: { buffer: getBuffer(W_up) } },
       { binding: 4, resource: { buffer: output } },
     ],
   });
@@ -261,7 +286,7 @@ export async function recordFusedFFN(
 
   kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
 
-  return createTensor(output, input.dtype, [batchSize, intermediateSize], 'ffn_fused_output');
+  return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
 /**

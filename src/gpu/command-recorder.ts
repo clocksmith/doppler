@@ -170,6 +170,46 @@ export class CommandRecorder {
   }
 
   /**
+   * Create an indirect dispatch buffer initialized with workgroup counts.
+   * Buffer usage includes STORAGE so GPU kernels can update counts.
+   */
+  createIndirectDispatchBuffer(
+    workgroups: [number, number, number] | Uint32Array = [0, 0, 0],
+    label: string = 'indirect_dispatch'
+  ): GPUBuffer {
+    const data = workgroups instanceof Uint32Array
+      ? workgroups
+      : new Uint32Array(workgroups);
+    const size = Math.max(12, data.byteLength);
+    const buffer = this.createTempBuffer(
+      size,
+      GPUBufferUsage.INDIRECT | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      label
+    );
+    const source = data.buffer as ArrayBuffer;
+    this.device.queue.writeBuffer(buffer, 0, source, data.byteOffset, data.byteLength);
+    return buffer;
+  }
+
+  /**
+   * Update an indirect dispatch buffer with new workgroup counts.
+   */
+  writeIndirectDispatchBuffer(
+    buffer: GPUBuffer,
+    workgroups: [number, number, number] | Uint32Array,
+    offset: number = 0
+  ): void {
+    if (this.submitted) {
+      throw new Error('[CommandRecorder] Cannot write buffers after submit');
+    }
+    const data = workgroups instanceof Uint32Array
+      ? workgroups
+      : new Uint32Array(workgroups);
+    const source = data.buffer as ArrayBuffer;
+    this.device.queue.writeBuffer(buffer, offset, source, data.byteOffset, data.byteLength);
+  }
+
+  /**
    * Create a uniform buffer, write data, and track for cleanup.
    * Uses content-addressed caching for identical uniform data.
    *

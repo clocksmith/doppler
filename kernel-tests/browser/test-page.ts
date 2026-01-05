@@ -6,14 +6,11 @@
 // When served from doppler/, paths are relative to that root
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../src/gpu/device.js';
 
-// Import buffer dtype tracking for Q4K matmul testing
-import { setBufferDtype } from '../../src/gpu/buffer-dtypes.js';
-
 // Import tensor abstraction for Tensor-based kernels
 import { createTensor, type Tensor } from '../../src/gpu/tensor.js';
 
-// Import kernel hints to enable fused Q4K path for testing
-import { setKernelHints } from '../../src/gpu/kernel-hints.js';
+// Import kernel plan to enable fused Q4K path for testing
+import { setKernelPlan } from '../../src/config/kernel-plan.js';
 
 // Import kernel functions - some may not exist, so we import what's available
 import * as kernelSelector from '../../src/gpu/kernel-selector.js';
@@ -91,8 +88,8 @@ async function initGPU(): Promise<GPUDevice> {
     throw new Error('WebGPU not available');
   }
 
-  // Set kernel hints to use fused Q4K path for testing
-  setKernelHints({ q4kMatmul: 'fused_q4k' }, 'runtime');
+  // Set kernel plan to use fused Q4K path for testing
+  setKernelPlan({ q4kStrategy: 'fused_q4k' }, 'runtime');
 
   initialized = true;
   return device;
@@ -396,17 +393,18 @@ const testHarness: TestHarnessImpl = {
     }
 
     const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, 'f32', [M, K], 'matmul_a');
     const bufB = makeBuffer(B);
 
     // Test uses standard layout B [K, N], so transposeB = false
     // (GPU kernel defaults to transposeB=true for SafeTensors [N, K] layout)
-    const resultBuf = await runMatmul(bufA, bufB, M, N, K, { alpha, transposeB: false });
+    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, { alpha, transposeB: false });
 
-    const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
 
     bufA.destroy();
     bufB.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -438,21 +436,20 @@ const testHarness: TestHarnessImpl = {
 
     // Create A buffer (activations)
     const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, 'f32', [M, K], 'matmul_q4k_a');
 
-    // Create B buffer and mark it as Q4K dtype
-    // This triggers the fused Q4K kernel selection in matmul.ts
+    // Create B buffer and pass q4k dtype to trigger fused Q4K selection
     const bufB = makeBuffer(B_q4k, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
-    setBufferDtype(bufB, 'q4k');
 
     // Run matmul - kernel auto-detects q4k and uses fused variant
     // transposeB is implicit for Q4K (weight matrix stored as [N, K])
-    const resultBuf = await runMatmul(bufA, bufB, M, N, K, { alpha });
+    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, { alpha, bDtype: 'q4k' });
 
-    const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
 
     bufA.destroy();
     bufB.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },

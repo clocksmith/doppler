@@ -40,12 +40,12 @@ export async function applyLoRA(
   const ownsB = !(lora.b instanceof GPUBuffer) && !isWeightBuffer(lora.b);
 
   const loraIntermediate = recorder
-    ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: 'auto' })
-    : await runMatmul(input, aBuf, M, rank, K, { transposeB: 'auto' });
+    ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a' })
+    : await runMatmul(input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a' });
 
   const loraOutput = recorder
-    ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto' })
-    : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto' });
+    ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b' })
+    : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b' });
 
   const scaled = recorder
     ? await recordScale(recorder, loraOutput, lora.scale, { outputBuffer: null })

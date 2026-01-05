@@ -16,10 +16,12 @@ import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
-import { createUniformBufferWithView, getKernelConfig } from './utils.js';
+import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
+import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions } from './types.js';
 import { log, trace } from '../../debug/index.js';
+import { getKernelPlanVariant, getKernelPlanStrict } from '../../config/kernel-plan.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -37,6 +39,19 @@ function getChunkedMaxKVLen(): number {
   return _chunkedMaxKVLen;
 }
 
+let kvLenFallbackBuffer: GPUBuffer | null = null;
+function getKvLenFallbackBuffer(device: GPUDevice): GPUBuffer {
+  if (!kvLenFallbackBuffer) {
+    kvLenFallbackBuffer = device.createBuffer({
+      label: 'attention_kv_len_fallback',
+      size: 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(kvLenFallbackBuffer, 0, new Uint32Array([0]));
+  }
+  return kvLenFallbackBuffer;
+}
+
 /** Attention kernel options */
 export interface AttentionOptions extends OutputBufferOptions {
   seqLen?: number;
@@ -45,10 +60,15 @@ export interface AttentionOptions extends OutputBufferOptions {
   scale?: number;
   causal?: boolean;
   startPos?: number;
-  attentionKernel?: string | null;
   slidingWindow?: number;
   /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
   attnSoftcap?: number;
+  /** Optional GPU buffer containing KV length (u32). When provided, kernel reads KV length from buffer. */
+  kvLenBuffer?: GPUBuffer | null;
+  /** Optional indirect dispatch buffer for GPU-driven workgroup counts. */
+  indirectBuffer?: GPUBuffer | null;
+  /** Byte offset into indirect dispatch buffer (default: 0). */
+  indirectOffset?: number;
 }
 
 type AttentionTier = 'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming';
@@ -88,9 +108,10 @@ function selectAttentionTier(
   headDim: number,
   seqLen: number,
   useF16KV: boolean,
-  attentionKernel: string | null,
+  forcedTier: AttentionTier | null,
   sharedLimit: number,
-  caps: ReturnType<typeof getKernelCapabilities>
+  caps: ReturnType<typeof getKernelCapabilities>,
+  strict: boolean
 ): AttentionTier {
   const isDecode = seqLen === 1;
   const canLarge =
@@ -108,14 +129,25 @@ function selectAttentionTier(
     sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_SUBGROUP_SHARED &&
     isDecode;
 
-  let tier = attentionKernel;
+  const failOrWarn = (message: string): void => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn('Attention', message);
+  };
+
+  let tier = forcedTier;
 
   if (tier === 'tiled_large' && !canLarge) {
-    log.warn('Attention', `Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
+    failOrWarn(`Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
     tier = null;
   }
   if (tier === 'tiled_small' && !canSmall) {
-    log.warn('Attention', `Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
+    failOrWarn(`Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
+    tier = null;
+  }
+  if (tier === 'subgroup' && !canSubgroup) {
+    failOrWarn(`Requested subgroup attention but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}, subgroups=${caps.hasSubgroups}).`);
     tier = null;
   }
 
@@ -208,19 +240,99 @@ function calculateAttentionWorkgroups(tier: AttentionTier, seqLen: number, numHe
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
 
+function normalizeAttentionOverride(value: string | null | undefined): { tier?: AttentionTier; variant?: string } | null {
+  if (!value || typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized === 'auto') return null;
+  if (normalized === 'tiled_large' || normalized === 'large') return { tier: 'tiled_large' };
+  if (normalized === 'tiled_small' || normalized === 'small' || normalized === 'tiled_small_hd') {
+    return { tier: 'tiled_small' };
+  }
+  if (normalized === 'streaming' || normalized === 'stream') return { tier: 'streaming' };
+  if (normalized === 'subgroup') return { tier: 'subgroup' };
+  return { variant: normalized };
+}
+
+function inferAttentionTierFromVariant(variant: string): AttentionTier {
+  if (variant === 'decode_subgroup') return 'subgroup';
+  if (variant.startsWith('prefill_streaming') || variant.startsWith('decode_streaming') || variant === 'decode_chunked_f16kv') {
+    return 'streaming';
+  }
+  if (variant.startsWith('prefill_small') || variant.startsWith('decode_small')) return 'tiled_small';
+  return 'tiled_large';
+}
+
+function validateAttentionVariant(
+  variant: string,
+  isDecode: boolean,
+  useF16KV: boolean,
+  caps: ReturnType<typeof getKernelCapabilities>,
+  strict: boolean
+): string | null {
+  const normalized = variant.trim();
+  const failOrWarn = (message: string): string | null => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn('Attention', message);
+    return null;
+  };
+
+  let config;
+  try {
+    config = getKernelConfig('attention', normalized);
+  } catch {
+    return failOrWarn(`Unknown attention kernel variant "${variant}".`);
+  }
+
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    return failOrWarn(`Attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  const expectsF16KV = normalized.includes('_f16kv');
+  if (expectsF16KV !== useF16KV) {
+    const kvLabel = useF16KV ? 'f16' : 'f32';
+    return failOrWarn(`Attention kernel "${variant}" incompatible with ${kvLabel} KV cache.`);
+  }
+
+  const isDecodeVariant = normalized.startsWith('decode');
+  const isPrefillVariant = normalized.startsWith('prefill');
+  if (isDecode && isPrefillVariant) {
+    return failOrWarn(`Attention kernel "${variant}" is prefill-only but decode requested.`);
+  }
+  if (!isDecode && isDecodeVariant) {
+    return failOrWarn(`Attention kernel "${variant}" is decode-only but prefill requested.`);
+  }
+
+  return normalized;
+}
+
 function resolveAttentionPlan(
   seqLen: number,
   kvLen: number,
   headDim: number,
   numHeads: number,
-  attentionKernel: string | null,
   kvDtype: string,
   sharedLimit: number,
   caps: ReturnType<typeof getKernelCapabilities>
 ): AttentionPlan {
   const useF16KV = kvDtype === 'f16';
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
+  const strict = getKernelPlanStrict();
+  const override = normalizeAttentionOverride(
+    getKernelPlanVariant({ operation: 'attention', phase: isDecode ? 'decode' : 'prefill' })
+  );
+
+  if (override?.variant) {
+    const variantOverride = validateAttentionVariant(override.variant, isDecode, useF16KV, caps, strict);
+    if (variantOverride) {
+      const tier = inferAttentionTierFromVariant(variantOverride);
+      const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
+      return { tier, variant: variantOverride, workgroups, useF16KV, isDecode };
+    }
+  }
+
+  const tier = selectAttentionTier(headDim, seqLen, useF16KV, override?.tier ?? null, sharedLimit, caps, strict);
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
@@ -241,11 +353,12 @@ function createAttentionUniformBuffer(
     startPos: number;
     attnSoftcap: number;
     slidingWindow: number;
+    kvLenSource: number;
   }
 ): GPUBuffer {
   return createUniformBufferWithView(
     'attention_uniforms',
-    48, // 40 bytes used + 8 padding for 16-byte alignment
+    48, // 44 bytes used + 4 padding for 16-byte alignment
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -257,6 +370,7 @@ function createAttentionUniformBuffer(
       view.setUint32(28, params.startPos, true);
       view.setFloat32(32, params.attnSoftcap, true); // Gemma 2: 50.0, 0 = disabled
       view.setUint32(36, params.slidingWindow, true); // Sliding window size, 0 = disabled
+      view.setUint32(40, params.kvLenSource, true); // 0 = uniform kvLen, 1 = buffer
     },
     recorder,
     device
@@ -283,10 +397,12 @@ export async function runAttention(
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
-    attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
+    kvLenBuffer = null,
+    indirectBuffer = null,
+    indirectOffset = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -298,7 +414,6 @@ export async function runAttention(
     kvLen,
     headDim,
     numHeads,
-    attentionKernel,
     kvDtype,
     sharedLimit,
     caps
@@ -323,9 +438,11 @@ export async function runAttention(
     startPos,
     attnSoftcap,
     slidingWindow,
+    kvLenSource: kvLenBuffer ? 1 : 0,
   });
 
   // Create bind group
+  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
   const bindGroup = device.createBindGroup({
     label: 'attention_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -335,17 +452,22 @@ export async function runAttention(
       { binding: 2, resource: { buffer: K.buffer } },
       { binding: 3, resource: { buffer: V.buffer } },
       { binding: 4, resource: { buffer: outputBuf } },
+      { binding: 5, resource: { buffer: kvLenBinding } },
     ],
   });
 
-  if (limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
+  if (!indirectBuffer && limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
     throw new Error(
       `Attention dispatch requires ${plan.workgroups} workgroups but device limit is ` +
       `${limits.maxComputeWorkgroupsPerDimension}. Reduce prompt length or use streaming attention.`
     );
   }
 
-  kernel.dispatch(pipeline, bindGroup, plan.workgroups);
+  if (indirectBuffer) {
+    dispatchIndirect(device, pipeline, bindGroup, indirectBuffer, indirectOffset, 'attention');
+  } else {
+    kernel.dispatch(pipeline, bindGroup, plan.workgroups);
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -373,10 +495,12 @@ export async function recordAttention(
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
-    attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
+    kvLenBuffer = null,
+    indirectBuffer = null,
+    indirectOffset = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -388,7 +512,6 @@ export async function recordAttention(
     kvLen,
     headDim,
     numHeads,
-    attentionKernel,
     kvDtype,
     sharedLimit,
     caps
@@ -415,8 +538,10 @@ export async function recordAttention(
     startPos,
     attnSoftcap,
     slidingWindow,
+    kvLenSource: kvLenBuffer ? 1 : 0,
   });
 
+  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
   const bindGroup = device.createBindGroup({
     label: 'attention_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -426,17 +551,22 @@ export async function recordAttention(
       { binding: 2, resource: { buffer: K.buffer } },
       { binding: 3, resource: { buffer: V.buffer } },
       { binding: 4, resource: { buffer: outputBuf } },
+      { binding: 5, resource: { buffer: kvLenBinding } },
     ],
   });
 
-  if (limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
+  if (!indirectBuffer && limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
     throw new Error(
       `Attention dispatch requires ${plan.workgroups} workgroups but device limit is ` +
       `${limits.maxComputeWorkgroupsPerDimension}. Reduce prompt length or use streaming attention.`
     );
   }
 
-  kernel.record(recorder, pipeline, bindGroup, plan.workgroups);
+  if (indirectBuffer) {
+    recordDispatchIndirect(recorder, pipeline, bindGroup, indirectBuffer, indirectOffset, 'attention');
+  } else {
+    kernel.record(recorder, pipeline, bindGroup, plan.workgroups);
+  }
 
   return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
 }

@@ -38,7 +38,7 @@ export interface LayerPipelineOverride {
 export interface CompiledLayerPipeline {
   steps: CompiledLayerPipelineStep[];
   overrides: LayerPipelineOverride[];
-  source: 'model' | 'runtime';
+  source: 'model' | 'runtime' | 'kernelPlan';
 }
 
 const DEFAULT_SLOT = 'state';

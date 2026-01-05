@@ -7,7 +7,7 @@
  * @module tests/benchmark/types
  */
 
-import type { KernelHints } from '../../src/storage/rdrr-format.js';
+import type { KernelPlanSchema } from '../../src/config/schema/index.js';
 import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 
 // ============================================================================
@@ -283,10 +283,9 @@ export interface BenchmarkConfig {
    *  Requires 'timestamp-query' WebGPU feature. */
   profile?: boolean;
 
-  /** Runtime overrides (kernel hints, attention kernel). */
+  /** Runtime overrides (kernel plan). */
   runtime?: {
-    attentionKernel?: string;
-    kernelHints?: KernelHints;
+    kernelPlan?: KernelPlanSchema;
   };
   /** Full runtime config overrides */
   runtimeConfig?: Partial<RuntimeConfigSchema>;

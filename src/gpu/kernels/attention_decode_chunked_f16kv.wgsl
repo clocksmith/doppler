@@ -22,6 +22,7 @@ struct Uniforms {
     start_pos: u32,
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
     sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
+    kv_len_source: u32,   // 0 = use uniform kv_len, 1 = use buffer
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -29,6 +30,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+@group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Shared memory for parallel reductions
 var<workgroup> shared_scores: array<f32, 2048>;  // Attention scores for each KV position
@@ -56,6 +58,13 @@ fn is_masked(key_pos: u32) -> bool {
     return false;
 }
 
+fn get_kv_len() -> u32 {
+    if (u.kv_len_source == 0u) {
+        return u.kv_len;
+    }
+    return kv_len_buffer[0];
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -64,7 +73,7 @@ fn main(
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
     let head_dim = u.head_dim;
-    let kv_len = u.kv_len;
+    let kv_len = get_kv_len();
     let scale = u.scale;
     let kv_head_idx = get_kv_head_idx(head_idx);
 

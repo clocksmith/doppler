@@ -3,8 +3,7 @@
  * Update manifest settings without touching shards.
  *
  * Safe edits (default):
- * - optimizations.kernelHints
- * - optimizations.attentionKernel
+ * - optimizations.kernelPlan
  *
  * Unsafe edits (require --allow-unsafe):
  * - config.q4kLayout
@@ -16,15 +15,15 @@ import { resolve, join } from 'path';
 
 interface UpdateOptions {
   input: string | null;
-  computePrecision: string | null;
-  q4kMatmul: string | null;
-  f16Matmul: string | null;
+  kernelPlan: Record<string, unknown> | null;
+  kernelPlanMode: 'patch' | 'replace' | null;
+  kernelPlanStrict: boolean | null;
+  q4kStrategy: string | null;
+  matmulVariant: string | null;
+  attentionVariant: string | null;
   attentionPrefill: string | null;
   attentionDecode: string | null;
-  attentionKernel: string | null;
-  tunedDevice: string | null;
-  benchmarkTokPerSec: number | null;
-  clearKernelHints: boolean;
+  clearKernelPlan: boolean;
   q4kLayout: string | null;
   defaultWeightLayout: string | null;
   allowUnsafe: boolean;
@@ -35,15 +34,15 @@ interface UpdateOptions {
 function parseArgs(args: string[]): UpdateOptions {
   const options: UpdateOptions = {
     input: null,
-    computePrecision: null,
-    q4kMatmul: null,
-    f16Matmul: null,
+    kernelPlan: null,
+    kernelPlanMode: null,
+    kernelPlanStrict: null,
+    q4kStrategy: null,
+    matmulVariant: null,
+    attentionVariant: null,
     attentionPrefill: null,
     attentionDecode: null,
-    attentionKernel: null,
-    tunedDevice: null,
-    benchmarkTokPerSec: null,
-    clearKernelHints: false,
+    clearKernelPlan: false,
     q4kLayout: null,
     defaultWeightLayout: null,
     allowUnsafe: false,
@@ -59,14 +58,40 @@ function parseArgs(args: string[]): UpdateOptions {
       case '-h':
         options.help = true;
         break;
-      case '--compute-precision':
-        options.computePrecision = args[++i] || null;
+      case '--kernel-plan': {
+        const raw = args[++i] || '';
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('kernel plan must be a JSON object');
+          }
+          options.kernelPlan = parsed as Record<string, unknown>;
+        } catch (err) {
+          throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
+        }
         break;
-      case '--q4k-matmul':
-        options.q4kMatmul = args[++i] || null;
+      }
+      case '--kernel-plan-mode': {
+        const mode = (args[++i] || '').toLowerCase();
+        if (mode === 'patch' || mode === 'replace') {
+          options.kernelPlanMode = mode;
+        }
         break;
-      case '--f16-matmul':
-        options.f16Matmul = args[++i] || null;
+      }
+      case '--kernel-plan-strict':
+        options.kernelPlanStrict = true;
+        break;
+      case '--kernel-plan-lax':
+        options.kernelPlanStrict = false;
+        break;
+      case '--q4k-strategy':
+        options.q4kStrategy = args[++i] || null;
+        break;
+      case '--matmul-variant':
+        options.matmulVariant = args[++i] || null;
+        break;
+      case '--attention-variant':
+        options.attentionVariant = args[++i] || null;
         break;
       case '--attention-prefill':
         options.attentionPrefill = args[++i] || null;
@@ -74,17 +99,8 @@ function parseArgs(args: string[]): UpdateOptions {
       case '--attention-decode':
         options.attentionDecode = args[++i] || null;
         break;
-      case '--attention-kernel':
-        options.attentionKernel = args[++i] || null;
-        break;
-      case '--tuned-device':
-        options.tunedDevice = args[++i] || null;
-        break;
-      case '--benchmark-tokps':
-        options.benchmarkTokPerSec = Number(args[++i]);
-        break;
-      case '--clear-kernel-hints':
-        options.clearKernelHints = true;
+      case '--clear-kernel-plan':
+        options.clearKernelPlan = true;
         break;
       case '--q4k-layout':
         options.q4kLayout = args[++i] || null;
@@ -118,15 +134,16 @@ Usage:
   node update-manifest.js <model-dir|manifest.json> [options]
 
 Safe options:
-  --compute-precision <auto|f16|f32>
-  --q4k-matmul <auto|fused_q4k|dequant_f16|dequant_f32>
-  --f16-matmul <auto|gemv_subgroup>
-  --attention-prefill <auto|tiled_large|tiled_small|streaming>
-  --attention-decode <auto|tiled_large|tiled_small|streaming>
-  --attention-kernel <auto|tiled_large|tiled_small|streaming>
-  --tuned-device <string>
-  --benchmark-tokps <number>
-  --clear-kernel-hints
+  --kernel-plan <json>
+  --kernel-plan-mode <patch|replace>
+  --kernel-plan-strict
+  --kernel-plan-lax
+  --q4k-strategy <auto|fused_q4k|dequant_f16|dequant_f32>
+  --matmul-variant <variant>
+  --attention-variant <tier|variant>
+  --attention-prefill <tier|variant>
+  --attention-decode <tier|variant>
+  --clear-kernel-plan
   --dry-run
 
 Unsafe options (require --allow-unsafe):
@@ -134,8 +151,9 @@ Unsafe options (require --allow-unsafe):
   --default-weight-layout <row|column>
 
 Examples:
-  node update-manifest.js ./models/gemma-1b-q4-row --q4k-matmul fused_q4k
-  node update-manifest.js ./models/gemma-1b-q4-row --compute-precision f16 --attention-decode streaming
+  node update-manifest.js ./models/gemma-1b-q4-row --q4k-strategy fused_q4k
+  node update-manifest.js ./models/gemma-1b-q4-row --attention-decode streaming
+  node update-manifest.js ./models/gemma-1b-q4-row --kernel-plan '{"q4kStrategy":"dequant_f16","variants":{"attention":{"prefill":"tiled_small"}}}'
 `);
 }
 
@@ -165,57 +183,60 @@ async function main(): Promise<void> {
   const manifest = JSON.parse(manifestJson);
   let changed = false;
 
-  if (options.clearKernelHints) {
-    if (manifest.optimizations?.kernelHints) {
-      delete manifest.optimizations.kernelHints;
+  if (options.clearKernelPlan) {
+    if (manifest.optimizations?.kernelPlan) {
+      delete manifest.optimizations.kernelPlan;
       changed = true;
     }
   }
 
-  const hasHintUpdates =
-    options.computePrecision ||
-    options.q4kMatmul ||
-    options.f16Matmul ||
+  const hasKernelPlanUpdates =
+    options.kernelPlan ||
+    options.kernelPlanMode ||
+    options.kernelPlanStrict !== null ||
+    options.q4kStrategy ||
+    options.matmulVariant ||
+    options.attentionVariant ||
     options.attentionPrefill ||
-    options.attentionDecode ||
-    options.tunedDevice ||
-    options.benchmarkTokPerSec !== null;
+    options.attentionDecode;
 
-  if (hasHintUpdates) {
+  if (hasKernelPlanUpdates) {
     manifest.optimizations = manifest.optimizations || {};
-    manifest.optimizations.kernelHints = manifest.optimizations.kernelHints || {};
 
-    if (options.computePrecision) {
-      manifest.optimizations.kernelHints.computePrecision = options.computePrecision;
-    }
-    if (options.q4kMatmul) {
-      manifest.optimizations.kernelHints.q4kMatmul = options.q4kMatmul;
-    }
-    if (options.f16Matmul) {
-      manifest.optimizations.kernelHints.f16Matmul = options.f16Matmul;
-    }
-    if (options.attentionPrefill) {
-      manifest.optimizations.kernelHints.attentionPrefill = options.attentionPrefill;
-    }
-    if (options.attentionDecode) {
-      manifest.optimizations.kernelHints.attentionDecode = options.attentionDecode;
-    }
-    if (options.tunedDevice) {
-      manifest.optimizations.kernelHints.tunedDevice = options.tunedDevice;
-    }
-    if (options.benchmarkTokPerSec !== null) {
-      manifest.optimizations.kernelHints.benchmarkTokPerSec = options.benchmarkTokPerSec;
-    }
-    changed = true;
-  }
+    const existingPlan = manifest.optimizations.kernelPlan || {};
+    const kernelPlan = options.kernelPlan ? { ...options.kernelPlan } : { ...existingPlan };
 
-  if (options.attentionKernel) {
-    manifest.optimizations = manifest.optimizations || {};
-    if (options.attentionKernel === 'auto') {
-      delete manifest.optimizations.attentionKernel;
-    } else {
-      manifest.optimizations.attentionKernel = options.attentionKernel;
+    if (options.kernelPlanMode) {
+      kernelPlan.mode = options.kernelPlanMode;
     }
+    if (options.kernelPlanStrict !== null) {
+      kernelPlan.strict = options.kernelPlanStrict;
+    }
+    if (options.q4kStrategy) {
+      kernelPlan.q4kStrategy = options.q4kStrategy;
+    }
+
+    if (options.matmulVariant || options.attentionVariant || options.attentionPrefill || options.attentionDecode) {
+      const variants = { ...(kernelPlan.variants as Record<string, any> | undefined) };
+
+      if (options.matmulVariant) {
+        const matmul = { ...(variants.matmul ?? {}) };
+        matmul.default = options.matmulVariant;
+        variants.matmul = matmul;
+      }
+
+      if (options.attentionVariant || options.attentionPrefill || options.attentionDecode) {
+        const attention = { ...(variants.attention ?? {}) };
+        if (options.attentionVariant) attention.default = options.attentionVariant;
+        if (options.attentionPrefill) attention.prefill = options.attentionPrefill;
+        if (options.attentionDecode) attention.decode = options.attentionDecode;
+        variants.attention = attention;
+      }
+
+      kernelPlan.variants = variants;
+    }
+
+    manifest.optimizations.kernelPlan = kernelPlan;
     changed = true;
   }
 

@@ -3,6 +3,7 @@
  */
 
 import type { ModelConfig } from './model.js';
+import type { KernelPlanSchema } from '../config/schema/index.js';
 
 /** Inference configuration */
 export interface InferenceConfig {
@@ -182,7 +183,7 @@ export interface RuntimeOptions {
   debug?: boolean;
   profile?: boolean;
   kvCacheSize?: number;
-  attentionKernel?: 'auto' | 'tiled_large' | 'tiled_small' | 'streaming';
+  kernelPlan?: KernelPlanSchema;
 }
 
 /** Progress callback */

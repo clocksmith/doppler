@@ -26,10 +26,7 @@ These pages are distinct from unit tests (Vitest) and Playwright correctness tes
 | `model` | Pre-select model ID | `?model=gemma3-1b-q4` |
 | `prompt` | Pre-fill prompt text | `?prompt=Hello%20world` |
 | `autorun=1` | Auto-run test on page load | `?autorun=1` |
-| `kernelHints` | JSON kernel hints override | `?kernelHints={"q4kMatmul":"fused_q4k"}` |
-| `attentionKernel` | Attention kernel override | `?attentionKernel=tiled_large` |
-| `computePrecision` | Compute precision (f16/f32/auto) | `?computePrecision=f16` |
-| `q4kMatmul` | Q4K matmul strategy | `?q4kMatmul=dequant_f16` |
+| `kernelPlan` | JSON kernel plan override | `?kernelPlan={"q4kStrategy":"dequant_f16"}` |
 | `debug=1` | Enable debug logging | `?debug=1` |
 | `profile=1` | Enable GPU timestamp profiling | `?profile=1` |
 | `trace` | Trace level: quick or full | `?trace=quick` |
@@ -56,13 +53,13 @@ console.log('Errors:', state.errors);
 
 ### ../tools/test-kernel-selection.html — Kernel Selection Debug
 
-**Purpose:** Verify manifest kernel hints are loaded correctly
+**Purpose:** Verify manifest kernel plan is loaded correctly
 **URL:** `http://localhost:8080/doppler/tools/test-kernel-selection.html`
 
 **When to use:**
-- Debugging kernel hint configuration in manifest.json
+- Debugging kernel plan configuration in manifest.json
 - Verifying Q4K layout detection
-- Checking hint priority resolution (manifest → profile → runtime)
+- Checking plan resolution (manifest → profile → runtime)
 
 **Output:** Console logs showing kernel selection decisions.
 
@@ -102,8 +99,8 @@ cd kernel-tests && npm test
 # Run inference smoke test
 open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1"
 
-# Run with specific kernel hints
-open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&q4kMatmul=dequant_f16"
+# Run with a specific kernel plan override
+open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPlan={\"q4kStrategy\":\"dequant_f16\"}"
 ```
 
 ## Shared Test Utilities
@@ -113,7 +110,7 @@ The `inference/test-harness.ts` module provides shared utilities:
 ```typescript
 import {
   discoverModels,           // Fetch models from /api/models
-  parseRuntimeOverridesFromURL, // Parse kernel hints from URL params
+  parseRuntimeOverridesFromURL, // Parse kernel plan overrides from URL params
   createHttpShardLoader,    // Create HTTP-based shard loader
   fetchManifest,            // Fetch and parse manifest.json
   initializeDevice,         // Initialize WebGPU device

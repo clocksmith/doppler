@@ -13,11 +13,11 @@
  */
 
 import { initDevice, getDevice, getKernelCapabilities, type KernelCapabilities } from '../gpu/device.js';
-import { parseManifest, type RDRRManifest, type KernelHints } from '../storage/rdrr-format.js';
+import { parseManifest, type RDRRManifest } from '../storage/rdrr-format.js';
 import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
 import { log as debugLog } from '../debug/index.js';
-import type { RuntimeConfigSchema } from '../config/schema/index.js';
+import type { RuntimeConfigSchema, KernelPlanSchema } from '../config/schema/index.js';
 import { setRuntimeConfig } from '../config/runtime.js';
 
 // ============================================================================
@@ -43,8 +43,7 @@ export interface ModelInfo {
  */
 export interface RuntimeOverrides {
   debug?: boolean;
-  attentionKernel?: string;
-  kernelHints?: KernelHints;
+  kernelPlan?: KernelPlanSchema;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
   /** Enable GPU timestamp profiling */
   profile?: boolean;
@@ -121,13 +120,7 @@ export async function discoverModels(
  * Parse runtime overrides from URL query parameters.
  *
  * Supported parameters:
- * - kernelHints: JSON object with kernel hints
- * - attentionKernel: Attention kernel override
- * - computePrecision: Compute precision (f16/f32/auto)
- * - q4kMatmul: Q4K matmul strategy
- * - f16Matmul: F16 matmul strategy
- * - attentionPrefill: Prefill attention kernel
- * - attentionDecode: Decode attention kernel
+ * - kernelPlan: JSON object with kernel plan overrides
  * - debug: Enable debug mode
  *
  * @param searchParams - URLSearchParams to parse (default: window.location.search)
@@ -137,40 +130,18 @@ export function parseRuntimeOverridesFromURL(
   searchParams?: URLSearchParams
 ): RuntimeOverrides {
   const params = searchParams || new URLSearchParams(window.location.search);
-  const hints: KernelHints = {};
-
-  // Parse JSON kernelHints if present
-  const kernelHintsRaw = params.get('kernelHints');
-  if (kernelHintsRaw) {
-    try {
-      const parsed = JSON.parse(kernelHintsRaw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        Object.assign(hints, parsed);
-      }
-    } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse kernelHints JSON: ${(e as Error).message}`);
-    }
-  }
-
-  // Parse individual hint parameters
-  const computePrecision = params.get('computePrecision');
-  const q4kMatmul = params.get('q4kMatmul');
-  const f16Matmul = params.get('f16Matmul');
-  const attentionPrefill = params.get('attentionPrefill');
-  const attentionDecode = params.get('attentionDecode');
-
-  if (computePrecision) hints.computePrecision = computePrecision as KernelHints['computePrecision'];
-  if (q4kMatmul) hints.q4kMatmul = q4kMatmul as KernelHints['q4kMatmul'];
-  if (f16Matmul) hints.f16Matmul = f16Matmul as KernelHints['f16Matmul'];
-  if (attentionPrefill) hints.attentionPrefill = attentionPrefill as KernelHints['attentionPrefill'];
-  if (attentionDecode) hints.attentionDecode = attentionDecode as KernelHints['attentionDecode'];
 
   const runtime: RuntimeOverrides = {};
-
-  // Attention kernel override
-  const attentionKernel = params.get('attentionKernel');
-  if (attentionKernel) {
-    runtime.attentionKernel = attentionKernel;
+  const kernelPlanRaw = params.get('kernelPlan');
+  if (kernelPlanRaw) {
+    try {
+      const parsed = JSON.parse(kernelPlanRaw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        runtime.kernelPlan = parsed as KernelPlanSchema;
+      }
+    } catch (e) {
+      debugLog.warn('TestHarness', `Failed to parse kernelPlan JSON: ${(e as Error).message}`);
+    }
   }
 
   // Debug mode
@@ -223,11 +194,6 @@ export function parseRuntimeOverridesFromURL(
     } catch (e) {
       debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${(e as Error).message}`);
     }
-  }
-
-  // Attach hints if any were specified
-  if (Object.keys(hints).length > 0) {
-    runtime.kernelHints = hints;
   }
 
   return runtime;
@@ -390,9 +356,8 @@ export async function initializeInference(
     gpu: { device },
     baseUrl: modelUrl,
     runtime: {
-      attentionKernel: runtime.attentionKernel || 'auto',
       debug: runtime.debug,
-      kernelHints: runtime.kernelHints,
+      kernelPlan: runtime.kernelPlan,
     },
     onProgress: (progress: { percent: number; stage?: string; message?: string }) => {
       const pct = 0.2 + progress.percent * 0.8;

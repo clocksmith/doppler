@@ -100,7 +100,7 @@ graph LR
     end
 
     subgraph ManifestFields["Manifest Fields"]
-        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>kernelHints:<br/>&nbsp;&nbsp;q4kMatmul: fused_q4k"]
+        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>kernelPlan:<br/>&nbsp;&nbsp;q4kStrategy: fused_q4k"]
         F2["architecture: MixtralForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 8<br/>&nbsp;&nbsp;numExpertsPerTok: 2<br/>&nbsp;&nbsp;expertShardMap"]
         F3["architecture: GPTOSSForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 32<br/>&nbsp;&nbsp;numExpertsPerTok: 4<br/>expertQuant: MXFP4"]
     end
@@ -366,7 +366,7 @@ graph TD
     end
 
     subgraph Stage4["4. Manifest Config"]
-        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>kernelHints:<br/>&nbsp;&nbsp;q4kMatmul: dequant_f16<br/>&nbsp;&nbsp;computePrecision: f16"]
+        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>kernelPlan:<br/>&nbsp;&nbsp;q4kStrategy: dequant_f16"]
     end
 
     subgraph Stage5["5. Hardware Detection (M3)"]

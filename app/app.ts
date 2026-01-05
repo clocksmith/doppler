@@ -37,7 +37,8 @@ import {
   loadManifestFromOPFS,
   deleteModel as deleteModelFromOPFS,
 } from '../src/storage/shard-manager.js';
-import { parseManifest, RDRRManifest, type KernelHints } from '../src/storage/rdrr-format.js';
+import { parseManifest, RDRRManifest } from '../src/storage/rdrr-format.js';
+import type { KernelPlanSchema } from '../src/config/schema/index.js';
 import { getMemoryCapabilities, MemoryCapabilities } from '../src/memory/capability.js';
 import { getHeapManager, HeapManager } from '../src/memory/heap-manager.js';
 import { getBufferPool } from '../src/gpu/buffer-pool.js';
@@ -264,17 +265,11 @@ export class DopplerDemo {
   private gpuBufferLimitBytes: number | null = null;
   private isUnifiedMemory = false;
 
-  // Attention kernel UI
-  private attentionKernelSelect: HTMLSelectElement | null = null;
-  private attentionKernelNote: HTMLElement | null = null;
-  private manifestAttentionKernelDefault: string | null = null;
-
   // Memory control UI
   private unloadModelBtn: HTMLButtonElement | null = null;
   private clearMemoryBtn: HTMLButtonElement | null = null;
   private swapIndicator: HTMLElement | null = null;
-  private runtimeKernelHints: KernelHints | null = null;
-  private runtimeAttentionKernel: string | null = null;
+  private runtimeKernelPlan: KernelPlanSchema | null = null;
 
   // Sampling controls
   private temperatureInput: HTMLInputElement | null = null;
@@ -337,8 +332,6 @@ export class DopplerDemo {
       totalValue: document.querySelector('#memory-total'),
     };
 
-    this.attentionKernelSelect = document.querySelector('#attention-kernel-select');
-    this.attentionKernelNote = document.querySelector('#attention-kernel-note');
     this._readRuntimeOverridesFromURL();
 
     // Memory control elements
@@ -414,20 +407,6 @@ export class DopplerDemo {
       onCancel: () => log.debug('QuickStart', 'Cancelled by user'),
     });
 
-    // Attention kernel override dropdown
-    if (this.attentionKernelSelect) {
-      if (this.runtimeAttentionKernel) {
-        this.attentionKernelSelect.value = this.runtimeAttentionKernel;
-      }
-      this.attentionKernelSelect.addEventListener('change', () => {
-        const value = this.attentionKernelSelect!.value;
-        if (this.pipeline && typeof (this.pipeline as Pipeline & { setAttentionKernel?: (v: string) => void }).setAttentionKernel === 'function') {
-          (this.pipeline as Pipeline & { setAttentionKernel: (v: string) => void }).setAttentionKernel(value);
-        }
-        this._updateAttentionKernelNote();
-      });
-    }
-
     // Sampling inputs (clamp and persist)
     const clampNumber = (input: HTMLInputElement, min: number, max: number): void => {
       const n = parseFloat(input.value);
@@ -467,40 +446,17 @@ export class DopplerDemo {
 
   private _readRuntimeOverridesFromURL(): void {
     const params = new URLSearchParams(window.location.search);
-    const hints: KernelHints = {};
-
-    const kernelHintsRaw = params.get('kernelHints');
-    if (kernelHintsRaw) {
+    const kernelPlanRaw = params.get('kernelPlan');
+    if (kernelPlanRaw) {
       try {
-        const parsed = JSON.parse(kernelHintsRaw);
+        const parsed = JSON.parse(kernelPlanRaw);
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          Object.assign(hints, parsed as KernelHints);
+          this.runtimeKernelPlan = parsed as KernelPlanSchema;
+          log.debug('App', 'Runtime kernel plan from URL:', parsed);
         }
       } catch (err) {
-        log.warn('App', 'Failed to parse kernelHints from URL:', (err as Error).message);
+        log.warn('App', 'Failed to parse kernelPlan from URL:', (err as Error).message);
       }
-    }
-
-    const computePrecision = params.get('computePrecision');
-    const q4kMatmul = params.get('q4kMatmul');
-    const f16Matmul = params.get('f16Matmul');
-    const attentionPrefill = params.get('attentionPrefill');
-    const attentionDecode = params.get('attentionDecode');
-
-    if (computePrecision) hints.computePrecision = computePrecision as KernelHints['computePrecision'];
-    if (q4kMatmul) hints.q4kMatmul = q4kMatmul as KernelHints['q4kMatmul'];
-    if (f16Matmul) hints.f16Matmul = f16Matmul as KernelHints['f16Matmul'];
-    if (attentionPrefill) hints.attentionPrefill = attentionPrefill as KernelHints['attentionPrefill'];
-    if (attentionDecode) hints.attentionDecode = attentionDecode as KernelHints['attentionDecode'];
-
-    if (Object.keys(hints).length > 0) {
-      this.runtimeKernelHints = hints;
-      log.debug('App', 'Runtime kernel hints from URL:', hints);
-    }
-
-    const attentionKernel = params.get('attentionKernel');
-    if (attentionKernel) {
-      this.runtimeAttentionKernel = attentionKernel;
     }
   }
 
@@ -1174,13 +1130,6 @@ export class DopplerDemo {
       // Initialize GPU - show GPU phase starting
       this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 5, message: 'Initializing...' });
 
-      // Capture manifest default attention kernel preference.
-      this.manifestAttentionKernelDefault =
-        (manifest as RDRRManifest & { optimizations?: { attentionKernel?: string }; attentionKernel?: string; runtime?: { attentionKernel?: string } }).optimizations?.attentionKernel ||
-        (manifest as RDRRManifest & { attentionKernel?: string }).attentionKernel ||
-        (manifest as RDRRManifest & { runtime?: { attentionKernel?: string } }).runtime?.attentionKernel ||
-        null;
-
       // Ensure GPU device is initialized
       const device = getDevice() || (await initDevice());
       const gpuCaps = getKernelCapabilities();
@@ -1212,9 +1161,8 @@ export class DopplerDemo {
         },
         baseUrl: useServer ? sourceInfo.url : undefined,
         runtime: {
-          attentionKernel: this.runtimeAttentionKernel || this.attentionKernelSelect?.value || 'auto',
           debug: new URLSearchParams(window.location.search).has('debug'),
-          kernelHints: this.runtimeKernelHints || undefined,
+          kernelPlan: this.runtimeKernelPlan || undefined,
         },
         onProgress: (progress: {
           percent: number;
@@ -1271,7 +1219,6 @@ export class DopplerDemo {
       this._setStatus('ready', `${model.name} loaded`);
       this.chatUI?.setInputEnabled(true);
       this.chatUI?.focusInput();
-      this._updateAttentionKernelNote();
       this._updateInitialStats();
 
       log.info('App', `Model loaded: ${model.name} (${model.key})`);
@@ -1700,24 +1647,6 @@ export class DopplerDemo {
     } catch (error) {
       log.error('App', 'Clear memory failed:', error);
       this._setStatus('error', 'Clear failed');
-    }
-  }
-
-  /**
-   * Update attention kernel note based on dropdown and manifest default.
-   */
-  private _updateAttentionKernelNote(): void {
-    if (!this.attentionKernelNote || !this.attentionKernelSelect) return;
-
-    const selected = this.attentionKernelSelect.value;
-    const manifestDefault = this.manifestAttentionKernelDefault;
-
-    if (selected && selected !== 'auto') {
-      this.attentionKernelNote.textContent = `Override: ${selected}`;
-    } else if (manifestDefault) {
-      this.attentionKernelNote.textContent = `Manifest default: ${manifestDefault} (auto enabled)`;
-    } else {
-      this.attentionKernelNote.textContent = 'Auto selection enabled';
     }
   }
 

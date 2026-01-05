@@ -526,7 +526,7 @@ async function runGptOssExpert(
     count,
     outDim,
     hiddenSize,
-    { transposeB: 'auto', aOffset: inputOffset }
+    { transposeB: 'auto', aOffset: inputOffset, role: 'moe_gate_up' }
   );
   // Don't release cached weights
 
@@ -549,7 +549,7 @@ async function runGptOssExpert(
     count,
     hiddenSize,
     intermediateSize,
-    { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset }
+    { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset, role: 'moe_down' }
   );
   // Don't release cached weights
   releaseBuffer(activated.buffer);
@@ -588,7 +588,7 @@ async function runMixtralExpert(
     count,
     intermediateSize,
     hiddenSize,
-    { transposeB: 'auto', aOffset: inputOffset }
+    { transposeB: 'auto', aOffset: inputOffset, role: 'moe_gate' }
   );
   const upOut = await runMatmul(
     gathered,
@@ -596,7 +596,7 @@ async function runMixtralExpert(
     count,
     intermediateSize,
     hiddenSize,
-    { transposeB: 'auto', aOffset: inputOffset }
+    { transposeB: 'auto', aOffset: inputOffset, role: 'moe_up' }
   );
 
   const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
@@ -613,7 +613,7 @@ async function runMixtralExpert(
     count,
     hiddenSize,
     intermediateSize,
-    { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset }
+    { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset, role: 'moe_down' }
   );
   releaseBuffer(activated.buffer);
 }
@@ -651,10 +651,10 @@ async function runExpertCPU(
   const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'expert_input');
 
   // 2. Gate projection
-  const gateOutput = await runMatmul(inputTensor, weights.gate as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
+  const gateOutput = await runMatmul(inputTensor, weights.gate as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', role: 'moe_gate' });
 
   // 3. Up projection
-  const upOutput = await runMatmul(inputTensor, weights.up as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
+  const upOutput = await runMatmul(inputTensor, weights.up as GPUBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', role: 'moe_up' });
 
   // 4. Activation
   const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
@@ -664,7 +664,7 @@ async function runExpertCPU(
   });
 
   // 5. Down projection
-  const output = await runMatmul(activatedOutput, weights.down as GPUBuffer, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' });
+  const output = await runMatmul(activatedOutput, weights.down as GPUBuffer, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', role: 'moe_down' });
 
   // 6. Read output back
   const outputData = await readBuffer(output.buffer, input.byteLength);

@@ -61,6 +61,18 @@ npm run debug -- -m MODEL --trace CATEGORY 2>&1 | grep -E "TRACE|maxAbs"
 | `loader` | Model loading bugs, weight corruption, quantization issues |
 | `all` | When unsure - captures everything (verbose) |
 
+## Kernel Plan Overrides (Optional)
+
+Use kernel plan overrides to isolate kernel-specific issues without editing code.
+
+```bash
+# Force dequant path for correctness (slow, but avoids fused Q4K)
+npm run debug -- -m MODEL --kernel-profile safe
+
+# Override attention variant for A/B testing
+npm run debug -- -m MODEL --kernel-plan '{"variants":{"attention":{"decode":"streaming"}}}'
+```
+
 ## Config-Driven Probes (Preferred Over Ad-hoc Logs)
 
 Use probes to read specific token/dimension values without editing code.

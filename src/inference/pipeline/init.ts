@@ -16,16 +16,16 @@ import type { ParsedModelConfig, Manifest } from './config.js';
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities, type KernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
-import type { WeightBuffer } from '../../gpu/weight-buffer.js';
+import type { WeightBuffer, CpuWeightBuffer } from '../../gpu/weight-buffer.js';
 import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice } from '../../debug/index.js';
-import type { KernelHints, RDRRManifest } from '../../storage/rdrr-format.js';
+import type { RDRRManifest } from '../../storage/rdrr-format.js';
 import type { LayerWeights, RouterWeights } from './types.js';
-import type { KVCacheConfigSchema, RuntimeConfigSchema, LoadingConfigSchema } from '../../config/schema/index.js';
+import type { KVCacheConfigSchema, RuntimeConfigSchema, LoadingConfigSchema, KernelPlanSchema } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
 // ============================================================================
@@ -48,9 +48,8 @@ export interface PipelineContexts {
   baseUrl?: string;
   /** Runtime configuration overrides */
   runtime?: {
-    attentionKernel?: string;
     debug?: boolean;
-    kernelHints?: KernelHints;
+    kernelPlan?: KernelPlanSchema;
   };
   /** Full runtime config (merged with defaults) */
   runtimeConfig?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema;
@@ -118,31 +117,6 @@ export interface KVCacheConfig {
 
 function isRDRRManifest(manifest: unknown): manifest is RDRRManifest {
   return manifest !== null && typeof manifest === 'object' && Array.isArray((manifest as RDRRManifest).shards);
-}
-
-// ============================================================================
-// Attention Kernel Normalization
-// ============================================================================
-
-/**
- * Normalize attention kernel specifier to a valid kernel name.
- *
- * @param value - Raw kernel specifier (from manifest or runtime)
- * @returns Normalized kernel name or null for auto-selection
- */
-export function normalizeAttentionKernel(
-  value: string | null | undefined
-): 'tiled_large' | 'tiled_small' | 'streaming' | null {
-  if (!value || typeof value !== 'string') return null;
-
-  const v = value.toLowerCase().trim();
-  if (v === 'auto') return null;
-  if (v === 'tiled_large' || v === 'large') return 'tiled_large';
-  if (v === 'tiled_small' || v === 'small' || v === 'tiled_small_hd') return 'tiled_small';
-  if (v === 'streaming' || v === 'stream') return 'streaming';
-
-  log.warn('Pipeline', `Unknown attentionKernel "${value}", using auto`);
-  return null;
 }
 
 // ============================================================================
@@ -428,9 +402,9 @@ export interface WeightLoadResult {
   /** Layer weights map (layer_0, layer_1, etc.) */
   layerWeights: Map<string, LayerWeights>;
   /** Embedding buffer */
-  embeddings: GPUBuffer | WeightBuffer | Float32Array | null;
+  embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** LM head buffer (WeightBuffer for matmul metadata) */
-  lmHead: GPUBuffer | WeightBuffer | Float32Array | null;
+  lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** Final norm buffer */
   finalNorm: GPUBuffer | Float32Array | null;
   /** Whether embeddings are tied to LM head */

@@ -138,6 +138,8 @@ export {
 export {
   castF32ToF16,
   recordCastF32ToF16,
+  castF16ToF32,
+  recordCastF16ToF32,
   runBF16ToF32,
   runBF16ToF16,
   type CastOptions,

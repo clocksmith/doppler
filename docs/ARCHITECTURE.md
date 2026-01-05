@@ -7,36 +7,36 @@ See also: [Glossary](GLOSSARY.md)
 ## Overview
 
 ```
+Load Phase (one-time)
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         User Application                             │
-│                    (doppler-provider.ts API)                        │
+│ User Application -> Pipeline.loadModel()                            │
 └─────────────────────────────────────────────────────────────────────┘
                                    │
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      Inference Pipeline                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
-│  │  Tokenizer  │  │  KV Cache   │  │ MoE Router  │  │ Speculative│ │
-│  │             │  │ (GPU/CPU)   │  │ (optional)  │  │  Decoder   │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │
+│ Model Loader (DopplerLoader)                                        │
+│ - shard cache, dequant, upload                                      │
+└─────────────────────────────────────────────────────────────────────┘
+                 ▼                                   ▼
+ ┌───────────────────────────────┐   ┌───────────────────────────────┐
+ │ Storage (RDRR/OPFS/Downloader)│   │ GPU Subsystem                 │
+ └───────────────────────────────┘   └───────────────────────────────┘
+
+Inference Phase (per token)
+┌─────────────────────────────────────────────────────────────────────┐
+│ User Application -> generate()/chat()                               │
 └─────────────────────────────────────────────────────────────────────┘
                                    │
-            ┌──────────────────────┼──────────────────────┐
-            ▼                      ▼                      ▼
-┌───────────────────┐  ┌───────────────────┐  ┌───────────────────────┐
-│   GPU Subsystem   │  │   Loader          │  │   Storage             │
-│  ┌─────────────┐  │  │  ┌─────────────┐  │  │  ┌─────────────────┐  │
-│  │   Device    │  │  │  │ DOPPLER     │  │  │  │  RDRR Format    │  │
-│  │ Capabilities│  │  │  │ Loader      │  │  │  │  (64MB shards)  │  │
-│  └─────────────┘  │  │  └─────────────┘  │  │  └─────────────────┘  │
-│  ┌─────────────┐  │  │  ┌─────────────┐  │  │  ┌─────────────────┐  │
-│  │ Buffer Pool │  │  │  │ Dequantize  │  │  │  │ Shard Manager   │  │
-│  └─────────────┘  │  │  │ Q4_K→F32    │  │  │  │ (OPFS/Bridge)   │  │
-│  ┌─────────────┐  │  │  └─────────────┘  │  │  └─────────────────┘  │
-│  │ WGSL Kernels│  │  │                   │  │  ┌─────────────────┐  │
-│  │ (27 files)  │  │  │                   │  │  │   Downloader    │  │
-│  └─────────────┘  │  │                   │  │  └─────────────────┘  │
-└───────────────────┘  └───────────────────┘  └───────────────────────┘
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ Inference Pipeline                                                  │
+│ tokenizer, KV cache, attention/FFN, sampling                        │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ GPU Subsystem (WGSL kernels, buffer pools)                          │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Design Philosophy
@@ -792,4 +792,4 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.

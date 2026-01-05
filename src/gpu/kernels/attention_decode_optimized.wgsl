@@ -24,7 +24,7 @@ struct Uniforms {
     num_heads: u32,      // Number of query heads
     num_kv_heads: u32,   // Number of KV heads (GQA support)
     head_dim: u32,       // Head dimension (typically 64, 128, or 256)
-    _pad0: u32,          // 16-byte alignment padding
+    kv_len_source: u32,  // 0 = use uniform kv_len, 1 = use buffer
     _pad1: u32,
     _pad2: u32,
 }
@@ -34,6 +34,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> K_cache: array<f32>;
 @group(0) @binding(3) var<storage, read> V_cache: array<f32>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+@group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Workgroup size for decode: 256 threads
 override WORKGROUP_SIZE: u32 = 256u;
@@ -52,6 +53,13 @@ var<workgroup> sg_sum: array<f32, 8>;           // Subgroup sums
 var<workgroup> global_max: f32;
 var<workgroup> global_sum: f32;
 
+fn get_kv_len() -> u32 {
+    if (u.kv_len_source == 0u) {
+        return u.kv_len;
+    }
+    return kv_len_buffer[0];
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -62,7 +70,7 @@ fn main(
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
     let head_dim = u.head_dim;
-    let kv_len = u.kv_len;
+    let kv_len = get_kv_len();
 
     // GQA: map query head to KV head
     let heads_per_kv = u.num_heads / u.num_kv_heads;
@@ -232,7 +240,7 @@ fn main_multihead(
     }
 
     let head_dim = u.head_dim;
-    let kv_len = u.kv_len;
+    let kv_len = get_kv_len();
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
     let scale = 1.0 / sqrt(f32(head_dim));
@@ -308,7 +316,7 @@ fn main_f16kv(
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
     let head_dim = u.head_dim;
-    let kv_len = u.kv_len;
+    let kv_len = get_kv_len();
 
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;

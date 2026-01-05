@@ -21,11 +21,13 @@ import {
   runRMSNorm,
   runRoPE,
   runAttention,
+  castF16ToF32,
   castF32ToF16,
   recordMatmul,
   recordRMSNorm,
   recordRoPE,
   recordAttention,
+  recordCastF16ToF32,
   recordCastF32ToF16,
   recordSplitQKV,
   runMatmulResidualFused,
@@ -55,7 +57,6 @@ export interface AttentionConfig {
   currentSeqLen: number;
   slidingWindow?: number | null;
   layerType?: string;
-  attentionKernelOverride?: string | null;
   /** Residual tensor for fused o_proj + residual add (decode only) */
   residualTensor?: Tensor | null;
   /** Skip input RMSNorm even if weights are present */
@@ -64,6 +65,8 @@ export interface AttentionConfig {
   attnSoftcap?: number;
   /** Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16). */
   queryPreAttnScalar?: number;
+  /** Apply query/key RMSNorm even when per-head weights are absent. */
+  queryKeyNorm?: boolean;
 }
 
 /**
@@ -94,6 +97,27 @@ export interface AttentionDebugFlags {
   l0RoPEDebugDone?: boolean;
   l0AttnDebugDone?: boolean;
   l0OProjDebugDone?: boolean;
+}
+
+const qkNormOnesCache = new Map<number, GPUBuffer>();
+
+function getQKNormOnesBuffer(headDim: number): GPUBuffer {
+  const cached = qkNormOnesCache.get(headDim);
+  if (cached) return cached;
+  const device = getDevice();
+  if (!device) {
+    throw new Error('No GPU device available for Q/K norm buffer');
+  }
+  const data = new Float32Array(headDim);
+  data.fill(1);
+  const buffer = device.createBuffer({
+    label: `qk_norm_ones_${headDim}`,
+    size: data.byteLength,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(buffer, 0, data);
+  qkNormOnesCache.set(headDim, buffer);
+  return buffer;
 }
 
 /**
@@ -131,7 +155,6 @@ export async function runLayerAttentionGPU(
     currentSeqLen,
     slidingWindow,
     layerType,
-    attentionKernelOverride,
     residualTensor,
     attnSoftcap = 0,
     queryPreAttnScalar,
@@ -140,12 +163,21 @@ export async function runLayerAttentionGPU(
 
   const device = getDevice();
 
+  const wantsF16Output = input.dtype === 'f16';
+  let attentionInput = input;
+  let attentionInputTemp = false;
+  if (wantsF16Output) {
+    attentionInput = await castF16ToF32(input);
+    attentionInputTemp = true;
+  }
+
   // Debug logging moved to debug-utils.ts (enable via setDebugConfig)
 
   if (!layerWeights) {
     // Return zeros if no weights
-    const outputBuf = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
-    const output = createTensor(outputBuf, input.dtype, [numTokens, hiddenSize], 'attn_output');
+    const bytesPerElement = wantsF16Output ? 2 : 4;
+    const outputBuf = acquireBuffer(numTokens * hiddenSize * bytesPerElement, undefined, 'attn_output');
+    const output = createTensor(outputBuf, wantsF16Output ? 'f16' : 'f32', [numTokens, hiddenSize], 'attn_output');
     return { output, residualFused: false };
   }
 
@@ -153,11 +185,11 @@ export async function runLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
-  let normed: Tensor = input;
+  let normed: Tensor = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
 
-    normed = await runRMSNorm(input, normWeightBuf, rmsNormEps, {
+    normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
     });
@@ -194,7 +226,7 @@ export async function runLayerAttentionGPU(
 
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
-  const useF16Activations = input.dtype === 'f16';
+  const useF16Activations = attentionInput.dtype === 'f16';
   let qTensor: Tensor, kTensor: Tensor, vTensor: Tensor;
 
   // Check for fused QKV path (3→1 matmul optimization)
@@ -211,6 +243,7 @@ export async function runLayerAttentionGPU(
     // One fused matmul instead of 3 separate ones
     const qkvTensor = await runMatmul(normed, layerWeights.qkvProj, numTokens, qkvSize, hiddenSize, {
       transposeB: 'auto',
+      role: 'qkv_proj',
     });
 
     // Split fused output into Q, K, V (returns Tensors)
@@ -238,6 +271,7 @@ export async function runLayerAttentionGPU(
       const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
       qTensor = await runMatmul(normed, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'q_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.qProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qProj)) {
@@ -267,6 +301,7 @@ export async function runLayerAttentionGPU(
       const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
       kTensor = await runMatmul(normed, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'k_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.kProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kProj)) {
@@ -297,6 +332,7 @@ export async function runLayerAttentionGPU(
 
       vTensor = await runMatmul(normed, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'v_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.vProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.vProj)) {
@@ -395,7 +431,8 @@ export async function runLayerAttentionGPU(
     if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
   }
 
-  if (normed !== input) releaseBuffer(normed.buffer);
+  if (normed !== attentionInput) releaseBuffer(normed.buffer);
+  if (attentionInputTemp) releaseBuffer(attentionInput.buffer);
 
   // 3. RoPE (modifies tensor in-place)
 
@@ -495,7 +532,6 @@ export async function runLayerAttentionGPU(
     numKVHeads,
     causal: causalForAttention,
     startPos: startPosForMask,
-    attentionKernel: attentionKernelOverride || undefined,
     slidingWindow: effectiveSlidingWindow,
     attnSoftcap,
     scale: attnScale,
@@ -530,6 +566,7 @@ export async function runLayerAttentionGPU(
     const oProjDtype = getWeightDtype(oProjBuf);
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
                         residualTensor &&
+                        residualTensor.dtype === 'f32' &&
                         !loraO &&
                         oProjDtype === 'f16';  // GEMV kernel expects f16 weights
 
@@ -548,6 +585,7 @@ export async function runLayerAttentionGPU(
       // STANDARD PATH: o_proj matmul only (residual will be added by layer.ts)
       output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
         transposeB: 'auto',
+        role: 'o_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
     }
@@ -594,13 +632,27 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(output.buffer, 'L0 attention output (after o_proj, GPU)', numTokens, hiddenSize);
   }
 
+  let finalOutput = output;
+  const buffersToRelease: GPUBuffer[] = [];
+  if (output.buffer !== attnOutput.buffer) {
+    buffersToRelease.push(attnOutput.buffer);
+  }
+
+  if (wantsF16Output && output.dtype !== 'f16') {
+    const f16Output = await castF32ToF16(output);
+    buffersToRelease.push(output.buffer);
+    finalOutput = f16Output;
+  }
+
   // Cleanup
   releaseBuffer(qTensor.buffer);
   releaseBuffer(kTensor.buffer);
   releaseBuffer(vTensor.buffer);
-  if (output.buffer !== attnOutput.buffer) releaseBuffer(attnOutput.buffer);
+  for (const buffer of buffersToRelease) {
+    releaseBuffer(buffer);
+  }
 
-  return { output, residualFused };
+  return { output: finalOutput, residualFused };
 }
 
 /**
@@ -634,16 +686,24 @@ export async function recordLayerAttentionGPU(
     currentSeqLen,
     slidingWindow,
     layerType,
-    attentionKernelOverride,
     residualTensor,
     attnSoftcap = 0,
     queryPreAttnScalar,
     skipInputNorm = false,
   } = config;
 
+  const wantsF16Output = input.dtype === 'f16';
+  let attentionInput = input;
+  let attentionInputTemp = false;
+  if (wantsF16Output) {
+    attentionInput = await recordCastF16ToF32(recorder, input);
+    attentionInputTemp = true;
+  }
+
   if (!layerWeights) {
-    const outputBuf = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
-    const output = createTensor(outputBuf, input.dtype, [numTokens, hiddenSize], 'attn_output');
+    const bytesPerElement = wantsF16Output ? 2 : 4;
+    const outputBuf = acquireBuffer(numTokens * hiddenSize * bytesPerElement, undefined, 'attn_output');
+    const output = createTensor(outputBuf, wantsF16Output ? 'f16' : 'f32', [numTokens, hiddenSize], 'attn_output');
     return { output, residualFused: false };
   }
 
@@ -651,10 +711,10 @@ export async function recordLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
-  let normed: Tensor = input;
+  let normed: Tensor = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
-    normed = await recordRMSNorm(recorder, input, normWeightBuf, rmsNormEps, {
+    normed = await recordRMSNorm(recorder, attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
     });
@@ -663,7 +723,7 @@ export async function recordLayerAttentionGPU(
 
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
-  const useF16Activations = input.dtype === 'f16';
+  const useF16Activations = attentionInput.dtype === 'f16';
   let qTensor: Tensor, kTensor: Tensor, vTensor: Tensor;
 
   // Check for fused QKV path (3->1 matmul optimization)
@@ -680,6 +740,7 @@ export async function recordLayerAttentionGPU(
     // One fused matmul instead of 3 separate ones
     const qkvTensor = await recordMatmul(recorder, normed, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
       transposeB: 'auto',
+      role: 'qkv_proj',
     });
 
     // Split fused output into Q, K, V (returns Tensors)
@@ -702,6 +763,7 @@ export async function recordLayerAttentionGPU(
       const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
       qTensor = await recordMatmul(recorder, normed, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'q_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.qProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qProj)) {
@@ -732,6 +794,7 @@ export async function recordLayerAttentionGPU(
       const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
       kTensor = await recordMatmul(recorder, normed, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'k_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.kProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kProj)) {
@@ -762,6 +825,7 @@ export async function recordLayerAttentionGPU(
       const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
       vTensor = await recordMatmul(recorder, normed, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
         transposeB: 'auto',
+        role: 'v_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.vProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.vProj)) {
@@ -819,7 +883,8 @@ export async function recordLayerAttentionGPU(
     if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
   }
 
-  if (normed !== input) releaseBuffer(normed.buffer);
+  if (normed !== attentionInput) releaseBuffer(normed.buffer);
+  if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
 
   // 3. RoPE (modifies tensor in-place)
   if (state.ropeFreqsCos && state.ropeFreqsSin) {
@@ -894,7 +959,6 @@ export async function recordLayerAttentionGPU(
     numKVHeads,
     causal: causalForAttention,
     startPos: startPosForMask,
-    attentionKernel: attentionKernelOverride || undefined,
     slidingWindow: effectiveSlidingWindow,
     attnSoftcap,
     scale: attnScale,
@@ -912,6 +976,7 @@ export async function recordLayerAttentionGPU(
     const oProjDtype = getWeightDtype(oProjBuf);
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
                         residualTensor &&
+                        residualTensor.dtype === 'f32' &&
                         !loraO &&
                         oProjDtype === 'f16';
 
@@ -926,6 +991,7 @@ export async function recordLayerAttentionGPU(
       // STANDARD PATH: o_proj matmul only
       output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
         transposeB: 'auto',
+        role: 'o_proj',
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
     }
@@ -956,6 +1022,17 @@ export async function recordLayerAttentionGPU(
     }
   }
 
+  let finalOutput = output;
+  const buffersToTrack: GPUBuffer[] = [];
+  if (output.buffer !== attnOutput.buffer) {
+    buffersToTrack.push(attnOutput.buffer);
+  }
+  if (wantsF16Output && output.dtype !== 'f16') {
+    const f16Output = await recordCastF32ToF16(recorder, output);
+    buffersToTrack.push(output.buffer);
+    finalOutput = f16Output;
+  }
+
   // Track intermediate buffers for cleanup after submit (not release!)
   // These buffers are used by recorded operations that haven't executed yet.
   // Releasing them back to the pool would allow reuse before the encoder is submitted,
@@ -963,7 +1040,9 @@ export async function recordLayerAttentionGPU(
   recorder.trackTemporaryBuffer(qTensor.buffer);
   recorder.trackTemporaryBuffer(kTensor.buffer);
   recorder.trackTemporaryBuffer(vTensor.buffer);
-  if (output.buffer !== attnOutput.buffer) recorder.trackTemporaryBuffer(attnOutput.buffer);
+  for (const buffer of buffersToTrack) {
+    recorder.trackTemporaryBuffer(buffer);
+  }
 
-  return { output, residualFused };
+  return { output: finalOutput, residualFused };
 }

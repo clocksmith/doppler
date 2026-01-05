@@ -18,6 +18,7 @@ struct Uniforms {
     start_pos: u32,  // Absolute position offset for causal masking
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
     sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
+    kv_len_source: u32,   // 0 = use uniform seq_len, 1 = use buffer
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -25,6 +26,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+@group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     let heads_per_kv = u.num_heads / u.num_kv_heads;
@@ -43,6 +45,13 @@ fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     return false;
 }
 
+fn get_kv_len() -> u32 {
+    if (u.kv_len_source == 0u) {
+        return u.seq_len;
+    }
+    return kv_len_buffer[0];
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
     let linear = wg_id.x;
@@ -54,7 +63,7 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
 
     let kv_head_idx = get_kv_head_idx(head_idx);
     let head_dim = u.head_dim;
-    let seq_len = u.seq_len;
+    let seq_len = get_kv_len();
     let scale = u.scale;
 
     var q_local: array<f32, 256>;
@@ -112,4 +121,3 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         output[out_offset + d] = acc[d] / sum_exp;
     }
 }
-

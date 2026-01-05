@@ -1,6 +1,6 @@
 # Kernel Compatibility Matrix
 
-This chart separates **packing/layout** (how weights are stored in RDRR) from **runtime kernel mode** (how they are executed). Packing controls storage and memory access; kernel hints select the execution path.
+This chart separates **packing/layout** (how weights are stored in RDRR) from **runtime kernel mode** (how they are executed). Packing controls storage and memory access; the kernel plan selects the execution path and pipeline order.
 
 ## Runtime Kernel Modes (Overrides)
 
@@ -10,33 +10,41 @@ Use CLI overrides or config files to force runtime kernel mode (without repackin
 # Via config file (recommended for reproducibility)
 npm run bench -- -m MODEL --config kernel-config.json
 
-# Shorthand CLI flag
-npm run bench -- -m MODEL --force-fused-q4k
+# Preset profile (fast/safe/debug/fused/apple)
+npm run bench -- -m MODEL --kernel-profile fused
 
-# JSON kernel hints via CLI (merged with config/flags)
-npm run bench -- -m MODEL --kernel-hints '{"q4kMatmul":"fused_q4k","computePrecision":"f16"}'
+# JSON kernel plan override (merged with config/profile)
+npm run bench -- -m MODEL --kernel-plan '{"q4kStrategy":"fused_q4k","variants":{"attention":{"prefill":"tiled_small","decode":"streaming"}}}'
 ```
 
 Example `kernel-config.json`:
 ```json
 {
   "runtime": {
-    "kernelHints": {
-      "q4kMatmul": "fused_q4k",
-      "computePrecision": "f16"
+    "inference": {
+      "kernelPlan": {
+        "q4kStrategy": "fused_q4k",
+        "variants": {
+          "attention": {
+            "prefill": "tiled_small",
+            "decode": "streaming"
+          }
+        }
+      }
     }
   }
 }
 ```
 
-Priority (low to high): config file → `--kernel-hints` JSON → individual CLI flags (e.g., `--force-fused-q4k`).
+Priority (low to high): `--kernel-profile` → config `runtime.inference.kernelPlan` → `--kernel-plan`.
 
-Supported runtime hints:
-- `computePrecision`: `auto | f16 | f32`
-- `q4kMatmul`: `auto | fused_q4k | dequant_f16 | dequant_f32`
-- `f16Matmul`: `auto | gemv_subgroup`
-- `attentionPrefill`: `auto | tiled_large | tiled_small | streaming`
-- `attentionDecode`: `auto | tiled_large | tiled_small | streaming`
+Kernel plan fields:
+- `q4kStrategy`: `auto | fused_q4k | dequant_f16 | dequant_f32`
+- `strict`: `true | false` (throw on invalid variants vs warn + fallback)
+- `variants.attention`: `default | prefill | decode | roles`
+- `variants.matmul`: `default | roles`
+- `variants.*`: operation-specific overrides (see `config/schema/kernel-plan.schema.ts`)
+- `layerPipeline`: override per-layer op ordering (see `config/schema/inference.schema.ts`)
 
 ## RDRR Layout vs Runtime Kernels
 
@@ -61,5 +69,4 @@ This removes the cached model directory from OPFS for the current browser profil
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--force-fused-q4k`, `--kernel-hints`), and the OPFS purge helper.
-
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.

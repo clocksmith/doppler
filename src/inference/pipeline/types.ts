@@ -51,9 +51,6 @@ export interface PipelineContext {
   /** RoPE sine frequencies buffer */
   ropeFreqsSin: GPUBuffer | Float32Array | null;
 
-  /** Override for attention kernel selection */
-  attentionKernelOverride: string | null;
-
   /** Tokenizer instance (for debug logging) */
   tokenizer?: TokenizerInterface;
 

@@ -212,19 +212,6 @@
           </div>
         </section>
 
-        <section class="panel attention-panel">
-          <h2 class="type-label">Attention Kernel</h2>
-          <select id="attention-kernel-select" class="attention-select">
-            <option value="auto">Auto (fastest safe)</option>
-            <option value="tiled_large">Tiled large (headDim ≤ 64)</option>
-            <option value="tiled_small">Tiled small (compat)</option>
-            <option value="streaming">Streaming (slow)</option>
-          </select>
-          <div class="attention-note" id="attention-kernel-note">
-            Uses manifest default unless overridden.
-          </div>
-        </section>
-
         <section class="panel sampling-panel">
           <h2 class="type-label">Sampling</h2>
           <div class="sampling-row">

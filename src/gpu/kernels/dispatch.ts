@@ -60,6 +60,45 @@ export function recordDispatch(
 }
 
 /**
+ * Dispatch a single compute pass using an indirect dispatch buffer
+ * Use when workgroup counts are produced on GPU
+ */
+export function dispatchIndirect(
+  device: GPUDevice,
+  pipeline: GPUComputePipeline,
+  bindGroup: GPUBindGroup,
+  indirectBuffer: GPUBuffer,
+  indirectOffset: number = 0,
+  label: string = 'compute'
+): void {
+  const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
+  const pass = encoder.beginComputePass({ label: `${label}_pass` });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
+  pass.end();
+  device.queue.submit([encoder.finish()]);
+}
+
+/**
+ * Record an indirect dispatch into a CommandRecorder (no submit)
+ */
+export function recordDispatchIndirect(
+  recorder: CommandRecorder,
+  pipeline: GPUComputePipeline,
+  bindGroup: GPUBindGroup,
+  indirectBuffer: GPUBuffer,
+  indirectOffset: number = 0,
+  label: string = 'compute'
+): void {
+  const pass = recorder.beginComputePass(label);
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
+  pass.end();
+}
+
+/**
  * Dispatch with multiple bind groups
  * For kernels that use multiple bind group sets
  */

@@ -134,8 +134,6 @@ class InferencePipeline {
   ropeFreqsSin: any;
   ropeLocalCos: any;
   ropeLocalSin: any;
-  attentionKernelOverride: "tiled_large" | "tiled_small" | "streaming";
-  manifestAttentionKernelDefault: "tiled_large" | "tiled_small" | "streaming";
   debug: boolean;
   useTiedEmbeddings: boolean;
   embeddingVocabSize: number;
@@ -1144,4 +1142,3 @@ export interface TensorLocation {
     originalShape?: number[];
 }
 ```
-

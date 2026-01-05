@@ -2,8 +2,7 @@
  * CLI Types - Shared type definitions for DOPPLER CLI
  */
 
-import type { KernelHints } from '../../src/storage/rdrr-format.js';
-import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
+import type { RuntimeConfigSchema, KernelPlanSchema } from '../../src/config/schema/index.js';
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
 export type TestSuite =
@@ -87,15 +86,9 @@ export interface CLIOptions {
   /** Enable GPU timestamp profiling for per-kernel timing.
    *  Requires 'timestamp-query' WebGPU feature. */
   gpuProfile: boolean;
-  /** Kernel hint overrides (bench/debug). */
+  /** Kernel plan overrides (bench/debug). */
   kernelProfile: string | null;
-  computePrecision: string | null;
-  q4kMatmul: string | null;
-  f16Matmul: string | null;
-  attentionPrefill: string | null;
-  attentionDecode: string | null;
-  attentionKernel: string | null;
-  kernelHints: KernelHints | null;
+  kernelPlan: KernelPlanSchema | null;
 
   // Debug mode options
   /** Enable verbose debug output during inference */

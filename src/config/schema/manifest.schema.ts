@@ -7,6 +7,8 @@
  * @module config/schema/manifest
  */
 
+import type { KernelPlanSchema } from './kernel-plan.schema.js';
+
 // =============================================================================
 // Hash & Versioning
 // =============================================================================
@@ -244,20 +246,9 @@ export interface TokenizerSchema {
 // Runtime Optimizations Schema
 // =============================================================================
 
-/** Kernel hints for runtime optimization */
-export interface KernelHintsSchema {
-  preferredKernels?: Record<string, string>;
-  workgroupOverrides?: Record<string, [number, number, number]>;
-  disableFeatures?: string[];
-  forceF32Accumulation?: boolean;
-  attentionTier?: 'tiled' | 'streaming' | 'basic';
-  targetDevice?: string;
-  q4kMatmul?: 'fused' | 'dequant';
-}
-
-/** Runtime optimization hints */
+/** Runtime optimization plan */
 export interface RuntimeOptimizationsSchema {
-  kernelHints?: KernelHintsSchema;
+  kernelPlan?: KernelPlanSchema;
 }
 
 // =============================================================================

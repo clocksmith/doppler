@@ -106,15 +106,16 @@
         { "index": 1, "name": "input", "type": "read-only-storage" },
         { "index": 2, "name": "gate_weights", "type": "read-only-storage" },
         { "index": 3, "name": "up_weights", "type": "read-only-storage" },
-        { "index": 4, "name": "down_weights", "type": "read-only-storage" },
-        { "index": 5, "name": "output", "type": "storage" }
+        { "index": 4, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
-          { "name": "hidden_size", "type": "u32", "offset": 0 },
-          { "name": "intermediate_size", "type": "u32", "offset": 4 },
-          { "name": "num_tokens", "type": "u32", "offset": 8 }
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "intermediate_size", "type": "u32", "offset": 8 },
+          { "name": "alpha", "type": "f32", "offset": 12 },
+          { "name": "activation", "type": "u32", "offset": 16 }
         ]
       },
       "variants": {
@@ -151,15 +152,18 @@
         { "index": 1, "name": "Q", "type": "read-only-storage" },
         { "index": 2, "name": "K", "type": "read-only-storage" },
         { "index": 3, "name": "V", "type": "read-only-storage" },
-        { "index": 4, "name": "output", "type": "storage" }
+        { "index": 4, "name": "output", "type": "storage" },
+        { "index": 5, "name": "kv_len", "type": "read-only-storage" }
       ],
       "baseUniforms": {
         "size": 32,
         "fields": [
           { "name": "seq_len", "type": "u32", "offset": 0 },
-          { "name": "num_heads", "type": "u32", "offset": 4 },
-          { "name": "head_dim", "type": "u32", "offset": 8 },
-          { "name": "kv_seq_len", "type": "u32", "offset": 12 }
+          { "name": "kv_len", "type": "u32", "offset": 4 },
+          { "name": "num_heads", "type": "u32", "offset": 8 },
+          { "name": "num_kv_heads", "type": "u32", "offset": 12 },
+          { "name": "head_dim", "type": "u32", "offset": 16 },
+          { "name": "kv_len_source", "type": "u32", "offset": 20 }
         ]
       },
       "variants": {
@@ -288,16 +292,23 @@
         { "index": 1, "name": "Q", "type": "read-only-storage" },
         { "index": 2, "name": "K", "type": "read-only-storage" },
         { "index": 3, "name": "V", "type": "read-only-storage" },
-        { "index": 4, "name": "output", "type": "storage" }
+        { "index": 4, "name": "output", "type": "storage" },
+        { "index": 5, "name": "kv_len", "type": "read-only-storage" }
       ],
       "baseUniforms": {
-        "size": 32,
+        "size": 48,
         "fields": [
-          { "name": "seq_len", "type": "u32", "offset": 0 },
-          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "num_heads", "type": "u32", "offset": 0 },
+          { "name": "num_kv_heads", "type": "u32", "offset": 4 },
           { "name": "head_dim", "type": "u32", "offset": 8 },
-          { "name": "kv_seq_len", "type": "u32", "offset": 12 },
-          { "name": "scale", "type": "f32", "offset": 16 }
+          { "name": "kv_len", "type": "u32", "offset": 12 },
+          { "name": "seq_len", "type": "u32", "offset": 16 },
+          { "name": "scale", "type": "f32", "offset": 20 },
+          { "name": "is_causal", "type": "u32", "offset": 24 },
+          { "name": "start_pos", "type": "u32", "offset": 28 },
+          { "name": "attn_softcap", "type": "f32", "offset": 32 },
+          { "name": "sliding_window", "type": "u32", "offset": 36 },
+          { "name": "kv_len_source", "type": "u32", "offset": 40 }
         ]
       },
       "variants": {

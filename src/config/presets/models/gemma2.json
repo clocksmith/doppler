@@ -7,6 +7,14 @@
     "headDim": 256
   },
 
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 4
+      }
+    }
+  },
+
   "inference": {
     "attention": {
       "slidingWindow": 4096,

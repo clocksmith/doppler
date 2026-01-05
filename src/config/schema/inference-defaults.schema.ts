@@ -11,6 +11,7 @@
  */
 
 import type { LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
+import type { KernelPlanSchema } from './kernel-plan.schema.js';
 
 // =============================================================================
 // Batching Defaults
@@ -65,6 +66,35 @@ export const DEFAULT_COMPUTE_DEFAULTS: ComputeDefaultsSchema = {
   activationDtype: 'f32',  // Safe default, F16 is experimental
   largeModelParamThreshold: 4e9,  // 4B parameters
   paramEstimationMultiplier: 12,  // Rough approximation: 12 * hidden^2 * layers
+};
+
+// =============================================================================
+// Large Weight Handling
+// =============================================================================
+
+/**
+ * Configuration for oversized weights (embeddings, LM head).
+ *
+ * When weights exceed device binding limits, DOPPLER can keep them on CPU
+ * and stream chunks to the GPU for matmul or gather operations.
+ */
+export interface LargeWeightConfigSchema {
+  /** Enable CPU-backed chunking for oversized weights */
+  enabled: boolean;
+  /** Safety ratio applied to GPU binding limits (0..1). Default: 0.9 */
+  safetyRatio: number;
+  /** Prefer uploading F16 chunks when supported (reduces chunk size) */
+  preferF16: boolean;
+  /** Optional override for LM head chunk rows (null = auto) */
+  lmHeadChunkRows?: number | null;
+}
+
+/** Default large-weight configuration */
+export const DEFAULT_LARGE_WEIGHT_CONFIG: LargeWeightConfigSchema = {
+  enabled: true,
+  safetyRatio: 0.9,
+  preferF16: true,
+  lmHeadChunkRows: null,
 };
 
 // =============================================================================
@@ -134,9 +164,13 @@ export interface InferenceDefaultsConfigSchema {
   sampling: SamplingDefaultsSchema;
   compute: ComputeDefaultsSchema;
   tokenizer: TokenizerDefaultsSchema;
+  /** Handling for oversized embeddings/LM head */
+  largeWeights: LargeWeightConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   pipeline?: LayerPipelineSchema | null;
+  /** Kernel pipeline plan overrides */
+  kernelPlan?: KernelPlanSchema | null;
 }
 
 /** Default inference configuration */
@@ -145,6 +179,8 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema = 
   sampling: DEFAULT_SAMPLING_DEFAULTS,
   compute: DEFAULT_COMPUTE_DEFAULTS,
   tokenizer: DEFAULT_TOKENIZER_DEFAULTS,
+  largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
   prompt: null,
   pipeline: null,
+  kernelPlan: null,
 };

@@ -44,11 +44,11 @@ grep -A2 "modelId:" src/storage/quickstart-downloader.ts | grep modelId
 # List model presets (shows supported model families and their configs)
 ls src/config/presets/models/
 
-# See what precision "auto" resolves to at runtime (look for "F16 compute" or "F32")
-npm run debug -- -m MODEL --trace kernels 2>&1 | grep -iE "f16|f32|precision|shader-f16" | head -10
+# Dump resolved runtime config (includes activationDtype + kernelPlan)
+npm run bench -- --config bench --dump-config
 
-# Check GPU capabilities (shader-f16 determines if F16 is available)
-npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
+# Check GPU capabilities (shader-f16 determines if F16 activations are available)
+npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\\|features"
 ```
 
 **Common Model Names:**
@@ -58,10 +58,14 @@ npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
 
 **First-Time Setup:** Models must be downloaded before benchmarking. On first run, the browser will fetch from HuggingFace and cache to OPFS. Subsequent runs use the cached model. If you see "Not found" errors, the model download may have failed - check network/CORS.
 
-**Compute Precision** (see `src/gpu/kernel-hints.ts`):
-- `auto` (default): Uses F16 if GPU has `shader-f16` feature, else F32
-- `f16`: Force 16-bit compute (faster, requires shader-f16 support)
-- `f32`: Force 32-bit compute (slower, useful for debugging precision issues)
+**Compute Precision** (see `src/config/schema/inference-defaults.schema.ts`):
+- `activationDtype: "f32"` is the safe default
+- `activationDtype: "f16"` is experimental, faster on shader-f16 GPUs
+
+```bash
+# Force F16 activations via preset
+npm run bench -- -m MODEL --config f16-activations
+```
 
 ## Standard Benchmark Commands
 
@@ -149,20 +153,29 @@ Test different kernel variants via `--config` or CLI flags:
 npm run bench -- -m MODEL --config kernel-config.json
 
 # Via CLI flags
-npm run bench -- -m MODEL --force-fused-q4k
-npm run bench -- -m MODEL --kernel-hints '{"q4kMatmul":"fused_q4k","computePrecision":"f16"}'
+npm run bench -- -m MODEL --kernel-profile fused
+npm run bench -- -m MODEL --kernel-plan '{"q4kStrategy":"fused_q4k","variants":{"attention":{"prefill":"tiled_small","decode":"streaming"}}}'
 ```
 
 Example `kernel-config.json`:
 ```json
 {
   "runtime": {
-    "kernelHints": {
-      "computePrecision": "auto | f16 | f32",
-      "q4kMatmul": "auto | fused_q4k | dequant_f16 | dequant_f32",
-      "f16Matmul": "auto | gemv_subgroup",
-      "attentionPrefill": "auto | tiled_large | tiled_small | streaming",
-      "attentionDecode": "auto | tiled_large | tiled_small | streaming"
+    "inference": {
+      "kernelPlan": {
+        "q4kStrategy": "auto | fused_q4k | dequant_f16 | dequant_f32",
+        "variants": {
+          "attention": {
+            "prefill": "auto | tiled_large | tiled_small | streaming",
+            "decode": "auto | tiled_large | tiled_small | streaming"
+          },
+          "matmul": {
+            "roles": {
+              "q_proj": "auto | gemv_subgroup | gemv_subgroup_multicol | f16w_f32a | f32"
+            }
+          }
+        }
+      }
     }
   }
 }

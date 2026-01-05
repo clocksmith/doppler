@@ -7,19 +7,64 @@
  */
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { Tensor, createTensor, inferOutputDtype, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
+import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
 
 /** Residual kernel options */
 export interface ResidualOptions extends OutputBufferOptions {
   useVec4?: boolean;
   dataOffset?: number;
   biasOffset?: number;
+}
+
+async function alignResidualInputs(
+  a: Tensor,
+  b: Tensor,
+  recorder?: CommandRecorder
+): Promise<{ a: Tensor; b: Tensor; temps: GPUBuffer[] }> {
+  if (a.dtype === b.dtype) {
+    return { a, b, temps: [] };
+  }
+
+  if (a.dtype === 'f16' && b.dtype === 'f32') {
+    const casted = recorder ? await recordCastF16ToF32(recorder, a) : await castF16ToF32(a);
+    return { a: casted, b, temps: [casted.buffer] };
+  }
+
+  if (a.dtype === 'f32' && b.dtype === 'f16') {
+    const casted = recorder ? await recordCastF16ToF32(recorder, b) : await castF16ToF32(b);
+    return { a, b: casted, temps: [casted.buffer] };
+  }
+
+  return { a, b, temps: [] };
+}
+
+async function alignBiasTensor(
+  data: Tensor,
+  bias: Tensor,
+  recorder?: CommandRecorder
+): Promise<{ bias: Tensor; temps: GPUBuffer[] }> {
+  if (data.dtype === bias.dtype) {
+    return { bias, temps: [] };
+  }
+
+  if (data.dtype === 'f16' && bias.dtype === 'f32') {
+    const casted = recorder ? await recordCastF32ToF16(recorder, bias) : await castF32ToF16(bias);
+    return { bias: casted, temps: [casted.buffer] };
+  }
+
+  if (data.dtype === 'f32' && bias.dtype === 'f16') {
+    const casted = recorder ? await recordCastF16ToF32(recorder, bias) : await castF16ToF32(bias);
+    return { bias: casted, temps: [casted.buffer] };
+  }
+
+  return { bias, temps: [] };
 }
 
 /**
@@ -34,10 +79,13 @@ export async function runResidualAdd(
   const device = getDevice();
   const { useVec4 = true, outputBuffer = null } = options;
 
-  const outputDtype = inferOutputDtype(a, b);
+  const { a: aAligned, b: bAligned, temps } = await alignResidualInputs(a, b);
+  const outputDtype = inferOutputDtype(aAligned, bAligned);
   const bytesPerElement = dtypeBytes(outputDtype);
 
-  const variant = useVec4 ? 'vec4' : 'default';
+  const variant = useVec4
+    ? (outputDtype === 'f16' ? 'vec4_f16' : 'vec4')
+    : (outputDtype === 'f16' ? 'default_f16' : 'default');
   const pipeline = await getPipelineFast('residual', variant);
 
   const outputSize = size * bytesPerElement;
@@ -60,8 +108,8 @@ export async function runResidualAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a.buffer } },
-      { binding: 2, resource: { buffer: b.buffer } },
+      { binding: 1, resource: { buffer: aAligned.buffer } },
+      { binding: 2, resource: { buffer: bAligned.buffer } },
       { binding: 3, resource: { buffer: output } },
     ],
   });
@@ -74,6 +122,10 @@ export async function runResidualAdd(
   dispatch(device, pipeline, bindGroup, workgroups, 'residual');
 
   uniformBuffer.destroy();
+
+  for (const temp of temps) {
+    releaseBuffer(temp);
+  }
 
   return createTensor(output, outputDtype, [size], 'residual_output');
 }
@@ -91,7 +143,9 @@ export async function runBiasAdd(
   const device = getDevice();
   const { dataOffset = 0, biasOffset = 0 } = options;
 
-  const pipeline = await getPipelineFast('bias_add', 'default');
+  const { bias: biasAligned, temps } = await alignBiasTensor(data, bias);
+  const variant = data.dtype === 'f16' && biasAligned.dtype === 'f16' ? 'f16' : 'default';
+  const pipeline = await getPipelineFast('bias_add', variant);
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -114,7 +168,7 @@ export async function runBiasAdd(
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: data.buffer } },
-      { binding: 2, resource: { buffer: bias.buffer } },
+      { binding: 2, resource: { buffer: biasAligned.buffer } },
     ],
   });
 
@@ -122,6 +176,10 @@ export async function runBiasAdd(
   dispatch(device, pipeline, bindGroup, workgroups, 'bias_add');
 
   uniformBuffer.destroy();
+
+  for (const temp of temps) {
+    releaseBuffer(temp);
+  }
 
   // Bias add is in-place, return tensor with same buffer
   return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
@@ -138,12 +196,16 @@ export async function recordResidualAdd(
   options: ResidualOptions = {}
 ): Promise<Tensor> {
   const device = recorder.device;
-  const { outputBuffer = null } = options;
+  const { outputBuffer = null, useVec4 = true } = options;
 
-  const outputDtype = inferOutputDtype(a, b);
+  const { a: aAligned, b: bAligned, temps } = await alignResidualInputs(a, b, recorder);
+  const outputDtype = inferOutputDtype(aAligned, bAligned);
   const bytesPerElement = dtypeBytes(outputDtype);
 
-  const pipeline = await getPipelineFast('residual', 'default');
+  const variant = useVec4
+    ? (outputDtype === 'f16' ? 'vec4_f16' : 'vec4')
+    : (outputDtype === 'f16' ? 'default_f16' : 'default');
+  const pipeline = await getPipelineFast('residual', variant);
 
   const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
@@ -164,14 +226,20 @@ export async function recordResidualAdd(
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a.buffer } },
-      { binding: 2, resource: { buffer: b.buffer } },
+      { binding: 1, resource: { buffer: aAligned.buffer } },
+      { binding: 2, resource: { buffer: bAligned.buffer } },
       { binding: 3, resource: { buffer: output } },
     ],
   });
 
-  const workgroups = Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = useVec4
+    ? Math.ceil(size / VEC4_ELEMENTS_PER_WG)
+    : Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'residual');
+
+  for (const temp of temps) {
+    recorder.trackTemporaryBuffer(temp);
+  }
 
   return createTensor(output, outputDtype, [size], 'residual_output');
 }
@@ -190,7 +258,9 @@ export async function recordBiasAdd(
   const device = recorder.device;
   const { dataOffset = 0, biasOffset = 0 } = options;
 
-  const pipeline = await getPipelineFast('bias_add', 'default');
+  const { bias: biasAligned, temps } = await alignBiasTensor(data, bias, recorder);
+  const variant = data.dtype === 'f16' && biasAligned.dtype === 'f16' ? 'f16' : 'default';
+  const pipeline = await getPipelineFast('bias_add', variant);
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -212,12 +282,16 @@ export async function recordBiasAdd(
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: data.buffer } },
-      { binding: 2, resource: { buffer: bias.buffer } },
+      { binding: 2, resource: { buffer: biasAligned.buffer } },
     ],
   });
 
   const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'bias_add');
+
+  for (const temp of temps) {
+    recorder.trackTemporaryBuffer(temp);
+  }
 
   // Bias add is in-place, return tensor with same buffer
   return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');

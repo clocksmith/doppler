@@ -692,6 +692,20 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [64, 1, 1],
       requires: [],
     },
+    default_f16: {
+      shaderFile: 'residual_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    vec4_f16: {
+      shaderFile: 'residual_f16.wgsl',
+      entryPoint: 'add_vec4',
+      workgroupSize: [64, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
   },
   topk: {
     default: {
@@ -786,10 +800,22 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    f16: {
+      shaderFile: 'bias_add_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
   },
   cast: {
     f32_to_f16: {
       shaderFile: 'cast_f32_to_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    f16_to_f32: {
+      shaderFile: 'cast_f16_to_f32.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],

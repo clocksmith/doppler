@@ -39,7 +39,6 @@
     import { setRuntimeConfig } from '/doppler/dist/config/index.js';
     import { createPipeline } from '/doppler/dist/inference/pipeline.js';
     import { getDevice } from '/doppler/dist/gpu/device.js';
-    import { getKernelHints } from '/doppler/dist/gpu/kernel-hints.js';
     import { SIGNALS } from '/doppler/dist/debug/index.js';
 
     // Parse query params
@@ -84,10 +83,8 @@
           const device = getDevice();
           console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
 
-          // Log kernel hints
-          const hints = getKernelHints();
-          if (hints) {
-            console.log(`[KernelHints] Set from runtime: ${JSON.stringify(hints)}`);
+          if (runtimeOverrides.kernelPlan) {
+            console.log(`[KernelPlan] Runtime overrides: ${JSON.stringify(runtimeOverrides.kernelPlan)}`);
           }
 
           // 2. Load manifest
@@ -105,8 +102,7 @@
             baseUrl: MODEL_URL,
             runtime: {
               debug: runtimeOverrides.debug,
-              attentionKernel: runtimeOverrides.attentionKernel || 'auto',
-              kernelHints: runtimeOverrides.kernelHints,
+              kernelPlan: runtimeOverrides.kernelPlan,
             },
           });
 

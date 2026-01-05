@@ -207,6 +207,7 @@ export class MoERouter {
       {
         preferF16: false,  // Use F32 for routing precision
         transposeB: true,
+        role: 'moe_router',
       }
     );
 

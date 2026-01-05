@@ -37,11 +37,14 @@ class PipelineBenchmark {
       this.pipeline.reset();
     }
     const runResults = [];
+    console.warn(`[Benchmark] Starting ${this.config.timedRuns} timed runs`);
     for (let i = 0; i < this.config.timedRuns; i++) {
+      console.warn(`[Benchmark] Run ${i + 1}/${this.config.timedRuns}`);
       const result2 = await this.runInference(prompt, false);
       runResults.push(result2);
       this.pipeline.reset();
     }
+    console.warn(`[Benchmark] Completed ${runResults.length} runs`);
     const metrics = this.aggregateMetrics(runResults, loadMetrics);
     const raw = this.collectRawMetrics(runResults);
     const result = {
@@ -160,11 +163,8 @@ class PipelineBenchmark {
       console.log("[Benchmark] Download complete");
     }
     const runtime = { debug: this.config.debug };
-    if (this.config.runtime?.attentionKernel) {
-      runtime.attentionKernel = this.config.runtime.attentionKernel;
-    }
-    if (this.config.runtime?.kernelHints) {
-      runtime.kernelHints = this.config.runtime.kernelHints;
+    if (this.config.runtime?.kernelPlan) {
+      runtime.kernelPlan = this.config.runtime.kernelPlan;
     }
     this.pipeline = await createPipeline(this.manifest, {
       gpu: { device },

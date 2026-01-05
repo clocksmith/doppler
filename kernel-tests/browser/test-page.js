@@ -8,30 +8,30 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// ../src/config/schema/manifest.schema.ts
+// src/config/schema/manifest.schema.ts
 var SHARD_SIZE;
 var init_manifest_schema = __esm({
-  "../src/config/schema/manifest.schema.ts"() {
+  "src/config/schema/manifest.schema.ts"() {
     SHARD_SIZE = 64 * 1024 * 1024;
   }
 });
 
-// ../src/config/schema/inference.schema.ts
+// src/config/schema/inference.schema.ts
 var init_inference_schema = __esm({
-  "../src/config/schema/inference.schema.ts"() {
+  "src/config/schema/inference.schema.ts"() {
   }
 });
 
-// ../src/config/schema/conversion.schema.ts
+// src/config/schema/conversion.schema.ts
 var init_conversion_schema = __esm({
-  "../src/config/schema/conversion.schema.ts"() {
+  "src/config/schema/conversion.schema.ts"() {
   }
 });
 
-// ../src/config/schema/loading.schema.ts
+// src/config/schema/loading.schema.ts
 var DEFAULT_SHARD_CACHE_CONFIG, DEFAULT_MEMORY_MANAGEMENT_CONFIG, DEFAULT_OPFS_PATH_CONFIG, DEFAULT_EXPERT_CACHE_CONFIG, DEFAULT_LOADING_CONFIG;
 var init_loading_schema = __esm({
-  "../src/config/schema/loading.schema.ts"() {
+  "src/config/schema/loading.schema.ts"() {
     DEFAULT_SHARD_CACHE_CONFIG = {
       opfsEntries: 2,
       networkEntries: 16,
@@ -63,16 +63,16 @@ var init_loading_schema = __esm({
   }
 });
 
-// ../src/config/schema/kernel-registry.schema.ts
+// src/config/schema/kernel-registry.schema.ts
 var init_kernel_registry_schema = __esm({
-  "../src/config/schema/kernel-registry.schema.ts"() {
+  "src/config/schema/kernel-registry.schema.ts"() {
   }
 });
 
-// ../src/config/schema/storage.schema.ts
+// src/config/schema/storage.schema.ts
 var DEFAULT_QUOTA_CONFIG, DEFAULT_VRAM_ESTIMATION_CONFIG, DEFAULT_STORAGE_ALIGNMENT_CONFIG, DEFAULT_STORAGE_FULL_CONFIG;
 var init_storage_schema = __esm({
-  "../src/config/schema/storage.schema.ts"() {
+  "src/config/schema/storage.schema.ts"() {
     DEFAULT_QUOTA_CONFIG = {
       lowSpaceThresholdBytes: 500 * 1024 * 1024,
       // 500MB
@@ -101,21 +101,31 @@ var init_storage_schema = __esm({
   }
 });
 
-// ../src/config/schema/inference-defaults.schema.ts
-var DEFAULT_BATCHING_DEFAULTS, DEFAULT_SAMPLING_DEFAULTS, DEFAULT_TOKENIZER_DEFAULTS, DEFAULT_INFERENCE_DEFAULTS_CONFIG;
+// src/config/schema/inference-defaults.schema.ts
+var DEFAULT_BATCHING_DEFAULTS, DEFAULT_COMPUTE_DEFAULTS, DEFAULT_SAMPLING_DEFAULTS, DEFAULT_TOKENIZER_DEFAULTS, DEFAULT_INFERENCE_DEFAULTS_CONFIG;
 var init_inference_defaults_schema = __esm({
-  "../src/config/schema/inference-defaults.schema.ts"() {
+  "src/config/schema/inference-defaults.schema.ts"() {
     DEFAULT_BATCHING_DEFAULTS = {
       batchSize: 1,
+      // Compare single-token
       maxTokens: 512,
       stopCheckMode: "per-token"
+    };
+    DEFAULT_COMPUTE_DEFAULTS = {
+      activationDtype: "f32",
+      // Safe default, F16 is experimental
+      largeModelParamThreshold: 4e9,
+      // 4B parameters
+      paramEstimationMultiplier: 12
+      // Rough approximation: 12 * hidden^2 * layers
     };
     DEFAULT_SAMPLING_DEFAULTS = {
       temperature: 0.7,
       topP: 0.9,
       topK: 40,
       repetitionPenalty: 1.1,
-      greedyThreshold: 0.01
+      greedyThreshold: 0.01,
+      repetitionPenaltyWindow: 100
     };
     DEFAULT_TOKENIZER_DEFAULTS = {
       addBosToken: true,
@@ -124,15 +134,19 @@ var init_inference_defaults_schema = __esm({
     DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
       batching: DEFAULT_BATCHING_DEFAULTS,
       sampling: DEFAULT_SAMPLING_DEFAULTS,
-      tokenizer: DEFAULT_TOKENIZER_DEFAULTS
+      compute: DEFAULT_COMPUTE_DEFAULTS,
+      tokenizer: DEFAULT_TOKENIZER_DEFAULTS,
+      prompt: null,
+      pipeline: null,
+      kernelPlan: null
     };
   }
 });
 
-// ../src/config/schema/distribution.schema.ts
+// src/config/schema/distribution.schema.ts
 var DEFAULT_DISTRIBUTION_CONFIG;
 var init_distribution_schema = __esm({
-  "../src/config/schema/distribution.schema.ts"() {
+  "src/config/schema/distribution.schema.ts"() {
     DEFAULT_DISTRIBUTION_CONFIG = {
       concurrentDownloads: 3,
       maxRetries: 3,
@@ -146,10 +160,10 @@ var init_distribution_schema = __esm({
   }
 });
 
-// ../src/config/schema/moe.schema.ts
+// src/config/schema/moe.schema.ts
 var DEFAULT_MOE_ROUTING_CONFIG, DEFAULT_MOE_CACHE_CONFIG, DEFAULT_MOE_RUNTIME_CONFIG;
 var init_moe_schema = __esm({
-  "../src/config/schema/moe.schema.ts"() {
+  "src/config/schema/moe.schema.ts"() {
     DEFAULT_MOE_ROUTING_CONFIG = {
       numExperts: 8,
       topK: 2,
@@ -166,10 +180,10 @@ var init_moe_schema = __esm({
   }
 });
 
-// ../src/config/schema/kvcache.schema.ts
+// src/config/schema/kvcache.schema.ts
 var DEFAULT_KVCACHE_CONFIG;
 var init_kvcache_schema = __esm({
-  "../src/config/schema/kvcache.schema.ts"() {
+  "src/config/schema/kvcache.schema.ts"() {
     DEFAULT_KVCACHE_CONFIG = {
       maxSeqLen: 4096,
       kvDtype: "f32",
@@ -180,10 +194,10 @@ var init_kvcache_schema = __esm({
   }
 });
 
-// ../src/config/schema/gpu-cache.schema.ts
+// src/config/schema/gpu-cache.schema.ts
 var DEFAULT_GPU_CACHE_CONFIG;
 var init_gpu_cache_schema = __esm({
-  "../src/config/schema/gpu-cache.schema.ts"() {
+  "src/config/schema/gpu-cache.schema.ts"() {
     DEFAULT_GPU_CACHE_CONFIG = {
       uniformCacheMaxEntries: 256,
       uniformCacheMaxAgeMs: 6e4
@@ -192,10 +206,10 @@ var init_gpu_cache_schema = __esm({
   }
 });
 
-// ../src/config/schema/tuner.schema.ts
+// src/config/schema/tuner.schema.ts
 var DEFAULT_TUNER_CONFIG;
 var init_tuner_schema = __esm({
-  "../src/config/schema/tuner.schema.ts"() {
+  "src/config/schema/tuner.schema.ts"() {
     DEFAULT_TUNER_CONFIG = {
       cacheKeyPrefix: "doppler_kernel_tune_",
       defaultWarmupIterations: 3,
@@ -204,10 +218,10 @@ var init_tuner_schema = __esm({
   }
 });
 
-// ../src/config/schema/debug.schema.ts
+// src/config/schema/debug.schema.ts
 var DEFAULT_LOG_OUTPUT_CONFIG, DEFAULT_LOG_HISTORY_CONFIG, DEFAULT_LOG_LEVEL_CONFIG, DEFAULT_TRACE_CONFIG, DEFAULT_PIPELINE_DEBUG_CONFIG, DEFAULT_DEBUG_CONFIG;
 var init_debug_schema = __esm({
-  "../src/config/schema/debug.schema.ts"() {
+  "src/config/schema/debug.schema.ts"() {
     DEFAULT_LOG_OUTPUT_CONFIG = {
       stdout: true,
       file: null,
@@ -232,7 +246,8 @@ var init_debug_schema = __esm({
       layers: null,
       maxDecodeSteps: 0,
       maxAbsThreshold: 1e4,
-      bufferStats: false
+      bufferStats: false,
+      readbackSampleSize: 512
     };
     DEFAULT_DEBUG_CONFIG = {
       logOutput: DEFAULT_LOG_OUTPUT_CONFIG,
@@ -245,10 +260,10 @@ var init_debug_schema = __esm({
   }
 });
 
-// ../src/config/schema/buffer-pool.schema.ts
+// src/config/schema/buffer-pool.schema.ts
 var DEFAULT_BUFFER_POOL_BUCKET_CONFIG, DEFAULT_BUFFER_POOL_LIMITS_CONFIG, DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG, DEFAULT_BUFFER_POOL_CONFIG;
 var init_buffer_pool_schema = __esm({
-  "../src/config/schema/buffer-pool.schema.ts"() {
+  "src/config/schema/buffer-pool.schema.ts"() {
     DEFAULT_BUFFER_POOL_BUCKET_CONFIG = {
       minBucketSizeBytes: 256,
       // 256 bytes
@@ -273,10 +288,10 @@ var init_buffer_pool_schema = __esm({
   }
 });
 
-// ../src/config/schema/memory-limits.schema.ts
+// src/config/schema/memory-limits.schema.ts
 var MB, GB, DEFAULT_HEAP_TESTING_CONFIG, DEFAULT_SEGMENT_TESTING_CONFIG, DEFAULT_ADDRESS_SPACE_CONFIG, DEFAULT_SEGMENT_ALLOCATION_CONFIG, DEFAULT_MEMORY_LIMITS_CONFIG;
 var init_memory_limits_schema = __esm({
-  "../src/config/schema/memory-limits.schema.ts"() {
+  "src/config/schema/memory-limits.schema.ts"() {
     MB = 1024 * 1024;
     GB = 1024 * MB;
     DEFAULT_HEAP_TESTING_CONFIG = {
@@ -303,10 +318,10 @@ var init_memory_limits_schema = __esm({
   }
 });
 
-// ../src/config/schema/bridge.schema.ts
+// src/config/schema/bridge.schema.ts
 var DEFAULT_BRIDGE_CONFIG;
 var init_bridge_schema = __esm({
-  "../src/config/schema/bridge.schema.ts"() {
+  "src/config/schema/bridge.schema.ts"() {
     DEFAULT_BRIDGE_CONFIG = {
       maxReadSizeBytes: 100 * 1024 * 1024,
       // 100MB
@@ -315,7 +330,77 @@ var init_bridge_schema = __esm({
   }
 });
 
-// ../src/config/schema/doppler.schema.ts
+// src/config/schema/quantization-defaults.schema.ts
+var init_quantization_defaults_schema = __esm({
+  "src/config/schema/quantization-defaults.schema.ts"() {
+  }
+});
+
+// src/config/schema/kernel-thresholds.schema.ts
+function getKernelThresholds() {
+  return currentThresholds;
+}
+var DEFAULT_MATMUL_THRESHOLDS, DEFAULT_RMSNORM_THRESHOLDS, DEFAULT_ROPE_DEFAULTS, DEFAULT_ATTENTION_THRESHOLDS, DEFAULT_FUSED_MATMUL_THRESHOLDS, DEFAULT_CAST_THRESHOLDS, DTYPE_SIZES, DEFAULT_KERNEL_THRESHOLDS, currentThresholds;
+var init_kernel_thresholds_schema = __esm({
+  "src/config/schema/kernel-thresholds.schema.ts"() {
+    DEFAULT_MATMUL_THRESHOLDS = {
+      multicolThreshold: 256
+    };
+    DEFAULT_RMSNORM_THRESHOLDS = {
+      smallThreshold: 256
+    };
+    DEFAULT_ROPE_DEFAULTS = {
+      defaultTheta: 1e4,
+      uniformSize: 32
+    };
+    DEFAULT_ATTENTION_THRESHOLDS = {
+      chunkedMaxKVLen: 2048,
+      minHeadDimForChunked: 128,
+      tierHeadDimLimits: {
+        tier3: 64,
+        tier2: 128,
+        tier1: 256
+      },
+      tierMinSharedMemory: {
+        tier3: 16384,
+        // 16KB for small models
+        tier2: 32768,
+        // 32KB for medium models
+        tier1: 65536
+        // 64KB for large models
+      }
+    };
+    DEFAULT_FUSED_MATMUL_THRESHOLDS = {
+      maxMediumN: 4096,
+      colsPerWg: 4
+    };
+    DEFAULT_CAST_THRESHOLDS = {
+      maxWorkgroupsPerDim: 65535
+    };
+    DTYPE_SIZES = {
+      f32: 4,
+      f16: 2,
+      bf16: 2,
+      i32: 4,
+      u32: 4,
+      i16: 2,
+      u16: 2,
+      i8: 1,
+      u8: 1
+    };
+    DEFAULT_KERNEL_THRESHOLDS = {
+      matmul: DEFAULT_MATMUL_THRESHOLDS,
+      rmsnorm: DEFAULT_RMSNORM_THRESHOLDS,
+      rope: DEFAULT_ROPE_DEFAULTS,
+      attention: DEFAULT_ATTENTION_THRESHOLDS,
+      fusedMatmul: DEFAULT_FUSED_MATMUL_THRESHOLDS,
+      cast: DEFAULT_CAST_THRESHOLDS
+    };
+    currentThresholds = { ...DEFAULT_KERNEL_THRESHOLDS };
+  }
+});
+
+// src/config/schema/doppler.schema.ts
 function createDopplerConfig(overrides) {
   if (!overrides) {
     return { ...DEFAULT_DOPPLER_CONFIG };
@@ -343,7 +428,11 @@ function mergeRuntimeConfig(base, overrides) {
     inference: overrides.inference ? {
       batching: { ...base.inference.batching, ...overrides.inference.batching },
       sampling: { ...base.inference.sampling, ...overrides.inference.sampling },
-      tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer }
+      compute: { ...base.inference.compute, ...overrides.inference.compute },
+      tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer },
+      prompt: overrides.inference.prompt ?? base.inference.prompt,
+      pipeline: overrides.inference.pipeline ?? base.inference.pipeline,
+      kernelPlan: overrides.inference.kernelPlan ?? base.inference.kernelPlan
     } : { ...base.inference },
     kvcache: { ...base.kvcache, ...overrides.kvcache },
     moe: overrides.moe ? {
@@ -376,7 +465,7 @@ function mergeRuntimeConfig(base, overrides) {
 }
 var DEFAULT_RUNTIME_CONFIG, DEFAULT_DOPPLER_CONFIG;
 var init_doppler_schema = __esm({
-  "../src/config/schema/doppler.schema.ts"() {
+  "src/config/schema/doppler.schema.ts"() {
     init_distribution_schema();
     init_storage_schema();
     init_loading_schema();
@@ -411,9 +500,9 @@ var init_doppler_schema = __esm({
   }
 });
 
-// ../src/config/schema/index.ts
+// src/config/schema/index.ts
 var init_schema = __esm({
-  "../src/config/schema/index.ts"() {
+  "src/config/schema/index.ts"() {
     init_manifest_schema();
     init_inference_schema();
     init_conversion_schema();
@@ -430,37 +519,52 @@ var init_schema = __esm({
     init_buffer_pool_schema();
     init_memory_limits_schema();
     init_bridge_schema();
+    init_quantization_defaults_schema();
+    init_kernel_thresholds_schema();
     init_doppler_schema();
   }
 });
 
-// ../src/config/runtime.ts
+// src/config/runtime.ts
 function getRuntimeConfig() {
   return runtimeConfig;
 }
 var runtimeConfig;
 var init_runtime = __esm({
-  "../src/config/runtime.ts"() {
+  "src/config/runtime.ts"() {
     init_schema();
+    init_debug();
     runtimeConfig = createDopplerConfig().runtime;
   }
 });
 
-// ../src/debug/index.ts
+// src/debug/index.ts
+function signalDone(payload) {
+  console.log(`${SIGNALS.DONE} ${JSON.stringify(payload)}`);
+}
+function signalResult(data) {
+  console.log(`${SIGNALS.RESULT} ${JSON.stringify(data)}`);
+}
+function signalError(error, details) {
+  console.log(`${SIGNALS.ERROR} ${JSON.stringify({ error, ...details })}`);
+}
+function signalProgress(percent, message) {
+  console.log(`${SIGNALS.PROGRESS} ${JSON.stringify({ percent, message })}`);
+}
 function setLogLevel(level) {
   const levelMap = {
-    debug: LOG_LEVELS.DEBUG,
-    verbose: LOG_LEVELS.VERBOSE,
-    info: LOG_LEVELS.INFO,
-    warn: LOG_LEVELS.WARN,
-    error: LOG_LEVELS.ERROR,
-    silent: LOG_LEVELS.SILENT
+    debug: LOG_LEVELS2.DEBUG,
+    verbose: LOG_LEVELS2.VERBOSE,
+    info: LOG_LEVELS2.INFO,
+    warn: LOG_LEVELS2.WARN,
+    error: LOG_LEVELS2.ERROR,
+    silent: LOG_LEVELS2.SILENT
   };
-  currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS.INFO;
+  currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS2.INFO;
   console.log(`[Doppler] Log level set to: ${level.toUpperCase()}`);
 }
 function getLogLevel() {
-  for (const [name, value] of Object.entries(LOG_LEVELS)) {
+  for (const [name, value] of Object.entries(LOG_LEVELS2)) {
     if (value === currentLogLevel)
       return name.toLowerCase();
   }
@@ -628,8 +732,8 @@ function printLogSummary(count = 20) {
 function getDebugSnapshot() {
   return {
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    logLevel: Object.keys(LOG_LEVELS).find(
-      (k) => LOG_LEVELS[k] === currentLogLevel
+    logLevel: Object.keys(LOG_LEVELS2).find(
+      (k) => LOG_LEVELS2[k] === currentLogLevel
     ),
     traceCategories: [...enabledTraceCategories],
     enabledModules: [...enabledModules],
@@ -644,11 +748,21 @@ function getDebugSnapshot() {
     warnCount: logHistory.filter((e) => e.level === "WARN").length
   };
 }
-var LOG_LEVELS, TRACE_CATEGORIES, currentLogLevel, enabledModules, disabledModules, logHistory, gpuDevice, enabledTraceCategories, traceLayerFilter, traceDecodeStep, traceMaxDecodeSteps, traceBreakOnAnomaly, benchmarkMode, originalConsoleLog, originalConsoleDebug, originalConsoleInfo, log, trace, tensor, perf, DOPPLER_API;
+var SIGNALS, LOG_LEVELS2, TRACE_CATEGORIES, currentLogLevel, enabledModules, disabledModules, logHistory, gpuDevice, enabledTraceCategories, traceLayerFilter, traceDecodeStep, traceMaxDecodeSteps, traceBreakOnAnomaly, benchmarkMode, originalConsoleLog, originalConsoleDebug, originalConsoleInfo, log, trace, tensor, perf, DOPPLER_API;
 var init_debug = __esm({
-  "../src/debug/index.ts"() {
+  "src/debug/index.ts"() {
     init_runtime();
-    LOG_LEVELS = {
+    SIGNALS = {
+      /** Task completed (success or error) - always emitted at end */
+      DONE: "[DOPPLER:DONE]",
+      /** Full result payload (JSON) - emitted before DONE for data extraction */
+      RESULT: "[DOPPLER:RESULT]",
+      /** Error occurred - can be emitted before DONE */
+      ERROR: "[DOPPLER:ERROR]",
+      /** Progress update (optional) */
+      PROGRESS: "[DOPPLER:PROGRESS]"
+    };
+    LOG_LEVELS2 = {
       DEBUG: 0,
       VERBOSE: 1,
       INFO: 2,
@@ -678,7 +792,7 @@ var init_debug = __esm({
       "perf"
       // Timing
     ];
-    currentLogLevel = LOG_LEVELS.INFO;
+    currentLogLevel = LOG_LEVELS2.INFO;
     enabledModules = /* @__PURE__ */ new Set();
     disabledModules = /* @__PURE__ */ new Set();
     logHistory = [];
@@ -697,7 +811,7 @@ var init_debug = __esm({
        * Debug level logging (most verbose).
        */
       debug(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS.DEBUG))
+        if (!shouldLog(module, LOG_LEVELS2.DEBUG))
           return;
         const formatted = formatMessage(module, message);
         storeLog("DEBUG", module, message, data);
@@ -711,7 +825,7 @@ var init_debug = __esm({
        * Verbose level logging (detailed operational info).
        */
       verbose(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS.VERBOSE))
+        if (!shouldLog(module, LOG_LEVELS2.VERBOSE))
           return;
         const formatted = formatMessage(module, message);
         storeLog("VERBOSE", module, message, data);
@@ -725,7 +839,7 @@ var init_debug = __esm({
        * Info level logging (normal operations).
        */
       info(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS.INFO))
+        if (!shouldLog(module, LOG_LEVELS2.INFO))
           return;
         const formatted = formatMessage(module, message);
         storeLog("INFO", module, message, data);
@@ -739,7 +853,7 @@ var init_debug = __esm({
        * Warning level logging.
        */
       warn(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS.WARN))
+        if (!shouldLog(module, LOG_LEVELS2.WARN))
           return;
         const formatted = formatMessage(module, message);
         storeLog("WARN", module, message, data);
@@ -753,7 +867,7 @@ var init_debug = __esm({
        * Error level logging.
        */
       error(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS.ERROR))
+        if (!shouldLog(module, LOG_LEVELS2.ERROR))
           return;
         const formatted = formatMessage(module, message);
         storeLog("ERROR", module, message, data);
@@ -1134,7 +1248,13 @@ var init_debug = __esm({
       // History
       getLogHistory,
       printLogSummary,
-      getDebugSnapshot
+      getDebugSnapshot,
+      // Completion signals
+      SIGNALS,
+      signalDone,
+      signalResult,
+      signalError,
+      signalProgress
     };
     if (typeof window !== "undefined") {
       window.DOPPLER = {
@@ -1150,7 +1270,7 @@ var init_debug = __esm({
   }
 });
 
-// ../src/gpu/perf-guards.ts
+// src/gpu/perf-guards.ts
 function trackSubmit() {
   if (config.trackSubmitCount) {
     counters.submits++;
@@ -1188,7 +1308,7 @@ function allowReadback(reason) {
 }
 var DEFAULT_CONFIG, config, counters;
 var init_perf_guards = __esm({
-  "../src/gpu/perf-guards.ts"() {
+  "src/gpu/perf-guards.ts"() {
     init_debug();
     DEFAULT_CONFIG = {
       allowGPUReadback: true,
@@ -1208,7 +1328,7 @@ var init_perf_guards = __esm({
   }
 });
 
-// ../src/gpu/submit-tracker.ts
+// src/gpu/submit-tracker.ts
 function recordSubmit(durationMs, source) {
   if (!TRACK_SUBMITS)
     return;
@@ -1261,7 +1381,7 @@ function wrapQueueForTracking(queue) {
 }
 var TRACK_SUBMITS, submitCount, submitTimes, totalSubmitMs, maxSubmitMs, minSubmitMs, submitSources, currentPhase, phaseStats;
 var init_submit_tracker = __esm({
-  "../src/gpu/submit-tracker.ts"() {
+  "src/gpu/submit-tracker.ts"() {
     init_perf_guards();
     init_debug();
     TRACK_SUBMITS = false;
@@ -1280,7 +1400,7 @@ var init_submit_tracker = __esm({
   }
 });
 
-// ../src/config/platforms/loader.js
+// src/config/platforms/loader.js
 var loader_exports = {};
 __export(loader_exports, {
   clearPlatformCache: () => clearPlatformCache,
@@ -1436,7 +1556,7 @@ function getResolvedPlatformConfig() {
 }
 var currentPlatform, currentCapabilities, platformCache, platformsBaseUrl, PLATFORM_FILES;
 var init_loader = __esm({
-  "../src/config/platforms/loader.js"() {
+  "src/config/platforms/loader.js"() {
     currentPlatform = null;
     currentCapabilities = null;
     platformCache = /* @__PURE__ */ new Map();
@@ -1454,7 +1574,7 @@ var init_loader = __esm({
   }
 });
 
-// ../src/config/kernels/registry.js
+// src/config/kernels/registry.js
 var registry_exports = {};
 __export(registry_exports, {
   clearRegistryCache: () => clearRegistryCache,
@@ -1560,13 +1680,13 @@ function resolveKernelConfig2(operation, variant) {
 }
 var cachedRegistry, registryUrl;
 var init_registry = __esm({
-  "../src/config/kernels/registry.js"() {
+  "src/config/kernels/registry.js"() {
     cachedRegistry = null;
     registryUrl = null;
   }
 });
 
-// ../src/gpu/device.ts
+// src/gpu/device.ts
 function isWebGPUAvailable() {
   return typeof navigator !== "undefined" && "gpu" in navigator;
 }
@@ -1743,7 +1863,7 @@ function getDeviceLimits() {
 }
 var gpuDevice2, kernelCapabilities, resolvedPlatformConfig, platformInitialized, FEATURES;
 var init_device = __esm({
-  "../src/gpu/device.ts"() {
+  "src/gpu/device.ts"() {
     init_submit_tracker();
     init_debug();
     gpuDevice2 = null;
@@ -1759,32 +1879,30 @@ var init_device = __esm({
   }
 });
 
-// ../src/gpu/buffer-dtypes.ts
-function setBufferDtype(buffer, dtype) {
-  if (buffer)
-    dtypeMap.set(buffer, dtype);
+// src/gpu/tensor.ts
+function createTensor(buffer, dtype, shape, label) {
+  return {
+    buffer,
+    dtype,
+    shape: Object.freeze([...shape]),
+    label
+  };
 }
-function getBufferDtype(buffer) {
-  return buffer ? dtypeMap.get(buffer) ?? null : null;
+function dtypeBytes(dtype) {
+  return dtype === "f16" ? 2 : 4;
 }
-function getBufferLayout(buffer) {
-  return buffer ? layoutMap.get(buffer) ?? null : null;
+function inferOutputDtype(a, b) {
+  return a.dtype === "f16" && b.dtype === "f16" ? "f16" : "f32";
 }
-function isColumnMajorBuffer(buffer) {
-  return getBufferLayout(buffer) === "column";
-}
-var dtypeMap, layoutMap;
-var init_buffer_dtypes = __esm({
-  "../src/gpu/buffer-dtypes.ts"() {
-    dtypeMap = /* @__PURE__ */ new WeakMap();
-    layoutMap = /* @__PURE__ */ new WeakMap();
+var init_tensor = __esm({
+  "src/gpu/tensor.ts"() {
   }
 });
 
-// ../src/gpu/profiler.ts
+// src/gpu/profiler.ts
 var GPUProfiler;
 var init_profiler = __esm({
-  "../src/gpu/profiler.ts"() {
+  "src/gpu/profiler.ts"() {
     init_device();
     init_perf_guards();
     init_debug();
@@ -2091,7 +2209,7 @@ var init_profiler = __esm({
   }
 });
 
-// ../src/gpu/kernel-tuner.ts
+// src/gpu/kernel-tuner.ts
 function getTunerConfig() {
   return getRuntimeConfig().tuner;
 }
@@ -2104,7 +2222,7 @@ async function getKernelTuner() {
 }
 var KernelTuner, globalTuner;
 var init_kernel_tuner = __esm({
-  "../src/gpu/kernel-tuner.ts"() {
+  "src/gpu/kernel-tuner.ts"() {
     init_device();
     init_profiler();
     init_debug();
@@ -3048,7 +3166,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 });
 
-// ../src/gpu/uniform-cache.ts
+// src/gpu/uniform-cache.ts
 function hashArrayBuffer(data) {
   const view = new Uint8Array(data);
   let hash = 2166136261;
@@ -3074,7 +3192,7 @@ function getUniformCache() {
 }
 var UniformBufferCache, globalUniformCache;
 var init_uniform_cache = __esm({
-  "../src/gpu/uniform-cache.ts"() {
+  "src/gpu/uniform-cache.ts"() {
     init_device();
     init_runtime();
     UniformBufferCache = class {
@@ -3085,6 +3203,8 @@ var init_uniform_cache = __esm({
         evictions: 0,
         currentSize: 0
       };
+      /** Buffers evicted from cache, awaiting destruction after GPU work completes */
+      pendingDestruction = [];
       maxEntries;
       maxAgeMs;
       constructor(maxEntries = getRuntimeConfig().gpuCache.uniformCacheMaxEntries, maxAgeMs = getRuntimeConfig().gpuCache.uniformCacheMaxAgeMs) {
@@ -3140,7 +3260,9 @@ var init_uniform_cache = __esm({
         }
       }
       /**
-       * Evict least recently used entry
+       * Evict least recently used entry.
+       * IMPORTANT: Buffer is NOT destroyed immediately - it's queued for deferred
+       * destruction to avoid use-after-destroy bugs with pending command buffers.
        */
       evictLRU() {
         let oldestHash = null;
@@ -3162,7 +3284,7 @@ var init_uniform_cache = __esm({
         if (oldestHash) {
           const entry = this.cache.get(oldestHash);
           if (entry) {
-            entry.buffer.destroy();
+            this.pendingDestruction.push(entry.buffer);
             this.cache.delete(oldestHash);
             this.stats.evictions++;
             this.stats.currentSize = this.cache.size;
@@ -3170,14 +3292,15 @@ var init_uniform_cache = __esm({
         }
       }
       /**
-       * Evict stale entries (older than maxAgeMs)
+       * Evict stale entries (older than maxAgeMs).
+       * Buffers are queued for deferred destruction.
        */
       evictStale() {
         const now = performance.now();
         let evicted = 0;
         for (const [hash, entry] of this.cache) {
           if (entry.refCount === 0 && now - entry.lastUsed > this.maxAgeMs) {
-            entry.buffer.destroy();
+            this.pendingDestruction.push(entry.buffer);
             this.cache.delete(hash);
             evicted++;
           }
@@ -3187,14 +3310,38 @@ var init_uniform_cache = __esm({
         return evicted;
       }
       /**
-       * Clear all cached buffers
+       * Clear all cached buffers.
+       * Also flushes any pending destruction queue.
        */
       clear() {
+        this.flushPendingDestruction();
         for (const entry of this.cache.values()) {
           entry.buffer.destroy();
         }
         this.cache.clear();
         this.stats.currentSize = 0;
+      }
+      /**
+       * Destroy all buffers in the pending destruction queue.
+       * Call this after GPU work completes (e.g., after onSubmittedWorkDone).
+       *
+       * This is critical for avoiding use-after-destroy bugs: when the uniform
+       * cache evicts a buffer that's still referenced by a pending command buffer,
+       * the buffer is queued here instead of being destroyed immediately.
+       */
+      flushPendingDestruction() {
+        const count = this.pendingDestruction.length;
+        for (const buffer of this.pendingDestruction) {
+          buffer.destroy();
+        }
+        this.pendingDestruction = [];
+        return count;
+      }
+      /**
+       * Get the number of buffers pending destruction.
+       */
+      getPendingDestructionCount() {
+        return this.pendingDestruction.length;
       }
       /**
        * Check if a buffer is managed by this cache
@@ -3213,14 +3360,14 @@ var init_uniform_cache = __esm({
       getStats() {
         const total = this.stats.hits + this.stats.misses;
         const hitRate = total > 0 ? (this.stats.hits / total * 100).toFixed(1) + "%" : "0%";
-        return { ...this.stats, hitRate };
+        return { ...this.stats, hitRate, pendingDestruction: this.pendingDestruction.length };
       }
     };
     globalUniformCache = null;
   }
 });
 
-// ../src/gpu/kernels/utils.ts
+// src/gpu/kernels/utils.ts
 function getKernelBasePath() {
   if (typeof location !== "undefined") {
     const path = location.pathname;
@@ -3551,7 +3698,7 @@ function createUniformBufferWithView(label, byteLength, writer, recorder, device
 }
 var shaderSourceCache, shaderModuleCache, pipelineCache, bindGroupLayoutCache, pipelineLayoutCache, KERNEL_BASE_PATH, KERNEL_CONFIGS;
 var init_utils = __esm({
-  "../src/gpu/kernels/utils.ts"() {
+  "src/gpu/kernels/utils.ts"() {
     init_device();
     init_kernel_tuner();
     init_uniform_cache();
@@ -3568,13 +3715,15 @@ var init_utils = __esm({
           shaderFile: "matmul_f16.wgsl",
           entryPoint: "main",
           workgroupSize: [16, 16, 1],
-          requires: ["shader-f16"]
+          requires: ["shader-f16"],
+          outputDtype: "f16"
         },
         f16_vec4: {
           shaderFile: "matmul_f16.wgsl",
           entryPoint: "main_vec4",
           workgroupSize: [16, 16, 1],
-          requires: ["shader-f16"]
+          requires: ["shader-f16"],
+          outputDtype: "f16"
         },
         f16w_f32a: {
           shaderFile: "matmul_f16w_f32a.wgsl",
@@ -3614,7 +3763,8 @@ var init_utils = __esm({
           shaderFile: "matmul_gemv_subgroup.wgsl",
           entryPoint: "main_multicol",
           workgroupSize: [256, 1, 1],
-          requires: ["shader-f16", "subgroups"]
+          requires: ["shader-f16", "subgroups"],
+          variantMetadata: { colsPerWg: 32 }
         },
         // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
         q4_fused: {
@@ -3627,14 +3777,33 @@ var init_utils = __esm({
           shaderFile: "fused_matmul_q4.wgsl",
           entryPoint: "main_batched",
           workgroupSize: [64, 4, 1],
-          requires: ["shader-f16", "subgroups"]
+          requires: ["shader-f16", "subgroups"],
+          variantMetadata: { tileM: 4 }
         },
         // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
         q4_fused_multicol: {
           shaderFile: "fused_matmul_q4.wgsl",
           entryPoint: "main_multicol",
           workgroupSize: [256, 1, 1],
-          requires: ["shader-f16", "subgroups"]
+          requires: ["shader-f16", "subgroups"],
+          variantMetadata: { colsPerWg: 32 }
+        },
+        // F16 output variants - same as above but output to f16 buffer
+        q4_fused_multicol_f16: {
+          shaderFile: "fused_matmul_q4.wgsl",
+          entryPoint: "main_multicol_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16", "subgroups"],
+          outputDtype: "f16",
+          variantMetadata: { colsPerWg: 32 }
+        },
+        q4_fused_batched_f16: {
+          shaderFile: "fused_matmul_q4.wgsl",
+          entryPoint: "main_batched_f16",
+          workgroupSize: [64, 4, 1],
+          requires: ["shader-f16", "subgroups"],
+          outputDtype: "f16",
+          variantMetadata: { tileM: 4 }
         },
         f32: {
           shaderFile: "matmul_f32.wgsl",
@@ -3858,7 +4027,8 @@ var init_utils = __esm({
           shaderFile: "attention_decode_chunked_f16kv.wgsl",
           entryPoint: "main",
           workgroupSize: [256, 1, 1],
-          requires: ["shader-f16"]
+          requires: ["shader-f16"],
+          variantMetadata: { maxKVLen: 2048 }
         },
         // Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization
         decode_subgroup: {
@@ -3887,6 +4057,19 @@ var init_utils = __esm({
           entryPoint: "rmsnorm_inplace_residual",
           workgroupSize: [256, 1, 1],
           requires: []
+        },
+        // F16 variants for reduced memory bandwidth
+        default_f16: {
+          shaderFile: "rmsnorm_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        small_f16: {
+          shaderFile: "rmsnorm_f16.wgsl",
+          entryPoint: "rmsnorm_small_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
         }
       },
       // Fused GEMV + RMSNorm for decode (M=1)
@@ -4028,6 +4211,37 @@ var init_utils = __esm({
           entryPoint: "geglu_rowsplit",
           workgroupSize: [256, 1, 1],
           requires: []
+        },
+        // F16 variants for reduced memory bandwidth
+        default_f16: {
+          shaderFile: "silu_f16.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        gate_f16: {
+          shaderFile: "silu_f16.wgsl",
+          entryPoint: "silu_gate_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        vec4_f16: {
+          shaderFile: "silu_f16.wgsl",
+          entryPoint: "silu_vec4_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        gate_rowsplit_f16: {
+          shaderFile: "silu_f16.wgsl",
+          entryPoint: "silu_gate_rowsplit_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
+        },
+        geglu_rowsplit_f16: {
+          shaderFile: "silu_f16.wgsl",
+          entryPoint: "geglu_rowsplit_f16",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"]
         }
       },
       scale: {
@@ -4069,6 +4283,40 @@ var init_utils = __esm({
           entryPoint: "gather_vec4",
           workgroupSize: [64, 1, 1],
           requires: ["shader-f16"]
+        },
+        // F32 embeddings → F16 output (for F16 activation mode)
+        f16_out: {
+          shaderFile: "gather.wgsl",
+          entryPoint: "gather_f16_out",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"],
+          outputDtype: "f16",
+          variantMetadata: { outputBinding: 1 }
+        },
+        vec4_f16_out: {
+          shaderFile: "gather.wgsl",
+          entryPoint: "gather_vec4_f16_out",
+          workgroupSize: [64, 1, 1],
+          requires: ["shader-f16"],
+          outputDtype: "f16",
+          variantMetadata: { outputBinding: 1 }
+        },
+        // F16 embeddings → F16 output (for F16 activation mode with F16 embeddings)
+        f16_f16_out: {
+          shaderFile: "gather_f16.wgsl",
+          entryPoint: "gather_f16_out",
+          workgroupSize: [256, 1, 1],
+          requires: ["shader-f16"],
+          outputDtype: "f16",
+          variantMetadata: { outputBinding: 1 }
+        },
+        f16_vec4_f16_out: {
+          shaderFile: "gather_f16.wgsl",
+          entryPoint: "gather_vec4_f16_out",
+          workgroupSize: [64, 1, 1],
+          requires: ["shader-f16"],
+          outputDtype: "f16",
+          variantMetadata: { outputBinding: 1 }
         }
       },
       residual: {
@@ -4254,7 +4502,25 @@ var init_utils = __esm({
   }
 });
 
-// ../src/gpu/buffer-pool.ts
+// src/gpu/weight-buffer.ts
+function isWeightBuffer(value) {
+  return typeof value === "object" && value !== null && "buffer" in value && "dtype" in value && "layout" in value && "shape" in value;
+}
+function getBuffer(weight) {
+  return isWeightBuffer(weight) ? weight.buffer : weight;
+}
+function getLayout(weight) {
+  return isWeightBuffer(weight) ? weight.layout : null;
+}
+function getWeightDtype(weight) {
+  return isWeightBuffer(weight) ? weight.dtype : null;
+}
+var init_weight_buffer = __esm({
+  "src/gpu/weight-buffer.ts"() {
+  }
+});
+
+// src/gpu/buffer-pool.ts
 var buffer_pool_exports = {};
 __export(buffer_pool_exports, {
   BufferPool: () => BufferPool,
@@ -4320,7 +4586,7 @@ async function withBuffer(size, usage, fn) {
 }
 var BufferUsage, BufferPool, globalPool, createStagingBuffer, createUploadBuffer, createUniformBuffer, acquireBuffer, releaseBuffer, uploadData, readBuffer;
 var init_buffer_pool = __esm({
-  "../src/gpu/buffer-pool.ts"() {
+  "src/gpu/buffer-pool.ts"() {
     init_device();
     init_perf_guards();
     init_debug();
@@ -4625,7 +4891,7 @@ var init_buffer_pool = __esm({
   }
 });
 
-// ../src/gpu/kernels/dispatch.ts
+// src/gpu/kernels/dispatch.ts
 function dispatch(device2, pipeline, bindGroup, workgroups, label = "compute") {
   const encoder = device2.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
@@ -4651,11 +4917,130 @@ function recordDispatch(recorder, pipeline, bindGroup, workgroups, label = "comp
   pass.end();
 }
 var init_dispatch = __esm({
-  "../src/gpu/kernels/dispatch.ts"() {
+  "src/gpu/kernels/dispatch.ts"() {
   }
 });
 
-// ../src/gpu/kernels/fused_matmul_rmsnorm.ts
+// src/gpu/kernels/constants.ts
+var WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG, GPU_LIMITS, MEMORY_THRESHOLDS, DIMENSION_LIMITS, TILE_SIZES, QUANTIZATION, ALIGNMENT, PERFORMANCE;
+var init_constants = __esm({
+  "src/gpu/kernels/constants.ts"() {
+    WORKGROUP_SIZES = {
+      /** Default workgroup size for most kernels */
+      DEFAULT: 256,
+      /** Vec4 workgroup thread count (64 threads × 4 elements = 256 elements) */
+      VEC4_THREADS: 64,
+      /** Attention kernels (large blocks) */
+      ATTENTION_LARGE_BLOCK: 64,
+      /** Attention kernels (small blocks) */
+      ATTENTION_SMALL_BLOCK: 32,
+      /** Subgroup size (typical for modern GPUs) */
+      SUBGROUP: 32,
+      /** RMSNorm workgroup size */
+      RMSNORM: 256,
+      /** Softmax workgroup size */
+      SOFTMAX: 256,
+      /** Matmul tile sizes */
+      MATMUL_TILE_M: 16,
+      MATMUL_TILE_N: 16,
+      MATMUL_TILE_K: 16,
+      /** MoE workgroup size */
+      MOE: 256
+    };
+    VEC4_ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;
+    GPU_LIMITS = {
+      /** Max workgroups per dimension (WebGPU minimum) */
+      MAX_WORKGROUPS: 65535
+    };
+    MEMORY_THRESHOLDS = {
+      /** Large attention tier shared memory requirement */
+      ATTENTION_LARGE_SHARED: 49152,
+      // 48KB
+      /** Small attention tier shared memory requirement (F32) */
+      ATTENTION_SMALL_SHARED_F32: 8192,
+      // 8KB (2 * 32 * 32 * 4)
+      /** Small attention tier shared memory requirement (F16) */
+      ATTENTION_SMALL_SHARED_F16: 4096,
+      // 4KB (2 * 32 * 32 * 2)
+      /** Subgroup attention tier shared memory requirement */
+      ATTENTION_SUBGROUP_SHARED: 8192,
+      // 2048 * 4 bytes for scores array
+      /** Minimum shared memory for any GPU */
+      MIN_SHARED_MEMORY: 16384
+      // 16KB (WebGPU minimum spec)
+    };
+    DIMENSION_LIMITS = {
+      /** Maximum head dimension for large attention tier */
+      ATTENTION_LARGE_MAX_HEAD_DIM: 64,
+      /** Maximum head dimension for small attention tier */
+      ATTENTION_SMALL_MAX_HEAD_DIM: 256,
+      /** Maximum head dimension for subgroup attention tier */
+      ATTENTION_SUBGROUP_MAX_HEAD_DIM: 256,
+      /** Maximum sequence length for practical inference */
+      MAX_SEQ_LEN: 32768,
+      /** Maximum vocab size for typical models */
+      MAX_VOCAB_SIZE: 262144,
+      // Gemma 3
+      /** Maximum batch size for prefill */
+      MAX_BATCH_SIZE: 128
+    };
+    TILE_SIZES = {
+      /** Attention tile sizes (large) */
+      ATTENTION_LARGE_BLOCK_SIZE: 64,
+      ATTENTION_LARGE_HEAD_TILE: 64,
+      /** Attention tile sizes (small) */
+      ATTENTION_SMALL_BLOCK_SIZE: 32,
+      ATTENTION_SMALL_HEAD_TILE: 32,
+      /** Matmul tile sizes */
+      MATMUL_M: 16,
+      MATMUL_N: 16,
+      MATMUL_K: 16,
+      /** Q4K dequant tile sizes */
+      Q4K_BLOCK_SIZE: 32,
+      Q4K_SUPER_BLOCK_SIZE: 256
+    };
+    QUANTIZATION = {
+      /** Q4K_M bits per weight */
+      Q4K_BITS: 4.5,
+      /** Q4K block bytes per 256-element super-block */
+      Q4K_BLOCK_BYTES: 144,
+      /** Q8_0 bits per weight */
+      Q8_BITS: 8.5,
+      /** F16 bits per weight */
+      F16_BITS: 16,
+      /** BF16 bits per weight */
+      BF16_BITS: 16,
+      /** F32 bits per weight */
+      F32_BITS: 32,
+      /** MXFP4 bits per weight (including shared exponent) */
+      MXFP4_BITS: 4
+    };
+    ALIGNMENT = {
+      /** WebGPU buffer alignment */
+      BUFFER: 256,
+      /** Uniform buffer alignment */
+      UNIFORM: 256,
+      /** Storage buffer alignment */
+      STORAGE: 256,
+      /** Vertex buffer alignment */
+      VERTEX: 4
+    };
+    PERFORMANCE = {
+      /** Number of warmup runs for benchmarks */
+      WARMUP_RUNS: 5,
+      /** Number of timed runs for benchmarks */
+      TIMED_RUNS: 20,
+      /** Default timeout for operations (ms) */
+      DEFAULT_TIMEOUT: 12e4,
+      /** Max buffer pool size per bucket */
+      MAX_POOL_SIZE_PER_BUCKET: 8,
+      /** Max total pooled buffers */
+      MAX_TOTAL_POOLED_BUFFERS: 64
+    };
+  }
+});
+
+// src/gpu/kernels/fused_matmul_rmsnorm.ts
 var fused_matmul_rmsnorm_exports = {};
 __export(fused_matmul_rmsnorm_exports, {
   recordMatmulRMSNormFused: () => recordMatmulRMSNormFused,
@@ -4664,10 +5049,11 @@ __export(fused_matmul_rmsnorm_exports, {
   shouldUseFusedMatmulRMSNorm: () => shouldUseFusedMatmulRMSNorm
 });
 function selectMatmulRMSNormFusedVariant(N) {
-  if (N <= WG_SIZE) {
+  const thresholds = getKernelThresholds().fusedMatmul;
+  if (N <= WORKGROUP_SIZES.DEFAULT) {
     return "small";
   }
-  if (N <= MAX_MEDIUM_N) {
+  if (N <= thresholds.maxMediumN) {
     return "medium";
   }
   return "default";
@@ -4679,21 +5065,25 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
     K,
     eps = 1e-5,
     residual = null,
-    outputBuffer = null
+    outputBuffer = null,
+    transposeB = true
+    // Default: GGUF row-major weights
   } = options;
+  const weightBuffer = getBuffer(weight);
   const variant = selectMatmulRMSNormFusedVariant(N);
-  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
   const pipeline = await getPipelineFast("fused_matmul_rmsnorm", variant);
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
   const uniformBuffer = createUniformBufferWithView(
     "matmul_rmsnorm_fused_uniforms",
-    16,
+    32,
     (view) => {
       view.setUint32(0, N, true);
       view.setUint32(4, K, true);
       view.setFloat32(8, eps, true);
       view.setUint32(12, residual ? 1 : 0, true);
+      view.setUint32(16, transposeB ? 1 : 0, true);
     },
     null,
     device2
@@ -4708,8 +5098,8 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: normWeight } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } }
@@ -4719,14 +5109,13 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
   if (variant === "small" || variant === "medium") {
     workgroups = 1;
   } else {
-    workgroups = Math.ceil(N / COLS_PER_WG);
+    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
   }
   dispatch(device2, pipeline, bindGroup, workgroups, "matmul_rmsnorm_fused");
   uniformBuffer.destroy();
   if (!residual)
     residualBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [1, N], "matmul_rmsnorm_fused_output");
 }
 async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, options) {
   const device2 = recorder.device;
@@ -4735,21 +5124,25 @@ async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, opt
     K,
     eps = 1e-5,
     residual = null,
-    outputBuffer = null
+    outputBuffer = null,
+    transposeB = true
+    // Default: GGUF row-major weights
   } = options;
+  const weightBuffer = getBuffer(weight);
   const variant = selectMatmulRMSNormFusedVariant(N);
-  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}`);
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
   const pipeline = await getPipelineFast("fused_matmul_rmsnorm", variant);
   const outputSize = N * 4;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "matmul_rmsnorm_fused_output");
   const uniformBuffer = createUniformBufferWithView(
     "matmul_rmsnorm_fused_uniforms",
-    16,
+    32,
     (view) => {
       view.setUint32(0, N, true);
       view.setUint32(4, K, true);
       view.setFloat32(8, eps, true);
       view.setUint32(12, residual ? 1 : 0, true);
+      view.setUint32(16, transposeB ? 1 : 0, true);
     },
     recorder
   );
@@ -4763,8 +5156,8 @@ async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, opt
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: normWeight } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } }
@@ -4774,70 +5167,75 @@ async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, opt
   if (variant === "small" || variant === "medium") {
     workgroups = 1;
   } else {
-    workgroups = Math.ceil(N / COLS_PER_WG);
+    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
   }
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "matmul_rmsnorm_fused");
   if (!residual) {
     recorder.trackTemporaryBuffer(residualBuffer);
   }
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [1, N], "matmul_rmsnorm_fused_output");
 }
 function shouldUseFusedMatmulRMSNorm(M, N) {
   if (M !== 1) {
     return false;
   }
-  if (N > MAX_MEDIUM_N) {
+  if (N > getKernelThresholds().fusedMatmul.maxMediumN) {
     return false;
   }
   return true;
 }
-var WG_SIZE, COLS_PER_WG, MAX_MEDIUM_N;
 var init_fused_matmul_rmsnorm = __esm({
-  "../src/gpu/kernels/fused_matmul_rmsnorm.ts"() {
+  "src/gpu/kernels/fused_matmul_rmsnorm.ts"() {
     init_device();
-    init_buffer_dtypes();
     init_buffer_pool();
+    init_tensor();
+    init_weight_buffer();
     init_dispatch();
     init_utils();
+    init_constants();
+    init_kernel_thresholds_schema();
     init_debug();
-    WG_SIZE = 256;
-    COLS_PER_WG = 4;
-    MAX_MEDIUM_N = 4096;
   }
 });
 
-// browser/test-page.ts
+// kernel-tests/browser/test-page.ts
 init_device();
-init_buffer_dtypes();
+init_tensor();
 
-// ../src/gpu/kernel-hints.ts
+// src/config/kernel-plan.ts
 init_debug();
-var currentHints = null;
-var hintsSource = null;
-function setKernelHints(hints, source = "manifest") {
-  const priority = { manifest: 0, profile: 1, runtime: 2 };
-  if (!currentHints || priority[source] >= priority[hintsSource || "manifest"]) {
-    currentHints = hints;
-    hintsSource = source;
-    log.debug("KernelHints", `Set from ${source}: ${JSON.stringify(hints)}`);
-  }
+var currentPlan = null;
+var currentSource = "none";
+function getKernelPlanStrict() {
+  return currentPlan?.strict ?? false;
 }
-function getKernelHints() {
-  return currentHints;
+function getKernelPlanQ4KStrategy() {
+  return currentPlan?.q4kStrategy ?? "auto";
 }
-function shouldUseFusedQ4K() {
-  const debugFlags = typeof window !== "undefined" ? window : null;
-  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
-    return false;
-  const hints = getKernelHints();
-  if (hints?.q4kMatmul) {
-    return hints.q4kMatmul === "fused_q4k";
+function setKernelPlan(plan, source) {
+  currentPlan = plan;
+  currentSource = source;
+}
+function resolveKernelVariant(override, lookup) {
+  if (!override)
+    return null;
+  if (lookup.role && override.roles?.[lookup.role]) {
+    return override.roles[lookup.role] ?? null;
   }
-  return true;
+  if (lookup.phase && override[lookup.phase]) {
+    return override[lookup.phase] ?? null;
+  }
+  return override.default ?? null;
+}
+function getKernelPlanVariant(lookup) {
+  const plan = currentPlan;
+  if (!plan?.variants)
+    return null;
+  const override = plan.variants[lookup.operation];
+  return resolveKernelVariant(override, lookup);
 }
 
-// ../src/gpu/kernel-selector.ts
+// src/gpu/kernel-selector.ts
 var kernel_selector_exports = {};
 __export(kernel_selector_exports, {
   CommandRecorder: () => CommandRecorder,
@@ -4943,16 +5341,17 @@ __export(kernel_selector_exports, {
   validateAttentionLimits: () => validateAttentionLimits
 });
 
-// ../src/gpu/kernels/index.ts
+// src/gpu/kernels/index.ts
 init_utils();
 
-// ../src/gpu/kernels/matmul.ts
+// src/gpu/kernels/matmul.ts
 init_device();
-init_buffer_dtypes();
+init_tensor();
+init_weight_buffer();
 init_debug();
 init_buffer_pool();
 
-// ../src/gpu/kernels/kernel-base.ts
+// src/gpu/kernels/kernel-base.ts
 init_dispatch();
 init_utils();
 var KernelBase = class {
@@ -4971,128 +5370,29 @@ var KernelBase = class {
   }
 };
 
-// ../src/gpu/kernels/constants.ts
-var WORKGROUP_SIZES = {
-  /** Default workgroup size for most kernels */
-  DEFAULT: 256,
-  /** Attention kernels (large blocks) */
-  ATTENTION_LARGE_BLOCK: 64,
-  /** Attention kernels (small blocks) */
-  ATTENTION_SMALL_BLOCK: 32,
-  /** Subgroup size (typical for modern GPUs) */
-  SUBGROUP: 32,
-  /** RMSNorm workgroup size */
-  RMSNORM: 256,
-  /** Softmax workgroup size */
-  SOFTMAX: 256,
-  /** Matmul tile sizes */
-  MATMUL_TILE_M: 16,
-  MATMUL_TILE_N: 16,
-  MATMUL_TILE_K: 16,
-  /** MoE workgroup size */
-  MOE: 256
-};
-var GPU_LIMITS = {
-  /** Max workgroups per dimension (WebGPU minimum) */
-  MAX_WORKGROUPS: 65535
-};
-var MEMORY_THRESHOLDS = {
-  /** Large attention tier shared memory requirement */
-  ATTENTION_LARGE_SHARED: 49152,
-  // 48KB
-  /** Small attention tier shared memory requirement (F32) */
-  ATTENTION_SMALL_SHARED_F32: 8192,
-  // 8KB (2 * 32 * 32 * 4)
-  /** Small attention tier shared memory requirement (F16) */
-  ATTENTION_SMALL_SHARED_F16: 4096,
-  // 4KB (2 * 32 * 32 * 2)
-  /** Subgroup attention tier shared memory requirement */
-  ATTENTION_SUBGROUP_SHARED: 8192,
-  // 2048 * 4 bytes for scores array
-  /** Minimum shared memory for any GPU */
-  MIN_SHARED_MEMORY: 16384
-  // 16KB (WebGPU minimum spec)
-};
-var DIMENSION_LIMITS = {
-  /** Maximum head dimension for large attention tier */
-  ATTENTION_LARGE_MAX_HEAD_DIM: 64,
-  /** Maximum head dimension for small attention tier */
-  ATTENTION_SMALL_MAX_HEAD_DIM: 256,
-  /** Maximum head dimension for subgroup attention tier */
-  ATTENTION_SUBGROUP_MAX_HEAD_DIM: 256,
-  /** Maximum sequence length for practical inference */
-  MAX_SEQ_LEN: 32768,
-  /** Maximum vocab size for typical models */
-  MAX_VOCAB_SIZE: 262144,
-  // Gemma 3
-  /** Maximum batch size for prefill */
-  MAX_BATCH_SIZE: 128
-};
-var TILE_SIZES = {
-  /** Attention tile sizes (large) */
-  ATTENTION_LARGE_BLOCK_SIZE: 64,
-  ATTENTION_LARGE_HEAD_TILE: 64,
-  /** Attention tile sizes (small) */
-  ATTENTION_SMALL_BLOCK_SIZE: 32,
-  ATTENTION_SMALL_HEAD_TILE: 32,
-  /** Matmul tile sizes */
-  MATMUL_M: 16,
-  MATMUL_N: 16,
-  MATMUL_K: 16,
-  /** Q4K dequant tile sizes */
-  Q4K_BLOCK_SIZE: 32,
-  Q4K_SUPER_BLOCK_SIZE: 256
-};
-var QUANTIZATION = {
-  /** Q4K_M bits per weight */
-  Q4K_BITS: 4.5,
-  /** Q4K block bytes per 256-element super-block */
-  Q4K_BLOCK_BYTES: 144,
-  /** Q8_0 bits per weight */
-  Q8_BITS: 8.5,
-  /** F16 bits per weight */
-  F16_BITS: 16,
-  /** BF16 bits per weight */
-  BF16_BITS: 16,
-  /** F32 bits per weight */
-  F32_BITS: 32,
-  /** MXFP4 bits per weight (including shared exponent) */
-  MXFP4_BITS: 4
-};
-var ALIGNMENT = {
-  /** WebGPU buffer alignment */
-  BUFFER: 256,
-  /** Uniform buffer alignment */
-  UNIFORM: 256,
-  /** Storage buffer alignment */
-  STORAGE: 256,
-  /** Vertex buffer alignment */
-  VERTEX: 4
-};
-var PERFORMANCE = {
-  /** Number of warmup runs for benchmarks */
-  WARMUP_RUNS: 5,
-  /** Number of timed runs for benchmarks */
-  TIMED_RUNS: 20,
-  /** Default timeout for operations (ms) */
-  DEFAULT_TIMEOUT: 12e4,
-  /** Max buffer pool size per bucket */
-  MAX_POOL_SIZE_PER_BUCKET: 8,
-  /** Max total pooled buffers */
-  MAX_TOTAL_POOLED_BUFFERS: 64
-};
-
-// ../src/gpu/kernels/matmul.ts
+// src/gpu/kernels/matmul.ts
+init_constants();
 init_utils();
 init_uniform_cache();
+init_schema();
+var Q4K_FUSED_VARIANTS = {
+  "true/true": "q4_fused_multicol_f16",
+  "true/false": "q4_fused_multicol",
+  "false/true": "q4_fused_batched_f16",
+  "false/false": "q4_fused_batched"
+};
+function selectQ4KFusedVariant(isM1, wantF16Output) {
+  const key = `${isM1}/${wantF16Output}`;
+  return Q4K_FUSED_VARIANTS[key] ?? "q4_fused_batched";
+}
 function isFusedQ4KDisabled() {
   const debugFlags = typeof window !== "undefined" ? window : null;
   if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
     return true;
-  return !shouldUseFusedQ4K();
+  return false;
 }
 function toMatmulDtype(dtype) {
-  if (dtype === "f16")
+  if (dtype === "f16" || dtype === "bf16")
     return "f16";
   if (dtype === "q4k")
     return "q4k";
@@ -5131,11 +5431,13 @@ var MatmulKernel = class extends KernelBase {
 var _transposeDebugCount = 0;
 function resolveTransposeB(B, transposeBOption) {
   if (transposeBOption === "auto") {
-    const isColMajor = isColumnMajorBuffer(B);
+    const weightLayout = getLayout(B);
+    const buffer = getBuffer(B);
+    const isColMajor = weightLayout === "column";
     const result = !isColMajor;
     if (isTraceEnabled("kernels") && _transposeDebugCount < 50) {
       _transposeDebugCount++;
-      trace.kernels(`resolveTransposeB: isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${B.size}`);
+      trace.kernels(`resolveTransposeB: layout=${weightLayout}, isColumnMajor=${isColMajor}, transposeB=${result}, bufSize=${buffer.size}`);
     }
     return result;
   }
@@ -5167,12 +5469,12 @@ function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB,
   if (A.size < aRequired) {
     throw new Error(`[${label}] A buffer too small: ${A.size} < ${aRequired} (M=${M}, K=${K}, aDtype=${aDtype})`);
   }
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const QK_K2 = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const Q4K_BLOCK_BYTES = QUANTIZATION.Q4K_BLOCK_BYTES;
   let bBindingSize;
   let bRequired;
   if (bDtype === "q4k") {
-    const numBlocksPerRow = Math.ceil(K / QK_K);
+    const numBlocksPerRow = Math.ceil(K / QK_K2);
     bBindingSize = Math.ceil(N * numBlocksPerRow * Q4K_BLOCK_BYTES / 4) * 4;
     bRequired = bOffset + bBindingSize;
   } else {
@@ -5188,33 +5490,88 @@ function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB,
   }
   return { aBindingSize, bBindingSize };
 }
+function isQ4KFusedVariant(variant) {
+  return variant.startsWith("q4_fused");
+}
+function isGemvVariant(variant) {
+  return variant.startsWith("gemv");
+}
+function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict, q4kStrategy) {
+  const override = variantOverride.trim();
+  if (!override)
+    return null;
+  const failOrWarn = (message) => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn("Matmul", message);
+    return null;
+  };
+  let config2;
+  try {
+    config2 = getKernelConfig("matmul", override);
+  } catch {
+    return failOrWarn(`Unknown matmul kernel variant "${variantOverride}".`);
+  }
+  if (!hasRequiredFeatures(config2.requires, capabilities)) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires unsupported GPU features.`);
+  }
+  const useQ4KFused = isQ4KFusedVariant(override);
+  if (useQ4KFused) {
+    if (bDtype !== "q4k") {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
+    }
+    if (q4kStrategy === "dequant_f16" || q4kStrategy === "dequant_f32") {
+      return failOrWarn(`Matmul kernel "${variantOverride}" conflicts with q4kStrategy=${q4kStrategy}.`);
+    }
+    if (isFusedQ4KDisabled()) {
+      return failOrWarn(`Matmul kernel "${variantOverride}" blocked by DOPPLER_DISABLE_FUSED_Q4K.`);
+    }
+  }
+  const useGemv = isGemvVariant(override);
+  if (useGemv && M !== 1) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires M=1 but got M=${M}.`);
+  }
+  return { variant: override, useQ4KFused, useGemv };
+}
 function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, requestedOutputDtype, options) {
   const capabilities = getKernelCapabilities();
+  const strict = getKernelPlanStrict();
+  const q4kStrategy = getKernelPlanQ4KStrategy();
+  const planVariant = getKernelPlanVariant({ operation: "matmul", role: options.role });
+  if (planVariant) {
+    const override = resolveMatmulOverride(planVariant, M, aDtype, bDtype, capabilities, strict, q4kStrategy);
+    if (override) {
+      return override;
+    }
+  }
   let variant = "f32";
   let useQ4KFused = false;
   let useGemv = false;
   if (bDtype === "q4k") {
-    const useFused = mode === "record" ? true : !isFusedQ4KDisabled();
-    if (useFused) {
-      if (!capabilities.hasSubgroups) {
-        if (mode === "record") {
-          throw new Error(
-            "Q4_K fused matmul requires subgroup support. Your GPU/browser may not support WebGPU subgroups. Consider using a dequantized model (F16) as fallback."
-          );
-        }
-        log.warn("Matmul", "Q4K fused requested but no subgroup support. Falling back to dequant path. Your GPU/browser may not support WebGPU subgroups.");
-      } else {
-        useQ4KFused = true;
-        if (mode === "record") {
-          if (M === 1) {
-            variant = "q4_fused_multicol";
-          } else {
-            variant = "q4_fused_batched";
-          }
-        } else {
-          variant = M === 1 ? "q4_fused_multicol" : "q4_fused_batched";
-        }
+    const wantsDequant = q4kStrategy === "dequant_f16" || q4kStrategy === "dequant_f32";
+    let forceFused = q4kStrategy === "fused_q4k";
+    if (wantsDequant) {
+      const message = `q4kStrategy=${q4kStrategy} but Q4K weights are still loaded; forcing fused path.`;
+      if (strict) {
+        throw new Error(message);
       }
+      log.warn("Matmul", message);
+      forceFused = true;
+    }
+    const allowFused = !isFusedQ4KDisabled();
+    const canFused = capabilities.hasSubgroups && allowFused;
+    const shouldFused = forceFused || q4kStrategy === "auto";
+    if (shouldFused && canFused) {
+      useQ4KFused = true;
+      const wantF16Output = requestedOutputDtype === "f16" && capabilities.hasF16;
+      variant = selectQ4KFusedVariant(M === 1, wantF16Output);
+    } else if (forceFused && !canFused) {
+      const message = "Q4_K fused matmul requires subgroup support. Your GPU/browser may not support WebGPU subgroups.";
+      if (strict) {
+        throw new Error(message);
+      }
+      log.warn("Matmul", `${message} Falling back to dequant path.`);
     }
   }
   if (!useQ4KFused) {
@@ -5228,8 +5585,8 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
     useGemv = M === 1 && effectiveBDtype === "f16" && aDtype === "f32";
     if (useGemv) {
       if (capabilities.hasSubgroups) {
-        const MULTICOL_THRESHOLD = 256;
-        if (N > MULTICOL_THRESHOLD) {
+        const { multicolThreshold } = getKernelThresholds().matmul;
+        if (N > multicolThreshold) {
           variant = "gemv_subgroup_multicol";
         } else {
           variant = "gemv_subgroup";
@@ -5244,7 +5601,8 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   return { variant, useQ4KFused, useGemv };
 }
 function resolveMatmulOutput(variant, M, N, outputBuffer) {
-  const outputsF16 = variant === "f16" || variant === "f16_vec4";
+  const config2 = getKernelConfig("matmul", variant);
+  const outputsF16 = config2.outputDtype === "f16";
   const elementSize = outputsF16 ? 2 : 4;
   const actualOutputDtype = outputsF16 ? "f16" : "f32";
   const outputSize = M * N * elementSize;
@@ -5258,8 +5616,9 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config2) {
   let workgroupsX = 1;
   let workgroupsY = 1;
   let uniformWorkgroupsX;
+  const colsPerWg = config2.variantMetadata?.colsPerWg ?? 4;
+  const tileM = config2.variantMetadata?.tileM ?? 4;
   if (useGemv && (variant === "gemv_subgroup" || variant === "gemv_subgroup_multicol")) {
-    const colsPerWg = variant === "gemv_subgroup_multicol" ? 32 : 4;
     const gemvWorkgroupsX = Math.ceil(N / colsPerWg);
     if (gemvWorkgroupsX > maxWorkgroups) {
       workgroupsX = maxWorkgroups;
@@ -5275,14 +5634,15 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config2) {
     if (variant === "q4_fused") {
       workgroupsX = N;
       workgroupsY = 1;
-    } else if (variant === "q4_fused_multicol") {
-      const colsPerWg = 32;
+    } else if (config2.variantMetadata?.colsPerWg) {
       workgroupsX = Math.ceil(N / colsPerWg);
       workgroupsY = 1;
-    } else {
-      const tileM = 4;
+    } else if (config2.variantMetadata?.tileM) {
       workgroupsX = N;
       workgroupsY = Math.ceil(M / tileM);
+    } else {
+      workgroupsX = N;
+      workgroupsY = 1;
     }
   } else if (useGemv) {
     workgroupsX = N;
@@ -5354,26 +5714,26 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
+  const bBuffer = getBuffer(B);
+  const weightDtype = getWeightDtype(B);
   if (isTraceEnabled("kernels") && _runMatmulDebugCount < 20) {
     _runMatmulDebugCount++;
-    const isColMajor = isColumnMajorBuffer(B);
-    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    const weightLayout = getLayout(B);
+    trace.kernels(`runMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, weightLayout=${weightLayout}, weightDtype=${weightDtype}`);
   }
   const transposeB = resolveTransposeB(B, transposeBOption);
   validateMatmulDimensions("runMatmul", M, N, K);
-  const rawADtype = getBufferDtype(A);
-  const rawBDtype = getBufferDtype(B);
-  const requestedOutputDtype = options.outputDtype || "f32";
-  if (isTraceEnabled("kernels") && !rawBDtype && M <= 2) {
-    log.warn("Matmul", `runMatmul: B buffer dtype unknown! size=${B.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
+  const aDtype = toMatmulDtype(A.dtype);
+  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
+  const requestedOutputDtype = options.outputDtype || A.dtype;
+  if (isTraceEnabled("kernels") && !weightDtype && !options.bDtype && M <= 2) {
+    log.warn("Matmul", `runMatmul: B buffer dtype unknown! size=${bBuffer.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
-  const aDtype = toMatmulDtype(rawADtype);
-  const bDtype = toMatmulDtype(rawBDtype);
   validateMatmulOffsets("runMatmul", aOffset, bOffset, cOffset);
   const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
     "runMatmul",
-    A,
-    B,
+    A.buffer,
+    bBuffer,
     M,
     N,
     K,
@@ -5436,20 +5796,31 @@ async function runMatmul(A, B, M, N, K, options = {}) {
     null,
     device2
   );
+  const isQ4KF16 = variant === "q4_fused_multicol_f16" || variant === "q4_fused_batched_f16";
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } }
+  ];
+  if (isQ4KF16) {
+    const dummyBuffer = acquireBuffer(4, void 0, "q4k_dummy");
+    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
+    entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+  } else {
+    entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+    if (useQ4KFused) {
+      const dummyBuffer = acquireBuffer(4, void 0, "q4k_dummy");
+      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
+    }
+  }
   const bindGroup = device2.createBindGroup({
     label: "matmul_bind_group",
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: A, offset: aOffset, size: aBindingSize } },
-      { binding: 2, resource: { buffer: B, offset: bOffset, size: bBindingSize } },
-      { binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } }
-    ]
+    entries
   });
   kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(C, actualOutputDtype);
-  return C;
+  return createTensor(C, actualOutputDtype, [M, N], "matmul_output");
 }
 var _recordMatmulDebugCount = 0;
 async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
@@ -5463,21 +5834,23 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     bOffset = 0,
     cOffset = 0
   } = options;
+  const bBuffer = getBuffer(B);
+  const weightDtype = getWeightDtype(B);
   if (isTraceEnabled("kernels") && _recordMatmulDebugCount < 20) {
     _recordMatmulDebugCount++;
-    const isColMajor = isColumnMajorBuffer(B);
-    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, isColMajor=${isColMajor}`);
+    const weightLayout = getLayout(B);
+    trace.kernels(`recordMatmul: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, weightLayout=${weightLayout}, weightDtype=${weightDtype}`);
   }
   const transposeB = resolveTransposeB(B, transposeBOption);
   validateMatmulDimensions("recordMatmul", M, N, K);
-  const aDtype = toMatmulDtype(getBufferDtype(A));
-  const bDtype = toMatmulDtype(getBufferDtype(B));
-  const requestedOutputDtype = options.outputDtype || "f32";
+  const aDtype = toMatmulDtype(A.dtype);
+  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
+  const requestedOutputDtype = options.outputDtype || A.dtype;
   validateMatmulOffsets("recordMatmul", aOffset, bOffset, cOffset);
   const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
     "recordMatmul",
-    A,
-    B,
+    A.buffer,
+    bBuffer,
     M,
     N,
     K,
@@ -5530,25 +5903,42 @@ async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     recorder,
     device2
   );
+  const isQ4KF16 = variant === "q4_fused_multicol_f16" || variant === "q4_fused_batched_f16";
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } }
+  ];
+  if (isQ4KF16) {
+    const dummyBuffer = acquireBuffer(4, void 0, "q4k_dummy");
+    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
+    entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+  } else {
+    entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
+    if (useQ4KFused) {
+      const dummyBuffer = acquireBuffer(4, void 0, "q4k_dummy");
+      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
+    }
+  }
   const bindGroup = device2.createBindGroup({
     label: "matmul_bind_group",
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: A, offset: aOffset, size: aBindingSize } },
-      { binding: 2, resource: { buffer: B, offset: bOffset, size: bBindingSize } },
-      { binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } }
-    ]
+    entries
   });
   kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups);
-  setBufferDtype(C, actualOutputDtype);
-  return C;
+  return createTensor(C, actualOutputDtype, [M, N], "matmul_output");
 }
 
-// ../src/gpu/kernels/dequant.ts
+// src/gpu/kernels/dequant.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
+
+// src/loader/quantization-constants.ts
+var Q8_0_BLOCK_SIZE = 32;
+
+// src/gpu/kernels/dequant.ts
 init_dispatch();
 init_utils();
 init_uniform_cache();
@@ -5568,14 +5958,14 @@ function selectDequantKernel(options = {}) {
   return useVec4 ? "shared_vec4" : "shared";
 }
 function calculateDequantWorkgroups(variant, numBlocks) {
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const QK_K2 = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   let workgroups;
   if (variant.includes("vec4")) {
     workgroups = numBlocks;
   } else if (variant.includes("shared")) {
     workgroups = numBlocks;
   } else {
-    workgroups = Math.ceil(numBlocks * QK_K / (WORKGROUP_SIZES.DEFAULT / 4));
+    workgroups = Math.ceil(numBlocks * QK_K2 / (WORKGROUP_SIZES.DEFAULT / 4));
   }
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
   if (workgroups <= maxWorkgroups) {
@@ -5613,9 +6003,9 @@ async function dequantize(quantized, numBlocks, options = {}) {
   } = options;
   const variant = selectDequantKernel({ ...options, outputDtype });
   const pipeline = await getPipelineFast("dequant", variant);
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const QK_K2 = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
-  const outputSize = numBlocks * QK_K * bytesPerElem;
+  const outputSize = numBlocks * QK_K2 * bytesPerElem;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "dequant_output");
   const uniformBuffer = createUniformBufferWithView(
     "dequant_uniforms",
@@ -5641,8 +6031,8 @@ async function dequantize(quantized, numBlocks, options = {}) {
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   dispatch(device2, pipeline, bindGroup, workgroups, "dequant");
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
-  return output;
+  const dtype = outputDtype === "f16" ? "f16" : "f32";
+  return createTensor(output, dtype, [numBlocks * QK_K2], "dequant_output");
 }
 async function dequantizeMXFP4(blocks, scales, totalElements, numGroups, options = {}) {
   const device2 = getDevice();
@@ -5684,8 +6074,7 @@ async function dequantizeMXFP4(blocks, scales, totalElements, numGroups, options
   ];
   dispatch(device2, pipeline, bindGroup, dispatchSize, "mxfp4_dequant");
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, "f32", [totalElements], "mxfp4_dequant_output");
 }
 async function dequantizeMXFP4Expert(blocks, scales, expertIdx, numExperts, outDim, numGroups, options = {}) {
   const device2 = getDevice();
@@ -5725,8 +6114,7 @@ async function dequantizeMXFP4Expert(blocks, scales, expertIdx, numExperts, outD
   ];
   dispatch(device2, pipeline, bindGroup, dispatchSize, "mxfp4_expert");
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, "f32", [outDim, numGroups * 32], "mxfp4_expert_output");
 }
 async function dequantizeQ6K(quantized, numBlocks, options = {}) {
   const device2 = getDevice();
@@ -5737,9 +6125,9 @@ async function dequantizeQ6K(quantized, numBlocks, options = {}) {
     // Q6_K always outputs f16 for now
   } = options;
   const pipeline = await getPipelineFast("dequant", "q6k_f16out");
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const QK_K2 = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
-  const outputSize = numBlocks * QK_K * bytesPerElem;
+  const outputSize = numBlocks * QK_K2 * bytesPerElem;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "q6k_dequant_output");
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
   const workgroupsX = Math.min(numBlocks, maxWorkgroups);
@@ -5771,10 +6159,9 @@ async function dequantizeQ6K(quantized, numBlocks, options = {}) {
   ];
   dispatch(device2, pipeline, bindGroup, workgroups, "q6k_dequant");
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
-  return output;
+  const dtype = outputDtype === "f16" ? "f16" : "f32";
+  return createTensor(output, dtype, [numBlocks * QK_K2], "q6k_dequant_output");
 }
-var Q8_0_BLOCK_SIZE = 32;
 async function dequantizeQ8_0(quantized, numBlocks, options = {}) {
   const device2 = getDevice();
   const {
@@ -5817,8 +6204,8 @@ async function dequantizeQ8_0(quantized, numBlocks, options = {}) {
   ];
   dispatch(device2, pipeline, bindGroup, workgroups, "q8_0_dequant");
   releaseUniformBuffer(uniformBuffer);
-  setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
-  return output;
+  const dtype = outputDtype === "f16" ? "f16" : "f32";
+  return createTensor(output, dtype, [numBlocks * Q8_0_BLOCK_SIZE], "q8_0_dequant_output");
 }
 async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
   const device2 = recorder.device;
@@ -5829,9 +6216,9 @@ async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
   } = options;
   const variant = selectDequantKernel({ ...options, outputDtype });
   const pipeline = await getPipelineFast("dequant", variant);
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const QK_K2 = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const bytesPerElem = outputDtype === "f16" ? 2 : 4;
-  const outputSize = numBlocks * QK_K * bytesPerElem;
+  const outputSize = numBlocks * QK_K2 * bytesPerElem;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "dequant_output");
   const uniformBuffer = createUniformBufferWithView(
     "dequant_uniforms",
@@ -5853,18 +6240,28 @@ async function recordDequantize(recorder, quantized, numBlocks, options = {}) {
   });
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "dequant");
-  setBufferDtype(output, outputDtype === "f16" ? "f16" : "f32");
-  return output;
+  const dtype = outputDtype === "f16" ? "f16" : "f32";
+  return createTensor(output, dtype, [numBlocks * QK_K2], "dequant_output");
 }
 
-// ../src/gpu/kernels/attention.ts
+// src/gpu/kernels/attention.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
+init_kernel_thresholds_schema();
 init_utils();
 init_uniform_cache();
 init_debug();
 var loggedAttentionTier = false;
+var _chunkedMaxKVLen = null;
+function getChunkedMaxKVLen() {
+  if (_chunkedMaxKVLen === null) {
+    const config2 = getKernelConfig("attention", "decode_chunked_f16kv");
+    _chunkedMaxKVLen = config2.variantMetadata?.maxKVLen ?? 2048;
+  }
+  return _chunkedMaxKVLen;
+}
 var AttentionKernel = class extends KernelBase {
   async getPipeline(variant) {
     return this.getPipelineFor("attention", variant);
@@ -5876,19 +6273,29 @@ var AttentionKernel = class extends KernelBase {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, "attention");
   }
 };
-function selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps) {
+function selectAttentionTier(headDim, seqLen, useF16KV, forcedTier, sharedLimit, caps, strict) {
   const isDecode = seqLen === 1;
   const canLarge = headDim <= DIMENSION_LIMITS.ATTENTION_LARGE_MAX_HEAD_DIM && sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED;
   const smallRequired = useF16KV ? MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F16 : MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F32;
   const canSmall = headDim <= DIMENSION_LIMITS.ATTENTION_SMALL_MAX_HEAD_DIM && sharedLimit >= smallRequired;
   const canSubgroup = caps.hasSubgroups && headDim <= DIMENSION_LIMITS.ATTENTION_SUBGROUP_MAX_HEAD_DIM && sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_SUBGROUP_SHARED && isDecode;
-  let tier = attentionKernel;
+  const failOrWarn = (message) => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn("Attention", message);
+  };
+  let tier = forcedTier;
   if (tier === "tiled_large" && !canLarge) {
-    log.warn("Attention", `Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
+    failOrWarn(`Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
     tier = null;
   }
   if (tier === "tiled_small" && !canSmall) {
-    log.warn("Attention", `Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}). Falling back.`);
+    failOrWarn(`Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
+    tier = null;
+  }
+  if (tier === "subgroup" && !canSubgroup) {
+    failOrWarn(`Requested subgroup attention but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}, subgroups=${caps.hasSubgroups}).`);
     tier = null;
   }
   if (!tier) {
@@ -5911,11 +6318,12 @@ function selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedL
   }
   return tier;
 }
-var CHUNKED_ATTN_MAX_KV_LEN = 2048;
 var loggedChunkedKernel = false;
 function resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen) {
   const base = isDecode ? "decode" : "prefill";
-  const canUseChunked = isDecode && useF16KV && headDim >= 128 && kvLen <= CHUNKED_ATTN_MAX_KV_LEN;
+  const chunkedMaxKVLen = getChunkedMaxKVLen();
+  const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
+  const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   if (tier === "subgroup") {
     if (useF16KV) {
       if (canUseChunked) {
@@ -5956,10 +6364,82 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   }
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
-function resolveAttentionPlan(seqLen, kvLen, headDim, numHeads, attentionKernel, kvDtype, sharedLimit, caps) {
+function normalizeAttentionOverride(value) {
+  if (!value || typeof value !== "string")
+    return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized === "auto")
+    return null;
+  if (normalized === "tiled_large" || normalized === "large")
+    return { tier: "tiled_large" };
+  if (normalized === "tiled_small" || normalized === "small" || normalized === "tiled_small_hd") {
+    return { tier: "tiled_small" };
+  }
+  if (normalized === "streaming" || normalized === "stream")
+    return { tier: "streaming" };
+  if (normalized === "subgroup")
+    return { tier: "subgroup" };
+  return { variant: normalized };
+}
+function inferAttentionTierFromVariant(variant) {
+  if (variant === "decode_subgroup")
+    return "subgroup";
+  if (variant.startsWith("prefill_streaming") || variant.startsWith("decode_streaming") || variant === "decode_chunked_f16kv") {
+    return "streaming";
+  }
+  if (variant.startsWith("prefill_small") || variant.startsWith("decode_small"))
+    return "tiled_small";
+  return "tiled_large";
+}
+function validateAttentionVariant(variant, isDecode, useF16KV, caps, strict) {
+  const normalized = variant.trim();
+  const failOrWarn = (message) => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn("Attention", message);
+    return null;
+  };
+  let config2;
+  try {
+    config2 = getKernelConfig("attention", normalized);
+  } catch {
+    return failOrWarn(`Unknown attention kernel variant "${variant}".`);
+  }
+  if (!hasRequiredFeatures(config2.requires, caps)) {
+    return failOrWarn(`Attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+  const expectsF16KV = normalized.includes("_f16kv");
+  if (expectsF16KV !== useF16KV) {
+    const kvLabel = useF16KV ? "f16" : "f32";
+    return failOrWarn(`Attention kernel "${variant}" incompatible with ${kvLabel} KV cache.`);
+  }
+  const isDecodeVariant = normalized.startsWith("decode");
+  const isPrefillVariant = normalized.startsWith("prefill");
+  if (isDecode && isPrefillVariant) {
+    return failOrWarn(`Attention kernel "${variant}" is prefill-only but decode requested.`);
+  }
+  if (!isDecode && isDecodeVariant) {
+    return failOrWarn(`Attention kernel "${variant}" is decode-only but prefill requested.`);
+  }
+  return normalized;
+}
+function resolveAttentionPlan(seqLen, kvLen, headDim, numHeads, kvDtype, sharedLimit, caps) {
   const useF16KV = kvDtype === "f16";
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, attentionKernel, sharedLimit, caps);
   const isDecode = seqLen === 1;
+  const strict = getKernelPlanStrict();
+  const override = normalizeAttentionOverride(
+    getKernelPlanVariant({ operation: "attention", phase: isDecode ? "decode" : "prefill" })
+  );
+  if (override?.variant) {
+    const variantOverride = validateAttentionVariant(override.variant, isDecode, useF16KV, caps, strict);
+    if (variantOverride) {
+      const tier2 = inferAttentionTierFromVariant(variantOverride);
+      const workgroups2 = calculateAttentionWorkgroups(tier2, seqLen, numHeads);
+      return { tier: tier2, variant: variantOverride, workgroups: workgroups2, useF16KV, isDecode };
+    }
+  }
+  const tier = selectAttentionTier(headDim, seqLen, useF16KV, override?.tier ?? null, sharedLimit, caps, strict);
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
   return { tier, variant, workgroups, useF16KV, isDecode };
@@ -5994,7 +6474,6 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     scale = 1 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
-    attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0
@@ -6002,21 +6481,21 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  const kvDtype = getBufferDtype(K) || "f32";
+  const kvDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
     headDim,
     numHeads,
-    attentionKernel,
     kvDtype,
     sharedLimit,
     caps
   );
   const kernel = new AttentionKernel(device2);
   const pipeline = await kernel.getPipeline(plan.variant);
+  const outputDtype = "f32";
   const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, void 0, "attention_output");
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "attention_output");
   const uniformBuffer = createAttentionUniformBuffer(device2, null, {
     numHeads,
     numKVHeads,
@@ -6034,10 +6513,10 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: Q } },
-      { binding: 2, resource: { buffer: K } },
-      { binding: 3, resource: { buffer: V } },
-      { binding: 4, resource: { buffer: output } }
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: K.buffer } },
+      { binding: 3, resource: { buffer: V.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } }
     ]
   });
   if (limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
@@ -6047,7 +6526,7 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
   }
   kernel.dispatch(pipeline, bindGroup, plan.workgroups);
   releaseUniformBuffer(uniformBuffer);
-  return output;
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], "attention_output");
 }
 async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, options = {}) {
   const device2 = recorder.device;
@@ -6058,7 +6537,6 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     scale = 1 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
-    attentionKernel = null,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0
@@ -6066,13 +6544,12 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  const kvDtype = getBufferDtype(K) || "f32";
+  const kvDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
     headDim,
     numHeads,
-    attentionKernel,
     kvDtype,
     sharedLimit,
     caps
@@ -6080,8 +6557,9 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
   trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
   const kernel = new AttentionKernel(device2);
   const pipeline = await kernel.getPipeline(plan.variant);
+  const outputDtype = "f32";
   const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, void 0, "attention_output");
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "attention_output");
   const uniformBuffer = createAttentionUniformBuffer(device2, recorder, {
     numHeads,
     numKVHeads,
@@ -6099,10 +6577,10 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: Q } },
-      { binding: 2, resource: { buffer: K } },
-      { binding: 3, resource: { buffer: V } },
-      { binding: 4, resource: { buffer: output } }
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: K.buffer } },
+      { binding: 3, resource: { buffer: V.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } }
     ]
   });
   if (limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
@@ -6111,39 +6589,51 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     );
   }
   kernel.record(recorder, pipeline, bindGroup, plan.workgroups);
-  return output;
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], "attention_output");
 }
 
-// ../src/gpu/kernels/rmsnorm.ts
+// src/gpu/kernels/rmsnorm.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
 init_dispatch();
 init_utils();
 init_debug();
-function selectRMSNormKernel(options = {}) {
+init_schema();
+function canUseF16(input, residual) {
+  if (input.dtype !== "f16")
+    return false;
+  if (residual && residual.dtype !== "f16")
+    return false;
+  return true;
+}
+function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
+  const { smallThreshold } = getKernelThresholds().rmsnorm;
   if (residual) {
-    return "residual";
-  } else if (hiddenSize !== null && hiddenSize <= 256) {
-    return "small";
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return isF16 ? "small_f16" : "residual_small";
+    }
+    return isF16 ? "default_f16" : "residual";
+  } else if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+    return isF16 ? "small_f16" : "small";
   }
-  return "default";
+  return isF16 ? "default_f16" : "default";
 }
 async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   const device2 = getDevice();
   const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null } = options;
-  let variant = "default";
+  const isF16 = canUseF16(input, residual);
+  const variant = selectRMSNormKernel(options, isF16);
+  trace.kernels(`RMSNorm: input.dtype=${input.dtype}, isF16=${isF16}, variant=${variant}`);
   if (residual) {
-    variant = "residual";
-    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.size}, inferredHiddenSize=${hiddenSize || weight.size / 4}, batchSize=${batchSize}`);
-  } else if (hiddenSize && hiddenSize <= 256) {
-    variant = "small";
+    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.buffer.size}, inferredHiddenSize=${hiddenSize || weight.size / 4}, batchSize=${batchSize}`);
   }
   const pipeline = await getPipelineFast("rmsnorm", variant);
   const inferredHiddenSize = hiddenSize || weight.size / 4;
-  const outputSize = batchSize * inferredHiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, void 0, "rmsnorm_output");
+  const bytesPerElement = isF16 ? 2 : 4;
+  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "rmsnorm_output");
   const hasResidualFlag = residual ? 1 : 0;
   const uniformBuffer = createUniformBufferWithView(
     "rmsnorm_uniforms",
@@ -6160,7 +6650,7 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   if (hasResidualFlag) {
     trace.kernels(`RMSNorm: Uniform hasResidual=${hasResidualFlag}, hiddenSize=${inferredHiddenSize}, batchSize=${batchSize}`);
   }
-  const residualBuffer = residual || device2.createBuffer({
+  const residualBuffer = residual?.buffer || device2.createBuffer({
     label: "rmsnorm_residual_placeholder",
     size: 4,
     usage: GPUBufferUsage.STORAGE
@@ -6170,9 +6660,9 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weight } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: outputBuf } },
       { binding: 4, resource: { buffer: residualBuffer } }
     ]
   });
@@ -6180,8 +6670,7 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   uniformBuffer.destroy();
   if (!residual)
     residualBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], "rmsnorm_output");
 }
 async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) {
   const device2 = recorder.device;
@@ -6192,10 +6681,12 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
     outputBuffer = null
   } = options;
   const inferredHiddenSize = hiddenSize || weight.size / 4;
-  const inputSize = batchSize * inferredHiddenSize * 4;
-  const variant = selectRMSNormKernel(options);
+  const isF16 = canUseF16(input, residual);
+  const variant = selectRMSNormKernel(options, isF16);
+  const bytesPerElement = isF16 ? 2 : 4;
+  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
   const pipeline = await getPipelineFast("rmsnorm", variant);
-  const output = outputBuffer || acquireBuffer(inputSize, void 0, "rmsnorm_output");
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "rmsnorm_output");
   const uniformBuffer = createUniformBufferWithView(
     "rmsnorm_uniforms",
     16,
@@ -6207,7 +6698,7 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
     },
     recorder
   );
-  const residualBuffer = residual || device2.createBuffer({
+  const residualBuffer = residual?.buffer || device2.createBuffer({
     label: "rmsnorm_residual_placeholder",
     size: 4,
     usage: GPUBufferUsage.STORAGE
@@ -6217,9 +6708,9 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weight } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: outputBuf } },
       { binding: 4, resource: { buffer: residualBuffer } }
     ]
   });
@@ -6227,22 +6718,22 @@ async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) 
   if (!residual) {
     recorder.trackTemporaryBuffer(residualBuffer);
   }
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], "rmsnorm_output");
 }
 
-// ../src/gpu/kernels/softmax.ts
+// src/gpu/kernels/softmax.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
 init_dispatch();
 init_utils();
 async function runSoftmax(input, axis, options = {}) {
   const device2 = getDevice();
   const { batchSize = 1, size, temperature = 1, outputBuffer = null } = options;
-  const inferredSize = size || input.size / (batchSize * 4);
+  const bytesPerElement = input.dtype === "f16" ? 2 : 4;
+  const inferredSize = size || input.buffer.size / (batchSize * bytesPerElement);
   const pipeline = await createPipeline("softmax", "default");
-  const outputSize = batchSize * inferredSize * 4;
+  const outputSize = batchSize * inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "softmax_output");
   const uniformBuffer = createUniformBufferWithView(
     "softmax_uniforms",
@@ -6260,13 +6751,13 @@ async function runSoftmax(input, axis, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   dispatch(device2, pipeline, bindGroup, batchSize, "softmax");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, input.dtype, [batchSize, inferredSize], "softmax_output");
 }
 async function runSoftmaxTopK(logits, numTokens, numExperts, topK, options = {}) {
   const device2 = getDevice();
@@ -6300,8 +6791,6 @@ async function runSoftmaxTopK(logits, numTokens, numExperts, topK, options = {})
   });
   dispatch(device2, pipeline, bindGroup, numTokens, "softmax_topk");
   uniformBuffer.destroy();
-  setBufferDtype(indices, "u32");
-  setBufferDtype(weights, "f32");
   return { indices, weights };
 }
 async function recordSoftmax(recorder, input, axis, options = {}) {
@@ -6311,9 +6800,10 @@ async function recordSoftmax(recorder, input, axis, options = {}) {
     seqLen = null,
     outputBuffer = null
   } = options;
-  const inferredSeqLen = seqLen || input.size / (batchSize * 4);
+  const bytesPerElement = input.dtype === "f16" ? 2 : 4;
+  const inferredSeqLen = seqLen || input.buffer.size / (batchSize * bytesPerElement);
   const pipeline = await createPipeline("softmax", "default");
-  const outputSize = batchSize * inferredSeqLen * 4;
+  const outputSize = batchSize * inferredSeqLen * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "softmax_output");
   const uniformBuffer = createUniformBufferWithView(
     "softmax_uniforms",
@@ -6330,31 +6820,34 @@ async function recordSoftmax(recorder, input, axis, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   recordDispatch(recorder, pipeline, bindGroup, batchSize, "softmax");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [batchSize, inferredSeqLen], "softmax_output");
 }
 
-// ../src/gpu/kernels/rope.ts
+// src/gpu/kernels/rope.ts
 init_device();
-init_buffer_dtypes();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
+init_schema();
+var getRopeDefaults = () => getKernelThresholds().rope;
 async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
   const device2 = getDevice();
+  const ropeDefaults = getRopeDefaults();
   const {
     numHeads = 1,
     headDim = 64,
-    ropeTheta = 1e4
+    ropeTheta = ropeDefaults.defaultTheta
   } = options;
   const pipeline = await getPipelineFast("rope", "default");
   const uniformBuffer = createUniformBufferWithView(
     "rope_uniforms",
-    32,
+    ropeDefaults.uniformSize,
     (view) => {
       view.setUint32(0, seqLen, true);
       view.setUint32(4, numHeads, true);
@@ -6371,7 +6864,7 @@ async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } }
     ]
@@ -6383,24 +6876,26 @@ async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
   const workgroups = Math.ceil(seqLen * numHeads * halfDim / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "rope");
   uniformBuffer.destroy();
-  return input;
+  return createTensor(input.buffer, input.dtype, [...input.shape], "rope_output");
 }
 async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options = {}) {
   const device2 = recorder.device;
+  const ropeDefaults = getRopeDefaults();
   const {
     numHeads = 1,
-    headDim = 64
+    headDim = 64,
+    ropeTheta = ropeDefaults.defaultTheta
   } = options;
   const pipeline = await getPipelineFast("rope", "default");
   const uniformBuffer = createUniformBufferWithView(
     "rope_uniforms",
-    32,
+    ropeDefaults.uniformSize,
     (view) => {
       view.setUint32(0, seqLen, true);
       view.setUint32(4, numHeads, true);
       view.setUint32(8, headDim, true);
       view.setUint32(12, options.startPos || 0, true);
-      view.setFloat32(16, 1e4, true);
+      view.setFloat32(16, ropeTheta, true);
       view.setFloat32(20, 1, true);
     },
     recorder
@@ -6410,7 +6905,7 @@ async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options =
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } }
     ]
@@ -6421,23 +6916,56 @@ async function recordRoPE(recorder, input, freqsCos, freqsSin, seqLen, options =
   const halfDim = headDim / 2;
   const workgroups = Math.ceil(seqLen * numHeads * halfDim / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "rope");
-  setBufferDtype(input, "f32");
-  return input;
+  return createTensor(input.buffer, input.dtype, [...input.shape], "rope_output");
 }
 
-// ../src/gpu/kernels/silu.ts
+// src/gpu/kernels/silu.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
+var SILU_VARIANTS = {
+  "default/false": "default",
+  "default/true": "default_f16",
+  "vec4/false": "vec4",
+  "vec4/true": "vec4_f16",
+  "gate/false": "gate",
+  "gate/true": "gate_f16",
+  "gate_rowsplit/false": "gate_rowsplit",
+  "gate_rowsplit/true": "gate_rowsplit_f16",
+  "geglu_rowsplit/false": "geglu_rowsplit",
+  "geglu_rowsplit/true": "geglu_rowsplit_f16"
+};
+function selectSiLUVariant(base, isF16) {
+  const key = `${base}/${isF16}`;
+  return SILU_VARIANTS[key] ?? base;
+}
+function canUseF162(input) {
+  return input.dtype === "f16";
+}
+function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: input.buffer } },
+    { binding: 2, resource: { buffer: output } }
+  ];
+  if (gate) {
+    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
+  }
+  return entries;
+}
 async function runSiLU(input, options = {}) {
   const device2 = getDevice();
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
-  const variant = gate ? "gate" : useVec4 ? "vec4" : "default";
+  const isF16 = canUseF162(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const baseVariant = gate ? "gate" : useVec4 ? "vec4" : "default";
+  const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast("silu", variant);
-  const inferredSize = size || input.size / 4;
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || input.buffer.size / bytesPerElement;
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_output");
   const uniformBuffer = createUniformBufferWithView(
     "silu_uniforms",
@@ -6448,14 +6976,7 @@ async function runSiLU(input, options = {}) {
     null,
     device2
   );
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
-    { binding: 2, resource: { buffer: output } }
-  ];
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gate } });
-  }
+  const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
   const bindGroup = device2.createBindGroup({
     label: "silu_bind_group",
     layout: pipeline.getBindGroupLayout(0),
@@ -6464,13 +6985,14 @@ async function runSiLU(input, options = {}) {
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "silu");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], "silu_output");
 }
 async function runSwiGLURowsplitBias(input, bias, numTokens, dim, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null, biasOffset = 0 } = options;
   const pipeline = await getPipelineFast("swiglu", "rowsplit_bias");
-  const outputSize = numTokens * dim * 4;
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "swiglu_output");
   const uniformBuffer = createUniformBufferWithView(
     "swiglu_uniforms",
@@ -6488,22 +7010,27 @@ async function runSwiGLURowsplitBias(input, bias, numTokens, dim, options = {}) 
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: bias } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } },
       { binding: 3, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(numTokens * dim / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "swiglu");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], "swiglu_output");
 }
 async function runSiLURowSplit(input, options) {
   const device2 = getDevice();
   const { numTokens, dim, activation = "silu", outputBuffer = null } = options;
-  const variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
+  const isF16 = canUseF162(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  let variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
+  if (isF16) {
+    variant = variant + "_f16";
+  }
   const pipeline = await getPipelineFast("silu", variant);
-  const outputSize = numTokens * dim * 4;
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_rowsplit_output");
   const uniformBuffer = createUniformBufferWithView(
     "silu_rowsplit_uniforms",
@@ -6521,22 +7048,26 @@ async function runSiLURowSplit(input, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(numTokens * dim / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "silu_rowsplit");
   uniformBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], "silu_rowsplit_output");
 }
 async function recordSiLURowSplit(recorder, input, options) {
   const device2 = recorder.device;
   const { numTokens, dim, activation = "silu", outputBuffer = null } = options;
-  const variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
+  const isF16 = canUseF162(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  let variant = activation === "gelu" ? "geglu_rowsplit" : "gate_rowsplit";
+  if (isF16) {
+    variant = variant + "_f16";
+  }
   const pipeline = await getPipelineFast("silu", variant);
-  const outputSize = numTokens * dim * 4;
+  const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_rowsplit_output");
   const uniformBuffer = createUniformBufferWithView(
     "silu_rowsplit_uniforms",
@@ -6552,22 +7083,24 @@ async function recordSiLURowSplit(recorder, input, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(numTokens * dim / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "silu_rowsplit");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [numTokens, dim], "silu_rowsplit_output");
 }
 async function recordSiLU(recorder, input, options = {}) {
   const device2 = recorder.device;
   const { size, gate = null, outputBuffer = null } = options;
-  const variant = gate ? "gate" : "default";
+  const isF16 = canUseF162(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const baseVariant = gate ? "gate" : "default";
+  const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast("silu", variant);
-  const inferredSize = size || input.size / 4;
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || input.buffer.size / bytesPerElement;
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "silu_output");
   const uniformBuffer = createUniformBufferWithView(
     "silu_uniforms",
@@ -6577,15 +7110,7 @@ async function recordSiLU(recorder, input, options = {}) {
     },
     recorder
   );
-  const gateBuffer = gate || input;
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
-    { binding: 2, resource: { buffer: output } }
-  ];
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
-  }
+  const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
   const bindGroup = device2.createBindGroup({
     label: "silu_bind_group",
     layout: pipeline.getBindGroupLayout(0),
@@ -6593,23 +7118,33 @@ async function recordSiLU(recorder, input, options = {}) {
   });
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "silu");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], "silu_output");
 }
 
-// ../src/gpu/kernels/gelu.ts
+// src/gpu/kernels/gelu.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
+function canUseF163(input) {
+  return input.dtype === "f16";
+}
 async function runGeLU(input, options = {}) {
   const device2 = getDevice();
   const { size, gate = null, outputBuffer = null } = options;
-  const variant = gate ? "geglu" : "gelu";
+  const isF16 = canUseF163(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  let variant;
+  if (gate) {
+    variant = isF16 ? "geglu_rowsplit_f16" : "geglu";
+  } else {
+    variant = "gelu";
+  }
   const pipeline = await createPipeline("silu", variant);
-  const inferredSize = size || input.size / 4;
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || input.buffer.size / bytesPerElement;
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gelu_output");
   const uniformBuffer = createUniformBufferWithView(
     "gelu_uniforms",
@@ -6620,13 +7155,13 @@ async function runGeLU(input, options = {}) {
     null,
     device2
   );
-  const gateBuffer = gate || input;
+  const gateBuffer = gate ? gate.buffer : input.buffer;
   const bindGroup = device2.createBindGroup({
     label: "gelu_bind_group",
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
       { binding: 3, resource: { buffer: gateBuffer } }
     ]
@@ -6634,15 +7169,22 @@ async function runGeLU(input, options = {}) {
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "gelu");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], "gelu_output");
 }
 async function recordGeLU(recorder, input, options = {}) {
   const device2 = recorder.device;
   const { size, gate = null, outputBuffer = null } = options;
-  const variant = gate ? "geglu" : "gelu";
+  const isF16 = canUseF163(input);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  let variant;
+  if (gate) {
+    variant = isF16 ? "geglu_rowsplit_f16" : "geglu";
+  } else {
+    variant = "gelu";
+  }
   const pipeline = await createPipeline("silu", variant);
-  const inferredSize = size || input.size / 4;
-  const outputSize = inferredSize * 4;
+  const inferredSize = size || input.buffer.size / bytesPerElement;
+  const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gelu_output");
   const uniformBuffer = createUniformBufferWithView(
     "gelu_uniforms",
@@ -6652,14 +7194,13 @@ async function recordGeLU(recorder, input, options = {}) {
     },
     recorder
   );
-  const gateBuffer = gate || input;
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: input } },
+    { binding: 1, resource: { buffer: input.buffer } },
     { binding: 2, resource: { buffer: output } }
   ];
   if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
+    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
   }
   const bindGroup = device2.createBindGroup({
     label: "gelu_bind_group",
@@ -6668,24 +7209,25 @@ async function recordGeLU(recorder, input, options = {}) {
   });
   const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "gelu");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, input.dtype, [inferredSize], "gelu_output");
 }
 
-// ../src/gpu/kernels/scale.ts
+// src/gpu/kernels/scale.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
 async function runScale(input, scale, options = {}) {
   const device2 = getDevice();
   const { count, outputBuffer = null, inplace = false } = options;
-  const inferredCount = count ?? Math.floor(input.size / 4);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
   const variant = inplace ? "inplace" : "default";
   const pipeline = await createPipeline("scale", variant);
-  const outputSize = inferredCount * 4;
-  const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
+  const outputSize = inferredCount * bytesPerElement;
+  const outputBuf = inplace ? input.buffer : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
   const uniformBuffer = createUniformBufferWithView(
     "scale_uniforms",
     16,
@@ -6701,24 +7243,24 @@ async function runScale(input, scale, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } }
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } }
     ]
   });
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "scale");
   uniformBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(outputBuf, input.dtype, [...input.shape], "scale_output");
 }
 async function recordScale(recorder, input, scale, options = {}) {
   const device2 = recorder.device;
   const { count, outputBuffer = null, inplace = false } = options;
-  const inferredCount = count ?? Math.floor(input.size / 4);
+  const bytesPerElement = dtypeBytes(input.dtype);
+  const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
   const variant = inplace ? "inplace" : "default";
   const pipeline = await createPipeline("scale", variant);
-  const outputSize = inferredCount * 4;
-  const output = inplace ? input : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
+  const outputSize = inferredCount * bytesPerElement;
+  const outputBuf = inplace ? input.buffer : outputBuffer || acquireBuffer(outputSize, void 0, "scale_output");
   const uniformBuffer = createUniformBufferWithView(
     "scale_uniforms",
     16,
@@ -6733,39 +7275,63 @@ async function recordScale(recorder, input, scale, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } }
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } }
     ]
   });
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "scale");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(outputBuf, input.dtype, [...input.shape], "scale_output");
 }
 
-// ../src/gpu/kernels/gather.ts
+// src/gpu/kernels/gather.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_constants();
 init_dispatch();
 init_utils();
 init_debug();
+init_tensor();
+init_schema();
+var GATHER_VARIANTS = {
+  "false/false/false": "default",
+  "false/false/true": "vec4",
+  "true/false/false": "f16",
+  "true/false/true": "f16_vec4",
+  "false/true/false": "f16_out",
+  "false/true/true": "vec4_f16_out",
+  "true/true/false": "f16_f16_out",
+  "true/true/true": "f16_vec4_f16_out"
+};
+function selectGatherVariant(useF16Input, useF16Output, useVec4) {
+  const key = `${useF16Input}/${useF16Output}/${useVec4}`;
+  const variant = GATHER_VARIANTS[key];
+  if (!variant) {
+    throw new Error(`Unknown gather variant combination: ${key}`);
+  }
+  return variant;
+}
+function getOutputBinding(variant, useF16Output) {
+  if (!useF16Output) {
+    return 3;
+  }
+  const config2 = getKernelConfig("gather", variant);
+  return config2.variantMetadata?.outputBinding ?? 4;
+}
 async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
   const device2 = getDevice();
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = false } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype, outputDtype = "f32", transpose = false } = options;
   const caps = getKernelCapabilities();
-  const bufferDtype = getBufferDtype(embeddings);
-  const detectedDtype = embeddingDtype || bufferDtype || "f32";
-  const useF16 = detectedDtype === "f16" && caps.hasF16;
-  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}`);
-  let variant;
-  if (useF16) {
-    variant = useVec4 ? "f16_vec4" : "f16";
-  } else {
-    variant = useVec4 ? "vec4" : "default";
-  }
+  const detectedDtype = embeddingDtype || "f32";
+  const useF16Input = detectedDtype === "f16" && caps.hasF16;
+  const useF16Output = outputDtype === "f16" && caps.hasF16;
+  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, detectedDtype=${detectedDtype}, useF16Input=${useF16Input}, useF16Output=${useF16Output}`);
+  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
+  trace.embed(`Gather variant: ${variant}`);
   const pipeline = await getPipelineFast("gather", variant);
-  const outputSize = numTokens * hiddenSize * 4;
+  const outputDtypeKey = useF16Output ? "f16" : "f32";
+  const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gather_output");
   const uniformBuffer = createUniformBufferWithView(
     "gather_uniforms",
@@ -6779,36 +7345,37 @@ async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, 
     null,
     device2
   );
+  const outputBinding = getOutputBinding(variant, useF16Output);
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: indices } },
+    { binding: 2, resource: { buffer: embeddings } },
+    { binding: outputBinding, resource: { buffer: output } }
+  ];
   const bindGroup = device2.createBindGroup({
     label: "gather_bind_group",
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: indices } },
-      { binding: 2, resource: { buffer: embeddings } },
-      { binding: 3, resource: { buffer: output } }
-    ]
+    entries
   });
-  const workgroups = useVec4 ? Math.ceil(numTokens * hiddenSize / 256) : Math.ceil(numTokens * hiddenSize / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = useVec4 ? Math.ceil(numTokens * hiddenSize / VEC4_ELEMENTS_PER_WG) : Math.ceil(numTokens * hiddenSize / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "gather");
   uniformBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  const actualDtype = useF16Output ? "f16" : "f32";
+  return createTensor(output, actualDtype, [numTokens, hiddenSize], "gather_output");
 }
 async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
   const device2 = recorder.device;
-  const { useVec4 = true, outputBuffer = null, embeddingDtype, transpose = false } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype, outputDtype = "f32", transpose = false } = options;
   const caps = getKernelCapabilities();
-  const detectedDtype = embeddingDtype || getBufferDtype(embeddings) || "f32";
-  const useF16 = detectedDtype === "f16" && caps.hasF16;
-  let variant;
-  if (useF16) {
-    variant = useVec4 ? "f16_vec4" : "f16";
-  } else {
-    variant = useVec4 ? "vec4" : "default";
-  }
+  const detectedDtype = embeddingDtype || "f32";
+  const useF16Input = detectedDtype === "f16" && caps.hasF16;
+  const useF16Output = outputDtype === "f16" && caps.hasF16;
+  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
+  trace.embed(`Gather variant: ${variant}`);
   const pipeline = await getPipelineFast("gather", variant);
-  const outputSize = numTokens * hiddenSize * 4;
+  const outputDtypeKey = useF16Output ? "f16" : "f32";
+  const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "gather_output");
   const uniformBuffer = createUniformBufferWithView(
     "gather_uniforms",
@@ -6821,34 +7388,39 @@ async function recordGather(recorder, indices, embeddings, numTokens, hiddenSize
     },
     recorder
   );
+  const outputBinding = getOutputBinding(variant, useF16Output);
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: indices } },
+    { binding: 2, resource: { buffer: embeddings } },
+    { binding: outputBinding, resource: { buffer: output } }
+  ];
   const bindGroup = device2.createBindGroup({
     label: "gather_bind_group",
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: indices } },
-      { binding: 2, resource: { buffer: embeddings } },
-      { binding: 3, resource: { buffer: output } }
-    ]
+    entries
   });
-  const workgroups = useVec4 ? Math.ceil(numTokens * hiddenSize / 256) : Math.ceil(numTokens * hiddenSize / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = useVec4 ? Math.ceil(numTokens * hiddenSize / VEC4_ELEMENTS_PER_WG) : Math.ceil(numTokens * hiddenSize / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "gather");
-  setBufferDtype(output, "f32");
-  return output;
+  const actualDtype = useF16Output ? "f16" : "f32";
+  return createTensor(output, actualDtype, [numTokens, hiddenSize], "gather_output");
 }
 
-// ../src/gpu/kernels/residual.ts
+// src/gpu/kernels/residual.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
 async function runResidualAdd(a, b, size, options = {}) {
   const device2 = getDevice();
   const { useVec4 = true, outputBuffer = null } = options;
+  const outputDtype = inferOutputDtype(a, b);
+  const bytesPerElement = dtypeBytes(outputDtype);
   const variant = useVec4 ? "vec4" : "default";
   const pipeline = await getPipelineFast("residual", variant);
-  const outputSize = size * 4;
+  const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "residual_output");
   const uniformBuffer = createUniformBufferWithView(
     "residual_uniforms",
@@ -6864,21 +7436,20 @@ async function runResidualAdd(a, b, size, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a } },
-      { binding: 2, resource: { buffer: b } },
+      { binding: 1, resource: { buffer: a.buffer } },
+      { binding: 2, resource: { buffer: b.buffer } },
       { binding: 3, resource: { buffer: output } }
     ]
   });
-  const workgroups = useVec4 ? Math.ceil(size / 256) : Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = useVec4 ? Math.ceil(size / VEC4_ELEMENTS_PER_WG) : Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "residual");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, outputDtype, [size], "residual_output");
 }
 async function runBiasAdd(data, bias, numTokens, dim, options = {}) {
   const device2 = getDevice();
   const { dataOffset = 0, biasOffset = 0 } = options;
   const pipeline = await getPipelineFast("bias_add", "default");
-  const output = data;
   const uniformBuffer = createUniformBufferWithView(
     "bias_add_uniforms",
     16,
@@ -6896,20 +7467,22 @@ async function runBiasAdd(data, bias, numTokens, dim, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: data } },
-      { binding: 2, resource: { buffer: bias } }
+      { binding: 1, resource: { buffer: data.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } }
     ]
   });
   const workgroups = Math.ceil(numTokens * dim / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "bias_add");
   uniformBuffer.destroy();
-  return output;
+  return createTensor(data.buffer, data.dtype, [numTokens, dim], "bias_add_output");
 }
 async function recordResidualAdd(recorder, a, b, size, options = {}) {
   const device2 = recorder.device;
   const { outputBuffer = null } = options;
+  const outputDtype = inferOutputDtype(a, b);
+  const bytesPerElement = dtypeBytes(outputDtype);
   const pipeline = await getPipelineFast("residual", "default");
-  const outputSize = size * 4;
+  const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "residual_output");
   const uniformBuffer = createUniformBufferWithView(
     "residual_uniforms",
@@ -6924,15 +7497,14 @@ async function recordResidualAdd(recorder, a, b, size, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: a } },
-      { binding: 2, resource: { buffer: b } },
+      { binding: 1, resource: { buffer: a.buffer } },
+      { binding: 2, resource: { buffer: b.buffer } },
       { binding: 3, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "residual");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, outputDtype, [size], "residual_output");
 }
 async function recordBiasAdd(recorder, data, bias, numTokens, dim, options = {}) {
   const device2 = recorder.device;
@@ -6954,19 +7526,20 @@ async function recordBiasAdd(recorder, data, bias, numTokens, dim, options = {})
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: data } },
-      { binding: 2, resource: { buffer: bias } }
+      { binding: 1, resource: { buffer: data.buffer } },
+      { binding: 2, resource: { buffer: bias.buffer } }
     ]
   });
   const workgroups = Math.ceil(numTokens * dim / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "bias_add");
-  return data;
+  return createTensor(data.buffer, data.dtype, [numTokens, dim], "bias_add_output");
 }
 
-// ../src/gpu/kernels/moe.ts
+// src/gpu/kernels/moe.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
 async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
@@ -7001,8 +7574,6 @@ async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
   });
   dispatch(device2, pipeline, bindGroup, numTokens, "topk");
   uniformBuffer.destroy();
-  setBufferDtype(indices, "u32");
-  setBufferDtype(weights, "f32");
   return { indices, weights };
 }
 var moeGatherBindGroupLayout = null;
@@ -7028,10 +7599,11 @@ async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, 
   const explicitLayout = getMoEGatherBindGroupLayout(device2);
   const countPipeline = await createPipeline("moe_gather", "count", explicitLayout);
   const gatherPipeline = await createPipeline("moe_gather", "gather", explicitLayout);
-  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * 4;
+  const bytesPerElement = hiddenStates.dtype === "f16" ? 2 : 4;
+  const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement;
   const tokenCountsSize = numExperts * 4;
   const tokenMapSize = numExperts * maxTokensPerExpert * 2 * 4;
-  const gathered = acquireBuffer(gatheredSize, void 0, "moe_gathered");
+  const gatheredBuffer = acquireBuffer(gatheredSize, void 0, "moe_gathered");
   const tokenCounts = acquireBuffer(tokenCountsSize, void 0, "moe_token_counts");
   const tokenMap = acquireBuffer(tokenMapSize, void 0, "moe_token_map");
   const uniformBuffer = createUniformBufferWithView(
@@ -7055,9 +7627,9 @@ async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, 
     layout: explicitLayout,
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: hiddenStates } },
+      { binding: 1, resource: { buffer: hiddenStates.buffer } },
       { binding: 2, resource: { buffer: expertIndices } },
-      { binding: 3, resource: { buffer: gathered } },
+      { binding: 3, resource: { buffer: gatheredBuffer } },
       { binding: 4, resource: { buffer: tokenCounts } },
       { binding: 5, resource: { buffer: tokenMap } }
     ]
@@ -7078,17 +7650,21 @@ async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, 
   gatherPass.end();
   device2.queue.submit([encoder.finish()]);
   uniformBuffer.destroy();
-  setBufferDtype(gathered, "f32");
-  setBufferDtype(tokenCounts, "u32");
-  setBufferDtype(tokenMap, "u32");
+  const gathered = createTensor(
+    gatheredBuffer,
+    hiddenStates.dtype,
+    [numExperts, maxTokensPerExpert, hiddenSize],
+    "moe_gathered"
+  );
   return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
 async function runScatterAdd(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
   const pipeline = await createPipeline("scatter_add", "default");
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, void 0, "scatter_add_output");
+  const bytesPerElement = expertOutputs.dtype === "f16" ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "scatter_add_output");
   const uniformBuffer = createUniformBufferWithView(
     "scatter_add_uniforms",
     16,
@@ -7106,14 +7682,14 @@ async function runScatterAdd(expertOutputs, indices, weights, numTokens, hiddenS
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
-      { binding: 4, resource: { buffer: output } }
+      { binding: 4, resource: { buffer: outputBuf } }
     ]
   });
   const encoder = device2.createCommandEncoder({ label: "scatter_add_encoder" });
-  encoder.clearBuffer(output);
+  encoder.clearBuffer(outputBuf);
   const pass = encoder.beginComputePass({ label: "scatter_add_pass" });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
@@ -7122,14 +7698,15 @@ async function runScatterAdd(expertOutputs, indices, weights, numTokens, hiddenS
   pass.end();
   device2.queue.submit([encoder.finish()]);
   uniformBuffer.destroy();
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], "scatter_add_output");
 }
 async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
   const pipeline = await createPipeline("scatter_add", "dynamic");
-  const outputSize = numTokens * hiddenSize * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, void 0, "scatter_add_dynamic_output");
+  const bytesPerElement = expertOutputs.dtype === "f16" ? 2 : 4;
+  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, void 0, "scatter_add_dynamic_output");
   const uniformBuffer = createUniformBufferWithView(
     "scatter_add_dynamic_uniforms",
     16,
@@ -7146,15 +7723,15 @@ async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffset
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
       { binding: 4, resource: { buffer: tokenOffsets } },
-      { binding: 5, resource: { buffer: output } }
+      { binding: 5, resource: { buffer: outputBuf } }
     ]
   });
   const encoder = device2.createCommandEncoder({ label: "scatter_add_dynamic_encoder" });
-  encoder.clearBuffer(output);
+  encoder.clearBuffer(outputBuf);
   const pass = encoder.beginComputePass({ label: "scatter_add_dynamic_pass" });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
@@ -7163,22 +7740,42 @@ async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffset
   pass.end();
   device2.queue.submit([encoder.finish()]);
   uniformBuffer.destroy();
-  return output;
+  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], "scatter_add_dynamic_output");
 }
 
-// ../src/gpu/kernels/cast.ts
+// src/gpu/kernels/cast.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
 init_dispatch();
 init_utils();
-init_perf_guards();
+init_constants();
 init_debug();
-async function castF32ToF16(input, numElements, options = {}) {
+init_schema();
+function calculate2DDispatch(workgroups) {
+  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
+  return workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+}
+function lcm(a, b) {
+  const gcd = (x, y) => {
+    let a0 = x;
+    let b0 = y;
+    while (b0 !== 0) {
+      const t = b0;
+      b0 = a0 % b0;
+      a0 = t;
+    }
+    return a0;
+  };
+  return a / gcd(a, b) * b;
+}
+async function castF32ToF16(input, options = {}) {
   const device2 = getDevice();
   const { outputBuffer = null } = options;
+  const numElements = input.shape.reduce((a, b) => a * b, 1);
   const pipeline = await createPipeline("cast", "f32_to_f16");
-  const output = outputBuffer || acquireBuffer(numElements * 2, void 0, "cast_f32_to_f16_output");
+  const outputSize = numElements * DTYPE_SIZES.f16;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "cast_f32_to_f16_output");
   const uniformBuffer = createUniformBufferWithView(
     "cast_f32_to_f16_uniforms",
     16,
@@ -7193,24 +7790,24 @@ async function castF32ToF16(input, numElements, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
   dispatch(device2, pipeline, bindGroup, dispatchSize, "cast_f32_to_f16");
   await device2.queue.onSubmittedWorkDone();
   uniformBuffer.destroy();
-  setBufferDtype(output, "f16");
-  return output;
+  return createTensor(output, "f16", [...input.shape], input.label ? `${input.label}_f16` : "cast_f32_to_f16_output");
 }
-async function recordCastF32ToF16(recorder, input, numElements, options = {}) {
+async function recordCastF32ToF16(recorder, input, options = {}) {
   const device2 = recorder.device;
   const { outputBuffer = null } = options;
+  const numElements = input.shape.reduce((a, b) => a * b, 1);
   const pipeline = await createPipeline("cast", "f32_to_f16");
-  const output = outputBuffer || acquireBuffer(numElements * 2, void 0, "cast_f32_to_f16_output");
+  const outputSize = numElements * DTYPE_SIZES.f16;
+  const output = outputBuffer || acquireBuffer(outputSize, void 0, "cast_f32_to_f16_output");
   const uniformBuffer = createUniformBufferWithView(
     "cast_f32_to_f16_uniforms",
     16,
@@ -7224,24 +7821,23 @@ async function recordCastF32ToF16(recorder, input, numElements, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } }
     ]
   });
   const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
   recordDispatch(recorder, pipeline, bindGroup, dispatchSize, "cast_f32_to_f16");
-  setBufferDtype(output, "f16");
-  return output;
+  return createTensor(output, "f16", [...input.shape], input.label ? `${input.label}_f16` : "cast_f32_to_f16_output");
 }
-async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
+async function runBF16ToF32(input, shape, name = "bf16_to_f32_output") {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   trace.kernels(`BF16ToF32: Entry numElements=${numElements}, name=${name}, inputSize=${input.size}`);
   const device2 = getDevice();
   const limits = device2.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
-  const outputSize = numElements * 4;
+  const outputSize = numElements * DTYPE_SIZES.f32;
   trace.kernels(`BF16ToF32: outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
   if (outputSize > maxBufferSize) {
     throw new Error(
@@ -7249,29 +7845,7 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
     );
   }
   if (outputSize > maxBindingSize) {
-    return runBF16ToF32Chunked(input, numElements, name, maxBindingSize);
-  }
-  if (name.includes("embed") && allowReadback("cast.debugInput")) {
-    try {
-      const sampleSize = Math.min(256, input.size);
-      const stagingIn = device2.createBuffer({
-        size: sampleSize,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        label: "bf16_input_debug_staging"
-      });
-      const encIn = device2.createCommandEncoder();
-      encIn.copyBufferToBuffer(input, 0, stagingIn, 0, sampleSize);
-      device2.queue.submit([encIn.finish()]);
-      await device2.queue.onSubmittedWorkDone();
-      await stagingIn.mapAsync(GPUMapMode.READ);
-      const inData = new Uint8Array(stagingIn.getMappedRange().slice(0));
-      stagingIn.unmap();
-      stagingIn.destroy();
-      const nonZeroBytes = Array.from(inData).filter((x) => x !== 0).length;
-      trace.kernels(`BF16ToF32: INPUT CHECK nonZeroBytes=${nonZeroBytes}/${inData.length}, first16=[${Array.from(inData.slice(0, 16)).join(", ")}]`);
-    } catch (err) {
-      log.error("BF16ToF32", `INPUT CHECK failed: ${err.message}`);
-    }
+    return runBF16ToF32Chunked(input, shape, name, maxBindingSize);
   }
   const pipeline = await createPipeline("bf16_to_f32", "default");
   trace.kernels("BF16ToF32: Pipeline created");
@@ -7299,23 +7873,22 @@ async function runBF16ToF32(input, numElements, name = "bf16_to_f32_output") {
   trace.kernels("BF16ToF32: BindGroup created");
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
   trace.kernels(`BF16ToF32: Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`);
   dispatch(device2, pipeline, bindGroup, dispatchSize, "bf16_to_f32");
   await device2.queue.onSubmittedWorkDone();
   trace.kernels("BF16ToF32: GPU work completed");
   uniformBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, "f32", [...shape], name);
 }
-async function runBF16ToF16(input, numElements, name = "bf16_to_f16_output") {
+async function runBF16ToF16(input, shape, name = "bf16_to_f16_output") {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   const device2 = getDevice();
   const pipeline = await createPipeline("bf16_to_f16", "default");
   const limits = device2.limits;
   const maxBufferSize = limits.maxBufferSize;
   const maxBindingSize = limits.maxStorageBufferBindingSize;
-  const outputSize = numElements * 2;
+  const outputSize = numElements * DTYPE_SIZES.f16;
   if (outputSize > maxBufferSize) {
     throw new Error(
       `BF16\u2192F16 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}).`
@@ -7349,41 +7922,27 @@ async function runBF16ToF16(input, numElements, name = "bf16_to_f16_output") {
   });
   const numPairs = Math.ceil(numElements / 2);
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-  const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-  const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+  const dispatchSize = calculate2DDispatch(workgroups);
   dispatch(device2, pipeline, bindGroup, dispatchSize, "bf16_to_f16");
   await device2.queue.onSubmittedWorkDone();
   uniformBuffer.destroy();
-  setBufferDtype(output, "f16");
-  return output;
+  return createTensor(output, "f16", [...shape], name);
 }
-async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
+async function runBF16ToF32Chunked(input, shape, name, maxBindingSize) {
+  const numElements = shape.reduce((a, b) => a * b, 1);
   const device2 = getDevice();
   const pipeline = await createPipeline("bf16_to_f32", "default");
   const alignmentBytes = device2.limits.minStorageBufferOffsetAlignment;
-  const lcm = (a, b) => {
-    const gcd = (x, y) => {
-      let a0 = x;
-      let b0 = y;
-      while (b0 !== 0) {
-        const t = b0;
-        b0 = a0 % b0;
-        a0 = t;
-      }
-      return a0;
-    };
-    return a / gcd(a, b) * b;
-  };
-  const inElemAlign = Math.max(1, Math.floor(alignmentBytes / 2));
-  const outElemAlign = Math.max(1, Math.floor(alignmentBytes / 4));
+  const inElemAlign = Math.max(1, Math.floor(alignmentBytes / DTYPE_SIZES.bf16));
+  const outElemAlign = Math.max(1, Math.floor(alignmentBytes / DTYPE_SIZES.f32));
   const elemAlign = lcm(inElemAlign, outElemAlign);
-  let maxElementsPerChunk = Math.floor(maxBindingSize / 4);
+  let maxElementsPerChunk = Math.floor(maxBindingSize / DTYPE_SIZES.f32);
   maxElementsPerChunk -= maxElementsPerChunk % elemAlign;
   if (maxElementsPerChunk <= 0) {
     throw new Error(`BF16\u2192F32 chunk size underflow (maxBindingSize=${maxBindingSize}, alignment=${alignmentBytes})`);
   }
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
-  const outputSize = numElements * 4;
+  const outputSize = numElements * DTYPE_SIZES.f32;
   const output = acquireBuffer(outputSize, void 0, name);
   trace.kernels(`BF16ToF32: Chunking ${numElements} elements in ${numChunks} chunks`);
   for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
@@ -7401,11 +7960,11 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
       null,
       device2
     );
-    const inputOffsetBytes = chunkStart * 2;
-    const outputOffsetBytes = chunkStart * 4;
+    const inputOffsetBytes = chunkStart * DTYPE_SIZES.bf16;
+    const outputOffsetBytes = chunkStart * DTYPE_SIZES.f32;
     const inputPairs = Math.ceil(chunkSize / 2);
-    const inputSizeBytes = inputPairs * 4;
-    const outputSizeBytes = chunkSize * 4;
+    const inputSizeBytes = inputPairs * DTYPE_SIZES.f32;
+    const outputSizeBytes = chunkSize * DTYPE_SIZES.f32;
     const bindGroup = device2.createBindGroup({
       label: `bf16_to_f32_chunk${chunkIdx}_bind_group`,
       layout: pipeline.getBindGroupLayout(0),
@@ -7417,31 +7976,31 @@ async function runBF16ToF32Chunked(input, numElements, name, maxBindingSize) {
     });
     const numPairs = Math.ceil(chunkSize / 2);
     const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-    const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
-    const dispatchSize = workgroups <= maxWorkgroupsPerDim ? [workgroups, 1, 1] : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
+    const dispatchSize = calculate2DDispatch(workgroups);
     dispatch(device2, pipeline, bindGroup, dispatchSize, `bf16_to_f32_chunk${chunkIdx}`);
     uniformBuffer.destroy();
   }
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, "f32", [...shape], name);
 }
 
-// ../src/gpu/kernels/sample.ts
+// src/gpu/kernels/sample.ts
 init_device();
 init_buffer_pool();
+init_constants();
 init_utils();
 init_perf_guards();
 
-// ../src/config/index.ts
+// src/config/index.ts
 init_schema();
 
-// ../src/config/loader.ts
+// src/config/loader.ts
 init_schema();
 
-// ../src/config/index.ts
+// src/config/index.ts
 init_runtime();
 
-// ../src/gpu/kernels/sample.ts
+// src/gpu/kernels/sample.ts
+init_runtime();
 function getSampleBindGroupLayout(device2) {
   return getOrCreateBindGroupLayout(
     "sample_bind_group_layout",
@@ -7553,7 +8112,8 @@ async function runGPUSample(logits, vocabSize, options = {}) {
     padTokenId,
     logitSoftcap = 0
   } = options;
-  if (temperature < DEFAULT_SAMPLING_DEFAULTS.greedyThreshold) {
+  const { greedyThreshold } = getRuntimeConfig().inference.sampling;
+  if (temperature < greedyThreshold) {
     return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
   }
   const device2 = getDevice();
@@ -7633,9 +8193,9 @@ async function recordArgmax(recorder, logits, vocabSize, options = {}) {
   const device2 = recorder.device;
   const argmaxPipeline = await createSamplePipeline(device2, "argmax");
   const reducePipeline = await createSamplePipeline(device2, "argmax_reduce");
-  const numWorkgroups = Math.min(256, Math.ceil(vocabSize / 256));
-  const tempLogits = acquireBuffer(256 * 4, void 0, "argmax_temp_logits");
-  const tempIndices = acquireBuffer(256 * 4, void 0, "argmax_temp_indices");
+  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
+  const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, void 0, "argmax_temp_logits");
+  const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, void 0, "argmax_temp_indices");
   const outputBuffer = acquireBuffer(4, void 0, "argmax_output");
   const padTokenId = options.padTokenId ?? 4294967295;
   const logitSoftcap = options.logitSoftcap ?? 0;
@@ -7695,10 +8255,10 @@ function isGPUSamplingAvailable() {
   return getDevice() !== null;
 }
 
-// ../src/gpu/kernels/fused_ffn.ts
+// src/gpu/kernels/fused_ffn.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
 init_utils();
 init_debug();
 var FusedFFNKernel = class extends KernelBase {
@@ -7712,14 +8272,14 @@ var FusedFFNKernel = class extends KernelBase {
     this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], "ffn_fused");
   }
 };
-function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
+function selectFFNVariant(batchSize, inputDtype, intermediateSize) {
   if (intermediateSize <= 1024 && batchSize === 1) {
     return "multi";
   }
   if (batchSize > 1) {
     return "batched";
   }
-  if (weightDtype === "f16") {
+  if (inputDtype === "f16") {
     return "f16";
   }
   return "default";
@@ -7747,8 +8307,7 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
     alpha = 1,
     outputBuffer = null
   } = options;
-  const weightDtype = getBufferDtype(W_gate);
-  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
@@ -7766,7 +8325,7 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: W_gate } },
       { binding: 3, resource: { buffer: W_up } },
       { binding: 4, resource: { buffer: output } }
@@ -7785,7 +8344,7 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
   }
   kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
   uniformBuffer.destroy();
-  return output;
+  return createTensor(output, input.dtype, [batchSize, intermediateSize], "ffn_fused_output");
 }
 async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, intermediateSize, options = {}) {
   const device2 = recorder.device;
@@ -7795,8 +8354,7 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
     alpha = 1,
     outputBuffer = null
   } = options;
-  const weightDtype = getBufferDtype(W_gate);
-  const variant = selectFFNVariant(batchSize, weightDtype, intermediateSize);
+  const variant = selectFFNVariant(batchSize, input.dtype, intermediateSize);
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
@@ -7814,7 +8372,7 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
+      { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: W_gate } },
       { binding: 3, resource: { buffer: W_up } },
       { binding: 4, resource: { buffer: output } }
@@ -7832,7 +8390,7 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
     workgroupsX = intermediateSize;
   }
   kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
-  return output;
+  return createTensor(output, input.dtype, [batchSize, intermediateSize], "ffn_fused_output");
 }
 function calculateFusedFFNSavings(batchSize, hiddenSize, intermediateSize) {
   const inputBytes = batchSize * hiddenSize * 4;
@@ -7849,14 +8407,15 @@ function calculateFusedFFNSavings(batchSize, hiddenSize, intermediateSize) {
   };
 }
 
-// ../src/gpu/kernels/index.ts
+// src/gpu/kernels/index.ts
 init_fused_matmul_rmsnorm();
 init_fused_matmul_rmsnorm();
 
-// ../src/gpu/kernels/fused_matmul_residual.ts
+// src/gpu/kernels/fused_matmul_residual.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_weight_buffer();
 init_dispatch();
 init_utils();
 init_debug();
@@ -7871,9 +8430,11 @@ async function runMatmulResidualFused(input, weight, residual, options) {
     alpha = 1,
     outputBuffer = null
   } = options;
-  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}`);
+  const weightBuffer = getBuffer(weight);
+  const outputDtype = input.dtype;
+  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
   const pipeline = await getPipelineFast("fused_matmul_residual", "default");
-  const output = outputBuffer || acquireBuffer(N * 4, void 0, "matmul_residual_output");
+  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), void 0, "matmul_residual_output");
   const uniformBuffer = createUniformBufferWithView(
     "matmul_residual_uniforms",
     32,
@@ -7896,17 +8457,16 @@ async function runMatmulResidualFused(input, weight, residual, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual } }
+      { binding: 4, resource: { buffer: residual.buffer } }
     ]
   });
   const workgroups = N;
   dispatch(device2, pipeline, bindGroup, workgroups, "matmul_residual_fused");
   uniformBuffer.destroy();
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, outputDtype, [1, N], "matmul_residual_output");
 }
 async function recordMatmulResidualFused(recorder, input, weight, residual, options) {
   const device2 = recorder.device;
@@ -7916,8 +8476,10 @@ async function recordMatmulResidualFused(recorder, input, weight, residual, opti
     alpha = 1,
     outputBuffer = null
   } = options;
+  const weightBuffer = getBuffer(weight);
+  const outputDtype = input.dtype;
   const pipeline = await getPipelineFast("fused_matmul_residual", "default");
-  const output = outputBuffer || acquireBuffer(N * 4, void 0, "matmul_residual_output");
+  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), void 0, "matmul_residual_output");
   const uniformBuffer = createUniformBufferWithView(
     "matmul_residual_uniforms",
     32,
@@ -7938,19 +8500,18 @@ async function recordMatmulResidualFused(recorder, input, weight, residual, opti
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: weight } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: weightBuffer } },
       { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual } }
+      { binding: 4, resource: { buffer: residual.buffer } }
     ]
   });
   const workgroups = N;
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "matmul_residual_fused");
-  setBufferDtype(output, "f32");
-  return output;
+  return createTensor(output, outputDtype, [1, N], "matmul_residual_output");
 }
 
-// ../src/gpu/command-recorder.ts
+// src/gpu/command-recorder.ts
 init_device();
 init_perf_guards();
 init_uniform_cache();
@@ -8133,11 +8694,14 @@ var CommandRecorder = class _CommandRecorder {
   }
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).
+   * Also flushes the uniform cache's pending destruction queue to clean up
+   * any evicted buffers that were referenced by this command buffer.
    * @returns Promise that resolves when GPU work is done
    */
   async submitAndWait() {
     this.submit();
     await this.device.queue.onSubmittedWorkDone();
+    getUniformCache().flushPendingDestruction();
   }
   /**
    * Get statistics about recorded operations.
@@ -8261,9 +8825,11 @@ function createProfilingRecorder(label = "profiled_recorder") {
   return new CommandRecorder(null, label, { profile: true });
 }
 
-// ../src/gpu/kernel-benchmark.ts
+// src/gpu/kernel-benchmark.ts
 init_device();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_debug();
 var DEFAULT_CONFIG2 = {
   warmupIterations: PERFORMANCE.WARMUP_RUNS,
@@ -8391,6 +8957,7 @@ async function benchmarkMatmul(M, N, K, options = {}) {
   const device2 = getDevice();
   const A = createTestBuffer(M * K * 4, "bench_A");
   const B = createTestBuffer(K * N * 4, "bench_B");
+  const tensorA = createTensor(A, "f32", [M, K], "bench_A");
   const result = await benchmarkKernel(
     "matmul",
     "f32",
@@ -8402,8 +8969,8 @@ async function benchmarkMatmul(M, N, K, options = {}) {
       writeBytes: M * N * 4
     },
     async () => {
-      const C = await runMatmul(A, B, M, N, K);
-      releaseBuffer(C);
+      const C = await runMatmul(tensorA, B, M, N, K);
+      releaseBuffer(C.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
@@ -8414,9 +8981,12 @@ async function benchmarkMatmul(M, N, K, options = {}) {
 }
 async function benchmarkAttentionDecode(numHeads, headDim, kvLen, options = {}) {
   const config2 = { ...DEFAULT_CONFIG2, ...options };
-  const Q = createTestBuffer(numHeads * headDim * 4, "bench_Q");
-  const K = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_K");
-  const V = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_V");
+  const QBuf = createTestBuffer(numHeads * headDim * 4, "bench_Q");
+  const KBuf = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_K");
+  const VBuf = createTestBuffer(kvLen * numHeads * headDim * 4, "bench_V");
+  const Q = createTensor(QBuf, "f32", [1, numHeads * headDim], "bench_Q");
+  const K = createTensor(KBuf, "f32", [kvLen, numHeads * headDim], "bench_K");
+  const V = createTensor(VBuf, "f32", [kvLen, numHeads * headDim], "bench_V");
   const result = await benchmarkKernel(
     "attention",
     "decode",
@@ -8434,14 +9004,14 @@ async function benchmarkAttentionDecode(numHeads, headDim, kvLen, options = {}) 
         kvLen,
         numKVHeads: numHeads
       });
-      releaseBuffer(out);
+      releaseBuffer(out.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
   );
-  releaseBuffer(Q);
-  releaseBuffer(K);
-  releaseBuffer(V);
+  releaseBuffer(QBuf);
+  releaseBuffer(KBuf);
+  releaseBuffer(VBuf);
   return result;
 }
 async function benchmarkRMSNorm(batchSize, hiddenSize, options = {}) {
@@ -8449,6 +9019,7 @@ async function benchmarkRMSNorm(batchSize, hiddenSize, options = {}) {
   const size = batchSize * hiddenSize;
   const input = createTestBuffer(size * 4, "bench_input");
   const weight = createTestBuffer(hiddenSize * 4, "bench_weight");
+  const inputTensor = createTensor(input, "f32", [batchSize, hiddenSize], "bench_input");
   const result = await benchmarkKernel(
     "rmsnorm",
     "default",
@@ -8460,8 +9031,8 @@ async function benchmarkRMSNorm(batchSize, hiddenSize, options = {}) {
       writeBytes: size * 4
     },
     async () => {
-      const out = await runRMSNorm(input, weight, 1e-6, { batchSize, hiddenSize });
-      releaseBuffer(out);
+      const out = await runRMSNorm(inputTensor, weight, 1e-6, { batchSize, hiddenSize });
+      releaseBuffer(out.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
@@ -8473,6 +9044,7 @@ async function benchmarkRMSNorm(batchSize, hiddenSize, options = {}) {
 async function benchmarkSiLU(size, options = {}) {
   const config2 = { ...DEFAULT_CONFIG2, ...options };
   const input = createTestBuffer(size * 4, "bench_input");
+  const inputTensor = createTensor(input, "f32", [size], "bench_input");
   const result = await benchmarkKernel(
     "silu",
     "default",
@@ -8482,8 +9054,8 @@ async function benchmarkSiLU(size, options = {}) {
       writeBytes: size * 4
     },
     async () => {
-      const out = await runSiLU(input, { size });
-      releaseBuffer(out);
+      const out = await runSiLU(inputTensor, { size });
+      releaseBuffer(out.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
@@ -8501,6 +9073,8 @@ async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
   const weight = createTestBuffer(K * N * 4, "bench_weight");
   const normWeight = createTestBuffer(N * 4, "bench_norm_weight");
   const residual = createTestBuffer(N * 4, "bench_residual");
+  const inputTensor = createTensor(input, "f32", [1, K], "bench_input");
+  const residualTensor = createTensor(residual, "f32", [1, N], "bench_residual");
   const separateResult = await benchmarkKernel(
     "matmul+rmsnorm",
     "separate",
@@ -8513,14 +9087,14 @@ async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
       writeBytes: N * 4
     },
     async () => {
-      const matmulOut = await runMatmul(input, weight, 1, N, K);
+      const matmulOut = await runMatmul(inputTensor, weight, 1, N, K);
       const normOut = await runRMSNorm(matmulOut, normWeight, 1e-6, {
         batchSize: 1,
         hiddenSize: N,
-        residual
+        residual: residualTensor
       });
-      releaseBuffer(matmulOut);
-      releaseBuffer(normOut);
+      releaseBuffer(matmulOut.buffer);
+      releaseBuffer(normOut.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
@@ -8536,13 +9110,14 @@ async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
       writeBytes: N * 4
     },
     async () => {
-      const out = await runMatmulRMSNormFused2(input, weight, normWeight, {
+      const out = await runMatmulRMSNormFused2(inputTensor, weight, normWeight, {
         N,
         K,
         eps: 1e-6,
         residual
+        // fused kernel still takes GPUBuffer for residual
       });
-      releaseBuffer(out);
+      releaseBuffer(out.buffer);
     },
     config2.warmupIterations,
     config2.timedIterations
@@ -8681,19 +9256,22 @@ function printBenchmarkReport(report) {
   log.info("Benchmark", "=".repeat(60));
 }
 
-// ../src/gpu/kernels/split_qkv.ts
+// src/gpu/kernels/split_qkv.ts
 init_device();
-init_buffer_dtypes();
 init_buffer_pool();
+init_tensor();
+init_constants();
 init_dispatch();
 init_utils();
-async function runSplitQKV(qkvBuffer, options) {
+async function runSplitQKV(qkvTensor, options) {
   const device2 = getDevice();
-  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
   const pipeline = await getPipelineFast("split_qkv", "default");
-  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, void 0, "Q");
-  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, void 0, "K");
-  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, void 0, "V");
+  const outputDtype = qkvTensor.dtype;
+  const bytesPerElement = dtypeBytes(outputDtype);
+  const qBuffer = qTensor?.buffer || acquireBuffer(numTokens * qSize * bytesPerElement, void 0, "Q");
+  const kBuffer = kTensor?.buffer || acquireBuffer(numTokens * kSize * bytesPerElement, void 0, "K");
+  const vBuffer = vTensor?.buffer || acquireBuffer(numTokens * vSize * bytesPerElement, void 0, "V");
   const uniformBuffer = createUniformBufferWithView(
     "split_qkv_uniforms",
     16,
@@ -8711,28 +9289,30 @@ async function runSplitQKV(qkvBuffer, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: qkvBuffer } },
-      { binding: 2, resource: { buffer: Q } },
-      { binding: 3, resource: { buffer: K } },
-      { binding: 4, resource: { buffer: V } }
+      { binding: 1, resource: { buffer: qkvTensor.buffer } },
+      { binding: 2, resource: { buffer: qBuffer } },
+      { binding: 3, resource: { buffer: kBuffer } },
+      { binding: 4, resource: { buffer: vBuffer } }
     ]
   });
   const totalElements = numTokens * (qSize + kSize + vSize);
   const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
   dispatch(device2, pipeline, bindGroup, workgroups, "split_qkv");
   uniformBuffer.destroy();
-  setBufferDtype(Q, "f32");
-  setBufferDtype(K, "f32");
-  setBufferDtype(V, "f32");
+  const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], "Q");
+  const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], "K");
+  const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], "V");
   return { Q, K, V };
 }
-async function recordSplitQKV(recorder, qkvBuffer, options) {
+async function recordSplitQKV(recorder, qkvTensor, options) {
   const device2 = recorder.device;
-  const { numTokens, qSize, kSize, vSize, qBuffer = null, kBuffer = null, vBuffer = null } = options;
+  const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
   const pipeline = await getPipelineFast("split_qkv", "default");
-  const Q = qBuffer || acquireBuffer(numTokens * qSize * 4, void 0, "Q");
-  const K = kBuffer || acquireBuffer(numTokens * kSize * 4, void 0, "K");
-  const V = vBuffer || acquireBuffer(numTokens * vSize * 4, void 0, "V");
+  const outputDtype = qkvTensor.dtype;
+  const bytesPerElement = dtypeBytes(outputDtype);
+  const qBuffer = qTensor?.buffer || acquireBuffer(numTokens * qSize * bytesPerElement, void 0, "Q");
+  const kBuffer = kTensor?.buffer || acquireBuffer(numTokens * kSize * bytesPerElement, void 0, "K");
+  const vBuffer = vTensor?.buffer || acquireBuffer(numTokens * vSize * bytesPerElement, void 0, "V");
   const uniformBuffer = createUniformBufferWithView(
     "split_qkv_uniforms",
     16,
@@ -8749,22 +9329,22 @@ async function recordSplitQKV(recorder, qkvBuffer, options) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: qkvBuffer } },
-      { binding: 2, resource: { buffer: Q } },
-      { binding: 3, resource: { buffer: K } },
-      { binding: 4, resource: { buffer: V } }
+      { binding: 1, resource: { buffer: qkvTensor.buffer } },
+      { binding: 2, resource: { buffer: qBuffer } },
+      { binding: 3, resource: { buffer: kBuffer } },
+      { binding: 4, resource: { buffer: vBuffer } }
     ]
   });
   const totalElements = numTokens * (qSize + kSize + vSize);
   const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, "split_qkv");
-  setBufferDtype(Q, "f32");
-  setBufferDtype(K, "f32");
-  setBufferDtype(V, "f32");
+  const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], "Q");
+  const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], "K");
+  const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], "V");
   return { Q, K, V };
 }
 
-// ../src/gpu/perf-profiler.ts
+// src/gpu/perf-profiler.ts
 init_device();
 init_debug();
 var profilingEnabled = false;
@@ -8981,7 +9561,7 @@ function analyzeDecodePerformance(tokensGenerated, totalTimeMs, targetTokPerSec 
   };
 }
 
-// src/reference/index.ts
+// kernel-tests/src/reference/index.ts
 var reference_exports = {};
 __export(reference_exports, {
   argmaxRef: () => argmaxRef,
@@ -9030,7 +9610,7 @@ __export(reference_exports, {
   topkRef: () => topkRef
 });
 
-// src/reference/matmul.ts
+// kernel-tests/src/reference/matmul.ts
 function matmulRef(A, B, M, N, K, alpha = 1) {
   const C = new Float32Array(M * N);
   for (let m = 0; m < M; m++) {
@@ -9074,7 +9654,7 @@ function matvecRef(A, x, M, K) {
   return y;
 }
 
-// src/reference/softmax.ts
+// kernel-tests/src/reference/softmax.ts
 function softmaxRef(input, innerSize, outerSize, temperature = 1) {
   const output = new Float32Array(input.length);
   for (let row = 0; row < outerSize; row++) {
@@ -9133,7 +9713,7 @@ function softmaxInplaceRef(input, innerSize, outerSize, temperature = 1) {
   return input;
 }
 
-// src/reference/silu.ts
+// kernel-tests/src/reference/silu.ts
 function silu(x) {
   return x / (1 + Math.exp(-x));
 }
@@ -9168,7 +9748,7 @@ function siluInplaceRef(input) {
   return input;
 }
 
-// src/reference/rmsnorm.ts
+// kernel-tests/src/reference/rmsnorm.ts
 function rmsNormRef(input, weight, batchSize, hiddenSize, eps = 1e-6) {
   const output = new Float32Array(input.length);
   for (let b = 0; b < batchSize; b++) {
@@ -9203,7 +9783,7 @@ function rmsNormNoWeightRef(input, batchSize, hiddenSize, eps = 1e-6) {
   return output;
 }
 
-// src/reference/rope.ts
+// kernel-tests/src/reference/rope.ts
 function computeRopeFreqs(dim, maxSeqLen, base = 1e4) {
   const halfDim = dim / 2;
   const cos = new Float32Array(maxSeqLen * halfDim);
@@ -9257,7 +9837,7 @@ function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0
   return output;
 }
 
-// src/reference/attention.ts
+// kernel-tests/src/reference/attention.ts
 function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
   const output = new Float32Array(seqLen * numHeads * headDim);
   const scale = 1 / Math.sqrt(headDim);
@@ -9321,7 +9901,7 @@ function mqaRef(Q, K, V, seqLen, kvLen, numHeads, headDim, mask = null) {
   return attentionRef(Q, K, V, seqLen, kvLen, numHeads, 1, headDim, mask);
 }
 
-// src/reference/topk.ts
+// kernel-tests/src/reference/topk.ts
 function topkRef(probs, numTokens, numExperts, topK, normalize = true) {
   const indices = new Uint32Array(numTokens * topK);
   const weights = new Float32Array(numTokens * topK);
@@ -9381,7 +9961,7 @@ function softmaxTopkRef(logits, numTokens, numExperts, topK, normalize = true) {
   return { indices, weights };
 }
 
-// src/reference/scatter-add.ts
+// kernel-tests/src/reference/scatter-add.ts
 function scatterAddRef(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK) {
   const output = new Float32Array(numTokens * hiddenSize);
   for (let token = 0; token < numTokens; token++) {
@@ -9415,7 +9995,7 @@ function scatterAddAccumulateRef(expertOutputs, indices, weights, numTokens, hid
   return output;
 }
 
-// src/reference/moe-gather.ts
+// kernel-tests/src/reference/moe-gather.ts
 function moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
   const tokenCounts = new Uint32Array(numExperts);
   for (let t = 0; t < numTokens; t++) {
@@ -9469,7 +10049,7 @@ function moeComputeAssignmentsRef(expertIndices, numTokens, numExperts, topK) {
   return { tokenCounts, expertOffsets, totalAssignments: offset };
 }
 
-// src/reference/gather.ts
+// kernel-tests/src/reference/gather.ts
 function gatherRef(embeddings, indices, vocabSize, embedDim) {
   const seqLen = indices.length;
   const output = new Float32Array(seqLen * embedDim);
@@ -9513,7 +10093,7 @@ function gatherWithPosRef(embeddings, posEmbeddings, indices, vocabSize, embedDi
   return output;
 }
 
-// src/reference/residual.ts
+// kernel-tests/src/reference/residual.ts
 function residualAddRef(x, residual) {
   const output = new Float32Array(x.length);
   for (let i = 0; i < x.length; i++) {
@@ -9535,7 +10115,7 @@ function scaledResidualAddRef(x, residual, scale) {
   return output;
 }
 
-// src/reference/dequant.ts
+// kernel-tests/src/reference/dequant.ts
 function float16ToFloat32(bits) {
   const sign = bits >> 15 & 1;
   const exp = bits >> 10 & 31;
@@ -9770,7 +10350,7 @@ function dequantQ4_KRef(quantized, numBlocks) {
   return out;
 }
 
-// src/reference/sample.ts
+// kernel-tests/src/reference/sample.ts
 function argmaxRef(logits) {
   let maxIdx = 0;
   let maxVal = logits[0];
@@ -9835,7 +10415,7 @@ function seededRandom2(seed) {
   return x - Math.floor(x);
 }
 
-// src/harness/tolerance.ts
+// kernel-tests/src/harness/tolerance.ts
 var KERNEL_TOLERANCES = {
   matmul_f32: { rtol: 1e-5, atol: 1e-6 },
   matmul_f16: { rtol: 0.01, atol: 1e-3 },
@@ -9927,7 +10507,7 @@ function generateTestData(size, seed = 42, options = {}) {
   return data;
 }
 
-// browser/test-page.ts
+// kernel-tests/browser/test-page.ts
 var {
   runMatmul: runMatmul2 = null,
   runSoftmax: runSoftmax2 = null,
@@ -9974,7 +10554,7 @@ async function initGPU() {
   if (!device) {
     throw new Error("WebGPU not available");
   }
-  setKernelHints({ q4kMatmul: "fused_q4k" }, "runtime");
+  setKernelPlan({ q4kStrategy: "fused_q4k" }, "runtime");
   initialized = true;
   return device;
 }
@@ -10048,12 +10628,13 @@ var testHarness = {
       return matmulRef(A, B, M, N, K, alpha);
     }
     const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, "f32", [M, K], "matmul_a");
     const bufB = makeBuffer(B);
-    const resultBuf = await runMatmul2(bufA, bufB, M, N, K, { alpha, transposeB: false });
-    const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
+    const resultTensor = await runMatmul2(tensorA, bufB, M, N, K, { alpha, transposeB: false });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
     bufA.destroy();
     bufB.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
     return result;
   },
   /**
@@ -10077,13 +10658,13 @@ var testHarness = {
       throw new Error("runMatmul kernel not available");
     }
     const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, "f32", [M, K], "matmul_q4k_a");
     const bufB = makeBuffer(B_q4k, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
-    setBufferDtype(bufB, "q4k");
-    const resultBuf = await runMatmul2(bufA, bufB, M, N, K, { alpha });
-    const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
+    const resultTensor = await runMatmul2(tensorA, bufB, M, N, K, { alpha, bDtype: "q4k" });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
     bufA.destroy();
     bufB.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
     return result;
   },
   /**
@@ -10094,14 +10675,15 @@ var testHarness = {
       return softmaxRef(input, innerSize, outerSize, temperature);
     }
     const inputBuf = makeBuffer(input);
-    const resultBuf = await runSoftmax2(inputBuf, -1, {
+    const inputTensor = createTensor(inputBuf, "f32", [outerSize, innerSize], "softmax_input");
+    const resultTensor = await runSoftmax2(inputTensor, -1, {
       batchSize: outerSize,
       size: innerSize,
       temperature
     });
-    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
     inputBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
     return result;
   },
   /**
@@ -10155,8 +10737,9 @@ var testHarness = {
     const expertBuf = makeBuffer(expertOutputs);
     const indicesBuf = makeBuffer(indices);
     const weightsBuf = makeBuffer(weights);
-    const resultBuf = await runScatterAdd2(
-      expertBuf,
+    const expertTensor = createTensor(expertBuf, "f32", [numExperts, numTokens, hiddenSize], "expert_outputs");
+    const resultTensor = await runScatterAdd2(
+      expertTensor,
       indicesBuf,
       weightsBuf,
       numTokens,
@@ -10164,11 +10747,11 @@ var testHarness = {
       numExperts,
       topK
     );
-    const result = new Float32Array(await readBufferData(resultBuf, numTokens * hiddenSize * 4));
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, numTokens * hiddenSize * 4));
     expertBuf.destroy();
     indicesBuf.destroy();
     weightsBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
     return result;
   },
   /**
@@ -10340,13 +10923,14 @@ var testHarness = {
     }
     const tokensBuf = makeBuffer(tokens);
     const indicesBuf = makeBuffer(expertIndices);
-    const result = await runMoEGather2(tokensBuf, indicesBuf, numTokens, hiddenSize, numExperts, topK);
+    const tokensTensor = createTensor(tokensBuf, "f32", [numTokens, hiddenSize], "moe_input");
+    const result = await runMoEGather2(tokensTensor, indicesBuf, numTokens, hiddenSize, numExperts, topK);
     const maxTokensPerExpert = result.maxTokensPerExpert;
-    const gatheredTokens = new Float32Array(await readBufferData(result.gathered, numExperts * maxTokensPerExpert * hiddenSize * 4));
+    const gatheredTokens = new Float32Array(await readBufferData(result.gathered.buffer, numExperts * maxTokensPerExpert * hiddenSize * 4));
     const tokenCounts = new Uint32Array(await readBufferData(result.tokenCounts, numExperts * 4));
     tokensBuf.destroy();
     indicesBuf.destroy();
-    result.gathered.destroy();
+    result.gathered.buffer.destroy();
     result.tokenCounts.destroy();
     result.tokenMap.destroy();
     return {

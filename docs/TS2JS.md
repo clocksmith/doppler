@@ -244,12 +244,12 @@ These are type-heavy. Convert to .d.ts only:
 |------|-------|------------|--------|
 | `src/gpu/device.ts` | 600 | Medium | → .js |
 | `src/gpu/buffer-pool.ts` | 500 | Medium | → .js |
-| `src/gpu/buffer-dtypes.ts` | 100 | Simple | → .js |
+| `src/gpu/tensor.ts` | 200 | Medium | → .js |
+| `src/gpu/weight-buffer.ts` | 180 | Simple | → .js |
 | `src/gpu/command-recorder.ts` | 400 | Medium | → .js |
 | `src/gpu/kernel-tuner.ts` | 1,261 | Complex | → .js |
 | `src/gpu/kernel-selector.ts` | 300 | Medium | → .js |
 | `src/gpu/kernel-runtime.ts` | 200 | Simple | → .js |
-| `src/gpu/kernel-hints.ts` | 150 | Simple | → .js |
 | `src/gpu/kernel-benchmark.ts` | 250 | Medium | → .js |
 | `src/gpu/kernel-selection-cache.ts` | 100 | Simple | → .js |
 | `src/gpu/uniform-cache.ts` | 200 | Simple | → .js |

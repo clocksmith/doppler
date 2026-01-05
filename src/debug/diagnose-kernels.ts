@@ -3,7 +3,7 @@
  * Diagnostic tool to verify kernel selection logic.
  *
  * This script checks:
- * 1. Manifest kernel hints are correctly configured
+ * 1. Manifest kernel plan is correctly configured
  * 2. Kernel selection logic matches expected behavior
  * 3. GPU capabilities are correctly detected
  *
@@ -21,15 +21,9 @@ import { log } from './index.js';
 interface DiagnosticResult {
   modelPath: string;
   manifestValid: boolean;
-  hasKernelHints: boolean;
+  hasKernelPlan: boolean;
   q4kLayout?: string;
-  kernelHints?: any;
-  expectedKernels: {
-    q4kMatmul: string;
-    computePrecision: string;
-    attentionDecode: string;
-    attentionPrefill: string;
-  };
+  kernelPlan?: any;
   issues: string[];
   recommendations: string[];
 }
@@ -38,13 +32,7 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
   const result: DiagnosticResult = {
     modelPath,
     manifestValid: false,
-    hasKernelHints: false,
-    expectedKernels: {
-      q4kMatmul: 'dequant_f16',
-      computePrecision: 'f16',
-      attentionDecode: 'streaming',
-      attentionPrefill: 'tiled_large',
-    },
+    hasKernelPlan: false,
     issues: [],
     recommendations: [],
   };
@@ -70,46 +58,20 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
       log.info('KernelDiag', 'OK Q4K layout: column_wise (optimal)');
     }
 
-    // Check kernel hints
-    const kernelHints = manifest.optimizations?.kernelHints;
-    result.kernelHints = kernelHints;
-    result.hasKernelHints = !!kernelHints;
+    // Check kernel plan
+    const kernelPlan = manifest.optimizations?.kernelPlan;
+    result.kernelPlan = kernelPlan;
+    result.hasKernelPlan = !!kernelPlan;
 
-    if (!kernelHints) {
-      result.issues.push('Warning: Missing optimizations.kernelHints');
-      result.recommendations.push('Run: npx tsx tools/update-manifest.ts ' + modelPath + '/manifest.json \\');
-      result.recommendations.push('  --compute-precision f16 --q4k-matmul dequant_f16 \\');
-      result.recommendations.push('  --f16-matmul gemv_subgroup --attention-prefill tiled_large \\');
-      result.recommendations.push('  --attention-decode streaming --tuned-device "Apple M3"');
+    if (!kernelPlan) {
+      result.issues.push('Warning: Missing optimizations.kernelPlan');
+      result.recommendations.push('Add optimizations.kernelPlan to manifest for kernel selection overrides.');
+      result.recommendations.push('Example: {"q4kStrategy":"dequant_f16","variants":{"attention":{"prefill":"prefill","decode":"decode_streaming"}}}');
     } else {
-      log.info('KernelDiag', 'OK Kernel hints present');
-
-      // Verify each hint
-      const checks = [
-        { field: 'q4kMatmul', expected: 'dequant_f16', reason: '2.3x faster than fused (8 vs 3 tok/s)' },
-        { field: 'computePrecision', expected: 'f16', reason: 'Uses F16 compute when available' },
-        { field: 'f16Matmul', expected: 'gemv_subgroup', reason: 'Best for GEMV decode with subgroups' },
-        { field: 'attentionPrefill', expected: 'tiled_large', reason: 'Best for long sequences' },
-        { field: 'attentionDecode', expected: 'streaming', reason: 'Best for single-token generation' },
-      ];
-
-      for (const check of checks) {
-        const value = kernelHints[check.field];
-        if (!value) {
-          result.issues.push(`Warning: Missing kernelHints.${check.field}`);
-        } else if (value !== check.expected) {
-          result.issues.push(`Warning: kernelHints.${check.field} = "${value}" (expected "${check.expected}" for ${check.reason})`);
-        } else {
-          log.info('KernelDiag', `OK ${check.field}: ${value} - ${check.reason}`);
-        }
-      }
-
-      // Check benchmark result
-      if (kernelHints.benchmarkTokPerSec) {
-        log.info('KernelDiag', `Benchmark: Documented performance: ${kernelHints.benchmarkTokPerSec} tok/s`);
-        if (kernelHints.benchmarkTokPerSec < 7) {
-          result.issues.push(`Warning: Documented performance (${kernelHints.benchmarkTokPerSec} tok/s) is below expected (8 tok/s)`);
-        }
+      log.info('KernelDiag', 'OK Kernel plan present');
+      const quant = String(manifest.quantization || '').toLowerCase();
+      if (quant.includes('q4') && !kernelPlan.q4kStrategy) {
+        result.issues.push('Warning: Missing kernelPlan.q4kStrategy for Q4 models');
       }
     }
 
@@ -137,10 +99,10 @@ async function printDiagnostics(result: DiagnosticResult) {
     log.info('KernelDiag', `Q4K Layout: ${layoutStatus} ${result.q4kLayout}`);
   }
 
-  if (result.hasKernelHints) {
-    log.info('KernelDiag', 'Kernel Hints: OK Present');
+  if (result.hasKernelPlan) {
+    log.info('KernelDiag', 'Kernel Plan: OK Present');
   } else {
-    log.warn('KernelDiag', 'Kernel Hints: ERROR Missing');
+    log.warn('KernelDiag', 'Kernel Plan: ERROR Missing');
   }
 
   if (result.issues.length > 0) {
@@ -153,12 +115,11 @@ async function printDiagnostics(result: DiagnosticResult) {
     result.recommendations.forEach(rec => log.info('KernelDiag', `  ${rec}`));
   }
 
-  if (result.issues.length === 0 && result.hasKernelHints) {
+  if (result.issues.length === 0 && result.hasKernelPlan) {
     log.info('KernelDiag', 'Model is optimally configured!');
     log.info('KernelDiag', 'Expected Performance:');
     log.info('KernelDiag', '  - Gemma 3 1B: ~8 tok/s (Apple M3)');
     log.info('KernelDiag', '  - Column-wise layout: +14% vs flat');
-    log.info('KernelDiag', '  - Dequant F16 path: 2.3x faster than fused Q4K');
     log.info('KernelDiag', 'Run benchmark:');
     log.info('KernelDiag', `  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
   }
@@ -176,7 +137,7 @@ async function main() {
     log.info('KernelDiag', 'Checks:');
     log.info('KernelDiag', '  - Manifest validity');
     log.info('KernelDiag', '  - Q4K layout configuration (should be column_wise)');
-    log.info('KernelDiag', '  - Kernel hints presence and correctness');
+    log.info('KernelDiag', '  - Kernel plan presence and correctness');
     log.info('KernelDiag', '  - Expected vs actual configuration');
     process.exit(0);
   }

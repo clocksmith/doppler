@@ -232,8 +232,10 @@ function mergeRuntimeConfig(
           sampling: { ...base.inference.sampling, ...overrides.inference.sampling },
           compute: { ...base.inference.compute, ...overrides.inference.compute },
           tokenizer: { ...base.inference.tokenizer, ...overrides.inference.tokenizer },
+          largeWeights: { ...base.inference.largeWeights, ...overrides.inference.largeWeights },
           prompt: overrides.inference.prompt ?? base.inference.prompt,
           pipeline: overrides.inference.pipeline ?? base.inference.pipeline,
+          kernelPlan: overrides.inference.kernelPlan ?? base.inference.kernelPlan,
         }
       : { ...base.inference },
     kvcache: { ...base.kvcache, ...overrides.kvcache },

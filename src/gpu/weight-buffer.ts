@@ -14,6 +14,18 @@ export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8';
 export type WeightLayout = 'row' | 'column';
 
 /**
+ * CPU-resident weight buffer with layout metadata.
+ * Used for oversized weights that cannot be bound as a single GPU buffer.
+ */
+export interface CpuWeightBuffer {
+  readonly data: Float32Array;
+  readonly dtype: WeightDtype;
+  readonly layout: WeightLayout;
+  readonly shape: readonly number[];
+  readonly label?: string;
+}
+
+/**
  * A weight buffer with explicit dtype and layout.
  * Use this instead of raw GPUBuffer for weight matrices.
  */
@@ -45,6 +57,25 @@ export function createWeightBuffer(
 }
 
 /**
+ * Create a CPU-resident weight buffer with explicit metadata.
+ */
+export function createCpuWeightBuffer(
+  data: Float32Array,
+  dtype: WeightDtype,
+  layout: WeightLayout,
+  shape: number[],
+  label?: string
+): CpuWeightBuffer {
+  return {
+    data,
+    dtype,
+    layout,
+    shape: Object.freeze([...shape]),
+    label,
+  };
+}
+
+/**
  * Check if weight is stored in column-major (pre-transposed) format.
  * Column-major weights use transposeB=false in matmul.
  */
@@ -60,6 +91,20 @@ export function isWeightBuffer(value: unknown): value is WeightBuffer {
     typeof value === 'object' &&
     value !== null &&
     'buffer' in value &&
+    'dtype' in value &&
+    'layout' in value &&
+    'shape' in value
+  );
+}
+
+/**
+ * Check if value is a CPU-resident weight buffer.
+ */
+export function isCpuWeightBuffer(value: unknown): value is CpuWeightBuffer {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'data' in value &&
     'dtype' in value &&
     'layout' in value &&
     'shape' in value

@@ -31,7 +31,6 @@ import {
  * @property {boolean} transposeB - Whether B is transposed
  * @property {boolean} [preferF16] - Prefer F16 kernels if available
  * @property {boolean} [useVec4] - Prefer vec4 variants
- * @property {Object} [hints] - Kernel hints (e.g., q4kMatmul override)
  */
 
 /**
@@ -49,7 +48,6 @@ export function selectMatmul(context) {
     outputDtype = 'f32',
     preferF16 = true,
     useVec4 = false,
-    hints = {},
   } = context;
 
   let capabilities;
@@ -78,14 +76,11 @@ export function selectMatmul(context) {
 
   // Q4K fused path - 2-3x faster than separate dequant + matmul
   if (bDtype === 'q4k' && capabilities.hasSubgroups) {
-    // Allow hints to force dequant path
-    if (hints.q4kMatmul !== 'dequant_f16') {
-      if (N > 8192 && isDecode) {
-        // Multi-column for large vocab (LM head)
-        return 'q4_fused_multicol';
-      }
-      return isDecode ? 'q4_fused' : 'q4_fused_batched';
+    if (N > 8192 && isDecode) {
+      // Multi-column for large vocab (LM head)
+      return 'q4_fused_multicol';
     }
+    return isDecode ? 'q4_fused' : 'q4_fused_batched';
   }
 
   // Full F16 matmul when both inputs are F16 and output is F16
@@ -133,7 +128,6 @@ export function selectMatmul(context) {
  * @property {number} numHeads - Number of attention heads
  * @property {number} headDim - Dimension per head
  * @property {boolean} [useF16KV] - Whether KV cache is F16
- * @property {string} [attentionKernel] - Forced kernel override
  * @property {number} [sharedMemoryLimit] - Device shared memory limit
  */
 
@@ -164,7 +158,6 @@ export function selectAttention(context) {
     numHeads,
     headDim,
     useF16KV = false,
-    attentionKernel = null,
     sharedMemoryLimit = 32768,
   } = context;
 
@@ -173,11 +166,6 @@ export function selectAttention(context) {
     capabilities = getCapabilities();
   } catch {
     capabilities = { hasF16: false, hasSubgroups: false };
-  }
-
-  // Honor explicit kernel override
-  if (attentionKernel) {
-    return attentionKernel;
   }
 
   // Check for platform preference

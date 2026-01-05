@@ -10,6 +10,8 @@ import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import type { ProbeConfigSchema } from '../../config/schema/index.js';
 import { runProbes } from './probes.js';
 import { createTensor, type Tensor, type TensorDtype } from '../../gpu/tensor.js';
+import { castF32ToF16, recordCastF32ToF16 } from '../../gpu/kernels/cast.js';
+import { isCpuWeightBuffer, type CpuWeightBuffer } from '../../gpu/weight-buffer.js';
 
 export interface EmbedConfig {
   hiddenSize: number;
@@ -20,6 +22,8 @@ export interface EmbedConfig {
   debugProbes?: ProbeConfigSchema[];
   /** Pre-allocated output buffer (avoids pool allocation) */
   outputBuffer?: GPUBuffer;
+  /** Required when tokenIds is a GPUBuffer (number of tokens). */
+  numTokens?: number;
   /**
    * True if embeddings are stored as [hidden_size, vocab_size] (GGUF layout).
    * False if embeddings are stored as [vocab_size, hidden_size] (PyTorch layout).
@@ -220,13 +224,17 @@ export async function scaleGPUBuffer(
 }
 
 export async function embed(
-  tokenIds: number[],
-  embedBuffer: GPUBuffer,
+  tokenIds: number[] | Uint32Array | GPUBuffer,
+  embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer,
   config: EmbedConfig
 ): Promise<Tensor> {
   const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false, activationDtype = 'f32', embeddingDtype = 'f32' } = config;
   const device = getDevice();
-  const numTokens = tokenIds.length;
+  const tokenBufferInput = tokenIds instanceof GPUBuffer;
+  const tokenIdArray = tokenBufferInput ? null : (tokenIds as number[] | Uint32Array);
+  const numTokens = tokenBufferInput
+    ? (config.numTokens ?? 0)
+    : (tokenIdArray?.length ?? 0);
 
   if (!device) throw new Error('GPU device not available');
 
@@ -235,13 +243,99 @@ export async function embed(
   const useF16 = activationDtype === 'f16' && caps.hasF16;
   const dtype: TensorDtype = useF16 ? 'f16' : 'f32';
 
+  const cpuEmbeddings = isCpuWeightBuffer(embedBuffer)
+    ? embedBuffer.data
+    : embedBuffer instanceof Float32Array
+      ? embedBuffer
+      : null;
+
   if (debug) {
     trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, activationDtype=${activationDtype}, useF16=${useF16}`);
-    trace.embed(`TOKEN_IDS: [${tokenIds.join(', ')}]`);
+    if (tokenBufferInput) {
+      trace.embed('TOKEN_IDS: [gpu-buffer]');
+    } else {
+      trace.embed(`TOKEN_IDS: [${Array.from(tokenIdArray ?? []).join(', ')}]`);
+    }
   }
 
-  const tokenIdBuffer = acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
-  device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
+  if (cpuEmbeddings) {
+    if (tokenBufferInput) {
+      throw new Error('[Embed] GPU token buffer requires GPU-resident embeddings.');
+    }
+    if (debug) {
+      trace.embed('Using CPU embedding gather (oversized embedding)');
+    }
+
+    const output = new Float32Array(numTokens * hiddenSize);
+    if (!transpose) {
+      for (let t = 0; t < numTokens; t++) {
+        const tokenId = tokenIdArray![t];
+        const srcOffset = tokenId * hiddenSize;
+        output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
+      }
+    } else {
+      for (let t = 0; t < numTokens; t++) {
+        const tokenId = tokenIdArray![t];
+        const dstOffset = t * hiddenSize;
+        for (let h = 0; h < hiddenSize; h++) {
+          output[dstOffset + h] = cpuEmbeddings[h * vocabSize + tokenId];
+        }
+      }
+    }
+
+    if (scaleEmbeddings) {
+      const scaleFactor = Math.sqrt(hiddenSize);
+      for (let i = 0; i < output.length; i++) {
+        output[i] *= scaleFactor;
+      }
+    }
+
+    if (useF16) {
+      const f32Buffer = acquireBuffer(output.byteLength, undefined, 'embed_cpu_f32');
+      device.queue.writeBuffer(f32Buffer, 0, output);
+      const f32Tensor = createTensor(f32Buffer, 'f32', [numTokens, hiddenSize], 'embed_cpu_f32');
+      const outputBytes = numTokens * hiddenSize * 2;
+      const outputBuffer = preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null;
+      const f16Tensor = recorder
+        ? await recordCastF32ToF16(recorder, f32Tensor, { outputBuffer })
+        : await castF32ToF16(f32Tensor, { outputBuffer });
+      if (recorder) {
+        recorder.trackTemporaryBuffer(f32Buffer);
+      } else {
+        releaseBuffer(f32Buffer);
+      }
+      await runProbes('embed_out', f16Tensor.buffer, {
+        numTokens,
+        hiddenSize,
+        probes: config.debugProbes,
+        recorder,
+      });
+      return f16Tensor;
+    }
+
+    const outputBytes = output.byteLength;
+    const outputBuffer = preAllocatedOutput && preAllocatedOutput.size >= outputBytes
+      ? preAllocatedOutput
+      : acquireBuffer(outputBytes, undefined, 'embed_cpu_f32_out');
+    device.queue.writeBuffer(outputBuffer, 0, output);
+    await runProbes('embed_out', outputBuffer, {
+      numTokens,
+      hiddenSize,
+      probes: config.debugProbes,
+      recorder,
+    });
+    return createTensor(outputBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
+  }
+
+  if (tokenBufferInput && numTokens <= 0) {
+    throw new Error('[Embed] numTokens must be provided when tokenIds is a GPUBuffer.');
+  }
+  const tokenIdBuffer = tokenBufferInput
+    ? tokenIds
+    : acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
+  if (!tokenBufferInput) {
+    device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIdArray!));
+  }
 
   // Use pre-allocated output buffer if provided, otherwise acquire from pool
   // Pass outputDtype to enable F16 output when in F16 activation mode
@@ -252,14 +346,18 @@ export async function embed(
     outputDtype: useF16 ? 'f16' as const : 'f32' as const,
     embeddingDtype,
   };
+  if (!(embedBuffer instanceof GPUBuffer)) {
+    throw new Error('[Embed] GPU embeddings required for gather path.');
+  }
   const gatherOutput = recorder
     ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
     : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions);
 
   // Debug: Verify first token embedding
-  if (debug && !recorder && tokenIds.length > 0) {
-    const firstTokenId = tokenIds[0];
-    const sampleSize = Math.min(32 * 4, hiddenSize * 4);
+  if (debug && !recorder && tokenIdArray && tokenIdArray.length > 0) {
+    const firstTokenId = tokenIdArray[0];
+    const bytesPerElement = useF16 ? 2 : 4;
+    const sampleSize = Math.min(32 * bytesPerElement, hiddenSize * bytesPerElement);
     const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
     const enc = device.createCommandEncoder();
     enc.copyBufferToBuffer(gatherOutput.buffer, 0, staging, 0, sampleSize);
@@ -279,10 +377,12 @@ export async function embed(
 
     trace.embed(`FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
-  if (recorder) {
-    recorder.trackTemporaryBuffer(tokenIdBuffer);
-  } else {
-    releaseBuffer(tokenIdBuffer);
+  if (!tokenBufferInput) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(tokenIdBuffer);
+    } else {
+      releaseBuffer(tokenIdBuffer);
+    }
   }
 
   if (!scaleEmbeddings) {

@@ -193,10 +193,7 @@ fn main_multi(
 
     let hidden_size = u.hidden_size;
     let intermediate_size = u.intermediate_size;
-
-    if (out_idx >= intermediate_size) {
-        return;
-    }
+    let active = out_idx < intermediate_size;
 
     // Load input (first 64 threads load for all outputs)
     if (tid < min(256u, hidden_size)) {
@@ -212,10 +209,12 @@ fn main_multi(
     let up_base = out_idx * hidden_size;
 
     // Strided access pattern
-    for (var k = tid_in_out; k < hidden_size; k += THREADS_PER_OUTPUT) {
-        let x = shared_input[k % 256u];
-        gate_sum += x * W_gate[gate_base + k];
-        up_sum += x * W_up[up_base + k];
+    if (active) {
+        for (var k = tid_in_out; k < hidden_size; k += THREADS_PER_OUTPUT) {
+            let x = shared_input[k % 256u];
+            gate_sum += x * W_gate[gate_base + k];
+            up_sum += x * W_up[up_base + k];
+        }
     }
 
     // Reduce within each output group
@@ -223,7 +222,7 @@ fn main_multi(
     let sg_gate = subgroupAdd(gate_sum);
     let sg_up = subgroupAdd(up_sum);
 
-    if (sg_id == 0u) {
+    if (active && sg_id == 0u) {
         let base = out_in_wg * 8u + local_sg_id;
         multi_sg_sums[base] = sg_gate;
         multi_sg_sums[base + 4u] = sg_up;
@@ -231,7 +230,7 @@ fn main_multi(
     workgroupBarrier();
 
     // First thread of each output finalizes
-    if (tid_in_out == 0u) {
+    if (active && tid_in_out == 0u) {
         let num_sgs = (THREADS_PER_OUTPUT + sg_size - 1u) / sg_size;
         var final_gate: f32 = 0.0;
         var final_up: f32 = 0.0;

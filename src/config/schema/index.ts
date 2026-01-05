@@ -37,7 +37,6 @@ export {
   type ComponentGroupSchema,
   type MoEConfigSchema,
   type TokenizerSchema,
-  type KernelHintsSchema,
   type RuntimeOptimizationsSchema,
   type QuantizationInfoSchema,
   type ConversionInfoSchema,
@@ -49,6 +48,16 @@ export {
   isV1Manifest,
   hasMoEConfig,
 } from './manifest.schema.js';
+
+// =============================================================================
+// Kernel Plan Schema
+// =============================================================================
+export {
+  type KernelPlanSchema,
+  type KernelVariantOverrideSchema,
+  type KernelVariantOverridesSchema,
+  type Q4KStrategy,
+} from './kernel-plan.schema.js';
 
 // =============================================================================
 // Inference Schema
@@ -190,6 +199,7 @@ export {
   // Types
   type BatchingDefaultsSchema,
   type ComputeDefaultsSchema,
+  type LargeWeightConfigSchema,
   type SamplingDefaultsSchema,
   type TokenizerDefaultsSchema,
   type InferenceDefaultsConfigSchema,
@@ -197,6 +207,7 @@ export {
   // Defaults
   DEFAULT_BATCHING_DEFAULTS,
   DEFAULT_COMPUTE_DEFAULTS,
+  DEFAULT_LARGE_WEIGHT_CONFIG,
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,

@@ -16,11 +16,11 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { KernelBase } from './kernel-base.js';
 import { ALIGNMENT, GPU_LIMITS, QUANTIZATION, TILE_SIZES } from './constants.js';
-import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayout, getCachedPipeline, createPipeline, getPipelineFast } from './utils.js';
-import { shouldUseFusedQ4K } from '../kernel-hints.js';
+import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayout, getCachedPipeline, createPipeline, getPipelineFast, hasRequiredFeatures } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelPlanVariant, getKernelPlanQ4KStrategy, getKernelPlanStrict } from '../../config/kernel-plan.js';
 
 // =============================================================================
 // Q4K Variant Lookup Tables
@@ -48,11 +48,6 @@ function selectQ4KFusedVariant(isM1: boolean, wantF16Output: boolean): string {
 /**
  * Debug flag to disable fused Q4K kernels.
  * When true, Q4K weights will be dequantized first, then use standard matmul.
- *
- * Check order:
- * 1. window.DOPPLER_DISABLE_FUSED_Q4K (debug override)
- * 2. Kernel hints from manifest (optimizations.kernelHints.q4kMatmul)
- * 3. Default: false (use dequant path - 2x faster based on benchmarks)
  */
 export function isFusedQ4KDisabled(): boolean {
   // Check window override first (debug flag)
@@ -60,9 +55,7 @@ export function isFusedQ4KDisabled(): boolean {
     ? (window as unknown as { DOPPLER_DISABLE_FUSED_Q4K?: boolean })
     : null;
   if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return true;
-
-  // Check kernel hints - shouldUseFusedQ4K returns false if hints say to use dequant
-  return !shouldUseFusedQ4K();
+  return false;
 }
 
 /** Matmul-supported buffer types (includes q4k for fused W4A16) */
@@ -78,6 +71,8 @@ function toMatmulDtype(dtype: TensorDtype | 'q4k' | 'bf16' | 'q8' | null | undef
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
   alpha?: number;
+  /** Optional matmul role for kernel plan overrides (e.g., 'q_proj', 'ffn_gate', 'lm_head') */
+  role?: string;
   /**
    * Whether B matrix is stored transposed.
    * - true: B is [N,K] (SafeTensors/row-major), needs transpose
@@ -249,6 +244,66 @@ function getMatmulBindingSizes(
   return { aBindingSize, bBindingSize };
 }
 
+function isQ4KFusedVariant(variant: string): boolean {
+  return variant.startsWith('q4_fused');
+}
+
+function isGemvVariant(variant: string): boolean {
+  return variant.startsWith('gemv');
+}
+
+function resolveMatmulOverride(
+  variantOverride: string,
+  M: number,
+  aDtype: MatmulDtype,
+  bDtype: MatmulDtype,
+  capabilities: ReturnType<typeof getKernelCapabilities>,
+  strict: boolean,
+  q4kStrategy: ReturnType<typeof getKernelPlanQ4KStrategy>
+): { variant: string; useQ4KFused: boolean; useGemv: boolean } | null {
+  const override = variantOverride.trim();
+  if (!override) return null;
+
+  const failOrWarn = (message: string): { variant: string; useQ4KFused: boolean; useGemv: boolean } | null => {
+    if (strict) {
+      throw new Error(message);
+    }
+    log.warn('Matmul', message);
+    return null;
+  };
+
+  let config;
+  try {
+    config = getKernelConfig('matmul', override);
+  } catch {
+    return failOrWarn(`Unknown matmul kernel variant "${variantOverride}".`);
+  }
+
+  if (!hasRequiredFeatures(config.requires, capabilities)) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires unsupported GPU features.`);
+  }
+
+  const useQ4KFused = isQ4KFusedVariant(override);
+  if (useQ4KFused) {
+    if (bDtype !== 'q4k') {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
+    }
+    if (q4kStrategy === 'dequant_f16' || q4kStrategy === 'dequant_f32') {
+      return failOrWarn(`Matmul kernel "${variantOverride}" conflicts with q4kStrategy=${q4kStrategy}.`);
+    }
+    if (isFusedQ4KDisabled()) {
+      return failOrWarn(`Matmul kernel "${variantOverride}" blocked by DOPPLER_DISABLE_FUSED_Q4K.`);
+    }
+  }
+
+  const useGemv = isGemvVariant(override);
+  if (useGemv && M !== 1) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires M=1 but got M=${M}.`);
+  }
+
+  return { variant: override, useQ4KFused, useGemv };
+}
+
 function selectMatmulVariantAndFlags(
   mode: MatmulSelectionMode,
   M: number,
@@ -261,29 +316,48 @@ function selectMatmulVariantAndFlags(
   options: MatmulOptions
 ): { variant: string; useQ4KFused: boolean; useGemv: boolean } {
   const capabilities = getKernelCapabilities();
+  const strict = getKernelPlanStrict();
+  const q4kStrategy = getKernelPlanQ4KStrategy();
+  const planVariant = getKernelPlanVariant({ operation: 'matmul', role: options.role });
+
+  if (planVariant) {
+    const override = resolveMatmulOverride(planVariant, M, aDtype, bDtype, capabilities, strict, q4kStrategy);
+    if (override) {
+      return override;
+    }
+  }
+
   let variant = 'f32';
   let useQ4KFused = false;
   let useGemv = false;
 
   if (bDtype === 'q4k') {
-    const useFused = mode === 'record' ? true : !isFusedQ4KDisabled();
-    if (useFused) {
-      if (!capabilities.hasSubgroups) {
-        if (mode === 'record') {
-          throw new Error(
-            'Q4_K fused matmul requires subgroup support. ' +
-            'Your GPU/browser may not support WebGPU subgroups. ' +
-            'Consider using a dequantized model (F16) as fallback.'
-          );
-        }
-        log.warn('Matmul', 'Q4K fused requested but no subgroup support. Falling back to dequant path. ' +
-          'Your GPU/browser may not support WebGPU subgroups.');
-      } else {
-        useQ4KFused = true;
-        const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
-        // Use lookup table for Q4K variant selection
-        variant = selectQ4KFusedVariant(M === 1, wantF16Output);
+    const wantsDequant = q4kStrategy === 'dequant_f16' || q4kStrategy === 'dequant_f32';
+    let forceFused = q4kStrategy === 'fused_q4k';
+    if (wantsDequant) {
+      const message = `q4kStrategy=${q4kStrategy} but Q4K weights are still loaded; forcing fused path.`;
+      if (strict) {
+        throw new Error(message);
       }
+      log.warn('Matmul', message);
+      forceFused = true;
+    }
+
+    const allowFused = !isFusedQ4KDisabled();
+    const canFused = capabilities.hasSubgroups && allowFused;
+    const shouldFused = forceFused || q4kStrategy === 'auto';
+
+    if (shouldFused && canFused) {
+      useQ4KFused = true;
+      const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
+      variant = selectQ4KFusedVariant(M === 1, wantF16Output);
+    } else if (forceFused && !canFused) {
+      const message = 'Q4_K fused matmul requires subgroup support. ' +
+        'Your GPU/browser may not support WebGPU subgroups.';
+      if (strict) {
+        throw new Error(message);
+      }
+      log.warn('Matmul', `${message} Falling back to dequant path.`);
     }
   }
 

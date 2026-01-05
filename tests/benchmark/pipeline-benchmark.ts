@@ -84,11 +84,14 @@ export class PipelineBenchmark {
 
     // Timed runs
     const runResults: TimedRunResult[] = [];
+    console.warn(`[Benchmark] Starting ${this.config.timedRuns} timed runs`);
     for (let i = 0; i < this.config.timedRuns; i++) {
+      console.warn(`[Benchmark] Run ${i + 1}/${this.config.timedRuns}`);
       const result = await this.runInference(prompt, false);
       runResults.push(result);
       this.pipeline.reset();
     }
+    console.warn(`[Benchmark] Completed ${runResults.length} runs`);
 
     // Aggregate metrics
     const metrics = this.aggregateMetrics(runResults, loadMetrics);
@@ -244,11 +247,8 @@ export class PipelineBenchmark {
 
     // Create pipeline
     const runtime: Record<string, unknown> = { debug: this.config.debug };
-    if (this.config.runtime?.attentionKernel) {
-      runtime.attentionKernel = this.config.runtime.attentionKernel;
-    }
-    if (this.config.runtime?.kernelHints) {
-      runtime.kernelHints = this.config.runtime.kernelHints;
+    if (this.config.runtime?.kernelPlan) {
+      runtime.kernelPlan = this.config.runtime.kernelPlan;
     }
 
     this.pipeline = await createPipeline(this.manifest, {

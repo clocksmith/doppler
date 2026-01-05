@@ -27,7 +27,7 @@ import type {
   TestResult,
   SuiteResult,
 } from './helpers/types.js';
-import type { KernelHints } from '../src/storage/rdrr-format.js';
+import type { KernelPlanSchema } from '../src/config/schema/index.js';
 import { loadConfig, listPresets, dumpConfig } from './config/index.js';
 
 import {
@@ -101,47 +101,17 @@ const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'] as const;
  * Predefined kernel configurations for quick swapping.
  * Use --kernel-profile <name> to apply a preset.
  */
-const KERNEL_PROFILES: Record<string, KernelHints> = {
-  /** Fast: Optimized for speed on modern GPUs with F16/subgroups */
-  fast: {
-    computePrecision: 'f16',
-    q4kMatmul: 'dequant_f16',
-    f16Matmul: 'gemv_subgroup',
-    attentionPrefill: 'tiled_large',
-    attentionDecode: 'streaming',
-  },
-  /** Safe: Conservative settings for maximum compatibility */
-  safe: {
-    computePrecision: 'f32',
-    q4kMatmul: 'dequant_f32',
-    f16Matmul: 'auto',
-    attentionPrefill: 'auto',
-    attentionDecode: 'auto',
-  },
-  /** Debug: Full precision with detailed tracing */
-  debug: {
-    computePrecision: 'f32',
-    q4kMatmul: 'dequant_f32',
-    f16Matmul: 'auto',
-    attentionPrefill: 'auto',
-    attentionDecode: 'auto',
-  },
-  /** Fused: Use fused Q4K kernel (experimental) */
-  fused: {
-    computePrecision: 'f16',
-    q4kMatmul: 'fused_q4k',
-    f16Matmul: 'gemv_subgroup',
-    attentionPrefill: 'tiled_large',
-    attentionDecode: 'streaming',
-  },
-  /** Apple: Optimized for Apple Silicon (M1/M2/M3) */
-  apple: {
-    computePrecision: 'f16',
-    q4kMatmul: 'dequant_f16',  // 2x faster than fused on M3
-    f16Matmul: 'gemv_subgroup',
-    attentionPrefill: 'tiled_large',
-    attentionDecode: 'streaming',
-  },
+const KERNEL_PROFILES: Record<string, KernelPlanSchema> = {
+  /** Fast: Prefer dequantized Q4K for throughput */
+  fast: { q4kStrategy: 'dequant_f16' },
+  /** Safe: Full-precision dequantization */
+  safe: { q4kStrategy: 'dequant_f32' },
+  /** Debug: Full-precision dequantization */
+  debug: { q4kStrategy: 'dequant_f32' },
+  /** Fused: Keep Q4K weights fused in VRAM */
+  fused: { q4kStrategy: 'fused_q4k' },
+  /** Apple: Balanced defaults for Apple Silicon */
+  apple: { q4kStrategy: 'dequant_f16' },
 };
 
 // ============================================================================
@@ -188,14 +158,8 @@ function parseArgs(argv: string[]): CLIOptions {
     help: false,
     perf: false,
     gpuProfile: false,
-    computePrecision: null,
-    q4kMatmul: null,
-    f16Matmul: null,
-    attentionPrefill: null,
-    attentionDecode: null,
-    attentionKernel: null,
-    kernelHints: null,
     kernelProfile: null,
+    kernelPlan: null,
     // Debug mode options
     debug: false,
     layer: null,
@@ -384,34 +348,26 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--gpu-profile':
         opts.gpuProfile = true;
         break;
-      case '--compute-precision':
-        opts.computePrecision = tokens.shift() || null;
+      case '--kernel-plan': {
+        const raw = tokens.shift() || '';
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('kernel plan must be a JSON object');
+          }
+          opts.kernelPlan = parsed as KernelPlanSchema;
+        } catch (err) {
+          throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
+        }
         break;
-      case '--q4k-matmul':
-        opts.q4kMatmul = tokens.shift() || null;
-        break;
-      case '--force-fused-q4k':
-        opts.q4kMatmul = 'fused_q4k';
-        break;
-      case '--f16-matmul':
-        opts.f16Matmul = tokens.shift() || null;
-        break;
-      case '--attention-prefill':
-        opts.attentionPrefill = tokens.shift() || null;
-        break;
-      case '--attention-decode':
-        opts.attentionDecode = tokens.shift() || null;
-        break;
-      case '--attention-kernel':
-        opts.attentionKernel = tokens.shift() || null;
-        break;
+      }
       case '--kernel-profile':
       case '-k': {
         const profileName = tokens.shift() || '';
         if (profileName === 'list') {
           console.log('\nAvailable kernel profiles:');
-          for (const [name, hints] of Object.entries(KERNEL_PROFILES)) {
-            console.log(`  ${name.padEnd(10)} ${JSON.stringify(hints)}`);
+          for (const [name, plan] of Object.entries(KERNEL_PROFILES)) {
+            console.log(`  ${name.padEnd(10)} ${JSON.stringify(plan)}`);
           }
           console.log('');
           process.exit(0);
@@ -421,19 +377,6 @@ function parseArgs(argv: string[]): CLIOptions {
           throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
         }
         opts.kernelProfile = profileName;
-        break;
-      }
-      case '--kernel-hints': {
-        const raw = tokens.shift() || '';
-        try {
-          const parsed = JSON.parse(raw);
-          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            throw new Error('kernel hints must be a JSON object');
-          }
-          opts.kernelHints = parsed as KernelHints;
-        } catch (err) {
-          throw new Error(`Failed to parse --kernel-hints JSON: ${(err as Error).message}`);
-        }
         break;
       }
       default:
@@ -457,32 +400,20 @@ function parseArgs(argv: string[]): CLIOptions {
   return opts;
 }
 
-function buildKernelHints(opts: CLIOptions): KernelHints | null {
-  // Priority (low to high): profile preset -> kernelHints JSON -> individual flags
-  const hints: KernelHints = {
-    // 1. Apply profile preset (lowest priority)
-    ...(opts.kernelProfile ? KERNEL_PROFILES[opts.kernelProfile] : {}),
-    // 2. Merge explicit --kernel-hints JSON
-    ...(opts.kernelHints ?? {}),
+function buildKernelPlan(opts: CLIOptions): KernelPlanSchema | null {
+  const profilePlan = opts.kernelProfile ? KERNEL_PROFILES[opts.kernelProfile] : null;
+  const overridePlan = opts.kernelPlan ?? null;
+  if (!profilePlan && !overridePlan) return null;
+  return {
+    ...(profilePlan ?? {}),
+    ...(overridePlan ?? {}),
   };
-
-  // 3. Individual flags override everything (highest priority)
-  if (opts.computePrecision) hints.computePrecision = opts.computePrecision as KernelHints['computePrecision'];
-  if (opts.q4kMatmul) hints.q4kMatmul = opts.q4kMatmul as KernelHints['q4kMatmul'];
-  if (opts.f16Matmul) hints.f16Matmul = opts.f16Matmul as KernelHints['f16Matmul'];
-  if (opts.attentionPrefill) hints.attentionPrefill = opts.attentionPrefill as KernelHints['attentionPrefill'];
-  if (opts.attentionDecode) hints.attentionDecode = opts.attentionDecode as KernelHints['attentionDecode'];
-
-  return Object.keys(hints).length > 0 ? hints : null;
 }
 
 function appendKernelOverrideParams(params: URLSearchParams, opts: CLIOptions): void {
-  const kernelHints = buildKernelHints(opts);
-  if (kernelHints) {
-    params.set('kernelHints', JSON.stringify(kernelHints));
-  }
-  if (opts.attentionKernel) {
-    params.set('attentionKernel', opts.attentionKernel);
+  const kernelPlan = buildKernelPlan(opts);
+  if (kernelPlan) {
+    params.set('kernelPlan', JSON.stringify(kernelPlan));
   }
 }
 
@@ -605,8 +536,7 @@ Trace Categories (--trace [categories] → ?trace=<categories>):
 
 Kernel Overrides:
   --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
-  --compute-precision <f16|f32>
-  --q4k-matmul <fused_q4k|dequant_f16|dequant_f32>
+  --kernel-plan <json>          Inline kernel plan overrides
 
 Examples:
   doppler test                    # Quick correctness check
@@ -1919,10 +1849,10 @@ async function main(): Promise<void> {
       if (runtime.inference?.sampling?.temperature !== undefined) opts.temperature = runtime.inference.sampling.temperature;
       if (runtime.inference?.batching?.maxTokens !== undefined) opts.maxTokens = runtime.inference.batching.maxTokens;
 
-      // Apply kernel hints from config (can be overridden by CLI flags)
-      const configKernelHints = (loadedConfig.raw.runtime as Record<string, unknown> | undefined)?.kernelHints as KernelHints | undefined;
-      if (configKernelHints) {
-        opts.kernelHints = { ...configKernelHints, ...opts.kernelHints };
+      // Apply kernel plan from config (can be overridden by CLI flags)
+      const configKernelPlan = runtime.inference?.kernelPlan ?? null;
+      if (configKernelPlan) {
+        opts.kernelPlan = { ...configKernelPlan, ...(opts.kernelPlan ?? {}) };
       }
 
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
@@ -1936,6 +1866,9 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   }
+
+  // Resolve kernel plan after config + CLI overrides.
+  opts.kernelPlan = buildKernelPlan(opts);
 
   // Handle 'bench' command - performance mode
   // Convert 'bench' to 'test --perf' so it uses the same code path
