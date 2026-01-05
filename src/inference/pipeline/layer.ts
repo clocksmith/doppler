@@ -535,6 +535,7 @@ export async function processLayerGPU(
     attnSoftcap: config.attnLogitSoftcapping ?? 0,
     // Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16)
     queryPreAttnScalar: config.queryPreAttnScalar,
+    queryKeyNorm: config.queryKeyNorm,
   };
 
   // Select RoPE frequencies based on layer type:
@@ -848,6 +849,7 @@ async function processLayerPlanGPU(
             residualTensor,
             attnSoftcap: config.attnLogitSoftcapping ?? 0,
             queryPreAttnScalar: config.queryPreAttnScalar,
+            queryKeyNorm: config.queryKeyNorm,
             skipInputNorm: step.skipInputNorm === true,
           };
 

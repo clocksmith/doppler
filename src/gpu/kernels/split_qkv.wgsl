@@ -65,10 +65,3 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         V[vIdx] = input[srcIdx];
     }
 }
-
-// F16 variant for when KV cache uses F16
-@compute @workgroup_size(256)
-fn split_f16(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // Same logic but reads/writes f16
-    // TODO: Implement when needed
-}

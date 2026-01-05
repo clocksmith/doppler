@@ -10,7 +10,8 @@
 enable f16;
 
 // Tile dimensions - can use larger tiles with f16 due to smaller footprint
-override TILE_SIZE: u32 = 16u;
+const TILE_SIZE: u32 = 16u; // Must be const because it's used in workgroup array sizes.
+const TILE_AREA: u32 = TILE_SIZE * TILE_SIZE;
 
 // Uniforms for matrix dimensions
 struct Uniforms {
@@ -30,8 +31,9 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read_write> C: array<f16>;
 
 // Shared memory tiles - f16 allows 2x data in same space
-var<workgroup> tileA: array<f16, 256>;
-var<workgroup> tileB: array<f16, 256>;
+var<workgroup> tileA: array<f16, TILE_AREA>;
+var<workgroup> tileB: array<f16, TILE_AREA>;
+var<workgroup> tileB_vec4: array<vec4<f16>, TILE_AREA>;
 
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(
@@ -91,15 +93,14 @@ fn main(
     }
 }
 
-// Alternative entry point for vec4 f16 loads (2x throughput on some hardware)
-// This requires K and N to be multiples of 4
+// Alternative entry point for vec4 column groups (best when N is a multiple of 4)
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main_vec4(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>
 ) {
     let row = global_id.x;
-    let col = global_id.y * 4u;  // Each thread handles 4 columns
+    let col_base = global_id.y * 4u;  // Each thread handles 4 columns
     let local_row = local_id.x;
     let local_col = local_id.y;
 
@@ -120,31 +121,40 @@ fn main_vec4(
         }
 
         // Load B tile (handle transpose)
-        if (b_row < u.K && col < u.N) {
+        var b_vec: vec4<f16> = vec4<f16>(f16(0.0));
+        if (b_row < u.K) {
             if (u.transpose_b == 0u) {
-                tileB[tile_idx] = B[b_row * u.N + col];
+                if (col_base + 0u < u.N) { b_vec.x = B[b_row * u.N + col_base]; }
+                if (col_base + 1u < u.N) { b_vec.y = B[b_row * u.N + col_base + 1u]; }
+                if (col_base + 2u < u.N) { b_vec.z = B[b_row * u.N + col_base + 2u]; }
+                if (col_base + 3u < u.N) { b_vec.w = B[b_row * u.N + col_base + 3u]; }
             } else {
-                tileB[tile_idx] = B[col * u.K + b_row];
+                if (col_base + 0u < u.N) { b_vec.x = B[(col_base + 0u) * u.K + b_row]; }
+                if (col_base + 1u < u.N) { b_vec.y = B[(col_base + 1u) * u.K + b_row]; }
+                if (col_base + 2u < u.N) { b_vec.z = B[(col_base + 2u) * u.K + b_row]; }
+                if (col_base + 3u < u.N) { b_vec.w = B[(col_base + 3u) * u.K + b_row]; }
             }
-        } else {
-            tileB[tile_idx] = f16(0.0);
         }
+        tileB_vec4[tile_idx] = b_vec;
 
         workgroupBarrier();
 
         for (var k: u32 = 0u; k < TILE_SIZE; k = k + 1u) {
             let a_val = f32(tileA[local_row * TILE_SIZE + k]);
-            let b_idx = k * TILE_SIZE + local_col;
-            // Broadcast A value across 4 B values
-            let b_val = f32(tileB[b_idx]);
-            sum.x = sum.x + a_val * b_val;
+            let b_val = tileB_vec4[k * TILE_SIZE + local_col];
+            sum = sum + a_val * vec4<f32>(b_val);
         }
 
         workgroupBarrier();
     }
 
     // Write results
-    if (row < u.M && col < u.N) {
-        C[row * u.N + col] = f16(sum.x * u.alpha);
+    if (row < u.M && col_base < u.N) {
+        let base = row * u.N + col_base;
+        let scaled = sum * u.alpha;
+        if (col_base + 0u < u.N) { C[base] = f16(scaled.x); }
+        if (col_base + 1u < u.N) { C[base + 1u] = f16(scaled.y); }
+        if (col_base + 2u < u.N) { C[base + 2u] = f16(scaled.z); }
+        if (col_base + 3u < u.N) { C[base + 3u] = f16(scaled.w); }
     }
 }

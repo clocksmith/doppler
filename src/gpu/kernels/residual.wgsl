@@ -13,7 +13,6 @@ struct Uniforms {
 }
 
 override WORKGROUP_SIZE: u32 = 256u;
-override WORKGROUP_SIZE_VEC4: u32 = 64u;
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> a: array<f32>;
@@ -39,31 +38,6 @@ fn add_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
         return;
     }
     output[idx] = output[idx] + b[idx];
-}
-
-// Vectorized version for better throughput
-@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
-fn add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x * 4u;
-    let size = u.size;
-
-    if (idx >= size) {
-        return;
-    }
-
-    // Handle up to 4 elements at a time
-    let remaining = min(4u, size - idx);
-
-    if (remaining >= 4u) {
-        output[idx] = a[idx] + b[idx];
-        output[idx + 1u] = a[idx + 1u] + b[idx + 1u];
-        output[idx + 2u] = a[idx + 2u] + b[idx + 2u];
-        output[idx + 3u] = a[idx + 3u] + b[idx + 3u];
-    } else {
-        for (var i = 0u; i < remaining; i = i + 1u) {
-            output[idx + i] = a[idx + i] + b[idx + i];
-        }
-    }
 }
 
 // Fused residual + scale: output = a + scale * b

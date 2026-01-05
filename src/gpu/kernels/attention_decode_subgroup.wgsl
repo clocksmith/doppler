@@ -12,6 +12,8 @@ enable subgroups;
 
 // Workgroup size for decode
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_KV_LEN: u32 = 2048u;
+const MAX_SUBGROUPS: u32 = 256u;
 
 // Uniforms must match TypeScript createAttentionUniformBuffer() layout exactly:
 // offset 0: numHeads, offset 4: numKVHeads, offset 8: headDim,
@@ -38,8 +40,8 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Shared memory for attention scores and cross-subgroup reduction
-var<workgroup> scores: array<f32, 2048>;
-var<workgroup> subgroup_sums: array<f32, 8>;  // For 8 subgroups of size 32
+var<workgroup> scores: array<f32, MAX_KV_LEN>;
+var<workgroup> subgroup_sums: array<f32, MAX_SUBGROUPS>;
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
 
@@ -75,6 +77,9 @@ fn main(
     let tid = local_id.x;
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
+    if (head_dim > WORKGROUP_SIZE || kv_len > MAX_KV_LEN) {
+        return;
+    }
     let valid_thread = tid < head_dim;
     let subgroup_id = tid / subgroup_size;
     let num_subgroups = (head_dim + subgroup_size - 1u) / subgroup_size;

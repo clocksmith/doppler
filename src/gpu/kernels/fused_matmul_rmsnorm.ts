@@ -49,20 +49,13 @@ export interface MatmulRMSNormFusedOptions extends OutputBufferOptions {
  * Select fused kernel variant based on output size
  *
  * - small: N <= WORKGROUP_SIZES.DEFAULT (one element per thread)
- * - medium: N <= fusedMatmul.maxMediumN (multiple elements per thread, single workgroup)
- * - default: N > maxMediumN (multi-workgroup, but RMSNorm is incomplete - avoid)
+ * - medium: N > WORKGROUP_SIZES.DEFAULT (multiple elements per thread, single workgroup)
  */
 export function selectMatmulRMSNormFusedVariant(N: number): string {
-  const thresholds = getKernelThresholds().fusedMatmul;
   if (N <= WORKGROUP_SIZES.DEFAULT) {
-    return 'small';  // Single workgroup, one element per thread
+    return 'small';
   }
-  if (N <= thresholds.maxMediumN) {
-    return 'medium';  // Single workgroup, multiple elements per thread
-  }
-  // For very large N, fall back to default (incomplete RMSNorm)
-  // In practice, should not use fused kernel for N > maxMediumN
-  return 'default';
+  return 'medium';
 }
 
 /**

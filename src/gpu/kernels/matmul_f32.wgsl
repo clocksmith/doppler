@@ -7,7 +7,8 @@
 // Uses 16x16 tiles for good occupancy across devices.
 
 // Tile dimensions - optimized for 256 threads per workgroup
-override TILE_SIZE: u32 = 16u;
+const TILE_SIZE: u32 = 16u; // Must be const because it's used in workgroup array sizes.
+const TILE_AREA: u32 = TILE_SIZE * TILE_SIZE;
 
 // Uniforms for matrix dimensions
 struct Uniforms {
@@ -27,8 +28,8 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
 // Shared memory tiles for A and B
-var<workgroup> tileA: array<f32, 256>;  // TILE_SIZE * TILE_SIZE
-var<workgroup> tileB: array<f32, 256>;  // TILE_SIZE * TILE_SIZE
+var<workgroup> tileA: array<f32, TILE_AREA>;
+var<workgroup> tileB: array<f32, TILE_AREA>;
 
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(

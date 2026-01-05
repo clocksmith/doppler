@@ -41,15 +41,17 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 // Chunk size for KV cache processing (matches workgroup size)
 override CHUNK_SIZE: u32 = 256u;
+const MAX_HEAD_DIM: u32 = 256u;
+const MAX_SUBGROUPS: u32 = 256u;
 
 // Shared memory for Q vector and partial results
-var<workgroup> shared_q: array<f32, 256>;       // Q values for this head
+var<workgroup> shared_q: array<f32, MAX_HEAD_DIM>;       // Q values for this head
 var<workgroup> shared_scores: array<f32, 256>;  // Attention scores
 var<workgroup> shared_out: array<f32, 256>;     // Partial output accumulator
 
 // For cross-subgroup reductions
-var<workgroup> sg_max: array<f32, 8>;           // Subgroup maxes
-var<workgroup> sg_sum: array<f32, 8>;           // Subgroup sums
+var<workgroup> sg_max: array<f32, MAX_SUBGROUPS>;           // Subgroup maxes
+var<workgroup> sg_sum: array<f32, MAX_SUBGROUPS>;           // Subgroup sums
 var<workgroup> global_max: f32;
 var<workgroup> global_sum: f32;
 
@@ -71,13 +73,22 @@ fn main(
     let tid = local_id.x;
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
 
     // GQA: map query head to KV head
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
 
     let subgroup_id = tid / subgroup_size;
-    let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
+    let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;
 
     // Scale factor for attention
     let scale = 1.0 / sqrt(f32(head_dim));
@@ -322,7 +333,7 @@ fn main_f16kv(
     let kv_head_idx = head_idx / heads_per_kv;
 
     let subgroup_id = tid / subgroup_size;
-    let num_subgroups = min(8u, (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size);
+    let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;
 
     let scale = 1.0 / sqrt(f32(head_dim));
 

@@ -7,7 +7,8 @@
 
 enable f16;
 
-override TILE_SIZE: u32 = 16u;
+const TILE_SIZE: u32 = 16u; // Must be const because it's used in workgroup array sizes.
+const TILE_AREA: u32 = TILE_SIZE * TILE_SIZE;
 
 struct Uniforms {
     M: u32,
@@ -25,8 +26,8 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
-var<workgroup> tileA: array<f32, 256>;
-var<workgroup> tileB: array<f16, 256>;
+var<workgroup> tileA: array<f32, TILE_AREA>;
+var<workgroup> tileB: array<f16, TILE_AREA>;
 
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(
@@ -79,4 +80,3 @@ fn main(
         C[row * u.N + col] = sum * u.alpha;
     }
 }
-

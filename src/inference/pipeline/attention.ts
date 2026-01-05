@@ -385,10 +385,11 @@ export async function runLayerAttentionGPU(
   }
 
   // Optional per-head Q/K norm (Gemma-family)
+  const wantsQKNorm = config.queryKeyNorm === true;
   const hasQNorm = !!layerWeights.qNorm;
   const hasKNorm = !!layerWeights.kNorm;
   if (isKernelDebugEnabled(layerIdx)) {
-    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm}` });
+    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm} wants=${wantsQKNorm}` });
   }
 
   // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
@@ -412,6 +413,20 @@ export async function runLayerAttentionGPU(
       }
     }
     if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
+  } else if (wantsQKNorm) {
+    if (layerIdx === 0 && isPrefill) {
+      trace.attn(layerIdx, `Q_NORM: using unit weights (headDim=${headDim})`);
+    }
+    const qNormBuf = getQKNormOnesBuffer(headDim);
+    const qNormedTensor = await runRMSNorm(qTensor, qNormBuf, rmsNormEps, {
+      batchSize: numTokens * numHeads,
+      hiddenSize: headDim,
+    });
+    releaseBuffer(qTensor.buffer);
+    qTensor = qNormedTensor;
+    if (isKernelDebugEnabled(layerIdx)) {
+      await dumpTokenVector(qTensor.buffer, 'Q_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+    }
   }
 
   if (hasKNorm && getNormWeightBuffer && layerWeights.kNorm) {
@@ -429,6 +444,20 @@ export async function runLayerAttentionGPU(
       }
     }
     if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
+  } else if (wantsQKNorm) {
+    if (layerIdx === 0 && isPrefill) {
+      trace.attn(layerIdx, `K_NORM: using unit weights (headDim=${headDim})`);
+    }
+    const kNormBuf = getQKNormOnesBuffer(headDim);
+    const kNormedTensor = await runRMSNorm(kTensor, kNormBuf, rmsNormEps, {
+      batchSize: numTokens * numKVHeads,
+      hiddenSize: headDim,
+    });
+    releaseBuffer(kTensor.buffer);
+    kTensor = kNormedTensor;
+    if (isKernelDebugEnabled(layerIdx)) {
+      await dumpTokenVector(kTensor.buffer, 'K_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+    }
   }
 
   if (normed !== attentionInput) releaseBuffer(normed.buffer);
@@ -855,6 +884,7 @@ export async function recordLayerAttentionGPU(
 
   // Optional per-head Q/K norm (Gemma-family)
   // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
+  const wantsQKNorm = config.queryKeyNorm === true;
   if (layerWeights.qNorm && getNormWeightBuffer) {
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
@@ -867,6 +897,14 @@ export async function recordLayerAttentionGPU(
       qTensor = qNormedTensor;
     }
     if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
+  } else if (wantsQKNorm) {
+    const qNormBuf = getQKNormOnesBuffer(headDim);
+    const qNormedTensor = await recordRMSNorm(recorder, qTensor, qNormBuf, rmsNormEps, {
+      batchSize: numTokens * numHeads,
+      hiddenSize: headDim,
+    });
+    releaseBuffer(qTensor.buffer);
+    qTensor = qNormedTensor;
   }
 
   if (layerWeights.kNorm && getNormWeightBuffer) {
@@ -881,6 +919,14 @@ export async function recordLayerAttentionGPU(
       kTensor = kNormedTensor;
     }
     if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
+  } else if (wantsQKNorm) {
+    const kNormBuf = getQKNormOnesBuffer(headDim);
+    const kNormedTensor = await recordRMSNorm(recorder, kTensor, kNormBuf, rmsNormEps, {
+      batchSize: numTokens * numKVHeads,
+      hiddenSize: headDim,
+    });
+    releaseBuffer(kTensor.buffer);
+    kTensor = kNormedTensor;
   }
 
   if (normed !== attentionInput) releaseBuffer(normed.buffer);

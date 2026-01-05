@@ -21,20 +21,24 @@ struct StopUniforms {
     currentPos: u32,
 }
 
+struct ScalarU32 {
+    value: u32,
+}
+
 @group(0) @binding(0) var<uniform> uniforms: StopUniforms;
-@group(0) @binding(1) var<storage, read> sampledToken: u32;
-@group(0) @binding(2) var<storage, read_write> shouldStop: u32;
+@group(0) @binding(1) var<storage, read> sampledToken: ScalarU32;
+@group(0) @binding(2) var<storage, read_write> shouldStop: ScalarU32;
 
 @compute @workgroup_size(1, 1, 1)
 fn main() {
-    let token = sampledToken;
+    let token = sampledToken.value;
     let isEOS = (token == uniforms.eosTokenId);
     let reachedMax = (uniforms.currentPos >= uniforms.maxTokens);
 
     if (isEOS || reachedMax) {
-        shouldStop = 1u;
+        shouldStop.value = 1u;
     } else {
-        shouldStop = 0u;
+        shouldStop.value = 0u;
     }
 }
 `;

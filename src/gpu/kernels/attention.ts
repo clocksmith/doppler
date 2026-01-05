@@ -194,6 +194,9 @@ function resolveAttentionVariant(
   const chunkedMaxKVLen = getChunkedMaxKVLen();
   const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
+  const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
+  const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.tierHeadDimLimits.tier1;
+  const canUseDecodeSubgroup = isDecode && !useF16KV && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
 
   if (tier === 'subgroup') {
     // decode_subgroup only supports F32 KV cache
@@ -208,7 +211,10 @@ function resolveAttentionVariant(
       }
       return 'decode_streaming_f16kv';
     }
-    return 'decode_subgroup';
+    if (canUseDecodeSubgroup) {
+      return 'decode_subgroup';
+    }
+    return 'decode_streaming';
   }
   if (tier === 'tiled_large') {
     return base + (useF16KV ? '_f16kv' : '');

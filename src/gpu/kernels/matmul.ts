@@ -464,8 +464,9 @@ function calculateMatmulDispatch(
     workgroupsX = Math.ceil(N / wgX);
     workgroupsY = 1;
   } else {
+    const colsPerThread = variant === 'f16_vec4' ? 4 : 1;
     workgroupsX = Math.ceil(M / wgX);
-    workgroupsY = Math.ceil(N / wgY);
+    workgroupsY = Math.ceil(N / (wgY * colsPerThread));
   }
 
   return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };

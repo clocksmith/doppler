@@ -79,7 +79,7 @@
           "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
         },
         "q4_fused_batched": {
-          "wgsl": "fused_matmul_q4.wgsl",
+          "wgsl": "fused_matmul_q4_batched.wgsl",
           "entryPoint": "main_batched",
           "workgroup": [64, 4, 1],
           "requires": ["shader-f16", "subgroups"]
@@ -319,7 +319,7 @@
           "requires": []
         },
         "decode": {
-          "wgsl": "attention.wgsl",
+          "wgsl": "attention_decode.wgsl",
           "entryPoint": "attention_decode",
           "workgroup": [256, 1, 1],
           "requires": []
@@ -355,7 +355,7 @@
           "requires": ["shader-f16"]
         },
         "decode_f16kv": {
-          "wgsl": "attention_f16kv.wgsl",
+          "wgsl": "attention_decode_f16kv.wgsl",
           "entryPoint": "attention_decode",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
@@ -458,7 +458,7 @@
       "variants": {
         "default": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
-          "entryPoint": "main",
+          "entryPoint": "gemv_rmsnorm_medium",
           "workgroup": [256, 1, 1],
           "requires": []
         },
@@ -753,7 +753,7 @@
           "requires": []
         },
         "vec4": {
-          "wgsl": "residual.wgsl",
+          "wgsl": "residual_vec4.wgsl",
           "entryPoint": "add_vec4",
           "workgroup": [64, 1, 1],
           "requires": []

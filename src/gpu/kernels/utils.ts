@@ -135,7 +135,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: ['shader-f16', 'subgroups'],
     },
     q4_fused_batched: {
-      shaderFile: 'fused_matmul_q4.wgsl',
+      shaderFile: 'fused_matmul_q4_batched.wgsl',
       entryPoint: 'main_batched',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
@@ -159,7 +159,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       variantMetadata: { colsPerWg: 32 },
     },
     q4_fused_batched_f16: {
-      shaderFile: 'fused_matmul_q4.wgsl',
+      shaderFile: 'fused_matmul_q4_batched.wgsl',
       entryPoint: 'main_batched_f16',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
@@ -313,7 +313,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       validate: validateAttentionLimits,
     },
     decode: {
-      shaderFile: 'attention.wgsl',
+      shaderFile: 'attention_decode.wgsl',
       entryPoint: 'attention_decode',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -352,7 +352,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       validate: validateAttentionLimits,
     },
     decode_f16kv: {
-      shaderFile: 'attention_f16kv.wgsl',
+      shaderFile: 'attention_decode_f16kv.wgsl',
       entryPoint: 'attention_decode',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
@@ -437,7 +437,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
   fused_matmul_rmsnorm: {
     default: {
       shaderFile: 'fused_matmul_rmsnorm.wgsl',
-      entryPoint: 'main',
+      entryPoint: 'gemv_rmsnorm_medium',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
@@ -687,7 +687,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     vec4: {
-      shaderFile: 'residual.wgsl',
+      shaderFile: 'residual_vec4.wgsl',
       entryPoint: 'add_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -700,7 +700,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       outputDtype: 'f16',
     },
     vec4_f16: {
-      shaderFile: 'residual_f16.wgsl',
+      shaderFile: 'residual_f16_vec4.wgsl',
       entryPoint: 'add_vec4',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
