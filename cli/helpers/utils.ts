@@ -552,6 +552,13 @@ export async function setupPage(context: BrowserContext, opts: CLIOptions): Prom
   page.on('console', (msg) => {
     const text = msg.text();
     const isRelevant = relevantTags.some((tag) => text.includes(tag));
+    const isError = /error|fail/i.test(text);
+    if (opts.quiet) {
+      if (isError) {
+        console.log(`  [browser] ${text}`);
+      }
+      return;
+    }
     if (opts.verbose || isRelevant) {
       console.log(`  [browser] ${text}`);
     }
@@ -563,7 +570,9 @@ export async function setupPage(context: BrowserContext, opts: CLIOptions): Prom
 
   // Log all network failures
   page.on('requestfailed', (req) => {
-    console.log(`  [network 404] ${req.url()}`);
+    if (!opts.quiet) {
+      console.log(`  [network 404] ${req.url()}`);
+    }
   });
 
   if (opts.noServer) {

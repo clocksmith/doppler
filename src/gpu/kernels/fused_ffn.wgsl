@@ -22,7 +22,6 @@
 // - Uses subgroup operations for reduction
 // - Achieves 2-3x speedup over separate kernel approach
 
-enable f16;
 enable subgroups;
 
 // Q4_K constants
@@ -154,8 +153,8 @@ fn main(
 
 // Optimized variant: Multiple outputs per workgroup
 // For better GPU utilization when intermediate_size is small
-override OUTPUTS_PER_WG: u32 = 4u;
-override THREADS_PER_OUTPUT: u32 = 64u;
+const OUTPUTS_PER_WG: u32 = 4u;
+const THREADS_PER_OUTPUT: u32 = 64u;
 
 var<workgroup> multi_sg_sums: array<f32, OUTPUTS_PER_WG * MAX_SUBGROUPS_PER_OUTPUT * 2u>;
 

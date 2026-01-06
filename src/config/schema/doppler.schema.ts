@@ -27,6 +27,7 @@ import type { GpuCacheConfigSchema } from './gpu-cache.schema.js';
 import type { TunerConfigSchema } from './tuner.schema.js';
 import type { MemoryLimitsConfigSchema } from './memory-limits.schema.js';
 import type { DebugConfigSchema } from './debug.schema.js';
+import type { HotSwapConfigSchema } from './hotswap.schema.js';
 import type { BridgeConfigSchema } from './bridge.schema.js';
 
 import { DEFAULT_DISTRIBUTION_CONFIG } from './distribution.schema.js';
@@ -40,6 +41,7 @@ import { DEFAULT_GPU_CACHE_CONFIG } from './gpu-cache.schema.js';
 import { DEFAULT_TUNER_CONFIG } from './tuner.schema.js';
 import { DEFAULT_MEMORY_LIMITS_CONFIG } from './memory-limits.schema.js';
 import { DEFAULT_DEBUG_CONFIG } from './debug.schema.js';
+import { DEFAULT_HOTSWAP_CONFIG } from './hotswap.schema.js';
 import { DEFAULT_BRIDGE_CONFIG } from './bridge.schema.js';
 
 // =============================================================================
@@ -86,6 +88,9 @@ export interface RuntimeConfigSchema {
   /** Logging and tracing */
   debug: DebugConfigSchema;
 
+  /** Hot-swap security policy */
+  hotSwap: HotSwapConfigSchema;
+
   /** Native bridge settings (Tier 2) */
   bridge: BridgeConfigSchema;
 }
@@ -103,6 +108,7 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfigSchema = {
   tuner: DEFAULT_TUNER_CONFIG,
   memory: DEFAULT_MEMORY_LIMITS_CONFIG,
   debug: DEFAULT_DEBUG_CONFIG,
+  hotSwap: DEFAULT_HOTSWAP_CONFIG,
   bridge: DEFAULT_BRIDGE_CONFIG,
 };
 
@@ -272,6 +278,13 @@ function mergeRuntimeConfig(
           probes: overrides.debug.probes ?? base.debug.probes,
         }
       : { ...base.debug },
+    hotSwap: overrides.hotSwap
+      ? {
+          ...base.hotSwap,
+          ...overrides.hotSwap,
+          trustedSigners: overrides.hotSwap.trustedSigners ?? base.hotSwap.trustedSigners,
+        }
+      : { ...base.hotSwap },
     bridge: { ...base.bridge, ...overrides.bridge },
   };
 }

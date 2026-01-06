@@ -149,7 +149,7 @@ export async function runGather(
     entries,
   });
 
-  // gather.wgsl: main uses @workgroup_size(256), gather_vec4 uses @workgroup_size(64)
+  // gather.wgsl uses @workgroup_size(256); gather_vec4.wgsl uses @workgroup_size(64)
   // vec4 variant: 64 threads × 4 floats = 256 floats per workgroup
   const workgroups = useVec4
     ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
@@ -234,7 +234,7 @@ export async function recordGather(
     entries,
   });
 
-  // gather.wgsl: main uses @workgroup_size(256), gather_vec4 uses @workgroup_size(64)
+  // gather.wgsl uses @workgroup_size(256); gather_vec4.wgsl uses @workgroup_size(64)
   // vec4 variant: 64 threads × 4 floats = 256 floats per workgroup
   const workgroups = useVec4
     ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)

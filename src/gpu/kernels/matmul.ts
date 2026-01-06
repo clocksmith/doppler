@@ -383,8 +383,6 @@ function selectMatmulVariantAndFlags(
       } else {
         variant = 'gemv';
       }
-    } else if (M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32') {
-      variant = 'f16w_f32a_naive';
     }
   }
 
@@ -459,9 +457,6 @@ function calculateMatmulDispatch(
     }
   } else if (useGemv) {
     workgroupsX = N;
-    workgroupsY = 1;
-  } else if (variant === 'f16w_f32a_naive') {
-    workgroupsX = Math.ceil(N / wgX);
     workgroupsY = 1;
   } else {
     const colsPerThread = variant === 'f16_vec4' ? 4 : 1;
@@ -671,7 +666,7 @@ export async function runMatmul(
     device
   );
 
-  // Q4K F16 variants use binding 4 for output (F16), F32 variants use binding 3
+  // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
   const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
   const entries: GPUBindGroupEntry[] = [
     { binding: 0, resource: { buffer: uniformBuffer } },
@@ -680,17 +675,9 @@ export async function runMatmul(
   ];
 
   if (isQ4KF16) {
-    // F16 output at binding 4, dummy at binding 3 (shader declares both)
-    const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
-    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
     entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
   } else {
     entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
-    // Only add binding 4 for Q4K F32 variants (shader declares it)
-    if (useQ4KFused) {
-      const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
-      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
-    }
   }
 
   const bindGroup = device.createBindGroup({
@@ -821,7 +808,7 @@ export async function recordMatmul(
     device
   );
 
-  // Q4K F16 variants use binding 4 for output (F16), F32 variants use binding 3
+  // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
   const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
   const entries: GPUBindGroupEntry[] = [
     { binding: 0, resource: { buffer: uniformBuffer } },
@@ -830,17 +817,9 @@ export async function recordMatmul(
   ];
 
   if (isQ4KF16) {
-    // F16 output at binding 4, dummy at binding 3 (shader declares both)
-    const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
-    entries.push({ binding: 3, resource: { buffer: dummyBuffer, size: 4 } });
     entries.push({ binding: 4, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
   } else {
     entries.push({ binding: 3, resource: { buffer: C, offset: cOffset, size: cBindingSize } });
-    // Only add binding 4 for Q4K F32 variants (shader declares it)
-    if (useQ4KFused) {
-      const dummyBuffer = acquireBuffer(4, undefined, 'q4k_dummy');
-      entries.push({ binding: 4, resource: { buffer: dummyBuffer, size: 4 } });
-    }
   }
 
   const bindGroup = device.createBindGroup({

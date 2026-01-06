@@ -1,16 +1,9 @@
-// Fused Q4_K Matmul Kernel - W4A16
-// Directly computes C = A * dequant(B_q4k) without separate dequant pass
+// Fused Q4_K Matmul Kernel - W4A16 (F16 output, multicol)
 //
-// For M=1 decode (GEMV): C[N] = A[K] * B_q4k^T[N,K]
-// B_q4k is stored in Q4_K format: [N * ceil(K/256) * 144 bytes]
-//
-// Key optimizations:
-// 1. Fused dequant + matmul - eliminates memory round-trip (2-3x speedup)
-// 2. Subgroup operations for reduction
-// 3. On-the-fly dequantization in registers
-//
-// A is f32 (activations), B_q4k is Q4_K quantized weights, C is f32.
+// Computes C_f16 = A * dequant(B_q4k) for large vocab GEMV.
+// Uses multi-column workgroups to reduce launch overhead.
 
+enable f16;
 enable subgroups;
 
 // Q4_K constants
@@ -19,7 +12,6 @@ const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
 override WORKGROUP_SIZE: u32 = 256u;
-const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
 
 struct Uniforms {
     M: u32,                   // Always 1 for GEMV
@@ -43,10 +35,7 @@ struct Q4KBlock {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
-@group(0) @binding(3) var<storage, read_write> C: array<f32>;
-
-// Shared memory for subgroup reduction
-var<workgroup> wg_sums: array<f32, MAX_SUBGROUPS>;
+@group(0) @binding(4) var<storage, read_write> C_f16: array<f16>;
 
 // Extract f16 from packed u32
 fn unpack_f16_lo(packed: u32) -> f32 {
@@ -101,44 +90,32 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
     }
 }
 
-// ============================================================================
-// Batched version for prefill (M > 1)
-// Uses 2D dispatch: workgroup (x,y) computes output C[y*TILE_M : (y+1)*TILE_M, x]
-// Each workgroup computes TILE_M rows × 1 column
-//
-// IMPORTANT: Previous version used 16 threads per column which caused subgroup
-// mixing when sg_size=32 (two columns in same subgroup). This version uses
-// 64 threads per column to ensure correct subgroup reduction.
-override TILE_M: u32 = 4u;
-override THREADS_PER_COL: u32 = 64u;
-const MAX_SUBGROUPS_PER_ROW: u32 = 64u;  // Support sg_size >= 1 (64/1 = 64)
+// Multi-column GEMV for large vocab (LM head)
+// Workgroup layout: 256 threads = 8 threads per column × 32 columns
+override COLS_PER_WG: u32 = 32u;
+override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
 
-// Shared memory for per-row subgroup reduction: 4 rows × 16 max subgroups = 64
-var<workgroup> batched_wg_sums: array<f32, 256>;
+// Shared memory for reduction: 32 columns × 8 threads = 256
+var<workgroup> multicol_sums: array<f32, 256>;
 
-@compute @workgroup_size(64, 4, 1)
-fn main_batched(
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_multicol_f16(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
     let local_id = lid.x;
-    let row = wg_id.y * TILE_M + lid.y;
-    let col = wg_id.x;  // One column per workgroup X (no more /16 mixing)
-
-    // Track validity - NO early return to maintain uniform control flow for subgroupAdd
-    let is_valid = row < u.M && col < u.N;
+    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
+    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
+    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+    let is_valid = col < u.N;
 
     var partial_sum: f32 = 0.0;
 
-    // Only do work if this output cell is valid
     if (is_valid) {
         let num_blocks = u.num_blocks_per_row;
-
-        // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
-        // Each thread processes every 64th block (instead of 16th)
-        for (var b: u32 = local_id; b < num_blocks; b = b + THREADS_PER_COL) {
+        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
             let block = B_q4k[col * num_blocks + b];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
@@ -148,40 +125,40 @@ fn main_batched(
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
+                let sb_base = sb * SUBBLOCK_SIZE;
 
-                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 1u) {
-                    let elem = sb * SUBBLOCK_SIZE + i;
-                    let k = k_base + elem;
-                    if (k < u.K) {
-                        let a_val = A[row * u.K + k];
-                        let q = get_q4(block.qs, elem);
-                        let w = scale * f32(q) - min_val;
-                        partial_sum = partial_sum + a_val * w;
-                    }
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let k0 = k_base + sb_base + i;
+                    let a0 = A[k0];
+                    let a1 = A[k0 + 1u];
+                    let a2 = A[k0 + 2u];
+                    let a3 = A[k0 + 3u];
+
+                    let q0 = get_q4(block.qs, sb_base + i);
+                    let q1 = get_q4(block.qs, sb_base + i + 1u);
+                    let q2 = get_q4(block.qs, sb_base + i + 2u);
+                    let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
                 }
             }
         }
-    }  // end if (is_valid)
-
-    // Subgroup reduction - ALL threads must execute (uniform control flow)
-    let sg_sum = subgroupAdd(partial_sum);
-
-    // Store subgroup results to shared memory (per-row)
-    let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;
-
-    if (sg_id == 0u && local_id < THREADS_PER_COL) {
-        let sg_idx = local_id / sg_size;
-        batched_wg_sums[lid.y * MAX_SUBGROUPS_PER_ROW + sg_idx] = sg_sum;
     }
 
+    multicol_sums[local_id] = partial_sum;
     workgroupBarrier();
 
-    // Thread 0 of each row does final reduction and writes result
-    if (local_id == 0u && is_valid) {
+    if (tid_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
-        for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
-            final_sum = final_sum + batched_wg_sums[lid.y * MAX_SUBGROUPS_PER_ROW + i];
+        let base = col_in_wg * THREADS_PER_COL_GEMV;
+        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
+            final_sum = final_sum + multicol_sums[base + i];
         }
-        C[row * u.N + col] = final_sum * u.alpha;
+        C_f16[col] = f16(final_sum * u.alpha);
     }
 }

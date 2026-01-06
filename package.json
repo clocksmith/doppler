@@ -26,7 +26,10 @@
     "bench": "tsx cli/index.ts bench",
     "debug": "tsx cli/index.ts debug",
     "build": "tsc --project tsconfig.build.json",
-    "build:benchmark": "node -e \"const esbuild = require('esbuild'); const files = require('fs').readdirSync('tests/benchmark').filter(f => f.endsWith('.ts')); files.forEach(f => esbuild.buildSync({ entryPoints: ['tests/benchmark/' + f], outfile: 'tests/benchmark/' + f.replace('.ts', '.js'), format: 'esm', platform: 'browser', target: 'es2022', bundle: false }));\""
+    "build:benchmark": "node -e \"const esbuild = require('esbuild'); const files = require('fs').readdirSync('tests/benchmark').filter(f => f.endsWith('.ts')); files.forEach(f => esbuild.buildSync({ entryPoints: ['tests/benchmark/' + f], outfile: 'tests/benchmark/' + f.replace('.ts', '.js'), format: 'esm', platform: 'browser', target: 'es2022', bundle: false }));\"",
+    "kernels:validate": "tsx tools/validate-kernel-registry.ts",
+    "kernels:lint": "tsx tools/lint-wgsl-overrides.ts",
+    "kernels:check": "npm run kernels:validate && npm run kernels:lint"
   },
   "keywords": [
     "doppler",

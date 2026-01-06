@@ -38,12 +38,6 @@
           "workgroup": [16, 16, 1],
           "requires": ["shader-f16"]
         },
-        "f16w_f32a_naive": {
-          "wgsl": "matmul_f16w_f32a_naive.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"]
-        },
         "gemv": {
           "wgsl": "matmul_gemv.wgsl",
           "entryPoint": "main",
@@ -75,21 +69,34 @@
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"],
+          "requires": ["subgroups"],
           "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
         },
         "q4_fused_batched": {
           "wgsl": "fused_matmul_q4_batched.wgsl",
           "entryPoint": "main_batched",
           "workgroup": [64, 4, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["subgroups"]
         },
         "q4_fused_multicol": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"],
+          "requires": ["subgroups"],
           "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup"
+        },
+        "q4_fused_multicol_f16": {
+          "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
+          "entryPoint": "main_multicol_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Multi-column GEMV for large vocab (LM head) - F16 output"
+        },
+        "q4_fused_batched_f16": {
+          "wgsl": "fused_matmul_q4_batched_f16.wgsl",
+          "entryPoint": "main_batched_f16",
+          "workgroup": [64, 4, 1],
+          "requires": ["shader-f16", "subgroups"]
         },
         "f32": {
           "wgsl": "matmul_f32.wgsl",
@@ -135,7 +142,7 @@
           "wgsl": "fused_ffn.wgsl",
           "entryPoint": "main_f16",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["subgroups"]
         },
         "batched": {
           "wgsl": "fused_ffn.wgsl",
@@ -183,7 +190,7 @@
           "wgsl": "attention_decode_optimized.wgsl",
           "entryPoint": "main_f16kv",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["subgroups"]
         }
       }
     },
@@ -218,13 +225,13 @@
           "wgsl": "dequant_f16_out.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
-          "requires": ["subgroups", "shader-f16"]
+          "requires": ["shader-f16"]
         },
         "subgroup_vec4_f16out": {
-          "wgsl": "dequant_f16_out.wgsl",
+          "wgsl": "dequant_f16_out_vec4.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [64, 1, 1],
-          "requires": ["subgroups", "shader-f16"]
+          "requires": ["shader-f16"]
         },
         "shared": {
           "wgsl": "dequant_shared.wgsl",
@@ -233,7 +240,7 @@
           "requires": []
         },
         "shared_vec4": {
-          "wgsl": "dequant_shared.wgsl",
+          "wgsl": "dequant_shared_vec4.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
@@ -245,7 +252,7 @@
           "requires": ["shader-f16"]
         },
         "shared_vec4_f16out": {
-          "wgsl": "dequant_f16_out.wgsl",
+          "wgsl": "dequant_f16_out_vec4.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [64, 1, 1],
           "requires": ["shader-f16"]
@@ -258,13 +265,13 @@
           "description": "MXFP4 dequantization (GPT-OSS)"
         },
         "mxfp4_vec4": {
-          "wgsl": "dequant_mxfp4.wgsl",
+          "wgsl": "dequant_mxfp4_vec4.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
         },
         "mxfp4_expert": {
-          "wgsl": "dequant_mxfp4.wgsl",
+          "wgsl": "dequant_mxfp4_expert.wgsl",
           "entryPoint": "main_expert",
           "workgroup": [256, 1, 1],
           "requires": []
@@ -406,14 +413,16 @@
         { "index": 0, "name": "uniforms", "type": "uniform" },
         { "index": 1, "name": "input", "type": "read-only-storage" },
         { "index": 2, "name": "weight", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 3, "name": "output", "type": "storage" },
+        { "index": 4, "name": "residual", "type": "read-only-storage" }
       ],
       "baseUniforms": {
         "size": 16,
         "fields": [
           { "name": "hidden_size", "type": "u32", "offset": 0 },
           { "name": "num_tokens", "type": "u32", "offset": 4 },
-          { "name": "eps", "type": "f32", "offset": 8 }
+          { "name": "eps", "type": "f32", "offset": 8 },
+          { "name": "has_residual", "type": "u32", "offset": 12 }
         ]
       },
       "variants": {
@@ -434,6 +443,18 @@
           "entryPoint": "rmsnorm_inplace_residual",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "default_f16": {
+          "wgsl": "rmsnorm_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "small_f16": {
+          "wgsl": "rmsnorm_f16.wgsl",
+          "entryPoint": "rmsnorm_small_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -655,6 +676,36 @@
           "entryPoint": "geglu_rowsplit",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "default_f16": {
+          "wgsl": "silu_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "gate_f16": {
+          "wgsl": "silu_f16.wgsl",
+          "entryPoint": "silu_gate_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "vec4_f16": {
+          "wgsl": "silu_f16.wgsl",
+          "entryPoint": "silu_vec4_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "gate_rowsplit_f16": {
+          "wgsl": "silu_f16.wgsl",
+          "entryPoint": "silu_gate_rowsplit_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "geglu_rowsplit_f16": {
+          "wgsl": "silu_f16.wgsl",
+          "entryPoint": "geglu_rowsplit_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -691,16 +742,17 @@
       "description": "Embedding lookup kernels",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
-        { "index": 1, "name": "embeddings", "type": "read-only-storage" },
-        { "index": 2, "name": "indices", "type": "read-only-storage" },
+        { "index": 1, "name": "indices", "type": "read-only-storage" },
+        { "index": 2, "name": "embeddings", "type": "read-only-storage" },
         { "index": 3, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
         "size": 16,
         "fields": [
-          { "name": "vocab_size", "type": "u32", "offset": 0 },
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
           { "name": "hidden_size", "type": "u32", "offset": 4 },
-          { "name": "num_tokens", "type": "u32", "offset": 8 }
+          { "name": "vocab_size", "type": "u32", "offset": 8 },
+          { "name": "transpose", "type": "u32", "offset": 12 }
         ]
       },
       "variants": {
@@ -711,7 +763,7 @@
           "requires": []
         },
         "vec4": {
-          "wgsl": "gather.wgsl",
+          "wgsl": "gather_vec4.wgsl",
           "entryPoint": "gather_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
@@ -724,8 +776,34 @@
           "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)"
         },
         "f16_vec4": {
-          "wgsl": "gather_f16.wgsl",
+          "wgsl": "gather_f16_vec4.wgsl",
           "entryPoint": "gather_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16_out": {
+          "wgsl": "gather_f16_out.wgsl",
+          "entryPoint": "gather_f16_out",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F32 embeddings -> F16 output"
+        },
+        "vec4_f16_out": {
+          "wgsl": "gather_vec4_f16_out.wgsl",
+          "entryPoint": "gather_vec4_f16_out",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16_f16_out": {
+          "wgsl": "gather_f16_f16_out.wgsl",
+          "entryPoint": "gather_f16_out",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F16 embeddings -> F16 output"
+        },
+        "f16_vec4_f16_out": {
+          "wgsl": "gather_f16_vec4_f16_out.wgsl",
+          "entryPoint": "gather_vec4_f16_out",
           "workgroup": [64, 1, 1],
           "requires": ["shader-f16"]
         }
@@ -742,7 +820,8 @@
       "baseUniforms": {
         "size": 16,
         "fields": [
-          { "name": "size", "type": "u32", "offset": 0 }
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "scale", "type": "f32", "offset": 4 }
         ]
       },
       "variants": {
@@ -757,6 +836,18 @@
           "entryPoint": "add_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
+        },
+        "default_f16": {
+          "wgsl": "residual_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "vec4_f16": {
+          "wgsl": "residual_f16_vec4.wgsl",
+          "entryPoint": "add_vec4",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -819,13 +910,13 @@
           "requires": []
         },
         "vec4": {
-          "wgsl": "scatter_add.wgsl",
+          "wgsl": "scatter_add_vec4.wgsl",
           "entryPoint": "scatter_add_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
         },
         "dynamic": {
-          "wgsl": "scatter_add.wgsl",
+          "wgsl": "scatter_add_dynamic.wgsl",
           "entryPoint": "scatter_add_dynamic",
           "workgroup": [256, 1, 1],
           "requires": []
@@ -868,7 +959,7 @@
           "requires": []
         },
         "gather_vec4": {
-          "wgsl": "moe_gather.wgsl",
+          "wgsl": "moe_gather_vec4.wgsl",
           "entryPoint": "gather_tokens_vec4",
           "workgroup": [64, 1, 1],
           "requires": []
@@ -915,14 +1006,16 @@
       "description": "Bias addition kernels",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
-        { "index": 1, "name": "input", "type": "read-only-storage" },
-        { "index": 2, "name": "bias", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 1, "name": "data", "type": "storage" },
+        { "index": 2, "name": "bias", "type": "read-only-storage" }
       ],
       "baseUniforms": {
         "size": 16,
         "fields": [
-          { "name": "size", "type": "u32", "offset": 0 }
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "dim", "type": "u32", "offset": 4 },
+          { "name": "data_offset", "type": "u32", "offset": 8 },
+          { "name": "bias_offset", "type": "u32", "offset": 12 }
         ]
       },
       "variants": {
@@ -931,6 +1024,12 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "f16": {
+          "wgsl": "bias_add_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -950,6 +1049,12 @@
       "variants": {
         "f32_to_f16": {
           "wgsl": "cast_f32_to_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "f16_to_f32": {
+          "wgsl": "cast_f16_to_f32.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]

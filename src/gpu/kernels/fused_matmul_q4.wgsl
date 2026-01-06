@@ -11,7 +11,6 @@
 //
 // A is f32 (activations), B_q4k is Q4_K quantized weights, C is f32.
 
-enable f16;
 enable subgroups;
 
 // Q4_K constants
@@ -45,8 +44,6 @@ struct Q4KBlock {
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
-// F16 output buffer at binding 4 (used by F16 output variants)
-@group(0) @binding(4) var<storage, read_write> C_f16: array<f16>;
 
 // Shared memory for subgroup reduction
 var<workgroup> wg_sums: array<f32, MAX_SUBGROUPS>;
@@ -308,75 +305,5 @@ fn main_multicol(
             final_sum = final_sum + multicol_sums[base + i];
         }
         C[col] = final_sum * u.alpha;
-    }
-}
-
-// ============================================================================
-// F16 OUTPUT VARIANTS
-// Same computation as F32 variants, but output to f16 buffer at binding 4
-// ============================================================================
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main_multicol_f16(
-    @builtin(local_invocation_id) lid: vec3<u32>,
-    @builtin(workgroup_id) wg_id: vec3<u32>,
-    @builtin(subgroup_invocation_id) sg_id: u32,
-    @builtin(subgroup_size) sg_size: u32
-) {
-    let local_id = lid.x;
-    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
-    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
-    let col = wg_id.x * COLS_PER_WG + col_in_wg;
-    let is_valid = col < u.N;
-
-    var partial_sum: f32 = 0.0;
-
-    if (is_valid) {
-        let num_blocks = u.num_blocks_per_row;
-        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
-            let block = B_q4k[col * num_blocks + b];
-            let d = unpack_f16_lo(block.d_dmin);
-            let dmin = unpack_f16_hi(block.d_dmin);
-            let k_base = b * QK_K;
-
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
-                let sm = get_scale_min_k4(block.scales, sb);
-                let scale = d * f32(sm.x);
-                let min_val = dmin * f32(sm.y);
-                let sb_base = sb * SUBBLOCK_SIZE;
-
-                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
-                    let k0 = k_base + sb_base + i;
-                    let a0 = A[k0];
-                    let a1 = A[k0 + 1u];
-                    let a2 = A[k0 + 2u];
-                    let a3 = A[k0 + 3u];
-
-                    let q0 = get_q4(block.qs, sb_base + i);
-                    let q1 = get_q4(block.qs, sb_base + i + 1u);
-                    let q2 = get_q4(block.qs, sb_base + i + 2u);
-                    let q3 = get_q4(block.qs, sb_base + i + 3u);
-
-                    let w0 = scale * f32(q0) - min_val;
-                    let w1 = scale * f32(q1) - min_val;
-                    let w2 = scale * f32(q2) - min_val;
-                    let w3 = scale * f32(q3) - min_val;
-
-                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
-                }
-            }
-        }
-    }
-
-    multicol_sums[local_id] = partial_sum;
-    workgroupBarrier();
-
-    if (tid_in_col == 0u && is_valid) {
-        var final_sum: f32 = 0.0;
-        let base = col_in_wg * THREADS_PER_COL_GEMV;
-        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
-            final_sum = final_sum + multicol_sums[base + i];
-        }
-        C_f16[col] = f16(final_sum * u.alpha);
     }
 }

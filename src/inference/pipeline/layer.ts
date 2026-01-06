@@ -45,6 +45,25 @@ import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import type { DecodeBufferManager } from '../decode-buffers.js';
 
+function isDecodeBuffer(decodeBuffers: DecodeBufferManager | null | undefined, buffer: GPUBuffer): boolean {
+  return !!decodeBuffers?.ownsBuffer(buffer);
+}
+
+function releaseOrTrack(
+  recorder: CommandRecorder | undefined,
+  buffer: GPUBuffer,
+  decodeBuffers?: DecodeBufferManager | null
+): void {
+  if (isDecodeBuffer(decodeBuffers, buffer)) {
+    return;
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(buffer);
+  } else {
+    releaseBuffer(buffer);
+  }
+}
+
 // Track if we've logged one-time messages (avoid spam)
 let loggedFusedDownNorm = false;
 
@@ -627,7 +646,7 @@ export async function processLayerGPU(
         label: `L${layerIdx}.post_attn_norm`,
         layerIdx,
       }, recorder);
-      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
       if (recorder) {
         recorder.trackTemporaryBuffer(attnOutput.buffer);
       } else {
@@ -645,7 +664,7 @@ export async function processLayerGPU(
       layerIdx,
     }, recorder);
 
-    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
@@ -898,7 +917,7 @@ async function processLayerPlanGPU(
             label: `L${layerIdx}.rmsnorm_${step.weight}`,
             layerIdx,
           }, recorder);
-          if (!(weight instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+          if (!(weight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
           setSlot(step.dst, outputTensor.buffer);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
@@ -1023,7 +1042,7 @@ async function processFFNWithSandwichNorm(
       label: `L${layerIdx}.pre_ffn_norm`,
       layerIdx,
     }, recorder);
-    if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
 
   await runProbes('ffn_in', ffnInput.buffer, {
@@ -1105,11 +1124,7 @@ async function processFFNWithSandwichNorm(
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (ffnInput !== postAttn) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(ffnInput.buffer);
-    } else {
-      releaseBuffer(ffnInput.buffer);
-    }
+    releaseOrTrack(recorder, ffnInput.buffer, decodeBuffers);
   }
 
   // Debug: trace FFN output (uses debug-utils)
@@ -1136,13 +1151,9 @@ async function processFFNWithSandwichNorm(
       layerIdx,
     }, recorder);
 
-    if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
     // Track for cleanup after submit if using recorder, otherwise release immediately
-    if (recorder) {
-      recorder.trackTemporaryBuffer(ffnOutput.buffer);
-    } else {
-      releaseBuffer(ffnOutput.buffer);
-    }
+    releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   } else {
     // Standard path: residual add without norm
     // Use pre-allocated decode buffer for output when available
@@ -1151,11 +1162,7 @@ async function processFFNWithSandwichNorm(
       layerIdx,
       outputBuffer: decodeOutputBuffer,
     });
-    if (recorder) {
-      recorder.trackTemporaryBuffer(ffnOutput.buffer);
-    } else {
-      releaseBuffer(ffnOutput.buffer);
-    }
+    releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   }
 
   await runProbes('layer_out', output.buffer, {
@@ -1171,11 +1178,7 @@ async function processFFNWithSandwichNorm(
   }
 
   // Track postAttn for cleanup after submit if using recorder, otherwise release immediately
-  if (recorder) {
-    recorder.trackTemporaryBuffer(postAttn.buffer);
-  } else {
-    releaseBuffer(postAttn.buffer);
-  }
+  releaseOrTrack(recorder, postAttn.buffer, decodeBuffers);
 
   return output;
 }
@@ -1210,7 +1213,7 @@ async function processFFNStandard(
       label: `L${layerIdx}.post_attn_norm`,
       layerIdx,
     }, recorder);
-    if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
   await runProbes('ffn_in', normedTensor.buffer, {
     layerIdx,
@@ -1252,19 +1255,10 @@ async function processFFNStandard(
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (normedTensor !== postAttn) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(normedTensor.buffer);
-    } else {
-      releaseBuffer(normedTensor.buffer);
-    }
+    releaseOrTrack(recorder, normedTensor.buffer, decodeBuffers);
   }
-  if (recorder) {
-    recorder.trackTemporaryBuffer(postAttn.buffer);
-    recorder.trackTemporaryBuffer(ffnOutput.buffer);
-  } else {
-    releaseBuffer(postAttn.buffer);
-    releaseBuffer(ffnOutput.buffer);
-  }
+  releaseOrTrack(recorder, postAttn.buffer, decodeBuffers);
+  releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
 
   return output;
 }
@@ -1340,7 +1334,7 @@ async function runDenseFFNGPU(
     }
 
     if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
-      releaseBuffer(isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
+      releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
     // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
@@ -1405,7 +1399,7 @@ async function runDenseFFNGPU(
     }
 
     if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
-      releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
     }
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
@@ -1454,10 +1448,10 @@ async function runDenseFFNGPU(
           );
 
         if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
-          releaseBuffer(isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+          releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
         }
         if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
-          releaseBuffer(isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+          releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
         }
 
         let output = await doMatmul(
@@ -1491,7 +1485,7 @@ async function runDenseFFNGPU(
         }
 
         if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
-          releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+          releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
         }
 
         if (recorder) {
@@ -1523,7 +1517,7 @@ async function runDenseFFNGPU(
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
   let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_gate' }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
-    releaseBuffer(isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+    releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
   }
 
   const loraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
@@ -1550,7 +1544,7 @@ async function runDenseFFNGPU(
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
   let upOutput = await doMatmul(inputTensor, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_up' }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
-    releaseBuffer(isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+    releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
   }
 
   const loraUp = getLoRAModule(lora, layerIdx, 'up_proj');
@@ -1645,7 +1639,7 @@ async function runDenseFFNGPU(
   }
 
   if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
-    releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
   }
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
@@ -1736,7 +1730,7 @@ async function runDenseFFNWithFusedPostNormGPU(
     }
 
     if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
-      releaseBuffer(isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
+      releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
     // 2. Split + Activation
@@ -1765,7 +1759,7 @@ async function runDenseFFNWithFusedPostNormGPU(
       recorder
     );
     if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
-      releaseBuffer(isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+      releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
     }
 
     // 1b. Up projection
@@ -1776,7 +1770,7 @@ async function runDenseFFNWithFusedPostNormGPU(
       recorder
     );
     if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
-      releaseBuffer(isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+      releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
     }
 
     // 2. Activation: activation(gate) * up
@@ -1831,9 +1825,9 @@ async function runDenseFFNWithFusedPostNormGPU(
   }
 
   if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
-    releaseBuffer(isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
   }
-  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   if (recorder) {
     recorder.trackTemporaryBuffer(activatedOutput.buffer);
   } else {

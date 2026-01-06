@@ -12,8 +12,12 @@ Benefits:
 ## Non-goals
 
 - Do not merge kernels that differ in binding element types.
-- Do not use overrides for array sizes or workgroup storage lengths (see legacy exceptions).
+- Do not use overrides for array sizes or workgroup storage lengths.
 - Do not force subgroup or shader-f16 requirements on fallback variants.
+
+## Status
+
+Complete. Enforcement checks are wired locally and in CI.
 
 ## Hard Constraints (Do Not Cross)
 
@@ -24,8 +28,7 @@ Benefits:
 2) Override constants cannot be used for array lengths.
    - Workgroup arrays must use fixed sizes or a MAX size.
    - If you need multiple tile sizes, compile fixed-size variants (for example 16 and 32) and select at runtime.
-   - Legacy exceptions: attention_small.wgsl and attention_small_f16kv.wgsl currently use override-sized arrays.
-     Treat these as migration debt to refactor into fixed-size or MAX-sized arrays.
+   - No legacy exceptions should remain.
 
 3) Workgroup size is part of the pipeline.
    - Different @workgroup_size values are separate pipelines. Prefer separate files or separate entrypoints with clear variant ids.
@@ -35,7 +38,7 @@ Benefits:
 
 ## Current Inventory (Keep Accurate)
 
-- Currently 48 WGSL files under src/gpu/kernels (expect drift).
+- Currently 67 WGSL files under src/gpu/kernels (expect drift).
 - Includes f16/conversion kernels such as:
   - bias_add_f16.wgsl
   - cast_f16_to_f32.wgsl
@@ -44,7 +47,6 @@ Benefits:
   - silu_f16.wgsl
   - gather_f16.wgsl
 - check_stop.wgsl no longer exists.
-- matmul_f16w_f32a_naive.wgsl is still referenced in the registry and utils. Do not delete until references are removed.
 
 Suggested inventory check:
   rg --files -g "*.wgsl" src/gpu/kernels | wc -l
@@ -119,13 +121,17 @@ Example target layout split:
 ## Registry and Runtime Plumbing
 
 - Update src/gpu/kernels/utils.ts and src/config/kernels/registry.json in lockstep with any file/variant changes.
-- Only remove matmul_f16w_f32a_naive.wgsl after all registry references are removed and a fallback is confirmed.
 
 ## Enforcement (Avoid Drift)
 
 - Add a registry validation step that can run locally and is enforced in CI (fails if WGSL references are missing).
 - Add a lint check that flags any workgroup array sizes derived from overrides, except for whitelisted legacy files.
 - Require variant ids to log their pipeline layout (file + entrypoint + requirements) in debug traces.
+
+Implementation:
+- Local: `npm run kernels:check` (registry validation + override-array lint).
+- CI: `.github/workflows/kernel-registry.yml` runs the same checks.
+- Trace: pipeline creation logs layout via `trace.kernels`.
 
 ## Testing and Benchmarking
 
@@ -139,8 +145,8 @@ Example target layout split:
 ## Migration Order
 
 1) Inventory and cleanup:
-   - Update this doc and registry counts.
-   - Remove stale references (check_stop, matmul_f16w_f32a_naive once ready).
+   - Updated this doc and registry counts.
+   - Removed stale references (check_stop, legacy matmul naive).
 2) Low-risk consolidations within the same layout:
    - scale, residual, gather (within dtype boundary).
 3) Matmul and activation families.

@@ -42,6 +42,14 @@ import { getLoRAModule, type LoRAAdapter } from './lora.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import { log, trace } from '../../debug/index.js';
 
+function releaseOrTrack(recorder: CommandRecorder | undefined, buffer: GPUBuffer): void {
+  if (recorder) {
+    recorder.trackTemporaryBuffer(buffer);
+  } else {
+    releaseBuffer(buffer);
+  }
+}
+
 /**
  * Attention configuration for a layer.
  */
@@ -747,7 +755,7 @@ export async function recordLayerAttentionGPU(
       batchSize: numTokens,
       hiddenSize,
     });
-    if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
 
   // 2. Q/K/V projections
@@ -796,7 +804,7 @@ export async function recordLayerAttentionGPU(
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.qProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qProj)) {
-        releaseBuffer(isWeightBuffer(qProjBuf) ? qProjBuf.buffer : qProjBuf);
+        releaseOrTrack(recorder, isWeightBuffer(qProjBuf) ? qProjBuf.buffer : qProjBuf);
       }
     } else {
       const qBuf = acquireBuffer(qSize * 4, undefined, 'Q');
@@ -827,7 +835,7 @@ export async function recordLayerAttentionGPU(
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.kProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kProj)) {
-        releaseBuffer(isWeightBuffer(kProjBuf) ? kProjBuf.buffer : kProjBuf);
+        releaseOrTrack(recorder, isWeightBuffer(kProjBuf) ? kProjBuf.buffer : kProjBuf);
       }
     } else {
       const kBuf = acquireBuffer(kvSize * 4, undefined, 'K');
@@ -858,7 +866,7 @@ export async function recordLayerAttentionGPU(
         outputDtype: useF16Activations ? 'f16' : undefined,
       });
       if (!(layerWeights.vProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.vProj)) {
-        releaseBuffer(isWeightBuffer(vProjBuf) ? vProjBuf.buffer : vProjBuf);
+        releaseOrTrack(recorder, isWeightBuffer(vProjBuf) ? vProjBuf.buffer : vProjBuf);
       }
     } else {
       const vBuf = acquireBuffer(kvSize * 4, undefined, 'V');
@@ -893,17 +901,17 @@ export async function recordLayerAttentionGPU(
         batchSize: numTokens * numHeads,
         hiddenSize: headDim,
       });
-      releaseBuffer(qTensor.buffer);
+      releaseOrTrack(recorder, qTensor.buffer);
       qTensor = qNormedTensor;
     }
-    if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
+    if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseOrTrack(recorder, qNormBuf);
   } else if (wantsQKNorm) {
     const qNormBuf = getQKNormOnesBuffer(headDim);
     const qNormedTensor = await recordRMSNorm(recorder, qTensor, qNormBuf, rmsNormEps, {
       batchSize: numTokens * numHeads,
       hiddenSize: headDim,
     });
-    releaseBuffer(qTensor.buffer);
+    releaseOrTrack(recorder, qTensor.buffer);
     qTensor = qNormedTensor;
   }
 
@@ -915,21 +923,21 @@ export async function recordLayerAttentionGPU(
         batchSize: numTokens * numKVHeads,
         hiddenSize: headDim,
       });
-      releaseBuffer(kTensor.buffer);
+      releaseOrTrack(recorder, kTensor.buffer);
       kTensor = kNormedTensor;
     }
-    if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
+    if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseOrTrack(recorder, kNormBuf);
   } else if (wantsQKNorm) {
     const kNormBuf = getQKNormOnesBuffer(headDim);
     const kNormedTensor = await recordRMSNorm(recorder, kTensor, kNormBuf, rmsNormEps, {
       batchSize: numTokens * numKVHeads,
       hiddenSize: headDim,
     });
-    releaseBuffer(kTensor.buffer);
+    releaseOrTrack(recorder, kTensor.buffer);
     kTensor = kNormedTensor;
   }
 
-  if (normed !== attentionInput) releaseBuffer(normed.buffer);
+  if (normed !== attentionInput) releaseOrTrack(recorder, normed.buffer);
   if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
 
   // 3. RoPE (modifies tensor in-place)
@@ -1043,7 +1051,7 @@ export async function recordLayerAttentionGPU(
     }
     // Release temporary buffer if we created it (original was not already on GPU)
     if (!(layerWeights.oProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.oProj)) {
-      releaseBuffer(isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
+      releaseOrTrack(recorder, isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
     }
   } else {
     output = attnOutput;

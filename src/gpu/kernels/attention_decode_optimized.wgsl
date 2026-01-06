@@ -15,7 +15,6 @@
 // - Processes KV cache in chunks of 256 positions
 // - Uses online softmax to avoid storing full score vector
 
-enable f16;
 enable subgroups;
 
 struct Uniforms {

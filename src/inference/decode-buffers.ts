@@ -191,6 +191,17 @@ export class DecodeBufferManager {
   }
 
   /**
+   * Check whether a buffer is managed by this decode buffer manager.
+   */
+  ownsBuffer(buffer: GPUBuffer): boolean {
+    if (!this.buffers) return false;
+    return buffer === this.buffers.hidden
+      || buffer === this.buffers.hiddenAlt
+      || buffer === this.buffers.attnOutput
+      || buffer === this.buffers.ffnIntermediate;
+  }
+
+  /**
    * Release all buffers.
    */
   release(): void {

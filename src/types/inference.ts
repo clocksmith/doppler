@@ -25,16 +25,6 @@ export interface InferenceConfig {
   stream: boolean;
 }
 
-/** Default inference configuration values */
-export const DEFAULT_INFERENCE_CONFIG: InferenceConfig = {
-  maxTokens: 256,
-  temperature: 0.7,
-  topK: 40,
-  topP: 0.9,
-  repetitionPenalty: 1.0,
-  stream: true,
-};
-
 /** Sampling configuration */
 export interface SamplingConfig {
   temperature: number;

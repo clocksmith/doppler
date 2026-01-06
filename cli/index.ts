@@ -118,6 +118,178 @@ const KERNEL_PROFILES: Record<string, KernelPlanSchema> = {
 // Argument Parsing
 // ============================================================================
 
+type FlagHandler = (opts: CLIOptions, tokens: string[]) => void;
+type FlagSpec = { names: string[]; handler: FlagHandler };
+
+const FLAG_SPECS: FlagSpec[] = [
+  { names: ['--help', '-h'], handler: (opts) => { opts.help = true; } },
+  { names: ['--config'], handler: (opts, tokens) => { opts.config = tokens.shift() || null; } },
+  { names: ['--dump-config'], handler: (opts) => { opts.dumpConfig = true; } },
+  { names: ['--list-presets'], handler: (opts) => { opts.listPresets = true; } },
+  { names: ['--model', '-m'], handler: (opts, tokens) => { opts.model = tokens.shift() || opts.model; } },
+  { names: ['--base-url', '-u'], handler: (opts, tokens) => { opts.baseUrl = tokens.shift() || opts.baseUrl; } },
+  { names: ['--no-server'], handler: (opts) => { opts.noServer = true; } },
+  { names: ['--headless'], handler: (opts) => { opts.headless = true; } },
+  { names: ['--headed', '--no-headless'], handler: (opts) => { opts.headless = false; } },
+  { names: ['--minimized', '--no-focus'], handler: (opts) => { opts.minimized = true; } },
+  { names: ['--reuse-browser'], handler: (opts) => { opts.reuseBrowser = true; } },
+  { names: ['--no-reuse-browser', '--new-browser'], handler: (opts) => { opts.reuseBrowser = false; } },
+  { names: ['--cdp-endpoint'], handler: (opts, tokens) => { opts.cdpEndpoint = tokens.shift() || opts.cdpEndpoint; } },
+  { names: ['--debug', '-d'], handler: (opts) => { opts.debug = true; } },
+  { names: ['--layer'], handler: (opts, tokens) => { opts.layer = parseInt(tokens.shift() || '0', 10); } },
+  { names: ['--tokens'], handler: (opts, tokens) => { opts.tokens = parseInt(tokens.shift() || '10', 10); } },
+  { names: ['--kernel'], handler: (opts, tokens) => { opts.kernel = tokens.shift() || null; } },
+  { names: ['--skip-load'], handler: (opts) => { opts.skipLoad = true; } },
+  { names: ['--warm'], handler: (opts) => { opts.warm = true; opts.headless = false; opts.reuseBrowser = true; } },
+  { names: ['--verbose', '-v'], handler: (opts) => { opts.verbose = true; } },
+  { names: ['--inference'], handler: (opts) => { opts.suite = 'inference'; } },
+  { names: ['--kernels'], handler: (opts) => { opts.suite = 'kernels'; } },
+  { names: ['--full'], handler: (opts) => { opts.suite = 'all'; } },
+  { names: ['--break'], handler: (opts) => { opts.trace = 'break'; } },
+  { names: ['--filter', '-f'], handler: (opts, tokens) => { opts.filter = tokens.shift() || null; } },
+  { names: ['--timeout'], handler: (opts, tokens) => { opts.timeout = parseInt(tokens.shift() || '120000', 10); } },
+  { names: ['--output', '-o'], handler: (opts, tokens) => { opts.output = tokens.shift() || null; } },
+  { names: ['--html'], handler: (opts, tokens) => { opts.html = tokens.shift() || null; } },
+  { names: ['--warmup', '-w'], handler: (opts, tokens) => { opts.warmup = parseInt(tokens.shift() || '0', 10); } },
+  { names: ['--runs', '-r'], handler: (opts, tokens) => { opts.runs = parseInt(tokens.shift() || '1', 10); } },
+  { names: ['--max-tokens', '-t'], handler: (opts, tokens) => { opts.maxTokens = parseInt(tokens.shift() || '64', 10); } },
+  { names: ['--temperature'], handler: (opts, tokens) => { opts.temperature = parseFloat(tokens.shift() || '0.7'); } },
+  { names: ['--no-chat'], handler: (opts) => { opts.noChat = true; } },
+  { names: ['--prompt', '-p'], handler: (opts, tokens) => { opts.prompt = tokens.shift() || 'medium'; opts.promptProvided = true; } },
+  { names: ['--compare', '-c'], handler: (opts, tokens) => { opts.compare = tokens.shift() || null; } },
+  { names: ['--text'], handler: (opts, tokens) => { opts.text = tokens.shift() || null; } },
+  { names: ['--file'], handler: (opts, tokens) => { opts.file = tokens.shift() || null; } },
+  { names: ['--trace'], handler: (opts, tokens) => {
+    const nextToken = tokens[0];
+    if (!nextToken || nextToken.startsWith('-')) {
+      opts.trace = 'all';
+    } else {
+      opts.trace = tokens.shift()!;
+    }
+  } },
+  { names: ['--trace-layers'], handler: (opts, tokens) => {
+    const layersArg = tokens.shift() || '';
+    if (layersArg) {
+      opts.traceLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+    }
+  } },
+  { names: ['--debug-layers'], handler: (opts, tokens) => {
+    const layersArg = tokens.shift() || '';
+    if (layersArg) {
+      opts.debugLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+    }
+  } },
+  { names: ['--profile-dir'], handler: (opts, tokens) => { opts.profileDir = tokens.shift() || null; } },
+  { names: ['--retries'], handler: (opts, tokens) => { opts.retries = parseInt(tokens.shift() || '2', 10); } },
+  { names: ['--quiet', '-q'], handler: (opts) => { opts.quiet = true; } },
+  { names: ['--perf'], handler: (opts) => { opts.perf = true; } },
+  { names: ['--gpu-profile'], handler: (opts) => { opts.gpuProfile = true; } },
+  { names: ['--kernel-plan'], handler: (opts, tokens) => {
+    const raw = tokens.shift() || '';
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('kernel plan must be a JSON object');
+      }
+      opts.kernelPlan = parsed as KernelPlanSchema;
+    } catch (err) {
+      throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
+    }
+  } },
+  { names: ['--kernel-profile', '-k'], handler: (opts, tokens) => {
+    const profileName = tokens.shift() || '';
+    if (profileName === 'list') {
+      console.log('\nAvailable kernel profiles:');
+      for (const [name, plan] of Object.entries(KERNEL_PROFILES)) {
+        console.log(`  ${name.padEnd(10)} ${JSON.stringify(plan)}`);
+      }
+      console.log('');
+      process.exit(0);
+    }
+    if (!KERNEL_PROFILES[profileName]) {
+      const available = Object.keys(KERNEL_PROFILES).join(', ');
+      throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
+    }
+    opts.kernelProfile = profileName;
+  } },
+];
+
+function buildFlagHandlers(): Map<string, FlagHandler> {
+  const handlers = new Map<string, FlagHandler>();
+  for (const spec of FLAG_SPECS) {
+    for (const name of spec.names) {
+      handlers.set(name, spec.handler);
+    }
+  }
+  return handlers;
+}
+
+const FLAG_HANDLERS = buildFlagHandlers();
+const KNOWN_FLAGS = new Set(FLAG_HANDLERS.keys());
+
+function suggestFlag(flag: string): string | null {
+  if (!flag.startsWith('--')) return null;
+  if (!/[A-Z]/.test(flag)) return null;
+  const kebab = `--${flag.slice(2).replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+  return KNOWN_FLAGS.has(kebab) ? kebab : null;
+}
+
+function normalizeFlag(flag: string): string {
+  return flag.replace(/^-+/, '').replace(/_/g, '-').toLowerCase();
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  const prev = new Array(b.length + 1).fill(0);
+  const curr = new Array(b.length + 1).fill(0);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    const aChar = a.charCodeAt(i - 1);
+    for (let j = 1; j <= b.length; j++) {
+      const cost = aChar === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + cost
+      );
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+  }
+
+  return prev[b.length];
+}
+
+function suggestClosestFlags(flag: string): string[] {
+  const camelSuggestion = suggestFlag(flag);
+  if (camelSuggestion) return [camelSuggestion];
+
+  const normalized = normalizeFlag(flag);
+  const candidates = Array.from(KNOWN_FLAGS).filter((candidate) => {
+    if (flag.startsWith('--')) return candidate.startsWith('--');
+    return true;
+  });
+  const scored = candidates.map((candidate) => ({
+    candidate,
+    distance: levenshteinDistance(normalized, normalizeFlag(candidate)),
+  }));
+
+  scored.sort((a, b) => a.distance - b.distance || a.candidate.localeCompare(b.candidate));
+
+  const best = scored[0];
+  if (!best) return [];
+
+  const maxDistance = Math.max(2, Math.floor(normalized.length / 3));
+  return scored
+    .filter((item) => item.distance <= maxDistance)
+    .slice(0, 3)
+    .map((item) => item.candidate);
+}
+
 function parseArgs(argv: string[]): CLIOptions {
   const opts: CLIOptions = {
     command: 'test',
@@ -175,226 +347,29 @@ function parseArgs(argv: string[]): CLIOptions {
 
   while (tokens.length) {
     const arg = tokens.shift()!;
-    switch (arg) {
-      case '--help':
-      case '-h':
-        opts.help = true;
-        break;
-      case '--config':
-        opts.config = tokens.shift() || null;
-        break;
-      case '--dump-config':
-        opts.dumpConfig = true;
-        break;
-      case '--list-presets':
-        opts.listPresets = true;
-        break;
-      case '--model':
-      case '-m':
-        opts.model = tokens.shift() || opts.model;
-        break;
-      case '--base-url':
-      case '-u':
-        opts.baseUrl = tokens.shift() || opts.baseUrl;
-        break;
-      case '--no-server':
-        opts.noServer = true;
-        break;
-      case '--headless':
-        opts.headless = true;
-        break;
-      case '--headed':
-      case '--no-headless':
-        opts.headless = false;
-        break;
-      case '--minimized':
-      case '--no-focus':
-        opts.minimized = true;
-        break;
-      case '--reuse-browser':
-        opts.reuseBrowser = true;
-        break;
-      case '--no-reuse-browser':
-      case '--new-browser':
-        opts.reuseBrowser = false;
-        break;
-      case '--cdp-endpoint':
-        opts.cdpEndpoint = tokens.shift() || opts.cdpEndpoint;
-        break;
-      // Debug mode options
-      case '--debug':
-      case '-d':
-        opts.debug = true;
-        break;
-      case '--layer':
-        opts.layer = parseInt(tokens.shift() || '0', 10);
-        break;
-      case '--tokens':
-        opts.tokens = parseInt(tokens.shift() || '10', 10);
-        break;
-      case '--kernel':
-        opts.kernel = tokens.shift() || null;
-        break;
-      // Warm mode options (preserve model in GPU RAM)
-      case '--skip-load':
-        opts.skipLoad = true;
-        break;
-      case '--warm':
-        opts.warm = true;
-        opts.headless = false;  // Warm mode requires headed browser
-        opts.reuseBrowser = true;  // Enable CDP reuse
-        break;
-      case '--verbose':
-      case '-v':
-        opts.verbose = true;
-        break;
-      // Simplified suite flags
-      case '--inference':
-        opts.suite = 'inference';
-        break;
-      case '--kernels':
-        opts.suite = 'kernels';
-        break;
-      case '--full':
-        opts.suite = 'all';
-        break;
-      case '--break':
-        opts.trace = 'break';
-        break;
-      case '--filter':
-      case '-f':
-        opts.filter = tokens.shift() || null;
-        break;
-      case '--timeout':
-        opts.timeout = parseInt(tokens.shift() || '120000', 10);
-        break;
-      case '--output':
-      case '-o':
-        opts.output = tokens.shift() || null;
-        break;
-      case '--html':
-        opts.html = tokens.shift() || null;
-        break;
-      case '--warmup':
-      case '-w':
-        opts.warmup = parseInt(tokens.shift() || '0', 10);
-        break;
-      case '--runs':
-      case '-r':
-        opts.runs = parseInt(tokens.shift() || '1', 10);
-        break;
-      case '--max-tokens':
-      case '-t':
-        opts.maxTokens = parseInt(tokens.shift() || '64', 10);
-        break;
-      case '--temperature':
-        opts.temperature = parseFloat(tokens.shift() || '0.7');
-        break;
-      case '--no-chat':
-        opts.noChat = true;
-        break;
-      case '--prompt':
-      case '-p':
-        opts.prompt = tokens.shift() || 'medium';
-        opts.promptProvided = true;
-        break;
-      case '--compare':
-      case '-c':
-        opts.compare = tokens.shift() || null;
-        break;
-      case '--text':
-        opts.text = tokens.shift() || null;
-        break;
-      case '--file':
-        opts.file = tokens.shift() || null;
-        break;
-      case '--trace': {
-        // --trace with no arg = 'all', --trace <categories> = specific categories
-        const nextToken = tokens[0];
-        if (!nextToken || nextToken.startsWith('-')) {
-          opts.trace = 'all';  // Default to all categories
-        } else {
-          opts.trace = tokens.shift()!;  // Use provided categories
-        }
-        break;
+    if (arg.startsWith('-')) {
+      const handler = FLAG_HANDLERS.get(arg);
+      if (!handler) {
+        const suggestions = suggestClosestFlags(arg);
+        const hint = suggestions.length > 0
+          ? ` Did you mean ${suggestions.map((s) => `"${s}"`).join(' or ')}?`
+          : '';
+        throw new Error(`Unknown flag "${arg}".${hint}`);
       }
-      case '--trace-layers': {
-        const layersArg = tokens.shift() || '';
-        if (layersArg) {
-          opts.traceLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-        }
-        break;
-      }
-      case '--debug-layers': {
-        const layersArg = tokens.shift() || '';
-        if (layersArg) {
-          opts.debugLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-        }
-        break;
-      }
-      case '--profile-dir':
-        opts.profileDir = tokens.shift() || null;
-        break;
-      case '--retries':
-        opts.retries = parseInt(tokens.shift() || '2', 10);
-        break;
-      case '--quiet':
-      case '-q':
-        opts.quiet = true;
-        break;
-      case '--perf':
-        opts.perf = true;
-        break;
-      case '--gpu-profile':
-        opts.gpuProfile = true;
-        break;
-      case '--kernel-plan': {
-        const raw = tokens.shift() || '';
-        try {
-          const parsed = JSON.parse(raw);
-          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            throw new Error('kernel plan must be a JSON object');
-          }
-          opts.kernelPlan = parsed as KernelPlanSchema;
-        } catch (err) {
-          throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
-        }
-        break;
-      }
-      case '--kernel-profile':
-      case '-k': {
-        const profileName = tokens.shift() || '';
-        if (profileName === 'list') {
-          console.log('\nAvailable kernel profiles:');
-          for (const [name, plan] of Object.entries(KERNEL_PROFILES)) {
-            console.log(`  ${name.padEnd(10)} ${JSON.stringify(plan)}`);
-          }
-          console.log('');
-          process.exit(0);
-        }
-        if (!KERNEL_PROFILES[profileName]) {
-          const available = Object.keys(KERNEL_PROFILES).join(', ');
-          throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
-        }
-        opts.kernelProfile = profileName;
-        break;
-      }
-      default:
-        // Positional arguments: [command] [suite]
-        if (!arg.startsWith('-')) {
-          if (positionalIndex === 0) {
-            if (arg === 'run' || arg === 'test' || arg === 'bench' || arg === 'debug') {
-              opts.command = arg as Command;
-            } else {
-              opts.suite = normalizeSuite(arg);
-            }
-          } else if (positionalIndex === 1) {
-            opts.suite = normalizeSuite(arg);
-          }
-          positionalIndex++;
-        }
-        break;
+      handler(opts, tokens);
+      continue;
     }
+
+    if (positionalIndex === 0) {
+      if (arg === 'run' || arg === 'test' || arg === 'bench' || arg === 'debug') {
+        opts.command = arg as Command;
+      } else {
+        opts.suite = normalizeSuite(arg);
+      }
+    } else if (positionalIndex === 1) {
+      opts.suite = normalizeSuite(arg);
+    }
+    positionalIndex++;
   }
 
   return opts;
@@ -1225,6 +1200,11 @@ async function runInferenceTest(
   const testParams = new URLSearchParams();
   testParams.set('model', opts.model);
   appendPromptParams(testParams, opts);
+  testParams.set('maxTokens', String(opts.maxTokens));
+  testParams.set('temperature', String(opts.temperature));
+  if (opts.noChat) {
+    testParams.set('noChat', '1');
+  }
   testParams.set('autorun', '1');
   appendKernelOverrideParams(testParams, opts);
   appendRuntimeConfigParams(testParams, opts);
@@ -1288,8 +1268,13 @@ async function runInferenceTest(
     const passed = testState.loaded && testState.tokens?.length > 0 && testState.errors?.length === 0;
 
     if (passed) {
+      const output = (testState.output || '') as string;
+      const outputPreview = output.slice(0, 100);
+      const outputLabel = outputPreview.trim().length === 0
+        ? '<empty>'
+        : `${outputPreview}${output.length > 100 ? '...' : ''}`;
       console.log(`\n  \x1b[32mPASS\x1b[0m Model loaded and generated ${testState.tokens?.length || 0} tokens`);
-      console.log(`  Output: ${(testState.output || '').slice(0, 100)}...`);
+      console.log(`  Output: ${outputLabel}`);
     } else {
       console.log(`\n  \x1b[31mFAIL\x1b[0m`);
       if (!testState.loaded) console.log('    Model failed to load');
@@ -1792,7 +1777,14 @@ function printSummary(suites: SuiteResult[]): void {
 // ============================================================================
 
 async function main(): Promise<void> {
-  const opts = parseArgs(process.argv.slice(2));
+  let opts: CLIOptions;
+  try {
+    opts = parseArgs(process.argv.slice(2));
+  } catch (err) {
+    console.error(`Error: ${(err as Error).message}`);
+    console.error('Run with --help for usage.');
+    process.exit(1);
+  }
 
   if (opts.help) {
     printHelp();

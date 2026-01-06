@@ -1,18 +1,43 @@
 # Doppler TypeScript → JavaScript Conversion Plan
 
-## Summary Statistics
+## Goals and Constraints (Hot-Swap Focus)
+
+- Runtime code ships as JS in both dev and production; hot-swaps target JS/WGSL/JSON artifacts, not TS sources.
+- JS output must be human/agent-readable (no minify), preserve names, and include sourcemaps.
+- Distributed hot-swaps are signed; local unsigned swaps are allowed only behind an explicit "local-only" flag.
+- TypeScript remains the authoring language; the build emits JS + .d.ts.
+- Scope: start with `src/` runtime code; defer `cli/`, `app/`, and `kernel-tests/` until the runtime path is stable.
+
+## Signing and Trust Model (Recommended)
+
+- **Local dev:** per-device key signs artifacts; unsigned loads are allowed only with an explicit "local-only" flag.
+- **P2P distribution:** accept only signatures from an allowlist of trusted signer IDs; unknown/unsigned bundles are rejected by default.
+- **Official releases:** signed by a shared signer service key; runtime trusts that signer by default.
+- **Manifest:** includes artifact hashes + signer ID + signature so swaps are auditable and reproducible.
+
+## Summary Statistics (src/ only)
+
+Counts drift; refresh before execution.
 
 | Metric | Count |
 |--------|-------|
-| Total .ts files | 164 |
-| Lines of TypeScript | ~72,000 |
-| Exported types/interfaces | 577 |
-| Files with `import type` | 228 |
+| Total .ts files (excluding .d.ts) | 168 |
+| Lines of TypeScript | ~57,000 |
+| Files with `import type` | 81 |
 | Existing .d.ts files | 1 (chrome.d.ts) |
+
+Refresh commands:
+```bash
+rg --files -g '*.ts' -g '!*.d.ts' src | wc -l
+rg --files -g '*.ts' -g '!*.d.ts' src | xargs wc -l | tail -n 1
+rg -l "import\\s+type" src -g '*.ts' -g '!*.d.ts' | wc -l
+```
 
 ---
 
 ## TypeScript Feature Usage
+
+These counts are illustrative; refresh with a TS analyzer before sizing work.
 
 | Feature | Count | Complexity |
 |---------|-------|------------|
@@ -39,8 +64,8 @@
 
 ## What Could Be JavaScript
 
-### TypeScript-Light Files (Easy to Convert)
-These use only basic type annotations that could be JSDoc or stripped:
+### TypeScript-Light Files (Easy to Emit)
+These use only basic type annotations and should emit clean JS:
 
 | Category | Lines | Example Files |
 |----------|-------|---------------|
@@ -49,18 +74,18 @@ These use only basic type annotations that could be JSDoc or stripped:
 | Debug/logging | ~3k | `debug/index.ts` |
 | **Subtotal** | **~21k** | ~29% of codebase |
 
-### TypeScript-Heavy Files (Hard to Convert)
+### TypeScript-Heavy Files (Higher Risk for Hot-Swap)
 These use generics, utility types, interface extension:
 
 | Category | Lines | Reason |
 |----------|-------|--------|
-| Config schemas | 3,155 | Nested Partial<T>, deep merging |
+| Config schemas | ~3,700 | Nested Partial<T>, deep merging |
 | Pipeline core | ~10k | Complex LayerContext, generics |
 | Loader/converter | ~5k | Generic tensor types |
-| Type definitions | 546 | src/types/*.ts |
+| Type definitions | ~580 | src/types/*.ts |
 | **Subtotal** | **~19k** | ~26% of codebase |
 
-### Mixed Files (Moderate Effort)
+### Mixed Files (Moderate Risk)
 | Category | Lines |
 |----------|-------|
 | Inference pipeline | ~25k |
@@ -69,76 +94,28 @@ These use generics, utility types, interface extension:
 
 ---
 
-## Conversion Strategies
+## Conversion Strategy (Chosen Path)
 
-### Option 1: Strip Types → Pure JavaScript
-**Effort:** 577 type exports need .d.ts files
-**Lines to convert:** ~72k
-**Tooling:** `tsc --declaration` already outputs .d.ts
-
-**Pros:**
-- Smaller runtime bundle (no type erasure overhead in source)
-- Works in browsers without build step
-
-**Cons:**
-- Lose IDE type-checking during development
-- Must maintain .d.ts files separately
-
-### Option 2: JSDoc Annotations
-**Effort:** Convert inline types to JSDoc comments
-**Lines to modify:** ~50k (function signatures, variables)
-
-Example conversion:
-```typescript
-// BEFORE (TypeScript)
-function sample(logits: Float32Array, opts: SamplingOptions): number
-
-// AFTER (JSDoc + JavaScript)
-/** @param {Float32Array} logits @param {SamplingOptions} opts @returns {number} */
-function sample(logits, opts)
-```
-
-**Pros:**
-- TypeScript can still check .js files with `checkJs: true` (already enabled!)
-- No .d.ts maintenance
-- Works in browsers without build
-
-**Cons:**
-- More verbose
-- Some advanced types can't be expressed in JSDoc
-
-### Option 3: Keep TypeScript, Publish .d.ts
-**Effort:** Already supported by current tsconfig
-**Lines to modify:** 0
+**Approach:** Keep TypeScript sources and emit readable JS + .d.ts artifacts for hot-swapping.
 
 Current config already generates:
 - `declaration: true` → .d.ts files
 - `declarationMap: true` → source maps
 
-**Pros:**
-- Best DX (full IDE support)
-- Consumers get types via .d.ts
-
-**Cons:**
-- Requires build step
-- TypeScript in source
+Output requirements:
+- Emit unminified ESM JS, preserve names, and include sourcemaps.
+- JS/WGSL/JSON artifacts are the swap unit; TS stays authoring-only.
+- Signed manifests are required for distributed swaps.
 
 ---
 
-## Type Separation Feasibility
+## Type Emission Strategy
 
-### Current State
-- Types scattered across 164 files
-- Heavy `import type` coupling (228 files)
-- Config schemas tightly bound to defaults
+- Keep types in TS sources; rely on `tsc --declaration` for .d.ts output.
+- Use `export type` in barrels to avoid accidental runtime imports.
+- Type-only modules remain .ts (no runtime exports) and emit .d.ts (e.g., `src/types/*.ts`, pipeline/format type files).
 
-### To Separate Types into .d.ts:
-
-1. **Move 577 exports to .d.ts files** (~3k lines)
-2. **Create type barrel file** (`src/types/index.d.ts`)
-3. **Update 228 import statements** to reference .d.ts
-
-### Estimated .d.ts Structure:
+### Target .d.ts Structure:
 ```
 src/types/
 ├── index.d.ts          # Main barrel export
@@ -161,24 +138,35 @@ src/types/
 
 ---
 
-## Conversion Plan: TypeScript → JavaScript + .d.ts
+## Conversion Plan: Runtime JS Artifacts (Hot-Swappable) + .d.ts
 
 ### Phase 0: Setup (Before Converting Any Files)
 
-1. **Generate baseline .d.ts files:**
+1. **Define runtime artifact policy:**
+   - Emit unminified ESM JS, preserve names, include sourcemaps.
+   - JS/WGSL/JSON outputs are the hot-swap units.
+
+2. **Add signing + verification hooks:**
+   - Signed manifest for distributed swaps.
+   - Allow local unsigned swaps only behind an explicit "local-only" flag.
+   - Default trust: per-device signer for local, shared signer for official, allowlist for P2P.
+
+3. **Generate baseline .d.ts files (project-level):**
    ```bash
-   tsc --declaration --emitDeclarationOnly --outDir dist/types
+   tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir dist/types
    ```
 
-2. **Create types barrel file:**
+4. **Create types barrel file:**
    ```typescript
-   // src/types/index.d.ts - consolidate all exports
-   export * from './gpu.js';
-   export * from './inference.js';
-   export * from './model.js';
+   // src/types/index.ts - consolidate all exports
+   export type * from './gpu.js';
+   export type * from './inference.js';
+   export type * from './model.js';
    ```
+   - This relies on `moduleResolution: "bundler"` and `package.json` `exports/types` to map `.js` specifiers to `.d.ts`.
+   - If module resolution changes, switch to `.d.ts` specifiers or add a `typesVersions` map.
 
-3. **Update tsconfig.json:**
+5. **Confirm tsconfig.json + tsconfig.build.json:**
    ```json
    {
      "allowJs": true,
@@ -187,46 +175,57 @@ src/types/
      "emitDeclarationOnly": false
    }
    ```
+   - `tsconfig.build.json` is the build driver (extends `tsconfig.json`).
 
 ---
 
-## Phase 1: Types Directory (4 files, 550 lines)
-These stay as .ts or become pure .d.ts:
+## Phase 1: Types Directory (5 files, ~580 lines)
+These are type-only modules; keep as .ts (no runtime exports):
+
+Guard before treating a file as type-only:
+```bash
+rg -n "export\\s+(const|function|class|let|var|enum)" src/types
+```
 
 | File | Lines | Action |
 |------|-------|--------|
-| `src/types/chrome.d.ts` | 50 | Keep as .d.ts |
-| `src/types/gpu.ts` | 185 | → `gpu.d.ts` |
-| `src/types/inference.ts` | 209 | → `inference.d.ts` |
-| `src/types/model.ts` | 119 | → `model.d.ts` |
+| `src/types/chrome.d.ts` | 36 | Keep as .d.ts |
+| `src/types/index.ts` | 3 | Keep as .ts (type-only) |
+| `src/types/gpu.ts` | 184 | Keep as .ts (type-only) |
+| `src/types/inference.ts` | 199 | Keep as .ts (type-only) |
+| `src/types/model.ts` | 118 | Keep as .ts (type-only) |
 
 ---
 
-## Phase 2: Config Schema (20 files, 3,155 lines)
-These are type-heavy. Convert to .d.ts only:
+## Phase 2: Config Schema + Defaults (24 files, ~3,700 lines)
+These are runtime defaults + helpers. Keep runtime JS and emit .d.ts (no .d.ts-only).
 
 | File | Lines | Action |
 |------|-------|--------|
-| `src/config/schema/index.ts` | 100 | → .d.ts barrel |
-| `src/config/schema/doppler.schema.ts` | 266 | → .d.ts |
-| `src/config/schema/manifest.schema.ts` | 343 | → .d.ts |
-| `src/config/schema/inference.schema.ts` | 290 | → .d.ts |
-| `src/config/schema/inference-defaults.schema.ts` | 180 | → .d.ts |
-| `src/config/schema/debug.schema.ts` | 232 | → .d.ts |
-| `src/config/schema/loading.schema.ts` | 150 | → .d.ts |
-| `src/config/schema/preset.schema.ts` | 200 | → .d.ts |
-| `src/config/schema/storage.schema.ts` | 120 | → .d.ts |
-| `src/config/schema/distribution.schema.ts` | 100 | → .d.ts |
-| `src/config/schema/kvcache.schema.ts` | 80 | → .d.ts |
-| `src/config/schema/moe.schema.ts` | 90 | → .d.ts |
-| `src/config/schema/buffer-pool.schema.ts` | 70 | → .d.ts |
-| `src/config/schema/gpu-cache.schema.ts` | 60 | → .d.ts |
-| `src/config/schema/tuner.schema.ts` | 80 | → .d.ts |
-| `src/config/schema/memory-limits.schema.ts` | 70 | → .d.ts |
-| `src/config/schema/bridge.schema.ts` | 100 | → .d.ts |
-| `src/config/schema/platform.schema.ts` | 50 | → .d.ts |
-| `src/config/schema/kernel-registry.schema.ts` | 80 | → .d.ts |
-| `src/config/schema/conversion.schema.ts` | 100 | → .d.ts |
+| `src/config/schema/index.ts` | 100 | → .js + .d.ts barrel |
+| `src/config/schema/doppler.schema.ts` | 266 | → .js + .d.ts |
+| `src/config/schema/manifest.schema.ts` | 343 | → .js + .d.ts |
+| `src/config/schema/inference.schema.ts` | 290 | → .js + .d.ts |
+| `src/config/schema/inference-defaults.schema.ts` | 180 | → .js + .d.ts |
+| `src/config/schema/debug.schema.ts` | 232 | → .js + .d.ts |
+| `src/config/schema/loading.schema.ts` | 150 | → .js + .d.ts |
+| `src/config/schema/preset.schema.ts` | 200 | → .js + .d.ts |
+| `src/config/schema/storage.schema.ts` | 120 | → .js + .d.ts |
+| `src/config/schema/distribution.schema.ts` | 100 | → .js + .d.ts |
+| `src/config/schema/kvcache.schema.ts` | 80 | → .js + .d.ts |
+| `src/config/schema/moe.schema.ts` | 90 | → .js + .d.ts |
+| `src/config/schema/buffer-pool.schema.ts` | 70 | → .js + .d.ts |
+| `src/config/schema/gpu-cache.schema.ts` | 60 | → .js + .d.ts |
+| `src/config/schema/tuner.schema.ts` | 80 | → .js + .d.ts |
+| `src/config/schema/memory-limits.schema.ts` | 70 | → .js + .d.ts |
+| `src/config/schema/bridge.schema.ts` | 100 | → .js + .d.ts |
+| `src/config/schema/platform.schema.ts` | 50 | → .js + .d.ts |
+| `src/config/schema/hotswap.schema.ts` | 52 | → .js + .d.ts |
+| `src/config/schema/kernel-registry.schema.ts` | 80 | → .js + .d.ts |
+| `src/config/schema/kernel-plan.schema.ts` | 77 | → .js + .d.ts |
+| `src/config/schema/kernel-thresholds.schema.ts` | 263 | → .js + .d.ts |
+| `src/config/schema/quantization-defaults.schema.ts` | 46 | → .js + .d.ts |
+| `src/config/schema/conversion.schema.ts` | 100 | → .js + .d.ts |
 
 **Config runtime files (convert to .js):**
 | File | Lines | Action |
@@ -333,12 +332,13 @@ These are type-heavy. Convert to .d.ts only:
 
 ---
 
-## Phase 5: Loader Module (7 files, ~4,500 lines)
+## Phase 5: Loader Module (8 files, ~3,500 lines)
 
 | File | Lines | Complexity | Action |
 |------|-------|------------|--------|
 | `src/loader/doppler-loader.ts` | 1,944 | Complex | → .js |
 | `src/loader/loader-types.ts` | 150 | Medium | → .d.ts |
+| `src/loader/quantization-constants.ts` | 23 | Simple | → .js |
 | `src/loader/weights.ts` | 500 | Medium | → .js |
 | `src/loader/shard-cache.ts` | 400 | Medium | → .js |
 | `src/loader/expert-cache.ts` | 500 | Medium | → .js |
@@ -453,22 +453,30 @@ These are type-heavy. Convert to .d.ts only:
 
 ## Summary by Action
 
-| Action | Files | Lines |
+| Action | Files | Notes |
 |--------|-------|-------|
-| Convert to .js | 130 | ~62,000 |
-| Convert to .d.ts only | 34 | ~10,000 |
-| **Total** | 164 | ~72,000 |
+| JS runtime artifacts + .d.ts | majority | all runtime modules, including schema defaults |
+| Type-only TS (emit .d.ts) | few | `src/types/*.ts`, pipeline/format type files |
+| .d.ts only | minimal | `src/types/chrome.d.ts` |
+| **Total (src/)** | 168 | ~57,000 lines |
 
 ---
+
+## Scope Roadmap
+
+- **Phase A (now):** `src/` only (runtime hot-swap surface).
+- **Phase B:** `cli/` (config tooling + dev workflows) once runtime artifacts are stable.
+- **Phase C:** `app/` (demo UI) after CLI is aligned with signed bundles.
+- **Phase D:** `kernel-tests/` last; keep TS for test ergonomics unless runtime parity requires JS.
 
 ## .d.ts File Structure (Final)
 
 ```
 src/types/
 ├── index.d.ts              # Master barrel
-├── gpu.d.ts                # GPU types (185 lines)
-├── inference.d.ts          # Inference types (209 lines)
-├── model.d.ts              # Model types (119 lines)
+├── gpu.d.ts                # GPU types (184 lines)
+├── inference.d.ts          # Inference types (199 lines)
+├── model.d.ts              # Model types (118 lines)
 ├── config.d.ts             # All config schemas (~2,500 lines)
 ├── formats.d.ts            # GGUF/RDRR/SafeTensors types (~800 lines)
 ├── pipeline.d.ts           # Pipeline internal types (~400 lines)
@@ -496,27 +504,24 @@ Total: ~4,500 lines of .d.ts
 
 ---
 
-## Per-File Conversion Steps
+## Project-Level Conversion Steps
 
-For each .ts file:
+1. **Build JS output for the target scope:**
+   - Emit ESM JS, no minify, preserve names, include sourcemaps.
+   - Keep module boundaries stable for hot-swap.
 
-1. **Strip types:**
+2. **Generate declarations:**
    ```bash
-   npx esbuild file.ts --outfile=file.js --format=esm
+   tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir dist/types
    ```
 
-2. **Generate declaration:**
-   ```bash
-   npx tsc file.ts --declaration --emitDeclarationOnly
-   ```
-
-3. **Update imports:**
-   - `import type { X }` → remove or keep for JSDoc
-   - Ensure `.js` extensions
+3. **Update imports/barrels:**
+   - Use `export type` in .d.ts barrels to avoid accidental value imports.
+   - Ensure `.js` extensions in JS runtime imports.
 
 4. **Verify:**
    ```bash
-   npx tsc --noEmit file.js
+   tsc -p tsconfig.json --noEmit --allowJs --checkJs
    ```
 
 ---
@@ -526,36 +531,48 @@ For each .ts file:
 After conversion:
 ```bash
 # Type check with .d.ts
-tsc --noEmit --allowJs --checkJs
+tsc -p tsconfig.json --noEmit --allowJs --checkJs
+
+# Build uses the build config
+tsc -p tsconfig.build.json
 
 # Runtime test
 npm test
 ```
 
+Also validate signed swap acceptance and local-only bypass in the test harness.
+
+---
+
+## Types Resolution Appendix (Exports Map)
+
+Type barrels use `.js` specifiers but resolve to `.d.ts` via `package.json` exports:
+
+```json
+{
+  "exports": {
+    ".": {
+      "types": "./dist/types/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  }
+}
+```
+
+If the exports map changes or module resolution differs, update barrels to `.d.ts` specifiers or add a `typesVersions` map.
+
 ---
 
 ## Challenges
 
-### 1. Config Schema Merging (3,155 lines)
-`src/config/schema/*.ts` uses `Partial<T>` heavily for deep merging:
-```typescript
-export function createDopplerConfig(overrides?: Partial<DopplerConfigSchema>): DopplerConfigSchema
-```
-In JS, this loses type safety. Options:
-- Keep schema files as .ts (hybrid approach)
-- Use JSDoc `@typedef` for complex types
+### 1. Config Schema Runtime Defaults
+`src/config/schema/*.ts` exports runtime defaults and helpers (e.g., `createDopplerConfig`, `DEFAULT_*`). These must remain runtime JS (or TS with JS output), not .d.ts-only.
 
-### 2. Interface Extension (GPU Kernels)
-```typescript
-export interface DequantOptions extends OutputBufferOptions, OutputOffsetOptions, OutputDtypeOptions
-```
-JSDoc equivalent is verbose:
-```javascript
-/** @typedef {OutputBufferOptions & OutputOffsetOptions & OutputDtypeOptions & {...}} DequantOptions */
-```
+### 2. Hot-Swap Trust Model
+Production swaps require signature verification with a trusted signer allowlist, while local-only overrides remain explicit and non-distributable.
 
-### 3. Generic Functions
-```typescript
-async downloadShards<T extends ArrayBuffer | Blob>(...)
-```
-JSDoc generics are limited - may need runtime assertions.
+### 3. Declaration Hygiene
+Ensure type-only exports use `export type` and avoid value imports from .d.ts barrels.
+
+### 4. Artifact Stability
+Keep module boundaries and output naming stable (no minify, preserve names) so hot-swaps are reproducible.

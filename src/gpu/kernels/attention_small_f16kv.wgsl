@@ -5,9 +5,9 @@
 
 enable f16;
 
-override WORKGROUP_SIZE: u32 = 32u;
-override BLOCK_SIZE: u32 = 32u;
-override HEAD_TILE: u32 = 32u;
+const WORKGROUP_SIZE: u32 = 32u;
+const BLOCK_SIZE: u32 = 32u;
+const HEAD_TILE: u32 = 32u;
 const MAX_HEAD_DIM: u32 = 256u;
 
 struct Uniforms {
@@ -78,8 +78,8 @@ fn main(
     let query_pos = query_block_idx * BLOCK_SIZE + thread_idx;
     let valid_query = query_pos < query_len;
 
-    var q_local: array<f32, 256>;
-    var acc: array<f32, 256>;
+    var q_local: array<f32, MAX_HEAD_DIM>;
+    var acc: array<f32, MAX_HEAD_DIM>;
 
     if (valid_query) {
         let q_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
@@ -98,7 +98,7 @@ fn main(
     for (var kv_block: u32 = 0u; kv_block < num_kv_blocks; kv_block = kv_block + 1u) {
         let kv_block_start = kv_block * BLOCK_SIZE;
 
-        var scores: array<f32, 32>;
+        var scores: array<f32, BLOCK_SIZE>;
         for (var k_init: u32 = 0u; k_init < BLOCK_SIZE; k_init = k_init + 1u) {
             scores[k_init] = 0.0;
         }

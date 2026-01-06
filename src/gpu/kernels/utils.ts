@@ -92,12 +92,6 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [16, 16, 1],
       requires: ['shader-f16'],
     },
-    f16w_f32a_naive: {
-      shaderFile: 'matmul_f16w_f32a_naive.wgsl',
-      entryPoint: 'main',
-      workgroupSize: [256, 1, 1],
-      requires: ['shader-f16'],
-    },
     // Optimized GEMV for M=1 decode: uses shared memory for A vector
     gemv: {
       shaderFile: 'matmul_gemv.wgsl',
@@ -132,13 +126,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'fused_matmul_q4.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
-      requires: ['shader-f16', 'subgroups'],
+      requires: ['subgroups'],
     },
     q4_fused_batched: {
       shaderFile: 'fused_matmul_q4_batched.wgsl',
       entryPoint: 'main_batched',
       workgroupSize: [64, 4, 1],
-      requires: ['shader-f16', 'subgroups'],
+      requires: ['subgroups'],
       variantMetadata: { tileM: 4 },
     },
     // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
@@ -146,12 +140,12 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'fused_matmul_q4.wgsl',
       entryPoint: 'main_multicol',
       workgroupSize: [256, 1, 1],
-      requires: ['shader-f16', 'subgroups'],
+      requires: ['subgroups'],
       variantMetadata: { colsPerWg: 32 },
     },
     // F16 output variants - same as above but output to f16 buffer
     q4_fused_multicol_f16: {
-      shaderFile: 'fused_matmul_q4.wgsl',
+      shaderFile: 'fused_matmul_q4_multicol_f16.wgsl',
       entryPoint: 'main_multicol_f16',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
@@ -159,7 +153,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       variantMetadata: { colsPerWg: 32 },
     },
     q4_fused_batched_f16: {
-      shaderFile: 'fused_matmul_q4_batched.wgsl',
+      shaderFile: 'fused_matmul_q4_batched_f16.wgsl',
       entryPoint: 'main_batched_f16',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
@@ -191,7 +185,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'fused_ffn.wgsl',
       entryPoint: 'main_f16',
       workgroupSize: [256, 1, 1],
-      requires: ['shader-f16', 'subgroups'],
+      requires: ['subgroups'],
     },
     batched: {
       shaderFile: 'fused_ffn.wgsl',
@@ -218,7 +212,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'attention_decode_optimized.wgsl',
       entryPoint: 'main_f16kv',
       workgroupSize: [256, 1, 1],
-      requires: ['shader-f16', 'subgroups'],
+      requires: ['subgroups'],
     },
   },
   dequant: {
@@ -238,13 +232,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'dequant_f16_out.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
-      requires: ['subgroups', 'shader-f16'],
+      requires: ['shader-f16'],
     },
     subgroup_vec4_f16out: {
-      shaderFile: 'dequant_f16_out.wgsl',
+      shaderFile: 'dequant_f16_out_vec4.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
-      requires: ['subgroups', 'shader-f16'],
+      requires: ['shader-f16'],
     },
     shared: {
       shaderFile: 'dequant_shared.wgsl',
@@ -253,7 +247,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     shared_vec4: {
-      shaderFile: 'dequant_shared.wgsl',
+      shaderFile: 'dequant_shared_vec4.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -265,7 +259,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: ['shader-f16'],
     },
     shared_vec4_f16out: {
-      shaderFile: 'dequant_f16_out.wgsl',
+      shaderFile: 'dequant_f16_out_vec4.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
@@ -278,13 +272,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     mxfp4_vec4: {
-      shaderFile: 'dequant_mxfp4.wgsl',
+      shaderFile: 'dequant_mxfp4_vec4.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
     },
     mxfp4_expert: {
-      shaderFile: 'dequant_mxfp4.wgsl',
+      shaderFile: 'dequant_mxfp4_expert.wgsl',
       entryPoint: 'main_expert',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -626,7 +620,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     vec4: {
-      shaderFile: 'gather.wgsl',
+      shaderFile: 'gather_vec4.wgsl',
       entryPoint: 'gather_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -639,44 +633,44 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: ['shader-f16'],
     },
     f16_vec4: {
-      shaderFile: 'gather_f16.wgsl',
+      shaderFile: 'gather_f16_vec4.wgsl',
       entryPoint: 'gather_vec4',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
     },
     // F32 embeddings → F16 output (for F16 activation mode)
     f16_out: {
-      shaderFile: 'gather.wgsl',
+      shaderFile: 'gather_f16_out.wgsl',
       entryPoint: 'gather_f16_out',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
       outputDtype: 'f16',
-      variantMetadata: { outputBinding: 1 },
+      variantMetadata: { outputBinding: 4 },
     },
     vec4_f16_out: {
-      shaderFile: 'gather.wgsl',
+      shaderFile: 'gather_vec4_f16_out.wgsl',
       entryPoint: 'gather_vec4_f16_out',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
       outputDtype: 'f16',
-      variantMetadata: { outputBinding: 1 },
+      variantMetadata: { outputBinding: 4 },
     },
     // F16 embeddings → F16 output (for F16 activation mode with F16 embeddings)
     f16_f16_out: {
-      shaderFile: 'gather_f16.wgsl',
+      shaderFile: 'gather_f16_f16_out.wgsl',
       entryPoint: 'gather_f16_out',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
       outputDtype: 'f16',
-      variantMetadata: { outputBinding: 1 },
+      variantMetadata: { outputBinding: 4 },
     },
     f16_vec4_f16_out: {
-      shaderFile: 'gather_f16.wgsl',
+      shaderFile: 'gather_f16_vec4_f16_out.wgsl',
       entryPoint: 'gather_vec4_f16_out',
       workgroupSize: [64, 1, 1],
       requires: ['shader-f16'],
       outputDtype: 'f16',
-      variantMetadata: { outputBinding: 1 },
+      variantMetadata: { outputBinding: 4 },
     },
   },
   residual: {
@@ -735,13 +729,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     vec4: {
-      shaderFile: 'scatter_add.wgsl',
+      shaderFile: 'scatter_add_vec4.wgsl',
       entryPoint: 'scatter_add_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
     },
     dynamic: {
-      shaderFile: 'scatter_add.wgsl',
+      shaderFile: 'scatter_add_dynamic.wgsl',
       entryPoint: 'scatter_add_dynamic',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -767,7 +761,7 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
     gather_vec4: {
-      shaderFile: 'moe_gather.wgsl',
+      shaderFile: 'moe_gather_vec4.wgsl',
       entryPoint: 'gather_tokens_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -1139,6 +1133,12 @@ export async function createPipeline(
       `Kernel ${operation}/${variant} requires features: ${config.requires.join(', ')}`
     );
   }
+
+  trace.kernels(
+    `KernelLayout: ${operation}/${variant} file=${config.shaderFile} entry=${config.entryPoint} ` +
+      `workgroup=[${config.workgroupSize.join(',')}] requires=` +
+      `${config.requires.length > 0 ? config.requires.join('|') : 'none'}`
+  );
 
   // Compile or reuse shader module
   const shaderModule = await getShaderModule(device, config.shaderFile, `${operation}_${variant}`);

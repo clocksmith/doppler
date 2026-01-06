@@ -1,18 +1,9 @@
-// MXFP4 Dequantization Kernel
+// MXFP4 Dequantization Kernel (vec4)
 //
-// Dequantizes MXFP4 quantized weights used by GPT-OSS models.
-//
-// MXFP4 Format (per group of 32 elements):
-// - blocks: 16 bytes containing 32 x 4-bit values (2 nibbles per byte)
-// - scale: 1 byte shared across the 32 values
-//
-// Dequantization formula:
-//   value = (nibble - 8) * scale * (1.0 / 127.0)
-//
-// Where nibble is 0-15 (representing -8 to +7 signed 4-bit)
+// Vectorized variant for MXFP4 dequantization.
 
 // Tunable workgroup size
-override WORKGROUP_SIZE_MAIN: u32 = 256u;
+override WORKGROUP_SIZE_VEC4: u32 = 64u;
 
 struct Uniforms {
     total_elements: u32,    // Total output elements
@@ -82,39 +73,44 @@ fn get_scale(scale_data: u32, idx: u32) -> f32 {
     return pow(2.0, f32(exponent));
 }
 
-@compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
-fn main(
-    @builtin(global_invocation_id) global_id: vec3<u32>,
-    @builtin(local_invocation_id) local_id: vec3<u32>,
-    @builtin(workgroup_id) workgroup_id: vec3<u32>
+// Vectorized version - each thread handles 4 elements
+@compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
+fn main_vec4(
+    @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
-    let elem_idx = global_id.x;
+    let base_elem = global_id.x * 4u;
 
-    if (elem_idx >= u.total_elements) {
+    if (base_elem >= u.total_elements) {
         return;
     }
 
-    // Compute which group this element belongs to
-    let group_idx = elem_idx / u.group_size;
-    let intra_group_idx = elem_idx % u.group_size;
+    // Compute group for base element
+    let group_idx = base_elem / u.group_size;
+    let intra_group_base = base_elem % u.group_size;
 
-    // Get scale for this group
+    // Get scale for this group (all 4 elements should be in same group typically)
     let scale_word_idx = group_idx / 4u;
     let scale_byte_idx = group_idx % 4u;
     let scale_word = scales[scale_word_idx];
     let scale = get_scale(scale_word, scale_byte_idx);
 
-    // Get the block data
-    // Each group has 16 bytes = 4 U32 words = 32 nibbles
-    let block_base = group_idx * 4u;  // 4 U32 words per group
-    let word_in_block = intra_group_idx / 8u;  // Which U32 word (0-3)
-    let nibble_in_word = intra_group_idx % 8u;  // Which nibble in word (0-7)
+    // Get block data
+    let block_base = group_idx * 4u;
 
-    let block_word = blocks[block_base + word_in_block];
-    let nibble_val = get_nibble(block_word, nibble_in_word);
+    // Process 4 consecutive nibbles
+    for (var i = 0u; i < 4u; i = i + 1u) {
+        let elem_idx = base_elem + i;
+        if (elem_idx >= u.total_elements) {
+            break;
+        }
 
-    // Dequantize: signed nibble * scale
-    let dequant = f32(nibble_val) * scale;
+        let intra_group_idx = intra_group_base + i;
+        let word_in_block = intra_group_idx / 8u;
+        let nibble_in_word = intra_group_idx % 8u;
 
-    output[elem_idx] = dequant;
+        let block_word = blocks[block_base + word_in_block];
+        let nibble_val = get_nibble(block_word, nibble_in_word);
+
+        output[elem_idx] = f32(nibble_val) * scale;
+    }
 }

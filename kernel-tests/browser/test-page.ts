@@ -9,6 +9,10 @@ import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } fro
 // Import tensor abstraction for Tensor-based kernels
 import { createTensor, type Tensor } from '../../src/gpu/tensor.js';
 
+// Ensure platform/registry lookups resolve to the main config paths when bundled
+import { setPlatformsBaseUrl } from '../../src/config/platforms/loader.js';
+import { setRegistryUrl } from '../../src/config/kernels/registry.js';
+
 // Import kernel plan to enable fused Q4K path for testing
 import { setKernelPlan } from '../../src/config/kernel-plan.js';
 
@@ -82,6 +86,9 @@ function f16ToF32(h: number): number {
  */
 async function initGPU(): Promise<GPUDevice> {
   if (device) return device;
+
+  setPlatformsBaseUrl('/config/platforms/');
+  setRegistryUrl('/config/kernels/registry.json');
 
   device = await initDevice();
   if (!device) {
@@ -577,17 +584,30 @@ const testHarness: TestHarnessImpl = {
 
     const inputBuf = makeBuffer(input);
     const weightBuf = makeBuffer(weight);
+    const inputTensor = createTensor(inputBuf, 'f32', [numTokens, hiddenSize], 'rmsnorm_input');
 
-    const resultBuf = await runRMSNorm(inputBuf, weightBuf, eps, {
+    const resultTensor = await runRMSNorm(inputTensor, weightBuf, eps, {
       batchSize: numTokens,
       hiddenSize,
     });
 
-    const result = new Float32Array(await readBufferData(resultBuf, numTokens * hiddenSize * 4));
+    let result: Float32Array;
+    if (resultTensor.dtype === 'f16') {
+      const rawData = await readBufferData(resultTensor.buffer, numTokens * hiddenSize * 2);
+      const u16View = new Uint16Array(rawData);
+      result = new Float32Array(u16View.length);
+      for (let i = 0; i < u16View.length; i++) {
+        result[i] = f16ToF32(u16View[i]);
+      }
+    } else {
+      result = new Float32Array(
+        await readBufferData(resultTensor.buffer, numTokens * hiddenSize * 4)
+      );
+    }
 
     inputBuf.destroy();
     weightBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -675,12 +695,24 @@ const testHarness: TestHarnessImpl = {
     const idxBuf = makeBuffer(indices);
     const numTokens = indices.length;
     // Test data uses standard [vocab_size, hidden_size] layout, not GGUF [hidden_size, vocab_size]
-    const resultBuf = await runGather(idxBuf, embBuf, numTokens, embedDim, vocabSize, { transpose: false });
-    const result = new Float32Array(await readBufferData(resultBuf, numTokens * embedDim * 4));
+    const resultTensor = await runGather(idxBuf, embBuf, numTokens, embedDim, vocabSize, { transpose: false });
+    let result: Float32Array;
+    if (resultTensor.dtype === 'f16') {
+      const rawData = await readBufferData(resultTensor.buffer, numTokens * embedDim * 2);
+      const u16View = new Uint16Array(rawData);
+      result = new Float32Array(u16View.length);
+      for (let i = 0; i < u16View.length; i++) {
+        result[i] = f16ToF32(u16View[i]);
+      }
+    } else {
+      result = new Float32Array(
+        await readBufferData(resultTensor.buffer, numTokens * embedDim * 4)
+      );
+    }
 
     embBuf.destroy();
     idxBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },

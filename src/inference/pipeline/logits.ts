@@ -766,11 +766,13 @@ export async function recordLogitsGPU(
 
   // Get norm weight buffer
   let normWeightBuffer: GPUBuffer;
+  let normWeightOwned = false;
   if (finalNorm instanceof GPUBuffer) {
     normWeightBuffer = finalNorm;
   } else {
     normWeightBuffer = acquireBuffer((finalNorm as Float32Array).byteLength, undefined, 'final_norm_w');
     recorder.device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
+    normWeightOwned = true;
   }
 
   const inputDtype: 'f16' | 'f32' = activationDtype;
@@ -789,6 +791,7 @@ export async function recordLogitsGPU(
 
   // Get LM head buffer
   let lmHeadBuffer: GPUBuffer | WeightBuffer;
+  let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
     lmHeadBuffer = lmHead;
   } else if (isWeightBuffer(lmHead)) {
@@ -797,6 +800,7 @@ export async function recordLogitsGPU(
     const rawBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
     recorder.device.queue.writeBuffer(rawBuffer, 0, lmHead as unknown as BufferSource);
     lmHeadBuffer = rawBuffer;
+    lmHeadBufferOwned = true;
   }
 
   // Record matmul (no submit)
@@ -807,6 +811,12 @@ export async function recordLogitsGPU(
 
   // Track intermediate buffer for cleanup after submit
   recorder.trackTemporaryBuffer(normedTensor.buffer);
+  if (normWeightOwned) {
+    recorder.trackTemporaryBuffer(normWeightBuffer);
+  }
+  if (lmHeadBufferOwned) {
+    recorder.trackTemporaryBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
+  }
 
   return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };
 }

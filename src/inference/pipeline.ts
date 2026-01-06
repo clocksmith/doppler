@@ -1295,7 +1295,6 @@ export class InferencePipeline {
       if (!isPreAllocated) {
         recorder.trackTemporaryBuffer(hiddenStates);
       }
-      recorder.trackTemporaryBuffer(logitsBuffer);
 
       // NOW submit everything at once (layers + logits + sampling)
       recorder.submit();
@@ -1351,6 +1350,7 @@ export class InferencePipeline {
         }
       }
 
+      releaseBuffer(logitsBuffer);
       releaseBuffer(sampleOutputBuffer);
 
       // Log submit stats

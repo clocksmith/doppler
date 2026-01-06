@@ -18,7 +18,12 @@ import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
 import { log as debugLog } from '../debug/index.js';
 import type { RuntimeConfigSchema, KernelPlanSchema } from '../config/schema/index.js';
-import { setRuntimeConfig } from '../config/runtime.js';
+import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import {
+  fetchHotSwapManifest,
+  verifyHotSwapManifest,
+} from '../hotswap/manifest.js';
+import { setHotSwapManifest } from '../hotswap/runtime.js';
 
 // ============================================================================
 // Types
@@ -196,6 +201,31 @@ export function parseRuntimeOverridesFromURL(
     }
   }
 
+  const hotSwapManifest = params.get('hotSwapManifest');
+  const hotSwapLocalOnly = params.get('hotSwapLocalOnly');
+  const hotSwapAllowUnsignedLocal = params.get('hotSwapAllowUnsignedLocal');
+  if (hotSwapManifest || hotSwapLocalOnly || hotSwapAllowUnsignedLocal) {
+    runtime.runtimeConfig = runtime.runtimeConfig ?? {};
+    const baseHotSwap = getRuntimeConfig().hotSwap;
+    const hotSwap = {
+      ...baseHotSwap,
+      ...(runtime.runtimeConfig.hotSwap ?? {}),
+      enabled: runtime.runtimeConfig.hotSwap?.enabled ?? baseHotSwap.enabled,
+    };
+    if (hotSwapManifest) {
+      hotSwap.manifestUrl = hotSwapManifest;
+      hotSwap.enabled = true;
+    }
+    if (hotSwapLocalOnly) {
+      hotSwap.localOnly = hotSwapLocalOnly === '1' || hotSwapLocalOnly === 'true';
+    }
+    if (hotSwapAllowUnsignedLocal) {
+      hotSwap.allowUnsignedLocal =
+        hotSwapAllowUnsignedLocal === '1' || hotSwapAllowUnsignedLocal === 'true';
+    }
+    runtime.runtimeConfig.hotSwap = hotSwap;
+  }
+
   return runtime;
 }
 
@@ -317,6 +347,19 @@ export async function initializeInference(
   const onProgress = options.onProgress || (() => {});
   if (options.runtime?.runtimeConfig) {
     setRuntimeConfig(options.runtime.runtimeConfig);
+  }
+
+  const hotSwapConfig = getRuntimeConfig().hotSwap;
+  if (hotSwapConfig.enabled && hotSwapConfig.manifestUrl) {
+    onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
+    log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
+    const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
+    const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig);
+    if (!verification.ok) {
+      throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
+    }
+    setHotSwapManifest(hotSwapManifest);
+    log(`Hot-swap manifest accepted: ${hotSwapManifest.bundleId} (${verification.reason})`);
   }
 
   // 1. Initialize WebGPU

@@ -15,6 +15,7 @@ import { exec } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const LOG_404 = process.env.DOPPLER_LOG_404 === '1';
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -246,6 +247,27 @@ async function main(): Promise<void> {
       } else if (pathname === '/doppler') {
         pathname = '/app/index.html';
       }
+      if (pathname === '/rd.css') {
+        pathname = '/app/rd.css';
+      }
+      if (pathname === '/kernel-tests/browser/registry.json') {
+        pathname = '/config/kernels/registry.json';
+      }
+      if (
+        pathname === '/favicon.ico' ||
+        pathname === '/favicon.svg' ||
+        pathname === '/site.webmanifest' ||
+        pathname === '/manifest.json' ||
+        pathname === '/browserconfig.xml' ||
+        pathname === '/apple-touch-icon.png' ||
+        pathname === '/apple-touch-icon-precomposed.png' ||
+        pathname === '/mstile-150x150.png' ||
+        pathname === '/android-chrome-192x192.png' ||
+        pathname === '/android-chrome-512x512.png'
+      ) {
+        res.writeHead(204);
+        return res.end();
+      }
       if (pathname === '/' || pathname === '') {
         pathname = '/app/index.html';
       }
@@ -303,6 +325,9 @@ async function main(): Promise<void> {
       try {
         stats = await stat(filePath);
       } catch {
+        if (LOG_404) {
+          console.log(`[404] ${pathname}`);
+        }
         res.writeHead(404);
         return res.end('Not found');
       }
@@ -313,6 +338,9 @@ async function main(): Promise<void> {
           stats = await stat(indexPath);
           return serveFile(indexPath, stats, req, res);
         } catch {
+          if (LOG_404) {
+            console.log(`[404] ${pathname}`);
+          }
           res.writeHead(404);
           return res.end('Not found');
         }
