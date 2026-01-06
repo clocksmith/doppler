@@ -207,7 +207,7 @@ export function parseRuntimeOverridesFromURL(
   if (hotSwapManifest || hotSwapLocalOnly || hotSwapAllowUnsignedLocal) {
     runtime.runtimeConfig = runtime.runtimeConfig ?? {};
     const baseHotSwap = getRuntimeConfig().hotSwap;
-    const hotSwap = {
+    const hotSwap: RuntimeConfigSchema['hotSwap'] = {
       ...baseHotSwap,
       ...(runtime.runtimeConfig.hotSwap ?? {}),
       enabled: runtime.runtimeConfig.hotSwap?.enabled ?? baseHotSwap.enabled,

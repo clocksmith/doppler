@@ -30,6 +30,8 @@ export type LegacySuite =
 export type SuiteType = TestSuite | BenchSuite | LegacySuite;
 
 export interface CLIOptions {
+  /** Raw CLI flags passed by the user (for config override precedence). */
+  cliFlags: Set<string>;
   command: Command;
   suite: SuiteType;
   model: string;

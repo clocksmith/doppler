@@ -129,6 +129,10 @@ export class BufferPool {
   // Buffer metadata for leak detection (debug mode)
   private bufferMetadata: Map<GPUBuffer, BufferMetadata>;
 
+  // Deferred destruction queue (buffers destroyed after GPU work completes)
+  private pendingDestruction: Set<GPUBuffer>;
+  private destructionScheduled: boolean;
+
   // Statistics
   private stats: InternalStats;
 
@@ -147,6 +151,8 @@ export class BufferPool {
     this.bufferMetadata = new Map();
     this.debugMode = debugMode;
     this.schemaConfig = schemaConfig ?? getRuntimeConfig().bufferPool;
+    this.pendingDestruction = new Set();
+    this.destructionScheduled = false;
 
     this.stats = {
       allocations: 0,
@@ -257,7 +263,7 @@ export class BufferPool {
     }
 
     if (!this.config.enablePooling) {
-      buffer.destroy();
+      this.deferDestroy(buffer);
       this.stats.currentBytesAllocated -= buffer.size;
       return;
     }
@@ -280,10 +286,46 @@ export class BufferPool {
         this._getTotalPooledCount() < this.config.maxTotalPooledBuffers) {
       bucketPool.push(buffer);
     } else {
-      // Pool is full, destroy buffer
-      buffer.destroy();
+      // Pool is full; defer destruction until GPU work completes.
+      this.deferDestroy(buffer);
       this.stats.currentBytesAllocated -= buffer.size;
     }
+  }
+
+  /**
+   * Defer buffer destruction until all submitted GPU work completes.
+   * This avoids destroying buffers still referenced by in-flight command buffers.
+   */
+  private deferDestroy(buffer: GPUBuffer): void {
+    this.pendingDestruction.add(buffer);
+    if (this.destructionScheduled) {
+      return;
+    }
+    const device = getDevice();
+    if (!device) {
+      // No device context; destroy immediately as a fallback.
+      for (const pending of this.pendingDestruction) {
+        pending.destroy();
+      }
+      this.pendingDestruction.clear();
+      this.destructionScheduled = false;
+      return;
+    }
+
+    this.destructionScheduled = true;
+    device.queue.onSubmittedWorkDone()
+      .then(() => {
+        for (const pending of this.pendingDestruction) {
+          pending.destroy();
+        }
+        this.pendingDestruction.clear();
+        this.destructionScheduled = false;
+      })
+      .catch((err) => {
+        log.warn('BufferPool', `Deferred destruction failed: ${(err as Error).message}`);
+        this.pendingDestruction.clear();
+        this.destructionScheduled = false;
+      });
   }
 
   /**
@@ -438,6 +480,11 @@ export class BufferPool {
       }
     }
     this.pools.clear();
+    for (const buffer of this.pendingDestruction) {
+      buffer.destroy();
+    }
+    this.pendingDestruction.clear();
+    this.destructionScheduled = false;
   }
 
   /**

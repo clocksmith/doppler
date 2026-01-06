@@ -1449,7 +1449,9 @@ export class InferencePipeline {
             });
 
         releaseBuffer(logitsBuffer);
-        releaseBuffer(hiddenStates);
+        if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
+          releaseBuffer(hiddenStates);
+        }
         this.currentSeqLen++;
         return nextToken;
       }
@@ -1468,7 +1470,9 @@ export class InferencePipeline {
       this.runtimeConfig.debug.probes
     );
 
-    releaseBuffer(hiddenStates);
+    if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
+      releaseBuffer(hiddenStates);
+    }
 
     // Log top-5 for debug
     if (isDebugStep) {

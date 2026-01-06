@@ -61,6 +61,7 @@ export class CommandRecorder {
 
   /** Temporary buffers to destroy after submit */
   private tempBuffers: GPUBuffer[];
+  private cleanupPromise: Promise<void> | null = null;
 
   /** Track if already submitted */
   private submitted: boolean;
@@ -93,6 +94,7 @@ export class CommandRecorder {
 
     // Temporary buffers to destroy after submit
     this.tempBuffers = [];
+    this.cleanupPromise = null;
 
     // Track if already submitted
     this.submitted = false;
@@ -309,11 +311,18 @@ export class CommandRecorder {
     this.device.queue.submit([this.encoder.finish()]);
     this.submitted = true;
 
-    // Destroy temporary buffers
-    for (const buffer of this.tempBuffers) {
-      buffer.destroy();
-    }
+    const buffersToDestroy = this.tempBuffers;
     this.tempBuffers = [];
+
+    this.cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
+      for (const buffer of buffersToDestroy) {
+        buffer.destroy();
+      }
+      // Safe to destroy evicted uniform buffers now that GPU work is complete
+      getUniformCache().flushPendingDestruction();
+    }).catch((err) => {
+      log.warn('CommandRecorder', `Deferred cleanup failed: ${(err as Error).message}`);
+    });
   }
 
   /**
@@ -324,9 +333,13 @@ export class CommandRecorder {
    */
   async submitAndWait(): Promise<void> {
     this.submit();
-    await this.device.queue.onSubmittedWorkDone();
-    // Safe to destroy evicted uniform buffers now that GPU work is complete
-    getUniformCache().flushPendingDestruction();
+    if (this.cleanupPromise) {
+      await this.cleanupPromise;
+    } else {
+      await this.device.queue.onSubmittedWorkDone();
+      // Safe to destroy evicted uniform buffers now that GPU work is complete
+      getUniformCache().flushPendingDestruction();
+    }
   }
 
   /**

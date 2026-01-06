@@ -595,7 +595,8 @@ function setLogLevel(level) {
 }
 function getLogLevel() {
   for (const [name, value] of Object.entries(LOG_LEVELS2)) {
-    if (value === currentLogLevel) return name.toLowerCase();
+    if (value === currentLogLevel)
+      return name.toLowerCase();
   }
   return "info";
 }
@@ -614,7 +615,8 @@ function setTrace(categories, options) {
     }
   }
   for (const cat of catArray) {
-    if (cat === "all") continue;
+    if (cat === "all")
+      continue;
     if (cat.startsWith("-")) {
       const exclude = cat.slice(1);
       enabledTraceCategories.delete(exclude);
@@ -638,9 +640,11 @@ function getTrace() {
   return [...enabledTraceCategories];
 }
 function isTraceEnabled(category, layerIdx) {
-  if (!enabledTraceCategories.has(category)) return false;
+  if (!enabledTraceCategories.has(category))
+    return false;
   if (layerIdx !== void 0 && traceLayerFilter.length > 0) {
-    if (!traceLayerFilter.includes(layerIdx)) return false;
+    if (!traceLayerFilter.includes(layerIdx))
+      return false;
   }
   if (traceMaxDecodeSteps > 0 && traceDecodeStep > traceMaxDecodeSteps) {
     return false;
@@ -667,7 +671,8 @@ function isBenchmarkMode() {
   return benchmarkMode;
 }
 function initFromUrlParams() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined")
+    return;
   const params = new URLSearchParams(window.location.search);
   const logLevel = params.get("log");
   if (logLevel) {
@@ -686,7 +691,8 @@ function initFromUrlParams() {
   }
 }
 function shouldLog(module, level) {
-  if (level < currentLogLevel) return false;
+  if (level < currentLogLevel)
+    return false;
   const moduleLower = module.toLowerCase();
   if (enabledModules.size > 0 && !enabledModules.has(moduleLower)) {
     return false;
@@ -835,7 +841,8 @@ var init_debug = __esm({
        * Debug level logging (most verbose).
        */
       debug(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS2.DEBUG)) return;
+        if (!shouldLog(module, LOG_LEVELS2.DEBUG))
+          return;
         const formatted = formatMessage(module, message);
         storeLog("DEBUG", module, message, data);
         if (data !== void 0) {
@@ -848,7 +855,8 @@ var init_debug = __esm({
        * Verbose level logging (detailed operational info).
        */
       verbose(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS2.VERBOSE)) return;
+        if (!shouldLog(module, LOG_LEVELS2.VERBOSE))
+          return;
         const formatted = formatMessage(module, message);
         storeLog("VERBOSE", module, message, data);
         if (data !== void 0) {
@@ -861,7 +869,8 @@ var init_debug = __esm({
        * Info level logging (normal operations).
        */
       info(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS2.INFO)) return;
+        if (!shouldLog(module, LOG_LEVELS2.INFO))
+          return;
         const formatted = formatMessage(module, message);
         storeLog("INFO", module, message, data);
         if (data !== void 0) {
@@ -874,7 +883,8 @@ var init_debug = __esm({
        * Warning level logging.
        */
       warn(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS2.WARN)) return;
+        if (!shouldLog(module, LOG_LEVELS2.WARN))
+          return;
         const formatted = formatMessage(module, message);
         storeLog("WARN", module, message, data);
         if (data !== void 0) {
@@ -887,7 +897,8 @@ var init_debug = __esm({
        * Error level logging.
        */
       error(module, message, data) {
-        if (!shouldLog(module, LOG_LEVELS2.ERROR)) return;
+        if (!shouldLog(module, LOG_LEVELS2.ERROR))
+          return;
         const formatted = formatMessage(module, message);
         storeLog("ERROR", module, message, data);
         if (data !== void 0) {
@@ -914,7 +925,8 @@ var init_debug = __esm({
        * Trace model loading operations.
        */
       loader(message, data) {
-        if (!isTraceEnabled("loader")) return;
+        if (!isTraceEnabled("loader"))
+          return;
         const formatted = formatTraceMessage("loader", message);
         storeLog("TRACE:loader", "Loader", message, data);
         if (data !== void 0) {
@@ -927,7 +939,8 @@ var init_debug = __esm({
        * Trace kernel execution.
        */
       kernels(message, data) {
-        if (!isTraceEnabled("kernels")) return;
+        if (!isTraceEnabled("kernels"))
+          return;
         const formatted = formatTraceMessage("kernels", message);
         storeLog("TRACE:kernels", "Kernels", message, data);
         if (data !== void 0) {
@@ -940,7 +953,8 @@ var init_debug = __esm({
        * Trace logit computation.
        */
       logits(message, data) {
-        if (!isTraceEnabled("logits")) return;
+        if (!isTraceEnabled("logits"))
+          return;
         const formatted = formatTraceMessage("logits", message);
         storeLog("TRACE:logits", "Logits", message, data);
         if (data !== void 0) {
@@ -953,7 +967,8 @@ var init_debug = __esm({
        * Trace embedding layer.
        */
       embed(message, data) {
-        if (!isTraceEnabled("embed")) return;
+        if (!isTraceEnabled("embed"))
+          return;
         const formatted = formatTraceMessage("embed", message);
         storeLog("TRACE:embed", "Embed", message, data);
         if (data !== void 0) {
@@ -966,7 +981,8 @@ var init_debug = __esm({
        * Trace attention computation.
        */
       attn(layerIdx, message, data) {
-        if (!isTraceEnabled("attn", layerIdx)) return;
+        if (!isTraceEnabled("attn", layerIdx))
+          return;
         const formatted = formatTraceMessage("attn", message, layerIdx);
         storeLog("TRACE:attn", `Attn:L${layerIdx}`, message, data);
         if (data !== void 0) {
@@ -979,7 +995,8 @@ var init_debug = __esm({
        * Trace feed-forward network.
        */
       ffn(layerIdx, message, data) {
-        if (!isTraceEnabled("ffn", layerIdx)) return;
+        if (!isTraceEnabled("ffn", layerIdx))
+          return;
         const formatted = formatTraceMessage("ffn", message, layerIdx);
         storeLog("TRACE:ffn", `FFN:L${layerIdx}`, message, data);
         if (data !== void 0) {
@@ -992,7 +1009,8 @@ var init_debug = __esm({
        * Trace KV cache operations.
        */
       kv(layerIdx, message, data) {
-        if (!isTraceEnabled("kv", layerIdx)) return;
+        if (!isTraceEnabled("kv", layerIdx))
+          return;
         const formatted = formatTraceMessage("kv", message, layerIdx);
         storeLog("TRACE:kv", `KV:L${layerIdx}`, message, data);
         if (data !== void 0) {
@@ -1005,7 +1023,8 @@ var init_debug = __esm({
        * Trace token sampling.
        */
       sample(message, data) {
-        if (!isTraceEnabled("sample")) return;
+        if (!isTraceEnabled("sample"))
+          return;
         const formatted = formatTraceMessage("sample", message);
         storeLog("TRACE:sample", "Sample", message, data);
         if (data !== void 0) {
@@ -1018,7 +1037,8 @@ var init_debug = __esm({
        * Trace buffer stats (expensive - requires GPU readback).
        */
       buffers(message, data) {
-        if (!isTraceEnabled("buffers")) return;
+        if (!isTraceEnabled("buffers"))
+          return;
         const formatted = formatTraceMessage("buffers", message);
         storeLog("TRACE:buffers", "Buffers", message, data);
         if (data !== void 0) {
@@ -1031,7 +1051,8 @@ var init_debug = __esm({
        * Trace performance timing.
        */
       perf(message, data) {
-        if (!isTraceEnabled("perf")) return;
+        if (!isTraceEnabled("perf"))
+          return;
         const formatted = formatTraceMessage("perf", message);
         storeLog("TRACE:perf", "Perf", message, data);
         if (data !== void 0) {
@@ -1093,7 +1114,8 @@ var init_debug = __esm({
             infCount++;
             continue;
           }
-          if (v === 0) zeroCount++;
+          if (v === 0)
+            zeroCount++;
           min = Math.min(min, v);
           max = Math.max(max, v);
           sum += v;
@@ -1183,10 +1205,13 @@ var init_debug = __esm({
         }
         const hasNaN = data.some((v) => Number.isNaN(v));
         const hasInf = data.some((v) => !Number.isFinite(v) && !Number.isNaN(v));
-        if (hasNaN) issues.push("HAS_NAN");
-        if (hasInf) issues.push("HAS_INF");
+        if (hasNaN)
+          issues.push("HAS_NAN");
+        if (hasInf)
+          issues.push("HAS_INF");
         const maxAbs = Math.max(...Array.from(data).map(Math.abs).filter(Number.isFinite));
-        if (maxAbs > 1e6) issues.push(`EXTREME_VALUES (max=${maxAbs.toExponential(2)})`);
+        if (maxAbs > 1e6)
+          issues.push(`EXTREME_VALUES (max=${maxAbs.toExponential(2)})`);
         const tinyCount = data.filter((v) => Math.abs(v) > 0 && Math.abs(v) < 1e-30).length;
         if (tinyCount > data.length * 0.1) {
           issues.push(`POTENTIAL_UNDERFLOW (${tinyCount} tiny values)`);
@@ -1335,7 +1360,8 @@ var init_perf_guards = __esm({
 
 // src/gpu/submit-tracker.ts
 function recordSubmit(durationMs, source) {
-  if (!TRACK_SUBMITS) return;
+  if (!TRACK_SUBMITS)
+    return;
   submitCount++;
   submitTimes.push(durationMs);
   totalSubmitMs += durationMs;
@@ -1356,7 +1382,8 @@ function recordSubmit(durationMs, source) {
 }
 function extractSourceFromStack() {
   const stack = new Error().stack;
-  if (!stack) return "unknown";
+  if (!stack)
+    return "unknown";
   const lines = stack.split("\n");
   for (let i = 3; i < lines.length; i++) {
     const line = lines[i];
@@ -1452,7 +1479,8 @@ async function detectPlatform(adapterInfo) {
   const description = adapterInfo.description?.toLowerCase() || "";
   for (const platformId of PLATFORM_FILES) {
     const config2 = await loadPlatformConfig(platformId);
-    if (!config2) continue;
+    if (!config2)
+      continue;
     const detection = config2.detection;
     let matches = true;
     if (detection.vendor && !vendor.includes(detection.vendor.toLowerCase())) {
@@ -1630,12 +1658,16 @@ function getVariantNames(operation) {
 }
 function isVariantAvailable(operation, variant, capabilities) {
   const variantSchema = getVariant(operation, variant);
-  if (!variantSchema) return false;
+  if (!variantSchema)
+    return false;
   const requires = variantSchema.requires || [];
   for (const req of requires) {
-    if (req === "shader-f16" && !capabilities.hasF16) return false;
-    if (req === "subgroups" && !capabilities.hasSubgroups) return false;
-    if (req === "subgroups-f16" && (!capabilities.hasSubgroups || !capabilities.hasF16)) return false;
+    if (req === "shader-f16" && !capabilities.hasF16)
+      return false;
+    if (req === "subgroups" && !capabilities.hasSubgroups)
+      return false;
+    if (req === "subgroups-f16" && (!capabilities.hasSubgroups || !capabilities.hasF16))
+      return false;
   }
   return true;
 }
@@ -1936,7 +1968,8 @@ var init_profiler = __esm({
        * @private
        */
       _initQueryResources() {
-        if (!this.device) return;
+        if (!this.device)
+          return;
         try {
           this.querySet = this.device.createQuerySet({
             type: "timestamp",
@@ -2015,7 +2048,8 @@ var init_profiler = __esm({
        * @param isEnd - true for end timestamp
        */
       writeTimestamp(pass, label, isEnd = false) {
-        if (!this.hasTimestampQuery || !this.querySet) return;
+        if (!this.hasTimestampQuery || !this.querySet)
+          return;
         let queryIndex;
         if (!isEnd) {
           queryIndex = this.nextQueryIndex;
@@ -2026,7 +2060,8 @@ var init_profiler = __esm({
           });
         } else {
           const active = this.activeLabels.get(label);
-          if (!active || !("startQueryIndex" in active)) return;
+          if (!active || !("startQueryIndex" in active))
+            return;
           queryIndex = active.startQueryIndex + 1;
           this.activeLabels.delete(label);
           this.pendingResolves.push({
@@ -2133,7 +2168,8 @@ var init_profiler = __esm({
        */
       getResult(label) {
         const data = this.results.get(label);
-        if (!data) return null;
+        if (!data)
+          return null;
         return {
           avg: data.sum / data.count,
           min: data.min,
@@ -2260,7 +2296,8 @@ var init_kernel_tuner = __esm({
        * @private
        */
       _loadCache() {
-        if (typeof localStorage === "undefined") return;
+        if (typeof localStorage === "undefined")
+          return;
         const signature = this._getDeviceSignature();
         const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
         try {
@@ -2278,7 +2315,8 @@ var init_kernel_tuner = __esm({
        * @private
        */
       _saveCache() {
-        if (typeof localStorage === "undefined") return;
+        if (typeof localStorage === "undefined")
+          return;
         const signature = this._getDeviceSignature();
         const cacheKey = getTunerConfig().cacheKeyPrefix + signature;
         try {
@@ -2384,8 +2422,10 @@ var init_kernel_tuner = __esm({
         });
         const dataA = new Float32Array(M * K);
         const dataB = new Float32Array(K * N);
-        for (let i = 0; i < dataA.length; i++) dataA[i] = Math.random();
-        for (let i = 0; i < dataB.length; i++) dataB[i] = Math.random();
+        for (let i = 0; i < dataA.length; i++)
+          dataA[i] = Math.random();
+        for (let i = 0; i < dataB.length; i++)
+          dataB[i] = Math.random();
         this.device.queue.writeBuffer(bufferA, 0, dataA);
         this.device.queue.writeBuffer(bufferB, 0, dataB);
         for (const [wgX, wgY] of matmulCandidates) {
@@ -3369,7 +3409,8 @@ function getKernelBasePath() {
 }
 function validateAttentionLimits(seqLen, numHeads, headDim) {
   const limits = getDeviceLimits();
-  if (!limits) return;
+  if (!limits)
+    return;
   const workgroupInvocations = seqLen * numHeads;
   if (workgroupInvocations > limits.maxComputeWorkgroupsPerDimension) {
     throw new Error(
@@ -3408,9 +3449,12 @@ async function loadShaderSource(filename) {
 }
 function hasRequiredFeatures(required, capabilities) {
   for (const feature of required) {
-    if (feature === "shader-f16" && !capabilities.hasF16) return false;
-    if (feature === "subgroups" && !capabilities.hasSubgroups) return false;
-    if (feature === "subgroups-f16" && !capabilities.hasSubgroups) return false;
+    if (feature === "shader-f16" && !capabilities.hasF16)
+      return false;
+    if (feature === "subgroups" && !capabilities.hasSubgroups)
+      return false;
+    if (feature === "subgroups-f16" && !capabilities.hasSubgroups)
+      return false;
   }
   return true;
 }
@@ -4551,7 +4595,8 @@ function alignTo(size, alignment) {
 }
 function getSizeBucket(size, maxAllowedSize = Infinity, bucketConfig = getRuntimeConfig().bufferPool.bucket) {
   const minBucket = bucketConfig.minBucketSizeBytes;
-  if (size <= minBucket) return minBucket;
+  if (size <= minBucket)
+    return minBucket;
   const largeThreshold = bucketConfig.largeBufferThresholdBytes;
   if (size >= largeThreshold) {
     const largeStep = bucketConfig.largeBufferStepBytes;
@@ -4736,9 +4781,11 @@ var init_buffer_pool = __esm({
        */
       _getFromPool(bucket, usage) {
         const usagePool = this.pools.get(usage);
-        if (!usagePool) return null;
+        if (!usagePool)
+          return null;
         const bucketPool = usagePool.get(bucket);
-        if (!bucketPool || bucketPool.length === 0) return null;
+        if (!bucketPool || bucketPool.length === 0)
+          return null;
         return bucketPool.pop();
       }
       /**
@@ -5131,7 +5178,8 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
   }
   dispatch(device2, pipeline, bindGroup, workgroups, "matmul_rmsnorm_fused");
   uniformBuffer.destroy();
-  if (!residual) residualBuffer.destroy();
+  if (!residual)
+    residualBuffer.destroy();
   return createTensor(output, input.dtype, [1, N], "matmul_rmsnorm_fused_output");
 }
 async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, options) {
@@ -5236,7 +5284,8 @@ function setKernelPlan(plan, source) {
   currentSource = source;
 }
 function resolveKernelVariant(override, lookup) {
-  if (!override) return null;
+  if (!override)
+    return null;
   if (lookup.role && override.roles?.[lookup.role]) {
     return override.roles[lookup.role] ?? null;
   }
@@ -5247,7 +5296,8 @@ function resolveKernelVariant(override, lookup) {
 }
 function getKernelPlanVariant(lookup) {
   const plan = currentPlan;
-  if (!plan?.variants) return null;
+  if (!plan?.variants)
+    return null;
   const override = plan.variants[lookup.operation];
   return resolveKernelVariant(override, lookup);
 }
@@ -5406,12 +5456,15 @@ function selectQ4KFusedVariant(isM1, wantF16Output) {
 }
 function isFusedQ4KDisabled() {
   const debugFlags = typeof window !== "undefined" ? window : null;
-  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return true;
+  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
+    return true;
   return false;
 }
 function toMatmulDtype(dtype) {
-  if (dtype === "f16" || dtype === "bf16") return "f16";
-  if (dtype === "q4k") return "q4k";
+  if (dtype === "f16" || dtype === "bf16")
+    return "f16";
+  if (dtype === "q4k")
+    return "q4k";
   return "f32";
 }
 function selectMatmulKernel(options = {}) {
@@ -5514,7 +5567,8 @@ function isGemvVariant(variant) {
 }
 function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict, q4kStrategy) {
   const override = variantOverride.trim();
-  if (!override) return null;
+  if (!override)
+    return null;
   const failOrWarn = (message) => {
     if (strict) {
       throw new Error(message);
@@ -6383,23 +6437,30 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
 function normalizeAttentionOverride(value) {
-  if (!value || typeof value !== "string") return null;
+  if (!value || typeof value !== "string")
+    return null;
   const normalized = value.trim().toLowerCase();
-  if (!normalized || normalized === "auto") return null;
-  if (normalized === "tiled_large" || normalized === "large") return { tier: "tiled_large" };
+  if (!normalized || normalized === "auto")
+    return null;
+  if (normalized === "tiled_large" || normalized === "large")
+    return { tier: "tiled_large" };
   if (normalized === "tiled_small" || normalized === "small" || normalized === "tiled_small_hd") {
     return { tier: "tiled_small" };
   }
-  if (normalized === "streaming" || normalized === "stream") return { tier: "streaming" };
-  if (normalized === "subgroup") return { tier: "subgroup" };
+  if (normalized === "streaming" || normalized === "stream")
+    return { tier: "streaming" };
+  if (normalized === "subgroup")
+    return { tier: "subgroup" };
   return { variant: normalized };
 }
 function inferAttentionTierFromVariant(variant) {
-  if (variant === "decode_subgroup") return "subgroup";
+  if (variant === "decode_subgroup")
+    return "subgroup";
   if (variant.startsWith("prefill_streaming") || variant.startsWith("decode_streaming") || variant === "decode_chunked_f16kv") {
     return "streaming";
   }
-  if (variant.startsWith("prefill_small") || variant.startsWith("decode_small")) return "tiled_small";
+  if (variant.startsWith("prefill_small") || variant.startsWith("decode_small"))
+    return "tiled_small";
   return "tiled_large";
 }
 function validateAttentionVariant(variant, isDecode, useF16KV, caps, strict) {
@@ -6633,8 +6694,10 @@ init_utils();
 init_debug();
 init_schema();
 function canUseF16(input, residual) {
-  if (input.dtype !== "f16") return false;
-  if (residual && residual.dtype !== "f16") return false;
+  if (input.dtype !== "f16")
+    return false;
+  if (residual && residual.dtype !== "f16")
+    return false;
   return true;
 }
 function selectRMSNormKernel(options = {}, isF16 = false) {
@@ -6698,7 +6761,8 @@ async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   });
   dispatch(device2, pipeline, bindGroup, batchSize, "rmsnorm");
   uniformBuffer.destroy();
-  if (!residual) residualBuffer.destroy();
+  if (!residual)
+    residualBuffer.destroy();
   return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], "rmsnorm_output");
 }
 async function recordRMSNorm(recorder, input, weight, eps = 1e-5, options = {}) {
@@ -7981,7 +8045,8 @@ async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
 }
 var moeGatherBindGroupLayout = null;
 function getMoEGatherBindGroupLayout(device2) {
-  if (moeGatherBindGroupLayout) return moeGatherBindGroupLayout;
+  if (moeGatherBindGroupLayout)
+    return moeGatherBindGroupLayout;
   moeGatherBindGroupLayout = device2.createBindGroupLayout({
     label: "moe_gather_explicit_layout",
     entries: [
@@ -8184,7 +8249,8 @@ async function runArgmax(logits, vocabSize, options = {}) {
     throw new Error("[Sample] GPU readback disabled for argmax");
   }
   const device2 = getDevice();
-  if (!device2) throw new Error("GPU device not initialized");
+  if (!device2)
+    throw new Error("GPU device not initialized");
   const argmaxPipeline = await createSamplePipeline(device2, "argmax");
   const reducePipeline = await createSamplePipeline(device2, "argmax_reduce");
   const workgroupSize = WORKGROUP_SIZES.DEFAULT;
@@ -8278,7 +8344,8 @@ async function runGPUSample(logits, vocabSize, options = {}) {
     return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
   }
   const device2 = getDevice();
-  if (!device2) throw new Error("GPU device not initialized");
+  if (!device2)
+    throw new Error("GPU device not initialized");
   const randomValue = randomSeed !== void 0 ? seededRandom(randomSeed) : Math.random();
   const phase1Pipeline = await createSamplePipeline(device2, "find_topk_phase1");
   const phase2Pipeline = await createSamplePipeline(device2, "find_topk_phase2");
@@ -8705,6 +8772,7 @@ var CommandRecorder = class _CommandRecorder {
   encoder;
   /** Temporary buffers to destroy after submit */
   tempBuffers;
+  cleanupPromise = null;
   /** Track if already submitted */
   submitted;
   /** Operation count for debugging */
@@ -8731,6 +8799,7 @@ var CommandRecorder = class _CommandRecorder {
     this.label = label;
     this.encoder = this.device.createCommandEncoder({ label });
     this.tempBuffers = [];
+    this.cleanupPromise = null;
     this.submitted = false;
     this.opCount = 0;
     this.profilingEnabled = options.profile === true && hasFeature(FEATURES.TIMESTAMP_QUERY);
@@ -8897,10 +8966,16 @@ var CommandRecorder = class _CommandRecorder {
     }
     this.device.queue.submit([this.encoder.finish()]);
     this.submitted = true;
-    for (const buffer of this.tempBuffers) {
-      buffer.destroy();
-    }
+    const buffersToDestroy = this.tempBuffers;
     this.tempBuffers = [];
+    this.cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
+      for (const buffer of buffersToDestroy) {
+        buffer.destroy();
+      }
+      getUniformCache().flushPendingDestruction();
+    }).catch((err) => {
+      log.warn("CommandRecorder", `Deferred cleanup failed: ${err.message}`);
+    });
   }
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).
@@ -8910,8 +8985,12 @@ var CommandRecorder = class _CommandRecorder {
    */
   async submitAndWait() {
     this.submit();
-    await this.device.queue.onSubmittedWorkDone();
-    getUniformCache().flushPendingDestruction();
+    if (this.cleanupPromise) {
+      await this.cleanupPromise;
+    } else {
+      await this.device.queue.onSubmittedWorkDone();
+      getUniformCache().flushPendingDestruction();
+    }
   }
   /**
    * Get statistics about recorded operations.
@@ -8929,7 +9008,8 @@ var CommandRecorder = class _CommandRecorder {
    * Use if an error occurs during recording.
    */
   abort() {
-    if (this.submitted) return;
+    if (this.submitted)
+      return;
     for (const buffer of this.tempBuffers) {
       buffer.destroy();
     }
@@ -9580,7 +9660,8 @@ function startProfileSession() {
   profileStartTime = performance.now();
 }
 function recordProfileEntry(name, category, startTime, endTime, metadata) {
-  if (!isProfilingEnabled()) return;
+  if (!isProfilingEnabled())
+    return;
   profileEntries.push({
     name,
     category,
@@ -10091,7 +10172,8 @@ function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mas
   return output;
 }
 function createCausalMask(seqLen, kvLen = null) {
-  if (kvLen === null) kvLen = seqLen;
+  if (kvLen === null)
+    kvLen = seqLen;
   const mask = new Float32Array(seqLen * kvLen);
   for (let i = 0; i < seqLen; i++) {
     for (let j = 0; j < kvLen; j++) {
@@ -10328,7 +10410,8 @@ function float16ToFloat32(bits) {
   const exp = bits >> 10 & 31;
   const frac = bits & 1023;
   if (exp === 0) {
-    if (frac === 0) return sign ? -0 : 0;
+    if (frac === 0)
+      return sign ? -0 : 0;
     return (sign ? -1 : 1) * Math.pow(2, -14) * (frac / 1024);
   }
   if (exp === 31) {
@@ -10423,8 +10506,10 @@ function findMinMax(data, offset, length) {
   let max = -Infinity;
   for (let i = 0; i < length; i++) {
     const val = data[offset + i];
-    if (val < min) min = val;
-    if (val > max) max = val;
+    if (val < min)
+      min = val;
+    if (val > max)
+      max = val;
   }
   return { min, max };
 }
@@ -10451,9 +10536,12 @@ function quantizeQ4_KBlockRef(data, offset) {
   let maxScale = 0;
   let maxMinOffset = 0;
   for (let i = 0; i < 8; i++) {
-    if (scales[i] > maxScale) maxScale = scales[i];
-    if (minOffsets[i] > maxMinOffset) maxMinOffset = minOffsets[i];
-    if (minOffsets[i] < 0) minOffsets[i] = 0;
+    if (scales[i] > maxScale)
+      maxScale = scales[i];
+    if (minOffsets[i] > maxMinOffset)
+      maxMinOffset = minOffsets[i];
+    if (minOffsets[i] < 0)
+      minOffsets[i] = 0;
   }
   const d = maxScale / 63;
   const dmin = maxMinOffset / 63;
@@ -10579,7 +10667,8 @@ function softmaxWithTemp(logits, temperature) {
   }
   let max = scaled[0];
   for (let i = 1; i < scaled.length; i++) {
-    if (scaled[i] > max) max = scaled[i];
+    if (scaled[i] > max)
+      max = scaled[i];
   }
   let sum = 0;
   for (let i = 0; i < scaled.length; i++) {
@@ -10739,7 +10828,8 @@ function f16ToF322(h) {
   const exponent = (h & 31744) >> 10;
   const mantissa = h & 1023;
   if (exponent === 0) {
-    if (mantissa === 0) return sign ? -0 : 0;
+    if (mantissa === 0)
+      return sign ? -0 : 0;
     return (sign ? -1 : 1) * Math.pow(2, -14) * (mantissa / 1024);
   } else if (exponent === 31) {
     return mantissa === 0 ? sign ? -Infinity : Infinity : NaN;
@@ -10747,7 +10837,8 @@ function f16ToF322(h) {
   return (sign ? -1 : 1) * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
 }
 async function initGPU() {
-  if (device) return device;
+  if (device)
+    return device;
   setPlatformsBaseUrl("/config/platforms/");
   setRegistryUrl("/config/kernels/registry.json");
   device = await initDevice();

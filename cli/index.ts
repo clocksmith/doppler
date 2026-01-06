@@ -292,6 +292,7 @@ function suggestClosestFlags(flag: string): string[] {
 
 function parseArgs(argv: string[]): CLIOptions {
   const opts: CLIOptions = {
+    cliFlags: new Set(),
     command: 'test',
     suite: 'quick',
     model: 'gemma-2-2b-it-q4',  // Format: {family}-{version}-{size}-{variant}-{quant}
@@ -356,6 +357,7 @@ function parseArgs(argv: string[]): CLIOptions {
           : '';
         throw new Error(`Unknown flag "${arg}".${hint}`);
       }
+      opts.cliFlags.add(arg);
       handler(opts, tokens);
       continue;
     }
@@ -373,6 +375,17 @@ function parseArgs(argv: string[]): CLIOptions {
   }
 
   return opts;
+}
+
+function hasCliFlag(opts: CLIOptions, flags: string[]): boolean {
+  return flags.some((flag) => opts.cliFlags.has(flag));
+}
+
+function resolveLogLevel(opts: CLIOptions): string | null {
+  if (opts.quiet) return 'silent';
+  if (opts.verbose) return 'verbose';
+  const configLevel = opts.runtimeConfig?.debug?.logLevel?.defaultLogLevel;
+  return configLevel ?? null;
 }
 
 function buildKernelPlan(opts: CLIOptions): KernelPlanSchema | null {
@@ -1206,15 +1219,17 @@ async function runInferenceTest(
     testParams.set('noChat', '1');
   }
   testParams.set('autorun', '1');
+  if (opts.debug) {
+    testParams.set('debug', '1');
+  }
   appendKernelOverrideParams(testParams, opts);
   appendRuntimeConfigParams(testParams, opts);
 
   // Add debug/profiling params - unified CLI → URL mapping
-  // Log level: --verbose → ?log=verbose, --quiet → ?log=silent
-  if (opts.quiet) {
-    testParams.set('log', 'silent');
-  } else if (opts.verbose) {
-    testParams.set('log', 'verbose');
+  // Log level: CLI overrides config; otherwise use config default.
+  const resolvedLogLevel = resolveLogLevel(opts);
+  if (resolvedLogLevel) {
+    testParams.set('log', resolvedLogLevel);
   }
   // Note: default is 'info' (handled by debug/index.ts)
 
@@ -1835,11 +1850,21 @@ async function main(): Promise<void> {
 
       // Apply runtime config to opts
       const runtime = loadedConfig.runtime;
-      if (runtime.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
-      if (runtime.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
-      if (runtime.debug?.trace?.enabled) opts.trace = runtime.debug.trace.categories?.join(',') || 'all';
-      if (runtime.inference?.sampling?.temperature !== undefined) opts.temperature = runtime.inference.sampling.temperature;
-      if (runtime.inference?.batching?.maxTokens !== undefined) opts.maxTokens = runtime.inference.batching.maxTokens;
+      const hasLogFlag = hasCliFlag(opts, ['--verbose', '-v', '--quiet', '-q']);
+      if (!hasLogFlag) {
+        if (runtime.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+        if (runtime.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+      }
+      const hasTraceFlag = hasCliFlag(opts, ['--trace', '--break']);
+      if (!hasTraceFlag && runtime.debug?.trace?.enabled) {
+        opts.trace = runtime.debug.trace.categories?.join(',') || 'all';
+      }
+      if (!hasCliFlag(opts, ['--temperature']) && runtime.inference?.sampling?.temperature !== undefined) {
+        opts.temperature = runtime.inference.sampling.temperature;
+      }
+      if (!hasCliFlag(opts, ['--max-tokens', '-t']) && runtime.inference?.batching?.maxTokens !== undefined) {
+        opts.maxTokens = runtime.inference.batching.maxTokens;
+      }
 
       // Apply kernel plan from config (can be overridden by CLI flags)
       const configKernelPlan = runtime.inference?.kernelPlan ?? null;
@@ -1850,8 +1875,9 @@ async function main(): Promise<void> {
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
       const cli = loadedConfig.raw.cli as Record<string, unknown> | undefined;
       if (cli) {
-        if (cli.headed) opts.headless = false;
-        if (typeof cli.timeout === 'number') opts.timeout = cli.timeout;
+        const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
+        if (cli.headed && !hasHeadlessFlag) opts.headless = false;
+        if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
       }
     } catch (err) {
       console.error(`Failed to load config "${opts.config}": ${(err as Error).message}`);
@@ -1959,8 +1985,9 @@ async function main(): Promise<void> {
       if (opts.noChat) debugParams.set('noChat', '1');
       appendPromptParams(debugParams, opts);
 
-      // Debug mode: default to all trace categories and verbose logging
-      debugParams.set('log', 'verbose');
+      // Debug mode: default to all trace categories and config-driven log level
+      const debugLogLevel = resolveLogLevel(opts) ?? 'verbose';
+      debugParams.set('log', debugLogLevel);
       debugParams.set('trace', opts.trace || 'all');
 
       // Layer filter: --trace-layers 0,5 → ?layers=0,5
