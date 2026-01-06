@@ -62,7 +62,7 @@ import {
 } from './pipeline/init.js';
 import { embed } from './pipeline/embed.js';
 import { processLayer, type LayerContext } from './pipeline/layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
 import { compileLayerPipeline, resolveLayerPipeline, type CompiledLayerPipeline } from './pipeline/layer-plan.js';
@@ -110,6 +110,32 @@ function decodeReadback(buffer: ArrayBuffer, dtype: 'f16' | 'f32'): Float32Array
     out[i] = f16ToF32(src[i]);
   }
   return out;
+}
+
+function getLogitsHealth(logits: Float32Array): { nanCount: number; infCount: number; nonZeroCount: number; maxAbs: number } {
+  let nanCount = 0;
+  let infCount = 0;
+  let nonZeroCount = 0;
+  let maxAbs = 0;
+
+  for (let i = 0; i < logits.length; i++) {
+    const v = logits[i];
+    if (Number.isNaN(v)) {
+      nanCount++;
+      continue;
+    }
+    if (!Number.isFinite(v)) {
+      infCount++;
+      continue;
+    }
+    if (v !== 0) {
+      nonZeroCount++;
+      const abs = Math.abs(v);
+      if (abs > maxAbs) maxAbs = abs;
+    }
+  }
+
+  return { nanCount, infCount, nonZeroCount, maxAbs };
 }
 
 // ============================================================================
@@ -282,6 +308,8 @@ export class InferencePipeline {
   private _debugFlags: WeightDebugFlags & LogitsDebugFlags = {};
   private _decodeStepCount = 0;
   private _runtimeKernelPlan: RuntimeConfigSchema['inference']['kernelPlan'] | null = null;
+  private _disableRecordedLogits = false;
+  private _disableFusedDecode = false;
 
   // Progress callback
   private _onProgress: ((progress: { percent: number; message?: string; stage?: string; layer?: number; total?: number }) => void) | null = null;
@@ -479,6 +507,8 @@ export class InferencePipeline {
 
     this.isGenerating = true;
     this._decodeStepCount = 0;
+    this._disableRecordedLogits = false;
+    this._disableFusedDecode = false;
     this.stats.gpuTimePrefillMs = undefined;
     this.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
@@ -537,6 +567,7 @@ export class InferencePipeline {
 
       // Apply repetition penalty and sample first token
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+      const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
 
       // Debug: check logits after repetition penalty
       if (opts.debug) {
@@ -548,6 +579,7 @@ export class InferencePipeline {
         temperature: opts.temperature,
         topP: opts.topP,
         topK: opts.topK,
+        padTokenId,
       });
 
       if (opts.debug) {
@@ -777,10 +809,12 @@ export class InferencePipeline {
       this.stats.prefillTimeMs = performance.now() - prefillStart;
 
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+      const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
       const firstToken = sample(prefillLogits, {
         temperature: opts.temperature,
         topP: opts.topP,
         topK: opts.topK,
+        padTokenId,
       });
 
       generatedIds.push(firstToken);
@@ -1082,8 +1116,9 @@ export class InferencePipeline {
     // Compute logits (record into prefill recorder when available to avoid extra submits)
     let logits: Float32Array;
     let logitsVocabSize = config.vocabSize;
+    let usedRecordedLogits = false;
     const lmHead = this.weights.get('lm_head');
-    const canRecordLogits = !!currentRecorder && !!lmHead && !isCpuWeightBuffer(lmHead);
+    const canRecordLogits = !!currentRecorder && !!lmHead && !isCpuWeightBuffer(lmHead) && !this._disableRecordedLogits;
     if (currentRecorder && canRecordLogits) {
       const recorded = await recordLogitsGPU(
         currentRecorder,
@@ -1093,7 +1128,7 @@ export class InferencePipeline {
         this._getLogitsConfig()
       );
       logitsVocabSize = recorded.vocabSize;
-      currentRecorder.trackTemporaryBuffer(currentHiddenBuffer);
+      usedRecordedLogits = true;
 
       await currentRecorder.submitAndWait();
       await recordProfile(currentRecorder);
@@ -1101,6 +1136,31 @@ export class InferencePipeline {
       const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * 4);
       releaseBuffer(recorded.logitsBuffer);
       logits = new Float32Array(logitsData);
+
+      const health = getLogitsHealth(logits);
+      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
+        log.warn(
+          'Logits',
+          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
+        );
+        this._disableRecordedLogits = true;
+        this._disableFusedDecode = true;
+        logits = await computeLogits(
+          currentHiddenBuffer,
+          numTokens,
+          this._getLogitsWeights(),
+          this._getLogitsConfig(),
+          this.useGPU,
+          this._debugFlags,
+          undefined,
+          debugCheckBuffer,
+          this.runtimeConfig.debug.probes
+        );
+        logitsVocabSize = config.vocabSize;
+        usedRecordedLogits = false;
+      }
+
+      releaseBuffer(currentHiddenBuffer);
     } else {
       if (currentRecorder) {
         await currentRecorder.submitAndWait();
@@ -1124,7 +1184,18 @@ export class InferencePipeline {
     this.currentSeqLen = startPos + numTokens;
 
     // Extract last position logits
-    const lastLogits = extractLastPositionLogits(logits, numTokens, logitsVocabSize);
+    let lastLogits = extractLastPositionLogits(logits, numTokens, logitsVocabSize);
+    if (usedRecordedLogits) {
+      if (logitsVocabSize < config.vocabSize) {
+        const padded = new Float32Array(config.vocabSize);
+        padded.set(lastLogits);
+        padded.fill(-Infinity, logitsVocabSize);
+        lastLogits = padded;
+      }
+      if (config.finalLogitSoftcapping) {
+        applySoftcapping(lastLogits, config.finalLogitSoftcapping);
+      }
+    }
 
     // Log prefill logits for debug
     if (opts.debug) {
@@ -1268,7 +1339,7 @@ export class InferencePipeline {
     const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
     const lmHeadIsCpu = isCpuWeightBuffer(this.weights.get('lm_head'));
     const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !lmHeadIsCpu;
-    const useFusedDecode = recorder && useGPUSampling;
+    const useFusedDecode = recorder && useGPUSampling && !this._disableFusedDecode;
 
     if (useFusedDecode) {
       // Continue recording logits into same command buffer (no submit yet)
@@ -1291,12 +1362,8 @@ export class InferencePipeline {
             logitSoftcap,
           });
 
-      // Track buffers for cleanup after submit
-      // BUT don't track pre-allocated ping-pong buffers - they're managed by DecodeBufferManager
+      // NOTE: Don't track hiddenStates on the recorder - we may need it for fallback.
       const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
-      if (!isPreAllocated) {
-        recorder.trackTemporaryBuffer(hiddenStates);
-      }
 
       // NOW submit everything at once (layers + logits + sampling)
       recorder.submit();
@@ -1324,7 +1391,10 @@ export class InferencePipeline {
       log.debug('Decode', `Step ${this._decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
       // Check for invalid or suspicious token IDs
-      if (nextToken > config.vocabSize || nextToken === 0) {
+      const invalidToken = nextToken >= config.vocabSize
+        || (padTokenId !== undefined && nextToken === padTokenId)
+        || (padTokenId === undefined && nextToken === 0);
+      if (invalidToken) {
         log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${this._decodeStepCount})`);
         if (allowReadback('pipeline.decode.debug-logits')) {
           try {
@@ -1372,6 +1442,38 @@ export class InferencePipeline {
           log.warn('Profile', `Decode step ${this._decodeStepCount}:`);
           log.warn('Profile', CommandRecorder.formatProfileReport(timings));
         }
+      }
+
+      if (invalidToken) {
+        this._disableFusedDecode = true;
+        log.warn('Decode', 'Fused sampling produced invalid token; falling back to CPU sampling.');
+        const fallbackLogits = await computeLogits(
+          hiddenStates,
+          numTokens,
+          this._getLogitsWeights(),
+          this._getLogitsConfig(),
+          this.useGPU,
+          this._debugFlags,
+          undefined,
+          debugCheckBuffer,
+          this.runtimeConfig.debug.probes
+        );
+        applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty);
+        const fallbackToken = sample(fallbackLogits, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+        });
+        if (!isPreAllocated) {
+          releaseBuffer(hiddenStates);
+        }
+        this.currentSeqLen++;
+        return fallbackToken;
+      }
+
+      if (!isPreAllocated) {
+        releaseBuffer(hiddenStates);
       }
 
       this.currentSeqLen++;

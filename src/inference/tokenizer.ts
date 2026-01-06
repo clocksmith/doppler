@@ -824,12 +824,20 @@ export class BundledTokenizer extends BaseTokenizer {
   private type: 'bpe' | 'unigram' = 'bpe';
   private byteTokens: Map<number, number> = new Map();
   private specialTokenPatterns: SpecialTokenPattern[] = [];
+  private specialTokenIds: Set<number> = new Set();
   private addSpacePrefix: boolean = true;
   /** Space prefix character: 'Ġ' for GPT-style (Llama 3), '▁' for SentencePiece-style (Gemma) */
   private spacePrefixChar: string = '▁';
 
   constructor(config: TokenizerConfig = {}) {
     super(config);
+  }
+
+  override isSpecialToken(tokenId: number): boolean {
+    if (this.specialTokenIds.size > 0) {
+      return this.specialTokenIds.has(tokenId);
+    }
+    return super.isSpecialToken(tokenId);
   }
 
   /**
@@ -905,12 +913,16 @@ export class BundledTokenizer extends BaseTokenizer {
       eos: 2,
       unk: model.unk_id ?? 0,
     };
+    this.specialTokenIds = new Set<number>();
 
     for (const token of hf.added_tokens || []) {
       if (token.special) {
         const content = token.content;
         const id = typeof token.id === 'number' ? token.id : parseInt(token.id as string, 10);
         if (Number.isFinite(id) && id > maxId) maxId = id;
+        if (Number.isFinite(id)) {
+          this.specialTokenIds.add(id);
+        }
         // Add to vocab if not already there
         if (!this.vocab.has(content)) {
           this.vocab.set(content, id);
@@ -930,6 +942,17 @@ export class BundledTokenizer extends BaseTokenizer {
         } else if (content === '<unk>' || content.includes('unk')) {
           this.specialTokens.unk = id;
         }
+      }
+    }
+    const builtinSpecials = [
+      this.specialTokens.pad,
+      this.specialTokens.bos,
+      this.specialTokens.eos,
+      this.specialTokens.unk,
+    ];
+    for (const id of builtinSpecials) {
+      if (typeof id === 'number' && Number.isFinite(id)) {
+        this.specialTokenIds.add(id);
       }
     }
     // Sort special tokens by length (longest first) for greedy matching
@@ -1040,6 +1063,18 @@ export class BundledTokenizer extends BaseTokenizer {
         unk: specialTokensRaw.unk ?? specialTokensRaw.unk_token_id ?? 0,
       };
       log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
+    }
+    this.specialTokenIds = new Set<number>();
+    const builtinSpecials = [
+      this.specialTokens.pad,
+      this.specialTokens.bos,
+      this.specialTokens.eos,
+      this.specialTokens.unk,
+    ];
+    for (const id of builtinSpecials) {
+      if (typeof id === 'number' && Number.isFinite(id)) {
+        this.specialTokenIds.add(id);
+      }
     }
 
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
@@ -1219,44 +1254,72 @@ export class BundledTokenizer extends BaseTokenizer {
    * BPE encoding
    */
   private _encodeBPE(text: string): number[] {
-    // Normalize text: ALWAYS convert spaces to the model's space prefix character
-    // Use detected space prefix character (Ġ for GPT-style, ▁ for SentencePiece)
-    const sp = this.spacePrefixChar;
-    // Replace all spaces with the prefix character
-    // This turns "The color of" into "The▁color▁of" or "TheĠcolorĠof"
-    // Note: we do NOT add an extra prefix at the start - the first word has no prefix
-    const prefixed = text.replace(/ /g, sp);
+    if (text.length === 0) return [];
 
-    // Use greedy longest-match tokenization
-    // This directly finds tokens like "user", "Ġthe" instead of character-by-character
+    let normalized = text;
+    if (this.addSpacePrefix && !normalized.startsWith(' ')) {
+      normalized = ` ${normalized}`;
+    }
+    const sp = this.spacePrefixChar;
+    const prefixed = normalized.replace(/ /g, sp);
+
+    if (this.mergeRanks.size === 0) {
+      return this._encodeBPEGreedy(prefixed);
+    }
+
+    const tokens = this._bpeTokenize(prefixed);
+    const ids: number[] = [];
+    for (const token of tokens) {
+      const id = this.vocab.get(token);
+      if (id !== undefined) {
+        ids.push(id);
+        continue;
+      }
+      const bytes = new TextEncoder().encode(token);
+      for (const b of bytes) {
+        const byteId = this.byteTokens.get(b);
+        if (byteId !== undefined) {
+          ids.push(byteId);
+          continue;
+        }
+        const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
+        ids.push(this.vocab.get(byteToken) ?? (this.specialTokens.unk ?? 0));
+      }
+    }
+
+    return ids;
+  }
+
+  private _encodeBPEGreedy(text: string): number[] {
     const ids: number[] = [];
     let pos = 0;
 
-    while (pos < prefixed.length) {
+    while (pos < text.length) {
       let bestLen = 0;
       let bestId = this.specialTokens.unk ?? 0;
 
-      // Try to find the longest matching token starting at pos
-      // Limit max token length to 32 chars for efficiency
-      const maxLen = Math.min(32, prefixed.length - pos);
+      const maxLen = Math.min(32, text.length - pos);
       for (let len = maxLen; len >= 1; len--) {
-        const substr = prefixed.slice(pos, pos + len);
+        const substr = text.slice(pos, pos + len);
         const id = this.vocab.get(substr);
         if (id !== undefined) {
           bestLen = len;
           bestId = id;
-          break; // Found longest match
+          break;
         }
       }
 
       if (bestLen === 0) {
-        // No match found - use byte fallback for single character
-        const char = prefixed[pos];
+        const char = text[pos];
         const bytes = new TextEncoder().encode(char);
         for (const b of bytes) {
+          const byteId = this.byteTokens.get(b);
+          if (byteId !== undefined) {
+            ids.push(byteId);
+            continue;
+          }
           const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
-          const byteId = this.vocab.get(byteToken);
-          ids.push(byteId ?? (this.specialTokens.unk ?? 0));
+          ids.push(this.vocab.get(byteToken) ?? (this.specialTokens.unk ?? 0));
         }
         pos += 1;
       } else {
@@ -1266,6 +1329,45 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     return ids;
+  }
+
+  private _bpeTokenize(text: string): string[] {
+    if (text.length === 0) return [];
+
+    let tokens = text.split('');
+    if (tokens.length === 1) return tokens;
+
+    while (tokens.length > 1) {
+      let minRank = Infinity;
+      let minPair: string | null = null;
+
+      for (let i = 0; i < tokens.length - 1; i++) {
+        const pair = `${tokens[i]} ${tokens[i + 1]}`;
+        const rank = this.mergeRanks.get(pair);
+        if (rank !== undefined && rank < minRank) {
+          minRank = rank;
+          minPair = pair;
+        }
+      }
+
+      if (!minPair) break;
+
+      const [first, second] = minPair.split(' ');
+      const newTokens: string[] = [];
+      let i = 0;
+      while (i < tokens.length) {
+        if (i < tokens.length - 1 && tokens[i] === first && tokens[i + 1] === second) {
+          newTokens.push(first + second);
+          i += 2;
+        } else {
+          newTokens.push(tokens[i]);
+          i += 1;
+        }
+      }
+      tokens = newTokens;
+    }
+
+    return tokens;
   }
 
   decode(ids: number[], skipSpecialTokens: boolean = true, trim: boolean = true): string {

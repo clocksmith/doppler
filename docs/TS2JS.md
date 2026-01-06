@@ -113,6 +113,7 @@ Output requirements:
 
 - Keep types in TS sources; rely on `tsc --declaration` for .d.ts output.
 - Use `export type` in barrels to avoid accidental runtime imports.
+- Before converting any file to .d.ts-only, confirm it exports no runtime values (const/function/class/enum).
 - Type-only modules remain .ts (no runtime exports) and emit .d.ts (e.g., `src/types/*.ts`, pipeline/format type files).
 
 ### Target .d.ts Structure:
@@ -163,7 +164,7 @@ src/types/
    export type * from './inference.js';
    export type * from './model.js';
    ```
-   - This relies on `moduleResolution: "bundler"` and `package.json` `exports/types` to map `.js` specifiers to `.d.ts`.
+   - This relies on `moduleResolution: "bundler"` and `package.json` `exports/types` to map `.js` specifiers to `.d.ts` at type-check time.
    - If module resolution changes, switch to `.d.ts` specifiers or add a `typesVersions` map.
 
 5. **Confirm tsconfig.json + tsconfig.build.json:**
@@ -175,7 +176,7 @@ src/types/
      "emitDeclarationOnly": false
    }
    ```
-   - `tsconfig.build.json` is the build driver (extends `tsconfig.json`).
+   - `tsconfig.build.json` is the build driver (extends `tsconfig.json`); use `tsc -p tsconfig.build.json` for declarations and build outputs.
 
 ---
 

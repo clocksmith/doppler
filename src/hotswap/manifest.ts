@@ -79,8 +79,8 @@ export async function verifyHotSwapManifest(
 
   try {
     const payloadBytes = new TextEncoder().encode(serializeHotSwapManifest(manifest));
-    const payload = payloadBytes.buffer.slice(payloadBytes.byteOffset, payloadBytes.byteOffset + payloadBytes.byteLength) as ArrayBuffer;
-    const signatureBytes = decodeBase64ToArrayBuffer(manifest.signature) as ArrayBuffer;
+    const payload = new Uint8Array(payloadBytes);
+    const signatureBytes = new Uint8Array(decodeBase64ToArrayBuffer(manifest.signature));
     const key = await importSignerKey(signer);
     const ok = await subtle.verify(
       { name: 'ECDSA', hash: 'SHA-256' },

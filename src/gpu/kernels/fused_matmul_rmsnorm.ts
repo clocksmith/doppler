@@ -86,6 +86,11 @@ export async function runMatmulRMSNormFused(
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  }
+
   const weightBuffer = getBuffer(weight);
 
   // Select variant based on output size
@@ -176,6 +181,11 @@ export async function recordMatmulRMSNormFused(
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  }
+
   const weightBuffer = getBuffer(weight);
 
   // Select variant
@@ -249,7 +259,7 @@ export async function recordMatmulRMSNormFused(
  *
  * The fused kernel is beneficial when:
  * - M = 1 (decode, not prefill)
- * - N <= 256 (small variant works well, medium variant has parallelism issues)
+ * - N <= colsPerWg (current WGSL RMSNorm reduction only valid for single workgroup)
  *
  * For N > 256, the parallelism loss from single-workgroup execution
  * outweighs the dispatch reduction benefit of fusion.
@@ -260,9 +270,8 @@ export function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean {
     return false;
   }
 
-  // Enable for small and medium N where single-workgroup is efficient
-  // Medium variant handles N up to maxMediumN (e.g., Gemma 3 hiddenSize=1152)
-  if (N > getKernelThresholds().fusedMatmul.maxMediumN) {
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
     return false;
   }
 

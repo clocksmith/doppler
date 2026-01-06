@@ -458,7 +458,7 @@ export async function benchmarkMatmulRMSNormFused(
   const { runMatmulRMSNormFused, shouldUseFusedMatmulRMSNorm } = await import('./kernels/fused_matmul_rmsnorm.js');
 
   if (!shouldUseFusedMatmulRMSNorm(1, N)) {
-    throw new Error(`Fused kernel not supported for N=${N} (max 4096)`);
+    throw new Error(`Fused kernel not supported for N=${N} with current thresholds.`);
   }
 
   const input = createTestBuffer(K * 4, 'bench_input');

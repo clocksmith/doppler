@@ -19,7 +19,7 @@
     "attention": {
       "slidingWindow": 4096,
       "attnLogitSoftcapping": 50.0,
-      "queryKeyNorm": true
+      "queryKeyNorm": false
     },
     "normalization": {
       "rmsNormWeightOffset": true,

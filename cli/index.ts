@@ -227,6 +227,18 @@ function buildFlagHandlers(): Map<string, FlagHandler> {
 const FLAG_HANDLERS = buildFlagHandlers();
 const KNOWN_FLAGS = new Set(FLAG_HANDLERS.keys());
 
+function resolveFlagAlias(flag: string): string | null {
+  if (!flag.startsWith('--')) return null;
+  const raw = flag.slice(2);
+  if (!raw) return null;
+  const normalized = raw
+    .replace(/_/g, '-')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+  const candidate = `--${normalized}`;
+  return KNOWN_FLAGS.has(candidate) ? candidate : null;
+}
+
 function suggestFlag(flag: string): string | null {
   if (!flag.startsWith('--')) return null;
   if (!/[A-Z]/.test(flag)) return null;
@@ -349,7 +361,15 @@ function parseArgs(argv: string[]): CLIOptions {
   while (tokens.length) {
     const arg = tokens.shift()!;
     if (arg.startsWith('-')) {
-      const handler = FLAG_HANDLERS.get(arg);
+      let resolvedFlag = arg;
+      let handler = FLAG_HANDLERS.get(arg);
+      if (!handler) {
+        const alias = resolveFlagAlias(arg);
+        if (alias) {
+          resolvedFlag = alias;
+          handler = FLAG_HANDLERS.get(alias);
+        }
+      }
       if (!handler) {
         const suggestions = suggestClosestFlags(arg);
         const hint = suggestions.length > 0
@@ -357,7 +377,7 @@ function parseArgs(argv: string[]): CLIOptions {
           : '';
         throw new Error(`Unknown flag "${arg}".${hint}`);
       }
-      opts.cliFlags.add(arg);
+      opts.cliFlags.add(resolvedFlag);
       handler(opts, tokens);
       continue;
     }

@@ -385,8 +385,9 @@ export async function recordArgmax(
   pass2.dispatchWorkgroups(1);
   pass2.end();
 
-  // Schedule cleanup of temp buffers after submit
-  // (These will be released by caller after reading output)
+  // Schedule cleanup of temp buffers after submit.
+  recorder.trackTemporaryBuffer(tempLogits);
+  recorder.trackTemporaryBuffer(tempIndices);
 
   return outputBuffer;
 }

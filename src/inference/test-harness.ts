@@ -18,6 +18,7 @@ import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
 import { log as debugLog } from '../debug/index.js';
 import type { RuntimeConfigSchema, KernelPlanSchema } from '../config/schema/index.js';
+import { DEFAULT_HOTSWAP_CONFIG, type HotSwapConfigSchema } from '../config/schema/hotswap.schema.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import {
   fetchHotSwapManifest,
@@ -206,11 +207,13 @@ export function parseRuntimeOverridesFromURL(
   const hotSwapAllowUnsignedLocal = params.get('hotSwapAllowUnsignedLocal');
   if (hotSwapManifest || hotSwapLocalOnly || hotSwapAllowUnsignedLocal) {
     runtime.runtimeConfig = runtime.runtimeConfig ?? {};
-    const baseHotSwap = getRuntimeConfig().hotSwap;
-    const hotSwap: RuntimeConfigSchema['hotSwap'] = {
+    const baseHotSwap = getRuntimeConfig().hotSwap ?? DEFAULT_HOTSWAP_CONFIG;
+    const overrideHotSwap: Partial<HotSwapConfigSchema> = runtime.runtimeConfig.hotSwap ?? {};
+    const hotSwap: HotSwapConfigSchema = {
       ...baseHotSwap,
-      ...(runtime.runtimeConfig.hotSwap ?? {}),
-      enabled: runtime.runtimeConfig.hotSwap?.enabled ?? baseHotSwap.enabled,
+      ...overrideHotSwap,
+      enabled: overrideHotSwap.enabled ?? baseHotSwap.enabled,
+      trustedSigners: overrideHotSwap.trustedSigners ?? baseHotSwap.trustedSigners,
     };
     if (hotSwapManifest) {
       hotSwap.manifestUrl = hotSwapManifest;
