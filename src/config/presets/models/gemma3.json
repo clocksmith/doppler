@@ -8,14 +8,6 @@
     "ropeTheta": 1000000
   },
 
-  "runtime": {
-    "inference": {
-      "batching": {
-        "batchSize": 4
-      }
-    }
-  },
-
   "inference": {
     "attention": {
       "slidingWindow": 1024,
@@ -44,7 +36,8 @@
       "ropeLocalTheta": 10000
     },
     "chatTemplate": {
-      "type": "gemma"
+      "type": "gemma",
+      "enabled": true
     }
   },
 

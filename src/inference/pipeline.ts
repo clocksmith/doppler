@@ -356,7 +356,11 @@ export class InferencePipeline {
 
     if (manifest.optimizations?.debug || manifest.runtime?.debug) this.debug = true;
 
-    const modelKernelPlan = manifest.optimizations?.kernelPlan ?? null;
+    // Kernel plan sources (in priority order):
+    // 1. manifest.optimizations.kernelPlan (per-model override in RDRR manifest)
+    // 2. this.modelConfig.kernelPlan (from model preset, e.g., gemma2.json)
+    // 3. Runtime kernel plan (CLI/URL override or runtime config)
+    const modelKernelPlan = manifest.optimizations?.kernelPlan ?? this.modelConfig.kernelPlan ?? null;
     const runtimeKernelPlan = this._runtimeKernelPlan ?? this.runtimeConfig.inference.kernelPlan ?? null;
     const { plan: mergedKernelPlan, source: mergedSource } = resolveKernelPlan(modelKernelPlan, runtimeKernelPlan);
     const { plan: resolvedKernelPlan, source: resolvedSource } = this._applyKernelPlanDefaults(
@@ -525,7 +529,7 @@ export class InferencePipeline {
       repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
-      useChatTemplate: options.useChatTemplate ?? false,
+      useChatTemplate: options.useChatTemplate ?? this.modelConfig?.chatTemplateEnabled ?? false,
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,  // Selective layer debugging
       profile: options.profile ?? false,  // GPU timestamp profiling
@@ -715,7 +719,7 @@ export class InferencePipeline {
     this.stats.gpuTimePrefillMs = undefined;
 
     const opts = {
-      useChatTemplate: options.useChatTemplate ?? false,
+      useChatTemplate: options.useChatTemplate ?? this.modelConfig?.chatTemplateEnabled ?? false,
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,
@@ -784,7 +788,7 @@ export class InferencePipeline {
       repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
       useSpeculative: options.useSpeculative ?? false,
-      useChatTemplate: options.useChatTemplate ?? false,
+      useChatTemplate: options.useChatTemplate ?? this.modelConfig?.chatTemplateEnabled ?? false,
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,

@@ -155,6 +155,7 @@ const FLAG_SPECS: FlagSpec[] = [
   { names: ['--max-tokens', '-t'], handler: (opts, tokens) => { opts.maxTokens = parseInt(tokens.shift() || '64', 10); } },
   { names: ['--temperature'], handler: (opts, tokens) => { opts.temperature = parseFloat(tokens.shift() || '0.7'); } },
   { names: ['--no-chat'], handler: (opts) => { opts.noChat = true; } },
+  { names: ['--chat'], handler: (opts) => { opts.chat = true; } },
   { names: ['--prompt', '-p'], handler: (opts, tokens) => { opts.prompt = tokens.shift() || 'medium'; opts.promptProvided = true; } },
   { names: ['--compare', '-c'], handler: (opts, tokens) => { opts.compare = tokens.shift() || null; } },
   { names: ['--text'], handler: (opts, tokens) => { opts.text = tokens.shift() || null; } },
@@ -329,6 +330,7 @@ function parseArgs(argv: string[]): CLIOptions {
     maxTokens: 8,
     temperature: 0.7,
     noChat: false,
+    chat: false,
     prompt: 'medium',
     promptProvided: false,
     text: null,
@@ -1235,9 +1237,13 @@ async function runInferenceTest(
   appendPromptParams(testParams, opts);
   testParams.set('maxTokens', String(opts.maxTokens));
   testParams.set('temperature', String(opts.temperature));
+  // Chat template: only set if explicitly overridden via CLI flag
   if (opts.noChat) {
     testParams.set('noChat', '1');
+  } else if (opts.chat) {
+    testParams.set('chat', '1');
   }
+  // If neither --chat nor --no-chat, let model preset default apply
   testParams.set('autorun', '1');
   if (opts.debug) {
     testParams.set('debug', '1');
@@ -2002,7 +2008,12 @@ async function main(): Promise<void> {
       debugParams.set('model', opts.model);
       debugParams.set('maxTokens', String(opts.maxTokens));
       debugParams.set('temperature', String(opts.temperature));
-      if (opts.noChat) debugParams.set('noChat', '1');
+      // Chat template: only set if explicitly overridden via CLI flag
+      if (opts.noChat) {
+        debugParams.set('noChat', '1');
+      } else if (opts.chat) {
+        debugParams.set('chat', '1');
+      }
       appendPromptParams(debugParams, opts);
 
       // Debug mode: default to all trace categories and config-driven log level

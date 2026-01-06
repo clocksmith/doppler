@@ -20,7 +20,8 @@
       "ropeTheta": 500000
     },
     "chatTemplate": {
-      "type": "llama3"
+      "type": "llama3",
+      "enabled": true
     }
   },
 

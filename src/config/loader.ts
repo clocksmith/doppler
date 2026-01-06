@@ -250,6 +250,7 @@ export function resolveConfig(
       ...baseInference.chatTemplate,
       ...presetInference.chatTemplate,
     },
+    kernelPlan: presetInference.kernelPlan ?? baseInference.kernelPlan,
   };
 
   // Merge tokenizer config
@@ -386,6 +387,7 @@ function getDefaultInferenceConfig(): Required<InferenceConfigSchema> {
     chatTemplate: {
       type: null,
     },
+    kernelPlan: undefined,
   };
 }
 
@@ -521,6 +523,7 @@ function mergeInference(
     rope: mergePartial(parent.rope, child.rope),
     pipeline: child.pipeline ?? parent.pipeline,
     chatTemplate: mergePartial(parent.chatTemplate, child.chatTemplate),
+    kernelPlan: mergePartial(parent.kernelPlan, child.kernelPlan),
   };
 }
 

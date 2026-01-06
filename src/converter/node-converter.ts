@@ -453,8 +453,9 @@ function buildQuantizationInfo(
 }
 
 function resolveModelId(modelId: string | null, baseName: string, variantTag: string | undefined): string {
-  if (modelId) return modelId;
-  const base = sanitizeModelId(baseName);
+  // Use provided modelId or derive from baseName
+  const base = modelId ? sanitizeModelId(modelId) : sanitizeModelId(baseName);
+  // Always append variant tag unless already present (per RDRR naming convention)
   if (!variantTag) return base;
   return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
 }
@@ -485,7 +486,7 @@ Runtime Plan (stored in manifest, not in filename):
 
 General Options:
   --shard-size <mb>     Shard size in MB (default: 64)
-  --model-id <id>       Override model ID in manifest
+  --model-id <id>       Base model ID (variant tag auto-appended)
   --text-only           Extract only text model from multimodal
   --fast                Pre-load all shards into memory (faster, more RAM)
   --verbose, -v         Show detailed progress

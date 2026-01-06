@@ -65,7 +65,11 @@
       const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
       const maxTokens = parseInt(params.get('maxTokens') || '8', 10);
       const temperature = parseFloat(params.get('temperature') || '0');
-      const useChatTemplate = params.get('noChat') !== '1';
+      // Chat template: only override if explicitly set via URL param
+      // - noChat=1 → disable chat template
+      // - chat=1 → enable chat template
+      // - neither → use model preset default (chatTemplate.enabled)
+      const chatOverride = params.has('noChat') ? false : params.has('chat') ? true : undefined;
 
       try {
         let pipeline;
@@ -120,7 +124,8 @@
         for await (const tokenText of pipeline.generate(prompt, {
           maxTokens,
           temperature,
-          useChatTemplate,
+          // Only pass useChatTemplate if explicitly overridden, else use model default
+          ...(chatOverride !== undefined && { useChatTemplate: chatOverride }),
         })) {
           tokens.push(tokenText);
           console.log(`[Token] ${tokens.length}: "${tokenText}"`);

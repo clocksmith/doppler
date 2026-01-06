@@ -1,4 +1,5 @@
 import type { ProbeStage } from './debug.schema.js';
+import type { KernelPlanSchema } from './kernel-plan.schema.js';
 
 /**
  * Inference Schema Definitions
@@ -109,6 +110,9 @@ export type ChatTemplateType = 'gemma' | 'llama3' | 'gpt-oss' | null;
 export interface ChatTemplateSchema {
   /** Template type identifier (gemma, llama3, gpt-oss) */
   type?: ChatTemplateType;
+
+  /** Whether to apply chat template by default (instruct models should set true) */
+  enabled?: boolean;
 
   /** Custom template with {prompt} placeholder (overrides type) */
   custom?: string;
@@ -253,6 +257,8 @@ export interface InferenceConfigSchema {
   pipeline?: LayerPipelineSchema | null;
   /** Chat template for instruct models */
   chatTemplate?: ChatTemplateSchema;
+  /** Kernel plan for model-specific kernel configuration (e.g., Q4K strategy) */
+  kernelPlan?: KernelPlanSchema;
 }
 
 // =============================================================================

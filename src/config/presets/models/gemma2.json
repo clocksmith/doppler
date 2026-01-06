@@ -7,14 +7,6 @@
     "headDim": 256
   },
 
-  "runtime": {
-    "inference": {
-      "batching": {
-        "batchSize": 4
-      }
-    }
-  },
-
   "inference": {
     "attention": {
       "slidingWindow": 4096,
@@ -38,7 +30,11 @@
       "globalPattern": "odd"
     },
     "chatTemplate": {
-      "type": "gemma"
+      "type": "gemma",
+      "enabled": true
+    },
+    "kernelPlan": {
+      "q4kStrategy": "fused_q4k"
     }
   },
 

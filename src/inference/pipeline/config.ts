@@ -13,7 +13,7 @@
  */
 
 import { log } from '../../debug/index.js';
-import type { LayerPipelineSchema, ResolvedConfigSchema } from '../../config/schema/index.js';
+import type { LayerPipelineSchema, ResolvedConfigSchema, KernelPlanSchema } from '../../config/schema/index.js';
 import { resolveConfig } from '../../config/loader.js';
 
 export type ActivationType = 'silu' | 'gelu';
@@ -162,6 +162,10 @@ export interface ParsedModelConfig {
   layerPipeline?: LayerPipelineSchema | null;
   // Chat template type from preset (gemma, llama3, gpt-oss, or null)
   chatTemplateType?: string | null;
+  // Whether chat template is enabled by default (from preset, for instruct models)
+  chatTemplateEnabled: boolean;
+  // Kernel plan from preset (e.g., q4kStrategy for Gemma 2)
+  kernelPlan?: KernelPlanSchema | null;
 }
 
 // =============================================================================
@@ -444,6 +448,8 @@ export function toParsedConfig(
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType: inf.chatTemplate?.type ?? null,
+    chatTemplateEnabled: inf.chatTemplate?.enabled ?? false,
+    kernelPlan: inf.kernelPlan ?? null,
   };
 }
 
