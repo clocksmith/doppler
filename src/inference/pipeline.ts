@@ -926,6 +926,7 @@ export class InferencePipeline {
 
     const activationDtype = this.runtimeConfig.inference.compute?.activationDtype ?? 'f32';
     const activationBytes = activationDtype === 'f16' ? 2 : 4;
+    const debugCheckBuffer = this.debug ? this._debugCheckBuffer.bind(this) : undefined;
 
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
@@ -1113,7 +1114,7 @@ export class InferencePipeline {
         this.useGPU,
         this._debugFlags,
         undefined,
-        undefined,
+        debugCheckBuffer,
         this.runtimeConfig.debug.probes
       );
 
@@ -1147,6 +1148,7 @@ export class InferencePipeline {
     const numTokens = 1;
     const config = this.modelConfig!;
     const samplingDefaults = this.runtimeConfig.inference.sampling;
+    const debugCheckBuffer = this.debug ? this._debugCheckBuffer.bind(this) : undefined;
 
     this._decodeStepCount++;
     const isDebugStep = opts.debug && this._decodeStepCount <= 5;
@@ -1466,7 +1468,7 @@ export class InferencePipeline {
       this.useGPU,
       this._debugFlags,
       undefined,
-      undefined,
+      debugCheckBuffer,
       this.runtimeConfig.debug.probes
     );
 
@@ -1490,6 +1492,72 @@ export class InferencePipeline {
 
     this.currentSeqLen++;
     return nextToken;
+  }
+
+  private async _debugCheckBuffer(
+    buffer: GPUBuffer,
+    label: string,
+    numTokens: number,
+    expectedDim?: number
+  ): Promise<void> {
+    if (!allowReadback(`pipeline.debug.${label}`)) return;
+
+    const expectedElements = expectedDim ? numTokens * expectedDim : 0;
+    let bytesPerElement = 4;
+    if (expectedElements > 0) {
+      const rawBytes = buffer.size / expectedElements;
+      if (Math.abs(rawBytes - 2) < 0.5) {
+        bytesPerElement = 2;
+      } else if (Math.abs(rawBytes - 4) < 0.5) {
+        bytesPerElement = 4;
+      } else {
+        bytesPerElement = rawBytes < 3 ? 2 : 4;
+      }
+    }
+
+    const totalElements = expectedElements > 0
+      ? expectedElements
+      : Math.floor(buffer.size / bytesPerElement);
+    const maxElements = Math.min(totalElements, 65536);
+    const readBytes = Math.min(buffer.size, maxElements * bytesPerElement);
+
+    const data = await readBuffer(buffer, readBytes);
+    if (data.byteLength === 0) return;
+
+    const dtype = bytesPerElement === 2 ? 'f16' : 'f32';
+    const arr = decodeReadback(data, dtype);
+
+    let min = Infinity;
+    let max = -Infinity;
+    let nanCount = 0;
+    let infCount = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+      const v = arr[i];
+      if (Number.isNaN(v)) {
+        nanCount++;
+        continue;
+      }
+      if (!Number.isFinite(v)) {
+        infCount++;
+        continue;
+      }
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+
+    const maxAbs = Number.isFinite(min) && Number.isFinite(max)
+      ? Math.max(Math.abs(min), Math.abs(max))
+      : Infinity;
+    const sample = Array.from(arr.slice(0, 6)).map(v => v.toFixed(4)).join(', ');
+    const expectedLabel = expectedDim ? ` expectedDim=${expectedDim}` : '';
+
+    log.verbose(
+      'Pipeline',
+      `CHECK ${label}: dtype=${dtype} elems=${arr.length}/${totalElements}${expectedLabel} ` +
+      `min=${min.toFixed(4)} max=${max.toFixed(4)} maxAbs=${maxAbs.toFixed(4)} ` +
+      `nan=${nanCount} inf=${infCount} sample=[${sample}]`
+    );
   }
 
   /**
@@ -1763,6 +1831,7 @@ export class InferencePipeline {
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this._debugFlags,
       debugProbes: this.runtimeConfig.debug.probes,
+      debugCheckBuffer: this.debug ? this._debugCheckBuffer.bind(this) : undefined,
       pipelinePlan: this.layerPipelinePlan,
       expertWeights: this.expertWeights,
       expertLoader: this.dopplerLoader as ExpertLoader | null,

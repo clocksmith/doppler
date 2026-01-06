@@ -89,6 +89,8 @@ export interface LayerContext {
   debug: boolean;
   /** Config-driven probes */
   debugProbes?: ProbeConfigSchema[];
+  /** Optional GPU buffer readback helper for debug checks */
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
   /** Optional layer pipeline plan (JSON-configured) */
   pipelinePlan?: CompiledLayerPipeline | null;
   /** RoPE frequency buffers (global for full_attention layers) */
@@ -336,6 +338,7 @@ async function doAttention(
   debugFlags: AttentionDebugFlags,
   getWeightBufferFn: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer | WeightBuffer,
   getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   recorder?: CommandRecorder,
   lora?: LoRAAdapter | null
 ): Promise<AttentionResult> {
@@ -350,7 +353,7 @@ async function doAttention(
       debugFlags,
       getWeightBufferFn,
       getNormWeightBufferFn,
-      undefined,
+      debugCheckBuffer,
       lora
     );
   }
@@ -363,7 +366,7 @@ async function doAttention(
     debugFlags,
     getWeightBufferFn,
     getNormWeightBufferFn,
-    undefined,
+    debugCheckBuffer,
     lora
   );
 }
@@ -579,6 +582,7 @@ export async function processLayerGPU(
     {},
     (weight, label) => getWeightBuffer(weight, label),
     (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+    context.debugCheckBuffer,
     recorder,
     context.lora
   );
@@ -881,6 +885,7 @@ async function processLayerPlanGPU(
             {},
             (weight, label) => getWeightBuffer(weight, label),
             (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+            context.debugCheckBuffer,
             recorder,
             context.lora
           );

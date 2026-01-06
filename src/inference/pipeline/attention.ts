@@ -100,7 +100,9 @@ export interface AttentionResult {
  * Debug flags to prevent repeated logging.
  */
 export interface AttentionDebugFlags {
+  l0InputDebugDone?: boolean;
   l0NormedDebugDone?: boolean;
+  l0NormWeightDebugDone?: boolean;
   l0QKVDebugDone?: boolean;
   l0RoPEDebugDone?: boolean;
   l0AttnDebugDone?: boolean;
@@ -179,6 +181,11 @@ export async function runLayerAttentionGPU(
     attentionInputTemp = true;
   }
 
+  if (layerIdx === 0 && isPrefill && !debugFlags.l0InputDebugDone && debugCheckBuffer) {
+    debugFlags.l0InputDebugDone = true;
+    await debugCheckBuffer(attentionInput.buffer, 'L0 attention input (GPU)', numTokens, hiddenSize);
+  }
+
   // Debug logging moved to debug-utils.ts (enable via setDebugConfig)
 
   if (!layerWeights) {
@@ -196,6 +203,11 @@ export async function runLayerAttentionGPU(
   let normed: Tensor = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+
+    if (layerIdx === 0 && isPrefill && !debugFlags.l0NormWeightDebugDone && debugCheckBuffer) {
+      debugFlags.l0NormWeightDebugDone = true;
+      await debugCheckBuffer(normWeightBuf, 'L0 input norm weights (GPU)', 1, hiddenSize);
+    }
 
     normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,

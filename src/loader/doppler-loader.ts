@@ -1339,6 +1339,18 @@ export class DopplerLoader {
       if (isMatmulWeight) {
         return createWeightBuffer(buffer, dtype, layout, location.shape, name);
       }
+
+      // Non-matmul weights (e.g., RMSNorm) are consumed as F32 in kernels.
+      // If stored as F16, upcast to F32 to avoid interpreting f16 bits as f32.
+      if (dtype === 'f16') {
+        const numElements = location.shape.reduce((a, b) => a * b, 1);
+        const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);
+        const f32Tensor = await castF16ToF32(inputTensor);
+        releaseBuffer(buffer);
+        this.gpuBuffers.add(f32Tensor.buffer);
+        return applyBufferLayout(f32Tensor.buffer, location);
+      }
+
       // Note: norm weights don't need dtype tracking (kernel handles F32 internally)
       return applyBufferLayout(buffer, location);
     } else {
@@ -1635,7 +1647,6 @@ export class DopplerLoader {
     const tryLoadNorm = async (suffixes: string[]): Promise<GPUBuffer | Float32Array | null> => {
       // Find tensor location to get actual shape (needed to avoid reading garbage from buffer pool padding)
       let actualNumElements: number | undefined;
-      let normDtype: 'f16' | 'f32' = 'f32';
       for (const prefix of prefixes) {
         for (const suffix of suffixes) {
           const name = `${prefix}.${suffix}`;
@@ -1643,8 +1654,6 @@ export class DopplerLoader {
           if (location) {
             // Norm weights are 1D tensors with shape [hiddenSize]
             actualNumElements = location.shape.reduce((a, b) => a * b, 1);
-            // Norm weights are uploaded as F32 for kernel compatibility.
-            normDtype = 'f32';
             break;
           }
         }
@@ -1659,7 +1668,7 @@ export class DopplerLoader {
       const normTensor = tensor as GPUBuffer | Float32Array;
 
       if (this._needsNormWeightOffset()) {
-        return this._applyNormWeightOffset(normTensor, actualNumElements, normDtype);
+        return this._applyNormWeightOffset(normTensor, actualNumElements);
       }
       return normTensor;
     };
