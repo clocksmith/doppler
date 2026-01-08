@@ -206,7 +206,7 @@ export async function computeChunkedLogitsGPU(
  * @param numTokens - Number of tokens
  * @param weights - Final norm and LM head weights
  * @param config - Model configuration for logits
- * @param getNormWeightBuffer - Helper to get norm weight buffer
+ * @param debugFlags - Debug flags to prevent repeated logging (optional)
  * @returns GPU buffer containing logits [numTokens, vocabSize]
  */
 export async function computeLogitsGPU(
@@ -214,7 +214,7 @@ export async function computeLogitsGPU(
   numTokens: number,
   weights: LogitsWeights,
   config: LogitsConfig,
-  getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
+  debugFlags?: import('./types.js').LogitsDebugFlags,
 ): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number } | null> {
   const {
     hiddenSize,
@@ -252,13 +252,13 @@ export async function computeLogitsGPU(
 
   // Apply final RMSNorm
   let normWeightBuffer: GPUBuffer;
-  if (getNormWeightBuffer) {
-    normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
-  } else if (finalNorm instanceof GPUBuffer) {
+  let normWeightBufferOwned = false;
+  if (finalNorm instanceof GPUBuffer) {
     normWeightBuffer = finalNorm;
   } else {
     normWeightBuffer = acquireBuffer((finalNorm as Float32Array).byteLength, undefined, 'final_norm_w');
     device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
+    normWeightBufferOwned = true;
   }
 
   const inputDtype: 'f16' | 'f32' = hiddenStates instanceof GPUBuffer ? activationDtype : 'f32';
@@ -299,7 +299,7 @@ export async function computeLogitsGPU(
   // Cleanup intermediate buffers (but keep logitsBuffer)
   if (inputBufferOwned) releaseBuffer(inputBuffer);
   releaseBuffer(normedTensor.buffer);
-  if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+  if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
   if (lmHeadBufferOwned) releaseBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
 
   return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };

@@ -881,7 +881,76 @@ DOPPLER.getDebugSnapshot();
 
 ---
 
+## Tests
+
+Tests are JavaScript. Same rules as source code: clean JS, types in `.d.ts` if needed.
+
+### File Naming
+
+```
+tests/unit/
+  config-loader.test.js      # Unit tests
+
+kernel-tests/tests/correctness/
+  matmul.spec.js             # Kernel correctness
+
+kernel-tests/tests/benchmarks/
+  matmul.bench.js            # Performance benchmarks
+```
+
+### Structure
+
+```javascript
+// matmul.spec.js
+import { describe, it, expect } from 'vitest';
+import { runMatmul } from '../../src/gpu/kernels/matmul.js';
+
+describe('matmul', () => {
+  it('computes C = A × B correctly', async () => {
+    const result = await runMatmul(a, b, m, n, k);
+    expect(result).toBeCloseTo(expected, 5);
+  });
+});
+```
+
+### What to Test
+
+| Test Type | Purpose | Location |
+|-----------|---------|----------|
+| **Unit** | Single function correctness | `tests/unit/` |
+| **Kernel correctness** | GPU output matches CPU reference | `kernel-tests/tests/correctness/` |
+| **Integration** | End-to-end pipeline flow | `tests/correctness/` |
+| **Benchmark** | Performance regression detection | `kernel-tests/tests/benchmarks/` |
+
+### Reference Implementations
+
+Kernel tests compare GPU output against CPU reference implementations:
+
+```javascript
+// kernel-tests/src/reference/matmul.js
+export function matmulReference(a, b, m, n, k) {
+  const c = new Float32Array(m * n);
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      let sum = 0;
+      for (let l = 0; l < k; l++) {
+        sum += a[i * k + l] * b[l * n + j];
+      }
+      c[i * n + j] = sum;
+    }
+  }
+  return c;
+}
+```
+
+### Test Before Migrate
+
+**Gate:** Tests must exist for a module before that module's source is migrated to JS. See [TS2JS.md](../TS2JS.md) for migration phases.
+
+---
+
 ## See Also
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
 - [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns
+- [TS2JS Migration](../TS2JS.md) - Migration plan and phases

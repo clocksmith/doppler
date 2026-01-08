@@ -1,62 +1,56 @@
-export * from "./types.js";
-export * from "./prompts.js";
-import {
-  PipelineBenchmark,
-  runQuickBenchmark,
-  runFullBenchmark,
-  formatBenchmarkSummary
-} from "./pipeline-benchmark.js";
-import { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from "../../src/debug/index.js";
-import {
-  SystemBenchmark,
-  runSystemBenchmark,
-  formatSystemSummary
-} from "./system-benchmark.js";
-import {
-  generateResultFilename,
-  generateSessionFilename,
-  saveResult,
-  loadAllResults,
-  loadResultsBySuite,
-  loadResultsByModel,
-  clearAllResults,
-  exportToJSON,
-  exportResultToJSON,
-  importFromJSON,
-  downloadAsJSON,
-  comparePipelineResults,
-  formatComparison,
-  createSession,
-  addResultToSession,
-  computeSessionSummary
-} from "./results-storage.js";
+/**
+ * DOPPLER Benchmark Harness
+ *
+ * Public API for benchmarking.
+ *
+ * @module tests/benchmark
+ */
+
+// Types
+export * from './types.js';
+
+// Standard prompts
+export * from './prompts.js';
+
+// Pipeline benchmarks
 export {
   PipelineBenchmark,
-  SystemBenchmark,
-  TRACE_CATEGORIES,
-  addResultToSession,
-  clearAllResults,
-  comparePipelineResults,
-  computeSessionSummary,
-  createSession,
-  downloadAsJSON,
-  exportResultToJSON,
-  exportToJSON,
+  runQuickBenchmark,
+  runFullBenchmark,
   formatBenchmarkSummary,
-  formatComparison,
+} from './pipeline-benchmark.js';
+
+// Debug utilities (unified in debug/index.ts)
+export { setTrace, setLogLevel, setBenchmarkMode, isBenchmarkMode, TRACE_CATEGORIES } from '../../src/debug/index.js';
+
+// System benchmarks
+export {
+  SystemBenchmark,
+  runSystemBenchmark,
   formatSystemSummary,
+} from './system-benchmark.js';
+
+// Results storage
+export {
+  // File naming
   generateResultFilename,
   generateSessionFilename,
-  importFromJSON,
-  isBenchmarkMode,
-  loadAllResults,
-  loadResultsByModel,
-  loadResultsBySuite,
-  runFullBenchmark,
-  runQuickBenchmark,
-  runSystemBenchmark,
+  // IndexedDB storage
   saveResult,
-  setBenchmarkMode,
-  setLogLevel,
-  setTrace
-};
+  loadAllResults,
+  loadResultsBySuite,
+  loadResultsByModel,
+  clearAllResults,
+  // JSON export/import
+  exportToJSON,
+  exportResultToJSON,
+  importFromJSON,
+  downloadAsJSON,
+  // Comparison
+  comparePipelineResults,
+  formatComparison,
+  // Sessions
+  createSession,
+  addResultToSession,
+  computeSessionSummary,
+} from './results-storage.js';

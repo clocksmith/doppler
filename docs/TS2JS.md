@@ -28,23 +28,56 @@ Agents read `.d.ts` files directly for type context—no need to pollute JS with
 
 ---
 
-## Migration Status
+## Migration Phases
 
-### Completed
+### Phase 0: Migrate Tests to JS
 
-- [x] Language policy documented in style guides
-- [x] README updated with JS-first rationale
-- [x] 3 pilot JS files proving hot-swap works (`src/config/kernels/`, `src/config/platforms/`)
-- [x] tsconfig supports `allowJs` and `checkJs`
+**Gate: Must complete before any source migration.**
 
-### Remaining Work
+| Category | Files | Owner |
+|----------|-------|-------|
+| Kernel correctness specs | 14 | Agent A |
+| Unit tests | 7 | Agent A |
+| Test harness | 5 | Agent A |
+| Reference implementations | 14 | Agent B |
+| Benchmark files | 6 | Agent B |
+| Config/setup | 6 | Agent B |
+| **Total** | **52** | |
 
-| Scope | Files | Lines | Priority |
-|-------|-------|-------|----------|
-| `src/` runtime | ~186 | ~57,000 | High |
-| `cli/` | ~10 | ~2,000 | Medium |
-| `app/` | ~5 | ~1,500 | Low |
-| `kernel-tests/` | ~30 | ~5,000 | Low |
+### Phase 1: Add Critical Missing Tests
+
+**Gate: Tests must exist for a module before that module's source is migrated.**
+
+| Module | Current Tests | Needed | Priority |
+|--------|---------------|--------|----------|
+| `inference/pipeline/` | 0 | Core pipeline flow | P0 |
+| `loader/` | 1 | Weight loading, manifest parsing | P0 |
+| `formats/` | 0 | GGUF/RDRR parsing | P1 |
+| `debug/` | 0 | Log level, trace output | P2 |
+| `memory/` | 0 | Heap allocation | P2 |
+
+### Phase 2: Migrate Source to JS
+
+**Gate: Phase 0 complete. Module tests exist (Phase 1) before module migration.**
+
+Parallelized into 4 work streams based on dependencies:
+
+```
+Stream A (Independent)        Stream B (Independent)        Stream C (Depends on A)       Stream D (Depends on B, C)
+─────────────────────        ─────────────────────        ──────────────────────        ─────────────────────────
+config/ (5)                   formats/ (4)                  gpu/kernels/ (31)             inference/pipeline/ (22)
+debug/ (12)                   browser/ (6)                  gpu/ core (17)                inference/ core (12)
+types/ (4)                    bridge/ (3)                   loader/ (22)
+memory/ (4)                   adapters/ (5)                 storage/ (7)
+                              converter/ (9)
+─────────────────────        ─────────────────────        ──────────────────────        ─────────────────────────
+Total: 25 files               Total: 27 files               Total: 77 files               Total: 34 files
+```
+
+**Execution order:**
+1. Streams A and B start immediately (parallel)
+2. Stream C starts when Stream A completes
+3. Stream D starts when Streams B and C complete
 
 ---
 
@@ -94,48 +127,19 @@ declare function writeUniforms(view: DataView, u: KernelUniforms): void;
 
 ---
 
-## Signing and Trust Model
-
-For distributed hot-swaps, artifacts require signatures:
-
-| Context | Policy |
-|---------|--------|
-| **Local dev** | Per-device key signs artifacts; unsigned allowed with explicit "local-only" flag |
-| **P2P distribution** | Accept only signatures from trusted signer allowlist |
-| **Official releases** | Signed by shared signer service key; trusted by default |
-
-**Manifest includes:** artifact hashes + signer ID + signature (auditable and reproducible)
-
----
-
-## Conversion Order
-
-Recommended order minimizes risk and validates the approach incrementally:
-
-1. **GPU kernels** (`src/gpu/kernels/`) — Self-contained, easy to test
-2. **Config** (`src/config/`) — Already has pilot files
-3. **Debug/logging** (`src/debug/`) — Simple utilities
-4. **Formats** (`src/formats/`) — Standalone parsers
-5. **Loader** (`src/loader/`) — Depends on formats
-6. **Storage** (`src/storage/`) — Depends on loader
-7. **Inference** (`src/inference/`) — Core pipeline, most complex
-8. **Types** (`src/types/`) — Convert to `.d.ts` only (no runtime code)
-
----
-
 ## Verification
 
 After converting each module:
 
 ```bash
-# Type check with JSDoc
-npx tsc --allowJs --checkJs --noEmit src/**/*.js
+# Run tests for that module
+npm test -- --filter <module>
 
-# Run tests
+# Type check declarations
+npx tsc --noEmit src/**/*.d.ts
+
+# Full test suite
 npm test
-
-# Verify hot-swap works
-npm run debug -- --config debug
 ```
 
 ---
@@ -160,8 +164,22 @@ This provides:
 
 ---
 
+## Signing and Trust Model
+
+For distributed hot-swaps, artifacts require signatures:
+
+| Context | Policy |
+|---------|--------|
+| **Local dev** | Per-device key signs artifacts; unsigned allowed with explicit "local-only" flag |
+| **P2P distribution** | Accept only signatures from trusted signer allowlist |
+| **Official releases** | Signed by shared signer service key; trusted by default |
+
+**Manifest includes:** artifact hashes + signer ID + signature (auditable and reproducible)
+
+---
+
 ## References
 
 - [Language Policy](style/GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) — Full rationale with citations
-- [JavaScript Style Guide](style/JAVASCRIPT_STYLE_GUIDE.md) — JSDoc conventions
+- [JavaScript Style Guide](style/JAVASCRIPT_STYLE_GUIDE.md) — Code and test conventions
 - [README](../README.md#why-javascript-over-typescript) — Public-facing rationale
