@@ -21,14 +21,14 @@
   },
   "homepage": "https://github.com/clocksmith/doppler",
   "scripts": {
-    "start": "tsx serve.ts",
-    "test": "tsx cli/index.ts test",
-    "bench": "tsx cli/index.ts bench",
-    "debug": "tsx cli/index.ts debug",
+    "start": "tsx serve.js",
+    "test": "tsx cli/index.js test",
+    "bench": "tsx cli/index.js bench",
+    "debug": "tsx cli/index.js debug",
     "build": "tsc --project tsconfig.build.json",
     "build:benchmark": "node -e \"const esbuild = require('esbuild'); const files = require('fs').readdirSync('tests/benchmark').filter(f => f.endsWith('.ts')); files.forEach(f => esbuild.buildSync({ entryPoints: ['tests/benchmark/' + f], outfile: 'tests/benchmark/' + f.replace('.ts', '.js'), format: 'esm', platform: 'browser', target: 'es2022', bundle: false }));\"",
-    "kernels:validate": "tsx tools/validate-kernel-registry.ts",
-    "kernels:lint": "tsx tools/lint-wgsl-overrides.ts",
+    "kernels:validate": "tsx tools/validate-kernel-registry.js",
+    "kernels:lint": "tsx tools/lint-wgsl-overrides.js",
     "kernels:check": "npm run kernels:validate && npm run kernels:lint"
   },
   "keywords": [
