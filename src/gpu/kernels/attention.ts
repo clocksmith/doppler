@@ -21,7 +21,7 @@ import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import type { OutputBufferOptions } from './types.js';
 import { log, trace } from '../../debug/index.js';
-import { getKernelPlanVariant, getKernelPlanStrict } from '../../config/kernel-plan.js';
+import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config/kernel-path-loader.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -61,6 +61,8 @@ export interface AttentionOptions extends OutputBufferOptions {
   causal?: boolean;
   startPos?: number;
   slidingWindow?: number;
+  /** Layer index for kernel path layer overrides */
+  layerIdx?: number;
   /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
   attnSoftcap?: number;
   /** Optional GPU buffer containing KV length (u32). When provided, kernel reads KV length from buffer. */
@@ -246,19 +248,6 @@ function calculateAttentionWorkgroups(tier: AttentionTier, seqLen: number, numHe
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
 
-function normalizeAttentionOverride(value: string | null | undefined): { tier?: AttentionTier; variant?: string } | null {
-  if (!value || typeof value !== 'string') return null;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized || normalized === 'auto') return null;
-  if (normalized === 'tiled_large' || normalized === 'large') return { tier: 'tiled_large' };
-  if (normalized === 'tiled_small' || normalized === 'small' || normalized === 'tiled_small_hd') {
-    return { tier: 'tiled_small' };
-  }
-  if (normalized === 'streaming' || normalized === 'stream') return { tier: 'streaming' };
-  if (normalized === 'subgroup') return { tier: 'subgroup' };
-  return { variant: normalized };
-}
-
 function inferAttentionTierFromVariant(variant: string): AttentionTier {
   if (variant === 'decode_subgroup') return 'subgroup';
   if (variant.startsWith('prefill_streaming') || variant.startsWith('decode_streaming') || variant === 'decode_chunked_f16kv') {
@@ -320,17 +309,16 @@ function resolveAttentionPlan(
   numHeads: number,
   kvDtype: string,
   sharedLimit: number,
-  caps: ReturnType<typeof getKernelCapabilities>
+  caps: ReturnType<typeof getKernelCapabilities>,
+  layerIdx?: number
 ): AttentionPlan {
   const useF16KV = kvDtype === 'f16';
   const isDecode = seqLen === 1;
-  const strict = getKernelPlanStrict();
-  const override = normalizeAttentionOverride(
-    getKernelPlanVariant({ operation: 'attention', phase: isDecode ? 'decode' : 'prefill' })
-  );
+  const strict = getKernelPathStrict();
+  const pathVariant = getKernelPathAttentionVariant(isDecode ? 'decode' : 'prefill', layerIdx);
 
-  if (override?.variant) {
-    const variantOverride = validateAttentionVariant(override.variant, isDecode, useF16KV, caps, strict);
+  if (pathVariant) {
+    const variantOverride = validateAttentionVariant(pathVariant, isDecode, useF16KV, caps, strict);
     if (variantOverride) {
       const tier = inferAttentionTierFromVariant(variantOverride);
       const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
@@ -338,7 +326,7 @@ function resolveAttentionPlan(
     }
   }
 
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, override?.tier ?? null, sharedLimit, caps, strict);
+  const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps, strict);
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
@@ -403,6 +391,7 @@ export async function runAttention(
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
+    layerIdx,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
@@ -422,7 +411,8 @@ export async function runAttention(
     numHeads,
     kvDtype,
     sharedLimit,
-    caps
+    caps,
+    layerIdx
   );
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
@@ -501,6 +491,7 @@ export async function recordAttention(
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
+    layerIdx,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
@@ -520,7 +511,8 @@ export async function recordAttention(
     numHeads,
     kvDtype,
     sharedLimit,
-    caps
+    caps,
+    layerIdx
   );
 
   trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);

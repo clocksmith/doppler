@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Tier 2 P0: Kernel Optimization', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/kernel-tests/browser/index.html');
     // Wait for WebGPU initialization
     await page.waitForFunction(() => window.testHarness?.getGPU);
   });
@@ -212,7 +212,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
 
 test.describe('Performance Regression Investigation', () => {
   test('Identify bottleneck operations', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/kernel-tests/browser/index.html');
 
     const result = await page.evaluate(async () => {
       const gpu = await window.testHarness.getGPU();

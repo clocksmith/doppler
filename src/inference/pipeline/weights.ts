@@ -14,7 +14,7 @@ import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer } from '../../gpu/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
-import { type WeightBuffer, isWeightBuffer, getBuffer } from '../../gpu/weight-buffer.js';
+import { type WeightBuffer, type CpuWeightBuffer, isWeightBuffer, isCpuWeightBuffer, getBuffer } from '../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Types
@@ -52,7 +52,7 @@ export interface WeightDebugFlags {
  * @returns True if value is a LayerWeights object
  */
 export function isLayerWeights(value: unknown): value is LayerWeights {
-  return value !== null && typeof value === 'object' && !ArrayBuffer.isView(value) && !('getMappedRange' in (value as object)) && !isWeightBuffer(value);
+  return value !== null && typeof value === 'object' && !ArrayBuffer.isView(value) && !('getMappedRange' in (value as object)) && !isWeightBuffer(value) && !isCpuWeightBuffer(value);
 }
 
 /**
@@ -82,12 +82,12 @@ export function getLayerWeights(
  * If the weight is a GPUBuffer, returns it directly.
  * Otherwise, allocates a new buffer and uploads the data.
  *
- * @param weight - Weight data (GPUBuffer, WeightBuffer, or CPU array)
+ * @param weight - Weight data (GPUBuffer, WeightBuffer, CpuWeightBuffer, or CPU array)
  * @param label - Debug label for the buffer
  * @returns GPUBuffer or WeightBuffer ready for use in matmul
  */
 export function getWeightBuffer(
-  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer,
+  weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer,
   label: string
 ): GPUBuffer | WeightBuffer {
   // Preserve WeightBuffer to maintain dtype/layout for matmul
@@ -97,12 +97,21 @@ export function getWeightBuffer(
   if (weight instanceof GPUBuffer) {
     return weight;
   }
+  
   const device = getDevice();
   if (!device) {
     throw new Error('No GPU device available for weight buffer creation');
   }
 
-  const data = weight instanceof Float32Array ? weight : new Float32Array(weight);
+  let data: Float32Array;
+  if (isCpuWeightBuffer(weight)) {
+    data = weight.data;
+  } else if (weight instanceof Float32Array) {
+    data = weight;
+  } else {
+    data = new Float32Array(weight);
+  }
+
   const buf = acquireBuffer(data.byteLength, undefined, label);
   device.queue.writeBuffer(buf, 0, data as unknown as BufferSource);
   return buf;
@@ -122,7 +131,7 @@ export function getWeightBuffer(
  * @returns GPUBuffer ready for use
  */
 export function getNormWeightBuffer(
-  weight: GPUBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number },
+  weight: GPUBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | CpuWeightBuffer,
   label: string,
   config: WeightBufferConfig,
   debugFlags?: WeightDebugFlags
@@ -151,7 +160,17 @@ export function getNormWeightBuffer(
   }
 
   // Standard path: just copy to GPU
-  const data = weight instanceof Float32Array ? weight : new Float32Array(weight as ArrayBuffer);
+  let data: Float32Array;
+  if (isCpuWeightBuffer(weight)) {
+    data = weight.data;
+  } else if (weight instanceof Float32Array) {
+    data = weight;
+  } else if ('buffer' in weight && 'byteOffset' in weight && 'byteLength' in weight) {
+     data = new Float32Array(weight.buffer, weight.byteOffset, weight.byteLength / 4);
+  } else {
+    data = new Float32Array(weight as ArrayBuffer);
+  }
+  
   const buf = acquireBuffer(data.byteLength, undefined, label);
   device.queue.writeBuffer(buf, 0, data as unknown as BufferSource);
   return buf;
@@ -168,7 +187,7 @@ export function getNormWeightBuffer(
  * @returns GPUBuffer ready for use
  */
 export function getGPUWeightBuffer(
-  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer,
+  weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer,
   label: string
 ): GPUBuffer {
   // Handle WeightBuffer by extracting underlying GPUBuffer
@@ -206,19 +225,19 @@ export function createWeightBufferHelpers(
     /**
      * Get or create GPU buffer for a weight tensor.
      */
-    getWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) =>
+    getWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) =>
       getWeightBuffer(weight, label),
 
     /**
      * Get or create GPU buffer for RMSNorm weight tensor.
      */
-    getNormWeightBuffer: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) =>
+    getNormWeightBuffer: (weight: GPUBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) =>
       getNormWeightBuffer(weight, label, config, debugFlags),
 
     /**
      * Get GPU weight buffer, ensuring it's on GPU.
      */
-    getGPUWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer, label: string) =>
+    getGPUWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) =>
       getGPUWeightBuffer(weight, label),
   };
 }

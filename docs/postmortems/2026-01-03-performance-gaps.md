@@ -31,21 +31,21 @@ outputDtype = 'f32',  // DEFAULT IS F32
 
 ### Completed
 
-1. ✅ Added `activationDtype: 'f16' | 'f32'` to `RuntimeConfigSchema.inference.compute`
-2. ✅ Created `f16-activations.json` runtime preset
-3. ✅ Wired `activationDtype` through `LayerContext` and `AttentionConfig`
-4. ✅ Updated matmul calls to pass `outputDtype: context.activationDtype`
-5. ✅ Created `rmsnorm_f16.wgsl` - F16 input/output variant with F32 intermediate precision
-6. ✅ Created `silu_f16.wgsl` - F16 SiLU/SwiGLU/GeGLU variants (including `geglu_rowsplit_f16`)
-7. ✅ Updated `rmsnorm.ts` kernel selector to use F16 variants when `activationDtype='f16'`
-8. ✅ Updated `silu.ts` kernel selector to use F16 variants when `activationDtype='f16'`
-9. ✅ Updated `gelu.ts` to use `geglu_rowsplit_f16` when `activationDtype='f16'`
-10. ✅ Updated `decode-buffers.ts` to allocate F16 buffers when configured
-11. ✅ Enabled `outputDtype: context.activationDtype` in all FFN matmul calls in `layer.ts`
-12. ✅ Added `activationDtype` to `doRMSNorm` and all 6 call sites in `layer.ts`
-13. ✅ Updated RMSNorm to support F16 with residual (via has_residual uniform)
-14. ✅ Updated attention.ts o_proj matmul to use `outputDtype: config.activationDtype`
-15. ✅ Added `canUseF16()` to RMSNorm to check actual buffer dtypes and fall back gracefully
+1. ✓ Added `activationDtype: 'f16' | 'f32'` to `RuntimeConfigSchema.inference.compute`
+2. ✓ Created `f16-activations.json` runtime preset
+3. ✓ Wired `activationDtype` through `LayerContext` and `AttentionConfig`
+4. ✓ Updated matmul calls to pass `outputDtype: context.activationDtype`
+5. ✓ Created `rmsnorm_f16.wgsl` - F16 input/output variant with F32 intermediate precision
+6. ✓ Created `silu_f16.wgsl` - F16 SiLU/SwiGLU/GeGLU variants (including `geglu_rowsplit_f16`)
+7. ✓ Updated `rmsnorm.ts` kernel selector to use F16 variants when `activationDtype='f16'`
+8. ✓ Updated `silu.ts` kernel selector to use F16 variants when `activationDtype='f16'`
+9. ✓ Updated `gelu.ts` to use `geglu_rowsplit_f16` when `activationDtype='f16'`
+10. ✓ Updated `decode-buffers.ts` to allocate F16 buffers when configured
+11. ✓ Enabled `outputDtype: context.activationDtype` in all FFN matmul calls in `layer.ts`
+12. ✓ Added `activationDtype` to `doRMSNorm` and all 6 call sites in `layer.ts`
+13. ✓ Updated RMSNorm to support F16 with residual (via has_residual uniform)
+14. ✓ Updated attention.ts o_proj matmul to use `outputDtype: config.activationDtype`
+15. ✓ Added `canUseF16()` to RMSNorm to check actual buffer dtypes and fall back gracefully
 
 ### F16 Shader Files
 - `src/gpu/kernels/rmsnorm_f16.wgsl` - RMSNorm with F16 I/O, F32 reduction precision
@@ -102,7 +102,7 @@ trace.kernels(`Q4K FUSED: ... (WARNING: 2.3x slower than dequant)`);
 useFusedQ4K = false;  // Default is dequant-first
 ```
 
-### Status: ✅ ALREADY OPTIMAL
+### Status: ✓ ALREADY OPTIMAL
 
 The warning only fires when `useFusedQ4K=true` (opt-in for VRAM-constrained scenarios). Default behavior is dequant-first which is 2.3x faster.
 
@@ -134,7 +134,7 @@ log.warn('Attention', `No tiled kernel fits prefill (headDim=${headDim}, shared=
 tier = 'streaming';
 ```
 
-### Status: ✅ NOT TRIGGERED
+### Status: ✓ NOT TRIGGERED
 
 Device has subgroups support:
 ```
@@ -167,7 +167,7 @@ else → 'streaming'  // Slow fallback
 | Issue | Impact | Effort | Priority |
 |-------|--------|--------|----------|
 | F16 activations | 2x bandwidth | High | P2 (requires gather.wgsl F16) |
-| Batching bug | 37% speedup | Medium | P1 ✅ FIXED |
+| Batching bug | 37% speedup | Medium | P1 ✓ FIXED |
 | Fused Q4K | N/A (already fast) | None | Done |
 | Streaming fallback | N/A (not triggered) | None | Done |
 
@@ -190,8 +190,25 @@ After batching fix, current decode speed: ~5.5 tok/s vs WebLLM 20.3 tok/s (2.7x 
 | Factor | Contribution | Status |
 |--------|--------------|--------|
 | F32 activations | ~30% | Blocked (needs Tensor abstraction) |
-| Batching | N/A | ✅ FIXED |
+| Batching | N/A | ✓ FIXED |
 | Unknown | ~40% | Needs GPU profiling |
+
+## Q4K Strategy Fix (2026-01-06)
+
+**Problem:** gemma2.json preset effectively forced the fused Q4K path (legacy `q4kStrategy: "fused_q4k"`), which forces the slow on-the-fly dequant path for ALL Q4K matmuls (2.3x slower than dequant-first).
+
+**Fix:** Use `kernelPath: "q4k-dequant-f16"` (legacy `q4kStrategy: "dequant_f16"`) for Gemma 2 presets.
+
+**Result:**
+| Metric | Before (fused_q4k) | After (dequant_f16) | Improvement |
+|--------|-------------------|---------------------|-------------|
+| Overall | ~1.3 tok/s | ~9 tok/s | 6.9x |
+| Pure decode | N/A | ~12-13 tok/s | - |
+
+**Updated gap analysis:**
+- DOPPLER decode: ~12-13 tok/s
+- WebLLM decode: ~20.3 tok/s
+- Gap: **1.6x** (down from perceived 30x due to wrong Q4K strategy)
 
 ## F16 Activations: Architecture Issue (2026-01-03)
 

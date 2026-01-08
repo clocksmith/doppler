@@ -2,19 +2,23 @@
  * Model configuration parsing and normalization.
  * Handles HuggingFace, GGUF, and llama.cpp config formats.
  *
- * This module now uses the preset-based config-as-code system:
- * - JSON presets in config/presets/models/*.json define model family defaults
- * - resolveConfig() merges preset defaults with manifest overrides
- * - toParsedConfig() adapts ResolvedConfigSchema to ParsedModelConfig
+ * Architecture: Manifest-First Config Resolution
+ * - manifest.inference is the source of truth (populated by converter)
+ * - mergeConfig() merges manifest with runtime overrides
+ * - toParsedConfigFromMerged() adapts MergedConfig to ParsedModelConfig
  *
- * For legacy code, parseModelConfig() still works but now uses presets internally.
- *
- * See: config/loader.ts, config/presets/models/, config/schema/
+ * See: config/merge.ts, config/schema/manifest.schema.ts
  */
 
 import { log } from '../../debug/index.js';
-import type { LayerPipelineSchema, ResolvedConfigSchema, KernelPlanSchema } from '../../config/schema/index.js';
-import { resolveConfig } from '../../config/loader.js';
+import {
+  type LayerPipelineSchema,
+  type KernelPathRef,
+  type ManifestInferenceSchema,
+  type ArchitectureSchema,
+  DEFAULT_MAX_POSITION_EMBEDDINGS,
+} from '../../config/schema/index.js';
+import { mergeConfig, type MergedConfig, type RuntimeInferenceOverrides } from '../../config/merge.js';
 
 export type ActivationType = 'silu' | 'gelu';
 
@@ -98,7 +102,7 @@ export interface Manifest {
   optimizations?: {
     useBatching?: boolean;
     debug?: boolean;
-    kernelPlan?: Record<string, unknown>;
+    kernelPath?: KernelPathRef;
   };
   runtime?: {
     useBatching?: boolean;
@@ -111,6 +115,8 @@ export interface Manifest {
     lmHead?: string;
     compute?: string;  // Runtime compute precision hint (f16, f32)
   };
+  // Inference config from manifest-first architecture (populated by converter)
+  inference?: ManifestInferenceSchema;
 }
 
 export interface AttentionParams {
@@ -164,71 +170,20 @@ export interface ParsedModelConfig {
   chatTemplateType?: string | null;
   // Whether chat template is enabled by default (from preset, for instruct models)
   chatTemplateEnabled: boolean;
-  // Kernel plan from preset (e.g., q4kStrategy for Gemma 2)
-  kernelPlan?: KernelPlanSchema | null;
+  /** Kernel path for explicit kernel dispatch ordering */
+  kernelPath?: KernelPathRef;
 }
 
 // =============================================================================
-// Model Detection Functions (kept for backward compatibility and edge cases)
+// Model Detection Functions
 // =============================================================================
-
-export function isGemma3Model(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType);
-}
-
-export function isGemma2Model(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /gemma.*2|gemma2/i.test(arch) || /gemma.*2|gemma2/i.test(modelType);
-}
-
-export function isLlama3InstructModel(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelId = manifest?.modelId ?? '';
-  const isLlama3 = /llama.*3|llama3/i.test(arch) || /llama.*3|llama3/i.test(modelId);
-  const isInstruct = /instruct|chat|it(?:-|$)/i.test(modelId);
-  return isLlama3 && isInstruct;
-}
-
-export function isQwen3Model(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /qwen.*3|qwen3/i.test(arch) || /qwen.*3|qwen3/i.test(modelType);
-}
-
-export function isKimiK2Model(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /kimi.*k2|kimi_k2/i.test(arch) || /kimi.*k2|kimi_k2/i.test(modelType);
-}
-
-export function isMixtralModel(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
-  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /mixtral/i.test(arch) || /mixtral/i.test(modelType);
-}
-
-export function isGptOssModel(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? '';
-  const modelType = config?.model_type ?? '';
-  return /gpt.*oss|gptoss/i.test(arch) || /gpt.*oss|gptoss/i.test(modelType);
-}
-
-export function normalizeActivation(activation: string | undefined): ActivationType {
-  if (!activation) return 'silu';
-  const lower = activation.toLowerCase();
-  if (lower.includes('gelu')) return 'gelu';
-  if (lower.includes('silu') || lower.includes('swish')) return 'silu';
-  return 'silu';
-}
-
+//
 export function getStopTokenIds(config: RawConfig, manifest: Manifest): number[] {
+  // Priority: manifest.eos_token_id > config.eos_token_id > config.text_config.eos_token_id
+  // Model-specific fallbacks are NOT allowed - converter must set eos_token_id
   const eosTokenId = manifest?.eos_token_id ?? config?.eos_token_id ?? config?.text_config?.eos_token_id;
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
-  if (isGemma3Model(config, manifest)) return [1, 106];
   return [];
 }
 
@@ -336,79 +291,234 @@ export function inferVocabSize(manifest: Manifest): number | null {
 }
 
 // =============================================================================
-// Preset-Based Config Adapter
+// Manifest-First Config Resolution (NEW)
 // =============================================================================
 
 /**
- * Convert ResolvedConfigSchema to ParsedModelConfig.
- *
- * This adapter function enables gradual migration from the legacy if-statement
- * based parseModelConfig() to the preset-based resolveConfig() system.
- *
- * @param resolved - ResolvedConfigSchema from resolveConfig()
- * @param manifest - Original manifest (for fields not yet in presets)
- * @returns ParsedModelConfig compatible with existing pipeline code
+ * Extended manifest with inference config for manifest-first parsing.
  */
-export function toParsedConfig(
-  resolved: ResolvedConfigSchema,
-  manifest: Manifest
+export interface ManifestWithInference {
+  inference: ManifestInferenceSchema;
+  architecture?: ArchitectureSchema | string;
+  config?: RawConfig | Record<string, unknown>;
+  tensors?: Record<string, TensorInfo>;
+  tokenizer?: Record<string, unknown> & { vocab_size?: number };
+  quantization?: string;
+  modelId?: string;
+  model_id?: string;
+  eos_token_id?: number | number[];
+}
+
+/**
+ * Check if manifest has inference config for manifest-first parsing.
+ */
+export function hasManifestInference(manifest: Manifest): manifest is Manifest & { inference: ManifestInferenceSchema } {
+  return 'inference' in manifest && manifest.inference != null;
+}
+
+/**
+ * Validate required inference fields are present in merged config.
+ * Throws if any required field is missing/undefined.
+ *
+ * Distinguishes between:
+ * - null: Feature explicitly disabled (valid)
+ * - undefined: Manifest incomplete (error)
+ *
+ * For nullable fields (slidingWindow, softcapping, etc.):
+ * - null is valid (means feature disabled)
+ * - undefined means manifest didn't specify the field
+ */
+function validateRequiredInferenceFields(inf: MergedConfig['inference'], modelId: string): void {
+  const errors: string[] = [];
+
+  // Attention fields - non-nullable required
+  if (inf.attention.queryPreAttnScalar == null) {
+    errors.push('attention.queryPreAttnScalar is required');
+  }
+  if (inf.attention.queryKeyNorm == null) {
+    errors.push('attention.queryKeyNorm is required');
+  }
+  // Attention fields - nullable required (undefined = missing, null = disabled)
+  if (inf.attention.slidingWindow === undefined) {
+    errors.push('attention.slidingWindow must be explicitly set (null for no sliding window, or number)');
+  }
+  if (inf.attention.attnLogitSoftcapping === undefined) {
+    errors.push('attention.attnLogitSoftcapping must be explicitly set (null for no softcapping, or number)');
+  }
+
+  // Normalization fields
+  if (inf.normalization.rmsNormWeightOffset == null) {
+    errors.push('normalization.rmsNormWeightOffset is required');
+  }
+  if (inf.normalization.postAttentionNorm == null) {
+    errors.push('normalization.postAttentionNorm is required');
+  }
+  if (inf.normalization.preFeedforwardNorm == null) {
+    errors.push('normalization.preFeedforwardNorm is required');
+  }
+  if (inf.normalization.postFeedforwardNorm == null) {
+    errors.push('normalization.postFeedforwardNorm is required');
+  }
+
+  // FFN fields
+  if (inf.ffn.activation == null) {
+    errors.push('ffn.activation is required');
+  }
+  if (inf.ffn.gatedActivation == null) {
+    errors.push('ffn.gatedActivation is required');
+  }
+
+  // RoPE fields - non-nullable required
+  if (inf.rope.ropeTheta == null) {
+    errors.push('rope.ropeTheta is required');
+  }
+  if (inf.rope.ropeScalingFactor == null) {
+    errors.push('rope.ropeScalingFactor is required (use 1.0 for no scaling)');
+  }
+  // RoPE fields - nullable required (undefined = missing, null = disabled)
+  if (inf.rope.ropeScalingType === undefined) {
+    errors.push('rope.ropeScalingType must be explicitly set (null for no scaling, or scaling type string)');
+  }
+  if (inf.rope.ropeLocalTheta === undefined) {
+    errors.push('rope.ropeLocalTheta must be explicitly set (null for no local theta, or number)');
+  }
+
+  // Output fields - non-nullable required
+  if (inf.output.tieWordEmbeddings == null) {
+    errors.push('output.tieWordEmbeddings is required');
+  }
+  if (inf.output.scaleEmbeddings == null) {
+    errors.push('output.scaleEmbeddings is required');
+  }
+  // Output fields - nullable required (undefined = missing, null = disabled)
+  if (inf.output.finalLogitSoftcapping === undefined) {
+    errors.push('output.finalLogitSoftcapping must be explicitly set (null for no softcapping, or number)');
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `Manifest "${modelId}" has incomplete inference config. ` +
+      `Missing required fields:\n  - ${errors.join('\n  - ')}\n` +
+      `Re-convert the model using the latest converter.`
+    );
+  }
+}
+
+/**
+ * Convert MergedConfig to ParsedModelConfig.
+ *
+ * This is the manifest-first path that uses manifest.inference as the source
+ * of truth instead of detecting model family from architecture strings.
+ *
+ * @param merged - MergedConfig from mergeConfig()
+ * @param manifest - Original manifest for fields not in inference config
+ * @returns ParsedModelConfig for pipeline consumption
+ */
+export function toParsedConfigFromMerged(
+  merged: MergedConfig,
+  manifest: ManifestWithInference
 ): ParsedModelConfig {
   const rawConfig = (manifest.config ?? {}) as RawConfig;
   const config: RawConfig = rawConfig.text_config ?? rawConfig;
-  const arch = resolved.architecture;
-  const inf = resolved.inference;
+  const inf = merged.inference;
+
+  // Validate required fields are present (fail fast on incomplete manifests)
+  validateRequiredInferenceFields(inf, merged.modelId);
+
+  // Get architecture dimensions
+  let arch: ArchitectureSchema;
+  if (typeof manifest.architecture === 'string') {
+    // Fallback: infer from config
+    arch = {
+      numLayers: config.num_hidden_layers ?? config.n_layer ?? config.blockCount ?? 0,
+      hiddenSize: config.hidden_size ?? config.n_embd ?? config.embeddingLength ?? 0,
+      intermediateSize: config.intermediate_size ?? config.n_inner ?? config.feedForwardLength ?? 0,
+      numAttentionHeads: config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount ?? 0,
+      numKeyValueHeads: config.num_key_value_heads ?? config.attentionHeadCountKV ?? config.num_attention_heads ?? config.n_head ?? 0,
+      headDim: config.head_dim ?? Math.floor((config.hidden_size ?? 0) / (config.num_attention_heads ?? 1)),
+      vocabSize: config.vocab_size ?? 0,
+      maxSeqLen: config.max_position_embeddings ?? config.contextLength ?? DEFAULT_MAX_POSITION_EMBEDDINGS,
+      // Use manifest inference as source of truth for RoPE (not raw config)
+      ropeTheta: inf.rope.ropeTheta,
+      rmsNormEps: config.rms_norm_eps ?? 1e-5,
+    };
+  } else {
+    arch = manifest.architecture as ArchitectureSchema;
+  }
 
   // Compute layer types from layerPattern
   let layerTypes: string[] | null = null;
-  if (inf.layerPattern?.type === 'alternating') {
+  if (inf.layerPattern) {
     const numLayers = arch.numLayers;
-    const pattern = inf.layerPattern.globalPattern;
-    const patternN = inf.layerPattern.globalPatternN ?? 6;
+    const patternType = inf.layerPattern.type;
 
-    if (pattern === 'even') {
-      layerTypes = Array.from({ length: numLayers }, (_, i) =>
-        i % 2 === 0 ? 'full_attention' : 'sliding_attention'
+    // Fail fast if alternating pattern lacks required globalPattern
+    if (patternType === 'alternating' && inf.layerPattern.globalPattern == null) {
+      throw new Error(
+        `Manifest "${merged.modelId}" has layerPattern.type='alternating' but globalPattern is missing. ` +
+        `Re-convert the model to include layerPattern.globalPattern.`
       );
-    } else if (pattern === 'odd') {
-      layerTypes = Array.from({ length: numLayers }, (_, i) =>
-        i % 2 === 1 ? 'full_attention' : 'sliding_attention'
+    }
+
+    // Fail fast if every_n pattern lacks required period
+    if (patternType === 'every_n' && inf.layerPattern.period == null) {
+      throw new Error(
+        `Manifest "${merged.modelId}" has layerPattern.type='every_n' but period is missing. ` +
+        `Re-convert the model to include layerPattern.period.`
       );
-    } else if (pattern === 'every_n') {
+    }
+    const period = inf.layerPattern.period ?? 1;  // Fallback only for non-every_n types
+
+    if (patternType === 'alternating') {
+      const pattern = inf.layerPattern.globalPattern;
+      if (pattern === 'even') {
+        layerTypes = Array.from({ length: numLayers }, (_, i) =>
+          i % 2 === 0 ? 'full_attention' : 'sliding_attention'
+        );
+      } else if (pattern === 'odd') {
+        layerTypes = Array.from({ length: numLayers }, (_, i) =>
+          i % 2 === 1 ? 'full_attention' : 'sliding_attention'
+        );
+      }
+    } else if (patternType === 'every_n') {
       layerTypes = Array.from({ length: numLayers }, (_, i) =>
-        i % patternN === 0 ? 'full_attention' : 'sliding_attention'
+        i % period === 0 ? 'full_attention' : 'sliding_attention'
       );
     }
   }
 
-  // Compute queryPreAttnScalar
+  // Compute queryPreAttnScalar from manifest inference (NOT from preset detection)
+  // Manifest-first: queryPreAttnScalar is required in ManifestAttentionSchema
   const headDim = arch.headDim;
-  const isGemma2 = resolved.preset === 'gemma2';
-  const queryPreAttnScalar = config.query_pre_attn_scalar ?? (isGemma2 ? headDim : Math.sqrt(headDim));
+  const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
 
-  // Get stop token IDs from manifest/config (not yet in presets)
-  const stopTokenIds = getStopTokenIds(config, manifest);
+  // Get stop token IDs (cast to Manifest for compatibility)
+  const stopTokenIds = getStopTokenIds(config, manifest as unknown as Manifest);
 
-  // Get MoE config from manifest (not yet in presets)
+  // Get MoE config
   const useMoE = (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1;
   const numExperts = config.num_local_experts ?? config.num_experts ?? 8;
   const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
 
-  // RoPE scaling config (combine preset + manifest)
-  const ropeScaling = config.rope_scaling;
-  let ropeScale = inf.rope?.ropeScalingFactor ?? 1.0;
-  let ropeScalingType: string | null = inf.rope?.ropeScalingType ?? null;
-  if (ropeScaling && typeof ropeScaling === 'object') {
-    ropeScalingType = ropeScalingType ?? ropeScaling.type ?? ropeScaling.rope_type ?? null;
-    const factor = ropeScaling.factor;
-    if (factor && factor > 0) ropeScale = factor;
-  }
+  // RoPE scaling - use manifest inference as source of truth (not raw config)
+  const ropeScale = inf.rope.ropeScalingFactor;
+  const ropeScalingType: string | null = inf.rope.ropeScalingType;
+  // Build ropeScaling object from manifest values if scaling is enabled
+  // Include YARN params when present
+  const ropeScaling: RopeScalingConfig | null = ropeScalingType ? {
+    type: ropeScalingType,
+    factor: ropeScale,
+    // YARN-specific params (only present for YARN scaling)
+    ...(inf.rope.yarnBetaFast != null && { beta_fast: inf.rope.yarnBetaFast }),
+    ...(inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
+    ...(inf.rope.yarnOriginalMaxPos != null && { original_max_position_embeddings: inf.rope.yarnOriginalMaxPos }),
+  } : null;
 
-  // Determine if this is a Gemma family model for scaleEmbeddings
-  const isGemmaFamily = resolved.preset === 'gemma2' || resolved.preset === 'gemma3' || resolved.preset === 'functiongemma';
-
-  const resolvedActivation =
-    (inf.ffn?.activation as ActivationType | undefined) ??
-    normalizeActivation(config.hidden_activation ?? config.hidden_act);
+  // Activation type
+  const activation = inf.ffn.activation;
+  const hiddenActivation: ActivationType =
+    activation === 'silu' || activation === 'swiglu' ? 'silu' :
+    activation === 'gelu' || activation === 'geglu' ? 'gelu' : 'silu';
 
   return {
     numLayers: arch.numLayers,
@@ -422,134 +532,110 @@ export function toParsedConfig(
     useMoE,
     numExperts,
     moeTopK,
-    slidingWindow: inf.attention?.slidingWindow ?? null,
-    ropeTheta: inf.rope?.ropeTheta ?? arch.ropeTheta ?? 10000,
-    ropeLocalTheta: inf.rope?.ropeLocalTheta ?? null,
+    slidingWindow: inf.attention.slidingWindow ?? null,
+    ropeTheta: inf.rope.ropeTheta,
+    ropeLocalTheta: inf.rope.ropeLocalTheta ?? null,
     ropeScale,
     ropeScalingType,
-    ropeScaling: ropeScaling ? { ...ropeScaling, factor: ropeScale } : null,
+    ropeScaling,
     quantization: (manifest.quantization as string) ?? 'f16',
     quantMethod: config.quantization_config?.quant_method ?? null,
-    rmsNormEps: inf.normalization?.rmsNormEps ?? arch.rmsNormEps ?? 1e-5,
-    rmsNormWeightOffset: inf.normalization?.rmsNormWeightOffset ?? false,
-    scaleEmbeddings: config.scale_embeddings ?? isGemmaFamily,
-    hiddenActivation: resolvedActivation,
-    isGemma3: resolved.preset === 'gemma3',
-    isGemma2: resolved.preset === 'gemma2',
-    isLlama3Instruct: resolved.preset === 'llama3',
-    isQwen3: resolved.preset === 'qwen3',
-    isGptOss: false,
+    rmsNormEps: arch.rmsNormEps ?? 1e-5,
+    rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
+    scaleEmbeddings: inf.output.scaleEmbeddings,
+    hiddenActivation,
+    // Model detection flags - derived from manifest inference config values
+    // Kept for backward compat until pipeline code reads config values directly
+    isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta
+    isGemma2: inf.attention.attnLogitSoftcapping != null,  // Gemma 2 has attn softcapping
+    isLlama3Instruct: false,  // TODO: Add chatTemplateType to manifest
+    isQwen3: false,  // TODO: Add model family to manifest
+    isGptOss: false,  // TODO: Add model family to manifest
     stopTokenIds,
     layerTypes,
     attentionBias: config.attention_bias ?? false,
-    finalLogitSoftcapping: inf.output?.finalLogitSoftcapping ?? null,
-    attnLogitSoftcapping: inf.attention?.attnLogitSoftcapping ?? null,
-    queryKeyNorm: inf.attention?.queryKeyNorm ?? false,
+    finalLogitSoftcapping: inf.output.finalLogitSoftcapping ?? null,
+    attnLogitSoftcapping: inf.attention.attnLogitSoftcapping ?? null,
+    queryKeyNorm: inf.attention.queryKeyNorm,
     queryPreAttnScalar,
-    layerPipeline: inf.pipeline ?? null,
-    chatTemplateType: inf.chatTemplate?.type ?? null,
-    chatTemplateEnabled: inf.chatTemplate?.enabled ?? false,
-    kernelPlan: inf.kernelPlan ?? null,
+    layerPipeline: null,  // TODO: Add to ManifestInferenceSchema if needed
+    chatTemplateType: null,  // TODO: Add to ManifestInferenceSchema if needed
+    chatTemplateEnabled: false,
+    kernelPath: inf.defaultKernelPath,
   };
 }
 
 /**
- * Convert pipeline Manifest to config ManifestSchema for resolveConfig().
- */
-function toManifestSchema(manifest: Manifest): import('../../config/schema/index.js').ManifestSchema {
-  return {
-    version: 1,
-    modelId: manifest.modelId ?? manifest.model_id ?? 'unknown',
-    modelType: (manifest.architecture as string) ?? 'transformer',
-    quantization: manifest.quantization ?? 'f16',
-    hashAlgorithm: 'sha256' as const,
-    totalSize: 0,
-    architecture: manifest.architecture ?? 'transformer',
-    shards: [],
-    config: manifest.config as Record<string, unknown>,
-    tokenizer: manifest.tokenizer as unknown as import('../../config/schema/index.js').TokenizerSchema | undefined,
-  };
-}
-
-// =============================================================================
-// Main Entry Point - Uses Preset-Based Resolution
-// =============================================================================
-
-/**
- * Parse model configuration from manifest using preset-based resolution.
+ * Parse model config from manifest using manifest-first resolution.
  *
- * This is the main entry point that uses the config-as-code preset system.
- * It internally calls resolveConfig() and then converts to ParsedModelConfig.
+ * This is the new entry point that uses manifest.inference as the source
+ * of truth. It:
+ * 1. Validates manifest has inference config
+ * 2. Calls mergeConfig() to merge with runtime overrides
+ * 3. Converts to ParsedModelConfig
  *
- * @param manifest - Model manifest
+ * @param manifest - Manifest with inference config
+ * @param runtimeOverrides - Optional runtime inference overrides
  * @returns ParsedModelConfig for pipeline consumption
  */
-export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
-  // Convert pipeline Manifest to config ManifestSchema
-  const manifestSchema = toManifestSchema(manifest);
+export function parseModelConfigFromManifest(
+  manifest: ManifestWithInference,
+  runtimeOverrides?: RuntimeInferenceOverrides
+): ParsedModelConfig {
+  // Merge manifest inference with runtime overrides
+  const merged = mergeConfig(
+    {
+      modelId: manifest.modelId ?? manifest.model_id ?? 'unknown',
+      inference: manifest.inference,
+      architecture: manifest.architecture as ArchitectureSchema | string | undefined,
+    },
+    runtimeOverrides
+  );
 
-  // Use preset-based resolution
-  const resolved = resolveConfig(manifestSchema);
-
-  // Log which preset was detected
-  log.debug('Config', `Detected preset: ${resolved.preset}`);
-
-  // Convert to ParsedModelConfig for backward compatibility
-  const parsed = toParsedConfig(resolved, manifest);
-
-  // Attention params inference still needed for some models
-  const rawConfig = (manifest.config ?? {}) as RawConfig;
-  const config: RawConfig = rawConfig.text_config ?? rawConfig;
-
-  // Check if we need to infer attention params
-  let numHeads = parsed.numHeads;
-  let numKVHeads = parsed.numKVHeads;
-  let headDim = parsed.headDim;
-
-  const hasConfiguredHeads = config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount;
-  if (!hasConfiguredHeads && manifest.tensors) {
-    log.debug('Config', `parseModelConfig: inferring attention params from tensors`);
-    const inferred = inferAttentionParams(manifest, parsed.hiddenSize, null);
-    if (inferred) {
-      numHeads = inferred.numHeads;
-      numKVHeads = inferred.numKVHeads;
-      headDim = inferred.headDim;
-      log.debug('Config', `Inferred attention params: numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim}`);
-    }
+  // Log config source info
+  const runtimeSources = Array.from(merged._sources.entries())
+    .filter(([, src]) => src === 'runtime')
+    .length;
+  const totalSources = merged._sources.size;
+  if (runtimeSources > 0) {
+    log.info('Config', `Manifest-first config: ${totalSources - runtimeSources} from manifest, ${runtimeSources} from runtime`);
+  } else {
+    log.debug('Config', `Manifest-first config: ${totalSources} values from manifest`);
   }
 
-  // Infer vocab size if needed
-  let vocabSize = parsed.vocabSize;
-  const vocabCandidates: number[] = [];
-  if (config.vocab_size && config.vocab_size > 0) vocabCandidates.push(config.vocab_size);
-  if (manifest.tokenizer?.vocab_size) vocabCandidates.push(manifest.tokenizer.vocab_size);
-  const inferredVocab = inferVocabSize(manifest);
-  if (inferredVocab) vocabCandidates.push(inferredVocab);
-  if (vocabCandidates.length > 0) {
-    vocabSize = Math.max(...vocabCandidates);
+  // Convert to ParsedModelConfig
+  return toParsedConfigFromMerged(merged, manifest);
+}
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+/**
+ * Parse model configuration from manifest.
+ *
+ * Requires manifest.inference to be present (manifest-first architecture).
+ * Legacy manifests without inference config must be re-converted.
+ *
+ * @param manifest - Model manifest with inference config
+ * @param runtimeOverrides - Optional runtime inference overrides
+ * @returns ParsedModelConfig for pipeline consumption
+ * @throws Error if manifest.inference is missing
+ */
+export function parseModelConfig(
+  manifest: Manifest,
+  runtimeOverrides?: RuntimeInferenceOverrides
+): ParsedModelConfig {
+  // Manifest-first architecture: inference config is required
+  if (!hasManifestInference(manifest)) {
+    const modelId = manifest.modelId ?? manifest.model_id ?? 'unknown';
+    throw new Error(
+      `Manifest "${modelId}" is missing inference config. ` +
+      `Re-convert the model using the latest converter to add manifest.inference. ` +
+      `Legacy preset-based resolution has been removed.`
+    );
   }
 
-  // Handle Gemma 2 special case for head_dim
-  const isGemma2Early = isGemma2Model(rawConfig, manifest);
-  if (!config.head_dim && isGemma2Early && parsed.hiddenSize === 3584 && numHeads === 16) {
-    headDim = 256;
-    log.debug('Config', 'Gemma 2 9B detected: using head_dim=256 (expanded attention architecture)');
-  }
-
-  // Build final config with inferred values
-  const finalConfig: ParsedModelConfig = {
-    ...parsed,
-    numHeads,
-    numKVHeads,
-    headDim,
-    vocabSize,
-    queryPreAttnScalar: config.query_pre_attn_scalar ?? (isGemma2Early ? headDim : Math.sqrt(headDim)),
-  };
-
-  // Log critical Gemma 2 settings
-  if (finalConfig.isGemma2) {
-    log.info('Config', `Gemma 2: ropeTheta=${finalConfig.ropeTheta}, ropeLocalTheta=${finalConfig.ropeLocalTheta}, slidingWindow=${finalConfig.slidingWindow}, attnSoftcap=${finalConfig.attnLogitSoftcapping}, logitSoftcap=${finalConfig.finalLogitSoftcapping}, queryPreAttnScalar=${finalConfig.queryPreAttnScalar}`);
-  }
-
-  return finalConfig;
+  log.info('Config', 'Using manifest-first config (source of truth)');
+  return parseModelConfigFromManifest(manifest, runtimeOverrides);
 }

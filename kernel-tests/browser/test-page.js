@@ -16,6 +16,14 @@ var init_manifest_schema = __esm({
   }
 });
 
+// src/config/schema/kernel-path.schema.ts
+var DEFAULT_ENTRY;
+var init_kernel_path_schema = __esm({
+  "src/config/schema/kernel-path.schema.ts"() {
+    DEFAULT_ENTRY = "main";
+  }
+});
+
 // src/config/schema/inference.schema.ts
 var init_inference_schema = __esm({
   "src/config/schema/inference.schema.ts"() {
@@ -145,7 +153,7 @@ var init_inference_defaults_schema = __esm({
       largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
       prompt: null,
       pipeline: null,
-      kernelPlan: null
+      kernelPath: void 0
     };
   }
 });
@@ -193,7 +201,7 @@ var init_kvcache_schema = __esm({
   "src/config/schema/kvcache.schema.ts"() {
     DEFAULT_KVCACHE_CONFIG = {
       maxSeqLen: 4096,
-      kvDtype: "f32",
+      kvDtype: "f16",
       layout: "contiguous",
       pageSize: 256,
       windowSize: 1024
@@ -454,7 +462,10 @@ function mergeRuntimeConfig(base, overrides) {
       largeWeights: { ...base.inference.largeWeights, ...overrides.inference.largeWeights },
       prompt: overrides.inference.prompt ?? base.inference.prompt,
       pipeline: overrides.inference.pipeline ?? base.inference.pipeline,
-      kernelPlan: overrides.inference.kernelPlan ?? base.inference.kernelPlan
+      kernelPath: overrides.inference.kernelPath ?? base.inference.kernelPath,
+      chatTemplate: overrides.inference.chatTemplate ? { ...base.inference.chatTemplate, ...overrides.inference.chatTemplate } : base.inference.chatTemplate,
+      // Model-specific inference overrides (merged with manifest.inference at load time)
+      modelOverrides: overrides.inference.modelOverrides ?? base.inference.modelOverrides
     } : { ...base.inference },
     kvcache: { ...base.kvcache, ...overrides.kvcache },
     moe: overrides.moe ? {
@@ -533,6 +544,7 @@ var init_doppler_schema = __esm({
 var init_schema = __esm({
   "src/config/schema/index.ts"() {
     init_manifest_schema();
+    init_kernel_path_schema();
     init_inference_schema();
     init_conversion_schema();
     init_loading_schema();
@@ -1990,7 +2002,8 @@ var init_profiler = __esm({
         }
       }
       /**
-       * Begin timing a labeled region
+       * Begin timing a labeled region.
+       * Uses CPU timing; use writeTimestamp() inside passes for GPU timestamps.
        * @param label - Unique label for this measurement
        */
       begin(label) {
@@ -1999,22 +2012,9 @@ var init_profiler = __esm({
           return;
         }
         const startTime = performance.now();
-        if (this.hasTimestampQuery) {
-          const queryIndex = this.nextQueryIndex;
-          this.nextQueryIndex += 2;
-          if (queryIndex >= this.queryCapacity * 2) {
-            log.warn("GPUProfiler", "Query capacity exceeded, resetting");
-            this.nextQueryIndex = 0;
-          }
-          this.activeLabels.set(label, {
-            startQueryIndex: queryIndex,
-            cpuStartTime: startTime
-          });
-        } else {
-          this.activeLabels.set(label, {
-            cpuStartTime: startTime
-          });
-        }
+        this.activeLabels.set(label, {
+          cpuStartTime: startTime
+        });
       }
       /**
        * End timing a labeled region
@@ -3864,6 +3864,18 @@ var init_utils = __esm({
           entryPoint: "main_batched",
           workgroupSize: [256, 1, 1],
           requires: ["subgroups"]
+        },
+        q4k: {
+          shaderFile: "fused_ffn_q4k.wgsl",
+          entryPoint: "main",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        q4k_batched: {
+          shaderFile: "fused_ffn_q4k.wgsl",
+          entryPoint: "main_batched",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
         }
       },
       // Optimized attention decode (Tier 2 P0)
@@ -4075,15 +4087,35 @@ var init_utils = __esm({
         },
         small: {
           shaderFile: "rmsnorm.wgsl",
-          entryPoint: "rmsnorm_small",
+          entryPoint: "main_small",
           workgroupSize: [256, 1, 1],
           requires: []
         },
-        residual: {
+        cached: {
           shaderFile: "rmsnorm.wgsl",
-          entryPoint: "rmsnorm_inplace_residual",
+          entryPoint: "main_cached",
           workgroupSize: [256, 1, 1],
           requires: []
+        },
+        // Legacy alias for residual (now uses main_cached)
+        residual: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "main_cached",
+          workgroupSize: [256, 1, 1],
+          requires: []
+        },
+        // Subgroup-accelerated variants (3-5x faster reductions)
+        subgroup: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "main_subgroup",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        small_subgroup: {
+          shaderFile: "rmsnorm.wgsl",
+          entryPoint: "main_small_subgroup",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
         },
         // F16 variants for reduced memory bandwidth
         default_f16: {
@@ -4156,6 +4188,19 @@ var init_utils = __esm({
           entryPoint: "softmax_online",
           workgroupSize: [256, 1, 1],
           requires: []
+        },
+        // Subgroup-accelerated variants (3-5x faster reductions)
+        subgroup: {
+          shaderFile: "softmax.wgsl",
+          entryPoint: "main_subgroup",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
+        },
+        small_subgroup: {
+          shaderFile: "softmax.wgsl",
+          entryPoint: "softmax_small_subgroup",
+          workgroupSize: [256, 1, 1],
+          requires: ["subgroups"]
         }
       },
       rope: {
@@ -4659,6 +4704,9 @@ var init_buffer_pool = __esm({
       activeBuffers;
       // Buffer metadata for leak detection (debug mode)
       bufferMetadata;
+      // Deferred destruction queue (buffers destroyed after GPU work completes)
+      pendingDestruction;
+      destructionScheduled;
       // Statistics
       stats;
       // Configuration
@@ -4673,6 +4721,8 @@ var init_buffer_pool = __esm({
         this.bufferMetadata = /* @__PURE__ */ new Map();
         this.debugMode = debugMode;
         this.schemaConfig = schemaConfig ?? getRuntimeConfig().bufferPool;
+        this.pendingDestruction = /* @__PURE__ */ new Set();
+        this.destructionScheduled = false;
         this.stats = {
           allocations: 0,
           reuses: 0,
@@ -4755,7 +4805,7 @@ var init_buffer_pool = __esm({
           this.bufferMetadata.delete(buffer);
         }
         if (!this.config.enablePooling) {
-          buffer.destroy();
+          this.deferDestroy(buffer);
           this.stats.currentBytesAllocated -= buffer.size;
           return;
         }
@@ -4772,9 +4822,40 @@ var init_buffer_pool = __esm({
         if (bucketPool.length < this.config.maxPoolSizePerBucket && this._getTotalPooledCount() < this.config.maxTotalPooledBuffers) {
           bucketPool.push(buffer);
         } else {
-          buffer.destroy();
+          this.deferDestroy(buffer);
           this.stats.currentBytesAllocated -= buffer.size;
         }
+      }
+      /**
+       * Defer buffer destruction until all submitted GPU work completes.
+       * This avoids destroying buffers still referenced by in-flight command buffers.
+       */
+      deferDestroy(buffer) {
+        this.pendingDestruction.add(buffer);
+        if (this.destructionScheduled) {
+          return;
+        }
+        const device2 = getDevice();
+        if (!device2) {
+          for (const pending of this.pendingDestruction) {
+            pending.destroy();
+          }
+          this.pendingDestruction.clear();
+          this.destructionScheduled = false;
+          return;
+        }
+        this.destructionScheduled = true;
+        device2.queue.onSubmittedWorkDone().then(() => {
+          for (const pending of this.pendingDestruction) {
+            pending.destroy();
+          }
+          this.pendingDestruction.clear();
+          this.destructionScheduled = false;
+        }).catch((err) => {
+          log.warn("BufferPool", `Deferred destruction failed: ${err.message}`);
+          this.pendingDestruction.clear();
+          this.destructionScheduled = false;
+        });
       }
       /**
        * Get a buffer from the pool if available
@@ -4902,6 +4983,11 @@ var init_buffer_pool = __esm({
           }
         }
         this.pools.clear();
+        for (const buffer of this.pendingDestruction) {
+          buffer.destroy();
+        }
+        this.pendingDestruction.clear();
+        this.destructionScheduled = false;
       }
       /**
        * Destroy all buffers (active and pooled)
@@ -5134,6 +5220,10 @@ async function runMatmulRMSNormFused(input, weight, normWeight, options) {
     transposeB = true
     // Default: GGUF row-major weights
   } = options;
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  }
   const weightBuffer = getBuffer(weight);
   const variant = selectMatmulRMSNormFusedVariant(N);
   trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
@@ -5193,6 +5283,10 @@ async function recordMatmulRMSNormFused(recorder, input, weight, normWeight, opt
     transposeB = true
     // Default: GGUF row-major weights
   } = options;
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  }
   const weightBuffer = getBuffer(weight);
   const variant = selectMatmulRMSNormFusedVariant(N);
   trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
@@ -5244,7 +5338,8 @@ function shouldUseFusedMatmulRMSNorm(M, N) {
   if (M !== 1) {
     return false;
   }
-  if (N > getKernelThresholds().fusedMatmul.maxMediumN) {
+  const { colsPerWg } = getKernelThresholds().fusedMatmul;
+  if (N > colsPerWg) {
     return false;
   }
   return true;
@@ -5269,37 +5364,380 @@ init_tensor();
 init_loader();
 init_registry();
 
-// src/config/kernel-plan.ts
-init_debug();
-var currentPlan = null;
-var currentSource = "none";
-function getKernelPlanStrict() {
-  return currentPlan?.strict ?? false;
+// src/config/kernel-path-loader.ts
+init_kernel_path_schema();
+init_utils();
+
+// src/config/presets/kernel-paths/gemma2-q4k-fused.json
+var gemma2_q4k_fused_default = {
+  id: "gemma2-q4k-fused",
+  name: "Gemma 2 Q4K Fused",
+  description: "Q4K weights with fused dequant+matmul and fused FFN. Best throughput for Q4K.",
+  decode: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention_decode.wgsl", entry: "attention_decode", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "ffn_gate_up", kernel: "fused_ffn_q4k.wgsl", entry: "main", weights: "layer.{L}.mlp", constants: { ACTIVATION: 1 } },
+      { op: "down_proj", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  prefill: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "fused_matmul_q4_batched.wgsl", entry: "main_batched", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "fused_matmul_q4_batched.wgsl", entry: "main_batched", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "fused_matmul_q4_batched.wgsl", entry: "main_batched", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention.wgsl", entry: "main", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "fused_matmul_q4_batched.wgsl", entry: "main_batched", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "ffn_gate_up", kernel: "fused_ffn_q4k.wgsl", entry: "main_batched", weights: "layer.{L}.mlp", constants: { ACTIVATION: 1 } },
+      { op: "down_proj", kernel: "fused_matmul_q4_batched.wgsl", entry: "main_batched", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  preLayer: [
+    { op: "embed", kernel: "gather.wgsl", entry: "main", weights: "embed_tokens" }
+  ],
+  postLayer: [
+    { op: "final_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+    { op: "lm_head", kernel: "fused_matmul_q4.wgsl", entry: "main_multicol", weights: "lm_head" }
+  ],
+  sampling: [
+    { op: "softcap", kernel: "sample.wgsl", entry: "apply_softcap", constants: { SOFTCAP: 30 } },
+    { op: "sample", kernel: "sample.wgsl", entry: "sample_single_pass" }
+  ]
+};
+
+// src/config/presets/kernel-paths/gemma2-q4k-dequant-f32.json
+var gemma2_q4k_dequant_f32_default = {
+  id: "gemma2-q4k-dequant-f32",
+  name: "Gemma 2 Q4K Dequant F32",
+  description: "Q4K weights dequantized to F32 at load time. Best accuracy, slower throughput.",
+  decode: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention_decode.wgsl", entry: "attention_decode", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  prefill: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention.wgsl", entry: "main", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f32.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  preLayer: [
+    { op: "embed", kernel: "gather.wgsl", entry: "main", weights: "embed_tokens" }
+  ],
+  postLayer: [
+    { op: "final_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+    { op: "lm_head", kernel: "matmul_f32.wgsl", entry: "main", weights: "lm_head" }
+  ],
+  sampling: [
+    { op: "softcap", kernel: "sample.wgsl", entry: "apply_softcap", constants: { SOFTCAP: 30 } },
+    { op: "sample", kernel: "sample.wgsl", entry: "sample_single_pass" }
+  ]
+};
+
+// src/config/presets/kernel-paths/gemma2-q4k-dequant-f16.json
+var gemma2_q4k_dequant_f16_default = {
+  id: "gemma2-q4k-dequant-f16",
+  name: "Gemma 2 Q4K Dequant F16",
+  description: "Q4K weights dequantized to F16. Balanced speed/accuracy, lower VRAM than F32.",
+  decode: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention_decode.wgsl", entry: "attention_decode", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  prefill: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention.wgsl", entry: "main", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  preLayer: [
+    { op: "embed", kernel: "gather.wgsl", entry: "main", weights: "embed_tokens" }
+  ],
+  postLayer: [
+    { op: "final_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+    { op: "lm_head", kernel: "matmul_f16.wgsl", entry: "main", weights: "lm_head" }
+  ],
+  sampling: [
+    { op: "softcap", kernel: "sample.wgsl", entry: "apply_softcap", constants: { SOFTCAP: 30 } },
+    { op: "sample", kernel: "sample.wgsl", entry: "sample_single_pass" }
+  ]
+};
+
+// src/config/presets/kernel-paths/gemma2-f16-native.json
+var gemma2_f16_native_default = {
+  id: "gemma2-f16-native",
+  name: "Gemma 2 F16 Native",
+  description: "Native F16 weights, no dequantization. Baseline accuracy.",
+  decode: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention_decode.wgsl", entry: "attention_decode", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  prefill: {
+    steps: [
+      { op: "input_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "q_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.q_proj" },
+      { op: "k_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.k_proj" },
+      { op: "v_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.v_proj" },
+      { op: "rope_q", kernel: "rope.wgsl", entry: "main" },
+      { op: "rope_k", kernel: "rope.wgsl", entry: "main" },
+      { op: "attention", kernel: "attention.wgsl", entry: "main", constants: { SOFTCAP: 50 } },
+      { op: "o_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.self_attn.o_proj" },
+      { op: "attn_residual", kernel: "residual.wgsl", entry: "main" },
+      { op: "post_attn_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+      { op: "gate_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.gate_proj" },
+      { op: "up_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.up_proj" },
+      { op: "activation", kernel: "silu.wgsl", entry: "geglu" },
+      { op: "down_proj", kernel: "matmul_f16.wgsl", entry: "main", weights: "layer.{L}.mlp.down_proj" },
+      { op: "ffn_residual", kernel: "residual.wgsl", entry: "main" }
+    ]
+  },
+  preLayer: [
+    { op: "embed", kernel: "gather_f16.wgsl", entry: "main", weights: "embed_tokens" }
+  ],
+  postLayer: [
+    { op: "final_norm", kernel: "rmsnorm.wgsl", entry: "main", constants: { RMS_NORM_OFFSET: true } },
+    { op: "lm_head", kernel: "matmul_f16w_f32a.wgsl", entry: "main", weights: "lm_head" }
+  ],
+  sampling: [
+    { op: "softcap", kernel: "sample.wgsl", entry: "apply_softcap", constants: { SOFTCAP: 30 } },
+    { op: "sample", kernel: "sample.wgsl", entry: "sample_single_pass" }
+  ]
+};
+
+// src/config/kernel-path-loader.ts
+var KERNEL_PATH_REGISTRY = {
+  // Gemma 2 Q4K variants
+  "gemma2-q4k-fused": gemma2_q4k_fused_default,
+  "gemma2-q4k-dequant-f32": gemma2_q4k_dequant_f32_default,
+  "gemma2-q4k-dequant-f16": gemma2_q4k_dequant_f16_default,
+  // Gemma 2 F16 native
+  "gemma2-f16-native": gemma2_f16_native_default,
+  // Aliases for generic access (model-agnostic)
+  "q4k-fused": gemma2_q4k_fused_default,
+  "q4k-dequant-f32": gemma2_q4k_dequant_f32_default,
+  "q4k-dequant-f16": gemma2_q4k_dequant_f16_default,
+  "f16-native": gemma2_f16_native_default,
+  // Semantic aliases
+  "q4k-safe": gemma2_q4k_dequant_f32_default,
+  // Max compatibility, no fusion
+  "q4k-fast": gemma2_q4k_fused_default,
+  // Best throughput
+  "q4k-balanced": gemma2_q4k_dequant_f16_default
+  // Good speed/accuracy tradeoff
+};
+function getKernelPath(id) {
+  return KERNEL_PATH_REGISTRY[id] ?? null;
 }
-function getKernelPlanQ4KStrategy() {
-  return currentPlan?.q4kStrategy ?? "auto";
+function listKernelPaths() {
+  return Object.keys(KERNEL_PATH_REGISTRY);
 }
-function setKernelPlan(plan, source) {
-  currentPlan = plan;
-  currentSource = source;
-}
-function resolveKernelVariant(override, lookup) {
-  if (!override)
-    return null;
-  if (lookup.role && override.roles?.[lookup.role]) {
-    return override.roles[lookup.role] ?? null;
+function resolveKernelPath(ref) {
+  if (typeof ref === "string") {
+    const path = getKernelPath(ref);
+    if (!path) {
+      throw new Error(`Unknown kernel path: ${ref}. Available: ${listKernelPaths().join(", ")}`);
+    }
+    return path;
   }
-  if (lookup.phase && override[lookup.phase]) {
-    return override[lookup.phase] ?? null;
-  }
-  return override.default ?? null;
+  return ref;
 }
-function getKernelPlanVariant(lookup) {
-  const plan = currentPlan;
-  if (!plan?.variants)
+function getLayerSteps(path, layerIndex, phase) {
+  if (path.layerOverrides) {
+    for (const override of path.layerOverrides) {
+      if (override.layers.includes(layerIndex)) {
+        return override.steps;
+      }
+    }
+  }
+  const layerPath = phase === "prefill" && path.prefill ? path.prefill : path.decode;
+  return layerPath.steps;
+}
+var MATMUL_ROLE_ALIASES = {
+  q_proj: { section: "layer", ops: ["q_proj"] },
+  k_proj: { section: "layer", ops: ["k_proj"] },
+  v_proj: { section: "layer", ops: ["v_proj"] },
+  qkv_proj: { section: "layer", ops: ["qkv_proj", "q_proj"] },
+  o_proj: { section: "layer", ops: ["o_proj"] },
+  ffn_gate: { section: "layer", ops: ["ffn_gate", "gate_proj"] },
+  ffn_up: { section: "layer", ops: ["ffn_up", "up_proj"] },
+  ffn_down: { section: "layer", ops: ["ffn_down", "down_proj"] },
+  ffn_gate_up: { section: "layer", ops: ["ffn_gate_up"] },
+  lm_head: { section: "postLayer", ops: ["lm_head"] }
+};
+function normalizeKernelFile(kernel) {
+  const trimmed = kernel.trim();
+  if (!trimmed)
+    return trimmed;
+  const parts = trimmed.split("/");
+  return parts[parts.length - 1] ?? trimmed;
+}
+function getKernelPathStepsForSection(path, section, phase, layerIndex) {
+  switch (section) {
+    case "preLayer":
+      return path.preLayer ?? [];
+    case "postLayer":
+      return path.postLayer ?? [];
+    case "sampling":
+      return path.sampling ?? [];
+    case "layer":
+    default:
+      return getLayerSteps(path, layerIndex, phase);
+  }
+}
+function findStepByOp(steps, op) {
+  return steps.find((step) => step.op === op) ?? null;
+}
+function findKernelVariant(operation, kernel, entry) {
+  const variants = KERNEL_CONFIGS[operation];
+  if (!variants)
     return null;
-  const override = plan.variants[lookup.operation];
-  return resolveKernelVariant(override, lookup);
+  const normalizedKernel = normalizeKernelFile(kernel);
+  const normalizedEntry = entry ?? DEFAULT_ENTRY;
+  let fallbackVariant = null;
+  let fallbackCount = 0;
+  for (const [variant, config2] of Object.entries(variants)) {
+    if (config2.shaderFile !== normalizedKernel)
+      continue;
+    fallbackVariant = variant;
+    fallbackCount += 1;
+    if (config2.entryPoint === normalizedEntry) {
+      return variant;
+    }
+  }
+  if (fallbackCount === 1) {
+    return fallbackVariant;
+  }
+  return null;
+}
+function getKernelPathMatmulVariant(role, phase, layerIndex) {
+  if (!activeKernelPath || !role)
+    return null;
+  const alias = MATMUL_ROLE_ALIASES[role] ?? { section: "layer", ops: [role] };
+  const steps = getKernelPathStepsForSection(activeKernelPath, alias.section, phase, layerIndex ?? 0);
+  for (const op of alias.ops) {
+    const step = findStepByOp(steps, op);
+    if (!step)
+      continue;
+    const variant = findKernelVariant("matmul", step.kernel, step.entry);
+    if (variant) {
+      return variant;
+    }
+  }
+  return null;
+}
+function getKernelPathAttentionVariant(phase, layerIndex) {
+  if (!activeKernelPath)
+    return null;
+  const steps = getKernelPathStepsForSection(activeKernelPath, "layer", phase, layerIndex ?? 0);
+  const step = findStepByOp(steps, "attention");
+  if (!step)
+    return null;
+  return findKernelVariant("attention", step.kernel, step.entry);
+}
+var activeKernelPath = null;
+var activeKernelPathSource = "none";
+function setActiveKernelPath(path, source = "none") {
+  activeKernelPath = path;
+  activeKernelPathSource = path ? source : "none";
+}
+function getKernelPathStrict() {
+  return activeKernelPathSource !== "auto" && activeKernelPathSource !== "none";
+}
+function isActiveKernelPathFusedQ4K() {
+  if (!activeKernelPath)
+    return true;
+  const kernelSteps = [
+    ...activeKernelPath.decode?.steps ?? [],
+    ...activeKernelPath.prefill?.steps ?? [],
+    ...activeKernelPath.preLayer ?? [],
+    ...activeKernelPath.postLayer ?? [],
+    ...activeKernelPath.layerOverrides?.flatMap((override) => override.steps) ?? []
+  ];
+  return kernelSteps.some((step) => step.kernel.includes("fused_matmul_q4"));
 }
 
 // src/gpu/kernel-selector.ts
@@ -5343,6 +5781,7 @@ __export(kernel_selector_exports, {
   getProfileReport: () => getProfileReport,
   getTunedWorkgroupSize: () => getTunedWorkgroupSize,
   hasRequiredFeatures: () => hasRequiredFeatures,
+  isFusedQ4KDisabled: () => isFusedQ4KDisabled,
   isGPUSamplingAvailable: () => isGPUSamplingAvailable,
   isProfilingEnabled: () => isProfilingEnabled,
   loadShaderSource: () => loadShaderSource,
@@ -5458,6 +5897,8 @@ function isFusedQ4KDisabled() {
   const debugFlags = typeof window !== "undefined" ? window : null;
   if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K)
     return true;
+  if (!isActiveKernelPathFusedQ4K())
+    return true;
   return false;
 }
 function toMatmulDtype(dtype) {
@@ -5565,7 +6006,7 @@ function isQ4KFusedVariant(variant) {
 function isGemvVariant(variant) {
   return variant.startsWith("gemv");
 }
-function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict, q4kStrategy) {
+function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict) {
   const override = variantOverride.trim();
   if (!override)
     return null;
@@ -5590,9 +6031,6 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities,
     if (bDtype !== "q4k") {
       return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
     }
-    if (q4kStrategy === "dequant_f16" || q4kStrategy === "dequant_f32") {
-      return failOrWarn(`Matmul kernel "${variantOverride}" conflicts with q4kStrategy=${q4kStrategy}.`);
-    }
     if (isFusedQ4KDisabled()) {
       return failOrWarn(`Matmul kernel "${variantOverride}" blocked by DOPPLER_DISABLE_FUSED_Q4K.`);
     }
@@ -5605,11 +6043,11 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities,
 }
 function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, requestedOutputDtype, options) {
   const capabilities = getKernelCapabilities();
-  const strict = getKernelPlanStrict();
-  const q4kStrategy = getKernelPlanQ4KStrategy();
-  const planVariant = getKernelPlanVariant({ operation: "matmul", role: options.role });
-  if (planVariant) {
-    const override = resolveMatmulOverride(planVariant, M, aDtype, bDtype, capabilities, strict, q4kStrategy);
+  const strict = getKernelPathStrict();
+  const phase = M === 1 ? "decode" : "prefill";
+  const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
+  if (pathVariant) {
+    const override = resolveMatmulOverride(pathVariant, M, aDtype, bDtype, capabilities, strict);
     if (override) {
       return override;
     }
@@ -5618,29 +6056,12 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   let useQ4KFused = false;
   let useGemv = false;
   if (bDtype === "q4k") {
-    const wantsDequant = q4kStrategy === "dequant_f16" || q4kStrategy === "dequant_f32";
-    let forceFused = q4kStrategy === "fused_q4k";
-    if (wantsDequant) {
-      const message = `q4kStrategy=${q4kStrategy} but Q4K weights are still loaded; forcing fused path.`;
-      if (strict) {
-        throw new Error(message);
-      }
-      log.warn("Matmul", message);
-      forceFused = true;
-    }
     const allowFused = !isFusedQ4KDisabled();
     const canFused = capabilities.hasSubgroups && allowFused;
-    const shouldFused = forceFused || q4kStrategy === "auto";
-    if (shouldFused && canFused) {
+    if (canFused) {
       useQ4KFused = true;
       const wantF16Output = requestedOutputDtype === "f16" && capabilities.hasF16;
       variant = selectQ4KFusedVariant(M === 1, wantF16Output);
-    } else if (forceFused && !canFused) {
-      const message = "Q4_K fused matmul requires subgroup support. Your GPU/browser may not support WebGPU subgroups.";
-      if (strict) {
-        throw new Error(message);
-      }
-      log.warn("Matmul", `${message} Falling back to dequant path.`);
     }
   }
   if (!useQ4KFused) {
@@ -6436,23 +6857,6 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   }
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
-function normalizeAttentionOverride(value) {
-  if (!value || typeof value !== "string")
-    return null;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized || normalized === "auto")
-    return null;
-  if (normalized === "tiled_large" || normalized === "large")
-    return { tier: "tiled_large" };
-  if (normalized === "tiled_small" || normalized === "small" || normalized === "tiled_small_hd") {
-    return { tier: "tiled_small" };
-  }
-  if (normalized === "streaming" || normalized === "stream")
-    return { tier: "streaming" };
-  if (normalized === "subgroup")
-    return { tier: "subgroup" };
-  return { variant: normalized };
-}
 function inferAttentionTierFromVariant(variant) {
   if (variant === "decode_subgroup")
     return "subgroup";
@@ -6496,22 +6900,20 @@ function validateAttentionVariant(variant, isDecode, useF16KV, caps, strict) {
   }
   return normalized;
 }
-function resolveAttentionPlan(seqLen, kvLen, headDim, numHeads, kvDtype, sharedLimit, caps) {
+function resolveAttentionPlan(seqLen, kvLen, headDim, numHeads, kvDtype, sharedLimit, caps, layerIdx) {
   const useF16KV = kvDtype === "f16";
   const isDecode = seqLen === 1;
-  const strict = getKernelPlanStrict();
-  const override = normalizeAttentionOverride(
-    getKernelPlanVariant({ operation: "attention", phase: isDecode ? "decode" : "prefill" })
-  );
-  if (override?.variant) {
-    const variantOverride = validateAttentionVariant(override.variant, isDecode, useF16KV, caps, strict);
+  const strict = getKernelPathStrict();
+  const pathVariant = getKernelPathAttentionVariant(isDecode ? "decode" : "prefill", layerIdx);
+  if (pathVariant) {
+    const variantOverride = validateAttentionVariant(pathVariant, isDecode, useF16KV, caps, strict);
     if (variantOverride) {
       const tier2 = inferAttentionTierFromVariant(variantOverride);
       const workgroups2 = calculateAttentionWorkgroups(tier2, seqLen, numHeads);
       return { tier: tier2, variant: variantOverride, workgroups: workgroups2, useF16KV, isDecode };
     }
   }
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, override?.tier ?? null, sharedLimit, caps, strict);
+  const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps, strict);
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
   return { tier, variant, workgroups, useF16KV, isDecode };
@@ -6547,6 +6949,7 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     scale = 1 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
+    layerIdx,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
@@ -6565,7 +6968,8 @@ async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
     numHeads,
     kvDtype,
     sharedLimit,
-    caps
+    caps,
+    layerIdx
   );
   const kernel = new AttentionKernel(device2);
   const pipeline = await kernel.getPipeline(plan.variant);
@@ -6620,6 +7024,7 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     scale = 1 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
+    layerIdx,
     outputBuffer = null,
     attnSoftcap = 0,
     slidingWindow = 0,
@@ -6638,7 +7043,8 @@ async function recordAttention(recorder, Q, K, V, mask, numHeads, headDim, optio
     numHeads,
     kvDtype,
     sharedLimit,
-    caps
+    caps,
+    layerIdx
   );
   trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
   const kernel = new AttentionKernel(device2);
@@ -6703,15 +7109,30 @@ function canUseF16(input, residual) {
 function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+  if (isF16) {
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return "small_f16";
+    }
+    return "default_f16";
+  }
   if (residual) {
     if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-      return isF16 ? "small_f16" : "residual_small";
+      return "residual_small";
     }
-    return isF16 ? "default_f16" : "residual";
-  } else if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-    return isF16 ? "small_f16" : "small";
+    return "residual";
   }
-  return isF16 ? "default_f16" : "default";
+  if (hasSubgroups) {
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return "small_subgroup";
+    }
+    return "subgroup";
+  }
+  if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+    return "small";
+  }
+  return "default";
 }
 async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
   const device2 = getDevice();
@@ -6820,12 +7241,30 @@ init_buffer_pool();
 init_tensor();
 init_dispatch();
 init_utils();
+init_debug();
+var SOFTMAX_SMALL_THRESHOLD = 256;
+function selectSoftmaxVariant(innerSize) {
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+  if (hasSubgroups) {
+    if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
+      return "small_subgroup";
+    }
+    return "subgroup";
+  }
+  if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
+    return "small";
+  }
+  return "default";
+}
 async function runSoftmax(input, axis, options = {}) {
   const device2 = getDevice();
   const { batchSize = 1, size, temperature = 1, outputBuffer = null } = options;
   const bytesPerElement = input.dtype === "f16" ? 2 : 4;
   const inferredSize = size || input.buffer.size / (batchSize * bytesPerElement);
-  const pipeline = await createPipeline("softmax", "default");
+  const variant = selectSoftmaxVariant(inferredSize);
+  trace.kernels(`Softmax: size=${inferredSize}, variant=${variant}`);
+  const pipeline = await createPipeline("softmax", variant);
   const outputSize = batchSize * inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, void 0, "softmax_output");
   const uniformBuffer = createUniformBufferWithView(
@@ -8216,17 +8655,6 @@ init_buffer_pool();
 init_constants();
 init_utils();
 init_perf_guards();
-
-// src/config/index.ts
-init_schema();
-
-// src/config/loader.ts
-init_schema();
-
-// src/config/index.ts
-init_runtime();
-
-// src/gpu/kernels/sample.ts
 init_runtime();
 function getSampleBindGroupLayout(device2) {
   return getOrCreateBindGroupLayout(
@@ -8332,9 +8760,10 @@ async function runGPUSample(logits, vocabSize, options = {}) {
   if (!allowReadback("sample.runGPUSample")) {
     throw new Error("[Sample] GPU readback disabled for sampling");
   }
+  const samplingDefaults = getRuntimeConfig().inference.sampling;
   const {
-    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
-    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
+    temperature = samplingDefaults.temperature,
+    topK = samplingDefaults.topK,
     randomSeed,
     padTokenId,
     logitSoftcap = 0
@@ -8472,6 +8901,8 @@ async function recordArgmax(recorder, logits, vocabSize, options = {}) {
   pass2.setBindGroup(0, reduceBindGroup);
   pass2.dispatchWorkgroups(1);
   pass2.end();
+  recorder.trackTemporaryBuffer(tempLogits);
+  recorder.trackTemporaryBuffer(tempIndices);
   return outputBuffer;
 }
 function seededRandom(seed) {
@@ -8501,6 +8932,9 @@ var FusedFFNKernel = class extends KernelBase {
   }
 };
 function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
+  if (weightDtype === "q4k" && !isFusedQ4KDisabled()) {
+    return batchSize > 1 ? "q4k_batched" : "q4k";
+  }
   if (batchSize > 1) {
     return "batched";
   }
@@ -8522,6 +8956,9 @@ function createFFNUniformBuffer(device2, recorder, params) {
       view.setUint32(8, params.intermediateSize, true);
       view.setFloat32(12, params.alpha, true);
       view.setUint32(16, params.activation === "silu" ? 0 : 1, true);
+      if (params.isQ4K) {
+        view.setUint32(20, Math.floor(params.hiddenSize / 256), true);
+      }
     },
     recorder,
     device2
@@ -8543,11 +8980,12 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }
-  if (gateDtype !== "f16" && gateDtype !== "f32") {
+  if (gateDtype !== "f16" && gateDtype !== "f32" && gateDtype !== "q4k") {
     throw new Error(`Fused FFN does not support ${gateDtype} weights`);
   }
+  const isQ4K = gateDtype === "q4k";
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
-  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
   const outputSize = batchSize * intermediateSize * 4;
@@ -8557,7 +8995,8 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
     hiddenSize,
     intermediateSize,
     alpha,
-    activation
+    activation,
+    isQ4K
   });
   const bindGroup = device2.createBindGroup({
     label: "fused_ffn_bind_group",
@@ -8575,6 +9014,10 @@ async function runFusedFFN(input, W_gate, W_up, hiddenSize, intermediateSize, op
   if (variant === "multi") {
     const outputsPerWg = 4;
     workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === "q4k" || variant === "q4k_batched") {
+    const colsPerWg = 32;
+    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+    workgroupsY = variant === "q4k_batched" ? batchSize : 1;
   } else if (variant === "batched") {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
@@ -8601,11 +9044,12 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }
-  if (gateDtype !== "f16" && gateDtype !== "f32") {
+  if (gateDtype !== "f16" && gateDtype !== "f32" && gateDtype !== "q4k") {
     throw new Error(`Fused FFN does not support ${gateDtype} weights`);
   }
+  const isQ4K = gateDtype === "q4k";
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
-  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
   const kernel = new FusedFFNKernel(device2);
   const pipeline = await kernel.getPipeline(variant);
   const outputSize = batchSize * intermediateSize * 4;
@@ -8615,7 +9059,8 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
     hiddenSize,
     intermediateSize,
     alpha,
-    activation
+    activation,
+    isQ4K
   });
   const bindGroup = device2.createBindGroup({
     label: "fused_ffn_bind_group",
@@ -8633,6 +9078,10 @@ async function recordFusedFFN(recorder, input, W_gate, W_up, hiddenSize, interme
   if (variant === "multi") {
     const outputsPerWg = 4;
     workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === "q4k" || variant === "q4k_batched") {
+    const colsPerWg = 32;
+    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+    workgroupsY = variant === "q4k_batched" ? batchSize : 1;
   } else if (variant === "batched") {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
@@ -9356,7 +9805,7 @@ async function benchmarkMatmulRMSNormFused(N, K, options = {}) {
   const config2 = { ...DEFAULT_CONFIG2, ...options };
   const { runMatmulRMSNormFused: runMatmulRMSNormFused2, shouldUseFusedMatmulRMSNorm: shouldUseFusedMatmulRMSNorm2 } = await Promise.resolve().then(() => (init_fused_matmul_rmsnorm(), fused_matmul_rmsnorm_exports));
   if (!shouldUseFusedMatmulRMSNorm2(1, N)) {
-    throw new Error(`Fused kernel not supported for N=${N} (max 4096)`);
+    throw new Error(`Fused kernel not supported for N=${N} with current thresholds.`);
   }
   const input = createTestBuffer(K * 4, "bench_input");
   const weight = createTestBuffer(K * N * 4, "bench_weight");
@@ -10811,9 +11260,13 @@ var {
   runScale: runScale2 = null,
   runGather: runGather2 = null,
   runResidualAdd: runResidualAdd2 = null,
+  runBiasAdd: runBiasAdd2 = null,
   runAttention: runAttention2 = null,
   dequantize: dequantize2 = null,
-  dequantizeQ6K: dequantizeQ6K2 = null
+  dequantizeQ6K: dequantizeQ6K2 = null,
+  runBF16ToF32: runBF16ToF322 = null,
+  runBF16ToF16: runBF16ToF162 = null,
+  castF32ToF16: castF32ToF162 = null
 } = kernel_selector_exports;
 var bufferPool = null;
 try {
@@ -10845,7 +11298,7 @@ async function initGPU() {
   if (!device) {
     throw new Error("WebGPU not available");
   }
-  setKernelPlan({ q4kStrategy: "fused_q4k" }, "runtime");
+  setActiveKernelPath(resolveKernelPath("q4k-fused"), "runtime");
   initialized = true;
   return device;
 }
@@ -10869,6 +11322,8 @@ function makeBuffer(data, usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_S
     new Uint32Array(mappedRange).set(data);
   } else if (data instanceof Int32Array) {
     new Int32Array(mappedRange).set(data);
+  } else if (data instanceof Uint16Array) {
+    new Uint16Array(mappedRange).set(data);
   } else if (data instanceof Uint8Array) {
     new Uint8Array(mappedRange).set(data);
   } else {
@@ -11182,6 +11637,33 @@ var testHarness = {
     return result;
   },
   /**
+   * Run bias add (row-wise)
+   */
+  async runBiasAdd(dev, data, bias, numTokens, dim) {
+    if (!runBiasAdd2) {
+      const result2 = new Float32Array(data);
+      for (let t = 0; t < numTokens; t++) {
+        const rowOffset = t * dim;
+        for (let d = 0; d < dim; d++) {
+          result2[rowOffset + d] += bias[d];
+        }
+      }
+      return result2;
+    }
+    const dataBuf = makeBuffer(data);
+    const biasBuf = makeBuffer(bias);
+    const dataTensor = createTensor(dataBuf, "f32", [numTokens, dim], "bias_add_data");
+    const biasTensor = createTensor(biasBuf, "f32", [dim], "bias_add_bias");
+    const resultTensor = await runBiasAdd2(dataTensor, biasTensor, numTokens, dim);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, numTokens * dim * 4));
+    dataBuf.destroy();
+    biasBuf.destroy();
+    if (resultTensor.buffer !== dataBuf) {
+      resultTensor.buffer.destroy();
+    }
+    return result;
+  },
+  /**
    * Run Q4_K dequantization (Q4_K_M) on GPU
    * kernel-selector API: dequantize(quantized, numBlocks, options)
    */
@@ -11190,10 +11672,43 @@ var testHarness = {
       throw new Error("dequantize kernel not available");
     }
     const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
-    const outBuf = await dequantize2(qBuf, numBlocks, { outputDtype: "f32", useVec4: false });
-    const out = new Float32Array(await readBufferData(outBuf, numBlocks * 256 * 4));
+    const outTensor = await dequantize2(qBuf, numBlocks, { outputDtype: "f32", useVec4: false });
+    const out = new Float32Array(await readBufferData(outTensor.buffer, numBlocks * 256 * 4));
     qBuf.destroy();
-    outBuf.destroy();
+    outTensor.buffer.destroy();
+    return out;
+  },
+  /**
+   * Run Q4_K dequantization to F16 output (production path)
+   * This matches what the loader uses during model loading
+   */
+  async runDequantQ4K_F16(dev, quantized, numBlocks) {
+    if (!dequantize2) {
+      throw new Error("dequantize kernel not available");
+    }
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const outTensor = await dequantize2(qBuf, numBlocks, { outputDtype: "f16", useVec4: true });
+    const f16Bytes = numBlocks * 256 * 2;
+    const rawData = await readBufferData(outTensor.buffer, f16Bytes);
+    const u16 = new Uint16Array(rawData);
+    const out = new Float32Array(numBlocks * 256);
+    for (let i = 0; i < u16.length; i++) {
+      const h = u16[i];
+      const sign = h >> 15 & 1;
+      const exp = h >> 10 & 31;
+      const mant = h & 1023;
+      let f;
+      if (exp === 0) {
+        f = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+      } else if (exp === 31) {
+        f = mant === 0 ? Infinity : NaN;
+      } else {
+        f = Math.pow(2, exp - 15) * (1 + mant / 1024);
+      }
+      out[i] = sign ? -f : f;
+    }
+    qBuf.destroy();
+    outTensor.buffer.destroy();
     return out;
   },
   /**
@@ -11211,17 +11726,20 @@ var testHarness = {
     const qBuf = makeBuffer(Q);
     const kBuf = makeBuffer(K);
     const vBuf = makeBuffer(V);
-    const outBuf = await runAttention2(qBuf, kBuf, vBuf, mask ? makeBuffer(mask) : null, numHeads, headDim, {
+    const maskBuf = mask ? makeBuffer(mask) : null;
+    const isCausal = !!mask;
+    const outBuf = await runAttention2(qBuf, kBuf, vBuf, maskBuf, numHeads, headDim, {
       seqLen,
       kvLen,
       numKVHeads,
       scale: 1 / Math.sqrt(headDim),
-      causal: true
+      causal: isCausal
     });
     const out = new Float32Array(await readBufferData(outBuf, seqLen * numHeads * headDim * 4));
     qBuf.destroy();
     kBuf.destroy();
     vBuf.destroy();
+    maskBuf?.destroy();
     outBuf.destroy();
     return out;
   },
@@ -11325,6 +11843,103 @@ var testHarness = {
     return result;
   },
   /**
+   * Run BF16 → F32 cast
+   */
+  async runBF16ToF32(dev, input) {
+    if (!runBF16ToF322) {
+      const out2 = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setUint32(0, input[i] << 16, true);
+        out2[i] = view.getFloat32(0, true);
+      }
+      return out2;
+    }
+    const inputBuf = makeBuffer(input, GPUBufferUsage.STORAGE);
+    const outTensor = await runBF16ToF322(inputBuf, [input.length], "bf16_to_f32_test");
+    const out = new Float32Array(await readBufferData(outTensor.buffer, input.length * 4));
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+    return out;
+  },
+  /**
+   * Run F32 → F16 cast
+   */
+  async runF32ToF16(dev, input) {
+    if (!castF32ToF162) {
+      const out2 = new Uint16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setFloat32(0, input[i], true);
+        const bits = view.getUint32(0, true);
+        const sign = bits >> 31 & 1;
+        const exp = bits >> 23 & 255;
+        const mant = bits & 8388607;
+        let hExp = 0;
+        let hMant = 0;
+        if (exp === 255) {
+          hExp = 31;
+          hMant = mant ? 512 : 0;
+        } else if (exp !== 0) {
+          const newExp = exp - 127 + 15;
+          if (newExp >= 31) {
+            hExp = 31;
+          } else if (newExp > 0) {
+            hExp = newExp;
+            hMant = mant >> 13;
+          }
+        }
+        out2[i] = sign << 15 | hExp << 10 | hMant;
+      }
+      return out2;
+    }
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, "f32", [input.length], "f32_to_f16_input");
+    const outTensor = await castF32ToF162(inputTensor);
+    const out = new Uint16Array(await readBufferData(outTensor.buffer, input.length * 2));
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+    return out;
+  },
+  /**
+   * Run BF16 → F16 cast
+   */
+  async runBF16ToF16(dev, input) {
+    if (!runBF16ToF162) {
+      const out2 = new Uint16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setUint32(0, input[i] << 16, true);
+        const bits = view.getUint32(0, true);
+        const sign = bits >> 31 & 1;
+        const exp = bits >> 23 & 255;
+        const mant = bits & 8388607;
+        let hExp = 0;
+        let hMant = 0;
+        if (exp === 255) {
+          hExp = 31;
+          hMant = mant ? 512 : 0;
+        } else if (exp !== 0) {
+          const newExp = exp - 127 + 15;
+          if (newExp >= 31) {
+            hExp = 31;
+          } else if (newExp > 0) {
+            hExp = newExp;
+            hMant = mant >> 13;
+          }
+        }
+        out2[i] = sign << 15 | hExp << 10 | hMant;
+      }
+      return out2;
+    }
+    const inputBuf = makeBuffer(input, GPUBufferUsage.STORAGE);
+    const outTensor = await runBF16ToF162(inputBuf, [input.length], "bf16_to_f16_test");
+    const out = new Uint16Array(await readBufferData(outTensor.buffer, input.length * 2));
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+    return out;
+  },
+  /**
    * Run Q6_K dequantization
    * Note: Q6K outputs f16, which we read as f16 and convert to f32
    */
@@ -11344,6 +11959,55 @@ var testHarness = {
     qBuf.destroy();
     outBuf.destroy();
     return out;
+  },
+  /**
+   * Run F16 weights matmul (f16w_f32a kernel)
+   * Takes F32 activations and F16 weights (as Uint16Array)
+   * This tests the exact same kernel path as production
+   * C = A[M,K] @ B[N,K]^T = C[M,N]
+   */
+  async runMatmulF16W(dev, A, B_f16, M, N, K) {
+    if (!runMatmul2) {
+      throw new Error("runMatmul kernel not available");
+    }
+    const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, "f32", [M, K], "matmul_f16w_a");
+    const bufB = makeBuffer(B_f16, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+    const resultTensor = await runMatmul2(tensorA, bufB, M, N, K, {
+      bDtype: "f16",
+      preferF16: true,
+      transposeB: true
+    });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+    bufA.destroy();
+    bufB.destroy();
+    resultTensor.buffer.destroy();
+    return result;
+  },
+  /**
+   * Combined Q4K dequant + F16 matmul (production path)
+   * Does dequant to F16 then matmul, all on GPU without CPU round-trip
+   * C = A[M,K] @ dequant(B_q4k[N,K])^T = C[M,N]
+   */
+  async runDequantAndMatmulF16W(dev, A, B_q4k, M, N, K, numBlocks) {
+    if (!runMatmul2 || !dequantize2) {
+      throw new Error("runMatmul or dequantize kernel not available");
+    }
+    const qBuf = makeBuffer(B_q4k, GPUBufferUsage.STORAGE);
+    const dequantTensor = await dequantize2(qBuf, numBlocks, { outputDtype: "f16", useVec4: true });
+    const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, "f32", [M, K], "dequant_matmul_a");
+    const resultTensor = await runMatmul2(tensorA, dequantTensor.buffer, M, N, K, {
+      bDtype: "f16",
+      preferF16: true,
+      transposeB: true
+    });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+    qBuf.destroy();
+    bufA.destroy();
+    dequantTensor.buffer.destroy();
+    resultTensor.buffer.destroy();
+    return result;
   }
 };
 window.testHarness = testHarness;
@@ -11381,3 +12045,4 @@ export {
   initGPU,
   testHarness
 };
+//# sourceMappingURL=test-page.js.map

@@ -240,7 +240,7 @@ kv_cache.keys[layer_idx, current_pos, :] = K_rotated[0, :]  # [256]
 kv_cache.vals[layer_idx, current_pos, :] = V_rotated[0, :]  # [256]
 ```
 
-**F16 casting:** If using F16 KV cache to save VRAM, `cast_f32_to_f16.wgsl` runs first. This halves KV cache memory, critical for Gemma 3's 32K context.
+**F16 casting:** If using F16 KV cache to save VRAM, `cast_f32_to_f16.wgsl` runs first. This halves KV cache memory, critical for Gemma 3's 32K context. KV cache dtype defaults to `f16` when `shader-f16` is available, and is forced to `f32` only when required (e.g., attention softcapping or no F16 support).
 
 **Sliding window:** Gemma 3 uses a sliding window pattern (`slidingWindow: 512`) for most layers. Only every 6th layer attends to the full context.
 
@@ -1023,32 +1023,22 @@ numKVHeads = 1 (GQA)  →  Small KV cache, enables F16 KV
                         Only 256 floats per token per layer
 ```
 
-### RDRR Runtime Hints
+### Kernel Path Overrides
 
-The RDRR manifest can include `runtimeOptimizations` to hint kernel selection:
+The manifest can include kernel path overrides to select explicit kernel dispatch sequences:
 
 ```json
 {
-  "runtimeOptimizations": {
-    "preferF16KV": true,
-    "preferFusedDequant": true,
-    "attentionTier": "streaming",
-    "matmulTile": [16, 16],
-    "forceKernels": {
-      "matmul": "gemv_subgroup",
-      "attention": "decode_streaming_f16kv"
-    }
+  "optimizations": {
+    "kernelPath": "gemma2-q4k-fused"
+  },
+  "inference": {
+    "defaultKernelPath": "gemma2-q4k-dequant-f16"
   }
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `preferF16KV` | boolean | Use F16 KV cache if GPU supports it |
-| `preferFusedDequant` | boolean | Use fused Q4K matmul when available |
-| `attentionTier` | string | Force attention tier: `tiled`, `small`, `streaming` |
-| `matmulTile` | [number, number] | Override default tile size |
-| `forceKernels` | object | Force specific kernel variants (debugging) |
+Runtime config can override with `runtime.inference.kernelPath`, and CLI `--kernel-path` is highest priority. See `docs/design/KERNEL_PATHS.md` for available paths and structure.
 
 ### Auto-Tuning System
 
@@ -1149,7 +1139,7 @@ npm run debug -- --trace kernels
 npm run debug -- --config '{"runtime":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}'
 ```
 
-Use kernel plan flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`).
+Use kernel path flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`).
 
 ---
 
@@ -1157,4 +1147,4 @@ Use kernel plan flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`)
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

@@ -144,8 +144,8 @@ For long contexts, KV cache can spill to unified memory:
 | `loader/doppler-loader.ts` | `loadExpert()` API, shard cache, partial tensor loading |
 | `loader/expert-cache.ts` | LRU expert cache |
 | `storage/shard-manager.ts` | Expert-level granularity |
-| `storage/rdrr-format.ts` | Manifest types, sharding strategy, layout fields |
-| `tools/rdrr-writer.ts` | Expert-aligned ordering, column-major transpose, weight fusion |
+| `src/formats/rdrr/types.ts` | Manifest types, sharding strategy, layout fields |
+| `src/converter/writer.ts` | Expert-aligned ordering, column-major transpose, weight fusion |
 | `gpu/kernels/matmul.ts` | Layout-aware kernel selection |
 | `inference/pipeline.ts` | Expert prefetch scheduling |
 | `inference/kv-cache.ts` | Overflow to unified memory |

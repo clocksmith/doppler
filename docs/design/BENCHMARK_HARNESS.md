@@ -8,20 +8,20 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Kernel microbenchmarks | ✅ Implemented | `kernel-tests/tests/benchmarks/` |
-| Pipeline benchmark harness | ✅ Implemented | `tests/benchmark/pipeline-benchmark.ts` |
-| System benchmarks | ✅ Implemented | `tests/benchmark/system-benchmark.ts` |
-| Standard prompts | ✅ Implemented | `tests/benchmark/prompts.ts` |
-| JSON result schema | ✅ Implemented | `tests/benchmark/types.ts` |
-| GPU timestamp queries | ✅ Implemented | Uses `gpu/profiler.ts` |
-| GPU readback tracking | ✅ Implemented | Tracked in harness |
-| Peak VRAM estimation | ✅ Implemented | Uses `gpu/buffer-pool.ts` |
-| OPFS storage metrics | ✅ Implemented | Via Storage API |
-| Results storage (IndexedDB) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
-| Results export (JSON) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
-| Results directory | ✅ Implemented | `tests/results/` |
-| Comparison utilities | ✅ Implemented | `tests/benchmark/results-storage.ts` |
-| CLI tool | ✅ Implemented | `cli/index.ts` |
+| Kernel microbenchmarks | ✓ Implemented | `kernel-tests/tests/benchmarks/` |
+| Pipeline benchmark harness | ✓ Implemented | `tests/benchmark/pipeline-benchmark.ts` |
+| System benchmarks | ✓ Implemented | `tests/benchmark/system-benchmark.ts` |
+| Standard prompts | ✓ Implemented | `tests/benchmark/prompts.ts` |
+| JSON result schema | ✓ Implemented | `tests/benchmark/types.ts` |
+| GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.ts` |
+| GPU readback tracking | ✓ Implemented | Tracked in harness |
+| Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.ts` |
+| OPFS storage metrics | ✓ Implemented | Via Storage API |
+| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmark/results-storage.ts` |
+| Results export (JSON) | ✓ Implemented | `tests/benchmark/results-storage.ts` |
+| Results directory | ✓ Implemented | `tests/results/` |
+| Comparison utilities | ✓ Implemented | `tests/benchmark/results-storage.ts` |
+| CLI tool | ✓ Implemented | `cli/index.ts` |
 
 ### Claude Skill
 
@@ -453,5 +453,5 @@ if (history.length >= 2) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
 

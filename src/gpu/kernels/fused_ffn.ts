@@ -25,6 +25,7 @@ import { createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
 import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype, type WeightBuffer } from '../weight-buffer.js';
+import { isFusedQ4KDisabled } from './matmul.js';
 
 /** FFN activation type */
 export type FFNActivation = 'silu' | 'gelu';
@@ -66,9 +67,14 @@ class FusedFFNKernel extends KernelBase {
 
 function selectFFNVariant(
   batchSize: number,
-  weightDtype: 'f16' | 'f32',
+  weightDtype: 'f16' | 'f32' | 'q4k',
   intermediateSize: number
 ): string {
+  // Q4K variants - only if fused path is enabled
+  if (weightDtype === 'q4k' && !isFusedQ4KDisabled()) {
+    return batchSize > 1 ? 'q4k_batched' : 'q4k';
+  }
+
   // For small intermediate sizes, use multi-output variant
   if (batchSize > 1) {
     return 'batched';
@@ -95,6 +101,7 @@ function createFFNUniformBuffer(
     intermediateSize: number;
     alpha: number;
     activation: FFNActivation;
+    isQ4K?: boolean;
   }
 ): GPUBuffer {
   return createUniformBufferWithView(
@@ -106,6 +113,10 @@ function createFFNUniformBuffer(
       view.setUint32(8, params.intermediateSize, true);
       view.setFloat32(12, params.alpha, true);
       view.setUint32(16, params.activation === 'silu' ? 0 : 1, true);
+      // Q4K needs num_blocks_per_row at offset 20
+      if (params.isQ4K) {
+        view.setUint32(20, Math.floor(params.hiddenSize / 256), true);
+      }
     },
     recorder,
     device
@@ -150,13 +161,14 @@ export async function runFusedFFN(
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }
-  if (gateDtype !== 'f16' && gateDtype !== 'f32') {
+  if (gateDtype !== 'f16' && gateDtype !== 'f32' && gateDtype !== 'q4k') {
     throw new Error(`Fused FFN does not support ${gateDtype} weights`);
   }
 
-  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
+  const isQ4K = gateDtype === 'q4k';
+  const variant = selectFFNVariant(batchSize, gateDtype as 'f16' | 'f32' | 'q4k', intermediateSize);
 
-  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
@@ -172,6 +184,7 @@ export async function runFusedFFN(
     intermediateSize,
     alpha,
     activation,
+    isQ4K,
   });
 
   // Create bind group
@@ -194,6 +207,11 @@ export async function runFusedFFN(
   if (variant === 'multi') {
     const outputsPerWg = 4;
     workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === 'q4k' || variant === 'q4k_batched') {
+    // Q4K uses multi-column: 32 columns per workgroup
+    const colsPerWg = 32;
+    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
   } else if (variant === 'batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
@@ -237,13 +255,14 @@ export async function recordFusedFFN(
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }
-  if (gateDtype !== 'f16' && gateDtype !== 'f32') {
+  if (gateDtype !== 'f16' && gateDtype !== 'f32' && gateDtype !== 'q4k') {
     throw new Error(`Fused FFN does not support ${gateDtype} weights`);
   }
 
-  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize);
+  const isQ4K = gateDtype === 'q4k';
+  const variant = selectFFNVariant(batchSize, gateDtype as 'f16' | 'f32' | 'q4k', intermediateSize);
 
-  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}`);
+  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
@@ -257,6 +276,7 @@ export async function recordFusedFFN(
     intermediateSize,
     alpha,
     activation,
+    isQ4K,
   });
 
   const bindGroup = device.createBindGroup({
@@ -277,6 +297,11 @@ export async function recordFusedFFN(
   if (variant === 'multi') {
     const outputsPerWg = 4;
     workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+  } else if (variant === 'q4k' || variant === 'q4k_batched') {
+    // Q4K uses multi-column: 32 columns per workgroup
+    const colsPerWg = 32;
+    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
   } else if (variant === 'batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;

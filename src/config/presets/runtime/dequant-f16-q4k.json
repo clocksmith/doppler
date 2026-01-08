@@ -1,0 +1,10 @@
+{
+  "name": "dequant-f16-q4k",
+  "description": "Use dequant-to-F16 kernel path. Good balance of speed and accuracy, lower VRAM than F32.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "kernelPath": "gemma2-q4k-dequant-f16"
+    }
+  }
+}

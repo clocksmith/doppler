@@ -37,6 +37,13 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 └─────────────────────────────────────────────────────┘
 ```
 
+## Manifest-First Config
+
+The converter embeds all model-specific inference parameters in `manifest.json`.
+At runtime, overrides merge with the manifest, and the pipeline reads config
+values directly (no model-family detection). Missing fields fail fast; `null`
+explicitly disables a feature.
+
 ## Quick Start
 
 ```bash
@@ -47,7 +54,7 @@ npm run bench     # Run benchmarks
 
 ## Why Pure JS + WGSL
 
-DOPPLER uses **JavaScript orchestration** with **hand-written WGSL kernels**. No TVM compiler, no WASM runtime.
+DOPPLER uses **JavaScript source code** with **hand-written WGSL kernels**. No TypeScript compilation, no TVM compiler, no WASM runtime.
 
 **The math:** GPU compute is 96% of decode time. JS orchestration is 2%. Optimizing 2% with WASM doesn't matter.
 
@@ -58,6 +65,23 @@ DOPPLER uses **JavaScript orchestration** with **hand-written WGSL kernels**. No
 | Expert paging | Fixed at compile | Dynamic (bind different buffers) |
 | Device-specific kernels | One binary fits all | Per-device optimization |
 | Debugging | Hard (compiled) | Chrome DevTools |
+
+### Why JavaScript over TypeScript
+
+DOPPLER source is JavaScript (not TypeScript) to enable **runtime hot-swap** of inference code without a build step.
+
+**TypeScript compiles to JavaScript anyway.** The question is whether the compilation step adds value. For hot-swappable, agent-generated code, it adds friction without benefit.
+
+**Agents will generate nearly 100% of this code**—if not now, very soon. No benchmark shows LLMs generate better TypeScript than JavaScript ([GitHub Octoverse 2025](https://github.blog/news-insights/octoverse/typescript-python-and-the-ai-feedback-loop-changing-software-development/)). Types help agents *read* context, not *write* better code ([Anders Hejlsberg](https://github.blog/developer-skills/programming-languages-and-frameworks/typescripts-rise-in-the-ai-era-insights-from-lead-architect-anders-hejlsberg/))—so every module has a `.d.ts` file that agents read directly.
+
+| Concern | Resolution |
+|---------|------------|
+| **Type safety** | Tests catch type errors pre-production ([ICSE 2017](https://earlbarr.com/publications/typestudy.pdf)) |
+| **Type specs for agents** | Every module has a `.d.ts` file; agents read these directly |
+| **Consumer compatibility** | TypeScript users import with full type safety via `.d.ts` |
+| **Hot-swap** | JS/WGSL/JSON swap at runtime; no recompilation |
+
+See [Language Policy](docs/style/GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for full rationale and citations.
 
 ## Model Support
 

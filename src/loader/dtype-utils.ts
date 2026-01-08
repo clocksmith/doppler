@@ -8,7 +8,7 @@
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
-import { log, trace as debugTrace } from '../debug/index.js';
+import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
 import type { TensorLocation } from './loader-types.js';
 
 /**
@@ -49,7 +49,10 @@ export async function convertBF16ToF32GPU(
   debugTrace.loader(`[BF16→F32] runBF16ToF32 returned, result.size=${resultTensor.buffer?.size}`);
 
   // Debug: Verify conversion produced non-zero values
-  if (name.includes('embed') && name.includes('embed_tokens')) {
+  const shouldCheckEmbed = isTraceEnabled('loader') &&
+    name.includes('embed') &&
+    name.includes('embed_tokens');
+  if (shouldCheckEmbed) {
     try {
       debugTrace.loader(`[BF16→F32] Checking embed buffer for non-zeros...`);
       const device = getDevice();

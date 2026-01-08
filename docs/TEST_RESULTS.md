@@ -47,7 +47,7 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 1. ✓ Located Gemma 3 1B model in HuggingFace cache
 2. ✓ Converted to RDRR format (Q4_K_M quantization) - 965MB, 15 shards
 3. ✓ Model served locally for browser load
-4. ❌ **BLOCKED**: Headless browser cannot access WebGPU (no GPU in headless environment)
+4. ☒ **BLOCKED**: Headless browser cannot access WebGPU (no GPU in headless environment)
 
 **Test Limitation**: The Linux environment runs headless without X server or GPU access. WebGPU requires either:
 - A headed browser with GPU drivers (X11/Wayland + working GPU)
@@ -100,8 +100,8 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 **Files modified**:
 - `gpu/kernel-selector.ts` - Added explicit bind group layout for MoE
 - `gpu/kernels/moe_gather.wgsl` - Cleaned up, added layout note
-- `tools/quantizer.ts` - Added router check in `shouldQuantize()`
-- `tools/convert-cli.ts` - Pass `modules_to_not_convert` to shouldQuantize
+- `src/converter/quantizer.ts` - Added router check in `shouldQuantize()`
+- `src/converter/node-converter.ts` - Pass `modules_to_not_convert` to shouldQuantize
 
 ---
 
@@ -197,5 +197,4 @@ After testing:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
-
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

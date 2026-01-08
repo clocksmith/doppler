@@ -46,15 +46,15 @@ Deep-dives on kernel implementations and optimization strategies:
 | Document | Content |
 |----------|---------|
 | [Model Support](plans/MODEL_SUPPORT.md) | Model compatibility matrix |
-| [Competitive Analysis](analysis/COMPETITIVE.md) | WebLLM, WeInfer, Transformers.js comparison |
-| [RDRR Format](spec/RDRR_FORMAT.md) | Model format specification |
+| [Competitive Analysis](design/COMPETITIVE_ANALYSIS.md) | WebLLM, WeInfer, Transformers.js comparison |
+| [RDRR Format](design/RDRR_FORMAT.md) | Model format specification |
 
 ---
 
 ## Specs & Testing
 
-- [Benchmark Harness](spec/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
-- [Kernel Testing](spec/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
+- [Benchmark Harness](design/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
+- [Kernel Testing](design/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
 - [Kernel Tests (Implemented)](../kernel-tests/TODO.md) - Kernel correctness and microbenchmark tracking.
 - [Kernel Benchmarks](../kernel-tests/BENCHMARKS.md) - Baseline expectations and benchmark notes.
 

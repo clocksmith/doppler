@@ -41,7 +41,7 @@ test.describe('Matmul Benchmarks', () => {
     const config = getWorkloadConfig('matmul', model, seq, batch || 'single');
 
     test(`${config.name}`, async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/kernel-tests/browser/index.html');
 
       const result = await page.evaluate(async (cfg: WorkloadConfig & { settings: BenchmarkSettings }): Promise<BenchmarkResult> => {
         const { M, K, N } = cfg;
@@ -119,7 +119,7 @@ Matmul Benchmark: ${config.name}
 
     for (const size of sizes) {
       test(`Size: ${size.name}`, async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/kernel-tests/browser/index.html');
 
         const result = await page.evaluate(async (cfg: { M: number; K: number; N: number }): Promise<SizeBenchResult> => {
           const { M, K, N } = cfg;

@@ -44,20 +44,37 @@ export {
   type AdapterConfigSchema,
   type ProvenanceSchema,
 
+  // Inference config (embedded in manifest)
+  type ManifestInferenceSchema,
+  type ManifestAttentionSchema,
+  type ManifestNormalizationSchema,
+  type ManifestFFNSchema,
+  type ManifestRoPESchema,
+  type ManifestOutputSchema,
+  type ManifestLayerPatternSchema,
+  DEFAULT_MANIFEST_INFERENCE,
+
   // Helpers
   isV1Manifest,
   hasMoEConfig,
+  validateManifestInference,
+  hasInferenceConfig,
 } from './manifest.schema.js';
 
 // =============================================================================
-// Kernel Plan Schema
+// Kernel Path Schema
 // =============================================================================
 export {
-  type KernelPlanSchema,
-  type KernelVariantOverrideSchema,
-  type KernelVariantOverridesSchema,
-  type Q4KStrategy,
-} from './kernel-plan.schema.js';
+  type KernelPathSchema,
+  type KernelPathRef,
+  type KernelStepSchema,
+  type LayerKernelPathSchema,
+  type LayerOverrideSchema,
+  type BuiltinKernelPathId,
+  DEFAULT_ENTRY,
+  DEFAULT_INPUT,
+  DEFAULT_OUTPUT,
+} from './kernel-path.schema.js';
 
 // =============================================================================
 // Inference Schema
@@ -66,6 +83,9 @@ export {
   // RoPE
   type RoPEConfigSchema,
   DEFAULT_ROPE_CONFIG,
+
+  // Architecture defaults
+  DEFAULT_MAX_POSITION_EMBEDDINGS,
 
   type AttentionSchema,
   type NormalizationSchema,
@@ -203,6 +223,7 @@ export {
   type SamplingDefaultsSchema,
   type TokenizerDefaultsSchema,
   type InferenceDefaultsConfigSchema,
+  type ModelInferenceOverrides,
 
   // Defaults
   DEFAULT_BATCHING_DEFAULTS,
@@ -251,6 +272,9 @@ export {
 
   // Defaults
   DEFAULT_KVCACHE_CONFIG,
+
+  // Thresholds
+  PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
 } from './kvcache.schema.js';
 
 // =============================================================================

@@ -34,9 +34,13 @@ export interface TestHarness {
   runMoEGather(device: GPUDevice, tokens: Float32Array, expertIndices: Uint32Array, numTokens: number, hiddenSize: number, numExperts: number, topK: number): Promise<{ tokenCounts: Uint32Array }>;
   runSoftmaxTopK(device: GPUDevice, logits: Float32Array, numTokens: number, numExperts: number, topK: number): Promise<{ indices: Uint32Array; weights: Float32Array }>;
   runResidual(device: GPUDevice, x: Float32Array, residual: Float32Array): Promise<Float32Array>;
+  runBiasAdd(device: GPUDevice, data: Float32Array, bias: Float32Array, numTokens: number, dim: number): Promise<Float32Array>;
   runDequantQ4K(device: GPUDevice, quantized: Uint8Array, numBlocks: number): Promise<Float32Array>;
   runSwiGLU(device: GPUDevice, gate: Float32Array, up: Float32Array, gateBias: Float32Array, upBias: Float32Array): Promise<Float32Array>;
   runScale(device: GPUDevice, input: Float32Array, scale: number): Promise<Float32Array>;
+  runBF16ToF32(device: GPUDevice, input: Uint16Array): Promise<Float32Array>;
+  runF32ToF16(device: GPUDevice, input: Float32Array): Promise<Uint16Array>;
+  runBF16ToF16(device: GPUDevice, input: Uint16Array): Promise<Uint16Array>;
   runDequantQ6K(device: GPUDevice, quantized: Uint8Array, numBlocks: number): Promise<Float32Array>;
   runArgmax(device: GPUDevice, logits: Float32Array): Promise<number>;
   runSampleTopK(device: GPUDevice, logits: Float32Array, temperature: number, topK: number, randomValue: number): Promise<number>;

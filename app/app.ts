@@ -38,7 +38,7 @@ import {
   deleteModel as deleteModelFromOPFS,
 } from '../src/storage/shard-manager.js';
 import { parseManifest, RDRRManifest } from '../src/storage/rdrr-format.js';
-import type { KernelPlanSchema } from '../src/config/schema/index.js';
+import type { KernelPathRef } from '../src/config/schema/index.js';
 import { getMemoryCapabilities, MemoryCapabilities } from '../src/memory/capability.js';
 import { getHeapManager, HeapManager } from '../src/memory/heap-manager.js';
 import { getBufferPool } from '../src/gpu/buffer-pool.js';
@@ -130,6 +130,7 @@ interface RegisteredModel extends ModelInfo {
 interface ServerModel {
   name: string;
   path: string;
+  size?: string;
   numLayers?: number;
   vocabSize?: number;
   quantization?: string;
@@ -175,7 +176,7 @@ async function discoverLocalModels(): Promise<RemoteModel[]> {
         .join(' ');
 
       // Infer param count from layers/hidden
-      const inferredParams = m.numLayers && m.vocabSize ? `${m.numLayers}L` : 'Unknown';
+      const inferredParams = m.size || (m.numLayers ? `${m.numLayers}L` : 'Unknown');
 
       return {
         id: m.name,
@@ -269,7 +270,7 @@ export class DopplerDemo {
   private unloadModelBtn: HTMLButtonElement | null = null;
   private clearMemoryBtn: HTMLButtonElement | null = null;
   private swapIndicator: HTMLElement | null = null;
-  private runtimeKernelPlan: KernelPlanSchema | null = null;
+  private runtimeKernelPath: KernelPathRef | null = null;
 
   // Sampling controls
   private temperatureInput: HTMLInputElement | null = null;
@@ -446,16 +447,24 @@ export class DopplerDemo {
 
   private _readRuntimeOverridesFromURL(): void {
     const params = new URLSearchParams(window.location.search);
-    const kernelPlanRaw = params.get('kernelPlan');
-    if (kernelPlanRaw) {
+    const kernelPathRaw = params.get('kernelPath');
+    if (kernelPathRaw) {
       try {
-        const parsed = JSON.parse(kernelPlanRaw);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          this.runtimeKernelPlan = parsed as KernelPlanSchema;
-          log.debug('App', 'Runtime kernel plan from URL:', parsed);
+        const trimmed = kernelPathRaw.trim();
+        if (trimmed.startsWith('{')) {
+          const parsed = JSON.parse(trimmed);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            this.runtimeKernelPath = parsed as KernelPathRef;
+            log.debug('App', 'Runtime kernel path from URL:', parsed);
+          } else {
+            log.warn('App', 'kernelPath JSON must be an object; ignoring.');
+          }
+        } else {
+          this.runtimeKernelPath = trimmed;
+          log.debug('App', 'Runtime kernel path from URL:', trimmed);
         }
       } catch (err) {
-        log.warn('App', 'Failed to parse kernelPlan from URL:', (err as Error).message);
+        log.warn('App', 'Failed to parse kernelPath from URL:', (err as Error).message);
       }
     }
   }
@@ -940,26 +949,25 @@ export class DopplerDemo {
         const manifestText = await loadManifestFromOPFS();
         if (manifestText) {
           const manifest = parseManifest(manifestText);
-          const config = manifest.config || {};
-          const textConfig = (config as Record<string, unknown>).text_config || config;
-
-          const arch = manifest.architecture || (config as Record<string, string[]>).architectures?.[0] || '';
+          const archInfo = manifest.architecture;
+          const archLabel = typeof archInfo === 'string' ? archInfo : manifest.modelType;
           const quant = manifest.quantization || 'Unknown';
           const totalSize = (manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
 
           // Estimate param count
-          const hiddenSize = (textConfig as Record<string, number>).hidden_size || 0;
+          const hiddenSize =
+            typeof archInfo === 'object' && archInfo !== null ? (archInfo as { hiddenSize?: number }).hiddenSize || 0 : 0;
           let paramStr = 'Unknown';
           if (hiddenSize >= 4096) paramStr = '7B+';
           else if (hiddenSize >= 2048) paramStr = '1-3B';
           else if (hiddenSize >= 1024) paramStr = '<1B';
 
-          const key = this._getModelKey(arch as string, quant, totalSize);
+          const key = this._getModelKey(archLabel || 'unknown', quant, totalSize);
           addModel(
             key,
             {
               name: manifest.modelId || this._formatModelName(cachedId),
-              architecture: arch as string,
+              architecture: archLabel || 'Unknown',
               size: paramStr,
               quantization: quant,
               downloadSize: totalSize,
@@ -1162,7 +1170,7 @@ export class DopplerDemo {
         baseUrl: useServer ? sourceInfo.url : undefined,
         runtime: {
           debug: new URLSearchParams(window.location.search).has('debug'),
-          kernelPlan: this.runtimeKernelPlan || undefined,
+          kernelPath: this.runtimeKernelPath || undefined,
         },
         onProgress: (progress: {
           percent: number;

@@ -13,12 +13,7 @@
 
 import {
   parseManifest,
-  getManifest,
-  getShardInfo,
-  getShardCount,
   getManifestUrl,
-  getShardUrl,
-  type RDRRManifest,
   type ShardInfo,
 } from './rdrr-format.js';
 
@@ -231,27 +226,42 @@ async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<R
   throw lastError!;
 }
 
+function buildShardUrl(baseUrl: string, shardInfo: ShardInfo): string {
+  const base = baseUrl.replace(/\/$/, '');
+  return `${base}/${shardInfo.filename}`;
+}
+
 /**
  * Downloads a single shard
  */
 async function downloadShard(
   baseUrl: string,
   shardIndex: number,
+  shardInfo: ShardInfo,
   options: { signal?: AbortSignal; onProgress?: (p: ShardProgress) => void } = {}
 ): Promise<ArrayBuffer> {
   const { signal, onProgress } = options;
   const startTime = performance.now();
 
-  const shardInfo = getShardInfo(shardIndex);
-  if (!shardInfo) {
-    throw new Error(`Invalid shard index: ${shardIndex}`);
-  }
-
-  const url = getShardUrl(baseUrl, shardIndex);
+  const url = buildShardUrl(baseUrl, shardInfo);
   const response = await fetchWithRetry(url, { signal });
 
+  if (!response.body) {
+    const buffer = await response.arrayBuffer();
+    const percent = shardInfo.size > 0
+      ? Math.min(1, buffer.byteLength / shardInfo.size)
+      : 1;
+    onProgress?.({
+      shardIndex,
+      receivedBytes: buffer.byteLength,
+      totalBytes: shardInfo.size,
+      percent,
+    });
+    return buffer;
+  }
+
   // Stream the response for progress tracking
-  const reader = response.body!.getReader();
+  const reader = response.body.getReader();
   const contentLength = shardInfo.size;
 
   const chunks: Uint8Array[] = [];
@@ -370,7 +380,7 @@ export async function downloadModel(
     abortController
   });
 
-  const totalShards = getShardCount();
+  const totalShards = manifest.shards.length;
   const pendingShards: number[] = [];
 
   // Find shards that need downloading
@@ -383,7 +393,7 @@ export async function downloadModel(
   // Progress tracking
   let downloadedBytes = 0;
   for (const idx of state.completedShards) {
-    const info = getShardInfo(idx);
+    const info = manifest.shards[idx];
     if (info) downloadedBytes += info.size;
   }
 
@@ -441,7 +451,11 @@ export async function downloadModel(
     updateProgress(shardIndex);
 
     try {
-      const buffer = await downloadShard(baseUrl, shardIndex, {
+      const shardInfo = manifest.shards[shardIndex];
+      if (!shardInfo) {
+        throw new Error(`Invalid shard index: ${shardIndex}`);
+      }
+      const buffer = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
         onProgress: (p: ShardProgress) => {
           // Update per-shard progress and global throughput
@@ -592,12 +606,12 @@ export async function getDownloadProgress(modelId: string): Promise<DownloadProg
   const active = activeDownloads.get(modelId);
   if (active) {
     const state = active.state;
-    const manifest = getManifest();
+    const manifest = state.manifest;
     const totalShards = manifest?.shards?.length || 0;
 
     let downloadedBytes = 0;
     for (const idx of state.completedShards) {
-      const info = getShardInfo(idx);
+      const info = manifest?.shards?.[idx];
       if (info) downloadedBytes += info.size;
     }
 

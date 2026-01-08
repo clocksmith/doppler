@@ -39,6 +39,7 @@ import {
 } from './writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from './quantizer.js';
 import { shouldQuantize as shouldQuantizeCore, sanitizeModelId } from './core.js';
+import { buildManifestInference } from './manifest-inference.js';
 
 // Import config-as-code preset detection
 import {
@@ -63,7 +64,6 @@ interface ConvertOptions {
   audioQuant: string | null;      // Audio encoder quantization
   projectorQuant: string | null;  // Cross-modal projector quantization
   computePrecision: 'f16' | 'f32' | 'auto' | null;  // Runtime compute precision hint
-  kernelPlan: string | null;      // JSON string of kernel plan
   shardSize: number;
   modelId: string | null;
   textOnly: boolean;
@@ -84,7 +84,6 @@ function parseArgs(argv: string[]): ConvertOptions {
     audioQuant: null,
     projectorQuant: null,
     computePrecision: null,
-    kernelPlan: null,
     shardSize: 64,
     modelId: null,
     textOnly: false,
@@ -135,9 +134,6 @@ function parseArgs(argv: string[]): ConvertOptions {
           opts.computePrecision = cp;
         }
         break;
-      case '--kernel-plan':
-        opts.kernelPlan = argv[++i] || null;
-        break;
       case '--shard-size':
         opts.shardSize = parseInt(argv[++i] || '64', 10);
         break;
@@ -185,6 +181,23 @@ function detectModelTypeFromPreset(
 
   // Use preset detection (config-as-code pattern)
   const presetId = detectPreset(rawConfig, arch);
+
+  // Error on unknown model families - no silent defaults
+  // Manifest-first architecture requires explicit inference config
+  if (presetId === 'transformer') {
+    const modelType = config.model_type ?? 'unknown';
+    throw new Error(
+      `Unknown model family: architecture="${arch}", model_type="${modelType}"\n\n` +
+      `DOPPLER requires a known model preset to generate correct inference config.\n` +
+      `The manifest-first architecture does not support generic defaults.\n\n` +
+      `Options:\n` +
+      `  1. Wait for official support of this model family\n` +
+      `  2. Create a custom preset in src/config/presets/models/\n` +
+      `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+      `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+    );
+  }
+
   const preset = resolvePreset(presetId);
 
   // Get modelType from preset, with fallback logic for MoE/hybrid
@@ -203,6 +216,7 @@ function detectModelTypeFromPreset(
 
   return { presetId, modelType };
 }
+
 
 /**
  * Normalize quantization tag to canonical short form.
@@ -482,7 +496,6 @@ Quantization Options:
 
 Runtime Plan (stored in manifest, not in filename):
   --compute-precision <p> Compute precision hint: f16, f32, auto
-  --kernel-plan <json>    JSON object with kernel plan overrides
 
 General Options:
   --shard-size <mb>     Shard size in MB (default: 64)
@@ -785,6 +798,15 @@ async function convertSafetensors(
 
   // Write RDRR
   verboseLog(`Writing RDRR to: ${outputPath}`);
+
+  // Build inference config from resolved preset
+  const resolvedPreset = resolvePreset(presetId);
+  // Compute headDim from HF config (hidden_size / num_attention_heads)
+  const headDim = (configRec.head_dim as number) ??
+    (((configRec.hidden_size as number) / (configRec.num_attention_heads as number)) || 64);
+  const manifestInference = buildManifestInference(resolvedPreset, config, headDim);
+  verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
+
   const writerOpts: WriteRDRROptions = {
     shardSize: opts.shardSize * 1024 * 1024,
     modelId: resolvedModelId,
@@ -792,18 +814,8 @@ async function convertSafetensors(
     architecture: arch,
     quantization: manifestQuantization,
     quantizationInfo,
+    inference: manifestInference,
   };
-
-  // Add kernel plan if specified
-  if (opts.kernelPlan) {
-    try {
-      writerOpts.optimizations = {
-        kernelPlan: JSON.parse(opts.kernelPlan),
-      };
-    } catch (e) {
-      throw new Error(`Invalid --kernel-plan JSON: ${(e as Error).message}`);
-    }
-  }
 
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
 }
@@ -914,6 +926,16 @@ async function convertGGUF(
 
   try {
     verboseLog(`Writing RDRR to: ${outputPath}`);
+
+    // Build inference config from resolved preset
+    const resolvedPreset = resolvePreset(presetId);
+    // Compute headDim from config (hidden_size / num_attention_heads) or use GGUF's headDim
+    const ggufHeadDim = ggufConfig.attentionKeyLength || ggufConfig.attentionValueLength;
+    const headDim = (ggufHeadDim as number | undefined) ??
+      (((config.hidden_size as number) / (config.num_attention_heads as number)) || 64);
+    const manifestInference = buildManifestInference(resolvedPreset, config as Record<string, unknown>, headDim);
+    verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
+
     const writerOpts: WriteRDRROptions = {
       shardSize: opts.shardSize * 1024 * 1024,
       modelId: resolvedModelId,
@@ -921,18 +943,8 @@ async function convertGGUF(
       architecture: arch,
       quantization: manifestQuantization,
       quantizationInfo,
+      inference: manifestInference,
     };
-
-    // Add kernel plan if specified
-    if (opts.kernelPlan) {
-      try {
-        writerOpts.optimizations = {
-          kernelPlan: JSON.parse(opts.kernelPlan),
-        };
-      } catch (e) {
-        throw new Error(`Invalid --kernel-plan JSON: ${(e as Error).message}`);
-      }
-    }
 
     const result = await writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
     return result;

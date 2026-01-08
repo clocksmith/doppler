@@ -7,8 +7,7 @@
  * @module tests/benchmark/types
  */
 
-import type { KernelPlanSchema } from '../../src/config/schema/index.js';
-import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
+import type { KernelPathRef, RuntimeConfigSchema } from '../../src/config/schema/index.js';
 
 // ============================================================================
 // Result Schema (matches BENCHMARK_HARNESS.md)
@@ -283,9 +282,9 @@ export interface BenchmarkConfig {
    *  Requires 'timestamp-query' WebGPU feature. */
   profile?: boolean;
 
-  /** Runtime overrides (kernel plan). */
+  /** Runtime overrides (kernel path). */
   runtime?: {
-    kernelPlan?: KernelPlanSchema;
+    kernelPath?: KernelPathRef;
   };
   /** Full runtime config overrides */
   runtimeConfig?: Partial<RuntimeConfigSchema>;

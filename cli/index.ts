@@ -27,7 +27,6 @@ import type {
   TestResult,
   SuiteResult,
 } from './helpers/types.js';
-import type { KernelPlanSchema } from '../src/config/schema/index.js';
 import { loadConfig, listPresets, dumpConfig } from './config/index.js';
 
 import {
@@ -76,6 +75,9 @@ const KERNEL_TESTS = [
   'scale',  // Element-wise scalar multiplication
   'topk',
   'dequant',
+  'dequant-q4k',  // Q4_K dequantization (production path)
+  'dequant-q4k-f16',  // Q4_K dequantization with F16 output
+  'matmul-f16w',  // f16w_f32a matmul with dequanted F16 weights (production path test)
   'dequant-q6k',  // Q6_K dequantization
   'sample',  // GPU argmax sampling
 ] as const;
@@ -94,24 +96,25 @@ const KERNEL_BENCHMARKS = [
 const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'] as const;
 
 // ============================================================================
-// Kernel Profile Presets
+// Kernel Profile Presets (mapped to kernel paths)
 // ============================================================================
 
 /**
  * Predefined kernel configurations for quick swapping.
  * Use --kernel-profile <name> to apply a preset.
+ * These map to kernel path preset IDs.
  */
-const KERNEL_PROFILES: Record<string, KernelPlanSchema> = {
-  /** Fast: Prefer dequantized Q4K for throughput */
-  fast: { q4kStrategy: 'dequant_f16' },
-  /** Safe: Full-precision dequantization */
-  safe: { q4kStrategy: 'dequant_f32' },
-  /** Debug: Full-precision dequantization */
-  debug: { q4kStrategy: 'dequant_f32' },
-  /** Fused: Keep Q4K weights fused in VRAM */
-  fused: { q4kStrategy: 'fused_q4k' },
+const KERNEL_PROFILE_PATHS: Record<string, string> = {
+  /** Fast: Q4K dequant to F16 */
+  fast: 'q4k-dequant-f16',
+  /** Safe: Q4K dequant to F32 */
+  safe: 'q4k-dequant-f32',
+  /** Debug: Q4K dequant to F32 */
+  debug: 'q4k-dequant-f32',
+  /** Fused: Q4K fused matmul + fused FFN */
+  fused: 'q4k-fused',
   /** Apple: Balanced defaults for Apple Silicon */
-  apple: { q4kStrategy: 'dequant_f16' },
+  apple: 'q4k-dequant-f16',
 };
 
 // ============================================================================
@@ -185,33 +188,38 @@ const FLAG_SPECS: FlagSpec[] = [
   { names: ['--quiet', '-q'], handler: (opts) => { opts.quiet = true; } },
   { names: ['--perf'], handler: (opts) => { opts.perf = true; } },
   { names: ['--gpu-profile'], handler: (opts) => { opts.gpuProfile = true; } },
-  { names: ['--kernel-plan'], handler: (opts, tokens) => {
+  { names: ['--kernel-path'], handler: (opts, tokens) => {
     const raw = tokens.shift() || '';
-    try {
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        throw new Error('kernel plan must be a JSON object');
+    // Can be a preset ID (string) or inline JSON
+    if (raw.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(raw);
+        opts.kernelPath = parsed;
+      } catch (err) {
+        throw new Error(`Failed to parse --kernel-path JSON: ${(err as Error).message}`);
       }
-      opts.kernelPlan = parsed as KernelPlanSchema;
-    } catch (err) {
-      throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
+    } else {
+      // Preset ID (e.g., 'gemma2-q4k-fused')
+      opts.kernelPath = raw;
     }
   } },
   { names: ['--kernel-profile', '-k'], handler: (opts, tokens) => {
     const profileName = tokens.shift() || '';
     if (profileName === 'list') {
-      console.log('\nAvailable kernel profiles:');
-      for (const [name, plan] of Object.entries(KERNEL_PROFILES)) {
-        console.log(`  ${name.padEnd(10)} ${JSON.stringify(plan)}`);
+      console.log('\nAvailable kernel profiles (mapped to kernel paths):');
+      for (const [name, path] of Object.entries(KERNEL_PROFILE_PATHS)) {
+        console.log(`  ${name.padEnd(10)} -> ${path}`);
       }
       console.log('');
       process.exit(0);
     }
-    if (!KERNEL_PROFILES[profileName]) {
-      const available = Object.keys(KERNEL_PROFILES).join(', ');
+    if (!KERNEL_PROFILE_PATHS[profileName]) {
+      const available = Object.keys(KERNEL_PROFILE_PATHS).join(', ');
       throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
     }
-    opts.kernelProfile = profileName;
+    // Map profile name to kernel path
+    opts.kernelPath = KERNEL_PROFILE_PATHS[profileName];
+    opts.kernelProfile = profileName;  // Keep for display purposes
   } },
 ];
 
@@ -346,7 +354,7 @@ function parseArgs(argv: string[]): CLIOptions {
     perf: false,
     gpuProfile: false,
     kernelProfile: null,
-    kernelPlan: null,
+    kernelPath: null,
     // Debug mode options
     debug: false,
     layer: null,
@@ -410,20 +418,13 @@ function resolveLogLevel(opts: CLIOptions): string | null {
   return configLevel ?? null;
 }
 
-function buildKernelPlan(opts: CLIOptions): KernelPlanSchema | null {
-  const profilePlan = opts.kernelProfile ? KERNEL_PROFILES[opts.kernelProfile] : null;
-  const overridePlan = opts.kernelPlan ?? null;
-  if (!profilePlan && !overridePlan) return null;
-  return {
-    ...(profilePlan ?? {}),
-    ...(overridePlan ?? {}),
-  };
-}
-
 function appendKernelOverrideParams(params: URLSearchParams, opts: CLIOptions): void {
-  const kernelPlan = buildKernelPlan(opts);
-  if (kernelPlan) {
-    params.set('kernelPlan', JSON.stringify(kernelPlan));
+  if (opts.kernelPath) {
+    if (typeof opts.kernelPath === 'string') {
+      params.set('kernelPath', opts.kernelPath);
+    } else {
+      params.set('kernelPath', JSON.stringify(opts.kernelPath));
+    }
   }
 }
 
@@ -545,8 +546,8 @@ Trace Categories (--trace [categories] → ?trace=<categories>):
   Categories: loader, kernels, logits, embed, attn, ffn, kv, sample, buffers, perf
 
 Kernel Overrides:
+  --kernel-path <id|json>       Explicit kernel path (e.g., gemma2-q4k-fused)
   --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
-  --kernel-plan <json>          Inline kernel plan overrides
 
 Examples:
   doppler test                    # Quick correctness check
@@ -914,6 +915,166 @@ async function runCorrectnessTests(
               }
               const ref = refs.dequantQ4_0Ref(quantized, numBlocks);
               return { passed: ref.length === numBlocks * blockSize, refLength: ref.length };
+            }
+
+            case 'dequant-q4k': {
+              // Test Q4_K dequantization against CPU reference
+              const numBlocks = 4;
+              const blockElems = 256;
+
+              // Create deterministic test data
+              const values = new Float32Array(numBlocks * blockElems);
+              for (let i = 0; i < values.length; i++) {
+                values[i] = Math.sin(i * 0.1) * 0.75 + Math.cos(i * 0.03) * 0.25;
+              }
+
+              // Quantize using CPU reference
+              const quantized = refs.quantizeQ4_KRef(values, numBlocks);
+              const expected = refs.dequantQ4_KRef(quantized, numBlocks);
+
+              // Run GPU dequant (F32 output, non-vec4 path)
+              const gpuResult = await harness.runDequantQ4K(gpu.device, quantized, numBlocks);
+
+              // Compare results
+              let maxError = 0;
+              let maxErrorIdx = -1;
+              for (let i = 0; i < expected.length; i++) {
+                const err = Math.abs(gpuResult[i] - expected[i]);
+                if (err > maxError) {
+                  maxError = err;
+                  maxErrorIdx = i;
+                }
+              }
+
+              const passed = maxError < 1e-3;
+              return {
+                passed,
+                maxError,
+                maxErrorIdx,
+                length: gpuResult.length,
+                first10Actual: Array.from(gpuResult.slice(0, 10)),
+                first10Expected: Array.from(expected.slice(0, 10)),
+              };
+            }
+
+            case 'dequant-q4k-f16': {
+              // Test Q4_K dequantization with F16 output (production loader path)
+              // Use larger size to match production dimensions (e.g. q_proj [2048, 2304])
+              const numBlocks = 2048 * 9;  // 2048 rows, 9 blocks per row (K=2304)
+              const blockElems = 256;
+
+              // Create deterministic test data
+              const values = new Float32Array(numBlocks * blockElems);
+              for (let i = 0; i < values.length; i++) {
+                values[i] = Math.sin(i * 0.1) * 0.75 + Math.cos(i * 0.03) * 0.25;
+              }
+
+              // Quantize using CPU reference
+              const quantized = refs.quantizeQ4_KRef(values, numBlocks);
+              const expected = refs.dequantQ4_KRef(quantized, numBlocks);
+
+              // Run GPU dequant (F16 output, vec4 path) - this is the production path!
+              const gpuResult = await harness.runDequantQ4K_F16(gpu.device, quantized, numBlocks);
+
+              // Compare results (allow larger tolerance for F16 precision)
+              let maxError = 0;
+              let maxErrorIdx = -1;
+              const sampleErrors: Array<{i: number; expected: number; actual: number; err: number}> = [];
+              for (let i = 0; i < expected.length; i++) {
+                const err = Math.abs(gpuResult[i] - expected[i]);
+                if (err > maxError) {
+                  maxError = err;
+                  maxErrorIdx = i;
+                }
+                if (err > 0.01 && sampleErrors.length < 10) {
+                  sampleErrors.push({i, expected: expected[i], actual: gpuResult[i], err});
+                }
+              }
+
+              const passed = maxError < 0.01;  // F16 has lower precision
+              return {
+                passed,
+                maxError,
+                maxErrorIdx,
+                length: gpuResult.length,
+                first10Actual: Array.from(gpuResult.slice(0, 10)),
+                first10Expected: Array.from(expected.slice(0, 10)),
+                sampleErrors,
+              };
+            }
+
+            case 'matmul-f16w': {
+              // Test F16 weights matmul (f16w_f32a kernel) with dequanted weights
+              // This tests the EXACT production path: Q4K -> F16 dequant -> f16w_f32a matmul
+              // All operations stay on GPU without CPU round-trip (matches production loader)
+              const M = 10;  // Match production prefill size
+              const K = 2304;  // Gemma hidden size
+              const N = 2048;  // Typical weight output dim
+
+              // Create activation matrix A[M, K] with production-like values
+              // Production: L0 input has min=-100.5, max=132.0
+              const A = new Float32Array(M * K).map((_, i) =>
+                Math.sin(i * 0.1) * 50 + Math.cos(i * 0.03) * 80
+              );
+
+              // Create weight matrix B[N, K] - will be stored row-major
+              // Use deterministic data similar to dequant test values
+              const B_f32 = new Float32Array(N * K).map((_, i) =>
+                Math.sin(i * 0.07) * 0.02 + Math.cos(i * 0.11) * 0.01
+              );
+
+              // Quantize to Q4K
+              const blocksPerRow = Math.ceil(K / 256);
+              const numBlocks = N * blocksPerRow;
+              const B_q4k = refs.quantizeQ4_KRef(B_f32, numBlocks);
+
+              // CPU reference: dequant + matmul
+              const B_cpu_dequant = refs.dequantQ4_KRef(B_q4k, numBlocks);
+              const refC = new Float32Array(M * N);
+              for (let m = 0; m < M; m++) {
+                for (let n = 0; n < N; n++) {
+                  let sum = 0;
+                  for (let k = 0; k < K; k++) {
+                    sum += A[m * K + k] * B_cpu_dequant[n * K + k];
+                  }
+                  refC[m * N + n] = sum;
+                }
+              }
+
+              // GPU combined path: Q4K dequant -> F16 -> matmul (all on GPU)
+              // This is the exact production path the loader uses
+              const gpuC = await harness.runDequantAndMatmulF16W(gpu.device, A, B_q4k, M, N, K, numBlocks);
+
+              // Compare
+              let maxError = 0;
+              let maxErrorIdx = -1;
+              let hasNaN = false;
+              const sampleErrors: Array<{i: number; expected: number; actual: number; err: number}> = [];
+              for (let i = 0; i < refC.length; i++) {
+                if (isNaN(gpuC[i])) hasNaN = true;
+                const err = Math.abs(gpuC[i] - refC[i]);
+                if (err > maxError) {
+                  maxError = err;
+                  maxErrorIdx = i;
+                }
+                if (err > 0.1 && sampleErrors.length < 10) {
+                  sampleErrors.push({i, expected: refC[i], actual: gpuC[i], err});
+                }
+              }
+
+              // Q4K quantization adds error, plus F16 precision loss - allow 0.5 tolerance
+              const passed = maxError < 0.5 && !hasNaN;
+              return {
+                passed,
+                maxError,
+                maxErrorIdx,
+                hasNaN,
+                length: gpuC.length,
+                first10Actual: Array.from(gpuC.slice(0, 10)),
+                first10Ref: Array.from(refC.slice(0, 10)),
+                sampleErrors,
+                M, N, K, numBlocks,
+              };
             }
 
             case 'swiglu': {
@@ -1892,12 +2053,12 @@ async function main(): Promise<void> {
         opts.maxTokens = runtime.inference.batching.maxTokens;
       }
 
-      // Apply kernel plan from config (can be overridden by CLI flags)
-      const configKernelPlan = runtime.inference?.kernelPlan ?? null;
-      if (configKernelPlan) {
-        opts.kernelPlan = { ...configKernelPlan, ...(opts.kernelPlan ?? {}) };
+      // Apply kernel path from config (can be overridden by CLI flags)
+      const hasKernelPathFlag = hasCliFlag(opts, ['--kernel-path', '--kernel-profile']);
+      const configKernelPath = runtime.inference?.kernelPath;
+      if (!hasKernelPathFlag && configKernelPath !== undefined) {
+        opts.kernelPath = configKernelPath ?? null;
       }
-
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
       const cli = loadedConfig.raw.cli as Record<string, unknown> | undefined;
       if (cli) {
@@ -1910,9 +2071,6 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   }
-
-  // Resolve kernel plan after config + CLI overrides.
-  opts.kernelPlan = buildKernelPlan(opts);
 
   // Handle 'bench' command - performance mode
   // Convert 'bench' to 'test --perf' so it uses the same code path

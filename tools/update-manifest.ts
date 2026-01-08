@@ -3,7 +3,7 @@
  * Update manifest settings without touching shards.
  *
  * Safe edits (default):
- * - optimizations.kernelPlan
+ * - optimizations.kernelPath
  *
  * Unsafe edits (require --allow-unsafe):
  * - config.q4kLayout
@@ -15,15 +15,8 @@ import { resolve, join } from 'path';
 
 interface UpdateOptions {
   input: string | null;
-  kernelPlan: Record<string, unknown> | null;
-  kernelPlanMode: 'patch' | 'replace' | null;
-  kernelPlanStrict: boolean | null;
-  q4kStrategy: string | null;
-  matmulVariant: string | null;
-  attentionVariant: string | null;
-  attentionPrefill: string | null;
-  attentionDecode: string | null;
-  clearKernelPlan: boolean;
+  kernelPath: string | Record<string, unknown> | null;
+  clearKernelPath: boolean;
   q4kLayout: string | null;
   defaultWeightLayout: string | null;
   allowUnsafe: boolean;
@@ -34,15 +27,8 @@ interface UpdateOptions {
 function parseArgs(args: string[]): UpdateOptions {
   const options: UpdateOptions = {
     input: null,
-    kernelPlan: null,
-    kernelPlanMode: null,
-    kernelPlanStrict: null,
-    q4kStrategy: null,
-    matmulVariant: null,
-    attentionVariant: null,
-    attentionPrefill: null,
-    attentionDecode: null,
-    clearKernelPlan: false,
+    kernelPath: null,
+    clearKernelPath: false,
     q4kLayout: null,
     defaultWeightLayout: null,
     allowUnsafe: false,
@@ -58,49 +44,26 @@ function parseArgs(args: string[]): UpdateOptions {
       case '-h':
         options.help = true;
         break;
-      case '--kernel-plan': {
+      case '--kernel-path': {
         const raw = args[++i] || '';
-        try {
-          const parsed = JSON.parse(raw);
-          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            throw new Error('kernel plan must be a JSON object');
+        if (!raw) break;
+        if (raw.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+              throw new Error('kernel path must be a JSON object');
+            }
+            options.kernelPath = parsed as Record<string, unknown>;
+          } catch (err) {
+            throw new Error(`Failed to parse --kernel-path JSON: ${(err as Error).message}`);
           }
-          options.kernelPlan = parsed as Record<string, unknown>;
-        } catch (err) {
-          throw new Error(`Failed to parse --kernel-plan JSON: ${(err as Error).message}`);
+        } else {
+          options.kernelPath = raw;
         }
         break;
       }
-      case '--kernel-plan-mode': {
-        const mode = (args[++i] || '').toLowerCase();
-        if (mode === 'patch' || mode === 'replace') {
-          options.kernelPlanMode = mode;
-        }
-        break;
-      }
-      case '--kernel-plan-strict':
-        options.kernelPlanStrict = true;
-        break;
-      case '--kernel-plan-lax':
-        options.kernelPlanStrict = false;
-        break;
-      case '--q4k-strategy':
-        options.q4kStrategy = args[++i] || null;
-        break;
-      case '--matmul-variant':
-        options.matmulVariant = args[++i] || null;
-        break;
-      case '--attention-variant':
-        options.attentionVariant = args[++i] || null;
-        break;
-      case '--attention-prefill':
-        options.attentionPrefill = args[++i] || null;
-        break;
-      case '--attention-decode':
-        options.attentionDecode = args[++i] || null;
-        break;
-      case '--clear-kernel-plan':
-        options.clearKernelPlan = true;
+      case '--clear-kernel-path':
+        options.clearKernelPath = true;
         break;
       case '--q4k-layout':
         options.q4kLayout = args[++i] || null;
@@ -134,16 +97,8 @@ Usage:
   node update-manifest.js <model-dir|manifest.json> [options]
 
 Safe options:
-  --kernel-plan <json>
-  --kernel-plan-mode <patch|replace>
-  --kernel-plan-strict
-  --kernel-plan-lax
-  --q4k-strategy <auto|fused_q4k|dequant_f16|dequant_f32>
-  --matmul-variant <variant>
-  --attention-variant <tier|variant>
-  --attention-prefill <tier|variant>
-  --attention-decode <tier|variant>
-  --clear-kernel-plan
+  --kernel-path <id|json>
+  --clear-kernel-path
   --dry-run
 
 Unsafe options (require --allow-unsafe):
@@ -151,9 +106,8 @@ Unsafe options (require --allow-unsafe):
   --default-weight-layout <row|column>
 
 Examples:
-  node update-manifest.js ./models/gemma-1b-q4-row --q4k-strategy fused_q4k
-  node update-manifest.js ./models/gemma-1b-q4-row --attention-decode streaming
-  node update-manifest.js ./models/gemma-1b-q4-row --kernel-plan '{"q4kStrategy":"dequant_f16","variants":{"attention":{"prefill":"tiled_small"}}}'
+  node update-manifest.js ./models/gemma-1b-q4-row --kernel-path gemma2-q4k-fused
+  node update-manifest.js ./models/gemma-1b-q4-row --kernel-path '{"id":"gemma2-q4k-dequant-f16"}'
 `);
 }
 
@@ -183,60 +137,16 @@ async function main(): Promise<void> {
   const manifest = JSON.parse(manifestJson);
   let changed = false;
 
-  if (options.clearKernelPlan) {
-    if (manifest.optimizations?.kernelPlan) {
-      delete manifest.optimizations.kernelPlan;
+  if (options.clearKernelPath) {
+    if (manifest.optimizations?.kernelPath) {
+      delete manifest.optimizations.kernelPath;
       changed = true;
     }
   }
 
-  const hasKernelPlanUpdates =
-    options.kernelPlan ||
-    options.kernelPlanMode ||
-    options.kernelPlanStrict !== null ||
-    options.q4kStrategy ||
-    options.matmulVariant ||
-    options.attentionVariant ||
-    options.attentionPrefill ||
-    options.attentionDecode;
-
-  if (hasKernelPlanUpdates) {
+  if (options.kernelPath !== null) {
     manifest.optimizations = manifest.optimizations || {};
-
-    const existingPlan = manifest.optimizations.kernelPlan || {};
-    const kernelPlan = options.kernelPlan ? { ...options.kernelPlan } : { ...existingPlan };
-
-    if (options.kernelPlanMode) {
-      kernelPlan.mode = options.kernelPlanMode;
-    }
-    if (options.kernelPlanStrict !== null) {
-      kernelPlan.strict = options.kernelPlanStrict;
-    }
-    if (options.q4kStrategy) {
-      kernelPlan.q4kStrategy = options.q4kStrategy;
-    }
-
-    if (options.matmulVariant || options.attentionVariant || options.attentionPrefill || options.attentionDecode) {
-      const variants = { ...(kernelPlan.variants as Record<string, any> | undefined) };
-
-      if (options.matmulVariant) {
-        const matmul = { ...(variants.matmul ?? {}) };
-        matmul.default = options.matmulVariant;
-        variants.matmul = matmul;
-      }
-
-      if (options.attentionVariant || options.attentionPrefill || options.attentionDecode) {
-        const attention = { ...(variants.attention ?? {}) };
-        if (options.attentionVariant) attention.default = options.attentionVariant;
-        if (options.attentionPrefill) attention.prefill = options.attentionPrefill;
-        if (options.attentionDecode) attention.decode = options.attentionDecode;
-        variants.attention = attention;
-      }
-
-      kernelPlan.variants = variants;
-    }
-
-    manifest.optimizations.kernelPlan = kernelPlan;
+    manifest.optimizations.kernelPath = options.kernelPath;
     changed = true;
   }
 

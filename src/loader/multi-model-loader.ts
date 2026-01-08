@@ -8,6 +8,8 @@ import { loadWeights, type WeightLoadResult } from '../inference/pipeline/init.j
 import { parseModelConfig, type Manifest } from '../inference/pipeline/config.js';
 import { InferencePipeline, type PipelineContexts } from '../inference/pipeline.js';
 import { getDopplerLoader } from './doppler-loader.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+import type { ModelInferenceOverrides } from '../config/schema/index.js';
 import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from '../adapters/lora-loader.js';
 import type { LoRAAdapter } from '../inference/pipeline/lora.js';
 import type { RDRRManifest } from '../storage/rdrr-format.js';
@@ -27,7 +29,10 @@ export class MultiModelLoader {
     manifest: Manifest,
     options: { storageContext?: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } } = {}
   ): Promise<WeightLoadResult> {
-    const config = parseModelConfig(manifest);
+    // Get runtime model overrides to merge with manifest inference config
+    const runtimeConfig = getRuntimeConfig();
+    const modelOverrides = runtimeConfig.inference.modelOverrides as ModelInferenceOverrides | undefined;
+    const config = parseModelConfig(manifest, modelOverrides);
     this.baseManifest = manifest;
     this.baseWeights = await loadWeights(manifest, config, {
       storageContext: options.storageContext,

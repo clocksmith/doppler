@@ -227,18 +227,22 @@ async function buildModelsApiResponse(modelsDir: string): Promise<string> {
       try {
         const manifestData = await readFile(manifestPath, 'utf-8');
         const manifest = JSON.parse(manifestData);
-        const config = manifest.config || {};
-        const textConfig = config.text_config || config;
+        const archInfo = manifest.architecture;
+        const archLabel = typeof archInfo === 'string' ? archInfo : (manifest.modelType ?? null);
+        const archConfig = archInfo && typeof archInfo === 'object' ? archInfo : null;
         const totalSize = (manifest.shards || []).reduce((sum: number, s: { size?: number }) => sum + (s.size || 0), 0);
+        const numLayers = archConfig?.numLayers ?? null;
+        const hiddenSize = archConfig?.hiddenSize ?? null;
+        const vocabSize = archConfig?.vocabSize ?? null;
         models.push({
           path: `models/${entry.name}`,
           name: entry.name,
-          architecture: manifest.architecture || config.architectures?.[0] || null,
+          architecture: archLabel,
           quantization: formatQuantizationSummary(manifest) || null,
-          size: textConfig.hidden_size ? `${textConfig.num_hidden_layers || 0}L/${textConfig.hidden_size}H` : null,
+          size: hiddenSize && numLayers ? `${numLayers}L/${hiddenSize}H` : null,
           downloadSize: totalSize,
-          vocabSize: textConfig.vocab_size || null,
-          numLayers: textConfig.num_hidden_layers || null,
+          vocabSize,
+          numLayers,
         });
       } catch {
         models.push({ path: `models/${entry.name}`, name: entry.name });

@@ -79,12 +79,12 @@ huggingface-cli download google/gemma-2-9b-it
 
 ```bash
 # After downloading, convert to RDRR format:
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/.cache/huggingface/hub/models--microsoft--Phi-3.5-mini-instruct/snapshots/<hash>/ \
   models/phi-3.5-mini \
   --quantize q4_k_m
 
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/.cache/huggingface/hub/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/<hash>/ \
   models/llama-3.1-8b \
   --quantize q4_k_m

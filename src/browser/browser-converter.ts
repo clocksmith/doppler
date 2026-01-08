@@ -61,8 +61,9 @@ import {
   type ParsedModel,
   type TensorInfo,
 } from '../converter/core.js';
+import { buildManifestInference } from '../converter/manifest-inference.js';
 
-import { detectPreset, resolvePreset } from '../config/index.js';
+import { detectPreset, resolvePreset, type RawModelConfigSchema } from '../config/index.js';
 
 // Re-export types for consumers
 export {
@@ -233,12 +234,28 @@ export async function convertModel(files: File[], options: ConvertOptions = {}):
     modelDir = await openModelDirectory(modelId);
 
     // Detect model type using preset system
-    const presetId = detectPreset(
-      (config || modelInfo.config || {}) as Parameters<typeof detectPreset>[0],
-      modelInfo.architecture
-    );
+    const rawConfig = (config || modelInfo.config || {}) as RawModelConfigSchema;
+    const presetId = detectPreset(rawConfig, modelInfo.architecture);
+    if (presetId === 'transformer') {
+      const modelType = rawConfig.model_type ?? 'unknown';
+      throw new Error(
+        `Unknown model family: architecture="${modelInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
+        `DOPPLER requires a known model preset to generate correct inference config.\n` +
+        `The manifest-first architecture does not support generic defaults.\n\n` +
+        `Options:\n` +
+        `  1. Wait for official support of this model family\n` +
+        `  2. Create a custom preset in src/config/presets/models/\n` +
+        `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+        `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+      );
+    }
     const preset = resolvePreset(presetId);
     const modelType = preset.modelType || 'transformer';
+    const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config)) as ModelConfig | null;
+    const ggufConfig = modelInfo.format === 'gguf' ? (modelInfo.config as Record<string, unknown>) : undefined;
+    const architecture = extractArchitecture(hfConfig || ({} as ModelConfig), ggufConfig);
+    const headDim = architecture.headDim || 64;
+    const manifestInference = buildManifestInference(preset, rawConfig, headDim);
 
     // Create shard I/O adapter
     const shardIO = new BrowserShardIO(modelDir);
@@ -322,7 +339,11 @@ export async function convertModel(files: File[], options: ConvertOptions = {}):
       parsedModel,
       shardInfos,
       result.tensorLocations,
-      'browser-converter'
+      {
+        source: 'browser-converter',
+        inference: manifestInference,
+        modelType,
+      }
     );
 
     // Save manifest

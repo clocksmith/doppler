@@ -176,8 +176,8 @@ describe('config/loader', () => {
 
       const config = resolveConfig(manifest, 'gemma2');
       expect(config.preset).toBe('gemma2');
-      // Gemma2 overrides queryKeyNorm from transformer default
-      expect(config.inference.attention.queryKeyNorm).toBe(true);
+      // Gemma2 does NOT use queryKeyNorm (that's Gemma 3)
+      expect(config.inference.attention.queryKeyNorm).toBe(false);
       // Inference config structure is present
       expect(config.inference.normalization).toBeDefined();
       expect(config.inference.ffn).toBeDefined();

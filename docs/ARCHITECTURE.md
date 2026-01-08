@@ -95,14 +95,22 @@ See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concret
 
 | Directory | Purpose |
 |-----------|---------|
+| `config/` | Schema, presets, runtime config, manifest-first merge |
+| `converter/` | GGUF/SafeTensors → RDRR conversion, quantization |
+| `formats/` | GGUF, SafeTensors, RDRR parsing |
 | `gpu/` | WebGPU device, buffer pool, WGSL kernels |
 | `inference/` | Pipeline orchestration, KV cache, MoE routing |
 | `loader/` | Weight loading, dequantization |
-| `storage/` | RDRR format, OPFS shard management |
-| `memory/` | Memory64, unified memory detection |
-| `tools/` | Conversion CLI, quantizer |
+| `storage/` | OPFS shard management, download |
+| `memory/` | Heap manager + Memory64/unified detection for loader/preflight |
+| `adapters/` | LoRA adapter loading/management |
+| `hotswap/` | Runtime model hot-swap |
+| `client/` | Public API (doppler-provider) |
 | `bridge/` | Native Bridge for local file access |
 | `browser/` | Browser import, parsing, and conversion helpers |
+| `debug/` | Logging, trace categories, probes |
+| `types/` | Shared TypeScript types |
+| `tools/` | Dev utilities (validation, OPFS maintenance, tests) |
 
 ---
 
@@ -242,7 +250,7 @@ The core generate loop:
 
 **Layer Pipeline Plans (experimental):**
 
-The default layer order is fixed and optimized in `src/inference/pipeline/layer.ts`. For advanced experimentation, you can supply a JSON plan under `inference.pipeline` (model preset) or `runtime.inference.pipeline` (runtime override) to reorder or skip layer steps. The plan executes via a small interpreter and is slower than the default path.
+The default layer order is fixed and optimized in `src/inference/pipeline/layer.ts`. For advanced experimentation, you can supply a JSON plan under `runtime.inference.pipeline` (runtime override) or `inference.pipeline` in the manifest. The plan executes via a small interpreter and is slower than the default path.
 
 Example (LLaMA-style residuals):
 
@@ -331,6 +339,77 @@ Evolution helpers for mutating and scoring expert network topologies.
 | `index.ts` | 150 | Module exports |
 
 **Note:** These modules are split for maintainability but the main `pipeline.ts` still uses internal methods. Full wiring is in progress.
+
+### Manifest-First Config Architecture
+
+DOPPLER uses a **manifest-first** architecture where all model-specific inference parameters are embedded in the manifest at conversion time. This makes the manifest the single source of truth for how to run inference on a model.
+
+**Data Flow:**
+
+```
+CONVERSION TIME:
+┌─────────────────────────────────────────────────────────────────────┐
+│ HuggingFace/GGUF Model → node-converter.ts                          │
+│   - Detect model family (gemma2, llama3, etc.)                      │
+│   - Build ManifestInferenceSchema from preset + HF config           │
+│   - Write inference config to manifest.json                         │
+└─────────────────────────────────────────────────────────────────────┘
+                                ↓
+                        manifest.json
+                    (inference field required)
+
+LOAD TIME:
+┌─────────────────────────────────────────────────────────────────────┐
+│ manifest.json + runtime overrides → mergeConfig()                   │
+│   - Manifest values are required (source of truth)                  │
+│   - Runtime can override any manifest value                         │
+│   - Source tracking: '_sources' map shows where each value came from│
+└─────────────────────────────────────────────────────────────────────┘
+                                ↓
+                         MergedConfig
+                   (all values resolved with sources)
+
+EXECUTION TIME:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Pipeline reads from MergedConfig                                    │
+│   - No model detection (isGemma, isLlama, etc.)                     │
+│   - No hardcoded defaults in pipeline code                          │
+│   - Config trace shows source of every value                        │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Manifest Inference Fields:**
+
+| Section | Fields | Example (Gemma 2) |
+|---------|--------|-------------------|
+| `attention` | `queryPreAttnScalar`, `attnLogitSoftcapping`, `slidingWindow`, `queryKeyNorm` | `256`, `50`, `4096`, `false` |
+| `normalization` | `rmsNormWeightOffset`, `postAttentionNorm`, `preFeedforwardNorm`, `postFeedforwardNorm` | `true`, `true`, `true`, `false` |
+| `ffn` | `activation`, `gatedActivation` | `"gelu"`, `true` |
+| `rope` | `ropeTheta`, `ropeLocalTheta`, `ropeScalingType`, `ropeScalingFactor` | `10000`, `null`, `null`, `1.0` |
+| `output` | `finalLogitSoftcapping`, `tieWordEmbeddings`, `scaleEmbeddings` | `30`, `false`, `true` |
+| `layerPattern` | `type`, `globalPattern`, `period` | `"alternating"`, `"odd"`, `null` |
+
+**Source Tracking (`ConfigSource`):**
+- `'manifest'` - Value came from manifest (converter output)
+- `'runtime'` - Value was overridden by user at runtime
+
+**Nullable Required Fields:**
+- `null` = explicitly disabled (valid)
+- `undefined` = not specified (validation error)
+
+**Benefits:**
+- Manifest is self-describing: no need for external preset files
+- Config tracing shows exactly where each value came from
+- Model detection happens once at conversion, not at runtime
+- Runtime overrides are explicit and traceable
+
+**Migration:**
+Models converted before the manifest-first architecture will fail validation with a helpful error:
+```
+Manifest for "model-name" is missing required 'inference' field.
+This model was converted with an older version of DOPPLER.
+Please re-convert the model using the latest converter.
+```
 
 ### kv-cache.ts - KV Cache Management
 
@@ -426,9 +505,11 @@ Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
 ## 4. Storage (`storage/`)
 
-### RDRR Format (`rdrr-format.ts`)
+### RDRR Format (`formats/rdrr/`)
 
 Custom model format optimized for browser streaming:
+
+Note: `storage/rdrr-format.ts` is a compatibility re-export of `formats/rdrr/`.
 
 ```
 model-directory/
@@ -448,6 +529,7 @@ model-directory/
   "totalSize": 1073741824,
   "hashAlgorithm": "blake3",
   "config": { /* HuggingFace config */ },
+  "inference": { /* required model-specific inference config */ },
   "tensors": {
     "model.embed_tokens.weight": {
       "shard": 0,
@@ -494,14 +576,20 @@ Detects available storage APIs and reports quota/persistence information.
 
 ## 5. Memory Subsystem (`memory/`)
 
+Memory capabilities inform loader/preflight/heap strategy (not kernel selection). The loader
+and client API use these signals to size host memory allocations and report limits.
+
 ### capability.ts - Memory Detection
 
 Detects runtime capabilities:
 ```javascript
 {
-  hasMemory64: boolean,     // WebAssembly Memory64
-  maxHeapSize: number,      // JS heap limit
-  isUnifiedMemory: boolean, // Apple Silicon
+  hasMemory64: boolean,        // WebAssembly Memory64
+  isUnifiedMemory: boolean,    // Unified memory GPUs (Apple/AMD)
+  unifiedMemoryInfo: object,   // Unified memory metadata
+  maxHeapSize: number | null,  // Max heap size (Memory64 only)
+  segmentedLimits: object | null, // Segment caps (non-Memory64)
+  strategy: 'MEMORY64' | 'SEGMENTED',
 }
 ```
 
@@ -513,7 +601,9 @@ Apple Silicon detection for optimal buffer sharing:
 
 ### heap-manager.ts - Heap Allocation
 
-Tracks heap allocations and segments to avoid host-memory overcommit.
+Manages host-memory allocations for weight staging and conversion:
+- Memory64: single large WASM heap
+- Segmented: multiple ArrayBuffers with virtual addressing
 
 ---
 
@@ -563,26 +653,26 @@ Parses SafeTensors metadata and tensor slices in the browser.
 
 Builds RDRR shards from GGUF inputs in-browser.
 
-### model-converter.ts - Browser Conversion
+### browser-converter.ts - Browser Conversion
 
-Converts source formats into RDRR with progress reporting. Uses shared types and functions from `tools/convert-core.ts` for consistent manifest generation and architecture extraction.
+Converts source formats into RDRR with progress reporting. Uses shared types and functions from `src/converter/core.ts` for consistent manifest generation and architecture extraction.
 
 ---
 
-## 8. Tools (`tools/`)
+## 8. Converter (`converter/`)
 
-### convert-core.ts - Shared Conversion Core
+### core.ts - Shared Conversion Core
 
 Platform-agnostic types and pure functions shared between CLI and browser converters:
 - **Types**: `TensorInfo`, `ParsedModel`, `ConvertOptions`, `RDRRManifest`, `ShardInfo`, `TensorLocation`
 - **Functions**: `sanitizeModelId()`, `formatBytes()`, `shouldQuantize()`, `extractArchitecture()`, `buildTensorMap()`, `createManifest()`
 - **I/O Adapter**: `ConvertIO` interface for platform-specific file operations
 
-### convert-cli.ts - Model Conversion
+### node-converter.ts - Model Conversion
 
 Converts HuggingFace models to RDRR format:
 ```bash
-npx tsx convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   --input ./hf-model \
   --output ./rdrr-model \
   --quantize Q4_K_M
@@ -607,7 +697,16 @@ value = d * scale * q - dmin * min
 
 ---
 
-## 9. Provider API (`doppler-provider.ts`)
+## 9. Tools (`tools/`)
+
+Developer utilities for validation, profiling, and local maintenance:
+- Kernel registry validation and WGSL override linting
+- OPFS cache purge and test harnesses
+- One-off debugging scripts
+
+---
+
+## 10. Provider API (`client/`)
 
 Public API for LLM client integration:
 
@@ -761,22 +860,22 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `doppler-provider.ts` | 726 | Public API, LLM client integration |
-| `inference/pipeline.ts` | 3884 | Main inference orchestration |
-| `inference/kv-cache.ts` | 953 | KV cache management |
-| `inference/tokenizer.ts` | 1485 | Tokenization wrapper |
-| `inference/moe-router.ts` | 627 | MoE expert routing |
-| `loader/doppler-loader.ts` | 1204 | Weight loading, dequant |
-| `gpu/device.ts` | 330 | WebGPU initialization |
-| `gpu/kernel-selector.ts` | 27 | Kernel dispatch (routing) |
-| `gpu/kernel-tuner.ts` | ~700 | Auto-tuning benchmarks |
-| `gpu/buffer-pool.ts` | 506 | Buffer pooling |
-| `storage/rdrr-format.ts` | 363 | RDRR format parsing |
-| `storage/shard-manager.ts` | 764 | OPFS shard management |
-| `tools/quantizer.ts` | 349 | Q4_K quantization |
-| `tools/convert-core.ts` | 400 | Shared conversion types/functions |
-| `tools/convert-cli.ts` | 476 | Model conversion CLI |
-| `browser/model-converter.ts` | 597 | Browser model conversion |
+| `src/client/doppler-provider.ts` | 972 | Public API, LLM client integration |
+| `src/inference/pipeline.ts` | 2227 | Main inference orchestration |
+| `src/inference/kv-cache.ts` | 1007 | KV cache management |
+| `src/inference/tokenizer.ts` | 1614 | Tokenization wrapper |
+| `src/inference/moe-router.ts` | 624 | MoE expert routing |
+| `src/loader/doppler-loader.ts` | 2313 | Weight loading, dequant |
+| `src/gpu/device.ts` | 408 | WebGPU initialization |
+| `src/gpu/kernel-selector.ts` | 27 | Kernel dispatch (routing) |
+| `src/gpu/kernel-tuner.ts` | 1261 | Auto-tuning benchmarks |
+| `src/gpu/buffer-pool.ts` | 586 | Buffer pooling |
+| `src/formats/rdrr/manifest.ts` | 111 | RDRR manifest parsing |
+| `src/storage/shard-manager.ts` | 816 | OPFS shard management |
+| `src/converter/quantizer.ts` | 492 | Q4_K quantization |
+| `src/converter/core.ts` | 527 | Shared conversion types/functions |
+| `src/converter/node-converter.ts` | 1170 | Model conversion CLI |
+| `src/browser/browser-converter.ts` | 499 | Browser model conversion |
 
 ---
 
@@ -784,7 +883,7 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 - `docs/GEMMA3-DEBUG-POSTMORTEM.md` - Q4_K quantizer bug analysis
 - `docs/internals/MEMORY_TIERS.md` - Tiered memory and P2P architecture
-- `docs/spec/RDRR_FORMAT.md` - RDRR format specification
+- `docs/design/RDRR_FORMAT.md` - RDRR format specification
 
 ---
 
@@ -792,4 +891,4 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

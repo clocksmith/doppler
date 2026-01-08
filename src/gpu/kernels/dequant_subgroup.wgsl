@@ -138,22 +138,11 @@ fn main(
     // Determine sub-block (8 sub-blocks of 32 elements each)
     let subblock_idx = elem_idx / SUBBLOCK_SIZE;
 
-    // Get sub-block scale (use subgroup broadcast for efficiency)
-    // Leader thread in each subgroup reads the scale
-    var scale: f32;
-    var min_val: f32;
-
-    // Subgroup broadcast: thread 0 reads, broadcasts to all
-    let is_leader = (sg_id == 0u);
-    if (is_leader) {
-        let sm = get_scale_min_k4(block.scales, subblock_idx);
-        scale = d * f32(sm.x);
-        min_val = dmin * f32(sm.y);
-    }
-
-    // Broadcast scale and min to all threads in subgroup
-    scale = subgroupBroadcastFirst(scale);
-    min_val = subgroupBroadcastFirst(min_val);
+    // Each thread computes its own scale/min based on its subblock
+    // (subgroup broadcast not valid here since threads span multiple subblocks)
+    let sm = get_scale_min_k4(block.scales, subblock_idx);
+    let scale = d * f32(sm.x);
+    let min_val = dmin * f32(sm.y);
 
     // Get quantized value
     let q = get_q4(block.qs, elem_idx);
@@ -194,18 +183,11 @@ fn main_vec4(
     let base_elem = local_idx * 4u;
     let subblock_idx = base_elem / SUBBLOCK_SIZE;  // 0-7
 
-    // Broadcast scales within subgroup
-    var scale: f32;
-    var min_val: f32;
-
-    let is_leader = (sg_id % 8u == 0u);  // Leader per sub-block worth of threads
-    if (is_leader) {
-        let sm = get_scale_min_k4(block.scales, subblock_idx);
-        scale = d * f32(sm.x);
-        min_val = dmin * f32(sm.y);
-    }
-    scale = subgroupBroadcastFirst(scale);
-    min_val = subgroupBroadcastFirst(min_val);
+    // Each thread computes its own scale/min based on its subblock
+    // (subgroup broadcast not valid here since threads span multiple subblocks)
+    let sm = get_scale_min_k4(block.scales, subblock_idx);
+    let scale = d * f32(sm.x);
+    let min_val = dmin * f32(sm.y);
 
     // Process 4 elements (only write if in bounds)
     // llama.cpp formula: dequant = d * scale * q - dmin * min

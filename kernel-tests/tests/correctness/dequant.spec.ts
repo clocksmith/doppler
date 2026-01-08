@@ -232,22 +232,107 @@ test.describe('Dequantization Kernels', () => {
         const actual = await window.testHarness.runDequantQ4K(gpu.device, quantized, numBlocks);
 
         let maxError = 0;
+        let maxErrorIdx = -1;
         let minVal = Infinity;
         let maxVal = -Infinity;
+        const sampleErrors: Array<{ i: number; expected: number; actual: number; err: number }> = [];
         for (let i = 0; i < expected.length; i++) {
           const e = expected[i];
           const a = actual[i];
           const err = Math.abs(e - a);
-          if (err > maxError) maxError = err;
+          if (err > maxError) {
+            maxError = err;
+            maxErrorIdx = i;
+          }
           if (a < minVal) minVal = a;
           if (a > maxVal) maxVal = a;
+          // Sample first few errors > 0.1
+          if (err > 0.1 && sampleErrors.length < 10) {
+            sampleErrors.push({ i, expected: e, actual: a, err });
+          }
         }
 
-        return { maxError, minVal, maxVal, length: actual.length };
+        // Get first few values for debugging
+        const first10 = Array.from(actual.slice(0, 10));
+        const first10Expected = Array.from(expected.slice(0, 10));
+
+        return {
+          maxError,
+          maxErrorIdx,
+          minVal,
+          maxVal,
+          length: actual.length,
+          sampleErrors,
+          first10,
+          first10Expected,
+        };
       });
 
+      console.log('Q4K dequant test results:', JSON.stringify(result, null, 2));
       expect(result.length).toBe(4 * 256);
       expect(result.maxError).toBeLessThan(1e-3);
+      expect(result.minVal).toBeLessThan(0);
+      expect(result.maxVal).toBeGreaterThan(0);
+    });
+
+    test('should dequantize Q4_K to F16 output correctly (production path)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+        const numBlocks = 4;
+        const blockElems = 256;
+
+        // Deterministic mixed-sign input
+        const values = new Float32Array(numBlocks * blockElems);
+        for (let i = 0; i < values.length; i++) {
+          values[i] = Math.sin(i * 0.1) * 0.75 + Math.cos(i * 0.03) * 0.25;
+        }
+
+        const quantized = quantizeQ4_KRef(values, numBlocks);
+        const expected = dequantQ4_KRef(quantized, numBlocks);
+
+        const gpu = await window.testHarness.getGPU();
+        // This uses F16 output and vec4=true to match production loader path
+        const actual = await window.testHarness.runDequantQ4K_F16(gpu.device, quantized, numBlocks);
+
+        let maxError = 0;
+        let maxErrorIdx = -1;
+        let minVal = Infinity;
+        let maxVal = -Infinity;
+        const sampleErrors: Array<{ i: number; expected: number; actual: number; err: number }> = [];
+        for (let i = 0; i < expected.length; i++) {
+          const e = expected[i];
+          const a = actual[i];
+          const err = Math.abs(e - a);
+          if (err > maxError) {
+            maxError = err;
+            maxErrorIdx = i;
+          }
+          if (a < minVal) minVal = a;
+          if (a > maxVal) maxVal = a;
+          if (err > 0.1 && sampleErrors.length < 10) {
+            sampleErrors.push({ i, expected: e, actual: a, err });
+          }
+        }
+
+        const first10 = Array.from(actual.slice(0, 10));
+        const first10Expected = Array.from(expected.slice(0, 10));
+
+        return {
+          maxError,
+          maxErrorIdx,
+          minVal,
+          maxVal,
+          length: actual.length,
+          sampleErrors,
+          first10,
+          first10Expected,
+        };
+      });
+
+      console.log('Q4K F16 dequant test results:', JSON.stringify(result, null, 2));
+      expect(result.length).toBe(4 * 256);
+      // F16 has ~0.001 precision loss, so allow slightly higher tolerance
+      expect(result.maxError).toBeLessThan(0.01);
       expect(result.minVal).toBeLessThan(0);
       expect(result.maxVal).toBeGreaterThan(0);
     });

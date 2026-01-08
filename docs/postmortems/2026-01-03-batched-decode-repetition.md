@@ -170,10 +170,10 @@ npm run debug -- -m gemma-2-2b-it --prompt "The sky is" --max-tokens 32 --temper
 - After divergence, enters repetition loop: "go to the city of the day" repeating
 
 ### Ruled Out
-- ❌ RoPE positions (logged, increment correctly)
-- ❌ `context.currentSeqLen` updates (updates correctly in loop)
-- ❌ KV cache `layer.seqLen` (updates correctly via `recordUpdateFromGPU`)
-- ❌ Uniform buffer hash collisions (FNV-1a on 40 bytes, low collision probability)
+- ☒ RoPE positions (logged, increment correctly)
+- ☒ `context.currentSeqLen` updates (updates correctly in loop)
+- ☒ KV cache `layer.seqLen` (updates correctly via `recordUpdateFromGPU`)
+- ☒ Uniform buffer hash collisions (FNV-1a on 40 bytes, low collision probability)
 
 ### Current Hypotheses
 1. **Attention startPos/kvLen mismatch** - The attention uniform buffer may have stale values

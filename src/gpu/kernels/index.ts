@@ -38,6 +38,7 @@ export {
   createMatmulBindGroupLayout,
   runMatmul,
   recordMatmul,
+  isFusedQ4KDisabled,
   type MatmulOptions,
 } from './matmul.js';
 

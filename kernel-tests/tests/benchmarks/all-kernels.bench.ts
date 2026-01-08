@@ -31,7 +31,7 @@ test.describe('All Kernels Summary', () => {
   });
 
   test('7B model - decode (1 token)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/kernel-tests/browser/index.html');
 
     const result = await page.evaluate(async (): Promise<BenchmarkResult[]> => {
       const gpu = await window.testHarness.getGPU();
@@ -224,7 +224,7 @@ test.describe('All Kernels Summary', () => {
   });
 
   test('Mixtral - prefill (128 tokens)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/kernel-tests/browser/index.html');
 
     const result = await page.evaluate(async (): Promise<BenchmarkResult[]> => {
       const gpu = await window.testHarness.getGPU();

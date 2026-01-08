@@ -1,0 +1,55 @@
+{
+  "id": "gemma2-q4k-fused",
+  "name": "Gemma 2 Q4K Fused",
+  "description": "Q4K weights with fused dequant+matmul and fused FFN. Best throughput for Q4K.",
+
+  "decode": {
+    "steps": [
+      { "op": "input_norm",   "kernel": "rmsnorm.wgsl",           "entry": "main",         "constants": { "RMS_NORM_OFFSET": true } },
+      { "op": "q_proj",       "kernel": "fused_matmul_q4.wgsl",   "entry": "main_multicol", "weights": "layer.{L}.self_attn.q_proj" },
+      { "op": "k_proj",       "kernel": "fused_matmul_q4.wgsl",   "entry": "main_multicol", "weights": "layer.{L}.self_attn.k_proj" },
+      { "op": "v_proj",       "kernel": "fused_matmul_q4.wgsl",   "entry": "main_multicol", "weights": "layer.{L}.self_attn.v_proj" },
+      { "op": "rope_q",       "kernel": "rope.wgsl",              "entry": "main" },
+      { "op": "rope_k",       "kernel": "rope.wgsl",              "entry": "main" },
+      { "op": "attention",    "kernel": "attention_decode.wgsl",  "entry": "attention_decode",         "constants": { "SOFTCAP": 50.0 } },
+      { "op": "o_proj",       "kernel": "fused_matmul_q4.wgsl",   "entry": "main_multicol", "weights": "layer.{L}.self_attn.o_proj" },
+      { "op": "attn_residual","kernel": "residual.wgsl",          "entry": "main" },
+      { "op": "post_attn_norm","kernel": "rmsnorm.wgsl",          "entry": "main",         "constants": { "RMS_NORM_OFFSET": true } },
+      { "op": "ffn_gate_up",  "kernel": "fused_ffn_q4k.wgsl",     "entry": "main",         "weights": "layer.{L}.mlp", "constants": { "ACTIVATION": 1 } },
+      { "op": "down_proj",    "kernel": "fused_matmul_q4.wgsl",   "entry": "main_multicol", "weights": "layer.{L}.mlp.down_proj" },
+      { "op": "ffn_residual", "kernel": "residual.wgsl",          "entry": "main" }
+    ]
+  },
+
+  "prefill": {
+    "steps": [
+      { "op": "input_norm",   "kernel": "rmsnorm.wgsl",              "entry": "main",      "constants": { "RMS_NORM_OFFSET": true } },
+      { "op": "q_proj",       "kernel": "fused_matmul_q4_batched.wgsl", "entry": "main_batched",   "weights": "layer.{L}.self_attn.q_proj" },
+      { "op": "k_proj",       "kernel": "fused_matmul_q4_batched.wgsl", "entry": "main_batched",   "weights": "layer.{L}.self_attn.k_proj" },
+      { "op": "v_proj",       "kernel": "fused_matmul_q4_batched.wgsl", "entry": "main_batched",   "weights": "layer.{L}.self_attn.v_proj" },
+      { "op": "rope_q",       "kernel": "rope.wgsl",                 "entry": "main" },
+      { "op": "rope_k",       "kernel": "rope.wgsl",                 "entry": "main" },
+      { "op": "attention",    "kernel": "attention.wgsl",            "entry": "main",      "constants": { "SOFTCAP": 50.0 } },
+      { "op": "o_proj",       "kernel": "fused_matmul_q4_batched.wgsl", "entry": "main_batched",   "weights": "layer.{L}.self_attn.o_proj" },
+      { "op": "attn_residual","kernel": "residual.wgsl",             "entry": "main" },
+      { "op": "post_attn_norm","kernel": "rmsnorm.wgsl",             "entry": "main",      "constants": { "RMS_NORM_OFFSET": true } },
+      { "op": "ffn_gate_up",  "kernel": "fused_ffn_q4k.wgsl",        "entry": "main_batched", "weights": "layer.{L}.mlp", "constants": { "ACTIVATION": 1 } },
+      { "op": "down_proj",    "kernel": "fused_matmul_q4_batched.wgsl", "entry": "main_batched",   "weights": "layer.{L}.mlp.down_proj" },
+      { "op": "ffn_residual", "kernel": "residual.wgsl",             "entry": "main" }
+    ]
+  },
+
+  "preLayer": [
+    { "op": "embed",        "kernel": "gather.wgsl",             "entry": "main",         "weights": "embed_tokens" }
+  ],
+
+  "postLayer": [
+    { "op": "final_norm",   "kernel": "rmsnorm.wgsl",            "entry": "main",         "constants": { "RMS_NORM_OFFSET": true } },
+    { "op": "lm_head",      "kernel": "fused_matmul_q4.wgsl",    "entry": "main_multicol", "weights": "lm_head" }
+  ],
+
+  "sampling": [
+    { "op": "softcap",      "kernel": "sample.wgsl",             "entry": "apply_softcap", "constants": { "SOFTCAP": 30.0 } },
+    { "op": "sample",       "kernel": "sample.wgsl",             "entry": "sample_single_pass" }
+  ]
+}

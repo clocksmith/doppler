@@ -139,7 +139,8 @@ export class GPUProfiler {
   }
 
   /**
-   * Begin timing a labeled region
+   * Begin timing a labeled region.
+   * Uses CPU timing; use writeTimestamp() inside passes for GPU timestamps.
    * @param label - Unique label for this measurement
    */
   begin(label: string): void {
@@ -150,25 +151,10 @@ export class GPUProfiler {
 
     const startTime = performance.now();
 
-    if (this.hasTimestampQuery) {
-      const queryIndex = this.nextQueryIndex;
-      this.nextQueryIndex += 2; // Reserve start and end slots
-
-      if (queryIndex >= this.queryCapacity * 2) {
-        log.warn('GPUProfiler', 'Query capacity exceeded, resetting');
-        this.nextQueryIndex = 0;
-      }
-
-      this.activeLabels.set(label, {
-        startQueryIndex: queryIndex,
-        cpuStartTime: startTime,
-      });
-    } else {
-      // CPU fallback
-      this.activeLabels.set(label, {
-        cpuStartTime: startTime,
-      });
-    }
+    // CPU timing for begin/end; GPU timestamps require writeTimestamp() in a pass.
+    this.activeLabels.set(label, {
+      cpuStartTime: startTime,
+    });
   }
 
   /**

@@ -1,0 +1,10 @@
+{
+  "name": "safe-q4k",
+  "description": "Maximum compatibility Q4K path. Uses dequant-to-F32, no fusion, no subgroups required.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "kernelPath": "q4k-safe"
+    }
+  }
+}

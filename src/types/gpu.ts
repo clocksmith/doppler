@@ -124,6 +124,7 @@ export interface MatmulOptions {
   transposeB?: boolean;
   alpha?: number;
   beta?: number;
+  layerIdx?: number;
 }
 
 /** Attention kernel configuration */

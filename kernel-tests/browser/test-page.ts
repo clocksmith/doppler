@@ -13,8 +13,8 @@ import { createTensor, type Tensor } from '../../src/gpu/tensor.js';
 import { setPlatformsBaseUrl } from '../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../src/config/kernels/registry.js';
 
-// Import kernel plan to enable fused Q4K path for testing
-import { setKernelPlan } from '../../src/config/kernel-plan.js';
+// Import kernel path to enable fused Q4K path for testing
+import { resolveKernelPath, setActiveKernelPath } from '../../src/config/kernel-path-loader.js';
 
 // Import kernel functions - some may not exist, so we import what's available
 import * as kernelSelector from '../../src/gpu/kernel-selector.js';
@@ -34,9 +34,13 @@ const {
   runScale = null,
   runGather = null,
   runResidualAdd = null,
+  runBiasAdd = null,
   runAttention = null,
   dequantize = null,
   dequantizeQ6K = null,
+  runBF16ToF32 = null,
+  runBF16ToF16 = null,
+  castF32ToF16 = null,
 } = kernelSelector;
 
 // Import sample kernel
@@ -95,8 +99,8 @@ async function initGPU(): Promise<GPUDevice> {
     throw new Error('WebGPU not available');
   }
 
-  // Set kernel plan to use fused Q4K path for testing
-  setKernelPlan({ q4kStrategy: 'fused_q4k' }, 'runtime');
+  // Set kernel path to use fused Q4K path for testing
+  setActiveKernelPath(resolveKernelPath('q4k-fused'), 'runtime');
 
   initialized = true;
   return device;
@@ -116,7 +120,7 @@ async function getGPU(): Promise<{ device: GPUDevice; queue: GPUQueue }> {
  * Wrapper to create GPU buffer from typed array
  */
 function makeBuffer(
-  data: Float32Array | Uint32Array | Int32Array | Uint8Array | ArrayBuffer,
+  data: Float32Array | Uint32Array | Int32Array | Uint16Array | Uint8Array | ArrayBuffer,
   usage: number = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
 ): GPUBuffer {
   const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
@@ -133,6 +137,8 @@ function makeBuffer(
     new Uint32Array(mappedRange).set(data);
   } else if (data instanceof Int32Array) {
     new Int32Array(mappedRange).set(data);
+  } else if (data instanceof Uint16Array) {
+    new Uint16Array(mappedRange).set(data);
   } else if (data instanceof Uint8Array) {
     new Uint8Array(mappedRange).set(data);
   } else {
@@ -305,6 +311,13 @@ interface TestHarnessImpl {
   ): Promise<Float32Array>;
 
   runResidual(dev: GPUDevice, x: Float32Array, residual: Float32Array): Promise<Float32Array>;
+  runBiasAdd(
+    dev: GPUDevice,
+    data: Float32Array,
+    bias: Float32Array,
+    numTokens: number,
+    dim: number
+  ): Promise<Float32Array>;
 
   runDequantQ4K(
     dev: GPUDevice,
@@ -358,6 +371,12 @@ interface TestHarnessImpl {
     input: Float32Array,
     scale: number
   ): Promise<Float32Array>;
+
+  runBF16ToF32(dev: GPUDevice, input: Uint16Array): Promise<Float32Array>;
+
+  runF32ToF16(dev: GPUDevice, input: Float32Array): Promise<Uint16Array>;
+
+  runBF16ToF16(dev: GPUDevice, input: Uint16Array): Promise<Uint16Array>;
 
   runDequantQ6K(
     dev: GPUDevice,
@@ -740,6 +759,38 @@ const testHarness: TestHarnessImpl = {
   },
 
   /**
+   * Run bias add (row-wise)
+   */
+  async runBiasAdd(dev, data, bias, numTokens, dim) {
+    if (!runBiasAdd) {
+      const result = new Float32Array(data);
+      for (let t = 0; t < numTokens; t++) {
+        const rowOffset = t * dim;
+        for (let d = 0; d < dim; d++) {
+          result[rowOffset + d] += bias[d];
+        }
+      }
+      return result;
+    }
+
+    const dataBuf = makeBuffer(data);
+    const biasBuf = makeBuffer(bias);
+    const dataTensor = createTensor(dataBuf, 'f32', [numTokens, dim], 'bias_add_data');
+    const biasTensor = createTensor(biasBuf, 'f32', [dim], 'bias_add_bias');
+
+    const resultTensor = await runBiasAdd(dataTensor, biasTensor, numTokens, dim);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, numTokens * dim * 4));
+
+    dataBuf.destroy();
+    biasBuf.destroy();
+    if (resultTensor.buffer !== dataBuf) {
+      resultTensor.buffer.destroy();
+    }
+
+    return result;
+  },
+
+  /**
    * Run Q4_K dequantization (Q4_K_M) on GPU
    * kernel-selector API: dequantize(quantized, numBlocks, options)
    */
@@ -749,11 +800,53 @@ const testHarness: TestHarnessImpl = {
     }
 
     const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
-    const outBuf = await dequantize(qBuf, numBlocks, { outputDtype: 'f32', useVec4: false });
-    const out = new Float32Array(await readBufferData(outBuf, numBlocks * 256 * 4));
+    const outTensor = await dequantize(qBuf, numBlocks, { outputDtype: 'f32', useVec4: false });
+    const out = new Float32Array(await readBufferData(outTensor.buffer, numBlocks * 256 * 4));
 
     qBuf.destroy();
-    outBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
+  /**
+   * Run Q4_K dequantization to F16 output (production path)
+   * This matches what the loader uses during model loading
+   */
+  async runDequantQ4K_F16(dev, quantized, numBlocks) {
+    if (!dequantize) {
+      throw new Error('dequantize kernel not available');
+    }
+
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    // Use F16 output and vec4=true (default) to match production loader path
+    const outTensor = await dequantize(qBuf, numBlocks, { outputDtype: 'f16', useVec4: true });
+
+    // Read back F16 data and convert to F32 for comparison
+    const f16Bytes = numBlocks * 256 * 2; // F16 = 2 bytes per element
+    const rawData = await readBufferData(outTensor.buffer, f16Bytes);
+    const u16 = new Uint16Array(rawData);
+    const out = new Float32Array(numBlocks * 256);
+
+    // Convert F16 to F32
+    for (let i = 0; i < u16.length; i++) {
+      const h = u16[i];
+      const sign = (h >> 15) & 1;
+      const exp = (h >> 10) & 0x1F;
+      const mant = h & 0x3FF;
+      let f: number;
+      if (exp === 0) {
+        f = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+      } else if (exp === 31) {
+        f = mant === 0 ? Infinity : NaN;
+      } else {
+        f = Math.pow(2, exp - 15) * (1 + mant / 1024);
+      }
+      out[i] = sign ? -f : f;
+    }
+
+    qBuf.destroy();
+    outTensor.buffer.destroy();
 
     return out;
   },
@@ -776,14 +869,16 @@ const testHarness: TestHarnessImpl = {
     const qBuf = makeBuffer(Q);
     const kBuf = makeBuffer(K);
     const vBuf = makeBuffer(V);
+    const maskBuf = mask ? makeBuffer(mask) : null;
+    const isCausal = !!mask;
 
     // Run attention via kernel selector (handles tier selection automatically)
-    const outBuf = await runAttention(qBuf, kBuf, vBuf, mask ? makeBuffer(mask) : null, numHeads, headDim, {
+    const outBuf = await runAttention(qBuf, kBuf, vBuf, maskBuf, numHeads, headDim, {
       seqLen,
       kvLen,
       numKVHeads,
       scale: 1 / Math.sqrt(headDim),
-      causal: true,
+      causal: isCausal,
     });
 
     // Read back result
@@ -791,6 +886,7 @@ const testHarness: TestHarnessImpl = {
     qBuf.destroy();
     kBuf.destroy();
     vBuf.destroy();
+    maskBuf?.destroy();
     outBuf.destroy();
     return out;
   },
@@ -925,6 +1021,117 @@ const testHarness: TestHarnessImpl = {
   },
 
   /**
+   * Run BF16 → F32 cast
+   */
+  async runBF16ToF32(dev, input) {
+    if (!runBF16ToF32) {
+      const out = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setUint32(0, input[i] << 16, true);
+        out[i] = view.getFloat32(0, true);
+      }
+      return out;
+    }
+
+    const inputBuf = makeBuffer(input, GPUBufferUsage.STORAGE);
+    const outTensor = await runBF16ToF32(inputBuf, [input.length], 'bf16_to_f32_test');
+    const out = new Float32Array(await readBufferData(outTensor.buffer, input.length * 4));
+
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
+  /**
+   * Run F32 → F16 cast
+   */
+  async runF32ToF16(dev, input) {
+    if (!castF32ToF16) {
+      const out = new Uint16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setFloat32(0, input[i], true);
+        const bits = view.getUint32(0, true);
+        const sign = (bits >> 31) & 0x1;
+        const exp = (bits >> 23) & 0xff;
+        const mant = bits & 0x7fffff;
+
+        let hExp = 0;
+        let hMant = 0;
+        if (exp === 0xff) {
+          hExp = 0x1f;
+          hMant = mant ? 0x200 : 0;
+        } else if (exp !== 0) {
+          const newExp = exp - 127 + 15;
+          if (newExp >= 0x1f) {
+            hExp = 0x1f;
+          } else if (newExp > 0) {
+            hExp = newExp;
+            hMant = mant >> 13;
+          }
+        }
+        out[i] = (sign << 15) | (hExp << 10) | hMant;
+      }
+      return out;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'f32_to_f16_input');
+    const outTensor = await castF32ToF16(inputTensor);
+    const out = new Uint16Array(await readBufferData(outTensor.buffer, input.length * 2));
+
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
+  /**
+   * Run BF16 → F16 cast
+   */
+  async runBF16ToF16(dev, input) {
+    if (!runBF16ToF16) {
+      const out = new Uint16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const view = new DataView(new ArrayBuffer(4));
+        view.setUint32(0, input[i] << 16, true);
+        const bits = view.getUint32(0, true);
+        const sign = (bits >> 31) & 0x1;
+        const exp = (bits >> 23) & 0xff;
+        const mant = bits & 0x7fffff;
+
+        let hExp = 0;
+        let hMant = 0;
+        if (exp === 0xff) {
+          hExp = 0x1f;
+          hMant = mant ? 0x200 : 0;
+        } else if (exp !== 0) {
+          const newExp = exp - 127 + 15;
+          if (newExp >= 0x1f) {
+            hExp = 0x1f;
+          } else if (newExp > 0) {
+            hExp = newExp;
+            hMant = mant >> 13;
+          }
+        }
+        out[i] = (sign << 15) | (hExp << 10) | hMant;
+      }
+      return out;
+    }
+
+    const inputBuf = makeBuffer(input, GPUBufferUsage.STORAGE);
+    const outTensor = await runBF16ToF16(inputBuf, [input.length], 'bf16_to_f16_test');
+    const out = new Uint16Array(await readBufferData(outTensor.buffer, input.length * 2));
+
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
+  /**
    * Run Q6_K dequantization
    * Note: Q6K outputs f16, which we read as f16 and convert to f32
    */
@@ -951,6 +1158,77 @@ const testHarness: TestHarnessImpl = {
     outBuf.destroy();
 
     return out;
+  },
+
+  /**
+   * Run F16 weights matmul (f16w_f32a kernel)
+   * Takes F32 activations and F16 weights (as Uint16Array)
+   * This tests the exact same kernel path as production
+   * C = A[M,K] @ B[N,K]^T = C[M,N]
+   */
+  async runMatmulF16W(dev, A: Float32Array, B_f16: Uint16Array, M: number, N: number, K: number) {
+    if (!runMatmul) {
+      throw new Error('runMatmul kernel not available');
+    }
+
+    // Create A buffer (F32 activations)
+    const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, 'f32', [M, K], 'matmul_f16w_a');
+
+    // Create B buffer (F16 weights) - pass raw Uint16Array
+    const bufB = makeBuffer(B_f16, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+
+    // Run matmul with bDtype='f16' and preferF16=true to trigger f16w_f32a kernel
+    // transposeB=true because B is [N, K] format (weight matrix layout)
+    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, {
+      bDtype: 'f16',
+      preferF16: true,
+      transposeB: true,
+    });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+
+    bufA.destroy();
+    bufB.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Combined Q4K dequant + F16 matmul (production path)
+   * Does dequant to F16 then matmul, all on GPU without CPU round-trip
+   * C = A[M,K] @ dequant(B_q4k[N,K])^T = C[M,N]
+   */
+  async runDequantAndMatmulF16W(dev, A: Float32Array, B_q4k: Uint8Array, M: number, N: number, K: number, numBlocks: number) {
+    if (!runMatmul || !dequantize) {
+      throw new Error('runMatmul or dequantize kernel not available');
+    }
+
+    // Dequant Q4K → F16 on GPU
+    const qBuf = makeBuffer(B_q4k, GPUBufferUsage.STORAGE);
+    const dequantTensor = await dequantize(qBuf, numBlocks, { outputDtype: 'f16', useVec4: true });
+
+    // Create A buffer (F32 activations)
+    const bufA = makeBuffer(A);
+    const tensorA = createTensor(bufA, 'f32', [M, K], 'dequant_matmul_a');
+
+    // Run matmul with F16 weights (stays on GPU, no CPU round-trip)
+    // transposeB=true because dequanted weights are [N, K] format
+    const resultTensor = await runMatmul(tensorA, dequantTensor.buffer, M, N, K, {
+      bDtype: 'f16',
+      preferF16: true,
+      transposeB: true,
+    });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+
+    qBuf.destroy();
+    bufA.destroy();
+    dequantTensor.buffer.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
   },
 };
 

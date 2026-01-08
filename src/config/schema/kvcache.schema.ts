@@ -66,8 +66,14 @@ export interface KVCacheConfigSchema {
 /** Default KV cache configuration */
 export const DEFAULT_KVCACHE_CONFIG: KVCacheConfigSchema = {
   maxSeqLen: 4096,
-  kvDtype: 'f32',
+  kvDtype: 'f16',
   layout: 'contiguous',
   pageSize: 256,
   windowSize: 1024,
 };
+
+/**
+ * Sequence length threshold for automatic paged layout selection.
+ * Above this threshold, paged layout is preferred for memory efficiency.
+ */
+export const PAGED_LAYOUT_SEQ_LEN_THRESHOLD = 8192;

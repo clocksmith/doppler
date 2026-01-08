@@ -64,7 +64,7 @@ export function createManifest(options: CreateManifestOptions): RDRRManifest {
     modelType: options.modelType,
     quantization: options.quantization,
     quantizationInfo: options.quantizationInfo,
-    hashAlgorithm: options.hashAlgorithm,
+    hashAlgorithm: options.hashAlgorithm ?? 'sha256',
     architecture: options.architecture,
     groups: options.groups,
     shards: options.shards,
@@ -77,6 +77,7 @@ export function createManifest(options: CreateManifestOptions): RDRRManifest {
     conversion: options.conversion,
     blake3Full: options.blake3Full,
     metadata: options.metadata,
+    inference: options.inference,
   };
 
   const validation = validateManifest(manifest);

@@ -8,6 +8,7 @@
 
 import { RDRRWriter } from './writer.js';
 import type { WriteResult } from './writer.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 
 /**
  * Create a tiny test model with random weights.
@@ -22,11 +23,16 @@ export async function createTestModel(outputDir: string): Promise<WriteResult> {
 
   await writer.init();
 
+  const hiddenSize = 64;
+  const vocabSize = 1000;
+  const intermediateSize = 256;
+  const numHeads = 2;
+
   writer.setConfig({
-    vocabSize: 1000,
-    hiddenSize: 64,
+    vocabSize,
+    hiddenSize,
     numLayers: 2,
-    numHeads: 2,
+    numHeads,
     contextLength: 128,
   });
 
@@ -37,9 +43,13 @@ export async function createTestModel(outputDir: string): Promise<WriteResult> {
     eosTokenId: 2,
   });
 
-  const hiddenSize = 64;
-  const vocabSize = 1000;
-  const intermediateSize = 256;
+  writer.setInference({
+    ...DEFAULT_MANIFEST_INFERENCE,
+    attention: {
+      ...DEFAULT_MANIFEST_INFERENCE.attention,
+      queryPreAttnScalar: Math.sqrt(hiddenSize / numHeads),
+    },
+  });
 
   // Embedding layer
   const embedData = new Float32Array(vocabSize * hiddenSize);

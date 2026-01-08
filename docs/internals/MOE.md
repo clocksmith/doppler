@@ -121,5 +121,5 @@ cacheSize = numExpertsPerToken * 2 + 1  // Capped at 16
 | `gpu/kernels/scatter_add.wgsl` | Output combination |
 | `loader/doppler-loader.ts` | Expert loading API, prefetching |
 | `loader/expert-cache.ts` | LRU cache with smart eviction |
-| `storage/rdrr-format.ts` | `MoEConfig` with expert mapping |
-| `tools/rdrr-writer.ts` | Expert tensor detection during conversion |
+| `src/formats/rdrr/types.ts` | `MoEConfig` with expert mapping |
+| `src/converter/writer.ts` | Expert tensor detection during conversion |

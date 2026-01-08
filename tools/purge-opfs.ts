@@ -141,7 +141,7 @@ async function main(): Promise<void> {
     help: false,
     gpuProfile: false,
     kernelProfile: null,
-    kernelPlan: null,
+    kernelPath: null,
     perf: false,
     debug: false,
     layer: null,

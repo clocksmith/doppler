@@ -114,7 +114,7 @@ Since the model was previously converted with `tryLoad()` for q_norm/k_norm (no 
 
 **Reconversion command**:
 ```bash
-npx tsx tools/convert-cli.ts \
+npx tsx src/converter/node-converter.ts \
   ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752/ \
   models/gemma-3-1b-it-q4 \
   --quantize q4_k_m \

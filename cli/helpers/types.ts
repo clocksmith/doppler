@@ -2,7 +2,7 @@
  * CLI Types - Shared type definitions for DOPPLER CLI
  */
 
-import type { RuntimeConfigSchema, KernelPlanSchema } from '../../src/config/schema/index.js';
+import type { RuntimeConfigSchema, KernelPathRef } from '../../src/config/schema/index.js';
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
 export type TestSuite =
@@ -89,9 +89,13 @@ export interface CLIOptions {
   /** Enable GPU timestamp profiling for per-kernel timing.
    *  Requires 'timestamp-query' WebGPU feature. */
   gpuProfile: boolean;
-  /** Kernel plan overrides (bench/debug). */
+  /** Kernel profile preset (mapped to kernelPath). */
   kernelProfile: string | null;
-  kernelPlan: KernelPlanSchema | null;
+  /**
+   * Kernel path for explicit kernel dispatch ordering.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   */
+  kernelPath: KernelPathRef | null;
 
   // Debug mode options
   /** Enable verbose debug output during inference */

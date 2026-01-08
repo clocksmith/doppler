@@ -208,7 +208,7 @@ async function checkStorage(
  * Check GPU capabilities
  */
 async function checkGPU(memCaps: MemoryCapabilities): Promise<GPUCheckResult> {
-  const hasWebGPU = !!navigator.gpu;
+  const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
 
   if (!hasWebGPU) {
     return {

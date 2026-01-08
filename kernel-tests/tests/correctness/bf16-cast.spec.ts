@@ -130,29 +130,7 @@ test.describe('Type Casting Kernels', () => {
         }
 
         const gpu = await window.testHarness.getGPU();
-        const device = gpu.device;
-
-        const inputBuffer = device.createBuffer({
-          size: bf16Data.byteLength,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(inputBuffer, 0, bf16Data);
-
-        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-        const { runBF16ToF32 } = await import('/doppler/dist/gpu/kernels/cast.js');
-        const outputBuffer = await runBF16ToF32(inputBuffer, numElements);
-
-        const staging = device.createBuffer({
-          size: numElements * 4,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const encoder = device.createCommandEncoder();
-        encoder.copyBufferToBuffer(outputBuffer, 0, staging, 0, numElements * 4);
-        device.queue.submit([encoder.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const actualF32 = new Float32Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
+        const actualF32 = await window.testHarness.runBF16ToF32(gpu.device, bf16Data);
 
         let maxError = 0;
         let hasNaN = false;
@@ -161,9 +139,6 @@ test.describe('Type Casting Kernels', () => {
           const error = Math.abs(expectedF32[i] - actualF32[i]);
           maxError = Math.max(maxError, error);
         }
-
-        inputBuffer.destroy();
-        outputBuffer.destroy();
 
         return { maxError, hasNaN, allZero: actualF32.every(v => v === 0) };
       });
@@ -185,29 +160,7 @@ test.describe('Type Casting Kernels', () => {
         }
 
         const gpu = await window.testHarness.getGPU();
-        const device = gpu.device;
-
-        const inputBuffer = device.createBuffer({
-          size: testValues.byteLength,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(inputBuffer, 0, testValues);
-
-        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-        const { castF32ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
-        const outputBuffer = await castF32ToF16(inputBuffer, numElements);
-
-        const staging = device.createBuffer({
-          size: numElements * 2,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const encoder = device.createCommandEncoder();
-        encoder.copyBufferToBuffer(outputBuffer, 0, staging, 0, numElements * 2);
-        device.queue.submit([encoder.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const actualF16 = new Uint16Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
+        const actualF16 = await window.testHarness.runF32ToF16(gpu.device, testValues);
 
         // Convert F16 back to F32 for comparison
         let maxError = 0;
@@ -232,9 +185,6 @@ test.describe('Type Casting Kernels', () => {
           const error = Math.abs(testValues[i] - actualF32);
           maxError = Math.max(maxError, error);
         }
-
-        inputBuffer.destroy();
-        outputBuffer.destroy();
 
         return { maxError, hasNaN, allZero: actualF16.every(v => v === 0) };
       });
@@ -305,31 +255,7 @@ test.describe('Type Casting Kernels', () => {
 
         // Run GPU kernel
         const gpu = await window.testHarness.getGPU();
-        const device = gpu.device;
-
-        // Create input buffer with BF16 data
-        const inputBuffer = device.createBuffer({
-          size: bf16Data.byteLength,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(inputBuffer, 0, bf16Data);
-
-        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-        const { runBF16ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
-        const outputBuffer = await runBF16ToF16(inputBuffer, numElements, 'test_bf16_to_f16');
-
-        // Read back result
-        const staging = device.createBuffer({
-          size: numElements * 2,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const encoder = device.createCommandEncoder();
-        encoder.copyBufferToBuffer(outputBuffer, 0, staging, 0, numElements * 2);
-        device.queue.submit([encoder.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const actualF16 = new Uint16Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
+        const actualF16 = await window.testHarness.runBF16ToF16(gpu.device, bf16Data);
 
         // Compare
         let maxError = 0;
@@ -383,9 +309,6 @@ test.describe('Type Casting Kernels', () => {
           return view.getFloat32(0, true);
         }
 
-        inputBuffer.destroy();
-        outputBuffer.destroy();
-
         return {
           maxError,
           hasNaN,
@@ -426,30 +349,7 @@ test.describe('Type Casting Kernels', () => {
 
         // Run GPU kernel
         const gpu = await window.testHarness.getGPU();
-        const device = gpu.device;
-
-        const inputBuffer = device.createBuffer({
-          size: bf16Data.byteLength,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(inputBuffer, 0, bf16Data);
-
-        // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-        const { runBF16ToF16 } = await import('/doppler/dist/gpu/kernels/cast.js');
-        const outputBuffer = await runBF16ToF16(inputBuffer, numElements, 'test_bf16_to_f16');
-
-        // Read back
-        const staging = device.createBuffer({
-          size: numElements * 2,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const encoder = device.createCommandEncoder();
-        encoder.copyBufferToBuffer(outputBuffer, 0, staging, 0, numElements * 2);
-        device.queue.submit([encoder.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const actualF16 = new Uint16Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
+        const actualF16 = await window.testHarness.runBF16ToF16(gpu.device, bf16Data);
 
         // Convert F16 back to F32 for comparison
         const actualF32: number[] = [];
@@ -476,9 +376,6 @@ test.describe('Type Casting Kernels', () => {
           const error = Math.abs(testValues[i] - actualF32[i]);
           maxError = Math.max(maxError, error);
         }
-
-        inputBuffer.destroy();
-        outputBuffer.destroy();
 
         return {
           maxError,

@@ -13,7 +13,7 @@ DOPPLER is a browser-native LLM inference engine using custom WebGPU (WGSL) kern
 4. **Native Bridge** - mmap access to local files, bypassing OPFS limits
 
 **Caveat:** Performance benchmarks pending. WebLLM supports MoE (Mixtral) via TVM. DOPPLER must prove better performance.
-See: `docs/spec/BENCHMARK_HARNESS.md` and `docs/spec/KERNEL_TESTING.md`.
+See: `docs/design/BENCHMARK_HARNESS.md` and `docs/design/KERNEL_TESTING.md`.
 
 ---
 
@@ -25,8 +25,8 @@ Implementation work, task tracking, and priorities live in `docs/plans/OPTIMIZAT
 
 Benchmark and testing specs:
 
-- `docs/spec/BENCHMARK_HARNESS.md` (pipeline and system benchmarks, result schema)
-- `docs/spec/KERNEL_TESTING.md` (kernel and segment tests, how to interpret correctness)
+- `docs/design/BENCHMARK_HARNESS.md` (pipeline and system benchmarks, result schema)
+- `docs/design/KERNEL_TESTING.md` (kernel and segment tests, how to interpret correctness)
 - `docs/plans/OPTIMIZATION_ROADMAP.md` (action items and priorities)
 
 Key success metrics (the minimum needed for credible comparisons):
@@ -1396,5 +1396,4 @@ Source: [MediaPipe Issues](https://github.com/google-ai-edge/mediapipe/issues)
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
-
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

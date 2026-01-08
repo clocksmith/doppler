@@ -26,7 +26,7 @@ graph LR
     style W fill:#f5f5f5
 ```
 
-**Key Insight:** DOPPLER is configuration-driven. Model architecture determines pipeline structure; hardware capabilities determine kernel variants.
+**Key Insight:** DOPPLER is configuration-driven. The converter embeds model-specific inference in the manifest; runtime overrides merge; the pipeline reads config values directly. Hardware capabilities determine kernel variants.
 
 ---
 
@@ -40,7 +40,7 @@ graph TD
         M3[GPT-OSS 20B<br/>SafeTensors<br/>40GB]
     end
 
-    subgraph ConversionOptions["Conversion Options (convert-cli.ts)"]
+    subgraph ConversionOptions["Conversion Options (node-converter.ts)"]
         O1[quantize: q4_k_m<br/>q4kLayout: row_wise<br/>computePrecision: auto]
         O2[quantize: q4_k_m<br/>q4kLayout: column_wise<br/>fuseGateUp: true]
         O3[quantize: f16<br/>computePrecision: f16]
@@ -57,7 +57,7 @@ graph TD
         R7[gptoss-mxfp4<br/>expert quant]
     end
 
-    M1 -->|convert-cli| O1
+    M1 -->|node-converter| O1
     M1 --> O2
     M1 --> O3
     M1 --> O2
@@ -100,7 +100,7 @@ graph LR
     end
 
     subgraph ManifestFields["Manifest Fields"]
-        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>kernelPlan:<br/>&nbsp;&nbsp;q4kStrategy: fused_q4k"]
+        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;q4k-fused"]
         F2["architecture: MixtralForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 8<br/>&nbsp;&nbsp;numExpertsPerTok: 2<br/>&nbsp;&nbsp;expertShardMap"]
         F3["architecture: GPTOSSForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 32<br/>&nbsp;&nbsp;numExpertsPerTok: 4<br/>expertQuant: MXFP4"]
     end
@@ -127,6 +127,8 @@ graph LR
 - Dense models → single pipeline config
 - MoE models → pipeline + expert routing config
 - Sliding window → KV cache policy config
+
+Manifest inference is required: missing fields fail fast, and `null` explicitly disables a feature.
 
 ---
 
@@ -358,7 +360,7 @@ graph TD
     end
 
     subgraph Stage2["2. Conversion"]
-        Conv["convert-cli.ts<br/>--quantize q4_k_m<br/>--q4k-layout column_wise<br/>--compute-precision auto"]
+        Conv["node-converter.ts<br/>--quantize q4_k_m<br/>--q4k-layout column_wise<br/>--compute-precision auto"]
     end
 
     subgraph Stage3["3. RDRR Output"]
@@ -366,7 +368,7 @@ graph TD
     end
 
     subgraph Stage4["4. Manifest Config"]
-        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>kernelPlan:<br/>&nbsp;&nbsp;q4kStrategy: dequant_f16"]
+        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;q4k-dequant-f16"]
     end
 
     subgraph Stage5["5. Hardware Detection (M3)"]

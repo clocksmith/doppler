@@ -206,44 +206,12 @@ test.describe('Bias Add Kernel', () => {
       }
 
       const gpu = await window.testHarness.getGPU();
-      const device = gpu.device;
-
-      const dataBuffer = device.createBuffer({
-        size: data.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      device.queue.writeBuffer(dataBuffer, 0, data);
-
-      const biasBuffer = device.createBuffer({
-        size: bias.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      });
-      device.queue.writeBuffer(biasBuffer, 0, bias);
-
-      // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-      const { runBiasAdd } = await import('/doppler/dist/gpu/kernels/residual.js');
-      await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
-
-      // Read back
-      const staging = device.createBuffer({
-        size: size * 4,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-      });
-      const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(dataBuffer, 0, staging, 0, size * 4);
-      device.queue.submit([encoder.finish()]);
-      await staging.mapAsync(GPUMapMode.READ);
-      const actual = new Float32Array(staging.getMappedRange().slice(0));
-      staging.unmap();
-      staging.destroy();
+      const actual = await window.testHarness.runBiasAdd(gpu.device, data, bias, numTokens, dim);
 
       let maxError = 0;
       for (let i = 0; i < size; i++) {
         maxError = Math.max(maxError, Math.abs(actual[i] - expected[i]));
       }
-
-      dataBuffer.destroy();
-      biasBuffer.destroy();
 
       return { maxError };
     });
@@ -270,43 +238,12 @@ test.describe('Bias Add Kernel', () => {
       }
 
       const gpu = await window.testHarness.getGPU();
-      const device = gpu.device;
-
-      const dataBuffer = device.createBuffer({
-        size: data.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      device.queue.writeBuffer(dataBuffer, 0, data);
-
-      const biasBuffer = device.createBuffer({
-        size: bias.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      });
-      device.queue.writeBuffer(biasBuffer, 0, bias);
-
-      // @ts-expect-error - Dynamic browser import, not resolvable by tsc
-      const { runBiasAdd } = await import('/doppler/dist/gpu/kernels/residual.js');
-      await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
-
-      const staging = device.createBuffer({
-        size: dim * 4,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-      });
-      const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(dataBuffer, 0, staging, 0, dim * 4);
-      device.queue.submit([encoder.finish()]);
-      await staging.mapAsync(GPUMapMode.READ);
-      const actual = new Float32Array(staging.getMappedRange().slice(0));
-      staging.unmap();
-      staging.destroy();
+      const actual = await window.testHarness.runBiasAdd(gpu.device, data, bias, numTokens, dim);
 
       let maxError = 0;
       for (let i = 0; i < dim; i++) {
         maxError = Math.max(maxError, Math.abs(actual[i] - expected[i]));
       }
-
-      dataBuffer.destroy();
-      biasBuffer.destroy();
 
       return { maxError };
     });

@@ -312,32 +312,20 @@ For tensors spanning multiple shards, use the `spans` field:
 | `tokenizer` | object | Tokenizer configuration |
 | `moeConfig` | object | Mixture-of-experts configuration |
 | `quantizationInfo` | object | Structured quantization metadata (weights vs embeddings) |
-| `runtimeOptimizations` | object | Hints for kernel selection |
+| `optimizations` | object | Runtime kernel path overrides |
 | `blake3Full` | string | Full-model BLAKE3 hash |
 | `adapterType` | string | Adapter type (e.g. `lora`) |
 | `baseModel` | string | Base model reference for adapters |
 | `loraConfig` | object | LoRA metadata for adapter manifests |
 
-### runtimeOptimizations Schema
+### optimizations Schema
 
-The `runtimeOptimizations` field provides hints to the DOPPLER runtime for kernel selection and performance tuning. These hints influence but do not override capability-based decisions.
+The `optimizations` field provides explicit kernel path overrides for runtime kernel selection.
 
 ```json
 {
-  "runtimeOptimizations": {
-    "preferredKernels": {
-      "matmul": "q4_fused",
-      "attention": "tiled_f16",
-      "rmsnorm": "f16_subgroup"
-    },
-    "workgroupOverrides": {
-      "matmul_f16": [128, 1, 1],
-      "rmsnorm": [256, 1, 1]
-    },
-    "disableFeatures": ["subgroups"],
-    "forceF32Accumulation": true,
-    "attentionTier": "streaming",
-    "targetDevice": "apple-m1"
+  "optimizations": {
+    "kernelPath": "gemma2-q4k-fused"
   }
 }
 ```
@@ -346,61 +334,16 @@ The `runtimeOptimizations` field provides hints to the DOPPLER runtime for kerne
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `preferredKernels` | object | Map of operation → kernel variant name |
-| `workgroupOverrides` | object | Map of kernel → `[x, y, z]` workgroup size |
-| `disableFeatures` | string[] | GPU features to disable (e.g., `subgroups`, `shader-f16`) |
-| `forceF32Accumulation` | boolean | Force F32 accumulators even when F16 available |
-| `attentionTier` | string | Force attention tier: `"tiled"`, `"streaming"`, or `"basic"` |
-| `targetDevice` | string | Hint for device-specific tuning (e.g., `"apple-m1"`, `"nvidia-rtx"`) |
-
-#### Kernel Variant Names
-
-Valid values for `preferredKernels`:
-
-| Operation | Valid Variants |
-|-----------|----------------|
-| `matmul` | `f32`, `f16`, `gemv_f16`, `q4_fused`, `q4_fused_batched` |
-| `attention` | `tiled_f16`, `streaming_f16`, `basic_f32` |
-| `rmsnorm` | `f32`, `f16`, `f16_subgroup` |
-| `dequant` | `q4k`, `q8`, `f16_passthrough` |
-| `softmax` | `f32`, `f16_online` |
+| `kernelPath` | string/object | Kernel path override (see `docs/design/KERNEL_PATHS.md`) |
 
 #### Precedence Rules
 
-1. **GPU capabilities always win**: If hardware doesn't support F16, the `f16` variant won't be used regardless of hints
-2. **Hints are advisory**: Runtime may ignore hints if they would cause correctness issues
-3. **Auto-tuning overrides**: If auto-tuning is enabled, tuned workgroup sizes take precedence over `workgroupOverrides`
+1. manifest `optimizations.kernelPath`
+2. manifest `inference.defaultKernelPath`
+3. runtime config `runtime.inference.kernelPath`
+4. CLI `--kernel-path`
 
-#### Example: Optimized for Apple Silicon
-
-```json
-{
-  "runtimeOptimizations": {
-    "preferredKernels": {
-      "matmul": "f16",
-      "attention": "tiled_f16"
-    },
-    "workgroupOverrides": {
-      "matmul_f16": [64, 4, 1]
-    },
-    "targetDevice": "apple-m1"
-  }
-}
-```
-
-#### Example: Conservative Settings for Compatibility
-
-```json
-{
-  "runtimeOptimizations": {
-    "disableFeatures": ["subgroups", "shader-f16"],
-    "forceF32Accumulation": true,
-    "attentionTier": "basic"
-  }
-}
-```
-
-See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#rdrr-runtime-hints) for how these hints integrate with capability-based kernel selection.
+See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#kernel-path-overrides) for how kernel paths integrate with capability-based kernel selection.
 
 ---
 
@@ -479,9 +422,18 @@ Notes:
 
 ---
 
+## Manifest Inference (Required)
+
+RDRR manifests include an `inference` field with all model-specific runtime
+parameters (attention, norms, RoPE, FFN, output). The converter writes this
+at conversion time; runtime merges overrides. Missing fields fail validation.
+Use `null` to explicitly disable features; `undefined` is invalid.
+
+---
+
 ## Field Normalization
 
-The on-disk `manifest.json` may vary in naming. At runtime, `storage/rdrr-format.ts` normalizes:
+The on-disk `manifest.json` may vary in naming. At runtime, `formats/rdrr/manifest.ts` normalizes:
 
 | On-Disk | Normalized |
 |---------|------------|
@@ -500,20 +452,20 @@ This ensures compatibility across converter versions.
 
 ```bash
 # From GGUF
-npx tsx tools/convert-cli.ts model.gguf ./output-rdrr
+npx tsx src/converter/node-converter.ts model.gguf ./output-rdrr
 
 # From Safetensors (HuggingFace format)
-npx tsx tools/convert-cli.ts ./hf-model-dir ./output-rdrr --quantize q4_k_m
+npx tsx src/converter/node-converter.ts ./hf-model-dir ./output-rdrr --quantize q4_k_m
 ```
 
 ### Serving Models
 
 ```bash
 # Serve converted model
-npx tsx tools/serve-cli.ts ./model-rdrr --port 8765
+npx tsx cli/commands/serve.ts ./model-rdrr --port 8765
 
 # Convert and serve in one step
-npx tsx tools/serve-cli.ts model.gguf
+npx tsx cli/commands/serve.ts model.gguf
 ```
 
 ### Loading in Browser
@@ -547,10 +499,10 @@ for await (const token of pipeline.generate('Hello')) {
 
 ## Related Files
 
-- `storage/rdrr-format.ts`: Parser and validation
-- `tools/convert-core.ts`: Platform-agnostic conversion types and functions
-- `tools/rdrr-writer.ts`: Node.js writer for CLI conversion
-- `browser/model-converter.ts`: Browser conversion with OPFS output
+- `src/formats/rdrr/manifest.ts`: Parser and validation
+- `src/converter/core.ts`: Platform-agnostic conversion types and functions
+- `src/converter/writer.ts`: Node.js writer for CLI conversion
+- `src/browser/browser-converter.ts`: Browser conversion with OPFS output
 - `storage/shard-manager.ts`: OPFS shard management
 - `storage/downloader.ts`: Resumable downloads
 
@@ -560,4 +512,4 @@ for await (const token of pipeline.generate('Hello')) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

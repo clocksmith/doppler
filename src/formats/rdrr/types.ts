@@ -20,7 +20,8 @@ import {
   type MoEConfigSchema,
   type AdapterConfigSchema,
   type ProvenanceSchema,
-  type KernelPlanSchema,
+  type KernelPathRef,
+  type ManifestInferenceSchema,
 } from '../../config/schema/index.js';
 
 // =============================================================================
@@ -98,16 +99,17 @@ export interface ConversionInfo {
 }
 
 export interface RuntimeOptimizations {
-  kernelPlan?: KernelPlanSchema;
+  /** Preferred kernel path override */
+  kernelPath?: KernelPathRef;
 }
 
 export interface RDRRManifest {
-  version: number | string;
+  version: number;
   modelId: string;
   modelType: ModelType;
   quantization: string;
   quantizationInfo?: QuantizationInfo;
-  hashAlgorithm?: HashAlgorithm;
+  hashAlgorithm: HashAlgorithm;
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
   shards: ShardInfo[];
@@ -123,6 +125,9 @@ export interface RDRRManifest {
   optimizations?: RuntimeOptimizations;
   config?: Record<string, unknown>;
   conversion?: ConversionInfo;
+
+  // Required inference configuration (populated by converter)
+  inference: ManifestInferenceSchema;
   blake3Full?: string;
   defaultWeightLayout?: WeightLayout;
   metadata?: Record<string, unknown>;
@@ -179,6 +184,8 @@ export interface CreateManifestOptions {
   conversion?: ConversionInfo;
   blake3Full?: string;
   metadata?: Record<string, unknown>;
+  // Required inference configuration
+  inference: ManifestInferenceSchema;
   // Adapter support
   adapterType?: 'lora' | 'qlora';
   baseCompatibility?: string[];

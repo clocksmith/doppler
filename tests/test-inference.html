@@ -87,8 +87,8 @@
           const device = getDevice();
           console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
 
-          if (runtimeOverrides.kernelPlan) {
-            console.log(`[KernelPlan] Runtime overrides: ${JSON.stringify(runtimeOverrides.kernelPlan)}`);
+          if (runtimeOverrides.kernelPath) {
+            console.log(`[KernelPath] Runtime overrides: ${JSON.stringify(runtimeOverrides.kernelPath)}`);
           }
 
           // 2. Load manifest
@@ -106,7 +106,7 @@
             baseUrl: MODEL_URL,
             runtime: {
               debug: runtimeOverrides.debug,
-              kernelPlan: runtimeOverrides.kernelPlan,
+              kernelPath: runtimeOverrides.kernelPath,
             },
           });
 

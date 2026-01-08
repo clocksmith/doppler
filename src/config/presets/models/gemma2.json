@@ -32,9 +32,6 @@
     "chatTemplate": {
       "type": "gemma",
       "enabled": true
-    },
-    "kernelPlan": {
-      "q4kStrategy": "fused_q4k"
     }
   },
 

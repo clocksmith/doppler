@@ -1,0 +1,10 @@
+{
+  "name": "dequant-f32-q4k",
+  "description": "Use dequant-to-F32 kernel path. Separate matmuls, no fused FFN. Best accuracy, slowest.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "kernelPath": "gemma2-q4k-dequant-f32"
+    }
+  }
+}

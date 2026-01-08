@@ -25,7 +25,7 @@ import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice } from '../../debug/index.js';
 import type { RDRRManifest } from '../../storage/rdrr-format.js';
 import type { LayerWeights, RouterWeights } from './types.js';
-import type { KVCacheConfigSchema, RuntimeConfigSchema, LoadingConfigSchema, KernelPlanSchema } from '../../config/schema/index.js';
+import { DEFAULT_KVCACHE_CONFIG, PAGED_LAYOUT_SEQ_LEN_THRESHOLD, type KVCacheConfigSchema, type RuntimeConfigSchema, type LoadingConfigSchema, type KernelPathRef } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
 // ============================================================================
@@ -49,7 +49,8 @@ export interface PipelineContexts {
   /** Runtime configuration overrides */
   runtime?: {
     debug?: boolean;
-    kernelPlan?: KernelPlanSchema;
+    /** Kernel path for explicit kernel dispatch ordering */
+    kernelPath?: KernelPathRef;
   };
   /** Full runtime config (merged with defaults) */
   runtimeConfig?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema;
@@ -137,13 +138,6 @@ function computeRoPEFreqsForTheta(
 ): { cos: Float32Array; sin: Float32Array } {
   const halfDim = headDim / 2;
 
-  // YARN scaling parameters
-  const isYarn = ropeScalingType === 'yarn';
-  const yarnFactor = ropeScaling?.factor || ropeScale;
-  const yarnBetaFast = ropeScaling?.beta_fast || 32;
-  const yarnBetaSlow = ropeScaling?.beta_slow || 1;
-  const originalMaxPos = ropeScaling?.original_max_position_embeddings || 4096;
-
   // Compute base frequencies: theta_i = 1 / (base^(2i/d))
   const freqs = new Float32Array(halfDim);
   for (let i = 0; i < halfDim; i++) {
@@ -152,7 +146,24 @@ function computeRoPEFreqsForTheta(
 
   // Compute per-dimension scaling factors
   const scales = new Float32Array(halfDim);
+  const isYarn = ropeScalingType === 'yarn';
   if (isYarn) {
+    // YARN scaling - validate ALL required params (fail fast on incomplete manifest)
+    if (ropeScaling?.beta_fast == null || ropeScaling?.beta_slow == null ||
+        ropeScaling?.original_max_position_embeddings == null) {
+      throw new Error(
+        `RoPE scaling type is 'yarn' but YARN params missing. ` +
+        `Manifest must provide beta_fast, beta_slow, and original_max_position_embeddings. ` +
+        `Got: beta_fast=${ropeScaling?.beta_fast}, beta_slow=${ropeScaling?.beta_slow}, ` +
+        `original_max_position_embeddings=${ropeScaling?.original_max_position_embeddings}`
+      );
+    }
+    // Extract validated YARN params (no hidden defaults - all guaranteed non-null)
+    const yarnFactor = ropeScaling.factor ?? ropeScale;
+    const yarnBetaFast = ropeScaling.beta_fast;
+    const yarnBetaSlow = ropeScaling.beta_slow;
+    const originalMaxPos = ropeScaling.original_max_position_embeddings;
+
     // YARN: wavelength-based interpolation
     for (let i = 0; i < halfDim; i++) {
       const wavelength = (2 * Math.PI) / freqs[i];
@@ -236,10 +247,8 @@ export async function initRoPEFrequencies(
   }
 
   if (isYarn) {
-    const yarnFactor = ropeScaling?.factor || ropeScale;
-    const yarnBetaFast = ropeScaling?.beta_fast || 32;
-    const yarnBetaSlow = ropeScaling?.beta_slow || 1;
-    log.debug('Pipeline', `YARN RoPE: factor=${yarnFactor}, beta_fast=${yarnBetaFast}, beta_slow=${yarnBetaSlow}`);
+    // Log YARN params (already validated in computeRoPEFreqs)
+    log.debug('Pipeline', `YARN RoPE: factor=${ropeScaling?.factor ?? ropeScale}, beta_fast=${ropeScaling?.beta_fast}, beta_slow=${ropeScaling?.beta_slow}`);
   }
 
   // Upload to GPU if available
@@ -298,7 +307,7 @@ export function createKVCache(
   runtimeConfig?: KVCacheConfigSchema
 ): KVCache | SlidingWindowKVCache {
   const runtimeKV = runtimeConfig ?? getRuntimeConfig().kvcache;
-  const modelMaxSeqLen = modelConfig.maxSeqLen || runtimeKV.maxSeqLen || 4096;
+  const modelMaxSeqLen = modelConfig.maxSeqLen || runtimeKV.maxSeqLen || DEFAULT_KVCACHE_CONFIG.maxSeqLen;
   let slidingWindow = Number(modelConfig.slidingWindow || 0) || null;
 
   let cacheMaxSeqLen = modelMaxSeqLen;
@@ -306,7 +315,7 @@ export function createKVCache(
     cacheMaxSeqLen = Math.min(cacheMaxSeqLen, runtimeKV.maxSeqLen);
   }
 
-  let cacheLayout: 'contiguous' | 'paged' = runtimeKV.layout ?? (cacheMaxSeqLen > 8192 ? 'paged' : 'contiguous');
+  let cacheLayout: 'contiguous' | 'paged' = runtimeKV.layout ?? (cacheMaxSeqLen > PAGED_LAYOUT_SEQ_LEN_THRESHOLD ? 'paged' : 'contiguous');
 
   // Sliding-window attention only needs a bounded KV cache
   if (slidingWindow && Number.isFinite(slidingWindow) && slidingWindow > 0) {
@@ -326,10 +335,14 @@ export function createKVCache(
   }
 
   // Use f16 KV cache when supported to reduce VRAM
-  // Exception: Force F32 for Gemma 2 to avoid precision issues in attention
-  // See: https://github.com/ggerganov/llama.cpp/issues/8853
+  // Exception: Force F32 when attention logit softcapping is enabled (e.g., Gemma 2)
+  // to avoid precision issues in attention. See: https://github.com/ggerganov/llama.cpp/issues/8853
   const gpuCaps = getKernelCapabilities();
-  const forceF32KV = modelConfig.isGemma2;
+  // Use config value directly instead of model detection flag (manifest-first architecture)
+  // Check > 0 to allow explicit "disabled" encoding as 0 or null
+  const attnSoftcap = modelConfig.attnLogitSoftcapping;
+  const hasAttnSoftcapping = attnSoftcap != null && attnSoftcap > 0;
+  const forceF32KV = hasAttnSoftcapping;
   let kvDtype: 'f16' | 'f32' = runtimeKV.kvDtype;
   if (kvDtype === 'f16' && (!useGPU || !gpuCaps.hasF16)) {
     kvDtype = 'f32';
@@ -338,7 +351,7 @@ export function createKVCache(
     kvDtype = 'f32';
   }
   if (forceF32KV && debug) {
-    log.debug('Pipeline', `Forcing F32 KV cache for Gemma 2 (precision fix)`);
+    log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping})`);
   }
 
   const cacheConfig: KVCacheConfig = {

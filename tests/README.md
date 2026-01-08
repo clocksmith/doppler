@@ -5,6 +5,11 @@
 This directory contains manual test harnesses for Doppler inference and GPU kernels.
 These pages are distinct from unit tests (Vitest) and Playwright correctness tests.
 
+> **Note:** GPU kernel correctness tests live in [`kernel-tests/`](../kernel-tests/) (not here).
+> This separation is intentional - kernel tests require a browser with WebGPU, have heavy
+> setup overhead, and run separately from the main test suite to keep CI fast. See
+> [kernel-tests/README.md](../kernel-tests/README.md) for details.
+
 ## Test Pages
 
 ### test-inference.html — Inference Harness
@@ -26,7 +31,7 @@ These pages are distinct from unit tests (Vitest) and Playwright correctness tes
 | `model` | Pre-select model ID | `?model=gemma3-1b-q4` |
 | `prompt` | Pre-fill prompt text | `?prompt=Hello%20world` |
 | `autorun=1` | Auto-run test on page load | `?autorun=1` |
-| `kernelPlan` | JSON kernel plan override | `?kernelPlan={"q4kStrategy":"dequant_f16"}` |
+| `kernelPath` | Kernel path override | `?kernelPath="gemma2-q4k-dequant-f16"` |
 | `debug=1` | Enable debug logging | `?debug=1` |
 | `profile=1` | Enable GPU timestamp profiling | `?profile=1` |
 | `trace` | Trace level: quick or full | `?trace=quick` |
@@ -53,13 +58,13 @@ console.log('Errors:', state.errors);
 
 ### ../tools/test-kernel-selection.html — Kernel Selection Debug
 
-**Purpose:** Verify manifest kernel plan is loaded correctly
+**Purpose:** Verify manifest kernel path is loaded correctly
 **URL:** `http://localhost:8080/doppler/tools/test-kernel-selection.html`
 
 **When to use:**
-- Debugging kernel plan configuration in manifest.json
+- Debugging kernel path configuration in manifest.json
 - Verifying Q4K layout detection
-- Checking plan resolution (manifest → profile → runtime)
+- Checking path resolution (manifest → profile → runtime)
 
 **Output:** Console logs showing kernel selection decisions.
 
@@ -99,8 +104,8 @@ cd kernel-tests && npm test
 # Run inference smoke test
 open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1"
 
-# Run with a specific kernel plan override
-open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPlan={\"q4kStrategy\":\"dequant_f16\"}"
+# Run with a specific kernel path override
+open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-dequant-f16"
 ```
 
 ## Shared Test Utilities
@@ -110,7 +115,7 @@ The `inference/test-harness.ts` module provides shared utilities:
 ```typescript
 import {
   discoverModels,           // Fetch models from /api/models
-  parseRuntimeOverridesFromURL, // Parse kernel plan overrides from URL params
+  parseRuntimeOverridesFromURL, // Parse kernel path overrides from URL params
   createHttpShardLoader,    // Create HTTP-based shard loader
   fetchManifest,            // Fetch and parse manifest.json
   initializeDevice,         // Initialize WebGPU device

@@ -59,7 +59,7 @@ test.describe('MoE Pipeline Benchmarks', () => {
     const s = SEQ_CONFIGS[seq];
 
     test(`Full MoE layer: ${name}`, async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/kernel-tests/browser/index.html');
 
       const result = await page.evaluate(async (cfg: PipelineConfig): Promise<PipelineResult> => {
         const {
@@ -204,7 +204,7 @@ MoE Pipeline: ${name}
 
     for (const numExperts of expertCounts) {
       test(`${numExperts} experts`, async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/kernel-tests/browser/index.html');
 
         const result = await page.evaluate(async (cfg: { numTokens: number; numExperts: number; hiddenSize: number; topK: number }): Promise<ScalingResult> => {
           const { numTokens, numExperts, hiddenSize, topK } = cfg;
@@ -263,7 +263,7 @@ MoE Pipeline: ${name}
 
     for (const numTokens of tokenCounts) {
       test(`${numTokens} tokens`, async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/kernel-tests/browser/index.html');
 
         const result = await page.evaluate(async (cfg: { numTokens: number; numExperts: number; hiddenSize: number; topK: number }): Promise<ScalingResult> => {
           const { numTokens, numExperts, hiddenSize, topK } = cfg;

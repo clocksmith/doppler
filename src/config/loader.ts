@@ -250,7 +250,7 @@ export function resolveConfig(
       ...baseInference.chatTemplate,
       ...presetInference.chatTemplate,
     },
-    kernelPlan: presetInference.kernelPlan ?? baseInference.kernelPlan,
+    kernelPath: presetInference.kernelPath ?? baseInference.kernelPath,
   };
 
   // Merge tokenizer config
@@ -387,7 +387,7 @@ function getDefaultInferenceConfig(): Required<InferenceConfigSchema> {
     chatTemplate: {
       type: null,
     },
-    kernelPlan: undefined,
+    kernelPath: undefined,
   };
 }
 
@@ -523,7 +523,7 @@ function mergeInference(
     rope: mergePartial(parent.rope, child.rope),
     pipeline: child.pipeline ?? parent.pipeline,
     chatTemplate: mergePartial(parent.chatTemplate, child.chatTemplate),
-    kernelPlan: mergePartial(parent.kernelPlan, child.kernelPlan),
+    kernelPath: child.kernelPath ?? parent.kernelPath,
   };
 }
 

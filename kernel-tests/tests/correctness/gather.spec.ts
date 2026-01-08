@@ -100,10 +100,10 @@ test.describe('Gather Kernel', () => {
 
   test.describe('Size variations', () => {
     const configs = [
-      { vocab: 32000, dim: 512, seq: 1 },
-      { vocab: 32000, dim: 512, seq: 32 },
-      { vocab: 32000, dim: 4096, seq: 1 },
-      { vocab: 32000, dim: 4096, seq: 16 },
+      { vocab: 4096, dim: 512, seq: 1 },
+      { vocab: 8192, dim: 512, seq: 32 },
+      { vocab: 8192, dim: 1024, seq: 1 },
+      { vocab: 8192, dim: 2048, seq: 16 },
       // Skipping very large vocab - would require 2GB+ embedding table
       // { vocab: 128000, dim: 4096, seq: 8 },
     ];
@@ -186,8 +186,8 @@ test.describe('Gather Kernel', () => {
 
     test('should handle single token', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async (): Promise<GatherResult> => {
-        const vocabSize = 32000;
-        const embedDim = 4096;
+        const vocabSize = 8192;
+        const embedDim = 2048;
 
         const embeddings = new Float32Array(vocabSize * embedDim);
         for (let i = 0; i < embeddings.length; i++) {

@@ -11,6 +11,65 @@ General coding conventions and patterns for the DOPPLER codebase.
 
 ---
 
+## Language Policy: JavaScript + Declaration Files
+
+Doppler source code is **JavaScript** with **TypeScript declaration files** (.d.ts) for every module.
+
+| File | Contains |
+|------|----------|
+| `module.js` | Clean code, no type annotations |
+| `module.d.ts` | Comprehensive type definitions |
+
+### Why JavaScript
+
+| Reason | Explanation |
+|--------|-------------|
+| **Hot-swap architecture** | JS/WGSL/JSON artifacts swap at runtime without rebuild ([TS2JS.md](../TS2JS.md)) |
+| **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
+| **Tests are the type system** | Comprehensive tests catch type errors pre-production |
+| **Simpler toolchain** | No compile step between edit and run |
+
+### Why .d.ts Files
+
+| Reason | Explanation |
+|--------|-------------|
+| **Type context for agents** | Agents read .d.ts files directly—no JSDoc pollution in JS |
+| **Consumer compatibility** | TypeScript users can import Doppler with full type safety |
+| **Self-documenting** | Types describe interfaces without runtime cost |
+
+### The Test Equivalence Principle
+
+> With comprehensive tests, compile-time errors become test-time errors.
+> Both block bad code before production. The difference is tooling, not safety.
+
+### File Format Summary
+
+| Format | Use For |
+|--------|---------|
+| **JavaScript (.js)** | All source code (clean, no type annotations) |
+| **Declaration files (.d.ts)** | Type specs for every module |
+| **JSON (.json)** | Static presets, manifests, fixtures |
+| **WGSL (.wgsl)** | GPU shaders |
+
+### Evidence
+
+| Claim | Source |
+|-------|--------|
+| No JS vs TS generation quality difference | No benchmark measures this; both have equal training data [2] |
+| 15% of bugs caught by types → also caught by tests | [To Type or Not to Type (ICSE 2017)][4] |
+| Types help LLMs read context | Anders Hejlsberg, TS Lead Architect [3] |
+| TypeScript adoption driven by validating AI output | [GitHub Octoverse 2025][5] |
+
+### References
+
+1. [ts-bench - TypeScript benchmark for AI agents](https://medium.com/@laiso/introducing-ts-bench-a-reproducible-benchmark-for-evaluating-ai-coding-agents-typescript-19bcf960cb7c)
+2. [GitHub Octoverse - AI Feedback Loop](https://github.blog/news-insights/octoverse/typescript-python-and-the-ai-feedback-loop-changing-software-development/)
+3. [Anders Hejlsberg on TypeScript and AI](https://github.blog/developer-skills/programming-languages-and-frameworks/typescripts-rise-in-the-ai-era-insights-from-lead-architect-anders-hejlsberg/)
+4. [To Type or Not to Type (ICSE 2017)](https://earlbarr.com/publications/typestudy.pdf)
+5. [GitHub Octoverse 2025](https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/)
+
+---
+
 ## Architecture Overview
 
 ```
@@ -38,6 +97,64 @@ General coding conventions and patterns for the DOPPLER codebase.
 ---
 
 ## Configuration Layers
+
+### Nullable Required Fields
+
+For fields that can be legitimately disabled:
+
+- `null` = explicitly disabled (valid)
+- `undefined` = not specified (validation error)
+
+Example: `slidingWindow: null` means "no sliding window" (intentional). Missing
+`slidingWindow` means the manifest is incomplete (fail fast).
+
+Example:
+```json
+{
+  "attention": {
+    "slidingWindow": null,
+    "attnLogitSoftcapping": null
+  }
+}
+```
+Both fields are explicitly disabled (valid). Omitting either field is invalid.
+
+### Manifest as Source of Truth
+
+- Converter embeds all model-specific inference params in `manifest.json`
+- Runtime never detects model family in pipeline code
+- Pipeline reads config values directly, no architecture-string inference
+
+```typescript
+// DON'T: infer behavior from model family strings
+if (arch.includes('gemma2')) useSoftcapping = true;
+
+// DO: read config directly
+const useSoftcapping = config.attnLogitSoftcapping !== null;
+```
+
+### Kernel Path Overrides
+
+- Use `kernelPath` for kernel selection overrides.
+- Manifest: `optimizations.kernelPath` or `inference.defaultKernelPath`
+- Runtime: `runtime.inference.kernelPath`
+- Legacy `kernelPlan` is removed; do not add new references.
+- Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath` → CLI `--kernel-path`.
+
+### Manifest-First Change Checklist
+
+When adding a new inference knob or model behavior:
+- Add it to `ManifestInferenceSchema` (and defaults for converter fixtures).
+- Populate it in the converter (preset + HF config mapping).
+- Merge it in `src/config/merge.ts` with source tracking.
+- Validate it in `parseModelConfigFromManifest()` (null vs undefined rules).
+- Add/extend tests that assert manifest values and override precedence.
+
+### KV Cache Dtype Policy
+
+- Default KV cache dtype to `f16` when supported.
+- Force `f32` only when required (e.g., attention softcapping or no `shader-f16`).
+- Do not introduce new defaults that silently upgrade to `f32`.
 
 ### Layer 1: Model Manifest (JSON)
 
@@ -191,6 +308,21 @@ const maxCacheSize = getStorageDefaults().expertCache.maxSize;
 
 ---
 
+## File Size Guidelines
+
+| Threshold | Lines | Action |
+|-----------|-------|--------|
+| **Target** | 200-400 | Ideal file size |
+| **Soft limit** | 750 | Consider splitting |
+| **Hard limit** | 1000+ | Must split |
+
+When splitting files:
+- Extract cohesive functionality into separate modules
+- Group by feature, not by type (e.g., `attention.ts` not `helpers.ts`)
+- Keep related code together; don't split just to hit a number
+
+---
+
 ## File Organization
 
 ```
@@ -227,9 +359,11 @@ doppler/
 │   ├── doppler-loader.ts      # Model loading
 │   └── weights.ts             # Weight types
 │
+├── formats/
+│   └── rdrr/                  # Manifest parsing, RDRR types
+│
 └── storage/
-    ├── shard-manager.ts       # OPFS storage
-    └── rdrr-format.ts         # Manifest parsing
+    └── shard-manager.ts       # OPFS storage
 ```
 
 ---
@@ -240,7 +374,7 @@ doppler/
 
 | Pattern | Example | Use For |
 |---------|---------|---------|
-| `kebab-case.ts` | `model-config.ts` | TypeScript modules |
+| `kebab-case.js` | `model-config.js` | JavaScript modules |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
 | `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |
 
@@ -520,5 +654,5 @@ function runKernel(spec: KernelSpec) {
 ## See Also
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
-- [TypeScript Style Guide](./TYPESCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
+- [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
 - [Kernel Compatibility](../KERNEL_COMPATIBILITY.md) - Runtime modes and flags

@@ -50,7 +50,7 @@ Together, they form a complete browser-native RSI platform. But Reploid/Doppler 
 | **L1** | Tools | CreateTool, tool library | - | Partially (tool prompts) |
 | **L2** | Meta-tools | Tool-writer, reflection loop | - | No (executable code) |
 | **L3** | Substrate | agent-loop.js, core modules | - | No (executable code) |
-| **K1** | Kernel configs | - | runtimeOptimizations | No (runtime hints) |
+| **K1** | Kernel configs | - | optimizations.kernelPath | Yes (explicit path) |
 | **K2** | LoRA adapters | - | Runtime LoRA swap | No (weight deltas) |
 | **K3** | Kernel variants | - | WGSL shader selection | No (GPU code) |
 | **K4** | Expert routing | - | MoE router weights | No (learned routing) |
@@ -138,19 +138,12 @@ tools.SearchTool = function(query) {
 
 ### 2. Kernel Configuration Evolution (Doppler K1)
 
-Doppler's `runtimeOptimizations` in RDRR manifests are evolvable:
+Doppler's kernel path overrides in RDRR manifests are evolvable:
 
 ```json
 {
-  "runtimeOptimizations": {
-    "preferredKernels": {
-      "matmul": "q4_fused",
-      "attention": "tiled_f16"
-    },
-    "workgroupOverrides": {
-      "matmul_f16": [64, 4, 1]
-    },
-    "targetDevice": "apple-m1"
+  "optimizations": {
+    "kernelPath": "gemma2-q4k-fused"
   }
 }
 ```
@@ -165,7 +158,7 @@ Doppler's `runtimeOptimizations` in RDRR manifests are evolvable:
 **GEPA quote (directly applicable):**
 > "On NPU kernel generation, GPT-4o Baseline achieved 4.25% vector utilization. GEPA-optimized GPT-4o achieved 30.52% vector utilization."
 
-Apply this to WGSL kernels: evolve the configuration hints, not the prompts.
+Apply this to WGSL kernels: evolve the kernel path choice, not the prompts.
 
 ### 3. LoRA Adapter Evolution (Doppler K2)
 
@@ -325,7 +318,7 @@ Reploid/Doppler can evolve **multiple substrates simultaneously**:
 - Prompts (PersonaManager)
 - Tools (CreateTool)
 - Code (L2-L3 RSI)
-- Kernels (runtimeOptimizations)
+- Kernels (optimizations.kernelPath)
 - LoRAs (weight deltas)
 - Router weights (MoE learned routing)
 

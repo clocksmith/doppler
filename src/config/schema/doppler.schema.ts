@@ -241,7 +241,12 @@ function mergeRuntimeConfig(
           largeWeights: { ...base.inference.largeWeights, ...overrides.inference.largeWeights },
           prompt: overrides.inference.prompt ?? base.inference.prompt,
           pipeline: overrides.inference.pipeline ?? base.inference.pipeline,
-          kernelPlan: overrides.inference.kernelPlan ?? base.inference.kernelPlan,
+          kernelPath: overrides.inference.kernelPath ?? base.inference.kernelPath,
+          chatTemplate: overrides.inference.chatTemplate
+            ? { ...base.inference.chatTemplate, ...overrides.inference.chatTemplate }
+            : base.inference.chatTemplate,
+          // Model-specific inference overrides (merged with manifest.inference at load time)
+          modelOverrides: overrides.inference.modelOverrides ?? base.inference.modelOverrides,
         }
       : { ...base.inference },
     kvcache: { ...base.kvcache, ...overrides.kvcache },

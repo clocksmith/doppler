@@ -149,16 +149,21 @@ export class ExpertCache {
    */
   put(layerIdx: number, expertIdx: number, weights: ExpertWeights, sizeBytes: number): void {
     const key = this.getKey(layerIdx, expertIdx);
+    const existing = this.cache.get(key);
+    let existingSize = existing?.sizeBytes ?? 0;
 
     // If already in cache, update it
-    if (this.cache.has(key)) {
-      const existing = this.cache.get(key)!;
-      this.currentBytes -= existing.sizeBytes;
-    }
-
-    // Evict entries if needed to make room
-    while (this.currentBytes + sizeBytes > this.maxBytes && this.cache.size > 0) {
-      this.evictLRU();
+    let projectedBytes = this.currentBytes - existingSize + sizeBytes;
+    while (projectedBytes > this.maxBytes && this.cache.size > 0) {
+      const evicted = this.evictLRU();
+      if (!evicted) {
+        log.warn('ExpertCache', `Cache full; unable to evict for ${key}. Skipping cache insert.`);
+        return;
+      }
+      if (!this.cache.has(key)) {
+        existingSize = 0;
+      }
+      projectedBytes = this.currentBytes - existingSize + sizeBytes;
     }
 
     // Add to cache
@@ -167,7 +172,7 @@ export class ExpertCache {
       lastAccess: ++this.accessCounter,
       sizeBytes,
     });
-    this.currentBytes += sizeBytes;
+    this.currentBytes = this.currentBytes - existingSize + sizeBytes;
   }
 
   /**

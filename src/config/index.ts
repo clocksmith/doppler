@@ -32,6 +32,19 @@ export {
   resetRuntimeConfig,
 } from './runtime.js';
 
+// Config merge (manifest + runtime → merged with source tracking)
+export {
+  mergeConfig,
+  formatConfigSources,
+  getValuesBySource,
+  summarizeSources,
+  type ConfigSource,
+  type MergedConfig,
+  type MergedInferenceConfig,
+  type ManifestInput,
+  type RuntimeInferenceOverrides,
+} from './merge.js';
+
 // Kernel registry (JS modules - dynamic import for hotswap)
 // Auto-initialized by gpu/device.ts during initDevice()
 // Use: const { getRegistry, getRegistrySync } = await import('./kernels/registry.js');

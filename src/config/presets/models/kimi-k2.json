@@ -8,12 +8,13 @@
   },
 
   "inference": {
-    "attention": {
-      "ropeScalingType": "yarn",
-      "ropeScalingFactor": 32
-    },
+    "attention": {},
     "normalization": {
       "rmsNormEps": 1e-5
+    },
+    "rope": {
+      "ropeScalingType": "yarn",
+      "ropeScalingFactor": 32
     }
   },
 

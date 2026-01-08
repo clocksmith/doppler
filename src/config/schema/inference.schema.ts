@@ -1,5 +1,5 @@
 import type { ProbeStage } from './debug.schema.js';
-import type { KernelPlanSchema } from './kernel-plan.schema.js';
+import type { KernelPathRef } from './kernel-path.schema.js';
 
 /**
  * Inference Schema Definitions
@@ -48,6 +48,17 @@ export const DEFAULT_ROPE_CONFIG: RoPEConfigSchema = {
   yarnBetaSlow: 1,
   yarnOriginalMaxPos: 4096,
 };
+
+// =============================================================================
+// Architecture Defaults
+// =============================================================================
+
+/**
+ * Default max position embeddings when not specified in model config.
+ * Used as fallback when parsing incomplete manifests/configs.
+ * Modern models typically support 8192+, so this is a conservative default.
+ */
+export const DEFAULT_MAX_POSITION_EMBEDDINGS = 8192;
 
 // =============================================================================
 // Attention Schema
@@ -257,8 +268,12 @@ export interface InferenceConfigSchema {
   pipeline?: LayerPipelineSchema | null;
   /** Chat template for instruct models */
   chatTemplate?: ChatTemplateSchema;
-  /** Kernel plan for model-specific kernel configuration (e.g., Q4K strategy) */
-  kernelPlan?: KernelPlanSchema;
+  /**
+   * Kernel path for explicit kernel dispatch ordering.
+   * Specifies exactly which kernels run, in what order, with what configs.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   */
+  kernelPath?: KernelPathRef;
 }
 
 // =============================================================================

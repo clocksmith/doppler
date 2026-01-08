@@ -10,11 +10,101 @@
 
 import type { ParsedModelConfig } from './config.js';
 import type { LoRAAdapter } from './lora-types.js';
-import type { WeightBuffer } from '../../gpu/weight-buffer.js';
+import type { WeightBuffer, CpuWeightBuffer } from '../../gpu/weight-buffer.js';
+import type { ProbeConfigSchema } from '../../config/schema/index.js';
+import type { ExpertLoader } from './moe-impl.js';
+import type { MoERouter } from '../moe-router.js';
+import type { DecodeBufferManager } from '../decode-buffers.js';
+import type { CommandRecorder } from '../../gpu/kernel-selector.js';
+import type { CompiledLayerPipeline } from './layer-plan.js';
+import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
+import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 
 // ============================================================================
 // Core Context Types
 // ============================================================================
+
+export interface KVCacheSnapshot {
+  cache: KVCache;
+  seqLen: number;
+  tokens: number[];
+}
+
+/**
+ * Layer context contains all state needed for layer processing.
+ */
+export interface LayerContext {
+  /** Model configuration */
+  config: ParsedModelConfig;
+  /** Layer weights map */
+  weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer>;
+  /** KV cache instance */
+  kvCache: KVCache | SlidingWindowKVCache;
+  /** Current sequence length */
+  currentSeqLen: number;
+  /** Whether to use GPU */
+  useGPU: boolean;
+  /** Debug mode */
+  debug: boolean;
+  /** Config-driven probes */
+  debugProbes?: ProbeConfigSchema[];
+  /** Layers to debug (null = none, undefined/empty = layer 0 only for backward compat) */
+  debugLayers?: number[] | null;
+  /** Optional GPU buffer readback helper for debug checks */
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+  /** Optional layer pipeline plan (JSON-configured) */
+  pipelinePlan?: CompiledLayerPipeline | null;
+  /** RoPE frequency buffers (global for full_attention layers) */
+  ropeFreqsCos: GPUBuffer | Float32Array | null;
+  ropeFreqsSin: GPUBuffer | Float32Array | null;
+  /** Local RoPE frequency buffers for sliding_attention layers (Gemma 3: 10K theta) */
+  ropeLocalCos?: GPUBuffer | Float32Array | null;
+  ropeLocalSin?: GPUBuffer | Float32Array | null;
+  /** Weight buffer config */
+  weightConfig: WeightBufferConfig;
+  /** Debug flags (mutable) */
+  debugFlags?: WeightDebugFlags;
+  /** Expert weights map (for MoE) */
+  expertWeights?: Map<string, ExpertWeights>;
+  /** Expert loader (for MoE) */
+  expertLoader?: ExpertLoader | null;
+  /** MoE router (for MoE) */
+  moeRouter?: MoERouter | null;
+  /** Layer router weights (for models with per-layer routers) */
+  layerRouterWeights?: Map<number, RouterWeights>;
+  /** Command recorder for batched GPU operations (optional) */
+  recorder?: CommandRecorder;
+  /** Optional LoRA adapter */
+  lora?: LoRAAdapter | null;
+  /** Pre-allocated decode buffers (for M=1 decode optimization) */
+  decodeBuffers?: DecodeBufferManager | null;
+  /** Activation dtype for hidden states (default: 'f32', experimental: 'f16') */
+  activationDtype?: 'f16' | 'f32';
+}
+
+/**
+ * Layer processing result.
+ */
+export interface LayerResult {
+  /** Output hidden states (GPUBuffer or Float32Array) */
+  output: GPUBuffer | Float32Array;
+  /** Whether output is on GPU */
+  isGPU: boolean;
+}
+
+/**
+ * Sandwich norm detection result.
+ */
+export interface SandwichNormInfo {
+  /** Whether sandwich norms are used */
+  useSandwichNorm: boolean;
+  /** Has pre-feedforward norm */
+  hasPreFeedforwardNorm: boolean;
+  /** Has post-feedforward norm */
+  hasPostFeedforwardNorm: boolean;
+  /** Has post-attention norm */
+  hasPostAttentionNorm: boolean;
+}
 
 /**
  * Pipeline context - all state needed for inference operations.
@@ -171,7 +261,37 @@ export interface GenerateOptions {
   useChatTemplate?: boolean;
 
   /** Callback for each generated token */
-  onToken?: (tokenId: number, text: string) => void;
+  onToken?: ((tokenId: number, text: string) => void) | null;
+
+  /** Custom decode function for debugging */
+  decode?: (tokens: number[]) => string;
+
+  /** Enable debug logging */
+  debug?: boolean;
+
+  /** Specific layers to debug */
+  debugLayers?: number[];
+
+  /** Abort signal to cancel generation */
+  signal?: AbortSignal;
+
+  /** Enable GPU timestamp profiling */
+  profile?: boolean;
+
+  /** Log benchmark stats */
+  benchmark?: boolean;
+
+  /** Explicitly disable GPU command batching */
+  disableBatching?: boolean;
+
+  /** Number of tokens to generate per GPU submission batch */
+  batchSize?: number;
+
+  /** Callback invoked after each batch completes */
+  onBatch?: ((tokens: Array<{ id: number; text: string }>) => void) | null;
+
+  /** Stop condition checking mode */
+  stopCheckMode?: 'batch' | 'per-token';
 }
 
 /**
@@ -220,7 +340,7 @@ export interface LayerConfig {
  * Weight type that can be a raw GPUBuffer, a typed WeightBuffer, or CPU Float32Array.
  * WeightBuffer provides explicit dtype/layout metadata; GPUBuffer uses WeakMap tracking.
  */
-export type LayerWeightBuffer = GPUBuffer | WeightBuffer | Float32Array;
+export type LayerWeightBuffer = GPUBuffer | WeightBuffer | Float32Array | CpuWeightBuffer;
 
 /**
  * Weights for a single transformer layer.
@@ -298,6 +418,12 @@ export interface PipelineStats {
 
   /** Memory usage in bytes */
   memoryUsageBytes: number;
+
+  // Fields from pipeline.ts
+  tokensGenerated: number;
+  totalTimeMs: number;
+  gpuTimePrefillMs?: number;
+  gpuTimeDecodeMs?: number;
 }
 
 /**

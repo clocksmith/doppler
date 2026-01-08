@@ -163,8 +163,8 @@ class PipelineBenchmark {
       console.log("[Benchmark] Download complete");
     }
     const runtime = { debug: this.config.debug };
-    if (this.config.runtime?.kernelPlan) {
-      runtime.kernelPlan = this.config.runtime.kernelPlan;
+    if (this.config.runtime?.kernelPath) {
+      runtime.kernelPath = this.config.runtime.kernelPath;
     }
     this.pipeline = await createPipeline(this.manifest, {
       gpu: { device },

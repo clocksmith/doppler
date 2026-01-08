@@ -180,11 +180,27 @@ export const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema = {
 /** Pipeline probe stages */
 export type ProbeStage =
   | 'embed_out'
-  | 'attn_out'
-  | 'post_attn'
-  | 'ffn_in'
-  | 'ffn_out'
-  | 'layer_out'
+  // Attention stages (per-layer)
+  | 'attn_input'      // Input to attention (after residual from previous layer)
+  | 'attn_normed'     // After input RMSNorm
+  | 'q_proj'          // Q projection output
+  | 'k_proj'          // K projection output
+  | 'v_proj'          // V projection output
+  | 'q_rope'          // Q after RoPE
+  | 'k_rope'          // K after RoPE
+  | 'attn_scores'     // Attention scores (pre-softmax)
+  | 'attn_out'        // Attention output (before o_proj)
+  | 'o_proj'          // Output projection
+  | 'post_attn'       // After attention residual
+  // FFN stages (per-layer)
+  | 'ffn_normed'      // After post-attention RMSNorm
+  | 'ffn_in'          // FFN gate/up input
+  | 'ffn_gate'        // Gate projection output
+  | 'ffn_up'          // Up projection output
+  | 'ffn_act'         // After activation
+  | 'ffn_out'         // Down projection output
+  | 'layer_out'       // Final layer output (after FFN residual)
+  // Final stages
   | 'pre_final_norm'
   | 'final_norm'
   | 'logits'

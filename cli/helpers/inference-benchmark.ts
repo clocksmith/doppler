@@ -13,7 +13,7 @@ import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLo
 
 function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptText: string | null): string {
   const runtime: Record<string, unknown> = {};
-  if (opts.kernelPlan) runtime.kernelPlan = opts.kernelPlan;
+  if (opts.kernelPath) runtime.kernelPath = opts.kernelPath;
 
   const configObj: Record<string, unknown> = {
     modelPath,

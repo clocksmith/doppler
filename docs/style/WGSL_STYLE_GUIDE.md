@@ -101,6 +101,25 @@ struct Uniforms {
 }
 ```
 
+### Runtime Flags
+
+Runtime-toggled behavior MUST be expressed as explicit uniform fields (not padding).
+Keep TS and WGSL layouts in lockstep, and avoid "hidden" flags that rely on `_pad`.
+
+```wgsl
+struct Uniforms {
+    has_residual: u32,  // 0 or 1
+    _pad: vec3<u32>,
+}
+```
+
+```ts
+const UNIFORM_LAYOUT = {
+  hasResidual: { offset: 0, size: 4 },
+  _pad: { offset: 4, size: 12 },
+} as const;
+```
+
 ---
 
 ## Binding Conventions
@@ -143,34 +162,133 @@ struct Q4KBlock {
 
 ---
 
-## Entry Points
+## Entry Points vs Override Constants vs Uniforms
 
-### Single Entry (Default)
+This is the key design decision for kernel variants.
+
+**Strict Rule (The "Topology Test"):**
+Do not fork entry points for data values, dimensions, or optional math operations. Only fork entry points when the **loop nesting order** or **synchronization strategy** changes.
+
+| Mechanism | When Set | Perf Cost | Use For |
+|-----------|----------|-----------|---------|
+| **Entry points** | Pipeline creation | None (separate code) | **Different Algorithms** (Control flow/Sync changes) |
+| **Override constants** | Pipeline creation | None (compiler eliminates) | **Parametrization** (Dims, flags, loop bounds) |
+| **Uniforms** | Per-dispatch | Branch divergence | **Dynamic State** (Per-call values only) |
+
+### Decision Tree
+
+```
+Does the Loop Nesting or Sync Strategy change?
+├─ YES → Separate entry point (or separate file)
+│        Examples: GEMV (1D) vs GEMM (2D), Shared Mem vs Subgroups
+│
+└─ NO → Use Override Constants (Parametrization)
+        ├─ Is it known at pipeline creation (Model Load)?
+        │  ├─ YES → Override constant
+        │  │        Examples: HIDDEN_SIZE, WORKGROUP_SIZE, HAS_BIAS
+        │  │
+        │  └─ NO → Uniform (Per-dispatch)
+        │           Examples: seq_len, start_pos
+```
+
+### USE Entry Points For (Topology Changes)
+
+Forking entry points is a last resort. Use only when the algorithm structure is incompatible.
+
+*   **Algorithm Topology:** Matrix Multiplication (2D tiled loops) vs Matrix-Vector (1D reduction).
+*   **Hardware Strategy:** `workgroupBarrier()` (Shared Memory) vs `subgroupAdd()` (Intrinsics).
+*   **Multi-phase Ops:** `topk_phase1` (local reduction) vs `topk_phase2` (global merge).
+
+### USE Override Constants For (Parametrization)
+
+Even if 10+ constants change (e.g., `WORKGROUP_SIZE`, `TILE_SIZE`, `UNROLL_FACTOR`), if the topology is the same, use overrides.
+
+*   **Dimensions:** `HIDDEN_SIZE`, `NUM_HEADS`.
+*   **Tuning:** `WORKGROUP_SIZE`, `TILE_SIZE`.
+*   **Feature Flags:** `HAS_BIAS`, `HAS_GATE`, `USE_VEC4`.
+    *   *Why:* `if (HAS_BIAS) { ... }` is eliminated by the compiler (dead code elimination).
+*   **Layouts:** `LAYOUT_ID` (0=contiguous, 1=strided).
+*   **Math Variants:** `RMS_NORM_OFFSET` (Gemma 1+w formula).
+
+### USE Uniforms For
+
+*   **Dynamic State:** `seq_len`, `start_pos`, `kv_len`.
+*   **Sampling Params:** `temperature` (if it changes per step).
+*   **Runtime Switches:** Only if the value *must* change without reloading the pipeline (rare).
+```
+
+### DON'T: Explode Entry Points for Feature Combinations
+
+```wgsl
+// ☒ BAD - 16 entry points for feature combinations
+fn silu()
+fn silu_bias()
+fn silu_gate()
+fn silu_gate_bias()
+fn silu_vec4()
+fn silu_gate_vec4()
+// ... explosion of combinations
+
+// ✓ GOOD - override constants, compiler eliminates dead code
+override HAS_BIAS: bool = false;
+override HAS_GATE: bool = false;
+override USE_VEC4: bool = false;
+
+fn main() {
+    var x = load_input();
+    if (HAS_BIAS) { x += bias; }      // Eliminated if false
+    x = silu(x);
+    if (HAS_GATE) { x *= gate; }      // Eliminated if false
+    store_output(x);
+}
+```
+
+### DON'T: Mix Activation Functions in One File
+
+```wgsl
+// ☒ BAD - different functions in one file
+fn silu() { ... }
+fn gelu() { ... }
+fn relu() { ... }
+
+// ✓ GOOD - separate files
+// silu.wgsl, gelu.wgsl, relu.wgsl
+```
+
+### File Organization
+
+| Pattern | File Structure |
+|---------|----------------|
+| Different activations | `silu.wgsl`, `gelu.wgsl`, `relu.wgsl` |
+| Same op, different quant | `matmul_f32.wgsl`, `matmul_f16.wgsl`, `matmul_q4k.wgsl` |
+| Fused ops | `fused_ffn.wgsl`, `fused_ffn_q4k.wgsl` |
+| Hardware variants | Same file with `main()` and `main_subgroup()` |
+
+---
+
+## Entry Points (Legacy Guidance)
+
+### Single Entry (Preferred)
 
 ```wgsl
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // ...
+    // Use override constants for variants
 }
 ```
 
-### Multiple Variants (Same File)
+### Multiple Entries (When Justified)
 
 ```wgsl
-// For size-specific optimizations
-@compute @workgroup_size(256, 1, 1)
-fn gemv_small(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // N <= 2048
+// For M=1 vs M>1 (different algorithms)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main() {
+    // GEMV - one row per workgroup
 }
 
-@compute @workgroup_size(256, 1, 1)
-fn gemv_medium(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // 2048 < N <= 8192
-}
-
-@compute @workgroup_size(256, 1, 1)
-fn gemv_large(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // N > 8192
+@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
+fn main_batched() {
+    // Tiled GEMM - different workgroup layout
 }
 ```
 
@@ -413,5 +531,5 @@ struct Uniforms {
 
 ## See Also
 
-- [TypeScript Style Guide](./TYPESCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
+- [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
 - [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns

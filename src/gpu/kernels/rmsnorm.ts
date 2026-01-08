@@ -4,7 +4,7 @@
  * Provides RMS normalization with optional residual connection.
  */
 
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import { Tensor, createTensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
@@ -32,21 +32,46 @@ function canUseF16(input: Tensor, residual: Tensor | null): boolean {
 }
 
 /**
- * Select RMSNorm kernel variant based on options and tensor dtypes.
+ * Select RMSNorm kernel variant based on options, tensor dtypes, and GPU capabilities.
+ * Prefers subgroup-accelerated variants when available (3-5x faster reductions).
  */
 export function selectRMSNormKernel(options: RMSNormOptions = {}, isF16: boolean = false): string {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
 
+  // Check if subgroups are available
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+
+  // F16 variants don't have subgroup support yet
+  if (isF16) {
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return 'small_f16';
+    }
+    return 'default_f16';
+  }
+
+  // Residual variants use the inplace_residual kernel (doesn't have subgroup variant yet)
   if (residual) {
     if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-      return isF16 ? 'small_f16' : 'residual_small';
+      return 'residual_small';
     }
-    return isF16 ? 'default_f16' : 'residual';
-  } else if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-    return isF16 ? 'small_f16' : 'small';
+    return 'residual';
   }
-  return isF16 ? 'default_f16' : 'default';
+
+  // Prefer subgroup variants when available
+  if (hasSubgroups) {
+    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+      return 'small_subgroup';
+    }
+    return 'subgroup';
+  }
+
+  // Fallback to non-subgroup variants
+  if (hiddenSize !== null && hiddenSize <= smallThreshold) {
+    return 'small';
+  }
+  return 'default';
 }
 
 /**

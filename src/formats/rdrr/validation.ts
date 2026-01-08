@@ -30,11 +30,16 @@ export function validateManifest(manifest: Partial<RDRRManifest>): ValidationRes
     errors.push('Missing or invalid quantization field');
   }
 
-  // Hash algorithm
-  if (manifest.hashAlgorithm !== undefined) {
-    if (manifest.hashAlgorithm !== 'sha256' && manifest.hashAlgorithm !== 'blake3') {
-      errors.push(`Invalid hashAlgorithm: ${manifest.hashAlgorithm}`);
-    }
+  // Inference config (manifest-first: required for all models)
+  if (!manifest.inference || typeof manifest.inference !== 'object') {
+    errors.push('Missing or invalid inference field');
+  }
+
+  // Hash algorithm (required)
+  if (!manifest.hashAlgorithm) {
+    errors.push('Missing or invalid hashAlgorithm');
+  } else if (manifest.hashAlgorithm !== 'sha256' && manifest.hashAlgorithm !== 'blake3') {
+    errors.push(`Invalid hashAlgorithm: ${manifest.hashAlgorithm}`);
   }
 
   // Architecture validation (skip for LoRA adapters)

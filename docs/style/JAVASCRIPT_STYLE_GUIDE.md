@@ -1,6 +1,8 @@
-# DOPPLER TypeScript Style Guide
+# DOPPLER JavaScript Style Guide
 
-TypeScript conventions for kernel wrappers and pipeline code.
+JavaScript conventions for kernel wrappers and pipeline code.
+
+See [General Style Guide](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for the rationale behind JavaScript-first development.
 
 ## Core Principle: Config as Code
 
@@ -9,37 +11,124 @@ Replace conditional logic with declarative configuration maps.
 ```
 Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
      ↓              ↓              ↓              ↓              ↓
- manifest.json   Typed config   Op sequence   GPU params    Dispatch
+ manifest.json   JSDoc types    Op sequence   GPU params    Dispatch
 ```
+
+## Manifest-First Contract
+
+Any new inference knob must be wired end-to-end:
+- Add to `ManifestInferenceSchema` (and converter defaults if needed)
+- Populate in converter mapping (preset + HF config)
+- Merge in `src/config/merge.js` with `_sources`
+- Validate in `parseModelConfigFromManifest()`
+- Add tests that assert manifest values and runtime overrides
+
+Do not reintroduce runtime model detection or preset fallbacks.
+
+## Nullable Required Fields
+
+For nullable-but-required fields:
+- `null` = explicitly disabled (valid)
+- `undefined` = missing (validation error)
+
+Validation should check `=== undefined` for nullable fields and `== null` for non-nullable fields.
+
+## Kernel Path Only
+
+Kernel selection overrides must use `kernelPath`. `kernelPlan` is removed and must not be reintroduced.
 
 ---
 
-## Kernel Wrapper Structure
+## Types: .d.ts Files
+
+All type definitions live in `.d.ts` files. JavaScript files contain no type annotations.
+
+| File | Contains |
+|------|----------|
+| `module.js` | Clean code, no JSDoc types |
+| `module.d.ts` | All type definitions for that module |
+
+Agents read `.d.ts` files directly for type context. No need to duplicate types in JS.
+
+```javascript
+// module.js - clean, no type annotations
+function writeUniforms(view, uniforms) {
+  view.setUint32(0, uniforms.seqLen, true);
+  view.setUint32(4, uniforms.startPos, true);
+}
+```
 
 ```typescript
-// gpu/kernels/kernel-name.ts
-
-import { getDevice } from '../device.js';
-import { createPipelineWithConstants, createUniformBuffer } from './utils.js';
-
-// ═══════════════════════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════════════════════
-
-/** Uniform struct - MUST match WGSL exactly */
+// module.d.ts - comprehensive type specs
 interface KernelUniforms {
   seqLen: number;
   startPos: number;
   kvLen: number;
 }
 
-/** Constants baked into pipeline - from model config */
-interface KernelConstants {
-  HIDDEN_SIZE: number;
-  HEAD_DIM: number;
-  NUM_HEADS: number;
-  WORKGROUP_SIZE: number;
-}
+declare function writeUniforms(view: DataView, uniforms: KernelUniforms): void;
+```
+
+### Comments
+
+**No JSDoc in JS files.** Descriptions, parameter docs, and examples belong in `.d.ts` files.
+
+**Inline comments are rare.** Code should be self-explanatory. If you need a comment, first consider renaming or refactoring.
+
+#### When to Comment
+
+```javascript
+// DO: Workaround for external bug
+// Chrome 119: readback fails without fence
+device.queue.onSubmittedWorkDone();
+
+// DO: Why something counterintuitive is correct
+// Intentionally no await - fire and forget
+device.queue.submit([encoder.finish()]);
+```
+
+#### When NOT to Comment
+
+```javascript
+// DON'T: Describe what code does (it's obvious)
+// Increment the counter
+counter++;
+
+// DON'T: Repeat the function name
+// This function writes uniforms
+function writeUniforms(view, u) { ... }
+
+// DON'T: Explain language features
+// Use async/await for promises
+const result = await fetch(url);
+
+// DON'T: Add JSDoc descriptions (use .d.ts)
+/**
+ * Writes uniform values to a DataView.  <-- This belongs in .d.ts
+ */
+function writeUniforms(view, u) { ... }
+```
+
+#### Section Headers
+
+Use sparingly for long files. Keep them minimal:
+
+```javascript
+// === Dispatch ===
+
+// === Pipeline Cache ===
+```
+
+---
+
+## Kernel Wrapper Structure
+
+```javascript
+// gpu/kernels/kernel-name.js
+// Types in kernel-name.d.ts
+
+import { getDevice } from '../device.js';
+import { createPipelineWithConstants, createUniformBuffer } from './utils.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // UNIFORM BUFFER (must match WGSL struct)
@@ -50,11 +139,11 @@ const UNIFORM_LAYOUT = {
   startPos: { offset: 4, size: 4 },
   kvLen: { offset: 8, size: 4 },
   _pad: { offset: 12, size: 4 },
-} as const;
+};
 
-const UNIFORM_SIZE = 16;  // Sum of all fields
+const UNIFORM_SIZE = 16;
 
-function writeUniforms(view: DataView, u: KernelUniforms): void {
+function writeUniforms(view, u) {
   view.setUint32(UNIFORM_LAYOUT.seqLen.offset, u.seqLen, true);
   view.setUint32(UNIFORM_LAYOUT.startPos.offset, u.startPos, true);
   view.setUint32(UNIFORM_LAYOUT.kvLen.offset, u.kvLen, true);
@@ -62,18 +151,17 @@ function writeUniforms(view: DataView, u: KernelUniforms): void {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// PIPELINE CACHE (one per model configuration)
+// PIPELINE CACHE
 // ═══════════════════════════════════════════════════════════════════
 
-const pipelineCache = new Map<string, GPUComputePipeline>();
+const pipelineCache = new Map();
 
-function getPipelineKey(c: KernelConstants): string {
+function getPipelineKey(c) {
   return `kernel_${c.HIDDEN_SIZE}_${c.HEAD_DIM}_${c.NUM_HEADS}`;
 }
 
-async function getPipeline(constants: KernelConstants): Promise<GPUComputePipeline> {
+async function getPipeline(constants) {
   const key = getPipelineKey(constants);
-
   let pipeline = pipelineCache.get(key);
   if (!pipeline) {
     pipeline = await createPipelineWithConstants('kernel_name', 'main', {
@@ -91,13 +179,7 @@ async function getPipeline(constants: KernelConstants): Promise<GPUComputePipeli
 // DISPATCH
 // ═══════════════════════════════════════════════════════════════════
 
-export async function runKernel(
-  input: GPUBuffer,
-  weights: GPUBuffer,
-  output: GPUBuffer,
-  constants: KernelConstants,
-  uniforms: KernelUniforms,
-): Promise<void> {
+export async function runKernel(input, weights, output, constants, uniforms) {
   const device = getDevice();
   const pipeline = await getPipeline(constants);
 
@@ -105,9 +187,7 @@ export async function runKernel(
     writeUniforms(view, uniforms);
   });
 
-  // Workgroup calculation - document the formula!
-  // Total threads = seqLen * NUM_HEADS
-  // Workgroups = ceil(total / WORKGROUP_SIZE)
+  // Workgroups = ceil(seqLen * NUM_HEADS / WORKGROUP_SIZE)
   const totalThreads = uniforms.seqLen * constants.NUM_HEADS;
   const workgroups = Math.ceil(totalThreads / constants.WORKGROUP_SIZE);
 
@@ -121,18 +201,43 @@ export async function runKernel(
 }
 ```
 
+```typescript
+// gpu/kernels/kernel-name.d.ts
+
+export interface KernelUniforms {
+  seqLen: number;
+  startPos: number;
+  kvLen: number;
+}
+
+export interface KernelConstants {
+  HIDDEN_SIZE: number;
+  HEAD_DIM: number;
+  NUM_HEADS: number;
+  WORKGROUP_SIZE: number;
+}
+
+export function runKernel(
+  input: GPUBuffer,
+  weights: GPUBuffer,
+  output: GPUBuffer,
+  constants: KernelConstants,
+  uniforms: KernelUniforms
+): Promise<void>;
+```
+
 ---
 
 ## run/record Function Parity
 
 Kernels that support both immediate (`run*`) and batched (`record*`) execution MUST keep both implementations in sync.
 
-```typescript
+```javascript
 // DON'T: Divergent implementations
-export async function runGather(...) {
+export async function runGather(...args) {
   const workgroups = Math.ceil(numElements / (WORKGROUP_SIZES.VEC4_THREADS * 4));
 }
-export async function recordGather(...) {
+export async function recordGather(...args) {
   const workgroups = Math.ceil(numElements / 256);  // Different constant!
 }
 
@@ -158,7 +263,7 @@ export async function recordGather(...) {
 
 ### DON'T: Decision Trees
 
-```typescript
+```javascript
 // BAD - 70 lines of nested if/else, hard to audit
 function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
   if (bDtype === 'q4k') {
@@ -179,7 +284,7 @@ function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
 
 ### DO: Rule Arrays
 
-```typescript
+```javascript
 // GOOD - declarative, auditable, testable
 
 interface VariantRule {
@@ -213,8 +318,8 @@ function selectMatmulVariant(ctx: MatmulContext): string {
 
 ### Rule Matcher Utility
 
-```typescript
-// utils/rule-matcher.ts
+```javascript
+// utils/rule-matcher.js
 
 type MatchValue = number | string | boolean | { gt?: number; lt?: number; eq?: number };
 type MatchCondition = Record<string, MatchValue>;
@@ -252,8 +357,8 @@ export function selectByRules<T>(
 
 Centralize magic numbers into typed tables:
 
-```typescript
-// gpu/kernels/config-tables.ts
+```javascript
+// gpu/kernels/config-tables.js
 
 type GPUVendor = 'apple' | 'nvidia' | 'amd' | 'intel' | 'default';
 type KernelType = 'matmul' | 'attention' | 'ffn' | 'norm' | 'rope';
@@ -303,8 +408,8 @@ export const FEATURE_VARIANTS: Record<string, Array<{ features: string[]; varian
 
 When a kernel processes 4 elements per thread (vec4), document the relationship:
 
-```typescript
-// gpu/kernels/constants.ts
+```javascript
+// gpu/kernels/constants.js
 export const WORKGROUP_SIZES = {
   DEFAULT: 256,           // Standard scalar kernels
   VEC4_THREADS: 64,       // Vec4 kernels: 64 threads × 4 elements = 256 elements
@@ -326,8 +431,8 @@ This pattern applies to: `gather.ts`, `residual.ts`, and any kernel using `vec4<
 
 Centralize quantization block sizes in a single module. Format-specific constants are **invariants** derived from the quantization spec—they should never be redefined.
 
-```typescript
-// loader/quantization-constants.ts
+```javascript
+// loader/quantization-constants.js
 export { QK_K, K_SCALE_SIZE } from '../converter/quantizer.js';
 
 // Block byte sizes - derived from format spec, never hardcode elsewhere
@@ -339,7 +444,7 @@ export const Q8_0_BLOCK_SIZE = 32;    // Elements per Q8_0 block
 
 ### DON'T: Redefine Format Constants
 
-```typescript
+```javascript
 // BAD - redefined in multiple files, easy to drift
 // doppler-loader.ts:
 const Q4K_K = 256;
@@ -362,8 +467,8 @@ const numBlocks = buffer.byteLength / Q4K_BLOCK_BYTES;
 
 ### Layer 1: Manifest → ModelConfig
 
-```typescript
-// config/model-config.ts
+```javascript
+// config/model-config.js
 
 export interface ModelConfig {
   // Direct from manifest
@@ -424,8 +529,8 @@ export function parseModelConfig(manifest: RDRRManifest, device: DeviceCapabilit
 
 ### Layer 2: ModelConfig → KernelSpecs
 
-```typescript
-// config/kernel-specs.ts
+```javascript
+// config/kernel-specs.js
 
 export interface KernelSpec {
   pipelineKey: string;
@@ -476,8 +581,8 @@ export const KERNEL_SPECS: Record<string, KernelSpecFactory> = {
 
 ### Layer 3: KernelSpecs → Executor
 
-```typescript
-// gpu/kernel-executor.ts
+```javascript
+// gpu/kernel-executor.js
 
 export class KernelExecutor {
   private pipelines = new Map<string, GPUComputePipeline>();
@@ -532,32 +637,44 @@ export class KernelExecutor {
 
 ```
 gpu/kernels/
-  matmul.ts              # Main kernel wrapper
-  matmul-utils.ts        # Shared utilities (if needed)
-  fused-matmul-norm.ts   # Fused variant
+  matmul.js              # Main kernel wrapper
+  matmul-utils.js        # Shared utilities (if needed)
+  fused-matmul-norm.js   # Fused variant
 
 config/
-  model-config.ts        # ModelConfig type and parser
-  kernel-specs.ts        # KernelSpec factories
-  config-tables.ts       # WORKGROUP_SIZES, TILE_SIZES, etc.
+  model-config.js        # ModelConfig and parser
+  kernel-specs.js        # KernelSpec factories
+  config-tables.js       # WORKGROUP_SIZES, TILE_SIZES, etc.
+
+types/
+  gpu.d.ts               # GPU type declarations (optional)
+  inference.d.ts         # Inference type declarations (optional)
 ```
 
-### Types
+### JSDoc Types
 
-```typescript
-// PascalCase for interfaces/types
-interface ModelConfig { }
-interface KernelSpec { }
-type GPUVendor = 'apple' | 'nvidia' | ...;
+```javascript
+// PascalCase for @typedef names
+/**
+ * @typedef {Object} ModelConfig
+ * @property {number} hiddenSize
+ * @property {number} numHeads
+ */
+
+/**
+ * @typedef {'apple' | 'nvidia' | 'amd' | 'intel' | 'default'} GPUVendor
+ */
 
 // camelCase for variables
-const modelConfig: ModelConfig = ...;
-const kernelSpec: KernelSpec = ...;
+/** @type {ModelConfig} */
+const modelConfig = { ... };
+/** @type {KernelSpec} */
+const kernelSpec = { ... };
 ```
 
 ### Constants
 
-```typescript
+```javascript
 // UPPER_SNAKE_CASE for config tables
 const WORKGROUP_SIZES = { ... };
 const TILE_SIZES = { ... };
@@ -573,7 +690,7 @@ const workgroupSize = WORKGROUP_SIZES[vendor].matmul;
 
 ### DON'T: Create Pipelines Per-Dispatch
 
-```typescript
+```javascript
 // BAD - pipeline creation is expensive (~10ms)
 async function runKernel() {
   const pipeline = await device.createComputePipelineAsync(...);  // Every call!
@@ -589,7 +706,7 @@ async function runKernel() {
 
 ### DON'T: Hardcode Uniform Sizes
 
-```typescript
+```javascript
 // BAD - magic number, easy to mismatch with WGSL
 const uniformBuffer = device.createBuffer({ size: 32 });
 
@@ -604,7 +721,7 @@ const UNIFORM_SIZE = Object.values(UNIFORM_LAYOUT).reduce((sum, f) => sum + f.si
 
 ### DON'T: Scatter Constants
 
-```typescript
+```javascript
 // BAD - same value in multiple places
 function selectMatmul() {
   if (N > 4096) { ... }  // Magic number
@@ -621,7 +738,7 @@ const THRESHOLDS = {
 
 ### DON'T: Mix Config Layers
 
-```typescript
+```javascript
 // BAD - uniform creation knows about manifest
 function createUniforms(manifest: RDRRManifest) {
   view.setUint32(0, manifest.hidden_size);  // Wrong layer!
@@ -635,7 +752,7 @@ function createUniforms(uniforms: KernelUniforms) {
 
 ### DON'T: Use Bare Fallback Literals
 
-```typescript
+```javascript
 // BAD - fallback hides the source of truth
 const wgSize = options.workgroupSize || 256;
 const maxSeq = config.maxSeqLen || 4096;
@@ -656,13 +773,33 @@ const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTok
 
 ---
 
+## Debugging
+
+### Config Source Tracking
+
+For merged configs, track where each value came from:
+
+```javascript
+interface MergedConfig {
+  inference: InferenceConfig;
+  _sources: Map<string, 'manifest' | 'runtime'>;
+}
+
+// Debug output: "slidingWindow: 4096 (manifest)"
+```
+
+Why: The first debugging question is "where did this value come from?" Source
+tracking answers that instantly.
+
+---
+
 ## Logging
 
 All library code MUST use the unified debug module (`debug/index.ts`) instead of raw `console.*` calls.
 
 ### Import
 
-```typescript
+```javascript
 import { log, trace } from '../debug/index.js';
 ```
 
@@ -670,7 +807,7 @@ import { log, trace } from '../debug/index.js';
 
 Use the appropriate log level based on message importance:
 
-```typescript
+```javascript
 log.error('Module', 'Critical failure');        // Always shown (except silent)
 log.warn('Module', 'Recoverable issue');        // Shown at warn+ level
 log.info('Module', 'Normal operation');         // Shown at info+ level (default)
@@ -682,7 +819,7 @@ log.debug('Module', 'Implementation detail');   // Shown at debug level only
 
 For kernel/pipeline debugging, use trace categories:
 
-```typescript
+```javascript
 trace.loader('Shard 0 from OPFS');              // Model loading
 trace.kernels(`matmul M=${M} N=${N} K=${K}`);   // Kernel execution
 trace.attn(layerIdx, 'Using chunked decode');   // Attention (layer-aware)
@@ -696,7 +833,7 @@ trace.perf('Layer 0: 12.5ms');                  // Performance timing
 
 ### DON'T: Raw Console Calls
 
-```typescript
+```javascript
 // BAD - bypasses log level control, no history, inconsistent format
 console.log('[Pipeline] Model loaded');
 console.warn('[Attention] Fallback to CPU');
@@ -724,11 +861,11 @@ Use consistent module names matching the file/class:
 
 Raw `console.*` is acceptable in:
 
-1. **CLI entry points** (`cli/`, `serve.ts`, `src/converter/node-converter.ts`) - Direct terminal output
-2. **Tools** (`tools/*.ts`) - Direct terminal output
+1. **CLI entry points** (`cli/`, `serve.js`, `src/converter/node-converter.js`) - Direct terminal output
+2. **Tools** (`tools/*.js`) - Direct terminal output
 3. **Test files** (`kernel-tests/`, `tests/`) - Test harness output
 4. **Benchmarks** - Formatted results tables
-5. **One-time startup** - GPU device info in `device.ts`
+5. **One-time startup** - GPU device info in `device.js`
 
 ### Browser Console API
 

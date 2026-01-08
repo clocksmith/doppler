@@ -3,7 +3,7 @@
  * Diagnostic tool to verify kernel selection logic.
  *
  * This script checks:
- * 1. Manifest kernel plan is correctly configured
+ * 1. Manifest kernel path is correctly configured
  * 2. Kernel selection logic matches expected behavior
  * 3. GPU capabilities are correctly detected
  *
@@ -21,9 +21,9 @@ import { log } from './index.js';
 interface DiagnosticResult {
   modelPath: string;
   manifestValid: boolean;
-  hasKernelPlan: boolean;
+  hasKernelPath: boolean;
   q4kLayout?: string;
-  kernelPlan?: any;
+  kernelPath?: unknown;
   issues: string[];
   recommendations: string[];
 }
@@ -32,7 +32,7 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
   const result: DiagnosticResult = {
     modelPath,
     manifestValid: false,
-    hasKernelPlan: false,
+    hasKernelPath: false,
     issues: [],
     recommendations: [],
   };
@@ -58,21 +58,15 @@ async function diagnoseModel(modelPath: string): Promise<DiagnosticResult> {
       log.info('KernelDiag', 'OK Q4K layout: column_wise (optimal)');
     }
 
-    // Check kernel plan
-    const kernelPlan = manifest.optimizations?.kernelPlan;
-    result.kernelPlan = kernelPlan;
-    result.hasKernelPlan = !!kernelPlan;
+    // Check kernel path override (optional)
+    const kernelPath = manifest.optimizations?.kernelPath ?? manifest.inference?.defaultKernelPath;
+    result.kernelPath = kernelPath;
+    result.hasKernelPath = kernelPath != null;
 
-    if (!kernelPlan) {
-      result.issues.push('Warning: Missing optimizations.kernelPlan');
-      result.recommendations.push('Add optimizations.kernelPlan to manifest for kernel selection overrides.');
-      result.recommendations.push('Example: {"q4kStrategy":"dequant_f16","variants":{"attention":{"prefill":"prefill","decode":"decode_streaming"}}}');
+    if (!kernelPath) {
+      result.recommendations.push('No kernelPath override found; kernel selection will be automatic.');
     } else {
-      log.info('KernelDiag', 'OK Kernel plan present');
-      const quant = String(manifest.quantization || '').toLowerCase();
-      if (quant.includes('q4') && !kernelPlan.q4kStrategy) {
-        result.issues.push('Warning: Missing kernelPlan.q4kStrategy for Q4 models');
-      }
+      log.info('KernelDiag', `OK kernelPath override present: ${JSON.stringify(kernelPath)}`);
     }
 
     // Check quantization type
@@ -99,10 +93,10 @@ async function printDiagnostics(result: DiagnosticResult) {
     log.info('KernelDiag', `Q4K Layout: ${layoutStatus} ${result.q4kLayout}`);
   }
 
-  if (result.hasKernelPlan) {
-    log.info('KernelDiag', 'Kernel Plan: OK Present');
+  if (result.hasKernelPath) {
+    log.info('KernelDiag', 'Kernel Path: OK Present');
   } else {
-    log.warn('KernelDiag', 'Kernel Plan: ERROR Missing');
+    log.info('KernelDiag', 'Kernel Path: auto (no override)');
   }
 
   if (result.issues.length > 0) {
@@ -115,7 +109,7 @@ async function printDiagnostics(result: DiagnosticResult) {
     result.recommendations.forEach(rec => log.info('KernelDiag', `  ${rec}`));
   }
 
-  if (result.issues.length === 0 && result.hasKernelPlan) {
+  if (result.issues.length === 0) {
     log.info('KernelDiag', 'Model is optimally configured!');
     log.info('KernelDiag', 'Expected Performance:');
     log.info('KernelDiag', '  - Gemma 3 1B: ~8 tok/s (Apple M3)');
@@ -137,7 +131,7 @@ async function main() {
     log.info('KernelDiag', 'Checks:');
     log.info('KernelDiag', '  - Manifest validity');
     log.info('KernelDiag', '  - Q4K layout configuration (should be column_wise)');
-    log.info('KernelDiag', '  - Kernel plan presence and correctness');
+    log.info('KernelDiag', '  - Kernel path override (optional)');
     log.info('KernelDiag', '  - Expected vs actual configuration');
     process.exit(0);
   }

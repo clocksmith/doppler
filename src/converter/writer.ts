@@ -40,6 +40,8 @@ import {
   type WriteResultSchema,
 } from '../config/schema/index.js';
 
+import type { ManifestInferenceSchema } from '../config/schema/manifest.schema.js';
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -157,17 +159,21 @@ export interface ProgressEvent {
   tensorCount?: number;
 }
 
-async function computeHash(data: Uint8Array): Promise<string> {
-  try {
-    // blake3 package may not have types, use dynamic import
-    // @ts-expect-error - blake3 has no type declarations
-    const blake3Module = await import('blake3');
-    return blake3Module.blake3(data).toString('hex');
-  } catch {
-    const hash = createHash('sha256');
-    hash.update(data);
-    return hash.digest('hex');
+async function computeHash(data: Uint8Array, algorithm: HashAlgorithm = 'sha256'): Promise<string> {
+  if (algorithm === 'blake3') {
+    try {
+      // blake3 package may not have types, use dynamic import
+      // @ts-expect-error - blake3 has no type declarations
+      const blake3Module = await import('blake3');
+      return blake3Module.blake3(data).toString('hex');
+    } catch (err) {
+      throw new Error(`blake3 hashing requested but unavailable: ${(err as Error).message}`);
+    }
   }
+
+  const hash = createHash('sha256');
+  hash.update(data);
+  return hash.digest('hex');
 }
 
 function alignOffset(offset: number, alignment = ALIGNMENT): number {
@@ -228,6 +234,7 @@ export class RDRRWriter {
     defaultWeightLayout: undefined as WeightLayout | undefined,
     conversion: undefined as ConversionInfoSchema | undefined,
     optimizations: undefined as RuntimeOptimizationsSchema | undefined,
+    inference: undefined as ManifestInferenceSchema | undefined,
   };
 
   constructor(outputDir: string, options: WriterOptions = {}) {
@@ -542,7 +549,7 @@ export class RDRRWriter {
       offset += chunk.length;
     }
 
-    const hash = await computeHash(shardData);
+    const hash = await computeHash(shardData, this.hashAlgorithm);
     const shardFileName = `shard_${String(this.currentShardIndex).padStart(5, '0')}.bin`;
     const shardPath = join(this.outputDir, shardFileName);
     await writeFile(shardPath, shardData);
@@ -742,11 +749,20 @@ export class RDRRWriter {
   }
 
   /**
-   * Set runtime optimizations including kernel plan overrides.
-   * These are embedded in the manifest as defaults; YAML profiles can override at runtime.
+   * Set runtime optimizations including kernel path overrides.
+   * These are embedded in the manifest as defaults; runtime config can override.
    */
   setOptimizations(optimizations: RuntimeOptimizationsSchema): void {
     this.manifest.optimizations = optimizations;
+  }
+
+  /**
+   * Set inference configuration from model preset.
+   * Embeds all model-specific inference parameters in the manifest,
+   * making the manifest the single source of truth for inference behavior.
+   */
+  setInference(inference: ManifestInferenceSchema): void {
+    this.manifest.inference = inference;
   }
 
   setMetadata(meta: Record<string, unknown>): void {
@@ -841,6 +857,13 @@ export class RDRRWriter {
   }
 
   async finalize(): Promise<WriteResult> {
+    if (!this.manifest.inference) {
+      throw new Error(
+        'Manifest inference config is required. ' +
+        'Set it via writer.setInference() or pass options.inference to writeRDRR().'
+      );
+    }
+
     // Warn about any unpaired gate/up tensors
     if (this.ffnFusionBuffer.size > 0) {
       for (const [layerKey, buffer] of this.ffnFusionBuffer) {
@@ -901,7 +924,7 @@ export class RDRRWriter {
         combined.set(chunk, offset);
         offset += chunk.length;
       }
-      const groupHash = await computeHash(combined);
+      const groupHash = await computeHash(combined, this.hashAlgorithm);
 
       const groupType = getGroupType(groupId, this.modelType);
       const layerIndex = parseGroupLayerIndex(groupId);
@@ -987,8 +1010,10 @@ export interface WriteRDRROptions extends WriterOptions {
   onProgress?: (event: ProgressEvent) => void;
   /** Conversion metadata - how the model was generated */
   conversion?: ConversionInfoSchema;
-  /** Runtime optimizations including kernel plan overrides */
+  /** Runtime optimizations including kernel path overrides */
   optimizations?: RuntimeOptimizationsSchema;
+  /** Model-specific inference configuration (from preset) */
+  inference?: ManifestInferenceSchema;
 }
 
 export async function writeRDRR(
@@ -1041,9 +1066,14 @@ export async function writeRDRR(
       writer.setConversion(options.conversion);
     }
 
-    // Set runtime optimizations (including kernel plan) if provided
+    // Set runtime optimizations (including kernel path) if provided
     if (options.optimizations) {
       writer.setOptimizations(options.optimizations);
+    }
+
+    // Set inference configuration if provided (from model preset)
+    if (options.inference) {
+      writer.setInference(options.inference);
     }
 
     const progressCallback = options.onProgress || (() => {});

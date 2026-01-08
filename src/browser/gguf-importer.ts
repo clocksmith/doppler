@@ -24,8 +24,11 @@ import {
   SHARD_SIZE,
   RDRR_VERSION,
   generateShardFilename,
+  type RDRRManifest,
 } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
+import { detectPreset, resolvePreset, type RawModelConfigSchema } from '../config/index.js';
+import { buildManifestInference } from '../converter/manifest-inference.js';
 
 // Header size to read for parsing (10MB should cover any GGUF header)
 const HEADER_READ_SIZE = 10 * 1024 * 1024;
@@ -138,29 +141,6 @@ export interface ArchitectureConfig {
   headDim: number;
   vocabSize: number;
   maxSeqLen: number;
-}
-
-/**
- * RDRR manifest structure
- */
-export interface RDRRManifest {
-  version: number | string;
-  modelId: string;
-  modelType: string;
-  quantization: string;
-  architecture: ArchitectureConfig;
-  moeConfig: MoEConfig | null;
-  shards: ShardInfo[];
-  tensors: Record<string, TensorLocation>;
-  totalSize: number;
-  fullHash: string;
-  hashAlgorithm: string;
-  metadata: {
-    source: string;
-    originalFile: string;
-    importedAt: string;
-    ggufVersion: number;
-  };
 }
 
 // ============================================================================
@@ -513,8 +493,37 @@ function createManifest(
   // Calculate total size from shards
   const totalSize = shardInfos.reduce((sum, s) => sum + s.size, 0);
 
-  // Compute full file hash placeholder (would need full hash for real impl)
-  const fullHash = shardInfos.length > 0 ? shardInfos[0].hash : '';
+  const rawConfig: RawModelConfigSchema = {
+    model_type: ggufInfo.architecture,
+    architectures: [ggufInfo.architecture],
+  };
+  if (config.ropeFreqBase) {
+    rawConfig.rope_theta = config.ropeFreqBase;
+  }
+  if (config.ropeScalingType || config.ropeScalingFactor) {
+    rawConfig.rope_scaling = {
+      type: config.ropeScalingType ?? undefined,
+      factor: config.ropeScalingFactor ?? undefined,
+    };
+  }
+
+  const presetId = detectPreset(rawConfig, ggufInfo.architecture);
+  if (presetId === 'transformer') {
+    const modelType = rawConfig.model_type ?? 'unknown';
+    throw new Error(
+      `Unknown model family: architecture="${ggufInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
+      `DOPPLER requires a known model preset to generate correct inference config.\n` +
+      `The manifest-first architecture does not support generic defaults.\n\n` +
+      `Options:\n` +
+      `  1. Wait for official support of this model family\n` +
+      `  2. Create a custom preset in src/config/presets/models/\n` +
+      `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+      `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+    );
+  }
+  const preset = resolvePreset(presetId);
+  const headDim = architecture.headDim || Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
+  const inference = buildManifestInference(preset, rawConfig, headDim);
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard
@@ -531,8 +540,8 @@ function createManifest(
     shards: shardInfos,
     tensors,
     totalSize,
-    fullHash,
     hashAlgorithm: 'sha256',
+    inference,
     metadata: {
       source: 'browser-import',
       originalFile: ggufInfo.modelName,

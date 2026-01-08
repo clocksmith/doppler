@@ -16,7 +16,6 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
 import type { CommandRecorder } from '../command-recorder.js';
-import { DEFAULT_SAMPLING_DEFAULTS } from '../../config/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
 export interface SampleOptions {
@@ -188,9 +187,10 @@ export async function runGPUSample(
     throw new Error('[Sample] GPU readback disabled for sampling');
   }
 
+  const samplingDefaults = getRuntimeConfig().inference.sampling;
   const {
-    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
-    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
+    temperature = samplingDefaults.temperature,
+    topK = samplingDefaults.topK,
     randomSeed,
     padTokenId,
     logitSoftcap = 0,
@@ -402,9 +402,10 @@ export async function recordGPUSample(
   vocabSize: number,
   options: SampleOptions = {}
 ): Promise<GPUBuffer> {
+  const samplingDefaults = getRuntimeConfig().inference.sampling;
   const {
-    temperature = DEFAULT_SAMPLING_DEFAULTS.temperature,
-    topK = DEFAULT_SAMPLING_DEFAULTS.topK,
+    temperature = samplingDefaults.temperature,
+    topK = samplingDefaults.topK,
     randomSeed,
     padTokenId,
     logitSoftcap = 0,

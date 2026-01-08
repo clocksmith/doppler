@@ -7,9 +7,8 @@
  * @module config/kernels/selection
  */
 
-import { getRegistrySync, isVariantAvailable } from './registry.js';
+import { isVariantAvailable } from './registry.js';
 import {
-  getPlatform,
   getCapabilities,
   getPreferredVariant,
   shouldAvoidVariant,

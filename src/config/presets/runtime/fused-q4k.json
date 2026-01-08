@@ -1,0 +1,10 @@
+{
+  "name": "fused-q4k",
+  "description": "Use fused Q4K kernel path with optimized dequant+matmul and fused FFN. Best throughput.",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "kernelPath": "gemma2-q4k-fused"
+    }
+  }
+}

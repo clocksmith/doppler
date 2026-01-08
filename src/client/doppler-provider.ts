@@ -3,25 +3,25 @@
  * Registers DOPPLER as a local WebGPU option in llm-client.js
  */
 
-import { getMemoryCapabilities, type MemoryCapabilities } from '../src/memory/capability.js';
-import { getHeapManager } from '../src/memory/heap-manager.js';
+import { getMemoryCapabilities, type MemoryCapabilities } from '../memory/capability.js';
+import { getHeapManager } from '../memory/heap-manager.js';
 import {
   initOPFS,
   openModelDirectory,
   verifyIntegrity,
   listModels,
   loadManifestFromOPFS,
-} from '../src/storage/shard-manager.js';
-import { getManifest, parseManifest, type RDRRManifest } from '../src/storage/rdrr-format.js';
-import { downloadModel } from '../src/storage/downloader.js';
-import { requestPersistence, getStorageReport } from '../src/storage/quota.js';
-import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../src/gpu/device.js';
-import { prepareKernelRuntime } from '../src/gpu/kernel-runtime.js';
-import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from '../src/inference/pipeline.js';
-import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from '../src/bridge/index.js';
-import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from '../src/adapters/lora-loader.js';
-import { getDopplerLoader } from '../src/loader/doppler-loader.js';
-import { log } from '../src/debug/index.js';
+} from '../storage/shard-manager.js';
+import { getManifest, parseManifest, type RDRRManifest } from '../storage/rdrr-format.js';
+import { downloadModel } from '../storage/downloader.js';
+import { requestPersistence, getStorageReport } from '../storage/quota.js';
+import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../gpu/device.js';
+import { prepareKernelRuntime } from '../gpu/kernel-runtime.js';
+import { createPipeline, type InferencePipeline, type KVCacheSnapshot } from '../inference/pipeline.js';
+import { isBridgeAvailable, createBridgeClient, type ExtensionBridgeClient } from '../bridge/index.js';
+import { loadLoRAFromManifest, loadLoRAFromUrl, type LoRAManifest } from '../adapters/lora-loader.js';
+import { getDopplerLoader } from '../loader/doppler-loader.js';
+import { log } from '../debug/index.js';
 
 export const DOPPLER_PROVIDER_VERSION = '0.1.0';
 
@@ -142,16 +142,19 @@ export const DopplerCapabilities: DopplerCapabilitiesType = {
 };
 
 function extractTextModelConfig(manifest: RDRRManifest): TextModelConfig {
+  const arch = (manifest.architecture && typeof manifest.architecture === 'object')
+    ? (manifest.architecture as Record<string, unknown>)
+    : null;
   const cfg = manifest?.config || (manifest as unknown as Record<string, unknown>)?.modelConfig || {};
   const textCfg = (cfg as Record<string, unknown>)?.text_config || cfg;
   const textConfig = textCfg as Record<string, unknown>;
 
-  const hiddenSize = (textConfig.hidden_size || textConfig.n_embd || 4096) as number;
+  const hiddenSize = (arch?.hiddenSize ?? textConfig.hidden_size ?? textConfig.n_embd ?? 4096) as number;
 
-  // Try to get attention params from config, or infer from tensor shapes
-  let numHeads = (textConfig.num_attention_heads || textConfig.n_head) as number | undefined;
-  let numKVHeads = textConfig.num_key_value_heads as number | undefined;
-  let headDim = textConfig.head_dim as number | undefined;
+  // Try to get attention params from architecture/config, or infer from tensor shapes
+  let numHeads = (arch?.numAttentionHeads ?? textConfig.num_attention_heads ?? textConfig.n_head) as number | undefined;
+  let numKVHeads = (arch?.numKeyValueHeads ?? textConfig.num_key_value_heads) as number | undefined;
+  let headDim = (arch?.headDim ?? textConfig.head_dim) as number | undefined;
 
   // If attention params missing, try to infer from tensor shapes
   if (!numHeads || !headDim) {
@@ -169,14 +172,14 @@ function extractTextModelConfig(manifest: RDRRManifest): TextModelConfig {
   headDim = headDim || Math.floor(hiddenSize / numHeads);
 
   return {
-    numLayers: (textConfig.num_hidden_layers || textConfig.n_layer || 32) as number,
+    numLayers: (arch?.numLayers ?? textConfig.num_hidden_layers ?? textConfig.n_layer ?? 32) as number,
     hiddenSize,
-    intermediateSize: (textConfig.intermediate_size || textConfig.n_inner || 14336) as number,
+    intermediateSize: (arch?.intermediateSize ?? textConfig.intermediate_size ?? textConfig.n_inner ?? 14336) as number,
     numHeads,
     numKVHeads,
     headDim,
-    vocabSize: (textConfig.vocab_size || 32000) as number,
-    maxSeqLen: (textConfig.max_position_embeddings || textConfig.context_length || 4096) as number,
+    vocabSize: (arch?.vocabSize ?? textConfig.vocab_size ?? 32000) as number,
+    maxSeqLen: (arch?.maxSeqLen ?? textConfig.max_position_embeddings ?? textConfig.context_length ?? 4096) as number,
     quantization: (manifest?.quantization || 'f16').toUpperCase(),
   };
 }
@@ -525,7 +528,7 @@ async function loadModel(
     // Initialize pipeline with current capabilities
     const gpuCaps = getKernelCapabilities();
     const memCaps = await getMemoryCapabilities();
-    const { getDevice } = await import('../src/gpu/device.js');
+    const { getDevice } = await import('../gpu/device.js');
 
     // Create shard loader - use bridge or OPFS based on how model was loaded
     let loadShardFn: (idx: number) => Promise<Uint8Array>;
@@ -548,7 +551,7 @@ async function loadModel(
     } else {
       // Load shards from OPFS
       loadShardFn = async (idx: number): Promise<Uint8Array> => {
-        const m = await import('../src/storage/shard-manager.js');
+        const m = await import('../storage/shard-manager.js');
         const arrayBuffer = await m.loadShard(idx);
         return new Uint8Array(arrayBuffer);
       };
@@ -565,7 +568,7 @@ async function loadModel(
     }
     // For OPFS, baseUrl stays null - tokenizer.json would be fetched from same origin
 
-    pipeline = await createPipeline(manifest as unknown as import('../src/inference/pipeline/config.js').Manifest, {
+    pipeline = await createPipeline(manifest as unknown as import('../inference/pipeline/config.js').Manifest, {
       gpu: {
         capabilities: gpuCaps,
         device: getDevice(), // Use existing device, don't re-init

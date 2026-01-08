@@ -16,11 +16,27 @@ type TraceLoggerWithLayer = (layerIdx: number, message: string) => void;
 
 const STAGE_DEFAULT_CATEGORY: Record<ProbeStage, TraceCategory> = {
   embed_out: 'embed',
+  // Attention stages (per-layer)
+  attn_input: 'attn',
+  attn_normed: 'attn',
+  q_proj: 'attn',
+  k_proj: 'attn',
+  v_proj: 'attn',
+  q_rope: 'attn',
+  k_rope: 'attn',
+  attn_scores: 'attn',
   attn_out: 'attn',
+  o_proj: 'attn',
   post_attn: 'attn',
+  // FFN stages (per-layer)
+  ffn_normed: 'ffn',
   ffn_in: 'ffn',
+  ffn_gate: 'ffn',
+  ffn_up: 'ffn',
+  ffn_act: 'ffn',
   ffn_out: 'ffn',
   layer_out: 'ffn',
+  // Final stages
   pre_final_norm: 'logits',
   final_norm: 'logits',
   logits: 'logits',

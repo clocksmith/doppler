@@ -10,8 +10,22 @@
  * @module config/schema/inference-defaults
  */
 
-import type { LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
-import type { KernelPlanSchema } from './kernel-plan.schema.js';
+import type { ChatTemplateSchema, LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
+import type { KernelPathRef } from './kernel-path.schema.js';
+import type { ManifestInferenceSchema } from './manifest.schema.js';
+
+// Re-export for convenience
+export type { ManifestInferenceSchema };
+
+/**
+ * Deep partial type for runtime overrides of model-specific inference config.
+ * Allows overriding any nested field in ManifestInferenceSchema.
+ */
+export type ModelInferenceOverrides = {
+  [P in keyof ManifestInferenceSchema]?: ManifestInferenceSchema[P] extends object
+    ? { [K in keyof ManifestInferenceSchema[P]]?: ManifestInferenceSchema[P][K] }
+    : ManifestInferenceSchema[P];
+};
 
 // =============================================================================
 // Batching Defaults
@@ -169,8 +183,23 @@ export interface InferenceDefaultsConfigSchema {
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   pipeline?: LayerPipelineSchema | null;
-  /** Kernel pipeline plan overrides */
-  kernelPlan?: KernelPlanSchema | null;
+  /**
+   * Kernel path for explicit kernel dispatch ordering.
+   * Specifies exactly which kernels run, in what order, with what configs.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   */
+  kernelPath?: KernelPathRef;
+  /**
+   * Chat template override for runtime config.
+   * When set, overrides the model preset's chatTemplate.enabled setting.
+   */
+  chatTemplate?: ChatTemplateSchema;
+  /**
+   * Model-specific inference overrides.
+   * Allows runtime override of any manifest inference field (attention, normalization, rope, etc.).
+   * These are merged with manifest.inference via mergeConfig().
+   */
+  modelOverrides?: ModelInferenceOverrides;
 }
 
 /** Default inference configuration */
@@ -182,5 +211,5 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema = 
   largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
   prompt: null,
   pipeline: null,
-  kernelPlan: null,
+  kernelPath: undefined,
 };

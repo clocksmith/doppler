@@ -47,7 +47,7 @@ fn main(@builtin(local_invocation_id) lid: vec3<u32>) {
 ### Current Mitigation
 
 - Converter defaults to `--q4k-layout column_wise`
-- Loader uses dequant path via `kernelPlan.q4kStrategy = 'dequant_f16'`
+- Use kernel path overrides (`q4k-dequant-f16` / `q4k-dequant-f32`) to bypass fused Q4K when needed
 - Fused kernel still available for future optimization
 
 ### Future Fix Options

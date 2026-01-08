@@ -86,7 +86,7 @@ export class AddressTable {
     if (segmentIndex >= MAX_SEGMENTS) {
       throw new Error(`Segment index ${segmentIndex} exceeds max ${MAX_SEGMENTS - 1}`);
     }
-    if (offset > this.segmentSize) {
+    if (offset >= this.segmentSize) {
       throw new Error(`Offset ${offset} exceeds segment size ${this.segmentSize}`);
     }
 

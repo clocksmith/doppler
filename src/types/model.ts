@@ -9,10 +9,17 @@ export type ModelArchitecture =
   | 'gemma'
   | 'gemma2'
   | 'gemma3'
+  | 'functiongemma'
   | 'qwen2'
+  | 'qwen3'
   | 'phi3'
   | 'gptoss'
-  | 'mixtral';
+  | 'gpt-oss'
+  | 'mixtral'
+  | 'deepseek'
+  | 'mamba'
+  | 'kimi_k2'
+  | 'transformer';
 
 /** Attention type variants */
 export type AttentionType = 'mha' | 'gqa' | 'mqa';

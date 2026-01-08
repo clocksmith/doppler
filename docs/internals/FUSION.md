@@ -8,7 +8,7 @@ Technical deep-dive on kernel fusion opportunities, command batching, and optimi
 
 | Fusion | Passes | Speedup | Files |
 |--------|--------|---------|-------|
-| Gate+Up FFN | 3→2 | 1.2-1.3x | `ffn.ts`, `rdrr-writer.ts` |
+| Gate+Up FFN | 3→2 | 1.2-1.3x | `ffn.ts`, `src/converter/writer.ts` |
 | FlashAttention (tiled + online softmax) | N→1 | 2x | `attention.wgsl` |
 | Logits+Argmax+Sampling | 3→1 | 1.3-1.5x | `logits.ts`, `sample.wgsl` |
 | Dequant Q4K → F16 GEMV | 2 | 2.3x | `dequant_subgroup.wgsl`, `matmul_gemv_subgroup.wgsl` |

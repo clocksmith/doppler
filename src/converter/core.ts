@@ -22,17 +22,19 @@ import {
   type ConversionOptionsSchema,
   type ConversionIOSchema,
   type ArchitectureSchema,
+  type ManifestInferenceSchema,
   type ShardSchema,
   type TensorSpanSchema,
   type TensorSchema,
   type TokenizerSchema,
   type QuantizationInfoSchema,
-  type ManifestSchema,
   ConversionStage as SchemaConversionStage,
 } from '../config/schema/index.js';
 
 import { generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
+import { detectPreset, resolvePreset } from '../config/index.js';
+import { buildManifestInference } from './manifest-inference.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -105,6 +107,7 @@ export interface RDRRManifest {
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
   architecture: ArchitectureConfig;
+  inference: ManifestInferenceSchema;
   shards: ShardInfo[];
   tensors: Record<string, TensorLocation>;
   totalSize: number;
@@ -115,6 +118,12 @@ export interface RDRRManifest {
     convertedAt: string;
     hasTokenizer?: boolean;
   };
+}
+
+export interface CreateManifestOptions {
+  source?: string;
+  inference?: ManifestInferenceSchema;
+  modelType?: string;
 }
 
 /**
@@ -312,16 +321,56 @@ export function createManifest(
   model: ParsedModel,
   shards: ShardInfo[],
   tensorLocations: Record<string, TensorLocation>,
-  source: string = 'convert-core'
+  source?: string
+): RDRRManifest;
+export function createManifest(
+  modelId: string,
+  model: ParsedModel,
+  shards: ShardInfo[],
+  tensorLocations: Record<string, TensorLocation>,
+  options?: CreateManifestOptions
+): RDRRManifest;
+export function createManifest(
+  modelId: string,
+  model: ParsedModel,
+  shards: ShardInfo[],
+  tensorLocations: Record<string, TensorLocation>,
+  sourceOrOptions: string | CreateManifestOptions = 'convert-core'
 ): RDRRManifest {
+  const options = typeof sourceOrOptions === 'string' ? { source: sourceOrOptions } : sourceOrOptions ?? {};
+  const source = options.source ?? 'convert-core';
   const architecture = extractArchitecture(model.config);
+  const rawConfig = (model.config || {}) as RawModelConfigSchema;
+  let inference = options.inference;
+  if (!inference) {
+    const presetId = detectPreset(rawConfig, model.architecture);
+    if (presetId === 'transformer') {
+      const modelType = rawConfig.model_type ?? 'unknown';
+      throw new Error(
+        `Unknown model family: architecture="${model.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
+        `DOPPLER requires a known model preset to generate correct inference config.\n` +
+        `The manifest-first architecture does not support generic defaults.\n\n` +
+        `Options:\n` +
+        `  1. Wait for official support of this model family\n` +
+        `  2. Create a custom preset in src/config/presets/models/\n` +
+        `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+        `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+      );
+    }
+    const preset = resolvePreset(presetId);
+    const headDim = (rawConfig.head_dim as number) ??
+      architecture.headDim ??
+      Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
+    inference = buildManifestInference(preset, rawConfig, headDim || 64);
+  }
 
   const manifest: RDRRManifest = {
     version: RDRR_VERSION,
     modelId,
-    modelType: model.config?.architectures?.[0] || model.architecture || 'unknown',
+    modelType: options.modelType || model.config?.architectures?.[0] || model.architecture || 'unknown',
     quantization: model.quantization || 'F16',
     architecture,
+    inference,
     shards,
     tensors: tensorLocations,
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),

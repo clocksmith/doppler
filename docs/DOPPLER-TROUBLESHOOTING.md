@@ -42,7 +42,7 @@ If reference works but DOPPLER doesn't, the bug is in DOPPLER implementation.
 
 Check the converted RDRR model's `manifest.json`.
 
-**Source formats:** DOPPLER's `convert-cli` supports both **safetensors** (HuggingFace) and **GGUF** (llama.cpp) as input formats. The resulting RDRR format is the same regardless of source. If debugging issues, compare against the original source (HuggingFace for safetensors, llama.cpp for GGUF).
+**Source formats:** DOPPLER's `node-converter` supports both **safetensors** (HuggingFace) and **GGUF** (llama.cpp) as input formats. The resulting RDRR format is the same regardless of source. If debugging issues, compare against the original source (HuggingFace for safetensors, llama.cpp for GGUF).
 
 ```bash
 cat model/manifest.json | jq '{
@@ -865,5 +865,4 @@ When debugging DOPPLER issues:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
-
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

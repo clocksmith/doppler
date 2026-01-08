@@ -17,7 +17,7 @@ import { parseManifest, type RDRRManifest } from '../storage/rdrr-format.js';
 import { createPipeline, type Pipeline } from './pipeline.js';
 import type { Manifest } from './pipeline/config.js';
 import { log as debugLog } from '../debug/index.js';
-import type { RuntimeConfigSchema, KernelPlanSchema } from '../config/schema/index.js';
+import type { RuntimeConfigSchema } from '../config/schema/index.js';
 import { DEFAULT_HOTSWAP_CONFIG, type HotSwapConfigSchema } from '../config/schema/hotswap.schema.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import {
@@ -49,7 +49,11 @@ export interface ModelInfo {
  */
 export interface RuntimeOverrides {
   debug?: boolean;
-  kernelPlan?: KernelPlanSchema;
+  /**
+   * Kernel path for explicit kernel dispatch ordering.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   */
+  kernelPath?: string | import('../config/schema/index.js').KernelPathSchema;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
   /** Enable GPU timestamp profiling */
   profile?: boolean;
@@ -126,7 +130,6 @@ export async function discoverModels(
  * Parse runtime overrides from URL query parameters.
  *
  * Supported parameters:
- * - kernelPlan: JSON object with kernel plan overrides
  * - debug: Enable debug mode
  *
  * @param searchParams - URLSearchParams to parse (default: window.location.search)
@@ -138,15 +141,19 @@ export function parseRuntimeOverridesFromURL(
   const params = searchParams || new URLSearchParams(window.location.search);
 
   const runtime: RuntimeOverrides = {};
-  const kernelPlanRaw = params.get('kernelPlan');
-  if (kernelPlanRaw) {
-    try {
-      const parsed = JSON.parse(kernelPlanRaw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        runtime.kernelPlan = parsed as KernelPlanSchema;
+
+  // Kernel path (new, preferred) - can be preset ID or inline JSON
+  const kernelPathRaw = params.get('kernelPath');
+  if (kernelPathRaw) {
+    if (kernelPathRaw.startsWith('{')) {
+      try {
+        runtime.kernelPath = JSON.parse(kernelPathRaw);
+      } catch (e) {
+        debugLog.warn('TestHarness', `Failed to parse kernelPath JSON: ${(e as Error).message}`);
       }
-    } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse kernelPlan JSON: ${(e as Error).message}`);
+    } else {
+      // Preset ID (e.g., 'gemma2-q4k-fused')
+      runtime.kernelPath = kernelPathRaw;
     }
   }
 
@@ -403,7 +410,7 @@ export async function initializeInference(
     baseUrl: modelUrl,
     runtime: {
       debug: runtime.debug,
-      kernelPlan: runtime.kernelPlan,
+      kernelPath: runtime.kernelPath,
     },
     onProgress: (progress: { percent: number; stage?: string; message?: string }) => {
       const pct = 0.2 + progress.percent * 0.8;

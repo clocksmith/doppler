@@ -234,7 +234,7 @@ export function hexToBytes(hex: string): Uint8Array {
  * Computes BLAKE3 hash of data
  */
 export async function computeBlake3(data: Uint8Array | ArrayBuffer): Promise<string> {
-  await initBlake3();
+  await initBlake3('blake3');
 
   const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
   const hash = await blake3Module!.hash(bytes);

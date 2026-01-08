@@ -6,13 +6,14 @@
  * - Top-K fused softmax (for MoE routing)
  */
 
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { createTensor, type Tensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import type { OutputBufferOptions } from './types.js';
+import { trace } from '../../debug/index.js';
 
 /** Softmax kernel options */
 export interface SoftmaxOptions extends OutputBufferOptions {
@@ -21,6 +22,30 @@ export interface SoftmaxOptions extends OutputBufferOptions {
   seqLen?: number | null;
   temperature?: number;
   normalize?: boolean;
+}
+
+/** Threshold for "small" softmax variant (single element per thread) */
+const SOFTMAX_SMALL_THRESHOLD = 256;
+
+/**
+ * Select softmax kernel variant based on size and GPU capabilities.
+ * Prefers subgroup-accelerated variants when available.
+ */
+function selectSoftmaxVariant(innerSize: number): string {
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+
+  if (hasSubgroups) {
+    if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
+      return 'small_subgroup';
+    }
+    return 'subgroup';
+  }
+
+  if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
+    return 'small';
+  }
+  return 'default';
 }
 
 /**
@@ -36,7 +61,9 @@ export async function runSoftmax(
 
   const bytesPerElement = input.dtype === 'f16' ? 2 : 4;
   const inferredSize = size || (input.buffer.size / (batchSize * bytesPerElement));
-  const pipeline = await createPipeline('softmax', 'default');
+  const variant = selectSoftmaxVariant(inferredSize);
+  trace.kernels(`Softmax: size=${inferredSize}, variant=${variant}`);
+  const pipeline = await createPipeline('softmax', variant);
 
   const outputSize = batchSize * inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');

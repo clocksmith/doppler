@@ -13,7 +13,7 @@ This document covers the debugging session for Gemma 3 1B WebGPU inference, whic
 
 ## Root Cause: Q4_K Quantization Format Mismatch
 
-The primary bug was in `tools/quantizer.js`. Our quantizer produced data in a **different format** than what the GPU dequantizer (`gpu/kernels/dequant_shared.wgsl`) expected.
+The primary bug was in `src/converter/quantizer.ts`. Our quantizer produced data in a **different format** than what the GPU dequantizer (`gpu/kernels/dequant_shared.wgsl`) expected.
 
 ### The Mismatch
 
@@ -41,7 +41,7 @@ Our broken quantizer stored the actual minimum with a sign bit, but the GPU kern
 
 ### The Fix
 
-Rewrote `quantizeQ4KBlock()` in `tools/quantizer.js`:
+Rewrote `quantizeQ4KBlock()` in `src/converter/quantizer.ts`:
 1. Store `-min` as positive offset (the value to subtract)
 2. Use llama.cpp byte layout for scales/mins
 3. Match the nibble packing format for 4-bit values
@@ -104,7 +104,7 @@ x = x + ffn_out
 
 | File | Change |
 |------|--------|
-| `tools/quantizer.js` | Rewrote Q4_K encoding to match llama.cpp format |
+| `src/converter/quantizer.ts` | Rewrote Q4_K encoding to match llama.cpp format |
 | `models/gemma3-1b-q4/` | Re-converted with fixed quantizer |
 
 ## Files Created During Debug
@@ -147,11 +147,10 @@ After fixing, verify:
 
 - `gpu/kernels/dequant_shared.wgsl`: GPU Q4_K dequantization (llama.cpp format)
 - `gpu/kernels/dequant_subgroup.wgsl`: Subgroup-optimized variant
-- `tools/quantizer.js`: CPU quantization for model conversion
+- `src/converter/quantizer.ts`: CPU quantization for model conversion
 - `loader/doppler-loader.js`: Weight loading with Gemma 3 norm offset
 - `inference/pipeline.js`: Main inference with layer processing
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes (4-bit/9-bit), CLI flags (`--kernel-plan`, `--kernel-profile`), and the OPFS purge helper.
-
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.

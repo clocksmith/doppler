@@ -55,11 +55,18 @@ export class DecodeBufferManager {
    * No-op if already allocated with matching config.
    */
   ensureBuffers(config: DecodeBufferConfig): DecodeBuffers {
+    const normalizedConfig: DecodeBufferConfig = {
+      ...config,
+      enablePingPong: config.enablePingPong ?? false,
+      activationDtype: config.activationDtype ?? 'f32',
+    };
+
     // Check if we already have matching buffers
     if (this.buffers && this.config &&
-        this.config.hiddenSize === config.hiddenSize &&
-        this.config.intermediateSize === config.intermediateSize &&
-        this.config.activationDtype === config.activationDtype) {
+        this.config.hiddenSize === normalizedConfig.hiddenSize &&
+        this.config.intermediateSize === normalizedConfig.intermediateSize &&
+        this.config.activationDtype === normalizedConfig.activationDtype &&
+        this.config.enablePingPong === normalizedConfig.enablePingPong) {
       return this.buffers;
     }
 
@@ -76,9 +83,9 @@ export class DecodeBufferManager {
     // Allocate buffers
     // For decode, we process 1 token at a time (M=1)
     // F16 activations use 2 bytes per element, F32 uses 4 bytes
-    const bytesPerElement = config.activationDtype === 'f16' ? 2 : 4;
-    const hiddenBytes = config.hiddenSize * bytesPerElement;
-    const intermediateBytes = config.intermediateSize * bytesPerElement;
+    const bytesPerElement = normalizedConfig.activationDtype === 'f16' ? 2 : 4;
+    const hiddenBytes = normalizedConfig.hiddenSize * bytesPerElement;
+    const intermediateBytes = normalizedConfig.intermediateSize * bytesPerElement;
 
     const hidden = device.createBuffer({
       label: 'decode_hidden',
@@ -99,10 +106,10 @@ export class DecodeBufferManager {
     });
 
     this.buffers = { hidden, attnOutput, ffnIntermediate };
-    this.config = config;
+    this.config = normalizedConfig;
 
     // Allocate alternate hidden buffer for ping-pong if enabled
-    if (config.enablePingPong) {
+    if (normalizedConfig.enablePingPong) {
       this.buffers.hiddenAlt = device.createBuffer({
         label: 'decode_hidden_alt',
         size: hiddenBytes,
