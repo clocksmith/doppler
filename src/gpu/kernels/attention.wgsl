@@ -7,8 +7,8 @@
 // Based on Flash Attention principles adapted for WebGPU.
 
 // Tile sizes for blocked attention
-override BLOCK_SIZE: u32 = 64u;  // Sequence tile size
-override HEAD_TILE: u32 = 64u;   // Head dimension tile
+override BLOCK_SIZE: u32 = 32u;  // Sequence tile size
+override HEAD_TILE: u32 = 32u;   // Head dimension tile
 override WORKGROUP_SIZE: u32 = 64u;  // Main kernel workgroup size
 override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size
 
@@ -34,9 +34,9 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Shared memory for tiled computation
-var<workgroup> shared_K: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_V: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_scores: array<f32, 4096>;  // BLOCK_SIZE * BLOCK_SIZE
+var<workgroup> shared_K: array<f32, 1024>;  // BLOCK_SIZE * HEAD_TILE
+var<workgroup> shared_V: array<f32, 1024>;  // BLOCK_SIZE * HEAD_TILE
+var<workgroup> shared_scores: array<f32, 1024>;  // BLOCK_SIZE * BLOCK_SIZE
 
 // Online softmax accumulators (per-thread)
 // Sized for 256 to support attention_decode workgroup size (prefill uses 64)

@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "modelId": "mini-test-model-wf32",
+  "modelType": "transformer",
+  "architecture": {
+    "numLayers": 2,
+    "hiddenSize": 64,
+    "intermediateSize": 128,
+    "numAttentionHeads": 2,
+    "numKeyValueHeads": 2,
+    "headDim": 32,
+    "vocabSize": 32,
+    "maxSeqLen": 128,
+    "ropeTheta": 10000,
+    "rmsNormEps": 1e-6
+  },
+  "quantization": "F32",
+  "quantizationInfo": {
+    "weights": "f32",
+    "embeddings": "f32",
+    "variantTag": "wf32"
+  },
+  "hashAlgorithm": "sha256",
+  "config": {
+    "architectures": ["TestTransformerForCausalLM"],
+    "model_type": "test",
+    "hidden_size": 64,
+    "intermediate_size": 128,
+    "num_attention_heads": 2,
+    "num_key_value_heads": 2,
+    "num_hidden_layers": 2,
+    "head_dim": 32,
+    "vocab_size": 32,
+    "max_position_embeddings": 128,
+    "rope_theta": 10000,
+    "rms_norm_eps": 1e-6,
+    "bos_token_id": 1,
+    "eos_token_id": 2,
+    "pad_token_id": 0
+  },
+  "tokenizer": {
+    "type": "bundled",
+    "file": "tokenizer.json",
+    "vocabSize": 32,
+    "tokenizerType": "bpe"
+  },
+  "shards": [
+    {
+      "index": 0,
+      "fileName": "shard-0.bin",
+      "size": 337152,
+      "hash": "fixture-hash-placeholder",
+      "hashAlgorithm": "sha256"
+    }
+  ],
+  "groups": {
+    "embed": {
+      "type": "embed",
+      "version": "1.0.0",
+      "shards": [0],
+      "tensors": ["model.embed_tokens.weight"],
+      "hash": "0000000000000000000000000000000000000000000000000000000000000001"
+    },
+    "layer.0": {
+      "type": "layer",
+      "version": "1.0.0",
+      "shards": [0],
+      "tensors": [
+        "model.layers.0.input_layernorm.weight",
+        "model.layers.0.self_attn.q_proj.weight",
+        "model.layers.0.self_attn.k_proj.weight",
+        "model.layers.0.self_attn.v_proj.weight",
+        "model.layers.0.self_attn.o_proj.weight",
+        "model.layers.0.post_attention_layernorm.weight",
+        "model.layers.0.mlp.gate_proj.weight",
+        "model.layers.0.mlp.up_proj.weight",
+        "model.layers.0.mlp.down_proj.weight"
+      ],
+      "hash": "0000000000000000000000000000000000000000000000000000000000000002",
+      "layerIndex": 0
+    },
+    "layer.1": {
+      "type": "layer",
+      "version": "1.0.0",
+      "shards": [0],
+      "tensors": [
+        "model.layers.1.input_layernorm.weight",
+        "model.layers.1.self_attn.q_proj.weight",
+        "model.layers.1.self_attn.k_proj.weight",
+        "model.layers.1.self_attn.v_proj.weight",
+        "model.layers.1.self_attn.o_proj.weight",
+        "model.layers.1.post_attention_layernorm.weight",
+        "model.layers.1.mlp.gate_proj.weight",
+        "model.layers.1.mlp.up_proj.weight",
+        "model.layers.1.mlp.down_proj.weight"
+      ],
+      "hash": "0000000000000000000000000000000000000000000000000000000000000003",
+      "layerIndex": 1
+    },
+    "head": {
+      "type": "head",
+      "version": "1.0.0",
+      "shards": [0],
+      "tensors": ["model.norm.weight"],
+      "hash": "0000000000000000000000000000000000000000000000000000000000000004"
+    }
+  },
+  "tensorsFile": "tensors.json",
+  "tensorCount": 20,
+  "moeConfig": null,
+  "totalSize": 337152,
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 5.656854249492381,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": false
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": false,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true
+    },
+    "rope": {
+      "ropeTheta": 10000,
+      "ropeLocalTheta": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": false
+    }
+  }
+}

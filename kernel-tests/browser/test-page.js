@@ -434,7 +434,9 @@ const testHarness = {
     const cosBuf = makeBuffer(cos);
     const sinBuf = makeBuffer(sin);
 
-    await runRoPE(inputBuf, cosBuf, sinBuf, seqLen, {
+    const inputTensor = createTensor(inputBuf, 'f32', [seqLen, numHeads, headDim], 'rope_input');
+
+    await runRoPE(inputTensor, cosBuf, sinBuf, seqLen, {
       numHeads,
       headDim,
       startPos,
@@ -460,11 +462,13 @@ const testHarness = {
     }
 
     const inputBuf = makeBuffer(input);
-    const resultBuf = await runSiLU(inputBuf, { size: input.length });
-    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'silu_input');
+
+    const resultTensor = await runSiLU(inputTensor, { size: input.length });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
 
     inputBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -480,12 +484,15 @@ const testHarness = {
     const gateBuf = makeBuffer(gate);
     const upBuf = makeBuffer(up);
 
-    const resultBuf = await runSiLU(upBuf, { size: up.length, gate: gateBuf });
-    const result = new Float32Array(await readBufferData(resultBuf, up.length * 4));
+    const gateTensor = createTensor(gateBuf, 'f32', [gate.length], 'silu_gate');
+    const upTensor = createTensor(upBuf, 'f32', [up.length], 'silu_up');
+
+    const resultTensor = await runSiLU(upTensor, { size: up.length, gate: gateTensor });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, up.length * 4));
 
     gateBuf.destroy();
     upBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -502,8 +509,12 @@ const testHarness = {
     const embBuf = makeBuffer(embeddings);
     const idxBuf = makeBuffer(indices);
     const numTokens = indices.length;
+
+    const embTensor = createTensor(embBuf, 'f32', [vocabSize, embedDim], 'gather_embeddings');
+    const idxTensor = createTensor(idxBuf, 'u32', [numTokens], 'gather_indices');
+
     // Test data uses standard [vocab_size, hidden_size] layout, not GGUF [hidden_size, vocab_size]
-    const resultTensor = await runGather(idxBuf, embBuf, numTokens, embedDim, vocabSize, { transpose: false });
+    const resultTensor = await runGather(idxTensor.buffer, embTensor.buffer, numTokens, embedDim, vocabSize, { transpose: false });
     let result;
     if (resultTensor.dtype === 'f16') {
       const rawData = await readBufferData(resultTensor.buffer, numTokens * embedDim * 2);
@@ -537,12 +548,16 @@ const testHarness = {
     const xBuf = makeBuffer(x);
     const resBuf = makeBuffer(residual);
     const size = x.length;
-    const resultBuf = await runResidualAdd(xBuf, resBuf, size);
-    const result = new Float32Array(await readBufferData(resultBuf, size * 4));
+
+    const xTensor = createTensor(xBuf, 'f32', [size], 'residual_x');
+    const resTensor = createTensor(resBuf, 'f32', [size], 'residual_res');
+
+    const resultTensor = await runResidualAdd(xTensor, resTensor, size);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, size * 4));
 
     xBuf.destroy();
     resBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -661,8 +676,12 @@ const testHarness = {
     const maskBuf = mask ? makeBuffer(mask) : null;
     const isCausal = !!mask;
 
+    const qTensor = createTensor(qBuf, 'f32', [seqLen, numHeads, headDim], 'attn_q');
+    const kTensor = createTensor(kBuf, 'f32', [kvLen, numKVHeads, headDim], 'attn_k');
+    const vTensor = createTensor(vBuf, 'f32', [kvLen, numKVHeads, headDim], 'attn_v');
+
     // Run attention via kernel selector (handles tier selection automatically)
-    const outBuf = await runAttention(qBuf, kBuf, vBuf, maskBuf, numHeads, headDim, {
+    const resultTensor = await runAttention(qTensor, kTensor, vTensor, maskBuf, numHeads, headDim, {
       seqLen,
       kvLen,
       numKVHeads,
@@ -671,12 +690,12 @@ const testHarness = {
     });
 
     // Read back result
-    const out = new Float32Array(await readBufferData(outBuf, seqLen * numHeads * headDim * 4));
+    const out = new Float32Array(await readBufferData(resultTensor.buffer, seqLen * numHeads * headDim * 4));
     qBuf.destroy();
     kBuf.destroy();
     vBuf.destroy();
     maskBuf?.destroy();
-    outBuf.destroy();
+    resultTensor.buffer.destroy();
     return out;
   },
 
@@ -774,14 +793,17 @@ const testHarness = {
     const gateBuf = makeBuffer(gateWithBias);
     const upBuf = makeBuffer(upWithBias);
 
-    // runSiLU with gate option: output = silu(gate) * up
-    const resultBuf = await runSiLU(upBuf, { size, gate: gateBuf });
+    const gateTensor = createTensor(gateBuf, 'f32', [size], 'swiglu_gate');
+    const upTensor = createTensor(upBuf, 'f32', [size], 'swiglu_up');
 
-    const result = new Float32Array(await readBufferData(resultBuf, size * 4));
+    // runSiLU with gate option: output = silu(gate) * up
+    const resultTensor = await runSiLU(upTensor, { size, gate: gateTensor });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, size * 4));
 
     gateBuf.destroy();
     upBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -800,11 +822,13 @@ const testHarness = {
     }
 
     const inputBuf = makeBuffer(input);
-    const resultBuf = await runScale(inputBuf, scale, { count: input.length });
-    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'scale_input');
+
+    const resultTensor = await runScale(inputTensor, scale, { count: input.length });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
 
     inputBuf.destroy();
-    resultBuf.destroy();
+    resultTensor.buffer.destroy();
 
     return result;
   },
@@ -931,8 +955,9 @@ const testHarness = {
 
     const blockSize = 256;  // Q6_K: 256 elements per block
     const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
-    const outBuf = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0 });
+    const outTensor = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0 });
 
+    const outBuf = outTensor.buffer;
     // Q6K outputs f16 - read raw bytes and convert
     const rawData = await readBufferData(outBuf, numBlocks * blockSize * 2);  // f16 = 2 bytes
     const u16View = new Uint16Array(rawData);

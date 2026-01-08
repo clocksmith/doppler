@@ -11,12 +11,14 @@ const presetInference = {
 };
 
 describe('buildRoPEConfig', () => {
-  it('throws when rope_scaling exists without type', () => {
+  it('infers linear scaling when factor is present but type is missing', () => {
     const config = {
       rope_scaling: { factor: 2.0 },
     };
 
-    expect(() => buildRoPEConfig(presetInference, config)).toThrow(/rope_scaling.*type/i);
+    const rope = buildRoPEConfig(presetInference, config);
+    expect(rope.ropeScalingType).toBe('linear');
+    expect(rope.ropeScalingFactor).toBe(2.0);
   });
 
   it('fails fast for YARN when required params are missing', () => {

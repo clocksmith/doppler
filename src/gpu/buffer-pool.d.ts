@@ -1,0 +1,155 @@
+/**
+ * GPU Buffer Pool - Efficient Buffer Allocation and Reuse
+ *
+ * Manages GPU buffer allocation with pooling for reuse,
+ * reducing allocation overhead during inference.
+ */
+
+import type { BufferPoolConfigSchema } from '../config/schema/index.js';
+
+/**
+ * Pool statistics
+ */
+export interface PoolStats {
+  allocations: number;
+  reuses: number;
+  totalBytesAllocated: number;
+  peakBytesAllocated: number;
+  currentBytesAllocated: number;
+  activeBuffers: number;
+  pooledBuffers: number;
+  hitRate: string;
+}
+
+/**
+ * Pool configuration
+ */
+export interface PoolConfig {
+  maxPoolSizePerBucket: number;
+  maxTotalPooledBuffers: number;
+  enablePooling: boolean;
+  alignmentBytes: number;
+}
+
+/**
+ * Buffer usage flags for different operations
+ */
+export declare const BufferUsage: {
+  readonly STORAGE: number;
+  readonly STORAGE_READ: number;
+  readonly UNIFORM: number;
+  readonly STAGING_READ: number;
+  readonly STAGING_WRITE: number;
+};
+
+/**
+ * Tracked buffer metadata for leak detection
+ */
+interface BufferMetadata {
+  size: number;
+  usage: GPUBufferUsageFlags;
+  label?: string;
+  acquiredAt: number;
+  stackTrace?: string;
+}
+
+/**
+ * Buffer Pool for efficient GPU memory reuse
+ */
+export declare class BufferPool {
+  constructor(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema);
+
+  /**
+   * Get or create a buffer of the specified size
+   */
+  acquire(size: number, usage?: GPUBufferUsageFlags, label?: string): GPUBuffer;
+
+  /**
+   * Release a buffer back to the pool
+   */
+  release(buffer: GPUBuffer): void;
+
+  /**
+   * Detect leaked buffers (debug mode)
+   */
+  detectLeaks(thresholdMs?: number): BufferMetadata[];
+
+  /**
+   * Create a staging buffer for CPU readback
+   */
+  createStagingBuffer(size: number): GPUBuffer;
+
+  /**
+   * Create a staging buffer for CPU upload
+   */
+  createUploadBuffer(size: number): GPUBuffer;
+
+  /**
+   * Create a uniform buffer
+   */
+  createUniformBuffer(size: number): GPUBuffer;
+
+  /**
+   * Upload data to GPU buffer
+   */
+  uploadData(buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number): void;
+
+  /**
+   * Read data from GPU buffer
+   * NOTE: GPU readbacks are expensive (0.5-2ms overhead per call). Use sparingly.
+   */
+  readBuffer(buffer: GPUBuffer, size?: number): Promise<ArrayBuffer>;
+
+  /**
+   * Clear all pooled buffers
+   */
+  clearPool(): void;
+
+  /**
+   * Destroy all buffers (active and pooled)
+   */
+  destroy(): void;
+
+  /**
+   * Get pool statistics
+   */
+  getStats(): PoolStats;
+
+  /**
+   * Configure pool settings
+   */
+  configure(config: Partial<PoolConfig>): void;
+}
+
+/**
+ * Get the global buffer pool
+ */
+export function getBufferPool(): BufferPool;
+
+/**
+ * Create a standalone buffer pool
+ */
+export function createBufferPool(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema): BufferPool;
+
+/**
+ * Destroy the global buffer pool
+ */
+export function destroyBufferPool(): void;
+
+// Convenience exports for common operations
+export declare const createStagingBuffer: (size: number) => GPUBuffer;
+export declare const createUploadBuffer: (size: number) => GPUBuffer;
+export declare const createUniformBuffer: (size: number) => GPUBuffer;
+export declare const acquireBuffer: (size: number, usage?: GPUBufferUsageFlags, label?: string) => GPUBuffer;
+export declare const releaseBuffer: (buffer: GPUBuffer) => void;
+export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;
+export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
+
+/**
+ * Scoped buffer helper - automatically releases buffer when done
+ */
+export function withBuffer<T>(
+  size: number,
+  usage: GPUBufferUsageFlags,
+  fn: (buffer: GPUBuffer) => Promise<T>
+): Promise<T>;
