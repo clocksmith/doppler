@@ -62,7 +62,7 @@ After odd layers, the index swapped back to 0, making both `decodeHiddenBuffer` 
 
 ## Fix Applied
 
-### pipeline.ts:1139-1142 - Capture Both Buffers Upfront
+### pipeline.js:1139-1142 - Capture Both Buffers Upfront
 
 ```typescript
 // AFTER: Capture both buffers once, before the loop
@@ -88,7 +88,7 @@ These references remain stable throughout the loop, correctly identifying both p
 
 ## Additional Fix
 
-### gpu/kernels/fused_ffn.ts:148,223 - Trace API Signature
+### gpu/kernels/fused_ffn.js:148,223 - Trace API Signature
 
 Build failed due to `trace.ffn()` being called with 1 argument instead of 2:
 
@@ -100,7 +100,7 @@ trace.ffn(`FusedFFN: variant=${variant}...`);
 trace.kernels(`FusedFFN: variant=${variant}...`);
 ```
 
-The `trace.ffn()` function requires `(layerIdx: number, message: string)` for layer-specific tracing. Since `fused_ffn.ts` is a kernel file without layer context, `trace.kernels()` is more appropriate.
+The `trace.ffn()` function requires `(layerIdx: number, message: string)` for layer-specific tracing. Since `fused_ffn.js` is a kernel file without layer context, `trace.kernels()` is more appropriate.
 
 ---
 
@@ -125,5 +125,5 @@ After fix:
 ## Related
 
 - Commit d1b40f0: Original ping-pong buffer implementation
-- `inference/decode-buffers.ts`: DecodeBufferManager implementation
-- `inference/pipeline.ts:_decodeStep()`: Decode token generation loop
+- `inference/decode-buffers.js`: DecodeBufferManager implementation
+- `inference/pipeline.js:_decodeStep()`: Decode token generation loop

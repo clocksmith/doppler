@@ -18,16 +18,16 @@ This file is a human-readable log. Store machine-readable benchmark outputs as J
 See also:
 - `docs/design/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema
 - `docs/design/KERNEL_TESTING.md` for WGSL kernel testing specification
-- `kernel-tests/TODO.md` for implementation status
-- `kernel-tests/BENCHMARKS.md` for kernel microbenchmark baselines
+- `tests/kernels/TODO.md` for implementation status
+- `tests/kernels/BENCHMARKS.md` for kernel microbenchmark baselines
 
 ## Result Artifacts (Recommended)
 
 | Artifact | Purpose | Suggested Path |
 |----------|---------|----------------|
 | Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `tests/test-results/` |
-| Kernel correctness JSON/HTML | per-kernel correctness | `kernel-tests/test-results/` |
-| Kernel benchmark JSON/HTML | per-kernel timings | `kernel-tests/test-results/` |
+| Kernel correctness JSON/HTML | per-kernel correctness | `tests/kernels/test-results/` |
+| Kernel benchmark JSON/HTML | per-kernel timings | `tests/kernels/test-results/` |
 
 If a run does not have a JSON artifact yet, record the session here and file it as follow-up work.
 
@@ -80,7 +80,7 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 #### Bug Fix 2: Router Weight Quantization (FIXED)
 - Root cause: Router weights quantized to Q4_K_M despite HuggingFace config `modules_to_not_convert`
 - Symptom: Router logits extreme (56 vs -39), softmax collapses to [1.0, 0.0, 0.0, 0.0]
-- Fix: Updated `shouldQuantize()` in quantizer.ts to check:
+- Fix: Updated `shouldQuantize()` in quantizer.js to check:
   1. Hard-coded `router` and `gate.weight` patterns
   2. HuggingFace `modules_to_not_convert` config from quantization_config
 - Reconverted model: Router weights now BF16 (184KB vs 52KB Q4_K_M)
@@ -98,10 +98,10 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 - Loader fallback exists but may need debugging
 
 **Files modified**:
-- `gpu/kernel-selector.ts` - Added explicit bind group layout for MoE
+- `gpu/kernel-selector.js` - Added explicit bind group layout for MoE
 - `gpu/kernels/moe_gather.wgsl` - Cleaned up, added layout note
-- `src/converter/quantizer.ts` - Added router check in `shouldQuantize()`
-- `src/converter/node-converter.ts` - Pass `modules_to_not_convert` to shouldQuantize
+- `src/converter/quantizer.js` - Added router check in `shouldQuantize()`
+- `src/converter/node-converter.js` - Pass `modules_to_not_convert` to shouldQuantize
 
 ---
 
@@ -131,7 +131,7 @@ Preferred output:
 
 To avoid instruction drift, prefer linking to the canonical runner docs:
 
-- Kernel tests and microbenchmarks: `kernel-tests/TODO.md` and `kernel-tests/BENCHMARKS.md`
+- Kernel tests and microbenchmarks: `tests/kernels/TODO.md` and `tests/kernels/BENCHMARKS.md`
 - End-to-end inference tests: `tests/test-inference.html`
 
 ## Known Issues by Platform

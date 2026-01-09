@@ -111,10 +111,10 @@ Norms:       BF16 → F32 (for numerical stability)
 **Usage:**
 ```bash
 # Convert with column-wise Q4K (default - fastest for GEMV decode)
-npx tsx doppler/src/converter/node-converter.ts model/ output/ --quantize q4_k_m
+npx tsx doppler/src/converter/node-converter.js model/ output/ --quantize q4_k_m
 
 # Explicitly specify layout
-npx tsx doppler/src/converter/node-converter.ts model/ output/ --quantize q4_k_m --q4k-layout column_wise
+npx tsx doppler/src/converter/node-converter.js model/ output/ --quantize q4_k_m --q4k-layout column_wise
 ```
 
 ---

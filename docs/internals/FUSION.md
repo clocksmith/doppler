@@ -8,13 +8,13 @@ Technical deep-dive on kernel fusion opportunities, command batching, and optimi
 
 | Fusion | Passes | Speedup | Files |
 |--------|--------|---------|-------|
-| Gate+Up FFN | 3→2 | 1.2-1.3x | `ffn.ts`, `src/converter/writer.ts` |
+| Gate+Up FFN | 3→2 | 1.2-1.3x | `ffn.js`, `src/converter/writer.js` |
 | FlashAttention (tiled + online softmax) | N→1 | 2x | `attention.wgsl` |
-| Logits+Argmax+Sampling | 3→1 | 1.3-1.5x | `logits.ts`, `sample.wgsl` |
+| Logits+Argmax+Sampling | 3→1 | 1.3-1.5x | `logits.js`, `sample.wgsl` |
 | Dequant Q4K → F16 GEMV | 2 | 2.3x | `dequant_subgroup.wgsl`, `matmul_gemv_subgroup.wgsl` |
 | Multi-column Q4K GEMV | - | 8x fewer wg | `matmul_q4_fused.wgsl:main_multicol` |
 | Subgroup GEMV | - | 1.5x | `matmul_gemv_subgroup.wgsl` |
-| Command buffer batching | 260→1 submits | 50-100ms | `command-recorder.ts` |
+| Command buffer batching | 260→1 submits | 50-100ms | `command-recorder.js` |
 
 ---
 
@@ -143,7 +143,7 @@ recorder.recordParallelGroup([
 ```
 
 **Implementation:**
-- `gpu/command-recorder.ts` - Add `recordParallelGroup()` method
+- `gpu/command-recorder.js` - Add `recordParallelGroup()` method
 - Group kernels share same command encoder pass
 - WebGPU can overlap execution of independent compute dispatches
 
@@ -238,8 +238,8 @@ With P2 speculative decoding: 2.5x → 75-85 tok/s
 
 | File | Purpose |
 |------|---------|
-| `gpu/command-recorder.ts` | Command buffer batching |
-| `gpu/profiler.ts` | GPU timestamp profiling |
-| `inference/pipeline.ts` | Forward pass, fused decode path |
-| `inference/pipeline/logits.ts` | `recordLogitsGPU` for batched logits |
-| `inference/pipeline/ffn.ts` | FFN with gate+up fusion |
+| `gpu/command-recorder.js` | Command buffer batching |
+| `gpu/profiler.js` | GPU timestamp profiling |
+| `inference/pipeline.js` | Forward pass, fused decode path |
+| `inference/pipeline/logits.js` | `recordLogitsGPU` for batched logits |
+| `inference/pipeline/ffn.js` | FFN with gate+up fusion |

@@ -862,7 +862,7 @@ DOPPLER dynamically selects kernel variants at runtime based on GPU capabilities
 
 ### GPU Capability Detection
 
-At initialization (`gpu/device.ts`), DOPPLER probes the WebGPU adapter for available features:
+At initialization (`gpu/device.js`), DOPPLER probes the WebGPU adapter for available features:
 
 ```typescript
 interface KernelCapabilities {
@@ -901,7 +901,7 @@ Cache capabilities in kernelCapabilities global
 
 ### Kernel Configuration Schema
 
-All kernel variants are defined in `gpu/kernels/utils.ts` as `KERNEL_CONFIGS`:
+All kernel variants are defined in `gpu/kernels/utils.js` as `KERNEL_CONFIGS`:
 
 ```typescript
 interface KernelConfig {
@@ -1042,7 +1042,7 @@ Runtime config can override with `runtime.inference.kernelPath`, and CLI `--kern
 
 ### Auto-Tuning System
 
-DOPPLER includes an auto-tuning system (`gpu/kernel-tuner.ts`) that benchmarks kernel variants at runtime:
+DOPPLER includes an auto-tuning system (`gpu/kernel-tuner.js`) that benchmarks kernel variants at runtime:
 
 ```typescript
 // Tune kernels for specific model config (Gemma 3 1B example)

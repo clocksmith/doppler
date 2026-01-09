@@ -49,7 +49,7 @@ Kernel path notes:
 Manifest updates in OPFS require a purge to take effect:
 
 ```bash
-npx tsx doppler/tools/purge-opfs.ts --model gemma-1b-q4-row
+npx tsx doppler/tools/purge-opfs.js --model gemma-1b-q4-row
 ```
 
 This removes the cached model directory from OPFS for the current browser profile.

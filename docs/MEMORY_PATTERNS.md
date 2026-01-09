@@ -20,7 +20,7 @@ Q4_K buffer (VRAM)     F16/F32 buffer (VRAM)     Output (VRAM)
      144 bytes/block        512-1024 bytes/block
            |                      |                    |
            v                      v                    v
-    [dequant.ts:96-152]    [matmul.ts]           [result]
+    [dequant.js:96-152]    [matmul.js]           [result]
            |                      |
            +---- BOTH IN MEMORY --+
 
@@ -42,7 +42,7 @@ Memory: Q4_K (N) only = N  (no intermediate)
 
 ### 1. Dequantization Intermediate Buffer
 
-**Location**: `gpu/kernels/dequant.ts:118`
+**Location**: `gpu/kernels/dequant.js:118`
 
 ```typescript
 const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_output');
@@ -60,7 +60,7 @@ const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_out
 
 ### 2. Uniform Buffer Churn
 
-**Location**: `gpu/kernels/utils.ts:1149-1160`
+**Location**: `gpu/kernels/utils.js:1149-1160`
 
 ```typescript
 export function createUniformBufferWithView(...): GPUBuffer {
@@ -71,7 +71,7 @@ export function createUniformBufferWithView(...): GPUBuffer {
 }
 ```
 
-**Problem**: Every kernel dispatch creates a fresh uniform buffer (16-64 bytes), uses it once, then destroys it (`uniformBuffer.destroy()` in dequant.ts:148).
+**Problem**: Every kernel dispatch creates a fresh uniform buffer (16-64 bytes), uses it once, then destroys it (`uniformBuffer.destroy()` in dequant.js:148).
 
 **Impact**: Thousands of small allocations per inference pass. While individually small, this creates:
 - Allocation overhead on GPU driver
@@ -82,7 +82,7 @@ export function createUniformBufferWithView(...): GPUBuffer {
 
 ### 3. Per-Layer Activation Allocation
 
-**Location**: Throughout `inference/pipeline.ts`
+**Location**: Throughout `inference/pipeline.js`
 
 **Problem**: Each transformer layer allocates new activation buffers from pool, releases previous.
 
@@ -104,7 +104,7 @@ Layer 2: buf_a -> buf_b
 
 ## Buffer Pool Strategy
 
-**Location**: `gpu/buffer-pool.ts`
+**Location**: `gpu/buffer-pool.js`
 
 Current pooling:
 - **Size bucketing**: Power-of-2 for buffers < 32MB, 16MB steps for larger
@@ -113,7 +113,7 @@ Current pooling:
 - **Alignment**: 256 bytes
 
 ```typescript
-// Size bucket calculation (buffer-pool.ts:79-109)
+// Size bucket calculation (buffer-pool.js:79-109)
 function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number {
   const minBucket = 256;
   if (size <= minBucket) return minBucket;
@@ -135,12 +135,12 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `gpu/kernels/dequant.ts` | 96-152 | Dequant buffer allocation |
-| `gpu/kernels/utils.ts` | 1149-1160 | Uniform buffer creation |
-| `gpu/buffer-pool.ts` | 79-109, 148-150 | Pool config and bucketing |
+| `gpu/kernels/dequant.js` | 96-152 | Dequant buffer allocation |
+| `gpu/kernels/utils.js` | 1149-1160 | Uniform buffer creation |
+| `gpu/buffer-pool.js` | 79-109, 148-150 | Pool config and bucketing |
 | `gpu/kernels/fused_matmul_q4.wgsl` | 167-179 | Fused dequant in registers |
-| `loader/doppler-loader.ts` | 970-1020 | Model load dequant path |
-| `inference/pipeline.ts` | - | Layer orchestration |
+| `loader/doppler-loader.js` | 970-1020 | Model load dequant path |
+| `inference/pipeline.js` | - | Layer orchestration |
 
 ## Optimization Opportunities
 
@@ -148,8 +148,8 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
 - [x] Fused Q4K matmul (dequant in registers)
 - [x] Size-bucketed buffer pooling
 - [x] Large buffer 16MB-step bucketing (avoids 2x OOM)
-- [x] Uniform buffer caching by value (`gpu/uniform-cache.ts`)
-- [x] Decode-step buffer pre-allocation (`inference/decode-buffers.ts`)
+- [x] Uniform buffer caching by value (`gpu/uniform-cache.js`)
+- [x] Decode-step buffer pre-allocation (`inference/decode-buffers.js`)
 - [x] Ping-pong activation buffers (built into DecodeBufferManager)
 
 ### Not Yet Implemented
@@ -158,7 +158,7 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
 
 ## New Buffer Reuse Systems
 
-### Uniform Buffer Cache (`gpu/uniform-cache.ts`)
+### Uniform Buffer Cache (`gpu/uniform-cache.js`)
 
 Caches small uniform buffers by content hash to avoid repeated allocations.
 
@@ -179,7 +179,7 @@ releaseUniformBuffer(uniformBuffer);  // Returns to cache, not destroyed
 - Reduces GPU driver overhead
 - Content-addressed: same uniform data reuses same buffer
 
-### Decode Buffer Manager (`inference/decode-buffers.ts`)
+### Decode Buffer Manager (`inference/decode-buffers.js`)
 
 Pre-allocates fixed-size buffers for decode (M=1) operations.
 

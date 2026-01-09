@@ -40,7 +40,7 @@ graph TD
         M3[GPT-OSS 20B<br/>SafeTensors<br/>40GB]
     end
 
-    subgraph ConversionOptions["Conversion Options (node-converter.ts)"]
+    subgraph ConversionOptions["Conversion Options (node-converter.js)"]
         O1[quantize: q4_k_m<br/>q4kLayout: row_wise<br/>computePrecision: auto]
         O2[quantize: q4_k_m<br/>q4kLayout: column_wise<br/>fuseGateUp: true]
         O3[quantize: f16<br/>computePrecision: f16]
@@ -360,7 +360,7 @@ graph TD
     end
 
     subgraph Stage2["2. Conversion"]
-        Conv["node-converter.ts<br/>--quantize q4_k_m<br/>--q4k-layout column_wise<br/>--compute-precision auto"]
+        Conv["node-converter.js<br/>--quantize q4_k_m<br/>--q4k-layout column_wise<br/>--compute-precision auto"]
     end
 
     subgraph Stage3["3. RDRR Output"]

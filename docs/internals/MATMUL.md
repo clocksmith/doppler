@@ -96,7 +96,7 @@ Weight size: 262144 × 1152 × 2 bytes (F16) = 603MB per token read
 ### Implementation
 
 ```typescript
-// matmul.ts selection logic
+// matmul.js selection logic
 if (N > MULTICOL_THRESHOLD) {  // MULTICOL_THRESHOLD = 8192
   variant = 'gemv_subgroup_multicol';
 } else {
@@ -150,5 +150,5 @@ out = matmul(silu_split(gateUp), down) // Pass 2
 |------|---------|
 | `gpu/kernels/matmul_q4_fused.wgsl` | Fused Q4K dequant+matmul (GEMV + multicol + batched) |
 | `gpu/kernels/matmul_gemv_subgroup.wgsl` | F16 GEMV (4-col + 32-col multicol variants) |
-| `gpu/kernels/matmul.ts` | Kernel selection, layout handling, multicol dispatch |
-| `gpu/kernels/utils.ts` | Kernel configs (incl. `gemv_subgroup_multicol`) |
+| `gpu/kernels/matmul.js` | Kernel selection, layout handling, multicol dispatch |
+| `gpu/kernels/utils.js` | Kernel configs (incl. `gemv_subgroup_multicol`) |

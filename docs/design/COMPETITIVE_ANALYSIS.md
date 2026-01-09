@@ -106,7 +106,7 @@ MoE support: Mixtral support is reported. Verify current WebLLM catalog and hard
 
 | Technique | Description | DOPPLER Status |
 |-----------|-------------|----------------|
-| **Buffer Reuse** | Pre-allocate fixed pool, reuse across ops | Partial (buffer-pool.ts) |
+| **Buffer Reuse** | Pre-allocate fixed pool, reuse across ops | Partial (buffer-pool.js) |
 | **Async Pipeline** | Decouple buffer prep from kernel dispatch | Not implemented |
 | **Deferred Readback** | Batch GPU→CPU transfers, read only when needed | Not implemented |
 
@@ -715,7 +715,7 @@ DOPPLER implements **multi-tier Flash Attention** with automatic kernel selectio
 | Streaming | `attention_streaming.wgsl` | Any | None | Fallback for constrained devices |
 
 ```javascript
-// Automatic tier selection in kernel-selector.ts
+// Automatic tier selection in kernel-selector.js
 const canLarge = headDim <= 64 && sharedLimit >= 49152;
 const canSmall = headDim <= 256 && sharedLimit >= smallRequired;
 tier = canLarge ? 'tiled_large' : canSmall ? 'tiled_small' : 'streaming';

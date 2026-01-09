@@ -32,7 +32,7 @@ The buffer pool rounds up allocation sizes for reuse efficiency:
 
 ### Trace Reading Full Buffer
 
-`snapshotFromArray()` in `kernel-trace.ts` iterated over `arr.length` (full buffer) instead of the valid element count from `shape`:
+`snapshotFromArray()` in `kernel-trace.js` iterated over `arr.length` (full buffer) instead of the valid element count from `shape`:
 
 ```typescript
 // BUG: Reads garbage beyond valid data
@@ -51,7 +51,7 @@ The trace reported `idx=1219 (token=1, dim=67)` - but decode only has **one toke
 
 ## Fixes Applied
 
-### 1. kernel-trace.ts:134-136 - snapshotFromArray
+### 1. kernel-trace.js:134-136 - snapshotFromArray
 
 ```typescript
 // Only iterate over valid elements based on shape, not full buffer
@@ -60,7 +60,7 @@ const limit = Math.min(arr.length, numElements);
 for (let i = 0; i < limit; i++) {
 ```
 
-### 2. layer.ts:813-814 - LAYER_OUT debug
+### 2. layer.js:813-814 - LAYER_OUT debug
 
 ```typescript
 // Only read valid elements (numTokens * hiddenSize), not full pooled buffer
@@ -68,7 +68,7 @@ const validSize = numTokens * hiddenSize * 4;
 const staging = device.createBuffer({ size: validSize, ... });
 ```
 
-### 3. pipeline.ts:1090-1092 - Decode embed check
+### 3. pipeline.js:1090-1092 - Decode embed check
 
 ```typescript
 // Only read valid elements (1 token * hiddenSize)
@@ -80,7 +80,7 @@ const embedData = await readBuffer(hiddenStates, validSize);
 
 ## Other Fixes in This Session
 
-### Matmul Kernel Selection (matmul.ts:94-100)
+### Matmul Kernel Selection (matmul.js:94-100)
 
 When `outputDtype='f16'` was requested with f16 weights, the code fell through to `return 'f32'` instead of using `f16w_f32a`. The f32 kernel can't read f16-packed weights, causing garbage output.
 
@@ -91,7 +91,7 @@ if (preferF16 && weightsAreF16 && capabilities.hasF16) {
 }
 ```
 
-### Fused Kernel Naming (fused_matmul_rmsnorm.ts:99,186)
+### Fused Kernel Naming (fused_matmul_rmsnorm.js:99,186)
 
 Kernel config registered as `fused_matmul_rmsnorm` but code called `matmul_rmsnorm_fused`:
 ```typescript

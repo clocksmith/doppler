@@ -433,7 +433,7 @@ Use `null` to explicitly disable features; `undefined` is invalid.
 
 ## Field Normalization
 
-The on-disk `manifest.json` may vary in naming. At runtime, `formats/rdrr/manifest.ts` normalizes:
+The on-disk `manifest.json` may vary in naming. At runtime, `formats/rdrr/manifest.js` normalizes:
 
 | On-Disk | Normalized |
 |---------|------------|
@@ -452,20 +452,20 @@ This ensures compatibility across converter versions.
 
 ```bash
 # From GGUF
-npx tsx src/converter/node-converter.ts model.gguf ./output-rdrr
+npx tsx src/converter/node-converter.js model.gguf ./output-rdrr
 
 # From Safetensors (HuggingFace format)
-npx tsx src/converter/node-converter.ts ./hf-model-dir ./output-rdrr --quantize q4_k_m
+npx tsx src/converter/node-converter.js ./hf-model-dir ./output-rdrr --quantize q4_k_m
 ```
 
 ### Serving Models
 
 ```bash
 # Serve converted model
-npx tsx cli/commands/serve.ts ./model-rdrr --port 8765
+npx tsx cli/commands/serve.js ./model-rdrr --port 8765
 
 # Convert and serve in one step
-npx tsx cli/commands/serve.ts model.gguf
+npx tsx cli/commands/serve.js model.gguf
 ```
 
 ### Loading in Browser
@@ -499,12 +499,12 @@ for await (const token of pipeline.generate('Hello')) {
 
 ## Related Files
 
-- `src/formats/rdrr/manifest.ts`: Parser and validation
-- `src/converter/core.ts`: Platform-agnostic conversion types and functions
-- `src/converter/writer.ts`: Node.js writer for CLI conversion
-- `src/browser/browser-converter.ts`: Browser conversion with OPFS output
-- `storage/shard-manager.ts`: OPFS shard management
-- `storage/downloader.ts`: Resumable downloads
+- `src/formats/rdrr/manifest.js`: Parser and validation
+- `src/converter/core.js`: Platform-agnostic conversion types and functions
+- `src/converter/writer.js`: Node.js writer for CLI conversion
+- `src/browser/browser-converter.js`: Browser conversion with OPFS output
+- `storage/shard-manager.js`: OPFS shard management
+- `storage/downloader.js`: Resumable downloads
 
 ---
 

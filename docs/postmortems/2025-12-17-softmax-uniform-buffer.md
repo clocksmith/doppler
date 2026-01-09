@@ -19,7 +19,7 @@ The softmax kernel was failing correctness tests with maxError=0.137 (should be 
 |------|-------|
 | 2025-12-17 | Softmax test discovered failing during kernel correctness sweep |
 | 2025-12-17 | Investigated uniform buffer layout mismatch |
-| 2025-12-17 | Fixed `runSoftmax` and `recordSoftmax` in softmax.ts |
+| 2025-12-17 | Fixed `runSoftmax` and `recordSoftmax` in softmax.js |
 | 2025-12-17 | Verified softmax test passes |
 
 ---
@@ -43,7 +43,7 @@ struct SoftmaxUniforms {
 But the TypeScript code was writing the values in the **wrong order**:
 
 ```typescript
-// softmax.ts:45-47 (BEFORE - WRONG)
+// softmax.js:45-47 (BEFORE - WRONG)
 uniformView.setUint32(0, batchSize, true);      // Writing outerSize at offset 0
 uniformView.setUint32(4, inferredSize, true);   // Writing innerSize at offset 4
 uniformView.setFloat32(8, temperature, true);
@@ -69,7 +69,7 @@ With swapped dimensions:
 
 ### Changes Made
 
-**File:** `doppler/gpu/kernels/softmax.ts`
+**File:** `doppler/gpu/kernels/softmax.js`
 
 #### 1. Fixed `runSoftmax` (lines 45-48)
 
@@ -188,7 +188,7 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 
 | File | Change |
 |------|--------|
-| `gpu/kernels/softmax.ts` | Fixed uniform buffer layout in runSoftmax and recordSoftmax |
+| `gpu/kernels/softmax.js` | Fixed uniform buffer layout in runSoftmax and recordSoftmax |
 | `docs/TODO.md` | Added softmax fix to completed fixes |
 
 ---
@@ -196,8 +196,8 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 ## Appendix: Full Diff
 
 ```diff
---- a/doppler/gpu/kernels/softmax.ts
-+++ b/doppler/gpu/kernels/softmax.ts
+--- a/doppler/gpu/kernels/softmax.js
++++ b/doppler/gpu/kernels/softmax.js
 @@ -42,9 +42,10 @@ export async function runSoftmax(
 
    // Create uniform buffer

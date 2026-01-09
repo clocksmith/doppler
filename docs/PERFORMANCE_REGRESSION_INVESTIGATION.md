@@ -125,7 +125,7 @@ const activated = await runFusedFFN(input, W_gate, W_up, 1152, 6912, {
 - Generic matmul: 16x16 tiles, many idle threads for M=1
 - GEMV kernel: 256 threads, optimized for single-row
 
-**Fix:** Ensure matmul.ts selects GEMV variant for M=1:
+**Fix:** Ensure matmul.js selects GEMV variant for M=1:
 
 ```typescript
 // In selectMatmulVariantAndFlags

@@ -34,9 +34,9 @@ While the hypothesis was wrong, investigation fixed real bugs:
 
 | Bug | Location | Fix |
 |-----|----------|-----|
-| Attention variant selection | `attention.ts:114` | Use `isDecode ? 'decode' : 'prefill'` instead of hardcoded `'prefill'` |
-| Workgroup dispatch | `attention.ts` | Tier-based dispatch instead of always streaming-style |
-| Debug readback timing | `layer.ts` | Skip readbacks when using CommandRecorder (batched mode) |
+| Attention variant selection | `attention.js:114` | Use `isDecode ? 'decode' : 'prefill'` instead of hardcoded `'prefill'` |
+| Workgroup dispatch | `attention.js` | Tier-based dispatch instead of always streaming-style |
+| Debug readback timing | `layer.js` | Skip readbacks when using CommandRecorder (batched mode) |
 
 ## Key Learnings
 

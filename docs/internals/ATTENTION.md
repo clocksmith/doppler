@@ -117,6 +117,6 @@ Implemented tiled + online softmax with 3 device-aware tiers:
 | File | Purpose |
 |------|---------|
 | `gpu/kernels/wgsl/attention_decode_subgroup.wgsl` | Subgroup-optimized decode kernel |
-| `gpu/kernels/attention.ts` | Kernel selection, caps detection |
+| `gpu/kernels/attention.js` | Kernel selection, caps detection |
 | `gpu/kernels/attention_f16kv.wgsl` | FlashAttention-style tiled kernel |
 | `gpu/kernels/attention_small_f16kv.wgsl` | Small head dimension variant |

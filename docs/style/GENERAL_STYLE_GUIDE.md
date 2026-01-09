@@ -13,7 +13,7 @@ General coding conventions and patterns for the DOPPLER codebase.
 
 ## Language Policy: JavaScript + Declaration Files
 
-Doppler source code is **JavaScript** with **TypeScript declaration files** (.d.ts) for every module.
+Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module.
 
 | File | Contains |
 |------|----------|
@@ -27,14 +27,14 @@ Doppler source code is **JavaScript** with **TypeScript declaration files** (.d.
 | **Hot-swap architecture** | JS/WGSL/JSON artifacts swap at runtime without rebuild |
 | **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
 | **Tests are the type system** | Comprehensive tests catch type errors pre-production |
-| **Simpler toolchain** | No compile step between edit and run |
+| **Simpler toolchain** | Edit JS/WGSL/JSON and run directly; `tsc` only emits/validates `.d.ts` |
 
 ### Why .d.ts Files
 
 | Reason | Explanation |
 |--------|-------------|
 | **Type context for agents** | Agents read .d.ts files directly—no JSDoc pollution in JS |
-| **Consumer compatibility** | TypeScript users can import Doppler with full type safety |
+| **Consumer compatibility** | Type-aware consumers can import Doppler with full type safety via `.d.ts` |
 | **Self-documenting** | Types describe interfaces without runtime cost |
 
 ### The Test Equivalence Principle
@@ -125,7 +125,7 @@ Both fields are explicitly disabled (valid). Omitting either field is invalid.
 - Runtime never detects model family in pipeline code
 - Pipeline reads config values directly, no architecture-string inference
 
-```typescript
+```javascript
 // DON'T: infer behavior from model family strings
 if (arch.includes('gemma2')) useSoftcapping = true;
 
@@ -146,7 +146,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 When adding a new inference knob or model behavior:
 - Add it to `ManifestInferenceSchema` (and defaults for converter fixtures).
 - Populate it in the converter (preset + HF config mapping).
-- Merge it in `src/config/merge.ts` with source tracking.
+- Merge it in `src/config/merge.js` with `_sources` tracking.
 - Validate it in `parseModelConfigFromManifest()` (null vs undefined rules).
 - Add/extend tests that assert manifest values and override precedence.
 
@@ -155,6 +155,19 @@ When adding a new inference knob or model behavior:
 - Default KV cache dtype to `f16` when supported.
 - Force `f32` only when required (e.g., attention softcapping or no `shader-f16`).
 - Do not introduce new defaults that silently upgrade to `f32`.
+
+### Preset Separation
+
+**Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.
+
+**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the CLI and merged with runtime overrides.
+
+The merge order for runtime config:
+1. Runtime defaults (hardcoded)
+2. Runtime preset (extends defaults)
+3. Runtime overrides (CLI flags, explicit config)
+
+Manifest + runtime config feed ModelConfig → PipelineSpec → KernelSpec → Dispatch.
 
 ### Layer 1: Model Manifest (JSON)
 
@@ -176,11 +189,12 @@ Raw model metadata from RDRR format:
 }
 ```
 
-### Layer 2: ModelConfig (TypeScript)
+### Layer 2: ModelConfig (type declarations)
 
-Typed, validated, with derived values:
+Type declarations (in `.d.ts`) with derived values:
 
 ```typescript
+// model-config.d.ts
 interface ModelConfig {
   // From manifest (validated)
   hiddenSize: number;
@@ -205,11 +219,12 @@ interface ModelConfig {
 }
 ```
 
-### Layer 3: PipelineSpec (What to run)
+### Layer 3: PipelineSpec (type declarations)
 
 Sequence of operations:
 
 ```typescript
+// pipeline/types.d.ts
 interface PipelineSpec {
   embed: { kernel: string; scale: number };
   layers: LayerSpec[];
@@ -230,11 +245,12 @@ interface LayerSpec {
 }
 ```
 
-### Layer 4: KernelSpec (How to run)
+### Layer 4: KernelSpec (type declarations)
 
 GPU dispatch parameters:
 
 ```typescript
+// kernel-specs.d.ts
 interface KernelSpec {
   pipelineKey: string;                    // Cache key
   constants: Record<string, number>;      // Baked into pipeline
@@ -245,11 +261,12 @@ interface KernelSpec {
 type WorkgroupFn = (uniforms: Record<string, number>) => [number, number, number];
 ```
 
-### Layer 5: Runtime Uniforms (Per-dispatch)
+### Layer 5: Runtime Uniforms (type declarations)
 
 Values that change each inference:
 
 ```typescript
+// kernel-uniforms.d.ts
 interface RuntimeUniforms {
   seqLen: number;      // Tokens this pass
   startPos: number;    // Position for RoPE
@@ -262,18 +279,19 @@ interface RuntimeUniforms {
 
 ## Buffer Lifecycle
 
-Buffer allocation uses **power-of-2 bucketing** with coarse-grained reuse rather than per-tensor allocation.
+Buffer allocation uses **power-of-2 bucketing** for small buffers, coarse steps for large buffers, and deferred destruction after GPU work completes.
 
 ### Principles
 
-1. **Bucket by size** - Round up to power-of-2 boundaries (256B, 512B, 1KB, 2KB, ...)
+1. **Bucket by size** - Power-of-2 for small buffers (256B, 512B, 1KB, 2KB, ...)
 2. **Reuse aggressively** - Return buffers to pool instead of destroying
-3. **Coarse granularity** - Fewer size classes = more reuse opportunities
+3. **Coarse steps for large buffers** - Avoid 2x jumps on huge allocations
 4. **Explicit lifecycle** - Callers acquire and release buffers; no GC
+5. **Deferred destruction** - Release after GPU work completes
 
 ### DON'T: Per-Tensor Allocation
 
-```typescript
+```javascript
 // BAD - creates fragmentation, no reuse
 const buffer = device.createBuffer({ size: exactTensorSize });
 // ... use buffer ...
@@ -282,7 +300,7 @@ buffer.destroy();
 
 ### DO: Pool Acquisition
 
-```typescript
+```javascript
 // GOOD - bucketed allocation with reuse
 const buffer = bufferPool.acquire(exactTensorSize);
 // ... use buffer ...
@@ -347,12 +365,12 @@ The loader transforms raw weight files (GGUF/SafeTensors) into GPU buffers. It h
 
 Format-specific constants (block sizes, byte layouts) are **invariants** derived from the quantization spec. Import from a single source:
 
-```typescript
+```javascript
 // DON'T: Compute or redefine format constants locally
 const blockBytes = 2 + 2 + K_SCALE_SIZE + QK_K / 2;  // Computing Q4K block size
 const Q4K_BLOCK_BYTES = 144;  // Redefined locally
 
-// DO: Import from quantization-constants.ts
+// DO: Import from quantization-constants.js
 import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
 ```
 
@@ -360,7 +378,7 @@ import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
 
 Default dtypes for conversion should come from config, not hardcoded strings:
 
-```typescript
+```javascript
 // DON'T: Hardcoded dtype strings scattered across converter
 const outputDtype = options.dtype || 'f16';
 const embeddingDtype = options.embeddingDtype || 'f16';
@@ -376,7 +394,7 @@ const embeddingDtype = options.embeddingDtype ?? defaults.defaultEmbeddingDtype;
 
 Cache sizes and memory thresholds should come from config:
 
-```typescript
+```javascript
 // DON'T: Hardcoded memory limits
 const maxCacheSize = 256 * 1024 * 1024;  // 256MB
 
@@ -397,7 +415,7 @@ const maxCacheSize = getStorageDefaults().expertCache.maxSize;
 
 When splitting files:
 - Extract cohesive functionality into separate modules
-- Group by feature, not by type (e.g., `attention.ts` not `helpers.ts`)
+- Group by feature, not by type (e.g., `attention.js` not `helpers.js`)
 - Keep related code together; don't split just to hit a number
 
 ---
@@ -407,42 +425,42 @@ When splitting files:
 ```
 doppler/
 ├── config/                    # Configuration layer
-│   ├── model-config.ts        # ModelConfig type and parser
-│   ├── pipeline-spec.ts       # PipelineSpec builder
-│   ├── kernel-specs.ts        # KernelSpec factories
-│   └── config-tables.ts       # WORKGROUP_SIZES, THRESHOLDS, etc.
+│   ├── model-config.js        # ModelConfig type and parser
+│   ├── pipeline-spec.js       # PipelineSpec builder
+│   ├── kernel-specs.js        # KernelSpec factories
+│   └── config-tables.js       # WORKGROUP_SIZES, THRESHOLDS, etc.
 │
 ├── gpu/
-│   ├── device.ts              # WebGPU device management
-│   ├── buffer-pool.ts         # Buffer allocation
+│   ├── device.js              # WebGPU device management
+│   ├── buffer-pool.js         # Buffer allocation
 │   └── kernels/
-│       ├── utils.ts           # Pipeline creation, bind groups
-│       ├── kernel-executor.ts # Unified dispatch
-│       ├── matmul.ts          # Matmul variants
+│       ├── utils.js           # Pipeline creation, bind groups
+│       ├── kernel-executor.js # Unified dispatch
+│       ├── matmul.js          # Matmul variants
 │       ├── matmul_f16.wgsl
 │       ├── matmul_gemv.wgsl
-│       ├── attention.ts
+│       ├── attention.js
 │       ├── attention_causal.wgsl
 │       └── ...
 │
 ├── inference/
-│   ├── pipeline.ts            # Main inference loop
+│   ├── pipeline.js            # Main inference loop
 │   └── pipeline/
-│       ├── embed.ts           # Embedding layer
-│       ├── layer.ts           # Transformer layer
-│       ├── attention.ts       # Attention computation
-│       ├── ffn.ts             # Feed-forward network
-│       └── logits.ts          # Output projection
+│       ├── embed.js           # Embedding layer
+│       ├── layer.js           # Transformer layer
+│       ├── attention.js       # Attention computation
+│       ├── ffn.js             # Feed-forward network
+│       └── logits.js          # Output projection
 │
 ├── loader/
-│   ├── doppler-loader.ts      # Model loading
-│   └── weights.ts             # Weight types
+│   ├── doppler-loader.js      # Model loading
+│   └── weights.js             # Weight types
 │
 ├── formats/
 │   └── rdrr/                  # Manifest parsing, RDRR types
 │
 └── storage/
-    └── shard-manager.ts       # OPFS storage
+    └── shard-manager.js       # OPFS storage
 ```
 
 ---
@@ -457,9 +475,10 @@ doppler/
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
 | `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |
 
-### Types
+### Type Declarations (.d.ts)
 
 ```typescript
+// types.d.ts
 // PascalCase for types/interfaces
 interface ModelConfig { }
 interface KernelSpec { }
@@ -473,17 +492,17 @@ type MatmulVariant = string;    // Enum-like
 
 ### Variables
 
-```typescript
+```javascript
 // camelCase for variables and functions
 const modelConfig = parseModelConfig(manifest);
 const kernelSpec = KERNEL_SPECS.attention(modelConfig);
 
-function selectMatmulVariant(ctx: MatmulContext): string { }
+function selectMatmulVariant(ctx) { }
 ```
 
 ### Constants
 
-```typescript
+```javascript
 // UPPER_SNAKE_CASE for module-level constants
 const WORKGROUP_SIZES = { ... };
 const TILE_SIZES = { ... };
@@ -515,8 +534,8 @@ fn compute_attention_score(q: vec4<f32>, k: vec4<f32>) -> f32 { }
 
 ### Validation Errors (Fail Fast)
 
-```typescript
-function parseModelConfig(manifest: RDRRManifest): ModelConfig {
+```javascript
+function parseModelConfig(manifest) {
   // Validate required fields
   if (!manifest.hidden_size) {
     throw new Error('manifest.hidden_size is required');
@@ -533,8 +552,8 @@ function parseModelConfig(manifest: RDRRManifest): ModelConfig {
 
 ### Runtime Errors (Descriptive)
 
-```typescript
-async function dispatch(kernel: string, ...): Promise<void> {
+```javascript
+async function dispatch(kernel, ...args) {
   const spec = this.specs[kernel];
   if (!spec) {
     throw new Error(
@@ -548,8 +567,8 @@ async function dispatch(kernel: string, ...): Promise<void> {
 
 ### GPU Errors (Device Loss)
 
-```typescript
-async function runKernel(...): Promise<void> {
+```javascript
+async function runKernel(...args) {
   const device = getDevice();
   if (device.lost) {
     throw new Error('GPU device lost. Call initDevice() to recover.');
@@ -562,9 +581,9 @@ async function runKernel(...): Promise<void> {
 
 ## Logging
 
-Use the unified debug system:
+Use the unified debug system. Exceptions: `tools/`, `kernel-tests/`, CLI entry points, and one-time startup messages in `src/gpu/device.js`.
 
-```typescript
+```javascript
 import { log, trace } from '../debug/index.js';
 
 // Log levels (verbosity)
@@ -586,8 +605,8 @@ trace.attn(layerIdx, 'Q maxAbs=1.2');
 
 ### Unit Tests (Kernel Correctness)
 
-```typescript
-// kernel-tests/tests/matmul.test.ts
+```javascript
+// tests/kernels/correctness/matmul.spec.js
 
 describe('matmul', () => {
   it('f16 produces correct output', async () => {
@@ -608,8 +627,8 @@ describe('matmul', () => {
 
 ### Config Tests (Rule Coverage)
 
-```typescript
-// config/matmul-variants.test.ts
+```javascript
+// tests/unit/kernel-selection.test.js
 
 describe('MATMUL_VARIANTS', () => {
   it('selects q4_fused for Q4K decode with subgroups', () => {
@@ -626,8 +645,8 @@ describe('MATMUL_VARIANTS', () => {
 
 ### Integration Tests (E2E)
 
-```typescript
-// tests/inference.test.ts
+```javascript
+// tests/unit/golden-path.test.js
 
 describe('inference', () => {
   it('generates coherent output', async () => {
@@ -641,18 +660,26 @@ describe('inference', () => {
 
 ---
 
+## Enforcement
+
+- `npm run kernels:check` validates the kernel registry and WGSL overrides.
+- Pull tunables from schema/config, not literals.
+- Import format constants from a single source of truth.
+- Preserve working configs as presets (configuration is documentation).
+
+---
+
 ## Documentation
 
 ### Code Comments
 
-```typescript
+```javascript
 // WHY, not WHAT
 // BAD: Increment i
 // GOOD: Skip padding tokens (they have token_id = 0)
 
 // Document non-obvious behavior
-/**
- * Workgroup calculation for attention kernel.
+/* Workgroup calculation for attention kernel.
  *
  * We dispatch one workgroup per attention head. Each workgroup
  * processes all query positions for that head. This maximizes
@@ -661,15 +688,15 @@ describe('inference', () => {
  * Total workgroups: numHeads
  * Threads per workgroup: min(seqLen, WORKGROUP_SIZE)
  */
-function getAttentionWorkgroups(numHeads: number, seqLen: number): [number, number, number] {
+function getAttentionWorkgroups(numHeads, seqLen) {
   return [numHeads, 1, 1];
 }
 ```
 
 ### Config Documentation
 
-```typescript
-/** Matmul variant selection rules.
+```javascript
+/* Matmul variant selection rules.
  *
  * Rules are evaluated in order - first match wins.
  *
@@ -679,7 +706,7 @@ function getAttentionWorkgroups(numHeads: number, seqLen: number): [number, numb
  * - f16*: F16 compute (when supported)
  * - f32: Fallback
  */
-const MATMUL_VARIANTS: VariantRule[] = [
+const MATMUL_VARIANTS = [
   // ...
 ];
 ```
@@ -690,24 +717,24 @@ const MATMUL_VARIANTS: VariantRule[] = [
 
 ### DON'T: Mix Configuration Layers
 
-```typescript
+```javascript
 // BAD - kernel dispatch knows about manifest
-async function runAttention(manifest: RDRRManifest, ...) {
+async function runAttention(manifest, ...args) {
   const numHeads = manifest.num_attention_heads;  // Wrong layer!
 }
 
 // GOOD - kernel dispatch uses KernelSpec
-async function runAttention(spec: KernelSpec, uniforms: RuntimeUniforms, ...) {
+async function runAttention(spec, uniforms, ...args) {
   const workgroups = spec.workgroups(uniforms);
 }
 ```
 
 ### DON'T: Duplicate Configuration
 
-```typescript
+```javascript
 // BAD - same threshold in multiple places
-if (N > 4096) { /* in matmul.ts */ }
-if (N > 4096) { /* in gemv.ts */ }
+if (N > 4096) { /* in matmul.js */ }
+if (N > 4096) { /* in gemv.js */ }
 
 // GOOD - single source of truth
 const THRESHOLDS = { multicol: { minN: 4096 } };
@@ -716,14 +743,14 @@ if (N > THRESHOLDS.multicol.minN) { ... }
 
 ### DON'T: Implicit Defaults
 
-```typescript
+```javascript
 // BAD - hidden default
-function runKernel(opts: { workgroupSize?: number }) {
+function runKernel(opts) {
   const wgSize = opts.workgroupSize || 256;  // Where does 256 come from?
 }
 
 // GOOD - explicit from config
-function runKernel(spec: KernelSpec) {
+function runKernel(spec) {
   const wgSize = spec.constants.WORKGROUP_SIZE;  // From model config
 }
 ```

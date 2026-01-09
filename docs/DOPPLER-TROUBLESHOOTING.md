@@ -218,7 +218,7 @@ DOPPLER uses a unified logging system controlled by CLI flags or browser URL par
 
 ### CLI Log Forwarding (IMPORTANT)
 
-The DOPPLER CLI (`cli/index.ts`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
+The DOPPLER CLI (`cli/index.js`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
 
 ```
 [Benchmark], [Pipeline], [Loader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN
@@ -304,7 +304,7 @@ DOPPLER.debug(
 ### Add Strategic Logging
 
 ```typescript
-// In layer.ts, before/after each stage
+// In layer.js, before/after each stage
 async function debugCheckBuffer(
   buffer: GPUBuffer,
   label: string,
@@ -426,7 +426,7 @@ These patterns are consolidated from actual debugging sessions. Each links to it
 ```bash
 # Compare WGSL struct definition with TypeScript write order
 grep -A 10 "struct.*Uniforms" gpu/kernels/softmax.wgsl
-grep -A 5 "uniformView.setUint32" gpu/kernels/softmax.ts
+grep -A 5 "uniformView.setUint32" gpu/kernels/softmax.js
 ```
 
 **Fix**: Add comments documenting WGSL layout at every uniform write:
@@ -511,7 +511,7 @@ npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep "FFN.*down\|F
 doppler debug 2>&1 | grep -E "TRACE|explosion"
 ```
 
-**Fix**: Use `getNormWeightBuffer()` for q_norm/k_norm in attention.ts. Reconvert model after loader fix.
+**Fix**: Use `getNormWeightBuffer()` for q_norm/k_norm in attention.js. Reconvert model after loader fix.
 
 ---
 
@@ -562,7 +562,7 @@ EOF
 ### Isolate Specific Layer
 
 ```typescript
-// Add to layer.ts for surgical debugging
+// Add to layer.js for surgical debugging
 if (layerIdx === 14) {  // Explosion starts here
   const data = await readBufferF32(hiddenStates);
   console.log(`[DEBUG_L14] Before attention:`, {
@@ -607,12 +607,12 @@ diff /tmp/doppler_hidden_good.txt /tmp/doppler_hidden.txt
 | `currentSeqLen` | Increments each step | Log in pipeline.generate() |
 | `startPos` for RoPE | `currentSeqLen` (not 0) | Log in runRoPE() |
 | `kvLen` for attention | `currentSeqLen + numTokens` | Log in runAttention() |
-| `startPosForMask` | `currentSeqLen` | Log in attention.ts |
+| `startPosForMask` | `currentSeqLen` | Log in attention.js |
 
 ### KV Cache Debugging
 
 ```typescript
-// In attention.ts
+// In attention.js
 console.log(`[ATT_DEBUG] Decode L${layerIdx}: seqLen=${currentSeqLen}, numTokens=${numTokens}`);
 console.log(`[ATT_PARAMS] kvLenForAttention=${kvLenForAttention}, startPosForMask=${startPosForMask}`);
 
@@ -815,10 +815,10 @@ await recorder.submitAndWait();
 
 | File | Debug Focus |
 |------|-------------|
-| `gpu/command-recorder.ts` | Batched command recording |
-| `gpu/submit-tracker.ts` | GPU submit statistics |
-| `inference/pipeline.ts` | Forward pass orchestration |
-| `inference/pipeline/layer.ts` | do* wrappers for run/record variants |
+| `gpu/command-recorder.js` | Batched command recording |
+| `gpu/submit-tracker.js` | GPU submit statistics |
+| `inference/pipeline.js` | Forward pass orchestration |
+| `inference/pipeline/layer.js` | do* wrappers for run/record variants |
 
 ---
 
@@ -852,12 +852,12 @@ When debugging DOPPLER issues:
 
 | File | Debug Focus |
 |------|-------------|
-| `inference/pipeline.ts` | Overall flow, token loop |
-| `inference/pipeline/layer.ts` | Per-layer processing |
-| `inference/pipeline/attention.ts` | KV cache, RoPE, attention |
-| `gpu/kernels/silu.ts` | FFN activation gating |
-| `gpu/kernel-selector.ts` | Kernel dispatch, buffer management |
-| `loader/doppler-loader.ts` | Weight loading, dequantization |
+| `inference/pipeline.js` | Overall flow, token loop |
+| `inference/pipeline/layer.js` | Per-layer processing |
+| `inference/pipeline/attention.js` | KV cache, RoPE, attention |
+| `gpu/kernels/silu.js` | FFN activation gating |
+| `gpu/kernel-selector.js` | Kernel dispatch, buffer management |
+| `loader/doppler-loader.js` | Weight loading, dequantization |
 
 ---
 

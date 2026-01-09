@@ -31,7 +31,7 @@ Quick reference for debugging history and lessons learned.
 
 **Status:** OPEN | **File:** [2026-01-03-performance-gaps.md](2026-01-03-performance-gaps.md)
 
-DOPPLER decode is 2.5x slower than WebLLM on Gemma 2 2B. F16 activations were implemented to reduce bandwidth, but review found 3 critical gaps: (1) `doRMSNorm` wrapper in layer.ts doesn't accept/pass `activationDtype`, so all RMSNorm uses F32; (2) F16 RMSNorm shader lacks residual variants, forcing Gemma 2/3 sandwich-norm to F32; (3) GeGLU F16 shader exists in silu_f16.wgsl but gelu.ts doesn't use it. Result: only matmul outputs are F16, achieving 32% of expected 2x bandwidth reduction.
+DOPPLER decode is 2.5x slower than WebLLM on Gemma 2 2B. F16 activations were implemented to reduce bandwidth, but review found 3 critical gaps: (1) `doRMSNorm` wrapper in layer.js doesn't accept/pass `activationDtype`, so all RMSNorm uses F32; (2) F16 RMSNorm shader lacks residual variants, forcing Gemma 2/3 sandwich-norm to F32; (3) GeGLU F16 shader exists in silu_f16.wgsl but gelu.js doesn't use it. Result: only matmul outputs are F16, achieving 32% of expected 2x bandwidth reduction.
 
 ---
 
@@ -63,7 +63,7 @@ Kernel trace showed alarming "explosions" during decode. False positives caused 
 
 **Status:** RESOLVED | **File:** [2025-12-25-gemma3-qknorm-offset.md](2025-12-25-gemma3-qknorm-offset.md)
 
-Gemma 3 produced garbage output. Root cause: q_norm and k_norm weights were missing the +1 offset that ALL Gemma 3 RMSNorm layers require. Fix: use `tryLoadNorm()` for q_norm/k_norm with `getNormWeightBuffer()` in attention.ts.
+Gemma 3 produced garbage output. Root cause: q_norm and k_norm weights were missing the +1 offset that ALL Gemma 3 RMSNorm layers require. Fix: use `tryLoadNorm()` for q_norm/k_norm with `getNormWeightBuffer()` in attention.js.
 
 ---
 

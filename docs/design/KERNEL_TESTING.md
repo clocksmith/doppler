@@ -2,8 +2,8 @@
 
 Defines the testing framework design for WGSL kernels and kernel combinations.
 
-**Implementation status:** See `kernel-tests/TODO.md`
-**Benchmark baselines:** See `kernel-tests/BENCHMARKS.md`
+**Implementation status:** See `tests/kernels/TODO.md`
+**Benchmark baselines:** See `tests/kernels/BENCHMARKS.md`
 
 ---
 
@@ -136,11 +136,11 @@ For failures, store:
 
 | Type | Location | Notes |
 |------|----------|-------|
-| Kernel tests | `kernel-tests/tests/correctness/` | Unit tests per kernel |
-| Benchmarks | `kernel-tests/tests/benchmarks/` | Performance measurement |
-| References | `kernel-tests/src/reference/` | CPU reference implementations |
-| Harness | `kernel-tests/src/harness/` | Test utilities |
-| Browser | `kernel-tests/browser/` | WebGPU test page |
+| Kernel tests | `tests/kernels/tests/correctness/` | Unit tests per kernel |
+| Benchmarks | `tests/kernels/tests/benchmarks/` | Performance measurement |
+| References | `tests/kernels/src/reference/` | CPU reference implementations |
+| Harness | `tests/kernels/src/harness/` | Test utilities |
+| Browser | `tests/kernels/browser/` | WebGPU test page |
 
 For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON outputs.
 

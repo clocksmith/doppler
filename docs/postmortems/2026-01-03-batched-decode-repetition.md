@@ -45,7 +45,7 @@ Key observations:
 
 3. **KV cache seqLen** - `recordUpdateFromGPU()` updates `layer.seqLen` immediately:
    ```typescript
-   // kv-cache.ts:434
+   // kv-cache.js:434
    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
    ```
 
@@ -67,7 +67,7 @@ recorder.submit();  // Execute all N iterations at once
 2. The GPU copies (K/V updates) are ordered correctly, but...
 3. The `kvLenForAttention` read from `gpuBuffers.seqLen` (CPU-side) may be stale
 
-**Smoking gun location** - `attention.ts:832`:
+**Smoking gun location** - `attention.js:832`:
 ```typescript
 kvLenForAttention = gpuBuffers.seqLen;
 ```
@@ -76,10 +76,10 @@ This reads the CPU-side `seqLen` which IS updated during recording. But somethin
 
 ### Primary Hypothesis: Uniform Cache Eviction (2026-01-03 investigation)
 
-The uniform buffer cache in `src/gpu/uniform-cache.ts` has 256 max entries. When full, it evicts LRU entries and **destroys** the GPU buffer immediately:
+The uniform buffer cache in `src/gpu/uniform-cache.js` has 256 max entries. When full, it evicts LRU entries and **destroys** the GPU buffer immediately:
 
 ```typescript
-// uniform-cache.ts:158
+// uniform-cache.js:158
 private evictLRU(): void {
   // ... find oldest entry
   entry.buffer.destroy();  // DESTROYS buffer still in pending command buffer!
@@ -105,12 +105,12 @@ private evictLRU(): void {
 
 ### Secondary Issue: isDecodeMode=false
 
-The batched path at `pipeline.ts:1499` passes `isDecodeMode=false`:
+The batched path at `pipeline.js:1499` passes `isDecodeMode=false`:
 ```typescript
 const context = this._buildLayerContext(recorder);  // isDecodeMode defaults to false
 ```
 
-While single-token path at `pipeline.ts:1141` passes `true`:
+While single-token path at `pipeline.js:1141` passes `true`:
 ```typescript
 const context = this._buildLayerContext(recorder, true);  // isDecodeMode = TRUE
 ```
@@ -128,7 +128,7 @@ This means batched decode doesn't use pre-allocated decode buffers from `DecodeB
 ## Workaround
 
 Set `batchSize: 1` in:
-- `src/config/schema/inference-defaults.schema.ts:37`
+- `src/config/schema/inference-defaults.schema.js:37`
 - `src/config/inference/defaults.json:3`
 
 This uses the single-token decode path which works correctly.
@@ -145,12 +145,12 @@ Batching would provide 37% speedup if working.
 
 ## Files Involved
 
-- `src/inference/pipeline.ts:1499-1677` - `_generateNTokensGPU()` (batched decode)
-- `src/inference/pipeline.ts:1141` - Single-token decode (`isDecodeMode=true`)
-- `src/gpu/uniform-cache.ts:133-163` - LRU eviction with buffer destruction
-- `src/inference/pipeline/attention.ts:791-860` - `recordAttention()`
-- `src/inference/kv-cache.ts:398-439` - `recordUpdateFromGPU()`
-- `src/gpu/kernels/rope.ts:94-150` - `recordRoPE()`
+- `src/inference/pipeline.js:1499-1677` - `_generateNTokensGPU()` (batched decode)
+- `src/inference/pipeline.js:1141` - Single-token decode (`isDecodeMode=true`)
+- `src/gpu/uniform-cache.js:133-163` - LRU eviction with buffer destruction
+- `src/inference/pipeline/attention.js:791-860` - `recordAttention()`
+- `src/inference/kv-cache.js:398-439` - `recordUpdateFromGPU()`
+- `src/gpu/kernels/rope.js:94-150` - `recordRoPE()`
 
 ## Reproduction
 

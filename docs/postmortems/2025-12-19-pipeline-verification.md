@@ -89,10 +89,10 @@ After fixing, verify:
 
 ## Related Files
 
-- `inference/pipeline.ts`: Main inference with layer processing
+- `inference/pipeline.js`: Main inference with layer processing
 - `gpu/kernels/matmul*.wgsl`: Matrix multiplication kernels
 - `gpu/kernels/rmsnorm.wgsl`: RMSNorm implementation
-- `loader/doppler-loader.ts`: Weight loading with Gemma 3 norm offset
+- `loader/doppler-loader.js`: Weight loading with Gemma 3 norm offset
 - `docs/postmortems/GEMMA3-DEBUG-POSTMORTEM.md`: Root cause analysis
 
 ## See Also

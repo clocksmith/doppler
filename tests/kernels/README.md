@@ -27,13 +27,11 @@ npm run serve
 ## Structure
 
 ```
-kernel-tests/
-├── src/
-│   ├── harness/          # Test utilities (tolerance, buffer-utils, benchmark)
-│   └── reference/        # CPU reference implementations
-├── tests/
-│   ├── correctness/      # Kernel correctness tests (*.spec.ts)
-│   └── benchmarks/       # Performance benchmarks (*.bench.ts)
+tests/kernels/
+├── harness/              # Test utilities (tolerance, buffer-utils, benchmark)
+├── reference/            # CPU reference implementations
+├── correctness/          # Kernel correctness tests (*.spec.js)
+├── benchmarks/           # Performance benchmarks (*.bench.js)
 └── browser/              # WebGPU test page
 ```
 
@@ -41,18 +39,18 @@ kernel-tests/
 
 | Kernel | Reference | Correctness | Benchmark |
 |--------|-----------|-------------|-----------|
-| matmul | matmul.ts | matmul.spec.ts | matmul.bench.ts |
-| softmax | softmax.ts | softmax.spec.ts | all-kernels.bench.ts |
-| attention | attention.ts | attention.spec.ts | all-kernels.bench.ts |
-| rmsnorm | rmsnorm.ts | rmsnorm.spec.ts | all-kernels.bench.ts |
-| rope | rope.ts | rope.spec.ts | all-kernels.bench.ts |
-| silu | silu.ts | silu.spec.ts | all-kernels.bench.ts |
-| gather | gather.ts | gather.spec.ts | all-kernels.bench.ts |
-| residual | residual.ts | residual.spec.ts | all-kernels.bench.ts |
-| topk | topk.ts | topk.spec.ts | moe-pipeline.bench.ts |
-| scatter-add | scatter-add.ts | scatter-add.spec.ts | moe-pipeline.bench.ts |
-| moe-gather | moe-gather.ts | moe-gather.spec.ts | moe-pipeline.bench.ts |
-| dequant | dequant.ts | dequant.spec.ts | all-kernels.bench.ts |
+| matmul | matmul.js | matmul.spec.js | matmul.bench.js |
+| softmax | softmax.js | softmax.spec.js | all-kernels.bench.js |
+| attention | attention.js | attention.spec.js | all-kernels.bench.js |
+| rmsnorm | rmsnorm.js | rmsnorm.spec.js | all-kernels.bench.js |
+| rope | rope.js | rope.spec.js | all-kernels.bench.js |
+| silu | silu.js | silu.spec.js | all-kernels.bench.js |
+| gather | gather.js | gather.spec.js | all-kernels.bench.js |
+| residual | residual.js | residual.spec.js | all-kernels.bench.js |
+| topk | topk.js | topk.spec.js | moe-pipeline.bench.js |
+| scatter-add | scatter-add.js | scatter-add.spec.js | moe-pipeline.bench.js |
+| moe-gather | moe-gather.js | moe-gather.spec.js | moe-pipeline.bench.js |
+| dequant | dequant.js | dequant.spec.js | all-kernels.bench.js |
 
 ## Tolerances
 

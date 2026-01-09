@@ -16,7 +16,7 @@
 ### Evidence
 
 ```typescript
-// matmul.ts:79
+// matmul.js:79
 outputDtype = 'f32',  // DEFAULT IS F32
 ```
 
@@ -37,14 +37,14 @@ outputDtype = 'f32',  // DEFAULT IS F32
 4. ✓ Updated matmul calls to pass `outputDtype: context.activationDtype`
 5. ✓ Created `rmsnorm_f16.wgsl` - F16 input/output variant with F32 intermediate precision
 6. ✓ Created `silu_f16.wgsl` - F16 SiLU/SwiGLU/GeGLU variants (including `geglu_rowsplit_f16`)
-7. ✓ Updated `rmsnorm.ts` kernel selector to use F16 variants when `activationDtype='f16'`
-8. ✓ Updated `silu.ts` kernel selector to use F16 variants when `activationDtype='f16'`
-9. ✓ Updated `gelu.ts` to use `geglu_rowsplit_f16` when `activationDtype='f16'`
-10. ✓ Updated `decode-buffers.ts` to allocate F16 buffers when configured
-11. ✓ Enabled `outputDtype: context.activationDtype` in all FFN matmul calls in `layer.ts`
-12. ✓ Added `activationDtype` to `doRMSNorm` and all 6 call sites in `layer.ts`
+7. ✓ Updated `rmsnorm.js` kernel selector to use F16 variants when `activationDtype='f16'`
+8. ✓ Updated `silu.js` kernel selector to use F16 variants when `activationDtype='f16'`
+9. ✓ Updated `gelu.js` to use `geglu_rowsplit_f16` when `activationDtype='f16'`
+10. ✓ Updated `decode-buffers.js` to allocate F16 buffers when configured
+11. ✓ Enabled `outputDtype: context.activationDtype` in all FFN matmul calls in `layer.js`
+12. ✓ Added `activationDtype` to `doRMSNorm` and all 6 call sites in `layer.js`
 13. ✓ Updated RMSNorm to support F16 with residual (via has_residual uniform)
-14. ✓ Updated attention.ts o_proj matmul to use `outputDtype: config.activationDtype`
+14. ✓ Updated attention.js o_proj matmul to use `outputDtype: config.activationDtype`
 15. ✓ Added `canUseF16()` to RMSNorm to check actual buffer dtypes and fall back gracefully
 
 ### F16 Shader Files
@@ -55,7 +55,7 @@ outputDtype = 'f32',  // DEFAULT IS F32
 
 The pipeline cannot use F16 activations because the embedding stage is F32-only:
 
-1. **Embedding (gather.ts)** - Always outputs F32, no F16 output variant
+1. **Embedding (gather.js)** - Always outputs F32, no F16 output variant
 2. **Matmul mixed-precision** - `f16w_f32a` kernel (F16 weights + F32 activations) outputs F32, not F16
 3. **Cascade effect** - Layer 0 receives F32, so all RMSNorms and kernels fall back to F32
 
@@ -95,10 +95,10 @@ npm run bench -- --filter matmul --config f16-activations
 ### Evidence
 
 ```typescript
-// matmul.ts:509
+// matmul.js:509
 trace.kernels(`Q4K FUSED: ... (WARNING: 2.3x slower than dequant)`);
 
-// doppler-loader.ts:169
+// doppler-loader.js:169
 useFusedQ4K = false;  // Default is dequant-first
 ```
 
@@ -129,7 +129,7 @@ No "Q4K FUSED" trace messages in output - confirms dequant path is active.
 ### Evidence
 
 ```typescript
-// attention.ts:122-123
+// attention.js:122-123
 log.warn('Attention', `No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`);
 tier = 'streaming';
 ```
@@ -178,7 +178,7 @@ else → 'streaming'  // Slow fallback
 **Fix applied:**
 1. Added `pendingDestruction` queue to `UniformBufferCache`
 2. Evicted buffers are deferred, not destroyed immediately
-3. `flushPendingDestruction()` called after GPU work completes in `submitAndWait()` and `pipeline.ts`
+3. `flushPendingDestruction()` called after GPU work completes in `submitAndWait()` and `pipeline.js`
 4. Fixed `isDecodeMode` flag in batched decode path
 
 **Result:** Batched decode now works correctly. Output is coherent (no more garbage/repetition).
@@ -213,7 +213,7 @@ After batching fix, current decode speed: ~5.5 tok/s vs WebLLM 20.3 tok/s (2.7x 
 ## F16 Activations: Architecture Issue (2026-01-03)
 
 **Problem:** The `--config f16-activations` preset produces garbage output because:
-1. Embedding (gather.ts) outputs F32
+1. Embedding (gather.js) outputs F32
 2. Downstream kernels try to use F16 variants based on config
 3. Dtype mismatches cause silent data corruption
 
@@ -221,12 +221,12 @@ After batching fix, current decode speed: ~5.5 tok/s vs WebLLM 20.3 tok/s (2.7x 
 
 **Attempted fixes:**
 - Added `canUseF16()` checks to kernels → still broken
-- Fixed decode-buffers.ts to allocate F32 sizes → still broken
+- Fixed decode-buffers.js to allocate F32 sizes → still broken
 - Multiple dtype propagation paths exist, each needs fixing
 
 **Solution: Tensor Abstraction Layer**
 
-Created `src/gpu/tensor.ts`:
+Created `src/gpu/tensor.js`:
 ```typescript
 interface Tensor {
   buffer: GPUBuffer;
@@ -236,9 +236,9 @@ interface Tensor {
 ```
 
 **Migration plan:**
-1. Migrate gather.ts → returns Tensor with explicit dtype
-2. Migrate rmsnorm.ts, silu.ts, matmul.ts → Tensor input/output
-3. Update layer.ts to pass Tensors through pipeline
+1. Migrate gather.js → returns Tensor with explicit dtype
+2. Migrate rmsnorm.js, silu.js, matmul.js → Tensor input/output
+3. Update layer.js to pass Tensors through pipeline
 4. Remove WeakMap dtype tracking
 
 **Benefits:**

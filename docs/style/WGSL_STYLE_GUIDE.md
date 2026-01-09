@@ -552,7 +552,7 @@ let idx = gid.x * HIDDEN_SIZE + lid.x;
 // BAD - breaks for different models
 const HEAD_DIM: u32 = 64u;
 
-// GOOD - override from TypeScript
+// GOOD - override from JavaScript
 override HEAD_DIM: u32 = 64u;
 ```
 

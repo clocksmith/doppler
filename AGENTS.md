@@ -2,7 +2,7 @@
 
 Repository: https://github.com/clocksmith/doppler
 
-**Prime Directive:** Write TypeScript for the WebGPU inference engine running in the browser.
+**Prime Directive:** Write JavaScript (with .d.ts declarations) for the WebGPU inference engine running in the browser.
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent (separate repo).
 
@@ -19,10 +19,10 @@ doppler/
 │   │   ├── presets/
 │   │   │   ├── runtime/  # Runtime presets (default/debug/bench/etc)
 │   │   │   └── models/   # Model family presets (gemma/llama/etc)
-│   │   └── runtime.ts    # Runtime config registry (get/set)
+│   │   └── runtime.js    # Runtime config registry (get/set)
 │   ├── memory/           # Heap management, capability detection
 │   └── debug/            # Logging and tracing
-├── kernel-tests/         # GPU kernel validation
+├── tests/kernels/        # GPU kernel validation
 ├── app/                  # Demo UI
 ├── cli/                  # CLI entry point
 └── docs/                 # Documentation
@@ -31,12 +31,12 @@ doppler/
 ### Before Starting
 - Read `docs/ARCHITECTURE.md` for system overview
 - Read `docs/spec/RDRR_FORMAT.md` for model format specification
-- Review `src/inference/pipeline.ts` for inference flow
-- Review `src/config/runtime.ts` and `cli/config/` for runtime config plumbing
+- Review `src/inference/pipeline.js` for inference flow
+- Review `src/config/runtime.js` and `cli/config/` for runtime config plumbing
 
 ### Style Guides
 - [General Style Guide](docs/style/GENERAL_STYLE_GUIDE.md) - Architecture, naming
-- [TypeScript Guide](docs/style/TYPESCRIPT_STYLE_GUIDE.md) - Config-as-code, kernel wrappers
+- [JavaScript Guide](docs/style/JAVASCRIPT_STYLE_GUIDE.md) - Config-as-code, kernel wrappers
 - [WGSL Guide](docs/style/WGSL_STYLE_GUIDE.md) - Shader structure
 
 ### CLI Commands
@@ -47,7 +47,7 @@ doppler/
 | `npm test` | Kernel correctness tests |
 | `npm run bench` | Performance benchmarks |
 | `npm run debug` | Debug with tracing enabled |
-| `npm run build` | Compile TypeScript |
+| `npm run build` | Bundle for browser |
 
 ```bash
 npm test -- --filter matmul      # Filter to specific kernel
@@ -83,7 +83,7 @@ npm run bench -- --config ./my-config.json   # Use file
 - Test harnesses parse `runtimeConfig` and call `setRuntimeConfig()` before pipeline/loader init.
 - For per-instance overrides, pass `PipelineContexts.runtimeConfig` to `createPipeline()`.
 - Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
-- Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is deprecated but mapped for back-compat in `src/config/runtime.ts`.
+- Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is deprecated but mapped for back-compat in `src/config/runtime.js`.
 
 **Layer Pipeline Plans (experimental):**
 - Model presets may define `inference.pipeline` to drive per-layer step order.
@@ -116,8 +116,8 @@ log.warn('Attention', 'Fallback to CPU');
 trace.kernels(`matmul M=${M} N=${N}`);
 ```
 
-Exceptions: `tools/`, `kernel-tests/`, and one-time startup messages in `src/gpu/device.ts`.
-Also acceptable: CLI entry points (`cli/`, `serve.ts`, `src/converter/node-converter.ts`) for direct terminal output.
+Exceptions: `tools/`, `tests/kernels/`, and one-time startup messages in `src/gpu/device.js`.
+Also acceptable: CLI entry points (`cli/`, `serve.js`, `src/converter/node-converter.js`) for direct terminal output.
 
 ### Debug Probes
 
@@ -156,15 +156,14 @@ Prefer config-driven probes over ad-hoc readbacks:
 
 ```bash
 # Convert model to RDRR format
-npx tsx src/converter/node-converter.ts model.gguf ./output
+npx tsx src/converter/node-converter.js model.gguf ./output
 
 # Dev server
-npx tsx serve.ts --port 3000
+npx tsx serve.js --port 3000
 ```
 
 ### Build Artifacts
 - `dist/` is built output for browser usage. If runtime changes affect browser code, run `npm run build`.
-- `tests/benchmark/*.js` are generated from TS. After editing `tests/benchmark/*.ts`, run `npm run build:benchmark`.
 
 ### Skills
 - Project skills (from `.claude/skills/`):

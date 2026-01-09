@@ -11,7 +11,7 @@
 
 ## Key Discovery: GPU Sync Bug in Embedding Scaling
 
-**ROOT CAUSE IDENTIFIED AND FIXED**: `scaleGPUBuffer()` in `embed.ts` was not waiting for GPU completion before returning.
+**ROOT CAUSE IDENTIFIED AND FIXED**: `scaleGPUBuffer()` in `embed.js` was not waiting for GPU completion before returning.
 
 ```typescript
 // BEFORE (BROKEN):
@@ -47,12 +47,12 @@ return outputBuffer;
 
 ## What Was Fixed This Session
 
-### 1. GPU Sync Bug in `scaleGPUBuffer` (embed.ts:142)
+### 1. GPU Sync Bug in `scaleGPUBuffer` (embed.js:142)
 - **Symptom**: `embed()` returned maxAbs=25.19 but pipeline saw maxAbs=1.27 for the same buffer
 - **Cause**: Missing `await device.queue.onSubmittedWorkDone()` after submit
 - **Fix**: Added await to ensure GPU completes scaling before returning
 
-### 2. GELU Activation Default for Gemma 3 (config.ts:343)
+### 2. GELU Activation Default for Gemma 3 (config.js:343)
 - **Issue**: `normalizeActivation()` defaulted to 'silu' if manifest didn't specify activation
 - **Fix**: Added Gemma 3 specific default: `config.hidden_activation ?? (isGemma3 ? 'gelu' : undefined)`
 - **Note**: This fix didn't change output - the manifest may already specify GELU
@@ -118,9 +118,9 @@ if (layerIdx === 0 && debug) {
 
 | File | Change |
 |------|--------|
-| `inference/pipeline/embed.ts:142` | Added GPU sync after scale operation |
-| `inference/pipeline/config.ts:343` | Added GELU default for Gemma 3 |
-| `inference/pipeline/attention.ts` | Added debug logging (not yet working) |
+| `inference/pipeline/embed.js:142` | Added GPU sync after scale operation |
+| `inference/pipeline/config.js:343` | Added GELU default for Gemma 3 |
+| `inference/pipeline/attention.js` | Added debug logging (not yet working) |
 
 ---
 

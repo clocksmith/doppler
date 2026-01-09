@@ -54,7 +54,7 @@ cacheSize = numExpertsPerToken * 2 + 1  // Capped at 16
 | GPU-native routing (softmax+topk) | Done (Custom WGSL) |
 | Expert FFN execution | Done (Per-expert matmul) |
 | Scatter-add combination | Done (Custom WGSL kernel) |
-| MoE router with load balancing | Done (`inference/moe-router.ts`) |
+| MoE router with load balancing | Done (`inference/moe-router.js`) |
 
 ---
 
@@ -116,10 +116,10 @@ cacheSize = numExpertsPerToken * 2 + 1  // Capped at 16
 
 | File | Purpose |
 |------|---------|
-| `inference/moe-router.ts` | Router implementation |
+| `inference/moe-router.js` | Router implementation |
 | `gpu/kernels/moe_gather.wgsl` | Expert gathering |
 | `gpu/kernels/scatter_add.wgsl` | Output combination |
-| `loader/doppler-loader.ts` | Expert loading API, prefetching |
-| `loader/expert-cache.ts` | LRU cache with smart eviction |
-| `src/formats/rdrr/types.ts` | `MoEConfig` with expert mapping |
-| `src/converter/writer.ts` | Expert tensor detection during conversion |
+| `loader/doppler-loader.js` | Expert loading API, prefetching |
+| `loader/expert-cache.js` | LRU cache with smart eviction |
+| `src/formats/rdrr/types.js` | `MoEConfig` with expert mapping |
+| `src/converter/writer.js` | Expert tensor detection during conversion |

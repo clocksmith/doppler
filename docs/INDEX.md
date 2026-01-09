@@ -55,8 +55,8 @@ Deep-dives on kernel implementations and optimization strategies:
 
 - [Benchmark Harness](design/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
 - [Kernel Testing](design/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
-- [Kernel Tests (Implemented)](../kernel-tests/TODO.md) - Kernel correctness and microbenchmark tracking.
-- [Kernel Benchmarks](../kernel-tests/BENCHMARKS.md) - Baseline expectations and benchmark notes.
+- [Kernel Tests (Implemented)](../tests/kernels/TODO.md) - Kernel correctness and microbenchmark tracking.
+- [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and benchmark notes.
 
 ---
 

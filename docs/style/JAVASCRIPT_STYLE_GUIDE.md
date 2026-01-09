@@ -11,7 +11,7 @@ Replace conditional logic with declarative configuration maps.
 ```
 Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
      ↓              ↓              ↓              ↓              ↓
- manifest.json   JSDoc types    Op sequence   GPU params    Dispatch
+ manifest.json   .d.ts types    Op sequence   GPU params    Dispatch
 ```
 
 ## Manifest-First Contract
@@ -286,14 +286,10 @@ function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
 
 ```javascript
 // GOOD - declarative, auditable, testable
-
-interface VariantRule {
-  match: MatchCondition;
-  variant: string;
-}
+// Types in kernel-selection.d.ts
 
 /** Matmul variant selection - first match wins */
-const MATMUL_VARIANTS: VariantRule[] = [
+const MATMUL_VARIANTS = [
   // Q4K fused paths
   { match: { bDtype: 'q4k', M: 1, hasSubgroups: true, N: { gt: 4096 } }, variant: 'q4_fused_multicol' },
   { match: { bDtype: 'q4k', M: 1, hasSubgroups: true }, variant: 'q4_fused' },
@@ -310,7 +306,7 @@ const MATMUL_VARIANTS: VariantRule[] = [
   { match: {}, variant: 'f32' },  // Default
 ];
 
-function selectMatmulVariant(ctx: MatmulContext): string {
+function selectMatmulVariant(ctx) {
   const rule = MATMUL_VARIANTS.find(r => matchesRule(r.match, ctx));
   return rule?.variant ?? 'f32';
 }
@@ -320,11 +316,9 @@ function selectMatmulVariant(ctx: MatmulContext): string {
 
 ```javascript
 // utils/rule-matcher.js
+// Types in rule-matcher.d.ts
 
-type MatchValue = number | string | boolean | { gt?: number; lt?: number; eq?: number };
-type MatchCondition = Record<string, MatchValue>;
-
-export function matchesRule(rule: MatchCondition, context: Record<string, any>): boolean {
+export function matchesRule(rule, context) {
   for (const [key, expected] of Object.entries(rule)) {
     const actual = context[key];
 
@@ -341,11 +335,7 @@ export function matchesRule(rule: MatchCondition, context: Record<string, any>):
   return true;
 }
 
-export function selectByRules<T>(
-  rules: Array<{ match: MatchCondition; value: T }>,
-  context: Record<string, any>,
-  defaultValue: T,
-): T {
+export function selectByRules(rules, context, defaultValue) {
   const rule = rules.find(r => matchesRule(r.match, context));
   return rule?.value ?? defaultValue;
 }
@@ -353,71 +343,65 @@ export function selectByRules<T>(
 
 ---
 
-## Kernel Selection Centralization
+## Kernel Selection Architecture
 
-All kernel variant selection logic lives in **one hotswappable file** (`src/gpu/kernel-selector.js`).
+Kernel variant selection is **per-op and context-driven**, with pipelines cached per variant.
 
-### Principle
+### Structure
 
-Dispatch sites call selection functions; they never contain variant logic themselves. This allows:
-- A/B testing different selection strategies without modifying dispatch sites
-- Hot-swapping the selector module at runtime (for debugging)
-- Single audit point for all variant decisions
+```
+src/gpu/kernels/
+  matmul.js              # Matmul selection + dispatch
+  attention.js           # Attention selection + dispatch
+  rmsnorm.js             # RMSNorm selection + dispatch
+  ...
+  pipeline-cache.js      # Shared pipeline caching
+  utils.js               # Shared utilities, KERNEL_CONFIGS
+  index.js               # Barrel export
+```
 
-### DON'T: Scatter Selection Logic
+Note: `src/gpu/kernel-selector.js` is a thin re-export for backward compatibility; selection lives in `src/gpu/kernels/*`.
+
+### Selection Keys
+
+Each kernel selects variants based on context:
+- **Dimensions**: M, N, K, seqLen, hiddenSize
+- **Dtypes**: weight dtype (f16, q4k, q6k), activation dtype
+- **Capabilities**: hasF16, hasSubgroups, device limits
+- **Platform**: vendor-specific tuning (Apple, AMD, NVIDIA)
+
+### Pipeline Caching
+
+Pipelines are cached per variant/context combination in `pipeline-cache.js`:
 
 ```javascript
-// BAD - variant logic at dispatch site
-async function runMatmul(ctx) {
-  let variant;
-  if (ctx.bDtype === 'q4k' && ctx.M === 1 && ctx.hasSubgroups) {
-    variant = 'q4_fused';
-  } else if (ctx.M === 1) {
-    variant = 'gemv';
-  } else {
-    variant = 'f32';
-  }
-  await dispatch(variant, ...);
+// Pipeline key includes all variant-affecting params
+const key = `matmul_${variant}_${M}_${N}_${K}_${aDtype}_${bDtype}`;
+let pipeline = pipelineCache.get(key);
+if (!pipeline) {
+  pipeline = await createPipeline(variant, constants);
+  pipelineCache.set(key, pipeline);
 }
 ```
 
-### DO: Centralized Selection
+### DON'T: Inline Selection at Call Sites
 
 ```javascript
-// kernel-selector.js - single source of variant logic
-export function selectMatmulVariant(ctx) {
-  return selectByRules(MATMUL_VARIANTS, ctx, 'f32');
-}
-
-// dispatch site - calls selector, no logic
-async function runMatmul(ctx) {
-  const variant = selectMatmulVariant(ctx);
-  await dispatch(variant, ...);
+// BAD - selection logic scattered across pipeline code
+if (weights.dtype === 'q4k' && seqLen === 1) {
+  await runQ4KFused(...);
+} else {
+  await runMatmulF32(...);
 }
 ```
 
-### File Structure
-
-```
-src/gpu/
-  kernel-selector.js       # ALL selection functions
-  kernel-selector.d.ts     # Type definitions
-  kernels/
-    matmul.js              # Dispatch only, calls selector
-    attention.js           # Dispatch only, calls selector
-```
-
-### Testing
-
-Test the selector in isolation with context fixtures:
+### DO: Selection in Kernel Module
 
 ```javascript
-describe('kernel-selector', () => {
-  it('selects q4_fused for Q4K decode with subgroups', () => {
-    const ctx = { bDtype: 'q4k', M: 1, hasSubgroups: true };
-    expect(selectMatmulVariant(ctx)).toBe('q4_fused');
-  });
-});
+// GOOD - selection encapsulated in kernel module
+import { runMatmul } from './kernels/matmul.js';
+await runMatmul(input, weights, output, { M, N, K, caps });
+// matmul.js handles variant selection internally
 ```
 
 ---
@@ -428,13 +412,10 @@ Centralize magic numbers into typed tables:
 
 ```javascript
 // gpu/kernels/config-tables.js
-
-type GPUVendor = 'apple' | 'nvidia' | 'amd' | 'intel' | 'default';
-type KernelType = 'matmul' | 'attention' | 'ffn' | 'norm' | 'rope';
-type Precision = 'f32' | 'f16' | 'q4k';
+// Types in config-tables.d.ts
 
 /** Optimal workgroup sizes by vendor and kernel */
-export const WORKGROUP_SIZES: Record<GPUVendor, Record<KernelType, number>> = {
+export const WORKGROUP_SIZES = {
   apple: { matmul: 128, attention: 32, ffn: 128, norm: 256, rope: 256 },
   nvidia: { matmul: 256, attention: 64, ffn: 256, norm: 256, rope: 256 },
   amd: { matmul: 64, attention: 64, ffn: 64, norm: 128, rope: 128 },
@@ -443,7 +424,7 @@ export const WORKGROUP_SIZES: Record<GPUVendor, Record<KernelType, number>> = {
 };
 
 /** Tile sizes by operation and precision */
-export const TILE_SIZES: Record<KernelType, Partial<Record<Precision, number>>> = {
+export const TILE_SIZES = {
   matmul: { f32: 16, f16: 16, q4k: 32 },
   attention: { f32: 32, f16: 64 },
   ffn: { f32: 16, f16: 16 },
@@ -456,10 +437,10 @@ export const FUSION_THRESHOLDS = {
   matmul_rmsnorm: { maxM: 1, maxN: 8192 },
   ffn_swiglu: { maxSeqLen: 1, maxIntermediate: 16384 },
   attention_flash: { minSeqLen: 128 },
-} as const;
+};
 
 /** Feature flag → kernel variant mapping */
-export const FEATURE_VARIANTS: Record<string, Array<{ features: string[]; variant: string }>> = {
+export const FEATURE_VARIANTS = {
   attention: [
     { features: ['gqa', 'causal'], variant: 'attention_gqa_causal' },
     { features: ['gqa'], variant: 'attention_gqa' },
@@ -492,7 +473,7 @@ const ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;  // 64 × 4 = 256
 const workgroups = Math.ceil(numElements / ELEMENTS_PER_WG);
 ```
 
-This pattern applies to: `gather.ts`, `residual.ts`, and any kernel using `vec4<f16>` or `vec4<f32>` loads.
+This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<f16>` or `vec4<f32>` loads.
 
 ---
 
@@ -515,11 +496,11 @@ export const Q8_0_BLOCK_SIZE = 32;    // Elements per Q8_0 block
 
 ```javascript
 // BAD - redefined in multiple files, easy to drift
-// doppler-loader.ts:
+// doppler-loader.js:
 const Q4K_K = 256;
 const Q4K_BLOCK_BYTES = 144;
 
-// dequant.ts:
+// dequant.js:
 const Q6K_BLOCK_BYTES = 210;  // Same constant, different file
 
 // Bare magic number in calculation:
@@ -538,34 +519,9 @@ const numBlocks = buffer.byteLength / Q4K_BLOCK_BYTES;
 
 ```javascript
 // config/model-config.js
+// Types in model-config.d.ts
 
-export interface ModelConfig {
-  // Direct from manifest
-  hiddenSize: number;
-  numHeads: number;
-  headDim: number;
-  numKvHeads: number;
-  intermediateSize: number;
-  vocabSize: number;
-  numLayers: number;
-
-  // Derived
-  kvHeadDim: number;
-  isGQA: boolean;
-
-  // Feature flags
-  features: {
-    scaleEmbeddings: boolean;
-    rmsNormWeightOffset: boolean;
-    sandwichNorm: boolean;
-    dualRoPE: boolean;
-  };
-
-  // Device-tuned
-  workgroupSize: number;
-}
-
-export function parseModelConfig(manifest: RDRRManifest, device: DeviceCapabilities): ModelConfig {
+export function parseModelConfig(manifest, device) {
   const numHeads = manifest.num_attention_heads;
   const numKvHeads = manifest.num_key_value_heads ?? numHeads;
 
@@ -600,18 +556,10 @@ export function parseModelConfig(manifest: RDRRManifest, device: DeviceCapabilit
 
 ```javascript
 // config/kernel-specs.js
-
-export interface KernelSpec {
-  pipelineKey: string;
-  constants: Record<string, number>;
-  uniformSize: number;
-  workgroups: (uniforms: Record<string, number>) => [number, number, number];
-}
-
-type KernelSpecFactory = (model: ModelConfig) => KernelSpec;
+// Types in kernel-specs.d.ts
 
 /** Kernel spec factories - pure functions from model config */
-export const KERNEL_SPECS: Record<string, KernelSpecFactory> = {
+export const KERNEL_SPECS = {
   attention: (model) => ({
     pipelineKey: `attn_h${model.numHeads}_d${model.headDim}_kv${model.numKvHeads}`,
     constants: {
@@ -654,23 +602,16 @@ export const KERNEL_SPECS: Record<string, KernelSpecFactory> = {
 // gpu/kernel-executor.js
 
 export class KernelExecutor {
-  private pipelines = new Map<string, GPUComputePipeline>();
-  private specs: Record<string, KernelSpec>;
-  private device: GPUDevice;
-
-  constructor(model: ModelConfig, device: GPUDevice) {
+  constructor(model, device) {
     this.device = device;
+    this.pipelines = new Map();
     // Pre-compute all specs from model config (pure transformation)
     this.specs = Object.fromEntries(
       Object.entries(KERNEL_SPECS).map(([name, factory]) => [name, factory(model)])
     );
   }
 
-  async dispatch(
-    kernel: string,
-    buffers: GPUBuffer[],
-    uniforms: Record<string, number>,
-  ): Promise<void> {
+  async dispatch(kernel, buffers, uniforms) {
     const spec = this.specs[kernel];
     if (!spec) throw new Error(`Unknown kernel: ${kernel}`);
 
@@ -687,7 +628,7 @@ export class KernelExecutor {
     this.device.queue.submit([encoder.finish()]);
   }
 
-  private async getPipeline(spec: KernelSpec): Promise<GPUComputePipeline> {
+  async getPipeline(spec) {
     let pipeline = this.pipelines.get(spec.pipelineKey);
     if (!pipeline) {
       pipeline = await createPipelineWithConstants(spec.pipelineKey, 'main', spec.constants);
@@ -720,25 +661,12 @@ types/
   inference.d.ts         # Inference type declarations (optional)
 ```
 
-### JSDoc Types
+### Type Declarations (.d.ts)
 
-```javascript
-// PascalCase for @typedef names
-/**
- * @typedef {Object} ModelConfig
- * @property {number} hiddenSize
- * @property {number} numHeads
- */
-
-/**
- * @typedef {'apple' | 'nvidia' | 'amd' | 'intel' | 'default'} GPUVendor
- */
-
-// camelCase for variables
-/** @type {ModelConfig} */
-const modelConfig = { ... };
-/** @type {KernelSpec} */
-const kernelSpec = { ... };
+```typescript
+// types.d.ts
+interface ModelConfig { }
+type GPUVendor = 'apple' | 'nvidia' | 'amd' | 'intel' | 'default';
 ```
 
 ### Constants
@@ -809,12 +737,12 @@ const THRESHOLDS = {
 
 ```javascript
 // BAD - uniform creation knows about manifest
-function createUniforms(manifest: RDRRManifest) {
+function createUniforms(manifest) {
   view.setUint32(0, manifest.hidden_size);  // Wrong layer!
 }
 
 // GOOD - uniforms only know about runtime values
-function createUniforms(uniforms: KernelUniforms) {
+function createUniforms(uniforms) {
   view.setUint32(0, uniforms.seqLen);
 }
 ```
@@ -848,7 +776,8 @@ const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTok
 
 For merged configs, track where each value came from:
 
-```javascript
+```typescript
+// config/merge.d.ts
 interface MergedConfig {
   inference: InferenceConfig;
   _sources: Map<string, 'manifest' | 'runtime'>;
@@ -864,7 +793,7 @@ tracking answers that instantly.
 
 ## Logging
 
-All library code MUST use the unified debug module (`debug/index.ts`) instead of raw `console.*` calls.
+All library code MUST use the unified debug module (`debug/index.js`) instead of raw `console.*` calls. Exceptions: `tools/`, `kernel-tests/`, CLI entry points, and one-time startup messages in `src/gpu/device.js`.
 
 ### Import
 
@@ -920,11 +849,11 @@ Use consistent module names matching the file/class:
 
 | File | Module Name |
 |------|-------------|
-| `gpu/kernels/matmul.ts` | `'Matmul'` |
-| `gpu/kernels/attention.ts` | `'Attention'` |
-| `inference/pipeline/layer.ts` | `'Layer'` or `'Pipeline'` |
-| `loader/doppler-loader.ts` | `'Loader'` |
-| `app/app.ts` | `'App'` or `'DopplerDemo'` |
+| `gpu/kernels/matmul.js` | `'Matmul'` |
+| `gpu/kernels/attention.js` | `'Attention'` |
+| `inference/pipeline/layer.js` | `'Layer'` or `'Pipeline'` |
+| `loader/doppler-loader.js` | `'Loader'` |
+| `app/app.js` | `'App'` or `'DopplerDemo'` |
 
 ### Exceptions
 
@@ -932,7 +861,7 @@ Raw `console.*` is acceptable in:
 
 1. **CLI entry points** (`cli/`, `serve.js`, `src/converter/node-converter.js`) - Direct terminal output
 2. **Tools** (`tools/*.js`) - Direct terminal output
-3. **Test files** (`kernel-tests/`, `tests/`) - Test harness output
+3. **Test files** (`tests/kernels/`, `tests/`) - Test harness output
 4. **Benchmarks** - Formatted results tables
 5. **One-time startup** - GPU device info in `device.js`
 
@@ -960,10 +889,10 @@ Tests are JavaScript. Same rules as source code: clean JS, types in `.d.ts` if n
 tests/unit/
   config-loader.test.js      # Unit tests
 
-kernel-tests/tests/correctness/
+tests/kernels/correctness/
   matmul.spec.js             # Kernel correctness
 
-kernel-tests/tests/benchmarks/
+tests/kernels/benchmarks/
   matmul.bench.js            # Performance benchmarks
 ```
 
@@ -987,16 +916,16 @@ describe('matmul', () => {
 | Test Type | Purpose | Location |
 |-----------|---------|----------|
 | **Unit** | Single function correctness | `tests/unit/` |
-| **Kernel correctness** | GPU output matches CPU reference | `kernel-tests/tests/correctness/` |
+| **Kernel correctness** | GPU output matches CPU reference | `tests/kernels/tests/correctness/` |
 | **Integration** | End-to-end pipeline flow | `tests/correctness/` |
-| **Benchmark** | Performance regression detection | `kernel-tests/tests/benchmarks/` |
+| **Benchmark** | Performance regression detection | `tests/kernels/tests/benchmarks/` |
 
 ### Reference Implementations
 
 Kernel tests compare GPU output against CPU reference implementations:
 
 ```javascript
-// kernel-tests/src/reference/matmul.js
+// tests/kernels/src/reference/matmul.js
 export function matmulReference(a, b, m, n, k) {
   const c = new Float32Array(m * n);
   for (let i = 0; i < m; i++) {

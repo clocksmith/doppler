@@ -45,7 +45,7 @@ Prior documentation was inconsistent:
 
 ## Files Modified
 
-### 1. loader/doppler-loader.ts (lines 1458-1462)
+### 1. loader/doppler-loader.js (lines 1458-1462)
 
 ```typescript
 // BEFORE (BROKEN):
@@ -59,7 +59,7 @@ tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
 tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
 ```
 
-### 2. inference/pipeline/attention.ts (lines 210-214, 230-231)
+### 2. inference/pipeline/attention.js (lines 210-214, 230-231)
 
 GPU path - changed `getWeightBuffer` to `getNormWeightBuffer`:
 
@@ -73,7 +73,7 @@ if (hasQNorm && getNormWeightBuffer && layerWeights.qNorm) {
   const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
 ```
 
-### 3. inference/pipeline/attention.ts (lines 453-456, 469-470)
+### 3. inference/pipeline/attention.js (lines 453-456, 469-470)
 
 Recorded path - same change for batched execution:
 
@@ -114,7 +114,7 @@ Since the model was previously converted with `tryLoad()` for q_norm/k_norm (no 
 
 **Reconversion command**:
 ```bash
-npx tsx src/converter/node-converter.ts \
+npx tsx src/converter/node-converter.js \
   ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752/ \
   models/gemma-3-1b-it-q4 \
   --quantize q4_k_m \

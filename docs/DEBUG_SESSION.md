@@ -180,12 +180,12 @@ if (layerIdx === 0 && !recorder) {
 
 ## Key Files
 
-- `inference/pipeline.ts` - decode loop
-- `inference/pipeline/layer.ts` - layer processing with debug readbacks
-- `inference/pipeline/logits.ts` - final norm + lm_head
+- `inference/pipeline.js` - decode loop
+- `inference/pipeline/layer.js` - layer processing with debug readbacks
+- `inference/pipeline/logits.js` - final norm + lm_head
 - `gpu/kernels/matmul_q4_fused.wgsl` - Q4_K dequantization kernel
-- `inference/pipeline/probes.ts` - config-driven probe readbacks
-- `config/schema/debug.schema.ts` - trace/probe schema
+- `inference/pipeline/probes.js` - config-driven probe readbacks
+- `config/schema/debug.schema.js` - trace/probe schema
 
 ## Performance Context
 

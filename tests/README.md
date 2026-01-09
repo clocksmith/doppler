@@ -5,10 +5,10 @@
 This directory contains manual test harnesses for Doppler inference and GPU kernels.
 These pages are distinct from unit tests (Vitest) and Playwright correctness tests.
 
-> **Note:** GPU kernel correctness tests live in [`kernel-tests/`](../kernel-tests/) (not here).
+> **Note:** GPU kernel correctness tests live in [`tests/kernels/`](../tests/kernels/) (not here).
 > This separation is intentional - kernel tests require a browser with WebGPU, have heavy
 > setup overhead, and run separately from the main test suite to keep CI fast. See
-> [kernel-tests/README.md](../kernel-tests/README.md) for details.
+> [tests/kernels/README.md](../tests/kernels/README.md) for details.
 
 ## Test Pages
 
@@ -70,10 +70,10 @@ console.log('Errors:', state.errors);
 
 ---
 
-### ../kernel-tests/browser/index.html — GPU Kernel Test Runner
+### ../tests/kernels/browser/index.html — GPU Kernel Test Runner
 
 **Purpose:** Validate individual GPU kernel correctness
-**URL:** `http://localhost:8080/doppler/kernel-tests/browser/`
+**URL:** `http://localhost:8080/doppler/tests/kernels/browser/`
 
 **Features:**
 - Tests 30+ kernel functions (matmul, attention, softmax, RoPE, etc.)
@@ -110,7 +110,7 @@ open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4
 
 ## Shared Test Utilities
 
-The `inference/test-harness.ts` module provides shared utilities:
+The `inference/test-harness.js` module provides shared utilities:
 
 ```typescript
 import {

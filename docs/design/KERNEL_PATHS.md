@@ -118,7 +118,7 @@ npm run debug -- -m MODEL --kernel-path gemma2-q4k-fused
 
 1. Copy an existing preset from `src/config/presets/kernel-paths/`
 2. Modify the steps as needed
-3. Register in `src/config/kernel-path-loader.ts`
+3. Register in `src/config/kernel-path-loader.js`
 
 ### Override Constants
 

@@ -2,20 +2,20 @@
 
 This directory contains DOPPLER's inference pipeline and its main building blocks:
 
-- `pipeline.ts`: end-to-end orchestration (prefill, decode loop, sampling, debug)
-- `tokenizer.ts`: tokenizer backends and manifest-driven selection
-- `kv-cache.ts`: KV cache layouts and policies (full and sliding-window)
-- `moe-router.ts`: MoE routing and expert execution planning
-- `speculative.ts`: speculative decoding scaffolding
+- `pipeline.js`: end-to-end orchestration (prefill, decode loop, sampling, debug)
+- `tokenizer.js`: tokenizer backends and manifest-driven selection
+- `kv-cache.js`: KV cache layouts and policies (full and sliding-window)
+- `moe-router.js`: MoE routing and expert execution planning
+- `speculative.js`: speculative decoding scaffolding
 - `pipeline/`: modular helpers (10 modules split for maintainability)
-  - **WIRED**: `config.ts`, `sampling.ts` (imported by pipeline.ts)
-  - **NOT wired**: `generate.ts`, `layer.ts`, `prefill.ts`, `decode.ts`, `embed.ts`, `stats.ts`, `stopping.ts`
+  - **WIRED**: `config.js`, `sampling.js` (imported by pipeline.js)
+  - **NOT wired**: `generate.js`, `layer.js`, `prefill.js`, `decode.js`, `embed.js`, `stats.js`, `stopping.js`
   - See `REFACTOR-PLAN.md` for migration checklist
 
 See also:
 - [Line-by-Line Pipeline Steps](#line-by-line-pipeline-steps) below for detailed execution map
 - `docs/GLOSSARY.md` for terms (logits, KV cache, workgroup, subgroups)
-- `gpu/kernel-selector.ts` for the WGSL wrapper API (`run*` and `record*`)
+- `gpu/kernel-selector.js` for the WGSL wrapper API (`run*` and `record*`)
 
 ---
 
@@ -100,7 +100,7 @@ CPU and GPU boundary notes:
 
 ## One Transformer Layer Graph (Kernel Names)
 
-The per-layer graph below uses the kernel wrapper names from `gpu/kernel-selector.ts`. The actual WGSL variant selected depends on device features (`shader-f16`, `subgroups`) and runtime choices (attention tier, batching).
+The per-layer graph below uses the kernel wrapper names from `gpu/kernel-selector.js`. The actual WGSL variant selected depends on device features (`shader-f16`, `subgroups`) and runtime choices (attention tier, batching).
 
 ```dot
 digraph DopplerLayer {
@@ -175,7 +175,7 @@ Notes:
 
 ## Where WGSL Lives
 
-WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.ts` compile and dispatch them, selecting variants based on device capabilities and the operation's dtype.
+WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` compile and dispatch them, selecting variants based on device capabilities and the operation's dtype.
 
 ---
 
@@ -562,12 +562,12 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.ts` com
 
 | File | Purpose |
 |------|---------|
-| `inference/pipeline.ts` | Main inference loop, layer processing |
-| `loader/doppler-loader.ts` | Weight loading, tensor naming |
-| `gpu/kernel-selector.ts` | Kernel dispatch based on capabilities |
-| `memory/capability.ts` | Memory64, unified memory detection |
-| `inference/kv-cache.ts` | KV cache management |
-| `gpu/device.ts` | WebGPU device, feature detection |
+| `inference/pipeline.js` | Main inference loop, layer processing |
+| `loader/doppler-loader.js` | Weight loading, tensor naming |
+| `gpu/kernel-selector.js` | Kernel dispatch based on capabilities |
+| `memory/capability.js` | Memory64, unified memory detection |
+| `inference/kv-cache.js` | KV cache management |
+| `gpu/device.js` | WebGPU device, feature detection |
 
 ---
 

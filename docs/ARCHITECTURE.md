@@ -116,7 +116,7 @@ See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concret
 
 ## 1. GPU Subsystem (`gpu/`)
 
-### device.ts - WebGPU Initialization
+### device.js - WebGPU Initialization
 
 Initializes WebGPU with capability detection:
 
@@ -136,7 +136,7 @@ Initializes WebGPU with capability detection:
 2. Low-power adapter (integrated GPU)
 3. Any available adapter
 
-### buffer-pool.ts - GPU Buffer Pooling
+### buffer-pool.js - GPU Buffer Pooling
 
 Power-of-2 bucket pooling to avoid allocation churn:
 
@@ -148,15 +148,15 @@ releaseBuffer(buf) → returns to pool for reuse
 
 Key insight: WebGPU buffer allocation is expensive (~1ms), pooling amortizes this.
 
-### buffer-dtypes.ts - Buffer Metadata
+### buffer-dtypes.js - Buffer Metadata
 
 Tracks per-buffer dtype and layout metadata so kernels can select correct execution paths.
 
-### kernel-selection-cache.ts - Kernel Selection Cache
+### kernel-selection-cache.js - Kernel Selection Cache
 
 Caches kernel selections and warm status to avoid repeated benchmarking on the same device.
 
-### kernel-selector.ts - Kernel Dispatch
+### kernel-selector.js - Kernel Dispatch
 
 Routes operations to optimal kernel based on capabilities:
 
@@ -169,15 +169,15 @@ else → matmul_f32.wgsl
 
 Auto-tuning: Benchmarks kernel variants at startup, caches best choice per device.
 
-### profiler.ts - GPU Profiling
+### profiler.js - GPU Profiling
 
 Optional marker-based profiling to collect per-op timings during debug and tuning.
 
-### partitioned-buffer-pool.ts - Multi-Model Buffer Pools
+### partitioned-buffer-pool.js - Multi-Model Buffer Pools
 
 Partitions buffer pools by model/expert to reduce contention during multi-model execution.
 
-### multi-model-recorder.ts - Shared Prefix Recording
+### multi-model-recorder.js - Shared Prefix Recording
 
 Records command streams across multiple models to reuse shared prefix KV and reduce overhead.
 
@@ -213,7 +213,7 @@ Records command streams across multiple models to reuse shared prefix KV and red
 
 ## 2. Inference Pipeline (`inference/`)
 
-### pipeline.ts - Main Orchestration
+### pipeline.js - Main Orchestration
 
 The core generate loop:
 
@@ -250,7 +250,7 @@ The core generate loop:
 
 **Layer Pipeline Plans (experimental):**
 
-The default layer order is fixed and optimized in `src/inference/pipeline/layer.ts`. For advanced experimentation, you can supply a JSON plan under `runtime.inference.pipeline` (runtime override) or `inference.pipeline` in the manifest. The plan executes via a small interpreter and is slower than the default path.
+The default layer order is fixed and optimized in `src/inference/pipeline/layer.js`. For advanced experimentation, you can supply a JSON plan under `runtime.inference.pipeline` (runtime override) or `inference.pipeline` in the manifest. The plan executes via a small interpreter and is slower than the default path.
 
 Example (LLaMA-style residuals):
 
@@ -301,19 +301,19 @@ Example (skip FFN on layer 0):
 
 **Runtime presets:** See `src/config/presets/runtime/gemma2-pipeline.json` for a complete Gemma 2 example.
 
-### multi-pipeline-pool.ts - Concurrent Pipelines
+### multi-pipeline-pool.js - Concurrent Pipelines
 
 Manages a pool of inference pipelines to run multiple requests in parallel.
 
-### multi-model-network.ts - Expert Network Orchestration
+### multi-model-network.js - Expert Network Orchestration
 
 Schedules a network of experts and routes tasks across multiple models.
 
-### expert-router.ts - Expert Profiles
+### expert-router.js - Expert Profiles
 
 Defines expert profiles and routing hints used by multi-model orchestration.
 
-### network-evolution.ts - Topology Search
+### network-evolution.js - Topology Search
 
 Evolution helpers for mutating and scoring expert network topologies.
 
@@ -327,18 +327,18 @@ Evolution helpers for mutating and scoring expert network topologies.
 
 | Module | Lines | Purpose |
 |--------|-------|---------|
-| `config.ts` | 325 | Pipeline configuration, model params |
-| `sampling.ts` | 203 | Token sampling (top-k, top-p, temperature) |
-| `generate.ts` | 279 | Generation loop helpers |
-| `layer.ts` | 180 | Per-layer processing |
-| `prefill.ts` | 131 | Prompt prefill phase |
-| `decode.ts` | 144 | Autoregressive decode phase |
-| `embed.ts` | 173 | Token embedding |
-| `stats.ts` | 174 | Performance statistics |
-| `stopping.ts` | 178 | Stop condition detection |
-| `index.ts` | 150 | Module exports |
+| `config.js` | 325 | Pipeline configuration, model params |
+| `sampling.js` | 203 | Token sampling (top-k, top-p, temperature) |
+| `generate.js` | 279 | Generation loop helpers |
+| `layer.js` | 180 | Per-layer processing |
+| `prefill.js` | 131 | Prompt prefill phase |
+| `decode.js` | 144 | Autoregressive decode phase |
+| `embed.js` | 173 | Token embedding |
+| `stats.js` | 174 | Performance statistics |
+| `stopping.js` | 178 | Stop condition detection |
+| `index.js` | 150 | Module exports |
 
-**Note:** These modules are split for maintainability but the main `pipeline.ts` still uses internal methods. Full wiring is in progress.
+**Note:** These modules are split for maintainability but the main `pipeline.js` still uses internal methods. Full wiring is in progress.
 
 ### Manifest-First Config Architecture
 
@@ -349,7 +349,7 @@ DOPPLER uses a **manifest-first** architecture where all model-specific inferenc
 ```
 CONVERSION TIME:
 ┌─────────────────────────────────────────────────────────────────────┐
-│ HuggingFace/GGUF Model → node-converter.ts                          │
+│ HuggingFace/GGUF Model → node-converter.js                          │
 │   - Detect model family (gemma2, llama3, etc.)                      │
 │   - Build ManifestInferenceSchema from preset + HF config           │
 │   - Write inference config to manifest.json                         │
@@ -411,7 +411,7 @@ This model was converted with an older version of DOPPLER.
 Please re-convert the model using the latest converter.
 ```
 
-### kv-cache.ts - KV Cache Management
+### kv-cache.js - KV Cache Management
 
 ```javascript
 // Cache structure per layer
@@ -428,7 +428,7 @@ Please re-convert the model using the latest converter.
 
 **KV dtype:** F16 when supported, halves VRAM usage.
 
-### tokenizer.ts - Tokenization
+### tokenizer.js - Tokenization
 
 Loads tokenizer from:
 1. Bundled `tokenizer.json` in model directory
@@ -436,7 +436,7 @@ Loads tokenizer from:
 
 Supports chat templates via `tokenizer_config.json`.
 
-### moe-router.ts - Mixture of Experts
+### moe-router.js - Mixture of Experts
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -454,7 +454,7 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 ---
 
-## 3. Loader (`loader/doppler-loader.ts`)
+## 3. Loader (`loader/doppler-loader.js`)
 
 ### Weight Loading Pipeline
 
@@ -497,7 +497,7 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 **Gemma 3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. DopplerLoader applies +1 offset during load for SafeTensors source (GGUF has it baked in).
 
-### multi-model-loader.ts - Base + Adapter Loading
+### multi-model-loader.js - Base + Adapter Loading
 
 Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
@@ -509,7 +509,7 @@ Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
 Custom model format optimized for browser streaming:
 
-Note: `storage/rdrr-format.ts` is a compatibility re-export of `formats/rdrr/`.
+Note: `storage/rdrr-format.js` is a compatibility re-export of `formats/rdrr/`.
 
 ```
 model-directory/
@@ -545,7 +545,7 @@ model-directory/
 }
 ```
 
-### shard-manager.ts - OPFS Integration
+### shard-manager.js - OPFS Integration
 
 Uses Origin Private File System for persistent model storage:
 - `initOPFS()` - Initialize root directory
@@ -553,22 +553,22 @@ Uses Origin Private File System for persistent model storage:
 - `verifyIntegrity()` - Check all shard hashes
 - `computeHash(data, algo)` - Blake3/SHA256
 
-### downloader.ts - Model Download
+### downloader.js - Model Download
 
 Streaming download with:
 - Progress callbacks
 - Shard-by-shard integrity verification
 - Resume support (partial downloads)
 
-### quickstart-downloader.ts - Curated Downloads
+### quickstart-downloader.js - Curated Downloads
 
 Provides a curated model list and helpers for quickstart downloads.
 
-### preflight.ts - Requirements Check
+### preflight.js - Requirements Check
 
 Validates GPU and storage requirements before loading a model.
 
-### quota.ts - Storage Detection
+### quota.js - Storage Detection
 
 Detects available storage APIs and reports quota/persistence information.
 
@@ -579,7 +579,7 @@ Detects available storage APIs and reports quota/persistence information.
 Memory capabilities inform loader/preflight/heap strategy (not kernel selection). The loader
 and client API use these signals to size host memory allocations and report limits.
 
-### capability.ts - Memory Detection
+### capability.js - Memory Detection
 
 Detects runtime capabilities:
 ```javascript
@@ -593,13 +593,13 @@ Detects runtime capabilities:
 }
 ```
 
-### unified-detect.ts - Unified Memory Detection
+### unified-detect.js - Unified Memory Detection
 
 Apple Silicon detection for optimal buffer sharing:
 - Unified memory allows larger models (no PCIe copy)
 - Detected via `navigator.gpu.requestAdapter()` heuristics
 
-### heap-manager.ts - Heap Allocation
+### heap-manager.js - Heap Allocation
 
 Manages host-memory allocations for weight staging and conversion:
 - Memory64: single large WASM heap
@@ -609,11 +609,11 @@ Manages host-memory allocations for weight staging and conversion:
 
 ## 6. Bridge (`bridge/`)
 
-### extension-client.ts - Extension Bridge Client
+### extension-client.js - Extension Bridge Client
 
 Connects to a browser extension to access local files outside OPFS limits.
 
-### extension/background.ts - Extension Background
+### extension/background.js - Extension Background
 
 Handles native messaging and file operations for the extension bridge.
 
@@ -621,7 +621,7 @@ Handles native messaging and file operations for the extension bridge.
 
 Defines extension permissions and background entry points.
 
-### native/native-host.ts - Native Host
+### native/native-host.js - Native Host
 
 Implements the native host process that services file read/list commands.
 
@@ -629,7 +629,7 @@ Implements the native host process that services file read/list commands.
 
 Shell helpers for installing and running the native bridge.
 
-### protocol.ts - Bridge Protocol
+### protocol.js - Bridge Protocol
 
 Defines framing, commands, and flags for bridge messaging.
 
@@ -637,48 +637,48 @@ Defines framing, commands, and flags for bridge messaging.
 
 ## 7. Browser Import (`browser/`)
 
-### file-picker.ts - Browser File Access
+### file-picker.js - Browser File Access
 
 Uses browser file system APIs to pick and stream local model files.
 
-### gguf-parser-browser.ts - GGUF Parsing
+### gguf-parser-browser.js - GGUF Parsing
 
 Parses GGUF metadata and tensors in the browser.
 
-### safetensors-parser-browser.ts - SafeTensors Parsing
+### safetensors-parser-browser.js - SafeTensors Parsing
 
 Parses SafeTensors metadata and tensor slices in the browser.
 
-### gguf-importer.ts - GGUF Import Pipeline
+### gguf-importer.js - GGUF Import Pipeline
 
 Builds RDRR shards from GGUF inputs in-browser.
 
-### browser-converter.ts - Browser Conversion
+### browser-converter.js - Browser Conversion
 
-Converts source formats into RDRR with progress reporting. Uses shared types and functions from `src/converter/core.ts` for consistent manifest generation and architecture extraction.
+Converts source formats into RDRR with progress reporting. Uses shared types and functions from `src/converter/core.js` for consistent manifest generation and architecture extraction.
 
 ---
 
 ## 8. Converter (`converter/`)
 
-### core.ts - Shared Conversion Core
+### core.js - Shared Conversion Core
 
 Platform-agnostic types and pure functions shared between CLI and browser converters:
 - **Types**: `TensorInfo`, `ParsedModel`, `ConvertOptions`, `RDRRManifest`, `ShardInfo`, `TensorLocation`
 - **Functions**: `sanitizeModelId()`, `formatBytes()`, `shouldQuantize()`, `extractArchitecture()`, `buildTensorMap()`, `createManifest()`
 - **I/O Adapter**: `ConvertIO` interface for platform-specific file operations
 
-### node-converter.ts - Model Conversion
+### node-converter.js - Model Conversion
 
 Converts HuggingFace models to RDRR format:
 ```bash
-npx tsx src/converter/node-converter.ts \
+npx tsx src/converter/node-converter.js \
   --input ./hf-model \
   --output ./rdrr-model \
   --quantize Q4_K_M
 ```
 
-### quantizer.ts - Q4_K Quantization
+### quantizer.js - Q4_K Quantization
 
 **Critical:** Must match llama.cpp Q4_K format exactly.
 
@@ -860,22 +860,22 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/client/doppler-provider.ts` | 972 | Public API, LLM client integration |
-| `src/inference/pipeline.ts` | 2227 | Main inference orchestration |
-| `src/inference/kv-cache.ts` | 1007 | KV cache management |
-| `src/inference/tokenizer.ts` | 1614 | Tokenization wrapper |
-| `src/inference/moe-router.ts` | 624 | MoE expert routing |
-| `src/loader/doppler-loader.ts` | 2313 | Weight loading, dequant |
-| `src/gpu/device.ts` | 408 | WebGPU initialization |
-| `src/gpu/kernel-selector.ts` | 27 | Kernel dispatch (routing) |
-| `src/gpu/kernel-tuner.ts` | 1261 | Auto-tuning benchmarks |
-| `src/gpu/buffer-pool.ts` | 586 | Buffer pooling |
-| `src/formats/rdrr/manifest.ts` | 111 | RDRR manifest parsing |
-| `src/storage/shard-manager.ts` | 816 | OPFS shard management |
-| `src/converter/quantizer.ts` | 492 | Q4_K quantization |
-| `src/converter/core.ts` | 527 | Shared conversion types/functions |
-| `src/converter/node-converter.ts` | 1170 | Model conversion CLI |
-| `src/browser/browser-converter.ts` | 499 | Browser model conversion |
+| `src/client/doppler-provider.js` | 972 | Public API, LLM client integration |
+| `src/inference/pipeline.js` | 2227 | Main inference orchestration |
+| `src/inference/kv-cache.js` | 1007 | KV cache management |
+| `src/inference/tokenizer.js` | 1614 | Tokenization wrapper |
+| `src/inference/moe-router.js` | 624 | MoE expert routing |
+| `src/loader/doppler-loader.js` | 2313 | Weight loading, dequant |
+| `src/gpu/device.js` | 408 | WebGPU initialization |
+| `src/gpu/kernel-selector.js` | 27 | Kernel dispatch (routing) |
+| `src/gpu/kernel-tuner.js` | 1261 | Auto-tuning benchmarks |
+| `src/gpu/buffer-pool.js` | 586 | Buffer pooling |
+| `src/formats/rdrr/manifest.js` | 111 | RDRR manifest parsing |
+| `src/storage/shard-manager.js` | 816 | OPFS shard management |
+| `src/converter/quantizer.js` | 492 | Q4_K quantization |
+| `src/converter/core.js` | 527 | Shared conversion types/functions |
+| `src/converter/node-converter.js` | 1170 | Model conversion CLI |
+| `src/browser/browser-converter.js` | 499 | Browser model conversion |
 
 ---
 

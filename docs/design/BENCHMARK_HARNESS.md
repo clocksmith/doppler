@@ -8,20 +8,20 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Kernel microbenchmarks | ✓ Implemented | `kernel-tests/tests/benchmarks/` |
-| Pipeline benchmark harness | ✓ Implemented | `tests/benchmark/pipeline-benchmark.ts` |
-| System benchmarks | ✓ Implemented | `tests/benchmark/system-benchmark.ts` |
-| Standard prompts | ✓ Implemented | `tests/benchmark/prompts.ts` |
-| JSON result schema | ✓ Implemented | `tests/benchmark/types.ts` |
-| GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.ts` |
+| Kernel microbenchmarks | ✓ Implemented | `tests/kernels/tests/benchmarks/` |
+| Pipeline benchmark harness | ✓ Implemented | `tests/benchmark/pipeline-benchmark.js` |
+| System benchmarks | ✓ Implemented | `tests/benchmark/system-benchmark.js` |
+| Standard prompts | ✓ Implemented | `tests/benchmark/prompts.js` |
+| JSON result schema | ✓ Implemented | `tests/benchmark/types.js` |
+| GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | Tracked in harness |
-| Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.ts` |
+| Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.js` |
 | OPFS storage metrics | ✓ Implemented | Via Storage API |
-| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmark/results-storage.ts` |
-| Results export (JSON) | ✓ Implemented | `tests/benchmark/results-storage.ts` |
+| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmark/results-storage.js` |
+| Results export (JSON) | ✓ Implemented | `tests/benchmark/results-storage.js` |
 | Results directory | ✓ Implemented | `tests/results/` |
-| Comparison utilities | ✓ Implemented | `tests/benchmark/results-storage.ts` |
-| CLI tool | ✓ Implemented | `cli/index.ts` |
+| Comparison utilities | ✓ Implemented | `tests/benchmark/results-storage.js` |
+| CLI tool | ✓ Implemented | `cli/index.js` |
 
 ### Claude Skill
 
@@ -43,11 +43,11 @@ Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for 
 The harness benchmarks three layers:
 
 1. **Kernel microbench**: single-op timings (matmul, attention, dequant) with synthetic tensors.
-   - Implemented in `kernel-tests/tests/benchmarks/`.
+   - Implemented in `tests/kernels/tests/benchmarks/`.
 2. **Pipeline benchmarks**: prefill and decode loops using a real model manifest.
-   - Implemented in `tests/benchmark/pipeline-benchmark.ts`.
+   - Implemented in `tests/benchmark/pipeline-benchmark.js`.
 3. **System benchmarks**: download and storage behavior (HTTP vs OPFS vs Native Bridge, and later P2P).
-   - Implemented in `tests/benchmark/system-benchmark.ts`.
+   - Implemented in `tests/benchmark/system-benchmark.js`.
 
 ---
 
@@ -137,7 +137,7 @@ Each benchmark suite runs:
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
 
-**CLI note:** When running via `cli/index.ts`, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
+**CLI note:** When running via `cli/index.js`, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
 
 - `warm`: reuse the same `--profile-dir`
 - `cold`: use a fresh `--profile-dir` (or delete the profile dir)
@@ -345,7 +345,7 @@ When reporting WebLLM comparison results:
 
 ## Recommended Repo Layout (Non-binding)
 
-- Kernel microbenchmarks: `kernel-tests/tests/benchmarks/`
+- Kernel microbenchmarks: `tests/kernels/tests/benchmarks/`
 - Pipeline benchmark harness: `tests/benchmark/`
 - Saved result JSON: `tests/results/`
 

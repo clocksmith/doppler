@@ -44,8 +44,8 @@
 | `docs/design/KERNEL_TESTING.md` | Testing specification/design |
 | `docs/design/BENCHMARK_HARNESS.md` | Benchmark methodology |
 | `docs/TEST_RESULTS.md` | Test session log |
-| `kernel-tests/TODO.md` | Implementation status |
-| `kernel-tests/BENCHMARKS.md` | Benchmark baselines |
+| `tests/kernels/TODO.md` | Implementation status |
+| `tests/kernels/BENCHMARKS.md` | Benchmark baselines |
 
 ---
 
@@ -176,19 +176,19 @@ Open in browser while dev server is running:
 - **Inference test page:** http://localhost:8080/doppler/tests/test-inference.html
   - Add `?model=gemma3-1b-q4` to specify model
   - Add `&autorun=1` to auto-start test
-- **Kernel test page:** http://localhost:8080/doppler/kernel-tests/browser/index.html
+- **Kernel test page:** http://localhost:8080/doppler/tests/kernels/browser/index.html
 - **Demo UI:** http://localhost:8080/d
 
 ## Adding New Tests
 
 ### Kernel Tests
-Add to `kernel-tests/src/` and update `cli/index.ts` switch statement.
+Add to `tests/kernels/` and update `cli/index.js` switch statement.
 
 ### Inference Tests
 Modify `tests/test-inference.html` for test logic.
 
 ### Unit Tests
-Add `.test.ts` files to `tests/` directory.
+Add `.test.js` files to `tests/` directory.
 
 ## CI Integration
 
