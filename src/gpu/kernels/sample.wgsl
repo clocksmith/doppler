@@ -125,11 +125,12 @@ fn find_topk_phase2(
     let thread_idx = lid.x;
     let top_k = u.top_k;
     let num_groups = min(256u, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
+    let num_candidates = select(num_groups, min(u.vocab_size, WORKGROUP_SIZE), num_groups == 1u);
 
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
     if (thread_idx < 256u) {
-        if (thread_idx < num_groups) {
+        if (thread_idx < num_candidates) {
             shared_values[thread_idx] = topk_logits[thread_idx];
             shared_indices[thread_idx] = topk_indices[thread_idx];
         } else {
@@ -141,11 +142,11 @@ fn find_topk_phase2(
 
     // Thread 0 does partial selection sort for top-k
     if (thread_idx == 0u) {
-        for (var k: u32 = 0u; k < top_k && k < 256u; k = k + 1u) {
+        for (var k: u32 = 0u; k < top_k && k < num_candidates; k = k + 1u) {
             var max_idx = k;
             var max_val = shared_values[k];
 
-            for (var i: u32 = k + 1u; i < 256u; i = i + 1u) {
+            for (var i: u32 = k + 1u; i < num_candidates; i = i + 1u) {
                 if (shared_values[i] > max_val) {
                     max_val = shared_values[i];
                     max_idx = i;

@@ -110,8 +110,7 @@ test.describe('Fused Matmul + RMSNorm Kernel', () => {
   });
 
   test.describe('With residual', () => {
-    // Skip: Residual path may use different accumulation order causing larger numerical differences
-    test.skip('should add residual before rmsnorm', async ({ gpuPage }) => {
+    test('should add residual after rmsnorm', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async () => {
         const N = 64;
         const K = 32;

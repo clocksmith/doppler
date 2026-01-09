@@ -1,9 +1,21 @@
 {
-  "version": "1.0",
+  "version": 1,
   "modelId": "tiny-test",
   "modelType": "transformer",
-  "architecture": "test",
+  "architecture": {
+    "numLayers": 2,
+    "hiddenSize": 64,
+    "intermediateSize": 256,
+    "numAttentionHeads": 2,
+    "numKeyValueHeads": 2,
+    "headDim": 32,
+    "vocabSize": 1000,
+    "maxSeqLen": 128,
+    "ropeTheta": 10000,
+    "rmsNormEps": 0.00001
+  },
   "quantization": "F32",
+  "hashAlgorithm": "sha256",
   "config": {
     "vocabSize": 1000,
     "hiddenSize": 64,
@@ -22,168 +34,82 @@
       "index": 0,
       "fileName": "shard_00000.bin",
       "size": 925952,
-      "hash": "b717585cb6d1928cfa7eb7b642d89b88e7d60103dd4cdadba23da2684928d91c",
+      "hash": "5d1c4694d84c97b68dbbd3d124c3e95c55c45be3ee6bfc6ac20b10c79d4bf72f",
       "hashAlgorithm": "sha256"
     }
   ],
-  "tensors": {
-    "embed_tokens.weight": {
-      "shard": 0,
-      "offset": 0,
-      "size": 256000,
-      "shape": [
-        1000,
-        64
+  "groups": {
+    "embed": {
+      "type": "embed",
+      "version": "1.0.0",
+      "shards": [
+        0
       ],
-      "dtype": "F32"
+      "tensors": [
+        "embed_tokens.weight"
+      ],
+      "hash": "b565ee8f7a44eb80a65320dacda7a7d1f58836ffb37cf0dbb3e29b0b4af6ca3d"
     },
-    "layers.0.attention.qkv.weight": {
-      "shard": 0,
-      "offset": 258048,
-      "size": 49152,
-      "shape": [
-        192,
-        64
+    "layer.0": {
+      "type": "layer",
+      "version": "1.0.0",
+      "shards": [
+        0
       ],
-      "dtype": "F32"
+      "tensors": [
+        "layers.0.attention.qkv.weight",
+        "layers.0.attention.o.weight",
+        "layers.0.ffn.up.weight",
+        "layers.0.ffn.down.weight",
+        "layers.0.input_norm.weight",
+        "layers.0.post_norm.weight"
+      ],
+      "hash": "e351393fd0575d6fe6da410b5adcbf423c11ce8653b796e961e630a82f98d5df",
+      "layerIndex": 0
     },
-    "layers.0.attention.o.weight": {
-      "shard": 0,
-      "offset": 307200,
-      "size": 16384,
-      "shape": [
-        64,
-        64
+    "layer.1": {
+      "type": "layer",
+      "version": "1.0.0",
+      "shards": [
+        0
       ],
-      "dtype": "F32"
+      "tensors": [
+        "layers.1.attention.qkv.weight",
+        "layers.1.attention.o.weight",
+        "layers.1.ffn.up.weight",
+        "layers.1.ffn.down.weight",
+        "layers.1.input_norm.weight",
+        "layers.1.post_norm.weight"
+      ],
+      "hash": "8c607baf74b63d0d2a8b1bd18370e38f8c911e6915f8750105b00db633ed8e7f",
+      "layerIndex": 1
     },
-    "layers.0.ffn.up.weight": {
-      "shard": 0,
-      "offset": 323584,
-      "size": 65536,
-      "shape": [
-        256,
-        64
+    "head": {
+      "type": "head",
+      "version": "1.0.0",
+      "shards": [
+        0
       ],
-      "dtype": "F32"
-    },
-    "layers.0.ffn.down.weight": {
-      "shard": 0,
-      "offset": 389120,
-      "size": 65536,
-      "shape": [
-        64,
-        256
+      "tensors": [
+        "lm_head.weight",
+        "final_norm.weight"
       ],
-      "dtype": "F32"
-    },
-    "layers.0.input_norm.weight": {
-      "shard": 0,
-      "offset": 454656,
-      "size": 256,
-      "shape": [
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.0.post_norm.weight": {
-      "shard": 0,
-      "offset": 458752,
-      "size": 256,
-      "shape": [
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.attention.qkv.weight": {
-      "shard": 0,
-      "offset": 462848,
-      "size": 49152,
-      "shape": [
-        192,
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.attention.o.weight": {
-      "shard": 0,
-      "offset": 512000,
-      "size": 16384,
-      "shape": [
-        64,
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.ffn.up.weight": {
-      "shard": 0,
-      "offset": 528384,
-      "size": 65536,
-      "shape": [
-        256,
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.ffn.down.weight": {
-      "shard": 0,
-      "offset": 593920,
-      "size": 65536,
-      "shape": [
-        64,
-        256
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.input_norm.weight": {
-      "shard": 0,
-      "offset": 659456,
-      "size": 256,
-      "shape": [
-        64
-      ],
-      "dtype": "F32"
-    },
-    "layers.1.post_norm.weight": {
-      "shard": 0,
-      "offset": 663552,
-      "size": 256,
-      "shape": [
-        64
-      ],
-      "dtype": "F32"
-    },
-    "lm_head.weight": {
-      "shard": 0,
-      "offset": 667648,
-      "size": 256000,
-      "shape": [
-        1000,
-        64
-      ],
-      "dtype": "F32"
-    },
-    "final_norm.weight": {
-      "shard": 0,
-      "offset": 925696,
-      "size": 256,
-      "shape": [
-        64
-      ],
-      "dtype": "F32"
+      "hash": "b6c74bc36671acef5a2742db3d9546d127a6eed8b7d8d8cd63f2fa8aee431821"
     }
   },
+  "tensorsFile": "tensors.json",
+  "tensorCount": 15,
   "moeConfig": null,
   "totalSize": 925952,
-  "tensorCount": 15,
   "inference": {
     "attention": {
-      "queryPreAttnScalar": 8,
+      "queryPreAttnScalar": 5.656854249492381,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
       "queryKeyNorm": false
     },
     "normalization": {
+      "rmsNormEps": 0.00001,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": false,
       "preFeedforwardNorm": false,
@@ -198,9 +124,9 @@
       "ropeLocalTheta": null,
       "ropeScalingType": null,
       "ropeScalingFactor": 1,
-      "yarnBetaFast": null,
-      "yarnBetaSlow": null,
-      "yarnOriginalMaxPos": null
+      "yarnBetaFast": 32,
+      "yarnBetaSlow": 1,
+      "yarnOriginalMaxPos": 4096
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -208,6 +134,16 @@
       "scaleEmbeddings": false,
       "embeddingTranspose": false,
       "embeddingVocabSize": 1000
-    }
+    },
+    "layerPattern": {
+      "type": "uniform",
+      "globalPattern": null,
+      "period": null
+    },
+    "chatTemplate": {
+      "type": null,
+      "enabled": false
+    },
+    "defaultKernelPath": null
   }
 }

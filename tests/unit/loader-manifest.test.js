@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { needsNormWeightOffset } from '../../src/loader/manifest-config.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 
 // Mock GPU/WebGPU globals
 vi.stubGlobal('GPUBufferUsage', {
@@ -57,6 +58,45 @@ function loadMiniModelTensors() {
 }
 
 function createValidManifest(overrides = {}) {
+  const inference = {
+    ...DEFAULT_MANIFEST_INFERENCE,
+    attention: {
+      ...DEFAULT_MANIFEST_INFERENCE.attention,
+      queryPreAttnScalar: 8.0,
+      attnLogitSoftcapping: null,
+      slidingWindow: null,
+      queryKeyNorm: false,
+    },
+    normalization: {
+      ...DEFAULT_MANIFEST_INFERENCE.normalization,
+      rmsNormEps: 1e-5,
+      rmsNormWeightOffset: false,
+      postAttentionNorm: false,
+      preFeedforwardNorm: false,
+      postFeedforwardNorm: false,
+    },
+    ffn: {
+      ...DEFAULT_MANIFEST_INFERENCE.ffn,
+      activation: 'silu',
+      gatedActivation: true,
+    },
+    rope: {
+      ...DEFAULT_MANIFEST_INFERENCE.rope,
+      ropeTheta: 10000,
+      ropeLocalTheta: null,
+      ropeScalingType: null,
+      ropeScalingFactor: 1,
+    },
+    output: {
+      ...DEFAULT_MANIFEST_INFERENCE.output,
+      finalLogitSoftcapping: null,
+      tieWordEmbeddings: true,
+      scaleEmbeddings: false,
+      embeddingTranspose: false,
+      embeddingVocabSize: 32000,
+    },
+  };
+
   return {
     version: 1,
     modelId: 'test-model-q4k',
@@ -88,37 +128,7 @@ function createValidManifest(overrides = {}) {
     tensorsFile: 'tensors.json',
     tensorCount: 100,
     groups: {},
-    inference: {
-      attention: {
-        queryPreAttnScalar: 8.0,
-        attnLogitSoftcapping: null,
-        slidingWindow: null,
-        queryKeyNorm: false,
-      },
-      normalization: {
-        rmsNormWeightOffset: false,
-        postAttentionNorm: false,
-        preFeedforwardNorm: false,
-        postFeedforwardNorm: false,
-      },
-      ffn: {
-        activation: 'silu',
-        gatedActivation: true,
-      },
-      rope: {
-        ropeTheta: 10000,
-        ropeLocalTheta: null,
-        ropeScalingType: null,
-        ropeScalingFactor: 1,
-      },
-      output: {
-        finalLogitSoftcapping: null,
-        tieWordEmbeddings: true,
-        scaleEmbeddings: false,
-        embeddingTranspose: false,
-        embeddingVocabSize: 32000,
-      },
-    },
+    inference,
     ...overrides,
   };
 }

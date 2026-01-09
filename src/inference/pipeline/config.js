@@ -351,10 +351,11 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeScaling = ropeScalingType ? {
     type: ropeScalingType,
     factor: ropeScale,
-    // YARN-specific params (only present for YARN scaling)
-    ...(inf.rope.yarnBetaFast != null && { beta_fast: inf.rope.yarnBetaFast }),
-    ...(inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
-    ...(inf.rope.yarnOriginalMaxPos != null && { original_max_position_embeddings: inf.rope.yarnOriginalMaxPos }),
+    ...(ropeScalingType === 'yarn' && inf.rope.yarnBetaFast != null && { beta_fast: inf.rope.yarnBetaFast }),
+    ...(ropeScalingType === 'yarn' && inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
+    ...(ropeScalingType === 'yarn' && inf.rope.yarnOriginalMaxPos != null && {
+      original_max_position_embeddings: inf.rope.yarnOriginalMaxPos
+    }),
   } : null;
 
   // Activation type

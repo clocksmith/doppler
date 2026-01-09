@@ -1257,7 +1257,7 @@ const testHarness = {
   },
 
   /**
-   * Reference for fused matmul + RMSNorm
+   * Reference for fused matmul + RMSNorm (post-norm residual)
    */
   fusedMatmulRMSNormRef(input, weight, normWeight, N, K, eps = 1e-5, residual = null) {
     // Step 1: matmul input[1,K] @ weight[N,K]^T -> intermediate[1,N]
@@ -1267,8 +1267,7 @@ const testHarness = {
       for (let k = 0; k < K; k++) {
         sum += input[k] * weight[n * K + k];
       }
-      // Add residual if present
-      intermediate[n] = residual ? sum + residual[n] : sum;
+      intermediate[n] = sum;
     }
 
     // Step 2: RMSNorm
@@ -1280,7 +1279,8 @@ const testHarness = {
 
     const output = new Float32Array(N);
     for (let i = 0; i < N; i++) {
-      output[i] = (intermediate[i] / rms) * normWeight[i];
+      const normalized = (intermediate[i] / rms) * normWeight[i];
+      output[i] = residual ? normalized + residual[i] : normalized;
     }
 
     return output;

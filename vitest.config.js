@@ -11,10 +11,12 @@ export default defineConfig({
       'kernel-tests/tests/correctness/**',
       'kernel-tests/tests/benchmarks/**',
       'tests/correctness/**',
+      'tests/kernels/**',
       'tests/benchmark/**',
     ],
     environment: 'node',
     globals: true,
+    setupFiles: ['tests/vitest.setup.js'],
     // Don't fail when no tests found (all tests are currently playwright)
     passWithNoTests: true,
     coverage: {

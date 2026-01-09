@@ -3,7 +3,7 @@
  * Generate Test Model Fixture - Creates a tiny .rdrr model for testing.
  */
 
-import { createTestModel } from './rdrr-writer.js';
+import { createTestModel } from '../src/converter/test-model.js';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 

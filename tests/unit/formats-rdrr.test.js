@@ -32,8 +32,21 @@ import {
   MANIFEST_FILENAME,
   TENSORS_FILENAME,
 } from '../../src/formats/rdrr/types.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 
 function createValidManifest(overrides = {}) {
+  const inference = {
+    ...DEFAULT_MANIFEST_INFERENCE,
+    attention: {
+      ...DEFAULT_MANIFEST_INFERENCE.attention,
+      queryPreAttnScalar: 8.0,
+    },
+    normalization: {
+      ...DEFAULT_MANIFEST_INFERENCE.normalization,
+      rmsNormEps: 1e-5,
+    },
+  };
+
   return {
     version: RDRR_VERSION,
     modelId: 'test-model-q4k',
@@ -45,8 +58,12 @@ function createValidManifest(overrides = {}) {
       hiddenSize: 768,
       intermediateSize: 3072,
       numAttentionHeads: 12,
+      numKeyValueHeads: 12,
+      headDim: 64,
       vocabSize: 32000,
       maxSeqLen: 2048,
+      ropeTheta: 10000,
+      rmsNormEps: 1e-5,
     },
     shards: [
       {
@@ -67,13 +84,7 @@ function createValidManifest(overrides = {}) {
     totalSize: 96 * 1024 * 1024,
     tensorsFile: 'tensors.json',
     tensorCount: 100,
-    inference: {
-      normalization: { type: 'rmsnorm', epsilon: 1e-5 },
-      rope: { type: 'standard', base: 10000 },
-      attention: { type: 'gqa', queryKeyNorm: false },
-      ffn: { type: 'swiglu' },
-      embedding: { scaleEmbeddings: false },
-    },
+    inference,
     ...overrides,
   };
 }
@@ -168,8 +179,12 @@ describe('formats/rdrr/manifest', () => {
           hiddenSize: 768,
           intermediateSize: 3072,
           numAttentionHeads: 12,
+          numKeyValueHeads: 12,
+          headDim: 64,
           vocabSize: 32000,
           maxSeqLen: 2048,
+          ropeTheta: 10000,
+          rmsNormEps: 1e-5,
         },
         shards: [
           {
@@ -184,11 +199,15 @@ describe('formats/rdrr/manifest', () => {
         tensorsFile: 'tensors.json',
         tensorCount: 10,
         inference: {
-          normalization: { type: 'rmsnorm', epsilon: 1e-5 },
-          rope: { type: 'standard', base: 10000 },
-          attention: { type: 'gqa', queryKeyNorm: false },
-          ffn: { type: 'swiglu' },
-          embedding: { scaleEmbeddings: false },
+          ...DEFAULT_MANIFEST_INFERENCE,
+          attention: {
+            ...DEFAULT_MANIFEST_INFERENCE.attention,
+            queryPreAttnScalar: 8.0,
+          },
+          normalization: {
+            ...DEFAULT_MANIFEST_INFERENCE.normalization,
+            rmsNormEps: 1e-5,
+          },
         },
       };
 

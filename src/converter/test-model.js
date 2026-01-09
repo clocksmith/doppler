@@ -14,25 +14,39 @@ import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
  * Useful for testing the conversion pipeline and loader.
  */
 export async function createTestModel(outputDir) {
+  const hiddenSize = 64;
+  const vocabSize = 1000;
+  const intermediateSize = 256;
+  const numHeads = 2;
+  const numLayers = 2;
+  const headDim = hiddenSize / numHeads;
+  const maxSeqLen = 128;
+
   const writer = new RDRRWriter(outputDir, {
     modelId: 'tiny-test',
-    architecture: 'test',
+    architecture: {
+      numLayers,
+      hiddenSize,
+      intermediateSize,
+      numAttentionHeads: numHeads,
+      numKeyValueHeads: numHeads,
+      headDim,
+      vocabSize,
+      maxSeqLen,
+      ropeTheta: 10000,
+      rmsNormEps: 1e-5,
+    },
     quantization: 'F32',
   });
 
   await writer.init();
 
-  const hiddenSize = 64;
-  const vocabSize = 1000;
-  const intermediateSize = 256;
-  const numHeads = 2;
-
   writer.setConfig({
     vocabSize,
     hiddenSize,
-    numLayers: 2,
+    numLayers,
     numHeads,
-    contextLength: 128,
+    contextLength: maxSeqLen,
   });
 
   writer.setTokenizer({
@@ -46,7 +60,7 @@ export async function createTestModel(outputDir) {
     ...DEFAULT_MANIFEST_INFERENCE,
     attention: {
       ...DEFAULT_MANIFEST_INFERENCE.attention,
-      queryPreAttnScalar: Math.sqrt(hiddenSize / numHeads),
+      queryPreAttnScalar: Math.sqrt(headDim),
     },
   });
 
@@ -61,7 +75,7 @@ export async function createTestModel(outputDir) {
   });
 
   // Transformer layers
-  for (let layer = 0; layer < 2; layer++) {
+  for (let layer = 0; layer < numLayers; layer++) {
     const qkvSize = hiddenSize * hiddenSize * 3;
     const qkvData = new Float32Array(qkvSize);
     for (let i = 0; i < qkvSize; i++) {

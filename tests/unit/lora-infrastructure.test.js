@@ -387,7 +387,7 @@ describe('AdapterManager', () => {
       const adapter = await loadLoRAFromManifest(manifest);
       manager.registerAdapter('test', adapter, createTestManifest());
 
-      expect(() => manager.enableAdapter('test', { weight: 3.0 })).toThrow('between 0.0 and 2.0');
+      expect(() => manager.enableAdapter('test', { weight: 3.0 })).toThrow('between 0 and 2');
     });
   });
 

@@ -154,7 +154,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │ ├─ schema/ (all DEFAULT_*)       │ ├─ kernel-selector.js (dispatch routing) │
 │ ├─ presets/runtime/              │ ├─ kernel-registry.js (variant catalog)  │
 │ ├─ presets/models/               │ └─ kernel-tuner/ (auto-benchmarking)     │
-│ └─ runtime.ts (get/set API)      │                                          │
+│ └─ runtime.js (get/set API)      │                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ types/                                                                       │
 │ (shared TypeScript declarations - no runtime code)                           │
@@ -277,7 +277,7 @@ Use this for understanding build order and what can be tested independently.
 │ File format parsing. Pure functions, no side effects.                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 2: CONFIG (65 files)                                                  │
-│ config/schema/*, config/presets/*, config/runtime.ts                        │
+│ config/schema/*, config/presets/*, config/runtime.js                        │
 │ All DEFAULT_* exports. Source of truth for tunables.                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 1: FOUNDATION (9 + 8 + 18 files)                                      │
