@@ -642,7 +642,7 @@ async function runCorrectnessTests(page, opts, tests) {
   console.log('KERNEL CORRECTNESS TESTS');
   console.log('='.repeat(60));
 
-  await page.goto(`${opts.baseUrl}/doppler/kernel-tests/browser/index.html`, {
+  await page.goto(`${opts.baseUrl}/doppler/tests/kernels/browser/index.html`, {
     timeout: opts.timeout,
   });
 
@@ -1312,7 +1312,7 @@ async function runKernelBenchmarks(page, opts) {
     (window).__name = (target) => target;
   });
 
-  await page.goto(`${opts.baseUrl}/doppler/kernel-tests/browser/index.html`, {
+  await page.goto(`${opts.baseUrl}/doppler/tests/kernels/browser/index.html`, {
     timeout: opts.timeout,
   });
 

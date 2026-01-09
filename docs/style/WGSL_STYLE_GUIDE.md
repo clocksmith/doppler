@@ -266,6 +266,66 @@ fn relu() { ... }
 
 ---
 
+## Pipeline Layout Rules
+
+**One pipeline layout per file.** Each file maps to a single combination of bindings + workgroup size + capability requirements.
+
+### Hard Constraints
+
+1. **Binding element types are fixed at compile time**
+   - `array<f16>` vs `array<f32>` outputs cannot be toggled by override
+   - If you need one code path, use packed `u32` with explicit unpacking
+   - Otherwise keep separate files (`matmul_f16.wgsl`, `matmul_f32.wgsl`)
+
+2. **Override constants cannot be used for array lengths**
+   - Workgroup arrays must use fixed sizes or a MAX size
+   - If you need multiple tile sizes, compile fixed-size variants and select at runtime
+   ```wgsl
+   // BAD - array size from override
+   var<workgroup> tile: array<f32, TILE_SIZE * TILE_SIZE>;
+
+   // GOOD - fixed MAX size
+   const MAX_TILE: u32 = 1024u;  // 32x32
+   var<workgroup> tile: array<f32, MAX_TILE>;
+   ```
+
+3. **Workgroup size is part of the pipeline**
+   - Different `@workgroup_size` values are separate pipelines
+   - Use separate files or separate entrypoints with clear variant IDs
+
+4. **Capability requirements are compile-time**
+   - If any code path uses `enable f16` or `enable subgroups`, the pipeline requires that capability
+   - Keep subgroup/f16 fallbacks as separate files when needed
+
+### Layout Boundaries
+
+Group kernels by these criteria:
+
+| Operation | Separate Files For |
+|-----------|-------------------|
+| **Attention** | KV dtype (f32 vs f16kv), subgroup vs non-subgroup |
+| **Matmul** | Binding types (f32, f16, f16w_f32a), GEMV vs GEMM |
+| **Dequant** | Output dtype (f32 vs f16), quant format (Q4K, Q6K, Q8_0) |
+| **Activations** | dtype (f32 vs f16); use overrides for gate/bias/vec4 within dtype |
+| **Sampling** | Multi-phase ops with different bind group layouts |
+
+### Baseline Kernels
+
+Keep non-optimized baseline variants available for debugging:
+- f32 (no shader-f16 requirement)
+- Non-subgroup (no subgroup requirement)
+- Non-fused (individual operations)
+
+### Enforcement
+
+Validate kernel registry and check for policy violations:
+
+```bash
+npm run kernels:check   # Registry validation + override-array lint
+```
+
+---
+
 ## Entry Points (Legacy Guidance)
 
 ### Single Entry (Preferred)

@@ -353,6 +353,75 @@ export function selectByRules<T>(
 
 ---
 
+## Kernel Selection Centralization
+
+All kernel variant selection logic lives in **one hotswappable file** (`src/gpu/kernel-selector.js`).
+
+### Principle
+
+Dispatch sites call selection functions; they never contain variant logic themselves. This allows:
+- A/B testing different selection strategies without modifying dispatch sites
+- Hot-swapping the selector module at runtime (for debugging)
+- Single audit point for all variant decisions
+
+### DON'T: Scatter Selection Logic
+
+```javascript
+// BAD - variant logic at dispatch site
+async function runMatmul(ctx) {
+  let variant;
+  if (ctx.bDtype === 'q4k' && ctx.M === 1 && ctx.hasSubgroups) {
+    variant = 'q4_fused';
+  } else if (ctx.M === 1) {
+    variant = 'gemv';
+  } else {
+    variant = 'f32';
+  }
+  await dispatch(variant, ...);
+}
+```
+
+### DO: Centralized Selection
+
+```javascript
+// kernel-selector.js - single source of variant logic
+export function selectMatmulVariant(ctx) {
+  return selectByRules(MATMUL_VARIANTS, ctx, 'f32');
+}
+
+// dispatch site - calls selector, no logic
+async function runMatmul(ctx) {
+  const variant = selectMatmulVariant(ctx);
+  await dispatch(variant, ...);
+}
+```
+
+### File Structure
+
+```
+src/gpu/
+  kernel-selector.js       # ALL selection functions
+  kernel-selector.d.ts     # Type definitions
+  kernels/
+    matmul.js              # Dispatch only, calls selector
+    attention.js           # Dispatch only, calls selector
+```
+
+### Testing
+
+Test the selector in isolation with context fixtures:
+
+```javascript
+describe('kernel-selector', () => {
+  it('selects q4_fused for Q4K decode with subgroups', () => {
+    const ctx = { bDtype: 'q4k', M: 1, hasSubgroups: true };
+    expect(selectMatmulVariant(ctx)).toBe('q4_fused');
+  });
+});
+```
+
+---
+
 ## Config Tables
 
 Centralize magic numbers into typed tables:
@@ -945,7 +1014,7 @@ export function matmulReference(a, b, m, n, k) {
 
 ### Test Before Migrate
 
-**Gate:** Tests must exist for a module before that module's source is migrated to JS. See [TS2JS.md](../TS2JS.md) for migration phases.
+**Gate:** Tests must exist for a module before that module's source is migrated to JS.
 
 ---
 
@@ -953,4 +1022,3 @@ export function matmulReference(a, b, m, n, k) {
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
 - [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns
-- [TS2JS Migration](../TS2JS.md) - Migration plan and phases

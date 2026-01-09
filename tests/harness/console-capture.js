@@ -3,7 +3,7 @@
  *
  * Captures and analyzes browser console output during e2e tests.
  *
- * @module tests/helpers/console-capture
+ * @module tests/harness/console-capture
  */
 
 import {

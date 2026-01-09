@@ -6,7 +6,7 @@
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
-import { Tensor, createTensor, dtypeBytes } from '../tensor.js';
+import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';

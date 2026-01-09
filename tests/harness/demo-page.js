@@ -3,7 +3,7 @@
  *
  * Provides reusable methods for interacting with the demo UI in e2e tests.
  *
- * @module tests/helpers/demo-page
+ * @module tests/harness/demo-page
  */
 
 import { URLS } from './test-config.js';

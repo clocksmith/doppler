@@ -2,22 +2,22 @@
  * Browser Test Page - Initializes GPU and exposes test functions to Playwright
  */
 
-// Import from main doppler repo (relative path from kernel-tests/browser/)
+// Import from main doppler repo (relative path from tests/kernels/browser/)
 // When served from doppler/, paths are relative to that root
-import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../src/gpu/device.js';
+import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../../src/gpu/device.js';
 
 // Import tensor abstraction for Tensor-based kernels
-import { createTensor } from '../../src/gpu/tensor.js';
+import { createTensor } from '../../../src/gpu/tensor.js';
 
 // Ensure platform/registry lookups resolve to the main config paths when bundled
-import { setPlatformsBaseUrl } from '../../src/config/platforms/loader.js';
-import { setRegistryUrl } from '../../src/config/kernels/registry.js';
+import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
+import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 
 // Import kernel path to enable fused Q4K path for testing
-import { resolveKernelPath, setActiveKernelPath } from '../../src/config/kernel-path-loader.js';
+import { resolveKernelPath, setActiveKernelPath } from '../../../src/config/kernel-path-loader.js';
 
 // Import kernel functions - some may not exist, so we import what's available
-import * as kernelSelector from '../../src/gpu/kernel-selector.js';
+import * as kernelSelector from '../../../src/gpu/kernel-selector.js';
 
 // Destructure available functions with defaults
 const {
@@ -44,21 +44,21 @@ const {
 } = kernelSelector;
 
 // Import sample kernel
-import * as sampleKernel from '../../src/gpu/kernels/sample.js';
+import * as sampleKernel from '../../../src/gpu/kernels/sample.js';
 
 // Optional buffer pool
 let bufferPool = null;
 try {
-  bufferPool = await import('../../src/gpu/buffer-pool.js');
+  bufferPool = await import('../../../src/gpu/buffer-pool.js');
 } catch (e) {
   console.warn('Buffer pool not available:', e.message);
 }
 
 // Import reference implementations
-import * as references from '../src/reference/index.js';
-import { compareArrays, generateTestData, KERNEL_TOLERANCES } from '../src/harness/tolerance.js';
-import { createBuffer, readGPUBuffer, readAsFloat32, readAsUint32 } from '../src/harness/buffer-utils.js';
-import { KernelBenchmark, computeMetrics } from '../src/harness/benchmark.js';
+import * as references from '../reference/index.js';
+import { compareArrays, generateTestData, KERNEL_TOLERANCES } from '../harness/tolerance.js';
+import { createBuffer, readGPUBuffer, readAsFloat32, readAsUint32 } from '../harness/buffer-utils.js';
+import { KernelBenchmark, computeMetrics } from '../harness/benchmark.js';
 
 // Global state
 let device = null;

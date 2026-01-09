@@ -24,7 +24,7 @@ Doppler source code is **JavaScript** with **TypeScript declaration files** (.d.
 
 | Reason | Explanation |
 |--------|-------------|
-| **Hot-swap architecture** | JS/WGSL/JSON artifacts swap at runtime without rebuild ([TS2JS.md](../TS2JS.md)) |
+| **Hot-swap architecture** | JS/WGSL/JSON artifacts swap at runtime without rebuild |
 | **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
 | **Tests are the type system** | Comprehensive tests catch type errors pre-production |
 | **Simpler toolchain** | No compile step between edit and run |
@@ -257,6 +257,85 @@ interface RuntimeUniforms {
   isPrefill: boolean;  // Prefill vs decode
 }
 ```
+
+---
+
+## Buffer Lifecycle
+
+Buffer allocation uses **power-of-2 bucketing** with coarse-grained reuse rather than per-tensor allocation.
+
+### Principles
+
+1. **Bucket by size** - Round up to power-of-2 boundaries (256B, 512B, 1KB, 2KB, ...)
+2. **Reuse aggressively** - Return buffers to pool instead of destroying
+3. **Coarse granularity** - Fewer size classes = more reuse opportunities
+4. **Explicit lifecycle** - Callers acquire and release buffers; no GC
+
+### DON'T: Per-Tensor Allocation
+
+```typescript
+// BAD - creates fragmentation, no reuse
+const buffer = device.createBuffer({ size: exactTensorSize });
+// ... use buffer ...
+buffer.destroy();
+```
+
+### DO: Pool Acquisition
+
+```typescript
+// GOOD - bucketed allocation with reuse
+const buffer = bufferPool.acquire(exactTensorSize);
+// ... use buffer ...
+bufferPool.release(buffer);
+```
+
+### Why This Matters
+
+GPU buffer creation is expensive (~1ms). Pooling with coarse buckets amortizes creation cost and reduces memory fragmentation. The slight memory waste from rounding up is far cheaper than allocation overhead.
+
+---
+
+## JSON-Driven Layer Plans
+
+Pipeline step ordering can be overridden via JSON without code changes.
+
+### Default Behavior
+
+When no pipeline plan is specified, DOPPLER uses the optimized hardcoded layer path.
+
+### Override Mechanism
+
+Model presets may define `inference.pipeline` to drive per-layer step order. Runtime config can supply `runtime.inference.pipeline` for ad-hoc experiments.
+
+```json
+{
+  "runtime": {
+    "inference": {
+      "pipeline": [
+        { "op": "input_norm" },
+        { "op": "attention" },
+        { "op": "post_attention_norm" },
+        { "op": "residual" },
+        { "op": "pre_ffn_norm" },
+        { "op": "ffn" },
+        { "op": "post_ffn_norm" },
+        { "op": "residual" }
+      ]
+    }
+  }
+}
+```
+
+### When to Use
+
+- Debugging layer ordering issues
+- Testing new normalization patterns
+- Comparing sandwich vs standard norm
+- A/B testing fusion strategies
+
+### When NOT to Use
+
+For production inference, let the hardcoded path run—it's optimized for the common case.
 
 ---
 

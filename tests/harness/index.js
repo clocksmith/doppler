@@ -1,7 +1,7 @@
 /**
  * Test helpers index
  *
- * @module tests/helpers
+ * @module tests/harness
  */
 
 export { DemoPage } from './demo-page.js';
