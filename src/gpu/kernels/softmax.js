@@ -1,10 +1,4 @@
-/**
- * Softmax Kernels
- *
- * Provides softmax operations with support for:
- * - Temperature scaling
- * - Top-K fused softmax (for MoE routing)
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -13,15 +7,10 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 
-/** Threshold for "small" softmax variant (single element per thread) */
+
 const SOFTMAX_SMALL_THRESHOLD = 256;
 
-/**
- * Select softmax kernel variant based on size and GPU capabilities.
- * Prefers subgroup-accelerated variants when available.
- * @param {number} innerSize
- * @returns {string}
- */
+
 function selectSoftmaxVariant(innerSize) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
@@ -39,13 +28,7 @@ function selectSoftmaxVariant(innerSize) {
   return 'default';
 }
 
-/**
- * Run softmax operation
- * @param {import('../tensor.js').Tensor} input
- * @param {number} axis
- * @param {import('./softmax.js').SoftmaxOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runSoftmax(
   input,
   axis,
@@ -95,15 +78,7 @@ export async function runSoftmax(
   return createTensor(output, input.dtype, [batchSize, inferredSize], 'softmax_output');
 }
 
-/**
- * Run fused softmax + top-K for MoE routing
- * @param {GPUBuffer} logits
- * @param {number} numTokens
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./softmax.js').SoftmaxOptions} [options]
- * @returns {Promise<{ indices: GPUBuffer; weights: GPUBuffer }>}
- */
+
 export async function runSoftmaxTopK(
   logits,
   numTokens,
@@ -156,14 +131,7 @@ export async function runSoftmaxTopK(
   return { indices, weights };
 }
 
-/**
- * Record softmax (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {number} axis
- * @param {import('./softmax.js').SoftmaxOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordSoftmax(
   recorder,
   input,

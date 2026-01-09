@@ -1,20 +1,10 @@
-/**
- * Kernel Configurations - Table-driven kernel metadata
- *
- * Contains all kernel configurations including shader files, entry points,
- * workgroup sizes, and feature requirements.
- *
- * @module gpu/kernels/kernel-configs
- */
+
 
 // ============================================================================
 // Kernel Configurations
 // ============================================================================
 
-/**
- * All kernel configurations by operation and variant
- * @type {Record<string, Record<string, import('./kernel-configs.js').KernelConfig>>}
- */
+
 export const KERNEL_CONFIGS = {
   matmul: {
     f16: {
@@ -259,7 +249,7 @@ export const KERNEL_CONFIGS = {
     prefill: {
       shaderFile: 'attention.wgsl',
       entryPoint: 'main',
-      workgroupSize: [64, 1, 1],
+      workgroupSize: [32, 1, 1],
       requires: [],
       // validate is set dynamically after import
     },
@@ -527,27 +517,9 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
-    gelu: {
-      shaderFile: 'silu.wgsl',
-      entryPoint: 'gelu',
-      workgroupSize: [256, 1, 1],
-      requires: [],
-    },
-    geglu: {
-      shaderFile: 'silu.wgsl',
-      entryPoint: 'geglu',
-      workgroupSize: [256, 1, 1],
-      requires: [],
-    },
     gate_rowsplit: {
       shaderFile: 'silu.wgsl',
       entryPoint: 'silu_gate_rowsplit',
-      workgroupSize: [256, 1, 1],
-      requires: [],
-    },
-    geglu_rowsplit: {
-      shaderFile: 'silu.wgsl',
-      entryPoint: 'geglu_rowsplit',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
@@ -576,8 +548,40 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
     },
+  },
+  gelu: {
+    gelu: {
+      shaderFile: 'gelu.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    geglu: {
+      shaderFile: 'gelu.wgsl',
+      entryPoint: 'geglu',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    geglu_rowsplit: {
+      shaderFile: 'gelu.wgsl',
+      entryPoint: 'geglu_rowsplit',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    gelu_f16: {
+      shaderFile: 'gelu_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    geglu_f16: {
+      shaderFile: 'gelu_f16.wgsl',
+      entryPoint: 'geglu_f16',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     geglu_rowsplit_f16: {
-      shaderFile: 'silu_f16.wgsl',
+      shaderFile: 'gelu_f16.wgsl',
       entryPoint: 'geglu_rowsplit_f16',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
@@ -869,12 +873,7 @@ export const KERNEL_CONFIGS = {
 // Config Helpers
 // ============================================================================
 
-/**
- * Get kernel configuration
- * @param {string} operation
- * @param {string} variant
- * @returns {import('./kernel-configs.js').KernelConfig}
- */
+
 export function getKernelConfig(operation, variant) {
   const config = KERNEL_CONFIGS[operation]?.[variant];
   if (!config) {
@@ -883,14 +882,7 @@ export function getKernelConfig(operation, variant) {
   return config;
 }
 
-/**
- * Set a validator function on a kernel config.
- * Used to set attention validators after import to avoid circular dependencies.
- * @param {string} operation
- * @param {string} variant
- * @param {(seqLen: number, numHeads: number, headDim: number) => void} validator
- * @returns {void}
- */
+
 export function setKernelValidator(
   operation,
   variant,

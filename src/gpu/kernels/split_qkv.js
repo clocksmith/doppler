@@ -1,9 +1,4 @@
-/**
- * Split QKV Kernel
- *
- * Splits fused QKV projection output into separate Q, K, V buffers.
- * Used for 3->1 matmul optimization in attention.
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -12,13 +7,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 
-/**
- * Split fused QKV output into separate Q, K, V tensors.
- *
- * @param {import('../tensor.js').Tensor} qkvTensor - Fused QKV output [numTokens, qSize + kSize + vSize]
- * @param {import('./split_qkv.js').SplitQKVOptions} options - Split configuration
- * @returns {Promise<import('./split_qkv.js').SplitQKVResult>} Separate Q, K, V tensors
- */
+
 export async function runSplitQKV(
   qkvTensor,
   options
@@ -28,7 +17,7 @@ export async function runSplitQKV(
 
   const pipeline = await getPipelineFast('split_qkv', 'default');
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = qkvTensor.dtype;
   const bytesPerElement = dtypeBytes(outputDtype);
 
@@ -78,13 +67,7 @@ export async function runSplitQKV(
   return { Q, K, V };
 }
 
-/**
- * Record split QKV (batched, no submit).
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} qkvTensor
- * @param {import('./split_qkv.js').SplitQKVOptions} options
- * @returns {Promise<import('./split_qkv.js').SplitQKVResult>}
- */
+
 export async function recordSplitQKV(
   recorder,
   qkvTensor,
@@ -95,7 +78,7 @@ export async function recordSplitQKV(
 
   const pipeline = await getPipelineFast('split_qkv', 'default');
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = qkvTensor.dtype;
   const bytesPerElement = dtypeBytes(outputDtype);
 

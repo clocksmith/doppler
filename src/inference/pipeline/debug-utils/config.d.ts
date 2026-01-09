@@ -75,7 +75,7 @@ export function setDebugCategories(
 export function resetDebugConfig(): void;
 
 /**
- * Apply pipeline debug config (runtime.debug.pipeline) to debug-utils.
+ * Apply pipeline debug config (runtime.shared.debug.pipeline) to debug-utils.
  */
 export function applyPipelineDebugConfig(pipeline?: PipelineDebugConfigSchema | null): void;
 

@@ -89,7 +89,7 @@ export class HeapManager {
         `Memory64 init failed, falling back to segmented: ${/** @type {Error} */ (err).message}`
       );
       this.#strategy = 'SEGMENTED';
-      const { fallbackSegmentSizeBytes } = getRuntimeConfig().memory.segmentAllocation;
+      const { fallbackSegmentSizeBytes } = getRuntimeConfig().shared.memory.segmentAllocation;
       await this.#initSegmented({ maxSegmentSize: fallbackSegmentSizeBytes, recommendedSegments: 8 });
     }
   }
@@ -134,7 +134,7 @@ export class HeapManager {
       return segment;
     } catch (e) {
       // If allocation fails, try smaller sizes
-      const { segmentFallbackSizes } = getRuntimeConfig().memory.segmentAllocation;
+      const { segmentFallbackSizes } = getRuntimeConfig().shared.memory.segmentAllocation;
 
       for (const size of segmentFallbackSizes) {
         if (size >= segmentSize) continue; // Already tried this size

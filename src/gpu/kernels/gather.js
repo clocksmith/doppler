@@ -1,8 +1,4 @@
-/**
- * Gather (Embedding Lookup) Kernels
- *
- * Provides token embedding lookups from embedding tables.
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -17,11 +13,7 @@ import { DTYPE_SIZES } from '../../config/schema/index.js';
 // Variant Lookup Table
 // =============================================================================
 
-/**
- * Gather variant lookup table keyed by "${f16In}/${f16Out}/${vec4}".
- * Replaces if-else chain for variant selection.
- * @type {Record<string, string>}
- */
+
 const GATHER_VARIANTS = {
   'false/false/false': 'default',
   'false/false/true': 'vec4',
@@ -33,13 +25,7 @@ const GATHER_VARIANTS = {
   'true/true/true': 'f16_vec4_f16_out',
 };
 
-/**
- * Select gather variant based on input/output dtype and vec4 preference.
- * @param {boolean} useF16Input
- * @param {boolean} useF16Output
- * @param {boolean} useVec4
- * @returns {string}
- */
+
 function selectGatherVariant(useF16Input, useF16Output, useVec4) {
   const key = `${useF16Input}/${useF16Output}/${useVec4}`;
   const variant = GATHER_VARIANTS[key];
@@ -49,12 +35,7 @@ function selectGatherVariant(useF16Input, useF16Output, useVec4) {
   return variant;
 }
 
-/**
- * Get output binding index from kernel config, falling back to 3 for F32 output.
- * @param {string} variant
- * @param {boolean} useF16Output
- * @returns {number}
- */
+
 function getOutputBinding(variant, useF16Output) {
   if (!useF16Output) {
     return 3; // F32 output always uses binding 3
@@ -63,18 +44,7 @@ function getOutputBinding(variant, useF16Output) {
   return config.variantMetadata?.outputBinding ?? 4;
 }
 
-/**
- * Run gather/embedding lookup
- * Automatically detects F16 embeddings and uses optimized kernel
- * Returns Tensor with explicit dtype for type-safe pipeline.
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} embeddings
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} vocabSize
- * @param {import('./gather.js').GatherOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runGather(
   indices,
   embeddings,
@@ -128,7 +98,7 @@ export async function runGather(
 
   // Create bind group - output binding from kernel config
   const outputBinding = getOutputBinding(variant, useF16Output);
-  /** @type {GPUBindGroupEntry[]} */
+  
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: indices } },
@@ -154,23 +124,12 @@ export async function runGather(
 
   uniformBuffer.destroy();
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const actualDtype = useF16Output ? 'f16' : 'f32';
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
 }
 
-/**
- * Record gather (batched, no submit)
- * Returns Tensor with explicit dtype for type-safe pipeline.
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} embeddings
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} vocabSize
- * @param {import('./gather.js').GatherOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordGather(
   recorder,
   indices,
@@ -223,7 +182,7 @@ export async function recordGather(
 
   // Create bind group - output binding from kernel config
   const outputBinding = getOutputBinding(variant, useF16Output);
-  /** @type {GPUBindGroupEntry[]} */
+  
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: indices } },
@@ -247,7 +206,7 @@ export async function recordGather(
     recordDispatch(recorder, pipeline, bindGroup, workgroups, 'gather');
   }
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const actualDtype = useF16Output ? 'f16' : 'f32';
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
 }

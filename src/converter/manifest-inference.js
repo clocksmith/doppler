@@ -1,5 +1,43 @@
 import { buildRoPEConfig } from './rope-config.js';
 
+const EMBEDDING_TENSOR_NAMES = [
+  'language_model.model.embed_tokens.weight',
+  'model.embed_tokens.weight',
+  'embed_tokens.weight',
+  'token_embd.weight',
+  'wte.weight',
+  'transformer.wte.weight',
+];
+
+/**
+ * Infer embedding output layout from tensor locations.
+ *
+ * @param {Map<string, { shape?: number[] }> | Record<string, { shape?: number[] }>} tensorLocations
+ * @returns {{ embeddingTranspose: boolean; embeddingVocabSize: number | null } | null}
+ */
+export function inferEmbeddingOutputConfig(tensorLocations) {
+  const getLocation = (name) => {
+    if (tensorLocations instanceof Map) {
+      return tensorLocations.get(name);
+    }
+    return tensorLocations?.[name];
+  };
+
+  for (const name of EMBEDDING_TENSOR_NAMES) {
+    const loc = getLocation(name);
+    if (loc?.shape && loc.shape.length === 2) {
+      const [dim0, dim1] = loc.shape;
+      const isGGUFLayout = dim0 < dim1;
+      return {
+        embeddingTranspose: isGGUFLayout,
+        embeddingVocabSize: isGGUFLayout ? dim1 : dim0,
+      };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Detect whether model scales embeddings by sqrt(hiddenSize).
  *
@@ -59,6 +97,8 @@ export function buildManifestInference(preset, config, headDim = 64) {
       tieWordEmbeddings: presetInference.output?.tieWordEmbeddings ??
         config.tie_word_embeddings ?? false,
       scaleEmbeddings: detectScaleEmbeddings(preset, config),
+      embeddingTranspose: false,
+      embeddingVocabSize: null,
     },
   };
 

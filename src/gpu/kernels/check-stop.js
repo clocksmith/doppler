@@ -1,9 +1,4 @@
-/**
- * check-stop.ts - GPU Stop Condition Kernel
- *
- * Checks if generation should stop based on EOS token or max length.
- * Used in GPU-only decode loop to eliminate CPU roundtrips.
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -11,7 +6,7 @@ import { recordDispatch } from './dispatch.js';
 import { createUniformBufferFromData, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
 
-/** @type {GPUComputePipeline | null} */
+
 let checkStopPipeline = null;
 
 const SHADER = /* wgsl */ `
@@ -43,10 +38,7 @@ fn main() {
 }
 `;
 
-/**
- * @param {GPUDevice} device
- * @returns {GPUBindGroupLayout}
- */
+
 function getCheckStopBindGroupLayout(device) {
   return getOrCreateBindGroupLayout(
     'check_stop_bind_group_layout',
@@ -59,9 +51,7 @@ function getCheckStopBindGroupLayout(device) {
   );
 }
 
-/**
- * @returns {GPUComputePipeline}
- */
+
 function getCheckStopPipeline() {
   if (checkStopPipeline) return checkStopPipeline;
 
@@ -80,13 +70,7 @@ function getCheckStopPipeline() {
   return checkStopPipeline;
 }
 
-/**
- * Record a stop condition check into the command buffer.
- * Returns the shouldStop buffer (1 if should stop, 0 otherwise).
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('./check-stop.js').CheckStopParams} params
- * @returns {GPUBuffer}
- */
+
 export function recordCheckStop(
   recorder,
   params
@@ -120,11 +104,7 @@ export function recordCheckStop(
   return shouldStopBuffer;
 }
 
-/**
- * Standalone check stop (submits immediately, for testing).
- * @param {import('./check-stop.js').CheckStopParams} params
- * @returns {Promise<boolean>}
- */
+
 export async function checkStop(params) {
   if (!allowReadback('check-stop')) {
     throw new Error('[CheckStop] GPU readback disabled');

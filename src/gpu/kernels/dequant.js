@@ -1,12 +1,4 @@
-/**
- * Dequantization Kernels
- *
- * Provides dequantization operations for:
- * - Q4_K_M quantization (GGUF format)
- * - MXFP4 quantization (GPT-OSS format)
- * - F16/F32 output support
- * - Subgroup and shared memory variants
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -17,11 +9,7 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 
-/**
- * Select the best dequantization kernel variant
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {string}
- */
+
 export function selectDequantKernel(options = {}) {
   const capabilities = getKernelCapabilities();
   const { useVec4 = true, outputDtype = 'f32' } = options;
@@ -42,14 +30,10 @@ export function selectDequantKernel(options = {}) {
   return useVec4 ? 'shared_vec4' : 'shared';
 }
 
-/**
- * @param {string} variant
- * @param {number} numBlocks
- * @returns {[number, number, number]}
- */
+
 function calculateDequantWorkgroups(variant, numBlocks) {
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
-  /** @type {number} */
+  
   let workgroups;
 
   if (variant.includes('vec4')) {
@@ -70,10 +54,7 @@ function calculateDequantWorkgroups(variant, numBlocks) {
   return [wgX, wgY, 1];
 }
 
-/**
- * Create bind group layout for dequant operation
- * @returns {GPUBindGroupLayout}
- */
+
 export function createDequantBindGroupLayout() {
   return getOrCreateBindGroupLayout('dequant_bind_group_layout', [
     {
@@ -94,13 +75,7 @@ export function createDequantBindGroupLayout() {
   ]);
 }
 
-/**
- * Run Q4_K_M dequantization
- * @param {GPUBuffer} quantized
- * @param {number} numBlocks
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function dequantize(
   quantized,
   numBlocks,
@@ -156,20 +131,12 @@ export async function dequantize(
   // Release uniform buffer back to cache (or destroy if not cached)
   releaseUniformBuffer(uniformBuffer);
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
   return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }
 
-/**
- * Dequantize MXFP4 weights (GPT-OSS format)
- * @param {GPUBuffer} blocks
- * @param {GPUBuffer} scales
- * @param {number} totalElements
- * @param {number} numGroups
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function dequantizeMXFP4(
   blocks,
   scales,
@@ -215,7 +182,7 @@ export async function dequantizeMXFP4(
   });
 
   const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
-  /** @type {[number, number, number]} */
+  
   const dispatchSize = [
     Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
     Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
@@ -228,17 +195,7 @@ export async function dequantizeMXFP4(
   return createTensor(output, 'f32', [totalElements], 'mxfp4_dequant_output');
 }
 
-/**
- * Dequantize MXFP4 expert weights (extracts single expert from packed tensor)
- * @param {GPUBuffer} blocks
- * @param {GPUBuffer} scales
- * @param {number} expertIdx
- * @param {number} numExperts
- * @param {number} outDim
- * @param {number} numGroups
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function dequantizeMXFP4Expert(
   blocks,
   scales,
@@ -286,7 +243,7 @@ export async function dequantizeMXFP4Expert(
   });
 
   const workgroups = Math.ceil(totalOutput / WORKGROUP_SIZES.DEFAULT);
-  /** @type {[number, number, number]} */
+  
   const dispatchSize = [
     Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
     Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
@@ -299,19 +256,7 @@ export async function dequantizeMXFP4Expert(
   return createTensor(output, 'f32', [outDim, numGroups * 32], 'mxfp4_expert_output');
 }
 
-/**
- * Run Q6_K dequantization
- *
- * Q6_K format: 210 bytes per 256 elements
- * - d: 2 bytes (f16 super-block scale)
- * - ql: 128 bytes (low 4 bits packed)
- * - qh: 64 bytes (high 2 bits packed)
- * - scales: 16 bytes (8-bit signed block scales)
- * @param {GPUBuffer} quantized
- * @param {number} numBlocks
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function dequantizeQ6K(
   quantized,
   numBlocks,
@@ -365,7 +310,7 @@ export async function dequantizeQ6K(
   });
 
   // One workgroup per block, handle 2D dispatch for large counts
-  /** @type {[number, number, number]} */
+  
   const workgroups = [
     workgroupsX,
     numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
@@ -376,24 +321,12 @@ export async function dequantizeQ6K(
 
   releaseUniformBuffer(uniformBuffer);
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
   return createTensor(output, dtype, [numBlocks * QK_K], 'q6k_dequant_output');
 }
 
-/**
- * Run Q8_0 dequantization
- *
- * Q8_0 format: 34 bytes per 32 elements
- * - d: 2 bytes (f16 scale)
- * - qs: 32 bytes (int8 quantized values)
- *
- * Dequant: output[i] = d * qs[i]
- * @param {GPUBuffer} quantized
- * @param {number} numBlocks
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function dequantizeQ8_0(
   quantized,
   numBlocks,
@@ -446,7 +379,7 @@ export async function dequantizeQ8_0(
   });
 
   // One workgroup per block, handle 2D dispatch for large counts
-  /** @type {[number, number, number]} */
+  
   const workgroups = [
     workgroupsX,
     numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
@@ -457,19 +390,12 @@ export async function dequantizeQ8_0(
 
   releaseUniformBuffer(uniformBuffer);
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
   return createTensor(output, dtype, [numBlocks * Q8_0_BLOCK_SIZE], 'q8_0_dequant_output');
 }
 
-/**
- * Record Q4_K_M dequantization (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} quantized
- * @param {number} numBlocks
- * @param {import('./dequant.js').DequantOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordDequantize(
   recorder,
   quantized,
@@ -520,7 +446,7 @@ export async function recordDequantize(
   const workgroups = calculateDequantWorkgroups(variant, numBlocks);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
 
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
   return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }

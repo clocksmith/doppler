@@ -20,9 +20,10 @@ import { Tokenizer } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
-import { log, setGPUDevice } from '../../debug/index.js';
-import { DEFAULT_KVCACHE_CONFIG, PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
+import { log, setGPUDevice, trace as debugTrace } from '../../debug/index.js';
+import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 
 /**
  * @param {unknown} manifest
@@ -30,6 +31,38 @@ import { getRuntimeConfig } from '../../config/runtime.js';
  */
 function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray(/** @type {any} */ (manifest).shards);
+}
+
+/**
+ * Resolve Q4K load configuration from runtime/kernel/manifest inputs.
+ *
+ * @param {import('./config.js').Manifest} manifest
+ * @returns {import('../../loader/loader-types.js').Q4KConfig}
+ */
+function resolveQ4KConfig(manifest) {
+  const activeKernelPath = getActiveKernelPath();
+  const pathSource = getActiveKernelPathSource();
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+  const q4kLayout = /** @type {{ q4kLayout?: string } | undefined} */ (manifest?.config)?.q4kLayout;
+  const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
+
+  let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
+  if (typeof window !== 'undefined' && /** @type {{ DOPPLER_DISABLE_FUSED_Q4K?: boolean }} */ (/** @type {unknown} */ (window)).DOPPLER_DISABLE_FUSED_Q4K) {
+    useFused = false;
+  }
+  if (q4kLayout === 'column_wise') {
+    useFused = false;
+  }
+
+  const pathLabel = activeKernelPath?.id ?? 'auto';
+  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${pathSource}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}`);
+
+  return {
+    useFusedQ4K: useFused,
+    q4kLayout: /** @type {'flat' | 'row_wise' | 'column_wise'} */ (q4kLayout) ?? null,
+    keepF32Weights,
+  };
 }
 
 // ============================================================================
@@ -225,8 +258,8 @@ export function isGPURoPEBuffers(buffers) {
  * @returns {import('../kv-cache.js').KVCache | import('../kv-cache.js').SlidingWindowKVCache}
  */
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
-  const runtimeKV = runtimeConfig ?? getRuntimeConfig().kvcache;
-  const modelMaxSeqLen = modelConfig.maxSeqLen || runtimeKV.maxSeqLen || DEFAULT_KVCACHE_CONFIG.maxSeqLen;
+  const runtimeKV = runtimeConfig ?? getRuntimeConfig().inference.kvcache;
+  const modelMaxSeqLen = modelConfig.maxSeqLen ?? runtimeKV.maxSeqLen;
   let slidingWindow = Number(modelConfig.slidingWindow || 0) || null;
 
   let cacheMaxSeqLen = modelMaxSeqLen;
@@ -248,8 +281,8 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 
   // GPU paged KV cache is not implemented yet
   if (useGPU && cacheLayout === 'paged') {
-    const FALLBACK_MAX_SEQ = 4096;
-    cacheMaxSeqLen = Math.min(modelMaxSeqLen, FALLBACK_MAX_SEQ);
+    const fallbackMaxSeqLen = runtimeKV.gpuPagedFallbackMaxSeqLen;
+    cacheMaxSeqLen = Math.min(modelMaxSeqLen, fallbackMaxSeqLen);
     cacheLayout = 'contiguous';
     log.warn('Pipeline', `Paged GPU KV cache not supported. Capping KV cache to ${cacheMaxSeqLen} tokens.`);
   }
@@ -341,6 +374,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
   await dopplerLoader.init();
+  dopplerLoader.setQ4KConfig(resolveQ4KConfig(manifest));
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
   if (baseUrl && tensorsFile) {
@@ -393,42 +427,6 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     }
   }
 
-  // Check for tied embeddings and detect embedding layout
-  let useTiedEmbeddings = false;
-  /** @type {number | null} */
-  let embeddingVocabSize = null;
-  let embeddingTranspose = false;
-
-  // Get actual vocab size and layout from embedding tensor shape
-  const embeddingTensorNames = [
-    'language_model.model.embed_tokens.weight',
-    'model.embed_tokens.weight',
-    'embed_tokens.weight',
-    'token_embd.weight',
-    'wte.weight',
-  ];
-  for (const name of embeddingTensorNames) {
-    const loc = dopplerLoader.tensorLocations.get(name);
-    if (loc?.shape && loc.shape.length === 2) {
-      // GGUF stores embeddings as [hidden_size, vocab_size]
-      // PyTorch convention is [vocab_size, hidden_size]
-      // For LLMs, vocab_size >> hidden_size, so if shape[0] < shape[1], it's GGUF layout
-      const isGGUFLayout = loc.shape[0] < loc.shape[1];
-      embeddingTranspose = isGGUFLayout;
-      embeddingVocabSize = isGGUFLayout ? loc.shape[1] : loc.shape[0];
-      log.debug('Pipeline', `Embedding matrix shape: [${loc.shape.join(', ')}], layout: ${isGGUFLayout ? 'GGUF [H,V]' : 'PyTorch [V,H]'}, transpose: ${embeddingTranspose}`);
-
-      // Note: Buffer layout is set in DopplerLoader._loadEmbeddings() to 'column' for GGUF layout.
-      // This ensures transposeB:'auto' resolves to false for lm_head matmul with tied embeddings.
-      break;
-    }
-  }
-
-  if (dopplerLoader.lmHead && dopplerLoader.lmHead === dopplerLoader.embeddings) {
-    useTiedEmbeddings = true;
-    log.debug('Pipeline', 'Using tied embeddings for LM head (will use transposeB)');
-  }
-
   // Collect per-layer router weights for MoE
   /** @type {Map<number, import('./types.js').RouterWeights>} */
   const layerRouterWeights = new Map();
@@ -450,9 +448,6 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     embeddings: dopplerLoader.embeddings,
     lmHead: dopplerLoader.lmHead,
     finalNorm: dopplerLoader.finalNorm,
-    useTiedEmbeddings,
-    embeddingVocabSize,
-    embeddingTranspose,
     layerRouterWeights,
   };
 }

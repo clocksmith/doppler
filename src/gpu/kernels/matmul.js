@@ -1,12 +1,4 @@
-/**
- * Matrix Multiplication Kernels
- *
- * Provides optimized matmul operations with support for:
- * - F16/F32 inputs and outputs
- * - Mixed precision (F16 weights, F32 activations)
- * - Tiled and naive variants
- * - Command recording for batched execution
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
@@ -24,11 +16,7 @@ import { getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFuse
 // Q4K Variant Lookup Tables
 // =============================================================================
 
-/**
- * Q4K fused variant lookup table keyed by "${m1}/${f16out}".
- * Replaces duplicated if-else chains in selectMatmulVariantAndFlags.
- * @type {Record<string, string>}
- */
+
 const Q4K_FUSED_VARIANTS = {
   'true/true': 'q4_fused_multicol_f16',
   'true/false': 'q4_fused_multicol',
@@ -36,28 +24,17 @@ const Q4K_FUSED_VARIANTS = {
   'false/false': 'q4_fused_batched',
 };
 
-/**
- * Select Q4K fused variant based on M dimension and output dtype.
- * @param {boolean} isM1
- * @param {boolean} wantF16Output
- * @returns {string}
- */
+
 function selectQ4KFusedVariant(isM1, wantF16Output) {
   const key = `${isM1}/${wantF16Output}`;
   return Q4K_FUSED_VARIANTS[key] ?? 'q4_fused_batched';
 }
 
-/**
- * Check if fused Q4K kernels are disabled.
- * Returns true (disabled) when:
- * 1. Debug flag DOPPLER_DISABLE_FUSED_Q4K is set
- * 2. Active kernel path uses dequant (not fused)
- * @returns {boolean}
- */
+
 export function isFusedQ4KDisabled() {
   // Check window override first (debug flag)
   const debugFlags = typeof window !== 'undefined'
-    ? /** @type {{ DOPPLER_DISABLE_FUSED_Q4K?: boolean }} */ (window)
+    ?  (window)
     : null;
   if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return true;
 
@@ -67,24 +44,16 @@ export function isFusedQ4KDisabled() {
   return false;
 }
 
-/** @typedef {'f16' | 'f32' | 'q4k'} MatmulDtype */
 
-/**
- * Helper to narrow TensorDtype to matmul-supported types
- * @param {import('../tensor.js').TensorDtype | 'q4k' | 'bf16' | 'q8' | null | undefined} dtype
- * @returns {MatmulDtype}
- */
+
+
 function toMatmulDtype(dtype) {
   if (dtype === 'f16' || dtype === 'bf16') return 'f16';  // bf16 weights use f16 kernel
   if (dtype === 'q4k') return 'q4k';
   return 'f32';
 }
 
-/**
- * Select the best matmul kernel variant
- * @param {import('./matmul.js').MatmulOptions} [options]
- * @returns {string}
- */
+
 export function selectMatmulKernel(options = {}) {
   const capabilities = getKernelCapabilities();
   const {
@@ -115,44 +84,28 @@ export function selectMatmulKernel(options = {}) {
 }
 
 class MatmulKernel extends KernelBase {
-  /**
-   * @param {string} variant
-   * @returns {Promise<GPUComputePipeline>}
-   */
+  
   async getPipeline(variant) {
     return this.getPipelineFor('matmul', variant);
   }
 
-  /**
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {[number, number, number]} workgroups
-   */
+  
   dispatch(pipeline, bindGroup, workgroups) {
     this.dispatchKernel(pipeline, bindGroup, workgroups, 'matmul');
   }
 
-  /**
-   * @param {import('../command-recorder.js').CommandRecorder} recorder
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {[number, number, number]} workgroups
-   */
+  
   record(recorder, pipeline, bindGroup, workgroups) {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'matmul');
   }
 }
 
-/** @typedef {'run' | 'record'} MatmulSelectionMode */
+
 
 // Debug counter to limit logging
 let _transposeDebugCount = 0;
 
-/**
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} B
- * @param {boolean | 'auto'} transposeBOption
- * @returns {boolean}
- */
+
 function resolveTransposeB(B, transposeBOption) {
   if (transposeBOption === 'auto') {
     // Get layout from WeightBuffer (buffer-dtypes WeakMap removed)
@@ -171,12 +124,7 @@ function resolveTransposeB(B, transposeBOption) {
   return transposeBOption;
 }
 
-/**
- * @param {string} label
- * @param {number} M
- * @param {number} N
- * @param {number} K
- */
+
 function validateMatmulDimensions(label, M, N, K) {
   if (!Number.isFinite(M) || !Number.isFinite(N) || !Number.isFinite(K)) {
     throw new Error(`[${label}] Invalid dimensions: M=${M}, N=${N}, K=${K}`);
@@ -186,12 +134,7 @@ function validateMatmulDimensions(label, M, N, K) {
   }
 }
 
-/**
- * @param {string} label
- * @param {number} aOffset
- * @param {number} bOffset
- * @param {number} cOffset
- */
+
 function validateMatmulOffsets(label, aOffset, bOffset, cOffset) {
   if (!Number.isFinite(aOffset) || aOffset < 0 ||
       !Number.isFinite(bOffset) || bOffset < 0 ||
@@ -210,20 +153,7 @@ function validateMatmulOffsets(label, aOffset, bOffset, cOffset) {
   }
 }
 
-/**
- * @param {string} label
- * @param {GPUBuffer} A
- * @param {GPUBuffer} B
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {MatmulDtype} aDtype
- * @param {MatmulDtype} bDtype
- * @param {boolean} transposeB
- * @param {number} aOffset
- * @param {number} bOffset
- * @returns {{ aBindingSize: number; bBindingSize: number }}
- */
+
 function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB, aOffset, bOffset) {
   const aBytesPerElem = aDtype === 'f16' ? 2 : 4;
   const aBindingSize = Math.ceil((M * K * aBytesPerElem) / 4) * 4;
@@ -234,9 +164,9 @@ function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB,
 
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const Q4K_BLOCK_BYTES = QUANTIZATION.Q4K_BLOCK_BYTES;
-  /** @type {number} */
+  
   let bBindingSize;
-  /** @type {number} */
+  
   let bRequired;
 
   if (bDtype === 'q4k') {
@@ -260,39 +190,22 @@ function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB,
   return { aBindingSize, bBindingSize };
 }
 
-/**
- * @param {string} variant
- * @returns {boolean}
- */
+
 function isQ4KFusedVariant(variant) {
   return variant.startsWith('q4_fused');
 }
 
-/**
- * @param {string} variant
- * @returns {boolean}
- */
+
 function isGemvVariant(variant) {
   return variant.startsWith('gemv');
 }
 
-/**
- * @param {string} variantOverride
- * @param {number} M
- * @param {MatmulDtype} aDtype
- * @param {MatmulDtype} bDtype
- * @param {ReturnType<typeof getKernelCapabilities>} capabilities
- * @param {boolean} strict
- * @returns {{ variant: string; useQ4KFused: boolean; useGemv: boolean } | null}
- */
+
 function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict) {
   const override = variantOverride.trim();
   if (!override) return null;
 
-  /**
-   * @param {string} message
-   * @returns {{ variant: string; useQ4KFused: boolean; useGemv: boolean } | null}
-   */
+  
   const failOrWarn = (message) => {
     if (strict) {
       throw new Error(message);
@@ -330,18 +243,7 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities,
   return { variant: override, useQ4KFused, useGemv };
 }
 
-/**
- * @param {MatmulSelectionMode} mode
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {MatmulDtype} aDtype
- * @param {MatmulDtype} bDtype
- * @param {boolean} transposeB
- * @param {'f16' | 'f32'} requestedOutputDtype
- * @param {import('./matmul.js').MatmulOptions} options
- * @returns {{ variant: string; useQ4KFused: boolean; useGemv: boolean }}
- */
+
 function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, requestedOutputDtype, options) {
   const capabilities = getKernelCapabilities();
   const strict = getKernelPathStrict();
@@ -399,19 +301,13 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   return { variant, useQ4KFused, useGemv };
 }
 
-/**
- * @param {string} variant
- * @param {number} M
- * @param {number} N
- * @param {GPUBuffer | null} outputBuffer
- * @returns {{ output: GPUBuffer; outputSize: number; cBindingSize: number; actualOutputDtype: 'f16' | 'f32' }}
- */
+
 function resolveMatmulOutput(variant, M, N, outputBuffer) {
   // Use kernel config's outputDtype instead of string matching
   const config = getKernelConfig('matmul', variant);
   const outputsF16 = config.outputDtype === 'f16';
   const elementSize = outputsF16 ? 2 : 4;
-  /** @type {'f16' | 'f32'} */
+  
   const actualOutputDtype = outputsF16 ? 'f16' : 'f32';
   const outputSize = M * N * elementSize;
   const cBindingSize = Math.ceil(outputSize / 4) * 4;
@@ -419,21 +315,13 @@ function resolveMatmulOutput(variant, M, N, outputBuffer) {
   return { output, outputSize, cBindingSize, actualOutputDtype };
 }
 
-/**
- * @param {string} variant
- * @param {boolean} useQ4KFused
- * @param {boolean} useGemv
- * @param {number} M
- * @param {number} N
- * @param {{ workgroupSize: [number, number, number]; variantMetadata?: { colsPerWg?: number; tileM?: number } }} config
- * @returns {{ workgroups: [number, number, number]; uniformWorkgroupsX?: number }}
- */
+
 function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config) {
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
   const [wgX, wgY] = config.workgroupSize;
   let workgroupsX = 1;
   let workgroupsY = 1;
-  /** @type {number | undefined} */
+  
   let uniformWorkgroupsX;
 
   // Get colsPerWg from variantMetadata (default 4 for non-multicol GEMV)
@@ -483,19 +371,7 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config) {
   return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
 }
 
-/**
- * @param {string} label
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {number} alpha
- * @param {boolean} useQ4KFused
- * @param {boolean} transposeB
- * @param {number | undefined} uniformWorkgroupsX
- * @param {import('../command-recorder.js').CommandRecorder | null} recorder
- * @param {GPUDevice} device
- * @returns {GPUBuffer}
- */
+
 function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device) {
   // Shader struct is 32 bytes: M, N, K, alpha, transpose_b/num_blocks, workgroups_x/_pad0, _pad1, _pad2
   const uniformSize = 32;
@@ -523,10 +399,7 @@ function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transpose
   );
 }
 
-/**
- * Create bind group layout for matmul operation
- * @returns {GPUBindGroupLayout}
- */
+
 export function createMatmulBindGroupLayout() {
   return getOrCreateBindGroupLayout('matmul_bind_group_layout', [
     {
@@ -555,17 +428,7 @@ export function createMatmulBindGroupLayout() {
 // Debug counter for runMatmul
 let _runMatmulDebugCount = 0;
 
-/**
- * Run matrix multiplication
- *
- * @param {import('../tensor.js').Tensor} A - Activation tensor (Tensor with explicit dtype)
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} B - Weight buffer (GPUBuffer or WeightBuffer)
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {import('./matmul.js').MatmulOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>} Output tensor with computed dtype
- */
+
 export async function runMatmul(A, B, M, N, K, options = {}) {
   const device = getDevice();
   const {
@@ -684,7 +547,7 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
 
   // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
   const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
-  /** @type {GPUBindGroupEntry[]} */
+  
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
@@ -712,18 +575,7 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
 // Debug counter for recordMatmul
 let _recordMatmulDebugCount = 0;
 
-/**
- * Record matrix multiplication (batched, no submit)
- *
- * @param {import('../command-recorder.js').CommandRecorder} recorder - Command recorder for batched execution
- * @param {import('../tensor.js').Tensor} A - Activation tensor (Tensor with explicit dtype)
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} B - Weight buffer (GPUBuffer or WeightBuffer)
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {import('./matmul.js').MatmulOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>} Output tensor with computed dtype
- */
+
 export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   const device = recorder.device;
   const {
@@ -823,7 +675,7 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
 
   // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
   const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
-  /** @type {GPUBindGroupEntry[]} */
+  
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },

@@ -8,6 +8,7 @@ export { matmulRef, batchMatmulRef, matvecRef } from './matmul.js';
 // Activation functions
 export { softmaxRef, logSoftmaxRef, softmaxInplaceRef } from './softmax.js';
 export { siluRef, siluGatedRef, siluFusedRef, siluInplaceRef } from './silu.js';
+export { geluRef, geluFastRef, gegluRef } from './gelu.js';
 
 // Normalization
 export { rmsNormRef, rmsNormNoWeightRef } from './rmsnorm.js';
@@ -26,6 +27,7 @@ export { moeGatherRef, moeComputeAssignmentsRef } from './moe-gather.js';
 // Memory operations
 export { gatherRef, batchGatherRef, gatherWithPosRef } from './gather.js';
 export { residualAddRef, residualAddInplaceRef, scaledResidualAddRef } from './residual.js';
+export { splitQkvRef, fuseQkvRef } from './split-qkv.js';
 
 // Quantization
 export {

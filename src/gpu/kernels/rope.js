@@ -1,11 +1,4 @@
-/**
- * RoPE (Rotary Position Embedding) Kernels
- *
- * Provides rotary position embedding with multiple variants:
- * - Standard RoPE
- * - NTK-scaled RoPE
- * - YaRN (Yet another RoPE extensioN)
- */
+
 
 import { getDevice } from '../device.js';
 import { createTensor } from '../tensor.js';
@@ -17,15 +10,7 @@ import { getKernelThresholds } from '../../config/schema/index.js';
 // Get RoPE defaults from schema
 const getRopeDefaults = () => getKernelThresholds().rope;
 
-/**
- * Run RoPE operation
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer} freqsCos
- * @param {GPUBuffer} freqsSin
- * @param {number} seqLen
- * @param {import('./rope.js').RoPEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runRoPE(
   input,
   freqsCos,
@@ -88,16 +73,7 @@ export async function runRoPE(
   return createTensor(input.buffer, input.dtype, [...input.shape], 'rope_output');
 }
 
-/**
- * Record RoPE (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer} freqsCos
- * @param {GPUBuffer} freqsSin
- * @param {number} seqLen
- * @param {import('./rope.js').RoPEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordRoPE(
   recorder,
   input,

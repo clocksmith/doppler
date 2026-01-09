@@ -20,7 +20,7 @@
 const BLOCK_SIZE: u32 = 32u;   // Sequence tile size
 const HEAD_TILE: u32 = 32u;    // Head dimension tile
 const MAX_HEAD_DIM: u32 = 256u;
-const WORKGROUP_SIZE: u32 = 32u;  // Workgroup size
+override WORKGROUP_SIZE: u32 = 32u;  // Workgroup size
 
 struct Uniforms {
     num_heads: u32,       // Number of query heads
@@ -84,6 +84,9 @@ fn main(
 
     let kv_head_idx = get_kv_head_idx(head_idx);
     let head_dim = u.head_dim;
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
     let seq_len = get_kv_len();
     let query_len = u.query_len;
     let scale = u.scale;

@@ -5,7 +5,7 @@
  */
 
 import type { ConvertOptions } from './types.js';
-import type { QuantizationInfoSchema } from '../../config/index.js';
+import type { ConverterConfigSchema, QuantizationInfoSchema } from '../../config/index.js';
 
 export declare function normalizeQuantTag(value: string | null | undefined): string;
 
@@ -16,7 +16,7 @@ export declare function resolveManifestQuantization(quantize: string | null, fal
 export declare function buildVariantTag(info: QuantizationInfoSchema): string;
 
 export declare function buildQuantizationInfo(
-  opts: ConvertOptions,
+  opts: ConvertOptions | ConverterConfigSchema,
   originalDtype: string,
   embedDtype: string | null,
   lmHeadDtype: string | null,

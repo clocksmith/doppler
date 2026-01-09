@@ -91,11 +91,13 @@ vi.mock('../../src/debug/index.js', () => ({
 
 vi.mock('../../src/config/runtime.js', () => ({
   getRuntimeConfig: vi.fn(() => ({
-    debug: { probes: [] },
-    bufferPool: {
-      limits: { maxBuffersPerBucket: 8, maxTotalPooledBuffers: 64 },
-      alignment: { alignmentBytes: 256 },
-      bucket: { minBucketSizeBytes: 1024 },
+    shared: {
+      debug: { probes: [] },
+      bufferPool: {
+        limits: { maxBuffersPerBucket: 8, maxTotalPooledBuffers: 64 },
+        alignment: { alignmentBytes: 256 },
+        bucket: { minBucketSizeBytes: 1024 },
+      },
     },
   })),
 }));

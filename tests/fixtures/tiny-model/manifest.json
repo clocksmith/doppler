@@ -175,5 +175,39 @@
   },
   "moeConfig": null,
   "totalSize": 925952,
-  "tensorCount": 15
+  "tensorCount": 15,
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 8,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": false
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": false,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true
+    },
+    "rope": {
+      "ropeTheta": 10000,
+      "ropeLocalTheta": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": false,
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": 1000
+    }
+  }
 }

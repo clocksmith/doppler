@@ -16,7 +16,7 @@ import { getRuntimeConfig } from '../config/runtime.js';
  * @returns {import('../config/schema/runtime-schema.js').QuotaConfig}
  */
 function getQuotaConfig() {
-  return getRuntimeConfig().storage.quota;
+  return getRuntimeConfig().loading.storage.quota;
 }
 
 // Cached persistence state

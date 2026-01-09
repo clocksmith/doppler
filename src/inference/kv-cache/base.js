@@ -28,7 +28,7 @@ export class KVCache {
    * @param {import('./types.js').KVCacheConfig} config - KV cache configuration
    */
   constructor(config) {
-    const runtimeKV = getRuntimeConfig().kvcache;
+    const runtimeKV = getRuntimeConfig().inference.kvcache;
     /** @readonly */
     this.numLayers = config.numLayers;
     /** @readonly */

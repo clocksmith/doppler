@@ -65,8 +65,8 @@ export class UniformBufferCache {
    * @param {number} [maxAgeMs]
    */
   constructor(
-    maxEntries = getRuntimeConfig().gpuCache.uniformCacheMaxEntries,
-    maxAgeMs = getRuntimeConfig().gpuCache.uniformCacheMaxAgeMs
+    maxEntries = getRuntimeConfig().shared.gpuCache.uniformCacheMaxEntries,
+    maxAgeMs = getRuntimeConfig().shared.gpuCache.uniformCacheMaxAgeMs
   ) {
     this.#maxEntries = maxEntries;
     this.#maxAgeMs = maxAgeMs;

@@ -59,7 +59,7 @@ function estimateAvailableVRAM(memCaps) {
   // Unified memory: use estimated system memory (leave headroom)
   if (info.isUnified && info.estimatedMemoryGB) {
     // Use configured ratio of unified memory available for GPU
-    return (info.estimatedMemoryGB * GB) * getRuntimeConfig().storage.vramEstimation.unifiedMemoryRatio;
+    return (info.estimatedMemoryGB * GB) * getRuntimeConfig().loading.storage.vramEstimation.unifiedMemoryRatio;
   }
 
   // Discrete GPU: use maxBufferSize as heuristic
@@ -70,7 +70,7 @@ function estimateAvailableVRAM(memCaps) {
   }
 
   // Fallback: use configured fallback VRAM
-  return getRuntimeConfig().storage.vramEstimation.fallbackVramBytes;
+  return getRuntimeConfig().loading.storage.vramEstimation.fallbackVramBytes;
 }
 
 /**
@@ -237,7 +237,7 @@ export async function runPreflightChecks(
   if (!gpu.isUnified && vram.sufficient) {
     // Discrete GPU with borderline VRAM
     const headroom = vram.available - vram.required;
-    if (headroom < getRuntimeConfig().storage.vramEstimation.lowVramHeadroomBytes) {
+    if (headroom < getRuntimeConfig().loading.storage.vramEstimation.lowVramHeadroomBytes) {
       warnings.push('Low VRAM headroom - may cause issues with longer contexts');
     }
   }

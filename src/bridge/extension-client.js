@@ -24,6 +24,7 @@ import {
   parseErrorResponse,
 } from './protocol.js';
 import { log } from '../debug/index.js';
+import { DEFAULT_BRIDGE_TIMEOUT_CONFIG } from '../config/schema/index.js';
 
 // ============================================================================
 // Types and Interfaces
@@ -111,7 +112,7 @@ export class ExtensionBridgeClient {
 
         // Send ping to verify connection
         const pingReqId = this.#getNextReqId();
-        const pingPromise = this.#createPendingRequest(pingReqId, 5000);
+        const pingPromise = this.#createPendingRequest(pingReqId, DEFAULT_BRIDGE_TIMEOUT_CONFIG.pingTimeoutMs);
 
         this.#port.postMessage({
           type: 'binary',
@@ -172,7 +173,7 @@ export class ExtensionBridgeClient {
     const request = createReadRequest(reqId, path, offset, length);
 
     // Create pending request with chunk accumulator
-    const pending = this.#createPendingRequest(reqId, 60000, onChunk);
+    const pending = this.#createPendingRequest(reqId, DEFAULT_BRIDGE_TIMEOUT_CONFIG.readTimeoutMs, onChunk);
 
     // Send request (convert to array for postMessage compatibility)
     this.#port.postMessage({
@@ -196,7 +197,7 @@ export class ExtensionBridgeClient {
     const request = createListRequest(reqId, path);
 
     // Create pending request
-    const pending = this.#createPendingRequest(reqId, 30000);
+    const pending = this.#createPendingRequest(reqId, DEFAULT_BRIDGE_TIMEOUT_CONFIG.listTimeoutMs);
 
     // Send request
     this.#port.postMessage({
@@ -223,7 +224,7 @@ export class ExtensionBridgeClient {
   /**
    * Create a pending request
    */
-  #createPendingRequest(reqId, timeoutMs = 30000, onChunk = null) {
+  #createPendingRequest(reqId, timeoutMs = DEFAULT_BRIDGE_TIMEOUT_CONFIG.defaultTimeoutMs, onChunk = null) {
     return new Promise((resolve, reject) => {
       const pending = {
         resolve,

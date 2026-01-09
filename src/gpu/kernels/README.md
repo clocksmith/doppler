@@ -50,7 +50,7 @@ fn main_batched() { ... }   // Batched prefill (M > 1)
 ```
 
 Selected at dispatch:
-```typescript
+```javascript
 pipeline = device.createComputePipeline({
   compute: { module, entryPoint: 'main_batched' }
 });
@@ -96,7 +96,8 @@ fn main() {
 | `rmsnorm.wgsl` | 4 | RMSNorm with optional fused residual |
 | `attention.wgsl` | 2 | Prefill attention (small/large) |
 | `attention_decode_*.wgsl` | 1-3 | Decode attention variants |
-| `silu.wgsl` | 16 | SiLU activation (many size/dtype variants) |
+| `silu.wgsl` | 5 | SiLU activation variants (gate, split, vec4, rowsplit) |
+| `gelu.wgsl` | 3 | GeLU/GeGLU activation variants (gate, rowsplit) |
 
 ## Naming Conventions
 

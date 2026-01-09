@@ -4,9 +4,9 @@
  * Central export for config-as-code architecture.
  *
  * Platform and kernel registry initialization:
- * - Platform detection and registry loading happen automatically in gpu/device.ts
+ * - Platform detection and registry loading happen automatically in gpu/device.js
  * - Call initDevice() to initialize both GPU and config systems
- * - Use getPlatformConfig() from device.ts to access resolved platform config
+ * - Use getPlatformConfig() from device.js to access resolved platform config
  * - Kernel selection in kernels/selection.js uses platform preferences automatically
  *
  * @module config

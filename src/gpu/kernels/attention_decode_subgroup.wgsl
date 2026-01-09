@@ -15,7 +15,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 const MAX_KV_LEN: u32 = 2048u;
 const MAX_SUBGROUPS: u32 = 256u;
 
-// Uniforms must match TypeScript createAttentionUniformBuffer() layout exactly:
+// Uniforms must match JavaScript createAttentionUniformBuffer() layout exactly:
 // offset 0: numHeads, offset 4: numKVHeads, offset 8: headDim,
 // offset 12: kvLen, offset 16: seqLen, offset 20: scale, offset 24: causal, offset 28: startPos, offset 40: kvLenSource
 struct Uniforms {
@@ -94,7 +94,7 @@ fn main(
         q_val = Q[q_offset];
     }
 
-    let scale = 1.0 / sqrt(f32(head_dim));
+    let scale = u.scale;
 
     // Phase 1: Compute attention scores (Q @ K^T)
     for (var k = 0u; k < kv_len; k++) {

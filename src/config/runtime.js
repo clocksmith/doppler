@@ -1,60 +1,49 @@
-/**
- * Runtime Config Registry
- *
- * Stores the active RuntimeConfigSchema for the current session.
- * Call setRuntimeConfig() early (before pipeline/loader init) to apply overrides.
- *
- * @module config/runtime
- */
+import { createDopplerConfig } from './schema/index.js';
 
-import { createDopplerConfig, DEFAULT_BATCHING_DEFAULTS } from './schema/index.js';
-import { log } from '../debug/index.js';
-
-/** @type {import('./schema/index.js').RuntimeConfigSchema} */
 let runtimeConfig = createDopplerConfig().runtime;
 
-/**
- * Get the active runtime config (merged with defaults).
- * @returns {import('./schema/index.js').RuntimeConfigSchema}
- */
 export function getRuntimeConfig() {
   return runtimeConfig;
 }
 
-/**
- * Set the active runtime config.
- * Accepts partial overrides and merges with defaults.
- * @param {Partial<import('./schema/index.js').RuntimeConfigSchema> | import('./schema/index.js').RuntimeConfigSchema} [overrides]
- * @returns {import('./schema/index.js').RuntimeConfigSchema}
- */
 export function setRuntimeConfig(overrides) {
   if (!overrides) {
     runtimeConfig = createDopplerConfig().runtime;
     return runtimeConfig;
   }
 
-  const merged = createDopplerConfig({ runtime: overrides }).runtime;
+  assertNoDeprecatedRuntimeKeys(overrides);
 
-  // Migrate deprecated sampling.maxTokens to batching.maxTokens
-  const sampling = /** @type {typeof merged.inference.sampling & { maxTokens?: number }} */ (merged.inference.sampling);
-  if (sampling.maxTokens !== undefined) {
-    log.warn('Config', 'inference.sampling.maxTokens is deprecated, use inference.batching.maxTokens instead');
-    // Only migrate if batching.maxTokens is still at default (user didn't explicitly set it)
-    if (merged.inference.batching.maxTokens === DEFAULT_BATCHING_DEFAULTS.maxTokens) {
-      merged.inference.batching.maxTokens = sampling.maxTokens;
-      log.debug('Config', `Migrated sampling.maxTokens=${sampling.maxTokens} to batching.maxTokens`);
-    }
-  }
+  const merged = createDopplerConfig({ runtime: overrides }).runtime;
 
   runtimeConfig = merged;
   return runtimeConfig;
 }
 
-/**
- * Reset runtime config to defaults.
- * @returns {import('./schema/index.js').RuntimeConfigSchema}
- */
 export function resetRuntimeConfig() {
   runtimeConfig = createDopplerConfig().runtime;
   return runtimeConfig;
+}
+
+function assertNoDeprecatedRuntimeKeys(overrides) {
+  if (!overrides || typeof overrides !== 'object') {
+    return;
+  }
+
+  if (/** @type {Record<string, unknown>} */ (overrides).debug !== undefined) {
+    throw new Error('runtime.debug is removed; use runtime.shared.debug');
+  }
+
+  const loading = /** @type {{ debug?: unknown } | undefined} */ (overrides).loading;
+  if (loading?.debug !== undefined) {
+    throw new Error('runtime.loading.debug is removed; use runtime.shared.debug');
+  }
+
+  const inference = /** @type {{ debug?: unknown; sampling?: { maxTokens?: unknown } }} */ (overrides).inference;
+  if (inference?.debug !== undefined) {
+    throw new Error('runtime.inference.debug is removed; use runtime.shared.debug');
+  }
+  if (inference?.sampling?.maxTokens !== undefined) {
+    throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
+  }
 }

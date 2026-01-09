@@ -34,6 +34,9 @@ export interface KVCacheConfigSchema {
   /** Maximum sequence length the cache can hold */
   maxSeqLen: number;
 
+  /** Max sequence length cap when GPU paged layout is unavailable */
+  gpuPagedFallbackMaxSeqLen: number;
+
   /** Data type for cache storage */
   kvDtype: KVDtype;
 

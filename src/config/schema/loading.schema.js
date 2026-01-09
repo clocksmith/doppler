@@ -1,17 +1,10 @@
-/**
- * Loading Config Schema Definitions
- *
- * Configuration for model loading behavior: shard caching, memory management,
- * and storage settings. These values were previously hardcoded across the codebase.
- *
- * @module config/schema/loading
- */
+import { DEFAULT_DISTRIBUTION_CONFIG } from './distribution.schema.js';
+import { DEFAULT_STORAGE_FULL_CONFIG } from './storage.schema.js';
 
 // =============================================================================
 // Shard Cache Config
 // =============================================================================
 
-/** Default shard cache configuration */
 export const DEFAULT_SHARD_CACHE_CONFIG = {
   opfsEntries: 2,
   networkEntries: 16,
@@ -22,7 +15,6 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
 // Memory Management Config
 // =============================================================================
 
-/** Default memory management configuration */
 export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
   flushIntervalLayers: 4,
   flushThresholdBytes: 256 * 1024 * 1024, // 256MB
@@ -34,7 +26,6 @@ export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
 // OPFS Path Config
 // =============================================================================
 
-/** Default OPFS path configuration */
 export const DEFAULT_OPFS_PATH_CONFIG = {
   opfsRootDir: 'doppler-models',
 };
@@ -43,7 +34,6 @@ export const DEFAULT_OPFS_PATH_CONFIG = {
 // Expert Cache Config
 // =============================================================================
 
-/** Default expert cache configuration */
 export const DEFAULT_EXPERT_CACHE_CONFIG = {
   defaultSizeBytes: 2 * 1024 * 1024 * 1024, // 2GB
   maxBufferPercentage: 0.25, // 25% of max buffer
@@ -53,8 +43,9 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
 // Complete Loading Config
 // =============================================================================
 
-/** Default loading configuration */
 export const DEFAULT_LOADING_CONFIG = {
+  storage: DEFAULT_STORAGE_FULL_CONFIG,
+  distribution: DEFAULT_DISTRIBUTION_CONFIG,
   shardCache: DEFAULT_SHARD_CACHE_CONFIG,
   memoryManagement: DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   opfsPath: DEFAULT_OPFS_PATH_CONFIG,

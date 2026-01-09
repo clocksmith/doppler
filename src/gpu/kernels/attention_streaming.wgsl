@@ -63,10 +63,11 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
 
     let kv_head_idx = get_kv_head_idx(head_idx);
     let head_dim = u.head_dim;
+    if (head_dim > MAX_HEAD_DIM) { return; }
     let seq_len = get_kv_len();
     let scale = u.scale;
 
-    var q_local: array<f32, 256>;
+    var q_local: array<f32, MAX_HEAD_DIM>;
     let q_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
         q_local[d] = Q[q_offset + d];
@@ -89,7 +90,7 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
     }
 
     var sum_exp: f32 = 0.0;
-    var acc: array<f32, 256>;
+    var acc: array<f32, MAX_HEAD_DIM>;
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
         acc[d] = 0.0;
     }
@@ -114,9 +115,13 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         }
     }
 
-    if (sum_exp <= 0.0) { return; }
-
     let out_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
+    if (sum_exp <= 0.0) {
+        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+            output[out_offset + d] = 0.0;
+        }
+        return;
+    }
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
         output[out_offset + d] = acc[d] / sum_exp;
     }

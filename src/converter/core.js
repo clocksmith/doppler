@@ -19,7 +19,7 @@ import {
 import { generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
 import { detectPreset, resolvePreset } from '../config/index.js';
-import { buildManifestInference } from './manifest-inference.js';
+import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -231,6 +231,17 @@ export function createManifest(
       architecture.headDim ??
       Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
     inference = buildManifestInference(preset, rawConfig, headDim || 64);
+  }
+
+  const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
+  if (embeddingOutput) {
+    inference = {
+      ...inference,
+      output: {
+        ...inference.output,
+        ...embeddingOutput,
+      },
+    };
   }
 
   const manifest = {

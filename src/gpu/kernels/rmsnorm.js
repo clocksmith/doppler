@@ -1,8 +1,4 @@
-/**
- * RMSNorm Kernels
- *
- * Provides RMS normalization with optional residual connection.
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -12,26 +8,14 @@ import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 
-/**
- * Check if F16 can be used based on tensor dtypes.
- * F16 shader requires F16 input, and F16 residual if present.
- * @param {import('../tensor.js').Tensor} input
- * @param {import('../tensor.js').Tensor | null} residual
- * @returns {boolean}
- */
+
 function canUseF16(input, residual) {
   if (input.dtype !== 'f16') return false;
   if (residual && residual.dtype !== 'f16') return false;
   return true;
 }
 
-/**
- * Select RMSNorm kernel variant based on options, tensor dtypes, and GPU capabilities.
- * Prefers subgroup-accelerated variants when available (3-5x faster reductions).
- * @param {import('./rmsnorm.js').RMSNormOptions} [options]
- * @param {boolean} [isF16]
- * @returns {string}
- */
+
 export function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
@@ -71,14 +55,7 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   return 'default';
 }
 
-/**
- * Run RMSNorm
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer} weight
- * @param {number} [eps]
- * @param {import('./rmsnorm.js').RMSNormOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runRMSNorm(
   input,
   weight,
@@ -152,15 +129,7 @@ export async function runRMSNorm(
   return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
 }
 
-/**
- * Record RMSNorm (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer} weight
- * @param {number} [eps]
- * @param {import('./rmsnorm.js').RMSNormOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordRMSNorm(
   recorder,
   input,

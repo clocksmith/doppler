@@ -30,7 +30,7 @@ export { getManifest } from './rdrr-format.js';
  * @returns {number}
  */
 function getAlignmentBytes() {
-  return getRuntimeConfig().storage.alignment.bufferAlignmentBytes;
+  return getRuntimeConfig().loading.storage.alignment.bufferAlignmentBytes;
 }
 
 // Storage config - can be overridden via setOpfsPathConfig()

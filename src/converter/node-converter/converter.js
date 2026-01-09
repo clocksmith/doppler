@@ -32,13 +32,56 @@ import { writeRDRR } from '../writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from '../quantizer.js';
 import { shouldQuantize as shouldQuantizeCore } from '../core.js';
 import { buildManifestInference } from '../manifest-inference.js';
-import { resolvePreset } from '../../config/index.js';
+import { resolvePreset, createConverterConfig } from '../../config/index.js';
+
+const BYTES_PER_MB = 1024 * 1024;
+
+function resolveConverterConfig(options = {}) {
+  const baseConfig = options.converterConfig ?? null;
+
+  const quantization = { ...(baseConfig?.quantization ?? {}) };
+  if (options.weightQuant !== undefined) quantization.weights = options.weightQuant;
+  if (options.embedQuant !== undefined) quantization.embeddings = options.embedQuant;
+  if (options.headQuant !== undefined) quantization.lmHead = options.headQuant;
+  if (options.visionQuant !== undefined) quantization.vision = options.visionQuant;
+  if (options.audioQuant !== undefined) quantization.audio = options.audioQuant;
+  if (options.projectorQuant !== undefined) quantization.projector = options.projectorQuant;
+  if (options.computePrecision !== undefined) quantization.computePrecision = options.computePrecision;
+
+  const sharding = { ...(baseConfig?.sharding ?? {}) };
+  if (options.shardSize != null) sharding.shardSizeBytes = options.shardSize * BYTES_PER_MB;
+  if (options.shardSizeBytes != null) sharding.shardSizeBytes = options.shardSizeBytes;
+
+  const output = { ...(baseConfig?.output ?? {}) };
+  if (options.modelId !== undefined) output.modelId = options.modelId;
+  if (options.textOnly !== undefined) output.textOnly = options.textOnly;
+  if (options.fast !== undefined) output.fast = options.fast;
+
+  const weightLayout = baseConfig?.weightLayout ? { ...baseConfig.weightLayout } : undefined;
+  const manifest = baseConfig?.manifest ? { ...baseConfig.manifest } : undefined;
+  const presets = baseConfig?.presets ? { ...baseConfig.presets } : undefined;
+
+  return createConverterConfig({
+    quantization,
+    sharding,
+    weightLayout,
+    manifest,
+    output,
+    presets,
+  });
+}
 
 /**
  * Convert SafeTensors model to RDRR format.
  */
 export async function convertSafetensors(inputPath, outputPath, opts) {
-  const verboseLog = createVerboseLogger(opts.verbose, 'Convert');
+  const verboseLog = createVerboseLogger(opts?.verbose ?? false, 'Convert');
+  const converterConfig = resolveConverterConfig(opts ?? {});
+  const outputConfig = converterConfig.output;
+  const quantizationConfig = converterConfig.quantization;
+  const shardingConfig = converterConfig.sharding;
+  const weightLayoutConfig = converterConfig.weightLayout;
+  const manifestConfig = converterConfig.manifest;
 
   verboseLog(`Parsing safetensors from: ${inputPath}`);
   const parsed = await parseSafetensors(inputPath);
@@ -74,7 +117,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   if (hasProjector) verboseLog('Detected multimodal projector');
 
   let tensors = parsed.tensors;
-  if (opts.textOnly) {
+  if (outputConfig.textOnly) {
     const textOnlyPatterns = ['language_model', 'model.', 'lm_head', 'embed_tokens'];
     const excludePatterns = [...visionPatterns, ...audioPatterns, ...projectorPatterns, 'image_newline'];
 
@@ -103,16 +146,19 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const embedDtypeRaw = findTensorDtype(validTensors, isEmbeddingTensorName);
   const lmHeadDtypeRaw = findTensorDtype(validTensors, isLmHeadTensorName);
   const quantizationInfo = buildQuantizationInfo(
-    opts, originalDtype, embedDtypeRaw, lmHeadDtypeRaw,
-    hasVision && !opts.textOnly,
+    converterConfig,
+    originalDtype,
+    embedDtypeRaw,
+    lmHeadDtypeRaw,
+    hasVision,
     hasAudio,
-    hasProjector && !opts.textOnly
+    hasProjector
   );
   const baseModelId = typeof configRec._name_or_path === 'string'
     ? configRec._name_or_path
     : basename(inputPath);
-  const resolvedModelId = resolveModelId(opts.modelId, baseModelId, quantizationInfo.variantTag);
-  const manifestQuantization = resolveManifestQuantization(opts.weightQuant, originalDtype);
+  const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
+  const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, originalDtype);
 
   const getOutputDtype = (name, shape, origDtype) => {
     const isEmbedding = isEmbeddingTensorName(name);
@@ -221,14 +267,19 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
 
   const writerOpts = {
-    shardSize: opts.shardSize * 1024 * 1024,
+    shardSize: shardingConfig.shardSizeBytes,
+    hashAlgorithm: manifestConfig.hashAlgorithm,
     modelId: resolvedModelId,
     modelType,
     architecture: arch,
     quantization: manifestQuantization,
     quantizationInfo,
+    transposeWeights: weightLayoutConfig.transposeWeights,
+    fuseGateUp: weightLayoutConfig.fuseGateUp,
     inference: manifestInference,
   };
+  if (manifestConfig.optimizations) writerOpts.optimizations = manifestConfig.optimizations;
+  if (manifestConfig.conversion) writerOpts.conversion = manifestConfig.conversion;
 
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
 }
@@ -237,7 +288,13 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
  * Convert GGUF model to RDRR format.
  */
 export async function convertGGUF(inputPath, outputPath, opts) {
-  const verboseLog = createVerboseLogger(opts.verbose, 'Convert');
+  const verboseLog = createVerboseLogger(opts?.verbose ?? false, 'Convert');
+  const converterConfig = resolveConverterConfig(opts ?? {});
+  const outputConfig = converterConfig.output;
+  const quantizationConfig = converterConfig.quantization;
+  const shardingConfig = converterConfig.sharding;
+  const weightLayoutConfig = converterConfig.weightLayout;
+  const manifestConfig = converterConfig.manifest;
 
   verboseLog(`Parsing GGUF from: ${inputPath}`);
   const parsed = await parseGGUFFile(inputPath);
@@ -277,13 +334,16 @@ export async function convertGGUF(inputPath, outputPath, opts) {
   const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
   const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
   const quantizationInfo = buildQuantizationInfo(
-    opts,
+    converterConfig,
     parsed.quantization || 'F32',
     embedDtypeRaw,
     lmHeadDtypeRaw
   );
-  const resolvedModelId = resolveModelId(opts.modelId, modelName, quantizationInfo.variantTag);
-  const manifestQuantization = resolveManifestQuantization(opts.weightQuant, parsed.quantization || 'F32');
+  const resolvedModelId = resolveModelId(outputConfig.modelId, modelName, quantizationInfo.variantTag);
+  const manifestQuantization = resolveManifestQuantization(
+    quantizationConfig.weights,
+    parsed.quantization || 'F32'
+  );
 
   const modelInfo = {
     modelName: resolvedModelId,
@@ -339,14 +399,19 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
 
     const writerOpts = {
-      shardSize: opts.shardSize * 1024 * 1024,
+      shardSize: shardingConfig.shardSizeBytes,
+      hashAlgorithm: manifestConfig.hashAlgorithm,
       modelId: resolvedModelId,
       modelType,
       architecture: arch,
       quantization: manifestQuantization,
       quantizationInfo,
+      transposeWeights: weightLayoutConfig.transposeWeights,
+      fuseGateUp: weightLayoutConfig.fuseGateUp,
       inference: manifestInference,
     };
+    if (manifestConfig.optimizations) writerOpts.optimizations = manifestConfig.optimizations;
+    if (manifestConfig.conversion) writerOpts.conversion = manifestConfig.conversion;
 
     const result = await writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
     return result;

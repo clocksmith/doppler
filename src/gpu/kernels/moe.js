@@ -1,11 +1,4 @@
-/**
- * Mixture of Experts (MoE) Kernels
- *
- * Provides kernels for MoE routing and token distribution:
- * - Top-K expert selection
- * - MoE token gathering (dispatching tokens to experts)
- * - Scatter-add (collecting expert outputs back to tokens)
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -14,15 +7,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 
-/**
- * Run top-K expert selection
- * @param {GPUBuffer} probs
- * @param {number} numTokens
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<{ indices: GPUBuffer; weights: GPUBuffer }>}
- */
+
 export async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
   const device = getDevice();
   const { normalize = true } = options;
@@ -68,16 +53,7 @@ export async function runTopK(probs, numTokens, numExperts, topK, options = {}) 
   return { indices, weights };
 }
 
-/**
- * Record top-K expert selection (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} probs
- * @param {number} numTokens
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<{ indices: GPUBuffer; weights: GPUBuffer }>}
- */
+
 export async function recordTopK(recorder, probs, numTokens, numExperts, topK, options = {}) {
   const device = recorder.device;
   const { normalize = true } = options;
@@ -119,13 +95,10 @@ export async function recordTopK(recorder, probs, numTokens, numExperts, topK, o
 
 // Cached explicit bind group layout for MoE gather (all 6 bindings)
 // See docs/postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md for why this is needed
-/** @type {GPUBindGroupLayout | null} */
+
 let moeGatherBindGroupLayout = null;
 
-/**
- * @param {GPUDevice} device
- * @returns {GPUBindGroupLayout}
- */
+
 function getMoEGatherBindGroupLayout(device) {
   if (moeGatherBindGroupLayout) return moeGatherBindGroupLayout;
 
@@ -143,18 +116,7 @@ function getMoEGatherBindGroupLayout(device) {
   return moeGatherBindGroupLayout;
 }
 
-/**
- * Run MoE gather (dispatch tokens to experts)
- * Returns gathered hidden states organized by expert, along with token counts and mapping
- * @param {import('../tensor.js').Tensor} hiddenStates
- * @param {GPUBuffer} expertIndices
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('./moe.js').MoEGatherResult>}
- */
+
 export async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device = getDevice();
   const { maxTokensPerExpert = numTokens } = options;
@@ -244,18 +206,7 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
 
-/**
- * Record MoE gather (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} hiddenStates
- * @param {GPUBuffer} expertIndices
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('./moe.js').MoEGatherResult>}
- */
+
 export async function recordMoEGather(recorder, hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device = recorder.device;
   const { maxTokensPerExpert = numTokens } = options;
@@ -334,18 +285,7 @@ export async function recordMoEGather(recorder, hiddenStates, expertIndices, num
   return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
 
-/**
- * Run scatter-add (collect expert outputs back to tokens)
- * @param {import('../tensor.js').Tensor} expertOutputs
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} weights
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runScatterAdd(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device = getDevice();
   const { outputBuffer = null } = options;
@@ -404,19 +344,7 @@ export async function runScatterAdd(expertOutputs, indices, weights, numTokens, 
   return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
-/**
- * Record scatter-add (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} expertOutputs
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} weights
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} numExperts
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordScatterAdd(recorder, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device = recorder.device;
   const { outputBuffer = null } = options;
@@ -463,18 +391,7 @@ export async function recordScatterAdd(recorder, expertOutputs, indices, weights
   return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
-/**
- * Run dynamic scatter-add with token offsets
- * @param {import('../tensor.js').Tensor} expertOutputs
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} weights
- * @param {GPUBuffer} tokenOffsets
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const device = getDevice();
   const { outputBuffer = null } = options;
@@ -531,19 +448,7 @@ export async function runScatterAddDynamic(expertOutputs, indices, weights, toke
   return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_dynamic_output');
 }
 
-/**
- * Record dynamic scatter-add (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} expertOutputs
- * @param {GPUBuffer} indices
- * @param {GPUBuffer} weights
- * @param {GPUBuffer} tokenOffsets
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} topK
- * @param {import('./moe.js').MoEOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const device = recorder.device;
   const { outputBuffer = null } = options;

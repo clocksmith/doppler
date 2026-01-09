@@ -1,22 +1,6 @@
-/**
- * Dispatch Helpers - Simplified GPU kernel dispatch
- *
- * Provides helpers to reduce boilerplate for common dispatch patterns:
- * - Single submit dispatch
- * - CommandRecorder dispatch (batched)
- * - Multi-dimensional dispatch
- */
 
-/**
- * Dispatch a single compute pass and submit immediately
- * Use for standalone kernels that don't participate in batching
- * @param {GPUDevice} device
- * @param {GPUComputePipeline} pipeline
- * @param {GPUBindGroup} bindGroup
- * @param {number | [number, number, number]} workgroups
- * @param {string} [label]
- * @returns {void}
- */
+
+
 export function dispatch(
   device,
   pipeline,
@@ -39,16 +23,7 @@ export function dispatch(
   device.queue.submit([encoder.finish()]);
 }
 
-/**
- * Record a compute pass to a CommandRecorder (no submit)
- * Use for kernels in the batched pipeline path
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUComputePipeline} pipeline
- * @param {GPUBindGroup} bindGroup
- * @param {number | [number, number, number]} workgroups
- * @param {string} [label]
- * @returns {void}
- */
+
 export function recordDispatch(
   recorder,
   pipeline,
@@ -69,17 +44,7 @@ export function recordDispatch(
   pass.end();
 }
 
-/**
- * Dispatch a single compute pass using an indirect dispatch buffer
- * Use when workgroup counts are produced on GPU
- * @param {GPUDevice} device
- * @param {GPUComputePipeline} pipeline
- * @param {GPUBindGroup} bindGroup
- * @param {GPUBuffer} indirectBuffer
- * @param {number} [indirectOffset]
- * @param {string} [label]
- * @returns {void}
- */
+
 export function dispatchIndirect(
   device,
   pipeline,
@@ -97,16 +62,7 @@ export function dispatchIndirect(
   device.queue.submit([encoder.finish()]);
 }
 
-/**
- * Record an indirect dispatch into a CommandRecorder (no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUComputePipeline} pipeline
- * @param {GPUBindGroup} bindGroup
- * @param {GPUBuffer} indirectBuffer
- * @param {number} [indirectOffset]
- * @param {string} [label]
- * @returns {void}
- */
+
 export function recordDispatchIndirect(
   recorder,
   pipeline,
@@ -122,16 +78,7 @@ export function recordDispatchIndirect(
   pass.end();
 }
 
-/**
- * Dispatch with multiple bind groups
- * For kernels that use multiple bind group sets
- * @param {GPUDevice} device
- * @param {GPUComputePipeline} pipeline
- * @param {GPUBindGroup[]} bindGroups
- * @param {number | [number, number, number]} workgroups
- * @param {string} [label]
- * @returns {void}
- */
+
 export function dispatchMultiBindGroup(
   device,
   pipeline,
@@ -157,12 +104,7 @@ export function dispatchMultiBindGroup(
   device.queue.submit([encoder.finish()]);
 }
 
-/**
- * Calculate workgroup count for 1D dispatch
- * @param {number} totalThreads - Total number of threads needed
- * @param {number} [workgroupSize] - Threads per workgroup (default: 256)
- * @returns {number} Number of workgroups (rounded up)
- */
+
 export function calculateWorkgroups1D(
   totalThreads,
   workgroupSize = 256
@@ -170,13 +112,7 @@ export function calculateWorkgroups1D(
   return Math.ceil(totalThreads / workgroupSize);
 }
 
-/**
- * Calculate workgroup count for 2D dispatch
- * @param {number} width - Width dimension (e.g., matrix columns)
- * @param {number} height - Height dimension (e.g., matrix rows)
- * @param {number} [tileSize] - Tile size per workgroup (default: 16)
- * @returns {[number, number]} [workgroupsX, workgroupsY]
- */
+
 export function calculateWorkgroups2D(
   width,
   height,
@@ -188,16 +124,7 @@ export function calculateWorkgroups2D(
   ];
 }
 
-/**
- * Calculate workgroup count for 3D dispatch
- * @param {number} width - Width dimension
- * @param {number} height - Height dimension
- * @param {number} depth - Depth dimension
- * @param {number} [tileSizeX] - Tile size in X (default: 16)
- * @param {number} [tileSizeY] - Tile size in Y (default: 16)
- * @param {number} [tileSizeZ] - Tile size in Z (default: 1)
- * @returns {[number, number, number]} [workgroupsX, workgroupsY, workgroupsZ]
- */
+
 export function calculateWorkgroups3D(
   width,
   height,
@@ -213,15 +140,7 @@ export function calculateWorkgroups3D(
   ];
 }
 
-/**
- * Advanced dispatch with full control
- * Supports push constants, timestamps, and multiple bind groups
- * @param {GPUDevice} device
- * @param {GPUComputePipeline} pipeline
- * @param {number | [number, number, number]} workgroups
- * @param {import('./dispatch.js').DispatchOptions} [options]
- * @returns {void}
- */
+
 export function dispatchAdvanced(
   device,
   pipeline,
@@ -235,7 +154,7 @@ export function dispatchAdvanced(
   } = options;
 
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
-  /** @type {GPUComputePassDescriptor} */
+  
   const passDescriptor = {
     label: `${label}_pass`,
   };
@@ -263,14 +182,7 @@ export function dispatchAdvanced(
   device.queue.submit([encoder.finish()]);
 }
 
-/**
- * Batch multiple dispatches in a single command buffer
- * Useful for multi-kernel operations that should be submitted together
- * @param {GPUDevice} device
- * @param {Array<{ pipeline: GPUComputePipeline, bindGroup: GPUBindGroup, workgroups: number | [number, number, number], label?: string }>} batches
- * @param {string} [label]
- * @returns {void}
- */
+
 export function dispatchBatch(
   device,
   batches,

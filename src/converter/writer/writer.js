@@ -16,6 +16,7 @@ import { ManifestWriter } from './manifest-writer.js';
 import { TokenizerWriter } from './tokenizer-writer.js';
 import { getBytesPerElement, transpose2D } from './utils.js';
 import { DEFAULT_SHARD_SIZE } from './types.js';
+import { inferEmbeddingOutputConfig } from '../manifest-inference.js';
 
 /**
  * Main RDRR writer class.
@@ -423,6 +424,17 @@ export class RDRRWriter {
         'Manifest inference config is required. ' +
         'Set it via writer.setInference() or pass options.inference to writeRDRR().'
       );
+    }
+
+    const embeddingOutput = inferEmbeddingOutputConfig(this.#tensorLocations);
+    if (embeddingOutput) {
+      this.#manifest.inference = {
+        ...this.#manifest.inference,
+        output: {
+          ...this.#manifest.inference.output,
+          ...embeddingOutput,
+        },
+      };
     }
 
     if (this.#ffnFusionBuffer.size > 0) {

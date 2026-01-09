@@ -1,11 +1,4 @@
-/**
- * Uniform Utils - Uniform buffer creation utilities
- *
- * Provides utilities for creating and caching uniform buffers
- * for kernel dispatch.
- *
- * @module gpu/kernels/uniform-utils
- */
+
 
 import { getDevice } from '../device.js';
 import { getUniformCache } from '../uniform-cache.js';
@@ -14,16 +7,7 @@ import { getUniformCache } from '../uniform-cache.js';
 // Uniform Buffer Creation
 // ============================================================================
 
-/**
- * Create a uniform buffer from raw data.
- * Uses caching by default for content-addressed reuse.
- * @param {string} label
- * @param {ArrayBuffer | ArrayBufferView} data
- * @param {import('../command-recorder.js').CommandRecorder | null} [recorder]
- * @param {GPUDevice | null} [deviceOverride]
- * @param {import('./uniform-utils.js').UniformBufferOptions} [options]
- * @returns {GPUBuffer}
- */
+
 export function createUniformBufferFromData(
   label,
   data,
@@ -62,16 +46,7 @@ export function createUniformBufferFromData(
   return buffer;
 }
 
-/**
- * Create a uniform buffer with a DataView writer callback.
- * Allows structured data writing with proper alignment.
- * @param {string} label
- * @param {number} byteLength
- * @param {(view: DataView) => void} writer
- * @param {import('../command-recorder.js').CommandRecorder | null} [recorder]
- * @param {GPUDevice | null} [deviceOverride]
- * @returns {GPUBuffer}
- */
+
 export function createUniformBufferWithView(
   label,
   byteLength,

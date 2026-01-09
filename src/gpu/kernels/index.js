@@ -1,9 +1,4 @@
-/**
- * GPU Kernels - Barrel Export
- *
- * Central export point for all GPU kernel modules.
- * This allows backward compatibility with the original kernel-selector.js
- */
+
 
 // Utilities
 export {

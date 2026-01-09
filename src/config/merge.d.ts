@@ -7,7 +7,7 @@
  *
  * Architecture:
  *   - Manifest provides ALL values (required, no optionals)
- *   - Runtime can override any manifest value
+ *   - Runtime can override any manifest value when a field is non-null/undefined
  *   - _sources tracks 'manifest' or 'runtime' for each field
  *   - NO default fallback - if manifest is incomplete, loader validation fails
  *
@@ -22,6 +22,7 @@ import {
   type ManifestRoPESchema,
   type ManifestOutputSchema,
   type ManifestLayerPatternSchema,
+  type ManifestChatTemplateSchema,
   type ArchitectureSchema,
 } from './schema/index.js';
 
@@ -54,6 +55,7 @@ export interface MergedInferenceConfig {
   rope: ManifestRoPESchema;
   output: ManifestOutputSchema;
   layerPattern: ManifestLayerPatternSchema | null;
+  chatTemplate: ManifestChatTemplateSchema;
   defaultKernelPath: string | null;
 }
 
@@ -87,6 +89,7 @@ export interface MergedConfig {
  *
  * NOTE: Manifest must provide all values. If any field is missing,
  * the loader should have rejected the manifest before calling this.
+ * Runtime overrides treat null/undefined as "not specified".
  *
  * @param manifest - Model manifest with complete inference config
  * @param runtimeOverrides - Optional runtime overrides

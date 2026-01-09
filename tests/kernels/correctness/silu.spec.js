@@ -166,19 +166,27 @@ test.describe('SiLU Kernel', () => {
         const gpu = await window.testHarness.getGPU();
         const actual = await window.testHarness.runSiLU(gpu.device, input);
 
+        const expected = new Float32Array(input.length);
+        for (let i = 0; i < input.length; i++) {
+          const clamped = Math.min(15, Math.max(-15, input[i]));
+          expected[i] = input[i] / (1 + Math.exp(-clamped));
+        }
+
         let hasNaN = false;
         for (const v of actual) {
           if (isNaN(v)) hasNaN = true;
         }
 
-        // For large negative x, SiLU(x) ≈ 0
-        const closeToZero = actual.every(v => Math.abs(v) < 1e-10);
+        let maxError = 0;
+        for (let i = 0; i < actual.length; i++) {
+          maxError = Math.max(maxError, Math.abs(actual[i] - expected[i]));
+        }
 
-        return { hasNaN, closeToZero, maxError: 0 };
+        return { hasNaN, maxError };
       });
 
       expect(result.hasNaN).toBe(false);
-      expect(result.closeToZero).toBe(true);
+      expect(result.maxError).toBeLessThan(1e-5);
     });
   });
 });

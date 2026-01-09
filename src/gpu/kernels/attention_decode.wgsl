@@ -6,11 +6,10 @@
 //
 // Based on Flash Attention principles adapted for WebGPU.
 
-// Tile sizes for blocked attention
-override BLOCK_SIZE: u32 = 64u;  // Sequence tile size
-override HEAD_TILE: u32 = 64u;   // Head dimension tile
-override WORKGROUP_SIZE: u32 = 64u;  // Main kernel workgroup size
-override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size
+const MAX_HEAD_DIM: u32 = 64u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
+
+override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size (must match MAX_WORKGROUP_SIZE)
 
 struct Uniforms {
     num_heads: u32,       // Number of query heads
@@ -33,15 +32,10 @@ struct Uniforms {
 @group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
-// Shared memory for tiled computation
-var<workgroup> shared_K: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_V: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_scores: array<f32, 4096>;  // BLOCK_SIZE * BLOCK_SIZE
-
 // Online softmax accumulators (per-thread)
-// Sized for 256 to support attention_decode workgroup size (prefill uses 64)
-var<workgroup> row_max: array<f32, 256>;
-var<workgroup> row_sum: array<f32, 256>;
+// Sized for 256 to support attention_decode workgroup size
+var<workgroup> row_max: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> row_sum: array<f32, MAX_WORKGROUP_SIZE>;
 
 // Get KV head index for grouped query attention
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
@@ -94,31 +88,37 @@ fn attention_decode(
     let head_idx = wg_id.x;
     let thread_idx = local_id.x;
 
+    if (DECODE_WORKGROUP_SIZE > MAX_WORKGROUP_SIZE) {
+        return;
+    }
+
     let kv_head_idx = get_kv_head_idx(head_idx);
     let head_dim = u.head_dim;
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
     let seq_len = get_kv_len();
     let scale = u.scale;
 
     // Each thread handles a subset of key positions
-    let keys_per_thread = (seq_len + 255u) / 256u;
+    let keys_per_thread = (seq_len + DECODE_WORKGROUP_SIZE - 1u) / DECODE_WORKGROUP_SIZE;
 
     // Load query (single position)
-    var q_local: array<f32, 128>;  // Support up to 128 head_dim
+    var q_local: array<f32, MAX_HEAD_DIM>;
     let q_offset = head_idx * head_dim;
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
         q_local[d] = Q[q_offset + d];
     }
 
-    // Compute partial attention scores and find local max
+    // Pass 1: local max
     var local_max: f32 = -3.402823e+38;
-    var local_scores: array<f32, 32>;  // Store scores for this thread's keys
-    var local_count: u32 = 0u;
+    let query_pos = 0u;
 
     for (var i: u32 = 0u; i < keys_per_thread; i = i + 1u) {
         let key_pos = thread_idx * keys_per_thread + i;
         if (key_pos >= seq_len) { break; }
+        if (is_masked(query_pos, key_pos)) { continue; }
 
-        // Causal: can attend to all previous positions (query is at end)
         let k_offset = key_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
 
         var score: f32 = 0.0;
@@ -132,9 +132,7 @@ fn attention_decode(
             score = tanh(score / u.attn_softcap) * u.attn_softcap;
         }
 
-        local_scores[i] = score;
         local_max = max(local_max, score);
-        local_count = local_count + 1u;
     }
 
     // Store local max for reduction
@@ -142,8 +140,8 @@ fn attention_decode(
     workgroupBarrier();
 
     // Parallel reduction to find global max
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
-        if (thread_idx < stride && thread_idx + stride < 256u) {
+    for (var stride: u32 = DECODE_WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+        if (thread_idx < stride && thread_idx + stride < DECODE_WORKGROUP_SIZE) {
             row_max[thread_idx] = max(row_max[thread_idx], row_max[thread_idx + stride]);
         }
         workgroupBarrier();
@@ -151,58 +149,64 @@ fn attention_decode(
 
     let global_max = row_max[0];
 
-    // Compute exp(score - max) and local sum
+    // Pass 2: local sum and output accumulator
     var local_sum: f32 = 0.0;
-    for (var i: u32 = 0u; i < local_count; i = i + 1u) {
-        local_scores[i] = exp(local_scores[i] - global_max);
-        local_sum = local_sum + local_scores[i];
+    var local_out: array<f32, MAX_HEAD_DIM>;
+    for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+        local_out[d] = 0.0;
+    }
+
+    for (var i: u32 = 0u; i < keys_per_thread; i = i + 1u) {
+        let key_pos = thread_idx * keys_per_thread + i;
+        if (key_pos >= seq_len) { break; }
+        if (is_masked(query_pos, key_pos)) { continue; }
+
+        let k_offset = key_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+        let v_offset = key_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+
+        var score: f32 = 0.0;
+        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+            score = score + q_local[d] * K[k_offset + d];
+        }
+        score = score * scale;
+
+        if (u.attn_softcap > 0.0) {
+            score = tanh(score / u.attn_softcap) * u.attn_softcap;
+        }
+
+        let exp_score = exp(score - global_max);
+        local_sum = local_sum + exp_score;
+        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+            local_out[d] = local_out[d] + exp_score * V[v_offset + d];
+        }
     }
 
     row_sum[thread_idx] = local_sum;
     workgroupBarrier();
 
     // Parallel reduction for sum
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
-        if (thread_idx < stride && thread_idx + stride < 256u) {
+    for (var stride: u32 = DECODE_WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+        if (thread_idx < stride && thread_idx + stride < DECODE_WORKGROUP_SIZE) {
             row_sum[thread_idx] = row_sum[thread_idx] + row_sum[thread_idx + stride];
         }
         workgroupBarrier();
     }
 
     let global_sum = row_sum[0];
+    let inv_sum = select(0.0, 1.0 / global_sum, global_sum > 0.0);
 
-    // Compute weighted V contribution
-    var local_out: array<f32, 128>;
+    // Reduction for output (per-dimension)
+    let out_offset = head_idx * head_dim;
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-        local_out[d] = 0.0;
-    }
-
-    for (var i: u32 = 0u; i < local_count; i = i + 1u) {
-        let key_pos = thread_idx * keys_per_thread + i;
-        let v_offset = key_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
-        let weight = local_scores[i] / global_sum;
-
-        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            local_out[d] = local_out[d] + weight * V[v_offset + d];
-        }
-    }
-
-    // Reduction for output (atomic add or shared memory reduction)
-    // For simplicity, use shared memory
-    for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-        shared_V[thread_idx * head_dim + d] = local_out[d];
-    }
-    workgroupBarrier();
-
-    // Thread 0 sums all contributions
-    if (thread_idx == 0u) {
-        let out_offset = head_idx * head_dim;
-        for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+        row_sum[thread_idx] = local_out[d];
+        workgroupBarrier();
+        if (thread_idx == 0u) {
             var sum: f32 = 0.0;
-            for (var t: u32 = 0u; t < 256u; t = t + 1u) {
-                sum = sum + shared_V[t * head_dim + d];
+            for (var t: u32 = 0u; t < DECODE_WORKGROUP_SIZE; t = t + 1u) {
+                sum = sum + row_sum[t];
             }
-            output[out_offset + d] = sum;
+            output[out_offset + d] = sum * inv_sum;
         }
+        workgroupBarrier();
     }
 }

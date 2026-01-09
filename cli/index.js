@@ -452,7 +452,7 @@ function hasCliFlag(opts, flags) {
 function resolveLogLevel(opts) {
   if (opts.quiet) return 'silent';
   if (opts.verbose) return 'verbose';
-  const configLevel = opts.runtimeConfig?.debug?.logLevel?.defaultLogLevel;
+  const configLevel = opts.runtimeConfig?.inference?.debug?.logLevel?.defaultLogLevel;
   return configLevel ?? null;
 }
 
@@ -2136,12 +2136,12 @@ async function main() {
       const runtime = loadedConfig.runtime;
       const hasLogFlag = hasCliFlag(opts, ['--verbose', '-v', '--quiet', '-q']);
       if (!hasLogFlag) {
-        if (runtime.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
-        if (runtime.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+        if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+        if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
       }
       const hasTraceFlag = hasCliFlag(opts, ['--trace', '--break']);
-      if (!hasTraceFlag && runtime.debug?.trace?.enabled) {
-        opts.trace = runtime.debug.trace.categories?.join(',') || 'all';
+      if (!hasTraceFlag && runtime.shared?.debug?.trace?.enabled) {
+        opts.trace = runtime.shared.debug.trace.categories?.join(',') || 'all';
       }
       if (!hasCliFlag(opts, ['--temperature']) && runtime.inference?.sampling?.temperature !== undefined) {
         opts.temperature = runtime.inference.sampling.temperature;

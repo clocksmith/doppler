@@ -71,7 +71,7 @@ export function resetDebugConfig() {
 }
 
 /**
- * Apply pipeline debug config (runtime.debug.pipeline) to debug-utils.
+ * Apply pipeline debug config (runtime.shared.debug.pipeline) to debug-utils.
  * @param {import('../../../config/schema/index.js').PipelineDebugConfigSchema | null | undefined} [pipeline]
  * @returns {void}
  */

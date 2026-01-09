@@ -26,6 +26,7 @@ import type {
   CustomShardLoaderOptions,
   LoaderStats,
   KernelCapabilities,
+  Q4KConfig,
   ModelConfig,
 } from './loader-types.js';
 import type { ShardCache } from './shard-cache.js';
@@ -92,6 +93,8 @@ export declare class DopplerLoader {
   constructor(loadingConfig?: LoadingConfigSchema);
 
   setLoadingConfig(config: LoadingConfigSchema): void;
+
+  setQ4KConfig(config: Q4KConfig): void;
 
   setCustomShardLoader(loadShardFn: CustomShardLoader, options?: CustomShardLoaderOptions): void;
 

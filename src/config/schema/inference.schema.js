@@ -1,46 +1,18 @@
-/**
- * Inference Schema Definitions
- *
- * Configuration for model inference behavior.
- * These are runtime settings that affect how the model executes.
- *
- * @module config/schema/inference
- */
-
 // =============================================================================
-// RoPE (Rotary Position Embedding)
+// Architecture Defaults (Legacy Fallbacks)
 // =============================================================================
+//
+// These are used as fallbacks when manifest.architecture is a string (v1 format).
+// For new manifests, architecture should be an object with all fields populated.
+// TODO: Remove when v1 manifest support is dropped.
 
-/** Default RoPE configuration */
-export const DEFAULT_ROPE_CONFIG = {
-  ropeTheta: 10000,
-  ropeLocalTheta: undefined,
-  ropeScalingType: null,
-  ropeScalingFactor: 1.0,
-  yarnBetaFast: 32,
-  yarnBetaSlow: 1,
-  yarnOriginalMaxPos: 4096,
-};
-
-// =============================================================================
-// Architecture Defaults
-// =============================================================================
-
-/**
- * Default max position embeddings when not specified in model config.
- * Used as fallback when parsing incomplete manifests/configs.
- * Modern models typically support 8192+, so this is a conservative default.
- */
 export const DEFAULT_MAX_POSITION_EMBEDDINGS = 8192;
+export const DEFAULT_RMS_NORM_EPS = 1e-5;
 
 // =============================================================================
 // Layer Pattern Schema
 // =============================================================================
 
-/**
- * Compute global attention layer indices from pattern.
- * Used at runtime when numLayers is known.
- */
 export function computeGlobalLayers(
   pattern,
   numLayers

@@ -39,7 +39,7 @@ DOPPLER decode is 2.5x slower than WebLLM on Gemma 2 2B. F16 activations were im
 
 **Status:** OPEN (workaround applied) | **File:** [2026-01-03-batched-decode-repetition.md](2026-01-03-batched-decode-repetition.md)
 
-Batched decode (batchSize > 1) produces repetitive output after ~12 tokens while single-token decode works correctly. Root cause hypothesis: uniform buffer cache (256 max entries) evicts LRU entries and DESTROYS the GPU buffer while still referenced by pending command buffers. Workaround: `batchSize: 1` in defaults.json. Fix requires deferred buffer destruction after command buffer completion.
+Batched decode (batchSize > 1) produces repetitive output after ~12 tokens while single-token decode works correctly. Root cause hypothesis: uniform buffer cache (256 max entries) evicts LRU entries and DESTROYS the GPU buffer while still referenced by pending command buffers. Workaround: set `runtime.inference.batching.batchSize = 1` via runtime preset/override. Fix requires deferred buffer destruction after command buffer completion.
 
 ---
 

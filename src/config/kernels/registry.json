@@ -212,7 +212,7 @@
         "subgroup": {
           "wgsl": "dequant_subgroup.wgsl",
           "entryPoint": "main",
-          "workgroup": [64, 1, 1],
+          "workgroup": [32, 1, 1],
           "requires": ["subgroups"]
         },
         "subgroup_vec4": {
@@ -616,16 +616,18 @@
       }
     },
     "silu": {
-      "description": "SiLU/GELU activation kernels",
+      "description": "SiLU activation kernels",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
         { "index": 1, "name": "input", "type": "read-only-storage" },
-        { "index": 2, "name": "output", "type": "storage" }
+        { "index": 2, "name": "output", "type": "storage" },
+        { "index": 3, "name": "gate", "type": "read-only-storage" }
       ],
       "baseUniforms": {
         "size": 16,
         "fields": [
-          { "name": "size", "type": "u32", "offset": 0 }
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "rowsplit_dim", "type": "u32", "offset": 4 }
         ]
       },
       "variants": {
@@ -653,27 +655,9 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
-        "gelu": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "gelu",
-          "workgroup": [256, 1, 1],
-          "requires": []
-        },
-        "geglu": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "geglu",
-          "workgroup": [256, 1, 1],
-          "requires": []
-        },
         "gate_rowsplit": {
           "wgsl": "silu.wgsl",
           "entryPoint": "silu_gate_rowsplit",
-          "workgroup": [256, 1, 1],
-          "requires": []
-        },
-        "geglu_rowsplit": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "geglu_rowsplit",
           "workgroup": [256, 1, 1],
           "requires": []
         },
@@ -700,9 +684,57 @@
           "entryPoint": "silu_gate_rowsplit_f16",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
+        }
+      }
+    },
+    "gelu": {
+      "description": "GeLU/GeGLU activation kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" },
+        { "index": 3, "name": "gate", "type": "read-only-storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "rowsplit_dim", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "gelu": {
+          "wgsl": "gelu.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "geglu": {
+          "wgsl": "gelu.wgsl",
+          "entryPoint": "geglu",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "geglu_rowsplit": {
+          "wgsl": "gelu.wgsl",
+          "entryPoint": "geglu_rowsplit",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "gelu_f16": {
+          "wgsl": "gelu_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "geglu_f16": {
+          "wgsl": "gelu_f16.wgsl",
+          "entryPoint": "geglu_f16",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         },
         "geglu_rowsplit_f16": {
-          "wgsl": "silu_f16.wgsl",
+          "wgsl": "gelu_f16.wgsl",
           "entryPoint": "geglu_rowsplit_f16",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]

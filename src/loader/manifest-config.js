@@ -2,7 +2,6 @@
  * Manifest Config - Model configuration resolution from manifest.
  *
  * Pure functions for extracting configuration from manifests:
- * - Q4K strategy (fused vs dequant)
  * - Norm weight offset detection (Gemma models)
  * - Large weight handling configuration
  * - Weight layout resolution
@@ -11,59 +10,11 @@
  */
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../config/kernel-path-loader.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { DTYPE_SIZES } from '../config/schema/index.js';
 import { shouldDequantizeToF16, isEmbeddingWeight } from './dtype-utils.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
-
-// ============================================================================
-// Q4K Strategy Configuration
-// ============================================================================
-
-/**
- * Configure Q4K strategy based on manifest and capabilities.
- *
- * Decision factors:
- * - Active kernel path (if set)
- * - Subgroup support (required for fused Q4K)
- * - Q4K layout in manifest (column_wise disables fused)
- * - Debug flag override
- *
- * @param {import('../storage/rdrr-format.js').RDRRManifest | null} manifest - Model manifest
- * @param {import('./loader-types.js').KernelCapabilities | null} gpuCapabilities - GPU kernel capabilities
- * @returns {import('./manifest-config.js').Q4KConfig} Q4K configuration
- */
-export function configureQ4KStrategy(manifest, gpuCapabilities) {
-  const activeKernelPath = getActiveKernelPath();
-  const pathSource = getActiveKernelPathSource();
-  const q4kLayout = /** @type {{ q4kLayout?: string } | undefined} */ (manifest?.config)?.q4kLayout;
-
-  // Default to fused Q4K when subgroups are available (4x memory savings)
-  const caps = gpuCapabilities || getKernelCapabilities();
-  const hasSubgroups = caps?.hasSubgroups ?? false;
-  let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
-
-  // Debug flag override
-  if (typeof window !== 'undefined' && /** @type {{ DOPPLER_DISABLE_FUSED_Q4K?: boolean }} */ (/** @type {unknown} */ (window)).DOPPLER_DISABLE_FUSED_Q4K) {
-    useFused = false;
-  }
-
-  // Column-wise layout is incompatible with fused kernels
-  if (q4kLayout === 'column_wise') {
-    useFused = false;
-  }
-
-  const pathLabel = activeKernelPath?.id ?? 'auto';
-  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${pathSource}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}`);
-
-  return {
-    useFusedQ4K: useFused,
-    q4kLayout: /** @type {'flat' | 'row_wise' | 'column_wise'} */ (q4kLayout) ?? null,
-    keepF32Weights: false,
-  };
-}
 
 // ============================================================================
 // Norm Weight Offset Detection
@@ -88,30 +39,19 @@ export function needsNormWeightOffset(manifest) {
     return false;
   }
 
-  // Explicit flag in manifest (preferred)
   const inferenceFlag = manifest.inference?.normalization?.rmsNormWeightOffset;
-  if (inferenceFlag !== undefined) {
-    if (inferenceFlag) {
-      debugTrace.loader('Applying +1 norm weight offset (manifest.inference.normalization.rmsNormWeightOffset=true)');
-    }
-    return inferenceFlag;
+  if (inferenceFlag == null) {
+    const modelId = manifest.modelId ?? 'unknown';
+    throw new Error(
+      `Manifest "${modelId}" is missing inference.normalization.rmsNormWeightOffset. ` +
+      'Re-convert the model with a complete manifest.inference config.'
+    );
   }
 
-  // Legacy fallback: infer from model family
-  const config = /** @type {import('./loader-types.js').ModelConfig} */ (manifest.config || {});
-  const arch = config.architectures?.[0] || /** @type {string} */ (manifest.architecture) || '';
-  const modelType = config.model_type || '';
-
-  const isGemma2 = /gemma.*2|gemma2/i.test(arch) || /gemma.*2|gemma2/i.test(modelType);
-  const isGemma3 = /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType);
-  const needsOffset = isGemma2 || isGemma3;
-
-  if (needsOffset) {
-    const family = isGemma2 ? 'Gemma 2' : 'Gemma 3';
-    debugTrace.loader(`Applying +1 norm weight offset for ${family} layer norms (legacy fallback)`);
+  if (inferenceFlag) {
+    debugTrace.loader('Applying +1 norm weight offset (manifest.inference.normalization.rmsNormWeightOffset=true)');
   }
-
-  return needsOffset;
+  return inferenceFlag;
 }
 
 // ============================================================================

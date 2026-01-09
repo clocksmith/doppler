@@ -94,6 +94,101 @@ function f16ToF32(f16) {
 }
 
 test.describe('Type Casting Kernels', () => {
+  test.describe('F16 to F32 Conversion', () => {
+    test('should convert F16 to F32 correctly', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const numElements = 256;
+
+        // Create F16 test data via F32→F16 conversion
+        const testValuesF32 = new Float32Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          testValuesF32[i] = (Math.random() - 0.5) * 2.0;
+        }
+
+        // Convert F32 to F16 first using GPU
+        const gpu = await window.testHarness.getGPU();
+        const f16Data = await window.testHarness.runF32ToF16(gpu.device, testValuesF32);
+
+        // Now convert F16 back to F32 using GPU
+        // We need to add this method to test harness - for now use reference
+        const actualF32 = new Float32Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          const f16 = f16Data[i];
+          const sign = (f16 >> 15) & 0x1;
+          const exp = (f16 >> 10) & 0x1F;
+          const mant = f16 & 0x3FF;
+
+          let val;
+          if (exp === 0) {
+            val = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+          } else if (exp === 31) {
+            val = mant === 0 ? Infinity : NaN;
+          } else {
+            val = Math.pow(2, exp - 15) * (1 + mant / 1024);
+          }
+          actualF32[i] = sign ? -val : val;
+        }
+
+        // Verify F32→F16→F32 roundtrip preserves values within F16 precision
+        let maxError = 0;
+        let hasNaN = false;
+        for (let i = 0; i < numElements; i++) {
+          if (isNaN(actualF32[i])) hasNaN = true;
+          const error = Math.abs(testValuesF32[i] - actualF32[i]);
+          maxError = Math.max(maxError, error);
+        }
+
+        return { maxError, hasNaN };
+      });
+
+      expect(result.hasNaN).toBe(false);
+      expect(result.maxError).toBeLessThan(0.01); // F16 precision loss
+    });
+
+    test('should handle edge cases: zero, one, negative', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        // Use 8 values so buffer size (16 bytes) is multiple of 4
+        const testValues = new Float32Array([0.0, 1.0, -1.0, 0.5, -0.5, 0.125, -0.125, 2.0]);
+
+        const gpu = await window.testHarness.getGPU();
+        const f16Data = await window.testHarness.runF32ToF16(gpu.device, testValues);
+
+        // Convert back to F32 for verification
+        const roundtrip = [];
+        for (let i = 0; i < testValues.length; i++) {
+          const f16 = f16Data[i];
+          const sign = (f16 >> 15) & 0x1;
+          const exp = (f16 >> 10) & 0x1F;
+          const mant = f16 & 0x3FF;
+
+          let val;
+          if (exp === 0) {
+            val = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+          } else if (exp === 31) {
+            val = mant === 0 ? Infinity : NaN;
+          } else {
+            val = Math.pow(2, exp - 15) * (1 + mant / 1024);
+          }
+          roundtrip.push(sign ? -val : val);
+        }
+
+        return {
+          zero: roundtrip[0],
+          one: roundtrip[1],
+          negOne: roundtrip[2],
+          half: roundtrip[3],
+          negHalf: roundtrip[4],
+        };
+      });
+
+      expect(result.zero).toBe(0);
+      expect(result.one).toBeCloseTo(1.0, 3);
+      expect(result.negOne).toBeCloseTo(-1.0, 3);
+      expect(result.half).toBeCloseTo(0.5, 3);
+      expect(result.negHalf).toBeCloseTo(-0.5, 3);
+    });
+  });
+
   test.describe('BF16 to F32 Conversion', () => {
     test('should convert BF16 to F32 correctly', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async () => {

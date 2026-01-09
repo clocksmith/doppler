@@ -1,11 +1,4 @@
-/**
- * Type Casting Kernels
- *
- * Provides GPU-based type conversions:
- * - F32 to F16
- * - F16 to F32
- * - BF16 to F32
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -20,12 +13,7 @@ import { DTYPE_SIZES } from '../../config/schema/index.js';
 // Dispatch Helpers
 // =============================================================================
 
-/**
- * Calculate 2D dispatch for large workgroup counts.
- * WebGPU has a limit of 65535 workgroups per dimension.
- * @param {number} workgroups
- * @returns {[number, number, number]}
- */
+
 function calculate2DDispatch(workgroups) {
   const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
   return workgroups <= maxWorkgroupsPerDim
@@ -33,18 +21,9 @@ function calculate2DDispatch(workgroups) {
     : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
 }
 
-/**
- * LCM utility for alignment calculations.
- * @param {number} a
- * @param {number} b
- * @returns {number}
- */
+
 function lcm(a, b) {
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @returns {number}
-   */
+  
   const gcd = (x, y) => {
     let a0 = x;
     let b0 = y;
@@ -58,12 +37,7 @@ function lcm(a, b) {
   return (a / gcd(a, b)) * b;
 }
 
-/**
- * Cast F32 buffer to F16 on GPU
- * @param {import('../tensor.js').Tensor} input
- * @param {import('./cast.js').CastOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function castF32ToF16(
   input,
   options = {}
@@ -112,12 +86,7 @@ export async function castF32ToF16(
   return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
 }
 
-/**
- * Cast F16 buffer to F32 on GPU
- * @param {import('../tensor.js').Tensor} input
- * @param {import('./cast.js').CastOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function castF16ToF32(
   input,
   options = {}
@@ -163,13 +132,7 @@ export async function castF16ToF32(
   return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
 }
 
-/**
- * Record F32 to F16 cast (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {import('./cast.js').CastOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordCastF32ToF16(
   recorder,
   input,
@@ -212,13 +175,7 @@ export async function recordCastF32ToF16(
   return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
 }
 
-/**
- * Record F16 to F32 cast (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {import('./cast.js').CastOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordCastF16ToF32(
   recorder,
   input,
@@ -260,13 +217,7 @@ export async function recordCastF16ToF32(
   return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
 }
 
-/**
- * Convert BF16 buffer to F32 on GPU
- * @param {GPUBuffer} input
- * @param {readonly number[]} shape
- * @param {string} [name]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runBF16ToF32(
   input,
   shape,
@@ -342,13 +293,7 @@ export async function runBF16ToF32(
   return createTensor(output, 'f32', [...shape], name);
 }
 
-/**
- * Convert BF16 buffer to F16 on GPU (no intermediate F32 buffer)
- * @param {GPUBuffer} input
- * @param {readonly number[]} shape
- * @param {string} [name]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runBF16ToF16(
   input,
   shape,
@@ -410,14 +355,7 @@ export async function runBF16ToF16(
   return createTensor(output, 'f16', [...shape], name);
 }
 
-/**
- * Convert BF16 to F32 in chunks (for large buffers)
- * @param {GPUBuffer} input
- * @param {readonly number[]} shape
- * @param {string} name
- * @param {number} maxBindingSize
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 async function runBF16ToF32Chunked(
   input,
   shape,

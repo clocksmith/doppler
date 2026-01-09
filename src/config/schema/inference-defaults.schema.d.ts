@@ -5,12 +5,15 @@
  * These defaults are used when no model-specific or user overrides are provided.
  *
  * Note: SamplingDefaultsSchema provides defaults for fields from SamplingSchema
- * (in inference.schema.ts), plus the greedyThreshold which is unique to defaults.
+ * (in inference.schema.js), plus greedyThreshold and repetitionPenaltyWindow
+ * which are unique to defaults.
  *
  * @module config/schema/inference-defaults
  */
 
 import type { ChatTemplateSchema, LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
+import type { KVCacheConfigSchema } from './kvcache.schema.js';
+import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { ManifestInferenceSchema } from './manifest.schema.js';
 
@@ -61,6 +64,9 @@ export interface ComputeDefaultsSchema {
 
   /** Multiplier for estimating model params from hidden^2 × layers (default: 12) */
   paramEstimationMultiplier: number;
+
+  /** Keep weights in F32 (skip downcast even when F16 is available) */
+  keepF32Weights: boolean;
 }
 
 /** Default compute configuration */
@@ -89,11 +95,12 @@ export declare const DEFAULT_LARGE_WEIGHT_CONFIG: LargeWeightConfigSchema;
 /**
  * Default sampling configuration for token selection.
  *
- * Extends Required<SamplingSchema> with greedyThreshold for runtime decisions.
- * SamplingSchema (in inference.schema.ts) uses optional fields for partial overrides;
+ * Extends Required<SamplingSchema> with greedyThreshold and repetitionPenaltyWindow
+ * for runtime decisions.
+ * SamplingSchema (in inference.schema.js) uses optional fields for partial overrides;
  * this schema provides concrete defaults for all sampling parameters.
  */
-export interface SamplingDefaultsSchema extends Required<Omit<SamplingSchema, 'maxTokens'>> {
+export interface SamplingDefaultsSchema extends Required<SamplingSchema> {
   /** Temperature below this uses greedy decoding (default: 0.01) */
   greedyThreshold: number;
 
@@ -133,6 +140,10 @@ export interface InferenceDefaultsConfigSchema {
   tokenizer: TokenizerDefaultsSchema;
   /** Handling for oversized embeddings/LM head */
   largeWeights: LargeWeightConfigSchema;
+  /** KV cache configuration */
+  kvcache: KVCacheConfigSchema;
+  /** MoE routing and cache configuration */
+  moe: MoERuntimeConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   pipeline?: LayerPipelineSchema | null;

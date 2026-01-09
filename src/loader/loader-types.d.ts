@@ -122,6 +122,18 @@ export interface KernelCapabilities {
 }
 
 /**
+ * Q4K loading configuration.
+ */
+export interface Q4KConfig {
+  /** Use fused Q4K matmul kernels (keeps raw quantized weights) */
+  useFusedQ4K: boolean;
+  /** Q4K layout from manifest */
+  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
+  /** Keep weights as F32 (disable F16 downcasting) */
+  keepF32Weights: boolean;
+}
+
+/**
  * Model config (flexible structure from manifest)
  */
 export interface ModelConfig {

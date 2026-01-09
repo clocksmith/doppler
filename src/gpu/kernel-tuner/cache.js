@@ -13,7 +13,7 @@ import { getRuntimeConfig } from '../../config/runtime.js';
  * @returns {ReturnType<typeof import('./cache.js').getTunerConfig>}
  */
 export function getTunerConfig() {
-  return getRuntimeConfig().tuner;
+  return getRuntimeConfig().shared.tuner;
 }
 
 /**

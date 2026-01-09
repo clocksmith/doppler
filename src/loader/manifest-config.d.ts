@@ -2,7 +2,6 @@
  * Manifest Config - Model configuration resolution from manifest.
  *
  * Pure functions for extracting configuration from manifests:
- * - Q4K strategy (fused vs dequant)
  * - Norm weight offset detection (Gemma models)
  * - Large weight handling configuration
  * - Weight layout resolution
@@ -14,42 +13,11 @@ import type { RDRRManifest } from '../storage/rdrr-format.js';
 import type { TensorLocation, KernelCapabilities } from './loader-types.js';
 import type { WeightLayout, WeightDtype } from '../gpu/weight-buffer.js';
 
-export interface Q4KConfig {
-  /** Use fused Q4K matmul kernels (4x memory savings) */
-  useFusedQ4K: boolean;
-  /** Q4K layout from manifest */
-  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
-  /** Keep weights as F32 (disable F16 downcasting) */
-  keepF32Weights: boolean;
-}
-
-/**
- * Configure Q4K strategy based on manifest and capabilities.
- *
- * Decision factors:
- * - Active kernel path (if set)
- * - Subgroup support (required for fused Q4K)
- * - Q4K layout in manifest (column_wise disables fused)
- * - Debug flag override
- *
- * @param manifest - Model manifest
- * @param gpuCapabilities - GPU kernel capabilities
- * @returns Q4K configuration
- */
-export declare function configureQ4KStrategy(
-  manifest: RDRRManifest | null,
-  gpuCapabilities: KernelCapabilities | null
-): Q4KConfig;
-
 /**
  * Check if model requires (1 + weight) offset for RMSNorm weights.
  *
  * GGUF files do NOT have the offset baked in - they store raw weights.
  * The +1 offset is applied at load time based on the manifest's config flag.
- *
- * Supported detection methods (in priority order):
- * 1. manifest.inference.normalization.rmsNormWeightOffset (explicit)
- * 2. Model family detection from architecture string (legacy fallback)
  *
  * @param manifest - Model manifest
  * @returns Whether norm weight offset is needed

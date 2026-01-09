@@ -39,7 +39,6 @@ import { getRuntimeConfig } from '../config/runtime.js';
 // Import helper modules for refactored logic
 import { buildTensorLocations } from './shard-resolver.js';
 import {
-  configureQ4KStrategy,
   needsNormWeightOffset,
   resolveWeightLayout,
   shouldStreamLargeWeight,
@@ -176,6 +175,15 @@ export class DopplerLoader {
   }
 
   /**
+   * @param {import('./loader-types.js').Q4KConfig} config
+   */
+  setQ4KConfig(config) {
+    this.useFusedQ4K = config.useFusedQ4K;
+    this.q4kLayout = config.q4kLayout;
+    this.keepF32Weights = config.keepF32Weights;
+  }
+
+  /**
    * @returns {{ shardCacheBytes: number; shardCount: number; layerCount: number; gpuBufferCount: number }}
    */
   #getMemoryState() {
@@ -266,7 +274,6 @@ export class DopplerLoader {
     const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (manifest.config);
     this.isMoE = manifest.moeConfig != null || (config?.num_local_experts ?? 0) > 1;
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
-    this.#configureQ4KStrategy();
     debugTrace.loader('Manifest set externally');
   }
 
@@ -291,13 +298,6 @@ export class DopplerLoader {
       this.manifest = prevManifest;
       this.tensorLocations = prevLocations;
     }
-  }
-
-  #configureQ4KStrategy() {
-    const config = configureQ4KStrategy(this.manifest, this.gpuCapabilities);
-    this.useFusedQ4K = config.useFusedQ4K;
-    this.q4kLayout = config.q4kLayout;
-    this.keepF32Weights = config.keepF32Weights;
   }
 
   /**
@@ -366,8 +366,6 @@ export class DopplerLoader {
     }
 
     validateManifestInference(this.manifest);
-
-    this.#configureQ4KStrategy();
 
     const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (this.manifest.config);
     this.isMoE = this.manifest.moeConfig != null ||
@@ -744,6 +742,15 @@ export class DopplerLoader {
    * @returns {Promise<void>}
    */
   async #loadFinalWeights(_onProgress) {
+    const tieWordEmbeddings = this.manifest?.inference?.output?.tieWordEmbeddings;
+    if (tieWordEmbeddings == null) {
+      const modelId = this.manifest?.modelId ?? 'unknown';
+      throw new Error(
+        `Manifest "${modelId}" is missing inference.output.tieWordEmbeddings. ` +
+        'Re-convert the model with a complete manifest.inference config.'
+      );
+    }
+
     /** @type {import('./final-weights-loader.js').FinalWeightsContext} */
     const ctx = {
       tensorLocations: this.tensorLocations,
@@ -752,6 +759,7 @@ export class DopplerLoader {
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc, name) => this.#resolveWeightLayout(loc, name),
       embeddings: this.embeddings,
+      tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
       normOffsetDebugLogged: this.#normOffsetDebugLogged,

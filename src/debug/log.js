@@ -6,13 +6,13 @@
  * @module debug/log
  */
 
-import { getRuntimeConfig } from '../config/runtime.js';
 import {
   LOG_LEVELS,
   currentLogLevel,
   enabledModules,
   disabledModules,
   logHistory,
+  getLogHistoryLimit,
 } from './config.js';
 
 // ============================================================================
@@ -59,7 +59,7 @@ function storeLog(level, module, message, data) {
     data,
   });
 
-  const maxHistory = getRuntimeConfig().debug.logHistory.maxLogHistoryEntries;
+  const maxHistory = getLogHistoryLimit();
   if (logHistory.length > maxHistory) {
     logHistory.shift();
   }

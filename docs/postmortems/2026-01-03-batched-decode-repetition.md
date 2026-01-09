@@ -127,9 +127,8 @@ This means batched decode doesn't use pre-allocated decode buffers from `DecodeB
 
 ## Workaround
 
-Set `batchSize: 1` in:
-- `src/config/schema/inference-defaults.schema.js:37`
-- `src/config/inference/defaults.json:3`
+Set `runtime.inference.batching.batchSize = 1` via a runtime preset or CLI config override.
+Defaults live in `src/config/schema/inference-defaults.schema.js`.
 
 This uses the single-token decode path which works correctly.
 

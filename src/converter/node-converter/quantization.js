@@ -109,12 +109,36 @@ export function buildQuantizationInfo(
   hasAudio = false,
   hasProjector = false
 ) {
-  validateQuantType(opts.weightQuant, '--weight-quant');
-  validateQuantType(opts.embedQuant, '--embed-quant');
-  validateQuantType(opts.headQuant, '--head-quant');
-  validateQuantType(opts.visionQuant, '--vision-quant');
-  validateQuantType(opts.audioQuant, '--audio-quant');
-  validateQuantType(opts.projectorQuant, '--projector-quant');
+  const config = opts?.converterConfig ?? opts ?? {};
+  const quantization = { ...(config.quantization ?? {}) };
+
+  if (opts?.weightQuant !== undefined) quantization.weights = opts.weightQuant;
+  if (opts?.embedQuant !== undefined) quantization.embeddings = opts.embedQuant;
+  if (opts?.headQuant !== undefined) quantization.lmHead = opts.headQuant;
+  if (opts?.visionQuant !== undefined) quantization.vision = opts.visionQuant;
+  if (opts?.audioQuant !== undefined) quantization.audio = opts.audioQuant;
+  if (opts?.projectorQuant !== undefined) quantization.projector = opts.projectorQuant;
+  if (opts?.computePrecision !== undefined) quantization.computePrecision = opts.computePrecision;
+
+  const textOnly = opts?.textOnly !== undefined
+    ? opts.textOnly
+    : config.output?.textOnly ?? false;
+  const allowMultimodal = !textOnly;
+
+  const weightQuant = quantization.weights ?? null;
+  const embedQuant = quantization.embeddings ?? null;
+  const headQuant = quantization.lmHead ?? null;
+  const visionQuant = quantization.vision ?? null;
+  const audioQuant = quantization.audio ?? null;
+  const projectorQuant = quantization.projector ?? null;
+  const computePrecision = quantization.computePrecision ?? null;
+
+  validateQuantType(weightQuant, '--weight-quant');
+  validateQuantType(embedQuant, '--embed-quant');
+  validateQuantType(headQuant, '--head-quant');
+  validateQuantType(visionQuant, '--vision-quant');
+  validateQuantType(audioQuant, '--audio-quant');
+  validateQuantType(projectorQuant, '--projector-quant');
 
   const webgpuSafe = (dtype) => {
     const normalized = normalizeQuantTag(dtype);
@@ -122,18 +146,18 @@ export function buildQuantizationInfo(
     return normalized;
   };
 
-  const weights = webgpuSafe(opts.weightQuant ?? originalDtype);
+  const weights = webgpuSafe(weightQuant ?? originalDtype);
 
   let embeddings;
-  if (opts.embedQuant) {
-    embeddings = webgpuSafe(opts.embedQuant);
+  if (embedQuant) {
+    embeddings = webgpuSafe(embedQuant);
   } else {
     embeddings = webgpuSafe(embedDtype || originalDtype);
   }
 
   let lmHead;
-  if (opts.headQuant) {
-    lmHead = webgpuSafe(opts.headQuant);
+  if (headQuant) {
+    lmHead = webgpuSafe(headQuant);
   } else if (lmHeadDtype) {
     lmHead = webgpuSafe(lmHeadDtype);
   } else {
@@ -146,26 +170,32 @@ export function buildQuantizationInfo(
     lmHead: lmHead !== embeddings ? lmHead : undefined,
   };
 
-  if (hasVision && opts.visionQuant) {
-    info.vision = normalizeQuantTag(opts.visionQuant);
-  } else if (hasVision && !opts.textOnly) {
-    info.vision = DEFAULT_QUANTIZATION_DEFAULTS.visionDtype;
+  if (hasVision && allowMultimodal) {
+    if (visionQuant) {
+      info.vision = normalizeQuantTag(visionQuant);
+    } else {
+      info.vision = DEFAULT_QUANTIZATION_DEFAULTS.visionDtype;
+    }
   }
 
-  if (hasAudio && opts.audioQuant) {
-    info.audio = normalizeQuantTag(opts.audioQuant);
-  } else if (hasAudio) {
-    info.audio = DEFAULT_QUANTIZATION_DEFAULTS.audioDtype;
+  if (hasAudio && allowMultimodal) {
+    if (audioQuant) {
+      info.audio = normalizeQuantTag(audioQuant);
+    } else {
+      info.audio = DEFAULT_QUANTIZATION_DEFAULTS.audioDtype;
+    }
   }
 
-  if (hasProjector && opts.projectorQuant) {
-    info.projector = normalizeQuantTag(opts.projectorQuant);
-  } else if (hasProjector && !opts.textOnly) {
-    info.projector = DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype;
+  if (hasProjector && allowMultimodal) {
+    if (projectorQuant) {
+      info.projector = normalizeQuantTag(projectorQuant);
+    } else {
+      info.projector = DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype;
+    }
   }
 
-  if (opts.computePrecision) {
-    info.compute = opts.computePrecision;
+  if (computePrecision) {
+    info.compute = computePrecision;
   }
 
   info.variantTag = buildVariantTag(info);

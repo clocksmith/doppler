@@ -6,6 +6,14 @@
  * @module converter/node-converter/cli
  */
 
+import { createConverterConfig } from '../../config/schema/index.js';
+
+const DEFAULT_CONFIG = createConverterConfig();
+const BYTES_PER_MB = 1024 * 1024;
+const DEFAULT_SHARD_SIZE_MB = Math.round(
+  DEFAULT_CONFIG.sharding.shardSizeBytes / BYTES_PER_MB
+);
+
 /**
  * Parse command-line arguments into ConvertOptions.
  */
@@ -13,17 +21,17 @@ export function parseArgs(argv) {
   const opts = {
     input: '',
     output: '',
-    weightQuant: null,
-    embedQuant: null,
-    headQuant: null,
-    visionQuant: null,
-    audioQuant: null,
-    projectorQuant: null,
-    computePrecision: null,
-    shardSize: 64,
-    modelId: null,
-    textOnly: false,
-    fast: false,
+    weightQuant: DEFAULT_CONFIG.quantization.weights,
+    embedQuant: DEFAULT_CONFIG.quantization.embeddings,
+    headQuant: DEFAULT_CONFIG.quantization.lmHead,
+    visionQuant: DEFAULT_CONFIG.quantization.vision,
+    audioQuant: DEFAULT_CONFIG.quantization.audio,
+    projectorQuant: DEFAULT_CONFIG.quantization.projector,
+    computePrecision: DEFAULT_CONFIG.quantization.computePrecision,
+    shardSize: DEFAULT_SHARD_SIZE_MB,
+    modelId: DEFAULT_CONFIG.output.modelId,
+    textOnly: DEFAULT_CONFIG.output.textOnly,
+    fast: DEFAULT_CONFIG.output.fast,
     verbose: false,
     test: false,
     help: false,
@@ -71,9 +79,11 @@ export function parseArgs(argv) {
         }
         break;
       }
-      case '--shard-size':
-        opts.shardSize = parseInt(argv[++i] || '64', 10);
+      case '--shard-size': {
+        const value = argv[++i];
+        opts.shardSize = value ? parseInt(value, 10) : DEFAULT_SHARD_SIZE_MB;
         break;
+      }
       case '--model-id':
         opts.modelId = argv[++i] || null;
         break;
@@ -130,7 +140,7 @@ Runtime Plan (stored in manifest, not in filename):
   --compute-precision <p> Compute precision hint: f16, f32, auto
 
 General Options:
-  --shard-size <mb>     Shard size in MB (default: 64)
+  --shard-size <mb>     Shard size in MB (default: ${DEFAULT_SHARD_SIZE_MB})
   --model-id <id>       Base model ID (variant tag auto-appended)
   --text-only           Extract only text model from multimodal
   --fast                Pre-load all shards into memory (faster, more RAM)

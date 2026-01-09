@@ -68,12 +68,14 @@ vi.mock('../../src/debug/index.js', () => ({
 
 vi.mock('../../src/config/runtime.js', () => ({
   getRuntimeConfig: () => ({
-    kvcache: {
-      maxSeqLen: 4096,
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      windowSize: 1024,
+    inference: {
+      kvcache: {
+        maxSeqLen: 4096,
+        kvDtype: 'f16',
+        layout: 'contiguous',
+        pageSize: 256,
+        windowSize: 1024,
+      },
     },
   }),
 }));

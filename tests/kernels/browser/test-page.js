@@ -41,10 +41,20 @@ const {
   runBF16ToF32 = null,
   runBF16ToF16 = null,
   castF32ToF16 = null,
+  runGeLU = null,
+  runSplitQKV = null,
 } = kernelSelector;
 
 // Import sample kernel
 import * as sampleKernel from '../../../src/gpu/kernels/sample.js';
+
+// Import check-stop kernel
+import { checkStop } from '../../../src/gpu/kernels/check-stop.js';
+
+// Import fused kernels
+import { runMatmulResidualFused } from '../../../src/gpu/kernels/fused_matmul_residual.js';
+import { runMatmulRMSNormFused } from '../../../src/gpu/kernels/fused_matmul_rmsnorm.js';
+import { runFusedFFN } from '../../../src/gpu/kernels/fused_ffn.js';
 
 // Optional buffer pool
 let bufferPool = null;
@@ -85,14 +95,34 @@ function f16ToF32(h) {
   return (sign ? -1 : 1) * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
 }
 
+function f32ToF16Bits(value) {
+  return references.float32ToFloat16(value);
+}
+
+function toF16Array(values) {
+  const out = new Uint16Array(values.length);
+  for (let i = 0; i < values.length; i++) {
+    out[i] = f32ToF16Bits(values[i]);
+  }
+  return out;
+}
+
+function toF16RoundedFloat32(values) {
+  const out = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i++) {
+    out[i] = f16ToF32(f32ToF16Bits(values[i]));
+  }
+  return out;
+}
+
 /**
  * Initialize WebGPU device
  */
 async function initGPU() {
   if (device) return device;
 
-  setPlatformsBaseUrl('/config/platforms/');
-  setRegistryUrl('/config/kernels/registry.json');
+  setPlatformsBaseUrl('/src/config/platforms/');
+  setRegistryUrl('/src/config/kernels/registry.json');
 
   device = await initDevice();
   if (!device) {
@@ -834,6 +864,80 @@ const testHarness = {
   },
 
   /**
+   * Run GELU activation: GELU(x) = x * 0.5 * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
+   */
+  async runGeLU(dev, input) {
+    if (!runGeLU) {
+      return references.geluRef(input);
+    }
+
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'gelu_input');
+
+    const resultTensor = await runGeLU(inputTensor, { size: input.length });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
+
+    inputBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Run GeGLU activation: GELU(gate) * up
+   */
+  async runGeGLU(dev, gate, up) {
+    if (!runGeLU) {
+      return references.gegluRef(gate, up);
+    }
+
+    const gateBuf = makeBuffer(gate);
+    const upBuf = makeBuffer(up);
+
+    const gateTensor = createTensor(gateBuf, 'f32', [gate.length], 'geglu_gate');
+    const upTensor = createTensor(upBuf, 'f32', [up.length], 'geglu_up');
+
+    const resultTensor = await runGeLU(upTensor, { size: up.length, gate: gateTensor });
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, up.length * 4));
+
+    gateBuf.destroy();
+    upBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Run split QKV kernel: split fused QKV [numTokens, qSize+kSize+vSize] into Q, K, V
+   */
+  async runSplitQKV(dev, qkv, numTokens, qSize, kSize, vSize) {
+    if (!runSplitQKV) {
+      return references.splitQkvRef(qkv, numTokens, qSize, kSize, vSize);
+    }
+
+    const qkvBuf = makeBuffer(qkv);
+    const qkvTensor = createTensor(qkvBuf, 'f32', [numTokens, qSize + kSize + vSize], 'split_qkv_input');
+
+    const { Q: qTensor, K: kTensor, V: vTensor } = await runSplitQKV(qkvTensor, {
+      numTokens,
+      qSize,
+      kSize,
+      vSize,
+    });
+
+    const Q = new Float32Array(await readBufferData(qTensor.buffer, numTokens * qSize * 4));
+    const K = new Float32Array(await readBufferData(kTensor.buffer, numTokens * kSize * 4));
+    const V = new Float32Array(await readBufferData(vTensor.buffer, numTokens * vSize * 4));
+
+    qkvBuf.destroy();
+    qTensor.buffer.destroy();
+    kTensor.buffer.destroy();
+    vTensor.buffer.destroy();
+
+    return { Q, K, V };
+  },
+
+  /**
    * Run BF16 -> F32 cast
    */
   async runBF16ToF32(dev, input) {
@@ -1043,6 +1147,217 @@ const testHarness = {
     resultTensor.buffer.destroy();
 
     return result;
+  },
+
+  /**
+   * Run check-stop kernel: determine if generation should stop
+   * Checks for EOS token or max tokens reached
+   */
+  async runCheckStop(dev, sampledToken, eosTokenId, maxTokens, currentPos) {
+    // Create buffer for sampled token
+    const tokenBuffer = makeBuffer(new Uint32Array([sampledToken]));
+
+    const shouldStop = await checkStop({
+      sampledTokenBuffer: tokenBuffer,
+      eosTokenId,
+      maxTokens,
+      currentPos,
+    });
+
+    tokenBuffer.destroy();
+
+    return shouldStop;
+  },
+
+  /**
+   * Reference implementation for check-stop
+   * Returns true if should stop (EOS hit or max reached)
+   */
+  checkStopRef(sampledToken, eosTokenId, maxTokens, currentPos) {
+    const isEOS = sampledToken === eosTokenId;
+    const reachedMax = currentPos >= maxTokens;
+    return isEOS || reachedMax;
+  },
+
+  /**
+   * Run fused matmul + residual kernel: output = matmul(input, weight) + residual
+   * For decode (M=1): input[1,K] @ weight[N,K]^T + residual[1,N] = output[1,N]
+   */
+  async runFusedMatmulResidual(dev, input, weight, residual, N, K, alpha = 1.0) {
+    const inputBuf = makeBuffer(input);
+    const weightF16 = toF16Array(weight);
+    const weightBuf = makeBuffer(weightF16);
+    const residualBuf = makeBuffer(residual);
+
+    const inputTensor = createTensor(inputBuf, 'f32', [1, K], 'fused_matmul_res_input');
+    const residualTensor = createTensor(residualBuf, 'f32', [1, N], 'fused_matmul_res_residual');
+
+    const resultTensor = await runMatmulResidualFused(inputTensor, weightBuf, residualTensor, {
+      N,
+      K,
+      alpha,
+    });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, N * 4));
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    residualBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Reference for fused matmul + residual: output = matmul(input, weight^T) + residual
+   */
+  fusedMatmulResidualRef(input, weight, residual, N, K, alpha = 1.0) {
+    // input: [1, K], weight: [N, K] (row-major, transposeB=true), residual: [1, N]
+    const weightF16 = toF16RoundedFloat32(weight);
+    const output = new Float32Array(N);
+    for (let n = 0; n < N; n++) {
+      let sum = 0;
+      for (let k = 0; k < K; k++) {
+        sum += input[k] * weightF16[n * K + k];
+      }
+      output[n] = sum * alpha + residual[n];
+    }
+    return output;
+  },
+
+  /**
+   * Run fused matmul + RMSNorm kernel: output = rmsnorm(matmul(input, weight))
+   * For decode (M=1): input[1,K] @ weight[N,K]^T -> rmsnorm -> output[1,N]
+   */
+  async runFusedMatmulRMSNorm(dev, input, weight, normWeight, N, K, eps = 1e-5, residual = null) {
+    const inputBuf = makeBuffer(input);
+    const weightBuf = makeBuffer(weight);
+    const normWeightBuf = makeBuffer(normWeight);
+    const residualBuf = residual ? makeBuffer(residual) : null;
+
+    const inputTensor = createTensor(inputBuf, 'f32', [1, K], 'fused_matmul_rmsnorm_input');
+
+    const resultTensor = await runMatmulRMSNormFused(inputTensor, weightBuf, normWeightBuf, {
+      N,
+      K,
+      eps,
+      residual: residualBuf,
+      transposeB: true,
+    });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, N * 4));
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    normWeightBuf.destroy();
+    if (residualBuf) residualBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Reference for fused matmul + RMSNorm
+   */
+  fusedMatmulRMSNormRef(input, weight, normWeight, N, K, eps = 1e-5, residual = null) {
+    // Step 1: matmul input[1,K] @ weight[N,K]^T -> intermediate[1,N]
+    const intermediate = new Float32Array(N);
+    for (let n = 0; n < N; n++) {
+      let sum = 0;
+      for (let k = 0; k < K; k++) {
+        sum += input[k] * weight[n * K + k];
+      }
+      // Add residual if present
+      intermediate[n] = residual ? sum + residual[n] : sum;
+    }
+
+    // Step 2: RMSNorm
+    let sumSq = 0;
+    for (let i = 0; i < N; i++) {
+      sumSq += intermediate[i] * intermediate[i];
+    }
+    const rms = Math.sqrt(sumSq / N + eps);
+
+    const output = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      output[i] = (intermediate[i] / rms) * normWeight[i];
+    }
+
+    return output;
+  },
+
+  /**
+   * Run fused FFN kernel: output = activation(gate) * up
+   * Where gate = input @ W_gate^T and up = input @ W_up^T
+   * For decode (M=1): input[1,K] @ W_gate[N,K]^T -> gate[1,N]
+   *                   input[1,K] @ W_up[N,K]^T -> up[1,N]
+   *                   output = SiLU(gate) * up
+   */
+  async runFusedFFN(dev, input, W_gate, W_up, hiddenSize, intermediateSize, activation = 'silu') {
+    const inputBuf = makeBuffer(input);
+    const gateBuf = makeBuffer(W_gate);
+    const upBuf = makeBuffer(W_up);
+
+    const inputTensor = createTensor(inputBuf, 'f32', [1, hiddenSize], 'fused_ffn_input');
+
+    const resultTensor = await runFusedFFN(inputTensor, gateBuf, upBuf, hiddenSize, intermediateSize, {
+      batchSize: 1,
+      activation,
+      alpha: 1.0,
+    });
+
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, intermediateSize * 4));
+
+    inputBuf.destroy();
+    gateBuf.destroy();
+    upBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  /**
+   * Reference for fused FFN: output = activation(gate) * up
+   */
+  fusedFFNRef(input, W_gate, W_up, hiddenSize, intermediateSize, activation = 'silu') {
+    // Step 1: gate = input @ W_gate^T (input[1,K] @ W_gate[N,K]^T -> gate[1,N])
+    const gate = new Float32Array(intermediateSize);
+    for (let n = 0; n < intermediateSize; n++) {
+      let sum = 0;
+      for (let k = 0; k < hiddenSize; k++) {
+        sum += input[k] * W_gate[n * hiddenSize + k];
+      }
+      gate[n] = sum;
+    }
+
+    // Step 2: up = input @ W_up^T
+    const up = new Float32Array(intermediateSize);
+    for (let n = 0; n < intermediateSize; n++) {
+      let sum = 0;
+      for (let k = 0; k < hiddenSize; k++) {
+        sum += input[k] * W_up[n * hiddenSize + k];
+      }
+      up[n] = sum;
+    }
+
+    // Step 3: Apply activation to gate and multiply by up
+    const output = new Float32Array(intermediateSize);
+    for (let i = 0; i < intermediateSize; i++) {
+      let activated;
+      if (activation === 'silu') {
+        // SiLU(x) = x * sigmoid(x) = x / (1 + exp(-x))
+        activated = gate[i] / (1 + Math.exp(-gate[i]));
+      } else {
+        // GELU(x) = x * 0.5 * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
+        const x = gate[i];
+        const sqrt2pi = Math.sqrt(2 / Math.PI);
+        const cdf = 0.5 * (1 + Math.tanh(sqrt2pi * (x + 0.044715 * x * x * x)));
+        activated = x * cdf;
+      }
+      output[i] = activated * up[i];
+    }
+
+    return output;
   },
 };
 

@@ -1,7 +1,4 @@
-/**
- * Scale kernel - multiply each element by a scalar factor
- * Used for embedding scaling in Gemma models (sqrt(hidden_size))
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -10,13 +7,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 
-/**
- * Run scale operation: output = input * scale
- * @param {import('../tensor.js').Tensor} input
- * @param {number} scale
- * @param {import('./scale.js').ScaleOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runScale(
   input,
   scale,
@@ -65,14 +56,7 @@ export async function runScale(
   return createTensor(outputBuf, input.dtype, [...input.shape], 'scale_output');
 }
 
-/**
- * Record scale operation (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {number} scale
- * @param {import('./scale.js').ScaleOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordScale(
   recorder,
   input,

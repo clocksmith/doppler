@@ -53,7 +53,8 @@ var<workgroup> shared_indices: array<u32, 256>;
 fn find_topk_phase1(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
-    @builtin(workgroup_id) wgid: vec3<u32>
+    @builtin(workgroup_id) wgid: vec3<u32>,
+    @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
     let thread_idx = lid.x;
     let global_idx = gid.x;
@@ -61,6 +62,17 @@ fn find_topk_phase1(
     let temperature = u.temperature;
     let pad_id = u.pad_token_id;
     let softcap = u.logit_softcap;
+
+    // Single workgroup: write all logits directly for exact top-k
+    if (num_wg.x == 1u) {
+        var val: f32 = -3.402823e+38;
+        if (global_idx < vocab_size && global_idx != pad_id) {
+            val = apply_softcap(logits[global_idx], softcap) / temperature;
+        }
+        topk_logits[thread_idx] = val;
+        topk_indices[thread_idx] = global_idx;
+        return;
+    }
 
     // Each thread finds max in its assigned range
     var local_max: f32 = -3.402823e+38;  // -FLT_MAX
@@ -112,12 +124,18 @@ fn find_topk_phase2(
 ) {
     let thread_idx = lid.x;
     let top_k = u.top_k;
+    let num_groups = min(256u, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
 
     // Load workgroup results into shared memory
     // Assume <= 256 workgroups from phase 1
     if (thread_idx < 256u) {
-        shared_values[thread_idx] = topk_logits[thread_idx];
-        shared_indices[thread_idx] = topk_indices[thread_idx];
+        if (thread_idx < num_groups) {
+            shared_values[thread_idx] = topk_logits[thread_idx];
+            shared_indices[thread_idx] = topk_indices[thread_idx];
+        } else {
+            shared_values[thread_idx] = -3.402823e+38;
+            shared_indices[thread_idx] = 0u;
+        }
     }
     workgroupBarrier();
 
@@ -324,10 +342,16 @@ fn argmax_reduce(
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
     let thread_idx = lid.x;
+    let num_groups = min(256u, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
 
     // Load workgroup maxes (up to 256)
-    shared_values[thread_idx] = topk_logits[thread_idx];
-    shared_indices[thread_idx] = topk_indices[thread_idx];
+    if (thread_idx < num_groups) {
+        shared_values[thread_idx] = topk_logits[thread_idx];
+        shared_indices[thread_idx] = topk_indices[thread_idx];
+    } else {
+        shared_values[thread_idx] = -3.402823e+38;
+        shared_indices[thread_idx] = 0u;
+    }
     workgroupBarrier();
 
     // Reduce

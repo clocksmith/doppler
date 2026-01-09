@@ -74,7 +74,7 @@ export class MoERouter {
    * @param {MoEConfig} config
    */
   constructor(config) {
-    const runtimeDefaults = getRuntimeConfig().moe.routing;
+    const runtimeDefaults = getRuntimeConfig().inference.moe.routing;
     this.numExperts = config.numExperts || runtimeDefaults.numExperts;
     this.topK = config.topK || runtimeDefaults.topK;
     this.hiddenSize = config.hiddenSize || 4096;  // hiddenSize is model-specific, no global default

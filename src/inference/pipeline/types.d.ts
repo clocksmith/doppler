@@ -281,8 +281,11 @@ export interface GenerateOptions {
   /** Log benchmark stats */
   benchmark?: boolean;
 
-  /** Explicitly disable GPU command batching */
-  disableBatching?: boolean;
+  /** Explicitly disable GPU command recording/batching */
+  disableCommandBatching?: boolean;
+
+  /** Explicitly disable multi-token GPU decode path */
+  disableMultiTokenDecode?: boolean;
 
   /** Number of tokens to generate per GPU submission batch */
   batchSize?: number;

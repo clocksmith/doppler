@@ -1,10 +1,4 @@
-/**
- * Residual Connection Kernels
- *
- * Provides element-wise addition operations for:
- * - Residual connections (add two tensors)
- * - Bias addition
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
@@ -14,12 +8,7 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
 
-/**
- * @param {Tensor} a
- * @param {Tensor} b
- * @param {import('../command-recorder.js').CommandRecorder} [recorder]
- * @returns {Promise<{ a: Tensor; b: Tensor; temps: GPUBuffer[] }>}
- */
+
 async function alignResidualInputs(
   a,
   b,
@@ -42,12 +31,7 @@ async function alignResidualInputs(
   return { a, b, temps: [] };
 }
 
-/**
- * @param {Tensor} data
- * @param {Tensor} bias
- * @param {import('../command-recorder.js').CommandRecorder} [recorder]
- * @returns {Promise<{ bias: Tensor; temps: GPUBuffer[] }>}
- */
+
 async function alignBiasTensor(
   data,
   bias,
@@ -70,14 +54,7 @@ async function alignBiasTensor(
   return { bias, temps: [] };
 }
 
-/**
- * Run residual add (element-wise addition)
- * @param {Tensor} a
- * @param {Tensor} b
- * @param {number} size
- * @param {import('./residual.js').ResidualOptions} [options]
- * @returns {Promise<Tensor>}
- */
+
 export async function runResidualAdd(
   a,
   b,
@@ -138,15 +115,7 @@ export async function runResidualAdd(
   return createTensor(output, outputDtype, [size], 'residual_output');
 }
 
-/**
- * Run bias add
- * @param {Tensor} data
- * @param {Tensor} bias
- * @param {number} numTokens
- * @param {number} dim
- * @param {import('./residual.js').ResidualOptions} [options]
- * @returns {Promise<Tensor>}
- */
+
 export async function runBiasAdd(
   data,
   bias,
@@ -199,15 +168,7 @@ export async function runBiasAdd(
   return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
 }
 
-/**
- * Record residual add (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {Tensor} a
- * @param {Tensor} b
- * @param {number} size
- * @param {import('./residual.js').ResidualOptions} [options]
- * @returns {Promise<Tensor>}
- */
+
 export async function recordResidualAdd(
   recorder,
   a,
@@ -264,16 +225,7 @@ export async function recordResidualAdd(
   return createTensor(output, outputDtype, [size], 'residual_output');
 }
 
-/**
- * Record bias add (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {Tensor} data
- * @param {Tensor} bias
- * @param {number} numTokens
- * @param {number} dim
- * @param {import('./residual.js').ResidualOptions} [options]
- * @returns {Promise<Tensor>}
- */
+
 export async function recordBiasAdd(
   recorder,
   data,

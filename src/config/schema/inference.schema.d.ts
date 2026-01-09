@@ -34,15 +34,13 @@ export interface RoPEConfigSchema {
   yarnOriginalMaxPos?: number;
 }
 
-/** Default RoPE configuration */
-export declare const DEFAULT_ROPE_CONFIG: RoPEConfigSchema;
-
 /**
- * Default max position embeddings when not specified in model config.
- * Used as fallback when parsing incomplete manifests/configs.
- * Modern models typically support 8192+, so this is a conservative default.
+ * Legacy fallbacks for v1 manifests (where architecture is a string).
+ * For new manifests, use DEFAULT_MANIFEST_INFERENCE instead.
+ * TODO: Remove when v1 manifest support is dropped.
  */
 export declare const DEFAULT_MAX_POSITION_EMBEDDINGS: number;
+export declare const DEFAULT_RMS_NORM_EPS: number;
 
 /** Attention mechanism configuration */
 export interface AttentionSchema {
@@ -211,7 +209,6 @@ export interface SamplingSchema {
   topK?: number;
   topP?: number;
   repetitionPenalty?: number;
-  maxTokens?: number;
 }
 
 /** Tokenizer runtime configuration */

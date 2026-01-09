@@ -7,8 +7,10 @@
 // Uses 16x16 tiles for good occupancy across devices.
 
 // Tile dimensions - optimized for 256 threads per workgroup
-const TILE_SIZE: u32 = 16u; // Must be const because it's used in workgroup array sizes.
-const TILE_AREA: u32 = TILE_SIZE * TILE_SIZE;
+const MAX_TILE_SIZE: u32 = 16u;
+const TILE_AREA: u32 = MAX_TILE_SIZE * MAX_TILE_SIZE;
+
+override TILE_SIZE: u32 = 16u;  // Must be <= MAX_TILE_SIZE
 
 // Uniforms for matrix dimensions
 struct Uniforms {
@@ -37,6 +39,10 @@ fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>
 ) {
+    if (TILE_SIZE > MAX_TILE_SIZE) {
+        return;
+    }
+
     let row = global_id.x;
     let col = global_id.y;
     let local_row = local_id.x;

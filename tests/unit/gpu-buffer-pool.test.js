@@ -82,31 +82,33 @@ vi.mock('../../src/debug/index.js', () => ({
 
 vi.mock('../../src/config/runtime.js', () => ({
   getRuntimeConfig: vi.fn(() => ({
-    bufferPool: {
-      limits: {
-        maxBuffersPerBucket: 8,
-        maxTotalPooledBuffers: 64,
+    shared: {
+      bufferPool: {
+        limits: {
+          maxBuffersPerBucket: 8,
+          maxTotalPooledBuffers: 64,
+        },
+        alignment: {
+          alignmentBytes: 256,
+        },
+        bucket: {
+          minBucketSizeBytes: 1024,
+          largeBufferThresholdBytes: 64 * 1024 * 1024,
+          largeBufferStepBytes: 64 * 1024 * 1024,
+        },
       },
-      alignment: {
-        alignmentBytes: 256,
-      },
-      bucket: {
-        minBucketSizeBytes: 1024,
-        largeBufferThresholdBytes: 64 * 1024 * 1024,
-        largeBufferStepBytes: 64 * 1024 * 1024,
-      },
-    },
-    memory: {
-      heapTesting: {
-        heapTestSizes: [8 * 1024 * 1024 * 1024],
-        fallbackMaxHeapBytes: 2 * 1024 * 1024 * 1024,
-      },
-      segmentTesting: {
-        segmentTestSizes: [2 * 1024 * 1024 * 1024],
-        safeSegmentSizeBytes: 512 * 1024 * 1024,
-      },
-      addressSpace: {
-        targetAddressSpaceBytes: 16 * 1024 * 1024 * 1024,
+      memory: {
+        heapTesting: {
+          heapTestSizes: [8 * 1024 * 1024 * 1024],
+          fallbackMaxHeapBytes: 2 * 1024 * 1024 * 1024,
+        },
+        segmentTesting: {
+          segmentTestSizes: [2 * 1024 * 1024 * 1024],
+          safeSegmentSizeBytes: 512 * 1024 * 1024,
+        },
+        addressSpace: {
+          targetAddressSpaceBytes: 16 * 1024 * 1024 * 1024,
+        },
       },
     },
   })),

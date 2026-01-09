@@ -16,7 +16,7 @@ export declare const WORKGROUP_SIZES: {
   readonly VEC4_THREADS: 64;
 
   /** Attention kernels (large blocks) */
-  readonly ATTENTION_LARGE_BLOCK: 64;
+  readonly ATTENTION_LARGE_BLOCK: 32;
 
   /** Attention kernels (small blocks) */
   readonly ATTENTION_SMALL_BLOCK: 32;
@@ -54,8 +54,11 @@ export declare const GPU_LIMITS: {
  * Memory thresholds for kernel selection (in bytes)
  */
 export declare const MEMORY_THRESHOLDS: {
-  /** Large attention tier shared memory requirement */
-  readonly ATTENTION_LARGE_SHARED: 49152;
+  /** Large attention tier shared memory requirement (F32 KV) */
+  readonly ATTENTION_LARGE_SHARED: 20480;
+
+  /** Large attention tier shared memory requirement (F16 KV) */
+  readonly ATTENTION_LARGE_SHARED_F16: 49152;
 
   /** Small attention tier shared memory requirement (F32) */
   readonly ATTENTION_SMALL_SHARED_F32: 8192;
@@ -98,7 +101,7 @@ export declare const DIMENSION_LIMITS: {
  */
 export declare const TILE_SIZES: {
   /** Attention tile sizes (large) */
-  readonly ATTENTION_LARGE_BLOCK_SIZE: 64;
+  readonly ATTENTION_LARGE_BLOCK_SIZE: 32;
   readonly ATTENTION_LARGE_HEAD_TILE: 64;
 
   /** Attention tile sizes (small) */

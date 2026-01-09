@@ -11,7 +11,7 @@
  */
 
 import { log } from '../../debug/index.js';
-import { DEFAULT_MAX_POSITION_EMBEDDINGS } from '../../config/schema/index.js';
+import { DEFAULT_MAX_POSITION_EMBEDDINGS, DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
 import { mergeConfig } from '../../config/merge.js';
 
 // =============================================================================
@@ -226,9 +226,15 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.output.scaleEmbeddings == null) {
     errors.push('output.scaleEmbeddings is required');
   }
+  if (inf.output.embeddingTranspose == null) {
+    errors.push('output.embeddingTranspose is required');
+  }
   // Output fields - nullable required (undefined = missing, null = disabled)
   if (inf.output.finalLogitSoftcapping === undefined) {
     errors.push('output.finalLogitSoftcapping must be explicitly set (null for no softcapping, or number)');
+  }
+  if (inf.output.embeddingVocabSize === undefined) {
+    errors.push('output.embeddingVocabSize must be explicitly set (null to use architecture.vocabSize, or number)');
   }
 
   if (errors.length > 0) {
@@ -274,7 +280,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
       maxSeqLen: config.max_position_embeddings ?? config.contextLength ?? DEFAULT_MAX_POSITION_EMBEDDINGS,
       // Use manifest inference as source of truth for RoPE (not raw config)
       ropeTheta: inf.rope.ropeTheta,
-      rmsNormEps: config.rms_norm_eps ?? 1e-5,
+      rmsNormEps: config.rms_norm_eps ?? DEFAULT_RMS_NORM_EPS,
     };
   } else {
     arch = /** @type {import('../../config/schema/index.js').ArchitectureSchema} */ (manifest.architecture);
@@ -381,6 +387,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
     rmsNormEps: arch.rmsNormEps ?? 1e-5,
     rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
     scaleEmbeddings: inf.output.scaleEmbeddings,
+    useTiedEmbeddings: inf.output.tieWordEmbeddings,
+    embeddingTranspose: inf.output.embeddingTranspose,
+    embeddingVocabSize: inf.output.embeddingVocabSize,
     hiddenActivation,
     // Model detection flags - derived from manifest inference config values
     // Kept for backward compat until pipeline code reads config values directly

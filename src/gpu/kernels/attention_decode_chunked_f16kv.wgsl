@@ -8,8 +8,11 @@
 
 enable f16;
 
+const MAX_KV_LEN: u32 = 2048u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
+
 // Workgroup size for decode
-override WORKGROUP_SIZE: u32 = 256u;
+override WORKGROUP_SIZE: u32 = 256u;  // Must match MAX_WORKGROUP_SIZE
 
 struct Uniforms {
     num_heads: u32,
@@ -33,11 +36,11 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Shared memory for parallel reductions
-var<workgroup> shared_scores: array<f32, 2048>;  // Attention scores for each KV position
-var<workgroup> shared_partial: array<f32, 256>;   // Partial sums for reduction
+var<workgroup> shared_scores: array<f32, MAX_KV_LEN>;
+var<workgroup> shared_partial: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
-var<workgroup> shared_acc: array<f32, 256>;       // Accumulated output
+var<workgroup> shared_acc: array<f32, MAX_WORKGROUP_SIZE>;
 
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     let heads_per_kv = u.num_heads / u.num_kv_heads;
@@ -76,6 +79,10 @@ fn main(
     let kv_len = get_kv_len();
     let scale = u.scale;
     let kv_head_idx = get_kv_head_idx(head_idx);
+
+    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || head_dim > WORKGROUP_SIZE || kv_len > MAX_KV_LEN) {
+        return;
+    }
 
     // Only threads < headDim participate in computation
     let valid = tid < head_dim;

@@ -147,8 +147,8 @@ async function loadLmHead(ctx) {
   }
 
   // Use tied embeddings as fallback
-  if (!lmHead && ctx.embeddings) {
-    debugTrace.loader('Using tied embeddings as LM head');
+  if (!lmHead && ctx.embeddings && ctx.tieWordEmbeddings) {
+    debugTrace.loader('Using tied embeddings as LM head (manifest.tieWordEmbeddings=true)');
     lmHead = ctx.embeddings;
   } else if (!lmHead) {
     log.warn('Loader', 'LM head not found');

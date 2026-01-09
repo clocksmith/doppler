@@ -56,7 +56,7 @@ let dequantCacheMisses = 0;
  * @returns {number}
  */
 function getDequantCacheMaxEntries() {
-  return dequantCacheMaxEntriesOverride ?? getRuntimeConfig().moe.cache.dequantCacheMaxEntries;
+  return dequantCacheMaxEntriesOverride ?? getRuntimeConfig().inference.moe.cache.dequantCacheMaxEntries;
 }
 
 /**

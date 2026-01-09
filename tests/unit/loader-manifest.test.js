@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { needsNormWeightOffset } from '../../src/loader/manifest-config.js';
 
 // Mock GPU/WebGPU globals
 vi.stubGlobal('GPUBufferUsage', {
@@ -114,6 +115,8 @@ function createValidManifest(overrides = {}) {
         finalLogitSoftcapping: null,
         tieWordEmbeddings: true,
         scaleEmbeddings: false,
+        embeddingTranspose: false,
+        embeddingVocabSize: 32000,
       },
     },
     ...overrides,
@@ -552,27 +555,19 @@ describe('loader/manifest - manifest config helpers', () => {
   describe('needsNormWeightOffset detection', () => {
     it('returns false when rmsNormWeightOffset is false', () => {
       const manifest = loadMiniModelManifest();
-      expect(manifest.inference.normalization.rmsNormWeightOffset).toBe(false);
+      expect(needsNormWeightOffset(manifest)).toBe(false);
     });
 
     it('returns true when rmsNormWeightOffset is true', () => {
       const manifest = createValidManifest();
       manifest.inference.normalization.rmsNormWeightOffset = true;
-      expect(manifest.inference.normalization.rmsNormWeightOffset).toBe(true);
+      expect(needsNormWeightOffset(manifest)).toBe(true);
     });
 
-    it('can detect Gemma2 from model_type', () => {
+    it('throws when rmsNormWeightOffset is missing', () => {
       const manifest = createValidManifest();
-      manifest.config = { model_type: 'gemma2' };
-      const isGemma2 = /gemma.*2|gemma2/i.test(manifest.config.model_type);
-      expect(isGemma2).toBe(true);
-    });
-
-    it('can detect Gemma3 from architectures', () => {
-      const manifest = createValidManifest();
-      manifest.config = { architectures: ['Gemma3ForCausalLM'] };
-      const isGemma3 = /gemma.*3|gemma3/i.test(manifest.config.architectures[0]);
-      expect(isGemma3).toBe(true);
+      delete manifest.inference.normalization.rmsNormWeightOffset;
+      expect(() => needsNormWeightOffset(manifest)).toThrow(/rmsNormWeightOffset/);
     });
   });
 

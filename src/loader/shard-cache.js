@@ -12,7 +12,6 @@ import {
 } from '../storage/shard-manager.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
-import { DEFAULT_SHARD_CACHE_CONFIG } from '../config/schema/loading.schema.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
@@ -51,7 +50,7 @@ export class ShardCache {
     this.#customLoader = config.customLoader ?? null;
     this.#verifyHashes = config.verifyHashes ?? true;
     this.#manifest = config.manifest ?? null;
-    this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache ?? DEFAULT_SHARD_CACHE_CONFIG;
+    this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache;
   }
 
   /**
@@ -286,7 +285,7 @@ export class ShardCache {
  * @returns {ShardCache}
  */
 export function createShardCache(maxEntries, loadingConfig) {
-  const config = loadingConfig ?? getRuntimeConfig().loading.shardCache ?? DEFAULT_SHARD_CACHE_CONFIG;
+  const config = loadingConfig ?? getRuntimeConfig().loading.shardCache;
   return new ShardCache({
     maxEntries: maxEntries ?? config.opfsEntries,
     loadingConfig: config,

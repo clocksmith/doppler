@@ -3,29 +3,31 @@
   "description": "Gemma 2 probe-focused debugging with targeted trace categories",
   "extends": "debug",
   "runtime": {
-    "debug": {
-      "trace": {
-        "enabled": true,
-        "categories": ["ffn", "attn", "logits"],
-        "layers": [0, 17, 25],
-        "maxDecodeSteps": 20
-      },
-      "probes": [
-        {
-          "id": "dim334-layer-out",
-          "stage": "layer_out",
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["ffn", "attn", "logits"],
           "layers": [0, 17, 25],
-          "tokens": [0, -1],
-          "dims": [334]
+          "maxDecodeSteps": 20
         },
-        {
-          "id": "dim334-final-norm",
-          "stage": "final_norm",
-          "layers": null,
-          "tokens": [-1],
-          "dims": [334]
-        }
-      ]
+        "probes": [
+          {
+            "id": "dim334-layer-out",
+            "stage": "layer_out",
+            "layers": [0, 17, 25],
+            "tokens": [0, -1],
+            "dims": [334]
+          },
+          {
+            "id": "dim334-final-norm",
+            "stage": "final_norm",
+            "layers": null,
+            "tokens": [-1],
+            "dims": [334]
+          }
+        ]
+      }
     }
   }
 }

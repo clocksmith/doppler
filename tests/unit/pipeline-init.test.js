@@ -364,6 +364,20 @@ describe('pipeline initialization', () => {
       expect(() => parseModelConfig(manifest)).toThrow(/scaleEmbeddings/);
     });
 
+    it('throws when output.embeddingTranspose is missing', () => {
+      const manifest = makeManifest();
+      delete manifest.inference.output.embeddingTranspose;
+
+      expect(() => parseModelConfig(manifest)).toThrow(/embeddingTranspose/);
+    });
+
+    it('throws when output.embeddingVocabSize is undefined', () => {
+      const manifest = makeManifest();
+      delete manifest.inference.output.embeddingVocabSize;
+
+      expect(() => parseModelConfig(manifest)).toThrow(/embeddingVocabSize/);
+    });
+
     it('throws when output.finalLogitSoftcapping is undefined', () => {
       const manifest = makeManifest();
       delete manifest.inference.output.finalLogitSoftcapping;

@@ -11,6 +11,7 @@
 
 import { loadLoRAWeights } from './lora-loader.js';
 import { log } from '../debug/index.js';
+import { DEFAULT_ADAPTER_STACK_CONFIG } from '../config/schema/index.js';
 
 /**
  * Helper to check if buffer is Float32Array.
@@ -40,10 +41,7 @@ export class AdapterManager {
   #defaultLoadOptions = {};
 
   /** Stack options for combining multiple adapters */
-  #stackOptions = {
-    strategy: 'sum',
-    normalizeWeights: false,
-  };
+  #stackOptions = { ...DEFAULT_ADAPTER_STACK_CONFIG };
 
   // ==========================================================================
   // Configuration
@@ -158,8 +156,9 @@ export class AdapterManager {
 
     // Set weight
     if (options.weight !== undefined) {
-      if (options.weight < 0 || options.weight > 2) {
-        throw new Error('Adapter weight must be between 0.0 and 2.0');
+      const { minWeight, maxWeight } = DEFAULT_ADAPTER_STACK_CONFIG;
+      if (options.weight < minWeight || options.weight > maxWeight) {
+        throw new Error(`Adapter weight must be between ${minWeight} and ${maxWeight}`);
       }
       state.weight = options.weight;
     }
@@ -255,8 +254,9 @@ export class AdapterManager {
     if (!state) {
       throw new Error(`Adapter '${id}' not found.`);
     }
-    if (weight < 0 || weight > 2) {
-      throw new Error('Adapter weight must be between 0.0 and 2.0');
+    const { minWeight, maxWeight } = DEFAULT_ADAPTER_STACK_CONFIG;
+    if (weight < minWeight || weight > maxWeight) {
+      throw new Error(`Adapter weight must be between ${minWeight} and ${maxWeight}`);
     }
     state.weight = weight;
   }

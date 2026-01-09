@@ -1,0 +1,72 @@
+/**
+ * Converter Config Schema Definitions
+ *
+ * Converter configuration for GGUF/SafeTensors -> RDRR output.
+ *
+ * @module config/schema/converter
+ */
+
+import type {
+  HashAlgorithm,
+  QuantizationValue,
+  RuntimeOptimizationsSchema,
+  ConversionInfoSchema,
+} from './manifest.schema.js';
+
+export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
+
+export interface ConverterQuantizationConfigSchema {
+  weights: QuantizationValue | null;
+  embeddings: QuantizationValue | null;
+  lmHead: QuantizationValue | null;
+  vision: QuantizationValue | null;
+  audio: QuantizationValue | null;
+  projector: QuantizationValue | null;
+  computePrecision: ComputePrecision;
+}
+
+export interface ConverterShardingConfigSchema {
+  shardSizeBytes: number;
+}
+
+export interface ConverterWeightLayoutConfigSchema {
+  transposeWeights: boolean;
+  fuseGateUp: boolean;
+}
+
+export interface ConverterManifestConfigSchema {
+  hashAlgorithm: HashAlgorithm;
+  optimizations: RuntimeOptimizationsSchema | null;
+  conversion: ConversionInfoSchema | null;
+}
+
+export interface ConverterOutputConfigSchema {
+  modelId: string | null;
+  textOnly: boolean;
+  fast: boolean;
+}
+
+export interface ConverterPresetConfigSchema {
+  model: string | null;
+}
+
+export interface ConverterConfigSchema {
+  quantization: ConverterQuantizationConfigSchema;
+  sharding: ConverterShardingConfigSchema;
+  weightLayout: ConverterWeightLayoutConfigSchema;
+  manifest: ConverterManifestConfigSchema;
+  output: ConverterOutputConfigSchema;
+  presets: ConverterPresetConfigSchema;
+}
+
+export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;
+export declare const DEFAULT_CONVERTER_SHARDING_CONFIG: ConverterShardingConfigSchema;
+export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayoutConfigSchema;
+export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
+export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;
+export declare const DEFAULT_CONVERTER_PRESET_CONFIG: ConverterPresetConfigSchema;
+export declare const DEFAULT_CONVERTER_CONFIG: ConverterConfigSchema;
+
+export declare function createConverterConfig(
+  overrides?: Partial<ConverterConfigSchema>
+): ConverterConfigSchema;

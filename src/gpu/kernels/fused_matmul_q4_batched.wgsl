@@ -109,20 +109,27 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 // IMPORTANT: Previous version used 16 threads per column which caused subgroup
 // mixing when sg_size=32 (two columns in same subgroup). This version uses
 // 64 threads per column to ensure correct subgroup reduction.
-override TILE_M: u32 = 4u;
-override THREADS_PER_COL: u32 = 64u;
+const MAX_TILE_M: u32 = 4u;
+const MAX_THREADS_PER_COL: u32 = 64u;
 const MAX_SUBGROUPS_PER_ROW: u32 = 64u;  // Support sg_size >= 1 (64/1 = 64)
 
-// Shared memory for per-row subgroup reduction: 4 rows × 16 max subgroups = 64
-var<workgroup> batched_wg_sums: array<f32, 256>;
+override TILE_M: u32 = 4u;          // Must be <= MAX_TILE_M
+override THREADS_PER_COL: u32 = 64u; // Must be <= MAX_THREADS_PER_COL
 
-@compute @workgroup_size(64, 4, 1)
+// Shared memory for per-row subgroup reduction: 4 rows × 16 max subgroups = 64
+var<workgroup> batched_wg_sums: array<f32, MAX_TILE_M * MAX_SUBGROUPS_PER_ROW>;
+
+@compute @workgroup_size(THREADS_PER_COL, TILE_M, 1)
 fn main_batched(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
+    if (TILE_M > MAX_TILE_M || THREADS_PER_COL > MAX_THREADS_PER_COL) {
+        return;
+    }
+
     let local_id = lid.x;
     let row = wg_id.y * TILE_M + lid.y;
     let col = wg_id.x;  // One column per workgroup X (no more /16 mixing)

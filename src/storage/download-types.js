@@ -17,7 +17,7 @@ export const STORE_NAME = 'downloads';
  * @returns {import('../config/schema/runtime-schema.js').DistributionConfig}
  */
 export function getDistributionConfig() {
-  return getRuntimeConfig().distribution;
+  return getRuntimeConfig().loading.distribution;
 }
 
 /**

@@ -1,16 +1,4 @@
-/**
- * Kernel Utilities - Shared utilities for kernel management
- *
- * This module re-exports utilities from specialized submodules:
- * - kernel-configs: Kernel configuration data
- * - shader-cache: Shader loading and compilation
- * - pipeline-cache: Pipeline creation and caching
- * - feature-check: Device capability checking
- * - kernel-tuning: Auto-tuning and prewarming
- * - uniform-utils: Uniform buffer helpers
- *
- * @module gpu/kernels/utils
- */
+
 
 // ============================================================================
 // Re-exports from kernel-configs
@@ -83,27 +71,18 @@ export {
 import { clearShaderCaches, getShaderCacheStats } from './shader-cache.js';
 import { clearPipelineCaches, getPipelineCacheStats } from './pipeline-cache.js';
 
-/**
- * Clear all kernel caches
- * @returns {void}
- */
+
 export function clearKernelCaches() {
   clearShaderCaches();
   clearPipelineCaches();
 }
 
-/**
- * Alias for clearKernelCaches for backward compatibility
- * @returns {void}
- */
+
 export function clearPipelineCache() {
   clearKernelCaches();
 }
 
-/**
- * Get combined cache statistics
- * @returns {{ pipelines: number, shaders: number, shaderModules: number, bindGroupLayouts: number, pipelineLayouts: number }}
- */
+
 export function getCacheStats() {
   const shaderStats = getShaderCacheStats();
   const pipelineStats = getPipelineCacheStats();

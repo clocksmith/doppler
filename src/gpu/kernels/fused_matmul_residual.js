@@ -1,16 +1,4 @@
-/**
- * Fused GEMV + Residual Kernel
- *
- * For decode (M=1), combines output projection matmul with residual add in a single kernel:
- * C[N] = A[K] * B^T[K,N] + residual[N]
- *
- * Benefits:
- * - Single GPU dispatch instead of 2
- * - No intermediate buffer for matmul output
- * - Better cache locality
- *
- * Expected speedup: eliminates 1 dispatch barrier per layer (16 barriers for 16-layer model)
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -20,29 +8,12 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 
-/**
- * Check if fused GEMV+residual should be used.
- *
- * Only use for decode (M=1) where GEMV kernel is applicable.
- * @param {number} M
- * @returns {boolean}
- */
+
 export function shouldUseFusedMatmulResidual(M) {
   return M === 1;
 }
 
-/**
- * Run fused GEMV + Residual
- *
- * Combines output projection matmul (M=1) with residual add in a single kernel.
- * Use this for the attention output path during decode.
- *
- * @param {import('../tensor.js').Tensor} input - Input activation tensor [1, K] (attention output before o_proj)
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} weight - Output projection weight buffer (GPUBuffer or WeightBuffer)
- * @param {import('../tensor.js').Tensor} residual - Residual tensor [1, N] (original input to add)
- * @param {import('./fused_matmul_residual.js').MatmulResidualFusedOptions} options - Kernel options including N, K dimensions
- * @returns {Promise<import('../tensor.js').Tensor>} Output tensor [1, N] with projected + residual result
- */
+
 export async function runMatmulResidualFused(
   input,
   weight,
@@ -58,7 +29,7 @@ export async function runMatmulResidualFused(
   } = options;
 
   const weightBuffer = getBuffer(weight);
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = input.dtype;
 
   trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
@@ -107,15 +78,7 @@ export async function runMatmulResidualFused(
   return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
 }
 
-/**
- * Record fused GEMV + Residual (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} weight
- * @param {import('../tensor.js').Tensor} residual
- * @param {import('./fused_matmul_residual.js').MatmulResidualFusedOptions} options
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordMatmulResidualFused(
   recorder,
   input,
@@ -132,7 +95,7 @@ export async function recordMatmulResidualFused(
   } = options;
 
   const weightBuffer = getBuffer(weight);
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = input.dtype;
 
   const pipeline = await getPipelineFast('fused_matmul_residual', 'default');

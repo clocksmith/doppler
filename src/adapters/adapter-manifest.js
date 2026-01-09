@@ -8,6 +8,11 @@
  * @module adapters/adapter-manifest
  */
 
+import {
+  VALID_LORA_TARGET_MODULES,
+  DEFAULT_ADAPTER_VALIDATION_CONFIG,
+} from '../config/schema/index.js';
+
 // ============================================================================
 // JSON Schema Definition (as TypeScript const for runtime validation)
 // ============================================================================
@@ -33,7 +38,7 @@ export const ADAPTER_MANIFEST_SCHEMA = {
       type: 'string',
       description: 'Human-readable name for the adapter',
       minLength: 1,
-      maxLength: 256,
+      maxLength: DEFAULT_ADAPTER_VALIDATION_CONFIG.maxNameLength,
     },
     version: {
       type: 'string',
@@ -44,7 +49,7 @@ export const ADAPTER_MANIFEST_SCHEMA = {
     description: {
       type: 'string',
       description: 'Detailed description of the adapter purpose',
-      maxLength: 4096,
+      maxLength: DEFAULT_ADAPTER_VALIDATION_CONFIG.maxDescriptionLength,
     },
     baseModel: {
       type: 'string',
@@ -54,20 +59,20 @@ export const ADAPTER_MANIFEST_SCHEMA = {
     rank: {
       type: 'integer',
       description: 'LoRA rank (dimensionality of the low-rank matrices)',
-      minimum: 1,
-      maximum: 1024,
+      minimum: DEFAULT_ADAPTER_VALIDATION_CONFIG.minRank,
+      maximum: DEFAULT_ADAPTER_VALIDATION_CONFIG.maxRank,
     },
     alpha: {
       type: 'number',
       description: 'LoRA alpha scaling factor',
-      minimum: 0.1,
+      minimum: DEFAULT_ADAPTER_VALIDATION_CONFIG.minAlpha,
     },
     targetModules: {
       type: 'array',
       description: 'List of modules this adapter modifies',
       items: {
         type: 'string',
-        enum: ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj', 'gate_up_proj'],
+        enum: VALID_LORA_TARGET_MODULES,
       },
       minItems: 1,
       uniqueItems: true,
@@ -154,20 +159,6 @@ export const ADAPTER_MANIFEST_SCHEMA = {
 // ============================================================================
 
 /**
- * Valid target module names.
- */
-const VALID_TARGET_MODULES = [
-  'q_proj',
-  'k_proj',
-  'v_proj',
-  'o_proj',
-  'gate_proj',
-  'up_proj',
-  'down_proj',
-  'gate_up_proj',
-];
-
-/**
  * Validates an adapter manifest against the schema.
  */
 export function validateManifest(manifest) {
@@ -196,12 +187,14 @@ export function validateManifest(manifest) {
     errors.push({ field: 'baseModel', message: 'baseModel is required and must be a string', value: m.baseModel });
   }
 
-  if (typeof m.rank !== 'number' || !Number.isInteger(m.rank) || m.rank < 1 || m.rank > 1024) {
-    errors.push({ field: 'rank', message: 'rank must be an integer between 1 and 1024', value: m.rank });
+  const { minRank, maxRank, minAlpha } = DEFAULT_ADAPTER_VALIDATION_CONFIG;
+
+  if (typeof m.rank !== 'number' || !Number.isInteger(m.rank) || m.rank < minRank || m.rank > maxRank) {
+    errors.push({ field: 'rank', message: `rank must be an integer between ${minRank} and ${maxRank}`, value: m.rank });
   }
 
-  if (typeof m.alpha !== 'number' || m.alpha < 0.1) {
-    errors.push({ field: 'alpha', message: 'alpha must be a number >= 0.1', value: m.alpha });
+  if (typeof m.alpha !== 'number' || m.alpha < minAlpha) {
+    errors.push({ field: 'alpha', message: `alpha must be a number >= ${minAlpha}`, value: m.alpha });
   }
 
   if (!Array.isArray(m.targetModules) || m.targetModules.length === 0) {
@@ -209,7 +202,7 @@ export function validateManifest(manifest) {
   } else {
     const uniqueModules = new Set();
     for (const mod of m.targetModules) {
-      if (!VALID_TARGET_MODULES.includes(mod)) {
+      if (!VALID_LORA_TARGET_MODULES.includes(mod)) {
         errors.push({ field: 'targetModules', message: `Invalid target module: ${mod}`, value: mod });
       }
       if (uniqueModules.has(mod)) {

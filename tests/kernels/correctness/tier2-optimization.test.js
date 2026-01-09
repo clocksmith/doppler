@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Tier 2 P0: Kernel Optimization', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/kernel-tests/browser/index.html');
+    await page.goto('/tests/kernels/browser/index.html');
     // Wait for WebGPU initialization
     await page.waitForFunction(() => window.testHarness?.getGPU);
   });
@@ -24,7 +24,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
 
       try {
         // Fetch the fused FFN shader
-        const response = await fetch('/gpu/kernels/fused_ffn.wgsl');
+        const response = await fetch('/src/gpu/kernels/fused_ffn.wgsl');
         if (!response.ok) {
           return { success: false, error: `Failed to fetch shader: ${response.status}` };
         }
@@ -61,7 +61,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
       if (!gpu) return { success: false, error: 'No GPU' };
 
       try {
-        const response = await fetch('/gpu/kernels/attention_decode_optimized.wgsl');
+        const response = await fetch('/src/gpu/kernels/attention_decode_optimized.wgsl');
         if (!response.ok) {
           return { success: false, error: `Failed to fetch shader: ${response.status}` };
         }
@@ -148,7 +148,9 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
       const gpu = await window.testHarness.getGPU();
       if (!gpu) return { success: false, error: 'No GPU', hasSubgroups: false };
 
-      const adapter = gpu.adapter;
+      // Get adapter directly from navigator.gpu
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) return { success: false, error: 'No adapter', hasSubgroups: false };
       const features = Array.from(adapter.features);
 
       const hasSubgroups = features.includes('subgroups');
@@ -212,7 +214,7 @@ test.describe('Tier 2 P0: Kernel Optimization', () => {
 
 test.describe('Performance Regression Investigation', () => {
   test('Identify bottleneck operations', async ({ page }) => {
-    await page.goto('/kernel-tests/browser/index.html');
+    await page.goto('/tests/kernels/browser/index.html');
 
     const result = await page.evaluate(async () => {
       const gpu = await window.testHarness.getGPU();

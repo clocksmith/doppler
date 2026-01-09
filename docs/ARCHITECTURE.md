@@ -114,6 +114,190 @@ See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concret
 
 ---
 
+## Architectural Views
+
+DOPPLER's structure can be understood through multiple lenses. Each view serves a different purpose:
+
+| View | Purpose | When to Use |
+|------|---------|-------------|
+| **Domain Grouping** | Mental model | Day-to-day orientation |
+| **Dependency Graph** | True import relationships | Refactoring, circular dep analysis |
+| **Pipeline View** | Runtime data flow | Debugging, performance tuning |
+| **Build Layers** | Compilation order | Onboarding, build configuration |
+
+### Domain Grouping (Primary Mental Model)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                               DOMAINS                                        │
+├───────────────────┬────────────────────┬────────────────────────────────────┤
+│      COMPUTE      │        DATA        │            RUNTIME                  │
+├───────────────────┼────────────────────┼────────────────────────────────────┤
+│ gpu/              │ formats/           │ inference/                          │
+│ ├─ device         │ ├─ gguf            │ ├─ pipeline                         │
+│ ├─ buffer-pool    │ ├─ safetensors     │ ├─ pipeline/attention               │
+│ ├─ uniform-cache  │ ├─ rdrr            │ ├─ pipeline/ffn                     │
+│ └─ kernels/       │ └─ tokenizer       │ ├─ pipeline/logits                  │
+│    (68 WGSL)      │                    │ └─ kv-cache                         │
+│                   │ loader/            │                                     │
+│ memory/           │ ├─ doppler-loader  │ debug/                              │
+│ ├─ heap           │ ├─ weight-loader   │ ├─ log                              │
+│ └─ capability     │ └─ shard-manager   │ └─ trace                            │
+│                   │                    │                                     │
+│                   │ storage/           │                                     │
+│                   │ ├─ opfs-manager    │                                     │
+│                   │ └─ quota           │                                     │
+├───────────────────┴────────────────────┴────────────────────────────────────┤
+│                          SHARED SERVICES                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ config/                          │ gpu/kernel-selector                       │
+│ ├─ schema/ (all DEFAULT_*)       │ ├─ kernel-selector.js (dispatch routing) │
+│ ├─ presets/runtime/              │ ├─ kernel-registry.js (variant catalog)  │
+│ ├─ presets/models/               │ └─ kernel-tuner/ (auto-benchmarking)     │
+│ └─ runtime.ts (get/set API)      │                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ types/                                                                       │
+│ (shared TypeScript declarations - no runtime code)                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                             EXTENSIONS                                       │
+├───────────────────┬────────────────────┬────────────────────────────────────┤
+│ converter/        │ adapters/          │ bridge/                             │
+│ (Node-only)       │ (LoRA hot-swap)    │ (Extension IPC)                     │
+├───────────────────┼────────────────────┼────────────────────────────────────┤
+│ hotswap/          │ client/            │ browser/                            │
+│ (Runtime swap)    │ (Public API)       │ (Demo harness)                      │
+└───────────────────┴────────────────────┴────────────────────────────────────┘
+```
+
+**Domain boundaries:**
+- **Compute**: Stateless GPU transforms. Buffer management, raw kernels.
+- **Data**: I/O, parsing, persistence. Format-aware, GPU-unaware.
+- **Runtime**: Orchestration, state. Coordinates Compute and Data.
+- **Shared Services**: Cross-cutting concerns used by multiple domains.
+  - `config/`: Source of truth for all tunables (DEFAULT_* exports)
+  - `kernel-selector`: Routes operations to optimal kernel variant
+  - `types/`: TypeScript declarations (compile-time only)
+- **Extensions**: Optional capabilities. Can be removed without breaking core.
+
+### Dependency Graph (True Relationships)
+
+This shows actual import dependencies. Use for refactoring decisions.
+
+```
+                              inference
+                             /    |    \
+                            /     |     \
+                      loader    gpu      kv-cache
+                        |      / | \        |
+                     formats  /  |  \       |
+                        |    /   |   \      |
+                        ▼   ▼    ▼    ▼     ▼
+                    ┌───────────────────────────┐
+                    │      SHARED SERVICES      │
+                    ├───────────────────────────┤
+                    │  config/    kernel-sel    │
+                    │  schema     registry      │
+                    │     │       tuner         │
+                    └─────┼─────────────────────┘
+                          │
+                    ┌─────┼─────┐
+                    ▼     ▼     ▼
+                 types  memory  debug
+
+    storage ◀─────────────────────────▶ (orthogonal to gpu)
+```
+
+**Key observations:**
+- `inference` depends directly on `gpu` (skips `loader`) — intentional for kernel dispatch
+- `config/schema` is imported by almost everything — source of truth for defaults
+- `kernel-selector/registry` mediates between inference and raw WGSL kernels
+- `types`, `memory`, `debug` have no internal dependencies (true foundation)
+- `storage` and `gpu` are orthogonal — neither imports the other
+
+**Circular dependency risks:**
+- `inference ↔ loader`: loader needs inference config, inference needs loaded weights
+- Currently broken by: loader returns raw weights, inference builds pipeline config
+
+### Pipeline View (Runtime Flow)
+
+Use this view when debugging inference or optimizing performance.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          INFERENCE PIPELINE                                  │
+├──────────┬──────────┬──────────┬──────────┬──────────┬─────────────────────┤
+│ Tokenize │  Embed   │ Layer×N  │ LM Head  │  Sample  │      Decode         │
+├──────────┴──────────┴────┬─────┴──────────┴──────────┴─────────────────────┤
+│                          │                                                  │
+│    ┌─────────────────────┴─────────────────────┐                           │
+│    │              LAYER BLOCK                   │                           │
+│    ├──────────┬──────────┬──────────┬──────────┤                           │
+│    │ RMSNorm  │ Attn+KV  │ RMSNorm  │   FFN    │                           │
+│    │          │  +RoPE   │          │ SiLU/GeGLU│                           │
+│    └──────────┴──────────┴──────────┴──────────┘                           │
+│                          │                                                  │
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│       KERNEL LAYER       │              SUPPORT LAYER                       │
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│ matmul  │ rope  │ silu   │  config  │  debug  │  types  │  memory           │
+│ attn    │ norm  │ gather │  loader  │ formats │ storage │                   │
+└──────────────────────────┴──────────────────────────────────────────────────┘
+```
+
+**Data flow per token:**
+1. **Tokenize**: `tokenizer.js` → token IDs
+2. **Embed**: `gather.wgsl` → hidden state [seq, hidden_dim]
+3. **Layer×N**: For each transformer layer:
+   - RMSNorm → Attention (Q/K/V matmul, RoPE, softmax, output) → Residual
+   - RMSNorm → FFN (gate, up, activation, down) → Residual
+4. **LM Head**: `matmul.wgsl` → logits [vocab_size]
+5. **Sample**: CPU top-k/top-p → next token ID
+6. **Decode**: `tokenizer.js` → output text
+
+### Build Layers (Onboarding View)
+
+Use this for understanding build order and what can be tested independently.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ LAYER 6: INFERENCE (126 files)                                              │
+│ inference/pipeline, inference/kv-cache, inference/tokenizers                │
+│ Entry point for generation. Depends on everything below.                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LAYER 5: LOADER (44 files)                                                  │
+│ loader/doppler-loader, loader/weight-loader, loader/shard-manager           │
+│ Model loading and weight dequantization.                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LAYER 4: GPU + STORAGE (106 + 14 files)                                     │
+│ gpu/device, gpu/buffer-pool, gpu/kernels/* | storage/opfs-manager           │
+│ Orthogonal infrastructure: compute vs persistence.                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LAYER 3: FORMATS (38 files)                                                 │
+│ formats/gguf, formats/safetensors, formats/rdrr, formats/tokenizer          │
+│ File format parsing. Pure functions, no side effects.                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LAYER 2: CONFIG (65 files)                                                  │
+│ config/schema/*, config/presets/*, config/runtime.ts                        │
+│ All DEFAULT_* exports. Source of truth for tunables.                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LAYER 1: FOUNDATION (9 + 8 + 18 files)                                      │
+│ types/* | memory/* | debug/*                                                │
+│ No internal dependencies. Can be tested in isolation.                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Caveats (why strict layering is approximate):**
+- `inference` imports `gpu` directly for kernel dispatch (skips `loader`)
+- `loader` imports `config` for manifest validation (skips `formats`)
+- `gpu/kernels` are WGSL files, not JS — they don't "import" anything
+
+**Testing implications:**
+- Layers 1-3 can be unit tested without WebGPU
+- Layer 4+ requires WebGPU adapter (browser or Dawn)
+- Layer 6 requires full model for integration tests
+
+---
+
 ## 1. GPU Subsystem (`gpu/`)
 
 ### device.js - WebGPU Initialization
@@ -887,7 +1071,7 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 ---
 
-*Last updated: December 2025*
+*Last updated: January 2026*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

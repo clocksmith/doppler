@@ -98,6 +98,48 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 
 ## Configuration Layers
 
+Schemas define config shapes and default values. Configs are instances of schemas.
+Every configurable must have a schema; no runtime defaults live in JS logic.
+
+### Config Vocabulary
+
+- Schema: blueprint + defaults (`src/config/schema/*.schema.js`).
+- Config: schema-shaped instance (default, preset, override, asset).
+- Default config: `DEFAULT_*` export from a schema module.
+- Preset config: JSON overlay (runtime presets, model presets, kernel paths, platforms).
+- Override config: CLI or programmatic overlay (highest precedence).
+
+### Phase Injection Model
+
+Each phase injects configs by sequential merge: existing inputs first, then default
+configs, preset configs, and override configs to fill gaps or override behavior.
+
+1. Phase 1 (Conversion): model artifact + converter configs -> manifest config.
+2. Phase 2 (Loading): manifest config + runtime configs + asset configs
+   -> ModelConfig + pipeline/kernel specs + loaded weights.
+3. Phase 3 (Inference): Phase 2 outputs + runtime inference config -> execution.
+
+### Config Merge Order (per domain)
+
+Not every config includes every layer (e.g., loader configs do not merge manifest
+inference). Document the merge chain per domain:
+
+- Runtime config:
+  `runtimeConfig = merge(runtimeDefaultConfig, runtimePresetConfig, runtimeOverrideConfig)`
+- Manifest inference config (Phase 1 output):
+  `manifestInferenceConfig = merge(manifestDefaultConfig, modelPresetConfig, converterOverrideConfig, artifactDerivedConfig)`
+- Model inference config (Phase 2 input):
+  `modelInferenceConfig = merge(manifestInferenceConfig, runtimeInferenceOverrideConfig)`
+- Loader/runtime slices (loading/storage/etc):
+  `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
+- Kernel path resolution:
+  `kernelPath = runtimeKernelPathOverride ?? runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? manifest.optimizations.kernelPath ?? 'auto'`
+
+### No Runtime Defaults in Code
+
+Runtime code should read resolved config values directly. Do not add literal fallbacks
+for tunables in JS; put defaults in schemas and merge them in the config layer.
+
 ### Nullable Required Fields
 
 For fields that can be legitimately disabled:
@@ -160,12 +202,12 @@ When adding a new inference knob or model behavior:
 
 **Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.
 
-**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the CLI and merged with runtime overrides.
+**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the CLI and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so presets should place overrides under the correct section.
 
 The merge order for runtime config:
-1. Runtime defaults (hardcoded)
-2. Runtime preset (extends defaults)
-3. Runtime overrides (CLI flags, explicit config)
+1. Runtime default config (schema default configs)
+2. Runtime preset config (partial override)
+3. Runtime override config (CLI flags, explicit config)
 
 Manifest + runtime config feed ModelConfig → PipelineSpec → KernelSpec → Dispatch.
 

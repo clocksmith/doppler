@@ -40,8 +40,7 @@
     "temperature": 1.0,
     "topK": 50,
     "topP": 0.95,
-    "repetitionPenalty": 1.0,
-    "maxTokens": 2048
+    "repetitionPenalty": 1.0
   },
 
   "tensorPatterns": {

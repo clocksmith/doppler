@@ -113,6 +113,11 @@ export declare function applyDebugConfig(
 ): void;
 
 /**
+ * Get the active log history limit.
+ */
+export declare function getLogHistoryLimit(): number;
+
+/**
  * Get enabled trace categories.
  */
 export declare function getTrace(): TraceCategory[];

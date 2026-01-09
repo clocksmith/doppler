@@ -95,18 +95,9 @@ export class ConfigLoader {
 
     // Validate known sections
     const sections = [
-      'inference',
-      'kvcache',
-      'debug',
-      'moe',
-      'storage',
-      'distribution',
-      'bridge',
-      'memory',
-      'bufferPool',
-      'tuner',
+      'shared',
       'loading',
-      'gpuCache',
+      'inference',
     ];
 
     for (const section of sections) {
@@ -116,15 +107,26 @@ export class ConfigLoader {
       }
     }
 
+    // Reject deprecated keys
+    if (/** @type {Record<string, unknown>} */ (config).debug !== undefined) {
+      throw new Error('runtime.debug is removed; use runtime.shared.debug');
+    }
+    if (config.loading?.debug !== undefined) {
+      throw new Error('runtime.loading.debug is removed; use runtime.shared.debug');
+    }
+    if (config.inference?.debug !== undefined) {
+      throw new Error('runtime.inference.debug is removed; use runtime.shared.debug');
+    }
+
     // Validate specific values
-    this.#validateDebugConfig(config.debug);
+    this.#validateDebugConfig(config.shared?.debug);
     this.#validateSamplingConfig(config.inference?.sampling);
   }
 
   /**
    * Validate debug config section.
    *
-   * @param {import('../../src/config/schema/index.js').RuntimeConfigSchema['debug']} debug
+   * @param {import('../../src/config/schema/index.js').RuntimeConfigSchema['shared']['debug']} debug
    */
   #validateDebugConfig(debug) {
     if (!debug) return;
@@ -227,6 +229,11 @@ export class ConfigLoader {
    */
   #validateSamplingConfig(sampling) {
     if (!sampling) return;
+
+    const deprecatedMaxTokens = /** @type {{ maxTokens?: unknown }} */ (sampling).maxTokens;
+    if (deprecatedMaxTokens !== undefined) {
+      throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
+    }
 
     if (sampling.temperature !== undefined) {
       if (typeof sampling.temperature !== 'number' || sampling.temperature < 0) {

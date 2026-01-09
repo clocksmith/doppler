@@ -38,7 +38,6 @@ export interface PipelineContexts {
   baseUrl?: string;
   /** Runtime configuration overrides */
   runtime?: {
-    debug?: boolean;
     /** Kernel path for explicit kernel dispatch ordering */
     kernelPath?: KernelPathRef;
   };
@@ -137,9 +136,6 @@ export interface WeightLoadResult {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
-  useTiedEmbeddings: boolean;
-  embeddingVocabSize: number | null;
-  embeddingTranspose: boolean;
   layerRouterWeights: Map<number, RouterWeights>;
 }
 

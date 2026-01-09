@@ -138,7 +138,9 @@
     "output": {
       "finalLogitSoftcapping": null,
       "tieWordEmbeddings": true,
-      "scaleEmbeddings": false
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": 32
     }
   }
 }

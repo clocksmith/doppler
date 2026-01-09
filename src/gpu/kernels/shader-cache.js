@@ -1,11 +1,4 @@
-/**
- * Shader Cache - Shader loading and compilation utilities
- *
- * Handles loading WGSL shader sources from disk/network and compiling
- * them into GPUShaderModules with caching.
- *
- * @module gpu/kernels/shader-cache
- */
+
 
 import { log } from '../../debug/index.js';
 
@@ -13,30 +6,26 @@ import { log } from '../../debug/index.js';
 // Caches
 // ============================================================================
 
-/** @type {Map<string, string>} Shader source cache (loaded via fetch) */
+
 const shaderSourceCache = new Map();
 
-/** @type {Map<string, Promise<GPUShaderModule>>} Compiled shader module cache */
+
 const shaderModuleCache = new Map();
 
 // ============================================================================
 // Base Path Detection
 // ============================================================================
 
-/**
- * Base path for kernel files
- * Detects if running under /doppler/ (replo.id deployment) or standalone
- * @returns {string}
- */
+
 function getKernelBasePath() {
   // Check if we're running from /doppler/ path (replo.id deployment)
   if (typeof location !== 'undefined') {
     const path = location.pathname;
     if (path.startsWith('/d') || path.startsWith('/doppler/') || location.host.includes('replo')) {
-      return '/doppler/gpu/kernels';
+      return '/doppler/src/gpu/kernels';
     }
   }
-  return '/gpu/kernels';
+  return '/src/gpu/kernels';
 }
 
 const KERNEL_BASE_PATH = getKernelBasePath();
@@ -45,11 +34,7 @@ const KERNEL_BASE_PATH = getKernelBasePath();
 // Shader Loading
 // ============================================================================
 
-/**
- * Load a WGSL shader file via fetch
- * @param {string} filename
- * @returns {Promise<string>}
- */
+
 export async function loadShaderSource(filename) {
   if (shaderSourceCache.has(filename)) {
     return shaderSourceCache.get(filename);
@@ -74,13 +59,7 @@ export async function loadShaderSource(filename) {
 // Shader Compilation
 // ============================================================================
 
-/**
- * Compile a shader module
- * @param {GPUDevice} device
- * @param {string} source
- * @param {string} label
- * @returns {Promise<GPUShaderModule>}
- */
+
 export async function compileShader(
   device,
   source,
@@ -111,13 +90,7 @@ export async function compileShader(
   return module;
 }
 
-/**
- * Get or create a cached shader module for a shader file.
- * @param {GPUDevice} device
- * @param {string} shaderFile
- * @param {string} label
- * @returns {Promise<GPUShaderModule>}
- */
+
 export async function getShaderModule(
   device,
   shaderFile,
@@ -148,19 +121,13 @@ export async function getShaderModule(
 // Cache Management
 // ============================================================================
 
-/**
- * Clear the shader caches
- * @returns {void}
- */
+
 export function clearShaderCaches() {
   shaderSourceCache.clear();
   shaderModuleCache.clear();
 }
 
-/**
- * Get shader cache statistics
- * @returns {{ sources: number, modules: number }}
- */
+
 export function getShaderCacheStats() {
   return {
     sources: shaderSourceCache.size,

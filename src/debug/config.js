@@ -6,6 +6,8 @@
  * @module debug/config
  */
 
+import { DEFAULT_LOG_HISTORY_CONFIG } from '../config/schema/debug.schema.js';
+
 // ============================================================================
 // Types and Constants
 // ============================================================================
@@ -43,6 +45,7 @@ export const TRACE_CATEGORIES = [
 // ============================================================================
 
 export let currentLogLevel = LOG_LEVELS.INFO;
+let logHistoryLimit = DEFAULT_LOG_HISTORY_CONFIG.maxLogHistoryEntries;
 export let enabledModules = new Set();
 export let disabledModules = new Set();
 export let logHistory = [];
@@ -165,6 +168,9 @@ export function applyDebugConfig(
   config,
   options = {}
 ) {
+  const logHistoryConfig = config?.logHistory ?? DEFAULT_LOG_HISTORY_CONFIG;
+  logHistoryLimit = logHistoryConfig.maxLogHistoryEntries ?? DEFAULT_LOG_HISTORY_CONFIG.maxLogHistoryEntries;
+
   const respectUrlParams = options.respectUrlParams !== false;
   let hasLogParam = false;
   let hasTraceParam = false;
@@ -195,6 +201,13 @@ export function applyDebugConfig(
       setTrace(false);
     }
   }
+}
+
+/**
+ * Get the active log history limit.
+ */
+export function getLogHistoryLimit() {
+  return logHistoryLimit;
 }
 
 /**

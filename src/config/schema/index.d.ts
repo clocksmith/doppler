@@ -52,6 +52,7 @@ export {
   type ManifestRoPESchema,
   type ManifestOutputSchema,
   type ManifestLayerPatternSchema,
+  type ManifestChatTemplateSchema,
   DEFAULT_MANIFEST_INFERENCE,
 
   // Helpers
@@ -77,15 +78,16 @@ export {
 } from './kernel-path.schema.js';
 
 // =============================================================================
-// Inference Schema
+// Inference Schema (Legacy Fallbacks)
 // =============================================================================
 export {
-  // RoPE
-  type RoPEConfigSchema,
-  DEFAULT_ROPE_CONFIG,
-
-  // Architecture defaults
+  // Legacy fallbacks for v1 manifests (where architecture is a string)
+  // For new manifests, use DEFAULT_MANIFEST_INFERENCE instead
   DEFAULT_MAX_POSITION_EMBEDDINGS,
+  DEFAULT_RMS_NORM_EPS,
+
+  // Types still exported for compatibility
+  type RoPEConfigSchema,
 
   type AttentionSchema,
   type NormalizationSchema,
@@ -128,6 +130,33 @@ export {
   type WriteResultSchema,
   type ConversionIOSchema,
 } from './conversion.schema.js';
+
+// =============================================================================
+// Converter Schema
+// =============================================================================
+export {
+  // Types
+  type ComputePrecision,
+  type ConverterQuantizationConfigSchema,
+  type ConverterShardingConfigSchema,
+  type ConverterWeightLayoutConfigSchema,
+  type ConverterManifestConfigSchema,
+  type ConverterOutputConfigSchema,
+  type ConverterPresetConfigSchema,
+  type ConverterConfigSchema,
+
+  // Defaults
+  DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
+  DEFAULT_CONVERTER_SHARDING_CONFIG,
+  DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
+  DEFAULT_CONVERTER_MANIFEST_CONFIG,
+  DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  DEFAULT_CONVERTER_PRESET_CONFIG,
+  DEFAULT_CONVERTER_CONFIG,
+
+  // Factory
+  createConverterConfig,
+} from './converter.schema.js';
 
 // =============================================================================
 // Preset Schema
@@ -428,6 +457,19 @@ export {
   setKernelThresholds,
   resetKernelThresholds,
 } from './kernel-thresholds.schema.js';
+
+// =============================================================================
+// Shared Runtime Schema
+// =============================================================================
+export {
+  // Types
+  type KernelRegistryConfigSchema,
+  type SharedRuntimeConfigSchema,
+
+  // Defaults
+  DEFAULT_KERNEL_REGISTRY_CONFIG,
+  DEFAULT_SHARED_RUNTIME_CONFIG,
+} from './shared-runtime.schema.js';
 
 // =============================================================================
 // Doppler Master Config

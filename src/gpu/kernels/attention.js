@@ -1,13 +1,4 @@
-/**
- * Attention Kernels
- *
- * Provides optimized attention operations with support for:
- * - Prefill and decode phases
- * - Causal masking
- * - Grouped-query attention (GQA)
- * - Multiple implementation tiers (tiled, streaming)
- * - F16/F32 KV cache support
- */
+
 
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -24,16 +15,10 @@ import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
 
-/**
- * Get max KV length for chunked attention from kernel config.
- * Cached for performance since it's called frequently.
- * @type {number | null}
- */
+
 let _chunkedMaxKVLen = null;
 
-/**
- * @returns {number}
- */
+
 function getChunkedMaxKVLen() {
   if (_chunkedMaxKVLen === null) {
     const config = getKernelConfig('attention', 'decode_chunked_f16kv');
@@ -42,13 +27,10 @@ function getChunkedMaxKVLen() {
   return _chunkedMaxKVLen;
 }
 
-/** @type {GPUBuffer | null} */
+
 let kvLenFallbackBuffer = null;
 
-/**
- * @param {GPUDevice} device
- * @returns {GPUBuffer}
- */
+
 function getKvLenFallbackBuffer(device) {
   if (!kvLenFallbackBuffer) {
     kvLenFallbackBuffer = device.createBuffer({
@@ -61,33 +43,17 @@ function getKvLenFallbackBuffer(device) {
   return kvLenFallbackBuffer;
 }
 
-/**
- * @typedef {'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming'} AttentionTier
- */
 
-/**
- * @typedef {Object} AttentionPlan
- * @property {AttentionTier} tier
- * @property {string} variant
- * @property {number} workgroups
- * @property {boolean} useF16KV
- * @property {boolean} isDecode
- */
+
+
 
 class AttentionKernel extends KernelBase {
-  /**
-   * @param {string} variant
-   * @returns {Promise<GPUComputePipeline>}
-   */
+  
   async getPipeline(variant) {
     return this.getPipelineFor('attention', variant);
   }
 
-  /**
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {number} workgroups
-   */
+  
   dispatch(
     pipeline,
     bindGroup,
@@ -96,12 +62,7 @@ class AttentionKernel extends KernelBase {
     this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention');
   }
 
-  /**
-   * @param {import('../command-recorder.js').CommandRecorder} recorder
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {number} workgroups
-   */
+  
   record(
     recorder,
     pipeline,
@@ -112,16 +73,7 @@ class AttentionKernel extends KernelBase {
   }
 }
 
-/**
- * @param {number} headDim
- * @param {number} seqLen
- * @param {boolean} useF16KV
- * @param {AttentionTier | null} forcedTier
- * @param {number} sharedLimit
- * @param {ReturnType<typeof getKernelCapabilities>} caps
- * @param {boolean} strict
- * @returns {AttentionTier}
- */
+
 function selectAttentionTier(
   headDim,
   seqLen,
@@ -132,9 +84,12 @@ function selectAttentionTier(
   strict
 ) {
   const isDecode = seqLen === 1;
+  const largeRequired = useF16KV
+    ? MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED_F16
+    : MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED;
   const canLarge =
     headDim <= DIMENSION_LIMITS.ATTENTION_LARGE_MAX_HEAD_DIM &&
-    sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED;
+    sharedLimit >= largeRequired;
   const smallRequired = useF16KV
     ? MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F16
     : MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F32;
@@ -147,9 +102,7 @@ function selectAttentionTier(
     sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_SUBGROUP_SHARED &&
     isDecode;
 
-  /**
-   * @param {string} message
-   */
+  
   const failOrWarn = (message) => {
     if (strict) {
       throw new Error(message);
@@ -191,21 +144,13 @@ function selectAttentionTier(
     }
   }
 
-  return /** @type {AttentionTier} */ (tier);
+  return  (tier);
 }
 
 // Track if we've logged chunked kernel selection
 let loggedChunkedKernel = false;
 
-/**
- * @param {AttentionTier} tier
- * @param {boolean} isDecode
- * @param {boolean} useF16KV
- * @param {number} numHeads
- * @param {number} headDim
- * @param {number} kvLen
- * @returns {string}
- */
+
 function resolveAttentionVariant(
   tier,
   isDecode,
@@ -263,12 +208,7 @@ function resolveAttentionVariant(
   return `${base}_streaming${useF16KV ? '_f16kv' : ''}`;
 }
 
-/**
- * @param {AttentionTier} tier
- * @param {number} seqLen
- * @param {number} numHeads
- * @returns {number}
- */
+
 function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   if (tier === 'subgroup') {
     return numHeads;
@@ -282,10 +222,7 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
   return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
 }
 
-/**
- * @param {string} variant
- * @returns {AttentionTier}
- */
+
 function inferAttentionTierFromVariant(variant) {
   if (variant === 'decode_subgroup') return 'subgroup';
   if (variant.startsWith('prefill_streaming') || variant.startsWith('decode_streaming') || variant === 'decode_chunked_f16kv') {
@@ -295,14 +232,7 @@ function inferAttentionTierFromVariant(variant) {
   return 'tiled_large';
 }
 
-/**
- * @param {string} variant
- * @param {boolean} isDecode
- * @param {boolean} useF16KV
- * @param {ReturnType<typeof getKernelCapabilities>} caps
- * @param {boolean} strict
- * @returns {string | null}
- */
+
 function validateAttentionVariant(
   variant,
   isDecode,
@@ -311,10 +241,7 @@ function validateAttentionVariant(
   strict
 ) {
   const normalized = variant.trim();
-  /**
-   * @param {string} message
-   * @returns {string | null}
-   */
+  
   const failOrWarn = (message) => {
     if (strict) {
       throw new Error(message);
@@ -352,17 +279,7 @@ function validateAttentionVariant(
   return normalized;
 }
 
-/**
- * @param {number} seqLen
- * @param {number} kvLen
- * @param {number} headDim
- * @param {number} numHeads
- * @param {string} kvDtype
- * @param {number} sharedLimit
- * @param {ReturnType<typeof getKernelCapabilities>} caps
- * @param {number} [layerIdx]
- * @returns {AttentionPlan}
- */
+
 function resolveAttentionPlan(
   seqLen,
   kvLen,
@@ -394,23 +311,7 @@ function resolveAttentionPlan(
   return { tier, variant, workgroups, useF16KV, isDecode };
 }
 
-/**
- * @param {GPUDevice} device
- * @param {import('../command-recorder.js').CommandRecorder | null} recorder
- * @param {Object} params
- * @param {number} params.numHeads
- * @param {number} params.numKVHeads
- * @param {number} params.headDim
- * @param {number} params.kvLen
- * @param {number} params.seqLen
- * @param {number} params.scale
- * @param {boolean} params.causal
- * @param {number} params.startPos
- * @param {number} params.attnSoftcap
- * @param {number} params.slidingWindow
- * @param {number} params.kvLenSource
- * @returns {GPUBuffer}
- */
+
 function createAttentionUniformBuffer(
   device,
   recorder,
@@ -437,17 +338,7 @@ function createAttentionUniformBuffer(
   );
 }
 
-/**
- * Run attention operation
- * @param {import('../tensor.js').Tensor} Q
- * @param {import('../tensor.js').Tensor} K
- * @param {import('../tensor.js').Tensor} V
- * @param {GPUBuffer | null} mask
- * @param {number} numHeads
- * @param {number} headDim
- * @param {import('./attention.js').AttentionOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function runAttention(
   Q,
   K,
@@ -477,7 +368,7 @@ export async function runAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const kvDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
@@ -493,7 +384,7 @@ export async function runAttention(
   const pipeline = await kernel.getPipeline(plan.variant);
 
   // Output is always f32 (attention scores computed in f32)
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = 'f32';
   const outputSize = seqLen * numHeads * headDim * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
@@ -546,18 +437,7 @@ export async function runAttention(
   return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
 }
 
-/**
- * Record attention operation (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} Q
- * @param {import('../tensor.js').Tensor} K
- * @param {import('../tensor.js').Tensor} V
- * @param {GPUBuffer | null} mask
- * @param {number} numHeads
- * @param {number} headDim
- * @param {import('./attention.js').AttentionOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordAttention(
   recorder,
   Q,
@@ -588,7 +468,7 @@ export async function recordAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const kvDtype = K.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
@@ -607,7 +487,7 @@ export async function recordAttention(
   const pipeline = await kernel.getPipeline(plan.variant);
 
   // Output is always f32 (attention scores computed in f32)
-  /** @type {import('../tensor.js').TensorDtype} */
+  
   const outputDtype = 'f32';
   const outputSize = seqLen * numHeads * headDim * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');

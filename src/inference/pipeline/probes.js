@@ -2,7 +2,7 @@
  * Config-driven probe helpers for targeted GPU buffer inspection.
  *
  * Probes let us read specific token/dimension values without adding
- * ad-hoc logs in the code. Probes are configured via runtime.debug.probes.
+ * ad-hoc logs in the code. Probes are configured via runtime.shared.debug.probes.
  */
 
 import { trace } from '../../debug/index.js';

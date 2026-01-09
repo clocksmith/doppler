@@ -1,20 +1,4 @@
-/**
- * Fused FFN Kernel (Tier 2 P0)
- *
- * EXPERIMENTAL: Not currently wired into layer.ts.
- * Complete gate+up fusion kernel, kept for future integration.
- *
- * Fuses gate + up weight projections with activation for:
- * - 2x reduction in input reads
- * - Elimination of intermediate buffers
- * - Single kernel launch instead of 3
- *
- * Supports:
- * - SiLU (SwiGLU) and GeLU (GeGLU) activations
- * - F32 and F16 weight formats
- * - Batched execution for prefill
- * - Command recording for batched GPU operations
- */
+
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -26,42 +10,23 @@ import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
 
 class FusedFFNKernel extends KernelBase {
-  /**
-   * @param {string} variant
-   * @returns {Promise<GPUComputePipeline>}
-   */
+  
   async getPipeline(variant) {
     return this.getPipelineFor('fused_ffn', variant);
   }
 
-  /**
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {number} workgroupsX
-   * @param {number} [workgroupsY]
-   */
+  
   dispatch(pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
     this.dispatchKernel(pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
 
-  /**
-   * @param {import('../command-recorder.js').CommandRecorder} recorder
-   * @param {GPUComputePipeline} pipeline
-   * @param {GPUBindGroup} bindGroup
-   * @param {number} workgroupsX
-   * @param {number} [workgroupsY]
-   */
+  
   record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
     this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
 }
 
-/**
- * @param {number} batchSize
- * @param {'f16' | 'f32' | 'q4k'} weightDtype
- * @param {number} intermediateSize
- * @returns {string}
- */
+
 function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
   // Q4K variants - only if fused path is enabled
   if (weightDtype === 'q4k' && !isFusedQ4KDisabled()) {
@@ -85,12 +50,7 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
   return 'default';
 }
 
-/**
- * @param {GPUDevice} device
- * @param {import('../command-recorder.js').CommandRecorder | null} recorder
- * @param {{ M: number; hiddenSize: number; intermediateSize: number; alpha: number; activation: import('./fused_ffn.js').FFNActivation; isQ4K?: boolean }} params
- * @returns {GPUBuffer}
- */
+
 function createFFNUniformBuffer(device, recorder, params) {
   return createUniformBufferWithView(
     'fused_ffn_uniforms',
@@ -111,19 +71,7 @@ function createFFNUniformBuffer(device, recorder, params) {
   );
 }
 
-/**
- * Run fused FFN forward pass
- *
- * Computes: output = activation(input @ W_gate^T) * (input @ W_up^T)
- *
- * @param {import('../tensor.js').Tensor} input Input tensor [batchSize, hiddenSize]
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} W_gate Gate weight matrix [intermediateSize, hiddenSize]
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} W_up Up weight matrix [intermediateSize, hiddenSize]
- * @param {number} hiddenSize Input dimension
- * @param {number} intermediateSize Output dimension
- * @param {import('./fused_ffn.js').FusedFFNOptions} [options] FFN options
- * @returns {Promise<import('../tensor.js').Tensor>} Output tensor [batchSize, intermediateSize]
- */
+
 export async function runFusedFFN(
   input,
   W_gate,
@@ -154,7 +102,7 @@ export async function runFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize, /** @type {'f16' | 'f32' | 'q4k'} */ (gateDtype), intermediateSize);
+  const variant = selectFFNVariant(batchSize,  (gateDtype), intermediateSize);
 
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
@@ -189,7 +137,7 @@ export async function runFusedFFN(
   });
 
   // Calculate workgroups
-  /** @type {number} */
+  
   let workgroupsX;
   let workgroupsY = 1;
 
@@ -215,17 +163,7 @@ export async function runFusedFFN(
   return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
-/**
- * Record fused FFN forward pass (batched, no submit)
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} W_gate
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} W_up
- * @param {number} hiddenSize
- * @param {number} intermediateSize
- * @param {import('./fused_ffn.js').FusedFFNOptions} [options]
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordFusedFFN(
   recorder,
   input,
@@ -257,7 +195,7 @@ export async function recordFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize, /** @type {'f16' | 'f32' | 'q4k'} */ (gateDtype), intermediateSize);
+  const variant = selectFFNVariant(batchSize,  (gateDtype), intermediateSize);
 
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
@@ -288,7 +226,7 @@ export async function recordFusedFFN(
     ],
   });
 
-  /** @type {number} */
+  
   let workgroupsX;
   let workgroupsY = 1;
 
@@ -312,13 +250,7 @@ export async function recordFusedFFN(
   return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
-/**
- * Calculate memory savings from using fused FFN
- * @param {number} batchSize
- * @param {number} hiddenSize
- * @param {number} intermediateSize
- * @returns {{ separateBytes: number; fusedBytes: number; savingsBytes: number; savingsPct: number }}
- */
+
 export function calculateFusedFFNSavings(
   batchSize,
   hiddenSize,

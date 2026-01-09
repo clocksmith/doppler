@@ -140,6 +140,9 @@ export interface ParsedModelConfig {
   rmsNormEps: number;
   rmsNormWeightOffset: boolean;
   scaleEmbeddings: boolean;
+  useTiedEmbeddings: boolean;
+  embeddingTranspose: boolean;
+  embeddingVocabSize: number | null;
   hiddenActivation: ActivationType;
   isGemma3: boolean;
   isGemma2: boolean;

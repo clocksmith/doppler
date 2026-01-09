@@ -6,13 +6,13 @@
  * @module debug/trace
  */
 
-import { getRuntimeConfig } from '../config/runtime.js';
 import {
   enabledTraceCategories,
   traceLayerFilter,
   traceDecodeStep,
   traceMaxDecodeSteps,
   logHistory,
+  getLogHistoryLimit,
 } from './config.js';
 
 // ============================================================================
@@ -60,7 +60,7 @@ function storeTrace(category, module, message, data) {
     data,
   });
 
-  const maxHistory = getRuntimeConfig().debug.logHistory.maxLogHistoryEntries;
+  const maxHistory = getLogHistoryLimit();
   if (logHistory.length > maxHistory) {
     logHistory.shift();
   }

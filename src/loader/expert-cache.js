@@ -9,7 +9,6 @@
 
 import { releaseBuffer } from '../gpu/buffer-pool.js';
 import { log, trace } from '../debug/index.js';
-import { DEFAULT_EXPERT_CACHE_CONFIG } from '../config/schema/loading.schema.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 /**
@@ -62,7 +61,7 @@ export class ExpertCache {
    * @param {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} [config] Expert cache configuration
    */
   constructor(maxBytes, config) {
-    this.#config = config ?? getRuntimeConfig().loading.expertCache ?? DEFAULT_EXPERT_CACHE_CONFIG;
+    this.#config = config ?? getRuntimeConfig().loading.expertCache;
     this.#maxBytes = maxBytes ?? this.#config.defaultSizeBytes;
   }
 

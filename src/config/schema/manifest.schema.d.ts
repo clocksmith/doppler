@@ -157,6 +157,8 @@ export interface ManifestAttentionSchema {
  * Controls RMSNorm behavior and sandwich norm architecture.
  */
 export interface ManifestNormalizationSchema {
+  /** RMSNorm epsilon for numerical stability (default: 1e-5) */
+  rmsNormEps: number;
   /** Use (1 + weight) pattern for RMSNorm (Gemma models) */
   rmsNormWeightOffset: boolean;
   /** Has post-attention normalization (sandwich norm) */
@@ -210,6 +212,10 @@ export interface ManifestOutputSchema {
   tieWordEmbeddings: boolean;
   /** Scale embeddings by sqrt(hiddenSize) (Gemma models: true) */
   scaleEmbeddings: boolean;
+  /** Whether embedding weights are stored as [hidden, vocab] (transpose on gather) */
+  embeddingTranspose: boolean;
+  /** Embedding vocab size from weight tensor (null = use architecture.vocabSize) */
+  embeddingVocabSize: number | null;
 }
 
 /**
@@ -219,14 +225,26 @@ export interface ManifestOutputSchema {
 export interface ManifestLayerPatternSchema {
   /** Pattern type */
   type: 'uniform' | 'alternating' | 'every_n';
-  /** For alternating: which layers are global ('odd' or 'even') */
-  globalPattern?: 'odd' | 'even';
-  /** For every_n: period of global layers */
-  period?: number;
+  /** For alternating: which layers are global ('odd' or 'even'), null if not applicable */
+  globalPattern: 'odd' | 'even' | null;
+  /** For every_n: period of global layers, null if not applicable */
+  period: number | null;
+}
+
+/**
+ * Chat template configuration.
+ */
+export interface ManifestChatTemplateSchema {
+  /** Chat template type (null = no chat template) */
+  type: 'gemma' | 'llama3' | 'chatml' | 'qwen' | null;
+  /** Whether chat template is enabled */
+  enabled: boolean;
 }
 
 /**
  * Complete inference configuration embedded in manifest.
+ * All fields are required - converter must populate everything.
+ * Use `null` values to indicate "not applicable" or "disabled".
  */
 export interface ManifestInferenceSchema {
   /** Attention configuration */
@@ -240,9 +258,11 @@ export interface ManifestInferenceSchema {
   /** Output configuration */
   output: ManifestOutputSchema;
   /** Layer pattern for hybrid attention */
-  layerPattern?: ManifestLayerPatternSchema;
-  /** Default kernel path for this model (e.g., 'gemma2-q4k-fused') */
-  defaultKernelPath?: string;
+  layerPattern: ManifestLayerPatternSchema;
+  /** Chat template configuration */
+  chatTemplate: ManifestChatTemplateSchema;
+  /** Default kernel path for this model (null = auto-select) */
+  defaultKernelPath: string | null;
 }
 
 /**

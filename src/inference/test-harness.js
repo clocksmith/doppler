@@ -16,7 +16,6 @@ import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { createPipeline } from './pipeline.js';
 import { log as debugLog } from '../debug/index.js';
-import { DEFAULT_HOTSWAP_CONFIG } from '../config/schema/hotswap.schema.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import {
   fetchHotSwapManifest,
@@ -81,7 +80,7 @@ export async function discoverModels(
  * Parse runtime overrides from URL query parameters.
  *
  * Supported parameters:
- * - debug: Enable debug mode
+ * - debug: Enable verbose logging + tracing
  *
  * @param {URLSearchParams} [searchParams] - URLSearchParams to parse (default: window.location.search)
  * @returns {RuntimeOverrides} RuntimeOverrides object
@@ -91,6 +90,19 @@ export function parseRuntimeOverridesFromURL(searchParams) {
 
   /** @type {RuntimeOverrides} */
   const runtime = {};
+
+  // Runtime config (full or partial)
+  const runtimeConfigRaw = params.get('runtimeConfig');
+  if (runtimeConfigRaw) {
+    try {
+      const parsed = JSON.parse(runtimeConfigRaw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        runtime.runtimeConfig = /** @type {Partial<RuntimeConfigSchema>} */ (parsed);
+      }
+    } catch (e) {
+      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${/** @type {Error} */ (e).message}`);
+    }
+  }
 
   // Kernel path (new, preferred) - can be preset ID or inline JSON
   const kernelPathRaw = params.get('kernelPath');
@@ -109,7 +121,10 @@ export function parseRuntimeOverridesFromURL(searchParams) {
 
   // Debug mode
   if (params.has('debug')) {
-    runtime.debug = true;
+    const debugConfig = ensureSharedDebug(runtime);
+    debugConfig.logLevel = { ...debugConfig.logLevel, defaultLogLevel: 'verbose' };
+    debugConfig.trace = { ...debugConfig.trace, enabled: true, categories: ['all'] };
+    debugConfig.pipeline = { ...debugConfig.pipeline, enabled: true };
   }
 
   // GPU profiling
@@ -126,23 +141,12 @@ export function parseRuntimeOverridesFromURL(searchParams) {
   // Debug layers (comma-separated list of layer indices)
   const debugLayersStr = params.get('debugLayers');
   if (debugLayersStr) {
-    runtime.debugLayers = debugLayersStr
+    const layers = debugLayersStr
       .split(',')
       .map(s => parseInt(s.trim(), 10))
       .filter(n => !isNaN(n));
-  }
-
-  // Runtime config (full or partial)
-  const runtimeConfigRaw = params.get('runtimeConfig');
-  if (runtimeConfigRaw) {
-    try {
-      const parsed = JSON.parse(runtimeConfigRaw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        runtime.runtimeConfig = /** @type {Partial<RuntimeConfigSchema>} */ (parsed);
-      }
-    } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${/** @type {Error} */ (e).message}`);
-    }
+    const debugConfig = ensureSharedDebug(runtime);
+    debugConfig.pipeline = { ...debugConfig.pipeline, enabled: true, layers };
   }
 
   // Config chain (for debugging)
@@ -164,9 +168,10 @@ export function parseRuntimeOverridesFromURL(searchParams) {
   const hotSwapAllowUnsignedLocal = params.get('hotSwapAllowUnsignedLocal');
   if (hotSwapManifest || hotSwapLocalOnly || hotSwapAllowUnsignedLocal) {
     runtime.runtimeConfig = runtime.runtimeConfig ?? {};
-    const baseHotSwap = getRuntimeConfig().hotSwap ?? DEFAULT_HOTSWAP_CONFIG;
+    runtime.runtimeConfig.shared = runtime.runtimeConfig.shared ?? {};
+    const baseHotSwap = getRuntimeConfig().shared.hotSwap;
     /** @type {Partial<HotSwapConfigSchema>} */
-    const overrideHotSwap = runtime.runtimeConfig.hotSwap ?? {};
+    const overrideHotSwap = runtime.runtimeConfig.shared.hotSwap ?? {};
     /** @type {HotSwapConfigSchema} */
     const hotSwap = {
       ...baseHotSwap,
@@ -185,10 +190,21 @@ export function parseRuntimeOverridesFromURL(searchParams) {
       hotSwap.allowUnsignedLocal =
         hotSwapAllowUnsignedLocal === '1' || hotSwapAllowUnsignedLocal === 'true';
     }
-    runtime.runtimeConfig.hotSwap = hotSwap;
+    runtime.runtimeConfig.shared.hotSwap = hotSwap;
   }
 
   return runtime;
+}
+
+function ensureSharedDebug(runtime) {
+  runtime.runtimeConfig = runtime.runtimeConfig ?? {};
+  runtime.runtimeConfig.shared = runtime.runtimeConfig.shared ?? {};
+  const shared = runtime.runtimeConfig.shared;
+  shared.debug = shared.debug ?? {};
+  shared.debug.logLevel = shared.debug.logLevel ?? {};
+  shared.debug.trace = shared.debug.trace ?? {};
+  shared.debug.pipeline = shared.debug.pipeline ?? {};
+  return shared.debug;
 }
 
 // ============================================================================
@@ -307,7 +323,7 @@ export async function initializeInference(modelUrl, options = {}) {
     setRuntimeConfig(options.runtime.runtimeConfig);
   }
 
-  const hotSwapConfig = getRuntimeConfig().hotSwap;
+  const hotSwapConfig = getRuntimeConfig().shared.hotSwap;
   if (hotSwapConfig.enabled && hotSwapConfig.manifestUrl) {
     onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
     log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
@@ -345,7 +361,6 @@ export async function initializeInference(modelUrl, options = {}) {
   // 4. Build runtime options
   /** @type {RuntimeOverrides} */
   const runtime = {
-    debug: true,
     ...options.runtime,
   };
 
@@ -358,7 +373,6 @@ export async function initializeInference(modelUrl, options = {}) {
     gpu: { device },
     baseUrl: modelUrl,
     runtime: {
-      debug: runtime.debug,
       kernelPath: runtime.kernelPath,
     },
     onProgress: (/** @type {{ percent: number; stage?: string; message?: string }} */ progress) => {

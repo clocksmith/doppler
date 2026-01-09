@@ -30,8 +30,8 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> Q: array<f32>;
-@group(0) @binding(2) var<storage, read> K_cache: array<f32>;
-@group(0) @binding(3) var<storage, read> V_cache: array<f32>;
+@group(0) @binding(2) var<storage, read> K_cache: array<u32>;
+@group(0) @binding(3) var<storage, read> V_cache: array<u32>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
@@ -40,13 +40,13 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 // Chunk size for KV cache processing (matches workgroup size)
 override CHUNK_SIZE: u32 = 256u;
+const MAX_CHUNK_SIZE: u32 = 256u;
 const MAX_HEAD_DIM: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;
 
 // Shared memory for Q vector and partial results
 var<workgroup> shared_q: array<f32, MAX_HEAD_DIM>;       // Q values for this head
-var<workgroup> shared_scores: array<f32, 256>;  // Attention scores
-var<workgroup> shared_out: array<f32, 256>;     // Partial output accumulator
+var<workgroup> shared_scores: array<f32, MAX_CHUNK_SIZE>;
 
 // For cross-subgroup reductions
 var<workgroup> sg_max: array<f32, MAX_SUBGROUPS>;           // Subgroup maxes
@@ -72,13 +72,7 @@ fn main(
     let tid = local_id.x;
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
-    if (head_dim > MAX_HEAD_DIM) {
-        return;
-    }
-    if (head_dim > MAX_HEAD_DIM) {
-        return;
-    }
-    if (head_dim > MAX_HEAD_DIM) {
+    if (CHUNK_SIZE > MAX_CHUNK_SIZE || head_dim > MAX_HEAD_DIM) {
         return;
     }
 
@@ -127,16 +121,16 @@ fn main(
                     let q2 = shared_q[d + 2u];
                     let q3 = shared_q[d + 3u];
 
-                    let k0 = K_cache[k_base + d];
-                    let k1 = K_cache[k_base + d + 1u];
-                    let k2 = K_cache[k_base + d + 2u];
-                    let k3 = K_cache[k_base + d + 3u];
+                    let k0 = bitcast<f32>(K_cache[k_base + d]);
+                    let k1 = bitcast<f32>(K_cache[k_base + d + 1u]);
+                    let k2 = bitcast<f32>(K_cache[k_base + d + 2u]);
+                    let k3 = bitcast<f32>(K_cache[k_base + d + 3u]);
 
                     score += q0 * k0 + q1 * k1 + q2 * k2 + q3 * k3;
                 } else {
                     // Handle remainder
                     for (var dd = d; dd < head_dim; dd++) {
-                        score += shared_q[dd] * K_cache[k_base + dd];
+                        score += shared_q[dd] * bitcast<f32>(K_cache[k_base + dd]);
                     }
                 }
             }
@@ -214,7 +208,7 @@ fn main(
                 let k_pos_inner = chunk * CHUNK_SIZE + k;
                 let v_offset = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid;
                 let attn_weight = shared_scores[k];
-                out_accum += attn_weight * V_cache[v_offset];
+                out_accum += attn_weight * bitcast<f32>(V_cache[v_offset]);
             }
         }
         workgroupBarrier();
@@ -223,7 +217,8 @@ fn main(
     // Phase 3: Finalize output (divide by sum)
     if (tid < head_dim) {
         let out_offset = head_idx * head_dim + tid;
-        output[out_offset] = out_accum / running_sum;
+        let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);
+        output[out_offset] = out_accum * inv_sum;
     }
 }
 
@@ -245,12 +240,11 @@ fn main_multihead(
     let tid_in_head = local_id.x % threads_per_head;
     let head_idx = base_head + head_in_wg;
 
-    if (head_idx >= u.num_heads) {
-        return;
-    }
-
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
+    let active_head = head_idx < u.num_heads;
+    let valid_dim = head_dim <= 64u;
+
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
     let scale = 1.0 / sqrt(f32(head_dim));
@@ -259,11 +253,23 @@ fn main_multihead(
     let q_base = head_in_wg * 64u;
 
     // Load Q vector for this head
-    if (tid_in_head < head_dim) {
+    if (active_head && valid_dim && tid_in_head < head_dim) {
         let q_offset = head_idx * head_dim + tid_in_head;
         shared_q[q_base + tid_in_head] = Q[q_offset];
     }
     workgroupBarrier();
+
+    if (!active_head || !valid_dim) {
+        return;
+    }
+
+    if (kv_len == 0u) {
+        if (tid_in_head < head_dim) {
+            let out_offset = head_idx * head_dim + tid_in_head;
+            output[out_offset] = 0.0;
+        }
+        return;
+    }
 
     // Online softmax accumulators
     var running_max: f32 = -1e38;
@@ -283,7 +289,7 @@ fn main_multihead(
             let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             var dot: f32 = 0.0;
             for (var d = 0u; d < head_dim; d++) {
-                dot += shared_q[q_base + d] * K_cache[k_base + d];
+                dot += shared_q[q_base + d] * bitcast<f32>(K_cache[k_base + d]);
             }
             score = dot * scale;
         }
@@ -300,7 +306,7 @@ fn main_multihead(
         if (tid_in_head < head_dim && valid_k) {
             out_accum *= rescale;
             let v_offset = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim + tid_in_head;
-            out_accum += exp_score * V_cache[v_offset];
+            out_accum += exp_score * bitcast<f32>(V_cache[v_offset]);
         }
     }
 
@@ -311,7 +317,8 @@ fn main_multihead(
     // Write partial output
     if (tid_in_head < head_dim) {
         let out_offset = head_idx * head_dim + tid_in_head;
-        output[out_offset] = out_accum / running_sum;
+        let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);
+        output[out_offset] = out_accum * inv_sum;
     }
 }
 
@@ -360,13 +367,12 @@ fn main_f16kv(
             // K cache is F16, load and convert
             for (var d = 0u; d < head_dim; d += 2u) {
                 let q0 = shared_q[d];
-                let q1 = shared_q[d + 1u];
-
-                // Read packed F16 pair
-                let k_packed = K_cache[k_base + d / 2u];
-                let k_vec = unpack2x16float(bitcast<u32>(k_packed));
-
-                dot += q0 * k_vec.x + q1 * k_vec.y;
+                let k_vec = unpack2x16float(K_cache[(k_base + d) >> 1u]);
+                dot += q0 * k_vec.x;
+                if (d + 1u < head_dim) {
+                    let q1 = shared_q[d + 1u];
+                    dot += q1 * k_vec.y;
+                }
             }
             score = dot * scale;
         }
@@ -422,9 +428,8 @@ fn main_f16kv(
                 let v_base = k_pos_inner * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
 
                 // Read packed F16 V values
-                let v_packed = V_cache[v_base + tid / 2u];
-                let v_vec = unpack2x16float(bitcast<u32>(v_packed));
-                let v_val = select(v_vec.y, v_vec.x, (tid % 2u) == 0u);
+                let v_vec = unpack2x16float(V_cache[(v_base + tid) >> 1u]);
+                let v_val = select(v_vec.x, v_vec.y, (tid & 1u) == 1u);
 
                 out_accum += shared_scores[k] * v_val;
             }
@@ -434,6 +439,7 @@ fn main_f16kv(
 
     if (tid < head_dim) {
         let out_offset = head_idx * head_dim + tid;
-        output[out_offset] = out_accum / running_sum;
+        let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);
+        output[out_offset] = out_accum * inv_sum;
     }
 }

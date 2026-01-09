@@ -1,11 +1,4 @@
-/**
- * Kernel Tuning - Auto-tuning and kernel prewarming
- *
- * Provides utilities for tuning kernel workgroup sizes and
- * prewarming kernel pipelines for optimal performance.
- *
- * @module gpu/kernels/kernel-tuning
- */
+
 
 import { getKernelCapabilities } from '../device.js';
 import { getKernelTuner } from '../kernel-tuner.js';
@@ -18,12 +11,7 @@ import { log } from '../../debug/index.js';
 // Workgroup Size Tuning
 // ============================================================================
 
-/**
- * Get tuned workgroup size for an operation
- * @param {string} operation
- * @param {Record<string, number>} [inputSizes]
- * @returns {Promise<[number, number, number]>}
- */
+
 export async function getTunedWorkgroupSize(
   operation,
   inputSizes = {}
@@ -61,11 +49,7 @@ export async function getTunedWorkgroupSize(
 // Auto-Tuning
 // ============================================================================
 
-/**
- * Run auto-tuning for all kernels with given model config
- * @param {Record<string, number>} [modelConfig]
- * @returns {Promise<Record<string, any>>}
- */
+
 export async function autoTuneKernels(
   modelConfig = {}
 ) {
@@ -79,7 +63,7 @@ export async function autoTuneKernels(
   } = modelConfig;
 
   const tuner = await getKernelTuner();
-  /** @type {Record<string, any>} */
+  
   const results = {};
 
   // Tune matmul for common sizes
@@ -118,11 +102,7 @@ export async function autoTuneKernels(
 // Pipeline Prewarming
 // ============================================================================
 
-/**
- * Prewarm all supported kernel pipelines
- * @param {{ mode?: 'parallel' | 'sequential' }} [options]
- * @returns {Promise<void>}
- */
+
 export async function prewarmKernels(
   options = {}
 ) {
@@ -154,7 +134,7 @@ export async function prewarmKernels(
     return;
   }
 
-  /** @type {Promise<void>[]} */
+  
   const jobs = [];
   for (const [operation, variants] of entries) {
     for (const [variant, cfg] of variants) {

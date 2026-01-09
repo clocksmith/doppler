@@ -22,7 +22,6 @@ import {
   autoSelectKernelPath,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
-import { DEFAULT_KVCACHE_CONFIG } from '../config/schema/index.js';
 import { MoERouter } from './moe-router.js';
 import { DecodeBufferManager } from './decode-buffers.js';
 
@@ -96,8 +95,9 @@ export class InferencePipeline extends PipelineState {
     } else {
       this.runtimeConfig = getRuntimeConfig();
     }
-    applyDebugConfig(this.runtimeConfig.debug, { respectUrlParams: true });
-    applyPipelineDebugConfig(this.runtimeConfig.debug.pipeline);
+    const sharedDebug = this.runtimeConfig.shared.debug;
+    applyDebugConfig(sharedDebug, { respectUrlParams: true });
+    applyPipelineDebugConfig(sharedDebug.pipeline);
 
     if (contexts.gpu?.device) {
       this.gpuContext = { device: contexts.gpu.device };
@@ -107,7 +107,6 @@ export class InferencePipeline extends PipelineState {
     if (contexts.storage) this.storageContext = contexts.storage;
     if (contexts.baseUrl) this.baseUrl = contexts.baseUrl;
 
-    if (contexts.runtime?.debug) this.debug = true;
     if (contexts.runtime?.kernelPath) {
       this.runtimeKernelPath = contexts.runtime.kernelPath;
     }
@@ -116,6 +115,7 @@ export class InferencePipeline extends PipelineState {
     const device = getDevice();
     if (device) setGPUDevice(device);
 
+    this.debug = sharedDebug.pipeline.enabled === true;
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
   }
 
@@ -128,8 +128,9 @@ export class InferencePipeline extends PipelineState {
     // Pass runtime model overrides to merge with manifest inference config
     const modelOverrides = /** @type {ModelInferenceOverrides | undefined} */ (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
-
-    if (manifest.optimizations?.debug || manifest.runtime?.debug) this.debug = true;
+    this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
+    this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
+    this.embeddingTranspose = this.modelConfig.embeddingTranspose;
 
     // Kernel path resolution
     log.debug('Pipeline', `kernelPath sources: runtime=${this.runtimeKernelPath}, config=${this.runtimeConfig.inference.kernelPath}, model=${this.modelConfig.kernelPath}`);
@@ -194,7 +195,7 @@ export class InferencePipeline extends PipelineState {
     }
 
     // Initialize KV cache
-    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.kvcache);
+    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference.kvcache);
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {
@@ -256,9 +257,6 @@ export class InferencePipeline extends PipelineState {
     this.weights.set('lm_head', result.lmHead);
     this.weights.set('final_norm', result.finalNorm);
 
-    this.useTiedEmbeddings = result.useTiedEmbeddings;
-    this.embeddingVocabSize = result.embeddingVocabSize;
-    this.embeddingTranspose = result.embeddingTranspose;
     this.layerRouterWeights = result.layerRouterWeights;
 
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
@@ -294,9 +292,10 @@ export class InferencePipeline extends PipelineState {
    */
   async _initRoPE() {
     const config = /** @type {import('./pipeline/config.js').ModelConfig} */ (this.modelConfig);
+    const maxSeqLen = config.maxSeqLen ?? this.runtimeConfig.inference.kvcache.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.headDim,
-      maxSeqLen: config.maxSeqLen || DEFAULT_KVCACHE_CONFIG.maxSeqLen,
+      maxSeqLen,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
       ropeScale: config.ropeScale,

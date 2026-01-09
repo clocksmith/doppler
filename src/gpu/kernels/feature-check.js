@@ -1,24 +1,14 @@
-/**
- * Feature Check - GPU capability checking utilities
- *
- * Provides utilities for checking device feature requirements.
- *
- * @module gpu/kernels/feature-check
- */
+
 
 import { getDeviceLimits } from '../device.js';
+import { TILE_SIZES } from './constants.js';
 import { log } from '../../debug/index.js';
 
 // ============================================================================
 // Feature Checking
 // ============================================================================
 
-/**
- * Check if all required features are available
- * @param {string[]} required
- * @param {import('./feature-check.js').FeatureCapabilities} capabilities
- * @returns {boolean}
- */
+
 export function hasRequiredFeatures(
   required,
   capabilities
@@ -35,13 +25,7 @@ export function hasRequiredFeatures(
 // Attention Validation
 // ============================================================================
 
-/**
- * Validate that attention parameters are within device limits
- * @param {number} seqLen
- * @param {number} numHeads
- * @param {number} headDim
- * @returns {void}
- */
+
 export function validateAttentionLimits(
   seqLen,
   numHeads,
@@ -71,8 +55,11 @@ export function validateAttentionLimits(
   }
 
   // Check shared memory requirements for attention tile
-  const tileSize = 64; // TILE_SIZE in attention.wgsl
-  const sharedMemRequired = tileSize * headDim * 4 * 2; // K and V tiles
+  const blockSize = TILE_SIZES.ATTENTION_LARGE_BLOCK_SIZE;
+  const headTile = TILE_SIZES.ATTENTION_LARGE_HEAD_TILE;
+  const sharedMemRequired =
+    blockSize * headTile * 4 * 2 +  // K/V tiles
+    blockSize * blockSize * 4;      // score tile
   if (sharedMemRequired > limits.maxComputeWorkgroupStorageSize) {
     log.warn(
       'FeatureCheck',

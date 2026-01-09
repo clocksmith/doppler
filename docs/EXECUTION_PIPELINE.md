@@ -1136,7 +1136,7 @@ Enable kernel trace output to see kernel selection decisions:
 npm run debug -- --trace kernels
 
 # Config-driven (repeatable)
-npm run debug -- --config '{"runtime":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}'
+npm run debug -- --config '{"runtime":{"inference":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
 ```
 
 Use kernel path flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`).

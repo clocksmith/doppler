@@ -7,8 +7,10 @@
 
 enable f16;
 
-const TILE_SIZE: u32 = 16u; // Must be const because it's used in workgroup array sizes.
-const TILE_AREA: u32 = TILE_SIZE * TILE_SIZE;
+const MAX_TILE_SIZE: u32 = 16u;
+const TILE_AREA: u32 = MAX_TILE_SIZE * MAX_TILE_SIZE;
+
+override TILE_SIZE: u32 = 16u;  // Must be <= MAX_TILE_SIZE
 
 struct Uniforms {
     M: u32,
@@ -34,6 +36,10 @@ fn main(
     @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
+    if (TILE_SIZE > MAX_TILE_SIZE) {
+        return;
+    }
+
     let row = gid.x;
     let col = gid.y;
     let local_row = lid.x;

@@ -41,7 +41,7 @@ function alignTo(size, alignment) {
 function getSizeBucket(
   size,
   maxAllowedSize = Infinity,
-  bucketConfig = getRuntimeConfig().bufferPool.bucket
+  bucketConfig = getRuntimeConfig().shared.bufferPool.bucket
 ) {
   // Minimum bucket from config
   const minBucket = bucketConfig.minBucketSizeBytes;
@@ -121,7 +121,7 @@ export class BufferPool {
     this.#activeBuffers = new Set();
     this.#bufferMetadata = new Map();
     this.#debugMode = debugMode;
-    this.#schemaConfig = schemaConfig ?? getRuntimeConfig().bufferPool;
+    this.#schemaConfig = schemaConfig ?? getRuntimeConfig().shared.bufferPool;
     this.#pendingDestruction = new Set();
     this.#destructionScheduled = false;
 

@@ -1,30 +1,11 @@
-/**
- * Schema Index
- *
- * Re-exports all schema definitions for easy importing.
- *
- * Naming Convention:
- * - *Schema: Type definitions (interface structure)
- * - *Config: Runtime instances (validated values)
- * - *Raw: Unparsed input (from manifest/file)
- * - *Options: Function parameters
- *
- * @module config/schema
- */
-
 // =============================================================================
 // Manifest Schema
 // =============================================================================
 export {
-  // Constants
   RDRR_VERSION,
   SHARD_SIZE,
   TENSORS_FILENAME,
-
-  // Defaults
   DEFAULT_MANIFEST_INFERENCE,
-
-  // Helpers
   isV1Manifest,
   hasMoEConfig,
   validateManifestInference,
@@ -41,16 +22,13 @@ export {
 } from './kernel-path.schema.js';
 
 // =============================================================================
-// Inference Schema
+// Inference Schema (Legacy Fallbacks)
 // =============================================================================
 export {
-  // RoPE
-  DEFAULT_ROPE_CONFIG,
-
-  // Architecture defaults
+  // Legacy fallbacks for v1 manifests (where architecture is a string)
+  // For new manifests, use DEFAULT_MANIFEST_INFERENCE instead
   DEFAULT_MAX_POSITION_EMBEDDINGS,
-
-  // Functions
+  DEFAULT_RMS_NORM_EPS,
   computeGlobalLayers,
 } from './inference.schema.js';
 
@@ -58,15 +36,27 @@ export {
 // Conversion Schema
 // =============================================================================
 export {
-  // Constants
   ConversionStage,
 } from './conversion.schema.js';
+
+// =============================================================================
+// Converter Schema
+// =============================================================================
+export {
+  DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
+  DEFAULT_CONVERTER_SHARDING_CONFIG,
+  DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
+  DEFAULT_CONVERTER_MANIFEST_CONFIG,
+  DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  DEFAULT_CONVERTER_PRESET_CONFIG,
+  DEFAULT_CONVERTER_CONFIG,
+  createConverterConfig,
+} from './converter.schema.js';
 
 // =============================================================================
 // Loading Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_SHARD_CACHE_CONFIG,
   DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   DEFAULT_OPFS_PATH_CONFIG,
@@ -78,7 +68,6 @@ export {
 // Kernel Registry Schema
 // =============================================================================
 export {
-  // Functions
   mergeBindings,
   resolveKernelConfig,
 } from './kernel-registry.schema.js';
@@ -87,7 +76,6 @@ export {
 // Storage Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_QUOTA_CONFIG,
   DEFAULT_VRAM_ESTIMATION_CONFIG,
   DEFAULT_STORAGE_ALIGNMENT_CONFIG,
@@ -98,7 +86,6 @@ export {
 // Inference Defaults Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_BATCHING_DEFAULTS,
   DEFAULT_COMPUTE_DEFAULTS,
   DEFAULT_LARGE_WEIGHT_CONFIG,
@@ -111,7 +98,6 @@ export {
 // Distribution Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_DISTRIBUTION_CONFIG,
 } from './distribution.schema.js';
 
@@ -119,7 +105,6 @@ export {
 // MoE Runtime Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_MOE_ROUTING_CONFIG,
   DEFAULT_MOE_CACHE_CONFIG,
   DEFAULT_MOE_RUNTIME_CONFIG,
@@ -129,10 +114,7 @@ export {
 // KV Cache Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_KVCACHE_CONFIG,
-
-  // Thresholds
   PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
 } from './kvcache.schema.js';
 
@@ -140,7 +122,6 @@ export {
 // GPU Cache Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_GPU_CACHE_CONFIG,
 } from './gpu-cache.schema.js';
 
@@ -148,7 +129,6 @@ export {
 // Tuner Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_TUNER_CONFIG,
 } from './tuner.schema.js';
 
@@ -156,10 +136,7 @@ export {
 // Debug Schema
 // =============================================================================
 export {
-  // Constants
   LOG_LEVELS,
-
-  // Defaults
   DEFAULT_LOG_OUTPUT_CONFIG,
   DEFAULT_LOG_HISTORY_CONFIG,
   DEFAULT_LOG_LEVEL_CONFIG,
@@ -172,7 +149,6 @@ export {
 // Hot-Swap Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_HOTSWAP_CONFIG,
 } from './hotswap.schema.js';
 
@@ -180,7 +156,6 @@ export {
 // Buffer Pool Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_BUFFER_POOL_BUCKET_CONFIG,
   DEFAULT_BUFFER_POOL_LIMITS_CONFIG,
   DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG,
@@ -191,7 +166,6 @@ export {
 // Memory Limits Schema
 // =============================================================================
 export {
-  // Defaults
   DEFAULT_HEAP_TESTING_CONFIG,
   DEFAULT_SEGMENT_TESTING_CONFIG,
   DEFAULT_ADDRESS_SPACE_CONFIG,
@@ -204,8 +178,23 @@ export {
 // =============================================================================
 export {
   // Defaults
+  DEFAULT_BRIDGE_TIMEOUT_CONFIG,
   DEFAULT_BRIDGE_CONFIG,
 } from './bridge.schema.js';
+
+// =============================================================================
+// Adapter Schema
+// =============================================================================
+export {
+  // Constants
+  VALID_LORA_TARGET_MODULES,
+
+  // Defaults
+  DEFAULT_ADAPTER_VALIDATION_CONFIG,
+  DEFAULT_ADAPTER_STACK_CONFIG,
+  DEFAULT_ADAPTER_REGISTRY_CONFIG,
+  DEFAULT_ADAPTER_CONFIG,
+} from './adapter.schema.js';
 
 // =============================================================================
 // Quantization Defaults Schema
@@ -235,6 +224,14 @@ export {
   setKernelThresholds,
   resetKernelThresholds,
 } from './kernel-thresholds.schema.js';
+
+// =============================================================================
+// Shared Runtime Schema
+// =============================================================================
+export {
+  DEFAULT_KERNEL_REGISTRY_CONFIG,
+  DEFAULT_SHARED_RUNTIME_CONFIG,
+} from './shared-runtime.schema.js';
 
 // =============================================================================
 // Doppler Master Config

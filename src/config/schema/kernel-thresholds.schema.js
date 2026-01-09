@@ -1,12 +1,3 @@
-/**
- * Kernel Thresholds Schema
- *
- * Centralized configuration for kernel selection thresholds and magic numbers.
- * These values control when variant selection switches between kernel implementations.
- *
- * @module config/schema/kernel-thresholds
- */
-
 // =============================================================================
 // Matmul Thresholds
 // =============================================================================
@@ -72,9 +63,6 @@ export const DEFAULT_CAST_THRESHOLDS = {
 // Dtype Size Constants
 // =============================================================================
 
-/**
- * Bytes per element for each data type.
- */
 export const DTYPE_SIZES = {
   f32: 4,
   f16: 2,
@@ -104,22 +92,12 @@ export const DEFAULT_KERNEL_THRESHOLDS = {
 // Runtime Access
 // =============================================================================
 
-/**
- * Current kernel thresholds configuration.
- * Can be overridden at runtime for testing or optimization.
- */
 let currentThresholds = { ...DEFAULT_KERNEL_THRESHOLDS };
 
-/**
- * Get the current kernel thresholds configuration.
- */
 export function getKernelThresholds() {
   return currentThresholds;
 }
 
-/**
- * Override kernel thresholds (merges with current config).
- */
 export function setKernelThresholds(overrides) {
   currentThresholds = {
     ...currentThresholds,
@@ -133,9 +111,6 @@ export function setKernelThresholds(overrides) {
   };
 }
 
-/**
- * Reset kernel thresholds to defaults.
- */
 export function resetKernelThresholds() {
   currentThresholds = { ...DEFAULT_KERNEL_THRESHOLDS };
 }

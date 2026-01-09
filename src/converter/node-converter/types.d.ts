@@ -4,7 +4,7 @@
  * @module converter/node-converter/types
  */
 
-import type { QuantizationInfoSchema } from '../../config/index.js';
+import type { ConverterConfigSchema, QuantizationInfoSchema } from '../../config/index.js';
 
 export interface ConvertOptions {
   input: string;
@@ -17,12 +17,14 @@ export interface ConvertOptions {
   projectorQuant: string | null;
   computePrecision: 'f16' | 'f32' | 'auto' | null;
   shardSize: number;
+  shardSizeBytes?: number;
   modelId: string | null;
   textOnly: boolean;
   fast: boolean;
   verbose: boolean;
   test: boolean;
   help: boolean;
+  converterConfig?: Partial<ConverterConfigSchema>;
 }
 
 export interface TensorInfo {

@@ -46,7 +46,7 @@ async function probeMemory64() {
  * @returns {Promise<number>}
  */
 async function probeMaxHeapSize() {
-  const { heapTestSizes, fallbackMaxHeapBytes } = getRuntimeConfig().memory.heapTesting;
+  const { heapTestSizes, fallbackMaxHeapBytes } = getRuntimeConfig().shared.memory.heapTesting;
 
   for (const size of heapTestSizes) {
     try {
@@ -68,8 +68,8 @@ async function probeMaxHeapSize() {
  * @returns {import('./capability.js').SegmentedLimits}
  */
 function probeSegmentedLimits() {
-  const { segmentTestSizes, safeSegmentSizeBytes } = getRuntimeConfig().memory.segmentTesting;
-  const { targetAddressSpaceBytes } = getRuntimeConfig().memory.addressSpace;
+  const { segmentTestSizes, safeSegmentSizeBytes } = getRuntimeConfig().shared.memory.segmentTesting;
+  const { targetAddressSpaceBytes } = getRuntimeConfig().shared.memory.addressSpace;
 
   let maxSegmentSize = safeSegmentSizeBytes; // Safe default
 

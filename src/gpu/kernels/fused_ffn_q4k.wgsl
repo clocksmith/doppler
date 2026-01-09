@@ -27,6 +27,7 @@ const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
 // Multi-column layout: 256 threads = 8 threads/col × 32 columns
 // These can be overridden via pipeline constants from config
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 override WORKGROUP_SIZE: u32 = 256u;
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
@@ -56,8 +57,8 @@ struct Q4KBlock {
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
 // Shared memory for reduction: 32 columns × 8 threads × 2 (gate+up)
-var<workgroup> multicol_gate: array<f32, 256>;
-var<workgroup> multicol_up: array<f32, 256>;
+var<workgroup> multicol_gate: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> multicol_up: array<f32, MAX_WORKGROUP_SIZE>;
 
 // Extract f16 from packed u32
 fn unpack_f16_lo(packed: u32) -> f32 {
@@ -125,13 +126,17 @@ fn gelu(x: f32) -> f32 {
 
 // Main entry point: multi-column decode (M=1)
 // Each workgroup computes 32 output columns
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
+    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || COLS_PER_WG * THREADS_PER_COL != WORKGROUP_SIZE) {
+        return;
+    }
+
     let local_id = lid.x;
 
     // Which column within this workgroup (0..31)
@@ -248,13 +253,17 @@ fn main(
 
 // Batched variant for prefill (M > 1)
 // 2D dispatch: workgroup (x,y) computes 32 columns for batch row y
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_batched(
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
+    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || COLS_PER_WG * THREADS_PER_COL != WORKGROUP_SIZE) {
+        return;
+    }
+
     let local_id = lid.x;
     let batch_idx = wg_id.y;
 

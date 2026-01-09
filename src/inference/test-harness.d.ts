@@ -40,7 +40,6 @@ export interface ModelInfo {
  * Runtime overrides parsed from URL parameters
  */
 export interface RuntimeOverrides {
-  debug?: boolean;
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
@@ -51,8 +50,6 @@ export interface RuntimeOverrides {
   profile?: boolean;
   /** Trace level: 'quick' | 'full' */
   trace?: string;
-  /** Specific layers to debug checkpoint */
-  debugLayers?: number[];
   /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
   configChain?: string[];
 }
@@ -102,7 +99,7 @@ export declare function discoverModels(
  * Parse runtime overrides from URL query parameters.
  *
  * Supported parameters:
- * - debug: Enable debug mode
+ * - debug: Enable verbose logging + tracing
  *
  * @param searchParams - URLSearchParams to parse (default: window.location.search)
  * @returns RuntimeOverrides object

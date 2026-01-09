@@ -20,7 +20,6 @@ import { allowReadback } from '../../gpu/perf-guards.js';
 import { getUniformCache } from '../../gpu/uniform-cache.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
-import { DEFAULT_KVCACHE_CONFIG } from '../../config/schema/index.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
@@ -101,7 +100,8 @@ export class PipelineGenerator {
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,
       benchmark: options.benchmark ?? false,
-      disableBatching: options.disableBatching ?? false,
+      disableCommandBatching: options.disableCommandBatching ?? false,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
       batchSize: options.batchSize ?? batchingDefaults.batchSize,
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
@@ -160,7 +160,11 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const useBatchPath = opts.batchSize > 1 && this.#state.useGPU && isGPUSamplingAvailable();
+      const useBatchPath = opts.batchSize > 1
+        && this.#state.useGPU
+        && isGPUSamplingAvailable()
+        && !opts.disableMultiTokenDecode
+        && !opts.disableCommandBatching;
 
       if (opts.debug && useBatchPath) {
         log.debug('Pipeline', `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
@@ -273,6 +277,8 @@ export class PipelineGenerator {
       debug: options.debug ?? this.#state.debug,
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,
+      disableCommandBatching: options.disableCommandBatching ?? false,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
     };
 
     let processedPrompt = prompt;
@@ -345,7 +351,8 @@ export class PipelineGenerator {
       debugLayers: options.debugLayers,
       profile: options.profile ?? false,
       benchmark: options.benchmark ?? false,
-      disableBatching: options.disableBatching ?? false,
+      disableCommandBatching: options.disableCommandBatching ?? false,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
       batchSize: options.batchSize ?? batchingDefaults.batchSize,
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
@@ -386,7 +393,11 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const useBatchPath = opts.batchSize > 1 && this.#state.useGPU && isGPUSamplingAvailable();
+      const useBatchPath = opts.batchSize > 1
+        && this.#state.useGPU
+        && isGPUSamplingAvailable()
+        && !opts.disableMultiTokenDecode
+        && !opts.disableCommandBatching;
 
       while (tokensGenerated < opts.maxTokens) {
         if (options.signal?.aborted) break;
@@ -488,9 +499,9 @@ export class PipelineGenerator {
 
     const device = getDevice();
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableBatching = opts.disableBatching === true || opts.debug === true;
+    const disableCommandBatching = opts.disableCommandBatching === true || opts.debug === true;
     const createRecorder = (label) => {
-      if (!device || disableBatching) return undefined;
+      if (!device || disableCommandBatching) return undefined;
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
     };
     const recorder = createRecorder('prefill');
@@ -513,7 +524,7 @@ export class PipelineGenerator {
       resetSubmitStats();
     }
 
-    const activationDtype = this.#state.runtimeConfig.inference.compute?.activationDtype ?? 'f32';
+    const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
     const activationBytes = activationDtype === 'f16' ? 2 : 4;
     const debugCheckBuffer = this.#state.debug ? this._debugCheckBuffer.bind(this) : undefined;
 
@@ -524,7 +535,7 @@ export class PipelineGenerator {
       debug: opts.debug,
       recorder,
       transpose: this.#state.embeddingTranspose,
-      debugProbes: this.#state.runtimeConfig.debug.probes,
+      debugProbes: this.#state.runtimeConfig.shared.debug.probes,
       activationDtype,
       embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
     });
@@ -534,7 +545,7 @@ export class PipelineGenerator {
         await recorder.submitAndWait();
         await recordProfile(recorder);
       }
-      const debugReadbackSize = getRuntimeConfig().debug.pipeline.readbackSampleSize;
+      const debugReadbackSize = this.#state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
       const sample = await readBuffer(hiddenStates, Math.min(debugReadbackSize, hiddenStates.size));
       const f32 = decodeReadback(sample, activationDtype);
       const nanCount = f32.filter(x => !Number.isFinite(x)).length;
@@ -690,7 +701,7 @@ export class PipelineGenerator {
           this.#state.debugFlags,
           undefined,
           debugCheckBuffer,
-          this.#state.runtimeConfig.debug.probes
+          this.#state.runtimeConfig.shared.debug.probes
         );
         logitsVocabSize = config.vocabSize;
         usedRecordedLogits = false;
@@ -711,7 +722,7 @@ export class PipelineGenerator {
         this.#state.debugFlags,
         undefined,
         debugCheckBuffer,
-        this.#state.runtimeConfig.debug.probes
+        this.#state.runtimeConfig.shared.debug.probes
       );
 
       releaseBuffer(currentHiddenBuffer);
@@ -769,7 +780,7 @@ export class PipelineGenerator {
     const device = getDevice();
     /** @type {import('../../gpu/command-recorder.js').CommandRecorder | undefined} */
     let recorder;
-    if (device && !opts.debug) {
+    if (device && !opts.debug && !opts.disableCommandBatching) {
       recorder = opts.profile
         ? createProfilingRecorder('decode')
         : createCommandRecorder('decode');
@@ -795,7 +806,7 @@ export class PipelineGenerator {
       : isCpuWeightBuffer(embedBufferRaw)
         ? embedBufferRaw.dtype
         : null;
-    const activationDtype = this.#state.runtimeConfig.inference.compute?.activationDtype ?? 'f32';
+    const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
     const activationBytes = activationDtype === 'f16' ? 2 : 4;
 
     const embedTensor = await embed([lastToken], embedBuffer, {
@@ -805,7 +816,7 @@ export class PipelineGenerator {
       recorder,
       outputBuffer: decodeHiddenBuffer ?? undefined,
       transpose: this.#state.embeddingTranspose,
-      debugProbes: this.#state.runtimeConfig.debug.probes,
+      debugProbes: this.#state.runtimeConfig.shared.debug.probes,
       activationDtype,
       embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
     });
@@ -962,7 +973,7 @@ export class PipelineGenerator {
           this.#state.debugFlags,
           undefined,
           debugCheckBuffer,
-          this.#state.runtimeConfig.debug.probes
+          this.#state.runtimeConfig.shared.debug.probes
         );
         applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty);
         const fallbackToken = sample(fallbackLogits, {
@@ -1011,7 +1022,7 @@ export class PipelineGenerator {
       const debugDevice = getDevice();
       if (debugDevice) {
         if (allowReadback('pipeline.decode.debug-hidden')) {
-          const debugReadbackSize = getRuntimeConfig().debug.pipeline.readbackSampleSize;
+          const debugReadbackSize = this.#state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
           const sampleSize = Math.min(debugReadbackSize, hiddenStates.size);
           const staging = debugDevice.createBuffer({
             size: sampleSize,
@@ -1069,7 +1080,7 @@ export class PipelineGenerator {
       this.#state.debugFlags,
       undefined,
       debugCheckBuffer,
-      this.#state.runtimeConfig.debug.probes
+      this.#state.runtimeConfig.shared.debug.probes
     );
 
     if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
@@ -1391,7 +1402,7 @@ export class PipelineGenerator {
 
     const resolvedDebugLayers = debugLayers !== undefined
       ? debugLayers
-      : this.#state.runtimeConfig.debug.pipeline.layers ?? null;
+      : this.#state.runtimeConfig.shared.debug.pipeline.layers ?? null;
 
     return {
       config,
@@ -1406,7 +1417,7 @@ export class PipelineGenerator {
       ropeLocalSin: this.#state.ropeLocalSin,
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this.#state.debugFlags,
-      debugProbes: this.#state.runtimeConfig.debug.probes,
+      debugProbes: this.#state.runtimeConfig.shared.debug.probes,
       debugCheckBuffer: this.#state.debug ? this._debugCheckBuffer.bind(this) : undefined,
       pipelinePlan: this.#state.layerPipelinePlan,
       expertWeights: this.#state.expertWeights,
@@ -1416,7 +1427,7 @@ export class PipelineGenerator {
       recorder,
       lora: this.#state.lora,
       decodeBuffers: isDecodeMode && this.#state.decodeBuffers?.hasBuffers() ? this.#state.decodeBuffers : null,
-      activationDtype: this.#state.runtimeConfig.inference.compute?.activationDtype ?? 'f32',
+      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
       debugLayers: resolvedDebugLayers,
     };
   }
@@ -1458,7 +1469,7 @@ export class PipelineGenerator {
       embeddingVocabSize: this.#state.embeddingVocabSize,
       finalLogitSoftcapping: config.finalLogitSoftcapping,
       largeWeights: this.#state.runtimeConfig.inference.largeWeights,
-      activationDtype: this.#state.runtimeConfig.inference.compute?.activationDtype ?? 'f32',
+      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
     };
   }
 }

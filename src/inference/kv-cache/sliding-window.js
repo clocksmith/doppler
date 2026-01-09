@@ -26,7 +26,7 @@ export class SlidingWindowKVCache extends KVCache {
   constructor(config) {
     super(config);
     /** @readonly @type {number} */
-    this.windowSize = config.windowSize || getRuntimeConfig().kvcache.windowSize;
+    this.windowSize = config.windowSize || getRuntimeConfig().inference.kvcache.windowSize;
     /** @type {number} */
     this.totalTokensSeen = 0;
   }

@@ -6,10 +6,13 @@
 enable f16;
 
 // Tile sizes for blocked attention
-override BLOCK_SIZE: u32 = 64u;  // Sequence tile size
-override HEAD_TILE: u32 = 64u;   // Head dimension tile
-override WORKGROUP_SIZE: u32 = 64u;  // Main kernel workgroup size
-override DECODE_WORKGROUP_SIZE: u32 = 256u;  // Decode kernel workgroup size
+const MAX_BLOCK_SIZE: u32 = 64u;
+const MAX_HEAD_TILE: u32 = 64u;
+const MAX_HEAD_DIM: u32 = 64u;
+
+override BLOCK_SIZE: u32 = 64u;       // Sequence tile size (must match WORKGROUP_SIZE)
+override HEAD_TILE: u32 = 64u;        // Head dimension tile
+override WORKGROUP_SIZE: u32 = 64u;   // One thread per query position
 
 struct Uniforms {
     num_heads: u32,       // Number of query heads
@@ -33,14 +36,9 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 
 // Shared memory for tiled computation
-var<workgroup> shared_K: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_V: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
-var<workgroup> shared_scores: array<f32, 4096>;  // BLOCK_SIZE * BLOCK_SIZE
-
-// Online softmax accumulators (per-thread)
-// Sized for 256 to support attention_decode workgroup size (prefill uses 64)
-var<workgroup> row_max: array<f32, 256>;
-var<workgroup> row_sum: array<f32, 256>;
+var<workgroup> shared_K: array<f32, MAX_BLOCK_SIZE * MAX_HEAD_TILE>;
+var<workgroup> shared_V: array<f32, MAX_BLOCK_SIZE * MAX_HEAD_TILE>;
+var<workgroup> shared_scores: array<f32, MAX_BLOCK_SIZE * MAX_BLOCK_SIZE>;
 
 // Get KV head index for grouped query attention
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
@@ -85,6 +83,9 @@ fn main(
 
     let kv_head_idx = get_kv_head_idx(head_idx);
     let head_dim = u.head_dim;
+    if (head_dim > MAX_HEAD_DIM) {
+        return;
+    }
     let seq_len = get_kv_len();
     let query_len = u.query_len;
     let scale = u.scale;
@@ -96,7 +97,7 @@ fn main(
     // Initialize online softmax accumulators
     var m_i: f32 = -3.402823e+38;  // -inf for max tracking
     var l_i: f32 = 0.0;            // Sum of exp(x - max)
-    var acc: array<f32, 64>;       // Accumulator for output [head_dim], assuming head_dim <= 64
+    var acc: array<f32, MAX_HEAD_DIM>;
 
     // Initialize accumulator
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
@@ -104,7 +105,7 @@ fn main(
     }
 
     // Load query for this thread into registers
-    var q_local: array<f32, 64>;
+    var q_local: array<f32, MAX_HEAD_DIM>;
     if (valid_query) {
         let q_offset = query_pos * u.num_heads * head_dim + head_idx * head_dim;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {

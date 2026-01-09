@@ -3,22 +3,24 @@
   "description": "Low memory configuration for constrained environments",
   "extends": "default",
   "runtime": {
-    "kvcache": {
-      "maxSeqLen": 2048,
-      "kvDtype": "f16",
-      "pageSize": 128
-    },
-    "moe": {
-      "cache": {
-        "dequantCacheMaxEntries": 2
-      }
-    },
-    "debug": {
-      "logHistory": {
-        "maxLogHistoryEntries": 100
+    "shared": {
+      "debug": {
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        }
       }
     },
     "inference": {
+      "kvcache": {
+        "maxSeqLen": 2048,
+        "kvDtype": "f16",
+        "pageSize": 128
+      },
+      "moe": {
+        "cache": {
+          "dequantCacheMaxEntries": 2
+        }
+      },
       "batching": {
         "maxTokens": 512
       }

@@ -1,14 +1,4 @@
-/**
- * GPU-Side Sampling Kernel
- *
- * Performs sampling entirely on GPU, reducing readback from ~1MB to 4 bytes.
- * Supports:
- * - Temperature scaling
- * - Top-k selection
- * - Softmax
- * - Multinomial sampling
- * - Greedy argmax (for temperature=0)
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
@@ -17,13 +7,7 @@ import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout
 import { allowReadback } from '../perf-guards.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
-/**
- * Get or create explicit bind group layout for sample kernels.
- * Required because different entry points use different binding subsets,
- * so layout: 'auto' fails to include all bindings.
- * @param {GPUDevice} device
- * @returns {GPUBindGroupLayout}
- */
+
 function getSampleBindGroupLayout(device) {
   return getOrCreateBindGroupLayout(
     'sample_bind_group_layout',
@@ -38,24 +22,12 @@ function getSampleBindGroupLayout(device) {
   );
 }
 
-/**
- * Create sample pipeline with explicit bind group layout.
- * @param {GPUDevice} device
- * @param {string} entryPoint
- * @returns {Promise<GPUComputePipeline>}
- */
+
 async function createSamplePipeline(device, entryPoint) {
   return createPipeline('sample', entryPoint, getSampleBindGroupLayout(device));
 }
 
-/**
- * Run GPU-side argmax (greedy decoding)
- * Returns the token ID with highest logit
- * @param {GPUBuffer} logits
- * @param {number} vocabSize
- * @param {import('./sample.js').SampleOptions} [options]
- * @returns {Promise<number>}
- */
+
 export async function runArgmax(
   logits,
   vocabSize,
@@ -169,14 +141,7 @@ export async function runArgmax(
   return tokenId;
 }
 
-/**
- * Run GPU-side top-k sampling
- * Applies temperature, selects top-k, applies softmax, samples
- * @param {GPUBuffer} logits
- * @param {number} vocabSize
- * @param {import('./sample.js').SampleOptions} [options]
- * @returns {Promise<number>}
- */
+
 export async function runGPUSample(
   logits,
   vocabSize,
@@ -304,15 +269,7 @@ export async function runGPUSample(
   return tokenId;
 }
 
-/**
- * Record GPU argmax (batched, no submit)
- * Returns buffer containing token ID
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} logits
- * @param {number} vocabSize
- * @param {import('./sample.js').SampleOptions} [options]
- * @returns {Promise<GPUBuffer>}
- */
+
 export async function recordArgmax(
   recorder,
   logits,
@@ -396,15 +353,7 @@ export async function recordArgmax(
   return outputBuffer;
 }
 
-/**
- * Record GPU top-k sampling (batched, no submit)
- * Returns buffer containing token ID
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} logits
- * @param {number} vocabSize
- * @param {import('./sample.js').SampleOptions} [options]
- * @returns {Promise<GPUBuffer>}
- */
+
 export async function recordGPUSample(
   recorder,
   logits,
@@ -503,20 +452,13 @@ export async function recordGPUSample(
   return outputBuffer;
 }
 
-/**
- * Simple seeded random number generator
- * @param {number} seed
- * @returns {number}
- */
+
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 }
 
-/**
- * Check if GPU sampling is available
- * @returns {boolean}
- */
+
 export function isGPUSamplingAvailable() {
   return getDevice() !== null;
 }

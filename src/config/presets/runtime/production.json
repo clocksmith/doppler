@@ -3,19 +3,21 @@
   "description": "Production configuration with optimized settings",
   "extends": "default",
   "runtime": {
-    "debug": {
-      "logOutput": {
-        "stdout": false,
-        "file": null
-      },
-      "logLevel": {
-        "defaultLogLevel": "error"
-      },
-      "logHistory": {
-        "maxLogHistoryEntries": 100
-      },
-      "trace": {
-        "enabled": false
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": null
+        },
+        "logLevel": {
+          "defaultLogLevel": "error"
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        },
+        "trace": {
+          "enabled": false
+        }
       }
     },
     "inference": {
@@ -24,10 +26,10 @@
       },
       "sampling": {
         "temperature": 0.7
+      },
+      "kvcache": {
+        "kvDtype": "f16"
       }
-    },
-    "kvcache": {
-      "kvDtype": "f16"
     }
   },
   "cli": {

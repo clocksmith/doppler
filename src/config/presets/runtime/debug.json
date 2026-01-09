@@ -3,18 +3,20 @@
   "description": "Debug configuration with verbose logging and tracing enabled",
   "extends": "default",
   "runtime": {
-    "debug": {
-      "logLevel": {
-        "defaultLogLevel": "verbose"
-      },
-      "logHistory": {
-        "maxLogHistoryEntries": 5000
-      },
-      "trace": {
-        "enabled": true,
-        "categories": ["all"],
-        "layers": null,
-        "maxDecodeSteps": 100
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "verbose"
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 5000
+        },
+        "trace": {
+          "enabled": true,
+          "categories": ["all"],
+          "layers": null,
+          "maxDecodeSteps": 100
+        }
       }
     }
   },

@@ -1,18 +1,4 @@
-/**
- * Fused GEMV + RMSNorm Kernel
- *
- * For decode (M=1), combines the down projection matmul with RMSNorm in a single kernel:
- * 1. Compute GEMV: C[1, N] = A[1, K] x B[K, N]  (down projection)
- * 2. Compute RMSNorm on C: output = C / sqrt(mean(C^2) + eps) * weight
- * 3. Optional residual: output = output + residual
- *
- * Benefits:
- * - Single GPU dispatch instead of 2
- * - No intermediate buffer for matmul output
- * - Better cache locality
- *
- * Expected speedup: 1.2-1.5x for post-FFN normalization path
- */
+
 
 import { getDevice } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
@@ -24,14 +10,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import { trace } from '../../debug/index.js';
 
-/**
- * Select fused kernel variant based on output size
- *
- * - small: N <= WORKGROUP_SIZES.DEFAULT (one element per thread)
- * - medium: N > WORKGROUP_SIZES.DEFAULT (multiple elements per thread, single workgroup)
- * @param {number} N
- * @returns {string}
- */
+
 export function selectMatmulRMSNormFusedVariant(N) {
   if (N <= WORKGROUP_SIZES.DEFAULT) {
     return 'small';
@@ -39,18 +18,7 @@ export function selectMatmulRMSNormFusedVariant(N) {
   return 'medium';
 }
 
-/**
- * Run fused GEMV + RMSNorm
- *
- * Combines down projection matmul (M=1) with RMSNorm in a single kernel.
- * Use this for the post-FFN normalization path during decode.
- *
- * @param {import('../tensor.js').Tensor} input - Input activation tensor [1, K]
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} weight - Down projection weight buffer (GPUBuffer or WeightBuffer)
- * @param {GPUBuffer} normWeight - RMSNorm weight buffer [N]
- * @param {import('./fused_matmul_rmsnorm.js').MatmulRMSNormFusedOptions} options - Kernel options including N, K dimensions
- * @returns {Promise<import('../tensor.js').Tensor>} Output tensor [1, N] with normalized result
- */
+
 export async function runMatmulRMSNormFused(
   input,
   weight,
@@ -67,9 +35,9 @@ export async function runMatmulRMSNormFused(
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
-  const { colsPerWg } = getKernelThresholds().fusedMatmul;
-  if (N > colsPerWg) {
-    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  const { maxMediumN } = getKernelThresholds().fusedMatmul;
+  if (N > maxMediumN) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds maxMediumN=${maxMediumN}; kernel only supports single-workgroup RMSNorm.`);
   }
 
   const weightBuffer = getBuffer(weight);
@@ -123,13 +91,8 @@ export async function runMatmulRMSNormFused(
   });
 
   // Calculate workgroups
-  /** @type {number} */
-  let workgroups;
-  if (variant === 'small' || variant === 'medium') {
-    workgroups = 1;  // Single workgroup for small/medium N
-  } else {
-    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
-  }
+  
+  const workgroups = 1;
 
   dispatch(device, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
 
@@ -141,17 +104,7 @@ export async function runMatmulRMSNormFused(
   return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
-/**
- * Record fused GEMV + RMSNorm (batched, no submit)
- *
- * Use this for the command recording path in the inference pipeline.
- * @param {import('../command-recorder.js').CommandRecorder} recorder
- * @param {import('../tensor.js').Tensor} input
- * @param {GPUBuffer | import('../weight-buffer.js').WeightBuffer} weight
- * @param {GPUBuffer} normWeight
- * @param {import('./fused_matmul_rmsnorm.js').MatmulRMSNormFusedOptions} options
- * @returns {Promise<import('../tensor.js').Tensor>}
- */
+
 export async function recordMatmulRMSNormFused(
   recorder,
   input,
@@ -169,9 +122,9 @@ export async function recordMatmulRMSNormFused(
     transposeB = true,  // Default: GGUF row-major weights
   } = options;
 
-  const { colsPerWg } = getKernelThresholds().fusedMatmul;
-  if (N > colsPerWg) {
-    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds colsPerWg=${colsPerWg}; kernel only supports single-workgroup RMSNorm.`);
+  const { maxMediumN } = getKernelThresholds().fusedMatmul;
+  if (N > maxMediumN) {
+    throw new Error(`[MatmulRMSNormFused] N=${N} exceeds maxMediumN=${maxMediumN}; kernel only supports single-workgroup RMSNorm.`);
   }
 
   const weightBuffer = getBuffer(weight);
@@ -224,13 +177,8 @@ export async function recordMatmulRMSNormFused(
   });
 
   // Calculate workgroups
-  /** @type {number} */
-  let workgroups;
-  if (variant === 'small' || variant === 'medium') {
-    workgroups = 1;  // Single workgroup for small/medium N
-  } else {
-    workgroups = Math.ceil(N / getKernelThresholds().fusedMatmul.colsPerWg);
-  }
+  
+  const workgroups = 1;
 
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
 
@@ -243,27 +191,15 @@ export async function recordMatmulRMSNormFused(
   return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
-/**
- * Check if fused kernel should be used for given dimensions
- *
- * The fused kernel is beneficial when:
- * - M = 1 (decode, not prefill)
- * - N <= colsPerWg (current WGSL RMSNorm reduction only valid for single workgroup)
- *
- * For N > 256, the parallelism loss from single-workgroup execution
- * outweighs the dispatch reduction benefit of fusion.
- * @param {number} M
- * @param {number} N
- * @returns {boolean}
- */
+
 export function shouldUseFusedMatmulRMSNorm(M, N) {
   // Only beneficial for decode (M=1)
   if (M !== 1) {
     return false;
   }
 
-  const { colsPerWg } = getKernelThresholds().fusedMatmul;
-  if (N > colsPerWg) {
+  const { maxMediumN } = getKernelThresholds().fusedMatmul;
+  if (N > maxMediumN) {
     return false;
   }
 

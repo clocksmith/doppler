@@ -3,19 +3,21 @@
   "description": "CI/CD configuration with file logging and headless mode",
   "extends": "default",
   "runtime": {
-    "debug": {
-      "logOutput": {
-        "stdout": false,
-        "file": "./logs/doppler.log",
-        "append": false
-      },
-      "logLevel": {
-        "defaultLogLevel": "verbose"
-      },
-      "trace": {
-        "enabled": true,
-        "categories": ["kernels", "perf"],
-        "file": "./logs/trace.jsonl"
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": "./logs/doppler.log",
+          "append": false
+        },
+        "logLevel": {
+          "defaultLogLevel": "verbose"
+        },
+        "trace": {
+          "enabled": true,
+          "categories": ["kernels", "perf"],
+          "file": "./logs/trace.jsonl"
+        }
       }
     },
     "inference": {

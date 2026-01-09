@@ -15,20 +15,9 @@
  */
 
 import type { ResolvedConfigSchema } from './preset.schema.js';
-import type { PlatformSchema } from './platform.schema.js';
-import type { DistributionConfigSchema } from './distribution.schema.js';
-import type { StorageFullConfigSchema } from './storage.schema.js';
 import type { LoadingConfigSchema } from './loading.schema.js';
 import type { InferenceDefaultsConfigSchema } from './inference-defaults.schema.js';
-import type { KVCacheConfigSchema } from './kvcache.schema.js';
-import type { MoERuntimeConfigSchema } from './moe.schema.js';
-import type { BufferPoolConfigSchema } from './buffer-pool.schema.js';
-import type { GpuCacheConfigSchema } from './gpu-cache.schema.js';
-import type { TunerConfigSchema } from './tuner.schema.js';
-import type { MemoryLimitsConfigSchema } from './memory-limits.schema.js';
-import type { DebugConfigSchema } from './debug.schema.js';
-import type { HotSwapConfigSchema } from './hotswap.schema.js';
-import type { BridgeConfigSchema } from './bridge.schema.js';
+import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
 
 /**
  * Runtime configuration schema.
@@ -37,44 +26,14 @@ import type { BridgeConfigSchema } from './bridge.schema.js';
  * These settings control engine behavior regardless of which model is loaded.
  */
 export interface RuntimeConfigSchema {
-  /** Network and download settings */
-  distribution: DistributionConfigSchema;
-
-  /** OPFS quota, VRAM estimation, alignment */
-  storage: StorageFullConfigSchema;
+  /** Cross-cutting runtime settings shared by loader + inference */
+  shared: SharedRuntimeConfigSchema;
 
   /** OPFS paths, shard cache, memory management */
   loading: LoadingConfigSchema;
 
   /** Batching, sampling, tokenizer defaults */
   inference: InferenceDefaultsConfigSchema;
-
-  /** KV cache dtype and layout */
-  kvcache: KVCacheConfigSchema;
-
-  /** MoE routing and caching */
-  moe: MoERuntimeConfigSchema;
-
-  /** GPU buffer pool sizing */
-  bufferPool: BufferPoolConfigSchema;
-
-  /** Uniform cache limits */
-  gpuCache: GpuCacheConfigSchema;
-
-  /** Kernel autotuning settings */
-  tuner: TunerConfigSchema;
-
-  /** WASM heap and segment limits */
-  memory: MemoryLimitsConfigSchema;
-
-  /** Logging and tracing */
-  debug: DebugConfigSchema;
-
-  /** Hot-swap security policy */
-  hotSwap: HotSwapConfigSchema;
-
-  /** Native bridge settings (Tier 2) */
-  bridge: BridgeConfigSchema;
 }
 
 /** Default runtime configuration */
@@ -92,9 +51,6 @@ export interface DopplerConfigSchema {
 
   /** Runtime configuration (engine settings) */
   runtime: RuntimeConfigSchema;
-
-  /** Platform-specific overrides (auto-detected if not set) */
-  platform?: Partial<PlatformSchema>;
 }
 
 export interface DopplerConfigOverrides extends Partial<Omit<DopplerConfigSchema, 'runtime'>> {

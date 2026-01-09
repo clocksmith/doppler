@@ -7,6 +7,9 @@
  * @module config/schema/loading
  */
 
+import type { DistributionConfigSchema } from './distribution.schema.js';
+import type { StorageFullConfigSchema } from './storage.schema.js';
+
 /**
  * Configuration for the shard LRU cache.
  *
@@ -55,7 +58,7 @@ export declare const DEFAULT_MEMORY_MANAGEMENT_CONFIG: MemoryManagementConfigSch
 /**
  * Configuration for OPFS directory paths.
  *
- * Note: This is distinct from StorageFullConfigSchema (in storage.schema.ts)
+ * Note: This is distinct from StorageFullConfigSchema (in storage.schema.js)
  * which handles quota, VRAM estimation, and alignment settings.
  */
 export interface OpfsPathConfigSchema {
@@ -88,6 +91,10 @@ export declare const DEFAULT_EXPERT_CACHE_CONFIG: ExpertCacheConfigSchema;
  * Controls all aspects of model loading behavior.
  */
 export interface LoadingConfigSchema {
+  /** OPFS quota, VRAM estimation, alignment */
+  storage: StorageFullConfigSchema;
+  /** Network/download settings */
+  distribution: DistributionConfigSchema;
   shardCache: ShardCacheConfigSchema;
   memoryManagement: MemoryManagementConfigSchema;
   opfsPath: OpfsPathConfigSchema;

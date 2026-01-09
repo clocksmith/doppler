@@ -1,39 +1,14 @@
-/**
- * Config Merge Module
- *
- * Merges manifest inference config with runtime overrides and tracks
- * the source of each value. This enables tracing where any config
- * value came from during debugging.
- *
- * Architecture:
- *   - Manifest provides ALL values (required, no optionals)
- *   - Runtime can override any manifest value
- *   - _sources tracks 'manifest' or 'runtime' for each field
- *   - NO default fallback - if manifest is incomplete, loader validation fails
- *
- * @module config/merge
- */
-
 // =============================================================================
 // Merge Implementation
 // =============================================================================
 
-/**
- * Overlay runtime value on manifest value, tracking source.
- * Manifest value is required - runtime is optional override.
- * @param {string} path
- * @param {*} manifestValue
- * @param {*} runtimeValue
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {*}
- */
 function overlay(
   path,
   manifestValue,
   runtimeValue,
   sources
 ) {
-  if (runtimeValue !== undefined) {
+  if (runtimeValue !== undefined && runtimeValue !== null) {
     sources.set(path, 'runtime');
     return runtimeValue;
   }
@@ -41,13 +16,6 @@ function overlay(
   return manifestValue;
 }
 
-/**
- * Merge attention config.
- * @param {import('./schema/index.js').ManifestAttentionSchema} manifest
- * @param {Partial<import('./schema/index.js').ManifestAttentionSchema> | undefined} runtime
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {import('./schema/index.js').ManifestAttentionSchema}
- */
 function mergeAttention(
   manifest,
   runtime,
@@ -82,13 +50,6 @@ function mergeAttention(
   };
 }
 
-/**
- * Merge normalization config.
- * @param {import('./schema/index.js').ManifestNormalizationSchema} manifest
- * @param {Partial<import('./schema/index.js').ManifestNormalizationSchema> | undefined} runtime
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {import('./schema/index.js').ManifestNormalizationSchema}
- */
 function mergeNormalization(
   manifest,
   runtime,
@@ -96,6 +57,12 @@ function mergeNormalization(
 ) {
   const prefix = 'inference.normalization';
   return {
+    rmsNormEps: overlay(
+      `${prefix}.rmsNormEps`,
+      manifest.rmsNormEps,
+      runtime?.rmsNormEps,
+      sources
+    ),
     rmsNormWeightOffset: overlay(
       `${prefix}.rmsNormWeightOffset`,
       manifest.rmsNormWeightOffset,
@@ -123,13 +90,6 @@ function mergeNormalization(
   };
 }
 
-/**
- * Merge FFN config.
- * @param {import('./schema/index.js').ManifestFFNSchema} manifest
- * @param {Partial<import('./schema/index.js').ManifestFFNSchema> | undefined} runtime
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {import('./schema/index.js').ManifestFFNSchema}
- */
 function mergeFFN(
   manifest,
   runtime,
@@ -152,13 +112,6 @@ function mergeFFN(
   };
 }
 
-/**
- * Merge RoPE config.
- * @param {import('./schema/index.js').ManifestRoPESchema} manifest
- * @param {Partial<import('./schema/index.js').ManifestRoPESchema> | undefined} runtime
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {import('./schema/index.js').ManifestRoPESchema}
- */
 function mergeRoPE(
   manifest,
   runtime,
@@ -211,13 +164,6 @@ function mergeRoPE(
   };
 }
 
-/**
- * Merge output config.
- * @param {import('./schema/index.js').ManifestOutputSchema} manifest
- * @param {Partial<import('./schema/index.js').ManifestOutputSchema> | undefined} runtime
- * @param {Map<string, import('./merge.js').ConfigSource>} sources
- * @returns {import('./schema/index.js').ManifestOutputSchema}
- */
 function mergeOutput(
   manifest,
   runtime,
@@ -243,6 +189,40 @@ function mergeOutput(
       runtime?.scaleEmbeddings,
       sources
     ),
+    embeddingTranspose: overlay(
+      `${prefix}.embeddingTranspose`,
+      manifest.embeddingTranspose,
+      runtime?.embeddingTranspose,
+      sources
+    ),
+    embeddingVocabSize: overlay(
+      `${prefix}.embeddingVocabSize`,
+      manifest.embeddingVocabSize,
+      runtime?.embeddingVocabSize,
+      sources
+    ),
+  };
+}
+
+function mergeChatTemplate(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.chatTemplate';
+  return {
+    type: overlay(
+      `${prefix}.type`,
+      manifest?.type ?? null,
+      runtime?.type,
+      sources
+    ),
+    enabled: overlay(
+      `${prefix}.enabled`,
+      manifest?.enabled ?? false,
+      runtime?.enabled,
+      sources
+    ),
   };
 }
 
@@ -250,59 +230,40 @@ function mergeOutput(
 // Main Merge Function
 // =============================================================================
 
-/**
- * Merge manifest inference config with runtime overrides.
- *
- * Returns a fully resolved config with source tracking for every value.
- * The `_sources` map shows where each value came from:
- *   - 'manifest': from the model manifest (converter output)
- *   - 'runtime': from user's runtime override
- *
- * NOTE: Manifest must provide all values. If any field is missing,
- * the loader should have rejected the manifest before calling this.
- *
- * @param {import('./merge.js').ManifestInput} manifest - Model manifest with complete inference config
- * @param {import('./merge.js').RuntimeInferenceOverrides} [runtimeOverrides] - Optional runtime overrides
- * @returns {import('./merge.js').MergedConfig} Merged config with source tracking
- *
- * @example
- * ```typescript
- * const merged = mergeConfig(manifest);
- * console.log(merged.inference.normalization.rmsNormWeightOffset); // true
- * console.log(merged._sources.get('inference.normalization.rmsNormWeightOffset')); // 'manifest'
- * ```
- */
 export function mergeConfig(
   manifest,
   runtimeOverrides
 ) {
-  /** @type {Map<string, import('./merge.js').ConfigSource>} */
   const sources = new Map();
   const manifestInf = manifest.inference;
 
-  // Merge layerPattern with source tracking
-  // Use 'layerPattern' in runtimeOverrides to check explicit override (even if null)
-  /** @type {import('./schema/index.js').ManifestLayerPatternSchema | null} */
+  // Merge layerPattern with source tracking.
   let layerPattern = manifestInf.layerPattern ?? null;
-  if ('layerPattern' in (runtimeOverrides ?? {})) {
-    layerPattern = /** @type {import('./schema/index.js').ManifestLayerPatternSchema} */ (runtimeOverrides?.layerPattern) ?? null;
+  const runtimeLayerPattern = runtimeOverrides?.layerPattern;
+  if (runtimeLayerPattern !== undefined && runtimeLayerPattern !== null) {
+    layerPattern = runtimeLayerPattern;
     sources.set('inference.layerPattern', 'runtime');
   } else {
     sources.set('inference.layerPattern', 'manifest');
   }
 
-  // Merge defaultKernelPath with source tracking
-  // Use 'defaultKernelPath' in runtimeOverrides to check explicit override
-  /** @type {string | null} */
+  // Merge defaultKernelPath with source tracking.
   let defaultKernelPath = manifestInf.defaultKernelPath ?? null;
-  if ('defaultKernelPath' in (runtimeOverrides ?? {})) {
-    defaultKernelPath = /** @type {string} */ (runtimeOverrides?.defaultKernelPath) ?? null;
+  const runtimeKernelPath = runtimeOverrides?.defaultKernelPath;
+  if (runtimeKernelPath !== undefined && runtimeKernelPath !== null) {
+    defaultKernelPath = runtimeKernelPath;
     sources.set('inference.defaultKernelPath', 'runtime');
   } else {
     sources.set('inference.defaultKernelPath', 'manifest');
   }
 
-  /** @type {import('./merge.js').MergedInferenceConfig} */
+  // Merge chatTemplate with source tracking.
+  const chatTemplate = mergeChatTemplate(
+    manifestInf.chatTemplate,
+    runtimeOverrides?.chatTemplate,
+    sources
+  );
+
   const inference = {
     attention: mergeAttention(manifestInf.attention, runtimeOverrides?.attention, sources),
     normalization: mergeNormalization(manifestInf.normalization, runtimeOverrides?.normalization, sources),
@@ -310,6 +271,7 @@ export function mergeConfig(
     rope: mergeRoPE(manifestInf.rope, runtimeOverrides?.rope, sources),
     output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
     layerPattern,
+    chatTemplate,
     defaultKernelPath,
   };
 
@@ -325,29 +287,14 @@ export function mergeConfig(
 // Debug Utilities
 // =============================================================================
 
-/**
- * Format merged config sources for logging.
- *
- * @param {import('./merge.js').MergedConfig} merged - Merged config with sources
- * @returns {string} Formatted string showing value sources
- *
- * @example
- * ```
- * inference.attention.slidingWindow: 4096 (manifest)
- * inference.normalization.rmsNormWeightOffset: true (manifest)
- * inference.rope.ropeTheta: 10000 (manifest)
- * ```
- */
 export function formatConfigSources(merged) {
-  /** @type {string[]} */
   const lines = [];
 
   for (const [path, source] of merged._sources) {
     const pathParts = path.split('.');
-    /** @type {unknown} */
     let value = merged;
     for (const part of pathParts) {
-      value = /** @type {Record<string, unknown>} */ (value)?.[part];
+      value = value?.[part];
     }
 
     const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -357,27 +304,18 @@ export function formatConfigSources(merged) {
   return lines.sort().join('\n');
 }
 
-/**
- * Get config values by source.
- *
- * @param {import('./merge.js').MergedConfig} merged - Merged config with sources
- * @param {import('./merge.js').ConfigSource} source - Source to filter by
- * @returns {Array<[string, unknown]>} Array of [path, value] pairs from the specified source
- */
 export function getValuesBySource(
   merged,
   source
 ) {
-  /** @type {Array<[string, unknown]>} */
   const result = [];
 
   for (const [path, src] of merged._sources) {
     if (src === source) {
       const pathParts = path.split('.');
-      /** @type {unknown} */
       let value = merged;
       for (const part of pathParts) {
-        value = /** @type {Record<string, unknown>} */ (value)?.[part];
+        value = value?.[part];
       }
       result.push([path, value]);
     }
@@ -386,12 +324,6 @@ export function getValuesBySource(
   return result;
 }
 
-/**
- * Summarize config sources for logging.
- *
- * @param {import('./merge.js').MergedConfig} merged
- * @returns {{ manifest: number; runtime: number }} Object with counts: { manifest: N, runtime: N }
- */
 export function summarizeSources(merged) {
   let manifest = 0;
   let runtime = 0;

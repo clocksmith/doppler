@@ -1,11 +1,3 @@
-/**
- * Kernel Path Loader
- *
- * Loads and resolves kernel path configurations.
- *
- * @module config/kernel-path-loader
- */
-
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
 import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 
@@ -18,54 +10,39 @@ import gemma2Q4kDequantF32 from './presets/kernel-paths/gemma2-q4k-dequant-f32.j
 import gemma2Q4kDequantF16 from './presets/kernel-paths/gemma2-q4k-dequant-f16.json' with { type: 'json' };
 import gemma2F16Native from './presets/kernel-paths/gemma2-f16-native.json' with { type: 'json' };
 
-/** @type {Record<string, import('./schema/kernel-path.schema.js').KernelPathSchema>} */
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
-  'gemma2-q4k-fused': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kFused),
-  'gemma2-q4k-dequant-f32': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF32),
-  'gemma2-q4k-dequant-f16': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF16),
+  'gemma2-q4k-fused': gemma2Q4kFused,
+  'gemma2-q4k-dequant-f32': gemma2Q4kDequantF32,
+  'gemma2-q4k-dequant-f16': gemma2Q4kDequantF16,
 
   // Gemma 2 F16 native
-  'gemma2-f16-native': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2F16Native),
+  'gemma2-f16-native': gemma2F16Native,
 
   // Aliases for generic access (model-agnostic)
-  'q4k-fused': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kFused),
-  'q4k-dequant-f32': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF32),
-  'q4k-dequant-f16': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF16),
-  'f16-native': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2F16Native),
+  'q4k-fused': gemma2Q4kFused,
+  'q4k-dequant-f32': gemma2Q4kDequantF32,
+  'q4k-dequant-f16': gemma2Q4kDequantF16,
+  'f16-native': gemma2F16Native,
 
   // Semantic aliases
-  'q4k-safe': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF32), // Max compatibility, no fusion
-  'q4k-fast': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kFused), // Best throughput
-  'q4k-balanced': /** @type {import('./schema/kernel-path.schema.js').KernelPathSchema} */ (gemma2Q4kDequantF16), // Good speed/accuracy tradeoff
+  'q4k-safe': gemma2Q4kDequantF32, // Max compatibility, no fusion
+  'q4k-fast': gemma2Q4kFused, // Best throughput
+  'q4k-balanced': gemma2Q4kDequantF16, // Good speed/accuracy tradeoff
 };
 
 // =============================================================================
 // Public API
 // =============================================================================
 
-/**
- * Get a kernel path by ID.
- * @param {string} id
- * @returns {import('./schema/kernel-path.schema.js').KernelPathSchema | null}
- */
 export function getKernelPath(id) {
   return KERNEL_PATH_REGISTRY[id] ?? null;
 }
 
-/**
- * List all available kernel path IDs.
- * @returns {string[]}
- */
 export function listKernelPaths() {
   return Object.keys(KERNEL_PATH_REGISTRY);
 }
 
-/**
- * Resolve a kernel path reference to a full schema.
- * @param {import('./schema/kernel-path.schema.js').KernelPathRef} ref
- * @returns {import('./schema/kernel-path.schema.js').KernelPathSchema}
- */
 export function resolveKernelPath(ref) {
   if (typeof ref === 'string') {
     const path = getKernelPath(ref);
@@ -77,19 +54,6 @@ export function resolveKernelPath(ref) {
   return ref;
 }
 
-/**
- * Auto-select kernel path based on model quantization and capabilities.
- *
- * Selection priority:
- * - F16/BF16 models: use f16-native
- * - Q4K with subgroups: use fused path (best throughput)
- * - Q4K with F16 support: use dequant-f16 (balanced)
- * - Q4K fallback: use dequant-f32 (max compatibility)
- * @param {string | null} quantization
- * @param {string} modelFamily
- * @param {{ hasSubgroups?: boolean; hasF16?: boolean }} [capabilities]
- * @returns {import('./schema/kernel-path.schema.js').KernelPathSchema}
- */
 export function autoSelectKernelPath(
   quantization,
   modelFamily,
@@ -101,7 +65,6 @@ export function autoSelectKernelPath(
       family.includes('gemma') ? 'gemma2' :
         null;
 
-  /** @param {string} suffix @returns {import('./schema/kernel-path.schema.js').KernelPathSchema} */
   const resolveAutoPath = (suffix) => {
     if (familyPrefix) {
       const prefixed = getKernelPath(`${familyPrefix}-${suffix}`);
@@ -136,24 +99,10 @@ export function autoSelectKernelPath(
 // Step Resolution
 // =============================================================================
 
-/**
- * Resolve layer index template in weight references.
- * Replaces {L} with the actual layer index.
- * @param {string} template
- * @param {number} layerIndex
- * @returns {string}
- */
 export function resolveWeightRef(template, layerIndex) {
   return template.replace(/\{L\}/g, String(layerIndex));
 }
 
-/**
- * Get steps for a specific layer, applying any overrides.
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema} path
- * @param {number} layerIndex
- * @param {'prefill' | 'decode'} phase
- * @returns {import('./schema/kernel-path.schema.js').KernelStepSchema[]}
- */
 export function getLayerSteps(
   path,
   layerIndex,
@@ -173,23 +122,13 @@ export function getLayerSteps(
   return layerPath.steps;
 }
 
-/**
- * Validate a kernel path schema.
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema} path
- * @returns {string[]}
- */
 export function validateKernelPath(path) {
-  /** @type {string[]} */
   const errors = [];
 
   if (!path.id) errors.push('Missing path id');
   if (!path.name) errors.push('Missing path name');
   if (!path.decode?.steps?.length) errors.push('Missing decode steps');
 
-  /**
-   * @param {import('./schema/kernel-path.schema.js').KernelStepSchema[]} steps
-   * @param {string} context
-   */
   const validateSteps = (steps, context) => {
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
@@ -211,11 +150,6 @@ export function validateKernelPath(path) {
 // Kernel Path Variant Resolution
 // =============================================================================
 
-/** @typedef {'prefill' | 'decode'} KernelPathPhase */
-/** @typedef {'layer' | 'preLayer' | 'postLayer' | 'sampling'} KernelPathSection */
-/** @typedef {'runtime' | 'config' | 'model' | 'manifest' | 'auto' | 'none'} KernelPathSource */
-
-/** @type {Record<string, { section: KernelPathSection; ops: string[] }>} */
 const MATMUL_ROLE_ALIASES = {
   q_proj: { section: 'layer', ops: ['q_proj'] },
   k_proj: { section: 'layer', ops: ['k_proj'] },
@@ -229,10 +163,6 @@ const MATMUL_ROLE_ALIASES = {
   lm_head: { section: 'postLayer', ops: ['lm_head'] },
 };
 
-/**
- * @param {string} kernel
- * @returns {string}
- */
 function normalizeKernelFile(kernel) {
   const trimmed = kernel.trim();
   if (!trimmed) return trimmed;
@@ -240,13 +170,6 @@ function normalizeKernelFile(kernel) {
   return parts[parts.length - 1] ?? trimmed;
 }
 
-/**
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema} path
- * @param {KernelPathSection} section
- * @param {KernelPathPhase} phase
- * @param {number} layerIndex
- * @returns {import('./schema/kernel-path.schema.js').KernelStepSchema[]}
- */
 function getKernelPathStepsForSection(
   path,
   section,
@@ -266,21 +189,10 @@ function getKernelPathStepsForSection(
   }
 }
 
-/**
- * @param {import('./schema/kernel-path.schema.js').KernelStepSchema[]} steps
- * @param {string} op
- * @returns {import('./schema/kernel-path.schema.js').KernelStepSchema | null}
- */
 function findStepByOp(steps, op) {
   return steps.find((step) => step.op === op) ?? null;
 }
 
-/**
- * @param {keyof typeof KERNEL_CONFIGS} operation
- * @param {string} kernel
- * @param {string | undefined} entry
- * @returns {string | null}
- */
 function findKernelVariant(
   operation,
   kernel,
@@ -291,7 +203,6 @@ function findKernelVariant(
   const normalizedKernel = normalizeKernelFile(kernel);
   const normalizedEntry = entry ?? DEFAULT_ENTRY;
 
-  /** @type {string | null} */
   let fallbackVariant = null;
   let fallbackCount = 0;
 
@@ -310,12 +221,6 @@ function findKernelVariant(
   return null;
 }
 
-/**
- * @param {string | undefined} role
- * @param {KernelPathPhase} phase
- * @param {number} [layerIndex]
- * @returns {string | null}
- */
 export function getKernelPathMatmulVariant(
   role,
   phase,
@@ -335,11 +240,6 @@ export function getKernelPathMatmulVariant(
   return null;
 }
 
-/**
- * @param {KernelPathPhase} phase
- * @param {number} [layerIndex]
- * @returns {string | null}
- */
 export function getKernelPathAttentionVariant(
   phase,
   layerIndex
@@ -355,52 +255,28 @@ export function getKernelPathAttentionVariant(
 // Active Kernel Path Registry
 // =============================================================================
 
-/** @type {import('./schema/kernel-path.schema.js').KernelPathSchema | null} */
 let activeKernelPath = null;
-/** @type {KernelPathSource} */
 let activeKernelPathSource = 'none';
 
-/**
- * Set the active kernel path for the current pipeline.
- * Called by Pipeline when resolving kernel path.
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema | null} path
- * @param {KernelPathSource} [source]
- */
 export function setActiveKernelPath(path, source = 'none') {
   activeKernelPath = path;
   activeKernelPathSource = path ? source : 'none';
 }
 
-/**
- * Get the active kernel path.
- * @returns {import('./schema/kernel-path.schema.js').KernelPathSchema | null}
- */
 export function getActiveKernelPath() {
   return activeKernelPath;
 }
 
-/**
- * @returns {KernelPathSource}
- */
 export function getActiveKernelPathSource() {
   return activeKernelPathSource;
 }
 
-/**
- * @returns {boolean}
- */
 export function getKernelPathStrict() {
   return activeKernelPathSource !== 'auto' && activeKernelPathSource !== 'none';
 }
 
-/**
- * Check if the active kernel path uses fused Q4K matmul.
- * Returns false if no kernel path is set (auto-selection will apply).
- * @returns {boolean}
- */
 export function isActiveKernelPathFusedQ4K() {
   if (!activeKernelPath) return true; // Default to auto-selection (which prefers fused)
-  /** @type {import('./schema/kernel-path.schema.js').KernelStepSchema[]} */
   const kernelSteps = [
     ...(activeKernelPath.decode?.steps ?? []),
     ...(activeKernelPath.prefill?.steps ?? []),
@@ -411,13 +287,8 @@ export function isActiveKernelPathFusedQ4K() {
   return kernelSteps.some((step) => step.kernel.includes('fused_matmul_q4'));
 }
 
-/**
- * Check if the active kernel path uses dequant (non-fused) Q4K matmul.
- * @returns {boolean}
- */
 export function isActiveKernelPathDequant() {
   if (!activeKernelPath) return false;
-  /** @type {import('./schema/kernel-path.schema.js').KernelStepSchema[]} */
   const kernelSteps = [
     ...(activeKernelPath.decode?.steps ?? []),
     ...(activeKernelPath.prefill?.steps ?? []),
@@ -432,26 +303,14 @@ export function isActiveKernelPathDequant() {
 // Debug/Logging
 // =============================================================================
 
-/**
- * Format kernel path for logging.
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema} path
- * @returns {string}
- */
 export function formatKernelPath(path) {
   const decodeOps = path.decode.steps.map(s => s.op).join(' → ');
   return `${path.id}: ${decodeOps}`;
 }
 
-/**
- * Get summary statistics for a kernel path.
- * @param {import('./schema/kernel-path.schema.js').KernelPathSchema} path
- * @returns {{ decodeSteps: number; prefillSteps: number; uniqueKernels: number; hasLayerOverrides: boolean }}
- */
 export function getKernelPathStats(path) {
-  /** @type {Set<string>} */
   const allKernels = new Set();
 
-  /** @param {import('./schema/kernel-path.schema.js').KernelStepSchema[]} steps */
   const collectKernels = (steps) => {
     for (const step of steps) {
       allKernels.add(step.kernel);

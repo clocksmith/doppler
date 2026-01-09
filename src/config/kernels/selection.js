@@ -1,12 +1,3 @@
-/**
- * Kernel Selection - All operation selection logic in one place
- *
- * This is the single source of truth for kernel variant selection.
- * Hotswappable for debugging/tuning - modify this file and reload.
- *
- * @module config/kernels/selection
- */
-
 import { isVariantAvailable } from './registry.js';
 import {
   getCapabilities,
@@ -18,25 +9,7 @@ import {
 // Matmul Selection
 // =============================================================================
 
-/**
- * Context for matmul kernel selection.
- * @typedef {Object} MatmulContext
- * @property {number} M - Batch/sequence dimension
- * @property {number} N - Output dimension
- * @property {number} K - Hidden/input dimension
- * @property {string} aDtype - Input A dtype ('f16', 'f32', 'q4k', etc.)
- * @property {string} bDtype - Input B (weights) dtype
- * @property {string} outputDtype - Desired output dtype ('f16' or 'f32')
- * @property {boolean} transposeB - Whether B is transposed
- * @property {boolean} [preferF16] - Prefer F16 kernels if available
- * @property {boolean} [useVec4] - Prefer vec4 variants
- */
 
-/**
- * Select matmul kernel variant.
- * @param {MatmulContext} context
- * @returns {string} Variant name
- */
 export function selectMatmul(context) {
   const {
     M,
@@ -119,16 +92,6 @@ export function selectMatmul(context) {
 // Attention Selection
 // =============================================================================
 
-/**
- * Context for attention kernel selection.
- * @typedef {Object} AttentionContext
- * @property {number} seqLen - Query sequence length
- * @property {number} kvSeqLen - KV cache sequence length
- * @property {number} numHeads - Number of attention heads
- * @property {number} headDim - Dimension per head
- * @property {boolean} [useF16KV] - Whether KV cache is F16
- * @property {number} [sharedMemoryLimit] - Device shared memory limit
- */
 
 // Dimension limits for attention variants
 const ATTENTION_LIMITS = {
@@ -145,11 +108,6 @@ const ATTENTION_SHARED_MEMORY = {
   SMALL_F16: 4096,
 };
 
-/**
- * Select attention kernel variant.
- * @param {AttentionContext} context
- * @returns {string} Variant name
- */
 export function selectAttention(context) {
   const {
     seqLen,
@@ -237,20 +195,7 @@ export function selectAttention(context) {
 // Dequant Selection
 // =============================================================================
 
-/**
- * Context for dequant kernel selection.
- * @typedef {Object} DequantContext
- * @property {string} [quantType] - Quantization type ('q4k', 'q6k', 'q8_0', 'mxfp4')
- * @property {string} [outputDtype] - Output dtype ('f16' or 'f32')
- * @property {boolean} [useVec4] - Prefer vec4 variants
- * @property {boolean} [isExpert] - Whether dequanting MoE expert weights
- */
 
-/**
- * Select dequant kernel variant.
- * @param {DequantContext} context
- * @returns {string} Variant name
- */
 export function selectDequant(context) {
   const {
     quantType = 'q4k',
@@ -298,18 +243,7 @@ export function selectDequant(context) {
 // RMSNorm Selection
 // =============================================================================
 
-/**
- * Context for RMSNorm kernel selection.
- * @typedef {Object} RMSNormContext
- * @property {number} [hiddenSize] - Hidden dimension size
- * @property {boolean} [hasResidual] - Whether to fuse residual addition
- */
 
-/**
- * Select RMSNorm kernel variant.
- * @param {RMSNormContext} context
- * @returns {string} Variant name
- */
 export function selectRMSNorm(context) {
   const { hiddenSize = null, hasResidual = false } = context;
 
@@ -329,17 +263,7 @@ export function selectRMSNorm(context) {
 const WG_SIZE = 256;
 const MAX_MEDIUM_N = WG_SIZE * 16; // 4096
 
-/**
- * Context for fused matmul+RMSNorm selection.
- * @typedef {Object} FusedMatmulRMSNormContext
- * @property {number} N - Output dimension
- */
 
-/**
- * Select fused matmul+RMSNorm kernel variant.
- * @param {FusedMatmulRMSNormContext} context
- * @returns {string} Variant name
- */
 export function selectFusedMatmulRMSNorm(context) {
   const { N } = context;
 
@@ -357,19 +281,7 @@ export function selectFusedMatmulRMSNorm(context) {
 // FFN Selection
 // =============================================================================
 
-/**
- * Context for fused FFN kernel selection.
- * @typedef {Object} FFNContext
- * @property {number} batchSize - Batch size
- * @property {number} intermediateSize - FFN intermediate dimension
- * @property {string} [weightDtype] - Weight dtype ('f16' or 'f32')
- */
 
-/**
- * Select fused FFN kernel variant.
- * @param {FFNContext} context
- * @returns {string} Variant name
- */
 export function selectFFN(context) {
   const { batchSize, intermediateSize, weightDtype = 'f32' } = context;
 
@@ -403,17 +315,7 @@ export function selectFFN(context) {
 // Softmax Selection
 // =============================================================================
 
-/**
- * Context for softmax kernel selection.
- * @typedef {Object} SoftmaxContext
- * @property {number} innerSize - Size of softmax dimension
- */
 
-/**
- * Select softmax kernel variant.
- * @param {SoftmaxContext} context
- * @returns {string} Variant name
- */
 export function selectSoftmax(context) {
   const { innerSize } = context;
 
@@ -428,18 +330,7 @@ export function selectSoftmax(context) {
 // Gather (Embedding) Selection
 // =============================================================================
 
-/**
- * Context for gather kernel selection.
- * @typedef {Object} GatherContext
- * @property {string} [embeddingDtype] - Embedding table dtype
- * @property {boolean} [useVec4] - Prefer vec4 variants
- */
 
-/**
- * Select gather kernel variant.
- * @param {GatherContext} context
- * @returns {string} Variant name
- */
 export function selectGather(context) {
   const { embeddingDtype = 'f32', useVec4 = true } = context;
 
@@ -460,19 +351,7 @@ export function selectGather(context) {
 // Sample Selection
 // =============================================================================
 
-/**
- * Context for sample kernel selection.
- * @typedef {Object} SampleContext
- * @property {number} vocabSize - Vocabulary size
- * @property {number} [temperature] - Sampling temperature
- * @property {number} [topK] - Top-K sampling parameter
- */
 
-/**
- * Select sample kernel variant.
- * @param {SampleContext} context
- * @returns {string} Variant name
- */
 export function selectSample(context) {
   const { vocabSize, temperature = 0, topK = 0 } = context;
 
@@ -497,19 +376,7 @@ export function selectSample(context) {
 // Rope Selection
 // =============================================================================
 
-/**
- * Context for RoPE kernel selection.
- * @typedef {Object} RopeContext
- * @property {string} [ropeType] - RoPE variant ('default', 'ntk', 'yarn')
- * @property {boolean} [computeFreqs] - Whether to compute frequencies
- * @property {boolean} [applyToQK] - Apply to both Q and K
- */
 
-/**
- * Select RoPE kernel variant.
- * @param {RopeContext} context
- * @returns {string} Variant name
- */
 export function selectRope(context) {
   const { ropeType = 'default', computeFreqs = false, applyToQK = true } = context;
 
@@ -532,20 +399,7 @@ export function selectRope(context) {
 // SiLU/Activation Selection
 // =============================================================================
 
-/**
- * Context for activation kernel selection.
- * @typedef {Object} ActivationContext
- * @property {string} [activation] - Activation type ('silu', 'gelu', 'geglu')
- * @property {boolean} [hasGate] - Whether gated activation
- * @property {boolean} [rowSplit] - Gate/up split by rows
- * @property {boolean} [useVec4] - Prefer vec4 variants
- */
 
-/**
- * Select activation kernel variant.
- * @param {ActivationContext} context
- * @returns {string} Variant name
- */
 export function selectActivation(context) {
   const {
     activation = 'silu',
@@ -576,12 +430,6 @@ export function selectActivation(context) {
 // Residual Selection
 // =============================================================================
 
-/**
- * Select residual kernel variant.
- * @param {Object} context
- * @param {boolean} [context.useVec4]
- * @returns {string} Variant name
- */
 export function selectResidual(context) {
   const { useVec4 = true } = context;
   return useVec4 ? 'vec4' : 'default';
@@ -591,14 +439,6 @@ export function selectResidual(context) {
 // Scatter Add Selection
 // =============================================================================
 
-/**
- * Select scatter add kernel variant for MoE.
- * @param {Object} context
- * @param {boolean} [context.useVec4]
- * @param {boolean} [context.accumulate] - Accumulate mode
- * @param {boolean} [context.dynamic] - Dynamic indices
- * @returns {string} Variant name
- */
 export function selectScatterAdd(context) {
   const { useVec4 = true, accumulate = false, dynamic = false } = context;
 

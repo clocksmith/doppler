@@ -2,6 +2,39 @@
   "name": "default",
   "description": "Default DOPPLER configuration with balanced settings",
   "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": true,
+          "file": null,
+          "append": true
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 1000
+        },
+        "logLevel": {
+          "defaultLogLevel": "info"
+        },
+        "trace": {
+          "enabled": false,
+          "categories": ["all"],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "file": null
+        }
+      }
+    },
+    "loading": {
+      "storage": {
+        "alignment": {
+          "bufferAlignmentBytes": 256
+        }
+      },
+      "distribution": {
+        "cdnBasePath": "https://huggingface.co",
+        "progressUpdateIntervalMs": 100
+      }
+    },
     "inference": {
       "batching": {
         "maxTokens": 512
@@ -12,52 +45,23 @@
         "topP": 0.95,
         "repetitionPenalty": 1.0,
         "greedyThreshold": 0.01
-      }
-    },
-    "kvcache": {
-      "maxSeqLen": 8192,
-      "layout": "contiguous",
-      "pageSize": 256,
-      "kvDtype": "f16"
-    },
-    "debug": {
-      "logOutput": {
-        "stdout": true,
-        "file": null,
-        "append": true
       },
-      "logHistory": {
-        "maxLogHistoryEntries": 1000
+      "kvcache": {
+        "maxSeqLen": 8192,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "kvDtype": "f16"
       },
-      "logLevel": {
-        "defaultLogLevel": "info"
-      },
-      "trace": {
-        "enabled": false,
-        "categories": ["all"],
-        "layers": null,
-        "maxDecodeSteps": 0,
-        "file": null
+      "moe": {
+        "routing": {
+          "topK": 2,
+          "routerDtype": "f32",
+          "normalizeWeights": true
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 8
+        }
       }
-    },
-    "moe": {
-      "routing": {
-        "topK": 2,
-        "routerDtype": "f32",
-        "normalizeWeights": true
-      },
-      "cache": {
-        "dequantCacheMaxEntries": 8
-      }
-    },
-    "storage": {
-      "alignment": {
-        "bufferAlignmentBytes": 256
-      }
-    },
-    "distribution": {
-      "cdnBasePath": "https://huggingface.co",
-      "progressUpdateIntervalMs": 100
     }
   },
   "cli": {

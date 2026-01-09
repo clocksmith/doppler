@@ -83,7 +83,7 @@ npm run bench -- --config ./my-config.json   # Use file
 - Test harnesses parse `runtimeConfig` and call `setRuntimeConfig()` before pipeline/loader init.
 - For per-instance overrides, pass `PipelineContexts.runtimeConfig` to `createPipeline()`.
 - Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
-- Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is deprecated but mapped for back-compat in `src/config/runtime.js`.
+- Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is removed.
 
 **Layer Pipeline Plans (experimental):**
 - Model presets may define `inference.pipeline` to drive per-layer step order.
@@ -123,7 +123,7 @@ Also acceptable: CLI entry points (`cli/`, `serve.js`, `src/converter/node-conve
 
 Prefer config-driven probes over ad-hoc readbacks:
 
-- `runtime.debug.probes` targets specific tokens/dims without code edits.
+- `runtime.inference.debug.probes` targets specific tokens/dims without code edits.
 - Use `logits_final` probes for post-softcap comparisons on Gemma 2/3.
 
 ### Quantization Naming

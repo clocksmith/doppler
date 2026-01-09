@@ -61,7 +61,7 @@ Trace is separate from log level. Use it for tensor/kernel details:
 - `bench`: log=info, trace off
 - `debug`: log=verbose, trace on (all categories)
 
-**Config-first usage:** `runtime.debug.trace` is the source of truth; CLI `--trace` and URL params override config for quick experiments.
+**Config-first usage:** `runtime.shared.debug.trace` is the source of truth; CLI `--trace` and URL params override config for quick experiments.
 
 ## Config-Driven Probes (Preferred for Readbacks)
 
@@ -71,11 +71,13 @@ Use probes to read specific token/dimension values without adding ad-hoc logs:
 # Post-softcap logits probe (Gemma 2 parity)
 npm run debug -- --config '{
   "runtime": {
-    "debug": {
-      "trace": { "enabled": true, "categories": ["logits"] },
-      "probes": [
-        { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [476, 3868] }
-      ]
+    "shared": {
+      "debug": {
+        "trace": { "enabled": true, "categories": ["logits"] },
+        "probes": [
+          { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [476, 3868] }
+        ]
+      }
     }
   }
 }'

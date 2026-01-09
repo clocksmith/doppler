@@ -8,14 +8,13 @@
  */
 
 import { validateManifest } from './adapter-manifest.js';
+import { DEFAULT_ADAPTER_REGISTRY_CONFIG } from '../config/schema/index.js';
 
 // ============================================================================
 // IndexedDB Storage Implementation
 // ============================================================================
 
-const DB_NAME = 'doppler-adapter-registry';
-const DB_VERSION = 1;
-const STORE_NAME = 'adapters';
+const { dbName: DB_NAME, dbVersion: DB_VERSION, storeName: STORE_NAME } = DEFAULT_ADAPTER_REGISTRY_CONFIG;
 
 /**
  * IndexedDB-backed registry storage.
@@ -313,8 +312,8 @@ export class AdapterRegistry {
     }
 
     // Apply sorting
-    const sortField = options.sortBy || 'name';
-    const sortOrder = options.sortOrder || 'asc';
+    const sortField = options.sortBy || DEFAULT_ADAPTER_REGISTRY_CONFIG.defaultSortBy;
+    const sortOrder = options.sortOrder || DEFAULT_ADAPTER_REGISTRY_CONFIG.defaultSortOrder;
     const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
 
     entries.sort((a, b) => {
