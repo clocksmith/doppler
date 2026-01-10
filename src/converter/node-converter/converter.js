@@ -31,7 +31,7 @@ import { parseGGUFFile } from '../../formats/gguf/index.js';
 import { writeRDRR } from '../writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from '../quantizer.js';
 import { shouldQuantize as shouldQuantizeCore } from '../core.js';
-import { buildManifestInference } from '../manifest-inference.js';
+import { buildManifestInference, inferEmbeddingOutputConfig } from '../manifest-inference.js';
 import { resolvePreset, createConverterConfig } from '../../config/index.js';
 
 const BYTES_PER_MB = 1024 * 1024;
@@ -264,6 +264,14 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const headDim = configRec.head_dim ??
     ((configRec.hidden_size / configRec.num_attention_heads) || 64);
   const manifestInference = buildManifestInference(resolvedPreset, config, headDim);
+  if (lmHeadDtypeRaw == null) {
+    manifestInference.output.tieWordEmbeddings = true;
+  }
+  const embeddingOutput = inferEmbeddingOutputConfig(tensorMap);
+  if (embeddingOutput) {
+    manifestInference.output.embeddingTranspose = embeddingOutput.embeddingTranspose;
+    manifestInference.output.embeddingVocabSize = embeddingOutput.embeddingVocabSize;
+  }
   verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
 
   const writerOpts = {
@@ -396,6 +404,14 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     const headDim = ggufHeadDim ??
       ((config.hidden_size / config.num_attention_heads) || 64);
     const manifestInference = buildManifestInference(resolvedPreset, config, headDim);
+    if (lmHeadDtypeRaw == null) {
+      manifestInference.output.tieWordEmbeddings = true;
+    }
+    const embeddingOutput = inferEmbeddingOutputConfig(new Map(tensors.map((t) => [t.name, t])));
+    if (embeddingOutput) {
+      manifestInference.output.embeddingTranspose = embeddingOutput.embeddingTranspose;
+      manifestInference.output.embeddingVocabSize = embeddingOutput.embeddingVocabSize;
+    }
     verboseLog(`Inference config: rmsNormWeightOffset=${manifestInference.normalization.rmsNormWeightOffset}, attnLogitSoftcapping=${manifestInference.attention.attnLogitSoftcapping}`);
 
     const writerOpts = {

@@ -145,6 +145,8 @@ export class DopplerLoader {
   #memoryMonitor = null;
   /** @type {string | null} */
   #tensorsJsonUrl = null;
+  /** @type {((shardIndex: number) => Promise<ArrayBuffer>) | null} */
+  #loadShardOverride = null;
 
   /**
    * @param {import('../config/schema/loading.schema.js').LoadingConfigSchema} [loadingConfig]
@@ -232,6 +234,13 @@ export class DopplerLoader {
    */
   async #loadShard(shardIndex) {
     return this.shardCache.load(shardIndex);
+  }
+
+  /**
+   * @returns {(shardIndex: number) => Promise<ArrayBuffer>}
+   */
+  #getLoadShard() {
+    return this.#loadShardOverride ?? ((idx) => this.#loadShard(idx));
   }
 
   /**
@@ -428,13 +437,13 @@ export class DopplerLoader {
     /** @type {Set<number>} */
     const loadedShardIndices = new Set();
     let inLayerPhase = false;
-    const originalLoadShard = this.#loadShard.bind(this);
+    const originalLoadShard = (shardIndex) => this.#loadShard(shardIndex);
 
     /**
      * @param {number} shardIndex
      * @returns {Promise<ArrayBuffer>}
      */
-    this.#loadShard = async (shardIndex) => {
+    this.#loadShardOverride = async (shardIndex) => {
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
       const data = await originalLoadShard(shardIndex);
@@ -544,7 +553,7 @@ export class DopplerLoader {
     } catch (error) {
       loadError = error;
     } finally {
-      this.#loadShard = originalLoadShard;
+      this.#loadShardOverride = null;
       if (this.#memoryMonitor) {
         this.#stopMemoryLogging(loadError ? 'failed' : 'complete');
       }
@@ -635,7 +644,8 @@ export class DopplerLoader {
    * @returns {Promise<Uint8Array>}
    */
   async #assembleShardData(location, name) {
-    return assembleShardData(location, name, (idx) => this.#loadShard(idx));
+    const loadShard = this.#getLoadShard();
+    return assembleShardData(location, name, loadShard);
   }
 
   /**
@@ -725,10 +735,11 @@ export class DopplerLoader {
    * @returns {import('./expert-loader.js').ExpertLoaderContext}
    */
   #getExpertLoaderContext() {
+    const loadShard = this.#getLoadShard();
     return {
       manifest: this.manifest,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
-      loadShard: (idx) => this.#loadShard(idx),
+      loadShard,
       shardCache: this.shardCache,
       expertCache: this.expertCache,
       experts: this.experts,
