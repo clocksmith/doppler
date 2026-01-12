@@ -1,8 +1,10 @@
 # Performance Gap Analysis
 
 **Date:** 2026-01-03
-**Status:** Open (F16 partially implemented, batching workaround applied)
+**Status:** Open (performance gap remains; F16 pipeline now end-to-end for Gemma 2)
 **Context:** DOPPLER vs WebLLM comparison on Gemma 2 2B Q4_K_M
+
+**Update (2026-01-11):** F16 activations now run end-to-end on Gemma 2/3 when `shader-f16` is available (gather, matmul/GEMV, attention, RoPE, sampling). This closes Issue 1 below; see `docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md`.
 
 ## Current State
 
@@ -27,7 +29,7 @@ outputDtype = 'f32',  // DEFAULT IS F32
 - Bandwidth per token: 26 layers × 2304 hidden × 4 bytes = **238 KB/token**
 - With F16: 26 × 2304 × 2 = **119 KB/token** (2x reduction)
 
-### Status: PARTIALLY IMPLEMENTED (fundamental architecture issue discovered)
+### Status: RESOLVED (F16 activations end-to-end with shader-f16)
 
 ### Completed
 
@@ -51,42 +53,22 @@ outputDtype = 'f32',  // DEFAULT IS F32
 - `src/gpu/kernels/rmsnorm_f16.wgsl` - RMSNorm with F16 I/O, F32 reduction precision
 - `src/gpu/kernels/silu_f16.wgsl` - SiLU, SiLU-gate, SwiGLU rowsplit, GeGLU rowsplit with F16 I/O
 
-### Fundamental Architecture Issue (discovered 2026-01-03)
+### Resolution (2026-01-11)
 
-The pipeline cannot use F16 activations because the embedding stage is F32-only:
+F16 activations now run end-to-end on supported devices:
 
-1. **Embedding (gather.js)** - Always outputs F32, no F16 output variant
-2. **Matmul mixed-precision** - `f16w_f32a` kernel (F16 weights + F32 activations) outputs F32, not F16
-3. **Cascade effect** - Layer 0 receives F32, so all RMSNorms and kernels fall back to F32
+1. **Embedding output** - `gather_f16*` variants emit F16 hidden states
+2. **Matmul/GEMV** - F16 output variants selected for decode and LM head
+3. **Attention/RoPE/Sampling** - F16 paths selected when activations/KV are F16
 
-```
-Embedding → F32 → Layer0 input_norm → F32 → Q/K/V (f16w_f32a) → F32 → ...
-                                              ^-- outputs F32 even with outputDtype='f16'
-```
-
-The `canUseF16()` check in RMSNorm correctly detects F32 buffers and falls back to F32 shaders,
-preventing garbage output but also preventing F16 benefit.
-
-### Fixes Required for True F16 Activations
-
-1. **Add F16 output to gather.wgsl** - New variant that converts F32 embeddings to F16 output
-2. **Add F32→F16 matmul variant** - Or add post-matmul cast kernel
-3. **Update scale.wgsl** - F16 variant for embedding scaling
-
-### Current Behavior with `--config f16-activations`
-
-All operations fall back to F32 due to dtype propagation. Output is correct (no garbage) but
-no bandwidth reduction is achieved.
-
-### Benchmark
+Example:
 
 ```bash
-# Currently falls back to F32 throughout:
-npm run debug -- -m gemma-2-2b-it --config f16-activations
-
-# Future: After gather.wgsl F16 support:
-npm run bench -- --filter matmul --config f16-activations
+npm run debug -- --model gemma-2-2b-it-wf16 --max-tokens 8 --chat \
+  --text "Explain why the sky is blue." --trace kernels --gpu-profile
 ```
+
+Expected trace: `gather_f16*`, `attention_small_f16`, `sample_f16`, and GEMV F16 variants.
 
 ---
 
@@ -102,25 +84,18 @@ trace.kernels(`Q4K FUSED: ... (WARNING: 2.3x slower than dequant)`);
 useFusedQ4K = false;  // Default is dequant-first
 ```
 
-### Status: ✓ ALREADY OPTIMAL
+### Status: CONFIGURABLE (kernel-path driven)
 
-The warning only fires when `useFusedQ4K=true` (opt-in for VRAM-constrained scenarios). Default behavior is dequant-first which is 2.3x faster.
-
-### Verification
-
-Device log shows:
-```
-[Loader] Initialized (f16, subgroups, unified)
-```
-
-No "Q4K FUSED" trace messages in output - confirms dequant path is active.
+Auto-selection now prefers fused Q4K when subgroups + F16 activations are available
+(`gemma2-q4k-fused-f16a`). Dequant-first paths remain available (`gemma2-q4k-dequant-f16a/f32a`)
+and can be forced via kernel path overrides for perf comparisons.
 
 ### Trade-off Matrix
 
 | Mode | Speed | VRAM | Use Case |
 |------|-------|------|----------|
-| Dequant-first | Fast (default) | High | Small models (≤4B) |
-| Fused | 2.3x slower | Low | Large models (9B+) |
+| Dequant-first | Fast (baseline) | High | Small models (≤4B) |
+| Fused | Device-dependent | Low | Large models (9B+) |
 
 ---
 
@@ -166,10 +141,10 @@ else → 'streaming'  // Slow fallback
 
 | Issue | Impact | Effort | Priority |
 |-------|--------|--------|----------|
-| F16 activations | 2x bandwidth | High | P2 (requires gather.wgsl F16) |
-| Batching bug | 37% speedup | Medium | P1 ✓ FIXED |
-| Fused Q4K | N/A (already fast) | None | Done |
-| Streaming fallback | N/A (not triggered) | None | Done |
+| F16 activations | 2x bandwidth | High | ✓ RESOLVED |
+| Batching bug | 37% speedup | Medium | ✓ FIXED |
+| Fused Q4K | N/A | None | Configurable |
+| Streaming fallback | N/A | None | Not triggered |
 
 ## Batching Bug Fix (2026-01-03)
 
@@ -185,22 +160,22 @@ else → 'streaming'  // Slow fallback
 
 ## Remaining Performance Gap
 
-After batching fix, current decode speed: ~5.5 tok/s vs WebLLM 20.3 tok/s (2.7x gap)
+After batching fix, decode gap remains; profiling shows matmul and attention dominate decode time.
 
 | Factor | Contribution | Status |
 |--------|--------------|--------|
-| F32 activations | ~30% | Blocked (needs Tensor abstraction) |
-| Batching | N/A | ✓ FIXED |
-| Unknown | ~40% | Needs GPU profiling |
+| F16 activations | Bandwidth | ✓ RESOLVED |
+| Matmul throughput | High | Needs kernel tuning |
+| Attention throughput | Medium | Needs kernel tuning |
 
 ## Q4K Strategy Fix (2026-01-06)
 
 **Problem:** gemma2.json preset effectively forced the fused Q4K path (legacy `q4kStrategy: "fused_q4k"`), which forces the slow on-the-fly dequant path for ALL Q4K matmuls (2.3x slower than dequant-first).
 
-**Fix:** Use `kernelPath: "q4k-dequant-f16"` (legacy `q4kStrategy: "dequant_f16"`) for Gemma 2 presets.
+**Fix:** Use `kernelPath: "gemma2-q4k-dequant-f16a"` for Gemma 2 presets.
 
 **Result:**
-| Metric | Before (fused_q4k) | After (dequant_f16) | Improvement |
+| Metric | Before (fused_q4k) | After (dequant_f16a) | Improvement |
 |--------|-------------------|---------------------|-------------|
 | Overall | ~1.3 tok/s | ~9 tok/s | 6.9x |
 | Pure decode | N/A | ~12-13 tok/s | - |
@@ -210,45 +185,12 @@ After batching fix, current decode speed: ~5.5 tok/s vs WebLLM 20.3 tok/s (2.7x 
 - WebLLM decode: ~20.3 tok/s
 - Gap: **1.6x** (down from perceived 30x due to wrong Q4K strategy)
 
-## F16 Activations: Architecture Issue (2026-01-03)
+**Update (2026-01-11):** Kernel paths now control Q4K selection directly. Use
+`runtime.inference.kernelPath` to force `gemma2-q4k-fused-f16a` or
+`gemma2-q4k-dequant-f16a` depending on device performance.
 
-**Problem:** The `--config f16-activations` preset produces garbage output because:
-1. Embedding (gather.js) outputs F32
-2. Downstream kernels try to use F16 variants based on config
-3. Dtype mismatches cause silent data corruption
+## F16 Activations: Resolved
 
-**Root cause:** Dtype is tracked implicitly (WeakMap + runtime checks) rather than structurally.
-
-**Attempted fixes:**
-- Added `canUseF16()` checks to kernels → still broken
-- Fixed decode-buffers.js to allocate F32 sizes → still broken
-- Multiple dtype propagation paths exist, each needs fixing
-
-**Solution: Tensor Abstraction Layer**
-
-Created `src/gpu/tensor.js`:
-```typescript
-interface Tensor {
-  buffer: GPUBuffer;
-  dtype: 'f16' | 'f32';
-  shape: readonly number[];
-}
-```
-
-**Migration plan:**
-1. Migrate gather.js → returns Tensor with explicit dtype
-2. Migrate rmsnorm.js, silu.js, matmul.js → Tensor input/output
-3. Update layer.js to pass Tensors through pipeline
-4. Remove WeakMap dtype tracking
-
-**Benefits:**
-- Dtype structurally required (can't forget)
-- Mismatches caught at operation boundaries
-- Enables future dtypes (BF16, INT8)
-
-**Current state:** F16 preset disabled (uses F32 fallback).
-
-**Next steps:**
-1. Complete Tensor abstraction migration
-2. Add F16 output to gather.wgsl
-3. Profile with GPU timestamps for remaining bottlenecks
+Original dtype propagation issues are resolved. See
+`docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md` for the verified F16 path
+and debug commands.

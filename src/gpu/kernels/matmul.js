@@ -4,30 +4,28 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
 import { KernelBase } from './kernel-base.js';
 import { ALIGNMENT, GPU_LIMITS, QUANTIZATION, TILE_SIZES } from './constants.js';
 import { getKernelConfig, createUniformBufferWithView, getOrCreateBindGroupLayout, getCachedPipeline, createPipeline, getPipelineFast, hasRequiredFeatures } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
+import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 
 // =============================================================================
 // Q4K Variant Lookup Tables
 // =============================================================================
 
 
-const Q4K_FUSED_VARIANTS = {
-  'true/true': 'q4_fused_multicol_f16',
-  'true/false': 'q4_fused_multicol',
-  'false/true': 'q4_fused_batched_f16',
-  'false/false': 'q4_fused_batched',
-};
-
-
-function selectQ4KFusedVariant(isM1, wantF16Output) {
-  const key = `${isM1}/${wantF16Output}`;
-  return Q4K_FUSED_VARIANTS[key] ?? 'q4_fused_batched';
+function selectQ4KFusedVariant(isM1, wantF16Output, aDtype) {
+  if (!wantF16Output) {
+    return isM1 ? 'q4_fused_multicol' : 'q4_fused_batched';
+  }
+  if (aDtype === 'f16') {
+    return isM1 ? 'q4_fused_multicol_f16a' : 'q4_fused_batched_f16a';
+  }
+  return isM1 ? 'q4_fused_multicol_f16' : 'q4_fused_batched_f16';
 }
 
 
@@ -104,6 +102,7 @@ class MatmulKernel extends KernelBase {
 
 // Debug counter to limit logging
 let _transposeDebugCount = 0;
+const MATMUL_OVERRIDE_WARNINGS = new Set();
 
 
 function resolveTransposeB(B, transposeBOption) {
@@ -201,7 +200,16 @@ function isGemvVariant(variant) {
 }
 
 
-function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities, strict) {
+function supportsF16Input(variant) {
+  return variant === 'f16' || variant === 'f16_vec4' || variant.endsWith('_f16a');
+}
+
+function requiresF32Input(variant) {
+  return !supportsF16Input(variant);
+}
+
+
+function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, requestedOutputDtype, capabilities, strict) {
   const override = variantOverride.trim();
   if (!override) return null;
 
@@ -210,7 +218,10 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities,
     if (strict) {
       throw new Error(message);
     }
-    log.warn('Matmul', message);
+    if (!MATMUL_OVERRIDE_WARNINGS.has(message)) {
+      MATMUL_OVERRIDE_WARNINGS.add(message);
+      log.warn('Matmul', message);
+    }
     return null;
   };
 
@@ -219,6 +230,17 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, capabilities,
     config = getKernelConfig('matmul', override);
   } catch {
     return failOrWarn(`Unknown matmul kernel variant "${variantOverride}".`);
+  }
+
+  const outputDtype = config.outputDtype ?? 'f32';
+  if (requestedOutputDtype && outputDtype !== requestedOutputDtype) {
+    return failOrWarn(
+      `Matmul kernel "${variantOverride}" outputs ${outputDtype} but ${requestedOutputDtype} was requested.`
+    );
+  }
+
+  if (supportsF16Input(override) && aDtype !== 'f16') {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires f16 activations but A dtype is ${aDtype}.`);
   }
 
   if (!hasRequiredFeatures(config.requires, capabilities)) {
@@ -248,10 +270,19 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   const capabilities = getKernelCapabilities();
   const strict = getKernelPathStrict();
   const phase = M === 1 ? 'decode' : 'prefill';
-  const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
+  let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
+
+  if (pathVariant && !strict && M === 1 && bDtype === 'f16' && capabilities.hasSubgroups) {
+    const { multicolThreshold } = getKernelThresholds().matmul;
+    if (pathVariant === 'gemv_f16a' && aDtype === 'f16' && requestedOutputDtype === 'f16') {
+      pathVariant = N > multicolThreshold ? 'gemv_subgroup_multicol_f16a' : 'gemv_subgroup_f16a';
+    } else if (pathVariant === 'gemv' && aDtype === 'f32') {
+      pathVariant = N > multicolThreshold ? 'gemv_subgroup_multicol' : 'gemv_subgroup';
+    }
+  }
 
   if (pathVariant) {
-    const override = resolveMatmulOverride(pathVariant, M, aDtype, bDtype, capabilities, strict);
+    const override = resolveMatmulOverride(pathVariant, M, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
     if (override) {
       return override;
     }
@@ -269,7 +300,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
     if (canFused) {
       useQ4KFused = true;
       const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
-      variant = selectQ4KFusedVariant(M === 1, wantF16Output);
+      variant = selectQ4KFusedVariant(M === 1, wantF16Output, aDtype);
     }
   }
 
@@ -282,18 +313,23 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
       outputDtype: requestedOutputDtype,
     });
 
-    useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32';
+    const canGemv = M === 1 && effectiveBDtype === 'f16' && capabilities.hasF16;
+    const wantsF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
+    const useF16Gemv = canGemv && aDtype === 'f16' && wantsF16Output;
+    const useF32Gemv = canGemv && aDtype === 'f32';
+
+    useGemv = useF16Gemv || useF32Gemv;
     if (useGemv) {
       if (capabilities.hasSubgroups) {
         // Use configurable threshold from schema
         const { multicolThreshold } = getKernelThresholds().matmul;
         if (N > multicolThreshold) {
-          variant = 'gemv_subgroup_multicol';
+          variant = useF16Gemv ? 'gemv_subgroup_multicol_f16a' : 'gemv_subgroup_multicol';
         } else {
-          variant = 'gemv_subgroup';
+          variant = useF16Gemv ? 'gemv_subgroup_f16a' : 'gemv_subgroup';
         }
       } else {
-        variant = 'gemv';
+        variant = useF16Gemv ? 'gemv_f16a' : 'gemv';
       }
     }
   }
@@ -329,7 +365,7 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config) {
   // Get tileM from variantMetadata (default 4 for batched variants)
   const tileM = config.variantMetadata?.tileM ?? 4;
 
-  if (useGemv && (variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol')) {
+  if (useGemv && variant.startsWith('gemv_subgroup')) {
     const gemvWorkgroupsX = Math.ceil(N / colsPerWg);
     if (gemvWorkgroupsX > maxWorkgroups) {
       workgroupsX = maxWorkgroups;
@@ -467,19 +503,6 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
   }
 
   validateMatmulOffsets('runMatmul', aOffset, bOffset, cOffset);
-  const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
-    'runMatmul',
-    A.buffer,
-    bBuffer,
-    M,
-    N,
-    K,
-    aDtype,
-    bDtype,
-    transposeB,
-    aOffset,
-    bOffset
-  );
 
   const { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
     'run',
@@ -491,6 +514,32 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
     transposeB,
     requestedOutputDtype,
     options
+  );
+
+  let matmulInput = A;
+  let matmulADtype = aDtype;
+  let castedInput = null;
+  if (matmulADtype === 'f16' && requiresF32Input(variant)) {
+    if (isTraceEnabled('kernels')) {
+      trace.kernels(`Matmul: casting f16 activations to f32 for variant=${variant}`);
+    }
+    castedInput = await castF16ToF32(A);
+    matmulInput = castedInput;
+    matmulADtype = 'f32';
+  }
+
+  const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
+    'runMatmul',
+    matmulInput.buffer,
+    bBuffer,
+    M,
+    N,
+    K,
+    matmulADtype,
+    bDtype,
+    transposeB,
+    aOffset,
+    bOffset
   );
 
   if (isTraceEnabled('kernels') && bDtype === 'q4k') {
@@ -546,11 +595,14 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
   );
 
   // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
-  const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
+  const isQ4KF16 = variant === 'q4_fused_multicol_f16' ||
+    variant === 'q4_fused_batched_f16' ||
+    variant === 'q4_fused_multicol_f16a' ||
+    variant === 'q4_fused_batched_f16a';
   
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 1, resource: { buffer: matmulInput.buffer, offset: aOffset, size: aBindingSize } },
     { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } },
   ];
 
@@ -568,6 +620,9 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
 
   kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
   releaseUniformBuffer(uniformBuffer);
+  if (castedInput) {
+    releaseBuffer(castedInput.buffer);
+  }
 
   return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
 }
@@ -608,19 +663,6 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   const requestedOutputDtype = options.outputDtype || A.dtype;
 
   validateMatmulOffsets('recordMatmul', aOffset, bOffset, cOffset);
-  const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
-    'recordMatmul',
-    A.buffer,
-    bBuffer,
-    M,
-    N,
-    K,
-    aDtype,
-    bDtype,
-    transposeB,
-    aOffset,
-    bOffset
-  );
 
   const { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
     'record',
@@ -632,6 +674,33 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     transposeB,
     requestedOutputDtype,
     options
+  );
+
+  let matmulInput = A;
+  let matmulADtype = aDtype;
+  let castedInput = null;
+  if (matmulADtype === 'f16' && requiresF32Input(variant)) {
+    if (isTraceEnabled('kernels')) {
+      trace.kernels(`Matmul: casting f16 activations to f32 for variant=${variant}`);
+    }
+    castedInput = await recordCastF16ToF32(recorder, A);
+    recorder.trackTemporaryBuffer(castedInput.buffer);
+    matmulInput = castedInput;
+    matmulADtype = 'f32';
+  }
+
+  const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
+    'recordMatmul',
+    matmulInput.buffer,
+    bBuffer,
+    M,
+    N,
+    K,
+    matmulADtype,
+    bDtype,
+    transposeB,
+    aOffset,
+    bOffset
   );
 
   const config = getKernelConfig('matmul', variant);
@@ -674,11 +743,14 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
   );
 
   // Q4K F16 variants use binding 4 for output (F16), all other variants use binding 3
-  const isQ4KF16 = variant === 'q4_fused_multicol_f16' || variant === 'q4_fused_batched_f16';
+  const isQ4KF16 = variant === 'q4_fused_multicol_f16' ||
+    variant === 'q4_fused_batched_f16' ||
+    variant === 'q4_fused_multicol_f16a' ||
+    variant === 'q4_fused_batched_f16a';
   
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: A.buffer, offset: aOffset, size: aBindingSize } },
+    { binding: 1, resource: { buffer: matmulInput.buffer, offset: aOffset, size: aBindingSize } },
     { binding: 2, resource: { buffer: bBuffer, offset: bOffset, size: bBindingSize } },
   ];
 

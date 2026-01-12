@@ -24,9 +24,11 @@ import {
 import { createTensor } from '../../../gpu/tensor.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { log } from '../../../debug/index.js';
+import { log, trace } from '../../../debug/index.js';
 
-import { releaseOrTrack } from './types.js';
+import { releaseOrTrack, shouldDebugLayer } from './types.js';
+
+const ATTENTION_DTYPE_LOGGED = new Set();
 
 /**
  * Record attention for a single layer (batched, no submit).
@@ -79,9 +81,11 @@ export async function recordLayerAttentionGPU(
   } = config;
 
   const wantsF16Output = input.dtype === 'f16';
+  const kvCacheDtype = state.kvCache?.kvDtype ?? (wantsF16Output ? 'f16' : 'f32');
+  const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
-  if (wantsF16Output) {
+  if (wantsF16Output && !allowF16Attention) {
     attentionInput = await recordCastF16ToF32(recorder, input);
     attentionInputTemp = true;
   }
@@ -108,6 +112,17 @@ export async function recordLayerAttentionGPU(
     if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
 
+  const debugLayers = debugFlags.debugLayers;
+  const shouldLogLayer = debugLayers === null ? layerIdx === 0 : shouldDebugLayer(layerIdx, debugLayers);
+  if (shouldLogLayer) {
+    const phase = isPrefill ? 'prefill' : 'decode';
+    const logKey = `L${layerIdx}_${phase}_dtypes`;
+    if (!ATTENTION_DTYPE_LOGGED.has(logKey)) {
+      ATTENTION_DTYPE_LOGGED.add(logKey);
+      trace.attn(layerIdx, `dtypes: activation=${config.activationDtype ?? 'unknown'}, input=${input.dtype}, normed=${normed.dtype}`);
+    }
+  }
+
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
   const useF16Activations = attentionInput.dtype === 'f16';
@@ -122,7 +137,7 @@ export async function recordLayerAttentionGPU(
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
                   getLoRAModule(lora, layerIdx, 'k_proj') ||
                   getLoRAModule(lora, layerIdx, 'v_proj');
-  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA && !useF16Activations;
+  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA;
 
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     // FUSED PATH: Single matmul for Q/K/V, then split
@@ -134,6 +149,7 @@ export async function recordLayerAttentionGPU(
       transposeB: 'auto',
       role: 'qkv_proj',
       layerIdx,
+      outputDtype: useF16Activations ? 'f16' : undefined,
     });
 
     // Split fused output into Q, K, V (returns Tensors)
@@ -381,7 +397,7 @@ export async function recordLayerAttentionGPU(
     const oProjDtype = getWeightDtype(oProjBuf);
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
                         residualTensor &&
-                        residualTensor.dtype === 'f32' &&
+                        residualTensor.dtype === attnOutput.dtype &&
                         !loraO &&
                         oProjDtype === 'f16';
 

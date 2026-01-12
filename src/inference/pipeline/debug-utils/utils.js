@@ -40,7 +40,7 @@ export function f16ToF32(h) {
  * Decode a GPU readback buffer to Float32Array.
  * Handles both f16 and f32 dtypes.
  * @param {ArrayBuffer} buffer
- * @param {'f16' | 'f32'} dtype
+ * @param {'f16' | 'f32' | 'bf16'} dtype
  * @returns {Float32Array}
  */
 export function decodeReadback(buffer, dtype) {
@@ -49,6 +49,15 @@ export function decodeReadback(buffer, dtype) {
   }
   const src = new Uint16Array(buffer);
   const out = new Float32Array(src.length);
+  if (dtype === 'bf16') {
+    const tmp = new Uint32Array(1);
+    const f32View = new Float32Array(tmp.buffer);
+    for (let i = 0; i < src.length; i++) {
+      tmp[0] = src[i] << 16;
+      out[i] = f32View[0];
+    }
+    return out;
+  }
   for (let i = 0; i < src.length; i++) {
     out[i] = f16ToF32(src[i]);
   }

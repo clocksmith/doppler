@@ -4,7 +4,13 @@
   "extends": "default",
   "runtime": {
     "inference": {
-      "kernelPath": "gemma2-q4k-dequant-f16"
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "kernelPath": "gemma2-q4k-dequant-f16a"
     }
   }
 }

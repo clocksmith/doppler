@@ -1,6 +1,7 @@
-import { createDopplerConfig } from './schema/index.js';
+import { createDopplerConfig, setKernelThresholds } from './schema/index.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
+setKernelThresholds(runtimeConfig.shared.kernelThresholds);
 
 export function getRuntimeConfig() {
   return runtimeConfig;
@@ -9,6 +10,7 @@ export function getRuntimeConfig() {
 export function setRuntimeConfig(overrides) {
   if (!overrides) {
     runtimeConfig = createDopplerConfig().runtime;
+    setKernelThresholds(runtimeConfig.shared.kernelThresholds);
     return runtimeConfig;
   }
 
@@ -17,11 +19,13 @@ export function setRuntimeConfig(overrides) {
   const merged = createDopplerConfig({ runtime: overrides }).runtime;
 
   runtimeConfig = merged;
+  setKernelThresholds(runtimeConfig.shared.kernelThresholds);
   return runtimeConfig;
 }
 
 export function resetRuntimeConfig() {
   runtimeConfig = createDopplerConfig().runtime;
+  setKernelThresholds(runtimeConfig.shared.kernelThresholds);
   return runtimeConfig;
 }
 

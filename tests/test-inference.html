@@ -124,6 +124,7 @@
         for await (const tokenText of pipeline.generate(prompt, {
           maxTokens,
           temperature,
+          profile: runtimeOverrides.profile === true,
           // Only pass useChatTemplate if explicitly overridden, else use model default
           ...(chatOverride !== undefined && { useChatTemplate: chatOverride }),
         })) {

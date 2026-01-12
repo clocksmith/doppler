@@ -45,7 +45,7 @@ Deep-dives on kernel implementations and optimization strategies:
 
 | Document | Content |
 |----------|---------|
-| [Model Support](plans/MODEL_SUPPORT.md) | Model compatibility matrix |
+| [Target Models](plans/TARGET_MODELS.md) | Benchmark priority list |
 | [Competitive Analysis](design/COMPETITIVE_ANALYSIS.md) | WebLLM, WeInfer, Transformers.js comparison |
 | [RDRR Format](design/RDRR_FORMAT.md) | Model format specification |
 
@@ -55,7 +55,7 @@ Deep-dives on kernel implementations and optimization strategies:
 
 - [Benchmark Harness](design/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
 - [Kernel Testing](design/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
-- [Kernel Tests (Implemented)](../tests/kernels/TODO.md) - Kernel correctness and microbenchmark tracking.
+- [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmark tracking.
 - [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and benchmark notes.
 
 ---
@@ -70,4 +70,4 @@ Deep-dives on kernel implementations and optimization strategies:
 
 Notes and incident writeups live in `docs/postmortems/`.
 
-*Last updated: December 2025*
+*Last updated: January 2026*

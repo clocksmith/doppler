@@ -41,7 +41,7 @@ graph TD
     end
 
     subgraph ConversionOptions["Conversion Options (node-converter.js)"]
-        O1[quantize: q4_k_m<br/>q4kLayout: row_wise<br/>computePrecision: auto]
+        O1[quantize: q4_k_m<br/>q4kLayout: row_wise<br/>computePrecision: f16 (default)]
         O2[quantize: q4_k_m<br/>q4kLayout: column_wise<br/>fuseGateUp: true]
         O3[quantize: f16<br/>computePrecision: f16]
         O4[quantize: mxfp4<br/>MoE experts]
@@ -84,7 +84,7 @@ graph TD
 **Dimensions:** 1 source model → ~10-20 RDRR variants
 - Quantization: {q4_k_m, q8_0, f16, bf16, f32, mxfp4}
 - Q4K layout: {row_wise, column_wise, flat}
-- Compute precision: {auto, f16, f32}
+- Compute precision: {f16 (default), f32, auto}
 - FFN fusion: {true, false}
 
 ---
@@ -100,7 +100,7 @@ graph LR
     end
 
     subgraph ManifestFields["Manifest Fields"]
-        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;q4k-fused"]
+        F1["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: row_wise<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;gemma2-q4k-fused-f16a"]
         F2["architecture: MixtralForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 8<br/>&nbsp;&nbsp;numExpertsPerTok: 2<br/>&nbsp;&nbsp;expertShardMap"]
         F3["architecture: GPTOSSForCausalLM<br/>moeConfig:<br/>&nbsp;&nbsp;numExperts: 32<br/>&nbsp;&nbsp;numExpertsPerTok: 4<br/>expertQuant: MXFP4"]
     end
@@ -368,7 +368,7 @@ graph TD
     end
 
     subgraph Stage4["4. Manifest Config"]
-        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;q4k-dequant-f16"]
+        Manifest["architecture: GemmaForCausalLM<br/>quantization: Q4_K_M<br/>q4kLayout: column_wise<br/>config:<br/>&nbsp;&nbsp;hiddenSize: 1152<br/>&nbsp;&nbsp;numLayers: 26<br/>&nbsp;&nbsp;headDim: 256<br/>optimizations.kernelPath:<br/>&nbsp;&nbsp;gemma2-q4k-dequant-f16a"]
     end
 
     subgraph Stage5["5. Hardware Detection (M3)"]

@@ -15,6 +15,9 @@
     "rmsNormEps": 0.00001
   },
   "quantization": "F32",
+  "quantizationInfo": {
+    "compute": "f16"
+  },
   "hashAlgorithm": "sha256",
   "config": {
     "vocabSize": 1000,

@@ -427,7 +427,10 @@ function createManifest(
   }
   const preset = resolvePreset(presetId);
   const headDim = architecture.headDim || Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
-  const inference = buildManifestInference(preset, rawConfig, headDim);
+  const quantizationInfo = ggufInfo.quantization
+    ? { weights: ggufInfo.quantization, compute: 'f16' }
+    : null;
+  const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard

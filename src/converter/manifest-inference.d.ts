@@ -1,4 +1,4 @@
-import type { ManifestInferenceSchema, PresetSchema } from '../config/schema/index.js';
+import type { ManifestInferenceSchema, PresetSchema, QuantizationInfoSchema } from '../config/schema/index.js';
 
 /**
  * Detect whether model scales embeddings by sqrt(hiddenSize).
@@ -21,5 +21,6 @@ export declare function inferEmbeddingOutputConfig(
 export declare function buildManifestInference(
   preset: PresetSchema,
   config: Record<string, unknown>,
-  headDim?: number
+  headDim?: number,
+  quantizationInfo?: QuantizationInfoSchema | null
 ): ManifestInferenceSchema;

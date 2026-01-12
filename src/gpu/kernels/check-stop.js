@@ -14,6 +14,7 @@ struct StopUniforms {
     eosTokenId: u32,
     maxTokens: u32,
     currentPos: u32,
+    tokenIndex: u32,
 }
 
 struct ScalarU32 {
@@ -21,12 +22,12 @@ struct ScalarU32 {
 }
 
 @group(0) @binding(0) var<uniform> uniforms: StopUniforms;
-@group(0) @binding(1) var<storage, read> sampledToken: ScalarU32;
+@group(0) @binding(1) var<storage, read> sampledToken: array<u32>;
 @group(0) @binding(2) var<storage, read_write> shouldStop: ScalarU32;
 
 @compute @workgroup_size(1, 1, 1)
 fn main() {
-    let token = sampledToken.value;
+    let token = sampledToken[uniforms.tokenIndex];
     let isEOS = (token == uniforms.eosTokenId);
     let reachedMax = (uniforms.currentPos >= uniforms.maxTokens);
 
@@ -83,6 +84,7 @@ export function recordCheckStop(
     params.eosTokenId,
     params.maxTokens,
     params.currentPos,
+    params.tokenIndex ?? 0,
   ]);
   const uniformBuffer = createUniformBufferFromData('check_stop_uniforms', uniformData, recorder);
 
@@ -117,6 +119,7 @@ export async function checkStop(params) {
     params.eosTokenId,
     params.maxTokens,
     params.currentPos,
+    params.tokenIndex ?? 0,
   ]);
   const uniformBuffer = createUniformBufferFromData('check_stop_uniforms', uniformData, null, device);
 

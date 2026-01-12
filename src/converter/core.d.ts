@@ -118,6 +118,7 @@ export interface CreateManifestOptions {
   source?: string;
   inference?: ManifestInferenceSchema;
   modelType?: string;
+  quantizationInfo?: QuantizationInfoSchema;
 }
 
 /**

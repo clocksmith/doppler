@@ -173,7 +173,10 @@ export async function convertModel(files, options = {}) {
     const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
     const architecture = extractArchitecture(hfConfig || {}, ggufConfig);
     const headDim = architecture.headDim || 64;
-    const manifestInference = buildManifestInference(preset, rawConfig, headDim);
+    const quantizationInfo = modelInfo.quantization
+      ? { weights: modelInfo.quantization, compute: 'f16' }
+      : null;
+    const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
 
     // Create shard I/O adapter
     const shardIO = new BrowserShardIO(modelDir);

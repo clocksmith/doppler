@@ -59,6 +59,38 @@ export function detectScaleEmbeddings(preset, config) {
   return false;
 }
 
+function normalizeKernelDtype(value) {
+  if (!value) return null;
+  const lower = String(value).toLowerCase();
+  if (lower === 'bf16') return 'f16';
+  if (lower === 'fp16' || lower === 'float16') return 'f16';
+  if (lower === 'fp32' || lower === 'float32') return 'f32';
+  if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4' || lower === 'q4km') return 'q4k';
+  return lower;
+}
+
+function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
+  const kernelPaths = presetInference?.kernelPaths;
+  if (!kernelPaths) {
+    return presetInference?.kernelPath ?? null;
+  }
+
+  const weightKey = normalizeKernelDtype(quantizationInfo?.weights);
+  const computeKey = normalizeKernelDtype(quantizationInfo?.compute) ?? (quantizationInfo ? 'f16' : null);
+
+  const entry = (weightKey && kernelPaths[weightKey]) || kernelPaths.default;
+  if (typeof entry === 'string') {
+    return entry;
+  }
+  if (entry && computeKey && entry[computeKey]) {
+    return entry[computeKey];
+  }
+  if (entry && entry.default) {
+    return entry.default;
+  }
+  return presetInference?.kernelPath ?? null;
+}
+
 /**
  * Build ManifestInferenceSchema from resolved preset.
  *
@@ -66,8 +98,15 @@ export function detectScaleEmbeddings(preset, config) {
  * manifest schema format. This embeds all model-specific inference
  * parameters in the manifest at conversion time.
  */
-export function buildManifestInference(preset, config, headDim = 64) {
+export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null) {
   const presetInference = preset.inference || {};
+  const presetChatTemplate = presetInference.chatTemplate;
+  const chatTemplate = typeof presetChatTemplate === 'string'
+    ? { type: presetChatTemplate, enabled: true }
+    : {
+        type: presetChatTemplate?.type ?? null,
+        enabled: presetChatTemplate?.enabled ?? (presetChatTemplate?.type != null),
+      };
 
   // Build inference config with all required fields explicitly set
   // Use null for "not applicable" - no undefined allowed
@@ -100,6 +139,7 @@ export function buildManifestInference(preset, config, headDim = 64) {
       embeddingTranspose: false,
       embeddingVocabSize: null,
     },
+    chatTemplate,
   };
 
   // Add layer pattern if defined
@@ -122,7 +162,7 @@ export function buildManifestInference(preset, config, headDim = 64) {
   }
 
   // Add default kernel path based on preset ID and quantization
-  inference.defaultKernelPath = presetInference.kernelPath;
+  inference.defaultKernelPath = resolveKernelPathFromPreset(presetInference, quantizationInfo);
 
   return inference;
 }

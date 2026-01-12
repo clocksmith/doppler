@@ -171,7 +171,7 @@ export async function runFullInferenceBenchmark(opts) {
       await installLocalDopplerRoutes(page, opts);
     }
 
-    const relevantTags = ['[Benchmark]', '[Pipeline]', '[Loader]', '[DopplerLoader]', '[GPU]', '[Kernel]', '[Layer', '[LAYER', '[KERNEL]', '[KV]', '[ATTN]', '[FFN]', '[Embed]', '[Gather]', '[FUSED]', 'ERROR', 'WARN', 'error', 'Error'];
+    const relevantTags = ['[Benchmark]', '[Pipeline]', '[Loader]', '[DopplerLoader]', '[GPU]', '[Kernel]', '[Layer', '[LAYER', '[KERNEL]', '[KV]', '[ATTN]', '[FFN]', '[Embed]', '[Gather]', '[FUSED]', '[Profile]', 'ERROR', 'WARN', 'error', 'Error'];
     page.on('console', (msg) => {
       const text = msg.text();
       const isRelevant = relevantTags.some((tag) => text.includes(tag));

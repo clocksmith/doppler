@@ -5,30 +5,23 @@ import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 // Built-in Kernel Paths (imported at build time)
 // =============================================================================
 
-import gemma2Q4kFused from './presets/kernel-paths/gemma2-q4k-fused.json' with { type: 'json' };
-import gemma2Q4kDequantF32 from './presets/kernel-paths/gemma2-q4k-dequant-f32.json' with { type: 'json' };
-import gemma2Q4kDequantF16 from './presets/kernel-paths/gemma2-q4k-dequant-f16.json' with { type: 'json' };
-import gemma2F16Native from './presets/kernel-paths/gemma2-f16-native.json' with { type: 'json' };
+import gemma2Q4kFusedF16A from './presets/kernel-paths/gemma2-q4k-fused-f16a.json' with { type: 'json' };
+import gemma2Q4kFusedF32A from './presets/kernel-paths/gemma2-q4k-fused-f32a.json' with { type: 'json' };
+import gemma2Q4kDequantF32A from './presets/kernel-paths/gemma2-q4k-dequant-f32a.json' with { type: 'json' };
+import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a.json' with { type: 'json' };
+import gemma2F16F16A from './presets/kernel-paths/gemma2-f16-f16a.json' with { type: 'json' };
+import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { type: 'json' };
 
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
-  'gemma2-q4k-fused': gemma2Q4kFused,
-  'gemma2-q4k-dequant-f32': gemma2Q4kDequantF32,
-  'gemma2-q4k-dequant-f16': gemma2Q4kDequantF16,
+  'gemma2-q4k-fused-f16a': gemma2Q4kFusedF16A,
+  'gemma2-q4k-fused-f32a': gemma2Q4kFusedF32A,
+  'gemma2-q4k-dequant-f16a': gemma2Q4kDequantF16A,
+  'gemma2-q4k-dequant-f32a': gemma2Q4kDequantF32A,
 
-  // Gemma 2 F16 native
-  'gemma2-f16-native': gemma2F16Native,
-
-  // Aliases for generic access (model-agnostic)
-  'q4k-fused': gemma2Q4kFused,
-  'q4k-dequant-f32': gemma2Q4kDequantF32,
-  'q4k-dequant-f16': gemma2Q4kDequantF16,
-  'f16-native': gemma2F16Native,
-
-  // Semantic aliases
-  'q4k-safe': gemma2Q4kDequantF32, // Max compatibility, no fusion
-  'q4k-fast': gemma2Q4kFused, // Best throughput
-  'q4k-balanced': gemma2Q4kDequantF16, // Good speed/accuracy tradeoff
+  // Gemma 2 F16 variants
+  'gemma2-f16-f16a': gemma2F16F16A,
+  'gemma2-f16-f32a': gemma2F16F32A,
 };
 
 // =============================================================================
@@ -54,45 +47,12 @@ export function resolveKernelPath(ref) {
   return ref;
 }
 
-export function autoSelectKernelPath(
-  quantization,
-  modelFamily,
-  capabilities = {}
-) {
-  const family = modelFamily.toLowerCase();
-  const familyPrefix =
-    family.includes('gemma3') ? 'gemma3' :
-      family.includes('gemma') ? 'gemma2' :
-        null;
-
-  const resolveAutoPath = (suffix) => {
-    if (familyPrefix) {
-      const prefixed = getKernelPath(`${familyPrefix}-${suffix}`);
-      if (prefixed) return prefixed;
-    }
-    return resolveKernelPath(suffix);
-  };
-
-  const quantLower = quantization?.toLowerCase() ?? '';
-  if (!quantization || quantLower === 'f16' || quantLower === 'bf16') {
-    return resolveAutoPath('f16-native');
-  }
-
-  if (quantization.toLowerCase().includes('q4')) {
-    // Prefer fused if subgroups available
-    if (capabilities.hasSubgroups) {
-      return resolveAutoPath('q4k-fused');
-    }
-    // Use F16 dequant if F16 math is available
-    if (capabilities.hasF16) {
-      return resolveAutoPath('q4k-dequant-f16');
-    }
-    // Fallback to F32 (safest, most compatible)
-    return resolveAutoPath('q4k-dequant-f32');
-  }
-
-  // Default fallback
-  return resolveAutoPath('q4k-dequant-f32');
+export function getKernelPathActivationDtype(path) {
+  if (!path?.id) return null;
+  const id = path.id.toLowerCase();
+  if (id.includes('f16a')) return 'f16';
+  if (id.includes('f32a')) return 'f32';
+  return null;
 }
 
 // =============================================================================
@@ -196,13 +156,16 @@ function findStepByOp(steps, op) {
 function findKernelVariant(
   operation,
   kernel,
-  entry
+  entry,
+  phase
 ) {
   const variants = KERNEL_CONFIGS[operation];
   if (!variants) return null;
   const normalizedKernel = normalizeKernelFile(kernel);
   const normalizedEntry = entry ?? DEFAULT_ENTRY;
 
+  /** @type {string[]} */
+  const entryMatches = [];
   let fallbackVariant = null;
   let fallbackCount = 0;
 
@@ -211,7 +174,18 @@ function findKernelVariant(
     fallbackVariant = variant;
     fallbackCount += 1;
     if (config.entryPoint === normalizedEntry) {
-      return variant;
+      entryMatches.push(variant);
+    }
+  }
+
+  if (entryMatches.length === 1) {
+    return entryMatches[0];
+  }
+  if (entryMatches.length > 1 && phase) {
+    const phasePrefix = `${phase}_`;
+    const phaseMatch = entryMatches.find((variant) => variant.startsWith(phasePrefix));
+    if (phaseMatch) {
+      return phaseMatch;
     }
   }
 
@@ -229,10 +203,19 @@ export function getKernelPathMatmulVariant(
   if (!activeKernelPath || !role) return null;
   const alias = MATMUL_ROLE_ALIASES[role] ?? { section: 'layer', ops: [role] };
   const steps = getKernelPathStepsForSection(activeKernelPath, alias.section, phase, layerIndex ?? 0);
+  if (role === 'lm_head' && phase === 'prefill') {
+    const step = findStepByOp(steps, 'lm_head_prefill');
+    if (step) {
+      const variant = findKernelVariant('matmul', step.kernel, step.entry, phase);
+      if (variant) {
+        return variant;
+      }
+    }
+  }
   for (const op of alias.ops) {
     const step = findStepByOp(steps, op);
     if (!step) continue;
-    const variant = findKernelVariant('matmul', step.kernel, step.entry);
+    const variant = findKernelVariant('matmul', step.kernel, step.entry, phase);
     if (variant) {
       return variant;
     }
@@ -248,7 +231,7 @@ export function getKernelPathAttentionVariant(
   const steps = getKernelPathStepsForSection(activeKernelPath, 'layer', phase, layerIndex ?? 0);
   const step = findStepByOp(steps, 'attention');
   if (!step) return null;
-  return findKernelVariant('attention', step.kernel, step.entry);
+  return findKernelVariant('attention', step.kernel, step.entry, phase);
 }
 
 // =============================================================================
@@ -272,11 +255,11 @@ export function getActiveKernelPathSource() {
 }
 
 export function getKernelPathStrict() {
-  return activeKernelPathSource !== 'auto' && activeKernelPathSource !== 'none';
+  return activeKernelPathSource !== 'none';
 }
 
 export function isActiveKernelPathFusedQ4K() {
-  if (!activeKernelPath) return true; // Default to auto-selection (which prefers fused)
+  if (!activeKernelPath) return true; // Default to fused when no explicit path is set
   const kernelSteps = [
     ...(activeKernelPath.decode?.steps ?? []),
     ...(activeKernelPath.prefill?.steps ?? []),

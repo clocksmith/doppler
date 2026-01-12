@@ -18,7 +18,7 @@ This file is a human-readable log. Store machine-readable benchmark outputs as J
 See also:
 - `docs/design/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema
 - `docs/design/KERNEL_TESTING.md` for WGSL kernel testing specification
-- `tests/kernels/TODO.md` for implementation status
+- `tests/kernels/README.md` for kernel test coverage
 - `tests/kernels/BENCHMARKS.md` for kernel microbenchmark baselines
 
 ## Result Artifacts (Recommended)
@@ -131,7 +131,7 @@ Preferred output:
 
 To avoid instruction drift, prefer linking to the canonical runner docs:
 
-- Kernel tests and microbenchmarks: `tests/kernels/TODO.md` and `tests/kernels/BENCHMARKS.md`
+- Kernel tests and microbenchmarks: `tests/kernels/README.md` and `tests/kernels/BENCHMARKS.md`
 - End-to-end inference tests: `tests/test-inference.html`
 
 ## Known Issues by Platform
@@ -193,7 +193,7 @@ After testing:
 
 ---
 
-*Last updated: December 2025*
+*Last updated: January 2026*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

@@ -287,15 +287,16 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     log.warn('Pipeline', `Paged GPU KV cache not supported. Capping KV cache to ${cacheMaxSeqLen} tokens.`);
   }
 
-  // Use f16 KV cache when supported to reduce VRAM
-  // Exception: Force F32 when attention logit softcapping is enabled (e.g., Gemma 2)
+  // Use f16 KV cache when supported to reduce VRAM.
+  // For attention logit softcapping (e.g., Gemma 2), allow forcing F32 via runtime config
   // to avoid precision issues in attention. See: https://github.com/ggerganov/llama.cpp/issues/8853
   const gpuCaps = getKernelCapabilities();
   // Use config value directly instead of model detection flag (manifest-first architecture)
   // Check > 0 to allow explicit "disabled" encoding as 0 or null
   const attnSoftcap = modelConfig.attnLogitSoftcapping;
   const hasAttnSoftcapping = attnSoftcap != null && attnSoftcap > 0;
-  const forceF32KV = hasAttnSoftcapping;
+  const forceF32Softcap = runtimeKV.forceF32Softcap === true;
+  const forceF32KV = hasAttnSoftcapping && forceF32Softcap;
   /** @type {'f16' | 'f32'} */
   let kvDtype = runtimeKV.kvDtype;
   if (kvDtype === 'f16' && (!useGPU || !gpuCaps.hasF16)) {
@@ -305,7 +306,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     kvDtype = 'f32';
   }
   if (forceF32KV && debug) {
-    log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping})`);
+    log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping}, forceF32Softcap=true)`);
   }
 
   /** @type {import('./init.js').KVCacheConfig} */

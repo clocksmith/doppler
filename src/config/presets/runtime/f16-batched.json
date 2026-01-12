@@ -1,0 +1,13 @@
+{
+  "name": "f16-batched",
+  "description": "F16 activations with multi-token decode batching for lower submit/readback overhead.",
+  "extends": "f16-activations",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 16,
+        "stopCheckMode": "batch"
+      }
+    }
+  }
+}

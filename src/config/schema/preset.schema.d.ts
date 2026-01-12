@@ -15,6 +15,13 @@ import type {
 } from './inference.schema.js';
 import type { LoadingConfigSchema } from './loading.schema.js';
 
+/** Kernel path map for conversion defaults (weights quantization -> activation dtype). */
+export type KernelPathMapSchema = Record<string, string | Record<string, string>>;
+
+export type PresetInferenceSchema = InferenceConfigSchema & {
+  kernelPaths?: KernelPathMapSchema;
+};
+
 /** Model family preset */
 export interface PresetSchema {
   /** Preset identifier */
@@ -33,7 +40,7 @@ export interface PresetSchema {
   architecture?: Partial<ArchitectureSchema>;
 
   /** Inference behavior */
-  inference?: InferenceConfigSchema;
+  inference?: PresetInferenceSchema;
 
   /** Tokenizer configuration */
   tokenizer?: TokenizerConfigSchema;

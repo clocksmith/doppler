@@ -15,14 +15,14 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
 
 ```json
 {
-  "id": "gemma2-q4k-fused",
-  "name": "Gemma 2 Q4K Fused",
-  "description": "Q4K weights with fused dequant+matmul",
+  "id": "gemma2-q4k-fused-f16a",
+  "name": "Gemma 2 Q4K Fused F16A",
+  "description": "Q4K weights with fused dequant+matmul using F16 activations",
 
   "decode": {
     "steps": [
-      { "op": "input_norm", "kernel": "rmsnorm.wgsl", "entry": "main" },
-      { "op": "q_proj", "kernel": "fused_matmul_q4.wgsl", "entry": "main_multicol" },
+      { "op": "input_norm", "kernel": "rmsnorm_f16.wgsl", "entry": "main" },
+      { "op": "q_proj", "kernel": "fused_matmul_q4_multicol_f16a.wgsl", "entry": "main_multicol_f16a" },
       ...
     ]
   },
@@ -57,14 +57,23 @@ Each step specifies a single kernel dispatch:
 
 | Path | Description | Performance | Accuracy |
 |------|-------------|-------------|----------|
-| `gemma2-q4k-fused` | Fused dequant+matmul, fused FFN | Best | Good |
-| `gemma2-q4k-dequant-f32` | Pre-dequant to F32, separate matmuls | Slower | Best |
+| `gemma2-q4k-fused-f16a` | Fused dequant+matmul with F16 activations | Best (F16) | Good |
+| `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F32 activations | Best (F32) | Good |
+| `gemma2-q4k-dequant-f16a` | Pre-dequant to F16 with F16 activations | Balanced | Good |
+| `gemma2-q4k-dequant-f32a` | Pre-dequant to F32 with F32 activations | Slower | Best |
 
 ### F16 Models
 
 | Path | Description |
 |------|-------------|
-| `gemma2-f16-native` | Native F16 weights, no dequantization |
+| `gemma2-f16-f16a` | F16 weights with F16 activations |
+| `gemma2-f16-f32a` | F16 weights with F32 activations |
+
+Note: `*-f16a` / `*-f32a` IDs encode activation dtype. When a kernel path is selected,
+the pipeline aligns `runtime.inference.compute.activationDtype` and
+`runtime.inference.kvcache.kvDtype` to the path so kernel dtypes stay consistent.
+For LM head overrides, `lm_head_prefill` can be added to `postLayer` to supply a
+batched matmul kernel for prefill while keeping `lm_head` on GEMV for decode.
 
 ## Path Comparison
 
@@ -85,15 +94,29 @@ gate_proj → up_proj → activation → down_proj → ffn_residual
 The fused path has 2 fewer dispatches because:
 - `ffn_gate_up` fuses: gate_proj + up_proj + activation
 
+Note: `gemma2-q4k-fused-f16a` uses separate gate/up matmuls because `fused_ffn_q4k` requires F32 activations, so expect 2 extra dispatches vs the fused FFN path.
+
 ## Usage
 
 ### In Model Preset
+
+Use `kernelPaths` to select a `defaultKernelPath` at conversion time based on weight
+quantization and activation dtype (from `quantizationInfo.compute`):
 
 ```json
 {
   "id": "gemma2",
   "inference": {
-    "kernelPath": "gemma2-q4k-dequant-f32"
+    "kernelPaths": {
+      "f16": {
+        "f16": "gemma2-f16-f16a",
+        "f32": "gemma2-f16-f32a"
+      },
+      "q4k": {
+        "f16": "gemma2-q4k-fused-f16a",
+        "f32": "gemma2-q4k-fused-f32a"
+      }
+    }
   }
 }
 ```
@@ -103,7 +126,7 @@ The fused path has 2 fewer dispatches because:
 ```json
 {
   "inference": {
-    "kernelPath": "gemma2-q4k-fused"
+    "kernelPath": "gemma2-q4k-fused-f16a"
   }
 }
 ```
@@ -111,7 +134,7 @@ The fused path has 2 fewer dispatches because:
 ### CLI
 
 ```bash
-npm run debug -- -m MODEL --kernel-path gemma2-q4k-fused
+npm run debug -- -m MODEL --kernel-path gemma2-q4k-fused-f16a
 ```
 
 ## Creating Custom Paths
@@ -153,9 +176,9 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 
 | Old Config | New Kernel Path |
 |------------|-----------------|
-| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused` |
-| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-dequant-f32` |
-| `q4kStrategy: "dequant_f16"` | `gemma2-q4k-dequant-f16` (not recommended) |
+| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f16a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
+| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-dequant-f32a` |
+| `q4kStrategy: "dequant_f16"` | `gemma2-q4k-dequant-f16a` |
 
 ## See Also
 

@@ -143,7 +143,7 @@ Doppler's kernel path overrides in RDRR manifests are evolvable:
 ```json
 {
   "optimizations": {
-    "kernelPath": "gemma2-q4k-fused"
+    "kernelPath": "gemma2-q4k-fused-f16a"
   }
 }
 ```

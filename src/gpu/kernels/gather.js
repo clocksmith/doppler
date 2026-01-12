@@ -60,6 +60,7 @@ export async function runGather(
     embeddingDtype,
     outputDtype = 'f32',
     transpose = false,
+    indexOffset = 0,
     indirectBuffer = null,
     indirectOffset = 0,
   } = options;
@@ -69,7 +70,7 @@ export async function runGather(
   const detectedDtype = embeddingDtype || 'f32';
   const useF16Input = detectedDtype === 'f16' && caps.hasF16;
   const useF16Output = outputDtype === 'f16' && caps.hasF16;
-  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, detectedDtype=${detectedDtype}, useF16Input=${useF16Input}, useF16Output=${useF16Output}`);
+  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, indexOffset=${indexOffset}, detectedDtype=${detectedDtype}, useF16Input=${useF16Input}, useF16Output=${useF16Output}`);
 
   // Select kernel variant using lookup table
   const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
@@ -85,12 +86,13 @@ export async function runGather(
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
     'gather_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, numTokens, true);
       view.setUint32(4, hiddenSize, true);
       view.setUint32(8, vocabSize, true);
       view.setUint32(12, transpose ? 1 : 0, true);
+      view.setUint32(16, indexOffset, true);
     },
     null,
     device
@@ -146,6 +148,7 @@ export async function recordGather(
     embeddingDtype,
     outputDtype = 'f32',
     transpose = false,
+    indexOffset = 0,
     indirectBuffer = null,
     indirectOffset = 0,
   } = options;
@@ -170,12 +173,13 @@ export async function recordGather(
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
     'gather_uniforms',
-    16,
+    32,
     (view) => {
       view.setUint32(0, numTokens, true);
       view.setUint32(4, hiddenSize, true);
       view.setUint32(8, vocabSize, true);
       view.setUint32(12, transpose ? 1 : 0, true);
+      view.setUint32(16, indexOffset, true);
     },
     recorder
   );

@@ -365,6 +365,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
     activation === 'silu' || activation === 'swiglu' ? 'silu' :
     activation === 'gelu' || activation === 'geglu' ? 'gelu' : 'silu';
 
+  const chatTemplateType = inf.chatTemplate?.type ?? null;
+  const chatTemplateEnabled = inf.chatTemplate?.enabled ?? false;
+
   return {
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
@@ -396,7 +399,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     // Kept for backward compat until pipeline code reads config values directly
     isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta
     isGemma2: inf.attention.attnLogitSoftcapping != null,  // Gemma 2 has attn softcapping
-    isLlama3Instruct: false,  // TODO: Add chatTemplateType to manifest
+    isLlama3Instruct: chatTemplateType === 'llama3',
     isQwen3: false,  // TODO: Add model family to manifest
     isGptOss: false,  // TODO: Add model family to manifest
     stopTokenIds,
@@ -407,8 +410,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     queryKeyNorm: inf.attention.queryKeyNorm,
     queryPreAttnScalar,
     layerPipeline: null,  // TODO: Add to ManifestInferenceSchema if needed
-    chatTemplateType: null,  // TODO: Add to ManifestInferenceSchema if needed
-    chatTemplateEnabled: false,
+    chatTemplateType,
+    chatTemplateEnabled,
     kernelPath: inf.defaultKernelPath,
   };
 }

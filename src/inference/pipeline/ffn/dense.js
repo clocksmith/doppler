@@ -85,6 +85,7 @@ export async function runDenseFFNGPU(
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: intermediateSize * 2,
+        dtype: gateUpOutput.dtype,
       });
     }
 
@@ -106,6 +107,7 @@ export async function runDenseFFNGPU(
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: intermediateSize,
+        dtype: activatedOutput.dtype,
       });
     }
 
@@ -147,6 +149,7 @@ export async function runDenseFFNGPU(
         layerIdx,
         tokenIdx: lastTokenIdx,
         rowSize: hiddenSize,
+        dtype: output.dtype,
       });
     }
 
@@ -319,11 +322,13 @@ export async function runDenseFFNGPU(
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
+      dtype: gateOutput.dtype,
     });
     await dumpTokenVector(upOutput.buffer, 'ffn_up', {
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
+      dtype: upOutput.dtype,
     });
   }
 
@@ -340,6 +345,7 @@ export async function runDenseFFNGPU(
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: intermediateSize,
+      dtype: activatedOutput.dtype,
     });
   }
 
@@ -379,6 +385,7 @@ export async function runDenseFFNGPU(
       layerIdx,
       tokenIdx: lastTokenIdx,
       rowSize: hiddenSize,
+      dtype: output.dtype,
     });
   }
 

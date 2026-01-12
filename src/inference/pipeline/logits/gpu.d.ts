@@ -88,7 +88,7 @@ export function computeLogitsGPU(
   weights: LogitsWeights,
   config: LogitsConfig,
   debugFlags?: LogitsDebugFlags,
-): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number } | null>;
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' } | null>;
 
 /**
  * Record logits computation (batched, no submit).
@@ -109,4 +109,4 @@ export function recordLogitsGPU(
   numTokens: number,
   weights: LogitsWeights,
   config: LogitsConfig,
-): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number }>;
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' }>;

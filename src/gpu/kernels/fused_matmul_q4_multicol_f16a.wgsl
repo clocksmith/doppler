@@ -1,0 +1,153 @@
+// Fused Q4_K Matmul Kernel - W4A16 (F16 activations, F16 output, multicol)
+//
+// Computes C_f16 = A * dequant(B_q4k) for large vocab GEMV with f16 activations.
+
+enable f16;
+enable subgroups;
+
+const QK_K: u32 = 256u;
+const BLOCK_SIZE: u32 = 144u;
+const SUBBLOCK_SIZE: u32 = 32u;
+
+override WORKGROUP_SIZE: u32 = 256u;
+
+struct Uniforms {
+    M: u32,
+    N: u32,
+    K: u32,
+    alpha: f32,
+    num_blocks_per_row: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
+}
+
+struct Q4KBlock {
+    d_dmin: u32,
+    scales: array<u32, 3>,
+    qs: array<u32, 32>,
+}
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> A: array<f16>;
+@group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
+@group(0) @binding(4) var<storage, read_write> C_f16: array<f16>;
+
+fn unpack_f16_lo(packed: u32) -> f32 {
+    return unpack2x16float(packed).x;
+}
+
+fn unpack_f16_hi(packed: u32) -> f32 {
+    return unpack2x16float(packed).y;
+}
+
+fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    return (scales[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+}
+
+fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
+    var sc: u32;
+    var mn: u32;
+
+    if (j < 4u) {
+        sc = get_scale_byte(scales, j) & 63u;
+        mn = get_scale_byte(scales, j + 4u) & 63u;
+    } else {
+        let q_j = get_scale_byte(scales, j + 4u);
+        let q_lo = get_scale_byte(scales, j - 4u);
+        let q_hi = get_scale_byte(scales, j);
+        sc = (q_j & 0xFu) | ((q_lo >> 6u) << 4u);
+        mn = (q_j >> 4u) | ((q_hi >> 6u) << 4u);
+    }
+    return vec2<u32>(sc, mn);
+}
+
+fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
+    let chunk = idx / 64u;
+    let pos_in_chunk = idx % 64u;
+    let use_upper = pos_in_chunk >= 32u;
+    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
+    let byte_idx = chunk * 32u + byte_in_range;
+
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    let byte_val = (qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+
+    if (use_upper) {
+        return (byte_val >> 4u) & 0xFu;
+    } else {
+        return byte_val & 0xFu;
+    }
+}
+
+override COLS_PER_WG: u32 = 32u;
+override THREADS_PER_COL_GEMV: u32 = 8u;
+
+var<workgroup> multicol_sums: array<f32, 256>;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_multicol_f16a(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
+    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
+    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let num_blocks = u.num_blocks_per_row;
+        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
+            let block = B_q4k[col * num_blocks + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
+
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
+                let sb_base = sb * SUBBLOCK_SIZE;
+
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let k0 = k_base + sb_base + i;
+                    let a0 = f32(A[k0]);
+                    let a1 = f32(A[k0 + 1u]);
+                    let a2 = f32(A[k0 + 2u]);
+                    let a3 = f32(A[k0 + 3u]);
+
+                    let q0 = get_q4(block.qs, sb_base + i);
+                    let q1 = get_q4(block.qs, sb_base + i + 1u);
+                    let q2 = get_q4(block.qs, sb_base + i + 2u);
+                    let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+    }
+
+    multicol_sums[local_id] = partial_sum;
+    workgroupBarrier();
+
+    if (tid_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        let base = col_in_wg * THREADS_PER_COL_GEMV;
+        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
+            final_sum = final_sum + multicol_sums[base + i];
+        }
+        C_f16[col] = f16(final_sum * u.alpha);
+    }
+}

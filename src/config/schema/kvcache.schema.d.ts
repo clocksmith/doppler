@@ -40,6 +40,12 @@ export interface KVCacheConfigSchema {
   /** Data type for cache storage */
   kvDtype: KVDtype;
 
+  /**
+   * Force F32 KV cache when attention logit softcapping is enabled.
+   * Default false keeps F16 KV cache when supported.
+   */
+  forceF32Softcap: boolean;
+
   /** Memory layout strategy */
   layout: KVLayout;
 

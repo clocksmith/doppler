@@ -69,7 +69,7 @@ export function trackAllocation(size: number, label?: string): void;
  * Check if GPU readback is allowed
  * @throws Error if readback is disallowed and strictMode is enabled
  */
-export function allowReadback(reason?: string): boolean;
+export function allowReadback(reason?: string, count?: number): boolean;
 
 /**
  * Get performance summary for current pass

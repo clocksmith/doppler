@@ -55,6 +55,17 @@ export function selectMatmul(context) {
     return isDecode ? 'q4_fused' : 'q4_fused_batched';
   }
 
+  const wantsF16Gemv = isDecode && inputsAreF16 && outputDtype === 'f16' && capabilities.hasF16;
+  if (wantsF16Gemv) {
+    if (capabilities.hasSubgroups) {
+      if (N > 8192) {
+        return 'gemv_subgroup_multicol_f16a';
+      }
+      return useVec4 ? 'gemv_subgroup_vec4_f16a' : 'gemv_subgroup_f16a';
+    }
+    return 'gemv_f16a';
+  }
+
   // Full F16 matmul when both inputs are F16 and output is F16
   if (outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16) {
     return useVec4 ? 'f16_vec4' : 'f16';

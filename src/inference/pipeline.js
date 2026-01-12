@@ -11,7 +11,7 @@
  * @module inference/pipeline
  */
 
-import { getDevice, getKernelCapabilities } from '../gpu/device.js';
+import { getDevice } from '../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { log, applyDebugConfig, setGPUDevice } from '../debug/index.js';
@@ -19,7 +19,7 @@ import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import {
   resolveKernelPath,
   getKernelPathStats,
-  autoSelectKernelPath,
+  getKernelPathActivationDtype,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
 import { MoERouter } from './moe-router.js';
@@ -140,6 +140,7 @@ export class InferencePipeline extends PipelineState {
       ?? this.runtimeConfig.inference.kernelPath
       ?? this.modelConfig.kernelPath
       ?? /** @type {{ kernelPath?: KernelPathRef } | undefined} */ (manifest.optimizations)?.kernelPath;
+    this.resolvedKernelPath = null;
 
     if (kernelPathRef) {
       kernelPathSource = this.runtimeKernelPath
@@ -154,29 +155,49 @@ export class InferencePipeline extends PipelineState {
         const stats = getKernelPathStats(this.resolvedKernelPath);
         log.info('Pipeline', `KernelPath: ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels)`);
       } catch (e) {
+        this.resolvedKernelPath = null;
         log.warn('Pipeline', `Failed to resolve kernel path '${kernelPathRef}': ${/** @type {Error} */ (e).message}`);
       }
     } else {
-      // Auto-select kernel path
-      kernelPathSource = 'auto';
-      try {
-        const quantization = manifest.quantization ?? manifest.quantizationInfo?.weights ?? null;
-        const modelFamily = manifest.architecture ?? 'gemma2';
-        const gpuCaps = getKernelCapabilities();
-        const capabilities = {
-          hasSubgroups: gpuCaps.hasSubgroups,
-          hasF16: gpuCaps.hasF16,
-        };
-        this.resolvedKernelPath = autoSelectKernelPath(quantization, modelFamily, capabilities);
-        const stats = getKernelPathStats(this.resolvedKernelPath);
-        log.info('Pipeline', `KernelPath (auto): ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels)`);
-      } catch (e) {
-        log.warn('Pipeline', `Failed to auto-select kernel path: ${/** @type {Error} */ (e).message}`);
-      }
+      log.info('Pipeline', 'KernelPath: none (no kernel path configured)');
     }
 
     this.kernelPathSource = kernelPathSource;
     setActiveKernelPath(this.resolvedKernelPath, kernelPathSource);
+
+    const kernelPathActivationDtype = getKernelPathActivationDtype(this.resolvedKernelPath);
+    if (kernelPathActivationDtype) {
+      const currentActivation = this.runtimeConfig.inference.compute.activationDtype;
+      const currentKV = this.runtimeConfig.inference.kvcache.kvDtype;
+      const nextInference = {
+        ...this.runtimeConfig.inference,
+        compute: { ...this.runtimeConfig.inference.compute },
+        kvcache: { ...this.runtimeConfig.inference.kvcache },
+      };
+      let updated = false;
+
+      if (currentActivation !== kernelPathActivationDtype) {
+        log.info(
+          'Pipeline',
+          `KernelPath ${this.resolvedKernelPath?.id ?? 'unknown'} overrides activationDtype=${currentActivation} -> ${kernelPathActivationDtype}`
+        );
+        nextInference.compute.activationDtype = kernelPathActivationDtype;
+        updated = true;
+      }
+
+      if (currentKV !== kernelPathActivationDtype) {
+        log.info(
+          'Pipeline',
+          `KernelPath ${this.resolvedKernelPath?.id ?? 'unknown'} overrides kvDtype=${currentKV} -> ${kernelPathActivationDtype}`
+        );
+        nextInference.kvcache.kvDtype = kernelPathActivationDtype;
+        updated = true;
+      }
+
+      if (updated) {
+        this.runtimeConfig = setRuntimeConfig({ ...this.runtimeConfig, inference: nextInference });
+      }
+    }
 
     this._resolveLayerPipeline();
 
@@ -273,6 +294,7 @@ export class InferencePipeline extends PipelineState {
       this.decodeBuffers?.ensureBuffers({
         hiddenSize: this.modelConfig.hiddenSize,
         intermediateSize: this.modelConfig.intermediateSize,
+        activationDtype: this.runtimeConfig.inference.compute.activationDtype,
         enablePingPong: true,
       });
     }
@@ -501,6 +523,7 @@ export class InferencePipeline extends PipelineState {
 export async function createPipeline(manifest, contexts = {}) {
   // Use manifest's quantizationInfo.compute as default activationDtype
   const manifestComputeDtype = manifest.quantizationInfo?.compute;
+  const baseRuntimeConfig = contexts.runtimeConfig ?? getRuntimeConfig();
   if (manifestComputeDtype && !contexts.runtimeConfig?.inference?.compute?.activationDtype) {
     /** @type {Record<string, 'f16' | 'f32'>} */
     const computeToActivation = {
@@ -513,11 +536,11 @@ export async function createPipeline(manifest, contexts = {}) {
       contexts = {
         ...contexts,
         runtimeConfig: {
-          ...contexts.runtimeConfig,
+          ...baseRuntimeConfig,
           inference: {
-            ...contexts.runtimeConfig?.inference,
+            ...baseRuntimeConfig.inference,
             compute: {
-              ...contexts.runtimeConfig?.inference?.compute,
+              ...baseRuntimeConfig.inference.compute,
               activationDtype,
             },
           },

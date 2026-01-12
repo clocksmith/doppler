@@ -1618,6 +1618,7 @@ async function runDemoTest(page, opts) {
 
   const prompt = opts.text || 'the sky is';
   console.log(`  Prompt: "${prompt}"`);
+  const followupPrompt = 'and at night?';
 
   const startTime = Date.now();
   /** @type {string[]} */
@@ -1721,6 +1722,47 @@ async function runDemoTest(page, opts) {
       }
     }
 
+    // Capture message counts after first response
+    const firstTurnCounts = await page.evaluate(() => ({
+      users: document.querySelectorAll('.message.user').length,
+      assistants: document.querySelectorAll('.message.assistant').length,
+    }));
+
+    // Send follow-up prompt to validate multi-turn chat flow
+    console.log(`  Step 7: Sending follow-up prompt: "${followupPrompt}"...`);
+    await page.fill('#chat-input', followupPrompt);
+    await page.click('#send-btn').catch(async () => {
+      await page.press('#chat-input', 'Enter');
+    });
+
+    console.log('  Step 8: Waiting for follow-up generation...');
+    await page.waitForFunction(
+      (counts) => {
+        const users = document.querySelectorAll('.message.user').length;
+        const assistants = document.querySelectorAll('.message.assistant').length;
+        const cursor = document.querySelector('.message.assistant .cursor');
+        return users >= counts.users + 1 && assistants >= counts.assistants + 1 && !cursor;
+      },
+      { timeout: generationTimeout },
+      firstTurnCounts
+    );
+
+    const roleSequence = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.message-role'))
+        .map((el) => el.textContent?.trim().toLowerCase())
+        .filter(Boolean)
+    );
+    const rolesOk = roleSequence.length >= 4
+      && roleSequence[0] === 'user'
+      && roleSequence[1] === 'assistant'
+      && roleSequence[2] === 'user'
+      && roleSequence[3] === 'assistant';
+
+    const statsOk = await page.evaluate(() => {
+      const stats = Array.from(document.querySelectorAll('.message.assistant .message-stats'));
+      return stats.some((el) => /\d+ tokens/.test(el.textContent || ''));
+    });
+
     // Analyze token quality
     const allText = logs.join(' ');
     const goodFound = GOOD_TOKENS.filter(t => allText.toLowerCase().includes(t.toLowerCase()));
@@ -1728,7 +1770,7 @@ async function runDemoTest(page, opts) {
 
     const hasGood = goodFound.length > 0;
     const hasBad = badFound.length > 0;
-    const passed = hasGood && !hasBad && errors.length === 0;
+    const passed = hasGood && !hasBad && errors.length === 0 && rolesOk && statsOk;
 
     // Print summary
     console.log('\n  ' + '-'.repeat(50));
@@ -1736,6 +1778,8 @@ async function runDemoTest(page, opts) {
     console.log(`    Good tokens found: ${goodFound.join(', ') || 'none'}`);
     console.log(`    Bad tokens found: ${badFound.join(', ') || 'none'}`);
     console.log(`    Errors: ${errors.length}`);
+    console.log(`    Multi-turn roles: ${rolesOk ? 'ok' : 'invalid'}`);
+    console.log(`    Message stats: ${statsOk ? 'present' : 'missing'}`);
 
     const duration = Date.now() - startTime;
 
@@ -1746,6 +1790,8 @@ async function runDemoTest(page, opts) {
       if (!hasGood) console.log('    - No coherent tokens detected');
       if (hasBad) console.log(`    - Garbage tokens found: ${badFound.join(', ')}`);
       if (errors.length > 0) console.log(`    - Page errors: ${errors.join(', ')}`);
+      if (!rolesOk) console.log('    - Message roles did not alternate user/assistant');
+      if (!statsOk) console.log('    - Assistant token stats missing');
     }
 
     return {
@@ -2286,6 +2332,11 @@ async function main() {
       if (opts.trace === 'break') {
         debugParams.set('trace', 'all');
         debugParams.set('break', '1');
+      }
+
+      // GPU profiling
+      if (opts.perf || opts.gpuProfile) {
+        debugParams.set('profile', '1');
       }
 
       // Legacy layer/kernel params

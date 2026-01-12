@@ -8,7 +8,7 @@ import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
 export const DEFAULT_BATCHING_DEFAULTS = {
   batchSize: 1,  // Compare single-token
   maxTokens: 512,
-  stopCheckMode: 'per-token',
+  stopCheckMode: 'batch',
 };
 
 // =============================================================================
@@ -16,7 +16,7 @@ export const DEFAULT_BATCHING_DEFAULTS = {
 // =============================================================================
 
 export const DEFAULT_COMPUTE_DEFAULTS = {
-  activationDtype: 'f32',  // Safe default, F16 is experimental
+  activationDtype: 'f16',  // Default to F16 for web inference; fallback to F32 when unsupported
   largeModelParamThreshold: 4e9,  // 4B parameters
   paramEstimationMultiplier: 12,  // Rough approximation: 12 * hidden^2 * layers
   keepF32Weights: false,  // Skip weight downcast (debug/compat)

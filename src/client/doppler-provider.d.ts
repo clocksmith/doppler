@@ -40,7 +40,9 @@ export {
   generateWithPrefixKV,
   formatGemmaChat,
   formatLlama3Chat,
+  formatGptOssChat,
   formatChatMessages,
+  buildChatPrompt,
   dopplerChat,
 
   // Main provider

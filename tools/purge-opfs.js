@@ -5,7 +5,8 @@
  */
 
 import { resolve } from 'path';
-import { ensureServerRunning, createBrowserContext, setupPage } from './cli/utils.js';
+import { ensureServerRunning, createBrowserContext, setupPage } from '../cli/helpers/utils.js';
+import { DEFAULT_OPFS_PATH_CONFIG } from '../src/config/schema/loading.schema.js';
 
 /**
  * @param {string[]} argv
@@ -156,16 +157,31 @@ async function main() {
   try {
     const url = `${opts.baseUrl}/d`;
     await page.goto(url, { timeout: 30000 });
-    const deleted = await page.evaluate(async (/** @type {string} */ modelId) => {
+    const opfsRootDir = DEFAULT_OPFS_PATH_CONFIG.opfsRootDir || 'doppler-models';
+    const deleted = await page.evaluate(async (/** @type {{ modelId: string; rootDir: string }} */ params) => {
+      const { modelId, rootDir } = params;
       // Access OPFS directly in browser context
       const root = await navigator.storage.getDirectory();
-      try {
-        await root.removeEntry(modelId, { recursive: true });
+      const tryDelete = async (dirHandle, entryName) => {
+        try {
+          await dirHandle.removeEntry(entryName, { recursive: true });
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      if (await tryDelete(root, modelId)) {
         return true;
+      }
+
+      try {
+        const modelsDir = await root.getDirectoryHandle(rootDir, { create: false });
+        return await tryDelete(modelsDir, modelId);
       } catch {
         return false;
       }
-    }, opts.model);
+    }, { modelId: opts.model, rootDir: opfsRootDir });
 
     if (deleted) {
       console.log(`OPFS purge complete: ${opts.model}`);

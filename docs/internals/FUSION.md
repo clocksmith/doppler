@@ -79,7 +79,6 @@ fn rmsnorm_inplace_residual(...) {
 
 | Fusion | Current | Proposed | Est. Speedup | Complexity |
 |--------|---------|----------|--------------|------------|
-| **Full F16 Activation Pipeline** | F32 activations | F16 throughout | 1.5-2x | High |
 | **Quantized Matmul+RMSNorm** | 2-3 passes | 1 pass | 1.2-1.5x | Medium |
 
 ### P1 - Medium Impact
@@ -99,28 +98,16 @@ fn rmsnorm_inplace_residual(...) {
 
 ---
 
-## Full F16 Activation Pipeline
+## F16 Activation Pipeline (Implemented)
 
-**Current:** F16 weights + F16 KV cache, but **F32 activations throughout**
-**Target:** F16 activations everywhere except numerically sensitive ops
+**Current:** F16 activations are supported end-to-end when `shader-f16` is available.
+**Precision rules:**
+- F16 buffers for hidden states and matmul outputs
+- F32 internal accumulation for RMSNorm/softmax
+- F16 sampling/logits when configured (readback still handled safely)
 
-**Implementation steps:**
-1. Audit all intermediate buffers in `inference/pipeline/`
-2. Change allocation dtype from `f32` to `f16` for:
-   - Attention Q/K/V projections
-   - FFN gate/up/down outputs
-   - Layer hidden states
-3. Keep F32 for:
-   - RMSNorm internal computation (divide)
-   - Softmax accumulator
-   - Final logits
-4. Verify numerical stability with reference comparison
-
-**Expected impact:**
-- 2x memory bandwidth reduction
-- 1.5-2x speedup (matches WebLLM's q4f16 mode)
-
-**Risk:** Numerical underflow in deep layers. Need per-layer magnitude verification.
+**Status:** Implemented for Gemma 2/3 paths; see `docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md`.
+**Remaining risk:** Numerical underflow in deep layers on some devices; validate with probes when introducing new kernels.
 
 ---
 

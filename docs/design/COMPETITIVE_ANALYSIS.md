@@ -21,13 +21,14 @@ See: `docs/design/BENCHMARK_HARNESS.md` and `docs/design/KERNEL_TESTING.md`.
 
 This document focuses on competitor context and technical constraints.
 
-Implementation work, task tracking, and priorities live in `docs/plans/OPTIMIZATION_ROADMAP.md`.
+Implementation work, task tracking, and priorities live in the feature-log system
+(`feature-log/doppler/*.jsonl`).
 
 Benchmark and testing specs:
 
 - `docs/design/BENCHMARK_HARNESS.md` (pipeline and system benchmarks, result schema)
 - `docs/design/KERNEL_TESTING.md` (kernel and segment tests, how to interpret correctness)
-- `docs/plans/OPTIMIZATION_ROADMAP.md` (action items and priorities)
+- `docs/plans/TARGET_MODELS.md` (benchmark priority list)
 
 Key success metrics (the minimum needed for credible comparisons):
 
@@ -986,7 +987,7 @@ Note: WeInfer itself is not a threat (stale since Feb 2025), but its techniques 
 4. **Urgent:** Validate performance vs WebLLM baseline
 5. **High:** Ship working MoE demo (Mixtral or similar)
 6. **Medium:** Document Native Bridge advantages over OPFS
-7. **Medium:** Ship P2P shard cache (see `docs/plans/P2P.md`)
+7. **Medium:** Ship P2P shard cache (tracked in feature-log)
 
 ### DOPPLER's Defensible Moats
 

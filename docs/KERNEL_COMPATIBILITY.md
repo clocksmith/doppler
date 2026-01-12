@@ -14,7 +14,7 @@ npm run bench -- -m MODEL --config kernel-config.json
 npm run bench -- -m MODEL --kernel-profile fused
 
 # Kernel path override (preset ID or inline JSON)
-npm run bench -- -m MODEL --kernel-path q4k-fused
+npm run bench -- -m MODEL --kernel-path gemma2-q4k-fused-f16a
 ```
 
 Example `kernel-config.json`:
@@ -22,7 +22,7 @@ Example `kernel-config.json`:
 {
   "runtime": {
     "inference": {
-      "kernelPath": "q4k-fused"
+      "kernelPath": "gemma2-q4k-fused-f16a"
     }
   }
 }
@@ -37,10 +37,10 @@ Kernel path notes:
 
 | RDRR Quantization | Layout Metadata | Runtime Kernel Mode | Requirements | Notes |
 |---|---|---|---|---|
-| F16 / BF16 | `defaultWeightLayout=row` or `column` | `f16-native` | `shader-f16` for F16 | Layout affects transpose; kernel path controls arithmetic. |
-| Q4_K_M | `q4kLayout=row_wise` | `q4k-fused` or `q4k-dequant-f16/f32` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout is required for fused Q4K. |
-| Q4_K_M | `q4kLayout=column_wise` | `q4k-dequant-f16/f32` | `shader-f16` for F16 | Column-wise packs are **not** fused-compatible. |
-| Q4_K_M | `q4kLayout=flat` | `q4k-dequant-f16/f32` | `shader-f16` for F16 | Flat packing is legacy; no fused kernel. |
+| F16 / BF16 | `defaultWeightLayout=row` or `column` | `gemma2-f16-f16a` (F16 activations) or `gemma2-f16-f32a` (F32 activations) | `shader-f16` for F16 | Layout affects transpose; kernel path controls arithmetic. |
+| Q4_K_M | `q4kLayout=row_wise` | `gemma2-q4k-fused-f16a`, `gemma2-q4k-fused-f32a`, or `gemma2-q4k-dequant-f16a/f32a` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout is required for fused Q4K. |
+| Q4_K_M | `q4kLayout=column_wise` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Column-wise packs are **not** fused-compatible. |
+| Q4_K_M | `q4kLayout=flat` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Flat packing is legacy; no fused kernel. |
 | MXFP4 | N/A | dequant + matmul (no dedicated kernel path yet) | `shader-f16` for F16 | Used for MoE experts; no fused matmul yet. |
 | Q8_0 / Q8_K | N/A | dequant + matmul (planned) | `shader-f16` for F16 | Loader runtime kernels are planned; treat as packing only today. |
 

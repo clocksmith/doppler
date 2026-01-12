@@ -580,6 +580,8 @@ EXECUTION TIME:
 **Nullable Required Fields:**
 - `null` = explicitly disabled (valid)
 - `undefined` = not specified (validation error)
+Runtime overrides only apply when values are non-null; runtime `null` does not
+unset a manifest value.
 
 **Benefits:**
 - Manifest is self-describing: no need for external preset files

@@ -8,7 +8,8 @@
 import type { CommandRecorder } from '../command-recorder.js';
 
 export interface CheckStopParams {
-  sampledTokenBuffer: GPUBuffer;  // u32 storage buffer with sampled token
+  sampledTokenBuffer: GPUBuffer;  // u32 storage buffer with sampled tokens
+  tokenIndex?: number;
   eosTokenId: number;
   maxTokens: number;
   currentPos: number;

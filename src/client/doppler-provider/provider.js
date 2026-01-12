@@ -13,7 +13,7 @@ import {
   generate,
   prefillKV,
   generateWithPrefixKV,
-  formatChatMessages,
+  buildChatPrompt,
   dopplerChat,
 } from './generation.js';
 
@@ -35,8 +35,8 @@ export const DopplerProvider = {
   },
 
   async *stream(messages, options) {
-    const prompt = formatChatMessages(messages);
-    for await (const token of generate(prompt, options)) {
+    const prompt = buildChatPrompt(messages, options);
+    for await (const token of generate(prompt, { ...options, useChatTemplate: false })) {
       yield token;
     }
   },

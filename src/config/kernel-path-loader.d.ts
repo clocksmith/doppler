@@ -28,19 +28,12 @@ export function listKernelPaths(): string[];
 export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
 
 /**
- * Auto-select kernel path based on model quantization and capabilities.
- *
- * Selection priority:
- * - F16/BF16 models: use f16-native
- * - Q4K with subgroups: use fused path (best throughput)
- * - Q4K with F16 support: use dequant-f16 (balanced)
- * - Q4K fallback: use dequant-f32 (max compatibility)
+ * Infer activation dtype required by a kernel path ID.
+ * Returns null when the path does not encode an activation dtype.
  */
-export function autoSelectKernelPath(
-  quantization: string | null,
-  modelFamily: string,
-  capabilities?: { hasSubgroups?: boolean; hasF16?: boolean }
-): KernelPathSchema;
+export function getKernelPathActivationDtype(
+  path: KernelPathSchema | null
+): 'f16' | 'f32' | null;
 
 /**
  * Resolve layer index template in weight references.
@@ -64,7 +57,7 @@ export function validateKernelPath(path: KernelPathSchema): string[];
 
 export type KernelPathPhase = 'prefill' | 'decode';
 export type KernelPathSection = 'layer' | 'preLayer' | 'postLayer' | 'sampling';
-export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'auto' | 'none';
+export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'none';
 
 export function getKernelPathMatmulVariant(
   role: string | undefined,
@@ -94,7 +87,7 @@ export function getKernelPathStrict(): boolean;
 
 /**
  * Check if the active kernel path uses fused Q4K matmul.
- * Returns false if no kernel path is set (auto-selection will apply).
+ * Returns true if no kernel path is set (default behavior).
  */
 export function isActiveKernelPathFusedQ4K(): boolean;
 

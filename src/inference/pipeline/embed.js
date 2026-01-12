@@ -200,6 +200,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   const numTokens = tokenBufferInput
     ? (config.numTokens ?? 0)
     : (tokenIdArray?.length ?? 0);
+  const indexOffset = tokenBufferInput ? (config.indexOffset ?? 0) : 0;
 
   if (!device) throw new Error('GPU device not available');
 
@@ -216,7 +217,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       : null;
 
   if (debug) {
-    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, activationDtype=${activationDtype}, useF16=${useF16}`);
+    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, indexOffset=${indexOffset}, activationDtype=${activationDtype}, useF16=${useF16}`);
     if (tokenBufferInput) {
       trace.embed('TOKEN_IDS: [gpu-buffer]');
     } else {
@@ -311,6 +312,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     transpose,
     outputDtype: useF16 ? /** @type {'f16'} */ ('f16') : /** @type {'f32'} */ ('f32'),
     embeddingDtype,
+    indexOffset,
   };
   if (!(embedBuffer instanceof GPUBuffer)) {
     throw new Error('[Embed] GPU embeddings required for gather path.');

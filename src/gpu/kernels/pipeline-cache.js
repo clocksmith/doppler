@@ -80,9 +80,13 @@ export function getOrCreatePipelineLayout(
 
 export function getCachedPipeline(
   operation,
-  variant
+  variant,
+  constants = null
 ) {
-  const cacheKey = `${operation}:${variant}`;
+  const constantsKey = constants
+    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
+    : '';
+  const cacheKey = `${operation}:${variant}${constants ? ':' + constantsKey : ''}`;
   return pipelineCache.get(cacheKey) || null;
 }
 
@@ -90,22 +94,28 @@ export function getCachedPipeline(
 export async function getPipelineFast(
   operation,
   variant,
-  bindGroupLayout = null
+  bindGroupLayout = null,
+  constants = null
 ) {
-  const cached = getCachedPipeline(operation, variant);
+  const cached = getCachedPipeline(operation, variant, constants);
   if (cached) {
     return cached;
   }
-  return createPipeline(operation, variant, bindGroupLayout);
+  return createPipeline(operation, variant, bindGroupLayout, constants);
 }
 
 
 export async function createPipeline(
   operation,
   variant,
-  bindGroupLayout = null
+  bindGroupLayout = null,
+  constants = null
 ) {
-  const cacheKey = `${operation}:${variant}`;
+  // Serialize constants for cache key if present
+  const constantsKey = constants
+    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
+    : '';
+  const cacheKey = `${operation}:${variant}${constants ? ':' + constantsKey : ''}`;
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {
@@ -129,8 +139,9 @@ export async function createPipeline(
 
   trace.kernels(
     `KernelLayout: ${operation}/${variant} file=${config.shaderFile} entry=${config.entryPoint} ` +
-      `workgroup=[${config.workgroupSize.join(',')}] requires=` +
-      `${config.requires.length > 0 ? config.requires.join('|') : 'none'}`
+    `workgroup=[${config.workgroupSize.join(',')}] requires=` +
+    `${config.requires.length > 0 ? config.requires.join('|') : 'none'}` +
+    `${constants ? ' constants=' + constantsKey : ''}`
   );
 
   // Compile or reuse shader module
@@ -138,15 +149,16 @@ export async function createPipeline(
 
   // Create pipeline
   const layoutLabel = bindGroupLayout?.label || `${operation}_${variant}_layout`;
-  
+
   const pipelineDescriptor = {
-    label: `${operation}_${variant}_pipeline`,
+    label: `${operation}_${variant}_pipeline${constants ? '_' + constantsKey : ''}`,
     layout: bindGroupLayout
       ? getOrCreatePipelineLayout(layoutLabel, [bindGroupLayout], device)
       : 'auto',
     compute: {
       module: shaderModule,
       entryPoint: config.entryPoint,
+      constants: constants || undefined,
     },
   };
 

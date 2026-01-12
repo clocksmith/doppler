@@ -13,7 +13,13 @@
       }
     },
     "inference": {
-      "kernelPath": "gemma2-q4k-fused"
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "kernelPath": "gemma2-q4k-fused-f32a"
     }
   }
 }

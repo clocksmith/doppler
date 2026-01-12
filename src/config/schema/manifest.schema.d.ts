@@ -261,7 +261,7 @@ export interface ManifestInferenceSchema {
   layerPattern: ManifestLayerPatternSchema;
   /** Chat template configuration */
   chatTemplate: ManifestChatTemplateSchema;
-  /** Default kernel path for this model (null = auto-select) */
+  /** Default kernel path for this model (null = no explicit path) */
   defaultKernelPath: string | null;
 }
 

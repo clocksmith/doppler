@@ -240,7 +240,7 @@ kv_cache.keys[layer_idx, current_pos, :] = K_rotated[0, :]  # [256]
 kv_cache.vals[layer_idx, current_pos, :] = V_rotated[0, :]  # [256]
 ```
 
-**F16 casting:** If using F16 KV cache to save VRAM, `cast_f32_to_f16.wgsl` runs first. This halves KV cache memory, critical for Gemma 3's 32K context. KV cache dtype defaults to `f16` when `shader-f16` is available, and is forced to `f32` only when required (e.g., attention softcapping or no F16 support).
+**F16 casting:** If using F16 KV cache to save VRAM, `cast_f32_to_f16.wgsl` runs first. This halves KV cache memory, critical for Gemma 3's 32K context. KV cache dtype defaults to `f16` when `shader-f16` is available; attention softcapping can still run in F16 by default, and you can force `f32` via `runtime.inference.kvcache.forceF32Softcap` if precision issues show up (or when F16 is unsupported).
 
 **Sliding window:** Gemma 3 uses a sliding window pattern (`slidingWindow: 512`) for most layers. Only every 6th layer attends to the full context.
 
@@ -1030,10 +1030,10 @@ The manifest can include kernel path overrides to select explicit kernel dispatc
 ```json
 {
   "optimizations": {
-    "kernelPath": "gemma2-q4k-fused"
+    "kernelPath": "gemma2-q4k-fused-f16a"
   },
   "inference": {
-    "defaultKernelPath": "gemma2-q4k-dequant-f16"
+    "defaultKernelPath": "gemma2-q4k-dequant-f16a"
   }
 }
 ```

@@ -260,7 +260,7 @@ Phase 2: MoE Efficiency ──────┤
 
 | Document | Content |
 |----------|---------|
-| [MODEL_SUPPORT.md](plans/MODEL_SUPPORT.md) | Model compatibility matrix |
+| [TARGET_MODELS.md](plans/TARGET_MODELS.md) | Benchmark priority list |
 | [COMPETITIVE.md](analysis/COMPETITIVE.md) | Competitor analysis |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current system design |
 | [DOPPLER-TROUBLESHOOTING.md](DOPPLER-TROUBLESHOOTING.md) | Troubleshooting guide |
@@ -292,4 +292,3 @@ Phase 2: MoE Efficiency ──────┤
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
-

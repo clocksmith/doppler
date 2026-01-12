@@ -24,8 +24,8 @@ struct Uniforms {
     random_value: f32,  // Pre-generated random [0,1) for sampling
     pad_token_id: u32,
     logit_softcap: f32,  // Gemma 2: 30.0, 0.0 = disabled
-    pad1: u32,
-    pad2: u32,
+    output_index: u32,   // Index into output token buffer
+    pad0: u32,
 }
 
 // Apply softcapping: softcap * tanh(x / softcap)
@@ -39,7 +39,7 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> logits: array<f32>;              // [vocabSize]
-@group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [1] - selected token
+@group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [N] - selected tokens
 @group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;    // [topK] - intermediate
 @group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;     // [topK] - intermediate
 
@@ -217,7 +217,7 @@ fn softmax_and_sample(
             }
         }
 
-        output[0] = selected_token;
+        output[u.output_index] = selected_token;
     }
 }
 
@@ -278,7 +278,7 @@ fn sample_single_pass(
         // This simplified version selects top-1 only (greedy)
         // Full top-k sampling requires multi-pass for large vocab
 
-        output[0] = shared_indices[0];
+        output[u.output_index] = shared_indices[0];
     }
 }
 
@@ -369,6 +369,6 @@ fn argmax_reduce(
     }
 
     if (thread_idx == 0u) {
-        output[0] = shared_indices[0];
+        output[u.output_index] = shared_indices[0];
     }
 }

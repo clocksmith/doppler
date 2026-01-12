@@ -182,6 +182,8 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Runtime: `runtime.inference.kernelPath`
 - Legacy `kernelPlan` is removed; do not add new references.
 - Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath` → CLI `--kernel-path`.
+- Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
+- Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
 
 ### Manifest-First Change Checklist
 
@@ -195,7 +197,7 @@ When adding a new inference knob or model behavior:
 ### KV Cache Dtype Policy
 
 - Default KV cache dtype to `f16` when supported.
-- Force `f32` only when required (e.g., attention softcapping or no `shader-f16`).
+- Force `f32` only when required (no `shader-f16`) or explicitly configured (e.g., `runtime.inference.kvcache.forceF32Softcap` for softcapping).
 - Do not introduce new defaults that silently upgrade to `f32`.
 
 ### Preset Separation

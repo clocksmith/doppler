@@ -18,6 +18,7 @@
   "quantizationInfo": {
     "weights": "f32",
     "embeddings": "f32",
+    "compute": "f16",
     "variantTag": "wf32"
   },
   "hashAlgorithm": "sha256",

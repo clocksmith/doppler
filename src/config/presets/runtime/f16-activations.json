@@ -6,6 +6,9 @@
     "inference": {
       "compute": {
         "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
       }
     }
   }

@@ -45,6 +45,13 @@
           "requires": ["shader-f16"],
           "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector"
         },
+        "gemv_f16a": {
+          "wgsl": "matmul_gemv_f16a.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Optimized GEMV for M=1 decode with f16 activations + f16 output"
+        },
         "gemv_subgroup": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main",
@@ -52,8 +59,21 @@
           "requires": ["shader-f16", "subgroups"],
           "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd"
         },
+        "gemv_subgroup_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Subgroup-optimized GEMV with f16 activations + f16 output"
+        },
         "gemv_subgroup_vec4": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
+          "entryPoint": "main_vec4",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"]
+        },
+        "gemv_subgroup_vec4_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"]
@@ -64,6 +84,13 @@
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
           "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup"
+        },
+        "gemv_subgroup_multicol_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main_multicol",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output"
         },
         "q4_fused": {
           "wgsl": "fused_matmul_q4.wgsl",
@@ -92,9 +119,22 @@
           "requires": ["shader-f16", "subgroups"],
           "description": "Multi-column GEMV for large vocab (LM head) - F16 output"
         },
+        "q4_fused_multicol_f16a": {
+          "wgsl": "fused_matmul_q4_multicol_f16a.wgsl",
+          "entryPoint": "main_multicol_f16a",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output"
+        },
         "q4_fused_batched_f16": {
           "wgsl": "fused_matmul_q4_batched_f16.wgsl",
           "entryPoint": "main_batched_f16",
+          "workgroup": [64, 4, 1],
+          "requires": ["shader-f16", "subgroups"]
+        },
+        "q4_fused_batched_f16a": {
+          "wgsl": "fused_matmul_q4_batched_f16a.wgsl",
+          "entryPoint": "main_batched_f16a",
           "workgroup": [64, 4, 1],
           "requires": ["shader-f16", "subgroups"]
         },
@@ -355,6 +395,42 @@
           "workgroup": [1, 1, 1],
           "requires": []
         },
+        "prefill_f16": {
+          "wgsl": "attention_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [64, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_f16": {
+          "wgsl": "attention_decode_f16.wgsl",
+          "entryPoint": "attention_decode",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "prefill_small_f16": {
+          "wgsl": "attention_small_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_small_f16": {
+          "wgsl": "attention_small_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "prefill_streaming_f16": {
+          "wgsl": "attention_streaming_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "decode_streaming_f16": {
+          "wgsl": "attention_streaming_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [1, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "prefill_f16kv": {
           "wgsl": "attention_f16kv.wgsl",
           "entryPoint": "main",
@@ -390,6 +466,13 @@
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
           "requires": ["shader-f16"]
+        },
+        "decode_chunked_f16": {
+          "wgsl": "attention_decode_chunked_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Chunked decode kernel - f16 QKV + f16 output"
         },
         "decode_chunked_f16kv": {
           "wgsl": "attention_decode_chunked_f16kv.wgsl",
@@ -589,11 +672,23 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "default_f16": {
+          "wgsl": "rope_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "compute_freqs": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_compute_freqs",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "compute_freqs_f16": {
+          "wgsl": "rope_f16.wgsl",
+          "entryPoint": "rope_compute_freqs",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         },
         "qk": {
           "wgsl": "rope.wgsl",
@@ -601,17 +696,35 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "qk_f16": {
+          "wgsl": "rope_f16.wgsl",
+          "entryPoint": "rope_qk",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "ntk": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_ntk_scaled",
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "ntk_f16": {
+          "wgsl": "rope_f16.wgsl",
+          "entryPoint": "rope_ntk_scaled",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "yarn": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_yarn",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "yarn_f16": {
+          "wgsl": "rope_f16.wgsl",
+          "entryPoint": "rope_yarn",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -1143,11 +1256,23 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "argmax_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "argmax",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "argmax_reduce": {
           "wgsl": "sample.wgsl",
           "entryPoint": "argmax_reduce",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "argmax_reduce_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "argmax_reduce",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         },
         "find_topk_phase1": {
           "wgsl": "sample.wgsl",
@@ -1155,11 +1280,23 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "find_topk_phase1_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "find_topk_phase1",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "find_topk_phase2": {
           "wgsl": "sample.wgsl",
           "entryPoint": "find_topk_phase2",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "find_topk_phase2_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "find_topk_phase2",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         },
         "softmax_and_sample": {
           "wgsl": "sample.wgsl",
@@ -1167,11 +1304,23 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "softmax_and_sample_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "softmax_and_sample",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "single_pass": {
           "wgsl": "sample.wgsl",
           "entryPoint": "sample_single_pass",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "single_pass_f16": {
+          "wgsl": "sample_f16.wgsl",
+          "entryPoint": "sample_single_pass",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },

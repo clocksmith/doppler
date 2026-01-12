@@ -23,6 +23,8 @@ export interface GatherOptions extends OutputBufferOptions {
    * Default: false (RDRR format uses PyTorch layout from SafeTensors).
    */
   transpose?: boolean;
+  /** Optional index offset into the token indices buffer. */
+  indexOffset?: number;
   /** Optional indirect dispatch buffer for GPU-driven workgroup counts. */
   indirectBuffer?: GPUBuffer | null;
   /** Byte offset into indirect dispatch buffer (default: 0). */

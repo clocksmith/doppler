@@ -42,7 +42,14 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 The converter embeds all model-specific inference parameters in `manifest.json`.
 At runtime, overrides merge with the manifest, and the pipeline reads config
 values directly (no model-family detection). Missing fields fail fast; `null`
-explicitly disables a feature.
+explicitly disables a feature. Runtime overrides only apply when a value is
+non-null; runtime `null` does not unset a manifest value.
+Default kernel paths are resolved at conversion time via
+`manifest.inference.defaultKernelPath`, with runtime overrides in
+`runtime.inference.kernelPath`.
+Runtime defaults to F16 activations for web inference; override with
+`runtime.inference.compute.activationDtype = "f32"` if needed. Converter
+manifests can also include `quantizationInfo.compute` as a hint.
 
 ## Quick Start
 

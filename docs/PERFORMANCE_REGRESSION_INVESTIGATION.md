@@ -20,24 +20,14 @@ The 10x performance gap is caused by:
 
 ### GPU Timing
 
-Use the benchmark harness to measure individual kernel timings:
+Use the kernel benchmark harness to measure per-kernel timings:
 
-```typescript
-import { benchmarkDecodePass, printBenchmarkReport } from './gpu/kernel-benchmark.js';
+```bash
+# Kernel microbenchmarks
+doppler test kernels --perf
 
-const report = await benchmarkDecodePass({
-  modelConfig: {
-    hiddenSize: 1152,
-    intermediateSize: 6912,
-    numHeads: 4,
-    numKVHeads: 1,
-    headDim: 256,
-    vocabSize: 262144,
-    numLayers: 26,
-  }
-});
-
-printBenchmarkReport(report);
+# Full inference benchmark (for tok/s + latency)
+doppler test inference --perf
 ```
 
 ### Expected Breakdown (Gemma 3 1B)

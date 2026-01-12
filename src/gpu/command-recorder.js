@@ -71,7 +71,9 @@ export class CommandRecorder {
   /** @type {number} */
   #nextQueryIndex = 0;
   /** @type {number} */
-  static MAX_QUERIES = 512; // 256 kernel pairs
+  #queryCapacity = 0;
+  /** @type {number} */
+  static MAX_QUERIES = 16384; // 8192 kernel pairs
 
   /**
    * @param {GPUDevice | null} [device] - GPU device (auto-detected if not provided)
@@ -109,22 +111,31 @@ export class CommandRecorder {
    */
   #initProfiling() {
     try {
+      const limit = this.device.limits?.maxQuerySetSize ?? CommandRecorder.MAX_QUERIES;
+      this.#queryCapacity = Math.min(CommandRecorder.MAX_QUERIES, limit);
+      if (this.#queryCapacity < CommandRecorder.MAX_QUERIES) {
+        log.warn(
+          'CommandRecorder',
+          `Clamping MAX_QUERIES to device limit: ${this.#queryCapacity}/${CommandRecorder.MAX_QUERIES}`
+        );
+      }
+
       this.#querySet = this.device.createQuerySet({
         type: 'timestamp',
-        count: CommandRecorder.MAX_QUERIES,
+        count: this.#queryCapacity,
       });
 
       // Buffer to hold query results (8 bytes per timestamp = BigUint64)
       this.#queryBuffer = this.device.createBuffer({
         label: `${this.label}_query_buffer`,
-        size: CommandRecorder.MAX_QUERIES * 8,
+        size: this.#queryCapacity * 8,
         usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
       });
 
       // Readback buffer
       this.#readbackBuffer = this.device.createBuffer({
         label: `${this.label}_readback_buffer`,
-        size: CommandRecorder.MAX_QUERIES * 8,
+        size: this.#queryCapacity * 8,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
     } catch (e) {
@@ -248,7 +259,7 @@ export class CommandRecorder {
     const passLabel = `${this.label}_${label}_${this.#opCount}`;
 
     // If profiling enabled, add timestamp writes
-    if (this.#profilingEnabled && this.#querySet && this.#nextQueryIndex + 2 <= CommandRecorder.MAX_QUERIES) {
+    if (this.#profilingEnabled && this.#querySet && this.#nextQueryIndex + 2 <= this.#queryCapacity) {
       const startIndex = this.#nextQueryIndex;
       const endIndex = startIndex + 1;
       this.#nextQueryIndex += 2;

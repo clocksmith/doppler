@@ -43,7 +43,8 @@ export declare function getOrCreatePipelineLayout(
  */
 export declare function getCachedPipeline(
   operation: string,
-  variant: string
+  variant: string,
+  constants?: Record<string, number | boolean> | null
 ): GPUComputePipeline | null;
 
 /**
@@ -54,7 +55,8 @@ export declare function getCachedPipeline(
 export declare function getPipelineFast(
   operation: string,
   variant: string,
-  bindGroupLayout?: GPUBindGroupLayout | null
+  bindGroupLayout?: GPUBindGroupLayout | null,
+  constants?: Record<string, number | boolean> | null
 ): Promise<GPUComputePipeline>;
 
 /**
@@ -63,7 +65,8 @@ export declare function getPipelineFast(
 export declare function createPipeline(
   operation: string,
   variant: string,
-  bindGroupLayout?: GPUBindGroupLayout | null
+  bindGroupLayout?: GPUBindGroupLayout | null,
+  constants?: Record<string, number | boolean> | null
 ): Promise<GPUComputePipeline>;
 
 // ============================================================================

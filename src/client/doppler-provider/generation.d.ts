@@ -1,4 +1,5 @@
 import type { KVCacheSnapshot } from '../../inference/pipeline.js';
+import type { ChatTemplateType } from '../../inference/pipeline/chat-format.js';
 import type { GenerateOptions, ChatMessage, ChatResponse } from './types.js';
 
 export declare function generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string>;
@@ -15,6 +16,10 @@ export declare function formatGemmaChat(messages: ChatMessage[]): string;
 
 export declare function formatLlama3Chat(messages: ChatMessage[]): string;
 
-export declare function formatChatMessages(messages: ChatMessage[]): string;
+export declare function formatGptOssChat(messages: ChatMessage[]): string;
+
+export declare function formatChatMessages(messages: ChatMessage[], templateType?: ChatTemplateType): string;
+
+export declare function buildChatPrompt(messages: ChatMessage[], options?: GenerateOptions): string;
 
 export declare function dopplerChat(messages: ChatMessage[], options?: GenerateOptions): Promise<ChatResponse>;

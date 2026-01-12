@@ -22,6 +22,7 @@
 import { readBuffer } from '../../../gpu/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { isEnabled } from './config.js';
+import { decodeReadback } from './utils.js';
 
 // ============================================================================
 // Tensor Inspection Functions
@@ -43,7 +44,7 @@ export async function dumpTensor(buffer, label, options = {}) {
 
   try {
     const data = await readBuffer(buffer);
-    const arr = dtype === 'f32' ? new Float32Array(data) : new Float32Array(data);
+    const arr = decodeReadback(data, dtype);
 
     let min = Infinity;
     let max = -Infinity;
@@ -141,7 +142,7 @@ export async function dumpTokenVector(buffer, label, options) {
 
   try {
     const data = await readBuffer(buffer);
-    const arr = dtype === 'f32' ? new Float32Array(data) : new Float32Array(data);
+    const arr = decodeReadback(data, dtype);
 
     const offset = tokenIdx * rowSize;
     const end = offset + rowSize;
@@ -282,10 +283,12 @@ export async function dumpKVCache(kvCache, layerIdx) {
 
     log.debug('Debug', `${tag} seqLen=${seqLen} numHeads=${numHeads} headDim=${headDim}`);
 
+    const kvDtype = kvCache.kvDtype === 'f16' ? 'f16' : 'f32';
     const keysStats = keysGPU
       ? await dumpTensor(keysGPU, 'K_cache', {
           layerIdx,
           shape: [seqLen, numHeads * headDim],
+          dtype: kvDtype,
         })
       : null;
 
@@ -293,6 +296,7 @@ export async function dumpKVCache(kvCache, layerIdx) {
       ? await dumpTensor(valuesGPU, 'V_cache', {
           layerIdx,
           shape: [seqLen, numHeads * headDim],
+          dtype: kvDtype,
         })
       : null;
 

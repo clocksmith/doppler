@@ -2,7 +2,7 @@
 
 Defines the testing framework design for WGSL kernels and kernel combinations.
 
-**Implementation status:** See `tests/kernels/TODO.md`
+**Implementation status:** See `tests/kernels/README.md`
 **Benchmark baselines:** See `tests/kernels/BENCHMARKS.md`
 
 ---
@@ -151,4 +151,3 @@ For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON o
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
-

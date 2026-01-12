@@ -12,7 +12,7 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   vision: DEFAULT_QUANTIZATION_DEFAULTS.visionDtype,
   audio: DEFAULT_QUANTIZATION_DEFAULTS.audioDtype,
   projector: DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype,
-  computePrecision: null,
+  computePrecision: 'f16',
 };
 
 export const DEFAULT_CONVERTER_SHARDING_CONFIG = {

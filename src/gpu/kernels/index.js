@@ -159,19 +159,6 @@ export {
   createProfilingRecorder,
 } from '../command-recorder.js';
 
-// Re-export benchmark utilities
-export {
-  benchmarkMatmul,
-  benchmarkAttentionDecode,
-  benchmarkRMSNorm,
-  benchmarkSiLU,
-  benchmarkMatmulRMSNormFused,
-  benchmarkDecodePass,
-  compareBenchmarks,
-  exportBenchmarkJSON,
-  printBenchmarkReport,
-} from '../kernel-benchmark.js';
-
 // Split QKV
 export {
   runSplitQKV,
@@ -179,17 +166,3 @@ export {
 } from './split_qkv.js';
 
 // Re-export profiling utilities
-export {
-  isProfilingEnabled,
-  setProfilingEnabled,
-  clearProfile,
-  startProfileSession,
-  recordProfileEntry,
-  profileAsync,
-  profileSync,
-  profileKernel,
-  getProfileReport,
-  printProfileReport,
-  exportProfileJSON,
-  analyzeDecodePerformance,
-} from '../perf-profiler.js';

@@ -36,6 +36,9 @@
       }
     },
     "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
       "batching": {
         "maxTokens": 512
       },

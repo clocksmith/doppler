@@ -13,6 +13,15 @@ export function shouldUseFusedMatmulResidual(M) {
   return M === 1;
 }
 
+function resolveFusedResidualVariant(input, residual) {
+  if (input.dtype !== residual.dtype) {
+    throw new Error(
+      `[MatmulResidualFused] dtype mismatch: input=${input.dtype} residual=${residual.dtype}`
+    );
+  }
+  return input.dtype === 'f16' ? 'f16' : 'default';
+}
+
 
 export async function runMatmulResidualFused(
   input,
@@ -34,7 +43,8 @@ export async function runMatmulResidualFused(
 
   trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
 
-  const pipeline = await getPipelineFast('fused_matmul_residual', 'default');
+  const pipelineVariant = resolveFusedResidualVariant(input, residual);
+  const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
 
   const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
 
@@ -98,7 +108,8 @@ export async function recordMatmulResidualFused(
   
   const outputDtype = input.dtype;
 
-  const pipeline = await getPipelineFast('fused_matmul_residual', 'default');
+  const pipelineVariant = resolveFusedResidualVariant(input, residual);
+  const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
 
   const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
 

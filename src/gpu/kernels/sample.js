@@ -1,6 +1,6 @@
 
 
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
@@ -27,6 +27,23 @@ async function createSamplePipeline(device, entryPoint) {
   return createPipeline('sample', entryPoint, getSampleBindGroupLayout(device));
 }
 
+function resolveSampleVariants(logitsDtype) {
+  const caps = getKernelCapabilities();
+  const useF16 = logitsDtype === 'f16';
+  if (useF16 && !caps.hasF16) {
+    throw new Error('[Sample] F16 logits requested but shader-f16 is unavailable.');
+  }
+  const suffix = useF16 ? '_f16' : '';
+  return {
+    argmax: `argmax${suffix}`,
+    argmaxReduce: `argmax_reduce${suffix}`,
+    phase1: `find_topk_phase1${suffix}`,
+    phase2: `find_topk_phase2${suffix}`,
+    phase3: `softmax_and_sample${suffix}`,
+    singlePass: `single_pass${suffix}`,
+  };
+}
+
 
 export async function runArgmax(
   logits,
@@ -41,8 +58,9 @@ export async function runArgmax(
   if (!device) throw new Error('GPU device not initialized');
 
   // Pipelines with explicit layout
-  const argmaxPipeline = await createSamplePipeline(device, 'argmax');
-  const reducePipeline = await createSamplePipeline(device, 'argmax_reduce');
+  const variants = resolveSampleVariants(options.logitsDtype ?? 'f32');
+  const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
+  const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
   // Workgroups for first pass
   const workgroupSize = WORKGROUP_SIZES.DEFAULT;
@@ -51,7 +69,13 @@ export async function runArgmax(
   // Intermediate buffers
   const tempLogits = acquireBuffer(workgroupSize * 4, undefined, 'argmax_temp_logits');
   const tempIndices = acquireBuffer(workgroupSize * 4, undefined, 'argmax_temp_indices');
-  const outputBuffer = acquireBuffer(4, undefined, 'argmax_output');
+  const outputIndex = options.outputIndex ?? 0;
+  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+  const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
+  const ownsOutputBuffer = !options.outputBuffer;
+  if (outputBuffer.size < minOutputBytes) {
+    throw new Error('[Sample] outputBuffer too small for argmax outputIndex.');
+  }
 
   // Uniforms
   const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
@@ -66,6 +90,7 @@ export async function runArgmax(
       view.setFloat32(12, 0.0, true);         // randomValue (unused)
       view.setUint32(16, padTokenId, true);   // padTokenId
       view.setFloat32(20, logitSoftcap, true); // logitSoftcap (Gemma 2: 30.0)
+      view.setUint32(24, outputIndex, true); // outputIndex
     },
     null,
     device
@@ -124,7 +149,7 @@ export async function runArgmax(
   });
 
   const copyEncoder = device.createCommandEncoder({ label: 'argmax_copy' });
-  copyEncoder.copyBufferToBuffer(outputBuffer, 0, stagingBuffer, 0, 4);
+  copyEncoder.copyBufferToBuffer(outputBuffer, outputIndex * 4, stagingBuffer, 0, 4);
   device.queue.submit([copyEncoder.finish()]);
 
   await stagingBuffer.mapAsync(GPUMapMode.READ);
@@ -136,7 +161,9 @@ export async function runArgmax(
   uniformBuffer.destroy();
   releaseBuffer(tempLogits);
   releaseBuffer(tempIndices);
-  releaseBuffer(outputBuffer);
+  if (ownsOutputBuffer) {
+    releaseBuffer(outputBuffer);
+  }
 
   return tokenId;
 }
@@ -158,12 +185,21 @@ export async function runGPUSample(
     randomSeed,
     padTokenId,
     logitSoftcap = 0,
+    logitsDtype = 'f32',
+    outputBuffer: outputBufferOverride,
+    outputIndex = 0,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   const { greedyThreshold } = getRuntimeConfig().inference.sampling;
   if (temperature < greedyThreshold) {
-    return runArgmax(logits, vocabSize, { padTokenId, logitSoftcap });
+    return runArgmax(logits, vocabSize, {
+      padTokenId,
+      logitSoftcap,
+      logitsDtype,
+      outputBuffer: outputBufferOverride,
+      outputIndex,
+    });
   }
 
   const device = getDevice();
@@ -175,9 +211,10 @@ export async function runGPUSample(
     : Math.random();
 
   // Get pipelines with explicit layout
-  const phase1Pipeline = await createSamplePipeline(device, 'find_topk_phase1');
-  const phase2Pipeline = await createSamplePipeline(device, 'find_topk_phase2');
-  const phase3Pipeline = await createSamplePipeline(device, 'softmax_and_sample');
+  const variants = resolveSampleVariants(logitsDtype);
+  const phase1Pipeline = await createSamplePipeline(device, variants.phase1);
+  const phase2Pipeline = await createSamplePipeline(device, variants.phase2);
+  const phase3Pipeline = await createSamplePipeline(device, variants.phase3);
 
   // Workgroups for phase 1
   const workgroupSize = WORKGROUP_SIZES.DEFAULT;
@@ -186,7 +223,12 @@ export async function runGPUSample(
   // Buffers
   const topkLogits = acquireBuffer(workgroupSize * 4, undefined, 'topk_logits');
   const topkIndices = acquireBuffer(workgroupSize * 4, undefined, 'topk_indices');
-  const outputBuffer = acquireBuffer(4, undefined, 'sample_output');
+  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+  const outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
+  const ownsOutputBuffer = !outputBufferOverride;
+  if (outputBuffer.size < minOutputBytes) {
+    throw new Error('[Sample] outputBuffer too small for sample outputIndex.');
+  }
 
   // Uniforms
   const uniformBuffer = createUniformBufferWithView(
@@ -199,6 +241,7 @@ export async function runGPUSample(
       view.setFloat32(12, randomValue, true);
       view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
+      view.setUint32(24, outputIndex, true);
     },
     null,
     device
@@ -252,7 +295,7 @@ export async function runGPUSample(
   });
 
   const copyEncoder = device.createCommandEncoder({ label: 'sample_copy' });
-  copyEncoder.copyBufferToBuffer(outputBuffer, 0, stagingBuffer, 0, 4);
+  copyEncoder.copyBufferToBuffer(outputBuffer, outputIndex * 4, stagingBuffer, 0, 4);
   device.queue.submit([copyEncoder.finish()]);
 
   await stagingBuffer.mapAsync(GPUMapMode.READ);
@@ -264,7 +307,9 @@ export async function runGPUSample(
   uniformBuffer.destroy();
   releaseBuffer(topkLogits);
   releaseBuffer(topkIndices);
-  releaseBuffer(outputBuffer);
+  if (ownsOutputBuffer) {
+    releaseBuffer(outputBuffer);
+  }
 
   return tokenId;
 }
@@ -279,15 +324,21 @@ export async function recordArgmax(
   const device = recorder.device;
 
   // Pipelines with explicit layout
-  const argmaxPipeline = await createSamplePipeline(device, 'argmax');
-  const reducePipeline = await createSamplePipeline(device, 'argmax_reduce');
+  const variants = resolveSampleVariants(options.logitsDtype ?? 'f32');
+  const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
+  const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
 
   // Buffers
   const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
   const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
-  const outputBuffer = acquireBuffer(4, undefined, 'argmax_output');
+  const outputIndex = options.outputIndex ?? 0;
+  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+  const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
+  if (outputBuffer.size < minOutputBytes) {
+    throw new Error('[Sample] outputBuffer too small for argmax outputIndex.');
+  }
 
   // Uniforms
   const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
@@ -302,6 +353,7 @@ export async function recordArgmax(
       view.setFloat32(12, 0.0, true);
       view.setUint32(16, padTokenId, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
+      view.setUint32(24, outputIndex, true);
     },
     recorder
   );
@@ -367,12 +419,21 @@ export async function recordGPUSample(
     randomSeed,
     padTokenId,
     logitSoftcap = 0,
+    logitsDtype = 'f32',
+    outputBuffer: outputBufferOverride,
+    outputIndex = 0,
   } = options;
 
   // For temperature=0 or very low, use greedy argmax
   const { greedyThreshold } = getRuntimeConfig().inference.sampling;
   if (temperature < greedyThreshold) {
-    return recordArgmax(recorder, logits, vocabSize, { padTokenId, logitSoftcap });
+    return recordArgmax(recorder, logits, vocabSize, {
+      padTokenId,
+      logitSoftcap,
+      logitsDtype,
+      outputBuffer: outputBufferOverride,
+      outputIndex,
+    });
   }
 
   const device = recorder.device;
@@ -383,9 +444,10 @@ export async function recordGPUSample(
     : Math.random();
 
   // Get pipelines with explicit layout
-  const phase1Pipeline = await createSamplePipeline(device, 'find_topk_phase1');
-  const phase2Pipeline = await createSamplePipeline(device, 'find_topk_phase2');
-  const phase3Pipeline = await createSamplePipeline(device, 'softmax_and_sample');
+  const variants = resolveSampleVariants(logitsDtype);
+  const phase1Pipeline = await createSamplePipeline(device, variants.phase1);
+  const phase2Pipeline = await createSamplePipeline(device, variants.phase2);
+  const phase3Pipeline = await createSamplePipeline(device, variants.phase3);
 
   // Workgroups for phase 1
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
@@ -393,7 +455,11 @@ export async function recordGPUSample(
   // Buffers
   const topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
   const topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
-  const outputBuffer = acquireBuffer(4, undefined, 'sample_output');
+  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+  const outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
+  if (outputBuffer.size < minOutputBytes) {
+    throw new Error('[Sample] outputBuffer too small for sample outputIndex.');
+  }
 
   // Uniforms
   const uniformBuffer = createUniformBufferWithView(
@@ -406,6 +472,7 @@ export async function recordGPUSample(
       view.setFloat32(12, randomValue, true);
       view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
+      view.setUint32(24, outputIndex, true);
     },
     recorder
   );

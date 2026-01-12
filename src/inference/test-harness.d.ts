@@ -42,7 +42,7 @@ export interface ModelInfo {
 export interface RuntimeOverrides {
   /**
    * Kernel path for explicit kernel dispatch ordering.
-   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
    */
   kernelPath?: string | KernelPathSchema;
   runtimeConfig?: Partial<RuntimeConfigSchema>;

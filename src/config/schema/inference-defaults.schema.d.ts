@@ -42,7 +42,7 @@ export interface BatchingDefaultsSchema {
   /** Maximum tokens to generate per sequence (default: 512) */
   maxTokens: number;
 
-  /** When to check for stop conditions: per-token or per-batch (default: 'per-token') */
+  /** When to check for stop conditions: per-token or per-batch (default: 'batch') */
   stopCheckMode: 'per-token' | 'batch';
 }
 
@@ -150,7 +150,7 @@ export interface InferenceDefaultsConfigSchema {
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Specifies exactly which kernels run, in what order, with what configs.
-   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
+   * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
    */
   kernelPath?: KernelPathRef;
   /**

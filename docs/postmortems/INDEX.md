@@ -8,7 +8,9 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
-| [Performance Gaps (F16)](#2026-01-03-performance-gaps) | 2026-01-03 | **OPEN** | F16 activations partially implemented (3 gaps) |
+| [Gemma 2 F16 End-to-End Pipeline](#2026-01-05-gemma2-f16-end-to-end) | 2026-01-05 | RESOLVED | F16 activations not fully plumbed through attention/logits/sampling + kernel path selection ignored activation dtype |
+| [Gemma 2 Activation Dtype Mismatch](#2026-01-04-gemma2-activation-dtype-mismatch) | 2026-01-04 | RESOLVED | F16 matmul override on F32 activations + phase-agnostic attention lookup |
+| [Performance Gaps (F16)](#2026-01-03-performance-gaps) | 2026-01-03 | **OPEN** | Matmul/attention throughput still behind WebLLM; F16 activations now end-to-end |
 | [Batched Decode Repetition](#2026-01-03-batched-decode-repetition) | 2026-01-03 | **OPEN** | Uniform cache eviction destroys pending buffers |
 | [Ping-Pong Buffer Release](#2025-12-31-pingpong-buffer-release) | 2025-12-31 | RESOLVED | Index-based lookup missed buffer B after odd layers |
 | [Buffer Pool Trace False Positives](#2025-12-30-buffer-pool-trace-false-positives) | 2025-12-30 | RESOLVED | Trace reading garbage from buffer pool padding |
@@ -27,11 +29,27 @@ Quick reference for debugging history and lessons learned.
 
 ## Post-Mortem Details
 
+### 2026-01-05-gemma2-f16-end-to-end
+
+**Status:** RESOLVED | **File:** [2026-01-05-gemma2-f16-end-to-end.md](2026-01-05-gemma2-f16-end-to-end.md)
+
+F16 activations were enabled but attention, RoPE, logits, and sampling still assumed F32. Fixes added F16 kernels and dtype propagation, plus explicit kernel-path defaults from `kernelPaths` + `quantizationInfo.compute`.
+
+---
+
+### 2026-01-04-gemma2-activation-dtype-mismatch
+
+**Status:** RESOLVED | **File:** [2026-01-04-gemma2-activation-dtype-mismatch.md](2026-01-04-gemma2-activation-dtype-mismatch.md)
+
+Gemma 2 debug runs produced incoherent output. Root cause: kernel path overrides forced F16 outputs while runtime activations remained F32, and attention variant selection ignored prefill/decode phase. Fixes made kernel selection phase-aware, enforced dtype matches, and defaulted activations to F16.
+
+---
+
 ### 2026-01-03-performance-gaps
 
 **Status:** OPEN | **File:** [2026-01-03-performance-gaps.md](2026-01-03-performance-gaps.md)
 
-DOPPLER decode is 2.5x slower than WebLLM on Gemma 2 2B. F16 activations were implemented to reduce bandwidth, but review found 3 critical gaps: (1) `doRMSNorm` wrapper in layer.js doesn't accept/pass `activationDtype`, so all RMSNorm uses F32; (2) F16 RMSNorm shader lacks residual variants, forcing Gemma 2/3 sandwich-norm to F32; (3) GeGLU F16 shader exists in silu_f16.wgsl but gelu.js doesn't use it. Result: only matmul outputs are F16, achieving 32% of expected 2x bandwidth reduction.
+DOPPLER decode remains slower than WebLLM on Gemma 2 2B. F16 activations are now end-to-end; remaining gap is dominated by matmul and attention throughput (see profiling in the postmortem).
 
 ---
 

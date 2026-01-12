@@ -19,9 +19,9 @@ export function f16ToF32(h: number): number;
 
 /**
  * Decode a GPU readback buffer to Float32Array.
- * Handles both f16 and f32 dtypes.
+ * Handles f16, bf16, and f32 dtypes.
  */
-export function decodeReadback(buffer: ArrayBuffer, dtype: 'f16' | 'f32'): Float32Array;
+export function decodeReadback(buffer: ArrayBuffer, dtype: 'f16' | 'f32' | 'bf16'): Float32Array;
 
 // ============================================================================
 // Health Checks

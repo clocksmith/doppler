@@ -230,7 +230,7 @@ export function createManifest(
     const headDim = rawConfig.head_dim ??
       architecture.headDim ??
       Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
-    inference = buildManifestInference(preset, rawConfig, headDim || 64);
+    inference = buildManifestInference(preset, rawConfig, headDim || 64, options.quantizationInfo ?? null);
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
@@ -249,6 +249,7 @@ export function createManifest(
     modelId,
     modelType: options.modelType || model.config?.architectures?.[0] || model.architecture || 'unknown',
     quantization: model.quantization || 'F16',
+    quantizationInfo: options.quantizationInfo ?? undefined,
     architecture,
     inference,
     shards,

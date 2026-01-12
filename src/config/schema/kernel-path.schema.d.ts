@@ -131,12 +131,12 @@ export interface KernelPathSchema {
  * These are the known preset IDs, but custom presets can also be registered.
  */
 export type BuiltinKernelPathId =
-  | 'q4k-fused'        // Q4K weights, fused matmul, fused FFN
-  | 'q4k-fused-ffn'    // Q4K weights, fused matmul, fused FFN (explicit)
-  | 'q4k-dequant-f32'  // Q4K -> F32 dequant, F32 matmul
-  | 'q4k-dequant-f16'  // Q4K -> F16 dequant, F16 matmul
-  | 'f16-native'       // Native F16 weights
-  | 'f32-native';      // Native F32 weights (debug)
+  | 'gemma2-q4k-fused-f16a'   // Gemma 2 Q4K weights, fused matmul, F16 activations
+  | 'gemma2-q4k-fused-f32a'   // Gemma 2 Q4K weights, fused matmul, F32 activations
+  | 'gemma2-q4k-dequant-f16a' // Gemma 2 Q4K -> F16 dequant, F16 activations
+  | 'gemma2-q4k-dequant-f32a' // Gemma 2 Q4K -> F32 dequant, F32 activations
+  | 'gemma2-f16-f16a'         // Gemma 2 F16 weights, F16 activations
+  | 'gemma2-f16-f32a';        // Gemma 2 F16 weights, F32 activations
 
 /**
  * Kernel path reference - preset ID (string) or inline path schema.

@@ -11,8 +11,6 @@ import { getDevice, setTrackSubmits, getKernelCapabilities } from '../../gpu/dev
 import { releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../gpu/kernels/sample.js';
 import { recordCheckStop } from '../../gpu/kernels/check-stop.js';
-import { recordGather } from '../../gpu/kernels/gather.js';
-import { recordScale } from '../../gpu/kernels/scale.js';
 import { markWarmed as markKernelCacheWarmed } from '../../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats } from '../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../gpu/command-recorder.js';
@@ -516,6 +514,10 @@ export class PipelineGenerator {
         gpuTimePrefillMs += total;
         hasGpuTimePrefill = true;
       }
+      if (timings) {
+        log.warn('Profile', `Prefill (${rec.label}):`);
+        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+      }
     };
 
     const benchmarkSubmits = opts.debug;
@@ -680,9 +682,10 @@ export class PipelineGenerator {
       await currentRecorder.submitAndWait();
       await recordProfile(currentRecorder);
 
-      const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * 4);
+      const logitsBytes = recorded.logitsDtype === 'f16' ? 2 : 4;
+      const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * logitsBytes);
       releaseBuffer(recorded.logitsBuffer);
-      logits = new Float32Array(logitsData);
+      logits = decodeReadback(logitsData, recorded.logitsDtype);
 
       const health = getLogitsHealth(logits);
       if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
@@ -869,7 +872,7 @@ export class PipelineGenerator {
     const useFusedDecode = recorder && useGPUSampling && !this.#state.disableFusedDecode;
 
     if (useFusedDecode) {
-      const { logitsBuffer, vocabSize } = await recordLogitsGPU(
+      const { logitsBuffer, vocabSize, logitsDtype } = await recordLogitsGPU(
         recorder,
         hiddenStates,
         numTokens,
@@ -878,12 +881,13 @@ export class PipelineGenerator {
       );
 
       const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype })
         : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
             topK: opts.topK,
             padTokenId,
             logitSoftcap,
+            logitsDtype,
           });
 
       const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
@@ -918,8 +922,9 @@ export class PipelineGenerator {
         log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${this.#state.decodeStepCount})`);
         if (allowReadback('pipeline.decode.debug-logits')) {
           try {
-            const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * 4, 4096));
-            const logitArr = new Float32Array(logitSample);
+            const logitsBytes = logitsDtype === 'f16' ? 2 : 4;
+            const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
+            const logitArr = decodeReadback(logitSample, logitsDtype);
             const maxLogit = Math.max(...logitArr);
             const minLogit = Math.min(...logitArr);
             const hasNaN = logitArr.some((v) => Number.isNaN(v));
@@ -1051,15 +1056,16 @@ export class PipelineGenerator {
         this.#state.debugFlags
       );
       if (logitsResult) {
-        const { logitsBuffer, vocabSize } = logitsResult;
+        const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
 
         const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-          ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
+          ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype })
           : await runGPUSample(logitsBuffer, vocabSize, {
               temperature: opts.temperature,
               topK: opts.topK,
               padTokenId,
               logitSoftcap,
+              logitsDtype,
             });
 
         releaseBuffer(logitsBuffer);
@@ -1139,17 +1145,11 @@ export class PipelineGenerator {
     const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;
     const maxTokens = opts.maxTokens || getRuntimeConfig().inference.batching.maxTokens;
 
-    /** @type {GPUBuffer[]} */
-    const tokenBuffers = [];
-    for (let i = 0; i <= N; i++) {
-      const buf = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-      });
-      tokenBuffers.push(buf);
-    }
-
-    device.queue.writeBuffer(tokenBuffers[0], 0, new Uint32Array([startToken]));
+    const tokensBuffer = device.createBuffer({
+      size: (N + 1) * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
 
     const context = this._buildLayerContext(recorder, true, opts.debugLayers);
     const embedBufferRaw = this.#state.weights.get('embed');
@@ -1161,29 +1161,25 @@ export class PipelineGenerator {
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
     const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
+    const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
 
     for (let i = 0; i < N; i++) {
       const currentPos = this.#state.currentSeqLen + i;
       context.currentSeqLen = currentPos;
+      context.decodeBuffers?.resetPingPong();
 
-      let hiddenTensor = await recordGather(
+      const hiddenTensor = await embed(tokensBuffer, embedBuffer, {
+        hiddenSize: config.hiddenSize,
+        vocabSize: config.vocabSize,
+        scaleEmbeddings: config.scaleEmbeddings,
         recorder,
-        tokenBuffers[i],
-        embedBuffer,
-        1,
-        config.hiddenSize,
-        config.vocabSize,
-        { embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32' }
-      );
-
-      if (config.scaleEmbeddings) {
-        const scaleFactor = Math.sqrt(config.hiddenSize);
-        const prevTensor = hiddenTensor;
-        hiddenTensor = await recordScale(recorder, hiddenTensor, scaleFactor, { count: config.hiddenSize });
-        if (prevTensor.buffer !== hiddenTensor.buffer) {
-          recorder.trackTemporaryBuffer(prevTensor.buffer);
-        }
-      }
+        transpose: this.#state.embeddingTranspose,
+        debugProbes: this.#state.runtimeConfig.shared.debug.probes,
+        activationDtype,
+        embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
+        numTokens: 1,
+        indexOffset: i,
+      });
       /** @type {GPUBuffer} */
       let hiddenStatesBuffer = hiddenTensor.buffer;
 
@@ -1192,33 +1188,50 @@ export class PipelineGenerator {
         const layerOutput = await processLayer(l, hiddenStatesBuffer, 1, false, context);
         if (!(layerOutput instanceof GPUBuffer)) throw new Error('Expected GPUBuffer from processLayer');
         hiddenStatesBuffer = layerOutput;
+        context.decodeBuffers?.swapPingPong();
         if (prevStates !== hiddenStatesBuffer) {
-          recorder.trackTemporaryBuffer(prevStates);
+          if (!context.decodeBuffers?.ownsBuffer(prevStates)) {
+            recorder.trackTemporaryBuffer(prevStates);
+          }
         }
       }
 
-      const { logitsBuffer, vocabSize } = await recordLogitsGPU(
+      const { logitsBuffer, vocabSize, logitsDtype } = await recordLogitsGPU(
         recorder,
         hiddenStatesBuffer,
         1,
         this._getLogitsWeights(),
         this._getLogitsConfig()
       );
-      recorder.trackTemporaryBuffer(hiddenStatesBuffer);
+      if (!context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
+        recorder.trackTemporaryBuffer(hiddenStatesBuffer);
+      }
 
       const temperature = opts.temperature ?? samplingDefaults.temperature;
       const topK = opts.topK ?? samplingDefaults.topK;
-      const sampledTokenBuffer = temperature < samplingDefaults.greedyThreshold
-        ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap })
-        : await recordGPUSample(recorder, logitsBuffer, vocabSize, { temperature, topK, padTokenId, logitSoftcap });
+      const sampleOptions = {
+        padTokenId,
+        logitSoftcap,
+        logitsDtype,
+        outputBuffer: tokensBuffer,
+        outputIndex: i + 1,
+      };
+      if (temperature < samplingDefaults.greedyThreshold) {
+        await recordArgmax(recorder, logitsBuffer, vocabSize, sampleOptions);
+      } else {
+        await recordGPUSample(recorder, logitsBuffer, vocabSize, {
+          temperature,
+          topK,
+          ...sampleOptions,
+        });
+      }
       recorder.trackTemporaryBuffer(logitsBuffer);
 
-      const encoder = recorder.getEncoder();
-      encoder.copyBufferToBuffer(sampledTokenBuffer, 0, tokenBuffers[i + 1], 0, 4);
-
       if (stopCheckMode === 'per-token') {
+        const encoder = recorder.getEncoder();
         const stopFlagBuffer = recordCheckStop(recorder, {
-          sampledTokenBuffer: tokenBuffers[i + 1],
+          sampledTokenBuffer: tokensBuffer,
+          tokenIndex: i + 1,
           eosTokenId,
           maxTokens,
           currentPos: i + 1,
@@ -1227,13 +1240,12 @@ export class PipelineGenerator {
         encoder.copyBufferToBuffer(stopFlagBuffer, 0, stopBuffer, i * 4, 4);
         recorder.trackTemporaryBuffer(stopFlagBuffer);
       }
-
-      recorder.trackTemporaryBuffer(sampledTokenBuffer);
     }
 
     recorder.submit();
 
-    if (!allowReadback('pipeline.decode.multi-token')) {
+    const readbackCount = 1 + ((stopCheckMode === 'per-token' && stopBuffer) ? 1 : 0);
+    if (!allowReadback('pipeline.decode.multi-token', readbackCount)) {
       throw new Error('[Pipeline] GPU readback disabled for multi-token decode');
     }
 
@@ -1249,20 +1261,15 @@ export class PipelineGenerator {
       copyEncoder.copyBufferToBuffer(stopBuffer, 0, stopStagingBuffer, 0, stopBufferSize);
     }
 
-    /** @type {GPUBuffer[]} */
-    const tokenStagingBuffers = [];
-    for (let i = 1; i <= N; i++) {
-      const staging = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-      copyEncoder.copyBufferToBuffer(tokenBuffers[i], 0, staging, 0, 4);
-      tokenStagingBuffers.push(staging);
-    }
+    const tokensStagingBuffer = device.createBuffer({
+      size: N * 4,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    });
+    copyEncoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
 
     device.queue.submit([copyEncoder.finish()]);
 
-    const mapPromises = tokenStagingBuffers.map(b => b.mapAsync(GPUMapMode.READ));
+    const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
     if (stopStagingBuffer) {
       mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
     }
@@ -1271,11 +1278,8 @@ export class PipelineGenerator {
     getUniformCache().flushPendingDestruction();
 
     /** @type {number[]} */
-    const tokens = [];
-    for (const staging of tokenStagingBuffers) {
-      const tokenId = new Uint32Array(staging.getMappedRange())[0];
-      tokens.push(tokenId);
-    }
+    const tokensView = new Uint32Array(tokensStagingBuffer.getMappedRange());
+    const tokens = Array.from(tokensView);
 
     let actualCount = N;
     if (stopCheckMode === 'per-token' && stopStagingBuffer) {
@@ -1297,13 +1301,13 @@ export class PipelineGenerator {
       }
     }
 
-    tokenStagingBuffers.forEach(b => b.unmap());
+    tokensStagingBuffer.unmap();
 
     const generatedTokens = tokens.slice(0, actualCount);
 
-    tokenBuffers.forEach(b => b.destroy());
+    tokensBuffer.destroy();
     stopBuffer?.destroy();
-    tokenStagingBuffers.forEach(b => b.destroy());
+    tokensStagingBuffer.destroy();
     if (stopStagingBuffer) stopStagingBuffer.destroy();
 
     if (opts.profile && recorder.isProfilingEnabled()) {
@@ -1311,6 +1315,10 @@ export class PipelineGenerator {
       const total = sumProfileTimings(timings);
       if (total !== null) {
         this.#state.stats.gpuTimeDecodeMs = (this.#state.stats.gpuTimeDecodeMs ?? 0) + total;
+      }
+      if (timings) {
+        log.warn('Profile', `Batch decode (N=${N}):`);
+        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
       }
     }
 
@@ -1465,6 +1473,7 @@ export class PipelineGenerator {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
       rmsNormEps: config.rmsNormEps,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
       useTiedEmbeddings: this.#state.useTiedEmbeddings,
       embeddingVocabSize: this.#state.embeddingVocabSize,
       finalLogitSoftcapping: config.finalLogitSoftcapping,

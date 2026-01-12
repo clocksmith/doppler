@@ -32,6 +32,8 @@ import {
   markStageLogged,
 } from './types.js';
 
+const ATTENTION_DTYPE_LOGGED = new Set();
+
 /**
  * Run attention for a single layer (GPU path).
  *
@@ -80,9 +82,11 @@ export async function runLayerAttentionGPU(
   const device = getDevice();
 
   const wantsF16Output = input.dtype === 'f16';
+  const kvCacheDtype = state.kvCache?.kvDtype ?? (wantsF16Output ? 'f16' : 'f32');
+  const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
-  if (wantsF16Output) {
+  if (wantsF16Output && !allowF16Attention) {
     attentionInput = await castF16ToF32(input);
     attentionInputTemp = true;
   }
@@ -119,6 +123,7 @@ export async function runLayerAttentionGPU(
     normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
     });
     if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
 
@@ -133,6 +138,7 @@ export async function runLayerAttentionGPU(
         layerIdx,
         tokenIdx: Math.max(0, numTokens - 1),
         rowSize: hiddenSize,
+        dtype: normed.dtype,
       });
     }
   }
@@ -143,11 +149,23 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(normed.buffer, `L${layerIdx} normed input (GPU)`, numTokens);
   }
 
+  const debugLayers = debugFlags.debugLayers;
+  const shouldLogLayer = debugLayers === null ? layerIdx === 0 : shouldDebugLayer(layerIdx, debugLayers);
+  if (shouldLogLayer) {
+    const phase = isPrefill ? 'prefill' : 'decode';
+    const logKey = `L${layerIdx}_${phase}_dtypes`;
+    if (!ATTENTION_DTYPE_LOGGED.has(logKey)) {
+      ATTENTION_DTYPE_LOGGED.add(logKey);
+      trace.attn(layerIdx, `dtypes: activation=${config.activationDtype ?? 'unknown'}, input=${input.dtype}, normed=${normed.dtype}`);
+    }
+  }
+
   if (isKernelDebugEnabled(layerIdx)) {
     await dumpTokenVector(normed.buffer, 'attn_in', {
       layerIdx,
       tokenIdx: Math.max(0, numTokens - 1),
       rowSize: hiddenSize,
+      dtype: normed.dtype,
     });
   }
 
@@ -163,9 +181,9 @@ export async function runLayerAttentionGPU(
 
   // Check for fused QKV path (3->1 matmul optimization)
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
-                  getLoRAModule(lora, layerIdx, 'k_proj') ||
-                  getLoRAModule(lora, layerIdx, 'v_proj');
-  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA && !useF16Activations;
+    getLoRAModule(lora, layerIdx, 'k_proj') ||
+    getLoRAModule(lora, layerIdx, 'v_proj');
+  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA;
 
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     // FUSED PATH: Single matmul for Q/K/V, then split
@@ -177,6 +195,7 @@ export async function runLayerAttentionGPU(
       transposeB: 'auto',
       role: 'qkv_proj',
       layerIdx,
+      outputDtype: useF16Activations ? 'f16' : undefined,
     });
 
     // Split fused output into Q, K, V (returns Tensors)
@@ -305,11 +324,26 @@ export async function runLayerAttentionGPU(
   // Kernel step debug: Q/K/V projections
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('matmul', { layerIdx, label: 'Q_proj', M: numTokens, N: numHeads * headDim, K: hiddenSize });
-    await dumpTokenVector(qTensor.buffer, 'Q_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+    await dumpTokenVector(qTensor.buffer, 'Q_proj', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numHeads * headDim,
+      dtype: qTensor.dtype,
+    });
     logKernelStep('matmul', { layerIdx, label: 'K_proj', M: numTokens, N: numKVHeads * headDim, K: hiddenSize });
-    await dumpTokenVector(kTensor.buffer, 'K_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+    await dumpTokenVector(kTensor.buffer, 'K_proj', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numKVHeads * headDim,
+      dtype: kTensor.dtype,
+    });
     logKernelStep('matmul', { layerIdx, label: 'V_proj', M: numTokens, N: numKVHeads * headDim, K: hiddenSize });
-    await dumpTokenVector(vTensor.buffer, 'V_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+    await dumpTokenVector(vTensor.buffer, 'V_proj', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numKVHeads * headDim,
+      dtype: vTensor.dtype,
+    });
   }
 
   // Debug: Check Q/K/V after projections for L0 prefill
@@ -344,11 +378,17 @@ export async function runLayerAttentionGPU(
       const qNormedTensor = await runRMSNorm(qTensor, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,
         hiddenSize: headDim,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
       releaseBuffer(qTensor.buffer);
       qTensor = qNormedTensor;
       if (isKernelDebugEnabled(layerIdx)) {
-        await dumpTokenVector(qTensor.buffer, 'Q_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+        await dumpTokenVector(qTensor.buffer, 'Q_norm', {
+          layerIdx,
+          tokenIdx: Math.max(0, numTokens - 1),
+          rowSize: numHeads * headDim,
+          dtype: qTensor.dtype,
+        });
       }
     }
     if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
@@ -361,11 +401,17 @@ export async function runLayerAttentionGPU(
       const kNormedTensor = await runRMSNorm(kTensor, kNormBuf, rmsNormEps, {
         batchSize: numTokens * numKVHeads,
         hiddenSize: headDim,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
       releaseBuffer(kTensor.buffer);
       kTensor = kNormedTensor;
       if (isKernelDebugEnabled(layerIdx)) {
-        await dumpTokenVector(kTensor.buffer, 'K_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+        await dumpTokenVector(kTensor.buffer, 'K_norm', {
+          layerIdx,
+          tokenIdx: Math.max(0, numTokens - 1),
+          rowSize: numKVHeads * headDim,
+          dtype: kTensor.dtype,
+        });
       }
     }
     if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
@@ -392,8 +438,18 @@ export async function runLayerAttentionGPU(
   }
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('rope', { layerIdx, label: `startPos=${currentSeqLen}` });
-    await dumpTokenVector(qTensor.buffer, 'Q_rope', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
-    await dumpTokenVector(kTensor.buffer, 'K_rope', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+    await dumpTokenVector(qTensor.buffer, 'Q_rope', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numHeads * headDim,
+      dtype: qTensor.dtype,
+    });
+    await dumpTokenVector(kTensor.buffer, 'K_rope', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numKVHeads * headDim,
+      dtype: kTensor.dtype,
+    });
   }
 
   // Debug: Check Q/K after RoPE for L0 prefill
@@ -436,7 +492,7 @@ export async function runLayerAttentionGPU(
     // Kernel step debug: KV cache state after update
     if (isKernelDebugEnabled(layerIdx)) {
       trace.kv(layerIdx, `KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
-      await dumpKVCache(/** @type {import('../../kv-cache.js').KVCache} */ (/** @type {unknown} */ (state.kvCache)), layerIdx);
+      await dumpKVCache(/** @type {import('../../kv-cache.js').KVCache} */(/** @type {unknown} */ (state.kvCache)), layerIdx);
     }
   } else {
     cachedK = kTensor.buffer;
@@ -489,7 +545,12 @@ export async function runLayerAttentionGPU(
   // Kernel step debug: attention output
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('attention', { layerIdx, label: `seqLen=${numTokens} kvLen=${kvLenForAttention}` });
-    await dumpTokenVector(attnOutput.buffer, 'attn_out', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+    await dumpTokenVector(attnOutput.buffer, 'attn_out', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: numHeads * headDim,
+      dtype: attnOutput.dtype,
+    });
   }
 
   // Debug: attention output for configured layers
@@ -509,10 +570,10 @@ export async function runLayerAttentionGPU(
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
     const oProjDtype = getWeightDtype(oProjBuf);
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
-                        residualTensor &&
-                        residualTensor.dtype === 'f32' &&
-                        !loraO &&
-                        oProjDtype === 'f16';  // GEMV kernel expects f16 weights
+      residualTensor &&
+      residualTensor.dtype === attnOutput.dtype &&
+      !loraO &&
+      oProjDtype === 'f16';  // GEMV kernel expects f16 weights
 
     if (canUseFused && residualTensor) {
       // FUSED PATH: o_proj matmul + residual add in one dispatch
@@ -547,7 +608,12 @@ export async function runLayerAttentionGPU(
     // Kernel step debug: output projection
     if (isKernelDebugEnabled(layerIdx)) {
       logKernelStep('matmul', { layerIdx, label: residualFused ? 'O_proj+residual' : 'O_proj', M: numTokens, N: hiddenSize, K: numHeads * headDim });
-      await dumpTokenVector(output.buffer, 'o_proj_out', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: hiddenSize });
+      await dumpTokenVector(output.buffer, 'o_proj_out', {
+        layerIdx,
+        tokenIdx: Math.max(0, numTokens - 1),
+        rowSize: hiddenSize,
+        dtype: output.dtype,
+      });
     }
   } else {
     output = attnOutput;

@@ -34,6 +34,14 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
     },
+    // Optimized GEMV for M=1 decode with f16 activations + f16 output
+    gemv_f16a: {
+      shaderFile: 'matmul_gemv_f16a.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
     // Subgroup-optimized GEMV - 1.5x faster using subgroupAdd
     gemv_subgroup: {
       shaderFile: 'matmul_gemv_subgroup.wgsl',
@@ -41,11 +49,26 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
     },
+    // Subgroup-optimized GEMV for f16 activations + f16 output
+    gemv_subgroup_f16a: {
+      shaderFile: 'matmul_gemv_subgroup_f16a.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
+    },
     gemv_subgroup_vec4: {
       shaderFile: 'matmul_gemv_subgroup.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
+    },
+    gemv_subgroup_vec4_f16a: {
+      shaderFile: 'matmul_gemv_subgroup_f16a.wgsl',
+      entryPoint: 'main_vec4',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
     },
     // Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup
     // Reduces workgroups from 65K to 8K for vocab=262144
@@ -54,6 +77,15 @@ export const KERNEL_CONFIGS = {
       entryPoint: 'main_multicol',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
+      variantMetadata: { colsPerWg: 32 },
+    },
+    // Multi-column GEMV for f16 activations + f16 output (LM head F16)
+    gemv_subgroup_multicol_f16a: {
+      shaderFile: 'matmul_gemv_subgroup_f16a.wgsl',
+      entryPoint: 'main_multicol',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
       variantMetadata: { colsPerWg: 32 },
     },
     // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
@@ -87,9 +119,25 @@ export const KERNEL_CONFIGS = {
       outputDtype: 'f16',
       variantMetadata: { colsPerWg: 32 },
     },
+    q4_fused_multicol_f16a: {
+      shaderFile: 'fused_matmul_q4_multicol_f16a.wgsl',
+      entryPoint: 'main_multicol_f16a',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
+      variantMetadata: { colsPerWg: 32 },
+    },
     q4_fused_batched_f16: {
       shaderFile: 'fused_matmul_q4_batched_f16.wgsl',
       entryPoint: 'main_batched_f16',
+      workgroupSize: [64, 4, 1],
+      requires: ['shader-f16', 'subgroups'],
+      outputDtype: 'f16',
+      variantMetadata: { tileM: 4 },
+    },
+    q4_fused_batched_f16a: {
+      shaderFile: 'fused_matmul_q4_batched_f16a.wgsl',
+      entryPoint: 'main_batched_f16a',
       workgroupSize: [64, 4, 1],
       requires: ['shader-f16', 'subgroups'],
       outputDtype: 'f16',
@@ -283,6 +331,48 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [1, 1, 1],
       requires: [],
     },
+    prefill_f16: {
+      shaderFile: 'attention_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [64, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    decode_f16: {
+      shaderFile: 'attention_decode_f16.wgsl',
+      entryPoint: 'attention_decode',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    prefill_small_f16: {
+      shaderFile: 'attention_small_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [32, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    decode_small_f16: {
+      shaderFile: 'attention_small_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [32, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    prefill_streaming_f16: {
+      shaderFile: 'attention_streaming_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [1, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
+    decode_streaming_f16: {
+      shaderFile: 'attention_streaming_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [1, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+    },
     prefill_f16kv: {
       shaderFile: 'attention_f16kv.wgsl',
       entryPoint: 'main',
@@ -318,6 +408,15 @@ export const KERNEL_CONFIGS = {
       entryPoint: 'main',
       workgroupSize: [1, 1, 1],
       requires: ['shader-f16'],
+    },
+    // Chunked decode kernel - f16 QKV + f16 output
+    decode_chunked_f16: {
+      shaderFile: 'attention_decode_chunked_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+      outputDtype: 'f16',
+      variantMetadata: { maxKVLen: 2048 },
     },
     // Chunked decode kernel - parallelizes headDim for models with few heads (e.g., Gemma 3)
     decode_chunked_f16kv: {
@@ -426,6 +525,12 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    f16: {
+      shaderFile: 'matmul_gemv_residual_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
   },
   softmax: {
     default: {
@@ -467,11 +572,23 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    default_f16: {
+      shaderFile: 'rope_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     compute_freqs: {
       shaderFile: 'rope.wgsl',
       entryPoint: 'rope_compute_freqs',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    compute_freqs_f16: {
+      shaderFile: 'rope_f16.wgsl',
+      entryPoint: 'rope_compute_freqs',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
     qk: {
       shaderFile: 'rope.wgsl',
@@ -479,17 +596,35 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    qk_f16: {
+      shaderFile: 'rope_f16.wgsl',
+      entryPoint: 'rope_qk',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     ntk: {
       shaderFile: 'rope.wgsl',
       entryPoint: 'rope_ntk_scaled',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    ntk_f16: {
+      shaderFile: 'rope_f16.wgsl',
+      entryPoint: 'rope_ntk_scaled',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     yarn: {
       shaderFile: 'rope.wgsl',
       entryPoint: 'rope_yarn',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    yarn_f16: {
+      shaderFile: 'rope_f16.wgsl',
+      entryPoint: 'rope_yarn',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
   },
   silu: {
@@ -812,6 +947,12 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    f16: {
+      shaderFile: 'split_qkv_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
   },
   sample: {
     argmax: {
@@ -820,11 +961,23 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    argmax_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'argmax',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     argmax_reduce: {
       shaderFile: 'sample.wgsl',
       entryPoint: 'argmax_reduce',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    argmax_reduce_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'argmax_reduce',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
     find_topk_phase1: {
       shaderFile: 'sample.wgsl',
@@ -832,11 +985,23 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    find_topk_phase1_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'find_topk_phase1',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     find_topk_phase2: {
       shaderFile: 'sample.wgsl',
       entryPoint: 'find_topk_phase2',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    find_topk_phase2_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'find_topk_phase2',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
     softmax_and_sample: {
       shaderFile: 'sample.wgsl',
@@ -844,11 +1009,23 @@ export const KERNEL_CONFIGS = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    softmax_and_sample_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'softmax_and_sample',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     single_pass: {
       shaderFile: 'sample.wgsl',
       entryPoint: 'sample_single_pass',
       workgroupSize: [256, 1, 1],
       requires: [],
+    },
+    single_pass_f16: {
+      shaderFile: 'sample_f16.wgsl',
+      entryPoint: 'sample_single_pass',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
     },
   },
   bf16_to_f32: {

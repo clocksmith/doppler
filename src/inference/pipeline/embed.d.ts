@@ -16,6 +16,7 @@ export interface EmbedConfig {
   debugProbes?: ProbeConfigSchema[];
   outputBuffer?: GPUBuffer;
   numTokens?: number;
+  indexOffset?: number;
   transpose?: boolean;
   activationDtype?: 'f16' | 'f32';
   embeddingDtype?: 'f16' | 'f32';

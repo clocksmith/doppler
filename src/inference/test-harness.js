@@ -114,7 +114,7 @@ export function parseRuntimeOverridesFromURL(searchParams) {
         debugLog.warn('TestHarness', `Failed to parse kernelPath JSON: ${/** @type {Error} */ (e).message}`);
       }
     } else {
-      // Preset ID (e.g., 'gemma2-q4k-fused')
+      // Preset ID (e.g., 'gemma2-q4k-fused-f32a')
       runtime.kernelPath = kernelPathRaw;
     }
   }

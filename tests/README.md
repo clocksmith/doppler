@@ -31,7 +31,7 @@ These pages are distinct from unit tests (Vitest) and Playwright correctness tes
 | `model` | Pre-select model ID | `?model=gemma3-1b-q4` |
 | `prompt` | Pre-fill prompt text | `?prompt=Hello%20world` |
 | `autorun=1` | Auto-run test on page load | `?autorun=1` |
-| `kernelPath` | Kernel path override | `?kernelPath="gemma2-q4k-dequant-f16"` |
+| `kernelPath` | Kernel path override | `?kernelPath="gemma2-q4k-fused-f16a"` |
 | `debug=1` | Enable debug logging | `?debug=1` |
 | `profile=1` | Enable GPU timestamp profiling | `?profile=1` |
 | `trace` | Trace level: quick or full | `?trace=quick` |
@@ -105,7 +105,7 @@ cd kernel-tests && npm test
 open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1"
 
 # Run with a specific kernel path override
-open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-dequant-f16"
+open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-fused-f16a"
 ```
 
 ## Shared Test Utilities

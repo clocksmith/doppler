@@ -1,16 +1,16 @@
 # WGSL Kernels
 
-41 WebGPU compute shaders for LLM inference.
+79 WebGPU compute shaders for LLM inference.
 
 ## Categories
 
 | Category | Count | Examples |
 |----------|-------|----------|
-| Attention | 9 | `attention.wgsl`, `attention_decode_*.wgsl` |
-| Matmul | 8 | `matmul_f16.wgsl`, `fused_matmul_q4.wgsl`, `matmul_gemv*.wgsl` |
-| Dequant | 5 | `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
-| Fused | 4 | `fused_ffn.wgsl`, `fused_matmul_rmsnorm.wgsl`, `fused_matmul_q4.wgsl`, `fused_swiglu.wgsl` |
-| Other | 16 | `rmsnorm.wgsl`, `rope.wgsl`, `softmax.wgsl`, `silu.wgsl` |
+| Attention | 16 | `attention.wgsl`, `attention_decode_*.wgsl`, `attention_f16.wgsl` |
+| Matmul | 6 | `matmul_f16.wgsl`, `matmul_f16w_f32a.wgsl`, `matmul_gemv*.wgsl` |
+| Dequant | 10 | `dequant_q4k.wgsl`, `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
+| Fused | 10 | `fused_ffn.wgsl`, `fused_matmul_q4.wgsl`, `fused_matmul_q4_multicol_f16a.wgsl` |
+| Other | 37 | `rmsnorm.wgsl`, `rope.wgsl`, `sample.wgsl`, `silu.wgsl` |
 
 ## Reusability Mechanisms
 
@@ -103,6 +103,7 @@ fn main() {
 
 - `fused_*.wgsl` - Multiple ops in one kernel (fused_ffn, fused_matmul_rmsnorm, etc.)
 - `*_f16.wgsl` - F16 weights/activations
+- `*_f16a.wgsl` - F16 activations with quantized weights (fused Q4K)
 - `*_f32.wgsl` - F32 weights/activations
 - `*_q4*.wgsl` - Q4_K quantized
 - `*_subgroup.wgsl` - Uses subgroup operations

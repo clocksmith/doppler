@@ -263,7 +263,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const resolvedPreset = resolvePreset(presetId);
   const headDim = configRec.head_dim ??
     ((configRec.hidden_size / configRec.num_attention_heads) || 64);
-  const manifestInference = buildManifestInference(resolvedPreset, config, headDim);
+  const manifestInference = buildManifestInference(resolvedPreset, config, headDim, quantizationInfo);
   if (lmHeadDtypeRaw == null) {
     manifestInference.output.tieWordEmbeddings = true;
   }
@@ -403,7 +403,7 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     const ggufHeadDim = ggufConfig.attentionKeyLength || ggufConfig.attentionValueLength;
     const headDim = ggufHeadDim ??
       ((config.hidden_size / config.num_attention_heads) || 64);
-    const manifestInference = buildManifestInference(resolvedPreset, config, headDim);
+    const manifestInference = buildManifestInference(resolvedPreset, config, headDim, quantizationInfo);
     if (lmHeadDtypeRaw == null) {
       manifestInference.output.tieWordEmbeddings = true;
     }

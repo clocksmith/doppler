@@ -1,6 +1,6 @@
 
 
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -26,7 +26,10 @@ export async function runRoPE(
     ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
-  const pipeline = await getPipelineFast('rope', 'default');
+  const caps = getKernelCapabilities();
+  const useF16 = input.dtype === 'f16' && caps.hasF16;
+  const variant = useF16 ? 'default_f16' : 'default';
+  const pipeline = await getPipelineFast('rope', variant);
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 
@@ -90,7 +93,10 @@ export async function recordRoPE(
     ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
-  const pipeline = await getPipelineFast('rope', 'default');
+  const caps = getKernelCapabilities();
+  const useF16 = input.dtype === 'f16' && caps.hasF16;
+  const variant = useF16 ? 'default_f16' : 'default';
+  const pipeline = await getPipelineFast('rope', variant);
 
   // Note: RoPE shader modifies input in-place (no output buffer)
 

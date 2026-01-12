@@ -43,6 +43,7 @@ export interface GenerateOptions {
   topK?: number;
   stopTokens?: number[];
   stopSequences?: string[];
+  useChatTemplate?: boolean;
   onToken?: (token: string) => void;
 }
 

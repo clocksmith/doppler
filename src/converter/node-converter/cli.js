@@ -6,6 +6,8 @@
  * @module converter/node-converter/cli
  */
 
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { createConverterConfig } from '../../config/schema/index.js';
 
 const DEFAULT_CONFIG = createConverterConfig();
@@ -18,20 +20,56 @@ const DEFAULT_SHARD_SIZE_MB = Math.round(
  * Parse command-line arguments into ConvertOptions.
  */
 export function parseArgs(argv) {
+  // First pass: look for config file
+  let configPath = null;
+  for (let i = 0; i < argv.length; i++) {
+    if ((argv[i] === '--config' || argv[i] === '-c') && argv[i + 1]) {
+      configPath = argv[i + 1];
+      break;
+    }
+  }
+
+  // Load config file if present
+  let fileConfig = {};
+  if (configPath) {
+    try {
+      const fullPath = resolve(process.cwd(), configPath);
+      const content = readFileSync(fullPath, 'utf8');
+      fileConfig = JSON.parse(content);
+    } catch (err) {
+      console.error(`Error loading config file: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  // Merge Config: Defaults -> File -> CLI (CLI wins)
+  // Note: We only support specific keys from the file config that map to CLI options
+  const quantization = fileConfig.quantization || {};
+  const output = fileConfig.output || {};
+  const sharding = fileConfig.sharding || {};
+
   const opts = {
-    input: '',
-    output: '',
-    weightQuant: DEFAULT_CONFIG.quantization.weights,
-    embedQuant: DEFAULT_CONFIG.quantization.embeddings,
-    headQuant: DEFAULT_CONFIG.quantization.lmHead,
-    visionQuant: DEFAULT_CONFIG.quantization.vision,
-    audioQuant: DEFAULT_CONFIG.quantization.audio,
-    projectorQuant: DEFAULT_CONFIG.quantization.projector,
-    computePrecision: DEFAULT_CONFIG.quantization.computePrecision,
-    shardSize: DEFAULT_SHARD_SIZE_MB,
-    modelId: DEFAULT_CONFIG.output.modelId,
-    textOnly: DEFAULT_CONFIG.output.textOnly,
-    fast: DEFAULT_CONFIG.output.fast,
+    input: '',  // Always from CLI
+    output: '', // Always from CLI
+    // Quantization
+    weightQuant: quantization.weights ?? DEFAULT_CONFIG.quantization.weights,
+    embedQuant: quantization.embeddings ?? DEFAULT_CONFIG.quantization.embeddings,
+    headQuant: quantization.lmHead ?? DEFAULT_CONFIG.quantization.lmHead,
+    visionQuant: quantization.vision ?? DEFAULT_CONFIG.quantization.vision,
+    audioQuant: quantization.audio ?? DEFAULT_CONFIG.quantization.audio,
+    projectorQuant: quantization.projector ?? DEFAULT_CONFIG.quantization.projector,
+    computePrecision: quantization.computePrecision ?? DEFAULT_CONFIG.quantization.computePrecision,
+    // Sharding
+    shardSize: sharding.shardSizeBytes
+      ? Math.round(sharding.shardSizeBytes / BYTES_PER_MB)
+      : DEFAULT_SHARD_SIZE_MB,
+    // Output
+    modelId: output.modelId ?? DEFAULT_CONFIG.output.modelId,
+    textOnly: output.textOnly ?? DEFAULT_CONFIG.output.textOnly,
+    fast: output.fast ?? DEFAULT_CONFIG.output.fast,
+
+    // Config path tracking
+    config: configPath,
     verbose: false,
     test: false,
     help: false,
@@ -45,6 +83,11 @@ export function parseArgs(argv) {
       case '--help':
       case '-h':
         opts.help = true;
+        break;
+      case '--config':
+      case '-c':
+        // Handled in first pass, skip value
+        i++;
         break;
       case '--test':
         opts.test = true;
@@ -137,9 +180,10 @@ Quantization Options:
   --projector-quant <type>   Cross-modal projector quantization
 
 Runtime Plan (stored in manifest, not in filename):
-  --compute-precision <p> Compute precision hint: f16, f32, auto
+  --compute-precision <p> Compute precision hint: f16, f32, auto (default: f16)
 
 General Options:
+  --config, -c <path>   Load configuration from JSON file
   --shard-size <mb>     Shard size in MB (default: ${DEFAULT_SHARD_SIZE_MB})
   --model-id <id>       Base model ID (variant tag auto-appended)
   --text-only           Extract only text model from multimodal

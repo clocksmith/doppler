@@ -32,6 +32,16 @@
     "chatTemplate": {
       "type": "gemma",
       "enabled": true
+    },
+    "kernelPaths": {
+      "f16": {
+        "f16": "gemma2-f16-f16a",
+        "f32": "gemma2-f16-f32a"
+      },
+      "q4k": {
+        "f16": "gemma2-q4k-fused-f16a",
+        "f32": "gemma2-q4k-fused-f32a"
+      }
     }
   },
 

@@ -15,10 +15,9 @@ export async function runSplitQKV(
   const device = getDevice();
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
-  const pipeline = await getPipelineFast('split_qkv', 'default');
-
-  
   const outputDtype = qkvTensor.dtype;
+  const pipelineVariant = outputDtype === 'f16' ? 'f16' : 'default';
+  const pipeline = await getPipelineFast('split_qkv', pipelineVariant);
   const bytesPerElement = dtypeBytes(outputDtype);
 
   // Allocate output buffers if not provided
@@ -76,10 +75,9 @@ export async function recordSplitQKV(
   const device = recorder.device;
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
-  const pipeline = await getPipelineFast('split_qkv', 'default');
-
-  
   const outputDtype = qkvTensor.dtype;
+  const pipelineVariant = outputDtype === 'f16' ? 'f16' : 'default';
+  const pipeline = await getPipelineFast('split_qkv', pipelineVariant);
   const bytesPerElement = dtypeBytes(outputDtype);
 
   // Allocate output buffers if not provided

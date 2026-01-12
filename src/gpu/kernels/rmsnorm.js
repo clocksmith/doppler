@@ -63,18 +63,23 @@ export async function runRMSNorm(
   options = {}
 ) {
   const device = getDevice();
-  const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null } = options;
+  const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null, rmsNormWeightOffset = false } = options;
 
   // Check if F16 can be used based on tensor dtypes
   const isF16 = canUseF16(input, residual);
   const variant = selectRMSNormKernel(options, isF16);
-  trace.kernels(`RMSNorm: input.dtype=${input.dtype}, isF16=${isF16}, variant=${variant}`);
+  trace.kernels(`RMSNorm: input.dtype=${input.dtype}, isF16=${isF16}, variant=${variant}, offset=${rmsNormWeightOffset}`);
 
   if (residual) {
     trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.buffer.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
   }
 
-  const pipeline = await getPipelineFast('rmsnorm', variant);
+  // Define constants for the pipeline
+  const constants = {
+    RMS_NORM_OFFSET: rmsNormWeightOffset,
+  };
+
+  const pipeline = await getPipelineFast('rmsnorm', variant, null, constants);
 
   // Create output buffer if not provided
   // Weight buffer is always F32, so hidden size = weight.size / 4
@@ -143,6 +148,7 @@ export async function recordRMSNorm(
     hiddenSize = null,
     residual = null,
     outputBuffer = null,
+    rmsNormWeightOffset = false,
   } = options;
 
   // Infer hidden size from weight buffer (weight is always F32)
@@ -154,7 +160,12 @@ export async function recordRMSNorm(
   const bytesPerElement = isF16 ? 2 : 4;
   const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
 
-  const pipeline = await getPipelineFast('rmsnorm', variant);
+  // Define constants for the pipeline
+  const constants = {
+    RMS_NORM_OFFSET: rmsNormWeightOffset,
+  };
+
+  const pipeline = await getPipelineFast('rmsnorm', variant, null, constants);
 
   // Output buffer
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');

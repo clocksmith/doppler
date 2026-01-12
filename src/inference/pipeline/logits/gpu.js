@@ -13,11 +13,12 @@ import { runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { castF32ToF16, castF16ToF32, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
+import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { createWeightBuffer, isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { runProbes } from '../probes.js';
+import { f16BufferToF32 } from './cpu.js';
 
 /**
  * Resolve CPU weight buffer dimensions for LM head.
@@ -217,8 +218,11 @@ export async function computeChunkedLogitsGPU(
       });
     }
 
-    const chunkLogitsData = await readBuffer(logitsTensor.buffer, numTokens * rowCount * 4);
-    const chunkLogits = new Float32Array(chunkLogitsData);
+    const logitsBytes = logitsTensor.dtype === 'f16' ? 2 : 4;
+    const chunkLogitsData = await readBuffer(logitsTensor.buffer, numTokens * rowCount * logitsBytes);
+    const chunkLogits = logitsTensor.dtype === 'f16'
+      ? f16BufferToF32(chunkLogitsData)
+      : new Float32Array(chunkLogitsData);
     writeChunkLogits(logits, chunkLogits, numTokens, vocabSize, rowOffset, rowCount);
 
     releaseBuffer(logitsTensor.buffer);
@@ -239,7 +243,7 @@ export async function computeChunkedLogitsGPU(
  * @param {import('./types.js').LogitsWeights} weights - Final norm and LM head weights
  * @param {import('./types.js').LogitsConfig} config - Model configuration for logits
  * @param {import('./types.js').LogitsDebugFlags} [debugFlags] - Debug flags to prevent repeated logging (optional)
- * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number } | null>} GPU buffer containing logits [numTokens, vocabSize]
+ * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' } | null>} GPU buffer containing logits [numTokens, vocabSize]
  */
 export async function computeLogitsGPU(
   hiddenStates,
@@ -299,14 +303,11 @@ export async function computeLogitsGPU(
   const inputDtype = hiddenStates instanceof GPUBuffer ? activationDtype : 'f32';
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
-  const normInputTensor = inputDtype === 'f16' ? await castF16ToF32(inputTensor) : inputTensor;
-  const normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
+  const normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
   });
-  if (normInputTensor !== inputTensor) {
-    releaseBuffer(normInputTensor.buffer);
-  }
 
   // Project to vocab via LM head
   /** @type {GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} */
@@ -338,7 +339,7 @@ export async function computeLogitsGPU(
   if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
   if (lmHeadBufferOwned) releaseBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
 
-  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };
+  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize, logitsDtype: logitsTensor.dtype };
 }
 
 /**
@@ -352,7 +353,7 @@ export async function computeLogitsGPU(
  * @param {number} numTokens - Number of tokens
  * @param {import('./types.js').LogitsWeights} weights - Final norm and LM head weights
  * @param {import('./types.js').LogitsConfig} config - Model configuration for logits
- * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number }>} GPU buffer containing logits [numTokens, vocabSize] and vocab size
+ * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' }>} GPU buffer containing logits [numTokens, vocabSize] and vocab size
  */
 export async function recordLogitsGPU(
   recorder,
@@ -395,16 +396,12 @@ export async function recordLogitsGPU(
   const inputDtype = activationDtype;
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(hiddenStates, inputDtype, [numTokens, hiddenSize], 'logits_input');
-  const normInputTensor = inputDtype === 'f16' ? await recordCastF16ToF32(recorder, inputTensor) : inputTensor;
-
   // Record RMSNorm (no submit)
-  const normedTensor = await recordRMSNorm(recorder, normInputTensor, normWeightBuffer, rmsNormEps, {
+  const normedTensor = await recordRMSNorm(recorder, inputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
   });
-  if (normInputTensor !== inputTensor) {
-    recorder.trackTemporaryBuffer(normInputTensor.buffer);
-  }
 
   // Get LM head buffer
   /** @type {GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} */
@@ -436,5 +433,5 @@ export async function recordLogitsGPU(
     recorder.trackTemporaryBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
   }
 
-  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize };
+  return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize, logitsDtype: logitsTensor.dtype };
 }

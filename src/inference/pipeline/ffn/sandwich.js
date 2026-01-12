@@ -70,7 +70,12 @@ export async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(ffnInput.buffer, 'pre_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(ffnInput.buffer, 'pre_ffn_norm_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: ffnInput.dtype,
+    });
   }
 
   // 2. FFN (or MoE FFN)
@@ -127,7 +132,12 @@ export async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(ffnOutput.buffer, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(ffnOutput.buffer, 'ffn_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: ffnOutput.dtype,
+    });
   }
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
@@ -176,7 +186,12 @@ export async function processFFNWithSandwichNorm(
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(output.buffer, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(output.buffer, 'layer_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: output.dtype,
+    });
   }
 
   releaseOrTrack(recorder, postAttn.buffer, decodeBuffers);

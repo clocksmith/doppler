@@ -151,7 +151,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     logKernelStep('layer', { layerIdx, label: `seqLen=${numTokens} prefill=${isPrefill}` });
-    await dumpTokenVector(inputBuffer, 'layer_in', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(inputBuffer, 'layer_in', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: activationDtype,
+    });
   }
 
   // 1. Self-attention
@@ -174,6 +179,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     hiddenSize,
     rmsNormEps,
     currentSeqLen: context.currentSeqLen,
+    activationDtype,
     slidingWindow: config.slidingWindow,
     layerType,
     residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
@@ -212,7 +218,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const residualFused = attnResult.residualFused;
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(attnOutput.buffer, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(attnOutput.buffer, 'attn_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: attnOutput.dtype,
+    });
   }
 
   // Debug: trace attn output
@@ -298,7 +309,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
-    await dumpTokenVector(postAttn.buffer, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    await dumpTokenVector(postAttn.buffer, 'x_after_attn', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+      dtype: postAttn.dtype,
+    });
   }
 
   await runProbes('post_attn', postAttn.buffer, {

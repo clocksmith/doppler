@@ -130,7 +130,7 @@ async function initGPU() {
   }
 
   // Set kernel path to use fused Q4K path for testing
-  setActiveKernelPath(resolveKernelPath('q4k-fused'), 'runtime');
+  setActiveKernelPath(resolveKernelPath('q4k-fused-f16a'), 'runtime');
 
   initialized = true;
   return device;
@@ -415,7 +415,7 @@ const testHarness = {
    * kernel-selector API: runRMSNorm(input, weight, eps, options)
    * options: { batchSize, hiddenSize }
    */
-  async runRMSNorm(dev, input, weight, numTokens, hiddenSize, eps = 1e-6) {
+  async runRMSNorm(dev, input, weight, numTokens, hiddenSize, eps = 1e-6, options = {}) {
     if (!runRMSNorm) {
       return references.rmsNormRef(input, weight, numTokens, hiddenSize, eps);
     }
@@ -427,6 +427,7 @@ const testHarness = {
     const resultTensor = await runRMSNorm(inputTensor, weightBuf, eps, {
       batchSize: numTokens,
       hiddenSize,
+      ...options,
     });
 
     let result;

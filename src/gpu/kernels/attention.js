@@ -155,11 +155,14 @@ function resolveAttentionVariant(
   tier,
   isDecode,
   useF16KV,
+  useF16Q,
   numHeads,
   headDim,
   kvLen
 ) {
   const base = isDecode ? 'decode' : 'prefill';
+  const useF16 = useF16KV && useF16Q;
+  const suffix = useF16 ? '_f16' : (useF16KV ? '_f16kv' : '');
 
   // Check if chunked kernel is viable:
   // - Decode only (seqLen=1)
@@ -171,7 +174,8 @@ function resolveAttentionVariant(
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
   const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.tierHeadDimLimits.tier1;
-  const canUseDecodeSubgroup = isDecode && !useF16KV && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
+  const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
+  const chunkedVariant = useF16 ? 'decode_chunked_f16' : 'decode_chunked_f16kv';
 
   if (tier === 'subgroup') {
     // decode_subgroup only supports F32 KV cache
@@ -179,12 +183,12 @@ function resolveAttentionVariant(
     if (useF16KV) {
       if (canUseChunked) {
         if (!loggedChunkedKernel) {
-          trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+          trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=${!useF16Q})`);
           loggedChunkedKernel = true;
         }
-        return 'decode_chunked_f16kv';
+        return chunkedVariant;
       }
-      return 'decode_streaming_f16kv';
+      return `decode_streaming${suffix}`;
     }
     if (canUseDecodeSubgroup) {
       return 'decode_subgroup';
@@ -192,20 +196,20 @@ function resolveAttentionVariant(
     return 'decode_streaming';
   }
   if (tier === 'tiled_large') {
-    return base + (useF16KV ? '_f16kv' : '');
+    return base + suffix;
   }
   if (tier === 'tiled_small') {
-    return `${base}_small${useF16KV ? '_f16kv' : ''}`;
+    return `${base}_small${suffix}`;
   }
   // For streaming tier, prefer chunked if viable
   if (canUseChunked) {
     if (!loggedChunkedKernel) {
-      trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=true)`);
+      trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=${!useF16Q})`);
       loggedChunkedKernel = true;
     }
-    return 'decode_chunked_f16kv';
+    return chunkedVariant;
   }
-  return `${base}_streaming${useF16KV ? '_f16kv' : ''}`;
+  return `${base}_streaming${suffix}`;
 }
 
 
@@ -237,6 +241,7 @@ function validateAttentionVariant(
   variant,
   isDecode,
   useF16KV,
+  useF16Q,
   caps,
   strict
 ) {
@@ -262,9 +267,25 @@ function validateAttentionVariant(
   }
 
   const expectsF16KV = normalized.includes('_f16kv');
-  if (expectsF16KV !== useF16KV) {
-    const kvLabel = useF16KV ? 'f16' : 'f32';
-    return failOrWarn(`Attention kernel "${variant}" incompatible with ${kvLabel} KV cache.`);
+  const expectsF16 = normalized.includes('_f16') && !expectsF16KV;
+  if (expectsF16) {
+    if (!(useF16KV && useF16Q)) {
+      const kvLabel = useF16KV ? 'f16' : 'f32';
+      const qLabel = useF16Q ? 'f16' : 'f32';
+      return failOrWarn(`Attention kernel "${variant}" requires f16 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
+    }
+  } else if (expectsF16KV) {
+    if (!useF16KV || useF16Q) {
+      const kvLabel = useF16KV ? 'f16' : 'f32';
+      const qLabel = useF16Q ? 'f16' : 'f32';
+      return failOrWarn(`Attention kernel "${variant}" requires f32 Q with f16 KV but got Q=${qLabel}, KV=${kvLabel}.`);
+    }
+  } else {
+    if (useF16KV || useF16Q) {
+      const kvLabel = useF16KV ? 'f16' : 'f32';
+      const qLabel = useF16Q ? 'f16' : 'f32';
+      return failOrWarn(`Attention kernel "${variant}" requires f32 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
+    }
   }
 
   const isDecodeVariant = normalized.startsWith('decode');
@@ -286,17 +307,19 @@ function resolveAttentionPlan(
   headDim,
   numHeads,
   kvDtype,
+  qDtype,
   sharedLimit,
   caps,
   layerIdx
 ) {
   const useF16KV = kvDtype === 'f16';
+  const useF16Q = qDtype === 'f16';
   const isDecode = seqLen === 1;
   const strict = getKernelPathStrict();
   const pathVariant = getKernelPathAttentionVariant(isDecode ? 'decode' : 'prefill', layerIdx);
 
   if (pathVariant) {
-    const variantOverride = validateAttentionVariant(pathVariant, isDecode, useF16KV, caps, strict);
+    const variantOverride = validateAttentionVariant(pathVariant, isDecode, useF16KV, useF16Q, caps, strict);
     if (variantOverride) {
       const tier = inferAttentionTierFromVariant(variantOverride);
       const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
@@ -305,7 +328,7 @@ function resolveAttentionPlan(
   }
 
   const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps, strict);
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, numHeads, headDim, kvLen);
+  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, useF16Q, numHeads, headDim, kvLen);
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
   return { tier, variant, workgroups, useF16KV, isDecode };
@@ -370,12 +393,14 @@ export async function runAttention(
   const caps = getKernelCapabilities();
   
   const kvDtype = K.dtype;
+  const qDtype = Q.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
     headDim,
     numHeads,
     kvDtype,
+    qDtype,
     sharedLimit,
     caps,
     layerIdx
@@ -383,10 +408,10 @@ export async function runAttention(
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
 
-  // Output is always f32 (attention scores computed in f32)
-  
-  const outputDtype = 'f32';
-  const outputSize = seqLen * numHeads * headDim * 4;
+  const outputConfig = getKernelConfig('attention', plan.variant);
+  const outputDtype = outputConfig.outputDtype ?? 'f32';
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = seqLen * numHeads * headDim * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   // Create uniform buffer
@@ -470,12 +495,14 @@ export async function recordAttention(
   const caps = getKernelCapabilities();
   
   const kvDtype = K.dtype;
+  const qDtype = Q.dtype;
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
     headDim,
     numHeads,
     kvDtype,
+    qDtype,
     sharedLimit,
     caps,
     layerIdx
@@ -486,10 +513,10 @@ export async function recordAttention(
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
 
-  // Output is always f32 (attention scores computed in f32)
-  
-  const outputDtype = 'f32';
-  const outputSize = seqLen * numHeads * headDim * 4;
+  const outputConfig = getKernelConfig('attention', plan.variant);
+  const outputDtype = outputConfig.outputDtype ?? 'f32';
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = seqLen * numHeads * headDim * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   const uniformBuffer = createAttentionUniformBuffer(device, recorder, {

@@ -14,7 +14,7 @@
 
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
 import { getPrompt } from './prompts.js';
-import { applyGemmaChatTemplate, applyLlama3ChatTemplate } from '../../src/inference/pipeline/init.js';
+import { applyChatTemplate } from '../../src/inference/pipeline/init.js';
 import { setRuntimeConfig } from '../../src/config/runtime.js';
 
 // Track GPU readback bytes globally during benchmark
@@ -305,10 +305,9 @@ export class PipelineBenchmark {
     }
 
     // Run generation
-    // Auto-detect instruction-tuned models for chat template
-    const modelId = this.manifest?.modelId ?? '';
-    const isInstructModel = /instruct|chat|it(?:-|$)/i.test(modelId);
-    const useChatTemplate = this.config.useChatTemplate ?? isInstructModel;
+    const useChatTemplate = Object.prototype.hasOwnProperty.call(this.config, 'useChatTemplate')
+      ? this.config.useChatTemplate
+      : undefined;
     const generator = this.pipeline.generate(prompt, {
       maxTokens: this.config.maxNewTokens,
       temperature: this.config.sampling.temperature,
@@ -400,12 +399,12 @@ export class PipelineBenchmark {
     const bufferStats = getBufferPool().getStats();
 
     let promptForTokenCount = prompt;
-    if (useChatTemplate) {
-      if (this.manifest?.architecture?.includes('Gemma3') || /gemma/i.test(modelId)) {
-        promptForTokenCount = applyGemmaChatTemplate(prompt);
-      } else if (/llama.*3|llama3/i.test(modelId)) {
-        promptForTokenCount = applyLlama3ChatTemplate(prompt);
-      }
+    const runtimeChat = this.pipeline.runtimeConfig?.inference?.chatTemplate;
+    const modelChatEnabled = this.pipeline.modelConfig?.chatTemplateEnabled ?? false;
+    const chatTemplateEnabled = useChatTemplate ?? runtimeChat?.enabled ?? modelChatEnabled ?? false;
+    const chatTemplateType = this.pipeline.modelConfig?.chatTemplateType ?? null;
+    if (chatTemplateEnabled && chatTemplateType) {
+      promptForTokenCount = applyChatTemplate(prompt, chatTemplateType);
     }
 
     return {

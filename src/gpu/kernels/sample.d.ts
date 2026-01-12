@@ -12,6 +12,9 @@ export interface SampleOptions {
   randomSeed?: number;
   padTokenId?: number;
   logitSoftcap?: number;
+  logitsDtype?: 'f16' | 'f32';
+  outputBuffer?: GPUBuffer | null;
+  outputIndex?: number;
 }
 
 export interface SampleResult {

@@ -9,6 +9,7 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
 
 struct Uniforms {
     size: u32,          // Hidden dimension
@@ -25,6 +26,13 @@ struct Uniforms {
 
 // Shared memory for reduction (F32 for precision)
 var<workgroup> shared_sum: array<f32, 256>;
+
+fn apply_weight(w: f32) -> f32 {
+    if (RMS_NORM_OFFSET) {
+        return 1.0 + w;
+    }
+    return w;
+}
 
 // Main RMSNorm kernel - one workgroup per token
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -81,7 +89,7 @@ fn main(
             let x = f32(input[base_offset + idx]);
 
             // Normalize and scale (compute in F32)
-            var result = x * inv_rms * weight[idx];
+            var result = x * inv_rms * apply_weight(weight[idx]);
 
             // Add residual AFTER normalization
             if (u.has_residual == 1u) {
@@ -134,7 +142,7 @@ fn rmsnorm_small_f16(
 
     // Apply normalization (compute in F32, output F16)
     if (thread_idx < size) {
-        var result = x * inv_rms * weight[thread_idx];
+        var result = x * inv_rms * apply_weight(weight[thread_idx]);
         if (u.has_residual == 1u) {
             result = result + f32(residual[base_offset + thread_idx]);
         }

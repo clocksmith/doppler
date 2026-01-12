@@ -325,7 +325,7 @@ The `optimizations` field provides explicit kernel path overrides for runtime ke
 ```json
 {
   "optimizations": {
-    "kernelPath": "gemma2-q4k-fused"
+    "kernelPath": "gemma2-q4k-fused-f16a"
   }
 }
 ```

@@ -107,10 +107,11 @@ export function trackAllocation(size, label) {
 /**
  * Check if GPU readback is allowed
  * @param {string} [reason]
+ * @param {number} [count]
  * @returns {boolean}
  * @throws Error if readback is disallowed and strictMode is enabled
  */
-export function allowReadback(reason) {
+export function allowReadback(reason, count = 1) {
   if (!config.allowGPUReadback) {
     const message = `PerfGuard: GPU readback blocked: ${reason || 'unknown reason'}`;
     if (config.strictMode) {
@@ -123,9 +124,12 @@ export function allowReadback(reason) {
   }
 
   if (config.trackSubmitCount) {
-    counters.readbacks++;
+    const increment = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 1;
+    if (increment > 0) {
+      counters.readbacks += increment;
+    }
     if (config.logExpensiveOps) {
-      trace.perf(`PerfGuard: Readback #${counters.readbacks}: ${reason || 'unknown'}`);
+      trace.perf(`PerfGuard: Readback #${counters.readbacks}: ${reason || 'unknown'} (${count})`);
     }
   }
 

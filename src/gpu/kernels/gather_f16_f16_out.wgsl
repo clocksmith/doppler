@@ -14,6 +14,7 @@ struct Uniforms {
     hidden_size: u32,     // Embedding dimension
     vocab_size: u32,      // Vocabulary size (for bounds checking)
     transpose: u32,       // 1 if embeddings are [hidden_size, vocab_size] (GGUF layout), 0 otherwise
+    index_offset: u32,    // Starting index into indices buffer
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -32,7 +33,7 @@ fn gather_f16_out(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     let token_idx = tid / u.hidden_size;
     let dim_idx = tid % u.hidden_size;
-    let token_id = indices[token_idx];
+    let token_id = indices[token_idx + u.index_offset];
 
     if (token_id >= u.vocab_size) {
         output_f16[tid] = f16(0.0);

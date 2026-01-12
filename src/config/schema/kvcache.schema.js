@@ -6,6 +6,7 @@ export const DEFAULT_KVCACHE_CONFIG = {
   maxSeqLen: 4096,
   gpuPagedFallbackMaxSeqLen: 4096,
   kvDtype: 'f16',
+  forceF32Softcap: false,
   layout: 'contiguous',
   pageSize: 256,
   windowSize: 1024,

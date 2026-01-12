@@ -23,6 +23,8 @@ export interface AttentionConfig {
   hiddenSize: number;
   rmsNormEps: number;
   currentSeqLen: number;
+  /** Expected activation dtype from runtime config. */
+  activationDtype?: 'f16' | 'f32';
   slidingWindow?: number | null;
   layerType?: string;
   /** Residual tensor for fused o_proj + residual add (decode only) */
@@ -35,6 +37,8 @@ export interface AttentionConfig {
   queryPreAttnScalar?: number;
   /** Apply query/key RMSNorm even when per-head weights are absent. */
   queryKeyNorm?: boolean;
+  /** Gemma 2 RMS scaling: (1+w)*x */
+  rmsNormWeightOffset?: boolean;
 }
 
 /**

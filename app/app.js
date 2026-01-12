@@ -28,6 +28,7 @@ import {
 
 // DOPPLER pipeline imports
 import { createPipeline } from '../src/inference/pipeline.js';
+import { formatChatMessages } from '../src/inference/pipeline/chat-format.js';
 import { downloadModel } from '../src/storage/downloader.js';
 import {
   listModels,
@@ -131,6 +132,8 @@ export class DopplerDemo {
   #isGenerating = false;
   /** @type {AbortController | null} */
   #abortController = null;
+  /** @type {{ role: 'user' | 'assistant'; content: string }[]} */
+  #chatMessages = [];
 
   // Capabilities
   /** @type {import('./app.js').Capabilities} */
@@ -1351,32 +1354,51 @@ export class DopplerDemo {
 
     // Add user message
     this.#chatUI?.addMessage('user', message);
+    this.#chatMessages.push({ role: 'user', content: message });
+
+    const runtimeChat = this.#pipeline.runtimeConfig?.inference?.chatTemplate;
+    const chatTemplateEnabled = runtimeChat?.enabled ?? this.#pipeline.modelConfig?.chatTemplateEnabled ?? false;
+    const chatTemplateType = this.#pipeline.modelConfig?.chatTemplateType ?? null;
+    const prompt = formatChatMessages(
+      this.#chatMessages,
+      chatTemplateEnabled ? chatTemplateType : null
+    );
 
     // Start streaming response
     this.#chatUI?.startStream();
     this.#setStatus('loading', 'Generating...');
+
+    let responseText = '';
+    let responseCommitted = false;
 
     try {
       // Use real pipeline generation
       let tokenCount = 0;
       const startTime = performance.now();
 
-      for await (const token of this.#pipeline.generate(message, {
+      for await (const token of this.#pipeline.generate(prompt, {
         maxTokens: 512,
         temperature: this.#getSamplingTemperature(),
         topP: this.#getSamplingTopP(),
         topK: this.#getSamplingTopK(),
+        useChatTemplate: false,
         signal: this.#abortController.signal,
       })) {
         if (this.#abortController.signal.aborted) break;
         this.#chatUI?.streamToken(token);
         tokenCount++;
+        responseText += token;
 
         // Update TPS periodically
         if (tokenCount % 10 === 0) {
           const elapsed = (performance.now() - startTime) / 1000;
           this.#updateStats(tokenCount / elapsed);
         }
+      }
+
+      if (responseText) {
+        this.#chatMessages.push({ role: 'assistant', content: responseText });
+        responseCommitted = true;
       }
 
       const stats = this.#chatUI?.finishStream();
@@ -1386,9 +1408,15 @@ export class DopplerDemo {
       this.#setStatus('ready', `${this.#currentModel.name}`);
     } catch (error) {
       if (/** @type {Error} */ (error).name === 'AbortError') {
+        if (responseText && !responseCommitted) {
+          this.#chatMessages.push({ role: 'assistant', content: responseText });
+        }
         this.#chatUI?.cancelStream();
         this.#setStatus('ready', 'Stopped');
       } else {
+        if (responseText && !responseCommitted) {
+          this.#chatMessages.push({ role: 'assistant', content: responseText });
+        }
         log.error('App', 'Generation error:', error);
         this.#chatUI?.cancelStream();
         this.#setStatus('error', 'Generation failed');
@@ -1441,6 +1469,7 @@ export class DopplerDemo {
       /** @type {any} */ (this.#pipeline).clearKVCache();
     }
     this.#chatUI?.clear();
+    this.#chatMessages = [];
     log.debug('App', 'Conversation cleared');
   }
 

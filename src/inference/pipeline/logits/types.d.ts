@@ -23,6 +23,8 @@ export interface LogitsConfig {
   largeWeights?: LargeWeightConfigSchema;
   /** Dtype for hidden state activations */
   activationDtype?: 'f16' | 'f32';
+  /** Gemma 2 RMS scaling: (1+w)*x */
+  rmsNormWeightOffset?: boolean;
 }
 
 /**

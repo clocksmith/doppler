@@ -44,7 +44,7 @@
 | `docs/design/KERNEL_TESTING.md` | Testing specification/design |
 | `docs/design/BENCHMARK_HARNESS.md` | Benchmark methodology |
 | `docs/TEST_RESULTS.md` | Test session log |
-| `tests/kernels/TODO.md` | Implementation status |
+| `tests/kernels/README.md` | Kernel test coverage |
 | `tests/kernels/BENCHMARKS.md` | Benchmark baselines |
 
 ---
@@ -207,4 +207,3 @@ doppler test kernels && doppler test inference && npm run test:vitest
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
-

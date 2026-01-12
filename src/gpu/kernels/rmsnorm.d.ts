@@ -13,6 +13,8 @@ export interface RMSNormOptions extends OutputBufferOptions {
   batchSize?: number;
   hiddenSize?: number | null;
   residual?: Tensor | null;
+  /** Use (1+w)*x normalization for Gemma 2/3 */
+  rmsNormWeightOffset?: boolean;
 }
 
 /**
