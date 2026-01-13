@@ -17,7 +17,7 @@ import type { WeightLayout, WeightDtype } from '../gpu/weight-buffer.js';
  * Check if model requires (1 + weight) offset for RMSNorm weights.
  *
  * GGUF files do NOT have the offset baked in - they store raw weights.
- * The +1 offset is applied at load time based on the manifest's config flag.
+ * RMSNorm applies the +1 offset at runtime when this flag is true.
  *
  * @param manifest - Model manifest
  * @returns Whether norm weight offset is needed

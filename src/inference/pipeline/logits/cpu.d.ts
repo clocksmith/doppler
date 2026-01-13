@@ -10,18 +10,20 @@
 /**
  * CPU RMSNorm implementation.
  *
- * Computes: output[i] = (x[i] / rms) * weight[i]
+ * Computes: output[i] = (x[i] / rms) * weight[i] (or (1 + weight[i]) when enabled)
  * where rms = sqrt(mean(x^2) + eps)
  *
  * @param x - Input tensor
  * @param weight - Norm weights
  * @param eps - Epsilon for numerical stability
+ * @param rmsNormWeightOffset - Use (1 + weight) scaling
  * @returns Normalized tensor
  */
 export function rmsNormCPU(
   x: Float32Array,
   weight: Float32Array,
-  eps?: number
+  eps?: number,
+  rmsNormWeightOffset?: boolean
 ): Float32Array;
 
 /**

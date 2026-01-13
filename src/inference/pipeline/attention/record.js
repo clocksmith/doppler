@@ -108,6 +108,7 @@ export async function recordLayerAttentionGPU(
     normed = await recordRMSNorm(recorder, attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
     });
     if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
@@ -278,6 +279,7 @@ export async function recordLayerAttentionGPU(
       const qNormedTensor = await recordRMSNorm(recorder, qTensor, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,
         hiddenSize: headDim,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
       releaseOrTrack(recorder, qTensor.buffer);
       qTensor = qNormedTensor;
@@ -292,6 +294,7 @@ export async function recordLayerAttentionGPU(
       const kNormedTensor = await recordRMSNorm(recorder, kTensor, kNormBuf, rmsNormEps, {
         batchSize: numTokens * numKVHeads,
         hiddenSize: headDim,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
       releaseOrTrack(recorder, kTensor.buffer);
       kTensor = kNormedTensor;

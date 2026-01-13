@@ -24,7 +24,7 @@ import { log, trace as debugTrace } from '../debug/index.js';
  * Check if model requires (1 + weight) offset for RMSNorm weights.
  *
  * GGUF files do NOT have the offset baked in - they store raw weights.
- * The +1 offset is applied at load time based on the manifest's config flag.
+ * RMSNorm applies the +1 offset at runtime when this flag is true.
  *
  * Supported detection methods (in priority order):
  * 1. manifest.inference.normalization.rmsNormWeightOffset (explicit)
@@ -49,7 +49,7 @@ export function needsNormWeightOffset(manifest) {
   }
 
   if (inferenceFlag) {
-    debugTrace.loader('Applying +1 norm weight offset (manifest.inference.normalization.rmsNormWeightOffset=true)');
+    debugTrace.loader('RMSNorm weight offset enabled (manifest.inference.normalization.rmsNormWeightOffset=true)');
   }
   return inferenceFlag;
 }

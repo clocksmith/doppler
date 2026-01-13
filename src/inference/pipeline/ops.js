@@ -51,7 +51,7 @@ export function releaseOrTrack(recorder, buffer, decodeBuffers) {
  * @param {import('../../gpu/tensor.js').Tensor} input
  * @param {GPUBuffer} weight
  * @param {number} eps
- * @param {{ batchSize: number; hiddenSize: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number }} options
+ * @param {{ batchSize: number; hiddenSize: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean }} options
  * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
  * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
  */
@@ -190,7 +190,7 @@ export async function doSiLURowSplit(input, options, recorder) {
  * @param {import('../../gpu/tensor.js').Tensor} input
  * @param {GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer} weight
  * @param {GPUBuffer} normWeight
- * @param {{ N: number; K: number; eps: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number }} options
+ * @param {{ N: number; K: number; eps: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean }} options
  * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
  * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
  */
@@ -203,6 +203,7 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
     residual: options.residual?.buffer ?? null,
     outputBuffer: options.outputBuffer,
     transposeB: options.transposeB,
+    rmsNormWeightOffset: options.rmsNormWeightOffset,
   };
   const resultTensor = recorder
     ? await recordMatmulRMSNormFused(recorder, input, weight, normWeight, fusedOptions)

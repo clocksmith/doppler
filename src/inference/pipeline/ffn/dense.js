@@ -539,6 +539,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       residual: residualTensor,
       outputBuffer,
       transposeB,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     },
     recorder
   );

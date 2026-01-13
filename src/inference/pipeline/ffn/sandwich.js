@@ -57,6 +57,7 @@ export async function processFFNWithSandwichNorm(
       hiddenSize,
       label: `L${layerIdx}.pre_ffn_norm`,
       layerIdx,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }
@@ -164,6 +165,7 @@ export async function processFFNWithSandwichNorm(
       outputBuffer: decodeOutputBuffer,
       label: `L${layerIdx}.post_ffn_norm`,
       layerIdx,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
 
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);

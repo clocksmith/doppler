@@ -44,21 +44,6 @@ export declare function isEmbeddingWeight(name: string): boolean;
 export declare function applyBufferLayout(buffer: GPUBuffer, _location: TensorLocation): GPUBuffer;
 
 /**
- * Apply +1 offset to norm weights for Gemma models.
- *
- * IMPORTANT: actualNumElements must be provided to avoid reading garbage padding
- * from the buffer pool's power-of-2 bucketing.
- *
- * @param bufferDtype - Optional dtype for GPU buffer (defaults to 'f32')
- */
-export declare function applyNormWeightOffset(
-  tensor: GPUBuffer | Float32Array,
-  actualNumElements?: number,
-  normOffsetDebugLogged?: boolean,
-  bufferDtype?: 'f16' | 'f32' | 'bf16'
-): Promise<{ tensor: GPUBuffer | Float32Array; debugLogged: boolean }>;
-
-/**
  * Find alternative tensor name (handles different naming conventions).
  * Returns null if no alternative is found.
  */

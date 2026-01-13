@@ -275,6 +275,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         hiddenSize,
         label: `L${layerIdx}.post_attn_norm`,
         layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
       }, recorder);
       if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
       if (recorder) {
@@ -291,6 +292,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       residual: inputTensor,
       label: `L${layerIdx}.post_attn_norm`,
       layerIdx,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
 
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
@@ -560,6 +562,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             residual: residualTensor,
             label: `L${layerIdx}.rmsnorm_${step.weight}`,
             layerIdx,
+            rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
           }, recorder);
           if (!(weight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
           setSlot(step.dst, outputTensor.buffer);

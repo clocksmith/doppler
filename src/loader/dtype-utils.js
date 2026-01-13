@@ -7,7 +7,6 @@
  */
 
 import { getDevice } from '../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
 import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
 
 /**
@@ -170,109 +169,6 @@ export function applyBufferLayout(buffer, _location) {
   // Note: WeakMap layout tracking removed - layout is stored in WeightBuffer
   // For non-matmul weights (norms), layout doesn't affect kernel selection
   return buffer;
-}
-
-/**
- * Apply +1 offset to norm weights for Gemma models.
- *
- * IMPORTANT: actualNumElements must be provided to avoid reading garbage padding
- * from the buffer pool's power-of-2 bucketing.
- *
- * @param {GPUBuffer | Float32Array} tensor
- * @param {number} [actualNumElements]
- * @param {boolean} [normOffsetDebugLogged=false]
- * @param {'f16' | 'f32' | 'bf16'} [bufferDtype='f32']
- * @returns {Promise<{ tensor: GPUBuffer | Float32Array; debugLogged: boolean }>}
- */
-export async function applyNormWeightOffset(
-  tensor,
-  actualNumElements,
-  normOffsetDebugLogged = false,
-  bufferDtype = 'f32'
-) {
-  const device = getDevice();
-  if (!device) {
-    log.warn('Loader', ' No GPU device for norm offset');
-    return { tensor, debugLogged: normOffsetDebugLogged };
-  }
-
-  let debugLogged = normOffsetDebugLogged;
-
-  if (tensor instanceof GPUBuffer) {
-    // Use provided dtype to determine element size (WeakMap tracking removed)
-    const isF16 = bufferDtype === 'f16' || bufferDtype === 'bf16';
-    const bytesPerElement = isF16 ? 2 : 4;
-
-    // Use actual element count if provided, otherwise infer from buffer size
-    const numElements = actualNumElements ?? Math.floor(tensor.size / bytesPerElement);
-    const dataSize = numElements * bytesPerElement;
-
-    // Ensure we don't read past the buffer
-    const readSize = Math.min(dataSize, tensor.size);
-
-    const stagingBuffer = device.createBuffer({
-      size: readSize,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(tensor, 0, stagingBuffer, 0, readSize);
-    device.queue.submit([encoder.finish()]);
-
-    await stagingBuffer.mapAsync(GPUMapMode.READ);
-    const rawData = stagingBuffer.getMappedRange().slice(0);
-    stagingBuffer.unmap();
-    stagingBuffer.destroy();
-
-    // Convert to F32 for offset calculation
-    /** @type {Float32Array} */
-    let data;
-    if (isF16) {
-      const u16Data = new Uint16Array(rawData);
-      data = new Float32Array(u16Data.length);
-      for (let i = 0; i < u16Data.length; i++) {
-        data[i] = f16ToF32(u16Data[i]);
-      }
-    } else {
-      data = new Float32Array(rawData);
-    }
-
-    const offsetData = new Float32Array(numElements);
-    for (let i = 0; i < numElements; i++) {
-      offsetData[i] = 1.0 + data[i];
-    }
-
-    // Debug: log first norm weight transformation (once per model load)
-    if (!debugLogged) {
-      debugLogged = true;
-      const beforeMin = Math.min(...Array.from(data.slice(0, Math.min(256, numElements))));
-      const beforeMax = Math.max(...Array.from(data.slice(0, Math.min(256, numElements))));
-      const afterMin = Math.min(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
-      const afterMax = Math.max(...Array.from(offsetData.slice(0, Math.min(256, numElements))));
-      debugTrace.loader(`Norm +1 offset: before=[${beforeMin.toFixed(3)}, ${beforeMax.toFixed(3)}] after=[${afterMin.toFixed(3)}, ${afterMax.toFixed(3)}]`);
-    }
-
-    releaseBuffer(tensor);
-    const newBuffer = acquireBuffer(offsetData.byteLength, undefined, 'norm_offset');
-    device.queue.writeBuffer(newBuffer, 0, offsetData);
-    return { tensor: newBuffer, debugLogged };
-  }
-
-  if (tensor instanceof Float32Array) {
-    const numElements = actualNumElements ?? tensor.length;
-    const offsetData = new Float32Array(numElements);
-    for (let i = 0; i < numElements; i++) {
-      offsetData[i] = 1.0 + tensor[i];
-    }
-    // Always upload to GPU to prevent double-offset in pipeline
-    // Pipeline's getNormWeightBuffer returns GPUBuffer as-is, skipping offset
-    const newBuffer = acquireBuffer(offsetData.byteLength, undefined, 'norm_offset');
-    device.queue.writeBuffer(newBuffer, 0, offsetData);
-    return { tensor: newBuffer, debugLogged };
-  }
-
-  log.warn('Loader', ' Unknown tensor type for norm offset');
-  return { tensor, debugLogged };
 }
 
 /**

@@ -33,6 +33,7 @@ export async function runMatmulRMSNormFused(
     residual = null,
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
+    rmsNormWeightOffset = false,
   } = options;
 
   const { maxMediumN } = getKernelThresholds().fusedMatmul;
@@ -45,9 +46,10 @@ export async function runMatmulRMSNormFused(
   // Select variant based on output size
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
-  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
+  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
+  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
   // Output buffer: [1, N] floats
   const outputSize = N * 4;
@@ -120,6 +122,7 @@ export async function recordMatmulRMSNormFused(
     residual = null,
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
+    rmsNormWeightOffset = false,
   } = options;
 
   const { maxMediumN } = getKernelThresholds().fusedMatmul;
@@ -132,9 +135,10 @@ export async function recordMatmulRMSNormFused(
   // Select variant
   const variant = selectMatmulRMSNormFusedVariant(N);
 
-  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}`);
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
-  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant);
+  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
+  const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
   // Output buffer
   const outputSize = N * 4;

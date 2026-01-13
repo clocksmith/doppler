@@ -12,7 +12,6 @@
 
 import { getKernelCapabilities } from '../gpu/device.js';
 import { isWeightBuffer } from '../gpu/weight-buffer.js';
-import { applyNormWeightOffset } from './norm-offset.js';
 import { batchDowncastWeights } from './weight-downcast.js';
 import { trace as debugTrace } from '../debug/index.js';
 
@@ -164,33 +163,12 @@ function createTryLoad(ctx, prefixes) {
  */
 function createTryLoadNorm(ctx, prefixes, tryLoad) {
   return async (suffixes) => {
-    // Find tensor location to get actual shape (needed to avoid reading garbage from buffer pool padding)
-    /** @type {number | undefined} */
-    let actualNumElements;
-    for (const prefix of prefixes) {
-      for (const suffix of suffixes) {
-        const name = `${prefix}.${suffix}`;
-        const location = ctx.tensorLocations.get(name);
-        if (location) {
-          // Norm weights are 1D tensors with shape [hiddenSize]
-          actualNumElements = location.shape.reduce((a, b) => a * b, 1);
-          break;
-        }
-      }
-      if (actualNumElements) break;
-    }
-
     const tensor = await tryLoad(suffixes);
     if (!tensor) return null;
 
     // Norm weights are never WeightBuffer (they're f32 and not matmul weights)
     // Cast is safe because _loadTensor only returns WeightBuffer for matmul weights
     const normTensor = /** @type {GPUBuffer | Float32Array} */ (tensor);
-
-    if (ctx.needsNormWeightOffset()) {
-      const result = await applyNormWeightOffset(normTensor, { actualNumElements });
-      return result.tensor;
-    }
     return normTensor;
   };
 }
@@ -246,7 +224,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     const hasOffset = ctx.needsNormWeightOffset();
     debugTrace.loader(
       `Layer 0 norm weights: qNorm=${qNorm ? 'found' : 'null'}, ` +
-      `kNorm=${kNorm ? 'found' : 'null'}, offset=${hasOffset ? '+1 applied' : 'none'}`
+      `kNorm=${kNorm ? 'found' : 'null'}, offset=${hasOffset ? 'runtime' : 'none'}`
     );
   }
 

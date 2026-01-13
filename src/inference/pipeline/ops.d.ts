@@ -36,7 +36,7 @@ export function doRMSNorm(
   input: Tensor,
   weight: GPUBuffer,
   eps: number,
-  options: { batchSize: number; hiddenSize: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number },
+  options: { batchSize: number; hiddenSize: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
@@ -104,7 +104,7 @@ export function doMatmulRMSNormFused(
   input: Tensor,
   weight: GPUBuffer | WeightBuffer,
   normWeight: GPUBuffer,
-  options: { N: number; K: number; eps: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number },
+  options: { N: number; K: number; eps: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 

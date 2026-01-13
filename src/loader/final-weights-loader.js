@@ -2,7 +2,7 @@
  * Final Weights Loader - Load final norm and LM head.
  *
  * Handles loading of:
- * - Final layer norm (with optional +1 offset for Gemma 3+)
+ * - Final layer norm (offset handled at runtime when configured)
  * - LM head (output projection)
  * - Tied embeddings fallback
  *
@@ -15,7 +15,6 @@ import {
   isWeightBuffer,
   isCpuWeightBuffer,
 } from '../gpu/weight-buffer.js';
-import { applyNormWeightOffset } from './norm-offset.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
@@ -79,27 +78,19 @@ export async function loadFinalWeights(ctx) {
 async function loadFinalNorm(ctx) {
   /** @type {GPUBuffer | Float32Array | null} */
   let finalNorm = null;
-  /** @type {number | undefined} */
-  let finalNormElements;
   let debugLogged = false;
 
   for (const name of FINAL_NORM_NAMES) {
     const location = ctx.tensorLocations.get(name);
     if (location) {
-      finalNormElements = location.shape.reduce((a, b) => a * b, 1);
       finalNorm = /** @type {GPUBuffer | Float32Array | null} */ (await ctx.loadTensor(name, true, true));
       break;
     }
   }
 
-  if (finalNorm && ctx.needsNormWeightOffset()) {
-    const result = await applyNormWeightOffset(finalNorm, {
-      actualNumElements: finalNormElements,
-      bufferDtype: 'f32',
-      enableDebugLog: !ctx.normOffsetDebugLogged,
-    });
-    finalNorm = result.tensor;
-    debugLogged = result.debugLogged;
+  if (finalNorm && ctx.needsNormWeightOffset() && !ctx.normOffsetDebugLogged) {
+    debugTrace.loader('Final norm uses RMSNorm weight offset (applied at runtime)');
+    debugLogged = true;
   }
 
   if (!finalNorm) {

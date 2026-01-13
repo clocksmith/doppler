@@ -48,6 +48,7 @@ export async function processFFNStandard(
       hiddenSize,
       label: `L${layerIdx}.post_attn_norm`,
       layerIdx,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
     if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
   }

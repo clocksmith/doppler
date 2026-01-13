@@ -15,6 +15,7 @@
 override WORKGROUP_SIZE: u32 = 256u;
 override COLS_PER_WG: u32 = 4u;
 override THREADS_PER_COL: u32 = 64u;  // WORKGROUP_SIZE / COLS_PER_WG
+override RMS_NORM_OFFSET: bool = false;
 
 struct Uniforms {
     N: u32,             // Output dimension (hidden_size)
@@ -38,6 +39,13 @@ struct Uniforms {
 var<workgroup> shared_partial: array<f32, 256>;  // Partial dot products
 var<workgroup> shared_output: array<f32, 256>;   // Output values for RMSNorm
 var<workgroup> shared_sum_sq: array<f32, 256>;   // Sum of squares for reduction
+
+fn apply_weight(w: f32) -> f32 {
+    if (RMS_NORM_OFFSET) {
+        return 1.0 + w;
+    }
+    return w;
+}
 
 // Fused GEMV + RMSNorm: Main entry point
 // Each workgroup computes COLS_PER_WG output columns, then all workgroups
@@ -137,7 +145,7 @@ fn main(
         let mean_sq = local_sum_sq / f32(min(COLS_PER_WG, N));
         let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 
-        var result = val * inv_rms * norm_weight[global_col];
+        var result = val * inv_rms * apply_weight(norm_weight[global_col]);
 
         if (u.has_residual == 1u) {
             result = result + residual[global_col];
@@ -185,7 +193,7 @@ fn gemv_rmsnorm_small(
 
     // Write normalized output
     if (tid < N) {
-        var result = shared_output[tid] * inv_rms * norm_weight[tid];
+        var result = shared_output[tid] * inv_rms * apply_weight(norm_weight[tid]);
         if (u.has_residual == 1u) {
             result = result + residual[tid];
         }
@@ -246,7 +254,7 @@ fn gemv_rmsnorm_medium(
     for (var c: u32 = 0u; c < cols_per_thread; c = c + 1u) {
         let col = tid + c * 256u;
         if (col < N) {
-            var result = output[col] * inv_rms * norm_weight[col];
+            var result = output[col] * inv_rms * apply_weight(norm_weight[col]);
             if (u.has_residual == 1u) {
                 result = result + residual[col];
             }

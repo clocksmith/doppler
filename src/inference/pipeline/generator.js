@@ -1360,7 +1360,7 @@ export class PipelineGenerator {
     if (data.byteLength === 0) return;
 
     const dtype = bytesPerElement === 2 ? 'f16' : 'f32';
-    const arr = decodeReadback(dtype, data);
+    const arr = decodeReadback(data, dtype);
 
     let min = Infinity;
     let max = -Infinity;

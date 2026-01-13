@@ -2,7 +2,7 @@
  * Final Weights Loader - Load final norm and LM head.
  *
  * Handles loading of:
- * - Final layer norm (with optional +1 offset for Gemma 3+)
+ * - Final layer norm (offset applied at runtime when configured)
  * - LM head (output projection)
  * - Tied embeddings fallback
  *

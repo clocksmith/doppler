@@ -3,7 +3,7 @@
  *
  * This module handles:
  * - Creating GPU buffers from CPU weight data
- * - Applying weight transformations (e.g., Gemma norm offset)
+ * - Handling RMSNorm weight buffers (offset is applied at runtime)
  * - Type guards for layer weight structures
  * - Buffer lifecycle management
  *
@@ -21,7 +21,7 @@ import type { WeightBuffer, CpuWeightBuffer } from '../../gpu/weight-buffer.js';
  * Configuration for weight buffer operations.
  */
 export interface WeightBufferConfig {
-  /** Whether to apply +1 offset for Gemma-style norm weights */
+  /** Whether RMSNorm uses (1 + weight) scaling at runtime */
   rmsNormWeightOffset: boolean;
 }
 

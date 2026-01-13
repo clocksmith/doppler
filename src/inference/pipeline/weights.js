@@ -3,7 +3,7 @@
  *
  * This module handles:
  * - Creating GPU buffers from CPU weight data
- * - Applying weight transformations (e.g., Gemma norm offset)
+ * - Handling RMSNorm weight buffers (offset is applied at runtime)
  * - Type guards for layer weight structures
  * - Buffer lifecycle management
  *
@@ -94,9 +94,8 @@ export function getWeightBuffer(weight, label) {
 /**
  * Get or create GPU buffer for RMSNorm weight tensor.
  *
- * Applies the +1 offset for Gemma 3+ models which use (1 + weight) in
- * the norm formula. This transformation is only applied if the config
- * specifies rmsNormWeightOffset=true.
+ * RMSNorm applies the +1 offset at runtime when configured, so weights are
+ * uploaded as-is without modifying values here.
  *
  * @param {GPUBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | import('../../gpu/weight-buffer.js').CpuWeightBuffer} weight - Weight data (GPUBuffer or CPU array)
  * @param {string} label - Debug label for the buffer
@@ -121,12 +120,7 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
     throw new Error('No GPU device available for norm weight buffer creation');
   }
 
-  // NOTE: Loader already applies +1 offset for Gemma 3+ and returns GPUBuffer.
-  // If we receive Float32Array here with rmsNormWeightOffset=true, it means
-  // the loader path was bypassed (shouldn't happen in normal flow).
-  if (config.rmsNormWeightOffset) {
-    log.warn('Weights', 'getNormWeightBuffer: Received Float32Array with rmsNormWeightOffset=true - loader should have returned GPUBuffer. Uploading without re-applying offset.');
-  }
+  // RMSNorm weight offset is handled in the kernel, so upload raw weights as-is.
 
   // Standard path: just copy to GPU
   /** @type {Float32Array} */

@@ -19,6 +19,8 @@ export interface MatmulRMSNormFusedOptions extends OutputBufferOptions {
   eps?: number;
   /** Optional residual buffer to add to output */
   residual?: GPUBuffer | null;
+  /** Whether RMSNorm uses (1 + weight) scaling */
+  rmsNormWeightOffset?: boolean;
   /**
    * Whether weight matrix is stored transposed.
    * - true: weight is [N,K] (row-major/SafeTensors), needs transpose access

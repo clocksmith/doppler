@@ -124,7 +124,12 @@ export async function computeLogits(
     } else {
       cpuHiddenStates = /** @type {Float32Array} */ (hiddenStates);
     }
-    const normed = rmsNormCPU(cpuHiddenStates, /** @type {Float32Array} */(finalNorm), rmsNormEps);
+    const normed = rmsNormCPU(
+      cpuHiddenStates,
+      /** @type {Float32Array} */(finalNorm),
+      rmsNormEps,
+      config.rmsNormWeightOffset
+    );
     const rawLogits = isCpuWeightBuffer(lmHead)
       ? matmulCPU(
         normed,
