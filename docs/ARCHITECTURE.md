@@ -545,8 +545,8 @@ CONVERSION TIME:
 LOAD TIME:
 ┌─────────────────────────────────────────────────────────────────────┐
 │ manifest.json + runtime overrides → mergeConfig()                   │
-│   - Manifest values are required (source of truth)                  │
-│   - Runtime can override any manifest value                         │
+│   - Manifest inference values are required (source of truth)        │
+│   - Runtime can override any manifest inference value               │
 │   - Source tracking: '_sources' map shows where each value came from│
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
@@ -555,10 +555,9 @@ LOAD TIME:
 
 EXECUTION TIME:
 ┌─────────────────────────────────────────────────────────────────────┐
-│ Pipeline reads from MergedConfig                                    │
+│ Pipeline reads from ParsedModelConfig                               │
 │   - No model detection (isGemma, isLlama, etc.)                     │
-│   - No hardcoded defaults in pipeline code                          │
-│   - Config trace shows source of every value                        │
+│   - Config trace shows source of every inference value              │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -582,6 +581,9 @@ EXECUTION TIME:
 - `undefined` = not specified (validation error)
 Runtime overrides only apply when values are non-null; runtime `null` does not
 unset a manifest value.
+Architecture fields fall back only when `manifest.architecture` is a legacy
+string; defaults like `DEFAULT_MAX_POSITION_EMBEDDINGS` and `DEFAULT_RMS_NORM_EPS`
+apply only in that path.
 
 **Benefits:**
 - Manifest is self-describing: no need for external preset files

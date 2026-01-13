@@ -45,8 +45,9 @@ values directly (no model-family detection). Missing fields fail fast; `null`
 explicitly disables a feature. Runtime overrides only apply when a value is
 non-null; runtime `null` does not unset a manifest value.
 Default kernel paths are resolved at conversion time via
-`manifest.inference.defaultKernelPath`, with runtime overrides in
-`runtime.inference.kernelPath`.
+`manifest.inference.defaultKernelPath`, with overrides in (low → high):
+`manifest.optimizations.kernelPath` → `manifest.inference.defaultKernelPath`
+→ `runtime.inference.kernelPath` → per-run context.
 Runtime defaults to F16 activations for web inference; override with
 `runtime.inference.compute.activationDtype = "f32"` if needed. Converter
 manifests can also include `quantizationInfo.compute` as a hint.

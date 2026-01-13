@@ -180,7 +180,7 @@ export async function computeLogits(
   // Debug: Check hidden state before final norm
   if (!debugFlags.finalNormDebugDone && debugCheckBuffer) {
     debugFlags.finalNormDebugDone = true;
-    await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens);
+    await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize);
     await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, 100);
   }
 
@@ -205,7 +205,7 @@ export async function computeLogits(
   // Debug: Check hidden state after final norm
   if (!debugFlags.afterFinalNormDebugDone && debugCheckBuffer) {
     debugFlags.afterFinalNormDebugDone = true;
-    await debugCheckBuffer(normedTensor.buffer, 'After final norm', numTokens);
+    await debugCheckBuffer(normedTensor.buffer, 'After final norm', numTokens, hiddenSize);
   }
 
   if (isCpuWeightBuffer(lmHead)) {
