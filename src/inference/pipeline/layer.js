@@ -188,6 +188,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     attnSoftcap: config.attnLogitSoftcapping ?? 0,
     queryPreAttnScalar: config.queryPreAttnScalar,
     queryKeyNorm: config.queryKeyNorm,
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
   };
 
   /** @type {import('./attention.js').AttentionState} */
@@ -515,6 +516,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             attnSoftcap: config.attnLogitSoftcapping ?? 0,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
+            rmsNormWeightOffset: config.rmsNormWeightOffset,
             skipInputNorm: step.skipInputNorm === true,
           };
 

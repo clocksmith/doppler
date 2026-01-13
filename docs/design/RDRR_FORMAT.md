@@ -86,6 +86,44 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
     "maxSeqLen": 8192,
     "ropeTheta": 10000
   },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 256,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": false
+    },
+    "normalization": {
+      "rmsNormWeightOffset": true,
+      "rmsNormEps": 1e-5,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "gelu",
+      "gatedActivation": true
+    },
+    "rope": {
+      "ropeTheta": 10000,
+      "ropeLocalTheta": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1.0,
+      "yarnBetaFast": 32,
+      "yarnBetaSlow": 1,
+      "yarnOriginalMaxPos": 4096
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": false,
+      "scaleEmbeddings": true,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null
+    },
+    "layerPattern": { "type": "all_attention" },
+    "chatTemplate": { "type": null, "enabled": false },
+    "defaultKernelPath": "gemma2-q4k-dequant-f16a"
+  },
   "groups": {
     "embed": { "type": "embed", "version": "1.0.0", "shards": [0], "tensors": ["model.embed_tokens.weight"], "hash": "..." },
     "layer.0": { "type": "layer", "version": "1.0.0", "shards": [0, 1], "tensors": [...], "hash": "...", "layerIndex": 0 },
@@ -97,6 +135,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
   "totalSize": 3400000000
 }
 ```
+`inference` is required for all RDRR manifests. See "Manifest Inference (Required)" below.
 
 ### Model Types
 
@@ -159,7 +198,7 @@ Groups enable per-component hot-swap and version tracking:
 ```json
 {
   "index": 0,
-  "fileName": "shard_00000.bin",
+  "filename": "shard_00000.bin",
   "size": 67108864,
   "hash": "sha256-hex-64-chars",
   "hashAlgorithm": "sha256"
@@ -312,15 +351,23 @@ For tensors spanning multiple shards, use the `spans` field:
 | `tokenizer` | object | Tokenizer configuration |
 | `moeConfig` | object | Mixture-of-experts configuration |
 | `quantizationInfo` | object | Structured quantization metadata (weights vs embeddings) |
-| `optimizations` | object | Runtime kernel path overrides |
+| `optimizations` | object | Kernel path hint (lowest precedence) |
 | `blake3Full` | string | Full-model BLAKE3 hash |
-| `adapterType` | string | Adapter type (e.g. `lora`) |
-| `baseModel` | string | Base model reference for adapters |
-| `loraConfig` | object | LoRA metadata for adapter manifests |
+| `config` | object | Raw model config (HF/GGUF metadata) |
+| `conversion` | object | Conversion provenance (source, command, quantization) |
+| `metadata` | object | Arbitrary metadata blob |
+| `defaultWeightLayout` | string | Default weight layout hint (`row`/`column`) |
+| `adapterType` | string | Adapter type (`lora`, `qlora`) |
+| `baseCompatibility` | string[] | Base model compatibility list for adapters |
+| `mergedAdapter` | object | Merged adapter metadata (baked into weights) |
+| `adapterConfig` | object | Adapter configuration (standalone adapter) |
+| `provenance` | object | Provenance metadata for merged/frankenstein models |
+| `baseModel` | string | Base model reference (legacy adapter hint) |
+| `loraConfig` | object | LoRA metadata (legacy adapter hint) |
 
 ### optimizations Schema
 
-The `optimizations` field provides explicit kernel path overrides for runtime kernel selection.
+The `optimizations` field provides a kernel path hint used for fallback selection.
 
 ```json
 {
@@ -334,61 +381,24 @@ The `optimizations` field provides explicit kernel path overrides for runtime ke
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `kernelPath` | string/object | Kernel path override (see `docs/design/KERNEL_PATHS.md`) |
+| `kernelPath` | string/object | Kernel path hint (see `docs/design/KERNEL_PATHS.md`) |
 
-#### Precedence Rules
+#### Precedence Rules (low → high)
 
 1. manifest `optimizations.kernelPath`
 2. manifest `inference.defaultKernelPath`
 3. runtime config `runtime.inference.kernelPath`
-4. CLI `--kernel-path`
+4. per-run context override (CLI `--kernel-path`, pipeline context)
 
 See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#kernel-path-overrides) for how kernel paths integrate with capability-based kernel selection.
 
 ---
 
-## LoRA Adapter Extension
+## Adapter Manifests (LoRA/QLoRA)
 
-LoRA adapters can be stored as RDRR manifests with `adapterType: "lora"`. These manifests reference tensor deltas stored in shards and include LoRA metadata.
-
-```json
-{
-  "version": "1.0",
-  "modelId": "functiongemma-270m-react-lora",
-  "modelType": "lora",
-  "adapterType": "lora",
-  "baseModel": "functiongemma-270m-it",
-  "quantization": "F32",
-  "loraConfig": {
-    "rank": 32,
-    "alpha": 64,
-    "targetModules": ["q_proj", "k_proj", "v_proj", "o_proj"]
-  },
-  "shards": [
-    { "index": 0, "fileName": "lora_weights.rdrr", "size": 15728640, "hash": "..." }
-  ],
-  "tensors": {
-    "layers.0.q_proj.lora_a": {
-      "shard": 0,
-      "offset": 0,
-      "size": 32768,
-      "shape": [4096, 32],
-      "dtype": "f32"
-    },
-    "layers.0.q_proj.lora_b": {
-      "shard": 0,
-      "offset": 32768,
-      "size": 32768,
-      "shape": [32, 4096],
-      "dtype": "f32"
-    }
-  }
-}
-```
-
-Notes:
-- Tensor names follow `layers.<idx>.<module>.lora_a|lora_b`.
-- `dtype` should be `f32` for LoRA weights.
+LoRA adapters use the adapter manifest schema in `src/adapters/adapter-manifest.js`
+and are loaded by the adapter loader, not the RDRR parser. RDRR manifests may
+carry adapter metadata fields, but adapters themselves are not RDRR bundles.
 
 ---
 
