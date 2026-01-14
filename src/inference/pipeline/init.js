@@ -374,7 +374,6 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   const { storageContext, onProgress, verifyHashes = false, loadingConfig, baseUrl } = options;
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
-  await dopplerLoader.init();
   dopplerLoader.setQ4KConfig(resolveQ4KConfig(manifest));
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
@@ -404,6 +403,8 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
       dopplerLoader.setManifest(manifest);
     }
   }
+
+  await dopplerLoader.init();
 
   // Load model via DopplerLoader
   // Skip hash verification by default - verification happens during download

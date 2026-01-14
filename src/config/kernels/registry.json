@@ -83,6 +83,24 @@
           "requires": ["shader-f16", "subgroups"],
           "outputDtype": "f16"
         },
+        "gemv_subgroup_cols8_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main_cols8",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 8 },
+          "description": "Subgroup GEMV with 8 columns per workgroup (f16 activations/output)"
+        },
+        "gemv_subgroup_vec4_cols8_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main_vec4_cols8",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 8 },
+          "description": "Subgroup GEMV vec4 with 8 columns per workgroup (f16 activations/output)"
+        },
         "gemv_subgroup_multicol": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_multicol",

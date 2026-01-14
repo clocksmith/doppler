@@ -585,7 +585,7 @@ Config System:
   --config '{"runtime":...}'   Inline JSON config
   --mode bench                 Shortcut for --config bench
 
-  Built-in presets: default, debug, bench, production, low-memory, ci
+  Built-in presets live under src/config/presets/runtime/* (use --list-presets)
   User presets: ~/.doppler/presets/*.json
   Project presets: ./.doppler/*.json
 

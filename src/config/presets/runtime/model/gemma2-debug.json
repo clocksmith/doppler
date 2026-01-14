@@ -1,7 +1,7 @@
 {
   "name": "gemma2-debug",
   "description": "Gemma 2 probe-focused debugging with targeted trace categories",
-  "extends": "debug",
+  "extends": "modes/debug",
   "runtime": {
     "inference": {
       "compute": {

@@ -18,6 +18,7 @@ import { getPrompt } from './prompts.js';
 import { applyChatTemplate } from '../../src/inference/pipeline/init.js';
 import { setRuntimeConfig } from '../../src/config/runtime.js';
 import { percentile } from '../../src/debug/stats.js';
+import { parseManifest } from '../../src/storage/rdrr-format.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -215,7 +216,8 @@ export class PipelineBenchmark {
       : `${this.config.modelPath}/manifest.json`;
 
     const manifestResponse = await fetch(manifestUrl);
-    this.manifest = await manifestResponse.json();
+    const manifestJson = await manifestResponse.json();
+    this.manifest = parseManifest(JSON.stringify(manifestJson));
     const modelId = this.manifest.modelId || this.manifest.model_id;
 
     // Check if model is in OPFS, download if not.
@@ -223,15 +225,39 @@ export class PipelineBenchmark {
     // modelExists() checks for a manifest without relying on global currentModelDir.
     await initOPFS();
     const isCached = await modelExists(modelId);
+    /** @type {{ loadShard: (index: number) => Promise<ArrayBuffer | Uint8Array> } | null} */
+    let storageContext = null;
     if (!isCached) {
       console.log('[Benchmark] Model not in OPFS, downloading...');
       const baseUrl = this.config.modelPath.replace(/\/manifest\.json$/, '');
-      await downloadModel(baseUrl, (progress) => {
-        if (progress.percent % 10 === 0) {
-          console.log(`[Benchmark] Download: ${progress.percent}%`);
+      try {
+        await downloadModel(baseUrl, (progress) => {
+          if (progress.percent % 10 === 0) {
+            console.log(`[Benchmark] Download: ${progress.percent}%`);
+          }
+        }, { modelId });
+        console.log('[Benchmark] Download complete');
+      } catch (error) {
+        if (isStorageQuotaError(error)) {
+          console.warn('[Benchmark] OPFS quota exceeded, falling back to streaming shards');
+          storageContext = {
+            loadShard: async (index) => {
+              const shard = this.manifest?.shards?.[index];
+              if (!shard) {
+                throw new Error(`Invalid shard index: ${index}`);
+              }
+              const url = `${baseUrl}/${shard.filename}`;
+              const response = await fetch(url);
+              if (!response.ok) {
+                throw new Error(`Failed to fetch shard ${index}: HTTP ${response.status}`);
+              }
+              return response.arrayBuffer();
+            }
+          };
+        } else {
+          throw error;
         }
-      }, { modelId });
-      console.log('[Benchmark] Download complete');
+      }
     }
 
     // Create pipeline
@@ -244,6 +270,7 @@ export class PipelineBenchmark {
     this.pipeline = await createPipeline(this.manifest, {
       gpu: { device },
       baseUrl: this.config.modelPath.replace(/\/manifest\.json$/, ''),
+      storage: storageContext ?? undefined,
       runtime,
     });
 
@@ -558,6 +585,15 @@ export class PipelineBenchmark {
     return values.reduce((a, b) => a + b, 0) / values.length;
   }
 
+}
+
+function isStorageQuotaError(error) {
+  const message = /** @type {Error} */ (error)?.message ?? '';
+  return message.includes('storage quota')
+    || message.includes('QuotaExceeded')
+    || message.includes('exceed its storage quota')
+    || message.includes('Failed to write shard')
+    || message.includes('Download incomplete');
 }
 
 // ============================================================================

@@ -6,6 +6,7 @@ import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 // =============================================================================
 
 import gemma2Q4kFusedF16A from './presets/kernel-paths/gemma2-q4k-fused-f16a.json' with { type: 'json' };
+import gemma2Q4kFusedF16AWg128 from './presets/kernel-paths/gemma2-q4k-fused-f16a-wg128.json' with { type: 'json' };
 import gemma2Q4kFusedF32A from './presets/kernel-paths/gemma2-q4k-fused-f32a.json' with { type: 'json' };
 import gemma2Q4kDequantF32A from './presets/kernel-paths/gemma2-q4k-dequant-f32a.json' with { type: 'json' };
 import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a.json' with { type: 'json' };
@@ -15,6 +16,7 @@ import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { t
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
   'gemma2-q4k-fused-f16a': gemma2Q4kFusedF16A,
+  'gemma2-q4k-fused-f16a-wg128': gemma2Q4kFusedF16AWg128,
   'gemma2-q4k-fused-f32a': gemma2Q4kFusedF32A,
   'gemma2-q4k-dequant-f16a': gemma2Q4kDequantF16A,
   'gemma2-q4k-dequant-f32a': gemma2Q4kDequantF32A,
@@ -267,7 +269,7 @@ export function getActiveKernelPathSource() {
 }
 
 export function getKernelPathStrict() {
-  return activeKernelPathSource !== 'none';
+  return true;
 }
 
 export function isActiveKernelPathFusedQ4K() {

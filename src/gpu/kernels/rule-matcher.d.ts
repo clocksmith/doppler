@@ -23,6 +23,5 @@ export declare function matchesRule(match: RuleMatch | null | undefined, context
 
 export declare function selectByRules<T>(
   rules: Array<Rule<T>>,
-  context: Record<string, unknown>,
-  fallback: T
+  context: Record<string, unknown>
 ): T;

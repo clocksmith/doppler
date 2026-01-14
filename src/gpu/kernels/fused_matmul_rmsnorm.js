@@ -17,7 +17,7 @@ export function selectMatmulRMSNormFusedVariant(N) {
     { match: { N: { lte: WORKGROUP_SIZES.DEFAULT } }, value: 'small' },
     { match: {}, value: 'medium' },
   ];
-  return selectByRules(rules, { N }, 'medium');
+  return selectByRules(rules, { N });
 }
 
 

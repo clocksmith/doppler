@@ -1,0 +1,10 @@
+{
+  "name": "fused-q4k-wg128",
+  "description": "Fused Q4K kernel path with smaller decode workgroup (WG128).",
+  "extends": "fused-q4k",
+  "runtime": {
+    "inference": {
+      "kernelPath": "gemma2-q4k-fused-f16a-wg128"
+    }
+  }
+}

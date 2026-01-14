@@ -22,7 +22,7 @@ function selectSoftmaxVariant(innerSize) {
     { match: {}, value: 'default' },
   ];
 
-  return selectByRules(rules, { hasSubgroups, innerSize }, 'default');
+  return selectByRules(rules, { hasSubgroups, innerSize });
 }
 
 

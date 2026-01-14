@@ -38,8 +38,7 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
 
   return selectByRules(
     rules,
-    { isF16, residual: !!residual, hasSubgroups, isSmall },
-    'default'
+    { isF16, residual: !!residual, hasSubgroups, isSmall }
   );
 }
 

@@ -44,8 +44,7 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
 
   return selectByRules(
     rules,
-    { canUseQ4K, batchSize, weightDtype, intermediateSize },
-    'default'
+    { canUseQ4K, batchSize, weightDtype, intermediateSize }
   );
 }
 

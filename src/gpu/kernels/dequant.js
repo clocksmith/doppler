@@ -29,8 +29,7 @@ export function selectDequantKernel(options = {}) {
 
   return selectByRules(
     rules,
-    { hasSubgroups: capabilities.hasSubgroups, wantsF16Out, useVec4 },
-    'shared'
+    { hasSubgroups: capabilities.hasSubgroups, wantsF16Out, useVec4 }
   );
 }
 

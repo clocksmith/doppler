@@ -264,7 +264,9 @@ export class DopplerLoader {
 
     this.expertCache = getExpertCache();
 
-    await initOPFS();
+    if (!this.shardCache.hasCustomLoader) {
+      await initOPFS();
+    }
 
     const caps = [
       this.gpuCapabilities.hasF16 ? 'f16' : null,

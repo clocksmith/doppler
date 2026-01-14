@@ -23,6 +23,13 @@ const COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
 const THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
 const MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
 
+// Alternative layout: more columns per workgroup, fewer threads per column.
+// This reduces workgroup count and improves occupancy for mid-sized K.
+const COLS_PER_WG_COLS8: u32 = 8u;  // 256 / 8 = 32 threads per column
+const THREADS_PER_COL_COLS8: u32 = 32u;
+const MAX_SUBGROUPS_PER_COL_COLS8: u32 = 8u;  // Support sg_size >= 4 (32/4 = 8)
+var<workgroup> wg_sums_cols8: array<f32, 64>;
+
 struct Uniforms {
     M: u32,
     N: u32,
@@ -338,6 +345,178 @@ fn main_vec4(
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
             final_sum = final_sum + wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + i];
+        }
+        C[col] = f16(final_sum * u.alpha);
+    }
+}
+
+// Alternative entry point with 8 columns per workgroup.
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_cols8(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+    let col_in_wg = local_id / THREADS_PER_COL_COLS8;
+    let thread_in_col = local_id % THREADS_PER_COL_COLS8;
+
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
+    let base_col = wg_linear * COLS_PER_WG_COLS8;
+    let col = base_col + col_in_wg;
+
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let k_per_thread = (u.K + THREADS_PER_COL_COLS8 - 1u) / THREADS_PER_COL_COLS8;
+        let k_start = thread_in_col * k_per_thread;
+        let k_end = min(k_start + k_per_thread, u.K);
+
+        var k = k_start;
+        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+
+        if (u.transpose_b == 1u) {
+            let b_row_offset = col * u.K;
+
+            for (; k < k_aligned_end; k = k + 4u) {
+                let a0 = f32(A[k]);
+                let a1 = f32(A[k + 1u]);
+                let a2 = f32(A[k + 2u]);
+                let a3 = f32(A[k + 3u]);
+
+                let b0 = f32(B[b_row_offset + k]);
+                let b1 = f32(B[b_row_offset + k + 1u]);
+                let b2 = f32(B[b_row_offset + k + 2u]);
+                let b3 = f32(B[b_row_offset + k + 3u]);
+
+                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+            }
+
+            for (; k < k_end; k = k + 1u) {
+                partial_sum = partial_sum + f32(A[k]) * f32(B[b_row_offset + k]);
+            }
+        } else {
+            for (; k < k_aligned_end; k = k + 4u) {
+                let a0 = f32(A[k]);
+                let a1 = f32(A[k + 1u]);
+                let a2 = f32(A[k + 2u]);
+                let a3 = f32(A[k + 3u]);
+
+                let b0 = f32(B[k * u.N + col]);
+                let b1 = f32(B[(k + 1u) * u.N + col]);
+                let b2 = f32(B[(k + 2u) * u.N + col]);
+                let b3 = f32(B[(k + 3u) * u.N + col]);
+
+                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+            }
+
+            for (; k < k_end; k = k + 1u) {
+                partial_sum = partial_sum + f32(A[k]) * f32(B[k * u.N + col]);
+            }
+        }
+    }
+
+    let sg_sum = subgroupAdd(partial_sum);
+
+    let num_subgroups_per_col = (THREADS_PER_COL_COLS8 + sg_size - 1u) / sg_size;
+
+    if (sg_id == 0u && thread_in_col < THREADS_PER_COL_COLS8) {
+        let sg_idx_in_col = thread_in_col / sg_size;
+        wg_sums_cols8[col_in_wg * MAX_SUBGROUPS_PER_COL_COLS8 + sg_idx_in_col] = sg_sum;
+    }
+
+    workgroupBarrier();
+
+    if (thread_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
+            final_sum = final_sum + wg_sums_cols8[col_in_wg * MAX_SUBGROUPS_PER_COL_COLS8 + i];
+        }
+        C[col] = f16(final_sum * u.alpha);
+    }
+}
+
+// Alternative entry point with vec4 weight loads and 8 columns per workgroup.
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_vec4_cols8(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+    let col_in_wg = local_id / THREADS_PER_COL_COLS8;
+    let thread_in_col = local_id % THREADS_PER_COL_COLS8;
+
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
+    let base_col = wg_linear * COLS_PER_WG_COLS8;
+    let col = base_col + col_in_wg;
+
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let K4 = u.K / 4u;
+        let k4_per_thread = (K4 + THREADS_PER_COL_COLS8 - 1u) / THREADS_PER_COL_COLS8;
+        let k4_start = thread_in_col * k4_per_thread;
+        let k4_end = min(k4_start + k4_per_thread, K4);
+
+        if (u.transpose_b == 1u) {
+            let b_row_offset = col * u.K;
+
+            for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
+                let k = k4 * 4u;
+
+                let a = vec4<f32>(f32(A[k]), f32(A[k + 1u]), f32(A[k + 2u]), f32(A[k + 3u]));
+
+                let b = vec4<f32>(
+                    f32(B[b_row_offset + k]),
+                    f32(B[b_row_offset + k + 1u]),
+                    f32(B[b_row_offset + k + 2u]),
+                    f32(B[b_row_offset + k + 3u])
+                );
+
+                partial_sum = partial_sum + dot(a, b);
+            }
+        } else {
+            for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
+                let k = k4 * 4u;
+
+                let a = vec4<f32>(f32(A[k]), f32(A[k + 1u]), f32(A[k + 2u]), f32(A[k + 3u]));
+
+                let b = vec4<f32>(
+                    f32(B[k * u.N + col]),
+                    f32(B[(k + 1u) * u.N + col]),
+                    f32(B[(k + 2u) * u.N + col]),
+                    f32(B[(k + 3u) * u.N + col])
+                );
+
+                partial_sum = partial_sum + dot(a, b);
+            }
+        }
+    }
+
+    let sg_sum = subgroupAdd(partial_sum);
+
+    let num_subgroups_per_col = (THREADS_PER_COL_COLS8 + sg_size - 1u) / sg_size;
+
+    if (sg_id == 0u && thread_in_col < THREADS_PER_COL_COLS8) {
+        let sg_idx_in_col = thread_in_col / sg_size;
+        wg_sums_cols8[col_in_wg * MAX_SUBGROUPS_PER_COL_COLS8 + sg_idx_in_col] = sg_sum;
+    }
+
+    workgroupBarrier();
+
+    if (thread_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
+            final_sum = final_sum + wg_sums_cols8[col_in_wg * MAX_SUBGROUPS_PER_COL_COLS8 + i];
         }
         C[col] = f16(final_sum * u.alpha);
     }

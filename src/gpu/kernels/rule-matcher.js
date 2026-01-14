@@ -17,11 +17,13 @@ export function matchesRule(match, context) {
   return true;
 }
 
-export function selectByRules(rules, context, fallback) {
+export function selectByRules(rules, context) {
   for (const rule of rules) {
     if (matchesRule(rule.match, context)) {
       return rule.value;
     }
   }
-  return fallback;
+  throw new Error(
+    `RuleMatcher: no rule matched context ${JSON.stringify(context)}`
+  );
 }

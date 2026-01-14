@@ -1,0 +1,5 @@
+{
+  "name": "metal-apple-q4k",
+  "description": "Metal (Apple GPU) tuned default for Q4K (dequant F16 kernel path).",
+  "extends": "kernels/dequant-f16-q4k"
+}

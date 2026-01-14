@@ -39,8 +39,7 @@ function resolveSampleVariants(logitsDtype) {
       { match: { useF16: true }, value: '_f16' },
       { match: {}, value: '' },
     ],
-    { useF16 },
-    ''
+    { useF16 }
   );
   return {
     argmax: `argmax${suffix}`,

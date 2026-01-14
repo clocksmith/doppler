@@ -10,8 +10,8 @@
  * @module cli/config/config-resolver
  */
 
-import { readFile, access, mkdir, writeFile } from 'fs/promises';
-import { resolve, join } from 'path';
+import { readFile, access, mkdir, writeFile, readdir } from 'fs/promises';
+import { resolve, join, relative, basename, sep } from 'path';
 import { homedir } from 'os';
 
 // =============================================================================
@@ -20,6 +20,8 @@ import { homedir } from 'os';
 
 const BUILTIN_PRESETS_DIR = resolve(import.meta.dirname, '../../src/config/presets/runtime');
 const DEFAULT_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const PRESET_EXTENSION = '.json';
+const PATH_SEPARATOR_PATTERN = /[\\/]/g;
 
 // =============================================================================
 // Config Resolver
@@ -67,12 +69,24 @@ export class ConfigResolver {
       return this.#resolveUrl(ref);
     }
 
-    // 3. File path (contains / or \ or ends with .json)
-    if (ref.includes('/') || ref.includes('\\') || ref.endsWith('.json')) {
+    // 3. File path or nested preset (contains / or \)
+    if (ref.includes('/') || ref.includes('\\')) {
+      if (!ref.endsWith(PRESET_EXTENSION)) {
+        try {
+          return await this.#resolvePreset(ref);
+        } catch {
+          // Fall back to file resolution below
+        }
+      }
       return this.#resolveFile(ref);
     }
 
-    // 4. Named preset (search in order: project -> user -> builtin)
+    // 4. File path (ends with .json)
+    if (ref.endsWith(PRESET_EXTENSION)) {
+      return this.#resolveFile(ref);
+    }
+
+    // 5. Named preset (search in order: project -> user -> builtin)
     return this.#resolvePreset(ref);
   }
 
@@ -83,7 +97,10 @@ export class ConfigResolver {
    * @returns {Promise<import('./config-resolver.js').ResolvedConfig>}
    */
   async #resolvePreset(name) {
-    const filename = name.endsWith('.json') ? name : `${name}.json`;
+    const normalized = name.replace(PATH_SEPARATOR_PATTERN, '/');
+    const filename = normalized.endsWith(PRESET_EXTENSION)
+      ? normalized
+      : `${normalized}${PRESET_EXTENSION}`;
 
     // Search order: project -> user -> builtin
     /** @type {{ source: 'project' | 'user' | 'builtin', dir: string }[]} */
@@ -94,28 +111,22 @@ export class ConfigResolver {
     ];
 
     for (const { source, dir } of searchPaths) {
-      const path = join(dir, filename);
-      try {
-        await access(path);
-        const content = await readFile(path, 'utf-8');
+      const resolved = await findPresetPath(dir, normalized);
+      if (!resolved) continue;
 
-        // Warn if project/user preset shadows a builtin
-        if (source !== 'builtin') {
-          const builtinPath = join(BUILTIN_PRESETS_DIR, filename);
-          try {
-            await access(builtinPath);
-            console.warn(
-              `[Config] ${source} preset "${name}" shadows built-in preset`
-            );
-          } catch {
-            // No builtin with same name, no warning needed
-          }
+      const content = await readFile(resolved, 'utf-8');
+
+      // Warn if project/user preset shadows a builtin
+      if (source !== 'builtin') {
+        const builtinPath = await findPresetPath(BUILTIN_PRESETS_DIR, normalized);
+        if (builtinPath) {
+          console.warn(
+            `[Config] ${source} preset "${name}" shadows built-in preset`
+          );
         }
-
-        return { source, path, content, name };
-      } catch {
-        // Continue to next search path
       }
+
+      return { source, path: resolved, content, name };
     }
 
     throw new Error(
@@ -218,15 +229,11 @@ export class ConfigResolver {
 
     for (const { source, dir } of searchPaths) {
       try {
-        const { readdir } = await import('fs/promises');
-        const files = await readdir(dir);
+        const files = await listPresetFiles(dir);
         for (const file of files) {
-          if (file.endsWith('.json')) {
-            const name = file.replace('.json', '');
-            if (!seen.has(name)) {
-              seen.add(name);
-              presets.push({ name, source, path: join(dir, file) });
-            }
+          if (!seen.has(file.name)) {
+            seen.add(file.name);
+            presets.push({ name: file.name, source, path: file.path });
           }
         }
       } catch {
@@ -236,6 +243,51 @@ export class ConfigResolver {
 
     return presets;
   }
+}
+
+async function listPresetFiles(rootDir, baseDir = rootDir) {
+  /** @type {{ name: string; path: string }[]} */
+  const results = [];
+  const entries = await readdir(rootDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      const nested = await listPresetFiles(fullPath, baseDir);
+      results.push(...nested);
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith(PRESET_EXTENSION)) continue;
+    const name = relative(baseDir, fullPath)
+      .slice(0, -PRESET_EXTENSION.length)
+      .split(sep)
+      .join('/');
+    results.push({ name, path: fullPath });
+  }
+  return results;
+}
+
+async function findPresetPath(rootDir, normalizedName) {
+  try {
+    await access(rootDir);
+  } catch {
+    return null;
+  }
+
+  if (normalizedName.includes('/')) {
+    const candidate = join(rootDir, `${normalizedName}${PRESET_EXTENSION}`);
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      return null;
+    }
+  }
+
+  const files = await listPresetFiles(rootDir);
+  const exact = files.find((file) => file.name === normalizedName);
+  if (exact) return exact.path;
+  const byBase = files.find((file) => basename(file.name) === normalizedName);
+  return byBase?.path ?? null;
 }
 
 // =============================================================================

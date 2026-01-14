@@ -34,8 +34,7 @@ export async function runRoPE(
       { match: { useF16: true }, value: 'default_f16' },
       { match: {}, value: 'default' },
     ],
-    { useF16 },
-    'default'
+    { useF16 }
   );
   const pipeline = await getPipelineFast('rope', variant);
 
@@ -108,8 +107,7 @@ export async function recordRoPE(
       { match: { useF16: true }, value: 'default_f16' },
       { match: {}, value: 'default' },
     ],
-    { useF16 },
-    'default'
+    { useF16 }
   );
   const pipeline = await getPipelineFast('rope', variant);
 

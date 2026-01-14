@@ -24,8 +24,7 @@ function selectGatherVariant(useF16Input, useF16Output, useVec4) {
 
   return selectByRules(
     rules,
-    { useF16Input, useF16Output, useVec4 },
-    'default'
+    { useF16Input, useF16Output, useVec4 }
   );
 }
 

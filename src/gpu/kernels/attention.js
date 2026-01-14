@@ -9,8 +9,8 @@ import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schem
 import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
-import { log, trace } from '../../debug/index.js';
-import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config/kernel-path-loader.js';
+import { trace } from '../../debug/index.js';
+import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
 import { selectByRules } from './rule-matcher.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
@@ -81,8 +81,7 @@ function selectAttentionTier(
   useF16KV,
   forcedTier,
   sharedLimit,
-  caps,
-  strict
+  caps
 ) {
   const isDecode = seqLen === 1;
   const thresholds = getKernelThresholds().attention;
@@ -105,26 +104,16 @@ function selectAttentionTier(
     isDecode;
 
   
-  const failOrWarn = (message) => {
-    if (strict) {
-      throw new Error(message);
-    }
-    log.warn('Attention', message);
-  };
-
   let tier = forcedTier;
 
   if (tier === 'tiled_large' && !canLarge) {
-    failOrWarn(`Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
-    tier = null;
+    throw new Error(`Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
   }
   if (tier === 'tiled_small' && !canSmall) {
-    failOrWarn(`Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
-    tier = null;
+    throw new Error(`Requested tiled_small but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
   }
   if (tier === 'subgroup' && !canSubgroup) {
-    failOrWarn(`Requested subgroup attention but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}, subgroups=${caps.hasSubgroups}).`);
-    tier = null;
+    throw new Error(`Requested subgroup attention but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}, subgroups=${caps.hasSubgroups}).`);
   }
 
   if (!tier) {
@@ -135,13 +124,10 @@ function selectAttentionTier(
       { match: { isDecode: true }, value: 'streaming' },
       { match: {}, value: 'streaming' },
     ];
-    tier = selectByRules(rules, { canSubgroup, canLarge, canSmall, isDecode }, 'streaming');
+    tier = selectByRules(rules, { canSubgroup, canLarge, canSmall, isDecode });
     if (tier === 'subgroup' && !loggedAttentionTier) {
       trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
       loggedAttentionTier = true;
-    }
-    if (tier === 'streaming' && !isDecode && !canLarge && !canSmall) {
-      log.warn('Attention', `No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`);
     }
   }
 
@@ -192,8 +178,7 @@ function resolveAttentionVariant(
 
   const variant = selectByRules(
     rules,
-    { tier, useF16KV, canUseChunked, canUseDecodeSubgroup },
-    `${base}_streaming${suffix}`
+    { tier, useF16KV, canUseChunked, canUseDecodeSubgroup }
   );
 
   if (variant === chunkedVariant && !loggedChunkedKernel) {
@@ -235,27 +220,21 @@ function validateAttentionVariant(
   useF16KV,
   useF16Q,
   caps,
-  strict
+  headDim,
+  kvLen,
+  sharedLimit
 ) {
   const normalized = variant.trim();
-  
-  const failOrWarn = (message) => {
-    if (strict) {
-      throw new Error(message);
-    }
-    log.warn('Attention', message);
-    return null;
-  };
 
   let config;
   try {
     config = getKernelConfig('attention', normalized);
   } catch {
-    return failOrWarn(`Unknown attention kernel variant "${variant}".`);
+    throw new Error(`Unknown attention kernel variant "${variant}".`);
   }
 
   if (!hasRequiredFeatures(config.requires, caps)) {
-    return failOrWarn(`Attention kernel "${variant}" requires unsupported GPU features.`);
+    throw new Error(`Attention kernel "${variant}" requires unsupported GPU features.`);
   }
 
   const expectsF16KV = normalized.includes('_f16kv');
@@ -264,29 +243,75 @@ function validateAttentionVariant(
     if (!(useF16KV && useF16Q)) {
       const kvLabel = useF16KV ? 'f16' : 'f32';
       const qLabel = useF16Q ? 'f16' : 'f32';
-      return failOrWarn(`Attention kernel "${variant}" requires f16 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
+      throw new Error(`Attention kernel "${variant}" requires f16 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   } else if (expectsF16KV) {
     if (!useF16KV || useF16Q) {
       const kvLabel = useF16KV ? 'f16' : 'f32';
       const qLabel = useF16Q ? 'f16' : 'f32';
-      return failOrWarn(`Attention kernel "${variant}" requires f32 Q with f16 KV but got Q=${qLabel}, KV=${kvLabel}.`);
+      throw new Error(`Attention kernel "${variant}" requires f32 Q with f16 KV but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   } else {
     if (useF16KV || useF16Q) {
       const kvLabel = useF16KV ? 'f16' : 'f32';
       const qLabel = useF16Q ? 'f16' : 'f32';
-      return failOrWarn(`Attention kernel "${variant}" requires f32 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
+      throw new Error(`Attention kernel "${variant}" requires f32 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   }
 
   const isDecodeVariant = normalized.startsWith('decode');
   const isPrefillVariant = normalized.startsWith('prefill');
   if (isDecode && isPrefillVariant) {
-    return failOrWarn(`Attention kernel "${variant}" is prefill-only but decode requested.`);
+    throw new Error(`Attention kernel "${variant}" is prefill-only but decode requested.`);
   }
   if (!isDecode && isDecodeVariant) {
-    return failOrWarn(`Attention kernel "${variant}" is decode-only but prefill requested.`);
+    throw new Error(`Attention kernel "${variant}" is decode-only but prefill requested.`);
+  }
+
+  const thresholds = getKernelThresholds().attention;
+  const chunkedMaxKVLen = getChunkedMaxKVLen();
+  const isChunked = normalized.startsWith('decode_chunked');
+  if (isChunked) {
+    const minHeadDimForChunked = thresholds.minHeadDimForChunked;
+    if (headDim < minHeadDimForChunked) {
+      throw new Error(`Attention kernel "${variant}" requires headDim >= ${minHeadDimForChunked} but got ${headDim}.`);
+    }
+    if (kvLen > chunkedMaxKVLen) {
+      throw new Error(`Attention kernel "${variant}" requires kvLen <= ${chunkedMaxKVLen} but got ${kvLen}.`);
+    }
+  }
+
+  if (normalized === 'decode_subgroup') {
+    if (!caps.hasSubgroups) {
+      throw new Error(`Attention kernel "${variant}" requires subgroup support.`);
+    }
+    if (headDim > thresholds.subgroupMaxHeadDim) {
+      throw new Error(`Attention kernel "${variant}" requires headDim <= ${thresholds.subgroupMaxHeadDim} but got ${headDim}.`);
+    }
+    if (kvLen > chunkedMaxKVLen) {
+      throw new Error(`Attention kernel "${variant}" requires kvLen <= ${chunkedMaxKVLen} but got ${kvLen}.`);
+    }
+    if (sharedLimit < thresholds.subgroupShared) {
+      throw new Error(`Attention kernel "${variant}" requires shared >= ${thresholds.subgroupShared} but got ${sharedLimit}.`);
+    }
+  }
+
+  if (normalized.startsWith('prefill') || normalized.startsWith('decode')) {
+    const isSmall = normalized.includes('_small');
+    const isStreaming = normalized.includes('_streaming');
+    const isTiled = !isStreaming && !normalized.startsWith('decode_subgroup') && !isChunked;
+    if (isTiled) {
+      const requiredShared = isSmall
+        ? (useF16KV ? thresholds.smallSharedF16 : thresholds.smallSharedF32)
+        : (useF16KV ? thresholds.largeSharedF16 : thresholds.largeSharedF32);
+      const maxHeadDim = isSmall ? thresholds.smallMaxHeadDim : thresholds.largeMaxHeadDim;
+      if (headDim > maxHeadDim) {
+        throw new Error(`Attention kernel "${variant}" requires headDim <= ${maxHeadDim} but got ${headDim}.`);
+      }
+      if (sharedLimit < requiredShared) {
+        throw new Error(`Attention kernel "${variant}" requires shared >= ${requiredShared} but got ${sharedLimit}.`);
+      }
+    }
   }
 
   return normalized;
@@ -307,23 +332,39 @@ function resolveAttentionPlan(
   const useF16KV = kvDtype === 'f16';
   const useF16Q = qDtype === 'f16';
   const isDecode = seqLen === 1;
-  const strict = getKernelPathStrict();
   const pathVariant = getKernelPathAttentionVariant(isDecode ? 'decode' : 'prefill', layerIdx);
 
   if (pathVariant) {
-    const variantOverride = validateAttentionVariant(pathVariant, isDecode, useF16KV, useF16Q, caps, strict);
-    if (variantOverride) {
-      const tier = inferAttentionTierFromVariant(variantOverride);
-      const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
-      return { tier, variant: variantOverride, workgroups, useF16KV, isDecode };
-    }
+    const variantOverride = validateAttentionVariant(
+      pathVariant,
+      isDecode,
+      useF16KV,
+      useF16Q,
+      caps,
+      headDim,
+      kvLen,
+      sharedLimit
+    );
+    const tier = inferAttentionTierFromVariant(variantOverride);
+    const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
+    return { tier, variant: variantOverride, workgroups, useF16KV, isDecode };
   }
 
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps, strict);
+  const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps);
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, useF16Q, numHeads, headDim, kvLen);
+  const validatedVariant = validateAttentionVariant(
+    variant,
+    isDecode,
+    useF16KV,
+    useF16Q,
+    caps,
+    headDim,
+    kvLen,
+    sharedLimit
+  );
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
-  return { tier, variant, workgroups, useF16KV, isDecode };
+  return { tier, variant: validatedVariant, workgroups, useF16KV, isDecode };
 }
 
 

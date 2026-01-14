@@ -20,8 +20,7 @@ function selectResidualVariant(outputDtype, useVec4) {
 
   return selectByRules(
     rules,
-    { outputDtype, useVec4 },
-    'default'
+    { outputDtype, useVec4 }
   );
 }
 
@@ -34,8 +33,7 @@ function selectBiasAddVariant(dataDtype, biasDtype) {
 
   return selectByRules(
     rules,
-    { dataDtype, biasDtype },
-    'default'
+    { dataDtype, biasDtype }
   );
 }
 

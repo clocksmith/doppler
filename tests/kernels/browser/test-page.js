@@ -13,7 +13,7 @@ import { createTensor } from '../../../src/gpu/tensor.js';
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 
-// Import kernel path to enable fused Q4K path for testing
+// Kernel path can be injected via URL param for targeted tests
 import { resolveKernelPath, setActiveKernelPath } from '../../../src/config/kernel-path-loader.js';
 
 // Import kernel functions - some may not exist, so we import what's available
@@ -115,6 +115,31 @@ function toF16RoundedFloat32(values) {
   return out;
 }
 
+function buildAttentionKernelPath(id, kernelFile) {
+  return {
+    id,
+    name: id,
+    activationDtype: 'f16',
+    decode: {
+      steps: [
+        {
+          op: 'attention',
+          kernel: kernelFile,
+          entry: 'main',
+          constants: { SOFTCAP: 50.0 },
+        },
+      ],
+    },
+  };
+}
+
+function fillDeterministic(values, scale = 0.01) {
+  for (let i = 0; i < values.length; i++) {
+    values[i] = Math.sin(i * 0.13) * scale;
+  }
+  return values;
+}
+
 /**
  * Initialize WebGPU device
  */
@@ -129,8 +154,13 @@ async function initGPU() {
     throw new Error('WebGPU not available');
   }
 
-  // Set kernel path to use fused Q4K path for testing
-  setActiveKernelPath(resolveKernelPath('gemma2-q4k-fused-f16a'), 'runtime');
+  const params = new URLSearchParams(window.location.search);
+  const kernelPath = params.get('kernelPath');
+  if (kernelPath) {
+    setActiveKernelPath(resolveKernelPath(kernelPath), 'runtime');
+  } else {
+    setActiveKernelPath(null, 'none');
+  }
 
   initialized = true;
   return device;
@@ -728,6 +758,103 @@ const testHarness = {
     maskBuf?.destroy();
     resultTensor.buffer.destroy();
     return out;
+  },
+
+  /**
+   * Benchmark decode attention variants across kv lengths.
+   * Returns timing stats per kvLen for the requested kernel file.
+   */
+  async benchmarkAttentionDecodeVariant(dev, options = {}) {
+    if (!runAttention) {
+      throw new Error('runAttention kernel not available');
+    }
+
+    const {
+      kernel = 'attention_decode_chunked_f16.wgsl',
+      kvLens = [128, 256, 512, 1024, 1536, 2048],
+      headDim = 256,
+      numHeads = 8,
+      numKVHeads = 4,
+      warmupRuns = 5,
+      timedRuns = 20,
+    } = options;
+
+    const { device } = await getGPU();
+    const benchmark = new KernelBenchmark(device);
+    const seqLen = 1;
+
+    const qData = fillDeterministic(new Float32Array(numHeads * headDim));
+    const qBuf = makeBuffer(toF16Array(qData));
+    const qTensor = createTensor(qBuf, 'f16', [seqLen, numHeads, headDim], 'bench_q');
+
+    setActiveKernelPath(buildAttentionKernelPath(`bench-${kernel}`, kernel), 'runtime');
+
+    const results = [];
+    for (const kvLen of kvLens) {
+      const kData = fillDeterministic(new Float32Array(kvLen * numKVHeads * headDim));
+      const vData = fillDeterministic(new Float32Array(kvLen * numKVHeads * headDim), 0.02);
+      const kBuf = makeBuffer(toF16Array(kData));
+      const vBuf = makeBuffer(toF16Array(vData));
+
+      const kTensor = createTensor(kBuf, 'f16', [kvLen, numKVHeads, headDim], 'bench_k');
+      const vTensor = createTensor(vBuf, 'f16', [kvLen, numKVHeads, headDim], 'bench_v');
+
+      const outputSize = seqLen * numHeads * headDim * 2;
+      const outputBuffer = device.createBuffer({
+        label: 'bench_attention_output',
+        size: outputSize,
+        usage: GPUBufferUsage.STORAGE,
+      });
+
+      const stats = await benchmark.runBenchmark(
+        async () => {
+          await runAttention(qTensor, kTensor, vTensor, null, numHeads, headDim, {
+            seqLen,
+            kvLen,
+            numKVHeads,
+            scale: 1 / Math.sqrt(headDim),
+            causal: true,
+            outputBuffer,
+          });
+        },
+        {
+          warmupRuns,
+          timedRuns,
+          label: `kv${kvLen}`,
+        }
+      );
+
+      const metrics = computeMetrics(stats, {
+        operation: 'attention',
+        seqLen,
+        kvLen,
+        numHeads,
+        headDim,
+        elementSize: 2,
+      });
+
+      results.push({
+        kvLen,
+        stats: metrics,
+      });
+
+      kBuf.destroy();
+      vBuf.destroy();
+      outputBuffer.destroy();
+    }
+
+    qBuf.destroy();
+    setActiveKernelPath(null, 'none');
+
+    return {
+      kernel,
+      headDim,
+      numHeads,
+      numKVHeads,
+      warmupRuns,
+      timedRuns,
+      results,
+    };
   },
 
   /**

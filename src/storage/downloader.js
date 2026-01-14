@@ -102,20 +102,29 @@ async function saveDownloadState(state) {
   const database = await initDB();
   if (!database) return;
 
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
+  try {
+    await new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
 
-    /** @type {import('./download-types.js').SerializedDownloadState} */
-    const storeState = {
-      ...state,
-      completedShards: Array.from(state.completedShards)
-    };
+      /** @type {import('./download-types.js').SerializedDownloadState} */
+      const storeState = {
+        ...state,
+        completedShards: Array.from(state.completedShards)
+      };
 
-    const request = store.put(storeState);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to save download state'));
-  });
+      const request = store.put(storeState);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(new Error('Failed to save download state'));
+    });
+  } catch (error) {
+    if (isDatabaseClosingError(error)) {
+      db = null;
+      log.warn('Downloader', 'IndexedDB unavailable, skipping download state save');
+      return;
+    }
+    log.warn('Downloader', `Failed to save download state: ${/** @type {Error} */ (error).message}`);
+  }
 }
 
 /**
@@ -127,26 +136,36 @@ async function loadDownloadState(modelId) {
   const database = await initDB();
   if (!database) return null;
 
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
 
-    const request = store.get(modelId);
-    request.onsuccess = () => {
-      const result = /** @type {import('./download-types.js').SerializedDownloadState | undefined} */ (request.result);
-      if (result) {
-        /** @type {import('./download-types.js').DownloadState} */
-        const state = {
-          ...result,
-          completedShards: new Set(result.completedShards)
-        };
-        resolve(state);
-      } else {
-        resolve(null);
-      }
-    };
-    request.onerror = () => reject(new Error('Failed to load download state'));
-  });
+      const request = store.get(modelId);
+      request.onsuccess = () => {
+        const result = /** @type {import('./download-types.js').SerializedDownloadState | undefined} */ (request.result);
+        if (result) {
+          /** @type {import('./download-types.js').DownloadState} */
+          const state = {
+            ...result,
+            completedShards: new Set(result.completedShards)
+          };
+          resolve(state);
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = () => reject(new Error('Failed to load download state'));
+    });
+  } catch (error) {
+    if (isDatabaseClosingError(error)) {
+      db = null;
+      log.warn('Downloader', 'IndexedDB unavailable, skipping download state load');
+      return null;
+    }
+    log.warn('Downloader', `Failed to load download state: ${/** @type {Error} */ (error).message}`);
+    return null;
+  }
 }
 
 /**
@@ -158,14 +177,29 @@ async function deleteDownloadState(modelId) {
   const database = await initDB();
   if (!database) return;
 
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
+  try {
+    await new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
 
-    const request = store.delete(modelId);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to delete download state'));
-  });
+      const request = store.delete(modelId);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(new Error('Failed to delete download state'));
+    });
+  } catch (error) {
+    if (isDatabaseClosingError(error)) {
+      db = null;
+      log.warn('Downloader', 'IndexedDB unavailable, skipping download state delete');
+      return;
+    }
+    log.warn('Downloader', `Failed to delete download state: ${/** @type {Error} */ (error).message}`);
+  }
+}
+
+function isDatabaseClosingError(error) {
+  const message = /** @type {Error} */ (error)?.message ?? '';
+  return message.includes('database connection is closing')
+    || /** @type {Error} */ (error)?.name === 'InvalidStateError';
 }
 
 // ============================================================================

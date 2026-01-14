@@ -30,7 +30,7 @@ function selectQ4KFusedVariant(isM1, wantF16Output, aDtype) {
     { match: { isM1: true }, value: 'q4_fused_multicol' },
     { match: {}, value: 'q4_fused_batched' },
   ];
-  return selectByRules(rules, { useF16A, useF16Out, isM1 }, 'q4_fused_batched');
+  return selectByRules(rules, { useF16A, useF16Out, isM1 });
 }
 
 
@@ -118,8 +118,7 @@ export function selectMatmulKernel(options = {}) {
 
   return selectByRules(
     rules,
-    { useF16Matmul, useF16wF32a, useVec4 },
-    'f32'
+    { useF16Matmul, useF16wF32a, useVec4 }
   );
 }
 
@@ -251,7 +250,7 @@ function requiresF32Input(variant) {
 }
 
 
-function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, requestedOutputDtype, capabilities, strict) {
+function resolveMatmulOverride(variantOverride, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict) {
   const override = variantOverride.trim();
   if (!override) return null;
 
@@ -283,6 +282,10 @@ function resolveMatmulOverride(variantOverride, M, aDtype, bDtype, requestedOutp
 
   if (supportsF16Input(override) && aDtype !== 'f16') {
     return failOrWarn(`Matmul kernel "${variantOverride}" requires f16 activations but A dtype is ${aDtype}.`);
+  }
+
+  if (override.includes('vec4') && (K % 4 !== 0)) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" requires K divisible by 4 but got K=${K}.`);
   }
 
   if (!hasRequiredFeatures(config.requires, capabilities)) {
@@ -321,14 +324,15 @@ function resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, mu
 
   return selectByRules(
     rules,
-    { useF16GemvPath, useF32GemvPath, useMulticol },
-    pathVariant
+    { useF16GemvPath, useF32GemvPath, useMulticol }
   );
 }
 
-function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, N, multicolThreshold) {
+function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, useVec4, N, multicolThreshold) {
   const useMulticol = N > multicolThreshold;
   const rules = [
+    { match: { hasSubgroups: true, useF16Gemv: true, useVec4: true, useMulticol: false }, value: 'gemv_subgroup_vec4_f16a' },
+    { match: { hasSubgroups: true, useF32Gemv: true, useVec4: true, useMulticol: false }, value: 'gemv_subgroup_vec4' },
     { match: { hasSubgroups: true, useF16Gemv: true, useMulticol: true }, value: 'gemv_subgroup_multicol_f16a' },
     { match: { hasSubgroups: true, useF16Gemv: true }, value: 'gemv_subgroup_f16a' },
     { match: { hasSubgroups: true, useF32Gemv: true, useMulticol: true }, value: 'gemv_subgroup_multicol' },
@@ -340,8 +344,7 @@ function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, N, multicolThre
 
   return selectByRules(
     rules,
-    { hasSubgroups, useF16Gemv, useF32Gemv, useMulticol },
-    'f32'
+    { hasSubgroups, useF16Gemv, useF32Gemv, useVec4, useMulticol }
   );
 }
 
@@ -358,7 +361,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   }
 
   if (pathVariant) {
-    const override = resolveMatmulOverride(pathVariant, M, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
+    const override = resolveMatmulOverride(pathVariant, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
     if (override) {
       return override;
     }
@@ -381,9 +384,10 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   const useF16Gemv = canGemv && aDtype === 'f16' && wantF16Output;
   const useF32Gemv = canGemv && aDtype === 'f32';
   const useGemv = useF16Gemv || useF32Gemv;
+  const useVec4 = (K % 4 === 0);
   const { multicolThreshold } = getKernelThresholds().matmul;
   const gemvVariant = useGemv
-    ? selectGemvVariant(useF16Gemv, useF32Gemv, capabilities.hasSubgroups, N, multicolThreshold)
+    ? selectGemvVariant(useF16Gemv, useF32Gemv, capabilities.hasSubgroups, useVec4, N, multicolThreshold)
     : null;
 
   const rules = [
@@ -394,8 +398,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
 
   return selectByRules(
     rules,
-    { canFused, useGemv },
-    { variant: matmulVariant, useQ4KFused: false, useGemv: false }
+    { canFused, useGemv }
   );
 }
 
