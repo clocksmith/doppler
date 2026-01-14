@@ -18,17 +18,15 @@ export interface NetworkEdgeGene {
 
 export interface NetworkGenome {
   topology: {
-    type: 'chain' | 'ring' | 'tree' | 'mesh' | 'dag';
+    type: 'chain' | 'tree' | 'mesh' | 'dag';
     depth?: number;
     branchingFactor?: number;
-    maxIterations?: number;  // For circular ring
   };
   nodes: NetworkNodeGene[];
   edges: NetworkEdgeGene[];
   combiner: {
-    type: 'weighted' | 'voting' | 'llm-merge';
+    type: 'weighted' | 'voting';
     weights?: number[];
-    combinerExpertId?: string;
   };
 }
 

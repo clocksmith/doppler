@@ -130,7 +130,7 @@ async function initGPU() {
   }
 
   // Set kernel path to use fused Q4K path for testing
-  setActiveKernelPath(resolveKernelPath('q4k-fused-f16a'), 'runtime');
+  setActiveKernelPath(resolveKernelPath('gemma2-q4k-fused-f16a'), 'runtime');
 
   initialized = true;
   return device;

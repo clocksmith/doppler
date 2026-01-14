@@ -316,14 +316,15 @@ export async function installLocalDopplerRoutes(page, opts) {
     }
 
     // Firebase-style rewrites (serve.ts default mode)
+    if (pathname.startsWith('/doppler/')) {
+      pathname = pathname.slice('/doppler'.length) || '/';
+    }
     if (pathname === '/') {
       pathname = '/landing.html';
     } else if (pathname === '/d') {
       pathname = '/doppler/index.html';
     } else if (pathname.startsWith('/d/')) {
       pathname = '/doppler' + pathname.slice(2);
-    } else if (pathname.startsWith('/models/')) {
-      pathname = '/doppler' + pathname;
     }
 
     // Prefer JS/JSON from dist/src when available (matches serve.ts behavior).

@@ -91,6 +91,84 @@ See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concret
 
 ---
 
+## Engine vs Driver Boundary
+
+DOPPLER is the **Engine** (mechanism); REPLOID is the **Driver** (policy). This separation is critical for maintainability and flexibility.
+
+### The Principle
+
+**DOPPLER never decides, it only executes.** All policy decisions (what to do, when to do it, what weights to use) come from REPLOID. DOPPLER provides primitives that accept parameters and execute them efficiently on the GPU.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           REPLOID (Driver)                               │
+│  - Decides which models to query                                         │
+│  - Chooses merge weights                                                 │
+│  - Builds prompts (Seed/Reflect/Refine)                                  │
+│  - Runs orchestration loops                                              │
+│  - Implements UCB1, evolution, arena                                     │
+│  - Calculates fitness scores                                             │
+└─────────────────────────────────────┬───────────────────────────────────┘
+                                      │ Parameters (weights, prompts, config)
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           DOPPLER (Engine)                               │
+│  - Executes inference: prompt → tokens                                   │
+│  - Manages GPU buffers and KV cache                                      │
+│  - Merges logits on GPU (weighted, max, geometric)                       │
+│  - Samples from distributions                                            │
+│  - Returns results to caller                                             │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Multi-Model Primitives
+
+When multiple models are loaded, these GPU operations **must** stay in DOPPLER (cannot round-trip to CPU):
+
+| Operation | DOPPLER Primitive | REPLOID Decides |
+|-----------|-------------------|-----------------|
+| Logit merging | `mergeLogits(buffers, weights)` | Which buffers, what weights |
+| KV cache sharing | `setSharedPrefix(cache)` | When to share, which prefix |
+| Sampling | `sampleFromMerged(logits, params)` | Temperature, top-k, top-p |
+| Expert execution | `executeExpert(id, prompt, opts)` | Which expert, what prompt |
+| Network execution | `executeGenome(genome, prompt)` | Genome structure |
+
+### What Belongs Where
+
+| Feature | DOPPLER (Engine) | REPLOID (Driver) |
+|---------|------------------|------------------|
+| Inference | ✅ GPU kernels, buffer pools | ❌ |
+| KV Cache | ✅ Memory management | ❌ |
+| Logit Merge | ✅ GPU tensor ops | Weights, strategy |
+| Prompt Templates | ❌ | ✅ "Review this code..." |
+| Loop Logic | ❌ | ✅ for (i=0; i<turns; i++) |
+| Expert Selection | ❌ | ✅ UCB1, bandit algorithms |
+| Evolution | ❌ | ✅ GA, mutation, crossover |
+| Fitness Scoring | ❌ | ✅ Quality heuristics |
+
+### Migration Note
+
+The `FunctionGemma` class in `src/inference/functiongemma.js` is **deprecated**. Use REPLOID's `FunctionGemmaOrchestrator` for orchestration. DOPPLER's `MultiModelNetwork` provides the primitives:
+
+```javascript
+// ❌ Old (orchestration in DOPPLER)
+import { FunctionGemma } from 'doppler/inference/functiongemma.js';
+const fg = new FunctionGemma(pipeline);
+await fg.runEvolution(task);  // Policy in engine!
+
+// ✅ New (orchestration in REPLOID)
+import { MultiModelNetwork } from 'doppler/inference/functiongemma.js';
+import FunctionGemmaOrchestrator from 'reploid/capabilities/intelligence/functiongemma-orchestrator.js';
+
+const network = new MultiModelNetwork(pipeline);
+const orchestrator = FunctionGemmaOrchestrator.factory(deps);
+await orchestrator.runEvolution(task);  // Policy in driver
+```
+
+See `docs/plans/FUNCTIONGEMMA_ARCHITECTURE_REFACTOR.md` for the full refactoring plan.
+
+---
+
 ## Module Structure
 
 | Directory | Purpose |

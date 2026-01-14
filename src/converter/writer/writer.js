@@ -54,7 +54,7 @@ export class RDRRWriter {
     version: 1,
     modelId: 'unknown',
     modelType: 'transformer',
-    architecture: 'llama',
+    architecture: null,
     quantization: 'Q4_K_M',
     quantizationInfo: undefined,
     hashAlgorithm: 'sha256',

@@ -18,9 +18,8 @@ export interface ExpertNode extends ExpertProfile {
 }
 
 export interface CombinerConfig {
-  type: 'weighted' | 'voting' | 'llm-merge';
+  type: 'weighted' | 'voting';
   weights?: number[];
-  combinerExpertId?: string;
 }
 
 export type TopologyRouter = (context: {
@@ -99,20 +98,6 @@ export declare class MultiModelNetwork {
    * @deprecated Use executeChain instead
    */
   executeRing(expertIds: string[], prompt: string, options?: GenerateOptions): Promise<string[]>;
-
-  /**
-   * Circular Ring: Loops through all experts multiple times until convergence.
-   * Each full loop checks if output has stabilized.
-   * @returns Final converged output and iteration count
-   */
-  executeCircularRing(
-    expertIds: string[],
-    prompt: string,
-    options?: GenerateOptions,
-    config?: { maxIterations?: number; convergenceThreshold?: number }
-  ): Promise<{ output: string; iterations: number; converged: boolean }>;
-
-  private computeOutputSimilarity(a: string, b: string): number;
 
   executeBatch(tasks: ExpertTask[], options?: GenerateOptions): Promise<Record<string, string>>;
 

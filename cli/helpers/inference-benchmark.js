@@ -69,7 +69,7 @@ function buildBenchmarkScript(opts, modelPath, customPromptText) {
 
   return `
     (async () => {
-      const bench = await import('./tests/benchmark/index.js');
+      const bench = await import('/doppler/tests/benchmark/index.js');
 
       // Enable benchmark mode to silence console.log during timing (unless debug mode)
       const debugMode = ${opts.debug ?? false};

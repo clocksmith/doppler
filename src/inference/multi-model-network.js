@@ -234,61 +234,6 @@ export class MultiModelNetwork {
   }
 
   /**
-   * Circular Ring: Loops through all experts multiple times until convergence.
-   * Each full loop checks if output has stabilized.
-   * @param {string[]} expertIds
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @param {{ maxIterations?: number; convergenceThreshold?: number }} [config={}]
-   * @returns {Promise<{ output: string; iterations: number; converged: boolean }>} Final converged output and iteration count
-   */
-  async executeCircularRing(expertIds, prompt, options = {}, config = {}) {
-    const { maxIterations = 3, convergenceThreshold = 0.95 } = config;
-    let current = prompt;
-    let prevOutput = '';
-    let iterations = 0;
-
-    for (let iter = 0; iter < maxIterations; iter++) {
-      iterations++;
-      for (const id of expertIds) {
-        const output = await this.executeExpert(id, current, {
-          ...options,
-          // Decay temperature across iterations for refinement
-          temperature: (options.temperature ?? 0.7) * Math.pow(0.9, iter),
-        });
-        current = output;
-      }
-
-      // Check convergence after each full loop
-      if (current === prevOutput) {
-        return { output: current, iterations, converged: true };
-      }
-      const similarity = this.computeOutputSimilarity(current, prevOutput);
-      if (similarity >= convergenceThreshold) {
-        return { output: current, iterations, converged: true };
-      }
-      prevOutput = current;
-    }
-
-    return { output: current, iterations, converged: false };
-  }
-
-  /**
-   * @param {string} a
-   * @param {string} b
-   * @returns {number}
-   * @private
-   */
-  computeOutputSimilarity(a, b) {
-    // Simple Jaccard similarity on tokens
-    const tokensA = new Set(a.toLowerCase().split(/\s+/));
-    const tokensB = new Set(b.toLowerCase().split(/\s+/));
-    const intersection = new Set([...tokensA].filter((x) => tokensB.has(x)));
-    const union = new Set([...tokensA, ...tokensB]);
-    return union.size > 0 ? intersection.size / union.size : 0;
-  }
-
-  /**
    * @param {ExpertTask[]} tasks
    * @param {GenerateOptions} [options={}]
    * @returns {Promise<Record<string, string>>}
@@ -374,24 +319,21 @@ export class MultiModelNetwork {
       return sorted[0][0];
     }
 
-    if (combiner.type === 'llm-merge') {
-      const expertId = combiner.combinerExpertId || this.listExperts()[0]?.id;
-      if (!expertId) return outputs[0];
-      const mergePrompt = outputs.map((output, idx) => `Variant ${idx + 1}:\n${output}`).join('\n\n');
-      return this.executeExpert(expertId, `Merge these variants into one cohesive solution:\n\n${mergePrompt}`);
+    if (combiner.type === 'weighted') {
+      const weights = combiner.weights || outputs.map(() => 1);
+      let bestIdx = 0;
+      let bestWeight = weights[0] ?? 0;
+      for (let i = 1; i < outputs.length; i++) {
+        const weight = weights[i] ?? 0;
+        if (weight > bestWeight) {
+          bestWeight = weight;
+          bestIdx = i;
+        }
+      }
+      return outputs[bestIdx];
     }
 
-    const weights = combiner.weights || outputs.map(() => 1);
-    let bestIdx = 0;
-    let bestWeight = weights[0] ?? 0;
-    for (let i = 1; i < outputs.length; i++) {
-      const weight = weights[i] ?? 0;
-      if (weight > bestWeight) {
-        bestWeight = weight;
-        bestIdx = i;
-      }
-    }
-    return outputs[bestIdx];
+    throw new Error(`Unknown combiner type: ${combiner.type}`);
   }
 
   /**
@@ -416,9 +358,7 @@ export class MultiModelNetwork {
       return expert;
     });
 
-    const combiner = genome.combiner
-      ? { ...genome.combiner, combinerExpertId: genome.combiner.combinerExpertId }
-      : undefined;
+    const combiner = genome.combiner ? { ...genome.combiner } : undefined;
 
     if (genome.topology.type === 'mesh') {
       const outputs = await Promise.all(
@@ -458,38 +398,8 @@ export class MultiModelNetwork {
       return combiner ? this.combineOutputs(outputs, combiner) : outputs[outputs.length - 1] ?? '';
     }
 
-    // Ring: true circular - loops through all experts until convergence
     if (genome.topology.type === 'ring') {
-      const ordered = genome.nodes.map((node) => node.id);
-      const maxIterations = genome.topology.maxIterations ?? 3;
-      /** @type {string[]} */
-      const outputs = [];
-      let current = prompt;
-      let prevOutput = '';
-
-      for (let iter = 0; iter < maxIterations; iter++) {
-        for (const id of ordered) {
-          const gene = nodeLookup.get(id);
-          const nodeOptions = { ...options };
-          if (typeof gene?.temperature === 'number') {
-            // Decay temperature across iterations
-            nodeOptions.temperature = gene.temperature * Math.pow(0.9, iter);
-          }
-          const output = await this.executeExpert(id, current, nodeOptions, {
-            adapterName: gene?.adapter,
-          });
-          outputs.push(output);
-          current = output;
-        }
-
-        // Check convergence after each full loop
-        if (current === prevOutput || this.computeOutputSimilarity(current, prevOutput) > 0.95) {
-          break;
-        }
-        prevOutput = current;
-      }
-
-      return combiner ? this.combineOutputs(outputs, combiner) : current;
+      throw new Error('Topology type "ring" is an orchestration policy and must run in Reploid.');
     }
 
     const outputs = await this.executeGraph(genome, prompt, options, router);

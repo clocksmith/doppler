@@ -430,6 +430,7 @@ function mergeInference(parent, child) {
     rope: mergePartial(parent.rope, child.rope),
     pipeline: child.pipeline ?? parent.pipeline,
     chatTemplate: mergePartial(parent.chatTemplate, child.chatTemplate),
+    kernelPaths: child.kernelPaths ?? parent.kernelPaths,
     kernelPath: child.kernelPath ?? parent.kernelPath,
   };
 }

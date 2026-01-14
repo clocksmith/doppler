@@ -20,10 +20,10 @@
 
 /**
  * @typedef {Object} NetworkGenome
- * @property {{ type: 'chain' | 'ring' | 'tree' | 'mesh' | 'dag'; depth?: number; branchingFactor?: number; maxIterations?: number }} topology
+ * @property {{ type: 'chain' | 'tree' | 'mesh' | 'dag'; depth?: number; branchingFactor?: number }} topology
  * @property {NetworkNodeGene[]} nodes
  * @property {NetworkEdgeGene[]} edges
- * @property {{ type: 'weighted' | 'voting' | 'llm-merge'; weights?: number[]; combinerExpertId?: string }} combiner
+ * @property {{ type: 'weighted' | 'voting'; weights?: number[] }} combiner
  */
 
 /**
@@ -45,8 +45,8 @@ export const mutateGenome = (genome, mutationRate = 0.1) => {
   /** @type {NetworkGenome} */
   const mutated = JSON.parse(JSON.stringify(genome));
   if (Math.random() < mutationRate) {
-    /** @type {Array<'chain' | 'ring' | 'tree' | 'mesh' | 'dag'>} */
-    const types = ['chain', 'ring', 'tree', 'mesh', 'dag'];
+    /** @type {Array<'chain' | 'tree' | 'mesh' | 'dag'>} */
+    const types = ['chain', 'tree', 'mesh', 'dag'];
     mutated.topology.type = types[Math.floor(Math.random() * types.length)];
   }
 

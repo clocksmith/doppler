@@ -19,7 +19,14 @@ export { ExpertRouter } from './inference/expert-router.js';
 export { MoERouter } from './inference/moe-router.js';
 export { MultiModelNetwork } from './inference/multi-model-network.js';
 export { MultiPipelinePool } from './inference/multi-pipeline-pool.js';
-export { evolveNetwork, mutateGenome, crossoverGenome } from './inference/network-evolution.js';
+
+// GPU primitives
+export {
+  LogitMergeKernel,
+  getLogitMergeKernel,
+  mergeLogits,
+  mergeMultipleLogits,
+} from './gpu/kernels/logit-merge.js';
 
 // LoRA Adapter Infrastructure (Tier 1 P0 - RSI Foundation)
 export {

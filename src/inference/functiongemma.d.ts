@@ -1,25 +1,41 @@
 /**
- * FunctionGemma orchestrator for multi-expert code generation.
+ * FunctionGemma Primitives
  *
- * Coordinates expert selection, execution, and evolution for task-specific
- * code generation using LoRA-adapted experts.
+ * This module provides GPU-level primitives for multi-model inference.
+ * Orchestration logic (UCB1 selection, evolution, arena, temporal rings)
+ * lives in Reploid's FunctionGemmaOrchestrator.
+ *
+ * Architecture:
+ * - Doppler (this module): Engine - executes inference primitives
+ * - Reploid (FunctionGemmaOrchestrator): Driver - makes policy decisions
  *
  * @module inference/functiongemma
+ * @see reploid/src/capabilities/intelligence/functiongemma-orchestrator.js
  */
 
 import type { GenerateOptions, InferencePipeline, KVCacheSnapshot } from './pipeline.js';
-import type { LoRAAdapter } from './pipeline/lora.js';
 import type { MultiModelLoader } from '../loader/multi-model-loader.js';
 import type { MultiPipelinePool } from './multi-pipeline-pool.js';
-import { MultiModelNetwork, type ExpertNode, type CombinerConfig } from './multi-model-network.js';
-import { type NetworkGenome, type EvolutionConfig } from './network-evolution.js';
-import type { AdapterManager, AdapterState } from '../adapters/adapter-manager.js';
-import type { AdapterRegistry } from '../adapters/adapter-registry.js';
+import type { NetworkGenome } from './network-evolution.js';
+
+// Re-export primitives from multi-model-network
+export {
+  MultiModelNetwork,
+  type ExpertNode,
+  type CombinerConfig,
+  type ExpertTask,
+  type TopologyRouter,
+} from './multi-model-network.js';
+
 
 // ============================================================================
-// Types
+// Primitive Types (for Reploid to use)
 // ============================================================================
 
+/**
+ * Expert statistics for bandit-style selection.
+ * Reploid maintains these; Doppler just executes.
+ */
 export interface ExpertStats {
   successes: number;
   attempts: number;
@@ -27,6 +43,10 @@ export interface ExpertStats {
   lastUsed: number;
 }
 
+/**
+ * Task type definition for routing.
+ * Reploid defines these; Doppler is agnostic.
+ */
 export interface TaskType {
   id: string;
   name: string;
@@ -34,6 +54,9 @@ export interface TaskType {
   tags: string[];
 }
 
+/**
+ * Task input for FunctionGemma execution.
+ */
 export interface FunctionGemmaTask {
   taskType: string;
   description: string;
@@ -43,6 +66,9 @@ export interface FunctionGemmaTask {
   convergenceThreshold?: number;
 }
 
+/**
+ * Execution result from a single expert.
+ */
 export interface ExecutionResult {
   output: string;
   expertId: string;
@@ -51,6 +77,9 @@ export interface ExecutionResult {
   tokensGenerated: number;
 }
 
+/**
+ * Arena competition result.
+ */
 export interface ArenaResult {
   winner: ExecutionResult;
   runnerUp: ExecutionResult | null;
@@ -58,6 +87,9 @@ export interface ArenaResult {
   turnsUsed: number;
 }
 
+/**
+ * Evolution result.
+ */
 export interface EvolutionResult {
   bestGenome: NetworkGenome;
   bestFitness: number;
@@ -69,36 +101,52 @@ export interface EvolutionResult {
   };
 }
 
+/**
+ * Configuration for FunctionGemma primitives.
+ */
 export interface FunctionGemmaConfig {
   defaultTemperature?: number;
   defaultMaxTokens?: number;
-  explorationWeight?: number;  // UCB1 exploration parameter
-  fitnessDecay?: number;       // Decay rate for old fitness scores
-  minAttemptsBeforeUCB?: number;
 }
 
 // ============================================================================
-// FunctionGemma Orchestrator
+// Deprecated Class
 // ============================================================================
 
+import { MultiModelNetwork, type ExpertNode } from './multi-model-network.js';
+
+/**
+ * @deprecated Use Reploid's FunctionGemmaOrchestrator instead.
+ *
+ * The FunctionGemma class has been moved to Reploid to enforce
+ * the Engine (Doppler) vs Driver (Reploid) separation.
+ *
+ * Migration:
+ * ```typescript
+ * // Old (Doppler)
+ * import { FunctionGemma } from 'doppler/inference/functiongemma.js';
+ * const fg = new FunctionGemma(pipeline, loader, pool);
+ * await fg.execute(task);
+ *
+ * // New (Reploid)
+ * import FunctionGemmaOrchestrator from 'reploid/capabilities/intelligence/functiongemma-orchestrator.js';
+ * const orchestrator = FunctionGemmaOrchestrator.factory(deps);
+ * await orchestrator.initBase({ modelId, manifest });
+ * await orchestrator.execute(task);
+ * ```
+ *
+ * Doppler primitives are still available via MultiModelNetwork:
+ * ```typescript
+ * import { MultiModelNetwork } from 'doppler/inference/functiongemma.js';
+ * const network = new MultiModelNetwork(pipeline, loader, pool);
+ * await network.executeExpert(expertId, prompt, options);
+ * await network.executeGenome(genome, prompt, options);
+ * ```
+ */
 export declare class FunctionGemma {
-  private network;
-  private pipeline;
-  private loader;
-  private pool;
-
-  // Adapter management
-  private adapterManager;
-  private adapterRegistry;
-  private expertAdapterMap;
-
-  // Expert statistics for UCB1 selection
-  private expertStats;
-  private taskTypes;
-  private config;
-
-  // Stored winning genomes per task type
-  private winnerGenomes;
+  readonly network: MultiModelNetwork;
+  readonly pipeline: InferencePipeline;
+  readonly config: FunctionGemmaConfig;
 
   constructor(
     pipeline: InferencePipeline,
@@ -107,204 +155,22 @@ export declare class FunctionGemma {
     config?: FunctionGemmaConfig
   );
 
-  // ============================================================================
-  // Expert Management
-  // ============================================================================
-
+  /** @deprecated Use MultiModelNetwork.registerExpert directly */
   registerExpert(expert: ExpertNode): void;
 
+  /** @deprecated Use MultiModelNetwork.getExpert directly */
   getExpert(id: string): ExpertNode | null;
 
+  /** @deprecated Use MultiModelNetwork.listExperts directly */
   listExperts(): ExpertNode[];
 
-  registerTaskType(taskType: TaskType): void;
+  /** @deprecated Use MultiModelNetwork.executeExpert directly */
+  executeExpert(expertId: string, prompt: string, options?: GenerateOptions): Promise<string>;
 
-  getTaskType(id: string): TaskType | null;
-
-  listTaskTypes(): TaskType[];
-
-  // ============================================================================
-  // Adapter Management
-  // ============================================================================
-
-  /**
-   * Set the adapter manager for runtime adapter switching.
-   */
-  setAdapterManager(manager: AdapterManager): void;
-
-  /**
-   * Set the adapter registry for adapter discovery.
-   */
-  setAdapterRegistry(registry: AdapterRegistry): void;
-
-  /**
-   * Link an expert to a specific LoRA adapter.
-   */
-  linkExpertToAdapter(expertId: string, adapterId: string): void;
-
-  /**
-   * Get the adapter linked to an expert.
-   */
-  getExpertAdapter(expertId: string): string | null;
-
-  /**
-   * Auto-discover and register experts from available adapters.
-   */
-  autoRegisterAdapterExperts(): Promise<ExpertNode[]>;
-
-  /**
-   * Activate the adapter for a specific expert before execution.
-   */
-  private activateExpertAdapter(expertId: string): Promise<LoRAAdapter | null>;
-
-  // ============================================================================
-  // UCB1 Expert Selection
-  // ============================================================================
-
-  /**
-   * Select expert using UCB1 algorithm for exploration/exploitation balance.
-   */
-  selectExpertUCB1(taskType: string, candidateIds?: string[]): string | null;
-
-  /**
-   * Update expert statistics after execution.
-   */
-  updateExpertStats(taskType: string, expertId: string, fitness: number, success: boolean): void;
-
-  getExpertStats(taskType: string, expertId: string): ExpertStats | null;
-
-  // ============================================================================
-  // Task Classification
-  // ============================================================================
-
-  /**
-   * Classify a task description to determine task type.
-   * Uses keyword matching and pattern detection.
-   */
-  classifyTask(description: string): string;
-
-  /**
-   * Get experts best suited for a task type based on their adapter tags.
-   */
-  getExpertsForTaskType(taskType: string): ExpertNode[];
-
-  /**
-   * Select the best expert for a task, combining classification and UCB1.
-   */
-  selectBestExpert(task: FunctionGemmaTask): string | null;
-
-  // ============================================================================
-  // Task Execution
-  // ============================================================================
-
-  /**
-   * Execute a task with automatic expert selection.
-   * Uses task classification + UCB1 for optimal expert routing.
-   */
-  execute(task: FunctionGemmaTask, options?: GenerateOptions): Promise<ExecutionResult>;
-
-  /**
-   * Execute a task with a specific expert.
-   */
-  executeWithExpert(
-    expertId: string,
-    task: FunctionGemmaTask,
-    options?: GenerateOptions
-  ): Promise<ExecutionResult>;
-
-  /**
-   * Execute with temporal self-ring for iterative refinement.
-   */
-  executeTemporalRing(
-    task: FunctionGemmaTask,
-    config?: {
-      turns?: number;
-      temperatureStart?: number;
-      temperatureDecay?: number;
-      shortcutInterval?: number;
-    }
-  ): Promise<{
-    result: ExecutionResult;
-    history: Array<{ turn: number; output: string; role: string }>;
-    converged: boolean;
-  }>;
-
-  // ============================================================================
-  // Arena Competition
-  // ============================================================================
-
-  /**
-   * Run arena competition between experts.
-   */
-  runArena(
-    task: FunctionGemmaTask,
-    expertIds?: string[],
-    options?: { rounds?: number; eliminations?: number }
-  ): Promise<ArenaResult>;
-
-  /**
-   * Run head-to-head comparison between two experts.
-   */
-  runHeadToHead(
-    expertA: string,
-    expertB: string,
-    task: FunctionGemmaTask,
-    runs?: number
-  ): Promise<{
-    winner: string;
-    scoreA: number;
-    scoreB: number;
-    results: Array<{ expertId: string; fitness: number }>;
-  }>;
-
-  // ============================================================================
-  // Network Evolution
-  // ============================================================================
-
-  /**
-   * Run network evolution to find optimal topology.
-   */
-  runEvolution(
-    task: FunctionGemmaTask,
-    config?: {
-      populationSize?: number;
-      generations?: number;
-      eliteCount?: number;
-      mutationRate?: number;
-    }
-  ): Promise<EvolutionResult>;
-
-  // ============================================================================
-  // Genome Storage
-  // ============================================================================
-
-  storeWinnerGenome(taskType: string, genome: NetworkGenome, fitness: number): void;
-
-  getBestGenome(taskType: string): NetworkGenome | null;
-
-  getAllWinnerGenomes(taskType: string): Array<{ genome: NetworkGenome; fitness: number; timestamp: number }>;
-
-  exportGenomes(): Record<string, Array<{ genome: NetworkGenome; fitness: number; timestamp: number }>>;
-
-  importGenomes(data: Record<string, Array<{ genome: NetworkGenome; fitness: number; timestamp: number }>>): void;
-
-  // ============================================================================
-  // Helpers
-  // ============================================================================
-
-  private buildPrompt(task: FunctionGemmaTask): string;
-
-  private calculateBaseFitness(output: string, task: FunctionGemmaTask): number;
-
-  private shuffleArray<T>(array: T[]): T[];
-
-  // ============================================================================
-  // Pipeline Access
-  // ============================================================================
+  /** @deprecated Use MultiModelNetwork.setSharedPrefix directly */
+  setSharedPrefix(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
 
   getNetwork(): MultiModelNetwork;
 
   getPipeline(): InferencePipeline;
-
-  setSharedPrefix(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
 }

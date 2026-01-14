@@ -52,7 +52,7 @@
     // ==========================================================================
 
     async function initGPU() {
-      const { initializeDevice } = await import('/doppler/dist/gpu/device.js');
+      const { initializeDevice } = await import('/doppler/src/inference/test-harness.js');
       const caps = await initializeDevice();
       console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
       return caps;
@@ -118,11 +118,11 @@
         fetchManifest,
         initializeDevice,
         createTestState,
-      } = await import('/doppler/dist/inference/test-harness.js');
-      const { setRuntimeConfig } = await import('/doppler/dist/config/index.js');
-      const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
-      const { getDevice } = await import('/doppler/dist/gpu/device.js');
-      const { SIGNALS } = await import('/doppler/dist/debug/index.js');
+      } = await import('/doppler/src/inference/test-harness.js');
+      const { setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      const { createPipeline } = await import('/doppler/src/inference/pipeline.js');
+      const { getDevice } = await import('/doppler/src/gpu/device.js');
+      const { SIGNALS } = await import('/doppler/src/debug/index.js');
 
       const paramModel = params.get('model') || 'gemma-3-1b-it-q4';
       const paramAutorun = params.get('autorun') === '1';

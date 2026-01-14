@@ -19,7 +19,14 @@ export { ExpertRouter } from './inference/expert-router.js';
 export { MoERouter } from './inference/moe-router.js';
 export { MultiModelNetwork } from './inference/multi-model-network.js';
 export { MultiPipelinePool } from './inference/multi-pipeline-pool.js';
-export { evolveNetwork, mutateGenome, crossoverGenome } from './inference/network-evolution.js';
+
+// GPU primitives
+export {
+  LogitMergeKernel,
+  getLogitMergeKernel,
+  mergeLogits,
+  mergeMultipleLogits,
+} from './gpu/kernels/logit-merge.js';
 
 // Types
 export type { RDRRManifest, ShardInfo } from './storage/rdrr-format.js';
@@ -36,7 +43,6 @@ export type {
   RouterWeights,
 } from './inference/pipeline.js';
 export type { LoRAAdapter, LoRAModuleName } from './inference/pipeline/lora.js';
-export type { NetworkGenome, EvolutionConfig } from './inference/network-evolution.js';
 export type { ExpertNode, ExpertTask } from './inference/multi-model-network.js';
 
 // LoRA Adapter Infrastructure

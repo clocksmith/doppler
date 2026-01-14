@@ -1,0 +1,417 @@
+/**
+ * Logit Merge Kernel
+ *
+ * GPU primitive for merging logits from multiple models in multi-model inference.
+ * This is a mechanism (how to merge), not policy (when/what to merge).
+ * Reploid decides the weights and strategy; Doppler executes the merge.
+ *
+ * @module gpu/kernels/logit-merge
+ */
+
+import { getDevice } from '../device.js';
+import { log } from '../../debug/index.js';
+
+/**
+ * @typedef {import('../device.js').KernelCapabilities} KernelCapabilities
+ */
+
+/**
+ * Merge strategy types.
+ * @typedef {'weighted' | 'max' | 'geometric'} MergeStrategy
+ */
+
+/**
+ * Configuration for logit merging.
+ * @typedef {Object} LogitMergeConfig
+ * @property {MergeStrategy} [strategy='weighted'] - Merge strategy
+ * @property {number[]} [weights] - Weights for weighted merge (must sum to 1)
+ * @property {number} [temperature=1.0] - Temperature to apply after merge
+ */
+
+// WGSL shader for weighted logit merging
+const WEIGHTED_MERGE_SHADER = /* wgsl */ `
+@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
+@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
+@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
+@group(0) @binding(3) var<uniform> params: MergeParams;
+
+struct MergeParams {
+  vocab_size: u32,
+  weight_a: f32,
+  weight_b: f32,
+  temperature: f32,
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let idx = gid.x;
+  if (idx >= params.vocab_size) {
+    return;
+  }
+
+  // Weighted average of logits
+  let a = logits_a[idx];
+  let b = logits_b[idx];
+  var result = params.weight_a * a + params.weight_b * b;
+
+  // Apply temperature scaling
+  if (params.temperature != 1.0) {
+    result = result / params.temperature;
+  }
+
+  merged[idx] = result;
+}
+`;
+
+// WGSL shader for max logit merging
+const MAX_MERGE_SHADER = /* wgsl */ `
+@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
+@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
+@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
+@group(0) @binding(3) var<uniform> params: MergeParams;
+
+struct MergeParams {
+  vocab_size: u32,
+  weight_a: f32,
+  weight_b: f32,
+  temperature: f32,
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let idx = gid.x;
+  if (idx >= params.vocab_size) {
+    return;
+  }
+
+  // Max of logits
+  var result = max(logits_a[idx], logits_b[idx]);
+
+  // Apply temperature scaling
+  if (params.temperature != 1.0) {
+    result = result / params.temperature;
+  }
+
+  merged[idx] = result;
+}
+`;
+
+// WGSL shader for geometric mean merging (in log space)
+const GEOMETRIC_MERGE_SHADER = /* wgsl */ `
+@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
+@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
+@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
+@group(0) @binding(3) var<uniform> params: MergeParams;
+
+struct MergeParams {
+  vocab_size: u32,
+  weight_a: f32,
+  weight_b: f32,
+  temperature: f32,
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let idx = gid.x;
+  if (idx >= params.vocab_size) {
+    return;
+  }
+
+  // Geometric mean in log space: weight_a * log(a) + weight_b * log(b)
+  // Since logits are already in log space, this is just weighted sum
+  // but with weights that must sum to 1 for proper geometric mean
+  let a = logits_a[idx];
+  let b = logits_b[idx];
+  var result = params.weight_a * a + params.weight_b * b;
+
+  // Apply temperature scaling
+  if (params.temperature != 1.0) {
+    result = result / params.temperature;
+  }
+
+  merged[idx] = result;
+}
+`;
+
+/**
+ * Logit merge kernel executor.
+ */
+export class LogitMergeKernel {
+  /** @type {GPUDevice} */
+  #device;
+
+  /** @type {Map<MergeStrategy, GPUComputePipeline>} */
+  #pipelines = new Map();
+
+  /** @type {GPUBindGroupLayout} */
+  #bindGroupLayout;
+
+  /** @type {boolean} */
+  #initialized = false;
+
+  constructor() {
+    this.#device = getDevice();
+  }
+
+  /**
+   * Initialize the kernel pipelines.
+   * @returns {Promise<void>}
+   */
+  async init() {
+    if (this.#initialized) return;
+
+    this.#device = getDevice();
+
+    // Create bind group layout
+    this.#bindGroupLayout = this.#device.createBindGroupLayout({
+      label: 'logit-merge-layout',
+      entries: [
+        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+      ],
+    });
+
+    const pipelineLayout = this.#device.createPipelineLayout({
+      label: 'logit-merge-pipeline-layout',
+      bindGroupLayouts: [this.#bindGroupLayout],
+    });
+
+    // Create pipelines for each strategy
+    const strategies = [
+      { name: 'weighted', shader: WEIGHTED_MERGE_SHADER },
+      { name: 'max', shader: MAX_MERGE_SHADER },
+      { name: 'geometric', shader: GEOMETRIC_MERGE_SHADER },
+    ];
+
+    for (const { name, shader } of strategies) {
+      const module = this.#device.createShaderModule({
+        label: `logit-merge-${name}`,
+        code: shader,
+      });
+
+      const pipeline = await this.#device.createComputePipelineAsync({
+        label: `logit-merge-${name}-pipeline`,
+        layout: pipelineLayout,
+        compute: {
+          module,
+          entryPoint: 'main',
+        },
+      });
+
+      this.#pipelines.set(/** @type {MergeStrategy} */ (name), pipeline);
+    }
+
+    this.#initialized = true;
+    log.info('LogitMerge', 'Kernel initialized');
+  }
+
+  /**
+   * Merge two logit buffers on the GPU.
+   *
+   * @param {GPUBuffer} logitsA - First logit buffer (vocabSize f32s)
+   * @param {GPUBuffer} logitsB - Second logit buffer (vocabSize f32s)
+   * @param {number} vocabSize - Vocabulary size
+   * @param {LogitMergeConfig} [config={}] - Merge configuration
+   * @returns {Promise<GPUBuffer>} Merged logit buffer
+   */
+  async merge(logitsA, logitsB, vocabSize, config = {}) {
+    if (!this.#initialized) {
+      await this.init();
+    }
+
+    const strategy = config.strategy || 'weighted';
+    const weights = normalizeWeights(config.weights || [0.5, 0.5], 2);
+    const temperature = config.temperature || 1.0;
+
+    const pipeline = this.#pipelines.get(strategy);
+    if (!pipeline) {
+      throw new Error(`Unknown merge strategy: ${strategy}`);
+    }
+
+    // Create output buffer
+    const mergedBuffer = this.#device.createBuffer({
+      label: 'logit-merge-output',
+      size: vocabSize * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    // Create params uniform buffer
+    const paramsData = new Float32Array([
+      vocabSize, // vocab_size (will be reinterpreted as u32)
+      weights[0],
+      weights[1],
+      temperature,
+    ]);
+    // Fix: vocab_size needs to be u32
+    const paramsView = new DataView(paramsData.buffer);
+    paramsView.setUint32(0, vocabSize, true);
+
+    const paramsBuffer = this.#device.createBuffer({
+      label: 'logit-merge-params',
+      size: 16,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this.#device.queue.writeBuffer(paramsBuffer, 0, paramsData);
+
+    // Create bind group
+    const bindGroup = this.#device.createBindGroup({
+      label: 'logit-merge-bindgroup',
+      layout: this.#bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: logitsA } },
+        { binding: 1, resource: { buffer: logitsB } },
+        { binding: 2, resource: { buffer: mergedBuffer } },
+        { binding: 3, resource: { buffer: paramsBuffer } },
+      ],
+    });
+
+    // Dispatch
+    const encoder = this.#device.createCommandEncoder({ label: 'logit-merge' });
+    const pass = encoder.beginComputePass({ label: 'logit-merge-pass' });
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(Math.ceil(vocabSize / 256));
+    pass.end();
+
+    this.#device.queue.submit([encoder.finish()]);
+
+    // Cleanup temporary buffer
+    paramsBuffer.destroy();
+
+    return mergedBuffer;
+  }
+
+  /**
+   * Merge multiple logit buffers on the GPU.
+   * Applies pairwise merging for more than 2 buffers.
+   *
+   * @param {GPUBuffer[]} logitBuffers - Array of logit buffers
+   * @param {number} vocabSize - Vocabulary size
+   * @param {LogitMergeConfig & { weights?: number[] }} [config={}] - Merge configuration
+   * @returns {Promise<GPUBuffer>} Merged logit buffer
+   */
+  async mergeMultiple(logitBuffers, vocabSize, config = {}) {
+    if (logitBuffers.length === 0) {
+      throw new Error('No logit buffers to merge');
+    }
+
+    if (logitBuffers.length === 1) {
+      return logitBuffers[0];
+    }
+
+    if (logitBuffers.length === 2) {
+      return this.merge(logitBuffers[0], logitBuffers[1], vocabSize, config);
+    }
+
+    // For more than 2 buffers, do pairwise reduction
+    const weights = normalizeWeights(
+      config.weights || logitBuffers.map(() => 1 / logitBuffers.length),
+      logitBuffers.length
+    );
+
+    // Normalize weights for pairwise reduction
+    let totalWeight = 0;
+    let current = logitBuffers[0];
+    let currentWeight = weights[0];
+
+    for (let i = 1; i < logitBuffers.length; i++) {
+      totalWeight = currentWeight + weights[i];
+      const normalizedWeightA = currentWeight / totalWeight;
+      const normalizedWeightB = weights[i] / totalWeight;
+
+      const merged = await this.merge(current, logitBuffers[i], vocabSize, {
+        ...config,
+        weights: [normalizedWeightA, normalizedWeightB],
+        temperature: i === logitBuffers.length - 1 ? config.temperature : 1.0,
+      });
+
+      // Destroy intermediate buffer if not the original
+      if (i > 1) {
+        current.destroy();
+      }
+
+      current = merged;
+      currentWeight = totalWeight;
+    }
+
+    return current;
+  }
+}
+
+function normalizeWeights(weights, expectedCount) {
+  if (!Array.isArray(weights) || weights.length !== expectedCount) {
+    throw new Error(`LogitMerge weights must have length ${expectedCount}`);
+  }
+
+  let sum = 0;
+  for (const weight of weights) {
+    if (!Number.isFinite(weight)) {
+      throw new Error('LogitMerge weights must be finite numbers');
+    }
+    if (weight < 0) {
+      throw new Error('LogitMerge weights must be non-negative');
+    }
+    sum += weight;
+  }
+
+  if (sum <= 0) {
+    throw new Error('LogitMerge weights must sum to a positive value');
+  }
+
+  return weights.map((weight) => weight / sum);
+}
+
+// Singleton instance
+let _instance = null;
+
+/**
+ * Get the logit merge kernel instance.
+ * @returns {LogitMergeKernel}
+ */
+export function getLogitMergeKernel() {
+  if (!_instance) {
+    _instance = new LogitMergeKernel();
+  }
+  return _instance;
+}
+
+/**
+ * Merge two logit buffers using weighted averaging.
+ * Convenience function that uses the singleton kernel.
+ *
+ * @param {GPUBuffer} logitsA - First logit buffer
+ * @param {GPUBuffer} logitsB - Second logit buffer
+ * @param {number} vocabSize - Vocabulary size
+ * @param {number[]} [weights=[0.5, 0.5]] - Merge weights
+ * @param {number} [temperature=1.0] - Temperature scaling
+ * @returns {Promise<GPUBuffer>} Merged logit buffer
+ */
+export async function mergeLogits(logitsA, logitsB, vocabSize, weights = [0.5, 0.5], temperature = 1.0) {
+  const kernel = getLogitMergeKernel();
+  return kernel.merge(logitsA, logitsB, vocabSize, {
+    strategy: 'weighted',
+    weights,
+    temperature,
+  });
+}
+
+/**
+ * Merge multiple logit buffers.
+ * Convenience function that uses the singleton kernel.
+ *
+ * @param {GPUBuffer[]} logitBuffers - Array of logit buffers
+ * @param {number} vocabSize - Vocabulary size
+ * @param {number[]} [weights] - Merge weights (defaults to equal)
+ * @param {number} [temperature=1.0] - Temperature scaling
+ * @returns {Promise<GPUBuffer>} Merged logit buffer
+ */
+export async function mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature = 1.0) {
+  const kernel = getLogitMergeKernel();
+  return kernel.mergeMultiple(logitBuffers, vocabSize, {
+    strategy: 'weighted',
+    weights,
+    temperature,
+  });
+}
