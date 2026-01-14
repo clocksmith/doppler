@@ -236,28 +236,28 @@ export interface TokenizerInterface {
  * Options for text generation.
  */
 export interface GenerateOptions {
-  /** Maximum tokens to generate (default: 512) */
+  /** @category generation Maximum tokens to generate (default: 512) */
   maxTokens?: number;
 
-  /** Sampling temperature - 0 for greedy (default: 0.7) */
+  /** @category generation Sampling temperature - 0 for greedy (default: 0.7) */
   temperature?: number;
 
-  /** Top-p (nucleus) sampling threshold (default: 0.9) */
+  /** @category generation Top-p (nucleus) sampling threshold (default: 0.9) */
   topP?: number;
 
-  /** Top-k sampling - 0 to disable (default: 40) */
+  /** @category generation Top-k sampling - 0 to disable (default: 40) */
   topK?: number;
 
-  /** Repetition penalty multiplier (default: 1.1) */
+  /** @category generation Repetition penalty multiplier (default: 1.1) */
   repetitionPenalty?: number;
 
-  /** Stop sequences to end generation */
+  /** @category generation Stop sequences to end generation */
   stopSequences?: string[];
 
-  /** Enable speculative decoding */
+  /** @category generation Enable speculative decoding */
   useSpeculative?: boolean;
 
-  /** Apply chat template (auto-detected for Gemma) */
+  /** @category hybrid Apply chat template (auto-detected for Gemma) */
   useChatTemplate?: boolean;
 
   /** Callback for each generated token */
@@ -287,7 +287,10 @@ export interface GenerateOptions {
   /** Explicitly disable multi-token GPU decode path */
   disableMultiTokenDecode?: boolean;
 
-  /** Number of tokens to generate per GPU submission batch */
+  /**
+   * @category session Number of tokens to generate per GPU submission batch.
+   * @throws DopplerConfigError if set at call-time
+   */
   batchSize?: number;
 
   /** Callback invoked after each batch completes */

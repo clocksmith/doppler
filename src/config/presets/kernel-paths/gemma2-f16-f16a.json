@@ -2,6 +2,7 @@
   "id": "gemma2-f16-f16a",
   "name": "Gemma 2 F16 (F16 activations)",
   "description": "F16 weights with F16 activations (no dequantization).",
+  "activationDtype": "f16",
 
   "decode": {
     "steps": [

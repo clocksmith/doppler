@@ -34,6 +34,24 @@ export interface AttentionOptions extends OutputBufferOptions {
   indirectOffset?: number;
 }
 
+export type AttentionTier = 'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming';
+
+/** Context for attention tier selection rules. */
+export interface AttentionTierContext {
+  canSubgroup: boolean;
+  canLarge: boolean;
+  canSmall: boolean;
+  isDecode: boolean;
+}
+
+/** Context for attention variant selection rules. */
+export interface AttentionVariantContext {
+  tier: AttentionTier;
+  useF16KV: boolean;
+  canUseChunked: boolean;
+  canUseDecodeSubgroup: boolean;
+}
+
 /**
  * Run attention operation
  */

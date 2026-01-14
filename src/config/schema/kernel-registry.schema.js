@@ -40,5 +40,7 @@ export function resolveKernelConfig(
     uniforms: variantSchema.uniformsOverride ?? opSchema.baseUniforms,
     wgslOverrides: variantSchema.wgslOverrides ?? {},
     sharedMemory: variantSchema.sharedMemory ?? 0,
+    outputDtype: variantSchema.outputDtype ?? null,
+    variantMetadata: variantSchema.variantMetadata ?? null,
   };
 }

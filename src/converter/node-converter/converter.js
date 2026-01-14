@@ -30,7 +30,7 @@ import {
 import { parseGGUFFile } from '../../formats/gguf/index.js';
 import { writeRDRR } from '../writer.js';
 import { quantizeToQ4KM, float32ToFloat16 } from '../quantizer.js';
-import { shouldQuantize as shouldQuantizeCore } from '../core.js';
+import { extractArchitecture, shouldQuantize as shouldQuantizeCore } from '../core.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from '../manifest-inference.js';
 import { resolvePreset, createConverterConfig } from '../../config/index.js';
 
@@ -94,6 +94,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const arch = configRec.architectures?.[0] ||
     configRec.model_type ||
     'llama';
+  const architecture = extractArchitecture(configRec);
   const { presetId, modelType } = detectModelTypeFromPreset(arch, config);
 
   verboseLog(`Architecture: ${arch}`);
@@ -180,7 +181,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
 
   const modelInfo = {
     modelName: resolvedModelId,
-    architecture: arch,
+    architecture,
     quantization: manifestQuantization,
     quantizationInfo,
     config,
@@ -329,6 +330,8 @@ export async function convertGGUF(inputPath, outputPath, opts) {
 
   const { presetId, modelType } = detectModelTypeFromPreset(arch, config);
 
+  const architecture = extractArchitecture(config, ggufConfig);
+
   verboseLog(`Architecture: ${arch}`);
   verboseLog(`Detected preset: ${presetId}`);
   verboseLog(`Model type: ${modelType}`);
@@ -355,7 +358,7 @@ export async function convertGGUF(inputPath, outputPath, opts) {
 
   const modelInfo = {
     modelName: resolvedModelId,
-    architecture: arch,
+    architecture,
     quantization: manifestQuantization,
     quantizationInfo,
     config,

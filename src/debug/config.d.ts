@@ -148,12 +148,22 @@ export declare function getDecodeStep(): number;
 export declare function shouldBreakOnAnomaly(): boolean;
 
 /**
- * Enable benchmark mode - silences all console.log/debug/info calls.
+ * Enable silent mode - silences all console.log/debug/info calls.
+ */
+export declare function setSilentMode(enabled: boolean): void;
+
+/**
+ * Check if silent mode is active.
+ */
+export declare function isSilentMode(): boolean;
+
+/**
+ * Deprecated: Use setSilentMode instead.
  */
 export declare function setBenchmarkMode(enabled: boolean): void;
 
 /**
- * Check if benchmark mode is active.
+ * Deprecated: Use isSilentMode instead.
  */
 export declare function isBenchmarkMode(): boolean;
 

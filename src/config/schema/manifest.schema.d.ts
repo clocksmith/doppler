@@ -357,7 +357,7 @@ export interface ManifestSchema {
   totalSize: number;
 
   // Architecture (required, but can be string for legacy)
-  architecture: ArchitectureSchema | string;
+  architecture: ArchitectureSchema;
 
   // Inference configuration (required, populated by converter)
   inference: ManifestInferenceSchema;

@@ -1,28 +1,10 @@
-/**
- * Model configuration parsing and normalization.
- * Handles HuggingFace, GGUF, and llama.cpp config formats.
- *
- * Architecture: Manifest-First Config Resolution
- * - manifest.inference is the source of truth (populated by converter)
- * - mergeConfig() merges manifest with runtime overrides
- * - toParsedConfigFromMerged() adapts MergedConfig to ParsedModelConfig
- *
- * See: config/merge.ts, config/schema/manifest.schema.ts
- */
-
 import { log } from '../../debug/index.js';
-import { DEFAULT_MAX_POSITION_EMBEDDINGS, DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
 import { mergeConfig } from '../../config/merge.js';
 
 // =============================================================================
 // Model Detection Functions
 // =============================================================================
 
-/**
- * @param {import('./config.js').RawConfig} config
- * @param {import('./config.js').Manifest} manifest
- * @returns {number[]}
- */
 export function getStopTokenIds(config, manifest) {
   // Priority: manifest.eos_token_id > config.eos_token_id > config.text_config.eos_token_id
   // Model-specific fallbacks are NOT allowed - converter must set eos_token_id
@@ -33,138 +15,17 @@ export function getStopTokenIds(config, manifest) {
 }
 
 // =============================================================================
-// Tensor Inference Functions
-// =============================================================================
-
-/**
- * @param {import('./config.js').Manifest} manifest
- * @param {number} hiddenSize
- * @param {number | null} [knownNumHeads]
- * @returns {import('./config.js').AttentionParams | null}
- */
-export function inferAttentionParams(manifest, hiddenSize, knownNumHeads = null) {
-  const tensors = manifest?.tensors ?? {};
-
-  /** @type {number[] | undefined} */
-  let qShape;
-  /** @type {number[] | undefined} */
-  let kShape;
-
-  for (const [name, tensor] of Object.entries(tensors)) {
-    const lower = name.toLowerCase();
-    if (lower.includes('q_proj') || lower.includes('self_attn.q') || lower.includes('attn_q.weight')) {
-      qShape = tensor?.shape;
-    }
-    if (lower.includes('k_proj') || lower.includes('self_attn.k') || lower.includes('attn_k.weight')) {
-      kShape = tensor?.shape;
-    }
-    if (qShape && kShape) break;
-  }
-
-  if (!qShape || !kShape) return null;
-
-  const qOutDim = qShape[0] === hiddenSize ? qShape[1] : qShape[0];
-  const kOutDim = kShape[0] === hiddenSize ? kShape[1] : kShape[0];
-
-  if (knownNumHeads && qOutDim % knownNumHeads === 0) {
-    const headDim = qOutDim / knownNumHeads;
-    if (kOutDim % headDim === 0) {
-      const numKVHeads = kOutDim / headDim;
-      if (numKVHeads > 0 && knownNumHeads >= numKVHeads) {
-        return { numHeads: knownNumHeads, numKVHeads, headDim };
-      }
-    }
-  }
-
-  // Try q_norm weight for headDim
-  for (const [name, tensor] of Object.entries(tensors)) {
-    if ((name.includes('q_norm') || name.includes('attn_q_norm')) && tensor?.shape?.length === 1) {
-      const normHeadDim = tensor.shape[0];
-      if (qOutDim % normHeadDim === 0 && kOutDim % normHeadDim === 0) {
-        const numHeads = qOutDim / normHeadDim;
-        const numKVHeads = kOutDim / normHeadDim;
-        if (numHeads >= numKVHeads && numHeads > 0 && numKVHeads > 0) {
-          return { numHeads, numKVHeads, headDim: normHeadDim };
-        }
-      }
-    }
-  }
-
-  // Try common headDim values
-  for (const testHeadDim of [256, 128, 64, 96, 80, 160]) {
-    if (qOutDim % testHeadDim === 0 && kOutDim % testHeadDim === 0) {
-      const numHeads = qOutDim / testHeadDim;
-      const numKVHeads = kOutDim / testHeadDim;
-      if (numHeads >= numKVHeads && numHeads > 0 && numKVHeads > 0) {
-        return { numHeads, numKVHeads, headDim: testHeadDim };
-      }
-    }
-  }
-
-  // Fallback
-  const fallbackHeadDim = Math.floor(hiddenSize / 32);
-  if (qOutDim % fallbackHeadDim === 0 && kOutDim % fallbackHeadDim === 0) {
-    return {
-      numHeads: qOutDim / fallbackHeadDim,
-      numKVHeads: kOutDim / fallbackHeadDim,
-      headDim: fallbackHeadDim,
-    };
-  }
-
-  return null;
-}
-
-/**
- * @param {import('./config.js').Manifest} manifest
- * @returns {number | null}
- */
-export function inferVocabSize(manifest) {
-  const tensors = manifest?.tensors ?? {};
-
-  for (const [name, tensor] of Object.entries(tensors)) {
-    const lower = name.toLowerCase();
-    const isEmbedding =
-      lower.includes('embed_tokens.weight') ||
-      lower.endsWith('wte.weight') ||
-      lower.endsWith('tok_embeddings.weight') ||
-      lower.endsWith('word_embeddings.weight') ||
-      lower.endsWith('token_embd.weight');
-    const isLmHead = lower.includes('lm_head.weight') || lower.endsWith('output.weight');
-
-    if (!isEmbedding && !isLmHead) continue;
-
-    const shape = tensor?.shape;
-    if (!Array.isArray(shape) || shape.length === 0) continue;
-
-    const vocabSize = Math.max(...shape);
-    if (vocabSize > 1000) return vocabSize;
-  }
-
-  return null;
-}
-
-// =============================================================================
 // Manifest-First Config Resolution (NEW)
 // =============================================================================
 
-/**
- * Check if manifest has inference config for manifest-first parsing.
- * @param {import('./config.js').Manifest} manifest
- * @returns {manifest is import('./config.js').Manifest & { inference: import('../../config/schema/index.js').ManifestInferenceSchema }}
- */
+
 export function hasManifestInference(manifest) {
   return 'inference' in manifest && manifest.inference != null;
 }
 
-/**
- * Validate required inference fields are present in merged config.
- * Throws if any required field is missing/undefined.
- *
- * @param {import('../../config/merge.js').MergedConfig['inference']} inf
- * @param {string} modelId
- */
+
 function validateRequiredInferenceFields(inf, modelId) {
-  /** @type {string[]} */
+  
   const errors = [];
 
   // Attention fields - non-nullable required
@@ -246,18 +107,9 @@ function validateRequiredInferenceFields(inf, modelId) {
   }
 }
 
-/**
- * Convert MergedConfig to ParsedModelConfig.
- *
- * This is the manifest-first path that uses manifest.inference as the source
- * of truth instead of detecting model family from architecture strings.
- *
- * @param {import('../../config/merge.js').MergedConfig} merged
- * @param {import('./config.js').ManifestWithInference} manifest
- * @returns {import('./config.js').ParsedModelConfig}
- */
+
 export function toParsedConfigFromMerged(merged, manifest) {
-  const rawConfig = /** @type {import('./config.js').RawConfig} */ (manifest.config ?? {});
+  const rawConfig = manifest.config ?? {};
   const config = rawConfig.text_config ?? rawConfig;
   const inf = merged.inference;
 
@@ -265,29 +117,18 @@ export function toParsedConfigFromMerged(merged, manifest) {
   validateRequiredInferenceFields(inf, merged.modelId);
 
   // Get architecture dimensions
-  /** @type {import('../../config/schema/index.js').ArchitectureSchema} */
-  let arch;
-  if (typeof manifest.architecture === 'string') {
-    // Fallback: infer from config
-    arch = {
-      numLayers: config.num_hidden_layers ?? config.n_layer ?? config.blockCount ?? 0,
-      hiddenSize: config.hidden_size ?? config.n_embd ?? config.embeddingLength ?? 0,
-      intermediateSize: config.intermediate_size ?? config.n_inner ?? config.feedForwardLength ?? 0,
-      numAttentionHeads: config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount ?? 0,
-      numKeyValueHeads: config.num_key_value_heads ?? config.attentionHeadCountKV ?? config.num_attention_heads ?? config.n_head ?? 0,
-      headDim: config.head_dim ?? Math.floor((config.hidden_size ?? 0) / (config.num_attention_heads ?? 1)),
-      vocabSize: config.vocab_size ?? 0,
-      maxSeqLen: config.max_position_embeddings ?? config.contextLength ?? DEFAULT_MAX_POSITION_EMBEDDINGS,
-      // Use manifest inference as source of truth for RoPE (not raw config)
-      ropeTheta: inf.rope.ropeTheta,
-      rmsNormEps: config.rms_norm_eps ?? DEFAULT_RMS_NORM_EPS,
-    };
-  } else {
-    arch = /** @type {import('../../config/schema/index.js').ArchitectureSchema} */ (manifest.architecture);
+  const arch = (manifest.architecture && typeof manifest.architecture === 'object')
+    ? manifest.architecture
+    : null;
+  if (!arch) {
+    throw new Error(
+      `Manifest "${merged.modelId}" is missing architecture config. ` +
+      `Re-convert the model using the latest converter to add manifest.architecture.`
+    );
   }
 
   // Compute layer types from layerPattern
-  /** @type {string[] | null} */
+  
   let layerTypes = null;
   if (inf.layerPattern) {
     const numLayers = arch.numLayers;
@@ -334,7 +175,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
 
   // Get stop token IDs (cast to Manifest for compatibility)
-  const stopTokenIds = getStopTokenIds(config, /** @type {import('./config.js').Manifest} */ (manifest));
+  const stopTokenIds = getStopTokenIds(config, manifest);
 
   // Get MoE config
   const useMoE = (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1;
@@ -343,11 +184,11 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
-  /** @type {string | null} */
+  
   const ropeScalingType = inf.rope.ropeScalingType;
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
-  /** @type {import('./config.js').RopeScalingConfig | null} */
+  
   const ropeScaling = ropeScalingType ? {
     type: ropeScalingType,
     factor: ropeScale,
@@ -360,7 +201,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   // Activation type
   const activation = inf.ffn.activation;
-  /** @type {import('./config.js').ActivationType} */
+  
   const hiddenActivation =
     activation === 'silu' || activation === 'swiglu' ? 'silu' :
     activation === 'gelu' || activation === 'geglu' ? 'gelu' : 'silu';
@@ -386,7 +227,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ropeScale,
     ropeScalingType,
     ropeScaling,
-    quantization: /** @type {string} */ (manifest.quantization) ?? 'f16',
+    quantization: manifest.quantization ?? 'f16',
     quantMethod: config.quantization_config?.quant_method ?? null,
     rmsNormEps: arch.rmsNormEps ?? 1e-5,
     rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
@@ -416,26 +257,14 @@ export function toParsedConfigFromMerged(merged, manifest) {
   };
 }
 
-/**
- * Parse model config from manifest using manifest-first resolution.
- *
- * This is the new entry point that uses manifest.inference as the source
- * of truth. It:
- * 1. Validates manifest has inference config
- * 2. Calls mergeConfig() to merge with runtime overrides
- * 3. Converts to ParsedModelConfig
- *
- * @param {import('./config.js').ManifestWithInference} manifest
- * @param {import('../../config/merge.js').RuntimeInferenceOverrides} [runtimeOverrides]
- * @returns {import('./config.js').ParsedModelConfig}
- */
+
 export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   // Merge manifest inference with runtime overrides
   const merged = mergeConfig(
     {
       modelId: manifest.modelId ?? manifest.model_id ?? 'unknown',
       inference: manifest.inference,
-      architecture: /** @type {import('../../config/schema/index.js').ArchitectureSchema | string | undefined} */ (manifest.architecture),
+      architecture: manifest.architecture,
     },
     runtimeOverrides
   );
@@ -459,17 +288,7 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
 // Main Entry Point
 // =============================================================================
 
-/**
- * Parse model configuration from manifest.
- *
- * Requires manifest.inference to be present (manifest-first architecture).
- * Legacy manifests without inference config must be re-converted.
- *
- * @param {import('./config.js').Manifest} manifest
- * @param {import('../../config/merge.js').RuntimeInferenceOverrides} [runtimeOverrides]
- * @returns {import('./config.js').ParsedModelConfig}
- * @throws Error if manifest.inference is missing
- */
+
 export function parseModelConfig(manifest, runtimeOverrides) {
   // Manifest-first architecture: inference config is required
   if (!hasManifestInference(manifest)) {

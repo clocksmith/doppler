@@ -8,6 +8,7 @@ A kernel path defines:
 - **Which kernels** run for each operation
 - **In what order** they execute
 - **With what configuration** (entry points, override constants)
+- **Activation dtype** for the path (`activationDtype`, required)
 
 This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags with fully declarative paths.
 
@@ -18,6 +19,7 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
   "id": "gemma2-q4k-fused-f16a",
   "name": "Gemma 2 Q4K Fused F16A",
   "description": "Q4K weights with fused dequant+matmul using F16 activations",
+  "activationDtype": "f16",
 
   "decode": {
     "steps": [
@@ -36,6 +38,8 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
   "sampling": [...]
 }
 ```
+
+`activationDtype` is required. Kernel paths must declare the activation dtype they expect so runtime dtypes stay consistent.
 
 ## Step Schema
 
@@ -69,7 +73,7 @@ Each step specifies a single kernel dispatch:
 | `gemma2-f16-f16a` | F16 weights with F16 activations |
 | `gemma2-f16-f32a` | F16 weights with F32 activations |
 
-Note: `*-f16a` / `*-f32a` IDs encode activation dtype. When a kernel path is selected,
+Note: `activationDtype` is explicit in the path. When a kernel path is selected,
 the pipeline aligns `runtime.inference.compute.activationDtype` and
 `runtime.inference.kvcache.kvDtype` to the path so kernel dtypes stay consistent.
 For LM head overrides, `lm_head_prefill` can be added to `postLayer` to supply a
@@ -140,8 +144,9 @@ npm run debug -- -m MODEL --kernel-path gemma2-q4k-fused-f16a
 ## Creating Custom Paths
 
 1. Copy an existing preset from `src/config/presets/kernel-paths/`
-2. Modify the steps as needed
-3. Register in `src/config/kernel-path-loader.js`
+2. Set `activationDtype` (`f16` or `f32`)
+3. Modify the steps as needed
+4. Register in `src/config/kernel-path-loader.js`
 
 ### Override Constants
 

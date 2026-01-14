@@ -2,6 +2,7 @@
   "id": "gemma2-q4k-dequant-f32a",
   "name": "Gemma 2 Q4K Dequant (F32 activations)",
   "description": "Q4K weights dequantized to F32 with F32 activations. Best accuracy, slower throughput.",
+  "activationDtype": "f32",
 
   "decode": {
     "steps": [

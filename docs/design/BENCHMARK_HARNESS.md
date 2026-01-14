@@ -8,24 +8,31 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Kernel microbenchmarks | ✓ Implemented | `tests/kernels/tests/benchmarks/` |
-| Pipeline benchmark harness | ✓ Implemented | `tests/benchmark/pipeline-benchmark.js` |
-| System benchmarks | ✓ Implemented | `tests/benchmark/system-benchmark.js` |
-| Standard prompts | ✓ Implemented | `tests/benchmark/prompts.js` |
-| JSON result schema | ✓ Implemented | `tests/benchmark/types.js` |
+| Kernel microbenchmarks | ✓ Implemented | `tests/kernels/benchmarks/` |
+| Pipeline benchmark harness | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
+| System benchmarks | ✓ Implemented | `tests/benchmarks/system-benchmark.js` |
+| Standard prompts | ✓ Implemented | `tests/benchmarks/prompts.js` |
+| JSON result schema | ✓ Implemented | `docs/spec/BENCHMARK_SCHEMA.json` |
 | GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | Tracked in harness |
 | Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.js` |
 | OPFS storage metrics | ✓ Implemented | Via Storage API |
-| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmark/results-storage.js` |
-| Results export (JSON) | ✓ Implemented | `tests/benchmark/results-storage.js` |
+| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
+| Results export (JSON) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
 | Results directory | ✓ Implemented | `tests/results/` |
-| Comparison utilities | ✓ Implemented | `tests/benchmark/results-storage.js` |
+| Comparison utilities | ✓ Implemented | `tests/benchmarks/results-storage.js` |
 | CLI tool | ✓ Implemented | `cli/index.js` |
 
 ### Claude Skill
 
 Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for guided benchmarking.
+
+---
+
+## Config
+
+Benchmark defaults live in `runtime.shared.benchmark` (see `src/config/schema/benchmark.schema.js`).
+CLI `--mode bench` loads the preset and CLI flags override it.
 
 ---
 
@@ -454,4 +461,3 @@ if (history.length >= 2) {
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
-

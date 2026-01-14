@@ -87,6 +87,8 @@ export {
   resetDecodeStep,
   getDecodeStep,
   shouldBreakOnAnomaly,
+  setSilentMode,
+  isSilentMode,
   setBenchmarkMode,
   isBenchmarkMode,
   enableModules,
@@ -154,6 +156,8 @@ import {
   setTrace,
   getTrace,
   isTraceEnabled,
+  setSilentMode,
+  isSilentMode,
   setBenchmarkMode,
   isBenchmarkMode,
   enableModules,
@@ -184,6 +188,8 @@ const DOPPLER_API = {
   // Performance
   perf,
   // Other
+  setSilentMode,
+  isSilentMode,
   setBenchmarkMode,
   isBenchmarkMode,
   // History
@@ -227,6 +233,8 @@ export default {
   setTrace,
   getTrace,
   isTraceEnabled,
+  setSilentMode,
+  isSilentMode,
   setBenchmarkMode,
   isBenchmarkMode,
   setGPUDevice,

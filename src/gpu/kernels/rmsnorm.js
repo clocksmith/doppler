@@ -7,6 +7,7 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
+import { selectByRules } from './rule-matcher.js';
 
 
 function canUseF16(input, residual) {
@@ -23,36 +24,23 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   // Check if subgroups are available
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
+  const isSmall = hiddenSize !== null && hiddenSize <= smallThreshold;
 
-  // F16 variants don't have subgroup support yet
-  if (isF16) {
-    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-      return 'small_f16';
-    }
-    return 'default_f16';
-  }
+  const rules = [
+    { match: { isF16: true, isSmall: true }, value: 'small_f16' },
+    { match: { isF16: true }, value: 'default_f16' },
+    { match: { residual: true }, value: 'residual' },
+    { match: { hasSubgroups: true, isSmall: true }, value: 'small_subgroup' },
+    { match: { hasSubgroups: true }, value: 'subgroup' },
+    { match: { isSmall: true }, value: 'small' },
+    { match: {}, value: 'default' },
+  ];
 
-  // Residual variants use the inplace_residual kernel (doesn't have subgroup variant yet)
-  if (residual) {
-    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-      return 'residual_small';
-    }
-    return 'residual';
-  }
-
-  // Prefer subgroup variants when available
-  if (hasSubgroups) {
-    if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-      return 'small_subgroup';
-    }
-    return 'subgroup';
-  }
-
-  // Fallback to non-subgroup variants
-  if (hiddenSize !== null && hiddenSize <= smallThreshold) {
-    return 'small';
-  }
-  return 'default';
+  return selectByRules(
+    rules,
+    { isF16, residual: !!residual, hasSubgroups, isSmall },
+    'default'
+  );
 }
 
 

@@ -1,83 +1,32 @@
-# Doppler Testing Pages
+# Doppler Test Harness
 
 ## Overview
 
-This directory contains manual test harnesses for Doppler inference and GPU kernels.
-These pages are distinct from unit tests (Vitest) and Playwright correctness tests.
+This directory contains the unified test harness for Doppler inference and GPU kernels.
+The harness supports multiple modes via URL parameter, consolidating what were previously
+separate test pages.
 
-> **Note:** GPU kernel correctness tests live in [`tests/kernels/`](../tests/kernels/) (not here).
-> This separation is intentional - kernel tests require a browser with WebGPU, have heavy
-> setup overhead, and run separately from the main test suite to keep CI fast. See
-> [tests/kernels/README.md](../tests/kernels/README.md) for details.
+> **Note:** Unit tests (Vitest) live in [`tests/unit/`](../tests/unit/).
+> GPU kernel correctness specs live in [`tests/kernels/`](../tests/kernels/).
 
-## Test Pages
+## Unified Test Harness
 
-### test-inference.html — Inference Harness
+**URL:** `http://localhost:8080/doppler/tests/harness.html`
 
-**Purpose:** CI/automation testing of the inference pipeline
-**URL:** `http://localhost:8080/doppler/tests/test-inference.html`
+### Modes
 
-**Features:**
-- Model selection dropdown (auto-populated from `/api/models`)
-- Single inference test with token streaming
-- Batch compare test (batchSize=1 vs batchSize=N)
-- Query param automation for CI integration
-- Playwright integration via `window.testState`
+| Mode | URL | Purpose |
+|------|-----|---------|
+| `kernels` | `?mode=kernels` | GPU kernel correctness tests |
+| `inference` | `?mode=inference` | Inference pipeline tests |
+| `bench` | `?mode=bench` | Benchmark injection shell |
 
-**Query Parameters:**
+### Mode: Kernels
 
-| Param | Description | Example |
-|-------|-------------|---------|
-| `model` | Pre-select model ID | `?model=gemma3-1b-q4` |
-| `prompt` | Pre-fill prompt text | `?prompt=Hello%20world` |
-| `autorun=1` | Auto-run test on page load | `?autorun=1` |
-| `kernelPath` | Kernel path override | `?kernelPath="gemma2-q4k-fused-f16a"` |
-| `debug=1` | Enable debug logging | `?debug=1` |
-| `profile=1` | Enable GPU timestamp profiling | `?profile=1` |
-| `trace` | Trace level: quick or full | `?trace=quick` |
-| `debugLayers` | Comma-separated layer indices | `?debugLayers=0,5,10` |
-
-**Kernel Trace Visualization:**
-When `trace`, `debug`, or `profile` params are set, the page displays a kernel execution trace at the top showing:
-- Which kernels executed and in what order
-- Timing for each operation
-- Indentation to show sub-operations (attention, FFN)
-
-**Playwright automation:**
-```javascript
-// Wait for test to complete
-await page.waitForFunction(() => window.testState?.done === true);
-
-// Check results
-const state = await page.evaluate(() => window.testState);
-console.log('Output:', state.output);
-console.log('Errors:', state.errors);
-```
-
----
-
-### ../tools/test-kernel-selection.html — Kernel Selection Debug
-
-**Purpose:** Verify manifest kernel path is loaded correctly
-**URL:** `http://localhost:8080/doppler/tools/test-kernel-selection.html`
-
-**When to use:**
-- Debugging kernel path configuration in manifest.json
-- Verifying Q4K layout detection
-- Checking path resolution (manifest → profile → runtime)
-
-**Output:** Console logs showing kernel selection decisions.
-
----
-
-### ../tests/kernels/browser/index.html — GPU Kernel Test Runner
-
-**Purpose:** Validate individual GPU kernel correctness
-**URL:** `http://localhost:8080/doppler/tests/kernels/browser/`
+Tests 30+ kernel functions (matmul, attention, softmax, RoPE, etc.) by comparing
+GPU output against CPU reference implementations.
 
 **Features:**
-- Tests 30+ kernel functions (matmul, attention, softmax, RoPE, etc.)
-- Compares GPU output against CPU reference implementations
 - `window.testHarness` for Playwright automation
 - GPU capability detection (F16, subgroups, memory limits)
 
@@ -90,22 +39,69 @@ const result = await page.evaluate(async () => {
 });
 ```
 
+### Mode: Inference
+
+CI/automation testing of the inference pipeline.
+
+**Features:**
+- Model loading and token generation
+- Query param automation for CI integration
+- Playwright integration via `window.testState` and `window.pipeline`
+
+**Query Parameters:**
+
+| Param | Description | Example |
+|-------|-------------|---------|
+| `model` | Model ID | `&model=gemma3-1b-q4` |
+| `prompt` | Prompt text | `&prompt=Hello%20world` |
+| `autorun=1` | Auto-run on load | `&autorun=1` |
+| `kernelPath` | Kernel path override | `&kernelPath="gemma2-q4k-fused-f16a"` |
+| `debug=1` | Enable debug logging | `&debug=1` |
+| `profile=1` | GPU timestamp profiling | `&profile=1` |
+| `trace` | Trace level: quick or full | `&trace=quick` |
+| `noChat` | Disable chat template | `&noChat` |
+| `chat` | Force chat template | `&chat` |
+
+**Playwright automation:**
+```javascript
+// Wait for test to complete
+await page.waitForFunction(() => window.testState?.done === true);
+
+// Check results
+const state = await page.evaluate(() => window.testState);
+console.log('Output:', state.output);
+console.log('Errors:', state.errors);
+```
+
+### Mode: Bench
+
+Shell for Playwright to inject benchmark scripts. Initializes WebGPU and signals
+ready via `window.dopplerReady = true`.
+
+Used by `npm run bench` — the CLI injects the `PipelineBenchmark` class.
+
 ---
 
 ## Running Tests
 
 ```bash
 # Start dev server
-doppler serve
+npm start
 
-# Run Playwright kernel tests
-cd kernel-tests && npm test
+# Run all kernel tests (default)
+npm test
+
+# Run quick kernel subset
+npm test -- --quick
 
 # Run inference smoke test
-open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1"
+npm test -- --inference
 
-# Run with a specific kernel path override
-open "http://localhost:8080/doppler/tests/test-inference.html?model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-fused-f16a"
+# Manual browser testing
+open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1"
+
+# With kernel path override
+open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-fused-f16a"
 ```
 
 ## Shared Test Utilities
@@ -128,3 +124,4 @@ import {
 - [ARCHITECTURE.md](../docs/ARCHITECTURE.md) — System overview
 - [KERNEL_COMPATIBILITY.md](../docs/KERNEL_COMPATIBILITY.md) — Kernel modes and runtime flags
 - [RDRR_FORMAT.md](../docs/spec/RDRR_FORMAT.md) — Model format specification
+- [TESTING.md](../docs/TESTING.md) — Full testing documentation

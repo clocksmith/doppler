@@ -131,6 +131,21 @@ export interface PipelineDebugConfigSchema {
 /** Default pipeline debug configuration */
 export declare const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema;
 
+/**
+ * Profiler configuration.
+ */
+export interface ProfilerConfigSchema {
+  /** Maximum number of timestamp pairs to allocate */
+  queryCapacity: number;
+  /** Maximum samples retained per label */
+  maxSamples: number;
+  /** GPU timing sanity limit before falling back to CPU */
+  maxDurationMs: number;
+}
+
+/** Default profiler configuration */
+export declare const DEFAULT_PROFILER_CONFIG: ProfilerConfigSchema;
+
 /** Pipeline probe stages */
 export type ProbeStage =
   | 'embed_out'
@@ -193,6 +208,7 @@ export interface DebugConfigSchema {
   trace: TraceConfigSchema;
   pipeline: PipelineDebugConfigSchema;
   probes: ProbeConfigSchema[];
+  profiler: ProfilerConfigSchema;
 }
 
 /** Default debug configuration */

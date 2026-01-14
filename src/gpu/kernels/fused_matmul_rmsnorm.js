@@ -9,13 +9,15 @@ import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import { trace } from '../../debug/index.js';
+import { selectByRules } from './rule-matcher.js';
 
 
 export function selectMatmulRMSNormFusedVariant(N) {
-  if (N <= WORKGROUP_SIZES.DEFAULT) {
-    return 'small';
-  }
-  return 'medium';
+  const rules = [
+    { match: { N: { lte: WORKGROUP_SIZES.DEFAULT } }, value: 'small' },
+    { match: {}, value: 'medium' },
+  ];
+  return selectByRules(rules, { N }, 'medium');
 }
 
 

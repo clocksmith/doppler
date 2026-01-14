@@ -39,6 +39,8 @@ export interface CLIOptions {
   baseUrl: string;
   /** Config preset or path (resolves: name -> path -> URL -> inline JSON) */
   config: string | null;
+  /** Mode preset shortcut (mapped to runtime presets) */
+  mode: string | null;
   /** Loaded runtime config (merged with defaults) */
   runtimeConfig: RuntimeConfigSchema | null;
   /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
@@ -141,6 +143,12 @@ export interface ComparisonResult {
   delta: number;
   deltaPercent: number;
   improved: boolean;
+}
+
+export interface RegressionSummary {
+  thresholdPercent: number;
+  regressions: ComparisonResult[];
+  hasRegression: boolean;
 }
 
 export interface TTestResult {

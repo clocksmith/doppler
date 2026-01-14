@@ -60,11 +60,13 @@ export let traceDecodeStep = 0;
 export let traceMaxDecodeSteps = 0;  // 0 = unlimited
 export let traceBreakOnAnomaly = false;
 
-// Benchmark mode state
-let benchmarkMode = false;
+// Benchmark mode state (silent mode)
+let silentMode = false;
 const originalConsoleLog = console.log;
 const originalConsoleDebug = console.debug;
 const originalConsoleInfo = console.info;
+const originalConsoleWarn = console.warn;
+let warnedBenchmarkMode = false;
 
 // ============================================================================
 // Configuration Functions
@@ -265,29 +267,45 @@ export function shouldBreakOnAnomaly() {
 }
 
 /**
- * Enable benchmark mode - silences all console.log/debug/info calls.
+ * Enable silent mode - silences all console.log/debug/info calls.
  */
-export function setBenchmarkMode(enabled) {
-  benchmarkMode = enabled;
+export function setSilentMode(enabled) {
+  silentMode = enabled;
   if (enabled) {
     const noop = () => {};
     console.log = noop;
     console.debug = noop;
     console.info = noop;
-    originalConsoleLog('[Doppler] Benchmark mode enabled - logging silenced');
+    originalConsoleLog('[Doppler] Silent mode enabled - logging silenced');
   } else {
     console.log = originalConsoleLog;
     console.debug = originalConsoleDebug;
     console.info = originalConsoleInfo;
-    console.log('[Doppler] Benchmark mode disabled - logging restored');
+    console.log('[Doppler] Silent mode disabled - logging restored');
   }
 }
 
 /**
- * Check if benchmark mode is active.
+ * Check if silent mode is active.
  */
+export function isSilentMode() {
+  return silentMode;
+}
+
+export function setBenchmarkMode(enabled) {
+  if (!warnedBenchmarkMode) {
+    warnedBenchmarkMode = true;
+    originalConsoleWarn('[Doppler] setBenchmarkMode is deprecated; use setSilentMode instead.');
+  }
+  setSilentMode(enabled);
+}
+
 export function isBenchmarkMode() {
-  return benchmarkMode;
+  if (!warnedBenchmarkMode) {
+    warnedBenchmarkMode = true;
+    originalConsoleWarn('[Doppler] isBenchmarkMode is deprecated; use isSilentMode instead.');
+  }
+  return isSilentMode();
 }
 
 /**

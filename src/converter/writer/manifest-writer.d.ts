@@ -5,6 +5,7 @@
  */
 
 import type {
+  ArchitectureSchema,
   TensorLocation,
   ShardRecord,
   HashAlgorithm,
@@ -24,7 +25,7 @@ export interface ManifestData {
   version: 1;
   modelId: string;
   modelType: ModelType;
-  architecture: string;
+  architecture: ArchitectureSchema;
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
   hashAlgorithm: HashAlgorithm;

@@ -78,17 +78,10 @@ export {
 } from './kernel-path.schema.js';
 
 // =============================================================================
-// Inference Schema (Legacy Fallbacks)
+// Inference Schema
 // =============================================================================
 export {
-  // Legacy fallbacks for v1 manifests (where architecture is a string)
-  // For new manifests, use DEFAULT_MANIFEST_INFERENCE instead
-  DEFAULT_MAX_POSITION_EMBEDDINGS,
-  DEFAULT_RMS_NORM_EPS,
-
-  // Types still exported for compatibility
   type RoPEConfigSchema,
-
   type AttentionSchema,
   type NormalizationSchema,
   type FFNSchema,
@@ -104,7 +97,6 @@ export {
   type InferenceConfigSchema,
   type SamplingSchema,
   type TokenizerConfigSchema,
-  // Functions
   computeGlobalLayers,
 } from './inference.schema.js';
 
@@ -341,6 +333,7 @@ export {
   type TraceConfigSchema,
   type PipelineDebugCategory,
   type PipelineDebugConfigSchema,
+  type ProfilerConfigSchema,
   type ProbeStage,
   type ProbeConfigSchema,
   type DebugConfigSchema,
@@ -354,8 +347,28 @@ export {
   DEFAULT_LOG_LEVEL_CONFIG,
   DEFAULT_TRACE_CONFIG,
   DEFAULT_PIPELINE_DEBUG_CONFIG,
+  DEFAULT_PROFILER_CONFIG,
   DEFAULT_DEBUG_CONFIG,
 } from './debug.schema.js';
+
+// =============================================================================
+// Benchmark Schema
+// =============================================================================
+export {
+  // Types
+  type BenchmarkOutputConfig,
+  type BenchmarkRunConfig,
+  type BenchmarkStatsConfig,
+  type BenchmarkComparisonConfig,
+  type BenchmarkConfig,
+
+  // Defaults
+  DEFAULT_BENCHMARK_OUTPUT_CONFIG,
+  DEFAULT_BENCHMARK_RUN_CONFIG,
+  DEFAULT_BENCHMARK_STATS_CONFIG,
+  DEFAULT_BENCHMARK_COMPARISON_CONFIG,
+  DEFAULT_BENCHMARK_CONFIG,
+} from './benchmark.schema.js';
 
 // =============================================================================
 // Hot-Swap Schema
@@ -440,6 +453,9 @@ export {
   type AttentionThresholdsSchema,
   type CastThresholdsSchema,
   type KernelThresholdsConfigSchema,
+  type SoftmaxThresholdsSchema,
+  type FfnThresholdsSchema,
+  type SampleThresholdsSchema,
 
   // Constants
   DTYPE_SIZES,
@@ -447,6 +463,9 @@ export {
   // Defaults
   DEFAULT_MATMUL_THRESHOLDS,
   DEFAULT_RMSNORM_THRESHOLDS,
+  DEFAULT_SOFTMAX_THRESHOLDS,
+  DEFAULT_FFN_THRESHOLDS,
+  DEFAULT_SAMPLE_THRESHOLDS,
   DEFAULT_ROPE_DEFAULTS,
   DEFAULT_ATTENTION_THRESHOLDS,
   DEFAULT_CAST_THRESHOLDS,

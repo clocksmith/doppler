@@ -7,7 +7,7 @@
  * - HTTP-based shard loading
  * - Pipeline initialization helpers
  *
- * Used by test-inference.html and potentially other test harnesses.
+ * Used by tests/harness.html (mode=inference) and other test harnesses.
  *
  * @module inference/test-harness
  */

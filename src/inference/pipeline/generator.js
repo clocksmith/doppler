@@ -18,6 +18,7 @@ import { allowReadback } from '../../gpu/perf-guards.js';
 import { getUniformCache } from '../../gpu/uniform-cache.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { validateCallTimeOptions } from '../../config/param-validator.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
@@ -69,6 +70,8 @@ export class PipelineGenerator {
   async *generate(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
 
     this.#state.isGenerating = true;
     this.#state.decodeStepCount = 0;
@@ -312,6 +315,8 @@ export class PipelineGenerator {
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
 
     // Apply snapshot
     this.#state.kvCache = prefix.cache.clone();

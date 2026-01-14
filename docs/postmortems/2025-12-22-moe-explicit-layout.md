@@ -68,7 +68,7 @@ const bindGroup = device.createBindGroup({
 
 | File | Change |
 |------|--------|
-| `gpu/kernel-selector.js` | Create explicit bind group layout for MoE kernels |
+| `gpu/kernels/moe.js` | Create explicit bind group layout for MoE kernels |
 | `gpu/kernels/moe_gather.wgsl` | Added note about explicit layout requirement |
 
 ## Verification
@@ -99,4 +99,3 @@ After fix:
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
-

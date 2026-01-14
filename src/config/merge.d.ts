@@ -38,7 +38,7 @@ export type DeepPartial<T> = {
 export interface ManifestInput {
   modelId: string;
   inference: ManifestInferenceSchema;
-  architecture?: ArchitectureSchema | string;
+  architecture: ArchitectureSchema;
 }
 
 /** Runtime inference overrides */
@@ -70,7 +70,7 @@ export interface MergedConfig {
   inference: MergedInferenceConfig;
 
   /** Architecture info (if available) */
-  architecture?: ArchitectureSchema | string;
+  architecture: ArchitectureSchema;
 
   /**
    * Source tracking - dot-path to source.

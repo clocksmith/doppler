@@ -6,6 +6,7 @@ import { DEFAULT_MEMORY_LIMITS_CONFIG } from './memory-limits.schema.js';
 import { DEFAULT_TUNER_CONFIG } from './tuner.schema.js';
 import { DEFAULT_HOTSWAP_CONFIG } from './hotswap.schema.js';
 import { DEFAULT_BRIDGE_CONFIG } from './bridge.schema.js';
+import { DEFAULT_BENCHMARK_CONFIG } from './benchmark.schema.js';
 
 // =============================================================================
 // Kernel Registry Config
@@ -21,6 +22,7 @@ export const DEFAULT_KERNEL_REGISTRY_CONFIG = {
 
 export const DEFAULT_SHARED_RUNTIME_CONFIG = {
   debug: DEFAULT_DEBUG_CONFIG,
+  benchmark: DEFAULT_BENCHMARK_CONFIG,
   platform: null,
   kernelRegistry: DEFAULT_KERNEL_REGISTRY_CONFIG,
   kernelThresholds: DEFAULT_KERNEL_THRESHOLDS,

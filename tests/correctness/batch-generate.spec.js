@@ -15,48 +15,73 @@ const TEST_CONFIG = {
   prompt: 'the color of the sky is',
   maxTokens: 20,
   batchSize: 4,
-  timeout: 120000, // 2 minutes for model loading
+  timeout: 240000, // 4 minutes for model loading
 };
 
 test.describe('Batch Generation Correctness', () => {
   test.setTimeout(TEST_CONFIG.timeout);
 
   test('batchSize=1 vs batchSize=N produces identical output at temperature=0', async ({ page }) => {
-    // Navigate to inference test page
-    const testUrl = `/doppler/tests/test-inference.html?model=${TEST_CONFIG.model}`;
+    const testUrl = `/doppler/tests/harness.html?mode=inference&model=${TEST_CONFIG.model}`;
     await page.goto(testUrl);
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for page to be ready
-    await page.waitForFunction(() => window.testState?.ready === true, { timeout: 10000 });
+    const result = await page.evaluate(async (config) => {
+      const { initDevice, getDevice } = await import('/doppler/dist/gpu/device.js');
+      await initDevice();
+      const device = getDevice();
 
-    // Run batch compare test via the button click
-    await page.click('#batch-compare-btn');
+      const MODEL_URL = `http://localhost:8080/doppler/models/${config.model}`;
+      const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
+      const manifest = await manifestResp.json();
 
-    // Wait for test to complete (model load + 2 generations)
-    await page.waitForFunction(
-      () => window.testState?.done === true,
-      { timeout: TEST_CONFIG.timeout }
-    );
+      const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
 
-    // Check results
-    const testState = await page.evaluate(() => window.testState);
+      const loadShard = async (idx) => {
+        const shard = manifest.shards[idx];
+        const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+        return new Uint8Array(await resp.arrayBuffer());
+      };
 
-    // Log details for debugging
-    console.log('Test state:', JSON.stringify(testState, null, 2));
+      async function generateWithBatchSize(batchSize) {
+        const pipeline = await createPipeline(manifest, {
+          storage: { loadShard },
+          gpu: { device },
+          baseUrl: MODEL_URL,
+          runtimeConfig: {
+            inference: {
+              batching: { batchSize },
+            },
+          },
+        });
 
-    // Verify no errors
-    expect(testState.errors).toHaveLength(0);
+        const tokens = [];
+        for await (const text of pipeline.generate(config.prompt, {
+          maxTokens: config.maxTokens,
+          temperature: 0,
+        })) {
+          tokens.push(text);
+        }
 
-    // Verify batch compare passed
-    expect(testState.batchCompare).toBeDefined();
-    expect(testState.batchCompare.passed).toBe(true);
+        return tokens.join('');
+      }
+
+      const outputBatch1 = await generateWithBatchSize(1);
+      const outputBatchN = await generateWithBatchSize(config.batchSize);
+
+      return {
+        outputBatch1,
+        outputBatchN,
+        passed: outputBatch1 === outputBatchN,
+      };
+    }, TEST_CONFIG);
+
+    expect(result.passed).toBe(true);
   });
 
   test('onBatch callback fires correct number of times', async ({ page }) => {
-    const testUrl = `/doppler/tests/test-inference.html?model=${TEST_CONFIG.model}`;
+    const testUrl = `/doppler/tests/harness.html?mode=inference&model=${TEST_CONFIG.model}`;
     await page.goto(testUrl);
-
-    await page.waitForFunction(() => window.testState?.ready === true, { timeout: 10000 });
 
     // Inject a custom test that tracks onBatch calls
     const result = await page.evaluate(async (config) => {
@@ -70,9 +95,6 @@ test.describe('Batch Generation Correctness', () => {
       const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
       const manifest = await manifestResp.json();
 
-      const { parseManifest } = await import('/doppler/dist/storage/rdrr-format.js');
-      const modelInfo = parseManifest(JSON.stringify(manifest));
-
       const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
 
       const loadShard = async (idx) => {
@@ -81,10 +103,15 @@ test.describe('Batch Generation Correctness', () => {
         return new Uint8Array(await resp.arrayBuffer());
       };
 
-      const pipeline = await createPipeline(modelInfo, {
+      const pipeline = await createPipeline(manifest, {
         storage: { loadShard },
         gpu: { device },
         baseUrl: MODEL_URL,
+        runtimeConfig: {
+          inference: {
+            batching: { batchSize: config.batchSize },
+          },
+        },
       });
 
       // Generate with batchSize and track callbacks
@@ -94,7 +121,6 @@ test.describe('Batch Generation Correctness', () => {
       for await (const text of pipeline.generate(config.prompt, {
         maxTokens: config.maxTokens,
         temperature: 0,
-        batchSize: config.batchSize,
         onBatch: (batch) => {
           batchCalls.push(batch.length);
         },

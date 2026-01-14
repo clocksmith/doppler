@@ -31,6 +31,13 @@ export interface GatherOptions extends OutputBufferOptions {
   indirectOffset?: number;
 }
 
+/** Context for gather variant selection rules. */
+export interface GatherSelectionContext {
+  useF16Input: boolean;
+  useF16Output: boolean;
+  useVec4: boolean;
+}
+
 /**
  * Run gather/embedding lookup
  */

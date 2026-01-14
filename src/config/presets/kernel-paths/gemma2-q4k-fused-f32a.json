@@ -2,6 +2,7 @@
   "id": "gemma2-q4k-fused-f32a",
   "name": "Gemma 2 Q4K Fused (F32 activations)",
   "description": "Q4K weights with fused dequant+matmul using F32 activations. Best throughput for F32 activations.",
+  "activationDtype": "f32",
 
   "decode": {
     "steps": [

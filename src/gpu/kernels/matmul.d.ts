@@ -33,6 +33,36 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   aDtype?: 'f16' | 'f32' | null;
   bDtype?: 'f16' | 'f32' | 'q4k' | null;
   preferF16?: boolean;
+  /** WGSL override constants for pipeline creation */
+  constants?: Record<string, number | boolean>;
+}
+
+/** Context for base matmul kernel selection rules. */
+export interface MatmulKernelSelectionContext {
+  useF16Matmul: boolean;
+  useF16wF32a: boolean;
+  useVec4: boolean;
+}
+
+/** Context for fused Q4K variant selection rules. */
+export interface MatmulQ4KFusedContext {
+  useF16A: boolean;
+  useF16Out: boolean;
+  isM1: boolean;
+}
+
+/** Context for GEMV variant selection rules. */
+export interface GemvSelectionContext {
+  hasSubgroups: boolean;
+  useF16Gemv: boolean;
+  useF32Gemv: boolean;
+  useMulticol: boolean;
+}
+
+/** Context for top-level matmul variant selection rules. */
+export interface MatmulVariantSelectionContext {
+  canFused: boolean;
+  useGemv: boolean;
 }
 
 /**

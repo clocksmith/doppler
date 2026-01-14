@@ -17,6 +17,7 @@ export default defineConfig({
     ['json', { outputFile: '../../test-results/correctness-report.json' }],
     ['list'],
   ],
+  outputDir: '../../test-results/correctness-output',
 
   timeout: 180000, // 3 minutes for model loading + generation
   expect: {
@@ -35,18 +36,17 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         channel: 'chrome',
-        headless: false,
+        headless: false,  // Handle via --headless=new in args (supports real GPU)
         launchOptions: {
           args: [
             '--enable-unsafe-webgpu',
-            '--enable-features=Vulkan',
-            '--use-angle=vulkan',
-            '--no-activate',
-            '--silent-launch',
+            '--headless=new',
+            // Platform-specific GPU backend
+            ...(process.platform === 'darwin'
+              ? ['--use-angle=metal']
+              : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-vulkan-surface']),
             '--no-first-run',
             '--no-default-browser-check',
-            '--window-position=-9999,-9999',
-            '--window-size=50,50',
           ],
         },
       },
@@ -54,8 +54,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'python3 -m http.server 8080 --directory ../..',
-    url: 'http://localhost:8080',
+    command: 'node ../../serve.js --port 8080',
+    url: 'http://localhost:8080/doppler/tests/harness.html?mode=inference',
     reuseExistingServer: !process.env.CI,
     timeout: 10000,
   },

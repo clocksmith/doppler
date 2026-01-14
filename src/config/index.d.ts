@@ -7,7 +7,7 @@
  * - Platform detection and registry loading happen automatically in gpu/device.js
  * - Call initDevice() to initialize both GPU and config systems
  * - Use getPlatformConfig() from device.js to access resolved platform config
- * - Kernel selection in kernels/selection.js uses platform preferences automatically
+ * - Kernel selection in gpu/kernels/* uses platform preferences automatically
  *
  * @module config
  */

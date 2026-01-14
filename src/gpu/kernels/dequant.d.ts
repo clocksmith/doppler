@@ -17,6 +17,13 @@ export interface DequantOptions extends OutputBufferOptions, OutputOffsetOptions
   groupSize?: number;
 }
 
+/** Context for dequant variant selection rules. */
+export interface DequantSelectionContext {
+  hasSubgroups: boolean;
+  wantsF16Out: boolean;
+  useVec4: boolean;
+}
+
 /**
  * Select the best dequantization kernel variant
  */

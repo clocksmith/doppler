@@ -83,6 +83,53 @@ export function formatComparison(comparisons) {
   return lines.join('\n');
 }
 
+/**
+ * @param {import('./types.js').ComparisonResult[]} comparisons
+ * @param {{ regressionThresholdPercent: number }} options
+ * @returns {import('./types.js').RegressionSummary}
+ */
+export function detectRegressions(comparisons, options) {
+  const threshold = options.regressionThresholdPercent;
+  const regressions = comparisons.filter((c) =>
+    c.delta !== 0 &&
+    !c.improved &&
+    Math.abs(c.deltaPercent) >= threshold
+  );
+
+  return {
+    thresholdPercent: threshold,
+    regressions,
+    hasRegression: regressions.length > 0,
+  };
+}
+
+/**
+ * @param {import('./types.js').RegressionSummary} summary
+ * @returns {string}
+ */
+export function formatRegressionSummary(summary) {
+  if (!summary.hasRegression) {
+    return `No regressions above ${summary.thresholdPercent}%`;
+  }
+
+  const lines = [
+    '',
+    '='.repeat(60),
+    'REGRESSION CHECK',
+    '='.repeat(60),
+    `Threshold: ${summary.thresholdPercent}%`,
+  ];
+
+  for (const regression of summary.regressions) {
+    const sign = regression.deltaPercent >= 0 ? '+' : '';
+    lines.push(
+      `${regression.metric.padEnd(20)} ${sign}${regression.deltaPercent.toFixed(1)}%`
+    );
+  }
+
+  return lines.join('\n');
+}
+
 // ============================================================================
 // Statistical Significance (Welch's t-test)
 // ============================================================================

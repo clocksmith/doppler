@@ -15,6 +15,31 @@ export const DEFAULT_RMSNORM_THRESHOLDS = {
 };
 
 // =============================================================================
+// Softmax Thresholds
+// =============================================================================
+
+export const DEFAULT_SOFTMAX_THRESHOLDS = {
+  smallThreshold: 256,
+};
+
+// =============================================================================
+// FFN Thresholds
+// =============================================================================
+
+export const DEFAULT_FFN_THRESHOLDS = {
+  multiOutputThreshold: 1024,
+};
+
+// =============================================================================
+// Sample Thresholds
+// =============================================================================
+
+export const DEFAULT_SAMPLE_THRESHOLDS = {
+  argmaxReduceVocabThreshold: 65536,
+  singlePassTopKThreshold: 100,
+};
+
+// =============================================================================
 // RoPE Thresholds
 // =============================================================================
 
@@ -40,6 +65,14 @@ export const DEFAULT_ATTENTION_THRESHOLDS = {
     tier2: 32768,  // 32KB for medium models
     tier1: 65536,  // 64KB for large models
   },
+  largeMaxHeadDim: 64,
+  smallMaxHeadDim: 256,
+  subgroupMaxHeadDim: 256,
+  largeSharedF32: 20480,
+  largeSharedF16: 49152,
+  smallSharedF32: 8192,
+  smallSharedF16: 4096,
+  subgroupShared: 8192,
 };
 
 // =============================================================================
@@ -82,6 +115,9 @@ export const DTYPE_SIZES = {
 export const DEFAULT_KERNEL_THRESHOLDS = {
   matmul: DEFAULT_MATMUL_THRESHOLDS,
   rmsnorm: DEFAULT_RMSNORM_THRESHOLDS,
+  softmax: DEFAULT_SOFTMAX_THRESHOLDS,
+  ffn: DEFAULT_FFN_THRESHOLDS,
+  sample: DEFAULT_SAMPLE_THRESHOLDS,
   rope: DEFAULT_ROPE_DEFAULTS,
   attention: DEFAULT_ATTENTION_THRESHOLDS,
   fusedMatmul: DEFAULT_FUSED_MATMUL_THRESHOLDS,
@@ -104,6 +140,9 @@ export function setKernelThresholds(overrides) {
     ...overrides,
     matmul: { ...currentThresholds.matmul, ...overrides.matmul },
     rmsnorm: { ...currentThresholds.rmsnorm, ...overrides.rmsnorm },
+    softmax: { ...currentThresholds.softmax, ...overrides.softmax },
+    ffn: { ...currentThresholds.ffn, ...overrides.ffn },
+    sample: { ...currentThresholds.sample, ...overrides.sample },
     rope: { ...currentThresholds.rope, ...overrides.rope },
     attention: { ...currentThresholds.attention, ...overrides.attention },
     fusedMatmul: { ...currentThresholds.fusedMatmul, ...overrides.fusedMatmul },

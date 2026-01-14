@@ -138,7 +138,9 @@ export class Tokenizer {
    * @returns {string | null}
    */
   _inferHuggingFaceModel(manifest) {
-    const arch = manifest.architecture || manifest.config?.architectures?.[0] || '';
+    const arch = typeof manifest.architecture === 'string'
+      ? manifest.architecture
+      : (manifest.modelType || manifest.config?.architectures?.[0] || '');
     const archLower = arch.toLowerCase();
 
     // Map architecture names to public HuggingFace tokenizer repos

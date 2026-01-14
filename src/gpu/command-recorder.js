@@ -28,6 +28,9 @@ import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
 import { log } from '../debug/index.js';
 
+let didLogQueryClamp = false;
+let didLogQueryFallback = false;
+
 /**
  * @typedef {Object} ProfileEntry
  * @property {string} label
@@ -73,7 +76,8 @@ export class CommandRecorder {
   /** @type {number} */
   #queryCapacity = 0;
   /** @type {number} */
-  static MAX_QUERIES = 16384; // 8192 kernel pairs
+  static MAX_QUERIES = 16384; // Upper bound; device limits may be lower.
+  static DEFAULT_QUERY_LIMIT = 4096; // Safe fallback when maxQuerySetSize is unavailable.
 
   /**
    * @param {GPUDevice | null} [device] - GPU device (auto-detected if not provided)
@@ -111,13 +115,24 @@ export class CommandRecorder {
    */
   #initProfiling() {
     try {
-      const limit = this.device.limits?.maxQuerySetSize ?? CommandRecorder.MAX_QUERIES;
+      const deviceLimit = this.device.limits?.maxQuerySetSize;
+      const hasDeviceLimit = Number.isFinite(deviceLimit) && deviceLimit > 0;
+      const limit = hasDeviceLimit
+        ? deviceLimit
+        : CommandRecorder.DEFAULT_QUERY_LIMIT;
       this.#queryCapacity = Math.min(CommandRecorder.MAX_QUERIES, limit);
-      if (this.#queryCapacity < CommandRecorder.MAX_QUERIES) {
+      if (hasDeviceLimit && this.#queryCapacity < CommandRecorder.MAX_QUERIES && !didLogQueryClamp) {
         log.warn(
           'CommandRecorder',
           `Clamping MAX_QUERIES to device limit: ${this.#queryCapacity}/${CommandRecorder.MAX_QUERIES}`
         );
+        didLogQueryClamp = true;
+      } else if (!hasDeviceLimit && !didLogQueryFallback) {
+        log.warn(
+          'CommandRecorder',
+          `maxQuerySetSize unavailable; using fallback ${CommandRecorder.DEFAULT_QUERY_LIMIT}`
+        );
+        didLogQueryFallback = true;
       }
 
       this.#querySet = this.device.createQuerySet({

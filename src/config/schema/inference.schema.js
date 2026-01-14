@@ -1,15 +1,4 @@
 // =============================================================================
-// Architecture Defaults (Legacy Fallbacks)
-// =============================================================================
-//
-// These are used as fallbacks when manifest.architecture is a string (v1 format).
-// For new manifests, architecture should be an object with all fields populated.
-// TODO: Remove when v1 manifest support is dropped.
-
-export const DEFAULT_MAX_POSITION_EMBEDDINGS = 8192;
-export const DEFAULT_RMS_NORM_EPS = 1e-5;
-
-// =============================================================================
 // Layer Pattern Schema
 // =============================================================================
 

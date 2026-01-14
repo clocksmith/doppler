@@ -24,13 +24,15 @@
           "wgsl": "matmul_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [16, 16, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "f16_vec4": {
           "wgsl": "matmul_f16.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [16, 16, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "f16w_f32a": {
           "wgsl": "matmul_f16w_f32a.wgsl",
@@ -50,6 +52,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "outputDtype": "f16",
           "description": "Optimized GEMV for M=1 decode with f16 activations + f16 output"
         },
         "gemv_subgroup": {
@@ -64,6 +67,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
           "description": "Subgroup-optimized GEMV with f16 activations + f16 output"
         },
         "gemv_subgroup_vec4": {
@@ -76,13 +80,15 @@
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16"
         },
         "gemv_subgroup_multicol": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup"
         },
         "gemv_subgroup_multicol_f16a": {
@@ -90,6 +96,8 @@
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output"
         },
         "q4_fused": {
@@ -99,17 +107,26 @@
           "requires": ["subgroups"],
           "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
         },
+        "q4_fused_f16a": {
+          "wgsl": "fused_matmul_q4_f16a.wgsl",
+          "entryPoint": "main_f16a",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16"
+        },
         "q4_fused_batched": {
           "wgsl": "fused_matmul_q4_batched.wgsl",
           "entryPoint": "main_batched",
           "workgroup": [64, 4, 1],
-          "requires": ["subgroups"]
+          "requires": ["subgroups"],
+          "variantMetadata": { "tileM": 4 }
         },
         "q4_fused_multicol": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"],
+          "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup"
         },
         "q4_fused_multicol_f16": {
@@ -117,6 +134,8 @@
           "entryPoint": "main_multicol_f16",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head) - F16 output"
         },
         "q4_fused_multicol_f16a": {
@@ -124,19 +143,25 @@
           "entryPoint": "main_multicol_f16a",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output"
         },
         "q4_fused_batched_f16": {
           "wgsl": "fused_matmul_q4_batched_f16.wgsl",
           "entryPoint": "main_batched_f16",
           "workgroup": [64, 4, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "tileM": 4 }
         },
         "q4_fused_batched_f16a": {
           "wgsl": "fused_matmul_q4_batched_f16a.wgsl",
           "entryPoint": "main_batched_f16a",
           "workgroup": [64, 4, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f16",
+          "variantMetadata": { "tileM": 4 }
         },
         "f32": {
           "wgsl": "matmul_f32.wgsl",
@@ -186,6 +211,18 @@
         },
         "batched": {
           "wgsl": "fused_ffn.wgsl",
+          "entryPoint": "main_batched",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "q4k": {
+          "wgsl": "fused_ffn_q4k.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "q4k_batched": {
+          "wgsl": "fused_ffn_q4k.wgsl",
           "entryPoint": "main_batched",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"]
@@ -399,37 +436,43 @@
           "wgsl": "attention_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [64, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "decode_f16": {
           "wgsl": "attention_decode_f16.wgsl",
           "entryPoint": "attention_decode",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "prefill_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "decode_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "prefill_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "decode_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "prefill_f16kv": {
           "wgsl": "attention_f16kv.wgsl",
@@ -472,6 +515,8 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "outputDtype": "f16",
+          "variantMetadata": { "maxKVLen": 2048 },
           "description": "Chunked decode kernel - f16 QKV + f16 output"
         },
         "decode_chunked_f16kv": {
@@ -479,6 +524,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "variantMetadata": { "maxKVLen": 2048 },
           "description": "Chunked decode kernel - parallelizes headDim for models with few heads"
         },
         "decode_subgroup": {
@@ -517,15 +563,33 @@
         },
         "small": {
           "wgsl": "rmsnorm.wgsl",
-          "entryPoint": "rmsnorm_small",
+          "entryPoint": "main_small",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "cached": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "main_cached",
           "workgroup": [256, 1, 1],
           "requires": []
         },
         "residual": {
           "wgsl": "rmsnorm.wgsl",
-          "entryPoint": "rmsnorm_inplace_residual",
+          "entryPoint": "main_cached",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "subgroup": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "main_subgroup",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "small_subgroup": {
+          "wgsl": "rmsnorm.wgsl",
+          "entryPoint": "main_small_subgroup",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
         },
         "default_f16": {
           "wgsl": "rmsnorm_f16.wgsl",
@@ -639,6 +703,18 @@
           "entryPoint": "softmax_small",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "small_subgroup": {
+          "wgsl": "softmax.wgsl",
+          "entryPoint": "softmax_small_subgroup",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
+        },
+        "subgroup": {
+          "wgsl": "softmax.wgsl",
+          "entryPoint": "main_subgroup",
+          "workgroup": [256, 1, 1],
+          "requires": ["subgroups"]
         },
         "online": {
           "wgsl": "softmax.wgsl",
@@ -931,26 +1007,34 @@
           "entryPoint": "gather_f16_out",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "outputDtype": "f16",
+          "variantMetadata": { "outputBinding": 4 },
           "description": "F32 embeddings -> F16 output"
         },
         "vec4_f16_out": {
           "wgsl": "gather_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
           "workgroup": [64, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16",
+          "variantMetadata": { "outputBinding": 4 }
         },
         "f16_f16_out": {
           "wgsl": "gather_f16_f16_out.wgsl",
           "entryPoint": "gather_f16_out",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "outputDtype": "f16",
+          "variantMetadata": { "outputBinding": 4 },
           "description": "F16 embeddings -> F16 output"
         },
         "f16_vec4_f16_out": {
           "wgsl": "gather_f16_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
           "workgroup": [64, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16",
+          "variantMetadata": { "outputBinding": 4 }
         }
       }
     },
@@ -986,13 +1070,15 @@
           "wgsl": "residual_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         },
         "vec4_f16": {
           "wgsl": "residual_f16_vec4.wgsl",
           "entryPoint": "add_vec4",
           "workgroup": [64, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         }
       }
     },

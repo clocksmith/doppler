@@ -165,20 +165,12 @@ export interface ParsedModelConfig {
 
 export function getStopTokenIds(config: RawConfig, manifest: Manifest): number[];
 
-export function inferAttentionParams(
-  manifest: Manifest,
-  hiddenSize: number,
-  knownNumHeads?: number | null
-): AttentionParams | null;
-
-export function inferVocabSize(manifest: Manifest): number | null;
-
 /**
  * Extended manifest with inference config for manifest-first parsing.
  */
 export interface ManifestWithInference {
   inference: ManifestInferenceSchema;
-  architecture?: ArchitectureSchema | string;
+  architecture: ArchitectureSchema;
   config?: RawConfig | Record<string, unknown>;
   tensors?: Record<string, TensorInfo>;
   tokenizer?: Record<string, unknown> & { vocab_size?: number };

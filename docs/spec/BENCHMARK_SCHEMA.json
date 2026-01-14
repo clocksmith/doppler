@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DOPPLER Benchmark Result",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "timestamp",
+    "suite"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "integer" },
+    "timestamp": { "type": "string" },
+    "suite": { "type": "string" },
+    "runType": { "type": "string" },
+    "env": { "type": "object" },
+    "model": { "type": "object" },
+    "workload": { "type": "object" },
+    "metrics": { "type": "object" },
+    "raw": { "type": "object" },
+    "storage": { "type": "object" },
+    "download": { "type": "object" },
+    "opfs": { "type": "object" }
+  },
+  "additionalProperties": true
+}

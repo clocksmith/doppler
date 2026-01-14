@@ -716,7 +716,7 @@ DOPPLER implements **multi-tier Flash Attention** with automatic kernel selectio
 | Streaming | `attention_streaming.wgsl` | Any | None | Fallback for constrained devices |
 
 ```javascript
-// Automatic tier selection in kernel-selector.js
+// Automatic tier selection in gpu/kernels/attention.js
 const canLarge = headDim <= 64 && sharedLimit >= 49152;
 const canSmall = headDim <= 256 && sharedLimit >= smallRequired;
 tier = canLarge ? 'tiled_large' : canSmall ? 'tiled_small' : 'streaming';

@@ -4,13 +4,14 @@ import { getDevice, getDeviceLimits, getKernelCapabilities } from '../device.js'
 import { acquireBuffer } from '../buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
-import { DIMENSION_LIMITS, MEMORY_THRESHOLDS, TILE_SIZES } from './constants.js';
+import { TILE_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { log, trace } from '../../debug/index.js';
 import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config/kernel-path-loader.js';
+import { selectByRules } from './rule-matcher.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -84,22 +85,23 @@ function selectAttentionTier(
   strict
 ) {
   const isDecode = seqLen === 1;
+  const thresholds = getKernelThresholds().attention;
   const largeRequired = useF16KV
-    ? MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED_F16
-    : MEMORY_THRESHOLDS.ATTENTION_LARGE_SHARED;
+    ? thresholds.largeSharedF16
+    : thresholds.largeSharedF32;
   const canLarge =
-    headDim <= DIMENSION_LIMITS.ATTENTION_LARGE_MAX_HEAD_DIM &&
+    headDim <= thresholds.largeMaxHeadDim &&
     sharedLimit >= largeRequired;
   const smallRequired = useF16KV
-    ? MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F16
-    : MEMORY_THRESHOLDS.ATTENTION_SMALL_SHARED_F32;
+    ? thresholds.smallSharedF16
+    : thresholds.smallSharedF32;
   const canSmall =
-    headDim <= DIMENSION_LIMITS.ATTENTION_SMALL_MAX_HEAD_DIM &&
+    headDim <= thresholds.smallMaxHeadDim &&
     sharedLimit >= smallRequired;
   const canSubgroup =
     caps.hasSubgroups &&
-    headDim <= DIMENSION_LIMITS.ATTENTION_SUBGROUP_MAX_HEAD_DIM &&
-    sharedLimit >= MEMORY_THRESHOLDS.ATTENTION_SUBGROUP_SHARED &&
+    headDim <= thresholds.subgroupMaxHeadDim &&
+    sharedLimit >= thresholds.subgroupShared &&
     isDecode;
 
   
@@ -126,25 +128,24 @@ function selectAttentionTier(
   }
 
   if (!tier) {
-    if (canSubgroup) {
-      tier = 'subgroup';
-      if (!loggedAttentionTier) {
-        trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
-        loggedAttentionTier = true;
-      }
-    } else if (canLarge) {
-      tier = 'tiled_large';
-    } else if (canSmall) {
-      tier = 'tiled_small';
-    } else if (isDecode) {
-      tier = 'streaming';
-    } else {
+    const rules = [
+      { match: { canSubgroup: true }, value: 'subgroup' },
+      { match: { canLarge: true }, value: 'tiled_large' },
+      { match: { canSmall: true }, value: 'tiled_small' },
+      { match: { isDecode: true }, value: 'streaming' },
+      { match: {}, value: 'streaming' },
+    ];
+    tier = selectByRules(rules, { canSubgroup, canLarge, canSmall, isDecode }, 'streaming');
+    if (tier === 'subgroup' && !loggedAttentionTier) {
+      trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
+      loggedAttentionTier = true;
+    }
+    if (tier === 'streaming' && !isDecode && !canLarge && !canSmall) {
       log.warn('Attention', `No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). Falling back to streaming. Expect slow prefill.`);
-      tier = 'streaming';
     }
   }
 
-  return  (tier);
+  return tier;
 }
 
 // Track if we've logged chunked kernel selection
@@ -173,43 +174,34 @@ function resolveAttentionVariant(
   const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
-  const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.tierHeadDimLimits.tier1;
+  const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
   const chunkedVariant = useF16 ? 'decode_chunked_f16' : 'decode_chunked_f16kv';
 
-  if (tier === 'subgroup') {
-    // decode_subgroup only supports F32 KV cache
-    // Fall back to chunked for F16 KV cache (much faster than streaming)
-    if (useF16KV) {
-      if (canUseChunked) {
-        if (!loggedChunkedKernel) {
-          trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=${!useF16Q})`);
-          loggedChunkedKernel = true;
-        }
-        return chunkedVariant;
-      }
-      return `decode_streaming${suffix}`;
-    }
-    if (canUseDecodeSubgroup) {
-      return 'decode_subgroup';
-    }
-    return 'decode_streaming';
+  const rules = [
+    { match: { tier: 'subgroup', useF16KV: true, canUseChunked: true }, value: chunkedVariant },
+    { match: { tier: 'subgroup', useF16KV: true }, value: `decode_streaming${suffix}` },
+    { match: { tier: 'subgroup', canUseDecodeSubgroup: true }, value: 'decode_subgroup' },
+    { match: { tier: 'subgroup' }, value: 'decode_streaming' },
+    { match: { tier: 'tiled_large' }, value: `${base}${suffix}` },
+    { match: { tier: 'tiled_small' }, value: `${base}_small${suffix}` },
+    { match: { tier: 'streaming', canUseChunked: true }, value: chunkedVariant },
+    { match: { tier: 'streaming' }, value: `${base}_streaming${suffix}` },
+    { match: {}, value: `${base}_streaming${suffix}` },
+  ];
+
+  const variant = selectByRules(
+    rules,
+    { tier, useF16KV, canUseChunked, canUseDecodeSubgroup },
+    `${base}_streaming${suffix}`
+  );
+
+  if (variant === chunkedVariant && !loggedChunkedKernel) {
+    trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=${!useF16Q})`);
+    loggedChunkedKernel = true;
   }
-  if (tier === 'tiled_large') {
-    return base + suffix;
-  }
-  if (tier === 'tiled_small') {
-    return `${base}_small${suffix}`;
-  }
-  // For streaming tier, prefer chunked if viable
-  if (canUseChunked) {
-    if (!loggedChunkedKernel) {
-      trace.attn(0, `Using chunked decode kernel (headDim=${headDim}, numHeads=${numHeads}, f16kv=${!useF16Q})`);
-      loggedChunkedKernel = true;
-    }
-    return chunkedVariant;
-  }
-  return `${base}_streaming${suffix}`;
+
+  return variant;
 }
 
 

@@ -121,7 +121,7 @@ export interface RuntimeCapabilities {
 
 /**
  * Platform config with runtime capabilities merged in.
- * This is what selection.js receives.
+ * This is what GPU kernel selection consumes.
  */
 export interface ResolvedPlatformConfig {
   /** Platform configuration */

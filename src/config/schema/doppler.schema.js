@@ -66,6 +66,9 @@ function mergeSharedRuntimeConfig(
     debug: overrides.debug
       ? mergeDebugConfig(base.debug, overrides.debug)
       : { ...base.debug },
+    benchmark: overrides.benchmark
+      ? mergeBenchmarkConfig(base.benchmark, overrides.benchmark)
+      : { ...base.benchmark },
     platform: overrides.platform ?? base.platform,
     kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
     kernelThresholds: overrides.kernelThresholds
@@ -178,5 +181,22 @@ function mergeDebugConfig(
     trace: { ...base.trace, ...overrides.trace },
     pipeline: { ...base.pipeline, ...overrides.pipeline },
     probes: overrides.probes ?? base.probes,
+    profiler: { ...base.profiler, ...overrides.profiler },
+  };
+}
+
+function mergeBenchmarkConfig(
+  base,
+  overrides
+) {
+  if (!overrides) {
+    return { ...base };
+  }
+
+  return {
+    output: { ...base.output, ...overrides.output },
+    run: { ...base.run, ...overrides.run },
+    stats: { ...base.stats, ...overrides.stats },
+    comparison: { ...base.comparison, ...overrides.comparison },
   };
 }

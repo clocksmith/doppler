@@ -34,14 +34,6 @@ export interface RoPEConfigSchema {
   yarnOriginalMaxPos?: number;
 }
 
-/**
- * Legacy fallbacks for v1 manifests (where architecture is a string).
- * For new manifests, use DEFAULT_MANIFEST_INFERENCE instead.
- * TODO: Remove when v1 manifest support is dropped.
- */
-export declare const DEFAULT_MAX_POSITION_EMBEDDINGS: number;
-export declare const DEFAULT_RMS_NORM_EPS: number;
-
 /** Attention mechanism configuration */
 export interface AttentionSchema {
   /** Use sliding window attention */

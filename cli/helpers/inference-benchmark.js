@@ -199,7 +199,7 @@ export async function runFullInferenceBenchmark(opts) {
 
     try {
       console.log('Opening browser...');
-      const benchUrl = `${opts.baseUrl}/d`;
+      const benchUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=bench`;
       await page.goto(benchUrl, { timeout: 30000 });
 
       console.log('Waiting for WebGPU...');
@@ -209,7 +209,7 @@ export async function runFullInferenceBenchmark(opts) {
       );
 
       await page.waitForFunction(
-        () => typeof (/** @type {any} */ (window)).dopplerReady === 'undefined' || (/** @type {any} */ (window)).dopplerReady === true,
+        () => /** @type {any} */ (window).dopplerReady === true,
         { timeout: 5000 }
       ).catch(() => {});
 

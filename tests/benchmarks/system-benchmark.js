@@ -9,6 +9,8 @@
  * @module tests/benchmark/system-benchmark
  */
 
+import { DEFAULT_BENCHMARK_OUTPUT_CONFIG } from '../../src/config/schema/benchmark.schema.js';
+
 // ============================================================================
 // System Benchmark Class
 // ============================================================================
@@ -41,7 +43,7 @@ export class SystemBenchmark {
     const opfs = await this.measureOPFS(download.totalBytes);
 
     return {
-      schemaVersion: 1,
+      schemaVersion: DEFAULT_BENCHMARK_OUTPUT_CONFIG.schemaVersion,
       timestamp: new Date().toISOString(),
       suite: 'system',
       runType: this.config.clearOPFS ? 'cold' : 'warm',

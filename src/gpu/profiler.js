@@ -16,6 +16,9 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback } from './perf-guards.js';
 import { log } from '../debug/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+import { DEFAULT_PROFILER_CONFIG } from '../config/schema/debug.schema.js';
+import { computeBasicStats } from '../debug/stats.js';
 
 /**
  * @typedef {Object} ActiveMeasurement
@@ -63,7 +66,11 @@ export class GPUProfiler {
   /** @type {GPUBuffer | null} */
   #readbackBuffer = null;
   /** @type {number} */
-  #queryCapacity = 256; // Max number of timestamp pairs
+  #queryCapacity = DEFAULT_PROFILER_CONFIG.queryCapacity;
+  /** @type {number} */
+  #maxSamples = DEFAULT_PROFILER_CONFIG.maxSamples;
+  /** @type {number} */
+  #maxDurationMs = DEFAULT_PROFILER_CONFIG.maxDurationMs;
 
   // Tracking state
   /** @type {Map<string, ActiveMeasurement | CpuMeasurement>} */
@@ -87,6 +94,10 @@ export class GPUProfiler {
   constructor(device = null) {
     this.#device = device || getDevice();
     this.#hasTimestampQuery = this.#device?.features?.has(FEATURES.TIMESTAMP_QUERY) ?? false;
+    const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler ?? DEFAULT_PROFILER_CONFIG;
+    this.#queryCapacity = runtimeProfiler.queryCapacity ?? DEFAULT_PROFILER_CONFIG.queryCapacity;
+    this.#maxSamples = runtimeProfiler.maxSamples ?? DEFAULT_PROFILER_CONFIG.maxSamples;
+    this.#maxDurationMs = runtimeProfiler.maxDurationMs ?? DEFAULT_PROFILER_CONFIG.maxDurationMs;
 
     // Initialize query resources if timestamp queries available
     if (this.#hasTimestampQuery && this.#device) {
@@ -263,7 +274,7 @@ export class GPUProfiler {
       const durationMs = Number(endNs - startNs) / 1_000_000;
 
       // Sanity check - use CPU timing if GPU timing seems wrong
-      if (durationMs < 0 || durationMs > 60000) {
+      if (durationMs < 0 || durationMs > this.#maxDurationMs) {
         // Fallback to CPU timing
         this.#recordResult(pending.label, pending.cpuEndTime - pending.cpuStartTime);
       } else {
@@ -299,8 +310,8 @@ export class GPUProfiler {
     result.sum += timeMs;
     result.count++;
 
-    // Keep only last 100 samples for running average
-    if (result.times.length > 100) {
+    // Keep only last N samples for running average
+    if (result.times.length > this.#maxSamples) {
       const removed = result.times.shift();
       result.sum -= removed;
       result.count--;
@@ -321,12 +332,13 @@ export class GPUProfiler {
     const output = {};
 
     for (const [label, data] of this.#results) {
+      const stats = computeBasicStats(data.times);
       output[label] = {
-        avg: data.sum / data.count,
-        min: data.min,
-        max: data.max,
-        count: data.count,
-        total: data.sum,
+        avg: stats.mean,
+        min: stats.min,
+        max: stats.max,
+        count: stats.count,
+        total: stats.total,
       };
     }
 
@@ -342,12 +354,13 @@ export class GPUProfiler {
     const data = this.#results.get(label);
     if (!data) return null;
 
+    const stats = computeBasicStats(data.times);
     return {
-      avg: data.sum / data.count,
-      min: data.min,
-      max: data.max,
-      count: data.count,
-      total: data.sum,
+      avg: stats.mean,
+      min: stats.min,
+      max: stats.max,
+      count: stats.count,
+      total: stats.total,
     };
   }
 

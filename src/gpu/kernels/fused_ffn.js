@@ -8,6 +8,8 @@ import { createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
+import { selectByRules } from './rule-matcher.js';
 
 class FusedFFNKernel extends KernelBase {
   
@@ -28,26 +30,23 @@ class FusedFFNKernel extends KernelBase {
 
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
-  // Q4K variants - only if fused path is enabled
-  if (weightDtype === 'q4k' && !isFusedQ4KDisabled()) {
-    return batchSize > 1 ? 'q4k_batched' : 'q4k';
-  }
+  const { multiOutputThreshold } = getKernelThresholds().ffn;
+  const canUseQ4K = weightDtype === 'q4k' && !isFusedQ4KDisabled();
 
-  // For small intermediate sizes, use multi-output variant
-  if (batchSize > 1) {
-    return 'batched';
-  }
+  const rules = [
+    { match: { canUseQ4K: true, batchSize: { gt: 1 } }, value: 'q4k_batched' },
+    { match: { canUseQ4K: true }, value: 'q4k' },
+    { match: { batchSize: { gt: 1 } }, value: 'batched' },
+    { match: { weightDtype: 'f16' }, value: 'f16' },
+    { match: { intermediateSize: { lte: multiOutputThreshold } }, value: 'multi' },
+    { match: {}, value: 'default' },
+  ];
 
-  if (weightDtype === 'f16') {
-    return 'f16';
-  }
-
-  if (intermediateSize <= 1024) {
-    return 'multi';
-  }
-
-  // Default F32 variant
-  return 'default';
+  return selectByRules(
+    rules,
+    { canUseQ4K, batchSize, weightDtype, intermediateSize },
+    'default'
+  );
 }
 
 

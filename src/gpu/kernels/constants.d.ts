@@ -51,52 +51,6 @@ export declare const GPU_LIMITS: {
 };
 
 /**
- * Memory thresholds for kernel selection (in bytes)
- */
-export declare const MEMORY_THRESHOLDS: {
-  /** Large attention tier shared memory requirement (F32 KV) */
-  readonly ATTENTION_LARGE_SHARED: 20480;
-
-  /** Large attention tier shared memory requirement (F16 KV) */
-  readonly ATTENTION_LARGE_SHARED_F16: 49152;
-
-  /** Small attention tier shared memory requirement (F32) */
-  readonly ATTENTION_SMALL_SHARED_F32: 8192;
-
-  /** Small attention tier shared memory requirement (F16) */
-  readonly ATTENTION_SMALL_SHARED_F16: 4096;
-
-  /** Subgroup attention tier shared memory requirement */
-  readonly ATTENTION_SUBGROUP_SHARED: 8192;
-
-  /** Minimum shared memory for any GPU */
-  readonly MIN_SHARED_MEMORY: 16384;
-};
-
-/**
- * Dimension limits for kernel tier selection
- */
-export declare const DIMENSION_LIMITS: {
-  /** Maximum head dimension for large attention tier */
-  readonly ATTENTION_LARGE_MAX_HEAD_DIM: 64;
-
-  /** Maximum head dimension for small attention tier */
-  readonly ATTENTION_SMALL_MAX_HEAD_DIM: 256;
-
-  /** Maximum head dimension for subgroup attention tier */
-  readonly ATTENTION_SUBGROUP_MAX_HEAD_DIM: 256;
-
-  /** Maximum sequence length for practical inference */
-  readonly MAX_SEQ_LEN: 32768;
-
-  /** Maximum vocab size for typical models */
-  readonly MAX_VOCAB_SIZE: 262144;
-
-  /** Maximum batch size for prefill */
-  readonly MAX_BATCH_SIZE: 128;
-};
-
-/**
  * Tile sizes for different operations
  */
 export declare const TILE_SIZES: {

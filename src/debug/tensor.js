@@ -8,6 +8,7 @@
 
 import { gpuDevice } from './config.js';
 import { log } from './log.js';
+import { computeArrayStats } from './stats.js';
 
 // ============================================================================
 // Internal Helpers
@@ -87,50 +88,21 @@ export const tensor = {
       return null;
     }
 
-    // Compute statistics
-    let min = Infinity,
-      max = -Infinity,
-      sum = 0,
-      sumSq = 0;
-    let nanCount = 0,
-      infCount = 0,
-      zeroCount = 0;
-
-    for (let i = 0; i < data.length; i++) {
-      const v = data[i];
-      if (Number.isNaN(v)) {
-        nanCount++;
-        continue;
-      }
-      if (!Number.isFinite(v)) {
-        infCount++;
-        continue;
-      }
-      if (v === 0) zeroCount++;
-      min = Math.min(min, v);
-      max = Math.max(max, v);
-      sum += v;
-      sumSq += v * v;
-    }
-
-    const validCount = data.length - nanCount - infCount;
-    const mean = validCount > 0 ? sum / validCount : 0;
-    const variance = validCount > 0 ? sumSq / validCount - mean * mean : 0;
-    const std = Math.sqrt(Math.max(0, variance));
+    const statsSummary = computeArrayStats(data);
 
     const stats = {
       label,
       shape,
       size: data.length,
       isGPU,
-      min,
-      max,
-      mean,
-      std,
-      nanCount,
-      infCount,
-      zeroCount,
-      zeroPercent: ((zeroCount / data.length) * 100).toFixed(1),
+      min: statsSummary.min,
+      max: statsSummary.max,
+      mean: statsSummary.mean,
+      std: statsSummary.std,
+      nanCount: statsSummary.nanCount,
+      infCount: statsSummary.infCount,
+      zeroCount: statsSummary.zeroCount,
+      zeroPercent: ((statsSummary.zeroCount / data.length) * 100).toFixed(1),
       first: Array.from(data.slice(0, maxPrint)).map((v) => v.toFixed(4)),
       last: Array.from(data.slice(-maxPrint)).map((v) => v.toFixed(4)),
     };
@@ -138,11 +110,11 @@ export const tensor = {
     const shapeStr = shape.length > 0 ? `[${shape.join('x')}]` : `[${data.length}]`;
     log.debug(
       'Tensor',
-      `${label} ${shapeStr}: min=${min.toFixed(4)}, max=${max.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}`
+      `${label} ${shapeStr}: min=${statsSummary.min.toFixed(4)}, max=${statsSummary.max.toFixed(4)}, mean=${statsSummary.mean.toFixed(4)}, std=${statsSummary.std.toFixed(4)}`
     );
 
-    if (checkNaN && (nanCount > 0 || infCount > 0)) {
-      log.warn('Tensor', `${label} has ${nanCount} NaN and ${infCount} Inf values!`);
+    if (checkNaN && (statsSummary.nanCount > 0 || statsSummary.infCount > 0)) {
+      log.warn('Tensor', `${label} has ${statsSummary.nanCount} NaN and ${statsSummary.infCount} Inf values!`);
     }
 
     return stats;
@@ -239,3 +211,59 @@ export const tensor = {
     return { label, healthy, issues };
   },
 };
+
+export async function snapshotTensor(buffer, shape, dtype = 'f32') {
+  try {
+    if (!gpuDevice) {
+      throw new Error('GPU device not initialized');
+    }
+    const elementSize = dtype === 'f16' ? 2 : 4;
+    const numElements = (shape ?? []).reduce((a, b) => a * b, 1);
+    const readSize = numElements > 0
+      ? Math.min(buffer.size, numElements * elementSize)
+      : buffer.size;
+    const staging = gpuDevice.createBuffer({
+      label: 'debug_snapshot_staging',
+      size: readSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+    const encoder = gpuDevice.createCommandEncoder();
+    encoder.copyBufferToBuffer(buffer, 0, staging, 0, readSize);
+    gpuDevice.queue.submit([encoder.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = staging.getMappedRange().slice(0);
+    staging.unmap();
+    staging.destroy();
+    const arr = new Float32Array(data);
+    return snapshotFromArray(arr, shape ?? [arr.length], dtype);
+  } catch {
+    return {
+      shape: shape ?? [0],
+      dtype,
+      stats: { min: 0, max: 0, maxAbs: 0, mean: 0, std: 0 },
+      sample: [],
+      hasNaN: false,
+      hasInf: false,
+    };
+  }
+}
+
+export function snapshotFromArray(arr, shape, dtype = 'f32') {
+  const numElements = shape.reduce((a, b) => a * b, 1);
+  const stats = computeArrayStats(arr, Math.min(arr.length, numElements));
+
+  return {
+    shape,
+    dtype,
+    stats: {
+      min: stats.min,
+      max: stats.max,
+      maxAbs: stats.maxAbs,
+      mean: stats.mean,
+      std: stats.std,
+    },
+    sample: Array.from(arr.slice(0, 8)),
+    hasNaN: stats.nanCount > 0,
+    hasInf: stats.infCount > 0,
+  };
+}

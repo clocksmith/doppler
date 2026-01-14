@@ -2,7 +2,7 @@
  * Pipeline Benchmark Harness
  *
  * Measures end-to-end inference performance following the spec in
- * docs/spec/BENCHMARK_HARNESS.md
+ * docs/spec/BENCHMARK_SCHEMA.json
  *
  * Usage:
  *   const harness = new PipelineBenchmark(config);
@@ -13,9 +13,11 @@
  */
 
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
+import { DEFAULT_BENCHMARK_OUTPUT_CONFIG } from '../../src/config/schema/benchmark.schema.js';
 import { getPrompt } from './prompts.js';
 import { applyChatTemplate } from '../../src/inference/pipeline/init.js';
 import { setRuntimeConfig } from '../../src/config/runtime.js';
+import { percentile } from '../../src/debug/stats.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -86,7 +88,7 @@ export class PipelineBenchmark {
 
     // Build result
     const result = {
-      schemaVersion: 1,
+      schemaVersion: DEFAULT_BENCHMARK_OUTPUT_CONFIG.schemaVersion,
       timestamp: new Date().toISOString(),
       suite: 'pipeline',
       runType: this.config.runType,
@@ -460,9 +462,9 @@ export class PipelineBenchmark {
 
     // Percentiles
     if (sortedLatencies.length > 0) {
-      metrics.decode_ms_per_token_p50 = this.percentile(sortedLatencies, 50);
-      metrics.decode_ms_per_token_p90 = this.percentile(sortedLatencies, 90);
-      metrics.decode_ms_per_token_p99 = this.percentile(sortedLatencies, 99);
+      metrics.decode_ms_per_token_p50 = percentile(sortedLatencies, 50);
+      metrics.decode_ms_per_token_p90 = percentile(sortedLatencies, 90);
+      metrics.decode_ms_per_token_p99 = percentile(sortedLatencies, 99);
     }
 
     // GPU readback bytes (sum across all runs)
@@ -556,16 +558,6 @@ export class PipelineBenchmark {
     return values.reduce((a, b) => a + b, 0) / values.length;
   }
 
-  percentile(sorted, p) {
-    if (sorted.length === 0) return 0;
-    if (sorted.length === 1) return sorted[0];
-    // Linear interpolation for accurate percentiles
-    const idx = (p / 100) * (sorted.length - 1);
-    const lo = Math.floor(idx);
-    const hi = Math.ceil(idx);
-    if (lo === hi) return sorted[lo];
-    return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
-  }
 }
 
 // ============================================================================

@@ -33,13 +33,15 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         channel: 'chrome',
-        headless: true,
+        headless: false,  // Handle via --headless=new in args (supports real GPU)
         launchOptions: {
           args: [
             '--enable-unsafe-webgpu',
-            '--enable-features=Vulkan',
-            '--use-angle=metal',
             '--headless=new',
+            // Platform-specific GPU backend
+            ...(process.platform === 'darwin'
+              ? ['--use-angle=metal']
+              : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-vulkan-surface']),
             '--no-first-run',
             '--no-default-browser-check',
           ],
@@ -49,8 +51,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'python3 -m http.server 8080 --directory ../../..',
-    url: 'http://localhost:8080',
+    command: 'node ../../../serve.js --port 8080',
+    url: 'http://localhost:8080/doppler/tests/harness.html?mode=kernels',
     reuseExistingServer: !process.env.CI,
     timeout: 10000,
   },

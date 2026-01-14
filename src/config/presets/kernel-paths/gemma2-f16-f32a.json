@@ -2,6 +2,7 @@
   "id": "gemma2-f16-f32a",
   "name": "Gemma 2 F16 (F32 activations)",
   "description": "F16 weights with F32 activations (mixed precision).",
+  "activationDtype": "f32",
 
   "decode": {
     "steps": [

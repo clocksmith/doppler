@@ -173,10 +173,10 @@ For manual browser testing, start the server first: `npm start`
 
 Open in browser while dev server is running:
 
-- **Inference test page:** http://localhost:8080/doppler/tests/test-inference.html
-  - Add `?model=gemma3-1b-q4` to specify model
-  - Add `&autorun=1` to auto-start test
-- **Kernel test page:** http://localhost:8080/doppler/tests/kernels/browser/index.html
+- **Unified test harness:** http://localhost:8080/doppler/tests/harness.html
+  - `?mode=kernels` — Kernel correctness tests
+  - `?mode=inference` — Inference tests (add `&model=gemma3-1b-q4&autorun=1`)
+  - `?mode=bench` — Benchmark mode (for Playwright injection)
 - **Demo UI:** http://localhost:8080/d
 
 ## Adding New Tests
@@ -185,7 +185,7 @@ Open in browser while dev server is running:
 Add to `tests/kernels/` and update `cli/index.js` switch statement.
 
 ### Inference Tests
-Modify `tests/test-inference.html` for test logic.
+Modify `tests/harness.html` inference mode for test logic.
 
 ### Unit Tests
 Add `.test.js` files to `tests/` directory.

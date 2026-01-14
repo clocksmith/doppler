@@ -166,6 +166,7 @@ Both fields are explicitly disabled (valid). Omitting either field is invalid.
 - Converter embeds all model-specific inference params in `manifest.json`
 - Runtime never detects model family in pipeline code
 - Pipeline reads config values directly, no architecture-string inference
+- Runtime must not infer model parameters from tensor names, shapes, or heuristics
 
 ```javascript
 // DON'T: infer behavior from model family strings
@@ -184,6 +185,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath` → CLI `--kernel-path`.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
+ - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 
 ### Manifest-First Change Checklist
 

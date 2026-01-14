@@ -37,11 +37,14 @@ import {
 import {
   compareResults,
   formatComparison,
+  detectRegressions,
+  formatRegressionSummary,
   welchTTest,
   formatTTestResult,
 } from './helpers/comparison.js';
 
 import { generateHTMLReport } from './helpers/html-report.js';
+import { DEFAULT_BENCHMARK_CONFIG } from '../src/config/schema/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -126,6 +129,7 @@ const KERNEL_PROFILE_PATHS = {
 const FLAG_SPECS = [
   { names: ['--help', '-h'], handler: (opts) => { opts.help = true; } },
   { names: ['--config'], handler: (opts, tokens) => { opts.config = tokens.shift() || null; } },
+  { names: ['--mode'], handler: (opts, tokens) => { opts.mode = tokens.shift() || null; } },
   { names: ['--dump-config'], handler: (opts) => { opts.dumpConfig = true; } },
   { names: ['--list-presets'], handler: (opts) => { opts.listPresets = true; } },
   { names: ['--model', '-m'], handler: (opts, tokens) => { opts.model = tokens.shift() || opts.model; } },
@@ -146,6 +150,7 @@ const FLAG_SPECS = [
   { names: ['--verbose', '-v'], handler: (opts) => { opts.verbose = true; } },
   { names: ['--inference'], handler: (opts) => { opts.suite = 'inference'; } },
   { names: ['--kernels'], handler: (opts) => { opts.suite = 'kernels'; } },
+  { names: ['--quick'], handler: (opts) => { opts.suite = 'quick'; } },
   { names: ['--full'], handler: (opts) => { opts.suite = 'all'; } },
   { names: ['--break'], handler: (opts) => { opts.trace = 'break'; } },
   { names: ['--filter', '-f'], handler: (opts, tokens) => { opts.filter = tokens.shift() || null; } },
@@ -344,10 +349,11 @@ function parseArgs(argv) {
   const opts = {
     cliFlags: new Set(),
     command: 'test',
-    suite: 'quick',
+    suite: 'kernels',
     model: 'gemma-2-2b-it-wf16',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     config: null,           // Config preset or path
+    mode: null,             // Mode preset shortcut (bench/debug/profile/trace/test)
     runtimeConfig: null,    // Loaded runtime config (merged with defaults)
     configChain: null,      // Config inheritance chain for debugging
     dumpConfig: false,      // Dump resolved config and exit
@@ -538,8 +544,8 @@ Three commands, three purposes:
 ===============================================================
 
 TEST - Correctness Tests
-  doppler test                        Quick kernel tests (default)
-  doppler test --full                 Full test suite (all kernels)
+  doppler test                        All kernel tests (default)
+  doppler test --quick                Quick subset (matmul, rmsnorm, softmax, gather)
   doppler test --inference            Model loads + generates (smoke test)
   doppler test --filter matmul        Filter to specific kernel
 
@@ -560,6 +566,7 @@ DEBUG - Interactive Debugging (with kernel trace)
 Common Options:
   --model, -m <name>     Model (default: gemma-2-2b-it-wf16)
   --config <ref>         Load config (preset name, path, URL, or inline JSON)
+  --mode <name>          Shortcut for runtime preset (e.g., bench, debug)
   --dump-config          Print resolved config and exit
   --list-presets         List available config presets
   --verbose, -v          Verbose loader logs (per-shard, per-layer)
@@ -576,6 +583,7 @@ Config System:
   --config debug               Use built-in 'debug' preset
   --config ./my-config.json    Load from file path
   --config '{"runtime":...}'   Inline JSON config
+  --mode bench                 Shortcut for --config bench
 
   Built-in presets: default, debug, bench, production, low-memory, ci
   User presets: ~/.doppler/presets/*.json
@@ -642,7 +650,7 @@ async function runCorrectnessTests(page, opts, tests) {
   console.log('KERNEL CORRECTNESS TESTS');
   console.log('='.repeat(60));
 
-  await page.goto(`${opts.baseUrl}/doppler/tests/kernels/browser/index.html`, {
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=kernels`, {
     timeout: opts.timeout,
   });
 
@@ -1312,7 +1320,7 @@ async function runKernelBenchmarks(page, opts) {
     (window).__name = (target) => target;
   });
 
-  await page.goto(`${opts.baseUrl}/doppler/tests/kernels/browser/index.html`, {
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=kernels`, {
     timeout: opts.timeout,
   });
 
@@ -1525,7 +1533,7 @@ async function runInferenceTest(page, opts) {
     testParams.set('profile', '1');
   }
 
-  const testUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${testParams.toString()}`;
+  const testUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${testParams.toString()}`;
   console.log(`  URL: ${testUrl}`);
 
   await page.goto(testUrl, { timeout: opts.timeout });
@@ -2157,7 +2165,7 @@ async function main() {
 
   // Handle --dump-config
   if (opts.dumpConfig) {
-    const configRef = opts.config || 'default';
+    const configRef = opts.config || opts.mode || 'default';
     try {
       const loaded = await loadConfig(configRef);
       console.log('\n' + dumpConfig(loaded));
@@ -2171,9 +2179,10 @@ async function main() {
   // Load config if specified
   /** @type {Awaited<ReturnType<typeof loadConfig>> | null} */
   let loadedConfig = null;
-  if (opts.config) {
+  const configRef = opts.config || opts.mode;
+  if (configRef) {
     try {
-      loadedConfig = await loadConfig(opts.config);
+      loadedConfig = await loadConfig(configRef);
       console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
       opts.runtimeConfig = loadedConfig.runtime;
       opts.configChain = loadedConfig.chain;
@@ -2210,7 +2219,7 @@ async function main() {
         if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
       }
     } catch (err) {
-      console.error(`Failed to load config "${opts.config}": ${/** @type {Error} */ (err).message}`);
+      console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
       process.exit(1);
     }
   }
@@ -2350,7 +2359,7 @@ async function main() {
       appendKernelOverrideParams(debugParams, opts);
       appendRuntimeConfigParams(debugParams, opts);
 
-      const debugUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${debugParams.toString()}&debug=1&autorun=1`;
+      const debugUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${debugParams.toString()}&debug=1&autorun=1`;
       console.log(`  URL: ${debugUrl}`);
 
       await page.goto(debugUrl, { timeout: opts.timeout });
@@ -2412,9 +2421,17 @@ async function main() {
               const comparison = compareResults(baseline, benchResults);
               console.log(formatComparison(comparison));
 
+              const benchmarkConfig = loadedConfig?.runtime?.shared?.benchmark ?? DEFAULT_BENCHMARK_CONFIG;
+              const regressionSummary = detectRegressions(
+                comparison,
+                benchmarkConfig.comparison ?? DEFAULT_BENCHMARK_CONFIG.comparison
+              );
+              console.log(formatRegressionSummary(regressionSummary));
+
               const baseLatencies = baseline.raw?.decode_latencies_ms;
               const currLatencies = benchResults.raw?.decode_latencies_ms;
-              if (baseLatencies?.length >= 3 && currLatencies?.length >= 3) {
+              const minSamples = benchmarkConfig.stats?.minSamplesForComparison ?? DEFAULT_BENCHMARK_CONFIG.stats.minSamplesForComparison;
+              if (baseLatencies?.length >= minSamples && currLatencies?.length >= minSamples) {
                 console.log('\n' + '-'.repeat(60));
                 console.log('STATISTICAL SIGNIFICANCE (Welch\'s t-test)');
                 console.log('-'.repeat(60));
@@ -2425,6 +2442,11 @@ async function main() {
                 } else {
                   console.log(`  -> The difference is NOT statistically significant (p >= 0.05)`);
                 }
+              }
+
+              if (regressionSummary.hasRegression && (benchmarkConfig.comparison?.failOnRegression ?? DEFAULT_BENCHMARK_CONFIG.comparison.failOnRegression)) {
+                console.error('\nBenchmark regression threshold exceeded.');
+                process.exit(1);
               }
             } catch (err) {
               console.error(`\nFailed to load baseline for comparison: ${/** @type {Error} */ (err).message}`);
@@ -2476,7 +2498,7 @@ async function main() {
           loadParams.set('benchmark', 'loading');
           appendKernelOverrideParams(loadParams, opts);
           appendRuntimeConfigParams(loadParams, opts);
-          const loadUrl = `${opts.baseUrl}/doppler/tests/test-inference.html?${loadParams.toString()}`;
+          const loadUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${loadParams.toString()}`;
           await page.goto(loadUrl, { timeout: opts.timeout });
 
           const loadStart = Date.now();

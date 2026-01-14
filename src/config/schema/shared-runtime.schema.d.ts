@@ -7,6 +7,7 @@
  */
 
 import type { DebugConfigSchema } from './debug.schema.js';
+import type { BenchmarkConfig } from './benchmark.schema.js';
 import type { KernelThresholdsConfigSchema } from './kernel-thresholds.schema.js';
 import type { BufferPoolConfigSchema } from './buffer-pool.schema.js';
 import type { GpuCacheConfigSchema } from './gpu-cache.schema.js';
@@ -33,6 +34,8 @@ export declare const DEFAULT_KERNEL_REGISTRY_CONFIG: KernelRegistryConfigSchema;
 export interface SharedRuntimeConfigSchema {
   /** Unified debug/log/trace configuration */
   debug: DebugConfigSchema;
+  /** Benchmarking configuration defaults */
+  benchmark: BenchmarkConfig;
   /** Optional platform override (auto-detect when null) */
   platform: Partial<PlatformSchema> | null;
   /** Kernel registry source config */

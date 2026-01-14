@@ -41,49 +41,6 @@ export const GPU_LIMITS = {
   MAX_WORKGROUPS: 65535,
 };
 
-
-export const MEMORY_THRESHOLDS = {
-  
-  ATTENTION_LARGE_SHARED: 20480, // 20KB (2 * 32 * 64 * 4 + 32 * 32 * 4)
-
-  
-  ATTENTION_LARGE_SHARED_F16: 49152, // 48KB (2 * 64 * 64 * 4 + 64 * 64 * 4)
-
-  
-  ATTENTION_SMALL_SHARED_F32: 8192, // 8KB (2 * 32 * 32 * 4)
-
-  
-  ATTENTION_SMALL_SHARED_F16: 4096, // 4KB (2 * 32 * 32 * 2)
-
-  
-  ATTENTION_SUBGROUP_SHARED: 8192, // 2048 * 4 bytes for scores array
-
-  
-  MIN_SHARED_MEMORY: 16384, // 16KB (WebGPU minimum spec)
-};
-
-
-export const DIMENSION_LIMITS = {
-  
-  ATTENTION_LARGE_MAX_HEAD_DIM: 64,
-
-  
-  ATTENTION_SMALL_MAX_HEAD_DIM: 256,
-
-  
-  ATTENTION_SUBGROUP_MAX_HEAD_DIM: 256,
-
-  
-  MAX_SEQ_LEN: 32768,
-
-  
-  MAX_VOCAB_SIZE: 262144, // Gemma 3
-
-  
-  MAX_BATCH_SIZE: 128,
-};
-
-
 export const TILE_SIZES = {
   
   ATTENTION_LARGE_BLOCK_SIZE: 32,

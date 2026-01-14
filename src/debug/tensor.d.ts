@@ -62,6 +62,21 @@ export interface TensorInspectOptions {
   checkNaN?: boolean;
 }
 
+export interface TensorSnapshot {
+  shape: number[];
+  dtype: string;
+  stats: {
+    min: number;
+    max: number;
+    maxAbs: number;
+    mean: number;
+    std: number;
+  };
+  sample: number[];
+  hasNaN: boolean;
+  hasInf: boolean;
+}
+
 // ============================================================================
 // Tensor Inspection Interface
 // ============================================================================
@@ -94,3 +109,15 @@ export declare const tensor: {
    */
   healthCheck(data: Float32Array, label: string): TensorHealthResult;
 };
+
+export declare function snapshotTensor(
+  buffer: GPUBuffer,
+  shape?: number[],
+  dtype?: string
+): Promise<TensorSnapshot>;
+
+export declare function snapshotFromArray(
+  arr: Float32Array,
+  shape: number[],
+  dtype?: string
+): TensorSnapshot;

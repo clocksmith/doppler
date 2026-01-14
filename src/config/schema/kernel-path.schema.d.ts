@@ -93,6 +93,9 @@ export interface KernelPathSchema {
   /** Description of this path's characteristics */
   description?: string;
 
+  /** Activation dtype for this path (e.g., 'f16', 'f32') */
+  activationDtype: string;
+
   /**
    * Prefill phase kernel sequence (M > 1).
    * If not specified, uses decode with batched variants.

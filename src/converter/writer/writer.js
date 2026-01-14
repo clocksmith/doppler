@@ -86,7 +86,7 @@ export class RDRRWriter {
 
     this.#manifest.modelId = options.modelId ?? 'unknown';
     this.#manifest.modelType = this.#modelType;
-    this.#manifest.architecture = options.architecture ?? 'llama';
+    this.#manifest.architecture = options.architecture ?? null;
     this.#manifest.quantization = options.quantization ?? 'Q4_K_M';
     this.#manifest.quantizationInfo = options.quantizationInfo;
     this.#manifest.hashAlgorithm = this.#hashAlgorithm;
@@ -419,6 +419,12 @@ export class RDRRWriter {
   }
 
   async finalize() {
+    if (!this.#manifest.architecture || typeof this.#manifest.architecture !== 'object') {
+      throw new Error(
+        'Manifest architecture config is required. ' +
+        'Re-convert the model using the latest converter to populate manifest.architecture.'
+      );
+    }
     if (!this.#manifest.inference) {
       throw new Error(
         'Manifest inference config is required. ' +

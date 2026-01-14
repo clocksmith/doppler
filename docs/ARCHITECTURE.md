@@ -150,10 +150,10 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ├───────────────────┴────────────────────┴────────────────────────────────────┤
 │                          SHARED SERVICES                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ config/                          │ gpu/kernel-selector                       │
-│ ├─ schema/ (all DEFAULT_*)       │ ├─ kernel-selector.js (dispatch routing) │
-│ ├─ presets/runtime/              │ ├─ kernel-registry.js (variant catalog)  │
-│ ├─ presets/models/               │ └─ kernel-tuner/ (auto-benchmarking)     │
+│ config/                          │ gpu/kernels                               │
+│ ├─ schema/ (all DEFAULT_*)       │ ├─ *.js (selection + dispatch)           │
+│ ├─ presets/runtime/              │ ├─ kernel-configs.js (from registry)     │
+│ ├─ presets/models/               │ └─ kernel-tuning.js (auto-benchmarking)  │
 │ └─ runtime.js (get/set API)      │                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ types/                                                                       │
@@ -175,9 +175,26 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 - **Runtime**: Orchestration, state. Coordinates Compute and Data.
 - **Shared Services**: Cross-cutting concerns used by multiple domains.
   - `config/`: Source of truth for all tunables (DEFAULT_* exports)
-  - `kernel-selector`: Routes operations to optimal kernel variant
+  - `gpu/kernels`: Selects kernel variants and dispatches work
   - `types/`: TypeScript declarations (compile-time only)
 - **Extensions**: Optional capabilities. Can be removed without breaking core.
+
+### Debug Infrastructure Layers
+
+```
+CLI/Browser
+  --mode bench|debug|profile|trace
+  --trace kernels  --gpu-profile  --compare baseline.json
+        |
+Runtime Config (runtime.shared.debug, runtime.shared.benchmark)
+        |
+  debug/            gpu/                   inference/pipeline/
+  - log.js          - profiler.js           - kernel-trace.js
+  - trace.js        - perf-guards.js
+  - tensor.js
+        |
+Shared: debug/stats.js (median, p95, IQR, outliers)
+```
 
 ### Dependency Graph (True Relationships)
 
@@ -195,9 +212,9 @@ This shows actual import dependencies. Use for refactoring decisions.
                     ┌───────────────────────────┐
                     │      SHARED SERVICES      │
                     ├───────────────────────────┤
-                    │  config/    kernel-sel    │
-                    │  schema     registry      │
-                    │     │       tuner         │
+                    │  config/    kernels       │
+                    │  schema     configs       │
+                    │     │       tuning        │
                     └─────┼─────────────────────┘
                           │
                     ┌─────┼─────┐
@@ -210,7 +227,7 @@ This shows actual import dependencies. Use for refactoring decisions.
 **Key observations:**
 - `inference` depends directly on `gpu` (skips `loader`) — intentional for kernel dispatch
 - `config/schema` is imported by almost everything — source of truth for defaults
-- `kernel-selector/registry` mediates between inference and raw WGSL kernels
+- `kernel-configs` mediates between inference and raw WGSL kernels (derived from `registry.json`)
 - `types`, `memory`, `debug` have no internal dependencies (true foundation)
 - `storage` and `gpu` are orthogonal — neither imports the other
 
@@ -340,12 +357,12 @@ Tracks per-buffer dtype and layout metadata so kernels can select correct execut
 
 Caches kernel selections and warm status to avoid repeated benchmarking on the same device.
 
-### kernel-selector.js - Kernel Dispatch
+### gpu/kernels/*.js - Kernel Dispatch
 
 Routes operations to optimal kernel based on capabilities:
 
 ```javascript
-// Example: matmul routing
+// Example: matmul routing (matmul.js)
 if (hasF16 && weightsAreF16) → matmul_f16.wgsl
 else if (hasF16 && weightsAreF16 && activationsAreF32) → matmul_f16w_f32a.wgsl
 else → matmul_f32.wgsl
@@ -1055,7 +1072,7 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 | `src/inference/moe-router.js` | 624 | MoE expert routing |
 | `src/loader/doppler-loader.js` | 2313 | Weight loading, dequant |
 | `src/gpu/device.js` | 408 | WebGPU initialization |
-| `src/gpu/kernel-selector.js` | 27 | Kernel dispatch (routing) |
+| `src/gpu/kernels/index.js` | 168 | Kernel selection + dispatch exports |
 | `src/gpu/kernel-tuner.js` | 1261 | Auto-tuning benchmarks |
 | `src/gpu/buffer-pool.js` | 586 | Buffer pooling |
 | `src/formats/rdrr/manifest.js` | 111 | RDRR manifest parsing |

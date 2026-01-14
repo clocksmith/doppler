@@ -6,26 +6,23 @@ import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
-
-
-const SOFTMAX_SMALL_THRESHOLD = 256;
+import { getKernelThresholds } from '../../config/schema/index.js';
+import { selectByRules } from './rule-matcher.js';
 
 
 function selectSoftmaxVariant(innerSize) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
+  const { smallThreshold } = getKernelThresholds().softmax;
 
-  if (hasSubgroups) {
-    if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
-      return 'small_subgroup';
-    }
-    return 'subgroup';
-  }
+  const rules = [
+    { match: { hasSubgroups: true, innerSize: { lte: smallThreshold } }, value: 'small_subgroup' },
+    { match: { hasSubgroups: true }, value: 'subgroup' },
+    { match: { innerSize: { lte: smallThreshold } }, value: 'small' },
+    { match: {}, value: 'default' },
+  ];
 
-  if (innerSize <= SOFTMAX_SMALL_THRESHOLD) {
-    return 'small';
-  }
-  return 'default';
+  return selectByRules(rules, { hasSubgroups, innerSize }, 'default');
 }
 
 

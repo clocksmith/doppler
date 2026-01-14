@@ -48,11 +48,8 @@ export function resolveKernelPath(ref) {
 }
 
 export function getKernelPathActivationDtype(path) {
-  if (!path?.id) return null;
-  const id = path.id.toLowerCase();
-  if (id.includes('f16a')) return 'f16';
-  if (id.includes('f32a')) return 'f32';
-  return null;
+  if (!path?.activationDtype) return null;
+  return path.activationDtype;
 }
 
 // =============================================================================
@@ -87,6 +84,7 @@ export function validateKernelPath(path) {
 
   if (!path.id) errors.push('Missing path id');
   if (!path.name) errors.push('Missing path name');
+  if (!path.activationDtype) errors.push('Missing activationDtype');
   if (!path.decode?.steps?.length) errors.push('Missing decode steps');
 
   const validateSteps = (steps, context) => {
@@ -200,24 +198,38 @@ export function getKernelPathMatmulVariant(
   phase,
   layerIndex
 ) {
+  const step = getKernelPathMatmulStep(role, phase, layerIndex);
+  if (!step) return null;
+  return findKernelVariant('matmul', step.kernel, step.entry, phase);
+}
+
+export function getKernelPathMatmulConstants(
+  role,
+  phase,
+  layerIndex
+) {
+  const step = getKernelPathMatmulStep(role, phase, layerIndex);
+  return step?.constants ?? null;
+}
+
+function getKernelPathMatmulStep(
+  role,
+  phase,
+  layerIndex
+) {
   if (!activeKernelPath || !role) return null;
   const alias = MATMUL_ROLE_ALIASES[role] ?? { section: 'layer', ops: [role] };
   const steps = getKernelPathStepsForSection(activeKernelPath, alias.section, phase, layerIndex ?? 0);
   if (role === 'lm_head' && phase === 'prefill') {
-    const step = findStepByOp(steps, 'lm_head_prefill');
-    if (step) {
-      const variant = findKernelVariant('matmul', step.kernel, step.entry, phase);
-      if (variant) {
-        return variant;
-      }
+    const prefillStep = findStepByOp(steps, 'lm_head_prefill');
+    if (prefillStep) {
+      return prefillStep;
     }
   }
   for (const op of alias.ops) {
     const step = findStepByOp(steps, op);
-    if (!step) continue;
-    const variant = findKernelVariant('matmul', step.kernel, step.entry, phase);
-    if (variant) {
-      return variant;
+    if (step) {
+      return step;
     }
   }
   return null;

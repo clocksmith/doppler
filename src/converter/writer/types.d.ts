@@ -5,6 +5,7 @@
  */
 
 import type {
+  ArchitectureSchema,
   HashAlgorithm,
   ModelType,
   WeightLayout,
@@ -104,7 +105,7 @@ export interface HuggingFaceTokenizer {
 
 export interface ModelInfo {
   modelName?: string;
-  architecture?: string;
+  architecture?: ArchitectureSchema;
   quantization?: string;
   quantizationInfo?: QuantizationInfoSchema;
   config?: Record<string, unknown>;

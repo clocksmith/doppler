@@ -286,7 +286,7 @@ function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
 
 ```javascript
 // GOOD - declarative, auditable, testable
-// Types in kernel-selection.d.ts
+// Types in rule-matcher.d.ts
 
 /** Matmul variant selection - first match wins */
 const MATMUL_VARIANTS = [
@@ -346,6 +346,7 @@ export function selectByRules(rules, context, defaultValue) {
 ## Kernel Selection Architecture
 
 Kernel variant selection is **per-op and context-driven**, with pipelines cached per variant.
+Selection logic lives in `src/gpu/kernels/*.js`. Config files provide data only; they do not execute selection.
 
 ### Structure
 
@@ -361,6 +362,14 @@ src/gpu/kernels/
 ```
 
 Note: `src/gpu/kernel-selector.js` is a thin re-export for backward compatibility; selection lives in `src/gpu/kernels/*`.
+
+### Rule Matcher Utility
+
+Use `selectByRules` from `src/gpu/kernels/rule-matcher.js` for all kernel variant selection. Keep rules as pure data and build the context object before matching.
+
+### Registry Derivation
+
+`src/gpu/kernels/kernel-configs.js` derives from `src/config/kernels/registry.json`. Do not add parallel kernel registries.
 
 ### Selection Keys
 
@@ -381,6 +390,25 @@ let pipeline = pipelineCache.get(key);
 if (!pipeline) {
   pipeline = await createPipeline(variant, constants);
   pipelineCache.set(key, pipeline);
+}
+```
+
+### Threshold Wiring Pattern
+
+Pull thresholds into the context object before matching so rules stay data-only:
+
+```javascript
+import { getKernelThresholds } from '../../config/schema/index.js';
+import { selectByRules } from './rule-matcher.js';
+
+function selectSoftmaxVariant(innerSize) {
+  const { smallThreshold } = getKernelThresholds().softmax;
+  const ctx = { innerSize, isSmall: innerSize <= smallThreshold };
+  const rules = [
+    { match: { isSmall: true }, value: 'small' },
+    { match: {}, value: 'default' },
+  ];
+  return selectByRules(rules, ctx, 'default');
 }
 ```
 

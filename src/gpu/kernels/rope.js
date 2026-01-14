@@ -6,6 +6,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
+import { selectByRules } from './rule-matcher.js';
 
 // Get RoPE defaults from schema
 const getRopeDefaults = () => getKernelThresholds().rope;
@@ -28,7 +29,14 @@ export async function runRoPE(
 
   const caps = getKernelCapabilities();
   const useF16 = input.dtype === 'f16' && caps.hasF16;
-  const variant = useF16 ? 'default_f16' : 'default';
+  const variant = selectByRules(
+    [
+      { match: { useF16: true }, value: 'default_f16' },
+      { match: {}, value: 'default' },
+    ],
+    { useF16 },
+    'default'
+  );
   const pipeline = await getPipelineFast('rope', variant);
 
   // Note: RoPE shader modifies input in-place (no output buffer)
@@ -95,7 +103,14 @@ export async function recordRoPE(
 
   const caps = getKernelCapabilities();
   const useF16 = input.dtype === 'f16' && caps.hasF16;
-  const variant = useF16 ? 'default_f16' : 'default';
+  const variant = selectByRules(
+    [
+      { match: { useF16: true }, value: 'default_f16' },
+      { match: {}, value: 'default' },
+    ],
+    { useF16 },
+    'default'
+  );
   const pipeline = await getPipelineFast('rope', variant);
 
   // Note: RoPE shader modifies input in-place (no output buffer)

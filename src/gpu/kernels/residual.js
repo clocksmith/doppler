@@ -7,6 +7,37 @@ import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
+import { selectByRules } from './rule-matcher.js';
+
+
+function selectResidualVariant(outputDtype, useVec4) {
+  const rules = [
+    { match: { useVec4: true, outputDtype: 'f16' }, value: 'vec4_f16' },
+    { match: { useVec4: true }, value: 'vec4' },
+    { match: { outputDtype: 'f16' }, value: 'default_f16' },
+    { match: {}, value: 'default' },
+  ];
+
+  return selectByRules(
+    rules,
+    { outputDtype, useVec4 },
+    'default'
+  );
+}
+
+
+function selectBiasAddVariant(dataDtype, biasDtype) {
+  const rules = [
+    { match: { dataDtype: 'f16', biasDtype: 'f16' }, value: 'f16' },
+    { match: {}, value: 'default' },
+  ];
+
+  return selectByRules(
+    rules,
+    { dataDtype, biasDtype },
+    'default'
+  );
+}
 
 
 async function alignResidualInputs(
@@ -68,9 +99,7 @@ export async function runResidualAdd(
   const outputDtype = inferOutputDtype(aAligned, bAligned);
   const bytesPerElement = dtypeBytes(outputDtype);
 
-  const variant = useVec4
-    ? (outputDtype === 'f16' ? 'vec4_f16' : 'vec4')
-    : (outputDtype === 'f16' ? 'default_f16' : 'default');
+  const variant = selectResidualVariant(outputDtype, useVec4);
   const pipeline = await getPipelineFast('residual', variant);
 
   const outputSize = size * bytesPerElement;
@@ -127,7 +156,7 @@ export async function runBiasAdd(
   const { dataOffset = 0, biasOffset = 0 } = options;
 
   const { bias: biasAligned, temps } = await alignBiasTensor(data, bias);
-  const variant = data.dtype === 'f16' && biasAligned.dtype === 'f16' ? 'f16' : 'default';
+  const variant = selectBiasAddVariant(data.dtype, biasAligned.dtype);
   const pipeline = await getPipelineFast('bias_add', variant);
 
   // Create uniform buffer
@@ -183,9 +212,7 @@ export async function recordResidualAdd(
   const outputDtype = inferOutputDtype(aAligned, bAligned);
   const bytesPerElement = dtypeBytes(outputDtype);
 
-  const variant = useVec4
-    ? (outputDtype === 'f16' ? 'vec4_f16' : 'vec4')
-    : (outputDtype === 'f16' ? 'default_f16' : 'default');
+  const variant = selectResidualVariant(outputDtype, useVec4);
   const pipeline = await getPipelineFast('residual', variant);
 
   const outputSize = size * bytesPerElement;
@@ -238,7 +265,7 @@ export async function recordBiasAdd(
   const { dataOffset = 0, biasOffset = 0 } = options;
 
   const { bias: biasAligned, temps } = await alignBiasTensor(data, bias, recorder);
-  const variant = data.dtype === 'f16' && biasAligned.dtype === 'f16' ? 'f16' : 'default';
+  const variant = selectBiasAddVariant(data.dtype, biasAligned.dtype);
   const pipeline = await getPipelineFast('bias_add', variant);
 
   // Uniform buffer

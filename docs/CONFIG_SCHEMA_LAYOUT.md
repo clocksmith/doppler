@@ -31,6 +31,7 @@ ManifestInferenceSchema (embedded in manifest.json)
 
 SharedRuntimeConfigSchema (cross-cutting for loading + inference)
 - debug
+- benchmark
 - platform
 - kernelRegistry
 - kernelThresholds

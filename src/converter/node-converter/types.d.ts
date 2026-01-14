@@ -4,7 +4,7 @@
  * @module converter/node-converter/types
  */
 
-import type { ConverterConfigSchema, QuantizationInfoSchema } from '../../config/index.js';
+import type { ArchitectureSchema, ConverterConfigSchema, QuantizationInfoSchema } from '../../config/index.js';
 
 export interface ConvertOptions {
   input: string;
@@ -36,7 +36,7 @@ export interface TensorInfo {
 
 export interface ModelInfo {
   modelName?: string;
-  architecture?: string;
+  architecture?: ArchitectureSchema;
   quantization?: string;
   quantizationInfo?: QuantizationInfoSchema;
   config?: Record<string, unknown>;

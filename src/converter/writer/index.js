@@ -7,6 +7,7 @@
  */
 
 import { log } from '../../debug/index.js';
+import { extractArchitecture } from '../core.js';
 import { RDRRWriter } from './writer.js';
 
 // Re-export all types (JS just re-exports the constants)
@@ -32,9 +33,10 @@ export { createTestModel } from '../test-model.js';
  */
 export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {}) {
   const config = modelInfo.config;
+  const architecture = modelInfo.architecture ?? (config ? extractArchitecture(config) : null);
   const writer = new RDRRWriter(outputDir, {
     modelId: modelInfo.modelName || config?.modelId || 'model',
-    architecture: modelInfo.architecture || config?.architectures?.[0] || 'llama',
+    architecture,
     quantization: modelInfo.quantization || options.quantization || 'Q4_K_M',
     quantizationInfo: modelInfo.quantizationInfo ?? options.quantizationInfo,
     ...options,

@@ -98,7 +98,7 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 - Loader fallback exists but may need debugging
 
 **Files modified**:
-- `gpu/kernel-selector.js` - Added explicit bind group layout for MoE
+- `gpu/kernels/moe.js` - Added explicit bind group layout for MoE
 - `gpu/kernels/moe_gather.wgsl` - Cleaned up, added layout note
 - `src/converter/quantizer.js` - Added router check in `shouldQuantize()`
 - `src/converter/node-converter.js` - Pass `modules_to_not_convert` to shouldQuantize
@@ -132,7 +132,7 @@ Preferred output:
 To avoid instruction drift, prefer linking to the canonical runner docs:
 
 - Kernel tests and microbenchmarks: `tests/kernels/README.md` and `tests/kernels/BENCHMARKS.md`
-- End-to-end inference tests: `tests/test-inference.html`
+- End-to-end inference tests: `tests/harness.html?mode=inference`
 
 ## Known Issues by Platform
 

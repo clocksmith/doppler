@@ -8,31 +8,25 @@ import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from '.
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
 import { DTYPE_SIZES } from '../../config/schema/index.js';
-
-// =============================================================================
-// Variant Lookup Table
-// =============================================================================
-
-
-const GATHER_VARIANTS = {
-  'false/false/false': 'default',
-  'false/false/true': 'vec4',
-  'true/false/false': 'f16',
-  'true/false/true': 'f16_vec4',
-  'false/true/false': 'f16_out',
-  'false/true/true': 'vec4_f16_out',
-  'true/true/false': 'f16_f16_out',
-  'true/true/true': 'f16_vec4_f16_out',
-};
-
+import { selectByRules } from './rule-matcher.js';
 
 function selectGatherVariant(useF16Input, useF16Output, useVec4) {
-  const key = `${useF16Input}/${useF16Output}/${useVec4}`;
-  const variant = GATHER_VARIANTS[key];
-  if (!variant) {
-    throw new Error(`Unknown gather variant combination: ${key}`);
-  }
-  return variant;
+  const rules = [
+    { match: { useF16Input: true, useF16Output: true, useVec4: true }, value: 'f16_vec4_f16_out' },
+    { match: { useF16Input: true, useF16Output: true }, value: 'f16_f16_out' },
+    { match: { useF16Input: true, useVec4: true }, value: 'f16_vec4' },
+    { match: { useF16Input: true }, value: 'f16' },
+    { match: { useF16Output: true, useVec4: true }, value: 'vec4_f16_out' },
+    { match: { useF16Output: true }, value: 'f16_out' },
+    { match: { useVec4: true }, value: 'vec4' },
+    { match: {}, value: 'default' },
+  ];
+
+  return selectByRules(
+    rules,
+    { useF16Input, useF16Output, useVec4 },
+    'default'
+  );
 }
 
 

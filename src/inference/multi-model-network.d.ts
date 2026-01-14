@@ -112,42 +112,6 @@ export declare class MultiModelNetwork {
     config?: { maxIterations?: number; convergenceThreshold?: number }
   ): Promise<{ output: string; iterations: number; converged: boolean }>;
 
-  /**
-   * Temporal Self-Ring: Same model at N temporal states for self-reflective improvement.
-   * Based on Gödel Agent, RISE, and Reflexion research.
-   */
-  executeTemporalRing(
-    expertId: string,
-    task: { description: string; maxTokens?: number; convergenceThreshold?: number },
-    config?: {
-      turns?: number;
-      temperatureStart?: number;
-      temperatureDecay?: number;
-      temperatureMin?: number;
-      shortcutInterval?: number;
-      enableShortcuts?: boolean;
-    }
-  ): Promise<{
-    finalOutput: string;
-    history: Array<{ turn: number; output: string; timestamp: number; role: 'seed' | 'reflect' | 'refine' }>;
-    turnsUsed: number;
-    converged: boolean;
-  }>;
-
-  private buildTemporalPrompt(
-    taskDescription: string,
-    turn: number,
-    history: Array<{ turn: number; output: string; role: string }>,
-    lastOutput: string,
-    role: 'seed' | 'reflect' | 'refine'
-  ): string;
-
-  private detectTemporalConvergence(
-    currentOutput: string,
-    history: Array<{ output: string }>,
-    threshold?: number
-  ): boolean;
-
   private computeOutputSimilarity(a: string, b: string): number;
 
   executeBatch(tasks: ExpertTask[], options?: GenerateOptions): Promise<Record<string, string>>;

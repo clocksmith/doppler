@@ -19,6 +19,11 @@ export interface RoPEOptions extends OutputBufferOptions {
   startPos?: number;
 }
 
+/** Context for RoPE variant selection rules. */
+export interface RoPESelectionContext {
+  useF16: boolean;
+}
+
 /**
  * Run RoPE operation
  */

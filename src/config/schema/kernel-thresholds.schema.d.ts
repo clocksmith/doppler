@@ -36,6 +36,55 @@ export interface RmsnormThresholdsSchema {
 export declare const DEFAULT_RMSNORM_THRESHOLDS: RmsnormThresholdsSchema;
 
 /**
+ * Thresholds for softmax kernel variant selection.
+ */
+export interface SoftmaxThresholdsSchema {
+  /**
+   * Inner size threshold for selecting small vs default variant.
+   * When innerSize <= threshold, use small variant.
+   * @default 256
+   */
+  smallThreshold: number;
+}
+
+export declare const DEFAULT_SOFTMAX_THRESHOLDS: SoftmaxThresholdsSchema;
+
+/**
+ * Thresholds for fused FFN kernel variant selection.
+ */
+export interface FfnThresholdsSchema {
+  /**
+   * Intermediate size threshold for selecting multi-output variant.
+   * When intermediateSize <= threshold, use multi variant.
+   * @default 1024
+   */
+  multiOutputThreshold: number;
+}
+
+export declare const DEFAULT_FFN_THRESHOLDS: FfnThresholdsSchema;
+
+/**
+ * Thresholds for sampling kernel selection.
+ */
+export interface SampleThresholdsSchema {
+  /**
+   * Vocab size threshold for argmax reduce variant selection.
+   * When vocabSize > threshold, use argmax_reduce.
+   * @default 65536
+   */
+  argmaxReduceVocabThreshold: number;
+
+  /**
+   * Max topK for single-pass sampling.
+   * When topK <= threshold, use single-pass sampling.
+   * @default 100
+   */
+  singlePassTopKThreshold: number;
+}
+
+export declare const DEFAULT_SAMPLE_THRESHOLDS: SampleThresholdsSchema;
+
+/**
  * Default values for RoPE (Rotary Position Embedding) kernel.
  */
 export interface RopeDefaultsSchema {
@@ -91,6 +140,54 @@ export interface AttentionThresholdsSchema {
     tier2: number;
     tier1: number;
   };
+
+  /**
+   * Maximum head dimension for large tiled attention.
+   * @default 64
+   */
+  largeMaxHeadDim: number;
+
+  /**
+   * Maximum head dimension for small tiled attention.
+   * @default 256
+   */
+  smallMaxHeadDim: number;
+
+  /**
+   * Maximum head dimension for subgroup attention.
+   * @default 256
+   */
+  subgroupMaxHeadDim: number;
+
+  /**
+   * Shared memory requirement for large tiled attention (F32 KV).
+   * @default 20480
+   */
+  largeSharedF32: number;
+
+  /**
+   * Shared memory requirement for large tiled attention (F16 KV).
+   * @default 49152
+   */
+  largeSharedF16: number;
+
+  /**
+   * Shared memory requirement for small tiled attention (F32 KV).
+   * @default 8192
+   */
+  smallSharedF32: number;
+
+  /**
+   * Shared memory requirement for small tiled attention (F16 KV).
+   * @default 4096
+   */
+  smallSharedF16: number;
+
+  /**
+   * Shared memory requirement for subgroup attention.
+   * @default 8192
+   */
+  subgroupShared: number;
 }
 
 export declare const DEFAULT_ATTENTION_THRESHOLDS: AttentionThresholdsSchema;
@@ -140,6 +237,9 @@ export declare const DTYPE_SIZES: Record<string, number>;
 export interface KernelThresholdsConfigSchema {
   matmul: MatmulThresholdsSchema;
   rmsnorm: RmsnormThresholdsSchema;
+  softmax: SoftmaxThresholdsSchema;
+  ffn: FfnThresholdsSchema;
+  sample: SampleThresholdsSchema;
   rope: RopeDefaultsSchema;
   attention: AttentionThresholdsSchema;
   fusedMatmul: FusedMatmulThresholdsSchema;

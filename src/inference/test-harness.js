@@ -7,7 +7,7 @@
  * - HTTP-based shard loading
  * - Pipeline initialization helpers
  *
- * Used by test-inference.html and potentially other test harnesses.
+ * Used by tests/harness.html (mode=inference) and other test harnesses.
  *
  * @module inference/test-harness
  */
@@ -353,7 +353,10 @@ export async function initializeInference(modelUrl, options = {}) {
   const manifestUrl = `${modelUrl}/manifest.json`;
   const manifest = await fetchManifest(manifestUrl);
 
-  log(`Model: ${manifest.architecture || manifest.modelId || 'unknown'}`);
+  const modelLabel = typeof manifest.architecture === 'string'
+    ? manifest.architecture
+    : (manifest.modelType || manifest.modelId || 'unknown');
+  log(`Model: ${modelLabel}`);
 
   // 3. Create shard loader
   const loadShard = createHttpShardLoader(modelUrl, manifest, log);

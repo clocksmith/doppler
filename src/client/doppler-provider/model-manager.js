@@ -34,76 +34,21 @@ export function extractTextModelConfig(manifest) {
   const arch = (manifest.architecture && typeof manifest.architecture === 'object')
     ? manifest.architecture
     : null;
-  const cfg = manifest?.config || manifest?.modelConfig || {};
-  const textCfg = cfg?.text_config || cfg;
-  const textConfig = textCfg;
-
-  const hiddenSize = (arch?.hiddenSize ?? textConfig.hidden_size ?? textConfig.n_embd ?? 4096);
-
-  let numHeads = (arch?.numAttentionHeads ?? textConfig.num_attention_heads ?? textConfig.n_head);
-  let numKVHeads = (arch?.numKeyValueHeads ?? textConfig.num_key_value_heads);
-  let headDim = (arch?.headDim ?? textConfig.head_dim);
-
-  if (!numHeads || !headDim) {
-    const inferred = inferAttentionParams(manifest, hiddenSize);
-    if (inferred) {
-      numHeads = numHeads || inferred.numHeads;
-      numKVHeads = numKVHeads || inferred.numKVHeads;
-      headDim = headDim || inferred.headDim;
-    }
+  if (!arch) {
+    throw new Error('Manifest is missing architecture config; re-convert the model.');
   }
-
-  numHeads = numHeads || 32;
-  numKVHeads = numKVHeads || numHeads;
-  headDim = headDim || Math.floor(hiddenSize / numHeads);
 
   return {
-    numLayers: (arch?.numLayers ?? textConfig.num_hidden_layers ?? textConfig.n_layer ?? 32),
-    hiddenSize,
-    intermediateSize: (arch?.intermediateSize ?? textConfig.intermediate_size ?? textConfig.n_inner ?? 14336),
-    numHeads,
-    numKVHeads,
-    headDim,
-    vocabSize: (arch?.vocabSize ?? textConfig.vocab_size ?? 32000),
-    maxSeqLen: (arch?.maxSeqLen ?? textConfig.max_position_embeddings ?? textConfig.context_length ?? 4096),
+    numLayers: arch.numLayers,
+    hiddenSize: arch.hiddenSize,
+    intermediateSize: arch.intermediateSize,
+    numHeads: arch.numAttentionHeads,
+    numKVHeads: arch.numKeyValueHeads,
+    headDim: arch.headDim,
+    vocabSize: arch.vocabSize,
+    maxSeqLen: arch.maxSeqLen,
     quantization: (manifest?.quantization || 'f16').toUpperCase(),
   };
-}
-
-function inferAttentionParams(manifest, _hiddenSize) {
-  const tensors = manifest?.tensors || {};
-
-  let qShape = null;
-  let kShape = null;
-
-  for (const [name, tensor] of Object.entries(tensors)) {
-    if (name.includes('layers.0.self_attn.q_proj.weight') || name.includes('layers.0.attention.q_proj.weight')) {
-      qShape = tensor.shape;
-    }
-    if (name.includes('layers.0.self_attn.k_proj.weight') || name.includes('layers.0.attention.k_proj.weight')) {
-      kShape = tensor.shape;
-    }
-    if (qShape && kShape) break;
-  }
-
-  if (!qShape || !kShape) return null;
-
-  const qOutDim = qShape[0];
-  const kOutDim = kShape[0];
-
-  const commonHeadDims = [256, 128, 160, 64, 96, 80];
-
-  for (const testHeadDim of commonHeadDims) {
-    if (qOutDim % testHeadDim === 0 && kOutDim % testHeadDim === 0) {
-      const numHeads = qOutDim / testHeadDim;
-      const numKVHeads = kOutDim / testHeadDim;
-      if (numHeads >= numKVHeads && numHeads > 0 && numKVHeads > 0) {
-        return { numHeads, numKVHeads, headDim: testHeadDim };
-      }
-    }
-  }
-
-  return null;
 }
 
 function estimateDequantizedWeightsBytes(manifest) {

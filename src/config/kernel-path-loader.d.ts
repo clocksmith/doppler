@@ -28,12 +28,12 @@ export function listKernelPaths(): string[];
 export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
 
 /**
- * Infer activation dtype required by a kernel path ID.
- * Returns null when the path does not encode an activation dtype.
+ * Return activation dtype required by a kernel path.
+ * Returns null when the path does not specify an activation dtype.
  */
 export function getKernelPathActivationDtype(
   path: KernelPathSchema | null
-): 'f16' | 'f32' | null;
+): string | null;
 
 /**
  * Resolve layer index template in weight references.
@@ -64,6 +64,12 @@ export function getKernelPathMatmulVariant(
   phase: KernelPathPhase,
   layerIndex?: number
 ): string | null;
+
+export function getKernelPathMatmulConstants(
+  role: string | undefined,
+  phase: KernelPathPhase,
+  layerIndex?: number
+): Record<string, number | boolean> | null;
 
 export function getKernelPathAttentionVariant(
   phase: KernelPathPhase,

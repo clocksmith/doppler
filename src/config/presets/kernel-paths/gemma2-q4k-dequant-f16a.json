@@ -2,6 +2,7 @@
   "id": "gemma2-q4k-dequant-f16a",
   "name": "Gemma 2 Q4K Dequant (F16 activations)",
   "description": "Q4K weights dequantized to F16 with F16 activations. Balanced speed/accuracy, lower VRAM than F32.",
+  "activationDtype": "f16",
 
   "decode": {
     "steps": [

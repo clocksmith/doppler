@@ -94,6 +94,12 @@ export interface KernelVariantSchema {
   /** WGSL override constants to set at pipeline creation */
   wgslOverrides?: WgslOverridesSchema;
 
+  /** Output data type for kernels that write F16 buffers */
+  outputDtype?: string;
+
+  /** Variant-specific metadata for dispatch planning */
+  variantMetadata?: Record<string, number | boolean | string>;
+
   /** Additional bindings beyond the base operation bindings */
   bindingsOverride?: BindingSchema[];
 
@@ -165,6 +171,12 @@ export interface ResolvedKernelConfig {
 
   /** Estimated shared memory usage in bytes */
   sharedMemory: number;
+
+  /** Output data type for kernels that write F16 buffers */
+  outputDtype: string | null;
+
+  /** Variant-specific metadata for dispatch planning */
+  variantMetadata: Record<string, number | boolean | string> | null;
 }
 
 /**

@@ -53,6 +53,16 @@ export const DEFAULT_PIPELINE_DEBUG_CONFIG = {
 };
 
 // =============================================================================
+// Profiler Config
+// =============================================================================
+
+export const DEFAULT_PROFILER_CONFIG = {
+  queryCapacity: 256,
+  maxSamples: 100,
+  maxDurationMs: 60000,
+};
+
+// =============================================================================
 // Complete Debug Config
 // =============================================================================
 
@@ -63,4 +73,5 @@ export const DEFAULT_DEBUG_CONFIG = {
   trace: DEFAULT_TRACE_CONFIG,
   pipeline: DEFAULT_PIPELINE_DEBUG_CONFIG,
   probes: [],
+  profiler: DEFAULT_PROFILER_CONFIG,
 };

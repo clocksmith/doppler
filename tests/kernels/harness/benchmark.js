@@ -2,74 +2,8 @@
  * GPU Benchmark Harness
  */
 
-// ============================================================================
-// Statistical Helper Functions
-// ============================================================================
-
-/**
- * Compute percentile using linear interpolation
- * @param sorted Sorted array of values
- * @param p Percentile (0-100)
- */
-function percentile(sorted, p) {
-  if (sorted.length === 0) return 0;
-  if (sorted.length === 1) return sorted[0];
-  const idx = (p / 100) * (sorted.length - 1);
-  const lo = Math.floor(idx);
-  const hi = Math.ceil(idx);
-  if (lo === hi) return sorted[lo];
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
-}
-
-/**
- * Compute median (average of middle two for even-length arrays)
- * @param sorted Sorted array of values
- */
-function median(sorted) {
-  const n = sorted.length;
-  if (n === 0) return 0;
-  const mid = Math.floor(n / 2);
-  return n % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
-
-/**
- * Remove outliers using IQR method
- * @param times Array of timing samples
- * @returns Object with filtered array and count of removed outliers
- */
-function removeOutliers(times) {
-  if (times.length < 4) return { filtered: times, removed: 0 };
-
-  const sorted = [...times].sort((a, b) => a - b);
-  const q1 = percentile(sorted, 25);
-  const q3 = percentile(sorted, 75);
-  const iqr = q3 - q1;
-  const lower = q1 - 1.5 * iqr;
-  const upper = q3 + 1.5 * iqr;
-
-  const filtered = times.filter((t) => t >= lower && t <= upper);
-  return { filtered, removed: times.length - filtered.length };
-}
-
-/**
- * Compute sample standard deviation (n-1 denominator)
- */
-function sampleStdDev(values, mean) {
-  const n = values.length;
-  if (n < 2) return 0;
-  const variance = values.reduce((sum, t) => sum + (t - mean) ** 2, 0) / (n - 1);
-  return Math.sqrt(variance);
-}
-
-/**
- * Compute 95% confidence interval half-width
- */
-function confidenceInterval95(stdDev, n) {
-  if (n < 2) return 0;
-  // For n >= 30, use 1.96 (z-score). For smaller n, use t-distribution approximation.
-  const tValue = n >= 30 ? 1.96 : 2.0 + 3.0 / n; // Rough approximation for t-distribution
-  return tValue * (stdDev / Math.sqrt(n));
-}
+import { computeSampleStats } from '../../../src/debug/stats.js';
+import { DEFAULT_BENCHMARK_STATS_CONFIG } from '../../../src/config/schema/benchmark.schema.js';
 
 /**
  * Kernel benchmark runner with proper GPU synchronization
@@ -103,8 +37,10 @@ export class KernelBenchmark {
     if (warmupTimes.length >= 2) {
       const last = warmupTimes[warmupTimes.length - 1];
       const prev = warmupTimes[warmupTimes.length - 2];
-      if (Math.abs(last - prev) / Math.max(prev, 0.001) > 0.1) {
-        warnings.push('Warmup may not have stabilized (>10% variance in last 2 runs)');
+      const thresholdPercent = DEFAULT_BENCHMARK_STATS_CONFIG.warmupStabilityPercent;
+      const threshold = thresholdPercent / 100;
+      if (Math.abs(last - prev) / Math.max(prev, 0.001) > threshold) {
+        warnings.push(`Warmup may not have stabilized (>${thresholdPercent}% variance in last 2 runs)`);
       }
     }
 
@@ -124,7 +60,8 @@ export class KernelBenchmark {
       const lastThree = times.slice(-3);
       const firstAvg = firstThree.reduce((a, b) => a + b, 0) / 3;
       const lastAvg = lastThree.reduce((a, b) => a + b, 0) / 3;
-      if (lastAvg > firstAvg * 1.1) {
+      const threshold = DEFAULT_BENCHMARK_STATS_CONFIG.thermalSlowdownPercent / 100;
+      if (lastAvg > firstAvg * (1 + threshold)) {
         warnings.push(`Possible thermal throttling detected (last runs ${((lastAvg / firstAvg - 1) * 100).toFixed(1)}% slower)`);
       }
     }
@@ -143,16 +80,14 @@ export class KernelBenchmark {
   computeStats(times, label) {
     const warnings = [];
 
-    // Remove outliers using IQR method
-    const { filtered, removed } = removeOutliers(times);
-    if (removed > 0) {
-      warnings.push(`Removed ${removed} outlier(s)`);
+    const stats = computeSampleStats(times, {
+      outlierIqrMultiplier: DEFAULT_BENCHMARK_STATS_CONFIG.outlierIqrMultiplier,
+    });
+    if (stats.outliersRemoved > 0) {
+      warnings.push(`Removed ${stats.outliersRemoved} outlier(s)`);
     }
 
-    const sorted = [...filtered].sort((a, b) => a - b);
-    const n = sorted.length;
-
-    if (n === 0) {
+    if (stats.samplesAfterOutlierRemoval === 0) {
       return {
         label,
         medianMs: 0,
@@ -165,38 +100,25 @@ export class KernelBenchmark {
         ci95Ms: 0,
         samples: times.length,
         samplesAfterOutlierRemoval: 0,
-        outliersRemoved: removed,
+        outliersRemoved: stats.outliersRemoved,
         rawTimes: times,
         warnings: ['No valid samples after outlier removal'],
       };
     }
 
-    const medianVal = median(sorted);
-    const meanVal = filtered.reduce((a, b) => a + b, 0) / n;
-    const minVal = sorted[0];
-    const maxVal = sorted[n - 1];
-    const p95Val = percentile(sorted, 95);
-    const p99Val = percentile(sorted, 99);
-
-    // Sample standard deviation (n-1 denominator for unbiased estimate)
-    const stdDev = sampleStdDev(filtered, meanVal);
-
-    // 95% confidence interval
-    const ci95 = confidenceInterval95(stdDev, n);
-
     return {
       label,
-      medianMs: medianVal,
-      meanMs: meanVal,
-      minMs: minVal,
-      maxMs: maxVal,
-      p95Ms: p95Val,
-      p99Ms: p99Val,
-      stdDevMs: stdDev,
-      ci95Ms: ci95,
-      samples: times.length,
-      samplesAfterOutlierRemoval: n,
-      outliersRemoved: removed,
+      medianMs: stats.median,
+      meanMs: stats.mean,
+      minMs: stats.min,
+      maxMs: stats.max,
+      p95Ms: stats.p95,
+      p99Ms: stats.p99,
+      stdDevMs: stats.stdDev,
+      ci95Ms: stats.ci95,
+      samples: stats.samples,
+      samplesAfterOutlierRemoval: stats.samplesAfterOutlierRemoval,
+      outliersRemoved: stats.outliersRemoved,
       rawTimes: times,
       warnings,
     };

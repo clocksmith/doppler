@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DOPPLER Test Harness</title>
+  <link rel="stylesheet" href="/doppler/app/rd.css">
+  <style>
+    body { padding: var(--space-lg); }
+    h1 { margin-bottom: var(--space-md); }
+    #status { margin-bottom: var(--space-md); }
+    #results { display: none; }
+    #results.show { display: block; }
+    .section { margin-bottom: var(--space-md); }
+    .output {
+      padding: var(--space-sm);
+      border-left: var(--border-md) solid var(--fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .stats { display: flex; gap: var(--space-lg); }
+    .stat-value { font-size: 18px; font-weight: 600; }
+    .row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: var(--border-sm) solid var(--fg); }
+    .row:last-child { border-bottom: none; }
+    .fail { opacity: var(--opacity-muted); text-decoration: line-through; }
+    #summary { margin-top: var(--space-md); padding-top: var(--space-md); border-top: var(--border-sm) solid var(--fg); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1 class="type-h1" id="title">DOPPLER TEST HARNESS</h1>
+  <div id="status" class="muted type-caption">Initializing...</div>
+  <div id="results"></div>
+
+  <script type="module">
+    // ==========================================================================
+    // Unified Test Harness
+    // Modes: kernels, inference, bench
+    // ==========================================================================
+
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') || 'kernels';
+
+    // Update title based on mode
+    const titles = {
+      kernels: 'DOPPLER KERNEL TESTS',
+      inference: 'DOPPLER INFERENCE TEST',
+      bench: 'DOPPLER BENCHMARK',
+    };
+    document.getElementById('title').textContent = titles[mode] || 'DOPPLER TEST HARNESS';
+
+    // ==========================================================================
+    // Shared: GPU Initialization
+    // ==========================================================================
+
+    async function initGPU() {
+      const { initializeDevice } = await import('/doppler/dist/gpu/device.js');
+      const caps = await initializeDevice();
+      console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
+      return caps;
+    }
+
+    // ==========================================================================
+    // Mode: Kernels
+    // ==========================================================================
+
+    async function initKernelMode() {
+      const { testHarness, getGPU } = await import('/doppler/tests/kernels/browser/test-page.js');
+
+      // Wait for GPU init
+      await new Promise(r => setTimeout(r, 100));
+      const gpu = await getGPU();
+
+      if (!gpu?.device) {
+        throw new Error('WebGPU device not available');
+      }
+
+      console.log(`[GPU] ${gpu.adapterInfo?.description || 'unknown'}, ${gpu.capabilities?.hasF16 ? 'f16' : 'f32'}/${gpu.capabilities?.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${((gpu.adapterInfo?.memorySize || 0) / 1e9).toFixed(1)}GB`);
+
+      // Expose test harness for Playwright
+      window.testHarness = testHarness;
+
+      // Expose render function for Playwright to call when done
+      window.renderResults = (testResults) => {
+        const container = document.getElementById('results');
+        let passed = 0, failed = 0, totalTime = 0;
+
+        for (const r of testResults) {
+          const row = document.createElement('div');
+          row.className = `row ${r.passed ? 'pass' : 'fail'}`;
+          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption muted">${r.duration}ms</span>`;
+          container.appendChild(row);
+
+          if (r.passed) passed++; else failed++;
+          totalTime += r.duration;
+        }
+
+        const summary = document.createElement('div');
+        summary.id = 'summary';
+        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span class="muted">${totalTime}ms</span>`;
+        container.appendChild(summary);
+
+        container.classList.add('show');
+        document.getElementById('status').style.display = 'none';
+      };
+
+      console.log('[KernelTests] Ready for test execution');
+      return 'kernels';
+    }
+
+    // ==========================================================================
+    // Mode: Inference
+    // ==========================================================================
+
+    async function initInferenceMode() {
+      const {
+        discoverModels,
+        parseRuntimeOverridesFromURL,
+        createHttpShardLoader,
+        fetchManifest,
+        initializeDevice,
+        createTestState,
+      } = await import('/doppler/dist/inference/test-harness.js');
+      const { setRuntimeConfig } = await import('/doppler/dist/config/index.js');
+      const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
+      const { getDevice } = await import('/doppler/dist/gpu/device.js');
+      const { SIGNALS } = await import('/doppler/dist/debug/index.js');
+
+      const paramModel = params.get('model') || 'gemma-3-1b-it-q4';
+      const paramAutorun = params.get('autorun') === '1';
+      const paramSkipLoad = params.get('skipLoad') === '1';
+      const runtimeOverrides = parseRuntimeOverridesFromURL(params);
+
+      if (runtimeOverrides.runtimeConfig) {
+        setRuntimeConfig(runtimeOverrides.runtimeConfig);
+      }
+
+      const BASE_URL = 'http://localhost:8080/doppler/models';
+
+      // Test state for Playwright
+      window.testState = createTestState();
+
+      // Check if pipeline already exists from previous warm run
+      const existingPipeline = window.pipeline;
+
+      async function run() {
+        const MODEL_URL = `${BASE_URL}/${paramModel}`;
+        const configPrompt = runtimeOverrides.runtimeConfig?.inference?.prompt;
+        const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
+        const maxTokens = parseInt(params.get('maxTokens') || '8', 10);
+        const temperature = parseFloat(params.get('temperature') || '0');
+        const chatOverride = params.has('noChat') ? false : params.has('chat') ? true : undefined;
+
+        try {
+          let pipeline;
+
+          if (paramSkipLoad && existingPipeline) {
+            console.log('[Warm] Reusing existing pipeline from previous run');
+            pipeline = existingPipeline;
+            window.testState.loaded = true;
+          } else {
+            console.log('1. Initializing WebGPU...');
+            const caps = await initializeDevice();
+            const device = getDevice();
+            console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
+
+            console.log('2. Loading manifest...');
+            const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
+            console.log(`[Model] ${manifest.architecture || paramModel}, ${manifest.config?.num_hidden_layers} layers`);
+
+            console.log('3. Loading model weights...');
+            const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
+
+            pipeline = await createPipeline(manifest, {
+              storage: { loadShard },
+              gpu: { device },
+              baseUrl: MODEL_URL,
+              runtime: {
+                debug: runtimeOverrides.debug,
+                kernelPath: runtimeOverrides.kernelPath,
+              },
+            });
+
+            window.pipeline = pipeline;
+            window.testState.loaded = true;
+            console.log('[Model] Loaded');
+          }
+
+          console.log(`4. Generating from: "${prompt}"`);
+          const tokens = [];
+          const startTime = performance.now();
+
+          for await (const tokenText of pipeline.generate(prompt, {
+            maxTokens,
+            temperature,
+            profile: runtimeOverrides.profile === true,
+            ...(chatOverride !== undefined && { useChatTemplate: chatOverride }),
+          })) {
+            tokens.push(tokenText);
+            console.log(`[Token] ${tokens.length}: "${tokenText}"`);
+          }
+
+          const elapsed = performance.now() - startTime;
+          const tokPerSec = tokens.length / (elapsed / 1000);
+          const output = tokens.join('');
+
+          window.testState.output = output;
+          window.testState.tokens = tokens;
+          window.testState.done = true;
+
+          console.log(`${SIGNALS.RESULT} ${JSON.stringify({ output, tokens: tokens.length, elapsed, tokensPerSecond: tokPerSec })}`);
+          console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'success', elapsed, tokens: tokens.length, tokensPerSecond: tokPerSec })}`);
+
+          renderInferenceResults({
+            model: paramModel,
+            prompt,
+            output,
+            tokens: tokens.length,
+            elapsed: elapsed.toFixed(0),
+            tokPerSec: tokPerSec.toFixed(1),
+            passed: tokens.length > 0,
+          });
+
+        } catch (e) {
+          console.error(e.stack);
+          window.testState.errors.push(e.message);
+          window.testState.done = true;
+          console.log(`${SIGNALS.ERROR} ${JSON.stringify({ error: e.message })}`);
+          console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'error', elapsed: 0, error: e.message })}`);
+          document.getElementById('status').textContent = `Error: ${e.message}`;
+          document.getElementById('status').classList.add('border-error');
+        }
+      }
+
+      function renderInferenceResults(r) {
+        const container = document.getElementById('results');
+        container.innerHTML = `
+          <div class="section">
+            <div class="type-label muted">Model</div>
+            <div>${r.model}</div>
+          </div>
+          <div class="section">
+            <div class="type-label muted">Prompt</div>
+            <div>${r.prompt}</div>
+          </div>
+          <div class="section">
+            <div class="type-label muted">Output</div>
+            <div class="output">${r.output}</div>
+          </div>
+          <div class="section stats">
+            <div class="stat">
+              <div class="stat-value">${r.tokens}</div>
+              <div class="type-caption muted">tokens</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${r.elapsed}ms</div>
+              <div class="type-caption muted">total</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${r.tokPerSec}</div>
+              <div class="type-caption muted">tok/s</div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="${r.passed ? 'badge badge-filled' : 'badge border-error muted'}">${r.passed ? 'PASS' : 'FAIL'}</div>
+          </div>
+        `;
+        container.classList.add('show');
+        document.getElementById('status').style.display = 'none';
+      }
+
+      // Auto-run if requested
+      if (paramAutorun) {
+        document.getElementById('status').textContent = 'Running...';
+        run();
+      } else {
+        document.getElementById('status').textContent = 'Add ?autorun=1 to URL to run';
+      }
+
+      return 'inference';
+    }
+
+    // ==========================================================================
+    // Mode: Bench
+    // ==========================================================================
+
+    async function initBenchMode() {
+      // Benchmark mode just needs GPU ready - Playwright injects the benchmark script
+      await initGPU();
+
+      // Signal ready for benchmark injection
+      window.dopplerReady = true;
+
+      console.log('[Bench] Ready for benchmark injection');
+      document.getElementById('status').textContent = 'Ready for benchmark';
+      return 'bench';
+    }
+
+    // ==========================================================================
+    // Main
+    // ==========================================================================
+
+    async function main() {
+      console.log(`[Harness] Mode: ${mode}`);
+      document.getElementById('status').textContent = `Initializing ${mode} mode...`;
+
+      try {
+        let result;
+        switch (mode) {
+          case 'kernels':
+            result = await initKernelMode();
+            break;
+          case 'inference':
+            result = await initInferenceMode();
+            break;
+          case 'bench':
+            result = await initBenchMode();
+            break;
+          default:
+            throw new Error(`Unknown mode: ${mode}`);
+        }
+        document.getElementById('status').textContent = 'Ready';
+        console.log(`[Harness] ${result} mode initialized`);
+      } catch (e) {
+        console.error(`[Harness] Error: ${e.message}`);
+        document.getElementById('status').textContent = `Error: ${e.message}`;
+        document.getElementById('status').classList.add('border-error');
+        window.harnessError = e.message;
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

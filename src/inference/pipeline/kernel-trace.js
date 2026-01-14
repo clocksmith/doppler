@@ -21,8 +21,8 @@
  * @module inference/pipeline/kernel-trace
  */
 
-import { readBuffer } from '../../gpu/buffer-pool.js';
 import { log, trace } from '../../debug/index.js';
+import { snapshotTensor as snapshotTensorImpl, snapshotFromArray as snapshotFromArrayImpl } from '../../debug/tensor.js';
 
 // ============================================================================
 // Tensor Snapshot Utility
@@ -36,21 +36,7 @@ import { log, trace } from '../../debug/index.js';
  * @returns {Promise<import('./kernel-trace.js').TensorSnapshot>}
  */
 export async function snapshotTensor(buffer, shape, dtype = 'f32') {
-  try {
-    const data = await readBuffer(buffer);
-    const arr = new Float32Array(data);
-    return snapshotFromArray(arr, shape ?? [arr.length], dtype);
-  } catch (e) {
-    // Return empty snapshot on error
-    return {
-      shape: shape ?? [0],
-      dtype,
-      stats: { min: 0, max: 0, maxAbs: 0, mean: 0, std: 0 },
-      sample: [],
-      hasNaN: false,
-      hasInf: false,
-    };
-  }
+  return snapshotTensorImpl(buffer, shape, dtype);
 }
 
 /**
@@ -61,45 +47,7 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32') {
  * @returns {import('./kernel-trace.js').TensorSnapshot}
  */
 export function snapshotFromArray(arr, shape, dtype = 'f32') {
-  let min = Infinity;
-  let max = -Infinity;
-  let sum = 0;
-  let sumSq = 0;
-  let nanCount = 0;
-  let infCount = 0;
-  let validCount = 0;
-
-  // Only iterate over valid elements based on shape, not full buffer (pool may have padding)
-  const numElements = shape.reduce((a, b) => a * b, 1);
-  const limit = Math.min(arr.length, numElements);
-  for (let i = 0; i < limit; i++) {
-    const v = arr[i];
-    if (Number.isNaN(v)) {
-      nanCount++;
-    } else if (!Number.isFinite(v)) {
-      infCount++;
-    } else {
-      if (v < min) min = v;
-      if (v > max) max = v;
-      sum += v;
-      sumSq += v * v;
-      validCount++;
-    }
-  }
-
-  const mean = validCount > 0 ? sum / validCount : 0;
-  const variance = validCount > 0 ? (sumSq / validCount) - (mean * mean) : 0;
-  const std = Math.sqrt(Math.max(0, variance));
-  const maxAbs = Math.max(Math.abs(min), Math.abs(max));
-
-  return {
-    shape,
-    dtype,
-    stats: { min, max, maxAbs, mean, std },
-    sample: Array.from(arr.slice(0, 8)),
-    hasNaN: nanCount > 0,
-    hasInf: infCount > 0,
-  };
+  return snapshotFromArrayImpl(arr, shape, dtype);
 }
 
 // ============================================================================

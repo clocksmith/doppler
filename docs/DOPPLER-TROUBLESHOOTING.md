@@ -856,7 +856,7 @@ When debugging DOPPLER issues:
 | `inference/pipeline/layer.js` | Per-layer processing |
 | `inference/pipeline/attention.js` | KV cache, RoPE, attention |
 | `gpu/kernels/silu.js` | FFN activation gating |
-| `gpu/kernel-selector.js` | Kernel dispatch, buffer management |
+| `gpu/kernels/*.js` | Kernel selection and dispatch |
 | `loader/doppler-loader.js` | Weight loading, dequantization |
 
 ---
