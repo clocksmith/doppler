@@ -71,3 +71,53 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   pipeline: null,
   kernelPath: undefined,
 };
+
+// =============================================================================
+// Preset Inference Defaults
+// =============================================================================
+
+export const DEFAULT_PRESET_INFERENCE_CONFIG = {
+  attention: {
+    slidingWindow: null,
+    attnLogitSoftcapping: null,
+    queryKeyNorm: false,
+    ropeScalingType: null,
+    ropeScalingFactor: 1.0,
+  },
+  normalization: {
+    rmsNormWeightOffset: false,
+    rmsNormEps: 1e-5,
+    postAttentionNorm: false,
+    preFeedforwardNorm: false,
+    postFeedforwardNorm: false,
+  },
+  ffn: {
+    activation: 'silu',
+    gatedActivation: true,
+    fusedGateUp: false,
+  },
+  output: {
+    finalLogitSoftcapping: null,
+    tieWordEmbeddings: false,
+    scaleEmbeddings: false,
+    embeddingTranspose: false,
+    embeddingVocabSize: null,
+  },
+  layerPattern: {
+    type: 'all_attention',
+  },
+  rope: {
+    ropeTheta: 10000,
+    ropeLocalTheta: null,
+    ropeScalingType: null,
+    ropeScalingFactor: 1.0,
+    yarnBetaFast: 32,
+    yarnBetaSlow: 1,
+    yarnOriginalMaxPos: 4096,
+  },
+  pipeline: null,
+  chatTemplate: {
+    type: null,
+  },
+  kernelPath: undefined,
+};

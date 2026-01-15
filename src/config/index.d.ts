@@ -32,6 +32,22 @@ export {
   resetRuntimeConfig,
 } from './runtime.js';
 
+// Training config registry
+export {
+  DEFAULT_TRAINING_CONFIG,
+  createTrainingConfig,
+  getTrainingConfig,
+  setTrainingConfig,
+  resetTrainingConfig,
+  type TrainingConfigSchema,
+  type TrainingConfigOverrides,
+} from './training-defaults.js';
+
+// Backward registry loader
+export {
+  loadBackwardRegistry,
+} from './backward-registry-loader.js';
+
 // Config merge (manifest + runtime → merged with source tracking)
 export {
   mergeConfig,

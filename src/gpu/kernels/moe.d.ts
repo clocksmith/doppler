@@ -15,6 +15,7 @@ import type { OutputBufferOptions } from './types.js';
 export interface MoEOptions extends OutputBufferOptions {
   normalize?: boolean;
   maxTokensPerExpert?: number;
+  weightsDtype?: 'f16' | 'f32';
 }
 
 /** MoE gather result */

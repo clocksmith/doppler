@@ -63,6 +63,7 @@ function createFFNUniformBuffer(device, recorder, params) {
       if (params.isQ4K) {
         view.setUint32(20, Math.floor(params.hiddenSize / 256), true);
       }
+      view.setFloat32(24, params.swigluLimit ?? 0, true);
     },
     recorder,
     device
@@ -84,6 +85,7 @@ export async function runFusedFFN(
     activation = 'silu',
     alpha = 1.0,
     outputBuffer = null,
+    swigluLimit = null,
   } = options;
 
   if (input.dtype !== 'f32') {
@@ -119,6 +121,7 @@ export async function runFusedFFN(
     alpha,
     activation,
     isQ4K,
+    swigluLimit: activation === 'silu' ? swigluLimit : null,
   });
 
   // Create bind group
@@ -177,6 +180,7 @@ export async function recordFusedFFN(
     activation = 'silu',
     alpha = 1.0,
     outputBuffer = null,
+    swigluLimit = null,
   } = options;
 
   if (input.dtype !== 'f32') {
@@ -210,6 +214,7 @@ export async function recordFusedFFN(
     alpha,
     activation,
     isQ4K,
+    swigluLimit: activation === 'silu' ? swigluLimit : null,
   });
 
   const bindGroup = device.createBindGroup({

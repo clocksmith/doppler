@@ -19,6 +19,12 @@ export interface SoftmaxOptions extends OutputBufferOptions {
   normalize?: boolean;
 }
 
+export interface SoftmaxTopKOptions {
+  normalize?: boolean;
+  inputDtype?: 'f16' | 'f32';
+  weightsDtype?: 'f16' | 'f32';
+}
+
 /**
  * Run softmax operation
  */
@@ -36,7 +42,7 @@ export declare function runSoftmaxTopK(
   numTokens: number,
   numExperts: number,
   topK: number,
-  options?: SoftmaxOptions
+  options?: SoftmaxTopKOptions
 ): Promise<{ indices: GPUBuffer; weights: GPUBuffer }>;
 
 /**

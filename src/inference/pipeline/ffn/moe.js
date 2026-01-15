@@ -40,6 +40,8 @@ export async function runMoEFFNGPU(
       numExperts: config.numExperts || 8,
       moeTopK: config.moeTopK || 2,
       hiddenActivation: config.hiddenActivation,
+      swigluLimit: config.swigluLimit,
+      activationDtype: inputTensor.dtype,
     },
     moeRouter,
     expertWeights,

@@ -12,8 +12,8 @@ override WORKGROUP_SIZE: u32 = 256u;
 struct Uniforms {
     size: u32,          // Total output elements
     rowsplit_dim: u32,  // Dim for rowsplit variants (0 when unused)
-    _pad0: u32,
-    _pad1: u32,
+    clamp_max: f32,     // SwiGLU clamp (0 = disabled)
+    _pad1: f32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -28,6 +28,13 @@ fn sigmoid(x: f32) -> f32 {
 
 fn silu(x: f32) -> f32 {
     return x * sigmoid(x);
+}
+
+fn clamp_swiglu(x: f32) -> f32 {
+    if (u.clamp_max <= 0.0) {
+        return x;
+    }
+    return clamp(x, -u.clamp_max, u.clamp_max);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -54,7 +61,7 @@ fn silu_gate(
 
     let up = input[idx];
     let g = gate[idx];
-    output[idx] = silu(g) * up;
+    output[idx] = clamp_swiglu(silu(g) * up);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -68,7 +75,7 @@ fn silu_gate_split(
 
     let g = input[idx];
     let up = input[idx + u.size];
-    output[idx] = silu(g) * up;
+    output[idx] = clamp_swiglu(silu(g) * up);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -104,5 +111,5 @@ fn silu_gate_rowsplit(
     let g = input[row_base + dim_idx];
     let up = input[row_base + dim + dim_idx];
 
-    output[idx] = silu(g) * up;
+    output[idx] = clamp_swiglu(silu(g) * up);
 }

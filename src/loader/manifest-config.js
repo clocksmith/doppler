@@ -1,13 +1,3 @@
-/**
- * Manifest Config - Model configuration resolution from manifest.
- *
- * Pure functions for extracting configuration from manifests:
- * - Norm weight offset detection (Gemma models)
- * - Large weight handling configuration
- * - Weight layout resolution
- *
- * @module loader/manifest-config
- */
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -20,19 +10,6 @@ import { log, trace as debugTrace } from '../debug/index.js';
 // Norm Weight Offset Detection
 // ============================================================================
 
-/**
- * Check if model requires (1 + weight) offset for RMSNorm weights.
- *
- * GGUF files do NOT have the offset baked in - they store raw weights.
- * RMSNorm applies the +1 offset at runtime when this flag is true.
- *
- * Supported detection methods (in priority order):
- * 1. manifest.inference.normalization.rmsNormWeightOffset (explicit)
- * 2. Model family detection from architecture string (legacy fallback)
- *
- * @param {import('../storage/rdrr-format.js').RDRRManifest | null} manifest - Model manifest
- * @returns {boolean} Whether norm weight offset is needed
- */
 export function needsNormWeightOffset(manifest) {
   if (!manifest) {
     debugTrace.loader('_needsNormWeightOffset: no manifest');
@@ -58,24 +35,14 @@ export function needsNormWeightOffset(manifest) {
 // Large Weight Handling
 // ============================================================================
 
-/**
- * Get large weight handling configuration from runtime config.
- * @returns {import('./manifest-config.js').LargeWeightConfig}
- */
 export function getLargeWeightConfig() {
   const config = getRuntimeConfig().inference.largeWeights;
-  return {
-    enabled: config?.enabled ?? false,
-    safetyRatio: config?.safetyRatio ?? 0.9,
-    preferF16: config?.preferF16 ?? true,
-  };
+  if (!config) {
+    throw new Error('runtime.inference.largeWeights is required');
+  }
+  return config;
 }
 
-/**
- * Get maximum bytes for a single GPU buffer binding.
- *
- * @returns {number | null} Max bytes, or null if large weight handling is disabled
- */
 export function getLargeWeightMaxBytes() {
   const config = getLargeWeightConfig();
   if (!config.enabled) return null;
@@ -91,15 +58,6 @@ export function getLargeWeightMaxBytes() {
   return Math.floor(maxBinding * safety);
 }
 
-/**
- * Estimate GPU memory required for a matmul weight after dequantization.
- *
- * @param {string} name - Tensor name
- * @param {import('./loader-types.js').TensorLocation} location - Tensor location info
- * @param {import('./loader-types.js').KernelCapabilities | null} gpuCapabilities - GPU capabilities
- * @param {boolean} keepF32Weights - Whether to keep F32 (skip F16 downcast)
- * @returns {{ bytes: number; dtype: import('../gpu/weight-buffer.js').WeightDtype } | null} Estimated bytes and output dtype, or null if cannot estimate
- */
 export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF32Weights) {
   if (!location.shape || location.shape.length === 0) return null;
 
@@ -110,7 +68,6 @@ export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF
   const hasF16 = caps?.hasF16 ?? false;
   const isMatmulWeight = shouldDequantizeToF16(name);
 
-  /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
   let dtype = 'f32';
   switch (location.dtype) {
     case 'F16':
@@ -135,17 +92,6 @@ export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF
   return { bytes: numElements * bytesPerElement, dtype };
 }
 
-/**
- * Resolve weight layout from tensor location and name.
- *
- * Column layout is used for:
- * - Explicit layout='column' in tensor info
- * - Embeddings with transposed shape (dim0 < dim1)
- *
- * @param {import('./loader-types.js').TensorLocation} location - Tensor location info
- * @param {string} name - Tensor name
- * @returns {import('../gpu/weight-buffer.js').WeightLayout} Weight layout ('row' or 'column')
- */
 export function resolveWeightLayout(location, name) {
   // Explicit layout from manifest
   if (location.layout === 'column') return 'column';
@@ -161,18 +107,6 @@ export function resolveWeightLayout(location, name) {
   return 'row';
 }
 
-/**
- * Check if a large weight should use CPU streaming instead of GPU buffer.
- *
- * Logs a warning if the weight exceeds GPU limits and provides guidance.
- *
- * @param {string} name - Tensor name
- * @param {import('./loader-types.js').TensorLocation} location - Tensor location info
- * @param {string} label - Human-readable label for logging (e.g., 'Embedding', 'LM head')
- * @param {import('./loader-types.js').KernelCapabilities | null} gpuCapabilities - GPU capabilities
- * @param {boolean} keepF32Weights - Whether to keep F32
- * @returns {boolean} Whether to use streaming
- */
 export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, keepF32Weights) {
   const maxBytes = getLargeWeightMaxBytes();
   if (!maxBytes) return false;
@@ -205,12 +139,6 @@ export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, 
 // MoE Detection
 // ============================================================================
 
-/**
- * Check if model uses Mixture of Experts architecture.
- *
- * @param {import('../storage/rdrr-format.js').RDRRManifest | null} manifest - Model manifest
- * @returns {boolean} Whether model is MoE
- */
 export function isMoEModel(manifest) {
   if (!manifest) return false;
 
@@ -218,7 +146,7 @@ export function isMoEModel(manifest) {
   if (manifest.moeConfig != null) return true;
 
   // Check num_local_experts in config
-  const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (manifest.config);
+  const config =  (manifest.config);
   if ((config?.num_local_experts ?? 0) > 1) return true;
 
   return false;

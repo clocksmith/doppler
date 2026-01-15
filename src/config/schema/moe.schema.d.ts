@@ -27,6 +27,24 @@ export interface MoERoutingConfigSchema {
 
   /** Data type for router computation */
   routerDtype: RouterDtype;
+
+  /**
+   * Max tokens per expert (0 = auto).
+   * Used to size MoE gather/scatter buffers.
+   */
+  maxTokensPerExpert: number;
+
+  /** Headroom multiplier for auto maxTokensPerExpert */
+  maxTokensPerExpertHeadroom: number;
+
+  /** Minimum maxTokensPerExpert when auto-tuning */
+  maxTokensPerExpertMin: number;
+
+  /**
+   * Hard cap for maxTokensPerExpert (0 = no cap).
+   * Useful to limit buffer sizes on constrained devices.
+   */
+  maxTokensPerExpertCap: number;
 }
 
 /** Default MoE routing configuration */

@@ -51,7 +51,7 @@ export interface LayerWeights {
   down?: GPUBuffer | WeightBuffer | Float32Array | null;
   /** Fused gate+up for pipeline compatibility */
   gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
-  routerWeight?: GPUBuffer | Float32Array | null;
+  routerWeight?: GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   attentionSinks?: GPUBuffer | Float32Array | null;
 }

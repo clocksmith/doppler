@@ -164,7 +164,6 @@ function findKernelVariant(
   const normalizedKernel = normalizeKernelFile(kernel);
   const normalizedEntry = entry ?? DEFAULT_ENTRY;
 
-  /** @type {string[]} */
   const entryMatches = [];
   let fallbackVariant = null;
   let fallbackCount = 0;

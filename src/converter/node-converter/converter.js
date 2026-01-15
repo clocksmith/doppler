@@ -161,9 +161,22 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
   const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, originalDtype);
 
+  const isGptOssPackedExpertTensor = (name) => {
+    const lower = name.toLowerCase();
+    if (!lower.includes('mlp.experts.')) return false;
+    return lower.includes('gate_up_proj_blocks') ||
+      lower.includes('gate_up_proj_scales') ||
+      lower.includes('down_proj_blocks') ||
+      lower.includes('down_proj_scales');
+  };
+
   const getOutputDtype = (name, shape, origDtype) => {
     const isEmbedding = isEmbeddingTensorName(name);
     const isHead = isLmHeadTensorName(name);
+
+    if (isGptOssPackedExpertTensor(name)) {
+      return origDtype;
+    }
 
     if (isEmbedding) {
       return toWebGPUDtype(quantizationInfo.embeddings);

@@ -1,0 +1,28 @@
+{
+  "id": "gpt_oss",
+  "name": "GPT-OSS",
+  "extends": "mixtral",
+  "modelType": "gpt-oss",
+
+  "inference": {
+    "attention": {
+      "slidingWindow": 128
+    },
+    "layerPattern": {
+      "type": "alternating",
+      "globalPattern": "odd"
+    },
+    "chatTemplate": {
+      "type": "gpt-oss",
+      "enabled": true
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": ["gptoss", "GptOssForCausalLM"],
+    "modelTypePatterns": ["gpt_oss", "gpt-oss"],
+    "configPatterns": {
+      "num_local_experts": 32
+    }
+  }
+}

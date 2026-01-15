@@ -80,7 +80,7 @@ export async function discoverModels(
  * Parse runtime overrides from URL query parameters.
  *
  * Supported parameters:
- * - debug: Enable verbose logging + tracing
+ * - profile: Enable GPU timestamp profiling
  *
  * @param {URLSearchParams} [searchParams] - URLSearchParams to parse (default: window.location.search)
  * @returns {RuntimeOverrides} RuntimeOverrides object
@@ -104,38 +104,9 @@ export function parseRuntimeOverridesFromURL(searchParams) {
     }
   }
 
-  // Kernel path (new, preferred) - can be preset ID or inline JSON
-  const kernelPathRaw = params.get('kernelPath');
-  if (kernelPathRaw) {
-    if (kernelPathRaw.startsWith('{')) {
-      try {
-        runtime.kernelPath = JSON.parse(kernelPathRaw);
-      } catch (e) {
-        debugLog.warn('TestHarness', `Failed to parse kernelPath JSON: ${/** @type {Error} */ (e).message}`);
-      }
-    } else {
-      // Preset ID (e.g., 'gemma2-q4k-fused-f32a')
-      runtime.kernelPath = kernelPathRaw;
-    }
-  }
-
-  // Debug mode
-  if (params.has('debug')) {
-    const debugConfig = ensureSharedDebug(runtime);
-    debugConfig.logLevel = { ...debugConfig.logLevel, defaultLogLevel: 'verbose' };
-    debugConfig.trace = { ...debugConfig.trace, enabled: true, categories: ['all'] };
-    debugConfig.pipeline = { ...debugConfig.pipeline, enabled: true };
-  }
-
   // GPU profiling
   if (params.has('profile')) {
     runtime.profile = true;
-  }
-
-  // Trace level
-  const trace = params.get('trace');
-  if (trace) {
-    runtime.trace = trace;
   }
 
   // Debug layers (comma-separated list of layer indices)
@@ -375,9 +346,6 @@ export async function initializeInference(modelUrl, options = {}) {
     storage: { loadShard },
     gpu: { device },
     baseUrl: modelUrl,
-    runtime: {
-      kernelPath: runtime.kernelPath,
-    },
     onProgress: (/** @type {{ percent: number; stage?: string; message?: string }} */ progress) => {
       const pct = 0.2 + progress.percent * 0.8;
       onProgress(progress.stage || 'loading', pct, progress.message);

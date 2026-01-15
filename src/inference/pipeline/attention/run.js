@@ -572,6 +572,7 @@ export async function runLayerAttentionGPU(
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
       residualTensor &&
       residualTensor.dtype === attnOutput.dtype &&
+      attnOutput.dtype === 'f32' &&
       !loraO &&
       oProjDtype === 'f16';  // GEMV kernel expects f16 weights
 

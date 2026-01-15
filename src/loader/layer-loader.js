@@ -68,6 +68,7 @@ const SINK_SUFFIXES = ['self_attn.sinks'];
 const MATMUL_KEYS = [
   'qProj', 'kProj', 'vProj', 'oProj',
   'ffnGate', 'ffnUp', 'ffnDown', 'ffnGateUp',
+  'routerWeight',
 ];
 
 // ============================================================================
@@ -280,8 +281,8 @@ async function loadRouterWeights(weights, tryLoad) {
     tryLoad(ROUTER_SUFFIXES.routerWeight),
     tryLoad(ROUTER_SUFFIXES.routerBias),
   ]);
-  // Router weights are not matmul weights, so they're GPUBuffer | Float32Array (not WeightBuffer)
-  weights.routerWeight = /** @type {GPUBuffer | Float32Array | null} */ (routerWeight);
+  // Router weights follow matmul dtype/layout rules when present
+  weights.routerWeight = /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null} */ (routerWeight);
   weights.routerBias = /** @type {GPUBuffer | Float32Array | null} */ (routerBias);
 }
 

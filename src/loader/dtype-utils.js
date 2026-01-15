@@ -122,6 +122,8 @@ export function shouldDequantizeToF16(name) {
     'ffn_up.weight',
     'ffn_down.weight',
     'ffn_gate_up.weight',
+    'mlp.router.weight',
+    'block_sparse_moe.gate.weight',
   ];
 
   return matmulSuffixes.some(suffix => lower.endsWith(suffix));

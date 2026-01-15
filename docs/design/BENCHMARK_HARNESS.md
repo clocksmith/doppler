@@ -32,7 +32,7 @@ Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for 
 ## Config
 
 Benchmark defaults live in `runtime.shared.benchmark` (see `src/config/schema/benchmark.schema.js`).
-CLI `--mode bench` loads the preset and CLI flags override it.
+CLI `--mode bench` loads the preset; runtime config is the source of truth.
 
 ---
 
@@ -374,7 +374,7 @@ doppler bench inference --headed               # With visible browser window
 
 # Custom options
 doppler bench inference --prompt medium        # Different prompt size (xs/short/medium/long)
-doppler bench inference --runs 3               # Multiple runs for statistics
+doppler bench inference --config bench         # Multiple runs via preset config
 doppler --help                                 # Show all CLI options
 ```
 
@@ -460,4 +460,4 @@ if (history.length >= 2) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

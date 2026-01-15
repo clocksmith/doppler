@@ -40,6 +40,11 @@ interface GpuContext {
   device: GPUDevice;
 }
 
+interface RouterLogitsOptions {
+  inputDtype?: 'f16' | 'f32';
+  outputDtype?: 'f16' | 'f32';
+}
+
 /**
  * Load balancing statistics
  */
@@ -69,7 +74,7 @@ export declare class MoERouter {
 
   // Router gate weights (linear projection: hidden_size -> num_experts)
   // Will be loaded from model weights
-  gateWeight: Float32Array | GPUBuffer | null;
+  gateWeight: Float32Array | GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | null;
   // Router bias (optional, used by GPT-OSS)
   gateBias: Float32Array | GPUBuffer | null;
 
@@ -78,6 +83,7 @@ export declare class MoERouter {
 
   // Auxiliary load balancing stats
   loadBalanceStats: LoadBalanceStats;
+  lastLogitsDtype: 'f16' | 'f32';
 
   constructor(config: MoEConfig);
 
@@ -106,7 +112,8 @@ export declare class MoERouter {
   computeRouterLogitsGPU(
     hiddenStates: GPUBuffer,
     numTokens: number,
-    gpuContext?: GpuContext | null
+    gpuContext?: GpuContext | null,
+    options?: RouterLogitsOptions
   ): Promise<GPUBuffer>;
 
   /**

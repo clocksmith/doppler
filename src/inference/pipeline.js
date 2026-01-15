@@ -96,7 +96,7 @@ export class InferencePipeline extends PipelineState {
       this.runtimeConfig = getRuntimeConfig();
     }
     const sharedDebug = this.runtimeConfig.shared.debug;
-    applyDebugConfig(sharedDebug, { respectUrlParams: true });
+    applyDebugConfig(sharedDebug);
     applyPipelineDebugConfig(sharedDebug.pipeline);
 
     if (contexts.gpu?.device) {

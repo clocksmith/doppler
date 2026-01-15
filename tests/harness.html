@@ -145,8 +145,10 @@
         const MODEL_URL = `${BASE_URL}/${paramModel}`;
         const configPrompt = runtimeOverrides.runtimeConfig?.inference?.prompt;
         const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
-        const maxTokens = parseInt(params.get('maxTokens') || '8', 10);
-        const temperature = parseFloat(params.get('temperature') || '0');
+        const configMaxTokens = runtimeOverrides.runtimeConfig?.inference?.batching?.maxTokens;
+        const configTemperature = runtimeOverrides.runtimeConfig?.inference?.sampling?.temperature;
+        const maxTokens = Number.isFinite(configMaxTokens) ? configMaxTokens : 8;
+        const temperature = typeof configTemperature === 'number' ? configTemperature : 0;
         const chatOverride = params.has('noChat') ? false : params.has('chat') ? true : undefined;
 
         try {

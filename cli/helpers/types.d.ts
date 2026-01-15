@@ -2,7 +2,7 @@
  * CLI Types - Shared type definitions for DOPPLER CLI
  */
 
-import type { RuntimeConfigSchema, KernelPathRef } from '../../src/config/schema/index.js';
+import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
@@ -70,16 +70,10 @@ export interface CLIOptions {
   runs: number;
   maxTokens: number;         // For inference benchmarks
   temperature: number;       // For inference benchmarks
-  noChat: boolean;           // Disable chat template (override model default)
-  chat: boolean;             // Enable chat template (override model default)
   prompt: string;            // Prompt size preset: xs, short, medium, long
-  promptProvided: boolean;   // Whether --prompt was explicitly set
   text: string | null;       // Custom prompt text (overrides prompt)
   file: string | null;       // Load prompt from file (overrides prompt)
   compare: string | null;    // Compare against baseline
-  trace: string | null;      // Debug trace preset: quick, layers, attention, full
-  /** Layer filter for debug trace categories (does NOT enable recorder batching). */
-  traceLayers: number[] | null;
   debugLayers: number[] | null; // Specific layers to debug
   /** Playwright persistent profile directory.
    *  Controls browser storage persistence, including OPFS model cache. */
@@ -92,13 +86,6 @@ export interface CLIOptions {
   /** Enable GPU timestamp profiling for per-kernel timing.
    *  Requires 'timestamp-query' WebGPU feature. */
   gpuProfile: boolean;
-  /** Kernel profile preset (mapped to kernelPath). */
-  kernelProfile: string | null;
-  /**
-   * Kernel path for explicit kernel dispatch ordering.
-   * Can be a preset ID (e.g., 'gemma2-q4k-fused') or inline KernelPathSchema.
-   */
-  kernelPath: KernelPathRef | null;
 
   // Debug mode options
   /** Enable verbose debug output during inference */

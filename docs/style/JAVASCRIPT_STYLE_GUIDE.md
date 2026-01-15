@@ -36,6 +36,7 @@ Validation should check `=== undefined` for nullable fields and `== null` for no
 ## Kernel Path Only
 
 Kernel selection overrides must use `kernelPath`. `kernelPlan` is removed and must not be reintroduced.
+Kernel path overrides are config-only; CLI flags must not set kernel selection.
 
 ---
 

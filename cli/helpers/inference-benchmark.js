@@ -16,37 +16,44 @@ import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLo
  * @returns {string}
  */
 function buildBenchmarkScript(opts, modelPath, customPromptText) {
-  /** @type {Record<string, unknown>} */
-  const runtime = {};
-  if (opts.kernelPath) runtime.kernelPath = opts.kernelPath;
+  const benchmarkRun = opts.runtimeConfig?.shared?.benchmark?.run;
+  const benchmarkSampling = benchmarkRun?.sampling ?? {};
+  const promptName = benchmarkRun?.promptName ?? opts.prompt;
+  const maxNewTokens = benchmarkRun?.maxNewTokens ?? opts.maxTokens;
+  const warmupRuns = benchmarkRun?.warmupRuns ?? opts.warmup;
+  const timedRuns = benchmarkRun?.timedRuns ?? opts.runs;
+  const temperature = benchmarkSampling.temperature ?? opts.temperature;
+  const topK = benchmarkSampling.topK ?? 1;
+  const topP = benchmarkSampling.topP ?? 1;
 
   /** @type {Record<string, unknown>} */
   const configObj = {
     modelPath,
-    maxNewTokens: opts.maxTokens,
-    warmupRuns: opts.warmup,
-    timedRuns: opts.runs,
+    maxNewTokens,
+    warmupRuns,
+    timedRuns,
     sampling: {
-      temperature: opts.temperature,
-      topK: 1,
-      topP: 1,
+      temperature,
+      topK,
+      topP,
     },
-    debug: opts.debug ?? false,  // When true, disables batching for layer-by-layer debugging
+    debug: benchmarkRun?.debug ?? opts.debug ?? false,  // When true, disables batching for layer-by-layer debugging
     debugLayers: opts.debugLayers,
     profile: opts.gpuProfile,  // GPU timestamp profiling for per-kernel timing
   };
+  if (benchmarkRun?.useChatTemplate !== undefined) {
+    configObj.useChatTemplate = benchmarkRun.useChatTemplate;
+  }
   if (opts.runtimeConfig) {
     configObj.runtimeConfig = opts.runtimeConfig;
   }
-  if (Object.keys(runtime).length > 0) {
-    configObj.runtime = runtime;
-  }
+  // Runtime overrides flow through runtimeConfig (config-only).
 
   if (customPromptText) {
     configObj.promptName = 'custom';
     configObj.customPrompt = customPromptText;
   } else {
-    configObj.promptName = opts.prompt;
+    configObj.promptName = promptName;
   }
 
   const config = JSON.stringify(configObj);

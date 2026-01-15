@@ -17,6 +17,7 @@ export interface SiLUOptions extends OutputBufferOptions {
   gate?: Tensor | null;
   useVec4?: boolean;
   biasOffset?: number;
+  swigluLimit?: number | null;
 }
 
 /** Row-split SiLU options for fused gate+up FFN */
@@ -24,6 +25,7 @@ export interface SiLURowSplitOptions extends OutputBufferOptions {
   numTokens: number;
   dim: number;
   activation?: 'silu' | 'gelu';
+  swigluLimit?: number | null;
 }
 
 /**

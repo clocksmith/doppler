@@ -202,4 +202,37 @@ export {
   type SplitQKVResult,
 } from './split_qkv.js';
 
+// Transpose
+export {
+  runTranspose,
+  recordTranspose,
+  type TransposeOptions,
+} from './transpose.js';
+
+// Training Backward Kernels
+export {
+  runEmbedBackward,
+  recordEmbedBackward,
+  runMatmulBackward,
+  recordMatmulBackward,
+  runSoftmaxBackward,
+  recordSoftmaxBackward,
+  runRmsNormBackward,
+  recordRmsNormBackward,
+  runAttentionBackward,
+  recordAttentionBackward,
+  runRoPEBackward,
+  recordRoPEBackward,
+  runSiluBackward,
+  recordSiluBackward,
+  runGeluBackward,
+  recordGeluBackward,
+  runScaleBackward,
+  recordScaleBackward,
+  runCrossEntropyBackward,
+  recordCrossEntropyBackward,
+  runAdam,
+  recordAdam,
+} from './backward/index.js';
+
 // Re-export profiling utilities

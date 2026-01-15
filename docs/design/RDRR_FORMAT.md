@@ -388,7 +388,7 @@ The `optimizations` field provides a kernel path hint used for fallback selectio
 1. manifest `optimizations.kernelPath`
 2. manifest `inference.defaultKernelPath`
 3. runtime config `runtime.inference.kernelPath`
-4. per-run context override (CLI `--kernel-path`, pipeline context)
+4. per-run context override (pipeline context only)
 
 See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#kernel-path-overrides) for how kernel paths integrate with capability-based kernel selection.
 
@@ -522,4 +522,4 @@ for await (const token of pipeline.generate('Hello')) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

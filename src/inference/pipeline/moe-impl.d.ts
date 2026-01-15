@@ -14,7 +14,7 @@
  * @module inference/pipeline/moe-impl
  */
 
-import type { Tensor } from '../../gpu/tensor.js';
+import type { Tensor, TensorDtype } from '../../gpu/tensor.js';
 import type { MoERouter } from '../moe-router.js';
 import type { ExpertWeights } from './types.js';
 
@@ -47,6 +47,8 @@ export interface MoEConfig {
   numExperts: number;
   moeTopK: number;
   hiddenActivation: string;
+  swigluLimit?: number | null;
+  activationDtype?: TensorDtype;
 }
 
 /**

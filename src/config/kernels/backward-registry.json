@@ -1,0 +1,49 @@
+{
+  "ops": {
+    "embed": {
+      "backward": "embed_backward",
+      "grads": ["weight"],
+      "notes": "Uses scatter_add for gradient accumulation"
+    },
+    "matmul": {
+      "backward": "matmul_backward",
+      "grads": ["input", "weight"],
+      "requires_transpose": true
+    },
+    "rmsnorm": {
+      "backward": "rmsnorm_backward",
+      "grads": ["input", "gamma"]
+    },
+    "attention": {
+      "backward": "attention_backward",
+      "grads": ["q", "k", "v"],
+      "notes": "Includes causal masking backward"
+    },
+    "softmax": {
+      "backward": "softmax_backward",
+      "grads": ["input"]
+    },
+    "silu": {
+      "backward": "silu_backward",
+      "grads": ["input"]
+    },
+    "gelu": {
+      "backward": "gelu_backward",
+      "grads": ["input"]
+    },
+    "rope": {
+      "backward": "rope_backward",
+      "grads": ["input"]
+    },
+    "scale": {
+      "backward": "scale_backward",
+      "grads": ["input"],
+      "notes": "For LoRA alpha scaling"
+    },
+    "cross_entropy": {
+      "backward": "cross_entropy_backward",
+      "grads": ["logits"],
+      "notes": "Loss function, returns scalar loss + logit gradients"
+    }
+  }
+}

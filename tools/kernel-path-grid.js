@@ -6,7 +6,7 @@
  * and summarizes TTFT/prefill/decode throughput from saved JSON output.
  */
 
-import { readdir, readFile, mkdir } from 'fs/promises';
+import { readdir, readFile, writeFile, mkdir } from 'fs/promises';
 import { join, resolve } from 'path';
 import { spawn } from 'child_process';
 import process from 'process';
@@ -52,6 +52,9 @@ Options:
 Examples:
   node tools/kernel-path-grid.js --model gemma-2-2b-it-wf16 --kernel-prefix gemma2
   node tools/kernel-path-grid.js --kernel-paths gemma2-f16-f16a,gemma2-f16-f32a
+
+Notes:
+  Kernel selection is config-only; this tool writes a config file per kernel path.
 `);
 }
 
@@ -188,13 +191,24 @@ async function runBench(opts, kernelId) {
   const outputDir = resolve(PROJECT_ROOT, opts.outputDir);
   await mkdir(outputDir, { recursive: true });
   const outputFile = join(outputDir, `grid_${sanitize(opts.model)}_${sanitize(kernelId)}.json`);
+  const configFile = join(outputDir, `kernel_path_${sanitize(kernelId)}.json`);
   const profileDir = buildProfileDir(opts.profileDirBase, kernelId);
+  const configPayload = {
+    runtime: {
+      inference: {
+        kernelPath: kernelId,
+      },
+    },
+  };
+  await writeFile(configFile, JSON.stringify(configPayload, null, 2), 'utf-8');
 
   const args = [
     'run',
     'bench',
     '--',
     'inference',
+    '--config',
+    configFile,
     '--model',
     opts.model,
     '--prompt',
@@ -205,8 +219,6 @@ async function runBench(opts, kernelId) {
     String(opts.runs),
     '--retries',
     String(opts.retries),
-    '--kernel-path',
-    kernelId,
     '--output',
     outputFile,
   ];

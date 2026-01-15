@@ -8,10 +8,12 @@
  */
 
 import { getDevice } from '../gpu/device.js';
+import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { createTensor } from '../gpu/tensor.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { f16ToF32Array } from './kv-cache/types.js';
 
 /**
  * @typedef {import('./moe-router.js').MoEConfig} MoEConfig
@@ -61,14 +63,17 @@ export class MoERouter {
   /** @type {LoadBalanceStats} */
   loadBalanceStats;
 
-  /** @type {GPUComputePipeline | null} */
-  _biasAddPipeline = null;
+  /** @type {Map<string, GPUComputePipeline>} */
+  _biasAddPipelines = new Map();
 
   /** @type {GPUBuffer | null} */
   _gateBiasGPU = null;
 
   /** @type {GPUBuffer | null} */
   _gateWeightGPU = null;
+
+  /** @type {'f16' | 'f32'} */
+  lastLogitsDtype = 'f32';
 
   /**
    * @param {MoEConfig} config
@@ -115,7 +120,7 @@ export class MoERouter {
       throw new Error('Router gate weights not loaded');
     }
 
-    if (this.gateWeight instanceof GPUBuffer) {
+    if (this.gateWeight instanceof GPUBuffer || isWeightBuffer(this.gateWeight)) {
       throw new Error('Gate weights are on GPU, use computeRouterLogitsGPU instead');
     }
 
@@ -148,7 +153,7 @@ export class MoERouter {
    * @param {GpuContext | null} [gpuContext=null] - GPU context (optional, uses global device if not provided)
    * @returns {Promise<GPUBuffer>} Router logits on GPU [numTokens, numExperts]
    */
-  async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext = null) {
+  async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext = null, options = {}) {
     const device = gpuContext?.device || getDevice();
     if (!device) {
       throw new Error('GPU device not available');
@@ -161,7 +166,10 @@ export class MoERouter {
     // Ensure gate weight is on GPU.
     // SafeTensors weights are [out, in] = [numExperts, hiddenSize], so we use transposeB.
     let gateWeightBuffer = this.gateWeight;
-    if (!(gateWeightBuffer instanceof GPUBuffer)) {
+    if (!gateWeightBuffer) {
+      throw new Error('Router gate weights not loaded');
+    }
+    if (!isWeightBuffer(gateWeightBuffer) && !(gateWeightBuffer instanceof GPUBuffer)) {
       const uploaded = device.createBuffer({
         label: 'moe_gate_weight',
         size: gateWeightBuffer.byteLength,
@@ -173,10 +181,12 @@ export class MoERouter {
       gateWeightBuffer = uploaded;
     }
 
+    const { inputDtype = 'f32', outputDtype = 'f32' } = options;
+    const gateWeightDtype = isWeightBuffer(gateWeightBuffer) ? getWeightDtype(gateWeightBuffer) : null;
+
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
     // Result: [numTokens, numExperts]
-    // Wrap hiddenStates in a Tensor for runMatmul
-    const hiddenStatesTensor = createTensor(hiddenStates, 'f32', [numTokens, this.hiddenSize], 'moe_hidden_states');
+    const hiddenStatesTensor = createTensor(hiddenStates, inputDtype, [numTokens, this.hiddenSize], 'moe_hidden_states');
     const logitsTensor = await runMatmul(
       hiddenStatesTensor,
       gateWeightBuffer,
@@ -184,8 +194,10 @@ export class MoERouter {
       this.numExperts,     // N
       this.hiddenSize,     // K
       {
-        preferF16: false,  // Use F32 for routing precision
+        preferF16: outputDtype === 'f16',
         transposeB: true,
+        outputDtype,
+        bDtype: gateWeightDtype ?? undefined,
         role: 'moe_router',
       }
     );
@@ -193,9 +205,11 @@ export class MoERouter {
     // Add bias on GPU if present (GPT-OSS style)
     if (this.gateBias) {
       const biasBuffer = await this._getGateBiasBuffer(device);
-      await this._addBiasInPlace(logitsTensor.buffer, biasBuffer, numTokens, device);
+      const biasDtype = this._inferBiasDtype(biasBuffer);
+      await this._addBiasInPlace(logitsTensor.buffer, biasBuffer, numTokens, device, logitsTensor.dtype, biasDtype);
     }
 
+    this.lastLogitsDtype = logitsTensor.dtype;
     return logitsTensor.buffer;
   }
 
@@ -233,9 +247,30 @@ export class MoERouter {
    * @returns {Promise<void>}
    * @private
    */
-  async _addBiasInPlace(logits, bias, numTokens, device) {
-    if (!this._biasAddPipeline) {
-      const code = `
+  _inferBiasDtype(bias) {
+    if (bias instanceof Float32Array) return 'f32';
+    if (bias instanceof GPUBuffer) {
+      const bytesPerElement = Math.round(bias.size / this.numExperts);
+      return bytesPerElement <= 2 ? 'f16' : 'f32';
+    }
+    return 'f32';
+  }
+
+  _getBiasAddPipeline(logitsDtype, biasDtype, device) {
+    const key = `${logitsDtype}_${biasDtype}`;
+    const cached = this._biasAddPipelines.get(key);
+    if (cached) return cached;
+
+    const useF16 = logitsDtype === 'f16' || biasDtype === 'f16';
+    const logitsType = logitsDtype === 'f16' ? 'f16' : 'f32';
+    const biasType = biasDtype === 'f16' ? 'f16' : 'f32';
+    const logitsRead = logitsDtype === 'f16' ? 'f32(logits[idx])' : 'logits[idx]';
+    const biasRead = biasDtype === 'f16' ? 'f32(bias[e])' : 'bias[e]';
+    const logitsWrite = logitsDtype === 'f16' ? 'logits[idx] = f16(value);' : 'logits[idx] = value;';
+    const enableF16 = useF16 ? 'enable f16;\n' : '';
+
+    const code = `
+        ${enableF16}
         struct Uniforms {
           numTokens: u32,
           numExperts: u32,
@@ -243,8 +278,8 @@ export class MoERouter {
           _pad1: u32,
         }
         @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-        @group(0) @binding(1) var<storage, read_write> logits: array<f32>;
-        @group(0) @binding(2) var<storage, read> bias: array<f32>;
+        @group(0) @binding(1) var<storage, read_write> logits: array<${logitsType}>;
+        @group(0) @binding(2) var<storage, read> bias: array<${biasType}>;
 
         @compute @workgroup_size(256)
         fn main(@builtin(global_invocation_id) gid: vec3u) {
@@ -252,16 +287,22 @@ export class MoERouter {
           let total = uniforms.numTokens * uniforms.numExperts;
           if (idx >= total) { return; }
           let e = idx % uniforms.numExperts;
-          logits[idx] = logits[idx] + bias[e];
+          let value = ${logitsRead} + ${biasRead};
+          ${logitsWrite}
         }
       `;
-      const module = device.createShaderModule({ code });
-      this._biasAddPipeline = device.createComputePipeline({
-        label: 'moe_router_bias_add',
-        layout: 'auto',
-        compute: { module, entryPoint: 'main' },
-      });
-    }
+    const module = device.createShaderModule({ code });
+    const pipeline = device.createComputePipeline({
+      label: `moe_router_bias_add_${key}`,
+      layout: 'auto',
+      compute: { module, entryPoint: 'main' },
+    });
+    this._biasAddPipelines.set(key, pipeline);
+    return pipeline;
+  }
+
+  async _addBiasInPlace(logits, bias, numTokens, device, logitsDtype, biasDtype) {
+    const pipeline = this._getBiasAddPipeline(logitsDtype, biasDtype, device);
 
     const uniformData = new ArrayBuffer(16);
     const uniformView = new DataView(uniformData);
@@ -276,7 +317,7 @@ export class MoERouter {
     device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
     const bindGroup = device.createBindGroup({
-      layout: this._biasAddPipeline.getBindGroupLayout(0),
+      layout: pipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: logits } },
@@ -286,7 +327,7 @@ export class MoERouter {
 
     const encoder = device.createCommandEncoder({ label: 'moe_router_bias_add_encoder' });
     const pass = encoder.beginComputePass({ label: 'moe_router_bias_add_pass' });
-    pass.setPipeline(this._biasAddPipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
     const total = numTokens * this.numExperts;
     pass.dispatchWorkgroups(Math.ceil(total / 256));
@@ -309,7 +350,9 @@ export class MoERouter {
     // Read back logits to CPU for top-k selection
     // (GPU top-k is complex and not always faster for small numExperts)
     const logitsData = await readBuffer(logitsBuffer);
-    const logits = new Float32Array(logitsData);
+    const logits = this.lastLogitsDtype === 'f16'
+      ? f16ToF32Array(new Uint16Array(logitsData))
+      : new Float32Array(logitsData);
 
     /** @type {ExpertSelection[]} */
     const selections = [];

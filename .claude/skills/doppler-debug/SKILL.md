@@ -61,31 +61,47 @@ npm run debug -- -m MODEL --trace CATEGORY 2>&1 | grep -E "TRACE|maxAbs"
 | `loader` | Model loading bugs, weight corruption, quantization issues |
 | `all` | When unsure - captures everything (verbose) |
 
-## Kernel Plan Overrides (Optional)
+```bash
+# Single category
+npm run debug -- -m MODEL --trace ffn
 
-Use kernel plan overrides to isolate kernel-specific issues without editing code.
+# Multiple categories
+npm run debug -- -m MODEL --trace ffn,kernels
+
+# All except expensive ones
+npm run debug -- -m MODEL --trace all,-buffers
+```
+
+## Kernel Path Overrides
+
+Use kernel path overrides to isolate kernel-specific issues without editing code.
 
 ```bash
-# Force dequant path for correctness (slow, but avoids fused Q4K)
+# Force safe/dequant path for correctness (slow, but avoids fused kernels)
 npm run debug -- -m MODEL --kernel-profile safe
 
-# Override attention variant for A/B testing
-npm run debug -- -m MODEL --kernel-plan '{"variants":{"attention":{"decode":"streaming"}}}'
+# Override kernel path for A/B testing
+npm run debug -- -m MODEL --kernel-path gemma2-q4k-dequant-f16a
+
+# Available profiles: fast, safe, debug, fused, apple
+npm run debug -- -m MODEL --kernel-profile debug
 ```
 
 ## Config-Driven Probes (Preferred Over Ad-hoc Logs)
 
-Use probes to read specific token/dimension values without editing code.
+Use probes to read specific token/dimension values without editing code. Configure via `--config` with inline JSON:
 
 ```bash
-# Example: probe dim 334 at layer_out for layers 0/17/25
+# Probe specific dimensions at layer_out for layers 0, 17, 25
 npm run debug -- -m MODEL --config '{
   "runtime": {
-    "debug": {
-      "trace": { "enabled": true, "categories": ["ffn"] },
-      "probes": [
-        { "id": "dim334", "stage": "layer_out", "layers": [0, 17, 25], "tokens": [0, -1], "dims": [334] }
-      ]
+    "shared": {
+      "debug": {
+        "trace": { "enabled": true, "categories": ["ffn"] },
+        "probes": [
+          { "id": "dim334", "stage": "layer_out", "layers": [0, 17, 25], "tokens": [0, -1], "dims": [334] }
+        ]
+      }
     }
   }
 }' 2>&1 | grep -E "PROBE"
@@ -93,17 +109,33 @@ npm run debug -- -m MODEL --config '{
 # Post-softcap logits probe for HF parity (Gemma 2 finalLogitSoftcapping)
 npm run debug -- -m MODEL --config '{
   "runtime": {
-    "debug": {
-      "trace": { "enabled": true, "categories": ["logits"] },
-      "probes": [
-        { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [476, 3868, 17022] }
-      ]
+    "shared": {
+      "debug": {
+        "trace": { "enabled": true, "categories": ["logits"] },
+        "probes": [
+          { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [476, 3868, 17022] }
+        ]
+      }
     }
   }
 }' 2>&1 | grep -E "PROBE"
+```
 
-# Use the preset when iterating on Gemma 2
-npm run debug -- --config gemma2-debug -m MODEL 2>&1 | grep -E "PROBE|Output"
+## Tracing Specific Layers
+
+To trace only specific layers, use config:
+
+```bash
+# Trace only layers 0, 12, 25
+npm run debug -- -m MODEL --config '{
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": { "enabled": true, "categories": ["ffn"], "layers": [0, 12, 25] }
+      }
+    }
+  }
+}' 2>&1 | grep -E "TRACE"
 ```
 
 ## Fast Iteration Pattern
@@ -112,11 +144,16 @@ npm run debug -- --config gemma2-debug -m MODEL 2>&1 | grep -E "PROBE|Output"
 # First run: loads model into GPU memory (~30s)
 npm run debug -- -m MODEL --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
 
-# Subsequent runs: reuses model, much faster (~5s)
+# Subsequent runs: reuses model via CDP (much faster, ~5s)
 npm run debug -- -m MODEL --skip-load --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then run
 npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
+
+# Keep browser open for multiple runs
+npm run debug -- -m MODEL --warm
+# Then in another terminal:
+npm run debug -- -m MODEL --skip-load --trace kernels
 ```
 
 Use `sed '/DOPPLER:DONE/q'` to exit immediately after generation completes.
@@ -129,8 +166,16 @@ When output differs from expected, compare layer-by-layer:
 # Get HuggingFace reference values for specific layers
 python3 src/debug/reference/hf_layer_out.py --model HF_MODEL_NAME --layers 0,12,25
 
-# Then trace DOPPLER at same layers
-npm run debug -- -m MODEL --trace ffn --trace-layers 0,12,25 2>&1 | grep "LAYER_OUT"
+# Then trace DOPPLER at same layers via config
+npm run debug -- -m MODEL --config '{
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": { "enabled": true, "categories": ["ffn"], "layers": [0, 12, 25] }
+      }
+    }
+  }
+}' 2>&1 | grep "LAYER_OUT"
 ```
 
 Use `logits_final` probes for post-softcap comparisons when models apply finalLogitSoftcapping.
@@ -145,7 +190,7 @@ Once you identify the failure class, apply the appropriate fix:
 | Norm offset missing | Check `rmsNormWeightOffset: true` in model preset |
 | Attention scaling wrong | Verify `queryPreAttnScalar` matches HF config (e.g., 256 for Gemma 2) |
 | Softcapping disabled | Check `attnLogitSoftcapping` and `finalLogitSoftcapping` in manifest |
-| Quantization drift | Re-convert model with `--quantize f16` to isolate Q4K bugs |
+| Quantization drift | Re-convert model with `-w f16` to isolate Q4K bugs |
 | Sliding window wrong | Check `slidingWindow` and layer pattern in model preset |
 
 ## Key Grep Patterns
@@ -166,10 +211,10 @@ For detailed information, consult these files:
 
 - **Model configs**: `src/config/presets/models/*.json`
 - **Kernel implementations**: `src/gpu/kernels/*.wgsl`
-- **Layer processing**: `src/inference/pipeline/layer.ts`
-- **Attention**: `src/inference/pipeline/attention.ts`
-- **Logits**: `src/inference/pipeline/logits.ts`
-- **Troubleshooting guide**: `docs/DOPPLER-TROUBLESHOOTING.md`
+- **Layer processing**: `src/inference/pipeline/layer.js`
+- **Attention**: `src/inference/pipeline/attention.js`
+- **Logits**: `src/inference/pipeline/logits.js`
+- **CLI implementation**: `cli/index.js`
 
 ## Related Skills
 

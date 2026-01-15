@@ -10,7 +10,7 @@
 
 ```bash
 # Reproduce the garbage output bug
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN|blue|Kaw|Generated"
+doppler bench inference --config debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN|blue|Kaw|Generated"
 
 # Look for: ALL POSITIVE values at last position
 # FINAL_HIDDEN[pos=6]: [183.x, 42.x, 201.x, ...] - ALL POSITIVE (bug!)
@@ -41,27 +41,27 @@ See postmortem for full hypothesis ranking and next steps.
 
 ## Log Levels (verbosity)
 
-Control general log verbosity with CLI flags:
+Control general log verbosity via runtime config:
 
-| CLI Flag | Level | Shows |
-|----------|-------|-------|
-| (default) | info | Phase starts/ends, totals |
-| `--verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
-| `--quiet` | silent | Errors only |
+| Config | Level | Shows |
+|--------|-------|-------|
+| `runtime.shared.debug.logLevel.defaultLogLevel=info` | info | Phase starts/ends, totals |
+| `...=verbose` | verbose | + Per-shard source (RAM/OPFS/network), per-layer timing |
+| `...=silent` | silent | Errors only |
 
 ## Trace (categories)
 
-Trace is separate from log level. Use it for tensor/kernel details:
+Trace is separate from log level. Use runtime config for tensor/kernel details:
 
-- `--trace` (all categories)
-- `--trace kernels,attn`
-- `--trace all,-buffers`
+- `runtime.shared.debug.trace.enabled=true`
+- `runtime.shared.debug.trace.categories=["kernels","attn"]`
+- `runtime.shared.debug.trace.categories=["all","-buffers"]`
 
-**Defaults by mode:**
+**Defaults by preset:**
 - `bench`: log=info, trace off
 - `debug`: log=verbose, trace on (all categories)
 
-**Config-first usage:** `runtime.shared.debug.trace` is the source of truth; CLI `--trace` and URL params override config for quick experiments.
+**Config-only usage:** `runtime.shared.debug.trace` is the source of truth.
 
 ## Config-Driven Probes (Preferred for Readbacks)
 
@@ -101,24 +101,24 @@ doppler debug 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
 doppler debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN" | head -20
 
 # Trace-level output (tensor details)
-doppler debug --trace 2>&1 | head -200
+doppler debug --config debug 2>&1 | head -200
 ```
 
 **If logs don't appear:** Check your grep pattern includes the tag (e.g., `Loader` for loader output).
 
 ## Debug Flag
 
-**IMPORTANT:** Debug GPU readbacks are gated behind `--debug` or `debug: true` to avoid performance impact.
+**IMPORTANT:** Debug GPU readbacks are gated behind `runtime.shared.benchmark.run.debug=true` or the `debug` preset to avoid performance impact.
 
 - Without flag: Benchmarks run at full speed (no GPU sync points)
 - With flag: Verbose layer-by-layer output but much slower
 
 ```bash
 # Fast benchmark (no debug output)
-doppler bench inference --prompt xs --headed
+doppler bench inference --config bench --headed
 
 # Slow benchmark with debug GPU readbacks
-doppler bench inference --prompt xs --debug
+doppler bench inference --config debug
 ```
 
 ```typescript
@@ -161,10 +161,10 @@ The benchmark runs inside a persistent Playwright profile directory. This preser
 
 ```bash
 # Warm run (reuse existing OPFS cache)
-doppler bench inference --prompt xs --profile-dir .benchmark-cache
+doppler bench inference --config bench --profile-dir .benchmark-cache
 
 # Cold run (fresh profile dir)
-doppler bench inference --prompt xs --profile-dir .benchmark-cache-cold
+doppler bench inference --config bench --profile-dir .benchmark-cache-cold
 ```
 
 ## CommandRecorder Gotcha
@@ -195,4 +195,4 @@ Target: 40+ tok/s decode on Gemma 3 1B. See `feature-log/doppler/inference.jsonl
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

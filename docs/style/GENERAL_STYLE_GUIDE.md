@@ -107,7 +107,7 @@ Every configurable must have a schema; no runtime defaults live in JS logic.
 - Config: schema-shaped instance (default, preset, override, asset).
 - Default config: `DEFAULT_*` export from a schema module.
 - Preset config: JSON overlay (runtime presets, model presets, kernel paths, platforms).
-- Override config: CLI or programmatic overlay (highest precedence).
+- Override config: explicit config or programmatic overlay (highest precedence).
 
 ### Phase Injection Model
 
@@ -182,7 +182,8 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Manifest: `optimizations.kernelPath` or `inference.defaultKernelPath`
 - Runtime: `runtime.inference.kernelPath`
 - Legacy `kernelPlan` is removed; do not add new references.
-- Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath` → CLI `--kernel-path`.
+- Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
+- Kernel path overrides are config-only; do not add CLI flags for kernel selection.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
  - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
@@ -211,7 +212,7 @@ When adding a new inference knob or model behavior:
 The merge order for runtime config:
 1. Runtime default config (schema default configs)
 2. Runtime preset config (partial override)
-3. Runtime override config (CLI flags, explicit config)
+3. Runtime override config (explicit config)
 
 Manifest + runtime config feed ModelConfig → PipelineSpec → KernelSpec → Dispatch.
 
@@ -375,16 +376,18 @@ Model presets may define `inference.pipeline` to drive per-layer step order. Run
 {
   "runtime": {
     "inference": {
-      "pipeline": [
-        { "op": "input_norm" },
-        { "op": "attention" },
-        { "op": "post_attention_norm" },
-        { "op": "residual" },
-        { "op": "pre_ffn_norm" },
-        { "op": "ffn" },
-        { "op": "post_ffn_norm" },
-        { "op": "residual" }
-      ]
+      "pipeline": {
+        "steps": [
+          { "op": "input_norm" },
+          { "op": "attention" },
+          { "op": "post_attention_norm" },
+          { "op": "residual" },
+          { "op": "pre_ffn_norm" },
+          { "op": "ffn" },
+          { "op": "post_ffn_norm" },
+          { "op": "residual" }
+        ]
+      }
     }
   }
 }

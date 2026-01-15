@@ -1,11 +1,3 @@
-/**
- * Shard Cache
- *
- * LRU cache for model shards with deduplication of in-flight requests.
- *
- * @module loader/shard-cache
- */
-
 import {
   loadShard as loadShardFromOPFS,
   computeHash,
@@ -14,37 +6,17 @@ import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
-/**
- * LRU cache for model shards with request deduplication
- */
 export class ShardCache {
-  /** @type {Map<number, ArrayBuffer>} */
   #cache = new Map();
-
-  /** @type {number} */
   #maxEntries;
-
-  /** @type {import('./loader-types.js').CustomShardLoader | null} */
   #customLoader = null;
-
-  /** @type {boolean} */
   #verifyHashes;
-
-  /** @type {import('../storage/rdrr-format.js').RDRRManifest | null} */
   #manifest = null;
-
-  /** @type {import('../config/schema/loading.schema.js').ShardCacheConfigSchema} */
   #loadingConfig;
-
-  /** @type {Map<number, Promise<ArrayBuffer>>} */
   #fetchPromises = new Map();
 
-  /** @type {import('./loader-types.js').ShardSourceInfo | null} */
   lastSource = null;
 
-  /**
-   * @param {import('./shard-cache.js').ShardCacheConfig} config
-   */
   constructor(config) {
     this.#maxEntries = config.maxEntries;
     this.#customLoader = config.customLoader ?? null;
@@ -53,10 +25,6 @@ export class ShardCache {
     this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache;
   }
 
-  /**
-   * Update configuration
-   * @param {Partial<import('./shard-cache.js').ShardCacheConfig>} config
-   */
   configure(config) {
     if (config.maxEntries !== undefined) {
       this.#maxEntries = config.maxEntries;
@@ -75,11 +43,6 @@ export class ShardCache {
     }
   }
 
-  /**
-   * Set custom shard loader
-   * @param {import('./loader-types.js').CustomShardLoader | null} loader
-   * @param {boolean} [verify=true]
-   */
   setCustomLoader(loader, verify = true) {
     this.#customLoader = loader;
     this.#verifyHashes = verify;
@@ -88,53 +51,26 @@ export class ShardCache {
     }
   }
 
-  /**
-   * Set manifest for hash verification
-   * @param {import('../storage/rdrr-format.js').RDRRManifest | null} manifest
-   */
   setManifest(manifest) {
     this.#manifest = manifest;
   }
 
-  /**
-   * Check if a custom loader is configured
-   * @returns {boolean}
-   */
   get hasCustomLoader() {
     return this.#customLoader !== null;
   }
 
-  /**
-   * Check if shard is cached
-   * @param {number} shardIndex
-   * @returns {boolean}
-   */
   has(shardIndex) {
     return this.#cache.has(shardIndex);
   }
 
-  /**
-   * Get cache size
-   * @returns {number}
-   */
   get size() {
     return this.#cache.size;
   }
 
-  /**
-   * Get total cached bytes
-   * @returns {number}
-   */
   get totalBytes() {
     return Array.from(this.#cache.values()).reduce((sum, ab) => sum + ab.byteLength, 0);
   }
 
-  /**
-   * Load shard with caching and request deduplication.
-   * If the same shard is requested concurrently, all callers wait for the same fetch.
-   * @param {number} shardIndex
-   * @returns {Promise<ArrayBuffer>}
-   */
   async load(shardIndex) {
     const shardInfo = this.#manifest?.shards?.[shardIndex];
     const sizeStr = shardInfo ? formatBytes(shardInfo.size) : '';
@@ -169,22 +105,15 @@ export class ShardCache {
     }
   }
 
-  /**
-   * Actually load the shard (called after deduplication check)
-   * @param {number} shardIndex
-   * @param {string} sizeStr
-   * @returns {Promise<ArrayBuffer>}
-   */
   async #doLoad(shardIndex, sizeStr) {
     if (this.#customLoader) {
       const startTime = performance.now();
-      /** @type {Uint8Array | ArrayBuffer} */
       let data = await this.#customLoader(shardIndex);
 
       // Verify hash if enabled
       if (this.#verifyHashes && this.#manifest) {
         const shardInfo = this.#manifest.shards?.[shardIndex];
-        const expectedHash = shardInfo?.hash || /** @type {{ blake3?: string }} */ (shardInfo)?.blake3;
+        const expectedHash = shardInfo?.hash || shardInfo?.blake3;
         if (expectedHash) {
           const algorithm = this.#manifest.hashAlgorithm || 'blake3';
           const computedHash = await computeHash(data, algorithm);
@@ -197,10 +126,9 @@ export class ShardCache {
       }
 
       // Normalize to ArrayBuffer for downstream slicing
-      /** @type {ArrayBuffer} */
       let arrayBuffer;
       if (data instanceof Uint8Array) {
-        arrayBuffer = /** @type {ArrayBuffer} */ (data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+        arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
       } else {
         arrayBuffer = data;
       }
@@ -222,11 +150,6 @@ export class ShardCache {
     return data;
   }
 
-  /**
-   * Add shard to cache with LRU eviction
-   * @param {number} shardIndex
-   * @param {ArrayBuffer} data
-   */
   #add(shardIndex, data) {
     this.#cache.set(shardIndex, data);
     if (this.#cache.size > this.#maxEntries) {
@@ -237,9 +160,6 @@ export class ShardCache {
     }
   }
 
-  /**
-   * Clear the cache
-   */
   clear() {
     const count = this.#cache.size;
     const bytes = this.totalBytes;
@@ -247,13 +167,6 @@ export class ShardCache {
     debugTrace.loader(`Cleared shard cache: ${count} shards, ${formatBytes(bytes)} freed`);
   }
 
-  /**
-   * Configure cache size based on model type.
-   * For MoE models, cache enough shards for 2x top-k experts + 1 dense shard.
-   * For dense models, keep the default (configurable via loadingConfig).
-   * @param {import('../storage/rdrr-format.js').RDRRManifest | null} manifest
-   * @param {boolean} hasCustomLoader
-   */
   configureForModel(manifest, hasCustomLoader) {
     if (!manifest) return;
     this.#manifest = manifest;
@@ -278,12 +191,6 @@ export class ShardCache {
   }
 }
 
-/**
- * Create a new shard cache with default settings
- * @param {number} [maxEntries]
- * @param {import('../config/schema/loading.schema.js').ShardCacheConfigSchema} [loadingConfig]
- * @returns {ShardCache}
- */
 export function createShardCache(maxEntries, loadingConfig) {
   const config = loadingConfig ?? getRuntimeConfig().loading.shardCache;
   return new ShardCache({

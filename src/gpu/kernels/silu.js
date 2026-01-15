@@ -52,7 +52,7 @@ export async function runSiLU(
   options = {}
 ) {
   const device = getDevice();
-  const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
+  const { size, gate = null, outputBuffer = null, useVec4 = false, swigluLimit = null } = options;
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -73,6 +73,8 @@ export async function runSiLU(
     (view) => {
       view.setUint32(0, inferredSize, true);
       view.setUint32(4, 0, true);
+      view.setFloat32(8, gate && swigluLimit ? swigluLimit : 0, true);
+      view.setFloat32(12, 0, true);
     },
     null,
     device
@@ -104,9 +106,11 @@ export async function runSwiGLURowsplitBias(
   options = {}
 ) {
   const device = getDevice();
-  const { outputBuffer = null, biasOffset = 0 } = options;
+  const { outputBuffer = null, biasOffset = 0, swigluLimit = null } = options;
 
-  const pipeline = await getPipelineFast('swiglu', 'rowsplit_bias');
+  const useF16 = input.dtype === 'f16' && bias.dtype === 'f16';
+  const variant = useF16 ? 'rowsplit_bias_f16' : 'rowsplit_bias';
+  const pipeline = await getPipelineFast('swiglu', variant);
 
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = numTokens * dim * bytesPerElement;
@@ -120,6 +124,7 @@ export async function runSwiGLURowsplitBias(
       view.setUint32(0, numTokens, true);
       view.setUint32(4, dim, true);
       view.setUint32(8, biasOffset, true);
+      view.setFloat32(12, swigluLimit ?? 0, true);
     },
     null,
     device
@@ -151,7 +156,7 @@ export async function runSiLURowSplit(
   options
 ) {
   const device = getDevice();
-  const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
+  const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit = null } = options;
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -172,6 +177,8 @@ export async function runSiLURowSplit(
     (view) => {
       view.setUint32(0, numTokens * dim, true);  // size
       view.setUint32(4, dim, true);              // rowsplit_dim
+      view.setFloat32(8, activation === 'silu' && swigluLimit ? swigluLimit : 0, true);
+      view.setFloat32(12, 0, true);
     },
     null,
     device
@@ -203,7 +210,7 @@ export async function recordSiLURowSplit(
   options
 ) {
   const device = recorder.device;
-  const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
+  const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit = null } = options;
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -224,6 +231,8 @@ export async function recordSiLURowSplit(
     (view) => {
       view.setUint32(0, numTokens * dim, true);  // size
       view.setUint32(4, dim, true);              // rowsplit_dim
+      view.setFloat32(8, activation === 'silu' && swigluLimit ? swigluLimit : 0, true);
+      view.setFloat32(12, 0, true);
     },
     recorder
   );
@@ -252,7 +261,7 @@ export async function recordSiLU(
   options = {}
 ) {
   const device = recorder.device;
-  const { size, gate = null, outputBuffer = null } = options;
+  const { size, gate = null, outputBuffer = null, swigluLimit = null } = options;
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -273,6 +282,8 @@ export async function recordSiLU(
     (view) => {
       view.setUint32(0, inferredSize, true);
       view.setUint32(4, 0, true);
+      view.setFloat32(8, gate && swigluLimit ? swigluLimit : 0, true);
+      view.setFloat32(12, 0, true);
     },
     recorder
   );

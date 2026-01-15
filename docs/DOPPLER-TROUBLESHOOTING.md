@@ -189,14 +189,14 @@ DOPPLER.debugBuffers(true)                   // Enable buffer inspection
 
 ### Log Levels (Unified System)
 
-DOPPLER uses a unified logging system controlled by CLI flags or browser URL params:
+DOPPLER uses a unified logging system controlled by runtime config:
 
-| CLI Flag | URL Param | Level | Shows |
-|----------|-----------|-------|-------|
-| (default) | `?log=info` | info | Phase starts/ends, totals |
-| `--verbose` | `?log=verbose` | verbose | + Per-shard source, per-layer timing |
-| `--trace` | `?log=trace` | trace | + Tensor shapes, dequant ops, buffer details |
-| `--quiet` | `?log=silent` | silent | Errors only |
+| Config | Level | Shows |
+|--------|-------|-------|
+| `runtime.shared.debug.logLevel.defaultLogLevel=info` | info | Phase starts/ends, totals |
+| `...=verbose` | verbose | + Per-shard source, per-layer timing |
+| `runtime.shared.debug.trace.enabled=true` | trace | + Tensor shapes, dequant ops, buffer details |
+| `...=silent` | silent | Errors only |
 
 **Defaults by mode:**
 - `test`, `bench`: info (clean summaries)
@@ -226,18 +226,15 @@ The DOPPLER CLI (`cli/index.js`) runs Playwright and filters browser console log
 
 **If your logs don't appear:**
 1. Check your grep pattern includes the tag (e.g., `Loader` to match loader output)
-2. Use `--verbose` to enable verbose-level loader logs
+2. Use a config preset (e.g., `debug`) to enable verbose logging and trace
 3. Some debug readbacks skip when using CommandRecorder (batched mode) - this is by design
 
 ```bash
 # Show shard sources and layer timing
-doppler bench --verbose 2>&1 | grep -E "Loader.*Shard|Loader.*Layer"
+doppler bench --config debug 2>&1 | grep -E "Loader.*Shard|Loader.*Layer"
 
 # Show everything including tensor details
-doppler debug --trace 2>&1 | head -200
-
-# Quiet mode (errors only)
-doppler bench --quiet
+doppler debug --config debug 2>&1 | head -200
 ```
 
 ### OPFS Cache Persistence (Faster Reruns)
@@ -865,4 +862,4 @@ When debugging DOPPLER issues:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

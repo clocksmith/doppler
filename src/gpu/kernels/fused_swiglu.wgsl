@@ -16,7 +16,7 @@ struct Uniforms {
     num_tokens: u32,
     dim: u32,
     bias_offset: u32,  // byte offset into bias buffer (divide by 4 for F32 index)
-    _pad0: u32,
+    clamp_max: f32,    // SwiGLU clamp (0 = disabled)
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -30,6 +30,13 @@ fn sigmoid(x: f32) -> f32 {
 
 fn silu(x: f32) -> f32 {
     return x * sigmoid(x);
+}
+
+fn clamp_swiglu(x: f32) -> f32 {
+    if (u.clamp_max <= 0.0) {
+        return x;
+    }
+    return clamp(x, -u.clamp_max, u.clamp_max);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -50,6 +57,5 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let gate = input[row_base + dim_idx] + bias[bias_base + dim_idx];
     let up = input[row_base + u.dim + dim_idx] + bias[bias_base + u.dim + dim_idx];
 
-    output[idx] = silu(gate) * up;
+    output[idx] = clamp_swiglu(silu(gate) * up);
 }
-

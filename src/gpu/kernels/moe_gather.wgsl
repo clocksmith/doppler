@@ -26,7 +26,7 @@ struct Uniforms {
     num_experts: u32,           // Number of experts
     top_k: u32,                 // Number of experts per token
     max_tokens_per_expert: u32, // Max tokens any expert can receive
-    _pad1: u32,
+    threads_per_row: u32,       // For 2D dispatch: dispatchSizeX * WORKGROUP_SIZE_MAIN
     _pad2: u32,
     _pad3: u32,
 }
@@ -65,10 +65,11 @@ fn count_and_map(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 
 // Phase 2: Gather hidden states based on token map
-// Run with num_experts * max_tokens_per_expert * (hidden_size / 4) threads
+// Run with num_experts * max_tokens_per_expert * hidden_size threads
 @compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
 fn gather_tokens(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let tid = gid.x;
+    // Support 2D dispatch for large token counts (>65535 workgroups)
+    let tid = gid.x + gid.y * u.threads_per_row;
     let hidden_size = u.hidden_size;
     let max_tokens_per_expert = u.max_tokens_per_expert;
     let num_experts = u.num_experts;

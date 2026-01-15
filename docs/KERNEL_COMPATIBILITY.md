@@ -4,17 +4,14 @@ This chart separates **packing/layout** (how weights are stored in RDRR) from **
 
 ## Runtime Kernel Modes (Overrides)
 
-Use CLI overrides or config files to force runtime kernel mode (without repacking):
+Use config files to force runtime kernel mode (without repacking):
 
 ```bash
 # Via config file (recommended for reproducibility)
 npm run bench -- -m MODEL --config kernel-config.json
 
-# Preset profile (fast/safe/debug/fused/apple)
-npm run bench -- -m MODEL --kernel-profile fused
-
-# Kernel path override (preset ID or inline JSON)
-npm run bench -- -m MODEL --kernel-path gemma2-q4k-fused-f16a
+# Kernel path override (preset ID)
+npm run bench -- -m MODEL --config kernel-config.json
 ```
 
 Example `kernel-config.json`:
@@ -28,7 +25,7 @@ Example `kernel-config.json`:
 }
 ```
 
-Priority (low to high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath` → CLI `--kernel-path`.
+Priority (low to high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
 
 Kernel path notes:
 - Kernel paths are explicit dispatch sequences (see `docs/design/KERNEL_PATHS.md`).
@@ -56,4 +53,4 @@ This removes the cached model directory from OPFS for the current browser profil
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

@@ -1,15 +1,3 @@
-/**
- * Config Resolver
- *
- * Resolves config references to their sources:
- * - Named presets (built-in, user, project)
- * - File paths (absolute or relative)
- * - URLs (fetched and cached)
- * - Inline JSON
- *
- * @module cli/config/config-resolver
- */
-
 import { readFile, access, mkdir, writeFile, readdir } from 'fs/promises';
 import { resolve, join, relative, basename, sep } from 'path';
 import { homedir } from 'os';
@@ -28,18 +16,11 @@ const PATH_SEPARATOR_PATTERN = /[\\/]/g;
 // =============================================================================
 
 export class ConfigResolver {
-  /** @type {string} */
   #projectRoot;
-  /** @type {string} */
   #userHome;
-  /** @type {string} */
   #cacheDir;
-  /** @type {number} */
   #cacheTTL;
 
-  /**
-   * @param {import('./config-resolver.js').ResolverOptions} [options]
-   */
   constructor(options = {}) {
     this.#projectRoot = options.projectRoot ?? process.cwd();
     this.#userHome = options.userHome ?? homedir();
@@ -47,12 +28,6 @@ export class ConfigResolver {
     this.#cacheTTL = options.cacheTTL ?? DEFAULT_CACHE_TTL;
   }
 
-  /**
-   * Resolve a config reference to its content.
-   *
-   * @param {string} ref - Config reference (name, path, URL, or inline JSON)
-   * @returns {Promise<import('./config-resolver.js').ResolvedConfig>} Resolved config with source info and content
-   */
   async resolve(ref) {
     // 1. Inline JSON (starts with '{')
     if (ref.trim().startsWith('{')) {
@@ -90,12 +65,6 @@ export class ConfigResolver {
     return this.#resolvePreset(ref);
   }
 
-  /**
-   * Resolve a named preset from preset directories.
-   *
-   * @param {string} name
-   * @returns {Promise<import('./config-resolver.js').ResolvedConfig>}
-   */
   async #resolvePreset(name) {
     const normalized = name.replace(PATH_SEPARATOR_PATTERN, '/');
     const filename = normalized.endsWith(PRESET_EXTENSION)
@@ -103,7 +72,6 @@ export class ConfigResolver {
       : `${normalized}${PRESET_EXTENSION}`;
 
     // Search order: project -> user -> builtin
-    /** @type {{ source: 'project' | 'user' | 'builtin', dir: string }[]} */
     const searchPaths = [
       { source: 'project', dir: join(this.#projectRoot, '.doppler') },
       { source: 'user', dir: join(this.#userHome, '.doppler', 'presets') },
@@ -135,12 +103,6 @@ export class ConfigResolver {
     );
   }
 
-  /**
-   * Resolve a file path to config content.
-   *
-   * @param {string} ref
-   * @returns {Promise<import('./config-resolver.js').ResolvedConfig>}
-   */
   async #resolveFile(ref) {
     const path = resolve(this.#projectRoot, ref);
     try {
@@ -151,12 +113,6 @@ export class ConfigResolver {
     }
   }
 
-  /**
-   * Resolve a URL to config content (with caching).
-   *
-   * @param {string} url
-   * @returns {Promise<import('./config-resolver.js').ResolvedConfig>}
-   */
   async #resolveUrl(url) {
     // Check cache first
     const cacheKey = this.#urlToCacheKey(url);
@@ -197,12 +153,6 @@ export class ConfigResolver {
     return { source: 'url', path: url, content, name: null };
   }
 
-  /**
-   * Convert URL to a safe cache key filename.
-   *
-   * @param {string} url
-   * @returns {string}
-   */
   #urlToCacheKey(url) {
     return url
       .replace(/^https?:\/\//, '')
@@ -210,15 +160,8 @@ export class ConfigResolver {
       .slice(0, 200);
   }
 
-  /**
-   * List available presets from all sources.
-   *
-   * @returns {Promise<{ name: string; source: string; path: string }[]>}
-   */
   async listPresets() {
-    /** @type {{ name: string; source: string; path: string }[]} */
     const presets = [];
-    /** @type {Set<string>} */
     const seen = new Set();
 
     const searchPaths = [
@@ -246,7 +189,6 @@ export class ConfigResolver {
 }
 
 async function listPresetFiles(rootDir, baseDir = rootDir) {
-  /** @type {{ name: string; path: string }[]} */
   const results = [];
   const entries = await readdir(rootDir, { withFileTypes: true });
   for (const entry of entries) {
@@ -296,17 +238,10 @@ async function findPresetPath(rootDir, normalizedName) {
 
 const defaultResolver = new ConfigResolver();
 
-/**
- * @param {string} ref
- * @returns {Promise<import('./config-resolver.js').ResolvedConfig>}
- */
 export async function resolveConfig(ref) {
   return defaultResolver.resolve(ref);
 }
 
-/**
- * @returns {Promise<{ name: string; source: string; path: string }[]>}
- */
 export async function listPresets() {
   return defaultResolver.listPresets();
 }

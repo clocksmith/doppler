@@ -59,4 +59,4 @@ export declare function recordMatmulRMSNormFused(
 /**
  * Check if fused kernel should be used for given dimensions
  */
-export declare function shouldUseFusedMatmulRMSNorm(M: number, N: number): boolean;
+export declare function shouldUseFusedMatmulRMSNorm(M: number, N: number, K?: number): boolean;

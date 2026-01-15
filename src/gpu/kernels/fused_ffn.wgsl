@@ -40,9 +40,9 @@ struct Uniforms {
     intermediate_size: u32, // Output dimension (per gate/up)
     alpha: f32,            // Scale factor
     activation: u32,       // 0=silu, 1=gelu
+    clamp_max: f32,        // SwiGLU clamp (0 = disabled)
     _pad0: u32,            // 16-byte alignment padding
     _pad1: u32,
-    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -66,6 +66,13 @@ fn silu(x: f32) -> f32 {
 fn gelu(x: f32) -> f32 {
     let c = 0.7978845608; // sqrt(2/pi)
     return 0.5 * x * (1.0 + tanh(c * (x + 0.044715 * x * x * x)));
+}
+
+fn clamp_swiglu(x: f32) -> f32 {
+    if (u.clamp_max <= 0.0 || u.activation != 0u) {
+        return x;
+    }
+    return clamp(x, -u.clamp_max, u.clamp_max);
 }
 
 // Fused FFN forward for F32 weights
@@ -147,7 +154,7 @@ fn main(
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * u.alpha;
+        output[out_idx] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }
 
@@ -236,7 +243,7 @@ fn main_multi(
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * u.alpha;
+        output[out_idx] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }
 
@@ -326,7 +333,7 @@ fn main_f16(
             activated = gelu(final_gate);
         }
 
-        output[out_idx] = activated * final_up * u.alpha;
+        output[out_idx] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }
 
@@ -408,6 +415,6 @@ fn main_batched(
         }
 
         let out_offset = batch_idx * intermediate_size + out_idx;
-        output[out_offset] = activated * final_up * u.alpha;
+        output[out_offset] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }

@@ -4,7 +4,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { selectByRules } from './rule-matcher.js';
@@ -84,13 +84,21 @@ export async function runSoftmaxTopK(
   options = {}
 ) {
   const device = getDevice();
-  const { normalize = true } = options;
+  const { normalize = true, inputDtype = 'f32', weightsDtype = 'f32' } = options;
 
-  const pipeline = await createPipeline('topk', 'fused');
+  if (weightsDtype === 'f16' && inputDtype !== 'f16') {
+    throw new Error('SoftmaxTopK f16 weights require f16 logits');
+  }
 
-  // Output buffers: indices [numTokens, topK] as u32, weights [numTokens, topK] as f32
+  const variant = inputDtype === 'f16'
+    ? (weightsDtype === 'f16' ? 'fused_f16_w16' : 'fused_f16')
+    : 'fused';
+  const pipeline = await createPipeline('topk', variant);
+
+  // Output buffers: indices [numTokens, topK] as u32, weights [numTokens, topK] as f16 or f32
   const indicesSize = numTokens * topK * 4; // u32
-  const weightsSize = numTokens * topK * 4; // f32
+  const weightsBytesPerElement = weightsDtype === 'f16' ? 2 : 4;
+  const weightsSize = numTokens * topK * weightsBytesPerElement;
 
   const indices = acquireBuffer(indicesSize, undefined, 'softmax_topk_indices');
   const weights = acquireBuffer(weightsSize, undefined, 'softmax_topk_weights');
@@ -110,7 +118,7 @@ export async function runSoftmaxTopK(
   );
 
   // Create bind group
-  const bindGroup = device.createBindGroup({
+  const bindGroup = await createBindGroupWithValidation(device, {
     label: 'softmax_topk_bind_group',
     layout: pipeline.getBindGroupLayout(0),
     entries: [
@@ -119,7 +127,7 @@ export async function runSoftmaxTopK(
       { binding: 2, resource: { buffer: indices } },
       { binding: 3, resource: { buffer: weights } },
     ],
-  });
+  }, `topk:${variant}`);
 
   dispatch(device, pipeline, bindGroup, numTokens, 'softmax_topk');
 

@@ -204,6 +204,13 @@ export interface FusedMatmulThresholdsSchema {
   maxMediumN: number;
 
   /**
+   * Maximum K dimension for fused GEMV+RMSNorm selection.
+   * When K exceeds this threshold, prefer separate kernels for better throughput.
+   * @default 8192
+   */
+  maxMediumK: number;
+
+  /**
    * Columns per workgroup for multi-column dispatch.
    * Each workgroup processes this many output columns.
    * @default 4

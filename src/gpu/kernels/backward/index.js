@@ -1,0 +1,11 @@
+export { runEmbedBackward, recordEmbedBackward } from './embed_backward.js';
+export { runMatmulBackward, recordMatmulBackward } from './matmul_backward.js';
+export { runSoftmaxBackward, recordSoftmaxBackward } from './softmax_backward.js';
+export { runRmsNormBackward, recordRmsNormBackward } from './rmsnorm_backward.js';
+export { runAttentionBackward, recordAttentionBackward } from './attention_backward.js';
+export { runRoPEBackward, recordRoPEBackward } from './rope_backward.js';
+export { runSiluBackward, recordSiluBackward } from './silu_backward.js';
+export { runGeluBackward, recordGeluBackward } from './gelu_backward.js';
+export { runScaleBackward, recordScaleBackward } from './scale_backward.js';
+export { runCrossEntropyBackward, recordCrossEntropyBackward } from './cross_entropy_backward.js';
+export { runAdam, recordAdam } from './adam.js';

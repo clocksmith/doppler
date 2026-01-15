@@ -89,6 +89,11 @@ export async function processFFNWithSandwichNorm(
     ? (isCpuWeightBuffer(downWeight) ? downWeight.dtype : getWeightDtype(downWeight))
     : 'f32';
   const downWeightIsF32 = downWeightDtype === 'f32' || downWeightDtype === null;
+  const downWeightIsF16 = downWeightDtype === 'f16';
+
+  // Fused kernel requires matching dtypes: both F32 or both F16
+  const dtypesMatchForFusion = (ffnInput.dtype === 'f32' && downWeightIsF32)
+    || (ffnInput.dtype === 'f16' && downWeightIsF16);
 
   const canUseFusedDownNorm = numTokens === 1
     && !config.useMoE
@@ -96,10 +101,12 @@ export async function processFFNWithSandwichNorm(
     && sandwichNorm.hasPostFeedforwardNorm
     && layerWeights?.postFeedforwardNorm
     && layerWeights?.down
-    && ffnInput.dtype === 'f32'
-    && downWeightIsF32
-    // shouldUseFusedMatmulRMSNorm is in kernel-selector. I need to import it.
-    && (await import('../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(numTokens, hiddenSize);
+    && dtypesMatchForFusion
+    && (await import('../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(
+      numTokens,
+      hiddenSize,
+      config.intermediateSize
+    );
 
   /** @type {import('../../../gpu/tensor.js').Tensor} */
   let ffnOutput;
@@ -110,7 +117,7 @@ export async function processFFNWithSandwichNorm(
   } else if (canUseFusedDownNorm && layerWeights?.down && layerWeights?.postFeedforwardNorm &&
              (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     if (layerIdx === 0 && !hasLoggedFusedDownNorm()) {
-      trace.ffn(0, `Using fused down+norm kernel (transposeB=${!downWeightIsColumnMajor})`);
+      trace.ffn(0, `Using fused down+norm kernel (dtype=${ffnInput.dtype}, transposeB=${!downWeightIsColumnMajor})`);
       setLoggedFusedDownNorm(true);
     }
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(

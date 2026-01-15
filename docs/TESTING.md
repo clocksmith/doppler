@@ -133,32 +133,26 @@ doppler bench
 # Kernel microbenchmarks
 doppler bench --kernels
 
-# Multiple runs for statistics
-doppler bench --runs 3
-
-# Custom prompt size (xs, short, medium, long)
-doppler bench --prompt xs
+# Multiple runs for statistics (via config)
+doppler bench --config bench
 ```
 
-**Prompt sizes:** `xs` (6-10 tokens), `short`, `medium`, `long`
+**Prompt sizes:** `xs` (6-10 tokens), `short`, `medium`, `long` (set via `runtime.shared.benchmark.run.promptName`)
 
 ### 5. Log Levels
 
-Control loader output verbosity with CLI flags:
+Control loader output verbosity via runtime config:
 
-| CLI Flag | Level | Shows |
-|----------|-------|-------|
-| (default) | info | Phase starts/ends, totals |
-| `--verbose` | verbose | + Per-shard source, per-layer timing |
-| `--trace` | trace | + Tensor shapes, dequant ops |
-| `--quiet` | silent | Errors only |
+| Config | Level | Shows |
+|--------|-------|-------|
+| `runtime.shared.debug.logLevel.defaultLogLevel=info` | info | Phase starts/ends, totals |
+| `...=verbose` | verbose | + Per-shard source, per-layer timing |
+| `runtime.shared.debug.trace.enabled=true` | trace | + Tensor shapes, dequant ops |
+| `...=silent` | silent | Errors only |
 
 ```bash
 # Show shard sources (RAM/OPFS/network)
-doppler bench --verbose
-
-# Quiet mode for CI
-doppler test --quiet
+doppler bench --config debug
 ```
 
 ## Prerequisites
@@ -206,4 +200,4 @@ doppler test kernels && doppler test inference && npm run test:vitest
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

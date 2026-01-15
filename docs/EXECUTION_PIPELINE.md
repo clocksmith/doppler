@@ -1038,7 +1038,7 @@ The manifest can include kernel path overrides to select explicit kernel dispatc
 }
 ```
 
-Runtime config can override with `runtime.inference.kernelPath`, and CLI `--kernel-path` is highest priority. See `docs/design/KERNEL_PATHS.md` for available paths and structure.
+Runtime config can override with `runtime.inference.kernelPath`. See `docs/design/KERNEL_PATHS.md` for available paths and structure.
 
 ### Auto-Tuning System
 
@@ -1133,7 +1133,7 @@ Enable kernel trace output to see kernel selection decisions:
 
 ```bash
 # CLI (preferred): trace only kernels
-npm run debug -- --trace kernels
+npm run debug -- --config debug
 
 # Config-driven (repeatable)
 npm run debug -- --config '{"runtime":{"inference":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
@@ -1147,4 +1147,4 @@ Use kernel path flags for testing overrides (see `docs/KERNEL_COMPATIBILITY.md`)
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

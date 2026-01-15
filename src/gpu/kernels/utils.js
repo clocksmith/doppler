@@ -65,6 +65,33 @@ export {
 } from './uniform-utils.js';
 
 // ============================================================================
+// Debug Helpers
+// ============================================================================
+
+import { log, isTraceEnabled } from '../../debug/index.js';
+
+/**
+ * Create a bind group with optional validation error scope.
+ * @param {GPUDevice} device
+ * @param {GPUBindGroupDescriptor} descriptor
+ * @param {string} contextLabel
+ * @returns {Promise<GPUBindGroup>}
+ */
+export async function createBindGroupWithValidation(device, descriptor, contextLabel) {
+  if (!isTraceEnabled('buffers')) {
+    return device.createBindGroup(descriptor);
+  }
+
+  device.pushErrorScope('validation');
+  const bindGroup = device.createBindGroup(descriptor);
+  const error = await device.popErrorScope();
+  if (error) {
+    log.error('Kernels', `${contextLabel} bindGroup validation: ${error.message}`);
+  }
+  return bindGroup;
+}
+
+// ============================================================================
 // Combined Cache Management
 // ============================================================================
 

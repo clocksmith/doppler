@@ -1,12 +1,3 @@
-/**
- * Config Loader
- *
- * Loads, validates, and converts config to RuntimeConfigSchema.
- * Main entry point for CLI config handling.
- *
- * @module cli/config/config-loader
- */
-
 import { DEFAULT_RUNTIME_CONFIG, LOG_LEVELS } from '../../src/config/schema/index.js';
 import { ConfigComposer } from './config-composer.js';
 import { listPresets as listPresetsFromResolver } from './config-resolver.js';
@@ -16,23 +7,12 @@ import { listPresets as listPresetsFromResolver } from './config-resolver.js';
 // =============================================================================
 
 export class ConfigLoader {
-  /** @type {ConfigComposer} */
   #composer;
 
-  /**
-   * @param {ConfigComposer} [composer]
-   */
   constructor(composer) {
     this.#composer = composer ?? new ConfigComposer();
   }
 
-  /**
-   * Load and validate a config.
-   *
-   * @param {string} ref - Config reference (name, path, URL, or inline JSON)
-   * @param {import('./config-loader.js').LoadOptions} [options] - Load options
-   * @returns {Promise<import('./config-loader.js').LoadedConfig>} Validated runtime config
-   */
   async load(ref, options = {}) {
     const { mergeDefaults = true, validate = true } = options;
 
@@ -40,13 +20,12 @@ export class ConfigLoader {
     const composed = await this.#composer.compose(ref);
 
     // Extract runtime config
-    /** @type {Record<string, unknown>} */
-    const rawRuntime = (composed.config.runtime ?? {});
+    const rawRuntime = composed.config.runtime ?? {};
 
     // Merge with defaults if requested
     const runtime = mergeDefaults
       ? this.#mergeWithDefaults(rawRuntime)
-      : /** @type {import('../../src/config/schema/index.js').RuntimeConfigSchema} */ (rawRuntime);
+      : rawRuntime;
 
     // Validate if requested
     if (validate) {
@@ -60,33 +39,13 @@ export class ConfigLoader {
     };
   }
 
-  /**
-   * Deep merge config with defaults.
-   *
-   * Note: This merge happens in CLI before passing to browser. The browser-side
-   * setRuntimeConfig() does another merge with defaults. This double-merge is
-   * intentional: CLI merge ensures valid structure for validation/logging,
-   * browser merge provides safety net if config is modified or partially applied.
-   * Both merges are idempotent (cumulative deep merge), so double-applying is safe.
-   *
-   * @param {Record<string, unknown>} config
-   * @returns {import('../../src/config/schema/index.js').RuntimeConfigSchema}
-   */
   #mergeWithDefaults(config) {
-    return /** @type {import('../../src/config/schema/index.js').RuntimeConfigSchema} */ (
-      this.#deepMerge(
-        /** @type {Record<string, unknown>} */ (DEFAULT_RUNTIME_CONFIG),
-        config
-      )
+    return this.#deepMerge(
+      DEFAULT_RUNTIME_CONFIG,
+      config
     );
   }
 
-  /**
-   * Validate runtime config structure.
-   * Throws on invalid config.
-   *
-   * @param {import('../../src/config/schema/index.js').RuntimeConfigSchema} config
-   */
   #validateRuntime(config) {
     // Basic structure validation
     if (typeof config !== 'object' || config === null) {
@@ -101,14 +60,14 @@ export class ConfigLoader {
     ];
 
     for (const section of sections) {
-      const value = /** @type {Record<string, unknown>} */ (config)[section];
+      const value = config[section];
       if (value !== undefined && (typeof value !== 'object' || value === null)) {
         throw new Error(`Config section "${section}" must be an object`);
       }
     }
 
     // Reject deprecated keys
-    if (/** @type {Record<string, unknown>} */ (config).debug !== undefined) {
+    if (config.debug !== undefined) {
       throw new Error('runtime.debug is removed; use runtime.shared.debug');
     }
     if (config.loading?.debug !== undefined) {
@@ -123,18 +82,13 @@ export class ConfigLoader {
     this.#validateSamplingConfig(config.inference?.sampling);
   }
 
-  /**
-   * Validate debug config section.
-   *
-   * @param {import('../../src/config/schema/index.js').RuntimeConfigSchema['shared']['debug']} debug
-   */
   #validateDebugConfig(debug) {
     if (!debug) return;
 
     // Validate log level (uses LOG_LEVELS from schema to stay in sync)
     if (debug.logLevel?.defaultLogLevel) {
       const level = debug.logLevel.defaultLogLevel;
-      if (!LOG_LEVELS.includes(/** @type {typeof LOG_LEVELS[number]} */ (level))) {
+      if (!LOG_LEVELS.includes(level)) {
         throw new Error(
           `Invalid log level "${level}". Valid: ${LOG_LEVELS.join(', ')}`
         );
@@ -190,29 +144,29 @@ export class ConfigLoader {
         if (!probe || typeof probe !== 'object') {
           throw new Error('debug.probes entries must be objects');
         }
-        const stage = /** @type {{ stage?: string }} */ (probe).stage;
+        const stage = probe.stage;
         if (!stage || !validProbeStages.includes(stage)) {
           throw new Error(
             `Invalid probe stage "${stage}". Valid: ${validProbeStages.join(', ')}`
           );
         }
-        const dims = /** @type {{ dims?: unknown }} */ (probe).dims;
+        const dims = probe.dims;
         if (!Array.isArray(dims) || dims.some((d) => typeof d !== 'number')) {
           throw new Error('debug.probes.dims must be an array of numbers');
         }
-        const layers = /** @type {{ layers?: unknown }} */ (probe).layers;
+        const layers = probe.layers;
         if (layers !== null && layers !== undefined) {
           if (!Array.isArray(layers) || layers.some((d) => typeof d !== 'number')) {
             throw new Error('debug.probes.layers must be null or an array of numbers');
           }
         }
-        const tokens = /** @type {{ tokens?: unknown }} */ (probe).tokens;
+        const tokens = probe.tokens;
         if (tokens !== null && tokens !== undefined) {
           if (!Array.isArray(tokens) || tokens.some((d) => typeof d !== 'number')) {
             throw new Error('debug.probes.tokens must be null or an array of numbers');
           }
         }
-        const category = /** @type {{ category?: string }} */ (probe).category;
+        const category = probe.category;
         if (category && !validCategories.includes(category)) {
           throw new Error(
             `Invalid probe category "${category}". Valid: ${validCategories.join(', ')}`
@@ -222,15 +176,10 @@ export class ConfigLoader {
     }
   }
 
-  /**
-   * Validate sampling config section.
-   *
-   * @param {import('../../src/config/schema/index.js').RuntimeConfigSchema['inference']['sampling'] | undefined} sampling
-   */
   #validateSamplingConfig(sampling) {
     if (!sampling) return;
 
-    const deprecatedMaxTokens = /** @type {{ maxTokens?: unknown }} */ (sampling).maxTokens;
+    const deprecatedMaxTokens = sampling.maxTokens;
     if (deprecatedMaxTokens !== undefined) {
       throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
     }
@@ -254,13 +203,6 @@ export class ConfigLoader {
     }
   }
 
-  /**
-   * Deep merge two objects.
-   *
-   * @param {Record<string, unknown>} parent
-   * @param {Record<string, unknown>} child
-   * @returns {Record<string, unknown>}
-   */
   #deepMerge(parent, child) {
     const result = { ...parent };
 
@@ -280,10 +222,7 @@ export class ConfigLoader {
         typeof parentVal === 'object' &&
         !Array.isArray(parentVal)
       ) {
-        result[key] = this.#deepMerge(
-          /** @type {Record<string, unknown>} */ (parentVal),
-          /** @type {Record<string, unknown>} */ (childVal)
-        );
+        result[key] = this.#deepMerge(parentVal, childVal);
       } else {
         result[key] = childVal;
       }
@@ -299,32 +238,14 @@ export class ConfigLoader {
 
 const defaultLoader = new ConfigLoader();
 
-/**
- * Load a config by reference.
- *
- * @param {string} ref
- * @param {import('./config-loader.js').LoadOptions} [options]
- * @returns {Promise<import('./config-loader.js').LoadedConfig>}
- */
 export async function loadConfig(ref, options) {
   return defaultLoader.load(ref, options);
 }
 
-/**
- * List available presets.
- *
- * @returns {Promise<{ name: string; source: string; path: string }[]>}
- */
 export async function listPresets() {
   return listPresetsFromResolver();
 }
 
-/**
- * Dump a loaded config for debugging.
- *
- * @param {import('./config-loader.js').LoadedConfig} loaded
- * @returns {string}
- */
 export function dumpConfig(loaded) {
   return JSON.stringify(
     {

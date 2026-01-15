@@ -19,7 +19,7 @@
     },
     "ffn": {
       "activation": "silu",
-      "gatedFFN": true,
+      "gatedActivation": true,
       "fusedGateUp": false
     },
     "output": {

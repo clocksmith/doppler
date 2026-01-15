@@ -28,22 +28,25 @@ Ensure disk space; insufficient space can leave corrupted output.
 
 ```bash
 # Standard conversion with Q4K weights (recommended)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w q4k
+npx tsx src/converter/node-converter.js INPUT_PATH models/OUTPUT_NAME -w q4k
 
 # From GGUF file (already quantized)
-npx tsx src/converter/node-converter.ts INPUT.gguf models/OUTPUT_NAME
+npx tsx src/converter/node-converter.js INPUT.gguf models/OUTPUT_NAME
 
 # Keep full FP16 precision (for debugging quantization issues)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w f16
+npx tsx src/converter/node-converter.js INPUT_PATH models/OUTPUT_NAME -w f16
 
 # Explicit embeddings quantization
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME -w q4k -e f16
+npx tsx src/converter/node-converter.js INPUT_PATH models/OUTPUT_NAME -w q4k -e f16
 
 # Multimodal to text-only (Gemma 3, PaliGemma, LLaVA)
-npx tsx src/converter/node-converter.ts INPUT_PATH models/OUTPUT_NAME --text-only -w q4k
+npx tsx src/converter/node-converter.js INPUT_PATH models/OUTPUT_NAME --text-only -w q4k
+
+# Use a converter config file (JSON)
+npx tsx src/converter/node-converter.js INPUT_PATH models/OUTPUT_NAME --config ./converter-config.json
 
 # Create tiny test fixture for development
-npx tsx src/converter/node-converter.ts --test ./test-model
+npx tsx src/converter/node-converter.js --test ./test-model
 ```
 
 ## Conversion Options
@@ -63,13 +66,13 @@ npx tsx src/converter/node-converter.ts --test ./test-model
 
 | Flag | Description | When to Use |
 |------|-------------|-------------|
-| `--compute-precision <p>` | f16, f32, or auto | Suggest compute precision |
-| `--kernel-hints <json>` | JSON kernel selection hints | Fine-grained kernel control |
+| `--compute-precision <p>` | f16, f32, or auto (default: f16) | Suggest compute precision |
 
 ### General Options
 
 | Flag | Description | When to Use |
 |------|-------------|-------------|
+| `--config, -c <path>` | Load JSON converter config | Reuse consistent settings |
 | `--text-only` | Strip vision/audio towers | Multimodal → text-only |
 | `--shard-size <mb>` | Shard size (default: 64) | Tune for network/storage |
 | `--model-id <id>` | Override model ID | Custom naming |
@@ -87,8 +90,8 @@ cat models/OUTPUT_NAME/manifest.json | grep -E "\"architecture\"|\"tensorCount\"
 # 2. Check shard files exist
 ls -lh models/OUTPUT_NAME/
 
-# 3. Test inference actually works
-npm run debug -- -m OUTPUT_NAME 2>&1 | grep -E "Done|Output|Error"
+# 3. Test inference actually works (uses DOPPLER completion signals)
+npm run debug -- -m OUTPUT_NAME 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
 ```
 
 If verification fails:
@@ -112,9 +115,9 @@ If verification fails:
 | "Unknown architecture" | Unsupported model type | Check `docs/plans/TARGET_MODELS.md` |
 | "ENOSPC" or disk full | Insufficient space | Free up 2x model size |
 | Missing config values | Incomplete HF config | Converter infers from shapes |
-| Large output size | No quantization flag | Add `--quantize q4_k_m` |
+| Large output size | No quantization flag | Add `-w q4k` |
 | Missing tensors | Multimodal model | Add `--text-only` flag |
-| Inference fails after convert | Weight layout issue | Try `--quantize f16` to isolate |
+| Inference fails after convert | Weight layout issue | Try `-w f16` to isolate |
 
 ## Naming Convention
 
@@ -161,7 +164,7 @@ For detailed information, consult these files:
 
 - **Model support matrix**: `docs/plans/TARGET_MODELS.md`
 - **RDRR format spec**: `docs/design/RDRR_FORMAT.md`
-- **Converter source**: `src/converter/node-converter.ts`
+- **Converter source**: `src/converter/node-converter/index.js`
 - **Troubleshooting**: `docs/DOPPLER-TROUBLESHOOTING.md`
 
 ## Related Skills

@@ -253,6 +253,7 @@ export {
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+  DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';
 
 // =============================================================================
@@ -428,6 +429,39 @@ export {
   // Defaults
   DEFAULT_BRIDGE_CONFIG,
 } from './bridge.schema.js';
+
+// =============================================================================
+// LoRA Schema
+// =============================================================================
+export {
+  type LoraConfigSchema,
+  DEFAULT_LORA_CONFIG,
+} from './lora.schema.js';
+
+// =============================================================================
+// Training Schema
+// =============================================================================
+export {
+  type TrainingOptimizerConfigSchema,
+  type TrainingGradientConfigSchema,
+  type TrainingPrecisionConfigSchema,
+  type TrainingAttentionConfigSchema,
+  type TrainingSettingsSchema,
+  DEFAULT_TRAINING_OPTIMIZER_CONFIG,
+  DEFAULT_TRAINING_GRADIENT_CONFIG,
+  DEFAULT_TRAINING_PRECISION_CONFIG,
+  DEFAULT_TRAINING_ATTENTION_CONFIG,
+  DEFAULT_TRAINING_SETTINGS,
+} from './training.schema.js';
+
+// =============================================================================
+// Backward Registry Schema
+// =============================================================================
+export {
+  type BackwardRegistryOpSchema,
+  type BackwardRegistrySchema,
+  validateBackwardRegistry,
+} from './backward-registry.schema.js';
 
 // =============================================================================
 // Quantization Defaults Schema

@@ -1,4 +1,8 @@
-import { DEFAULT_LOADING_CONFIG, DEFAULT_SAMPLING_DEFAULTS } from './schema/index.js';
+import {
+  DEFAULT_LOADING_CONFIG,
+  DEFAULT_PRESET_INFERENCE_CONFIG,
+  DEFAULT_SAMPLING_DEFAULTS,
+} from './schema/index.js';
 
 // Static imports keep presets bundled for browser use.
 import transformerPreset from './presets/models/transformer.json' with { type: 'json' };
@@ -11,6 +15,7 @@ import deepseekPreset from './presets/models/deepseek.json' with { type: 'json' 
 import mambaPreset from './presets/models/mamba.json' with { type: 'json' };
 import qwen3Preset from './presets/models/qwen3.json' with { type: 'json' };
 import kimiK2Preset from './presets/models/kimi-k2.json' with { type: 'json' };
+import gptOssPreset from './presets/models/gpt-oss.json' with { type: 'json' };
 
 // =============================================================================
 // Preset Registry
@@ -27,6 +32,7 @@ export const PRESET_REGISTRY = {
   mamba: mambaPreset,
   qwen3: qwen3Preset,
   kimi_k2: kimiK2Preset,
+  gpt_oss: gptOssPreset,
 };
 
 // =============================================================================
@@ -72,6 +78,7 @@ const PRESET_DETECTION_ORDER = [
   'llama3',
   'qwen3',
   'kimi_k2',
+  'gpt_oss',
   'deepseek',  // Before mixtral (deepseek extends mixtral)
   'mixtral',
   'mamba',
@@ -171,7 +178,7 @@ export function resolveConfig(
   // Note: Uses object spread, so explicit null in manifest/preset OVERRIDES base.
   // This differs from architecture (which uses ?? and ignores null).
   // Rationale: null values in inference (e.g., slidingWindow: null) mean "disabled".
-  const baseInference = getDefaultInferenceConfig();
+  const baseInference = DEFAULT_PRESET_INFERENCE_CONFIG;
   const presetInference = preset.inference || {};
   const manifestInference = extractInferenceFromConfig(manifest.config || {});
 
@@ -279,54 +286,6 @@ function extractTokenizerFromManifest(manifest) {
   if (!manifest.tokenizer) return {};
 
   return {
-  };
-}
-
-function getDefaultInferenceConfig() {
-  return {
-    attention: {
-      slidingWindow: null,
-      attnLogitSoftcapping: null,
-      queryKeyNorm: false,
-      ropeScalingType: null,
-      ropeScalingFactor: 1.0,
-    },
-    normalization: {
-      rmsNormWeightOffset: false,
-      rmsNormEps: 1e-5,
-      postAttentionNorm: false,
-      preFeedforwardNorm: false,
-      postFeedforwardNorm: false,
-    },
-    ffn: {
-      activation: 'silu',
-      gatedFFN: true,
-      fusedGateUp: false,
-    },
-    output: {
-      finalLogitSoftcapping: null,
-      tieWordEmbeddings: false,
-      scaleEmbeddings: false,
-      embeddingTranspose: false,
-      embeddingVocabSize: null,
-    },
-    layerPattern: {
-      type: 'all_attention',
-    },
-    rope: {
-      ropeTheta: 10000,
-      ropeLocalTheta: undefined,
-      ropeScalingType: null,
-      ropeScalingFactor: 1.0,
-      yarnBetaFast: 32,
-      yarnBetaSlow: 1,
-      yarnOriginalMaxPos: 4096,
-    },
-    pipeline: null,
-    chatTemplate: {
-      type: null,
-    },
-    kernelPath: undefined,
   };
 }
 

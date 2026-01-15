@@ -378,7 +378,7 @@ export interface LayerWeights {
   postFeedforwardNorm?: GPUBuffer | Float32Array;
 
   // MoE
-  routerWeight?: GPUBuffer | Float32Array;
+  routerWeight?: GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer | Float32Array;
   routerBias?: GPUBuffer | Float32Array | null;
   qNorm?: GPUBuffer | Float32Array;
   kNorm?: GPUBuffer | Float32Array;

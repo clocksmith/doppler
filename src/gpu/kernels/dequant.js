@@ -209,13 +209,15 @@ export async function dequantizeMXFP4Expert(
   options = {}
 ) {
   const device = getDevice();
-  const { outputBuffer = null } = options;
+  const { outputBuffer = null, outputDtype = 'f32' } = options;
 
-  const pipeline = await getPipelineFast('dequant', 'mxfp4_expert');
+  const variant = outputDtype === 'f16' ? 'mxfp4_expert_f16' : 'mxfp4_expert';
+  const pipeline = await getPipelineFast('dequant', variant);
 
   // Output is [out_dim, num_groups * 32] as F32
   const totalOutput = outDim * numGroups * 32;
-  const outputSize = totalOutput * 4;
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = totalOutput * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'mxfp4_expert_output');
 
   // Create uniform buffer
@@ -256,7 +258,7 @@ export async function dequantizeMXFP4Expert(
 
   releaseUniformBuffer(uniformBuffer);
 
-  return createTensor(output, 'f32', [outDim, numGroups * 32], 'mxfp4_expert_output');
+  return createTensor(output, outputDtype === 'f16' ? 'f16' : 'f32', [outDim, numGroups * 32], 'mxfp4_expert_output');
 }
 
 

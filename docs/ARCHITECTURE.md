@@ -261,8 +261,8 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 
 ```
 CLI/Browser
-  --mode bench|debug|profile|trace
-  --trace kernels  --gpu-profile  --compare baseline.json
+  --mode bench|debug
+  --compare baseline.json
         |
 Runtime Config (runtime.shared.debug, runtime.shared.benchmark)
         |
@@ -1174,4 +1174,4 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes, CLI flags (`--kernel-path`, `--kernel-profile`), and the OPFS purge helper.
+See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.

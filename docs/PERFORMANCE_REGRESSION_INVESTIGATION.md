@@ -197,7 +197,7 @@ doppler test kernels --perf
 doppler test inference --perf
 
 # Enable kernel trace logging
-doppler test inference --trace kernels
+doppler test inference --config debug
 ```
 
 ## Success Metrics

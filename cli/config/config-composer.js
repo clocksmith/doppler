@@ -1,12 +1,3 @@
-/**
- * Config Composer
- *
- * Handles config inheritance via "extends" field.
- * Deep-merges parent configs with cycle detection.
- *
- * @module cli/config/config-composer
- */
-
 import { ConfigResolver } from './config-resolver.js';
 
 // =============================================================================
@@ -14,42 +5,21 @@ import { ConfigResolver } from './config-resolver.js';
 // =============================================================================
 
 export class ConfigComposer {
-  /** @type {ConfigResolver} */
   #resolver;
-  /** @type {number} */
   #maxDepth;
 
-  /**
-   * @param {ConfigResolver} [resolver]
-   * @param {number} [maxDepth]
-   */
   constructor(resolver, maxDepth = 10) {
     this.#resolver = resolver ?? new ConfigResolver();
     this.#maxDepth = maxDepth;
   }
 
-  /**
-   * Compose a config by resolving its extends chain.
-   *
-   * @param {string} ref - Config reference (name, path, URL, or inline JSON)
-   * @returns {Promise<import('./config-composer.js').ComposedConfig>} Composed config with all extends merged
-   */
   async compose(ref) {
-    /** @type {Set<string>} */
     const visited = new Set();
-    /** @type {string[]} */
     const stack = [];
 
     return this.#composeRecursive(ref, visited, stack, 0);
   }
 
-  /**
-   * @param {string} ref
-   * @param {Set<string>} visited
-   * @param {string[]} stack
-   * @param {number} depth
-   * @returns {Promise<import('./config-composer.js').ComposedConfig>}
-   */
   async #composeRecursive(ref, visited, stack, depth) {
     // Cycle detection
     const normalizedRef = this.#normalizeRef(ref);
@@ -96,28 +66,15 @@ export class ConfigComposer {
     return { config: merged, chain: [...parent.chain, normalizedRef] };
   }
 
-  /**
-   * Parse config content to object.
-   *
-   * @param {import('./config-resolver.js').ResolvedConfig} resolved
-   * @returns {import('./config-composer.js').RawConfig}
-   */
   #parseConfig(resolved) {
     try {
       return JSON.parse(resolved.content);
     } catch (err) {
       const source = resolved.name ?? resolved.path ?? 'inline';
-      throw new Error(`Invalid JSON in config "${source}": ${/** @type {Error} */ (err).message}`);
+      throw new Error(`Invalid JSON in config "${source}": ${err.message}`);
     }
   }
 
-  /**
-   * Normalize a ref for cycle detection.
-   * Note: Preserves case for file paths (case-sensitive filesystems).
-   *
-   * @param {string} ref
-   * @returns {string}
-   */
   #normalizeRef(ref) {
     // Inline JSON: use hash-like identifier
     if (ref.trim().startsWith('{')) {
@@ -127,13 +84,6 @@ export class ConfigComposer {
     return ref.trim();
   }
 
-  /**
-   * Deep merge two objects. Child values override parent.
-   *
-   * @param {Record<string, unknown>} parent
-   * @param {Record<string, unknown>} child
-   * @returns {Record<string, unknown>}
-   */
   #deepMerge(parent, child) {
     const result = { ...parent };
 
@@ -154,10 +104,7 @@ export class ConfigComposer {
         !Array.isArray(parentVal)
       ) {
         // Recursively merge nested objects
-        result[key] = this.#deepMerge(
-          /** @type {Record<string, unknown>} */ (parentVal),
-          /** @type {Record<string, unknown>} */ (childVal)
-        );
+        result[key] = this.#deepMerge(parentVal, childVal);
       } else {
         // Override with child value
         result[key] = childVal;
@@ -174,10 +121,6 @@ export class ConfigComposer {
 
 const defaultComposer = new ConfigComposer();
 
-/**
- * @param {string} ref
- * @returns {Promise<import('./config-composer.js').ComposedConfig>}
- */
 export async function composeConfig(ref) {
   return defaultComposer.compose(ref);
 }

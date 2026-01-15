@@ -137,9 +137,7 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 
 ### CLI
 
-```bash
-npm run debug -- -m MODEL --kernel-path gemma2-q4k-fused-f16a
-```
+Kernel selection is config-only; CLI flags must not set kernel paths.
 
 ## Creating Custom Paths
 

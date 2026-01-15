@@ -43,15 +43,8 @@
  *   setTrace('all,-buffers');         // all except buffers
  *   setTrace(false);                  // disable all
  *
- * ## CLI Flags -> URL Params (auto-mapped)
- *   --verbose, -v     ->  ?log=verbose
- *   --debug           ->  ?log=debug
- *   --quiet, -q       ->  ?log=silent
- *   --trace           ->  ?trace=all
- *   --trace kernels   ->  ?trace=kernels
- *   --trace all,-buf  ->  ?trace=all,-buffers
- *   --layers 0,5      ->  ?layers=0,5
- *   --break           ->  ?break=1
+ * ## Config-Only Overrides
+ *   Configure log level and trace categories via runtime config.
  *
  * @module debug
  */
@@ -95,7 +88,6 @@ export {
   disableModules,
   resetModuleFilters,
   setGPUDevice,
-  initFromUrlParams,
 } from './config.js';
 
 // ============================================================================
@@ -164,7 +156,6 @@ import {
   disableModules,
   resetModuleFilters,
   setGPUDevice,
-  initFromUrlParams,
 } from './config.js';
 import {
   getLogHistory,
@@ -211,12 +202,6 @@ if (typeof window !== 'undefined') {
     ...DOPPLER_API,
   };
 
-  // Auto-init from URL params on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFromUrlParams);
-  } else {
-    initFromUrlParams();
-  }
 }
 
 // ============================================================================
@@ -245,7 +230,6 @@ export default {
   clearLogHistory,
   printLogSummary,
   getDebugSnapshot,
-  initFromUrlParams,
   LOG_LEVELS,
   TRACE_CATEGORIES,
   // Completion signals

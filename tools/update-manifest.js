@@ -94,7 +94,7 @@ Usage:
   node update-manifest.js <model-dir|manifest.json> [options]
 
 Safe options:
-  --kernel-path <id|json>
+  --kernel-path <id|json>   Build-time manifest edit (not a runtime override)
   --clear-kernel-path
   --dry-run
 

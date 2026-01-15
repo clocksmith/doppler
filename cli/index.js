@@ -11,7 +11,7 @@
  * Examples:
  *   doppler run                              # Serve demo at :8080
  *   doppler test kernels --filter matmul     # Kernel correctness tests
- *   doppler bench inference --runs 3         # Full inference benchmark
+ *   doppler bench inference                  # Full inference benchmark
  *   doppler debug --model gemma-1b --layer 5 # Inspect layer 5
  */
 
@@ -91,29 +91,6 @@ const KERNEL_BENCHMARKS = [
 const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'];
 
 // ============================================================================
-// Kernel Profile Presets (mapped to kernel paths)
-// ============================================================================
-
-/**
- * Predefined kernel configurations for quick swapping.
- * Use --kernel-profile <name> to apply a preset.
- * These map to kernel path preset IDs.
- * @type {Record<string, string>}
- */
-const KERNEL_PROFILE_PATHS = {
-  /** Fast: Q4K dequant to F16 */
-  fast: 'q4k-dequant-f16',
-  /** Safe: Q4K dequant to F32 */
-  safe: 'q4k-dequant-f32',
-  /** Debug: Q4K dequant to F32 */
-  debug: 'q4k-dequant-f32',
-  /** Fused: Q4K fused matmul + fused FFN */
-  fused: 'q4k-fused',
-  /** Apple: Balanced defaults for Apple Silicon */
-  apple: 'q4k-dequant-f16',
-};
-
-// ============================================================================
 // Argument Parsing
 // ============================================================================
 
@@ -141,46 +118,22 @@ const FLAG_SPECS = [
   { names: ['--reuse-browser'], handler: (opts) => { opts.reuseBrowser = true; } },
   { names: ['--no-reuse-browser', '--new-browser'], handler: (opts) => { opts.reuseBrowser = false; } },
   { names: ['--cdp-endpoint'], handler: (opts, tokens) => { opts.cdpEndpoint = tokens.shift() || opts.cdpEndpoint; } },
-  { names: ['--debug', '-d'], handler: (opts) => { opts.debug = true; } },
   { names: ['--layer'], handler: (opts, tokens) => { opts.layer = parseInt(tokens.shift() || '0', 10); } },
   { names: ['--tokens'], handler: (opts, tokens) => { opts.tokens = parseInt(tokens.shift() || '10', 10); } },
   { names: ['--kernel'], handler: (opts, tokens) => { opts.kernel = tokens.shift() || null; } },
   { names: ['--skip-load'], handler: (opts) => { opts.skipLoad = true; } },
   { names: ['--warm'], handler: (opts) => { opts.warm = true; opts.headless = false; opts.reuseBrowser = true; } },
-  { names: ['--verbose', '-v'], handler: (opts) => { opts.verbose = true; } },
   { names: ['--inference'], handler: (opts) => { opts.suite = 'inference'; } },
   { names: ['--kernels'], handler: (opts) => { opts.suite = 'kernels'; } },
   { names: ['--quick'], handler: (opts) => { opts.suite = 'quick'; } },
   { names: ['--full'], handler: (opts) => { opts.suite = 'all'; } },
-  { names: ['--break'], handler: (opts) => { opts.trace = 'break'; } },
   { names: ['--filter', '-f'], handler: (opts, tokens) => { opts.filter = tokens.shift() || null; } },
   { names: ['--timeout'], handler: (opts, tokens) => { opts.timeout = parseInt(tokens.shift() || '120000', 10); } },
   { names: ['--output', '-o'], handler: (opts, tokens) => { opts.output = tokens.shift() || null; } },
   { names: ['--html'], handler: (opts, tokens) => { opts.html = tokens.shift() || null; } },
-  { names: ['--warmup', '-w'], handler: (opts, tokens) => { opts.warmup = parseInt(tokens.shift() || '0', 10); } },
-  { names: ['--runs', '-r'], handler: (opts, tokens) => { opts.runs = parseInt(tokens.shift() || '1', 10); } },
-  { names: ['--max-tokens', '-t'], handler: (opts, tokens) => { opts.maxTokens = parseInt(tokens.shift() || '64', 10); } },
-  { names: ['--temperature'], handler: (opts, tokens) => { opts.temperature = parseFloat(tokens.shift() || '0.7'); } },
-  { names: ['--no-chat'], handler: (opts) => { opts.noChat = true; } },
-  { names: ['--chat'], handler: (opts) => { opts.chat = true; } },
-  { names: ['--prompt', '-p'], handler: (opts, tokens) => { opts.prompt = tokens.shift() || 'medium'; opts.promptProvided = true; } },
   { names: ['--compare', '-c'], handler: (opts, tokens) => { opts.compare = tokens.shift() || null; } },
   { names: ['--text'], handler: (opts, tokens) => { opts.text = tokens.shift() || null; } },
   { names: ['--file'], handler: (opts, tokens) => { opts.file = tokens.shift() || null; } },
-  { names: ['--trace'], handler: (opts, tokens) => {
-    const nextToken = tokens[0];
-    if (!nextToken || nextToken.startsWith('-')) {
-      opts.trace = 'all';
-    } else {
-      opts.trace = tokens.shift();
-    }
-  } },
-  { names: ['--trace-layers'], handler: (opts, tokens) => {
-    const layersArg = tokens.shift() || '';
-    if (layersArg) {
-      opts.traceLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-    }
-  } },
   { names: ['--debug-layers'], handler: (opts, tokens) => {
     const layersArg = tokens.shift() || '';
     if (layersArg) {
@@ -189,42 +142,8 @@ const FLAG_SPECS = [
   } },
   { names: ['--profile-dir'], handler: (opts, tokens) => { opts.profileDir = tokens.shift() || null; } },
   { names: ['--retries'], handler: (opts, tokens) => { opts.retries = parseInt(tokens.shift() || '2', 10); } },
-  { names: ['--quiet', '-q'], handler: (opts) => { opts.quiet = true; } },
   { names: ['--perf'], handler: (opts) => { opts.perf = true; } },
   { names: ['--gpu-profile'], handler: (opts) => { opts.gpuProfile = true; } },
-  { names: ['--kernel-path'], handler: (opts, tokens) => {
-    const raw = tokens.shift() || '';
-    // Can be a preset ID (string) or inline JSON
-    if (raw.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(raw);
-        opts.kernelPath = parsed;
-      } catch (err) {
-        throw new Error(`Failed to parse --kernel-path JSON: ${/** @type {Error} */ (err).message}`);
-      }
-    } else {
-      // Preset ID (e.g., 'gemma2-q4k-fused')
-      opts.kernelPath = raw;
-    }
-  } },
-  { names: ['--kernel-profile', '-k'], handler: (opts, tokens) => {
-    const profileName = tokens.shift() || '';
-    if (profileName === 'list') {
-      console.log('\nAvailable kernel profiles (mapped to kernel paths):');
-      for (const [name, path] of Object.entries(KERNEL_PROFILE_PATHS)) {
-        console.log(`  ${name.padEnd(10)} -> ${path}`);
-      }
-      console.log('');
-      process.exit(0);
-    }
-    if (!KERNEL_PROFILE_PATHS[profileName]) {
-      const available = Object.keys(KERNEL_PROFILE_PATHS).join(', ');
-      throw new Error(`Unknown kernel profile "${profileName}". Available: ${available}, list`);
-    }
-    // Map profile name to kernel path
-    opts.kernelPath = KERNEL_PROFILE_PATHS[profileName];
-    opts.kernelProfile = profileName;  // Keep for display purposes
-  } },
 ];
 
 /**
@@ -353,7 +272,7 @@ function parseArgs(argv) {
     model: 'gemma-2-2b-it-wf16',  // Format: {family}-{version}-{size}-{variant}-{quant}
     baseUrl: 'http://localhost:8080',
     config: null,           // Config preset or path
-    mode: null,             // Mode preset shortcut (bench/debug/profile/trace/test)
+    mode: null,             // Mode preset shortcut (bench/debug/profile/test)
     runtimeConfig: null,    // Loaded runtime config (merged with defaults)
     configChain: null,      // Config inheritance chain for debugging
     dumpConfig: false,      // Dump resolved config and exit
@@ -368,19 +287,14 @@ function parseArgs(argv) {
     timeout: 300000,
     output: null,
     html: null,
-    warmup: 0,
-    runs: 1,
-    maxTokens: 8,
-    temperature: 0.7,
-    noChat: false,
-    chat: false,
+    warmup: 2,
+    runs: 3,
+    maxTokens: 128,
+    temperature: 0,
     prompt: 'medium',
-    promptProvided: false,
     text: null,
     file: null,
     compare: null,
-    trace: null,
-    traceLayers: null,
     debugLayers: null,
     profileDir: null,
     retries: 2,
@@ -388,8 +302,6 @@ function parseArgs(argv) {
     help: false,
     perf: false,
     gpuProfile: false,
-    kernelProfile: null,
-    kernelPath: null,
     // Debug mode options
     debug: false,
     layer: null,
@@ -467,16 +379,6 @@ function resolveLogLevel(opts) {
  * @param {import('./helpers/types.js').CLIOptions} opts
  * @returns {void}
  */
-function appendKernelOverrideParams(params, opts) {
-  if (opts.kernelPath) {
-    if (typeof opts.kernelPath === 'string') {
-      params.set('kernelPath', opts.kernelPath);
-    } else {
-      params.set('kernelPath', JSON.stringify(opts.kernelPath));
-    }
-  }
-}
-
 /**
  * @param {URLSearchParams} params
  * @param {import('./helpers/types.js').CLIOptions} opts
@@ -497,7 +399,6 @@ function appendRuntimeConfigParams(params, opts) {
  */
 function resolvePromptOverride(opts) {
   if (opts.text) return opts.text;
-  if (opts.promptProvided) return opts.prompt;
   return null;
 }
 
@@ -552,13 +453,10 @@ TEST - Correctness Tests
 BENCH - Performance Benchmarks
   doppler bench                       Full inference benchmark (tok/s)
   doppler bench --kernels             Kernel microbenchmarks only
-  doppler bench --runs 3              Multiple runs for statistics
   doppler bench --compare base.json   Compare against baseline
 
-DEBUG - Interactive Debugging (with kernel trace)
-  doppler debug                       Debug mode (trace enabled)
-  doppler debug --break               Stop on first anomaly (NaN/explosion)
-  doppler debug --trace-layers 0,5    Trace only specific layers
+DEBUG - Interactive Debugging
+  doppler debug                       Debug mode (config-driven)
   doppler debug --layer 5             Stop at layer 5 for inspection
 
 ===============================================================
@@ -569,9 +467,6 @@ Common Options:
   --mode <name>          Shortcut for runtime preset (e.g., bench, debug)
   --dump-config          Print resolved config and exit
   --list-presets         List available config presets
-  --verbose, -v          Verbose loader logs (per-shard, per-layer)
-  --trace                Trace-level logs (tensor details, dequant ops)
-  --quiet                Suppress all loader logs
   --headed               Show browser window (default: headless with real GPU)
   --no-reuse-browser     Always launch new browser (don't try CDP)
   --cdp-endpoint <url>   CDP endpoint (default: http://localhost:9222)
@@ -604,28 +499,10 @@ Headless Mode (default):
   Uses --headless=new with real GPU acceleration (not SwiftShader).
   No browser window, no focus stealing, full GPU compute support.
 
-Log Levels (--verbose/-v, --quiet/-q -> ?log=<level>):
-  silent   Nothing except errors (--quiet)
-  info     Phase starts/ends, totals (default)
-  verbose  Per-shard source, per-layer timing (--verbose)
-  debug    Full internal details
-
-Trace Categories (--trace [categories] -> ?trace=<categories>):
-  --trace              Enable all trace categories
-  --trace kernels      Trace only kernel execution
-  --trace logits,attn  Trace logits and attention
-  --trace all,-buffers Trace all except buffers (expensive)
-
-  Categories: loader, kernels, logits, embed, attn, ffn, kv, sample, buffers, perf
-
-Kernel Overrides:
-  --kernel-path <id|json>       Explicit kernel path (e.g., gemma2-q4k-fused)
-  --kernel-profile, -k <name>   Preset: fast, safe, debug, fused, apple
-
 Examples:
   doppler test                    # Quick correctness check
-  doppler bench --runs 3          # Benchmark with 3 runs
-  doppler debug --model gemma-3   # Debug with trace enabled
+  doppler bench --config bench    # Benchmark preset
+  doppler debug --config debug    # Debug preset
 
 Notes:
   - Headless mode by default (real GPU via --headless=new)
@@ -1481,20 +1358,7 @@ async function runInferenceTest(page, opts) {
   const testParams = new URLSearchParams();
   testParams.set('model', opts.model);
   appendPromptParams(testParams, opts);
-  testParams.set('maxTokens', String(opts.maxTokens));
-  testParams.set('temperature', String(opts.temperature));
-  // Chat template: only set if explicitly overridden via CLI flag
-  if (opts.noChat) {
-    testParams.set('noChat', '1');
-  } else if (opts.chat) {
-    testParams.set('chat', '1');
-  }
-  // If neither --chat nor --no-chat, let model preset default apply
   testParams.set('autorun', '1');
-  if (opts.debug) {
-    testParams.set('debug', '1');
-  }
-  appendKernelOverrideParams(testParams, opts);
   appendRuntimeConfigParams(testParams, opts);
 
   // Add debug/profiling params - unified CLI -> URL mapping
@@ -1505,28 +1369,9 @@ async function runInferenceTest(page, opts) {
   }
   // Note: default is 'info' (handled by debug/index.ts)
 
-  // Trace categories: --trace -> ?trace=all, --trace kernels,logits -> ?trace=kernels,logits
-  if (opts.trace) {
-    testParams.set('trace', opts.trace);
-    // Trace also implies verbose logging for full context
-    if (!opts.quiet && !testParams.has('log')) {
-      testParams.set('log', 'verbose');
-    }
-  }
-
-  // Layer filter: --trace-layers 0,5 -> ?layers=0,5
-  if (opts.traceLayers && opts.traceLayers.length > 0) {
-    testParams.set('layers', opts.traceLayers.join(','));
-  }
   // Legacy support
   if (opts.debugLayers && opts.debugLayers.length > 0) {
     testParams.set('layers', opts.debugLayers.join(','));
-  }
-
-  // Break on anomaly: --break -> ?break=1
-  if (opts.trace === 'break') {
-    testParams.set('trace', 'all');
-    testParams.set('break', '1');
   }
 
   if (opts.perf || opts.gpuProfile) {
@@ -1656,7 +1501,6 @@ async function runDemoTest(page, opts) {
     // Navigate to demo
     console.log('\n  Step 1: Opening demo page...');
     const demoParams = new URLSearchParams();
-    appendKernelOverrideParams(demoParams, opts);
     appendRuntimeConfigParams(demoParams, opts);
     const demoUrl = `${opts.baseUrl}/d${demoParams.toString() ? `?${demoParams.toString()}` : ''}`;
     await page.goto(demoUrl, { timeout: 30000 });
@@ -2176,6 +2020,11 @@ async function main() {
     process.exit(0);
   }
 
+  // Default presets for config-driven commands
+  if (opts.command === 'debug' && !opts.config && !opts.mode) {
+    opts.mode = 'debug';
+  }
+
   // Load config if specified
   /** @type {Awaited<ReturnType<typeof loadConfig>> | null} */
   let loadedConfig = null;
@@ -2189,28 +2038,21 @@ async function main() {
 
       // Apply runtime config to opts
       const runtime = loadedConfig.runtime;
-      const hasLogFlag = hasCliFlag(opts, ['--verbose', '-v', '--quiet', '-q']);
-      if (!hasLogFlag) {
-        if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
-        if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+      if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+      if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+      if (runtime.shared?.debug?.trace?.enabled) {
+        // Trace config handled in runtimeConfig; no CLI overrides.
       }
-      const hasTraceFlag = hasCliFlag(opts, ['--trace', '--break']);
-      if (!hasTraceFlag && runtime.shared?.debug?.trace?.enabled) {
-        opts.trace = runtime.shared.debug.trace.categories?.join(',') || 'all';
-      }
-      if (!hasCliFlag(opts, ['--temperature']) && runtime.inference?.sampling?.temperature !== undefined) {
-        opts.temperature = runtime.inference.sampling.temperature;
-      }
-      if (!hasCliFlag(opts, ['--max-tokens', '-t']) && runtime.inference?.batching?.maxTokens !== undefined) {
-        opts.maxTokens = runtime.inference.batching.maxTokens;
+      const benchmarkRun = runtime.shared?.benchmark?.run;
+      if (benchmarkRun) {
+        if (typeof benchmarkRun.promptName === 'string') opts.prompt = benchmarkRun.promptName;
+        if (typeof benchmarkRun.maxNewTokens === 'number') opts.maxTokens = benchmarkRun.maxNewTokens;
+        if (typeof benchmarkRun.warmupRuns === 'number') opts.warmup = benchmarkRun.warmupRuns;
+        if (typeof benchmarkRun.timedRuns === 'number') opts.runs = benchmarkRun.timedRuns;
+        if (typeof benchmarkRun.debug === 'boolean') opts.debug = benchmarkRun.debug;
+        if (benchmarkRun.sampling?.temperature !== undefined) opts.temperature = benchmarkRun.sampling.temperature;
       }
 
-      // Apply kernel path from config (can be overridden by CLI flags)
-      const hasKernelPathFlag = hasCliFlag(opts, ['--kernel-path', '--kernel-profile']);
-      const configKernelPath = runtime.inference?.kernelPath;
-      if (!hasKernelPathFlag && configKernelPath !== undefined) {
-        opts.kernelPath = configKernelPath ?? null;
-      }
       // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
       const cli = /** @type {Record<string, unknown> | undefined} */ (loadedConfig.raw.cli);
       if (cli) {
@@ -2235,10 +2077,9 @@ async function main() {
     }
   }
 
-  // Handle 'debug' command - enable trace by default
+  // Handle 'debug' command
   if (opts.command === 'debug') {
-    opts.trace = opts.trace || 'quick';  // Enable trace by default
-    opts.debug = true;
+    // No CLI overrides; rely on config.
   }
 
   // Handle 'run' command - just start the server
@@ -2317,31 +2158,11 @@ async function main() {
       // Navigate to debug page with params - unified CLI -> URL mapping
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
-      debugParams.set('maxTokens', String(opts.maxTokens));
-      debugParams.set('temperature', String(opts.temperature));
-      // Chat template: only set if explicitly overridden via CLI flag
-      if (opts.noChat) {
-        debugParams.set('noChat', '1');
-      } else if (opts.chat) {
-        debugParams.set('chat', '1');
-      }
       appendPromptParams(debugParams, opts);
 
       // Debug mode: default to all trace categories and config-driven log level
       const debugLogLevel = resolveLogLevel(opts) ?? 'verbose';
       debugParams.set('log', debugLogLevel);
-      debugParams.set('trace', opts.trace || 'all');
-
-      // Layer filter: --trace-layers 0,5 -> ?layers=0,5
-      if (opts.traceLayers && opts.traceLayers.length > 0) {
-        debugParams.set('layers', opts.traceLayers.join(','));
-      }
-
-      // Break on anomaly: --break -> ?break=1
-      if (opts.trace === 'break') {
-        debugParams.set('trace', 'all');
-        debugParams.set('break', '1');
-      }
 
       // GPU profiling
       if (opts.perf || opts.gpuProfile) {
@@ -2356,10 +2177,9 @@ async function main() {
       // Warm mode: skip loading if --skip-load
       if (opts.skipLoad) debugParams.set('skipLoad', '1');
 
-      appendKernelOverrideParams(debugParams, opts);
       appendRuntimeConfigParams(debugParams, opts);
 
-      const debugUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${debugParams.toString()}&debug=1&autorun=1`;
+      const debugUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${debugParams.toString()}&autorun=1`;
       console.log(`  URL: ${debugUrl}`);
 
       await page.goto(debugUrl, { timeout: opts.timeout });
@@ -2496,7 +2316,6 @@ async function main() {
           const loadParams = new URLSearchParams();
           loadParams.set('model', opts.model);
           loadParams.set('benchmark', 'loading');
-          appendKernelOverrideParams(loadParams, opts);
           appendRuntimeConfigParams(loadParams, opts);
           const loadUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${loadParams.toString()}`;
           await page.goto(loadUrl, { timeout: opts.timeout });

@@ -44,7 +44,7 @@ export async function runDenseFFNGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, recorder } = context;
-  const { hiddenSize, intermediateSize, hiddenActivation } = config;
+  const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
 
@@ -98,6 +98,7 @@ export async function runDenseFFNGPU(
       numTokens,
       dim: intermediateSize,
       activation,
+      swigluLimit,
       label: `L${layerIdx}.ffn_activation`,
       layerIdx,
     }, recorder);
@@ -190,7 +191,7 @@ export async function runDenseFFNGPU(
             upWeight,
             hiddenSize,
             intermediateSize,
-            { batchSize: numTokens, activation }
+            { batchSize: numTokens, activation, swigluLimit }
           )
           : await runFusedFFN(
             inputTensor,
@@ -198,7 +199,7 @@ export async function runDenseFFNGPU(
             upWeight,
             hiddenSize,
             intermediateSize,
-            { batchSize: numTokens, activation }
+            { batchSize: numTokens, activation, swigluLimit }
           );
 
         if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
@@ -336,6 +337,7 @@ export async function runDenseFFNGPU(
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
+    swigluLimit,
     label: `L${layerIdx}.ffn_activation`,
     layerIdx,
   }, recorder);
@@ -430,7 +432,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, weightConfig, debugFlags, recorder } = context;
-  const { hiddenSize, intermediateSize, hiddenActivation } = config;
+  const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
   const lora = context.lora || null;
 
   if (!layerWeights.down || !layerWeights.postFeedforwardNorm) {
@@ -482,6 +484,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       numTokens,
       dim: intermediateSize,
       activation,
+      swigluLimit,
     }, recorder);
 
     if (recorder) {
@@ -517,6 +520,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
     activatedOutput = await activationFn(upOutput, {
       size: numTokens * intermediateSize,
       gate: gateOutput,
+      swigluLimit,
     }, recorder);
 
     if (recorder) {

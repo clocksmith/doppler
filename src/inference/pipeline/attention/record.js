@@ -401,6 +401,7 @@ export async function recordLayerAttentionGPU(
     const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
                         residualTensor &&
                         residualTensor.dtype === attnOutput.dtype &&
+                        attnOutput.dtype === 'f32' &&
                         !loraO &&
                         oProjDtype === 'f16';
 

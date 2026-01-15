@@ -11,7 +11,13 @@
  * @module config/schema/inference-defaults
  */
 
-import type { ChatTemplateSchema, LayerPipelineSchema, SamplingSchema, TokenizerConfigSchema } from './inference.schema.js';
+import type {
+  ChatTemplateSchema,
+  InferenceConfigSchema,
+  LayerPipelineSchema,
+  SamplingSchema,
+  TokenizerConfigSchema,
+} from './inference.schema.js';
 import type { KVCacheConfigSchema } from './kvcache.schema.js';
 import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
@@ -168,3 +174,6 @@ export interface InferenceDefaultsConfigSchema {
 
 /** Default inference configuration */
 export declare const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema;
+
+/** Default inference configuration for model presets */
+export declare const DEFAULT_PRESET_INFERENCE_CONFIG: InferenceConfigSchema;

@@ -21,6 +21,8 @@ export interface FusedFFNOptions extends OutputBufferOptions {
   activation?: FFNActivation;
   /** Scale factor (default: 1.0) */
   alpha?: number;
+  /** Clamp SwiGLU output (null = disabled) */
+  swigluLimit?: number | null;
 }
 
 /**

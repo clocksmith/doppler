@@ -39,8 +39,8 @@ struct Uniforms {
     alpha: f32,               // Scale factor
     activation: u32,          // 0=silu, 1=gelu
     num_blocks_per_row: u32,  // hidden_size / 256
+    clamp_max: f32,           // SwiGLU clamp (0 = disabled)
     _pad0: u32,
-    _pad1: u32,
 }
 
 // Q4_K block structure (144 bytes)
@@ -92,6 +92,13 @@ fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
         mn = (q_j >> 4u) | ((q_hi >> 6u) << 4u);
     }
     return vec2<u32>(sc, mn);
+}
+
+fn clamp_swiglu(x: f32) -> f32 {
+    if (u.clamp_max <= 0.0 || u.activation != 0u) {
+        return x;
+    }
+    return clamp(x, -u.clamp_max, u.clamp_max);
 }
 
 // Extract 4-bit quantized value from qs array
@@ -247,7 +254,7 @@ fn main(
             activated = gelu(final_gate);
         }
 
-        output[col] = activated * final_up * u.alpha;
+        output[col] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }
 
@@ -363,6 +370,6 @@ fn main_batched(
         }
 
         let out_offset = batch_idx * u.intermediate_size + col;
-        output[out_offset] = activated * final_up * u.alpha;
+        output[out_offset] = clamp_swiglu(activated * final_up * u.alpha);
     }
 }

@@ -6,6 +6,20 @@ Repository: https://github.com/clocksmith/doppler
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent (separate repo).
 
+### ⚠️ MANDATORY: Read Style Guides First
+
+**Before writing ANY code, you MUST read the relevant style guides:**
+
+1. **[General Style Guide](docs/style/GENERAL_STYLE_GUIDE.md)** - Architecture patterns, naming conventions, file organization
+2. **[JavaScript Guide](docs/style/JAVASCRIPT_STYLE_GUIDE.md)** - Config-as-code, kernel wrappers, .d.ts requirements
+3. **[WGSL Guide](docs/style/WGSL_STYLE_GUIDE.md)** - Shader structure, optimization patterns, shared memory usage
+
+These guides contain critical performance patterns and architectural decisions. Ignoring them leads to:
+- Kernels with O(N²) complexity when O(N) is possible
+- Missing shared memory optimizations
+- Incorrect dtype handling (f16 vs f32 bindings)
+- Performance regressions instead of improvements
+
 ### Directory Structure
 ```
 doppler/
@@ -33,11 +47,6 @@ doppler/
 - Read `docs/spec/RDRR_FORMAT.md` for model format specification
 - Review `src/inference/pipeline.js` for inference flow
 - Review `src/config/runtime.js` and `cli/config/` for runtime config plumbing
-
-### Style Guides
-- [General Style Guide](docs/style/GENERAL_STYLE_GUIDE.md) - Architecture, naming
-- [JavaScript Guide](docs/style/JAVASCRIPT_STYLE_GUIDE.md) - Config-as-code, kernel wrappers
-- [WGSL Guide](docs/style/WGSL_STYLE_GUIDE.md) - Shader structure
 
 ### CLI Commands
 

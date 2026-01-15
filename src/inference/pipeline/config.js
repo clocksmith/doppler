@@ -64,6 +64,12 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
   }
+  if (inf.ffn.swigluLimit !== undefined) {
+    const limit = inf.ffn.swigluLimit;
+    if (limit !== null && (typeof limit !== 'number' || Number.isNaN(limit) || limit <= 0)) {
+      errors.push('ffn.swigluLimit must be a positive number or null');
+    }
+  }
 
   // RoPE fields - non-nullable required
   if (inf.rope.ropeTheta == null) {
@@ -236,6 +242,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     embeddingTranspose: inf.output.embeddingTranspose,
     embeddingVocabSize: inf.output.embeddingVocabSize,
     hiddenActivation,
+    swigluLimit: inf.ffn.swigluLimit ?? null,
     // Model detection flags - derived from manifest inference config values
     // Kept for backward compat until pipeline code reads config values directly
     isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta

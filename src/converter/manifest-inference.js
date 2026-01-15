@@ -127,7 +127,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     },
     ffn: {
       activation: presetInference.ffn?.activation ?? 'silu',
-      gatedActivation: presetInference.ffn?.gatedFFN ?? true,
+      gatedActivation: presetInference.ffn?.gatedActivation ?? presetInference.ffn?.gatedFFN ?? true,
+      swigluLimit: presetInference.ffn?.swigluLimit ?? config.swiglu_limit ?? null,
     },
     rope: buildRoPEConfig(presetInference, config),
     output: {

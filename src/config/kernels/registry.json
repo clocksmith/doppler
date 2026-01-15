@@ -371,6 +371,12 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "mxfp4_expert_f16": {
+          "wgsl": "dequant_mxfp4_expert_f16.wgsl",
+          "entryPoint": "main_expert",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "q6k_f16out": {
           "wgsl": "dequant_q6k.wgsl",
           "entryPoint": "main",
@@ -666,6 +672,27 @@
           "entryPoint": "gemv_rmsnorm_phase1",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "default_f16": {
+          "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
+          "entryPoint": "gemv_rmsnorm_medium",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F16 medium variant for decode with f16 weights/activations"
+        },
+        "small_f16": {
+          "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
+          "entryPoint": "gemv_rmsnorm_small",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F16 small variant for N <= 256"
+        },
+        "medium_f16": {
+          "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
+          "entryPoint": "gemv_rmsnorm_medium",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "F16 medium variant for N up to ~4096 (covers Gemma's hiddenSize=2304)"
         }
       }
     },
@@ -1133,6 +1160,18 @@
           "entryPoint": "softmax_topk",
           "workgroup": [32, 1, 1],
           "requires": []
+        },
+        "fused_f16": {
+          "wgsl": "topk_f16.wgsl",
+          "entryPoint": "softmax_topk",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
+        },
+        "fused_f16_w16": {
+          "wgsl": "topk_f16_weights.wgsl",
+          "entryPoint": "softmax_topk",
+          "workgroup": [32, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -1142,13 +1181,16 @@
         { "index": 0, "name": "uniforms", "type": "uniform" },
         { "index": 1, "name": "input", "type": "read-only-storage" },
         { "index": 2, "name": "indices", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 3, "name": "weights", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
         "size": 16,
         "fields": [
-          { "name": "size", "type": "u32", "offset": 0 },
-          { "name": "num_indices", "type": "u32", "offset": 4 }
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "top_k", "type": "u32", "offset": 8 },
+          { "name": "num_experts", "type": "u32", "offset": 12 }
         ]
       },
       "variants": {
@@ -1168,7 +1210,37 @@
           "wgsl": "scatter_add_dynamic.wgsl",
           "entryPoint": "scatter_add_dynamic",
           "workgroup": [256, 1, 1],
-          "requires": []
+          "requires": [],
+          "bindingsOverride": [
+            { "index": 2, "name": "routing_indices", "type": "read-only-storage" },
+            { "index": 3, "name": "routing_weights", "type": "read-only-storage" },
+            { "index": 4, "name": "token_offsets", "type": "read-only-storage" },
+            { "index": 5, "name": "output", "type": "storage" }
+          ]
+        },
+        "dynamic_f16": {
+          "wgsl": "scatter_add_dynamic_f16.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "bindingsOverride": [
+            { "index": 2, "name": "routing_indices", "type": "read-only-storage" },
+            { "index": 3, "name": "routing_weights", "type": "read-only-storage" },
+            { "index": 4, "name": "token_offsets", "type": "read-only-storage" },
+            { "index": 5, "name": "output", "type": "storage" }
+          ]
+        },
+        "dynamic_f16_w16": {
+          "wgsl": "scatter_add_dynamic_f16_weights.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "bindingsOverride": [
+            { "index": 2, "name": "routing_indices", "type": "read-only-storage" },
+            { "index": 3, "name": "routing_weights", "type": "read-only-storage" },
+            { "index": 4, "name": "token_offsets", "type": "read-only-storage" },
+            { "index": 5, "name": "output", "type": "storage" }
+          ]
         },
         "accumulate": {
           "wgsl": "scatter_add.wgsl",
@@ -1187,11 +1259,16 @@
         { "index": 3, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
           { "name": "num_tokens", "type": "u32", "offset": 0 },
           { "name": "hidden_size", "type": "u32", "offset": 4 },
-          { "name": "num_experts", "type": "u32", "offset": 8 }
+          { "name": "num_experts", "type": "u32", "offset": 8 },
+          { "name": "top_k", "type": "u32", "offset": 12 },
+          { "name": "max_tokens_per_expert", "type": "u32", "offset": 16 },
+          { "name": "threads_per_row", "type": "u32", "offset": 20 },
+          { "name": "_pad2", "type": "u32", "offset": 24 },
+          { "name": "_pad3", "type": "u32", "offset": 28 }
         ]
       },
       "variants": {
@@ -1201,11 +1278,23 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
+        "count_f16": {
+          "wgsl": "moe_gather_f16.wgsl",
+          "entryPoint": "count_and_map",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        },
         "gather": {
           "wgsl": "moe_gather.wgsl",
           "entryPoint": "gather_tokens",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "gather_f16": {
+          "wgsl": "moe_gather_f16.wgsl",
+          "entryPoint": "gather_tokens",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         },
         "gather_vec4": {
           "wgsl": "moe_gather_vec4.wgsl",
@@ -1248,6 +1337,12 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "rowsplit_bias_f16": {
+          "wgsl": "fused_swiglu_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -1469,6 +1564,302 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
+        }
+      }
+    },
+    "transpose": {
+      "description": "Matrix transpose",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "rows", "type": "u32", "offset": 0 },
+          { "name": "cols", "type": "u32", "offset": 4 },
+          { "name": "_pad0", "type": "u32", "offset": 8 },
+          { "name": "_pad1", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "transpose.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "silu_backward": {
+      "description": "SiLU backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "_pad0", "type": "u32", "offset": 4 },
+          { "name": "_pad1", "type": "u32", "offset": 8 },
+          { "name": "_pad2", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/silu_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "embed_backward": {
+      "description": "Embedding backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "_pad0", "type": "u32", "offset": 4 },
+          { "name": "_pad1", "type": "u32", "offset": 8 },
+          { "name": "_pad2", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/embed_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "gelu_backward": {
+      "description": "GELU backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "_pad0", "type": "u32", "offset": 4 },
+          { "name": "_pad1", "type": "u32", "offset": 8 },
+          { "name": "_pad2", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/gelu_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "scale_backward": {
+      "description": "Scale backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "scale", "type": "f32", "offset": 4 },
+          { "name": "_pad0", "type": "u32", "offset": 8 },
+          { "name": "_pad1", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/scale_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "softmax_backward": {
+      "description": "Softmax backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "softmax", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "rows", "type": "u32", "offset": 0 },
+          { "name": "cols", "type": "u32", "offset": 4 },
+          { "name": "_pad0", "type": "u32", "offset": 8 },
+          { "name": "_pad1", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/softmax_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "attention_backward": {
+      "description": "Attention backward (softmax backward with causal mask)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "softmax", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "rows", "type": "u32", "offset": 0 },
+          { "name": "cols", "type": "u32", "offset": 4 },
+          { "name": "causal", "type": "u32", "offset": 8 },
+          { "name": "_pad0", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/attention_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "rmsnorm_backward": {
+      "description": "RMSNorm backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "eps", "type": "f32", "offset": 8 },
+          { "name": "_pad0", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/rmsnorm_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "rope_backward": {
+      "description": "RoPE backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "freqs_cos", "type": "read-only-storage" },
+        { "index": 3, "name": "freqs_sin", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "seq_len", "type": "u32", "offset": 0 },
+          { "name": "num_heads", "type": "u32", "offset": 4 },
+          { "name": "head_dim", "type": "u32", "offset": 8 },
+          { "name": "start_pos", "type": "u32", "offset": 12 },
+          { "name": "_pad0", "type": "u32", "offset": 16 },
+          { "name": "_pad1", "type": "u32", "offset": 20 },
+          { "name": "_pad2", "type": "u32", "offset": 24 },
+          { "name": "_pad3", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/rope_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "cross_entropy_backward": {
+      "description": "Cross-entropy backward (expects softmax input)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "softmax", "type": "read-only-storage" },
+        { "index": 2, "name": "targets", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "vocab_size", "type": "u32", "offset": 4 },
+          { "name": "_pad0", "type": "u32", "offset": 8 },
+          { "name": "_pad1", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/cross_entropy_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "adam": {
+      "description": "Adam optimizer step",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "params", "type": "storage" },
+        { "index": 2, "name": "grads", "type": "read-only-storage" },
+        { "index": 3, "name": "moment1", "type": "storage" },
+        { "index": 4, "name": "moment2", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "step", "type": "u32", "offset": 4 },
+          { "name": "lr", "type": "f32", "offset": 8 },
+          { "name": "beta1", "type": "f32", "offset": 12 },
+          { "name": "beta2", "type": "f32", "offset": 16 },
+          { "name": "eps", "type": "f32", "offset": 20 },
+          { "name": "_pad0", "type": "u32", "offset": 24 },
+          { "name": "_pad1", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/adam.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
         }
       }
     }

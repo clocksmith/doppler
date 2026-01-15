@@ -12,10 +12,11 @@ import { trace } from '../../debug/index.js';
 import { selectByRules } from './rule-matcher.js';
 
 
-export function selectMatmulRMSNormFusedVariant(N) {
+export function selectMatmulRMSNormFusedVariant(N, dtype = 'f32') {
+  const isF16 = dtype === 'f16';
   const rules = [
-    { match: { N: { lte: WORKGROUP_SIZES.DEFAULT } }, value: 'small' },
-    { match: {}, value: 'medium' },
+    { match: { N: { lte: WORKGROUP_SIZES.DEFAULT } }, value: isF16 ? 'small_f16' : 'small' },
+    { match: {}, value: isF16 ? 'medium_f16' : 'medium' },
   ];
   return selectByRules(rules, { N });
 }
@@ -45,16 +46,18 @@ export async function runMatmulRMSNormFused(
 
   const weightBuffer = getBuffer(weight);
 
-  // Select variant based on output size
-  const variant = selectMatmulRMSNormFusedVariant(N);
+  // Select variant based on output size and input dtype
+  const dtype = input.dtype || 'f32';
+  const variant = selectMatmulRMSNormFusedVariant(N, dtype);
 
-  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
+  trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, dtype=${dtype}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
   const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
-  // Output buffer: [1, N] floats
-  const outputSize = N * 4;
+  // Output buffer: [1, N] - size depends on dtype
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const outputSize = N * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
 
   // Create uniform buffer (8 u32/f32 = 32 bytes, padded for alignment)
@@ -134,16 +137,18 @@ export async function recordMatmulRMSNormFused(
 
   const weightBuffer = getBuffer(weight);
 
-  // Select variant
-  const variant = selectMatmulRMSNormFusedVariant(N);
+  // Select variant based on dtype
+  const dtype = input.dtype || 'f32';
+  const variant = selectMatmulRMSNormFusedVariant(N, dtype);
 
-  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
+  trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, dtype=${dtype}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
   const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
-  // Output buffer
-  const outputSize = N * 4;
+  // Output buffer - size depends on dtype
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const outputSize = N * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
 
   // Uniform buffer via recorder (8 u32/f32 = 32 bytes, padded for alignment)
@@ -198,14 +203,18 @@ export async function recordMatmulRMSNormFused(
 }
 
 
-export function shouldUseFusedMatmulRMSNorm(M, N) {
+export function shouldUseFusedMatmulRMSNorm(M, N, K) {
   // Only beneficial for decode (M=1)
   if (M !== 1) {
     return false;
   }
 
-  const { maxMediumN } = getKernelThresholds().fusedMatmul;
+  const { maxMediumN, maxMediumK } = getKernelThresholds().fusedMatmul;
   if (N > maxMediumN) {
+    return false;
+  }
+
+  if (typeof K === 'number' && K > maxMediumK) {
     return false;
   }
 

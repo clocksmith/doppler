@@ -144,6 +144,7 @@ export interface ParsedModelConfig {
   embeddingTranspose: boolean;
   embeddingVocabSize: number | null;
   hiddenActivation: ActivationType;
+  swigluLimit: number | null;
   isGemma3: boolean;
   isGemma2: boolean;
   isLlama3Instruct: boolean;

@@ -56,7 +56,7 @@ const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_out
 - F32 dequantized: ~14 GB (4x)
 - **Total with dequant**: 10.5-17.5 GB vs 3.5 GB fused
 
-**Mitigation**: Use `--kernel-profile fused` to avoid intermediate buffers.
+**Mitigation**: Use a config file with `runtime.inference.kernelPath` set to a fused path to avoid intermediate buffers.
 
 ### 2. Uniform Buffer Churn
 

@@ -66,10 +66,12 @@ export interface NormalizationSchema {
 export interface FFNSchema {
   /** Activation function */
   activation?: 'silu' | 'gelu' | 'relu' | 'swiglu';
-  /** Use gated FFN (SwiGLU) */
-  gatedFFN?: boolean;
+  /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
+  gatedActivation?: boolean;
   /** Use fused gate+up projection */
   fusedGateUp?: boolean;
+  /** Clamp SwiGLU output (null = disabled) */
+  swigluLimit?: number | null;
 }
 
 /** Built-in chat template types */

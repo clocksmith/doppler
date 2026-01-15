@@ -1,40 +1,14 @@
-/**
- * Shard Resolver - Tensor location mapping and resolution.
- *
- * Pure functions for building tensor location maps from manifests.
- * Used by DopplerLoader to resolve tensor names to shard locations.
- *
- * @module loader/shard-resolver
- */
-
 import { loadTensorsFromOPFS } from '../storage/shard-manager.js';
 import { parseTensorMap } from '../storage/rdrr-format.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
-// ============================================================================
-// Tensor Location Building
-// ============================================================================
-
-/**
- * Build tensor location map from manifest.
- *
- * Supports two formats:
- * - v1: External tensors.json file (referenced by manifest.tensorsFile)
- * - Legacy: Inline tensors in manifest.tensors
- *
- * @param {import('../storage/rdrr-format.js').RDRRManifest} manifest - Model manifest
- * @param {import('./shard-resolver.js').BuildTensorLocationsOptions} [options={}] - Build options
- * @returns {Promise<Map<string, import('./loader-types.js').TensorLocation>>} Map of tensor names to locations
- */
 export async function buildTensorLocations(manifest, options = {}) {
-  /** @type {Map<string, import('./loader-types.js').TensorLocation>} */
   const locations = new Map();
 
   // v1 format: load external tensors.json
   if (manifest.tensorsFile) {
     debugTrace.loader(`Loading external tensor map: ${manifest.tensorsFile}`);
 
-    /** @type {string | null} */
     let tensorsJsonRaw = null;
 
     // Try OPFS first (for downloaded models)
@@ -51,14 +25,14 @@ export async function buildTensorLocations(manifest, options = {}) {
           debugTrace.loader(`Loaded tensors.json via HTTP: ${options.tensorsJsonUrl}`);
         }
       } catch (e) {
-        log.warn('Loader', `Failed to load tensors.json from ${options.tensorsJsonUrl}: ${/** @type {Error} */ (e).message}`);
+        log.warn('Loader', `Failed to load tensors.json from ${options.tensorsJsonUrl}: ${e.message}`);
       }
     }
 
     if (tensorsJsonRaw) {
       const tensorsJson = parseTensorMap(tensorsJsonRaw);
       for (const [name, rdrrInfo] of Object.entries(tensorsJson)) {
-        const info = /** @type {import('../storage/rdrr-format.js').TensorLocation} */ (rdrrInfo);
+        const info = rdrrInfo;
         locations.set(name, {
           shardIndex: info.shard,
           offset: info.offset,
@@ -82,17 +56,7 @@ export async function buildTensorLocations(manifest, options = {}) {
   }
 
   for (const [name, info] of Object.entries(manifest.tensors)) {
-    const tensorInfo = /** @type {{
-      shard?: number;
-      shardIndex?: number;
-      offset: number;
-      size: number;
-      shape: number[];
-      dtype: string;
-      spans?: Array<{ shardIndex: number; offset: number; size: number }>;
-      layout?: 'row' | 'column';
-      originalShape?: number[];
-    }} */ (info);
+    const tensorInfo = info;
     locations.set(name, {
       shardIndex: tensorInfo.shardIndex ?? tensorInfo.shard ?? 0,
       offset: tensorInfo.offset,
@@ -108,15 +72,6 @@ export async function buildTensorLocations(manifest, options = {}) {
   return locations;
 }
 
-// ============================================================================
-// Tensor Predicates
-// ============================================================================
-
-/**
- * Check if tensor name indicates an embedding weight.
- * @param {string} name
- * @returns {boolean}
- */
 export function isEmbeddingTensor(name) {
   const lower = name.toLowerCase();
   return (
@@ -126,11 +81,6 @@ export function isEmbeddingTensor(name) {
   );
 }
 
-/**
- * Check if tensor name indicates an LM head weight.
- * @param {string} name
- * @returns {boolean}
- */
 export function isLMHeadTensor(name) {
   const lower = name.toLowerCase();
   return (
@@ -139,11 +89,6 @@ export function isLMHeadTensor(name) {
   );
 }
 
-/**
- * Check if tensor name indicates a norm weight.
- * @param {string} name
- * @returns {boolean}
- */
 export function isNormTensor(name) {
   const lower = name.toLowerCase();
   return (
@@ -153,11 +98,6 @@ export function isNormTensor(name) {
   );
 }
 
-/**
- * Check if tensor name indicates a matmul weight (projection).
- * @param {string} name
- * @returns {boolean}
- */
 export function isMatmulTensor(name) {
   const lower = name.toLowerCase();
   return (

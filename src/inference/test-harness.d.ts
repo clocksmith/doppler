@@ -16,7 +16,6 @@ import { type KernelCapabilities } from '../gpu/device.js';
 import { type RDRRManifest } from '../storage/rdrr-format.js';
 import { type Pipeline } from './pipeline.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
-import type { KernelPathSchema } from '../config/schema/index.js';
 
 // ============================================================================
 // Types
@@ -40,16 +39,9 @@ export interface ModelInfo {
  * Runtime overrides parsed from URL parameters
  */
 export interface RuntimeOverrides {
-  /**
-   * Kernel path for explicit kernel dispatch ordering.
-   * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
-   */
-  kernelPath?: string | KernelPathSchema;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
   /** Enable GPU timestamp profiling */
   profile?: boolean;
-  /** Trace level: 'quick' | 'full' */
-  trace?: string;
   /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
   configChain?: string[];
 }

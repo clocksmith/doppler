@@ -262,10 +262,6 @@ export class PipelineBenchmark {
 
     // Create pipeline
     const runtime = { debug: this.config.debug };
-    const runtimeKernelPath = this.config.runtime?.inference?.kernelPath ?? this.config.runtime?.kernelPath;
-    if (runtimeKernelPath !== undefined) {
-      runtime.kernelPath = runtimeKernelPath;
-    }
 
     this.pipeline = await createPipeline(this.manifest, {
       gpu: { device },
