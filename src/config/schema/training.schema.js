@@ -23,6 +23,21 @@ export const DEFAULT_TRAINING_GRADIENT_CONFIG = {
 };
 
 // =============================================================================
+// Loss Scaling Defaults
+// =============================================================================
+
+export const DEFAULT_TRAINING_LOSS_SCALING_CONFIG = {
+  enabled: false,
+  initialScale: 1024,
+  minScale: 1,
+  maxScale: 65536,
+  scaleFactor: 2,
+  backoffFactor: 0.5,
+  growthInterval: 2000,
+  overflowCheck: true,
+};
+
+// =============================================================================
 // Precision Defaults
 // =============================================================================
 
@@ -51,4 +66,5 @@ export const DEFAULT_TRAINING_SETTINGS = {
   gradient: DEFAULT_TRAINING_GRADIENT_CONFIG,
   precision: DEFAULT_TRAINING_PRECISION_CONFIG,
   attention: DEFAULT_TRAINING_ATTENTION_CONFIG,
+  lossScaling: DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
 };

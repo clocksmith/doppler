@@ -9,6 +9,69 @@ function toFloat32(buffer, dtype) {
   return new Float32Array(buffer);
 }
 
+function computeSoftmax(qData, kData, options) {
+  const { seqLen, numHeads, headDim, scale = 1.0, causal = false } = options;
+  const sData = new Float32Array(numHeads * seqLen * seqLen);
+
+  for (let h = 0; h < numHeads; h += 1) {
+    const qOffset = h * seqLen * headDim;
+    const kOffset = h * seqLen * headDim;
+    const sOffset = h * seqLen * seqLen;
+
+    for (let i = 0; i < seqLen; i += 1) {
+      let rowMax = -Infinity;
+      for (let j = 0; j < seqLen; j += 1) {
+        if (causal && j > i) {
+          continue;
+        }
+        let sum = 0.0;
+        for (let d = 0; d < headDim; d += 1) {
+          sum += qData[qOffset + i * headDim + d] * kData[kOffset + j * headDim + d];
+        }
+        const scaled = sum * scale;
+        if (scaled > rowMax) {
+          rowMax = scaled;
+        }
+      }
+
+      let rowSum = 0.0;
+      for (let j = 0; j < seqLen; j += 1) {
+        if (causal && j > i) {
+          continue;
+        }
+        let sum = 0.0;
+        for (let d = 0; d < headDim; d += 1) {
+          sum += qData[qOffset + i * headDim + d] * kData[kOffset + j * headDim + d];
+        }
+        const expVal = Math.exp(sum * scale - rowMax);
+        sData[sOffset + i * seqLen + j] = expVal;
+        rowSum += expVal;
+      }
+
+      const invSum = rowSum > 0 ? 1 / rowSum : 0;
+      for (let j = 0; j < seqLen; j += 1) {
+        if (causal && j > i) {
+          continue;
+        }
+        sData[sOffset + i * seqLen + j] *= invSum;
+      }
+    }
+  }
+
+  return sData;
+}
+
+export async function buildAttentionSoftmaxCache(q, k, options) {
+  const [qBuf, kBuf] = await Promise.all([readBuffer(q.buffer), readBuffer(k.buffer)]);
+  const qData = toFloat32(qBuf, q.dtype);
+  const kData = toFloat32(kBuf, k.dtype);
+  const sData = computeSoftmax(qData, kData, options);
+  const { seqLen, numHeads } = options;
+  const outBuf = acquireBuffer(tensorBytes([numHeads, seqLen, seqLen], 'f32'), undefined, 'attn_softmax_cache');
+  uploadData(outBuf, sData);
+  return createTensor(outBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_softmax_cache');
+}
+
 export async function attentionBackwardCpu(
   q,
   k,
@@ -19,18 +82,29 @@ export async function attentionBackwardCpu(
 ) {
   const { seqLen, numHeads, headDim, scale = 1.0, causal = false } = options;
 
-  const [qBuf, kBuf, vBuf, sBuf, dBuf] = await Promise.all([
+  const buffers = [
     readBuffer(q.buffer),
     readBuffer(k.buffer),
     readBuffer(v.buffer),
-    readBuffer(softmax.buffer),
     readBuffer(gradOutput.buffer),
-  ]);
+  ];
+  if (softmax) {
+    buffers.splice(3, 0, readBuffer(softmax.buffer));
+  }
+
+  const results = await Promise.all(buffers);
+  const qBuf = results[0];
+  const kBuf = results[1];
+  const vBuf = results[2];
+  const sBuf = softmax ? results[3] : null;
+  const dBuf = softmax ? results[4] : results[3];
 
   const qData = toFloat32(qBuf, q.dtype);
   const kData = toFloat32(kBuf, k.dtype);
   const vData = toFloat32(vBuf, v.dtype);
-  const sData = toFloat32(sBuf, softmax.dtype);
+  const sData = softmax
+    ? toFloat32(sBuf, softmax.dtype)
+    : computeSoftmax(qData, kData, options);
   const dData = toFloat32(dBuf, gradOutput.dtype);
 
   const total = seqLen * numHeads * headDim;

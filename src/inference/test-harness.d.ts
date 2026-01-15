@@ -3,7 +3,7 @@
  *
  * Common utilities for inference testing and automation:
  * - Model discovery via /api/models
- * - URL parameter parsing for runtime overrides
+ * - URL parameter parsing for runtime config
  * - HTTP-based shard loading
  * - Pipeline initialization helpers
  *
@@ -40,8 +40,6 @@ export interface ModelInfo {
  */
 export interface RuntimeOverrides {
   runtimeConfig?: Partial<RuntimeConfigSchema>;
-  /** Enable GPU timestamp profiling */
-  profile?: boolean;
   /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
   configChain?: string[];
 }
@@ -88,10 +86,11 @@ export declare function discoverModels(
 // ============================================================================
 
 /**
- * Parse runtime overrides from URL query parameters.
+ * Parse runtime config from URL query parameters.
  *
  * Supported parameters:
- * - debug: Enable verbose logging + tracing
+ * - runtimeConfig: JSON-encoded runtime config
+ * - configChain: JSON-encoded config chain (for debugging)
  *
  * @param searchParams - URLSearchParams to parse (default: window.location.search)
  * @returns RuntimeOverrides object

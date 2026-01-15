@@ -20,13 +20,17 @@ export interface TrainStepOptions {
   crossEntropyLoss?: (
     logits: Tensor,
     targets: Tensor,
-    config: TrainingConfigSchema
+    config: TrainingConfigSchema,
+    tape: unknown
   ) => Promise<Tensor>;
   clipGradients?: (
     grads: Map<Tensor, Tensor>,
     config: TrainingConfigSchema
   ) => Promise<Map<Tensor, Tensor>>;
   optimizer?: TrainingOptimizer;
+  lossScale?: number;
+  applyClip?: boolean;
+  applyOptimizer?: boolean;
 }
 
 export interface TrainStepResult {

@@ -1806,13 +1806,40 @@
         }
       }
     },
+    "cross_entropy_loss": {
+      "description": "Cross-entropy loss (expects softmax input)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "softmax", "type": "read-only-storage" },
+        { "index": 2, "name": "targets", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "vocab_size", "type": "u32", "offset": 4 },
+          { "name": "_pad0", "type": "u32", "offset": 8 },
+          { "name": "_pad1", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "cross_entropy_loss.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
     "cross_entropy_backward": {
       "description": "Cross-entropy backward (expects softmax input)",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
         { "index": 1, "name": "softmax", "type": "read-only-storage" },
         { "index": 2, "name": "targets", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 3, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
         "size": 16,

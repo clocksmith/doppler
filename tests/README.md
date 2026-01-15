@@ -100,8 +100,8 @@ npm test -- --inference
 # Manual browser testing
 open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1"
 
-# With kernel path override
-open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1&kernelPath=gemma2-q4k-fused-f16a"
+# With runtime config
+open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1&runtimeConfig={...}"
 ```
 
 ## Shared Test Utilities
@@ -111,7 +111,7 @@ The `inference/test-harness.js` module provides shared utilities:
 ```typescript
 import {
   discoverModels,           // Fetch models from /api/models
-  parseRuntimeOverridesFromURL, // Parse kernel path overrides from URL params
+  parseRuntimeOverridesFromURL, // Parse runtimeConfig from URL params
   createHttpShardLoader,    // Create HTTP-based shard loader
   fetchManifest,            // Fetch and parse manifest.json
   initializeDevice,         // Initialize WebGPU device

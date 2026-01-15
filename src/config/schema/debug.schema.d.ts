@@ -135,6 +135,8 @@ export declare const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema;
  * Profiler configuration.
  */
 export interface ProfilerConfigSchema {
+  /** Enable GPU profiling */
+  enabled: boolean;
   /** Maximum number of timestamp pairs to allocate */
   queryCapacity: number;
   /** Maximum samples retained per label */

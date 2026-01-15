@@ -11,7 +11,7 @@
  * Examples:
  *   doppler run                              # Serve demo at :8080
  *   doppler test kernels --filter matmul     # Kernel correctness tests
- *   doppler bench inference --runs 3         # Full inference benchmark
+ *   doppler bench inference                 # Full inference benchmark
  *   doppler debug --model gemma-1b --layer 5 # Inspect layer 5
  */
 

@@ -3,6 +3,7 @@
 Comprehensive debugging strategies for DOPPLER WebGPU inference issues. Written for future developers and Claude agents.
 
 **Note:** All CLI commands now run headless by default with real GPU (via `--headless=new`). Use `--headed` for visible browser window during debugging.
+**Config-only overrides:** Prompt size, sampling, warmup/runs, trace, and log levels are configured via `runtime.shared.benchmark.run` and `runtime.shared.debug` in the runtime config passed to `--config`.
 
 ---
 
@@ -16,7 +17,7 @@ If any kernel fails, **fix it first**. Expected: all PASS except scatter-add.
 
 ### 2. Run Inference Debug
 ```bash
-npm run doppler -- bench inference --prompt xs --debug
+npm run doppler -- bench inference --config debug
 ```
 
 ### 3. Compare Against Reference
@@ -77,7 +78,7 @@ cat model/manifest.json | jq '{
 
 ```bash
 # During inference debug, check weight loading
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep -E "weight|norm.*min|norm.*max"
+npm run doppler -- bench inference --config debug 2>&1 | grep -E "weight|norm.*min|norm.*max"
 ```
 
 **Expected Gemma 3 norm weight ranges:**
@@ -248,10 +249,10 @@ The CLI uses a persistent Playwright profile directory to preserve browser stora
 
 ```bash
 # Reuse the same profile across runs (warm OPFS)
-doppler bench inference --prompt xs --profile-dir .benchmark-cache
+doppler bench inference --config bench --profile-dir .benchmark-cache
 
 # Use a fresh profile for a cold-start run
-doppler bench inference --prompt xs --profile-dir .benchmark-cache-cold
+doppler bench inference --config bench --profile-dir .benchmark-cache-cold
 ```
 
 ### Log Format for Post-Filtering
@@ -262,12 +263,12 @@ This enables grep-based filtering:
 
 ```bash
 # Filter for specific categories
-doppler bench inference --prompt xs 2>&1 | grep -E "^\[LOGITS\]"
-doppler bench inference --prompt xs 2>&1 | grep -E "^\[LAYER\]\[L0\]"
-doppler bench inference --prompt xs 2>&1 | grep -E "^\[ATTN\]|\[FFN\]"
+doppler bench inference --config bench 2>&1 | grep -E "^\[LOGITS\]"
+doppler bench inference --config bench 2>&1 | grep -E "^\[LAYER\]\[L0\]"
+doppler bench inference --config bench 2>&1 | grep -E "^\[ATTN\]|\[FFN\]"
 
 # Watch layer 0 through decode steps
-doppler bench inference --prompt xs 2>&1 | grep "\[L0\]" | head -20
+doppler bench inference --config bench 2>&1 | grep "\[L0\]" | head -20
 ```
 
 ### Debug Options
@@ -457,8 +458,8 @@ npm run doppler -- test correctness --filter dequant
 
 **Quick check**:
 ```bash
-# Test high token IDs
-npm run doppler -- bench inference --text "Test token 10000" --debug
+# Test high token IDs (set runtime.shared.benchmark.run.customPrompt in config)
+npm run doppler -- bench inference --config ./bench-token-10000.json
 ```
 
 **Fix**:
@@ -490,7 +491,7 @@ const layout = device.createBindGroupLayout({ entries: [/* ALL bindings */] });
 **Quick check**:
 ```bash
 # Check FFN values BEFORE normalization
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep "FFN.*down\|FFN.*FINAL"
+npm run doppler -- bench inference --config debug 2>&1 | grep "FFN.*down\|FFN.*FINAL"
 # Values > 1000 = explosion
 ```
 
@@ -518,7 +519,7 @@ doppler debug 2>&1 | grep -E "TRACE|explosion"
 
 ```bash
 # Watch hidden state explosion in real-time
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
+npm run doppler -- bench inference --config debug 2>&1 | \
   grep -E "LAYER_[0-9]+.*maxAbs" | \
   while read line; do
     abs=$(echo "$line" | grep -oP 'maxAbs=[\d.]+' | cut -d= -f2)
@@ -526,11 +527,11 @@ npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
   done
 
 # Compare logit rankings for specific tokens
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
+npm run doppler -- bench inference --config debug 2>&1 | \
   grep -E "blue=|BLUE=|sky=" | tail -5
 
 # Extract just the layer-by-layer maxAbs values for plotting
-npm run doppler -- bench inference --prompt xs --debug 2>&1 | \
+npm run doppler -- bench inference --config debug 2>&1 | \
   grep "LAYER.*maxAbs" | \
   sed 's/.*LAYER_\([0-9]*\).*maxAbs=\([0-9.]*\).*/\1 \2/' > /tmp/layer_maxabs.dat
 ```
@@ -578,7 +579,7 @@ for layer in 0 5 10 15 20 25; do
   echo "Testing up to layer $layer"
   # Modify pipeline to exit early at $layer
   npm run build:doppler
-  npm run doppler -- bench inference --prompt xs --debug 2>&1 | grep "top-5"
+  npm run doppler -- bench inference --config debug 2>&1 | grep "top-5"
 done
 ```
 
@@ -586,7 +587,7 @@ done
 
 ```bash
 # Dump buffer contents for offline analysis
-npm run doppler -- bench inference --prompt xs --debug --verbose 2>&1 | \
+npm run doppler -- bench inference --config debug 2>&1 | \
   grep -A 20 "FINAL_HIDDEN" > /tmp/doppler_hidden.txt
 
 # Compare with previous run
@@ -745,13 +746,13 @@ All CLI commands auto-start the server and run **headed (visible browser) by def
 doppler test correctness
 
 # Inference test with debug output
-doppler bench inference --prompt xs --debug
+doppler bench inference --config debug
 
 # Layer-by-layer analysis
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "LAYER_[0-9]+_LAST"
+doppler bench inference --config debug 2>&1 | grep -E "LAYER_[0-9]+_LAST"
 
 # Final hidden state and logits
-doppler bench inference --prompt xs --debug 2>&1 | grep -E "FINAL_HIDDEN|logits|top-5|Generated"
+doppler bench inference --config debug 2>&1 | grep -E "FINAL_HIDDEN|logits|top-5|Generated"
 
 # Specific kernel test
 doppler test correctness --filter matmul-q4k
@@ -761,7 +762,7 @@ doppler test inference --model gemma3-1b-q4
 
 # Headless mode (for CI)
 doppler test correctness --headless
-doppler bench inference --prompt xs --headless
+doppler bench inference --config bench
 ```
 
 **Manual browser testing:** Run `npm start` first, then open `http://localhost:8080/d`.

@@ -78,6 +78,13 @@ export {
   type SoftmaxOptions,
 } from './softmax.js';
 
+// Loss
+export {
+  runCrossEntropyLoss,
+  recordCrossEntropyLoss,
+  type CrossEntropyLossOptions,
+} from './cross_entropy_loss.js';
+
 // RoPE
 export {
   runRoPE,

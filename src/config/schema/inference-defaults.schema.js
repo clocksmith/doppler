@@ -67,7 +67,7 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
   kvcache: DEFAULT_KVCACHE_CONFIG,
   moe: DEFAULT_MOE_RUNTIME_CONFIG,
-  prompt: null,
+  prompt: 'The color of the sky is',
   pipeline: null,
   kernelPath: undefined,
 };

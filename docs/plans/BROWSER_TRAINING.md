@@ -1,10 +1,24 @@
-# Browser Training Plan
+# Browser Training (Implemented)
 
 ## Goal
 
 Add LoRA fine-tuning capability to Doppler, enabling in-browser training of FunctionGemma and other small models without external infrastructure.
 
 **Principle:** Doppler provides training primitives (backward kernels, optimizer steps). Reploid/gamma decides training policy (when to train, what data, loss thresholds).
+
+---
+
+## Status
+
+Implemented in `src/training` with a runnable demo harness and test coverage.
+
+Key entry points:
+- Training engine overview: `src/training/README.md`
+- Demo harness: `app/training.html` + `app/training-harness.js`
+- Training tests: `tests/training/browser/test-page.js` and `npm test -- --training`
+- Export spec: `docs/spec/RDRR_LORA_FORMAT.md`
+
+This document now serves as a historical design reference.
 
 ---
 
@@ -839,5 +853,5 @@ Phase 1 complete when:
 ---
 
 *Created: January 2026*
-*Status: Planning*
-*Last updated: January 2026 (style guide compliance, realistic memory estimates)*
+*Status: Implemented (engine primitives)*
+*Last updated: January 2026 (loss + clipping + adapter export)*

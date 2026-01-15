@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DOPPLER Training Harness</title>
+  <link rel="stylesheet" href="/doppler/app/rd.css">
+  <style>
+    body { padding: var(--space-lg); }
+    #results { margin-top: var(--space-md); }
+    .row { padding: var(--space-xs) 0; border-bottom: var(--border-sm) solid var(--fg); }
+  </style>
+</head>
+<body>
+  <h1 class="type-h1">DOPPLER Training Harness</h1>
+  <div id="status" class="muted type-caption">Initializing...</div>
+  <div id="results"></div>
+
+  <script type="module">
+    import './training-harness.js';
+  </script>
+</body>
+</html>

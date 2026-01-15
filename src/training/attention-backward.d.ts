@@ -14,11 +14,17 @@ export interface AttentionBackwardResult {
   gradV: Tensor;
 }
 
+export declare function buildAttentionSoftmaxCache(
+  q: Tensor,
+  k: Tensor,
+  options: AttentionBackwardOptions
+): Promise<Tensor>;
+
 export declare function attentionBackwardCpu(
   q: Tensor,
   k: Tensor,
   v: Tensor,
-  softmax: Tensor,
+  softmax: Tensor | null,
   gradOutput: Tensor,
   options: AttentionBackwardOptions
 ): Promise<AttentionBackwardResult>;

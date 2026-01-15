@@ -11,7 +11,7 @@
  *   // Enable tracing
  *   kernelTrace.enable({ breakOnAnomaly: true });
  *
- *   // In kernel wrappers, call recordStep (automatic with --trace flag)
+ *   // In kernel wrappers, call recordStep (automatic with runtime debug trace config)
  *   kernelTrace.recordStep({ name: 'matmul', label: 'q_proj', ... });
  *
  *   // After inference, analyze

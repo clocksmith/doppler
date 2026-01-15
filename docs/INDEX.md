@@ -49,6 +49,8 @@ Deep-dives on kernel implementations and optimization strategies:
 | [Target Models](plans/TARGET_MODELS.md) | Benchmark priority list |
 | [Competitive Analysis](design/COMPETITIVE_ANALYSIS.md) | WebLLM, WeInfer, Transformers.js comparison |
 | [RDRR Format](design/RDRR_FORMAT.md) | Model format specification |
+| [RDRR-LoRA Format](spec/RDRR_LORA_FORMAT.md) | LoRA adapter manifest format |
+| [Training Engine](../src/training/README.md) | Training primitives, runners, and exports |
 | [Adapter Manifest](design/ADAPTER_MANIFEST.md) | LoRA/QLoRA adapter manifest spec |
 
 ---

@@ -60,6 +60,12 @@ export {
   recordSoftmax,
 } from './softmax.js';
 
+// Loss
+export {
+  runCrossEntropyLoss,
+  recordCrossEntropyLoss,
+} from './cross_entropy_loss.js';
+
 // RoPE
 export {
   runRoPE,

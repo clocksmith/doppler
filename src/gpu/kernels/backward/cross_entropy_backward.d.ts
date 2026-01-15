@@ -10,6 +10,7 @@ export interface CrossEntropyBackwardOptions extends BackwardKernelOptions {
 export declare function runCrossEntropyBackward(
   softmax: Tensor,
   targets: Tensor,
+  gradOutput: Tensor,
   options: CrossEntropyBackwardOptions
 ): Promise<Tensor>;
 
@@ -17,5 +18,6 @@ export declare function recordCrossEntropyBackward(
   recorder: CommandRecorder,
   softmax: Tensor,
   targets: Tensor,
+  gradOutput: Tensor,
   options: CrossEntropyBackwardOptions
 ): Promise<Tensor>;

@@ -5,7 +5,7 @@ import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 
-export async function runCrossEntropyBackward(softmax, targets, options = {}) {
+export async function runCrossEntropyBackward(softmax, targets, gradOutput, options = {}) {
   const device = getDevice();
   const { numTokens, vocabSize, outputBuffer = null } = options;
 
@@ -36,7 +36,8 @@ export async function runCrossEntropyBackward(softmax, targets, options = {}) {
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: softmax.buffer } },
       { binding: 2, resource: { buffer: targets.buffer } },
-      { binding: 3, resource: { buffer: outputBuf } },
+      { binding: 3, resource: { buffer: gradOutput.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 
@@ -48,7 +49,7 @@ export async function runCrossEntropyBackward(softmax, targets, options = {}) {
   return createTensor(outputBuf, softmax.dtype, [numTokens, vocabSize], 'cross_entropy_backward_output');
 }
 
-export async function recordCrossEntropyBackward(recorder, softmax, targets, options = {}) {
+export async function recordCrossEntropyBackward(recorder, softmax, targets, gradOutput, options = {}) {
   const device = recorder.device;
   const { numTokens, vocabSize, outputBuffer = null } = options;
 
@@ -78,7 +79,8 @@ export async function recordCrossEntropyBackward(recorder, softmax, targets, opt
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: softmax.buffer } },
       { binding: 2, resource: { buffer: targets.buffer } },
-      { binding: 3, resource: { buffer: outputBuf } },
+      { binding: 3, resource: { buffer: gradOutput.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } },
     ],
   });
 

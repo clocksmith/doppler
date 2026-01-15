@@ -101,21 +101,31 @@ export class AutogradTape {
       case 'attention_backward': {
         const [q, k, v, softmax] = record.inputs;
         const { seqLen, numHeads, headDim, scale } = record.options;
-        const { gradQ, gradK, gradV } = await runAttentionBackward(
-          q,
-          k,
-          v,
-          softmax,
-          gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
-        ).catch(() => attentionBackwardCpu(
-          q,
-          k,
-          v,
-          softmax,
-          gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
-        ));
+        const recomputeForward = record.options.recomputeForward === true || !softmax;
+        const { gradQ, gradK, gradV } = recomputeForward
+          ? await attentionBackwardCpu(
+            q,
+            k,
+            v,
+            null,
+            gradOut,
+            { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          )
+          : await runAttentionBackward(
+            q,
+            k,
+            v,
+            softmax,
+            gradOut,
+            { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          ).catch(() => attentionBackwardCpu(
+            q,
+            k,
+            v,
+            softmax,
+            gradOut,
+            { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          ));
         return [
           { input: q, grad: gradQ },
           { input: k, grad: gradK },
@@ -152,7 +162,7 @@ export class AutogradTape {
       case 'cross_entropy_backward': {
         const [softmax, targets] = record.inputs;
         const { numTokens, vocabSize } = record.options;
-        const gradInput = await runCrossEntropyBackward(softmax, targets, { numTokens, vocabSize });
+        const gradInput = await runCrossEntropyBackward(softmax, targets, gradOut, { numTokens, vocabSize });
         return [{ input: softmax, grad: gradInput }];
       }
       default:

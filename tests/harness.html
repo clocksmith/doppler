@@ -44,6 +44,7 @@
       kernels: 'DOPPLER KERNEL TESTS',
       inference: 'DOPPLER INFERENCE TEST',
       bench: 'DOPPLER BENCHMARK',
+      training: 'DOPPLER TRAINING TESTS',
     };
     document.getElementById('title').textContent = titles[mode] || 'DOPPLER TEST HARNESS';
 
@@ -107,6 +108,43 @@
     }
 
     // ==========================================================================
+    // Mode: Training
+    // ==========================================================================
+
+    async function initTrainingMode() {
+      const { trainingHarness } = await import('/doppler/tests/training/browser/test-page.js');
+
+      await initGPU();
+      window.trainingHarness = trainingHarness;
+
+      window.renderResults = (testResults) => {
+        const container = document.getElementById('results');
+        let passed = 0, failed = 0, totalTime = 0;
+
+        for (const r of testResults) {
+          const row = document.createElement('div');
+          row.className = `row ${r.passed ? 'pass' : 'fail'}`;
+          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption muted">${r.duration}ms</span>`;
+          container.appendChild(row);
+
+          if (r.passed) passed++; else failed++;
+          totalTime += r.duration;
+        }
+
+        const summary = document.createElement('div');
+        summary.id = 'summary';
+        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span class="muted">${totalTime}ms</span>`;
+        container.appendChild(summary);
+
+        container.classList.add('show');
+        document.getElementById('status').style.display = 'none';
+      };
+
+      console.log('[TrainingTests] Ready for test execution');
+      return 'training';
+    }
+
+    // ==========================================================================
     // Mode: Inference
     // ==========================================================================
 
@@ -119,7 +157,7 @@
         initializeDevice,
         createTestState,
       } = await import('/doppler/src/inference/test-harness.js');
-      const { setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      const { getRuntimeConfig, setRuntimeConfig } = await import('/doppler/src/config/index.js');
       const { createPipeline } = await import('/doppler/src/inference/pipeline.js');
       const { getDevice } = await import('/doppler/src/gpu/device.js');
       const { SIGNALS } = await import('/doppler/src/debug/index.js');
@@ -132,6 +170,7 @@
       if (runtimeOverrides.runtimeConfig) {
         setRuntimeConfig(runtimeOverrides.runtimeConfig);
       }
+      const runtimeConfig = getRuntimeConfig();
 
       const BASE_URL = 'http://localhost:8080/doppler/models';
 
@@ -143,13 +182,13 @@
 
       async function run() {
         const MODEL_URL = `${BASE_URL}/${paramModel}`;
-        const configPrompt = runtimeOverrides.runtimeConfig?.inference?.prompt;
-        const prompt = params.get('prompt') || configPrompt || 'The color of the sky is';
-        const configMaxTokens = runtimeOverrides.runtimeConfig?.inference?.batching?.maxTokens;
-        const configTemperature = runtimeOverrides.runtimeConfig?.inference?.sampling?.temperature;
-        const maxTokens = Number.isFinite(configMaxTokens) ? configMaxTokens : 8;
-        const temperature = typeof configTemperature === 'number' ? configTemperature : 0;
-        const chatOverride = params.has('noChat') ? false : params.has('chat') ? true : undefined;
+        const prompt = runtimeConfig.inference.prompt;
+        if (!prompt) {
+          throw new Error('runtime.inference.prompt must be set for inference tests.');
+        }
+        const maxTokens = runtimeConfig.inference.batching.maxTokens;
+        const temperature = runtimeConfig.inference.sampling.temperature;
+        const profile = runtimeConfig.shared.debug.profiler?.enabled === true;
 
         try {
           let pipeline;
@@ -175,10 +214,6 @@
               storage: { loadShard },
               gpu: { device },
               baseUrl: MODEL_URL,
-              runtime: {
-                debug: runtimeOverrides.debug,
-                kernelPath: runtimeOverrides.kernelPath,
-              },
             });
 
             window.pipeline = pipeline;
@@ -193,8 +228,7 @@
           for await (const tokenText of pipeline.generate(prompt, {
             maxTokens,
             temperature,
-            profile: runtimeOverrides.profile === true,
-            ...(chatOverride !== undefined && { useChatTemplate: chatOverride }),
+            profile,
           })) {
             tokens.push(tokenText);
             console.log(`[Token] ${tokens.length}: "${tokenText}"`);
@@ -309,6 +343,9 @@
         switch (mode) {
           case 'kernels':
             result = await initKernelMode();
+            break;
+          case 'training':
+            result = await initTrainingMode();
             break;
           case 'inference':
             result = await initInferenceMode();

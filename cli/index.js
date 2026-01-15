@@ -44,7 +44,6 @@ import {
 } from './helpers/comparison.js';
 
 import { generateHTMLReport } from './helpers/html-report.js';
-import { DEFAULT_BENCHMARK_CONFIG } from '../src/config/schema/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -75,6 +74,16 @@ const KERNEL_TESTS = [
   'matmul-f16w',  // f16w_f32a matmul with dequanted F16 weights (production path test)
   'dequant-q6k',  // Q6_K dequantization
   'sample',  // GPU argmax sampling
+];
+
+const TRAINING_TESTS = [
+  'loss-forward',
+  'softmax-backward',
+  'cross-entropy-backward',
+  'rmsnorm-backward',
+  'matmul-backward',
+  'parity-fixture',
+  'training-leak-perf',
 ];
 
 const KERNEL_BENCHMARKS = [
@@ -125,6 +134,7 @@ const FLAG_SPECS = [
   { names: ['--warm'], handler: (opts) => { opts.warm = true; opts.headless = false; opts.reuseBrowser = true; } },
   { names: ['--inference'], handler: (opts) => { opts.suite = 'inference'; } },
   { names: ['--kernels'], handler: (opts) => { opts.suite = 'kernels'; } },
+  { names: ['--training'], handler: (opts) => { opts.suite = 'training'; } },
   { names: ['--quick'], handler: (opts) => { opts.suite = 'quick'; } },
   { names: ['--full'], handler: (opts) => { opts.suite = 'all'; } },
   { names: ['--filter', '-f'], handler: (opts, tokens) => { opts.filter = tokens.shift() || null; } },
@@ -132,14 +142,6 @@ const FLAG_SPECS = [
   { names: ['--output', '-o'], handler: (opts, tokens) => { opts.output = tokens.shift() || null; } },
   { names: ['--html'], handler: (opts, tokens) => { opts.html = tokens.shift() || null; } },
   { names: ['--compare', '-c'], handler: (opts, tokens) => { opts.compare = tokens.shift() || null; } },
-  { names: ['--text'], handler: (opts, tokens) => { opts.text = tokens.shift() || null; } },
-  { names: ['--file'], handler: (opts, tokens) => { opts.file = tokens.shift() || null; } },
-  { names: ['--debug-layers'], handler: (opts, tokens) => {
-    const layersArg = tokens.shift() || '';
-    if (layersArg) {
-      opts.debugLayers = layersArg.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-    }
-  } },
   { names: ['--profile-dir'], handler: (opts, tokens) => { opts.profileDir = tokens.shift() || null; } },
   { names: ['--retries'], handler: (opts, tokens) => { opts.retries = parseInt(tokens.shift() || '2', 10); } },
   { names: ['--perf'], handler: (opts) => { opts.perf = true; } },
@@ -287,15 +289,7 @@ function parseArgs(argv) {
     timeout: 300000,
     output: null,
     html: null,
-    warmup: 2,
-    runs: 3,
-    maxTokens: 128,
-    temperature: 0,
-    prompt: 'medium',
-    text: null,
-    file: null,
     compare: null,
-    debugLayers: null,
     profileDir: null,
     retries: 2,
     quiet: false,
@@ -367,18 +361,6 @@ function hasCliFlag(opts, flags) {
  * @param {import('./helpers/types.js').CLIOptions} opts
  * @returns {string | null}
  */
-function resolveLogLevel(opts) {
-  if (opts.quiet) return 'silent';
-  if (opts.verbose) return 'verbose';
-  const configLevel = opts.runtimeConfig?.inference?.debug?.logLevel?.defaultLogLevel;
-  return configLevel ?? null;
-}
-
-/**
- * @param {URLSearchParams} params
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {void}
- */
 /**
  * @param {URLSearchParams} params
  * @param {import('./helpers/types.js').CLIOptions} opts
@@ -390,27 +372,6 @@ function appendRuntimeConfigParams(params, opts) {
   }
   if (opts.configChain) {
     params.set('configChain', JSON.stringify(opts.configChain));
-  }
-}
-
-/**
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {string | null}
- */
-function resolvePromptOverride(opts) {
-  if (opts.text) return opts.text;
-  return null;
-}
-
-/**
- * @param {URLSearchParams} params
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {void}
- */
-function appendPromptParams(params, opts) {
-  const prompt = resolvePromptOverride(opts);
-  if (prompt) {
-    params.set('prompt', prompt);
   }
 }
 
@@ -448,6 +409,7 @@ TEST - Correctness Tests
   doppler test                        All kernel tests (default)
   doppler test --quick                Quick subset (matmul, rmsnorm, softmax, gather)
   doppler test --inference            Model loads + generates (smoke test)
+  doppler test --training             Training kernel + loop checks
   doppler test --filter matmul        Filter to specific kernel
 
 BENCH - Performance Benchmarks
@@ -1178,6 +1140,105 @@ async function runCorrectnessTests(page, opts, tests) {
   };
 }
 
+/**
+ * @param {import('playwright').Page} page
+ * @param {import('./helpers/types.js').CLIOptions} opts
+ * @param {readonly string[]} tests
+ * @returns {Promise<import('./helpers/types.js').SuiteResult>}
+ */
+async function runTrainingTests(page, opts, tests) {
+  console.log('\n' + '='.repeat(60));
+  console.log('TRAINING CORRECTNESS TESTS');
+  console.log('='.repeat(60));
+
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=training`, {
+    timeout: opts.timeout,
+  });
+
+  await page.waitForTimeout(500);
+
+  await page.waitForFunction(
+    () => {
+      const w = /** @type {any} */ (window);
+      return Boolean(w.trainingHarness);
+    },
+    { timeout: 30000 }
+  );
+
+  /** @type {import('./helpers/types.js').TestResult[]} */
+  const results = [];
+  const startTime = Date.now();
+
+  const testsToRun = opts.filter
+    ? tests.filter((t) => t.includes(opts.filter))
+    : tests;
+
+  for (const testName of testsToRun) {
+    console.log(`\n  Running: ${testName}...`);
+    const testStart = Date.now();
+
+    try {
+      const result = await page.evaluate(
+        async (name) => {
+          const harness = /** @type {any} */ (window).trainingHarness;
+          if (harness?.getGPU) {
+            await harness.getGPU();
+          }
+          const testResult = await harness.runTest(name);
+          return testResult;
+        },
+        testName
+      );
+
+      const duration = Date.now() - testStart;
+      results.push({
+        name: testName,
+        passed: result.passed,
+        duration,
+        error: result.error,
+      });
+
+      const status = result.passed ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
+      console.log(`  ${status} ${testName} (${duration}ms)`);
+      if (result.error) {
+        console.log(`    Error: ${result.error}`);
+      }
+    } catch (err) {
+      const duration = Date.now() - testStart;
+      results.push({
+        name: testName,
+        passed: false,
+        duration,
+        error: err?.message || String(err),
+      });
+      console.log(`  \x1b[31mFAIL\x1b[0m ${testName} (${duration}ms)`);
+    }
+  }
+
+  const duration = Date.now() - startTime;
+  const passed = results.filter(r => r.passed).length;
+  const failed = results.length - passed;
+
+  if (opts.output && results.length > 0) {
+    const outputPath = resolve(opts.output);
+    await writeFile(outputPath, JSON.stringify({ suite: 'training', results }, null, 2));
+    console.log(`\nResults written to ${outputPath}`);
+  }
+
+  if (await page.evaluate(() => /** @type {any} */ (window).renderResults)) {
+    await page.evaluate((res) => /** @type {any} */ (window).renderResults(res), results);
+  }
+
+  return {
+    suite: 'training',
+    passed,
+    failed,
+    skipped: tests.length - testsToRun.length,
+    duration,
+    results,
+  };
+}
+
 // ============================================================================
 // Kernel Benchmarks
 // ============================================================================
@@ -1191,6 +1252,12 @@ async function runKernelBenchmarks(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('KERNEL BENCHMARKS');
   console.log('='.repeat(60));
+
+  const runtimeConfig = opts.runtimeConfig;
+  if (!runtimeConfig) {
+    throw new Error('Runtime config is required for benchmarks.');
+  }
+  const benchmarkRun = runtimeConfig.shared.benchmark.run;
 
   await page.addInitScript(() => {
     /** @type {{ __name?: (target: unknown, name?: string) => unknown }} */
@@ -1294,7 +1361,7 @@ async function runKernelBenchmarks(page, opts) {
 
           return { median, mean, min, max, samples: times.length };
         },
-        { name: benchName, warmup: opts.warmup, runs: opts.runs }
+        { name: benchName, warmup: benchmarkRun.warmupRuns, runs: benchmarkRun.timedRuns }
       );
 
       if ('error' in result) {
@@ -1357,26 +1424,8 @@ async function runInferenceTest(page, opts) {
 
   const testParams = new URLSearchParams();
   testParams.set('model', opts.model);
-  appendPromptParams(testParams, opts);
   testParams.set('autorun', '1');
   appendRuntimeConfigParams(testParams, opts);
-
-  // Add debug/profiling params - unified CLI -> URL mapping
-  // Log level: CLI overrides config; otherwise use config default.
-  const resolvedLogLevel = resolveLogLevel(opts);
-  if (resolvedLogLevel) {
-    testParams.set('log', resolvedLogLevel);
-  }
-  // Note: default is 'info' (handled by debug/index.ts)
-
-  // Legacy support
-  if (opts.debugLayers && opts.debugLayers.length > 0) {
-    testParams.set('layers', opts.debugLayers.join(','));
-  }
-
-  if (opts.perf || opts.gpuProfile) {
-    testParams.set('profile', '1');
-  }
 
   const testUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${testParams.toString()}`;
   console.log(`  URL: ${testUrl}`);
@@ -1469,7 +1518,10 @@ async function runDemoTest(page, opts) {
   console.log('='.repeat(60));
   console.log(`  Model: ${opts.model}`);
 
-  const prompt = opts.text || 'the sky is';
+  const prompt = opts.runtimeConfig?.inference?.prompt;
+  if (!prompt) {
+    throw new Error('runtime.inference.prompt must be set for demo tests.');
+  }
   console.log(`  Prompt: "${prompt}"`);
   const followupPrompt = 'and at night?';
 
@@ -1861,16 +1913,28 @@ async function runPipelineBenchmark(page, opts) {
   console.log('='.repeat(60));
   console.log(`  Model: ${opts.model}`);
 
+  const runtimeConfig = opts.runtimeConfig;
+  if (!runtimeConfig) {
+    throw new Error('Runtime config is required for benchmarks.');
+  }
+  const benchmarkRun = runtimeConfig.shared.benchmark.run;
+
   await page.goto(`${opts.baseUrl}/d`, { timeout: opts.timeout });
   await page.waitForTimeout(1000);
 
   // Build script as string to avoid TypeScript module resolution issues
   // The import runs in browser context, not Node.js
   const config = JSON.stringify({
-    promptName: 'medium',
-    maxNewTokens: 32,
-    warmupRuns: opts.warmup,
-    timedRuns: opts.runs,
+    promptName: benchmarkRun.promptName,
+    customPrompt: benchmarkRun.customPrompt ?? undefined,
+    maxNewTokens: benchmarkRun.maxNewTokens,
+    warmupRuns: benchmarkRun.warmupRuns,
+    timedRuns: benchmarkRun.timedRuns,
+    sampling: benchmarkRun.sampling,
+    debug: benchmarkRun.debug,
+    profile: benchmarkRun.profile,
+    useChatTemplate: benchmarkRun.useChatTemplate,
+    runtimeConfig,
   });
 
   const script = `
@@ -2025,45 +2089,37 @@ async function main() {
     opts.mode = 'debug';
   }
 
-  // Load config if specified
+  // Load config (default + overrides)
   /** @type {Awaited<ReturnType<typeof loadConfig>> | null} */
   let loadedConfig = null;
-  const configRef = opts.config || opts.mode;
-  if (configRef) {
-    try {
-      loadedConfig = await loadConfig(configRef);
+  const configRef = opts.config || opts.mode || 'default';
+  const shouldLogConfig = Boolean(opts.config || opts.mode);
+  try {
+    loadedConfig = await loadConfig(configRef);
+    if (shouldLogConfig) {
       console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
-      opts.runtimeConfig = loadedConfig.runtime;
-      opts.configChain = loadedConfig.chain;
-
-      // Apply runtime config to opts
-      const runtime = loadedConfig.runtime;
-      if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
-      if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
-      if (runtime.shared?.debug?.trace?.enabled) {
-        // Trace config handled in runtimeConfig; no CLI overrides.
-      }
-      const benchmarkRun = runtime.shared?.benchmark?.run;
-      if (benchmarkRun) {
-        if (typeof benchmarkRun.promptName === 'string') opts.prompt = benchmarkRun.promptName;
-        if (typeof benchmarkRun.maxNewTokens === 'number') opts.maxTokens = benchmarkRun.maxNewTokens;
-        if (typeof benchmarkRun.warmupRuns === 'number') opts.warmup = benchmarkRun.warmupRuns;
-        if (typeof benchmarkRun.timedRuns === 'number') opts.runs = benchmarkRun.timedRuns;
-        if (typeof benchmarkRun.debug === 'boolean') opts.debug = benchmarkRun.debug;
-        if (benchmarkRun.sampling?.temperature !== undefined) opts.temperature = benchmarkRun.sampling.temperature;
-      }
-
-      // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
-      const cli = /** @type {Record<string, unknown> | undefined} */ (loadedConfig.raw.cli);
-      if (cli) {
-        const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
-        if (cli.headed && !hasHeadlessFlag) opts.headless = false;
-        if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
-      }
-    } catch (err) {
-      console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
-      process.exit(1);
     }
+    opts.runtimeConfig = loadedConfig.runtime;
+    opts.configChain = loadedConfig.chain;
+
+    // Apply runtime config to opts
+    const runtime = loadedConfig.runtime;
+    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+    if (runtime.shared?.debug?.trace?.enabled) {
+      // Trace config handled in runtimeConfig; no CLI overrides.
+    }
+
+    // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
+    const cli = /** @type {Record<string, unknown> | undefined} */ (loadedConfig.raw.cli);
+    if (cli) {
+      const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
+      if (cli.headed && !hasHeadlessFlag) opts.headless = false;
+      if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
+    }
+  } catch (err) {
+    console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
+    process.exit(1);
   }
 
   // Handle 'bench' command - performance mode
@@ -2158,16 +2214,6 @@ async function main() {
       // Navigate to debug page with params - unified CLI -> URL mapping
       const debugParams = new URLSearchParams();
       debugParams.set('model', opts.model);
-      appendPromptParams(debugParams, opts);
-
-      // Debug mode: default to all trace categories and config-driven log level
-      const debugLogLevel = resolveLogLevel(opts) ?? 'verbose';
-      debugParams.set('log', debugLogLevel);
-
-      // GPU profiling
-      if (opts.perf || opts.gpuProfile) {
-        debugParams.set('profile', '1');
-      }
 
       // Legacy layer/kernel params
       if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
@@ -2241,16 +2287,16 @@ async function main() {
               const comparison = compareResults(baseline, benchResults);
               console.log(formatComparison(comparison));
 
-              const benchmarkConfig = loadedConfig?.runtime?.shared?.benchmark ?? DEFAULT_BENCHMARK_CONFIG;
+              const benchmarkConfig = loadedConfig.runtime.shared.benchmark;
               const regressionSummary = detectRegressions(
                 comparison,
-                benchmarkConfig.comparison ?? DEFAULT_BENCHMARK_CONFIG.comparison
+                benchmarkConfig.comparison
               );
               console.log(formatRegressionSummary(regressionSummary));
 
               const baseLatencies = baseline.raw?.decode_latencies_ms;
               const currLatencies = benchResults.raw?.decode_latencies_ms;
-              const minSamples = benchmarkConfig.stats?.minSamplesForComparison ?? DEFAULT_BENCHMARK_CONFIG.stats.minSamplesForComparison;
+              const minSamples = benchmarkConfig.stats.minSamplesForComparison;
               if (baseLatencies?.length >= minSamples && currLatencies?.length >= minSamples) {
                 console.log('\n' + '-'.repeat(60));
                 console.log('STATISTICAL SIGNIFICANCE (Welch\'s t-test)');
@@ -2264,7 +2310,7 @@ async function main() {
                 }
               }
 
-              if (regressionSummary.hasRegression && (benchmarkConfig.comparison?.failOnRegression ?? DEFAULT_BENCHMARK_CONFIG.comparison.failOnRegression)) {
+              if (regressionSummary.hasRegression && benchmarkConfig.comparison.failOnRegression) {
                 console.error('\nBenchmark regression threshold exceeded.');
                 process.exit(1);
               }
@@ -2378,9 +2424,14 @@ async function main() {
             suites.push(await runConverterTest(page, opts));
             break;
 
+          case 'training':
+            suites.push(await runTrainingTests(page, opts, TRAINING_TESTS));
+            break;
+
           case 'all':
             suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
             suites.push(await runInferenceTest(page, opts));
+            suites.push(await runTrainingTests(page, opts, TRAINING_TESTS));
             break;
 
           default:

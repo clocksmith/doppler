@@ -105,7 +105,7 @@ async function printDiagnostics(result) {
     log.info('KernelDiag', '  - Gemma 3 1B: ~8 tok/s (Apple M3)');
     log.info('KernelDiag', '  - Column-wise layout: +14% vs flat');
     log.info('KernelDiag', 'Run benchmark:');
-    log.info('KernelDiag', `  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --runs 3`);
+    log.info('KernelDiag', `  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --config bench`);
   }
 
   log.info('KernelDiag', '='.repeat(70));

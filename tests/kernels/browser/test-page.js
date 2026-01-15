@@ -154,13 +154,7 @@ async function initGPU() {
     throw new Error('WebGPU not available');
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const kernelPath = params.get('kernelPath');
-  if (kernelPath) {
-    setActiveKernelPath(resolveKernelPath(kernelPath), 'runtime');
-  } else {
-    setActiveKernelPath(null, 'none');
-  }
+  setActiveKernelPath(null, 'none');
 
   initialized = true;
   return device;

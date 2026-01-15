@@ -12,6 +12,7 @@ export type TestSuite =
   | 'demo'             // Demo UI test (model load + generate via app)
   | 'converter'        // Converter UI test
   | 'inference'        // Quick inference validation
+  | 'training'         // Training correctness tests
   | 'quick'            // Quick validation (subset of kernels)
   | 'all';             // All tests
 
@@ -66,15 +67,7 @@ export interface CLIOptions {
   timeout: number;
   output: string | null;
   html: string | null;       // HTML report path (bench only)
-  warmup: number;
-  runs: number;
-  maxTokens: number;         // For inference benchmarks
-  temperature: number;       // For inference benchmarks
-  prompt: string;            // Prompt size preset: xs, short, medium, long
-  text: string | null;       // Custom prompt text (overrides prompt)
-  file: string | null;       // Load prompt from file (overrides prompt)
   compare: string | null;    // Compare against baseline
-  debugLayers: number[] | null; // Specific layers to debug
   /** Playwright persistent profile directory.
    *  Controls browser storage persistence, including OPFS model cache. */
   profileDir: string | null;
@@ -88,8 +81,6 @@ export interface CLIOptions {
   gpuProfile: boolean;
 
   // Debug mode options
-  /** Enable verbose debug output during inference */
-  debug: boolean;
   /** Stop at specific layer for inspection (debug mode) */
   layer: number | null;
   /** Number of tokens to encode before stopping (debug mode) */

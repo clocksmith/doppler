@@ -3,7 +3,7 @@
  *
  * Common utilities for inference testing and automation:
  * - Model discovery via /api/models
- * - URL parameter parsing for runtime overrides
+ * - URL parameter parsing for runtime config
  * - HTTP-based shard loading
  * - Pipeline initialization helpers
  *
@@ -29,8 +29,6 @@ import { setHotSwapManifest } from '../hotswap/runtime.js';
  * @typedef {import('./pipeline.js').Pipeline} Pipeline
  * @typedef {import('./pipeline/config.js').Manifest} Manifest
  * @typedef {import('../config/schema/index.js').RuntimeConfigSchema} RuntimeConfigSchema
- * @typedef {import('../config/schema/index.js').KernelPathSchema} KernelPathSchema
- * @typedef {import('../config/schema/hotswap.schema.js').HotSwapConfigSchema} HotSwapConfigSchema
  * @typedef {import('./test-harness.js').ModelInfo} ModelInfo
  * @typedef {import('./test-harness.js').RuntimeOverrides} RuntimeOverrides
  * @typedef {import('./test-harness.js').InferenceHarnessOptions} InferenceHarnessOptions
@@ -77,10 +75,11 @@ export async function discoverModels(
 // ============================================================================
 
 /**
- * Parse runtime overrides from URL query parameters.
+ * Parse runtime config from URL query parameters.
  *
  * Supported parameters:
- * - profile: Enable GPU timestamp profiling
+ * - runtimeConfig: JSON-encoded runtime config
+ * - configChain: JSON-encoded config chain (for debugging)
  *
  * @param {URLSearchParams} [searchParams] - URLSearchParams to parse (default: window.location.search)
  * @returns {RuntimeOverrides} RuntimeOverrides object
@@ -104,22 +103,6 @@ export function parseRuntimeOverridesFromURL(searchParams) {
     }
   }
 
-  // GPU profiling
-  if (params.has('profile')) {
-    runtime.profile = true;
-  }
-
-  // Debug layers (comma-separated list of layer indices)
-  const debugLayersStr = params.get('debugLayers');
-  if (debugLayersStr) {
-    const layers = debugLayersStr
-      .split(',')
-      .map(s => parseInt(s.trim(), 10))
-      .filter(n => !isNaN(n));
-    const debugConfig = ensureSharedDebug(runtime);
-    debugConfig.pipeline = { ...debugConfig.pipeline, enabled: true, layers };
-  }
-
   // Config chain (for debugging)
   const configChainRaw = params.get('configChain');
   if (configChainRaw) {
@@ -134,48 +117,7 @@ export function parseRuntimeOverridesFromURL(searchParams) {
     }
   }
 
-  const hotSwapManifest = params.get('hotSwapManifest');
-  const hotSwapLocalOnly = params.get('hotSwapLocalOnly');
-  const hotSwapAllowUnsignedLocal = params.get('hotSwapAllowUnsignedLocal');
-  if (hotSwapManifest || hotSwapLocalOnly || hotSwapAllowUnsignedLocal) {
-    runtime.runtimeConfig = runtime.runtimeConfig ?? {};
-    runtime.runtimeConfig.shared = runtime.runtimeConfig.shared ?? {};
-    const baseHotSwap = getRuntimeConfig().shared.hotSwap;
-    /** @type {Partial<HotSwapConfigSchema>} */
-    const overrideHotSwap = runtime.runtimeConfig.shared.hotSwap ?? {};
-    /** @type {HotSwapConfigSchema} */
-    const hotSwap = {
-      ...baseHotSwap,
-      ...overrideHotSwap,
-      enabled: overrideHotSwap.enabled ?? baseHotSwap.enabled,
-      trustedSigners: overrideHotSwap.trustedSigners ?? baseHotSwap.trustedSigners,
-    };
-    if (hotSwapManifest) {
-      hotSwap.manifestUrl = hotSwapManifest;
-      hotSwap.enabled = true;
-    }
-    if (hotSwapLocalOnly) {
-      hotSwap.localOnly = hotSwapLocalOnly === '1' || hotSwapLocalOnly === 'true';
-    }
-    if (hotSwapAllowUnsignedLocal) {
-      hotSwap.allowUnsignedLocal =
-        hotSwapAllowUnsignedLocal === '1' || hotSwapAllowUnsignedLocal === 'true';
-    }
-    runtime.runtimeConfig.shared.hotSwap = hotSwap;
-  }
-
   return runtime;
-}
-
-function ensureSharedDebug(runtime) {
-  runtime.runtimeConfig = runtime.runtimeConfig ?? {};
-  runtime.runtimeConfig.shared = runtime.runtimeConfig.shared ?? {};
-  const shared = runtime.runtimeConfig.shared;
-  shared.debug = shared.debug ?? {};
-  shared.debug.logLevel = shared.debug.logLevel ?? {};
-  shared.debug.trace = shared.debug.trace ?? {};
-  shared.debug.pipeline = shared.debug.pipeline ?? {};
-  return shared.debug;
 }
 
 // ============================================================================

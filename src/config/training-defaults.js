@@ -12,6 +12,7 @@ function mergeTrainingSettings(base, overrides) {
     gradient: { ...base.gradient, ...overrides.gradient },
     precision: { ...base.precision, ...overrides.precision },
     attention: { ...base.attention, ...overrides.attention },
+    lossScaling: { ...base.lossScaling, ...overrides.lossScaling },
   };
 }
 

@@ -12,6 +12,7 @@ export const DEFAULT_BENCHMARK_OUTPUT_CONFIG = {
 
 export const DEFAULT_BENCHMARK_RUN_CONFIG = {
   promptName: 'medium',
+  customPrompt: null,
   maxNewTokens: 128,
   runType: 'warm',
   warmupRuns: 2,
@@ -22,6 +23,7 @@ export const DEFAULT_BENCHMARK_RUN_CONFIG = {
     topP: 1,
   },
   debug: false,
+  profile: false,
   useChatTemplate: undefined,
 };
 

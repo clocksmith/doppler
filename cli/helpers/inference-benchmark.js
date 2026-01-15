@@ -4,87 +4,58 @@
  * Uses a persistent Playwright profile to keep OPFS state between runs.
  */
 
-import { resolve } from 'path';
-import { readFile } from 'fs/promises';
-
 import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLocalDopplerRoutes } from './utils.js';
 
 /**
  * @param {import('./types.js').CLIOptions} opts
  * @param {string} modelPath
- * @param {string | null} customPromptText
  * @returns {string}
  */
-function buildBenchmarkScript(opts, modelPath, customPromptText) {
-  const benchmarkRun = opts.runtimeConfig?.shared?.benchmark?.run;
-  const benchmarkSampling = benchmarkRun?.sampling ?? {};
-  const promptName = benchmarkRun?.promptName ?? opts.prompt;
-  const maxNewTokens = benchmarkRun?.maxNewTokens ?? opts.maxTokens;
-  const warmupRuns = benchmarkRun?.warmupRuns ?? opts.warmup;
-  const timedRuns = benchmarkRun?.timedRuns ?? opts.runs;
-  const temperature = benchmarkSampling.temperature ?? opts.temperature;
-  const topK = benchmarkSampling.topK ?? 1;
-  const topP = benchmarkSampling.topP ?? 1;
+function buildBenchmarkScript(opts, modelPath) {
+  const runtimeConfig = opts.runtimeConfig;
+  if (!runtimeConfig) {
+    throw new Error('Runtime config is required for benchmarks.');
+  }
+  const benchmarkRun = runtimeConfig.shared.benchmark.run;
+  const benchmarkSampling = benchmarkRun.sampling;
+  const customPrompt = benchmarkRun.customPrompt;
+  const promptName = customPrompt ? 'custom' : benchmarkRun.promptName;
 
   /** @type {Record<string, unknown>} */
   const configObj = {
     modelPath,
-    maxNewTokens,
-    warmupRuns,
-    timedRuns,
+    promptName,
+    maxNewTokens: benchmarkRun.maxNewTokens,
+    warmupRuns: benchmarkRun.warmupRuns,
+    timedRuns: benchmarkRun.timedRuns,
     sampling: {
-      temperature,
-      topK,
-      topP,
+      temperature: benchmarkSampling.temperature,
+      topK: benchmarkSampling.topK,
+      topP: benchmarkSampling.topP,
     },
-    debug: benchmarkRun?.debug ?? opts.debug ?? false,  // When true, disables batching for layer-by-layer debugging
-    debugLayers: opts.debugLayers,
-    profile: opts.gpuProfile,  // GPU timestamp profiling for per-kernel timing
+    debug: benchmarkRun.debug,
+    profile: benchmarkRun.profile,
+    runtimeConfig,
   };
-  if (benchmarkRun?.useChatTemplate !== undefined) {
+  if (customPrompt) {
+    configObj.customPrompt = customPrompt;
+  }
+  if (benchmarkRun.useChatTemplate !== undefined) {
     configObj.useChatTemplate = benchmarkRun.useChatTemplate;
-  }
-  if (opts.runtimeConfig) {
-    configObj.runtimeConfig = opts.runtimeConfig;
-  }
-  // Runtime overrides flow through runtimeConfig (config-only).
-
-  if (customPromptText) {
-    configObj.promptName = 'custom';
-    configObj.customPrompt = customPromptText;
-  } else {
-    configObj.promptName = promptName;
   }
 
   const config = JSON.stringify(configObj);
-
-  let traceInit = '';
-  if (opts.trace) {
-    // Map old presets to new trace categories
-    const traceCategories = opts.trace === 'full' ? 'all' : opts.trace === 'quick' ? 'logits,sample' : opts.trace;
-    const traceLayers = opts.traceLayers?.length ? opts.traceLayers : [];
-    traceInit = `
-      // Set trace categories (unified API)
-      const traceCategories = '${traceCategories}';
-      const traceLayers = ${JSON.stringify(traceLayers)};
-      const traceOptions = traceLayers.length ? { layers: traceLayers } : {};
-      bench.setTrace(traceCategories, traceOptions);
-      bench.setLogLevel('verbose');
-      console.log('[Trace] Categories enabled: ' + traceCategories);
-    `;
-  }
 
   return `
     (async () => {
       const bench = await import('/doppler/tests/benchmark/index.js');
 
       // Enable benchmark mode to silence console.log during timing (unless debug mode)
-      const debugMode = ${opts.debug ?? false};
+      const debugMode = ${benchmarkRun.debug};
       if (!debugMode) {
         bench.setBenchmarkMode(true);
       }
 
-      ${traceInit}
       const progress = (phase, current, total) => {
         // Use console.warn since benchmark mode only silences log/debug/info
         console.warn('[Benchmark] ' + phase + ': ' + current + '/' + total);
@@ -134,31 +105,24 @@ export async function runFullInferenceBenchmark(opts) {
     console.log('No-server mode enabled (serving assets from disk)...');
   }
 
-  /** @type {string | null} */
-  let customPromptText = null;
-  if (opts.text) {
-    customPromptText = opts.text;
-  } else if (opts.file) {
-    try {
-      customPromptText = await readFile(resolve(opts.file), 'utf-8');
-      customPromptText = customPromptText.trim();
-    } catch (err) {
-      throw new Error(`Failed to read prompt file: ${opts.file} - ${/** @type {Error} */ (err).message}`);
-    }
+  const runtimeConfig = opts.runtimeConfig;
+  if (!runtimeConfig) {
+    throw new Error('Runtime config is required for benchmarks.');
   }
-
+  const benchmarkRun = runtimeConfig.shared.benchmark.run;
+  const customPromptText = benchmarkRun.customPrompt;
   const promptDisplay = customPromptText
     ? `custom: "${customPromptText.slice(0, 50)}${customPromptText.length > 50 ? '...' : ''}"`
-    : opts.prompt;
+    : benchmarkRun.promptName;
 
   console.log(`\n${'─'.repeat(60)}`);
   console.log('DOPPLER Inference Benchmark');
   console.log(`${'─'.repeat(60)}`);
   console.log(`Model:      ${opts.model}`);
   console.log(`Prompt:     ${promptDisplay}`);
-  console.log(`Max tokens: ${opts.maxTokens}`);
-  console.log(`Warmup:     ${opts.warmup}`);
-  console.log(`Runs:       ${opts.runs}`);
+  console.log(`Max tokens: ${benchmarkRun.maxNewTokens}`);
+  console.log(`Warmup:     ${benchmarkRun.warmupRuns}`);
+  console.log(`Runs:       ${benchmarkRun.timedRuns}`);
   console.log(`Retries:    ${opts.retries}`);
   console.log(`${'─'.repeat(60)}\n`);
 
@@ -182,19 +146,6 @@ export async function runFullInferenceBenchmark(opts) {
     page.on('console', (msg) => {
       const text = msg.text();
       const isRelevant = relevantTags.some((tag) => text.includes(tag));
-      // If debugLayers are specified, suppress per-layer logs for non-checkpoint layers.
-      // This keeps output focused during inference debugging while still allowing --verbose.
-      if (opts.debugLayers?.length) {
-        const m1 = text.match(/^\[Layer(\d+)\]/);
-        const m2 = text.match(/^\[LAYER\]\[L(\d+)\]/);
-        const layerStr = m1?.[1] ?? m2?.[1] ?? null;
-        if (layerStr) {
-          const layerIdx = Number(layerStr);
-          if (!opts.debugLayers.includes(layerIdx)) {
-            return;
-          }
-        }
-      }
       if (opts.verbose || isRelevant) {
         console.log(`[browser] ${text}`);
       }
@@ -223,7 +174,7 @@ export async function runFullInferenceBenchmark(opts) {
       await page.waitForTimeout(500);
 
       const modelPath = `${opts.baseUrl}/models/${opts.model}`;
-      const script = buildBenchmarkScript(opts, modelPath, customPromptText);
+      const script = buildBenchmarkScript(opts, modelPath);
 
       console.log('Running benchmark...');
       const startTime = Date.now();

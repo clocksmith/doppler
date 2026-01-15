@@ -104,6 +104,10 @@ See [Language Policy](docs/style/GENERAL_STYLE_GUIDE.md#language-policy-javascri
 
 See [docs/INDEX.md](docs/INDEX.md) for full documentation.
 
+Training:
+- [src/training/README.md](src/training/README.md)
+- [docs/spec/RDRR_LORA_FORMAT.md](docs/spec/RDRR_LORA_FORMAT.md)
+
 ## Requirements
 
 - WebGPU browser (Chrome 113+, Edge 113+, Firefox Nightly)

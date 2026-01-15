@@ -14,7 +14,8 @@ struct Uniforms {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> softmax: array<f32>;
 @group(0) @binding(2) var<storage, read> targets: array<u32>;
-@group(0) @binding(3) var<storage, read_write> output: array<f32>;
+@group(0) @binding(3) var<storage, read> grad_output: array<f32>;
+@group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -31,5 +32,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (class_idx == target) {
         grad = grad - 1.0;
     }
-    output[idx] = grad;
+    let scale = grad_output[token_idx];
+    output[idx] = grad * scale;
 }

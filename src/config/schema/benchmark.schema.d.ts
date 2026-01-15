@@ -4,6 +4,7 @@ export interface BenchmarkOutputConfig {
 
 export interface BenchmarkRunConfig {
   promptName: string;
+  customPrompt: string | null;
   maxNewTokens: number;
   runType: string;
   warmupRuns: number;
@@ -14,6 +15,7 @@ export interface BenchmarkRunConfig {
     topP: number;
   };
   debug: boolean;
+  profile: boolean;
   useChatTemplate?: boolean;
 }
 

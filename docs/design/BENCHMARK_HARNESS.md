@@ -366,15 +366,15 @@ The CLI is the single entry point for running benchmarks (server auto-starts):
 
 ```bash
 # Quick benchmark with xs prompt (headed browser)
-doppler bench inference --prompt xs --headed
+doppler bench inference --config bench --headed
 
 # Standard benchmarks
 doppler bench inference                        # Headless (default: gemma3-1b-q4)
 doppler bench inference --headed               # With visible browser window
 
-# Custom options
-doppler bench inference --prompt medium        # Different prompt size (xs/short/medium/long)
-doppler bench inference --config bench         # Multiple runs via preset config
+# Custom options (config-driven)
+doppler bench inference --config bench         # Use bench preset
+doppler bench inference --config ./bench-xs.json # Override promptName/run settings
 doppler --help                                 # Show all CLI options
 ```
 

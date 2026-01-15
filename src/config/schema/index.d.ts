@@ -444,11 +444,13 @@ export {
 export {
   type TrainingOptimizerConfigSchema,
   type TrainingGradientConfigSchema,
+  type TrainingLossScalingConfigSchema,
   type TrainingPrecisionConfigSchema,
   type TrainingAttentionConfigSchema,
   type TrainingSettingsSchema,
   DEFAULT_TRAINING_OPTIMIZER_CONFIG,
   DEFAULT_TRAINING_GRADIENT_CONFIG,
+  DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
   DEFAULT_TRAINING_PRECISION_CONFIG,
   DEFAULT_TRAINING_ATTENTION_CONFIG,
   DEFAULT_TRAINING_SETTINGS,
