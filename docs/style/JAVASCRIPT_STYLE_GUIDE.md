@@ -38,6 +38,11 @@ Validation should check `=== undefined` for nullable fields and `== null` for no
 Kernel selection overrides must use `kernelPath`. `kernelPlan` is removed and must not be reintroduced.
 Kernel path overrides are config-only; CLI flags must not set kernel selection.
 
+## CLI Override Rules
+
+- CLI flags must not override runtime config tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
+- Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
+
 ---
 
 ## Types: .d.ts Files

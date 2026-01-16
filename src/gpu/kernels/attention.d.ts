@@ -78,3 +78,21 @@ export declare function recordAttention(
   headDim: number,
   options?: AttentionOptions
 ): Promise<Tensor>;
+
+export declare function resolveAttentionPlanForTest(
+  seqLen: number,
+  kvLen: number,
+  headDim: number,
+  numHeads: number,
+  kvDtype: 'f16' | 'f32',
+  qDtype: 'f16' | 'f32',
+  sharedLimit: number,
+  caps: { hasSubgroups: boolean; hasF16?: boolean },
+  layerIdx?: number
+): {
+  tier: AttentionTier;
+  variant: string;
+  workgroups: number;
+  useF16KV: boolean;
+  isDecode: boolean;
+};

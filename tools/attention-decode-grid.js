@@ -7,6 +7,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { resolve, join } from 'path';
 import process from 'process';
 import { createBrowserContext, setupPage } from '../cli/helpers/utils.js';
+import { loadConfig } from '../cli/config/index.js';
 
 const PROJECT_ROOT = resolve(new URL('.', import.meta.url).pathname, '..');
 
@@ -19,8 +20,7 @@ const DEFAULTS = {
   headDim: 256,
   numHeads: 8,
   numKVHeads: 4,
-  warmupRuns: 5,
-  timedRuns: 20,
+  config: 'bench',
   outputDir: 'tests/results',
   headless: true,
   noServer: true,
@@ -41,8 +41,7 @@ Options:
   --head-dim <n>        Head dimension (default: ${DEFAULTS.headDim})
   --num-heads <n>       Number of attention heads (default: ${DEFAULTS.numHeads})
   --num-kv-heads <n>    Number of KV heads (default: ${DEFAULTS.numKVHeads})
-  --warmup-runs <n>     Warmup runs per kvLen (default: ${DEFAULTS.warmupRuns})
-  --timed-runs <n>      Timed runs per kvLen (default: ${DEFAULTS.timedRuns})
+  --config <ref>        Runtime config preset or path (default: ${DEFAULTS.config})
   --output-dir <p>      Output directory (default: ${DEFAULTS.outputDir})
   --headed              Run headed (default: headless)
   --server              Use dev server instead of local routing
@@ -104,11 +103,8 @@ function parseArgs(argv) {
       case 'num-kv-heads':
         opts.numKVHeads = Number(value);
         break;
-      case 'warmup-runs':
-        opts.warmupRuns = Number(value);
-        break;
-      case 'timed-runs':
-        opts.timedRuns = Number(value);
+      case 'config':
+        opts.config = value;
         break;
       case 'output-dir':
         opts.outputDir = value;
@@ -152,6 +148,8 @@ function summarize(results) {
 
 async function run() {
   const opts = parseArgs(process.argv.slice(2));
+  const loadedConfig = await loadConfig(opts.config);
+  const benchmarkRun = loadedConfig.runtime.shared.benchmark.run;
   const outputDir = resolve(PROJECT_ROOT, opts.outputDir);
   await mkdir(outputDir, { recursive: true });
 
@@ -188,8 +186,8 @@ async function run() {
       headDim: opts.headDim,
       numHeads: opts.numHeads,
       numKVHeads: opts.numKVHeads,
-      warmupRuns: opts.warmupRuns,
-      timedRuns: opts.timedRuns,
+      warmupRuns: benchmarkRun.warmupRuns,
+      timedRuns: benchmarkRun.timedRuns,
     };
     const result = await page.evaluate(async (params) => {
       return window.testHarness.benchmarkAttentionDecodeVariant(null, params);
@@ -212,8 +210,8 @@ async function run() {
       numHeads: opts.numHeads,
       numKVHeads: opts.numKVHeads,
       kvLens: opts.kvLens,
-      warmupRuns: opts.warmupRuns,
-      timedRuns: opts.timedRuns,
+      warmupRuns: benchmarkRun.warmupRuns,
+      timedRuns: benchmarkRun.timedRuns,
       variants: opts.variants,
     },
     results,

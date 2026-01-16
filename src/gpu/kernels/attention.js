@@ -12,6 +12,7 @@ import { releaseUniformBuffer } from '../uniform-cache.js';
 import { trace } from '../../debug/index.js';
 import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
 import { selectByRules } from './rule-matcher.js';
+import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -105,6 +106,7 @@ function selectAttentionTier(
 
   
   let tier = forcedTier;
+  let reason = forcedTier ? `forced:${forcedTier}` : '';
 
   if (tier === 'tiled_large' && !canLarge) {
     throw new Error(`Requested tiled_large but device doesn't support it (headDim=${headDim}, shared=${sharedLimit}).`);
@@ -125,13 +127,26 @@ function selectAttentionTier(
       { match: {}, value: 'streaming' },
     ];
     tier = selectByRules(rules, { canSubgroup, canLarge, canSmall, isDecode });
+    if (!reason) {
+      if (canSubgroup) {
+        reason = 'subgroup_capable';
+      } else if (canLarge) {
+        reason = 'tiled_large_capable';
+      } else if (canSmall) {
+        reason = 'tiled_small_capable';
+      } else if (isDecode) {
+        reason = 'decode_streaming_fallback';
+      } else {
+        reason = 'streaming_fallback';
+      }
+    }
     if (tier === 'subgroup' && !loggedAttentionTier) {
       trace.attn(0, `Using subgroup decode kernel (headDim=${headDim}, hasSubgroups=true)`);
       loggedAttentionTier = true;
     }
   }
 
-  return tier;
+  return { tier, reason };
 }
 
 // Track if we've logged chunked kernel selection
@@ -347,10 +362,15 @@ function resolveAttentionPlan(
     );
     const tier = inferAttentionTierFromVariant(variantOverride);
     const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
+    logKernelSelectionOnce('attention', {
+      variant: variantOverride,
+      reason: `path_override:${tier}`,
+    });
     return { tier, variant: variantOverride, workgroups, useF16KV, isDecode };
   }
 
-  const tier = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps);
+  const selection = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps);
+  const tier = selection.tier;
   const variant = resolveAttentionVariant(tier, isDecode, useF16KV, useF16Q, numHeads, headDim, kvLen);
   const validatedVariant = validateAttentionVariant(
     variant,
@@ -364,7 +384,36 @@ function resolveAttentionPlan(
   );
   const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
 
+  logKernelSelectionOnce('attention', {
+    variant: validatedVariant,
+    reason: selection.reason,
+  });
+
   return { tier, variant: validatedVariant, workgroups, useF16KV, isDecode };
+}
+
+export function resolveAttentionPlanForTest(
+  seqLen,
+  kvLen,
+  headDim,
+  numHeads,
+  kvDtype,
+  qDtype,
+  sharedLimit,
+  caps,
+  layerIdx
+) {
+  return resolveAttentionPlan(
+    seqLen,
+    kvLen,
+    headDim,
+    numHeads,
+    kvDtype,
+    qDtype,
+    sharedLimit,
+    caps,
+    layerIdx
+  );
 }
 
 

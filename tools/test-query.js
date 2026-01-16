@@ -12,6 +12,7 @@ import { chromium } from 'playwright';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import * as readline from 'readline';
+import { loadConfig } from '../cli/config/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,7 +27,7 @@ function parseArgs(argv) {
     prompt: 'the color of the sky is ',
     model: 'gemma-3-1b-it-q4',
     baseUrl: 'http://localhost:8080/d',
-    maxTokens: 32,
+    config: 'default',
     timeout: 120000,
     repl: false,
   };
@@ -43,9 +44,8 @@ function parseArgs(argv) {
       case '-u':
         opts.baseUrl = tokens.shift() || opts.baseUrl;
         break;
-      case '--max-tokens':
-      case '-t':
-        opts.maxTokens = parseInt(tokens.shift() || '32', 10);
+      case '--config':
+        opts.config = tokens.shift() || opts.config;
         break;
       case '--timeout':
         opts.timeout = parseInt(tokens.shift() || '120000', 10);
@@ -66,7 +66,7 @@ Usage:
 Options:
   --model, -m <name>   Model name (default: gemma-3-1b-it-q4)
   --base-url, -u <url> Server URL (default: http://localhost:8080/d)
-  --max-tokens, -t <n> Max tokens (default: 32)
+  --config <ref>       Runtime config preset or path (default: default)
   --timeout <ms>       Timeout (default: 120000)
   --repl, -i           Interactive REPL mode (model cached in memory)
   --help, -h           Show this help
@@ -75,13 +75,12 @@ REPL Commands:
   <text>               Run inference with prompt
   /clear               Clear KV cache (new conversation)
   /reload              Reload model from scratch
-  /tokens <n>          Set max tokens
   /quit                Exit
 
 Examples:
   npx tsx tools/test-query.ts "the color of the sky is "
   npx tsx tools/test-query.ts --repl
-  npx tsx tools/test-query.ts -m gemma-3-1b-it-q4 -t 64 "once upon a time"
+  npx tsx tools/test-query.ts --config debug "once upon a time"
 `);
         process.exit(0);
       default:
@@ -210,18 +209,22 @@ async function loadModel(page, baseUrl, model) {
 /**
  * @param {import('playwright').Page} page
  * @param {string} prompt
- * @param {number} maxTokens
  * @returns {Promise<{ output: string; tokenCount: number; elapsedMs: number; tokensPerSec: number }>}
  */
-async function runQuery(page, prompt, maxTokens) {
+async function runQuery(page, prompt) {
   return await page.evaluate(
-    async ({ prompt, maxTokens }) => {
+    async ({ prompt }) => {
       /** @type {Window & { dopplerDemo?: { pipeline?: { generate: (p: string, o: unknown) => AsyncGenerator<string> } } }} */
       const w = /** @type {any} */ (window);
+      const { getRuntimeConfig } = await import('/doppler/src/config/index.js');
 
       if (!w.dopplerDemo?.pipeline) {
         throw new Error('Model not loaded. Load a model first.');
       }
+
+      const runtimeConfig = getRuntimeConfig();
+      const maxTokens = runtimeConfig.inference.batching.maxTokens;
+      const sampling = runtimeConfig.inference.sampling;
 
       const pipeline = w.dopplerDemo.pipeline;
       /** @type {string[]} */
@@ -232,8 +235,9 @@ async function runQuery(page, prompt, maxTokens) {
 
       for await (const token of pipeline.generate(prompt, {
         maxTokens,
-        temperature: 0,
-        topK: 1,
+        temperature: sampling.temperature,
+        topK: sampling.topK,
+        topP: sampling.topP,
       })) {
         tokens.push(token);
         // Stream to console
@@ -248,7 +252,7 @@ async function runQuery(page, prompt, maxTokens) {
         tokensPerSec: (tokens.length / elapsed) * 1000,
       };
     },
-    { prompt, maxTokens }
+    { prompt }
   );
 }
 
@@ -283,10 +287,8 @@ async function runRepl(page, opts) {
     output: process.stdout,
   });
 
-  let maxTokens = opts.maxTokens;
-
   console.log('\n\x1b[36mDOPPLER REPL\x1b[0m - Type prompts or commands');
-  console.log('Commands: /clear /reload /tokens <n> /quit\n');
+  console.log('Commands: /clear /reload /quit\n');
 
   /** @returns {void} */
   const prompt = () => {
@@ -312,17 +314,11 @@ async function runRepl(page, opts) {
           await page.waitForFunction(() => 'gpu' in navigator, { timeout: 10000 });
           await loadModel(page, opts.baseUrl, opts.model);
           console.log('Model reloaded.\n');
-        } else if (line.startsWith('/tokens ') || line.startsWith('/t ')) {
-          const n = parseInt(line.split(' ')[1], 10);
-          if (n > 0) {
-            maxTokens = n;
-            console.log(`Max tokens set to ${maxTokens}\n`);
-          }
         } else if (line.startsWith('/')) {
-          console.log('Unknown command. Try: /clear /reload /tokens <n> /quit\n');
+          console.log('Unknown command. Try: /clear /reload /quit\n');
         } else {
           // Run inference
-          const result = await runQuery(page, line, maxTokens);
+          const result = await runQuery(page, line);
           console.log(`\n\x1b[33m${result.output}\x1b[0m`);
           console.log(`\x1b[90m[${result.tokenCount} tokens, ${result.elapsedMs.toFixed(0)}ms, ${result.tokensPerSec.toFixed(1)} tok/s]\x1b[0m\n`);
         }
@@ -342,11 +338,12 @@ async function runRepl(page, opts) {
  */
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  const loadedConfig = await loadConfig(opts.config);
 
   console.log(`\n\x1b[36mDOPPLER Test Query\x1b[0m`);
   console.log(`${'─'.repeat(50)}`);
   console.log(`Model:      ${opts.model}`);
-  console.log(`Max tokens: ${opts.maxTokens}`);
+  console.log(`Config:     ${loadedConfig.chain.join(' -> ')}`);
   console.log(`Mode:       ${opts.repl ? 'REPL (interactive)' : 'single query'}`);
   console.log(`${'─'.repeat(50)}\n`);
 
@@ -358,6 +355,11 @@ async function main() {
     console.log('Waiting for WebGPU...');
     await page.waitForFunction(() => 'gpu' in navigator, { timeout: 10000 });
 
+    await page.evaluate(async (runtimeConfig) => {
+      const { setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      setRuntimeConfig(runtimeConfig);
+    }, loadedConfig.runtime);
+
     console.log('Loading model...');
     await loadModel(page, opts.baseUrl, opts.model);
 
@@ -367,7 +369,7 @@ async function main() {
     } else {
       // Single query mode
       console.log('\nRunning inference...');
-      const result = await runQuery(page, opts.prompt, opts.maxTokens);
+      const result = await runQuery(page, opts.prompt);
 
       console.log(`\n${'─'.repeat(50)}`);
       console.log(`\x1b[33mOutput:\x1b[0m ${result.output}`);

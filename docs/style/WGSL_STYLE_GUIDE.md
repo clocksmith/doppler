@@ -169,6 +169,8 @@ This is the key design decision for kernel variants.
 **Strict Rule (The "Topology Test"):**
 Do not fork entry points for data values, dimensions, or optional math operations. Only fork entry points when the **loop nesting order** or **synchronization strategy** changes.
 
+**Config Reminder:** Runtime tunables live in config only. Do not add WGSL-side flags that are toggled via CLI/URL overrides.
+
 | Mechanism | When Set | Perf Cost | Use For |
 |-----------|----------|-----------|---------|
 | **Entry points** | Pipeline creation | None (separate code) | **Different Algorithms** (Control flow/Sync changes) |

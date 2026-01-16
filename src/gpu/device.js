@@ -10,6 +10,7 @@
 
 import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
 import { log } from '../debug/index.js';
+import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
@@ -196,7 +197,7 @@ export async function initDevice() {
   }
 
   if (!isWebGPUAvailable()) {
-    throw new Error('WebGPU is not available in this browser');
+    throw createDopplerError(ERROR_CODES.GPU_UNAVAILABLE, 'WebGPU is not available in this browser');
   }
 
   const adapter = await requestAdapter();
@@ -228,7 +229,7 @@ export async function initDevice() {
   }
 
   if (!gpuDevice) {
-    throw new Error('Failed to create WebGPU device');
+    throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
 
   // Set up device lost handler

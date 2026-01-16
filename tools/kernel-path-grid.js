@@ -10,15 +10,14 @@ import { readdir, readFile, writeFile, mkdir } from 'fs/promises';
 import { join, resolve } from 'path';
 import { spawn } from 'child_process';
 import process from 'process';
+import { loadConfig } from '../cli/config/index.js';
 
 const PROJECT_ROOT = resolve(new URL('.', import.meta.url).pathname, '..');
 const KERNEL_PATH_DIR = join(PROJECT_ROOT, 'src', 'config', 'presets', 'kernel-paths');
 
 const DEFAULTS = {
   model: 'gemma-2-2b-it-wf16',
-  prompt: 'short',
-  maxTokens: 128,
-  runs: 3,
+  config: 'bench',
   retries: 2,
   noServer: true,
   profileDirBase: '.benchmark-grid-cache',
@@ -37,9 +36,7 @@ Usage:
 
 Options:
   --model <id>            Model id (default: ${DEFAULTS.model})
-  --prompt <name>         Prompt name (default: ${DEFAULTS.prompt})
-  --max-tokens <n>        Max new tokens (default: ${DEFAULTS.maxTokens})
-  --runs <n>              Timed runs (default: ${DEFAULTS.runs})
+  --config <ref>          Base runtime config (default: ${DEFAULTS.config})
   --retries <n>           Retries per run (default: ${DEFAULTS.retries})
   --no-server             Use Playwright local routing (default: on)
   --profile-dir-base <p>  Profile dir base (default: ${DEFAULTS.profileDirBase})
@@ -91,14 +88,8 @@ function parseArgs(argv) {
       case 'model':
         opts.model = value;
         break;
-      case 'prompt':
-        opts.prompt = value;
-        break;
-      case 'max-tokens':
-        opts.maxTokens = Number(value);
-        break;
-      case 'runs':
-        opts.runs = Number(value);
+      case 'config':
+        opts.config = value;
         break;
       case 'retries':
         opts.retries = Number(value);
@@ -121,14 +112,6 @@ function parseArgs(argv) {
     }
   }
 
-  if (Number.isNaN(opts.maxTokens) || opts.maxTokens <= 0) {
-    console.error('Invalid --max-tokens value');
-    process.exit(1);
-  }
-  if (Number.isNaN(opts.runs) || opts.runs <= 0) {
-    console.error('Invalid --runs value');
-    process.exit(1);
-  }
   if (Number.isNaN(opts.retries) || opts.retries < 0) {
     console.error('Invalid --retries value');
     process.exit(1);
@@ -187,18 +170,21 @@ function buildProfileDir(base, id) {
   return `${base}-${sanitize(id)}`;
 }
 
-async function runBench(opts, kernelId) {
+async function runBench(opts, kernelId, runtimeConfig) {
   const outputDir = resolve(PROJECT_ROOT, opts.outputDir);
   await mkdir(outputDir, { recursive: true });
   const outputFile = join(outputDir, `grid_${sanitize(opts.model)}_${sanitize(kernelId)}.json`);
   const configFile = join(outputDir, `kernel_path_${sanitize(kernelId)}.json`);
   const profileDir = buildProfileDir(opts.profileDirBase, kernelId);
-  const configPayload = {
-    runtime: {
-      inference: {
-        kernelPath: kernelId,
-      },
+  const runtime = {
+    ...runtimeConfig,
+    inference: {
+      ...runtimeConfig.inference,
+      kernelPath: kernelId,
     },
+  };
+  const configPayload = {
+    runtime,
   };
   await writeFile(configFile, JSON.stringify(configPayload, null, 2), 'utf-8');
 
@@ -211,12 +197,6 @@ async function runBench(opts, kernelId) {
     configFile,
     '--model',
     opts.model,
-    '--prompt',
-    opts.prompt,
-    '--max-tokens',
-    String(opts.maxTokens),
-    '--runs',
-    String(opts.runs),
     '--retries',
     String(opts.retries),
     '--output',
@@ -261,6 +241,8 @@ function formatNumber(value) {
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  const loadedConfig = await loadConfig(opts.config);
+  const runtimeConfig = loadedConfig.runtime;
   if (!opts.kernelPrefix && !opts.kernelPaths?.length) {
     opts.kernelPrefix = deriveKernelPrefix(opts.model);
   }
@@ -296,6 +278,7 @@ async function main() {
   }
 
   console.log(`\nKernel grid for model: ${opts.model}`);
+  console.log(`Base config: ${loadedConfig.chain.join(' -> ')}`);
   console.log(`Kernel paths: ${filteredKernelIds.join(', ')}`);
   if (skipped.length) {
     console.log(`Skipped: ${skipped.join(', ')}`);
@@ -303,7 +286,7 @@ async function main() {
 
   const results = [];
   for (const kernelId of filteredKernelIds) {
-    const result = await runBench(opts, kernelId);
+    const result = await runBench(opts, kernelId, runtimeConfig);
     results.push(result);
   }
 

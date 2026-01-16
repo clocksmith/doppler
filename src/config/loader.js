@@ -3,6 +3,7 @@ import {
   DEFAULT_PRESET_INFERENCE_CONFIG,
   DEFAULT_SAMPLING_DEFAULTS,
 } from './schema/index.js';
+import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 
 // Static imports keep presets bundled for browser use.
 import transformerPreset from './presets/models/transformer.json' with { type: 'json' };
@@ -50,7 +51,7 @@ export function listPresets() {
 export function resolvePreset(id) {
   const preset = getPreset(id);
   if (!preset) {
-    throw new Error(`Unknown preset: ${id}`);
+    throw createDopplerError(ERROR_CODES.CONFIG_PRESET_UNKNOWN, `Unknown preset: ${id}`);
   }
 
   // If no parent, return as-is

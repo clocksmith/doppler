@@ -53,14 +53,10 @@ CI/automation testing of the inference pipeline.
 | Param | Description | Example |
 |-------|-------------|---------|
 | `model` | Model ID | `&model=gemma3-1b-q4` |
-| `prompt` | Prompt text | `&prompt=Hello%20world` |
 | `autorun=1` | Auto-run on load | `&autorun=1` |
-| `kernelPath` | Kernel path override | `&kernelPath="gemma2-q4k-fused-f16a"` |
-| `debug=1` | Enable debug logging | `&debug=1` |
-| `profile=1` | GPU timestamp profiling | `&profile=1` |
-| `trace` | Trace level: quick or full | `&trace=quick` |
-| `noChat` | Disable chat template | `&noChat` |
-| `chat` | Force chat template | `&chat` |
+| `skipLoad=1` | Reuse existing `window.pipeline` | `&skipLoad=1` |
+| `runtimeConfig` | JSON-encoded runtime config | `&runtimeConfig={...}` |
+| `configChain` | JSON-encoded config chain | `&configChain=["debug","default"]` |
 
 **Playwright automation:**
 ```javascript

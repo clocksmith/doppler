@@ -297,7 +297,6 @@ function parseArgs(argv) {
     perf: false,
     gpuProfile: false,
     // Debug mode options
-    debug: false,
     layer: null,
     tokens: null,
     kernel: null,
@@ -2087,6 +2086,9 @@ async function main() {
   // Default presets for config-driven commands
   if (opts.command === 'debug' && !opts.config && !opts.mode) {
     opts.mode = 'debug';
+  }
+  if (opts.command === 'bench' && !opts.config && !opts.mode) {
+    opts.mode = 'bench';
   }
 
   // Load config (default + overrides)

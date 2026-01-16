@@ -13,6 +13,7 @@ import { getKernelThresholds } from '../../config/schema/index.js';
 import { getKernelPathMatmulConstants, getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import { selectByRules } from './rule-matcher.js';
+import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // =============================================================================
 // Q4K Variant Lookup Tables
@@ -354,6 +355,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   const strict = getKernelPathStrict();
   const phase = M === 1 ? 'decode' : 'prefill';
   let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
+  const hadPathVariant = Boolean(pathVariant);
 
   if (pathVariant && !strict && M === 1 && bDtype === 'f16' && capabilities.hasSubgroups) {
     const { multicolThreshold } = getKernelThresholds().matmul;
@@ -363,6 +365,10 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
   if (pathVariant) {
     const override = resolveMatmulOverride(pathVariant, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
     if (override) {
+      logKernelSelectionOnce('matmul', {
+        variant: override.variant,
+        reason: 'path_override',
+      });
       return override;
     }
   }
@@ -396,10 +402,24 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
     { match: {}, value: { variant: matmulVariant, useQ4KFused: false, useGemv: false } },
   ];
 
-  return selectByRules(
+  const selection = selectByRules(
     rules,
     { canFused, useGemv }
   );
+  const reason = selection.useQ4KFused
+    ? 'q4k_fused'
+    : selection.useGemv
+      ? 'gemv'
+      : hadPathVariant
+        ? 'path_override_fallback'
+        : 'default';
+
+  logKernelSelectionOnce('matmul', {
+    variant: selection.variant,
+    reason,
+  });
+
+  return selection;
 }
 
 

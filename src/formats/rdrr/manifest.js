@@ -11,6 +11,7 @@ import {
 } from './types.js';
 import { validateManifest } from './validation.js';
 import { getShardInfo } from './parsing.js';
+import { createDopplerError, ERROR_CODES } from '../../errors/index.js';
 
 export function generateShardFilename(index) {
   return `shard_${String(index).padStart(5, '0')}.bin`;
@@ -78,7 +79,10 @@ export function createManifest(options) {
 
   const validation = validateManifest(manifest);
   if (!validation.valid) {
-    throw new Error(`Created invalid manifest:\n  - ${validation.errors.join('\n  - ')}`);
+    throw createDopplerError(
+      ERROR_CODES.LOADER_MANIFEST_INVALID,
+      `Created invalid manifest:\n  - ${validation.errors.join('\n  - ')}`
+    );
   }
 
   return manifest;
@@ -95,7 +99,10 @@ export function serializeManifest(manifest) {
 export function getShardUrl(baseUrl, shardIndex) {
   const shard = getShardInfo(shardIndex);
   if (!shard) {
-    throw new Error(`Invalid shard index: ${shardIndex}`);
+    throw createDopplerError(
+      ERROR_CODES.LOADER_SHARD_INDEX_INVALID,
+      `Invalid shard index: ${shardIndex}`
+    );
   }
   const base = baseUrl.replace(/\/$/, '');
   return `${base}/${shard.filename}`;

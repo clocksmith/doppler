@@ -188,6 +188,13 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
  - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 
+### Config-Only Overrides (CLI + Harness)
+
+- Runtime tunables are configured via runtime config only; CLI flags must not override tunables.
+- Forbidden CLI overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
+- Harnesses must not accept URL query overrides for runtime tunables; only `runtimeConfig` and `configChain` are allowed.
+- If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
+
 ### Manifest-First Change Checklist
 
 When adding a new inference knob or model behavior:
