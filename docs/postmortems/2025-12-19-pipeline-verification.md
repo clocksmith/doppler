@@ -32,7 +32,7 @@ The post-FFN sandwich norm masked the explosion by normalizing values, but the i
 
 ### Resolution
 
-This debugging session identified the FFN explosion, which was later traced to the Q4_K quantization format mismatch documented in `GEMMA3-DEBUG-POSTMORTEM.md`. The quantizer was producing weights with incorrect sign handling, causing negative weights to dequantize as positive values.
+This debugging session identified the FFN explosion, which was later traced to the Q4_K quantization format mismatch documented in `2025-12-16-gemma3-debug.md`. The quantizer was producing weights with incorrect sign handling, causing negative weights to dequantize as positive values.
 
 ## Pipeline Steps Verified
 
@@ -93,13 +93,13 @@ After fixing, verify:
 - `gpu/kernels/matmul*.wgsl`: Matrix multiplication kernels
 - `gpu/kernels/rmsnorm.wgsl`: RMSNorm implementation
 - `loader/doppler-loader.js`: Weight loading with Gemma 3 norm offset
-- `docs/postmortems/GEMMA3-DEBUG-POSTMORTEM.md`: Root cause analysis
+- `2025-12-16-gemma3-debug.md`: Root cause analysis
 
 ## See Also
 
-- `GEMMA3-DEBUG-POSTMORTEM.md`: Documents the Q4_K quantization fix that resolved this issue
+- `2025-12-16-gemma3-debug.md`: Documents the Q4_K quantization fix that resolved this issue
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 

@@ -39,4 +39,3 @@ manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
 | `kebab-case.js` | `model-config.js` | JavaScript source |
 | `kebab-case.d.ts` | `model-config.d.ts` | Type declarations (optional) |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
-| `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |

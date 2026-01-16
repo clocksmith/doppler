@@ -44,7 +44,7 @@ export const QUICKSTART_MODELS = {
   'gemma-3-1b-it-q4': {
     modelId: 'gemma-3-1b-it-q4',
     displayName: 'Gemma 3 1B IT (Q4)',
-    baseUrl: 'https://huggingface.co/clocksmith/gemma3-1b-rdrr/resolve/main',
+    baseUrl: null,
     requirements: GEMMA_1B_REQUIREMENTS,
   },
 };
@@ -172,8 +172,9 @@ export async function downloadQuickStartModel(
       signal,
     };
 
+    const baseUrl = config.baseUrl ?? `${getEffectiveCDNBaseUrl()}/${config.modelId}`;
     const success = await downloadModel(
-      config.baseUrl,
+      baseUrl,
       onProgress,
       downloadOpts
     );

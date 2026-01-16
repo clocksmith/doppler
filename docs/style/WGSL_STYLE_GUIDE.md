@@ -621,7 +621,7 @@ Priority (low to high):
 2. manifest `inference.defaultKernelPath`
 3. runtime config `runtime.inference.kernelPath`
 
-Kernel paths are explicit dispatch sequences. See `docs/design/KERNEL_PATHS.md`.
+Kernel paths are explicit dispatch sequences. See `../CONFIG.md`.
 
 ### RDRR Layout vs Runtime Kernels
 

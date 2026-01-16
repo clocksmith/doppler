@@ -23,7 +23,7 @@ export interface RemoteModelConfig {
   /** Display name for UI */
   displayName: string;
   /** Base URL for shards (any static CDN) */
-  baseUrl: string;
+  baseUrl?: string | null;
   /** Model requirements for pre-flight checks */
   requirements: ModelRequirements;
 }

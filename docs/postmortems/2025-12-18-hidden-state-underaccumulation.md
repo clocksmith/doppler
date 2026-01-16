@@ -140,7 +140,7 @@ for i, h in enumerate(outputs.hidden_states):
 
 | File | Change |
 |------|--------|
-| `docs/DOPPLER-TROUBLESHOOTING.md` | Added note about safetensors/GGUF source formats |
+| `../OPERATIONS.md` | Added note about safetensors/GGUF source formats |
 | `models/gemma-3-1b-it-q4/` | Renamed from gemma3-1b-q4 |
 | Deleted: `models/gemma3-1b-q4-old/` | Removed duplicate model |
 
@@ -148,10 +148,10 @@ for i, h in enumerate(outputs.hidden_states):
 
 ## Related Documentation
 
-- [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md) - Previous investigation
-- [DOPPLER-TROUBLESHOOTING.md](../DOPPLER-TROUBLESHOOTING.md) - Debug guide
+- [2025-12-17-positive-bias-hidden-states.md](2025-12-17-positive-bias-hidden-states.md) - Previous investigation
+- [DOPPLER-TROUBLESHOOTING.md](../OPERATIONS.md) - Debug guide
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 

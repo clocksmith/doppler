@@ -6,7 +6,7 @@ Quick index for DOPPLER documentation.
 
 ## Core Docs
 
-- [Architecture](ARCHITECTURE.md) - System overview, pipeline, internals, glossary.
+- [Architecture](ARCHITECTURE.md) - System overview and pipeline.
 - [Config](CONFIG.md) - Kernel paths and error codes.
 - [Formats](FORMATS.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](OPERATIONS.md) - Troubleshooting, debug notes, perf investigations, results.
@@ -26,7 +26,7 @@ Quick index for DOPPLER documentation.
 
 - [Benchmark Schema](spec/BENCHMARK_SCHEMA.json) - JSON schema for benchmark output.
 - [Training Engine](../src/training/README.md) - Training primitives and runners.
-- [Inference README](../inference/README.md) - Step-by-step inference flow.
+- [Inference README](../src/inference/README.md) - Step-by-step inference flow.
 - [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmarks.
 - [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and notes.
 

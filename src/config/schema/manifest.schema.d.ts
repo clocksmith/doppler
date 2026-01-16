@@ -8,6 +8,7 @@
  */
 
 import type { KernelPathRef } from './kernel-path.schema.js';
+import type { LayerPipelineSchema } from './inference.schema.js';
 
 /** Supported hash algorithms */
 export type HashAlgorithm = 'sha256' | 'blake3';
@@ -263,6 +264,8 @@ export interface ManifestInferenceSchema {
   layerPattern: ManifestLayerPatternSchema;
   /** Chat template configuration */
   chatTemplate: ManifestChatTemplateSchema;
+  /** Layer pipeline override (null = use optimized hardcoded path) */
+  pipeline: LayerPipelineSchema | null;
   /** Default kernel path for this model (null = no explicit path) */
   defaultKernelPath: string | null;
 }

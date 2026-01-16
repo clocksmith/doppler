@@ -4,7 +4,7 @@
 **Status:** Open (performance gap remains; F16 pipeline now end-to-end for Gemma 2)
 **Context:** DOPPLER vs WebLLM comparison on Gemma 2 2B Q4_K_M
 
-**Update (2026-01-11):** F16 activations now run end-to-end on Gemma 2/3 when `shader-f16` is available (gather, matmul/GEMV, attention, RoPE, sampling). This closes Issue 1 below; see `docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md`.
+**Update (2026-01-11):** F16 activations now run end-to-end on Gemma 2/3 when `shader-f16` is available (gather, matmul/GEMV, attention, RoPE, sampling). This closes Issue 1 below; see `2026-01-05-gemma2-f16-end-to-end.md`.
 
 ## Current State
 
@@ -192,5 +192,5 @@ After batching fix, decode gap remains; profiling shows matmul and attention dom
 ## F16 Activations: Resolved
 
 Original dtype propagation issues are resolved. See
-`docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md` for the verified F16 path
+`2026-01-05-gemma2-f16-end-to-end.md` for the verified F16 path
 and debug commands.

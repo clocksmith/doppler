@@ -10,6 +10,9 @@ dist/
 .benchmark-cache/
 .headless-test-cache/
 .headed-test-cache/
+.pw-home/
+.tmp/
+test-results-playwright/
 
 # Logs
 *.log

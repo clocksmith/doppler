@@ -416,7 +416,7 @@ if (!recorder) {
 These patterns are consolidated from actual debugging sessions. Each links to its detailed postmortem.
 
 ### Pattern A: Uniform Buffer Layout Mismatch
-**Postmortem**: [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md)
+**Postmortem**: [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/2025-12-17-softmax-uniform-buffer.md)
 
 **Symptom**: Kernel correctness test fails, wrong results despite no errors.
 
@@ -437,7 +437,7 @@ uniformView.setUint32(4, outerSize, true);   // offset 4
 ```
 
 ### Pattern B: Q4_K Quantization Format Mismatch
-**Postmortem**: [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/GEMMA3-DEBUG-POSTMORTEM.md)
+**Postmortem**: [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/2025-12-16-gemma3-debug.md)
 
 **Symptom**: All dequantized values positive, no negative weights.
 
@@ -452,7 +452,7 @@ npm run doppler -- test correctness --filter dequant
 **Fix**: `value = d * sc * q - dmin * min` (subtract, not add)
 
 ### Pattern C: 2D Dispatch Without Linearization
-**Postmortem**: [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/BF16-2D-DISPATCH-POSTMORTEM.md)
+**Postmortem**: [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/2025-12-20-bf16-2d-dispatch.md)
 
 **Symptom**: Works for small tensors, zeros/garbage for large tensors (>65K workgroups).
 
@@ -470,7 +470,7 @@ let linear_idx = global_id.y * (uniforms.workgroupsX * WORKGROUP_SIZE) + global_
 ```
 
 ### Pattern D: 'auto' Layout Silent Failure
-**Postmortem**: [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md)
+**Postmortem**: [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/2025-12-22-moe-explicit-layout.md)
 
 **Symptom**: Kernel runs without errors but outputs all zeros.
 
@@ -484,7 +484,7 @@ const layout = device.createBindGroupLayout({ entries: [/* ALL bindings */] });
 ```
 
 ### Pattern E: FFN Value Explosion (Masked by Sandwich Norm)
-**Postmortem**: [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/PIPELINE-VERIFICATION-POSTMORTEM.md)
+**Postmortem**: [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/2025-12-19-pipeline-verification.md)
 
 **Symptom**: Near-uniform logits (<10% top token probability).
 
@@ -500,7 +500,7 @@ npm run doppler -- bench inference --config debug 2>&1 | grep "FFN.*down\|FFN.*F
 **Fix**: Track values at every stage BEFORE normalization.
 
 ### Pattern F: Hidden State Explosion
-**Postmortem**: [postmortems/INDEX.md](postmortems/INDEX.md) - See q_norm/k_norm and Q4K sections
+**Postmortem**: [POSTMORTEMS.md](POSTMORTEMS.md) - See q_norm/k_norm and Q4K sections
 
 **Symptom**: maxAbs grows from ~20 to 800+ through layers. Output is garbage Unicode.
 
@@ -826,13 +826,13 @@ await recorder.submitAndWait();
 
 | Issue | Root Cause | File | Status |
 |-------|-----------|------|--------|
-| Garbage tokens (unused16) | Q4_K quantization format | [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/GEMMA3-DEBUG-POSTMORTEM.md) | Fixed |
-| FFN value explosion | Quantization + sign handling | [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/PIPELINE-VERIFICATION-POSTMORTEM.md) | Fixed |
-| Zero embeddings high token IDs | 2D dispatch linearization | [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/BF16-2D-DISPATCH-POSTMORTEM.md) | Fixed |
-| Kernel outputs zeros | 'auto' layout mismatch | [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md) | Fixed |
+| Garbage tokens (unused16) | Q4_K quantization format | [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/2025-12-16-gemma3-debug.md) | Fixed |
+| FFN value explosion | Quantization + sign handling | [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/2025-12-19-pipeline-verification.md) | Fixed |
+| Zero embeddings high token IDs | 2D dispatch linearization | [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/2025-12-20-bf16-2d-dispatch.md) | Fixed |
+| Kernel outputs zeros | 'auto' layout mismatch | [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/2025-12-22-moe-explicit-layout.md) | Fixed |
 | Decode broken, prefill works | SiLU gating bug | (this guide, Pattern A) | Fixed |
-| Softmax test failure | Uniform buffer layout swapped | [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md) | Fixed |
-| Hidden state explosion | q_norm/k_norm +1 offset + Q4K layout | [postmortems/INDEX.md](postmortems/INDEX.md) | Fixed |
+| Softmax test failure | Uniform buffer layout swapped | [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/2025-12-17-softmax-uniform-buffer.md) | Fixed |
+| Hidden state explosion | q_norm/k_norm +1 offset + Q4K layout | [POSTMORTEMS.md](POSTMORTEMS.md) | Fixed |
 
 ---
 
@@ -845,7 +845,7 @@ When debugging DOPPLER issues:
 3. **Check value ranges** - maxAbs explosion is a red flag
 4. **Verify shapes** - Buffer sizes must match expected dimensions
 5. **Test boundaries** - Token IDs, sequence lengths, layer indices
-6. **Check postmortems index** - See `docs/postmortems/INDEX.md` for common patterns and lessons learned
+6. **Check postmortems index** - See `POSTMORTEMS.md` for common patterns and lessons learned
 7. **Compare references** - llama.cpp or transformers.js as ground truth
 
 ### Key Files to Instrument
@@ -865,13 +865,13 @@ When debugging DOPPLER issues:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Debug Sessions
 
 **Last Updated**: 2025-12-17 23:13 UTC
-**Status**: UNSOLVED - See [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](postmortems/POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md)
+**Status**: UNSOLVED - See [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](postmortems/2025-12-17-positive-bias-hidden-states.md)
 
 ## Quick Start
 
@@ -1065,7 +1065,7 @@ Target: 40+ tok/s decode on Gemma 3 1B. See `feature-log/doppler/inference.jsonl
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Performance Regression Investigations
@@ -1312,13 +1312,13 @@ Index of DOPPLER validation sessions across different hardware and browsers.
 ---
 
 This file is a human-readable log. Store machine-readable benchmark outputs as JSON using
-`docs/style/BENCHMARK_STYLE_GUIDE.md` so results can be compared automatically.
+`style/BENCHMARK_STYLE_GUIDE.md` so results can be compared automatically.
 
 See also:
-- `docs/style/BENCHMARK_STYLE_GUIDE.md` for benchmark methodology and JSON result schema
-- `docs/design/KERNEL_TESTING.md` for WGSL kernel testing specification
-- `tests/kernels/README.md` for kernel test coverage
-- `tests/kernels/BENCHMARKS.md` for kernel microbenchmark baselines
+- `style/BENCHMARK_STYLE_GUIDE.md` for benchmark methodology and JSON result schema
+- `TESTING.md` for WGSL kernel testing specification
+- `../tests/kernels/README.md` for kernel test coverage
+- `../tests/kernels/BENCHMARKS.md` for kernel microbenchmark baselines
 
 ## Result Artifacts (Recommended)
 
@@ -1375,7 +1375,7 @@ If a run does not have a JSON artifact yet, record the session here and file it 
 - `count_and_map` used 4/6 bindings, `gather_tokens` used 6/6
 - Bind group creation with mismatched layout caused silent failure
 - Fix: Created explicit bind group layout with all 6 bindings
-- See: `docs/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md`
+- See: `postmortems/2025-12-22-moe-explicit-layout.md`
 
 #### Bug Fix 2: Router Weight Quantization (FIXED)
 - Root cause: Router weights quantized to Q4_K_M despite HuggingFace config `modules_to_not_convert`
@@ -1427,13 +1427,13 @@ For each performance session, record:
 
 Preferred output:
 
-- A JSON file per run matching `docs/style/BENCHMARK_STYLE_GUIDE.md`
+- A JSON file per run matching `style/BENCHMARK_STYLE_GUIDE.md`
 - A short narrative summary in this document for context and troubleshooting.
 Baseline ranges live in `tests/baselines.json` and are enforced in CI when enabled.
 
 To avoid instruction drift, prefer linking to the canonical runner docs:
 
-- Kernel tests and microbenchmarks: `tests/kernels/README.md` and `tests/kernels/BENCHMARKS.md`
+- Kernel tests and microbenchmarks: `../tests/kernels/README.md` and `../tests/kernels/BENCHMARKS.md`
 - End-to-end inference tests: `tests/harness.html` (set `runtime.shared.harness.mode` via `runtimeConfig`)
 
 ## Known Issues by Platform
@@ -1499,4 +1499,4 @@ After testing:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.

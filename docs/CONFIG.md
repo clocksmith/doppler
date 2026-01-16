@@ -187,8 +187,8 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 
 ## See Also
 
-- [WGSL Style Guide](../style/WGSL_STYLE_GUIDE.md) - Entry points vs override constants
-- [Kernel Registry](../../src/config/kernels/registry.json) - All available kernels
+- [WGSL Style Guide](style/WGSL_STYLE_GUIDE.md) - Entry points vs override constants
+- [Kernel Registry](../src/config/kernels/registry.json) - All available kernels
 
 
 ## Error Codes

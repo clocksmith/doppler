@@ -174,5 +174,5 @@ Verified with `transformers` local snapshot `dcc83ea8…` using `output_hidden_s
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 

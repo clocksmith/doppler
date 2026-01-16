@@ -180,7 +180,7 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 
 - Inference still produces garbage output (separate root cause)
 - Hidden state explosion through layers (maxAbs: 17 → 630)
-- See: [POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md](POSITIVE-BIAS-HIDDEN-STATES-POSTMORTEM.md)
+- See: [2025-12-17-positive-bias-hidden-states.md](2025-12-17-positive-bias-hidden-states.md)
 
 ---
 
@@ -189,7 +189,7 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 | File | Change |
 |------|--------|
 | `gpu/kernels/softmax.js` | Fixed uniform buffer layout in runSoftmax and recordSoftmax |
-| `docs/TODO.md` | Added softmax fix to completed fixes |
+| `../ROADMAP.md` | Added softmax fix to completed fixes |
 
 ---
 
@@ -230,5 +230,5 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 

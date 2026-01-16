@@ -367,7 +367,9 @@ export async function deleteModel(modelId) {
       try {
         await currentModelDir.getFileHandle('.test', { create: true })
           .then((_h) => currentModelDir.removeEntry('.test'))
-          .catch(() => {});
+          .catch((err) => {
+            log.debug('ShardManager', `OPFS cleanup skipped: ${err?.message || 'unknown error'}`);
+          });
       } catch {
         currentModelDir = null;
       }

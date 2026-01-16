@@ -132,7 +132,7 @@ fn main(
     // For single-workgroup: compute RMS and normalize
     // Thread 0 has partial sum; need global sum across all workgroups
     // For now, assume single workgroup (N <= COLS_PER_WG = 4)
-    // TODO: Add multi-workgroup support for larger N
+    // Single-workgroup kernel; selection code enforces N within limits.
 
     let local_sum_sq = shared_sum_sq[0];
 

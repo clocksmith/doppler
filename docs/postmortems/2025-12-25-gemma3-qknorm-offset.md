@@ -36,7 +36,7 @@ Prior documentation was inconsistent:
 | Source | Claim |
 |--------|-------|
 | `2025-12-18-gemma3-q4k-garbage-output.md` | q_norm/k_norm SHOULD have +1 offset |
-| `docs/TODO.md` (before fix) | q_norm/k_norm should NOT have +1 offset |
+| `../ROADMAP.md` (before fix) | q_norm/k_norm should NOT have +1 offset |
 | Current code (before fix) | q_norm/k_norm did NOT have +1 offset |
 
 **Resolution**: HuggingFace source code is authoritative. ALL Gemma 3 norms use `(1 + weight)`.
@@ -87,7 +87,7 @@ if (layerWeights.qNorm && getNormWeightBuffer) {
   const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
 ```
 
-### 4. docs/TODO.md (lines 26-28)
+### 4. ../ROADMAP.md (lines 26-28)
 
 Updated to reflect correct behavior:
 

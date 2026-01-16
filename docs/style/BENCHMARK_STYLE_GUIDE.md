@@ -6,7 +6,7 @@ Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime
 
 ## Output Schema
 
-- Emit JSON that conforms to `docs/spec/BENCHMARK_SCHEMA.json`.
+- Emit JSON that conforms to `../spec/BENCHMARK_SCHEMA.json`.
 - Always include `schemaVersion`, `timestamp`, and `suite`.
 - Include `env`, `model`, `config`, `workload`, `metrics`, `quality`, and `raw` when available.
 
@@ -55,7 +55,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Pipeline benchmark harness | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
 | System benchmarks | ✓ Implemented | `tests/benchmarks/system-benchmark.js` |
 | Standard prompts | ✓ Implemented | `tests/benchmarks/prompts.js` |
-| JSON result schema | ✓ Implemented | `docs/spec/BENCHMARK_SCHEMA.json` |
+| JSON result schema | ✓ Implemented | `../spec/BENCHMARK_SCHEMA.json` |
 | GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | Tracked in harness |
 | Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.js` |
@@ -70,7 +70,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 ### Claude Skill
 
-Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for guided benchmarking.
+Use `doppler-benchmark` skill (`../../.claude/skills/doppler-benchmark/SKILL.md`) for guided benchmarking.
 
 ---
 

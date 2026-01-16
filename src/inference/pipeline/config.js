@@ -293,8 +293,6 @@ export function toParsedConfigFromMerged(merged, manifest) {
     isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta
     isGemma2: inf.attention.attnLogitSoftcapping != null,  // Gemma 2 has attn softcapping
     isLlama3Instruct: chatTemplateType === 'llama3',
-    isQwen3: false,  // TODO: Add model family to manifest
-    isGptOss: false,  // TODO: Add model family to manifest
     stopTokenIds,
     layerTypes,
     attentionBias: config.attention_bias ?? false,
@@ -302,7 +300,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
     queryPreAttnScalar,
-    layerPipeline: null,  // TODO: Add to ManifestInferenceSchema if needed
+    layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
     chatTemplateEnabled,
     kernelPath: inf.defaultKernelPath,

@@ -1,11 +1,11 @@
 # DOPPLER
 
-**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid
+**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid ([Reploid](https://github.com/clocksmith/reploid))
 
-Browser-native WebGPU inference engine enabling tight CPU↔GPU co-evolution with [Reploid](https://github.com/clocksmith/reploid).
-Doppler is the engine; Reploid is the driver.
+Browser-native WebGPU inference and post-training engine for local model execution.
+Doppler is the engine, tuned and swapped as Reploid drives a recursive self-improvement loop when linked.
 
-**[Try it live](https://replo.id/d)** | **[GitHub](https://github.com/clocksmith/doppler)**
+**[Try it live](https://replo.id/d)**
 
 ## Why This Works
 
@@ -17,6 +17,14 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 | **JIT kernel generation** | Hours → seconds ([nnJIT MobiSys 2024](https://dl.acm.org/doi/10.1145/3643832.3661892)) |
 | **Kernel hot-swap** | Runtime shader creation ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
 | **Shared memory** | CPU↔GPU via SharedArrayBuffer ([WgPy 2025](https://arxiv.org/pdf/2503.00279), [WebGPU Explainer](https://gpuweb.github.io/gpuweb/explainer/)) |
+
+## Quick Start
+
+```bash
+npm install
+npm start         # Dev server at http://localhost:8080
+npm run bench     # Run benchmarks
+```
 
 ## Architecture
 
@@ -45,14 +53,6 @@ Runtime reads config directly (no model-family detection). Missing fields fail
 fast; `null` explicitly disables a feature. Kernel paths resolve at conversion
 time and can be overridden via `runtime.inference.kernelPath` or per-run context.
 See `docs/CONFIG.md` and `docs/FORMATS.md` for the full contract.
-
-## Quick Start
-
-```bash
-npm install
-npm start         # Dev server at http://localhost:8080
-npm run bench     # Run benchmarks
-```
 
 ## Why Pure JS + WGSL
 

@@ -54,7 +54,7 @@ A frontier-class model (e.g., DeepSeek-V3, 671B parameters) is not a monolithic 
 | OPFS | 10-50GB | ~50ms | Cold experts, cached shards |
 | P2P Swarm | Unlimited | ~200ms | Rare experts, full model |
 
-See [MEMORY_TIERS.md](internals/MEMORY_TIERS.md) for detailed tiered memory architecture.
+See `ARCHITECTURE.md` for tiered memory and cache layout notes.
 
 **Result:** 600B model on consumer hardware.
 
@@ -100,7 +100,7 @@ WebLLM decode step:        DOPPLER decode step:
 CPU time: significant      CPU time: ~0.5ms (negligible)
 ```
 
-**DOPPLER's MoE routing is GPU-native**: Router → softmax+topk → scatter_add all stay on GPU with zero CPU readback. See [gpu/kernels/topk.wgsl](../gpu/kernels/topk.wgsl).
+**DOPPLER's MoE routing is GPU-native**: Router → softmax+topk → scatter_add all stay on GPU with zero CPU readback. See [gpu/kernels/topk.wgsl](../src/gpu/kernels/topk.wgsl).
 
 ### Bet 3: JavaScript is Fast Enough
 
@@ -205,7 +205,7 @@ DOPPLER: Kernels are plain text, evolve across swarm
 
 **Static weights** → CDN (HuggingFace). **Dynamic components** → P2P evolution.
 
-See [COMPETITIVE.md](analysis/COMPETITIVE.md#p2p-and-evolution-potential) for detailed analysis.
+See `OPERATIONS.md` for current benchmarks and constraints.
 
 ### Speculative Decoding
 
@@ -262,10 +262,10 @@ Phase 2: MoE Efficiency ──────┤
 
 | Document | Content |
 |----------|---------|
-| [TARGET_MODELS.md](plans/TARGET_MODELS.md) | Benchmark priority list |
-| [COMPETITIVE.md](analysis/COMPETITIVE.md) | Competitor analysis |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current system design |
-| [DOPPLER-TROUBLESHOOTING.md](DOPPLER-TROUBLESHOOTING.md) | Troubleshooting guide |
+| [CONFIG.md](CONFIG.md) | Kernel paths and runtime config |
+| [OPERATIONS.md](OPERATIONS.md) | Troubleshooting and perf investigations |
+| [POSTMORTEMS.md](POSTMORTEMS.md) | Incident summaries |
 
 ---
 
@@ -293,7 +293,7 @@ Phase 2: MoE Efficiency ──────┤
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Roadmap Tasks
@@ -309,20 +309,17 @@ See:
 
 ## Technical Deep-Dives
 
-For technical implementation details, see `docs/internals/`:
-- [Quantization](internals/QUANTIZATION.md) - Q4K layouts, column-wise optimization
-- [Matmul](internals/MATMUL.md) - Thread utilization, GEMV variants
-- [Attention](internals/ATTENTION.md) - Decode kernel, barrier analysis
-- [Fusion](internals/FUSION.md) - Kernel fusion opportunities
-- [MoE](internals/MOE.md) - Expert paging, sparsity
-- [Memory Tiers](internals/MEMORY_TIERS.md) - Tiered architecture
+For technical implementation details, see:
+- `ARCHITECTURE.md` for subsystem breakdown and pipeline flow
+- `CONFIG.md` for kernel path definitions and tuning knobs
+- `FORMATS.md` for RDRR manifest fields and tensor layout
 
 ---
 
 ## Status Overview
 
 For current operational status, test results, and recent fixes, see:
-- [Postmortems](../postmortems/INDEX.md) (Issue history)
+- [Postmortems](POSTMORTEMS.md) (Issue history)
 - [Architecture](ARCHITECTURE.md) (System design)
 
 
@@ -434,10 +431,10 @@ Add LoRA fine-tuning capability to Doppler, enabling in-browser training of Func
 Implemented in `src/training` with a runnable demo harness and test coverage.
 
 Key entry points:
-- Training engine overview: `src/training/README.md`
+- Training engine overview: `../src/training/README.md`
 - Demo harness: `app/training.html` + `app/training-harness.js`
 - Training tests: `tests/training/browser/test-page.js` and `npm test -- --training`
-- Export spec: `docs/spec/RDRR_LORA_FORMAT.md`
+- Export spec: `FORMATS.md`
 
 This document now serves as a historical design reference.
 
@@ -1351,9 +1348,9 @@ classifyTask(description) → taskType
 
 | File | Change |
 |------|--------|
-| `doppler/docs/ARCHITECTURE.md` | Add "Engine vs Driver Boundary" section |
-| `reploid/docs/design/FUNCTIONGEMMA.md` | Clarify Doppler provides primitives only |
-| `ouroboros/ARCHITECTURE.md` | Add cross-project boundary definition |
+| `ARCHITECTURE.md` | Add "Engine vs Driver Boundary" section |
+| `../../reploid/docs/design/FUNCTIONGEMMA.md` | Clarify Doppler provides primitives only |
+| `../../ARCHITECTURE.md` | Add cross-project boundary definition |
 
 ## GPU Multi-Model Primitives
 
@@ -1399,7 +1396,7 @@ After refactor:
 ## Competitive Analysis
 
 **DOPPLER** (Distributed Object Parallel Processing Layer Executing REPLOID) is a browser-native LLM inference engine. It is part of the REPLOID system (Recursive Evolution Protocol Loop Orchestrating Inference DOPPLER), with model distribution handled by RDRR (Recursive DOPPLER Runtime Registry).
-See also: [Glossary](../GLOSSARY.md)
+See also: `ARCHITECTURE.md`
 
 ## TL;DR
 
@@ -1411,7 +1408,7 @@ DOPPLER is a browser-native LLM inference engine using custom WebGPU (WGSL) kern
 4. **Native Bridge** - mmap access to local files, bypassing OPFS limits
 
 **Caveat:** Performance benchmarks pending. WebLLM supports MoE (Mixtral) via TVM. DOPPLER must prove better performance.
-See: `docs/style/BENCHMARK_STYLE_GUIDE.md` and `docs/design/KERNEL_TESTING.md`.
+See: `style/BENCHMARK_STYLE_GUIDE.md` and `TESTING.md`.
 
 ---
 
@@ -1424,9 +1421,8 @@ Implementation work, task tracking, and priorities live in the feature-log syste
 
 Benchmark and testing specs:
 
-- `docs/style/BENCHMARK_STYLE_GUIDE.md` (pipeline and system benchmarks, result schema)
-- `docs/design/KERNEL_TESTING.md` (kernel and segment tests, how to interpret correctness)
-- `docs/plans/TARGET_MODELS.md` (benchmark priority list)
+- `style/BENCHMARK_STYLE_GUIDE.md` (pipeline and system benchmarks, result schema)
+- `TESTING.md` (kernel and segment tests, how to interpret correctness)
 
 Key success metrics (the minimum needed for credible comparisons):
 
@@ -1862,7 +1858,7 @@ WASM would make the 0.5ms faster, but **who cares?** The bottleneck is GPU, not 
 
 > "For thin orchestration (dispatch commands, sample one token), JS overhead is ~0.5ms per decode step. This is 2% of a 26ms decode cycle."
 >
-> Source: [DOPPLER VISION.md](../VISION.md)
+
 
 ### Why JavaScript is Advantageous
 
@@ -2795,7 +2791,7 @@ Source: [MediaPipe Issues](https://github.com/google-ai-edge/mediapipe/issues)
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## GEPA Synergy
@@ -2981,7 +2977,7 @@ pipeline.applyLoRA(lora);
 
 ### 4. P2P Kernel Evolution (Doppler Vision)
 
-From COMPETITIVE.md, the P2P kernel swarm concept:
+P2P kernel swarm concept:
 
 ```javascript
 // User A discovers 2x faster attention on M3 Max

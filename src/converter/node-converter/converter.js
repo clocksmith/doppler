@@ -120,8 +120,14 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const parsed = await parseSafetensors(inputPath);
   verboseLog(`Found ${parsed.tensors.length} tensors`);
 
-  const config = await loadModelConfig(inputPath).catch(() => ({}));
-  const tokenizerConfig = await loadTokenizerConfig(inputPath).catch(() => undefined);
+  const config = await loadModelConfig(inputPath).catch((err) => {
+    verboseLog(`Failed to load model config: ${err?.message || 'unknown error'}`);
+    return {};
+  });
+  const tokenizerConfig = await loadTokenizerConfig(inputPath).catch((err) => {
+    verboseLog(`Failed to load tokenizer config: ${err?.message || 'unknown error'}`);
+    return undefined;
+  });
 
   const configRec = config;
   const arch = configRec.architectures?.[0] ||

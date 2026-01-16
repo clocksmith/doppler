@@ -4,7 +4,7 @@
 
 **DOPPLER** (Distributed Object Parallel Processing Layer Executing REPLOID) is a WebGPU-native LLM inference engine for browser environments. It is part of the REPLOID system (Recursive Evolution Protocol Loop Orchestrating Inference DOPPLER).
 
-See also: [Glossary](GLOSSARY.md)
+See also: `INDEX.md`
 
 ## Overview
 
@@ -49,10 +49,10 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
-| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables P2P distribution, expert paging, LoRA hot-swap |
+| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification, expert paging, LoRA hot-swap |
 | **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
 | **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
-| **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, WebRTC P2P integration |
+| **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
 
 ### GPU Fusion in Practice
 
@@ -85,11 +85,11 @@ DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it
 | Capability | Why Impossible with TVM |
 |------------|------------------------|
 | 90GB MoE on 8GB VRAM | Expert paging requires dynamic buffer binding |
-| P2P shard distribution | Can't split compiled binary across peers |
+| Shard distribution | Can't split compiled binary across peers |
 | LoRA hot-swap | Compiled model can't change weights at runtime |
 | Speculative decoding | Coordinating two compiled models is awkward |
 
-See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concrete examples.
+See `ROADMAP.md` for rationale, goals, and current status.
 
 ---
 
@@ -167,7 +167,7 @@ const orchestrator = FunctionGemmaOrchestrator.factory(deps);
 await orchestrator.runEvolution(task);  // Policy in driver
 ```
 
-See `docs/plans/FUNCTIONGEMMA_ARCHITECTURE_REFACTOR.md` for the full refactoring plan.
+See `ROADMAP.md` for the current migration status.
 
 ---
 
@@ -189,8 +189,10 @@ See `docs/plans/FUNCTIONGEMMA_ARCHITECTURE_REFACTOR.md` for the full refactoring
 | `bridge/` | Native Bridge for local file access |
 | `browser/` | Browser import, parsing, and conversion helpers |
 | `debug/` | Logging, trace categories, probes |
+| `errors/` | Error codes and helpers |
+| `rules/` | JSON rule maps for runtime selection |
+| `training/` | Training utilities (browser + node) |
 | `types/` | Shared TypeScript types |
-| `tools/` | Dev utilities (validation, OPFS maintenance, tests) |
 
 ---
 
@@ -218,7 +220,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │ ├─ buffer-pool    │ ├─ safetensors     │ ├─ pipeline/attention               │
 │ ├─ uniform-cache  │ ├─ rdrr            │ ├─ pipeline/ffn                     │
 │ └─ kernels/       │ └─ tokenizer       │ ├─ pipeline/logits                  │
-│    (68 WGSL)      │                    │ └─ kv-cache                         │
+│    (WGSL kernels) │                    │ └─ kv-cache                         │
 │                   │ loader/            │                                     │
 │ memory/           │ ├─ doppler-loader  │ debug/                              │
 │ ├─ heap           │ ├─ weight-loader   │ ├─ log                              │
@@ -357,27 +359,27 @@ Use this for understanding build order and what can be tested independently.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ LAYER 6: INFERENCE (126 files)                                              │
+│ LAYER 6: INFERENCE                                                          │
 │ inference/pipeline, inference/kv-cache, inference/tokenizers                │
 │ Entry point for generation. Depends on everything below.                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 5: LOADER (44 files)                                                  │
+│ LAYER 5: LOADER                                                             │
 │ loader/doppler-loader, loader/weight-loader, loader/shard-manager           │
 │ Model loading and weight dequantization.                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 4: GPU + STORAGE (106 + 14 files)                                     │
+│ LAYER 4: GPU + STORAGE                                                      │
 │ gpu/device, gpu/buffer-pool, gpu/kernels/* | storage/opfs-manager           │
 │ Orthogonal infrastructure: compute vs persistence.                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 3: FORMATS (38 files)                                                 │
+│ LAYER 3: FORMATS                                                            │
 │ formats/gguf, formats/safetensors, formats/rdrr, formats/tokenizer          │
 │ File format parsing. Pure functions, no side effects.                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 2: CONFIG (65 files)                                                  │
+│ LAYER 2: CONFIG                                                             │
 │ config/schema/*, config/presets/*, config/runtime.js                        │
 │ All DEFAULT_* exports. Source of truth for tunables.                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 1: FOUNDATION (9 + 8 + 18 files)                                      │
+│ LAYER 1: FOUNDATION                                                         │
 │ types/* | memory/* | debug/*                                                │
 │ No internal dependencies. Can be tested in isolation.                       │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -978,7 +980,7 @@ value = d * scale * q - dmin * min
 // - min is stored as positive offset to subtract
 ```
 
-**Post-mortem note:** Early bug stored `min` with different sign convention, causing all dequantized values to be positive. See `docs/GEMMA3-DEBUG-POSTMORTEM.md`.
+**Post-mortem note:** Early bug stored `min` with different sign convention, causing all dequantized values to be positive. See `postmortems/2025-12-16-gemma3-debug.md`.
 
 ---
 
@@ -1022,7 +1024,7 @@ const response = await dopplerChat(messages, options);
 
 ## Data Flow: Single Token Generation
 
-For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see [EXECUTION_PIPELINE.md](EXECUTION_PIPELINE.md).
+For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see `../src/inference/README.md`.
 
 ```
 User prompt: "Hello"
@@ -1137,7 +1139,7 @@ Different devices get different kernel implementations:
 - Subgroup support → shuffle-based reductions
 - Large context → streaming attention
 
-See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-based-kernel-selection) for complete kernel selection decision trees and RDRR runtime hints.
+See `CONFIG.md` for kernel selection rules and runtime overrides.
 
 ---
 
@@ -1166,9 +1168,9 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 ## Related Documentation
 
-- `docs/GEMMA3-DEBUG-POSTMORTEM.md` - Q4_K quantizer bug analysis
-- `docs/internals/MEMORY_TIERS.md` - Tiered memory and P2P architecture
-- `docs/design/RDRR_FORMAT.md` - RDRR format specification
+- `postmortems/2025-12-16-gemma3-debug.md` - Q4_K quantizer bug analysis
+- `ROADMAP.md` - Memory tiers and distribution goals
+- `FORMATS.md` - RDRR format specification
 
 ---
 
@@ -1176,14 +1178,14 @@ See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-b
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Execution Pipeline
 
 This document details the lifecycle of a token in Gemma 3 1B, moving from raw integer IDs to probability distributions. It covers the specific WGSL kernels used, tensor shapes at each step, memory hierarchy, and kernel fusion strategies for running LLMs efficiently in a browser environment.
 
-**Related:** [ARCHITECTURE.md](ARCHITECTURE.md) for module structure, [GLOSSARY.md](GLOSSARY.md) for terminology.
+**Related:** `ARCHITECTURE.md` for module structure.
 
 ---
 
@@ -2219,7 +2221,7 @@ The manifest can include kernel path overrides to select explicit kernel dispatc
 }
 ```
 
-Runtime config can override with `runtime.inference.kernelPath`. See `docs/design/KERNEL_PATHS.md` for available paths and structure.
+Runtime config can override with `runtime.inference.kernelPath`. See `CONFIG.md` for available paths and structure.
 
 ### Auto-Tuning System
 
@@ -2320,7 +2322,7 @@ npm run debug -- --config debug
 npm run debug -- --config '{"runtime":{"inference":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
 ```
 
-Use config-only kernel path overrides for testing (see `docs/style/WGSL_STYLE_GUIDE.md`).
+Use config-only kernel path overrides for testing (see `style/WGSL_STYLE_GUIDE.md`).
 
 ---
 
@@ -2328,7 +2330,7 @@ Use config-only kernel path overrides for testing (see `docs/style/WGSL_STYLE_GU
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## System Flow
@@ -2337,7 +2339,7 @@ This document visualizes DOPPLER's architecture as a series of bipartite graphs 
 
 **See also:**
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed component documentation
-- [EXECUTION_PIPELINE.md](EXECUTION_PIPELINE.md) - Line-by-line kernel execution trace
+- `../src/inference/README.md` - Line-by-line kernel execution trace
 
 ---
 
@@ -3271,7 +3273,7 @@ To add your test results:
 - [WebGPU Feature Matrix](https://webgpureport.org/)
 - [WebGPU Browser Support](https://caniuse.com/webgpu)
 - [DOPPLER Architecture](./ARCHITECTURE.md)
-- [Gemma 3 Debug Postmortem](./GEMMA3-DEBUG-POSTMORTEM.md)
+- [Gemma 3 Debug Postmortem](postmortems/2025-12-16-gemma3-debug.md)
 
 ---
 
@@ -3279,7 +3281,7 @@ To add your test results:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Internals
@@ -3793,7 +3795,7 @@ fn rmsnorm_inplace_residual(...) {
 - F32 internal accumulation for RMSNorm/softmax
 - F16 sampling/logits when configured (readback still handled safely)
 
-**Status:** Implemented for Gemma 2/3 paths; see `docs/postmortems/2026-01-05-gemma2-f16-end-to-end.md`.
+**Status:** Implemented for Gemma 2/3 paths; see `postmortems/2026-01-05-gemma2-f16-end-to-end.md`.
 **Remaining risk:** Numerical underflow in deep layers on some devices; validate with probes when introducing new kernels.
 
 ---
@@ -4388,4 +4390,4 @@ Short definitions for terms used across DOPPLER docs and code.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.

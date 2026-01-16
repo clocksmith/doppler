@@ -99,7 +99,7 @@ export async function initializePlatform(adapter) {
   currentCapabilities = {
     hasF16: features.has('shader-f16'),
     hasSubgroups: features.has('subgroups'),
-    subgroupSize: features.has('subgroups') ? 32 : undefined, // TODO: detect actual size
+    subgroupSize: features.has('subgroups') ? 32 : undefined,
     maxWorkgroupSize: adapter.limits.maxComputeWorkgroupSizeX,
     maxSharedMemory: adapter.limits.maxComputeWorkgroupStorageSize,
     maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,

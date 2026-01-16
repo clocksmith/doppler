@@ -42,12 +42,11 @@
 | Doc | Purpose |
 |-----|---------|
 | [TEST_PLAN.md](../../TEST_PLAN.md) | Cross-project test strategy |
-| [ARCHITECTURE.md](../../ARCHITECTURE.md) | Category-2t architecture |
-| `docs/design/KERNEL_TESTING.md` | Testing specification/design |
-| `docs/style/BENCHMARK_STYLE_GUIDE.md` | Benchmark methodology |
-| `docs/TEST_RESULTS.md` | Test session log |
-| `tests/kernels/README.md` | Kernel test coverage |
-| `tests/kernels/BENCHMARKS.md` | Benchmark baselines |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture context |
+| `../tests/kernels/README.md` | Kernel test coverage and design notes |
+| `style/BENCHMARK_STYLE_GUIDE.md` | Benchmark methodology |
+| `POSTMORTEMS.md` | Test-related incident history |
+| `../tests/kernels/BENCHMARKS.md` | Benchmark baselines |
 
 ---
 
@@ -208,15 +207,15 @@ doppler test kernels && doppler test inference && npm run test:vitest
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Kernel Testing
 
 Defines the testing framework design for WGSL kernels and kernel combinations.
 
-**Implementation status:** See `tests/kernels/README.md`
-**Benchmark baselines:** See `tests/kernels/BENCHMARKS.md`
+**Implementation status:** See `../tests/kernels/README.md`
+**Benchmark baselines:** See `../tests/kernels/BENCHMARKS.md`
 
 ---
 
@@ -363,7 +362,7 @@ For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON o
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Known-Good Matrix

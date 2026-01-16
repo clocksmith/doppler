@@ -148,8 +148,6 @@ export interface ParsedModelConfig {
   isGemma3: boolean;
   isGemma2: boolean;
   isLlama3Instruct: boolean;
-  isQwen3: boolean;
-  isGptOss: boolean;
   stopTokenIds: number[];
   layerTypes: string[] | null;
   attentionBias: boolean;

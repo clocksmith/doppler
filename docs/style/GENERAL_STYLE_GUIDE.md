@@ -194,7 +194,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Forbidden CLI overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
 - Harnesses must not accept URL query overrides for runtime tunables; only `runtimeConfig` and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
-See `docs/style/CONFIG_STYLE_GUIDE.md` for merge order and category rules.
+See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
 ### Manifest-First Change Checklist
 
@@ -530,7 +530,6 @@ doppler/
 |---------|---------|---------|
 | `kebab-case.js` | `model-config.js` | JavaScript modules |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
-| `UPPER_CASE.md` | `GENERAL_STYLE_GUIDE.md` | Documentation |
 
 ### Type Declarations (.d.ts)
 

@@ -57,6 +57,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     type: null,  // No chat template (null = disabled)
     enabled: false,
   },
+  pipeline: null,
   defaultKernelPath: null,  // Use default kernel selection (null = no explicit path)
 };
 

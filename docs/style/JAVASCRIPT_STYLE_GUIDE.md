@@ -60,7 +60,7 @@ Kernel path overrides are config-only; CLI flags must not set kernel selection.
 
 - CLI flags must not override runtime config tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 - Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
-See `docs/style/CONFIG_STYLE_GUIDE.md` for merge order and category rules.
+See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
 ---
 

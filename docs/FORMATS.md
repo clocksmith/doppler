@@ -4,14 +4,14 @@
 
 Defines the Recursive DOPPLER Runtime Registry (RDRR) format for streaming model delivery optimized for browser-based LLM inference.
 
-See also: `docs/ARCHITECTURE.md` for system overview.
+See also: `ARCHITECTURE.md` for system overview.
 
 ---
 
 ## Goals
 
 - Enable streaming download and incremental model loading in browsers
-- Support P2P distribution with per-shard integrity verification
+- Support per-shard integrity verification (P2P distribution is optional/future)
 - Provide browser-native storage via OPFS (Origin Private File System)
 - Support multiple quantization formats (Q4_K_M, F16, F32)
 - Enable component-level grouping for hot-swap capability (v1)
@@ -36,7 +36,7 @@ A streaming model delivery format bridging REPLOID (agent sandbox) and DOPPLER (
 
 ### Sharding
 
-Models are split into fixed-size shards (default 64MB) for streaming download and P2P distribution. Each shard is independently verifiable.
+Models are split into fixed-size shards (default 64MB) for streaming download. Each shard is independently verifiable; P2P distribution is optional/future.
 
 ### Manifest
 
@@ -122,7 +122,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
       "embeddingTranspose": false,
       "embeddingVocabSize": null
     },
-    "layerPattern": { "type": "all_attention" },
+    "layerPattern": { "type": "uniform" },
     "chatTemplate": { "type": null, "enabled": false },
     "defaultKernelPath": "gemma2-q4k-dequant-f16a"
   },
@@ -383,7 +383,7 @@ The `optimizations` field provides a kernel path hint used for fallback selectio
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `kernelPath` | string/object | Kernel path hint (see `docs/design/KERNEL_PATHS.md`) |
+| `kernelPath` | string/object | Kernel path hint (see `CONFIG.md`) |
 
 #### Precedence Rules (low → high)
 
@@ -392,7 +392,7 @@ The `optimizations` field provides a kernel path hint used for fallback selectio
 3. runtime config `runtime.inference.kernelPath`
 4. per-run context override (pipeline context only)
 
-See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#kernel-path-overrides) for how kernel paths integrate with capability-based kernel selection.
+See `CONFIG.md` for how kernel paths integrate with capability-based kernel selection.
 
 ---
 
@@ -415,7 +415,7 @@ carry adapter metadata fields, but adapters themselves are not RDRR bundles.
 ### Integrity Verification
 
 - Per-shard hash (SHA-256 supported everywhere, BLAKE3 optional)
-- Enables P2P distribution without trusting the source
+- Enables shard integrity verification regardless of distribution channel
 - Peers can verify shard integrity independently
 
 ### Browser-Native
@@ -524,7 +524,7 @@ for await (const token of pipeline.generate('Hello')) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## RDRR LoRA Format

@@ -90,7 +90,7 @@ After fix:
 
 ## Related Issues
 
-- [BF16 2D Dispatch Bug](./BF16-2D-DISPATCH-POSTMORTEM.md) - Another WebGPU kernel bug with similar silent failure pattern
+- [BF16 2D Dispatch Bug](./2025-12-20-bf16-2d-dispatch.md) - Another WebGPU kernel bug with similar silent failure pattern
 
 ---
 
@@ -98,4 +98,4 @@ After fix:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
