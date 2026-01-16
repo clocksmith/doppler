@@ -16,11 +16,12 @@ export class Tokenizer {
 
   
   async initialize(manifest, options = {}) {
-    const tokenizerConfig = manifest.tokenizer || {};
+    const tokenizerConfig = { ...(manifest.tokenizer || {}) };
 
     // Check for bundled or HuggingFace tokenizer first (eliminates transformers.js dependency)
     const isBundled = tokenizerConfig.type === 'bundled' || tokenizerConfig.type === 'huggingface';
     if (isBundled && tokenizerConfig.file) {
+      tokenizerConfig.deferSpecialTokens = true;
       log.info('Tokenizer', `Loading ${tokenizerConfig.type} tokenizer from ${tokenizerConfig.file}`);
       this.backend = new BundledTokenizer(tokenizerConfig);
 

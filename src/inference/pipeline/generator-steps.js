@@ -405,7 +405,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const logitSoftcap = config.finalLogitSoftcapping === null
     ? 0
     : config.finalLogitSoftcapping;
-  const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;
+  if (eosToken == null && stopTokenIds.length === 0) {
+    throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
+  }
+  const eosTokenId = eosToken ?? stopTokenIds[0];
+  if (eosTokenId == null) {
+    throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
+  }
   const maxTokens = opts.maxTokens ?? state.runtimeConfig.inference.batching.maxTokens;
 
   const tokensBuffer = device.createBuffer({

@@ -43,7 +43,7 @@ export async function runRoPE(
       view.setUint32(0, seqLen, true);          // seqLen
       view.setUint32(4, numHeads, true);        // numHeads
       view.setUint32(8, headDim, true);         // headDim
-      view.setUint32(12, options.startPos || 0, true);  // startPos
+      view.setUint32(12, options.startPos ?? ropeDefaults.defaultStartPos, true);  // startPos
       view.setFloat32(16, ropeTheta, true);     // ropeBase
       view.setFloat32(20, 1.0, true);           // ropeScale (default 1.0)
     },
@@ -110,7 +110,7 @@ export async function recordRoPE(
       view.setUint32(0, seqLen, true);          // seqLen
       view.setUint32(4, numHeads, true);        // numHeads
       view.setUint32(8, headDim, true);         // headDim
-      view.setUint32(12, options.startPos || 0, true);  // startPos
+      view.setUint32(12, options.startPos ?? ropeDefaults.defaultStartPos, true);  // startPos
       view.setFloat32(16, ropeTheta, true);     // ropeBase from options or schema default
       view.setFloat32(20, 1.0, true);           // ropeScale (default 1.0)
     },

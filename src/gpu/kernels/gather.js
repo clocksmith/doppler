@@ -42,7 +42,7 @@ export async function runGather(
     useVec4 = true,
     outputBuffer = null,
     embeddingDtype,
-    outputDtype = 'f32',
+    outputDtype,
     transpose = false,
     indexOffset = 0,
     indirectBuffer = null,
@@ -51,7 +51,13 @@ export async function runGather(
 
   // Detect embedding dtype (F16 embeddings enable optimized lm_head)
   const caps = getKernelCapabilities();
-  const detectedDtype = embeddingDtype || 'f32';
+  if (embeddingDtype == null) {
+    throw new Error('[Gather] embeddingDtype is required.');
+  }
+  if (outputDtype == null) {
+    throw new Error('[Gather] outputDtype is required.');
+  }
+  const detectedDtype = embeddingDtype;
   const useF16Input = detectedDtype === 'f16' && caps.hasF16;
   const useF16Output = outputDtype === 'f16' && caps.hasF16;
   trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, indexOffset=${indexOffset}, detectedDtype=${detectedDtype}, useF16Input=${useF16Input}, useF16Output=${useF16Output}`);
@@ -130,7 +136,7 @@ export async function recordGather(
     useVec4 = true,
     outputBuffer = null,
     embeddingDtype,
-    outputDtype = 'f32',
+    outputDtype,
     transpose = false,
     indexOffset = 0,
     indirectBuffer = null,
@@ -139,7 +145,13 @@ export async function recordGather(
 
   // Detect embedding dtype (same logic as runGather)
   const caps = getKernelCapabilities();
-  const detectedDtype = embeddingDtype || 'f32';
+  if (embeddingDtype == null) {
+    throw new Error('[Gather] embeddingDtype is required.');
+  }
+  if (outputDtype == null) {
+    throw new Error('[Gather] outputDtype is required.');
+  }
+  const detectedDtype = embeddingDtype;
   const useF16Input = detectedDtype === 'f16' && caps.hasF16;
   const useF16Output = outputDtype === 'f16' && caps.hasF16;
 

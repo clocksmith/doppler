@@ -36,6 +36,9 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.attention.queryKeyNorm == null) {
     errors.push('attention.queryKeyNorm is required');
   }
+  if (inf.attention.attentionBias == null) {
+    errors.push('attention.attentionBias is required');
+  }
   // Attention fields - nullable required (undefined = missing, null = disabled)
   if (inf.attention.slidingWindow === undefined) {
     errors.push('attention.slidingWindow must be explicitly set (null for no sliding window, or number)');
@@ -295,7 +298,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     isLlama3Instruct: chatTemplateType === 'llama3',
     stopTokenIds,
     layerTypes,
-    attentionBias: config.attention_bias ?? false,
+    attentionBias: inf.attention.attentionBias,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,

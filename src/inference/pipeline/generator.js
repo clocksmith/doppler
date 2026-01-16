@@ -1,6 +1,6 @@
 
 
-import { getDevice, setTrackSubmits, getKernelCapabilities } from '../../gpu/device.js';
+import { getDevice, setTrackSubmits } from '../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../gpu/kernel-selection-cache.js';
@@ -17,10 +17,10 @@ import { applyChatTemplate, isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
-import { createWeightBufferHelpers } from './weights.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { decodeStep, generateNTokensGPU, sumProfileTimings } from './generator-steps.js';
+import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
 
@@ -466,7 +466,11 @@ export class PipelineGenerator {
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
     };
     const recorder = createRecorder('prefill');
-    const context = this._buildLayerContext(recorder, false, opts.debugLayers);
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
+    const context = buildLayerContext(this.#state, recorder, false, opts.debugLayers, debugCheckBuffer);
     let gpuTimePrefillMs = 0;
     let hasGpuTimePrefill = false;
     const recordProfile = async (rec) => {
@@ -491,8 +495,6 @@ export class PipelineGenerator {
 
     const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-    const debugCheckBuffer = this.#state.debug ? this._debugCheckBuffer.bind(this) : undefined;
-
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
@@ -636,8 +638,8 @@ export class PipelineGenerator {
         currentRecorder,
         currentHiddenBuffer,
         numTokens,
-        this._getLogitsWeights(),
-        this._getLogitsConfig()
+        getLogitsWeights(this.#state),
+        getLogitsConfig(this.#state)
       );
       logitsVocabSize = recorded.vocabSize;
       usedRecordedLogits = true;
@@ -661,8 +663,8 @@ export class PipelineGenerator {
         logits = await computeLogits(
           currentHiddenBuffer,
           numTokens,
-          this._getLogitsWeights(),
-          this._getLogitsConfig(),
+          getLogitsWeights(this.#state),
+          getLogitsConfig(this.#state),
           this.#state.useGPU,
           this.#state.debugFlags,
           undefined,
@@ -682,8 +684,8 @@ export class PipelineGenerator {
       logits = await computeLogits(
         currentHiddenBuffer,
         numTokens,
-        this._getLogitsWeights(),
-        this._getLogitsConfig(),
+        getLogitsWeights(this.#state),
+        getLogitsConfig(this.#state),
         this.#state.useGPU,
         this.#state.debugFlags,
         undefined,
@@ -726,156 +728,29 @@ export class PipelineGenerator {
 
   
   async _decodeStep(currentIds, opts) {
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
     return decodeStep(this.#state, currentIds, opts, {
-      buildLayerContext: this._buildLayerContext.bind(this),
-      getLogitsWeights: this._getLogitsWeights.bind(this),
-      getLogitsConfig: this._getLogitsConfig.bind(this),
-      debugCheckBuffer: this._debugCheckBuffer.bind(this),
+      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
+        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
+      getLogitsWeights: () => getLogitsWeights(this.#state),
+      getLogitsConfig: () => getLogitsConfig(this.#state),
+      debugCheckBuffer,
     });
   }
 
   async _generateNTokensGPU(startToken, N, currentIds, opts) {
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
     return generateNTokensGPU(this.#state, startToken, N, currentIds, opts, {
-      buildLayerContext: this._buildLayerContext.bind(this),
-      getLogitsWeights: this._getLogitsWeights.bind(this),
-      getLogitsConfig: this._getLogitsConfig.bind(this),
+      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
+        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
+      getLogitsWeights: () => getLogitsWeights(this.#state),
+      getLogitsConfig: () => getLogitsConfig(this.#state),
     });
-  }
-
-  async _debugCheckBuffer(buffer, label, numTokens, expectedDim) {
-    if (!allowReadback(`pipeline.debug.${label}`)) return;
-
-    const expectedElements = expectedDim ? numTokens * expectedDim : 0;
-    let bytesPerElement = 4;
-    if (expectedElements > 0) {
-      const rawBytes = buffer.size / expectedElements;
-      if (Math.abs(rawBytes - 2) < 0.5) {
-        bytesPerElement = 2;
-      } else if (Math.abs(rawBytes - 4) < 0.5) {
-        bytesPerElement = 4;
-      } else {
-        bytesPerElement = rawBytes < 3 ? 2 : 4;
-      }
-    }
-
-    const totalElements = expectedElements > 0
-      ? expectedElements
-      : Math.floor(buffer.size / bytesPerElement);
-    const maxElements = Math.min(totalElements, 65536);
-    const readBytes = Math.min(buffer.size, maxElements * bytesPerElement);
-
-    const data = await readBuffer(buffer, readBytes);
-    if (data.byteLength === 0) return;
-
-    const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
-    const arr = decodeReadback(data, dtype);
-
-    let min = Infinity;
-    let max = -Infinity;
-    let nanCount = 0;
-    let infCount = 0;
-
-    for (let i = 0; i < arr.length; i++) {
-      const v = arr[i];
-      if (Number.isNaN(v)) {
-        nanCount++;
-        continue;
-      }
-      if (!Number.isFinite(v)) {
-        infCount++;
-        continue;
-      }
-      if (v < min) min = v;
-      if (v > max) max = v;
-    }
-
-    const maxAbs = Number.isFinite(min) && Number.isFinite(max)
-      ? Math.max(Math.abs(min), Math.abs(max))
-      : Infinity;
-    const sample = Array.from(arr.slice(0, 6)).map(v => v.toFixed(4)).join(', ');
-    const expectedLabel = expectedDim ? ` expectedDim=${expectedDim}` : '';
-
-    log.verbose(
-      'Pipeline',
-      `CHECK ${label}: dtype=${dtype} elems=${arr.length}/${totalElements}${expectedLabel} ` +
-      `min=${min.toFixed(4)} max=${max.toFixed(4)} maxAbs=${maxAbs.toFixed(4)} ` +
-      `nan=${nanCount} inf=${infCount} sample=[${sample}]`
-    );
-  }
-
-  
-  _buildLayerContext(recorder, isDecodeMode = false, debugLayers) {
-    const config = this.#state.modelConfig;
-    const { getWeightBuffer, getNormWeightBuffer } = createWeightBufferHelpers(
-      this._getWeightBufferConfig(),
-      this.#state.debugFlags
-    );
-
-    const resolvedDebugLayers = debugLayers !== undefined
-      ? debugLayers
-      : this.#state.runtimeConfig.shared.debug.pipeline.layers ?? null;
-
-    return {
-      config,
-      weights: this.#state.weights,
-      kvCache: this.#state.kvCache,
-      currentSeqLen: this.#state.currentSeqLen,
-      useGPU: this.#state.useGPU,
-      debug: this.#state.debug,
-      ropeFreqsCos: this.#state.ropeFreqsCos,
-      ropeFreqsSin: this.#state.ropeFreqsSin,
-      ropeLocalCos: this.#state.ropeLocalCos,
-      ropeLocalSin: this.#state.ropeLocalSin,
-      weightConfig: this._getWeightBufferConfig(),
-      debugFlags: this.#state.debugFlags,
-      debugProbes: this.#state.runtimeConfig.shared.debug.probes,
-      debugCheckBuffer: this.#state.debug ? this._debugCheckBuffer.bind(this) : undefined,
-      pipelinePlan: this.#state.layerPipelinePlan,
-      expertWeights: this.#state.expertWeights,
-      expertLoader:  (this.#state.dopplerLoader),
-      moeRouter: this.#state.moeRouter,
-      layerRouterWeights:  (this.#state.layerRouterWeights),
-      recorder,
-      lora: this.#state.lora,
-      decodeBuffers: isDecodeMode && this.#state.decodeBuffers?.hasBuffers() ? this.#state.decodeBuffers : null,
-      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
-      debugLayers: resolvedDebugLayers,
-    };
-  }
-
-  
-  _getWeightBufferConfig() {
-    return {
-      rmsNormWeightOffset: this.#state.modelConfig.rmsNormWeightOffset,
-    };
-  }
-
-  
-  _getLogitsWeights() {
-    const finalNorm = this.#state.weights.get('final_norm');
-    const lmHead = this.#state.weights.get('lm_head');
-    if (!finalNorm || !(finalNorm instanceof GPUBuffer || finalNorm instanceof Float32Array)) {
-      throw new Error('Final norm not found or invalid type');
-    }
-    if (!lmHead || !(lmHead instanceof GPUBuffer || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead))) {
-      throw new Error('LM head not found or invalid type');
-    }
-    return { finalNorm, lmHead };
-  }
-
-  
-  _getLogitsConfig() {
-    const config = this.#state.modelConfig;
-    return {
-      hiddenSize: config.hiddenSize,
-      vocabSize: config.vocabSize,
-      rmsNormEps: config.rmsNormEps,
-      rmsNormWeightOffset: config.rmsNormWeightOffset,
-      useTiedEmbeddings: this.#state.useTiedEmbeddings,
-      embeddingVocabSize: this.#state.embeddingVocabSize,
-      finalLogitSoftcapping: config.finalLogitSoftcapping,
-      largeWeights: this.#state.runtimeConfig.inference.largeWeights,
-      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
-    };
   }
 }

@@ -189,9 +189,18 @@ export class LogitMergeKernel {
       await this.init();
     }
 
-    const strategy = config.strategy || 'weighted';
-    const weights = normalizeWeights(config.weights || [0.5, 0.5], 2);
-    const temperature = config.temperature || 1.0;
+    if (!config?.strategy) {
+      throw new Error('LogitMerge strategy is required.');
+    }
+    if (!config?.weights) {
+      throw new Error('LogitMerge weights are required.');
+    }
+    if (config?.temperature == null) {
+      throw new Error('LogitMerge temperature is required.');
+    }
+    const strategy = config.strategy;
+    const weights = normalizeWeights(config.weights, 2);
+    const temperature = config.temperature;
 
     const pipeline = this.#pipelines.get(strategy);
     if (!pipeline) {
@@ -266,10 +275,13 @@ export class LogitMergeKernel {
     }
 
     // For more than 2 buffers, do pairwise reduction
-    const weights = normalizeWeights(
-      config.weights || logitBuffers.map(() => 1 / logitBuffers.length),
-      logitBuffers.length
-    );
+    if (!config?.weights) {
+      throw new Error('LogitMerge weights are required.');
+    }
+    if (config?.temperature == null) {
+      throw new Error('LogitMerge temperature is required.');
+    }
+    const weights = normalizeWeights(config.weights, logitBuffers.length);
 
     // Normalize weights for pairwise reduction
     let totalWeight = 0;
@@ -335,7 +347,13 @@ export function getLogitMergeKernel() {
 }
 
 
-export async function mergeLogits(logitsA, logitsB, vocabSize, weights = [0.5, 0.5], temperature = 1.0) {
+export async function mergeLogits(logitsA, logitsB, vocabSize, weights, temperature) {
+  if (!weights) {
+    throw new Error('LogitMerge weights are required.');
+  }
+  if (temperature == null) {
+    throw new Error('LogitMerge temperature is required.');
+  }
   const kernel = getLogitMergeKernel();
   return kernel.merge(logitsA, logitsB, vocabSize, {
     strategy: 'weighted',
@@ -345,7 +363,13 @@ export async function mergeLogits(logitsA, logitsB, vocabSize, weights = [0.5, 0
 }
 
 
-export async function mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature = 1.0) {
+export async function mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature) {
+  if (!weights) {
+    throw new Error('LogitMerge weights are required.');
+  }
+  if (temperature == null) {
+    throw new Error('LogitMerge temperature is required.');
+  }
   const kernel = getLogitMergeKernel();
   return kernel.mergeMultiple(logitBuffers, vocabSize, {
     strategy: 'weighted',

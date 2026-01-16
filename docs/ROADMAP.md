@@ -6,6 +6,19 @@
 
 ---
 
+## Current Priorities (Q1 2026)
+
+Execution sequence:
+
+1. **P0:** Gemma-3 inference correctness smoke test (prompt + pass/fail).
+2. **P1:** M1 latency benchmark for Gemma-3-1B Q4K (publish hardware + config).
+3. **P2:** IntentBundle parity gate (Dynamic Mode evidence pipeline).
+4. **P3:** Static Mode enforcement (locked kernels, signed bundles, audit output).
+
+These stay in Doppler; Reploid tracks the SAB loop, HITL wiring, and VFS proof emission.
+
+---
+
 ## The Capability Thesis
 
 The industry is fixated on a false dichotomy: **privacy vs. performance**. That is boring.

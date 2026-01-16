@@ -267,7 +267,49 @@ async function main() {
         const jsPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
         const pathWithoutDist = jsPath.replace(/^dist\//, '');
         // Try multiple locations in order:
-        // 1. dist/src/<path> - where tsc outputs src
+        // 1. dist/src/<path> - where tsc outputs src/** files
+        // 2. dist/<path> - for test/benchmark outputs
+        // 3. src/<path> - for raw JS files not processed by tsc (kernels, platforms)
+        const candidates = [
+          join(dopplerDir, 'dist', 'src', pathWithoutDist),
+          join(dopplerDir, 'dist', jsPath),
+          join(dopplerDir, 'src', pathWithoutDist),
+        ];
+        for (const candidate of candidates) {
+          try {
+            const stats = await stat(candidate);
+            return serveFile(candidate, stats, req, res);
+          } catch {
+            // Try next candidate
+          }
+        }
+        // Fall through to normal resolution (for vendor JS, etc.)
+      }
+
+      // Serve WGSL shader files from src/gpu/kernels/
+      // Requested at /gpu/kernels/*.wgsl but files are in src/gpu/kernels/
+      if (pathname.endsWith('.wgsl')) {
+        const wgslPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        const srcPath = join(dopplerDir, 'src', wgslPath);
+        try {
+          const stats = await stat(srcPath);
+          return serveFile(srcPath, stats, req, res);
+        } catch {
+          // Fall through to normal resolution
+        }
+      }
+
+      const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
+      const filePath = join(rootDir, safePath);
+
+      const resolved = resolve(filePath);
+      const resolvedRoot = resolve(rootDir);
+      if (!resolved.startsWith(resolvedRoot)) {
+        res.writeHead(403);
+        return res.end('Forbidden');
+      }
+
+      /** @type {import('fs').Stats} */
       let stats;
       try {
         stats = await stat(filePath);

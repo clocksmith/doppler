@@ -131,6 +131,7 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 - Loader must not mutate inference config.
 - Shared runtime is the only cross-cutting config between loader and inference.
 - Defaults live in schema files; runtime code should not hardcode fallbacks.
+- Rule maps are config assets: JSON-only, data-only, and loaded via the rule registry.
 
 ---
 

@@ -29,6 +29,12 @@ function mergeAttention(
       runtime?.queryPreAttnScalar,
       sources
     ),
+    attentionBias: overlay(
+      `${prefix}.attentionBias`,
+      manifest.attentionBias,
+      runtime?.attentionBias,
+      sources
+    ),
     attnLogitSoftcapping: overlay(
       `${prefix}.attnLogitSoftcapping`,
       manifest.attnLogitSoftcapping,

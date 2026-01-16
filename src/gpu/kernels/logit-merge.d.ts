@@ -17,12 +17,12 @@ export type MergeStrategy = 'weighted' | 'max' | 'geometric';
  * Configuration for logit merging.
  */
 export interface LogitMergeConfig {
-  /** Merge strategy (default: 'weighted') */
-  strategy?: MergeStrategy;
+  /** Merge strategy */
+  strategy: MergeStrategy;
   /** Weights for weighted merge (must sum to a positive value) */
-  weights?: number[];
-  /** Temperature to apply after merge (default: 1.0) */
-  temperature?: number;
+  weights: number[];
+  /** Temperature to apply after merge */
+  temperature: number;
 }
 
 /**
@@ -49,7 +49,7 @@ export declare class LogitMergeKernel {
     logitsA: GPUBuffer,
     logitsB: GPUBuffer,
     vocabSize: number,
-    config?: LogitMergeConfig
+    config: LogitMergeConfig
   ): Promise<GPUBuffer>;
 
   /**
@@ -64,7 +64,7 @@ export declare class LogitMergeKernel {
   mergeMultiple(
     logitBuffers: GPUBuffer[],
     vocabSize: number,
-    config?: LogitMergeConfig & { weights?: number[] }
+    config: LogitMergeConfig
   ): Promise<GPUBuffer>;
 }
 
@@ -80,16 +80,16 @@ export declare function getLogitMergeKernel(): LogitMergeKernel;
  * @param logitsA - First logit buffer
  * @param logitsB - Second logit buffer
  * @param vocabSize - Vocabulary size
- * @param weights - Merge weights (default: [0.5, 0.5])
- * @param temperature - Temperature scaling (default: 1.0)
+ * @param weights - Merge weights
+ * @param temperature - Temperature scaling
  * @returns Merged logit buffer
  */
 export declare function mergeLogits(
   logitsA: GPUBuffer,
   logitsB: GPUBuffer,
   vocabSize: number,
-  weights?: number[],
-  temperature?: number
+  weights: number[],
+  temperature: number
 ): Promise<GPUBuffer>;
 
 /**
@@ -98,13 +98,13 @@ export declare function mergeLogits(
  *
  * @param logitBuffers - Array of logit buffers
  * @param vocabSize - Vocabulary size
- * @param weights - Merge weights (defaults to equal)
- * @param temperature - Temperature scaling (default: 1.0)
+ * @param weights - Merge weights
+ * @param temperature - Temperature scaling
  * @returns Merged logit buffer
  */
 export declare function mergeMultipleLogits(
   logitBuffers: GPUBuffer[],
   vocabSize: number,
-  weights?: number[],
-  temperature?: number
+  weights: number[],
+  temperature: number
 ): Promise<GPUBuffer>;

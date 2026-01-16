@@ -46,6 +46,17 @@ export const DEFAULT_SAMPLE_THRESHOLDS = {
 export const DEFAULT_ROPE_DEFAULTS = {
   defaultTheta: 10000.0,
   uniformSize: 32,
+  defaultStartPos: 0,
+};
+
+// =============================================================================
+// Kernel Tuning Defaults
+// =============================================================================
+
+export const DEFAULT_TUNER_LIMITS = {
+  maxComputeWorkgroupSizeX: 256,
+  maxComputeWorkgroupSizeY: 256,
+  maxComputeInvocationsPerWorkgroup: 256,
 };
 
 // =============================================================================
@@ -123,6 +134,7 @@ export const DEFAULT_KERNEL_THRESHOLDS = {
   attention: DEFAULT_ATTENTION_THRESHOLDS,
   fusedMatmul: DEFAULT_FUSED_MATMUL_THRESHOLDS,
   cast: DEFAULT_CAST_THRESHOLDS,
+  tuner: DEFAULT_TUNER_LIMITS,
 };
 
 // =============================================================================
@@ -148,6 +160,7 @@ export function setKernelThresholds(overrides) {
     attention: { ...currentThresholds.attention, ...overrides.attention },
     fusedMatmul: { ...currentThresholds.fusedMatmul, ...overrides.fusedMatmul },
     cast: { ...currentThresholds.cast, ...overrides.cast },
+    tuner: { ...currentThresholds.tuner, ...overrides.tuner },
   };
 }
 

@@ -102,6 +102,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       slidingWindow: presetInference.attention?.slidingWindow ??
         config.sliding_window ?? null,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? false,
+      attentionBias: presetInference.attention?.attentionBias ??
+        config.attention_bias ?? false,
     },
     normalization: {
       rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? false,

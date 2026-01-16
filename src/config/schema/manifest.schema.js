@@ -18,6 +18,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,
+    attentionBias: false,
   },
   normalization: {
     rmsNormEps: 1e-5,

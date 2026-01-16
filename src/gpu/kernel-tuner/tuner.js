@@ -1,6 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities, getDeviceLimits } from '../device.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
 import { GPUProfiler } from '../profiler.js';
 import {
   getTunerConfig,
@@ -60,9 +61,10 @@ export class KernelTuner {
 
   
   #generateWorkgroupCandidates() {
-    const maxX = this.#limits?.maxComputeWorkgroupSizeX || 256;
-    const maxY = this.#limits?.maxComputeWorkgroupSizeY || 256;
-    const maxInvocations = this.#limits?.maxComputeInvocationsPerWorkgroup || 256;
+    const { maxComputeWorkgroupSizeX, maxComputeWorkgroupSizeY, maxComputeInvocationsPerWorkgroup } = getKernelThresholds().tuner;
+    const maxX = this.#limits?.maxComputeWorkgroupSizeX ?? maxComputeWorkgroupSizeX;
+    const maxY = this.#limits?.maxComputeWorkgroupSizeY ?? maxComputeWorkgroupSizeY;
+    const maxInvocations = this.#limits?.maxComputeInvocationsPerWorkgroup ?? maxComputeInvocationsPerWorkgroup;
 
     
     const candidates = [];

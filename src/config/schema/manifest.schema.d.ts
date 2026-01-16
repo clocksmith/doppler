@@ -151,6 +151,8 @@ export interface ManifestAttentionSchema {
   slidingWindow: number | null;
   /** Query-key normalization */
   queryKeyNorm: boolean;
+  /** Attention bias mask enabled */
+  attentionBias: boolean;
 }
 
 /**

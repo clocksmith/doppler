@@ -30,6 +30,8 @@ export interface TokenizerConfig {
   addBosToken?: boolean;
   /** Whether to add EOS token */
   addEosToken?: boolean;
+  /** Defer special token validation until tokenizer data is loaded */
+  deferSpecialTokens?: boolean;
   /** HuggingFace model ID */
   modelId?: string;
   hfModel?: string;

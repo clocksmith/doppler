@@ -1,3 +1,9 @@
+/**
+ * RMSNorm Backward Kernel (GPU)
+ *
+ * Computes gradients for RMSNorm input/weights.
+ * Uses shared-memory reduction for per-token stats.
+ */
 override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {

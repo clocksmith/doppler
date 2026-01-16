@@ -112,11 +112,11 @@ export async function ensureServerRunning(baseUrl, verbose) {
   console.log('Starting dev server...');
 
   const projectRoot = resolve(__dirname, '../..');
-  serverProcess = spawn('npm', ['run', 'start'], {
+  const serverEntry = resolve(projectRoot, 'serve.js');
+  serverProcess = spawn(process.execPath, [serverEntry], {
     cwd: projectRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: false,
-    shell: true,
   });
 
   if (verbose && serverProcess.stdout) {

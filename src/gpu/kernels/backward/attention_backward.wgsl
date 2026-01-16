@@ -1,3 +1,9 @@
+/**
+ * Attention Backward Kernel (GPU)
+ *
+ * Computes gradients for attention outputs.
+ * Placeholder implementation until full GPU backward is wired.
+ */
 override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {

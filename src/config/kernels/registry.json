@@ -60,6 +60,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "variantMetadata": { "colsPerWg": 1 },
           "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd"
         },
         "gemv_subgroup_f16a": {
@@ -68,20 +69,23 @@
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
           "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 1 },
           "description": "Subgroup-optimized GEMV with f16 activations + f16 output"
         },
         "gemv_subgroup_vec4": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16", "subgroups"]
+          "requires": ["shader-f16", "subgroups"],
+          "variantMetadata": { "colsPerWg": 4 }
         },
         "gemv_subgroup_vec4_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": { "colsPerWg": 4 }
         },
         "gemv_subgroup_cols8_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",

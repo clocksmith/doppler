@@ -16,13 +16,30 @@ export class BaseTokenizer {
   
   constructor(config = {}) {
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
-    this.vocabSize = config.vocabSize || 32000;
+    if (config.vocabSize == null) {
+      throw new Error('[Tokenizer] vocabSize is required.');
+    }
+    this.vocabSize = config.vocabSize;
+
+    const specialTokens = config.specialTokens ?? {};
+    const deferSpecialTokens = config.deferSpecialTokens === true;
+    const padToken = specialTokens.pad ?? config.padToken;
+    const bosToken = specialTokens.bos ?? config.bosToken;
+    const eosToken = specialTokens.eos ?? config.eosToken;
+    const unkToken = specialTokens.unk ?? config.unkToken;
+
+    if (!deferSpecialTokens && eosToken == null) {
+      throw new Error('[Tokenizer] eosToken is required.');
+    }
+    if (!deferSpecialTokens && (config.addBosToken ?? runtimeDefaults.addBosToken) && bosToken == null) {
+      throw new Error('[Tokenizer] bosToken is required when addBosToken is enabled.');
+    }
+
     this.specialTokens = {
-      pad: config.padToken ?? 0,
-      bos: config.bosToken ?? 1,
-      eos: config.eosToken ?? 2,
-      unk: config.unkToken ?? 0,
-      ...config.specialTokens
+      pad: padToken,
+      bos: bosToken,
+      eos: eosToken,
+      unk: unkToken,
     };
     this.addBosToken = config.addBosToken ?? runtimeDefaults.addBosToken;
     this.addEosToken = config.addEosToken ?? runtimeDefaults.addEosToken;

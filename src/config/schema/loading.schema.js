@@ -37,6 +37,7 @@ export const DEFAULT_OPFS_PATH_CONFIG = {
 export const DEFAULT_EXPERT_CACHE_CONFIG = {
   defaultSizeBytes: 2 * 1024 * 1024 * 1024, // 2GB
   maxBufferPercentage: 0.25, // 25% of max buffer
+  maxBufferFallbackBytes: 256 * 1024 * 1024, // 256MB
 };
 
 // =============================================================================

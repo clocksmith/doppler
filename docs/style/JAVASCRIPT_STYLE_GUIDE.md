@@ -21,6 +21,7 @@ Any selection of kernel variants, dtype strings, or op names must use JSON rule 
 - Store rules under `src/rules/<domain>/.../*.rules.json`.
 - Use `selectRuleValue()` from `src/rules/rule-registry.js` (or `src/gpu/kernels/rule-registry.js` for kernel-only call sites).
 - Avoid inline ternaries/if-else for choosing variant strings or dtypes.
+- Keep rule maps consistent and reusable: `match` + `value` keys only, no ad-hoc fields.
 
 Example:
 
@@ -307,35 +308,11 @@ function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
 }
 ```
 
-### DO: Rule Arrays
+### Avoid: Rule Arrays in JS
 
-```javascript
-// GOOD - declarative, auditable, testable
-// Types in rule-matcher.d.ts
-
-/** Matmul variant selection - first match wins */
-const MATMUL_VARIANTS = [
-  // Q4K fused paths
-  { match: { bDtype: 'q4k', M: 1, hasSubgroups: true, N: { gt: 4096 } }, variant: 'q4_fused_multicol' },
-  { match: { bDtype: 'q4k', M: 1, hasSubgroups: true }, variant: 'q4_fused' },
-  { match: { bDtype: 'q4k', M: 1 }, variant: 'q4_fused_batched' },
-
-  // GEMV paths (M=1)
-  { match: { M: 1, hasSubgroups: true, N: { gt: 2048 } }, variant: 'gemv_subgroup_multicol' },
-  { match: { M: 1, hasSubgroups: true }, variant: 'gemv_subgroup' },
-  { match: { M: 1 }, variant: 'gemv' },
-
-  // General matmul
-  { match: { aDtype: 'f16', bDtype: 'f16' }, variant: 'f16' },
-  { match: { bDtype: 'f16' }, variant: 'f16w_f32a' },
-  { match: {}, variant: 'f32' },  // Default
-];
-
-function selectMatmulVariant(ctx) {
-  const rule = MATMUL_VARIANTS.find(r => matchesRule(r.match, ctx));
-  return rule?.variant ?? 'f32';
-}
-```
+Inline rule arrays are not allowed in production code. Put all selection rules
+in JSON and evaluate them via the rule registry. The only exception is tests
+that validate the matcher itself.
 
 ### JSON Rule Maps (Required for Selection Logic)
 
@@ -376,7 +353,7 @@ function selectSoftmaxVariant(innerSize) {
 
 **Exception:** Only trivial, non-selection UI toggles may use inline conditionals.
 
-### Rule Matcher Utility
+### Rule Matcher Utility (Internal)
 
 ```javascript
 // utils/rule-matcher.js
@@ -405,6 +382,9 @@ export function selectByRules(rules, context, defaultValue) {
 }
 ```
 
+Do not call `matchesRule` or `selectByRules` directly in production code. Use
+`selectRuleValue()` so all selection passes through the rule registry.
+
 ---
 
 ## Kernel Selection Architecture
@@ -427,9 +407,11 @@ src/gpu/kernels/
 
 Note: `src/gpu/kernel-selector.js` is a thin re-export for backward compatibility; selection lives in `src/gpu/kernels/*`.
 
-### Rule Matcher Utility
+### Rule Registry
 
-Use `selectByRules` from `src/gpu/kernels/rule-matcher.js` for all kernel variant selection. Keep rules as pure data and build the context object before matching.
+Use `selectRuleValue()` from `src/rules/rule-registry.js` (or the kernel-local
+registry) for all kernel variant selection. Keep rules as pure data and build
+the context object before matching.
 
 ### Registry Derivation
 
@@ -463,16 +445,12 @@ Pull thresholds into the context object before matching so rules stay data-only:
 
 ```javascript
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 function selectSoftmaxVariant(innerSize) {
   const { smallThreshold } = getKernelThresholds().softmax;
   const ctx = { innerSize, isSmall: innerSize <= smallThreshold };
-  const rules = [
-    { match: { isSmall: true }, value: 'small' },
-    { match: {}, value: 'default' },
-  ];
-  return selectByRules(rules, ctx, 'default');
+  return selectRuleValue('softmax', 'variant', ctx);
 }
 ```
 

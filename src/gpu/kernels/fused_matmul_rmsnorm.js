@@ -12,7 +12,10 @@ import { trace } from '../../debug/index.js';
 import { selectRuleValue } from './rule-registry.js';
 
 
-export function selectMatmulRMSNormFusedVariant(N, dtype = 'f32') {
+export function selectMatmulRMSNormFusedVariant(N, dtype) {
+  if (!dtype) {
+    throw new Error('[MatmulRMSNormFused] dtype is required for variant selection.');
+  }
   const isF16 = dtype === 'f16';
   const isSmall = N <= WORKGROUP_SIZES.DEFAULT;
   return selectRuleValue('fusedMatmulRmsnorm', 'variant', { isSmall, isF16 });
@@ -29,12 +32,15 @@ export async function runMatmulRMSNormFused(
   const {
     N,
     K,
-    eps = 1e-5,
+    eps,
     residual = null,
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
     rmsNormWeightOffset = false,
   } = options;
+  if (eps == null) {
+    throw new Error('[MatmulRMSNormFused] eps is required.');
+  }
 
   const { maxMediumN } = getKernelThresholds().fusedMatmul;
   if (N > maxMediumN) {
@@ -44,7 +50,10 @@ export async function runMatmulRMSNormFused(
   const weightBuffer = getBuffer(weight);
 
   // Select variant based on output size and input dtype
-  const dtype = input.dtype || 'f32';
+  if (!input.dtype) {
+    throw new Error('[MatmulRMSNormFused] input dtype is required.');
+  }
+  const dtype = input.dtype;
   const variant = selectMatmulRMSNormFusedVariant(N, dtype);
 
   trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, dtype=${dtype}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);

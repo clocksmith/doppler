@@ -69,7 +69,7 @@ export class ExpertCache {
       }
 
       const limits = adapter.limits;
-      const maxBufferSize = limits?.maxBufferSize || 256 * 1024 * 1024;
+      const maxBufferSize = limits?.maxBufferSize ?? this.#config.maxBufferFallbackBytes;
 
       // Heuristic: Use up to default size or configured percentage of max buffer size, whichever is smaller
       // This leaves room for model weights, KV cache, and activations

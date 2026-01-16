@@ -80,6 +80,9 @@ export interface ExpertCacheConfigSchema {
 
   /** Maximum percentage of adapter's maxBufferSize to use (0-1) */
   maxBufferPercentage: number;
+
+  /** Fallback maxBufferSize when adapter limits are unavailable */
+  maxBufferFallbackBytes: number;
 }
 
 /** Default expert cache configuration */
