@@ -22,6 +22,7 @@ import type { KVCacheConfigSchema } from './kvcache.schema.js';
 import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { ManifestInferenceSchema } from './manifest.schema.js';
+import type { SpeculativeConfigSchema } from './speculative.schema.js';
 
 // Re-export for convenience
 export type { ManifestInferenceSchema };
@@ -150,6 +151,8 @@ export interface InferenceDefaultsConfigSchema {
   kvcache: KVCacheConfigSchema;
   /** MoE routing and cache configuration */
   moe: MoERuntimeConfigSchema;
+  /** Speculative decoding configuration */
+  speculative: SpeculativeConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   pipeline?: LayerPipelineSchema | null;

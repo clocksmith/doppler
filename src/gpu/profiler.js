@@ -4,7 +4,6 @@ import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback } from './perf-guards.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { DEFAULT_PROFILER_CONFIG } from '../config/schema/debug.schema.js';
 import { computeBasicStats } from '../debug/stats.js';
 
 
@@ -30,11 +29,11 @@ export class GPUProfiler {
   
   #readbackBuffer = null;
   
-  #queryCapacity = DEFAULT_PROFILER_CONFIG.queryCapacity;
+  #queryCapacity = 0;
   
-  #maxSamples = DEFAULT_PROFILER_CONFIG.maxSamples;
+  #maxSamples = 0;
   
-  #maxDurationMs = DEFAULT_PROFILER_CONFIG.maxDurationMs;
+  #maxDurationMs = 0;
 
   // Tracking state
   
@@ -56,10 +55,13 @@ export class GPUProfiler {
   constructor(device = null) {
     this.#device = device || getDevice();
     this.#hasTimestampQuery = this.#device?.features?.has(FEATURES.TIMESTAMP_QUERY) ?? false;
-    const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler ?? DEFAULT_PROFILER_CONFIG;
-    this.#queryCapacity = runtimeProfiler.queryCapacity ?? DEFAULT_PROFILER_CONFIG.queryCapacity;
-    this.#maxSamples = runtimeProfiler.maxSamples ?? DEFAULT_PROFILER_CONFIG.maxSamples;
-    this.#maxDurationMs = runtimeProfiler.maxDurationMs ?? DEFAULT_PROFILER_CONFIG.maxDurationMs;
+    const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler;
+    if (!runtimeProfiler) {
+      throw new Error('runtime.shared.debug.profiler is required.');
+    }
+    this.#queryCapacity = runtimeProfiler.queryCapacity;
+    this.#maxSamples = runtimeProfiler.maxSamples;
+    this.#maxDurationMs = runtimeProfiler.maxDurationMs;
 
     // Initialize query resources if timestamp queries available
     if (this.#hasTimestampQuery && this.#device) {

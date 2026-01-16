@@ -17,6 +17,7 @@ import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { f16ToF32Array } from '../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getCachedDequant, setCachedDequant, getDequantCacheStats } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe-helpers.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -36,7 +37,9 @@ export async function moeFeedForwardGPU(
   if (topK == null) {
     throw new Error('MoE topK is required in config.');
   }
-  const activationDtype = config.activationDtype === 'f16' ? 'f16' : 'f32';
+  const activationDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
+    dtype: config.activationDtype,
+  });
 
   if (!moeRouter || !moeRouter.gateWeight) {
     throw new Error('MoE router not initialized');
@@ -65,7 +68,7 @@ export async function moeFeedForwardGPU(
   perfLog(`MoE L${layerIdx} router`, stepStart, { numTokens, logitsDtype });
 
   if (isTraceEnabled('buffers')) {
-    const logitsBytesPerElement = logitsDtype === 'f16' ? 2 : 4;
+    const logitsBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
     const logitsBytes = numTokens * numExperts * logitsBytesPerElement;
     const logitsData = await readBuffer(logitsBuffer, logitsBytes);
     let logits;
@@ -118,7 +121,8 @@ export async function moeFeedForwardGPU(
       numExperts,
     });
 
-    const weightsBytes = numTokens * topK * (activationDtype === 'f16' ? 2 : 4);
+    const weightsBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+    const weightsBytes = numTokens * topK * weightsBytesPerElement;
     const weightsData = await readBuffer(weightsBuffer, weightsBytes);
     let weights;
     if (activationDtype === 'f16') {
@@ -143,7 +147,7 @@ export async function moeFeedForwardGPU(
 
   releaseBuffer(logitsBuffer);
 
-  const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
   const bytesPerToken = hiddenSize * bytesPerElement;
   let maxTokensPerExpert = resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype);
 
@@ -391,7 +395,7 @@ export async function moeFeedForwardGPU(
 
 function inferBufferDtype(buffer, expectedElements) {
   const bytesPerElement = Math.round(buffer.size / expectedElements);
-  return bytesPerElement <= 2 ? 'f16' : 'f32';
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
 }
 
 async function runGptOssExpert(
@@ -494,7 +498,8 @@ async function runGptOssExpert(
       : await castF16ToF32(biasTensor);
     biasTensor = biasTemp;
   }
-  const biasOffset = expertIdx * outDim * (biasTensor.dtype === 'f16' ? 2 : 4);
+  const biasBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: biasTensor.dtype });
+  const biasOffset = expertIdx * outDim * biasBytesPerElement;
   const activated = await runSwiGLURowsplitBias(
     gateUpOut,
     biasTensor,
@@ -527,7 +532,8 @@ async function runGptOssExpert(
   if (weights.downBias) {
     const biasElements = totalExperts * hiddenSize;
     const downBiasDtype = inferBufferDtype(weights.downBias, biasElements);
-    const downBiasOffset = expertIdx * hiddenSize * (activationDtype === 'f16' ? 2 : 4);
+    const downBiasBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+    const downBiasOffset = expertIdx * hiddenSize * downBiasBytesPerElement;
     const expertOutputsTensor = createTensor(expertOutputs, activationDtype, [count, hiddenSize], 'expert_outputs');
     const downBiasTensor = createTensor(weights.downBias, downBiasDtype, [biasElements], 'down_bias');
     await runBiasAdd(expertOutputsTensor, downBiasTensor, count, hiddenSize, {
@@ -567,7 +573,10 @@ async function runMixtralExpert(
     { transposeB: 'auto', aOffset: inputOffset, outputDtype: activationDtype, role: 'moe_up' }
   );
 
-  const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
+  const activationFn = {
+    gelu: runGeLU,
+    silu: runSiLU,
+  }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
   const activated = await activationFn(upOut, {
     size: count * intermediateSize,
     gate: gateOut,

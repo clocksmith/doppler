@@ -2,40 +2,65 @@ import { selectByRules } from '../gpu/kernels/rule-matcher.js';
 import attentionRules from './kernels/attention.rules.json' with { type: 'json' };
 import dequantRules from './kernels/dequant.rules.json' with { type: 'json' };
 import fusedFfnRules from './kernels/fused-ffn.rules.json' with { type: 'json' };
+import fusedMatmulResidualRules from './kernels/fused-matmul-residual.rules.json' with { type: 'json' };
 import fusedMatmulRmsnormRules from './kernels/fused-matmul-rmsnorm.rules.json' with { type: 'json' };
 import gatherRules from './kernels/gather.rules.json' with { type: 'json' };
+import geluRules from './kernels/gelu.rules.json' with { type: 'json' };
 import matmulRules from './kernels/matmul.rules.json' with { type: 'json' };
-import moeRules from './kernels/moe.rules.json' with { type: 'json' };
+import kernelMoeRules from './kernels/moe.rules.json' with { type: 'json' };
 import residualRules from './kernels/residual.rules.json' with { type: 'json' };
 import rmsnormRules from './kernels/rmsnorm.rules.json' with { type: 'json' };
 import ropeRules from './kernels/rope.rules.json' with { type: 'json' };
 import sampleRules from './kernels/sample.rules.json' with { type: 'json' };
+import scaleRules from './kernels/scale.rules.json' with { type: 'json' };
+import siluRules from './kernels/silu.rules.json' with { type: 'json' };
+import splitQkvRules from './kernels/split-qkv.rules.json' with { type: 'json' };
 import softmaxRules from './kernels/softmax.rules.json' with { type: 'json' };
 import configRules from './inference/config.rules.json' with { type: 'json' };
+import dtypeRules from './inference/dtype.rules.json' with { type: 'json' };
 import ffnRules from './inference/ffn.rules.json' with { type: 'json' };
 import layerRules from './inference/layer.rules.json' with { type: 'json' };
 import layerPatternRules from './inference/layer-pattern.rules.json' with { type: 'json' };
+import inferenceMoeRules from './inference/moe.rules.json' with { type: 'json' };
+import tokenizerRules from './converter/tokenizer.rules.json' with { type: 'json' };
+import loaderWeightRules from './loader/weights.rules.json' with { type: 'json' };
 
 const RULE_SETS = {
+  shared: {
+    dtype: dtypeRules,
+  },
   kernels: {
     attention: attentionRules,
     dequant: dequantRules,
     fusedFfn: fusedFfnRules,
+    fusedMatmulResidual: fusedMatmulResidualRules,
     fusedMatmulRmsnorm: fusedMatmulRmsnormRules,
     gather: gatherRules,
+    gelu: geluRules,
     matmul: matmulRules,
-    moe: moeRules,
+    moe: kernelMoeRules,
     residual: residualRules,
     rmsnorm: rmsnormRules,
     rope: ropeRules,
     sample: sampleRules,
+    scale: scaleRules,
+    silu: siluRules,
+    splitQkv: splitQkvRules,
     softmax: softmaxRules,
   },
   inference: {
     config: configRules,
+    dtype: dtypeRules,
     ffn: ffnRules,
     layer: layerRules,
     layerPattern: layerPatternRules,
+    moe: inferenceMoeRules,
+  },
+  loader: {
+    weights: loaderWeightRules,
+  },
+  converter: {
+    tokenizer: tokenizerRules,
   },
 };
 

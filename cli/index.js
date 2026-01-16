@@ -110,9 +110,6 @@ const FLAG_SPECS = [
   { names: ['--reuse-browser'], handler: (opts) => { opts.reuseBrowser = true; } },
   { names: ['--no-reuse-browser', '--new-browser'], handler: (opts) => { opts.reuseBrowser = false; } },
   { names: ['--cdp-endpoint'], handler: (opts, tokens) => { opts.cdpEndpoint = tokens.shift() || opts.cdpEndpoint; } },
-  { names: ['--layer'], handler: (opts, tokens) => { opts.layer = parseInt(tokens.shift() || '0', 10); } },
-  { names: ['--tokens'], handler: (opts, tokens) => { opts.tokens = parseInt(tokens.shift() || '10', 10); } },
-  { names: ['--kernel'], handler: (opts, tokens) => { opts.kernel = tokens.shift() || null; } },
   { names: ['--skip-load'], handler: (opts) => { opts.skipLoad = true; } },
   { names: ['--warm'], handler: (opts) => { opts.warm = true; opts.headless = false; opts.reuseBrowser = true; } },
   { names: ['--inference'], handler: (opts) => { opts.suite = 'inference'; } },
@@ -258,10 +255,6 @@ function parseArgs(argv) {
     help: false,
     perf: false,
     gpuProfile: false,
-    // Debug mode options
-    layer: null,
-    tokens: null,
-    kernel: null,
     // Warm mode options
     skipLoad: false,
     warm: false,
@@ -326,6 +319,15 @@ function appendRuntimeConfigParams(params, opts) {
 }
 
 
+function setHarnessConfig(opts, updates) {
+  const harness = opts.runtimeConfig?.shared?.harness;
+  if (!harness) {
+    throw new Error('runtime.shared.harness is required for harness config.');
+  }
+  Object.assign(harness, updates);
+}
+
+
 function normalizeSuite(suite) {
   
   const legacyMap = {
@@ -364,7 +366,6 @@ BENCH - Performance Benchmarks
 
 DEBUG - Interactive Debugging
   doppler debug                       Debug mode (config-driven)
-  doppler debug --layer 5             Stop at layer 5 for inspection
 
 ===============================================================
 
@@ -429,7 +430,15 @@ async function runCorrectnessTests(page, opts, tests) {
   console.log('KERNEL CORRECTNESS TESTS');
   console.log('='.repeat(60));
 
-  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=kernels`, {
+  setHarnessConfig(opts, {
+    mode: 'kernels',
+    autorun: false,
+    skipLoad: false,
+    modelId: null,
+  });
+  const harnessParams = new URLSearchParams();
+  appendRuntimeConfigParams(harnessParams, opts);
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?${harnessParams.toString()}`, {
     timeout: opts.timeout,
   });
 
@@ -1086,7 +1095,15 @@ async function runTrainingTests(page, opts, tests) {
   console.log('TRAINING CORRECTNESS TESTS');
   console.log('='.repeat(60));
 
-  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=training`, {
+  setHarnessConfig(opts, {
+    mode: 'training',
+    autorun: false,
+    skipLoad: false,
+    modelId: null,
+  });
+  const harnessParams = new URLSearchParams();
+  appendRuntimeConfigParams(harnessParams, opts);
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?${harnessParams.toString()}`, {
     timeout: opts.timeout,
   });
 
@@ -1195,7 +1212,15 @@ async function runKernelBenchmarks(page, opts) {
     (window).__name = (target) => target;
   });
 
-  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?mode=kernels`, {
+  setHarnessConfig(opts, {
+    mode: 'kernels',
+    autorun: false,
+    skipLoad: false,
+    modelId: null,
+  });
+  const harnessParams = new URLSearchParams();
+  appendRuntimeConfigParams(harnessParams, opts);
+  await page.goto(`${opts.baseUrl}/doppler/tests/harness.html?${harnessParams.toString()}`, {
     timeout: opts.timeout,
   });
 
@@ -1349,12 +1374,16 @@ async function runInferenceTest(page, opts) {
   console.log('='.repeat(60));
   console.log(`  Model: ${opts.model}`);
 
+  setHarnessConfig(opts, {
+    mode: 'inference',
+    autorun: true,
+    skipLoad: false,
+    modelId: opts.model,
+  });
   const testParams = new URLSearchParams();
-  testParams.set('model', opts.model);
-  testParams.set('autorun', '1');
   appendRuntimeConfigParams(testParams, opts);
 
-  const testUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${testParams.toString()}`;
+  const testUrl = `${opts.baseUrl}/doppler/tests/harness.html?${testParams.toString()}`;
   console.log(`  URL: ${testUrl}`);
 
   await page.goto(testUrl, { timeout: opts.timeout });
@@ -2099,9 +2128,6 @@ async function main() {
       console.log('DEBUG MODE');
       console.log('='.repeat(60));
       console.log(`  Model: ${opts.model}`);
-      if (opts.layer !== null) console.log(`  Stop at layer: ${opts.layer}`);
-      if (opts.tokens !== null) console.log(`  Encode tokens: ${opts.tokens}`);
-      if (opts.kernel) console.log(`  Trace kernel: ${opts.kernel}`);
 
       // Track generation completion for auto-close
       let generationDone = false;
@@ -2124,21 +2150,17 @@ async function main() {
         generationError = true;
       });
 
-      // Navigate to debug page with params - unified CLI -> URL mapping
+      setHarnessConfig(opts, {
+        mode: 'inference',
+        autorun: true,
+        skipLoad: opts.skipLoad,
+        modelId: opts.model,
+      });
+
       const debugParams = new URLSearchParams();
-      debugParams.set('model', opts.model);
-
-      // Legacy layer/kernel params
-      if (opts.layer !== null) debugParams.set('layer', String(opts.layer));
-      if (opts.tokens !== null) debugParams.set('tokens', String(opts.tokens));
-      if (opts.kernel) debugParams.set('kernel', opts.kernel);
-
-      // Warm mode: skip loading if --skip-load
-      if (opts.skipLoad) debugParams.set('skipLoad', '1');
-
       appendRuntimeConfigParams(debugParams, opts);
 
-      const debugUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${debugParams.toString()}&autorun=1`;
+      const debugUrl = `${opts.baseUrl}/doppler/tests/harness.html?${debugParams.toString()}`;
       console.log(`  URL: ${debugUrl}`);
 
       await page.goto(debugUrl, { timeout: opts.timeout });
@@ -2310,11 +2332,15 @@ async function main() {
           console.log('='.repeat(60));
           console.log(`  Model: ${opts.model}`);
 
+          setHarnessConfig(opts, {
+            mode: 'inference',
+            autorun: true,
+            skipLoad: false,
+            modelId: opts.model,
+          });
           const loadParams = new URLSearchParams();
-          loadParams.set('model', opts.model);
-          loadParams.set('benchmark', 'loading');
           appendRuntimeConfigParams(loadParams, opts);
-          const loadUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=inference&${loadParams.toString()}`;
+          const loadUrl = `${opts.baseUrl}/doppler/tests/harness.html?${loadParams.toString()}`;
           await page.goto(loadUrl, { timeout: opts.timeout });
 
           const loadStart = Date.now();

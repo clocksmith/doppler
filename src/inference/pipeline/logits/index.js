@@ -21,6 +21,8 @@ import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
 import { finalizeLogits } from './utils.js';
+import { getRuntimeConfig } from '../../../config/runtime.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 
 export async function computeLogits(
@@ -44,8 +46,9 @@ export async function computeLogits(
     useTiedEmbeddings,
     embeddingVocabSize,
     largeWeights,
-    activationDtype = 'f32',
+    activationDtype: activationDtypeOverride,
   } = config;
+  const activationDtype = activationDtypeOverride ?? getRuntimeConfig().inference.compute.activationDtype;
   const { finalNorm, lmHead } = weights;
   const device = getDevice();
 
@@ -87,9 +90,10 @@ export async function computeLogits(
     
     let cpuHiddenStates;
     if (inputIsGPU) {
-      const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
+      const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
       const data = await readBuffer(hiddenStates, numTokens * hiddenSize * bytesPerElement);
-      cpuHiddenStates = activationDtype === 'f16'
+      const decodeDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: activationDtype });
+      cpuHiddenStates = decodeDtype === 'f16'
         ? f16BufferToF32(data)
         : new Float32Array(data);
     } else {
@@ -238,7 +242,7 @@ export async function computeLogits(
   }
 
   // 4. Read back logits
-  const logitsBytes = logitsTensor.dtype === 'f16' ? 2 : 4;
+  const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
   const logitsData = await readBuffer(logitsTensor.buffer, numTokens * matmulVocabSize * logitsBytes);
 
   // Cleanup

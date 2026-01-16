@@ -528,6 +528,29 @@ export {
 } from './shared-runtime.schema.js';
 
 // =============================================================================
+// Harness Schema
+// =============================================================================
+export {
+  // Types
+  type HarnessConfigSchema,
+  type HarnessMode,
+
+  // Defaults
+  DEFAULT_HARNESS_CONFIG,
+} from './harness.schema.js';
+
+// =============================================================================
+// Speculative Schema
+// =============================================================================
+export {
+  // Types
+  type SpeculativeConfigSchema,
+
+  // Defaults
+  DEFAULT_SPECULATIVE_CONFIG,
+} from './speculative.schema.js';
+
+// =============================================================================
 // Doppler Master Config
 // =============================================================================
 export {

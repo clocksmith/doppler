@@ -2,6 +2,7 @@
 
 import { MultiModelNetwork } from './multi-model-network.js';
 import { log } from '../debug/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 // Re-export primitives from multi-model-network
 export { MultiModelNetwork };
@@ -48,9 +49,10 @@ export class FunctionGemma {
     this.pipeline = pipeline;
 
     
+    const runtime = getRuntimeConfig();
     this.config = {
-      defaultTemperature: 0.7,
-      defaultMaxTokens: 2048,
+      defaultTemperature: runtime.inference.sampling.temperature,
+      defaultMaxTokens: runtime.inference.batching.maxTokens,
       ...config,
     };
   }

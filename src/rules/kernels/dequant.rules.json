@@ -8,5 +8,9 @@
     { "match": { "wantsF16Out": true }, "value": "shared_f16out" },
     { "match": { "useVec4": true }, "value": "shared_vec4" },
     { "match": {}, "value": "shared" }
+  ],
+  "mxfp4ExpertVariant": [
+    { "match": { "outputDtype": "f16" }, "value": "mxfp4_expert_f16" },
+    { "match": {}, "value": "mxfp4_expert" }
   ]
 }

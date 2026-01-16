@@ -20,7 +20,14 @@ import { Tokenizer, type ModelManifest as TokenizerManifest } from '../tokenizer
 import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import type { LayerWeights, RouterWeights } from './types.js';
-import type { KVCacheConfigSchema, RuntimeConfigSchema, LoadingConfigSchema, KernelPathRef } from '../../config/schema/index.js';
+import type {
+  KVCacheConfigSchema,
+  RuntimeConfigSchema,
+  LoadingConfigSchema,
+  KernelPathRef,
+  MoERoutingConfigSchema,
+  SpeculativeConfigSchema,
+} from '../../config/schema/index.js';
 
 /**
  * External contexts that can be injected into the pipeline.
@@ -191,13 +198,17 @@ export function isStopToken(
  */
 export function initMoERouter(
   modelConfig: ParsedModelConfig,
+  moeRoutingConfig: MoERoutingConfigSchema,
   layerWeights: Map<string, LayerWeights>
 ): MoERouter | null;
 
 /**
  * Initialize speculative decoder if draft model is available.
  */
-export function initSpeculativeDecoder(manifest: Manifest): SpeculativeDecoder | null;
+export function initSpeculativeDecoder(
+  manifest: Manifest,
+  speculativeConfig: SpeculativeConfigSchema
+): SpeculativeDecoder | null;
 
 /**
  * Fuse Q/K/V projection weights into a single QKV weight for optimized inference.

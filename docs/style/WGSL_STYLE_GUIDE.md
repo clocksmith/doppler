@@ -595,3 +595,49 @@ struct Uniforms {
 
 - [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
 - [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns
+
+---
+
+## Kernel Compatibility and Overrides
+
+This section documents kernel path compatibility rules and runtime overrides.
+
+### Runtime Kernel Paths (Config-Only)
+
+Use runtime config to force kernel path selection:
+
+```json
+{
+  "runtime": {
+    "inference": {
+      "kernelPath": "gemma2-q4k-fused-f16a"
+    }
+  }
+}
+```
+
+Priority (low to high):
+1. manifest `optimizations.kernelPath`
+2. manifest `inference.defaultKernelPath`
+3. runtime config `runtime.inference.kernelPath`
+
+Kernel paths are explicit dispatch sequences. See `docs/design/KERNEL_PATHS.md`.
+
+### RDRR Layout vs Runtime Kernels
+
+| RDRR Quantization | Layout Metadata | Runtime Kernel Mode | Requirements | Notes |
+|---|---|---|---|---|
+| F16 / BF16 | `defaultWeightLayout=row` or `column` | `gemma2-f16-f16a` or `gemma2-f16-f32a` | `shader-f16` for F16 | Layout affects transpose; kernel path controls arithmetic. |
+| Q4_K_M | `q4kLayout=row_wise` | `gemma2-q4k-fused-f16a`, `gemma2-q4k-fused-f32a`, `gemma2-q4k-dequant-f16a/f32a` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
+| Q4_K_M | `q4kLayout=column_wise` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Column-wise packs are not fused-compatible. |
+| Q4_K_M | `q4kLayout=flat` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Flat packing is legacy; no fused kernel. |
+| MXFP4 | N/A | dequant + matmul (no dedicated kernel path yet) | `shader-f16` for F16 | Used for MoE experts; no fused matmul yet. |
+| Q8_0 / Q8_K | N/A | dequant + matmul (planned) | `shader-f16` for F16 | Loader runtime kernels are planned; treat as packing only today. |
+
+### OPFS Purge Helper
+
+Manifest updates in OPFS require a purge to take effect:
+
+```bash
+npx tsx doppler/tools/purge-opfs.js --model gemma-1b-q4-row
+```

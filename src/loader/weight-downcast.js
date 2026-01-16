@@ -11,6 +11,7 @@ import {
   getLayout,
 } from '../gpu/weight-buffer.js';
 import { trace as debugTrace } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Main Downcast Function
@@ -88,7 +89,10 @@ async function downcastWeightBuffer(buf, options) {
     const f16Tensor = await castF32ToF16(inputTensor);
 
     // Create new WeightBuffer with f16 dtype, preserving layout
-    const layout = options.layout ?? (wasColumnMajor ? 'column' : 'row');
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: options.layout ?? null,
+      useColumnWise: wasColumnMajor,
+    });
     const shape = options.shape ??  (buf.shape);
     const newWeightBuffer = createWeightBuffer(
       f16Tensor.buffer,
@@ -144,7 +148,10 @@ async function downcastGPUBuffer(buf, options) {
     const f16Tensor = await castF32ToF16(inputTensor);
 
     // Create WeightBuffer with f16 dtype, preserving layout
-    const layout = options.layout ?? (wasColumnMajor ? 'column' : 'row');
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: options.layout ?? null,
+      useColumnWise: wasColumnMajor,
+    });
     const shape = options.shape ?? [elems];
     const newWeightBuffer = createWeightBuffer(
       f16Tensor.buffer,

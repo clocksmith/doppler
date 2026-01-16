@@ -1,7 +1,6 @@
 
 
 import { getDevice } from '../../gpu/device.js';
-import { getRuntimeConfig } from '../../config/runtime.js';
 import { KVCache } from './base.js';
 
 // ============================================================================
@@ -13,9 +12,12 @@ export class SlidingWindowKVCache extends KVCache {
   
   constructor(config) {
     super(config);
-    
-    this.windowSize = config.windowSize || getRuntimeConfig().inference.kvcache.windowSize;
-    
+
+    if (!Number.isFinite(config.windowSize) || config.windowSize <= 0) {
+      throw new Error('SlidingWindowKVCache requires a positive windowSize.');
+    }
+    this.windowSize = config.windowSize;
+
     this.totalTokensSeen = 0;
   }
 

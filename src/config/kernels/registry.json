@@ -424,37 +424,43 @@
           "wgsl": "attention.wgsl",
           "entryPoint": "main",
           "workgroup": [64, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "decode": {
           "wgsl": "attention_decode.wgsl",
           "entryPoint": "attention_decode",
           "workgroup": [256, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "prefill_small": {
           "wgsl": "attention_small.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "decode_small": {
           "wgsl": "attention_small.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "prefill_streaming": {
           "wgsl": "attention_streaming.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "decode_streaming": {
           "wgsl": "attention_streaming.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "prefill_f16": {
           "wgsl": "attention_f16.wgsl",
@@ -502,37 +508,43 @@
           "wgsl": "attention_f16kv.wgsl",
           "entryPoint": "main",
           "workgroup": [64, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "decode_f16kv": {
           "wgsl": "attention_decode_f16kv.wgsl",
           "entryPoint": "attention_decode",
           "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "prefill_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "decode_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
           "entryPoint": "main",
           "workgroup": [32, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "decode_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",
           "workgroup": [1, 1, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "decode_chunked_f16": {
           "wgsl": "attention_decode_chunked_f16.wgsl",
@@ -548,6 +560,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"],
+          "outputDtype": "f32",
           "variantMetadata": { "maxKVLen": 2048 },
           "description": "Chunked decode kernel - parallelizes headDim for models with few heads"
         },
@@ -556,6 +569,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"],
+          "outputDtype": "f32",
           "description": "Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization"
         }
       }

@@ -58,12 +58,14 @@ export interface KVCache {
  * Speculative Decoding Configuration
  */
 export interface SpeculativeConfig {
-  /** Number of tokens to draft (default: 5) */
-  numDraftTokens?: number;
-  /** Max retries after rejection (default: 3) */
-  maxRejectionRetries?: number;
+  /** Number of tokens to draft */
+  numDraftTokens: number;
+  /** Max retries after rejection */
+  maxRejectionRetries: number;
   /** Use tree-based drafting (experimental) */
-  enableTreeDraft?: boolean;
+  enableTreeDraft: boolean;
+  /** Temperature for draft sampling */
+  temperature: number;
 }
 
 /**
@@ -144,6 +146,7 @@ export declare class SpeculativeDecoder {
   private numDraftTokens;
   private maxRejectionRetries;
   private enableTreeDraft;
+  private temperature;
 
   // Draft model reference (smaller/faster model)
   protected draftModel: DraftModel | null;
@@ -153,7 +156,7 @@ export declare class SpeculativeDecoder {
   // Statistics
   private stats;
 
-  constructor(config?: SpeculativeConfig);
+  constructor(config: SpeculativeConfig);
 
   /**
    * Set the draft model for speculation
@@ -177,7 +180,7 @@ export declare class SpeculativeDecoder {
   /**
    * Sample a token from logits using temperature sampling
    */
-  sampleToken(logits: Float32Array, temperature?: number): SampleResult;
+  sampleToken(logits: Float32Array, temperature: number): SampleResult;
 
   /**
    * Compute log softmax for numerical stability

@@ -54,6 +54,10 @@ export function isMoELayer(layerIdx, config, layerWeights) {
   return true;
 }
 
+function resolveActivationDtype(dtype) {
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype });
+}
+
 // ============================================================================
 // Main Layer Processing
 // ============================================================================
@@ -97,7 +101,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   // Determine activation dtype from context (defaults to f32)
   
-  const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+  const activationDtype = resolveActivationDtype(context.activationDtype);
 
   // Wrap input buffer as Tensor for dtype-aware processing
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
@@ -146,7 +150,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
       ? inputTensor
       : null,
-    attnSoftcap: config.attnLogitSoftcapping ?? 0,
+    attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
     queryPreAttnScalar: config.queryPreAttnScalar,
     queryKeyNorm: config.queryKeyNorm,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -440,7 +444,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
           
-          const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
           const residualTensor = (residualBuf && allowResidualFuse)
             ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
@@ -460,7 +464,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             slidingWindow: config.slidingWindow,
             layerType,
             residualTensor,
-            attnSoftcap: config.attnLogitSoftcapping ?? 0,
+            attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
             rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -502,7 +506,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
           
-          const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
           const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
           const outputTensor = await doRMSNorm(srcTensor, normWeightBuf, rmsNormEps, {
@@ -529,7 +533,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         case 'ffn': {
           const srcBuf = getSlot(step.src);
           
-          const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
           
           let outputTensor;
@@ -563,7 +567,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const aBuf = getSlot(step.a ?? 'state');
           const bBuf = getSlot(step.b ?? 'residual');
           
-          const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
+          const activationDtype = resolveActivationDtype(context.activationDtype);
           const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
           const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
           const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {

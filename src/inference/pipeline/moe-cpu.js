@@ -5,6 +5,7 @@ import { runMatmul, runSiLU, runGeLU } from '../../gpu/kernel-selector.js';
 import { createExpertExecutionPlan, combineExpertOutputs } from '../moe-router.js';
 import { log } from '../../debug/index.js';
 import { ensureExpertLoaded, gatherTokens } from './moe-helpers.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 export async function moeFeedForwardCPU(
   hiddenStates,
@@ -76,7 +77,10 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
     role: 'moe_up',
   });
 
-  const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
+  const activationFn = {
+    gelu: runGeLU,
+    silu: runSiLU,
+  }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,

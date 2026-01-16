@@ -80,14 +80,6 @@ export interface CLIOptions {
    *  Requires 'timestamp-query' WebGPU feature. */
   gpuProfile: boolean;
 
-  // Debug mode options
-  /** Stop at specific layer for inspection (debug mode) */
-  layer: number | null;
-  /** Number of tokens to encode before stopping (debug mode) */
-  tokens: number | null;
-  /** Specific kernel to trace (debug mode) */
-  kernel: string | null;
-
   // Warm mode options (preserve model in GPU RAM)
   /** Skip model loading, assume pipeline already exists in window.pipeline */
   skipLoad: boolean;

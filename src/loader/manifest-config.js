@@ -5,6 +5,7 @@ import { DTYPE_SIZES } from '../config/schema/index.js';
 import { shouldDequantizeToF16, isEmbeddingWeight } from './dtype-utils.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Norm Weight Offset Detection
@@ -68,27 +69,14 @@ export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF
   const hasF16 = caps?.hasF16 ?? false;
   const isMatmulWeight = shouldDequantizeToF16(name);
 
-  let dtype = 'f32';
-  switch (location.dtype) {
-    case 'F16':
-      dtype = 'f16';
-      break;
-    case 'BF16':
-      dtype = hasF16 && isMatmulWeight ? 'f16' : 'f32';
-      break;
-    case 'Q4_K':
-    case 'Q4_K_M':
-      dtype = (hasF16 && isMatmulWeight && !keepF32Weights) ? 'f16' : 'f32';
-      break;
-    case 'Q6_K':
-      dtype = 'f16';
-      break;
-    default:
-      dtype = 'f32';
-      break;
-  }
+  const dtype = selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
+    locationDtype: location.dtype,
+    hasF16,
+    isMatmulWeight,
+    keepF32Weights: Boolean(keepF32Weights),
+  });
 
-  const bytesPerElement = DTYPE_SIZES[dtype === 'f16' ? 'f16' : 'f32'];
+  const bytesPerElement = DTYPE_SIZES[selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype })];
   return { bytes: numElements * bytesPerElement, dtype };
 }
 

@@ -254,7 +254,62 @@ export async function installLocalDopplerRoutes(page, opts) {
   const projectRoot = resolve(__dirname, '../..');
   const modelsDir = join(projectRoot, 'models');
 
-  const pattern = `${baseOrigin}
+  const pattern = `${baseOrigin}/**/*`;
+  await page.route(pattern, async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    let safePath = decodeURIComponent(url.pathname);
+
+    if (safePath === '/api/models') {
+      const body = await buildModelsApiResponse(modelsDir);
+      return route.fulfill({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body,
+      });
+    }
+
+    if (safePath === '/d' || safePath === '/d/') {
+      return route.fulfill({
+        status: 302,
+        headers: { 'Location': '/' },
+      });
+    }
+
+    if (safePath.startsWith('/doppler/')) {
+      safePath = safePath.replace('/doppler/', '/');
+    } else if (safePath === '/doppler') {
+      safePath = '/app/index.html';
+    }
+
+    if (safePath === '/rd.css') {
+      safePath = '/app/rd.css';
+    }
+    if (safePath === '/kernel-tests/browser/registry.json') {
+      safePath = '/config/kernels/registry.json';
+    }
+    if (
+      safePath === '/favicon.ico' ||
+      safePath === '/favicon.svg' ||
+      safePath === '/site.webmanifest' ||
+      safePath === '/manifest.json' ||
+      safePath === '/browserconfig.xml' ||
+      safePath === '/apple-touch-icon.png' ||
+      safePath === '/apple-touch-icon-precomposed.png' ||
+      safePath === '/mstile-150x150.png' ||
+      safePath === '/android-chrome-192x192.png' ||
+      safePath === '/android-chrome-512x512.png'
+    ) {
+      return route.fulfill({ status: 204 });
+    }
+
+    if (safePath === '/' || safePath === '') {
+      safePath = '/app/index.html';
+    }
+
     let filePath;
     if (safePath.startsWith('/__dist_src__/')) {
       filePath = join(projectRoot, 'dist', 'src', safePath.slice('/__dist_src__/'.length));
@@ -262,6 +317,22 @@ export async function installLocalDopplerRoutes(page, opts) {
       filePath = join(projectRoot, 'dist', safePath.slice('/__dist__/'.length));
     } else {
       filePath = join(projectRoot, safePath);
+      if ((safePath.endsWith('.js') || safePath.endsWith('.json')) && !safePath.includes('node_modules')) {
+        const pathWithoutDist = safePath.replace(/^\/dist\//, '');
+        const distSrcPath = join(projectRoot, 'dist', 'src', pathWithoutDist);
+        const distPath = join(projectRoot, 'dist', pathWithoutDist);
+        try {
+          await stat(distSrcPath);
+          filePath = distSrcPath;
+        } catch {
+          try {
+            await stat(distPath);
+            filePath = distPath;
+          } catch {
+            // Fall back to projectRoot path.
+          }
+        }
+      }
     }
 
     const resolved = resolve(filePath);

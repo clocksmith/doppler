@@ -3,6 +3,7 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { log } from '../../debug/index.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 
 export class TokenizerWriter {
@@ -34,7 +35,7 @@ export class TokenizerWriter {
 
     const hasMerges = tokenizer.merges && tokenizer.merges.length > 0;
     const hasScores = tokenizer.scores && tokenizer.scores.length > 0;
-    const type = hasMerges ? 'bpe' : (hasScores ? 'unigram' : 'bpe');
+    const type = selectRuleValue('converter', 'tokenizer', 'type', { hasMerges, hasScores });
 
     const tokenizerJson = {
       type,

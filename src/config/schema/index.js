@@ -271,6 +271,12 @@ export {
   DEFAULT_KERNEL_REGISTRY_CONFIG,
   DEFAULT_SHARED_RUNTIME_CONFIG,
 } from './shared-runtime.schema.js';
+export {
+  DEFAULT_HARNESS_CONFIG,
+} from './harness.schema.js';
+export {
+  DEFAULT_SPECULATIVE_CONFIG,
+} from './speculative.schema.js';
 
 // =============================================================================
 // Doppler Master Config

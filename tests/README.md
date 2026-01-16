@@ -3,7 +3,7 @@
 ## Overview
 
 This directory contains the unified test harness for Doppler inference and GPU kernels.
-The harness supports multiple modes via URL parameter, consolidating what were previously
+The harness supports multiple modes via runtime config, consolidating what were previously
 separate test pages.
 
 > **Note:** Unit tests (Vitest) live in [`tests/unit/`](../tests/unit/).
@@ -15,11 +15,14 @@ separate test pages.
 
 ### Modes
 
-| Mode | URL | Purpose |
-|------|-----|---------|
-| `kernels` | `?mode=kernels` | GPU kernel correctness tests |
-| `inference` | `?mode=inference` | Inference pipeline tests |
-| `bench` | `?mode=bench` | Benchmark injection shell |
+Modes are configured in `runtime.shared.harness` and passed via the `runtimeConfig`
+URL parameter. The harness does not accept per-field query overrides.
+
+| Mode | Purpose |
+|------|---------|
+| `kernels` | GPU kernel correctness tests |
+| `inference` | Inference pipeline tests |
+| `bench` | Benchmark injection shell |
 
 ### Mode: Kernels
 
@@ -52,9 +55,6 @@ CI/automation testing of the inference pipeline.
 
 | Param | Description | Example |
 |-------|-------------|---------|
-| `model` | Model ID | `&model=gemma3-1b-q4` |
-| `autorun=1` | Auto-run on load | `&autorun=1` |
-| `skipLoad=1` | Reuse existing `window.pipeline` | `&skipLoad=1` |
 | `runtimeConfig` | JSON-encoded runtime config | `&runtimeConfig={...}` |
 | `configChain` | JSON-encoded config chain | `&configChain=["debug","default"]` |
 
@@ -94,10 +94,10 @@ npm test -- --quick
 npm test -- --inference
 
 # Manual browser testing
-open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1"
-
-# With runtime config
-open "http://localhost:8080/doppler/tests/harness.html?mode=inference&model=gemma3-1b-q4&autorun=1&runtimeConfig={...}"
+# Manual browser testing (runtimeConfig defines harness mode)
+node -e "const cfg={shared:{harness:{mode:'inference',autorun:true,skipLoad:false,modelId:'gemma3-1b-q4'}}};console.log(encodeURIComponent(JSON.stringify(cfg)));"
+# Paste output into:
+# http://localhost:8080/doppler/tests/harness.html?runtimeConfig=...
 ```
 
 ## Shared Test Utilities

@@ -55,13 +55,13 @@ doppler/
 | `npm start` | Dev server at localhost:8080 |
 | `npm test` | Kernel correctness tests |
 | `npm run bench` | Performance benchmarks |
-| `npm run debug` | Debug with tracing enabled |
+| `npm run debug` | Debug preset (trace/logs via config) |
 | `npm run build` | Bundle for browser |
 
 ```bash
 npm test -- --filter matmul      # Filter to specific kernel
-npm run bench -- --runs 3        # Multiple benchmark runs
-npm run debug -- --trace kernels # Trace specific categories
+npm run bench -- --config bench  # Benchmark preset
+npm run debug -- --config debug  # Debug preset (trace/logs via config)
 ```
 
 ### Common Flags
@@ -69,10 +69,7 @@ npm run debug -- --trace kernels # Trace specific categories
 | Flag | Description |
 |------|-------------|
 | `--model, -m <name>` | Model to use (default: gemma-3-1b-it-q4) |
-| `--config <preset>` | Load runtime preset or config file |
-| `--trace [cats]` | Trace categories: kernels, attn, ffn, kv, sample |
-| `--verbose, -v` | Verbose output |
-| `--quiet, -q` | Suppress logs |
+| `--config <preset>` | Runtime preset or config file (trace/logging set in config) |
 | `--headed` | Show browser window |
 
 ### Config System

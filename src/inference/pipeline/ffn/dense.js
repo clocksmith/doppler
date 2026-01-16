@@ -14,6 +14,7 @@ import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 
 export async function runDenseFFNGPU(
@@ -36,10 +37,14 @@ export async function runDenseFFNGPU(
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
     const useF16 = inputTensor.dtype === 'f16';
+    const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+      useF16,
+      fallback: undefined,
+    });
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_gate_up' },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_gate_up' },
       recorder
     );
 
@@ -76,7 +81,7 @@ export async function runDenseFFNGPU(
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
-    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
     const activatedOutput = await doSiLURowSplit(gateUpOutput, {
       numTokens,
       dim: intermediateSize,
@@ -104,7 +109,7 @@ export async function runDenseFFNGPU(
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_down' },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' },
       recorder
     );
 
@@ -165,7 +170,7 @@ export async function runDenseFFNGPU(
         const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
         const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
-        const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+        const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
         const fusedOutput = recorder
           ? await recordFusedFFN(
             recorder,
@@ -239,7 +244,7 @@ export async function runDenseFFNGPU(
 
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
     log.warn('Layer', `L${layerIdx} FFN: no weights found`);
-    const bytesPerElement = inputTensor.dtype === 'f16' ? 2 : 4;
+    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: inputTensor.dtype });
     const byteSize = numTokens * hiddenSize * bytesPerElement;
     const outputBuffer = acquireBuffer(byteSize, undefined, 'ffn_output');
     const encoder = device.createCommandEncoder();
@@ -249,8 +254,12 @@ export async function runDenseFFNGPU(
   }
 
   const useF16 = inputTensor.dtype === 'f16';
+  const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    useF16,
+    fallback: undefined,
+  });
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_gate' }, recorder);
+  let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_gate' }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
     releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
   }
@@ -276,7 +285,7 @@ export async function runDenseFFNGPU(
   }
 
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  let upOutput = await doMatmul(inputTensor, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_up' }, recorder);
+  let upOutput = await doMatmul(inputTensor, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_up' }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
     releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
   }
@@ -316,7 +325,10 @@ export async function runDenseFFNGPU(
     });
   }
 
-  const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
+  const activationFn = {
+    gelu: doGeLU,
+    silu: doSiLU,
+  }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
@@ -343,7 +355,7 @@ export async function runDenseFFNGPU(
   }
 
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_down' }, recorder);
+  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' }, recorder);
 
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {
@@ -415,13 +427,17 @@ export async function runDenseFFNWithFusedPostNormGPU(
   
   let activatedOutput;
   const useF16 = inputTensor.dtype === 'f16';
+  const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    useF16,
+    fallback: undefined,
+  });
 
   if (layerWeights.gateUp) {
     const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_gate_up' },
+      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_gate_up' },
       recorder
     );
 
@@ -449,7 +465,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
-    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
     activatedOutput = await doSiLURowSplit(gateUpOutput, {
       numTokens,
       dim: intermediateSize,
@@ -469,7 +485,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const gateOutput = await doMatmul(
       inputTensor, gateWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_gate' },
+      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_gate' },
       recorder
     );
     if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
@@ -479,14 +495,17 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const upOutput = await doMatmul(
       inputTensor, upWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto', outputDtype: useF16 ? 'f16' : undefined, role: 'ffn_up' },
+      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_up' },
       recorder
     );
     if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
       releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
     }
 
-    const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
+    const activationFn = {
+      gelu: doGeLU,
+      silu: doSiLU,
+    }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
     activatedOutput = await activationFn(upOutput, {
       size: numTokens * intermediateSize,
       gate: gateOutput,

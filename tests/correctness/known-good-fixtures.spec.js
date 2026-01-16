@@ -17,7 +17,7 @@ test.describe('known-good fixtures', () => {
   for (const [fixtureId, entry] of Object.entries(EXPECTED)) {
     test(`${fixtureId} output checksum`, async ({ page, baseURL }) => {
       const origin = baseURL || 'http://localhost:8080';
-      await page.goto(`${origin}/doppler/tests/harness.html?mode=inference`);
+      await page.goto(`${origin}/doppler/tests/harness.html`);
       await page.waitForLoadState('domcontentloaded');
 
       const output = await page.evaluate(async ({ fixtureId, entry }) => {

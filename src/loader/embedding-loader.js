@@ -7,6 +7,7 @@ import {
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { log } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Constants
@@ -79,7 +80,9 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   if (tensor instanceof Float32Array && loc?.shape && shouldStream) {
     const layout = ctx.resolveWeightLayout(loc, name);
     
-    const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: loc.dtype,
+    });
     const result = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.warn('Loader', `Embeddings stored on CPU for chunked gather (layout=${layout})`);
     return result;
@@ -89,7 +92,9 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   if (tensor instanceof GPUBuffer && loc?.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc, name);
     
-    const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: loc.dtype,
+    });
     const wrapped = createWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.info('Loader', `Wrapped embeddings as WeightBuffer (layout=${layout}, dtype=${dtype})`);
     return maybeDowncastEmbeddings(ctx, wrapped, name, loc);
@@ -109,7 +114,9 @@ async function maybeDowncastEmbeddings(ctx, current, name, loc) {
   // Get current dtype
   const dtype = isWeightBuffer(current)
     ? current.dtype
-    : (loc?.dtype === 'F16' ? 'f16' : 'f32');
+    : selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: loc?.dtype,
+    });
 
   // Skip if not F32
   if (dtype !== 'f32') {

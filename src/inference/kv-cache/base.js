@@ -3,7 +3,6 @@
 import { getDevice } from '../../gpu/device.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
-import { getRuntimeConfig } from '../../config/runtime.js';
 import {
   isContiguousLayer,
   isPagedLayer,
@@ -18,24 +17,36 @@ import {
 export class KVCache {
   
   constructor(config) {
-    const runtimeKV = getRuntimeConfig().inference.kvcache;
-    
     this.numLayers = config.numLayers;
     
     this.numHeads = config.numHeads;
     
     this.headDim = config.headDim;
-    // Use config defaults from schema
+    if (!Number.isFinite(config.maxSeqLen) || config.maxSeqLen <= 0) {
+      throw new Error('KVCache requires a valid maxSeqLen.');
+    }
+    if (config.useGPU == null) {
+      throw new Error('KVCache requires useGPU to be set.');
+    }
+    if (!config.layout) {
+      throw new Error('KVCache requires a layout.');
+    }
+    if (!Number.isFinite(config.pageSize) || config.pageSize <= 0) {
+      throw new Error('KVCache requires a valid pageSize.');
+    }
+    if (!config.kvDtype) {
+      throw new Error('KVCache requires kvDtype.');
+    }
+
+    this.maxSeqLen = config.maxSeqLen;
     
-    this.maxSeqLen = config.maxSeqLen || runtimeKV.maxSeqLen;
+    this.useGPU = config.useGPU;
     
-    this.useGPU = config.useGPU || false;
+    this.layout = config.layout;
     
-    this.layout = config.layout || runtimeKV.layout;
+    this.pageSize = config.pageSize;
     
-    this.pageSize = config.pageSize || runtimeKV.pageSize;
-    
-    this.kvDtype = config.kvDtype || runtimeKV.kvDtype;
+    this.kvDtype = config.kvDtype;
     
     this.bytesPerElem = this.kvDtype === 'f16' ? 2 : 4;
 

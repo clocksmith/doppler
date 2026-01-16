@@ -4,5 +4,13 @@
     { "match": { "patternType": "alternating", "globalPattern": "odd" }, "value": "alternating_odd" },
     { "match": { "patternType": "every_n" }, "value": "every_n" },
     { "match": {}, "value": null }
+  ],
+  "layerType": [
+    { "match": { "patternKind": "alternating_even", "isEven": true }, "value": "full_attention" },
+    { "match": { "patternKind": "alternating_even" }, "value": "sliding_attention" },
+    { "match": { "patternKind": "alternating_odd", "isEven": false }, "value": "full_attention" },
+    { "match": { "patternKind": "alternating_odd" }, "value": "sliding_attention" },
+    { "match": { "patternKind": "every_n", "isStride": true }, "value": "full_attention" },
+    { "match": { "patternKind": "every_n" }, "value": "sliding_attention" }
   ]
 }

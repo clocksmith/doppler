@@ -11,7 +11,8 @@ import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { trace } from '../../debug/index.js';
 import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
@@ -119,7 +120,7 @@ function selectAttentionTier(
   }
 
   if (!tier) {
-    tier = selectRuleValue('attention', 'tier', { canSubgroup, canLarge, canSmall, isDecode });
+    tier = selectKernelRuleValue('attention', 'tier', { canSubgroup, canLarge, canSmall, isDecode });
     if (!reason) {
       if (canSubgroup) {
         reason = 'subgroup_capable';
@@ -155,9 +156,9 @@ function resolveAttentionVariant(
   headDim,
   kvLen
 ) {
-  const base = isDecode ? 'decode' : 'prefill';
+  const base = selectKernelRuleValue('attention', 'phase', { isDecode });
   const useF16 = useF16KV && useF16Q;
-  const suffix = useF16 ? '_f16' : (useF16KV ? '_f16kv' : '');
+  const suffix = selectKernelRuleValue('attention', 'suffix', { useF16, useF16KV });
 
   // Check if chunked kernel is viable:
   // - Decode only (seqLen=1)
@@ -170,8 +171,8 @@ function resolveAttentionVariant(
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
   const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
-  const chunkedVariant = useF16 ? 'decode_chunked_f16' : 'decode_chunked_f16kv';
-  const variant = selectRuleValue(
+  const chunkedVariant = selectKernelRuleValue('attention', 'chunkedVariant', { useF16 });
+  const variant = selectKernelRuleValue(
     'attention',
     'variant',
     {
@@ -245,20 +246,20 @@ function validateAttentionVariant(
   const expectsF16 = normalized.includes('_f16') && !expectsF16KV;
   if (expectsF16) {
     if (!(useF16KV && useF16Q)) {
-      const kvLabel = useF16KV ? 'f16' : 'f32';
-      const qLabel = useF16Q ? 'f16' : 'f32';
+      const kvLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16KV });
+      const qLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Q });
       throw new Error(`Attention kernel "${variant}" requires f16 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   } else if (expectsF16KV) {
     if (!useF16KV || useF16Q) {
-      const kvLabel = useF16KV ? 'f16' : 'f32';
-      const qLabel = useF16Q ? 'f16' : 'f32';
+      const kvLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16KV });
+      const qLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Q });
       throw new Error(`Attention kernel "${variant}" requires f32 Q with f16 KV but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   } else {
     if (useF16KV || useF16Q) {
-      const kvLabel = useF16KV ? 'f16' : 'f32';
-      const qLabel = useF16Q ? 'f16' : 'f32';
+      const kvLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16KV });
+      const qLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Q });
       throw new Error(`Attention kernel "${variant}" requires f32 Q/K/V but got Q=${qLabel}, KV=${kvLabel}.`);
     }
   }
@@ -336,7 +337,8 @@ function resolveAttentionPlan(
   const useF16KV = kvDtype === 'f16';
   const useF16Q = qDtype === 'f16';
   const isDecode = seqLen === 1;
-  const pathVariant = getKernelPathAttentionVariant(isDecode ? 'decode' : 'prefill', layerIdx);
+  const phase = selectKernelRuleValue('attention', 'phase', { isDecode });
+  const pathVariant = getKernelPathAttentionVariant(phase, layerIdx);
 
   if (pathVariant) {
     const variantOverride = validateAttentionVariant(
@@ -480,7 +482,10 @@ export async function runAttention(
   const pipeline = await kernel.getPipeline(plan.variant);
 
   const outputConfig = getKernelConfig('attention', plan.variant);
-  const outputDtype = outputConfig.outputDtype ?? 'f32';
+  const outputDtype = outputConfig.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`[Attention] outputDtype is required for variant "${plan.variant}".`);
+  }
   const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
   const outputSize = seqLen * numHeads * headDim * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
@@ -585,7 +590,10 @@ export async function recordAttention(
   const pipeline = await kernel.getPipeline(plan.variant);
 
   const outputConfig = getKernelConfig('attention', plan.variant);
-  const outputDtype = outputConfig.outputDtype ?? 'f32';
+  const outputDtype = outputConfig.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention variant "${plan.variant}".`);
+  }
   const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
   const outputSize = seqLen * numHeads * headDim * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');

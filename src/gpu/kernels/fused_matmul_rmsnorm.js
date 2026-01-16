@@ -15,9 +15,7 @@ import { selectRuleValue } from './rule-registry.js';
 export function selectMatmulRMSNormFusedVariant(N, dtype = 'f32') {
   const isF16 = dtype === 'f16';
   const isSmall = N <= WORKGROUP_SIZES.DEFAULT;
-  const smallVariant = isF16 ? 'small_f16' : 'small';
-  const mediumVariant = isF16 ? 'medium_f16' : 'medium';
-  return selectRuleValue('fusedMatmulRmsnorm', 'variant', { isSmall, smallVariant, mediumVariant });
+  return selectRuleValue('fusedMatmulRmsnorm', 'variant', { isSmall, isF16 });
 }
 
 

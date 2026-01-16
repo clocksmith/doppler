@@ -2,20 +2,25 @@ import type { Rule } from '../gpu/kernels/rule-matcher.js';
 
 type RuleSet = Array<Rule<unknown>>;
 
-type RuleDomain = 'kernels' | 'inference';
+type RuleDomain = 'kernels' | 'inference' | 'shared' | 'loader' | 'converter';
 
 type KernelRuleGroup =
   | 'attention'
   | 'dequant'
   | 'fusedFfn'
+  | 'fusedMatmulResidual'
   | 'fusedMatmulRmsnorm'
   | 'gather'
+  | 'gelu'
   | 'matmul'
   | 'moe'
   | 'residual'
   | 'rmsnorm'
   | 'rope'
   | 'sample'
+  | 'scale'
+  | 'silu'
+  | 'splitQkv'
   | 'softmax';
 
 type RuleGroup = KernelRuleGroup | string;

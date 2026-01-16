@@ -37,16 +37,24 @@
     // ==========================================================================
 
     const params = new URLSearchParams(window.location.search);
-    const mode = params.get('mode') || 'kernels';
+    let runtimeConfig = null;
+    let harnessConfig = null;
 
-    // Update title based on mode
-    const titles = {
-      kernels: 'DOPPLER KERNEL TESTS',
-      inference: 'DOPPLER INFERENCE TEST',
-      bench: 'DOPPLER BENCHMARK',
-      training: 'DOPPLER TRAINING TESTS',
-    };
-    document.getElementById('title').textContent = titles[mode] || 'DOPPLER TEST HARNESS';
+    async function loadRuntimeConfig() {
+      const { parseRuntimeOverridesFromURL } = await import('/doppler/src/inference/test-harness.js');
+      const { getRuntimeConfig, setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      const runtimeOverrides = parseRuntimeOverridesFromURL(params);
+      if (runtimeOverrides.runtimeConfig) {
+        setRuntimeConfig(runtimeOverrides.runtimeConfig);
+      }
+      const resolved = getRuntimeConfig();
+      const harness = resolved.shared?.harness;
+      if (!harness) {
+        throw new Error('runtime.shared.harness is required for the harness.');
+      }
+      runtimeConfig = resolved;
+      harnessConfig = harness;
+    }
 
     // ==========================================================================
     // Shared: GPU Initialization
@@ -151,26 +159,24 @@
     async function initInferenceMode() {
       const {
         discoverModels,
-        parseRuntimeOverridesFromURL,
         createHttpShardLoader,
         fetchManifest,
         initializeDevice,
         createTestState,
       } = await import('/doppler/src/inference/test-harness.js');
-      const { getRuntimeConfig, setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      const { getRuntimeConfig } = await import('/doppler/src/config/index.js');
       const { createPipeline } = await import('/doppler/src/inference/pipeline.js');
       const { getDevice } = await import('/doppler/src/gpu/device.js');
       const { SIGNALS } = await import('/doppler/src/debug/index.js');
 
-      const paramModel = params.get('model') || 'gemma-3-1b-it-q4';
-      const paramAutorun = params.get('autorun') === '1';
-      const paramSkipLoad = params.get('skipLoad') === '1';
-      const runtimeOverrides = parseRuntimeOverridesFromURL(params);
-
-      if (runtimeOverrides.runtimeConfig) {
-        setRuntimeConfig(runtimeOverrides.runtimeConfig);
-      }
       const runtimeConfig = getRuntimeConfig();
+      const harnessConfig = runtimeConfig.shared.harness;
+      const paramModel = harnessConfig.modelId;
+      const paramAutorun = harnessConfig.autorun;
+      const paramSkipLoad = harnessConfig.skipLoad;
+      if (!paramModel) {
+        throw new Error('runtime.shared.harness.modelId must be set for inference mode.');
+      }
 
       const BASE_URL = 'http://localhost:8080/doppler/models';
 
@@ -308,7 +314,7 @@
         document.getElementById('status').textContent = 'Running...';
         run();
       } else {
-        document.getElementById('status').textContent = 'Add ?autorun=1 to URL to run';
+        document.getElementById('status').textContent = 'Ready (autorun disabled in config)';
       }
 
       return 'inference';
@@ -335,6 +341,16 @@
     // ==========================================================================
 
     async function main() {
+      await loadRuntimeConfig();
+      const mode = harnessConfig.mode;
+      const titles = {
+        kernels: 'DOPPLER KERNEL TESTS',
+        inference: 'DOPPLER INFERENCE TEST',
+        bench: 'DOPPLER BENCHMARK',
+        training: 'DOPPLER TRAINING TESTS',
+      };
+      document.getElementById('title').textContent = titles[mode] || 'DOPPLER TEST HARNESS';
+
       console.log(`[Harness] Mode: ${mode}`);
       document.getElementById('status').textContent = `Initializing ${mode} mode...`;
 

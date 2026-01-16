@@ -1,6 +1,9 @@
 
 
 
+import { selectRuleValue } from '../rules/rule-registry.js';
+
+
 export function createTensor(
   buffer,
   dtype,
@@ -68,5 +71,5 @@ export function dtypesMatch(a, b) {
 
 
 export function inferOutputDtype(a, b) {
-  return (a.dtype === 'f16' && b.dtype === 'f16') ? 'f16' : 'f32';
+  return selectRuleValue('shared', 'dtype', 'bothF16', { aDtype: a.dtype, bDtype: b.dtype });
 }

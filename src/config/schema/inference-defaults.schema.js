@@ -1,5 +1,6 @@
 import { DEFAULT_KVCACHE_CONFIG } from './kvcache.schema.js';
 import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
+import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
 
 // =============================================================================
 // Batching Defaults
@@ -67,6 +68,7 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
   kvcache: DEFAULT_KVCACHE_CONFIG,
   moe: DEFAULT_MOE_RUNTIME_CONFIG,
+  speculative: DEFAULT_SPECULATIVE_CONFIG,
   prompt: 'The color of the sky is',
   pipeline: null,
   kernelPath: undefined,

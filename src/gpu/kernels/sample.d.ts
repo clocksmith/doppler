@@ -6,15 +6,19 @@
 
 import type { CommandRecorder } from '../command-recorder.js';
 
-export interface SampleOptions {
-  temperature?: number;
-  topK?: number;
-  randomSeed?: number;
-  padTokenId?: number;
-  logitSoftcap?: number;
-  logitsDtype?: 'f16' | 'f32';
+export interface ArgmaxOptions {
+  padTokenId: number | null;
+  logitSoftcap: number;
+  logitsDtype: 'f16' | 'f32';
   outputBuffer?: GPUBuffer | null;
-  outputIndex?: number;
+  outputIndex: number;
+}
+
+export interface SampleOptions extends ArgmaxOptions {
+  temperature: number;
+  topK: number;
+  randomSeed?: number;
+  greedyThreshold: number;
 }
 
 export interface SampleResult {
@@ -33,7 +37,7 @@ export interface SampleSelectionContext {
 export declare function runArgmax(
   logits: GPUBuffer,
   vocabSize: number,
-  options?: SampleOptions
+  options: ArgmaxOptions
 ): Promise<number>;
 
 /**
@@ -42,7 +46,7 @@ export declare function runArgmax(
 export declare function runGPUSample(
   logits: GPUBuffer,
   vocabSize: number,
-  options?: SampleOptions
+  options: SampleOptions
 ): Promise<number>;
 
 /**
@@ -52,7 +56,7 @@ export declare function recordArgmax(
   recorder: CommandRecorder,
   logits: GPUBuffer,
   vocabSize: number,
-  options?: SampleOptions
+  options: ArgmaxOptions
 ): Promise<GPUBuffer>;
 
 /**
@@ -62,7 +66,7 @@ export declare function recordGPUSample(
   recorder: CommandRecorder,
   logits: GPUBuffer,
   vocabSize: number,
-  options?: SampleOptions
+  options: SampleOptions
 ): Promise<GPUBuffer>;
 
 /**

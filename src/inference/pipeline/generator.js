@@ -9,6 +9,7 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
 import { validateCallTimeOptions } from '../../config/param-validator.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
@@ -489,7 +490,7 @@ export class PipelineGenerator {
     }
 
     const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-    const activationBytes = activationDtype === 'f16' ? 2 : 4;
+    const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
     const debugCheckBuffer = this.#state.debug ? this._debugCheckBuffer.bind(this) : undefined;
 
     let hiddenStates = await embed(inputIds, embedBuffer, {
@@ -501,7 +502,7 @@ export class PipelineGenerator {
       transpose: this.#state.embeddingTranspose,
       debugProbes: this.#state.runtimeConfig.shared.debug.probes,
       activationDtype,
-      embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
+      embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
     });
 
     if (opts.debug && hiddenStates instanceof GPUBuffer) {
@@ -644,7 +645,7 @@ export class PipelineGenerator {
       await currentRecorder.submitAndWait();
       await recordProfile(currentRecorder);
 
-      const logitsBytes = recorded.logitsDtype === 'f16' ? 2 : 4;
+      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: recorded.logitsDtype });
       const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * logitsBytes);
       releaseBuffer(recorded.logitsBuffer);
       logits = decodeReadback(logitsData, recorded.logitsDtype);
@@ -703,7 +704,7 @@ export class PipelineGenerator {
         padded.fill(-Infinity, logitsVocabSize);
         lastLogits = padded;
       }
-      if (config.finalLogitSoftcapping) {
+      if (config.finalLogitSoftcapping != null) {
         applySoftcapping(lastLogits, config.finalLogitSoftcapping);
       }
     }
@@ -766,7 +767,7 @@ export class PipelineGenerator {
     const data = await readBuffer(buffer, readBytes);
     if (data.byteLength === 0) return;
 
-    const dtype = bytesPerElement === 2 ? 'f16' : 'f32';
+    const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
     const arr = decodeReadback(data, dtype);
 
     let min = Infinity;

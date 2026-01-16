@@ -5,8 +5,8 @@ import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
-import { getRuntimeConfig } from '../../config/runtime.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -34,7 +34,7 @@ function resolveSampleVariants(logitsDtype) {
   if (useF16 && !caps.hasF16) {
     throw new Error('[Sample] F16 logits requested but shader-f16 is unavailable.');
   }
-  const suffix = selectRuleValue('sample', 'suffix', { useF16 });
+  const suffix = selectKernelRuleValue('sample', 'suffix', { useF16 });
   return {
     argmax: `argmax${suffix}`,
     argmaxReduce: `argmax_reduce${suffix}`,
@@ -43,6 +43,11 @@ function resolveSampleVariants(logitsDtype) {
     phase3: `softmax_and_sample${suffix}`,
     singlePass: `single_pass${suffix}`,
   };
+}
+
+
+function resolveLogitsDtype(logitsDtype) {
+  return selectSharedRuleValue('shared', 'dtype', 'logitsDtype', { logitsDtype });
 }
 
 
@@ -59,7 +64,20 @@ export async function runArgmax(
   if (!device) throw new Error('GPU device not initialized');
 
   // Pipelines with explicit layout
-  const variants = resolveSampleVariants(options.logitsDtype ?? 'f32');
+  if (options.logitsDtype == null) {
+    throw new Error('[Sample] logitsDtype is required for argmax.');
+  }
+  if (options.outputIndex == null) {
+    throw new Error('[Sample] outputIndex is required for argmax.');
+  }
+  if (options.logitSoftcap === undefined) {
+    throw new Error('[Sample] logitSoftcap is required for argmax.');
+  }
+  if (options.padTokenId === undefined) {
+    throw new Error('[Sample] padTokenId is required for argmax.');
+  }
+  const logitsDtype = resolveLogitsDtype(options.logitsDtype);
+  const variants = resolveSampleVariants(logitsDtype);
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
   const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
@@ -70,7 +88,7 @@ export async function runArgmax(
   // Intermediate buffers
   const tempLogits = acquireBuffer(workgroupSize * 4, undefined, 'argmax_temp_logits');
   const tempIndices = acquireBuffer(workgroupSize * 4, undefined, 'argmax_temp_indices');
-  const outputIndex = options.outputIndex ?? 0;
+  const outputIndex = options.outputIndex;
   const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
   const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
   const ownsOutputBuffer = !options.outputBuffer;
@@ -79,8 +97,9 @@ export async function runArgmax(
   }
 
   // Uniforms
-  const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
-  const logitSoftcap = options.logitSoftcap ?? 0;
+  const padTokenId = options.padTokenId;
+  const padTokenValue = padTokenId == null ? 0xFFFFFFFF : padTokenId;
+  const logitSoftcap = options.logitSoftcap;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
     32,
@@ -89,7 +108,7 @@ export async function runArgmax(
       view.setUint32(4, 1, true);             // topK (unused for argmax)
       view.setFloat32(8, 1.0, true);          // temperature (unused)
       view.setFloat32(12, 0.0, true);         // randomValue (unused)
-      view.setUint32(16, padTokenId, true);   // padTokenId
+      view.setUint32(16, padTokenValue, true);   // padTokenId
       view.setFloat32(20, logitSoftcap, true); // logitSoftcap (Gemma 2: 30.0)
       view.setUint32(24, outputIndex, true); // outputIndex
     },
@@ -179,20 +198,40 @@ export async function runGPUSample(
     throw new Error('[Sample] GPU readback disabled for sampling');
   }
 
-  const samplingDefaults = getRuntimeConfig().inference.sampling;
+  if (options.temperature == null) {
+    throw new Error('[Sample] temperature is required for sampling.');
+  }
+  if (options.topK == null) {
+    throw new Error('[Sample] topK is required for sampling.');
+  }
+  if (options.logitsDtype == null) {
+    throw new Error('[Sample] logitsDtype is required for sampling.');
+  }
+  if (options.outputIndex == null) {
+    throw new Error('[Sample] outputIndex is required for sampling.');
+  }
+  if (options.logitSoftcap === undefined) {
+    throw new Error('[Sample] logitSoftcap is required for sampling.');
+  }
+  if (options.padTokenId === undefined) {
+    throw new Error('[Sample] padTokenId is required for sampling.');
+  }
+  if (options.greedyThreshold == null) {
+    throw new Error('[Sample] greedyThreshold is required for sampling.');
+  }
   const {
-    temperature = samplingDefaults.temperature,
-    topK = samplingDefaults.topK,
+    temperature,
+    topK,
     randomSeed,
     padTokenId,
-    logitSoftcap = 0,
-    logitsDtype = 'f32',
+    logitSoftcap,
+    greedyThreshold,
     outputBuffer: outputBufferOverride,
-    outputIndex = 0,
+    outputIndex,
   } = options;
+  const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
   // For temperature=0 or very low, use greedy argmax
-  const { greedyThreshold } = getRuntimeConfig().inference.sampling;
   if (temperature < greedyThreshold) {
     return runArgmax(logits, vocabSize, {
       padTokenId,
@@ -240,7 +279,7 @@ export async function runGPUSample(
       view.setUint32(4, topK, true);
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
-      view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
+      view.setUint32(16, padTokenId == null ? 0xFFFFFFFF : padTokenId, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
       view.setUint32(24, outputIndex, true);
     },
@@ -324,8 +363,22 @@ export async function recordArgmax(
 ) {
   const device = recorder.device;
 
+  if (options.logitsDtype == null) {
+    throw new Error('[Sample] logitsDtype is required for argmax (record).');
+  }
+  if (options.outputIndex == null) {
+    throw new Error('[Sample] outputIndex is required for argmax (record).');
+  }
+  if (options.logitSoftcap === undefined) {
+    throw new Error('[Sample] logitSoftcap is required for argmax (record).');
+  }
+  if (options.padTokenId === undefined) {
+    throw new Error('[Sample] padTokenId is required for argmax (record).');
+  }
+
   // Pipelines with explicit layout
-  const variants = resolveSampleVariants(options.logitsDtype ?? 'f32');
+  const logitsDtype = resolveLogitsDtype(options.logitsDtype);
+  const variants = resolveSampleVariants(logitsDtype);
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
   const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
@@ -334,7 +387,7 @@ export async function recordArgmax(
   // Buffers
   const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
   const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
-  const outputIndex = options.outputIndex ?? 0;
+  const outputIndex = options.outputIndex;
   const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
   const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
   if (outputBuffer.size < minOutputBytes) {
@@ -342,8 +395,9 @@ export async function recordArgmax(
   }
 
   // Uniforms
-  const padTokenId = options.padTokenId ?? 0xFFFFFFFF;
-  const logitSoftcap = options.logitSoftcap ?? 0;
+  const padTokenId = options.padTokenId;
+  const padTokenValue = padTokenId == null ? 0xFFFFFFFF : padTokenId;
+  const logitSoftcap = options.logitSoftcap;
   const uniformBuffer = createUniformBufferWithView(
     'argmax_uniforms',
     32,
@@ -352,7 +406,7 @@ export async function recordArgmax(
       view.setUint32(4, 1, true);
       view.setFloat32(8, 1.0, true);
       view.setFloat32(12, 0.0, true);
-      view.setUint32(16, padTokenId, true);
+      view.setUint32(16, padTokenValue, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
       view.setUint32(24, outputIndex, true);
     },
@@ -413,20 +467,40 @@ export async function recordGPUSample(
   vocabSize,
   options = {}
 ) {
-  const samplingDefaults = getRuntimeConfig().inference.sampling;
+  if (options.temperature == null) {
+    throw new Error('[Sample] temperature is required for sampling (record).');
+  }
+  if (options.topK == null) {
+    throw new Error('[Sample] topK is required for sampling (record).');
+  }
+  if (options.logitsDtype == null) {
+    throw new Error('[Sample] logitsDtype is required for sampling (record).');
+  }
+  if (options.outputIndex == null) {
+    throw new Error('[Sample] outputIndex is required for sampling (record).');
+  }
+  if (options.logitSoftcap === undefined) {
+    throw new Error('[Sample] logitSoftcap is required for sampling (record).');
+  }
+  if (options.padTokenId === undefined) {
+    throw new Error('[Sample] padTokenId is required for sampling (record).');
+  }
+  if (options.greedyThreshold == null) {
+    throw new Error('[Sample] greedyThreshold is required for sampling (record).');
+  }
   const {
-    temperature = samplingDefaults.temperature,
-    topK = samplingDefaults.topK,
+    temperature,
+    topK,
     randomSeed,
     padTokenId,
-    logitSoftcap = 0,
-    logitsDtype = 'f32',
+    logitSoftcap,
+    greedyThreshold,
     outputBuffer: outputBufferOverride,
-    outputIndex = 0,
+    outputIndex,
   } = options;
+  const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
   // For temperature=0 or very low, use greedy argmax
-  const { greedyThreshold } = getRuntimeConfig().inference.sampling;
   if (temperature < greedyThreshold) {
     return recordArgmax(recorder, logits, vocabSize, {
       padTokenId,
@@ -471,7 +545,7 @@ export async function recordGPUSample(
       view.setUint32(4, topK, true);
       view.setFloat32(8, temperature, true);
       view.setFloat32(12, randomValue, true);
-      view.setUint32(16, padTokenId ?? 0xFFFFFFFF, true);
+      view.setUint32(16, padTokenId == null ? 0xFFFFFFFF : padTokenId, true);
       view.setFloat32(20, logitSoftcap, true);  // Gemma 2: 30.0
       view.setUint32(24, outputIndex, true);
     },

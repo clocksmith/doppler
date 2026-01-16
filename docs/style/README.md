@@ -10,6 +10,7 @@ Coding conventions for the DOPPLER codebase.
 | [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) | Kernel wrappers, config-as-code, JSDoc, rule maps |
 | [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) | Shader structure, constants vs uniforms, bindings |
 | [Benchmark Style Guide](./BENCHMARK_STYLE_GUIDE.md) | Benchmark harnesses, output schema, baselines |
+| [Config Style Guide](./CONFIG_STYLE_GUIDE.md) | Config ownership, merge order, runtime boundaries |
 
 ## Quick Reference
 

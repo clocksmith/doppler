@@ -1,0 +1,27 @@
+{
+  "matmulWeightDtype": [
+    { "match": { "locationDtype": "F16" }, "value": "f16" },
+    { "match": { "locationDtype": "BF16", "hasF16": true, "isMatmulWeight": true }, "value": "f16" },
+    { "match": { "locationDtype": "BF16" }, "value": "f32" },
+    { "match": { "locationDtype": { "in": ["Q4_K", "Q4_K_M"] }, "hasF16": true, "isMatmulWeight": true, "keepF32Weights": false }, "value": "f16" },
+    { "match": { "locationDtype": { "in": ["Q4_K", "Q4_K_M"] } }, "value": "f32" },
+    { "match": { "locationDtype": "Q6_K" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "floatLocationDtype": [
+    { "match": { "locationDtype": "F16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "weightLayout": [
+    { "match": { "layout": "column" }, "value": "column" },
+    { "match": { "layout": "row" }, "value": "row" },
+    { "match": { "useColumnWise": true }, "value": "column" },
+    { "match": {}, "value": "row" }
+  ],
+  "q4kOutputDtype": [
+    { "match": { "isMatmulWeight": false }, "value": "f32" },
+    { "match": { "keepF32Weights": true }, "value": "f32" },
+    { "match": { "hasF16": true }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ]
+}

@@ -15,7 +15,7 @@ test.describe('Batch Generation Correctness', () => {
   test.setTimeout(TEST_CONFIG.timeout);
 
   test('batchSize=1 vs batchSize=N produces identical output at temperature=0', async ({ page }) => {
-    const testUrl = `/doppler/tests/harness.html?mode=inference&model=${TEST_CONFIG.model}`;
+    const testUrl = `/doppler/tests/harness.html`;
     await page.goto(testUrl);
     await page.waitForLoadState('domcontentloaded');
 
@@ -76,7 +76,7 @@ test.describe('Batch Generation Correctness', () => {
   });
 
   test('onBatch callback fires correct number of times', async ({ page }) => {
-    const testUrl = `/doppler/tests/harness.html?mode=inference&model=${TEST_CONFIG.model}`;
+    const testUrl = `/doppler/tests/harness.html`;
     await page.goto(testUrl);
 
     // Inject a custom test that tracks onBatch calls

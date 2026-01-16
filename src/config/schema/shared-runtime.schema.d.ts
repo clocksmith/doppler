@@ -16,6 +16,7 @@ import type { TunerConfigSchema } from './tuner.schema.js';
 import type { HotSwapConfigSchema } from './hotswap.schema.js';
 import type { BridgeConfigSchema } from './bridge.schema.js';
 import type { PlatformSchema } from './platform.schema.js';
+import type { HarnessConfigSchema } from './harness.schema.js';
 
 /**
  * Kernel registry configuration (source/override).
@@ -36,6 +37,8 @@ export interface SharedRuntimeConfigSchema {
   debug: DebugConfigSchema;
   /** Benchmarking configuration defaults */
   benchmark: BenchmarkConfig;
+  /** Harness configuration (CLI/test runner) */
+  harness: HarnessConfigSchema;
   /** Optional platform override (auto-detect when null) */
   platform: Partial<PlatformSchema> | null;
   /** Kernel registry source config */

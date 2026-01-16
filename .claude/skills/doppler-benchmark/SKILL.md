@@ -100,7 +100,7 @@ npm run bench -- --config ./bench-3runs.json -m MODEL
 npm run bench -- --config bench -m MODEL
 
 # Use a config file
-npm run bench -- --inference -m MODEL --config ./my-bench-config.json
+npm run bench -- --config ./my-bench-config.json -m MODEL
 ```
 
 Example `my-bench-config.json`:
@@ -108,6 +108,14 @@ Example `my-bench-config.json`:
 {
   "extends": "bench",
   "runtime": {
+    "shared": {
+      "benchmark": {
+        "run": {
+          "warmupRuns": 1,
+          "timedRuns": 3
+        }
+      }
+    },
     "inference": {
       "batching": { "maxTokens": 64 },
       "sampling": { "temperature": 0 }
@@ -211,7 +219,7 @@ For detailed information, consult these files:
 
 - **Benchmark harness**: `cli/helpers/inference-benchmark.js`
 - **CLI implementation**: `cli/index.js`
-- **Config resolution**: `docs/CONFIG_RESOLUTION.md`
+- **Config resolution**: `docs/style/CONFIG_STYLE_GUIDE.md`
 - **Historical results**: `tests/results/*.json`
 
 ## Related Skills

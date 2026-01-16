@@ -4,77 +4,30 @@ Quick index for DOPPLER documentation.
 
 ---
 
-## Vision & Task Tracking
-
-**Start here:** [VISION.md](VISION.md) - Capability thesis and phased roadmap overview.
-
-**Task tracking:** All tasks are tracked in the feature-log system:
-- `feature-log/doppler/*.jsonl` - JSONL database of all features and tasks
-- `/feature-log-query --status planned` - Query planned tasks
-- `/feature-log-query --priority P0` - Query P0 tasks
-
----
-
-## Technical Internals
-
-Deep-dives on kernel implementations and optimization strategies:
-
-| Topic | Content |
-|-------|---------|
-| [Quantization](internals/QUANTIZATION.md) | Q4K layouts, column-wise optimization, GPU coalescing |
-| [Matmul](internals/MATMUL.md) | Thread utilization, GEMV variants, LM head optimization |
-| [Attention](internals/ATTENTION.md) | Decode kernel, barrier analysis, subgroup optimization |
-| [Fusion](internals/FUSION.md) | Kernel fusion opportunities, optimization matrix |
-| [MoE](internals/MOE.md) | Expert paging, sparsity exploitation, routing |
-| [Memory Tiers](internals/MEMORY_TIERS.md) | Tiered architecture, tensor parallelism, P2P mesh |
-| [Gemma 2 Inference](internals/GEMMA2_INFERENCE.md) | Presets, kernel paths, benchmark checklist |
-
----
-
 ## Core Docs
 
-- [Architecture](ARCHITECTURE.md) - High-level module layout and subsystem responsibilities.
-- [Execution Pipeline](EXECUTION_PIPELINE.md) - Kernel-by-kernel inference walkthrough and fusion analysis.
-- [Config Resolution](CONFIG_RESOLUTION.md) - Parameter categories and resolution order.
-- [Glossary](GLOSSARY.md) - Terms and definitions used across DOPPLER.
-- [Troubleshooting Guide](DOPPLER-TROUBLESHOOTING.md) - Comprehensive debugging strategies for inference issues.
-- [Inference README](../inference/README.md) - Step-by-step inference flow (init, load, prefill, decode).
-- [Hardware Compatibility](HARDWARE_COMPATIBILITY.md) - Browser and GPU support notes.
+- [Architecture](ARCHITECTURE.md) - System overview, pipeline, internals, glossary.
+- [Config](CONFIG.md) - Kernel paths and error codes.
+- [Formats](FORMATS.md) - RDRR and LoRA formats, adapter manifest.
+- [Operations](OPERATIONS.md) - Troubleshooting, debug notes, perf investigations, results.
+- [Testing](TESTING.md) - Testing strategy, kernel testing, known-good matrix.
+- [Roadmap](ROADMAP.md) - Vision, plans, competitive notes.
+- [Postmortems](POSTMORTEMS.md) - Incident summaries and links.
 
 ---
 
-## Reference Docs
+## Style Guides
 
-| Document | Content |
-|----------|---------|
-| [Target Models](plans/TARGET_MODELS.md) | Benchmark priority list |
-| [Competitive Analysis](design/COMPETITIVE_ANALYSIS.md) | WebLLM, WeInfer, Transformers.js comparison |
-| [Known-Good Matrix](design/KNOWN_GOOD_MATRIX.md) | Fixture coverage for loader/inference |
-| [RDRR Format](design/RDRR_FORMAT.md) | Model format specification |
-| [RDRR-LoRA Format](spec/RDRR_LORA_FORMAT.md) | LoRA adapter manifest format |
-| [Error Codes](spec/ERROR_CODES.md) | Stable error taxonomy and codes |
-| [Training Engine](../src/training/README.md) | Training primitives, runners, and exports |
-| [Adapter Manifest](design/ADAPTER_MANIFEST.md) | LoRA/QLoRA adapter manifest spec |
+- [Style Guides](style/README.md) - General, JavaScript, WGSL, config, benchmark.
 
 ---
 
-## Specs & Testing
+## Specs & Tooling
 
-- [Benchmark Harness](design/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
-- [Kernel Testing](design/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
-- [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmark tracking.
-- [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and benchmark notes.
-
----
-
-## Results
-
-- [Test Results](TEST_RESULTS.md) - Benchmark and validation logs by session.
-
----
-
-## Postmortems
-
-Notes and incident writeups live in `docs/postmortems/`.
+- [Benchmark Schema](spec/BENCHMARK_SCHEMA.json) - JSON schema for benchmark output.
+- [Training Engine](../src/training/README.md) - Training primitives and runners.
+- [Inference README](../inference/README.md) - Step-by-step inference flow.
+- [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmarks.
+- [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and notes.
 
 *Last updated: January 2026*

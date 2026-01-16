@@ -48,7 +48,7 @@ export default defineConfig({
 
   webServer: {
     command: 'node ../../../serve.js --port 8080',
-    url: 'http://localhost:8080/doppler/tests/harness.html?mode=kernels',
+    url: 'http://localhost:8080/doppler/tests/harness.html',
     reuseExistingServer: !process.env.CI,
     timeout: 10000,
   },

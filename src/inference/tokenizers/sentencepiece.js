@@ -2,6 +2,7 @@
 
 import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 
 
@@ -99,7 +100,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     // Determine algorithm from model characteristics
     // (Unigram has scores, BPE typically doesn't)
     const hasScores = [...this.#pieces.values()].some(p => p.score !== 0);
-    this.#algorithm = hasScores ? 'unigram' : 'bpe';
+    this.#algorithm = selectRuleValue('converter', 'tokenizer', 'type', { hasScores });
   }
 
   

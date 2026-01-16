@@ -8,6 +8,7 @@ import {
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Constants
@@ -139,7 +140,9 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   if (tensor instanceof Float32Array && shouldStream) {
     const layout = ctx.resolveWeightLayout(loc, name);
     
-    const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: loc.dtype,
+    });
     const result = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.warn('Loader', `LM head stored on CPU for chunked matmul (layout=${layout})`);
     return result;
@@ -149,7 +152,9 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   if (tensor instanceof GPUBuffer && loc.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc, name);
     
-    const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
+    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: loc.dtype,
+    });
     const wrapped = createWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.info('Loader', `Wrapped lm_head as WeightBuffer (layout=${layout}, dtype=${dtype})`);
     return wrapped;
@@ -178,7 +183,9 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   // Get current dtype
   const dtype = isWeightBuffer(lmHead)
     ? lmHead.dtype
-    : (lmHeadLoc?.dtype === 'F16' ? 'f16' : 'f32');
+    : selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: lmHeadLoc?.dtype,
+    });
 
   // Skip if not F32
   if (dtype !== 'f32') {

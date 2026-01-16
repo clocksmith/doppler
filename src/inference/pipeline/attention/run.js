@@ -19,6 +19,7 @@ import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace } from '../../../debug/index.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 import {
   shouldDebugLayer,
@@ -53,7 +54,7 @@ export async function runLayerAttentionGPU(
     slidingWindow,
     layerType,
     residualTensor,
-    attnSoftcap = 0,
+    attnSoftcap,
     queryPreAttnScalar,
     skipInputNorm = false,
   } = config;
@@ -61,7 +62,8 @@ export async function runLayerAttentionGPU(
   const device = getDevice();
 
   const wantsF16Output = input.dtype === 'f16';
-  const kvCacheDtype = state.kvCache?.kvDtype ?? (wantsF16Output ? 'f16' : 'f32');
+  const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
+  const kvCacheDtype = state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
@@ -81,7 +83,8 @@ export async function runLayerAttentionGPU(
     // Return zeros if no weights
     const bytesPerElement = wantsF16Output ? 2 : 4;
     const outputBuf = acquireBuffer(numTokens * hiddenSize * bytesPerElement, undefined, 'attn_output');
-    const output = createTensor(outputBuf, wantsF16Output ? 'f16' : 'f32', [numTokens, hiddenSize], 'attn_output');
+    const outputDtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
+    const output = createTensor(outputBuf, outputDtype, [numTokens, hiddenSize], 'attn_output');
     return { output, residualFused: false };
   }
 
@@ -131,7 +134,7 @@ export async function runLayerAttentionGPU(
   const debugLayers = debugFlags.debugLayers;
   const shouldLogLayer = debugLayers === null ? layerIdx === 0 : shouldDebugLayer(layerIdx, debugLayers);
   if (shouldLogLayer) {
-    const phase = isPrefill ? 'prefill' : 'decode';
+    const phase = selectRuleValue('kernels', 'attention', 'phase', { isDecode: !isPrefill });
     const logKey = `L${layerIdx}_${phase}_dtypes`;
     if (!ATTENTION_DTYPE_LOGGED.has(logKey)) {
       ATTENTION_DTYPE_LOGGED.add(logKey);
@@ -151,6 +154,10 @@ export async function runLayerAttentionGPU(
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
   const useF16Activations = attentionInput.dtype === 'f16';
+  const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    useF16: useF16Activations,
+    fallback: undefined,
+  });
   
   let qTensor;
   
@@ -174,7 +181,7 @@ export async function runLayerAttentionGPU(
       transposeB: 'auto',
       role: 'qkv_proj',
       layerIdx,
-      outputDtype: useF16Activations ? 'f16' : undefined,
+      outputDtype: matmulOutputDtype,
     });
 
     // Split fused output into Q, K, V (returns Tensors)
@@ -204,7 +211,7 @@ export async function runLayerAttentionGPU(
         transposeB: 'auto',
         role: 'q_proj',
         layerIdx,
-        outputDtype: useF16Activations ? 'f16' : undefined,
+        outputDtype: matmulOutputDtype,
       });
       if (!(layerWeights.qProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qProj)) {
         releaseBuffer(isWeightBuffer(qProjBuf) ? qProjBuf.buffer : qProjBuf);
@@ -235,7 +242,7 @@ export async function runLayerAttentionGPU(
         transposeB: 'auto',
         role: 'k_proj',
         layerIdx,
-        outputDtype: useF16Activations ? 'f16' : undefined,
+        outputDtype: matmulOutputDtype,
       });
       if (!(layerWeights.kProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kProj)) {
         releaseBuffer(isWeightBuffer(kProjBuf) ? kProjBuf.buffer : kProjBuf);
@@ -267,7 +274,7 @@ export async function runLayerAttentionGPU(
         transposeB: 'auto',
         role: 'v_proj',
         layerIdx,
-        outputDtype: useF16Activations ? 'f16' : undefined,
+        outputDtype: matmulOutputDtype,
       });
       if (!(layerWeights.vProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.vProj)) {
         releaseBuffer(isWeightBuffer(vProjBuf) ? vProjBuf.buffer : vProjBuf);
@@ -499,8 +506,14 @@ export async function runLayerAttentionGPU(
     trace.attn(layerIdx, `Attention scale=${attnScale.toFixed(6)}, queryPreAttnScalar=${queryPreAttnScalar ?? 'undefined'}, headDim=${headDim}`);
   }
   // Wrap cached K/V in Tensors (dtype from cache or input tensor)
-  const cachedKDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : kTensor.dtype;
-  const cachedVDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : vTensor.dtype;
+  const cachedKDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
+    kvDtype: state.kvCache?.kvDtype,
+    fallback: kTensor.dtype,
+  });
+  const cachedVDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
+    kvDtype: state.kvCache?.kvDtype,
+    fallback: vTensor.dtype,
+  });
   const cachedKTensor = createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
   const cachedVTensor = createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -572,7 +585,7 @@ export async function runLayerAttentionGPU(
         transposeB: 'auto',
         role: 'o_proj',
         layerIdx,
-        outputDtype: useF16Activations ? 'f16' : undefined,
+        outputDtype: matmulOutputDtype,
       });
     }
     // Release temporary buffer if we created it (original was not already on GPU)

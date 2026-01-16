@@ -6,6 +6,19 @@
     { "match": { "isDecode": true }, "value": "streaming" },
     { "match": {}, "value": "streaming" }
   ],
+  "phase": [
+    { "match": { "isDecode": true }, "value": "decode" },
+    { "match": {}, "value": "prefill" }
+  ],
+  "suffix": [
+    { "match": { "useF16": true }, "value": "_f16" },
+    { "match": { "useF16KV": true }, "value": "_f16kv" },
+    { "match": {}, "value": "" }
+  ],
+  "chunkedVariant": [
+    { "match": { "useF16": true }, "value": "decode_chunked_f16" },
+    { "match": {}, "value": "decode_chunked_f16kv" }
+  ],
   "variant": [
     { "match": { "tier": "subgroup", "useF16KV": true, "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "decode_streaming{suffix}" } },

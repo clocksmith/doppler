@@ -7,7 +7,7 @@ export const test = base.extend({
   
   gpuPage: async ({ page }, use) => {
     // Navigate to test page
-    await page.goto('/doppler/tests/harness.html?mode=kernels');
+    await page.goto('/doppler/tests/harness.html');
 
     // Wait for WebGPU initialization and testHarness to be available
     const ready = await page.evaluate(async () => {

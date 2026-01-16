@@ -147,7 +147,22 @@ export async function runFullInferenceBenchmark(opts) {
 
     try {
       console.log('Opening browser...');
-      const benchUrl = `${opts.baseUrl}/doppler/tests/harness.html?mode=bench`;
+      const harness = runtimeConfig.shared?.harness;
+      if (!harness) {
+        throw new Error('runtime.shared.harness is required for benchmarks.');
+      }
+      Object.assign(harness, {
+        mode: 'bench',
+        autorun: false,
+        skipLoad: false,
+        modelId: null,
+      });
+      const benchParams = new URLSearchParams();
+      benchParams.set('runtimeConfig', JSON.stringify(runtimeConfig));
+      if (opts.configChain) {
+        benchParams.set('configChain', JSON.stringify(opts.configChain));
+      }
+      const benchUrl = `${opts.baseUrl}/doppler/tests/harness.html?${benchParams.toString()}`;
       await page.goto(benchUrl, { timeout: 30000 });
 
       console.log('Waiting for WebGPU...');

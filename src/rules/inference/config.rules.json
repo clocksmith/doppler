@@ -3,5 +3,9 @@
     { "match": { "activation": { "in": ["silu", "swiglu"] } }, "value": "silu" },
     { "match": { "activation": { "in": ["gelu", "geglu"] } }, "value": "gelu" },
     { "match": {}, "value": "silu" }
+  ],
+  "tracePath": [
+    { "match": { "useRecorder": true }, "value": "fused" },
+    { "match": {}, "value": "debug-sync" }
   ]
 }

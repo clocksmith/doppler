@@ -8,6 +8,7 @@ import { createWeightBuffer } from '../gpu/weight-buffer.js';
 import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout } from './dtype-utils.js';
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
 import { trace as debugTrace } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Q4K Detection
@@ -52,24 +53,22 @@ export function shouldUseFusedQ4K(name, location, config) {
 
 export function getQ4KOutputDtype(name, config) {
   const isMatmulWeight = shouldDequantizeToF16(name);
-  if (!isMatmulWeight) return 'f32';
-
-  if (config.keepF32Weights) return 'f32';
-
   const caps = config.gpuCapabilities || getKernelCapabilities();
-  return caps?.hasF16 ? 'f16' : 'f32';
+  return selectRuleValue('loader', 'weights', 'q4kOutputDtype', {
+    isMatmulWeight,
+    keepF32Weights: Boolean(config.keepF32Weights),
+    hasF16: Boolean(caps?.hasF16),
+  });
 }
 
 
 export function getWeightLayout(name, location, config) {
-  if (location.layout === 'column') return 'column';
-
   const isMatmulWeight = shouldDequantizeToF16(name);
-  if (config.q4kLayout === 'column_wise' && isMatmulWeight) {
-    return 'column';
-  }
-
-  return 'row';
+  const useColumnWise = config.q4kLayout === 'column_wise' && isMatmulWeight;
+  return selectRuleValue('loader', 'weights', 'weightLayout', {
+    layout: location.layout ?? null,
+    useColumnWise,
+  });
 }
 
 // ============================================================================
@@ -197,7 +196,10 @@ export async function loadBF16(shardData, location, name, config) {
     debugTrace.loader(`BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
 
     
-    const layout = location.layout === 'column' ? 'column' : 'row';
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: location.layout ?? null,
+      useColumnWise: false,
+    });
     return {
       data: createWeightBuffer(f16Tensor.buffer, 'f16', layout, location.shape, name),
       allocatedBuffers: [f16Tensor.buffer],
@@ -211,7 +213,10 @@ export async function loadBF16(shardData, location, name, config) {
   if (dstBuffer instanceof GPUBuffer) {
     if (isMatmulWeight) {
       
-      const layout = location.layout === 'column' ? 'column' : 'row';
+      const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+        layout: location.layout ?? null,
+        useColumnWise: false,
+      });
       return {
         data: createWeightBuffer(dstBuffer, 'f32', layout, location.shape, name),
         allocatedBuffers: [dstBuffer],
@@ -236,10 +241,13 @@ export async function loadFloat(shardData, location, name) {
   const buffer = acquireBuffer(location.size, undefined, name);
   device.queue.writeBuffer(buffer, 0,  ( (shardData)));
 
-  
-  const dtype = location.dtype === 'F16' ? 'f16' : 'f32';
-  
-  const layout = location.layout === 'column' ? 'column' : 'row';
+  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: location.dtype,
+  });
+  const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+    layout: location.layout ?? null,
+    useColumnWise: false,
+  });
   const isMatmulWeight = shouldDequantizeToF16(name);
 
   // Return WeightBuffer for matmul weights

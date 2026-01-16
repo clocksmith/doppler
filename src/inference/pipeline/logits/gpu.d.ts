@@ -66,7 +66,7 @@ export function computeChunkedLogitsGPU(
   vocabSize: number,
   weightVocabSize: number,
   debugProbes?: ProbeConfigSchema[] | null,
-  largeWeightConfig?: LargeWeightConfigSchema
+  largeWeightConfig: LargeWeightConfigSchema
 ): Promise<Float32Array>;
 
 /**

@@ -6,6 +6,7 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 export async function runSplitQKV(
@@ -16,7 +17,7 @@ export async function runSplitQKV(
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
   const outputDtype = qkvTensor.dtype;
-  const pipelineVariant = outputDtype === 'f16' ? 'f16' : 'default';
+  const pipelineVariant = selectRuleValue('splitQkv', 'variant', { outputDtype });
   const pipeline = await getPipelineFast('split_qkv', pipelineVariant);
   const bytesPerElement = dtypeBytes(outputDtype);
 
@@ -76,7 +77,7 @@ export async function recordSplitQKV(
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
 
   const outputDtype = qkvTensor.dtype;
-  const pipelineVariant = outputDtype === 'f16' ? 'f16' : 'default';
+  const pipelineVariant = selectRuleValue('splitQkv', 'variant', { outputDtype });
   const pipeline = await getPipelineFast('split_qkv', pipelineVariant);
   const bytesPerElement = dtypeBytes(outputDtype);
 

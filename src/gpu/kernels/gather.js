@@ -8,10 +8,11 @@ import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from '.
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
 import { DTYPE_SIZES } from '../../config/schema/index.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
 function selectGatherVariant(useF16Input, useF16Output, useVec4) {
-  return selectRuleValue(
+  return selectKernelRuleValue(
     'gather',
     'variant',
     { useF16Input, useF16Output, useVec4 }
@@ -61,7 +62,7 @@ export async function runGather(
   const pipeline = await getPipelineFast('gather', variant);
 
   // Calculate output size using DTYPE_SIZES
-  const outputDtypeKey = useF16Output ? 'f16' : 'f32';
+  const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
   const outputSize = numTokens * hiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
@@ -110,7 +111,7 @@ export async function runGather(
   uniformBuffer.destroy();
 
   
-  const actualDtype = useF16Output ? 'f16' : 'f32';
+  const actualDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
 }
 
@@ -148,7 +149,7 @@ export async function recordGather(
   const pipeline = await getPipelineFast('gather', variant);
 
   // Calculate output size using DTYPE_SIZES
-  const outputDtypeKey = useF16Output ? 'f16' : 'f32';
+  const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
   const outputSize = numTokens * hiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
@@ -194,6 +195,6 @@ export async function recordGather(
   }
 
   
-  const actualDtype = useF16Output ? 'f16' : 'f32';
+  const actualDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
 }

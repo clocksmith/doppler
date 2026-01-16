@@ -45,7 +45,7 @@ export async function finalizeLogits(
     logits = paddedLogits;
   }
 
-  if (config.finalLogitSoftcapping) {
+  if (config.finalLogitSoftcapping != null) {
     applySoftcapping(logits, config.finalLogitSoftcapping);
   }
 

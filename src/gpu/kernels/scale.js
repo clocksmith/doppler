@@ -6,6 +6,7 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 export async function runScale(
@@ -18,7 +19,7 @@ export async function runScale(
 
   const bytesPerElement = dtypeBytes(input.dtype);
   const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
-  const variant = inplace ? 'inplace' : 'default';
+  const variant = selectRuleValue('scale', 'variant', { inplace });
   const pipeline = await createPipeline('scale', variant);
 
   const outputSize = inferredCount * bytesPerElement;
@@ -68,7 +69,7 @@ export async function recordScale(
 
   const bytesPerElement = dtypeBytes(input.dtype);
   const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
-  const variant = inplace ? 'inplace' : 'default';
+  const variant = selectRuleValue('scale', 'variant', { inplace });
   const pipeline = await createPipeline('scale', variant);
 
   const outputSize = inferredCount * bytesPerElement;

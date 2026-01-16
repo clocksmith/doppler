@@ -147,7 +147,9 @@ function summarize(results) {
 async function run() {
   const opts = parseArgs(process.argv.slice(2));
   const loadedConfig = await loadConfig(opts.config);
-  const benchmarkRun = loadedConfig.runtime.shared.benchmark.run;
+  const runtimeConfig = loadedConfig.runtime;
+  const configChain = loadedConfig.chain ?? null;
+  const benchmarkRun = runtimeConfig.shared.benchmark.run;
   const outputDir = resolve(PROJECT_ROOT, opts.outputDir);
   await mkdir(outputDir, { recursive: true });
 
@@ -168,7 +170,24 @@ async function run() {
   const context = await createBrowserContext(cliOpts, { scope: 'test' });
   const page = await setupPage(context, cliOpts);
 
-  const url = `${opts.baseUrl}/doppler/tests/harness.html?mode=kernels`;
+  const harness = runtimeConfig.shared?.harness;
+  if (!harness) {
+    throw new Error('runtime.shared.harness is required for attention grid benchmarks.');
+  }
+  Object.assign(harness, {
+    mode: 'kernels',
+    autorun: false,
+    skipLoad: false,
+    modelId: null,
+  });
+
+  const params = new URLSearchParams();
+  params.set('runtimeConfig', JSON.stringify(runtimeConfig));
+  if (configChain) {
+    params.set('configChain', JSON.stringify(configChain));
+  }
+
+  const url = `${opts.baseUrl}/doppler/tests/harness.html?${params.toString()}`;
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
     () => window.testHarness && typeof window.testHarness.benchmarkAttentionDecodeVariant === 'function',

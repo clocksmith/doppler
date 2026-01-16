@@ -18,6 +18,9 @@ export class SpeculativeDecoder {
   enableTreeDraft;
 
   
+  temperature;
+
+  
   draftModel = null;
 
   
@@ -33,9 +36,22 @@ export class SpeculativeDecoder {
 
   
   constructor(config = {}) {
-    this.numDraftTokens = config.numDraftTokens ?? 5;
-    this.maxRejectionRetries = config.maxRejectionRetries ?? 3;
-    this.enableTreeDraft = config.enableTreeDraft ?? false;
+    if (config.numDraftTokens == null) {
+      throw new Error('SpeculativeDecoder requires numDraftTokens.');
+    }
+    if (config.maxRejectionRetries == null) {
+      throw new Error('SpeculativeDecoder requires maxRejectionRetries.');
+    }
+    if (config.enableTreeDraft == null) {
+      throw new Error('SpeculativeDecoder requires enableTreeDraft.');
+    }
+    if (config.temperature == null) {
+      throw new Error('SpeculativeDecoder requires temperature.');
+    }
+    this.numDraftTokens = config.numDraftTokens;
+    this.maxRejectionRetries = config.maxRejectionRetries;
+    this.enableTreeDraft = config.enableTreeDraft;
+    this.temperature = config.temperature;
   }
 
   
@@ -71,7 +87,7 @@ export class SpeculativeDecoder {
       );
 
       // Sample next token
-      const { token, logprob } = this.sampleToken(logits);
+      const { token, logprob } = this.sampleToken(logits, this.temperature);
       draftTokens.push(token);
       draftLogprobs.push(logprob);
 
@@ -86,7 +102,7 @@ export class SpeculativeDecoder {
   }
 
   
-  sampleToken(logits, temperature = 1.0) {
+  sampleToken(logits, temperature) {
     const vocabSize = logits.length;
 
     // Apply temperature
@@ -215,7 +231,7 @@ export class SpeculativeDecoder {
   sampleFromResidual(mainLogits, draftLogprobs, wasRejected) {
     if (!wasRejected) {
       // All accepted - sample normally from main model
-      return this.sampleToken(mainLogits).token;
+      return this.sampleToken(mainLogits, this.temperature).token;
     }
 
     const vocabSize = mainLogits.length;
@@ -250,7 +266,7 @@ export class SpeculativeDecoder {
     }
 
     // Fallback: sample from main distribution
-    return this.sampleToken(mainLogits).token;
+    return this.sampleToken(mainLogits, this.temperature).token;
   }
 
   

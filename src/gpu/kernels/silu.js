@@ -6,30 +6,25 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
-
-// =============================================================================
-// SiLU Variant Lookup
-// =============================================================================
-
-
-const SILU_VARIANTS = {
-  'default/false': 'default',
-  'default/true': 'default_f16',
-  'vec4/false': 'vec4',
-  'vec4/true': 'vec4_f16',
-  'gate/false': 'gate',
-  'gate/true': 'gate_f16',
-};
-
-
-function selectSiLUVariant(base, isF16) {
-  const key = `${base}/${isF16}`;
-  return SILU_VARIANTS[key] ?? base;
-}
-
+import { selectRuleValue } from './rule-registry.js';
 
 function canUseF16(input) {
   return input.dtype === 'f16';
+}
+
+
+function selectSiLUVariant(base, isF16) {
+  return selectRuleValue('silu', 'variant', { base, isF16 });
+}
+
+
+function selectRowSplitVariant(activation, isF16) {
+  return selectRuleValue('silu', 'rowsplitVariant', { activation, isF16 });
+}
+
+
+function selectSwiGLURowsplitBiasVariant(isF16) {
+  return selectRuleValue('silu', 'swigluRowsplitBiasVariant', { isF16 });
 }
 
 
@@ -58,7 +53,7 @@ export async function runSiLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select variant using lookup table
-  const baseVariant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
+  const baseVariant = selectRuleValue('silu', 'baseVariant', { gate: Boolean(gate), useVec4 });
   const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast('silu', variant);
 
@@ -109,7 +104,7 @@ export async function runSwiGLURowsplitBias(
   const { outputBuffer = null, biasOffset = 0, swigluLimit = null } = options;
 
   const useF16 = input.dtype === 'f16' && bias.dtype === 'f16';
-  const variant = useF16 ? 'rowsplit_bias_f16' : 'rowsplit_bias';
+  const variant = selectSwiGLURowsplitBiasVariant(useF16);
   const pipeline = await getPipelineFast('swiglu', variant);
 
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -161,10 +156,8 @@ export async function runSiLURowSplit(
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
 
-  const op = activation === 'gelu' ? 'gelu' : 'silu';
-  const variant = activation === 'gelu'
-    ? (isF16 ? 'geglu_rowsplit_f16' : 'geglu_rowsplit')
-    : (isF16 ? 'gate_rowsplit_f16' : 'gate_rowsplit');
+  const op = selectRuleValue('silu', 'activationOp', { activation });
+  const variant = selectRowSplitVariant(activation, isF16);
   const pipeline = await getPipelineFast(op, variant);
 
   const outputSize = numTokens * dim * bytesPerElement;
@@ -215,10 +208,8 @@ export async function recordSiLURowSplit(
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
 
-  const op = activation === 'gelu' ? 'gelu' : 'silu';
-  const variant = activation === 'gelu'
-    ? (isF16 ? 'geglu_rowsplit_f16' : 'geglu_rowsplit')
-    : (isF16 ? 'gate_rowsplit_f16' : 'gate_rowsplit');
+  const op = selectRuleValue('silu', 'activationOp', { activation });
+  const variant = selectRowSplitVariant(activation, isF16);
   const pipeline = await getPipelineFast(op, variant);
 
   const outputSize = numTokens * dim * bytesPerElement;
@@ -267,7 +258,7 @@ export async function recordSiLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select variant using lookup table
-  const baseVariant = gate ? 'gate' : 'default';
+  const baseVariant = selectRuleValue('silu', 'baseVariant', { gate: Boolean(gate), useVec4: false });
   const variant = selectSiLUVariant(baseVariant, isF16);
   const pipeline = await getPipelineFast('silu', variant);
 

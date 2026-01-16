@@ -169,7 +169,7 @@ export class InferencePipeline extends PipelineState {
     this._resolveLayerPipeline();
 
     const cfg = this.modelConfig;
-    const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK || 2})` : '';
+    const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK})` : '';
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
@@ -189,15 +189,18 @@ export class InferencePipeline extends PipelineState {
     if (this.modelConfig.useMoE) {
       this.moeRouter = new MoERouter({
         numExperts: this.modelConfig.numExperts,
-        topK: this.modelConfig.moeTopK || 2,
+        topK: this.modelConfig.moeTopK,
         hiddenSize: this.modelConfig.hiddenSize,
-        normalizeWeights: true,
+        normalizeWeights: this.runtimeConfig.inference.moe.routing.normalizeWeights,
       });
     }
 
     // Initialize speculative decoder
     if (manifest.draftModel) {
-      this.speculativeDecoder = initSpeculativeDecoder(manifest);
+      this.speculativeDecoder = initSpeculativeDecoder(
+        manifest,
+        this.runtimeConfig.inference.speculative
+      );
     }
 
     // Load weights
@@ -247,7 +250,11 @@ export class InferencePipeline extends PipelineState {
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
     if ( (this.modelConfig).useMoE && this.moeRouter) {
-      this.moeRouter = initMoERouter( (this.modelConfig), result.layerWeights);
+      this.moeRouter = initMoERouter(
+         (this.modelConfig),
+        this.runtimeConfig.inference.moe.routing,
+        result.layerWeights
+      );
     }
 
     if (this.useGPU && this.modelConfig) {
@@ -272,7 +279,7 @@ export class InferencePipeline extends PipelineState {
   
   async _initRoPE() {
     const config =  (this.modelConfig);
-    const maxSeqLen = config.maxSeqLen ?? this.runtimeConfig.inference.kvcache.maxSeqLen;
+    const maxSeqLen = config.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.headDim,
       maxSeqLen,

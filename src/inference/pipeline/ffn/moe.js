@@ -14,6 +14,12 @@ export async function runMoEFFNGPU(
   if (!moeRouter || !expertWeights || !expertLoader) {
     throw new Error('MoE components not initialized');
   }
+  if (!Number.isFinite(config.numExperts) || config.numExperts <= 0) {
+    throw new Error('MoE config is missing numExperts.');
+  }
+  if (!Number.isFinite(config.moeTopK) || config.moeTopK <= 0) {
+    throw new Error('MoE config is missing moeTopK.');
+  }
 
   const { moeFeedForwardGPU } = await import('../moe-impl.js');
 
@@ -23,8 +29,8 @@ export async function runMoEFFNGPU(
     {
       hiddenSize: config.hiddenSize,
       intermediateSize: config.intermediateSize,
-      numExperts: config.numExperts || 8,
-      moeTopK: config.moeTopK || 2,
+      numExperts: config.numExperts,
+      moeTopK: config.moeTopK,
       hiddenActivation: config.hiddenActivation,
       swigluLimit: config.swigluLimit,
       activationDtype: inputTensor.dtype,

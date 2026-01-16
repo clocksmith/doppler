@@ -6,10 +6,16 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function canUseF16(input) {
   return input.dtype === 'f16';
+}
+
+
+function selectGeluVariant(hasGate, isF16) {
+  return selectRuleValue('gelu', 'variant', { hasGate, isF16 });
 }
 
 
@@ -24,13 +30,7 @@ export async function runGeLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select gated variant when gate buffer is provided
-  
-  let variant;
-  if (gate) {
-    variant = isF16 ? 'geglu_f16' : 'geglu';
-  } else {
-    variant = isF16 ? 'gelu_f16' : 'gelu';
-  }
+  const variant = selectGeluVariant(Boolean(gate), isF16);
   const pipeline = await createPipeline('gelu', variant);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
@@ -86,13 +86,7 @@ export async function recordGeLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select gated variant when gate buffer is provided
-  
-  let variant;
-  if (gate) {
-    variant = isF16 ? 'geglu_f16' : 'geglu';
-  } else {
-    variant = isF16 ? 'gelu_f16' : 'gelu';
-  }
+  const variant = selectGeluVariant(Boolean(gate), isF16);
   const pipeline = await createPipeline('gelu', variant);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);

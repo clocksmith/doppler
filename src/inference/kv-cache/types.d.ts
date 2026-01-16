@@ -16,10 +16,10 @@ export interface KVCacheConfig {
   numHeads: number;
   headDim: number;
   maxSeqLen: number;
-  useGPU?: boolean;
-  layout?: 'contiguous' | 'paged';
-  pageSize?: number;
-  kvDtype?: 'f16' | 'f32';
+  useGPU: boolean;
+  layout: 'contiguous' | 'paged';
+  pageSize: number;
+  kvDtype: 'f16' | 'f32';
   /** Window size for sliding window cache */
   windowSize?: number;
 }

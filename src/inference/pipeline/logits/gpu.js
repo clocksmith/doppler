@@ -10,6 +10,7 @@ import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { createWeightBuffer, isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
 import { f16BufferToF32 } from './cpu.js';
 
@@ -32,7 +33,10 @@ export function resolveLmHeadChunkRows(
   config
 ) {
   const resolved = config ?? getRuntimeConfig().inference.largeWeights;
-  const safety = Math.min(Math.max(resolved.safetyRatio ?? 0.9, 0.1), 1);
+  if (resolved.safetyRatio == null) {
+    throw new Error('runtime.inference.largeWeights.safetyRatio is required.');
+  }
+  const safety = Math.min(Math.max(resolved.safetyRatio, 0.1), 1);
   const maxBinding = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
   const maxBytes = Math.floor(maxBinding * safety);
 
@@ -107,10 +111,13 @@ export async function computeChunkedLogitsGPU(
   if (!device) {
     throw new Error('[Logits] GPU device not available for chunked LM head.');
   }
+  if (!largeWeightConfig) {
+    throw new Error('[Logits] largeWeights config is required for chunked LM head.');
+  }
 
   const chunkRows = resolveLmHeadChunkRows(device, numTokens, hiddenSize, largeWeightConfig);
   const caps = getKernelCapabilities();
-  const preferF16 = (largeWeightConfig?.preferF16 ?? true) && lmHead.dtype === 'f16' && caps.hasF16;
+  const preferF16 = largeWeightConfig.preferF16 && lmHead.dtype === 'f16' && caps.hasF16;
   const logits = new Float32Array(numTokens * vocabSize);
 
   if (isTraceEnabled('logits')) {
@@ -163,7 +170,7 @@ export async function computeChunkedLogitsGPU(
       });
     }
 
-    const logitsBytes = logitsTensor.dtype === 'f16' ? 2 : 4;
+    const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
     const chunkLogitsData = await readBuffer(logitsTensor.buffer, numTokens * rowCount * logitsBytes);
     const chunkLogits = logitsTensor.dtype === 'f16'
       ? f16BufferToF32(chunkLogitsData)

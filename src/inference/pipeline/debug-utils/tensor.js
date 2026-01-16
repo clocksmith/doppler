@@ -4,6 +4,7 @@ import { readBuffer } from '../../../gpu/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { isEnabled } from './config.js';
 import { decodeReadback } from './utils.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 // ============================================================================
 // Tensor Inspection Functions
@@ -235,7 +236,9 @@ export async function dumpKVCache(kvCache, layerIdx) {
 
     log.debug('Debug', `${tag} seqLen=${seqLen} numHeads=${numHeads} headDim=${headDim}`);
 
-    const kvDtype = kvCache.kvDtype === 'f16' ? 'f16' : 'f32';
+    const kvDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
+      dtype: kvCache.kvDtype,
+    });
     const keysStats = keysGPU
       ? await dumpTensor(keysGPU, 'K_cache', {
           layerIdx,

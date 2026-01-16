@@ -194,6 +194,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Forbidden CLI overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
 - Harnesses must not accept URL query overrides for runtime tunables; only `runtimeConfig` and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
+See `docs/style/CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
 ### Manifest-First Change Checklist
 
@@ -817,4 +818,4 @@ function runKernel(spec) {
 
 - [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
 - [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
-- [Kernel Compatibility](../KERNEL_COMPATIBILITY.md) - Runtime modes and flags
+- [Kernel Compatibility](./WGSL_STYLE_GUIDE.md) - Runtime modes and flags

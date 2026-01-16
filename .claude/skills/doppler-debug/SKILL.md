@@ -209,7 +209,7 @@ For detailed information, consult these files:
 - **Attention**: `src/inference/pipeline/attention.js`
 - **Logits**: `src/inference/pipeline/logits.js`
 - **CLI implementation**: `cli/index.js`
-- **Config resolution**: `docs/CONFIG_RESOLUTION.md`
+- **Config resolution**: `docs/style/CONFIG_STYLE_GUIDE.md`
 
 ## Related Skills
 

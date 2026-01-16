@@ -1,4 +1,6 @@
-# DOPPLER RDRR Format Specification
+# DOPPLER Formats
+
+## RDRR Format
 
 Defines the Recursive DOPPLER Runtime Registry (RDRR) format for streaming model delivery optimized for browser-based LLM inference.
 
@@ -522,4 +524,193 @@ for await (const token of pipeline.generate('Hello')) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.
+See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+
+
+## RDRR LoRA Format
+
+This document defines Doppler's LoRA adapter manifest format and its on-disk layout.
+It is designed to be small, self-describing, and compatible with the runtime adapter loader.
+
+Related:
+- `src/adapters/adapter-manifest.js`
+- `src/adapters/lora-loader.js`
+- `src/training/export.js`
+
+## Overview
+
+An RDRR-LoRA adapter is a JSON manifest with optional inline tensors.
+
+- Manifest: metadata + tensor list
+- Tensors: LoRA matrices `A` and `B` stored inline (base64 or array)
+- Loader: maps tensor names to layer/module weights at runtime
+
+## Manifest Schema (summary)
+
+Required fields:
+- `id`: string
+- `name`: string
+- `baseModel`: string (model ID the adapter was trained for)
+- `rank`: integer
+- `alpha`: number
+- `targetModules`: array of module names
+
+Optional fields:
+- `version`, `description`
+- `checksum`, `checksumAlgorithm`
+- `weightsFormat`, `weightsPath`, `weightsSize`
+- `tensors`: inline tensor specs
+- `metadata`
+
+See full schema in `src/adapters/adapter-manifest.js`.
+
+## Tensor Naming
+
+Tensor names must follow:
+
+```
+layer.{L}.{module}.lora_{a|b}
+```
+
+Examples:
+- `layer.0.q_proj.lora_a`
+- `layer.12.o_proj.lora_b`
+
+Module names map through `LORA_MODULE_ALIASES` in `src/inference/pipeline/lora-types.js`.
+
+## Inline Tensor Spec
+
+Each tensor entry includes:
+
+```
+{
+  "name": "layer.0.q_proj.lora_a",
+  "shape": [inDim, rank],
+  "dtype": "f32",
+  "base64": "...",  // or "data": [...]
+  "opfsPath": "...",
+  "url": "..."
+}
+```
+
+Doppler currently loads `f32` tensors for LoRA. If your source is `f16`, convert to `f32` before export.
+
+## Adapter Export
+
+Use the training export helper:
+
+```
+import { exportLoRAAdapter } from '../src/training/export.js';
+```
+
+This creates a manifest with inline tensors that can be loaded by `adapter-manager`.
+
+## GGUF Interop (Optional)
+
+RDRR-LoRA is optimized for Doppler. If you need GGUF:
+
+1. Export the adapter to JSON (inline tensors).
+2. Convert tensors to a LoRA safetensors/npz format.
+3. Use llama.cpp conversion tooling to emit GGUF.
+
+An optional helper script is provided:
+
+```
+node tools/rdrr-lora-to-gguf.js --manifest adapter.json --out ./out
+```
+
+The script emits recommended conversion steps and paths, but does not run external tools.
+
+
+## Adapter Manifest
+
+Defines the JSON manifest format used by the LoRA/QLoRA adapter loader.
+Adapters are not RDRR bundles; they use a separate schema and loader path.
+
+Schema source: `src/adapters/adapter-manifest.js`
+
+---
+
+## Required Fields
+
+```json
+{
+  "id": "gemma-3-1b-coding",
+  "name": "Gemma 3 Coding Adapter",
+  "baseModel": "gemma-3-1b",
+  "rank": 16,
+  "alpha": 32,
+  "targetModules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+  "tensors": []
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | Slug/ID, `[a-zA-Z0-9_-]+` |
+| `name` | string | Human-readable name |
+| `baseModel` | string | Base model identifier |
+| `rank` | number | LoRA rank (integer) |
+| `alpha` | number | LoRA alpha scaling |
+| `targetModules` | string[] | Modules to modify |
+
+---
+
+## Optional Fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `version` | string | SemVer, default `1.0.0` |
+| `description` | string | Adapter description |
+| `checksum` | string | SHA-256 or BLAKE3 hash |
+| `checksumAlgorithm` | string | `sha256` (default) or `blake3` |
+| `weightsFormat` | string | `safetensors`, `npz`, `json`, `binary` |
+| `weightsPath` | string | Path/URL to weight file |
+| `weightsSize` | number | Size in bytes |
+| `tensors` | array | Inline tensor specs (see below) |
+| `metadata` | object | Arbitrary metadata |
+
+---
+
+## Tensor Entries
+
+Inline tensors are provided as objects in `tensors`. Each tensor must include
+`name` and `shape`, and must have data in one of `data`, `base64`, `opfsPath`,
+or `url`.
+
+```json
+{
+  "name": "layers.0.q_proj.lora_a",
+  "shape": [4096, 16],
+  "dtype": "f32",
+  "base64": "..."
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | string | `layers.<idx>.<module>.lora_a|lora_b` |
+| `shape` | number[] | 2D tensor shape |
+| `dtype` | string | `f32`, `f16`, or `bf16` |
+| `data` | number[] | Inline float data |
+| `base64` | string | Base64-encoded buffer |
+| `opfsPath` | string | Path in OPFS |
+| `url` | string | URL to tensor data |
+
+The loader normalizes module names using `LORA_MODULE_ALIASES` and skips
+unknown tensors.
+
+---
+
+## Loading
+
+Adapters are loaded via the adapter loader:
+
+```javascript
+import { loadLoRAFromUrl } from './adapters/lora-loader.js';
+
+const adapter = await loadLoRAFromUrl('https://.../adapter.json');
+```
+
+Checksum verification runs when `checksum` is present and `skipVerify` is not
+set in loader options.

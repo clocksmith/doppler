@@ -12,7 +12,8 @@ import { releaseUniformBuffer } from '../uniform-cache.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { getKernelPathMatmulConstants, getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // =============================================================================
@@ -23,7 +24,12 @@ import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 function selectQ4KFusedVariant(isM1, wantF16Output, aDtype) {
   const useF16A = wantF16Output && aDtype === 'f16';
   const useF16Out = wantF16Output && aDtype !== 'f16';
-  return selectRuleValue('matmul', 'q4kFusedVariant', { useF16A, useF16Out, isM1 });
+  return selectKernelRuleValue('matmul', 'q4kFusedVariant', { useF16A, useF16Out, isM1 });
+}
+
+
+function resolveMatmulPhase(M) {
+  return selectKernelRuleValue('matmul', 'phase', { isDecode: M === 1 });
 }
 
 
@@ -102,7 +108,7 @@ export function selectMatmulKernel(options = {}) {
   const useF16Matmul = outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16;
   const useF16wF32a = preferF16 && weightsAreF16 && capabilities.hasF16;
 
-  return selectRuleValue(
+  return selectKernelRuleValue(
     'matmul',
     'matmulKernel',
     { useF16Matmul, useF16wF32a, useVec4 }
@@ -260,7 +266,10 @@ function resolveMatmulOverride(variantOverride, M, K, aDtype, bDtype, requestedO
     return failOrWarn(`Unknown matmul kernel variant "${variantOverride}".`);
   }
 
-  const outputDtype = config.outputDtype ?? 'f32';
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    return failOrWarn(`Matmul kernel "${variantOverride}" is missing outputDtype.`);
+  }
   if (requestedOutputDtype && outputDtype !== requestedOutputDtype) {
     return failOrWarn(
       `Matmul kernel "${variantOverride}" outputs ${outputDtype} but ${requestedOutputDtype} was requested.`
@@ -301,7 +310,7 @@ function resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, mu
   const useF16GemvPath = pathVariant === 'gemv_f16a' && aDtype === 'f16' && requestedOutputDtype === 'f16';
   const useF32GemvPath = pathVariant === 'gemv' && aDtype === 'f32';
   const useMulticol = N > multicolThreshold;
-  return selectRuleValue(
+  return selectKernelRuleValue(
     'matmul',
     'gemvPathVariant',
     { useF16GemvPath, useF32GemvPath, useMulticol, pathVariant }
@@ -310,7 +319,7 @@ function resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, mu
 
 function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, useVec4, N, multicolThreshold) {
   const useMulticol = N > multicolThreshold;
-  return selectRuleValue(
+  return selectKernelRuleValue(
     'matmul',
     'gemvVariant',
     { hasSubgroups, useF16Gemv, useF32Gemv, useVec4, useMulticol }
@@ -321,7 +330,7 @@ function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, useVec4, N, mul
 function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, requestedOutputDtype, options) {
   const capabilities = getKernelCapabilities();
   const strict = getKernelPathStrict();
-  const phase = M === 1 ? 'decode' : 'prefill';
+  const phase = resolveMatmulPhase(M);
   let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
   const hadPathVariant = Boolean(pathVariant);
 
@@ -364,7 +373,7 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
     ? selectGemvVariant(useF16Gemv, useF32Gemv, capabilities.hasSubgroups, useVec4, N, multicolThreshold)
     : null;
 
-  const selection = selectRuleValue(
+  const selection = selectKernelRuleValue(
     'matmul',
     'matmulSelection',
     { canFused, useGemv, q4kVariant, gemvVariant, matmulVariant }
@@ -389,10 +398,15 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
 function resolveMatmulOutput(variant, M, N, outputBuffer) {
   // Use kernel config's outputDtype instead of string matching
   const config = getKernelConfig('matmul', variant);
+  if (!config.outputDtype) {
+    throw new Error(`Matmul kernel "${variant}" is missing outputDtype.`);
+  }
   const outputsF16 = config.outputDtype === 'f16';
   const elementSize = outputsF16 ? 2 : 4;
   
-  const actualOutputDtype = outputsF16 ? 'f16' : 'f32';
+  const actualOutputDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: config.outputDtype,
+  });
   const outputSize = M * N * elementSize;
   const cBindingSize = Math.ceil(outputSize / 4) * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_output');
@@ -408,12 +422,22 @@ function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config) {
   
   let uniformWorkgroupsX;
 
-  // Get colsPerWg from variantMetadata (default 4 for non-multicol GEMV)
-  const colsPerWg = config.variantMetadata?.colsPerWg ?? 4;
-  // Get tileM from variantMetadata (default 4 for batched variants)
-  const tileM = config.variantMetadata?.tileM ?? 4;
+  // Get colsPerWg from variantMetadata (required for multicol GEMV)
+  const colsPerWg = config.variantMetadata?.colsPerWg;
+  // Get tileM from variantMetadata (required for batched variants)
+  const tileM = config.variantMetadata?.tileM;
+
+  if (useQ4KFused && variant.includes('multicol') && colsPerWg == null) {
+    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
+  }
+  if (useQ4KFused && variant.includes('batched') && tileM == null) {
+    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM.`);
+  }
 
   if (useGemv && variant.startsWith('gemv_subgroup')) {
+    if (colsPerWg == null) {
+      throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
+    }
     const gemvWorkgroupsX = Math.ceil(N / colsPerWg);
     if (gemvWorkgroupsX > maxWorkgroups) {
       workgroupsX = maxWorkgroups;
@@ -564,7 +588,7 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
     options
   );
 
-  const phase = M === 1 ? 'decode' : 'prefill';
+  const phase = resolveMatmulPhase(M);
   const constants = resolveMatmulConstants(options, phase);
 
   let matmulInput = A;
@@ -728,7 +752,7 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     options
   );
 
-  const phase = M === 1 ? 'decode' : 'prefill';
+  const phase = resolveMatmulPhase(M);
   const constants = resolveMatmulConstants(options, phase);
 
   let matmulInput = A;

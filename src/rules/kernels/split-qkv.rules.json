@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "outputDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "default" }
+  ]
+}

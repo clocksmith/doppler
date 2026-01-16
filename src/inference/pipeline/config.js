@@ -48,6 +48,9 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.normalization.rmsNormWeightOffset == null) {
     errors.push('normalization.rmsNormWeightOffset is required');
   }
+  if (inf.normalization.rmsNormEps == null) {
+    errors.push('normalization.rmsNormEps is required');
+  }
   if (inf.normalization.postAttentionNorm == null) {
     errors.push('normalization.postAttentionNorm is required');
   }
@@ -105,6 +108,36 @@ function validateRequiredInferenceFields(inf, modelId) {
     errors.push('output.embeddingVocabSize must be explicitly set (null to use architecture.vocabSize, or number)');
   }
 
+  // Layer pattern fields
+  if (inf.layerPattern?.type == null) {
+    errors.push('layerPattern.type is required');
+  }
+  if (inf.layerPattern?.globalPattern === undefined) {
+    errors.push('layerPattern.globalPattern must be explicitly set (null if not applicable)');
+  }
+  if (inf.layerPattern?.period === undefined) {
+    errors.push('layerPattern.period must be explicitly set (null if not applicable)');
+  }
+
+  // Chat template fields
+  if (inf.chatTemplate?.type === undefined) {
+    errors.push('chatTemplate.type must be explicitly set (null for no template)');
+  }
+  if (inf.chatTemplate?.enabled == null) {
+    errors.push('chatTemplate.enabled is required');
+  }
+
+  // RoPE YARN fields
+  if (inf.rope.yarnBetaFast === undefined) {
+    errors.push('rope.yarnBetaFast must be explicitly set (null if not YARN)');
+  }
+  if (inf.rope.yarnBetaSlow === undefined) {
+    errors.push('rope.yarnBetaSlow must be explicitly set (null if not YARN)');
+  }
+  if (inf.rope.yarnOriginalMaxPos === undefined) {
+    errors.push('rope.yarnOriginalMaxPos must be explicitly set (null if not YARN)');
+  }
+
   if (errors.length > 0) {
     throw new Error(
       `Manifest "${modelId}" has incomplete inference config. ` +
@@ -122,6 +155,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   // Validate required fields are present (fail fast on incomplete manifests)
   validateRequiredInferenceFields(inf, merged.modelId);
+  if (manifest.quantization == null) {
+    throw new Error(`Manifest "${merged.modelId}" is missing quantization.`);
+  }
 
   // Get architecture dimensions
   const arch = (manifest.architecture && typeof manifest.architecture === 'object')
@@ -156,29 +192,25 @@ export function toParsedConfigFromMerged(merged, manifest) {
         `Re-convert the model to include layerPattern.period.`
       );
     }
-    const period = inf.layerPattern.period ?? 1;  // Fallback only for non-every_n types
-
-    const pattern = inf.layerPattern.globalPattern ?? null;
+    const period = inf.layerPattern.period;
+    const pattern = inf.layerPattern.globalPattern;
     const patternKind = selectRuleValue(
       'inference',
       'layerPattern',
       'patternKind',
       { patternType, globalPattern: pattern }
     );
-    const patternBuilders = {
-      alternating_even: (count) => Array.from({ length: count }, (_, i) =>
-        i % 2 === 0 ? 'full_attention' : 'sliding_attention'
-      ),
-      alternating_odd: (count) => Array.from({ length: count }, (_, i) =>
-        i % 2 === 1 ? 'full_attention' : 'sliding_attention'
-      ),
-      every_n: (count, stride) => Array.from({ length: count }, (_, i) =>
-        i % stride === 0 ? 'full_attention' : 'sliding_attention'
-      ),
-    };
-    const builder = patternKind ? patternBuilders[patternKind] : null;
-    if (builder) {
-      layerTypes = builder(numLayers, period);
+    if (patternKind) {
+      layerTypes = Array.from({ length: numLayers }, (_, i) => {
+        const isEven = i % 2 === 0;
+        const isStride = period == null ? false : i % period === 0;
+        return selectRuleValue(
+          'inference',
+          'layerPattern',
+          'layerType',
+          { patternKind, isEven, isStride }
+        );
+      });
     }
   }
 
@@ -191,13 +223,16 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const stopTokenIds = getStopTokenIds(config, manifest);
 
   // Get MoE config
-  const useMoE = (config.num_local_experts ?? 0) > 1 || (config.num_experts ?? 0) > 1;
-  const numExperts = config.num_local_experts ?? config.num_experts ?? 8;
-  const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
+  const moeConfig = manifest.moeConfig ?? null;
+  const useMoE = (moeConfig?.numExperts ?? 0) > 1;
+  if (useMoE && (moeConfig?.numExperts == null || moeConfig?.numExpertsPerToken == null)) {
+    throw new Error(`Manifest "${manifest.modelId}" is missing moeConfig fields for MoE inference.`);
+  }
+  const numExperts = useMoE ? moeConfig.numExperts : 0;
+  const moeTopK = useMoE ? moeConfig.numExpertsPerToken : 0;
 
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
-  
   const ropeScalingType = inf.rope.ropeScalingType;
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
@@ -222,8 +257,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     { activation }
   );
 
-  const chatTemplateType = inf.chatTemplate?.type ?? null;
-  const chatTemplateEnabled = inf.chatTemplate?.enabled ?? false;
+  const chatTemplateType = inf.chatTemplate.type;
+  const chatTemplateEnabled = inf.chatTemplate.enabled;
 
   return {
     numLayers: arch.numLayers,
@@ -237,22 +272,22 @@ export function toParsedConfigFromMerged(merged, manifest) {
     useMoE,
     numExperts,
     moeTopK,
-    slidingWindow: inf.attention.slidingWindow ?? null,
+    slidingWindow: inf.attention.slidingWindow,
     ropeTheta: inf.rope.ropeTheta,
-    ropeLocalTheta: inf.rope.ropeLocalTheta ?? null,
+    ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeScale,
     ropeScalingType,
     ropeScaling,
-    quantization: manifest.quantization ?? 'f16',
+    quantization: manifest.quantization,
     quantMethod: config.quantization_config?.quant_method ?? null,
-    rmsNormEps: arch.rmsNormEps ?? 1e-5,
+    rmsNormEps: inf.normalization.rmsNormEps,
     rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
     scaleEmbeddings: inf.output.scaleEmbeddings,
     useTiedEmbeddings: inf.output.tieWordEmbeddings,
     embeddingTranspose: inf.output.embeddingTranspose,
     embeddingVocabSize: inf.output.embeddingVocabSize,
     hiddenActivation,
-    swigluLimit: inf.ffn.swigluLimit ?? null,
+    swigluLimit: inf.ffn.swigluLimit,
     // Model detection flags - derived from manifest inference config values
     // Kept for backward compat until pipeline code reads config values directly
     isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta
@@ -263,8 +298,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     stopTokenIds,
     layerTypes,
     attentionBias: config.attention_bias ?? false,
-    finalLogitSoftcapping: inf.output.finalLogitSoftcapping ?? null,
-    attnLogitSoftcapping: inf.attention.attnLogitSoftcapping ?? null,
+    finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
+    attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
     queryPreAttnScalar,
     layerPipeline: null,  // TODO: Add to ManifestInferenceSchema if needed

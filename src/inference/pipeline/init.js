@@ -12,6 +12,7 @@ import { log, setGPUDevice, trace as debugTrace } from '../../debug/index.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 
 function isRDRRManifest(manifest) {
@@ -204,8 +205,11 @@ export function isGPURoPEBuffers(buffers) {
 
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
   const runtimeKV = runtimeConfig ?? getRuntimeConfig().inference.kvcache;
-  const modelMaxSeqLen = modelConfig.maxSeqLen ?? runtimeKV.maxSeqLen;
-  let slidingWindow = Number(modelConfig.slidingWindow || 0) || null;
+  const modelMaxSeqLen = modelConfig.maxSeqLen;
+  if (!Number.isFinite(modelMaxSeqLen) || modelMaxSeqLen <= 0) {
+    throw new Error('Model config is missing maxSeqLen.');
+  }
+  let slidingWindow = modelConfig.slidingWindow;
 
   let cacheMaxSeqLen = modelMaxSeqLen;
   if (Number.isFinite(runtimeKV.maxSeqLen) && runtimeKV.maxSeqLen > 0) {
@@ -213,7 +217,10 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
 
   
-  let cacheLayout = runtimeKV.layout ?? (cacheMaxSeqLen > PAGED_LAYOUT_SEQ_LEN_THRESHOLD ? 'paged' : 'contiguous');
+  let cacheLayout = runtimeKV.layout;
+  if (!cacheLayout) {
+    throw new Error('runtime.inference.kvcache.layout is required.');
+  }
 
   // Sliding-window attention only needs a bounded KV cache
   if (slidingWindow && Number.isFinite(slidingWindow) && slidingWindow > 0) {
@@ -430,14 +437,14 @@ export function isStopToken(token, stopTokenIds, eosTokenId) {
 // ============================================================================
 
 
-export function initMoERouter(modelConfig, layerWeights) {
+export function initMoERouter(modelConfig, moeRoutingConfig, layerWeights) {
   if (!modelConfig.useMoE) return null;
 
   const router = new MoERouter({
     numExperts: modelConfig.numExperts,
-    topK: modelConfig.moeTopK || 2,
+    topK: modelConfig.moeTopK,
     hiddenSize: modelConfig.hiddenSize,
-    normalizeWeights: true,
+    normalizeWeights: moeRoutingConfig.normalizeWeights,
   });
 
   // Find first layer with router weights
@@ -458,11 +465,17 @@ export function initMoERouter(modelConfig, layerWeights) {
 // ============================================================================
 
 
-export function initSpeculativeDecoder(manifest) {
+export function initSpeculativeDecoder(manifest, speculativeConfig) {
   if (!manifest.draftModel) return null;
+  if (manifest.draftModel.numTokens == null) {
+    throw new Error(`Manifest "${manifest.modelId}" is missing draftModel.numTokens.`);
+  }
 
   return new SpeculativeDecoder({
-    numDraftTokens: manifest.draftModel.numTokens || 5,
+    numDraftTokens: manifest.draftModel.numTokens,
+    maxRejectionRetries: speculativeConfig.maxRejectionRetries,
+    enableTreeDraft: speculativeConfig.enableTreeDraft,
+    temperature: speculativeConfig.temperature,
   });
 }
 
@@ -511,7 +524,7 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
       continue;
     }
 
-    const dtype = bytesPerElement === 2 ? 'f16' : 'f32';
+    const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
 
     // Create fused QKV buffer: [qkvSize, hiddenSize] row-major
     // Each row is concatenated: [q_row, k_row, v_row]

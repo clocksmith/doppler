@@ -1,0 +1,8 @@
+{
+  "variant": [
+    { "match": { "hasGate": true, "isF16": true }, "value": "geglu_f16" },
+    { "match": { "hasGate": true }, "value": "geglu" },
+    { "match": { "isF16": true }, "value": "gelu_f16" },
+    { "match": {}, "value": "gelu" }
+  ]
+}

@@ -8,6 +8,7 @@ import { runProbes } from './probes.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer } from '../../gpu/weight-buffer.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 const scaleShaderCode = `
   struct Uniforms { scale: f32, count: u32 }
@@ -185,7 +186,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   const caps = getKernelCapabilities();
   const useF16 = activationDtype === 'f16' && caps.hasF16;
   
-  const dtype = useF16 ? 'f16' : 'f32';
+  const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16 });
 
   const cpuEmbeddings = isCpuWeightBuffer(embedBuffer)
     ? embedBuffer.data
@@ -287,7 +288,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   const gatherOptions = {
     outputBuffer: preAllocatedOutput,
     transpose,
-    outputDtype: useF16 ?  ('f16') :  ('f32'),
+    outputDtype: selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16 }),
     embeddingDtype,
     indexOffset,
   };

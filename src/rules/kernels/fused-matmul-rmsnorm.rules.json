@@ -1,6 +1,8 @@
 {
   "variant": [
-    { "match": { "isSmall": true }, "value": { "context": "smallVariant" } },
-    { "match": {}, "value": { "context": "mediumVariant" } }
+    { "match": { "isSmall": true, "isF16": true }, "value": "small_f16" },
+    { "match": { "isSmall": true }, "value": "small" },
+    { "match": { "isF16": true }, "value": "medium_f16" },
+    { "match": {}, "value": "medium" }
   ]
 }

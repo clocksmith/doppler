@@ -5,8 +5,8 @@ import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { createTensor } from '../gpu/tensor.js';
-import { getRuntimeConfig } from '../config/runtime.js';
 import { f16ToF32Array } from './kv-cache/types.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 
 
@@ -55,14 +55,22 @@ export class MoERouter {
 
   
   constructor(config) {
-    const runtimeDefaults = getRuntimeConfig().inference.moe.routing;
-    this.numExperts = config.numExperts ?? runtimeDefaults.numExperts;
-    this.topK = config.topK ?? runtimeDefaults.topK;
+    if (config.numExperts == null) {
+      throw new Error('MoERouter requires numExperts in config.');
+    }
+    if (config.topK == null) {
+      throw new Error('MoERouter requires topK in config.');
+    }
     if (config.hiddenSize == null) {
       throw new Error('MoERouter requires hiddenSize in config.');
     }
+    if (config.normalizeWeights == null) {
+      throw new Error('MoERouter requires normalizeWeights in config.');
+    }
+    this.numExperts = config.numExperts;
+    this.topK = config.topK;
     this.hiddenSize = config.hiddenSize;
-    this.normalizeWeights = config.normalizeWeights ?? runtimeDefaults.normalizeWeights;
+    this.normalizeWeights = config.normalizeWeights;
 
     // Track active experts for the current batch
     this.activeExperts = new Set();
@@ -200,7 +208,7 @@ export class MoERouter {
     if (bias instanceof Float32Array) return 'f32';
     if (bias instanceof GPUBuffer) {
       const bytesPerElement = Math.round(bias.size / this.numExperts);
-      return bytesPerElement <= 2 ? 'f16' : 'f32';
+      return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
     }
     return 'f32';
   }
@@ -210,13 +218,18 @@ export class MoERouter {
     const cached = this._biasAddPipelines.get(key);
     if (cached) return cached;
 
-    const useF16 = logitsDtype === 'f16' || biasDtype === 'f16';
-    const logitsType = logitsDtype === 'f16' ? 'f16' : 'f32';
-    const biasType = biasDtype === 'f16' ? 'f16' : 'f32';
-    const logitsRead = logitsDtype === 'f16' ? 'f32(logits[idx])' : 'logits[idx]';
-    const biasRead = biasDtype === 'f16' ? 'f32(bias[e])' : 'bias[e]';
-    const logitsWrite = logitsDtype === 'f16' ? 'logits[idx] = f16(value);' : 'logits[idx] = value;';
-    const enableF16 = useF16 ? 'enable f16;\n' : '';
+    const codeConfig = selectRuleValue('inference', 'moe', 'biasAddCode', {
+      logitsDtype,
+      biasDtype,
+    });
+    const {
+      logitsType,
+      biasType,
+      logitsRead,
+      biasRead,
+      logitsWrite,
+      enableF16,
+    } = codeConfig;
 
     const code = `
         ${enableF16}

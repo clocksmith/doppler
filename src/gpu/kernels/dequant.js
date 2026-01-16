@@ -8,7 +8,8 @@ import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
 
 export function selectDequantKernel(options = {}) {
@@ -16,7 +17,7 @@ export function selectDequantKernel(options = {}) {
   const { useVec4 = true, outputDtype = 'f32' } = options;
 
   const wantsF16Out = outputDtype === 'f16' && capabilities.hasF16;
-  return selectRuleValue(
+  return selectKernelRuleValue(
     'dequant',
     'variant',
     { hasSubgroups: capabilities.hasSubgroups, wantsF16Out, useVec4 }
@@ -125,7 +126,7 @@ export async function dequantize(
   releaseUniformBuffer(uniformBuffer);
 
   
-  const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }
 
@@ -201,7 +202,7 @@ export async function dequantizeMXFP4Expert(
   const device = getDevice();
   const { outputBuffer = null, outputDtype = 'f32' } = options;
 
-  const variant = outputDtype === 'f16' ? 'mxfp4_expert_f16' : 'mxfp4_expert';
+  const variant = selectKernelRuleValue('dequant', 'mxfp4ExpertVariant', { outputDtype });
   const pipeline = await getPipelineFast('dequant', variant);
 
   // Output is [out_dim, num_groups * 32] as F32
@@ -248,7 +249,8 @@ export async function dequantizeMXFP4Expert(
 
   releaseUniformBuffer(uniformBuffer);
 
-  return createTensor(output, outputDtype === 'f16' ? 'f16' : 'f32', [outDim, numGroups * 32], 'mxfp4_expert_output');
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  return createTensor(output, dtype, [outDim, numGroups * 32], 'mxfp4_expert_output');
 }
 
 
@@ -317,7 +319,7 @@ export async function dequantizeQ6K(
   releaseUniformBuffer(uniformBuffer);
 
   
-  const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   return createTensor(output, dtype, [numBlocks * QK_K], 'q6k_dequant_output');
 }
 
@@ -386,7 +388,7 @@ export async function dequantizeQ8_0(
   releaseUniformBuffer(uniformBuffer);
 
   
-  const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   return createTensor(output, dtype, [numBlocks * Q8_0_BLOCK_SIZE], 'q8_0_dequant_output');
 }
 
@@ -442,6 +444,6 @@ export async function recordDequantize(
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
 
   
-  const dtype = outputDtype === 'f16' ? 'f16' : 'f32';
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
 }

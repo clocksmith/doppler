@@ -7,7 +7,8 @@ import { WORKGROUP_SIZES, GPU_LIMITS } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
 import { trace } from '../../debug/index.js';
-import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
 
 function calculate2DDispatch(totalWorkgroups) {
@@ -164,7 +165,8 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   const device = getDevice();
   const { maxTokensPerExpert = numTokens } = options;
   const useF16 = hiddenStates.dtype === 'f16';
-  const suffix = selectRuleValue('moe', 'variantSuffix', { useF16 });
+  const suffix = selectKernelRuleValue('moe', 'variantSuffix', { useF16 });
+  const dtypeLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16 });
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
@@ -222,7 +224,7 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
       { binding: 4, resource: { buffer: tokenCounts } },
       { binding: 5, resource: { buffer: tokenMap } },
     ],
-  }, `moe_gather:${useF16 ? 'f16' : 'f32'}`);
+  }, `moe_gather:${dtypeLabel}`);
 
   // Phase 1: Count tokens per expert and build token map
   const encoder = device.createCommandEncoder({ label: 'moe_gather_encoder' });
@@ -261,7 +263,8 @@ export async function recordMoEGather(recorder, hiddenStates, expertIndices, num
   const device = recorder.device;
   const { maxTokensPerExpert = numTokens } = options;
   const useF16 = hiddenStates.dtype === 'f16';
-  const suffix = selectRuleValue('moe', 'variantSuffix', { useF16 });
+  const suffix = selectKernelRuleValue('moe', 'variantSuffix', { useF16 });
+  const dtypeLabel = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16 });
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
@@ -313,7 +316,7 @@ export async function recordMoEGather(recorder, hiddenStates, expertIndices, num
       { binding: 4, resource: { buffer: tokenCounts } },
       { binding: 5, resource: { buffer: tokenMap } },
     ],
-  }, `moe_gather:${useF16 ? 'f16' : 'f32'}`);
+  }, `moe_gather:${dtypeLabel}`);
 
   const encoder = recorder.getEncoder();
   encoder.clearBuffer(tokenCounts);
@@ -457,7 +460,7 @@ export async function runScatterAddDynamic(expertOutputs, indices, weights, toke
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
   }
 
-  const variant = selectRuleValue('moe', 'scatterAddVariant', {
+  const variant = selectKernelRuleValue('moe', 'scatterAddVariant', {
     outputDtype: expertOutputs.dtype,
     weightsDtype,
   });
@@ -523,7 +526,7 @@ export async function recordScatterAddDynamic(recorder, expertOutputs, indices, 
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
   }
 
-  const variant = selectRuleValue('moe', 'scatterAddVariant', {
+  const variant = selectKernelRuleValue('moe', 'scatterAddVariant', {
     outputDtype: expertOutputs.dtype,
     weightsDtype,
   });

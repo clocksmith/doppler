@@ -69,6 +69,9 @@ function mergeSharedRuntimeConfig(
     benchmark: overrides.benchmark
       ? mergeBenchmarkConfig(base.benchmark, overrides.benchmark)
       : { ...base.benchmark },
+    harness: overrides.harness
+      ? { ...base.harness, ...overrides.harness }
+      : { ...base.harness },
     platform: overrides.platform ?? base.platform,
     kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
     kernelThresholds: overrides.kernelThresholds

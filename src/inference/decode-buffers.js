@@ -1,6 +1,7 @@
 
 
 import { getDevice } from '../gpu/device.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 
 
@@ -17,12 +18,13 @@ export class DecodeBufferManager {
 
   
   ensureBuffers(config) {
-    
-    const normalizedConfig = {
-      ...config,
-      enablePingPong: config.enablePingPong ?? false,
-      activationDtype: config.activationDtype ?? 'f32',
-    };
+    if (config.enablePingPong == null) {
+      throw new Error('DecodeBufferManager requires enablePingPong in config.');
+    }
+    if (config.activationDtype == null) {
+      throw new Error('DecodeBufferManager requires activationDtype in config.');
+    }
+    const normalizedConfig = { ...config };
 
     // Check if we already have matching buffers
     if (this.buffers && this.config &&
@@ -46,7 +48,9 @@ export class DecodeBufferManager {
     // Allocate buffers
     // For decode, we process 1 token at a time (M=1)
     // F16 activations use 2 bytes per element, F32 uses 4 bytes
-    const bytesPerElement = normalizedConfig.activationDtype === 'f16' ? 2 : 4;
+    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
+      dtype: normalizedConfig.activationDtype,
+    });
     const hiddenBytes = normalizedConfig.hiddenSize * bytesPerElement;
     const intermediateBytes = normalizedConfig.intermediateSize * bytesPerElement;
 
@@ -134,12 +138,14 @@ export class DecodeBufferManager {
   
   getStats() {
     if (!this.config) return null;
-    const bytesPerElement = this.config.activationDtype === 'f16' ? 2 : 4;
+    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
+      dtype: this.config.activationDtype,
+    });
     const hiddenBytes = this.config.hiddenSize * bytesPerElement;
     const intermediateBytes = this.config.intermediateSize * bytesPerElement;
     const bufferCount = this.buffers?.hiddenAlt ? 4 : 3;
     const totalBytes = hiddenBytes * (bufferCount - 1) + intermediateBytes;
-    return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype ?? 'f32' };
+    return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype };
   }
 
   

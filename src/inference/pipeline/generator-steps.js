@@ -7,7 +7,7 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { getUniformCache } from '../../gpu/uniform-cache.js';
 import { log } from '../../debug/index.js';
-import { getRuntimeConfig } from '../../config/runtime.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { isStopToken } from './init.js';
@@ -51,7 +51,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       : createCommandRecorder('decode');
   }
   if (state.decodeStepCount === 1) {
-    const path = recorder ? 'fused' : 'debug-sync';
+    const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
     log.debug('Decode', `Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
   }
   const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
@@ -72,7 +72,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       ? embedBufferRaw.dtype
       : null;
   const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
-  const activationBytes = activationDtype === 'f16' ? 2 : 4;
+  const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   const embedTensor = await embed([lastToken], embedBuffer, {
     hiddenSize: config.hiddenSize,
@@ -83,7 +83,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     transpose: state.embeddingTranspose,
     debugProbes: state.runtimeConfig.shared.debug.probes,
     activationDtype,
-    embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
+    embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
   });
 
   let hiddenStates = embedTensor.buffer;
@@ -127,8 +127,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
   }
 
-  const logitSoftcap = config.finalLogitSoftcapping ?? 0;
-  const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad;
+  const logitSoftcap = config.finalLogitSoftcapping === null
+    ? 0
+    : config.finalLogitSoftcapping;
+  const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad ?? null;
   const lmHeadIsCpu = isCpuWeightBuffer(state.weights.get('lm_head'));
   const useGPUSampling = state.useGPU && isGPUSamplingAvailable() && !lmHeadIsCpu;
   const useFusedDecode = recorder && useGPUSampling && !state.disableFusedDecode;
@@ -143,13 +145,15 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     );
 
     const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
-      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype })
+      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
       : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
           temperature: opts.temperature,
           topK: opts.topK,
           padTokenId,
           logitSoftcap,
           logitsDtype,
+          outputIndex: 0,
+          greedyThreshold: samplingDefaults.greedyThreshold,
         });
 
     const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
@@ -178,13 +182,13 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     log.debug('Decode', `Step ${state.decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
     const invalidToken = nextToken >= config.vocabSize
-      || (padTokenId !== undefined && nextToken === padTokenId)
-      || (padTokenId === undefined && nextToken === 0);
+      || (padTokenId != null && nextToken === padTokenId)
+      || (padTokenId == null && nextToken === 0);
     if (invalidToken) {
       log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
       if (allowReadback('pipeline.decode.debug-logits')) {
         try {
-          const logitsBytes = logitsDtype === 'f16' ? 2 : 4;
+          const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
           const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
           const logitArr = decodeReadback(logitSample, logitsDtype);
           const maxLogit = Math.max(...logitArr);
@@ -321,13 +325,15 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
 
       const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-        ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype })
+        ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
         : await runGPUSample(logitsBuffer, vocabSize, {
             temperature: opts.temperature,
             topK: opts.topK,
             padTokenId,
             logitSoftcap,
             logitsDtype,
+            outputIndex: 0,
+            greedyThreshold: samplingDefaults.greedyThreshold,
           });
 
       releaseBuffer(logitsBuffer);
@@ -383,7 +389,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');
   }
 
-  const stopCheckMode = opts.stopCheckMode ?? 'per-token';
+  const stopCheckMode = opts.stopCheckMode ?? state.runtimeConfig.inference.batching.stopCheckMode;
 
   const stopBufferSize = stopCheckMode === 'per-token' ? N * 4 : 0;
   const stopBuffer = stopCheckMode === 'per-token'
@@ -395,10 +401,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
   const stopTokenIds = config.stopTokenIds || [];
   const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
-  const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad;
-  const logitSoftcap = config.finalLogitSoftcapping ?? 0;
+  const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad ?? null;
+  const logitSoftcap = config.finalLogitSoftcapping === null
+    ? 0
+    : config.finalLogitSoftcapping;
   const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;
-  const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTokens;
+  const maxTokens = opts.maxTokens ?? state.runtimeConfig.inference.batching.maxTokens;
 
   const tokensBuffer = device.createBuffer({
     size: (N + 1) * 4,
@@ -431,7 +439,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       transpose: state.embeddingTranspose,
       debugProbes: state.runtimeConfig.shared.debug.probes,
       activationDtype,
-      embeddingDtype: embedDtype === 'f16' ? 'f16' : 'f32',
+      embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
       numTokens: 1,
       indexOffset: i,
     });
@@ -459,13 +467,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const { logitsBuffer, vocabSize, logitsDtype } = logits;
 
     const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype })
+      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
       : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
           temperature: opts.temperature,
           topK: opts.topK,
           padTokenId,
           logitSoftcap,
           logitsDtype,
+          outputIndex: 0,
+          greedyThreshold: samplingDefaults.greedyThreshold,
         });
 
     const stopCheck = stopCheckMode === 'per-token'

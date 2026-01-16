@@ -14,6 +14,24 @@ Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
  manifest.json   .d.ts types    Op sequence   GPU params    Dispatch
 ```
 
+## JSON Rule Maps (Required for Selection Logic)
+
+Any selection of kernel variants, dtype strings, or op names must use JSON rule maps.
+
+- Store rules under `src/rules/<domain>/.../*.rules.json`.
+- Use `selectRuleValue()` from `src/rules/rule-registry.js` (or `src/gpu/kernels/rule-registry.js` for kernel-only call sites).
+- Avoid inline ternaries/if-else for choosing variant strings or dtypes.
+
+Example:
+
+```javascript
+// Good: rule map drives selection
+const variant = selectRuleValue('kernels', 'matmul', 'phase', { isDecode });
+
+// Avoid: inline selection logic for variants/dtypes
+const variant = isDecode ? 'decode' : 'prefill';
+```
+
 ## Manifest-First Contract
 
 Any new inference knob must be wired end-to-end:
@@ -42,6 +60,7 @@ Kernel path overrides are config-only; CLI flags must not set kernel selection.
 
 - CLI flags must not override runtime config tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 - Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
+See `docs/style/CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
 ---
 

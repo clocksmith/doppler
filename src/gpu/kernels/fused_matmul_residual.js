@@ -7,6 +7,7 @@ import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 export function shouldUseFusedMatmulResidual(M) {
@@ -19,7 +20,7 @@ function resolveFusedResidualVariant(input, residual) {
       `[MatmulResidualFused] dtype mismatch: input=${input.dtype} residual=${residual.dtype}`
     );
   }
-  return input.dtype === 'f16' ? 'f16' : 'default';
+  return selectRuleValue('fusedMatmulResidual', 'variant', { dtype: input.dtype });
 }
 
 

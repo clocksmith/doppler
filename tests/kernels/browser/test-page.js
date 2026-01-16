@@ -829,7 +829,12 @@ const testHarness = {
   
   async runArgmax(dev, logits) {
     const logitsBuf = makeBuffer(logits);
-    const tokenId = await sampleKernel.runArgmax(logitsBuf, logits.length);
+    const tokenId = await sampleKernel.runArgmax(logitsBuf, logits.length, {
+      logitsDtype: 'f32',
+      padTokenId: null,
+      logitSoftcap: 0,
+      outputIndex: 0,
+    });
     logitsBuf.destroy();
     return tokenId;
   },
@@ -841,6 +846,11 @@ const testHarness = {
       temperature,
       topK,
       randomSeed: randomValue * 10000, // Convert to seed
+      logitsDtype: 'f32',
+      padTokenId: null,
+      logitSoftcap: 0,
+      outputIndex: 0,
+      greedyThreshold: 0.01,
     });
     logitsBuf.destroy();
     return tokenId;
