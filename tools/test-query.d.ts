@@ -3,15 +3,15 @@
  * Quick test query runner - minimal Playwright script for ad-hoc inference testing
  *
  * Usage:
- *   npx tsx tools/test-query.ts "the color of the sky is "
- *   npx tsx tools/test-query.ts --model gemma-3-1b-it-q4 "hello world"
+ *   npx tsx tools/test-query.ts --config debug
+ *   npx tsx tools/test-query.ts --model gemma-3-1b-it-q4 --config debug
  *   npx tsx tools/test-query.ts --config debug --repl  # Interactive mode with cached model
  */
 
 import type { BrowserContext, Page } from 'playwright';
 
 export interface Options {
-  prompt: string;
+  prompt: string | null;
   model: string;
   baseUrl: string;
   config: string;

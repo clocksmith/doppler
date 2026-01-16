@@ -25,9 +25,10 @@ See also:
 
 | Artifact | Purpose | Suggested Path |
 |----------|---------|----------------|
-| Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `tests/test-results/` |
+| Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `tests/results/` |
 | Kernel correctness JSON/HTML | per-kernel correctness | `tests/kernels/test-results/` |
 | Kernel benchmark JSON/HTML | per-kernel timings | `tests/kernels/test-results/` |
+| Baseline registry | Expected tok/s ranges | `tests/baselines.json` |
 
 If a run does not have a JSON artifact yet, record the session here and file it as follow-up work.
 
@@ -123,11 +124,13 @@ For each performance session, record:
 - Environment: OS, browser version, GPU adapter info, WebGPU feature flags
 - Workloads: prompt names and token counts
 - Metrics: TTFT, prefill tok/s, decode tok/s, peak VRAM estimate, GPU submit counts
+- Output quality: `quality.ok` plus reasons/warnings
 
 Preferred output:
 
 - A JSON file per run matching `docs/design/BENCHMARK_HARNESS.md`
 - A short narrative summary in this document for context and troubleshooting.
+Baseline ranges live in `tests/baselines.json` and are enforced in CI when enabled.
 
 To avoid instruction drift, prefer linking to the canonical runner docs:
 

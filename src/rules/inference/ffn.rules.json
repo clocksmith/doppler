@@ -1,0 +1,6 @@
+{
+  "activationOp": [
+    { "match": { "hiddenActivation": "gelu" }, "value": "gelu" },
+    { "match": {}, "value": "silu" }
+  ]
+}

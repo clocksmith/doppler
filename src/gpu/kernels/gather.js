@@ -8,22 +8,12 @@ import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from '.
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
 import { DTYPE_SIZES } from '../../config/schema/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 function selectGatherVariant(useF16Input, useF16Output, useVec4) {
-  const rules = [
-    { match: { useF16Input: true, useF16Output: true, useVec4: true }, value: 'f16_vec4_f16_out' },
-    { match: { useF16Input: true, useF16Output: true }, value: 'f16_f16_out' },
-    { match: { useF16Input: true, useVec4: true }, value: 'f16_vec4' },
-    { match: { useF16Input: true }, value: 'f16' },
-    { match: { useF16Output: true, useVec4: true }, value: 'vec4_f16_out' },
-    { match: { useF16Output: true }, value: 'f16_out' },
-    { match: { useVec4: true }, value: 'vec4' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'gather',
+    'variant',
     { useF16Input, useF16Output, useVec4 }
   );
 }

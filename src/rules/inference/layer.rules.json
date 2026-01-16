@@ -1,0 +1,7 @@
+{
+  "ffnMode": [
+    { "match": { "variant": "moe" }, "value": true },
+    { "match": { "variant": "auto", "canAutoMoe": true }, "value": true },
+    { "match": {}, "value": false }
+  ]
+}

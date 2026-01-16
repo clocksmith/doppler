@@ -1,0 +1,6 @@
+{
+  "suffix": [
+    { "match": { "useF16": true }, "value": "_f16" },
+    { "match": {}, "value": "" }
+  ]
+}

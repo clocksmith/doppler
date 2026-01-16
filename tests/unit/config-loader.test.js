@@ -136,7 +136,7 @@ describe('config/loader', () => {
   });
 
   describe('resolveConfig', () => {
-    it('merges manifest architecture with preset defaults', () => {
+    it('derives missing architecture fields from manifest values', () => {
       const manifest = {
         version: 1,
         modelId: 'test-model',

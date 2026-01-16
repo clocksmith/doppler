@@ -198,5 +198,6 @@ function mergeBenchmarkConfig(
     run: { ...base.run, ...overrides.run },
     stats: { ...base.stats, ...overrides.stats },
     comparison: { ...base.comparison, ...overrides.comparison },
+    baselines: { ...base.baselines, ...overrides.baselines },
   };
 }

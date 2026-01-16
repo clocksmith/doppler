@@ -28,6 +28,7 @@ function buildBenchmarkScript(opts, modelPath) {
     debug: benchmarkRun.debug,
     profile: benchmarkRun.profile,
     runtimeConfig,
+    configChain: opts.configChain ?? null,
   };
   if (customPrompt) {
     configObj.customPrompt = customPrompt;
@@ -202,6 +203,7 @@ export async function runFullInferenceBenchmark(opts) {
 
 export function formatBenchmarkResult(result) {
   const m = result.metrics;
+  const quality = result.quality;
   const model = result.model?.modelName ?? result.model?.modelId ?? 'unknown';
   const prompt = result.workload?.promptName ?? 'unknown';
 
@@ -218,5 +220,17 @@ export function formatBenchmarkResult(result) {
   if (m.estimated_vram_bytes_peak) {
     const vramMB = (m.estimated_vram_bytes_peak / 1024 / 1024).toFixed(1);
     console.log(`Peak VRAM:      ${vramMB} MB`);
+  }
+  if (m.estimated_vram_bytes_peak_requested) {
+    const vramMB = (m.estimated_vram_bytes_peak_requested / 1024 / 1024).toFixed(1);
+    console.log(`Peak VRAM (requested): ${vramMB} MB`);
+  }
+  if (quality) {
+    const status = quality.ok ? 'ok' : 'fail';
+    const reasons = quality.reasons?.length ? ` (${quality.reasons.join(', ')})` : '';
+    console.log(`Quality:        ${status}${reasons}`);
+    if (quality.warnings?.length) {
+      console.log(`Quality Notes:  ${quality.warnings.join(', ')}`);
+    }
   }
 }

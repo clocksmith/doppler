@@ -17,6 +17,7 @@ import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
 import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep, shouldDebugLayerOutput } from './debug-utils.js';
 import { runProbes } from './probes.js';
 import { getLayerPlanSteps } from './layer-plan.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 // ============================================================================
 // Architecture Detection
@@ -534,8 +535,13 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           let outputTensor;
           const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn.js');
 
-          const useMoe = step.variant === 'moe'
-            || (step.variant === 'auto' && config.useMoE && isMoELayer(layerIdx, config, layerWeights));
+          const canAutoMoe = config.useMoE && isMoELayer(layerIdx, config, layerWeights);
+          const useMoe = selectRuleValue(
+            'inference',
+            'layer',
+            'ffnMode',
+            { variant: step.variant, canAutoMoe }
+          );
           if (useMoe) {
             outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, context);
           } else {

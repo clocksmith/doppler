@@ -30,6 +30,47 @@ import { resolvePreset, createConverterConfig } from '../../config/index.js';
 
 const BYTES_PER_MB = 1024 * 1024;
 
+function resolveBaseModelId(configRec, inputPath) {
+  const candidates = [];
+  if (typeof configRec?._name_or_path === 'string') {
+    candidates.push(configRec._name_or_path);
+  }
+  if (typeof configRec?.name_or_path === 'string') {
+    candidates.push(configRec.name_or_path);
+  }
+  candidates.push(inputPath);
+
+  for (const candidate of candidates) {
+    const value = candidate.replace(/\\/g, '/');
+    const hfMatch = value.match(/models--([^/]+)--([^/]+)/);
+    if (hfMatch) {
+      return `${hfMatch[1]}/${hfMatch[2]}`;
+    }
+  }
+
+  for (const candidate of candidates) {
+    const value = candidate.replace(/\\/g, '/').trim();
+    if (!value) continue;
+    const isHash = /^[a-f0-9]{32,64}$/i.test(value);
+    if (isHash) continue;
+
+    const isAbs = value.startsWith('/') || /^[a-zA-Z]:\//.test(value);
+    if (!isAbs && value.includes('/')) {
+      return value;
+    }
+
+    const parts = value.split('/');
+    const last = parts[parts.length - 1];
+    if (last.endsWith('.json') || last.endsWith('.safetensors') || last.endsWith('.gguf')) {
+      const parent = parts[parts.length - 2];
+      if (parent) return parent;
+    }
+    if (last) return last;
+  }
+
+  return basename(inputPath);
+}
+
 function resolveConverterConfig(options = {}) {
   const baseConfig = options.converterConfig ?? null;
 
@@ -147,9 +188,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
     hasAudio,
     hasProjector
   );
-  const baseModelId = typeof configRec._name_or_path === 'string'
-    ? configRec._name_or_path
-    : basename(inputPath);
+  const baseModelId = resolveBaseModelId(configRec, inputPath);
   const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
   const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, originalDtype);
 

@@ -7,6 +7,7 @@ import { WORKGROUP_SIZES, GPU_LIMITS } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
 import { trace } from '../../debug/index.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function calculate2DDispatch(totalWorkgroups) {
@@ -163,13 +164,14 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   const device = getDevice();
   const { maxTokensPerExpert = numTokens } = options;
   const useF16 = hiddenStates.dtype === 'f16';
+  const suffix = selectRuleValue('moe', 'variantSuffix', { useF16 });
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
 
   // Two-phase approach: count_and_map builds token assignments, gather copies hidden states
-  const countPipeline = await createPipeline('moe_gather', useF16 ? 'count_f16' : 'count', explicitLayout);
-  const gatherPipeline = await createPipeline('moe_gather', useF16 ? 'gather_f16' : 'gather', explicitLayout);
+  const countPipeline = await createPipeline('moe_gather', `count${suffix}`, explicitLayout);
+  const gatherPipeline = await createPipeline('moe_gather', `gather${suffix}`, explicitLayout);
 
   // Output buffers per WGSL shader:
   // - gathered: [numExperts, maxTokensPerExpert, hiddenSize]
@@ -259,13 +261,14 @@ export async function recordMoEGather(recorder, hiddenStates, expertIndices, num
   const device = recorder.device;
   const { maxTokensPerExpert = numTokens } = options;
   const useF16 = hiddenStates.dtype === 'f16';
+  const suffix = selectRuleValue('moe', 'variantSuffix', { useF16 });
 
   // Use explicit bind group layout (required because count_and_map doesn't use all bindings)
   const explicitLayout = getMoEGatherBindGroupLayout(device);
 
   // Two-phase approach: count_and_map builds token assignments, gather copies hidden states
-  const countPipeline = await createPipeline('moe_gather', useF16 ? 'count_f16' : 'count', explicitLayout);
-  const gatherPipeline = await createPipeline('moe_gather', useF16 ? 'gather_f16' : 'gather', explicitLayout);
+  const countPipeline = await createPipeline('moe_gather', `count${suffix}`, explicitLayout);
+  const gatherPipeline = await createPipeline('moe_gather', `gather${suffix}`, explicitLayout);
 
   const bytesPerElement = hiddenStates.dtype === 'f16' ? 2 : 4;
   const gatheredSize = numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement;
@@ -454,9 +457,10 @@ export async function runScatterAddDynamic(expertOutputs, indices, weights, toke
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
   }
 
-  const variant = expertOutputs.dtype === 'f16'
-    ? (weightsDtype === 'f16' ? 'dynamic_f16_w16' : 'dynamic_f16')
-    : 'dynamic';
+  const variant = selectRuleValue('moe', 'scatterAddVariant', {
+    outputDtype: expertOutputs.dtype,
+    weightsDtype,
+  });
   const explicitLayout = getScatterAddDynamicBindGroupLayout(device);
   const pipeline = await createPipeline('scatter_add', variant, explicitLayout);
 
@@ -519,9 +523,10 @@ export async function recordScatterAddDynamic(recorder, expertOutputs, indices, 
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
   }
 
-  const variant = expertOutputs.dtype === 'f16'
-    ? (weightsDtype === 'f16' ? 'dynamic_f16_w16' : 'dynamic_f16')
-    : 'dynamic';
+  const variant = selectRuleValue('moe', 'scatterAddVariant', {
+    outputDtype: expertOutputs.dtype,
+    weightsDtype,
+  });
   const explicitLayout = getScatterAddDynamicBindGroupLayout(device);
   const pipeline = await createPipeline('scatter_add', variant, explicitLayout);
   const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;

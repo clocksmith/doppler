@@ -1,0 +1,13 @@
+{
+  "variant": [
+    { "match": { "hasSubgroups": true, "isSmall": true }, "value": "small_subgroup" },
+    { "match": { "hasSubgroups": true }, "value": "subgroup" },
+    { "match": { "isSmall": true }, "value": "small" },
+    { "match": {}, "value": "default" }
+  ],
+  "topkVariant": [
+    { "match": { "inputDtype": "f16", "weightsDtype": "f16" }, "value": "fused_f16_w16" },
+    { "match": { "inputDtype": "f16" }, "value": "fused_f16" },
+    { "match": {}, "value": "fused" }
+  ]
+}

@@ -7,32 +7,22 @@ import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function selectResidualVariant(outputDtype, useVec4) {
-  const rules = [
-    { match: { useVec4: true, outputDtype: 'f16' }, value: 'vec4_f16' },
-    { match: { useVec4: true }, value: 'vec4' },
-    { match: { outputDtype: 'f16' }, value: 'default_f16' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'residual',
+    'residualVariant',
     { outputDtype, useVec4 }
   );
 }
 
 
 function selectBiasAddVariant(dataDtype, biasDtype) {
-  const rules = [
-    { match: { dataDtype: 'f16', biasDtype: 'f16' }, value: 'f16' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'residual',
+    'biasAddVariant',
     { dataDtype, biasDtype }
   );
 }

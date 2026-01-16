@@ -6,7 +6,7 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -34,13 +34,7 @@ function resolveSampleVariants(logitsDtype) {
   if (useF16 && !caps.hasF16) {
     throw new Error('[Sample] F16 logits requested but shader-f16 is unavailable.');
   }
-  const suffix = selectByRules(
-    [
-      { match: { useF16: true }, value: '_f16' },
-      { match: {}, value: '' },
-    ],
-    { useF16 }
-  );
+  const suffix = selectRuleValue('sample', 'suffix', { useF16 });
   return {
     argmax: `argmax${suffix}`,
     argmaxReduce: `argmax_reduce${suffix}`,

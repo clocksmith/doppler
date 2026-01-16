@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 function parseArgs(argv) {
   
   const opts = {
-    prompt: 'the color of the sky is ',
+    prompt: null,
     model: 'gemma-3-1b-it-q4',
     baseUrl: 'http://localhost:8080/d',
     config: 'default',
@@ -50,8 +50,8 @@ function parseArgs(argv) {
 Quick test query for DOPPLER
 
 Usage:
-  npx tsx tools/test-query.ts [options] "prompt text"
-  npx tsx tools/test-query.ts --repl   # Interactive REPL mode
+  npx tsx tools/test-query.ts [options]
+  npx tsx tools/test-query.ts --repl   # Interactive REPL mode (prompt via stdin)
 
 Options:
   --model, -m <name>   Model name (default: gemma-3-1b-it-q4)
@@ -61,6 +61,9 @@ Options:
   --repl, -i           Interactive REPL mode (model cached in memory)
   --help, -h           Show this help
 
+Notes:
+  Single-query mode uses runtime.inference.prompt from the config.
+
 REPL Commands:
   <text>               Run inference with prompt
   /clear               Clear KV cache (new conversation)
@@ -68,15 +71,12 @@ REPL Commands:
   /quit                Exit
 
 Examples:
-  npx tsx tools/test-query.ts "the color of the sky is "
+  npx tsx tools/test-query.ts --config debug
   npx tsx tools/test-query.ts --repl
-  npx tsx tools/test-query.ts --config debug "once upon a time"
 `);
         process.exit(0);
       default:
-        if (!arg.startsWith('-')) {
-          opts.prompt = arg;
-        }
+        break;
     }
   }
 
@@ -339,7 +339,11 @@ async function main() {
     } else {
       // Single query mode
       console.log('\nRunning inference...');
-      const result = await runQuery(page, opts.prompt);
+      const prompt = opts.prompt ?? loadedConfig.runtime?.inference?.prompt;
+      if (!prompt) {
+        throw new Error('runtime.inference.prompt must be set for single-query mode.');
+      }
+      const result = await runQuery(page, prompt);
 
       console.log(`\n${'─'.repeat(50)}`);
       console.log(`\x1b[33mOutput:\x1b[0m ${result.output}`);

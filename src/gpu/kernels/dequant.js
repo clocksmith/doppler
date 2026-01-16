@@ -8,7 +8,7 @@ import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 export function selectDequantKernel(options = {}) {
@@ -16,19 +16,9 @@ export function selectDequantKernel(options = {}) {
   const { useVec4 = true, outputDtype = 'f32' } = options;
 
   const wantsF16Out = outputDtype === 'f16' && capabilities.hasF16;
-  const rules = [
-    { match: { hasSubgroups: true, wantsF16Out: true, useVec4: true }, value: 'subgroup_vec4_f16out' },
-    { match: { hasSubgroups: true, wantsF16Out: true }, value: 'subgroup_f16out' },
-    { match: { hasSubgroups: true, useVec4: true }, value: 'subgroup_vec4' },
-    { match: { hasSubgroups: true }, value: 'subgroup' },
-    { match: { wantsF16Out: true, useVec4: true }, value: 'shared_vec4_f16out' },
-    { match: { wantsF16Out: true }, value: 'shared_f16out' },
-    { match: { useVec4: true }, value: 'shared_vec4' },
-    { match: {}, value: 'shared' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'dequant',
+    'variant',
     { hasSubgroups: capabilities.hasSubgroups, wantsF16Out, useVec4 }
   );
 }

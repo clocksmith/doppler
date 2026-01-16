@@ -398,7 +398,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad;
   const logitSoftcap = config.finalLogitSoftcapping ?? 0;
   const eosTokenId = eosToken ?? stopTokenIds[0] ?? 1;
-  const maxTokens = opts.maxTokens || getRuntimeConfig().inference.batching.maxTokens;
+  const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTokens;
 
   const tokensBuffer = device.createBuffer({
     size: (N + 1) * 4,

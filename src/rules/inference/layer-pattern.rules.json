@@ -1,0 +1,8 @@
+{
+  "patternKind": [
+    { "match": { "patternType": "alternating", "globalPattern": "even" }, "value": "alternating_even" },
+    { "match": { "patternType": "alternating", "globalPattern": "odd" }, "value": "alternating_odd" },
+    { "match": { "patternType": "every_n" }, "value": "every_n" },
+    { "match": {}, "value": null }
+  ]
+}

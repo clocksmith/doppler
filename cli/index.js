@@ -30,6 +30,7 @@ import {
 } from './helpers/comparison.js';
 
 import { generateHTMLReport } from './helpers/html-report.js';
+import { loadBaselineRegistry, findBaselineForResult, evaluateBaseline } from './helpers/baselines.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -2188,6 +2189,45 @@ async function main() {
           const benchResults = await runFullInferenceBenchmark(opts);
           formatBenchmarkResult(benchResults);
 
+          const benchmarkConfig = loadedConfig.runtime.shared.benchmark;
+          const baselineConfig = benchmarkConfig.baselines;
+
+          if (baselineConfig?.enabled) {
+            try {
+              const registry = await loadBaselineRegistry(baselineConfig.file);
+              const baseline = findBaselineForResult(benchResults, registry);
+              if (!baseline) {
+                console.log('Baseline:      no matching entry');
+              } else {
+                const evaluation = evaluateBaseline(benchResults, baseline);
+                if (evaluation.ok) {
+                  console.log('Baseline:      ok');
+                } else {
+                  console.log('Baseline:      out of range');
+                  for (const violation of evaluation.violations) {
+                    console.log(
+                      `  ${violation.metric}: ${violation.value} ` +
+                      `(expected ${violation.min ?? '-inf'}..${violation.max ?? '+inf'})`
+                    );
+                  }
+                  if (baselineConfig.failOnOutOfRange && process.env.CI) {
+                    console.error('\nBaseline check failed (CI).');
+                    process.exit(1);
+                  }
+                }
+              }
+            } catch (err) {
+              console.error(`\nFailed to load baseline registry: ${ (err).message}`);
+            }
+          }
+
+          if (baselineConfig?.requireQualityOk && benchResults.quality && !benchResults.quality.ok) {
+            console.error('\nOutput quality check failed.');
+            if (process.env.CI) {
+              process.exit(1);
+            }
+          }
+
           // Compare against baseline if provided
           
           let baseline = null;
@@ -2199,7 +2239,6 @@ async function main() {
               const comparison = compareResults(baseline, benchResults);
               console.log(formatComparison(comparison));
 
-              const benchmarkConfig = loadedConfig.runtime.shared.benchmark;
               const regressionSummary = detectRegressions(
                 comparison,
                 benchmarkConfig.comparison

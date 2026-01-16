@@ -1,5 +1,6 @@
 import { log } from '../../debug/index.js';
 import { mergeConfig } from '../../config/merge.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 // =============================================================================
 // Model Detection Functions
@@ -157,21 +158,27 @@ export function toParsedConfigFromMerged(merged, manifest) {
     }
     const period = inf.layerPattern.period ?? 1;  // Fallback only for non-every_n types
 
-    if (patternType === 'alternating') {
-      const pattern = inf.layerPattern.globalPattern;
-      if (pattern === 'even') {
-        layerTypes = Array.from({ length: numLayers }, (_, i) =>
-          i % 2 === 0 ? 'full_attention' : 'sliding_attention'
-        );
-      } else if (pattern === 'odd') {
-        layerTypes = Array.from({ length: numLayers }, (_, i) =>
-          i % 2 === 1 ? 'full_attention' : 'sliding_attention'
-        );
-      }
-    } else if (patternType === 'every_n') {
-      layerTypes = Array.from({ length: numLayers }, (_, i) =>
-        i % period === 0 ? 'full_attention' : 'sliding_attention'
-      );
+    const pattern = inf.layerPattern.globalPattern ?? null;
+    const patternKind = selectRuleValue(
+      'inference',
+      'layerPattern',
+      'patternKind',
+      { patternType, globalPattern: pattern }
+    );
+    const patternBuilders = {
+      alternating_even: (count) => Array.from({ length: count }, (_, i) =>
+        i % 2 === 0 ? 'full_attention' : 'sliding_attention'
+      ),
+      alternating_odd: (count) => Array.from({ length: count }, (_, i) =>
+        i % 2 === 1 ? 'full_attention' : 'sliding_attention'
+      ),
+      every_n: (count, stride) => Array.from({ length: count }, (_, i) =>
+        i % stride === 0 ? 'full_attention' : 'sliding_attention'
+      ),
+    };
+    const builder = patternKind ? patternBuilders[patternKind] : null;
+    if (builder) {
+      layerTypes = builder(numLayers, period);
     }
   }
 
@@ -208,9 +215,12 @@ export function toParsedConfigFromMerged(merged, manifest) {
   // Activation type
   const activation = inf.ffn.activation;
   
-  const hiddenActivation =
-    activation === 'silu' || activation === 'swiglu' ? 'silu' :
-    activation === 'gelu' || activation === 'geglu' ? 'gelu' : 'silu';
+  const hiddenActivation = selectRuleValue(
+    'inference',
+    'config',
+    'hiddenActivation',
+    { activation }
+  );
 
   const chatTemplateType = inf.chatTemplate?.type ?? null;
   const chatTemplateEnabled = inf.chatTemplate?.enabled ?? false;

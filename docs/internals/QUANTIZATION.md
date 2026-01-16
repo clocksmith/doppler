@@ -119,6 +119,26 @@ npx tsx doppler/src/converter/node-converter.js model/ output/ --quantize q4_k_m
 
 ---
 
+## Quantization Test Matrix
+
+Maintain a lightweight validation matrix so regressions are obvious. Update this
+table when adding a new model family or quantization path.
+
+| Model family | F16 | Q4K | Q6K | Notes |
+| --- | --- | --- | --- | --- |
+| Gemma 2 (2B) | TODO | TODO | TODO | Use gemma2 presets and kernelPath registry |
+| Gemma 3 (1B) | TODO | TODO | TODO | Check RMS norm offset + softcap |
+| Llama 3.x (1B-3B) | TODO | TODO | TODO | Verify Q4K fused + subgroup paths |
+| Mixtral 8x7B | TODO | TODO | TODO | Validate MoE routing + scatter-add |
+| GPT-OSS 20B | TODO | TODO | TODO | MXFP4 experts + MoE gather/scatter |
+
+### Validation Checklist
+
+1. Convert model with target quantization + layout.
+2. Run inference smoke test (short prompt) to verify output quality.
+3. Run pipeline benchmark in `--mode bench` for throughput.
+4. Record results and update `tests/baselines.json` where applicable.
+
 ## References
 
 - [NVIDIA Efficient Matrix Transpose](https://developer.nvidia.com/blog/efficient-matrix-transpose-cuda-cc/)

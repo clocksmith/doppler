@@ -11,7 +11,7 @@ import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { trace } from '../../debug/index.js';
 import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
@@ -119,14 +119,7 @@ function selectAttentionTier(
   }
 
   if (!tier) {
-    const rules = [
-      { match: { canSubgroup: true }, value: 'subgroup' },
-      { match: { canLarge: true }, value: 'tiled_large' },
-      { match: { canSmall: true }, value: 'tiled_small' },
-      { match: { isDecode: true }, value: 'streaming' },
-      { match: {}, value: 'streaming' },
-    ];
-    tier = selectByRules(rules, { canSubgroup, canLarge, canSmall, isDecode });
+    tier = selectRuleValue('attention', 'tier', { canSubgroup, canLarge, canSmall, isDecode });
     if (!reason) {
       if (canSubgroup) {
         reason = 'subgroup_capable';
@@ -178,22 +171,18 @@ function resolveAttentionVariant(
   const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
   const chunkedVariant = useF16 ? 'decode_chunked_f16' : 'decode_chunked_f16kv';
-
-  const rules = [
-    { match: { tier: 'subgroup', useF16KV: true, canUseChunked: true }, value: chunkedVariant },
-    { match: { tier: 'subgroup', useF16KV: true }, value: `decode_streaming${suffix}` },
-    { match: { tier: 'subgroup', canUseDecodeSubgroup: true }, value: 'decode_subgroup' },
-    { match: { tier: 'subgroup' }, value: 'decode_streaming' },
-    { match: { tier: 'tiled_large' }, value: `${base}${suffix}` },
-    { match: { tier: 'tiled_small' }, value: `${base}_small${suffix}` },
-    { match: { tier: 'streaming', canUseChunked: true }, value: chunkedVariant },
-    { match: { tier: 'streaming' }, value: `${base}_streaming${suffix}` },
-    { match: {}, value: `${base}_streaming${suffix}` },
-  ];
-
-  const variant = selectByRules(
-    rules,
-    { tier, useF16KV, canUseChunked, canUseDecodeSubgroup }
+  const variant = selectRuleValue(
+    'attention',
+    'variant',
+    {
+      tier,
+      useF16KV,
+      canUseChunked,
+      canUseDecodeSubgroup,
+      base,
+      suffix,
+      chunkedVariant,
+    }
   );
 
   if (variant === chunkedVariant && !loggedChunkedKernel) {

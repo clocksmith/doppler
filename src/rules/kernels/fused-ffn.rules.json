@@ -1,0 +1,10 @@
+{
+  "variant": [
+    { "match": { "canUseQ4K": true, "batchSize": { "gt": 1 } }, "value": "q4k_batched" },
+    { "match": { "canUseQ4K": true }, "value": "q4k" },
+    { "match": { "batchSize": { "gt": 1 } }, "value": "batched" },
+    { "match": { "weightDtype": "f16" }, "value": "f16" },
+    { "match": { "useMultiOutput": true }, "value": "multi" },
+    { "match": {}, "value": "default" }
+  ]
+}

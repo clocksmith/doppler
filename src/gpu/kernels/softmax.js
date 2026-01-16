@@ -7,22 +7,15 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function selectSoftmaxVariant(innerSize) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   const { smallThreshold } = getKernelThresholds().softmax;
-
-  const rules = [
-    { match: { hasSubgroups: true, innerSize: { lte: smallThreshold } }, value: 'small_subgroup' },
-    { match: { hasSubgroups: true }, value: 'subgroup' },
-    { match: { innerSize: { lte: smallThreshold } }, value: 'small' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(rules, { hasSubgroups, innerSize });
+  const isSmall = innerSize <= smallThreshold;
+  return selectRuleValue('softmax', 'variant', { hasSubgroups, isSmall });
 }
 
 
@@ -90,9 +83,7 @@ export async function runSoftmaxTopK(
     throw new Error('SoftmaxTopK f16 weights require f16 logits');
   }
 
-  const variant = inputDtype === 'f16'
-    ? (weightsDtype === 'f16' ? 'fused_f16_w16' : 'fused_f16')
-    : 'fused';
+  const variant = selectRuleValue('softmax', 'topkVariant', { inputDtype, weightsDtype });
   const pipeline = await createPipeline('topk', variant);
 
   // Output buffers: indices [numTokens, topK] as u32, weights [numTokens, topK] as f16 or f32

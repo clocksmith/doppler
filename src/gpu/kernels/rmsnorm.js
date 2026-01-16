@@ -7,7 +7,7 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function canUseF16(input, residual) {
@@ -25,19 +25,9 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   const isSmall = hiddenSize !== null && hiddenSize <= smallThreshold;
-
-  const rules = [
-    { match: { isF16: true, isSmall: true }, value: 'small_f16' },
-    { match: { isF16: true }, value: 'default_f16' },
-    { match: { residual: true }, value: 'residual' },
-    { match: { hasSubgroups: true, isSmall: true }, value: 'small_subgroup' },
-    { match: { hasSubgroups: true }, value: 'subgroup' },
-    { match: { isSmall: true }, value: 'small' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'rmsnorm',
+    'variant',
     { isF16, residual: !!residual, hasSubgroups, isSmall }
   );
 }

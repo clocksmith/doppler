@@ -115,6 +115,8 @@ The `moe.js` and `scatter_add.js` kernels are selected dynamically based on:
 - Number of experts
 - Tokens per expert
 - GPU capabilities
+Runtime selection should use rule maps (not ad-hoc if/ternary) so variant
+choices stay auditable and consistent with the style guides.
 
 MoE kernel path configs are not yet implemented.
 

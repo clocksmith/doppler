@@ -27,6 +27,7 @@ Deep-dives on kernel implementations and optimization strategies:
 | [Fusion](internals/FUSION.md) | Kernel fusion opportunities, optimization matrix |
 | [MoE](internals/MOE.md) | Expert paging, sparsity exploitation, routing |
 | [Memory Tiers](internals/MEMORY_TIERS.md) | Tiered architecture, tensor parallelism, P2P mesh |
+| [Gemma 2 Inference](internals/GEMMA2_INFERENCE.md) | Presets, kernel paths, benchmark checklist |
 
 ---
 

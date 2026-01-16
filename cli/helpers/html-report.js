@@ -160,6 +160,13 @@ export function generateHTMLReport(results, baseline) {
   for (const result of resultList) {
     const m = result.metrics;
     const prompt = result.workload?.promptName || 'default';
+    const quality = result.quality;
+    const peakVramMB = m.estimated_vram_bytes_peak
+      ? (m.estimated_vram_bytes_peak / 1024 / 1024).toFixed(1)
+      : null;
+    const peakVramRequestedMB = m.estimated_vram_bytes_peak_requested
+      ? (m.estimated_vram_bytes_peak_requested / 1024 / 1024).toFixed(1)
+      : null;
 
     html += `
     <div class="card">
@@ -181,6 +188,18 @@ export function generateHTMLReport(results, baseline) {
           <div class="metric-value">${m.gpu_submit_count_prefill + m.gpu_submit_count_decode}</div>
           <div class="metric-label">GPU Submits (${m.gpu_submit_count_prefill} prefill + ${m.gpu_submit_count_decode} decode)</div>
         </div>
+        ${peakVramMB ? `
+        <div class="metric">
+          <div class="metric-value">${peakVramMB}<span class="metric-unit">MB</span></div>
+          <div class="metric-label">Peak VRAM (allocated)</div>
+        </div>
+        ` : ''}
+        ${peakVramRequestedMB ? `
+        <div class="metric">
+          <div class="metric-value">${peakVramRequestedMB}<span class="metric-unit">MB</span></div>
+          <div class="metric-label">Peak VRAM (requested)</div>
+        </div>
+        ` : ''}
       </div>
 `;
 
@@ -202,6 +221,23 @@ export function generateHTMLReport(results, baseline) {
           <td>${m.decode_ms_per_token_p50.toFixed(2)} ms</td>
           <td>${m.decode_ms_per_token_p90.toFixed(2)} ms</td>
           <td>${m.decode_ms_per_token_p99.toFixed(2)} ms</td>
+        </tr>
+      </table>
+`;
+    }
+
+    if (quality) {
+      const status = quality.ok ? 'ok' : 'fail';
+      const reasons = quality.reasons?.length ? quality.reasons.join(', ') : 'none';
+      const warnings = quality.warnings?.length ? quality.warnings.join(', ') : 'none';
+      html += `
+      <h3>Output Quality</h3>
+      <table>
+        <tr><th>Status</th><th>Reasons</th><th>Warnings</th></tr>
+        <tr>
+          <td>${status}</td>
+          <td>${reasons}</td>
+          <td>${warnings}</td>
         </tr>
       </table>
 `;

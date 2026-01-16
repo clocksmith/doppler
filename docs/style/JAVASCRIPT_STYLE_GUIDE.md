@@ -318,6 +318,45 @@ function selectMatmulVariant(ctx) {
 }
 ```
 
+### JSON Rule Maps (Required for Selection Logic)
+
+Selection rules must live in JSON and be evaluated by the rule registry. This
+keeps selection logic data-only, auditable, and consistent across kernels and
+inference code.
+
+**Required pattern:**
+
+1. Define rules in `src/**/rules/*.rules.json`
+2. Use `selectRuleValue()` from `src/rules/rule-registry.js`
+3. Pass a context object with all decision inputs (no inline ternaries/ifs)
+
+```json
+// src/gpu/kernels/rules/softmax.rules.json
+{
+  "variant": [
+    { "match": { "hasSubgroups": true, "isSmall": true }, "value": "small_subgroup" },
+    { "match": { "hasSubgroups": true }, "value": "subgroup" },
+    { "match": { "isSmall": true }, "value": "small" },
+    { "match": {}, "value": "default" }
+  ]
+}
+```
+
+```javascript
+import { selectRuleValue } from '../rules/rule-registry.js';
+
+function selectSoftmaxVariant(innerSize) {
+  const caps = getKernelCapabilities();
+  const isSmall = innerSize <= getKernelThresholds().softmax.smallThreshold;
+  return selectRuleValue('softmax', 'variant', {
+    hasSubgroups: caps.hasSubgroups,
+    isSmall,
+  });
+}
+```
+
+**Exception:** Only trivial, non-selection UI toggles may use inline conditionals.
+
 ### Rule Matcher Utility
 
 ```javascript

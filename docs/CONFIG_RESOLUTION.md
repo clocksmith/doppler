@@ -12,6 +12,16 @@ by DOPPLER. The rules are enforced at runtime with errors or warnings.
 | Session | runtime → default | ✗ (throw) | ✓ | — |
 | Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
 
+## CLI + Harness Restrictions
+
+Runtime tunables are config-only when using the CLI or test harnesses:
+
+- CLI flags must not override prompt, max tokens, sampling, trace, log levels, or warmup/timed runs.
+- Harness URLs accept only `runtimeConfig` and optional `configChain`. No per-field URL overrides.
+- Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
+
+When you need a change, create a preset or pass `--config` with a runtime config file.
+
 ## Category Examples
 
 | Category | Examples |
@@ -42,4 +52,24 @@ Set via runtime.inference.modelOverrides (experimental) or manifest.
 ```
 DopplerConfigError: "batchSize" is a session param. Cannot override at call-time.
 Set via setRuntimeConfig() before generation.
+```
+
+## Merge Order
+
+Runtime config merge order:
+
+```
+runtimeConfig = merge(runtimeDefaults, runtimePreset, runtimeOverride)
+```
+
+Manifest inference config merge order:
+
+```
+manifestInference = merge(manifestDefaults, modelPreset, converterOverride, artifactDerived)
+```
+
+Model inference config merge order:
+
+```
+modelInference = merge(manifestInference, runtimeInferenceOverride)
 ```

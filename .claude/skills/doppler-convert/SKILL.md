@@ -91,7 +91,7 @@ cat models/OUTPUT_NAME/manifest.json | grep -E "\"architecture\"|\"tensorCount\"
 ls -lh models/OUTPUT_NAME/
 
 # 3. Test inference actually works (uses DOPPLER completion signals)
-npm run debug -- -m OUTPUT_NAME 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
+npm run debug -- --config debug -m OUTPUT_NAME 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
 ```
 
 If verification fails:
@@ -163,7 +163,7 @@ Override with `--model-id` if you need a custom name.
 For detailed information, consult these files:
 
 - **Model support matrix**: `docs/plans/TARGET_MODELS.md`
-- **RDRR format spec**: `docs/design/RDRR_FORMAT.md`
+- **RDRR format spec**: `docs/spec/RDRR_FORMAT.md`
 - **Converter source**: `src/converter/node-converter/index.js`
 - **Troubleshooting**: `docs/DOPPLER-TROUBLESHOOTING.md`
 

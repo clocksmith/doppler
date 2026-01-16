@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "isSmall": true }, "value": { "context": "smallVariant" } },
+    { "match": {}, "value": { "context": "mediumVariant" } }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "q4kFusedVariant": [
+    { "match": { "useF16A": true, "isM1": true }, "value": "q4_fused_multicol_f16a" },
+    { "match": { "useF16A": true }, "value": "q4_fused_batched_f16a" },
+    { "match": { "useF16Out": true, "isM1": true }, "value": "q4_fused_multicol_f16" },
+    { "match": { "useF16Out": true }, "value": "q4_fused_batched_f16" },
+    { "match": { "isM1": true }, "value": "q4_fused_multicol" },
+    { "match": {}, "value": "q4_fused_batched" }
+  ],
+  "matmulKernel": [
+    { "match": { "useF16Matmul": true, "useVec4": true }, "value": "f16_vec4" },
+    { "match": { "useF16Matmul": true }, "value": "f16" },
+    { "match": { "useF16wF32a": true }, "value": "f16w_f32a" },
+    { "match": {}, "value": "f32" }
+  ],
+  "gemvPathVariant": [
+    { "match": { "useF16GemvPath": true, "useMulticol": true }, "value": "gemv_subgroup_multicol_f16a" },
+    { "match": { "useF16GemvPath": true }, "value": "gemv_subgroup_f16a" },
+    { "match": { "useF32GemvPath": true, "useMulticol": true }, "value": "gemv_subgroup_multicol" },
+    { "match": { "useF32GemvPath": true }, "value": "gemv_subgroup" },
+    { "match": {}, "value": { "context": "pathVariant" } }
+  ],
+  "gemvVariant": [
+    { "match": { "hasSubgroups": true, "useF16Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4_f16a" },
+    { "match": { "hasSubgroups": true, "useF32Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4" },
+    { "match": { "hasSubgroups": true, "useF16Gemv": true, "useMulticol": true }, "value": "gemv_subgroup_multicol_f16a" },
+    { "match": { "hasSubgroups": true, "useF16Gemv": true }, "value": "gemv_subgroup_f16a" },
+    { "match": { "hasSubgroups": true, "useF32Gemv": true, "useMulticol": true }, "value": "gemv_subgroup_multicol" },
+    { "match": { "hasSubgroups": true, "useF32Gemv": true }, "value": "gemv_subgroup" },
+    { "match": { "useF16Gemv": true }, "value": "gemv_f16a" },
+    { "match": { "useF32Gemv": true }, "value": "gemv" },
+    { "match": {}, "value": "f32" }
+  ],
+  "matmulSelection": [
+    { "match": { "canFused": true }, "value": { "variant": { "context": "q4kVariant" }, "useQ4KFused": true, "useGemv": false } },
+    { "match": { "useGemv": true }, "value": { "variant": { "context": "gemvVariant" }, "useQ4KFused": false, "useGemv": true } },
+    { "match": {}, "value": { "variant": { "context": "matmulVariant" }, "useQ4KFused": false, "useGemv": false } }
+  ]
+}

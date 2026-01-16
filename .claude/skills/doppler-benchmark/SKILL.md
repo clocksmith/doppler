@@ -10,11 +10,11 @@ Use this skill to measure DOPPLER inference performance.
 ## Critical: Inference vs Kernel Benchmarks
 
 ```bash
-npm run bench                      # Runs KERNEL microbenchmarks (matmul, attention, etc.)
-npm run bench -- --inference       # Runs INFERENCE benchmark (tok/s) - THIS IS WHAT YOU USUALLY WANT
+npm run bench                # Runs INFERENCE benchmark (tok/s) - DEFAULT
+npm run bench -- --kernels   # Runs KERNEL microbenchmarks (matmul, attention, etc.)
 ```
 
-**Always use `--inference` flag for end-to-end throughput measurements.**
+**Inference benchmarks are the default.** Use `--kernels` only for microbench.
 
 ## Completion Signals
 
@@ -54,7 +54,7 @@ ls models/
 ls src/config/presets/models/
 
 # Dump resolved runtime config
-npm run bench -- --inference --config bench --dump-config
+npm run bench -- --config bench --dump-config
 
 # Check GPU capabilities (shader-f16 determines if F16 activations are available)
 npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
@@ -70,40 +70,34 @@ npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
 
 ```bash
 # Quick inference benchmark - single run
-npm run bench -- --inference -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|tok/s"
+npm run bench -- --config bench -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|tok/s"
 
 # Multiple runs for statistical confidence (recommended)
-npm run bench -- --inference -m MODEL --runs 3
-
-# Multiple runs with warmup (recommended for accurate results)
-npm run bench -- --inference -m MODEL --runs 3 --warmup 1
+npm run bench -- --config ./bench-3runs.json -m MODEL
 
 # Save results to JSON for later comparison
-npm run bench -- --inference -m MODEL --runs 3 -o results.json
+npm run bench -- --config ./bench-3runs.json -m MODEL -o results.json
 
 # Compare against saved baseline
-npm run bench -- --inference -m MODEL --compare baseline.json
+npm run bench -- --config bench -m MODEL --compare baseline.json
 
 # Extract full result JSON
-npm run bench -- --inference -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
+npm run bench -- --config bench -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
 ```
 
 ## Configuration via --config
 
-Use inline JSON, config files, or CLI flags for settings like max tokens, temperature, etc:
+Use config files or inline JSON. CLI flags must not override runtime tunables.
 
 ```bash
-# Fix decode length for apples-to-apples comparisons (CLI flag)
-npm run bench -- --inference -m MODEL --max-tokens 64
+# Fix decode length for apples-to-apples comparisons (inline JSON config)
+npm run bench -- --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}' -m MODEL
 
-# Or via inline JSON config
-npm run bench -- --inference -m MODEL --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}'
-
-# Combine with runs
-npm run bench -- --inference -m MODEL --runs 3 --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}'
+# Combine with runs and warmup in config
+npm run bench -- --config ./bench-3runs.json -m MODEL
 
 # Use a preset
-npm run bench -- --inference -m MODEL --config bench
+npm run bench -- --config bench -m MODEL
 
 # Use a config file
 npm run bench -- --inference -m MODEL --config ./my-bench-config.json
@@ -128,27 +122,23 @@ Test different kernel thresholds or variants via `--config`:
 
 ```bash
 # Test with fused kernel disabled (set threshold below model's hidden size)
-npm run bench -- --inference -m MODEL --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}'
+npm run bench -- --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
 
 # Test with fused kernel enabled
-npm run bench -- --inference -m MODEL --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}'
+npm run bench -- --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
 
-# Use kernel profile preset
-npm run bench -- --inference -m MODEL --kernel-profile safe
-npm run bench -- --inference -m MODEL --kernel-profile fused
-
-# Explicit kernel path
-npm run bench -- --inference -m MODEL --kernel-path gemma2-q4k-fused-f16a
+# Explicit kernel path (config-only)
+npm run bench -- --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
 ## Fast Iteration Pattern
 
 ```bash
 # Quick single run
-npm run bench -- --inference -m MODEL --runs 1 2>&1 | sed '/DOPPLER:DONE/q'
+npm run bench -- --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then benchmark
-npm run build && npm run bench -- --inference -m MODEL --runs 1 2>&1 | sed '/DOPPLER:DONE/q'
+npm run build && npm run bench -- --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 ```
 
 Use `sed '/DOPPLER:DONE/q'` to exit immediately after benchmark completes.
@@ -162,7 +152,7 @@ For fastest iteration, start Chrome once and reuse it across benchmarks:
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
 
 # Step 1: Run benchmarks reusing the browser (avoids startup overhead)
-node cli/index.js bench inference --config bench -m MODEL --runs 3 --warmup 1 \
+node cli/index.js bench inference --config ./bench-3runs.json -m MODEL \
   --no-server --reuse-browser --cdp-endpoint http://localhost:9222
 ```
 
@@ -182,12 +172,12 @@ When asked "Is this slower?" or investigating performance regressions:
 1. **Establish baseline** (if not already saved; use a clean worktree):
    ```bash
    git checkout main
-   npm run bench -- --inference -m MODEL --runs 3 -o baseline.json
+   npm run bench -- --config ./bench-3runs.json -m MODEL -o baseline.json
    ```
 
 2. **Benchmark current code**:
    ```bash
-   npm run bench -- --inference -m MODEL --runs 3 --compare baseline.json
+   npm run bench -- --config ./bench-3runs.json -m MODEL --compare baseline.json
    ```
 
 3. **Interpret results**:
@@ -221,6 +211,7 @@ For detailed information, consult these files:
 
 - **Benchmark harness**: `cli/helpers/inference-benchmark.js`
 - **CLI implementation**: `cli/index.js`
+- **Config resolution**: `docs/CONFIG_RESOLUTION.md`
 - **Historical results**: `tests/results/*.json`
 
 ## Related Skills

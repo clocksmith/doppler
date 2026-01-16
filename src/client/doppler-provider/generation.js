@@ -5,6 +5,7 @@ import {
   formatLlama3Chat,
   formatGptOssChat,
 } from '../../inference/pipeline/chat-format.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 import { getPipeline } from './model-manager.js';
 
 export { formatGemmaChat, formatLlama3Chat, formatGptOssChat };
@@ -24,15 +25,17 @@ export async function* generate(prompt, options = {}) {
     throw new Error('No model loaded. Call loadModel() first.');
   }
 
-  const {
-    maxTokens = 256,
-    temperature = 0.7,
-    topP = 0.9,
-    topK = 40,
-    stopSequences = [],
-    useChatTemplate,
-    onToken = null,
-  } = options;
+  const runtimeConfig = pipeline.runtimeConfig ?? getRuntimeConfig();
+  const samplingDefaults = runtimeConfig.inference.sampling;
+  const maxTokensDefault = runtimeConfig.inference.batching.maxTokens;
+
+  const maxTokens = options.maxTokens ?? maxTokensDefault;
+  const temperature = options.temperature ?? samplingDefaults.temperature;
+  const topP = options.topP ?? samplingDefaults.topP;
+  const topK = options.topK ?? samplingDefaults.topK;
+  const stopSequences = options.stopSequences ?? [];
+  const useChatTemplate = options.useChatTemplate;
+  const onToken = options.onToken ?? null;
 
   for await (const token of pipeline.generate(prompt, {
     maxTokens,

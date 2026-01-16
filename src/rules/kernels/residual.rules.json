@@ -1,0 +1,12 @@
+{
+  "residualVariant": [
+    { "match": { "useVec4": true, "outputDtype": "f16" }, "value": "vec4_f16" },
+    { "match": { "useVec4": true }, "value": "vec4" },
+    { "match": { "outputDtype": "f16" }, "value": "default_f16" },
+    { "match": {}, "value": "default" }
+  ],
+  "biasAddVariant": [
+    { "match": { "dataDtype": "f16", "biasDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "default" }
+  ]
+}

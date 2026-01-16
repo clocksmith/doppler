@@ -9,16 +9,15 @@ import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import { trace } from '../../debug/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 export function selectMatmulRMSNormFusedVariant(N, dtype = 'f32') {
   const isF16 = dtype === 'f16';
-  const rules = [
-    { match: { N: { lte: WORKGROUP_SIZES.DEFAULT } }, value: isF16 ? 'small_f16' : 'small' },
-    { match: {}, value: isF16 ? 'medium_f16' : 'medium' },
-  ];
-  return selectByRules(rules, { N });
+  const isSmall = N <= WORKGROUP_SIZES.DEFAULT;
+  const smallVariant = isF16 ? 'small_f16' : 'small';
+  const mediumVariant = isF16 ? 'medium_f16' : 'medium';
+  return selectRuleValue('fusedMatmulRmsnorm', 'variant', { isSmall, smallVariant, mediumVariant });
 }
 
 

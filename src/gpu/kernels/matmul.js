@@ -12,7 +12,7 @@ import { releaseUniformBuffer } from '../uniform-cache.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { getKernelPathMatmulConstants, getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 
 // =============================================================================
@@ -23,15 +23,7 @@ import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 function selectQ4KFusedVariant(isM1, wantF16Output, aDtype) {
   const useF16A = wantF16Output && aDtype === 'f16';
   const useF16Out = wantF16Output && aDtype !== 'f16';
-  const rules = [
-    { match: { useF16A: true, isM1: true }, value: 'q4_fused_multicol_f16a' },
-    { match: { useF16A: true }, value: 'q4_fused_batched_f16a' },
-    { match: { useF16Out: true, isM1: true }, value: 'q4_fused_multicol_f16' },
-    { match: { useF16Out: true }, value: 'q4_fused_batched_f16' },
-    { match: { isM1: true }, value: 'q4_fused_multicol' },
-    { match: {}, value: 'q4_fused_batched' },
-  ];
-  return selectByRules(rules, { useF16A, useF16Out, isM1 });
+  return selectRuleValue('matmul', 'q4kFusedVariant', { useF16A, useF16Out, isM1 });
 }
 
 
@@ -110,15 +102,9 @@ export function selectMatmulKernel(options = {}) {
   const useF16Matmul = outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16;
   const useF16wF32a = preferF16 && weightsAreF16 && capabilities.hasF16;
 
-  const rules = [
-    { match: { useF16Matmul: true, useVec4: true }, value: 'f16_vec4' },
-    { match: { useF16Matmul: true }, value: 'f16' },
-    { match: { useF16wF32a: true }, value: 'f16w_f32a' },
-    { match: {}, value: 'f32' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'matmul',
+    'matmulKernel',
     { useF16Matmul, useF16wF32a, useVec4 }
   );
 }
@@ -315,36 +301,18 @@ function resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, mu
   const useF16GemvPath = pathVariant === 'gemv_f16a' && aDtype === 'f16' && requestedOutputDtype === 'f16';
   const useF32GemvPath = pathVariant === 'gemv' && aDtype === 'f32';
   const useMulticol = N > multicolThreshold;
-  const rules = [
-    { match: { useF16GemvPath: true, useMulticol: true }, value: 'gemv_subgroup_multicol_f16a' },
-    { match: { useF16GemvPath: true }, value: 'gemv_subgroup_f16a' },
-    { match: { useF32GemvPath: true, useMulticol: true }, value: 'gemv_subgroup_multicol' },
-    { match: { useF32GemvPath: true }, value: 'gemv_subgroup' },
-    { match: {}, value: pathVariant },
-  ];
-
-  return selectByRules(
-    rules,
-    { useF16GemvPath, useF32GemvPath, useMulticol }
+  return selectRuleValue(
+    'matmul',
+    'gemvPathVariant',
+    { useF16GemvPath, useF32GemvPath, useMulticol, pathVariant }
   );
 }
 
 function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, useVec4, N, multicolThreshold) {
   const useMulticol = N > multicolThreshold;
-  const rules = [
-    { match: { hasSubgroups: true, useF16Gemv: true, useVec4: true, useMulticol: false }, value: 'gemv_subgroup_vec4_f16a' },
-    { match: { hasSubgroups: true, useF32Gemv: true, useVec4: true, useMulticol: false }, value: 'gemv_subgroup_vec4' },
-    { match: { hasSubgroups: true, useF16Gemv: true, useMulticol: true }, value: 'gemv_subgroup_multicol_f16a' },
-    { match: { hasSubgroups: true, useF16Gemv: true }, value: 'gemv_subgroup_f16a' },
-    { match: { hasSubgroups: true, useF32Gemv: true, useMulticol: true }, value: 'gemv_subgroup_multicol' },
-    { match: { hasSubgroups: true, useF32Gemv: true }, value: 'gemv_subgroup' },
-    { match: { useF16Gemv: true }, value: 'gemv_f16a' },
-    { match: { useF32Gemv: true }, value: 'gemv' },
-    { match: {}, value: 'f32' },
-  ];
-
-  return selectByRules(
-    rules,
+  return selectRuleValue(
+    'matmul',
+    'gemvVariant',
     { hasSubgroups, useF16Gemv, useF32Gemv, useVec4, useMulticol }
   );
 }
@@ -396,15 +364,10 @@ function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, 
     ? selectGemvVariant(useF16Gemv, useF32Gemv, capabilities.hasSubgroups, useVec4, N, multicolThreshold)
     : null;
 
-  const rules = [
-    { match: { canFused: true }, value: { variant: q4kVariant, useQ4KFused: true, useGemv: false } },
-    { match: { useGemv: true }, value: { variant: gemvVariant, useQ4KFused: false, useGemv: true } },
-    { match: {}, value: { variant: matmulVariant, useQ4KFused: false, useGemv: false } },
-  ];
-
-  const selection = selectByRules(
-    rules,
-    { canFused, useGemv }
+  const selection = selectRuleValue(
+    'matmul',
+    'matmulSelection',
+    { canFused, useGemv, q4kVariant, gemvVariant, matmulVariant }
   );
   const reason = selection.useQ4KFused
     ? 'q4k_fused'

@@ -16,6 +16,8 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | Tracked in harness |
 | Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.js` |
+| Output quality check | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
+| Baseline registry checks | ✓ Implemented | `tests/baselines.json` + CLI |
 | OPFS storage metrics | ✓ Implemented | Via Storage API |
 | Results storage (IndexedDB) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
 | Results export (JSON) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
@@ -33,6 +35,7 @@ Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for 
 
 Benchmark defaults live in `runtime.shared.benchmark` (see `src/config/schema/benchmark.schema.js`).
 CLI `--mode bench` loads the preset; runtime config is the source of truth.
+Baseline registry settings live under `runtime.shared.benchmark.baselines`.
 
 ---
 
@@ -80,6 +83,7 @@ The harness benchmarks three layers:
 ### Memory and Storage
 
 - `estimated_vram_bytes_peak`: peak bytes allocated in buffer pool and persistent GPU buffers.
+- `estimated_vram_bytes_peak_requested`: peak requested bytes before bucketing (sanity check).
 - `kv_cache_dtype`: `f16` or `f32`.
 - `kv_cache_max_seq_len`: configured cache length.
 - `storage_mode`: `opfs` or `native_bridge` or `http_only`.
@@ -188,11 +192,40 @@ Write results as JSON so they can be compared automatically.
     "totalSizeBytes": 965000000,
     "tensorCount": 340
   },
+  "config": {
+    "chain": ["bench", "default"],
+    "runtime": { "...": "runtime config snapshot" },
+    "benchmark": {
+      "promptName": "medium",
+      "customPrompt": null,
+      "maxNewTokens": 128,
+      "warmupRuns": 2,
+      "timedRuns": 3,
+      "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
+      "debug": false,
+      "profile": false,
+      "useChatTemplate": null
+    }
+  },
   "workload": {
     "promptName": "medium",
     "promptTokens": 384,
     "maxNewTokens": 128,
     "sampling": { "temperature": 0, "topK": 1, "topP": 1 }
+  },
+  "quality": {
+    "ok": true,
+    "reasons": [],
+    "warnings": [],
+    "stats": {
+      "totalRuns": 3,
+      "totalTokens": 128,
+      "uniqueTokens": 110,
+      "uniqueRatio": 0.859,
+      "mostFrequentRatio": 0.12,
+      "replacementChars": 0,
+      "controlChars": 0
+    }
   },
   "metrics": {
     "ttft_ms": 820,
@@ -203,7 +236,8 @@ Write results as JSON so they can be compared automatically.
     "gpu_submit_count_prefill": 1,
     "gpu_submit_count_decode": 128,
     "gpu_readback_bytes_total": 512,
-    "estimated_vram_bytes_peak": 3200000000
+    "estimated_vram_bytes_peak": 3200000000,
+    "estimated_vram_bytes_peak_requested": 3100000000
   }
 }
 ```

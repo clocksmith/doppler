@@ -48,6 +48,17 @@ export const DEFAULT_BENCHMARK_COMPARISON_CONFIG = {
 };
 
 // =============================================================================
+// Benchmark Baseline Registry Config
+// =============================================================================
+
+export const DEFAULT_BENCHMARK_BASELINE_CONFIG = {
+  enabled: true,
+  file: 'tests/baselines.json',
+  failOnOutOfRange: true,
+  requireQualityOk: true,
+};
+
+// =============================================================================
 // Combined Benchmark Config
 // =============================================================================
 
@@ -56,4 +67,5 @@ export const DEFAULT_BENCHMARK_CONFIG = {
   run: DEFAULT_BENCHMARK_RUN_CONFIG,
   stats: DEFAULT_BENCHMARK_STATS_CONFIG,
   comparison: DEFAULT_BENCHMARK_COMPARISON_CONFIG,
+  baselines: DEFAULT_BENCHMARK_BASELINE_CONFIG,
 };

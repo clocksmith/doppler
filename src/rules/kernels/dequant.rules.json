@@ -1,0 +1,12 @@
+{
+  "variant": [
+    { "match": { "hasSubgroups": true, "wantsF16Out": true, "useVec4": true }, "value": "subgroup_vec4_f16out" },
+    { "match": { "hasSubgroups": true, "wantsF16Out": true }, "value": "subgroup_f16out" },
+    { "match": { "hasSubgroups": true, "useVec4": true }, "value": "subgroup_vec4" },
+    { "match": { "hasSubgroups": true }, "value": "subgroup" },
+    { "match": { "wantsF16Out": true, "useVec4": true }, "value": "shared_vec4_f16out" },
+    { "match": { "wantsF16Out": true }, "value": "shared_f16out" },
+    { "match": { "useVec4": true }, "value": "shared_vec4" },
+    { "match": {}, "value": "shared" }
+  ]
+}

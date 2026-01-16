@@ -396,12 +396,12 @@ export class PipelineBenchmark {
       temperature: this.config.sampling.temperature,
       topK: this.config.sampling.topK,
       topP: this.config.sampling.topP,
-      debug: this.config.debug ?? true,
+      debug: this.config.debug,
       // Use debugLayers from config for selective layer checkpointing
       // Without debugLayers, debug mode syncs at EVERY layer (very slow)
       debugLayers: this.config.debugLayers,
       // GPU timestamp profiling for per-kernel timing
-      profile: this.config.profile ?? false,
+      profile: this.config.profile,
       useChatTemplate,
       onToken: (id, t) => {
         const now = performance.now();

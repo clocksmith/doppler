@@ -39,13 +39,13 @@ Example output:
 
 ```bash
 # Step 1: Quick sanity check - does it produce any output?
-npm run debug -- -m MODEL 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
+npm run debug -- --config debug -m MODEL 2>&1 | grep -E "DOPPLER:DONE|DOPPLER:ERROR"
 
 # Step 2: Check for obvious errors in logs
-npm run debug -- -m MODEL 2>&1 | grep -E "Error|NaN|Inf|ANOMALY"
+npm run debug -- --config debug -m MODEL 2>&1 | grep -E "Error|NaN|Inf|ANOMALY"
 
 # Step 3: Trace specific subsystem based on triage
-npm run debug -- -m MODEL --trace CATEGORY 2>&1 | grep -E "TRACE|maxAbs"
+npm run debug -- --config ./trace-category.json -m MODEL 2>&1 | grep -E "TRACE|maxAbs"
 ```
 
 ## Trace Categories (Choose Based on Triage)
@@ -63,13 +63,13 @@ npm run debug -- -m MODEL --trace CATEGORY 2>&1 | grep -E "TRACE|maxAbs"
 
 ```bash
 # Single category
-npm run debug -- -m MODEL --trace ffn
+npm run debug -- --config ./trace-ffn.json -m MODEL
 
 # Multiple categories
-npm run debug -- -m MODEL --trace ffn,kernels
+npm run debug -- --config ./trace-ffn-kernels.json -m MODEL
 
 # All except expensive ones
-npm run debug -- -m MODEL --trace all,-buffers
+npm run debug -- --config ./trace-all.json -m MODEL
 ```
 
 ## Kernel Path Overrides
@@ -77,14 +77,8 @@ npm run debug -- -m MODEL --trace all,-buffers
 Use kernel path overrides to isolate kernel-specific issues without editing code.
 
 ```bash
-# Force safe/dequant path for correctness (slow, but avoids fused kernels)
-npm run debug -- -m MODEL --kernel-profile safe
-
 # Override kernel path for A/B testing
-npm run debug -- -m MODEL --kernel-path gemma2-q4k-dequant-f16a
-
-# Available profiles: fast, safe, debug, fused, apple
-npm run debug -- -m MODEL --kernel-profile debug
+npm run debug -- --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
 ## Config-Driven Probes (Preferred Over Ad-hoc Logs)
@@ -142,18 +136,18 @@ npm run debug -- -m MODEL --config '{
 
 ```bash
 # First run: loads model into GPU memory (~30s)
-npm run debug -- -m MODEL --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
+npm run debug -- --config ./trace-ffn.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 
 # Subsequent runs: reuses model via CDP (much faster, ~5s)
-npm run debug -- -m MODEL --skip-load --trace ffn 2>&1 | sed '/DOPPLER:DONE/q'
+npm run debug -- --config ./trace-ffn.json -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then run
-npm run build && npm run debug -- -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
+npm run build && npm run debug -- --config debug -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
 
 # Keep browser open for multiple runs
-npm run debug -- -m MODEL --warm
+npm run debug -- --config debug -m MODEL --warm
 # Then in another terminal:
-npm run debug -- -m MODEL --skip-load --trace kernels
+npm run debug -- --config ./trace-kernels.json -m MODEL --skip-load
 ```
 
 Use `sed '/DOPPLER:DONE/q'` to exit immediately after generation completes.
@@ -215,6 +209,7 @@ For detailed information, consult these files:
 - **Attention**: `src/inference/pipeline/attention.js`
 - **Logits**: `src/inference/pipeline/logits.js`
 - **CLI implementation**: `cli/index.js`
+- **Config resolution**: `docs/CONFIG_RESOLUTION.md`
 
 ## Related Skills
 

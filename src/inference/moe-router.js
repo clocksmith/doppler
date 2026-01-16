@@ -56,9 +56,12 @@ export class MoERouter {
   
   constructor(config) {
     const runtimeDefaults = getRuntimeConfig().inference.moe.routing;
-    this.numExperts = config.numExperts || runtimeDefaults.numExperts;
-    this.topK = config.topK || runtimeDefaults.topK;
-    this.hiddenSize = config.hiddenSize || 4096;  // hiddenSize is model-specific, no global default
+    this.numExperts = config.numExperts ?? runtimeDefaults.numExperts;
+    this.topK = config.topK ?? runtimeDefaults.topK;
+    if (config.hiddenSize == null) {
+      throw new Error('MoERouter requires hiddenSize in config.');
+    }
+    this.hiddenSize = config.hiddenSize;
     this.normalizeWeights = config.normalizeWeights ?? runtimeDefaults.normalizeWeights;
 
     // Track active experts for the current batch

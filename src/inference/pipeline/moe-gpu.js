@@ -32,7 +32,10 @@ export async function moeFeedForwardGPU(
   if (!device) throw new Error('No GPU device for MoE');
 
   const { hiddenSize, numExperts, intermediateSize, moeTopK, hiddenActivation } = config;
-  const topK = moeTopK || moeRouter.topK || 2;
+  const topK = moeTopK ?? moeRouter.topK;
+  if (topK == null) {
+    throw new Error('MoE topK is required in config.');
+  }
   const activationDtype = config.activationDtype === 'f16' ? 'f16' : 'f32';
 
   if (!moeRouter || !moeRouter.gateWeight) {

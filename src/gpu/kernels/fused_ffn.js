@@ -9,7 +9,7 @@ import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { selectByRules } from './rule-matcher.js';
+import { selectRuleValue } from './rule-registry.js';
 
 class FusedFFNKernel extends KernelBase {
   
@@ -32,19 +32,12 @@ class FusedFFNKernel extends KernelBase {
 function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
   const canUseQ4K = weightDtype === 'q4k' && !isFusedQ4KDisabled();
+  const useMultiOutput = intermediateSize <= multiOutputThreshold;
 
-  const rules = [
-    { match: { canUseQ4K: true, batchSize: { gt: 1 } }, value: 'q4k_batched' },
-    { match: { canUseQ4K: true }, value: 'q4k' },
-    { match: { batchSize: { gt: 1 } }, value: 'batched' },
-    { match: { weightDtype: 'f16' }, value: 'f16' },
-    { match: { intermediateSize: { lte: multiOutputThreshold } }, value: 'multi' },
-    { match: {}, value: 'default' },
-  ];
-
-  return selectByRules(
-    rules,
-    { canUseQ4K, batchSize, weightDtype, intermediateSize }
+  return selectRuleValue(
+    'fusedFfn',
+    'variant',
+    { canUseQ4K, batchSize, weightDtype, useMultiOutput }
   );
 }
 
