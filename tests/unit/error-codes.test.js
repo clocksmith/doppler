@@ -11,7 +11,7 @@ describe('error codes', () => {
       resolvePreset('not-a-preset');
       throw new Error('Expected resolvePreset to throw');
     } catch (err) {
-      const error = /** @type {Error & { code?: string }} */ (err);
+      const error =  (err);
       expect(error.message).toContain(ERROR_CODES.CONFIG_PRESET_UNKNOWN);
       expect(error.code).toBe(ERROR_CODES.CONFIG_PRESET_UNKNOWN);
     }
@@ -22,7 +22,7 @@ describe('error codes', () => {
       createManifest({ modelId: null });
       throw new Error('Expected createManifest to throw');
     } catch (err) {
-      const error = /** @type {Error & { code?: string }} */ (err);
+      const error =  (err);
       expect(error.message).toContain(ERROR_CODES.LOADER_MANIFEST_INVALID);
       expect(error.code).toBe(ERROR_CODES.LOADER_MANIFEST_INVALID);
     }

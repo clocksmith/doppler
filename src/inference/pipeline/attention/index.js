@@ -1,8 +1,4 @@
-/**
- * Attention Module - Re-exports
- *
- * @module inference/pipeline/attention
- */
+
 
 // Types and utilities
 export {

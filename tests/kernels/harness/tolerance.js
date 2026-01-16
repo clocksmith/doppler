@@ -1,10 +1,6 @@
-/**
- * Floating-Point Tolerance and Comparison Utilities
- */
 
-/**
- * Per-kernel tolerance settings based on numerical characteristics
- */
+
+
 export const KERNEL_TOLERANCES = {
   matmul_f32: { rtol: 1e-5, atol: 1e-6 },
   matmul_f16: { rtol: 1e-2, atol: 1e-3 }, // FP16 has ~3 decimal digits
@@ -35,13 +31,7 @@ export const KERNEL_TOLERANCES = {
   dequant: { rtol: 1e-4, atol: 1e-5 }, // Quantization introduces error
 };
 
-/**
- * Compare floating-point arrays with configurable tolerance
- * @param expected Expected values
- * @param actual Actual values
- * @param options Tolerance configuration
- * @returns Comparison results
- */
+
 export function compareArrays(expected, actual, options = {}) {
   const { rtol = 1e-5, atol = 1e-8 } = options;
 
@@ -87,12 +77,7 @@ export function compareArrays(expected, actual, options = {}) {
   };
 }
 
-/**
- * Compare integer arrays (exact match)
- * @param expected Expected values
- * @param actual Actual values
- * @returns Comparison results
- */
+
 export function compareIntArrays(expected, actual) {
   if (expected.length !== actual.length) {
     return {
@@ -121,13 +106,7 @@ export function compareIntArrays(expected, actual) {
   };
 }
 
-/**
- * Generate deterministic test data using LCG PRNG
- * @param size Number of elements
- * @param seed Random seed
- * @param options Generation options
- * @returns Generated array
- */
+
 export function generateTestData(size, seed = 42, options = {}) {
   const { min = -1, max = 1, dtype = 'float32' } = options;
 
@@ -161,13 +140,7 @@ export function generateTestData(size, seed = 42, options = {}) {
   return data;
 }
 
-/**
- * Verify array sums to expected value (e.g., softmax sums to 1)
- * @param arr Input array
- * @param expectedSum Expected sum
- * @param tolerance Error tolerance
- * @returns Verification result
- */
+
 export function verifySumTo(arr, expectedSum, tolerance = 1e-5) {
   const actualSum = arr.reduce((a, b) => a + b, 0);
   const error = Math.abs(actualSum - expectedSum);
@@ -180,13 +153,7 @@ export function verifySumTo(arr, expectedSum, tolerance = 1e-5) {
   };
 }
 
-/**
- * Verify all elements are in range
- * @param arr Input array
- * @param min Minimum value
- * @param max Maximum value
- * @returns Verification result
- */
+
 export function verifyRange(arr, min, max) {
   let outOfRange = 0;
   let minVal = Infinity;

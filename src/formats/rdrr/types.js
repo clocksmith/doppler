@@ -1,10 +1,4 @@
-/**
- * RDRR Format Types
- *
- * Core type definitions for the RDRR model format.
- *
- * @module formats/rdrr/types
- */
+
 
 import {
   RDRR_VERSION as SCHEMA_VERSION,

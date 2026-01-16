@@ -1,12 +1,4 @@
-/**
- * Weight Downcast - F32 to F16 weight conversion utility.
- *
- * Provides a unified utility for downcasting F32 weights to F16 when
- * the GPU supports shader-f16. Used by layer loading, expert loading,
- * embedding loading, and final weights loading.
- *
- * @module loader/weight-downcast
- */
+
 
 import { getKernelCapabilities } from '../gpu/device.js';
 import { createTensor } from '../gpu/tensor.js';
@@ -24,13 +16,7 @@ import { trace as debugTrace } from '../debug/index.js';
 // Main Downcast Function
 // ============================================================================
 
-/**
- * Attempt to downcast a weight buffer from F32 to F16.
- *
- * @param {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | null} buf - Input buffer (GPUBuffer or WeightBuffer)
- * @param {import('./weight-downcast.js').DowncastOptions} options - Downcast options
- * @returns {Promise<import('./weight-downcast.js').DowncastResult | null>} Downcast result, or null if input is null/unsupported
- */
+
 export async function maybeDowncastToF16(buf, options) {
   if (!buf) return null;
 
@@ -76,12 +62,7 @@ export async function maybeDowncastToF16(buf, options) {
 // Internal Helpers
 // ============================================================================
 
-/**
- * Downcast a WeightBuffer from F32 to F16.
- * @param {import('../gpu/weight-buffer.js').WeightBuffer} buf
- * @param {import('./weight-downcast.js').DowncastOptions} options
- * @returns {Promise<import('./weight-downcast.js').DowncastResult>}
- */
+
 async function downcastWeightBuffer(buf, options) {
   const dtype = getWeightDtype(buf);
   if (dtype !== 'f32') {
@@ -108,7 +89,7 @@ async function downcastWeightBuffer(buf, options) {
 
     // Create new WeightBuffer with f16 dtype, preserving layout
     const layout = options.layout ?? (wasColumnMajor ? 'column' : 'row');
-    const shape = options.shape ?? /** @type {number[]} */ (buf.shape);
+    const shape = options.shape ??  (buf.shape);
     const newWeightBuffer = createWeightBuffer(
       f16Tensor.buffer,
       'f16',
@@ -128,7 +109,7 @@ async function downcastWeightBuffer(buf, options) {
       newBuffer: f16Tensor.buffer,
     };
   } catch (e) {
-    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${/** @type {Error} */ (e).message}`);
+    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${ (e).message}`);
     return {
       buffer: buf,
       wasDowncast: false,
@@ -137,12 +118,7 @@ async function downcastWeightBuffer(buf, options) {
   }
 }
 
-/**
- * Downcast a raw GPUBuffer from F32 to F16.
- * @param {GPUBuffer} buf
- * @param {import('./weight-downcast.js').DowncastOptions} options
- * @returns {Promise<import('./weight-downcast.js').DowncastResult>}
- */
+
 async function downcastGPUBuffer(buf, options) {
   const dtype = getWeightDtype(buf) || 'f32';
   if (dtype !== 'f32') {
@@ -189,7 +165,7 @@ async function downcastGPUBuffer(buf, options) {
       newBuffer: f16Tensor.buffer,
     };
   } catch (e) {
-    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${/** @type {Error} */ (e).message}`);
+    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${ (e).message}`);
     return {
       buffer: buf,
       wasDowncast: false,
@@ -202,28 +178,19 @@ async function downcastGPUBuffer(buf, options) {
 // Batch Downcast Helper
 // ============================================================================
 
-/**
- * Downcast multiple weight buffers, tracking new GPU buffers.
- *
- * @template {Record<string, GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | null>} T
- * @param {T} weights - Record of weight buffers to downcast
- * @param {(keyof T)[]} keys - Keys to downcast
- * @param {Omit<import('./weight-downcast.js').DowncastOptions, 'label'>} options - Base options (label will be set per key)
- * @param {Set<GPUBuffer>} gpuBuffers - Set to track new GPU buffers
- * @returns {Promise<void>}
- */
+
 export async function batchDowncastWeights(weights, keys, options, gpuBuffers) {
   for (const key of keys) {
     const buf = weights[key];
     if (!buf) continue;
 
-    const result = await maybeDowncastToF16(/** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer} */ (buf), {
+    const result = await maybeDowncastToF16( (buf), {
       ...options,
       label: String(key),
     });
 
     if (result?.wasDowncast) {
-      /** @type {Record<string, unknown>} */ (weights)[/** @type {string} */ (key)] = result.buffer;
+       (weights)[ (key)] = result.buffer;
       if (result.newBuffer) {
         gpuBuffers.add(result.newBuffer);
       }

@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/**
- * Attention decode microbench across kv lengths for specific kernel variants.
- */
+
 
 import { writeFile, mkdir } from 'fs/promises';
 import { resolve, join } from 'path';

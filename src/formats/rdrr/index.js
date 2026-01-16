@@ -1,10 +1,4 @@
-/**
- * RDRR (Recursive DOPPLER Runtime Registry) format module.
- *
- * Provides types, validation, and utilities for the RDRR model format.
- *
- * @module formats/rdrr
- */
+
 
 // Types and constants
 export * from './types.js';

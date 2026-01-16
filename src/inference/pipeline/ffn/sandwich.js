@@ -1,11 +1,4 @@
-/**
- * Sandwich Norm FFN Processing
- *
- * Handles FFN with sandwich norm architecture (Gemma 3 style) where
- * pre/post FFN norms wrap the FFN block.
- *
- * @module inference/pipeline/ffn/sandwich
- */
+
 
 import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
 import { getLayout, getWeightDtype, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
@@ -17,18 +10,7 @@ import { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from 
 import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 
-/**
- * Process FFN with sandwich norm architecture (Gemma 3).
- * Input and output are Tensor for dtype-aware processing.
- * @param {number} layerIdx
- * @param {import('../../../gpu/tensor.js').Tensor} postAttn
- * @param {number} numTokens
- * @param {number} size
- * @param {import('../types.js').LayerContext} context
- * @param {import('../types.js').LayerWeights | undefined} layerWeights
- * @param {import('../types.js').SandwichNormInfo} sandwichNorm
- * @returns {Promise<import('../../../gpu/tensor.js').Tensor>}
- */
+
 export async function processFFNWithSandwichNorm(
   layerIdx,
   postAttn,
@@ -108,7 +90,7 @@ export async function processFFNWithSandwichNorm(
       config.intermediateSize
     );
 
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let ffnOutput;
   let usedFusedDownNorm = false;
 
@@ -158,7 +140,7 @@ export async function processFFNWithSandwichNorm(
   if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
 
   // 3. Post-FFN norm
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let output;
   if (usedFusedDownNorm) {
     output = ffnOutput;

@@ -1,20 +1,6 @@
-/**
- * Kernel Benchmark Functions
- *
- * Individual benchmark implementations for different kernel types.
- * Each benchmark creates test buffers, runs warmup iterations, and measures performance.
- */
 
-/**
- * Benchmark a compute pipeline with given workgroups
- * @param {GPUDevice} device - GPU device
- * @param {GPUComputePipeline} pipeline - Compute pipeline to benchmark
- * @param {GPUBindGroup} bindGroup - Bind group for the pipeline
- * @param {[number, number, number]} workgroups - Number of workgroups [x, y, z]
- * @param {number} warmup - Number of warmup iterations
- * @param {number} iterations - Number of timed iterations
- * @returns {Promise<number>} Average time in milliseconds
- */
+
+
 export async function benchmarkPipeline(
   device,
   pipeline,
@@ -39,7 +25,7 @@ export async function benchmarkPipeline(
   }
   await device.queue.onSubmittedWorkDone();
 
-  /** @type {number[]} */
+  
   const times = [];
   for (let i = 0; i < iterations; i++) {
     const start = performance.now();
@@ -57,13 +43,7 @@ export async function benchmarkPipeline(
   return times.reduce((a, b) => a + b, 0) / times.length;
 }
 
-/**
- * Create compute pipeline from shader source
- * @param {GPUDevice} device - GPU device
- * @param {string} shaderSource - WGSL shader source code
- * @param {string} entryPoint - Entry point function name
- * @returns {Promise<GPUComputePipeline>} Compute pipeline
- */
+
 export async function createComputePipeline(
   device,
   shaderSource,
@@ -76,16 +56,7 @@ export async function createComputePipeline(
   });
 }
 
-/**
- * Tune matmul kernel
- * @param {GPUDevice} device - GPU device
- * @param {import('./types.js').InputSizes} inputSizes - Matrix dimensions
- * @param {import('./types.js').WorkgroupSize[]} candidates - Workgroup size candidates
- * @param {number} warmup - Warmup iterations
- * @param {number} iterations - Timed iterations
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {Promise<import('./types.js').TuneResult>} Best tuning result
- */
+
 export async function tuneMatmul(
   device,
   inputSizes,
@@ -99,7 +70,7 @@ export async function tuneMatmul(
   // Filter to 2D candidates for matmul
   const matmulCandidates = candidates.filter(c => c[1] > 1);
 
-  /** @type {import('./types.js').TuneResult} */
+  
   let best = {
     optimalWorkgroupSize: [16, 16, 1],
     optimalTileSize: 16,
@@ -167,7 +138,7 @@ export async function tuneMatmul(
       await device.queue.onSubmittedWorkDone();
 
       // Benchmark
-      /** @type {number[]} */
+      
       const times = [];
       for (let i = 0; i < iterations; i++) {
         const start = performance.now();
@@ -211,12 +182,7 @@ export async function tuneMatmul(
   return best;
 }
 
-/**
- * Create matmul shader with specified workgroup size
- * @param {number} wgX
- * @param {number} wgY
- * @returns {string}
- */
+
 export function createMatmulShader(wgX, wgY) {
   return `
 struct Uniforms {
@@ -241,16 +207,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 }`;
 }
 
-/**
- * Tune attention kernel
- * @param {GPUDevice} device - GPU device
- * @param {import('./types.js').InputSizes} inputSizes - Input dimensions
- * @param {import('./types.js').WorkgroupSize[]} candidates - Workgroup size candidates
- * @param {number} warmup - Warmup iterations
- * @param {number} iterations - Timed iterations
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {Promise<import('./types.js').TuneResult>}
- */
+
 export async function tuneAttention(
   device,
   inputSizes,
@@ -261,7 +218,7 @@ export async function tuneAttention(
 ) {
   const { seqLen = 2048, numHeads = 32, headDim = 128 } = inputSizes;
 
-  /** @type {import('./types.js').TuneResult} */
+  
   let best = {
     optimalWorkgroupSize: [64, 1, 1],
     optimalTileSize: 64,
@@ -366,11 +323,7 @@ export async function tuneAttention(
   return best;
 }
 
-/**
- * Create attention shader with specified workgroup size
- * @param {number} wgSize
- * @returns {string}
- */
+
 export function createAttentionShader(wgSize) {
   return `
 const WG_SIZE: u32 = ${wgSize}u;
@@ -429,16 +382,7 @@ fn main(
 }`;
 }
 
-/**
- * Tune softmax kernel
- * @param {GPUDevice} device - GPU device
- * @param {import('./types.js').InputSizes} inputSizes - Input dimensions
- * @param {import('./types.js').WorkgroupSize[]} candidates - Workgroup size candidates
- * @param {number} warmup - Warmup iterations
- * @param {number} iterations - Timed iterations
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {Promise<import('./types.js').TuneResult>}
- */
+
 export async function tuneSoftmax(
   device,
   inputSizes,
@@ -449,7 +393,7 @@ export async function tuneSoftmax(
 ) {
   const { innerSize = 32000, outerSize = 1 } = inputSizes;
 
-  /** @type {import('./types.js').TuneResult} */
+  
   let best = {
     optimalWorkgroupSize: [256, 1, 1],
     optimalTileSize: 256,
@@ -535,11 +479,7 @@ export async function tuneSoftmax(
   return best;
 }
 
-/**
- * Create softmax shader with specified workgroup size
- * @param {number} wgSize
- * @returns {string}
- */
+
 export function createSoftmaxShader(wgSize) {
   return `
 const WG_SIZE: u32 = ${wgSize}u;
@@ -622,16 +562,7 @@ fn main(
 }`;
 }
 
-/**
- * Tune RMSNorm kernel
- * @param {GPUDevice} device - GPU device
- * @param {import('./types.js').InputSizes} inputSizes - Input dimensions
- * @param {import('./types.js').WorkgroupSize[]} candidates - Workgroup size candidates
- * @param {number} warmup - Warmup iterations
- * @param {number} iterations - Timed iterations
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {Promise<import('./types.js').TuneResult>}
- */
+
 export async function tuneRMSNorm(
   device,
   inputSizes,
@@ -642,7 +573,7 @@ export async function tuneRMSNorm(
 ) {
   const { hiddenSize = 4096, numTokens = 1 } = inputSizes;
 
-  /** @type {import('./types.js').TuneResult} */
+  
   let best = {
     optimalWorkgroupSize: [256, 1, 1],
     optimalTileSize: 256,
@@ -744,11 +675,7 @@ export async function tuneRMSNorm(
   return best;
 }
 
-/**
- * Create RMSNorm shader with specified workgroup size
- * @param {number} wgSize
- * @returns {string}
- */
+
 export function createRMSNormShader(wgSize) {
   return `
 const WG_SIZE: u32 = ${wgSize}u;
@@ -811,16 +738,7 @@ fn main(
 }`;
 }
 
-/**
- * Tune dequantization kernel
- * @param {GPUDevice} device - GPU device
- * @param {import('./types.js').InputSizes} inputSizes - Input dimensions
- * @param {import('./types.js').WorkgroupSize[]} candidates - Workgroup size candidates
- * @param {number} warmup - Warmup iterations
- * @param {number} iterations - Timed iterations
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {Promise<import('./types.js').TuneResult>}
- */
+
 export async function tuneDequant(
   device,
   inputSizes,
@@ -831,7 +749,7 @@ export async function tuneDequant(
 ) {
   const { numBlocks = 1000 } = inputSizes;
 
-  /** @type {import('./types.js').TuneResult} */
+  
   let best = {
     optimalWorkgroupSize: [64, 1, 1],
     optimalTileSize: 64,
@@ -923,11 +841,7 @@ export async function tuneDequant(
   return best;
 }
 
-/**
- * Create dequant shader with specified workgroup size
- * @param {number} wgSize
- * @returns {string}
- */
+
 export function createDequantShader(wgSize) {
   return `
 const WG_SIZE: u32 = ${wgSize}u;
@@ -951,11 +865,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 }`;
 }
 
-/**
- * Generic tuning for unknown kernels - returns sensible defaults
- * @param {import('./types.js').KernelCapabilities | null} capabilities - Kernel capabilities
- * @returns {import('./types.js').TuneResult}
- */
+
 export function tuneGeneric(capabilities) {
   return {
     optimalWorkgroupSize: [256, 1, 1],

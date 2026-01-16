@@ -1,10 +1,4 @@
-/**
- * Command-line argument parsing for the Node.js Model Converter.
- *
- * Handles parsing of CLI arguments and help text generation.
- *
- * @module converter/node-converter/cli
- */
+
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -16,9 +10,7 @@ const DEFAULT_SHARD_SIZE_MB = Math.round(
   DEFAULT_CONFIG.sharding.shardSizeBytes / BYTES_PER_MB
 );
 
-/**
- * Parse command-line arguments into ConvertOptions.
- */
+
 export function parseArgs(argv) {
   // First pass: look for config file
   let configPath = null;
@@ -156,9 +148,7 @@ export function parseArgs(argv) {
   return opts;
 }
 
-/**
- * Print help text to console.
- */
+
 export function printHelp() {
   console.log(`
 Node.js Model Converter - Convert HuggingFace/GGUF models to RDRR format.

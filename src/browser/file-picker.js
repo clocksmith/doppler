@@ -1,16 +1,4 @@
-/**
- * file-picker.ts - Model File/Folder Picker
- *
- * Supports:
- * - Single file selection (.gguf, .safetensors)
- * - Multiple file selection (for sharded models)
- * - Directory selection (pick a model folder)
- *
- * Uses File System Access API on Chrome/Edge, falls back to <input type="file">
- * for Firefox/Safari.
- *
- * @module browser/file-picker
- */
+
 
 // ============================================================================
 // Constants
@@ -31,34 +19,23 @@ const MODEL_FILE_TYPES = [
 // Public API
 // ============================================================================
 
-/**
- * Check if File System Access API is available
- */
+
 export function hasFileSystemAccess() {
   return 'showOpenFilePicker' in window;
 }
 
-/**
- * Check if Directory Picker API is available
- */
+
 export function hasDirectoryPicker() {
   return 'showDirectoryPicker' in window;
 }
 
-/**
- * Pick a single GGUF file (legacy API for backwards compatibility)
- * @returns The selected file, or null if cancelled
- */
+
 export async function pickGGUFFile() {
   const result = await pickModelFiles({ multiple: false });
   return result?.files[0] || null;
 }
 
-/**
- * Pick one or more model files (.gguf, .safetensors)
- * @param options.multiple - Allow selecting multiple files
- * @returns Array of selected files, or null if cancelled
- */
+
 export async function pickModelFiles(options = {}) {
   const { multiple = true } = options;
 
@@ -68,10 +45,7 @@ export async function pickModelFiles(options = {}) {
   return pickFilesWithFileInput(multiple);
 }
 
-/**
- * Pick a directory containing model files
- * @returns All model files in the directory, or null if cancelled
- */
+
 export async function pickModelDirectory() {
   if (hasDirectoryPicker()) {
     return pickDirectoryWithFileSystemAccess();
@@ -84,9 +58,7 @@ export async function pickModelDirectory() {
 // File System Access API Implementation
 // ============================================================================
 
-/**
- * Pick files using File System Access API (Chrome/Edge)
- */
+
 async function pickFilesWithFileSystemAccess(multiple) {
   try {
     const fileHandles = await window.showOpenFilePicker({
@@ -108,9 +80,7 @@ async function pickFilesWithFileSystemAccess(multiple) {
   }
 }
 
-/**
- * Pick directory using File System Access API (Chrome/Edge)
- */
+
 async function pickDirectoryWithFileSystemAccess() {
   try {
     const dirHandle = await window.showDirectoryPicker({
@@ -132,9 +102,7 @@ async function pickDirectoryWithFileSystemAccess() {
   }
 }
 
-/**
- * Recursively collect model files from a directory handle
- */
+
 async function collectModelFilesFromDirectory(
   dirHandle,
   maxDepth = 2
@@ -164,9 +132,7 @@ async function collectModelFilesFromDirectory(
 // File Input Fallback Implementation
 // ============================================================================
 
-/**
- * Pick files using traditional file input (Firefox/Safari fallback)
- */
+
 function pickFilesWithFileInput(multiple) {
   return new Promise((resolve) => {
     const input = document.createElement('input');
@@ -209,9 +175,7 @@ function pickFilesWithFileInput(multiple) {
   });
 }
 
-/**
- * Pick directory using webkitdirectory attribute (fallback)
- */
+
 function pickDirectoryWithFileInput() {
   return new Promise((resolve) => {
     const input = document.createElement('input');
@@ -267,16 +231,12 @@ function pickDirectoryWithFileInput() {
 // Utility Functions
 // ============================================================================
 
-/**
- * Check if streaming read is available (for large files)
- */
+
 export function canStreamFile(file) {
   return typeof file.stream === 'function';
 }
 
-/**
- * Detect model format from files
- */
+
 export function detectModelFormat(files) {
   for (const file of files) {
     const name = file.name.toLowerCase();

@@ -1,11 +1,4 @@
-/**
- * RDRR Writer - Main Orchestration Class
- *
- * Coordinates shard writing, manifest generation, and tokenizer bundling.
- * Handles tensor transformations (transpose, FFN fusion) and expert tracking.
- *
- * @module converter/writer/writer
- */
+
 
 import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
@@ -18,10 +11,7 @@ import { getBytesPerElement, transpose2D } from './utils.js';
 import { DEFAULT_SHARD_SIZE } from './types.js';
 import { inferEmbeddingOutputConfig } from '../manifest-inference.js';
 
-/**
- * Main RDRR writer class.
- * Orchestrates tensor writing, manifest generation, and file output.
- */
+
 export class RDRRWriter {
   #outputDir;
   #shardSize;
@@ -100,9 +90,7 @@ export class RDRRWriter {
     this.#shardWriter.startNewShard();
   }
 
-  /**
-   * Parse expert tensor name and extract layer/expert indices.
-   */
+  
   #parseExpertTensor(name) {
     const mixtralMatch = name.match(/layers\.(\d+)\.block_sparse_moe\.experts\.(\d+)\./);
     if (mixtralMatch) {
@@ -137,9 +125,7 @@ export class RDRRWriter {
     return null;
   }
 
-  /**
-   * Detect if tensor name is a matmul weight that should be transposed.
-   */
+  
   #isMatmulWeight(name, shape) {
     if (shape.length !== 2) return false;
 
@@ -170,9 +156,7 @@ export class RDRRWriter {
     return false;
   }
 
-  /**
-   * Parse FFN projection tensor name.
-   */
+  
   #parseFFNProjection(name) {
     if (name.includes('expert')) return null;
 
@@ -209,9 +193,7 @@ export class RDRRWriter {
     return null;
   }
 
-  /**
-   * Concatenate two tensors along dimension 0.
-   */
+  
   #concatenateAlongDim0(gate, up) {
     const result = new Uint8Array(gate.length + up.length);
     result.set(gate, 0);
@@ -219,9 +201,7 @@ export class RDRRWriter {
     return result;
   }
 
-  /**
-   * Generate the fused tensor name.
-   */
+  
   #getFusedTensorName(name) {
     return name
       .replace(/\.gate_proj\.weight$/, '.gate_up_proj.weight')
@@ -232,9 +212,7 @@ export class RDRRWriter {
       .replace(/\.w3\.weight$/, '.w1_w3.weight');
   }
 
-  /**
-   * Track tensor in component group.
-   */
+  
   #trackTensorGroup(name, data, shardIndices) {
     const groupId = classifyTensor(name, this.#modelType);
 
@@ -253,9 +231,7 @@ export class RDRRWriter {
     this.#groupDataMap.set(groupId, dataChunks);
   }
 
-  /**
-   * Track expert tensor.
-   */
+  
   #trackExpertTensor(name, shardIndices, size) {
     const expert = this.#parseExpertTensor(name);
     if (!expert) return;

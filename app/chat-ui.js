@@ -1,60 +1,50 @@
-/**
- * chat-ui.js - Chat Interface Component
- * Agent-D | Phase 2 | app/
- *
- * Handles chat message display, streaming tokens, and user input.
- *
- * @module app/chat-ui
- */
+
 
 // ============================================================================
 // ChatUI Class
 // ============================================================================
 
 export class ChatUI {
-  /** @type {HTMLElement} */
+  
   #container;
-  /** @type {HTMLElement} */
+  
   #messagesElement;
-  /** @type {HTMLElement | null} */
+  
   #welcomeElement;
-  /** @type {HTMLTextAreaElement} */
+  
   #inputElement;
-  /** @type {HTMLButtonElement} */
+  
   #sendBtn;
-  /** @type {HTMLButtonElement} */
+  
   #stopBtn;
-  /** @type {HTMLButtonElement} */
+  
   #clearBtn;
 
-  /** @type {(message: string) => void} */
+  
   #onSend;
-  /** @type {() => void} */
+  
   #onStop;
-  /** @type {() => void} */
+  
   #onClear;
 
-  /** @type {HTMLElement | null} */
+  
   #currentStreamElement = null;
-  /** @type {boolean} */
+  
   #isStreaming = false;
-  /** @type {number} */
+  
   #streamStartTime = 0;
-  /** @type {number} */
+  
   #streamTokenCount = 0;
 
-  /**
-   * @param {HTMLElement} container - Container element for chat
-   * @param {import('./chat-ui.js').ChatUICallbacks} [callbacks] - Event callbacks
-   */
+  
   constructor(container, callbacks = {}) {
     this.#container = container;
-    this.#messagesElement = /** @type {HTMLElement} */ (container.querySelector('#chat-messages'));
+    this.#messagesElement =  (container.querySelector('#chat-messages'));
     this.#welcomeElement = container.querySelector('#welcome-message');
-    this.#inputElement = /** @type {HTMLTextAreaElement} */ (container.querySelector('#chat-input'));
-    this.#sendBtn = /** @type {HTMLButtonElement} */ (container.querySelector('#send-btn'));
-    this.#stopBtn = /** @type {HTMLButtonElement} */ (container.querySelector('#stop-btn'));
-    this.#clearBtn = /** @type {HTMLButtonElement} */ (container.querySelector('#clear-btn'));
+    this.#inputElement =  (container.querySelector('#chat-input'));
+    this.#sendBtn =  (container.querySelector('#send-btn'));
+    this.#stopBtn =  (container.querySelector('#stop-btn'));
+    this.#clearBtn =  (container.querySelector('#clear-btn'));
 
     this.#onSend = callbacks.onSend || (() => {});
     this.#onStop = callbacks.onStop || (() => {});
@@ -63,9 +53,7 @@ export class ChatUI {
     this.#bindEvents();
   }
 
-  /**
-   * Bind DOM event listeners
-   */
+  
   #bindEvents() {
     // Auto-resize textarea
     this.#inputElement.addEventListener('input', () => {
@@ -89,9 +77,7 @@ export class ChatUI {
     });
   }
 
-  /**
-   * Handle send action
-   */
+  
   #handleSend() {
     const message = this.#inputElement.value.trim();
     if (message && !this.#isStreaming) {
@@ -101,19 +87,13 @@ export class ChatUI {
     }
   }
 
-  /**
-   * Enable or disable input
-   * @param {boolean} enabled
-   */
+  
   setInputEnabled(enabled) {
     this.#inputElement.disabled = !enabled;
     this.#sendBtn.disabled = !enabled;
   }
 
-  /**
-   * Set loading state (waiting for model response)
-   * @param {boolean} loading
-   */
+  
   setLoading(loading) {
     if (loading) {
       this.setInputEnabled(false);
@@ -124,12 +104,7 @@ export class ChatUI {
     }
   }
 
-  /**
-   * Add a complete message to the chat
-   * @param {import('./chat-ui.js').MessageRole} role - Message role
-   * @param {string} content - Message content
-   * @param {import('./chat-ui.js').MessageStats} [stats] - Optional generation stats
-   */
+  
   addMessage(role, content, stats) {
     this.#hideWelcome();
 
@@ -155,9 +130,7 @@ export class ChatUI {
     this.#scrollToBottom();
   }
 
-  /**
-   * Start streaming a new assistant message
-   */
+  
   startStream() {
     this.#hideWelcome();
     this.#isStreaming = true;
@@ -177,16 +150,13 @@ export class ChatUI {
     this.setLoading(true);
   }
 
-  /**
-   * Append a token to the current stream
-   * @param {string} token - Token text
-   */
+  
   streamToken(token) {
     if (!this.#currentStreamElement) return;
 
     this.#streamTokenCount++;
-    const contentEl = /** @type {HTMLElement} */ (this.#currentStreamElement.querySelector('.message-content'));
-    const cursor = /** @type {HTMLElement} */ (contentEl.querySelector('.cursor'));
+    const contentEl =  (this.#currentStreamElement.querySelector('.message-content'));
+    const cursor =  (contentEl.querySelector('.cursor'));
 
     // Insert token before cursor
     const textNode = document.createTextNode(token);
@@ -195,16 +165,13 @@ export class ChatUI {
     // Update live stats
     const elapsed = performance.now() - this.#streamStartTime;
     const tps = this.#streamTokenCount / (elapsed / 1000);
-    const statsEl = /** @type {HTMLElement} */ (this.#currentStreamElement.querySelector('.message-stats'));
+    const statsEl =  (this.#currentStreamElement.querySelector('.message-stats'));
     statsEl.textContent = `${this.#streamTokenCount} tokens · ${(elapsed / 1000).toFixed(1)}s · ${tps.toFixed(1)} tok/s`;
 
     this.#scrollToBottom();
   }
 
-  /**
-   * Finish the current stream
-   * @returns {import('./chat-ui.js').MessageStats}
-   */
+  
   finishStream() {
     if (!this.#currentStreamElement) {
       return { tokens: 0, timeMs: 0, tokensPerSec: 0 };
@@ -220,7 +187,7 @@ export class ChatUI {
     }
 
     // Final stats
-    const statsEl = /** @type {HTMLElement} */ (this.#currentStreamElement.querySelector('.message-stats'));
+    const statsEl =  (this.#currentStreamElement.querySelector('.message-stats'));
     statsEl.textContent = `${this.#streamTokenCount} tokens · ${(elapsed / 1000).toFixed(1)}s · ${tps.toFixed(1)} tok/s`;
 
     this.#currentStreamElement = null;
@@ -234,9 +201,7 @@ export class ChatUI {
     };
   }
 
-  /**
-   * Cancel the current stream
-   */
+  
   cancelStream() {
     if (this.#currentStreamElement) {
       const cursor = this.#currentStreamElement.querySelector('.cursor');
@@ -245,10 +210,10 @@ export class ChatUI {
       }
 
       // Add cancelled indicator
-      const contentEl = /** @type {HTMLElement} */ (this.#currentStreamElement.querySelector('.message-content'));
+      const contentEl =  (this.#currentStreamElement.querySelector('.message-content'));
       contentEl.innerHTML += '<span class="muted"> [stopped]</span>';
 
-      const statsEl = /** @type {HTMLElement} */ (this.#currentStreamElement.querySelector('.message-stats'));
+      const statsEl =  (this.#currentStreamElement.querySelector('.message-stats'));
       const elapsed = performance.now() - this.#streamStartTime;
       statsEl.textContent = `${this.#streamTokenCount} tokens · ${(elapsed / 1000).toFixed(1)}s (stopped)`;
     }
@@ -258,9 +223,7 @@ export class ChatUI {
     this.setLoading(false);
   }
 
-  /**
-   * Clear all messages
-   */
+  
   clear() {
     this.#messagesElement.innerHTML = '';
     if (this.#welcomeElement) {
@@ -272,52 +235,36 @@ export class ChatUI {
     this.setLoading(false);
   }
 
-  /**
-   * Hide welcome message
-   */
+  
   #hideWelcome() {
     if (this.#welcomeElement) {
       this.#welcomeElement.hidden = true;
     }
   }
 
-  /**
-   * Scroll to bottom of messages
-   */
+  
   #scrollToBottom() {
     this.#messagesElement.scrollTop = this.#messagesElement.scrollHeight;
   }
 
-  /**
-   * Escape HTML to prevent XSS
-   * @param {string} str
-   * @returns {string}
-   */
+  
   #escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-  /**
-   * Focus the input field
-   */
+  
   focusInput() {
     this.#inputElement.focus();
   }
 
-  /**
-   * Check if currently streaming
-   * @returns {boolean}
-   */
+  
   isCurrentlyStreaming() {
     return this.#isStreaming;
   }
 
-  /**
-   * Get current stream token count
-   * @returns {number}
-   */
+  
   getCurrentTokenCount() {
     return this.#streamTokenCount;
   }

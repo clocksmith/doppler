@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/**
- * Serve CLI - Convert + Serve models for DOPPLER
- */
+
 
 import http from 'http';
 import { stat, readdir, rm, mkdir } from 'fs/promises';
@@ -15,12 +13,9 @@ import { URL } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * @param {string[]} argv
- * @returns {import('./serve.js').ServeOptions}
- */
+
 function parseArgs(argv) {
-  /** @type {import('./serve.js').ServeOptions} */
+  
   const args = {
     input: null,
     port: 8765,
@@ -45,9 +40,7 @@ function parseArgs(argv) {
   return args;
 }
 
-/**
- * @returns {void}
- */
+
 function printHelp() {
   console.log(`
 DOPPLER Serve - Convert + Serve models for the DOPPLER provider
@@ -74,10 +67,7 @@ Examples:
 `);
 }
 
-/**
- * @param {string} url
- * @returns {void}
- */
+
 function openBrowser(url) {
   const openCmd =
     process.platform === 'darwin'
@@ -94,10 +84,7 @@ function openBrowser(url) {
   });
 }
 
-/**
- * @param {string} inputPath
- * @returns {Promise<import('./serve.js').InputType>}
- */
+
 async function detectInputType(inputPath) {
   const stats = await stat(inputPath);
   if (stats.isDirectory()) {
@@ -109,11 +96,7 @@ async function detectInputType(inputPath) {
   throw new Error(`Unsupported input: ${inputPath} (must be .gguf or .rdrr folder)`);
 }
 
-/**
- * @param {string} inputPath
- * @param {string} outputDir
- * @returns {Promise<string>}
- */
+
 async function runConvert(inputPath, outputDir) {
   await mkdir(outputDir, { recursive: true });
   console.log(`[serve-cli] Converting GGUF -> .rdrr at ${outputDir}`);
@@ -141,10 +124,7 @@ async function runConvert(inputPath, outputDir) {
   return outputDir;
 }
 
-/**
- * @param {string} dir
- * @returns {Promise<void>}
- */
+
 async function validateRDRR(dir) {
   const manifestPath = join(dir, 'manifest.json');
   try {
@@ -159,10 +139,7 @@ async function validateRDRR(dir) {
   }
 }
 
-/**
- * @param {string} ext
- * @returns {string}
- */
+
 function contentTypeFor(ext) {
   switch (ext) {
     case '.json': return 'application/json';
@@ -171,11 +148,7 @@ function contentTypeFor(ext) {
   }
 }
 
-/**
- * @param {string} serveDir
- * @param {import('./serve.js').ServeOptions} args
- * @returns {http.Server}
- */
+
 function startServer(serveDir, args) {
   const { port, open, dopplerUrl } = args;
 
@@ -258,9 +231,7 @@ function startServer(serveDir, args) {
   return server;
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || !args.input) {
@@ -272,7 +243,7 @@ async function main() {
   const inputType = await detectInputType(inputPath);
 
   let serveDir = inputPath;
-  /** @type {string | null} */
+  
   let tempDir = null;
 
   if (inputType === 'gguf') {
@@ -289,7 +260,7 @@ async function main() {
         await rm(tempDir, { recursive: true, force: true });
         console.log(`[serve-cli] Removed temp directory ${tempDir}`);
       } catch (err) {
-        const error = /** @type {Error} */ (err);
+        const error =  (err);
         console.warn('[serve-cli] Failed to remove temp directory:', error.message);
       }
     }

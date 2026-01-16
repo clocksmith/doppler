@@ -1,27 +1,6 @@
-/**
- * Split QKV Reference Implementation
- *
- * Splits a fused QKV tensor into separate Q, K, V tensors.
- *
- * Input layout (row-major):
- *   [numTokens, qSize + kSize + vSize]
- *   Each row: [q_values, k_values, v_values]
- *
- * Output layout:
- *   Q: [numTokens, qSize]
- *   K: [numTokens, kSize]
- *   V: [numTokens, vSize]
- */
 
-/**
- * Split fused QKV tensor into separate Q, K, V
- * @param {Float32Array} qkv - Fused QKV tensor [numTokens, qSize + kSize + vSize]
- * @param {number} numTokens - Number of tokens
- * @param {number} qSize - Size of Q per token
- * @param {number} kSize - Size of K per token
- * @param {number} vSize - Size of V per token
- * @returns {{Q: Float32Array, K: Float32Array, V: Float32Array}}
- */
+
+
 export function splitQkvRef(qkv, numTokens, qSize, kSize, vSize) {
   const qkvSize = qSize + kSize + vSize;
 
@@ -51,18 +30,7 @@ export function splitQkvRef(qkv, numTokens, qSize, kSize, vSize) {
   return { Q, K, V };
 }
 
-/**
- * Create a fused QKV tensor from separate Q, K, V tensors
- * Useful for creating test data
- * @param {Float32Array} Q - Q tensor [numTokens, qSize]
- * @param {Float32Array} K - K tensor [numTokens, kSize]
- * @param {Float32Array} V - V tensor [numTokens, vSize]
- * @param {number} numTokens - Number of tokens
- * @param {number} qSize - Size of Q per token
- * @param {number} kSize - Size of K per token
- * @param {number} vSize - Size of V per token
- * @returns {Float32Array}
- */
+
 export function fuseQkvRef(Q, K, V, numTokens, qSize, kSize, vSize) {
   const qkvSize = qSize + kSize + vSize;
   const qkv = new Float32Array(numTokens * qkvSize);

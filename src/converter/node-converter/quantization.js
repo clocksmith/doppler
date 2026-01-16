@@ -1,16 +1,8 @@
-/**
- * Quantization utilities for the Node.js Model Converter.
- *
- * Handles quantization tag normalization, validation, and variant tag building.
- *
- * @module converter/node-converter/quantization
- */
+
 
 import { DEFAULT_QUANTIZATION_DEFAULTS } from '../../config/index.js';
 
-/**
- * Normalize quantization tag to canonical short form.
- */
+
 export function normalizeQuantTag(value) {
   if (!value) return 'f16';
   const lower = value.toLowerCase();
@@ -29,9 +21,7 @@ export function normalizeQuantTag(value) {
   return lower;
 }
 
-/**
- * Validate that a quantization type is supported for conversion.
- */
+
 export function validateQuantType(value, flagName) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
@@ -51,9 +41,7 @@ export function validateQuantType(value, flagName) {
   throw new Error(`Unknown quantization type: "${value}" (flag: ${flagName})`);
 }
 
-/**
- * Resolve quantization for manifest field (display format).
- */
+
 export function resolveManifestQuantization(quantize, fallback) {
   if (!quantize) return fallback;
   const normalized = normalizeQuantTag(quantize);
@@ -63,9 +51,7 @@ export function resolveManifestQuantization(quantize, fallback) {
   return normalized.toUpperCase();
 }
 
-/**
- * Build variant tag for model naming.
- */
+
 export function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
@@ -97,9 +83,7 @@ export function buildVariantTag(info) {
   return parts.join('-');
 }
 
-/**
- * Build quantization info from conversion options.
- */
+
 export function buildQuantizationInfo(
   opts,
   originalDtype,
@@ -202,9 +186,7 @@ export function buildQuantizationInfo(
   return info;
 }
 
-/**
- * Resolve model ID with variant tag.
- */
+
 export function resolveModelId(modelId, baseName, variantTag) {
   const sanitize = (id) => {
     return id.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
@@ -215,9 +197,7 @@ export function resolveModelId(modelId, baseName, variantTag) {
   return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
 }
 
-/**
- * Convert normalized dtype to WebGPU-compatible dtype string.
- */
+
 export function toWebGPUDtype(dtype) {
   if (dtype === 'q4k') return 'Q4_K_M';
   if (dtype === 'bf16') return 'F16';

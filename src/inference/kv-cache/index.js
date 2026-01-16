@@ -1,8 +1,4 @@
-/**
- * KV Cache Module - Re-exports
- *
- * @module inference/kv-cache
- */
+
 
 // Types - runtime functions only (type exports are in .d.ts)
 export {

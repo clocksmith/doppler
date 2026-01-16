@@ -1,63 +1,39 @@
-/**
- * Multi-model execution network for FunctionGemma experts.
- *
- * @module inference/multi-model-network
- */
+
 
 import { ExpertRouter } from './expert-router.js';
 import { MultiModelRecorder } from '../gpu/multi-model-recorder.js';
 
-/**
- * @typedef {import('./pipeline.js').GenerateOptions} GenerateOptions
- * @typedef {import('./pipeline.js').InferencePipeline} InferencePipeline
- * @typedef {import('./pipeline.js').KVCacheSnapshot} KVCacheSnapshot
- * @typedef {import('./pipeline/lora.js').LoRAAdapter} LoRAAdapter
- * @typedef {import('../loader/multi-model-loader.js').MultiModelLoader} MultiModelLoader
- * @typedef {import('./multi-pipeline-pool.js').MultiPipelinePool} MultiPipelinePool
- * @typedef {import('./network-evolution.js').NetworkGenome} NetworkGenome
- * @typedef {import('./network-evolution.js').NetworkNodeGene} NetworkNodeGene
- * @typedef {import('./network-evolution.js').NetworkEdgeGene} NetworkEdgeGene
- * @typedef {import('./expert-router.js').ExpertProfile} ExpertProfile
- * @typedef {import('./multi-model-network.js').ExpertNode} ExpertNode
- * @typedef {import('./multi-model-network.js').CombinerConfig} CombinerConfig
- * @typedef {import('./multi-model-network.js').TopologyRouter} TopologyRouter
- * @typedef {import('./multi-model-network.js').ExpertTask} ExpertTask
- */
+
 
 export class MultiModelNetwork {
-  /** @type {InferencePipeline} */
+  
   pipeline;
 
-  /** @type {MultiModelLoader | null} */
+  
   loader;
 
-  /** @type {ExpertRouter} */
+  
   router;
 
-  /** @type {Map<string, ExpertNode>} */
+  
   experts;
 
-  /** @type {KVCacheSnapshot | null} */
+  
   sharedPrefix = null;
 
-  /** @type {boolean} */
+  
   busy = false;
 
-  /** @type {MultiPipelinePool | null} */
+  
   pipelinePool = null;
 
-  /** @type {MultiModelRecorder | null} */
+  
   recorder = null;
 
-  /** @type {CombinerConfig} */
+  
   combiner = { type: 'weighted' };
 
-  /**
-   * @param {InferencePipeline} pipeline
-   * @param {MultiModelLoader} [loader]
-   * @param {MultiPipelinePool} [pool]
-   * @param {MultiModelRecorder} [recorder]
-   */
+  
   constructor(pipeline, loader, pool, recorder) {
     this.pipeline = pipeline;
     this.loader = loader || null;
@@ -67,66 +43,43 @@ export class MultiModelNetwork {
     this.recorder = recorder || null;
   }
 
-  /**
-   * @param {MultiModelRecorder | null} recorder
-   * @returns {void}
-   */
+  
   setRecorder(recorder) {
     this.recorder = recorder;
   }
 
-  /**
-   * @returns {MultiModelRecorder | null}
-   */
+  
   getRecorder() {
     return this.recorder;
   }
 
-  /**
-   * @param {MultiPipelinePool | null} pool
-   * @returns {void}
-   */
+  
   setPipelinePool(pool) {
     this.pipelinePool = pool;
   }
 
-  /**
-   * @param {ExpertNode} node
-   * @returns {void}
-   */
+  
   registerExpert(node) {
     this.experts.set(node.id, node);
     this.router.registerExpert(node);
   }
 
-  /**
-   * @param {string} id
-   * @returns {ExpertNode | null}
-   */
+  
   getExpert(id) {
     return this.experts.get(id) || null;
   }
 
-  /**
-   * @returns {ExpertNode[]}
-   */
+  
   listExperts() {
     return Array.from(this.experts.values());
   }
 
-  /**
-   * @param {CombinerConfig} config
-   * @returns {void}
-   */
+  
   setCombiner(config) {
     this.combiner = config;
   }
 
-  /**
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<KVCacheSnapshot>}
-   */
+  
   async setSharedPrefix(prompt, options = {}) {
     const snapshot = this.recorder
       ? await this.recorder.computeSharedPrefix(this.pipeline, prompt, options)
@@ -136,10 +89,7 @@ export class MultiModelNetwork {
     return snapshot;
   }
 
-  /**
-   * @param {KVCacheSnapshot | null} snapshot
-   * @returns {void}
-   */
+  
   setSharedPrefixSnapshot(snapshot) {
     this.sharedPrefix = snapshot;
     if (this.recorder) {
@@ -148,20 +98,12 @@ export class MultiModelNetwork {
     this.pipelinePool?.setSharedPrefixSnapshot(snapshot);
   }
 
-  /**
-   * @returns {KVCacheSnapshot | null}
-   */
+  
   getSharedPrefixSnapshot() {
     return this.recorder?.getSharedPrefix() ?? this.sharedPrefix;
   }
 
-  /**
-   * @param {ExpertNode} expert
-   * @param {string} [adapterName]
-   * @param {LoRAAdapter | null} [adapterOverride]
-   * @returns {LoRAAdapter | null}
-   * @private
-   */
+  
   resolveAdapter(expert, adapterName, adapterOverride) {
     if (adapterOverride) return adapterOverride;
     const resolvedName = adapterName || expert.adapterName;
@@ -171,13 +113,7 @@ export class MultiModelNetwork {
     return expert.adapter || null;
   }
 
-  /**
-   * @param {string} expertId
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @param {{ adapterName?: string; adapter?: LoRAAdapter | null; prefix?: KVCacheSnapshot | null; usePool?: boolean }} [overrides={}]
-   * @returns {Promise<string>}
-   */
+  
   async executeExpert(expertId, prompt, options = {}, overrides = {}) {
     const expert = this.getExpert(expertId);
     if (!expert) {
@@ -200,16 +136,9 @@ export class MultiModelNetwork {
     return this.collectText(generator);
   }
 
-  /**
-   * Chain: Sequential pipeline where each expert runs once.
-   * Output of each expert becomes input to the next.
-   * @param {string[]} expertIds
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<string[]>} Array of all outputs in order
-   */
+  
   async executeChain(expertIds, prompt, options = {}) {
-    /** @type {string[]} */
+    
     const outputs = [];
     let currentPrompt = prompt;
 
@@ -222,33 +151,23 @@ export class MultiModelNetwork {
     return outputs;
   }
 
-  /**
-   * @deprecated Use executeChain instead
-   * @param {string[]} expertIds
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<string[]>}
-   */
+  
   async executeRing(expertIds, prompt, options = {}) {
     return this.executeChain(expertIds, prompt, options);
   }
 
-  /**
-   * @param {ExpertTask[]} tasks
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<Record<string, string>>}
-   */
+  
   async executeBatch(tasks, options = {}) {
-    /** @type {Map<string, ExpertTask[]>} */
+    
     const grouped = new Map();
     for (const task of tasks) {
       const expert = this.getExpert(task.expertId);
       const adapterKey = expert?.adapterName || '__base__';
       if (!grouped.has(adapterKey)) grouped.set(adapterKey, []);
-      /** @type {ExpertTask[]} */ (grouped.get(adapterKey)).push(task);
+       (grouped.get(adapterKey)).push(task);
     }
 
-    /** @type {Record<string, string>} */
+    
     const results = {};
     for (const group of grouped.values()) {
       for (const task of group) {
@@ -259,11 +178,7 @@ export class MultiModelNetwork {
     return results;
   }
 
-  /**
-   * @param {ExpertTask[]} tasks
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<Record<string, string>>}
-   */
+  
   async executeParallel(tasks, options = {}) {
     if (!this.pipelinePool) {
       if (this.busy) {
@@ -272,7 +187,7 @@ export class MultiModelNetwork {
       this.busy = true;
       try {
         const entries = await Promise.all(
-          tasks.map(async (task) => /** @type {const} */ ([task.id, await this.executeExpert(task.expertId, task.prompt, options)]))
+          tasks.map(async (task) =>  ([task.id, await this.executeExpert(task.expertId, task.prompt, options)]))
         );
         return Object.fromEntries(entries);
       } finally {
@@ -283,34 +198,26 @@ export class MultiModelNetwork {
     const entries = await Promise.all(
       tasks.map(async (task) => {
         const output = await this.executeExpert(task.expertId, task.prompt, options, { usePool: true });
-        return /** @type {const} */ ([task.id, output]);
+        return  ([task.id, output]);
       })
     );
 
     return Object.fromEntries(entries);
   }
 
-  /**
-   * @param {number[]} embedding
-   * @param {number} [topK=1]
-   * @returns {ExpertNode[]}
-   */
+  
   selectExpertsByEmbedding(embedding, topK = 1) {
-    return /** @type {ExpertNode[]} */ (this.router.selectByEmbedding(embedding, topK));
+    return  (this.router.selectByEmbedding(embedding, topK));
   }
 
-  /**
-   * @param {string[]} outputs
-   * @param {CombinerConfig} [combinerOverride]
-   * @returns {Promise<string>}
-   */
+  
   async combineOutputs(outputs, combinerOverride) {
     if (outputs.length === 0) return '';
 
     const combiner = combinerOverride ?? this.combiner;
 
     if (combiner.type === 'voting') {
-      /** @type {Map<string, number>} */
+      
       const counts = new Map();
       for (const output of outputs) {
         counts.set(output, (counts.get(output) || 0) + 1);
@@ -336,15 +243,9 @@ export class MultiModelNetwork {
     throw new Error(`Unknown combiner type: ${combiner.type}`);
   }
 
-  /**
-   * @param {NetworkGenome} genome
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @param {TopologyRouter} [router]
-   * @returns {Promise<string>}
-   */
+  
   async executeGenome(genome, prompt, options = {}, router) {
-    /** @type {Map<string, NetworkNodeGene>} */
+    
     const nodeLookup = new Map();
     for (const node of genome.nodes) {
       nodeLookup.set(node.id, node);
@@ -380,7 +281,7 @@ export class MultiModelNetwork {
     // Chain: sequential pipeline, each expert runs once
     if (genome.topology.type === 'chain') {
       const ordered = genome.nodes.map((node) => node.id);
-      /** @type {string[]} */
+      
       const outputs = [];
       let current = prompt;
       for (const id of ordered) {
@@ -409,25 +310,18 @@ export class MultiModelNetwork {
     return this.combineOutputs(outputs, combiner);
   }
 
-  /**
-   * @param {NetworkGenome} genome
-   * @param {string} prompt
-   * @param {GenerateOptions} options
-   * @param {TopologyRouter} [router]
-   * @returns {Promise<string[]>}
-   * @private
-   */
+  
   async executeGraph(genome, prompt, options, router) {
-    /** @type {Map<string, NetworkEdgeGene[]>} */
+    
     const outgoing = new Map();
-    /** @type {Map<string, NetworkEdgeGene[]>} */
+    
     const incoming = new Map();
 
     for (const edge of genome.edges) {
       if (!outgoing.has(edge.from)) outgoing.set(edge.from, []);
       if (!incoming.has(edge.to)) incoming.set(edge.to, []);
-      /** @type {NetworkEdgeGene[]} */ (outgoing.get(edge.from)).push(edge);
-      /** @type {NetworkEdgeGene[]} */ (incoming.get(edge.to)).push(edge);
+       (outgoing.get(edge.from)).push(edge);
+       (incoming.get(edge.to)).push(edge);
     }
 
     for (const edges of outgoing.values()) {
@@ -439,11 +333,11 @@ export class MultiModelNetwork {
     if (!rootId) return [];
 
     const maxDepth = genome.topology.depth ?? genome.nodes.length;
-    /** @type {Map<string, string>} */
+    
     const outputs = new Map();
-    /** @type {Set<string>} */
+    
     const executed = new Set();
-    /** @type {Map<string, string[]>} */
+    
     let frontier = new Map();
     frontier.set(rootId, [prompt]);
 
@@ -481,7 +375,7 @@ export class MultiModelNetwork {
           .map((edge) => this.getExpert(edge.to))
           .filter((expert) => Boolean(expert));
 
-        let selectedExperts = /** @type {ExpertNode[]} */ (candidateExperts);
+        let selectedExperts =  (candidateExperts);
         if (router && candidateExperts.length > 0) {
           const parent = this.getExpert(nodeId);
           if (parent) {
@@ -489,7 +383,7 @@ export class MultiModelNetwork {
               parent,
               prompt: output,
               options,
-              children: /** @type {ExpertNode[]} */ (candidateExperts),
+              children:  (candidateExperts),
               outputs,
             });
             if (Array.isArray(routed)) {
@@ -505,17 +399,17 @@ export class MultiModelNetwork {
           if (!frontier.has(expert.id)) {
             frontier.set(expert.id, []);
           }
-          /** @type {string[]} */ (frontier.get(expert.id)).push(output);
+           (frontier.get(expert.id)).push(output);
         }
       }
     }
 
-    /** @type {string[]} */
+    
     const leaves = [];
     for (const node of genome.nodes) {
       const hasChildren = (outgoing.get(node.id) || []).length > 0;
       if (!hasChildren && outputs.has(node.id)) {
-        leaves.push(/** @type {string} */ (outputs.get(node.id)));
+        leaves.push( (outputs.get(node.id)));
       }
     }
 
@@ -524,13 +418,9 @@ export class MultiModelNetwork {
     return Array.from(outputs.values());
   }
 
-  /**
-   * @param {AsyncGenerator<string>} generator
-   * @returns {Promise<string>}
-   * @private
-   */
+  
   async collectText(generator) {
-    /** @type {string[]} */
+    
     const chunks = [];
     for await (const token of generator) {
       chunks.push(token);

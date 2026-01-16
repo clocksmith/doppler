@@ -1,84 +1,57 @@
-/**
- * Expert LRU Cache for MoE Models
- *
- * Tracks expert residency in VRAM and implements LRU eviction
- * to manage memory pressure during inference.
- *
- * @module loader/expert-cache
- */
+
 
 import { releaseBuffer } from '../gpu/buffer-pool.js';
 import { log, trace } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
-/**
- * @typedef {Object} CacheEntry
- * @property {import('./weights.js').ExpertWeights} weights
- * @property {number} lastAccess
- * @property {number} sizeBytes
- */
 
-/**
- * Expert LRU Cache
- *
- * Manages expert weight residency in VRAM with LRU eviction policy.
- */
+
+
 export class ExpertCache {
-  /** @type {Map<string, CacheEntry>} */
+  
   #cache = new Map();
 
-  /** @type {number} */
+  
   #maxBytes;
 
-  /** @type {number} */
+  
   #currentBytes = 0;
 
-  /** @type {number} */
+  
   #accessCounter = 0;
 
-  /** @type {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} */
+  
   #config;
 
   // Statistics
-  /** @type {number} */
+  
   #hits = 0;
 
-  /** @type {number} */
+  
   #misses = 0;
 
-  /** @type {number} */
+  
   #evictions = 0;
 
-  /** @type {Set<string>} */
+  
   #inUse = new Set();
 
-  /** @type {Set<string>} */
+  
   #pinned = new Set();
 
-  /**
-   * Create expert cache
-   * @param {number} [maxBytes] Maximum cache size in bytes (uses config default if not specified)
-   * @param {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} [config] Expert cache configuration
-   */
+  
   constructor(maxBytes, config) {
     this.#config = config ?? getRuntimeConfig().loading.expertCache;
     this.#maxBytes = maxBytes ?? this.#config.defaultSizeBytes;
   }
 
-  /**
-   * Update cache configuration at runtime.
-   * @param {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} config
-   * @param {number} [maxBytes]
-   */
+  
   configure(config, maxBytes) {
     this.#config = config;
     this.#maxBytes = maxBytes ?? config.defaultSizeBytes;
   }
 
-  /**
-   * Auto-tune cache size based on available VRAM
-   * Call this after WebGPU is initialized
-   */
+  
   async autoTune() {
     const { defaultSizeBytes, maxBufferPercentage } = this.#config;
     const defaultSizeMB = (defaultSizeBytes / 1024 / 1024).toFixed(0);
@@ -89,7 +62,7 @@ export class ExpertCache {
     }
 
     try {
-      const adapter = await /** @type {any} */ (navigator).gpu.requestAdapter();
+      const adapter = await  (navigator).gpu.requestAdapter();
       if (!adapter) {
         log.info('ExpertCache', `No GPU adapter, using default ${defaultSizeMB}MB`);
         return;
@@ -112,22 +85,12 @@ export class ExpertCache {
     }
   }
 
-  /**
-   * Generate cache key for expert
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @returns {string}
-   */
+  
   #getKey(layerIdx, expertIdx) {
     return `${layerIdx}_${expertIdx}`;
   }
 
-  /**
-   * Get expert from cache
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @returns {import('./weights.js').ExpertWeights | null} Expert weights or null if not in cache
-   */
+  
   get(layerIdx, expertIdx) {
     const key = this.#getKey(layerIdx, expertIdx);
     const entry = this.#cache.get(key);
@@ -143,13 +106,7 @@ export class ExpertCache {
     return null;
   }
 
-  /**
-   * Put expert into cache
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @param {import('./weights.js').ExpertWeights} weights Expert weights to cache
-   * @param {number} sizeBytes Size of expert in bytes (for memory tracking)
-   */
+  
   put(layerIdx, expertIdx, weights, sizeBytes) {
     const key = this.#getKey(layerIdx, expertIdx);
     const existing = this.#cache.get(key);
@@ -178,25 +135,16 @@ export class ExpertCache {
     this.#currentBytes = this.#currentBytes - existingSize + sizeBytes;
   }
 
-  /**
-   * Check if expert is in cache
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @returns {boolean}
-   */
+  
   has(layerIdx, expertIdx) {
     return this.#cache.has(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Evict least recently used expert
-   * Skips experts that are in-use or pinned
-   * @returns {boolean} true if an expert was evicted, false if all experts are protected
-   */
+  
   evictLRU() {
     if (this.#cache.size === 0) return false;
 
-    /** @type {string | null} */
+    
     let lruKey = null;
     let lruTime = Infinity;
 
@@ -221,54 +169,32 @@ export class ExpertCache {
     return false;
   }
 
-  /**
-   * Mark expert as in-use (prevents eviction during inference)
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   */
+  
   markInUse(layerIdx, expertIdx) {
     this.#inUse.add(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Mark expert as no longer in use (allows eviction)
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   */
+  
   markNotInUse(layerIdx, expertIdx) {
     this.#inUse.delete(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Clear all in-use markers (call after inference completes)
-   */
+  
   clearInUse() {
     this.#inUse.clear();
   }
 
-  /**
-   * Pin expert (prevents eviction, for shared experts)
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   */
+  
   pinExpert(layerIdx, expertIdx) {
     this.#pinned.add(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Unpin expert (allows eviction)
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   */
+  
   unpinExpert(layerIdx, expertIdx) {
     this.#pinned.delete(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Pin all shared experts for a model
-   * @param {number[]} sharedExpertIndices
-   * @param {number} numLayers
-   */
+  
   pinSharedExperts(sharedExpertIndices, numLayers) {
     for (let layer = 0; layer < numLayers; layer++) {
       for (const expertIdx of sharedExpertIndices) {
@@ -278,20 +204,12 @@ export class ExpertCache {
     log.info('ExpertCache', `Pinned ${sharedExpertIndices.length} shared experts across ${numLayers} layers`);
   }
 
-  /**
-   * Check if expert is pinned
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @returns {boolean}
-   */
+  
   isPinned(layerIdx, expertIdx) {
     return this.#pinned.has(this.#getKey(layerIdx, expertIdx));
   }
 
-  /**
-   * Evict specific expert by key
-   * @param {string} key
-   */
+  
   #evict(key) {
     const entry = this.#cache.get(key);
     if (!entry) return;
@@ -306,10 +224,7 @@ export class ExpertCache {
     trace.loader(`Evicted expert ${key}, freed ${(entry.sizeBytes / 1024 / 1024).toFixed(1)}MB`);
   }
 
-  /**
-   * Release GPU buffers for expert weights
-   * @param {import('./weights.js').ExpertWeights} weights
-   */
+  
   #releaseExpertBuffers(weights) {
     const buffers = [
       weights.gate,
@@ -334,18 +249,12 @@ export class ExpertCache {
     }
   }
 
-  /**
-   * Get current memory usage in bytes
-   * @returns {number}
-   */
+  
   getMemoryUsage() {
     return this.#currentBytes;
   }
 
-  /**
-   * Get cache statistics
-   * @returns {import('./expert-cache.js').CacheStats}
-   */
+  
   getStats() {
     const total = this.#hits + this.#misses;
     return {
@@ -361,9 +270,7 @@ export class ExpertCache {
     };
   }
 
-  /**
-   * Clear all cached experts
-   */
+  
   clear() {
     for (const [, entry] of this.#cache) {
       this.#releaseExpertBuffers(entry.weights);
@@ -375,10 +282,7 @@ export class ExpertCache {
     log.info('ExpertCache', 'Cache cleared');
   }
 
-  /**
-   * Set maximum cache size
-   * @param {number} maxBytes New maximum size in bytes
-   */
+  
   setMaxSize(maxBytes) {
     this.#maxBytes = maxBytes;
 
@@ -388,22 +292,14 @@ export class ExpertCache {
     }
   }
 
-  /**
-   * Prefetch experts (hint for future access)
-   * This is a no-op in the cache - actual prefetch happens in the loader
-   * @param {number} _layerIdx
-   * @param {number[]} _expertIndices
-   */
+  
   prefetch(_layerIdx, _expertIndices) {
     // Prefetch hint - the loader should implement actual prefetch logic
   }
 
-  /**
-   * Get all cached expert keys
-   * @returns {Array<{ layerIdx: number; expertIdx: number }>}
-   */
+  
   getCachedExperts() {
-    /** @type {Array<{ layerIdx: number; expertIdx: number }>} */
+    
     const result = [];
     for (const key of this.#cache.keys()) {
       const [layer, expert] = key.split('_').map(Number);
@@ -413,14 +309,10 @@ export class ExpertCache {
   }
 }
 
-/** @type {ExpertCache | null} */
+
 let globalCache = null;
 
-/**
- * Get global expert cache instance
- * @param {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} [config]
- * @returns {ExpertCache}
- */
+
 export function getExpertCache(config) {
   if (!globalCache) {
     const resolvedConfig = config ?? getRuntimeConfig().loading.expertCache;
@@ -432,12 +324,7 @@ export function getExpertCache(config) {
   return globalCache;
 }
 
-/**
- * Create new expert cache with custom size
- * @param {number} [maxBytes]
- * @param {import('../config/schema/loading.schema.js').ExpertCacheConfigSchema} [config]
- * @returns {ExpertCache}
- */
+
 export function createExpertCache(maxBytes, config) {
   const resolvedConfig = config ?? getRuntimeConfig().loading.expertCache;
   return new ExpertCache(maxBytes, resolvedConfig);

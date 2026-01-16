@@ -1,14 +1,4 @@
-/**
- * DopplerLoader - Core Model Loader
- * Phase 1: Foundation
- *
- * Orchestrates the complete model loading pipeline:
- * - Storage: Load shards from OPFS
- * - Memory: Stage in heap (Memory64 or segmented)
- * - GPU: Transfer to VRAM for compute
- *
- * @module loader/doppler-loader
- */
+
 
 import { getMemoryCapabilities } from '../memory/capability.js';
 import { detectUnifiedMemory } from '../memory/unified-detect.js';
@@ -68,89 +58,85 @@ export {
 // DopplerLoader Class
 // ============================================================================
 
-/**
- * DopplerLoader class
- */
+
 export class DopplerLoader {
   // Capabilities
-  /** @type {import('../memory/capability.js').MemoryCapabilities | null} */
+  
   memoryCapabilities = null;
-  /** @type {import('./loader-types.js').KernelCapabilities | null} */
+  
   gpuCapabilities = null;
-  /** @type {boolean} */
+  
   isUnifiedMemory = false;
 
   // Manifest and model info
-  /** @type {import('../storage/rdrr-format.js').RDRRManifest | null} */
+  
   manifest = null;
-  /** @type {string | null} */
+  
   modelId = null;
-  /** @type {boolean} */
+  
   isMoE = false;
 
   // Loaded state
-  /** @type {boolean} */
+  
   isLoaded = false;
-  /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array | null} */
+  
   embeddings = null;
-  /** @type {Map<number, import('./loader-types.js').LayerWeights>} */
+  
   layers = new Map();
-  /** @type {Map<string, import('./weights.js').ExpertWeights>} */
+  
   experts = new Map();
-  /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array | null} */
+  
   lmHead = null;
-  /** @type {GPUBuffer | Float32Array | null} */
+  
   finalNorm = null;
 
   // Memory management
-  /** @type {import('../memory/heap-manager.js').HeapManager | null} */
+  
   heapManager = null;
-  /** @type {Set<GPUBuffer>} */
+  
   gpuBuffers = new Set();
 
   // Expert cache for MoE models (LRU eviction)
-  /** @type {import('./expert-cache.js').ExpertCache | null} */
+  
   expertCache = null;
 
   // Loading state
-  /** @type {Set<number>} */
+  
   loadedShards = new Set();
-  /** @type {Map<string, import('./loader-types.js').TensorLocation>} */
+  
   tensorLocations = new Map();
 
   // Shard cache (LRU with request deduplication)
-  /** @type {import('./shard-cache.js').ShardCache} */
+  
   shardCache;
 
   // Loading configuration
-  /** @type {import('../config/schema/loading.schema.js').LoadingConfigSchema} */
+  
   #loadingConfig;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
-  /** @type {boolean} */
+  
   useFusedQ4K = false;
 
   // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
-  /** @type {'flat' | 'row_wise' | 'column_wise' | null} */
+  
   q4kLayout = null;
-  /** @type {boolean} */
+  
   keepF32Weights = false;
 
   // Internal tracking
-  /** @type {boolean} */
+  
   #normOffsetLogged = false;
-  /** @type {boolean} */
+  
   #normOffsetDebugLogged = false;
-  /** @type {MemoryMonitor | null} */
+  
   #memoryMonitor = null;
-  /** @type {string | null} */
+  
   #tensorsJsonUrl = null;
-  /** @type {((shardIndex: number) => Promise<ArrayBuffer>) | null} */
+  
   #loadShardOverride = null;
 
-  /**
-   * @param {import('../config/schema/loading.schema.js').LoadingConfigSchema} [loadingConfig]
-   */
+  
   constructor(loadingConfig) {
     this.#loadingConfig = loadingConfig ?? getRuntimeConfig().loading;
     this.shardCache = createShardCache(
@@ -159,9 +145,7 @@ export class DopplerLoader {
     );
   }
 
-  /**
-   * @param {import('../config/schema/loading.schema.js').LoadingConfigSchema} config
-   */
+  
   setLoadingConfig(config) {
     this.#loadingConfig = config;
     this.shardCache.configure({
@@ -176,18 +160,14 @@ export class DopplerLoader {
     }
   }
 
-  /**
-   * @param {import('./loader-types.js').Q4KConfig} config
-   */
+  
   setQ4KConfig(config) {
     this.useFusedQ4K = config.useFusedQ4K;
     this.q4kLayout = config.q4kLayout;
     this.keepF32Weights = config.keepF32Weights;
   }
 
-  /**
-   * @returns {{ shardCacheBytes: number; shardCount: number; layerCount: number; gpuBufferCount: number }}
-   */
+  
   #getMemoryState() {
     return {
       shardCacheBytes: this.shardCache.totalBytes,
@@ -203,9 +183,7 @@ export class DopplerLoader {
     this.#memoryMonitor.start(() => this.#getMemoryState());
   }
 
-  /**
-   * @param {'complete' | 'failed'} [phase='complete']
-   */
+  
   #stopMemoryLogging(phase = 'complete') {
     if (this.#memoryMonitor) {
       this.#memoryMonitor.stop(phase, () => this.#getMemoryState());
@@ -213,39 +191,27 @@ export class DopplerLoader {
     }
   }
 
-  /**
-   * @param {import('./loader-types.js').CustomShardLoader} loadShardFn
-   * @param {import('./loader-types.js').CustomShardLoaderOptions} [options={}]
-   */
+  
   setCustomShardLoader(loadShardFn, options = {}) {
     this.shardCache.setCustomLoader(loadShardFn, options.verify !== false);
   }
 
-  /**
-   * @param {string | null} url
-   */
+  
   setTensorsJsonUrl(url) {
     this.#tensorsJsonUrl = url;
   }
 
-  /**
-   * @param {number} shardIndex
-   * @returns {Promise<ArrayBuffer>}
-   */
+  
   async #loadShard(shardIndex) {
     return this.shardCache.load(shardIndex);
   }
 
-  /**
-   * @returns {(shardIndex: number) => Promise<ArrayBuffer>}
-   */
+  
   #getLoadShard() {
     return this.#loadShardOverride ?? ((idx) => this.#loadShard(idx));
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
+  
   async init() {
     log.info('Loader', 'Initializing...');
 
@@ -277,21 +243,16 @@ export class DopplerLoader {
     log.info('Loader', `Initialized (${caps})`);
   }
 
-  /**
-   * @param {import('../storage/rdrr-format.js').RDRRManifest} manifest
-   */
+  
   setManifest(manifest) {
     this.manifest = manifest;
-    const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (manifest.config);
+    const config =  (manifest.config);
     this.isMoE = manifest.moeConfig != null || (config?.num_local_experts ?? 0) > 1;
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
     debugTrace.loader('Manifest set externally');
   }
 
-  /**
-   * @param {import('../storage/rdrr-format.js').RDRRManifest} manifest
-   * @returns {Promise<import('../inference/pipeline/lora.js').LoRAAdapter>}
-   */
+  
   async loadLoRAWeights(manifest) {
     const prevManifest = this.manifest;
     const prevLocations = new Map(this.tensorLocations);
@@ -311,30 +272,17 @@ export class DopplerLoader {
     }
   }
 
-  /**
-   * @param {import('./loader-types.js').TensorLocation} location
-   * @param {string} name
-   * @returns {import('../gpu/weight-buffer.js').WeightLayout}
-   */
+  
   #resolveWeightLayout(location, name) {
     return resolveWeightLayout(location, name);
   }
 
-  /**
-   * @param {string} name
-   * @param {import('./loader-types.js').TensorLocation} location
-   * @param {string} label
-   * @returns {boolean}
-   */
+  
   #shouldStreamLargeWeight(name, location, label) {
     return shouldStreamLargeWeight(name, location, label, this.gpuCapabilities, this.keepF32Weights);
   }
 
-  /**
-   * @param {string} modelId
-   * @param {import('./loader-types.js').LoadOptions} [options={}]
-   * @returns {Promise<import('./loader-types.js').ModelConfig>}
-   */
+  
   async load(modelId, options = {}) {
     const { onProgress = null, verifyHashes = true } = options;
 
@@ -378,7 +326,7 @@ export class DopplerLoader {
 
     validateManifestInference(this.manifest);
 
-    const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (this.manifest.config);
+    const config =  (this.manifest.config);
     this.isMoE = this.manifest.moeConfig != null ||
                  (config?.num_local_experts ?? 0) > 1 ||
                  isMoE();
@@ -408,11 +356,7 @@ export class DopplerLoader {
     let bytesLoaded = 0;
     let shardsLoaded = 0;
 
-    /**
-     * @param {import('./loader-types.js').LoadProgress['stage']} stage
-     * @param {number} baseProgress
-     * @param {string} [detail]
-     */
+    
     const reportProgress = (stage, baseProgress, detail) => {
       if (!onProgress) return;
       const elapsed = (Date.now() - loadStartTime) / 1000;
@@ -436,15 +380,12 @@ export class DopplerLoader {
       onProgress({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
     }
 
-    /** @type {Set<number>} */
+    
     const loadedShardIndices = new Set();
     let inLayerPhase = false;
     const originalLoadShard = (shardIndex) => this.#loadShard(shardIndex);
 
-    /**
-     * @param {number} shardIndex
-     * @returns {Promise<ArrayBuffer>}
-     */
+    
     this.#loadShardOverride = async (shardIndex) => {
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
@@ -478,7 +419,7 @@ export class DopplerLoader {
       return data;
     };
 
-    /** @type {unknown} */
+    
     let loadError = null;
     try {
       reportProgress('shards', 0.1, 'Loading embeddings...');
@@ -488,7 +429,7 @@ export class DopplerLoader {
                         config?.blockCount ||
                         config?.text_config?.num_hidden_layers ||
                         config?.n_layer ||
-                        /** @type {{ numLayers?: number } | undefined} */ (this.manifest.architecture)?.numLayers ||
+                         (this.manifest.architecture)?.numLayers ||
                         32;
       log.info('Loader', `Layers: 0-${numLayers - 1}`);
 
@@ -551,7 +492,7 @@ export class DopplerLoader {
 
       this.shardCache.clear();
 
-      return /** @type {import('./loader-types.js').ModelConfig} */ (this.manifest.config) || {};
+      return  (this.manifest.config) || {};
     } catch (error) {
       loadError = error;
     } finally {
@@ -568,12 +509,10 @@ export class DopplerLoader {
       }
       throw loadError;
     }
-    return /** @type {import('./loader-types.js').ModelConfig} */ (this.manifest?.config) || {};
+    return  (this.manifest?.config) || {};
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
+  
   async #buildTensorLocations() {
     this.tensorLocations.clear();
     if (!this.manifest) return;
@@ -588,12 +527,7 @@ export class DopplerLoader {
     }
   }
 
-  /**
-   * @param {string} name
-   * @param {boolean} [toGPU=true]
-   * @param {boolean} [silent=false]
-   * @returns {Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | Uint8Array | null>}
-   */
+  
   async #loadTensor(name, toGPU = true, silent = false) {
     const location = this.tensorLocations.get(name);
     if (!location) {
@@ -620,7 +554,7 @@ export class DopplerLoader {
         return loadTensorToCPU(shardData, location);
       }
 
-      /** @type {import('./tensor-loader.js').TensorLoadConfig} */
+      
       const config = {
         useFusedQ4K: this.useFusedQ4K,
         keepF32Weights: this.keepF32Weights,
@@ -640,19 +574,13 @@ export class DopplerLoader {
     return loadTensorToCPU(shardData, location);
   }
 
-  /**
-   * @param {import('./loader-types.js').TensorLocation} location
-   * @param {string} name
-   * @returns {Promise<Uint8Array>}
-   */
+  
   async #assembleShardData(location, name) {
     const loadShard = this.#getLoadShard();
     return assembleShardData(location, name, loadShard);
   }
 
-  /**
-   * @returns {boolean}
-   */
+  
   #needsNormWeightOffset() {
     const result = needsNormWeightOffset(this.manifest);
     if (result && !this.#normOffsetLogged) {
@@ -661,12 +589,9 @@ export class DopplerLoader {
     return result;
   }
 
-  /**
-   * @param {((progress: import('./loader-types.js').LoadProgress) => void) | null} _onProgress
-   * @returns {Promise<void>}
-   */
+  
   async #loadEmbeddings(_onProgress) {
-    /** @type {import('./embedding-loader.js').EmbeddingLoaderContext} */
+    
     const ctx = {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
@@ -679,13 +604,9 @@ export class DopplerLoader {
     this.embeddings = await loadEmbeddings(ctx);
   }
 
-  /**
-   * @param {number} layerIdx
-   * @param {((progress: import('./loader-types.js').LoadProgress) => void) | null} _onProgress
-   * @returns {Promise<void>}
-   */
+  
   async #loadLayer(layerIdx, _onProgress) {
-    /** @type {import('./layer-loader.js').LayerLoaderContext} */
+    
     const ctx = {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
@@ -700,42 +621,27 @@ export class DopplerLoader {
     this.layers.set(layerIdx, weights);
   }
 
-  /**
-   * @param {number} _layerIdx
-   * @returns {boolean}
-   */
+  
   #isExpertLayer(_layerIdx) {
     return this.isMoE;
   }
 
-  /**
-   * @param {number} nextLayerIdx
-   * @param {number[]} expertIndices
-   */
+  
   prefetchExperts(nextLayerIdx, expertIndices) {
     prefetchExpertsFromModule(this.#getExpertLoaderContext(), nextLayerIdx, expertIndices, this.isMoE);
   }
 
-  /**
-   * @param {number[]} currentExperts
-   * @returns {number[]}
-   */
+  
   predictNextLayerExperts(currentExperts) {
     return predictNextLayerExpertsFromModule(currentExperts);
   }
 
-  /**
-   * @param {number} layerIdx
-   * @param {number} expertIdx
-   * @returns {Promise<import('./weights.js').ExpertWeights>}
-   */
+  
   async loadExpert(layerIdx, expertIdx) {
     return loadExpertFromModule(this.#getExpertLoaderContext(), layerIdx, expertIdx);
   }
 
-  /**
-   * @returns {import('./expert-loader.js').ExpertLoaderContext}
-   */
+  
   #getExpertLoaderContext() {
     const loadShard = this.#getLoadShard();
     return {
@@ -750,10 +656,7 @@ export class DopplerLoader {
     };
   }
 
-  /**
-   * @param {((progress: import('./loader-types.js').LoadProgress) => void) | null} _onProgress
-   * @returns {Promise<void>}
-   */
+  
   async #loadFinalWeights(_onProgress) {
     const tieWordEmbeddings = this.manifest?.inference?.output?.tieWordEmbeddings;
     if (tieWordEmbeddings == null) {
@@ -764,7 +667,7 @@ export class DopplerLoader {
       );
     }
 
-    /** @type {import('./final-weights-loader.js').FinalWeightsContext} */
+    
     const ctx = {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
@@ -784,31 +687,22 @@ export class DopplerLoader {
     this.#normOffsetDebugLogged = result.normOffsetDebugLogged;
   }
 
-  /**
-   * @param {number} layerIdx
-   * @returns {import('./loader-types.js').LayerWeights | null}
-   */
+  
   getLayerWeights(layerIdx) {
     return this.layers.get(layerIdx) || null;
   }
 
-  /**
-   * @returns {import('./loader-types.js').ModelConfig}
-   */
+  
   getConfig() {
-    return /** @type {import('./loader-types.js').ModelConfig} */ (this.manifest?.config) || {};
+    return  (this.manifest?.config) || {};
   }
 
-  /**
-   * @returns {boolean}
-   */
+  
   canRunDense() {
     return this.isUnifiedMemory;
   }
 
-  /**
-   * @returns {import('./loader-types.js').LoaderStats}
-   */
+  
   getStats() {
     const expertCacheCount = this.expertCache?.getStats().expertCount || 0;
     return {
@@ -822,16 +716,12 @@ export class DopplerLoader {
     };
   }
 
-  /**
-   * @returns {import('./expert-cache.js').CacheStats | null}
-   */
+  
   getExpertCacheStats() {
     return this.expertCache?.getStats() || null;
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
+  
   async unload() {
     debugTrace.loader(' Unloading model...');
 
@@ -865,13 +755,10 @@ export class DopplerLoader {
   }
 }
 
-/** @type {DopplerLoader | null} */
+
 let globalLoader = null;
 
-/**
- * @param {import('../config/schema/loading.schema.js').LoadingConfigSchema} [loadingConfig]
- * @returns {DopplerLoader}
- */
+
 export function getDopplerLoader(loadingConfig) {
   if (!globalLoader) {
     globalLoader = new DopplerLoader(loadingConfig);
@@ -881,10 +768,7 @@ export function getDopplerLoader(loadingConfig) {
   return globalLoader;
 }
 
-/**
- * @param {import('../config/schema/loading.schema.js').LoadingConfigSchema} [loadingConfig]
- * @returns {DopplerLoader}
- */
+
 export function createDopplerLoader(loadingConfig) {
   return new DopplerLoader(loadingConfig);
 }

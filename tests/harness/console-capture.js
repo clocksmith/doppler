@@ -1,10 +1,4 @@
-/**
- * console-capture.js - Browser Console Capture Utility
- *
- * Captures and analyzes browser console output during e2e tests.
- *
- * @module tests/harness/console-capture
- */
+
 
 import {
   BASE_LOG_PATTERNS,
@@ -13,9 +7,7 @@ import {
   analyzeTokens,
 } from './test-config.js';
 
-/**
- * Console capture helper
- */
+
 export class ConsoleCapture {
   logs = [];
   errors = [];
@@ -25,11 +17,7 @@ export class ConsoleCapture {
     this.importantPatterns = new Set(BASE_LOG_PATTERNS);
   }
 
-  /**
-   * Attach to a Playwright page
-   * @param page - Playwright page instance
-   * @param options - Attach options
-   */
+  
   attach(page, options = {}) {
     const { printImportant = true, printAll = false } = options;
 
@@ -56,10 +44,7 @@ export class ConsoleCapture {
     });
   }
 
-  /**
-   * Check if a log message matches important patterns
-   * @private
-   */
+  
   _isImportant(text) {
     for (const pattern of this.importantPatterns) {
       if (text.includes(pattern)) return true;
@@ -67,27 +52,17 @@ export class ConsoleCapture {
     return false;
   }
 
-  /**
-   * Add custom important patterns
-   * @param patterns - Array of pattern strings
-   */
+  
   addImportantPatterns(patterns) {
     patterns.forEach(p => this.importantPatterns.add(p));
   }
 
-  /**
-   * Get all log texts
-   * @returns Array of log text strings
-   */
+  
   getLogTexts() {
     return this.logs.map(l => l.text);
   }
 
-  /**
-   * Get logs matching a pattern
-   * @param pattern - String or regex pattern to match
-   * @returns Array of matching log entries
-   */
+  
   filter(pattern) {
     return this.logs.filter(l => {
       if (typeof pattern === 'string') {
@@ -97,28 +72,17 @@ export class ConsoleCapture {
     });
   }
 
-  /**
-   * Check if any log contains the pattern
-   * @param pattern - String or regex pattern to check
-   * @returns Whether any log matches
-   */
+  
   contains(pattern) {
     return this.filter(pattern).length > 0;
   }
 
-  /**
-   * Get logs by type
-   * @param type - Log type ('log', 'warn', 'error', 'info', 'debug')
-   * @returns Array of log entries of specified type
-   */
+  
   byType(type) {
     return this.logs.filter(l => l.type === type);
   }
 
-  /**
-   * Get error logs
-   * @returns Array of error log entries
-   */
+  
   getErrors() {
     return this.logs.filter(l =>
       l.type === 'error' ||
@@ -126,19 +90,13 @@ export class ConsoleCapture {
     );
   }
 
-  /**
-   * Clear captured logs
-   */
+  
   clear() {
     this.logs = [];
     this.errors = [];
   }
 
-  /**
-   * Get the last N logs
-   * @param n - Number of logs to retrieve
-   * @returns Array of the last n log entries
-   */
+  
   last(n) {
     return this.logs.slice(-n);
   }
@@ -147,10 +105,7 @@ export class ConsoleCapture {
   // DOPPLER-specific analysis
   // ============================================
 
-  /**
-   * Extract logits information from logs
-   * @returns Array of logits info objects
-   */
+  
   getLogitsInfo() {
     const logitsLogs = this.filter(/logits:|top-5:/);
     return logitsLogs.map(l => {
@@ -162,10 +117,7 @@ export class ConsoleCapture {
     });
   }
 
-  /**
-   * Check for generation output
-   * @returns Generation output info
-   */
+  
   getGenerationOutput() {
     const outputLog = this.logs.find(l =>
       l.text.includes('OUTPUT') ||
@@ -179,11 +131,7 @@ export class ConsoleCapture {
     };
   }
 
-  /**
-   * Analyze token quality for expected vs unexpected output
-   * @param options - Token quality options
-   * @returns Token quality analysis result
-   */
+  
   analyzeTokenQuality(options = {}) {
     const allText = this.logs.map(l => l.text).join(' ');
 
@@ -203,9 +151,7 @@ export class ConsoleCapture {
     };
   }
 
-  /**
-   * Print a summary of captured logs
-   */
+  
   printSummary() {
     console.log('\n' + '='.repeat(60));
     console.log('CONSOLE CAPTURE SUMMARY');

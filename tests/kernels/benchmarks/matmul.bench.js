@@ -1,6 +1,4 @@
-/**
- * Matrix Multiplication Benchmarks
- */
+
 
 import { test, expect } from '@playwright/test';
 import {

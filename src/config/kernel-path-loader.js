@@ -6,24 +6,26 @@ import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 // =============================================================================
 
 import gemma2Q4kFusedF16A from './presets/kernel-paths/gemma2-q4k-fused-f16a.json' with { type: 'json' };
-import gemma2Q4kFusedF16AWg128 from './presets/kernel-paths/gemma2-q4k-fused-f16a-wg128.json' with { type: 'json' };
 import gemma2Q4kFusedF32A from './presets/kernel-paths/gemma2-q4k-fused-f32a.json' with { type: 'json' };
-import gemma2Q4kDequantF32A from './presets/kernel-paths/gemma2-q4k-dequant-f32a.json' with { type: 'json' };
 import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a.json' with { type: 'json' };
 import gemma2F16F16A from './presets/kernel-paths/gemma2-f16-f16a.json' with { type: 'json' };
 import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { type: 'json' };
+import gemma3F16F16A from './presets/kernel-paths/gemma3-f16-f16a.json' with { type: 'json' };
+import gemma3Q4kDequantF16A from './presets/kernel-paths/gemma3-q4k-dequant-f16a.json' with { type: 'json' };
 
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
   'gemma2-q4k-fused-f16a': gemma2Q4kFusedF16A,
-  'gemma2-q4k-fused-f16a-wg128': gemma2Q4kFusedF16AWg128,
   'gemma2-q4k-fused-f32a': gemma2Q4kFusedF32A,
   'gemma2-q4k-dequant-f16a': gemma2Q4kDequantF16A,
-  'gemma2-q4k-dequant-f32a': gemma2Q4kDequantF32A,
 
   // Gemma 2 F16 variants
   'gemma2-f16-f16a': gemma2F16F16A,
   'gemma2-f16-f32a': gemma2F16F32A,
+
+  // Gemma 3 variants
+  'gemma3-f16-f16a': gemma3F16F16A,
+  'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
 };
 
 // =============================================================================

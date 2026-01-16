@@ -1,18 +1,11 @@
-/**
- * Reference SiLU (Swish) Activation Implementation
- */
 
-/**
- * SiLU activation: x * sigmoid(x)
- */
+
+
 function silu(x) {
   return x / (1 + Math.exp(-x));
 }
 
-/**
- * Reference SiLU activation
- * y = x * sigmoid(x)
- */
+
 export function siluRef(input) {
   const output = new Float32Array(input.length);
 
@@ -23,10 +16,7 @@ export function siluRef(input) {
   return output;
 }
 
-/**
- * SiLU with gating (used in LLaMA FFN)
- * y = silu(gate) * up
- */
+
 export function siluGatedRef(gate, up) {
   const output = new Float32Array(gate.length);
 
@@ -37,10 +27,7 @@ export function siluGatedRef(gate, up) {
   return output;
 }
 
-/**
- * Fused SiLU + multiply (for packed gate/up weights)
- * Input is [size * 2] with gate in first half, up in second half
- */
+
 export function siluFusedRef(input) {
   const halfSize = input.length / 2;
   const output = new Float32Array(halfSize);
@@ -54,9 +41,7 @@ export function siluFusedRef(input) {
   return output;
 }
 
-/**
- * In-place SiLU
- */
+
 export function siluInplaceRef(input) {
   for (let i = 0; i < input.length; i++) {
     input[i] = silu(input[i]);

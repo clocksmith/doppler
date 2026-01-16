@@ -1,16 +1,4 @@
-/**
- * Transformer layer processing (attention + FFN).
- *
- * This module orchestrates single-layer computation:
- * - Input normalization
- * - Self-attention
- * - Residual connections
- * - Feed-forward network (dense or MoE)
- *
- * Supports both standard (LLaMA-style) and sandwich norm (Gemma 3) architectures.
- *
- * @module inference/pipeline/layer
- */
+
 
 import { log, trace } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
@@ -34,11 +22,7 @@ import { getLayerPlanSteps } from './layer-plan.js';
 // Architecture Detection
 // ============================================================================
 
-/**
- * Detect sandwich norm architecture (Gemma 3).
- * @param {import('./types.js').LayerWeights | null} layerWeights
- * @returns {import('./types.js').SandwichNormInfo}
- */
+
 export function detectSandwichNorm(layerWeights) {
   const hasPreFeedforwardNorm = Boolean(layerWeights?.preFeedforwardNorm);
   const hasPostFeedforwardNorm = Boolean(layerWeights?.postFeedforwardNorm);
@@ -52,13 +36,7 @@ export function detectSandwichNorm(layerWeights) {
   };
 }
 
-/**
- * Check if a layer is a MoE layer.
- * @param {number} layerIdx
- * @param {import('./config.js').ParsedModelConfig} config
- * @param {import('./types.js').LayerWeights | null | undefined} [layerWeights]
- * @returns {boolean}
- */
+
 export function isMoELayer(layerIdx, config, layerWeights) {
   if (!config.useMoE) return false;
 
@@ -79,16 +57,7 @@ export function isMoELayer(layerIdx, config, layerWeights) {
 // Main Layer Processing
 // ============================================================================
 
-/**
- * Process a single transformer layer.
- *
- * @param {number} layerIdx
- * @param {GPUBuffer | Float32Array} hiddenStates
- * @param {number} numTokens
- * @param {boolean} isPrefill
- * @param {import('./types.js').LayerContext} context
- * @returns {Promise<GPUBuffer | Float32Array>}
- */
+
 export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config, useGPU } = context;
   const { hiddenSize } = config;
@@ -107,23 +76,14 @@ export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill,
   }
 
   // CPU fallback path
-  return processLayerCPU(layerIdx, /** @type {Float32Array} */ (hiddenStates), numTokens, isPrefill, context);
+  return processLayerCPU(layerIdx,  (hiddenStates), numTokens, isPrefill, context);
 }
 
 // ============================================================================
 // GPU Layer Processing
 // ============================================================================
 
-/**
- * GPU-native layer processing (no CPU readbacks).
- * @param {number} layerIdx
- * @param {GPUBuffer} inputBuffer
- * @param {number} numTokens
- * @param {boolean} isPrefill
- * @param {number} size
- * @param {import('./types.js').LayerContext} context
- * @returns {Promise<GPUBuffer>}
- */
+
 export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context) {
   // Debug entry (uses debug-utils)
   logLayer(layerIdx, 'enter', isPrefill, { numTokens });
@@ -135,13 +95,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 
   // Determine activation dtype from context (defaults to f32)
-  /** @type {import('../../gpu/tensor.js').TensorDtype} */
+  
   const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
 
   // Wrap input buffer as Tensor for dtype-aware processing
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
 
-  const layerWeights = /** @type {import('./types.js').LayerWeights | undefined} */ (weights.get(`layer_${layerIdx}`));
+  const layerWeights =  (weights.get(`layer_${layerIdx}`));
   const sandwichNorm = detectSandwichNorm(layerWeights ?? null);
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
@@ -168,7 +128,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     trace.attn(layerIdx, `RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
-  /** @type {import('./attention.js').AttentionConfig} */
+  
   const attnConfig = {
     layerIdx,
     numTokens,
@@ -191,15 +151,15 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     rmsNormWeightOffset: config.rmsNormWeightOffset,
   };
 
-  /** @type {import('./attention.js').AttentionState} */
+  
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
-      ? /** @type {GPUBuffer | null} */ (context.ropeLocalCos)
-      : /** @type {GPUBuffer | null} */ (ropeFreqsCos),
+      ?  (context.ropeLocalCos)
+      :  (ropeFreqsCos),
     ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
-      ? /** @type {GPUBuffer | null} */ (context.ropeLocalSin)
-      : /** @type {GPUBuffer | null} */ (ropeFreqsSin),
-    kvCache: /** @type {import('./types.js').KVCacheInterface} */ (/** @type {unknown} */ (kvCache)),
+      ?  (context.ropeLocalSin)
+      :  (ropeFreqsSin),
+    kvCache:  ( (kvCache)),
   };
 
   const attnResult = await doAttention(
@@ -265,7 +225,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   });
 
   // 2. Handle residual connection based on architecture
-  /** @type {import('../../gpu/tensor.js').Tensor} */
+  
   let postAttn;
   if (residualFused) {
     postAttn = attnOutput;
@@ -329,7 +289,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   });
 
   // 3. Feed-forward network
-  /** @type {import('../../gpu/tensor.js').Tensor} */
+  
   let outputTensor;
   if (sandwichNorm.useSandwichNorm) {
     outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
@@ -344,11 +304,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 // Configurable Layer Pipeline (JSON-Driven)
 // ============================================================================
 
-/**
- * @param {'input' | 'post_attention' | 'post_attn' | 'pre_ffn' | 'post_ffn'} weight
- * @param {import('./types.js').LayerWeights | undefined} layerWeights
- * @returns {GPUBuffer | Float32Array | null}
- */
+
 function resolveNormWeightForPlan(weight, layerWeights) {
   if (!layerWeights) return null;
   switch (weight) {
@@ -367,17 +323,7 @@ function resolveNormWeightForPlan(weight, layerWeights) {
   }
 }
 
-/**
- * @param {number} layerIdx
- * @param {GPUBuffer} inputBuffer
- * @param {number} numTokens
- * @param {boolean} isPrefill
- * @param {number} size
- * @param {import('./types.js').LayerContext} context
- * @param {import('./types.js').LayerWeights | undefined} layerWeights
- * @param {import('./types.js').SandwichNormInfo} sandwichNorm
- * @returns {Promise<GPUBuffer>}
- */
+
 async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm) {
   const { config, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
@@ -392,30 +338,30 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = layerType === 'sliding_attention';
-  /** @type {import('./attention.js').AttentionState} */
+  
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
-      ? /** @type {GPUBuffer | null} */ (context.ropeLocalCos)
-      : /** @type {GPUBuffer | null} */ (ropeFreqsCos),
+      ?  (context.ropeLocalCos)
+      :  (ropeFreqsCos),
     ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
-      ? /** @type {GPUBuffer | null} */ (context.ropeLocalSin)
-      : /** @type {GPUBuffer | null} */ (ropeFreqsSin),
-    kvCache: /** @type {import('./types.js').KVCacheInterface} */ (/** @type {unknown} */ (kvCache)),
+      ?  (context.ropeLocalSin)
+      :  (ropeFreqsSin),
+    kvCache:  ( (kvCache)),
   };
 
   const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
 
-  /** @type {Map<string, GPUBuffer>} */
+  
   const slots = new Map();
-  /** @type {Map<GPUBuffer, number>} */
+  
   const refCounts = new Map();
   const protectedBuffers = new Set([inputBuffer]);
 
-  /** @param {GPUBuffer} buf */
+  
   const addRef = (buf) => {
     refCounts.set(buf, (refCounts.get(buf) ?? 0) + 1);
   };
-  /** @param {GPUBuffer} buf */
+  
   const releaseRef = (buf) => {
     const next = (refCounts.get(buf) ?? 0) - 1;
     if (next > 0) {
@@ -430,7 +376,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       releaseBuffer(buf);
     }
   };
-  /** @param {string} name @returns {GPUBuffer} */
+  
   const getSlot = (name) => {
     const key = name.trim() || 'state';
     const buf = slots.get(key);
@@ -439,7 +385,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     }
     return buf;
   };
-  /** @param {string} name @param {GPUBuffer} buf */
+  
   const setSlot = (name, buf) => {
     const key = name.trim() || 'state';
     const prev = slots.get(key);
@@ -449,7 +395,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     slots.set(key, buf);
     addRef(buf);
   };
-  /** @param {string} name */
+  
   const clearSlot = (name) => {
     const key = name.trim() || 'state';
     const prev = slots.get(key);
@@ -480,11 +426,11 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       switch (step.op) {
         case 'save': {
           const src = getSlot(step.src);
-          setSlot(/** @type {string} */ (step.name), src);
+          setSlot( (step.name), src);
           break;
         }
         case 'load': {
-          const src = getSlot(/** @type {string} */ (step.name));
+          const src = getSlot( (step.name));
           setSlot(step.dst, src);
           break;
         }
@@ -492,14 +438,14 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const srcBuf = getSlot(step.src);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
-          /** @type {import('../../gpu/tensor.js').TensorDtype} */
+          
           const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
           const residualTensor = (residualBuf && allowResidualFuse)
             ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
             : null;
 
-          /** @type {import('./attention.js').AttentionConfig} */
+          
           const attnConfig = {
             layerIdx,
             numTokens,
@@ -548,13 +494,13 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         }
         case 'rmsnorm': {
           const srcBuf = getSlot(step.src);
-          const weight = resolveNormWeightForPlan(/** @type {'input' | 'post_attention' | 'post_attn' | 'pre_ffn' | 'post_ffn'} */ (step.weight), layerWeights);
+          const weight = resolveNormWeightForPlan( (step.weight), layerWeights);
           if (!weight) {
             throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
           }
           const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
-          /** @type {import('../../gpu/tensor.js').TensorDtype} */
+          
           const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
           const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
@@ -581,10 +527,10 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         }
         case 'ffn': {
           const srcBuf = getSlot(step.src);
-          /** @type {import('../../gpu/tensor.js').TensorDtype} */
+          
           const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
-          /** @type {import('../../gpu/tensor.js').Tensor} */
+          
           let outputTensor;
           const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn.js');
 
@@ -610,7 +556,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         case 'residual_add': {
           const aBuf = getSlot(step.a ?? 'state');
           const bBuf = getSlot(step.b ?? 'residual');
-          /** @type {import('../../gpu/tensor.js').TensorDtype} */
+          
           const activationDtype = context.activationDtype === 'f16' ? 'f16' : 'f32';
           const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
           const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
@@ -664,15 +610,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 // CPU Fallback
 // ============================================================================
 
-/**
- * CPU fallback layer processing.
- * @param {number} layerIdx
- * @param {Float32Array} hiddenStates
- * @param {number} numTokens
- * @param {boolean} isPrefill
- * @param {import('./types.js').LayerContext} context
- * @returns {Promise<Float32Array>}
- */
+
 export async function processLayerCPU(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config } = context;
   const { hiddenSize } = config;

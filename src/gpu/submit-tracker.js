@@ -1,54 +1,34 @@
-/**
- * Submit Tracker - Measures GPU submit overhead for optimization benchmarking.
- *
- * Usage:
- *   // Before forward pass:
- *   resetSubmitStats();
- *
- *   // Run forward pass...
- *
- *   // After forward pass:
- *   const stats = getSubmitStats();
- *   log.info('SubmitTracker', `Submits: ${stats.count}, Total time: ${stats.totalMs.toFixed(2)}ms`);
- *
- * To enable tracking, set TRACK_SUBMITS = true and wrap queue.submit calls.
- *
- * @module gpu/submit-tracker
- */
+
 
 import { trackSubmit } from './perf-guards.js';
 import { log, trace } from '../debug/index.js';
 
-/** Whether to track submits (disable in production for perf) */
+
 export let TRACK_SUBMITS = false;
 
-/** Internal tracking state */
+
 let submitCount = 0;
-/** @type {number[]} */
+
 let submitTimes = [];
 let totalSubmitMs = 0;
 let maxSubmitMs = 0;
 let minSubmitMs = Infinity;
-/** @type {Map<string, number>} */
+
 let submitSources = new Map();
 
-/** @typedef {'prefill' | 'decode' | 'other'} SubmitPhase */
 
-/** @type {SubmitPhase} Current phase for submit tracking */
+
+
 let currentPhase = 'other';
 
-/** @type {Record<SubmitPhase, { count: number; times: number[]; totalMs: number; maxMs: number; minMs: number; sources: Map<string, number> }>} */
+
 const phaseStats = {
   prefill: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() },
   decode: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() },
   other: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() },
 };
 
-/**
- * Enable/disable submit tracking.
- * @param {boolean} enabled - Whether to track submits
- * @returns {void}
- */
+
 export function setTrackSubmits(enabled) {
   TRACK_SUBMITS = enabled;
   if (enabled) {
@@ -59,11 +39,7 @@ export function setTrackSubmits(enabled) {
   }
 }
 
-/**
- * Reset submit statistics.
- * Call before starting a new measurement.
- * @returns {void}
- */
+
 export function resetSubmitStats() {
   submitCount = 0;
   submitTimes = [];
@@ -74,27 +50,17 @@ export function resetSubmitStats() {
   currentPhase = 'other';
 
   // Reset phase stats
-  for (const phase of /** @type {const} */ (['prefill', 'decode', 'other'])) {
+  for (const phase of  (['prefill', 'decode', 'other'])) {
     phaseStats[phase] = { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() };
   }
 }
 
-/**
- * Set the current phase for submit tracking.
- * @param {SubmitPhase} phase - The phase to track ('prefill', 'decode', or 'other')
- * @returns {void}
- */
+
 export function setSubmitPhase(phase) {
   currentPhase = phase;
 }
 
-/**
- * Record a submit call.
- * Call this from a wrapper around queue.submit().
- * @param {number} durationMs - Time spent in this submit call
- * @param {string} [source] - Optional source identifier (e.g., "pipeline.ts:prefill", "layer.ts:attention")
- * @returns {void}
- */
+
 export function recordSubmit(durationMs, source) {
   if (!TRACK_SUBMITS) return;
 
@@ -124,10 +90,7 @@ export function recordSubmit(durationMs, source) {
   }
 }
 
-/**
- * Get current submit statistics.
- * @returns {import('./submit-tracker.js').SubmitStats}
- */
+
 export function getSubmitStats() {
   return {
     count: submitCount,
@@ -140,11 +103,7 @@ export function getSubmitStats() {
   };
 }
 
-/**
- * Get submit statistics for a specific phase.
- * @param {SubmitPhase} phase - The phase to get stats for
- * @returns {import('./submit-tracker.js').SubmitStats}
- */
+
 export function getPhaseSubmitStats(phase) {
   const ps = phaseStats[phase];
   return {
@@ -158,10 +117,7 @@ export function getPhaseSubmitStats(phase) {
   };
 }
 
-/**
- * Get submit statistics for all phases.
- * @returns {import('./submit-tracker.js').PhaseSubmitStats}
- */
+
 export function getAllPhaseSubmitStats() {
   return {
     prefill: getPhaseSubmitStats('prefill'),
@@ -170,11 +126,7 @@ export function getAllPhaseSubmitStats() {
   };
 }
 
-/**
- * Log submit statistics summary.
- * @param {string} [label] - Label for the log output
- * @returns {void}
- */
+
 export function logSubmitStats(label = 'Forward pass') {
   const stats = getSubmitStats();
   trace.perf(
@@ -195,16 +147,12 @@ export function logSubmitStats(label = 'Forward pass') {
   }
 }
 
-/**
- * Log submit statistics for all phases.
- * @param {string} [label] - Label for the log output
- * @returns {void}
- */
+
 export function logAllPhaseSubmitStats(label = 'All phases') {
   const allStats = getAllPhaseSubmitStats();
   trace.perf(`SubmitTracker ${label}:`);
 
-  for (const phase of /** @type {const} */ (['prefill', 'decode', 'other'])) {
+  for (const phase of  (['prefill', 'decode', 'other'])) {
     const stats = allStats[phase];
     if (stats.count === 0) continue;
 
@@ -225,10 +173,7 @@ export function logAllPhaseSubmitStats(label = 'All phases') {
   }
 }
 
-/**
- * Extract source from stack trace.
- * @returns {string}
- */
+
 function extractSourceFromStack() {
   const stack = new Error().stack;
   if (!stack) return 'unknown';
@@ -247,15 +192,11 @@ function extractSourceFromStack() {
   return 'unknown';
 }
 
-/**
- * Wrap a GPU queue to track submit calls.
- * @param {GPUQueue} queue - GPU queue to wrap
- * @returns {GPUQueue}
- */
+
 export function wrapQueueForTracking(queue) {
   const originalSubmit = queue.submit.bind(queue);
 
-  /** @type {any} */ (queue).submit = function(/** @type {Iterable<GPUCommandBuffer>} */ commandBuffers) {
+   (queue).submit = function( commandBuffers) {
     const start = TRACK_SUBMITS ? performance.now() : 0;
     const result = originalSubmit(commandBuffers);
     trackSubmit();
@@ -272,12 +213,7 @@ export function wrapQueueForTracking(queue) {
   return queue;
 }
 
-/**
- * Estimate submit overhead savings from batching.
- * @param {import('./submit-tracker.js').SubmitStats} currentStats - Current submit stats (unbatched)
- * @param {number} [targetSubmits] - Target number of submits after batching
- * @returns {{ savedSubmits: number; estimatedSavingsMs: number }}
- */
+
 export function estimateBatchingSavings(
   currentStats,
   targetSubmits = 1

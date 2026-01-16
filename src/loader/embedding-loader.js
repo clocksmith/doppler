@@ -1,14 +1,4 @@
-/**
- * Embedding Loader - Load embedding weights.
- *
- * Handles loading of token embedding weights with support for:
- * - GPU and CPU paths
- * - Large weight streaming
- * - F32 to F16 downcast
- * - WeightBuffer wrapping
- *
- * @module loader/embedding-loader
- */
+
 
 import {
   createWeightBuffer,
@@ -22,7 +12,7 @@ import { log } from '../debug/index.js';
 // Constants
 // ============================================================================
 
-/** Known embedding tensor names in order of preference */
+
 const EMBEDDING_NAMES = [
   'language_model.model.embed_tokens.weight',
   'model.embed_tokens.weight',
@@ -36,12 +26,7 @@ const EMBEDDING_NAMES = [
 // Main Function
 // ============================================================================
 
-/**
- * Load embedding weights.
- *
- * @param {import('./embedding-loader.js').EmbeddingLoaderContext} ctx - Embedding loader context
- * @returns {Promise<import('./embedding-loader.js').EmbeddingResult>} Loaded embeddings or null if not found
- */
+
 export async function loadEmbeddings(ctx) {
   for (const name of EMBEDDING_NAMES) {
     const loc = ctx.tensorLocations.get(name);
@@ -77,15 +62,7 @@ export async function loadEmbeddings(ctx) {
 // Internal Helpers
 // ============================================================================
 
-/**
- * Process a loaded embedding tensor.
- * @param {import('./embedding-loader.js').EmbeddingLoaderContext} ctx
- * @param {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array} tensor
- * @param {string} name
- * @param {import('./loader-types.js').TensorLocation | undefined} loc
- * @param {boolean} shouldStream
- * @returns {Promise<import('./embedding-loader.js').EmbeddingResult>}
- */
+
 async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   log.info(
     'Loader',
@@ -101,7 +78,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   // Float32Array streaming path
   if (tensor instanceof Float32Array && loc?.shape && shouldStream) {
     const layout = ctx.resolveWeightLayout(loc, name);
-    /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+    
     const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
     const result = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.warn('Loader', `Embeddings stored on CPU for chunked gather (layout=${layout})`);
@@ -111,7 +88,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   // Raw GPUBuffer - wrap with dtype/layout metadata
   if (tensor instanceof GPUBuffer && loc?.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc, name);
-    /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+    
     const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
     const wrapped = createWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.info('Loader', `Wrapped embeddings as WeightBuffer (layout=${layout}, dtype=${dtype})`);
@@ -122,14 +99,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   return maybeDowncastEmbeddings(ctx, tensor, name, loc);
 }
 
-/**
- * Attempt to downcast embeddings from F32 to F16.
- * @param {import('./embedding-loader.js').EmbeddingLoaderContext} ctx
- * @param {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array} current
- * @param {string} name
- * @param {import('./loader-types.js').TensorLocation | undefined} loc
- * @returns {Promise<import('./embedding-loader.js').EmbeddingResult>}
- */
+
 async function maybeDowncastEmbeddings(ctx, current, name, loc) {
   // Can't downcast Float32Array or CpuWeightBuffer
   if (current instanceof Float32Array) {

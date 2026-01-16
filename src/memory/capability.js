@@ -1,14 +1,4 @@
-/**
- * Memory Capability Detection
- * Agent-A | Domain: memory/
- *
- * Detects browser memory capabilities:
- * - Memory64 (WASM large heap support)
- * - Unified memory (Apple/AMD Strix)
- * - Maximum heap sizes
- *
- * @module memory/capability
- */
+
 
 import { detectUnifiedMemory } from './unified-detect.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -17,11 +7,7 @@ import { getRuntimeConfig } from '../config/runtime.js';
 // Detection Functions
 // ============================================================================
 
-/**
- * Memory64 feature detection via WASM binary probe
- * Tests if browser supports 64-bit memory addressing
- * @returns {Promise<boolean>}
- */
+
 async function probeMemory64() {
   // Minimal WASM module declaring memory64
   // (module (memory i64 1))
@@ -40,11 +26,7 @@ async function probeMemory64() {
   }
 }
 
-/**
- * Estimate maximum usable heap size
- * Tests allocation limits without OOM
- * @returns {Promise<number>}
- */
+
 async function probeMaxHeapSize() {
   const { heapTestSizes, fallbackMaxHeapBytes } = getRuntimeConfig().shared.memory.heapTesting;
 
@@ -62,11 +44,7 @@ async function probeMaxHeapSize() {
   return fallbackMaxHeapBytes;
 }
 
-/**
- * Probe segmented heap limits (for non-Memory64 browsers)
- * Returns max size per ArrayBuffer and recommended segment count
- * @returns {import('./capability.js').SegmentedLimits}
- */
+
 function probeSegmentedLimits() {
   const { segmentTestSizes, safeSegmentSizeBytes } = getRuntimeConfig().shared.memory.segmentTesting;
   const { targetAddressSpaceBytes } = getRuntimeConfig().shared.memory.addressSpace;
@@ -96,17 +74,14 @@ function probeSegmentedLimits() {
 // Public API
 // ============================================================================
 
-/**
- * Main capability detection - call this at init
- * @returns {Promise<import('./capability.js').MemoryCapabilities>}
- */
+
 export async function getMemoryCapabilities() {
   const hasMemory64 = await probeMemory64();
   const unifiedMemory = await detectUnifiedMemory();
   const maxHeapSize = hasMemory64 ? await probeMaxHeapSize() : null;
   const segmentedLimits = !hasMemory64 ? probeSegmentedLimits() : null;
 
-  /** @type {import('./capability.js').MemoryStrategy} */
+  
   const strategy = hasMemory64 ? 'MEMORY64' : 'SEGMENTED';
 
   return {

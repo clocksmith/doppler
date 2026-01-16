@@ -1,13 +1,4 @@
-/**
- * core.ts - Platform-agnostic Model Conversion Core
- *
- * Shared types, pure functions, and conversion logic for RDRR format.
- * Used by both CLI (Node.js) and browser converters.
- *
- * Types are imported from config/schema for single source of truth.
- *
- * @module converter/core
- */
+
 
 import {
   // Constants
@@ -25,7 +16,7 @@ import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-i
 // Re-exports for Backward Compatibility
 // ============================================================================
 
-/** @deprecated Use ConversionStage from config/schema */
+
 export const ConvertStage = SchemaConversionStage;
 
 // Re-export constants
@@ -36,9 +27,7 @@ export const RDRR_VERSION = SCHEMA_RDRR_VERSION;
 // Pure Functions (no I/O, no platform dependencies)
 // ============================================================================
 
-/**
- * Sanitize model ID for filesystem/URL safety
- */
+
 export function sanitizeModelId(name) {
   return (
     name
@@ -50,9 +39,7 @@ export function sanitizeModelId(name) {
   );
 }
 
-/**
- * Format bytes for human-readable display
- */
+
 export function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -60,9 +47,7 @@ export function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
-/**
- * Check if tensor should be quantized based on name and shape
- */
+
 export function shouldQuantize(tensorName, shape) {
   if (!shape || !Array.isArray(shape) || shape.length === 0) {
     log.warn('Convert', `Invalid shape for tensor "${tensorName}": ${JSON.stringify(shape)}`);
@@ -82,9 +67,7 @@ export function shouldQuantize(tensorName, shape) {
   return true;
 }
 
-/**
- * Extract architecture configuration from model config
- */
+
 export function extractArchitecture(config, ggufConfig) {
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
@@ -142,9 +125,7 @@ export function extractArchitecture(config, ggufConfig) {
   };
 }
 
-/**
- * Build tensor location map for manifest
- */
+
 export function buildTensorMap(tensors, shardSize = SHARD_SIZE) {
   const tensorMap = {};
 
@@ -196,9 +177,7 @@ export function buildTensorMap(tensors, shardSize = SHARD_SIZE) {
   return tensorMap;
 }
 
-/**
- * Create RDRR manifest from model info and shards
- */
+
 export function createManifest(
   modelId,
   model,
@@ -282,9 +261,7 @@ export function createManifest(
 // Main Converter (uses I/O adapter)
 // ============================================================================
 
-/**
- * Convert a parsed model to RDRR format
- */
+
 export async function convertModel(model, io, options = {}) {
   const {
     modelId: userModelId,

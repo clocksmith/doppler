@@ -1,60 +1,37 @@
-/**
- * quota.ts - Storage Quota Management
- *
- * Handles:
- * - Storage persistence requests (navigator.storage.persist())
- * - Quota detection and monitoring
- * - Graceful quota exhaustion handling
- *
- * @module storage/quota
- */
+
 
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
-/**
- * @returns {import('../config/schema/runtime-schema.js').QuotaConfig}
- */
+
 function getQuotaConfig() {
   return getRuntimeConfig().loading.storage.quota;
 }
 
 // Cached persistence state
-/** @type {boolean | null} */
+
 let persistenceState = null;
 
-/**
- * Checks if the Storage API is available
- * @returns {boolean}
- */
+
 export function isStorageAPIAvailable() {
   return typeof navigator !== 'undefined' &&
     !!navigator.storage &&
     typeof navigator.storage.estimate === 'function';
 }
 
-/**
- * Checks if OPFS is available
- * @returns {boolean}
- */
+
 export function isOPFSAvailable() {
   return typeof navigator !== 'undefined' &&
     !!navigator.storage &&
     typeof navigator.storage.getDirectory === 'function';
 }
 
-/**
- * Checks if IndexedDB is available
- * @returns {boolean}
- */
+
 export function isIndexedDBAvailable() {
   return typeof indexedDB !== 'undefined';
 }
 
-/**
- * Gets current storage quota information
- * @returns {Promise<import('./quota.js').QuotaInfo>}
- */
+
 export async function getQuotaInfo() {
   if (!isStorageAPIAvailable()) {
     // Return conservative defaults when API unavailable
@@ -88,7 +65,7 @@ export async function getQuotaInfo() {
       criticalSpace: available < getQuotaConfig().criticalSpaceThresholdBytes
     };
   } catch (error) {
-    log.warn('Quota', `Failed to get storage quota: ${/** @type {Error} */ (error).message}`);
+    log.warn('Quota', `Failed to get storage quota: ${ (error).message}`);
     return {
       usage: 0,
       quota: 0,
@@ -101,10 +78,7 @@ export async function getQuotaInfo() {
   }
 }
 
-/**
- * Checks if storage is currently persisted
- * @returns {Promise<boolean>}
- */
+
 export async function isPersisted() {
   if (persistenceState !== null) {
     return persistenceState;
@@ -119,16 +93,13 @@ export async function isPersisted() {
     persistenceState = await navigator.storage.persisted();
     return persistenceState;
   } catch (error) {
-    log.warn('Quota', `Failed to check persistence status: ${/** @type {Error} */ (error).message}`);
+    log.warn('Quota', `Failed to check persistence status: ${ (error).message}`);
     persistenceState = false;
     return false;
   }
 }
 
-/**
- * Requests persistent storage from the browser
- * @returns {Promise<import('./quota.js').PersistenceResult>}
- */
+
 export async function requestPersistence() {
   if (!isStorageAPIAvailable() || typeof navigator.storage.persist !== 'function') {
     return {
@@ -165,16 +136,12 @@ export async function requestPersistence() {
   } catch (error) {
     return {
       granted: false,
-      reason: `Persistence request failed: ${/** @type {Error} */ (error).message}`
+      reason: `Persistence request failed: ${ (error).message}`
     };
   }
 }
 
-/**
- * Checks if there's enough space for a download
- * @param {number} requiredBytes
- * @returns {Promise<import('./quota.js').SpaceCheckResult>}
- */
+
 export async function checkSpaceAvailable(requiredBytes) {
   const info = await getQuotaInfo();
 
@@ -188,11 +155,7 @@ export async function checkSpaceAvailable(requiredBytes) {
   };
 }
 
-/**
- * Formats bytes into human-readable string
- * @param {number} bytes
- * @returns {string}
- */
+
 export function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
 
@@ -204,40 +167,33 @@ export function formatBytes(bytes) {
   return `${value.toFixed(i > 0 ? 2 : 0)} ${units[i]}`;
 }
 
-/**
- * Calculates the total size of an OPFS directory recursively
- * @param {FileSystemDirectoryHandle} dirHandle
- * @returns {Promise<number>}
- */
+
 async function calculateDirectorySize(dirHandle) {
   let totalSize = 0;
 
-  const entries = /** @type {{ entries(): AsyncIterable<[string, FileSystemHandle]> }} */ (/** @type {unknown} */ (dirHandle)).entries();
+  const entries =  ( (dirHandle)).entries();
   for await (const [_name, handle] of entries) {
     if (handle.kind === 'file') {
       try {
-        const file = await /** @type {FileSystemFileHandle} */ (handle).getFile();
+        const file = await  (handle).getFile();
         totalSize += file.size;
       } catch (_e) {
         // File might be locked or inaccessible
       }
     } else if (handle.kind === 'directory') {
-      totalSize += await calculateDirectorySize(/** @type {FileSystemDirectoryHandle} */ (handle));
+      totalSize += await calculateDirectorySize( (handle));
     }
   }
 
   return totalSize;
 }
 
-/**
- * Gets a detailed storage report for debugging/display
- * @returns {Promise<import('./quota.js').StorageReport>}
- */
+
 export async function getStorageReport() {
   const quotaInfo = await getQuotaInfo();
 
   // Try to get OPFS-specific usage if available
-  /** @type {number | null} */
+  
   let opfsUsage = null;
   if (isOPFSAvailable()) {
     try {
@@ -269,33 +225,22 @@ export async function getStorageReport() {
   };
 }
 
-/**
- * Error class for quota-related errors
- */
+
 export class QuotaExceededError extends Error {
-  /**
-   * @param {number} required
-   * @param {number} available
-   */
+  
   constructor(required, available) {
     super(`Insufficient storage: need ${formatBytes(required)}, have ${formatBytes(available)}`);
     this.name = 'QuotaExceededError';
-    /** @readonly */
+    
     this.required = required;
-    /** @readonly */
+    
     this.available = available;
-    /** @readonly */
+    
     this.shortfall = required - available;
   }
 }
 
-/**
- * Monitors storage and calls callback when thresholds are crossed
- * @param {import('./quota.js').StorageCallback | null} onLowSpace
- * @param {import('./quota.js').StorageCallback | null} onCriticalSpace
- * @param {number} [intervalMs]
- * @returns {() => void} Stop function to cancel monitoring
- */
+
 export function monitorStorage(
   onLowSpace,
   onCriticalSpace,
@@ -333,13 +278,9 @@ export function monitorStorage(
   return () => clearInterval(intervalId);
 }
 
-/**
- * Suggests actions when quota is exceeded
- * @param {import('./quota.js').QuotaInfo} quotaInfo
- * @returns {string[]}
- */
+
 export function getSuggestions(quotaInfo) {
-  /** @type {string[]} */
+  
   const suggestions = [];
 
   if (!quotaInfo.persisted) {
@@ -357,10 +298,7 @@ export function getSuggestions(quotaInfo) {
   return suggestions;
 }
 
-/**
- * Clears module-level cache (useful for testing)
- * @returns {void}
- */
+
 export function clearCache() {
   persistenceState = null;
 }

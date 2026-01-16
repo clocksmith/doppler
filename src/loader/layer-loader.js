@@ -1,14 +1,4 @@
-/**
- * Layer Loader - Load transformer layer weights.
- *
- * Handles loading of all weights for a single transformer layer:
- * - Attention weights (Q, K, V, O projections)
- * - Norm weights (input, post-attention, FFN norms)
- * - FFN weights (gate, up, down projections)
- * - MoE router weights
- *
- * @module loader/layer-loader
- */
+
 
 import { getKernelCapabilities } from '../gpu/device.js';
 import { isWeightBuffer } from '../gpu/weight-buffer.js';
@@ -19,11 +9,7 @@ import { trace as debugTrace } from '../debug/index.js';
 // Constants
 // ============================================================================
 
-/**
- * Layer name prefixes in order of preference
- * @param {number} layerIdx
- * @returns {string[]}
- */
+
 const LAYER_PREFIXES = (layerIdx) => [
   `language_model.model.layers.${layerIdx}`,
   `model.layers.${layerIdx}`,
@@ -31,7 +17,7 @@ const LAYER_PREFIXES = (layerIdx) => [
   `blk.${layerIdx}`,
 ];
 
-/** Attention weight suffixes */
+
 const ATTN_SUFFIXES = {
   inputNorm: ['input_layernorm.weight', 'attn_norm.weight'],
   qProj: ['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight'],
@@ -45,7 +31,7 @@ const ATTN_SUFFIXES = {
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
 };
 
-/** FFN weight suffixes */
+
 const FFN_SUFFIXES = {
   ffnGateUp: ['mlp.gate_up_proj.weight', 'ffn_gate_up.weight', 'feed_forward.w1_w3.weight'],
   ffnGate: ['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight'],
@@ -53,18 +39,16 @@ const FFN_SUFFIXES = {
   ffnDown: ['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight'],
 };
 
-/** MoE router weight suffixes */
+
 const ROUTER_SUFFIXES = {
   routerWeight: ['mlp.router.weight', 'block_sparse_moe.gate.weight'],
   routerBias: ['mlp.router.bias'],
 };
 
-/** Attention sink suffixes */
+
 const SINK_SUFFIXES = ['self_attn.sinks'];
 
-/** Matmul weight keys for downcast
- * @type {(keyof import('./loader-types.js').LayerWeights)[]}
- */
+
 const MATMUL_KEYS = [
   'qProj', 'kProj', 'vProj', 'oProj',
   'ffnGate', 'ffnUp', 'ffnDown', 'ffnGateUp',
@@ -75,17 +59,11 @@ const MATMUL_KEYS = [
 // Main Function
 // ============================================================================
 
-/**
- * Load all weights for a single transformer layer.
- *
- * @param {import('./layer-loader.js').LayerLoaderContext} ctx - Layer loader context
- * @param {number} layerIdx - Layer index
- * @returns {Promise<import('./loader-types.js').LayerWeights>} Loaded layer weights
- */
+
 export async function loadLayer(ctx, layerIdx) {
   const prefixes = LAYER_PREFIXES(layerIdx);
 
-  /** @type {import('./loader-types.js').LayerWeights} */
+  
   const weights = {
     inputNorm: null,
     qProj: null,
@@ -123,7 +101,7 @@ export async function loadLayer(ctx, layerIdx) {
   }
 
   // Load attention sinks
-  weights.attentionSinks = /** @type {GPUBuffer | Float32Array | null} */ (await tryLoad(SINK_SUFFIXES));
+  weights.attentionSinks =  (await tryLoad(SINK_SUFFIXES));
 
   // Downcast matmul weights to F16
   await downcastLayerWeights(ctx, weights, layerIdx);
@@ -135,12 +113,7 @@ export async function loadLayer(ctx, layerIdx) {
 // Helper Factories
 // ============================================================================
 
-/**
- * Create tryLoad helper bound to context and prefixes.
- * @param {import('./layer-loader.js').LayerLoaderContext} ctx
- * @param {string[]} prefixes
- * @returns {(suffixes: string[]) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null>}
- */
+
 function createTryLoad(ctx, prefixes) {
   return async (suffixes) => {
     for (const prefix of prefixes) {
@@ -155,13 +128,7 @@ function createTryLoad(ctx, prefixes) {
   };
 }
 
-/**
- * Create tryLoadNorm helper that applies norm offset when needed.
- * @param {import('./layer-loader.js').LayerLoaderContext} ctx
- * @param {string[]} prefixes
- * @param {(suffixes: string[]) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null>} tryLoad
- * @returns {(suffixes: string[]) => Promise<GPUBuffer | Float32Array | null>}
- */
+
 function createTryLoadNorm(ctx, prefixes, tryLoad) {
   return async (suffixes) => {
     const tensor = await tryLoad(suffixes);
@@ -169,7 +136,7 @@ function createTryLoadNorm(ctx, prefixes, tryLoad) {
 
     // Norm weights are never WeightBuffer (they're f32 and not matmul weights)
     // Cast is safe because _loadTensor only returns WeightBuffer for matmul weights
-    const normTensor = /** @type {GPUBuffer | Float32Array} */ (tensor);
+    const normTensor =  (tensor);
     return normTensor;
   };
 }
@@ -178,14 +145,7 @@ function createTryLoadNorm(ctx, prefixes, tryLoad) {
 // Weight Loading Functions
 // ============================================================================
 
-/**
- * Load attention weights in parallel.
- * @param {import('./layer-loader.js').LayerLoaderContext} ctx
- * @param {import('./loader-types.js').LayerWeights} weights
- * @param {number} layerIdx
- * @param {(suffixes: string[]) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null>} tryLoad
- * @param {(suffixes: string[]) => Promise<GPUBuffer | Float32Array | null>} tryLoadNorm
- */
+
 async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm) {
   const [
     inputNorm,
@@ -236,12 +196,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   weights.postAttnNorm = weights.postNorm;
 }
 
-/**
- * Load FFN weights in parallel.
- * @param {import('./loader-types.js').LayerWeights} weights
- * @param {number} layerIdx
- * @param {(suffixes: string[]) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null>} tryLoad
- */
+
 async function loadFfnWeights(weights, layerIdx, tryLoad) {
   const [ffnGateUp, ffnGate, ffnUp, ffnDown] = await Promise.all([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
@@ -271,38 +226,29 @@ async function loadFfnWeights(weights, layerIdx, tryLoad) {
   weights.gateUp = weights.ffnGateUp;
 }
 
-/**
- * Load MoE router weights.
- * @param {import('./loader-types.js').LayerWeights} weights
- * @param {(suffixes: string[]) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null>} tryLoad
- */
+
 async function loadRouterWeights(weights, tryLoad) {
   const [routerWeight, routerBias] = await Promise.all([
     tryLoad(ROUTER_SUFFIXES.routerWeight),
     tryLoad(ROUTER_SUFFIXES.routerBias),
   ]);
   // Router weights follow matmul dtype/layout rules when present
-  weights.routerWeight = /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null} */ (routerWeight);
-  weights.routerBias = /** @type {GPUBuffer | Float32Array | null} */ (routerBias);
+  weights.routerWeight =  (routerWeight);
+  weights.routerBias =  (routerBias);
 }
 
 // ============================================================================
 // Weight Downcast
 // ============================================================================
 
-/**
- * Downcast matmul weights to F16 when supported.
- * @param {import('./layer-loader.js').LayerLoaderContext} ctx
- * @param {import('./loader-types.js').LayerWeights} weights
- * @param {number} layerIdx
- */
+
 async function downcastLayerWeights(ctx, weights, layerIdx) {
   const caps = getKernelCapabilities();
   if (!caps.hasF16) return;
 
   await batchDowncastWeights(
-    /** @type {Record<string, GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | null>} */ (/** @type {unknown} */ (weights)),
-    /** @type {string[]} */ (MATMUL_KEYS),
+     ( (weights)),
+     (MATMUL_KEYS),
     {
       keepF32: ctx.keepF32Weights,
       layerIdx,

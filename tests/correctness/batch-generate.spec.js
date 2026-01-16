@@ -1,11 +1,4 @@
-/**
- * Batch Generation Correctness Test
- *
- * Verifies that generate() produces identical output regardless of batchSize.
- * This is a pipeline-level correctness test that requires a loaded model.
- *
- * Run with: npx playwright test tests/correctness/batch-generate.spec.js
- */
+
 
 import { test, expect } from '@playwright/test';
 

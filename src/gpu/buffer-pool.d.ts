@@ -16,6 +16,9 @@ export interface PoolStats {
   totalBytesAllocated: number;
   peakBytesAllocated: number;
   currentBytesAllocated: number;
+  totalBytesRequested: number;
+  peakBytesRequested: number;
+  currentBytesRequested: number;
   activeBuffers: number;
   pooledBuffers: number;
   hitRate: string;

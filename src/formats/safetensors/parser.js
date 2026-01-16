@@ -1,7 +1,4 @@
-/**
- * SafeTensors Format Parser
- * Parses HuggingFace safetensors files for tensor metadata and data.
- */
+
 
 import { readFile, stat, open, readdir } from 'fs/promises';
 import { join, dirname } from 'path';

@@ -1,19 +1,9 @@
-/**
- * LoRA Loader - Loads LoRA weights from an adapter manifest.
- *
- * @module loader/lora-loader
- */
+
 
 import { parseLoRATensorName, toFloat32 } from './lora-utils.js';
 import { buildTensorLocations } from './shard-resolver.js';
 
-/**
- * Load LoRA weights from an adapter manifest.
- *
- * @param {import('../storage/rdrr-format.js').RDRRManifest} manifest
- * @param {(name: string, toGPU: boolean, silent: boolean) => Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array | Uint8Array | null>} loadTensor
- * @returns {Promise<import('../inference/pipeline/lora.js').LoRAAdapter>}
- */
+
 export async function loadLoRAWeights(manifest, loadTensor) {
   const isLoRA = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
   if (!isLoRA) {
@@ -29,14 +19,14 @@ export async function loadLoRAWeights(manifest, loadTensor) {
     hasCustomLoader: false, // Assuming standard loading for now, or pass via context if needed
   });
 
-  /** @type {import('../inference/pipeline/lora.js').LoRAAdapter} */
+  
   const adapter = {
     name: manifest.modelId,
     version: typeof manifest.version === 'string' ? manifest.version : String(manifest.version),
     baseModel: manifest.baseModel,
     rank: manifest.loraConfig.rank,
     alpha: manifest.loraConfig.alpha,
-    targetModules: /** @type {import('../inference/pipeline/lora.js').LoRAModuleName[] | undefined} */ (manifest.loraConfig.targetModules),
+    targetModules:  (manifest.loraConfig.targetModules),
     layers: new Map(),
   };
 

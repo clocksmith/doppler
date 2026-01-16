@@ -1,11 +1,4 @@
-/**
- * Attention Run - Immediate GPU submission path
- *
- * Contains runLayerAttentionGPU which executes attention operations
- * with immediate GPU submission (each kernel submits independently).
- *
- * @module inference/pipeline/attention/run
- */
+
 
 import { isWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -34,21 +27,7 @@ import {
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
-/**
- * Run attention for a single layer (GPU path).
- *
- * @param {import('../../../gpu/tensor.js').Tensor} input - Input hidden states tensor
- * @param {import('../types.js').LayerWeights | null} layerWeights - Weights for this layer
- * @param {import('./types.js').AttentionConfig} config - Attention configuration
- * @param {import('./types.js').AttentionState} state - Shared state (RoPE freqs, KV cache)
- * @param {boolean} [debug] - Debug mode flag
- * @param {import('./types.js').AttentionDebugFlags} [debugFlags] - Mutable debug flags to prevent repeated logging
- * @param {(weight: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | ArrayBuffer | import('../../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} [getWeightBuffer]
- * @param {(weight: GPUBuffer | Float32Array | ArrayBuffer | import('../../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer} [getNormWeightBuffer]
- * @param {(buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>} [debugCheckBuffer]
- * @param {import('../lora.js').LoRAAdapter | null} [lora]
- * @returns {Promise<import('./types.js').AttentionResult>}
- */
+
 export async function runLayerAttentionGPU(
   input,
   layerWeights,
@@ -110,7 +89,7 @@ export async function runLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let normed = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
@@ -172,11 +151,11 @@ export async function runLayerAttentionGPU(
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
   const useF16Activations = attentionInput.dtype === 'f16';
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let qTensor;
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let kTensor;
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let vTensor;
 
   // Check for fused QKV path (3->1 matmul optimization)
@@ -460,9 +439,9 @@ export async function runLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  /** @type {GPUBuffer} */
+  
   let cachedK;
-  /** @type {GPUBuffer} */
+  
   let cachedV;
   let kvLenForAttention = currentSeqLen + numTokens;
   let causalForAttention = true;
@@ -492,7 +471,7 @@ export async function runLayerAttentionGPU(
     // Kernel step debug: KV cache state after update
     if (isKernelDebugEnabled(layerIdx)) {
       trace.kv(layerIdx, `KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
-      await dumpKVCache(/** @type {import('../../kv-cache.js').KVCache} */(/** @type {unknown} */ (state.kvCache)), layerIdx);
+      await dumpKVCache(( (state.kvCache)), layerIdx);
     }
   } else {
     cachedK = kTensor.buffer;
@@ -520,8 +499,8 @@ export async function runLayerAttentionGPU(
     trace.attn(layerIdx, `Attention scale=${attnScale.toFixed(6)}, queryPreAttnScalar=${queryPreAttnScalar ?? 'undefined'}, headDim=${headDim}`);
   }
   // Wrap cached K/V in Tensors (dtype from cache or input tensor)
-  const cachedKDtype = state.kvCache?.kvDtype === 'f16' ? /** @type {const} */ ('f16') : kTensor.dtype;
-  const cachedVDtype = state.kvCache?.kvDtype === 'f16' ? /** @type {const} */ ('f16') : vTensor.dtype;
+  const cachedKDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : kTensor.dtype;
+  const cachedVDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : vTensor.dtype;
   const cachedKTensor = createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
   const cachedVTensor = createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -559,7 +538,7 @@ export async function runLayerAttentionGPU(
   }
 
   // 6. Output projection (with optional fused residual for decode)
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let output;
   let residualFused = false;
   if (layerWeights.oProj && getWeightBuffer) {
@@ -644,7 +623,7 @@ export async function runLayerAttentionGPU(
   }
 
   let finalOutput = output;
-  /** @type {GPUBuffer[]} */
+  
   const buffersToRelease = [];
   if (output.buffer !== attnOutput.buffer) {
     buffersToRelease.push(attnOutput.buffer);

@@ -1,12 +1,6 @@
-/**
- * Reference Implementation for Sampling Operations
- *
- * These implement CPU-side sampling for validating GPU sample kernels.
- */
 
-/**
- * Argmax - find index of maximum value (greedy decoding)
- */
+
+
 export function argmaxRef(logits) {
   let maxIdx = 0;
   let maxVal = logits[0];
@@ -21,9 +15,7 @@ export function argmaxRef(logits) {
   return maxIdx;
 }
 
-/**
- * Top-k argmax - find indices of k largest values
- */
+
 export function topkArgmaxRef(logits, k) {
   // Create index array and sort by value
   const indexed = Array.from(logits).map((val, idx) => ({ val, idx }));
@@ -36,9 +28,7 @@ export function topkArgmaxRef(logits, k) {
   };
 }
 
-/**
- * Softmax with temperature
- */
+
 export function softmaxWithTemp(logits, temperature) {
   const scaled = new Float32Array(logits.length);
 
@@ -68,14 +58,7 @@ export function softmaxWithTemp(logits, temperature) {
   return scaled;
 }
 
-/**
- * Top-k sampling with temperature
- * Returns sampled token ID given:
- * - logits: raw logits
- * - temperature: scaling factor
- * - topK: number of candidates
- * - randomValue: pre-generated random [0,1) for reproducibility
- */
+
 export function sampleTopKRef(logits, temperature, topK, randomValue) {
   // For very low temperature, use greedy
   if (temperature < 0.01) {
@@ -107,9 +90,7 @@ export function sampleTopKRef(logits, temperature, topK, randomValue) {
   return indices[indices.length - 1];
 }
 
-/**
- * Simple seeded random number generator (matches GPU implementation)
- */
+
 export function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);

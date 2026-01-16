@@ -1,14 +1,4 @@
-/**
- * LoRA Infrastructure Tests
- *
- * Tests for the complete LoRA adapter infrastructure:
- * - Adapter manifest validation
- * - LoRA weight loading
- * - Adapter manager enable/disable
- * - Adapter registry persistence
- *
- * @module tests/unit/lora-infrastructure
- */
+
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {

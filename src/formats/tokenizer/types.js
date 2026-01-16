@@ -1,6 +1,4 @@
-/**
- * Shared tokenizer/config JSON parsing utilities.
- */
+
 
 function parseJson(text, label) {
   try {

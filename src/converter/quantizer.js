@@ -1,17 +1,12 @@
-/**
- * Tensor Quantization for .rdrr Format
- * Implements Q4_K_M quantization (4-bit with k-means clustering).
- *
- * @module converter/quantizer
- */
 
-/** Q4K block size in elements (256 weights per block) */
+
+
 export const QK_K = 256;
 
-/** K-means scale size for Q4K */
+
 export const K_SCALE_SIZE = 12;
 
-/** Q4K block size in bytes (144 bytes per 256 weights) */
+
 export const QK4_K_BLOCK_SIZE = 144;
 
 export function float32ToFloat16(value) {
@@ -211,9 +206,7 @@ function dequantizeQ4KBlock(block) {
   return result;
 }
 
-/**
- * Flat Q4K quantization (original behavior).
- */
+
 export function quantizeToQ4KM(data, shape) {
   const numElements = shape.reduce((a, b) => a * b, 1);
 
@@ -242,9 +235,7 @@ export function quantizeToQ4KM(data, shape) {
   };
 }
 
-/**
- * Row-wise Q4K quantization for 2D weight matrices.
- */
+
 export function quantizeToQ4KMRowWise(data, shape) {
   const [rows, cols] = shape;
   const numElements = rows * cols;
@@ -284,9 +275,7 @@ export function quantizeToQ4KMRowWise(data, shape) {
   };
 }
 
-/**
- * Transpose a 2D F32 matrix.
- */
+
 export function transposeF32(data, shape) {
   const [rows, cols] = shape;
   const transposed = new Float32Array(rows * cols);
@@ -298,9 +287,7 @@ export function transposeF32(data, shape) {
   return transposed;
 }
 
-/**
- * Column-wise Q4K quantization for 2D weight matrices.
- */
+
 export function quantizeToQ4KMColumnWise(data, shape) {
   const [rows, cols] = shape;
 
@@ -317,9 +304,7 @@ export function quantizeToQ4KMColumnWise(data, shape) {
   };
 }
 
-/**
- * Get expected Q4K size for different layouts.
- */
+
 export function getQ4KSize(shape, layout = 'flat') {
   const numElements = shape.reduce((a, b) => a * b, 1);
 

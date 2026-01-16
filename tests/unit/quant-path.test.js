@@ -1,11 +1,4 @@
-/**
- * Quantization Path Coverage Tests
- *
- * Tests quantization variant selection (Q4K fused vs dequant, Q6K, Q8, MXFP4).
- * No GPU required - tests selection logic only.
- *
- * @module tests/unit/quant-path.test
- */
+
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -19,9 +12,7 @@ import {
 // Pure Selection Logic (extracted for testability)
 // ============================================================================
 
-/**
- * Select matmul variant based on weight quantization and capabilities.
- */
+
 function selectMatmulPath(config) {
   const {
     weightQuant,
@@ -68,9 +59,7 @@ function selectMatmulPath(config) {
   return 'f32';
 }
 
-/**
- * Select dequantization kernel variant.
- */
+
 function selectDequantVariant(config) {
   const {
     quantType = 'q4k',
@@ -109,9 +98,7 @@ function selectDequantVariant(config) {
   return useVec4 ? 'shared_vec4' : 'shared';
 }
 
-/**
- * Calculate bandwidth savings from fused Q4K vs dequant path.
- */
+
 function calculateFusedSavings(config) {
   const { M, N, K } = config;
 
@@ -139,9 +126,7 @@ function calculateFusedSavings(config) {
   };
 }
 
-/**
- * Check if embedding should use quantized path.
- */
+
 function selectEmbeddingPath(config) {
   const { embeddingQuant, hasF16 = true } = config;
 
@@ -154,9 +139,7 @@ function selectEmbeddingPath(config) {
   return 'gather_f32'; // Default
 }
 
-/**
- * Select KV cache dtype based on config.
- */
+
 function selectKVDtype(config) {
   const { kvDtype = 'f32', hasF16 = true } = config;
 
@@ -490,9 +473,7 @@ describe('Quantization Config Validation', () => {
 });
 
 describe('Full Quantization Path', () => {
-  /**
-   * Trace full path from weight dtype through inference.
-   */
+  
   function traceQuantPath(config) {
     const {
       weightQuant,

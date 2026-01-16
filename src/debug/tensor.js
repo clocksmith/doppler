@@ -1,10 +1,4 @@
-/**
- * DOPPLER Debug Module - Tensor Inspection Utilities
- *
- * Tools for inspecting GPU and CPU tensors, checking health, and comparing values.
- *
- * @module debug/tensor
- */
+
 
 import { gpuDevice } from './config.js';
 import { log } from './log.js';
@@ -14,9 +8,7 @@ import { computeArrayStats } from './stats.js';
 // Internal Helpers
 // ============================================================================
 
-/**
- * F16 to F32 conversion helper.
- */
+
 function f16ToF32(h) {
   const sign = (h >> 15) & 0x1;
   const exp = (h >> 10) & 0x1f;
@@ -35,13 +27,9 @@ function f16ToF32(h) {
 // Tensor Inspection Interface
 // ============================================================================
 
-/**
- * Tensor inspection utilities.
- */
+
 export const tensor = {
-  /**
-   * Inspect a GPU or CPU tensor and log statistics.
-   */
+  
   async inspect(
     buffer,
     label,
@@ -120,9 +108,7 @@ export const tensor = {
     return stats;
   },
 
-  /**
-   * Compare two tensors element-wise.
-   */
+  
   compare(
     a,
     b,
@@ -176,9 +162,7 @@ export const tensor = {
     return result;
   },
 
-  /**
-   * Check tensor for common issues.
-   */
+  
   healthCheck(data, label) {
     const issues = [];
 

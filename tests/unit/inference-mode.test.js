@@ -1,11 +1,4 @@
-/**
- * Inference Mode Tests
- *
- * Tests inference mode detection (prefill vs decode) and batching behavior.
- * No GPU required - tests orchestration logic only.
- *
- * @module tests/unit/inference-mode.test
- */
+
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -18,17 +11,12 @@ import {
 // Pure Mode Detection Logic (extracted for testability)
 // ============================================================================
 
-/**
- * Determine inference mode from token count.
- * Prefill when processing multiple tokens, decode when single.
- */
+
 function getInferenceMode(numTokens) {
   return numTokens === 1 ? 'decode' : 'prefill';
 }
 
-/**
- * Select batch processing strategy based on config.
- */
+
 function selectBatchStrategy(config) {
   const { batchSize, mode, hasSubgroups = true } = config;
 
@@ -50,9 +38,7 @@ function selectBatchStrategy(config) {
   return 'tiled_batched';
 }
 
-/**
- * Determine workgroup dispatch strategy.
- */
+
 function getDispatchStrategy(config) {
   const { batchSize, seqLen, numHeads, intermediateSize } = config;
   const mode = getInferenceMode(seqLen);
@@ -73,9 +59,7 @@ function getDispatchStrategy(config) {
   };
 }
 
-/**
- * Calculate expected memory bandwidth for mode.
- */
+
 function estimateBandwidth(config) {
   const {
     batchSize,
@@ -103,9 +87,7 @@ function estimateBandwidth(config) {
   return attnBytes + ffnBytes;
 }
 
-/**
- * Check if recorder should be used based on config.
- */
+
 function shouldUseRecorder(config) {
   const { mode, useRecorder = true, batchSize = 1 } = config;
 
@@ -330,9 +312,7 @@ describe('Recorder Usage', () => {
 });
 
 describe('Mode Transition', () => {
-  /**
-   * Simulate mode transition during generation.
-   */
+  
   function simulateGeneration(config) {
     const { promptLength, maxTokens } = config;
     const modes = [];

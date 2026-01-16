@@ -1,10 +1,6 @@
-/**
- * Reference Softmax Implementation
- */
 
-/**
- * Reference online softmax (numerically stable)
- */
+
+
 export function softmaxRef(input, innerSize, outerSize, temperature = 1.0) {
   const output = new Float32Array(input.length);
 
@@ -34,9 +30,7 @@ export function softmaxRef(input, innerSize, outerSize, temperature = 1.0) {
   return output;
 }
 
-/**
- * Log softmax (useful for cross-entropy loss)
- */
+
 export function logSoftmaxRef(input, innerSize, outerSize, temperature = 1.0) {
   const output = new Float32Array(input.length);
 
@@ -65,9 +59,7 @@ export function logSoftmaxRef(input, innerSize, outerSize, temperature = 1.0) {
   return output;
 }
 
-/**
- * Softmax in-place (modifies input array)
- */
+
 export function softmaxInplaceRef(input, innerSize, outerSize, temperature = 1.0) {
   for (let row = 0; row < outerSize; row++) {
     const offset = row * innerSize;

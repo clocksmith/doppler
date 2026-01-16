@@ -1,13 +1,4 @@
-/**
- * System Benchmark - Download and Storage Performance
- *
- * Measures:
- * - HTTP download speed from origin
- * - OPFS write/read performance
- * - Storage persistence and quota
- *
- * @module tests/benchmark/system-benchmark
- */
+
 
 import { DEFAULT_BENCHMARK_OUTPUT_CONFIG } from '../../src/config/schema/benchmark.schema.js';
 
@@ -343,9 +334,7 @@ export class SystemBenchmark {
 // Convenience Functions
 // ============================================================================
 
-/**
- * Run a quick system benchmark.
- */
+
 export async function runSystemBenchmark(modelPath) {
   const bench = new SystemBenchmark({
     modelPath,
@@ -355,9 +344,7 @@ export async function runSystemBenchmark(modelPath) {
   return bench.run();
 }
 
-/**
- * Format system benchmark as readable summary.
- */
+
 export function formatSystemSummary(result) {
   const { storage, download, opfs } = result;
 

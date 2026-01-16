@@ -1,8 +1,5 @@
 
-/**
- * RMSNorm Offset Verification Test.
- * Verifies that the rmsNormWeightOffset flag correctly enables (1+w)*x normalization.
- */
+
 
 import { test, expect } from './setup.js';
 

@@ -1,9 +1,4 @@
-/**
- * Split QKV Kernel Correctness Tests
- *
- * Validates the split_qkv.wgsl GPU kernel against reference JS implementation.
- * Tests splitting fused QKV tensor [numTokens, qSize+kSize+vSize] into Q, K, V.
- */
+
 
 import { test, expect } from './setup.js';
 

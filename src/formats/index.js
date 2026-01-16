@@ -1,12 +1,4 @@
-/**
- * Model formats module - unified exports for all format parsers and types.
- *
- * Subdirectories:
- * - gguf/     - GGUF format (llama.cpp models)
- * - safetensors/ - SafeTensors format (HuggingFace models)
- * - rdrr/     - RDRR format (DOPPLER native format)
- * - tokenizer/ - Tokenizer config parsing utilities
- */
+
 
 // GGUF format
 export * as gguf from './gguf/index.js';

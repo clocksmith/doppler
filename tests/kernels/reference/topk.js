@@ -1,10 +1,6 @@
-/**
- * Reference Top-K Selection for MoE Routing
- */
 
-/**
- * Reference top-k selection
- */
+
+
 export function topkRef(probs, numTokens, numExperts, topK, normalize = true) {
   const indices = new Uint32Array(numTokens * topK);
   const weights = new Float32Array(numTokens * topK);
@@ -40,9 +36,7 @@ export function topkRef(probs, numTokens, numExperts, topK, normalize = true) {
   return { indices, weights };
 }
 
-/**
- * Combined softmax + top-k (reference for fused kernel)
- */
+
 export function softmaxTopkRef(logits, numTokens, numExperts, topK, normalize = true) {
   const indices = new Uint32Array(numTokens * topK);
   const weights = new Float32Array(numTokens * topK);

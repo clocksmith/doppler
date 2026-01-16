@@ -1,12 +1,4 @@
-/**
- * WebGPU Device Initialization and Feature Probing
- *
- * Handles WebGPU adapter/device setup with comprehensive feature detection
- * for optimal kernel selection.
- *
- * Also initializes the platform loader and kernel registry for config-as-code
- * kernel selection based on detected GPU hardware.
- */
+
 
 import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
 import { log } from '../debug/index.js';
@@ -16,48 +8,39 @@ import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 export { setTrackSubmits };
 
 // Cached device and capabilities
-/** @type {GPUDevice | null} */
+
 let gpuDevice = null;
-/** @type {import('./device.js').KernelCapabilities | null} */
+
 let kernelCapabilities = null;
 
 // Cached platform config (set during initDevice)
-/** @type {import('../config/schema/platform.schema.js').ResolvedPlatformConfig | null} */
+
 let resolvedPlatformConfig = null;
 
 // Track whether platform/registry initialization has been attempted
 let platformInitialized = false;
 
-/**
- * Feature flags detected during initialization
- */
-export const FEATURES = /** @type {const} */ ({
+
+export const FEATURES =  ({
   SHADER_F16: 'shader-f16',
   SUBGROUPS: 'subgroups',
   SUBGROUPS_F16: 'subgroups-f16',
   TIMESTAMP_QUERY: 'timestamp-query',
 });
 
-/**
- * Probe for WebGPU availability
- * @returns {boolean}
- */
+
 export function isWebGPUAvailable() {
   return typeof navigator !== 'undefined' && 'gpu' in navigator;
 }
 
-/**
- * Request WebGPU adapter with fallback options
- * @param {{powerPreference?: 'low-power' | 'high-performance', forceFallbackAdapter?: boolean}} [options]
- * @returns {Promise<GPUAdapter | null>}
- */
+
 async function requestAdapter(options = {}) {
   if (!isWebGPUAvailable()) {
     return null;
   }
 
   // Try high-performance first, then fallback
-  /** @type {GPURequestAdapterOptions[]} */
+  
   const adapterOptions = [
     { powerPreference: 'high-performance', ...options },
     { powerPreference: 'low-power', ...options },
@@ -78,11 +61,7 @@ async function requestAdapter(options = {}) {
   return null;
 }
 
-/**
- * Detect available features from adapter
- * @param {GPUAdapter} adapter
- * @returns {Set<string>}
- */
+
 function detectFeatures(adapter) {
   const available = new Set();
 
@@ -93,43 +72,35 @@ function detectFeatures(adapter) {
   return available;
 }
 
-/**
- * Build list of features to request based on availability
- * @param {Set<string>} available
- * @returns {GPUFeatureName[]}
- */
+
 function buildFeatureRequests(available) {
-  /** @type {GPUFeatureName[]} */
+  
   const requested = [];
 
   // Request shader-f16 for FP16 matmul kernels
   if (available.has(FEATURES.SHADER_F16)) {
-    requested.push(/** @type {GPUFeatureName} */ (FEATURES.SHADER_F16));
+    requested.push( (FEATURES.SHADER_F16));
   }
 
   // Request subgroups for efficient dequantization
   if (available.has(FEATURES.SUBGROUPS)) {
-    requested.push(/** @type {GPUFeatureName} */ (FEATURES.SUBGROUPS));
+    requested.push( (FEATURES.SUBGROUPS));
   }
 
   // Request subgroups-f16 if available (for combined f16 + subgroup ops)
   if (available.has(FEATURES.SUBGROUPS_F16)) {
-    requested.push(/** @type {GPUFeatureName} */ (FEATURES.SUBGROUPS_F16));
+    requested.push( (FEATURES.SUBGROUPS_F16));
   }
 
   // Request timestamp query for profiling (optional)
   if (available.has(FEATURES.TIMESTAMP_QUERY)) {
-    requested.push(/** @type {GPUFeatureName} */ (FEATURES.TIMESTAMP_QUERY));
+    requested.push( (FEATURES.TIMESTAMP_QUERY));
   }
 
   return requested;
 }
 
-/**
- * Build device limits based on adapter capabilities
- * @param {GPUAdapter} adapter
- * @returns {Record<string, GPUSize64>}
- */
+
 function buildLimits(adapter) {
   const adapterLimits = adapter.limits;
 
@@ -150,12 +121,7 @@ function buildLimits(adapter) {
   };
 }
 
-/**
- * Initialize platform loader and kernel registry.
- * Called automatically during initDevice() after adapter is obtained.
- * @param {GPUAdapter} adapter
- * @returns {Promise<void>}
- */
+
 async function initializePlatformAndRegistry(adapter) {
   if (platformInitialized) {
     return;
@@ -180,16 +146,12 @@ async function initializePlatformAndRegistry(adapter) {
     log.debug('GPU', 'Capabilities: f16=' + resolvedPlatformConfig.capabilities.hasF16 + ', subgroups=' + resolvedPlatformConfig.capabilities.hasSubgroups);
   } catch (e) {
     // Platform/registry init is optional - kernel selection will use fallbacks
-    log.warn('GPU', 'Platform/registry init failed (non-fatal): ' + /** @type {Error} */ (e).message);
+    log.warn('GPU', 'Platform/registry init failed (non-fatal): ' +  (e).message);
     resolvedPlatformConfig = null;
   }
 }
 
-/**
- * Initialize WebGPU device with optimal features
- * @returns {Promise<GPUDevice>}
- * @throws Error if WebGPU is unavailable or device creation fails
- */
+
 export async function initDevice() {
   // Return cached device if available
   if (gpuDevice) {
@@ -224,7 +186,7 @@ export async function initDevice() {
     });
   } catch (e) {
     // Fallback: request device without optional features
-    log.warn('GPU', 'Failed to request device with features, trying minimal config: ' + /** @type {Error} */ (e).message);
+    log.warn('GPU', 'Failed to request device with features, trying minimal config: ' +  (e).message);
     gpuDevice = await adapter.requestDevice();
   }
 
@@ -270,11 +232,7 @@ export async function initDevice() {
   return gpuDevice;
 }
 
-/**
- * Get kernel capabilities (call after initDevice)
- * @returns {import('./device.js').KernelCapabilities}
- * @throws Error if device not initialized
- */
+
 export function getKernelCapabilities() {
   if (!kernelCapabilities) {
     throw new Error('Device not initialized. Call initDevice() first.');
@@ -282,34 +240,22 @@ export function getKernelCapabilities() {
   return { ...kernelCapabilities };
 }
 
-/**
- * Get the current GPU device (call after initDevice)
- * @returns {GPUDevice | null}
- */
+
 export function getDevice() {
   return gpuDevice;
 }
 
-/**
- * Get the resolved platform configuration (call after initDevice)
- * @returns {import('../config/schema/platform.schema.js').ResolvedPlatformConfig | null}
- */
+
 export function getPlatformConfig() {
   return resolvedPlatformConfig;
 }
 
-/**
- * Check if platform and registry are initialized
- * @returns {boolean}
- */
+
 export function isPlatformInitialized() {
   return platformInitialized && resolvedPlatformConfig !== null;
 }
 
-/**
- * Destroy the device and clear cache
- * @returns {void}
- */
+
 export function destroyDevice() {
   if (gpuDevice) {
     gpuDevice.destroy();
@@ -320,22 +266,15 @@ export function destroyDevice() {
   }
 }
 
-/**
- * Check if a specific feature is available
- * @param {string} feature
- * @returns {boolean}
- */
+
 export function hasFeature(feature) {
   if (!gpuDevice) {
     return false;
   }
-  return gpuDevice.features.has(/** @type {GPUFeatureName} */ (feature));
+  return gpuDevice.features.has( (feature));
 }
 
-/**
- * Get device limits
- * @returns {import('./device.js').DeviceLimits | null}
- */
+
 export function getDeviceLimits() {
   if (!gpuDevice) {
     return null;

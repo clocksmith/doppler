@@ -4,7 +4,7 @@ import { validateCallTimeOptions, validateRuntimeOverrides } from '../../src/con
 import { log, setLogLevel } from '../../src/debug/index.js';
 
 describe('param-validator', () => {
-  /** @type {ReturnType<typeof vi.spyOn> | null} */
+  
   let warnSpy = null;
 
   beforeEach(() => {

@@ -1,32 +1,13 @@
-/**
- * Logit Merge Kernel
- *
- * GPU primitive for merging logits from multiple models in multi-model inference.
- * This is a mechanism (how to merge), not policy (when/what to merge).
- * Reploid decides the weights and strategy; Doppler executes the merge.
- *
- * @module gpu/kernels/logit-merge
- */
+
 
 import { getDevice } from '../device.js';
 import { log } from '../../debug/index.js';
 
-/**
- * @typedef {import('../device.js').KernelCapabilities} KernelCapabilities
- */
 
-/**
- * Merge strategy types.
- * @typedef {'weighted' | 'max' | 'geometric'} MergeStrategy
- */
 
-/**
- * Configuration for logit merging.
- * @typedef {Object} LogitMergeConfig
- * @property {MergeStrategy} [strategy='weighted'] - Merge strategy
- * @property {number[]} [weights] - Weights for weighted merge (must sum to 1)
- * @property {number} [temperature=1.0] - Temperature to apply after merge
- */
+
+
+
 
 // WGSL shader for weighted logit merging
 const WEIGHTED_MERGE_SHADER = /* wgsl */ `
@@ -133,30 +114,25 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 `;
 
-/**
- * Logit merge kernel executor.
- */
+
 export class LogitMergeKernel {
-  /** @type {GPUDevice} */
+  
   #device;
 
-  /** @type {Map<MergeStrategy, GPUComputePipeline>} */
+  
   #pipelines = new Map();
 
-  /** @type {GPUBindGroupLayout} */
+  
   #bindGroupLayout;
 
-  /** @type {boolean} */
+  
   #initialized = false;
 
   constructor() {
     this.#device = getDevice();
   }
 
-  /**
-   * Initialize the kernel pipelines.
-   * @returns {Promise<void>}
-   */
+  
   async init() {
     if (this.#initialized) return;
 
@@ -200,22 +176,14 @@ export class LogitMergeKernel {
         },
       });
 
-      this.#pipelines.set(/** @type {MergeStrategy} */ (name), pipeline);
+      this.#pipelines.set( (name), pipeline);
     }
 
     this.#initialized = true;
     log.info('LogitMerge', 'Kernel initialized');
   }
 
-  /**
-   * Merge two logit buffers on the GPU.
-   *
-   * @param {GPUBuffer} logitsA - First logit buffer (vocabSize f32s)
-   * @param {GPUBuffer} logitsB - Second logit buffer (vocabSize f32s)
-   * @param {number} vocabSize - Vocabulary size
-   * @param {LogitMergeConfig} [config={}] - Merge configuration
-   * @returns {Promise<GPUBuffer>} Merged logit buffer
-   */
+  
   async merge(logitsA, logitsB, vocabSize, config = {}) {
     if (!this.#initialized) {
       await this.init();
@@ -283,15 +251,7 @@ export class LogitMergeKernel {
     return mergedBuffer;
   }
 
-  /**
-   * Merge multiple logit buffers on the GPU.
-   * Applies pairwise merging for more than 2 buffers.
-   *
-   * @param {GPUBuffer[]} logitBuffers - Array of logit buffers
-   * @param {number} vocabSize - Vocabulary size
-   * @param {LogitMergeConfig & { weights?: number[] }} [config={}] - Merge configuration
-   * @returns {Promise<GPUBuffer>} Merged logit buffer
-   */
+  
   async mergeMultiple(logitBuffers, vocabSize, config = {}) {
     if (logitBuffers.length === 0) {
       throw new Error('No logit buffers to merge');
@@ -366,10 +326,7 @@ function normalizeWeights(weights, expectedCount) {
 // Singleton instance
 let _instance = null;
 
-/**
- * Get the logit merge kernel instance.
- * @returns {LogitMergeKernel}
- */
+
 export function getLogitMergeKernel() {
   if (!_instance) {
     _instance = new LogitMergeKernel();
@@ -377,17 +334,7 @@ export function getLogitMergeKernel() {
   return _instance;
 }
 
-/**
- * Merge two logit buffers using weighted averaging.
- * Convenience function that uses the singleton kernel.
- *
- * @param {GPUBuffer} logitsA - First logit buffer
- * @param {GPUBuffer} logitsB - Second logit buffer
- * @param {number} vocabSize - Vocabulary size
- * @param {number[]} [weights=[0.5, 0.5]] - Merge weights
- * @param {number} [temperature=1.0] - Temperature scaling
- * @returns {Promise<GPUBuffer>} Merged logit buffer
- */
+
 export async function mergeLogits(logitsA, logitsB, vocabSize, weights = [0.5, 0.5], temperature = 1.0) {
   const kernel = getLogitMergeKernel();
   return kernel.merge(logitsA, logitsB, vocabSize, {
@@ -397,16 +344,7 @@ export async function mergeLogits(logitsA, logitsB, vocabSize, weights = [0.5, 0
   });
 }
 
-/**
- * Merge multiple logit buffers.
- * Convenience function that uses the singleton kernel.
- *
- * @param {GPUBuffer[]} logitBuffers - Array of logit buffers
- * @param {number} vocabSize - Vocabulary size
- * @param {number[]} [weights] - Merge weights (defaults to equal)
- * @param {number} [temperature=1.0] - Temperature scaling
- * @returns {Promise<GPUBuffer>} Merged logit buffer
- */
+
 export async function mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature = 1.0) {
   const kernel = getLogitMergeKernel();
   return kernel.mergeMultiple(logitBuffers, vocabSize, {

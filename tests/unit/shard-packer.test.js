@@ -6,9 +6,7 @@ import {
   estimateShardCount,
 } from '../../src/converter/shard-packer.js';
 
-/**
- * In-memory mock implementation of ShardIO for testing.
- */
+
 class MockShardIO {
   shards = new Map();
   writeCount = 0;
@@ -39,9 +37,7 @@ class MockShardIO {
   }
 }
 
-/**
- * Create a test tensor with specified size filled with a pattern.
- */
+
 function createTensor(name, size, shape = [size]) {
   return {
     name,

@@ -1,24 +1,12 @@
 #!/usr/bin/env node
-/**
- * Update manifest settings without touching shards.
- *
- * Safe edits (default):
- * - optimizations.kernelPath
- *
- * Unsafe edits (require --allow-unsafe):
- * - config.q4kLayout
- * - defaultWeightLayout
- */
+
 
 import { readFile, writeFile, stat } from 'fs/promises';
 import { resolve, join } from 'path';
 
-/**
- * @param {string[]} args
- * @returns {import('./update-manifest.js').UpdateOptions}
- */
+
 function parseArgs(args) {
-  /** @type {import('./update-manifest.js').UpdateOptions} */
+  
   const options = {
     input: null,
     kernelPath: null,
@@ -47,9 +35,9 @@ function parseArgs(args) {
             if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
               throw new Error('kernel path must be a JSON object');
             }
-            options.kernelPath = /** @type {Record<string, unknown>} */ (parsed);
+            options.kernelPath =  (parsed);
           } catch (err) {
-            throw new Error(`Failed to parse --kernel-path JSON: ${/** @type {Error} */ (err).message}`);
+            throw new Error(`Failed to parse --kernel-path JSON: ${ (err).message}`);
           }
         } else {
           options.kernelPath = raw;
@@ -83,9 +71,7 @@ function parseArgs(args) {
   return options;
 }
 
-/**
- * @returns {void}
- */
+
 function printHelp() {
   console.log(`
 Update DOPPLER manifest settings (no shard changes).
@@ -108,10 +94,7 @@ Examples:
 `);
 }
 
-/**
- * @param {string} input
- * @returns {Promise<string>}
- */
+
 async function resolveManifestPath(input) {
   const resolved = resolve(input);
   const stats = await stat(resolved);
@@ -121,9 +104,7 @@ async function resolveManifestPath(input) {
   return resolved;
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {

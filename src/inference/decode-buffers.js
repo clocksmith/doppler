@@ -1,47 +1,23 @@
-/**
- * Decode Buffer Manager
- *
- * Pre-allocates and reuses GPU buffers for the decode phase.
- * During decode (M=1), the same buffer sizes are needed every step.
- * Instead of acquiring from pool each time, we keep dedicated buffers.
- *
- * WebLLM-inspired optimization: decode uses fixed-size buffers that
- * can be reused across tokens without pool overhead.
- */
+
 
 import { getDevice } from '../gpu/device.js';
 
-/**
- * @typedef {import('./decode-buffers.js').DecodeBuffers} DecodeBuffers
- * @typedef {import('./decode-buffers.js').DecodeBufferConfig} DecodeBufferConfig
- */
 
-/**
- * Manages pre-allocated buffers for efficient decode operations.
- *
- * Usage:
- * 1. Call ensureBuffers() after model config is known
- * 2. Use getHiddenBuffer() to get decode hidden state buffer
- * 3. Call release() when done with generation
- */
+
+
 export class DecodeBufferManager {
-  /** @type {DecodeBuffers | null} */
+  
   buffers = null;
 
-  /** @type {DecodeBufferConfig | null} */
+  
   config = null;
 
-  /** @type {number} */
+  
   pingPongIndex = 0;
 
-  /**
-   * Ensure buffers are allocated for the given config.
-   * No-op if already allocated with matching config.
-   * @param {DecodeBufferConfig} config
-   * @returns {DecodeBuffers}
-   */
+  
   ensureBuffers(config) {
-    /** @type {DecodeBufferConfig} */
+    
     const normalizedConfig = {
       ...config,
       enablePingPong: config.enablePingPong ?? false,
@@ -109,11 +85,7 @@ export class DecodeBufferManager {
     return this.buffers;
   }
 
-  /**
-   * Get the current hidden state buffer.
-   * If ping-pong is enabled, returns the current input buffer.
-   * @returns {GPUBuffer | null}
-   */
+  
   getHiddenBuffer() {
     if (!this.buffers) return null;
     if (this.buffers.hiddenAlt && this.pingPongIndex === 1) {
@@ -122,11 +94,7 @@ export class DecodeBufferManager {
     return this.buffers.hidden;
   }
 
-  /**
-   * Get the output hidden state buffer for next layer.
-   * If ping-pong is enabled, returns the alternate buffer.
-   * @returns {GPUBuffer | null}
-   */
+  
   getOutputHiddenBuffer() {
     if (!this.buffers) return null;
     if (this.buffers.hiddenAlt) {
@@ -136,52 +104,34 @@ export class DecodeBufferManager {
     return this.buffers.hidden;
   }
 
-  /**
-   * Swap ping-pong buffers (call after each layer).
-   * @returns {void}
-   */
+  
   swapPingPong() {
     if (this.buffers?.hiddenAlt) {
       this.pingPongIndex = 1 - this.pingPongIndex;
     }
   }
 
-  /**
-   * Reset ping-pong state (call at start of each decode step).
-   * @returns {void}
-   */
+  
   resetPingPong() {
     this.pingPongIndex = 0;
   }
 
-  /**
-   * Get attention output buffer.
-   * @returns {GPUBuffer | null}
-   */
+  
   getAttnOutputBuffer() {
     return this.buffers?.attnOutput ?? null;
   }
 
-  /**
-   * Get FFN intermediate buffer.
-   * @returns {GPUBuffer | null}
-   */
+  
   getFFNIntermediateBuffer() {
     return this.buffers?.ffnIntermediate ?? null;
   }
 
-  /**
-   * Check if buffers are allocated.
-   * @returns {boolean}
-   */
+  
   hasBuffers() {
     return this.buffers !== null;
   }
 
-  /**
-   * Get buffer sizes for debugging.
-   * @returns {{ hiddenBytes: number; intermediateBytes: number; totalBytes: number; activationDtype: 'f16' | 'f32' } | null}
-   */
+  
   getStats() {
     if (!this.config) return null;
     const bytesPerElement = this.config.activationDtype === 'f16' ? 2 : 4;
@@ -192,11 +142,7 @@ export class DecodeBufferManager {
     return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype ?? 'f32' };
   }
 
-  /**
-   * Check whether a buffer is managed by this decode buffer manager.
-   * @param {GPUBuffer} buffer
-   * @returns {boolean}
-   */
+  
   ownsBuffer(buffer) {
     if (!this.buffers) return false;
     return buffer === this.buffers.hidden
@@ -205,10 +151,7 @@ export class DecodeBufferManager {
       || buffer === this.buffers.ffnIntermediate;
   }
 
-  /**
-   * Release all buffers.
-   * @returns {void}
-   */
+  
   release() {
     if (this.buffers) {
       this.buffers.hidden.destroy();

@@ -1,19 +1,10 @@
-/**
- * RDRR Shard Writer
- *
- * Handles creation and packing of binary shards.
- * Manages shard lifecycle: create, write chunks, finalize with hash.
- *
- * @module converter/writer/shard-writer
- */
+
 
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { computeHash, alignOffset, createPadding } from './utils.js';
 
-/**
- * Manages writing tensors to binary shards with alignment and hashing.
- */
+
 export class ShardWriter {
   #outputDir;
   #shardSize;
@@ -85,10 +76,7 @@ export class ShardWriter {
     this.#currentShard = null;
   }
 
-  /**
-   * Write data to shards with alignment.
-   * Handles spanning across multiple shards if needed.
-   */
+  
   async writeData(data) {
     if (!this.#currentShard) {
       this.startNewShard();

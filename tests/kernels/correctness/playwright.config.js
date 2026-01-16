@@ -1,8 +1,4 @@
-/**
- * Playwright config for kernel correctness tests
- *
- * Run with: npx playwright test -c tests/kernels/correctness/playwright.config.js
- */
+
 
 import { defineConfig, devices } from '@playwright/test';
 

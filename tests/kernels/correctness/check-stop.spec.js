@@ -1,9 +1,4 @@
-/**
- * Check-Stop Kernel Correctness Tests
- *
- * Validates the check-stop GPU kernel for early stopping detection.
- * Tests EOS token detection and max tokens limit.
- */
+
 
 import { test, expect } from './setup.js';
 

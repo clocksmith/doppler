@@ -1,11 +1,6 @@
-/**
- * Reference Gather (Embedding Lookup) Implementation
- */
 
-/**
- * Reference gather/embedding lookup
- * output[i] = embeddings[indices[i]]
- */
+
+
 export function gatherRef(embeddings, indices, vocabSize, embedDim) {
   const seqLen = indices.length;
   const output = new Float32Array(seqLen * embedDim);
@@ -23,9 +18,7 @@ export function gatherRef(embeddings, indices, vocabSize, embedDim) {
   return output;
 }
 
-/**
- * Batched gather
- */
+
 export function batchGatherRef(embeddings, indices, batchSize, seqLen, embedDim) {
   const output = new Float32Array(batchSize * seqLen * embedDim);
 
@@ -44,9 +37,7 @@ export function batchGatherRef(embeddings, indices, batchSize, seqLen, embedDim)
   return output;
 }
 
-/**
- * Gather with position embeddings added
- */
+
 export function gatherWithPosRef(embeddings, posEmbeddings, indices, vocabSize, embedDim, startPos = 0) {
   const seqLen = indices.length;
   const output = new Float32Array(seqLen * embedDim);

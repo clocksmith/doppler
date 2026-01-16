@@ -1,15 +1,4 @@
-/**
- * DOPPLER Bridge Background Script
- * Phase 3: Native Messaging Bridge
- *
- * Handles:
- * - Connection to native host
- * - Message routing between web page and native host
- * - Binary protocol handling
- * - Backpressure management
- *
- * @module bridge/extension/background
- */
+
 
 import { log } from '../../debug/index.js';
 
@@ -23,10 +12,10 @@ const NATIVE_HOST_NAME = 'dev.reploid.doppler';
 // Global State
 // ============================================================================
 
-/** Active connections */
+
 const connections = new Map();
 
-/** Message queue for backpressure */
+
 const messageQueues = new Map();
 
 // ============================================================================
@@ -95,14 +84,10 @@ function handleWebConnection(webPort) {
   });
 }
 
-/**
- * Handle incoming connection from web page (external)
- */
+
 chrome.runtime.onConnectExternal.addListener(handleWebConnection);
 
-/**
- * Handle message from web page
- */
+
 function handleWebMessage(portId, message) {
   const conn = connections.get(portId);
   if (!conn) {
@@ -128,9 +113,7 @@ function handleWebMessage(portId, message) {
   }
 }
 
-/**
- * Handle message from native host
- */
+
 function handleNativeMessage(portId, message) {
   const conn = connections.get(portId);
   if (!conn) {
@@ -154,9 +137,7 @@ function handleNativeMessage(portId, message) {
   }
 }
 
-/**
- * Cleanup connection
- */
+
 function cleanupConnection(portId) {
   const conn = connections.get(portId);
   if (conn) {
@@ -170,9 +151,7 @@ function cleanupConnection(portId) {
   messageQueues.delete(portId);
 }
 
-/**
- * Handle internal connections (same extension)
- */
+
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'doppler-bridge') {
     handleWebConnection(port);

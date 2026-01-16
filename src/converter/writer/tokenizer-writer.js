@@ -1,19 +1,10 @@
-/**
- * RDRR Tokenizer Writer
- *
- * Handles bundling and writing tokenizer configurations.
- * Supports both GGUF tokenizer format and HuggingFace tokenizer.json.
- *
- * @module converter/writer/tokenizer-writer
- */
+
 
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { log } from '../../debug/index.js';
 
-/**
- * Writes tokenizer configuration files.
- */
+
 export class TokenizerWriter {
   #outputDir;
 
@@ -21,10 +12,7 @@ export class TokenizerWriter {
     this.#outputDir = outputDir;
   }
 
-  /**
-   * Write tokenizer from GGUF-extracted config.
-   * Creates tokenizer.json with vocab, merges, and special tokens.
-   */
+  
   async writeTokenizer(tokenizer) {
     if (!tokenizer.tokens || tokenizer.tokens.length === 0) {
       log.warn('TokenizerWriter', 'No vocab tokens found, skipping tokenizer bundling');
@@ -83,10 +71,7 @@ export class TokenizerWriter {
     };
   }
 
-  /**
-   * Write HuggingFace tokenizer.json directly.
-   * Preserves the original format for compatibility.
-   */
+  
   async writeHuggingFaceTokenizer(tokenizerJson) {
     if (!tokenizerJson || !tokenizerJson.model) {
       log.warn('TokenizerWriter', 'Invalid HuggingFace tokenizer.json, skipping');

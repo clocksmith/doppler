@@ -162,18 +162,32 @@ export function resolveConfig(
   // Note: Uses nullish coalesce (??) so null values fall through to next level.
   // This means explicit null in manifest = "use preset/default".
   const presetArch = preset.architecture || {};
+  const numLayers = manifestArch.numLayers ?? presetArch.numLayers;
+  const hiddenSize = manifestArch.hiddenSize ?? presetArch.hiddenSize;
+  const intermediateSize = manifestArch.intermediateSize ?? presetArch.intermediateSize;
+  const numAttentionHeads = manifestArch.numAttentionHeads ?? presetArch.numAttentionHeads;
+  const numKeyValueHeads = manifestArch.numKeyValueHeads ?? presetArch.numKeyValueHeads ?? numAttentionHeads;
+  const headDim = manifestArch.headDim ?? presetArch.headDim ?? (
+    hiddenSize && numAttentionHeads ? hiddenSize / numAttentionHeads : undefined
+  );
+  const vocabSize = manifestArch.vocabSize ?? presetArch.vocabSize;
+  const maxSeqLen = manifestArch.maxSeqLen ?? presetArch.maxSeqLen;
+  const ropeTheta = manifestArch.ropeTheta ?? presetArch.ropeTheta;
+  const rmsNormEps = manifestArch.rmsNormEps ?? presetArch.rmsNormEps;
+
   const architecture = {
-    numLayers: manifestArch.numLayers ?? presetArch.numLayers ?? 32,
-    hiddenSize: manifestArch.hiddenSize ?? presetArch.hiddenSize ?? 4096,
-    intermediateSize: manifestArch.intermediateSize ?? presetArch.intermediateSize ?? 11008,
-    numAttentionHeads: manifestArch.numAttentionHeads ?? presetArch.numAttentionHeads ?? 32,
-    numKeyValueHeads: manifestArch.numKeyValueHeads ?? presetArch.numKeyValueHeads ?? 32,
-    headDim: manifestArch.headDim ?? presetArch.headDim ?? 128,
-    vocabSize: manifestArch.vocabSize ?? presetArch.vocabSize ?? 32000,
-    maxSeqLen: manifestArch.maxSeqLen ?? presetArch.maxSeqLen ?? 2048,
-    ropeTheta: manifestArch.ropeTheta ?? presetArch.ropeTheta,
-    rmsNormEps: manifestArch.rmsNormEps ?? presetArch.rmsNormEps,
+    numLayers,
+    hiddenSize,
+    intermediateSize,
+    numAttentionHeads,
+    numKeyValueHeads,
+    headDim,
+    vocabSize,
+    maxSeqLen,
+    ropeTheta,
+    rmsNormEps,
   };
+  assertArchitecture(manifest, architecture);
 
   // Merge inference config
   // Note: Uses object spread, so explicit null in manifest/preset OVERRIDES base.
@@ -242,6 +256,26 @@ export function resolveConfig(
     sampling,
     loading,
   };
+}
+
+function assertArchitecture(manifest, architecture) {
+  const required = [
+    ['numLayers', architecture.numLayers],
+    ['hiddenSize', architecture.hiddenSize],
+    ['intermediateSize', architecture.intermediateSize],
+    ['numAttentionHeads', architecture.numAttentionHeads],
+    ['numKeyValueHeads', architecture.numKeyValueHeads],
+    ['headDim', architecture.headDim],
+    ['vocabSize', architecture.vocabSize],
+    ['maxSeqLen', architecture.maxSeqLen],
+  ];
+
+  for (const [key, value] of required) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      const modelId = manifest?.modelId ?? 'unknown';
+      throw new Error(`Missing or invalid architecture.${key} for model "${modelId}".`);
+    }
+  }
 }
 
 // =============================================================================

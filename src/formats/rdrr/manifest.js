@@ -1,8 +1,4 @@
-/**
- * RDRR Manifest Creation and Serialization
- *
- * @module formats/rdrr/manifest
- */
+
 
 import {
   RDRR_VERSION,

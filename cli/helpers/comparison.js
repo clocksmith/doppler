@@ -1,23 +1,17 @@
-/**
- * Comparison Utilities - Baseline comparison and statistical analysis
- */
+
 
 // ============================================================================
 // Comparison Utilities
 // ============================================================================
 
-/**
- * @param {any} baseline
- * @param {any} current
- * @returns {import('./types.js').ComparisonResult[]}
- */
+
 export function compareResults(baseline, current) {
-  /** @type {import('./types.js').ComparisonResult[]} */
+  
   const results = [];
   const bm = baseline.metrics;
   const cm = current.metrics;
 
-  /** @type {Array<{ key: string; name: string; lowerIsBetter: boolean }>} */
+  
   const metrics = [
     { key: 'ttft_ms', name: 'TTFT', lowerIsBetter: true },
     { key: 'prefill_ms', name: 'Prefill', lowerIsBetter: true },
@@ -52,12 +46,9 @@ export function compareResults(baseline, current) {
   return results;
 }
 
-/**
- * @param {import('./types.js').ComparisonResult[]} comparisons
- * @returns {string}
- */
+
 export function formatComparison(comparisons) {
-  /** @type {string[]} */
+  
   const lines = [
     '',
     '='.repeat(60),
@@ -83,11 +74,7 @@ export function formatComparison(comparisons) {
   return lines.join('\n');
 }
 
-/**
- * @param {import('./types.js').ComparisonResult[]} comparisons
- * @param {{ regressionThresholdPercent: number }} options
- * @returns {import('./types.js').RegressionSummary}
- */
+
 export function detectRegressions(comparisons, options) {
   const threshold = options.regressionThresholdPercent;
   const regressions = comparisons.filter((c) =>
@@ -103,10 +90,7 @@ export function detectRegressions(comparisons, options) {
   };
 }
 
-/**
- * @param {import('./types.js').RegressionSummary} summary
- * @returns {string}
- */
+
 export function formatRegressionSummary(summary) {
   if (!summary.hasRegression) {
     return `No regressions above ${summary.thresholdPercent}%`;
@@ -134,28 +118,17 @@ export function formatRegressionSummary(summary) {
 // Statistical Significance (Welch's t-test)
 // ============================================================================
 
-/**
- * @param {number[]} values
- * @returns {number}
- */
+
 function mean(values) {
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-/**
- * @param {number[]} values
- * @param {number} m
- * @returns {number}
- */
+
 function variance(values, m) {
   return values.reduce((sum, v) => sum + (v - m) ** 2, 0) / (values.length - 1);
 }
 
-/**
- * @param {number[]} a
- * @param {number[]} b
- * @returns {import('./types.js').TTestResult}
- */
+
 export function welchTTest(a, b) {
   const n1 = a.length;
   const n2 = b.length;
@@ -188,21 +161,14 @@ export function welchTTest(a, b) {
   };
 }
 
-/**
- * @param {number} t
- * @param {number} df
- * @returns {number}
- */
+
 function tDistPValue(t, df) {
   const x = t * Math.sqrt(df / (df - 2 + t * t));
   const p = 2 * (1 - normalCDF(x));
   return Math.max(0, Math.min(1, p));
 }
 
-/**
- * @param {number} x
- * @returns {number}
- */
+
 function normalCDF(x) {
   const a1 = 0.254829592;
   const a2 = -0.284496736;
@@ -220,11 +186,7 @@ function normalCDF(x) {
   return 0.5 * (1 + sign * y);
 }
 
-/**
- * @param {string} metric
- * @param {import('./types.js').TTestResult} result
- * @returns {string}
- */
+
 export function formatTTestResult(metric, result) {
   const sig = result.significant ? 'SIGNIFICANT' : 'not significant';
   return `${metric}: t=${result.tStatistic.toFixed(2)}, df=${result.degreesOfFreedom.toFixed(1)}, p=${result.pValue.toFixed(4)} (${sig})`;

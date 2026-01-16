@@ -1,67 +1,49 @@
-/**
- * progress-ui.js - Multi-Phase Progress Indicator Component
- * Agent-D | Phase 2 | app/
- *
- * Displays stacked loading bars for different phases:
- * - Network: Downloading model from internet (only if not cached)
- * - Cache: Reading from OPFS browser storage
- * - VRAM: Uploading weights to GPU memory
- *
- * @module app/progress-ui
- */
+
 
 // ============================================================================
 // ProgressUI Class
 // ============================================================================
 
-/**
- * @typedef {Object} PhaseElements
- * @property {HTMLElement} row
- * @property {HTMLElement} bar
- * @property {HTMLElement} label
- * @property {HTMLElement} value
- */
+
 
 export class ProgressUI {
-  /** @type {HTMLElement} */
+  
   #container;
-  /** @type {HTMLElement} */
+  
   #overlay;
-  /** @type {HTMLElement} */
+  
   #title;
-  /** @type {HTMLElement} */
+  
   #phasesContainer;
-  /** @type {Map<import('./progress-ui.js').ProgressPhase, PhaseElements>} */
+  
   #phases = new Map();
-  /** @type {boolean} */
+  
   #isVisible = false;
 
   // Phase configuration (rd.css compliant - uses --fg for all fills)
-  /** @type {Record<import('./progress-ui.js').ProgressPhase, { label: string }>} */
+  
   static #PHASE_CONFIG = {
     source: { label: 'Source' },    // Dynamic label based on source type
     gpu: { label: 'GPU' },          // Uploading to GPU
   };
 
   // Source type labels (styling via row class, not color)
-  /** @type {Record<import('./progress-ui.js').SourceType, { label: string; rowClass: string }>} */
+  
   static #SOURCE_CONFIG = {
     network: { label: 'Network', rowClass: 'progress-phase-network' },   // border-info style
     disk: { label: 'Disk', rowClass: 'progress-phase-disk' },            // border-ghost style
     cache: { label: 'Cache', rowClass: 'progress-phase-cache' },         // border-elevated style
   };
 
-  /** @type {import('./progress-ui.js').SourceType} */
+  
   #currentSourceType = 'cache';
 
-  /**
-   * @param {HTMLElement} container - Container element for progress overlay
-   */
+  
   constructor(container) {
     this.#container = container;
-    this.#overlay = /** @type {HTMLElement} */ (container.querySelector('#progress-overlay'));
-    this.#title = /** @type {HTMLElement} */ (container.querySelector('#progress-title'));
-    this.#phasesContainer = /** @type {HTMLElement} */ (container.querySelector('#progress-phases'));
+    this.#overlay =  (container.querySelector('#progress-overlay'));
+    this.#title =  (container.querySelector('#progress-title'));
+    this.#phasesContainer =  (container.querySelector('#progress-phases'));
 
     // Create phase bars if they don't exist (backwards compatibility)
     if (!this.#phasesContainer) {
@@ -71,9 +53,7 @@ export class ProgressUI {
     }
   }
 
-  /**
-   * Create phase elements dynamically (for backwards compatibility)
-   */
+  
   #createPhaseElements() {
     const content = this.#overlay.querySelector('.progress-content');
     if (!content) return;
@@ -85,15 +65,12 @@ export class ProgressUI {
     content.appendChild(this.#phasesContainer);
 
     // Create phase bars (simplified: source + gpu)
-    for (const phase of /** @type {import('./progress-ui.js').ProgressPhase[]} */ (['source', 'gpu'])) {
+    for (const phase of  (['source', 'gpu'])) {
       this.#createPhaseBar(phase);
     }
   }
 
-  /**
-   * Create a single phase bar (uses rd.css .progress and .progress-fill classes)
-   * @param {import('./progress-ui.js').ProgressPhase} phase
-   */
+  
   #createPhaseBar(phase) {
     const config = ProgressUI.#PHASE_CONFIG[phase];
 
@@ -125,28 +102,22 @@ export class ProgressUI {
     this.#phases.set(phase, { row, bar, label, value });
   }
 
-  /**
-   * Initialize existing phase elements from HTML
-   */
+  
   #initPhaseElements() {
-    for (const phase of /** @type {import('./progress-ui.js').ProgressPhase[]} */ (['source', 'gpu'])) {
-      const row = /** @type {HTMLElement} */ (this.#phasesContainer.querySelector(`[data-phase="${phase}"]`));
+    for (const phase of  (['source', 'gpu'])) {
+      const row =  (this.#phasesContainer.querySelector(`[data-phase="${phase}"]`));
       if (row) {
         this.#phases.set(phase, {
           row,
-          bar: /** @type {HTMLElement} */ (row.querySelector('.progress-fill')),
-          label: /** @type {HTMLElement} */ (row.querySelector('.progress-phase-label')),
-          value: /** @type {HTMLElement} */ (row.querySelector('.progress-phase-value')),
+          bar:  (row.querySelector('.progress-fill')),
+          label:  (row.querySelector('.progress-phase-label')),
+          value:  (row.querySelector('.progress-phase-value')),
         });
       }
     }
   }
 
-  /**
-   * Set the source type (network, disk, or cache)
-   * Updates the source phase label and row class (rd.css compliant)
-   * @param {import('./progress-ui.js').SourceType} type
-   */
+  
   setSourceType(type) {
     this.#currentSourceType = type;
     const sourceElements = this.#phases.get('source');
@@ -159,10 +130,7 @@ export class ProgressUI {
     }
   }
 
-  /**
-   * Show progress overlay
-   * @param {string} [title] - Title text (e.g., "Loading Model")
-   */
+  
   show(title = 'Loading...') {
     if (this.#title) {
       this.#title.textContent = title;
@@ -179,10 +147,7 @@ export class ProgressUI {
     this.#isVisible = true;
   }
 
-  /**
-   * Update a specific phase's progress
-   * @param {import('./progress-ui.js').PhaseProgress} progress
-   */
+  
   setPhaseProgress(progress) {
     const elements = this.#phases.get(progress.phase);
     if (!elements) return;
@@ -192,7 +157,7 @@ export class ProgressUI {
     elements.row.classList.add('active');
 
     // Format the value text
-    /** @type {string} */
+    
     let valueText;
     if (progress.bytesLoaded !== undefined && progress.totalBytes !== undefined) {
       const loaded = this.#formatBytes(progress.bytesLoaded);
@@ -218,12 +183,7 @@ export class ProgressUI {
     }
   }
 
-  /**
-   * Legacy single-bar progress (for backwards compatibility)
-   * Maps to GPU phase
-   * @param {number} percent
-   * @param {string} [detail]
-   */
+  
   setProgress(percent, detail) {
     this.setPhaseProgress({
       phase: 'gpu',
@@ -232,19 +192,13 @@ export class ProgressUI {
     });
   }
 
-  /**
-   * Hide progress overlay
-   */
+  
   hide() {
     this.#overlay.hidden = true;
     this.#isVisible = false;
   }
 
-  /**
-   * Show indeterminate progress for a phase
-   * @param {import('./progress-ui.js').ProgressPhase} phase
-   * @param {string} [message]
-   */
+  
   showIndeterminate(phase, message) {
     const elements = this.#phases.get(phase);
     if (!elements) return;
@@ -257,29 +211,19 @@ export class ProgressUI {
     }
   }
 
-  /**
-   * Reset phase to determinate mode
-   * @param {import('./progress-ui.js').ProgressPhase} phase
-   */
+  
   setDeterminate(phase) {
     const elements = this.#phases.get(phase);
     if (!elements) return;
     elements.bar.style.animation = 'none';
   }
 
-  /**
-   * Check if progress is currently visible
-   * @returns {boolean}
-   */
+  
   isShowing() {
     return this.#isVisible;
   }
 
-  /**
-   * Format bytes to human-readable string
-   * @param {number} bytes
-   * @returns {string}
-   */
+  
   #formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;

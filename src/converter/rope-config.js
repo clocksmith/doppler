@@ -1,8 +1,4 @@
-/**
- * Build RoPE configuration from preset and HF config.
- *
- * HF rope_scaling is treated as source of truth when present.
- */
+
 export function buildRoPEConfig(presetInference, config) {
   // Extract rope_scaling object from HF config
   const ropeScaling = config.rope_scaling;

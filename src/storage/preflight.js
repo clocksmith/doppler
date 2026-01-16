@@ -1,13 +1,4 @@
-/**
- * preflight.ts - Pre-download Validation
- *
- * Performs checks before model download:
- * - VRAM estimation and validation
- * - Storage space availability
- * - GPU capability verification
- *
- * @module storage/preflight
- */
+
 
 import { getMemoryCapabilities } from '../memory/capability.js';
 import { getQuotaInfo, formatBytes } from './quota.js';
@@ -20,10 +11,7 @@ import { getRuntimeConfig } from '../config/runtime.js';
 const GB = 1024 * 1024 * 1024;
 const MB = 1024 * 1024;
 
-/**
- * Gemma 1B requirements (Q4_K_M quantization)
- * @type {import('./preflight.js').ModelRequirements}
- */
+
 export const GEMMA_1B_REQUIREMENTS = {
   modelId: 'gemma-3-1b-it-q4',
   displayName: 'Gemma 3 1B IT (Q4)',
@@ -34,12 +22,7 @@ export const GEMMA_1B_REQUIREMENTS = {
   architecture: 'Gemma3ForCausalLM',
 };
 
-/**
- * All available model requirements
- * Naming convention: {family}-{version}-{size}-{variant}-{quant}
- * Examples: gemma-3-1b-it-q4, llama-3.2-1b-q4, mistral-7b-v0.3-q4
- * @type {Record<string, import('./preflight.js').ModelRequirements>}
- */
+
 export const MODEL_REQUIREMENTS = {
   'gemma-3-1b-it-q4': GEMMA_1B_REQUIREMENTS,
 };
@@ -48,11 +31,7 @@ export const MODEL_REQUIREMENTS = {
 // VRAM Estimation
 // ============================================================================
 
-/**
- * Estimate available VRAM based on memory capabilities
- * @param {import('../memory/capability.js').MemoryCapabilities} memCaps
- * @returns {number}
- */
+
 function estimateAvailableVRAM(memCaps) {
   const info = memCaps.unifiedMemoryInfo;
 
@@ -73,12 +52,7 @@ function estimateAvailableVRAM(memCaps) {
   return getRuntimeConfig().loading.storage.vramEstimation.fallbackVramBytes;
 }
 
-/**
- * Check VRAM sufficiency
- * @param {import('./preflight.js').ModelRequirements} requirements
- * @param {import('../memory/capability.js').MemoryCapabilities} memCaps
- * @returns {Promise<import('./preflight.js').VRAMCheckResult>}
- */
+
 async function checkVRAM(
   requirements,
   memCaps
@@ -87,7 +61,7 @@ async function checkVRAM(
   const required = requirements.vramRequired;
   const sufficient = available >= required;
 
-  /** @type {string} */
+  
   let message;
   if (sufficient) {
     message = `VRAM OK: ${formatBytes(available)} available, ${formatBytes(required)} required`;
@@ -102,11 +76,7 @@ async function checkVRAM(
 // Storage Check
 // ============================================================================
 
-/**
- * Check storage space sufficiency
- * @param {import('./preflight.js').ModelRequirements} requirements
- * @returns {Promise<import('./preflight.js').StorageCheckResult>}
- */
+
 async function checkStorage(
   requirements
 ) {
@@ -115,7 +85,7 @@ async function checkStorage(
   const required = requirements.downloadSize;
   const sufficient = available >= required;
 
-  /** @type {string} */
+  
   let message;
   if (sufficient) {
     message = `Storage OK: ${formatBytes(available)} available, ${formatBytes(required)} required`;
@@ -131,11 +101,7 @@ async function checkStorage(
 // GPU Check
 // ============================================================================
 
-/**
- * Check GPU capabilities
- * @param {import('../memory/capability.js').MemoryCapabilities} memCaps
- * @returns {Promise<import('./preflight.js').GPUCheckResult>}
- */
+
 async function checkGPU(memCaps) {
   const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
 
@@ -182,28 +148,13 @@ async function checkGPU(memCaps) {
 // Public API
 // ============================================================================
 
-/**
- * Run all pre-flight checks before model download
- *
- * @param {import('./preflight.js').ModelRequirements} requirements - Model requirements to check against
- * @returns {Promise<import('./preflight.js').PreflightResult>} Pre-flight check result with all details
- *
- * @example
- * ```typescript
- * import { log } from '../debug/index.js';
- *
- * const result = await runPreflightChecks(GEMMA_1B_REQUIREMENTS);
- * if (!result.canProceed) {
- *   log.error('Preflight', 'Cannot download', result.blockers);
- * }
- * ```
- */
+
 export async function runPreflightChecks(
   requirements
 ) {
-  /** @type {string[]} */
+  
   const warnings = [];
-  /** @type {string[]} */
+  
   const blockers = [];
 
   // Get memory capabilities (cached internally)
@@ -254,13 +205,9 @@ export async function runPreflightChecks(
   };
 }
 
-/**
- * Format pre-flight result for display
- * @param {import('./preflight.js').PreflightResult} result
- * @returns {string}
- */
+
 export function formatPreflightResult(result) {
-  /** @type {string[]} */
+  
   const lines = [];
 
   lines.push(`GPU: ${result.gpu.device}`);

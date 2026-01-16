@@ -1,24 +1,13 @@
-/**
- * demo-page.js - Page Object Model for DOPPLER Demo
- *
- * Provides reusable methods for interacting with the demo UI in e2e tests.
- *
- * @module tests/harness/demo-page
- */
+
 
 import { URLS } from './test-config.js';
 
-/**
- * Page Object Model for DOPPLER demo
- */
+
 export class DemoPage {
   page;
   baseUrl;
 
-  /**
-   * @param page - Playwright page
-   * @param options - Demo page options
-   */
+  
   constructor(page, options = {}) {
     this.page = page;
     this.baseUrl = options.baseUrl || URLS.demo;
@@ -28,10 +17,7 @@ export class DemoPage {
   // Navigation
   // ============================================
 
-  /**
-   * Navigate to demo page
-   * @param options - Navigation options
-   */
+  
   async goto(options = {}) {
     const timeout = options.timeout || 30000;
     await this.page.goto(this.baseUrl, {
@@ -45,11 +31,7 @@ export class DemoPage {
   // Model Selection & Loading
   // ============================================
 
-  /**
-   * Select a model by name pattern
-   * @param namePattern - Model name to match (e.g., 'gemma 1b')
-   * @returns Whether model was found and clicked
-   */
+  
   async selectModel(namePattern) {
     // Wait for model list to populate
     await this.page.waitForTimeout(2000);
@@ -89,10 +71,7 @@ export class DemoPage {
     return false;
   }
 
-  /**
-   * Wait for model to finish loading
-   * @param options - Load options
-   */
+  
   async waitForModelLoad(options = {}) {
     const timeout = options.timeout || 90000;
 
@@ -102,10 +81,7 @@ export class DemoPage {
     }, { timeout });
   }
 
-  /**
-   * Get list of available model names
-   * @returns Array of model names
-   */
+  
   async getAvailableModels() {
     const content = await this.page.locator('#model-list').textContent();
     return content.split('\n').filter(s => s.trim());
@@ -115,10 +91,7 @@ export class DemoPage {
   // Chat / Generation
   // ============================================
 
-  /**
-   * Send a prompt and wait for generation to start
-   * @param prompt - Text prompt
-   */
+  
   async sendPrompt(prompt) {
     const textarea = this.page.locator('#chat-input');
     await textarea.fill(prompt);
@@ -131,10 +104,7 @@ export class DemoPage {
     }
   }
 
-  /**
-   * Wait for generation to complete
-   * @param options - Generation options
-   */
+  
   async waitForGeneration(options = {}) {
     const timeout = options.timeout || 30000;
     const logs = options.logs || [];
@@ -159,10 +129,7 @@ export class DemoPage {
     }
   }
 
-  /**
-   * Get the last assistant response from the chat
-   * @returns Response text
-   */
+  
   async getLastResponse() {
     const responseElement = this.page.locator(
       '.assistant-message, .response, .output, .message-content'
@@ -175,9 +142,7 @@ export class DemoPage {
     return '';
   }
 
-  /**
-   * Clear the conversation
-   */
+  
   async clearConversation() {
     const clearBtn = this.page.locator('#clear-btn');
     if (await clearBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -189,18 +154,13 @@ export class DemoPage {
   // Model Conversion
   // ============================================
 
-  /**
-   * Click the convert button to open file picker
-   */
+  
   async clickConvert() {
     const convertBtn = this.page.locator('#convert-btn');
     await convertBtn.click();
   }
 
-  /**
-   * Wait for conversion to complete
-   * @param options - Conversion options
-   */
+  
   async waitForConversion(options = {}) {
     const timeout = options.timeout || 300000;
 
@@ -223,10 +183,7 @@ export class DemoPage {
     }
   }
 
-  /**
-   * Get conversion progress message
-   * @returns Conversion status text
-   */
+  
   async getConversionStatus() {
     return await this.page.locator('#convert-message').textContent() || '';
   }
@@ -235,27 +192,18 @@ export class DemoPage {
   // Status & Info
   // ============================================
 
-  /**
-   * Get current status text
-   * @returns Status text
-   */
+  
   async getStatus() {
     return await this.page.locator('.status-text').textContent() || '';
   }
 
-  /**
-   * Check if chat input is enabled (model loaded)
-   * @returns Whether chat is enabled
-   */
+  
   async isChatEnabled() {
     const textarea = this.page.locator('#chat-input');
     return !(await textarea.isDisabled());
   }
 
-  /**
-   * Get performance stats from the UI
-   * @returns Performance statistics
-   */
+  
   async getStats() {
     return {
       tps: await this.page.locator('#stat-tps').textContent().catch(() => '--') || '--',

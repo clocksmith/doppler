@@ -1,8 +1,4 @@
-/**
- * LoRA application helpers for matmul outputs.
- *
- * @module inference/pipeline/lora-apply
- */
+
 
 import { releaseBuffer } from '../../gpu/buffer-pool.js';
 import { isWeightBuffer } from '../../gpu/weight-buffer.js';
@@ -10,15 +6,7 @@ import { runMatmul, recordMatmul } from '../../gpu/kernel-selector.js';
 import { runResidualAdd, recordResidualAdd } from '../../gpu/kernels/residual.js';
 import { runScale, recordScale } from '../../gpu/kernels/scale.js';
 
-/**
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {import('../../gpu/tensor.js').Tensor} baseOutput
- * @param {import('./lora.js').LoRAModuleWeights} lora
- * @param {{ M: number; N: number; K: number }} dims
- * @param {(weight: import('./types.js').MaybeGPUBuffer, label: string) => GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer} getWeightBuffer
- * @param {import('../../gpu/command-recorder.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, recorder) {
   const { M, N, K } = dims;
   const rank = lora.rank;

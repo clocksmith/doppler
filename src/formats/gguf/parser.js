@@ -1,17 +1,11 @@
-/**
- * GGUF Model Format Parser (Node wrapper).
- * Supports large files (>2GB) via streaming reads.
- */
+
 
 import { open, stat } from 'fs/promises';
 import { parseGGUF } from './types.js';
 
 export * from './types.js';
 
-/**
- * Parse GGUF file using streaming for large file support.
- * Only reads header + metadata + tensor info (not the tensor data itself).
- */
+
 export async function parseGGUFFile(filePath) {
   const fileStats = await stat(filePath);
   const fileSize = fileStats.size;

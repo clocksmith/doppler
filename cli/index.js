@@ -1,19 +1,5 @@
 #!/usr/bin/env node
-/**
- * DOPPLER CLI - Unified testing, benchmarking, and debugging
- *
- * Usage:
- *   npx tsx cli/index.ts run                    # Serve demo page
- *   npx tsx cli/index.ts test <suite> [options] # Run tests
- *   npx tsx cli/index.ts bench <suite> [options] # Run benchmarks
- *   npx tsx cli/index.ts debug [options]        # Debug mode
- *
- * Examples:
- *   doppler run                              # Serve demo at :8080
- *   doppler test kernels --filter matmul     # Kernel correctness tests
- *   doppler bench inference                  # Full inference benchmark
- *   doppler debug --model gemma-1b --layer 5 # Inspect layer 5
- */
+
 
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -103,15 +89,11 @@ const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'];
 // Argument Parsing
 // ============================================================================
 
-/**
- * @typedef {(opts: import('./helpers/types.js').CLIOptions, tokens: string[]) => void} FlagHandler
- */
 
-/**
- * @typedef {{ names: string[]; handler: FlagHandler }} FlagSpec
- */
 
-/** @type {FlagSpec[]} */
+
+
+
 const FLAG_SPECS = [
   { names: ['--help', '-h'], handler: (opts) => { opts.help = true; } },
   { names: ['--config'], handler: (opts, tokens) => { opts.config = tokens.shift() || null; } },
@@ -148,11 +130,9 @@ const FLAG_SPECS = [
   { names: ['--gpu-profile'], handler: (opts) => { opts.gpuProfile = true; } },
 ];
 
-/**
- * @returns {Map<string, FlagHandler>}
- */
+
 function buildFlagHandlers() {
-  /** @type {Map<string, FlagHandler>} */
+  
   const handlers = new Map();
   for (const spec of FLAG_SPECS) {
     for (const name of spec.names) {
@@ -165,10 +145,7 @@ function buildFlagHandlers() {
 const FLAG_HANDLERS = buildFlagHandlers();
 const KNOWN_FLAGS = new Set(FLAG_HANDLERS.keys());
 
-/**
- * @param {string} flag
- * @returns {string | null}
- */
+
 function resolveFlagAlias(flag) {
   if (!flag.startsWith('--')) return null;
   const raw = flag.slice(2);
@@ -181,10 +158,7 @@ function resolveFlagAlias(flag) {
   return KNOWN_FLAGS.has(candidate) ? candidate : null;
 }
 
-/**
- * @param {string} flag
- * @returns {string | null}
- */
+
 function suggestFlag(flag) {
   if (!flag.startsWith('--')) return null;
   if (!/[A-Z]/.test(flag)) return null;
@@ -192,19 +166,12 @@ function suggestFlag(flag) {
   return KNOWN_FLAGS.has(kebab) ? kebab : null;
 }
 
-/**
- * @param {string} flag
- * @returns {string}
- */
+
 function normalizeFlag(flag) {
   return flag.replace(/^-+/, '').replace(/_/g, '-').toLowerCase();
 }
 
-/**
- * @param {string} a
- * @param {string} b
- * @returns {number}
- */
+
 function levenshteinDistance(a, b) {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
@@ -231,10 +198,7 @@ function levenshteinDistance(a, b) {
   return prev[b.length];
 }
 
-/**
- * @param {string} flag
- * @returns {string[]}
- */
+
 function suggestClosestFlags(flag) {
   const camelSuggestion = suggestFlag(flag);
   if (camelSuggestion) return [camelSuggestion];
@@ -261,12 +225,9 @@ function suggestClosestFlags(flag) {
     .map((item) => item.candidate);
 }
 
-/**
- * @param {string[]} argv
- * @returns {import('./helpers/types.js').CLIOptions}
- */
+
 function parseArgs(argv) {
-  /** @type {import('./helpers/types.js').CLIOptions} */
+  
   const opts = {
     cliFlags: new Set(),
     command: 'test',
@@ -334,7 +295,7 @@ function parseArgs(argv) {
 
     if (positionalIndex === 0) {
       if (arg === 'run' || arg === 'test' || arg === 'bench' || arg === 'debug') {
-        opts.command = /** @type {import('./helpers/types.js').Command} */ (arg);
+        opts.command =  (arg);
       } else {
         opts.suite = normalizeSuite(arg);
       }
@@ -347,24 +308,13 @@ function parseArgs(argv) {
   return opts;
 }
 
-/**
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @param {string[]} flags
- * @returns {boolean}
- */
+
 function hasCliFlag(opts, flags) {
   return flags.some((flag) => opts.cliFlags.has(flag));
 }
 
-/**
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {string | null}
- */
-/**
- * @param {URLSearchParams} params
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {void}
- */
+
+
 function appendRuntimeConfigParams(params, opts) {
   if (opts.runtimeConfig) {
     params.set('runtimeConfig', JSON.stringify(opts.runtimeConfig));
@@ -374,24 +324,19 @@ function appendRuntimeConfigParams(params, opts) {
   }
 }
 
-/**
- * @param {string} suite
- * @returns {import('./helpers/types.js').SuiteType}
- */
+
 function normalizeSuite(suite) {
-  /** @type {Record<string, import('./helpers/types.js').SuiteType>} */
+  
   const legacyMap = {
     'bench:kernels': 'kernels',
     'bench:pipeline': 'inference',
     'bench:system': 'system',
     'correctness': 'kernels',  // Renamed: correctness -> kernels
   };
-  return /** @type {import('./helpers/types.js').SuiteType} */ (legacyMap[suite] || suite);
+  return  (legacyMap[suite] || suite);
 }
 
-/**
- * @returns {void}
- */
+
 function printHelp() {
   console.log(`
 DOPPLER CLI - Test, Benchmark, Debug
@@ -477,12 +422,7 @@ Notes:
 // Correctness Tests
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @param {readonly string[]} tests
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runCorrectnessTests(page, opts, tests) {
   console.log('\n' + '='.repeat(60));
   console.log('KERNEL CORRECTNESS TESTS');
@@ -499,7 +439,7 @@ async function runCorrectnessTests(page, opts, tests) {
   // Try manual GPU init via testHarness.getGPU() if needed.
   try {
     await page.evaluate(async () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       if (!w.gpuReady && w.testHarness?.getGPU) {
         await w.testHarness.getGPU();
         w.gpuReady = true;
@@ -511,7 +451,7 @@ async function runCorrectnessTests(page, opts, tests) {
 
   await page.waitForFunction(
     () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       if (w.gpuError) {
         throw new Error(`WebGPU init failed: ${w.gpuError}`);
       }
@@ -520,7 +460,7 @@ async function runCorrectnessTests(page, opts, tests) {
     { timeout: 30000 }
   );
 
-  /** @type {import('./helpers/types.js').TestResult[]} */
+  
   const results = [];
   const startTime = Date.now();
 
@@ -535,7 +475,7 @@ async function runCorrectnessTests(page, opts, tests) {
     try {
       const result = await page.evaluate(
         async (name) => {
-          const harness = /** @type {any} */ (window).testHarness;
+          const harness =  (window).testHarness;
           const gpu = await harness.getGPU();
           const refs = harness.references;
 
@@ -803,9 +743,9 @@ async function runCorrectnessTests(page, opts, tests) {
               const gpuResult = await harness.runSoftmaxTopK(gpu.device, logits, numTokens, numExperts, topK);
               let passed = true;
               for (let t = 0; t < numTokens; t++) {
-                /** @type {Set<number>} */
+                
                 const refSet = new Set();
-                /** @type {Set<number>} */
+                
                 const gpuSet = new Set();
                 for (let k = 0; k < topK; k++) {
                   refSet.add(ref.indices[t * topK + k]);
@@ -894,7 +834,7 @@ async function runCorrectnessTests(page, opts, tests) {
               // Compare results (allow larger tolerance for F16 precision)
               let maxError = 0;
               let maxErrorIdx = -1;
-              /** @type {Array<{i: number; expected: number; actual: number; err: number}>} */
+              
               const sampleErrors = [];
               for (let i = 0; i < expected.length; i++) {
                 const err = Math.abs(gpuResult[i] - expected[i]);
@@ -965,7 +905,7 @@ async function runCorrectnessTests(page, opts, tests) {
               let maxError = 0;
               let maxErrorIdx = -1;
               let hasNaN = false;
-              /** @type {Array<{i: number; expected: number; actual: number; err: number}>} */
+              
               const sampleErrors = [];
               for (let i = 0; i < refC.length; i++) {
                 if (isNaN(gpuC[i])) hasNaN = true;
@@ -1118,10 +1058,10 @@ async function runCorrectnessTests(page, opts, tests) {
         name: testName,
         passed: false,
         duration,
-        error: /** @type {Error} */ (err).message,
+        error:  (err).message,
       });
       console.log(`  \x1b[31mFAIL\x1b[0m ${testName} (${duration}ms)`);
-      console.log(`    Error: ${/** @type {Error} */ (err).message}`);
+      console.log(`    Error: ${ (err).message}`);
     }
   }
 
@@ -1139,12 +1079,7 @@ async function runCorrectnessTests(page, opts, tests) {
   };
 }
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @param {readonly string[]} tests
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runTrainingTests(page, opts, tests) {
   console.log('\n' + '='.repeat(60));
   console.log('TRAINING CORRECTNESS TESTS');
@@ -1158,13 +1093,13 @@ async function runTrainingTests(page, opts, tests) {
 
   await page.waitForFunction(
     () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       return Boolean(w.trainingHarness);
     },
     { timeout: 30000 }
   );
 
-  /** @type {import('./helpers/types.js').TestResult[]} */
+  
   const results = [];
   const startTime = Date.now();
 
@@ -1179,7 +1114,7 @@ async function runTrainingTests(page, opts, tests) {
     try {
       const result = await page.evaluate(
         async (name) => {
-          const harness = /** @type {any} */ (window).trainingHarness;
+          const harness =  (window).trainingHarness;
           if (harness?.getGPU) {
             await harness.getGPU();
           }
@@ -1224,8 +1159,8 @@ async function runTrainingTests(page, opts, tests) {
     console.log(`\nResults written to ${outputPath}`);
   }
 
-  if (await page.evaluate(() => /** @type {any} */ (window).renderResults)) {
-    await page.evaluate((res) => /** @type {any} */ (window).renderResults(res), results);
+  if (await page.evaluate(() =>  (window).renderResults)) {
+    await page.evaluate((res) =>  (window).renderResults(res), results);
   }
 
   return {
@@ -1242,11 +1177,7 @@ async function runTrainingTests(page, opts, tests) {
 // Kernel Benchmarks
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runKernelBenchmarks(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('KERNEL BENCHMARKS');
@@ -1259,7 +1190,7 @@ async function runKernelBenchmarks(page, opts) {
   const benchmarkRun = runtimeConfig.shared.benchmark.run;
 
   await page.addInitScript(() => {
-    /** @type {{ __name?: (target: unknown, name?: string) => unknown }} */
+    
     (window).__name = (target) => target;
   });
 
@@ -1268,11 +1199,11 @@ async function runKernelBenchmarks(page, opts) {
   });
 
   await page.waitForFunction(
-    () => /** @type {any} */ (window).testHarness && /** @type {any} */ (window).testHarness.references,
+    () =>  (window).testHarness &&  (window).testHarness.references,
     { timeout: 10000 }
   );
 
-  /** @type {import('./helpers/types.js').TestResult[]} */
+  
   const results = [];
   const startTime = Date.now();
 
@@ -1289,10 +1220,10 @@ async function runKernelBenchmarks(page, opts) {
           // esbuild may inject __name helpers into evaluated bundles; define a no-op shim.
           const __name = (target) => target;
           const { name, warmup, runs } = config;
-          const harness = /** @type {any} */ (window).testHarness;
+          const harness =  (window).testHarness;
           const gpu = await harness.getGPU();
 
-          /** @type {Record<string, () => Promise<void>>} */
+          
           const benchmarks = {
             matmul: async () => {
               const M = 1, N = 4096, K = 4096;
@@ -1343,7 +1274,7 @@ async function runKernelBenchmarks(page, opts) {
             await gpu.device.queue.onSubmittedWorkDone();
           }
 
-          /** @type {number[]} */
+          
           const times = [];
           for (let i = 0; i < runs; i++) {
             const start = performance.now();
@@ -1388,9 +1319,9 @@ async function runKernelBenchmarks(page, opts) {
         name: benchName,
         passed: false,
         duration: 0,
-        error: /** @type {Error} */ (err).message,
+        error:  (err).message,
       });
-      console.log(`  \x1b[31mFAIL\x1b[0m ${benchName}: ${/** @type {Error} */ (err).message}`);
+      console.log(`  \x1b[31mFAIL\x1b[0m ${benchName}: ${ (err).message}`);
     }
   }
 
@@ -1410,11 +1341,7 @@ async function runKernelBenchmarks(page, opts) {
 // Inference Test (Quick)
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runInferenceTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('INFERENCE TEST');
@@ -1436,19 +1363,19 @@ async function runInferenceTest(page, opts) {
   try {
     await page.waitForFunction(
       () => {
-        const state = /** @type {any} */ (window).testState;
+        const state =  (window).testState;
         return state && state.done === true;
       },
       { timeout: opts.timeout }
     );
 
-    const testState = await page.evaluate(() => /** @type {any} */ (window).testState);
+    const testState = await page.evaluate(() =>  (window).testState);
     const duration = Date.now() - startTime;
 
     const passed = testState.loaded && testState.tokens?.length > 0 && testState.errors?.length === 0;
 
     if (passed) {
-      const output = /** @type {string} */ (testState.output || '');
+      const output =  (testState.output || '');
       const outputPreview = output.slice(0, 100);
       const outputLabel = outputPreview.trim().length === 0
         ? '<empty>'
@@ -1482,7 +1409,7 @@ async function runInferenceTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'inference',
@@ -1495,7 +1422,7 @@ async function runInferenceTest(page, opts) {
           name: `inference:${opts.model}`,
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };
@@ -1506,11 +1433,7 @@ async function runInferenceTest(page, opts) {
 // Demo UI Test
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runDemoTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('DEMO UI TEST');
@@ -1525,9 +1448,9 @@ async function runDemoTest(page, opts) {
   const followupPrompt = 'and at night?';
 
   const startTime = Date.now();
-  /** @type {string[]} */
+  
   const errors = [];
-  /** @type {string[]} */
+  
   const logs = [];
 
   // Good/bad token patterns for quality analysis
@@ -1573,7 +1496,7 @@ async function runDemoTest(page, opts) {
       for (const btn of buttons) {
         const text = btn.textContent?.toLowerCase() || '';
         if (text.includes(modelPattern.toLowerCase())) {
-          /** @type {HTMLElement} */ (btn).click();
+           (btn).click();
           return true;
         }
       }
@@ -1588,7 +1511,7 @@ async function runDemoTest(page, opts) {
     console.log('  Step 4: Waiting for model to load...');
     await page.waitForFunction(
       () => {
-        const textarea = /** @type {HTMLTextAreaElement} */ (document.querySelector('#chat-input'));
+        const textarea =  (document.querySelector('#chat-input'));
         return textarea && !textarea.disabled;
       },
       { timeout: 90000 }
@@ -1714,7 +1637,7 @@ async function runDemoTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'demo',
@@ -1727,7 +1650,7 @@ async function runDemoTest(page, opts) {
           name: `demo:${opts.model}`,
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };
@@ -1738,20 +1661,16 @@ async function runDemoTest(page, opts) {
 // Converter UI Test
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runConverterTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('CONVERTER UI TEST');
   console.log('='.repeat(60));
 
   const startTime = Date.now();
-  /** @type {import('./helpers/types.js').TestResult[]} */
+  
   const results = [];
-  /** @type {string[]} */
+  
   const errors = [];
 
   // Setup console capture
@@ -1877,7 +1796,7 @@ async function runConverterTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'converter',
@@ -1890,7 +1809,7 @@ async function runConverterTest(page, opts) {
           name: 'converter-ui',
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };
@@ -1901,11 +1820,7 @@ async function runConverterTest(page, opts) {
 // Simple Pipeline Benchmark (for bench:all)
 // ============================================================================
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./helpers/types.js').CLIOptions} opts
- * @returns {Promise<import('./helpers/types.js').SuiteResult>}
- */
+
 async function runPipelineBenchmark(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('PIPELINE BENCHMARK');
@@ -1946,7 +1861,7 @@ async function runPipelineBenchmark(page, opts) {
   `;
 
   try {
-    const result = /** @type {any} */ (await page.evaluate(script));
+    const result =  (await page.evaluate(script));
 
     console.log(`\n  TTFT: ${result.metrics?.ttft_ms || 'N/A'}ms`);
     console.log(`  Prefill: ${result.metrics?.prefill_tokens_per_sec || 'N/A'} tok/s`);
@@ -1967,7 +1882,7 @@ async function runPipelineBenchmark(page, opts) {
       ],
     };
   } catch (err) {
-    console.log(`  \x1b[31mFAIL\x1b[0m: ${/** @type {Error} */ (err).message}`);
+    console.log(`  \x1b[31mFAIL\x1b[0m: ${ (err).message}`);
     return {
       suite: 'bench:pipeline',
       passed: 0,
@@ -1979,7 +1894,7 @@ async function runPipelineBenchmark(page, opts) {
           name: 'pipeline',
           passed: false,
           duration: 0,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };
@@ -1990,10 +1905,7 @@ async function runPipelineBenchmark(page, opts) {
 // Summary Formatting
 // ============================================================================
 
-/**
- * @param {import('./helpers/types.js').SuiteResult[]} suites
- * @returns {void}
- */
+
 function printSummary(suites) {
   console.log('\n' + '='.repeat(60));
   console.log('SUMMARY');
@@ -2030,16 +1942,14 @@ function printSummary(suites) {
 // Main
 // ============================================================================
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
-  /** @type {import('./helpers/types.js').CLIOptions} */
+  
   let opts;
   try {
     opts = parseArgs(process.argv.slice(2));
   } catch (err) {
-    console.error(`Error: ${/** @type {Error} */ (err).message}`);
+    console.error(`Error: ${ (err).message}`);
     console.error('Run with --help for usage.');
     process.exit(1);
   }
@@ -2053,12 +1963,12 @@ async function main() {
   if (opts.listPresets) {
     console.log('\nAvailable Config Presets:\n');
     const presets = await listPresets();
-    /** @type {Record<string, typeof presets>} */
+    
     const grouped = presets.reduce((acc, p) => {
       if (!acc[p.source]) acc[p.source] = [];
       acc[p.source].push(p);
       return acc;
-    }, /** @type {Record<string, typeof presets>} */ ({}));
+    },  ({}));
 
     for (const [source, items] of Object.entries(grouped)) {
       console.log(`  ${source.toUpperCase()}:`);
@@ -2077,7 +1987,7 @@ async function main() {
       const loaded = await loadConfig(configRef);
       console.log('\n' + dumpConfig(loaded));
     } catch (err) {
-      console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
+      console.error(`Failed to load config "${configRef}": ${ (err).message}`);
       process.exit(1);
     }
     process.exit(0);
@@ -2092,7 +2002,7 @@ async function main() {
   }
 
   // Load config (default + overrides)
-  /** @type {Awaited<ReturnType<typeof loadConfig>> | null} */
+  
   let loadedConfig = null;
   const configRef = opts.config || opts.mode || 'default';
   const shouldLogConfig = Boolean(opts.config || opts.mode);
@@ -2113,14 +2023,14 @@ async function main() {
     }
 
     // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
-    const cli = /** @type {Record<string, unknown> | undefined} */ (loadedConfig.raw.cli);
+    const cli =  (loadedConfig.raw.cli);
     if (cli) {
       const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
       if (cli.headed && !hasHeadlessFlag) opts.headless = false;
       if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
     }
   } catch (err) {
-    console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
+    console.error(`Failed to load config "${configRef}": ${ (err).message}`);
     process.exit(1);
   }
 
@@ -2178,7 +2088,7 @@ async function main() {
   const scope = opts.perf ? 'bench' : 'test';
   const context = await createBrowserContext(opts, { scope });
   const page = await setupPage(context, opts);
-  /** @type {import('./helpers/types.js').SuiteResult[]} */
+  
   const suites = [];
 
   try {
@@ -2279,7 +2189,7 @@ async function main() {
           formatBenchmarkResult(benchResults);
 
           // Compare against baseline if provided
-          /** @type {any} */
+          
           let baseline = null;
           if (opts.compare) {
             try {
@@ -2317,7 +2227,7 @@ async function main() {
                 process.exit(1);
               }
             } catch (err) {
-              console.error(`\nFailed to load baseline for comparison: ${/** @type {Error} */ (err).message}`);
+              console.error(`\nFailed to load baseline for comparison: ${ (err).message}`);
             }
           }
 
@@ -2370,7 +2280,7 @@ async function main() {
 
           const loadStart = Date.now();
           await page.waitForFunction(
-            () => /** @type {any} */ (window).testState?.loaded === true,
+            () =>  (window).testState?.loaded === true,
             { timeout: opts.timeout }
           );
           const loadDuration = Date.now() - loadStart;
@@ -2463,7 +2373,7 @@ async function main() {
     const hasFailed = suites.some((s) => s.failed > 0);
     process.exit(hasFailed ? 1 : 0);
   } catch (err) {
-    console.error('\nTest runner failed:', /** @type {Error} */ (err).message);
+    console.error('\nTest runner failed:',  (err).message);
     await context.close();
     process.exit(1);
   }

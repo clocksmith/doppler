@@ -1,11 +1,4 @@
-/**
- * Converter Module - Public API
- *
- * This module provides model conversion utilities for transforming
- * GGUF and SafeTensors models into the RDRR format used by DOPPLER.
- *
- * @module converter
- */
+
 
 // Core conversion logic
 export {

@@ -1,10 +1,6 @@
-/**
- * Reference RoPE (Rotary Position Embedding) Implementation
- */
 
-/**
- * Precompute RoPE frequencies
- */
+
+
 export function computeRopeFreqs(dim, maxSeqLen, base = 10000) {
   const halfDim = dim / 2;
   const cos = new Float32Array(maxSeqLen * halfDim);
@@ -22,10 +18,7 @@ export function computeRopeFreqs(dim, maxSeqLen, base = 10000) {
   return { cos, sin };
 }
 
-/**
- * Reference RoPE application
- * Applies rotary position embeddings to Q and K
- */
+
 export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
   const output = new Float32Array(x.length);
   const halfDim = headDim / 2;
@@ -53,10 +46,7 @@ export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
   return output;
 }
 
-/**
- * Alternative RoPE layout (interleaved pairs)
- * Some models use [x0, x1, x2, x3, ...] -> rotate pairs (x0,x1), (x2,x3), ...
- */
+
 export function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
   const output = new Float32Array(x.length);
   const halfDim = headDim / 2;

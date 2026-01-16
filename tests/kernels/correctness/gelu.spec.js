@@ -1,9 +1,4 @@
-/**
- * GELU Kernel Correctness Tests
- *
- * Validates the gelu.wgsl GPU kernel against reference JS implementation.
- * Tests standard GELU and gated GeGLU variants.
- */
+
 
 import { test, expect } from './setup.js';
 

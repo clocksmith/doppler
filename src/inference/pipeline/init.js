@@ -1,16 +1,4 @@
-/**
- * Pipeline initialization - model loading, tokenizer setup, KV cache, RoPE.
- *
- * This module handles all initialization tasks for the inference pipeline:
- * - Loading model manifest and parsing configuration
- * - Initializing tokenizer
- * - Setting up KV cache (standard or sliding window)
- * - Computing RoPE frequency buffers (linear or YARN scaling)
- * - Loading model weights via DopplerLoader
- * - Setting up MoE router if applicable
- *
- * @module inference/pipeline/init
- */
+
 
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
@@ -25,30 +13,22 @@ import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 
-/**
- * @param {unknown} manifest
- * @returns {manifest is import('../../storage/rdrr-format.js').RDRRManifest}
- */
+
 function isRDRRManifest(manifest) {
-  return manifest !== null && typeof manifest === 'object' && Array.isArray(/** @type {any} */ (manifest).shards);
+  return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
 
-/**
- * Resolve Q4K load configuration from runtime/kernel/manifest inputs.
- *
- * @param {import('./config.js').Manifest} manifest
- * @returns {import('../../loader/loader-types.js').Q4KConfig}
- */
+
 function resolveQ4KConfig(manifest) {
   const activeKernelPath = getActiveKernelPath();
   const pathSource = getActiveKernelPathSource();
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
-  const q4kLayout = /** @type {{ q4kLayout?: string } | undefined} */ (manifest?.config)?.q4kLayout;
+  const q4kLayout =  (manifest?.config)?.q4kLayout;
   const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
 
   let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
-  if (typeof window !== 'undefined' && /** @type {{ DOPPLER_DISABLE_FUSED_Q4K?: boolean }} */ (/** @type {unknown} */ (window)).DOPPLER_DISABLE_FUSED_Q4K) {
+  if (typeof window !== 'undefined' &&  ( (window)).DOPPLER_DISABLE_FUSED_Q4K) {
     useFused = false;
   }
   if (q4kLayout === 'column_wise') {
@@ -60,7 +40,7 @@ function resolveQ4KConfig(manifest) {
 
   return {
     useFusedQ4K: useFused,
-    q4kLayout: /** @type {'flat' | 'row_wise' | 'column_wise'} */ (q4kLayout) ?? null,
+    q4kLayout:  (q4kLayout) ?? null,
     keepF32Weights,
   };
 }
@@ -69,18 +49,7 @@ function resolveQ4KConfig(manifest) {
 // RoPE Initialization
 // ============================================================================
 
-/**
- * Compute RoPE cos/sin frequencies for a given theta.
- * Internal helper for initRoPEFrequencies.
- *
- * @param {number} theta
- * @param {number} headDim
- * @param {number} maxSeqLen
- * @param {number} ropeScale
- * @param {string | undefined} ropeScalingType
- * @param {import('./init.js').RoPEConfig['ropeScaling']} ropeScaling
- * @returns {{ cos: Float32Array; sin: Float32Array }}
- */
+
 function computeRoPEFreqsForTheta(theta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling) {
   const halfDim = headDim / 2;
 
@@ -148,18 +117,7 @@ function computeRoPEFreqsForTheta(theta, headDim, maxSeqLen, ropeScale, ropeScal
   return { cos: cosValues, sin: sinValues };
 }
 
-/**
- * Initialize RoPE (Rotary Position Embedding) frequency buffers.
- *
- * Supports:
- * - Linear scaling: Uniform scaling across all dimensions
- * - YARN (Yet Another RoPE eNhancement): Per-dimension scaling based on wavelength
- * - Dual theta: Different RoPE theta for local vs global attention (Gemma 3)
- *
- * @param {import('./init.js').RoPEConfig} config - RoPE configuration
- * @param {boolean} useGPU - Whether to upload to GPU
- * @returns {Promise<import('./init.js').RoPEBuffers>} RoPE frequency buffers (cos and sin, plus localCos/localSin if ropeLocalTheta differs)
- */
+
 export async function initRoPEFrequencies(config, useGPU) {
   const {
     headDim,
@@ -181,7 +139,7 @@ export async function initRoPEFrequencies(config, useGPU) {
 
   // Compute local (sliding_attention) frequencies if different from global
   // Gemma 3 uses 10K for local layers and 1M for global layers
-  /** @type {{ cos: Float32Array; sin: Float32Array } | null} */
+  
   let localFreqs = null;
   if (ropeLocalTheta && ropeLocalTheta !== ropeTheta) {
     localFreqs = computeRoPEFreqsForTheta(
@@ -203,9 +161,9 @@ export async function initRoPEFrequencies(config, useGPU) {
     device.queue.writeBuffer(cosBuffer, 0, globalFreqs.cos.buffer, globalFreqs.cos.byteOffset, globalFreqs.cos.byteLength);
     device.queue.writeBuffer(sinBuffer, 0, globalFreqs.sin.buffer, globalFreqs.sin.byteOffset, globalFreqs.sin.byteLength);
 
-    /** @type {GPUBuffer | undefined} */
+    
     let localCosBuffer;
-    /** @type {GPUBuffer | undefined} */
+    
     let localSinBuffer;
     if (localFreqs) {
       localCosBuffer = acquireBuffer(localFreqs.cos.byteLength, undefined, 'rope_local_cos');
@@ -234,12 +192,7 @@ export async function initRoPEFrequencies(config, useGPU) {
   };
 }
 
-/**
- * Type guard to check if RoPE buffers are GPU buffers.
- *
- * @param {import('./init.js').RoPEBuffers} buffers
- * @returns {buffers is { cos: GPUBuffer; sin: GPUBuffer; localCos?: GPUBuffer; localSin?: GPUBuffer }}
- */
+
 export function isGPURoPEBuffers(buffers) {
   return buffers.cos instanceof GPUBuffer;
 }
@@ -248,15 +201,7 @@ export function isGPURoPEBuffers(buffers) {
 // KV Cache Setup
 // ============================================================================
 
-/**
- * Create and configure KV cache based on model configuration.
- *
- * @param {import('./config.js').ParsedModelConfig} modelConfig - Parsed model configuration
- * @param {boolean} useGPU - Whether GPU is available
- * @param {boolean} [debug] - Debug mode flag
- * @param {import('../../config/schema/index.js').KVCacheConfigSchema} [runtimeConfig]
- * @returns {import('../kv-cache.js').KVCache | import('../kv-cache.js').SlidingWindowKVCache}
- */
+
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
   const runtimeKV = runtimeConfig ?? getRuntimeConfig().inference.kvcache;
   const modelMaxSeqLen = modelConfig.maxSeqLen ?? runtimeKV.maxSeqLen;
@@ -267,7 +212,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     cacheMaxSeqLen = Math.min(cacheMaxSeqLen, runtimeKV.maxSeqLen);
   }
 
-  /** @type {'contiguous' | 'paged'} */
+  
   let cacheLayout = runtimeKV.layout ?? (cacheMaxSeqLen > PAGED_LAYOUT_SEQ_LEN_THRESHOLD ? 'paged' : 'contiguous');
 
   // Sliding-window attention only needs a bounded KV cache
@@ -297,7 +242,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   const hasAttnSoftcapping = attnSoftcap != null && attnSoftcap > 0;
   const forceF32Softcap = runtimeKV.forceF32Softcap === true;
   const forceF32KV = hasAttnSoftcapping && forceF32Softcap;
-  /** @type {'f16' | 'f32'} */
+  
   let kvDtype = runtimeKV.kvDtype;
   if (kvDtype === 'f16' && (!useGPU || !gpuCaps.hasF16)) {
     kvDtype = 'f32';
@@ -309,7 +254,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping}, forceF32Softcap=true)`);
   }
 
-  /** @type {import('./init.js').KVCacheConfig} */
+  
   const cacheConfig = {
     numLayers: modelConfig.numLayers,
     numHeads: modelConfig.numKVHeads || modelConfig.numHeads,
@@ -321,7 +266,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     pageSize: runtimeKV.pageSize,
   };
 
-  /** @type {import('../kv-cache.js').KVCache | import('../kv-cache.js').SlidingWindowKVCache} */
+  
   let kvCache;
 
   if (modelConfig.slidingWindow) {
@@ -345,13 +290,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 // Tokenizer Setup
 // ============================================================================
 
-/**
- * Initialize tokenizer from manifest.
- *
- * @param {import('./config.js').Manifest & import('../tokenizer.js').ModelManifest} manifest - Model manifest
- * @param {string} [baseUrl] - Base URL for loading tokenizer.json
- * @returns {Promise<import('../tokenizer.js').Tokenizer>}
- */
+
 export async function initTokenizer(manifest, baseUrl) {
   const tokenizer = new Tokenizer();
   await tokenizer.initialize(manifest, { baseUrl });
@@ -362,14 +301,7 @@ export async function initTokenizer(manifest, baseUrl) {
 // Weight Loading
 // ============================================================================
 
-/**
- * Load model weights via DopplerLoader.
- *
- * @param {import('./config.js').Manifest} manifest - Model manifest
- * @param {import('./config.js').ParsedModelConfig} modelConfig - Parsed model configuration
- * @param {import('./init.js').LoadWeightsOptions} [options] - Load options
- * @returns {Promise<import('./init.js').WeightLoadResult>}
- */
+
 export async function loadWeights(manifest, modelConfig, options = {}) {
   const { storageContext, onProgress, verifyHashes = false, loadingConfig, baseUrl } = options;
 
@@ -388,10 +320,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   // Configure custom shard loader if provided (Native Bridge)
   if (storageContext?.loadShard) {
     log.debug('Pipeline', 'Using custom shard loader (Native Bridge or external)');
-    /**
-     * @param {number} index
-     * @returns {Promise<Uint8Array>}
-     */
+    
     const loadShard = async (index) => {
       const data = await storageContext.loadShard(index);
       return data instanceof Uint8Array ? data : new Uint8Array(data);
@@ -420,7 +349,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   });
 
   // Map layer weights
-  /** @type {Map<string, import('./types.js').LayerWeights>} */
+  
   const layerWeights = new Map();
   for (let l = 0; l < modelConfig.numLayers; l++) {
     const weights = dopplerLoader.getLayerWeights(l);
@@ -430,7 +359,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
 
   // Collect per-layer router weights for MoE
-  /** @type {Map<number, import('./types.js').RouterWeights>} */
+  
   const layerRouterWeights = new Map();
   if (modelConfig.useMoE) {
     for (let l = 0; l < modelConfig.numLayers; l++) {
@@ -458,57 +387,24 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 // Chat Templates
 // ============================================================================
 
-/**
- * Apply Gemma chat template to a prompt.
- *
- * Format: <start_of_turn>user\n{prompt}<end_of_turn>\n<start_of_turn>model\n
- * Note: BOS token (2) is added by tokenizer.
- *
- * @param {string} prompt - Raw user prompt
- * @returns {string} Formatted prompt with chat template
- */
+
 export function applyGemmaChatTemplate(prompt) {
   const userTurn = `<start_of_turn>user\n${prompt}<end_of_turn>\n`;
   const modelTurn = `<start_of_turn>model\n`;
   return userTurn + modelTurn;
 }
 
-/**
- * Apply Llama 3 chat template to a prompt.
- *
- * Format: <|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n
- * Note: BOS token is included as <|begin_of_text|>
- *
- * @param {string} prompt - Raw user prompt
- * @returns {string} Formatted prompt with chat template
- */
+
 export function applyLlama3ChatTemplate(prompt) {
   return `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`;
 }
 
-/**
- * Apply GPT-OSS chat template to a prompt.
- *
- * Format: <|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>final<|message|>
- *
- * The model expects specific channels (analysis, commentary, final).
- * For basic completion, we use the 'final' channel which produces visible output.
- *
- * @param {string} prompt - Raw user prompt
- * @returns {string} Formatted prompt with chat template
- */
+
 export function applyGptOssChatTemplate(prompt) {
   return `<|start|>user<|message|>${prompt}<|end|><|start|>assistant<|channel|>final<|message|>`;
 }
 
-/**
- * Apply chat template based on template type from config.
- * This is the config-driven entry point for chat templates.
- *
- * @param {string} prompt - Raw user prompt
- * @param {string | null | undefined} templateType - Template type from preset config ('gemma', 'llama3', 'gpt-oss', or null)
- * @returns {string} Formatted prompt (or original if no template type)
- */
+
 export function applyChatTemplate(prompt, templateType) {
   switch (templateType) {
     case 'gemma':
@@ -522,14 +418,7 @@ export function applyChatTemplate(prompt, templateType) {
   }
 }
 
-/**
- * Check if a token is a stop token.
- *
- * @param {number} token - Token ID to check
- * @param {number[]} stopTokenIds - Configured stop token IDs
- * @param {number} [eosTokenId] - EOS token from tokenizer
- * @returns {boolean} True if token should stop generation
- */
+
 export function isStopToken(token, stopTokenIds, eosTokenId) {
   if (stopTokenIds.includes(token)) return true;
   if (typeof eosTokenId === 'number' && token === eosTokenId) return true;
@@ -540,13 +429,7 @@ export function isStopToken(token, stopTokenIds, eosTokenId) {
 // MoE Router Setup
 // ============================================================================
 
-/**
- * Initialize MoE router if model uses Mixture of Experts.
- *
- * @param {import('./config.js').ParsedModelConfig} modelConfig - Parsed model configuration
- * @param {Map<string, import('./types.js').LayerWeights>} layerWeights - Layer weights map
- * @returns {import('../moe-router.js').MoERouter | null} MoE router or null if not MoE model
- */
+
 export function initMoERouter(modelConfig, layerWeights) {
   if (!modelConfig.useMoE) return null;
 
@@ -574,12 +457,7 @@ export function initMoERouter(modelConfig, layerWeights) {
 // Speculative Decoder Setup
 // ============================================================================
 
-/**
- * Initialize speculative decoder if draft model is available.
- *
- * @param {import('./config.js').Manifest} manifest - Model manifest
- * @returns {import('../speculative.js').SpeculativeDecoder | null} Speculative decoder or null if no draft model
- */
+
 export function initSpeculativeDecoder(manifest) {
   if (!manifest.draftModel) return null;
 
@@ -592,15 +470,7 @@ export function initSpeculativeDecoder(manifest) {
 // QKV Fusion
 // ============================================================================
 
-/**
- * Fuse Q/K/V projection weights into a single QKV weight for optimized inference.
- *
- * This enables 3→1 matmul fusion: instead of 3 separate matmuls for Q, K, V projections,
- * we do one larger matmul and split the output. This saves 2 dispatch barriers.
- *
- * @param {Map<string, import('./types.js').LayerWeights>} layerWeights - Layer weights map
- * @param {import('./config.js').ParsedModelConfig} modelConfig - Parsed model configuration
- */
+
 export function fuseQKVWeights(layerWeights, modelConfig) {
   const device = getDevice();
   if (!device) {

@@ -1,16 +1,8 @@
-/**
- * Inference benchmark runner (Playwright + browser harness).
- *
- * Uses a persistent Playwright profile to keep OPFS state between runs.
- */
+
 
 import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLocalDopplerRoutes } from './utils.js';
 
-/**
- * @param {import('./types.js').CLIOptions} opts
- * @param {string} modelPath
- * @returns {string}
- */
+
 function buildBenchmarkScript(opts, modelPath) {
   const runtimeConfig = opts.runtimeConfig;
   if (!runtimeConfig) {
@@ -21,7 +13,7 @@ function buildBenchmarkScript(opts, modelPath) {
   const customPrompt = benchmarkRun.customPrompt;
   const promptName = customPrompt ? 'custom' : benchmarkRun.promptName;
 
-  /** @type {Record<string, unknown>} */
+  
   const configObj = {
     modelPath,
     promptName,
@@ -93,10 +85,7 @@ function buildBenchmarkScript(opts, modelPath) {
   `;
 }
 
-/**
- * @param {import('./types.js').CLIOptions} opts
- * @returns {Promise<any>}
- */
+
 export async function runFullInferenceBenchmark(opts) {
   await runBenchmarkBuild(opts.verbose);
   if (!opts.noServer) {
@@ -126,7 +115,7 @@ export async function runFullInferenceBenchmark(opts) {
   console.log(`Retries:    ${opts.retries}`);
   console.log(`${'─'.repeat(60)}\n`);
 
-  /** @type {Error | null} */
+  
   let lastError = null;
 
   for (let attempt = 0; attempt <= opts.retries; attempt++) {
@@ -167,7 +156,7 @@ export async function runFullInferenceBenchmark(opts) {
       );
 
       await page.waitForFunction(
-        () => /** @type {any} */ (window).dopplerReady === true,
+        () =>  (window).dopplerReady === true,
         { timeout: 5000 }
       ).catch(() => {});
 
@@ -197,7 +186,7 @@ export async function runFullInferenceBenchmark(opts) {
       await context.close();
       return result;
     } catch (err) {
-      lastError = /** @type {Error} */ (err);
+      lastError =  (err);
       console.error(`\nAttempt ${attempt + 1} failed:`, lastError.message);
       await context.close();
 
@@ -210,10 +199,7 @@ export async function runFullInferenceBenchmark(opts) {
   throw lastError || new Error('Benchmark failed after all retries');
 }
 
-/**
- * @param {any} result
- * @returns {void}
- */
+
 export function formatBenchmarkResult(result) {
   const m = result.metrics;
   const model = result.model?.modelName ?? result.model?.modelId ?? 'unknown';

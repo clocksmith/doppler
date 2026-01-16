@@ -1,10 +1,4 @@
-/**
- * DOPPLER Debug Module - Core Logging Interface
- *
- * Provides structured logging with level filtering and history tracking.
- *
- * @module debug/log
- */
+
 
 import {
   LOG_LEVELS,
@@ -19,9 +13,7 @@ import {
 // Internal Helpers
 // ============================================================================
 
-/**
- * Check if logging is enabled for a module at a level.
- */
+
 function shouldLog(module, level) {
   if (level < currentLogLevel) return false;
 
@@ -38,17 +30,13 @@ function shouldLog(module, level) {
   return true;
 }
 
-/**
- * Format a log message with timestamp and module tag.
- */
+
 function formatMessage(module, message) {
   const timestamp = performance.now().toFixed(1);
   return `[${timestamp}ms][${module}] ${message}`;
 }
 
-/**
- * Store log in history for later retrieval.
- */
+
 function storeLog(level, module, message, data) {
   logHistory.push({
     time: Date.now(),
@@ -69,13 +57,9 @@ function storeLog(level, module, message, data) {
 // Logging Interface
 // ============================================================================
 
-/**
- * Main logging interface.
- */
+
 export const log = {
-  /**
-   * Debug level logging (most verbose).
-   */
+  
   debug(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.DEBUG)) return;
     const formatted = formatMessage(module, message);
@@ -87,9 +71,7 @@ export const log = {
     }
   },
 
-  /**
-   * Verbose level logging (detailed operational info).
-   */
+  
   verbose(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.VERBOSE)) return;
     const formatted = formatMessage(module, message);
@@ -101,9 +83,7 @@ export const log = {
     }
   },
 
-  /**
-   * Info level logging (normal operations).
-   */
+  
   info(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.INFO)) return;
     const formatted = formatMessage(module, message);
@@ -115,9 +95,7 @@ export const log = {
     }
   },
 
-  /**
-   * Warning level logging.
-   */
+  
   warn(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.WARN)) return;
     const formatted = formatMessage(module, message);
@@ -129,9 +107,7 @@ export const log = {
     }
   },
 
-  /**
-   * Error level logging.
-   */
+  
   error(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.ERROR)) return;
     const formatted = formatMessage(module, message);
@@ -143,9 +119,7 @@ export const log = {
     }
   },
 
-  /**
-   * Always log regardless of level (for critical messages).
-   */
+  
   always(module, message, data) {
     const formatted = formatMessage(module, message);
     storeLog('ALWAYS', module, message, data);

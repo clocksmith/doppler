@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-/**
- * Kernel path benchmark grid runner.
- *
- * Runs `npm run bench -- inference` sequentially across kernel paths
- * and summarizes TTFT/prefill/decode throughput from saved JSON output.
- */
+
 
 import { readdir, readFile, writeFile, mkdir } from 'fs/promises';
 import { join, resolve } from 'path';
@@ -259,7 +254,7 @@ async function main() {
     const manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
     modelWeightType = normalizeWeightTag(manifest?.quantizationInfo?.weights || manifest?.quantization);
   } catch (err) {
-    console.warn(`Warning: Failed to read manifest at ${manifestPath}: ${/** @type {Error} */ (err).message}`);
+    console.warn(`Warning: Failed to read manifest at ${manifestPath}: ${ (err).message}`);
   }
 
   const filteredKernelIds = kernelIds.filter((id) => {

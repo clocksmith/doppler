@@ -1,15 +1,4 @@
-/**
- * pipeline.ts - Main Inference Pipeline (Thin Orchestrator)
- *
- * This module orchestrates inference by delegating to specialized modules:
- * - state.ts: Holds model configuration, weights, and runtime state
- * - generator.ts: Handles token generation loops and decoding
- * - init.ts: Initialization, weight loading, KV cache, RoPE
- *
- * The pipeline maintains state and coordinates the flow from input tokens to generated output.
- *
- * @module inference/pipeline
- */
+
 
 import { getDevice } from '../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
@@ -42,37 +31,21 @@ import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { resolveLayerPipeline } from './pipeline/layer-plan.js';
 import { getDopplerLoader } from '../loader/doppler-loader.js';
 
-/**
- * @typedef {import('../config/kernel-path-loader.js').KernelPathSource} KernelPathSource
- * @typedef {import('../config/schema/index.js').KernelPathRef} KernelPathRef
- * @typedef {import('../config/schema/index.js').ModelInferenceOverrides} ModelInferenceOverrides
- * @typedef {import('./pipeline/types.js').GenerateOptions} GenerateOptions
- * @typedef {import('./pipeline/types.js').KVCacheSnapshot} KVCacheSnapshot
- * @typedef {import('./pipeline/types.js').LayerWeights} LayerWeights
- * @typedef {import('./pipeline/types.js').ExpertWeights} ExpertWeights
- * @typedef {import('./pipeline/types.js').RouterWeights} RouterWeights
- * @typedef {import('./pipeline/types.js').GenerationResult} GenerationResult
- * @typedef {import('./pipeline/types.js').PipelineStats} PipelineStats
- * @typedef {import('./pipeline/types.js').BatchingStats} BatchingStats
- * @typedef {import('./pipeline/lora.js').LoRAAdapter} LoRAAdapter
- * @typedef {import('./pipeline/init.js').PipelineContexts} PipelineContexts
- * @typedef {import('./pipeline/init.js').WeightLoadResult} WeightLoadResult
- * @typedef {import('./pipeline/config.js').Manifest} Manifest
- */
+
 
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================
 
 export class InferencePipeline extends PipelineState {
-  /** @type {PipelineGenerator} */
+  
   generator;
 
   // Progress callback
-  /** @type {((progress: { percent: number; message?: string; stage?: string; layer?: number; total?: number }) => void) | null} */
+  
   _onProgress = null;
 
-  /** @type {WeightLoadResult | null} */
+  
   _preloadedWeights = null;
 
   constructor() {
@@ -85,10 +58,7 @@ export class InferencePipeline extends PipelineState {
   // Initialization
   // ==========================================================================
 
-  /**
-   * @param {PipelineContexts} [contexts={}]
-   * @returns {Promise<void>}
-   */
+  
   async initialize(contexts = {}) {
     if (contexts.runtimeConfig) {
       this.runtimeConfig = setRuntimeConfig(contexts.runtimeConfig);
@@ -119,14 +89,11 @@ export class InferencePipeline extends PipelineState {
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
   }
 
-  /**
-   * @param {Manifest} manifest
-   * @returns {Promise<void>}
-   */
+  
   async loadModel(manifest) {
     this.manifest = manifest;
     // Pass runtime model overrides to merge with manifest inference config
-    const modelOverrides = /** @type {ModelInferenceOverrides | undefined} */ (this.runtimeConfig.inference.modelOverrides);
+    const modelOverrides =  (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
     this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
@@ -134,12 +101,12 @@ export class InferencePipeline extends PipelineState {
 
     // Kernel path resolution
     log.debug('Pipeline', `kernelPath sources: runtime=${this.runtimeKernelPath}, config=${this.runtimeConfig.inference.kernelPath}, model=${this.modelConfig.kernelPath}`);
-    /** @type {KernelPathSource} */
+    
     let kernelPathSource = 'none';
     const kernelPathRef = this.runtimeKernelPath
       ?? this.runtimeConfig.inference.kernelPath
       ?? this.modelConfig.kernelPath
-      ?? /** @type {{ kernelPath?: KernelPathRef } | undefined} */ (manifest.optimizations)?.kernelPath;
+      ??  (manifest.optimizations)?.kernelPath;
     this.resolvedKernelPath = null;
 
     if (kernelPathRef) {
@@ -156,7 +123,7 @@ export class InferencePipeline extends PipelineState {
         log.info('Pipeline', `KernelPath: ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels)`);
       } catch (e) {
         this.resolvedKernelPath = null;
-        log.warn('Pipeline', `Failed to resolve kernel path '${kernelPathRef}': ${/** @type {Error} */ (e).message}`);
+        log.warn('Pipeline', `Failed to resolve kernel path '${kernelPathRef}': ${ (e).message}`);
       }
     } else {
       log.info('Pipeline', 'KernelPath: none (no kernel path configured)');
@@ -243,19 +210,16 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', 'Model loaded successfully');
   }
 
-  /**
-   * @returns {Promise<void>}
-   * @private
-   */
+  
   async _loadWeights() {
     const result = this._preloadedWeights || await loadWeights(
-      /** @type {Manifest} */ (this.manifest),
-      /** @type {import('./pipeline/config.js').ModelConfig} */ (this.modelConfig),
+       (this.manifest),
+       (this.modelConfig),
       {
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
         baseUrl: this.baseUrl ?? undefined,
-        onProgress: (/** @type {{ stage: string; progress: number; message?: string; layer?: number; total?: number; shard?: number; totalShards?: number }} */ info) => {
+        onProgress: ( info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
           }
@@ -282,8 +246,8 @@ export class InferencePipeline extends PipelineState {
 
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
-    if (/** @type {import('./pipeline/config.js').ModelConfig} */ (this.modelConfig).useMoE && this.moeRouter) {
-      this.moeRouter = initMoERouter(/** @type {import('./pipeline/config.js').ModelConfig} */ (this.modelConfig), result.layerWeights);
+    if ( (this.modelConfig).useMoE && this.moeRouter) {
+      this.moeRouter = initMoERouter( (this.modelConfig), result.layerWeights);
     }
 
     if (this.useGPU && this.modelConfig) {
@@ -300,20 +264,14 @@ export class InferencePipeline extends PipelineState {
     }
   }
 
-  /**
-   * @param {WeightLoadResult} weights
-   * @returns {void}
-   */
+  
   setPreloadedWeights(weights) {
     this._preloadedWeights = weights;
   }
 
-  /**
-   * @returns {Promise<void>}
-   * @private
-   */
+  
   async _initRoPE() {
-    const config = /** @type {import('./pipeline/config.js').ModelConfig} */ (this.modelConfig);
+    const config =  (this.modelConfig);
     const maxSeqLen = config.maxSeqLen ?? this.runtimeConfig.inference.kvcache.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.headDim,
@@ -330,10 +288,7 @@ export class InferencePipeline extends PipelineState {
     this.ropeLocalSin = ropeBuffers.localSin ?? null;
   }
 
-  /**
-   * @returns {void}
-   * @private
-   */
+  
   _resolveLayerPipeline() {
     if (!this.modelConfig) return;
     const runtimePlan = this.runtimeConfig.inference.pipeline ?? null;
@@ -351,28 +306,17 @@ export class InferencePipeline extends PipelineState {
   // Generation Delegates
   // ==========================================================================
 
-  /**
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {AsyncGenerator<string, void, void>}
-   */
+  
   generate(prompt, options = {}) {
     return this.generator.generate(prompt, options);
   }
 
-  /**
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {Promise<KVCacheSnapshot>}
-   */
+  
   prefillKVOnly(prompt, options = {}) {
     return this.generator.prefillKVOnly(prompt, options);
   }
 
-  /**
-   * @param {KVCacheSnapshot} snapshot
-   * @returns {void}
-   */
+  
   applyKVCacheSnapshot(snapshot) {
     this.kvCache = snapshot.cache.clone();
     if (this.useGPU && this.kvCache) {
@@ -384,12 +328,7 @@ export class InferencePipeline extends PipelineState {
     this.currentSeqLen = snapshot.seqLen;
   }
 
-  /**
-   * @param {KVCacheSnapshot} prefix
-   * @param {string} prompt
-   * @param {GenerateOptions} [options={}]
-   * @returns {AsyncGenerator<string, void, void>}
-   */
+  
   generateWithPrefixKV(prefix, prompt, options = {}) {
     return this.generator.generateWithPrefixKV(prefix, prompt, options);
   }
@@ -398,25 +337,19 @@ export class InferencePipeline extends PipelineState {
   // Utility Methods
   // ==========================================================================
 
-  /**
-   * @returns {PipelineStats}
-   */
+  
   getStats() {
     return { ...this.stats };
   }
 
-  /**
-   * @returns {BatchingStats}
-   */
+  
   getBatchingStats() {
     return { ...this.batchingStats };
   }
 
-  /**
-   * @returns {{ used: number; pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number }; kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number } }}
-   */
+  
   getMemoryStats() {
-    /** @type {{ used: number; pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number }; kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number } }} */
+    
     const stats = { used: 0 };
 
     try {
@@ -436,18 +369,14 @@ export class InferencePipeline extends PipelineState {
     return stats;
   }
 
-  /**
-   * @returns {{ seqLen: number; maxSeqLen: number } | null}
-   */
+  
   getKVCacheStats() {
     if (!this.kvCache) return null;
     const { seqLen, maxSeqLen } = this.kvCache.getMemoryStats();
     return { seqLen, maxSeqLen };
   }
 
-  /**
-   * @returns {ReturnType<typeof getGlobalBufferPool> | null}
-   */
+  
   getBufferPool() {
     try {
       return getGlobalBufferPool();
@@ -456,9 +385,7 @@ export class InferencePipeline extends PipelineState {
     }
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
+  
   async unload() {
     this.kvCache?.clear();
     this.weights.clear();
@@ -470,24 +397,17 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', 'Unloaded');
   }
 
-  /**
-   * @param {LoRAAdapter | null} adapter
-   * @returns {void}
-   */
+  
   setLoRAAdapter(adapter) {
     this.lora = adapter;
   }
 
-  /**
-   * @returns {LoRAAdapter | null}
-   */
+  
   getActiveLoRA() {
     return this.lora;
   }
 
-  /**
-   * @returns {void}
-   */
+  
   reset() {
     this.kvCache?.clear();
     this.currentSeqLen = 0;
@@ -503,9 +423,7 @@ export class InferencePipeline extends PipelineState {
     this.stats.gpuTimeDecodeMs = undefined;
   }
 
-  /**
-   * @returns {void}
-   */
+  
   releaseGPUResources() {
     this.decodeBuffers?.release();
   }
@@ -515,17 +433,13 @@ export class InferencePipeline extends PipelineState {
 // Factory Function
 // ============================================================================
 
-/**
- * @param {Manifest} manifest
- * @param {PipelineContexts} [contexts={}]
- * @returns {Promise<InferencePipeline>}
- */
+
 export async function createPipeline(manifest, contexts = {}) {
   // Use manifest's quantizationInfo.compute as default activationDtype
   const manifestComputeDtype = manifest.quantizationInfo?.compute;
   const baseRuntimeConfig = contexts.runtimeConfig ?? getRuntimeConfig();
   if (manifestComputeDtype && !contexts.runtimeConfig?.inference?.compute?.activationDtype) {
-    /** @type {Record<string, 'f16' | 'f32'>} */
+    
     const computeToActivation = {
       'f16': 'f16',
       'bf16': 'f16',

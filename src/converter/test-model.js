@@ -1,18 +1,9 @@
-/**
- * Test Model Generator
- *
- * Creates a tiny test model for validation purposes.
- *
- * @module converter/test-model
- */
+
 
 import { RDRRWriter } from './writer.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 
-/**
- * Create a tiny test model with random weights.
- * Useful for testing the conversion pipeline and loader.
- */
+
 export async function createTestModel(outputDir) {
   const hiddenSize = 64;
   const vocabSize = 1000;

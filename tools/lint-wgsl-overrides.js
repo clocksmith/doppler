@@ -3,34 +3,25 @@ import path from 'node:path';
 
 const KERNEL_DIR = path.join(process.cwd(), 'src', 'gpu', 'kernels');
 
-/** @type {Set<string>} */
+
 const WORKGROUP_ARRAY_OVERRIDE_WHITELIST = new Set([
   // Add legacy exceptions here (relative to src/gpu/kernels)
 ]);
 
-/**
- * @param {string} source
- * @returns {string}
- */
+
 function stripComments(source) {
   const withoutBlock = source.replace(/\/\*[\s\S]*?\*\//g, '');
   return withoutBlock.replace(/\/\/.*$/gm, '');
 }
 
-/**
- * @param {string} text
- * @returns {string}
- */
+
 function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * @param {string} statement
- * @returns {string[]}
- */
+
 function findArrayLengths(statement) {
-  /** @type {string[]} */
+  
   const lengths = [];
   for (let i = 0; i < statement.length; i += 1) {
     if (!statement.startsWith('array<', i)) {
@@ -69,14 +60,12 @@ function findArrayLengths(statement) {
   return lengths;
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const files = await fs.readdir(KERNEL_DIR);
   const wgslFiles = files.filter((file) => file.endsWith('.wgsl'));
 
-  /** @type {string[]} */
+  
   const violations = [];
 
   for (const file of wgslFiles) {

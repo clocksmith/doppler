@@ -70,13 +70,7 @@ export {
 
 import { log, isTraceEnabled } from '../../debug/index.js';
 
-/**
- * Create a bind group with optional validation error scope.
- * @param {GPUDevice} device
- * @param {GPUBindGroupDescriptor} descriptor
- * @param {string} contextLabel
- * @returns {Promise<GPUBindGroup>}
- */
+
 export async function createBindGroupWithValidation(device, descriptor, contextLabel) {
   if (!isTraceEnabled('buffers')) {
     return device.createBindGroup(descriptor);

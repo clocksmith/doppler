@@ -1,8 +1,4 @@
-/**
- * Test helpers index
- *
- * @module tests/harness
- */
+
 
 export { DemoPage } from './demo-page.js';
 export { ConsoleCapture } from './console-capture.js';

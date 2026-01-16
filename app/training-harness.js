@@ -40,11 +40,7 @@ function createToyModel(weight) {
 }
 
 function readParams() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    steps: Number.parseInt(params.get('steps') || '5', 10),
-    lr: Number.parseFloat(params.get('lr') || '0.1'),
-  };
+  return { steps: 5, lr: 0.1 };
 }
 
 export async function runTrainingDemo() {

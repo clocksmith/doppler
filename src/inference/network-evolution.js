@@ -1,51 +1,19 @@
-/**
- * Network evolution helpers for multi-model topologies.
- *
- * @module inference/network-evolution
- */
 
-/**
- * @typedef {Object} NetworkNodeGene
- * @property {string} id
- * @property {string} [adapter]
- * @property {number} [temperature]
- */
 
-/**
- * @typedef {Object} NetworkEdgeGene
- * @property {string} from
- * @property {string} to
- * @property {number} weight
- */
 
-/**
- * @typedef {Object} NetworkGenome
- * @property {{ type: 'chain' | 'tree' | 'mesh' | 'dag'; depth?: number; branchingFactor?: number }} topology
- * @property {NetworkNodeGene[]} nodes
- * @property {NetworkEdgeGene[]} edges
- * @property {{ type: 'weighted' | 'voting'; weights?: number[] }} combiner
- */
 
-/**
- * @typedef {Object} EvolutionConfig
- * @property {number} [populationSize]
- * @property {number} [generations]
- * @property {number} [eliteCount]
- * @property {number} [mutationRate]
- * @property {(genome: NetworkGenome) => Promise<number>} evaluate
- * @property {() => NetworkGenome} randomGenome
- */
 
-/**
- * @param {NetworkGenome} genome
- * @param {number} [mutationRate=0.1]
- * @returns {NetworkGenome}
- */
+
+
+
+
+
+
 export const mutateGenome = (genome, mutationRate = 0.1) => {
-  /** @type {NetworkGenome} */
+  
   const mutated = JSON.parse(JSON.stringify(genome));
   if (Math.random() < mutationRate) {
-    /** @type {Array<'chain' | 'tree' | 'mesh' | 'dag'>} */
+    
     const types = ['chain', 'tree', 'mesh', 'dag'];
     mutated.topology.type = types[Math.floor(Math.random() * types.length)];
   }
@@ -65,19 +33,12 @@ export const mutateGenome = (genome, mutationRate = 0.1) => {
   return mutated;
 };
 
-/**
- * @param {NetworkGenome} a
- * @param {NetworkGenome} b
- * @returns {NetworkGenome}
- */
+
 export const crossoverGenome = (a, b) => {
   return Math.random() < 0.5 ? JSON.parse(JSON.stringify(a)) : JSON.parse(JSON.stringify(b));
 };
 
-/**
- * @param {EvolutionConfig} config
- * @returns {Promise<NetworkGenome>}
- */
+
 export async function evolveNetwork(config) {
   const {
     populationSize = 20,
@@ -97,7 +58,7 @@ export async function evolveNetwork(config) {
     scored.sort((a, b) => b.score - a.score);
 
     const elite = scored.slice(0, eliteCount).map((item) => item.genome);
-    /** @type {NetworkGenome[]} */
+    
     const offspring = [];
 
     while (offspring.length < populationSize - eliteCount) {

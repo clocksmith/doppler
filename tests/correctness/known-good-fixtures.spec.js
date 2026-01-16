@@ -1,9 +1,4 @@
-/**
- * Known-good fixture output checksums.
- *
- * Update expected checksums with:
- *   DOPPLER_UPDATE_KNOWN_GOOD=1 npx playwright test -c tests/correctness/playwright.config.js
- */
+
 
 import { test, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'fs';

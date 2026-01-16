@@ -1,22 +1,8 @@
-/**
- * Mixture of Experts (MoE) FFN Operations
- *
- * Handles MoE FFN computations with expert routing and selection.
- *
- * @module inference/pipeline/ffn/moe
- */
+
 
 import { createTensor } from '../../../gpu/tensor.js';
 
-/**
- * Run MoE FFN on GPU.
- * Routes tokens to experts and combines expert outputs.
- * @param {number} layerIdx
- * @param {import('../../../gpu/tensor.js').Tensor} inputTensor
- * @param {number} numTokens
- * @param {import('../types.js').LayerContext} context
- * @returns {Promise<import('../../../gpu/tensor.js').Tensor>}
- */
+
 export async function runMoEFFNGPU(
   layerIdx,
   inputTensor,
@@ -47,7 +33,7 @@ export async function runMoEFFNGPU(
     expertWeights,
     expertLoader,
     layerIdx,
-    /** @type {Map<number, import('../moe-impl.js').LayerRouterWeights> | undefined} */ (layerRouterWeights)
+     (layerRouterWeights)
   );
 
   return createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');

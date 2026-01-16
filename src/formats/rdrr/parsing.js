@@ -1,8 +1,4 @@
-/**
- * RDRR Parsing Functions
- *
- * @module formats/rdrr/parsing
- */
+
 
 import { validateManifest } from './validation.js';
 

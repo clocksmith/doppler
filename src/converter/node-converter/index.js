@@ -1,19 +1,5 @@
 #!/usr/bin/env node
-/**
- * Node.js Model Converter - Convert HuggingFace/GGUF models to RDRR format.
- *
- * Uses config-as-code pattern: model families detected via JSON presets.
- *
- * Usage:
- *   npx tsx converter/node-converter.ts <input> <output> [options]
- *
- * Examples:
- *   npx tsx converter/node-converter.ts ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/HASH/  models/gemma-1b
- *   npx tsx converter/node-converter.ts model.gguf models/my-model --quantize q4_k_m
- *   npx tsx converter/node-converter.ts --test ./test-model  # Create tiny test fixture
- *
- * @module converter/node-converter
- */
+
 
 import { resolve } from 'path';
 import { stat } from 'fs/promises';
@@ -49,11 +35,7 @@ export {
   logConversionError,
 } from './progress.js';
 
-/**
- * Main entry point for the CLI.
- *
- * Parses arguments, detects input format, and runs conversion.
- */
+
 export async function main() {
   const opts = parseArgs(process.argv.slice(2));
 

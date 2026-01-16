@@ -1,18 +1,9 @@
-/**
- * RDRR Writer Utility Functions
- *
- * Hash computation, alignment, and padding utilities.
- *
- * @module converter/writer/utils
- */
+
 
 import { createHash } from 'crypto';
 import { ALIGNMENT } from './types.js';
 
-/**
- * Compute hash of data using specified algorithm.
- * Supports sha256 (default) and blake3.
- */
+
 export async function computeHash(data, algorithm = 'sha256') {
   if (algorithm === 'blake3') {
     try {
@@ -28,26 +19,18 @@ export async function computeHash(data, algorithm = 'sha256') {
   return hash.digest('hex');
 }
 
-/**
- * Align offset to specified boundary.
- * Default alignment is 4KB for optimal disk I/O.
- */
+
 export function alignOffset(offset, alignment = ALIGNMENT) {
   const remainder = offset % alignment;
   return remainder === 0 ? offset : offset + (alignment - remainder);
 }
 
-/**
- * Create zero-filled padding of specified size.
- */
+
 export function createPadding(size) {
   return new Uint8Array(size);
 }
 
-/**
- * Get bytes per element for a given data type.
- * Returns 0 for block-quantized types (no transpose possible).
- */
+
 export function getBytesPerElement(dtype) {
   const dtypeLower = dtype.toLowerCase();
   if (dtypeLower === 'f32' || dtypeLower === 'float32') return 4;
@@ -60,10 +43,7 @@ export function getBytesPerElement(dtype) {
   return 0;
 }
 
-/**
- * Transpose a 2D tensor from [rows, cols] to [cols, rows].
- * Works with any element size by operating on bytes.
- */
+
 export function transpose2D(data, rows, cols, dtype) {
   const bytesPerElement = getBytesPerElement(dtype);
   const result = new Uint8Array(data.length);

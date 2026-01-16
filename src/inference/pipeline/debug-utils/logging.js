@@ -1,14 +1,4 @@
-/**
- * Logging functions for pipeline debug tracing.
- *
- * Provides category-specific logging for each pipeline stage:
- * embedding, layers, attention, FFN, KV cache, logits, sampling, I/O, and performance.
- *
- * Log format: [CATEGORY] message
- * This enables post-filtering: grep -E "^\[LAYER\]|\[ATTN\]"
- *
- * @module inference/pipeline/debug-utils/logging
- */
+
 
 import { log } from '../../../debug/index.js';
 import {
@@ -22,12 +12,7 @@ import {
 // Logging Functions
 // ============================================================================
 
-/**
- * Log embedding info.
- * @param {number[]} tokenIds
- * @param {{ maxAbs?: number; nonZero?: number; total?: number; sample?: number[] }} info
- * @returns {void}
- */
+
 export function logEmbed(tokenIds, info) {
   if (!isEnabled('embed')) return;
 
@@ -44,14 +29,7 @@ export function logEmbed(tokenIds, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log layer entry/exit.
- * @param {number} layerIdx
- * @param {'enter' | 'exit'} phase
- * @param {boolean} isPrefill
- * @param {{ numTokens?: number; maxAbs?: number; sample?: number[] }} info
- * @returns {void}
- */
+
 export function logLayer(layerIdx, phase, isPrefill, info) {
   if (!isEnabled('layer', layerIdx)) return;
 
@@ -73,13 +51,7 @@ export function logLayer(layerIdx, phase, isPrefill, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log attention details.
- * @param {number} layerIdx
- * @param {boolean} isPrefill
- * @param {{ numTokens: number; kvLen: number; startPos?: number; maxAbsQ?: number; maxAbsK?: number; maxAbsV?: number; maxAbsOut?: number }} info
- * @returns {void}
- */
+
 export function logAttn(layerIdx, isPrefill, info) {
   if (!isEnabled('attn', layerIdx)) return;
 
@@ -97,12 +69,7 @@ export function logAttn(layerIdx, isPrefill, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log FFN details.
- * @param {number} layerIdx
- * @param {{ maxAbsGate?: number; maxAbsUp?: number; maxAbsOut?: number }} info
- * @returns {void}
- */
+
 export function logFFN(layerIdx, info) {
   if (!isEnabled('ffn', layerIdx)) return;
 
@@ -115,13 +82,7 @@ export function logFFN(layerIdx, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log KV cache operations.
- * @param {number} layerIdx
- * @param {'write' | 'read' | 'init' | 'clear'} op
- * @param {{ seqLen?: number; kvLen?: number; startPos?: number }} info
- * @returns {void}
- */
+
 export function logKV(layerIdx, op, info) {
   if (!isEnabled('kv', layerIdx)) return;
 
@@ -134,12 +95,7 @@ export function logKV(layerIdx, op, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log logits computation.
- * @param {'prefill' | 'decode'} phase
- * @param {{ min: number; max: number; topK?: Array<{ token: number | string; prob: number; text?: string }> }} info
- * @returns {void}
- */
+
 export function logLogits(phase, info) {
   if (!isEnabled('logits')) return;
 
@@ -158,13 +114,7 @@ export function logLogits(phase, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log sampling decision.
- * @param {number} tokenId
- * @param {string} tokenText
- * @param {{ prob?: number; temperature?: number; topK?: number }} info
- * @returns {void}
- */
+
 export function logSample(tokenId, tokenText, info) {
   if (!isEnabled('sample')) return;
 
@@ -177,13 +127,7 @@ export function logSample(tokenId, tokenText, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Log GPU buffer I/O.
- * @param {'read' | 'write' | 'copy'} op
- * @param {string} label
- * @param {number} bytes
- * @returns {void}
- */
+
 export function logIO(op, label, bytes) {
   if (!isEnabled('io')) return;
 
@@ -192,13 +136,7 @@ export function logIO(op, label, bytes) {
   log.debug('Debug', `${tag} ${op} ${label}: ${kb}KB`);
 }
 
-/**
- * Log performance timing.
- * @param {string} phase
- * @param {number} ms
- * @param {Record<string, number | string>} [extra]
- * @returns {void}
- */
+
 export function logPerf(phase, ms, extra) {
   if (!isEnabled('perf')) return;
 

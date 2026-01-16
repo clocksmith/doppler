@@ -1,11 +1,6 @@
-/**
- * Reference Scatter-Add for MoE Output Combination
- */
 
-/**
- * Reference scatter-add for MoE output combination
- * Combines expert outputs weighted by routing probabilities
- */
+
+
 export function scatterAddRef(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK) {
   const output = new Float32Array(numTokens * hiddenSize);
 
@@ -29,9 +24,7 @@ export function scatterAddRef(expertOutputs, indices, weights, numTokens, hidden
   return output;
 }
 
-/**
- * In-place accumulation variant (adds to existing output)
- */
+
 export function scatterAddAccumulateRef(
   expertOutputs,
   indices,

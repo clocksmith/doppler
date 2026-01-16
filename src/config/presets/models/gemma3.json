@@ -38,6 +38,14 @@
     "chatTemplate": {
       "type": "gemma",
       "enabled": true
+    },
+    "kernelPaths": {
+      "f16": {
+        "f16": "gemma3-f16-f16a"
+      },
+      "q4k": {
+        "f16": "gemma3-q4k-dequant-f16a"
+      }
     }
   },
 

@@ -1,11 +1,4 @@
-/**
- * moe-router.ts - Mixture of Experts Router
- *
- * Implements top-k expert selection for Mixtral-style MoE models.
- * Handles gating network computation and expert selection.
- *
- * @module inference/moe-router
- */
+
 
 import { getDevice } from '../gpu/device.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
@@ -15,69 +8,52 @@ import { createTensor } from '../gpu/tensor.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { f16ToF32Array } from './kv-cache/types.js';
 
-/**
- * @typedef {import('./moe-router.js').MoEConfig} MoEConfig
- * @typedef {import('./moe-router.js').ExpertSelection} ExpertSelection
- * @typedef {import('./moe-router.js').UtilizationStats} UtilizationStats
- */
 
-/**
- * @typedef {Object} GpuContext
- * @property {GPUDevice} device
- */
 
-/**
- * @typedef {Object} LoadBalanceStats
- * @property {Uint32Array} expertCounts
- * @property {number} totalTokens
- */
 
-/**
- * @typedef {Object} ExpertExecutionPlanEntry
- * @property {number[]} tokenIndices
- * @property {Float32Array} weights
- */
+
+
+
+
 
 export class MoERouter {
-  /** @type {number} */
+  
   numExperts;
 
-  /** @type {number} */
+  
   topK;
 
-  /** @type {number} */
+  
   hiddenSize;
 
-  /** @type {boolean} */
+  
   normalizeWeights;
 
-  /** @type {Float32Array | GPUBuffer | null} */
+  
   gateWeight = null;
 
-  /** @type {Float32Array | GPUBuffer | null} */
+  
   gateBias = null;
 
-  /** @type {Set<number>} */
+  
   activeExperts;
 
-  /** @type {LoadBalanceStats} */
+  
   loadBalanceStats;
 
-  /** @type {Map<string, GPUComputePipeline>} */
+  
   _biasAddPipelines = new Map();
 
-  /** @type {GPUBuffer | null} */
+  
   _gateBiasGPU = null;
 
-  /** @type {GPUBuffer | null} */
+  
   _gateWeightGPU = null;
 
-  /** @type {'f16' | 'f32'} */
+  
   lastLogitsDtype = 'f32';
 
-  /**
-   * @param {MoEConfig} config
-   */
+  
   constructor(config) {
     const runtimeDefaults = getRuntimeConfig().inference.moe.routing;
     this.numExperts = config.numExperts || runtimeDefaults.numExperts;
@@ -95,12 +71,7 @@ export class MoERouter {
     };
   }
 
-  /**
-   * Load router gate weights from model
-   * @param {Float32Array | GPUBuffer} weights - Gate weight matrix [hidden_size, num_experts]
-   * @param {Float32Array | GPUBuffer | null} [bias=null] - Optional gate bias vector [num_experts]
-   * @returns {void}
-   */
+  
   loadWeights(weights, bias = null) {
     this.gateWeight = weights;
     this.gateBias = bias;
@@ -109,12 +80,7 @@ export class MoERouter {
     this._gateWeightGPU = null;
   }
 
-  /**
-   * Compute router logits from hidden states (CPU fallback)
-   * @param {Float32Array} hiddenStates - Input tensor [batchSize * seqLen, hiddenSize]
-   * @param {number} numTokens - Number of tokens
-   * @returns {Float32Array} Router logits [numTokens, numExperts]
-   */
+  
   computeRouterLogitsCPU(hiddenStates, numTokens) {
     if (!this.gateWeight) {
       throw new Error('Router gate weights not loaded');
@@ -146,13 +112,7 @@ export class MoERouter {
     return logits;
   }
 
-  /**
-   * Compute router logits using GPU (when available)
-   * @param {GPUBuffer} hiddenStates - Input tensor on GPU [numTokens, hiddenSize]
-   * @param {number} numTokens - Number of tokens
-   * @param {GpuContext | null} [gpuContext=null] - GPU context (optional, uses global device if not provided)
-   * @returns {Promise<GPUBuffer>} Router logits on GPU [numTokens, numExperts]
-   */
+  
   async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext = null, options = {}) {
     const device = gpuContext?.device || getDevice();
     if (!device) {
@@ -175,7 +135,7 @@ export class MoERouter {
         size: gateWeightBuffer.byteLength,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
       });
-      device.queue.writeBuffer(uploaded, 0, /** @type {GPUAllowSharedBufferSource} */ (gateWeightBuffer));
+      device.queue.writeBuffer(uploaded, 0,  (gateWeightBuffer));
       this._gateWeightGPU = uploaded;
       this.gateWeight = uploaded;
       gateWeightBuffer = uploaded;
@@ -213,12 +173,7 @@ export class MoERouter {
     return logitsTensor.buffer;
   }
 
-  /**
-   * Ensure router bias is available as a GPUBuffer.
-   * @param {GPUDevice} device
-   * @returns {Promise<GPUBuffer>}
-   * @private
-   */
+  
   async _getGateBiasBuffer(device) {
     if (this.gateBias instanceof GPUBuffer) return this.gateBias;
     if (this._gateBiasGPU) return this._gateBiasGPU;
@@ -232,21 +187,12 @@ export class MoERouter {
       size: this.gateBias.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(buf, 0, /** @type {GPUAllowSharedBufferSource} */ (this.gateBias));
+    device.queue.writeBuffer(buf, 0,  (this.gateBias));
     this._gateBiasGPU = buf;
     return buf;
   }
 
-  /**
-   * Add per-expert bias to logits in-place.
-   * logits layout: [numTokens, numExperts], bias layout: [numExperts]
-   * @param {GPUBuffer} logits
-   * @param {GPUBuffer} bias
-   * @param {number} numTokens
-   * @param {GPUDevice} device
-   * @returns {Promise<void>}
-   * @private
-   */
+  
   _inferBiasDtype(bias) {
     if (bias instanceof Float32Array) return 'f32';
     if (bias instanceof GPUBuffer) {
@@ -337,12 +283,7 @@ export class MoERouter {
     uniformBuffer.destroy();
   }
 
-  /**
-   * Route tokens using GPU and read back results
-   * @param {GPUBuffer} hiddenStates - Hidden states on GPU
-   * @param {number} numTokens - Number of tokens
-   * @returns {Promise<ExpertSelection[]>} Expert selections for each token
-   */
+  
   async routeGPU(hiddenStates, numTokens) {
     // Compute router logits on GPU
     const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens);
@@ -354,7 +295,7 @@ export class MoERouter {
       ? f16ToF32Array(new Uint16Array(logitsData))
       : new Float32Array(logitsData);
 
-    /** @type {ExpertSelection[]} */
+    
     const selections = [];
     this.activeExperts.clear();
 
@@ -380,12 +321,7 @@ export class MoERouter {
     return selections;
   }
 
-  /**
-   * Apply softmax to logits
-   * @param {Float32Array} logits - Input logits
-   * @param {number} size - Size of softmax dimension
-   * @returns {Float32Array} Softmax probabilities
-   */
+  
   softmax(logits, size) {
     const result = new Float32Array(size);
 
@@ -410,17 +346,13 @@ export class MoERouter {
     return result;
   }
 
-  /**
-   * Select top-k experts for a single token
-   * @param {Float32Array} logits - Router logits for one token [numExperts]
-   * @returns {ExpertSelection} Selected experts with weights
-   */
+  
   selectExpertsForToken(logits) {
     // Apply softmax to get probabilities
     const probs = this.softmax(logits, this.numExperts);
 
     // Find top-k experts
-    /** @type {Array<{ index: number; prob: number }>} */
+    
     const indexed = [];
     for (let i = 0; i < this.numExperts; i++) {
       indexed.push({ index: i, prob: probs[i] });
@@ -449,17 +381,12 @@ export class MoERouter {
     };
   }
 
-  /**
-   * Route a batch of tokens to experts
-   * @param {Float32Array} hiddenStates - Input hidden states [numTokens, hiddenSize]
-   * @param {number} numTokens - Number of tokens
-   * @returns {ExpertSelection[]} Expert selections for each token
-   */
+  
   route(hiddenStates, numTokens) {
     // Compute router logits
     const allLogits = this.computeRouterLogitsCPU(hiddenStates, numTokens);
 
-    /** @type {ExpertSelection[]} */
+    
     const selections = [];
     this.activeExperts.clear();
 
@@ -488,19 +415,12 @@ export class MoERouter {
     return selections;
   }
 
-  /**
-   * Get currently active expert indices
-   * @returns {number[]} Array of active expert indices
-   */
+  
   getActiveExperts() {
     return Array.from(this.activeExperts).sort((a, b) => a - b);
   }
 
-  /**
-   * Compute auxiliary load balancing loss
-   * Used during training to encourage balanced expert utilization.
-   * @returns {number} Load balancing loss value
-   */
+  
   computeLoadBalanceLoss() {
     if (this.loadBalanceStats.totalTokens === 0) return 0;
 
@@ -525,27 +445,21 @@ export class MoERouter {
     return loss * this.numExperts;
   }
 
-  /**
-   * Reset load balancing statistics
-   * @returns {void}
-   */
+  
   resetStats() {
     this.loadBalanceStats.expertCounts.fill(0);
     this.loadBalanceStats.totalTokens = 0;
     this.activeExperts.clear();
   }
 
-  /**
-   * Get expert utilization statistics
-   * @returns {UtilizationStats} Utilization stats per expert
-   */
+  
   getUtilizationStats() {
     const total = this.loadBalanceStats.totalTokens;
     if (total === 0) {
       return { experts: [], totalTokens: 0, loadBalanceLoss: 0 };
     }
 
-    /** @type {Array<{ index: number; count: number; percentage: number }>} */
+    
     const experts = [];
     for (let i = 0; i < this.numExperts; i++) {
       experts.push({
@@ -563,21 +477,14 @@ export class MoERouter {
   }
 }
 
-/**
- * Create a grouped expert execution plan
- * Groups tokens by their selected experts for efficient batched computation
- *
- * @param {ExpertSelection[]} selections - Expert selections for all tokens
- * @param {number} numExperts - Total number of experts
- * @returns {Map<number, ExpertExecutionPlanEntry>} Map of expert index to token indices and weights
- */
+
 export function createExpertExecutionPlan(selections, numExperts) {
-  /** @type {Map<number, ExpertExecutionPlanEntry>} */
+  
   const plan = new Map();
 
   // Initialize empty plans for each expert
   for (let e = 0; e < numExperts; e++) {
-    plan.set(e, { tokenIndices: [], weights: /** @type {Float32Array} */ (/** @type {unknown} */ ([])) });
+    plan.set(e, { tokenIndices: [], weights:  ( ([])) });
   }
 
   // Group tokens by expert
@@ -586,9 +493,9 @@ export function createExpertExecutionPlan(selections, numExperts) {
     for (let k = 0; k < sel.indices.length; k++) {
       const expertIdx = sel.indices[k];
       const weight = sel.weights[k];
-      const entry = /** @type {ExpertExecutionPlanEntry} */ (plan.get(expertIdx));
+      const entry =  (plan.get(expertIdx));
       entry.tokenIndices.push(t);
-      /** @type {number[]} */ (/** @type {unknown} */ (entry.weights)).push(weight);
+       ( (entry.weights)).push(weight);
     }
   }
 
@@ -596,22 +503,14 @@ export function createExpertExecutionPlan(selections, numExperts) {
   for (const [expertIdx, data] of plan) {
     plan.set(expertIdx, {
       tokenIndices: data.tokenIndices,
-      weights: new Float32Array(/** @type {number[]} */ (/** @type {unknown} */ (data.weights)))
+      weights: new Float32Array( ( (data.weights)))
     });
   }
 
   return plan;
 }
 
-/**
- * Combine expert outputs with routing weights
- *
- * @param {Map<number, Float32Array>} expertOutputs - Output from each expert [numTokens, hiddenSize]
- * @param {ExpertSelection[]} selections - Original routing decisions
- * @param {number} numTokens - Number of tokens
- * @param {number} hiddenSize - Hidden dimension
- * @returns {Float32Array} Combined output [numTokens, hiddenSize]
- */
+
 export function combineExpertOutputs(expertOutputs, selections, numTokens, hiddenSize) {
   const output = new Float32Array(numTokens * hiddenSize);
 

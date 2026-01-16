@@ -1,58 +1,33 @@
-/**
- * SentencePiece Tokenizer
- *
- * Pure JavaScript implementation of SentencePiece (protobuf-based model).
- * Supports Unigram and BPE algorithms.
- *
- * @module inference/tokenizers/sentencepiece
- */
+
 
 import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
 
-/**
- * @typedef {Object} VarintResult
- * @property {number} value
- * @property {number} newOffset
- */
 
-/**
- * @typedef {Object} PieceData
- * @property {number} id
- * @property {number} score
- * @property {number} type
- */
 
-/**
- * SentencePiece tokenizer using pure JavaScript implementation
- * For models that provide .model files (protobuf format)
- */
+
+
+
 export class SentencePieceTokenizer extends BaseTokenizer {
-  /** @type {ArrayBuffer | null} */
+  
   #modelData = null;
-  /** @type {Map<string, PieceData>} */
+  
   #pieces = new Map();
-  /** @type {Map<number, string>} */
+  
   #reverseVocab = new Map();
-  /** @type {'unigram' | 'bpe'} */
+  
   #algorithm = 'unigram';
-  /** @type {Map<number, number>} */
+  
   #byteTokens = new Map();
-  /** @type {number} */
+  
   #unkId = 0;
 
-  /**
-   * @param {import('./types.js').TokenizerConfig} [config={}]
-   */
+  
   constructor(config = {}) {
     super(config);
   }
 
-  /**
-   * Load SentencePiece model from ArrayBuffer
-   * @param {ArrayBuffer} modelData
-   * @returns {Promise<void>}
-   */
+  
   async load(modelData) {
     this.#modelData = modelData;
 
@@ -67,12 +42,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
   }
 
-  /**
-   * Parse SentencePiece model protobuf format
-   * SentencePiece uses a simple protobuf schema we can parse manually
-   * @param {ArrayBuffer} buffer
-   * @returns {Promise<void>}
-   */
+  
   async #parseModelProto(buffer) {
     const view = new DataView(buffer);
     const bytes = new Uint8Array(buffer);
@@ -132,10 +102,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     this.#algorithm = hasScores ? 'unigram' : 'bpe';
   }
 
-  /**
-   * Parse a single SentencePiece entry
-   * @param {Uint8Array} bytes
-   */
+  
   #parsePiece(bytes) {
     let offset = 0;
     let piece = '';
@@ -193,16 +160,11 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
   }
 
-  /**
-   * Read a protobuf varint
-   * @param {Uint8Array} bytes
-   * @param {number} offset
-   * @returns {VarintResult}
-   */
+  
   #readVarint(bytes, offset) {
     let value = 0;
     let shift = 0;
-    /** @type {number} */
+    
     let byte;
 
     do {
@@ -217,9 +179,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     return { value, newOffset: offset };
   }
 
-  /**
-   * Initialize byte-level fallback vocabulary
-   */
+  
   #initByteFallback() {
     // Create a basic byte-level vocabulary
     // Special tokens
@@ -242,17 +202,13 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     this.vocabSize = this.#pieces.size;
   }
 
-  /**
-   * Encode text using Unigram or BPE algorithm
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   encode(text) {
     if (!this.#modelData && this.#pieces.size === 0) {
       throw new Error('SentencePiece model not loaded');
     }
 
-    /** @type {number[]} */
+    
     const ids = [];
 
     if (this.addBosToken) {
@@ -276,17 +232,13 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  /**
-   * Unigram encoding using Viterbi algorithm
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   #encodeUnigram(text) {
     const n = text.length;
     if (n === 0) return [];
 
     // Viterbi: best[i] = {score, prev, tokenLen} for position i
-    /** @type {Array<import('./types.js').ViterbiState | null>} */
+    
     const best = new Array(n + 1).fill(null);
     best[0] = { score: 0, prev: -1, tokenLen: 0 };
 
@@ -317,7 +269,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
 
     // Backtrack to get tokens
-    /** @type {number[]} */
+    
     const tokens = [];
     let pos = n;
     while (pos > 0) {
@@ -339,14 +291,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     return tokens.reverse();
   }
 
-  /**
-   * BPE encoding
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   #encodeBPE(text) {
     // Start with character-level tokens
-    /** @type {string[]} */
+    
     let tokens = [];
     for (const char of text) {
       const piece = this.#pieces.get(char);
@@ -364,7 +312,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
 
     // Iteratively merge pairs with highest score
     while (tokens.length > 1) {
-      /** @type {string | null} */
+      
       let bestPair = null;
       let bestScore = -Infinity;
       let bestIndex = -1;
@@ -396,18 +344,13 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     });
   }
 
-  /**
-   * @param {number[]} ids
-   * @param {boolean} [skipSpecialTokens=true]
-   * @param {boolean} [trim=true]
-   * @returns {string}
-   */
+  
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (this.#pieces.size === 0) {
       throw new Error('SentencePiece model not loaded');
     }
 
-    /** @type {string[]} */
+    
     const tokens = [];
     for (const id of ids) {
       if (skipSpecialTokens && this.isSpecialToken(id)) {

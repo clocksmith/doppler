@@ -9,12 +9,7 @@ const EMBEDDING_TENSOR_NAMES = [
   'transformer.wte.weight',
 ];
 
-/**
- * Infer embedding output layout from tensor locations.
- *
- * @param {Map<string, { shape?: number[] }> | Record<string, { shape?: number[] }>} tensorLocations
- * @returns {{ embeddingTranspose: boolean; embeddingVocabSize: number | null } | null}
- */
+
 export function inferEmbeddingOutputConfig(tensorLocations) {
   const getLocation = (name) => {
     if (tensorLocations instanceof Map) {
@@ -38,12 +33,7 @@ export function inferEmbeddingOutputConfig(tensorLocations) {
   return null;
 }
 
-/**
- * Detect whether model scales embeddings by sqrt(hiddenSize).
- *
- * Gemma models (and derivatives like FunctionGemma, CodeGemma) scale embeddings.
- * Detection checks preset name, architecture, and model_type for 'gemma'.
- */
+
 export function detectScaleEmbeddings(preset, config) {
   // Check preset ID (covers gemma2, gemma3, functiongemma, codegemma if they extend gemma)
   if (preset.id?.toLowerCase().includes('gemma')) return true;
@@ -91,13 +81,7 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
   return presetInference?.kernelPath ?? null;
 }
 
-/**
- * Build ManifestInferenceSchema from resolved preset.
- *
- * Extracts inference configuration from the preset and maps it to the
- * manifest schema format. This embeds all model-specific inference
- * parameters in the manifest at conversion time.
- */
+
 export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null) {
   const presetInference = preset.inference || {};
   const presetChatTemplate = presetInference.chatTemplate;

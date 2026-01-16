@@ -1,25 +1,16 @@
-/**
- * GPU Benchmark Harness
- */
+
 
 import { computeSampleStats } from '../../../src/debug/stats.js';
 import { DEFAULT_BENCHMARK_STATS_CONFIG } from '../../../src/config/schema/benchmark.schema.js';
 
-/**
- * Kernel benchmark runner with proper GPU synchronization
- */
+
 export class KernelBenchmark {
   constructor(device) {
     this.device = device;
     this.hasTimestamp = device.features?.has('timestamp-query') || false;
   }
 
-  /**
-   * Run benchmark with warmup and multiple iterations
-   * @param kernelFn Async function that runs the kernel
-   * @param options Benchmark options
-   * @returns Promise resolving to benchmark statistics
-   */
+  
   async runBenchmark(kernelFn, options = {}) {
     const { warmupRuns = 5, timedRuns = 20, label = 'kernel' } = options;
     const warnings = [];
@@ -71,12 +62,7 @@ export class KernelBenchmark {
     return stats;
   }
 
-  /**
-   * Compute statistics from timing samples
-   * @param times Array of timing samples in ms
-   * @param label Benchmark label
-   * @returns Benchmark statistics
-   */
+  
   computeStats(times, label) {
     const warnings = [];
 
@@ -125,12 +111,7 @@ export class KernelBenchmark {
   }
 }
 
-/**
- * Compute theoretical performance metrics
- * @param stats Benchmark statistics
- * @param workload Workload parameters
- * @returns Stats with added metrics
- */
+
 export function computeMetrics(stats, workload) {
   const { elementSize = 4, operation = 'matmul' } = workload;
 
@@ -186,11 +167,7 @@ export function computeMetrics(stats, workload) {
   };
 }
 
-/**
- * Format benchmark results for display
- * @param stats Benchmark statistics
- * @returns Formatted string
- */
+
 export function formatBenchmarkResult(stats) {
   const lines = [
     `${stats.label}:`,
@@ -216,9 +193,7 @@ export function formatBenchmarkResult(stats) {
   return lines.join('\n');
 }
 
-/**
- * Standard benchmark workload configurations
- */
+
 export const BENCHMARK_CONFIGS = {
   matmul: [
     // Decode (single token)

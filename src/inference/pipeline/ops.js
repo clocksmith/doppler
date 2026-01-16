@@ -1,11 +1,4 @@
-/**
- * Kernel Operation Wrappers (Ops)
- *
- * This module provides high-level wrappers around GPU kernels (run/record variants)
- * and handles tensor creation, tracing, and buffer management.
- *
- * @module inference/pipeline/ops
- */
+
 
 import {
   runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
@@ -20,20 +13,12 @@ import {
   recordLayerAttentionGPU,
 } from './attention.js';
 
-/**
- * @param {import('../decode-buffers.js').DecodeBufferManager | null | undefined} decodeBuffers
- * @param {GPUBuffer} buffer
- * @returns {boolean}
- */
+
 export function isDecodeBuffer(decodeBuffers, buffer) {
   return !!decodeBuffers?.ownsBuffer(buffer);
 }
 
-/**
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder | undefined} recorder
- * @param {GPUBuffer} buffer
- * @param {import('../decode-buffers.js').DecodeBufferManager | null} [decodeBuffers]
- */
+
 export function releaseOrTrack(recorder, buffer, decodeBuffers) {
   if (isDecodeBuffer(decodeBuffers, buffer)) {
     return;
@@ -45,16 +30,7 @@ export function releaseOrTrack(recorder, buffer, decodeBuffers) {
   }
 }
 
-/**
- * RMSNorm that uses record variant when recorder is provided.
- * Input and residual are Tensor, returns Tensor.
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {GPUBuffer} weight
- * @param {number} eps
- * @param {{ batchSize: number; hiddenSize: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean }} options
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doRMSNorm(input, weight, eps, options, recorder) {
   const result = recorder
     ? await recordRMSNorm(recorder, input, weight, eps, options)
@@ -70,16 +46,7 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
   return result;
 }
 
-/**
- * ResidualAdd that uses record variant when recorder is provided.
- * Accepts Tensor for inputs, returns Tensor.
- * @param {import('../../gpu/tensor.js').Tensor} a
- * @param {import('../../gpu/tensor.js').Tensor} b
- * @param {number} size
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @param {{ label?: string; layerIdx?: number; outputBuffer?: GPUBuffer | null }} [traceOptions]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doResidualAdd(a, b, size, recorder, traceOptions) {
   const options = traceOptions?.outputBuffer ? { outputBuffer: traceOptions.outputBuffer } : {};
   const result = recorder
@@ -94,18 +61,7 @@ export async function doResidualAdd(a, b, size, recorder, traceOptions) {
   return result;
 }
 
-/**
- * Matmul that uses record variant when recorder is provided.
- * A is activation Tensor, B is weight (GPUBuffer or WeightBuffer), returns Tensor.
- * @param {import('../../gpu/tensor.js').Tensor} A
- * @param {GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer} B
- * @param {number} M
- * @param {number} N
- * @param {number} K
- * @param {{ transposeB?: boolean | 'auto'; label?: string; layerIdx?: number; outputDtype?: 'f16' | 'f32'; role?: string }} [options]
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doMatmul(A, B, M, N, K, options = {}, recorder) {
   const result = recorder
     ? await recordMatmul(recorder, A, B, M, N, K, options)
@@ -121,14 +77,7 @@ export async function doMatmul(A, B, M, N, K, options = {}, recorder) {
   return result;
 }
 
-/**
- * SiLU that uses record variant when recorder is provided.
- * Supports gated variant (SiLU with gate multiplication).
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {{ size?: number; gate?: import('../../gpu/tensor.js').Tensor | null; label?: string; layerIdx?: number }} [options]
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doSiLU(input, options = {}, recorder) {
   const result = recorder
     ? await recordSiLU(recorder, input, options)
@@ -142,14 +91,7 @@ export async function doSiLU(input, options = {}, recorder) {
   return result;
 }
 
-/**
- * GeLU that uses record variant when recorder is provided.
- * Supports gated variant (GeGLU).
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {{ size?: number; gate?: import('../../gpu/tensor.js').Tensor | null; label?: string; layerIdx?: number }} [options]
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doGeLU(input, options = {}, recorder) {
   const result = recorder
     ? await recordGeLU(recorder, input, options)
@@ -163,14 +105,7 @@ export async function doGeLU(input, options = {}, recorder) {
   return result;
 }
 
-/**
- * SiLURowSplit that uses record variant when recorder is provided.
- * Used for fused gate+up FFN path: splits combined output and applies activation.
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {Omit<import('../../gpu/kernel-selector.js').SiLURowSplitOptions, 'activationDtype'> & { label?: string; layerIdx?: number }} options
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doSiLURowSplit(input, options, recorder) {
   const result = recorder
     ? await recordSiLURowSplit(recorder, input, options)
@@ -184,16 +119,7 @@ export async function doSiLURowSplit(input, options, recorder) {
   return result;
 }
 
-/**
- * Fused Matmul + RMSNorm that uses record variant when recorder is provided.
- * Used for down projection + post-FFN norm fusion during decode (M=1).
- * @param {import('../../gpu/tensor.js').Tensor} input
- * @param {GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer} weight
- * @param {GPUBuffer} normWeight
- * @param {{ N: number; K: number; eps: number; residual?: import('../../gpu/tensor.js').Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean }} options
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function doMatmulRMSNormFused(input, weight, normWeight, options, recorder) {
   // The fused kernel takes Tensor input but residual is still GPUBuffer
   const fusedOptions = {
@@ -217,22 +143,7 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
   return resultTensor;
 }
 
-/**
- * Attention that uses record variant when recorder is provided.
- * Input is Tensor for dtype-aware processing.
- * @param {import('../../gpu/tensor.js').Tensor} inputTensor
- * @param {import('./types.js').LayerWeights | null} layerWeights
- * @param {import('./attention.js').AttentionConfig} config
- * @param {import('./attention.js').AttentionState} state
- * @param {boolean} debug
- * @param {import('./attention.js').AttentionDebugFlags} debugFlags
- * @param {(weight: GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer | Float32Array | ArrayBuffer | import('../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer | import('../../gpu/weight-buffer.js').WeightBuffer} getWeightBufferFn
- * @param {(weight: GPUBuffer | Float32Array | ArrayBuffer | import('../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer} getNormWeightBufferFn
- * @param {((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>) | undefined} [debugCheckBuffer]
- * @param {import('../../gpu/kernel-selector.js').CommandRecorder} [recorder]
- * @param {import('./lora.js').LoRAAdapter | null} [lora]
- * @returns {Promise<import('./attention.js').AttentionResult>}
- */
+
 export async function doAttention(
   inputTensor,
   layerWeights,

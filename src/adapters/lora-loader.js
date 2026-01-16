@@ -1,11 +1,4 @@
-/**
- * LoRA adapter loader.
- *
- * Supports JSON manifest with inline tensor data (array or base64),
- * OPFS storage, and URL-based loading for runtime weight deltas.
- *
- * @module adapters/lora-loader
- */
+
 
 import { LORA_MODULE_ALIASES } from '../inference/pipeline/lora.js';
 import { validateManifest } from './adapter-manifest.js';
@@ -15,9 +8,7 @@ import { log } from '../debug/index.js';
 // Helper Functions
 // ============================================================================
 
-/**
- * Parses tensor name following pattern: layer.{N}.{module}.lora_{a|b}
- */
+
 const parseTensorName = (name) => {
   // Match patterns like:
   // - layer.0.q_proj.lora_a
@@ -33,9 +24,7 @@ const parseTensorName = (name) => {
   return { layer, module, kind };
 };
 
-/**
- * Decodes base64 string to Float32Array.
- */
+
 const decodeBase64ToFloat32 = (base64) => {
   let binary;
   if (typeof atob === 'function') {
@@ -52,9 +41,7 @@ const decodeBase64ToFloat32 = (base64) => {
   return new Float32Array(binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength));
 };
 
-/**
- * Converts tensor specification to Float32Array.
- */
+
 const toFloat32Array = async (tensor, options) => {
   if (tensor.data) return new Float32Array(tensor.data);
   if (tensor.base64) return decodeBase64ToFloat32(tensor.base64);
@@ -72,9 +59,7 @@ const toFloat32Array = async (tensor, options) => {
   throw new Error(`LoRA tensor ${tensor.name} missing data`);
 };
 
-/**
- * Validates tensor shape matches data length.
- */
+
 const validateShape = (tensor, data) => {
   const dtype = tensor.dtype || 'f32';
   if (dtype !== 'f32') {
@@ -87,9 +72,7 @@ const validateShape = (tensor, data) => {
   }
 };
 
-/**
- * Computes SHA-256 hash of data.
- */
+
 async function computeSHA256(data) {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
@@ -100,9 +83,7 @@ async function computeSHA256(data) {
 // Core Loading Functions
 // ============================================================================
 
-/**
- * Loads LoRA weights from a file path (OPFS or URL).
- */
+
 export async function loadLoRAWeights(path, options = {}) {
   let manifestJson;
   let loadedFromCache = false;
@@ -216,9 +197,7 @@ export async function loadLoRAWeights(path, options = {}) {
   };
 }
 
-/**
- * Loads LoRA adapter from parsed manifest.
- */
+
 export async function loadLoRAFromManifest(manifest, options = {}) {
   const adapter = {
     name: manifest.name,
@@ -274,17 +253,13 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
   return adapter;
 }
 
-/**
- * Loads LoRA adapter from URL.
- */
+
 export async function loadLoRAFromUrl(url, options = {}) {
   const result = await loadLoRAWeights(url, options);
   return result.adapter;
 }
 
-/**
- * Applies delta weights to base model weights at runtime.
- */
+
 export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
   // Infer dimensions from LoRA matrices
   // A is rank x in_dim, B is out_dim x rank
@@ -304,9 +279,7 @@ export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
 // Safetensors Support
 // ============================================================================
 
-/**
- * Loads LoRA weights from safetensors format.
- */
+
 export async function loadLoRAFromSafetensors(data, manifest) {
   // Parse safetensors header
   const view = new DataView(data);
@@ -382,9 +355,7 @@ export async function loadLoRAFromSafetensors(data, manifest) {
   return adapter;
 }
 
-/**
- * Converts IEEE 754 half-precision float to single-precision.
- */
+
 function float16ToFloat32(h) {
   const sign = (h & 0x8000) >> 15;
   const exp = (h & 0x7C00) >> 10;
@@ -409,9 +380,7 @@ function float16ToFloat32(h) {
   return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + frac / 1024);
 }
 
-/**
- * Converts bfloat16 to single-precision float.
- */
+
 function bfloat16ToFloat32(bf) {
   // bfloat16 is just the upper 16 bits of float32
   const bytes = new Uint8Array(4);

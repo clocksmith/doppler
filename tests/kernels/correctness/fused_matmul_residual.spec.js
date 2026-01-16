@@ -1,12 +1,4 @@
-/**
- * Fused Matmul + Residual Kernel Correctness Tests
- *
- * Validates the fused_matmul_residual.wgsl GPU kernel against reference JS implementation.
- * Tests: output = matmul(input, weight^T) * alpha + residual
- * For decode (M=1) optimization.
- *
- * NOTE: This kernel requires f16 weights; the test harness rounds weights to f16.
- */
+
 
 import { test, expect } from './setup.js';
 

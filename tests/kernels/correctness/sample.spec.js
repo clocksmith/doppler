@@ -1,10 +1,4 @@
-/**
- * Sample Kernel Correctness Tests
- *
- * Validates the sample.wgsl GPU kernel for:
- * - Argmax (greedy decoding)
- * - Top-k sampling with temperature
- */
+
 
 import { test, expect } from './setup.js';
 

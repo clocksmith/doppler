@@ -1,18 +1,4 @@
-/**
- * DOPPLER Native Bridge Protocol
- * Binary protocol for Extension <-> Native Host communication.
- *
- * Header format (16 bytes, little-endian):
- * | Offset | Field   | Type | Description           |
- * |--------|---------|------|-----------------------|
- * | 0x00   | MAGIC   | u32  | 0x5245504C ("REPL")   |
- * | 0x04   | CMD     | u8   | Command type          |
- * | 0x05   | FLAGS   | u8   | Flags (compressed)    |
- * | 0x06   | PADDING | u16  | Reserved              |
- * | 0x08   | REQ_ID  | u32  | Request correlation   |
- * | 0x0C   | LEN     | u32  | Payload length        |
- * | 0x10   | PAYLOAD | []   | Variable-length       |
- */
+
 
 export const MAGIC = 0x5245504c;
 export const HEADER_SIZE = 16;

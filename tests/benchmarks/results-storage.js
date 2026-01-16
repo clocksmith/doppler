@@ -1,22 +1,10 @@
-/**
- * Results Storage - Save and Load Benchmark Results
- *
- * Provides utilities to:
- * - Save benchmark results to JSON files
- * - Load and compare historical results
- * - Generate comparison reports
- *
- * @module tests/benchmark/results-storage
- */
+
 
 // ============================================================================
 // Result File Naming
 // ============================================================================
 
-/**
- * Generate a filename for a benchmark result.
- * Format: {suite}_{model}_{timestamp}.json
- */
+
 export function generateResultFilename(result) {
   const timestamp = result.timestamp.replace(/[:.]/g, '-').slice(0, 19);
   const suite = result.suite;
@@ -32,10 +20,7 @@ export function generateResultFilename(result) {
   return `${suite}_${modelId}_${timestamp}.json`;
 }
 
-/**
- * Generate a session filename.
- * Format: session_{sessionId}_{timestamp}.json
- */
+
 export function generateSessionFilename(session) {
   const timestamp = session.startTime.replace(/[:.]/g, '-').slice(0, 19);
   return `session_${session.sessionId}_${timestamp}.json`;
@@ -49,9 +34,7 @@ const DB_NAME = 'doppler_benchmarks';
 const DB_VERSION = 1;
 const STORE_NAME = 'results';
 
-/**
- * Open the IndexedDB database.
- */
+
 async function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -71,9 +54,7 @@ async function openDB() {
   });
 }
 
-/**
- * Save a benchmark result to IndexedDB.
- */
+
 export async function saveResult(result) {
   const db = await openDB();
 
@@ -92,9 +73,7 @@ export async function saveResult(result) {
   });
 }
 
-/**
- * Load all benchmark results from IndexedDB.
- */
+
 export async function loadAllResults() {
   const db = await openDB();
 
@@ -108,9 +87,7 @@ export async function loadAllResults() {
   });
 }
 
-/**
- * Load results filtered by suite.
- */
+
 export async function loadResultsBySuite(suite) {
   const db = await openDB();
 
@@ -125,9 +102,7 @@ export async function loadResultsBySuite(suite) {
   });
 }
 
-/**
- * Load results for a specific model.
- */
+
 export async function loadResultsByModel(modelId) {
   const db = await openDB();
 
@@ -142,9 +117,7 @@ export async function loadResultsByModel(modelId) {
   });
 }
 
-/**
- * Clear all stored results.
- */
+
 export async function clearAllResults() {
   const db = await openDB();
 
@@ -162,31 +135,23 @@ export async function clearAllResults() {
 // JSON Export/Import
 // ============================================================================
 
-/**
- * Export results to JSON string.
- */
+
 export function exportToJSON(results) {
   return JSON.stringify(results, null, 2);
 }
 
-/**
- * Export a single result to JSON string.
- */
+
 export function exportResultToJSON(result) {
   return JSON.stringify(result, null, 2);
 }
 
-/**
- * Import results from JSON string.
- */
+
 export function importFromJSON(json) {
   const parsed = JSON.parse(json);
   return Array.isArray(parsed) ? parsed : [parsed];
 }
 
-/**
- * Download results as a JSON file (browser only).
- */
+
 export function downloadAsJSON(results, filename) {
   const data = Array.isArray(results) ? results : [results];
   const json = exportToJSON(data);
@@ -210,9 +175,7 @@ export function downloadAsJSON(results, filename) {
 // Comparison Utilities
 // ============================================================================
 
-/**
- * Compare two pipeline benchmark results.
- */
+
 export function comparePipelineResults(baseline, current) {
   const deltas = [];
 
@@ -250,9 +213,7 @@ export function comparePipelineResults(baseline, current) {
   return deltas;
 }
 
-/**
- * Format comparison as readable string.
- */
+
 export function formatComparison(deltas) {
   const lines = ['=== Benchmark Comparison ===', ''];
 
@@ -277,9 +238,7 @@ export function formatComparison(deltas) {
 // Session Management
 // ============================================================================
 
-/**
- * Create a new benchmark session.
- */
+
 export function createSession() {
   return {
     sessionId: crypto.randomUUID?.() ?? `session_${Date.now()}`,
@@ -288,16 +247,12 @@ export function createSession() {
   };
 }
 
-/**
- * Add a result to a session.
- */
+
 export function addResultToSession(session, result) {
   session.results.push(result);
 }
 
-/**
- * Compute session summary.
- */
+
 export function computeSessionSummary(session) {
   const pipelineResults = session.results.filter(r => r.suite === 'pipeline');
 

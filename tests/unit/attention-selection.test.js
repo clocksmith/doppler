@@ -1,11 +1,4 @@
-/**
- * Attention Kernel Selection Tests
- *
- * Tests attention tier selection and variant resolution across the full
- * configuration space. No GPU required - tests selection logic only.
- *
- * @module tests/unit/attention-selection.test
- */
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
@@ -38,10 +31,7 @@ const MEMORY_THRESHOLDS = {
 // Pure Selection Logic (extracted for testability)
 // ============================================================================
 
-/**
- * Select attention tier based on capabilities.
- * Pure function extracted from attention.js for unit testing.
- */
+
 function selectAttentionTier(config) {
   const {
     headDim,
@@ -92,10 +82,7 @@ function selectAttentionTier(config) {
   return tier;
 }
 
-/**
- * Resolve kernel variant from tier.
- * Pure function extracted from attention.js for unit testing.
- */
+
 function resolveAttentionVariant(config) {
   const {
     tier,

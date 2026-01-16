@@ -1,14 +1,6 @@
-/**
- * GPU Buffer Utilities
- */
 
-/**
- * Create a GPU buffer from typed array data
- * @param device GPU device
- * @param data Input data
- * @param usage Buffer usage mode
- * @returns Created GPU buffer
- */
+
+
 export function createBuffer(device, data, usage = 'read') {
   let gpuUsage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC;
 
@@ -30,13 +22,7 @@ export function createBuffer(device, data, usage = 'read') {
   return buffer;
 }
 
-/**
- * Create an empty GPU buffer
- * @param device GPU device
- * @param size Size in bytes
- * @param usage Buffer usage mode
- * @returns Created GPU buffer
- */
+
 export function createEmptyBuffer(device, size, usage = 'readwrite') {
   let gpuUsage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
 
@@ -46,13 +32,7 @@ export function createEmptyBuffer(device, size, usage = 'readwrite') {
   });
 }
 
-/**
- * Read data back from GPU buffer
- * @param device GPU device
- * @param buffer GPU buffer to read from
- * @param size Size in bytes to read
- * @returns Promise resolving to array buffer
- */
+
 export async function readGPUBuffer(device, buffer, size) {
   // Create staging buffer for readback
   const stagingBuffer = device.createBuffer({
@@ -77,48 +57,25 @@ export async function readGPUBuffer(device, buffer, size) {
   return copyArrayBuffer;
 }
 
-/**
- * Read GPU buffer as Float32Array
- * @param device GPU device
- * @param buffer GPU buffer to read from
- * @param numElements Number of elements to read
- * @returns Promise resolving to Float32Array
- */
+
 export async function readAsFloat32(device, buffer, numElements) {
   const arrayBuffer = await readGPUBuffer(device, buffer, numElements * 4);
   return new Float32Array(arrayBuffer);
 }
 
-/**
- * Read GPU buffer as Uint32Array
- * @param device GPU device
- * @param buffer GPU buffer to read from
- * @param numElements Number of elements to read
- * @returns Promise resolving to Uint32Array
- */
+
 export async function readAsUint32(device, buffer, numElements) {
   const arrayBuffer = await readGPUBuffer(device, buffer, numElements * 4);
   return new Uint32Array(arrayBuffer);
 }
 
-/**
- * Upload data to existing GPU buffer
- * @param device GPU device
- * @param buffer Target GPU buffer
- * @param data Data to upload
- * @param offset Byte offset in buffer
- */
+
 export function uploadToBuffer(device, buffer, data, offset = 0) {
   // Use the ArrayBuffer form to satisfy stricter type checking
   device.queue.writeBuffer(buffer, offset, data.buffer, data.byteOffset, data.byteLength);
 }
 
-/**
- * Clear a GPU buffer to zeros
- * @param device GPU device
- * @param buffer GPU buffer to clear
- * @param size Size in bytes
- */
+
 export function clearBuffer(device, buffer, size) {
   const encoder = device.createCommandEncoder();
   encoder.clearBuffer(buffer, 0, size);

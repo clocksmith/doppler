@@ -1,23 +1,4 @@
-/**
- * Tensor inspection utilities for kernel step debugging.
- *
- * Provides GPU buffer readback and statistics computation for debugging.
- * These operations are expensive (require GPU sync) - use sparingly.
- *
- * Enable with setDebugCategories({ kernel: true }, { bufferStats: true })
- * or use DEBUG_PRESETS.kernelStep
- *
- * @example
- * // Enable kernel step debugging for layer 0 only
- * setDebugCategories({ kernel: true }, { layers: [0], bufferStats: true });
- *
- * // In pipeline code:
- * if (isKernelDebugEnabled(layerIdx)) {
- *   await dumpTensor(outputBuffer, 'matmul_output', { layerIdx });
- * }
- *
- * @module inference/pipeline/debug-utils/tensor
- */
+
 
 import { readBuffer } from '../../../gpu/buffer-pool.js';
 import { log } from '../../../debug/index.js';
@@ -28,15 +9,7 @@ import { decodeReadback } from './utils.js';
 // Tensor Inspection Functions
 // ============================================================================
 
-/**
- * Dump a GPU tensor's contents for debugging.
- * This is expensive (requires GPU sync + readback) - use sparingly.
- *
- * @param {GPUBuffer} buffer - GPU buffer to inspect
- * @param {string} label - Descriptive label for logging
- * @param {{ layerIdx?: number; shape?: [number, number] | [number]; dtype?: 'f32' | 'f16' | 'bf16'; sampleCount?: number; warnThreshold?: number }} [options] - Additional options
- * @returns {Promise<import('./tensor.js').TensorStats | null>}
- */
+
 export async function dumpTensor(buffer, label, options = {}) {
   if (!isEnabled('kernel', options.layerIdx)) return null;
 
@@ -73,7 +46,7 @@ export async function dumpTensor(buffer, label, options = {}) {
 
     const shapeStr = shape ? `[${shape.join('x')}]` : `[${arr.length}]`;
 
-    /** @type {import('./tensor.js').TensorStats} */
+    
     const stats = {
       shape: shapeStr,
       dtype,
@@ -121,14 +94,7 @@ export async function dumpTensor(buffer, label, options = {}) {
   }
 }
 
-/**
- * Dump stats for a single token row within a 2D [numTokens, rowSize] buffer.
- * Use this when matching per-token reference implementations (e.g., HuggingFace hooks).
- * @param {GPUBuffer} buffer
- * @param {string} label
- * @param {{ layerIdx?: number; tokenIdx: number; rowSize: number; dtype?: 'f32' | 'f16' | 'bf16'; sampleCount?: number; warnThreshold?: number }} options
- * @returns {Promise<import('./tensor.js').TensorStats | null>}
- */
+
 export async function dumpTokenVector(buffer, label, options) {
   if (!isEnabled('kernel', options.layerIdx)) return null;
 
@@ -181,7 +147,7 @@ export async function dumpTokenVector(buffer, label, options) {
 
     const shapeStr = `[t${tokenIdx}x${rowSize}]`;
 
-    /** @type {import('./tensor.js').TensorStats} */
+    
     const stats = {
       shape: shapeStr,
       dtype,
@@ -227,14 +193,7 @@ export async function dumpTokenVector(buffer, label, options) {
   }
 }
 
-/**
- * Log a kernel step with optional tensor dump.
- * Use this after kernel invocations to trace execution.
- *
- * @param {string} kernelName - Name of the kernel (e.g., 'matmul', 'rmsnorm')
- * @param {{ layerIdx?: number; M?: number; N?: number; K?: number; size?: number; label?: string }} info - Additional info to log
- * @returns {void}
- */
+
 export function logKernelStep(kernelName, info) {
   if (!isEnabled('kernel', info.layerIdx)) return;
 
@@ -252,14 +211,7 @@ export function logKernelStep(kernelName, info) {
   log.debug('Debug', msg);
 }
 
-/**
- * Dump KV cache state for a specific layer.
- * Reads both keys and values buffers and reports statistics.
- *
- * @param {import('../../kv-cache.js').KVCache | import('../../kv-cache.js').SlidingWindowKVCache} kvCache - KV cache instance
- * @param {number} layerIdx - Layer index to inspect
- * @returns {Promise<{ keys: import('./tensor.js').TensorStats | null; values: import('./tensor.js').TensorStats | null } | null>}
- */
+
 export async function dumpKVCache(kvCache, layerIdx) {
   if (!isEnabled('kernel', layerIdx) && !isEnabled('kv', layerIdx)) return null;
 
@@ -307,12 +259,7 @@ export async function dumpKVCache(kvCache, layerIdx) {
   }
 }
 
-/**
- * Check if kernel step debugging is enabled.
- * Use this to gate expensive debug operations.
- * @param {number} [layerIdx]
- * @returns {boolean}
- */
+
 export function isKernelDebugEnabled(layerIdx) {
   return isEnabled('kernel', layerIdx);
 }

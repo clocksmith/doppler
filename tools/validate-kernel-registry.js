@@ -4,10 +4,7 @@ import path from 'node:path';
 const REGISTRY_PATH = path.join(process.cwd(), 'src', 'config', 'kernels', 'registry.json');
 const KERNEL_DIR = path.join(process.cwd(), 'src', 'gpu', 'kernels');
 
-/**
- * @param {string} filePath
- * @returns {Promise<boolean>}
- */
+
 async function fileExists(filePath) {
   try {
     await fs.access(filePath);
@@ -17,15 +14,13 @@ async function fileExists(filePath) {
   }
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const raw = await fs.readFile(REGISTRY_PATH, 'utf8');
-  /** @type {import('./validate-kernel-registry.js').KernelRegistry} */
+  
   const registry = JSON.parse(raw);
 
-  /** @type {Set<string>} */
+  
   const wgslFiles = new Set();
   for (const operation of Object.values(registry.operations)) {
     for (const variant of Object.values(operation.variants)) {
@@ -33,7 +28,7 @@ async function main() {
     }
   }
 
-  /** @type {string[]} */
+  
   const missing = [];
   for (const wgsl of wgslFiles) {
     const filePath = path.join(KERNEL_DIR, wgsl);

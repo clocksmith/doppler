@@ -1,16 +1,4 @@
-/**
- * Address Table
- * Agent-A | Domain: memory/
- *
- * Virtual address translation for segmented heap mode.
- * Encodes segment index + offset into a single 64-bit-safe number.
- *
- * Address format (fits in 53-bit JS safe integer):
- * - Upper 8 bits: segment index (0-255 segments)
- * - Lower 45 bits: offset within segment (up to 32TB per segment, but we use 4GB)
- *
- * @module memory/address-table
- */
+
 
 // ============================================================================
 // Constants
@@ -26,16 +14,12 @@ const MAX_OFFSET = 2 ** OFFSET_BITS - 1; // ~35TB (but we limit to segment size)
 // Address Table Class
 // ============================================================================
 
-/**
- * Virtual address table for segmented memory
- */
+
 export class AddressTable {
-  /** @type {number} */
+  
   segmentSize;
 
-  /**
-   * @param {number} segmentSize - Size of each segment in bytes
-   */
+  
   constructor(segmentSize) {
     this.segmentSize = segmentSize;
 
@@ -45,12 +29,7 @@ export class AddressTable {
     }
   }
 
-  /**
-   * Encode segment index and offset into virtual address
-   * @param {number} segmentIndex - Segment index (0-255)
-   * @param {number} offset - Byte offset within segment
-   * @returns {number} Virtual address
-   */
+  
   encode(segmentIndex, offset) {
     if (segmentIndex >= MAX_SEGMENTS) {
       throw new Error(`Segment index ${segmentIndex} exceeds max ${MAX_SEGMENTS - 1}`);
@@ -64,11 +43,7 @@ export class AddressTable {
     return segmentIndex * (MAX_OFFSET + 1) + offset;
   }
 
-  /**
-   * Decode virtual address into segment index and offset
-   * @param {number} virtualAddress - Virtual address to decode
-   * @returns {import('./address-table.js').DecodedAddress}
-   */
+  
   decode(virtualAddress) {
     const segmentIndex = Math.floor(virtualAddress / (MAX_OFFSET + 1));
     const offset = virtualAddress % (MAX_OFFSET + 1);
@@ -76,30 +51,17 @@ export class AddressTable {
     return { segmentIndex, offset };
   }
 
-  /**
-   * Get the segment index from a virtual address
-   * @param {number} virtualAddress - Virtual address
-   * @returns {number}
-   */
+  
   getSegmentIndex(virtualAddress) {
     return Math.floor(virtualAddress / (MAX_OFFSET + 1));
   }
 
-  /**
-   * Get the offset from a virtual address
-   * @param {number} virtualAddress - Virtual address
-   * @returns {number}
-   */
+  
   getOffset(virtualAddress) {
     return virtualAddress % (MAX_OFFSET + 1);
   }
 
-  /**
-   * Check if an address range spans multiple segments
-   * @param {number} virtualAddress - Starting virtual address
-   * @param {number} length - Length in bytes
-   * @returns {boolean}
-   */
+  
   spansSegments(virtualAddress, length) {
     const startSegment = this.getSegmentIndex(virtualAddress);
     const endAddress = virtualAddress + length - 1;
@@ -107,15 +69,9 @@ export class AddressTable {
     return startSegment !== endSegment;
   }
 
-  /**
-   * Split an address range into per-segment chunks
-   * Useful when a read/write spans segment boundaries
-   * @param {number} virtualAddress - Starting virtual address
-   * @param {number} length - Length in bytes
-   * @returns {import('./address-table.js').AddressRangeChunk[]}
-   */
+  
   splitRange(virtualAddress, length) {
-    /** @type {import('./address-table.js').AddressRangeChunk[]} */
+    
     const chunks = [];
     let remaining = length;
     let currentAddress = virtualAddress;
@@ -139,10 +95,7 @@ export class AddressTable {
     return chunks;
   }
 
-  /**
-   * Calculate total virtual address space
-   * @returns {number}
-   */
+  
   getTotalAddressSpace() {
     return MAX_SEGMENTS * this.segmentSize;
   }
@@ -152,10 +105,7 @@ export class AddressTable {
 // Exports
 // ============================================================================
 
-/**
- * Constants exported for other modules
- * @type {import('./address-table.js').AddressTableConstants}
- */
+
 export const ADDRESS_TABLE_CONSTANTS = {
   SEGMENT_BITS,
   OFFSET_BITS,

@@ -1,13 +1,4 @@
-/**
- * Dense FFN Operations
- *
- * Handles standard dense (non-MoE) FFN computations including:
- * - Gate/Up -> Activation -> Down projections
- * - Fused FFN variants
- * - Fused Down+Norm optimization
- *
- * @module inference/pipeline/ffn/dense
- */
+
 
 import {
   doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
@@ -24,15 +15,7 @@ import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
 
-/**
- * Run dense (non-MoE) FFN on GPU.
- * @param {number} layerIdx
- * @param {import('../../../gpu/tensor.js').Tensor} inputTensor
- * @param {number} numTokens
- * @param {import('../types.js').LayerContext} context
- * @param {import('../types.js').LayerWeights | undefined} layerWeights
- * @returns {Promise<import('../../../gpu/tensor.js').Tensor>}
- */
+
 export async function runDenseFFNGPU(
   layerIdx,
   inputTensor,
@@ -403,20 +386,7 @@ export async function runDenseFFNGPU(
   return output;
 }
 
-/**
- * Run dense FFN with fused down projection + post-FFN norm.
- * Used for sandwich norm architectures when conditions allow fusion.
- * @param {number} layerIdx
- * @param {import('../../../gpu/tensor.js').Tensor} inputTensor
- * @param {number} numTokens
- * @param {import('../types.js').LayerContext} context
- * @param {import('../types.js').LayerWeights} layerWeights
- * @param {import('../../../gpu/tensor.js').Tensor} residualTensor
- * @param {number} eps
- * @param {boolean} transposeB
- * @param {GPUBuffer | null} [outputBuffer]
- * @returns {Promise<import('../../../gpu/tensor.js').Tensor>}
- */
+
 export async function runDenseFFNWithFusedPostNormGPU(
   layerIdx,
   inputTensor,
@@ -442,7 +412,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
   const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
 
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let activatedOutput;
   const useF16 = inputTensor.dtype === 'f16';
 

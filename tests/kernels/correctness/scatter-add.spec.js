@@ -1,9 +1,4 @@
-/**
- * Scatter-Add Kernel Correctness Tests
- *
- * Validates the scatter_add.wgsl GPU kernel against reference JS implementation.
- * Priority: HIGH - newly implemented MoE output combination kernel
- */
+
 
 import { test, expect, TEST_SIZES } from './setup.js';
 

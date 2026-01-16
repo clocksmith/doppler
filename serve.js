@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-/**
- * DOPPLER Development Server - Serves the app UI and model files.
- * Standalone server for the DOPPLER WebGPU inference engine.
- *
- * Repository: https://github.com/clocksmith/doppler
- */
+
 
 import http from 'http';
 import { readFile, stat, readdir } from 'fs/promises';
@@ -17,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LOG_404 = process.env.DOPPLER_LOG_404 === '1';
 
-/** @type {Record<string, string>} */
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -37,12 +32,9 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf',
 };
 
-/**
- * @param {string[]} argv
- * @returns {import('./serve.js').ServerOptions}
- */
+
 function parseArgs(argv) {
-  /** @type {import('./serve.js').ServerOptions} */
+  
   const args = {
     port: 8080,
     open: false,
@@ -63,9 +55,7 @@ function parseArgs(argv) {
   return args;
 }
 
-/**
- * @returns {void}
- */
+
 function printHelp() {
   console.log(`
 DOPPLER Development Server
@@ -92,13 +82,10 @@ Models are served from:
 `);
 }
 
-/**
- * @param {string} url
- * @returns {void}
- */
+
 function openBrowser(url) {
   const platform = process.platform;
-  /** @type {string} */
+  
   let cmd;
 
   if (platform === 'darwin') {
@@ -116,9 +103,7 @@ function openBrowser(url) {
   });
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -132,13 +117,7 @@ async function main() {
   const dopplerDir = __dirname;
   const rootDir = dopplerDir;
 
-  /**
-   * @param {string} filePath
-   * @param {import('fs').Stats} stats
-   * @param {import('http').IncomingMessage} req
-   * @param {import('http').ServerResponse} res
-   * @returns {void}
-   */
+  
   function serveFile(filePath, stats, req, res) {
     const ext = extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -165,7 +144,7 @@ async function main() {
       }
     }
 
-    /** @type {Record<string, string | number>} */
+    
     const headers = {
       'Content-Type': contentType,
       'Content-Length': stats.size,
@@ -209,7 +188,7 @@ async function main() {
         const modelsDir = join(dopplerDir, 'models');
         try {
           const entries = await readdir(modelsDir, { withFileTypes: true });
-          /** @type {import('./serve.js').ModelInfo[]} */
+          
           const models = [];
           for (const entry of entries) {
             if (!entry.isDirectory()) continue;
@@ -220,7 +199,7 @@ async function main() {
               const manifest = JSON.parse(manifestData);
               const config = manifest.config || {};
               const textConfig = config.text_config || config;
-              const totalSize = (manifest.shards || []).reduce((/** @type {number} */ sum, /** @type {{ size?: number }} */ s) => sum + (s.size || 0), 0);
+              const totalSize = (manifest.shards || []).reduce(( sum,  s) => sum + (s.size || 0), 0);
               models.push({
                 path: modelPath,
                 name: entry.name,
@@ -288,49 +267,7 @@ async function main() {
         const jsPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
         const pathWithoutDist = jsPath.replace(/^dist\//, '');
         // Try multiple locations in order:
-        // 1. dist/src/<path> - where tsc outputs src/** files
-        // 2. dist/<path> - for test/benchmark outputs
-        // 3. src/<path> - for raw JS files not processed by tsc (kernels, platforms)
-        const candidates = [
-          join(dopplerDir, 'dist', 'src', pathWithoutDist),
-          join(dopplerDir, 'dist', jsPath),
-          join(dopplerDir, 'src', pathWithoutDist),
-        ];
-        for (const candidate of candidates) {
-          try {
-            const stats = await stat(candidate);
-            return serveFile(candidate, stats, req, res);
-          } catch {
-            // Try next candidate
-          }
-        }
-        // Fall through to normal resolution (for vendor JS, etc.)
-      }
-
-      // Serve WGSL shader files from src/gpu/kernels/
-      // Requested at /gpu/kernels/*.wgsl but files are in src/gpu/kernels/
-      if (pathname.endsWith('.wgsl')) {
-        const wgslPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-        const srcPath = join(dopplerDir, 'src', wgslPath);
-        try {
-          const stats = await stat(srcPath);
-          return serveFile(srcPath, stats, req, res);
-        } catch {
-          // Fall through to normal resolution
-        }
-      }
-
-      const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
-      const filePath = join(rootDir, safePath);
-
-      const resolved = resolve(filePath);
-      const resolvedRoot = resolve(rootDir);
-      if (!resolved.startsWith(resolvedRoot)) {
-        res.writeHead(403);
-        return res.end('Forbidden');
-      }
-
-      /** @type {import('fs').Stats} */
+        // 1. dist/src/<path> - where tsc outputs src
       let stats;
       try {
         stats = await stat(filePath);

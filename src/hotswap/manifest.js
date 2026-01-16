@@ -1,11 +1,4 @@
-/**
- * Hot-Swap Manifest
- *
- * Fetches and verifies hot-swap manifests for runtime model updates.
- * Supports signature verification via WebCrypto for trusted signers.
- *
- * @module hotswap/manifest
- */
+
 
 import { log } from '../debug/index.js';
 

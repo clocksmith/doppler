@@ -1,11 +1,4 @@
-/**
- * Sliding Window KV Cache - For long sequences with limited memory
- *
- * Only keeps the most recent N tokens in the cache, using ring-buffer
- * semantics for GPU storage.
- *
- * @module inference/kv-cache/sliding-window
- */
+
 
 import { getDevice } from '../../gpu/device.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
@@ -15,29 +8,18 @@ import { KVCache } from './base.js';
 // SlidingWindowKVCache Class
 // ============================================================================
 
-/**
- * Sliding Window KV Cache for long sequences
- * Only keeps the most recent N tokens
- */
+
 export class SlidingWindowKVCache extends KVCache {
-  /**
-   * @param {import('./types.js').KVCacheConfig & { windowSize?: number }} config - Configuration with windowSize
-   */
+  
   constructor(config) {
     super(config);
-    /** @readonly @type {number} */
+    
     this.windowSize = config.windowSize || getRuntimeConfig().inference.kvcache.windowSize;
-    /** @type {number} */
+    
     this.totalTokensSeen = 0;
   }
 
-  /**
-   * Update with sliding window logic
-   * @param {number} layerIdx
-   * @param {Float32Array | GPUBuffer} keys
-   * @param {Float32Array | GPUBuffer} values
-   * @param {number} [startPos]
-   */
+  
   update(
     layerIdx,
     keys,
@@ -60,16 +42,7 @@ export class SlidingWindowKVCache extends KVCache {
     super.update(layerIdx, keys, values, this.currentSeqLen);
   }
 
-  /**
-   * GPU-native update with ring-buffer semantics.
-   * Keeps the last `windowSize` tokens in GPU memory while allowing
-   * unbounded absolute positions for RoPE.
-   * @param {number} layerIdx
-   * @param {GPUBuffer} keysBuffer
-   * @param {GPUBuffer} valuesBuffer
-   * @param {number} startPos
-   * @param {number} numTokens
-   */
+  
   updateFromGPU(
     layerIdx,
     keysBuffer,
@@ -77,7 +50,7 @@ export class SlidingWindowKVCache extends KVCache {
     startPos,
     numTokens
   ) {
-    const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[layerIdx]);
+    const layer =  (this.layers[layerIdx]);
     const device = getDevice();
 
     if (!device || !layer.keysGPU) {
@@ -117,16 +90,7 @@ export class SlidingWindowKVCache extends KVCache {
     }
   }
 
-  /**
-   * Record KV cache update with ring-buffer semantics to an external encoder.
-   * Does NOT submit - caller is responsible for submitting the encoder.
-   * @param {GPUCommandEncoder} encoder
-   * @param {number} layerIdx
-   * @param {GPUBuffer} keysBuffer
-   * @param {GPUBuffer} valuesBuffer
-   * @param {number} startPos
-   * @param {number} numTokens
-   */
+  
   recordUpdateFromGPU(
     encoder,
     layerIdx,
@@ -135,7 +99,7 @@ export class SlidingWindowKVCache extends KVCache {
     startPos,
     numTokens
   ) {
-    const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[layerIdx]);
+    const layer =  (this.layers[layerIdx]);
 
     if (!layer.keysGPU) {
       throw new Error('GPU cache not initialized');
@@ -171,11 +135,7 @@ export class SlidingWindowKVCache extends KVCache {
     }
   }
 
-  /**
-   * Slide the window to make room for new tokens
-   * @private
-   * @param {number} numNewTokens
-   */
+  
   _slideWindow(numNewTokens) {
     const shiftAmount = Math.min(
       this.currentSeqLen,
@@ -186,7 +146,7 @@ export class SlidingWindowKVCache extends KVCache {
 
     // Shift cache contents for each layer
     for (let l = 0; l < this.numLayers; l++) {
-      const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[l]);
+      const layer =  (this.layers[l]);
       const keepFrom = shiftAmount * this.kvSize;
       const keepLength = (layer.seqLen - shiftAmount) * this.kvSize;
 
@@ -199,9 +159,7 @@ export class SlidingWindowKVCache extends KVCache {
     this.currentSeqLen -= shiftAmount;
   }
 
-  /**
-   * @returns {import('./types.js').MemoryStats & { windowSize: number; totalTokensSeen: number }}
-   */
+  
   getMemoryStats() {
     const stats = super.getMemoryStats();
     return {

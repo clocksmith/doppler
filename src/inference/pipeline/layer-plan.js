@@ -1,30 +1,16 @@
-/**
- * Layer pipeline plan compiler.
- *
- * Converts JSON-configured step lists into normalized, validated plans
- * for execution inside processLayer.
- *
- * @module inference/pipeline/layer-plan
- */
+
 
 import { log } from '../../debug/index.js';
 
 const DEFAULT_SLOT = 'state';
 
-/**
- * @param {string | undefined} name
- * @returns {string}
- */
+
 function normalizeSlot(name) {
   const value = (name ?? '').trim();
   return value.length > 0 ? value : DEFAULT_SLOT;
 }
 
-/**
- * @param {string | undefined} value
- * @param {string} label
- * @returns {string}
- */
+
 function requireName(value, label) {
   const normalized = (value ?? '').trim();
   if (!normalized) {
@@ -33,14 +19,10 @@ function requireName(value, label) {
   return normalized;
 }
 
-/**
- * @param {number[]} layers
- * @param {number} numLayers
- * @returns {number[]}
- */
+
 function normalizeLayers(layers, numLayers) {
   const seen = new Set();
-  /** @type {number[]} */
+  
   const result = [];
   for (const entry of layers) {
     const layer = Number(entry);
@@ -53,11 +35,7 @@ function normalizeLayers(layers, numLayers) {
   return result;
 }
 
-/**
- * @param {import('../../config/schema/index.js').LayerPipelineStepSchema} step
- * @param {number} index
- * @returns {import('./layer-plan.js').CompiledLayerPipelineStep}
- */
+
 function compileStep(step, index) {
   const op = step.op;
   const src = normalizeSlot(step.src);
@@ -122,11 +100,7 @@ function compileStep(step, index) {
   }
 }
 
-/**
- * @param {import('../../config/schema/index.js').LayerPipelineStepSchema[]} steps
- * @param {string} label
- * @returns {import('./layer-plan.js').CompiledLayerPipelineStep[]}
- */
+
 function compileSteps(steps, label) {
   if (!Array.isArray(steps) || steps.length === 0) {
     throw new Error(`Layer pipeline "${label}" must define a non-empty steps array`);
@@ -134,12 +108,7 @@ function compileSteps(steps, label) {
   return steps.map((step, index) => compileStep(step, index));
 }
 
-/**
- * Validate slot lifetimes: ensure all reads reference previously-defined slots.
- * Throws at compile time if a step reads an undefined slot.
- * @param {import('./layer-plan.js').CompiledLayerPipelineStep[]} steps
- * @param {string} label
- */
+
 function validateSlotLifetimes(steps, label) {
   const defined = new Set(['state']); // 'state' is always available
 
@@ -147,7 +116,7 @@ function validateSlotLifetimes(steps, label) {
     const step = steps[i];
 
     // Collect all slots this step reads
-    /** @type {string[]} */
+    
     const reads = [];
     if (step.src && step.src !== 'state') reads.push(step.src);
     if (step.op === 'load' && step.name) reads.push(step.name);
@@ -170,16 +139,12 @@ function validateSlotLifetimes(steps, label) {
   }
 }
 
-/**
- * @param {import('../../config/schema/index.js').LayerPipelineSchema} plan
- * @param {number} numLayers
- * @returns {Omit<import('./layer-plan.js').CompiledLayerPipeline, 'source'>}
- */
+
 export function compileLayerPipeline(plan, numLayers) {
   const compiledSteps = compileSteps(plan.steps, 'default');
   validateSlotLifetimes(compiledSteps, 'default');
 
-  /** @type {import('./layer-plan.js').LayerPipelineOverride[]} */
+  
   const overrides = [];
 
   for (const override of plan.overrides ?? []) {
@@ -197,31 +162,22 @@ export function compileLayerPipeline(plan, numLayers) {
   return { steps: compiledSteps, overrides };
 }
 
-/**
- * @param {import('../../config/schema/index.js').LayerPipelineSchema | null | undefined} modelPlan
- * @param {import('../../config/schema/index.js').LayerPipelineSchema | null | undefined} runtimePlan
- * @param {number} numLayers
- * @returns {import('./layer-plan.js').CompiledLayerPipeline | null}
- */
+
 export function resolveLayerPipeline(modelPlan, runtimePlan, numLayers) {
   const runtimeHasSteps = runtimePlan?.steps && runtimePlan.steps.length > 0;
   const modelHasSteps = modelPlan?.steps && modelPlan.steps.length > 0;
 
   if (runtimeHasSteps) {
-    return { ...compileLayerPipeline(/** @type {import('../../config/schema/index.js').LayerPipelineSchema} */ (runtimePlan), numLayers), source: 'runtime' };
+    return { ...compileLayerPipeline( (runtimePlan), numLayers), source: 'runtime' };
   }
   if (modelHasSteps) {
-    return { ...compileLayerPipeline(/** @type {import('../../config/schema/index.js').LayerPipelineSchema} */ (modelPlan), numLayers), source: 'model' };
+    return { ...compileLayerPipeline( (modelPlan), numLayers), source: 'model' };
   }
 
   return null;
 }
 
-/**
- * @param {import('./layer-plan.js').CompiledLayerPipeline} plan
- * @param {number} layerIdx
- * @returns {import('./layer-plan.js').CompiledLayerPipelineStep[]}
- */
+
 export function getLayerPlanSteps(plan, layerIdx) {
   for (const override of plan.overrides) {
     if (override.layers.includes(layerIdx)) {

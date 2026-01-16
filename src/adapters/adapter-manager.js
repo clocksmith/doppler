@@ -1,21 +1,10 @@
-/**
- * Adapter Manager - Runtime adapter enable/disable API
- *
- * Manages active LoRA adapters with support for:
- * - Runtime switching without full model reload
- * - Multiple adapter stacking (with merge strategies)
- * - State tracking and validation
- *
- * @module adapters/adapter-manager
- */
+
 
 import { loadLoRAWeights } from './lora-loader.js';
 import { log } from '../debug/index.js';
 import { DEFAULT_ADAPTER_STACK_CONFIG } from '../config/schema/index.js';
 
-/**
- * Helper to check if buffer is Float32Array.
- */
+
 function isFloat32Array(buf) {
   return buf instanceof Float32Array;
 }
@@ -24,46 +13,38 @@ function isFloat32Array(buf) {
 // Adapter Manager Class
 // ============================================================================
 
-/**
- * Manages runtime loading, enabling, and disabling of LoRA adapters.
- */
+
 export class AdapterManager {
-  /** Map of adapter ID to state */
+  
   #adapters = new Map();
 
-  /** Currently active adapter IDs (in order) */
+  
   #activeAdapterIds = [];
 
-  /** Event callbacks */
+  
   #events = {};
 
-  /** Default loading options */
+  
   #defaultLoadOptions = {};
 
-  /** Stack options for combining multiple adapters */
+  
   #stackOptions = { ...DEFAULT_ADAPTER_STACK_CONFIG };
 
   // ==========================================================================
   // Configuration
   // ==========================================================================
 
-  /**
-   * Sets default loading options for all adapter loads.
-   */
+  
   setDefaultLoadOptions(options) {
     this.#defaultLoadOptions = { ...options };
   }
 
-  /**
-   * Sets event callbacks.
-   */
+  
   setEvents(events) {
     this.#events = { ...this.#events, ...events };
   }
 
-  /**
-   * Sets adapter stacking options.
-   */
+  
   setStackOptions(options) {
     this.#stackOptions = { ...this.#stackOptions, ...options };
   }
@@ -72,9 +53,7 @@ export class AdapterManager {
   // Loading
   // ==========================================================================
 
-  /**
-   * Loads an adapter from a path (URL or OPFS).
-   */
+  
   async loadAdapter(id, path, options = {}) {
     // Check if already loaded
     if (this.#adapters.has(id)) {
@@ -107,9 +86,7 @@ export class AdapterManager {
     return state;
   }
 
-  /**
-   * Loads an adapter from an already-parsed manifest and adapter.
-   */
+  
   registerAdapter(id, adapter, manifest) {
     if (this.#adapters.has(id)) {
       throw new Error(`Adapter '${id}' is already loaded. Unload it first.`);
@@ -135,9 +112,7 @@ export class AdapterManager {
   // Enable/Disable API
   // ==========================================================================
 
-  /**
-   * Enables an adapter for inference.
-   */
+  
   enableAdapter(id, options = {}) {
     const state = this.#adapters.get(id);
     if (!state) {
@@ -182,9 +157,7 @@ export class AdapterManager {
     this.#events.onActiveAdaptersChanged?.([...this.#activeAdapterIds]);
   }
 
-  /**
-   * Disables an adapter.
-   */
+  
   disableAdapter(id) {
     const state = this.#adapters.get(id);
     if (!state) {
@@ -211,9 +184,7 @@ export class AdapterManager {
     this.#events.onActiveAdaptersChanged?.([...this.#activeAdapterIds]);
   }
 
-  /**
-   * Toggles an adapter's enabled state.
-   */
+  
   toggleAdapter(id) {
     const state = this.#adapters.get(id);
     if (!state) {
@@ -229,26 +200,20 @@ export class AdapterManager {
     }
   }
 
-  /**
-   * Disables all adapters.
-   */
+  
   disableAll() {
     for (const id of [...this.#activeAdapterIds]) {
       this.disableAdapter(id);
     }
   }
 
-  /**
-   * Enables only the specified adapter, disabling all others.
-   */
+  
   enableOnly(id, options) {
     this.disableAll();
     this.enableAdapter(id, options);
   }
 
-  /**
-   * Sets the weight for an adapter.
-   */
+  
   setAdapterWeight(id, weight) {
     const state = this.#adapters.get(id);
     if (!state) {
@@ -265,9 +230,7 @@ export class AdapterManager {
   // Unloading
   // ==========================================================================
 
-  /**
-   * Unloads an adapter, freeing its memory.
-   */
+  
   unloadAdapter(id) {
     const state = this.#adapters.get(id);
     if (!state) {
@@ -286,9 +249,7 @@ export class AdapterManager {
     this.#events.onAdapterUnloaded?.(id);
   }
 
-  /**
-   * Unloads all adapters.
-   */
+  
   unloadAll() {
     for (const id of [...this.#adapters.keys()]) {
       this.unloadAdapter(id);
@@ -299,9 +260,7 @@ export class AdapterManager {
   // Query Methods
   // ==========================================================================
 
-  /**
-   * Gets the currently active adapter for use with pipeline.
-   */
+  
   getActiveAdapter() {
     if (this.#activeAdapterIds.length === 0) {
       return null;
@@ -322,58 +281,42 @@ export class AdapterManager {
     return this.#mergeActiveAdapters();
   }
 
-  /**
-   * Gets all active adapter IDs.
-   */
+  
   getActiveAdapterIds() {
     return [...this.#activeAdapterIds];
   }
 
-  /**
-   * Gets state of a specific adapter.
-   */
+  
   getAdapterState(id) {
     return this.#adapters.get(id);
   }
 
-  /**
-   * Gets all loaded adapter states.
-   */
+  
   getAllAdapters() {
     return [...this.#adapters.values()];
   }
 
-  /**
-   * Gets all enabled adapter states.
-   */
+  
   getEnabledAdapters() {
     return this.getAllAdapters().filter(s => s.enabled);
   }
 
-  /**
-   * Checks if an adapter is loaded.
-   */
+  
   isLoaded(id) {
     return this.#adapters.has(id);
   }
 
-  /**
-   * Checks if an adapter is enabled.
-   */
+  
   isEnabled(id) {
     return this.#adapters.get(id)?.enabled ?? false;
   }
 
-  /**
-   * Gets count of loaded adapters.
-   */
+  
   get loadedCount() {
     return this.#adapters.size;
   }
 
-  /**
-   * Gets count of enabled adapters.
-   */
+  
   get enabledCount() {
     return this.#activeAdapterIds.length;
   }
@@ -382,9 +325,7 @@ export class AdapterManager {
   // Merging Logic
   // ==========================================================================
 
-  /**
-   * Merges multiple active adapters into a single virtual adapter.
-   */
+  
   #mergeActiveAdapters() {
     const activeStates = this.#activeAdapterIds
       .map(id => this.#adapters.get(id))
@@ -420,9 +361,7 @@ export class AdapterManager {
     }
   }
 
-  /**
-   * Merges adapters by weighted sum of their layers.
-   */
+  
   #mergeByWeightedSum(states, weights) {
     // Use first adapter as template
     const first = states[0].adapter;
@@ -518,9 +457,7 @@ export class AdapterManager {
     return merged;
   }
 
-  /**
-   * Applies a weight multiplier to an adapter.
-   */
+  
   #applyWeight(adapter, weight) {
     if (weight === 1.0) return adapter;
 
@@ -552,14 +489,10 @@ export class AdapterManager {
 // Default Instance
 // ============================================================================
 
-/**
- * Default global adapter manager instance.
- */
+
 let defaultManager = null;
 
-/**
- * Gets the default adapter manager instance.
- */
+
 export function getAdapterManager() {
   if (!defaultManager) {
     defaultManager = new AdapterManager();
@@ -567,9 +500,7 @@ export function getAdapterManager() {
   return defaultManager;
 }
 
-/**
- * Resets the default adapter manager (useful for testing).
- */
+
 export function resetAdapterManager() {
   if (defaultManager) {
     defaultManager.unloadAll();

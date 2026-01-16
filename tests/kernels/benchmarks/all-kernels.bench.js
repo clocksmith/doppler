@@ -1,8 +1,4 @@
-/**
- * All Kernels Summary Benchmark
- *
- * Quick benchmark of all kernels for comparison
- */
+
 
 import { test, expect } from '@playwright/test';
 import { MODEL_CONFIGS, SEQ_CONFIGS } from './config.js';

@@ -1,10 +1,4 @@
-/**
- * DOPPLER Debug Module - Log History and Snapshots
- *
- * Tools for retrieving log history and creating debug snapshots.
- *
- * @module debug/history
- */
+
 
 import {
   LOG_LEVELS,
@@ -19,9 +13,7 @@ import {
 // History Functions
 // ============================================================================
 
-/**
- * Get log history for debugging.
- */
+
 export function getLogHistory(filter = {}) {
   let history = [...logHistory];
 
@@ -41,16 +33,12 @@ export function getLogHistory(filter = {}) {
   return history;
 }
 
-/**
- * Clear log history.
- */
+
 export function clearLogHistory() {
   logHistory.length = 0;
 }
 
-/**
- * Print a summary of recent logs.
- */
+
 export function printLogSummary(count = 20) {
   const recent = logHistory.slice(-count);
   console.log('=== Recent Logs ===');
@@ -61,9 +49,7 @@ export function printLogSummary(count = 20) {
   console.log('===================');
 }
 
-/**
- * Export a debug snapshot for bug reports.
- */
+
 export function getDebugSnapshot() {
   return {
     timestamp: new Date().toISOString(),

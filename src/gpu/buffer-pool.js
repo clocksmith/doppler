@@ -1,19 +1,12 @@
-/**
- * GPU Buffer Pool - Efficient Buffer Allocation and Reuse
- *
- * Manages GPU buffer allocation with pooling for reuse,
- * reducing allocation overhead during inference.
- */
+
 
 import { getDevice, getDeviceLimits } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { log, trace } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
-/**
- * Buffer usage flags for different operations
- */
-export const BufferUsage = /** @type {const} */ ({
+
+export const BufferUsage =  ({
   STORAGE: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
   STORAGE_READ: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   UNIFORM: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -21,23 +14,12 @@ export const BufferUsage = /** @type {const} */ ({
   STAGING_WRITE: GPUMapMode.WRITE | GPUBufferUsage.COPY_SRC,
 });
 
-/**
- * Round size up to alignment boundary
- * @param {number} size
- * @param {number} alignment
- * @returns {number}
- */
+
 function alignTo(size, alignment) {
   return Math.ceil(size / alignment) * alignment;
 }
 
-/**
- * Get size bucket for pooling (power of 2 rounding)
- * @param {number} size
- * @param {number} [maxAllowedSize]
- * @param {import('../config/schema/index.js').BufferPoolConfigSchema['bucket']} [bucketConfig]
- * @returns {number}
- */
+
 function getSizeBucket(
   size,
   maxAllowedSize = Infinity,
@@ -74,52 +56,52 @@ function getSizeBucket(
   return bucket;
 }
 
-/**
- * Buffer Pool for efficient GPU memory reuse
- */
+
 export class BufferPool {
   // Pools organized by usage and size bucket
-  /** @type {Map<GPUBufferUsageFlags, Map<number, GPUBuffer[]>>} */
+  
   #pools;
 
   // Active buffers (currently in use)
-  /** @type {Set<GPUBuffer>} */
+  
   #activeBuffers;
 
   // Buffer metadata for leak detection (debug mode)
-  /** @type {Map<GPUBuffer, {size: number, usage: GPUBufferUsageFlags, label?: string, acquiredAt: number, stackTrace?: string}>} */
+  
   #bufferMetadata;
 
+  // Requested sizes per buffer (unbucketed intent)
+
+  #requestedSizes;
+
   // Deferred destruction queue (buffers destroyed after GPU work completes)
-  /** @type {Set<GPUBuffer>} */
+  
   #pendingDestruction;
-  /** @type {boolean} */
+  
   #destructionScheduled;
 
   // Statistics
-  /** @type {{allocations: number, reuses: number, totalBytesAllocated: number, peakBytesAllocated: number, currentBytesAllocated: number}} */
+  
   #stats;
 
   // Configuration
-  /** @type {import('./buffer-pool.js').PoolConfig} */
+  
   #config;
 
   // Schema-based configuration
-  /** @type {import('../config/schema/index.js').BufferPoolConfigSchema} */
+  
   #schemaConfig;
 
   // Debug mode flag
-  /** @type {boolean} */
+  
   #debugMode;
 
-  /**
-   * @param {boolean} [debugMode]
-   * @param {import('../config/schema/index.js').BufferPoolConfigSchema} [schemaConfig]
-   */
+  
   constructor(debugMode = false, schemaConfig) {
     this.#pools = new Map();
     this.#activeBuffers = new Set();
     this.#bufferMetadata = new Map();
+    this.#requestedSizes = new Map();
     this.#debugMode = debugMode;
     this.#schemaConfig = schemaConfig ?? getRuntimeConfig().shared.bufferPool;
     this.#pendingDestruction = new Set();
@@ -131,6 +113,9 @@ export class BufferPool {
       totalBytesAllocated: 0,
       peakBytesAllocated: 0,
       currentBytesAllocated: 0,
+      totalBytesRequested: 0,
+      peakBytesRequested: 0,
+      currentBytesRequested: 0,
     };
 
     // Initialize from schema config
@@ -142,13 +127,7 @@ export class BufferPool {
     };
   }
 
-  /**
-   * Get or create a buffer of the specified size
-   * @param {number} size
-   * @param {GPUBufferUsageFlags} [usage]
-   * @param {string} [label]
-   * @returns {GPUBuffer}
-   */
+  
   acquire(size, usage = BufferUsage.STORAGE, label = 'pooled_buffer') {
     const device = getDevice();
     if (!device) {
@@ -186,6 +165,12 @@ export class BufferPool {
       if (pooled) {
         this.#activeBuffers.add(pooled);
         this.#stats.reuses++;
+        this.#requestedSizes.set(pooled, alignedSize);
+        this.#stats.currentBytesRequested += alignedSize;
+        this.#stats.peakBytesRequested = Math.max(
+          this.#stats.peakBytesRequested,
+          this.#stats.currentBytesRequested
+        );
 
         // Track metadata in debug mode
         if (this.#debugMode) {
@@ -211,7 +196,14 @@ export class BufferPool {
       this.#stats.peakBytesAllocated,
       this.#stats.currentBytesAllocated
     );
+    this.#stats.totalBytesRequested += alignedSize;
+    this.#stats.currentBytesRequested += alignedSize;
+    this.#stats.peakBytesRequested = Math.max(
+      this.#stats.peakBytesRequested,
+      this.#stats.currentBytesRequested
+    );
     trackAllocation(bucket, label);
+    this.#requestedSizes.set(buffer, alignedSize);
 
     // Track metadata in debug mode
     if (this.#debugMode) {
@@ -221,11 +213,7 @@ export class BufferPool {
     return buffer;
   }
 
-  /**
-   * Release a buffer back to the pool
-   * @param {GPUBuffer} buffer
-   * @returns {void}
-   */
+  
   release(buffer) {
     if (!this.#activeBuffers.has(buffer)) {
       log.warn('BufferPool', 'Releasing buffer not tracked as active');
@@ -233,6 +221,9 @@ export class BufferPool {
     }
 
     this.#activeBuffers.delete(buffer);
+    const requestedSize = this.#requestedSizes.get(buffer) ?? 0;
+    this.#stats.currentBytesRequested -= requestedSize;
+    this.#requestedSizes.delete(buffer);
 
     // Remove metadata in debug mode
     if (this.#debugMode) {
@@ -269,11 +260,7 @@ export class BufferPool {
     }
   }
 
-  /**
-   * Defer buffer destruction until all submitted GPU work completes.
-   * This avoids destroying buffers still referenced by in-flight command buffers.
-   * @param {GPUBuffer} buffer
-   */
+  
   #deferDestroy(buffer) {
     this.#pendingDestruction.add(buffer);
     if (this.#destructionScheduled) {
@@ -300,18 +287,13 @@ export class BufferPool {
         this.#destructionScheduled = false;
       })
       .catch((err) => {
-        log.warn('BufferPool', `Deferred destruction failed: ${/** @type {Error} */ (err).message}`);
+        log.warn('BufferPool', `Deferred destruction failed: ${ (err).message}`);
         this.#pendingDestruction.clear();
         this.#destructionScheduled = false;
       });
   }
 
-  /**
-   * Get a buffer from the pool if available
-   * @param {number} bucket
-   * @param {GPUBufferUsageFlags} usage
-   * @returns {GPUBuffer | null}
-   */
+  
   #getFromPool(bucket, usage) {
     const usagePool = this.#pools.get(usage);
     if (!usagePool) return null;
@@ -322,10 +304,7 @@ export class BufferPool {
     return bucketPool.pop();
   }
 
-  /**
-   * Get total count of pooled buffers
-   * @returns {number}
-   */
+  
   #getTotalPooledCount() {
     let count = 0;
     for (const usagePool of this.#pools.values()) {
@@ -336,15 +315,9 @@ export class BufferPool {
     return count;
   }
 
-  /**
-   * Track buffer metadata for leak detection (debug mode)
-   * @param {GPUBuffer} buffer
-   * @param {number} size
-   * @param {GPUBufferUsageFlags} usage
-   * @param {string} [label]
-   */
+  
   #trackBuffer(buffer, size, usage, label) {
-    /** @type {{size: number, usage: GPUBufferUsageFlags, label?: string, acquiredAt: number, stackTrace?: string}} */
+    
     const metadata = {
       size,
       usage,
@@ -356,17 +329,13 @@ export class BufferPool {
     if (Error.captureStackTrace) {
       const obj = {};
       Error.captureStackTrace(obj);
-      metadata.stackTrace = /** @type {any} */ (obj).stack;
+      metadata.stackTrace =  (obj).stack;
     }
 
     this.#bufferMetadata.set(buffer, metadata);
   }
 
-  /**
-   * Detect leaked buffers (debug mode)
-   * @param {number} [thresholdMs]
-   * @returns {{size: number, usage: GPUBufferUsageFlags, label?: string, acquiredAt: number, stackTrace?: string}[]}
-   */
+  
   detectLeaks(thresholdMs = 60000) {
     if (!this.#debugMode) {
       log.warn('BufferPool', 'Leak detection requires debug mode');
@@ -374,7 +343,7 @@ export class BufferPool {
     }
 
     const now = Date.now();
-    /** @type {{size: number, usage: GPUBufferUsageFlags, label?: string, acquiredAt: number, stackTrace?: string}[]} */
+    
     const leaks = [];
 
     for (const [buffer, metadata] of this.#bufferMetadata.entries()) {
@@ -389,57 +358,33 @@ export class BufferPool {
     return leaks;
   }
 
-  /**
-   * Create a staging buffer for CPU readback
-   * @param {number} size
-   * @returns {GPUBuffer}
-   */
+  
   createStagingBuffer(size) {
     return this.acquire(size, BufferUsage.STAGING_READ, 'staging_read');
   }
 
-  /**
-   * Create a staging buffer for CPU upload
-   * @param {number} size
-   * @returns {GPUBuffer}
-   */
+  
   createUploadBuffer(size) {
     return this.acquire(size, BufferUsage.STAGING_WRITE, 'staging_write');
   }
 
-  /**
-   * Create a uniform buffer
-   * @param {number} size
-   * @returns {GPUBuffer}
-   */
+  
   createUniformBuffer(size) {
     // Uniform buffers have stricter alignment (256 bytes typically)
     const alignedSize = alignTo(size, 256);
     return this.acquire(alignedSize, BufferUsage.UNIFORM, 'uniform');
   }
 
-  /**
-   * Upload data to GPU buffer
-   * @param {GPUBuffer} buffer
-   * @param {ArrayBuffer | ArrayBufferView} data
-   * @param {number} [offset]
-   * @returns {void}
-   */
+  
   uploadData(buffer, data, offset = 0) {
     const device = getDevice();
     if (!device) {
       throw new Error('Device not initialized');
     }
-    device.queue.writeBuffer(buffer, offset, /** @type {GPUAllowSharedBufferSource} */ (data));
+    device.queue.writeBuffer(buffer, offset,  (data));
   }
 
-  /**
-   * Read data from GPU buffer
-   * NOTE: GPU readbacks are expensive (0.5-2ms overhead per call). Use sparingly.
-   * @param {GPUBuffer} buffer
-   * @param {number} [size]
-   * @returns {Promise<ArrayBuffer>}
-   */
+  
   async readBuffer(buffer, size = buffer.size) {
     if (!allowReadback('BufferPool.readBuffer')) {
       return new ArrayBuffer(0);
@@ -469,10 +414,7 @@ export class BufferPool {
     return data;
   }
 
-  /**
-   * Clear all pooled buffers
-   * @returns {void}
-   */
+  
   clearPool() {
     for (const usagePool of this.#pools.values()) {
       for (const bucketPool of usagePool.values()) {
@@ -491,10 +433,7 @@ export class BufferPool {
     this.#destructionScheduled = false;
   }
 
-  /**
-   * Destroy all buffers (active and pooled)
-   * @returns {void}
-   */
+  
   destroy() {
     // Destroy active buffers
     for (const buffer of this.#activeBuffers) {
@@ -507,12 +446,11 @@ export class BufferPool {
     this.clearPool();
 
     this.#stats.currentBytesAllocated = 0;
+    this.#stats.currentBytesRequested = 0;
+    this.#requestedSizes.clear();
   }
 
-  /**
-   * Get pool statistics
-   * @returns {import('./buffer-pool.js').PoolStats}
-   */
+  
   getStats() {
     return {
       ...this.#stats,
@@ -524,24 +462,17 @@ export class BufferPool {
     };
   }
 
-  /**
-   * Configure pool settings
-   * @param {Partial<import('./buffer-pool.js').PoolConfig>} config
-   * @returns {void}
-   */
+  
   configure(config) {
     Object.assign(this.#config, config);
   }
 }
 
 // Global buffer pool instance
-/** @type {BufferPool | null} */
+
 let globalPool = null;
 
-/**
- * Get the global buffer pool
- * @returns {BufferPool}
- */
+
 export function getBufferPool() {
   if (!globalPool) {
     globalPool = new BufferPool();
@@ -549,20 +480,12 @@ export function getBufferPool() {
   return globalPool;
 }
 
-/**
- * Create a standalone buffer pool
- * @param {boolean} [debugMode]
- * @param {import('../config/schema/index.js').BufferPoolConfigSchema} [schemaConfig]
- * @returns {BufferPool}
- */
+
 export function createBufferPool(debugMode, schemaConfig) {
   return new BufferPool(debugMode, schemaConfig);
 }
 
-/**
- * Destroy the global buffer pool
- * @returns {void}
- */
+
 export function destroyBufferPool() {
   if (globalPool) {
     globalPool.destroy();
@@ -571,32 +494,25 @@ export function destroyBufferPool() {
 }
 
 // Convenience exports for common operations
-/** @type {(size: number) => GPUBuffer} */
+
 export const createStagingBuffer = (size) => getBufferPool().createStagingBuffer(size);
-/** @type {(size: number) => GPUBuffer} */
+
 export const createUploadBuffer = (size) => getBufferPool().createUploadBuffer(size);
-/** @type {(size: number) => GPUBuffer} */
+
 export const createUniformBuffer = (size) => getBufferPool().createUniformBuffer(size);
-/** @type {(size: number, usage?: GPUBufferUsageFlags, label?: string) => GPUBuffer} */
+
 export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
-/** @type {(buffer: GPUBuffer) => void} */
+
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
-/** @type {(buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void} */
+
 export const uploadData = (buffer, data, offset) =>
   getBufferPool().uploadData(buffer, data, offset);
-/** @type {(buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>} */
+
 export const readBuffer = (buffer, size) =>
   getBufferPool().readBuffer(buffer, size);
 
-/**
- * Scoped buffer helper - automatically releases buffer when done
- * @template T
- * @param {number} size
- * @param {GPUBufferUsageFlags} usage
- * @param {(buffer: GPUBuffer) => Promise<T>} fn
- * @returns {Promise<T>}
- */
+
 export async function withBuffer(
   size,
   usage,

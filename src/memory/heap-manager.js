@@ -1,13 +1,4 @@
-/**
- * Heap Manager
- * Agent-A | Domain: memory/
- *
- * Manages memory allocation for model weights:
- * - Memory64 mode: Single large WASM heap
- * - Segmented mode: Multiple 4GB ArrayBuffers with virtual addressing
- *
- * @module memory/heap-manager
- */
+
 
 import { getMemoryCapabilities } from './capability.js';
 import { AddressTable } from './address-table.js';
@@ -26,27 +17,22 @@ const PAGE_SIZE = 65536; // WASM page = 64KB
 // Heap Manager Class
 // ============================================================================
 
-/**
- * HeapManager - Unified interface for both memory strategies
- */
+
 export class HeapManager {
-  /** @type {import('./capability.js').MemoryStrategy | null} */
+  
   #strategy = null;
-  /** @type {WebAssembly.Memory | null} */
+  
   #memory64Heap = null;
-  /** @type {import('./heap-manager.js').MemorySegment[]} */
+  
   #segments = [];
-  /** @type {AddressTable | null} */
+  
   #addressTable = null;
-  /** @type {boolean} */
+  
   #initialized = false;
-  /** @type {number} */
+  
   #totalAllocated = 0;
 
-  /**
-   * Initialize heap manager based on detected capabilities
-   * @returns {Promise<void>}
-   */
+  
   async init() {
     if (this.#initialized) return;
 
@@ -54,20 +40,16 @@ export class HeapManager {
     this.#strategy = caps.strategy;
 
     if (this.#strategy === 'MEMORY64') {
-      await this.#initMemory64(/** @type {number} */ (caps.maxHeapSize));
+      await this.#initMemory64( (caps.maxHeapSize));
     } else {
-      await this.#initSegmented(/** @type {import('./capability.js').SegmentedLimits} */ (caps.segmentedLimits));
+      await this.#initSegmented( (caps.segmentedLimits));
     }
 
     this.#initialized = true;
     log.info('HeapManager', `Initialized with strategy: ${this.#strategy}`);
   }
 
-  /**
-   * Initialize Memory64 heap (single large WASM memory)
-   * @param {number} maxSize
-   * @returns {Promise<void>}
-   */
+  
   async #initMemory64(maxSize) {
     // Start with 1GB, grow as needed
     const initialPages = Math.ceil(GB / PAGE_SIZE);
@@ -86,7 +68,7 @@ export class HeapManager {
     } catch (err) {
       log.error(
         'HeapManager',
-        `Memory64 init failed, falling back to segmented: ${/** @type {Error} */ (err).message}`
+        `Memory64 init failed, falling back to segmented: ${ (err).message}`
       );
       this.#strategy = 'SEGMENTED';
       const { fallbackSegmentSizeBytes } = getRuntimeConfig().shared.memory.segmentAllocation;
@@ -94,11 +76,7 @@ export class HeapManager {
     }
   }
 
-  /**
-   * Initialize segmented heap (multiple ArrayBuffers)
-   * @param {import('./capability.js').SegmentedLimits} limits
-   * @returns {Promise<void>}
-   */
+  
   async #initSegmented(limits) {
     this.#addressTable = new AddressTable(limits.maxSegmentSize);
     this.#segments = [];
@@ -112,15 +90,12 @@ export class HeapManager {
     );
   }
 
-  /**
-   * Allocate a new segment
-   * @returns {import('./heap-manager.js').MemorySegment}
-   */
+  
   #allocateSegment() {
-    const segmentSize = /** @type {AddressTable} */ (this.#addressTable).segmentSize;
+    const segmentSize =  (this.#addressTable).segmentSize;
 
     try {
-      /** @type {import('./heap-manager.js').MemorySegment} */
+      
       const segment = {
         index: this.#segments.length,
         buffer: new ArrayBuffer(segmentSize),
@@ -139,7 +114,7 @@ export class HeapManager {
       for (const size of segmentFallbackSizes) {
         if (size >= segmentSize) continue; // Already tried this size
         try {
-          /** @type {import('./heap-manager.js').MemorySegment} */
+          
           const segment = {
             index: this.#segments.length,
             buffer: new ArrayBuffer(size),
@@ -147,7 +122,7 @@ export class HeapManager {
           };
           this.#segments.push(segment);
           // Update address table's segment size for consistency
-          /** @type {AddressTable} */ (this.#addressTable).segmentSize = size;
+           (this.#addressTable).segmentSize = size;
           log.warn('HeapManager', `Allocation fallback to ${size / MB}MB segment`);
           return segment;
         } catch {
@@ -156,16 +131,12 @@ export class HeapManager {
       }
 
       throw new Error(
-        `Failed to allocate segment: ${/** @type {Error} */ (e).message}. Try closing other tabs.`
+        `Failed to allocate segment: ${ (e).message}. Try closing other tabs.`
       );
     }
   }
 
-  /**
-   * Allocate buffer for model data
-   * @param {number} size - Size in bytes
-   * @returns {import('./heap-manager.js').AllocationResult}
-   */
+  
   allocate(size) {
     if (!this.#initialized) {
       throw new Error('HeapManager not initialized. Call init() first.');
@@ -178,19 +149,15 @@ export class HeapManager {
     }
   }
 
-  /**
-   * Allocate from Memory64 heap
-   * @param {number} size
-   * @returns {import('./heap-manager.js').AllocationResult}
-   */
+  
   #allocateMemory64(size) {
-    const buffer = /** @type {WebAssembly.Memory} */ (this.#memory64Heap).buffer;
+    const buffer =  (this.#memory64Heap).buffer;
     const offset = this.#totalAllocated;
 
     // Grow if needed
     if (offset + size > buffer.byteLength) {
       const neededPages = Math.ceil((offset + size - buffer.byteLength) / PAGE_SIZE);
-      /** @type {WebAssembly.Memory} */ (this.#memory64Heap).grow(neededPages);
+       (this.#memory64Heap).grow(neededPages);
     }
 
     this.#totalAllocated += size;
@@ -198,16 +165,12 @@ export class HeapManager {
     return {
       virtualAddress: offset,
       size,
-      view: new Uint8Array(/** @type {WebAssembly.Memory} */ (this.#memory64Heap).buffer, offset, size),
+      view: new Uint8Array( (this.#memory64Heap).buffer, offset, size),
       strategy: 'MEMORY64',
     };
   }
 
-  /**
-   * Allocate from segmented heap
-   * @param {number} size
-   * @returns {import('./heap-manager.js').AllocationResult}
-   */
+  
   #allocateSegmented(size) {
     // Find segment with enough space, or allocate new one
     let segment = this.#segments.find((s) => s.buffer.byteLength - s.used >= size);
@@ -220,7 +183,7 @@ export class HeapManager {
     segment.used += size;
     this.#totalAllocated += size;
 
-    const virtualAddress = /** @type {AddressTable} */ (this.#addressTable).encode(segment.index, offset);
+    const virtualAddress =  (this.#addressTable).encode(segment.index, offset);
 
     return {
       virtualAddress,
@@ -232,58 +195,40 @@ export class HeapManager {
     };
   }
 
-  /**
-   * Read data from virtual address
-   * @param {number} virtualAddress - Virtual address to read from
-   * @param {number} length - Number of bytes to read
-   * @returns {Uint8Array}
-   */
+  
   read(virtualAddress, length) {
     if (this.#strategy === 'MEMORY64') {
-      return new Uint8Array(/** @type {WebAssembly.Memory} */ (this.#memory64Heap).buffer, virtualAddress, length);
+      return new Uint8Array( (this.#memory64Heap).buffer, virtualAddress, length);
     } else {
-      const { segmentIndex, offset } = /** @type {AddressTable} */ (this.#addressTable).decode(virtualAddress);
+      const { segmentIndex, offset } =  (this.#addressTable).decode(virtualAddress);
       const segment = this.#segments[segmentIndex];
       return new Uint8Array(segment.buffer, offset, length);
     }
   }
 
-  /**
-   * Write data to virtual address
-   * @param {number} virtualAddress - Virtual address to write to
-   * @param {Uint8Array} data - Data to write
-   * @returns {void}
-   */
+  
   write(virtualAddress, data) {
     const view = this.read(virtualAddress, data.length);
     view.set(data);
   }
 
-  /**
-   * Get raw buffer for GPU upload
-   * @param {number} virtualAddress - Virtual address
-   * @param {number} length - Number of bytes
-   * @returns {ArrayBuffer}
-   */
+  
   getBufferSlice(virtualAddress, length) {
     if (this.#strategy === 'MEMORY64') {
       // Return a copy for GPU upload (can't share WASM memory directly)
       const slice = new ArrayBuffer(length);
       new Uint8Array(slice).set(
-        new Uint8Array(/** @type {WebAssembly.Memory} */ (this.#memory64Heap).buffer, virtualAddress, length)
+        new Uint8Array( (this.#memory64Heap).buffer, virtualAddress, length)
       );
       return slice;
     } else {
-      const { segmentIndex, offset } = /** @type {AddressTable} */ (this.#addressTable).decode(virtualAddress);
+      const { segmentIndex, offset } =  (this.#addressTable).decode(virtualAddress);
       const segment = this.#segments[segmentIndex];
       return segment.buffer.slice(offset, offset + length);
     }
   }
 
-  /**
-   * Get memory stats
-   * @returns {import('./heap-manager.js').HeapStats}
-   */
+  
   getStats() {
     return {
       strategy: this.#strategy,
@@ -293,10 +238,7 @@ export class HeapManager {
     };
   }
 
-  /**
-   * Free all memory (for model unload)
-   * @returns {void}
-   */
+  
   reset() {
     if (this.#strategy === 'SEGMENTED') {
       this.#segments = [];
@@ -311,13 +253,10 @@ export class HeapManager {
 // Singleton
 // ============================================================================
 
-/** @type {HeapManager | null} */
+
 let heapManagerInstance = null;
 
-/**
- * Get the global heap manager instance
- * @returns {HeapManager}
- */
+
 export function getHeapManager() {
   if (!heapManagerInstance) {
     heapManagerInstance = new HeapManager();

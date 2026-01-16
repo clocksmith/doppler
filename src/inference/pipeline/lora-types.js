@@ -1,10 +1,6 @@
-/**
- * LoRA adapter type definitions for pipeline modules.
- *
- * @module inference/pipeline/lora-types
- */
 
-/** @type {Record<string, import('./lora-types.js').LoRAModuleName>} */
+
+
 export const LORA_MODULE_ALIASES = {
   'q_proj': 'q_proj',
   'k_proj': 'k_proj',

@@ -1,10 +1,4 @@
-/**
- * app.js - DOPPLER Application Controller
- *
- * Main application that wires together all components and the DOPPLER inference pipeline.
- *
- * @module app/app
- */
+
 
 import { ModelSelector } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
@@ -46,27 +40,17 @@ import { initDevice, getKernelCapabilities, getDevice } from '../src/gpu/device.
 // Constants
 // ============================================================================
 
-/**
- * Remote models available for download
- * Currently empty - only local models (discovered via /api/models) are shown
- * @type {import('./app.js').RemoteModel[]}
- */
+
 const REMOTE_MODELS = [];
 
-/**
- * Dynamic model registry populated at runtime
- * @type {import('./app.js').RegisteredModel[]}
- */
+
 let MODEL_REGISTRY = [];
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
-/**
- * Discover local models via server API
- * @returns {Promise<import('./app.js').RemoteModel[]>}
- */
+
 async function discoverLocalModels() {
   const baseUrl = window.location.origin;
 
@@ -74,7 +58,7 @@ async function discoverLocalModels() {
     const response = await fetch(`${baseUrl}/api/models`);
     if (!response.ok) return [];
 
-    /** @type {import('./app.js').ServerModel[]} */
+    
     const models = await response.json();
     return models.map((m) => {
       // Create friendly name from folder name
@@ -110,33 +94,31 @@ async function discoverLocalModels() {
 // Main Demo Application
 // ============================================================================
 
-/**
- * Main Demo Application
- */
+
 export class DopplerDemo {
-  /** @type {ModelSelector | null} */
+  
   #modelSelector = null;
-  /** @type {ChatUI | null} */
+  
   #chatUI = null;
-  /** @type {ProgressUI | null} */
+  
   #progressUI = null;
-  /** @type {QuickStartUI | null} */
+  
   #quickStartUI = null;
 
   // Pipeline state
-  /** @type {import('../src/inference/pipeline.js').Pipeline | null} */
+  
   #pipeline = null;
-  /** @type {import('./app.js').RegisteredModel | null} */
+  
   #currentModel = null;
-  /** @type {boolean} */
+  
   #isGenerating = false;
-  /** @type {AbortController | null} */
+  
   #abortController = null;
-  /** @type {{ role: 'user' | 'assistant'; content: string }[]} */
+  
   #chatMessages = [];
 
   // Capabilities
-  /** @type {import('./app.js').Capabilities} */
+  
   #capabilities = {
     webgpu: false,
     f16: false,
@@ -145,13 +127,13 @@ export class DopplerDemo {
   };
 
   // DOM references
-  /** @type {HTMLElement | null} */
+  
   #statusDot = null;
-  /** @type {HTMLElement | null} */
+  
   #statusText = null;
-  /** @type {HTMLElement | null} */
+  
   #capabilitiesList = null;
-  /** @type {import('./app.js').StatsElements} */
+  
   #statsElements = {
     tps: null,
     memory: null,
@@ -160,7 +142,7 @@ export class DopplerDemo {
   };
 
   // GPU info elements
-  /** @type {import('./app.js').GPUElements} */
+  
   #gpuElements = {
     device: null,
     vram: null,
@@ -172,7 +154,7 @@ export class DopplerDemo {
   };
 
   // Memory bar elements
-  /** @type {import('./app.js').MemoryElements} */
+  
   #memoryElements = {
     heapBar: null,
     heapValue: null,
@@ -188,53 +170,49 @@ export class DopplerDemo {
     gpuStackedBar: null,
     totalValue: null,
   };
-  /** @type {import('../src/memory/capability.js').MemoryCapabilities | null} */
+  
   #memoryCapabilities = null;
-  /** @type {number | null} */
+  
   #estimatedSystemMemoryBytes = null;
-  /** @type {number | null} */
+  
   #gpuBufferLimitBytes = null;
-  /** @type {boolean} */
+  
   #isUnifiedMemory = false;
 
   // Memory control UI
-  /** @type {HTMLButtonElement | null} */
+  
   #unloadModelBtn = null;
-  /** @type {HTMLButtonElement | null} */
+  
   #clearMemoryBtn = null;
-  /** @type {HTMLElement | null} */
+  
   #swapIndicator = null;
-  /** @type {import('../src/config/schema/index.js').KernelPathRef | null} */
-  #runtimeKernelPath = null;
+  
 
   // Sampling controls
-  /** @type {HTMLInputElement | null} */
+  
   #temperatureInput = null;
-  /** @type {HTMLInputElement | null} */
+  
   #topPInput = null;
-  /** @type {HTMLInputElement | null} */
+  
   #topKInput = null;
 
   // Converter UI
-  /** @type {HTMLButtonElement | null} */
+  
   #convertBtn = null;
-  /** @type {HTMLElement | null} */
+  
   #convertStatus = null;
-  /** @type {HTMLElement | null} */
+  
   #convertProgress = null;
-  /** @type {HTMLElement | null} */
+  
   #convertMessage = null;
-  /** @type {boolean} */
+  
   #isConverting = false;
 
   // Memory polling interval
-  /** @type {ReturnType<typeof setInterval> | null} */
+  
   #memoryPollInterval = null;
 
-  /**
-   * Initialize the application
-   * @returns {Promise<void>}
-   */
+  
   async init() {
     log.info('App', 'Initializing...');
 
@@ -278,7 +256,6 @@ export class DopplerDemo {
       totalValue: document.querySelector('#memory-total'),
     };
 
-    this.#readRuntimeOverridesFromURL();
 
     // Memory control elements
     this.#unloadModelBtn = document.querySelector('#unload-model-btn');
@@ -318,17 +295,15 @@ export class DopplerDemo {
     log.info('App', 'Initialized');
   }
 
-  /**
-   * Initialize UI components
-   */
+  
   #initComponents() {
-    const container = /** @type {HTMLElement} */ (document.querySelector('#app'));
+    const container =  (document.querySelector('#app'));
 
     // Model Selector
     this.#modelSelector = new ModelSelector(container, {
-      onSelect: (model, opts) => this.selectModel(/** @type {import('./app.js').RegisteredModel} */ (model), opts),
-      onDownload: (model, opts) => this.downloadModel(/** @type {import('./app.js').RegisteredModel} */ (model), opts),
-      onDelete: (model) => this.deleteModel(/** @type {import('./app.js').RegisteredModel} */ (model)),
+      onSelect: (model, opts) => this.selectModel( (model), opts),
+      onDownload: (model, opts) => this.downloadModel( (model), opts),
+      onDelete: (model) => this.deleteModel( (model)),
       onQuickStart: (model) => {
         // Use the remote source ID (e.g., 'gemma-1b-instruct') for QUICKSTART_MODELS lookup
         const modelId = model.sources?.remote?.id || model.key;
@@ -354,11 +329,7 @@ export class DopplerDemo {
     });
 
     // Sampling inputs (clamp and persist)
-    /**
-     * @param {HTMLInputElement} input
-     * @param {number} min
-     * @param {number} max
-     */
+    
     const clampNumber = (input, min, max) => {
       const n = parseFloat(input.value);
       if (!Number.isFinite(n)) return;
@@ -366,14 +337,14 @@ export class DopplerDemo {
     };
     if (this.#temperatureInput) {
       this.#temperatureInput.addEventListener('change', () =>
-        clampNumber(/** @type {HTMLInputElement} */ (this.#temperatureInput), 0.1, 2.0)
+        clampNumber( (this.#temperatureInput), 0.1, 2.0)
       );
     }
     if (this.#topPInput) {
-      this.#topPInput.addEventListener('change', () => clampNumber(/** @type {HTMLInputElement} */ (this.#topPInput), 0, 1));
+      this.#topPInput.addEventListener('change', () => clampNumber( (this.#topPInput), 0, 1));
     }
     if (this.#topKInput) {
-      this.#topKInput.addEventListener('change', () => clampNumber(/** @type {HTMLInputElement} */ (this.#topKInput), 0, 200));
+      this.#topKInput.addEventListener('change', () => clampNumber( (this.#topKInput), 0, 200));
     }
 
     // Convert button
@@ -395,34 +366,7 @@ export class DopplerDemo {
     }
   }
 
-  #readRuntimeOverridesFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const kernelPathRaw = params.get('kernelPath');
-    if (kernelPathRaw) {
-      try {
-        const trimmed = kernelPathRaw.trim();
-        if (trimmed.startsWith('{')) {
-          const parsed = JSON.parse(trimmed);
-          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            this.#runtimeKernelPath = /** @type {import('../src/config/schema/index.js').KernelPathRef} */ (parsed);
-            log.debug('App', 'Runtime kernel path from URL:', parsed);
-          } else {
-            log.warn('App', 'kernelPath JSON must be an object; ignoring.');
-          }
-        } else {
-          this.#runtimeKernelPath = trimmed;
-          log.debug('App', 'Runtime kernel path from URL:', trimmed);
-        }
-      } catch (err) {
-        log.warn('App', 'Failed to parse kernelPath from URL:', /** @type {Error} */ (err).message);
-      }
-    }
-  }
-
-  /**
-   * Detect browser capabilities
-   * @returns {Promise<void>}
-   */
+  
   async #detectCapabilities() {
     log.debug('App', 'Detecting capabilities...');
 
@@ -438,12 +382,12 @@ export class DopplerDemo {
           this.#capabilities.subgroups = adapter.features.has('subgroups');
 
           // Get adapter info for logging
-          /** @type {Partial<GPUAdapterInfo>} */
-          const info = /** @type {GPUAdapter & { info?: GPUAdapterInfo; requestAdapterInfo?: () => Promise<GPUAdapterInfo> }} */ (adapter).info || (await /** @type {GPUAdapter & { requestAdapterInfo?: () => Promise<GPUAdapterInfo> }} */ (adapter).requestAdapterInfo?.()) || {};
+          
+          const info =  (adapter).info || (await  (adapter).requestAdapterInfo?.()) || {};
           log.info('GPU', `${info.vendor || 'unknown'} ${info.architecture || info.device || 'unknown'}`);
 
           // Populate GPU info panel
-          this.#populateGPUInfo(adapter, /** @type {GPUAdapterInfo} */ (info));
+          this.#populateGPUInfo(adapter,  (info));
         }
       } catch (e) {
         log.warn('App', 'WebGPU init failed:', e);
@@ -468,14 +412,12 @@ export class DopplerDemo {
     this.#updateCapabilitiesUI();
   }
 
-  /**
-   * Update capabilities list UI
-   */
+  
   #updateCapabilitiesUI() {
     if (!this.#capabilitiesList) return;
     const items = this.#capabilitiesList.querySelectorAll('li');
     items.forEach((item) => {
-      const cap = /** @type {keyof import('./app.js').Capabilities} */ (/** @type {HTMLElement} */ (item).dataset.cap);
+      const cap =  ( (item).dataset.cap);
       if (this.#capabilities[cap]) {
         item.classList.add('supported');
         item.classList.remove('unsupported');
@@ -486,11 +428,7 @@ export class DopplerDemo {
     });
   }
 
-  /**
-   * Resolve GPU device name from adapter info with fallback chain
-   * @param {GPUAdapterInfo} info
-   * @returns {string}
-   */
+  
   #resolveGPUName(info) {
     const vendor = (info.vendor || '').toLowerCase();
     const device = (info.device || '').toLowerCase();
@@ -529,11 +467,7 @@ export class DopplerDemo {
     return 'Unknown GPU';
   }
 
-  /**
-   * Populate GPU info panel with adapter details
-   * @param {GPUAdapter} adapter
-   * @param {GPUAdapterInfo} info
-   */
+  
   #populateGPUInfo(adapter, info) {
     if (!this.#gpuElements.device) return;
 
@@ -548,19 +482,10 @@ export class DopplerDemo {
 
     // System RAM (for unified memory systems)
     // Note: navigator.deviceMemory caps at 8GB for privacy
-    // Override with ?ram=24 URL param to show actual RAM
-    const urlParams = new URLSearchParams(window.location.search);
-    const ramOverride = urlParams.get('ram');
-    const deviceMemoryGB = /** @type {Navigator & { deviceMemory?: number }} */ (navigator).deviceMemory;
+    const deviceMemoryGB =  (navigator).deviceMemory;
     const GB = 1024 * 1024 * 1024;
     if (isUnifiedMemory && this.#gpuElements.ramRow && this.#gpuElements.ram) {
-      if (ramOverride) {
-        const parsedOverride = Number.parseFloat(ramOverride);
-        if (Number.isFinite(parsedOverride)) {
-          this.#estimatedSystemMemoryBytes = parsedOverride * GB;
-        }
-        this.#gpuElements.ram.textContent = `${ramOverride} GB`;
-      } else if (deviceMemoryGB && deviceMemoryGB >= 8) {
+      if (deviceMemoryGB && deviceMemoryGB >= 8) {
         // 8GB is the max reported, actual RAM is likely higher
         this.#estimatedSystemMemoryBytes = deviceMemoryGB * GB;
         this.#gpuElements.ram.textContent = '8+ GB';
@@ -574,15 +499,15 @@ export class DopplerDemo {
     }
 
     // Buffer limit (WebGPU's max buffer size - conservative on unified memory)
-    const limits = /** @type {GPUSupportedLimits & { maxBufferSize?: number; maxStorageBufferBindingSize?: number }} */ (adapter.limits || {});
+    const limits =  (adapter.limits || {});
     const maxBufferSize = limits.maxBufferSize || 0;
     const maxStorageSize = limits.maxStorageBufferBindingSize || 0;
     const bufferLimit = Math.max(maxBufferSize, maxStorageSize);
     this.#gpuBufferLimitBytes = bufferLimit > 0 ? bufferLimit : null;
     if (bufferLimit > 0) {
-      /** @type {HTMLElement} */ (this.#gpuElements.vram).textContent = this.#formatBytes(bufferLimit);
+       (this.#gpuElements.vram).textContent = this.#formatBytes(bufferLimit);
     } else {
-      /** @type {HTMLElement} */ (this.#gpuElements.vram).textContent = 'Unknown';
+       (this.#gpuElements.vram).textContent = 'Unknown';
     }
 
     // Show unified memory note
@@ -591,19 +516,15 @@ export class DopplerDemo {
     }
 
     // Features
-    /** @type {string[]} */
+    
     const features = [];
     if (this.#capabilities.f16) features.push('F16');
     if (this.#capabilities.subgroups) features.push('Subgroups');
     if (adapter.features.has('timestamp-query')) features.push('Timestamps');
-    /** @type {HTMLElement} */ (this.#gpuElements.features).textContent = features.length > 0 ? features.join(', ') : 'Basic';
+     (this.#gpuElements.features).textContent = features.length > 0 ? features.join(', ') : 'Basic';
   }
 
-  /**
-   * Detect unified memory architecture (Apple Silicon, integrated GPUs)
-   * @param {GPUAdapterInfo} info
-   * @returns {boolean}
-   */
+  
   #isUnifiedMemoryArchitecture(info) {
     const arch = info.architecture?.toLowerCase() || '';
     const vendor = info.vendor?.toLowerCase() || '';
@@ -632,9 +553,7 @@ export class DopplerDemo {
     return false;
   }
 
-  /**
-   * Start polling memory stats
-   */
+  
   #startMemoryPolling() {
     // Update immediately
     this.#updateMemoryStats();
@@ -645,9 +564,7 @@ export class DopplerDemo {
     }, 2000);
   }
 
-  /**
-   * Update memory stats display
-   */
+  
   #updateMemoryStats() {
     if (!this.#memoryElements.heapBar) return;
 
@@ -657,7 +574,7 @@ export class DopplerDemo {
     let totalLimit = 0;
 
     // JS Heap (from performance.memory if available - Chrome only)
-    const memory = /** @type {Performance & { memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number; totalJSHeapSize?: number } }} */ (performance).memory;
+    const memory =  (performance).memory;
     if (memory) {
       usedHeap = memory.usedJSHeapSize || 0;
       const totalHeap = memory.jsHeapSizeLimit || memory.totalJSHeapSize || 1;
@@ -665,25 +582,25 @@ export class DopplerDemo {
       totalLimit = totalHeap;
 
       this.#memoryElements.heapBar.style.width = `${heapPercent}%`;
-      /** @type {HTMLElement} */ (this.#memoryElements.heapValue).textContent = this.#formatBytes(usedHeap);
+       (this.#memoryElements.heapValue).textContent = this.#formatBytes(usedHeap);
     } else {
-      /** @type {HTMLElement} */ (this.#memoryElements.heapValue).textContent = 'N/A';
+       (this.#memoryElements.heapValue).textContent = 'N/A';
     }
 
     // GPU buffer usage (from buffer pool)
-    /** @type {{ peakBytesAllocated?: number; currentBytesAllocated?: number } | null} */
+    
     let poolStats = null;
     try {
       const bufferPool = getBufferPool();
       poolStats = bufferPool.getStats();
       usedGpuPool = poolStats.currentBytesAllocated || 0;
     } catch {
-      /** @type {HTMLElement} */ (this.#memoryElements.gpuValue).textContent = '--';
+       (this.#memoryElements.gpuValue).textContent = '--';
     }
 
     // KV cache usage (if pipeline exposes it)
-    if (this.#pipeline && typeof /** @type {any} */ (this.#pipeline).getMemoryStats === 'function') {
-      const memStats = /** @type {any} */ (this.#pipeline).getMemoryStats();
+    if (this.#pipeline && typeof  (this.#pipeline).getMemoryStats === 'function') {
+      const memStats =  (this.#pipeline).getMemoryStats();
       if (memStats?.kvCache?.allocated) {
         usedKv = memStats.kvCache.allocated;
       }
@@ -716,10 +633,10 @@ export class DopplerDemo {
         const opfsQuota = estimate.quota || 1;
         const opfsPercent = Math.min(100, (opfsUsed / opfsQuota) * 100);
 
-        /** @type {HTMLElement} */ (this.#memoryElements.opfsBar).style.width = `${opfsPercent}%`;
-        /** @type {HTMLElement} */ (this.#memoryElements.opfsValue).textContent = this.#formatBytes(opfsUsed);
+         (this.#memoryElements.opfsBar).style.width = `${opfsPercent}%`;
+         (this.#memoryElements.opfsValue).textContent = this.#formatBytes(opfsUsed);
       }).catch(() => {
-        /** @type {HTMLElement} */ (this.#memoryElements.opfsValue).textContent = '--';
+         (this.#memoryElements.opfsValue).textContent = '--';
       });
     }
 
@@ -740,7 +657,7 @@ export class DopplerDemo {
 
       // Detect potential swapping (total > device memory)
       // navigator.deviceMemory gives RAM in GB (approximate)
-      const deviceMemoryGB = /** @type {Navigator & { deviceMemory?: number }} */ (navigator).deviceMemory;
+      const deviceMemoryGB =  (navigator).deviceMemory;
       if (deviceMemoryGB && this.#swapIndicator) {
         const physicalRamBytes = deviceMemoryGB * 1024 * 1024 * 1024;
         // Show swap warning if we're using more than 90% of reported device memory
@@ -767,9 +684,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * @returns {number | null}
-   */
+  
   #getEstimatedSystemMemoryBytes() {
     if (this.#estimatedSystemMemoryBytes) {
       return this.#estimatedSystemMemoryBytes;
@@ -778,11 +693,7 @@ export class DopplerDemo {
     return estimatedGB ? estimatedGB * 1024 * 1024 * 1024 : null;
   }
 
-  /**
-   * @param {number} totalUsedBytes
-   * @param {number | null} estimatedTotalBytes
-   * @returns {number | null}
-   */
+  
   #estimateHeadroomBytes(totalUsedBytes, estimatedTotalBytes) {
     if (!this.#isUnifiedMemory || !estimatedTotalBytes) {
       return null;
@@ -790,11 +701,7 @@ export class DopplerDemo {
     return Math.max(0, estimatedTotalBytes - totalUsedBytes);
   }
 
-  /**
-   * Format bytes to human-readable string
-   * @param {number} bytes
-   * @returns {string}
-   */
+  
   #formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -803,11 +710,7 @@ export class DopplerDemo {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  /**
-   * Format model ID to a human-readable name
-   * @param {string} modelId
-   * @returns {string}
-   */
+  
   #formatModelName(modelId) {
     // Remove common prefixes
     let name = modelId
@@ -829,14 +732,7 @@ export class DopplerDemo {
       .join(' ');
   }
 
-  /**
-   * Generate a deduplication key for a model
-   * Uses architecture + quantization only (size varies between sources)
-   * @param {string | undefined} arch
-   * @param {string | undefined} quant
-   * @param {number | string} [_size]
-   * @returns {string}
-   */
+  
   #getModelKey(arch, quant, _size) {
     // Normalize architecture: extract base model family (gemma, llama, mistral, etc.)
     const normArch = (arch || 'unknown')
@@ -851,29 +747,20 @@ export class DopplerDemo {
     return `${normArch}:${normQuant}`;
   }
 
-  /**
-   * Load list of cached models from storage, deduplicating by model identity
-   * @returns {Promise<void>}
-   */
+  
   async #loadCachedModels() {
     log.debug('App', 'Discovering models...');
 
     // Map to deduplicate models: key -> model info with sources
-    /** @type {Map<string, import('./app.js').RegisteredModel>} */
+    
     const modelMap = new Map();
 
-    /**
-     * Helper to add/merge a model into the map
-     * @param {string} key
-     * @param {Partial<import('./app.js').RegisteredModel>} info
-     * @param {keyof import('./model-selector.js').ModelSources} sourceType
-     * @param {{ id: string; url?: string }} sourceData
-     */
+    
     const addModel = (key, info, sourceType, sourceData) => {
       if (modelMap.has(key)) {
         // Merge sources
-        const existing = /** @type {import('./app.js').RegisteredModel} */ (modelMap.get(key));
-        /** @type {Record<string, unknown>} */ (existing.sources)[sourceType] = sourceData;
+        const existing =  (modelMap.get(key));
+         (existing.sources)[sourceType] = sourceData;
         // Prefer better metadata (server > browser > remote)
         if (sourceType === 'server' || (sourceType === 'browser' && !existing.sources.server)) {
           existing.name = info.name || existing.name;
@@ -881,7 +768,7 @@ export class DopplerDemo {
           existing.downloadSize = info.downloadSize || existing.downloadSize;
         }
       } else {
-        modelMap.set(key, /** @type {import('./app.js').RegisteredModel} */ ({
+        modelMap.set(key,  ({
           ...info,
           key,
           sources: { [sourceType]: sourceData },
@@ -910,13 +797,13 @@ export class DopplerDemo {
     }
 
     // 2. Check OPFS for browser-cached models
-    /** @type {string[]} */
+    
     let cachedIds = [];
     try {
       cachedIds = await listModels();
       log.debug('App', 'Found cached models in OPFS:', cachedIds);
     } catch (err) {
-      log.warn('App', 'Could not query cached models:', /** @type {Error} */ (err).message);
+      log.warn('App', 'Could not query cached models:',  (err).message);
     }
 
     for (const cachedId of cachedIds) {
@@ -928,11 +815,11 @@ export class DopplerDemo {
           const archInfo = manifest.architecture;
           const archLabel = typeof archInfo === 'string' ? archInfo : manifest.modelType;
           const quant = manifest.quantization || 'Unknown';
-          const totalSize = (manifest.shards || []).reduce((/** @type {number} */ sum, /** @type {{ size?: number }} */ s) => sum + (s.size || 0), 0);
+          const totalSize = (manifest.shards || []).reduce(( sum,  s) => sum + (s.size || 0), 0);
 
           // Estimate param count
           const hiddenSize =
-            typeof archInfo === 'object' && archInfo !== null ? /** @type {{ hiddenSize?: number }} */ (archInfo).hiddenSize || 0 : 0;
+            typeof archInfo === 'object' && archInfo !== null ?  (archInfo).hiddenSize || 0 : 0;
           let paramStr = 'Unknown';
           if (hiddenSize >= 4096) paramStr = '7B+';
           else if (hiddenSize >= 2048) paramStr = '1-3B';
@@ -953,7 +840,7 @@ export class DopplerDemo {
           );
         }
       } catch (e) {
-        log.warn('App', `Could not load manifest for cached model ${cachedId}:`, /** @type {Error} */ (e).message);
+        log.warn('App', `Could not load manifest for cached model ${cachedId}:`,  (e).message);
       }
     }
 
@@ -1002,10 +889,7 @@ export class DopplerDemo {
 
     // 5. Convert map to array and sort by availability
     // Priority: server+browser > server > browser > remote
-    /**
-     * @param {import('./app.js').RegisteredModel} m
-     * @returns {number}
-     */
+    
     const getAvailabilityScore = (m) => {
       let score = 0;
       if (m.sources.server) score += 2;
@@ -1018,15 +902,10 @@ export class DopplerDemo {
     });
 
     log.info('App', `Model registry: ${MODEL_REGISTRY.length} unique models`);
-    this.#modelSelector?.setModels(/** @type {import('./model-selector.js').ModelInfo[]} */ (MODEL_REGISTRY));
+    this.#modelSelector?.setModels( (MODEL_REGISTRY));
   }
 
-  /**
-   * Select and load a model (run it)
-   * @param {import('./app.js').RegisteredModel | string} modelOrKey
-   * @param {{ preferredSource?: string }} [opts]
-   * @returns {Promise<void>}
-   */
+  
   async selectModel(modelOrKey, opts = {}) {
     if (this.#isGenerating) {
       this.#showError('Cannot switch models while generating');
@@ -1054,7 +933,7 @@ export class DopplerDemo {
     }
 
     // Use preferred source if specified, otherwise default to server > browser
-    /** @type {boolean} */
+    
     let useServer;
     if (opts.preferredSource === 'server' && hasServer) {
       useServer = true;
@@ -1064,7 +943,7 @@ export class DopplerDemo {
       useServer = hasServer; // Default: prefer server
     }
 
-    const sourceInfo = useServer ? /** @type {NonNullable<typeof sources.server>} */ (sources.server) : /** @type {NonNullable<typeof sources.browser>} */ (sources.browser);
+    const sourceInfo = useServer ?  (sources.server) :  (sources.browser);
     const sourceType = useServer ? 'server' : 'browser';
 
     log.info('App', `Loading model: ${model.name} from ${sourceType}`);
@@ -1074,21 +953,21 @@ export class DopplerDemo {
     try {
       // Unload current model if any
       if (this.#pipeline) {
-        if (typeof /** @type {any} */ (this.#pipeline).unload === 'function') {
-          await /** @type {any} */ (this.#pipeline).unload();
+        if (typeof  (this.#pipeline).unload === 'function') {
+          await  (this.#pipeline).unload();
         }
         this.#pipeline = null;
       }
 
-      /** @type {import('../src/storage/rdrr-format.js').RDRRManifest} */
+      
       let manifest;
-      /** @type {(idx: number) => Promise<ArrayBuffer>} */
+      
       let loadShardFn;
 
       // Track loading source for progress - distinguish between network/disk/cache
       const isLocalServer = sourceInfo.url?.match(/^(https?:\/\/)?(localhost|127\.0\.0\.1|0\.0\.0\.0|file:)/i);
       const loadSourceType = useServer ? (isLocalServer ? 'disk' : 'network') : 'cache';
-      this.#progressUI?.setSourceType(/** @type {import('./progress-ui.js').SourceType} */ (loadSourceType));
+      this.#progressUI?.setSourceType( (loadSourceType));
 
       if (useServer) {
         // Load from HTTP - show source phase
@@ -1138,7 +1017,7 @@ export class DopplerDemo {
       this.#progressUI?.setPhaseProgress({ phase: 'gpu', percent: 10, message: 'Creating pipeline...' });
 
       // Create pipeline with multi-phase progress tracking
-      this.#pipeline = await createPipeline(/** @type {any} */ (manifest), {
+      this.#pipeline = await createPipeline( (manifest), {
         gpu: {
           capabilities: gpuCaps,
           device: device,
@@ -1151,11 +1030,7 @@ export class DopplerDemo {
           loadShard: loadShardFn,
         },
         baseUrl: useServer ? sourceInfo.url : undefined,
-        runtime: {
-          debug: new URLSearchParams(window.location.search).has('debug'),
-          kernelPath: this.#runtimeKernelPath || undefined,
-        },
-        onProgress: (/** @type {{ percent: number; message?: string; stage?: string; layer?: number; total?: number; bytesLoaded?: number; totalBytes?: number; bytesPerSecond?: number }} */ progress) => {
+        onProgress: ( progress) => {
           const stage = progress.stage || 'layers';
 
           // Map loader stages to UI phases (simplified: source + gpu)
@@ -1174,7 +1049,7 @@ export class DopplerDemo {
 
             // GPU phase: show layer progress
             const gpuPercent = 10 + (progress.percent * 0.9);
-            /** @type {string} */
+            
             let message;
             if (progress.layer !== undefined && progress.total) {
               message = `Layer ${progress.layer}/${progress.total}`;
@@ -1209,28 +1084,23 @@ export class DopplerDemo {
       log.error('App', 'Model load failed:', error);
       this.#progressUI?.hide();
       this.#setStatus('error', 'Load failed');
-      this.#showError(`Failed to load model: ${/** @type {Error} */ (error).message}`);
+      this.#showError(`Failed to load model: ${ (error).message}`);
     }
   }
 
-  /**
-   * Download/cache a model to browser storage
-   * @param {import('./app.js').RegisteredModel} model
-   * @param {{ runAfter?: boolean }} [opts]
-   * @returns {Promise<void>}
-   */
+  
   async downloadModel(model, opts = {}) {
     const sources = model.sources || {};
 
     // Determine URL: prefer server (for caching), then remote
-    /** @type {string | null} */
+    
     let downloadUrl = null;
     let storageId = model.key.replace(/[^a-zA-Z0-9_-]/g, '_'); // Safe filename
 
     if (sources.server) {
-      downloadUrl = /** @type {string} */ (sources.server.url);
+      downloadUrl =  (sources.server.url);
     } else if (sources.remote) {
-      downloadUrl = /** @type {string} */ (sources.remote.url);
+      downloadUrl =  (sources.remote.url);
       storageId = sources.remote.id || storageId;
     }
 
@@ -1245,7 +1115,7 @@ export class DopplerDemo {
     try {
       const success = await downloadModel(
         downloadUrl,
-        (/** @type {import('../src/storage/downloader.js').DownloadProgress} */ progress) => {
+        ( progress) => {
           const percent =
             progress.totalBytes > 0
               ? Math.round((progress.downloadedBytes / progress.totalBytes) * 100)
@@ -1282,15 +1152,11 @@ export class DopplerDemo {
       log.error('App', 'Download failed:', error);
       this.#modelSelector?.setDownloadProgress(model.key, 0);
       this.#setStatus('error', 'Download failed');
-      this.#showError(`Download failed: ${/** @type {Error} */ (error).message}`);
+      this.#showError(`Download failed: ${ (error).message}`);
     }
   }
 
-  /**
-   * Delete a model from browser cache
-   * @param {import('./app.js').RegisteredModel} model
-   * @returns {Promise<void>}
-   */
+  
   async deleteModel(model) {
     const sources = model.sources || {};
     const browserId = sources.browser?.id;
@@ -1306,8 +1172,8 @@ export class DopplerDemo {
       // Unload if currently active
       if (this.#currentModel?.key === model.key) {
         if (this.#pipeline) {
-          if (typeof /** @type {any} */ (this.#pipeline).unload === 'function') {
-            await /** @type {any} */ (this.#pipeline).unload();
+          if (typeof  (this.#pipeline).unload === 'function') {
+            await  (this.#pipeline).unload();
           }
           this.#pipeline = null;
         }
@@ -1324,15 +1190,11 @@ export class DopplerDemo {
       await this.#loadCachedModels();
     } catch (error) {
       log.error('App', 'Delete failed:', error);
-      this.#showError(`Delete failed: ${/** @type {Error} */ (error).message}`);
+      this.#showError(`Delete failed: ${ (error).message}`);
     }
   }
 
-  /**
-   * Send a chat message and generate response
-   * @param {string} message
-   * @returns {Promise<void>}
-   */
+  
   async chat(message) {
     if (!this.#currentModel) {
       this.#showError('No model loaded');
@@ -1407,7 +1269,7 @@ export class DopplerDemo {
       }
       this.#setStatus('ready', `${this.#currentModel.name}`);
     } catch (error) {
-      if (/** @type {Error} */ (error).name === 'AbortError') {
+      if ( (error).name === 'AbortError') {
         if (responseText && !responseCommitted) {
           this.#chatMessages.push({ role: 'assistant', content: responseText });
         }
@@ -1420,7 +1282,7 @@ export class DopplerDemo {
         log.error('App', 'Generation error:', error);
         this.#chatUI?.cancelStream();
         this.#setStatus('error', 'Generation failed');
-        this.#showError(`Generation failed: ${/** @type {Error} */ (error).message}`);
+        this.#showError(`Generation failed: ${ (error).message}`);
       }
     } finally {
       this.#isGenerating = false;
@@ -1428,69 +1290,56 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * @returns {number}
-   */
+  
   #getSamplingTemperature() {
     const n = parseFloat(this.#temperatureInput?.value || '');
     return Number.isFinite(n) ? n : 0.7;
   }
 
-  /**
-   * @returns {number}
-   */
+  
   #getSamplingTopP() {
     const n = parseFloat(this.#topPInput?.value || '');
     return Number.isFinite(n) ? n : 0.9;
   }
 
-  /**
-   * @returns {number}
-   */
+  
   #getSamplingTopK() {
     const n = parseInt(this.#topKInput?.value || '', 10);
     return Number.isFinite(n) ? n : 40;
   }
 
-  /**
-   * Stop current generation
-   */
+  
   stopGeneration() {
     if (this.#abortController) {
       this.#abortController.abort();
     }
   }
 
-  /**
-   * Clear conversation history
-   */
+  
   clearConversation() {
-    if (this.#pipeline && typeof /** @type {any} */ (this.#pipeline).clearKVCache === 'function') {
-      /** @type {any} */ (this.#pipeline).clearKVCache();
+    if (this.#pipeline && typeof  (this.#pipeline).clearKVCache === 'function') {
+       (this.#pipeline).clearKVCache();
     }
     this.#chatUI?.clear();
     this.#chatMessages = [];
     log.debug('App', 'Conversation cleared');
   }
 
-  /**
-   * Get current status
-   * @returns {{ model: string | null; modelName: string | null; isGenerating: boolean; capabilities: import('./app.js').Capabilities; memory: unknown; gpu: unknown }}
-   */
+  
   getStatus() {
-    /** @type {unknown} */
+    
     let memoryUsage = null;
-    /** @type {unknown} */
+    
     let gpuUsage = null;
 
     if (this.#pipeline) {
       // Get memory stats from pipeline if available
-      if (typeof /** @type {any} */ (this.#pipeline).getMemoryStats === 'function') {
-        memoryUsage = /** @type {any} */ (this.#pipeline).getMemoryStats();
+      if (typeof  (this.#pipeline).getMemoryStats === 'function') {
+        memoryUsage =  (this.#pipeline).getMemoryStats();
       }
       // Get GPU stats if available
-      if (typeof /** @type {any} */ (this.#pipeline).getGPUStats === 'function') {
-        gpuUsage = /** @type {any} */ (this.#pipeline).getGPUStats();
+      if (typeof  (this.#pipeline).getGPUStats === 'function') {
+        gpuUsage =  (this.#pipeline).getGPUStats();
       }
     }
 
@@ -1504,11 +1353,7 @@ export class DopplerDemo {
     };
   }
 
-  /**
-   * Set status indicator
-   * @param {string} state
-   * @param {string} text
-   */
+  
   #setStatus(state, text) {
     if (this.#statusDot) {
       this.#statusDot.className = `status-dot ${state}`;
@@ -1518,10 +1363,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Update performance stats
-   * @param {number} tps
-   */
+  
   #updateStats(tps) {
     if (this.#statsElements.tps) {
       this.#statsElements.tps.textContent = tps.toFixed(1);
@@ -1529,16 +1371,16 @@ export class DopplerDemo {
 
     // Update memory and GPU stats from pipeline
     if (this.#pipeline) {
-      if (this.#statsElements.memory && typeof /** @type {any} */ (this.#pipeline).getMemoryStats === 'function') {
-        const memStats = /** @type {any} */ (this.#pipeline).getMemoryStats();
+      if (this.#statsElements.memory && typeof  (this.#pipeline).getMemoryStats === 'function') {
+        const memStats =  (this.#pipeline).getMemoryStats();
         if (memStats && memStats.used) {
           const usedMB = (memStats.used / 1024 / 1024).toFixed(0);
           this.#statsElements.memory.textContent = `${usedMB} MB`;
         }
       }
 
-      if (this.#statsElements.kv && typeof /** @type {any} */ (this.#pipeline).getKVCacheStats === 'function') {
-        const kvStats = /** @type {any} */ (this.#pipeline).getKVCacheStats();
+      if (this.#statsElements.kv && typeof  (this.#pipeline).getKVCacheStats === 'function') {
+        const kvStats =  (this.#pipeline).getKVCacheStats();
         if (kvStats) {
           this.#statsElements.kv.textContent = `${kvStats.seqLen}/${kvStats.maxSeqLen}`;
         }
@@ -1546,9 +1388,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Update initial stats after model load (before generation starts)
-   */
+  
   #updateInitialStats() {
     // Show TPS as "Ready" before generation starts
     if (this.#statsElements.tps) {
@@ -1557,7 +1397,7 @@ export class DopplerDemo {
 
     // Show memory usage
     if (this.#statsElements.memory) {
-      const heap = /** @type {Performance & { memory?: { usedJSHeapSize: number } }} */ (performance).memory?.usedJSHeapSize;
+      const heap =  (performance).memory?.usedJSHeapSize;
       if (heap) {
         const usedMB = (heap / 1024 / 1024).toFixed(0);
         this.#statsElements.memory.textContent = `${usedMB} MB`;
@@ -1566,7 +1406,7 @@ export class DopplerDemo {
 
     // Show GPU buffer count if available
     if (this.#statsElements.gpu && this.#pipeline) {
-      const bufferPool = /** @type {any} */ (this.#pipeline).getBufferPool?.();
+      const bufferPool =  (this.#pipeline).getBufferPool?.();
       if (bufferPool && typeof bufferPool.getStats === 'function') {
         const stats = bufferPool.getStats();
         this.#statsElements.gpu.textContent = `${stats.activeBuffers}`;
@@ -1577,7 +1417,7 @@ export class DopplerDemo {
 
     // Show KV cache as "0/max" initially
     if (this.#statsElements.kv && this.#pipeline) {
-      const kvStats = /** @type {any} */ (this.#pipeline).getKVCacheStats?.();
+      const kvStats =  (this.#pipeline).getKVCacheStats?.();
       if (kvStats) {
         this.#statsElements.kv.textContent = `${kvStats.seqLen}/${kvStats.maxSeqLen}`;
       } else {
@@ -1591,10 +1431,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Unload the current model from GPU memory
-   * @returns {Promise<void>}
-   */
+  
   async #unloadCurrentModel() {
     if (!this.#pipeline) {
       log.debug('App', 'No model loaded');
@@ -1606,8 +1443,8 @@ export class DopplerDemo {
 
     try {
       // Call pipeline unload if available
-      if (typeof /** @type {any} */ (this.#pipeline).unload === 'function') {
-        await /** @type {any} */ (this.#pipeline).unload();
+      if (typeof  (this.#pipeline).unload === 'function') {
+        await  (this.#pipeline).unload();
       }
 
       this.#pipeline = null;
@@ -1635,10 +1472,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Clear all GPU memory (buffers, caches, heap)
-   * @returns {Promise<void>}
-   */
+  
   async #clearAllMemory() {
     log.info('App', 'Clearing all memory...');
     this.#setStatus('loading', 'Clearing memory...');
@@ -1661,8 +1495,8 @@ export class DopplerDemo {
       }
 
       // Force garbage collection hint (may or may not work)
-      if (typeof /** @type {typeof globalThis & { gc?: () => void }} */ (globalThis).gc === 'function') {
-        /** @type {typeof globalThis & { gc: () => void }} */ (globalThis).gc();
+      if (typeof  (globalThis).gc === 'function') {
+         (globalThis).gc();
       }
 
       this.#setStatus('ready', 'Memory cleared');
@@ -1674,14 +1508,11 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Show error modal
-   * @param {string} message
-   */
+  
   #showError(message) {
-    const modal = /** @type {HTMLElement | null} */ (document.querySelector('#error-modal'));
-    const messageEl = /** @type {HTMLElement | null} */ (document.querySelector('#error-message'));
-    const closeBtn = /** @type {HTMLElement | null} */ (document.querySelector('#error-close'));
+    const modal =  (document.querySelector('#error-modal'));
+    const messageEl =  (document.querySelector('#error-message'));
+    const closeBtn =  (document.querySelector('#error-close'));
 
     if (messageEl) {
       messageEl.textContent = message;
@@ -1699,10 +1530,7 @@ export class DopplerDemo {
     closeBtn?.addEventListener('click', close);
   }
 
-  /**
-   * Handle model conversion
-   * @returns {Promise<void>}
-   */
+  
   async #handleConvert() {
     if (this.#isConverting) {
       return;
@@ -1729,7 +1557,7 @@ export class DopplerDemo {
 
       // Convert model
       const modelId = await convertModel(files, {
-        onProgress: (/** @type {import('../src/browser/browser-converter.js').ConvertProgress} */ progress) => {
+        onProgress: ( progress) => {
           const percent = progress.percent || 0;
           const message = progress.message || progress.stage;
           this.#updateConvertProgress(percent, message);
@@ -1754,13 +1582,13 @@ export class DopplerDemo {
         this.#updateConvertProgress(0, 'Ready');
       }, 3000);
     } catch (error) {
-      if (/** @type {Error} */ (error).name === 'AbortError') {
+      if ( (error).name === 'AbortError') {
         log.info('App', 'Conversion cancelled');
         this.#updateConvertProgress(0, 'Cancelled');
       } else {
         log.error('App', 'Conversion failed:', error);
-        this.#updateConvertProgress(0, `Error: ${/** @type {Error} */ (error).message}`);
-        this.#showError(`Conversion failed: ${/** @type {Error} */ (error).message}`);
+        this.#updateConvertProgress(0, `Error: ${ (error).message}`);
+        this.#showError(`Conversion failed: ${ (error).message}`);
       }
     } finally {
       this.#isConverting = false;
@@ -1770,11 +1598,7 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Update conversion progress UI
-   * @param {number} percent
-   * @param {string} message
-   */
+  
   #updateConvertProgress(percent, message) {
     if (this.#convertProgress) {
       this.#convertProgress.style.width = `${percent}%`;
@@ -1788,11 +1612,7 @@ export class DopplerDemo {
   // Quick-Start Methods
   // ============================================================================
 
-  /**
-   * Start quick-start flow for a model
-   * @param {string} modelId
-   * @returns {Promise<void>}
-   */
+  
   async startQuickStart(modelId) {
     const config = QUICKSTART_MODELS[modelId];
     if (!config) {
@@ -1849,22 +1669,14 @@ export class DopplerDemo {
     }
   }
 
-  /**
-   * Handle quick-start download completion
-   * @param {string} modelId
-   * @returns {Promise<void>}
-   */
+  
   async #onQuickStartComplete(modelId) {
     log.info('QuickStart', `Download complete for ${modelId}`);
     // Refresh model list to show the downloaded model
     await this.#loadCachedModels();
   }
 
-  /**
-   * Run model after quick-start download
-   * @param {string} modelId
-   * @returns {Promise<void>}
-   */
+  
   async #runQuickStartModel(modelId) {
     log.info('QuickStart', `Running model ${modelId}`);
 
@@ -1891,7 +1703,7 @@ document.addEventListener('DOMContentLoaded', () => {
   app.init().catch((err) => log.error('App', 'Initialization failed', err));
 
   // Expose for debugging
-  /** @type {Window & { dopplerDemo?: DopplerDemo }} */ (window).dopplerDemo = app;
+   (window).dopplerDemo = app;
 });
 
 export default DopplerDemo;

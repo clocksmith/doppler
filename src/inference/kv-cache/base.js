@@ -1,12 +1,4 @@
-/**
- * KV Cache Base - Core KV cache implementation
- *
- * Implements efficient key-value cache for transformer inference.
- * Supports both contiguous and paged memory layouts.
- * GPU-native storage to avoid CPU readbacks during inference.
- *
- * @module inference/kv-cache/base
- */
+
 
 import { getDevice } from '../../gpu/device.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
@@ -24,47 +16,45 @@ import {
 // ============================================================================
 
 export class KVCache {
-  /**
-   * @param {import('./types.js').KVCacheConfig} config - KV cache configuration
-   */
+  
   constructor(config) {
     const runtimeKV = getRuntimeConfig().inference.kvcache;
-    /** @readonly */
+    
     this.numLayers = config.numLayers;
-    /** @readonly */
+    
     this.numHeads = config.numHeads;
-    /** @readonly */
+    
     this.headDim = config.headDim;
     // Use config defaults from schema
-    /** @readonly */
+    
     this.maxSeqLen = config.maxSeqLen || runtimeKV.maxSeqLen;
-    /** @type {boolean} */
+    
     this.useGPU = config.useGPU || false;
-    /** @readonly @type {'contiguous' | 'paged'} */
+    
     this.layout = config.layout || runtimeKV.layout;
-    /** @readonly */
+    
     this.pageSize = config.pageSize || runtimeKV.pageSize;
-    /** @readonly @type {'f16' | 'f32'} */
+    
     this.kvDtype = config.kvDtype || runtimeKV.kvDtype;
-    /** @readonly */
+    
     this.bytesPerElem = this.kvDtype === 'f16' ? 2 : 4;
 
     // Size of one KV pair per position
-    /** @readonly */
+    
     this.kvSize = this.numHeads * this.headDim;
 
     // Initialize layer caches
-    /** @type {import('./types.js').LayerCache[]} */
+    
     this.layers = new Array(this.numLayers);
-    /** @type {number} */
+    
     this.currentSeqLen = 0;
 
     // Memory usage tracking
-    /** @type {number} */
+    
     this.memoryUsage = 0;
 
     // GPU context (set externally)
-    /** @type {import('./types.js').GPUContext | null} */
+    
     this.gpuContext = null;
 
     // Initialize storage
@@ -75,10 +65,7 @@ export class KVCache {
   // Storage Initialization
   // ==========================================================================
 
-  /**
-   * Initialize storage for all layers
-   * @private
-   */
+  
   _initializeStorage() {
     if (this.layout === 'paged') {
       this._initializePagedStorage();
@@ -87,10 +74,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Initialize contiguous storage (pre-allocated)
-   * @private
-   */
+  
   _initializeContiguousStorage() {
     const sizePerLayer = this.maxSeqLen * this.kvSize;
     const bytesPerLayer = sizePerLayer * this.bytesPerElem * 2; // K + V
@@ -134,10 +118,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Initialize paged storage (lazy allocation)
-   * @private
-   */
+  
   _initializePagedStorage() {
     const numPages = Math.ceil(this.maxSeqLen / this.pageSize);
 
@@ -155,11 +136,7 @@ export class KVCache {
   // Paged Storage Helpers
   // ==========================================================================
 
-  /**
-   * Allocate a new page for paged storage
-   * @private
-   * @returns {Float32Array}
-   */
+  
   _allocatePage() {
     const pageElements = this.pageSize * this.kvSize;
     const page = new Float32Array(pageElements);
@@ -167,28 +144,18 @@ export class KVCache {
     return page;
   }
 
-  /**
-   * Get the page index and offset for a sequence position
-   * @private
-   * @param {number} pos
-   * @returns {import('./types.js').PageLocation}
-   */
+  
   _getPageLocation(pos) {
     const pageIdx = Math.floor(pos / this.pageSize);
     const offset = (pos % this.pageSize) * this.kvSize;
     return { pageIdx, offset };
   }
 
-  /**
-   * Ensure pages are allocated up to the given position
-   * @private
-   * @param {number} layerIdx
-   * @param {number} pos
-   */
+  
   _ensurePagesAllocated(layerIdx, pos) {
     if (this.layout !== 'paged') return;
 
-    const layer = /** @type {import('./types.js').PagedLayerCache} */ (this.layers[layerIdx]);
+    const layer =  (this.layers[layerIdx]);
     const neededPage = Math.floor(pos / this.pageSize);
 
     for (let p = layer.allocatedPages; p <= neededPage; p++) {
@@ -204,13 +171,7 @@ export class KVCache {
   // Update Methods
   // ==========================================================================
 
-  /**
-   * Update cache with new key-value pairs for a layer
-   * @param {number} layerIdx - Layer index
-   * @param {Float32Array | GPUBuffer} keys - New keys [batchSize, numHeads, headDim]
-   * @param {Float32Array | GPUBuffer} values - New values [batchSize, numHeads, headDim]
-   * @param {number} [startPos] - Starting position in sequence
-   */
+  
   update(
     layerIdx,
     keys,
@@ -233,9 +194,9 @@ export class KVCache {
       if (keys instanceof GPUBuffer || values instanceof GPUBuffer) {
         throw new Error('Paged layout does not support GPU buffer inputs');
       }
-      this._updatePaged(/** @type {import('./types.js').PagedLayerCache} */ (layer), keys, values, startPos, numNewTokens);
+      this._updatePaged( (layer), keys, values, startPos, numNewTokens);
     } else {
-      this._updateContiguous(/** @type {import('./types.js').ContiguousLayerCache} */ (layer), keys, values, startPos, numNewTokens);
+      this._updateContiguous( (layer), keys, values, startPos, numNewTokens);
     }
 
     layer.seqLen = Math.max(layer.seqLen, startPos + numNewTokens);
@@ -246,14 +207,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Update cache directly from GPU buffers (zero-copy)
-   * @param {number} layerIdx
-   * @param {GPUBuffer} keysBuffer
-   * @param {GPUBuffer} valuesBuffer
-   * @param {number} startPos
-   * @param {number} numTokens
-   */
+  
   updateFromGPU(
     layerIdx,
     keysBuffer,
@@ -261,7 +215,7 @@ export class KVCache {
     startPos,
     numTokens
   ) {
-    const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[layerIdx]);
+    const layer =  (this.layers[layerIdx]);
     const device = getDevice();
 
     if (!device || !layer.keysGPU) {
@@ -290,16 +244,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Record KV cache update to an external encoder (for batched GPU operations).
-   * Does NOT submit - caller is responsible for submitting the encoder.
-   * @param {GPUCommandEncoder} encoder
-   * @param {number} layerIdx
-   * @param {GPUBuffer} keysBuffer
-   * @param {GPUBuffer} valuesBuffer
-   * @param {number} startPos
-   * @param {number} numTokens
-   */
+  
   recordUpdateFromGPU(
     encoder,
     layerIdx,
@@ -308,7 +253,7 @@ export class KVCache {
     startPos,
     numTokens
   ) {
-    const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[layerIdx]);
+    const layer =  (this.layers[layerIdx]);
 
     if (!layer.keysGPU) {
       throw new Error('GPU cache not initialized');
@@ -335,15 +280,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Update contiguous storage
-   * @private
-   * @param {import('./types.js').ContiguousLayerCache} layer
-   * @param {Float32Array | GPUBuffer} keys
-   * @param {Float32Array | GPUBuffer} values
-   * @param {number} startPos
-   * @param {number} numNewTokens
-   */
+  
   _updateContiguous(
     layer,
     keys,
@@ -362,7 +299,7 @@ export class KVCache {
         const byteSize = numNewTokens * this.kvSize * this.bytesPerElem;
         const encoder = device.createCommandEncoder({ label: 'kv_update_gpu' });
         encoder.copyBufferToBuffer(keys, 0, layer.keysGPU, byteOffset, byteSize);
-        encoder.copyBufferToBuffer(/** @type {GPUBuffer} */ (values), 0, layer.valuesGPU, byteOffset, byteSize);
+        encoder.copyBufferToBuffer( (values), 0, layer.valuesGPU, byteOffset, byteSize);
         device.queue.submit([encoder.finish()]);
       }
       return;
@@ -370,32 +307,24 @@ export class KVCache {
 
     // CPU path
     layer.keys.set(keys, offset);
-    layer.values.set(/** @type {Float32Array} */ (values), offset);
+    layer.values.set( (values), offset);
 
     // Also update GPU if available
     if (layer.keysGPU && device) {
       const byteOffset = offset * this.bytesPerElem;
       if (this.kvDtype === 'f16') {
-        const keysF16 = f32ToF16Array(/** @type {Float32Array} */ (keys));
-        const valuesF16 = f32ToF16Array(/** @type {Float32Array} */ (values));
+        const keysF16 = f32ToF16Array( (keys));
+        const valuesF16 = f32ToF16Array( (values));
         device.queue.writeBuffer(layer.keysGPU, byteOffset, keysF16);
         device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuesF16);
       } else {
-        device.queue.writeBuffer(layer.keysGPU, byteOffset, /** @type {Float32Array} */ (keys));
-        device.queue.writeBuffer(layer.valuesGPU, byteOffset, /** @type {Float32Array} */ (values));
+        device.queue.writeBuffer(layer.keysGPU, byteOffset,  (keys));
+        device.queue.writeBuffer(layer.valuesGPU, byteOffset,  (values));
       }
     }
   }
 
-  /**
-   * Update paged storage
-   * @private
-   * @param {import('./types.js').PagedLayerCache} layer
-   * @param {Float32Array} keys
-   * @param {Float32Array} values
-   * @param {number} startPos
-   * @param {number} numNewTokens
-   */
+  
   _updatePaged(
     layer,
     keys,
@@ -425,29 +354,19 @@ export class KVCache {
   // Get Methods
   // ==========================================================================
 
-  /**
-   * Get cached keys and values for a layer
-   * @param {number} layerIdx
-   * @param {number} [startPos]
-   * @param {number} [endPos]
-   * @returns {import('./types.js').KVGetResult}
-   */
+  
   get(layerIdx, startPos = 0, endPos) {
     const layer = this.layers[layerIdx];
     const actualEndPos = endPos ?? layer.seqLen;
 
     if (this.layout === 'paged') {
-      return this._getPaged(/** @type {import('./types.js').PagedLayerCache} */ (layer), startPos, actualEndPos);
+      return this._getPaged( (layer), startPos, actualEndPos);
     } else {
-      return this._getContiguous(/** @type {import('./types.js').ContiguousLayerCache} */ (layer), startPos, actualEndPos);
+      return this._getContiguous( (layer), startPos, actualEndPos);
     }
   }
 
-  /**
-   * Get key cache buffer (GPU or CPU)
-   * @param {number} layerIdx
-   * @returns {GPUBuffer | Float32Array | null}
-   */
+  
   getKeyCache(layerIdx) {
     const layer = this.layers[layerIdx];
     if (isContiguousLayer(layer)) {
@@ -456,11 +375,7 @@ export class KVCache {
     return null;
   }
 
-  /**
-   * Get value cache buffer (GPU or CPU)
-   * @param {number} layerIdx
-   * @returns {GPUBuffer | Float32Array | null}
-   */
+  
   getValueCache(layerIdx) {
     const layer = this.layers[layerIdx];
     if (isContiguousLayer(layer)) {
@@ -469,11 +384,7 @@ export class KVCache {
     return null;
   }
 
-  /**
-   * Get GPU buffers for a layer (for GPU-native attention)
-   * @param {number} layerIdx
-   * @returns {import('./types.js').GPUBuffersResult | null}
-   */
+  
   getGPUBuffers(layerIdx) {
     const layer = this.layers[layerIdx];
 
@@ -488,23 +399,13 @@ export class KVCache {
     };
   }
 
-  /**
-   * Check if GPU cache is available
-   * @returns {boolean}
-   */
+  
   hasGPUCache() {
     const firstLayer = this.layers[0];
     return this.useGPU && isContiguousLayer(firstLayer) && firstLayer.keysGPU != null;
   }
 
-  /**
-   * Get from contiguous storage
-   * @private
-   * @param {import('./types.js').ContiguousLayerCache} layer
-   * @param {number} startPos
-   * @param {number} endPos
-   * @returns {import('./types.js').KVGetResult}
-   */
+  
   _getContiguous(
     layer,
     startPos,
@@ -519,14 +420,7 @@ export class KVCache {
     };
   }
 
-  /**
-   * Get from paged storage
-   * @private
-   * @param {import('./types.js').PagedLayerCache} layer
-   * @param {number} startPos
-   * @param {number} endPos
-   * @returns {import('./types.js').KVGetResult}
-   */
+  
   _getPaged(
     layer,
     startPos,
@@ -559,9 +453,7 @@ export class KVCache {
   // Cache Management
   // ==========================================================================
 
-  /**
-   * Clear cache for all layers
-   */
+  
   clear() {
     this.currentSeqLen = 0;
 
@@ -574,17 +466,14 @@ export class KVCache {
         // Pages will be reused
       } else {
         // Zero out contiguous arrays
-        const contiguousLayer = /** @type {import('./types.js').ContiguousLayerCache} */ (layer);
+        const contiguousLayer =  (layer);
         contiguousLayer.keys.fill(0);
         contiguousLayer.values.fill(0);
       }
     }
   }
 
-  /**
-   * Clone the cache (for speculative decoding rollback)
-   * @returns {KVCache}
-   */
+  
   clone() {
     const cloned = new KVCache({
       numLayers: this.numLayers,
@@ -600,7 +489,7 @@ export class KVCache {
 
     for (let l = 0; l < this.numLayers; l++) {
       const { keys, values } = this.get(l);
-      const clonedLayer = /** @type {import('./types.js').ContiguousLayerCache} */ (cloned.layers[l]);
+      const clonedLayer =  (cloned.layers[l]);
       clonedLayer.keys.set(keys);
       clonedLayer.values.set(values);
       clonedLayer.seqLen = this.layers[l].seqLen;
@@ -609,10 +498,7 @@ export class KVCache {
     return cloned;
   }
 
-  /**
-   * Truncate cache to a specific length (for rollback)
-   * @param {number} length
-   */
+  
   truncate(length) {
     if (length >= this.currentSeqLen) return;
 
@@ -622,10 +508,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Get memory usage statistics
-   * @returns {import('./types.js').MemoryStats}
-   */
+  
   getMemoryStats() {
     const theoretical = this.numLayers * 2 * this.maxSeqLen * this.kvSize * this.bytesPerElem;
     const actual = this.memoryUsage;
@@ -646,10 +529,7 @@ export class KVCache {
   // GPU Migration
   // ==========================================================================
 
-  /**
-   * Set GPU context for GPU-based caching
-   * @param {import('./types.js').GPUContext} gpuContext
-   */
+  
   setGPUContext(gpuContext) {
     this.gpuContext = gpuContext;
 
@@ -659,11 +539,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Migrate existing CPU cache data to GPU buffers
-   * @private
-   * @param {GPUDevice} device
-   */
+  
   _migrateToGPU(device) {
     if (this.layout === 'paged') {
       log.warn('KVCache', 'GPU migration not supported for paged layout');
@@ -675,7 +551,7 @@ export class KVCache {
     const bytesPerLayer = sizePerLayer * this.bytesPerElem;
 
     for (let l = 0; l < this.numLayers; l++) {
-      const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[l]);
+      const layer =  (this.layers[l]);
 
       // Create GPU buffers if they don't exist
       if (!layer.keysGPU) {
@@ -725,10 +601,7 @@ export class KVCache {
     log.info('KVCache', 'Migration complete');
   }
 
-  /**
-   * Sync GPU cache back to CPU (for debugging or fallback)
-   * @returns {Promise<void>}
-   */
+  
   async syncToCPU() {
     if (!this.useGPU || this.layout === 'paged') return;
     if (!allowReadback('kv-cache.syncToCPU')) return;
@@ -739,7 +612,7 @@ export class KVCache {
     const sizePerLayer = this.maxSeqLen * this.kvSize;
 
     for (let l = 0; l < this.numLayers; l++) {
-      const layer = /** @type {import('./types.js').ContiguousLayerCache} */ (this.layers[l]);
+      const layer =  (this.layers[l]);
       if (!layer.keysGPU || !layer.valuesGPU) continue;
 
       const usedSize = layer.seqLen * this.kvSize * this.bytesPerElem;
@@ -792,9 +665,7 @@ export class KVCache {
     }
   }
 
-  /**
-   * Destroy GPU resources
-   */
+  
   destroy() {
     for (let l = 0; l < this.numLayers; l++) {
       const layer = this.layers[l];

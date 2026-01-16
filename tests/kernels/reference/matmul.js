@@ -1,11 +1,6 @@
-/**
- * Reference Matrix Multiplication
- */
 
-/**
- * Reference matrix multiplication
- * C = alpha * A @ B
- */
+
+
 export function matmulRef(A, B, M, N, K, alpha = 1.0) {
   const C = new Float32Array(M * N);
 
@@ -22,9 +17,7 @@ export function matmulRef(A, B, M, N, K, alpha = 1.0) {
   return C;
 }
 
-/**
- * Batched matrix multiplication
- */
+
 export function batchMatmulRef(A, B, batch, M, N, K) {
   const C = new Float32Array(batch * M * N);
   const strideA = M * K;
@@ -46,10 +39,7 @@ export function batchMatmulRef(A, B, batch, M, N, K) {
   return C;
 }
 
-/**
- * Matrix-vector multiplication
- * y = A @ x
- */
+
 export function matvecRef(A, x, M, K) {
   const y = new Float32Array(M);
 

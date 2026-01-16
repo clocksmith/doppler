@@ -1,12 +1,4 @@
-/**
- * Adapter Manifest Format Definition
- *
- * Defines the JSON schema and TypeScript types for adapter manifests.
- * This enables self-describing adapters with versioning, checksum validation,
- * and compatibility checking.
- *
- * @module adapters/adapter-manifest
- */
+
 
 import {
   VALID_LORA_TARGET_MODULES,
@@ -17,10 +9,7 @@ import {
 // JSON Schema Definition (as TypeScript const for runtime validation)
 // ============================================================================
 
-/**
- * JSON Schema for adapter manifests.
- * Can be used with JSON Schema validators like Ajv.
- */
+
 export const ADAPTER_MANIFEST_SCHEMA = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   $id: 'https://doppler.dev/schemas/adapter-manifest.json',
@@ -158,9 +147,7 @@ export const ADAPTER_MANIFEST_SCHEMA = {
 // Validation Functions
 // ============================================================================
 
-/**
- * Validates an adapter manifest against the schema.
- */
+
 export function validateManifest(manifest) {
   const errors = [];
 
@@ -253,9 +240,7 @@ export function validateManifest(manifest) {
   return { valid: errors.length === 0, errors };
 }
 
-/**
- * Parses and validates a manifest from JSON string.
- */
+
 export function parseManifest(json) {
   let parsed;
   try {
@@ -273,9 +258,7 @@ export function parseManifest(json) {
   return parsed;
 }
 
-/**
- * Serializes an adapter manifest to JSON string.
- */
+
 export function serializeManifest(manifest, pretty = false) {
   const validation = validateManifest(manifest);
   if (!validation.valid) {
@@ -286,9 +269,7 @@ export function serializeManifest(manifest, pretty = false) {
   return JSON.stringify(manifest, null, pretty ? 2 : undefined);
 }
 
-/**
- * Creates a minimal valid manifest with defaults.
- */
+
 export function createManifest(options) {
   return {
     version: '1.0.0',
@@ -298,9 +279,7 @@ export function createManifest(options) {
   };
 }
 
-/**
- * Computes the expected scale factor from rank and alpha.
- */
+
 export function computeLoRAScale(rank, alpha) {
   return rank > 0 ? alpha / rank : 1;
 }

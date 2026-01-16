@@ -1,19 +1,9 @@
-/**
- * Dtype Utilities
- *
- * Data type conversion utilities for tensor loading.
- *
- * @module loader/dtype-utils
- */
+
 
 import { getDevice } from '../gpu/device.js';
 import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
 
-/**
- * Convert F16 (half precision) to F32 (single precision)
- * @param {number} h
- * @returns {number}
- */
+
 export function f16ToF32(h) {
   const sign = (h >> 15) & 0x1;
   const exp = (h >> 10) & 0x1f;
@@ -32,13 +22,7 @@ export function f16ToF32(h) {
   return sign ? -f : f;
 }
 
-/**
- * Convert BF16 buffer to F32 on GPU
- * @param {GPUBuffer} srcBuffer
- * @param {number} numElements
- * @param {string} name
- * @returns {Promise<GPUBuffer>}
- */
+
 export async function convertBF16ToF32GPU(srcBuffer, numElements, name) {
   debugTrace.loader(`[BF16→F32] Importing cast.js...`);
   const castModule = await import('../gpu/kernels/cast.js');
@@ -76,19 +60,14 @@ export async function convertBF16ToF32GPU(srcBuffer, numElements, name) {
       const nanCount = data.filter(x => !Number.isFinite(x)).length;
       debugTrace.loader(`[BF16→F32] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
     } catch (err) {
-      log.error('Loader', 'BF16→F32 embed buffer check error:', /** @type {Error} */ (err).message);
+      log.error('Loader', 'BF16→F32 embed buffer check error:',  (err).message);
     }
   }
 
   return resultTensor.buffer;
 }
 
-/**
- * Decide whether a quantized tensor should be dequantized directly to f16.
- * Returns true for matmul weights (projections, FFN, lm_head, embeddings).
- * @param {string} name
- * @returns {boolean}
- */
+
 export function shouldDequantizeToF16(name) {
   const lower = name.toLowerCase();
   const matmulSuffixes = [
@@ -129,14 +108,7 @@ export function shouldDequantizeToF16(name) {
   return matmulSuffixes.some(suffix => lower.endsWith(suffix));
 }
 
-/**
- * Check if a weight is an embedding weight (needs column layout for LM head matmul).
- * GGUF stores all weights as [N,K] (transposed). For layer weights, we need transposeB=true
- * to compute A@W = A@W.T^T. But for embeddings used as LM head, we need transposeB=false
- * to compute hidden@E.T directly (the embedding IS already transposed in GGUF).
- * @param {string} name
- * @returns {boolean}
- */
+
 export function isEmbeddingWeight(name) {
   const lower = name.toLowerCase();
   // Only match actual embedding and lm_head weights
@@ -159,27 +131,14 @@ export function isEmbeddingWeight(name) {
   return false;
 }
 
-/**
- * Apply layout metadata to a GPU buffer if the tensor has column-major storage.
- * Note: Layout is now tracked via WeightBuffer for matmul weights.
- * This function is kept for API compatibility but is a no-op for non-matmul weights (norms).
- * @param {GPUBuffer} buffer
- * @param {import('./loader-types.js').TensorLocation} _location
- * @returns {GPUBuffer}
- */
+
 export function applyBufferLayout(buffer, _location) {
   // Note: WeakMap layout tracking removed - layout is stored in WeightBuffer
   // For non-matmul weights (norms), layout doesn't affect kernel selection
   return buffer;
 }
 
-/**
- * Find alternative tensor name (handles different naming conventions).
- * Returns null if no alternative is found.
- * @param {string} name
- * @param {Map<string, import('./loader-types.js').TensorLocation>} tensorLocations
- * @returns {string | null}
- */
+
 export function findAlternativeTensorName(name, tensorLocations) {
   const prefixes = [
     'language_model.model.',
@@ -195,7 +154,7 @@ export function findAlternativeTensorName(name, tensorLocations) {
     }
   }
 
-  /** @type {Array<[RegExp, string]>} */
+  
   const patterns = [
     [/^layers\.(\d+)\./, 'model.layers.$1.'],
     [/^model\.layers\.(\d+)\./, 'layers.$1.'],

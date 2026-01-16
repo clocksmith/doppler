@@ -1,10 +1,4 @@
-/**
- * Fused FFN Kernel Correctness Tests
- *
- * Validates the fused_ffn GPU kernel against reference JS implementation.
- * Tests: output = activation(input @ W_gate^T) * (input @ W_up^T)
- * Supports SiLU and GELU activations.
- */
+
 
 import { test, expect } from './setup.js';
 

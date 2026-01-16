@@ -1,13 +1,4 @@
-/**
- * Fused Matmul + RMSNorm Kernel Correctness Tests
- *
- * Validates the fused_matmul_rmsnorm.wgsl GPU kernel against reference JS implementation.
- * Tests: output = rmsnorm(matmul(input, weight^T) + residual?)
- * For decode (M=1) optimization.
- *
- * NOTE: This kernel is limited to the medium variant max (see fusedMatmul.maxMediumN).
- * For larger N, use separate matmul + rmsnorm kernels.
- */
+
 
 import { test, expect } from './setup.js';
 

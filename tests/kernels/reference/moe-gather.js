@@ -1,11 +1,6 @@
-/**
- * Reference MoE Gather (Token-to-Expert Assignment) Implementation
- */
 
-/**
- * Reference MoE gather - reorder tokens by expert assignment
- * Creates a permutation where tokens assigned to the same expert are grouped
- */
+
+
 export function moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
   // Count tokens per expert
   const tokenCounts = new Uint32Array(numExperts);
@@ -62,10 +57,7 @@ export function moeGatherRef(tokens, expertIndices, numTokens, hiddenSize, numEx
   };
 }
 
-/**
- * Simple variant - just compute counts and offsets (no actual gather)
- * Useful for determining buffer sizes before kernel launch
- */
+
 export function moeComputeAssignmentsRef(expertIndices, numTokens, numExperts, topK) {
   const tokenCounts = new Uint32Array(numExperts);
   const expertOffsets = new Uint32Array(numExperts);

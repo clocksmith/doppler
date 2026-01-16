@@ -1,6 +1,4 @@
-/**
- * Reference Implementation Exports
- */
+
 
 // Matrix operations
 export { matmulRef, batchMatmulRef, matvecRef } from './matmul.js';

@@ -1,16 +1,4 @@
-/**
- * gguf-importer.ts - Stream GGUF to .rdrr shards in OPFS
- *
- * Handles:
- * - Streaming large GGUF files without loading into memory
- * - Chunking into 64MB shards
- * - SHA-256 hash per shard (BLAKE3 fallback if available)
- * - Writing to OPFS via shard-manager
- * - Progress reporting
- * - Abort/cancel support
- *
- * @module browser/gguf-importer
- */
+
 
 import { parseGGUFHeader } from './gguf-parser-browser.js';
 import { canStreamFile } from './file-picker.js';
@@ -36,9 +24,7 @@ const HEADER_READ_SIZE = 10 * 1024 * 1024;
 // Types
 // ============================================================================
 
-/**
- * Progress stages
- */
+
 export const ImportStage = {
   PARSING: 'parsing',
   SHARDING: 'sharding',
@@ -51,9 +37,7 @@ export const ImportStage = {
 // Helper Functions
 // ============================================================================
 
-/**
- * Compute SHA-256 hash of data
- */
+
 async function computeSHA256(data) {
   const buffer = data instanceof ArrayBuffer ? data : data.buffer;
   const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
@@ -63,9 +47,7 @@ async function computeSHA256(data) {
     .join('');
 }
 
-/**
- * Sanitize model ID for filesystem
- */
+
 function sanitizeModelId(name) {
   return (
     name
@@ -81,13 +63,7 @@ function sanitizeModelId(name) {
 // Main Import Function
 // ============================================================================
 
-/**
- * Import a GGUF file to OPFS as .rdrr format
- *
- * @param file - GGUF file to import
- * @param options - Import options
- * @returns Model ID
- */
+
 export async function importGGUFFile(
   file,
   { onProgress, signal } = {}
@@ -209,9 +185,7 @@ export async function importGGUFFile(
   }
 }
 
-/**
- * Stream file to shards using ReadableStream
- */
+
 async function streamToShards(
   file,
   ggufInfo,
@@ -286,9 +260,7 @@ async function streamToShards(
   }
 }
 
-/**
- * Buffer-based fallback for browsers without streaming
- */
+
 async function bufferToShards(
   file,
   ggufInfo,
@@ -331,9 +303,7 @@ async function bufferToShards(
   }
 }
 
-/**
- * Write a shard to OPFS
- */
+
 async function writeShard(
   modelDir,
   shardIndex,
@@ -359,9 +329,7 @@ async function writeShard(
   });
 }
 
-/**
- * Create .rdrr manifest from GGUF info and shards
- */
+
 function createManifest(
   ggufInfo,
   shardInfos,
@@ -458,14 +426,7 @@ function createManifest(
   };
 }
 
-/**
- * Build tensor location map from GGUF tensor info
- * Maps absolute file offsets to shard-relative positions
- *
- * @param ggufTensors - Tensors from GGUF parser
- * @param tensorDataOffset - Offset where tensor data starts in GGUF
- * @returns Map of tensor name -> location info
- */
+
 function buildTensorLocations(
   ggufTensors,
   tensorDataOffset

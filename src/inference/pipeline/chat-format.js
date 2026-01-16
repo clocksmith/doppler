@@ -1,15 +1,6 @@
-/**
- * Chat template formatting helpers for multi-turn prompts.
- *
- * @module inference/pipeline/chat-format
- */
 
-/**
- * Format messages using the Gemma chat template.
- *
- * @param {{ role: 'system' | 'user' | 'assistant'; content: string }[]} messages
- * @returns {string}
- */
+
+
 export function formatGemmaChat(messages) {
   const parts = [];
   let systemContent = '';
@@ -39,12 +30,7 @@ export function formatGemmaChat(messages) {
   return parts.join('');
 }
 
-/**
- * Format messages using the Llama 3 chat template.
- *
- * @param {{ role: 'system' | 'user' | 'assistant'; content: string }[]} messages
- * @returns {string}
- */
+
 export function formatLlama3Chat(messages) {
   const parts = ['<|begin_of_text|>'];
 
@@ -63,12 +49,7 @@ export function formatLlama3Chat(messages) {
   return parts.join('');
 }
 
-/**
- * Format messages using the GPT-OSS chat template.
- *
- * @param {{ role: 'system' | 'user' | 'assistant'; content: string }[]} messages
- * @returns {string}
- */
+
 export function formatGptOssChat(messages) {
   const parts = [];
 
@@ -87,13 +68,7 @@ export function formatGptOssChat(messages) {
   return parts.join('');
 }
 
-/**
- * Format messages using a template type or fall back to a plain prompt.
- *
- * @param {{ role: 'system' | 'user' | 'assistant'; content: string }[]} messages
- * @param {'gemma' | 'llama3' | 'gpt-oss' | null | undefined} templateType
- * @returns {string}
- */
+
 export function formatChatMessages(messages, templateType) {
   switch (templateType) {
     case 'gemma':

@@ -1,9 +1,4 @@
-/**
- * Matrix Multiplication Kernel Correctness Tests
- *
- * Validates the matmul.wgsl GPU kernel against reference JS implementation.
- * Priority: HIGH - foundation kernel used throughout
- */
+
 
 import { test, expect } from './setup.js';
 

@@ -1,16 +1,4 @@
-/**
- * Pipeline Benchmark Harness
- *
- * Measures end-to-end inference performance following the spec in
- * docs/spec/BENCHMARK_SCHEMA.json
- *
- * Usage:
- *   const harness = new PipelineBenchmark(config);
- *   const result = await harness.run();
- *   console.log(JSON.stringify(result, null, 2));
- *
- * @module tests/benchmark/pipeline-benchmark
- */
+
 
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
 import { DEFAULT_BENCHMARK_OUTPUT_CONFIG } from '../../src/config/schema/benchmark.schema.js';
@@ -35,6 +23,60 @@ function getReadbackBytes() {
   return readbackBytesTotal;
 }
 
+function countControlChars(text) {
+  const matches = text.match(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g);
+  return matches ? matches.length : 0;
+}
+
+function analyzeOutputQuality(runs) {
+  const tokens = runs.flatMap((run) => run.tokens ?? []);
+  const text = runs.map((run) => run.text ?? '').join('');
+  const totalTokens = tokens.length;
+  const uniqueTokens = new Set(tokens).size;
+  const uniqueRatio = totalTokens > 0 ? uniqueTokens / totalTokens : 0;
+
+  const counts = new Map();
+  for (const token of tokens) {
+    counts.set(token, (counts.get(token) ?? 0) + 1);
+  }
+  let mostFrequent = 0;
+  for (const count of counts.values()) {
+    if (count > mostFrequent) mostFrequent = count;
+  }
+  const mostFrequentRatio = totalTokens > 0 ? mostFrequent / totalTokens : 0;
+
+  const replacementChars = (text.match(/\uFFFD/g) || []).length;
+  const controlChars = countControlChars(text);
+  const emptyText = text.trim().length === 0;
+
+  /** @type {string[]} */
+  const reasons = [];
+  /** @type {string[]} */
+  const warnings = [];
+
+  if (totalTokens === 0) reasons.push('no_tokens');
+  if (emptyText) reasons.push('empty_text');
+  if (replacementChars > 0) reasons.push('replacement_chars');
+  if (controlChars > 0) reasons.push('control_chars');
+  if (totalTokens >= 8 && mostFrequentRatio >= 0.6) reasons.push('repetition');
+  if (totalTokens >= 8 && uniqueRatio < 0.2) warnings.push('low_unique_ratio');
+
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    warnings,
+    stats: {
+      totalRuns: runs.length,
+      totalTokens,
+      uniqueTokens,
+      uniqueRatio: Number(uniqueRatio.toFixed(3)),
+      mostFrequentRatio: Number(mostFrequentRatio.toFixed(3)),
+      replacementChars,
+      controlChars,
+    },
+  };
+}
+
 // ============================================================================
 // Pipeline Benchmark Class
 // ============================================================================
@@ -51,9 +93,7 @@ export class PipelineBenchmark {
     this.hasTimestampQuery = false;
   }
 
-  /**
-   * Run the benchmark and return results in spec-compliant JSON format.
-   */
+  
   async run() {
     const startTime = performance.now();
 
@@ -86,6 +126,22 @@ export class PipelineBenchmark {
     // Aggregate metrics
     const metrics = this.aggregateMetrics(runResults, loadMetrics);
     const raw = this.collectRawMetrics(runResults);
+    const quality = analyzeOutputQuality(runResults);
+    const configSnapshot = {
+      chain: this.config.configChain ?? null,
+      runtime: this.config.runtimeConfig ?? null,
+      benchmark: {
+        promptName: this.config.promptName,
+        customPrompt: this.config.customPrompt ?? null,
+        maxNewTokens: this.config.maxNewTokens,
+        warmupRuns: this.config.warmupRuns,
+        timedRuns: this.config.timedRuns,
+        sampling: this.config.sampling,
+        debug: this.config.debug,
+        profile: this.config.profile,
+        useChatTemplate: this.config.useChatTemplate,
+      },
+    };
 
     // Build result
     const result = {
@@ -96,7 +152,9 @@ export class PipelineBenchmark {
       env,
       model: this.getModelInfo(),
       workload: this.getWorkloadInfo(runResults[0]?.promptTokens ?? 0),
+      config: configSnapshot,
       metrics,
+      quality,
       raw,
     };
 
@@ -225,7 +283,7 @@ export class PipelineBenchmark {
     // modelExists() checks for a manifest without relying on global currentModelDir.
     await initOPFS();
     const isCached = await modelExists(modelId);
-    /** @type {{ loadShard: (index: number) => Promise<ArrayBuffer | Uint8Array> } | null} */
+    
     let storageContext = null;
     if (!isCached) {
       console.log('[Benchmark] Model not in OPFS, downloading...');
@@ -448,6 +506,7 @@ export class PipelineBenchmark {
       gpuTimeDecodeMs,
       gpuReadbackBytes: getReadbackBytes(),
       peakVramBytes: bufferStats.peakBytesAllocated,
+      peakVramBytesRequested: bufferStats.peakBytesRequested,
       perfSubmits: getPerfCounters().submits,
       perfAllocations: getPerfCounters().allocations,
       perfReadbacks: getPerfCounters().readbacks,
@@ -510,7 +569,20 @@ export class PipelineBenchmark {
 
     // Peak VRAM (max across all runs)
     const peakVram = Math.max(...runs.map(r => r.peakVramBytes));
+    const peakVramRequested = Math.max(...runs.map(r => r.peakVramBytesRequested ?? 0));
     metrics.estimated_vram_bytes_peak = peakVram;
+    metrics.estimated_vram_bytes_peak_requested = peakVramRequested;
+
+    const modelBytes = this.manifest?.totalSize ?? this.manifest?.totalSizeBytes ?? null;
+    if (modelBytes) {
+      metrics.estimated_vram_bytes_peak_model_ratio = Number((peakVram / modelBytes).toFixed(2));
+      metrics.estimated_vram_bytes_peak_requested_model_ratio = Number(
+        (peakVramRequested / modelBytes).toFixed(2)
+      );
+      if (metrics.estimated_vram_bytes_peak_model_ratio > 4) {
+        metrics.estimated_vram_bytes_peak_warning = 'peak_vram_gt_4x_model_bytes';
+      }
+    }
 
     // Storage metrics
     if (loadMetrics.opfsUsageBytes !== undefined) {
@@ -584,7 +656,7 @@ export class PipelineBenchmark {
 }
 
 function isStorageQuotaError(error) {
-  const message = /** @type {Error} */ (error)?.message ?? '';
+  const message =  (error)?.message ?? '';
   return message.includes('storage quota')
     || message.includes('QuotaExceeded')
     || message.includes('exceed its storage quota')
@@ -596,9 +668,7 @@ function isStorageQuotaError(error) {
 // Convenience Functions
 // ============================================================================
 
-/**
- * Run a quick benchmark with defaults.
- */
+
 export async function runQuickBenchmark(modelPath) {
   const harness = new PipelineBenchmark({
     modelPath,
@@ -610,9 +680,7 @@ export async function runQuickBenchmark(modelPath) {
   return harness.run();
 }
 
-/**
- * Run a full benchmark suite.
- */
+
 export async function runFullBenchmark(modelPath) {
   const results = [];
 
@@ -630,9 +698,7 @@ export async function runFullBenchmark(modelPath) {
   return results;
 }
 
-/**
- * Format result as readable summary.
- */
+
 export function formatBenchmarkSummary(result) {
   const m = result.metrics;
   return [

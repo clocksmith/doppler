@@ -1,11 +1,4 @@
-/**
- * FFN Module
- *
- * Feed-Forward Network operations for Transformer inference.
- * Re-exports all FFN functionality from submodules.
- *
- * @module inference/pipeline/ffn
- */
+
 
 // Types and utilities
 export { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';

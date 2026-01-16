@@ -1,6 +1,4 @@
-/**
- * Browser Test Page - Initializes GPU and exposes test functions to Playwright
- */
+
 
 // Import from main doppler repo (relative path from tests/kernels/browser/)
 // When served from doppler/, paths are relative to that root
@@ -74,9 +72,7 @@ import { KernelBenchmark, computeMetrics } from '../harness/benchmark.js';
 let device = null;
 let initialized = false;
 
-/**
- * Convert f16 (IEEE 754 half-precision) to f32
- */
+
 function f16ToF32(h) {
   const sign = (h & 0x8000) >> 15;
   const exponent = (h & 0x7C00) >> 10;
@@ -140,9 +136,7 @@ function fillDeterministic(values, scale = 0.01) {
   return values;
 }
 
-/**
- * Initialize WebGPU device
- */
+
 async function initGPU() {
   if (device) return device;
 
@@ -160,9 +154,7 @@ async function initGPU() {
   return device;
 }
 
-/**
- * Get GPU device (initializes if needed)
- */
+
 async function getGPU() {
   if (!device) {
     await initGPU();
@@ -170,9 +162,7 @@ async function getGPU() {
   return { device: device, queue: device.queue };
 }
 
-/**
- * Wrapper to create GPU buffer from typed array
- */
+
 function makeBuffer(
   data,
   usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
@@ -203,9 +193,7 @@ function makeBuffer(
   return buffer;
 }
 
-/**
- * Read GPU buffer back to CPU
- */
+
 async function readBufferData(buffer, size) {
   const stagingBuffer = device.createBuffer({
     size,
@@ -252,9 +240,7 @@ const testHarness = {
   // Kernel Runners (match expected interface from tests)
   // ============================================================================
 
-  /**
-   * Run matmul kernel
-   */
+  
   async runMatmul(dev, A, B, M, N, K, alpha = 1.0) {
     if (!runMatmul) {
       // Fallback to reference implementation
@@ -278,26 +264,19 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run batched matmul kernel
-   */
+  
   async runBatchMatmul(dev, A, B, batch, M, N, K) {
     // Always use reference - batch matmul kernel may not be implemented
     return references.batchMatmulRef(A, B, batch, M, N, K);
   },
 
-  /**
-   * Run matrix-vector multiplication
-   */
+  
   async runMatvec(dev, A, x, M, K) {
     // Always use reference - matvec kernel may not be implemented
     return references.matvecRef(A, x, M, K);
   },
 
-  /**
-   * Run Q4_K fused matmul kernel (tests q4_fused/q4_fused_batched)
-   * C = A[M,K] @ dequant(B_q4k[N,K])^T = C[M,N]
-   */
+  
   async runMatmulQ4K(dev, A, B_q4k, M, N, K, alpha = 1.0) {
     if (!runMatmul) {
       throw new Error('runMatmul kernel not available');
@@ -323,9 +302,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run softmax kernel
-   */
+  
   async runSoftmax(dev, input, innerSize, outerSize, temperature = 1.0) {
     if (!runSoftmax) {
       return references.softmaxRef(input, innerSize, outerSize, temperature);
@@ -348,9 +325,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run fused softmax + top-k kernel
-   */
+  
   async runSoftmaxTopK(dev, logits, numTokens, numExperts, topK, options = {}) {
     if (!runSoftmaxTopK) {
       return references.softmaxTopkRef(logits, numTokens, numExperts, topK, options.normalize !== false);
@@ -376,9 +351,7 @@ const testHarness = {
     return { indices, weights };
   },
 
-  /**
-   * Run top-k selection (without softmax)
-   */
+  
   async runTopK(dev, probs, numTokens, numExperts, topK, options = {}) {
     const inputBuf = makeBuffer(probs);
 
@@ -400,9 +373,7 @@ const testHarness = {
     return { indices, weights };
   },
 
-  /**
-   * Run scatter-add kernel
-   */
+  
   async runScatterAdd(dev, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK) {
     if (!runScatterAdd) {
       return references.scatterAddRef(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK);
@@ -434,11 +405,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run RMSNorm kernel
-   * kernel-selector API: runRMSNorm(input, weight, eps, options)
-   * options: { batchSize, hiddenSize }
-   */
+  
   async runRMSNorm(dev, input, weight, numTokens, hiddenSize, eps = 1e-6, options = {}) {
     if (!runRMSNorm) {
       return references.rmsNormRef(input, weight, numTokens, hiddenSize, eps);
@@ -475,9 +442,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run RoPE kernel
-   */
+  
   async runRoPE(dev, input, seqLen, numHeads, headDim, startPos = 0) {
     const { cos, sin } = references.computeRopeFreqs(headDim, seqLen + startPos);
 
@@ -508,9 +473,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run SiLU kernel
-   */
+  
   async runSiLU(dev, input) {
     if (!runSiLU) {
       return references.siluRef(input);
@@ -528,9 +491,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run SiLU with gating
-   */
+  
   async runSiLUGated(dev, gate, up) {
     if (!runSiLU) {
       return references.siluGatedRef(gate, up);
@@ -552,10 +513,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run gather/embedding lookup
-   * kernel-selector API: runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, options)
-   */
+  
   async runGather(dev, embeddings, indices, vocabSize, embedDim) {
     if (!runGather) {
       return references.gatherRef(embeddings, indices, vocabSize, embedDim);
@@ -591,10 +549,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run residual add
-   * kernel-selector API: runResidualAdd(a, b, size, options)
-   */
+  
   async runResidual(dev, x, residual) {
     if (!runResidualAdd) {
       return references.residualAddRef(x, residual);
@@ -617,9 +572,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run bias add (row-wise)
-   */
+  
   async runBiasAdd(dev, data, bias, numTokens, dim) {
     if (!runBiasAdd) {
       const result = new Float32Array(data);
@@ -649,10 +602,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run Q4_K dequantization (Q4_K_M) on GPU
-   * kernel-selector API: dequantize(quantized, numBlocks, options)
-   */
+  
   async runDequantQ4K(dev, quantized, numBlocks) {
     if (!dequantize) {
       throw new Error('dequantize kernel not available');
@@ -668,10 +618,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run Q4_K dequantization to F16 output (production path)
-   * This matches what the loader uses during model loading
-   */
+  
   async runDequantQ4K_F16(dev, quantized, numBlocks) {
     if (!dequantize) {
       throw new Error('dequantize kernel not available');
@@ -710,14 +657,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run attention kernel
-   * kernel-selector API: runAttention(Q, K, V, mask, numHeads, headDim, options)
-   * options: { seqLen, kvLen, numKVHeads, scale, causal }
-   *
-   * Uses production kernel selector which automatically chooses appropriate tier
-   * (subgroup, tiled_small, streaming) based on device capabilities.
-   */
+  
   async runAttention(dev, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
     if (!runAttention) {
       // Fallback to reference if kernel not available
@@ -754,10 +694,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Benchmark decode attention variants across kv lengths.
-   * Returns timing stats per kvLen for the requested kernel file.
-   */
+  
   async benchmarkAttentionDecodeVariant(dev, options = {}) {
     if (!runAttention) {
       throw new Error('runAttention kernel not available');
@@ -851,10 +788,7 @@ const testHarness = {
     };
   },
 
-  /**
-   * Run MoE gather - dispatches tokens to experts
-   * Now uses the fixed two-phase GPU kernel (count_and_map + gather_tokens)
-   */
+  
   async runMoEGather(dev, tokens, expertIndices, numTokens, hiddenSize, numExperts, topK) {
     if (!runMoEGather) {
       // Fallback to reference if kernel not available
@@ -892,9 +826,7 @@ const testHarness = {
     };
   },
 
-  /**
-   * Run GPU argmax (greedy decoding)
-   */
+  
   async runArgmax(dev, logits) {
     const logitsBuf = makeBuffer(logits);
     const tokenId = await sampleKernel.runArgmax(logitsBuf, logits.length);
@@ -902,9 +834,7 @@ const testHarness = {
     return tokenId;
   },
 
-  /**
-   * Run GPU top-k sampling with temperature
-   */
+  
   async runSampleTopK(dev, logits, temperature, topK, randomValue) {
     const logitsBuf = makeBuffer(logits);
     const tokenId = await sampleKernel.runGPUSample(logitsBuf, logits.length, {
@@ -916,10 +846,7 @@ const testHarness = {
     return tokenId;
   },
 
-  /**
-   * Run SwiGLU activation: output = SiLU(gate) * up
-   * Tests the gated SiLU variant from the silu kernel
-   */
+  
   async runSwiGLU(dev, gate, up, gateBias, upBias) {
     // For testing, we pre-add bias to gate and up, then use SiLU with gating
     const size = gate.length;
@@ -960,9 +887,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run scale kernel: output[i] = input[i] * scale
-   */
+  
   async runScale(dev, input, scale) {
     if (!runScale) {
       // Fallback to reference implementation
@@ -985,9 +910,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run GELU activation: GELU(x) = x * 0.5 * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
-   */
+  
   async runGeLU(dev, input) {
     if (!runGeLU) {
       return references.geluRef(input);
@@ -1005,9 +928,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run GeGLU activation: GELU(gate) * up
-   */
+  
   async runGeGLU(dev, gate, up) {
     if (!runGeLU) {
       return references.gegluRef(gate, up);
@@ -1029,9 +950,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run split QKV kernel: split fused QKV [numTokens, qSize+kSize+vSize] into Q, K, V
-   */
+  
   async runSplitQKV(dev, qkv, numTokens, qSize, kSize, vSize) {
     if (!runSplitQKV) {
       return references.splitQkvRef(qkv, numTokens, qSize, kSize, vSize);
@@ -1059,9 +978,7 @@ const testHarness = {
     return { Q, K, V };
   },
 
-  /**
-   * Run BF16 -> F32 cast
-   */
+  
   async runBF16ToF32(dev, input) {
     if (!runBF16ToF32) {
       const out = new Float32Array(input.length);
@@ -1083,9 +1000,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run F32 -> F16 cast
-   */
+  
   async runF32ToF16(dev, input) {
     if (!castF32ToF16) {
       const out = new Uint16Array(input.length);
@@ -1127,9 +1042,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run BF16 -> F16 cast
-   */
+  
   async runBF16ToF16(dev, input) {
     if (!runBF16ToF16) {
       const out = new Uint16Array(input.length);
@@ -1170,10 +1083,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run Q6_K dequantization
-   * Note: Q6K outputs f16, which we read as f16 and convert to f32
-   */
+  
   async runDequantQ6K(dev, quantized, numBlocks) {
     if (!dequantizeQ6K) {
       throw new Error('dequantizeQ6K kernel not available');
@@ -1200,12 +1110,7 @@ const testHarness = {
     return out;
   },
 
-  /**
-   * Run F16 weights matmul (f16w_f32a kernel)
-   * Takes F32 activations and F16 weights (as Uint16Array)
-   * This tests the exact same kernel path as production
-   * C = A[M,K] @ B[N,K]^T = C[M,N]
-   */
+  
   async runMatmulF16W(dev, A, B_f16, M, N, K) {
     if (!runMatmul) {
       throw new Error('runMatmul kernel not available');
@@ -1235,11 +1140,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Combined Q4K dequant + F16 matmul (production path)
-   * Does dequant to F16 then matmul, all on GPU without CPU round-trip
-   * C = A[M,K] @ dequant(B_q4k[N,K])^T = C[M,N]
-   */
+  
   async runDequantAndMatmulF16W(dev, A, B_q4k, M, N, K, numBlocks) {
     if (!runMatmul || !dequantize) {
       throw new Error('runMatmul or dequantize kernel not available');
@@ -1271,10 +1172,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Run check-stop kernel: determine if generation should stop
-   * Checks for EOS token or max tokens reached
-   */
+  
   async runCheckStop(dev, sampledToken, eosTokenId, maxTokens, currentPos) {
     // Create buffer for sampled token
     const tokenBuffer = makeBuffer(new Uint32Array([sampledToken]));
@@ -1291,20 +1189,14 @@ const testHarness = {
     return shouldStop;
   },
 
-  /**
-   * Reference implementation for check-stop
-   * Returns true if should stop (EOS hit or max reached)
-   */
+  
   checkStopRef(sampledToken, eosTokenId, maxTokens, currentPos) {
     const isEOS = sampledToken === eosTokenId;
     const reachedMax = currentPos >= maxTokens;
     return isEOS || reachedMax;
   },
 
-  /**
-   * Run fused matmul + residual kernel: output = matmul(input, weight) + residual
-   * For decode (M=1): input[1,K] @ weight[N,K]^T + residual[1,N] = output[1,N]
-   */
+  
   async runFusedMatmulResidual(dev, input, weight, residual, N, K, alpha = 1.0) {
     const inputBuf = makeBuffer(input);
     const weightF16 = toF16Array(weight);
@@ -1330,9 +1222,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Reference for fused matmul + residual: output = matmul(input, weight^T) + residual
-   */
+  
   fusedMatmulResidualRef(input, weight, residual, N, K, alpha = 1.0) {
     // input: [1, K], weight: [N, K] (row-major, transposeB=true), residual: [1, N]
     const weightF16 = toF16RoundedFloat32(weight);
@@ -1347,10 +1237,7 @@ const testHarness = {
     return output;
   },
 
-  /**
-   * Run fused matmul + RMSNorm kernel: output = rmsnorm(matmul(input, weight))
-   * For decode (M=1): input[1,K] @ weight[N,K]^T -> rmsnorm -> output[1,N]
-   */
+  
   async runFusedMatmulRMSNorm(dev, input, weight, normWeight, N, K, eps = 1e-5, residual = null) {
     const inputBuf = makeBuffer(input);
     const weightBuf = makeBuffer(weight);
@@ -1378,9 +1265,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Reference for fused matmul + RMSNorm (post-norm residual)
-   */
+  
   fusedMatmulRMSNormRef(input, weight, normWeight, N, K, eps = 1e-5, residual = null) {
     // Step 1: matmul input[1,K] @ weight[N,K]^T -> intermediate[1,N]
     const intermediate = new Float32Array(N);
@@ -1408,13 +1293,7 @@ const testHarness = {
     return output;
   },
 
-  /**
-   * Run fused FFN kernel: output = activation(gate) * up
-   * Where gate = input @ W_gate^T and up = input @ W_up^T
-   * For decode (M=1): input[1,K] @ W_gate[N,K]^T -> gate[1,N]
-   *                   input[1,K] @ W_up[N,K]^T -> up[1,N]
-   *                   output = SiLU(gate) * up
-   */
+  
   async runFusedFFN(dev, input, W_gate, W_up, hiddenSize, intermediateSize, activation = 'silu') {
     const inputBuf = makeBuffer(input);
     const gateBuf = makeBuffer(W_gate);
@@ -1438,9 +1317,7 @@ const testHarness = {
     return result;
   },
 
-  /**
-   * Reference for fused FFN: output = activation(gate) * up
-   */
+  
   fusedFFNRef(input, W_gate, W_up, hiddenSize, intermediateSize, activation = 'silu') {
     // Step 1: gate = input @ W_gate^T (input[1,K] @ W_gate[N,K]^T -> gate[1,N])
     const gate = new Float32Array(intermediateSize);

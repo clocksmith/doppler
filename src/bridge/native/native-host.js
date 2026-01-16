@@ -1,8 +1,5 @@
 #!/usr/bin/env node
-/**
- * DOPPLER Native Bridge Host - Native messaging protocol for Chrome extension.
- * Provides file access to bypass browser storage limits.
- */
+
 
 import { statSync, readdirSync } from 'fs';
 import { promises as fsPromises } from 'fs';

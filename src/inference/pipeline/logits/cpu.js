@@ -1,24 +1,6 @@
-/**
- * CPU reference implementations for logits computation.
- *
- * Provides CPU fallback implementations for RMSNorm, matmul, and softcapping.
- * These are used when GPU is unavailable or for validation.
- *
- * @module inference/pipeline/logits/cpu
- */
 
-/**
- * CPU RMSNorm implementation.
- *
- * Computes: output[i] = (x[i] / rms) * weight[i] (or (1 + weight[i]) when enabled)
- * where rms = sqrt(mean(x^2) + eps)
- *
- * @param {Float32Array} x - Input tensor
- * @param {Float32Array} weight - Norm weights
- * @param {number} [eps=1e-5] - Epsilon for numerical stability
- * @param {boolean} [rmsNormWeightOffset=false] - Use (1 + weight) scaling
- * @returns {Float32Array} Normalized tensor
- */
+
+
 export function rmsNormCPU(
   x,
   weight,
@@ -41,12 +23,7 @@ export function rmsNormCPU(
   return result;
 }
 
-/**
- * Convert a single float16 value to float32.
- *
- * @param {number} h - Float16 value as uint16
- * @returns {number} Float32 value
- */
+
 export function f16ToF32(h) {
   const sign = (h >> 15) & 0x1;
   const exp = (h >> 10) & 0x1f;
@@ -65,12 +42,7 @@ export function f16ToF32(h) {
   return sign ? -f : f;
 }
 
-/**
- * Convert a buffer of float16 values to float32.
- *
- * @param {ArrayBuffer} data - ArrayBuffer containing float16 data
- * @returns {Float32Array} Float32Array with converted values
- */
+
 export function f16BufferToF32(data) {
   const u16 = new Uint16Array(data);
   const out = new Float32Array(u16.length);
@@ -80,21 +52,7 @@ export function f16BufferToF32(data) {
   return out;
 }
 
-/**
- * CPU matmul implementation (fallback for non-GPU).
- *
- * Computes: output = input @ weight^T
- * Input: [M, K], Weight: [N, K] (row) or [K, N] (column), Output: [M, N]
- *
- * @param {Float32Array} input - Input tensor [M, K]
- * @param {Float32Array} weight - Weight tensor [N, K] (row) or [K, N] (column)
- * @param {number} M - Batch size (num tokens)
- * @param {number} N - Output size (vocab size)
- * @param {number} K - Hidden size
- * @param {'row' | 'column'} [layout='row'] - Weight layout ('row' or 'column')
- * @param {number | null} [weightStride] - Optional stride override for weight indexing
- * @returns {Float32Array} Output tensor [M, N]
- */
+
 export function matmulCPU(
   input,
   weight,
@@ -124,18 +82,7 @@ export function matmulCPU(
   return result;
 }
 
-/**
- * Apply softcapping to logits (Gemma 2 style).
- *
- * Computes: logits = tanh(logits / cap) * cap
- *
- * This bounds logits to [-cap, cap] with smooth transitions,
- * preventing extreme values from dominating softmax.
- *
- * @param {Float32Array} logits - Logits tensor to modify in-place
- * @param {number} cap - Softcap value (Gemma 2 default: 30.0)
- * @returns {void}
- */
+
 export function applySoftcapping(logits, cap) {
   for (let i = 0; i < logits.length; i++) {
     logits[i] = Math.tanh(logits[i] / cap) * cap;

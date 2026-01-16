@@ -1,11 +1,6 @@
-/**
- * Reference Attention Implementation
- */
 
-/**
- * Reference scaled dot-product attention
- * Attention(Q, K, V) = softmax(Q @ K^T / sqrt(d_k)) @ V
- */
+
+
 export function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, mask = null) {
   const output = new Float32Array(seqLen * numHeads * headDim);
   const scale = 1.0 / Math.sqrt(headDim);
@@ -67,10 +62,7 @@ export function attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headD
   return output;
 }
 
-/**
- * Create causal attention mask
- * Returns mask where mask[i,j] = 0 if j <= i, else -inf
- */
+
 export function createCausalMask(seqLen, kvLen = null) {
   if (kvLen === null) kvLen = seqLen;
 
@@ -88,19 +80,14 @@ export function createCausalMask(seqLen, kvLen = null) {
   return mask;
 }
 
-/**
- * Flash attention style - fused attention with chunked computation
- * (Reference only - actual flash attention is GPU-specific)
- */
+
 export function flashAttentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, blockSize = 64) {
   // This is just a reference that produces the same result
   // Real flash attention saves memory by not materializing full attention matrix
   return attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, createCausalMask(seqLen, kvLen));
 }
 
-/**
- * Multi-query attention (all heads share same K,V)
- */
+
 export function mqaRef(Q, K, V, seqLen, kvLen, numHeads, headDim, mask = null) {
   return attentionRef(Q, K, V, seqLen, kvLen, numHeads, 1, headDim, mask);
 }

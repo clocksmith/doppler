@@ -1,6 +1,4 @@
-/**
- * RMSNorm Kernel Correctness Tests
- */
+
 
 import { test, expect } from './setup.js';
 

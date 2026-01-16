@@ -1,14 +1,10 @@
-/**
- * Reference Dequantization Implementation
- */
+
 
 // ============================================================================
 // Helpers (fp16)
 // ============================================================================
 
-/**
- * Convert fp16 bits to fp32
- */
+
 function float16ToFloat32(bits) {
   const sign = (bits >> 15) & 1;
   const exp = (bits >> 10) & 0x1F;
@@ -62,10 +58,7 @@ export function float32ToFloat16(value) {
   return (sign << 15) | (exp << 10) | (frac >> 13);
 }
 
-/**
- * Reference INT8 dequantization
- * float = (int8 - zero_point) * scale
- */
+
 export function dequantInt8Ref(quantized, scales, zeroPoints = null, numChannels = 1, channelSize = 0) {
   const output = new Float32Array(quantized.length);
 
@@ -86,9 +79,7 @@ export function dequantInt8Ref(quantized, scales, zeroPoints = null, numChannels
   return output;
 }
 
-/**
- * Reference INT4 dequantization (packed 2 values per byte)
- */
+
 export function dequantInt4Ref(quantized, scales, numElements, groupSize = 32) {
   const output = new Float32Array(numElements);
   const numGroups = Math.ceil(numElements / groupSize);
@@ -118,10 +109,7 @@ export function dequantInt4Ref(quantized, scales, numElements, groupSize = 32) {
   return output;
 }
 
-/**
- * Reference block-wise quantization (Q4_0 style)
- * Each block has: scale (fp16) + 32 int4 values (16 bytes)
- */
+
 export function dequantQ4_0Ref(quantized, numBlocks) {
   const blockSize = 32;
   const output = new Float32Array(numBlocks * blockSize);
@@ -168,10 +156,7 @@ function findMinMax(data, offset, length) {
   return { min, max };
 }
 
-/**
- * Quantize a single Q4_K block (256 values) into llama.cpp Q4_K byte layout.
- * This matches the dequant_* kernels in `doppler/gpu/kernels/dequant_*.wgsl`.
- */
+
 export function quantizeQ4_KBlockRef(data, offset) {
   const block = new Uint8Array(Q4K_BLOCK_SIZE);
   const view = new DataView(block.buffer);

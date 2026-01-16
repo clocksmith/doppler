@@ -1,6 +1,4 @@
-/**
- * Shared GGUF parser (browser + tools).
- */
+
 
 export const GGUFValueType = {
   UINT8: 0,

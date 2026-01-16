@@ -1,6 +1,4 @@
-/**
- * Shared safetensors parsing utilities (browser + tools).
- */
+
 
 export const DTYPE_SIZE = {
   F64: 8,

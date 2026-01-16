@@ -1,18 +1,4 @@
-/**
- * LoRA Adapter Infrastructure
- *
- * Provides complete infrastructure for loading, managing, and applying
- * LoRA (Low-Rank Adaptation) adapters at runtime. This enables RSI
- * (Recursive Self-Improvement) through adapter-based self-modification.
- *
- * Components:
- * - Adapter Manifest: JSON schema and types for adapter definitions
- * - LoRA Loader: Weight loading from OPFS/URL with format support
- * - Adapter Manager: Runtime enable/disable and stacking
- * - Adapter Registry: Persistent storage and discovery
- *
- * @module adapters
- */
+
 
 // Manifest types and schema
 export {

@@ -1,11 +1,4 @@
-/**
- * safetensors-parser-browser.ts - Browser Safetensors Parser
- *
- * Parses Hugging Face safetensors files in the browser using File API.
- * Supports both single files and sharded models (multiple files + index).
- *
- * @module browser/safetensors-parser-browser
- */
+
 
 import {
   DTYPE_SIZE,
@@ -26,9 +19,7 @@ export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
 // Public API
 // ============================================================================
 
-/**
- * Parse safetensors header from File object
- */
+
 export async function parseSafetensorsFile(file) {
   const headerSizeBuffer = await file.slice(0, 8).arrayBuffer();
   const headerSizeView = new DataView(headerSizeBuffer);
@@ -63,9 +54,7 @@ export async function parseSafetensorsFile(file) {
   };
 }
 
-/**
- * Parse sharded safetensors model from multiple files
- */
+
 export async function parseSafetensorsSharded(
   files,
   indexJson = null
@@ -111,9 +100,7 @@ export async function parseSafetensorsSharded(
   };
 }
 
-/**
- * Read tensor data from File
- */
+
 export async function readTensorData(tensor) {
   const file = tensor.file;
   if (!file) {
@@ -124,9 +111,7 @@ export async function readTensorData(tensor) {
   return blob.arrayBuffer();
 }
 
-/**
- * Stream tensor data for large files
- */
+
 export async function* streamTensorData(
   tensor,
   chunkSize = 64 * 1024 * 1024
@@ -148,9 +133,7 @@ export async function* streamTensorData(
   }
 }
 
-/**
- * Parse config.json from File
- */
+
 export async function parseConfigJson(configFile) {
   const text = await configFile.text();
   return parseConfigJsonText(text);
@@ -161,25 +144,19 @@ export async function parseTokenizerConfigJson(tokenizerConfigFile) {
   return parseTokenizerConfigJsonText(text);
 }
 
-/**
- * Parse tokenizer.json from File
- */
+
 export async function parseTokenizerJson(tokenizerFile) {
   const text = await tokenizerFile.text();
   return parseTokenizerJsonText(text);
 }
 
-/**
- * Parse model.safetensors.index.json from File
- */
+
 export async function parseIndexJson(indexFile) {
   const text = await indexFile.text();
   return parseSafetensorsIndexJsonText(text);
 }
 
-/**
- * Detect model format from selected files
- */
+
 export function detectModelFormat(files) {
   // Check for index file (sharded model)
   const indexFile = files.find(f => f.name === 'model.safetensors.index.json');
@@ -219,9 +196,7 @@ export function detectModelFormat(files) {
   return { type: 'unknown', files };
 }
 
-/**
- * Get auxiliary files from selection
- */
+
 export function getAuxiliaryFiles(files) {
   return {
     config: files.find(f => f.name === 'config.json'),
@@ -233,16 +208,12 @@ export function getAuxiliaryFiles(files) {
   };
 }
 
-/**
- * Calculate total model size
- */
+
 export function calculateTotalSize(parsed) {
   return calculateTotalSizeCore(parsed);
 }
 
-/**
- * Group tensors by layer
- */
+
 export function groupTensorsByLayer(parsed) {
   // Cast to browser type - core tensors are a subset of browser tensors
   return groupTensorsByLayerCore(parsed);

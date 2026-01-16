@@ -1,11 +1,4 @@
-/**
- * shard-packer.ts - Platform-agnostic Shard Packing
- *
- * Core shard packing logic shared between Node.js CLI and browser converters.
- * Uses an I/O adapter interface for platform-specific operations.
- *
- * @module converter/shard-packer
- */
+
 
 import {
   SHARD_SIZE,
@@ -15,10 +8,7 @@ import {
   sortGroupIds,
 } from '../storage/rdrr-format.js';
 
-/**
- * Platform-agnostic shard packer.
- * Handles shard boundary logic, tensor tracking, and component groups.
- */
+
 export class ShardPacker {
   #io;
   #shardSize;
@@ -43,10 +33,7 @@ export class ShardPacker {
     this.#modelType = options.modelType ?? 'transformer';
   }
 
-  /**
-   * Pack tensors into shards.
-   * Tensors are processed in order - caller should sort by group first.
-   */
+  
   async pack(tensors, options = {}) {
     const { onProgress, signal } = options;
     const totalTensors = tensors.length;
@@ -87,9 +74,7 @@ export class ShardPacker {
     };
   }
 
-  /**
-   * Pack a single tensor, handling shard boundaries.
-   */
+  
   async #packTensor(tensor, data, groupId) {
     const tensorSpans = [];
     let remaining = data;
@@ -142,9 +127,7 @@ export class ShardPacker {
     }
   }
 
-  /**
-   * Flush current shard to storage.
-   */
+  
   async #flushShard() {
     if (this.#currentShardData.length === 0) return;
 
@@ -175,18 +158,14 @@ export class ShardPacker {
     this.#currentShardSize = 0;
   }
 
-  /**
-   * Add tensor to component group tracking.
-   */
+  
   #addTensorToGroup(groupId, tensorName) {
     const existing = this.#groupTensorMap.get(groupId) || [];
     existing.push(tensorName);
     this.#groupTensorMap.set(groupId, existing);
   }
 
-  /**
-   * Build component groups with hashes.
-   */
+  
   #buildGroups() {
     const groups = {};
     const sortedGroupIds = sortGroupIds(Array.from(this.#groupTensorMap.keys()));
@@ -226,9 +205,7 @@ export class ShardPacker {
     return groups;
   }
 
-  /**
-   * Reset packer state for reuse.
-   */
+  
   reset() {
     this.#currentShardIndex = 0;
     this.#currentShardData = [];
@@ -240,10 +217,7 @@ export class ShardPacker {
   }
 }
 
-/**
- * Sort tensors by component group for optimal shard packing.
- * Groups: embed → layers (in order) → head
- */
+
 export function sortTensorsByGroup(tensors, modelType = 'transformer') {
   return [...tensors].sort((a, b) => {
     const groupA = classifyTensor(a.name, modelType);
@@ -257,9 +231,7 @@ export function sortTensorsByGroup(tensors, modelType = 'transformer') {
   });
 }
 
-/**
- * Estimate shard count for a set of tensors.
- */
+
 export function estimateShardCount(tensors, shardSize = SHARD_SIZE) {
   const totalSize = tensors.reduce((sum, t) => sum + t.size, 0);
   return Math.ceil(totalSize / shardSize);

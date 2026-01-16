@@ -1,39 +1,24 @@
-/**
- * Simple BPE Tokenizer
- *
- * For models with vocab.json + merges.txt
- *
- * @module inference/tokenizers/bpe
- */
+
 
 import { BaseTokenizer } from './base.js';
 
-/**
- * Simple BPE tokenizer
- * For models with vocab.json + merges.txt
- */
+
 export class BPETokenizer extends BaseTokenizer {
-  /** @type {Map<string, number>} */
+  
   #vocab = new Map();
-  /** @type {Map<number, string>} */
+  
   #reverseVocab = new Map();
-  /** @type {string[]} */
+  
   #merges = [];
-  /** @type {Map<string, number>} */
+  
   #mergeRanks = new Map();
 
-  /**
-   * @param {import('./types.js').TokenizerConfig} [config={}]
-   */
+  
   constructor(config = {}) {
     super(config);
   }
 
-  /**
-   * Load vocabulary and merges
-   * @param {Record<string, number>} vocab
-   * @param {string[]} merges
-   */
+  
   load(vocab, merges) {
     // Build vocab maps
     for (const [token, id] of Object.entries(vocab)) {
@@ -50,13 +35,9 @@ export class BPETokenizer extends BaseTokenizer {
     }
   }
 
-  /**
-   * Get pairs of adjacent symbols in word
-   * @param {string[]} word
-   * @returns {string[]}
-   */
+  
   #getPairs(word) {
-    /** @type {string[]} */
+    
     const pairs = [];
     for (let i = 0; i < word.length - 1; i++) {
       pairs.push(`${word[i]} ${word[i + 1]}`);
@@ -64,18 +45,14 @@ export class BPETokenizer extends BaseTokenizer {
     return pairs;
   }
 
-  /**
-   * Apply BPE to a single word
-   * @param {string} word
-   * @returns {string[]}
-   */
+  
   #bpe(word) {
     let tokens = word.split('');
 
     while (tokens.length > 1) {
       // Find the pair with lowest rank
       const pairs = this.#getPairs(tokens);
-      /** @type {string | null} */
+      
       let minPair = null;
       let minRank = Infinity;
 
@@ -91,7 +68,7 @@ export class BPETokenizer extends BaseTokenizer {
 
       // Merge the pair
       const [first, second] = minPair.split(' ');
-      /** @type {string[]} */
+      
       const newTokens = [];
       let i = 0;
 
@@ -113,12 +90,9 @@ export class BPETokenizer extends BaseTokenizer {
     return tokens;
   }
 
-  /**
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   encode(text) {
-    /** @type {number[]} */
+    
     const ids = [];
 
     if (this.addBosToken) {
@@ -160,14 +134,9 @@ export class BPETokenizer extends BaseTokenizer {
     return ids;
   }
 
-  /**
-   * @param {number[]} ids
-   * @param {boolean} [skipSpecialTokens=true]
-   * @param {boolean} [trim=true]
-   * @returns {string}
-   */
+  
   decode(ids, skipSpecialTokens = true, trim = true) {
-    /** @type {string[]} */
+    
     const tokens = [];
 
     for (const id of ids) {

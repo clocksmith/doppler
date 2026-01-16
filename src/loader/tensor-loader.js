@@ -1,14 +1,4 @@
-/**
- * Tensor Loader - Dtype-specific tensor loading and conversion.
- *
- * Handles loading tensors from shards with support for:
- * - Q4_K/Q4_K_M quantized tensors (fused and dequant paths)
- * - Q6_K quantized tensors
- * - BF16 tensors (GPU and CPU conversion)
- * - F16/F32 tensors
- *
- * @module loader/tensor-loader
- */
+
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
@@ -23,11 +13,7 @@ import { trace as debugTrace } from '../debug/index.js';
 // Q4K Detection
 // ============================================================================
 
-/**
- * Check if a Q4K tensor is packed (incompatible with fused matmul).
- * @param {import('./loader-types.js').TensorLocation} location
- * @returns {boolean}
- */
+
 export function isPackedQ4K(location) {
   if (!Array.isArray(location.shape) || location.shape.length !== 2) {
     return false;
@@ -37,23 +23,13 @@ export function isPackedQ4K(location) {
   return location.size < expectedRowwise;
 }
 
-/**
- * Check if tensor name indicates an embedding (excluded from fused Q4K).
- * @param {string} name
- * @returns {boolean}
- */
+
 export function isEmbeddingName(name) {
   const lower = name.toLowerCase();
   return lower.includes('embd') || lower.includes('embed') || lower.includes('wte');
 }
 
-/**
- * Determine if fused Q4K path should be used for a tensor.
- * @param {string} name
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {import('./tensor-loader.js').TensorLoadConfig} config
- * @returns {boolean}
- */
+
 export function shouldUseFusedQ4K(name, location, config) {
   if (!config.useFusedQ4K) return false;
 
@@ -73,12 +49,7 @@ export function shouldUseFusedQ4K(name, location, config) {
 // Dtype Output Selection
 // ============================================================================
 
-/**
- * Determine output dtype for dequantized Q4K tensor.
- * @param {string} name
- * @param {import('./tensor-loader.js').TensorLoadConfig} config
- * @returns {'f16' | 'f32'}
- */
+
 export function getQ4KOutputDtype(name, config) {
   const isMatmulWeight = shouldDequantizeToF16(name);
   if (!isMatmulWeight) return 'f32';
@@ -89,13 +60,7 @@ export function getQ4KOutputDtype(name, config) {
   return caps?.hasF16 ? 'f16' : 'f32';
 }
 
-/**
- * Determine weight layout based on config and tensor type.
- * @param {string} name
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {import('./tensor-loader.js').TensorLoadConfig} config
- * @returns {import('../gpu/weight-buffer.js').WeightLayout}
- */
+
 export function getWeightLayout(name, location, config) {
   if (location.layout === 'column') return 'column';
 
@@ -111,11 +76,7 @@ export function getWeightLayout(name, location, config) {
 // CPU Path Helpers
 // ============================================================================
 
-/**
- * Convert BF16 data to F32 on CPU.
- * @param {Uint16Array} bf16Data
- * @returns {Float32Array}
- */
+
 export function convertBF16ToF32CPU(bf16Data) {
   const f32 = new Float32Array(bf16Data.length);
   const tmp = new ArrayBuffer(4);
@@ -130,11 +91,7 @@ export function convertBF16ToF32CPU(bf16Data) {
   return f32;
 }
 
-/**
- * Convert F16 data to F32 on CPU.
- * @param {Uint16Array} f16Data
- * @returns {Float32Array}
- */
+
 export function convertF16ToF32CPU(f16Data) {
   const f32 = new Float32Array(f16Data.length);
   for (let i = 0; i < f16Data.length; i++) {
@@ -147,17 +104,11 @@ export function convertF16ToF32CPU(f16Data) {
 // GPU Tensor Loading
 // ============================================================================
 
-/**
- * Load Q4K tensor to GPU with fused path (keeps raw quantized data).
- * @param {Uint8Array} shardData
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {string} name
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>}
- */
+
 export async function loadQ4KFused(shardData, location, name) {
   const device = getDevice();
   const buffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
-  device.queue.writeBuffer(buffer, 0, /** @type {BufferSource} */ (/** @type {unknown} */ (shardData)));
+  device.queue.writeBuffer(buffer, 0,  ( (shardData)));
 
   return {
     data: createWeightBuffer(buffer, 'q4k', 'row', location.shape, name),
@@ -165,18 +116,11 @@ export async function loadQ4KFused(shardData, location, name) {
   };
 }
 
-/**
- * Load Q4K tensor to GPU with dequantization.
- * @param {Uint8Array} shardData
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {string} name
- * @param {import('./tensor-loader.js').TensorLoadConfig} config
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>}
- */
+
 export async function loadQ4KDequant(shardData, location, name, config) {
   const device = getDevice();
   const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-  device.queue.writeBuffer(quantBuffer, 0, /** @type {BufferSource} */ (/** @type {unknown} */ (shardData)));
+  device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
 
   const numBlocks = Math.ceil(location.size / 144);
   const outputDtype = getQ4KOutputDtype(name, config);
@@ -193,7 +137,7 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   releaseBuffer(quantBuffer);
 
   const layout = getWeightLayout(name, location, config);
-  /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+  
   const dtype = outputDtype;
 
   return {
@@ -202,19 +146,13 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   };
 }
 
-/**
- * Load Q6K tensor to GPU.
- * @param {Uint8Array} shardData
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {string} name
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>}
- */
+
 export async function loadQ6K(shardData, location, name) {
   const device = getDevice();
 
   debugTrace.loader(`Loading Q6_K tensor "${name}", size=${location.size}`);
   const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-  device.queue.writeBuffer(quantBuffer, 0, /** @type {BufferSource} */ (/** @type {unknown} */ (shardData)));
+  device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
 
   const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
   debugTrace.loader(
@@ -242,18 +180,11 @@ export async function loadQ6K(shardData, location, name) {
   };
 }
 
-/**
- * Load BF16 tensor to GPU.
- * @param {Uint8Array} shardData
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {string} name
- * @param {import('./tensor-loader.js').TensorLoadConfig} config
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>}
- */
+
 export async function loadBF16(shardData, location, name, config) {
   const device = getDevice();
   const srcBuffer = acquireBuffer(shardData.byteLength, undefined, `${name}_bf16`);
-  device.queue.writeBuffer(srcBuffer, 0, /** @type {BufferSource} */ (/** @type {unknown} */ (shardData)));
+  device.queue.writeBuffer(srcBuffer, 0,  ( (shardData)));
 
   const numElements = shardData.byteLength / 2;
   const caps = config.gpuCapabilities || getKernelCapabilities();
@@ -265,7 +196,7 @@ export async function loadBF16(shardData, location, name, config) {
     releaseBuffer(srcBuffer);
     debugTrace.loader(`BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
 
-    /** @type {import('../gpu/weight-buffer.js').WeightLayout} */
+    
     const layout = location.layout === 'column' ? 'column' : 'row';
     return {
       data: createWeightBuffer(f16Tensor.buffer, 'f16', layout, location.shape, name),
@@ -279,7 +210,7 @@ export async function loadBF16(shardData, location, name, config) {
 
   if (dstBuffer instanceof GPUBuffer) {
     if (isMatmulWeight) {
-      /** @type {import('../gpu/weight-buffer.js').WeightLayout} */
+      
       const layout = location.layout === 'column' ? 'column' : 'row';
       return {
         data: createWeightBuffer(dstBuffer, 'f32', layout, location.shape, name),
@@ -299,21 +230,15 @@ export async function loadBF16(shardData, location, name, config) {
   };
 }
 
-/**
- * Load F16/F32 tensor to GPU.
- * @param {Uint8Array} shardData
- * @param {import('./loader-types.js').TensorLocation} location
- * @param {string} name
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>}
- */
+
 export async function loadFloat(shardData, location, name) {
   const device = getDevice();
   const buffer = acquireBuffer(location.size, undefined, name);
-  device.queue.writeBuffer(buffer, 0, /** @type {BufferSource} */ (/** @type {unknown} */ (shardData)));
+  device.queue.writeBuffer(buffer, 0,  ( (shardData)));
 
-  /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+  
   const dtype = location.dtype === 'F16' ? 'f16' : 'f32';
-  /** @type {import('../gpu/weight-buffer.js').WeightLayout} */
+  
   const layout = location.layout === 'column' ? 'column' : 'row';
   const isMatmulWeight = shouldDequantizeToF16(name);
 
@@ -347,17 +272,7 @@ export async function loadFloat(shardData, location, name) {
 // Main GPU Loading Entry Point
 // ============================================================================
 
-/**
- * Load tensor data to GPU based on dtype.
- *
- * Routes to appropriate handler based on tensor dtype.
- *
- * @param {Uint8Array} shardData - Raw tensor data from shard(s)
- * @param {import('./loader-types.js').TensorLocation} location - Tensor location info
- * @param {string} name - Tensor name
- * @param {import('./tensor-loader.js').TensorLoadConfig} config - Load configuration
- * @returns {Promise<import('./tensor-loader.js').TensorLoadResult>} Loaded tensor result with allocated buffers
- */
+
 export async function loadTensorToGPU(shardData, location, name, config) {
   const dtype = location.dtype;
 
@@ -390,13 +305,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   return loadFloat(shardData, location, name);
 }
 
-/**
- * Load tensor data on CPU (no GPU upload).
- *
- * @param {Uint8Array} shardData - Raw tensor data from shard(s)
- * @param {import('./loader-types.js').TensorLocation} location - Tensor location info
- * @returns {Float32Array | Uint8Array} CPU tensor data
- */
+
 export function loadTensorToCPU(shardData, location) {
   const dtype = location.dtype;
 

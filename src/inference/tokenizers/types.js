@@ -1,8 +1,4 @@
-/**
- * Tokenizer Types and Interfaces
- *
- * @module inference/tokenizers/types
- */
+
 
 // This module only contains type definitions.
 // All types are exported from types.d.ts.

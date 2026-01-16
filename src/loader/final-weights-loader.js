@@ -1,13 +1,4 @@
-/**
- * Final Weights Loader - Load final norm and LM head.
- *
- * Handles loading of:
- * - Final layer norm (offset handled at runtime when configured)
- * - LM head (output projection)
- * - Tied embeddings fallback
- *
- * @module loader/final-weights-loader
- */
+
 
 import {
   createWeightBuffer,
@@ -22,7 +13,7 @@ import { log, trace as debugTrace } from '../debug/index.js';
 // Constants
 // ============================================================================
 
-/** Known final norm tensor names in order of preference */
+
 const FINAL_NORM_NAMES = [
   'language_model.model.norm.weight',
   'model.norm.weight',
@@ -31,7 +22,7 @@ const FINAL_NORM_NAMES = [
   'transformer.ln_f.weight',
 ];
 
-/** Known LM head tensor names in order of preference */
+
 const LM_HEAD_NAMES = [
   'language_model.lm_head.weight',
   'lm_head.weight',
@@ -42,12 +33,7 @@ const LM_HEAD_NAMES = [
 // Main Function
 // ============================================================================
 
-/**
- * Load final layer norm and LM head weights.
- *
- * @param {import('./final-weights-loader.js').FinalWeightsContext} ctx - Final weights loader context
- * @returns {Promise<import('./final-weights-loader.js').FinalWeightsResult>} Loaded final weights
- */
+
 export async function loadFinalWeights(ctx) {
   let normOffsetDebugLogged = ctx.normOffsetDebugLogged;
 
@@ -71,19 +57,16 @@ export async function loadFinalWeights(ctx) {
 // Final Norm Loading
 // ============================================================================
 
-/**
- * @param {import('./final-weights-loader.js').FinalWeightsContext} ctx
- * @returns {Promise<{ finalNorm: GPUBuffer | Float32Array | null; debugLogged: boolean }>}
- */
+
 async function loadFinalNorm(ctx) {
-  /** @type {GPUBuffer | Float32Array | null} */
+  
   let finalNorm = null;
   let debugLogged = false;
 
   for (const name of FINAL_NORM_NAMES) {
     const location = ctx.tensorLocations.get(name);
     if (location) {
-      finalNorm = /** @type {GPUBuffer | Float32Array | null} */ (await ctx.loadTensor(name, true, true));
+      finalNorm =  (await ctx.loadTensor(name, true, true));
       break;
     }
   }
@@ -104,16 +87,13 @@ async function loadFinalNorm(ctx) {
 // LM Head Loading
 // ============================================================================
 
-/**
- * @param {import('./final-weights-loader.js').FinalWeightsContext} ctx
- * @returns {Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array | null>}
- */
+
 async function loadLmHead(ctx) {
-  /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array | null} */
+  
   let lmHead = null;
-  /** @type {string | null} */
+  
   let lmHeadName = null;
-  /** @type {import('./loader-types.js').TensorLocation | undefined} */
+  
   let lmHeadLoc;
 
   for (const name of LM_HEAD_NAMES) {
@@ -153,20 +133,12 @@ async function loadLmHead(ctx) {
   return lmHead;
 }
 
-/**
- * Process a loaded LM head tensor.
- * @param {import('./final-weights-loader.js').FinalWeightsContext} ctx
- * @param {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array} tensor
- * @param {string} name
- * @param {import('./loader-types.js').TensorLocation} loc
- * @param {boolean} shouldStream
- * @returns {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | import('../gpu/weight-buffer.js').CpuWeightBuffer | Float32Array}
- */
+
 function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   // Float32Array streaming path
   if (tensor instanceof Float32Array && shouldStream) {
     const layout = ctx.resolveWeightLayout(loc, name);
-    /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+    
     const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
     const result = createCpuWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.warn('Loader', `LM head stored on CPU for chunked matmul (layout=${layout})`);
@@ -176,7 +148,7 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   // Raw GPUBuffer - wrap with dtype/layout metadata
   if (tensor instanceof GPUBuffer && loc.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc, name);
-    /** @type {import('../gpu/weight-buffer.js').WeightDtype} */
+    
     const dtype = loc.dtype === 'F16' ? 'f16' : 'f32';
     const wrapped = createWeightBuffer(tensor, dtype, layout, loc.shape, name);
     log.info('Loader', `Wrapped lm_head as WeightBuffer (layout=${layout}, dtype=${dtype})`);
@@ -186,14 +158,7 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   return tensor;
 }
 
-/**
- * Attempt to downcast LM head from F32 to F16.
- * @param {import('./final-weights-loader.js').FinalWeightsContext} ctx
- * @param {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array} lmHead
- * @param {string | null} lmHeadName
- * @param {import('./loader-types.js').TensorLocation | undefined} lmHeadLoc
- * @returns {Promise<GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array>}
- */
+
 async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   // Check if tied to embeddings (skip downcast to avoid double-processing)
   const tiedToEmbeddings =
@@ -242,7 +207,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
 
   if (result?.wasDowncast && result.newBuffer) {
     ctx.gpuBuffers.add(result.newBuffer);
-    return /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer} */ (result.buffer);
+    return  (result.buffer);
   }
 
   return lmHead;

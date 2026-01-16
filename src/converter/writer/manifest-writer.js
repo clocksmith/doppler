@@ -1,11 +1,4 @@
-/**
- * RDRR Manifest Writer
- *
- * Generates manifest.json and tensors.json files.
- * Builds component groups with hashes for integrity verification.
- *
- * @module converter/writer/manifest-writer
- */
+
 
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -19,9 +12,7 @@ import {
 import { log } from '../../debug/index.js';
 import { computeHash } from './utils.js';
 
-/**
- * Builds and writes manifest.json and tensors.json.
- */
+
 export class ManifestWriter {
   #outputDir;
   #hashAlgorithm;
@@ -33,9 +24,7 @@ export class ManifestWriter {
     this.#modelType = modelType;
   }
 
-  /**
-   * Build external tensors.json from tensor locations.
-   */
+  
   buildTensorMap(tensorLocations) {
     const tensorMap = {};
     for (const [name, location] of tensorLocations) {
@@ -60,17 +49,13 @@ export class ManifestWriter {
     return tensorMap;
   }
 
-  /**
-   * Write tensors.json file.
-   */
+  
   async writeTensorMap(tensorMap) {
     const tensorsPath = join(this.#outputDir, TENSORS_FILENAME);
     await writeFile(tensorsPath, JSON.stringify(tensorMap, null, 2));
   }
 
-  /**
-   * Build component groups with hashes from tracked data.
-   */
+  
   async buildGroups(groupTensorMap, groupShardMap, groupDataMap) {
     const groups = {};
     const sortedGroupIds = sortGroupIds(Array.from(groupTensorMap.keys()));
@@ -108,9 +93,7 @@ export class ManifestWriter {
     return groups;
   }
 
-  /**
-   * Build MoE expert mapping for legacy compatibility.
-   */
+  
   buildMoEMapping(moeConfig, expertShardMap, expertTensorMap, expertBytesMap, sharedExpertIndices) {
     if (!moeConfig || expertShardMap.size === 0) {
       return moeConfig;
@@ -151,18 +134,14 @@ export class ManifestWriter {
     return result;
   }
 
-  /**
-   * Write manifest.json file.
-   */
+  
   async writeManifest(manifest) {
     const manifestPath = join(this.#outputDir, 'manifest.json');
     await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
     log.verbose('ManifestWriter', `Wrote ${Object.keys(manifest.groups).length} component groups`);
   }
 
-  /**
-   * Build final write result.
-   */
+  
   buildResult(manifestPath, shards, tensorCount) {
     const totalSize = shards.reduce((sum, s) => sum + s.size, 0);
     return {

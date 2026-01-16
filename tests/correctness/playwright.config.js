@@ -1,8 +1,4 @@
-/**
- * Playwright config for pipeline-level correctness tests
- *
- * Run with: npx playwright test -c tests/correctness/playwright.config.js
- */
+
 
 import { defineConfig, devices } from '@playwright/test';
 

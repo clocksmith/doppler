@@ -150,14 +150,18 @@ describe('config/loader', () => {
         architecture: {
           numLayers: 12,
           hiddenSize: 768,
+          intermediateSize: 3072,
+          numAttentionHeads: 12,
+          vocabSize: 32000,
+          maxSeqLen: 2048,
         },
       };
 
       const config = resolveConfig(manifest);
       expect(config.architecture.numLayers).toBe(12);
       expect(config.architecture.hiddenSize).toBe(768);
-      // Should have defaults for unspecified values
-      expect(config.architecture.vocabSize).toBeDefined();
+      expect(config.architecture.numKeyValueHeads).toBe(12);
+      expect(config.architecture.headDim).toBe(64);
     });
 
     it('inherits inference config from preset', () => {
@@ -171,6 +175,14 @@ describe('config/loader', () => {
         tensorsFile: 'tensors.json',
         tensorCount: 0,
         groups: {},
+        architecture: {
+          numLayers: 26,
+          hiddenSize: 2304,
+          intermediateSize: 9216,
+          numAttentionHeads: 8,
+          vocabSize: 256000,
+          maxSeqLen: 8192,
+        },
       };
 
       const config = resolveConfig(manifest, 'gemma2');
@@ -193,6 +205,14 @@ describe('config/loader', () => {
         tensorsFile: 'tensors.json',
         tensorCount: 0,
         groups: {},
+        architecture: {
+          numLayers: 26,
+          hiddenSize: 2304,
+          intermediateSize: 9216,
+          numAttentionHeads: 8,
+          vocabSize: 256000,
+          maxSeqLen: 8192,
+        },
       };
 
       const config = resolveConfig(manifest);
@@ -210,6 +230,14 @@ describe('config/loader', () => {
         tensorsFile: 'tensors.json',
         tensorCount: 0,
         groups: {},
+        architecture: {
+          numLayers: 24,
+          hiddenSize: 2048,
+          intermediateSize: 8192,
+          numAttentionHeads: 16,
+          vocabSize: 32000,
+          maxSeqLen: 2048,
+        },
       };
 
       const config = resolveConfig(manifest, 'gemma3');
@@ -227,6 +255,14 @@ describe('config/loader', () => {
         tensorsFile: 'tensors.json',
         tensorCount: 0,
         groups: {},
+        architecture: {
+          numLayers: 24,
+          hiddenSize: 2048,
+          intermediateSize: 8192,
+          numAttentionHeads: 16,
+          vocabSize: 32000,
+          maxSeqLen: 2048,
+        },
       };
 
       const config = resolveConfig(manifest);

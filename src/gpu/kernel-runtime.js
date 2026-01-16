@@ -1,13 +1,8 @@
-/**
- * Kernel runtime initialization helpers.
- */
+
 
 import { autoTuneKernels, prewarmKernels, clearKernelCaches } from './kernels/utils.js';
 
-/**
- * @param {import('./kernel-runtime.js').KernelRuntimeOptions} [options]
- * @returns {Promise<import('./kernel-runtime.js').KernelRuntimeState>}
- */
+
 export async function prepareKernelRuntime(
   options = {}
 ) {

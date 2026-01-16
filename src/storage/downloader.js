@@ -1,15 +1,4 @@
-/**
- * downloader.ts - Resumable Model Downloader
- *
- * Handles:
- * - Chunked downloads with progress reporting
- * - Resume support via IndexedDB state tracking
- * - Parallel shard downloads with concurrency control
- * - Automatic retry with exponential backoff
- * - Quota checking before downloads
- *
- * @module storage/downloader
- */
+
 
 import {
   parseManifest,
@@ -51,19 +40,16 @@ import {
 // Module State
 // ============================================================================
 
-/** @type {IDBDatabase | null} */
+
 let db = null;
-/** @type {Map<string, import('./download-types.js').ActiveDownload>} */
+
 const activeDownloads = new Map();
 
 // ============================================================================
 // IndexedDB Operations
 // ============================================================================
 
-/**
- * Initializes the IndexedDB for download state persistence
- * @returns {Promise<IDBDatabase | null>}
- */
+
 async function initDB() {
   if (db) return db;
 
@@ -82,8 +68,8 @@ async function initDB() {
       resolve(db);
     };
 
-    request.onupgradeneeded = (/** @type {IDBVersionChangeEvent} */ event) => {
-      const database = /** @type {IDBOpenDBRequest} */ (event.target).result;
+    request.onupgradeneeded = ( event) => {
+      const database =  (event.target).result;
 
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         const store = database.createObjectStore(STORE_NAME, { keyPath: 'modelId' });
@@ -93,11 +79,7 @@ async function initDB() {
   });
 }
 
-/**
- * Saves download state to IndexedDB
- * @param {import('./download-types.js').DownloadState} state
- * @returns {Promise<void>}
- */
+
 async function saveDownloadState(state) {
   const database = await initDB();
   if (!database) return;
@@ -107,7 +89,7 @@ async function saveDownloadState(state) {
       const tx = database.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
 
-      /** @type {import('./download-types.js').SerializedDownloadState} */
+      
       const storeState = {
         ...state,
         completedShards: Array.from(state.completedShards)
@@ -123,15 +105,11 @@ async function saveDownloadState(state) {
       log.warn('Downloader', 'IndexedDB unavailable, skipping download state save');
       return;
     }
-    log.warn('Downloader', `Failed to save download state: ${/** @type {Error} */ (error).message}`);
+    log.warn('Downloader', `Failed to save download state: ${ (error).message}`);
   }
 }
 
-/**
- * Loads download state from IndexedDB
- * @param {string} modelId
- * @returns {Promise<import('./download-types.js').DownloadState | null>}
- */
+
 async function loadDownloadState(modelId) {
   const database = await initDB();
   if (!database) return null;
@@ -143,9 +121,9 @@ async function loadDownloadState(modelId) {
 
       const request = store.get(modelId);
       request.onsuccess = () => {
-        const result = /** @type {import('./download-types.js').SerializedDownloadState | undefined} */ (request.result);
+        const result =  (request.result);
         if (result) {
-          /** @type {import('./download-types.js').DownloadState} */
+          
           const state = {
             ...result,
             completedShards: new Set(result.completedShards)
@@ -163,16 +141,12 @@ async function loadDownloadState(modelId) {
       log.warn('Downloader', 'IndexedDB unavailable, skipping download state load');
       return null;
     }
-    log.warn('Downloader', `Failed to load download state: ${/** @type {Error} */ (error).message}`);
+    log.warn('Downloader', `Failed to load download state: ${ (error).message}`);
     return null;
   }
 }
 
-/**
- * Deletes download state from IndexedDB
- * @param {string} modelId
- * @returns {Promise<void>}
- */
+
 async function deleteDownloadState(modelId) {
   const database = await initDB();
   if (!database) return;
@@ -192,28 +166,23 @@ async function deleteDownloadState(modelId) {
       log.warn('Downloader', 'IndexedDB unavailable, skipping download state delete');
       return;
     }
-    log.warn('Downloader', `Failed to delete download state: ${/** @type {Error} */ (error).message}`);
+    log.warn('Downloader', `Failed to delete download state: ${ (error).message}`);
   }
 }
 
 function isDatabaseClosingError(error) {
-  const message = /** @type {Error} */ (error)?.message ?? '';
+  const message =  (error)?.message ?? '';
   return message.includes('database connection is closing')
-    || /** @type {Error} */ (error)?.name === 'InvalidStateError';
+    ||  (error)?.name === 'InvalidStateError';
 }
 
 // ============================================================================
 // Fetch Operations
 // ============================================================================
 
-/**
- * Fetches data with retry logic
- * @param {string} url
- * @param {RequestInit} [options]
- * @returns {Promise<Response>}
- */
+
 async function fetchWithRetry(url, options = {}) {
-  /** @type {Error | undefined} */
+  
   let lastError;
   const maxRetries = getMaxRetries();
   let delay = getInitialRetryDelayMs();
@@ -231,15 +200,15 @@ async function fetchWithRetry(url, options = {}) {
 
       return response;
     } catch (error) {
-      lastError = /** @type {Error} */ (error);
+      lastError =  (error);
 
       // Don't retry if aborted
-      if (/** @type {Error} */ (error).name === 'AbortError') {
+      if ( (error).name === 'AbortError') {
         throw error;
       }
 
       // Don't retry on 4xx errors (except 429)
-      if (/** @type {Error} */ (error).message.includes('HTTP 4') && !/** @type {Error} */ (error).message.includes('HTTP 429')) {
+      if ( (error).message.includes('HTTP 4') && ! (error).message.includes('HTTP 429')) {
         throw error;
       }
 
@@ -250,27 +219,16 @@ async function fetchWithRetry(url, options = {}) {
     }
   }
 
-  throw /** @type {Error} */ (lastError);
+  throw  (lastError);
 }
 
-/**
- * @param {string} baseUrl
- * @param {import('./rdrr-format.js').ShardInfo} shardInfo
- * @returns {string}
- */
+
 function buildShardUrl(baseUrl, shardInfo) {
   const base = baseUrl.replace(/\/$/, '');
   return `${base}/${shardInfo.filename}`;
 }
 
-/**
- * Downloads a single shard
- * @param {string} baseUrl
- * @param {number} shardIndex
- * @param {import('./rdrr-format.js').ShardInfo} shardInfo
- * @param {{ signal?: AbortSignal; onProgress?: (p: import('./download-types.js').ShardProgress) => void }} [options]
- * @returns {Promise<ArrayBuffer>}
- */
+
 async function downloadShard(
   baseUrl,
   shardIndex,
@@ -301,7 +259,7 @@ async function downloadShard(
   const reader = response.body.getReader();
   const contentLength = shardInfo.size;
 
-  /** @type {Uint8Array[]} */
+  
   const chunks = [];
   let receivedBytes = 0;
 
@@ -343,13 +301,7 @@ async function downloadShard(
 // Public API
 // ============================================================================
 
-/**
- * Downloads a model with progress reporting and resume support
- * @param {string} baseUrl
- * @param {import('./download-types.js').ProgressCallback} [onProgress]
- * @param {import('./download-types.js').DownloadOptions} [options]
- * @returns {Promise<boolean>}
- */
+
 export async function downloadModel(
   baseUrl,
   onProgress,
@@ -423,7 +375,7 @@ export async function downloadModel(
   });
 
   const totalShards = manifest.shards.length;
-  /** @type {number[]} */
+  
   const pendingShards = [];
 
   // Find shards that need downloading
@@ -440,20 +392,17 @@ export async function downloadModel(
     if (info) downloadedBytes += info.size;
   }
 
-  /** @type {import('./download-types.js').SpeedTracker} */
+  
   const speedTracker = {
     lastBytes: downloadedBytes,
     lastTime: Date.now(),
     speed: 0
   };
-  /** @type {Map<number, number>} */
+  
   const shardProgress = new Map();
   let lastProgressUpdate = 0; // Throttle progress callbacks
 
-  /**
-   * @param {number | null} currentShard
-   * @param {boolean} [force]
-   */
+  
   const updateProgress = (currentShard, force = false) => {
     const now = Date.now();
 
@@ -475,11 +424,11 @@ export async function downloadModel(
         modelId: storageModelId,
         manifest,
         totalShards,
-        completedShards: /** @type {import('./download-types.js').DownloadState} */ (state).completedShards.size,
+        completedShards:  (state).completedShards.size,
         totalBytes: manifest.totalSize,
         downloadedBytes,
         percent: (downloadedBytes / manifest.totalSize) * 100,
-        status: /** @type {import('./download-types.js').DownloadState} */ (state).status,
+        status:  (state).status,
         currentShard,
         speed: speedTracker.speed
       });
@@ -488,7 +437,7 @@ export async function downloadModel(
 
   // Download shards with concurrency control
   const downloadQueue = [...pendingShards];
-  /** @type {Set<number>} */
+  
   const inFlight = new Set();
 
   const downloadNext = async () => {
@@ -496,7 +445,7 @@ export async function downloadModel(
       return;
     }
 
-    const shardIndex = /** @type {number} */ (downloadQueue.shift());
+    const shardIndex =  (downloadQueue.shift());
     inFlight.add(shardIndex);
     updateProgress(shardIndex);
 
@@ -507,7 +456,7 @@ export async function downloadModel(
       }
       const buffer = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
-        onProgress: (/** @type {import('./download-types.js').ShardProgress} */ p) => {
+        onProgress: ( p) => {
           // Update per-shard progress and global throughput
           const prev = shardProgress.get(shardIndex) || 0;
           const delta = Math.max(0, p.receivedBytes - prev);
@@ -521,17 +470,17 @@ export async function downloadModel(
       await writeShard(shardIndex, buffer, { verify: true });
 
       // Update state
-      /** @type {import('./download-types.js').DownloadState} */ (state).completedShards.add(shardIndex);
+       (state).completedShards.add(shardIndex);
       shardProgress.delete(shardIndex);
 
       // Save progress
-      await saveDownloadState(/** @type {import('./download-types.js').DownloadState} */ (state));
+      await saveDownloadState( (state));
       updateProgress(null, true); // Force update on shard completion
 
     } catch (error) {
-      if (/** @type {Error} */ (error).name === 'AbortError') {
-        /** @type {import('./download-types.js').DownloadState} */ (state).status = 'paused';
-        await saveDownloadState(/** @type {import('./download-types.js').DownloadState} */ (state));
+      if ( (error).name === 'AbortError') {
+         (state).status = 'paused';
+        await saveDownloadState( (state));
         throw error;
       }
       // Re-add to queue for retry (will be handled by next attempt)
@@ -542,12 +491,12 @@ export async function downloadModel(
   };
 
   // Track errors from concurrent downloads
-  /** @type {Error[]} */
+  
   const downloadErrors = [];
 
   try {
     // Process queue with concurrency limit
-    /** @type {Set<Promise<void>>} */
+    
     const downloadPromises = new Set();
 
     while (downloadQueue.length > 0 || inFlight.size > 0) {
@@ -555,7 +504,7 @@ export async function downloadModel(
 
       // Start new downloads up to concurrency limit
       while (inFlight.size < concurrency && downloadQueue.length > 0) {
-        const promise = downloadNext().catch((/** @type {Error} */ error) => {
+        const promise = downloadNext().catch(( error) => {
           // Collect errors instead of swallowing them
           if (error.name !== 'AbortError') {
             downloadErrors.push(error);
@@ -581,18 +530,18 @@ export async function downloadModel(
       await saveManifest(manifestJson);
 
       // Download and save tokenizer.json if bundled/huggingface tokenizer is specified
-      const tokenizer = /** @type {{ type?: string; file?: string } | undefined} */ (manifest.tokenizer);
+      const tokenizer =  (manifest.tokenizer);
       const hasBundledTokenizer = (tokenizer?.type === 'bundled' || tokenizer?.type === 'huggingface') && tokenizer?.file;
       if (hasBundledTokenizer) {
         try {
-          const tokenizerUrl = `${baseUrl}/${/** @type {{ file: string }} */ (tokenizer).file}`;
+          const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
           log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
           const tokenizerResponse = await fetchWithRetry(tokenizerUrl);
           const tokenizerJson = await tokenizerResponse.text();
           await saveTokenizer(tokenizerJson);
           log.verbose('Downloader', 'Saved bundled tokenizer.json');
         } catch (err) {
-          log.warn('Downloader', `Failed to download tokenizer.json: ${/** @type {Error} */ (err).message}`);
+          log.warn('Downloader', `Failed to download tokenizer.json: ${ (err).message}`);
           // Non-fatal - model will fall back to HuggingFace tokenizer
         }
       }
@@ -614,7 +563,7 @@ export async function downloadModel(
 
   } catch (error) {
     state.status = 'error';
-    state.error = /** @type {Error} */ (error).message;
+    state.error =  (error).message;
     await saveDownloadState(state);
     throw error;
 
@@ -623,11 +572,7 @@ export async function downloadModel(
   }
 }
 
-/**
- * Pauses an active download
- * @param {string} modelId
- * @returns {boolean}
- */
+
 export function pauseDownload(modelId) {
   const download = activeDownloads.get(modelId);
   if (!download) return false;
@@ -636,13 +581,7 @@ export function pauseDownload(modelId) {
   return true;
 }
 
-/**
- * Resumes a paused download
- * @param {string} modelId
- * @param {import('./download-types.js').ProgressCallback} [onProgress]
- * @param {import('./download-types.js').DownloadOptions} [options]
- * @returns {Promise<boolean>}
- */
+
 export async function resumeDownload(
   modelId,
   onProgress,
@@ -656,11 +595,7 @@ export async function resumeDownload(
   return downloadModel(state.baseUrl, onProgress, options);
 }
 
-/**
- * Gets the download progress for a model
- * @param {string} modelId
- * @returns {Promise<import('./download-types.js').DownloadProgress | null>}
- */
+
 export async function getDownloadProgress(modelId) {
   // Check active downloads first
   const active = activeDownloads.get(modelId);
@@ -711,10 +646,7 @@ export async function getDownloadProgress(modelId) {
   };
 }
 
-/**
- * Lists all in-progress or paused downloads
- * @returns {Promise<import('./download-types.js').DownloadProgress[]>}
- */
+
 export async function listDownloads() {
   const database = await initDB();
   if (!database) return [];
@@ -725,9 +657,9 @@ export async function listDownloads() {
 
     const request = store.getAll();
     request.onsuccess = async () => {
-      /** @type {import('./download-types.js').DownloadProgress[]} */
+      
       const results = [];
-      for (const state of /** @type {import('./download-types.js').SerializedDownloadState[]} */ (request.result)) {
+      for (const state of  (request.result)) {
         const progress = await getDownloadProgress(state.modelId);
         if (progress) results.push(progress);
       }
@@ -737,11 +669,7 @@ export async function listDownloads() {
   });
 }
 
-/**
- * Cancels and removes a download
- * @param {string} modelId
- * @returns {Promise<boolean>}
- */
+
 export async function cancelDownload(modelId) {
   // Abort if active
   pauseDownload(modelId);
@@ -752,11 +680,7 @@ export async function cancelDownload(modelId) {
   return true;
 }
 
-/**
- * Checks if a model needs downloading
- * @param {string} modelId
- * @returns {Promise<import('./download-types.js').DownloadNeededResult>}
- */
+
 export async function checkDownloadNeeded(modelId) {
   const state = await loadDownloadState(modelId);
 
@@ -769,7 +693,7 @@ export async function checkDownloadNeeded(modelId) {
   }
 
   const totalShards = state.manifest.shards.length;
-  /** @type {number[]} */
+  
   const missingShards = [];
 
   for (let i = 0; i < totalShards; i++) {
@@ -793,21 +717,12 @@ export async function checkDownloadNeeded(modelId) {
   };
 }
 
-/**
- * Formats download speed for display
- * @param {number} bytesPerSecond
- * @returns {string}
- */
+
 export function formatSpeed(bytesPerSecond) {
   return `${formatBytes(bytesPerSecond)}/s`;
 }
 
-/**
- * Estimates remaining download time
- * @param {number} remainingBytes
- * @param {number} bytesPerSecond
- * @returns {string}
- */
+
 export function estimateTimeRemaining(remainingBytes, bytesPerSecond) {
   if (bytesPerSecond <= 0) return 'Calculating...';
 

@@ -1,8 +1,4 @@
-/**
- * RDRR Manifest Validation
- *
- * @module formats/rdrr/validation
- */
+
 
 export function validateManifest(manifest) {
   const errors = [];

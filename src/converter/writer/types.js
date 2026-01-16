@@ -1,11 +1,4 @@
-/**
- * RDRR Writer Type Definitions
- *
- * All interfaces and types used by the RDRR model format writer.
- * Types imported from config/schema for single source of truth.
- *
- * @module converter/writer/types
- */
+
 
 import {
   SHARD_SIZE as SCHEMA_SHARD_SIZE,

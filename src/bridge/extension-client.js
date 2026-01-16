@@ -1,15 +1,4 @@
-/**
- * Extension Bridge Client
- * Phase 3: Communication with Native Host via Chrome Extension
- *
- * This module handles:
- * - Connection to background script
- * - Binary message passing with transferables
- * - Backpressure handling
- * - Request/response correlation
- *
- * @module bridge/extension-client
- */
+
 
 import {
   Command,
@@ -30,9 +19,7 @@ import { DEFAULT_BRIDGE_TIMEOUT_CONFIG } from '../config/schema/index.js';
 // Types and Interfaces
 // ============================================================================
 
-/**
- * Bridge status values
- */
+
 export const BridgeStatus = {
   DISCONNECTED: 'disconnected',
   CONNECTING: 'connecting',
@@ -44,29 +31,25 @@ export const BridgeStatus = {
 // Extension Bridge Client Class
 // ============================================================================
 
-/**
- * Extension Bridge Client
- */
+
 export class ExtensionBridgeClient {
-  /** @type {object|null} */
+  
   #port = null;
-  /** @type {string} */
+  
   #status = BridgeStatus.DISCONNECTED;
-  /** @type {number} */
+  
   #nextReqId = 1;
-  /** @type {Map<number, object>} */
+  
   #pendingRequests = new Map();
-  /** @type {string|null} */
+  
   #extensionId = null;
 
-  /** Status change event handler */
+  
   onStatusChange = null;
-  /** Error event handler */
+  
   onError = null;
 
-  /**
-   * Check if the DOPPLER extension is installed
-   */
+  
   static isExtensionAvailable() {
     return (
       typeof chrome !== 'undefined' &&
@@ -75,10 +58,7 @@ export class ExtensionBridgeClient {
     );
   }
 
-  /**
-   * Connect to the DOPPLER extension
-   * @param {string|null} extensionId - Extension ID (optional, uses known ID)
-   */
+  
   async connect(extensionId = null) {
     if (!ExtensionBridgeClient.isExtensionAvailable()) {
       throw new Error('Chrome extension API not available');
@@ -138,9 +118,7 @@ export class ExtensionBridgeClient {
     });
   }
 
-  /**
-   * Disconnect from the extension
-   */
+  
   disconnect() {
     if (this.#port) {
       this.#port.disconnect();
@@ -157,13 +135,7 @@ export class ExtensionBridgeClient {
     this.#notifyStatusChange();
   }
 
-  /**
-   * Read data from a file via native host
-   * @param {string} path - File path
-   * @param {number} offset - Byte offset
-   * @param {number} length - Bytes to read
-   * @param {Function|null} onChunk - Callback for each chunk (for streaming)
-   */
+  
   async read(path, offset, length, onChunk = null) {
     if (this.#status !== BridgeStatus.CONNECTED) {
       throw new Error('Not connected to extension');
@@ -184,10 +156,7 @@ export class ExtensionBridgeClient {
     return pending;
   }
 
-  /**
-   * List directory contents via native host
-   * @param {string} path - Directory path
-   */
+  
   async list(path) {
     if (this.#status !== BridgeStatus.CONNECTED) {
       throw new Error('Not connected to extension');
@@ -208,9 +177,7 @@ export class ExtensionBridgeClient {
     return pending;
   }
 
-  /**
-   * Get next request ID
-   */
+  
   #getNextReqId() {
     // Wrap at 32-bit unsigned max to avoid overflow
     const current = this.#nextReqId;
@@ -221,9 +188,7 @@ export class ExtensionBridgeClient {
     return current;
   }
 
-  /**
-   * Create a pending request
-   */
+  
   #createPendingRequest(reqId, timeoutMs = DEFAULT_BRIDGE_TIMEOUT_CONFIG.defaultTimeoutMs, onChunk = null) {
     return new Promise((resolve, reject) => {
       const pending = {
@@ -242,9 +207,7 @@ export class ExtensionBridgeClient {
     });
   }
 
-  /**
-   * Handle incoming message from extension
-   */
+  
   #handleMessage(message) {
     if (message.type !== 'binary' || !message.data) {
       log.warn('ExtensionBridge', `Unexpected message type: ${message.type}`);
@@ -335,9 +298,7 @@ export class ExtensionBridgeClient {
     }
   }
 
-  /**
-   * Send ACK for backpressure
-   */
+  
   #sendAck(reqId) {
     if (this.#port) {
       this.#port.postMessage({
@@ -347,9 +308,7 @@ export class ExtensionBridgeClient {
     }
   }
 
-  /**
-   * Handle disconnection
-   */
+  
   #handleDisconnect() {
     const error = chrome.runtime?.lastError;
     log.warn('ExtensionBridge', `Disconnected: ${error?.message || 'unknown'}`);
@@ -369,25 +328,19 @@ export class ExtensionBridgeClient {
     }
   }
 
-  /**
-   * Notify status change
-   */
+  
   #notifyStatusChange() {
     if (this.onStatusChange) {
       this.onStatusChange(this.#status);
     }
   }
 
-  /**
-   * Get current status
-   */
+  
   getStatus() {
     return this.#status;
   }
 
-  /**
-   * Check if connected
-   */
+  
   isConnected() {
     return this.#status === BridgeStatus.CONNECTED;
   }
@@ -397,12 +350,10 @@ export class ExtensionBridgeClient {
 // Module-level functions
 // ============================================================================
 
-/** Global client instance */
+
 let globalClient = null;
 
-/**
- * Get global bridge client
- */
+
 export function getBridgeClient() {
   if (!globalClient) {
     globalClient = new ExtensionBridgeClient();
@@ -410,9 +361,7 @@ export function getBridgeClient() {
   return globalClient;
 }
 
-/**
- * Check if native bridge is available
- */
+
 export function isBridgeAvailable() {
   return ExtensionBridgeClient.isExtensionAvailable();
 }

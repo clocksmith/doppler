@@ -1,15 +1,9 @@
-/**
- * Token sampling from logits with temperature, top-k, top-p, and repetition penalty.
- */
+
 
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
-/**
- * @param {Float32Array} logits
- * @param {number[]} previousTokens
- * @param {number} penalty
- */
+
 export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   if (penalty === 1.0) return;
 
@@ -24,10 +18,7 @@ export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   }
 }
 
-/**
- * @param {Float32Array} logits
- * @returns {Float32Array}
- */
+
 export function softmax(logits) {
   const n = logits.length;
   let max = -Infinity;
@@ -50,11 +41,7 @@ export function softmax(logits) {
   return exps;
 }
 
-/**
- * @param {Float32Array} logits
- * @param {import('./sampling.js').SamplingOptions} opts
- * @returns {number}
- */
+
 export function sample(logits, opts) {
   const { temperature, topP, topK, decode, debug = false, padTokenId } = opts;
 
@@ -89,7 +76,7 @@ export function sample(logits, opts) {
   const probs = softmax(logits);
 
   // Build candidate list
-  /** @type {import('./sampling.js').TokenCandidate[]} */
+  
   let candidates = [];
   for (let i = 0; i < probs.length; i++) {
     candidates.push({ token: i, prob: probs[i] });
@@ -104,7 +91,7 @@ export function sample(logits, opts) {
   // Top-p (nucleus) filtering
   if (topP < 1.0) {
     let cumProb = 0;
-    /** @type {import('./sampling.js').TokenCandidate[]} */
+    
     const filtered = [];
     for (const c of candidates) {
       filtered.push(c);
@@ -147,16 +134,11 @@ export function sample(logits, opts) {
   return candidates[candidates.length - 1].token;
 }
 
-/**
- * @param {Float32Array} logits
- * @param {number} [k]
- * @param {((tokens: number[]) => string) | undefined} [decode]
- * @returns {import('./sampling.js').TopKResult[]}
- */
+
 export function getTopK(logits, k = 5, decode) {
   const probs = softmax(new Float32Array(logits));
 
-  /** @type {{ token: number; logit: number; prob: number }[]} */
+  
   const indexed = [];
   for (let i = 0; i < logits.length; i++) {
     indexed.push({ token: i, logit: logits[i], prob: probs[i] });
@@ -171,12 +153,7 @@ export function getTopK(logits, k = 5, decode) {
   }));
 }
 
-/**
- * @param {Float32Array} logits
- * @param {string} label
- * @param {((tokens: number[]) => string) | undefined} [decode]
- * @returns {import('./sampling.js').LogitStats}
- */
+
 export function logitsSanity(logits, label, decode) {
   let min = Infinity;
   let max = -Infinity;

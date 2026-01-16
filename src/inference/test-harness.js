@@ -1,16 +1,4 @@
-/**
- * test-harness.ts - Shared Inference Test Utilities
- *
- * Common utilities for inference testing and automation:
- * - Model discovery via /api/models
- * - URL parameter parsing for runtime config
- * - HTTP-based shard loading
- * - Pipeline initialization helpers
- *
- * Used by tests/harness.html (mode=inference) and other test harnesses.
- *
- * @module inference/test-harness
- */
+
 
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { parseManifest } from '../storage/rdrr-format.js';
@@ -23,29 +11,13 @@ import {
 } from '../hotswap/manifest.js';
 import { setHotSwapManifest } from '../hotswap/runtime.js';
 
-/**
- * @typedef {import('../gpu/device.js').KernelCapabilities} KernelCapabilities
- * @typedef {import('../storage/rdrr-format.js').RDRRManifest} RDRRManifest
- * @typedef {import('./pipeline.js').Pipeline} Pipeline
- * @typedef {import('./pipeline/config.js').Manifest} Manifest
- * @typedef {import('../config/schema/index.js').RuntimeConfigSchema} RuntimeConfigSchema
- * @typedef {import('./test-harness.js').ModelInfo} ModelInfo
- * @typedef {import('./test-harness.js').RuntimeOverrides} RuntimeOverrides
- * @typedef {import('./test-harness.js').InferenceHarnessOptions} InferenceHarnessOptions
- * @typedef {import('./test-harness.js').InitializeResult} InitializeResult
- * @typedef {import('./test-harness.js').TestState} TestState
- */
+
 
 // ============================================================================
 // Model Discovery
 // ============================================================================
 
-/**
- * Discover available models from the /api/models endpoint.
- *
- * @param {string[]} [fallbackModels=['gemma3-1b-q4', 'mistral-7b-q4', 'llama3-8b-q4']] - Models to return if API fails
- * @returns {Promise<ModelInfo[]>} Array of model info objects
- */
+
 export async function discoverModels(
   fallbackModels = ['gemma3-1b-q4', 'mistral-7b-q4', 'llama3-8b-q4']
 ) {
@@ -53,7 +25,7 @@ export async function discoverModels(
     const resp = await fetch('/api/models');
     if (resp.ok) {
       const models = await resp.json();
-      return models.map((/** @type {ModelInfo | string} */ m) => {
+      return models.map(( m) => {
         if (typeof m === 'string') {
           return { id: m, name: m };
         }
@@ -74,20 +46,11 @@ export async function discoverModels(
 // URL Parameter Parsing
 // ============================================================================
 
-/**
- * Parse runtime config from URL query parameters.
- *
- * Supported parameters:
- * - runtimeConfig: JSON-encoded runtime config
- * - configChain: JSON-encoded config chain (for debugging)
- *
- * @param {URLSearchParams} [searchParams] - URLSearchParams to parse (default: window.location.search)
- * @returns {RuntimeOverrides} RuntimeOverrides object
- */
+
 export function parseRuntimeOverridesFromURL(searchParams) {
   const params = searchParams || new URLSearchParams(window.location.search);
 
-  /** @type {RuntimeOverrides} */
+  
   const runtime = {};
 
   // Runtime config (full or partial)
@@ -96,10 +59,10 @@ export function parseRuntimeOverridesFromURL(searchParams) {
     try {
       const parsed = JSON.parse(runtimeConfigRaw);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        runtime.runtimeConfig = /** @type {Partial<RuntimeConfigSchema>} */ (parsed);
+        runtime.runtimeConfig =  (parsed);
       }
     } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${/** @type {Error} */ (e).message}`);
+      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${ (e).message}`);
     }
   }
 
@@ -113,7 +76,7 @@ export function parseRuntimeOverridesFromURL(searchParams) {
         debugLog.info('TestHarness', `Config chain: ${parsed.join(' → ')}`);
       }
     } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${/** @type {Error} */ (e).message}`);
+      debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${ (e).message}`);
     }
   }
 
@@ -124,25 +87,18 @@ export function parseRuntimeOverridesFromURL(searchParams) {
 // Shard Loading
 // ============================================================================
 
-/**
- * Create an HTTP-based shard loader for a model.
- *
- * @param {string} baseUrl - Base URL for the model (e.g., http://localhost:8080/doppler/models/gemma-1b-q4)
- * @param {RDRRManifest} manifest - Parsed model manifest
- * @param {(msg: string, level?: string) => void} [log] - Optional logging function
- * @returns {(idx: number) => Promise<Uint8Array>} Async function that loads a shard by index
- */
+
 export function createHttpShardLoader(baseUrl, manifest, log) {
   const totalShards = manifest.shards?.length || 0;
-  /** @type {Map<number, Uint8Array>} */
+  
   const shardCache = new Map();
-  /** @type {Map<number, Promise<Uint8Array>>} */
+  
   const pendingLoads = new Map();
   let shardsLoaded = 0;
   let totalBytesLoaded = 0;
   const loadStartTime = Date.now();
 
-  return async (/** @type {number} */ idx) => {
+  return async ( idx) => {
     const shard = manifest.shards[idx];
     if (!shard) {
       throw new Error(`No shard at index ${idx}`);
@@ -150,17 +106,17 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
 
     // Return cached shard if already loaded
     if (shardCache.has(idx)) {
-      return /** @type {Uint8Array} */ (shardCache.get(idx));
+      return  (shardCache.get(idx));
     }
 
     // Wait for pending load if one is in progress (avoid duplicate fetches)
     if (pendingLoads.has(idx)) {
-      return /** @type {Promise<Uint8Array>} */ (pendingLoads.get(idx));
+      return  (pendingLoads.get(idx));
     }
 
     // Start new load and track it as pending
     const shardStartTime = Date.now();
-    /** @type {Promise<Uint8Array>} */
+    
     const loadPromise = (async () => {
       const resp = await fetch(`${baseUrl}/${shard.filename}`);
       if (!resp.ok) {
@@ -193,12 +149,7 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
 // Pipeline Initialization
 // ============================================================================
 
-/**
- * Fetch and parse a model manifest from a URL.
- *
- * @param {string} manifestUrl - URL to manifest.json
- * @returns {Promise<RDRRManifest>} Parsed manifest
- */
+
 export async function fetchManifest(manifestUrl) {
   const response = await fetch(manifestUrl);
   if (!response.ok) {
@@ -207,30 +158,15 @@ export async function fetchManifest(manifestUrl) {
   return parseManifest(await response.text());
 }
 
-/**
- * Initialize the WebGPU device and return capabilities.
- *
- * @returns {Promise<KernelCapabilities>} Kernel capabilities
- */
+
 export async function initializeDevice() {
   await initDevice();
   return getKernelCapabilities();
 }
 
-/**
- * Initialize a complete inference pipeline from a model URL.
- *
- * This is a convenience function that handles:
- * 1. WebGPU device initialization
- * 2. Manifest fetching and parsing
- * 3. Pipeline creation with shard loading
- *
- * @param {string} modelUrl - Base URL for the model directory
- * @param {InferenceHarnessOptions} [options={}] - Initialization options
- * @returns {Promise<InitializeResult>} Pipeline and associated info
- */
+
 export async function initializeInference(modelUrl, options = {}) {
-  const log = options.log || ((/** @type {string} */ msg) => debugLog.info('TestHarness', msg));
+  const log = options.log || (( msg) => debugLog.info('TestHarness', msg));
   const onProgress = options.onProgress || (() => {});
   if (options.runtime?.runtimeConfig) {
     setRuntimeConfig(options.runtime.runtimeConfig);
@@ -275,7 +211,7 @@ export async function initializeInference(modelUrl, options = {}) {
   const loadShard = createHttpShardLoader(modelUrl, manifest, log);
 
   // 4. Build runtime options
-  /** @type {RuntimeOverrides} */
+  
   const runtime = {
     ...options.runtime,
   };
@@ -284,11 +220,11 @@ export async function initializeInference(modelUrl, options = {}) {
   onProgress('pipeline', 0.2, 'Creating pipeline...');
   log('Creating pipeline...');
 
-  const pipeline = await createPipeline(/** @type {Manifest} */ (/** @type {unknown} */ (manifest)), {
+  const pipeline = await createPipeline( ( (manifest)), {
     storage: { loadShard },
     gpu: { device },
     baseUrl: modelUrl,
-    onProgress: (/** @type {{ percent: number; stage?: string; message?: string }} */ progress) => {
+    onProgress: ( progress) => {
       const pct = 0.2 + progress.percent * 0.8;
       onProgress(progress.stage || 'loading', pct, progress.message);
     },
@@ -304,10 +240,7 @@ export async function initializeInference(modelUrl, options = {}) {
 // Test State (for Playwright automation)
 // ============================================================================
 
-/**
- * Create initial test state object.
- * @returns {TestState}
- */
+
 export function createTestState() {
   return {
     ready: false,

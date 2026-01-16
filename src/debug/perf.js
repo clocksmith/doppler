@@ -1,10 +1,4 @@
-/**
- * DOPPLER Debug Module - Performance Timing Utilities
- *
- * Tools for measuring and logging execution times.
- *
- * @module debug/perf
- */
+
 
 import { log } from './log.js';
 
@@ -20,23 +14,17 @@ function warnDeprecated() {
 // Performance Timing Interface
 // ============================================================================
 
-/**
- * Performance timing utilities.
- */
+
 export const perf = {
   marks: new Map(),
 
-  /**
-   * Start a timing mark.
-   */
+  
   mark(label) {
     warnDeprecated();
     this.marks.set(label, performance.now());
   },
 
-  /**
-   * End a timing mark and log duration.
-   */
+  
   measure(label, module = 'Perf') {
     warnDeprecated();
     const start = this.marks.get(label);
@@ -51,9 +39,7 @@ export const perf = {
     return duration;
   },
 
-  /**
-   * Time an async operation.
-   */
+  
   async time(label, fn) {
     warnDeprecated();
     const start = performance.now();

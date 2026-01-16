@@ -1,6 +1,4 @@
-/**
- * CLI Utilities - Server management, browser setup, and build helpers
- */
+
 
 import { resolve, dirname, join, extname } from 'path';
 import { fileURLToPath } from 'url';
@@ -10,18 +8,14 @@ import { open, readFile, readdir, stat } from 'fs/promises';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/** @type {import('child_process').ChildProcess | null} */
+
 let serverProcess = null;
 
 // ============================================================================
 // Build Management
 // ============================================================================
 
-/**
- * Run TypeScript compilation for kernel tests
- * @param {boolean} verbose
- * @returns {Promise<void>}
- */
+
 export async function runBuild(verbose) {
   console.log('Building kernel tests...');
   const projectRoot = resolve(__dirname, '../..');
@@ -35,7 +29,7 @@ export async function runBuild(verbose) {
 
     let stderr = '';
     if (!verbose && build.stderr) {
-      build.stderr.on('data', (/** @type {Buffer} */ data) => {
+      build.stderr.on('data', ( data) => {
         stderr += data.toString();
       });
     }
@@ -55,11 +49,7 @@ export async function runBuild(verbose) {
   });
 }
 
-/**
- * Run the benchmark build (esbuild bundle)
- * @param {boolean} verbose
- * @returns {Promise<void>}
- */
+
 export async function runBenchmarkBuild(verbose) {
   console.log('Building benchmark bundle...');
   const projectRoot = resolve(__dirname, '../..');
@@ -73,7 +63,7 @@ export async function runBenchmarkBuild(verbose) {
 
     let stderr = '';
     if (!verbose && build.stderr) {
-      build.stderr.on('data', (/** @type {Buffer} */ data) => {
+      build.stderr.on('data', ( data) => {
         stderr += data.toString();
       });
     }
@@ -97,11 +87,7 @@ export async function runBenchmarkBuild(verbose) {
 // Server Management
 // ============================================================================
 
-/**
- * Check if the dev server is already running
- * @param {string} baseUrl
- * @returns {Promise<boolean>}
- */
+
 export async function isServerRunning(baseUrl) {
   try {
     const controller = new AbortController();
@@ -114,12 +100,7 @@ export async function isServerRunning(baseUrl) {
   }
 }
 
-/**
- * Start the dev server and wait for it to be ready
- * @param {string} baseUrl
- * @param {boolean} verbose
- * @returns {Promise<void>}
- */
+
 export async function ensureServerRunning(baseUrl, verbose) {
   if (await isServerRunning(baseUrl)) {
     if (verbose) {
@@ -139,12 +120,12 @@ export async function ensureServerRunning(baseUrl, verbose) {
   });
 
   if (verbose && serverProcess.stdout) {
-    serverProcess.stdout.on('data', (/** @type {Buffer} */ data) => {
+    serverProcess.stdout.on('data', ( data) => {
       console.log(`[server] ${data.toString().trim()}`);
     });
   }
   if (serverProcess.stderr) {
-    serverProcess.stderr.on('data', (/** @type {Buffer} */ data) => {
+    serverProcess.stderr.on('data', ( data) => {
       const msg = data.toString().trim();
       if (msg && !msg.includes('ExperimentalWarning')) {
         console.error(`[server] ${msg}`);
@@ -184,7 +165,7 @@ export async function ensureServerRunning(baseUrl, verbose) {
 // Local Static Routing (No-Server Mode)
 // ============================================================================
 
-/** @type {Record<string, string>} */
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -198,11 +179,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
 };
 
-/**
- * @param {string | undefined} rangeHeader
- * @param {number} size
- * @returns {{ start: number; end: number } | null}
- */
+
 function parseByteRange(rangeHeader, size) {
   if (!rangeHeader) return null;
   const match = rangeHeader.match(/bytes=(\d*)-(\d*)/);
@@ -217,12 +194,9 @@ function parseByteRange(rangeHeader, size) {
   return { start, end: Math.min(end, size - 1) };
 }
 
-/**
- * @param {Record<string, unknown>} manifest
- * @returns {string | null}
- */
+
 function formatQuantizationSummary(manifest) {
-  const info = /** @type {Record<string, unknown> | undefined} */ (manifest.quantizationInfo);
+  const info =  (manifest.quantizationInfo);
   if (info && typeof info === 'object') {
     const variantTag = typeof info.variantTag === 'string' ? info.variantTag : null;
     if (variantTag) return variantTag;
@@ -234,14 +208,11 @@ function formatQuantizationSummary(manifest) {
   return typeof manifest.quantization === 'string' ? manifest.quantization : null;
 }
 
-/**
- * @param {string} modelsDir
- * @returns {Promise<string>}
- */
+
 async function buildModelsApiResponse(modelsDir) {
   try {
     const entries = await readdir(modelsDir, { withFileTypes: true });
-    /** @type {any[]} */
+    
     const models = [];
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
@@ -252,7 +223,7 @@ async function buildModelsApiResponse(modelsDir) {
         const archInfo = manifest.architecture;
         const archLabel = typeof archInfo === 'string' ? archInfo : (manifest.modelType ?? null);
         const archConfig = archInfo && typeof archInfo === 'object' ? archInfo : null;
-        const totalSize = (manifest.shards || []).reduce((/** @type {number} */ sum, /** @type {{ size?: number }} */ s) => sum + (s.size || 0), 0);
+        const totalSize = (manifest.shards || []).reduce(( sum,  s) => sum + (s.size || 0), 0);
         const numLayers = archConfig?.numLayers ?? null;
         const hiddenSize = archConfig?.hiddenSize ?? null;
         const vocabSize = archConfig?.vocabSize ?? null;
@@ -276,81 +247,14 @@ async function buildModelsApiResponse(modelsDir) {
   }
 }
 
-/**
- * Install Playwright routes to serve DOPPLER static assets from disk.
- *
- * This enables running tests/benchmarks in environments where binding a local
- * dev server is not permitted (e.g., sandboxed runners).
- * @param {import('playwright').Page} page
- * @param {import('./types.js').CLIOptions} opts
- * @returns {Promise<void>}
- */
+
 export async function installLocalDopplerRoutes(page, opts) {
   const baseOrigin = new URL(opts.baseUrl).origin;
 
   const projectRoot = resolve(__dirname, '../..');
   const modelsDir = join(projectRoot, 'models');
 
-  const pattern = `${baseOrigin}/**`;
-  if (opts.verbose) {
-    console.log(`[LocalServer] Installing static routes for ${pattern}`);
-  }
-
-  await page.route(pattern, async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
-
-    let pathname = decodeURIComponent(url.pathname);
-
-    // API endpoint: /api/models
-    if (pathname === '/api/models') {
-      const body = await buildModelsApiResponse(modelsDir);
-      return route.fulfill({
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body,
-      });
-    }
-
-    // Firebase-style rewrites (serve.ts default mode)
-    if (pathname.startsWith('/doppler/')) {
-      pathname = pathname.slice('/doppler'.length) || '/';
-    }
-    if (pathname === '/') {
-      pathname = '/landing.html';
-    } else if (pathname === '/d') {
-      pathname = '/doppler/index.html';
-    } else if (pathname.startsWith('/d/')) {
-      pathname = '/doppler' + pathname.slice(2);
-    }
-
-    // Prefer JS/JSON from dist/src when available (matches serve.ts behavior).
-    let resolvedPathname = pathname;
-    if ((pathname.endsWith('.js') || pathname.endsWith('.json')) && !pathname.includes('node_modules')) {
-      const assetPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
-      const distRelative = assetPath.replace(/^dist\//, '');
-      const distSrcPath = join(projectRoot, 'dist', 'src', distRelative);
-      try {
-        await stat(distSrcPath);
-        resolvedPathname = `/__dist_src__/${distRelative}`;
-      } catch {
-        const distPath = join(projectRoot, 'dist', distRelative);
-        try {
-          await stat(distPath);
-          resolvedPathname = `/__dist__/${distRelative}`;
-        } catch {
-          // fall through
-        }
-      }
-    }
-
-    // Resolve to filesystem path with traversal guard
-    const safePath = resolvedPathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
-
-    /** @type {string} */
+  const pattern = `${baseOrigin}
     let filePath;
     if (safePath.startsWith('/__dist_src__/')) {
       filePath = join(projectRoot, 'dist', 'src', safePath.slice('/__dist_src__/'.length));
@@ -370,7 +274,7 @@ export async function installLocalDopplerRoutes(page, opts) {
       return route.fulfill({ status: 403, body: 'Forbidden' });
     }
 
-    /** @type {any} */
+    
     let fileStats;
     try {
       fileStats = await stat(resolved);
@@ -394,7 +298,7 @@ export async function installLocalDopplerRoutes(page, opts) {
     const ext = extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    /** @type {Record<string, string>} */
+    
     const headers = {
       'Content-Type': contentType,
       'Access-Control-Allow-Origin': '*',
@@ -429,10 +333,7 @@ export async function installLocalDopplerRoutes(page, opts) {
   });
 }
 
-/**
- * Stop the server if we started it
- * @returns {void}
- */
+
 export function stopServer() {
   if (serverProcess) {
     console.log('Stopping dev server...');
@@ -456,11 +357,7 @@ process.on('SIGTERM', () => {
 // Browser Setup
 // ============================================================================
 
-/**
- * Check if Chrome is running with CDP enabled at the given endpoint
- * @param {string} endpoint
- * @returns {Promise<boolean>}
- */
+
 async function isCDPAvailable(endpoint) {
   try {
     const controller = new AbortController();
@@ -473,11 +370,7 @@ async function isCDPAvailable(endpoint) {
   }
 }
 
-/**
- * @param {import('./types.js').CLIOptions} opts
- * @param {{ scope?: import('./utils.js').BrowserProfileScope; devtools?: boolean }} [options]
- * @returns {Promise<import('playwright').BrowserContext>}
- */
+
 export async function createBrowserContext(opts, options = {}) {
   // Playwright host platform detection breaks in some sandboxed environments
   // because `os.cpus()` can be empty, which causes Playwright to assume mac-x64
@@ -555,7 +448,7 @@ export async function createBrowserContext(opts, options = {}) {
         console.log('Connected to existing browser (no focus steal)');
         return context;
       } catch (err) {
-        console.log(`CDP connection failed: ${/** @type {Error} */ (err).message}`);
+        console.log(`CDP connection failed: ${ (err).message}`);
         console.log('Falling back to launching new browser...');
       }
     } else if (opts.verbose) {
@@ -580,11 +473,7 @@ export async function createBrowserContext(opts, options = {}) {
   return context;
 }
 
-/**
- * @param {import('playwright').BrowserContext} context
- * @param {import('./types.js').CLIOptions} opts
- * @returns {Promise<import('playwright').Page>}
- */
+
 export async function setupPage(context, opts) {
   const page = context.pages()[0] || await context.newPage();
 
@@ -627,10 +516,7 @@ export async function setupPage(context, opts) {
 // Result Utilities
 // ============================================================================
 
-/**
- * @param {any} result
- * @returns {string}
- */
+
 export function generateResultFilename(result) {
   const suite = result.suite || 'pipeline';
   const model = result.model?.modelName || result.model?.modelId || 'unknown';

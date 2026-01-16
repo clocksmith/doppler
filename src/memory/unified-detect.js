@@ -1,14 +1,4 @@
-/**
- * Unified Memory Detection
- * Agent-A | Domain: memory/
- *
- * Detects if system has unified memory (CPU/GPU share RAM):
- * - Apple Silicon (M1/M2/M3/M4/M5)
- * - AMD Strix Halo (Ryzen AI Max)
- * - Other APUs with large shared memory
- *
- * @module memory/unified-detect
- */
+
 
 import { log } from '../debug/index.js';
 
@@ -16,15 +6,11 @@ import { log } from '../debug/index.js';
 // Detection Functions
 // ============================================================================
 
-/**
- * Detect Apple Silicon via WebGPU adapter info
- * @param {GPUAdapter | null} adapter
- * @returns {Promise<import('./unified-detect.js').AppleSiliconInfo>}
- */
+
 async function detectAppleSilicon(adapter) {
   if (!adapter) return { isApple: false };
 
-  const info = await (/** @type {GPUAdapter & { requestAdapterInfo?: () => Promise<GPUAdapterInfo> }} */ (adapter)).requestAdapterInfo?.() || /** @type {Partial<GPUAdapterInfo>} */ ({});
+  const info = await ( (adapter)).requestAdapterInfo?.() ||  ({});
   const vendor = (info.vendor || '').toLowerCase();
   const device = (info.device || '').toLowerCase();
   const description = (info.description || '').toLowerCase();
@@ -47,19 +33,15 @@ async function detectAppleSilicon(adapter) {
   };
 }
 
-/**
- * Detect AMD APU with unified memory (Strix Halo, etc.)
- * @param {GPUAdapter | null} adapter
- * @returns {Promise<import('./unified-detect.js').AMDUnifiedInfo>}
- */
+
 async function detectAMDUnified(adapter) {
   if (!adapter) return { isAMDUnified: false };
 
-  const info = await (/** @type {GPUAdapter & { requestAdapterInfo?: () => Promise<GPUAdapterInfo> }} */ (adapter)).requestAdapterInfo?.() || /** @type {Partial<GPUAdapterInfo>} */ ({});
+  const info = await ( (adapter)).requestAdapterInfo?.() ||  ({});
   const vendor = (info.vendor || '').toLowerCase();
   const device = (info.device || '').toLowerCase();
   const description = (info.description || '').toLowerCase();
-  const architecture = ((/** @type {{ architecture?: string }} */ (info)).architecture || '').toLowerCase();
+  const architecture = (( (info)).architecture || '').toLowerCase();
 
   // Debug: log what we receive
   log.debug('UnifiedDetect', 'AMD check', { vendor, device, description, architecture });
@@ -100,12 +82,7 @@ async function detectAMDUnified(adapter) {
   };
 }
 
-/**
- * Check WebGPU device limits for unified memory indicators
- * @param {GPUAdapter | null} _adapter
- * @param {GPUDevice | null} device
- * @returns {import('./unified-detect.js').LimitIndicators}
- */
+
 function checkUnifiedIndicators(
   _adapter,
   device
@@ -134,10 +111,7 @@ function checkUnifiedIndicators(
 // Public API
 // ============================================================================
 
-/**
- * Main unified memory detection
- * @returns {Promise<import('./unified-detect.js').UnifiedMemoryInfo>}
- */
+
 export async function detectUnifiedMemory() {
   // Need WebGPU for detection
   if (!navigator.gpu) {
@@ -183,7 +157,7 @@ export async function detectUnifiedMemory() {
     const isUnified = isAppleSilicon || amd.isAMDUnified;
 
     // Estimate available unified memory
-    /** @type {number | null} */
+    
     let estimatedMemoryGB = null;
     if (isAppleSilicon) {
       // Apple M-series: estimate based on generation or buffer limits
@@ -212,7 +186,7 @@ export async function detectUnifiedMemory() {
   } catch (err) {
     return {
       isUnified: false,
-      reason: `Detection failed: ${/** @type {Error} */ (err).message}`,
+      reason: `Detection failed: ${ (err).message}`,
     };
   }
 }

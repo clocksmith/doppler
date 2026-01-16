@@ -1,17 +1,10 @@
-/**
- * Correctness Test Setup
- * Shared utilities for GPU kernel correctness tests
- */
+
 
 import { test as base, expect } from '@playwright/test';
 
-/**
- * Extended test fixture with GPU context
- */
+
 export const test = base.extend({
-  /**
-   * GPU page with WebGPU initialized
-   */
+  
   gpuPage: async ({ page }, use) => {
     // Navigate to test page
     await page.goto('/doppler/tests/harness.html?mode=kernels');
@@ -52,25 +45,19 @@ export const test = base.extend({
 
 export { expect };
 
-/**
- * Helper to run a kernel test in the browser context
- */
+
 export async function runKernelTest(page, testFn) {
   return page.evaluate(testFn);
 }
 
-/**
- * Common test configurations
- */
+
 export const TEST_SIZES = {
   small: { tokens: 8, experts: 4, hidden: 64 },
   medium: { tokens: 64, experts: 8, hidden: 256 },
   large: { tokens: 256, experts: 16, hidden: 512 },
 };
 
-/**
- * Generate random float32 array
- */
+
 export function randomFloat32(size, min = -1, max = 1) {
   const arr = new Float32Array(size);
   for (let i = 0; i < size; i++) {
@@ -79,9 +66,7 @@ export function randomFloat32(size, min = -1, max = 1) {
   return arr;
 }
 
-/**
- * Generate random uint32 array
- */
+
 export function randomUint32(size, max) {
   const arr = new Uint32Array(size);
   for (let i = 0; i < size; i++) {

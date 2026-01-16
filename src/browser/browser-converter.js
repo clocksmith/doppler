@@ -1,18 +1,4 @@
-/**
- * browser-converter.ts - Browser Model Converter
- *
- * Converts GGUF and safetensors models to RDRR format in the browser.
- * Uses ShardPacker for platform-agnostic shard packing logic.
- *
- * Supports:
- * - GGUF files
- * - Single safetensors files
- * - Sharded HuggingFace models (multiple safetensors + config)
- *
- * Output is written to OPFS (Origin Private File System).
- *
- * @module browser/browser-converter
- */
+
 
 import { parseGGUFHeader } from './gguf-parser-browser.js';
 import {
@@ -64,13 +50,7 @@ export { isOPFSSupported as isConversionSupported };
 // Main Convert Function
 // ============================================================================
 
-/**
- * Convert model files to RDRR format
- *
- * @param files - Selected model files
- * @param options - Conversion options
- * @returns Model ID
- */
+
 export async function convertModel(files, options = {}) {
   const { modelId: userModelId, onProgress, signal } = options;
 
@@ -299,9 +279,7 @@ export async function convertModel(files, options = {}) {
   }
 }
 
-/**
- * Parse GGUF model file
- */
+
 async function parseGGUFModel(
   file,
   onProgress,
@@ -331,9 +309,7 @@ async function parseGGUFModel(
   };
 }
 
-/**
- * Extract model ID from files or config
- */
+
 function extractModelId(files, config) {
   // Try config first
   if (config?._name_or_path) {
@@ -360,10 +336,7 @@ function extractModelId(files, config) {
 // File Picker Utilities
 // ============================================================================
 
-/**
- * Pick model files using File System Access API
- * @returns Selected files
- */
+
 export async function pickModelFiles() {
   // Try directory picker first (for HuggingFace models)
   if ('showDirectoryPicker' in window) {
@@ -408,9 +381,7 @@ export async function pickModelFiles() {
   });
 }
 
-/**
- * Collect all files from a directory handle recursively
- */
+
 async function collectFilesFromDirectory(
   dirHandle,
   files = []

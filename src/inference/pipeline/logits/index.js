@@ -1,14 +1,4 @@
-/**
- * Logits computation - final layer norm and LM head projection.
- *
- * This module handles the final steps of inference:
- * - Apply final RMS norm to hidden states
- * - Project to vocabulary size via LM head
- * - Handle tied embeddings (transposeB for HuggingFace format)
- * - CPU fallback for non-GPU execution
- *
- * @module inference/pipeline/logits
- */
+
 
 // Re-export CPU functions
 export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } from './cpu.js';
@@ -32,26 +22,7 @@ import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
 import { finalizeLogits } from './utils.js';
 
-/**
- * Compute logits from hidden states.
- *
- * This function:
- * 1. Applies final RMS normalization
- * 2. Projects to vocabulary via LM head matrix multiplication
- * 3. Handles tied embeddings (uses transposeB for HF format)
- * 4. Falls back to CPU if GPU unavailable
- *
- * @param {GPUBuffer | Float32Array} hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
- * @param {number} numTokens - Number of tokens (required for GPU buffer input)
- * @param {import('./types.js').LogitsWeights} weights - Final norm and LM head weights
- * @param {import('./types.js').LogitsConfig} config - Model configuration for logits
- * @param {boolean} useGPU - Whether to use GPU
- * @param {import('./types.js').LogitsDebugFlags} [debugFlags={}] - Debug flags to prevent repeated logging
- * @param {(weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer} [getNormWeightBuffer] - Helper to get norm weight buffer (from pipeline)
- * @param {(buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>} [debugCheckBuffer] - Helper for debug buffer checking (from pipeline)
- * @param {import('../../../config/schema/index.js').ProbeConfigSchema[] | null} [debugProbes] - Debug probes configuration
- * @returns {Promise<Float32Array>} Logits tensor [numTokens, vocabSize]
- */
+
 export async function computeLogits(
   hiddenStates,
   numTokens,
@@ -87,9 +58,9 @@ export async function computeLogits(
     ? embeddingVocabSize
     : vocabSize;
   let matmulVocabSize = requestedVocabSize;
-  /** @type {number | null} */
+  
   let cpuWeightVocabSize = null;
-  /** @type {'row' | 'column' | null} */
+  
   let cpuWeightLayout = null;
 
   if (isCpuWeightBuffer(lmHead)) {
@@ -113,7 +84,7 @@ export async function computeLogits(
     trace.logits(`LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
   }
   if (!device || !useGPU) {
-    /** @type {Float32Array} */
+    
     let cpuHiddenStates;
     if (inputIsGPU) {
       const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
@@ -122,11 +93,11 @@ export async function computeLogits(
         ? f16BufferToF32(data)
         : new Float32Array(data);
     } else {
-      cpuHiddenStates = /** @type {Float32Array} */ (hiddenStates);
+      cpuHiddenStates =  (hiddenStates);
     }
     const normed = rmsNormCPU(
       cpuHiddenStates,
-      /** @type {Float32Array} */(finalNorm),
+      (finalNorm),
       rmsNormEps,
       config.rmsNormWeightOffset
     );
@@ -140,20 +111,20 @@ export async function computeLogits(
         cpuWeightLayout ?? 'row',
         cpuWeightLayout === 'column' ? cpuWeightVocabSize : null
       )
-      : matmulCPU(normed, /** @type {Float32Array} */(lmHead), numTokens, matmulVocabSize, hiddenSize);
+      : matmulCPU(normed, (lmHead), numTokens, matmulVocabSize, hiddenSize);
     return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes);
   }
 
   // GPU path
   // 1. Get or create input buffer
-  /** @type {GPUBuffer} */
+  
   let inputBuffer;
   let inputBufferOwned = false;
   if (inputIsGPU) {
-    inputBuffer = /** @type {GPUBuffer} */ (hiddenStates);
+    inputBuffer =  (hiddenStates);
   } else {
-    inputBuffer = acquireBuffer(/** @type {Float32Array} */(hiddenStates).byteLength, undefined, 'logits_input');
-    device.queue.writeBuffer(inputBuffer, 0, /** @type {BufferSource} */(hiddenStates));
+    inputBuffer = acquireBuffer((hiddenStates).byteLength, undefined, 'logits_input');
+    device.queue.writeBuffer(inputBuffer, 0, (hiddenStates));
     inputBufferOwned = true;
   }
   await runProbes('pre_final_norm', inputBuffer, {
@@ -162,19 +133,19 @@ export async function computeLogits(
     probes: debugProbes,
   });
 
-  /** @type {'f16' | 'f32'} */
+  
   const inputDtype = inputIsGPU ? activationDtype : 'f32';
 
   // 2. Apply final RMSNorm
-  /** @type {GPUBuffer} */
+  
   let normWeightBuffer;
   if (getNormWeightBuffer) {
     normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
   } else if (finalNorm instanceof GPUBuffer) {
     normWeightBuffer = finalNorm;
   } else {
-    normWeightBuffer = acquireBuffer(/** @type {Float32Array} */(finalNorm).byteLength, undefined, 'final_norm_w');
-    device.queue.writeBuffer(normWeightBuffer, 0, /** @type {BufferSource} */(finalNorm));
+    normWeightBuffer = acquireBuffer((finalNorm).byteLength, undefined, 'final_norm_w');
+    device.queue.writeBuffer(normWeightBuffer, 0, (finalNorm));
   }
 
   // Debug: Check hidden state before final norm
@@ -228,7 +199,7 @@ export async function computeLogits(
   }
 
   // 3. Project to vocab via LM head
-  /** @type {GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} */
+  
   let lmHeadBuffer;
   let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
@@ -236,8 +207,8 @@ export async function computeLogits(
   } else if (isWeightBuffer(lmHead)) {
     lmHeadBuffer = lmHead;
   } else {
-    const rawBuffer = acquireBuffer(/** @type {Float32Array} */(lmHead).byteLength, undefined, 'lm_head_w');
-    device.queue.writeBuffer(rawBuffer, 0, /** @type {BufferSource} */(lmHead));
+    const rawBuffer = acquireBuffer((lmHead).byteLength, undefined, 'lm_head_w');
+    device.queue.writeBuffer(rawBuffer, 0, (lmHead));
     lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
   }

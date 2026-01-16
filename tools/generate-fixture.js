@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/**
- * Generate Test Model Fixture - Creates a tiny .rdrr model for testing.
- */
+
 
 import { createTestModel } from '../src/converter/test-model.js';
 import { resolve, dirname } from 'path';
@@ -9,9 +7,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const outputDir = process.argv[2] || resolve(__dirname, '../tests/fixtures/tiny-model');
 
@@ -37,7 +33,7 @@ async function main() {
     console.log(`\nReady for Agent-B testing!`);
 
   } catch (error) {
-    const err = /** @type {Error} */ (error);
+    const err =  (error);
     console.error(`Error generating fixture: ${err.message}`);
     process.exit(1);
   }

@@ -1,48 +1,38 @@
-/**
- * model-selector.js - Model Selection Component
- * Agent-D | Phase 2 | app/
- *
- * Handles model list display, download progress, and selection.
- *
- * @module app/model-selector
- */
+
 
 // ============================================================================
 // ModelSelector Class
 // ============================================================================
 
 export class ModelSelector {
-  /** @type {HTMLElement} */
+  
   #container;
-  /** @type {HTMLElement} */
+  
   #listElement;
-  /** @type {HTMLElement} */
+  
   #storageElement;
 
-  /** @type {(model: import('./model-selector.js').ModelInfo, opts?: { preferredSource?: string }) => void} */
+  
   #onSelect;
-  /** @type {(model: import('./model-selector.js').ModelInfo, opts?: { runAfter?: boolean }) => void} */
+  
   #onDownload;
-  /** @type {(model: import('./model-selector.js').ModelInfo) => void} */
+  
   #onDelete;
-  /** @type {(model: import('./model-selector.js').ModelInfo) => void} */
+  
   #onQuickStart;
 
-  /** @type {import('./model-selector.js').ModelInfo[]} */
+  
   #models = [];
-  /** @type {string | null} */
+  
   #activeModelId = null;
-  /** @type {string | null} */
+  
   #downloadingModelId = null;
 
-  /**
-   * @param {HTMLElement} container - Container element for model list
-   * @param {import('./model-selector.js').ModelSelectorCallbacks} [callbacks] - Event callbacks
-   */
+  
   constructor(container, callbacks = {}) {
     this.#container = container;
-    this.#listElement = /** @type {HTMLElement} */ (container.querySelector('#model-list'));
-    this.#storageElement = /** @type {HTMLElement} */ (container.querySelector('#storage-used'));
+    this.#listElement =  (container.querySelector('#model-list'));
+    this.#storageElement =  (container.querySelector('#storage-used'));
 
     this.#onSelect = callbacks.onSelect || (() => {});
     this.#onDownload = callbacks.onDownload || (() => {});
@@ -50,20 +40,13 @@ export class ModelSelector {
     this.#onQuickStart = callbacks.onQuickStart || (() => {});
   }
 
-  /**
-   * Set available models
-   * @param {import('./model-selector.js').ModelInfo[]} models
-   */
+  
   setModels(models) {
     this.#models = models;
     this.#render();
   }
 
-  /**
-   * Update a single model's info
-   * @param {string} modelKey
-   * @param {Partial<import('./model-selector.js').ModelInfo>} updates
-   */
+  
   updateModel(modelKey, updates) {
     const model = this.#models.find((m) => m.key === modelKey);
     if (model) {
@@ -72,48 +55,32 @@ export class ModelSelector {
     }
   }
 
-  /**
-   * Set download progress for a model
-   * @param {string} modelKey
-   * @param {number} progress
-   */
+  
   setDownloadProgress(modelKey, progress) {
     this.#downloadingModelId = progress < 100 ? modelKey : null;
     this.updateModel(modelKey, { downloadProgress: progress });
   }
 
-  /**
-   * Mark a model as downloaded (triggers refresh)
-   * @param {string} modelKey
-   */
+  
   setDownloaded(modelKey) {
     this.#downloadingModelId = null;
     this.updateModel(modelKey, { downloadProgress: undefined });
   }
 
-  /**
-   * Set the active (running) model
-   * @param {string | null} modelKey
-   */
+  
   setActiveModel(modelKey) {
     this.#activeModelId = modelKey;
     this.#render();
   }
 
-  /**
-   * Update storage usage display
-   * @param {number} used
-   * @param {number} total
-   */
+  
   setStorageUsage(used, total) {
     const usedStr = this.#formatBytes(used);
     const totalStr = this.#formatBytes(total);
     this.#storageElement.textContent = `${usedStr} / ${totalStr}`;
   }
 
-  /**
-   * Render the model list with grouped sections
-   */
+  
   #render() {
     this.#listElement.innerHTML = '';
 
@@ -157,13 +124,7 @@ export class ModelSelector {
     }
   }
 
-  /**
-   * Create a section header element
-   * @param {string} title
-   * @param {string} subtitle
-   * @param {string} type
-   * @returns {HTMLElement}
-   */
+  
   #createSection(title, subtitle, type) {
     const section = document.createElement('div');
     section.className = `model-section model-section-${type}`;
@@ -176,11 +137,7 @@ export class ModelSelector {
     return section;
   }
 
-  /**
-   * Create a model list item element
-   * @param {import('./model-selector.js').ModelInfo} model
-   * @returns {HTMLElement}
-   */
+  
   #createModelItem(model) {
     const item = document.createElement('div');
     item.className = 'model-item';
@@ -204,7 +161,7 @@ export class ModelSelector {
     const isDownloading = model.key === this.#downloadingModelId;
 
     // Build meta info
-    /** @type {string[]} */
+    
     const metaParts = [];
     if (model.architecture) metaParts.push(model.architecture);
     if (model.size && model.size !== 'Unknown') metaParts.push(model.size);
@@ -277,7 +234,7 @@ export class ModelSelector {
       runBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (model.key !== this.#activeModelId) {
-          const source = /** @type {HTMLElement} */ (runBtn).dataset.source;
+          const source =  (runBtn).dataset.source;
           if (source === 'remote') {
             // Remote models: trigger quick-start flow (VRAM check -> download -> run)
             this.#onQuickStart(model);
@@ -329,11 +286,7 @@ export class ModelSelector {
     return item;
   }
 
-  /**
-   * Format bytes to human-readable string
-   * @param {number} bytes
-   * @returns {string}
-   */
+  
   #formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -342,29 +295,19 @@ export class ModelSelector {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  /**
-   * Escape HTML to prevent XSS
-   * @param {string} str
-   * @returns {string}
-   */
+  
   #escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-  /**
-   * Get currently active model
-   * @returns {import('./model-selector.js').ModelInfo | null}
-   */
+  
   getActiveModel() {
     return this.#models.find((m) => m.key === this.#activeModelId) || null;
   }
 
-  /**
-   * Get all ready models (have server or browser source)
-   * @returns {import('./model-selector.js').ModelInfo[]}
-   */
+  
   getReadyModels() {
     return this.#models.filter((m) => m.sources?.server || m.sources?.browser);
   }

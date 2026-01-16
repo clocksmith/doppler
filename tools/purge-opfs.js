@@ -1,19 +1,13 @@
 #!/usr/bin/env node
-/**
- * Purge a model from OPFS cache (browser storage).
- * Requires a browser context because OPFS is origin-scoped.
- */
+
 
 import { resolve } from 'path';
 import { ensureServerRunning, createBrowserContext, setupPage } from '../cli/helpers/utils.js';
 import { DEFAULT_OPFS_PATH_CONFIG } from '../src/config/schema/loading.schema.js';
 
-/**
- * @param {string[]} argv
- * @returns {import('./purge-opfs.js').PurgeOptions}
- */
+
 function parseArgs(argv) {
-  /** @type {import('./purge-opfs.js').PurgeOptions} */
+  
   const opts = {
     model: null,
     baseUrl: 'http://localhost:8080',
@@ -68,9 +62,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-/**
- * @returns {void}
- */
+
 function printHelp() {
   console.log(`
 Purge a model from OPFS cache.
@@ -90,9 +82,7 @@ Options:
 `);
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
@@ -110,7 +100,7 @@ async function main() {
     console.log('No-server mode enabled (serving assets from disk)...');
   }
 
-  /** @type {import('./cli/types.js').CLIOptions} */
+  
   const cliOptions = {
     command: 'test',
     suite: 'quick',
@@ -158,7 +148,7 @@ async function main() {
     const url = `${opts.baseUrl}/d`;
     await page.goto(url, { timeout: 30000 });
     const opfsRootDir = DEFAULT_OPFS_PATH_CONFIG.opfsRootDir || 'doppler-models';
-    const deleted = await page.evaluate(async (/** @type {{ modelId: string; rootDir: string }} */ params) => {
+    const deleted = await page.evaluate(async ( params) => {
       const { modelId, rootDir } = params;
       // Access OPFS directly in browser context
       const root = await navigator.storage.getDirectory();

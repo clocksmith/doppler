@@ -1,9 +1,4 @@
-/**
- * Scale Kernel Correctness Tests
- *
- * Validates the scale.wgsl GPU kernel against reference JS implementation.
- * Tests element-wise multiplication by a scalar: output[i] = input[i] * scale
- */
+
 
 import { test, expect } from './setup.js';
 

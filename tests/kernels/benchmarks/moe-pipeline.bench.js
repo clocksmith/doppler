@@ -1,9 +1,4 @@
-/**
- * MoE Pipeline Benchmarks
- *
- * End-to-end benchmark of the MoE routing pipeline:
- * router logits -> softmax+topk -> expert FFN -> scatter-add
- */
+
 
 import { test, expect } from '@playwright/test';
 import {

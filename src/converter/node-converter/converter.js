@@ -1,10 +1,4 @@
-/**
- * Main conversion orchestration logic for the Node.js Model Converter.
- *
- * Handles conversion of SafeTensors and GGUF models to RDRR format.
- *
- * @module converter/node-converter/converter
- */
+
 
 import { basename } from 'path';
 import { open } from 'fs/promises';
@@ -71,9 +65,7 @@ function resolveConverterConfig(options = {}) {
   });
 }
 
-/**
- * Convert SafeTensors model to RDRR format.
- */
+
 export async function convertSafetensors(inputPath, outputPath, opts) {
   const verboseLog = createVerboseLogger(opts?.verbose ?? false, 'Convert');
   const converterConfig = resolveConverterConfig(opts ?? {});
@@ -306,9 +298,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   return writeRDRR(outputPath, modelInfo, getTensorData, writerOpts);
 }
 
-/**
- * Convert GGUF model to RDRR format.
- */
+
 export async function convertGGUF(inputPath, outputPath, opts) {
   const verboseLog = createVerboseLogger(opts?.verbose ?? false, 'Convert');
   const converterConfig = resolveConverterConfig(opts ?? {});

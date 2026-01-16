@@ -1,11 +1,4 @@
-/**
- * GPU implementations for logits computation.
- *
- * Provides GPU-accelerated implementations for computing logits,
- * including both immediate execution and recorded (batched) variants.
- *
- * @module inference/pipeline/logits/gpu
- */
+
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../gpu/buffer-pool.js';
@@ -20,12 +13,7 @@ import { getRuntimeConfig } from '../../../config/runtime.js';
 import { runProbes } from '../probes.js';
 import { f16BufferToF32 } from './cpu.js';
 
-/**
- * Resolve CPU weight buffer dimensions for LM head.
- *
- * @param {import('../../../gpu/weight-buffer.js').CpuWeightBuffer} lmHead
- * @returns {{ vocabSize: number; hiddenSize: number }}
- */
+
 export function resolveCpuWeightDims(lmHead) {
   if (lmHead.shape.length !== 2) {
     throw new Error(`[Logits] CPU LM head shape must be 2D, got [${lmHead.shape.join(', ')}]`);
@@ -36,15 +24,7 @@ export function resolveCpuWeightDims(lmHead) {
   return { vocabSize: lmHead.shape[0], hiddenSize: lmHead.shape[1] };
 }
 
-/**
- * Calculate the maximum rows per chunk for LM head matmul.
- *
- * @param {GPUDevice} device
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {import('../../../config/schema/index.js').LargeWeightConfigSchema} [config]
- * @returns {number}
- */
+
 export function resolveLmHeadChunkRows(
   device,
   numTokens,
@@ -73,17 +53,7 @@ export function resolveLmHeadChunkRows(
   return maxRows;
 }
 
-/**
- * Extract a chunk of the LM head weight matrix.
- *
- * @param {Float32Array} data
- * @param {'row' | 'column'} layout
- * @param {number} hiddenSize
- * @param {number} vocabSize
- * @param {number} rowOffset
- * @param {number} rowCount
- * @returns {Float32Array}
- */
+
 export function extractLmHeadChunk(
   data,
   layout,
@@ -106,17 +76,7 @@ export function extractLmHeadChunk(
   return chunk;
 }
 
-/**
- * Write chunk logits to the full logits buffer.
- *
- * @param {Float32Array} target
- * @param {Float32Array} chunk
- * @param {number} numTokens
- * @param {number} vocabSize
- * @param {number} rowOffset
- * @param {number} rowCount
- * @returns {void}
- */
+
 export function writeChunkLogits(
   target,
   chunk,
@@ -132,22 +92,7 @@ export function writeChunkLogits(
   }
 }
 
-/**
- * Compute logits using chunked GPU matmul for large LM heads.
- *
- * Used when LM head weights are CPU-resident and too large
- * to fit in a single GPU buffer binding.
- *
- * @param {import('../../../gpu/tensor.js').Tensor} normedTensor
- * @param {import('../../../gpu/weight-buffer.js').CpuWeightBuffer} lmHead
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @param {number} vocabSize
- * @param {number} weightVocabSize
- * @param {import('../../../config/schema/index.js').ProbeConfigSchema[] | null} [debugProbes]
- * @param {import('../../../config/schema/index.js').LargeWeightConfigSchema} [largeWeightConfig]
- * @returns {Promise<Float32Array>}
- */
+
 export async function computeChunkedLogitsGPU(
   normedTensor,
   lmHead,
@@ -232,19 +177,7 @@ export async function computeChunkedLogitsGPU(
   return logits;
 }
 
-/**
- * Compute logits and return GPU buffer directly (deferred readback).
- *
- * This variant avoids the ~1MB readback per token, enabling GPU-side sampling.
- * Use with runGPUSample or runArgmax to sample directly on GPU.
- *
- * @param {GPUBuffer | Float32Array} hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
- * @param {number} numTokens - Number of tokens
- * @param {import('./types.js').LogitsWeights} weights - Final norm and LM head weights
- * @param {import('./types.js').LogitsConfig} config - Model configuration for logits
- * @param {import('./types.js').LogitsDebugFlags} [debugFlags] - Debug flags to prevent repeated logging (optional)
- * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' } | null>} GPU buffer containing logits [numTokens, vocabSize]
- */
+
 export async function computeLogitsGPU(
   hiddenStates,
   numTokens,
@@ -276,30 +209,30 @@ export async function computeLogitsGPU(
   }
 
   // Get or create input buffer
-  /** @type {GPUBuffer} */
+  
   let inputBuffer;
   let inputBufferOwned = false;
   if (hiddenStates instanceof GPUBuffer) {
     inputBuffer = hiddenStates;
   } else {
-    inputBuffer = acquireBuffer(/** @type {Float32Array} */ (hiddenStates).byteLength, undefined, 'logits_input');
-    device.queue.writeBuffer(inputBuffer, 0, /** @type {BufferSource} */ (hiddenStates));
+    inputBuffer = acquireBuffer( (hiddenStates).byteLength, undefined, 'logits_input');
+    device.queue.writeBuffer(inputBuffer, 0,  (hiddenStates));
     inputBufferOwned = true;
   }
 
   // Apply final RMSNorm
-  /** @type {GPUBuffer} */
+  
   let normWeightBuffer;
   let normWeightBufferOwned = false;
   if (finalNorm instanceof GPUBuffer) {
     normWeightBuffer = finalNorm;
   } else {
-    normWeightBuffer = acquireBuffer(/** @type {Float32Array} */ (finalNorm).byteLength, undefined, 'final_norm_w');
-    device.queue.writeBuffer(normWeightBuffer, 0, /** @type {BufferSource} */ (finalNorm));
+    normWeightBuffer = acquireBuffer( (finalNorm).byteLength, undefined, 'final_norm_w');
+    device.queue.writeBuffer(normWeightBuffer, 0,  (finalNorm));
     normWeightBufferOwned = true;
   }
 
-  /** @type {'f16' | 'f32'} */
+  
   const inputDtype = hiddenStates instanceof GPUBuffer ? activationDtype : 'f32';
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
@@ -310,7 +243,7 @@ export async function computeLogitsGPU(
   });
 
   // Project to vocab via LM head
-  /** @type {GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} */
+  
   let lmHeadBuffer;
   let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
@@ -318,8 +251,8 @@ export async function computeLogitsGPU(
   } else if (isWeightBuffer(lmHead)) {
     lmHeadBuffer = lmHead;
   } else {
-    const rawBuffer = acquireBuffer(/** @type {Float32Array} */ (lmHead).byteLength, undefined, 'lm_head_w');
-    device.queue.writeBuffer(rawBuffer, 0, /** @type {BufferSource} */ (lmHead));
+    const rawBuffer = acquireBuffer( (lmHead).byteLength, undefined, 'lm_head_w');
+    device.queue.writeBuffer(rawBuffer, 0,  (lmHead));
     lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
   }
@@ -342,19 +275,7 @@ export async function computeLogitsGPU(
   return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize, logitsDtype: logitsTensor.dtype };
 }
 
-/**
- * Record logits computation (batched, no submit).
- *
- * This variant uses the CommandRecorder to batch logits computation with
- * preceding layer operations, avoiding a GPU sync point.
- *
- * @param {import('../../../gpu/command-recorder.js').CommandRecorder} recorder - CommandRecorder for batched operations
- * @param {GPUBuffer} hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
- * @param {number} numTokens - Number of tokens
- * @param {import('./types.js').LogitsWeights} weights - Final norm and LM head weights
- * @param {import('./types.js').LogitsConfig} config - Model configuration for logits
- * @returns {Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' }>} GPU buffer containing logits [numTokens, vocabSize] and vocab size
- */
+
 export async function recordLogitsGPU(
   recorder,
   hiddenStates,
@@ -381,18 +302,18 @@ export async function recordLogitsGPU(
   }
 
   // Get norm weight buffer
-  /** @type {GPUBuffer} */
+  
   let normWeightBuffer;
   let normWeightOwned = false;
   if (finalNorm instanceof GPUBuffer) {
     normWeightBuffer = finalNorm;
   } else {
-    normWeightBuffer = acquireBuffer(/** @type {Float32Array} */ (finalNorm).byteLength, undefined, 'final_norm_w');
-    recorder.device.queue.writeBuffer(normWeightBuffer, 0, /** @type {BufferSource} */ (finalNorm));
+    normWeightBuffer = acquireBuffer( (finalNorm).byteLength, undefined, 'final_norm_w');
+    recorder.device.queue.writeBuffer(normWeightBuffer, 0,  (finalNorm));
     normWeightOwned = true;
   }
 
-  /** @type {'f16' | 'f32'} */
+  
   const inputDtype = activationDtype;
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(hiddenStates, inputDtype, [numTokens, hiddenSize], 'logits_input');
@@ -404,7 +325,7 @@ export async function recordLogitsGPU(
   });
 
   // Get LM head buffer
-  /** @type {GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} */
+  
   let lmHeadBuffer;
   let lmHeadBufferOwned = false;
   if (lmHead instanceof GPUBuffer) {
@@ -412,8 +333,8 @@ export async function recordLogitsGPU(
   } else if (isWeightBuffer(lmHead)) {
     lmHeadBuffer = lmHead;
   } else {
-    const rawBuffer = acquireBuffer(/** @type {Float32Array} */ (lmHead).byteLength, undefined, 'lm_head_w');
-    recorder.device.queue.writeBuffer(rawBuffer, 0, /** @type {BufferSource} */ (lmHead));
+    const rawBuffer = acquireBuffer( (lmHead).byteLength, undefined, 'lm_head_w');
+    recorder.device.queue.writeBuffer(rawBuffer, 0,  (lmHead));
     lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
   }

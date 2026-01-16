@@ -1,10 +1,4 @@
-/**
- * Test script to verify Residual+RMSNorm fusion speedup
- *
- * Compares:
- * 1. Separate: ResidualAdd + RMSNorm (2 kernel dispatches)
- * 2. Fused: RMSNorm with residual parameter (1 kernel dispatch)
- */
+
 
 import { initDevice } from '../src/gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../src/gpu/buffer-pool.js';

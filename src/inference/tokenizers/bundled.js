@@ -1,36 +1,23 @@
-/**
- * Bundled Tokenizer
- *
- * Support for .rdrr bundled tokenizers and Transformers.js fallback.
- *
- * @module inference/tokenizers/bundled
- */
+
 
 import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
-/**
- * Wrapper for Transformers.js tokenizer
- */
+
 export class TransformersTokenizer extends BaseTokenizer {
-  /** @type {import('./types.js').TransformersTokenizerType | null} */
+  
   #tokenizer = null;
-  /** @type {string | undefined} */
+  
   #modelId;
 
-  /**
-   * @param {import('./types.js').TokenizerConfig} [config={}]
-   */
+  
   constructor(config = {}) {
     super(config);
     this.#modelId = config.modelId;
   }
 
-  /**
-   * Initialize with a Transformers.js tokenizer instance
-   * @param {import('./types.js').TransformersTokenizerType} tokenizer
-   */
+  
   setTokenizer(tokenizer) {
     this.#tokenizer = tokenizer;
     if (tokenizer.model?.vocab) {
@@ -38,12 +25,7 @@ export class TransformersTokenizer extends BaseTokenizer {
     }
   }
 
-  /**
-   * Load tokenizer from HuggingFace model
-   * @deprecated Use BundledTokenizer instead - no external dependencies
-   * @param {string} _modelId
-   * @returns {Promise<void>}
-   */
+  
   async load(_modelId) {
     // DOPPLER uses bundled tokenizers only - no external CDN dependencies
     throw new Error(
@@ -53,10 +35,7 @@ export class TransformersTokenizer extends BaseTokenizer {
     );
   }
 
-  /**
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   encode(text) {
     if (!this.#tokenizer) {
       throw new Error('Tokenizer not initialized');
@@ -69,12 +48,7 @@ export class TransformersTokenizer extends BaseTokenizer {
     return Array.from(result);
   }
 
-  /**
-   * @param {number[]} ids
-   * @param {boolean} [skipSpecialTokens=true]
-   * @param {boolean} [trim=true]
-   * @returns {string}
-   */
+  
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (!this.#tokenizer) {
       throw new Error('Tokenizer not initialized');
@@ -84,58 +58,45 @@ export class TransformersTokenizer extends BaseTokenizer {
     return trim ? result.trim() : result;
   }
 
-  /**
-   * Batch encode multiple texts
-   * @param {string[]} texts
-   * @returns {number[][]}
-   */
+  
   batchEncode(texts) {
     return texts.map(t => this.encode(t));
   }
 }
 
-/**
- * Bundled tokenizer for .rdrr format with embedded vocab.
- * Eliminates runtime dependency on transformers.js CDN.
- * Supports both BPE and Unigram (SentencePiece) algorithms.
- */
+
 export class BundledTokenizer extends BaseTokenizer {
-  /** @type {Map<string, number>} */
+  
   #vocab = new Map();
-  /** @type {Map<number, string>} */
+  
   #reverseVocab = new Map();
-  /** @type {string[]} */
+  
   #merges = [];
-  /** @type {Map<string, number>} */
+  
   #mergeRanks = new Map();
-  /** @type {number[]} */
+  
   #scores = [];
-  /** @type {number[]} */
+  
   #tokenTypes = [];
-  /** @type {'bpe' | 'unigram'} */
+  
   #type = 'bpe';
-  /** @type {Map<number, number>} */
+  
   #byteTokens = new Map();
-  /** @type {import('./types.js').SpecialTokenPattern[]} */
+  
   #specialTokenPatterns = [];
-  /** @type {Set<number>} */
+  
   #specialTokenIds = new Set();
-  /** @type {boolean} */
+  
   #addSpacePrefix = true;
-  /** Space prefix character: 'Ġ' for GPT-style (Llama 3), '▁' for SentencePiece-style (Gemma) @type {string} */
+  
   #spacePrefixChar = '▁';
 
-  /**
-   * @param {import('./types.js').TokenizerConfig} [config={}]
-   */
+  
   constructor(config = {}) {
     super(config);
   }
 
-  /**
-   * @param {number} tokenId
-   * @returns {boolean}
-   */
+  
   isSpecialToken(tokenId) {
     if (this.#specialTokenIds.size > 0) {
       return this.#specialTokenIds.has(tokenId);
@@ -143,29 +104,22 @@ export class BundledTokenizer extends BaseTokenizer {
     return super.isSpecialToken(tokenId);
   }
 
-  /**
-   * Load from tokenizer.json content
-   * Auto-detects HuggingFace format vs bundled format
-   * @param {import('./types.js').HuggingFaceTokenizerJson | import('./types.js').BundledTokenizerJson} tokenizerJson
-   */
+  
   load(tokenizerJson) {
     // Detect format: HuggingFace has model.vocab, bundled has top-level vocab
     const isHuggingFace = 'model' in tokenizerJson && tokenizerJson.model?.vocab !== undefined;
 
     if (isHuggingFace) {
-      this.#loadHuggingFaceFormat(/** @type {import('./types.js').HuggingFaceTokenizerJson} */ (tokenizerJson));
+      this.#loadHuggingFaceFormat( (tokenizerJson));
     } else {
-      this.#loadBundledFormat(/** @type {import('./types.js').BundledTokenizerJson} */ (tokenizerJson));
+      this.#loadBundledFormat( (tokenizerJson));
     }
   }
 
-  /**
-   * Load HuggingFace tokenizer.json format
-   * @param {import('./types.js').HuggingFaceTokenizerJson} hf
-   */
+  
   #loadHuggingFaceFormat(hf) {
     const model = hf.model;
-    this.#type = /** @type {'bpe' | 'unigram'} */ (model.type?.toLowerCase()) || 'bpe';
+    this.#type =  (model.type?.toLowerCase()) || 'bpe';
     log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.#type}"`);
     let maxId = -1;
 
@@ -188,7 +142,7 @@ export class BundledTokenizer extends BaseTokenizer {
     } else {
       // BPE format: { token: id }
       for (const [token, id] of Object.entries(model.vocab || {})) {
-        const numId = typeof id === 'number' ? id : parseInt(/** @type {string} */ (id), 10);
+        const numId = typeof id === 'number' ? id : parseInt( (id), 10);
         this.#vocab.set(token, numId);
         this.#reverseVocab.set(numId, token);
         if (Number.isFinite(numId) && numId > maxId) maxId = numId;
@@ -223,7 +177,7 @@ export class BundledTokenizer extends BaseTokenizer {
     for (const token of hf.added_tokens || []) {
       if (token.special) {
         const content = token.content;
-        const id = typeof token.id === 'number' ? token.id : parseInt(/** @type {string} */ (token.id), 10);
+        const id = typeof token.id === 'number' ? token.id : parseInt( (token.id), 10);
         if (Number.isFinite(id) && id > maxId) maxId = id;
         if (Number.isFinite(id)) {
           this.#specialTokenIds.add(id);
@@ -319,16 +273,13 @@ export class BundledTokenizer extends BaseTokenizer {
     }
   }
 
-  /**
-   * Load bundled (GGUF-extracted) tokenizer.json format
-   * @param {import('./types.js').BundledTokenizerJson} tokenizerJson
-   */
+  
   #loadBundledFormat(tokenizerJson) {
-    this.#type = /** @type {'bpe' | 'unigram'} */ (tokenizerJson.type) || 'bpe';
+    this.#type =  (tokenizerJson.type) || 'bpe';
 
     // Build vocab maps
     for (const [token, id] of Object.entries(tokenizerJson.vocab)) {
-      const numId = typeof id === 'number' ? id : parseInt(/** @type {string} */ (id), 10);
+      const numId = typeof id === 'number' ? id : parseInt( (id), 10);
       this.#vocab.set(token, numId);
       this.#reverseVocab.set(numId, token);
 
@@ -360,7 +311,7 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     // Set special tokens - support both camelCase and snake_case formats
-    const specialTokensRaw = /** @type {Record<string, number | undefined> | undefined} */ (tokenizerJson.specialTokens || /** @type {Record<string, unknown>} */ (tokenizerJson).special_tokens);
+    const specialTokensRaw =  (tokenizerJson.specialTokens ||  (tokenizerJson).special_tokens);
     if (specialTokensRaw) {
       this.specialTokens = {
         pad: specialTokensRaw.pad ?? specialTokensRaw.pad_token_id ?? 0,
@@ -416,16 +367,13 @@ export class BundledTokenizer extends BaseTokenizer {
     log.info('Tokenizer', `Loaded ${this.vocabSize} tokens (${this.#type})`);
   }
 
-  /**
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   encode(text) {
     if (this.#vocab.size === 0) {
       throw new Error('BundledTokenizer not loaded');
     }
 
-    /** @type {number[]} */
+    
     const ids = [];
 
     if (this.addBosToken) {
@@ -453,24 +401,20 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  /**
-   * Split text around special tokens for proper encoding
-   * @param {string} text
-   * @returns {import('./types.js').TextSegment[]}
-   */
+  
   #splitOnSpecialTokens(text) {
     if (this.#specialTokenPatterns.length === 0) {
       return [{ text, isSpecial: false }];
     }
 
-    /** @type {import('./types.js').TextSegment[]} */
+    
     const segments = [];
     let remaining = text;
 
     while (remaining.length > 0) {
       // Find the EARLIEST special token match
       let earliestIdx = Infinity;
-      /** @type {import('./types.js').SpecialTokenPattern | null} */
+      
       let earliestToken = null;
 
       for (const { content, id } of this.#specialTokenPatterns) {
@@ -502,11 +446,7 @@ export class BundledTokenizer extends BaseTokenizer {
     return segments;
   }
 
-  /**
-   * Unigram encoding using Viterbi algorithm
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   #encodeUnigram(text) {
     // Normalize: convert spaces to the model's space prefix character
     // This turns "The color of" into "The▁color▁of"
@@ -518,7 +458,7 @@ export class BundledTokenizer extends BaseTokenizer {
     if (n === 0) return [];
 
     // Viterbi: best[i] = {score, prev, tokenLen} for position i
-    /** @type {Array<import('./types.js').ViterbiState | null>} */
+    
     const best = new Array(n + 1).fill(null);
     best[0] = { score: 0, prev: -1, tokenLen: 0 };
 
@@ -548,7 +488,7 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     // Backtrack to get tokens
-    /** @type {number[]} */
+    
     const tokens = [];
     let pos = n;
     while (pos > 0) {
@@ -569,11 +509,7 @@ export class BundledTokenizer extends BaseTokenizer {
     return tokens.reverse();
   }
 
-  /**
-   * BPE encoding
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   #encodeBPE(text) {
     if (text.length === 0) return [];
 
@@ -589,7 +525,7 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     const tokens = this.#bpeTokenize(prefixed);
-    /** @type {number[]} */
+    
     const ids = [];
     for (const token of tokens) {
       const id = this.#vocab.get(token);
@@ -612,12 +548,9 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  /**
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   #encodeBPEGreedy(text) {
-    /** @type {number[]} */
+    
     const ids = [];
     let pos = 0;
 
@@ -658,10 +591,7 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  /**
-   * @param {string} text
-   * @returns {string[]}
-   */
+  
   #bpeTokenize(text) {
     if (text.length === 0) return [];
 
@@ -670,7 +600,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
     while (tokens.length > 1) {
       let minRank = Infinity;
-      /** @type {string | null} */
+      
       let minPair = null;
 
       for (let i = 0; i < tokens.length - 1; i++) {
@@ -685,7 +615,7 @@ export class BundledTokenizer extends BaseTokenizer {
       if (!minPair) break;
 
       const [first, second] = minPair.split(' ');
-      /** @type {string[]} */
+      
       const newTokens = [];
       let i = 0;
       while (i < tokens.length) {
@@ -703,18 +633,13 @@ export class BundledTokenizer extends BaseTokenizer {
     return tokens;
   }
 
-  /**
-   * @param {number[]} ids
-   * @param {boolean} [skipSpecialTokens=true]
-   * @param {boolean} [trim=true]
-   * @returns {string}
-   */
+  
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (this.#vocab.size === 0) {
       throw new Error('BundledTokenizer not loaded');
     }
 
-    /** @type {string[]} */
+    
     const tokens = [];
     for (const id of ids) {
       if (skipSpecialTokens && this.isSpecialToken(id)) {

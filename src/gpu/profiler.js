@@ -1,17 +1,4 @@
-/**
- * GPU Profiler - Timestamp-based Performance Profiling
- *
- * Provides GPU-side timing using WebGPU timestamp queries.
- * Falls back to CPU timing when timestamp queries unavailable.
- *
- * Usage:
- *   const profiler = new GPUProfiler(device);
- *   profiler.begin('matmul');
- *   // ... dispatch compute pass ...
- *   profiler.end('matmul');
- *   await profiler.resolve();
- *   log.info('GPUProfiler', 'Results', profiler.getResults());
- */
+
 
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback } from './perf-guards.js';
@@ -20,77 +7,52 @@ import { getRuntimeConfig } from '../config/runtime.js';
 import { DEFAULT_PROFILER_CONFIG } from '../config/schema/debug.schema.js';
 import { computeBasicStats } from '../debug/stats.js';
 
-/**
- * @typedef {Object} ActiveMeasurement
- * @property {number} startQueryIndex
- * @property {number} cpuStartTime
- */
 
-/**
- * @typedef {Object} CpuMeasurement
- * @property {number} cpuStartTime
- */
 
-/**
- * @typedef {Object} PendingResolve
- * @property {string} label
- * @property {number} startIndex
- * @property {number} endIndex
- * @property {number} cpuStartTime
- * @property {number} cpuEndTime
- */
 
-/**
- * @typedef {Object} ResultData
- * @property {number[]} times
- * @property {number} min
- * @property {number} max
- * @property {number} sum
- * @property {number} count
- */
 
-/**
- * GPU Profiler using timestamp queries
- */
+
+
+
+
+
 export class GPUProfiler {
-  /** @type {GPUDevice | null} */
+  
   #device;
-  /** @type {boolean} */
+  
   #hasTimestampQuery;
 
   // Query set for timestamp queries (if supported)
-  /** @type {GPUQuerySet | null} */
+  
   #querySet = null;
-  /** @type {GPUBuffer | null} */
+  
   #queryBuffer = null;
-  /** @type {GPUBuffer | null} */
+  
   #readbackBuffer = null;
-  /** @type {number} */
+  
   #queryCapacity = DEFAULT_PROFILER_CONFIG.queryCapacity;
-  /** @type {number} */
+  
   #maxSamples = DEFAULT_PROFILER_CONFIG.maxSamples;
-  /** @type {number} */
+  
   #maxDurationMs = DEFAULT_PROFILER_CONFIG.maxDurationMs;
 
   // Tracking state
-  /** @type {Map<string, ActiveMeasurement | CpuMeasurement>} */
+  
   #activeLabels = new Map();
-  /** @type {number} */
+  
   #nextQueryIndex = 0;
-  /** @type {PendingResolve[]} */
+  
   #pendingResolves = [];
 
   // Results storage
-  /** @type {Map<string, ResultData>} */
+  
   #results = new Map();
 
   // CPU fallback timing
-  /** @type {Map<string, number>} */
+  
   #cpuTimings = new Map();
 
-  /**
-   * @param {GPUDevice | null} [device] - WebGPU device (uses global if not provided)
-   */
+  
   constructor(device = null) {
     this.#device = device || getDevice();
     this.#hasTimestampQuery = this.#device?.features?.has(FEATURES.TIMESTAMP_QUERY) ?? false;
@@ -105,9 +67,7 @@ export class GPUProfiler {
     }
   }
 
-  /**
-   * Initialize GPU query resources
-   */
+  
   #initQueryResources() {
     if (!this.#device) return;
 
@@ -134,12 +94,7 @@ export class GPUProfiler {
     }
   }
 
-  /**
-   * Begin timing a labeled region.
-   * Uses CPU timing; use writeTimestamp() inside passes for GPU timestamps.
-   * @param {string} label - Unique label for this measurement
-   * @returns {void}
-   */
+  
   begin(label) {
     if (this.#activeLabels.has(label)) {
       log.warn('GPUProfiler', `Label "${label}" already active`);
@@ -154,11 +109,7 @@ export class GPUProfiler {
     });
   }
 
-  /**
-   * End timing a labeled region
-   * @param {string} label - Label started with begin()
-   * @returns {void}
-   */
+  
   end(label) {
     const active = this.#activeLabels.get(label);
     if (!active) {
@@ -184,18 +135,11 @@ export class GPUProfiler {
     }
   }
 
-  /**
-   * Write timestamp to query set within a compute pass
-   * Call this instead of begin/end when inside a pass
-   * @param {GPUComputePassEncoder} pass - Compute pass encoder
-   * @param {string} label - Label for this measurement
-   * @param {boolean} [isEnd] - true for end timestamp
-   * @returns {void}
-   */
+  
   writeTimestamp(pass, label, isEnd = false) {
     if (!this.#hasTimestampQuery || !this.#querySet) return;
 
-    /** @type {number} */
+    
     let queryIndex;
     if (!isEnd) {
       // Start timestamp
@@ -222,14 +166,10 @@ export class GPUProfiler {
 
     // Note: writeTimestamp is deprecated in modern WebGPU spec but still works in Chrome
     // Future: migrate to timestampWrites in GPUComputePassDescriptor
-    /** @type {any} */ (pass).writeTimestamp(this.#querySet, queryIndex);
+     (pass).writeTimestamp(this.#querySet, queryIndex);
   }
 
-  /**
-   * Resolve pending timestamp queries and update results
-   * Call this after command buffer submission
-   * @returns {Promise<void>}
-   */
+  
   async resolve() {
     if (!this.#hasTimestampQuery || this.#pendingResolves.length === 0) {
       return;
@@ -287,11 +227,7 @@ export class GPUProfiler {
     this.#nextQueryIndex = 0;
   }
 
-  /**
-   * Record a timing result
-   * @param {string} label
-   * @param {number} timeMs
-   */
+  
   #recordResult(label, timeMs) {
     if (!this.#results.has(label)) {
       this.#results.set(label, {
@@ -323,12 +259,9 @@ export class GPUProfiler {
     }
   }
 
-  /**
-   * Get profiling results
-   * @returns {Record<string, import('./profiler.js').ProfileResult>}
-   */
+  
   getResults() {
-    /** @type {Record<string, import('./profiler.js').ProfileResult>} */
+    
     const output = {};
 
     for (const [label, data] of this.#results) {
@@ -345,11 +278,7 @@ export class GPUProfiler {
     return output;
   }
 
-  /**
-   * Get result for a specific label
-   * @param {string} label - Label to get result for
-   * @returns {import('./profiler.js').ProfileResult | null}
-   */
+  
   getResult(label) {
     const data = this.#results.get(label);
     if (!data) return null;
@@ -364,10 +293,7 @@ export class GPUProfiler {
     };
   }
 
-  /**
-   * Reset all profiling data
-   * @returns {void}
-   */
+  
   reset() {
     this.#results.clear();
     this.#activeLabels.clear();
@@ -375,10 +301,7 @@ export class GPUProfiler {
     this.#nextQueryIndex = 0;
   }
 
-  /**
-   * Get formatted report string
-   * @returns {string}
-   */
+  
   getReport() {
     const results = this.getResults();
     const labels = Object.keys(results).sort();
@@ -404,18 +327,12 @@ export class GPUProfiler {
     return report;
   }
 
-  /**
-   * Check if timestamp queries are available
-   * @returns {boolean}
-   */
+  
   isGPUTimingAvailable() {
     return this.#hasTimestampQuery;
   }
 
-  /**
-   * Destroy profiler resources
-   * @returns {void}
-   */
+  
   destroy() {
     if (this.#querySet) {
       this.#querySet.destroy();
@@ -435,13 +352,10 @@ export class GPUProfiler {
 }
 
 // Global profiler instance
-/** @type {GPUProfiler | null} */
+
 let globalProfiler = null;
 
-/**
- * Get the global profiler instance
- * @returns {GPUProfiler}
- */
+
 export function getProfiler() {
   if (!globalProfiler) {
     globalProfiler = new GPUProfiler();
@@ -449,22 +363,12 @@ export function getProfiler() {
   return globalProfiler;
 }
 
-/**
- * Create a new profiler instance
- * @param {GPUDevice | null} [device] - Optional GPU device
- * @returns {GPUProfiler}
- */
+
 export function createProfiler(device) {
   return new GPUProfiler(device);
 }
 
-/**
- * Convenience function to time a single operation
- * @template T
- * @param {string} label - Label for the operation
- * @param {() => Promise<T>} fn - Async function to time
- * @returns {Promise<{ result: T; timeMs: number }>}
- */
+
 export async function timeOperation(
   label,
   fn

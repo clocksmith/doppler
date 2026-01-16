@@ -1,10 +1,4 @@
-/**
- * RDRR Group Accessors
- *
- * Functions for accessing component groups from the current manifest.
- *
- * @module formats/rdrr/groups
- */
+
 
 import { getManifest } from './parsing.js';
 import { sortGroupIds, parseGroupExpertIndex } from './classification.js';

@@ -1,6 +1,4 @@
-/**
- * HTML Report Generation - SVG charts and HTML benchmark reports
- */
+
 
 import { compareResults } from './comparison.js';
 
@@ -8,13 +6,7 @@ import { compareResults } from './comparison.js';
 // SVG Chart Generation
 // ============================================================================
 
-/**
- * @param {Array<{ label: string; value: number; color?: string }>} data
- * @param {number} [width=400]
- * @param {number} [height=200]
- * @param {string} [title='']
- * @returns {string}
- */
+
 export function generateSVGBarChart(data, width = 400, height = 200, title = '') {
   const margin = { top: 30, right: 20, bottom: 40, left: 60 };
   const chartWidth = width - margin.left - margin.right;
@@ -57,14 +49,7 @@ export function generateSVGBarChart(data, width = 400, height = 200, title = '')
   return svg;
 }
 
-/**
- * @param {number[]} data
- * @param {number} [width=400]
- * @param {number} [height=150]
- * @param {string} [title='']
- * @param {string} [yLabel='']
- * @returns {string}
- */
+
 export function generateSVGLineChart(data, width = 400, height = 150, title = '', yLabel = '') {
   const margin = { top: 30, right: 20, bottom: 30, left: 50 };
   const chartWidth = width - margin.left - margin.right;
@@ -119,11 +104,7 @@ export function generateSVGLineChart(data, width = 400, height = 150, title = ''
 // HTML Report Generation
 // ============================================================================
 
-/**
- * @param {any} results
- * @param {any} [baseline]
- * @returns {string}
- */
+
 export function generateHTMLReport(results, baseline) {
   const isArray = Array.isArray(results);
   const resultList = isArray ? results : [results];

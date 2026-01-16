@@ -1,10 +1,4 @@
-/**
- * RDRR Writer Module
- *
- * Re-exports all writer components and provides the high-level writeRDRR function.
- *
- * @module converter/writer
- */
+
 
 import { log } from '../../debug/index.js';
 import { extractArchitecture } from '../core.js';
@@ -28,9 +22,7 @@ export { TokenizerWriter } from './tokenizer-writer.js';
 // Re-export test model helper
 export { createTestModel } from '../test-model.js';
 
-/**
- * High-level function to write a model in RDRR format.
- */
+
 export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {}) {
   const config = modelInfo.config;
   const architecture = modelInfo.architecture ?? (config ? extractArchitecture(config) : null);

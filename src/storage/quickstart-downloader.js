@@ -1,15 +1,4 @@
-/**
- * quickstart-downloader.ts - Quick-Start Model Downloader
- *
- * Provides a streamlined API for the quick-start download flow:
- * - Pre-flight checks (VRAM, storage, GPU)
- * - User consent flow
- * - Parallel shard fetching with progress
- *
- * Works with any static file CDN (Firebase Hosting, S3, Cloudflare, etc.)
- *
- * @module storage/quickstart-downloader
- */
+
 
 import { downloadModel } from './downloader.js';
 import {
@@ -23,18 +12,10 @@ import { getCdnBasePath } from './download-types.js';
 // Model Registry
 // ============================================================================
 
-/**
- * CDN base URL for model hosting
- * Configure this based on your hosting setup.
- * Default uses config value (null = same-origin /doppler/models/ path for Firebase Hosting or local dev)
- * @type {string | null}
- */
+
 let cdnBaseOverride = null;
 
-/**
- * Get the auto-detected or configured CDN base URL
- * @returns {string}
- */
+
 function getEffectiveCDNBaseUrl() {
   const runtimeBase = getCdnBasePath();
   const base = cdnBaseOverride ?? runtimeBase ?? '';
@@ -48,28 +29,17 @@ function getEffectiveCDNBaseUrl() {
   return '/doppler/models';
 }
 
-/**
- * Set the CDN base URL for model downloads
- * @param {string} url
- * @returns {void}
- */
+
 export function setCDNBaseUrl(url) {
   cdnBaseOverride = url.replace(/\/$/, ''); // Remove trailing slash
 }
 
-/**
- * Get the current CDN base URL
- * @returns {string}
- */
+
 export function getCDNBaseUrl() {
   return getEffectiveCDNBaseUrl();
 }
 
-/**
- * Available quick-start models
- * These are models with pre-configured requirements and hosted shards
- * @type {Record<string, import('./quickstart-downloader.js').RemoteModelConfig>}
- */
+
 export const QUICKSTART_MODELS = {
   'gemma-3-1b-it-q4': {
     modelId: 'gemma-3-1b-it-q4',
@@ -79,28 +49,17 @@ export const QUICKSTART_MODELS = {
   },
 };
 
-/**
- * Get quick-start model config by ID
- * @param {string} modelId
- * @returns {import('./quickstart-downloader.js').RemoteModelConfig | undefined}
- */
+
 export function getQuickStartModel(modelId) {
   return QUICKSTART_MODELS[modelId];
 }
 
-/**
- * List all available quick-start models
- * @returns {import('./quickstart-downloader.js').RemoteModelConfig[]}
- */
+
 export function listQuickStartModels() {
   return Object.values(QUICKSTART_MODELS);
 }
 
-/**
- * Register a custom quick-start model
- * @param {import('./quickstart-downloader.js').RemoteModelConfig} config
- * @returns {void}
- */
+
 export function registerQuickStartModel(config) {
   QUICKSTART_MODELS[config.modelId] = config;
 }
@@ -109,38 +68,7 @@ export function registerQuickStartModel(config) {
 // Download Functions
 // ============================================================================
 
-/**
- * Download a quick-start model
- *
- * Flow:
- * 1. Run pre-flight checks (VRAM, storage, GPU)
- * 2. If checks fail, return early with blockers
- * 3. Request user consent for storage usage
- * 4. If declined, return early
- * 5. Download model with progress updates
- *
- * @param {string} modelId - Model ID (e.g., 'gemma-1b-instruct')
- * @param {import('./quickstart-downloader.js').QuickStartDownloadOptions} [options] - Download options
- * @returns {Promise<import('./quickstart-downloader.js').QuickStartDownloadResult>} Download result
- *
- * @example
- * ```typescript
- * import { log } from '../debug/index.js';
- *
- * const result = await downloadQuickStartModel('gemma-1b-instruct', {
- *   onProgress: (p) => updateProgressBar(p.percent),
- *   onStorageConsent: async (required, available) => {
- *     return confirm(`Download ${formatBytes(required)}?`);
- *   },
- * });
- *
- * if (result.success) {
- *   log.info('Quickstart', 'Model ready!');
- * } else if (result.blockedByPreflight) {
- *   log.warn('Quickstart', 'Blocked by preflight', result.preflight?.blockers);
- * }
- * ```
- */
+
 export async function downloadQuickStartModel(
   modelId,
   options = {}
@@ -167,7 +95,7 @@ export async function downloadQuickStartModel(
   // -------------------------------------------------------------------------
   // Step 1: Pre-flight checks
   // -------------------------------------------------------------------------
-  /** @type {import('./preflight.js').PreflightResult | undefined} */
+  
   let preflight;
 
   if (!skipPreflight) {
@@ -188,7 +116,7 @@ export async function downloadQuickStartModel(
       return {
         success: false,
         modelId,
-        error: `Preflight check failed: ${/** @type {Error} */ (err).message}`,
+        error: `Preflight check failed: ${ (err).message}`,
       };
     }
   }
@@ -216,7 +144,7 @@ export async function downloadQuickStartModel(
       return {
         success: false,
         modelId,
-        error: `Consent flow failed: ${/** @type {Error} */ (err).message}`,
+        error: `Consent flow failed: ${ (err).message}`,
         preflight,
       };
     }
@@ -236,7 +164,7 @@ export async function downloadQuickStartModel(
       };
     }
 
-    /** @type {import('./download-types.js').DownloadOptions} */
+    
     const downloadOpts = {
       concurrency,
       requestPersist: true,
@@ -265,7 +193,7 @@ export async function downloadQuickStartModel(
       preflight,
     };
   } catch (err) {
-    const errorMessage = /** @type {Error} */ (err).message;
+    const errorMessage =  (err).message;
 
     // Handle specific error types
     if (errorMessage.includes('aborted') || signal?.aborted) {
@@ -295,34 +223,20 @@ export async function downloadQuickStartModel(
   }
 }
 
-/**
- * Check if a quick-start model is already downloaded
- *
- * @param {string} modelId - Model ID
- * @returns {Promise<boolean>} True if model exists in OPFS
- */
+
 export async function isModelDownloaded(modelId) {
   // Import dynamically to avoid circular deps
   const { modelExists } = await import('./shard-manager.js');
   return modelExists(modelId);
 }
 
-/**
- * Get download size for a quick-start model
- *
- * @param {string} modelId - Model ID
- * @returns {number | null} Size in bytes, or null if unknown model
- */
+
 export function getModelDownloadSize(modelId) {
   const config = QUICKSTART_MODELS[modelId];
   return config?.requirements.downloadSize ?? null;
 }
 
-/**
- * Format model info for display
- * @param {string} modelId
- * @returns {string | null}
- */
+
 export function formatModelInfo(modelId) {
   const config = QUICKSTART_MODELS[modelId];
   if (!config) return null;

@@ -1,9 +1,4 @@
-/**
- * Top-K Kernel Correctness Tests
- *
- * Validates the topk.wgsl GPU kernel against reference JS implementation.
- * Priority: HIGH - newly implemented MoE routing kernel
- */
+
 
 import { test, expect, TEST_SIZES } from './setup.js';
 

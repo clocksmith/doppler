@@ -1,12 +1,6 @@
-/**
- * Benchmark Configuration
- *
- * Standard workload sizes based on common LLM configurations
- */
 
-/**
- * Model configurations (Llama-style)
- */
+
+
 export const MODEL_CONFIGS = {
   // Small model (debugging)
   small: {
@@ -61,9 +55,7 @@ export const MODEL_CONFIGS = {
   },
 };
 
-/**
- * Sequence length configurations
- */
+
 export const SEQ_CONFIGS = {
   single: { seqLen: 1, name: 'Single token (decode)' },
   short: { seqLen: 32, name: 'Short prompt' },
@@ -72,9 +64,7 @@ export const SEQ_CONFIGS = {
   veryLong: { seqLen: 2048, name: 'Very long prompt' },
 };
 
-/**
- * Batch size configurations
- */
+
 export const BATCH_CONFIGS = {
   single: { batchSize: 1, name: 'Single' },
   small: { batchSize: 4, name: 'Small batch' },
@@ -82,9 +72,7 @@ export const BATCH_CONFIGS = {
   large: { batchSize: 64, name: 'Large batch' },
 };
 
-/**
- * Benchmark settings
- */
+
 export const BENCHMARK_SETTINGS = {
   // Number of warmup iterations
   warmupIterations: 5,
@@ -99,9 +87,7 @@ export const BENCHMARK_SETTINGS = {
   maxTime: 30000,
 };
 
-/**
- * Get workload configuration for a specific kernel
- */
+
 export function getWorkloadConfig(kernel, model, seq, batch = 'single') {
   const m = MODEL_CONFIGS[model];
   const s = SEQ_CONFIGS[seq];
@@ -155,9 +141,7 @@ export function getWorkloadConfig(kernel, model, seq, batch = 'single') {
   return config;
 }
 
-/**
- * Standard benchmark matrix
- */
+
 export const BENCHMARK_MATRIX = {
   matmul: [
     { model: 'small', seq: 'single' },

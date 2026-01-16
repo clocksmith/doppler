@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-/**
- * Quick test query runner - minimal Playwright script for ad-hoc inference testing
- *
- * Usage:
- *   npx tsx tools/test-query.ts "the color of the sky is "
- *   npx tsx tools/test-query.ts --model gemma-3-1b-it-q4 "hello world"
- *   npx tsx tools/test-query.ts --repl  # Interactive mode with cached model
- */
+
 
 import { chromium } from 'playwright';
 import { resolve, dirname } from 'path';
@@ -17,12 +10,9 @@ import { loadConfig } from '../cli/config/index.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * @param {string[]} argv
- * @returns {import('./test-query.js').Options}
- */
+
 function parseArgs(argv) {
-  /** @type {import('./test-query.js').Options} */
+  
   const opts = {
     prompt: 'the color of the sky is ',
     model: 'gemma-3-1b-it-q4',
@@ -34,7 +24,7 @@ function parseArgs(argv) {
 
   const tokens = [...argv];
   while (tokens.length) {
-    const arg = /** @type {string} */ (tokens.shift());
+    const arg =  (tokens.shift());
     switch (arg) {
       case '--model':
       case '-m':
@@ -93,9 +83,7 @@ Examples:
   return opts;
 }
 
-/**
- * @returns {Promise<{ context: import('playwright').BrowserContext; page: import('playwright').Page }>}
- */
+
 async function launchBrowser() {
   const userDataDir = resolve(__dirname, '../.benchmark-cache');
   const context = await chromium.launchPersistentContext(userDataDir, {
@@ -122,20 +110,15 @@ async function launchBrowser() {
   return { context, page };
 }
 
-/**
- * @param {import('playwright').Page} page
- * @param {string} baseUrl
- * @param {string} model
- * @returns {Promise<void>}
- */
+
 async function loadModel(page, baseUrl, model) {
   // Use the DopplerDemo app that's already loaded on the page
   // This avoids module loading issues and reuses the existing infrastructure
 
   await page.evaluate(
     async ({ model }) => {
-      /** @type {Window & { dopplerDemo?: { selectModel: (modelOrKey: unknown) => Promise<void>; getStatus: () => { model: string | null }; modelSelector?: { getModels?: () => Array<{ key: string; name: string; sources?: { server?: { id: string } } }> } } }} */
-      const w = /** @type {any} */ (window);
+      
+      const w =  (window);
 
       // Wait for the app to be ready
       let retries = 0;
@@ -154,21 +137,21 @@ async function loadModel(page, baseUrl, model) {
       // The model selector stores the registry, but it's private
       // Let's just click the first model button in the UI instead
       const modelBtns = document.querySelectorAll('[data-model-key]');
-      /** @type {HTMLElement | null} */
+      
       let targetBtn = null;
 
       for (const btn of modelBtns) {
-        const key = /** @type {HTMLElement} */ (btn).dataset.modelKey || '';
+        const key =  (btn).dataset.modelKey || '';
         const text = btn.textContent?.toLowerCase() || '';
         if (key.includes(model.toLowerCase()) || text.includes(model.toLowerCase())) {
-          targetBtn = /** @type {HTMLElement} */ (btn);
+          targetBtn =  (btn);
           break;
         }
       }
 
       // If no match, just use the first available model
       if (!targetBtn && modelBtns.length > 0) {
-        targetBtn = /** @type {HTMLElement} */ (modelBtns[0]);
+        targetBtn =  (modelBtns[0]);
         console.log(`[Test] No exact match, using first model`);
       }
 
@@ -180,7 +163,7 @@ async function loadModel(page, baseUrl, model) {
       console.log(`[Test] Selecting model: ${modelKey}`);
 
       // Click the Run button for this model
-      const runBtn = /** @type {HTMLButtonElement | null} */ (targetBtn.querySelector('.model-run-btn'));
+      const runBtn =  (targetBtn.querySelector('.model-run-btn'));
       if (runBtn) {
         runBtn.click();
       } else {
@@ -206,16 +189,12 @@ async function loadModel(page, baseUrl, model) {
   );
 }
 
-/**
- * @param {import('playwright').Page} page
- * @param {string} prompt
- * @returns {Promise<{ output: string; tokenCount: number; elapsedMs: number; tokensPerSec: number }>}
- */
+
 async function runQuery(page, prompt) {
   return await page.evaluate(
     async ({ prompt }) => {
-      /** @type {Window & { dopplerDemo?: { pipeline?: { generate: (p: string, o: unknown) => AsyncGenerator<string> } } }} */
-      const w = /** @type {any} */ (window);
+      
+      const w =  (window);
       const { getRuntimeConfig } = await import('/doppler/src/config/index.js');
 
       if (!w.dopplerDemo?.pipeline) {
@@ -227,7 +206,7 @@ async function runQuery(page, prompt) {
       const sampling = runtimeConfig.inference.sampling;
 
       const pipeline = w.dopplerDemo.pipeline;
-      /** @type {string[]} */
+      
       const tokens = [];
       const start = performance.now();
 
@@ -256,14 +235,11 @@ async function runQuery(page, prompt) {
   );
 }
 
-/**
- * @param {import('playwright').Page} page
- * @returns {Promise<void>}
- */
+
 async function clearKVCache(page) {
   await page.evaluate(() => {
-    /** @type {Window & { dopplerDemo?: { pipeline?: { clearKVCache?: () => void }; clearConversation?: () => void } }} */
-    const w = /** @type {any} */ (window);
+    
+    const w =  (window);
     if (w.dopplerDemo?.clearConversation) {
       w.dopplerDemo.clearConversation();
       console.log('[Test] Conversation cleared');
@@ -276,11 +252,7 @@ async function clearKVCache(page) {
   });
 }
 
-/**
- * @param {import('playwright').Page} page
- * @param {import('./test-query.js').Options} opts
- * @returns {Promise<void>}
- */
+
 async function runRepl(page, opts) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -290,7 +262,7 @@ async function runRepl(page, opts) {
   console.log('\n\x1b[36mDOPPLER REPL\x1b[0m - Type prompts or commands');
   console.log('Commands: /clear /reload /quit\n');
 
-  /** @returns {void} */
+  
   const prompt = () => {
     rl.question('\x1b[32m>\x1b[0m ', async (input) => {
       const line = input.trim();
@@ -323,7 +295,7 @@ async function runRepl(page, opts) {
           console.log(`\x1b[90m[${result.tokenCount} tokens, ${result.elapsedMs.toFixed(0)}ms, ${result.tokensPerSec.toFixed(1)} tok/s]\x1b[0m\n`);
         }
       } catch (err) {
-        console.error(`\x1b[31mError: ${/** @type {Error} */ (err).message}\x1b[0m\n`);
+        console.error(`\x1b[31mError: ${ (err).message}\x1b[0m\n`);
       }
 
       prompt();
@@ -333,9 +305,7 @@ async function runRepl(page, opts) {
   prompt();
 }
 
-/**
- * @returns {Promise<void>}
- */
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const loadedConfig = await loadConfig(opts.config);
@@ -381,7 +351,7 @@ async function main() {
       await new Promise(() => {});
     }
   } catch (err) {
-    console.error('\nTest failed:', /** @type {Error} */ (err).message);
+    console.error('\nTest failed:',  (err).message);
     await context.close();
     process.exit(1);
   }

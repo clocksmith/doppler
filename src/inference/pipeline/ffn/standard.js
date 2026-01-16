@@ -1,11 +1,4 @@
-/**
- * Standard FFN Processing
- *
- * Handles FFN with standard architecture (LLaMA-style) where
- * post-attention norm precedes the FFN block.
- *
- * @module inference/pipeline/ffn/standard
- */
+
 
 import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
 import { getNormWeightBuffer } from '../weights.js';
@@ -14,16 +7,7 @@ import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 
-/**
- * Process FFN with standard architecture (LLaMA-style).
- * @param {number} layerIdx
- * @param {import('../../../gpu/tensor.js').Tensor} postAttn
- * @param {number} numTokens
- * @param {number} size
- * @param {import('../types.js').LayerContext} context
- * @param {import('../types.js').LayerWeights | undefined} layerWeights
- * @returns {Promise<import('../../../gpu/tensor.js').Tensor>}
- */
+
 export async function processFFNStandard(
   layerIdx,
   postAttn,
@@ -61,7 +45,7 @@ export async function processFFNStandard(
   });
 
   // 2. FFN
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let ffnOutput;
   if (config.useMoE && isMoELayerLocal(layerIdx, config, layerWeights)) {
     ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);

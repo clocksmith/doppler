@@ -1,11 +1,6 @@
-/**
- * Reference RMSNorm Implementation
- */
 
-/**
- * Reference RMSNorm
- * y = x * rsqrt(mean(x^2) + eps) * weight
- */
+
+
 export function rmsNormRef(input, weight, batchSize, hiddenSize, eps = 1e-6) {
   const output = new Float32Array(input.length);
 
@@ -32,9 +27,7 @@ export function rmsNormRef(input, weight, batchSize, hiddenSize, eps = 1e-6) {
   return output;
 }
 
-/**
- * RMSNorm without learned weights (just normalization)
- */
+
 export function rmsNormNoWeightRef(input, batchSize, hiddenSize, eps = 1e-6) {
   const output = new Float32Array(input.length);
 

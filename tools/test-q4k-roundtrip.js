@@ -19,9 +19,9 @@ const dmin = float16ToFloat32(view.getUint16(2, true));
 console.log('d:', d.toFixed(6), 'dmin:', dmin.toFixed(6));
 
 // Extract scales/mins
-/** @type {number[]} */
+
 const scaleBits = [];
-/** @type {number[]} */
+
 const minBits = [];
 for (let i = 0; i < 4; i++) {
   scaleBits[i] = block[4 + i] & 0x3f;

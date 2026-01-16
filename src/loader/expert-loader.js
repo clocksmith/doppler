@@ -1,12 +1,4 @@
-/**
- * Expert Loader - MoE expert weight loading.
- *
- * Handles lazy loading of expert weights for Mixture-of-Experts models.
- * Supports both Mixtral-style (separate tensors) and GPT-OSS-style
- * (packed blocks) expert formats.
- *
- * @module loader/expert-loader
- */
+
 
 import {
   getShardsForExpert,
@@ -21,13 +13,7 @@ import { log, trace as debugTrace } from '../debug/index.js';
 // Shard Preloading
 // ============================================================================
 
-/**
- * Pre-load specific shards for an expert (lazy loading support).
- *
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx - Expert loader context
- * @param {number} layerIdx - Layer index
- * @param {number} expertIdx - Expert index
- */
+
 export async function preloadShardsForExpert(ctx, layerIdx, expertIdx) {
   // Get required shards from manifest mapping
   const shardIndices = getShardsForExpert(layerIdx, expertIdx);
@@ -48,17 +34,9 @@ export async function preloadShardsForExpert(ctx, layerIdx, expertIdx) {
 // Expert Prefetching
 // ============================================================================
 
-/**
- * Prefetch experts for next layer (overlap loading with compute).
- * Call this after router selects experts for current layer.
- *
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx - Expert loader context
- * @param {number} nextLayerIdx - Layer index to prefetch for
- * @param {number[]} expertIndices - Expert indices likely to be used
- * @param {boolean} isMoE - Whether model is MoE
- */
+
 export function prefetchExperts(ctx, nextLayerIdx, expertIndices, isMoE) {
-  const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (ctx.manifest?.config);
+  const config =  (ctx.manifest?.config);
   const numLayers = config?.num_hidden_layers ?? 0;
 
   if (!isMoE || nextLayerIdx >= numLayers) {
@@ -82,13 +60,7 @@ export function prefetchExperts(ctx, nextLayerIdx, expertIndices, isMoE) {
   });
 }
 
-/**
- * Get likely experts for next layer based on current layer's routing.
- * Simple heuristic: same experts tend to be selected across layers.
- *
- * @param {number[]} currentExperts - Experts selected in current layer
- * @returns {number[]} Predicted experts for next layer
- */
+
 export function predictNextLayerExperts(currentExperts) {
   // For now, just predict same experts will be used
   // More sophisticated: track expert correlation across layers
@@ -99,14 +71,7 @@ export function predictNextLayerExperts(currentExperts) {
 // Expert Loading
 // ============================================================================
 
-/**
- * Load expert weights on demand (lazy loading from OPFS).
- *
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx - Expert loader context
- * @param {number} layerIdx - Layer index
- * @param {number} expertIdx - Expert index
- * @returns {Promise<import('./weights.js').ExpertWeights>} Loaded expert weights
- */
+
 export async function loadExpert(ctx, layerIdx, expertIdx) {
   // Check LRU cache first
   if (ctx.expertCache) {
@@ -162,52 +127,40 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
 // Internal Helpers
 // ============================================================================
 
-/**
- * Load expert using Mixtral-style tensor naming.
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx
- * @param {number} layerIdx
- * @param {number} expertIdx
- * @returns {Promise<import('./weights.js').ExpertWeights>}
- */
+
 async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
   const prefix = `layers.${layerIdx}.block_sparse_moe.experts.${expertIdx}`;
   const altPrefix = `model.layers.${layerIdx}.block_sparse_moe.experts.${expertIdx}`;
 
   return {
-    gate: /** @type {GPUBuffer | Float32Array | null} */ (await ctx.loadTensor(`${prefix}.w1.weight`) ||
+    gate:  (await ctx.loadTensor(`${prefix}.w1.weight`) ||
           await ctx.loadTensor(`${altPrefix}.w1.weight`)),
-    up: /** @type {GPUBuffer | Float32Array | null} */ (await ctx.loadTensor(`${prefix}.w3.weight`) ||
+    up:  (await ctx.loadTensor(`${prefix}.w3.weight`) ||
         await ctx.loadTensor(`${altPrefix}.w3.weight`)),
-    down: /** @type {GPUBuffer | Float32Array | null} */ (await ctx.loadTensor(`${prefix}.w2.weight`) ||
+    down:  (await ctx.loadTensor(`${prefix}.w2.weight`) ||
           await ctx.loadTensor(`${altPrefix}.w2.weight`)),
   };
 }
 
-/**
- * Load expert using GPT-OSS-style packed tensor naming.
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx
- * @param {number} layerIdx
- * @param {number} expertIdx
- * @returns {Promise<import('./weights.js').ExpertWeights>}
- */
+
 async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   const gptOssPrefix = `model.layers.${layerIdx}.mlp.experts`;
   const packedKey = `layer_${layerIdx}_gptoss_packed`;
   let packed = ctx.experts.get(packedKey);
 
   if (!packed) {
-    const config = /** @type {import('./loader-types.js').ModelConfig | undefined} */ (ctx.manifest?.config);
+    const config =  (ctx.manifest?.config);
     const numExpertsFromConfig = config?.num_local_experts || config?.num_experts || 32;
 
     packed = {
       isGptOss: true,
       numExperts: numExpertsFromConfig,
-      gateUpBlocks: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_blocks`)),
-      gateUpScales: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_scales`)),
-      gateUpBias: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_bias`)),
-      downBlocks: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.down_proj_blocks`)),
-      downScales: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.down_proj_scales`)),
-      downBias: /** @type {GPUBuffer | null} */ (await ctx.loadTensor(`${gptOssPrefix}.down_proj_bias`)),
+      gateUpBlocks:  (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_blocks`)),
+      gateUpScales:  (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_scales`)),
+      gateUpBias:  (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_bias`)),
+      downBlocks:  (await ctx.loadTensor(`${gptOssPrefix}.down_proj_blocks`)),
+      downScales:  (await ctx.loadTensor(`${gptOssPrefix}.down_proj_scales`)),
+      downBias:  (await ctx.loadTensor(`${gptOssPrefix}.down_proj_bias`)),
     };
 
     ctx.experts.set(packedKey, packed);
@@ -226,13 +179,9 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   };
 }
 
-/**
- * Downcast expert weights from F32 to F16.
- * @param {import('./expert-loader.js').ExpertLoaderContext} ctx
- * @param {import('./weights.js').ExpertWeights} weights
- */
+
 async function downcastExpertWeights(ctx, weights) {
-  for (const k of /** @type {const} */ (['gate', 'up', 'down'])) {
+  for (const k of  (['gate', 'up', 'down'])) {
     const buf = weights[k];
     if (!buf) continue;
 
@@ -241,13 +190,13 @@ async function downcastExpertWeights(ctx, weights) {
       continue;
     }
 
-    const result = await maybeDowncastToF16(/** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer} */ (buf), {
+    const result = await maybeDowncastToF16( (buf), {
       label: `expert_${k}`,
       keepF32: ctx.keepF32Weights,
     });
 
     if (result?.wasDowncast) {
-      weights[k] = /** @type {GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null} */ (result.buffer);
+      weights[k] =  (result.buffer);
       if (result.newBuffer) {
         ctx.gpuBuffers.add(result.newBuffer);
       }
@@ -255,15 +204,11 @@ async function downcastExpertWeights(ctx, weights) {
   }
 }
 
-/**
- * Calculate total size of expert weights in bytes.
- * @param {import('./weights.js').ExpertWeights} weights
- * @returns {number}
- */
+
 function calculateExpertSize(weights) {
   let sizeBytes = 0;
 
-  for (const k of /** @type {const} */ (['gate', 'up', 'down'])) {
+  for (const k of  (['gate', 'up', 'down'])) {
     const buf = weights[k];
     if (isWeightBuffer(buf)) {
       sizeBytes += buf.buffer.size;

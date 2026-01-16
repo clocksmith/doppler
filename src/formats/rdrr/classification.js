@@ -1,24 +1,6 @@
-/**
- * RDRR Tensor Classification
- *
- * Functions for classifying tensors into component groups.
- *
- * @module formats/rdrr/classification
- */
 
-/**
- * Classify a tensor into a component group based on its name and model type.
- *
- * Group naming convention:
- * - embed: Embedding matrix
- * - head: LM head + final norm
- * - layer.N: Dense layer N (all tensors)
- * - layer.N.attn: Attention only (hybrid models)
- * - layer.N.mamba: Mamba block (hybrid models)
- * - layer.N.shared: Shared weights for MoE layer
- * - layer.N.expert.M: Expert M in layer N
- * - layer.N.shared_expert: Shared expert (DeepSeek-style)
- */
+
+
 export function classifyTensor(name, modelType) {
   const lower = name.toLowerCase();
 
@@ -82,9 +64,7 @@ export function classifyTensor(name, modelType) {
   return `layer.${layerIdx}`;
 }
 
-/**
- * Get the component group type from a group ID
- */
+
 export function getGroupType(groupId, modelType) {
   if (groupId === 'embed') return 'embed';
   if (groupId === 'head') return 'head';
@@ -102,25 +82,19 @@ export function getGroupType(groupId, modelType) {
   return 'layer';
 }
 
-/**
- * Parse layer index from group ID
- */
+
 export function parseGroupLayerIndex(groupId) {
   const match = groupId.match(/layer\.(\d+)/);
   return match ? parseInt(match[1]) : undefined;
 }
 
-/**
- * Parse expert index from group ID
- */
+
 export function parseGroupExpertIndex(groupId) {
   const match = groupId.match(/expert\.(\d+)/);
   return match ? parseInt(match[1]) : undefined;
 }
 
-/**
- * Sort group IDs in loading order: embed → layers (by index) → head
- */
+
 export function sortGroupIds(groupIds) {
   return [...groupIds].sort((a, b) => {
     if (a === 'embed') return -1;

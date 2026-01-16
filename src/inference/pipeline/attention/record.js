@@ -1,12 +1,4 @@
-/**
- * Attention Record - Batched GPU recording path
- *
- * Contains recordLayerAttentionGPU which records attention operations
- * to a shared command encoder without submitting. All operations are
- * batched and submitted together at the end of the forward pass.
- *
- * @module inference/pipeline/attention/record
- */
+
 
 import { isWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { acquireBuffer } from '../../../gpu/buffer-pool.js';
@@ -30,25 +22,7 @@ import { releaseOrTrack, shouldDebugLayer } from './types.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
-/**
- * Record attention for a single layer (batched, no submit).
- *
- * Uses record* kernel variants to batch all GPU operations into a shared
- * command encoder. No GPU submits happen here - submit once at end of forward pass.
- *
- * @param {import('../../../gpu/kernel-selector.js').CommandRecorder} recorder
- * @param {import('../../../gpu/tensor.js').Tensor} input
- * @param {import('../types.js').LayerWeights | null} layerWeights
- * @param {import('./types.js').AttentionConfig} config
- * @param {import('./types.js').AttentionState} state
- * @param {boolean} [debug]
- * @param {import('./types.js').AttentionDebugFlags} [debugFlags]
- * @param {(weight: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | ArrayBuffer | import('../../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer} [getWeightBuffer]
- * @param {(weight: GPUBuffer | Float32Array | ArrayBuffer | import('../../../gpu/weight-buffer.js').CpuWeightBuffer, label: string) => GPUBuffer} [getNormWeightBuffer]
- * @param {(buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>} [debugCheckBuffer]
- * @param {import('../lora.js').LoRAAdapter | null} [lora]
- * @returns {Promise<import('./types.js').AttentionResult>}
- */
+
 export async function recordLayerAttentionGPU(
   recorder,
   input,
@@ -101,7 +75,7 @@ export async function recordLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let normed = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
@@ -127,11 +101,11 @@ export async function recordLayerAttentionGPU(
   // 2. Q/K/V projections
   // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
   const useF16Activations = attentionInput.dtype === 'f16';
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let qTensor;
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let kTensor;
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let vTensor;
 
   // Check for fused QKV path (3->1 matmul optimization)
@@ -316,9 +290,9 @@ export async function recordLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  /** @type {GPUBuffer} */
+  
   let cachedK;
-  /** @type {GPUBuffer} */
+  
   let cachedV;
   let kvLenForAttention = currentSeqLen + numTokens;
   let causalForAttention = true;
@@ -370,8 +344,8 @@ export async function recordLayerAttentionGPU(
   const attnScale = queryPreAttnScalar ? 1.0 / Math.sqrt(queryPreAttnScalar) : 1.0 / Math.sqrt(headDim);
 
   // Wrap cached K/V in Tensors (dtype from cache or input tensor)
-  const cachedKDtype = state.kvCache?.kvDtype === 'f16' ? /** @type {const} */ ('f16') : kTensor.dtype;
-  const cachedVDtype = state.kvCache?.kvDtype === 'f16' ? /** @type {const} */ ('f16') : vTensor.dtype;
+  const cachedKDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : kTensor.dtype;
+  const cachedVDtype = state.kvCache?.kvDtype === 'f16' ?  ('f16') : vTensor.dtype;
   const cachedKTensor = createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
   const cachedVTensor = createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -388,7 +362,7 @@ export async function recordLayerAttentionGPU(
   });
 
   // 6. Output projection (with optional fused residual for decode)
-  /** @type {import('../../../gpu/tensor.js').Tensor} */
+  
   let output;
   let residualFused = false;
   if (layerWeights.oProj && getWeightBuffer) {
@@ -449,7 +423,7 @@ export async function recordLayerAttentionGPU(
   }
 
   let finalOutput = output;
-  /** @type {GPUBuffer[]} */
+  
   const buffersToTrack = [];
   if (output.buffer !== attnOutput.buffer) {
     buffersToTrack.push(attnOutput.buffer);

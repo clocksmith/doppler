@@ -1,11 +1,4 @@
-/**
- * KV Cache Module - Re-export facade
- *
- * This file re-exports from the kv-cache/ directory for backward compatibility.
- * New code should import directly from 'inference/kv-cache/index.js'.
- *
- * @module inference/kv-cache
- */
+
 
 export {
   // Type guards and utility functions

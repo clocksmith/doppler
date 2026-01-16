@@ -1,36 +1,20 @@
-/**
- * Standard Benchmark Prompts
- *
- * Fixed prompts for reproducible benchmarking.
- * Stored in repo (no network fetch during benchmark).
- *
- * @module tests/benchmark/prompts
- */
 
-/**
- * Extra-small prompt: 6-10 tokens
- * Minimal completion for quick testing
- */
+
+
 export const XS_PROMPT = {
   name: 'xs',
   text: 'The color of the sky is',
   expectedTokenCount: { min: 6, max: 10 },
 };
 
-/**
- * Short prompt: 16-64 tokens
- * Simple completion task
- */
+
 export const SHORT_PROMPT = {
   name: 'short',
   text: 'The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.',
   expectedTokenCount: { min: 16, max: 64 },
 };
 
-/**
- * Medium prompt: 256-512 tokens
- * Technical explanation task
- */
+
 export const MEDIUM_PROMPT = {
   name: 'medium',
   text: `Explain the concept of recursion in computer science. Start with a simple definition, then provide examples in pseudocode showing both base cases and recursive cases. Discuss the trade-offs between recursive and iterative solutions, including stack usage, readability, and performance considerations.
@@ -45,10 +29,7 @@ Provide concrete examples such as factorial calculation, tree traversal, and the
   expectedTokenCount: { min: 256, max: 512 },
 };
 
-/**
- * Long prompt: ~2048 tokens
- * Complex multi-part task
- */
+
 export const LONG_PROMPT = {
   name: 'long',
   text: `You are a senior software architect reviewing a system design proposal. The proposal describes a distributed caching system with the following requirements:
@@ -103,9 +84,7 @@ Provide your analysis in a structured format with clear recommendations and just
   expectedTokenCount: { min: 1800, max: 2200 },
 };
 
-/**
- * All standard prompts indexed by category
- */
+
 export const PROMPTS = {
   xs: XS_PROMPT,
   short: SHORT_PROMPT,
@@ -113,16 +92,12 @@ export const PROMPTS = {
   long: LONG_PROMPT,
 };
 
-/**
- * Get a prompt by category
- */
+
 export function getPrompt(category) {
   return PROMPTS[category];
 }
 
-/**
- * Get all prompt categories
- */
+
 export function getPromptCategories() {
   return ['xs', 'short', 'medium', 'long'];
 }

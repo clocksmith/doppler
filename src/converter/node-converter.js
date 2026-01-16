@@ -1,15 +1,5 @@
 #!/usr/bin/env node
-/**
- * Node.js Model Converter - Convert HuggingFace/GGUF models to RDRR format.
- *
- * This is a re-export facade that maintains backward compatibility.
- * The actual implementation is in the node-converter/ directory.
- *
- * Usage:
- *   npx tsx converter/node-converter.ts <input> <output> [options]
- *
- * @module converter/node-converter
- */
+
 
 // Re-export everything from the modular implementation
 export * from './node-converter/index.js';

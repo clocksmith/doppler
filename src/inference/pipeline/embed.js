@@ -1,6 +1,4 @@
-/**
- * Token embedding lookup with optional Gemma scaling.
- */
+
 
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
@@ -41,20 +39,12 @@ const scaleShaderCodeF16 = `
   }
 `;
 
-/** @type {GPUComputePipeline | null} */
+
 let scalePipeline = null;
-/** @type {GPUComputePipeline | null} */
+
 let scalePipelineF16 = null;
 
-/**
- * Record scale operation (batched, no submit)
- * @param {import('../../gpu/command-recorder.js').CommandRecorder} recorder
- * @param {GPUBuffer} inputBuffer
- * @param {number} scale
- * @param {number} count
- * @param {boolean} [useF16]
- * @returns {GPUBuffer}
- */
+
 export function recordScale(recorder, inputBuffer, scale, count, useF16 = false) {
   const device = recorder.device;
   const bytesPerElement = useF16 ? 2 : 4;
@@ -68,7 +58,7 @@ export function recordScale(recorder, inputBuffer, scale, count, useF16 = false)
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'scale_uniforms');
 
   // Select and cache appropriate pipeline
-  /** @type {GPUComputePipeline} */
+  
   let pipeline;
   if (useF16) {
     if (!scalePipelineF16) {
@@ -108,15 +98,7 @@ export function recordScale(recorder, inputBuffer, scale, count, useF16 = false)
   return outputBuffer;
 }
 
-/**
- * Scale GPU buffer (standalone, with submit)
- * @deprecated Use recordScale with CommandRecorder instead
- * @param {GPUBuffer} inputBuffer
- * @param {number} scale
- * @param {number} count
- * @param {boolean} [useF16]
- * @returns {Promise<GPUBuffer>}
- */
+
 export async function scaleGPUBuffer(inputBuffer, scale, count, useF16 = false) {
   const device = getDevice();
   if (!device) throw new Error('GPU device not available');
@@ -137,7 +119,7 @@ export async function scaleGPUBuffer(inputBuffer, scale, count, useF16 = false) 
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
   // Select and cache appropriate pipeline
-  /** @type {GPUComputePipeline} */
+  
   let pipeline;
   if (useF16) {
     if (!scalePipelineF16) {
@@ -186,17 +168,12 @@ export async function scaleGPUBuffer(inputBuffer, scale, count, useF16 = false) 
   return outputBuffer;
 }
 
-/**
- * @param {number[] | Uint32Array | GPUBuffer} tokenIds
- * @param {GPUBuffer | Float32Array | import('../../gpu/weight-buffer.js').CpuWeightBuffer} embedBuffer
- * @param {import('./embed.js').EmbedConfig} config
- * @returns {Promise<import('../../gpu/tensor.js').Tensor>}
- */
+
 export async function embed(tokenIds, embedBuffer, config) {
   const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false, activationDtype = 'f32', embeddingDtype = 'f32' } = config;
   const device = getDevice();
   const tokenBufferInput = tokenIds instanceof GPUBuffer;
-  const tokenIdArray = tokenBufferInput ? null : /** @type {number[] | Uint32Array} */ (tokenIds);
+  const tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
     ? (config.numTokens ?? 0)
     : (tokenIdArray?.length ?? 0);
@@ -207,7 +184,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   // Check if F16 output is requested and supported
   const caps = getKernelCapabilities();
   const useF16 = activationDtype === 'f16' && caps.hasF16;
-  /** @type {import('../../gpu/tensor.js').TensorDtype} */
+  
   const dtype = useF16 ? 'f16' : 'f32';
 
   const cpuEmbeddings = isCpuWeightBuffer(embedBuffer)
@@ -236,13 +213,13 @@ export async function embed(tokenIds, embedBuffer, config) {
     const output = new Float32Array(numTokens * hiddenSize);
     if (!transpose) {
       for (let t = 0; t < numTokens; t++) {
-        const tokenId = /** @type {number[] | Uint32Array} */ (tokenIdArray)[t];
+        const tokenId =  (tokenIdArray)[t];
         const srcOffset = tokenId * hiddenSize;
         output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
       }
     } else {
       for (let t = 0; t < numTokens; t++) {
-        const tokenId = /** @type {number[] | Uint32Array} */ (tokenIdArray)[t];
+        const tokenId =  (tokenIdArray)[t];
         const dstOffset = t * hiddenSize;
         for (let h = 0; h < hiddenSize; h++) {
           output[dstOffset + h] = cpuEmbeddings[h * vocabSize + tokenId];
@@ -301,7 +278,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     ? tokenIds
     : acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
   if (!tokenBufferInput) {
-    device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(/** @type {number[] | Uint32Array} */ (tokenIdArray)));
+    device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array( (tokenIdArray)));
   }
 
   // Use pre-allocated output buffer if provided, otherwise acquire from pool
@@ -310,7 +287,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   const gatherOptions = {
     outputBuffer: preAllocatedOutput,
     transpose,
-    outputDtype: useF16 ? /** @type {'f16'} */ ('f16') : /** @type {'f32'} */ ('f32'),
+    outputDtype: useF16 ?  ('f16') :  ('f32'),
     embeddingDtype,
     indexOffset,
   };
@@ -410,13 +387,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   return createTensor(scaledBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
 }
 
-/**
- * @param {GPUBuffer} buffer
- * @param {string} label
- * @param {number} numTokens
- * @param {number} hiddenSize
- * @returns {Promise<import('./embed.js').ValidationResult | null>}
- */
+
 export async function validateEmbedding(buffer, label, numTokens, hiddenSize) {
   const device = getDevice();
   if (!device) return null;

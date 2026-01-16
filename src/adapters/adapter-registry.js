@@ -1,11 +1,4 @@
-/**
- * Local Adapter Registry
- *
- * Persists adapter metadata to OPFS/IndexedDB for offline discovery.
- * Tracks available adapters without loading full weights into memory.
- *
- * @module adapters/adapter-registry
- */
+
 
 import { validateManifest } from './adapter-manifest.js';
 import { DEFAULT_ADAPTER_REGISTRY_CONFIG } from '../config/schema/index.js';
@@ -16,9 +9,7 @@ import { DEFAULT_ADAPTER_REGISTRY_CONFIG } from '../config/schema/index.js';
 
 const { dbName: DB_NAME, dbVersion: DB_VERSION, storeName: STORE_NAME } = DEFAULT_ADAPTER_REGISTRY_CONFIG;
 
-/**
- * IndexedDB-backed registry storage.
- */
+
 class IndexedDBStorage {
   #db = null;
   #initPromise = null;
@@ -131,9 +122,7 @@ class IndexedDBStorage {
 // In-Memory Storage (for Node.js or testing)
 // ============================================================================
 
-/**
- * In-memory registry storage (fallback for non-browser environments).
- */
+
 class MemoryStorage {
   #data = new Map();
 
@@ -162,9 +151,7 @@ class MemoryStorage {
 // Adapter Registry Class
 // ============================================================================
 
-/**
- * Local registry for tracking available LoRA adapters.
- */
+
 export class AdapterRegistry {
   #storage;
   #cache = new Map();
@@ -185,9 +172,7 @@ export class AdapterRegistry {
   // Registration
   // ==========================================================================
 
-  /**
-   * Registers an adapter in the registry.
-   */
+  
   async register(manifest, location) {
     // Validate manifest
     const validation = validateManifest(manifest);
@@ -222,9 +207,7 @@ export class AdapterRegistry {
     return entry;
   }
 
-  /**
-   * Registers an adapter from a URL (fetches manifest first).
-   */
+  
   async registerFromUrl(url) {
     const res = await fetch(url);
     if (!res.ok) {
@@ -243,18 +226,14 @@ export class AdapterRegistry {
   // Unregistration
   // ==========================================================================
 
-  /**
-   * Unregisters an adapter from the registry.
-   */
+  
   async unregister(id) {
     const deleted = await this.#storage.delete(id);
     this.#cache.delete(id);
     return deleted;
   }
 
-  /**
-   * Clears all entries from the registry.
-   */
+  
   async clear() {
     await this.#storage.clear();
     this.#cache.clear();
@@ -265,9 +244,7 @@ export class AdapterRegistry {
   // Query Methods
   // ==========================================================================
 
-  /**
-   * Gets an adapter entry by ID.
-   */
+  
   async get(id) {
     // Check cache first
     let entry = this.#cache.get(id);
@@ -288,9 +265,7 @@ export class AdapterRegistry {
     return entry || null;
   }
 
-  /**
-   * Lists adapters matching the given query.
-   */
+  
   async list(options = {}) {
     let entries = await this.#storage.getAll();
 
@@ -339,34 +314,26 @@ export class AdapterRegistry {
     return entries;
   }
 
-  /**
-   * Gets count of registered adapters.
-   */
+  
   async count(options = {}) {
     const entries = await this.list(options);
     return entries.length;
   }
 
-  /**
-   * Checks if an adapter is registered.
-   */
+  
   async has(id) {
     const entry = await this.#storage.get(id);
     return entry !== null;
   }
 
-  /**
-   * Gets all unique base models in the registry.
-   */
+  
   async getBaseModels() {
     const entries = await this.#storage.getAll();
     const models = new Set(entries.map(e => e.baseModel));
     return [...models].sort();
   }
 
-  /**
-   * Gets all unique tags in the registry.
-   */
+  
   async getTags() {
     const entries = await this.#storage.getAll();
     const tags = new Set();
@@ -384,9 +351,7 @@ export class AdapterRegistry {
   // Update Methods
   // ==========================================================================
 
-  /**
-   * Updates metadata for an adapter.
-   */
+  
   async updateMetadata(id, metadata) {
     const entry = await this.#storage.get(id);
     if (!entry) return null;
@@ -403,9 +368,7 @@ export class AdapterRegistry {
     return entry;
   }
 
-  /**
-   * Updates storage location for an adapter.
-   */
+  
   async updateLocation(id, location) {
     const entry = await this.#storage.get(id);
     if (!entry) return null;
@@ -424,17 +387,13 @@ export class AdapterRegistry {
   // Import/Export
   // ==========================================================================
 
-  /**
-   * Exports all registry entries as JSON.
-   */
+  
   async exportToJSON() {
     const entries = await this.#storage.getAll();
     return JSON.stringify(entries, null, 2);
   }
 
-  /**
-   * Imports registry entries from JSON.
-   */
+  
   async importFromJSON(json, options = {}) {
     let entries;
     try {
@@ -485,14 +444,10 @@ export class AdapterRegistry {
 // Default Instance
 // ============================================================================
 
-/**
- * Default global adapter registry instance.
- */
+
 let defaultRegistry = null;
 
-/**
- * Gets the default adapter registry instance.
- */
+
 export function getAdapterRegistry() {
   if (!defaultRegistry) {
     defaultRegistry = new AdapterRegistry();
@@ -500,16 +455,12 @@ export function getAdapterRegistry() {
   return defaultRegistry;
 }
 
-/**
- * Resets the default adapter registry (useful for testing).
- */
+
 export function resetAdapterRegistry() {
   defaultRegistry = null;
 }
 
-/**
- * Creates an in-memory registry for testing.
- */
+
 export function createMemoryRegistry() {
   return new AdapterRegistry(new MemoryStorage());
 }

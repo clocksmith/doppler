@@ -1,10 +1,4 @@
-/**
- * DOPPLER Benchmark Harness
- *
- * Public API for benchmarking.
- *
- * @module tests/benchmark
- */
+
 
 // Types
 export * from './types.js';

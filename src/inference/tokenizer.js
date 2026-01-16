@@ -1,10 +1,4 @@
-/**
- * Tokenizer Wrapper
- *
- * Provides a unified interface for tokenization across different backends.
- *
- * @module inference/tokenizer
- */
+
 
 import { log } from '../debug/index.js';
 import { BaseTokenizer } from './tokenizers/base.js';
@@ -12,23 +6,15 @@ import { TransformersTokenizer, BundledTokenizer } from './tokenizers/bundled.js
 import { SentencePieceTokenizer } from './tokenizers/sentencepiece.js';
 import { BPETokenizer } from './tokenizers/bpe.js';
 
-/**
- * Tokenizer wrapper that auto-detects backend from model manifest
- * This is a thin wrapper over the backend implementations
- */
+
 export class Tokenizer {
-  /** @type {import('./tokenizers/base.js').BaseTokenizer | null} */
+  
   backend = null;
 
-  /** @type {import('./tokenizers/types.js').TokenizerConfig | null} */
+  
   config = null;
 
-  /**
-   * Initialize from model manifest
-   * @param {import('./tokenizers/types.js').ModelManifest} manifest
-   * @param {{ baseUrl?: string }} [options]
-   * @returns {Promise<void>}
-   */
+  
   async initialize(manifest, options = {}) {
     const tokenizerConfig = manifest.tokenizer || {};
 
@@ -39,7 +25,7 @@ export class Tokenizer {
       this.backend = new BundledTokenizer(tokenizerConfig);
 
       const baseUrl = options.baseUrl;
-      /** @type {import('./tokenizers/types.js').HuggingFaceTokenizerJson | import('./tokenizers/types.js').BundledTokenizerJson | null} */
+      
       let tokenizerJson = null;
 
       // Try to load tokenizer.json
@@ -71,7 +57,7 @@ export class Tokenizer {
       }
 
       if (tokenizerJson) {
-        /** @type {import('./tokenizers/bundled.js').BundledTokenizer} */ (this.backend).load(tokenizerJson);
+         (this.backend).load(tokenizerJson);
         this.config = tokenizerConfig;
         return;
       }
@@ -97,13 +83,13 @@ export class Tokenizer {
         modelId: hfModel,
         ...tokenizerConfig
       });
-      await /** @type {import('./tokenizers/bundled.js').TransformersTokenizer} */ (this.backend).load(hfModel);
+      await  (this.backend).load(hfModel);
     } else if (tokenizerConfig.sentencepieceModel) {
       // Load SentencePiece model
       this.backend = new SentencePieceTokenizer(tokenizerConfig);
 
       // Load the model data from the provided source
-      /** @type {ArrayBuffer | undefined} */
+      
       let modelData;
       if (tokenizerConfig.sentencepieceModel instanceof ArrayBuffer) {
         modelData = tokenizerConfig.sentencepieceModel;
@@ -117,14 +103,14 @@ export class Tokenizer {
       }
 
       if (modelData) {
-        await /** @type {import('./tokenizers/sentencepiece.js').SentencePieceTokenizer} */ (this.backend).load(modelData);
+        await  (this.backend).load(modelData);
       } else {
         throw new Error('Could not load SentencePiece model data');
       }
     } else if (tokenizerConfig.vocab && tokenizerConfig.merges) {
       // BPE with vocab + merges
       this.backend = new BPETokenizer(tokenizerConfig);
-      /** @type {import('./tokenizers/bpe.js').BPETokenizer} */ (this.backend).load(tokenizerConfig.vocab, tokenizerConfig.merges);
+       (this.backend).load(tokenizerConfig.vocab, tokenizerConfig.merges);
     } else {
       throw new Error('No valid tokenizer configuration in manifest');
     }
@@ -132,11 +118,7 @@ export class Tokenizer {
     this.config = tokenizerConfig;
   }
 
-  /**
-   * Infer HuggingFace model ID from manifest architecture
-   * @param {import('./tokenizers/types.js').ModelManifest} manifest
-   * @returns {string | null}
-   */
+  
   _inferHuggingFaceModel(manifest) {
     const arch = typeof manifest.architecture === 'string'
       ? manifest.architecture
@@ -145,7 +127,7 @@ export class Tokenizer {
 
     // Map architecture names to public HuggingFace tokenizer repos
     // Using Xenova's repos where possible as they are optimized for Transformers.js
-    /** @type {Record<string, string>} */
+    
     const archToHF = {
       'gemma3': 'google/gemma-3-4b-it',    // Gemma 3 (fallback only - bundled tokenizer preferred)
       'gemma2': 'Xenova/gemma-tokenizer',
@@ -195,11 +177,7 @@ export class Tokenizer {
     return null;
   }
 
-  /**
-   * Encode text to token IDs
-   * @param {string} text
-   * @returns {number[]}
-   */
+  
   encode(text) {
     if (!this.backend) {
       throw new Error('Tokenizer not initialized');
@@ -207,13 +185,7 @@ export class Tokenizer {
     return this.backend.encode(text);
   }
 
-  /**
-   * Decode token IDs to text
-   * @param {number[]} ids
-   * @param {boolean} [skipSpecialTokens=true] - Whether to skip special tokens in output
-   * @param {boolean} [trim=true] - Whether to trim whitespace (default true, set false for streaming)
-   * @returns {string}
-   */
+  
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (!this.backend) {
       throw new Error('Tokenizer not initialized');
@@ -221,18 +193,12 @@ export class Tokenizer {
     return this.backend.decode(ids, skipSpecialTokens, trim);
   }
 
-  /**
-   * Get special tokens
-   * @returns {import('./tokenizers/types.js').SpecialTokens}
-   */
+  
   getSpecialTokens() {
     return this.backend?.specialTokens || {};
   }
 
-  /**
-   * Get vocabulary size
-   * @returns {number}
-   */
+  
   getVocabSize() {
     return this.backend?.getVocabSize() || 0;
   }

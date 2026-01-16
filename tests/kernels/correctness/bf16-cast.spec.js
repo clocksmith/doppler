@@ -1,8 +1,4 @@
-/**
- * BF16/F16/F32 Cast Kernel Correctness Tests
- *
- * Tests type conversion kernels that are critical for weight loading.
- */
+
 
 import { test, expect } from './setup.js';
 

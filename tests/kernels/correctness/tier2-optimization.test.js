@@ -1,12 +1,4 @@
-/**
- * Tier 2 P0 Kernel Optimization Tests
- *
- * Tests for the new optimized kernels:
- * - Attention decode kernel (optimized)
- * - Fused FFN kernel
- * - Kernel benchmark harness
- * - Performance profiler
- */
+
 
 import { test, expect } from '@playwright/test';
 

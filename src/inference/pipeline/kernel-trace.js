@@ -1,25 +1,4 @@
-/**
- * Kernel Pipeline Tracer - systematic debugging for GPU inference.
- *
- * The inference pipeline is a deterministic sequence of kernels:
- * embed -> [layer0: norm -> qkv -> rope -> attn -> ffn] -> ... -> final_norm -> lm_head -> sample
- *
- * Each kernel takes inputs and produces outputs. When output is garbage, ONE of these
- * kernels has wrong output. This tracer helps find which one, fast.
- *
- * Usage:
- *   // Enable tracing
- *   kernelTrace.enable({ breakOnAnomaly: true });
- *
- *   // In kernel wrappers, call recordStep (automatic with runtime debug trace config)
- *   kernelTrace.recordStep({ name: 'matmul', label: 'q_proj', ... });
- *
- *   // After inference, analyze
- *   const anomaly = kernelTrace.findAnomaly();
- *   log.info('KernelTrace', kernelTrace.getTimeline());
- *
- * @module inference/pipeline/kernel-trace
- */
+
 
 import { log, trace } from '../../debug/index.js';
 import { snapshotTensor as snapshotTensorImpl, snapshotFromArray as snapshotFromArrayImpl } from '../../debug/tensor.js';
@@ -28,24 +7,12 @@ import { snapshotTensor as snapshotTensorImpl, snapshotFromArray as snapshotFrom
 // Tensor Snapshot Utility
 // ============================================================================
 
-/**
- * Create a snapshot of a GPU tensor (requires readback - expensive!).
- * @param {GPUBuffer} buffer
- * @param {number[]} [shape]
- * @param {string} [dtype]
- * @returns {Promise<import('./kernel-trace.js').TensorSnapshot>}
- */
+
 export async function snapshotTensor(buffer, shape, dtype = 'f32') {
   return snapshotTensorImpl(buffer, shape, dtype);
 }
 
-/**
- * Create a snapshot from a Float32Array (CPU data).
- * @param {Float32Array} arr
- * @param {number[]} shape
- * @param {string} [dtype]
- * @returns {import('./kernel-trace.js').TensorSnapshot}
- */
+
 export function snapshotFromArray(arr, shape, dtype = 'f32') {
   return snapshotFromArrayImpl(arr, shape, dtype);
 }
@@ -54,33 +21,25 @@ export function snapshotFromArray(arr, shape, dtype = 'f32') {
 // KernelTrace Class
 // ============================================================================
 
-/**
- * Global kernel pipeline tracer.
- */
+
 class KernelTrace {
   constructor() {
-    /** @type {import('./kernel-trace.js').KernelStep[]} */
+    
     this._steps = [];
-    /** @type {boolean} */
+    
     this._enabled = false;
-    /** @type {import('./kernel-trace.js').TraceOptions} */
+    
     this._options = {};
-    /** @type {import('./kernel-trace.js').Anomaly[]} */
+    
     this._anomalies = [];
   }
 
-  /**
-   * Check if tracing is enabled.
-   * @returns {boolean}
-   */
+  
   get enabled() {
     return this._enabled;
   }
 
-  /**
-   * Enable tracing with options.
-   * @param {import('./kernel-trace.js').TraceOptions} [options]
-   */
+  
   enable(options = {}) {
     this._enabled = true;
     this._options = {
@@ -95,38 +54,27 @@ class KernelTrace {
     log.info('Trace', 'Kernel tracing enabled', this._options);
   }
 
-  /**
-   * Disable tracing and clear data.
-   */
+  
   disable() {
     this._enabled = false;
     this._steps = [];
     this._anomalies = [];
   }
 
-  /**
-   * Clear recorded steps without disabling.
-   */
+  
   clear() {
     this._steps = [];
     this._anomalies = [];
   }
 
-  /**
-   * Check if a layer should be traced.
-   * @param {number} layerIdx
-   * @returns {boolean}
-   */
+  
   shouldTraceLayer(layerIdx) {
     if (!this._enabled) return false;
     if (!this._options.layers?.length) return true;
     return this._options.layers.includes(layerIdx);
   }
 
-  /**
-   * Record a kernel step.
-   * @param {import('./kernel-trace.js').KernelStep} step
-   */
+  
   recordStep(step) {
     if (!this._enabled) return;
 
@@ -151,12 +99,7 @@ class KernelTrace {
     }
   }
 
-  /**
-   * Detect anomaly in a step's output.
-   * @param {import('./kernel-trace.js').KernelStep} step
-   * @param {number} stepIdx
-   * @returns {import('./kernel-trace.js').Anomaly | null}
-   */
+  
   _detectAnomaly(step, stepIdx) {
     const { output } = step;
 
@@ -216,10 +159,7 @@ class KernelTrace {
     return null;
   }
 
-  /**
-   * Log an anomaly via the debug module with visual markers.
-   * @param {import('./kernel-trace.js').Anomaly} anomaly
-   */
+  
   _logAnomaly(anomaly) {
     const marker = anomaly.severity === 'critical' ? '[CRITICAL]' : '[WARNING]';
     const logFn = anomaly.severity === 'critical' ? log.error : log.warn;
@@ -230,55 +170,36 @@ class KernelTrace {
     trace.kernels(`Sample: [${anomaly.step.output.sample.slice(0, 5).map(v => v.toFixed(4)).join(', ')}]`);
   }
 
-  /**
-   * Find the first anomaly in the recorded steps.
-   * @returns {import('./kernel-trace.js').Anomaly | null}
-   */
+  
   findAnomaly() {
     return this._anomalies.length > 0 ? this._anomalies[0] : null;
   }
 
-  /**
-   * Get all anomalies.
-   * @returns {import('./kernel-trace.js').Anomaly[]}
-   */
+  
   getAnomalies() {
     return [...this._anomalies];
   }
 
-  /**
-   * Get the last recorded step.
-   * @returns {import('./kernel-trace.js').KernelStep | null}
-   */
+  
   lastStep() {
     return this._steps.length > 0 ? this._steps[this._steps.length - 1] : null;
   }
 
-  /**
-   * Get the last N steps.
-   * @param {number} n
-   * @returns {import('./kernel-trace.js').KernelStep[]}
-   */
+  
   getLastNSteps(n) {
     return this._steps.slice(-n);
   }
 
-  /**
-   * Get all recorded steps.
-   * @returns {import('./kernel-trace.js').KernelStep[]}
-   */
+  
   getSteps() {
     return [...this._steps];
   }
 
-  /**
-   * Format pipeline timeline as string.
-   * @returns {string}
-   */
+  
   getTimeline() {
     if (this._steps.length === 0) return '[TRACE] No steps recorded';
 
-    /** @type {string[]} */
+    
     const lines = [];
     lines.push('+-----------------------------------------------------------------+');
     lines.push('| KERNEL PIPELINE TRACE                                           |');
@@ -321,10 +242,7 @@ class KernelTrace {
     return lines.join('\n');
   }
 
-  /**
-   * Export trace as JSON for comparison/analysis.
-   * @returns {string}
-   */
+  
   toJSON() {
     return JSON.stringify({
       steps: this._steps,
@@ -333,10 +251,7 @@ class KernelTrace {
     }, null, 2);
   }
 
-  /**
-   * Dump the last N steps with full details via debug log/trace.
-   * @param {number} [n]
-   */
+  
   dumpLastNSteps(n = 5) {
     const steps = this.getLastNSteps(n);
     log.info('Trace', `Last ${steps.length} steps:`);
@@ -355,27 +270,14 @@ class KernelTrace {
 // Global Singleton
 // ============================================================================
 
-/**
- * Global kernel trace instance.
- * Enable with: kernelTrace.enable({ breakOnAnomaly: true })
- */
+
 export const kernelTrace = new KernelTrace();
 
 // ============================================================================
 // Convenience: Record Step Helper
 // ============================================================================
 
-/**
- * Helper to record a step if tracing is enabled.
- * Use this in kernel wrappers for minimal overhead when tracing is off.
- * @param {string} name
- * @param {string} label
- * @param {number} layer
- * @param {GPUBuffer} outputBuffer
- * @param {number[]} outputShape
- * @param {{ inputs?: GPUBuffer[]; inputShapes?: number[][]; variant?: string; timeMs?: number }} [options]
- * @returns {Promise<void>}
- */
+
 export async function traceStep(name, label, layer, outputBuffer, outputShape, options) {
   if (!kernelTrace.enabled) return;
   if (layer >= 0 && !kernelTrace.shouldTraceLayer(layer)) return;
@@ -383,7 +285,7 @@ export async function traceStep(name, label, layer, outputBuffer, outputShape, o
   const output = await snapshotTensor(outputBuffer, outputShape);
 
   // Snapshot inputs if provided (expensive - only do if tracing)
-  /** @type {import('./kernel-trace.js').TensorSnapshot[]} */
+  
   const inputs = [];
   if (options?.inputs && options?.inputShapes) {
     for (let i = 0; i < options.inputs.length; i++) {
@@ -403,15 +305,7 @@ export async function traceStep(name, label, layer, outputBuffer, outputShape, o
   });
 }
 
-/**
- * Sync version for when you already have the data as Float32Array.
- * @param {string} name
- * @param {string} label
- * @param {number} layer
- * @param {Float32Array} outputData
- * @param {number[]} outputShape
- * @param {{ variant?: string; timeMs?: number }} [options]
- */
+
 export function traceStepSync(name, label, layer, outputData, outputShape, options) {
   if (!kernelTrace.enabled) return;
   if (layer >= 0 && !kernelTrace.shouldTraceLayer(layer)) return;
