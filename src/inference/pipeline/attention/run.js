@@ -356,7 +356,10 @@ export async function runLayerAttentionGPU(
   // See: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py
   if (hasQNorm && getNormWeightBuffer && layerWeights.qNorm) {
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
-    const qElems = qNormBuf.size / 4;
+    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
+    const qElemsF32 = qNormBuf.size / 4;
+    const qElemsF16 = qNormBuf.size / 2;
+    const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
     if (layerIdx === 0 && isPrefill) {
       trace.attn(layerIdx, `Q_NORM: qElems=${qElems}, headDim=${headDim}, match=${qElems === headDim}, bufSize=${qNormBuf.size}`);
     }
@@ -382,7 +385,10 @@ export async function runLayerAttentionGPU(
 
   if (hasKNorm && getNormWeightBuffer && layerWeights.kNorm) {
     const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
-    const kElems = kNormBuf.size / 4;
+    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
+    const kElemsF32 = kNormBuf.size / 4;
+    const kElemsF16 = kNormBuf.size / 2;
+    const kElems = kElemsF32 === headDim ? kElemsF32 : kElemsF16;
     if (kElems === headDim) {
       const kNormedTensor = await runRMSNorm(kTensor, kNormBuf, rmsNormEps, {
         batchSize: numTokens * numKVHeads,

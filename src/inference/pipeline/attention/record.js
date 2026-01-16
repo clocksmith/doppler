@@ -255,7 +255,10 @@ export async function recordLayerAttentionGPU(
   }
   if (layerWeights.qNorm && getNormWeightBuffer) {
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
-    const qElems = qNormBuf.size / 4;
+    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
+    const qElemsF32 = qNormBuf.size / 4;
+    const qElemsF16 = qNormBuf.size / 2;
+    const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
     if (qElems === headDim) {
       const qNormedTensor = await recordRMSNorm(recorder, qTensor, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,
@@ -270,7 +273,10 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.kNorm && getNormWeightBuffer) {
     const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
-    const kElems = kNormBuf.size / 4;
+    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
+    const kElemsF32 = kNormBuf.size / 4;
+    const kElemsF16 = kNormBuf.size / 2;
+    const kElems = kElemsF32 === headDim ? kElemsF32 : kElemsF16;
     if (kElems === headDim) {
       const kNormedTensor = await recordRMSNorm(recorder, kTensor, kNormBuf, rmsNormEps, {
         batchSize: numTokens * numKVHeads,
