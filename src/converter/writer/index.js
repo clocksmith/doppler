@@ -22,6 +22,13 @@ export { TokenizerWriter } from './tokenizer-writer.js';
 // Re-export test model helper
 export { createTestModel } from '../test-model.js';
 
+function resolveExpertFormat(config, modelType) {
+  const rawType = (modelType ?? config?.model_type ?? config?.text_config?.model_type ?? '').toLowerCase();
+  if (rawType.includes('gpt_oss') || rawType.includes('gpt-oss') || rawType.includes('gptoss')) {
+    return 'gpt-oss';
+  }
+  return 'mixtral';
+}
 
 export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {}) {
   const config = modelInfo.config;
@@ -60,8 +67,12 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
         config.num_experts_per_token ||
         config.experts_per_token ||
         2;
-      writer.setMoEConfig({ numExperts, numExpertsPerToken });
-      log.verbose('writeRDRR', `MoE config: ${numExperts} experts, ${numExpertsPerToken} active per token`);
+      const expertFormat = resolveExpertFormat(config, options.modelType);
+      writer.setMoEConfig({ numExperts, numExpertsPerToken, expertFormat });
+      log.verbose(
+        'writeRDRR',
+        `MoE config: ${numExperts} experts, ${numExpertsPerToken} active per token (${expertFormat})`
+      );
     }
 
     if (options.conversion) {

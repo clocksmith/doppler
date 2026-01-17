@@ -500,7 +500,7 @@ describe('formats/rdrr/parsing', () => {
 
     it('returns true when moeConfig present', () => {
       const manifest = createValidManifest({
-        moeConfig: { numExperts: 8, numExpertsPerToken: 2 },
+        moeConfig: { numExperts: 8, numExpertsPerToken: 2, expertFormat: 'mixtral' },
       });
       setManifest(manifest);
 
@@ -644,7 +644,7 @@ describe('formats/rdrr/validation', () => {
 
     it('validates MoE config', () => {
       const manifest = createValidManifest({
-        moeConfig: { numExperts: 0, numExpertsPerToken: 2 },
+        moeConfig: { numExperts: 0, numExpertsPerToken: 2, expertFormat: 'mixtral' },
       });
       const result = validateManifest(manifest);
 
@@ -654,7 +654,7 @@ describe('formats/rdrr/validation', () => {
 
     it('fails when numExpertsPerToken exceeds numExperts', () => {
       const manifest = createValidManifest({
-        moeConfig: { numExperts: 2, numExpertsPerToken: 4 },
+        moeConfig: { numExperts: 2, numExpertsPerToken: 4, expertFormat: 'mixtral' },
       });
       const result = validateManifest(manifest);
 

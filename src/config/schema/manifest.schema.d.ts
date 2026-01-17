@@ -241,7 +241,7 @@ export interface ManifestLayerPatternSchema {
  */
 export interface ManifestChatTemplateSchema {
   /** Chat template type (null = no chat template) */
-  type: 'gemma' | 'llama3' | 'chatml' | 'qwen' | null;
+  type: 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | null;
   /** Whether chat template is enabled */
   enabled: boolean;
 }
@@ -327,6 +327,8 @@ export interface ComponentGroupSchema {
 export interface MoEConfigSchema {
   numExperts: number;
   numExpertsPerToken: number;
+  /** Expert tensor format (required for MoE models) */
+  expertFormat: 'mixtral' | 'gpt-oss';
   sharedExperts?: number[];
   expertShardMap?: Record<string, number[]>;
   expertTensors?: Record<string, string[]>;

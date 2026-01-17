@@ -426,6 +426,7 @@ describe('loader/manifest - manifest parsing', () => {
         moeConfig: {
           numExperts: 8,
           numExpertsPerToken: 2,
+          expertFormat: 'mixtral',
         },
       });
       expect(moeManifest.moeConfig).not.toBeNull();
@@ -591,7 +592,7 @@ describe('loader/manifest - manifest config helpers', () => {
 
     it('returns true when moeConfig present', () => {
       const manifest = createValidManifest({
-        moeConfig: { numExperts: 8, numExpertsPerToken: 2 },
+        moeConfig: { numExperts: 8, numExpertsPerToken: 2, expertFormat: 'mixtral' },
       });
       expect(manifest.moeConfig != null).toBe(true);
     });

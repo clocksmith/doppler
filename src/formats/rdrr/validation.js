@@ -99,6 +99,11 @@ export function validateManifest(manifest) {
     if (typeof moe.numExpertsPerToken !== 'number' || moe.numExpertsPerToken <= 0) {
       errors.push('Invalid moeConfig.numExpertsPerToken');
     }
+    if (typeof moe.expertFormat !== 'string') {
+      errors.push('Invalid moeConfig.expertFormat');
+    } else if (moe.expertFormat !== 'mixtral' && moe.expertFormat !== 'gpt-oss') {
+      errors.push(`Invalid moeConfig.expertFormat: ${moe.expertFormat}`);
+    }
     if (moe.numExpertsPerToken > moe.numExperts) {
       errors.push('numExpertsPerToken cannot exceed numExperts');
     }

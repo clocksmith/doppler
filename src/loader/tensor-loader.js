@@ -7,12 +7,27 @@ import { createTensor } from '../gpu/tensor.js';
 import { createWeightBuffer } from '../gpu/weight-buffer.js';
 import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout } from './dtype-utils.js';
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
-import { trace as debugTrace } from '../debug/index.js';
+import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
 // ============================================================================
 // Q4K Detection
 // ============================================================================
+
+let loggedF32UpcastNonMatmul = false;
+
+function logF32UpcastNonMatmul(name, numElements, bufferSize) {
+  if (loggedF32UpcastNonMatmul) {
+    return;
+  }
+  loggedF32UpcastNonMatmul = true;
+  log.warn(
+    'Loader',
+    `F16->F32 upcast for non-matmul weights enabled ` +
+    `(runtime.loading.allowF32UpcastNonMatmul=true). ` +
+    `Example: ${name} (${numElements} elements, bufSize=${bufferSize}).`
+  );
+}
 
 
 export function isPackedQ4K(location) {
@@ -267,6 +282,7 @@ export async function loadFloat(shardData, location, name, config) {
       );
     }
     const numElements = location.shape.reduce((a, b) => a * b, 1);
+    logF32UpcastNonMatmul(name, numElements, buffer.size);
     debugTrace.loader(`F16→F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
     const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);
     const f32Tensor = await castF16ToF32(inputTensor);

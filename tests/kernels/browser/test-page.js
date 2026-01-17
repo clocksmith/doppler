@@ -527,7 +527,7 @@ const testHarness = {
     const idxTensor = createTensor(idxBuf, 'u32', [numTokens], 'gather_indices');
 
     // Test data uses standard [vocab_size, hidden_size] layout, not GGUF [hidden_size, vocab_size]
-    const resultTensor = await runGather(idxTensor.buffer, embTensor.buffer, numTokens, embedDim, vocabSize, { transpose: false });
+    const resultTensor = await runGather(idxTensor.buffer, embTensor.buffer, numTokens, embedDim, vocabSize, { transpose: false, embeddingDtype: 'f32', outputDtype: 'f32' });
     let result;
     if (resultTensor.dtype === 'f16') {
       const rawData = await readBufferData(resultTensor.buffer, numTokens * embedDim * 2);

@@ -612,7 +612,7 @@ describe('loader/layer - MoE handling', () => {
 
     it('detects MoE from moeConfig', () => {
       const manifest = {
-        moeConfig: { numExperts: 8, numExpertsPerToken: 2 },
+        moeConfig: { numExperts: 8, numExpertsPerToken: 2, expertFormat: 'mixtral' },
       };
       const isMoE = manifest.moeConfig != null;
       expect(isMoE).toBe(true);

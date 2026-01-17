@@ -194,7 +194,8 @@
           "wgsl": "matmul_f32.wgsl",
           "entryPoint": "main",
           "workgroup": [16, 16, 1],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         }
       }
     },

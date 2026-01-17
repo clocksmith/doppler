@@ -51,5 +51,5 @@ export const DEFAULT_LOADING_CONFIG = {
   memoryManagement: DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   opfsPath: DEFAULT_OPFS_PATH_CONFIG,
   expertCache: DEFAULT_EXPERT_CACHE_CONFIG,
-  allowF32UpcastNonMatmul: true,
+  allowF32UpcastNonMatmul: false,
 };

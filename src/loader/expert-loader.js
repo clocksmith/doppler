@@ -146,32 +146,35 @@ async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
 
 function resolveExpertFormat(ctx) {
   const manifest = ctx.manifest ?? {};
-  const config = manifest.config ?? {};
-  const textConfig = config.text_config ?? {};
-  const manifestModelType = manifest.modelType;
-  const configModelType = config.model_type ?? textConfig.model_type ?? null;
-
-  if (manifestModelType === 'gpt-oss' || configModelType === 'gpt_oss') {
-    return 'gpt-oss';
+  const moeConfig = manifest.moeConfig ?? null;
+  const modelId = manifest.modelId ?? 'unknown';
+  if (!moeConfig) {
+    throw new Error(
+      `[MoE] Manifest "${modelId}" missing moeConfig. ` +
+      'Re-convert the model using the latest converter.'
+    );
   }
 
-  return 'mixtral';
+  const expertFormat = moeConfig.expertFormat;
+  if (expertFormat === 'gpt-oss' || expertFormat === 'mixtral') {
+    return expertFormat;
+  }
+  if (expertFormat == null) {
+    throw new Error(
+      `[MoE] Manifest "${modelId}" missing moeConfig.expertFormat. ` +
+      'Re-convert the model using the latest converter.'
+    );
+  }
+  throw new Error(`[MoE] Manifest "${modelId}" has invalid expertFormat "${expertFormat}".`);
 }
 
 function resolveGptOssNumExperts(ctx) {
   const manifest = ctx.manifest ?? {};
-  const config = manifest.config ?? {};
-  const textConfig = config.text_config ?? {};
-  const numExperts = config.num_local_experts ??
-    config.num_experts ??
-    textConfig.num_local_experts ??
-    textConfig.num_experts ??
-    manifest.moeConfig?.numExperts ??
-    null;
+  const numExperts = manifest.moeConfig?.numExperts ?? null;
 
   if (numExperts == null) {
     const modelId = manifest.modelId ?? 'unknown';
-    throw new Error(`[MoE] GPT-OSS manifest "${modelId}" missing num_local_experts/num_experts`);
+    throw new Error(`[MoE] GPT-OSS manifest "${modelId}" missing moeConfig.numExperts`);
   }
 
   return numExperts;
