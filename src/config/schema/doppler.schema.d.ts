@@ -18,6 +18,7 @@ import type { ResolvedConfigSchema } from './preset.schema.js';
 import type { LoadingConfigSchema } from './loading.schema.js';
 import type { InferenceDefaultsConfigSchema } from './inference-defaults.schema.js';
 import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
+import type { EmulationConfigSchema } from './emulation.schema.js';
 
 /**
  * Runtime configuration schema.
@@ -34,6 +35,9 @@ export interface RuntimeConfigSchema {
 
   /** Batching, sampling, tokenizer defaults */
   inference: InferenceDefaultsConfigSchema;
+
+  /** NVIDIA superchip emulation settings */
+  emulation: EmulationConfigSchema;
 }
 
 /** Default runtime configuration */

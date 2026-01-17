@@ -24,6 +24,7 @@ import type { RuntimeConfigSchema, KernelPathRef, KernelPathSchema } from '../..
 import type { WeightDebugFlags } from './weights.js';
 import type { LogitsDebugFlags } from './logits.js';
 import type { KernelPathSource } from '../../config/kernel-path-loader.js';
+import type { EmulationContext } from '../../gpu/emulation/index.js';
 
 export class PipelineState {
   // Components
@@ -32,6 +33,9 @@ export class PipelineState {
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;
+
+  // Emulation context (null when emulation is disabled)
+  emulation: EmulationContext | null;
 
   // Debug flags (combined for both layer and logits)
   debugFlags: WeightDebugFlags & LogitsDebugFlags;

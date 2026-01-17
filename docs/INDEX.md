@@ -13,6 +13,7 @@ Quick index for DOPPLER documentation.
 - [Testing](TESTING.md) - Testing strategy, kernel testing, known-good matrix.
 - [Roadmap](ROADMAP.md) - Vision, plans, competitive notes.
 - [Postmortems](POSTMORTEMS.md) - Incident summaries and links.
+- [Traction](TRACTION.md) - Performance metrics, VRAM constraints, browser matrix, failure modes.
 
 ---
 

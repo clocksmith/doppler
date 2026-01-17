@@ -5,6 +5,7 @@ import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { log, applyDebugConfig, setGPUDevice } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import { detectPreset, resolvePreset } from '../config/loader.js';
 import {
   resolveKernelPath,
   getKernelPathStats,
@@ -26,6 +27,8 @@ import {
   initMoERouter,
   initSpeculativeDecoder,
   fuseQKVWeights,
+  initEmulation,
+  destroyEmulation,
 } from './pipeline/init.js';
 import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { resolveLayerPipeline } from './pipeline/layer-plan.js';
@@ -84,6 +87,8 @@ export class InferencePipeline extends PipelineState {
 
     const device = getDevice();
     if (device) setGPUDevice(device);
+
+    this.emulation = await initEmulation(this.runtimeConfig);
 
     this.debug = sharedDebug.pipeline.enabled === true;
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
@@ -173,8 +178,16 @@ export class InferencePipeline extends PipelineState {
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
-    // Initialize tokenizer
-    this.tokenizer = await initTokenizer(manifest, this.baseUrl ?? undefined);
+    // Initialize tokenizer with preset fallback hints
+    const presetId = manifest.inference?.presetId ?? detectPreset(manifest.config || {}, manifest.modelType);
+    if (!manifest.inference?.presetId) {
+      log.warn('Pipeline', 'Manifest inference missing presetId; falling back to preset detection. Re-convert model to embed presetId.');
+    }
+    const preset = resolvePreset(presetId);
+    this.tokenizer = await initTokenizer(manifest, {
+      baseUrl: this.baseUrl ?? undefined,
+      presetTokenizer: preset?.tokenizer,
+    });
     const tokenizerVocabSize = this.tokenizer.getVocabSize();
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
       if (tokenizerVocabSize !== this.modelConfig.vocabSize) {
@@ -373,6 +386,10 @@ export class InferencePipeline extends PipelineState {
       stats.used += kvStats.allocated || 0;
     }
 
+    if (this.emulation?.config?.statsEnabled) {
+      stats.emulation = this.emulation.getStats();
+    }
+
     return stats;
   }
 
@@ -394,6 +411,8 @@ export class InferencePipeline extends PipelineState {
 
   
   async unload() {
+    await destroyEmulation(this.emulation);
+    this.emulation = null;
     this.kvCache?.clear();
     this.weights.clear();
     this.expertWeights.clear();

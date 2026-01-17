@@ -10,6 +10,11 @@ import {
   verifyHotSwapManifest,
 } from '../hotswap/manifest.js';
 import { setHotSwapManifest } from '../hotswap/runtime.js';
+import {
+  fetchIntentBundle,
+  getKernelRegistryVersion,
+  verifyIntentBundle,
+} from '../hotswap/intent-bundle.js';
 
 
 
@@ -173,6 +178,7 @@ export async function initializeInference(modelUrl, options = {}) {
   }
 
   const hotSwapConfig = getRuntimeConfig().shared.hotSwap;
+  const intentBundleConfig = getRuntimeConfig().shared.intentBundle;
   if (hotSwapConfig.enabled && hotSwapConfig.manifestUrl) {
     onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
     log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
@@ -201,6 +207,28 @@ export async function initializeInference(modelUrl, options = {}) {
 
   const manifestUrl = `${modelUrl}/manifest.json`;
   const manifest = await fetchManifest(manifestUrl);
+
+  if (intentBundleConfig.enabled && intentBundleConfig.bundleUrl) {
+    onProgress('intent', 0.12, 'Loading intent bundle...');
+    log(`Intent bundle: loading ${intentBundleConfig.bundleUrl}`);
+    const bundle = await fetchIntentBundle(intentBundleConfig.bundleUrl);
+    const kernelRegistryVersion = intentBundleConfig.requireKernelRegistryVersion
+      ? await getKernelRegistryVersion()
+      : null;
+    const verification = await verifyIntentBundle(bundle, {
+      manifest: intentBundleConfig.requireBaseModelHash ? manifest : null,
+      kernelRegistryVersion,
+      enforceDeterministicOutput: intentBundleConfig.enforceDeterministicOutput,
+    });
+    if (!verification.ok) {
+      const reason = verification.reasons?.length
+        ? `${verification.reason}: ${verification.reasons.join('; ')}`
+        : verification.reason;
+      throw new Error(`Intent bundle rejected: ${reason}`);
+    }
+    log(`Intent bundle accepted (${verification.reason})`);
+    intentBundleConfig.bundle = bundle;
+  }
 
   const modelLabel = typeof manifest.architecture === 'string'
     ? manifest.architecture

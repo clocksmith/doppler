@@ -211,6 +211,16 @@ When adding a new inference knob or model behavior:
 - Force `f32` only when required (no `shader-f16`) or explicitly configured (e.g., `runtime.inference.kvcache.forceF32Softcap` for softcapping).
 - Do not introduce new defaults that silently upgrade to `f32`.
 
+### Performance Invariants (F32 Policy)
+
+F32 is a correctness fallback, not a performance default. When `shader-f16` is available:
+
+- Prefer `f16` for activations, KV cache, and intermediate buffers.
+- Any `f32` path must be explicitly configured (manifest or runtime) and logged once per session.
+- Avoid hidden dtype escalation via runtime fallbacks; use schema defaults and explicit switches.
+
+If `shader-f16` is unavailable, `f32` is required and should be treated as a capability constraint, not an optimization.
+
 ### Preset Separation
 
 **Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.

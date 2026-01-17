@@ -38,7 +38,8 @@
           "wgsl": "matmul_f16w_f32a.wgsl",
           "entryPoint": "main",
           "workgroup": [16, 16, 1],
-          "requires": ["shader-f16"]
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         },
         "gemv": {
           "wgsl": "matmul_gemv.wgsl",
@@ -110,6 +111,7 @@
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16", "subgroups"],
+          "outputDtype": "f32",
           "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup"
         },
@@ -127,6 +129,7 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"],
+          "outputDtype": "f32",
           "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
         },
         "q4_fused_f16a": {
@@ -141,6 +144,7 @@
           "entryPoint": "main_batched",
           "workgroup": [64, 4, 1],
           "requires": ["subgroups"],
+          "outputDtype": "f32",
           "variantMetadata": { "tileM": 4 }
         },
         "q4_fused_multicol": {
@@ -148,6 +152,7 @@
           "entryPoint": "main_multicol",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"],
+          "outputDtype": "f32",
           "variantMetadata": { "colsPerWg": 32 },
           "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup"
         },

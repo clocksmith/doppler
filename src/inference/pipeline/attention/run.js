@@ -156,7 +156,7 @@ export async function runLayerAttentionGPU(
   const useF16Activations = attentionInput.dtype === 'f16';
   const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16: useF16Activations,
-    fallback: undefined,
+    fallback: attentionInput.dtype,
   });
   
   let qTensor;
@@ -360,9 +360,6 @@ export async function runLayerAttentionGPU(
     const qElemsF32 = qNormBuf.size / 4;
     const qElemsF16 = qNormBuf.size / 2;
     const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
-    if (layerIdx === 0 && isPrefill) {
-      trace.attn(layerIdx, `Q_NORM: qElems=${qElems}, headDim=${headDim}, match=${qElems === headDim}, bufSize=${qNormBuf.size}`);
-    }
     if (qElems === headDim) {
       const qNormedTensor = await runRMSNorm(qTensor, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,

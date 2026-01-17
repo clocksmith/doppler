@@ -48,6 +48,15 @@ npm run debug -- --config debug -m MODEL 2>&1 | grep -E "Error|NaN|Inf|ANOMALY"
 npm run debug -- --config ./trace-category.json -m MODEL 2>&1 | grep -E "TRACE|maxAbs"
 ```
 
+Note: The Step 1 grep only shows harness completion signals. Loader/manifest errors often occur
+before the harness starts, so they will be hidden by that filter. If you suspect a load failure,
+rerun without grep or with a broader filter like "Error|ERROR|Manifest|loader".
+
+Example (manifest validation error):
+```bash
+npm run debug -- --config debug -m MODEL 2>&1 | grep -E "Manifest|inference config|Error|ERROR"
+```
+
 ## Trace Categories (Choose Based on Triage)
 
 | Category | When to Use |

@@ -4,13 +4,33 @@
   "extends": "mixtral",
   "modelType": "gpt-oss",
 
+  "architecture": {
+    "vocabSize": 201088,
+    "ropeTheta": 150000,
+    "rmsNormEps": 1e-5
+  },
+
   "inference": {
     "attention": {
-      "slidingWindow": 128
+      "slidingWindow": 128,
+      "attentionBias": true
+    },
+    "rope": {
+      "ropeTheta": 150000,
+      "ropeScalingType": "yarn",
+      "ropeScalingFactor": 32.0,
+      "yarnBetaFast": 32.0,
+      "yarnBetaSlow": 1.0,
+      "yarnOriginalMaxPos": 4096
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true
     },
     "layerPattern": {
       "type": "alternating",
-      "globalPattern": "odd"
+      "globalPattern": "odd",
+      "period": null
     },
     "chatTemplate": {
       "type": "gpt-oss",
@@ -18,8 +38,18 @@
     }
   },
 
+  "tokenizer": {
+    "bosToken": "<|startoftext|>",
+    "eosTokens": ["<|return|>"],
+    "padToken": "<|endoftext|>",
+    "addBosToken": true,
+    "addEosToken": false,
+    "hfModel": "openai/gpt-oss-20b",
+    "allowArchFallback": false
+  },
+
   "detection": {
-    "architecturePatterns": ["gptoss", "GptOssForCausalLM"],
+    "architecturePatterns": ["gptoss", "gpt-oss", "GptOssForCausalLM", "gpt_oss"],
     "modelTypePatterns": ["gpt_oss", "gpt-oss"],
     "configPatterns": {
       "num_local_experts": 32

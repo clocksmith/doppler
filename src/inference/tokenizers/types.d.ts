@@ -35,6 +35,8 @@ export interface TokenizerConfig {
   /** HuggingFace model ID */
   modelId?: string;
   hfModel?: string;
+  /** Allow architecture-based HuggingFace fallback */
+  allowArchFallback?: boolean;
   /** SentencePiece model data or path */
   sentencepieceModel?: ArrayBuffer | string;
   /** BPE vocabulary */

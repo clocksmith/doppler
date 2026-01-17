@@ -39,7 +39,7 @@ export async function runDenseFFNGPU(
     const useF16 = inputTensor.dtype === 'f16';
     const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
       useF16,
-      fallback: undefined,
+      fallback: inputTensor.dtype,
     });
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
@@ -256,7 +256,7 @@ export async function runDenseFFNGPU(
   const useF16 = inputTensor.dtype === 'f16';
   const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16,
-    fallback: undefined,
+    fallback: inputTensor.dtype,
   });
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
   let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_gate' }, recorder);
@@ -429,7 +429,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   const useF16 = inputTensor.dtype === 'f16';
   const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16,
-    fallback: undefined,
+    fallback: inputTensor.dtype,
   });
 
   if (layerWeights.gateUp) {

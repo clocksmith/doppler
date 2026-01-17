@@ -10,6 +10,25 @@
     #status { margin-bottom: var(--space-md); }
     #results { display: none; }
     #results.show { display: block; }
+    #log-panel {
+      margin-top: var(--space-md);
+      padding: var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+      max-height: 40vh;
+      overflow: auto;
+      background: var(--bg);
+    }
+    .log-line {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 2px;
+    }
+    .log-level {
+      opacity: var(--opacity-muted);
+      margin-right: var(--space-xs);
+    }
     .section { margin-bottom: var(--space-md); }
     .output {
       padding: var(--space-sm);
@@ -29,8 +48,76 @@
   <h1 class="type-h1" id="title">DOPPLER TEST HARNESS</h1>
   <div id="status" class="muted type-caption">Initializing...</div>
   <div id="results"></div>
+  <div id="log-panel" class="type-caption"></div>
 
   <script type="module">
+    // ==========================================================================
+    // Log Bridge: console -> UI + stdout (Playwright)
+    // ==========================================================================
+
+    const logPanel = document.getElementById('log-panel');
+    const originalConsole = {
+      log: console.log.bind(console),
+      error: console.error.bind(console),
+      warn: console.warn.bind(console),
+      debug: console.debug.bind(console),
+    };
+
+    function formatArg(arg) {
+      if (arg instanceof Error) {
+        return arg.stack || arg.message;
+      }
+      if (typeof arg === 'string') return arg;
+      if (arg === null || arg === undefined) return String(arg);
+      try {
+        return JSON.stringify(arg);
+      } catch {
+        return String(arg);
+      }
+    }
+
+    function appendLog(level, args) {
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      const label = document.createElement('span');
+      label.className = 'log-level';
+      label.textContent = `[${level}]`;
+      line.appendChild(label);
+      line.append(` ${args.map(formatArg).join(' ')}`);
+      logPanel.appendChild(line);
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+
+    console.log = (...args) => {
+      appendLog('log', args);
+      originalConsole.log(...args);
+    };
+
+    console.error = (...args) => {
+      appendLog('error', args);
+      originalConsole.error(...args);
+    };
+
+    console.warn = (...args) => {
+      appendLog('warn', args);
+      originalConsole.warn(...args);
+    };
+
+    console.debug = (...args) => {
+      appendLog('debug', args);
+      originalConsole.debug(...args);
+    };
+
+    window.addEventListener('error', (event) => {
+      console.error(event.error || event.message);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error(event.reason || 'Unhandled promise rejection');
+    });
+
+    console.log('[LogBridge] Console proxy active (harness)');
+
     // ==========================================================================
     // Unified Test Harness
     // Modes: kernels, inference, bench

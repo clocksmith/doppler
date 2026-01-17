@@ -252,6 +252,8 @@ export interface ManifestChatTemplateSchema {
  * Use `null` values to indicate "not applicable" or "disabled".
  */
 export interface ManifestInferenceSchema {
+  /** Preset ID used during conversion (for config-first resolution) */
+  presetId?: string | null;
   /** Attention configuration */
   attention: ManifestAttentionSchema;
   /** Normalization configuration */

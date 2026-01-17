@@ -16,7 +16,9 @@ export class Tokenizer {
 
   
   async initialize(manifest, options = {}) {
-    const tokenizerConfig = { ...(manifest.tokenizer || {}) };
+    // Merge tokenizer config: preset provides fallback hints, manifest takes precedence
+    const presetTokenizer = options.presetTokenizer || {};
+    const tokenizerConfig = { ...presetTokenizer, ...(manifest.tokenizer || {}) };
 
     // Check for bundled or HuggingFace tokenizer first (eliminates transformers.js dependency)
     const isBundled = tokenizerConfig.type === 'bundled' || tokenizerConfig.type === 'huggingface';
@@ -71,9 +73,10 @@ export class Tokenizer {
       );
     }
 
-    // Try to infer HuggingFace model ID from manifest if not explicitly set
+    // Try to infer HuggingFace model ID from manifest only when explicitly enabled
     let hfModel = tokenizerConfig.hfModel;
-    if (!hfModel && !tokenizerConfig.sentencepieceModel && !tokenizerConfig.vocab) {
+    const allowArchFallback = tokenizerConfig.allowArchFallback === true;
+    if (!hfModel && allowArchFallback && !tokenizerConfig.sentencepieceModel && !tokenizerConfig.vocab) {
       hfModel = this._inferHuggingFaceModel(manifest);
     }
 
@@ -113,7 +116,10 @@ export class Tokenizer {
       this.backend = new BPETokenizer(tokenizerConfig);
        (this.backend).load(tokenizerConfig.vocab, tokenizerConfig.merges);
     } else {
-      throw new Error('No valid tokenizer configuration in manifest');
+      const fallbackHint = allowArchFallback
+        ? 'Enable tokenizer.hfModel or bundle tokenizer.json to avoid architecture-based fallback.'
+        : 'Provide tokenizer.hfModel or bundle tokenizer.json (tokenizer.type="bundled", tokenizer.file="tokenizer.json").';
+      throw new Error(`[Tokenizer] No valid tokenizer configuration in manifest. ${fallbackHint}`);
     }
 
     this.config = tokenizerConfig;
@@ -139,6 +145,9 @@ export class Tokenizer {
       // Mistral v0.1/v0.2 has 32000 vocab, v0.3 has 32768 vocab with different tokenization
       'mistral': 'Xenova/mistral-tokenizer-v1',
       'mixtral': 'Xenova/mistral-tokenizer-v1',
+      'gpt_oss': 'openai/gpt-oss-20b',      // GPT-OSS (fallback only - bundled tokenizer preferred)
+      'gpt-oss': 'openai/gpt-oss-20b',
+      'gptoss': 'openai/gpt-oss-20b',
       'qwen2': 'Xenova/qwen2.5-0.5b-instruct',
       'qwen': 'Xenova/qwen1.5-0.5b',
       'phi3': 'Xenova/phi-3-mini-4k-instruct',

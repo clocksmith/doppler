@@ -298,9 +298,10 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 // ============================================================================
 
 
-export async function initTokenizer(manifest, baseUrl) {
+export async function initTokenizer(manifest, options = {}) {
+  const { baseUrl, presetTokenizer } = options;
   const tokenizer = new Tokenizer();
-  await tokenizer.initialize(manifest, { baseUrl });
+  await tokenizer.initialize(manifest, { baseUrl, presetTokenizer });
   return tokenizer;
 }
 
@@ -564,4 +565,66 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
   }
 
   log.debug('QKV Fusion', `Fused ${fusedCount}/${numLayers} layers`);
+}
+
+// ============================================================================
+// Emulation Setup
+// ============================================================================
+
+/**
+ * Initialize NVIDIA superchip emulation if enabled in runtime config.
+ *
+ * This creates an EmulationContext that provides virtual GPUs, CPUs,
+ * and interconnect simulation for testing distributed inference patterns.
+ *
+ * @param {import('../../config/schema/doppler.schema.js').RuntimeConfigSchema} runtimeConfig
+ * @returns {Promise<import('../../gpu/emulation/index.js').EmulationContext|null>}
+ */
+export async function initEmulation(runtimeConfig) {
+  const emulationConfig = runtimeConfig?.emulation;
+
+  // Skip if emulation is not enabled
+  if (!emulationConfig?.enabled) {
+    return null;
+  }
+
+  try {
+    // Dynamically import to avoid loading emulation code when disabled
+    const { createEmulationContext, isEmulationSupported } = await import('../../gpu/emulation/index.js');
+
+    // Check if emulation is supported
+    const supported = await isEmulationSupported();
+    if (!supported) {
+      log.warn('Pipeline', 'Emulation requested but not supported in this environment');
+      return null;
+    }
+
+    // Create emulation context
+    log.info('Pipeline', `Initializing emulation for ${emulationConfig.targetChip}`);
+    const ctx = await createEmulationContext(emulationConfig);
+
+    log.info('Pipeline', `Emulation ready: ${ctx.config.topology.gpuCount} virtual GPUs, timing mode: ${ctx.config.timingMode}`);
+
+    return ctx;
+  } catch (err) {
+    log.error('Pipeline', `Failed to initialize emulation: ${err.message}`);
+    // Graceful fallback - continue without emulation
+    return null;
+  }
+}
+
+/**
+ * Destroy emulation context and clean up resources.
+ *
+ * @param {import('../../gpu/emulation/index.js').EmulationContext|null} emulation
+ */
+export async function destroyEmulation(emulation) {
+  if (emulation) {
+    try {
+      await emulation.destroy();
+      log.info('Pipeline', 'Emulation context destroyed');
+    } catch (err) {
+      log.warn('Pipeline', `Error destroying emulation: ${err.message}`);
+    }
+  }
 }

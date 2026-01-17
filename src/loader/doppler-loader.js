@@ -560,6 +560,7 @@ export class DopplerLoader {
         keepF32Weights: this.keepF32Weights,
         q4kLayout: this.q4kLayout,
         gpuCapabilities: this.gpuCapabilities,
+        allowF32UpcastNonMatmul: this.#loadingConfig?.allowF32UpcastNonMatmul ?? true,
       };
 
       const result = await loadTensorToGPU(shardData, location, name, config);

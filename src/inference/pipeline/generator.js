@@ -13,6 +13,7 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
+import { enforceLogitDrift } from '../../hotswap/intent-bundle.js';
 import { applyChatTemplate, isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
@@ -99,6 +100,25 @@ export class PipelineGenerator {
       const prefillStart = performance.now();
       const prefillLogits = await this._prefill(inputIds, opts);
       this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
+
+      const intentBundleConfig = this.#state.runtimeConfig.shared.intentBundle;
+      const intentBundle = intentBundleConfig?.bundle;
+      const expectedTopK = intentBundle?.payload?.expectedTopK
+        ?? intentBundle?.payload?.expected_top_k;
+      const maxDriftThreshold = intentBundle?.constraints?.maxDriftThreshold
+        ?? intentBundle?.constraints?.max_drift_threshold;
+
+      if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
+        const actualTopK = getTopK(
+          prefillLogits,
+          expectedTopK.length,
+          (tokens) => this.#state.tokenizer?.decode?.(tokens) || '?'
+        ).map((token) => token.token);
+        const driftResult = enforceLogitDrift(expectedTopK, actualTopK, maxDriftThreshold);
+        if (!driftResult.ok) {
+          throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
+        }
+      }
 
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
       const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;

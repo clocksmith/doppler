@@ -18,6 +18,7 @@ import type { WeightLoadResult, PipelineContexts } from './pipeline/init.js';
 import type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
+import type { EmulationStats } from '../config/schema/index.js';
 
 // Re-export types for external use
 export type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
@@ -80,6 +81,7 @@ export declare class InferencePipeline extends PipelineState {
     used: number;
     pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number };
     kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number };
+    emulation?: EmulationStats;
   };
 
   getKVCacheStats(): { seqLen: number; maxSeqLen: number } | null;

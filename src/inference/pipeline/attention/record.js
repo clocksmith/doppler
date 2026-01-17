@@ -106,7 +106,7 @@ export async function recordLayerAttentionGPU(
   const useF16Activations = attentionInput.dtype === 'f16';
   const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16: useF16Activations,
-    fallback: undefined,
+    fallback: attentionInput.dtype,
   });
   
   let qTensor;

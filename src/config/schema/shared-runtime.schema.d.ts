@@ -14,6 +14,7 @@ import type { GpuCacheConfigSchema } from './gpu-cache.schema.js';
 import type { MemoryLimitsConfigSchema } from './memory-limits.schema.js';
 import type { TunerConfigSchema } from './tuner.schema.js';
 import type { HotSwapConfigSchema } from './hotswap.schema.js';
+import type { IntentBundleConfigSchema } from './intent-bundle.schema.js';
 import type { BridgeConfigSchema } from './bridge.schema.js';
 import type { PlatformSchema } from './platform.schema.js';
 import type { HarnessConfigSchema } from './harness.schema.js';
@@ -55,6 +56,8 @@ export interface SharedRuntimeConfigSchema {
   tuner: TunerConfigSchema;
   /** Hot-swap security policy */
   hotSwap: HotSwapConfigSchema;
+  /** Intent bundle gating policy */
+  intentBundle: IntentBundleConfigSchema;
   /** Native bridge settings (Tier 2) */
   bridge: BridgeConfigSchema;
 }

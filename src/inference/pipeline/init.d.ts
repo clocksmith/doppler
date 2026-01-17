@@ -128,11 +128,29 @@ export function createKVCache(
 ): KVCache | SlidingWindowKVCache;
 
 /**
+ * Options for tokenizer initialization.
+ */
+export interface InitTokenizerOptions {
+  /** Base URL for loading tokenizer files */
+  baseUrl?: string;
+  /** Preset tokenizer config as fallback hints (manifest takes precedence) */
+  presetTokenizer?: {
+    bosToken?: string;
+    eosTokens?: string[];
+    padToken?: string;
+    addBosToken?: boolean;
+    addEosToken?: boolean;
+    hfModel?: string;
+    allowArchFallback?: boolean;
+  };
+}
+
+/**
  * Initialize tokenizer from manifest.
  */
 export function initTokenizer(
   manifest: Manifest & TokenizerManifest,
-  baseUrl?: string
+  options?: InitTokenizerOptions
 ): Promise<Tokenizer>;
 
 /**
@@ -217,3 +235,25 @@ export function fuseQKVWeights(
   layerWeights: Map<string, LayerWeights>,
   modelConfig: ParsedModelConfig
 ): void;
+
+/**
+ * Initialize NVIDIA superchip emulation if enabled in runtime config.
+ *
+ * Creates an EmulationContext with virtual GPUs, CPUs, and interconnect
+ * simulation for testing distributed inference patterns.
+ *
+ * @param runtimeConfig - Runtime configuration with emulation settings
+ * @returns EmulationContext if enabled and supported, null otherwise
+ */
+export function initEmulation(
+  runtimeConfig: RuntimeConfigSchema
+): Promise<import('../../gpu/emulation/index.js').EmulationContext | null>;
+
+/**
+ * Destroy emulation context and clean up resources.
+ *
+ * @param emulation - Emulation context to destroy
+ */
+export function destroyEmulation(
+  emulation: import('../../gpu/emulation/index.js').EmulationContext | null
+): Promise<void>;

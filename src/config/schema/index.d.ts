@@ -551,6 +551,44 @@ export {
 } from './speculative.schema.js';
 
 // =============================================================================
+// Emulation Schema
+// =============================================================================
+export {
+  // Types
+  type EmulatedChipType,
+  type EmulationTimingMode,
+  type EmulatedGPUSpec,
+  type EmulatedCPUSpec,
+  type NVLinkSpec,
+  type NVLinkC2CSpec,
+  type EmulatedClusterTopology,
+  type TensorParallelConfig,
+  type PipelineParallelConfig,
+  type DataParallelConfig,
+  type ExpertParallelConfig,
+  type EmulatedParallelismConfig,
+  type EmulatedTimingScaling,
+  type LocalResourceTier,
+  type LocalResourceMapping,
+  type EmulationConfigSchema,
+  type VirtualGPUStats,
+  type NVLinkStats,
+  type EmulationStats,
+
+  // Defaults
+  DEFAULT_GH200_GPU_SPEC,
+  DEFAULT_GH200_CPU_SPEC,
+  DEFAULT_NVLINK_SPEC,
+  DEFAULT_NVLINK_C2C_SPEC,
+  DEFAULT_PARALLELISM_CONFIG,
+  DEFAULT_EMULATION_CONFIG,
+
+  // Factory
+  createEmulationConfig,
+  getChipPreset,
+} from './emulation.schema.js';
+
+// =============================================================================
 // Doppler Master Config
 // =============================================================================
 export {

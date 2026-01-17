@@ -95,6 +95,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
   // Build inference config with all required fields explicitly set
   // Use null for "not applicable" - no undefined allowed
   const inference = {
+    presetId: preset.id ?? null,
     attention: {
       queryPreAttnScalar: config.query_pre_attn_scalar ?? Math.sqrt(headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
@@ -106,6 +107,10 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
         config.attention_bias ?? false,
     },
     normalization: {
+      rmsNormEps: presetInference.normalization?.rmsNormEps ??
+        config.rms_norm_eps ??
+        config.attentionLayerNormRMSEpsilon ??
+        1e-5,
       rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? false,
       postAttentionNorm: presetInference.normalization?.postAttentionNorm ?? false,
       preFeedforwardNorm: presetInference.normalization?.preFeedforwardNorm ?? false,

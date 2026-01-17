@@ -353,10 +353,16 @@ function createManifest(
 
   // Build MoE config if applicable
   let moeConfig = null;
-  if (config.expertCount) {
+  const expertCount = config.expertCount || config.num_local_experts || config.num_experts;
+  if (expertCount) {
     moeConfig = {
-      numExperts: config.expertCount,
-      numExpertsPerToken: config.expertUsedCount || 2,
+      numExperts: expertCount,
+      numExpertsPerToken:
+        config.expertUsedCount ||
+        config.num_experts_per_tok ||
+        config.num_experts_per_token ||
+        config.experts_per_token ||
+        2,
       expertSize: 0, // Would need to calculate from tensors
       expertShardMap: [],
     };
@@ -390,7 +396,7 @@ function createManifest(
       `  1. Wait for official support of this model family\n` +
       `  2. Create a custom preset in src/config/presets/models/\n` +
       `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-      `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+      `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
     );
   }
   const preset = resolvePreset(presetId);

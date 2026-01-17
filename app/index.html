@@ -102,6 +102,27 @@
     .convert-description { margin-bottom: var(--space-sm); }
     .convert-status { margin-top: var(--space-sm); }
 
+    /* Logs */
+    .log-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
+    #log-panel {
+      border: var(--border-sm) solid var(--fg);
+      padding: var(--space-sm);
+      max-height: 240px;
+      overflow: auto;
+      background: var(--bg);
+    }
+    .log-line {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 2px;
+    }
+    .log-level {
+      opacity: var(--opacity-muted);
+      margin-right: var(--space-xs);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .main-layout { flex-direction: column; }
@@ -248,6 +269,11 @@
               <span class="stat-value" id="stat-kv">--</span>
             </div>
           </div>
+        </section>
+
+        <section class="panel log-panel">
+          <h2 class="type-label">Logs</h2>
+          <div id="log-panel" class="type-caption"></div>
         </section>
 
         <section class="panel memory-actions-panel">
@@ -433,6 +459,72 @@
       </div>
     </div>
   </div>
+
+  <script type="module">
+    const logPanel = document.getElementById('log-panel');
+    const originalConsole = {
+      log: console.log.bind(console),
+      error: console.error.bind(console),
+      warn: console.warn.bind(console),
+      debug: console.debug.bind(console),
+    };
+
+    function formatArg(arg) {
+      if (arg instanceof Error) {
+        return arg.stack || arg.message;
+      }
+      if (typeof arg === 'string') return arg;
+      if (arg === null || arg === undefined) return String(arg);
+      try {
+        return JSON.stringify(arg);
+      } catch {
+        return String(arg);
+      }
+    }
+
+    function appendLog(level, args) {
+      if (!logPanel) return;
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      const label = document.createElement('span');
+      label.className = 'log-level';
+      label.textContent = `[${level}]`;
+      line.appendChild(label);
+      line.append(` ${args.map(formatArg).join(' ')}`);
+      logPanel.appendChild(line);
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+
+    console.log = (...args) => {
+      appendLog('log', args);
+      originalConsole.log(...args);
+    };
+
+    console.error = (...args) => {
+      appendLog('error', args);
+      originalConsole.error(...args);
+    };
+
+    console.warn = (...args) => {
+      appendLog('warn', args);
+      originalConsole.warn(...args);
+    };
+
+    console.debug = (...args) => {
+      appendLog('debug', args);
+      originalConsole.debug(...args);
+    };
+
+    window.addEventListener('error', (event) => {
+      console.error(event.error || event.message);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error(event.reason || 'Unhandled promise rejection');
+    });
+
+    console.log('[LogBridge] Console proxy active (app)');
+  </script>
 
   <!-- Module Scripts (built from TypeScript via ./build.sh) -->
   <script type="module" src="/doppler/dist/app/app.js"></script>

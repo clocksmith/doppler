@@ -1491,9 +1491,7 @@ async function runDemoTest(page, opts) {
   page.on('console', (msg) => {
     const text = msg.text();
     logs.push(text);
-    if (opts.verbose || text.includes('OUTPUT') || text.includes('error') || text.includes('Error')) {
-      console.log(`  [browser] ${text}`);
-    }
+    console.log(`  [browser] ${text}`);
   });
 
   page.on('pageerror', (err) => {
@@ -1706,9 +1704,7 @@ async function runConverterTest(page, opts) {
   // Setup console capture
   page.on('console', (msg) => {
     const text = msg.text();
-    if (opts.verbose || text.includes('error') || text.includes('Error')) {
-      console.log(`  [browser] ${text}`);
-    }
+    console.log(`  [browser] ${text}`);
   });
 
   page.on('pageerror', (err) => {
@@ -2133,10 +2129,9 @@ async function main() {
       let generationDone = false;
       let generationError = false;
 
-      // Forward browser console logs to terminal
+      // Track completion signals without duplicating console output
       page.on('console', (msg) => {
         const text = msg.text();
-        console.log(`  [browser] ${text}`);
         // Detect generation completion via standardized signals
         // [DOPPLER:DONE] is the canonical completion signal
         if (text.startsWith('[DOPPLER:DONE]')) {
@@ -2146,7 +2141,6 @@ async function main() {
         }
       });
       page.on('pageerror', (err) => {
-        console.error(`  [browser error] ${err.message}`);
         generationError = true;
       });
 

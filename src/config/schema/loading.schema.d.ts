@@ -102,6 +102,8 @@ export interface LoadingConfigSchema {
   memoryManagement: MemoryManagementConfigSchema;
   opfsPath: OpfsPathConfigSchema;
   expertCache: ExpertCacheConfigSchema;
+  /** Allow F16->F32 upcast for non-matmul weights (norms, softcap) */
+  allowF32UpcastNonMatmul: boolean;
 }
 
 /** Default loading configuration */

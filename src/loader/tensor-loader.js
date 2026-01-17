@@ -236,7 +236,7 @@ export async function loadBF16(shardData, location, name, config) {
 }
 
 
-export async function loadFloat(shardData, location, name) {
+export async function loadFloat(shardData, location, name, config) {
   const device = getDevice();
   const buffer = acquireBuffer(location.size, undefined, name);
   device.queue.writeBuffer(buffer, 0,  ( (shardData)));
@@ -260,9 +260,17 @@ export async function loadFloat(shardData, location, name) {
 
   // Non-matmul F16 weights need upcast to F32
   if (dtype === 'f16') {
+    if (config?.allowF32UpcastNonMatmul === false) {
+      throw new Error(
+        `F16->F32 upcast disabled for non-matmul weight "${name}". ` +
+        'Set runtime.loading.allowF32UpcastNonMatmul=true or re-convert with F32 weights.'
+      );
+    }
     const numElements = location.shape.reduce((a, b) => a * b, 1);
+    debugTrace.loader(`F16→F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
     const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);
     const f32Tensor = await castF16ToF32(inputTensor);
+    debugTrace.loader(`F16→F32 complete: ${name} resultSize=${f32Tensor.buffer.size}`);
     releaseBuffer(buffer);
     return {
       data: applyBufferLayout(f32Tensor.buffer, location),
@@ -310,7 +318,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   }
 
   // F16 / F32
-  return loadFloat(shardData, location, name);
+  return loadFloat(shardData, location, name, config);
 }
 
 

@@ -13,6 +13,7 @@ export const TENSORS_FILENAME = 'tensors.json';
 // =============================================================================
 
 export const DEFAULT_MANIFEST_INFERENCE = {
+  presetId: null,
   attention: {
     queryPreAttnScalar: 8,  // sqrt(64) for standard 64-dim heads
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)

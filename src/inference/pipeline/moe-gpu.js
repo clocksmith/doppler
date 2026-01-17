@@ -309,7 +309,9 @@ export async function moeFeedForwardGPU(
     perfLog(`MoE L${layerIdx} expert_load`, stepStart, { expertIdx, count });
     const expertKey = `layer_${layerIdx}_expert_${expertIdx}`;
     const weights = expertWeights.get(expertKey);
-    if (!weights) continue;
+    if (!weights) {
+      throw new Error(`[MoE] Missing expert weights for ${expertKey}`);
+    }
 
     const inputOffset = expertIdx * expertStrideBytes;
     const outputOffset = expertIdx * expertStrideBytes;
@@ -435,8 +437,15 @@ async function runGptOssExpert(
 
   if (!weights.gateUpBlocks || !weights.gateUpScales || !weights.gateUpBias ||
       !weights.downBlocks || !weights.downScales) {
-    log.warn('MoE', `GPT-OSS expert ${expertIdx} missing tensors, skipping`);
-    return;
+    const missing = [];
+    if (!weights.gateUpBlocks) missing.push('gate_up_proj_blocks');
+    if (!weights.gateUpScales) missing.push('gate_up_proj_scales');
+    if (!weights.gateUpBias) missing.push('gate_up_proj_bias');
+    if (!weights.downBlocks) missing.push('down_proj_blocks');
+    if (!weights.downScales) missing.push('down_proj_scales');
+    throw new Error(
+      `[MoE] GPT-OSS expert ${expertIdx} missing tensors: ${missing.join(', ')}`
+    );
   }
 
   let gateUpWeight;

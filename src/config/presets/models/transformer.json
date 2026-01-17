@@ -33,7 +33,8 @@
 
   "tokenizer": {
     "addBosToken": true,
-    "addEosToken": false
+    "addEosToken": false,
+    "allowArchFallback": true
   },
 
   "sampling": {

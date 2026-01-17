@@ -63,6 +63,16 @@ Kernel path overrides are config-only; CLI flags must not set kernel selection.
 - Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
 See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
+## Runtime Configuration (Performance Invariants)
+
+Runtime code must respect dtype and performance invariants from config and device capabilities.
+
+- Do not hardcode `f32` fallbacks when `shader-f16` is available.
+- If a `f32` path is required, require an explicit config flag and log once per session.
+- Treat capability limits (no `shader-f16`) as constraints, not “optimizations.”
+
+If you need to switch dtype or kernel variants, put the decision in rule maps or schema-driven config, not in ad-hoc conditionals.
+
 ---
 
 ## Types: .d.ts Files

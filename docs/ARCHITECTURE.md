@@ -671,6 +671,30 @@ EXECUTION TIME:
 | `output` | `finalLogitSoftcapping`, `tieWordEmbeddings`, `scaleEmbeddings` | `30`, `false`, `true` |
 | `layerPattern` | `type`, `globalPattern`, `period` | `"alternating"`, `"odd"`, `null` |
 
+**Layer Pattern Transformation (Preset → Manifest):**
+
+Presets define layer patterns in one format; the converter transforms them for the manifest:
+
+| Preset Format | Manifest Format | Example |
+|---------------|-----------------|---------|
+| `type: "all_attention"` | `type: "uniform"` | All layers use global attention |
+| `type: "alternating", globalPattern: "odd"` | `type: "alternating"` | Odd layers use global attention |
+| `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6` | Every 6th layer uses global attention (Gemma 3) |
+
+The converter (`manifest-inference.js:136`) performs this mapping. Presets use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
+
+**RoPE Theta Sourcing:**
+
+`ropeTheta` has a defined precedence during conversion (`rope-config.js`):
+
+1. **HuggingFace config** (`config.rope_theta`) — source of truth
+2. **Preset** (`preset.inference.rope.ropeTheta`) — fallback
+3. **Default** (`10000`) — last resort
+
+This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes from the HuggingFace config during conversion. Gemma 3 presets set `ropeTheta: 1000000` explicitly because it's a defining characteristic.
+
+`ropeLocalTheta` (for dual-RoPE models like Gemma 3) always comes from the preset—there's no HuggingFace config equivalent.
+
 **Source Tracking (`ConfigSource`):**
 - `'manifest'` - Value came from manifest (converter output)
 - `'runtime'` - Value was overridden by user at runtime
@@ -782,7 +806,7 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 **Multi-shard tensors:** Large tensors span multiple 64MB shards. Loader streams spans directly to GPU to avoid JS heap exhaustion.
 
-**Gemma 3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. DopplerLoader applies +1 offset during load for SafeTensors source (GGUF has it baked in).
+**Gemma 2/3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. This is applied **at runtime** via the `rmsNormWeightOffset` flag passed to RMSNorm kernels—not during weight loading. The manifest `inference.normalization.rmsNormWeightOffset` field controls this behavior.
 
 ### multi-model-loader.js - Base + Adapter Loading
 
@@ -2443,7 +2467,7 @@ graph LR
     subgraph Configs["Runtime Configs"]
         C1["Gemma Config<br/>───────────<br/>hiddenSize: 1152<br/>numLayers: 26<br/>headDim: 256<br/>useSandwichNorm: true<br/>qkNorm: true<br/>activation: gelu"]
         C2["Mixtral Config<br/>───────────<br/>hiddenSize: 4096<br/>numExperts: 8<br/>topK: 2<br/>headDim: 128<br/>activation: silu"]
-        C3["GPT-OSS Config<br/>───────────<br/>numExperts: 32<br/>topK: 4<br/>slidingWindow: 4096<br/>expertQuant: MXFP4"]
+        C3["GPT-OSS Config<br/>───────────<br/>numExperts: 32<br/>topK: 4<br/>slidingWindow: 128<br/>expertQuant: MXFP4"]
     end
 
     R1 --> F1 --> C1
@@ -2474,7 +2498,7 @@ graph TD
     subgraph Configs["Configs"]
         C1["Gemma Config<br/>useSandwichNorm: true<br/>qkNorm: true<br/>activation: gelu<br/>FFN: dense"]
         C2["Mixtral Config<br/>useSandwichNorm: false<br/>numExperts: 8<br/>topK: 2<br/>activation: silu"]
-        C3["GPT-OSS Config<br/>numExperts: 32<br/>topK: 4<br/>slidingWindow: 4096<br/>expertQuant: MXFP4"]
+        C3["GPT-OSS Config<br/>numExperts: 32<br/>topK: 4<br/>slidingWindow: 128<br/>expertQuant: MXFP4"]
     end
 
     subgraph Features["Architecture Features"]
@@ -2736,6 +2760,35 @@ graph TD
     style Kernels fill:#f5f5f5
     style Perf fill:#c8e6c9
 ```
+
+---
+
+## Architecture Comparison: Gemma 2 vs Gemma 3
+
+These models share much code but differ in key architectural details:
+
+| Feature | Gemma 2 | Gemma 3 |
+|---------|---------|---------|
+| **Sliding Window** | 4096 tokens | 1024 tokens |
+| **Attention Softcap** | 50.0 | `null` (disabled) |
+| **Final Logit Softcap** | 30.0 | `null` (disabled) |
+| **RoPE Theta** | 10,000 (from HF config) | 1,000,000 (preset) |
+| **RoPE Local Theta** | `null` | 10,000 (dual RoPE) |
+| **Layer Pattern** | `alternating` (odd=global) | `every_n` (period=6) |
+| **Head Dim** | 256 | 256 |
+| **Q/K Norm** | ✗ (disabled) | ✓ (enabled) |
+| **RMS Norm Offset** | ✓ (runtime) | ✓ (runtime) |
+| **Activation** | GELU | GELU |
+| **Chat Template** | `gemma` | `gemma` |
+
+**Code Paths:**
+- Sliding window: `attention/run.js` uses `config.slidingWindow`
+- Softcapping: Gemma 2 kernel paths include softcap constants; Gemma 3 paths don't
+- Dual RoPE: `pipeline/init.js:122` computes both tables when `ropeLocalTheta` is set
+- Layer selection: `pipeline/layer.js:127` picks local/global RoPE based on `layerTypes`
+
+**RoPE Theta Difference:**
+Gemma 2's `ropeTheta` isn't hardcoded in presets—it comes from the HuggingFace config during conversion (`rope-config.js:64`). Gemma 3 presets explicitly set `ropeTheta: 1000000` because it's architecturally defining. Both models' manifests contain the final resolved value.
 
 ---
 

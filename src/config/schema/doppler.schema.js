@@ -1,6 +1,7 @@
 import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
 import { DEFAULT_INFERENCE_DEFAULTS_CONFIG } from './inference-defaults.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
+import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
 
 // =============================================================================
 // Runtime Config (all non-model-specific settings)
@@ -10,6 +11,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
   shared: DEFAULT_SHARED_RUNTIME_CONFIG,
   loading: DEFAULT_LOADING_CONFIG,
   inference: DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+  emulation: DEFAULT_EMULATION_CONFIG,
 };
 
 // =============================================================================
@@ -55,6 +57,9 @@ function mergeRuntimeConfig(
     inference: overrides.inference
       ? mergeInferenceConfig(base.inference, overrides.inference)
       : { ...base.inference },
+    emulation: overrides.emulation
+      ? mergeEmulationConfig(base.emulation, overrides.emulation)
+      : { ...base.emulation },
   };
 }
 
@@ -101,6 +106,9 @@ function mergeSharedRuntimeConfig(
           trustedSigners: overrides.hotSwap.trustedSigners ?? base.hotSwap.trustedSigners,
         }
       : { ...base.hotSwap },
+    intentBundle: overrides.intentBundle
+      ? { ...base.intentBundle, ...overrides.intentBundle }
+      : { ...base.intentBundle },
     bridge: { ...base.bridge, ...overrides.bridge },
   };
 }
@@ -122,6 +130,7 @@ function mergeLoadingConfig(
     memoryManagement: { ...base.memoryManagement, ...overrides.memoryManagement },
     opfsPath: { ...base.opfsPath, ...overrides.opfsPath },
     expertCache: { ...base.expertCache, ...overrides.expertCache },
+    allowF32UpcastNonMatmul: overrides.allowF32UpcastNonMatmul ?? base.allowF32UpcastNonMatmul,
   };
 }
 
@@ -203,4 +212,15 @@ function mergeBenchmarkConfig(
     comparison: { ...base.comparison, ...overrides.comparison },
     baselines: { ...base.baselines, ...overrides.baselines },
   };
+}
+
+function mergeEmulationConfig(
+  base,
+  overrides
+) {
+  if (!overrides) {
+    return { ...base };
+  }
+
+  return createEmulationConfig(overrides);
 }

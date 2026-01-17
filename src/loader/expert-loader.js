@@ -98,12 +98,14 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
     debugTrace.loader(`Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
   }
 
-  // Try Mixtral-style naming first
-  let weights = await loadMixtralStyleExpert(ctx, layerIdx, expertIdx);
-
-  // Try GPT-OSS naming if Mixtral naming not found
-  if (!weights.gate && !weights.up && !weights.down) {
+  const expertFormat = resolveExpertFormat(ctx);
+  let weights;
+  if (expertFormat === 'gpt-oss') {
     weights = await loadGptOssStyleExpert(ctx, layerIdx, expertIdx);
+    assertGptOssWeights(weights, layerIdx, expertIdx);
+  } else {
+    weights = await loadMixtralStyleExpert(ctx, layerIdx, expertIdx);
+    assertMixtralWeights(weights, layerIdx, expertIdx);
   }
 
   // Downcast Mixtral-style F32 weights to F16
@@ -142,6 +144,65 @@ async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
   };
 }
 
+function resolveExpertFormat(ctx) {
+  const manifest = ctx.manifest ?? {};
+  const config = manifest.config ?? {};
+  const textConfig = config.text_config ?? {};
+  const manifestModelType = manifest.modelType;
+  const configModelType = config.model_type ?? textConfig.model_type ?? null;
+
+  if (manifestModelType === 'gpt-oss' || configModelType === 'gpt_oss') {
+    return 'gpt-oss';
+  }
+
+  return 'mixtral';
+}
+
+function resolveGptOssNumExperts(ctx) {
+  const manifest = ctx.manifest ?? {};
+  const config = manifest.config ?? {};
+  const textConfig = config.text_config ?? {};
+  const numExperts = config.num_local_experts ??
+    config.num_experts ??
+    textConfig.num_local_experts ??
+    textConfig.num_experts ??
+    manifest.moeConfig?.numExperts ??
+    null;
+
+  if (numExperts == null) {
+    const modelId = manifest.modelId ?? 'unknown';
+    throw new Error(`[MoE] GPT-OSS manifest "${modelId}" missing num_local_experts/num_experts`);
+  }
+
+  return numExperts;
+}
+
+function assertMixtralWeights(weights, layerIdx, expertIdx) {
+  const missing = [];
+  if (!weights.gate) missing.push('gate');
+  if (!weights.up) missing.push('up');
+  if (!weights.down) missing.push('down');
+  if (missing.length > 0) {
+    throw new Error(
+      `[MoE] Expert ${layerIdx}_${expertIdx} missing tensors: ${missing.join(', ')}`
+    );
+  }
+}
+
+function assertGptOssWeights(weights, layerIdx, expertIdx) {
+  const missing = [];
+  if (!weights.gateUpBlocks) missing.push('gate_up_proj_blocks');
+  if (!weights.gateUpScales) missing.push('gate_up_proj_scales');
+  if (!weights.gateUpBias) missing.push('gate_up_proj_bias');
+  if (!weights.downBlocks) missing.push('down_proj_blocks');
+  if (!weights.downScales) missing.push('down_proj_scales');
+  if (missing.length > 0) {
+    throw new Error(
+      `[MoE] GPT-OSS expert ${layerIdx}_${expertIdx} missing tensors: ${missing.join(', ')}`
+    );
+  }
+}
+
 
 async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   const gptOssPrefix = `model.layers.${layerIdx}.mlp.experts`;
@@ -149,8 +210,7 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   let packed = ctx.experts.get(packedKey);
 
   if (!packed) {
-    const config =  (ctx.manifest?.config);
-    const numExpertsFromConfig = config?.num_local_experts || config?.num_experts || 32;
+    const numExpertsFromConfig = resolveGptOssNumExperts(ctx);
 
     packed = {
       isGptOss: true,

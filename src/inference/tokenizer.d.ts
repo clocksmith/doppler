@@ -11,6 +11,24 @@ export type { TokenizerConfig, ModelManifest, SpecialTokens } from './tokenizers
 import type { TokenizerConfig, ModelManifest, SpecialTokens } from './tokenizers/types.js';
 
 /**
+ * Options for tokenizer initialization
+ */
+export interface TokenizerInitOptions {
+  /** Base URL for loading tokenizer files */
+  baseUrl?: string;
+  /** Preset tokenizer config as fallback hints (manifest takes precedence) */
+  presetTokenizer?: {
+    bosToken?: string;
+    eosTokens?: string[];
+    padToken?: string;
+    addBosToken?: boolean;
+    addEosToken?: boolean;
+    hfModel?: string;
+    allowArchFallback?: boolean;
+  };
+}
+
+/**
  * Tokenizer wrapper that auto-detects backend from model manifest
  * This is a thin wrapper over the backend implementations
  */
@@ -19,9 +37,10 @@ export declare class Tokenizer {
   private config;
 
   /**
-   * Initialize from model manifest
+   * Initialize from model manifest.
+   * Preset tokenizer provides fallback hints when manifest tokenizer is missing fields.
    */
-  initialize(manifest: ModelManifest, options?: { baseUrl?: string }): Promise<void>;
+  initialize(manifest: ModelManifest, options?: TokenizerInitOptions): Promise<void>;
 
   /**
    * Infer HuggingFace model ID from manifest architecture

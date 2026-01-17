@@ -5,16 +5,21 @@ import { getRuntimeConfig } from '../../config/runtime.js';
 export class PipelineState {
   constructor() {
     // Components
-    
+
     this.tokenizer = null;
-    
+
     this.kvCache = null;
-    
+
     this.moeRouter = null;
-    
+
     this.speculativeDecoder = null;
-    
+
     this.decodeBuffers = null;
+
+    // Emulation context (null when emulation is disabled)
+    // @type {import('../../gpu/emulation/index.js').EmulationContext|null}
+
+    this.emulation = null;
 
     // Debug flags (combined for both layer and logits)
     

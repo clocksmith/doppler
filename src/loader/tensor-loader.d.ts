@@ -18,6 +18,8 @@ export interface TensorLoadConfig {
   useFusedQ4K: boolean;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
+  /** Allow F16->F32 upcast for non-matmul weights */
+  allowF32UpcastNonMatmul?: boolean;
   /** Q4K layout from manifest */
   q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
   /** GPU capabilities */
@@ -121,7 +123,8 @@ export declare function loadBF16(
 export declare function loadFloat(
   shardData: Uint8Array,
   location: TensorLocation,
-  name: string
+  name: string,
+  config?: TensorLoadConfig
 ): Promise<TensorLoadResult>;
 
 /**

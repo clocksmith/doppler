@@ -52,11 +52,12 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
       writer.setTokenizer(tokenizer);
     }
 
-    if (config?.expertCount || config?.num_local_experts) {
-      const numExperts = config.expertCount || config.num_local_experts;
+    if (config?.expertCount || config?.num_local_experts || config?.num_experts) {
+      const numExperts = config.expertCount || config.num_local_experts || config.num_experts;
       const numExpertsPerToken =
         config.expertUsedCount ||
         config.num_experts_per_tok ||
+        config.num_experts_per_token ||
         config.experts_per_token ||
         2;
       writer.setMoEConfig({ numExperts, numExpertsPerToken });

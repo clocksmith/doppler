@@ -217,6 +217,10 @@ export interface TokenizerConfigSchema {
   addBosToken?: boolean;
   /** Add EOS token to output */
   addEosToken?: boolean;
+  /** HuggingFace model ID for tokenizer fallback */
+  hfModel?: string;
+  /** Allow architecture-based fallback when hfModel is missing */
+  allowArchFallback?: boolean;
   /** Chat template (jinja2-style) */
   chatTemplate?: string;
 }

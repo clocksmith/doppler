@@ -550,8 +550,13 @@ export async function setupPage(context, opts) {
 
   // Console logging
   const relevantTags = ['[Test]', '[Benchmark]', '[GPU]', 'ERROR', 'PASS', 'FAIL', 'Failed', 'error', 'WebGPU'];
+  const logAll = opts.command === 'debug';
   page.on('console', (msg) => {
     const text = msg.text();
+    if (logAll) {
+      console.log(`  [browser] ${text}`);
+      return;
+    }
     const isRelevant = relevantTags.some((tag) => text.includes(tag));
     const isError = /error|fail/i.test(text);
     if (opts.quiet) {
