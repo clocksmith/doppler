@@ -27,7 +27,7 @@
     },
     "layerPattern": {
       "type": "every_n",
-      "period": 6
+      "globalPatternN": 6
     },
     "rope": {
       "ropeTheta": 1000000,
