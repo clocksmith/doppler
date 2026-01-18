@@ -3,8 +3,8 @@
 import { parseGGUFHeader } from './gguf-parser-browser.js';
 import { canStreamFile } from './file-picker.js';
 import {
-  initOPFS,
-  openModelDirectory,
+  initStorage,
+  openModelStore,
   saveManifest,
   deleteModel,
 } from '../storage/shard-manager.js';
@@ -74,7 +74,7 @@ export async function importGGUFFile(
 
   try {
     // Initialize OPFS
-    await initOPFS();
+    await initStorage();
 
     // Report parsing stage
     onProgress?.({
@@ -107,7 +107,10 @@ export async function importGGUFFile(
     });
 
     // Open model directory in OPFS
-    modelDir = await openModelDirectory(modelId);
+    modelDir = await openModelStore(modelId);
+    if (!modelDir) {
+      throw new Error('OPFS required for GGUF import');
+    }
 
     // Calculate expected shard count
     const totalDataSize = file.size - ggufInfo.tensorDataOffset;

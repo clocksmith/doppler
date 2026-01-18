@@ -205,7 +205,7 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
       ├─ DEP: GPU features: shader-f16, subgroups, timestamp-query
       └─ Output: { device, hasF16, hasSubgroups, limits }
 
-[0.3] loadManifestFromOPFS()
+[0.3] loadManifestFromStore()
       ├─ DEP: OPFS support (Chrome 102+)
       ├─ ALT: Native Bridge (if storageContext.loadShard provided)
       └─ Output: manifest JSON

@@ -4,6 +4,7 @@ import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
 import { log } from '../debug/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 let didLogQueryClamp = false;
 let didLogQueryFallback = false;
@@ -46,9 +47,6 @@ export class CommandRecorder {
   
   #queryCapacity = 0;
   
-  static MAX_QUERIES = 16384; // Upper bound; device limits may be lower.
-  static DEFAULT_QUERY_LIMIT = 4096; // Safe fallback when maxQuerySetSize is unavailable.
-
   
   constructor(device = null, label = 'command_recorder', options = {}) {
     this.device = device || getDevice();
@@ -79,22 +77,27 @@ export class CommandRecorder {
   
   #initProfiling() {
     try {
+      const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler;
+      if (!runtimeProfiler) {
+        throw new Error('runtime.shared.debug.profiler is required.');
+      }
+      const { maxQueries, defaultQueryLimit } = runtimeProfiler;
       const deviceLimit = this.device.limits?.maxQuerySetSize;
       const hasDeviceLimit = Number.isFinite(deviceLimit) && deviceLimit > 0;
       const limit = hasDeviceLimit
         ? deviceLimit
-        : CommandRecorder.DEFAULT_QUERY_LIMIT;
-      this.#queryCapacity = Math.min(CommandRecorder.MAX_QUERIES, limit);
-      if (hasDeviceLimit && this.#queryCapacity < CommandRecorder.MAX_QUERIES && !didLogQueryClamp) {
+        : defaultQueryLimit;
+      this.#queryCapacity = Math.min(maxQueries, limit);
+      if (hasDeviceLimit && this.#queryCapacity < maxQueries && !didLogQueryClamp) {
         log.warn(
           'CommandRecorder',
-          `Clamping MAX_QUERIES to device limit: ${this.#queryCapacity}/${CommandRecorder.MAX_QUERIES}`
+          `Clamping MAX_QUERIES to device limit: ${this.#queryCapacity}/${maxQueries}`
         );
         didLogQueryClamp = true;
       } else if (!hasDeviceLimit && !didLogQueryFallback) {
         log.warn(
           'CommandRecorder',
-          `maxQuerySetSize unavailable; using fallback ${CommandRecorder.DEFAULT_QUERY_LIMIT}`
+          `maxQuerySetSize unavailable; using fallback ${defaultQueryLimit}`
         );
         didLogQueryFallback = true;
       }

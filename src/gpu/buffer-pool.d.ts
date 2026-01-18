@@ -73,6 +73,11 @@ export declare class BufferPool {
   release(buffer: GPUBuffer): void;
 
   /**
+   * Get the requested size for a pooled buffer
+   */
+  getRequestedSize(buffer: GPUBuffer): number;
+
+  /**
    * Detect leaked buffers (debug mode)
    */
   detectLeaks(thresholdMs?: number): BufferMetadata[];
@@ -145,6 +150,7 @@ export declare const createUploadBuffer: (size: number) => GPUBuffer;
 export declare const createUniformBuffer: (size: number) => GPUBuffer;
 export declare const acquireBuffer: (size: number, usage?: GPUBufferUsageFlags, label?: string) => GPUBuffer;
 export declare const releaseBuffer: (buffer: GPUBuffer) => void;
+export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
 export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;
 export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
 

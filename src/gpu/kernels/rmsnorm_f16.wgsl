@@ -2,7 +2,7 @@
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.
 // Intermediate computations (sum of squares, RMS) remain in F32 for precision.
-// Weight buffer stays F32 (small size, precision matters).
+// Weight buffer may be F16 or F32 (small size, precision matters).
 //
 // RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
 
@@ -10,6 +10,7 @@ enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
 override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
+override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
 
 struct Uniforms {
     size: u32,          // Hidden dimension
@@ -20,18 +21,27 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f16>;
-@group(0) @binding(2) var<storage, read> weight: array<f32>;   // Weights stay F32
+@group(0) @binding(2) var<storage, read> weight: array<u32>;   // F32 or packed F16
 @group(0) @binding(3) var<storage, read_write> output: array<f16>;
 @group(0) @binding(4) var<storage, read> residual: array<f16>; // Optional residual
 
 // Shared memory for reduction (F32 for precision)
-var<workgroup> shared_sum: array<f32, 256>;
+var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
 
 fn apply_weight(w: f32) -> f32 {
     if (RMS_NORM_OFFSET) {
         return 1.0 + w;
     }
     return w;
+}
+
+fn load_weight(idx: u32) -> f32 {
+    if (WEIGHT_IS_F16) {
+        let packed = weight[idx >> 1u];
+        let pair = unpack2x16float(packed);
+        return select(pair.x, pair.y, (idx & 1u) == 1u);
+    }
+    return bitcast<f32>(weight[idx]);
 }
 
 // Main RMSNorm kernel - one workgroup per token
@@ -89,7 +99,7 @@ fn main(
             let x = f32(input[base_offset + idx]);
 
             // Normalize and scale (compute in F32)
-            var result = x * inv_rms * apply_weight(weight[idx]);
+            var result = x * inv_rms * apply_weight(load_weight(idx));
 
             // Add residual AFTER normalization
             if (u.has_residual == 1u) {
@@ -102,7 +112,7 @@ fn main(
     }
 }
 
-// Optimized version for hidden size <= 256 (single pass)
+// Optimized version for hidden size <= WORKGROUP_SIZE (single pass)
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn rmsnorm_small_f16(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -129,7 +139,7 @@ fn rmsnorm_small_f16(
     workgroupBarrier();
 
     // Parallel reduction
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
         if (thread_idx < stride && thread_idx + stride < size) {
             shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
@@ -142,7 +152,7 @@ fn rmsnorm_small_f16(
 
     // Apply normalization (compute in F32, output F16)
     if (thread_idx < size) {
-        var result = x * inv_rms * apply_weight(weight[thread_idx]);
+        var result = x * inv_rms * apply_weight(load_weight(thread_idx));
         if (u.has_residual == 1u) {
             result = result + f32(residual[base_offset + thread_idx]);
         }

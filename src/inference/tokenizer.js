@@ -48,8 +48,8 @@ export class Tokenizer {
       } else {
         // Try to load from OPFS (for cached models)
         try {
-          const { loadTokenizerFromOPFS } = await import('../storage/shard-manager.js');
-          const tokenizerStr = await loadTokenizerFromOPFS();
+          const { loadTokenizerFromStore } = await import('../storage/shard-manager.js');
+          const tokenizerStr = await loadTokenizerFromStore();
           if (tokenizerStr) {
             tokenizerJson = JSON.parse(tokenizerStr);
           }
@@ -73,11 +73,13 @@ export class Tokenizer {
       );
     }
 
-    // Try to infer HuggingFace model ID from manifest only when explicitly enabled
-    let hfModel = tokenizerConfig.hfModel;
+    const hfModel = tokenizerConfig.hfModel;
     const allowArchFallback = tokenizerConfig.allowArchFallback === true;
-    if (!hfModel && allowArchFallback && !tokenizerConfig.sentencepieceModel && !tokenizerConfig.vocab) {
-      hfModel = this._inferHuggingFaceModel(manifest);
+    if (allowArchFallback && !hfModel) {
+      throw new Error(
+        '[Tokenizer] tokenizer.allowArchFallback is not supported. ' +
+        'Provide tokenizer.hfModel or bundle tokenizer.json.'
+      );
     }
 
     if (hfModel) {
@@ -116,75 +118,13 @@ export class Tokenizer {
       this.backend = new BPETokenizer(tokenizerConfig);
        (this.backend).load(tokenizerConfig.vocab, tokenizerConfig.merges);
     } else {
-      const fallbackHint = allowArchFallback
-        ? 'Enable tokenizer.hfModel or bundle tokenizer.json to avoid architecture-based fallback.'
-        : 'Provide tokenizer.hfModel or bundle tokenizer.json (tokenizer.type="bundled", tokenizer.file="tokenizer.json").';
-      throw new Error(`[Tokenizer] No valid tokenizer configuration in manifest. ${fallbackHint}`);
+      throw new Error(
+        '[Tokenizer] No valid tokenizer configuration in manifest. ' +
+        'Provide tokenizer.hfModel or bundle tokenizer.json (tokenizer.type="bundled", tokenizer.file="tokenizer.json").'
+      );
     }
 
     this.config = tokenizerConfig;
-  }
-
-  
-  _inferHuggingFaceModel(manifest) {
-    const arch = typeof manifest.architecture === 'string'
-      ? manifest.architecture
-      : (manifest.modelType || manifest.config?.architectures?.[0] || '');
-    const archLower = arch.toLowerCase();
-
-    // Map architecture names to public HuggingFace tokenizer repos
-    // Using Xenova's repos where possible as they are optimized for Transformers.js
-    
-    const archToHF = {
-      'gemma3': 'google/gemma-3-4b-it',    // Gemma 3 (fallback only - bundled tokenizer preferred)
-      'gemma2': 'Xenova/gemma-tokenizer',
-      'gemma': 'Xenova/gemma-tokenizer',
-      'llama3': 'Xenova/llama3-tokenizer-new',
-      'llama2': 'Xenova/llama2-tokenizer',
-      'llama': 'Xenova/llama2-tokenizer',
-      // Mistral v0.1/v0.2 has 32000 vocab, v0.3 has 32768 vocab with different tokenization
-      'mistral': 'Xenova/mistral-tokenizer-v1',
-      'mixtral': 'Xenova/mistral-tokenizer-v1',
-      'gpt_oss': 'openai/gpt-oss-20b',      // GPT-OSS (fallback only - bundled tokenizer preferred)
-      'gpt-oss': 'openai/gpt-oss-20b',
-      'gptoss': 'openai/gpt-oss-20b',
-      'qwen2': 'Xenova/qwen2.5-0.5b-instruct',
-      'qwen': 'Xenova/qwen1.5-0.5b',
-      'phi3': 'Xenova/phi-3-mini-4k-instruct',
-      'phi': 'Xenova/phi-2',
-      'smollm': 'HuggingFaceTB/SmolLM-360M-Instruct',
-      'tinyllama': 'Xenova/TinyLlama-1.1B-Chat-v1.0',
-    };
-
-    // Check vocab size for Mistral - v0.3 has 32768 vocab with different tokenization
-    const vocabSize = manifest.config?.vocab_size ||
-                      manifest.config?.text_config?.vocab_size ||
-                      manifest.tokenizer?.vocabSize;
-    if ((archLower.includes('mistral') || archLower.includes('mixtral')) && vocabSize === 32768) {
-      // Mistral v0.3+ with extended vocabulary needs the official tokenizer
-      log.info('Tokenizer', 'Detected Mistral v0.3+ (vocab_size=32768), using official tokenizer');
-      return 'mistralai/Mistral-7B-Instruct-v0.3';
-    }
-
-    for (const [key, hfModel] of Object.entries(archToHF)) {
-      if (archLower.includes(key)) {
-        log.info('Tokenizer', `Inferred HuggingFace model from architecture "${arch}": ${hfModel}`);
-        return hfModel;
-      }
-    }
-
-    // Check model type in config
-    const modelType = manifest.config?.model_type || manifest.config?.text_config?.model_type || '';
-    if (modelType) {
-      for (const [key, hfModel] of Object.entries(archToHF)) {
-        if (modelType.toLowerCase().includes(key)) {
-          log.info('Tokenizer', `Inferred HuggingFace model from model_type "${modelType}": ${hfModel}`);
-          return hfModel;
-        }
-      }
-    }
-
-    return null;
   }
 
   

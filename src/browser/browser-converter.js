@@ -13,8 +13,8 @@ import {
   calculateTotalSize,
 } from './safetensors-parser-browser.js';
 import {
-  initOPFS,
-  openModelDirectory,
+  initStorage,
+  openModelStore,
   saveManifest,
   deleteModel,
 } from '../storage/shard-manager.js';
@@ -60,7 +60,7 @@ export async function convertModel(files, options = {}) {
 
   try {
     // Initialize OPFS
-    await initOPFS();
+    await initStorage();
 
     // Detect format
     onProgress?.({
@@ -129,7 +129,10 @@ export async function convertModel(files, options = {}) {
     });
 
     // Open model directory in OPFS
-    modelDir = await openModelDirectory(modelId);
+    modelDir = await openModelStore(modelId);
+    if (!modelDir) {
+      throw new Error('OPFS required for browser conversion');
+    }
 
     // Detect model type using preset system
     const rawConfig = (config || modelInfo.config || {});

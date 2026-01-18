@@ -59,6 +59,8 @@ export const DEFAULT_PIPELINE_DEBUG_CONFIG = {
 export const DEFAULT_PROFILER_CONFIG = {
   enabled: false,
   queryCapacity: 256,
+  maxQueries: 16384,
+  defaultQueryLimit: 4096,
   maxSamples: 100,
   maxDurationMs: 60000,
 };

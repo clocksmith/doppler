@@ -2,5 +2,22 @@
   "activationOp": [
     { "match": { "hiddenActivation": "gelu" }, "value": "gelu" },
     { "match": {}, "value": "silu" }
+  ],
+  "useFusedGateUp": [
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsF32": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "f16BatchOk": true
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
   ]
 }

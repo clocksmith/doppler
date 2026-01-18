@@ -136,12 +136,12 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
   device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
 
-  const numBlocks = Math.ceil(location.size / 144);
+  const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
   const outputDtype = getQ4KOutputDtype(name, config);
 
   debugTrace.loader(
     `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
-    `outputDtype=${outputDtype}, expectedOutput=${numBlocks * 256 * (outputDtype === 'f16' ? 2 : 4)}`
+    `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
   );
 
   const dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
@@ -276,10 +276,10 @@ export async function loadFloat(shardData, location, name, config) {
   // Non-matmul F16 weights need upcast to F32
   if (dtype === 'f16') {
     if (config?.allowF32UpcastNonMatmul === false) {
-      throw new Error(
-        `F16->F32 upcast disabled for non-matmul weight "${name}". ` +
-        'Set runtime.loading.allowF32UpcastNonMatmul=true or re-convert with F32 weights.'
-      );
+      return {
+        data: applyBufferLayout(buffer, location),
+        allocatedBuffers: [buffer],
+      };
     }
     const numElements = location.shape.reduce((a, b) => a * b, 1);
     logF32UpcastNonMatmul(name, numElements, buffer.size);

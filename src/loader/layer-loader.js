@@ -134,7 +134,7 @@ function createTryLoadNorm(ctx, prefixes, tryLoad) {
     const tensor = await tryLoad(suffixes);
     if (!tensor) return null;
 
-    // Norm weights are never WeightBuffer (they're f32 and not matmul weights)
+    // Norm weights are never WeightBuffer (non-matmul weights)
     // Cast is safe because _loadTensor only returns WeightBuffer for matmul weights
     const normTensor =  (tensor);
     return normTensor;

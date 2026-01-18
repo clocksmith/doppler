@@ -232,6 +232,45 @@ export async function initDevice() {
   return gpuDevice;
 }
 
+export function setDevice(device, options = {}) {
+  if (!device) {
+    gpuDevice = null;
+    kernelCapabilities = null;
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
+    return;
+  }
+
+  gpuDevice = device;
+  wrapQueueForTracking(gpuDevice.queue);
+
+  const adapterInfo = options.adapterInfo ?? {
+    vendor: 'unknown',
+    architecture: 'unknown',
+    device: 'unknown',
+    description: '',
+  };
+
+  kernelCapabilities = {
+    hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
+    hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
+    hasF16: gpuDevice.features.has(FEATURES.SHADER_F16),
+    hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
+    adapterInfo,
+  };
+
+  if (options.platformConfig !== undefined) {
+    resolvedPlatformConfig = options.platformConfig;
+    platformInitialized = options.platformConfig !== null;
+  } else {
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
+  }
+}
+
 
 export function getKernelCapabilities() {
   if (!kernelCapabilities) {

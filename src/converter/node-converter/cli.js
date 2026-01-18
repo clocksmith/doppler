@@ -50,6 +50,7 @@ export function parseArgs(argv) {
     visionQuant: quantization.vision ?? DEFAULT_CONFIG.quantization.vision,
     audioQuant: quantization.audio ?? DEFAULT_CONFIG.quantization.audio,
     projectorQuant: quantization.projector ?? DEFAULT_CONFIG.quantization.projector,
+    q4kLayout: quantization.q4kLayout ?? DEFAULT_CONFIG.quantization.q4kLayout,
     computePrecision: quantization.computePrecision ?? DEFAULT_CONFIG.quantization.computePrecision,
     // Sharding
     shardSize: sharding.shardSizeBytes
@@ -106,6 +107,9 @@ export function parseArgs(argv) {
         break;
       case '--projector-quant':
         opts.projectorQuant = argv[++i] || null;
+        break;
+      case '--q4k-layout':
+        opts.q4kLayout = argv[++i] || null;
         break;
       case '--compute-precision': {
         const cp = argv[++i]?.toLowerCase();
@@ -168,6 +172,7 @@ Quantization Options:
   --vision-quant <type>      Vision encoder quantization (multimodal models)
   --audio-quant <type>       Audio encoder quantization (speech models)
   --projector-quant <type>   Cross-modal projector quantization
+  --q4k-layout <layout>      Q4K layout: flat, row_wise, column_wise (default: column_wise)
 
 Runtime Plan (stored in manifest, not in filename):
   --compute-precision <p> Compute precision hint: f16, f32, auto (default: f16)

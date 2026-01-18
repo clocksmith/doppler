@@ -261,6 +261,11 @@ export class BufferPool {
   }
 
   
+  getRequestedSize(buffer) {
+    return this.#requestedSizes.get(buffer) ?? buffer.size;
+  }
+
+  
   #deferDestroy(buffer) {
     this.#pendingDestruction.add(buffer);
     if (this.#destructionScheduled) {
@@ -505,6 +510,9 @@ export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
+
+export const getBufferRequestedSize = (buffer) =>
+  getBufferPool().getRequestedSize(buffer);
 
 export const uploadData = (buffer, data, offset) =>
   getBufferPool().uploadData(buffer, data, offset);

@@ -33,10 +33,14 @@ function resolveExpertFormat(config, modelType) {
 export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {}) {
   const config = modelInfo.config;
   const architecture = modelInfo.architecture ?? (config ? extractArchitecture(config) : null);
+  const resolvedQuantization = modelInfo.quantization ?? options.quantization;
+  if (!resolvedQuantization) {
+    throw new Error('Quantization must be specified when writing RDRR output.');
+  }
   const writer = new RDRRWriter(outputDir, {
     modelId: modelInfo.modelName || config?.modelId || 'model',
     architecture,
-    quantization: modelInfo.quantization || options.quantization || 'Q4_K_M',
+    quantization: resolvedQuantization,
     quantizationInfo: modelInfo.quantizationInfo ?? options.quantizationInfo,
     ...options,
   });

@@ -81,6 +81,17 @@ export function isWebGPUAvailable(): boolean;
 export function initDevice(): Promise<GPUDevice>;
 
 /**
+ * Register an externally created GPU device for pipeline use.
+ */
+export function setDevice(
+  device: GPUDevice | null,
+  options?: {
+    adapterInfo?: AdapterInfo;
+    platformConfig?: ResolvedPlatformConfig | null;
+  }
+): void;
+
+/**
  * Get kernel capabilities (call after initDevice)
  * @returns Capability flags for kernel selection
  * @throws Error if device not initialized

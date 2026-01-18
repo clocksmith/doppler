@@ -117,7 +117,12 @@ export async function computeChunkedLogitsGPU(
 
   const chunkRows = resolveLmHeadChunkRows(device, numTokens, hiddenSize, largeWeightConfig);
   const caps = getKernelCapabilities();
-  const preferF16 = largeWeightConfig.preferF16 && lmHead.dtype === 'f16' && caps.hasF16;
+  const weightDtype = selectRuleValue('inference', 'dtype', 'lmHeadChunkWeightDtype', {
+    preferF16: largeWeightConfig.preferF16,
+    lmHeadDtype: lmHead.dtype,
+    hasF16: caps.hasF16,
+  });
+  const preferF16 = weightDtype === 'f16';
   const logits = new Float32Array(numTokens * vocabSize);
 
   if (isTraceEnabled('logits')) {
@@ -198,13 +203,16 @@ export async function computeLogitsGPU(
     rmsNormEps,
     useTiedEmbeddings,
     embeddingVocabSize,
-    activationDtype = 'f32',
+    activationDtype,
   } = config;
   const { finalNorm, lmHead } = weights;
   const device = getDevice();
 
   if (!device) {
     return null;
+  }
+  if (!activationDtype) {
+    throw new Error('[Logits] activationDtype is required.');
   }
 
   if (!finalNorm || !lmHead) {

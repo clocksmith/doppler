@@ -25,7 +25,11 @@ let _chunkedMaxKVLen = null;
 function getChunkedMaxKVLen() {
   if (_chunkedMaxKVLen === null) {
     const config = getKernelConfig('attention', 'decode_chunked_f16kv');
-    _chunkedMaxKVLen = config.variantMetadata?.maxKVLen ?? 2048;
+    const maxKVLen = config.variantMetadata?.maxKVLen;
+    if (!Number.isFinite(maxKVLen)) {
+      throw new Error('Kernel config missing attention.decode_chunked_f16kv maxKVLen');
+    }
+    _chunkedMaxKVLen = maxKVLen;
   }
   return _chunkedMaxKVLen;
 }

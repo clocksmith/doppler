@@ -25,6 +25,9 @@ export const DEFAULT_BENCHMARK_RUN_CONFIG = {
   debug: false,
   profile: false,
   useChatTemplate: undefined,
+  // Memory time series capture (VRAM over time)
+  captureMemoryTimeSeries: false,
+  memoryTimeSeriesIntervalMs: 100,
 };
 
 // =============================================================================

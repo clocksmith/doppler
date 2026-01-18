@@ -34,7 +34,7 @@
   "tokenizer": {
     "addBosToken": true,
     "addEosToken": false,
-    "allowArchFallback": true
+    "allowArchFallback": false
   },
 
   "sampling": {

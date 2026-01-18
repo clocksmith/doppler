@@ -85,7 +85,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;
 
-var<workgroup> multicol_sums: array<f32, 256>;
+var<workgroup> multicol_sums: array<f32, WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol_f16a(

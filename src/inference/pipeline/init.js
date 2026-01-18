@@ -29,9 +29,6 @@ function resolveQ4KConfig(manifest) {
   const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
 
   let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
-  if (typeof window !== 'undefined' &&  ( (window)).DOPPLER_DISABLE_FUSED_Q4K) {
-    useFused = false;
-  }
   if (q4kLayout === 'column_wise') {
     useFused = false;
   }
@@ -250,13 +247,12 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   const forceF32Softcap = runtimeKV.forceF32Softcap === true;
   const forceF32KV = hasAttnSoftcapping && forceF32Softcap;
   
-  let kvDtype = runtimeKV.kvDtype;
-  if (kvDtype === 'f16' && (!useGPU || !gpuCaps.hasF16)) {
-    kvDtype = 'f32';
-  }
-  if (forceF32KV) {
-    kvDtype = 'f32';
-  }
+  const kvDtype = selectRuleValue('inference', 'dtype', 'kvCacheDtype', {
+    requested: runtimeKV.kvDtype,
+    useGPU,
+    hasF16: gpuCaps.hasF16,
+    forceF32: forceF32KV,
+  });
   if (forceF32KV && debug) {
     log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping}, forceF32Softcap=true)`);
   }
@@ -311,7 +307,10 @@ export async function initTokenizer(manifest, options = {}) {
 
 
 export async function loadWeights(manifest, modelConfig, options = {}) {
-  const { storageContext, onProgress, verifyHashes = false, loadingConfig, baseUrl } = options;
+  const { storageContext, onProgress, loadingConfig, baseUrl } = options;
+  const verifyHashes = options.verifyHashes
+    ?? loadingConfig?.shardCache?.verifyHashes
+    ?? true;
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
   dopplerLoader.setQ4KConfig(resolveQ4KConfig(manifest));
@@ -333,9 +332,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
       const data = await storageContext.loadShard(index);
       return data instanceof Uint8Array ? data : new Uint8Array(data);
     };
-    dopplerLoader.setCustomShardLoader(loadShard, {
-      verify: true,
-    });
+    dopplerLoader.setCustomShardLoader(loadShard, { verify: verifyHashes });
     if (isRDRRManifest(manifest)) {
       dopplerLoader.setManifest(manifest);
     }
@@ -344,10 +341,9 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   await dopplerLoader.init();
 
   // Load model via DopplerLoader
-  // Skip hash verification by default - verification happens during download
   const modelId = manifest.modelId || manifest.model_id || 'default';
   await dopplerLoader.load(modelId, {
-    verifyHashes: storageContext?.loadShard ? false : verifyHashes,
+    verifyHashes,
     onProgress: onProgress || ((info) => {
       // Shard and layer progress are logged by loader with source info
       if (info.stage !== 'layers' && info.stage !== 'shards') {
@@ -412,6 +408,15 @@ export function applyGptOssChatTemplate(prompt) {
   return `<|start|>user<|message|>${prompt}<|end|><|start|>assistant<|channel|>final<|message|>`;
 }
 
+export function applyChatMLTemplate(prompt) {
+  return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
+}
+
+
+export function applyQwenChatTemplate(prompt) {
+  return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
+}
+
 
 export function applyChatTemplate(prompt, templateType) {
   switch (templateType) {
@@ -421,8 +426,15 @@ export function applyChatTemplate(prompt, templateType) {
       return applyLlama3ChatTemplate(prompt);
     case 'gpt-oss':
       return applyGptOssChatTemplate(prompt);
-    default:
+    case 'chatml':
+      return applyChatMLTemplate(prompt);
+    case 'qwen':
+      return applyQwenChatTemplate(prompt);
+    case null:
+    case undefined:
       return prompt;
+    default:
+      throw new Error(`Unsupported chat template type: ${templateType}`);
   }
 }
 

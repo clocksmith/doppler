@@ -90,7 +90,9 @@ Use kernel path overrides to isolate kernel-specific issues without editing code
 npm run debug -- --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
-## Config-Driven Probes (Preferred Over Ad-hoc Logs)
+## Config-Driven Probes (Required—No Ad-Hoc Logs Allowed)
+
+**Do not add temporary log statements to source files for debugging.** All debugging must use config-driven probes or existing trace categories. This is a strict rule, not a preference.
 
 Use probes to read specific token/dimension values without editing code. Configure via `--config` with inline JSON:
 

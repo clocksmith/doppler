@@ -1,4 +1,14 @@
 {
+  "normWeightDtype": [
+    { "match": { "normWeightDtype": "f16" }, "value": "f16" },
+    { "match": { "normWeightDtype": "f32" }, "value": "f32" },
+    { "match": {}, "value": "f32" }
+  ],
+  "normWeightDtypeFromSize": [
+    { "match": { "sizeMatchesF32": true }, "value": "f32" },
+    { "match": { "sizeMatchesF16": true }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
   "matmulWeightDtype": [
     { "match": { "locationDtype": "F16" }, "value": "f16" },
     { "match": { "locationDtype": "BF16", "hasF16": true, "isMatmulWeight": true }, "value": "f16" },

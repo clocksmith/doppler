@@ -1,11 +1,11 @@
 
 
-import { getDevice } from '../gpu/device.js';
+import { getDevice, setDevice } from '../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { log, applyDebugConfig, setGPUDevice } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
-import { detectPreset, resolvePreset } from '../config/loader.js';
+import { resolvePreset } from '../config/loader.js';
 import {
   resolveKernelPath,
   getKernelPathStats,
@@ -75,6 +75,8 @@ export class InferencePipeline extends PipelineState {
     if (contexts.gpu?.device) {
       this.gpuContext = { device: contexts.gpu.device };
       this.useGPU = true;
+      setDevice(contexts.gpu.device);
+      setGPUDevice(contexts.gpu.device);
     }
     if (contexts.memory) this.memoryContext = contexts.memory;
     if (contexts.storage) this.storageContext = contexts.storage;
@@ -85,8 +87,10 @@ export class InferencePipeline extends PipelineState {
     }
     if (contexts.onProgress) this._onProgress = contexts.onProgress;
 
-    const device = getDevice();
-    if (device) setGPUDevice(device);
+    if (!contexts.gpu?.device) {
+      const device = getDevice();
+      if (device) setGPUDevice(device);
+    }
 
     this.emulation = await initEmulation(this.runtimeConfig);
 
@@ -179,9 +183,12 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
     // Initialize tokenizer with preset fallback hints
-    const presetId = manifest.inference?.presetId ?? detectPreset(manifest.config || {}, manifest.modelType);
-    if (!manifest.inference?.presetId) {
-      log.warn('Pipeline', 'Manifest inference missing presetId; falling back to preset detection. Re-convert model to embed presetId.');
+    const presetId = manifest.inference?.presetId;
+    if (!presetId) {
+      throw new Error(
+        `Manifest "${manifest.modelId ?? 'unknown'}" is missing inference.presetId. ` +
+        'Re-convert the model using the latest converter.'
+      );
     }
     const preset = resolvePreset(presetId);
     this.tokenizer = await initTokenizer(manifest, {
@@ -249,7 +256,6 @@ export class InferencePipeline extends PipelineState {
             });
           }
         },
-        verifyHashes: false,
       }
     );
 
@@ -461,34 +467,6 @@ export class InferencePipeline extends PipelineState {
 
 
 export async function createPipeline(manifest, contexts = {}) {
-  // Use manifest's quantizationInfo.compute as default activationDtype
-  const manifestComputeDtype = manifest.quantizationInfo?.compute;
-  const baseRuntimeConfig = contexts.runtimeConfig ?? getRuntimeConfig();
-  if (manifestComputeDtype && !contexts.runtimeConfig?.inference?.compute?.activationDtype) {
-    
-    const computeToActivation = {
-      'f16': 'f16',
-      'bf16': 'f16',
-      'f32': 'f32',
-    };
-    const activationDtype = computeToActivation[manifestComputeDtype];
-    if (activationDtype) {
-      contexts = {
-        ...contexts,
-        runtimeConfig: {
-          ...baseRuntimeConfig,
-          inference: {
-            ...baseRuntimeConfig.inference,
-            compute: {
-              ...baseRuntimeConfig.inference.compute,
-              activationDtype,
-            },
-          },
-        },
-      };
-    }
-  }
-
   const pipeline = new InferencePipeline();
   await pipeline.initialize(contexts);
   await pipeline.loadModel(manifest);

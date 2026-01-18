@@ -43,8 +43,24 @@
     { "match": { "dtype": "f16" }, "value": 2 },
     { "match": {}, "value": 4 }
   ],
+  "matmulDtype": [
+    { "match": { "dtype": { "in": ["f16", "bf16"] } }, "value": "f16" },
+    { "match": { "dtype": "q4k" }, "value": "q4k" },
+    { "match": {}, "value": "f32" }
+  ],
   "logitsDtype": [
     { "match": { "logitsDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "kvCacheDtype": [
+    { "match": { "forceF32": true }, "value": "f32" },
+    { "match": { "requested": "f16", "useGPU": true, "hasF16": true }, "value": "f16" },
+    { "match": { "requested": "f16" }, "value": "f32" },
+    { "match": { "requested": "f32" }, "value": "f32" },
+    { "match": {}, "value": "f32" }
+  ],
+  "lmHeadChunkWeightDtype": [
+    { "match": { "preferF16": true, "lmHeadDtype": "f16", "hasF16": true }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ]
 }

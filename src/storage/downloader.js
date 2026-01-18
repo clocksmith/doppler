@@ -6,13 +6,16 @@ import {
 } from './rdrr-format.js';
 
 import {
-  openModelDirectory,
+  openModelStore,
   writeShard,
   shardExists,
   loadShard,
   deleteShard,
   saveManifest,
   saveTokenizer,
+  createShardWriter,
+  createStreamingHasher,
+  computeHash,
 } from './shard-manager.js';
 
 import {
@@ -228,6 +231,11 @@ function buildShardUrl(baseUrl, shardInfo) {
   return `${base}/${shardInfo.filename}`;
 }
 
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 async function downloadShard(
   baseUrl,
@@ -235,7 +243,7 @@ async function downloadShard(
   shardInfo,
   options = {}
 ) {
-  const { signal, onProgress } = options;
+  const { signal, onProgress, algorithm = 'blake3' } = options;
   const startTime = performance.now();
 
   const url = buildShardUrl(baseUrl, shardInfo);
@@ -252,49 +260,50 @@ async function downloadShard(
       totalBytes: shardInfo.size,
       percent,
     });
-    return buffer;
+    const hash = await computeHash(buffer, algorithm);
+    return { buffer, bytes: buffer.byteLength, hash, wrote: false };
   }
 
-  // Stream the response for progress tracking
   const reader = response.body.getReader();
   const contentLength = shardInfo.size;
-
-  
-  const chunks = [];
   let receivedBytes = 0;
+  const hasher = await createStreamingHasher(algorithm);
+  const writer = await createShardWriter(shardIndex);
 
-  while (true) {
-    const { done, value } = await reader.read();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
 
-    if (done) break;
+      if (done) break;
 
-    chunks.push(value);
-    receivedBytes += value.length;
+      hasher.update(value);
+      await writer.write(value);
+      receivedBytes += value.length;
 
-    if (onProgress) {
-      onProgress({
-        shardIndex,
-        receivedBytes,
-        totalBytes: contentLength,
-        percent: (receivedBytes / contentLength) * 100
-      });
+      if (onProgress) {
+        onProgress({
+          shardIndex,
+          receivedBytes,
+          totalBytes: contentLength,
+          percent: (receivedBytes / contentLength) * 100
+        });
+      }
     }
+
+    const hashBytes = await hasher.finalize();
+    const hash = bytesToHex(hashBytes);
+    await writer.close();
+
+    const elapsed = (performance.now() - startTime) / 1000;
+    const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
+    const speedStr = formatBytes(speed) + '/s';
+    log.verbose('Downloader', `Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
+
+    return { buffer: null, bytes: receivedBytes, hash, wrote: true };
+  } catch (error) {
+    await writer.abort();
+    throw error;
   }
-
-  // Combine chunks into single buffer
-  const buffer = new Uint8Array(receivedBytes);
-  let offset = 0;
-  for (const chunk of chunks) {
-    buffer.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  const elapsed = (performance.now() - startTime) / 1000;
-  const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
-  const speedStr = formatBytes(speed) + '/s';
-  log.verbose('Downloader', `Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
-
-  return buffer.buffer;
 }
 
 // ============================================================================
@@ -334,7 +343,7 @@ export async function downloadModel(
   }
 
   // Open model directory
-  await openModelDirectory(storageModelId);
+  await openModelStore(storageModelId);
 
   // Check for existing download state
   let state = await loadDownloadState(storageModelId);
@@ -454,10 +463,11 @@ export async function downloadModel(
       if (!shardInfo) {
         throw new Error(`Invalid shard index: ${shardIndex}`);
       }
-      const buffer = await downloadShard(baseUrl, shardIndex, shardInfo, {
+      const algorithm = manifest.hashAlgorithm || 'blake3';
+      const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
+        algorithm,
         onProgress: ( p) => {
-          // Update per-shard progress and global throughput
           const prev = shardProgress.get(shardIndex) || 0;
           const delta = Math.max(0, p.receivedBytes - prev);
           shardProgress.set(shardIndex, p.receivedBytes);
@@ -466,8 +476,15 @@ export async function downloadModel(
         }
       });
 
-      // Write shard to OPFS with verification
-      await writeShard(shardIndex, buffer, { verify: true });
+      const expectedHash = shardInfo.hash || shardInfo.blake3;
+      if (expectedHash && result.hash !== expectedHash) {
+        await deleteShard(shardIndex);
+        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${result.hash}`);
+      }
+
+      if (!result.wrote && result.buffer) {
+        await writeShard(shardIndex, result.buffer, { verify: false });
+      }
 
       // Update state
        (state).completedShards.add(shardIndex);

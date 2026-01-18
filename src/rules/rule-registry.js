@@ -17,6 +17,7 @@ import siluRules from './kernels/silu.rules.json' with { type: 'json' };
 import splitQkvRules from './kernels/split-qkv.rules.json' with { type: 'json' };
 import softmaxRules from './kernels/softmax.rules.json' with { type: 'json' };
 import configRules from './inference/config.rules.json' with { type: 'json' };
+import inferenceAttentionRules from './inference/attention.rules.json' with { type: 'json' };
 import dtypeRules from './inference/dtype.rules.json' with { type: 'json' };
 import ffnRules from './inference/ffn.rules.json' with { type: 'json' };
 import layerRules from './inference/layer.rules.json' with { type: 'json' };
@@ -50,6 +51,7 @@ const RULE_SETS = {
   },
   inference: {
     config: configRules,
+    attention: inferenceAttentionRules,
     dtype: dtypeRules,
     ffn: ffnRules,
     layer: layerRules,

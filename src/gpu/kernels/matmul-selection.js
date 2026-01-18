@@ -71,21 +71,12 @@ export function getMatmulConfig(variant, constants) {
 
 
 export function isFusedQ4KDisabled() {
-  const debugFlags = typeof window !== 'undefined'
-    ? (window)
-    : null;
-  if (debugFlags?.DOPPLER_DISABLE_FUSED_Q4K) return true;
-
-  if (!isActiveKernelPathFusedQ4K()) return true;
-
-  return false;
+  return !isActiveKernelPathFusedQ4K();
 }
 
 
 export function toMatmulDtype(dtype) {
-  if (dtype === 'f16' || dtype === 'bf16') return 'f16';
-  if (dtype === 'q4k') return 'q4k';
-  return 'f32';
+  return selectSharedRuleValue('shared', 'dtype', 'matmulDtype', { dtype });
 }
 
 
@@ -266,7 +257,7 @@ function resolveMatmulOverride(variantOverride, M, K, aDtype, bDtype, requestedO
       return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
     }
     if (isFusedQ4KDisabled()) {
-      return failOrWarn(`Matmul kernel "${variantOverride}" blocked by DOPPLER_DISABLE_FUSED_Q4K.`);
+      return failOrWarn(`Matmul kernel "${variantOverride}" blocked by kernel path (fused Q4K disabled).`);
     }
   }
 

@@ -61,6 +61,52 @@ export interface StorageAlignmentConfigSchema {
 /** Default storage alignment configuration */
 export declare const DEFAULT_STORAGE_ALIGNMENT_CONFIG: StorageAlignmentConfigSchema;
 
+export type StorageBackendMode = 'auto' | 'opfs' | 'indexeddb' | 'memory';
+
+export interface OpfsBackendConfigSchema {
+  /** Use SyncAccessHandle when available (worker-only) */
+  useSyncAccessHandle: boolean;
+  /** Maximum concurrent OPFS handles */
+  maxConcurrentHandles: number;
+}
+
+export interface IndexeddbBackendConfigSchema {
+  /** IndexedDB database name */
+  dbName: string;
+  /** Object store for shard chunks */
+  shardStore: string;
+  /** Object store for manifest/tokenizer/meta */
+  metaStore: string;
+  /** Chunk size in bytes for shard storage */
+  chunkSizeBytes: number;
+}
+
+export interface MemoryBackendConfigSchema {
+  /** Max in-memory bytes for fallback storage */
+  maxBytes: number;
+}
+
+export interface StorageStreamingConfigSchema {
+  /** Target read chunk size in bytes */
+  readChunkBytes: number;
+  /** Maximum in-flight bytes across readers */
+  maxInFlightBytes: number;
+  /** Use BYOB readers when supported */
+  useByob: boolean;
+}
+
+export interface StorageBackendConfigSchema {
+  /** Requested backend (auto selects best available) */
+  backend: StorageBackendMode;
+  opfs: OpfsBackendConfigSchema;
+  indexeddb: IndexeddbBackendConfigSchema;
+  memory: MemoryBackendConfigSchema;
+  streaming: StorageStreamingConfigSchema;
+}
+
+/** Default backend configuration */
+export declare const DEFAULT_STORAGE_BACKEND_CONFIG: StorageBackendConfigSchema;
+
 /**
  * Complete storage configuration schema.
  *
@@ -70,6 +116,7 @@ export interface StorageFullConfigSchema {
   quota: QuotaConfigSchema;
   vramEstimation: VramEstimationConfigSchema;
   alignment: StorageAlignmentConfigSchema;
+  backend: StorageBackendConfigSchema;
 }
 
 /** Default storage configuration */

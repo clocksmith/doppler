@@ -266,6 +266,23 @@ export {
 } from './kernel-thresholds.schema.js';
 
 // =============================================================================
+// Emulation Schema
+// =============================================================================
+export {
+  // Factory
+  createEmulationConfig,
+  getChipPreset,
+
+  // Defaults
+  DEFAULT_GH200_GPU_SPEC,
+  DEFAULT_GH200_CPU_SPEC,
+  DEFAULT_NVLINK_SPEC,
+  DEFAULT_NVLINK_C2C_SPEC,
+  DEFAULT_PARALLELISM_CONFIG,
+  DEFAULT_EMULATION_CONFIG,
+} from './emulation.schema.js';
+
+// =============================================================================
 // Shared Runtime Schema
 // =============================================================================
 export {

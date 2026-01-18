@@ -221,8 +221,8 @@ fn main(
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
 
-// Shared memory for reduction: 32 columns × 8 max subgroups = 256
-var<workgroup> multicol_sums: array<f32, 256>;
+// Shared memory for reduction (one slot per thread)
+var<workgroup> multicol_sums: array<f32, WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(

@@ -136,20 +136,47 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
 
   // Add layer pattern if defined
   if (presetInference.layerPattern) {
-    const presetType = presetInference.layerPattern.type;
-    let manifestType;
-    if (presetType === 'all_attention') {
+    const presetPattern = presetInference.layerPattern;
+    const presetType = presetPattern.type;
+    let manifestType = 'uniform';
+    let globalPattern = null;
+    let period = null;
+
+    if (presetType === 'all_attention' || presetType === 'custom') {
       manifestType = 'uniform';
-    } else if (presetType === 'custom' || (presetType === 'alternating' && presetInference.layerPattern.globalPatternN)) {
+    } else if (presetType === 'alternating') {
+      if (presetPattern.globalPattern === 'every_n') {
+        manifestType = 'every_n';
+        period = presetPattern.globalPatternN ?? null;
+      } else {
+        manifestType = 'alternating';
+        globalPattern = presetPattern.globalPattern ?? null;
+      }
+    } else if (presetType === 'every_n') {
       manifestType = 'every_n';
-    } else {
-      manifestType = 'alternating';
+      period = presetPattern.globalPatternN ?? null;
+    }
+
+    if (manifestType === 'every_n') {
+      if (!Number.isFinite(period) || period <= 0) {
+        throw new Error(
+          `Preset "${preset.id ?? 'unknown'}" layerPattern requires globalPatternN > 0 for every_n.`
+        );
+      }
+      globalPattern = null;
+    } else if (manifestType === 'alternating') {
+      if (globalPattern == null) {
+        throw new Error(
+          `Preset "${preset.id ?? 'unknown'}" layerPattern requires globalPattern for alternating.`
+        );
+      }
+      period = null;
     }
 
     inference.layerPattern = {
       type: manifestType,
-      globalPattern: presetInference.layerPattern.globalPattern,
-      period: presetInference.layerPattern.globalPatternN,
+      globalPattern,
+      period,
     };
   }
 

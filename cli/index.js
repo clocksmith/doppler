@@ -1874,6 +1874,8 @@ async function runPipelineBenchmark(page, opts) {
     debug: benchmarkRun.debug,
     profile: benchmarkRun.profile,
     useChatTemplate: benchmarkRun.useChatTemplate,
+    captureMemoryTimeSeries: benchmarkRun.captureMemoryTimeSeries,
+    memoryTimeSeriesIntervalMs: benchmarkRun.memoryTimeSeriesIntervalMs,
     runtimeConfig,
   });
 

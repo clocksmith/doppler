@@ -55,8 +55,9 @@ export async function loadEmbeddings(ctx) {
     }
   }
 
-  log.warn('Loader', 'Embeddings not found');
-  return null;
+  throw new Error(
+    `[Loader] Embeddings not found. Expected one of: ${EMBEDDING_NAMES.join(', ')}`
+  );
 }
 
 // ============================================================================

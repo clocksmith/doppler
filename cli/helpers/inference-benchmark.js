@@ -27,6 +27,8 @@ function buildBenchmarkScript(opts, modelPath) {
     },
     debug: benchmarkRun.debug,
     profile: benchmarkRun.profile,
+    captureMemoryTimeSeries: benchmarkRun.captureMemoryTimeSeries,
+    memoryTimeSeriesIntervalMs: benchmarkRun.memoryTimeSeriesIntervalMs,
     runtimeConfig,
     configChain: opts.configChain ?? null,
   };

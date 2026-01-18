@@ -26,9 +26,9 @@ import { formatChatMessages } from '../src/inference/pipeline/chat-format.js';
 import { downloadModel } from '../src/storage/downloader.js';
 import {
   listModels,
-  openModelDirectory,
-  loadManifestFromOPFS,
-  deleteModel as deleteModelFromOPFS,
+  openModelStore,
+  loadManifestFromStore,
+  deleteModel as deleteModelFromStorage,
 } from '../src/storage/shard-manager.js';
 import { parseManifest } from '../src/storage/rdrr-format.js';
 import { getMemoryCapabilities } from '../src/memory/capability.js';
@@ -808,8 +808,8 @@ export class DopplerDemo {
 
     for (const cachedId of cachedIds) {
       try {
-        await openModelDirectory(cachedId);
-        const manifestText = await loadManifestFromOPFS();
+        await openModelStore(cachedId);
+        const manifestText = await loadManifestFromStore();
         if (manifestText) {
           const manifest = parseManifest(manifestText);
           const archInfo = manifest.architecture;
@@ -987,9 +987,9 @@ export class DopplerDemo {
         };
       } else {
         // Load from OPFS (browser cache) - show source phase (labeled "Cache")
-        await openModelDirectory(sourceInfo.id);
+        await openModelStore(sourceInfo.id);
         this.#progressUI?.setPhaseProgress({ phase: 'source', percent: 5, message: 'Loading manifest...' });
-        const manifestJson = await loadManifestFromOPFS();
+        const manifestJson = await loadManifestFromStore();
         manifest = parseManifest(manifestJson);
 
         // Create OPFS shard loader
@@ -1183,7 +1183,7 @@ export class DopplerDemo {
       }
 
       // Delete from OPFS
-      await deleteModelFromOPFS(browserId);
+      await deleteModelFromStorage(browserId);
       this.#setStatus('ready', 'Cache cleared');
 
       // Refresh models list

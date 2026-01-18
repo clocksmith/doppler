@@ -125,12 +125,23 @@ trace.kernels(`matmul M=${M} N=${N}`);
 Exceptions: `tools/`, `tests/kernels/`, and one-time startup messages in `src/gpu/device.js`.
 Also acceptable: CLI entry points (`cli/`, `serve.js`, `src/converter/node-converter.js`) for direct terminal output.
 
+### No Ad-Hoc Debug Logging
+
+**Do not add temporary log statements to source files for debugging.** This is not allowed. All debugging must use:
+
+1. Existing trace categories via `--config debug`
+2. Config-driven probes for specific values
+3. Extended trace categories (permanent additions only)
+
+See `docs/style/GENERAL_STYLE_GUIDE.md` for details.
+
 ### Debug Probes
 
-Prefer config-driven probes over ad-hoc readbacks:
+Use config-driven probes to inspect values—do not add ad-hoc log statements:
 
 - `runtime.inference.debug.probes` targets specific tokens/dims without code edits.
 - Use `logits_final` probes for post-softcap comparisons on Gemma 2/3.
+- If visibility is missing, extend the trace system permanently—don't add throwaway logs.
 
 ### Quantization Naming
 

@@ -214,6 +214,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
           { patternKind, isEven, isStride }
         );
       });
+      // DEBUG: Log layer types
+      log.info('Config', `LayerTypes computed: patternType=${patternType}, period=${period}, patternKind=${patternKind}`);
+      log.info('Config', `LayerTypes first 10: ${layerTypes.slice(0, 10).join(', ')}`);
     }
   }
 
@@ -291,11 +294,6 @@ export function toParsedConfigFromMerged(merged, manifest) {
     embeddingVocabSize: inf.output.embeddingVocabSize,
     hiddenActivation,
     swigluLimit: inf.ffn.swigluLimit,
-    // Model detection flags - derived from manifest inference config values
-    // Kept for backward compat until pipeline code reads config values directly
-    isGemma3: inf.rope.ropeLocalTheta != null,  // Gemma 3 has local RoPE theta
-    isGemma2: inf.attention.attnLogitSoftcapping != null,  // Gemma 2 has attn softcapping
-    isLlama3Instruct: chatTemplateType === 'llama3',
     stopTokenIds,
     layerTypes,
     attentionBias: inf.attention.attentionBias,

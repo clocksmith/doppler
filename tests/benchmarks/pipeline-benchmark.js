@@ -248,7 +248,7 @@ export class PipelineBenchmark {
     const { createProfiler } = await import('../../src/gpu/profiler.js');
     const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
     const { downloadModel } = await import('../../src/storage/downloader.js');
-    const { modelExists, initOPFS } = await import('../../src/storage/shard-manager.js');
+    const { modelExists, initStorage } = await import('../../src/storage/shard-manager.js');
 
     const loadStart = performance.now();
 
@@ -278,10 +278,10 @@ export class PipelineBenchmark {
     this.manifest = parseManifest(JSON.stringify(manifestJson));
     const modelId = this.manifest.modelId || this.manifest.model_id;
 
-    // Check if model is in OPFS, download if not.
+    // Check if model is cached, download if not.
     // NOTE: shard-manager APIs require selecting a model directory before reading files.
     // modelExists() checks for a manifest without relying on global currentModelDir.
-    await initOPFS();
+    await initStorage();
     const isCached = await modelExists(modelId);
     
     let storageContext = null;
@@ -358,6 +358,7 @@ export class PipelineBenchmark {
     const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import('../../src/gpu/submit-tracker.js');
     const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
     const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import('../../src/gpu/perf-guards.js');
+    const { MemoryTimeSeries } = await import('../../src/loader/memory-monitor.js');
 
     // Enable submit tracking
     setTrackSubmits(true);
@@ -365,6 +366,14 @@ export class PipelineBenchmark {
     resetReadbackTracking();
     enableBenchmarkMode();
     resetPerfCounters();
+
+    // Start memory time series for non-warmup runs
+    const memoryTimeSeries = !isWarmup && this.config.captureMemoryTimeSeries
+      ? new MemoryTimeSeries(this.config.memoryTimeSeriesIntervalMs ?? 100)
+      : null;
+    if (memoryTimeSeries) {
+      memoryTimeSeries.start();
+    }
 
     // Reset profiler for GPU timing
     if (this.profiler) {
@@ -380,80 +389,103 @@ export class PipelineBenchmark {
     let prefillEnd = 0;
     let tokenCount = 0;
     let lastTokenTime = 0;
+    let prefillStarted = false;
+    let decodeStarted = false;
 
     // Start GPU timing for prefill and set phase
     setSubmitPhase('prefill');
     if (this.profiler) {
       this.profiler.begin('prefill');
+      prefillStarted = true;
+    }
+    if (memoryTimeSeries) {
+      memoryTimeSeries.mark('prefill_start');
     }
 
-    // Run generation
-    const useChatTemplate = Object.prototype.hasOwnProperty.call(this.config, 'useChatTemplate')
-      ? this.config.useChatTemplate
-      : undefined;
-    const generator = this.pipeline.generate(prompt, {
-      maxTokens: this.config.maxNewTokens,
-      temperature: this.config.sampling.temperature,
-      topK: this.config.sampling.topK,
-      topP: this.config.sampling.topP,
-      debug: this.config.debug,
-      // Use debugLayers from config for selective layer checkpointing
-      // Without debugLayers, debug mode syncs at EVERY layer (very slow)
-      debugLayers: this.config.debugLayers,
-      // GPU timestamp profiling for per-kernel timing
-      profile: this.config.profile,
-      useChatTemplate,
-      onToken: (id, t) => {
-        const now = performance.now();
-        tokens.push(id);
-        text += t;
-        tokenCount++;
+    try {
+      // Run generation
+      const useChatTemplate = Object.prototype.hasOwnProperty.call(this.config, 'useChatTemplate')
+        ? this.config.useChatTemplate
+        : undefined;
+      const generator = this.pipeline.generate(prompt, {
+        maxTokens: this.config.maxNewTokens,
+        temperature: this.config.sampling.temperature,
+        topK: this.config.sampling.topK,
+        topP: this.config.sampling.topP,
+        debug: this.config.debug,
+        // Use debugLayers from config for selective layer checkpointing
+        // Without debugLayers, debug mode syncs at EVERY layer (very slow)
+        debugLayers: this.config.debugLayers,
+        // GPU timestamp profiling for per-kernel timing
+        profile: this.config.profile,
+        useChatTemplate,
+        onToken: (id, t) => {
+          const now = performance.now();
+          tokens.push(id);
+          text += t;
+          tokenCount++;
 
-        if (tokenCount === 1) {
-          ttft = now - inferenceStart;
-          prefillEnd = now;
-          // End prefill timing, start decode timing
-          if (this.profiler) {
-            this.profiler.end('prefill');
-            this.profiler.begin('decode');
+          if (tokenCount === 1) {
+            ttft = now - inferenceStart;
+            prefillEnd = now;
+            // End prefill timing, start decode timing
+            if (this.profiler) {
+              this.profiler.end('prefill');
+              this.profiler.begin('decode');
+              decodeStarted = true;
+            }
+            // Switch to decode phase for submit tracking
+            setSubmitPhase('decode');
+            // Mark decode start in memory time series
+            if (memoryTimeSeries) {
+              memoryTimeSeries.mark('prefill_end');
+              memoryTimeSeries.mark('decode_start');
+            }
+            // Track logits readback (~vocab_size * 4 bytes for f32 logits)
+            const vocabSize = this.manifest?.config?.vocab_size ?? 32000;
+            trackReadback(vocabSize * 4);
+          } else {
+            decodeLatencies.push(now - lastTokenTime);
+            // Each decode step reads back logits (or just argmax result if GPU sampling)
+            // Estimate: 4 bytes for token ID if GPU sampling, full logits otherwise
+            trackReadback(4); // Conservative: assume GPU sampling
           }
-          // Switch to decode phase for submit tracking
-          setSubmitPhase('decode');
-          // Track logits readback (~vocab_size * 4 bytes for f32 logits)
-          const vocabSize = this.manifest?.config?.vocab_size ?? 32000;
-          trackReadback(vocabSize * 4);
-        } else {
-          decodeLatencies.push(now - lastTokenTime);
-          // Each decode step reads back logits (or just argmax result if GPU sampling)
-          // Estimate: 4 bytes for token ID if GPU sampling, full logits otherwise
-          trackReadback(4); // Conservative: assume GPU sampling
+          lastTokenTime = now;
+        },
+      });
+
+      // Consume generator
+      for await (const chunk of generator) {
+        // Token callback handles timing
+      }
+    } finally {
+      if (this.profiler) {
+        if (decodeStarted) {
+          this.profiler.end('decode');
+        } else if (prefillStarted) {
+          this.profiler.end('prefill');
         }
-        lastTokenTime = now;
-      },
-    });
-
-    // Consume generator
-    for await (const chunk of generator) {
-      // Token callback handles timing
+      }
+      setSubmitPhase('other');
+      if (memoryTimeSeries) {
+        memoryTimeSeries.stop();
+      }
     }
-
-    // End decode timing
-    if (this.profiler) {
-      this.profiler.end('decode');
-    }
-    setSubmitPhase('other');
 
     const inferenceEnd = performance.now();
 
     // Resolve GPU timestamps
     let gpuTimePrefillMs;
     let gpuTimeDecodeMs;
+    let profilerResults = null;
     if (this.profiler) {
       await this.profiler.resolve();
       const prefillResult = this.profiler.getResult('prefill');
       const decodeResult = this.profiler.getResult('decode');
       gpuTimePrefillMs = prefillResult?.avg;
       gpuTimeDecodeMs = decodeResult?.avg;
+      // Capture all profiler results for per-kernel timing export
+      profilerResults = this.profiler.getResults();
     }
 
     // Get submit stats by phase (accurate, not estimated)
@@ -510,6 +542,8 @@ export class PipelineBenchmark {
       perfSubmits: getPerfCounters().submits,
       perfAllocations: getPerfCounters().allocations,
       perfReadbacks: getPerfCounters().readbacks,
+      memoryTimeSeries: memoryTimeSeries?.getSamples() ?? null,
+      profilerResults,
     };
   }
 
@@ -603,12 +637,24 @@ export class PipelineBenchmark {
   collectRawMetrics(runs) {
     // Use last run for raw data
     const lastRun = runs[runs.length - 1];
-    return {
+    const raw = {
       decode_latencies_ms: lastRun?.decodeLatencies,
       submit_times_ms: lastRun?.submitTimesMs,
       generated_token_ids: lastRun?.tokens,
       generated_text: lastRun?.text,
     };
+
+    // Include memory time series if captured
+    if (lastRun?.memoryTimeSeries) {
+      raw.memory_time_series = lastRun.memoryTimeSeries;
+    }
+
+    // Include profiler results (per-kernel timing) if available
+    if (lastRun?.profilerResults) {
+      raw.gpu_profiler_timing = lastRun.profilerResults;
+    }
+
+    return raw;
   }
 
   // ==========================================================================

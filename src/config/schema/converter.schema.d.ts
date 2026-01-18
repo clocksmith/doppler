@@ -14,6 +14,7 @@ import type {
 } from './manifest.schema.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
+export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise' | null;
 
 export interface ConverterQuantizationConfigSchema {
   weights: QuantizationValue | null;
@@ -22,6 +23,7 @@ export interface ConverterQuantizationConfigSchema {
   vision: QuantizationValue | null;
   audio: QuantizationValue | null;
   projector: QuantizationValue | null;
+  q4kLayout: Q4KLayout;
   computePrecision: ComputePrecision;
 }
 

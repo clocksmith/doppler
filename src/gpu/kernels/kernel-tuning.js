@@ -1,7 +1,7 @@
 
 
 import { getKernelCapabilities } from '../device.js';
-import { getKernelTuner } from '../kernel-tuner.js';
+import { getKernelTuner, getTunerConfig } from '../kernel-tuner.js';
 import { KERNEL_CONFIGS } from './kernel-configs.js';
 import { createPipeline } from './pipeline-cache.js';
 import { hasRequiredFeatures } from './feature-check.js';
@@ -29,19 +29,12 @@ export async function getTunedWorkgroupSize(
     return tuneResult.optimalWorkgroupSize;
   } catch (e) {
     log.warn('KernelTuning', `Tuning failed for ${operation}, using defaults: ${e.message}`);
-    // Return defaults based on operation
-    switch (operation) {
-      case 'matmul':
-        return [16, 16, 1];
-      case 'attention':
-      case 'rmsnorm':
-      case 'softmax':
-        return [256, 1, 1];
-      case 'dequant':
-        return [64, 1, 1];
-      default:
-        return [256, 1, 1];
+    const { fallbackWorkgroupSizes } = getTunerConfig();
+    const fallback = fallbackWorkgroupSizes?.[operation] ?? fallbackWorkgroupSizes?.default;
+    if (!fallback) {
+      throw new Error(`KernelTuning: missing fallback workgroup size for "${operation}".`);
     }
+    return fallback;
   }
 }
 

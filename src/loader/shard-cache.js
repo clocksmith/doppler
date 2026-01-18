@@ -1,6 +1,7 @@
 import {
-  loadShard as loadShardFromOPFS,
+  loadShard as loadShardFromStore,
   computeHash,
+  getStorageBackendType,
 } from '../storage/shard-manager.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
@@ -20,7 +21,9 @@ export class ShardCache {
   constructor(config) {
     this.#maxEntries = config.maxEntries;
     this.#customLoader = config.customLoader ?? null;
-    this.#verifyHashes = config.verifyHashes ?? true;
+    this.#verifyHashes = config.verifyHashes
+      ?? config.loadingConfig?.verifyHashes
+      ?? true;
     this.#manifest = config.manifest ?? null;
     this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache;
   }
@@ -141,12 +144,13 @@ export class ShardCache {
       return arrayBuffer;
     }
 
-    const opfsStart = performance.now();
-    const data = await loadShardFromOPFS(shardIndex);
+    const storageStart = performance.now();
+    const data = await loadShardFromStore(shardIndex);
     this.#add(shardIndex, data);
-    const elapsed = (performance.now() - opfsStart) / 1000;
-    this.lastSource = { source: 'OPFS', elapsed };
-    log.verbose('ShardCache', `Shard ${shardIndex}: OPFS (${sizeStr}, ${elapsed.toFixed(2)}s)`);
+    const elapsed = (performance.now() - storageStart) / 1000;
+    const backend = getStorageBackendType() ?? 'storage';
+    this.lastSource = { source: backend, elapsed };
+    log.verbose('ShardCache', `Shard ${shardIndex}: ${backend} (${sizeStr}, ${elapsed.toFixed(2)}s)`);
     return data;
   }
 
@@ -196,5 +200,6 @@ export function createShardCache(maxEntries, loadingConfig) {
   return new ShardCache({
     maxEntries: maxEntries ?? config.opfsEntries,
     loadingConfig: config,
+    verifyHashes: config.verifyHashes,
   });
 }

@@ -139,6 +139,10 @@ export interface ProfilerConfigSchema {
   enabled: boolean;
   /** Maximum number of timestamp pairs to allocate */
   queryCapacity: number;
+  /** Absolute upper bound for query capacity */
+  maxQueries: number;
+  /** Fallback query capacity when device limit is unavailable */
+  defaultQueryLimit: number;
   /** Maximum samples retained per label */
   maxSamples: number;
   /** GPU timing sanity limit before falling back to CPU */

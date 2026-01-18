@@ -25,8 +25,8 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
 // Shared memory for reduction
-var<workgroup> shared_max: array<f32, 256>;
-var<workgroup> shared_sum: array<f32, 256>;
+var<workgroup> shared_max: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
 
 // Main softmax kernel - one workgroup per row
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -110,7 +110,7 @@ fn main(
     }
 }
 
-// Optimized version for small inner size (<= 256)
+// Optimized version for small inner size (<= WORKGROUP_SIZE)
 // Each thread handles one element
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_small(
@@ -138,7 +138,7 @@ fn softmax_small(
     shared_max[thread_idx] = val;
     workgroupBarrier();
 
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
         if (thread_idx < stride) {
             shared_max[thread_idx] = max(shared_max[thread_idx], shared_max[thread_idx + stride]);
         }
@@ -156,7 +156,7 @@ fn softmax_small(
     shared_sum[thread_idx] = exp_val;
     workgroupBarrier();
 
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
         if (thread_idx < stride) {
             shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
@@ -492,7 +492,7 @@ fn main_subgroup(
     }
 }
 
-// Subgroup-accelerated softmax for small inner size (<= 256)
+// Subgroup-accelerated softmax for small inner size (<= WORKGROUP_SIZE)
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_small_subgroup(
     @builtin(local_invocation_id) local_id: vec3<u32>,

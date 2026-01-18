@@ -28,6 +28,9 @@ export interface ShardCacheConfigSchema {
 
   /** Max entries for MoE models (caps the dynamic formula) */
   moeMaxEntries: number;
+
+  /** Verify shard hashes when loading into cache */
+  verifyHashes: boolean;
 }
 
 /** Default shard cache configuration */

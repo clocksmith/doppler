@@ -23,7 +23,12 @@ import {
 } from '../../formats/safetensors/index.js';
 import { parseGGUFFile } from '../../formats/gguf/index.js';
 import { writeRDRR } from '../writer.js';
-import { quantizeToQ4KM, float32ToFloat16 } from '../quantizer.js';
+import {
+  quantizeToQ4KM,
+  quantizeToQ4KMRowWise,
+  quantizeToQ4KMColumnWise,
+  float32ToFloat16,
+} from '../quantizer.js';
 import { extractArchitecture, shouldQuantize as shouldQuantizeCore } from '../core.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from '../manifest-inference.js';
 import { resolvePreset, createConverterConfig } from '../../config/index.js';
@@ -71,6 +76,45 @@ function resolveBaseModelId(configRec, inputPath) {
   return basename(inputPath);
 }
 
+function isMatmulWeight(name, shape) {
+  if (!Array.isArray(shape) || shape.length !== 2) return false;
+
+  const matmulPatterns = [
+    /\.weight$/,
+    /q_proj|k_proj|v_proj|o_proj/,
+    /gate_proj|up_proj|down_proj/,
+    /gate\.weight|up\.weight|down\.weight/,
+    /w1\.weight|w2\.weight|w3\.weight/,
+    /lm_head/,
+    /embed_tokens/,
+  ];
+
+  const excludePatterns = [
+    /norm|layernorm|rmsnorm/i,
+    /bias$/,
+    /rotary|rope/i,
+  ];
+
+  for (const pattern of excludePatterns) {
+    if (pattern.test(name)) return false;
+  }
+
+  for (const pattern of matmulPatterns) {
+    if (pattern.test(name)) return true;
+  }
+
+  return false;
+}
+
+function normalizeQ4KLayout(value) {
+  if (value == null) return null;
+  const lower = `${value}`.toLowerCase();
+  if (lower === 'flat' || lower === 'row_wise' || lower === 'column_wise') {
+    return lower;
+  }
+  throw new Error(`Invalid q4k layout: "${value}" (expected flat, row_wise, column_wise)`);
+}
+
 function resolveConverterConfig(options = {}) {
   const baseConfig = options.converterConfig ?? null;
 
@@ -81,6 +125,7 @@ function resolveConverterConfig(options = {}) {
   if (options.visionQuant !== undefined) quantization.vision = options.visionQuant;
   if (options.audioQuant !== undefined) quantization.audio = options.audioQuant;
   if (options.projectorQuant !== undefined) quantization.projector = options.projectorQuant;
+  if (options.q4kLayout !== undefined) quantization.q4kLayout = options.q4kLayout;
   if (options.computePrecision !== undefined) quantization.computePrecision = options.computePrecision;
 
   const sharding = { ...(baseConfig?.sharding ?? {}) };
@@ -197,6 +242,10 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   const baseModelId = resolveBaseModelId(configRec, inputPath);
   const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
   const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, originalDtype);
+  const q4kLayout = quantizationInfo.weights === 'q4k'
+    ? normalizeQ4KLayout(quantizationConfig.q4kLayout)
+    : null;
+  const manifestModelConfig = q4kLayout == null ? config : { ...config, q4kLayout };
 
   const isGptOssPackedExpertTensor = (name) => {
     const lower = name.toLowerCase();
@@ -234,7 +283,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
     architecture,
     quantization: manifestQuantization,
     quantizationInfo,
-    config,
+    config: manifestModelConfig,
     tokenizerConfig,
     tokenizerJson: parsed.tokenizerJson,
     tensors: validTensors.map((t) => ({
@@ -260,6 +309,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
 
     if (targetDtype === 'Q4_K_M') {
       verboseLog(`Quantizing ${info.name} to Q4_K_M`);
+      const useMatmulLayout = isMatmulWeight(info.name, info.shape);
 
       let f32;
       if (tensor.dtype === 'BF16') {
@@ -275,7 +325,14 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
         f32 = new Float32Array(data);
       }
 
-      const q4 = quantizeToQ4KM(f32, info.shape);
+      let q4;
+      if (useMatmulLayout && q4kLayout === 'column_wise') {
+        q4 = quantizeToQ4KMColumnWise(f32, info.shape);
+      } else if (useMatmulLayout && q4kLayout === 'row_wise') {
+        q4 = quantizeToQ4KMRowWise(f32, info.shape);
+      } else {
+        q4 = quantizeToQ4KM(f32, info.shape);
+      }
       return q4.quantized.buffer;
     }
 
@@ -361,6 +418,25 @@ export async function convertGGUF(inputPath, outputPath, opts) {
   const arch = ggufConfig.architecture || parsed.architecture || 'llama';
   const modelName = parsed.modelName || basename(inputPath, '.gguf');
 
+  const rmsNormEps = ggufConfig.attentionLayerNormRMSEpsilon ?? ggufConfig.attentionLayerNormEpsilon;
+  if (rmsNormEps == null) {
+    throw new Error(
+      'GGUF config missing rms_norm_eps. Re-export with attentionLayerNormRMSEpsilon or attentionLayerNormEpsilon.'
+    );
+  }
+  const ropeTheta = ggufConfig.ropeFreqBase ?? ggufConfig.rope_freq_base;
+  if (ropeTheta == null) {
+    throw new Error(
+      'GGUF config missing rope_theta. Re-export with ropeFreqBase (rope_theta).'
+    );
+  }
+  const maxPosition = ggufConfig.contextLength ?? ggufConfig.context_length;
+  if (maxPosition == null) {
+    throw new Error(
+      'GGUF config missing max_position_embeddings. Re-export with contextLength (context_length).'
+    );
+  }
+
   const config = {
     architectures: [arch + 'ForCausalLM'],
     model_type: arch,
@@ -370,9 +446,9 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     num_key_value_heads: ggufConfig.attentionHeadCountKV,
     vocab_size: ggufConfig.vocabSize,
     intermediate_size: ggufConfig.feedForwardLength,
-    rms_norm_eps: ggufConfig.attentionLayerNormRMSEpsilon || ggufConfig.attentionLayerNormEpsilon || 1e-5,
-    rope_theta: ggufConfig.ropeFreqBase || 10000,
-    max_position_embeddings: ggufConfig.contextLength || 8192,
+    rms_norm_eps: rmsNormEps,
+    rope_theta: ropeTheta,
+    max_position_embeddings: maxPosition,
     num_local_experts: ggufConfig.expertCount,
   };
 
@@ -403,13 +479,17 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     quantizationConfig.weights,
     parsed.quantization || 'F32'
   );
+  const q4kLayout = quantizationInfo.weights === 'q4k'
+    ? normalizeQ4KLayout(quantizationConfig.q4kLayout)
+    : null;
+  const manifestModelConfig = q4kLayout == null ? config : { ...config, q4kLayout };
 
   const modelInfo = {
     modelName: resolvedModelId,
     architecture,
     quantization: manifestQuantization,
     quantizationInfo,
-    config,
+    config: manifestModelConfig,
     tokenizer: ggufTokenizer ? {
       model: ggufTokenizer.model,
       tokens: ggufTokenizer.tokens,

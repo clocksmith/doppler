@@ -154,92 +154,106 @@ export async function runDenseFFNGPU(
     return output;
   }
 
-  if (layerWeights?.gate && layerWeights?.up && layerWeights?.down && !layerWeights.gateUp && inputTensor.dtype === 'f32') {
-    const loraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
-    const loraUp = getLoRAModule(lora, layerIdx, 'up_proj');
-    if (!loraGate && !loraUp) {
-      const gateDtype = isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : 'f32';
-      const upDtype = isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : 'f32';
-      const dtypeMatches = gateDtype === upDtype;
-      const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
-      const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
-      const f16BatchOk = gateDtype !== 'f16' || numTokens === 1;
+  const hasGate = Boolean(layerWeights?.gate);
+  const hasUp = Boolean(layerWeights?.up);
+  const hasDown = Boolean(layerWeights?.down);
+  const hasFusedWeights = Boolean(layerWeights?.gateUp);
+  const inputIsF32 = inputTensor.dtype === 'f32';
+  const hasLoRA = Boolean(
+    (hasGate ? getLoRAModule(lora, layerIdx, 'gate_proj') : null) ||
+    (hasUp ? getLoRAModule(lora, layerIdx, 'up_proj') : null)
+  );
+  const gateDtype = hasGate && isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : (hasGate ? 'f32' : null);
+  const upDtype = hasUp && isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : (hasUp ? 'f32' : null);
+  const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
+  const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
+  const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
+  const f16BatchOk = gateDtype !== 'f16' || numTokens === 1;
+  const useFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    hasGate,
+    hasUp,
+    hasDown,
+    hasFusedWeights,
+    inputIsF32,
+    hasLoRA,
+    dtypeMatches,
+    dtypeSupported,
+    f16BatchOk,
+  });
 
-      if (dtypeMatches && dtypeSupported && f16BatchOk) {
-        const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-        const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-        const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+  if (useFusedGateUp) {
+    const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
+    const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
+    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
-        const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
-        const fusedOutput = recorder
-          ? await recordFusedFFN(
-            recorder,
-            inputTensor,
-            gateWeight,
-            upWeight,
-            hiddenSize,
-            intermediateSize,
-            { batchSize: numTokens, activation, swigluLimit }
-          )
-          : await runFusedFFN(
-            inputTensor,
-            gateWeight,
-            upWeight,
-            hiddenSize,
-            intermediateSize,
-            { batchSize: numTokens, activation, swigluLimit }
-          );
+    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
+    const fusedOutput = recorder
+      ? await recordFusedFFN(
+        recorder,
+        inputTensor,
+        gateWeight,
+        upWeight,
+        hiddenSize,
+        intermediateSize,
+        { batchSize: numTokens, activation, swigluLimit }
+      )
+      : await runFusedFFN(
+        inputTensor,
+        gateWeight,
+        upWeight,
+        hiddenSize,
+        intermediateSize,
+        { batchSize: numTokens, activation, swigluLimit }
+      );
 
-        if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
-          releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
-        }
-        if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
-          releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
-        }
+    if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+      releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
+    }
+    if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+      releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
+    }
 
-        let output = await doMatmul(
-          fusedOutput,
-          downWeight,
-          numTokens,
-          hiddenSize,
-          intermediateSize,
-          { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, role: 'ffn_down' },
-          recorder
-        );
+    let output = await doMatmul(
+      fusedOutput,
+      downWeight,
+      numTokens,
+      hiddenSize,
+      intermediateSize,
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, role: 'ffn_down' },
+      recorder
+    );
 
-        const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
-        if (loraDown) {
-          const combined = await applyLoRA(
-            fusedOutput,
-            output,
-            loraDown,
-            { M: numTokens, N: hiddenSize, K: intermediateSize },
-            getWeightBuffer,
-            recorder
-          );
-          if (combined.buffer !== output.buffer) {
-            if (recorder) {
-              recorder.trackTemporaryBuffer(output.buffer);
-            } else {
-              releaseBuffer(output.buffer);
-            }
-            output = combined;
-          }
-        }
-
-        if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
-          releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
-        }
-
+    const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
+    if (loraDown) {
+      const combined = await applyLoRA(
+        fusedOutput,
+        output,
+        loraDown,
+        { M: numTokens, N: hiddenSize, K: intermediateSize },
+        getWeightBuffer,
+        recorder
+      );
+      if (combined.buffer !== output.buffer) {
         if (recorder) {
-          recorder.trackTemporaryBuffer(fusedOutput.buffer);
+          recorder.trackTemporaryBuffer(output.buffer);
         } else {
-          releaseBuffer(fusedOutput.buffer);
+          releaseBuffer(output.buffer);
         }
-
-        return output;
+        output = combined;
       }
     }
+
+    if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    }
+
+    if (recorder) {
+      recorder.trackTemporaryBuffer(fusedOutput.buffer);
+    } else {
+      releaseBuffer(fusedOutput.buffer);
+    }
+
+    return output;
   }
 
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {

@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer, getBufferRequestedSize } from '../buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -10,6 +10,23 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
 import { trace } from '../../debug/index.js';
 import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
+
+
+function resolveNormWeightDtype(byteSize, hiddenSize) {
+  if (!byteSize || hiddenSize == null) return null;
+  const f16Bytes = hiddenSize * 2;
+  const f32Bytes = hiddenSize * 4;
+  const sizeMatchesF32 = byteSize >= f32Bytes;
+  const sizeMatchesF16 = byteSize >= f16Bytes && !sizeMatchesF32;
+  if (!sizeMatchesF16 && !sizeMatchesF32) {
+    return null;
+  }
+  return selectLoaderRule('loader', 'weights', 'normWeightDtypeFromSize', {
+    sizeMatchesF16,
+    sizeMatchesF32,
+  });
+}
 
 
 export function selectMatmulRMSNormFusedVariant(N, dtype) {
@@ -48,6 +65,15 @@ export async function runMatmulRMSNormFused(
   }
 
   const weightBuffer = getBuffer(weight);
+  const normWeightBuffer = getBuffer(normWeight);
+  const normWeightSize = getBufferRequestedSize(normWeightBuffer);
+  const normWeightDtype = resolveNormWeightDtype(normWeightSize, N);
+  if (!normWeightDtype) {
+    throw new Error(
+      `[MatmulRMSNormFused] norm weight size (${normWeightSize} bytes) does not match ` +
+      `hiddenSize=${N} (expected ${N * 2} or ${N * 4} bytes).`
+    );
+  }
 
   // Select variant based on output size and input dtype
   if (!input.dtype) {
@@ -58,7 +84,7 @@ export async function runMatmulRMSNormFused(
 
   trace.kernels(`MatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, dtype=${dtype}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
-  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
+  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' };
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
   // Output buffer: [1, N] - size depends on dtype
@@ -97,7 +123,7 @@ export async function runMatmulRMSNormFused(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: normWeight } },
+      { binding: 3, resource: { buffer: normWeightBuffer } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } },
     ],
@@ -142,14 +168,26 @@ export async function recordMatmulRMSNormFused(
   }
 
   const weightBuffer = getBuffer(weight);
+  const normWeightBuffer = getBuffer(normWeight);
+  const normWeightSize = getBufferRequestedSize(normWeightBuffer);
+  const normWeightDtype = resolveNormWeightDtype(normWeightSize, N);
+  if (!normWeightDtype) {
+    throw new Error(
+      `[MatmulRMSNormFused] norm weight size (${normWeightSize} bytes) does not match ` +
+      `hiddenSize=${N} (expected ${N * 2} or ${N * 4} bytes).`
+    );
+  }
 
   // Select variant based on dtype
-  const dtype = input.dtype || 'f32';
+  if (!input.dtype) {
+    throw new Error('[MatmulRMSNormFused] input dtype is required.');
+  }
+  const dtype = input.dtype;
   const variant = selectMatmulRMSNormFusedVariant(N, dtype);
 
   trace.kernels(`recordMatmulRMSNormFused: N=${N}, K=${K}, variant=${variant}, dtype=${dtype}, hasResidual=${!!residual}, transposeB=${transposeB}, offset=${rmsNormWeightOffset}`);
 
-  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset };
+  const constants = { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' };
   const pipeline = await getPipelineFast('fused_matmul_rmsnorm', variant, null, constants);
 
   // Output buffer - size depends on dtype
@@ -187,7 +225,7 @@ export async function recordMatmulRMSNormFused(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: normWeight } },
+      { binding: 3, resource: { buffer: normWeightBuffer } },
       { binding: 4, resource: { buffer: output } },
       { binding: 5, resource: { buffer: residualBuffer } },
     ],

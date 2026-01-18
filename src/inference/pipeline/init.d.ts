@@ -198,6 +198,16 @@ export function applyLlama3ChatTemplate(prompt: string): string;
 export function applyGptOssChatTemplate(prompt: string): string;
 
 /**
+ * Apply ChatML template to a prompt.
+ */
+export function applyChatMLTemplate(prompt: string): string;
+
+/**
+ * Apply Qwen chat template to a prompt.
+ */
+export function applyQwenChatTemplate(prompt: string): string;
+
+/**
  * Apply chat template based on template type from config.
  */
 export function applyChatTemplate(prompt: string, templateType: string | null | undefined): string;

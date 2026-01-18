@@ -25,12 +25,12 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read_write> out_weights: array<f32>; // [numTokens, topK]
 
 // Workgroup shared memory for sorting
-// Supports up to 256 experts (covers DeepSeek-V2's 160, Snowflake Arctic's 128, etc.)
-var<workgroup> shared_probs: array<f32, 256>;
-var<workgroup> shared_indices: array<u32, 256>;
+// Supports up to WORKGROUP_SIZE experts (default 256; covers DeepSeek-V2's 160, Snowflake Arctic's 128, etc.)
+var<workgroup> shared_probs: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
 
 // Main kernel: one workgroup per token
-// Workgroup size 256 to support loading up to 256 experts in parallel
+// Workgroup size WORKGROUP_SIZE to support loading up to WORKGROUP_SIZE experts in parallel
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -155,7 +155,7 @@ fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 // Fused softmax + top-k for efficiency
 // Avoids separate softmax kernel call
-// Workgroup size 256 to support up to 256 experts
+// Workgroup size WORKGROUP_SIZE to support up to WORKGROUP_SIZE experts
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_topk(
     @builtin(local_invocation_id) local_id: vec3<u32>,

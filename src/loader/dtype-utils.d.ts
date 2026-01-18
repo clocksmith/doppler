@@ -42,12 +42,3 @@ export declare function isEmbeddingWeight(name: string): boolean;
  * This function is kept for API compatibility but is a no-op for non-matmul weights (norms).
  */
 export declare function applyBufferLayout(buffer: GPUBuffer, _location: TensorLocation): GPUBuffer;
-
-/**
- * Find alternative tensor name (handles different naming conventions).
- * Returns null if no alternative is found.
- */
-export declare function findAlternativeTensorName(
-  name: string,
-  tensorLocations: Map<string, TensorLocation>
-): string | null;

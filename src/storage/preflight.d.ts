@@ -37,6 +37,21 @@ export interface StorageCheckResult {
   message: string;
 }
 
+export interface StorageBackendCheckResult {
+  requested: string;
+  selected: string;
+  persistent: boolean;
+  ok: boolean;
+  message: string;
+  caps: {
+    opfs: boolean;
+    indexeddb: boolean;
+    sharedArrayBuffer: boolean;
+    byob: boolean;
+    syncAccessHandle: boolean;
+  };
+}
+
 /**
  * GPU info result
  */
@@ -63,6 +78,8 @@ export interface PreflightResult {
   storage: StorageCheckResult;
   /** GPU capability details */
   gpu: GPUCheckResult;
+  /** Storage backend selection and capabilities */
+  storageBackend: StorageBackendCheckResult;
   /** Warning messages (non-blocking) */
   warnings: string[];
   /** Blocker messages (prevents download) */

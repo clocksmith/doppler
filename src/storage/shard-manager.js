@@ -3,23 +3,27 @@ import {
   getShardInfo,
   getShardCount,
 } from './rdrr-format.js';
-import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quota.js';
+import {
+  isOPFSAvailable,
+  isIndexedDBAvailable,
+  QuotaExceededError,
+  checkSpaceAvailable,
+} from './quota.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { createOpfsStore } from './backends/opfs-store.js';
+import { createIdbStore } from './backends/idb-store.js';
+import { createMemoryStore } from './backends/memory-store.js';
 
 export { getManifest } from './rdrr-format.js';
 
-function getAlignmentBytes() {
-  return getRuntimeConfig().loading.storage.alignment.bufferAlignmentBytes;
-}
-
 let opfsPathConfigOverride = null;
-
-let rootDir = null;
-let modelsDir = null;
-let currentModelDir = null;
 let blake3Module = null;
 let hashAlgorithm = null;
+
+let backend = null;
+let backendType = null;
+let currentModelId = null;
 
 export function setOpfsPathConfig(config) {
   opfsPathConfigOverride = config;
@@ -27,6 +31,49 @@ export function setOpfsPathConfig(config) {
 
 export function getOpfsPathConfig() {
   return opfsPathConfigOverride ?? getRuntimeConfig().loading.opfsPath;
+}
+
+function normalizeModelId(modelId) {
+  return modelId.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+function getBackendConfig() {
+  return getRuntimeConfig().loading.storage.backend;
+}
+
+function buildBackend(type, config) {
+  if (type === 'opfs') {
+    return createOpfsStore({
+      opfsRootDir: getOpfsPathConfig().opfsRootDir,
+      useSyncAccessHandle: config.opfs.useSyncAccessHandle,
+      maxConcurrentHandles: config.opfs.maxConcurrentHandles,
+    });
+  }
+  if (type === 'indexeddb') {
+    return createIdbStore(config.indexeddb);
+  }
+  return createMemoryStore(config.memory);
+}
+
+function resolveBackendType(config) {
+  if (config.backend === 'opfs') {
+    if (!isOPFSAvailable()) {
+      throw new Error('OPFS requested but not available');
+    }
+    return 'opfs';
+  }
+  if (config.backend === 'indexeddb') {
+    if (!isIndexedDBAvailable()) {
+      throw new Error('IndexedDB requested but not available');
+    }
+    return 'indexeddb';
+  }
+  if (config.backend === 'memory') {
+    return 'memory';
+  }
+  if (isOPFSAvailable()) return 'opfs';
+  if (isIndexedDBAvailable()) return 'indexeddb';
+  return 'memory';
 }
 
 async function initBlake3(requiredAlgorithm = null) {
@@ -118,76 +165,106 @@ export async function computeHash(data, algorithm = 'blake3') {
   return computeBlake3(data);
 }
 
-export async function createStreamingHasher() {
-  await initBlake3();
+export async function createStreamingHasher(algorithm = 'blake3') {
+  if (algorithm === 'sha256') {
+    const chunks = [];
+    return {
+      update: (data) => {
+        chunks.push(new Uint8Array(data));
+      },
+      finalize: async () => {
+        const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+        return new Uint8Array(hashBuffer);
+      }
+    };
+  }
+  await initBlake3('blake3');
   return blake3Module.createHasher();
 }
 
-export async function initOPFS() {
-  if (!isOPFSAvailable()) {
-    throw new Error('OPFS not available in this browser');
-  }
+export function getStorageCapabilities() {
+  const hasReadableStream = typeof ReadableStream !== 'undefined';
+  const supportsByob = hasReadableStream && typeof ReadableStreamBYOBReader !== 'undefined';
+  const supportsSyncAccessHandle = typeof FileSystemSyncAccessHandle !== 'undefined';
+  return {
+    opfs: isOPFSAvailable(),
+    indexeddb: isIndexedDBAvailable(),
+    sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
+    byob: supportsByob,
+    syncAccessHandle: supportsSyncAccessHandle,
+  };
+}
 
-  try {
-    rootDir = await navigator.storage.getDirectory();
-    const { opfsRootDir } = getOpfsPathConfig();
-    modelsDir = await rootDir.getDirectoryHandle(opfsRootDir, { create: true });
-  } catch (error) {
-    throw new Error(`Failed to initialize OPFS: ${error.message}`);
+export function getStorageBackendType() {
+  return backendType;
+}
+
+export async function initStorage() {
+  if (backend) return;
+  const backendConfig = getBackendConfig();
+  backendType = resolveBackendType(backendConfig);
+  backend = buildBackend(backendType, backendConfig);
+  await backend.init();
+}
+
+export async function openModelStore(modelId) {
+  if (!backend) {
+    await initStorage();
+  }
+  const safeName = normalizeModelId(modelId);
+  currentModelId = safeName;
+  return backend.openModel(safeName, { create: true });
+}
+
+export function getCurrentModelId() {
+  return currentModelId;
+}
+
+function requireModel() {
+  if (!currentModelId) {
+    throw new Error('No model open. Call openModelStore first.');
   }
 }
 
-export async function openModelDirectory(modelId) {
-  if (!modelsDir) {
-    await initOPFS();
+async function ensureBackend() {
+  if (!backend) {
+    await initStorage();
   }
-
-  const safeName = modelId.replace(/[^a-zA-Z0-9_-]/g, '_');
-  currentModelDir = await modelsDir.getDirectoryHandle(safeName, { create: true });
-  return currentModelDir;
-}
-
-export function getCurrentModelDirectory() {
-  return currentModelDir;
 }
 
 export async function writeShard(shardIndex, data, options = { verify: true }) {
-  if (!currentModelDir) {
-    throw new Error('No model directory open. Call openModelDirectory first.');
-  }
+  await ensureBackend();
+  requireModel();
 
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) {
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
 
-  const spaceCheck = await checkSpaceAvailable(data.byteLength);
+  const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+  const spaceCheck = await checkSpaceAvailable(bytes.byteLength);
   if (!spaceCheck.hasSpace) {
-    throw new QuotaExceededError(data.byteLength, spaceCheck.info.available);
+    throw new QuotaExceededError(bytes.byteLength, spaceCheck.info.available);
   }
 
   try {
-    const fileHandle = await currentModelDir.getFileHandle(shardInfo.filename, { create: true });
-    const writable = await fileHandle.createWritable();
-
-    const alignment = getAlignmentBytes();
-    const alignedSize = Math.ceil(data.byteLength / alignment) * alignment;
-    if (alignedSize !== data.byteLength) {
-      await writable.write(data);
-    } else {
-      await writable.write(data);
-    }
-
-    await writable.close();
+    await backend.writeFile(shardInfo.filename, bytes);
 
     if (options.verify) {
       const manifest = getManifest();
       const algorithm = manifest?.hashAlgorithm || 'blake3';
-      const hash = await computeHash(data, algorithm);
+      const hash = await computeHash(bytes, algorithm);
       const expectedHash = shardInfo.hash || shardInfo.blake3;
 
-      if (hash !== expectedHash) {
-        await currentModelDir.removeEntry(shardInfo.filename);
+      if (expectedHash && hash !== expectedHash) {
+        await backend.deleteFile(shardInfo.filename);
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
       return { success: true, hash };
@@ -200,10 +277,22 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
   }
 }
 
-export async function loadShard(shardIndex, options = { verify: false }) {
-  if (!currentModelDir) {
-    throw new Error('No model directory open. Call openModelDirectory first.');
+export async function createShardWriter(shardIndex) {
+  await ensureBackend();
+  requireModel();
+  const shardInfo = getShardInfo(shardIndex);
+  if (!shardInfo) {
+    throw new Error(`Invalid shard index: ${shardIndex}`);
   }
+  if (!backend.createWriteStream) {
+    throw new Error('Storage backend does not support streaming writes');
+  }
+  return backend.createWriteStream(shardInfo.filename);
+}
+
+export async function loadShard(shardIndex, options = { verify: false }) {
+  await ensureBackend();
+  requireModel();
 
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) {
@@ -211,21 +300,17 @@ export async function loadShard(shardIndex, options = { verify: false }) {
   }
 
   try {
-    const fileHandle = await currentModelDir.getFileHandle(shardInfo.filename);
-    const file = await fileHandle.getFile();
-    const buffer = await file.arrayBuffer();
-
+    const buffer = await backend.readFile(shardInfo.filename);
     if (options.verify) {
       const manifest = getManifest();
       const algorithm = manifest?.hashAlgorithm || 'blake3';
       const hash = await computeHash(buffer, algorithm);
       const expectedHash = shardInfo.hash || shardInfo.blake3;
 
-      if (hash !== expectedHash) {
+      if (expectedHash && hash !== expectedHash) {
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
     }
-
     return buffer;
   } catch (error) {
     if (error.name === 'NotFoundError') {
@@ -236,60 +321,22 @@ export async function loadShard(shardIndex, options = { verify: false }) {
 }
 
 export async function loadShardSync(shardIndex, offset = 0, length) {
-  if (!currentModelDir) {
-    throw new Error('No model directory open. Call openModelDirectory first.');
-  }
-
-  const shardInfo = getShardInfo(shardIndex);
-  if (!shardInfo) {
-    throw new Error(`Invalid shard index: ${shardIndex}`);
-  }
-
-  const alignment = getAlignmentBytes();
-  const alignedOffset = Math.floor(offset / alignment) * alignment;
-  const offsetDelta = offset - alignedOffset;
-
-  const readLength = length ?? (shardInfo.size - offset);
-  const alignedLength = Math.ceil((readLength + offsetDelta) / alignment) * alignment;
-
-  try {
-    const fileHandle = await currentModelDir.getFileHandle(shardInfo.filename);
-    const syncHandle = await fileHandle.createSyncAccessHandle();
-
-    try {
-      const buffer = new Uint8Array(alignedLength);
-      const bytesRead = syncHandle.read(buffer, { at: alignedOffset });
-
-      if (offsetDelta > 0 || readLength !== alignedLength) {
-        return buffer.slice(offsetDelta, offsetDelta + readLength);
-      }
-      return buffer.slice(0, bytesRead);
-    } finally {
-      syncHandle.close();
-    }
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      throw new Error(`Shard ${shardIndex} not found`);
-    }
-    if (error.name === 'NotSupportedError') {
-      log.warn('ShardManager', 'Sync access not supported, falling back to async read');
-      const buffer = await loadShard(shardIndex);
-      return new Uint8Array(buffer, offset, length);
-    }
-    throw new Error(`Failed to sync-load shard ${shardIndex}: ${error.message}`);
-  }
+  const buffer = await loadShard(shardIndex, { verify: false });
+  const view = new Uint8Array(buffer);
+  const start = Math.max(0, offset);
+  const end = length == null ? view.length : Math.min(view.length, start + length);
+  return view.slice(start, end);
 }
 
 export async function shardExists(shardIndex) {
-  if (!currentModelDir) return false;
-
+  await ensureBackend();
+  requireModel();
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) return false;
-
   try {
-    await currentModelDir.getFileHandle(shardInfo.filename);
+    await backend.readFile(shardInfo.filename);
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 }
@@ -298,10 +345,6 @@ export async function verifyIntegrity() {
   const manifest = getManifest();
   if (!manifest) {
     throw new Error('No manifest loaded');
-  }
-
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
   }
 
   const algorithm = manifest.hashAlgorithm || 'blake3';
@@ -321,10 +364,9 @@ export async function verifyIntegrity() {
       const buffer = await loadShard(i, { verify: false });
       const hash = await computeHash(buffer, algorithm);
       const shardInfo = getShardInfo(i);
-
       const expectedHash = shardInfo?.hash || shardInfo?.blake3;
 
-      if (hash !== expectedHash) {
+      if (expectedHash && hash !== expectedHash) {
         corruptShards.push(i);
       }
     } catch (_error) {
@@ -340,100 +382,62 @@ export async function verifyIntegrity() {
 }
 
 export async function deleteShard(shardIndex) {
-  if (!currentModelDir) return false;
-
+  await ensureBackend();
+  requireModel();
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) return false;
-
   try {
-    await currentModelDir.removeEntry(shardInfo.filename);
+    await backend.deleteFile(shardInfo.filename);
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 }
 
 export async function deleteModel(modelId) {
-  if (!modelsDir) {
-    await initOPFS();
-  }
-
-  const safeName = modelId.replace(/[^a-zA-Z0-9_-]/g, '_');
-
-  try {
-    await modelsDir.removeEntry(safeName, { recursive: true });
-
-    if (currentModelDir) {
-      try {
-        await currentModelDir.getFileHandle('.test', { create: true })
-          .then((_h) => currentModelDir.removeEntry('.test'))
-          .catch((err) => {
-            log.debug('ShardManager', `OPFS cleanup skipped: ${err?.message || 'unknown error'}`);
-          });
-      } catch {
-        currentModelDir = null;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      return true;
-    }
-    return false;
-  }
+  await ensureBackend();
+  const safeName = normalizeModelId(modelId);
+  return backend.deleteModel(safeName);
 }
 
 export async function listModels() {
-  if (!modelsDir) {
-    try {
-      await initOPFS();
-    } catch {
-      return [];
-    }
-  }
-
-  const models = [];
-  const entries = modelsDir.entries();
-  for await (const [name, handle] of entries) {
-    if (handle.kind === 'directory') {
-      models.push(name);
-    }
-  }
-
-  return models;
+  await ensureBackend();
+  return backend.listModels();
 }
 
 export async function getModelInfo(modelId) {
-  if (!modelsDir) {
-    await initOPFS();
-  }
+  await ensureBackend();
+  const safeName = normalizeModelId(modelId);
+  let exists = false;
+  let hasManifest = false;
+  let shardCount = 0;
+  let totalSize = 0;
 
-  const safeName = modelId.replace(/[^a-zA-Z0-9_-]/g, '_');
-
-  try {
-    const modelDir = await modelsDir.getDirectoryHandle(safeName);
-    let shardCount = 0;
-    let totalSize = 0;
-    let hasManifest = false;
-
-    const modelEntries = modelDir.entries();
-    for await (const [name, handle] of modelEntries) {
-      if (handle.kind === 'file') {
-        if (name === 'manifest.json') {
-          hasManifest = true;
-        } else if (name.startsWith('shard_') && name.endsWith('.bin')) {
-          shardCount++;
-          const file = await handle.getFile();
-          totalSize += file.size;
-        }
-      }
-    }
-
-    return { exists: true, shardCount, totalSize, hasManifest };
-  } catch (_error) {
+  const models = await backend.listModels();
+  exists = models.includes(safeName);
+  if (!exists) {
     return { exists: false, shardCount: 0, totalSize: 0, hasManifest: false };
   }
+
+  try {
+    await backend.openModel(safeName, { create: false });
+    const manifestJson = await loadManifestFromStore();
+    hasManifest = !!manifestJson;
+    if (manifestJson) {
+      try {
+        const manifest = JSON.parse(manifestJson);
+        shardCount = manifest.shards?.length ?? 0;
+        totalSize = manifest.totalSize ?? 0;
+      } catch {
+        shardCount = 0;
+        totalSize = 0;
+      }
+    }
+  } catch {
+    return { exists: false, shardCount: 0, totalSize: 0, hasManifest: false };
+  }
+
+  return { exists: true, shardCount, totalSize, hasManifest };
 }
 
 export async function modelExists(modelId) {
@@ -442,127 +446,76 @@ export async function modelExists(modelId) {
 }
 
 export async function saveManifest(manifestJson) {
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
+  await ensureBackend();
+  requireModel();
+  if (backend.writeManifest) {
+    await backend.writeManifest(manifestJson);
+    return;
   }
-
-  const fileHandle = await currentModelDir.getFileHandle('manifest.json', { create: true });
-  const writable = await fileHandle.createWritable();
-  await writable.write(manifestJson);
-  await writable.close();
+  const encoder = new TextEncoder();
+  await backend.writeFile('manifest.json', encoder.encode(manifestJson));
 }
 
-export async function loadManifestFromOPFS() {
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
+export async function loadManifestFromStore() {
+  await ensureBackend();
+  requireModel();
+  if (backend.readManifest) {
+    return backend.readManifest();
   }
-
-  try {
-    const fileHandle = await currentModelDir.getFileHandle('manifest.json');
-    const file = await fileHandle.getFile();
-    return await file.text();
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      throw new Error('Manifest not found');
-    }
-    throw error;
+  if (backend.readText) {
+    return backend.readText('manifest.json');
   }
+  const buffer = await backend.readFile('manifest.json');
+  return new TextDecoder().decode(buffer);
 }
 
-export async function loadTensorsFromOPFS() {
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
+export async function loadTensorsFromStore() {
+  await ensureBackend();
+  requireModel();
+  if (backend.readText) {
+    return backend.readText('tensors.json');
   }
-
   try {
-    const fileHandle = await currentModelDir.getFileHandle('tensors.json');
-    const file = await fileHandle.getFile();
-    return await file.text();
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      return null;
-    }
-    throw error;
+    const buffer = await backend.readFile('tensors.json');
+    return new TextDecoder().decode(buffer);
+  } catch (_error) {
+    return null;
   }
 }
 
 export async function saveTokenizer(tokenizerJson) {
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
+  await ensureBackend();
+  requireModel();
+  if (backend.writeTokenizer) {
+    await backend.writeTokenizer(tokenizerJson);
+    return;
   }
-
-  const fileHandle = await currentModelDir.getFileHandle('tokenizer.json', { create: true });
-  const writable = await fileHandle.createWritable();
-  await writable.write(tokenizerJson);
-  await writable.close();
+  const encoder = new TextEncoder();
+  await backend.writeFile('tokenizer.json', encoder.encode(tokenizerJson));
 }
 
-export async function loadTokenizerFromOPFS() {
-  if (!currentModelDir) {
-    throw new Error('No model directory open');
+export async function loadTokenizerFromStore() {
+  await ensureBackend();
+  requireModel();
+  if (backend.readTokenizer) {
+    return backend.readTokenizer();
   }
-
+  if (backend.readText) {
+    return backend.readText('tokenizer.json');
+  }
   try {
-    const fileHandle = await currentModelDir.getFileHandle('tokenizer.json');
-    const file = await fileHandle.getFile();
-    return await file.text();
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      return null;
-    }
-    throw error;
+    const buffer = await backend.readFile('tokenizer.json');
+    return new TextDecoder().decode(buffer);
+  } catch (_error) {
+    return null;
   }
 }
 
-export function cleanup() {
-  rootDir = null;
-  modelsDir = null;
-  currentModelDir = null;
-}
-
-export class OpfsShardStore {
-  #modelId;
-  #initialized = false;
-
-  constructor(modelId) {
-    this.#modelId = modelId;
+export async function cleanup() {
+  if (backend?.cleanup) {
+    await backend.cleanup();
   }
-
-  async #ensureInitialized() {
-    if (this.#initialized) return;
-    await openModelDirectory(this.#modelId);
-    this.#initialized = true;
-  }
-
-  async read(shardIndex, offset, length) {
-    await this.#ensureInitialized();
-    return loadShardSync(shardIndex, offset, length);
-  }
-
-  async write(shardIndex, data) {
-    await this.#ensureInitialized();
-    await writeShard(shardIndex, data.buffer, { verify: true });
-  }
-
-  async exists(shardIndex) {
-    await this.#ensureInitialized();
-    return shardExists(shardIndex);
-  }
-
-  async delete(shardIndex) {
-    await this.#ensureInitialized();
-    await deleteShard(shardIndex);
-  }
-
-  async list() {
-    await this.#ensureInitialized();
-    const shardCount = getShardCount();
-    const existing = [];
-    for (let i = 0; i < shardCount; i++) {
-      if (await this.exists(i)) {
-        existing.push(i);
-      }
-    }
-    return existing;
-  }
+  backend = null;
+  backendType = null;
+  currentModelId = null;
 }

@@ -119,7 +119,11 @@ export async function recordLayerAttentionGPU(
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
                   getLoRAModule(lora, layerIdx, 'k_proj') ||
                   getLoRAModule(lora, layerIdx, 'v_proj');
-  const useFusedQKV = layerWeights.qkvProj && layerWeights.qkvSizes && !hasLoRA;
+  const useFusedQKV = selectRuleValue('inference', 'attention', 'useFusedQkv', {
+    hasQkvProj: Boolean(layerWeights.qkvProj),
+    hasQkvSizes: Boolean(layerWeights.qkvSizes),
+    hasLoRA: Boolean(hasLoRA),
+  });
 
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     // FUSED PATH: Single matmul for Q/K/V, then split
@@ -391,12 +395,14 @@ export async function recordLayerAttentionGPU(
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
     const oProjDtype = getWeightDtype(oProjBuf);
-    const canUseFused = shouldUseFusedMatmulResidual(numTokens) &&
-                        residualTensor &&
-                        residualTensor.dtype === attnOutput.dtype &&
-                        attnOutput.dtype === 'f32' &&
-                        !loraO &&
-                        oProjDtype === 'f16';
+    const canUseFused = selectRuleValue('inference', 'attention', 'useFusedOProjResidual', {
+      allowFusedResidual: shouldUseFusedMatmulResidual(numTokens),
+      hasResidual: Boolean(residualTensor),
+      residualMatches: Boolean(residualTensor && residualTensor.dtype === attnOutput.dtype),
+      attnIsF32: attnOutput.dtype === 'f32',
+      hasLoRA: Boolean(loraO),
+      oProjIsF16: oProjDtype === 'f16',
+    });
 
     if (canUseFused && residualTensor) {
       // FUSED PATH: o_proj matmul + residual add in one dispatch

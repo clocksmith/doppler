@@ -146,7 +146,7 @@ fn gather_single_pass(
     let actual_count = atomicLoad(&token_counts[expert_idx]);
     let elements_per_slot = hidden_size;
     let total_work = actual_count * elements_per_slot;
-    let work_per_thread = (total_work + 255u) / 256u;
+    let work_per_thread = (total_work + WORKGROUP_SIZE_MAIN - 1u) / WORKGROUP_SIZE_MAIN;
 
     for (var i: u32 = 0u; i < work_per_thread; i = i + 1u) {
         let work_idx = thread_idx * work_per_thread + i;

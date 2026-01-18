@@ -4,23 +4,18 @@ import { getMemoryCapabilities } from '../memory/capability.js';
 import { detectUnifiedMemory } from '../memory/unified-detect.js';
 import { getHeapManager } from '../memory/heap-manager.js';
 import {
-  initOPFS,
-  openModelDirectory,
-  loadShard as loadShardFromOPFS,
+  initStorage,
+  openModelStore,
   verifyIntegrity,
-  loadManifestFromOPFS,
+  loadManifestFromStore,
 } from '../storage/shard-manager.js';
-import {
-  parseManifest,
-  isMoE,
-} from '../storage/rdrr-format.js';
+import { parseManifest } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { releaseBuffer } from '../gpu/buffer-pool.js';
 import { getExpertCache } from './expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
-import { findAlternativeTensorName } from './dtype-utils.js';
 
 import { createShardCache } from './shard-cache.js';
 import { validateManifestInference } from '../config/schema/index.js';
@@ -231,7 +226,7 @@ export class DopplerLoader {
     this.expertCache = getExpertCache();
 
     if (!this.shardCache.hasCustomLoader) {
-      await initOPFS();
+      await initStorage();
     }
 
     const caps = [
@@ -247,7 +242,13 @@ export class DopplerLoader {
   setManifest(manifest) {
     this.manifest = manifest;
     const config =  (manifest.config);
-    this.isMoE = manifest.moeConfig != null || (config?.num_local_experts ?? 0) > 1;
+    const moeConfig = manifest.moeConfig;
+    this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
+    if (!this.isMoE && (config?.num_local_experts ?? 0) > 1) {
+      throw new Error(
+        `Manifest "${manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
+      );
+    }
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
     debugTrace.loader('Manifest set externally');
   }
@@ -315,8 +316,8 @@ export class DopplerLoader {
     this.#startMemoryLogging();
 
     if (!this.shardCache.hasCustomLoader) {
-      await openModelDirectory(modelId);
-      const manifestJson = await loadManifestFromOPFS();
+      await openModelStore(modelId);
+      const manifestJson = await loadManifestFromStore();
       this.manifest = parseManifest(manifestJson);
     }
 
@@ -327,9 +328,13 @@ export class DopplerLoader {
     validateManifestInference(this.manifest);
 
     const config =  (this.manifest.config);
-    this.isMoE = this.manifest.moeConfig != null ||
-                 (config?.num_local_experts ?? 0) > 1 ||
-                 isMoE();
+    const moeConfig = this.manifest.moeConfig;
+    this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
+    if (!this.isMoE && (config?.num_local_experts ?? 0) > 1) {
+      throw new Error(
+        `Manifest "${this.manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
+      );
+    }
 
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
 
@@ -531,10 +536,6 @@ export class DopplerLoader {
   async #loadTensor(name, toGPU = true, silent = false) {
     const location = this.tensorLocations.get(name);
     if (!location) {
-      const altName = findAlternativeTensorName(name, this.tensorLocations);
-      if (altName) {
-        return this.#loadTensor(altName, toGPU, silent);
-      }
       if (!silent) {
         log.warn('Loader', `Tensor not found: ${name}`);
       }

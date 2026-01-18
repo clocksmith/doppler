@@ -35,8 +35,8 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
 @group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;
 @group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;
 
-var<workgroup> shared_values: array<f32, 256>;
-var<workgroup> shared_indices: array<u32, 256>;
+var<workgroup> shared_values: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn find_topk_phase1(
@@ -74,14 +74,14 @@ fn find_topk_phase1(
                 local_max_idx = idx;
             }
         }
-        idx = idx + WORKGROUP_SIZE * 256u;
+        idx = idx + WORKGROUP_SIZE * num_wg.x;
     }
 
     shared_values[thread_idx] = local_max;
     shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
-    var stride = 128u;
+    var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
@@ -105,10 +105,10 @@ fn find_topk_phase2(
 ) {
     let thread_idx = lid.x;
     let top_k = u.top_k;
-    let num_groups = min(256u, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
+    let num_groups = min(WORKGROUP_SIZE, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
     let num_candidates = select(num_groups, min(u.vocab_size, WORKGROUP_SIZE), num_groups == 1u);
 
-    if (thread_idx < 256u) {
+    if (thread_idx < WORKGROUP_SIZE) {
         if (thread_idx < num_candidates) {
             shared_values[thread_idx] = topk_logits[thread_idx];
             shared_indices[thread_idx] = topk_indices[thread_idx];
@@ -225,7 +225,7 @@ fn sample_single_pass(
     shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
-    var stride = 128u;
+    var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
@@ -274,7 +274,7 @@ fn argmax(
     shared_indices[thread_idx] = local_max_idx;
     workgroupBarrier();
 
-    var stride = 128u;
+    var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
@@ -297,7 +297,7 @@ fn argmax_reduce(
     @builtin(local_invocation_id) lid: vec3<u32>
 ) {
     let thread_idx = lid.x;
-    let num_groups = min(256u, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
+    let num_groups = min(WORKGROUP_SIZE, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
 
     if (thread_idx < num_groups) {
         shared_values[thread_idx] = topk_logits[thread_idx];
@@ -308,7 +308,7 @@ fn argmax_reduce(
     }
     workgroupBarrier();
 
-    var stride = 128u;
+    var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
             if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {

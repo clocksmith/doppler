@@ -25,6 +25,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
 override HAS_RESIDUAL: bool = false;      // Add residual after normalization
 override OUTPUT_PRENORM: bool = false;    // Output prenorm values (not yet used)
+override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
 
 const MAX_SUBGROUPS: u32 = 32u;  // Support up to 32 subgroups per workgroup
 
@@ -41,7 +42,7 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> weight: array<f32>;   // [size]
+@group(0) @binding(2) var<storage, read> weight: array<u32>;   // [size] as f32 or packed f16
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 @group(0) @binding(4) var<storage, read> residual: array<f32>; // Optional residual input
 
@@ -49,7 +50,7 @@ struct Uniforms {
 // Shared Memory
 // =============================================================================
 
-var<workgroup> shared_sum: array<f32, 256>;
+var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
 
 // =============================================================================
 // Helper Functions
@@ -62,6 +63,15 @@ fn apply_weight(w: f32) -> f32 {
     } else {
         return w;
     }
+}
+
+fn load_weight(idx: u32) -> f32 {
+    if (WEIGHT_IS_F16) {
+        let packed = weight[idx >> 1u];
+        let pair = unpack2x16float(packed);
+        return select(pair.x, pair.y, (idx & 1u) == 1u);
+    }
+    return bitcast<f32>(weight[idx]);
 }
 
 // Check if residual should be added (compile-time OR runtime flag)
@@ -130,7 +140,7 @@ fn main(
             let x = input[base_offset + idx];
 
             // Normalize and scale (with optional weight offset for Gemma)
-            var result = x * inv_rms * apply_weight(weight[idx]);
+            var result = x * inv_rms * apply_weight(load_weight(idx));
 
             // Add residual AFTER normalization (Gemma 3 sandwich norm pattern)
             if (should_add_residual()) {
@@ -146,7 +156,7 @@ fn main(
 // Small Hidden Size Entry Point
 // =============================================================================
 
-// Optimized version for hidden size <= 256 (single pass)
+// Optimized version for hidden size <= WORKGROUP_SIZE (single pass)
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_small(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -174,7 +184,7 @@ fn main_small(
     workgroupBarrier();
 
     // Parallel reduction
-    for (var stride: u32 = 128u; stride > 0u; stride = stride >> 1u) {
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
         if (thread_idx < stride && thread_idx + stride < size) {
             shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
         }
@@ -187,7 +197,7 @@ fn main_small(
 
     // Apply normalization, then add residual AFTER (POST-norm)
     if (thread_idx < size) {
-        var result = x * inv_rms * apply_weight(weight[thread_idx]);
+        var result = x * inv_rms * apply_weight(load_weight(thread_idx));
         if (should_add_residual()) {
             result = result + residual[base_offset + thread_idx];
         }
@@ -250,7 +260,7 @@ fn main_cached(
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
             let x = shared_cache[idx];
-            var result = x * inv_rms * apply_weight(weight[idx]);
+            var result = x * inv_rms * apply_weight(load_weight(idx));
             // Add residual AFTER normalization (POST-norm)
             if (should_add_residual()) {
                 result = result + residual[base_offset + idx];
@@ -331,7 +341,7 @@ fn main_subgroup(
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
             let x = input[base_offset + idx];
-            var result = x * inv_rms * apply_weight(weight[idx]);
+            var result = x * inv_rms * apply_weight(load_weight(idx));
 
             if (should_add_residual()) {
                 result = result + residual[base_offset + idx];
@@ -397,7 +407,7 @@ fn main_small_subgroup(
 
     // Apply normalization
     if (thread_idx < size) {
-        var result = x * inv_rms * apply_weight(weight[thread_idx]);
+        var result = x * inv_rms * apply_weight(load_weight(thread_idx));
         if (should_add_residual()) {
             result = result + residual[base_offset + thread_idx];
         }

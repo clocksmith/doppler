@@ -45,7 +45,7 @@ export class RDRRWriter {
     modelId: 'unknown',
     modelType: 'transformer',
     architecture: null,
-    quantization: 'Q4_K_M',
+    quantization: null,
     quantizationInfo: undefined,
     hashAlgorithm: 'sha256',
     config: {},
@@ -77,7 +77,10 @@ export class RDRRWriter {
     this.#manifest.modelId = options.modelId ?? 'unknown';
     this.#manifest.modelType = this.#modelType;
     this.#manifest.architecture = options.architecture ?? null;
-    this.#manifest.quantization = options.quantization ?? 'Q4_K_M';
+    if (!options.quantization) {
+      throw new Error('RDRRWriter requires an explicit quantization value.');
+    }
+    this.#manifest.quantization = options.quantization;
     this.#manifest.quantizationInfo = options.quantizationInfo;
     this.#manifest.hashAlgorithm = this.#hashAlgorithm;
     if (this.#transposeWeights) {

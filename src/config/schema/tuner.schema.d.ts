@@ -23,6 +23,16 @@ export interface TunerConfigSchema {
 
   /** Number of timed iterations to average for benchmark results */
   defaultTimedIterations: number;
+
+  /** Fallback workgroup sizes by operation when tuning fails */
+  fallbackWorkgroupSizes: {
+    matmul: [number, number, number];
+    attention: [number, number, number];
+    rmsnorm: [number, number, number];
+    softmax: [number, number, number];
+    dequant: [number, number, number];
+    default: [number, number, number];
+  };
 }
 
 /** Default tuner configuration */

@@ -85,8 +85,11 @@ export async function runFusedFFN(
     throw new Error('Fused FFN requires f32 activations');
   }
 
-  const gateDtype = getWeightDtype(W_gate) ?? 'f32';
-  const upDtype = getWeightDtype(W_up) ?? 'f32';
+  const gateDtype = getWeightDtype(W_gate);
+  const upDtype = getWeightDtype(W_up);
+  if (!gateDtype || !upDtype) {
+    throw new Error('Fused FFN requires explicit gate/up weight dtypes');
+  }
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }
@@ -180,8 +183,11 @@ export async function recordFusedFFN(
     throw new Error('Fused FFN requires f32 activations');
   }
 
-  const gateDtype = getWeightDtype(W_gate) ?? 'f32';
-  const upDtype = getWeightDtype(W_up) ?? 'f32';
+  const gateDtype = getWeightDtype(W_gate);
+  const upDtype = getWeightDtype(W_up);
+  if (!gateDtype || !upDtype) {
+    throw new Error('Fused FFN requires explicit gate/up weight dtypes');
+  }
   if (gateDtype !== upDtype) {
     throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
   }

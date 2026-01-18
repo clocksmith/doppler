@@ -78,7 +78,9 @@ async function loadFinalNorm(ctx) {
   }
 
   if (!finalNorm) {
-    log.warn('Loader', 'Final norm not found');
+    throw new Error(
+      `[Loader] Final norm not found. Expected one of: ${FINAL_NORM_NAMES.join(', ')}`
+    );
   }
 
   return { finalNorm, debugLogged };
@@ -123,7 +125,9 @@ async function loadLmHead(ctx) {
     debugTrace.loader('Using tied embeddings as LM head (manifest.tieWordEmbeddings=true)');
     lmHead = ctx.embeddings;
   } else if (!lmHead) {
-    log.warn('Loader', 'LM head not found');
+    throw new Error(
+      `[Loader] LM head not found. Expected one of: ${LM_HEAD_NAMES.join(', ')}`
+    );
   }
 
   // Downcast LM head to F16 if applicable

@@ -171,7 +171,17 @@ export async function scaleGPUBuffer(inputBuffer, scale, count, useF16 = false) 
 
 
 export async function embed(tokenIds, embedBuffer, config) {
-  const { hiddenSize, vocabSize, scaleEmbeddings, debug = false, recorder, outputBuffer: preAllocatedOutput, transpose = false, activationDtype = 'f32', embeddingDtype = 'f32' } = config;
+  const {
+    hiddenSize,
+    vocabSize,
+    scaleEmbeddings,
+    debug = false,
+    recorder,
+    outputBuffer: preAllocatedOutput,
+    transpose = false,
+    activationDtype,
+    embeddingDtype,
+  } = config;
   const device = getDevice();
   const tokenBufferInput = tokenIds instanceof GPUBuffer;
   const tokenIdArray = tokenBufferInput ? null :  (tokenIds);
@@ -181,6 +191,9 @@ export async function embed(tokenIds, embedBuffer, config) {
   const indexOffset = tokenBufferInput ? (config.indexOffset ?? 0) : 0;
 
   if (!device) throw new Error('GPU device not available');
+  if (!activationDtype || !embeddingDtype) {
+    throw new Error('[Embed] activationDtype and embeddingDtype are required.');
+  }
 
   // Check if F16 output is requested and supported
   const caps = getKernelCapabilities();

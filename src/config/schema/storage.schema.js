@@ -27,6 +27,32 @@ export const DEFAULT_STORAGE_ALIGNMENT_CONFIG = {
 };
 
 // =============================================================================
+// Storage Backend Config
+// =============================================================================
+
+export const DEFAULT_STORAGE_BACKEND_CONFIG = {
+  backend: 'auto', // auto | opfs | indexeddb | memory
+  opfs: {
+    useSyncAccessHandle: true,
+    maxConcurrentHandles: 2,
+  },
+  indexeddb: {
+    dbName: 'doppler-models',
+    shardStore: 'shards',
+    metaStore: 'meta',
+    chunkSizeBytes: 4 * 1024 * 1024, // 4MB chunks
+  },
+  memory: {
+    maxBytes: 512 * 1024 * 1024, // 512MB cap for non-persistent fallback
+  },
+  streaming: {
+    readChunkBytes: 4 * 1024 * 1024, // 4MB
+    maxInFlightBytes: 64 * 1024 * 1024, // 64MB
+    useByob: true,
+  },
+};
+
+// =============================================================================
 // Complete Storage Config
 // =============================================================================
 
@@ -34,4 +60,5 @@ export const DEFAULT_STORAGE_FULL_CONFIG = {
   quota: DEFAULT_QUOTA_CONFIG,
   vramEstimation: DEFAULT_VRAM_ESTIMATION_CONFIG,
   alignment: DEFAULT_STORAGE_ALIGNMENT_CONFIG,
+  backend: DEFAULT_STORAGE_BACKEND_CONFIG,
 };

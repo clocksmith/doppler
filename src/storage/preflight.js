@@ -3,6 +3,7 @@
 import { getMemoryCapabilities } from '../memory/capability.js';
 import { getQuotaInfo, formatBytes } from './quota.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { getStorageCapabilities } from './shard-manager.js';
 
 // ============================================================================
 // Model Requirements Constants
@@ -97,6 +98,55 @@ async function checkStorage(
   return { required, available, sufficient, message };
 }
 
+function resolveStorageBackend() {
+  const config = getRuntimeConfig().loading.storage.backend;
+  const caps = getStorageCapabilities();
+  const requested = config.backend;
+  let selected = 'memory';
+  let persistent = false;
+  let ok = true;
+  let message = '';
+
+  if (requested === 'opfs') {
+    selected = 'opfs';
+    persistent = true;
+    ok = caps.opfs;
+    message = caps.opfs ? 'OPFS available' : 'OPFS requested but not available';
+  } else if (requested === 'indexeddb') {
+    selected = 'indexeddb';
+    persistent = true;
+    ok = caps.indexeddb;
+    message = caps.indexeddb ? 'IndexedDB available' : 'IndexedDB requested but not available';
+  } else if (requested === 'memory') {
+    selected = 'memory';
+    persistent = false;
+    message = 'Memory store requested';
+  } else {
+    if (caps.opfs) {
+      selected = 'opfs';
+      persistent = true;
+      message = 'Auto-selected OPFS';
+    } else if (caps.indexeddb) {
+      selected = 'indexeddb';
+      persistent = true;
+      message = 'Auto-selected IndexedDB';
+    } else {
+      selected = 'memory';
+      persistent = false;
+      message = 'Auto-selected memory fallback';
+    }
+  }
+
+  return {
+    requested,
+    selected,
+    persistent,
+    ok,
+    message,
+    caps,
+  };
+}
+
 // ============================================================================
 // GPU Check
 // ============================================================================
@@ -166,6 +216,7 @@ export async function runPreflightChecks(
     checkStorage(requirements),
     checkGPU(memCaps),
   ]);
+  const storageBackend = resolveStorageBackend();
 
   // Determine blockers
   if (!gpu.hasWebGPU) {
@@ -179,10 +230,23 @@ export async function runPreflightChecks(
   if (!storage.sufficient) {
     blockers.push(storage.message);
   }
+  if (!storageBackend.ok) {
+    blockers.push(storageBackend.message);
+  }
 
   // Determine warnings
   if (!gpu.hasF16) {
     warnings.push('F16 not supported - inference may be slower');
+  }
+  if (storageBackend.selected === 'indexeddb' && storageBackend.caps.opfs === false) {
+    warnings.push('OPFS unavailable - using IndexedDB fallback (slower)');
+  }
+  if (storageBackend.selected === 'memory') {
+    warnings.push('Persistent storage unavailable - using memory fallback');
+    const maxBytes = getRuntimeConfig().loading.storage.backend.memory.maxBytes;
+    if (maxBytes < requirements.downloadSize) {
+      blockers.push('Memory fallback too small for model download');
+    }
   }
 
   if (!gpu.isUnified && vram.sufficient) {
@@ -200,6 +264,7 @@ export async function runPreflightChecks(
     vram,
     storage,
     gpu,
+    storageBackend,
     warnings,
     blockers,
   };
@@ -213,6 +278,9 @@ export function formatPreflightResult(result) {
   lines.push(`GPU: ${result.gpu.device}`);
   lines.push(`VRAM: ${result.vram.message}`);
   lines.push(`Storage: ${result.storage.message}`);
+  if (result.storageBackend) {
+    lines.push(`Storage backend: ${result.storageBackend.selected} (${result.storageBackend.message})`);
+  }
 
   if (result.warnings.length > 0) {
     lines.push(`Warnings: ${result.warnings.join('; ')}`);

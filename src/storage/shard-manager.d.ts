@@ -34,6 +34,20 @@ export interface StreamingHasher {
   finalize(): Promise<Uint8Array>;
 }
 
+export interface ShardWriteStream {
+  write(chunk: Uint8Array | ArrayBuffer): Promise<void>;
+  close(): Promise<void>;
+  abort(): Promise<void>;
+}
+
+export interface StorageCapabilities {
+  opfs: boolean;
+  indexeddb: boolean;
+  sharedArrayBuffer: boolean;
+  byob: boolean;
+  syncAccessHandle: boolean;
+}
+
 export function setOpfsPathConfig(config: OpfsPathConfigSchema): void;
 export function getOpfsPathConfig(): OpfsPathConfigSchema;
 export function getHashAlgorithm(): HashAlgorithm | null;
@@ -41,17 +55,24 @@ export function hexToBytes(hex: string): Uint8Array;
 export function computeBlake3(data: Uint8Array | ArrayBuffer): Promise<string>;
 export function computeSHA256(data: Uint8Array | ArrayBuffer): Promise<string>;
 export function computeHash(data: Uint8Array | ArrayBuffer, algorithm?: HashAlgorithm): Promise<string>;
-export function createStreamingHasher(): Promise<StreamingHasher>;
+export function createStreamingHasher(algorithm?: HashAlgorithm): Promise<StreamingHasher>;
 
-export function initOPFS(): Promise<void>;
-export function openModelDirectory(modelId: string): Promise<FileSystemDirectoryHandle>;
-export function getCurrentModelDirectory(): FileSystemDirectoryHandle | null;
+export function getStorageCapabilities(): StorageCapabilities;
+export function getStorageBackendType(): string | null;
+
+export function initStorage(): Promise<void>;
+export function openModelStore(modelId: string): Promise<FileSystemDirectoryHandle | null>;
+export function getCurrentModelId(): string | null;
 
 export function writeShard(
   shardIndex: number,
-  data: ArrayBuffer,
+  data: ArrayBuffer | Uint8Array,
   options?: ShardWriteOptions
 ): Promise<ShardWriteResult>;
+
+export function createShardWriter(
+  shardIndex: number
+): Promise<ShardWriteStream>;
 
 export function loadShard(
   shardIndex: number,
@@ -73,18 +94,9 @@ export function getModelInfo(modelId: string): Promise<ModelInfo>;
 export function modelExists(modelId: string): Promise<boolean>;
 
 export function saveManifest(manifestJson: string): Promise<void>;
-export function loadManifestFromOPFS(): Promise<string>;
-export function loadTensorsFromOPFS(): Promise<string | null>;
+export function loadManifestFromStore(): Promise<string | null>;
+export function loadTensorsFromStore(): Promise<string | null>;
 export function saveTokenizer(tokenizerJson: string): Promise<void>;
-export function loadTokenizerFromOPFS(): Promise<string | null>;
+export function loadTokenizerFromStore(): Promise<string | null>;
 
-export function cleanup(): void;
-
-export class OpfsShardStore {
-  constructor(modelId: string);
-  read(shardIndex: number, offset: number, length: number): Promise<Uint8Array>;
-  write(shardIndex: number, data: Uint8Array): Promise<void>;
-  exists(shardIndex: number): Promise<boolean>;
-  delete(shardIndex: number): Promise<void>;
-  list(): Promise<number[]>;
-}
+export function cleanup(): Promise<void>;

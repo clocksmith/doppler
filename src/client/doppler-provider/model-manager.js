@@ -1,11 +1,11 @@
 import { getMemoryCapabilities } from '../../memory/capability.js';
 import { getHeapManager } from '../../memory/heap-manager.js';
 import {
-  initOPFS,
-  openModelDirectory,
+  initStorage,
+  openModelStore,
   verifyIntegrity,
   listModels,
-  loadManifestFromOPFS,
+  loadManifestFromStore,
 } from '../../storage/shard-manager.js';
 import { getManifest, parseManifest } from '../../storage/rdrr-format.js';
 import { downloadModel } from '../../storage/downloader.js';
@@ -63,7 +63,7 @@ function estimateDequantizedWeightsBytes(manifest) {
 const normalizeOPFSPath = (path) => path.replace(/^\/+/, '');
 
 const getOPFSRoot = async () => {
-  await initOPFS();
+  await initStorage();
   if (!navigator.storage?.getDirectory) {
     throw new Error('OPFS not available');
   }
@@ -139,7 +139,7 @@ export async function initDoppler() {
     DopplerCapabilities.HAS_SUBGROUPS = gpuCaps.hasSubgroups;
     DopplerCapabilities.HAS_F16 = gpuCaps.hasF16;
 
-    await initOPFS();
+    await initStorage();
     await requestPersistence();
 
     const heapManager = getHeapManager();
@@ -210,10 +210,10 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         throw new Error(`Native Bridge error: ${err.message}`);
       }
     } else {
-      await openModelDirectory(modelId);
+      await openModelStore(modelId);
 
       try {
-        const manifestJson = await loadManifestFromOPFS();
+        const manifestJson = await loadManifestFromStore();
         manifest = parseManifest(manifestJson);
       } catch {
         manifest = null;

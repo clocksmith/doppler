@@ -1,4 +1,4 @@
-import { loadTensorsFromOPFS } from '../storage/shard-manager.js';
+import { loadTensorsFromStore } from '../storage/shard-manager.js';
 import { parseTensorMap } from '../storage/rdrr-format.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
@@ -13,7 +13,7 @@ export async function buildTensorLocations(manifest, options = {}) {
 
     // Try OPFS first (for downloaded models)
     if (!options.hasCustomLoader) {
-      tensorsJsonRaw = await loadTensorsFromOPFS();
+      tensorsJsonRaw = await loadTensorsFromStore();
     }
 
     // Try HTTP if we have a tensors URL set (for HTTP-based testing)

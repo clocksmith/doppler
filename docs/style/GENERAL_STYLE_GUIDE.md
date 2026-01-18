@@ -665,6 +665,29 @@ trace.kernels('matmul M=1 K=1152 N=1024');
 trace.attn(layerIdx, 'Q maxAbs=1.2');
 ```
 
+### No Ad-Hoc Debug Logging
+
+**Do not add temporary log statements to source files for debugging.** All debugging must use:
+
+1. **Existing trace categories** via `--config debug` or custom config
+2. **Config-driven probes** for inspecting specific values
+3. **Extended trace categories** if needed visibility doesn't exist (permanent addition, not temporary)
+
+This rule exists to support the hot-swap architecture: change configs, not code. Adding `log.info()` calls to debug an issue violates this principle and pollutes the codebase.
+
+```javascript
+// DON'T: Add temporary debug logging
+log.info('Config', `LayerTypes: ${layerTypes.slice(0, 10).join(', ')}`);
+
+// DO: Use config-driven tracing
+npm run debug -- --config '{"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
+
+// DO: Use probes for specific values
+npm run debug -- --config '{"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
+```
+
+If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point—don't add throwaway log statements.
+
 ---
 
 ## Testing

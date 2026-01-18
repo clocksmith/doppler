@@ -9,6 +9,7 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
   opfsEntries: 2,
   networkEntries: 16,
   moeMaxEntries: 16,
+  verifyHashes: true,
 };
 
 // =============================================================================

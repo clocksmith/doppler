@@ -25,7 +25,7 @@ struct Uniforms {
 @group(0) @binding(4) var<storage, read> residual: array<f16>;
 
 // Shared memory for parallel reduction
-var<workgroup> shared_sum: array<f32, 256>;
+var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
@@ -40,7 +40,7 @@ fn main(
         return;
     }
 
-    // Each thread computes partial sum for k = local_id, local_id+256, local_id+512, ...
+    // Each thread computes partial sum for k = local_id, local_id+WORKGROUP_SIZE, ...
     var partial_sum: f32 = 0.0;
 
     // B is stored transposed [N, K], so B[col, k] = B[col * K + k]

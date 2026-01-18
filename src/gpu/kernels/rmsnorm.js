@@ -1,19 +1,53 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer, getBufferRequestedSize } from '../buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
 
 
 function canUseF16(input, residual) {
   if (input.dtype !== 'f16') return false;
   if (residual && residual.dtype !== 'f16') return false;
   return true;
+}
+
+
+function inferHiddenSize(input, hiddenSize) {
+  if (hiddenSize != null) return hiddenSize;
+  const shape = input?.shape;
+  if (Array.isArray(shape) && shape.length > 0) {
+    return shape[shape.length - 1];
+  }
+  return null;
+}
+
+
+function resolveNormWeightDtype(options, hiddenSize) {
+  // If explicit dtype provided, use rule to validate/select
+  if (options.normWeightDtype) {
+    return selectLoaderRule('loader', 'weights', 'normWeightDtype', {
+      normWeightDtype: options.normWeightDtype,
+    });
+  }
+  // Fallback: infer from buffer size (tolerant of bucketing)
+  // Use getBufferRequestedSize to get unbucketed size when tracked
+  const weight = options._weightBuffer;
+  if (!weight || hiddenSize == null) return 'f32';
+  const byteSize = getBufferRequestedSize(weight);
+  const f16Bytes = hiddenSize * 2;
+  const f32Bytes = hiddenSize * 4;
+  // Tolerant matching: check if size can hold expected elements
+  // F16: needs at least hiddenSize*2 bytes, less than hiddenSize*4
+  // F32: needs at least hiddenSize*4 bytes
+  return selectLoaderRule('shared', 'dtype', 'dtypeFromSize', {
+    bytesPerElement: byteSize >= f32Bytes ? 4 : byteSize >= f16Bytes ? 2 : 4,
+  });
 }
 
 
@@ -48,19 +82,25 @@ export async function runRMSNorm(
   trace.kernels(`RMSNorm: input.dtype=${input.dtype}, isF16=${isF16}, variant=${variant}, offset=${rmsNormWeightOffset}`);
 
   if (residual) {
-    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.buffer.size}, inferredHiddenSize=${hiddenSize || (weight.size / 4)}, batchSize=${batchSize}`);
+    trace.kernels(`RMSNorm: Using residual variant, residual.size=${residual.buffer.size}, inferredHiddenSize=${hiddenSize ?? 'auto'}, batchSize=${batchSize}`);
   }
 
   // Define constants for the pipeline
+  const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  if (inferredHiddenSize == null) {
+    throw new Error('RMSNorm requires hiddenSize or input shape to infer it.');
+  }
+  // Resolve weight dtype via rule (explicit option or inferred from buffer)
+  const weightDtype = resolveNormWeightDtype({ ...options, _weightBuffer: weight }, inferredHiddenSize);
+
   const constants = {
     RMS_NORM_OFFSET: rmsNormWeightOffset,
+    WEIGHT_IS_F16: weightDtype === 'f16',
   };
 
   const pipeline = await getPipelineFast('rmsnorm', variant, null, constants);
 
   // Create output buffer if not provided
-  // Weight buffer is always F32, so hidden size = weight.size / 4
-  const inferredHiddenSize = hiddenSize || (weight.size / 4);
   const bytesPerElement = isF16 ? 2 : 4;
   const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
@@ -128,18 +168,23 @@ export async function recordRMSNorm(
     rmsNormWeightOffset = false,
   } = options;
 
-  // Infer hidden size from weight buffer (weight is always F32)
-  const inferredHiddenSize = hiddenSize || (weight.size / 4);
-
   // Check if F16 can be used based on tensor dtypes
   const isF16 = canUseF16(input, residual);
   const variant = selectRMSNormKernel(options, isF16);
   const bytesPerElement = isF16 ? 2 : 4;
+
+  const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  if (inferredHiddenSize == null) {
+    throw new Error('RMSNorm requires hiddenSize or input shape to infer it.');
+  }
+  // Resolve weight dtype via rule (explicit option or inferred from buffer)
+  const weightDtype = resolveNormWeightDtype({ ...options, _weightBuffer: weight }, inferredHiddenSize);
   const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
 
   // Define constants for the pipeline
   const constants = {
     RMS_NORM_OFFSET: rmsNormWeightOffset,
+    WEIGHT_IS_F16: weightDtype === 'f16',
   };
 
   const pipeline = await getPipelineFast('rmsnorm', variant, null, constants);

@@ -167,8 +167,8 @@ const MULTICOL_COLS_PER_WG: u32 = 32u;
 const MULTICOL_THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
 const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
-// Shared memory: 32 columns × 8 values = 256
-var<workgroup> multicol_wg_sums: array<f32, 256>;
+// Shared memory for reduction (one slot per thread)
+var<workgroup> multicol_wg_sums: array<f32, WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(

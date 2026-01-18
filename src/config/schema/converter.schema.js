@@ -12,6 +12,7 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   vision: DEFAULT_QUANTIZATION_DEFAULTS.visionDtype,
   audio: DEFAULT_QUANTIZATION_DEFAULTS.audioDtype,
   projector: DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype,
+  q4kLayout: 'column_wise',
   computePrecision: 'f16',
 };
 
