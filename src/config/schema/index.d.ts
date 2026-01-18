@@ -167,6 +167,7 @@ export {
   // Types
   type ShardCacheConfigSchema,
   type MemoryManagementConfigSchema,
+  type PrefetchConfigSchema,
   type OpfsPathConfigSchema,
   type ExpertCacheConfigSchema,
   type LoadingConfigSchema,
@@ -174,6 +175,7 @@ export {
   // Defaults
   DEFAULT_SHARD_CACHE_CONFIG,
   DEFAULT_MEMORY_MANAGEMENT_CONFIG,
+  DEFAULT_PREFETCH_CONFIG,
   DEFAULT_OPFS_PATH_CONFIG,
   DEFAULT_EXPERT_CACHE_CONFIG,
   DEFAULT_LOADING_CONFIG,

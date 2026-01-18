@@ -42,6 +42,7 @@ import {
   runTrainingTests,
   runKernelBenchmarks,
   runInferenceTest,
+  runSimulationTest,
   runDemoTest,
   runConverterTest,
   runPipelineBenchmark,
@@ -110,6 +111,9 @@ async function main() {
   }
   if (opts.command === 'bench' && !opts.config && !opts.mode) {
     opts.mode = 'bench';
+  }
+  if (opts.command === 'test' && opts.suite === 'simulation' && !opts.config && !opts.mode) {
+    opts.mode = 'simulation';
   }
 
   // Load config (default + overrides)
@@ -345,6 +349,9 @@ async function runTestCommand(page, opts, suites, context, loadedConfig) {
 
       case 'inference':
         suites.push(await runInferenceTest(page, opts));
+        break;
+      case 'simulation':
+        suites.push(await runSimulationTest(page, opts));
         break;
 
       case 'demo':

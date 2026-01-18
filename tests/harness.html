@@ -120,7 +120,7 @@
 
     // ==========================================================================
     // Unified Test Harness
-    // Modes: kernels, inference, bench
+    // Modes: kernels, inference, simulation, bench, training
     // ==========================================================================
 
     const params = new URLSearchParams(window.location.search);
@@ -412,6 +412,89 @@
     }
 
     // ==========================================================================
+    // Mode: Simulation
+    // ==========================================================================
+
+    async function initSimulationMode() {
+      const { createTestState } = await import('/doppler/src/inference/test-harness.js');
+      const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('/doppler/src/simulator/index.js');
+      const { formatBytes } = await import('/doppler/src/config/schema/emulation.schema.js');
+
+      const paramAutorun = harnessConfig.autorun;
+
+      window.testState = createTestState();
+
+      const emulationConfig = runtimeConfig?.emulation;
+      if (!emulationConfig?.enabled) {
+        throw new Error('runtime.emulation.enabled must be true for simulation mode.');
+      }
+
+      async function run() {
+        try {
+          const supported = await isEmulationSupported();
+          if (!supported) {
+            throw new Error('Simulation not supported (WebGPU or OPFS missing).');
+          }
+
+          const caps = await getEmulationCapabilities();
+          console.log(`[Sim] Local resources: VRAM ${formatBytes(caps.estimatedVramBytes)}, RAM ${formatBytes(caps.estimatedRamBytes)}, Storage ${formatBytes(caps.estimatedStorageBytes)}`);
+          console.log(`[Sim] Target chip: ${emulationConfig.targetChip}, timing: ${emulationConfig.timingMode}`);
+
+          window.testState.loading = true;
+          const ctx = await createEmulationContext(emulationConfig);
+          window.simulation = ctx;
+          window.testState.loading = false;
+          window.testState.loaded = true;
+
+          const stats = ctx.getStats();
+          const statsJson = JSON.stringify(stats, null, 2);
+          window.testState.output = statsJson;
+          window.testState.done = true;
+
+          renderSimulationResults({
+            targetChip: emulationConfig.targetChip,
+            timingMode: emulationConfig.timingMode,
+            statsJson,
+          });
+        } catch (e) {
+          console.error(e.stack || e.message);
+          window.testState.errors.push(e.message);
+          window.testState.done = true;
+          document.getElementById('status').textContent = `Error: ${e.message}`;
+          document.getElementById('status').classList.add('border-error');
+        }
+      }
+
+      function renderSimulationResults(r) {
+        const container = document.getElementById('results');
+        container.innerHTML = `
+          <div class="section">
+            <div class="type-label muted">Target Chip</div>
+            <div>${r.targetChip}</div>
+          </div>
+          <div class="section">
+            <div class="type-label muted">Timing Mode</div>
+            <div>${r.timingMode}</div>
+          </div>
+          <div class="section">
+            <div class="type-label muted">Stats</div>
+            <div class="output">${r.statsJson}</div>
+          </div>
+        `;
+        container.classList.add('show');
+      }
+
+      if (paramAutorun) {
+        document.getElementById('status').textContent = 'Running...';
+        run();
+      } else {
+        document.getElementById('status').textContent = 'Ready (autorun disabled in config)';
+      }
+
+      return 'simulation';
+    }
+
+    // ==========================================================================
     // Mode: Bench
     // ==========================================================================
 
@@ -437,6 +520,7 @@
       const titles = {
         kernels: 'DOPPLER KERNEL TESTS',
         inference: 'DOPPLER INFERENCE TEST',
+        simulation: 'DOPPLER SIMULATION',
         bench: 'DOPPLER BENCHMARK',
         training: 'DOPPLER TRAINING TESTS',
       };
@@ -456,6 +540,9 @@
             break;
           case 'inference':
             result = await initInferenceMode();
+            break;
+          case 'simulation':
+            result = await initSimulationMode();
             break;
           case 'bench':
             result = await initBenchMode();

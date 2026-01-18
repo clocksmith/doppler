@@ -1,6 +1,6 @@
 import type { RDRRManifest } from '../storage/rdrr-format.js';
 import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
-import type { CustomShardLoader, ShardSourceInfo } from './loader-types.js';
+import type { CustomShardLoader, ShardLoadOptions, ShardSourceInfo } from './loader-types.js';
 
 export interface ShardCacheConfig {
   maxEntries: number;
@@ -8,6 +8,7 @@ export interface ShardCacheConfig {
   verifyHashes?: boolean;
   manifest?: RDRRManifest | null;
   loadingConfig?: ShardCacheConfigSchema;
+  maxConcurrentLoads?: number;
 }
 
 export class ShardCache {
@@ -21,7 +22,8 @@ export class ShardCache {
   has(shardIndex: number): boolean;
   get size(): number;
   get totalBytes(): number;
-  load(shardIndex: number): Promise<ArrayBuffer>;
+  load(shardIndex: number, options?: ShardLoadOptions): Promise<ArrayBuffer>;
+  prefetch(shardIndex: number): Promise<ArrayBuffer>;
   clear(): void;
   configureForModel(manifest: RDRRManifest | null, hasCustomLoader: boolean): void;
 }

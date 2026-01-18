@@ -4,7 +4,7 @@
  * @module config/schema/harness
  */
 
-export type HarnessMode = 'kernels' | 'inference' | 'bench' | 'training';
+export type HarnessMode = 'kernels' | 'inference' | 'bench' | 'training' | 'simulation';
 
 export interface HarnessConfigSchema {
   mode: HarnessMode;

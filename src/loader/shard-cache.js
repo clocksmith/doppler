@@ -15,6 +15,10 @@ export class ShardCache {
   #manifest = null;
   #loadingConfig;
   #fetchPromises = new Map();
+  #maxConcurrentLoads = 0;
+  #inFlightLoads = 0;
+  #highPriorityQueue = [];
+  #lowPriorityQueue = [];
 
   lastSource = null;
 
@@ -26,6 +30,9 @@ export class ShardCache {
       ?? true;
     this.#manifest = config.manifest ?? null;
     this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache;
+    this.#maxConcurrentLoads = config.maxConcurrentLoads
+      ?? config.loadingConfig?.maxConcurrentLoads
+      ?? 0;
   }
 
   configure(config) {
@@ -43,6 +50,14 @@ export class ShardCache {
     }
     if (config.loadingConfig !== undefined) {
       this.#loadingConfig = config.loadingConfig;
+      if (config.loadingConfig.maxConcurrentLoads !== undefined) {
+        this.#maxConcurrentLoads = config.loadingConfig.maxConcurrentLoads;
+      }
+      this.#drainQueue();
+    }
+    if (config.maxConcurrentLoads !== undefined) {
+      this.#maxConcurrentLoads = config.maxConcurrentLoads;
+      this.#drainQueue();
     }
   }
 
@@ -74,9 +89,10 @@ export class ShardCache {
     return Array.from(this.#cache.values()).reduce((sum, ab) => sum + ab.byteLength, 0);
   }
 
-  async load(shardIndex) {
+  async load(shardIndex, options = {}) {
     const shardInfo = this.#manifest?.shards?.[shardIndex];
     const sizeStr = shardInfo ? formatBytes(shardInfo.size) : '';
+    const priority = options.priority === 'low' ? 'low' : 'high';
 
     // 1. Check cache first
     if (this.#cache.has(shardIndex)) {
@@ -96,7 +112,10 @@ export class ShardCache {
     }
 
     // 3. Start the actual fetch and store the promise for deduplication
-    const fetchPromise = this.#doLoad(shardIndex, sizeStr);
+    const fetchPromise = this.#scheduleLoad(
+      priority,
+      () => this.#doLoad(shardIndex, sizeStr)
+    );
     this.#fetchPromises.set(shardIndex, fetchPromise);
 
     try {
@@ -106,6 +125,10 @@ export class ShardCache {
       // Remove from in-flight map when done (success or error)
       this.#fetchPromises.delete(shardIndex);
     }
+  }
+
+  prefetch(shardIndex) {
+    return this.load(shardIndex, { priority: 'low' });
   }
 
   async #doLoad(shardIndex, sizeStr) {
@@ -152,6 +175,51 @@ export class ShardCache {
     this.lastSource = { source: backend, elapsed };
     log.verbose('ShardCache', `Shard ${shardIndex}: ${backend} (${sizeStr}, ${elapsed.toFixed(2)}s)`);
     return data;
+  }
+
+  async #scheduleLoad(priority, task) {
+    const limit = this.#maxConcurrentLoads > 0
+      ? this.#maxConcurrentLoads
+      : Number.POSITIVE_INFINITY;
+
+    if (this.#inFlightLoads < limit) {
+      this.#inFlightLoads++;
+      try {
+        return await task();
+      } finally {
+        this.#inFlightLoads--;
+        this.#drainQueue();
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+      const entry = { task, resolve, reject };
+      if (priority === 'low') {
+        this.#lowPriorityQueue.push(entry);
+      } else {
+        this.#highPriorityQueue.push(entry);
+      }
+    });
+  }
+
+  #drainQueue() {
+    const limit = this.#maxConcurrentLoads > 0
+      ? this.#maxConcurrentLoads
+      : Number.POSITIVE_INFINITY;
+
+    while (this.#inFlightLoads < limit) {
+      const entry = this.#highPriorityQueue.shift() ?? this.#lowPriorityQueue.shift();
+      if (!entry) return;
+
+      this.#inFlightLoads++;
+      Promise.resolve()
+        .then(entry.task)
+        .then(entry.resolve, entry.reject)
+        .finally(() => {
+          this.#inFlightLoads--;
+          this.#drainQueue();
+        });
+    }
   }
 
   #add(shardIndex, data) {
@@ -201,5 +269,6 @@ export function createShardCache(maxEntries, loadingConfig) {
     maxEntries: maxEntries ?? config.opfsEntries,
     loadingConfig: config,
     verifyHashes: config.verifyHashes,
+    maxConcurrentLoads: config.maxConcurrentLoads,
   });
 }

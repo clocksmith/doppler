@@ -23,7 +23,20 @@ function getEffectiveCDNBaseUrl() {
 
   // Auto-detect: use same origin for Firebase Hosting or local dev
   if (typeof window !== 'undefined') {
-    return `${window.location.origin}/doppler/models`;
+    const path = window.location.pathname || '';
+    if (path === '/dr' || path.startsWith('/dr/')) {
+      return `${window.location.origin}/dr/models`;
+    }
+    if (
+      path === '/d' ||
+      path.startsWith('/d/') ||
+      path === '/doppler' ||
+      path.startsWith('/doppler/') ||
+      window.location.host.includes('replo')
+    ) {
+      return `${window.location.origin}/doppler/models`;
+    }
+    return `${window.location.origin}/models`;
   }
   // Fallback for Node.js/SSR
   return '/doppler/models';

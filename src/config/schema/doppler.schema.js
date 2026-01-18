@@ -128,6 +128,7 @@ function mergeLoadingConfig(
     distribution: { ...base.distribution, ...overrides.distribution },
     shardCache: { ...base.shardCache, ...overrides.shardCache },
     memoryManagement: { ...base.memoryManagement, ...overrides.memoryManagement },
+    prefetch: { ...base.prefetch, ...overrides.prefetch },
     opfsPath: { ...base.opfsPath, ...overrides.opfsPath },
     expertCache: { ...base.expertCache, ...overrides.expertCache },
     allowF32UpcastNonMatmul: overrides.allowF32UpcastNonMatmul ?? base.allowF32UpcastNonMatmul,

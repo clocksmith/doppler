@@ -12,6 +12,7 @@ export type TestSuite =
   | 'demo'             // Demo UI test (model load + generate via app)
   | 'converter'        // Converter UI test
   | 'inference'        // Quick inference validation
+  | 'simulation'       // Pod simulation init and stats
   | 'training'         // Training correctness tests
   | 'quick'            // Quick validation (subset of kernels)
   | 'all';             // All tests

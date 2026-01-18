@@ -228,6 +228,13 @@ async function main() {
         return res.end();
       }
 
+      // /dr path maps to app for Firebase-style hosting
+      if (pathname === '/dr' || pathname === '/dr/') {
+        pathname = '/app/index.html';
+      } else if (pathname.startsWith('/dr/')) {
+        pathname = pathname.replace('/dr/', '/');
+      }
+
       // Standalone mode: serve app/index.html at /
       // Also strip /doppler/ prefix for compatibility with old paths
       if (pathname.startsWith('/doppler/')) {

@@ -31,6 +31,9 @@ export interface ShardCacheConfigSchema {
 
   /** Verify shard hashes when loading into cache */
   verifyHashes: boolean;
+
+  /** Max concurrent shard loads (0 = unlimited) */
+  maxConcurrentLoads: number;
 }
 
 /** Default shard cache configuration */
@@ -57,6 +60,23 @@ export interface MemoryManagementConfigSchema {
 
 /** Default memory management configuration */
 export declare const DEFAULT_MEMORY_MANAGEMENT_CONFIG: MemoryManagementConfigSchema;
+
+/**
+ * Configuration for speculative shard prefetching across layers.
+ */
+export interface PrefetchConfigSchema {
+  /** Enable prefetching of upcoming layer shards */
+  enabled: boolean;
+
+  /** Number of layers ahead to prefetch */
+  layersAhead: number;
+
+  /** Max shards to prefetch per layer step (0 = no limit) */
+  maxShards: number;
+}
+
+/** Default prefetch configuration */
+export declare const DEFAULT_PREFETCH_CONFIG: PrefetchConfigSchema;
 
 /**
  * Configuration for OPFS directory paths.
@@ -103,6 +123,7 @@ export interface LoadingConfigSchema {
   distribution: DistributionConfigSchema;
   shardCache: ShardCacheConfigSchema;
   memoryManagement: MemoryManagementConfigSchema;
+  prefetch: PrefetchConfigSchema;
   opfsPath: OpfsPathConfigSchema;
   expertCache: ExpertCacheConfigSchema;
   /** Allow F16->F32 upcast for non-matmul weights (norms, softcap) */

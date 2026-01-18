@@ -7,6 +7,7 @@
  *   npx tsx cli/index.ts test <suite> [options] # Run tests
  *   npx tsx cli/index.ts bench <suite> [options] # Run benchmarks
  *   npx tsx cli/index.ts debug [options]        # Debug mode
+ *   npx tsx cli/index.ts test simulation        # Simulation mode
  *
  * Examples:
  *   doppler run                              # Serve demo at :8080
@@ -52,6 +53,11 @@ export declare function runKernelBenchmarks(
 ): Promise<SuiteResult>;
 
 export declare function runInferenceTest(
+  page: Page,
+  opts: CLIOptions
+): Promise<SuiteResult>;
+
+export declare function runSimulationTest(
   page: Page,
   opts: CLIOptions
 ): Promise<SuiteResult>;

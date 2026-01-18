@@ -342,6 +342,10 @@ function mergeLoadingConfig(presetLoading) {
       ...DEFAULT_LOADING_CONFIG.memoryManagement,
       ...presetLoading.memoryManagement,
     },
+    prefetch: {
+      ...DEFAULT_LOADING_CONFIG.prefetch,
+      ...presetLoading.prefetch,
+    },
     opfsPath: {
       ...DEFAULT_LOADING_CONFIG.opfsPath,
       ...presetLoading.opfsPath,

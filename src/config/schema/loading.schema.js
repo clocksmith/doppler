@@ -10,6 +10,7 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
   networkEntries: 16,
   moeMaxEntries: 16,
   verifyHashes: true,
+  maxConcurrentLoads: 0,
 };
 
 // =============================================================================
@@ -21,6 +22,16 @@ export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
   flushThresholdBytes: 256 * 1024 * 1024, // 256MB
   gpuQueueFlushLayers: 4,
   logIntervalMs: 30000, // 30 seconds
+};
+
+// =============================================================================
+// Prefetch Config
+// =============================================================================
+
+export const DEFAULT_PREFETCH_CONFIG = {
+  enabled: false,
+  layersAhead: 1,
+  maxShards: 8,
 };
 
 // =============================================================================
@@ -50,6 +61,7 @@ export const DEFAULT_LOADING_CONFIG = {
   distribution: DEFAULT_DISTRIBUTION_CONFIG,
   shardCache: DEFAULT_SHARD_CACHE_CONFIG,
   memoryManagement: DEFAULT_MEMORY_MANAGEMENT_CONFIG,
+  prefetch: DEFAULT_PREFETCH_CONFIG,
   opfsPath: DEFAULT_OPFS_PATH_CONFIG,
   expertCache: DEFAULT_EXPERT_CACHE_CONFIG,
   allowF32UpcastNonMatmul: false,
