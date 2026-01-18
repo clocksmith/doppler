@@ -291,16 +291,20 @@
             pipeline = existingPipeline;
             window.testState.loaded = true;
           } else {
-            console.log('1. Initializing WebGPU...');
+            console.log('[Loader] 1. Initializing WebGPU...');
             const caps = await initializeDevice();
             const device = getDevice();
             console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
 
-            console.log('2. Loading manifest...');
+            console.log('[Loader] 2. Loading manifest...');
             const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
-            console.log(`[Model] ${manifest.architecture || paramModel}, ${manifest.config?.num_hidden_layers} layers`);
+            const architecture = typeof manifest.architecture === 'string'
+              ? manifest.architecture
+              : (manifest.architecture ? JSON.stringify(manifest.architecture) : null);
+            const modelLabel = architecture || manifest.modelType || paramModel;
+            console.log(`[Model] ${modelLabel}, ${manifest.config?.num_hidden_layers} layers`);
 
-            console.log('3. Loading model weights...');
+            console.log('[Loader] 3. Loading model weights...');
             const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
 
             pipeline = await createPipeline(manifest, {

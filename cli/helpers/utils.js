@@ -549,7 +549,21 @@ export async function setupPage(context, opts) {
   const page = context.pages()[0] || await context.newPage();
 
   // Console logging
-  const relevantTags = ['[Test]', '[Benchmark]', '[GPU]', 'ERROR', 'PASS', 'FAIL', 'Failed', 'error', 'WebGPU'];
+  const relevantTags = [
+    '[Test]',
+    '[Benchmark]',
+    '[GPU]',
+    '[Loader]',
+    '[ShardCache]',
+    '[Tokenizer]',
+    '[Model]',
+    'ERROR',
+    'PASS',
+    'FAIL',
+    'Failed',
+    'error',
+    'WebGPU',
+  ];
   const logAll = opts.command === 'debug';
   page.on('console', (msg) => {
     const text = msg.text();
