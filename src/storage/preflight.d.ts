@@ -114,7 +114,7 @@ export declare const GEMMA_1B_REQUIREMENTS: ModelRequirements;
 /**
  * All available model requirements
  * Naming convention: {family}-{version}-{size}-{variant}-{quant}
- * Examples: gemma-3-1b-it-q4, llama-3.2-1b-q4, mistral-7b-v0.3-q4
+ * Examples: gemma-3-1b-it-wq4k, llama-3.2-1b-q4, mistral-7b-v0.3-q4
  */
 export declare const MODEL_REQUIREMENTS: Record<string, ModelRequirements>;
 

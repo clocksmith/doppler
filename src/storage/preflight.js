@@ -14,9 +14,9 @@ const MB = 1024 * 1024;
 
 
 export const GEMMA_1B_REQUIREMENTS = {
-  modelId: 'gemma-3-1b-it-q4',
-  displayName: 'Gemma 3 1B IT (Q4)',
-  downloadSize: 537 * MB,       // ~537MB actual size from manifest shards
+  modelId: 'gemma-3-1b-it-wq4k',
+  displayName: 'Gemma 3 1B IT (Q4_K_M)',
+  downloadSize: 565 * MB,       // ~565MB actual size from manifest shards
   vramRequired: 1.5 * GB,       // ~1.5GB VRAM for inference (weights + KV cache)
   paramCount: '1B',
   quantization: 'Q4_K_M',
@@ -25,7 +25,7 @@ export const GEMMA_1B_REQUIREMENTS = {
 
 
 export const MODEL_REQUIREMENTS = {
-  'gemma-3-1b-it-q4': GEMMA_1B_REQUIREMENTS,
+  'gemma-3-1b-it-wq4k': GEMMA_1B_REQUIREMENTS,
 };
 
 // ============================================================================

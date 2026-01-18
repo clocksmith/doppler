@@ -440,10 +440,11 @@ export class DopplerLoader {
       reportProgress('shards', 0.1, 'Loading embeddings...');
       await this.#loadEmbeddings(onProgress);
 
-      const numLayers = config?.num_hidden_layers ||
-                        config?.blockCount ||
-                        config?.text_config?.num_hidden_layers ||
-                        config?.n_layer ||
+      const manifestConfig = this.manifest.config;
+      const numLayers = manifestConfig?.num_hidden_layers ||
+                        manifestConfig?.blockCount ||
+                        manifestConfig?.text_config?.num_hidden_layers ||
+                        manifestConfig?.n_layer ||
                          (this.manifest.architecture)?.numLayers ||
                         32;
       log.info('Loader', `Layers: 0-${numLayers - 1}`);

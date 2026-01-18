@@ -299,14 +299,14 @@ describe('storage/quota', () => {
 
 describe('storage/preflight', () => {
   describe('MODEL_REQUIREMENTS', () => {
-    it('includes gemma-3-1b-it-q4', () => {
-      expect(MODEL_REQUIREMENTS['gemma-3-1b-it-q4']).toBeDefined();
+    it('includes gemma-3-1b-it-wq4k', () => {
+      expect(MODEL_REQUIREMENTS['gemma-3-1b-it-wq4k']).toBeDefined();
     });
 
     it('gemma requirements have expected properties', () => {
-      const req = MODEL_REQUIREMENTS['gemma-3-1b-it-q4'];
+      const req = MODEL_REQUIREMENTS['gemma-3-1b-it-wq4k'];
 
-      expect(req.modelId).toBe('gemma-3-1b-it-q4');
+      expect(req.modelId).toBe('gemma-3-1b-it-wq4k');
       expect(req.displayName).toBeDefined();
       expect(req.downloadSize).toBeGreaterThan(0);
       expect(req.vramRequired).toBeGreaterThan(0);
@@ -317,7 +317,7 @@ describe('storage/preflight', () => {
 
   describe('GEMMA_1B_REQUIREMENTS', () => {
     it('has correct modelId', () => {
-      expect(GEMMA_1B_REQUIREMENTS.modelId).toBe('gemma-3-1b-it-q4');
+      expect(GEMMA_1B_REQUIREMENTS.modelId).toBe('gemma-3-1b-it-wq4k');
     });
 
     it('has reasonable download size', () => {
@@ -502,11 +502,11 @@ describe('download progress tracking', () => {
 describe('shard caching patterns', () => {
   describe('cache key generation', () => {
     it('generates unique keys for shards', () => {
-      const modelId = 'gemma-3-1b-it-q4';
+      const modelId = 'gemma-3-1b-it-wq4k';
       const shardIndex = 3;
       const key = `${modelId}/shard_${shardIndex}.bin`;
 
-      expect(key).toBe('gemma-3-1b-it-q4/shard_3.bin');
+      expect(key).toBe('gemma-3-1b-it-wq4k/shard_3.bin');
     });
 
     it('sanitizes model ID for filesystem', () => {
