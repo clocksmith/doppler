@@ -4,7 +4,7 @@ import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
 import { AdamOptimizer } from './optimizer.js';
 import { DynamicLossScaler, detectOverflow } from './loss-scaling.js';
-import { readBuffer } from '../gpu/buffer-pool.js';
+import { readBuffer } from '../memory/buffer-pool.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 import { DataLoader } from './dataloader.js';
 

@@ -3,7 +3,7 @@
 import { getDevice } from '../gpu/device.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../memory/buffer-pool.js';
 import { createTensor } from '../gpu/tensor.js';
 import { f16ToF32Array } from './kv-cache/types.js';
 import { selectRuleValue } from '../rules/rule-registry.js';

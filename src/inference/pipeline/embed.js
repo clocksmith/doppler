@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { runGather, recordGather } from '../../gpu/kernel-selector.js';
 import { trace } from '../../debug/index.js';
 import { runProbes } from './probes.js';

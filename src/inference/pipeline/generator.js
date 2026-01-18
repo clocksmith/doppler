@@ -1,7 +1,7 @@
 
 
 import { getDevice, setTrackSubmits } from '../../gpu/device.js';
-import { releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats } from '../../gpu/submit-tracker.js';

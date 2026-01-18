@@ -1,4 +1,4 @@
-import { acquireBuffer, releaseBuffer, BufferUsage } from '../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, BufferUsage } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { getTrainingConfig } from '../config/training-defaults.js';
 import { runMatmul, runScale } from '../gpu/kernels/index.js';

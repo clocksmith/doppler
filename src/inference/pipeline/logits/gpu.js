@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';

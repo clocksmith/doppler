@@ -756,8 +756,8 @@ const config = getKernelConfig('backward/matmul_backward');
 Use existing Doppler buffer usage constants, not ad-hoc WebGPU enums:
 
 ```javascript
-// Use from src/gpu/buffer-pool.js
-import { BufferUsage } from '../buffer-pool.js';
+// Use from src/memory/buffer-pool.js
+import { BufferUsage } from '../memory/buffer-pool.js';
 
 // BufferUsage.STORAGE = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
 // BufferUsage.STORAGE_READ = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
@@ -947,7 +947,7 @@ Existing `matmul.wgsl` variants can be reused with transpose flags.
 **Buffer pool integration:** LoRA tensors use buffer pool with explicit dtype + usage flags. No per-step allocations.
 
 ```javascript
-import { acquireBuffer, releaseBuffer, BufferUsage } from '../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, BufferUsage } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { getTrainingConfig } from '../config/training-defaults.js';
 
@@ -1226,7 +1226,7 @@ Phase 1 complete when:
 ## Dependencies
 
 **Existing Doppler infrastructure used:**
-- `buffer-pool.js` - Gradient buffer allocation
+- `memory/buffer-pool.js` - Gradient buffer allocation
 - `tensor.js` - Tensor abstraction with dtype
 - `kernel-runtime.js` - Kernel dispatch
 - `profiler.js` - Performance monitoring
@@ -1514,7 +1514,7 @@ MoE support: Mixtral support is reported. Verify current WebLLM catalog and hard
 
 | Technique | Description | DOPPLER Status |
 |-----------|-------------|----------------|
-| **Buffer Reuse** | Pre-allocate fixed pool, reuse across ops | Partial (buffer-pool.js) |
+| **Buffer Reuse** | Pre-allocate fixed pool, reuse across ops | Partial (memory/buffer-pool.js) |
 | **Async Pipeline** | Decouple buffer prep from kernel dispatch | Not implemented |
 | **Deferred Readback** | Batch GPU→CPU transfers, read only when needed | Not implemented |
 

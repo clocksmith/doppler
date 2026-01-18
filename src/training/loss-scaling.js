@@ -1,5 +1,5 @@
 
-import { readBuffer } from '../gpu/buffer-pool.js';
+import { readBuffer } from '../memory/buffer-pool.js';
 import { runScale } from '../gpu/kernels/index.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 

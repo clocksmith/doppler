@@ -1,7 +1,7 @@
 
 
 import { isWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
-import { acquireBuffer } from '../../../gpu/buffer-pool.js';
+import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import {
   recordMatmul,
   recordRMSNorm,

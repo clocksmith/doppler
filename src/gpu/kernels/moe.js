@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES, GPU_LIMITS } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';

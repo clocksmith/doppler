@@ -6,7 +6,7 @@ import {
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
 } from '../../gpu/kernel-selector.js';
-import { releaseBuffer } from '../../gpu/buffer-pool.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
   runLayerAttentionGPU,

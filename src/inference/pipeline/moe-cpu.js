@@ -1,5 +1,5 @@
 import { getDevice } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { runMatmul, runSiLU, runGeLU } from '../../gpu/kernel-selector.js';
 import { createExpertExecutionPlan, combineExpertOutputs } from '../moe-router.js';

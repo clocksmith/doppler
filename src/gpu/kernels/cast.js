@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';

@@ -1,6 +1,6 @@
 
 
-import { readBuffer } from '../../../gpu/buffer-pool.js';
+import { readBuffer } from '../../../memory/buffer-pool.js';
 import { isBufferStatsEnabled } from './config.js';
 
 // ============================================================================

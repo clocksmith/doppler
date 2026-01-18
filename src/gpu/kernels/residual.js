@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, inferOutputDtype, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';

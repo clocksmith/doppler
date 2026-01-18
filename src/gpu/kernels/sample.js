@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer, releaseBuffer } from '../buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';

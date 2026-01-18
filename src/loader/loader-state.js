@@ -1,4 +1,4 @@
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../gpu/weight-buffer.js';
 import { trace as debugTrace } from '../debug/index.js';
 

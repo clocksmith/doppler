@@ -1,6 +1,6 @@
 
 import { runSoftmax, runCrossEntropyLoss, castF16ToF32 } from '../gpu/kernels/index.js';
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { OpType } from './autograd.js';
 
 export async function crossEntropyLoss(logits, targets, config, tape) {

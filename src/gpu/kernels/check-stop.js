@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { recordDispatch } from './dispatch.js';
 import { createUniformBufferFromData, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';

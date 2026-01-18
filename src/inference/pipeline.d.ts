@@ -17,7 +17,7 @@ import type { Manifest } from './pipeline/config.js';
 import type { WeightLoadResult, PipelineContexts } from './pipeline/init.js';
 import type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
-import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
+import { getBufferPool as getGlobalBufferPool } from '../memory/buffer-pool.js';
 import type { EmulationStats } from '../config/schema/index.js';
 
 // Re-export types for external use

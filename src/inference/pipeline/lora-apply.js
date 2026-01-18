@@ -1,6 +1,6 @@
 
 
-import { releaseBuffer } from '../../gpu/buffer-pool.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { isWeightBuffer } from '../../gpu/weight-buffer.js';
 import { runMatmul, recordMatmul } from '../../gpu/kernel-selector.js';
 import { runResidualAdd, recordResidualAdd } from '../../gpu/kernels/residual.js';

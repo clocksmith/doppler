@@ -3,7 +3,7 @@
 import { getKernelCapabilities } from '../gpu/device.js';
 import { createTensor } from '../gpu/tensor.js';
 import { castF32ToF16 } from '../gpu/kernel-selector.js';
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import {
   createWeightBuffer,
   isWeightBuffer,

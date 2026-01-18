@@ -11,7 +11,7 @@ export { extractLastPositionLogits, finalizeLogits } from './utils.js';
 
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';

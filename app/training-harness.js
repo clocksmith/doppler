@@ -4,7 +4,7 @@ import { createTrainingConfig } from '../src/config/training-defaults.js';
 import { TrainingRunner, AdamOptimizer, crossEntropyLoss, clipGradients } from '../src/training/index.js';
 import { OpType } from '../src/training/autograd.js';
 import { runMatmul } from '../src/gpu/kernels/index.js';
-import { acquireBuffer, uploadData } from '../src/gpu/buffer-pool.js';
+import { acquireBuffer, uploadData } from '../src/memory/buffer-pool.js';
 import { createTensor } from '../src/gpu/tensor.js';
 
 function makeTensor(values, shape, label) {

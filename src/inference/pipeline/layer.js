@@ -2,7 +2,7 @@
 
 import { log, trace } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
-import { releaseBuffer } from '../../gpu/buffer-pool.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { createTensor } from '../../gpu/tensor.js';
 import {

@@ -58,7 +58,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | JSON result schema | ✓ Implemented | `../spec/BENCHMARK_SCHEMA.json` |
 | GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | Tracked in harness |
-| Peak VRAM estimation | ✓ Implemented | Uses `gpu/buffer-pool.js` |
+| Peak VRAM estimation | ✓ Implemented | Uses `memory/buffer-pool.js` |
 | Output quality check | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
 | Baseline registry checks | ✓ Implemented | `tests/baselines.json` + CLI |
 | OPFS storage metrics | ✓ Implemented | Via Storage API |

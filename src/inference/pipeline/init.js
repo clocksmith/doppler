@@ -2,7 +2,7 @@
 
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
-import { acquireBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { Tokenizer } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
@@ -590,7 +590,7 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
  * and interconnect simulation for testing distributed inference patterns.
  *
  * @param {import('../../config/schema/doppler.schema.js').RuntimeConfigSchema} runtimeConfig
- * @returns {Promise<import('../../gpu/emulation/index.js').EmulationContext|null>}
+ * @returns {Promise<import('../../simulator/index.js').EmulationContext|null>}
  */
 export async function initEmulation(runtimeConfig) {
   const emulationConfig = runtimeConfig?.emulation;
@@ -602,7 +602,7 @@ export async function initEmulation(runtimeConfig) {
 
   try {
     // Dynamically import to avoid loading emulation code when disabled
-    const { createEmulationContext, isEmulationSupported } = await import('../../gpu/emulation/index.js');
+    const { createEmulationContext, isEmulationSupported } = await import('../../simulator/index.js');
 
     // Check if emulation is supported
     const supported = await isEmulationSupported();
@@ -628,7 +628,7 @@ export async function initEmulation(runtimeConfig) {
 /**
  * Destroy emulation context and clean up resources.
  *
- * @param {import('../../gpu/emulation/index.js').EmulationContext|null} emulation
+ * @param {import('../../simulator/index.js').EmulationContext|null} emulation
  */
 export async function destroyEmulation(emulation) {
   if (emulation) {

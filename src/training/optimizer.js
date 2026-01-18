@@ -1,4 +1,4 @@
-import { acquireBuffer, BufferUsage } from '../gpu/buffer-pool.js';
+import { acquireBuffer, BufferUsage } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { runAdam } from '../gpu/kernels/backward/adam.js';
 

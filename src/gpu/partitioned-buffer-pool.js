@@ -1,6 +1,6 @@
 
 
-import { BufferPool } from './buffer-pool.js';
+import { BufferPool } from '../memory/buffer-pool.js';
 
 
 

@@ -1,5 +1,5 @@
 import { getDevice } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { castF16ToF32, castF32ToF16 } from '../../gpu/kernels/cast.js';
 import {

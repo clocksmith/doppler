@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer, getBufferRequestedSize } from '../buffer-pool.js';
+import { acquireBuffer, getBufferRequestedSize } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';

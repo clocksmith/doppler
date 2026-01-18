@@ -1,7 +1,7 @@
 
 
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { TILE_SIZES } from './constants.js';

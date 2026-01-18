@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { dequantize, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../gpu/kernel-selector.js';
 import { createTensor } from '../gpu/tensor.js';
 import { createWeightBuffer } from '../gpu/weight-buffer.js';

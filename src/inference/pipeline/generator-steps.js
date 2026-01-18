@@ -1,5 +1,5 @@
 import { getDevice, setTrackSubmits } from '../../gpu/device.js';
-import { releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../gpu/kernels/sample.js';
 import { recordCheckStop } from '../../gpu/kernels/check-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../gpu/submit-tracker.js';

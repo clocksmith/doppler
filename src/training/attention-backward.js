@@ -1,4 +1,4 @@
-import { acquireBuffer, uploadData, readBuffer } from '../gpu/buffer-pool.js';
+import { acquireBuffer, uploadData, readBuffer } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 

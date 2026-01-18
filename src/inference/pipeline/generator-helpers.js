@@ -1,5 +1,5 @@
 
-import { readBuffer } from '../../gpu/buffer-pool.js';
+import { readBuffer } from '../../memory/buffer-pool.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';

@@ -17,7 +17,7 @@ export class PipelineState {
     this.decodeBuffers = null;
 
     // Emulation context (null when emulation is disabled)
-    // @type {import('../../gpu/emulation/index.js').EmulationContext|null}
+    // @type {import('../../simulator/index.js').EmulationContext|null}
 
     this.emulation = null;
 

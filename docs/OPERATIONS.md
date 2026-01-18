@@ -733,7 +733,7 @@ const output = await generator('the sky is', { max_new_tokens: 5 });
 
 ```typescript
 // Track buffer pool state
-import { getPoolStats } from './gpu/buffer-pool.js';
+import { getPoolStats } from './memory/buffer-pool.js';
 console.log('[Pool]', getPoolStats());
 ```
 

@@ -1,5 +1,5 @@
 import { getDevice } from '../../device.js';
-import { acquireBuffer } from '../../buffer-pool.js';
+import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';

@@ -2,7 +2,7 @@
 import { getKernelCapabilities } from '../device.js';
 import { getBuffer, getLayout } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { ALIGNMENT, QUANTIZATION, TILE_SIZES } from './constants.js';
 import { getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { getKernelThresholds } from '../../config/schema/index.js';

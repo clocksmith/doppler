@@ -1,7 +1,7 @@
 
 
 import { formatBytes } from '../storage/quota.js';
-import { getBufferPool } from '../gpu/buffer-pool.js';
+import { getBufferPool } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 
 // ============================================================================

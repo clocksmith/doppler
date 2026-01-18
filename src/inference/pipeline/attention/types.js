@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../../../gpu/device.js';
-import { releaseBuffer } from '../../../gpu/buffer-pool.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
 
 // ============================================================================
 // Debug Helpers

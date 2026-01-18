@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../../gpu/device.js';
-import { acquireBuffer } from '../../gpu/buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../gpu/weight-buffer.js';
 

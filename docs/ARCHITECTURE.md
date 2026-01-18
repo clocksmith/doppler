@@ -217,14 +217,15 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
 │ gpu/              │ formats/           │ inference/                          │
 │ ├─ device         │ ├─ gguf            │ ├─ pipeline                         │
-│ ├─ buffer-pool    │ ├─ safetensors     │ ├─ pipeline/attention               │
-│ ├─ uniform-cache  │ ├─ rdrr            │ ├─ pipeline/ffn                     │
-│ └─ kernels/       │ └─ tokenizer       │ ├─ pipeline/logits                  │
-│    (WGSL kernels) │                    │ └─ kv-cache                         │
+│ ├─ uniform-cache  │ ├─ safetensors     │ ├─ pipeline/attention               │
+│ └─ kernels/       │ ├─ rdrr            │ ├─ pipeline/ffn                     │
+│    (WGSL kernels) │ └─ tokenizer       │ ├─ pipeline/logits                  │
+│                   │                    │ └─ kv-cache                         │
 │                   │ loader/            │                                     │
 │ memory/           │ ├─ doppler-loader  │ debug/                              │
-│ ├─ heap           │ ├─ weight-loader   │ ├─ log                              │
-│ └─ capability     │ └─ shard-manager   │ └─ trace                            │
+│ ├─ buffer-pool    │ ├─ weight-loader   │ ├─ log                              │
+│ ├─ heap           │ └─ shard-manager   │ └─ trace                            │
+│ └─ capability     │                    │                                     │
 │                   │                    │                                     │
 │                   │ storage/           │                                     │
 │                   │ ├─ opfs-manager    │                                     │
@@ -368,7 +369,7 @@ Use this for understanding build order and what can be tested independently.
 │ Model loading and weight dequantization.                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 4: GPU + STORAGE                                                      │
-│ gpu/device, gpu/buffer-pool, gpu/kernels/* | storage/opfs-manager           │
+│ gpu/device, memory/buffer-pool, gpu/kernels/* | storage/opfs-manager       │
 │ Orthogonal infrastructure: compute vs persistence.                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 3: FORMATS                                                            │
@@ -419,7 +420,7 @@ Initializes WebGPU with capability detection:
 2. Low-power adapter (integrated GPU)
 3. Any available adapter
 
-### buffer-pool.js - GPU Buffer Pooling
+### memory/buffer-pool.js - GPU Buffer Pooling
 
 Power-of-2 bucket pooling to avoid allocation churn:
 
@@ -856,10 +857,11 @@ model-directory/
 }
 ```
 
-### shard-manager.js - OPFS Integration
+### shard-manager.js - Storage Backends
 
-Uses Origin Private File System for persistent model storage:
-- `initOPFS()` - Initialize root directory
+Uses config-driven storage backends with OPFS as the preferred path and IndexedDB/memory fallbacks:
+- `initStorage()` - Initialize selected backend
+- `openModelStore(modelId)` - Set active model storage
 - `loadShard(idx)` - Read shard to ArrayBuffer
 - `verifyIntegrity()` - Check all shard hashes
 - `computeHash(data, algo)` - Blake3/SHA256
@@ -1180,7 +1182,7 @@ See `CONFIG.md` for kernel selection rules and runtime overrides.
 | `src/gpu/device.js` | 408 | WebGPU initialization |
 | `src/gpu/kernels/index.js` | 168 | Kernel selection + dispatch exports |
 | `src/gpu/kernel-tuner.js` | 1261 | Auto-tuning benchmarks |
-| `src/gpu/buffer-pool.js` | 586 | Buffer pooling |
+| `src/memory/buffer-pool.js` | 586 | Buffer pooling |
 | `src/formats/rdrr/manifest.js` | 111 | RDRR manifest parsing |
 | `src/storage/shard-manager.js` | 816 | OPFS shard management |
 | `src/converter/quantizer.js` | 492 | Q4_K quantization |
@@ -3040,7 +3042,7 @@ Layer 2: buf_a -> buf_b
 
 ## Buffer Pool Strategy
 
-**Location**: `gpu/buffer-pool.js`
+**Location**: `memory/buffer-pool.js`
 
 Current pooling:
 - **Size bucketing**: Power-of-2 for buffers < 32MB, 16MB steps for larger
@@ -3049,7 +3051,7 @@ Current pooling:
 - **Alignment**: 256 bytes
 
 ```typescript
-// Size bucket calculation (buffer-pool.js:79-109)
+// Size bucket calculation (memory/buffer-pool.js:79-109)
 function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number {
   const minBucket = 256;
   if (size <= minBucket) return minBucket;
@@ -3073,7 +3075,7 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
 |------|-------|---------|
 | `gpu/kernels/dequant.js` | 96-152 | Dequant buffer allocation |
 | `gpu/kernels/utils.js` | 1149-1160 | Uniform buffer creation |
-| `gpu/buffer-pool.js` | 79-109, 148-150 | Pool config and bucketing |
+| `memory/buffer-pool.js` | 79-109, 148-150 | Pool config and bucketing |
 | `gpu/kernels/fused_matmul_q4.wgsl` | 167-179 | Fused dequant in registers |
 | `loader/doppler-loader.js` | 970-1020 | Model load dequant path |
 | `inference/pipeline.js` | - | Layer orchestration |

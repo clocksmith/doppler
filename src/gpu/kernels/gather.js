@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../buffer-pool.js';
+import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { dispatch, dispatchIndirect, recordDispatch, recordDispatchIndirect } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from './utils.js';

@@ -499,7 +499,6 @@ doppler/
 │
 ├── gpu/
 │   ├── device.js              # WebGPU device management
-│   ├── buffer-pool.js         # Buffer allocation
 │   └── kernels/
 │       ├── utils.js           # Pipeline creation, bind groups
 │       ├── kernel-executor.js # Unified dispatch
@@ -509,6 +508,10 @@ doppler/
 │       ├── attention.js
 │       ├── attention_causal.wgsl
 │       └── ...
+│
+├── memory/
+│   ├── buffer-pool.js         # Buffer allocation
+│   └── heap-manager.js        # Heap utilities
 │
 ├── inference/
 │   ├── pipeline.js            # Main inference loop

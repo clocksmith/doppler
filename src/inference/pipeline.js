@@ -1,7 +1,7 @@
 
 
 import { getDevice, setDevice } from '../gpu/device.js';
-import { getBufferPool as getGlobalBufferPool } from '../gpu/buffer-pool.js';
+import { getBufferPool as getGlobalBufferPool } from '../memory/buffer-pool.js';
 import { markWarmed as markKernelCacheWarmed } from '../gpu/kernel-selection-cache.js';
 import { log, applyDebugConfig, setGPUDevice } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';

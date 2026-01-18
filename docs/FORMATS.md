@@ -484,13 +484,16 @@ npx tsx cli/commands/serve.js model.gguf
 
 ```javascript
 import { downloadModel, parseManifest, createPipeline } from 'doppler';
+import { initStorage, openModelStore, loadManifestFromStore } from 'doppler/storage/shard-manager.js';
 
-// Download model to OPFS
-await downloadModel('http://localhost:8765');
+// Download model to persistent storage
+await downloadModel('http://localhost:8765', null, { modelId: 'gemma-2-2b-wq4k' });
 
 // Load and create inference pipeline
-const manifest = await loadManifestFromOPFS();
-const pipeline = await createPipeline(parseManifest(manifest));
+await initStorage();
+await openModelStore('gemma-2-2b-wq4k');
+const manifestText = await loadManifestFromStore();
+const pipeline = await createPipeline(parseManifest(manifestText));
 
 // Generate
 for await (const token of pipeline.generate('Hello')) {

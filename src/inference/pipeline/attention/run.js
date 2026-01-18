@@ -2,7 +2,7 @@
 
 import { isWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import {
   runMatmul,
   runRMSNorm,

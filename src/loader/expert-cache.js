@@ -1,6 +1,6 @@
 
 
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { log, trace } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 

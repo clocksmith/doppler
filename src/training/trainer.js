@@ -1,7 +1,7 @@
 import { AutogradTape } from './autograd.js';
 import { loadBackwardRegistry } from '../config/backward-registry-loader.js';
 import { runScale } from '../gpu/kernels/index.js';
-import { acquireBuffer, uploadData, releaseBuffer } from '../gpu/buffer-pool.js';
+import { acquireBuffer, uploadData, releaseBuffer } from '../memory/buffer-pool.js';
 import { createTensor } from '../gpu/tensor.js';
 
 export async function trainStep(

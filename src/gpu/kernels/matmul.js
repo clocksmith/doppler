@@ -2,7 +2,7 @@ import { getDevice } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { releaseBuffer } from '../buffer-pool.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import {

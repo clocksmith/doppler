@@ -7,7 +7,7 @@ import {
 import { createTensor } from '../../../gpu/tensor.js';
 import { isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../../gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { runFusedFFN, recordFusedFFN, isFusedQ4KDisabled } from '../../../gpu/kernel-selector.js';
 import { log } from '../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';

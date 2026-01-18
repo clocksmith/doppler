@@ -11,7 +11,7 @@ import {
 } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { getExpertCache } from './expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';

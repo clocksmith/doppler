@@ -1,6 +1,6 @@
 
 
-import { readBuffer } from '../../../gpu/buffer-pool.js';
+import { readBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { isEnabled } from './config.js';
 import { decodeReadback } from './utils.js';
