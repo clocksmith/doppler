@@ -10,7 +10,6 @@
 
   "inference": {
     "attention": {
-      "slidingWindow": 1024,
       "attnLogitSoftcapping": null,
       "queryKeyNorm": true
     },
@@ -27,8 +26,7 @@
       "finalLogitSoftcapping": null
     },
     "layerPattern": {
-      "type": "alternating",
-      "globalPattern": "every_n",
+      "type": "every_n",
       "globalPatternN": 6
     },
     "rope": {
