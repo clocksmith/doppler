@@ -67,10 +67,10 @@ Run:
 
 ```bash
 npm run debug -- --model gemma-2-2b-it-wf16 --max-tokens 8 --chat \
-  --text "Explain why the sky is blue." --trace kernels --gpu-profile
+  --text "Explain why the sky is blue." --trace kernels
 
 npm run debug -- --model gemma-2-2b-it-wq4k-ef16 --max-tokens 8 --chat \
-  --text "Explain why the sky is blue." --trace kernels --gpu-profile
+  --text "Explain why the sky is blue." --trace kernels
 ```
 
 Expected:

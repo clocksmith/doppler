@@ -1,7 +1,7 @@
 
 
 import { initDevice } from '../src/gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../src/gpu/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../src/memory/buffer-pool.js';
 import { runRMSNorm } from '../src/gpu/kernels/rmsnorm.js';
 import { runResidualAdd } from '../src/gpu/kernels/residual.js';
 

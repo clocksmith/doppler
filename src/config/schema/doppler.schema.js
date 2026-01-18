@@ -123,6 +123,15 @@ function mergeLoadingConfig(
           quota: { ...base.storage.quota, ...overrides.storage.quota },
           vramEstimation: { ...base.storage.vramEstimation, ...overrides.storage.vramEstimation },
           alignment: { ...base.storage.alignment, ...overrides.storage.alignment },
+          backend: overrides.storage.backend
+            ? {
+                backend: overrides.storage.backend.backend ?? base.storage.backend.backend,
+                opfs: { ...base.storage.backend.opfs, ...overrides.storage.backend.opfs },
+                indexeddb: { ...base.storage.backend.indexeddb, ...overrides.storage.backend.indexeddb },
+                memory: { ...base.storage.backend.memory, ...overrides.storage.backend.memory },
+                streaming: { ...base.storage.backend.streaming, ...overrides.storage.backend.streaming },
+              }
+            : { ...base.storage.backend },
         }
       : { ...base.storage },
     distribution: { ...base.distribution, ...overrides.distribution },

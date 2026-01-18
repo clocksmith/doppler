@@ -246,7 +246,7 @@ export class PipelineBenchmark {
     const { createPipeline } = await import('../../src/inference/pipeline.js');
     const { initDevice, hasFeature, FEATURES } = await import('../../src/gpu/device.js');
     const { createProfiler } = await import('../../src/gpu/profiler.js');
-    const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
+    const { getBufferPool } = await import('../../src/memory/buffer-pool.js');
     const { downloadModel } = await import('../../src/storage/downloader.js');
     const { modelExists, initStorage } = await import('../../src/storage/shard-manager.js');
 
@@ -356,7 +356,7 @@ export class PipelineBenchmark {
 
   async runInference(prompt, isWarmup) {
     const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats, logAllPhaseSubmitStats } = await import('../../src/gpu/submit-tracker.js');
-    const { getBufferPool } = await import('../../src/gpu/buffer-pool.js');
+    const { getBufferPool } = await import('../../src/memory/buffer-pool.js');
     const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import('../../src/gpu/perf-guards.js');
     const { MemoryTimeSeries } = await import('../../src/loader/memory-monitor.js');
 
@@ -402,11 +402,13 @@ export class PipelineBenchmark {
       memoryTimeSeries.mark('prefill_start');
     }
 
+    // Determine chat template setting before try block so it's accessible after
+    const useChatTemplate = Object.prototype.hasOwnProperty.call(this.config, 'useChatTemplate')
+      ? this.config.useChatTemplate
+      : undefined;
+
     try {
       // Run generation
-      const useChatTemplate = Object.prototype.hasOwnProperty.call(this.config, 'useChatTemplate')
-        ? this.config.useChatTemplate
-        : undefined;
       const generator = this.pipeline.generate(prompt, {
         maxTokens: this.config.maxNewTokens,
         temperature: this.config.sampling.temperature,

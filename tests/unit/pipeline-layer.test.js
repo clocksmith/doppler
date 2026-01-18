@@ -60,7 +60,7 @@ vi.mock('../../src/gpu/device.js', () => ({
   hasFeature: vi.fn(() => false),
 }));
 
-vi.mock('../../src/gpu/buffer-pool.js', () => ({
+vi.mock('../../src/memory/buffer-pool.js', () => ({
   acquireBuffer: vi.fn((size) => createMockBuffer(size, GPUBufferUsage.STORAGE)),
   releaseBuffer: vi.fn(),
   getBufferPool: vi.fn(() => ({
@@ -1039,7 +1039,7 @@ describe('ops module', () => {
       const { releaseOrTrack } = await import(
         '../../src/inference/pipeline/ops.js'
       );
-      const { releaseBuffer } = await import('../../src/gpu/buffer-pool.js');
+      const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
       const buffer = createMockBuffer(1024, GPUBufferUsage.STORAGE);
       releaseOrTrack(undefined, buffer);
@@ -1051,7 +1051,7 @@ describe('ops module', () => {
       const { releaseOrTrack } = await import(
         '../../src/inference/pipeline/ops.js'
       );
-      const { releaseBuffer } = await import('../../src/gpu/buffer-pool.js');
+      const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
       const buffer = createMockBuffer(1024, GPUBufferUsage.STORAGE);
       const recorder = { trackTemporaryBuffer: vi.fn() };
@@ -1066,7 +1066,7 @@ describe('ops module', () => {
       const { releaseOrTrack } = await import(
         '../../src/inference/pipeline/ops.js'
       );
-      const { releaseBuffer } = await import('../../src/gpu/buffer-pool.js');
+      const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
       const buffer = createMockBuffer(1024, GPUBufferUsage.STORAGE);
       const decodeBuffers = { ownsBuffer: vi.fn().mockReturnValue(true) };

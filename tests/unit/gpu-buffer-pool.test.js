@@ -136,7 +136,7 @@ describe('gpu/buffer-pool', () => {
   describe('BufferPool class', () => {
     describe('acquire', () => {
       it('creates new buffer when pool is empty', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -155,14 +155,14 @@ describe('gpu/buffer-pool', () => {
         const { getDevice } = await import('../../src/gpu/device.js');
         getDevice.mockReturnValue(null);
 
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         expect(() => pool.acquire(1024)).toThrow('Device not initialized');
       });
 
       it('reuses pooled buffer of same size and usage', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC;
@@ -177,7 +177,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('uses size bucketing for efficient pooling', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer1 = pool.acquire(500);
@@ -188,7 +188,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('aligns buffer size to minimum alignment', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(100);
@@ -196,7 +196,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('applies custom label to buffer', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.acquire(1024, GPUBufferUsage.STORAGE, 'test_buffer');
@@ -215,7 +215,7 @@ describe('gpu/buffer-pool', () => {
           maxStorageBufferBindingSize: 1000,
         });
 
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         expect(() => pool.acquire(2000, GPUBufferUsage.STORAGE)).toThrow(/exceeds device/i);
@@ -224,7 +224,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('release', () => {
       it('returns buffer to pool for reuse', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -240,7 +240,7 @@ describe('gpu/buffer-pool', () => {
 
       it('warns when releasing untracked buffer', async () => {
         const { log } = await import('../../src/debug/index.js');
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const fakeBuffer = createMockBuffer(1024, GPUBufferUsage.STORAGE);
@@ -250,7 +250,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('destroys buffer when pool is full', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const config = {
           limits: { maxBuffersPerBucket: 2, maxTotalPooledBuffers: 4 },
           alignment: { alignmentBytes: 256 },
@@ -280,7 +280,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('getStats', () => {
       it('tracks allocation count', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.acquire(1024);
@@ -292,7 +292,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('tracks reuse count', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -304,7 +304,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('calculates hit rate', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -316,7 +316,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('tracks peak memory', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buf1 = pool.acquire(1024);
@@ -333,7 +333,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('tracks active and pooled buffer counts', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buf1 = pool.acquire(1024);
@@ -353,7 +353,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('createStagingBuffer', () => {
       it('creates buffer with staging label', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.createStagingBuffer(1024);
@@ -368,7 +368,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('createUploadBuffer', () => {
       it('creates buffer with staging write label', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.createUploadBuffer(1024);
@@ -383,7 +383,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('createUniformBuffer', () => {
       it('creates buffer with uniform label', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.createUniformBuffer(64);
@@ -396,7 +396,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('aligns uniform buffers to 256 bytes', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.createUniformBuffer(100);
@@ -407,7 +407,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('uploadData', () => {
       it('writes data to buffer via queue', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -418,7 +418,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('supports offset parameter', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -430,7 +430,7 @@ describe('gpu/buffer-pool', () => {
 
       it('throws when device not initialized', async () => {
         const { getDevice } = await import('../../src/gpu/device.js');
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buffer = pool.acquire(1024);
@@ -442,7 +442,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('clearPool', () => {
       it('destroys all pooled buffers', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buf1 = pool.acquire(1024);
@@ -464,7 +464,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('destroy', () => {
       it('destroys all buffers (active and pooled)', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         const buf1 = pool.acquire(1024);
@@ -486,7 +486,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('configure', () => {
       it('updates pool configuration', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool();
 
         pool.configure({ enablePooling: false });
@@ -501,7 +501,7 @@ describe('gpu/buffer-pool', () => {
 
     describe('debug mode', () => {
       it('tracks buffer metadata in debug mode', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool(true);
 
         pool.acquire(1024, GPUBufferUsage.STORAGE, 'debug_test');
@@ -511,7 +511,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('detects leaked buffers', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool(true);
 
         pool.acquire(1024, GPUBufferUsage.STORAGE, 'leaked_buffer');
@@ -523,7 +523,7 @@ describe('gpu/buffer-pool', () => {
       });
 
       it('returns empty leaks array when not in debug mode', async () => {
-        const { BufferPool } = await import('../../src/gpu/buffer-pool.js');
+        const { BufferPool } = await import('../../src/memory/buffer-pool.js');
         const pool = new BufferPool(false);
 
         pool.acquire(1024);
@@ -536,7 +536,7 @@ describe('gpu/buffer-pool', () => {
 
   describe('global buffer pool', () => {
     it('getBufferPool returns singleton', async () => {
-      const { getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       const pool1 = getBufferPool();
       const pool2 = getBufferPool();
@@ -547,7 +547,7 @@ describe('gpu/buffer-pool', () => {
     });
 
     it('destroyBufferPool cleans up global pool', async () => {
-      const { getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       const pool = getBufferPool();
       pool.acquire(1024);
@@ -561,7 +561,7 @@ describe('gpu/buffer-pool', () => {
     });
 
     it('createBufferPool creates independent instance', async () => {
-      const { createBufferPool, getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { createBufferPool, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       const globalPool = getBufferPool();
       const customPool = createBufferPool(true);
@@ -575,7 +575,7 @@ describe('gpu/buffer-pool', () => {
 
   describe('convenience functions', () => {
     it('acquireBuffer uses global pool', async () => {
-      const { acquireBuffer, getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { acquireBuffer, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       acquireBuffer(1024);
 
@@ -586,7 +586,7 @@ describe('gpu/buffer-pool', () => {
     });
 
     it('releaseBuffer uses global pool', async () => {
-      const { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       const buffer = acquireBuffer(1024);
       releaseBuffer(buffer);
@@ -600,7 +600,7 @@ describe('gpu/buffer-pool', () => {
 
   describe('withBuffer helper', () => {
     it('automatically releases buffer after use', async () => {
-      const { withBuffer, getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { withBuffer, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       await withBuffer(1024, GPUBufferUsage.STORAGE, async (buffer) => {
         const pool = getBufferPool();
@@ -616,7 +616,7 @@ describe('gpu/buffer-pool', () => {
     });
 
     it('releases buffer even on error', async () => {
-      const { withBuffer, getBufferPool, destroyBufferPool } = await import('../../src/gpu/buffer-pool.js');
+      const { withBuffer, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
       await expect(withBuffer(1024, GPUBufferUsage.STORAGE, async () => {
         throw new Error('Test error');

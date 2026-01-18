@@ -57,7 +57,7 @@ import { runFusedFFN } from '../../../src/gpu/kernels/fused_ffn.js';
 // Optional buffer pool
 let bufferPool = null;
 try {
-  bufferPool = await import('../../../src/gpu/buffer-pool.js');
+  bufferPool = await import('../../../src/memory/buffer-pool.js');
 } catch (e) {
   console.warn('Buffer pool not available:', e.message);
 }

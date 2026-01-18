@@ -2,7 +2,7 @@ import { initDevice } from '../../../src/gpu/device.js';
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
-import { acquireBuffer, uploadData, readBuffer, getBufferPool } from '../../../src/gpu/buffer-pool.js';
+import { acquireBuffer, uploadData, readBuffer, getBufferPool } from '../../../src/memory/buffer-pool.js';
 import {
   runSoftmax,
   runCrossEntropyLoss,
