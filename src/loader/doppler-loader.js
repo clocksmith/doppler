@@ -278,8 +278,8 @@ export class DopplerLoader {
   }
 
   
-  #resolveWeightLayout(location, name) {
-    return resolveWeightLayout(location, name);
+  #resolveWeightLayout(location) {
+    return resolveWeightLayout(location);
   }
 
   
@@ -289,7 +289,10 @@ export class DopplerLoader {
 
   
   async load(modelId, options = {}) {
-    const { onProgress = null, verifyHashes = true } = options;
+    const { onProgress = null, verifyHashes } = options;
+    if (verifyHashes == null) {
+      throw new Error('Loader.load requires explicit verifyHashes (runtime.loading.shardCache.verifyHashes).');
+    }
 
     if (!this.heapManager) {
       await this.init();
@@ -619,12 +622,16 @@ export class DopplerLoader {
       }
 
       
+      const allowF32UpcastNonMatmul = this.#loadingConfig?.allowF32UpcastNonMatmul;
+      if (allowF32UpcastNonMatmul == null) {
+        throw new Error('runtime.loading.allowF32UpcastNonMatmul is required.');
+      }
       const config = {
         useFusedQ4K: this.useFusedQ4K,
         keepF32Weights: this.keepF32Weights,
         q4kLayout: this.q4kLayout,
         gpuCapabilities: this.gpuCapabilities,
-        allowF32UpcastNonMatmul: this.#loadingConfig?.allowF32UpcastNonMatmul ?? false,
+        allowF32UpcastNonMatmul,
       };
 
       const result = await loadTensorToGPU(shardData, location, name, config);
@@ -661,7 +668,7 @@ export class DopplerLoader {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
-      resolveWeightLayout: (loc, name) => this.#resolveWeightLayout(loc, name),
+      resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
     };
@@ -738,7 +745,7 @@ export class DopplerLoader {
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
       needsNormWeightOffset: () => this.#needsNormWeightOffset(),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
-      resolveWeightLayout: (loc, name) => this.#resolveWeightLayout(loc, name),
+      resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
       tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,

@@ -158,14 +158,20 @@ export async function computeSHA256(data) {
   return bytesToHex(new Uint8Array(hashBuffer));
 }
 
-export async function computeHash(data, algorithm = 'blake3') {
+export async function computeHash(data, algorithm) {
+  if (!algorithm) {
+    throw new Error('computeHash requires an explicit hash algorithm.');
+  }
   if (algorithm === 'sha256') {
     return computeSHA256(data);
   }
   return computeBlake3(data);
 }
 
-export async function createStreamingHasher(algorithm = 'blake3') {
+export async function createStreamingHasher(algorithm) {
+  if (!algorithm) {
+    throw new Error('createStreamingHasher requires an explicit hash algorithm.');
+  }
   if (algorithm === 'sha256') {
     const chunks = [];
     return {
@@ -187,6 +193,17 @@ export async function createStreamingHasher(algorithm = 'blake3') {
   }
   await initBlake3('blake3');
   return blake3Module.createHasher();
+}
+
+function requireManifestHashAlgorithm(manifest, context) {
+  const algorithm = manifest?.hashAlgorithm;
+  if (!algorithm) {
+    throw new Error(
+      `Manifest missing hashAlgorithm for ${context}. ` +
+      'Re-convert the model to include a manifest hash algorithm.'
+    );
+  }
+  return algorithm;
 }
 
 export function getStorageCapabilities() {
@@ -259,7 +276,7 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
 
     if (options.verify) {
       const manifest = getManifest();
-      const algorithm = manifest?.hashAlgorithm || 'blake3';
+      const algorithm = requireManifestHashAlgorithm(manifest, 'shard write');
       const hash = await computeHash(bytes, algorithm);
       const expectedHash = shardInfo.hash || shardInfo.blake3;
 
@@ -303,7 +320,7 @@ export async function loadShard(shardIndex, options = { verify: false }) {
     const buffer = await backend.readFile(shardInfo.filename);
     if (options.verify) {
       const manifest = getManifest();
-      const algorithm = manifest?.hashAlgorithm || 'blake3';
+      const algorithm = requireManifestHashAlgorithm(manifest, 'shard load');
       const hash = await computeHash(buffer, algorithm);
       const expectedHash = shardInfo.hash || shardInfo.blake3;
 
@@ -347,7 +364,7 @@ export async function verifyIntegrity() {
     throw new Error('No manifest loaded');
   }
 
-  const algorithm = manifest.hashAlgorithm || 'blake3';
+  const algorithm = requireManifestHashAlgorithm(manifest, 'integrity check');
 
   const missingShards = [];
   const corruptShards = [];

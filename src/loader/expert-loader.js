@@ -109,12 +109,13 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
   }
 
   // Downcast Mixtral-style F32 weights to F16
-  if (!weights.isGptOss) {
+  weights.expertFormat = expertFormat;
+  if (expertFormat === 'mixtral') {
     await downcastExpertWeights(ctx, weights);
   }
 
   // Calculate expert size and store in LRU cache
-  if (!weights.isGptOss && ctx.expertCache) {
+  if (expertFormat === 'mixtral' && ctx.expertCache) {
     const sizeBytes = calculateExpertSize(weights);
     ctx.expertCache.put(layerIdx, expertIdx, weights, sizeBytes);
   } else {
@@ -216,7 +217,7 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
     const numExpertsFromConfig = resolveGptOssNumExperts(ctx);
 
     packed = {
-      isGptOss: true,
+      expertFormat: 'gpt-oss',
       numExperts: numExpertsFromConfig,
       gateUpBlocks:  (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_blocks`)),
       gateUpScales:  (await ctx.loadTensor(`${gptOssPrefix}.gate_up_proj_scales`)),
@@ -230,7 +231,7 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   }
 
   return {
-    isGptOss: true,
+    expertFormat: 'gpt-oss',
     expertIdx,
     numExperts: packed.numExperts,
     gateUpBlocks: packed.gateUpBlocks,

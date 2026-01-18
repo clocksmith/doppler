@@ -31,6 +31,7 @@ export async function runMoEFFNGPU(
       intermediateSize: config.intermediateSize,
       numExperts: config.numExperts,
       moeTopK: config.moeTopK,
+      expertFormat: config.expertFormat,
       hiddenActivation: config.hiddenActivation,
       swigluLimit: config.swigluLimit,
       activationDtype: inputTensor.dtype,

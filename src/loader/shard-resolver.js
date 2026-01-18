@@ -33,12 +33,17 @@ export async function buildTensorLocations(manifest, options = {}) {
       const tensorsJson = parseTensorMap(tensorsJsonRaw);
       for (const [name, rdrrInfo] of Object.entries(tensorsJson)) {
         const info = rdrrInfo;
+        if (!info.role) {
+          throw new Error(`Tensor "${name}" missing role in tensors.json`);
+        }
         locations.set(name, {
           shardIndex: info.shard,
           offset: info.offset,
           size: info.size,
           shape: info.shape,
           dtype: info.dtype,
+          role: info.role,
+          group: info.group,
           spans: info.spans,
           layout: info.layout,
           originalShape: info.originalShape,
@@ -57,12 +62,17 @@ export async function buildTensorLocations(manifest, options = {}) {
 
   for (const [name, info] of Object.entries(manifest.tensors)) {
     const tensorInfo = info;
+    if (!tensorInfo.role) {
+      throw new Error(`Tensor "${name}" missing role in manifest.tensors`);
+    }
     locations.set(name, {
       shardIndex: tensorInfo.shardIndex ?? tensorInfo.shard ?? 0,
       offset: tensorInfo.offset,
       size: tensorInfo.size,
       shape: tensorInfo.shape,
       dtype: tensorInfo.dtype,
+      role: tensorInfo.role,
+      group: tensorInfo.group,
       spans: tensorInfo.spans,
       layout: tensorInfo.layout,
       originalShape: tensorInfo.originalShape,
@@ -70,44 +80,4 @@ export async function buildTensorLocations(manifest, options = {}) {
   }
   debugTrace.loader(`Tensor map: ${locations.size} tensors (inline)`);
   return locations;
-}
-
-export function isEmbeddingTensor(name) {
-  const lower = name.toLowerCase();
-  return (
-    lower.includes('embd') ||
-    lower.includes('embed') ||
-    lower.includes('wte')
-  );
-}
-
-export function isLMHeadTensor(name) {
-  const lower = name.toLowerCase();
-  return (
-    lower.includes('lm_head') ||
-    lower.includes('output.weight')
-  );
-}
-
-export function isNormTensor(name) {
-  const lower = name.toLowerCase();
-  return (
-    lower.includes('norm') ||
-    lower.includes('ln_') ||
-    lower.includes('layernorm')
-  );
-}
-
-export function isMatmulTensor(name) {
-  const lower = name.toLowerCase();
-  return (
-    lower.includes('proj') ||
-    lower.includes('gate') ||
-    lower.includes('up') ||
-    lower.includes('down') ||
-    lower.includes('wq') ||
-    lower.includes('wk') ||
-    lower.includes('wv') ||
-    lower.includes('wo')
-  );
 }

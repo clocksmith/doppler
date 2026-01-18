@@ -22,7 +22,7 @@ export interface FusedFFNOptions extends OutputBufferOptions {
   /** Scale factor (default: 1.0) */
   alpha?: number;
   /** Clamp SwiGLU output (null = disabled) */
-  swigluLimit?: number | null;
+  swigluLimit: number | null;
 }
 
 /**

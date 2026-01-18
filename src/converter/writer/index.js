@@ -3,6 +3,7 @@
 import { log } from '../../debug/index.js';
 import { extractArchitecture } from '../core.js';
 import { RDRRWriter } from './writer.js';
+import { resolveEosTokenId } from '../tokenizer-utils.js';
 
 // Re-export all types (JS just re-exports the constants)
 export * from './types.js';
@@ -54,6 +55,13 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
 
     const tokenizer = modelInfo.tokenizer || modelInfo.tokenizerConfig;
     const hfTokenizer = modelInfo.tokenizerJson;
+
+    const eosTokenId = resolveEosTokenId({
+      config,
+      tokenizer: tokenizer ?? null,
+      tokenizerJson: hfTokenizer ?? null,
+    });
+    writer.setMetadata({ eos_token_id: eosTokenId });
 
     if (hfTokenizer && hfTokenizer.model?.vocab) {
       await writer.writeHuggingFaceTokenizer(hfTokenizer);

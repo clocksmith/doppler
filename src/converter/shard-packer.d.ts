@@ -13,6 +13,7 @@ import type {
   ComponentGroupSchema,
   TensorInfoSchema,
   ShardSchema,
+  TensorRole,
 } from '../config/schema/index.js';
 
 /**
@@ -41,6 +42,7 @@ export interface TensorLocationSingle {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
   group?: string;
 }
 
@@ -52,6 +54,7 @@ export interface TensorLocationMulti {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
   group?: string;
 }
 

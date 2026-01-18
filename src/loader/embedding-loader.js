@@ -6,6 +6,7 @@ import {
   isWeightBuffer,
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
+import { getTensorNamesByRole } from './tensor-role.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
@@ -14,14 +15,8 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 // ============================================================================
 
 
-const EMBEDDING_NAMES = [
-  'language_model.model.embed_tokens.weight',
-  'model.embed_tokens.weight',
-  'embed_tokens.weight',
-  'token_embd.weight',
-  'wte.weight',
-  'transformer.wte.weight',
-];
+const EMBEDDING_ROLE = 'embedding';
+const EMBEDDING_GROUP = 'embed';
 
 // ============================================================================
 // Main Function
@@ -29,7 +24,19 @@ const EMBEDDING_NAMES = [
 
 
 export async function loadEmbeddings(ctx) {
-  for (const name of EMBEDDING_NAMES) {
+  const embeddingNames = getTensorNamesByRole(ctx.tensorLocations, EMBEDDING_ROLE, EMBEDDING_GROUP);
+  const candidates = embeddingNames.length > 0
+    ? embeddingNames
+    : getTensorNamesByRole(ctx.tensorLocations, EMBEDDING_ROLE);
+
+  if (candidates.length === 0) {
+    throw new Error(
+      `[Loader] Embeddings not found. Expected tensor with role="${EMBEDDING_ROLE}"` +
+      ` and group="${EMBEDDING_GROUP}". Re-convert the model with tensor roles.`
+    );
+  }
+
+  for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
     const shouldStream = loc ? ctx.shouldStreamLargeWeight(name, loc, 'Embedding') : false;
 
@@ -56,7 +63,7 @@ export async function loadEmbeddings(ctx) {
   }
 
   throw new Error(
-    `[Loader] Embeddings not found. Expected one of: ${EMBEDDING_NAMES.join(', ')}`
+    `[Loader] Embeddings not found. Tried: ${candidates.join(', ')}`
   );
 }
 
@@ -79,7 +86,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
 
   // Float32Array streaming path
   if (tensor instanceof Float32Array && loc?.shape && shouldStream) {
-    const layout = ctx.resolveWeightLayout(loc, name);
+    const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
       locationDtype: loc.dtype,
@@ -91,7 +98,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
 
   // Raw GPUBuffer - wrap with dtype/layout metadata
   if (tensor instanceof GPUBuffer && loc?.shape && loc.shape.length === 2) {
-    const layout = ctx.resolveWeightLayout(loc, name);
+    const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
       locationDtype: loc.dtype,
@@ -137,7 +144,7 @@ async function maybeDowncastEmbeddings(ctx, current, name, loc) {
       : (loc?.shape ?? [elems]),
     layout: isWeightBuffer(current)
       ? current.layout
-      : (loc ? ctx.resolveWeightLayout(loc, name) : 'row'),
+      : (loc ? ctx.resolveWeightLayout(loc) : 'row'),
   });
 
   if (result?.wasDowncast && result.newBuffer) {

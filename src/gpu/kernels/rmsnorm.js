@@ -38,7 +38,9 @@ function resolveNormWeightDtype(options, hiddenSize) {
   // Fallback: infer from buffer size (tolerant of bucketing)
   // Use getBufferRequestedSize to get unbucketed size when tracked
   const weight = options._weightBuffer;
-  if (!weight || hiddenSize == null) return 'f32';
+  if (!weight || hiddenSize == null) {
+    throw new Error('RMSNorm requires an explicit weight dtype or inferable weight buffer size.');
+  }
   const byteSize = getBufferRequestedSize(weight);
   const f16Bytes = hiddenSize * 2;
   const f32Bytes = hiddenSize * 4;
@@ -70,10 +72,13 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
 export async function runRMSNorm(
   input,
   weight,
-  eps = 1e-5,
+  eps,
   options = {}
 ) {
   const device = getDevice();
+  if (eps == null) {
+    throw new Error('RMSNorm requires an explicit eps value.');
+  }
   const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null, rmsNormWeightOffset = false } = options;
 
   // Check if F16 can be used based on tensor dtypes
@@ -156,10 +161,13 @@ export async function recordRMSNorm(
   recorder,
   input,
   weight,
-  eps = 1e-5,
+  eps,
   options = {}
 ) {
   const device = recorder.device;
+  if (eps == null) {
+    throw new Error('RMSNorm requires an explicit eps value.');
+  }
   const {
     batchSize = 1,
     hiddenSize = null,

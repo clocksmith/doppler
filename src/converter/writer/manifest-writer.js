@@ -34,6 +34,7 @@ export class ManifestWriter {
         size: location.size,
         shape: location.shape,
         dtype: location.dtype,
+        role: location.role,
         group: location.group,
       };
       if (location.spans) {

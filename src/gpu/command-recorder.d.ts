@@ -9,6 +9,7 @@
 export interface RecorderStats {
   opCount: number;
   tempBufferCount: number;
+  pooledBufferCount: number;
   submitted: boolean;
 }
 
@@ -95,10 +96,10 @@ export declare class CommandRecorder {
   getEncoder(): GPUCommandEncoder;
 
   /**
-   * Track an externally created buffer for cleanup after submit.
-   * Use for buffers created outside the recorder that need cleanup.
+   * Track a pooled buffer for cleanup after submit.
+   * Buffer will be released back to the buffer pool.
    *
-   * @param buffer - Buffer to track for destruction
+   * @param buffer - Buffer acquired from the buffer pool
    */
   trackTemporaryBuffer(buffer: GPUBuffer): void;
 

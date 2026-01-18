@@ -54,8 +54,8 @@ export function getHashAlgorithm(): HashAlgorithm | null;
 export function hexToBytes(hex: string): Uint8Array;
 export function computeBlake3(data: Uint8Array | ArrayBuffer): Promise<string>;
 export function computeSHA256(data: Uint8Array | ArrayBuffer): Promise<string>;
-export function computeHash(data: Uint8Array | ArrayBuffer, algorithm?: HashAlgorithm): Promise<string>;
-export function createStreamingHasher(algorithm?: HashAlgorithm): Promise<StreamingHasher>;
+export function computeHash(data: Uint8Array | ArrayBuffer, algorithm: HashAlgorithm): Promise<string>;
+export function createStreamingHasher(algorithm: HashAlgorithm): Promise<StreamingHasher>;
 
 export function getStorageCapabilities(): StorageCapabilities;
 export function getStorageBackendType(): string | null;

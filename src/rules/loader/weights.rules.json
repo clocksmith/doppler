@@ -18,6 +18,10 @@
     { "match": { "locationDtype": "Q6_K" }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ],
+  "dequantizeToF16": [
+    { "match": { "role": { "in": ["matmul", "embedding", "lm_head", "router"] } }, "value": true },
+    { "match": {}, "value": false }
+  ],
   "floatLocationDtype": [
     { "match": { "locationDtype": "F16" }, "value": "f16" },
     { "match": {}, "value": "f32" }

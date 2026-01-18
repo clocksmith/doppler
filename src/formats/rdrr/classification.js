@@ -64,6 +64,62 @@ export function classifyTensor(name, modelType) {
   return `layer.${layerIdx}`;
 }
 
+export function classifyTensorRole(name) {
+  const lower = name.toLowerCase();
+
+  const embeddingPatterns = [
+    'embed_tokens.weight',
+    'token_embd.weight',
+    'wte.weight',
+    'transformer.wte.weight',
+    'word_embeddings',
+  ];
+  if (embeddingPatterns.some((pattern) => lower.includes(pattern))) {
+    return 'embedding';
+  }
+
+  if (lower.includes('lm_head')) return 'lm_head';
+  if (lower.endsWith('output.weight') && !lower.includes('attn_')) return 'lm_head';
+
+  if (lower.includes('router') || lower.includes('block_sparse_moe.gate') || lower.includes('moe.gate')) {
+    return 'router';
+  }
+
+  if (lower.includes('norm') || lower.includes('ln_') || lower.includes('layernorm')) {
+    return 'norm';
+  }
+
+  const matmulSuffixes = [
+    'q_proj.weight',
+    'k_proj.weight',
+    'v_proj.weight',
+    'o_proj.weight',
+    'attention.wq.weight',
+    'attention.wk.weight',
+    'attention.wv.weight',
+    'attention.wo.weight',
+    'gate_proj.weight',
+    'up_proj.weight',
+    'down_proj.weight',
+    'w1.weight',
+    'w2.weight',
+    'w3.weight',
+    'attn_q.weight',
+    'attn_k.weight',
+    'attn_v.weight',
+    'attn_output.weight',
+    'ffn_gate.weight',
+    'ffn_up.weight',
+    'ffn_down.weight',
+    'ffn_gate_up.weight',
+  ];
+  if (matmulSuffixes.some((suffix) => lower.endsWith(suffix))) {
+    return 'matmul';
+  }
+
+  return 'other';
+}
+
 
 export function getGroupType(groupId, modelType) {
   if (groupId === 'embed') return 'embed';

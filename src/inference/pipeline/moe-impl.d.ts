@@ -46,8 +46,9 @@ export interface MoEConfig {
   intermediateSize: number;
   numExperts: number;
   moeTopK: number;
+  expertFormat: 'mixtral' | 'gpt-oss';
   hiddenActivation: string;
-  swigluLimit?: number | null;
+  swigluLimit: number | null;
   activationDtype?: TensorDtype;
 }
 
@@ -55,7 +56,7 @@ export interface MoEConfig {
  * Expert weights with optional GPT-OSS quantized format.
  */
 export interface MoEExpertWeights extends ExpertWeights {
-  isGptOss?: boolean;
+  expertFormat?: 'mixtral' | 'gpt-oss';
   numExperts?: number;
   gateUpBlocks?: GPUBuffer;
   gateUpScales?: GPUBuffer;

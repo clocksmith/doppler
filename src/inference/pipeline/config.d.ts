@@ -129,6 +129,7 @@ export interface ParsedModelConfig {
   useMoE: boolean;
   numExperts: number;
   moeTopK: number;
+  expertFormat: 'mixtral' | 'gpt-oss' | null;
   slidingWindow: number | null;
   ropeTheta: number;
   ropeLocalTheta: number | null;

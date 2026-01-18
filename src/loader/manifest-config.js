@@ -2,7 +2,7 @@
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { DTYPE_SIZES } from '../config/schema/index.js';
-import { shouldDequantizeToF16, isEmbeddingWeight } from './dtype-utils.js';
+import { shouldDequantizeToF16 } from './dtype-utils.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
@@ -59,7 +59,7 @@ export function getLargeWeightMaxBytes() {
   return Math.floor(maxBinding * safety);
 }
 
-export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF32Weights) {
+export function estimateMatmulWeightBytes(location, gpuCapabilities, keepF32Weights) {
   if (!location.shape || location.shape.length === 0) return null;
 
   const numElements = location.shape.reduce((a, b) => a * b, 1);
@@ -67,7 +67,7 @@ export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF
 
   const caps = gpuCapabilities || getKernelCapabilities();
   const hasF16 = caps?.hasF16 ?? false;
-  const isMatmulWeight = shouldDequantizeToF16(name);
+  const isMatmulWeight = shouldDequantizeToF16(location);
 
   const dtype = selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
     locationDtype: location.dtype,
@@ -80,26 +80,23 @@ export function estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF
   return { bytes: numElements * bytesPerElement, dtype };
 }
 
-export function resolveWeightLayout(location, name) {
-  // Explicit layout from manifest
-  if (location.layout === 'column') return 'column';
+export function resolveWeightLayout(location) {
+  const isEmbedding = location.role === 'embedding' || location.role === 'lm_head';
+  const useColumnWise = isEmbedding && location.shape?.length === 2
+    ? location.shape[0] < location.shape[1]
+    : false;
 
-  // Embeddings may be transposed
-  if (isEmbeddingWeight(name) && location.shape?.length === 2) {
-    const [dim0, dim1] = location.shape;
-    if (dim0 < dim1) {
-      return 'column';
-    }
-  }
-
-  return 'row';
+  return selectRuleValue('loader', 'weights', 'weightLayout', {
+    layout: location.layout ?? null,
+    useColumnWise,
+  });
 }
 
 export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, keepF32Weights) {
   const maxBytes = getLargeWeightMaxBytes();
   if (!maxBytes) return false;
 
-  const estimate = estimateMatmulWeightBytes(name, location, gpuCapabilities, keepF32Weights);
+  const estimate = estimateMatmulWeightBytes(location, gpuCapabilities, keepF32Weights);
   if (!estimate) return false;
 
   if (estimate.bytes <= maxBytes) return false;
@@ -131,11 +128,5 @@ export function isMoEModel(manifest) {
   if (!manifest) return false;
 
   // Explicit MoE config
-  if (manifest.moeConfig != null) return true;
-
-  // Check num_local_experts in config
-  const config =  (manifest.config);
-  if ((config?.num_local_experts ?? 0) > 1) return true;
-
-  return false;
+  return (manifest.moeConfig?.numExperts ?? 0) > 1;
 }

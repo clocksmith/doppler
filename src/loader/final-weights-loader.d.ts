@@ -36,7 +36,7 @@ export interface FinalWeightsContext {
   /** Check if large weight should stream to CPU */
   shouldStreamLargeWeight: (name: string, loc: TensorLocation, label: string) => boolean;
   /** Resolve weight layout from location */
-  resolveWeightLayout: (loc: TensorLocation, name: string) => WeightLayout;
+  resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
   /** Current embeddings (for tied embeddings fallback) */
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** Whether LM head should fall back to tied embeddings */

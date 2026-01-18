@@ -18,6 +18,7 @@ import type {
   TensorInfoSchema,
   WriterOptionsSchema,
   WriteResultSchema,
+  TensorRole,
 } from '../../config/schema/index.js';
 
 import type { ManifestInferenceSchema } from '../../config/schema/manifest.schema.js';
@@ -62,6 +63,7 @@ export interface TensorLocation extends TensorMetadata {
   layout?: WeightLayout;
   originalShape?: number[];
   group?: string;
+  role: TensorRole;
 }
 
 export interface ShardData {

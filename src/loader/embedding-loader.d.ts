@@ -35,7 +35,7 @@ export interface EmbeddingLoaderContext {
   /** Check if large weight should stream to CPU */
   shouldStreamLargeWeight: (name: string, loc: TensorLocation, label: string) => boolean;
   /** Resolve weight layout from location */
-  resolveWeightLayout: (loc: TensorLocation, name: string) => WeightLayout;
+  resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
   /** GPU buffers to track for cleanup */
   gpuBuffers: Set<GPUBuffer>;
   /** Keep F32 weights (skip downcast) */

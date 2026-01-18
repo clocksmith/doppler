@@ -4,6 +4,7 @@ import {
   SHARD_SIZE,
   generateShardFilename,
   classifyTensor,
+  classifyTensorRole,
   getGroupType,
   sortGroupIds,
 } from '../storage/rdrr-format.js';
@@ -54,7 +55,8 @@ export class ShardPacker {
       this.#addTensorToGroup(groupId, tensor.name);
 
       // Pack tensor data into shards
-      await this.#packTensor(tensor, data, groupId);
+      const role = classifyTensorRole(tensor.name);
+      await this.#packTensor(tensor, data, groupId, role);
     }
 
     // Flush final shard
@@ -75,7 +77,7 @@ export class ShardPacker {
   }
 
   
-  async #packTensor(tensor, data, groupId) {
+  async #packTensor(tensor, data, groupId, role) {
     const tensorSpans = [];
     let remaining = data;
     let remainingOffset = 0;
@@ -114,6 +116,7 @@ export class ShardPacker {
         size: tensor.size,
         shape: tensor.shape,
         dtype: tensor.dtype,
+        role,
         group: groupId,
       });
     } else {
@@ -122,6 +125,7 @@ export class ShardPacker {
         size: tensor.size,
         shape: tensor.shape,
         dtype: tensor.dtype,
+        role,
         group: groupId,
       });
     }

@@ -34,6 +34,7 @@ export {
   type TensorSpanSchema,
   type TensorSchema,
   type TensorMapSchema,
+  type TensorRole,
   type ComponentGroupSchema,
   type MoEConfigSchema,
   type TokenizerSchema,

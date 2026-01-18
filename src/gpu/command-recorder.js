@@ -3,6 +3,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
@@ -20,9 +21,13 @@ export class CommandRecorder {
   
   #encoder;
 
-  
+
   #tempBuffers;
-  
+
+  // Pooled buffers to release (not destroy) after submit
+
+  #pooledBuffers;
+
   #cleanupPromise = null;
 
   
@@ -57,8 +62,10 @@ export class CommandRecorder {
     this.label = label;
     this.#encoder = this.device.createCommandEncoder({ label });
 
-    // Temporary buffers to destroy after submit
+    // Temporary buffers to destroy after submit (created directly by recorder)
     this.#tempBuffers = [];
+    // Pooled buffers to release after submit (came from buffer pool)
+    this.#pooledBuffers = [];
     this.#cleanupPromise = null;
 
     // Track if already submitted
@@ -241,12 +248,13 @@ export class CommandRecorder {
     return this.#encoder;
   }
 
-  
+
   trackTemporaryBuffer(buffer) {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot track buffers after submit');
     }
-    this.#tempBuffers.push(buffer);
+    // Track as pooled buffer - will be released back to pool on cleanup
+    this.#pooledBuffers.push(buffer);
   }
 
   
@@ -260,11 +268,18 @@ export class CommandRecorder {
     this.#submitted = true;
 
     const buffersToDestroy = this.#tempBuffers;
+    const buffersToRelease = this.#pooledBuffers;
     this.#tempBuffers = [];
+    this.#pooledBuffers = [];
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
+      // Destroy buffers created directly by the recorder
       for (const buffer of buffersToDestroy) {
         buffer.destroy();
+      }
+      // Release pooled buffers back to the pool
+      for (const buffer of buffersToRelease) {
+        releaseBuffer(buffer);
       }
       // Safe to destroy evicted uniform buffers now that GPU work is complete
       getUniformCache().flushPendingDestruction();
@@ -285,16 +300,17 @@ export class CommandRecorder {
     }
   }
 
-  
+
   getStats() {
     return {
       opCount: this.#opCount,
       tempBufferCount: this.#tempBuffers.length,
+      pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
     };
   }
 
-  
+
   abort() {
     if (this.#submitted) return;
 
@@ -302,7 +318,12 @@ export class CommandRecorder {
     for (const buffer of this.#tempBuffers) {
       buffer.destroy();
     }
+    // Release pooled buffers back to pool
+    for (const buffer of this.#pooledBuffers) {
+      releaseBuffer(buffer);
+    }
     this.#tempBuffers = [];
+    this.#pooledBuffers = [];
     this.#destroyProfilingResources();
     this.#submitted = true; // Prevent further use
   }

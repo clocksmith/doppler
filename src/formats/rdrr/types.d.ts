@@ -18,6 +18,7 @@ import type {
   ProvenanceSchema,
   KernelPathRef,
   ManifestInferenceSchema,
+  type TensorRole as SchemaTensorRole,
 } from '../../config/schema/index.js';
 
 // =============================================================================
@@ -34,6 +35,7 @@ export type ModelType = SchemaModelType;
 export type ComponentGroupType = SchemaComponentGroupType;
 export type WeightLayout = SchemaWeightLayout;
 export type QuantizationInfo = QuantizationInfoSchema;
+export type TensorRole = SchemaTensorRole;
 
 // =============================================================================
 // Kernel Types
@@ -78,6 +80,7 @@ export interface TensorLocation {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
   group?: string;
   spans?: Array<{ shardIndex: number; offset: number; size: number }>;
   layout?: WeightLayout;
@@ -111,6 +114,7 @@ export interface RDRRManifest {
   quantization: string;
   quantizationInfo?: QuantizationInfo;
   hashAlgorithm: HashAlgorithm;
+  eos_token_id: number | number[];
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
   shards: ShardInfo[];
@@ -172,6 +176,7 @@ export interface CreateManifestOptions {
   quantization: string;
   quantizationInfo?: QuantizationInfo;
   hashAlgorithm?: HashAlgorithm;
+  eos_token_id?: number | number[];
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
   shards: ShardInfo[];

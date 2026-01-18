@@ -36,6 +36,18 @@ export function validateManifest(manifest) {
     errors.push(`Invalid hashAlgorithm: ${manifest.hashAlgorithm}`);
   }
 
+  // EOS token ID (required)
+  const eosTokenId = manifest.eos_token_id;
+  if (eosTokenId === undefined) {
+    errors.push('Missing eos_token_id');
+  } else if (Array.isArray(eosTokenId)) {
+    if (eosTokenId.length === 0 || eosTokenId.some((id) => typeof id !== 'number')) {
+      errors.push('Invalid eos_token_id array');
+    }
+  } else if (typeof eosTokenId !== 'number') {
+    errors.push('Invalid eos_token_id');
+  }
+
   // Architecture validation (skip for LoRA adapters)
   const isLoRAAdapter = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
 
@@ -88,6 +100,13 @@ export function validateManifest(manifest) {
   const hasInlineTensors = manifest.tensors && typeof manifest.tensors === 'object';
   if (!hasTensorsFile && !hasInlineTensors && !manifest.groups) {
     errors.push('Missing tensorsFile and tensors - one is required');
+  }
+  if (hasInlineTensors) {
+    for (const [name, tensor] of Object.entries(manifest.tensors)) {
+      if (!tensor.role || typeof tensor.role !== 'string') {
+        errors.push(`Tensor "${name}" missing role`);
+      }
+    }
   }
 
   // MoE config validation

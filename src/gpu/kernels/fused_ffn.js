@@ -43,6 +43,7 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
 
 
 function createFFNUniformBuffer(device, recorder, params) {
+  const swigluLimit = resolveSwigluLimit(params.swigluLimit, 'FusedFFN uniforms');
   return createUniformBufferWithView(
     'fused_ffn_uniforms',
     32,
@@ -56,11 +57,19 @@ function createFFNUniformBuffer(device, recorder, params) {
       if (params.isQ4K) {
         view.setUint32(20, Math.floor(params.hiddenSize / 256), true);
       }
-      view.setFloat32(24, params.swigluLimit ?? 0, true);
+      view.setFloat32(24, swigluLimit, true);
     },
     recorder,
     device
   );
+}
+
+function resolveSwigluLimit(value, context) {
+  if (value === undefined) {
+    throw new Error(`${context} requires an explicit swigluLimit (null or number).`);
+  }
+  if (value == null) return 0;
+  return value;
 }
 
 
@@ -78,8 +87,9 @@ export async function runFusedFFN(
     activation = 'silu',
     alpha = 1.0,
     outputBuffer = null,
-    swigluLimit = null,
+    swigluLimit,
   } = options;
+  resolveSwigluLimit(swigluLimit, 'FusedFFN');
 
   if (input.dtype !== 'f32') {
     throw new Error('Fused FFN requires f32 activations');
@@ -176,8 +186,9 @@ export async function recordFusedFFN(
     activation = 'silu',
     alpha = 1.0,
     outputBuffer = null,
-    swigluLimit = null,
+    swigluLimit,
   } = options;
+  resolveSwigluLimit(swigluLimit, 'FusedFFN');
 
   if (input.dtype !== 'f32') {
     throw new Error('Fused FFN requires f32 activations');

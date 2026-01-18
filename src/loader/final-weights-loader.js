@@ -7,6 +7,7 @@ import {
   isCpuWeightBuffer,
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
+import { getTensorNamesByRole } from './tensor-role.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
@@ -15,20 +16,9 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 // ============================================================================
 
 
-const FINAL_NORM_NAMES = [
-  'language_model.model.norm.weight',
-  'model.norm.weight',
-  'norm.weight',
-  'output_norm.weight',
-  'transformer.ln_f.weight',
-];
-
-
-const LM_HEAD_NAMES = [
-  'language_model.lm_head.weight',
-  'lm_head.weight',
-  'output.weight',
-];
+const HEAD_GROUP = 'head';
+const FINAL_NORM_ROLE = 'norm';
+const LM_HEAD_ROLE = 'lm_head';
 
 // ============================================================================
 // Main Function
@@ -64,7 +54,14 @@ async function loadFinalNorm(ctx) {
   let finalNorm = null;
   let debugLogged = false;
 
-  for (const name of FINAL_NORM_NAMES) {
+  const finalNormNames = getTensorNamesByRole(ctx.tensorLocations, FINAL_NORM_ROLE, HEAD_GROUP);
+  if (finalNormNames.length === 0) {
+    throw new Error(
+      `[Loader] Final norm not found. Expected tensor with role="${FINAL_NORM_ROLE}" and group="${HEAD_GROUP}".`
+    );
+  }
+
+  for (const name of finalNormNames) {
     const location = ctx.tensorLocations.get(name);
     if (location) {
       finalNorm =  (await ctx.loadTensor(name, true, true));
@@ -79,7 +76,7 @@ async function loadFinalNorm(ctx) {
 
   if (!finalNorm) {
     throw new Error(
-      `[Loader] Final norm not found. Expected one of: ${FINAL_NORM_NAMES.join(', ')}`
+      `[Loader] Final norm not found. Tried: ${finalNormNames.join(', ')}`
     );
   }
 
@@ -99,7 +96,14 @@ async function loadLmHead(ctx) {
   
   let lmHeadLoc;
 
-  for (const name of LM_HEAD_NAMES) {
+  const lmHeadNames = getTensorNamesByRole(ctx.tensorLocations, LM_HEAD_ROLE, HEAD_GROUP);
+  if (lmHeadNames.length === 0) {
+    throw new Error(
+      `[Loader] LM head not found. Expected tensor with role="${LM_HEAD_ROLE}" and group="${HEAD_GROUP}".`
+    );
+  }
+
+  for (const name of lmHeadNames) {
     const loc = ctx.tensorLocations.get(name);
     if (!loc) continue;
 
@@ -126,7 +130,7 @@ async function loadLmHead(ctx) {
     lmHead = ctx.embeddings;
   } else if (!lmHead) {
     throw new Error(
-      `[Loader] LM head not found. Expected one of: ${LM_HEAD_NAMES.join(', ')}`
+      `[Loader] LM head not found. Tried: ${lmHeadNames.join(', ')}`
     );
   }
 
@@ -142,7 +146,7 @@ async function loadLmHead(ctx) {
 function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   // Float32Array streaming path
   if (tensor instanceof Float32Array && shouldStream) {
-    const layout = ctx.resolveWeightLayout(loc, name);
+    const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
       locationDtype: loc.dtype,
@@ -154,7 +158,7 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
 
   // Raw GPUBuffer - wrap with dtype/layout metadata
   if (tensor instanceof GPUBuffer && loc.shape && loc.shape.length === 2) {
-    const layout = ctx.resolveWeightLayout(loc, name);
+    const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
       locationDtype: loc.dtype,
@@ -213,7 +217,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
       : (lmHeadLoc?.shape ?? [elems]),
     layout: isWeightBuffer(lmHead)
       ? lmHead.layout
-      : (lmHeadLoc ? ctx.resolveWeightLayout(lmHeadLoc, lmHeadName ?? 'lm_head') : 'row'),
+      : (lmHeadLoc ? ctx.resolveWeightLayout(lmHeadLoc) : 'row'),
   });
 
   if (result?.wasDowncast && result.newBuffer) {

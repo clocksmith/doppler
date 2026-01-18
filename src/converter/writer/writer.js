@@ -2,7 +2,7 @@
 
 import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
-import { classifyTensor, TENSORS_FILENAME } from '../../storage/rdrr-format.js';
+import { classifyTensor, classifyTensorRole, TENSORS_FILENAME } from '../../storage/rdrr-format.js';
 import { log } from '../../debug/index.js';
 import { ShardWriter } from './shard-writer.js';
 import { ManifestWriter } from './manifest-writer.js';
@@ -218,6 +218,7 @@ export class RDRRWriter {
   
   #trackTensorGroup(name, data, shardIndices) {
     const groupId = classifyTensor(name, this.#modelType);
+    const role = classifyTensorRole(name);
 
     const tensors = this.#groupTensorMap.get(groupId) || [];
     tensors.push(name);
@@ -342,6 +343,7 @@ export class RDRRWriter {
       layout,
       originalShape,
       group: groupId,
+      role,
     };
 
     if (spans.length > 1) {
@@ -363,6 +365,7 @@ export class RDRRWriter {
 
   setTokenizer(tokenizer) {
     this.#manifest.tokenizer = tokenizer;
+    this.#setEosTokenId(tokenizer?.eosTokenId ?? tokenizer?.eos_token_id);
   }
 
   setMoEConfig(moeConfig) {
@@ -388,6 +391,7 @@ export class RDRRWriter {
   async writeTokenizer(tokenizer) {
     const entry = await this.#tokenizerWriter.writeTokenizer(tokenizer);
     this.#manifest.tokenizer = entry;
+    this.#setEosTokenId(tokenizer?.eosTokenId ?? tokenizer?.eos_token_id);
   }
 
   async writeHuggingFaceTokenizer(tokenizerJson) {
@@ -395,6 +399,11 @@ export class RDRRWriter {
     if (entry) {
       this.#manifest.tokenizer = entry;
     }
+  }
+
+  #setEosTokenId(value) {
+    if (value === undefined) return;
+    this.#manifest.eos_token_id = value;
   }
 
   async finalize() {

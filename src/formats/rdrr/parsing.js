@@ -68,6 +68,9 @@ export function parseTensorMap(jsonString) {
       if (!Array.isArray(loc.shape)) {
         throw new Error(`Tensor '${name}' missing shape`);
       }
+      if (typeof loc.role !== 'string') {
+        throw new Error(`Tensor '${name}' missing role`);
+      }
     }
 
     return tensorMap;

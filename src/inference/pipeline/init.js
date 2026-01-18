@@ -309,8 +309,10 @@ export async function initTokenizer(manifest, options = {}) {
 export async function loadWeights(manifest, modelConfig, options = {}) {
   const { storageContext, onProgress, loadingConfig, baseUrl } = options;
   const verifyHashes = options.verifyHashes
-    ?? loadingConfig?.shardCache?.verifyHashes
-    ?? true;
+    ?? loadingConfig?.shardCache?.verifyHashes;
+  if (verifyHashes == null) {
+    throw new Error('runtime.loading.shardCache.verifyHashes is required.');
+  }
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
   dopplerLoader.setQ4KConfig(resolveQ4KConfig(manifest));

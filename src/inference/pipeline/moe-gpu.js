@@ -33,6 +33,14 @@ export async function moeFeedForwardGPU(
   if (!device) throw new Error('No GPU device for MoE');
 
   const { hiddenSize, numExperts, intermediateSize, moeTopK, hiddenActivation } = config;
+  const expertFormat = config.expertFormat;
+  const swigluLimit = config.swigluLimit;
+  if (!expertFormat) {
+    throw new Error('MoE expertFormat is required in config.');
+  }
+  if (swigluLimit === undefined) {
+    throw new Error('MoE swigluLimit must be explicitly set (null or number).');
+  }
   const topK = moeTopK ?? moeRouter.topK;
   if (topK == null) {
     throw new Error('MoE topK is required in config.');
@@ -317,7 +325,14 @@ export async function moeFeedForwardGPU(
     const outputOffset = expertIdx * expertStrideBytes;
 
     stepStart = perfMark();
-    if (weights.isGptOss) {
+    if (weights.expertFormat && weights.expertFormat !== expertFormat) {
+      throw new Error(
+        `[MoE] Expert format mismatch for ${expertKey}: ` +
+        `weights=${weights.expertFormat}, config=${expertFormat}`
+      );
+    }
+
+    if (expertFormat === 'gpt-oss') {
       await runGptOssExpert(
         gathered,
         expertOutputs,
@@ -331,9 +346,9 @@ export async function moeFeedForwardGPU(
         intermediateSize,
         numExperts,
         activationDtype,
-        config.swigluLimit ?? null
+        swigluLimit
       );
-    } else if (weights.gate && weights.up && weights.down) {
+    } else if (expertFormat === 'mixtral' && weights.gate && weights.up && weights.down) {
       await runMixtralExpert(
         gathered,
         expertOutputs,
@@ -345,8 +360,10 @@ export async function moeFeedForwardGPU(
         intermediateSize,
         hiddenActivation,
         activationDtype,
-        config.swigluLimit ?? null
+        swigluLimit
       );
+    } else if (expertFormat === 'mixtral') {
+      throw new Error(`[MoE] Missing Mixtral weights for ${expertKey}`);
     }
     perfLog(`MoE L${layerIdx} expert_exec`, stepStart, { expertIdx, count });
   }

@@ -40,22 +40,21 @@ export function isPackedQ4K(location) {
 }
 
 
-export function isEmbeddingName(name) {
-  const lower = name.toLowerCase();
-  return lower.includes('embd') || lower.includes('embed') || lower.includes('wte');
+function isEmbeddingRole(location) {
+  return location.role === 'embedding';
 }
 
 
-export function shouldUseFusedQ4K(name, location, config) {
+export function shouldUseFusedQ4K(location, config) {
   if (!config.useFusedQ4K) return false;
 
   const caps = config.gpuCapabilities || getKernelCapabilities();
   if (!caps?.hasSubgroups) return false;
 
-  const isMatmulWeight = shouldDequantizeToF16(name);
+  const isMatmulWeight = shouldDequantizeToF16(location);
   if (!isMatmulWeight) return false;
 
-  if (isEmbeddingName(name)) return false;
+  if (isEmbeddingRole(location)) return false;
   if (isPackedQ4K(location)) return false;
 
   return true;
@@ -66,8 +65,8 @@ export function shouldUseFusedQ4K(name, location, config) {
 // ============================================================================
 
 
-export function getQ4KOutputDtype(name, config) {
-  const isMatmulWeight = shouldDequantizeToF16(name);
+export function getQ4KOutputDtype(location, config) {
+  const isMatmulWeight = shouldDequantizeToF16(location);
   const caps = config.gpuCapabilities || getKernelCapabilities();
   return selectRuleValue('loader', 'weights', 'q4kOutputDtype', {
     isMatmulWeight,
@@ -77,8 +76,8 @@ export function getQ4KOutputDtype(name, config) {
 }
 
 
-export function getWeightLayout(name, location, config) {
-  const isMatmulWeight = shouldDequantizeToF16(name);
+export function getWeightLayout(location, config) {
+  const isMatmulWeight = shouldDequantizeToF16(location);
   const useColumnWise = config.q4kLayout === 'column_wise' && isMatmulWeight;
   return selectRuleValue('loader', 'weights', 'weightLayout', {
     layout: location.layout ?? null,
@@ -137,7 +136,7 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
 
   const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
-  const outputDtype = getQ4KOutputDtype(name, config);
+  const outputDtype = getQ4KOutputDtype(location, config);
 
   debugTrace.loader(
     `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
@@ -150,7 +149,7 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
   releaseBuffer(quantBuffer);
 
-  const layout = getWeightLayout(name, location, config);
+  const layout = getWeightLayout(location, config);
   
   const dtype = outputDtype;
 
@@ -180,7 +179,7 @@ export async function loadQ6K(shardData, location, name) {
   debugTrace.loader(`Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
   releaseBuffer(quantBuffer);
 
-  const isMatmulWeight = shouldDequantizeToF16(name);
+  const isMatmulWeight = shouldDequantizeToF16(location);
   if (isMatmulWeight) {
     return {
       data: createWeightBuffer(dequantized, 'f16', 'row', location.shape, name),
@@ -202,7 +201,7 @@ export async function loadBF16(shardData, location, name, config) {
 
   const numElements = shardData.byteLength / 2;
   const caps = config.gpuCapabilities || getKernelCapabilities();
-  const isMatmulWeight = shouldDequantizeToF16(name);
+  const isMatmulWeight = shouldDequantizeToF16(location);
 
   // For matmul weights with F16 support: BF16 → F16 directly
   if (caps?.hasF16 && isMatmulWeight) {
@@ -263,7 +262,7 @@ export async function loadFloat(shardData, location, name, config) {
     layout: location.layout ?? null,
     useColumnWise: false,
   });
-  const isMatmulWeight = shouldDequantizeToF16(name);
+  const isMatmulWeight = shouldDequantizeToF16(location);
 
   // Return WeightBuffer for matmul weights
   if (isMatmulWeight) {
@@ -275,7 +274,7 @@ export async function loadFloat(shardData, location, name, config) {
 
   // Non-matmul F16 weights need upcast to F32
   if (dtype === 'f16') {
-    if (config?.allowF32UpcastNonMatmul === false) {
+    if (config.allowF32UpcastNonMatmul === false) {
       return {
         data: applyBufferLayout(buffer, location),
         allocatedBuffers: [buffer],
@@ -310,7 +309,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
   // Q4_K / Q4_K_M
   if (dtype === 'Q4_K_M' || dtype === 'Q4_K') {
-    if (shouldUseFusedQ4K(name, location, config)) {
+    if (shouldUseFusedQ4K(location, config)) {
       debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
       return loadQ4KFused(shardData, location, name);
     }

@@ -7,10 +7,11 @@ import {
   ConversionStage as SchemaConversionStage,
 } from '../config/schema/index.js';
 
-import { generateShardFilename } from '../storage/rdrr-format.js';
+import { classifyTensorRole, generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
 import { detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
+import { resolveEosTokenId } from './tokenizer-utils.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -223,6 +224,12 @@ export function createManifest(
     };
   }
 
+  const eosTokenId = resolveEosTokenId({
+    config: rawConfig,
+    tokenizer: model.tokenizer ?? model.tokenizerConfig ?? null,
+    tokenizerJson: model.tokenizerJson ?? null,
+  });
+
   const manifest = {
     version: RDRR_VERSION,
     modelId,
@@ -235,6 +242,7 @@ export function createManifest(
     tensors: tensorLocations,
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),
     hashAlgorithm: 'sha256',
+    eos_token_id: eosTokenId,
     metadata: {
       source,
       convertedAt: new Date().toISOString(),
@@ -362,6 +370,8 @@ export async function convertModel(model, io, options = {}) {
     }
 
     // Record tensor location
+    const role = classifyTensorRole(tensor.name);
+
     if (tensorSpans.length === 1) {
       tensorLocations[tensor.name] = {
         shard: tensorSpans[0].shardIndex,
@@ -369,6 +379,7 @@ export async function convertModel(model, io, options = {}) {
         size: tensor.size,
         shape: tensor.shape,
         dtype: tensor.dtype,
+        role,
       };
     } else {
       tensorLocations[tensor.name] = {
@@ -376,6 +387,7 @@ export async function convertModel(model, io, options = {}) {
         size: tensor.size,
         shape: tensor.shape,
         dtype: tensor.dtype,
+        role,
       };
     }
 

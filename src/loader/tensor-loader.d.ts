@@ -19,7 +19,7 @@ export interface TensorLoadConfig {
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
   /** Allow F16->F32 upcast for non-matmul weights */
-  allowF32UpcastNonMatmul?: boolean;
+  allowF32UpcastNonMatmul: boolean;
   /** Q4K layout from manifest */
   q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
   /** GPU capabilities */
@@ -41,13 +41,10 @@ export declare function isPackedQ4K(location: TensorLocation): boolean;
 /**
  * Check if tensor name indicates an embedding (excluded from fused Q4K).
  */
-export declare function isEmbeddingName(name: string): boolean;
-
 /**
  * Determine if fused Q4K path should be used for a tensor.
  */
 export declare function shouldUseFusedQ4K(
-  name: string,
   location: TensorLocation,
   config: TensorLoadConfig
 ): boolean;
@@ -56,7 +53,7 @@ export declare function shouldUseFusedQ4K(
  * Determine output dtype for dequantized Q4K tensor.
  */
 export declare function getQ4KOutputDtype(
-  name: string,
+  location: TensorLocation,
   config: TensorLoadConfig
 ): 'f16' | 'f32';
 
@@ -64,7 +61,6 @@ export declare function getQ4KOutputDtype(
  * Determine weight layout based on config and tensor type.
  */
 export declare function getWeightLayout(
-  name: string,
   location: TensorLocation,
   config: TensorLoadConfig
 ): WeightLayout;

@@ -463,7 +463,10 @@ export async function downloadModel(
       if (!shardInfo) {
         throw new Error(`Invalid shard index: ${shardIndex}`);
       }
-      const algorithm = manifest.hashAlgorithm || 'blake3';
+      const algorithm = manifest.hashAlgorithm;
+      if (!algorithm) {
+        throw new Error('Manifest missing hashAlgorithm for download verification.');
+      }
       const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
         algorithm,

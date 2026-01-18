@@ -21,6 +21,7 @@ import type {
   ManifestInferenceSchema,
   ShardSchema,
   TensorSpanSchema,
+  TensorRole,
   TokenizerSchema,
   QuantizationInfoSchema,
 } from '../config/schema/index.js';
@@ -71,6 +72,7 @@ export interface TensorLocationSingle {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
 }
 
 /**
@@ -81,6 +83,7 @@ export interface TensorLocationMulti {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
 }
 
 export type TensorLocation = TensorLocationSingle | TensorLocationMulti;
@@ -106,6 +109,7 @@ export interface RDRRManifest {
   tensors: Record<string, TensorLocation>;
   totalSize: number;
   hashAlgorithm: string;
+  eos_token_id: number | number[];
   tokenizer?: TokenizerInfo;
   metadata: {
     source: string;

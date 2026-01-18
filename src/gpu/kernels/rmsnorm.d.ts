@@ -36,7 +36,7 @@ export declare function selectRMSNormKernel(options?: RMSNormOptions, isF16?: bo
 export declare function runRMSNorm(
   input: Tensor,
   weight: GPUBuffer,
-  eps?: number,
+  eps: number,
   options?: RMSNormOptions
 ): Promise<Tensor>;
 
@@ -47,6 +47,6 @@ export declare function recordRMSNorm(
   recorder: CommandRecorder,
   input: Tensor,
   weight: GPUBuffer,
-  eps?: number,
+  eps: number,
   options?: RMSNormOptions
 ): Promise<Tensor>;

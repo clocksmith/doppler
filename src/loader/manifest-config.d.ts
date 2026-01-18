@@ -52,7 +52,6 @@ export declare function getLargeWeightMaxBytes(): number | null;
  * @returns Estimated bytes and output dtype, or null if cannot estimate
  */
 export declare function estimateMatmulWeightBytes(
-  name: string,
   location: TensorLocation,
   gpuCapabilities: KernelCapabilities | null,
   keepF32Weights: boolean
@@ -69,7 +68,7 @@ export declare function estimateMatmulWeightBytes(
  * @param name - Tensor name
  * @returns Weight layout ('row' or 'column')
  */
-export declare function resolveWeightLayout(location: TensorLocation, name: string): WeightLayout;
+export declare function resolveWeightLayout(location: TensorLocation): WeightLayout;
 
 /**
  * Check if a large weight should use CPU streaming instead of GPU buffer.

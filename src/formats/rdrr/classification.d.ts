@@ -6,12 +6,17 @@
  * @module formats/rdrr/classification
  */
 
-import type { ModelType, ComponentGroupType } from './types.js';
+import type { ModelType, ComponentGroupType, TensorRole } from './types.js';
 
 /**
  * Classify a tensor into a component group based on its name and model type.
  */
 export declare function classifyTensor(name: string, modelType: ModelType): string;
+
+/**
+ * Classify a tensor into a canonical role for manifest-first loading.
+ */
+export declare function classifyTensorRole(name: string): TensorRole;
 
 /**
  * Get the component group type from a group ID

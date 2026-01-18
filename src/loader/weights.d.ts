@@ -10,7 +10,7 @@ export interface ExpertWeights {
   gate?: GPUBuffer | WeightBuffer | Float32Array | null;
   up?: GPUBuffer | WeightBuffer | Float32Array | null;
   down?: GPUBuffer | WeightBuffer | Float32Array | null;
-  isGptOss?: boolean;
+  expertFormat?: 'mixtral' | 'gpt-oss';
   expertIdx?: number;
   numExperts?: number;
   gateUpBlocks?: GPUBuffer | null;

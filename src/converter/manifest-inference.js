@@ -1,3 +1,4 @@
+import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 import { buildRoPEConfig } from './rope-config.js';
 
 const EMBEDDING_TENSOR_NAMES = [
@@ -17,6 +18,20 @@ export function inferEmbeddingOutputConfig(tensorLocations) {
     }
     return tensorLocations?.[name];
   };
+
+  const entries = tensorLocations instanceof Map
+    ? tensorLocations.entries()
+    : Object.entries(tensorLocations ?? {});
+  for (const [_name, loc] of entries) {
+    if (loc?.role === 'embedding' && loc.shape?.length === 2) {
+      const [dim0, dim1] = loc.shape;
+      const isGGUFLayout = dim0 < dim1;
+      return {
+        embeddingTranspose: isGGUFLayout,
+        embeddingVocabSize: isGGUFLayout ? dim1 : dim0,
+      };
+    }
+  }
 
   for (const name of EMBEDDING_TENSOR_NAMES) {
     const loc = getLocation(name);
@@ -83,6 +98,7 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
 
 
 export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null) {
+  const defaults = DEFAULT_MANIFEST_INFERENCE;
   const presetInference = preset.inference || {};
   const presetChatTemplate = presetInference.chatTemplate;
   const chatTemplate = typeof presetChatTemplate === 'string'
@@ -99,39 +115,42 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     attention: {
       queryPreAttnScalar: config.query_pre_attn_scalar ?? Math.sqrt(headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
-        config.attn_logit_softcapping ?? null,
+        config.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
       slidingWindow: presetInference.attention?.slidingWindow ??
-        config.sliding_window ?? null,
-      queryKeyNorm: presetInference.attention?.queryKeyNorm ?? false,
+        config.sliding_window ?? defaults.attention.slidingWindow,
+      queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
       attentionBias: presetInference.attention?.attentionBias ??
-        config.attention_bias ?? false,
+        config.attention_bias ?? defaults.attention.attentionBias,
     },
     normalization: {
       rmsNormEps: presetInference.normalization?.rmsNormEps ??
         config.rms_norm_eps ??
         config.attentionLayerNormRMSEpsilon ??
-        1e-5,
-      rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? false,
-      postAttentionNorm: presetInference.normalization?.postAttentionNorm ?? false,
-      preFeedforwardNorm: presetInference.normalization?.preFeedforwardNorm ?? false,
-      postFeedforwardNorm: presetInference.normalization?.postFeedforwardNorm ?? false,
+        defaults.normalization.rmsNormEps,
+      rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? defaults.normalization.rmsNormWeightOffset,
+      postAttentionNorm: presetInference.normalization?.postAttentionNorm ?? defaults.normalization.postAttentionNorm,
+      preFeedforwardNorm: presetInference.normalization?.preFeedforwardNorm ?? defaults.normalization.preFeedforwardNorm,
+      postFeedforwardNorm: presetInference.normalization?.postFeedforwardNorm ?? defaults.normalization.postFeedforwardNorm,
     },
     ffn: {
-      activation: presetInference.ffn?.activation ?? 'silu',
-      gatedActivation: presetInference.ffn?.gatedActivation ?? presetInference.ffn?.gatedFFN ?? true,
-      swigluLimit: presetInference.ffn?.swigluLimit ?? config.swiglu_limit ?? null,
+      activation: presetInference.ffn?.activation ?? defaults.ffn.activation,
+      gatedActivation: presetInference.ffn?.gatedActivation ??
+        presetInference.ffn?.gatedFFN ?? defaults.ffn.gatedActivation,
+      swigluLimit: presetInference.ffn?.swigluLimit ?? config.swiglu_limit ?? defaults.ffn.swigluLimit,
     },
     rope: buildRoPEConfig(presetInference, config),
     output: {
       finalLogitSoftcapping: presetInference.output?.finalLogitSoftcapping ??
-        config.final_logit_softcapping ?? null,
+        config.final_logit_softcapping ?? defaults.output.finalLogitSoftcapping,
       tieWordEmbeddings: presetInference.output?.tieWordEmbeddings ??
-        config.tie_word_embeddings ?? false,
+        config.tie_word_embeddings ?? defaults.output.tieWordEmbeddings,
       scaleEmbeddings: detectScaleEmbeddings(preset, config),
-      embeddingTranspose: false,
-      embeddingVocabSize: null,
+      embeddingTranspose: defaults.output.embeddingTranspose,
+      embeddingVocabSize: defaults.output.embeddingVocabSize,
     },
+    layerPattern: { ...defaults.layerPattern },
     chatTemplate,
+    pipeline: presetInference.pipeline ?? defaults.pipeline,
   };
 
   // Add layer pattern if defined
@@ -181,7 +200,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
   }
 
   // Add default kernel path based on preset ID and quantization
-  inference.defaultKernelPath = resolveKernelPathFromPreset(presetInference, quantizationInfo);
+  inference.defaultKernelPath = resolveKernelPathFromPreset(presetInference, quantizationInfo) ?? defaults.defaultKernelPath;
 
   return inference;
 }

@@ -2,6 +2,7 @@
 
 import { getDevice } from '../gpu/device.js';
 import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 
 export function f16ToF32(h) {
@@ -68,67 +69,12 @@ export async function convertBF16ToF32GPU(srcBuffer, numElements, name) {
 }
 
 
-export function shouldDequantizeToF16(name) {
-  const lower = name.toLowerCase();
-  const matmulSuffixes = [
-    // HuggingFace/SafeTensors naming
-    'q_proj.weight',
-    'k_proj.weight',
-    'v_proj.weight',
-    'o_proj.weight',
-    'attention.wq.weight',
-    'attention.wk.weight',
-    'attention.wv.weight',
-    'attention.wo.weight',
-    'gate_proj.weight',
-    'up_proj.weight',
-    'down_proj.weight',
-    'w1.weight',
-    'w2.weight',
-    'w3.weight',
-    'lm_head.weight',
-    'output.weight',
-    // Weight-tied embedding/lm_head (Gemma, Llama, etc.)
-    'embed_tokens.weight',
-    'wte.weight',
-    'token_embd.weight',
-    // GGUF naming (blk.X.attn_q.weight, blk.X.ffn_gate.weight, etc.)
-    'attn_q.weight',
-    'attn_k.weight',
-    'attn_v.weight',
-    'attn_output.weight',
-    'ffn_gate.weight',
-    'ffn_up.weight',
-    'ffn_down.weight',
-    'ffn_gate_up.weight',
-    'mlp.router.weight',
-    'block_sparse_moe.gate.weight',
-  ];
-
-  return matmulSuffixes.some(suffix => lower.endsWith(suffix));
-}
-
-
-export function isEmbeddingWeight(name) {
-  const lower = name.toLowerCase();
-  // Only match actual embedding and lm_head weights
-  // Be careful NOT to match 'attn_output.weight' which ends with 'output.weight'
-  const embeddingPatterns = [
-    'embed_tokens.weight',
-    'wte.weight',
-    'token_embd.weight',
-    'lm_head.weight',
-  ];
-  // Check exact suffix matches for embedding patterns
-  if (embeddingPatterns.some(suffix => lower.endsWith(suffix))) {
-    return true;
+export function shouldDequantizeToF16(location) {
+  const role = location?.role;
+  if (!role) {
+    throw new Error('Tensor role is required to determine dequantization target.');
   }
-  // For 'output.weight', only match if it's the top-level (no 'attn_' prefix)
-  // This handles models that use 'output.weight' as the LM head name
-  if (lower.endsWith('output.weight') && !lower.includes('attn_')) {
-    return true;
-  }
-  return false;
+  return selectRuleValue('loader', 'weights', 'dequantizeToF16', { role }) === true;
 }
 
 
@@ -137,4 +83,3 @@ export function applyBufferLayout(buffer, _location) {
   // For non-matmul weights (norms), layout doesn't affect kernel selection
   return buffer;
 }
-

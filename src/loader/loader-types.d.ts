@@ -7,6 +7,7 @@
  */
 
 import type { WeightBuffer } from '../gpu/weight-buffer.js';
+import type { TensorRole } from '../config/schema/index.js';
 
 /**
  * Tensor location in loaded model
@@ -17,6 +18,8 @@ export interface TensorLocation {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
+  group?: string;
   spans?: Array<{ shardIndex: number; offset: number; size: number }>;
   /** Weight storage layout: 'column' means pre-transposed for faster matmul */
   layout?: 'row' | 'column';

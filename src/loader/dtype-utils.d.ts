@@ -26,15 +26,7 @@ export declare function convertBF16ToF32GPU(
  * Decide whether a quantized tensor should be dequantized directly to f16.
  * Returns true for matmul weights (projections, FFN, lm_head, embeddings).
  */
-export declare function shouldDequantizeToF16(name: string): boolean;
-
-/**
- * Check if a weight is an embedding weight (needs column layout for LM head matmul).
- * GGUF stores all weights as [N,K] (transposed). For layer weights, we need transposeB=true
- * to compute A@W = A@W.T^T. But for embeddings used as LM head, we need transposeB=false
- * to compute hidden@E.T directly (the embedding IS already transposed in GGUF).
- */
-export declare function isEmbeddingWeight(name: string): boolean;
+export declare function shouldDequantizeToF16(location: TensorLocation): boolean;
 
 /**
  * Apply layout metadata to a GPU buffer if the tensor has column-major storage.

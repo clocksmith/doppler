@@ -296,6 +296,15 @@ export interface TensorSpanSchema {
   size: number;
 }
 
+/** Canonical tensor role classification (for manifest-first loading) */
+export type TensorRole =
+  | 'embedding'
+  | 'lm_head'
+  | 'norm'
+  | 'matmul'
+  | 'router'
+  | 'other';
+
 /** Tensor location in shards */
 export interface TensorSchema {
   shard: number;
@@ -303,6 +312,7 @@ export interface TensorSchema {
   size: number;
   shape: number[];
   dtype: string;
+  role: TensorRole;
   group?: string;
   spans?: TensorSpanSchema[];
   layout?: WeightLayout;
@@ -366,6 +376,7 @@ export interface ManifestSchema {
   quantizationInfo?: QuantizationInfoSchema;
   hashAlgorithm: HashAlgorithm;
   totalSize: number;
+  eos_token_id: number | number[];
 
   // Architecture (required, but can be string for legacy)
   architecture: ArchitectureSchema;

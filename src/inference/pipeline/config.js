@@ -7,12 +7,13 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 // =============================================================================
 
 export function getStopTokenIds(config, manifest) {
-  // Priority: manifest.eos_token_id > config.eos_token_id > config.text_config.eos_token_id
-  // Model-specific fallbacks are NOT allowed - converter must set eos_token_id
-  const eosTokenId = manifest?.eos_token_id ?? config?.eos_token_id ?? config?.text_config?.eos_token_id;
+  const eosTokenId = manifest?.eos_token_id;
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
-  return [];
+  const modelId = manifest?.modelId ?? config?.modelId ?? 'unknown';
+  throw new Error(
+    `Manifest "${modelId}" is missing eos_token_id. Re-convert the model with tokenizer metadata.`
+  );
 }
 
 // =============================================================================
@@ -71,7 +72,9 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
   }
-  if (inf.ffn.swigluLimit !== undefined) {
+  if (inf.ffn.swigluLimit === undefined) {
+    errors.push('ffn.swigluLimit must be explicitly set (null for no limit, or number)');
+  } else {
     const limit = inf.ffn.swigluLimit;
     if (limit !== null && (typeof limit !== 'number' || Number.isNaN(limit) || limit <= 0)) {
       errors.push('ffn.swigluLimit must be a positive number or null');
@@ -231,11 +234,12 @@ export function toParsedConfigFromMerged(merged, manifest) {
   // Get MoE config
   const moeConfig = manifest.moeConfig ?? null;
   const useMoE = (moeConfig?.numExperts ?? 0) > 1;
-  if (useMoE && (moeConfig?.numExperts == null || moeConfig?.numExpertsPerToken == null)) {
+  if (useMoE && (moeConfig?.numExperts == null || moeConfig?.numExpertsPerToken == null || !moeConfig?.expertFormat)) {
     throw new Error(`Manifest "${manifest.modelId}" is missing moeConfig fields for MoE inference.`);
   }
   const numExperts = useMoE ? moeConfig.numExperts : 0;
   const moeTopK = useMoE ? moeConfig.numExpertsPerToken : 0;
+  const expertFormat = useMoE ? moeConfig.expertFormat : null;
 
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
@@ -278,6 +282,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     useMoE,
     numExperts,
     moeTopK,
+    expertFormat,
     slidingWindow: inf.attention.slidingWindow,
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,
