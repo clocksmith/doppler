@@ -10,6 +10,7 @@ export function normalizeQuantTag(value) {
   if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4' || lower === 'q4km') return 'q4k';
   if (lower === 'q6_k' || lower === 'q6k' || lower === 'q6') return 'q6k';
   if (lower === 'q8_0' || lower === 'q8') return 'q8_0';
+  if (lower === 'mxfp4' || lower === 'mxp4') return 'mxfp4';
   if (lower === 'f16' || lower === 'fp16' || lower === 'float16') return 'f16';
   if (lower === 'bf16' || lower === 'bfloat16') return 'bf16';
   if (lower === 'f32' || lower === 'fp32' || lower === 'float32') return 'f32';
@@ -56,6 +57,7 @@ export function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
+  const experts = info.experts ?? null;
 
   const parts = [`w${weights}`];
 
@@ -65,6 +67,10 @@ export function buildVariantTag(info) {
 
   if (lmHead !== embeddings) {
     parts.push(`h${lmHead}`);
+  }
+
+  if (experts && experts !== weights) {
+    parts.push(`x${experts}`);
   }
 
   if (info.vision) {
@@ -83,6 +89,32 @@ export function buildVariantTag(info) {
   return parts.join('-');
 }
 
+function resolveExpertQuantization(modelConfig) {
+  if (!modelConfig) return null;
+  const quantMethod = modelConfig.quantization_config?.quant_method;
+  if (!quantMethod) return null;
+  return normalizeQuantTag(quantMethod);
+}
+
+function resolveExpertFormat(modelConfig, expertQuant) {
+  if (!modelConfig) return null;
+  if (expertQuant === 'mxfp4') return 'gpt-oss';
+  const rawType = (
+    modelConfig.model_type ??
+    modelConfig.text_config?.model_type ??
+    ''
+  ).toLowerCase();
+  if (rawType.includes('gpt_oss') || rawType.includes('gpt-oss') || rawType.includes('gptoss')) {
+    return 'gpt-oss';
+  }
+  const hasExperts = Boolean(
+    modelConfig.num_local_experts ||
+    modelConfig.num_experts ||
+    modelConfig.expertCount
+  );
+  return hasExperts ? 'mixtral' : null;
+}
+
 
 export function buildQuantizationInfo(
   opts,
@@ -91,7 +123,8 @@ export function buildQuantizationInfo(
   lmHeadDtype,
   hasVision = false,
   hasAudio = false,
-  hasProjector = false
+  hasProjector = false,
+  modelConfig = null
 ) {
   const config = opts?.converterConfig ?? opts ?? {};
   const quantization = { ...(config.quantization ?? {}) };
@@ -153,6 +186,20 @@ export function buildQuantizationInfo(
     embeddings,
     lmHead: lmHead !== embeddings ? lmHead : undefined,
   };
+
+  const hasExperts = Boolean(
+    modelConfig?.num_local_experts ||
+    modelConfig?.num_experts ||
+    modelConfig?.expertCount
+  );
+  if (hasExperts) {
+    const expertQuant = resolveExpertQuantization(modelConfig) ?? weights;
+    info.experts = expertQuant;
+    const expertFormat = resolveExpertFormat(modelConfig, expertQuant);
+    if (expertFormat) {
+      info.expertsFormat = expertFormat;
+    }
+  }
 
   if (hasVision && allowMultimodal) {
     if (visionQuant) {

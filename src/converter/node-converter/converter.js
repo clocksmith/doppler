@@ -237,7 +237,8 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
     lmHeadDtypeRaw,
     hasVision,
     hasAudio,
-    hasProjector
+    hasProjector,
+    config
   );
   const baseModelId = resolveBaseModelId(configRec, inputPath);
   const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
@@ -472,7 +473,11 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     converterConfig,
     parsed.quantization || 'F32',
     embedDtypeRaw,
-    lmHeadDtypeRaw
+    lmHeadDtypeRaw,
+    false,
+    false,
+    false,
+    config
   );
   const resolvedModelId = resolveModelId(outputConfig.modelId, modelName, quantizationInfo.variantTag);
   const manifestQuantization = resolveManifestQuantization(

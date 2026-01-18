@@ -210,7 +210,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
           const data = new Float32Array(staging.getMappedRange().slice(0));
           staging.unmap();
           staging.destroy();
-          const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+          let maxAbs = 0;
+          for (let i = 0; i < data.length; i++) {
+            const abs = Math.abs(data[i]);
+            if (abs > maxAbs) maxAbs = abs;
+          }
           const nonZero = Array.from(data).filter(x => x !== 0).length;
           trace.attn(layerIdx, `ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
         } catch (e) {

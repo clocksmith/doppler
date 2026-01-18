@@ -268,6 +268,7 @@ export class DopplerLoader {
     this.manifest = manifest;
     // We must rebuild locations so _loadTensor finds them
     await this.#buildTensorLocations();
+    this.#logWeightBreakdown();
 
     try {
       return await loadLoRAWeightsFromModule(
@@ -572,6 +573,29 @@ export class DopplerLoader {
       } else {
         shards.add(location.shardIndex);
       }
+    }
+  }
+
+  #logWeightBreakdown() {
+    if (this.tensorLocations.size === 0) return;
+
+    let totalBytes = 0;
+    let expertBytes = 0;
+
+    for (const [, location] of this.tensorLocations) {
+      const size = location.size || 0;
+      totalBytes += size;
+      if (location.role === 'expert') {
+        expertBytes += size;
+      }
+    }
+
+    if (expertBytes > 0) {
+      const denseBytes = totalBytes - expertBytes;
+      log.info(
+        'Loader',
+        `Weights: dense=${formatBytes(denseBytes)}, experts=${formatBytes(expertBytes)} (total=${formatBytes(totalBytes)})`
+      );
     }
   }
 

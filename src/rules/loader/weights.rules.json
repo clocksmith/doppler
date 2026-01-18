@@ -19,7 +19,7 @@
     { "match": {}, "value": "f32" }
   ],
   "dequantizeToF16": [
-    { "match": { "role": { "in": ["matmul", "embedding", "lm_head", "router"] } }, "value": true },
+    { "match": { "role": { "in": ["matmul", "embedding", "lm_head", "router", "expert"] } }, "value": true },
     { "match": {}, "value": false }
   ],
   "floatLocationDtype": [

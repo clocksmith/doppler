@@ -209,7 +209,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     if (patternKind) {
       layerTypes = Array.from({ length: numLayers }, (_, i) => {
         const isEven = i % 2 === 0;
-        const isStride = period == null ? false : i % period === 0;
+        // Gemma 3 uses (i+1) % period == 0 for global layers (HF: is_sliding = bool((layer_idx + 1) % pattern))
+        const isStride = period == null ? false : (i + 1) % period === 0;
         return selectRuleValue(
           'inference',
           'layerPattern',

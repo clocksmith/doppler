@@ -332,7 +332,11 @@ export async function embed(tokenIds, embedBuffer, config) {
     const mean = sum / data.length;
     const variance = (sumSq / data.length) - (mean * mean);
     const std = Math.sqrt(variance);
-    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+    let maxAbs = 0;
+    for (let i = 0; i < data.length; i++) {
+      const abs = Math.abs(data[i]);
+      if (abs > maxAbs) maxAbs = abs;
+    }
 
     trace.embed(`FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
@@ -361,7 +365,11 @@ export async function embed(tokenIds, embedBuffer, config) {
   if (debug && !recorder) {
     const sample = await readBuffer(gatherOutput.buffer, Math.min(gatherOutput.buffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
-    const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
+    let maxAbs = 0;
+    for (let i = 0; i < f32.length; i++) {
+      const abs = Math.abs(f32[i]);
+      if (abs > maxAbs) maxAbs = abs;
+    }
     trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
   }
 
@@ -384,7 +392,11 @@ export async function embed(tokenIds, embedBuffer, config) {
   if (debug && !recorder) {
     const sample = await readBuffer(scaledBuffer, Math.min(scaledBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
-    const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
+    let maxAbs = 0;
+    for (let i = 0; i < f32.length; i++) {
+      const abs = Math.abs(f32[i]);
+      if (abs > maxAbs) maxAbs = abs;
+    }
     trace.embed(`SCALED (after *${scaleFactor.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}, buffer.label=${scaledBuffer.label}, buffer.size=${scaledBuffer.size}`);
     trace.embed(`RETURNING buffer with first8=[${Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
     if (f32.some(x => !Number.isFinite(x))) {

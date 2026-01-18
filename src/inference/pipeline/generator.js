@@ -536,7 +536,11 @@ export class PipelineGenerator {
       const sample = await readBuffer(hiddenStates, Math.min(debugReadbackSize, hiddenStates.size));
       const f32 = decodeReadback(sample, activationDtype);
       const nanCount = f32.filter(x => !Number.isFinite(x)).length;
-      const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
+      let maxAbs = 0;
+      for (let i = 0; i < f32.length; i++) {
+        const abs = Math.abs(f32[i]);
+        if (abs > maxAbs) maxAbs = abs;
+      }
       const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
       log.debug('Pipeline', `After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
       log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);

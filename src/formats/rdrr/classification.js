@@ -81,6 +81,10 @@ export function classifyTensorRole(name) {
   if (lower.includes('lm_head')) return 'lm_head';
   if (lower.endsWith('output.weight') && !lower.includes('attn_')) return 'lm_head';
 
+  if (lower.includes('shared_expert') || /experts?[._]/.test(lower)) {
+    return 'expert';
+  }
+
   if (lower.includes('router') || lower.includes('block_sparse_moe.gate') || lower.includes('moe.gate')) {
     return 'router';
   }

@@ -246,7 +246,7 @@ Tensor locations are stored in a separate `tensors.json` file:
 ### Quantization Metadata (Optional)
 
 `quantizationInfo` provides structured precision details per weight group so
-embeddings and lm_head can be distinguished from core weights.
+embeddings, lm_head, and MoE experts can be distinguished from core weights.
 
 ```json
 {
@@ -254,7 +254,9 @@ embeddings and lm_head can be distinguished from core weights.
     "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
-    "variantTag": "wq4k-ef16"
+    "experts": "mxfp4",
+    "expertsFormat": "gpt-oss",
+    "variantTag": "wq4k-ef16-xmxfp4"
   }
 }
 ```
@@ -264,6 +266,8 @@ embeddings and lm_head can be distinguished from core weights.
 | `weights` | string | Quantization for main weights (`q4k`, `f16`, etc.) |
 | `embeddings` | string? | Quantization for embedding table |
 | `lmHead` | string? | Quantization for LM head (if different from embeddings) |
+| `experts` | string? | Quantization for MoE expert weights |
+| `expertsFormat` | string? | Expert tensor format hint (`mixtral`, `gpt-oss`) |
 | `vision` | string? | Vision encoder quantization (multimodal models) |
 | `audio` | string? | Audio encoder quantization (speech models) |
 | `tts` | string? | TTS decoder quantization |
@@ -277,7 +281,7 @@ embeddings and lm_head can be distinguished from core weights.
 DOPPLER uses a concise naming convention that describes **storage only** (not runtime behavior):
 
 ```
-{model-name}-w{weights}[-e{embeddings}][-h{head}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
+{model-name}-w{weights}[-e{embeddings}][-h{head}][-x{experts}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
 ```
 
 **Component prefixes:**
@@ -287,10 +291,13 @@ DOPPLER uses a concise naming convention that describes **storage only** (not ru
 | `w` | Weights | Transformer layer weights (required) |
 | `e` | Embeddings | Token embedding table |
 | `h` | Head | LM head / output projection |
+| `x` | Experts | MoE expert weights |
 | `v` | Vision | Vision encoder (ViT, SigLIP, CLIP) |
 | `a` | Audio | Audio encoder (Whisper, wav2vec) |
 | `t` | TTS | Text-to-speech decoder |
 | `p` | Projector | Cross-modal projection layers |
+
+The `x` suffix is emitted only when expert quantization differs from core weights.
 
 **Quantization tokens:**
 
@@ -299,6 +306,7 @@ DOPPLER uses a concise naming convention that describes **storage only** (not ru
 | `q4k` | Q4_K_M block quant | `f16` | Float16 |
 | `q6k` | Q6_K block quant | `bf16` | BFloat16 |
 | `q8_0` | Q8_0 quant | `f32` | Float32 |
+| `mxfp4` | MXFP4 quant | `fp8e4` | Float8 E4M3 |
 | `i4` | Int4 | `fp8e4` | Float8 E4M3 |
 | `i8` | Int8 | `fp8e5` | Float8 E5M2 |
 
@@ -309,6 +317,7 @@ DOPPLER uses a concise naming convention that describes **storage only** (not ru
 | `gemma-2b-wq4k` | Weights Q4K, embeddings default to weights |
 | `gemma-2b-wq4k-ef16` | Weights Q4K, embeddings F16 |
 | `llama-8b-wq4k-ef16-hf16` | With explicit head quantization |
+| `gpt-oss-20b-wf16-xmxfp4` | F16 dense weights with MXFP4 expert blocks |
 | `qwen2-vl-7b-wq4k-vf16-pf16` | Multimodal with vision + projector |
 | `phi-3.5-mini-wq4k-ebf16` | BFloat16 embeddings |
 
@@ -352,7 +361,7 @@ For tensors spanning multiple shards, use the `spans` field:
 |-------|------|-------------|
 | `tokenizer` | object | Tokenizer configuration |
 | `moeConfig` | object | Mixture-of-experts configuration |
-| `quantizationInfo` | object | Structured quantization metadata (weights vs embeddings) |
+| `quantizationInfo` | object | Structured quantization metadata (weights, embeddings, experts) |
 | `optimizations` | object | Kernel path hint (lowest precedence) |
 | `blake3Full` | string | Full-model BLAKE3 hash |
 | `config` | object | Raw model config (HF/GGUF metadata) |

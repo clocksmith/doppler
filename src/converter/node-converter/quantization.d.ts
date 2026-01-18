@@ -22,7 +22,8 @@ export declare function buildQuantizationInfo(
   lmHeadDtype: string | null,
   hasVision?: boolean,
   hasAudio?: boolean,
-  hasProjector?: boolean
+  hasProjector?: boolean,
+  modelConfig?: Record<string, unknown> | null
 ): QuantizationInfoSchema;
 
 export declare function resolveModelId(

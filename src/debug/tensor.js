@@ -176,7 +176,11 @@ export const tensor = {
     if (hasNaN) issues.push('HAS_NAN');
     if (hasInf) issues.push('HAS_INF');
 
-    const maxAbs = Math.max(...Array.from(data).map(Math.abs).filter(Number.isFinite));
+    let maxAbs = 0;
+    for (let i = 0; i < data.length; i++) {
+      const abs = Math.abs(data[i]);
+      if (Number.isFinite(abs) && abs > maxAbs) maxAbs = abs;
+    }
     if (maxAbs > 1e6) issues.push(`EXTREME_VALUES (max=${maxAbs.toExponential(2)})`);
 
     const tinyCount = data.filter((v) => Math.abs(v) > 0 && Math.abs(v) < 1e-30).length;
