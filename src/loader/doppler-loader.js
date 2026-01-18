@@ -131,6 +131,8 @@ export class DopplerLoader {
   
   #loadShardOverride = null;
 
+  #layerShardMap = new Map();
+
   
   constructor(loadingConfig) {
     this.#loadingConfig = loadingConfig ?? getRuntimeConfig().loading;
@@ -197,13 +199,13 @@ export class DopplerLoader {
   }
 
   
-  async #loadShard(shardIndex) {
-    return this.shardCache.load(shardIndex);
+  async #loadShard(shardIndex, options) {
+    return this.shardCache.load(shardIndex, options);
   }
 
   
   #getLoadShard() {
-    return this.#loadShardOverride ?? ((idx) => this.#loadShard(idx));
+    return this.#loadShardOverride ?? ((idx, options) => this.#loadShard(idx, options));
   }
 
   
@@ -257,6 +259,7 @@ export class DopplerLoader {
   async loadLoRAWeights(manifest) {
     const prevManifest = this.manifest;
     const prevLocations = new Map(this.tensorLocations);
+    const prevLayerShardMap = new Map(this.#layerShardMap);
 
     this.manifest = manifest;
     // We must rebuild locations so _loadTensor finds them
@@ -270,6 +273,7 @@ export class DopplerLoader {
     } finally {
       this.manifest = prevManifest;
       this.tensorLocations = prevLocations;
+      this.#layerShardMap = prevLayerShardMap;
     }
   }
 
@@ -388,13 +392,13 @@ export class DopplerLoader {
     
     const loadedShardIndices = new Set();
     let inLayerPhase = false;
-    const originalLoadShard = (shardIndex) => this.#loadShard(shardIndex);
+    const originalLoadShard = (shardIndex, options) => this.#loadShard(shardIndex, options);
 
     
-    this.#loadShardOverride = async (shardIndex) => {
+    this.#loadShardOverride = async (shardIndex, options) => {
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
-      const data = await originalLoadShard(shardIndex);
+      const data = await originalLoadShard(shardIndex, options);
 
       if (!loadedShardIndices.has(shardIndex)) {
         loadedShardIndices.add(shardIndex);
@@ -443,7 +447,9 @@ export class DopplerLoader {
 
       for (let l = 0; l < numLayers; l++) {
         const layerStart = performance.now();
-        await this.#loadLayer(l, onProgress);
+        const layerPromise = this.#loadLayer(l, onProgress);
+        this.#prefetchLayerShards(l);
+        await layerPromise;
         const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
         log.verbose('Loader', `  Layer ${l}: ${layerElapsed}s`);
 
@@ -520,7 +526,10 @@ export class DopplerLoader {
   
   async #buildTensorLocations() {
     this.tensorLocations.clear();
-    if (!this.manifest) return;
+    if (!this.manifest) {
+      this.#layerShardMap.clear();
+      return;
+    }
 
     const locations = await buildTensorLocations(this.manifest, {
       tensorsJsonUrl: this.#tensorsJsonUrl,
@@ -529,6 +538,60 @@ export class DopplerLoader {
 
     for (const [name, loc] of locations) {
       this.tensorLocations.set(name, loc);
+    }
+
+    this.#buildLayerShardMap();
+  }
+
+  #buildLayerShardMap() {
+    this.#layerShardMap.clear();
+
+    for (const [name, location] of this.tensorLocations) {
+      const layerIdx = getLayerIndexFromName(name);
+      if (layerIdx == null || isExpertTensorName(name)) {
+        continue;
+      }
+
+      let shards = this.#layerShardMap.get(layerIdx);
+      if (!shards) {
+        shards = new Set();
+        this.#layerShardMap.set(layerIdx, shards);
+      }
+
+      if (location.spans) {
+        for (const span of location.spans) {
+          shards.add(span.shardIndex);
+        }
+      } else {
+        shards.add(location.shardIndex);
+      }
+    }
+  }
+
+  #prefetchLayerShards(layerIdx) {
+    const prefetch = this.#loadingConfig.prefetch;
+    if (!prefetch?.enabled) return;
+
+    const layersAhead = prefetch.layersAhead;
+    if (!Number.isFinite(layersAhead) || layersAhead <= 0) return;
+    if (this.#layerShardMap.size === 0) return;
+
+    const maxShards = prefetch.maxShards;
+    const hasLimit = maxShards > 0;
+    let scheduled = 0;
+    const loadShard = this.#getLoadShard();
+
+    for (let idx = layerIdx + 1; idx <= layerIdx + layersAhead; idx++) {
+      const shards = this.#layerShardMap.get(idx);
+      if (!shards) continue;
+
+      for (const shardIndex of shards) {
+        if (this.shardCache.has(shardIndex)) continue;
+
+        loadShard(shardIndex, { priority: 'low' }).catch(() => {});
+        scheduled++;
+        if (hasLimit && scheduled >= maxShards) return;
+      }
     }
   }
 
@@ -750,11 +813,34 @@ export class DopplerLoader {
     this.loadedShards.clear();
     this.isLoaded = false;
     this.tensorLocations.clear();
+    this.#layerShardMap.clear();
     this.shardCache.clear();
     this.#normOffsetLogged = false;
 
     debugTrace.loader(' Model unloaded');
   }
+}
+
+const LAYER_INDEX_PATTERNS = [
+  /(?:^|\.)layers\.(\d+)\./,
+  /(?:^|\.)blk\.(\d+)\./,
+];
+
+function getLayerIndexFromName(name) {
+  for (const pattern of LAYER_INDEX_PATTERNS) {
+    const match = pattern.exec(name);
+    if (match) {
+      const layerIdx = Number(match[1]);
+      if (Number.isFinite(layerIdx)) {
+        return layerIdx;
+      }
+    }
+  }
+  return null;
+}
+
+function isExpertTensorName(name) {
+  return name.toLowerCase().includes('.experts.');
 }
 
 

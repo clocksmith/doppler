@@ -77,9 +77,6 @@ export interface CLIOptions {
   help: boolean;
   /** Run in performance/benchmark mode (measure throughput instead of correctness). */
   perf: boolean;
-  /** Enable GPU timestamp profiling for per-kernel timing.
-   *  Requires 'timestamp-query' WebGPU feature. */
-  gpuProfile: boolean;
 
   // Warm mode options (preserve model in GPU RAM)
   /** Skip model loading, assume pipeline already exists in window.pipeline */

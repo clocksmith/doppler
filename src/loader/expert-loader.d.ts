@@ -12,6 +12,7 @@ import type { RDRRManifest } from '../storage/rdrr-format.js';
 import type { ExpertCache } from './expert-cache.js';
 import type { ExpertWeights } from './weights.js';
 import type { WeightBuffer } from '../gpu/weight-buffer.js';
+import type { ShardLoadOptions } from './loader-types.js';
 
 /** Tensor loading function signature */
 export type TensorLoader = (
@@ -21,7 +22,10 @@ export type TensorLoader = (
 ) => Promise<GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null>;
 
 /** Shard loading function signature */
-export type ShardLoader = (shardIndex: number) => Promise<ArrayBuffer>;
+export type ShardLoader = (
+  shardIndex: number,
+  options?: ShardLoadOptions
+) => Promise<ArrayBuffer>;
 
 /** Shard cache interface */
 export interface ShardCacheInterface {
@@ -60,7 +64,8 @@ export interface ExpertLoaderContext {
 export declare function preloadShardsForExpert(
   ctx: ExpertLoaderContext,
   layerIdx: number,
-  expertIdx: number
+  expertIdx: number,
+  options?: ShardLoadOptions
 ): Promise<void>;
 
 /**

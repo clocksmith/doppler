@@ -89,6 +89,18 @@ export interface LoadOptions {
 }
 
 /**
+ * Shard load priority.
+ */
+export type ShardLoadPriority = 'high' | 'low';
+
+/**
+ * Shard loading options.
+ */
+export interface ShardLoadOptions {
+  priority?: ShardLoadPriority;
+}
+
+/**
  * Custom shard loader options
  */
 export interface CustomShardLoaderOptions {

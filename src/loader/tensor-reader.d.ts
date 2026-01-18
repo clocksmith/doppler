@@ -4,7 +4,7 @@
  * @module loader/tensor-reader
  */
 
-import type { TensorLocation } from './loader-types.js';
+import type { ShardLoadOptions, TensorLocation } from './loader-types.js';
 
 /**
  * Assemble tensor data from single or multiple shards.
@@ -17,5 +17,5 @@ import type { TensorLocation } from './loader-types.js';
 export declare function assembleShardData(
   location: TensorLocation,
   name: string,
-  loadShard: (index: number) => Promise<ArrayBuffer>
+  loadShard: (index: number, options?: ShardLoadOptions) => Promise<ArrayBuffer>
 ): Promise<Uint8Array>;

@@ -117,7 +117,6 @@ async function main() {
     quiet: true,
     help: false,
     perf: false,
-    gpuProfile: false,
     layer: null,
     tokens: null,
     kernel: null,

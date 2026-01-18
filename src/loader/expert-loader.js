@@ -14,7 +14,7 @@ import { log, trace as debugTrace } from '../debug/index.js';
 // ============================================================================
 
 
-export async function preloadShardsForExpert(ctx, layerIdx, expertIdx) {
+export async function preloadShardsForExpert(ctx, layerIdx, expertIdx, options) {
   // Get required shards from manifest mapping
   const shardIndices = getShardsForExpert(layerIdx, expertIdx);
   if (shardIndices.length === 0) {
@@ -25,7 +25,7 @@ export async function preloadShardsForExpert(ctx, layerIdx, expertIdx) {
   // Pre-load only the shards needed for this expert
   for (const shardIndex of shardIndices) {
     if (!ctx.shardCache.has(shardIndex)) {
-      await ctx.loadShard(shardIndex);
+      await ctx.loadShard(shardIndex, options);
     }
   }
 }
@@ -51,7 +51,7 @@ export function prefetchExperts(ctx, nextLayerIdx, expertIndices, isMoE) {
       return;
     }
     // Pre-load the shards (not the full expert tensor upload)
-    await preloadShardsForExpert(ctx, nextLayerIdx, expertIdx);
+    await preloadShardsForExpert(ctx, nextLayerIdx, expertIdx, { priority: 'low' });
   });
 
   // Don't await - let it run in background
