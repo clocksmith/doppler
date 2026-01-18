@@ -3,7 +3,7 @@ import type { TensorLocation } from './loader-types.js';
 
 export interface BuildTensorLocationsOptions {
   hasCustomLoader?: boolean;
-  tensorsJsonUrl?: string;
+  tensorsJsonUrl?: string | null;
 }
 
 export function buildTensorLocations(

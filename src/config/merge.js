@@ -8,7 +8,7 @@ function overlay(
   runtimeValue,
   sources
 ) {
-  if (runtimeValue !== undefined && runtimeValue !== null) {
+  if (runtimeValue !== undefined) {
     sources.set(path, 'runtime');
     return runtimeValue;
   }
@@ -113,6 +113,12 @@ function mergeFFN(
       `${prefix}.gatedActivation`,
       manifest.gatedActivation,
       runtime?.gatedActivation,
+      sources
+    ),
+    swigluLimit: overlay(
+      `${prefix}.swigluLimit`,
+      manifest.swigluLimit,
+      runtime?.swigluLimit,
       sources
     ),
   };
@@ -246,7 +252,7 @@ export function mergeConfig(
   // Merge layerPattern with source tracking.
   let layerPattern = manifestInf.layerPattern ?? null;
   const runtimeLayerPattern = runtimeOverrides?.layerPattern;
-  if (runtimeLayerPattern !== undefined && runtimeLayerPattern !== null) {
+  if (runtimeLayerPattern !== undefined) {
     layerPattern = runtimeLayerPattern;
     sources.set('inference.layerPattern', 'runtime');
   } else {
@@ -256,7 +262,7 @@ export function mergeConfig(
   // Merge defaultKernelPath with source tracking.
   let defaultKernelPath = manifestInf.defaultKernelPath ?? null;
   const runtimeKernelPath = runtimeOverrides?.defaultKernelPath;
-  if (runtimeKernelPath !== undefined && runtimeKernelPath !== null) {
+  if (runtimeKernelPath !== undefined) {
     defaultKernelPath = runtimeKernelPath;
     sources.set('inference.defaultKernelPath', 'runtime');
   } else {

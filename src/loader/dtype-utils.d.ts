@@ -24,7 +24,7 @@ export declare function convertBF16ToF32GPU(
 
 /**
  * Decide whether a quantized tensor should be dequantized directly to f16.
- * Returns true for matmul weights (projections, FFN, lm_head, embeddings).
+ * Uses manifest tensor roles (matmul, embedding, lm_head, router).
  */
 export declare function shouldDequantizeToF16(location: TensorLocation): boolean;
 

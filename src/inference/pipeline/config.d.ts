@@ -174,7 +174,7 @@ export interface ManifestWithInference {
   quantization?: string;
   modelId?: string;
   model_id?: string;
-  eos_token_id?: number | number[];
+  eos_token_id: number | number[];
 }
 
 /**

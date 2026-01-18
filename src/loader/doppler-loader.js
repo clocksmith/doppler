@@ -549,9 +549,9 @@ export class DopplerLoader {
   #buildLayerShardMap() {
     this.#layerShardMap.clear();
 
-    for (const [name, location] of this.tensorLocations) {
-      const layerIdx = getLayerIndexFromName(name);
-      if (layerIdx == null || isExpertTensorName(name)) {
+    for (const [, location] of this.tensorLocations) {
+      const layerIdx = getLayerIndexFromGroup(location.group);
+      if (layerIdx == null || isExpertGroup(location.group)) {
         continue;
       }
 
@@ -828,26 +828,17 @@ export class DopplerLoader {
   }
 }
 
-const LAYER_INDEX_PATTERNS = [
-  /(?:^|\.)layers\.(\d+)\./,
-  /(?:^|\.)blk\.(\d+)\./,
-];
-
-function getLayerIndexFromName(name) {
-  for (const pattern of LAYER_INDEX_PATTERNS) {
-    const match = pattern.exec(name);
-    if (match) {
-      const layerIdx = Number(match[1]);
-      if (Number.isFinite(layerIdx)) {
-        return layerIdx;
-      }
-    }
-  }
-  return null;
+function getLayerIndexFromGroup(group) {
+  if (!group) return null;
+  const match = /^layer\.(\d+)/.exec(group);
+  if (!match) return null;
+  const layerIdx = Number(match[1]);
+  return Number.isFinite(layerIdx) ? layerIdx : null;
 }
 
-function isExpertTensorName(name) {
-  return name.toLowerCase().includes('.experts.');
+function isExpertGroup(group) {
+  if (!group) return false;
+  return group.includes('.expert.') || group.includes('.shared_expert');
 }
 
 

@@ -88,7 +88,7 @@ export interface LoadProgress {
  */
 export interface LoadOptions {
   onProgress?: (progress: LoadProgress) => void;
-  verifyHashes?: boolean;
+  verifyHashes: boolean;
 }
 
 /**

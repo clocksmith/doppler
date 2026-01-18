@@ -389,9 +389,17 @@ export interface LayerWeights {
  * Weights for a single MoE expert.
  */
 export interface ExpertWeights {
-  gate: LayerWeightBuffer;
-  up: LayerWeightBuffer;
-  down: LayerWeightBuffer;
+  expertFormat?: 'mixtral' | 'gpt-oss';
+  gate?: LayerWeightBuffer;
+  up?: LayerWeightBuffer;
+  down?: LayerWeightBuffer;
+  numExperts?: number;
+  gateUpBlocks?: GPUBuffer;
+  gateUpScales?: GPUBuffer;
+  gateUpBias?: GPUBuffer;
+  downBlocks?: GPUBuffer;
+  downScales?: GPUBuffer;
+  downBias?: GPUBuffer;
 }
 
 /**

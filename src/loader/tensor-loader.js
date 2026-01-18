@@ -41,6 +41,9 @@ export function isPackedQ4K(location) {
 
 
 function isEmbeddingRole(location) {
+  if (!location?.role) {
+    throw new Error('Tensor role is required to determine embedding layout.');
+  }
   return location.role === 'embedding';
 }
 
@@ -251,6 +254,9 @@ export async function loadBF16(shardData, location, name, config) {
 
 
 export async function loadFloat(shardData, location, name, config) {
+  if (!config) {
+    throw new Error('Tensor load config is required.');
+  }
   const device = getDevice();
   const buffer = acquireBuffer(location.size, undefined, name);
   device.queue.writeBuffer(buffer, 0,  ( (shardData)));

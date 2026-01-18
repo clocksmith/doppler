@@ -97,7 +97,7 @@ async function loadLmHead(ctx) {
   let lmHeadLoc;
 
   const lmHeadNames = getTensorNamesByRole(ctx.tensorLocations, LM_HEAD_ROLE, HEAD_GROUP);
-  if (lmHeadNames.length === 0) {
+  if (lmHeadNames.length === 0 && !ctx.tieWordEmbeddings) {
     throw new Error(
       `[Loader] LM head not found. Expected tensor with role="${LM_HEAD_ROLE}" and group="${HEAD_GROUP}".`
     );

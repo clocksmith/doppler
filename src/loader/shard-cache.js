@@ -139,15 +139,19 @@ export class ShardCache {
       // Verify hash if enabled
       if (this.#verifyHashes && this.#manifest) {
         const shardInfo = this.#manifest.shards?.[shardIndex];
-        const expectedHash = shardInfo?.hash || shardInfo?.blake3;
-        if (expectedHash) {
-          const algorithm = this.#manifest.hashAlgorithm || 'blake3';
-          const computedHash = await computeHash(data, algorithm);
-          if (computedHash !== expectedHash) {
-            throw new Error(
-              `Shard ${shardIndex} hash mismatch. Expected: ${expectedHash}, got: ${computedHash}`
-            );
-          }
+        const expectedHash = shardInfo?.hash;
+        if (!expectedHash) {
+          throw new Error(`Shard ${shardIndex} missing hash in manifest.`);
+        }
+        const algorithm = shardInfo?.hashAlgorithm ?? this.#manifest.hashAlgorithm;
+        if (!algorithm) {
+          throw new Error(`Manifest missing hashAlgorithm for shard ${shardIndex}.`);
+        }
+        const computedHash = await computeHash(data, algorithm);
+        if (computedHash !== expectedHash) {
+          throw new Error(
+            `Shard ${shardIndex} hash mismatch. Expected: ${expectedHash}, got: ${computedHash}`
+          );
         }
       }
 

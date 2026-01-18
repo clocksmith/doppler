@@ -320,12 +320,15 @@ export async function moeFeedForwardGPU(
     if (!weights) {
       throw new Error(`[MoE] Missing expert weights for ${expertKey}`);
     }
+    if (!weights.expertFormat) {
+      throw new Error(`[MoE] Expert ${expertKey} missing expertFormat.`);
+    }
 
     const inputOffset = expertIdx * expertStrideBytes;
     const outputOffset = expertIdx * expertStrideBytes;
 
     stepStart = perfMark();
-    if (weights.expertFormat && weights.expertFormat !== expertFormat) {
+    if (weights.expertFormat !== expertFormat) {
       throw new Error(
         `[MoE] Expert format mismatch for ${expertKey}: ` +
         `weights=${weights.expertFormat}, config=${expertFormat}`

@@ -16,6 +16,9 @@ export async function moeFeedForwardCPU(
   expertLoader,
   layerIdx
 ) {
+  if (config.expertFormat !== 'mixtral') {
+    throw new Error(`[MoE] CPU fallback only supports mixtral experts, got ${config.expertFormat ?? 'unknown'}.`);
+  }
   const selections = moeRouter.route(hiddenStates, numTokens);
   const plan = createExpertExecutionPlan(selections, config.numExperts);
   const expertOutputs = new Map();

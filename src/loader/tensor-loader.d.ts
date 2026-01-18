@@ -120,7 +120,7 @@ export declare function loadFloat(
   shardData: Uint8Array,
   location: TensorLocation,
   name: string,
-  config?: TensorLoadConfig
+  config: TensorLoadConfig
 ): Promise<TensorLoadResult>;
 
 /**

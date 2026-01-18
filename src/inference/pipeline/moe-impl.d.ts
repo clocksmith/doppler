@@ -56,7 +56,7 @@ export interface MoEConfig {
  * Expert weights with optional GPT-OSS quantized format.
  */
 export interface MoEExpertWeights extends ExpertWeights {
-  expertFormat?: 'mixtral' | 'gpt-oss';
+  expertFormat: 'mixtral' | 'gpt-oss';
   numExperts?: number;
   gateUpBlocks?: GPUBuffer;
   gateUpScales?: GPUBuffer;

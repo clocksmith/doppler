@@ -13,6 +13,11 @@ export function parseManifest(jsonString) {
     throw new Error(`Failed to parse manifest JSON: ${e.message}`);
   }
 
+  // Normalize eos_token_id from config if not at top level (backward compatibility)
+  if (manifest.eos_token_id === undefined && manifest.config?.eos_token_id !== undefined) {
+    manifest.eos_token_id = manifest.config.eos_token_id;
+  }
+
   // Normalize shards
   if (Array.isArray(manifest.shards)) {
     let offset = 0;
@@ -67,6 +72,14 @@ export function parseTensorMap(jsonString) {
       }
       if (!Array.isArray(loc.shape)) {
         throw new Error(`Tensor '${name}' missing shape`);
+      }
+      // Normalize group to role (backward compatibility)
+      if (loc.role === undefined && loc.group !== undefined) {
+        loc.role = loc.group;
+      }
+      // Normalize legacy role names
+      if (loc.role === 'embed') {
+        loc.role = 'embedding';
       }
       if (typeof loc.role !== 'string') {
         throw new Error(`Tensor '${name}' missing role`);

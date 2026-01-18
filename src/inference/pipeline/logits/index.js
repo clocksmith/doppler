@@ -70,6 +70,9 @@ export async function computeLogits(
     const dims = resolveCpuWeightDims(lmHead);
     cpuWeightVocabSize = dims.vocabSize;
     cpuWeightLayout = lmHead.layout;
+    if (!cpuWeightLayout) {
+      throw new Error('LM head CPU weight is missing layout metadata.');
+    }
     if (dims.hiddenSize !== hiddenSize) {
       log.warn('Logits', `LM head hiddenSize mismatch: weight=${dims.hiddenSize}, expected=${hiddenSize}`);
     }
@@ -112,7 +115,7 @@ export async function computeLogits(
         numTokens,
         matmulVocabSize,
         hiddenSize,
-        cpuWeightLayout ?? 'row',
+        cpuWeightLayout,
         cpuWeightLayout === 'column' ? cpuWeightVocabSize : null
       )
       : matmulCPU(normed, (lmHead), numTokens, matmulVocabSize, hiddenSize);
@@ -184,13 +187,16 @@ export async function computeLogits(
   }
 
   if (isCpuWeightBuffer(lmHead)) {
+    if (cpuWeightVocabSize == null) {
+      throw new Error('LM head CPU weight is missing vocabSize metadata.');
+    }
     const rawLogits = await computeChunkedLogitsGPU(
       normedTensor,
       lmHead,
       numTokens,
       hiddenSize,
       matmulVocabSize,
-      cpuWeightVocabSize ?? matmulVocabSize,
+      cpuWeightVocabSize,
       debugProbes,
       largeWeights
     );

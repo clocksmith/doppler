@@ -45,7 +45,6 @@ export declare function getLargeWeightMaxBytes(): number | null;
 /**
  * Estimate GPU memory required for a matmul weight after dequantization.
  *
- * @param name - Tensor name
  * @param location - Tensor location info
  * @param gpuCapabilities - GPU capabilities
  * @param keepF32Weights - Whether to keep F32 (skip F16 downcast)
@@ -58,14 +57,13 @@ export declare function estimateMatmulWeightBytes(
 ): { bytes: number; dtype: WeightDtype } | null;
 
 /**
- * Resolve weight layout from tensor location and name.
+ * Resolve weight layout from tensor location.
  *
  * Column layout is used for:
  * - Explicit layout='column' in tensor info
  * - Embeddings with transposed shape (dim0 < dim1)
  *
  * @param location - Tensor location info
- * @param name - Tensor name
  * @returns Weight layout ('row' or 'column')
  */
 export declare function resolveWeightLayout(location: TensorLocation): WeightLayout;
