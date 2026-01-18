@@ -100,6 +100,7 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
 export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null) {
   const defaults = DEFAULT_MANIFEST_INFERENCE;
   const presetInference = preset.inference || {};
+  const modelConfig = config?.text_config ?? config ?? {};
   const presetChatTemplate = presetInference.chatTemplate;
   const chatTemplate = typeof presetChatTemplate === 'string'
     ? { type: presetChatTemplate, enabled: true }
@@ -113,19 +114,19 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
   const inference = {
     presetId: preset.id ?? null,
     attention: {
-      queryPreAttnScalar: config.query_pre_attn_scalar ?? Math.sqrt(headDim),
+      queryPreAttnScalar: modelConfig.query_pre_attn_scalar ?? Math.sqrt(headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
-        config.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
+        modelConfig.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
       slidingWindow: presetInference.attention?.slidingWindow ??
-        config.sliding_window ?? defaults.attention.slidingWindow,
+        modelConfig.sliding_window ?? defaults.attention.slidingWindow,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
       attentionBias: presetInference.attention?.attentionBias ??
-        config.attention_bias ?? defaults.attention.attentionBias,
+        modelConfig.attention_bias ?? defaults.attention.attentionBias,
     },
     normalization: {
       rmsNormEps: presetInference.normalization?.rmsNormEps ??
-        config.rms_norm_eps ??
-        config.attentionLayerNormRMSEpsilon ??
+        modelConfig.rms_norm_eps ??
+        modelConfig.attentionLayerNormRMSEpsilon ??
         defaults.normalization.rmsNormEps,
       rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? defaults.normalization.rmsNormWeightOffset,
       postAttentionNorm: presetInference.normalization?.postAttentionNorm ?? defaults.normalization.postAttentionNorm,
@@ -136,14 +137,14 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       activation: presetInference.ffn?.activation ?? defaults.ffn.activation,
       gatedActivation: presetInference.ffn?.gatedActivation ??
         presetInference.ffn?.gatedFFN ?? defaults.ffn.gatedActivation,
-      swigluLimit: presetInference.ffn?.swigluLimit ?? config.swiglu_limit ?? defaults.ffn.swigluLimit,
+      swigluLimit: presetInference.ffn?.swigluLimit ?? modelConfig.swiglu_limit ?? defaults.ffn.swigluLimit,
     },
-    rope: buildRoPEConfig(presetInference, config),
+    rope: buildRoPEConfig(presetInference, modelConfig),
     output: {
       finalLogitSoftcapping: presetInference.output?.finalLogitSoftcapping ??
-        config.final_logit_softcapping ?? defaults.output.finalLogitSoftcapping,
+        modelConfig.final_logit_softcapping ?? defaults.output.finalLogitSoftcapping,
       tieWordEmbeddings: presetInference.output?.tieWordEmbeddings ??
-        config.tie_word_embeddings ?? defaults.output.tieWordEmbeddings,
+        modelConfig.tie_word_embeddings ?? defaults.output.tieWordEmbeddings,
       scaleEmbeddings: detectScaleEmbeddings(preset, config),
       embeddingTranspose: defaults.output.embeddingTranspose,
       embeddingVocabSize: defaults.output.embeddingVocabSize,
