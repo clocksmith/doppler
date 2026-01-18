@@ -230,6 +230,17 @@ export function formatBenchmarkResult(result) {
   console.log(`Decode:         ${m.decode_ms_total} ms (${m.decode_tokens_per_sec} tok/s)`);
   console.log(`GPU Submits:    ${m.gpu_submit_count_prefill} prefill, ${m.gpu_submit_count_decode} decode`);
 
+  if (m.buffer_pool_hit_rate_pct !== undefined) {
+    const alloc = m.buffer_pool_allocations_total ?? 0;
+    const reuse = m.buffer_pool_reuses_total ?? 0;
+    const active = m.buffer_pool_active_buffers_avg ?? 0;
+    const pooled = m.buffer_pool_pooled_buffers_avg ?? 0;
+    console.log(
+      `Buffer Pool:   hit=${m.buffer_pool_hit_rate_pct}% ` +
+      `alloc=${alloc} reuse=${reuse} active=${active} pooled=${pooled}`
+    );
+  }
+
   if (m.decode_ms_per_token_p50) {
     console.log(`Latency P50/90/99: ${m.decode_ms_per_token_p50}/${m.decode_ms_per_token_p90}/${m.decode_ms_per_token_p99} ms`);
   }

@@ -77,6 +77,25 @@ function analyzeOutputQuality(runs) {
   };
 }
 
+function summarizeBufferPool(startStats, endStats) {
+  const allocations = Math.max(0, endStats.allocations - startStats.allocations);
+  const reuses = Math.max(0, endStats.reuses - startStats.reuses);
+  const totalOps = allocations + reuses;
+  const hitRatePct = totalOps > 0
+    ? Number(((reuses / totalOps) * 100).toFixed(1))
+    : 0;
+
+  return {
+    allocations,
+    reuses,
+    hitRatePct,
+    activeBuffers: endStats.activeBuffers,
+    pooledBuffers: endStats.pooledBuffers,
+    currentBytesAllocated: endStats.currentBytesAllocated,
+    currentBytesRequested: endStats.currentBytesRequested,
+  };
+}
+
 // ============================================================================
 // Pipeline Benchmark Class
 // ============================================================================
@@ -366,6 +385,8 @@ export class PipelineBenchmark {
     resetReadbackTracking();
     enableBenchmarkMode();
     resetPerfCounters();
+    const bufferPool = getBufferPool();
+    const bufferStatsStart = bufferPool.getStats();
 
     // Start memory time series for non-warmup runs
     const memoryTimeSeries = !isWarmup && this.config.captureMemoryTimeSeries
@@ -513,7 +534,8 @@ export class PipelineBenchmark {
     }
 
     // Get buffer pool stats for peak VRAM
-    const bufferStats = getBufferPool().getStats();
+    const bufferStatsEnd = bufferPool.getStats();
+    const bufferPoolStats = summarizeBufferPool(bufferStatsStart, bufferStatsEnd);
 
     let promptForTokenCount = prompt;
     const runtimeChat = this.pipeline.runtimeConfig?.inference?.chatTemplate;
@@ -539,12 +561,13 @@ export class PipelineBenchmark {
       gpuTimePrefillMs,
       gpuTimeDecodeMs,
       gpuReadbackBytes: getReadbackBytes(),
-      peakVramBytes: bufferStats.peakBytesAllocated,
-      peakVramBytesRequested: bufferStats.peakBytesRequested,
+      peakVramBytes: bufferStatsEnd.peakBytesAllocated,
+      peakVramBytesRequested: bufferStatsEnd.peakBytesRequested,
       perfSubmits: getPerfCounters().submits,
       perfAllocations: getPerfCounters().allocations,
       perfReadbacks: getPerfCounters().readbacks,
       memoryTimeSeries: memoryTimeSeries?.getSamples() ?? null,
+      bufferPool: bufferPoolStats,
       profilerResults,
     };
   }
@@ -588,6 +611,24 @@ export class PipelineBenchmark {
     // GPU readback bytes (sum across all runs)
     const totalReadbackBytes = runs.reduce((sum, r) => sum + r.gpuReadbackBytes, 0);
     metrics.gpu_readback_bytes_total = totalReadbackBytes;
+
+    const bufferPoolStats = runs.map(r => r.bufferPool).filter(Boolean);
+    if (bufferPoolStats.length > 0) {
+      const totalAllocations = bufferPoolStats.reduce((sum, r) => sum + r.allocations, 0);
+      const totalReuses = bufferPoolStats.reduce((sum, r) => sum + r.reuses, 0);
+      const totalOps = totalAllocations + totalReuses;
+      metrics.buffer_pool_allocations_total = Math.round(totalAllocations / bufferPoolStats.length);
+      metrics.buffer_pool_reuses_total = Math.round(totalReuses / bufferPoolStats.length);
+      metrics.buffer_pool_hit_rate_pct = totalOps > 0
+        ? Number(((totalReuses / totalOps) * 100).toFixed(1))
+        : 0;
+      metrics.buffer_pool_active_buffers_avg = Math.round(
+        this.average(bufferPoolStats.map(r => r.activeBuffers))
+      );
+      metrics.buffer_pool_pooled_buffers_avg = Math.round(
+        this.average(bufferPoolStats.map(r => r.pooledBuffers))
+      );
+    }
 
     // GPU timestamp timing (if available)
     const gpuPrefillTimes = runs.map(r => r.gpuTimePrefillMs).filter(t => t !== undefined);
@@ -649,6 +690,10 @@ export class PipelineBenchmark {
     // Include memory time series if captured
     if (lastRun?.memoryTimeSeries) {
       raw.memory_time_series = lastRun.memoryTimeSeries;
+    }
+
+    if (runs.length > 0) {
+      raw.buffer_pool_runs = runs.map(r => r.bufferPool ?? null);
     }
 
     // Include profiler results (per-kernel timing) if available
