@@ -408,9 +408,10 @@ function deepMerge(parent, child) {
 }
 
 function mergePartial(parent, child) {
-  if (!parent && !child) return undefined;
-  if (!parent) return child;
-  if (!child) return parent;
+  if (child === undefined && parent === undefined) return undefined;
+  if (child === undefined) return parent;
+  if (child === null) return null;
+  if (parent === undefined || parent === null) return child;
   return deepMerge(parent, child);
 }
 
@@ -424,12 +425,12 @@ function mergeInference(parent, child) {
     normalization: mergePartial(parent.normalization, child.normalization),
     ffn: mergePartial(parent.ffn, child.ffn),
     output: mergePartial(parent.output, child.output),
-    layerPattern: child.layerPattern ?? parent.layerPattern,
+    layerPattern: child.layerPattern !== undefined ? child.layerPattern : parent.layerPattern,
     rope: mergePartial(parent.rope, child.rope),
-    pipeline: child.pipeline ?? parent.pipeline,
+    pipeline: child.pipeline !== undefined ? child.pipeline : parent.pipeline,
     chatTemplate: mergePartial(parent.chatTemplate, child.chatTemplate),
-    kernelPaths: child.kernelPaths ?? parent.kernelPaths,
-    kernelPath: child.kernelPath ?? parent.kernelPath,
+    kernelPaths: child.kernelPaths !== undefined ? child.kernelPaths : parent.kernelPaths,
+    kernelPath: child.kernelPath !== undefined ? child.kernelPath : parent.kernelPath,
   };
 }
 

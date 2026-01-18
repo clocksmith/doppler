@@ -74,8 +74,17 @@ export function parseTensorMap(jsonString) {
         throw new Error(`Tensor '${name}' missing shape`);
       }
       // Normalize group to role (backward compatibility)
-      if (loc.role === undefined && loc.group !== undefined) {
-        loc.role = loc.group;
+      // Old format uses group but no role - infer role from tensor name
+      if (loc.role === undefined) {
+        if (name.includes('embed_tokens') || name.endsWith('.embedding') || loc.group === 'embed') {
+          loc.role = 'embedding';
+        } else if (name === 'model.norm.weight' || name === 'final_norm.weight') {
+          loc.role = 'norm';
+        } else if (name.includes('lm_head') || name === 'output.weight') {
+          loc.role = 'lm_head';
+        } else if (loc.group !== undefined) {
+          loc.role = loc.group;
+        }
       }
       // Normalize legacy role names
       if (loc.role === 'embed') {

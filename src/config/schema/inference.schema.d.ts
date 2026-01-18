@@ -75,11 +75,11 @@ export interface FFNSchema {
 }
 
 /** Built-in chat template types */
-export type ChatTemplateType = 'gemma' | 'llama3' | 'gpt-oss' | null;
+export type ChatTemplateType = 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | null;
 
 /** Chat template configuration for instruct models */
 export interface ChatTemplateSchema {
-  /** Template type identifier (gemma, llama3, gpt-oss) */
+  /** Template type identifier (gemma, llama3, gpt-oss, chatml, qwen) */
   type?: ChatTemplateType;
 
   /** Whether to apply chat template by default (instruct models should set true) */

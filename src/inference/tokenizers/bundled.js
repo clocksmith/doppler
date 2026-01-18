@@ -4,6 +4,66 @@ import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 
+function pickCandidate(...values) {
+  for (const value of values) {
+    if (value != null) return value;
+  }
+  return null;
+}
+
+function resolveTokenId(value, vocab, label) {
+  if (value == null) return null;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const id = vocab.get(value);
+    if (id === undefined) {
+      throw new Error(`[Tokenizer] Special token "${label}" not found in vocab: "${value}"`);
+    }
+    return id;
+  }
+  return null;
+}
+
+function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab) {
+  const padCandidate = pickCandidate(
+    specialTokensRaw?.pad,
+    specialTokensRaw?.pad_token,
+    specialTokensRaw?.pad_token_id,
+    fallbackTokens?.pad
+  );
+  const bosCandidate = pickCandidate(
+    specialTokensRaw?.bos,
+    specialTokensRaw?.bos_token,
+    specialTokensRaw?.bos_token_id,
+    fallbackTokens?.bos
+  );
+  const eosCandidate = pickCandidate(
+    specialTokensRaw?.eos,
+    specialTokensRaw?.eos_token,
+    specialTokensRaw?.eos_token_id,
+    fallbackTokens?.eos
+  );
+  const unkCandidate = pickCandidate(
+    specialTokensRaw?.unk,
+    specialTokensRaw?.unk_token,
+    specialTokensRaw?.unk_token_id,
+    fallbackTokens?.unk
+  );
+
+  const resolved = {
+    pad: resolveTokenId(padCandidate, vocab, 'pad'),
+    bos: resolveTokenId(bosCandidate, vocab, 'bos'),
+    eos: resolveTokenId(eosCandidate, vocab, 'eos'),
+    unk: resolveTokenId(unkCandidate, vocab, 'unk'),
+  };
+
+  if (resolved.eos == null) {
+    throw new Error('[Tokenizer] Missing EOS token in tokenizer.json and runtime config.');
+  }
+
+  return resolved;
+}
+
 
 export class TransformersTokenizer extends BaseTokenizer {
   
@@ -312,15 +372,8 @@ export class BundledTokenizer extends BaseTokenizer {
 
     // Set special tokens - support both camelCase and snake_case formats
     const specialTokensRaw =  (tokenizerJson.specialTokens ||  (tokenizerJson).special_tokens);
-    if (specialTokensRaw) {
-      this.specialTokens = {
-        pad: specialTokensRaw.pad ?? specialTokensRaw.pad_token_id ?? 0,
-        bos: specialTokensRaw.bos ?? specialTokensRaw.bos_token_id ?? 1,
-        eos: specialTokensRaw.eos ?? specialTokensRaw.eos_token_id ?? 2,
-        unk: specialTokensRaw.unk ?? specialTokensRaw.unk_token_id ?? 0,
-      };
-      log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
-    }
+    this.specialTokens = resolveSpecialTokens(specialTokensRaw, this.specialTokens, this.#vocab);
+    log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
     this.#specialTokenIds = new Set();
     const builtinSpecials = [
       this.specialTokens.pad,
@@ -337,6 +390,12 @@ export class BundledTokenizer extends BaseTokenizer {
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     this.addBosToken = tokenizerJson.addBosToken ?? runtimeDefaults.addBosToken;
     this.addEosToken = tokenizerJson.addEosToken ?? runtimeDefaults.addEosToken;
+    if (this.addBosToken && this.specialTokens.bos == null) {
+      throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');
+    }
+    if (this.addEosToken && this.specialTokens.eos == null) {
+      throw new Error('[Tokenizer] addEosToken is enabled but eos token is missing.');
+    }
     // NOTE: Default to FALSE - first word shouldn't get space prefix
     // Space prefixes are only for words that follow a space in original text
     this.#addSpacePrefix = tokenizerJson.addSpacePrefix === true;

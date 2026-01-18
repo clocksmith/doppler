@@ -19,6 +19,25 @@ export class Tokenizer {
     // Merge tokenizer config: preset provides fallback hints, manifest takes precedence
     const presetTokenizer = options.presetTokenizer || {};
     const tokenizerConfig = { ...presetTokenizer, ...(manifest.tokenizer || {}) };
+    const eosTokenId = Array.isArray(manifest.eos_token_id)
+      ? manifest.eos_token_id[0]
+      : manifest.eos_token_id;
+
+    if (tokenizerConfig.eosToken == null && Array.isArray(tokenizerConfig.eosTokens) && tokenizerConfig.eosTokens.length > 0) {
+      tokenizerConfig.eosToken = tokenizerConfig.eosTokens[0];
+    }
+    if (tokenizerConfig.eosToken == null && typeof eosTokenId === 'number') {
+      tokenizerConfig.eosToken = eosTokenId;
+    }
+    if (tokenizerConfig.bosToken == null && tokenizerConfig.bosTokenId != null) {
+      tokenizerConfig.bosToken = tokenizerConfig.bosTokenId;
+    }
+    if (tokenizerConfig.padToken == null && tokenizerConfig.padTokenId != null) {
+      tokenizerConfig.padToken = tokenizerConfig.padTokenId;
+    }
+    if (tokenizerConfig.unkToken == null && tokenizerConfig.unkTokenId != null) {
+      tokenizerConfig.unkToken = tokenizerConfig.unkTokenId;
+    }
 
     // Check for bundled or HuggingFace tokenizer first (eliminates transformers.js dependency)
     const isBundled = tokenizerConfig.type === 'bundled' || tokenizerConfig.type === 'huggingface';

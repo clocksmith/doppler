@@ -20,12 +20,22 @@ export interface TokenizerConfig {
   vocabSize?: number;
   /** Padding token ID */
   padToken?: number;
+  /** Padding token ID (alternate field) */
+  padTokenId?: number;
   /** Beginning of sequence token ID */
   bosToken?: number;
+  /** Beginning of sequence token ID (alternate field) */
+  bosTokenId?: number;
   /** End of sequence token ID */
   eosToken?: number;
+  /** End of sequence token IDs (string or numeric) */
+  eosTokens?: Array<string | number>;
+  /** End of sequence token ID (alternate field) */
+  eosTokenId?: number;
   /** Unknown token ID */
   unkToken?: number;
+  /** Unknown token ID (alternate field) */
+  unkTokenId?: number;
   /** Whether to add BOS token */
   addBosToken?: boolean;
   /** Whether to add EOS token */

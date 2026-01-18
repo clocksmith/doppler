@@ -44,6 +44,11 @@ import {
 import { loadLoRAWeights as loadLoRAWeightsFromModule } from './lora-loader.js';
 import { assembleShardData } from './tensor-reader.js';
 
+function hasExpertGroups(manifest) {
+  if (!manifest?.groups) return false;
+  return Object.keys(manifest.groups).some((groupId) => groupId.includes('.expert.'));
+}
+
 // Re-export types for backward compatibility
 export {
   // Types are in .d.ts file
@@ -243,10 +248,9 @@ export class DopplerLoader {
   
   setManifest(manifest) {
     this.manifest = manifest;
-    const config =  (manifest.config);
     const moeConfig = manifest.moeConfig;
     this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
-    if (!this.isMoE && (config?.num_local_experts ?? 0) > 1) {
+    if (!this.isMoE && hasExpertGroups(manifest)) {
       throw new Error(
         `Manifest "${manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
       );
@@ -334,10 +338,9 @@ export class DopplerLoader {
 
     validateManifestInference(this.manifest);
 
-    const config =  (this.manifest.config);
     const moeConfig = this.manifest.moeConfig;
     this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
-    if (!this.isMoE && (config?.num_local_experts ?? 0) > 1) {
+    if (!this.isMoE && hasExpertGroups(this.manifest)) {
       throw new Error(
         `Manifest "${this.manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
       );
