@@ -13,8 +13,21 @@ export function parseManifest(jsonString) {
     throw new Error(`Failed to parse manifest JSON: ${e.message}`);
   }
 
-  // Normalize eos_token_id from config if not at top level (backward compatibility)
-  if (manifest.eos_token_id === undefined && manifest.config?.eos_token_id !== undefined) {
+  // Normalize eos_token_id from legacy config if not at top level
+  const version = typeof manifest.version === 'string'
+    ? parseFloat(manifest.version)
+    : manifest.version;
+  const hasLegacyConfig = Boolean(
+    manifest.config && (
+      manifest.config.model_type ||
+      manifest.config.architectures ||
+      manifest.config.transformers_version
+    )
+  );
+  const isLegacyManifest = version === 1 && !manifest.groups && hasLegacyConfig;
+  if (manifest.eos_token_id === undefined &&
+      manifest.config?.eos_token_id !== undefined &&
+      isLegacyManifest) {
     manifest.eos_token_id = manifest.config.eos_token_id;
   }
 
@@ -74,21 +87,31 @@ export function parseTensorMap(jsonString) {
         throw new Error(`Tensor '${name}' missing shape`);
       }
       // Normalize group to role (backward compatibility)
-      // Old format uses group but no role - infer role from tensor name
-      if (loc.role === undefined) {
-        if (name.includes('embed_tokens') || name.endsWith('.embedding') || loc.group === 'embed') {
+      // Legacy tensors may include group but no role
+      if (loc.role === undefined && loc.group !== undefined) {
+        if (loc.group === 'embed') {
           loc.role = 'embedding';
-        } else if (name === 'model.norm.weight' || name === 'final_norm.weight') {
-          loc.role = 'norm';
-        } else if (name.includes('lm_head') || name === 'output.weight') {
-          loc.role = 'lm_head';
-        } else if (loc.group !== undefined) {
+        } else if (loc.group === 'head') {
+          if (name === 'model.norm.weight' || name === 'final_norm.weight') {
+            loc.role = 'norm';
+          } else if (name.includes('lm_head') || name === 'output.weight') {
+            loc.role = 'lm_head';
+          }
+        } else {
           loc.role = loc.group;
         }
       }
       // Normalize legacy role names
       if (loc.role === 'embed') {
         loc.role = 'embedding';
+      }
+      // Normalize legacy groups for known roles
+      if (loc.group === undefined) {
+        if (loc.role === 'embedding') {
+          loc.group = 'embed';
+        } else if (loc.role === 'norm' || loc.role === 'lm_head') {
+          loc.group = 'head';
+        }
       }
       if (typeof loc.role !== 'string') {
         throw new Error(`Tensor '${name}' missing role`);

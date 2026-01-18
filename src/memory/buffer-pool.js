@@ -283,6 +283,11 @@ export class BufferPool {
   }
 
   
+  isActiveBuffer(buffer) {
+    return this.#activeBuffers.has(buffer);
+  }
+
+  
   getRequestedSize(buffer) {
     return this.#requestedSizes.get(buffer) ?? buffer.size;
   }
@@ -564,6 +569,9 @@ export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
+
+export const isBufferActive = (buffer) =>
+  getBufferPool().isActiveBuffer(buffer);
 
 export const getBufferRequestedSize = (buffer) =>
   getBufferPool().getRequestedSize(buffer);

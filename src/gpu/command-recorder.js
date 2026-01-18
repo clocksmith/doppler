@@ -3,7 +3,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
-import { releaseBuffer } from '../memory/buffer-pool.js';
+import { isBufferActive, releaseBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
@@ -253,8 +253,11 @@ export class CommandRecorder {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot track buffers after submit');
     }
-    // Track as pooled buffer - will be released back to pool on cleanup
-    this.#pooledBuffers.push(buffer);
+    if (isBufferActive(buffer)) {
+      this.#pooledBuffers.push(buffer);
+    } else {
+      this.#tempBuffers.push(buffer);
+    }
   }
 
   

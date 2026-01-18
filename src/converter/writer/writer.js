@@ -331,6 +331,7 @@ export class RDRRWriter {
     }
 
     const groupId = classifyTensor(name, this.#modelType);
+    const role = classifyTensorRole(name);
 
     const spans = await this.#shardWriter.writeData(writeData);
 

@@ -30,4 +30,16 @@ describe('mergeConfig', () => {
 
     expect(merged._sources.get('inference.output.tieWordEmbeddings')).toBe('manifest');
   });
+
+  it('merges ffn.swigluLimit from runtime overrides', () => {
+    const inference = cloneInference();
+    inference.ffn.swigluLimit = 64;
+    const merged = mergeConfig(
+      { modelId: 'test-model', inference },
+      { ffn: { swigluLimit: 128 } }
+    );
+
+    expect(merged.inference.ffn.swigluLimit).toBe(128);
+    expect(merged._sources.get('inference.ffn.swigluLimit')).toBe('runtime');
+  });
 });

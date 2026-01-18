@@ -165,6 +165,14 @@ export class BundledTokenizer extends BaseTokenizer {
   }
 
   
+  #getUnkTokenId() {
+    if (this.specialTokens.unk == null) {
+      throw new Error('[Tokenizer] Missing unk token in tokenizer metadata.');
+    }
+    return this.specialTokens.unk;
+  }
+
+  
   load(tokenizerJson) {
     // Detect format: HuggingFace has model.vocab, bundled has top-level vocab
     const isHuggingFace = 'model' in tokenizerJson && tokenizerJson.model?.vocab !== undefined;
@@ -225,13 +233,15 @@ export class BundledTokenizer extends BaseTokenizer {
       }
     }
 
-    // Extract special tokens from added_tokens
-    this.specialTokens = {
-      pad: model.pad_id ?? 0,
-      bos: 1,
-      eos: 2,
-      unk: model.unk_id ?? 0,
+    const specialTokensRaw = hf.special_tokens_map || hf.specialTokens || hf.special_tokens || null;
+    const fallbackTokens = {
+      ...this.specialTokens,
+      pad: model.pad_id ?? this.specialTokens.pad,
+      bos: model.bos_id ?? this.specialTokens.bos,
+      eos: model.eos_id ?? this.specialTokens.eos,
+      unk: model.unk_id ?? this.specialTokens.unk,
     };
+    this.specialTokens = resolveSpecialTokens(specialTokensRaw, fallbackTokens, this.#vocab);
     this.#specialTokenIds = new Set();
 
     for (const token of hf.added_tokens || []) {
@@ -252,13 +262,13 @@ export class BundledTokenizer extends BaseTokenizer {
           this.#specialTokenPatterns.push({ content, id });
         }
         // Identify special token types
-        if (content === '<bos>' || content === '<s>' || content.includes('bos')) {
+        if (this.specialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
           this.specialTokens.bos = id;
-        } else if (content === '<eos>' || content === '</s>' || content.includes('eos')) {
+        } else if (this.specialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
           this.specialTokens.eos = id;
-        } else if (content === '<pad>' || content.includes('pad')) {
+        } else if (this.specialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
           this.specialTokens.pad = id;
-        } else if (content === '<unk>' || content.includes('unk')) {
+        } else if (this.specialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
           this.specialTokens.unk = id;
         }
       }
@@ -289,6 +299,12 @@ export class BundledTokenizer extends BaseTokenizer {
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     this.addBosToken = hf.add_bos_token ?? runtimeDefaults.addBosToken;
     this.addEosToken = hf.add_eos_token ?? runtimeDefaults.addEosToken;
+    if (this.addBosToken && this.specialTokens.bos == null) {
+      throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');
+    }
+    if (this.addEosToken && this.specialTokens.eos == null) {
+      throw new Error('[Tokenizer] addEosToken is enabled but eos token is missing.');
+    }
     // NOTE: Default to FALSE for add_prefix_space - HuggingFace tokenizers typically
     // don't add a space prefix to the first token. Models like Gemma, Llama use
     // the normalizer/pre_tokenizer to handle spaces within text, not at the start.
@@ -436,7 +452,7 @@ export class BundledTokenizer extends BaseTokenizer {
     const ids = [];
 
     if (this.addBosToken) {
-      ids.push(this.specialTokens.bos ?? 1);
+      ids.push(this.specialTokens.bos);
     }
 
     // Split text around special tokens and tokenize each segment
@@ -454,7 +470,7 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     if (this.addEosToken) {
-      ids.push(this.specialTokens.eos ?? 2);
+      ids.push(this.specialTokens.eos);
     }
 
     return ids;
@@ -555,12 +571,12 @@ export class BundledTokenizer extends BaseTokenizer {
       if (state.isBytes && state.bytes) {
         for (let j = state.bytes.length - 1; j >= 0; j--) {
           const byteId = this.#byteTokens.get(state.bytes[j]);
-          tokens.push(byteId ?? (this.specialTokens.unk ?? 0));
+          tokens.push(byteId ?? this.#getUnkTokenId());
         }
       } else {
         const substr = prefixed.slice(state.prev, pos);
         const tokenId = this.#vocab.get(substr);
-        tokens.push(tokenId ?? (this.specialTokens.unk ?? 0));
+        tokens.push(tokenId ?? this.#getUnkTokenId());
       }
       pos = state.prev;
     }
@@ -600,7 +616,7 @@ export class BundledTokenizer extends BaseTokenizer {
           continue;
         }
         const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
-        ids.push(this.#vocab.get(byteToken) ?? (this.specialTokens.unk ?? 0));
+        ids.push(this.#vocab.get(byteToken) ?? this.#getUnkTokenId());
       }
     }
 
@@ -615,7 +631,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
     while (pos < text.length) {
       let bestLen = 0;
-      let bestId = this.specialTokens.unk ?? 0;
+      let bestId = this.#getUnkTokenId();
 
       const maxLen = Math.min(32, text.length - pos);
       for (let len = maxLen; len >= 1; len--) {
@@ -638,7 +654,7 @@ export class BundledTokenizer extends BaseTokenizer {
             continue;
           }
           const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
-          ids.push(this.#vocab.get(byteToken) ?? (this.specialTokens.unk ?? 0));
+          ids.push(this.#vocab.get(byteToken) ?? this.#getUnkTokenId());
         }
         pos += 1;
       } else {

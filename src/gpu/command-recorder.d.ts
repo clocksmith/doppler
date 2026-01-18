@@ -96,10 +96,10 @@ export declare class CommandRecorder {
   getEncoder(): GPUCommandEncoder;
 
   /**
-   * Track a pooled buffer for cleanup after submit.
-   * Buffer will be released back to the buffer pool.
+   * Track a buffer for cleanup after submit.
+   * Pooled buffers are released back to the pool; non-pooled buffers are destroyed.
    *
-   * @param buffer - Buffer acquired from the buffer pool
+   * @param buffer - Buffer to clean up after submit
    */
   trackTemporaryBuffer(buffer: GPUBuffer): void;
 
