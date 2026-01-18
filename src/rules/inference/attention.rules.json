@@ -1,0 +1,20 @@
+{
+  "useFusedQkv": [
+    { "match": { "hasQkvProj": true, "hasQkvSizes": true, "hasLoRA": false }, "value": true },
+    { "match": {}, "value": false }
+  ],
+  "useFusedOProjResidual": [
+    {
+      "match": {
+        "allowFusedResidual": true,
+        "hasResidual": true,
+        "residualMatches": true,
+        "attnIsF32": true,
+        "hasLoRA": false,
+        "oProjIsF16": true
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
+  ]
+}

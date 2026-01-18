@@ -1,0 +1,45 @@
+{
+  "name": "nvidia-gb200-8gpu",
+  "description": "NVIDIA GB200 8-GPU Pod (DGX Pod Building Block)",
+  "emulation": {
+    "enabled": true,
+    "targetChip": "gb200-8gpu",
+    "timingMode": "functional",
+    "gpuSpec": {
+      "name": "B200",
+      "vramBytes": 206158430208,
+      "hbmBandwidthBytesPerSec": 8000000000000,
+      "fp16Tflops": 4500,
+      "fp8Tflops": 9000
+    },
+    "cpuSpec": {
+      "name": "Grace",
+      "cores": 72,
+      "memoryBytes": 515396075520,
+      "memoryBandwidthBytesPerSec": 546000000000
+    },
+    "topology": {
+      "gpuCount": 8,
+      "gpusPerNode": 8,
+      "nodeCount": 1,
+      "cpuCount": 2
+    },
+    "nvlink": {
+      "bandwidthBytesPerSec": 1800000000000,
+      "latencyUs": 0.8
+    },
+    "nvlinkC2C": {
+      "bandwidthBytesPerSec": 900000000000,
+      "latencyUs": 0.5,
+      "coherent": true
+    },
+    "parallelism": {
+      "tensorParallel": { "enabled": true, "degree": 8 },
+      "pipelineParallel": { "enabled": false, "stages": 1 },
+      "dataParallel": { "enabled": false, "degree": 1 },
+      "expertParallel": { "enabled": false, "degree": 1 }
+    },
+    "statsEnabled": true,
+    "logOperations": false
+  }
+}
