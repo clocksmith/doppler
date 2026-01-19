@@ -76,6 +76,23 @@
       }
     }
 
+    // Only show important messages in DOM panel to avoid excessive updates
+    const DOM_LOG_PATTERNS = [
+      /^\[DOPPLER:/,        // Completion signals
+      /^\[Harness\]/,       // Harness status
+      /^\[Loader\]/,        // Loading progress
+      /^\[Model\]/,         // Model info
+      /^\[GPU\]/,           // GPU info
+      /^\[Token\]/,         // Generated tokens
+      /^\[Benchmark\]/,     // Benchmark results
+      /^\[Sim\]/,           // Simulation info
+      /Error|WARN|error/i,  // Errors and warnings
+    ];
+
+    function shouldLogToDOM(text) {
+      return DOM_LOG_PATTERNS.some(p => p.test(text));
+    }
+
     function appendLog(level, args) {
       const line = document.createElement('div');
       line.className = 'log-line';
@@ -89,22 +106,25 @@
     }
 
     console.log = (...args) => {
-      appendLog('log', args);
+      const text = args.map(formatArg).join(' ');
+      if (shouldLogToDOM(text)) {
+        appendLog('log', args);
+      }
       originalConsole.log(...args);
     };
 
     console.error = (...args) => {
-      appendLog('error', args);
+      appendLog('error', args);  // Always show errors
       originalConsole.error(...args);
     };
 
     console.warn = (...args) => {
-      appendLog('warn', args);
+      appendLog('warn', args);  // Always show warnings
       originalConsole.warn(...args);
     };
 
     console.debug = (...args) => {
-      appendLog('debug', args);
+      // Debug messages skip DOM entirely - too verbose
       originalConsole.debug(...args);
     };
 
@@ -283,6 +303,7 @@
         const temperature = runtimeConfig.inference.sampling.temperature;
         const profile = runtimeConfig.shared.debug.profiler?.enabled === true;
         const debugTokens = runtimeConfig.inference.debugTokens === true;
+        const hasProbes = runtimeConfig.shared.debug.probes?.length > 0;
 
         try {
           let pipeline;
@@ -328,6 +349,7 @@
             maxTokens,
             temperature,
             profile,
+            disableCommandBatching: hasProbes,  // Probes require sync readbacks
             onToken: (tokenId, tokenText) => {
               tokenIds.push(tokenId);
               if (debugTokens) {

@@ -32,7 +32,7 @@ export declare function hasFileSystemAccess(): boolean;
 export declare function hasDirectoryPicker(): boolean;
 
 /**
- * Pick a single GGUF file (legacy API for backwards compatibility)
+ * Pick a single GGUF file
  * @returns The selected file, or null if cancelled
  */
 export declare function pickGGUFFile(): Promise<File | null>;

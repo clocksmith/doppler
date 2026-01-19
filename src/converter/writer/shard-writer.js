@@ -14,6 +14,7 @@ export class ShardWriter {
   #currentShard = null;
   #currentShardIndex = 0;
   #currentShardOffset = 0;
+  #cumulativeOffset = 0;
 
   constructor(outputDir, shardSize, hashAlgorithm) {
     this.#outputDir = outputDir;
@@ -69,8 +70,10 @@ export class ShardWriter {
       size: totalSize,
       hash,
       hashAlgorithm: this.#hashAlgorithm,
+      offset: this.#cumulativeOffset,
     });
 
+    this.#cumulativeOffset += totalSize;
     this.#currentShardIndex++;
     this.#currentShardOffset = 0;
     this.#currentShard = null;

@@ -990,7 +990,7 @@ describe('error handling', () => {
   it('throws when manifest lacks inference config entirely', () => {
     const manifest = {
       version: 1,
-      modelId: 'legacy-model',
+      modelId: 'test-model',
       modelType: 'transformer',
       quantization: 'F16',
       shards: [],

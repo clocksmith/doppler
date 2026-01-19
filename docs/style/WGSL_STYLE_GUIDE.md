@@ -630,7 +630,7 @@ Kernel paths are explicit dispatch sequences. See `../CONFIG.md`.
 | F16 / BF16 | `defaultWeightLayout=row` or `column` | `gemma2-f16-f16a` or `gemma2-f16-f32a` | `shader-f16` for F16 | Layout affects transpose; kernel path controls arithmetic. |
 | Q4_K_M | `q4kLayout=row_wise` | `gemma2-q4k-fused-f16a`, `gemma2-q4k-fused-f32a`, `gemma2-q4k-dequant-f16a/f32a` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
 | Q4_K_M | `q4kLayout=column_wise` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Column-wise packs are not fused-compatible. |
-| Q4_K_M | `q4kLayout=flat` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Flat packing is legacy; no fused kernel. |
+| Q4_K_M | `q4kLayout=flat` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Flat packing has no fused kernel. |
 | MXFP4 | N/A | dequant + matmul (no dedicated kernel path yet) | `shader-f16` for F16 | Used for MoE experts; no fused matmul yet. |
 | Q8_0 / Q8_K | N/A | dequant + matmul (planned) | `shader-f16` for F16 | Loader runtime kernels are planned; treat as packing only today. |
 

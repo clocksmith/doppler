@@ -373,8 +373,8 @@ For tensors spanning multiple shards, use the `spans` field:
 | `mergedAdapter` | object | Merged adapter metadata (baked into weights) |
 | `adapterConfig` | object | Adapter configuration (standalone adapter) |
 | `provenance` | object | Provenance metadata for merged/frankenstein models |
-| `baseModel` | string | Base model reference (legacy adapter hint) |
-| `loraConfig` | object | LoRA metadata (legacy adapter hint) |
+| `baseModel` | string | Base model reference |
+| `loraConfig` | object | LoRA metadata |
 
 ### optimizations Schema
 

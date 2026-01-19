@@ -1,0 +1,29 @@
+{
+  "name": "gemma3-layer-probe",
+  "description": "Probe layer outputs to compare against HuggingFace reference",
+  "extends": "modes/debug",
+  "runtime": {
+    "inference": {
+      "prompt": "The color of the sky is"
+    },
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["embed", "attn", "ffn"],
+          "layers": [0, 1, 2, 25],
+          "maxDecodeSteps": 1
+        },
+        "probes": [
+          {
+            "id": "layer0-out",
+            "stage": "layer_out",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          }
+        ]
+      }
+    }
+  }
+}

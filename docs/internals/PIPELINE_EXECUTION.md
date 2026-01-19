@@ -2489,7 +2489,7 @@ Block (144 bytes): [d: f16, dmin: f16, scales: 12B, nibbles: 128B]
 
 ### Layout Options
 
-**Flat packed (legacy):** Blocks cross row boundaries
+**Flat packed:** Blocks cross row boundaries
 ```
 Flat: [blk0][blk1][blk2][blk3][blk4][blk5]...
        ←─row 0──→←─row 0──→←row 1→←─row 1──→  ← WRONG!
@@ -2810,7 +2810,7 @@ kernel mapping. At runtime, the pipeline resolves kernel paths in this order:
 1. `contexts.runtime.kernelPath` (explicit context override)
 2. `runtime.inference.kernelPath` (runtime config)
 3. `manifest.inference.defaultKernelPath` (from conversion)
-4. `manifest.optimizations.kernelPath` (legacy)
+4. `manifest.optimizations.kernelPath`
 
 If a Gemma 2 manifest predates kernel path support, it will fall back to auto
 kernel selection. That can select fused kernels that are slower for Gemma 2
