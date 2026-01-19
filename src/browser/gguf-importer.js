@@ -14,6 +14,7 @@ import {
 } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import { extractArchitecture } from '../converter/core.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 // Header size to read for parsing (10MB should cover any GGUF header)
@@ -157,7 +158,13 @@ export async function importGGUFFile(
     }
 
     // Create manifest
-    const manifest = createManifest(ggufInfo, shardInfos, file.size);
+    const manifest = createManifest(
+      ggufInfo,
+      shardInfos,
+      modelId,
+      resolvedConverterConfig,
+      shardSizeBytes
+    );
 
     onProgress?.({
       stage: ImportStage.WRITING,
@@ -347,38 +354,41 @@ async function writeShard(
 function createManifest(
   ggufInfo,
   shardInfos,
-  fileSize
+  modelId,
+  converterConfig,
+  shardSizeBytes
 ) {
   const config = ggufInfo.config;
+  if (!ggufInfo.architecture) {
+    throw new Error('Missing GGUF architecture');
+  }
+  if (!ggufInfo.quantization) {
+    throw new Error('Missing GGUF quantization');
+  }
 
-  // Build architecture object
-  const architecture = {
-    numLayers: config.blockCount || 32,
-    hiddenSize: config.embeddingLength || 4096,
-    intermediateSize: config.feedForwardLength || 11008,
-    numAttentionHeads: config.attentionHeadCount || 32,
-    numKeyValueHeads: config.attentionHeadCountKV || config.attentionHeadCount || 32,
-    headDim: config.embeddingLength
-      ? Math.floor(config.embeddingLength / (config.attentionHeadCount || 32))
-      : 128,
-    vocabSize: config.vocabSize || 32000,
-    maxSeqLen: config.contextLength || 2048,
-  };
+  const architecture = extractArchitecture({}, config);
 
   // Build MoE config if applicable
   let moeConfig = null;
   const expertCount = config.expertCount || config.num_local_experts || config.num_experts;
   if (expertCount) {
+    const expertsPerToken = (
+      config.expertUsedCount ||
+      config.num_experts_per_tok ||
+      config.num_experts_per_token ||
+      config.experts_per_token
+    );
+    if (!expertsPerToken) {
+      throw new Error('Missing expertsPerToken in GGUF config');
+    }
+    const expertFormat = config.expertFormat || config.expert_format;
+    if (!expertFormat) {
+      throw new Error('Missing expertFormat in GGUF config');
+    }
     moeConfig = {
       numExperts: expertCount,
-      numExpertsPerToken:
-        config.expertUsedCount ||
-        config.num_experts_per_tok ||
-        config.num_experts_per_token ||
-        config.experts_per_token ||
-        2,
-      expertSize: 0, // Would need to calculate from tensors
-      expertShardMap: [],
+      numExpertsPerToken: expertsPerToken,
+      expertFormat: expertFormat,
     };
   }
 
@@ -414,20 +424,22 @@ function createManifest(
     );
   }
   const preset = resolvePreset(presetId);
-  const headDim = architecture.headDim || Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
+  const headDim = architecture.headDim;
+  if (!headDim) {
+    throw new Error('Missing headDim in GGUF architecture');
+  }
   const quantizationInfo = ggufInfo.quantization
-    ? { weights: ggufInfo.quantization, compute: 'f16' }
+    ? { weights: ggufInfo.quantization, compute: converterConfig.quantization.computePrecision }
     : null;
   const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard
-  const tensors = buildTensorLocations(ggufInfo.tensors, ggufInfo.tensorDataOffset);
+  const tensors = buildTensorLocations(ggufInfo.tensors, ggufInfo.tensorDataOffset, shardSizeBytes);
 
   return {
     version: RDRR_VERSION,
-    modelId:
-      ggufInfo.modelName !== 'unknown' ? sanitizeModelId(ggufInfo.modelName) : 'imported-model',
+    modelId,
     modelType: ggufInfo.architecture,
     quantization: ggufInfo.quantization,
     architecture,
@@ -435,7 +447,7 @@ function createManifest(
     shards: shardInfos,
     tensors,
     totalSize,
-    hashAlgorithm: 'sha256',
+    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     inference,
     metadata: {
       source: 'browser-import',
@@ -449,7 +461,8 @@ function createManifest(
 
 function buildTensorLocations(
   ggufTensors,
-  tensorDataOffset
+  tensorDataOffset,
+  shardSizeBytes
 ) {
   const tensors = {};
 
@@ -458,13 +471,13 @@ function buildTensorLocations(
     const relativeOffset = tensor.offset - tensorDataOffset;
 
     // Which shard does this tensor start in?
-    const startShard = Math.floor(relativeOffset / SHARD_SIZE);
-    const offsetInShard = relativeOffset % SHARD_SIZE;
+    const startShard = Math.floor(relativeOffset / shardSizeBytes);
+    const offsetInShard = relativeOffset % shardSizeBytes;
 
     // Does tensor fit entirely in one shard?
     const endOffset = offsetInShard + tensor.size;
 
-    if (endOffset <= SHARD_SIZE) {
+    if (endOffset <= shardSizeBytes) {
       // Tensor fits in single shard
       tensors[tensor.name] = {
         shard: startShard,
@@ -481,7 +494,7 @@ function buildTensorLocations(
       let currentOffset = offsetInShard;
 
       while (remaining > 0) {
-        const availableInShard = SHARD_SIZE - currentOffset;
+        const availableInShard = shardSizeBytes - currentOffset;
         const chunkSize = Math.min(remaining, availableInShard);
 
         spans.push({

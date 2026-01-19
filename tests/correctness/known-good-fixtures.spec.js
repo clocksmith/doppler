@@ -32,7 +32,7 @@ test.describe('known-good fixtures', () => {
         const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
         const loadShard = async (idx) => {
           const shard = manifest.shards[idx];
-          const resp = await fetch(`${modelUrl}/${shard.fileName}`);
+          const resp = await fetch(`${modelUrl}/${shard.filename}`);
           return new Uint8Array(await resp.arrayBuffer());
         };
 

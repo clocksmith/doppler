@@ -48,7 +48,7 @@
   "shards": [
     {
       "index": 0,
-      "fileName": "shard-0.bin",
+      "filename": "shard-0.bin",
       "size": 337152,
       "hash": "fixture-hash-placeholder",
       "hashAlgorithm": "sha256"

@@ -13,6 +13,7 @@ import type {
   WeightLayout,
   QuantizationInfoSchema,
 } from './manifest.schema.js';
+import type { ConverterConfigSchema } from './converter.schema.js';
 
 /** Tensor information from source format */
 export interface TensorInfoSchema {
@@ -80,6 +81,8 @@ export interface ConversionOptionsSchema {
   quantizeEmbeddings?: boolean;
   /** Shard size in bytes */
   shardSize?: number;
+  /** Converter config overrides */
+  converterConfig?: ConverterConfigSchema;
   /** Progress callback */
   onProgress?: (progress: ConversionProgressSchema) => void;
   /** Abort signal */

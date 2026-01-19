@@ -13,13 +13,21 @@ export async function debugCheckBuffer(state, buffer, label, numTokens, expected
   const expectedElements = expectedDim ? numTokens * expectedDim : 0;
   let bytesPerElement = 4;
   if (expectedElements > 0) {
-    const rawBytes = buffer.size / expectedElements;
-    if (Math.abs(rawBytes - 2) < 0.5) {
-      bytesPerElement = 2;
-    } else if (Math.abs(rawBytes - 4) < 0.5) {
+    const f16Bytes = expectedElements * 2;
+    const f32Bytes = expectedElements * 4;
+    if (buffer.size >= f32Bytes) {
       bytesPerElement = 4;
+    } else if (buffer.size >= f16Bytes) {
+      bytesPerElement = 2;
     } else {
-      bytesPerElement = rawBytes < 3 ? 2 : 4;
+      const rawBytes = buffer.size / expectedElements;
+      if (Math.abs(rawBytes - 2) < 0.5) {
+        bytesPerElement = 2;
+      } else if (Math.abs(rawBytes - 4) < 0.5) {
+        bytesPerElement = 4;
+      } else {
+        bytesPerElement = rawBytes < 3 ? 2 : 4;
+      }
     }
   }
 

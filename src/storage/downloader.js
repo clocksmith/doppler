@@ -243,7 +243,10 @@ async function downloadShard(
   shardInfo,
   options = {}
 ) {
-  const { signal, onProgress, algorithm = 'blake3' } = options;
+  const { signal, onProgress, algorithm } = options;
+  if (!algorithm) {
+    throw new Error('Missing hash algorithm for shard download verification.');
+  }
   const startTime = performance.now();
 
   const url = buildShardUrl(baseUrl, shardInfo);
@@ -479,8 +482,12 @@ export async function downloadModel(
         }
       });
 
-      const expectedHash = shardInfo.hash || shardInfo.blake3;
-      if (expectedHash && result.hash !== expectedHash) {
+      const expectedHash = shardInfo.hash;
+      if (!expectedHash) {
+        await deleteShard(shardIndex);
+        throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
+      }
+      if (result.hash !== expectedHash) {
         await deleteShard(shardIndex);
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${result.hash}`);
       }

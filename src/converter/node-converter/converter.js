@@ -167,7 +167,7 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
 
   const config = await loadModelConfig(inputPath).catch((err) => {
     verboseLog(`Failed to load model config: ${err?.message || 'unknown error'}`);
-    return {};
+    throw err;
   });
   const tokenizerConfig = await loadTokenizerConfig(inputPath).catch((err) => {
     verboseLog(`Failed to load tokenizer config: ${err?.message || 'unknown error'}`);
@@ -176,8 +176,10 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
 
   const configRec = config;
   const arch = configRec.architectures?.[0] ||
-    configRec.model_type ||
-    'llama';
+    configRec.model_type;
+  if (!arch) {
+    throw new Error('Missing architecture in model config');
+  }
   const architecture = extractArchitecture(configRec);
   const { presetId, modelType } = detectModelTypeFromPreset(arch, config);
 
@@ -218,7 +220,10 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
   }
 
   const firstWeight = tensors.find((t) => t.name.includes('.weight'));
-  const originalDtype = firstWeight?.dtype?.toUpperCase() || 'F32';
+  const originalDtype = firstWeight?.dtype?.toUpperCase();
+  if (!originalDtype) {
+    throw new Error('Missing tensor dtype in source weights');
+  }
 
   const validTensors = tensors.filter((t) => {
     if (!t.shape || !Array.isArray(t.shape)) {

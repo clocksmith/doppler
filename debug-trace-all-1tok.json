@@ -17,6 +17,7 @@
           "maxDecodeSteps": 1
         },
         "probes": [
+          { "id": "layer0_out", "stage": "layer_out", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 4, 5] },
           { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [138, 496, 0, 1, 2, 3] }
         ]
       }

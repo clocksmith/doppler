@@ -56,7 +56,6 @@ doppler/
 | `npm test` | Kernel correctness tests |
 | `npm run bench` | Performance benchmarks |
 | `npm run debug` | Debug preset (trace/logs via config) |
-| `npm run build` | Bundle for browser |
 
 ```bash
 npm test -- --filter matmul      # Filter to specific kernel
@@ -179,8 +178,6 @@ npx tsx src/converter/node-converter.js model.gguf ./output
 npx tsx serve.js --port 3000
 ```
 
-### Build Artifacts
-- `dist/` is built output for browser usage. If runtime changes affect browser code, run `npm run build`.
 
 ### Skills
 - Project skills (from `.claude/skills/`):

@@ -119,10 +119,12 @@ export interface RDRRManifest {
 }
 
 export interface CreateManifestOptions {
-  source?: string;
+  source: string;
   inference?: ManifestInferenceSchema;
   modelType?: string;
+  quantization?: string;
   quantizationInfo?: QuantizationInfoSchema;
+  hashAlgorithm: string;
 }
 
 /**
@@ -145,7 +147,7 @@ export declare const RDRR_VERSION: number;
 /**
  * Sanitize model ID for filesystem/URL safety
  */
-export declare function sanitizeModelId(name: string): string;
+export declare function sanitizeModelId(name: string): string | null;
 
 /**
  * Format bytes for human-readable display
@@ -170,7 +172,7 @@ export declare function extractArchitecture(
  */
 export declare function buildTensorMap(
   tensors: Array<{ name: string; shape: number[]; dtype: string; size: number }>,
-  shardSize?: number
+  shardSize: number
 ): Record<string, TensorLocation>;
 
 /**
@@ -181,14 +183,14 @@ export declare function createManifest(
   model: ParsedModel,
   shards: ShardInfo[],
   tensorLocations: Record<string, TensorLocation>,
-  source?: string
+  source: string
 ): RDRRManifest;
 export declare function createManifest(
   modelId: string,
   model: ParsedModel,
   shards: ShardInfo[],
   tensorLocations: Record<string, TensorLocation>,
-  options?: CreateManifestOptions
+  options: CreateManifestOptions
 ): RDRRManifest;
 
 /**

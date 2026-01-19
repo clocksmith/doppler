@@ -1,10 +1,12 @@
+import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+
 /**
  * gguf-importer.ts - Stream GGUF to .rdrr shards in OPFS
  *
  * Handles:
  * - Streaming large GGUF files without loading into memory
- * - Chunking into 64MB shards
- * - SHA-256 hash per shard (BLAKE3 fallback if available)
+ * - Chunking into configured shards
+ * - SHA-256 hash per shard
  * - Writing to OPFS via shard-manager
  * - Progress reporting
  * - Abort/cancel support
@@ -49,6 +51,8 @@ export interface ImportProgress {
 export interface ImportOptions {
   onProgress?: (progress: ImportProgress) => void;
   signal?: AbortSignal;
+  modelId?: string;
+  converterConfig?: ConverterConfigSchema;
 }
 
 /**
@@ -100,8 +104,7 @@ export type TensorLocation = TensorLocationSingle | TensorLocationMulti;
 export interface MoEConfig {
   numExperts: number;
   numExpertsPerToken: number;
-  expertSize: number;
-  expertShardMap: unknown[];
+  expertFormat: string;
 }
 
 /**

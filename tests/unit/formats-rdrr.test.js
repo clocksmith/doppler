@@ -314,39 +314,30 @@ describe('formats/rdrr/parsing', () => {
       expect(parsed.architecture.numLayers).toBe(12);
     });
 
-    it('normalizes shard offsets', () => {
+    it('throws on missing shard offsets', () => {
       const manifest = createValidManifest();
       delete manifest.shards[0].offset;
       delete manifest.shards[1].offset;
 
       const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.shards[0].offset).toBe(0);
-      expect(parsed.shards[1].offset).toBe(64 * 1024 * 1024);
+      expect(() => parseManifest(json)).toThrow(/incorrect offset/i);
     });
 
-    it('normalizes shard index', () => {
+    it('throws on missing shard index', () => {
       const manifest = createValidManifest();
       delete manifest.shards[0].index;
       delete manifest.shards[1].index;
 
       const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.shards[0].index).toBe(0);
-      expect(parsed.shards[1].index).toBe(1);
+      expect(() => parseManifest(json)).toThrow(/incorrect index/i);
     });
 
-    it('normalizes fileName to filename', () => {
+    it('throws on missing shard filename', () => {
       const manifest = createValidManifest();
-      manifest.shards[0].fileName = 'shard_00000.bin';
       delete manifest.shards[0].filename;
 
       const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.shards[0].filename).toBe('shard_00000.bin');
+      expect(() => parseManifest(json)).toThrow(/invalid filename/i);
     });
 
     it('sets current manifest', () => {

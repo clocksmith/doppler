@@ -53,7 +53,6 @@ export interface ShardInfo {
   size: number;
   hash: string;
   offset: number;
-  blake3?: string;
   hashAlgorithm?: HashAlgorithm;
 }
 

@@ -74,7 +74,7 @@ export interface ShardData {
 
 export interface ShardRecord {
   index: number;
-  fileName: string;
+  filename: string;
   size: number;
   hash: string;
   hashAlgorithm: HashAlgorithm;

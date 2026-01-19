@@ -36,7 +36,7 @@ import {
 } from '../converter/core.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
-import { detectPreset, resolvePreset } from '../config/index.js';
+import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 
 // Re-export types for consumers
 export {
@@ -51,8 +51,23 @@ export { isOPFSSupported as isConversionSupported };
 // ============================================================================
 
 
+function inferQuantizationFromTensors(tensors) {
+  const weightDtypes = new Set();
+  for (const tensor of tensors) {
+    if (!tensor?.name || typeof tensor.dtype !== 'string') continue;
+    if (!tensor.name.includes('.weight')) continue;
+    weightDtypes.add(tensor.dtype.toUpperCase());
+  }
+  if (weightDtypes.size === 0) return null;
+  if (weightDtypes.size > 1) {
+    throw new Error(`Ambiguous weight dtypes: ${Array.from(weightDtypes).join(', ')}`);
+  }
+  return Array.from(weightDtypes)[0];
+}
+
 export async function convertModel(files, options = {}) {
-  const { modelId: userModelId, onProgress, signal } = options;
+  const { modelId: userModelId, onProgress, signal, converterConfig } = options;
+  const resolvedConverterConfig = converterConfig || createConverterConfig();
 
   let modelId = null;
   let modelDir = null;
@@ -117,8 +132,12 @@ export async function convertModel(files, options = {}) {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
     // Determine model ID
-    modelId = userModelId || extractModelId(files, config) || 'converted-model';
-    modelId = sanitizeModelId(modelId);
+    const detectedModelId = extractModelId(files, config);
+    modelId = userModelId || detectedModelId;
+    modelId = modelId ? sanitizeModelId(modelId) : null;
+    if (!modelId) {
+      throw new Error('Missing modelId. Provide modelId explicitly or include a name in config files.');
+    }
 
     onProgress?.({
       stage: ConvertStage.PARSING,
@@ -151,13 +170,23 @@ export async function convertModel(files, options = {}) {
       );
     }
     const preset = resolvePreset(presetId);
-    const modelType = preset.modelType || 'transformer';
+    const modelType = preset.modelType;
+    if (!modelType) {
+      throw new Error(`Preset "${presetId}" missing modelType`);
+    }
     const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config));
     const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
     const architecture = extractArchitecture(hfConfig || {}, ggufConfig);
-    const headDim = architecture.headDim || 64;
+    const headDim = architecture.headDim;
+    if (!headDim) {
+      throw new Error('Missing headDim in architecture');
+    }
+    const quantization = modelInfo.quantization || inferQuantizationFromTensors(modelInfo.tensors);
+    if (!quantization) {
+      throw new Error('Missing quantization for model conversion');
+    }
     const quantizationInfo = modelInfo.quantization
-      ? { weights: modelInfo.quantization, compute: 'f16' }
+      ? { weights: modelInfo.quantization, compute: resolvedConverterConfig.quantization.computePrecision }
       : null;
     const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
 
@@ -165,7 +194,11 @@ export async function convertModel(files, options = {}) {
     const shardIO = new BrowserShardIO(modelDir);
 
     // Create shard packer
-    const packer = new ShardPacker(shardIO, { modelType });
+    const packer = new ShardPacker(shardIO, {
+      modelType,
+      shardSize: resolvedConverterConfig.sharding.shardSizeBytes,
+      hashAlgorithm: resolvedConverterConfig.manifest.hashAlgorithm,
+    });
 
     // Prepare tensors for packing
     const packerTensors = modelInfo.tensors.map(tensor => ({
@@ -234,7 +267,7 @@ export async function convertModel(files, options = {}) {
       })),
       config: (config || modelInfo.config || {}),
       architecture: modelInfo.architecture,
-      quantization: modelInfo.quantization || 'F16',
+      quantization: quantization,
       tokenizerJson,
     };
 
@@ -247,6 +280,9 @@ export async function convertModel(files, options = {}) {
         source: 'browser-converter',
         inference: manifestInference,
         modelType,
+        quantization,
+        quantizationInfo,
+        hashAlgorithm: resolvedConverterConfig.manifest.hashAlgorithm,
       }
     );
 

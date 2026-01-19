@@ -5,6 +5,7 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-po
 import { runGather, recordGather } from '../../gpu/kernel-selector.js';
 import { trace } from '../../debug/index.js';
 import { runProbes } from './probes.js';
+import { decodeReadback } from './debug-utils.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer } from '../../gpu/weight-buffer.js';
@@ -322,7 +323,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     enc.copyBufferToBuffer(gatherOutput.buffer, 0, staging, 0, sampleSize);
     device.queue.submit([enc.finish()]);
     await staging.mapAsync(GPUMapMode.READ);
-    const data = new Float32Array(staging.getMappedRange().slice(0));
+    const data = decodeReadback(staging.getMappedRange().slice(0), gatherOptions.outputDtype);
     staging.unmap();
     staging.destroy();
 
@@ -363,8 +364,10 @@ export async function embed(tokenIds, embedBuffer, config) {
 
   // Debug: check raw embedding values before scaling
   if (debug && !recorder) {
-    const sample = await readBuffer(gatherOutput.buffer, Math.min(gatherOutput.buffer.size, numTokens * hiddenSize * 4));
-    const f32 = new Float32Array(sample);
+    const bytesPerElement = gatherOptions.outputDtype === 'f16' ? 2 : 4;
+    const sampleBytes = Math.min(gatherOutput.buffer.size, numTokens * hiddenSize * bytesPerElement);
+    const sample = await readBuffer(gatherOutput.buffer, sampleBytes);
+    const f32 = decodeReadback(sample, gatherOptions.outputDtype);
     let maxAbs = 0;
     for (let i = 0; i < f32.length; i++) {
       const abs = Math.abs(f32[i]);
@@ -390,8 +393,10 @@ export async function embed(tokenIds, embedBuffer, config) {
   }
 
   if (debug && !recorder) {
-    const sample = await readBuffer(scaledBuffer, Math.min(scaledBuffer.size, numTokens * hiddenSize * 4));
-    const f32 = new Float32Array(sample);
+    const bytesPerElement = dtype === 'f16' ? 2 : 4;
+    const sampleBytes = Math.min(scaledBuffer.size, numTokens * hiddenSize * bytesPerElement);
+    const sample = await readBuffer(scaledBuffer, sampleBytes);
+    const f32 = decodeReadback(sample, dtype);
     let maxAbs = 0;
     for (let i = 0; i < f32.length; i++) {
       const abs = Math.abs(f32[i]);

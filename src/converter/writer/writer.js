@@ -459,7 +459,7 @@ export class RDRRWriter {
 
     const shards = this.#shardWriter.finalizedShards.map(s => ({
       index: s.index,
-      fileName: s.fileName,
+      filename: s.filename,
       size: s.size,
       hash: s.hash,
       hashAlgorithm: s.hashAlgorithm,

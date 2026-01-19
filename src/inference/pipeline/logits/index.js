@@ -159,7 +159,7 @@ export async function computeLogits(
   if (!debugFlags.finalNormDebugDone && debugCheckBuffer) {
     debugFlags.finalNormDebugDone = true;
     await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize);
-    await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, 100);
+    await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, hiddenSize);
   }
 
   // Wrap input buffer as Tensor for RMSNorm

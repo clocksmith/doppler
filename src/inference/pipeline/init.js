@@ -343,7 +343,10 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   await dopplerLoader.init();
 
   // Load model via DopplerLoader
-  const modelId = manifest.modelId || manifest.model_id || 'default';
+  const modelId = manifest.modelId;
+  if (!modelId) {
+    throw new Error('Manifest is missing modelId. Re-convert the model with modelId set.');
+  }
   await dopplerLoader.load(modelId, {
     verifyHashes,
     onProgress: onProgress || ((info) => {

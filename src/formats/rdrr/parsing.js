@@ -13,7 +13,7 @@ export function parseManifest(jsonString) {
     throw new Error(`Failed to parse manifest JSON: ${e.message}`);
   }
 
-  // Normalize shards
+  // Normalize shards (handle fileName vs filename, compute offset if missing)
   if (Array.isArray(manifest.shards)) {
     let offset = 0;
     manifest.shards = manifest.shards.map((shard, i) => {

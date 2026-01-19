@@ -9,7 +9,7 @@ import {
 
 import { classifyTensorRole, generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
-import { detectPreset, resolvePreset } from '../config/index.js';
+import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 
@@ -30,14 +30,13 @@ export const RDRR_VERSION = SCHEMA_RDRR_VERSION;
 
 
 export function sanitizeModelId(name) {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 64) || 'converted-model'
-  );
+  const sanitized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 64);
+  return sanitized || null;
 }
 
 
@@ -70,17 +69,51 @@ export function shouldQuantize(tensorName, shape) {
 
 
 export function extractArchitecture(config, ggufConfig) {
+  const firstNumber = (...values) => {
+    for (const value of values) {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+    }
+    return null;
+  };
+
+  const requireNumber = (value, label) => {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(`Missing ${label} in model config`);
+    }
+    return value;
+  };
+
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
-    const numLayers = config.num_hidden_layers ?? config.n_layer ?? 32;
-    const hiddenSize = config.hidden_size ?? config.n_embd ?? 4096;
-    const intermediateSize = config.intermediate_size ?? config.n_inner ?? 11008;
-    const numHeads = config.num_attention_heads ?? config.n_head ?? 32;
-    const numKVHeads = config.num_key_value_heads ?? numHeads;
+    const numLayers = requireNumber(
+      firstNumber(config.num_hidden_layers, config.n_layer, config.num_layers),
+      'num_hidden_layers'
+    );
+    const hiddenSize = requireNumber(
+      firstNumber(config.hidden_size, config.n_embd, config.embedding_size),
+      'hidden_size'
+    );
+    const intermediateSize = requireNumber(
+      firstNumber(config.intermediate_size, config.n_inner, config.ffn_dim),
+      'intermediate_size'
+    );
+    const numHeads = requireNumber(
+      firstNumber(config.num_attention_heads, config.n_head, config.attention_heads),
+      'num_attention_heads'
+    );
+    const numKVHeads = firstNumber(config.num_key_value_heads, config.num_kv_heads) ?? numHeads;
     const headDimFromConfig = config.head_dim ?? Math.floor(hiddenSize / numHeads);
-    const vocabSize = config.vocab_size ?? 32000;
-    const maxSeqLen = config.max_position_embeddings ?? config.n_positions ?? 2048;
-    const ropeTheta = config.rope_theta ?? 10000;
+    const vocabSize = requireNumber(
+      firstNumber(config.vocab_size, config.n_vocab),
+      'vocab_size'
+    );
+    const maxSeqLen = requireNumber(
+      firstNumber(config.max_position_embeddings, config.n_positions, config.max_seq_len),
+      'max_position_embeddings'
+    );
+    const ropeTheta = config.rope_theta ?? undefined;
 
     return {
       numLayers,
@@ -95,39 +128,55 @@ export function extractArchitecture(config, ggufConfig) {
     };
   }
 
-  // Fallback for GGUF
+  // GGUF config
   if (ggufConfig) {
     const c = ggufConfig;
+    const numLayers = requireNumber(
+      firstNumber(c.blockCount, c.block_count),
+      'blockCount'
+    );
+    const hiddenSize = requireNumber(
+      firstNumber(c.embeddingLength, c.embedding_length),
+      'embeddingLength'
+    );
+    const intermediateSize = requireNumber(
+      firstNumber(c.feedForwardLength, c.feed_forward_length),
+      'feedForwardLength'
+    );
+    const numHeads = requireNumber(
+      firstNumber(c.attentionHeadCount, c.attention_head_count),
+      'attentionHeadCount'
+    );
+    const numKVHeads = firstNumber(c.attentionHeadCountKV, c.attention_head_count_kv) ?? numHeads;
+    const vocabSize = requireNumber(
+      firstNumber(c.vocabSize, c.vocab_size),
+      'vocabSize'
+    );
+    const maxSeqLen = requireNumber(
+      firstNumber(c.contextLength, c.context_length),
+      'contextLength'
+    );
+
     return {
-      numLayers: c.blockCount ?? c.block_count ?? 32,
-      hiddenSize: c.embeddingLength ?? c.embedding_length ?? 4096,
-      intermediateSize: c.feedForwardLength ?? c.feed_forward_length ?? 11008,
-      numAttentionHeads: c.attentionHeadCount ?? c.attention_head_count ?? 32,
-      numKeyValueHeads: c.attentionHeadCountKV ?? c.attention_head_count_kv ?? 32,
-      headDim: Math.floor(
-        (c.embeddingLength ?? c.embedding_length ?? 4096) /
-          (c.attentionHeadCount ?? c.attention_head_count ?? 32)
-      ),
-      vocabSize: c.vocabSize ?? c.vocab_size ?? 32000,
-      maxSeqLen: c.contextLength ?? c.context_length ?? 2048,
+      numLayers,
+      hiddenSize,
+      intermediateSize,
+      numAttentionHeads: numHeads,
+      numKeyValueHeads: numKVHeads,
+      headDim: Math.floor(hiddenSize / numHeads),
+      vocabSize,
+      maxSeqLen,
     };
   }
 
-  // Default fallback
-  return {
-    numLayers: 32,
-    hiddenSize: 4096,
-    intermediateSize: 11008,
-    numAttentionHeads: 32,
-    numKeyValueHeads: 32,
-    headDim: 128,
-    vocabSize: 32000,
-    maxSeqLen: 2048,
-  };
+  throw new Error('Missing model config: cannot extract architecture');
 }
 
 
-export function buildTensorMap(tensors, shardSize = SHARD_SIZE) {
+export function buildTensorMap(tensors, shardSize) {
+  if (!shardSize || shardSize <= 0) {
+    throw new Error('Missing shard size for tensor map');
+  }
   const tensorMap = {};
 
   let globalOffset = 0;
@@ -184,11 +233,17 @@ export function createManifest(
   model,
   shards,
   tensorLocations,
-  sourceOrOptions = 'convert-core'
+  sourceOrOptions
 ) {
+  if (!sourceOrOptions) {
+    throw new Error('Missing manifest options');
+  }
   const options = typeof sourceOrOptions === 'string' ? { source: sourceOrOptions } : sourceOrOptions ?? {};
-  const source = options.source ?? 'convert-core';
-  const architecture = extractArchitecture(model.config);
+  const source = options.source;
+  if (!source) {
+    throw new Error('Missing manifest source');
+  }
+  const architecture = extractArchitecture(model.config, model.ggufConfig);
   const rawConfig = model.config || {};
   let inference = options.inference;
   if (!inference) {
@@ -207,10 +262,11 @@ export function createManifest(
       );
     }
     const preset = resolvePreset(presetId);
-    const headDim = rawConfig.head_dim ??
-      architecture.headDim ??
-      Math.floor(architecture.hiddenSize / architecture.numAttentionHeads);
-    inference = buildManifestInference(preset, rawConfig, headDim || 64, options.quantizationInfo ?? null);
+    const headDim = rawConfig.head_dim ?? architecture.headDim;
+    if (!headDim) {
+      throw new Error('Missing headDim in architecture');
+    }
+    inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null);
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
@@ -230,18 +286,35 @@ export function createManifest(
     tokenizerJson: model.tokenizerJson ?? null,
   });
 
+  const resolvedModelType =
+    options.modelType ??
+    model.modelType ??
+    model.config?.architectures?.[0] ??
+    model.architecture;
+  if (!resolvedModelType) {
+    throw new Error('Missing modelType for manifest');
+  }
+  const resolvedQuantization = options.quantization ?? model.quantization;
+  if (!resolvedQuantization) {
+    throw new Error('Missing quantization for manifest');
+  }
+  const hashAlgorithm = options.hashAlgorithm;
+  if (!hashAlgorithm) {
+    throw new Error('Missing hashAlgorithm for manifest');
+  }
+
   const manifest = {
     version: RDRR_VERSION,
     modelId,
-    modelType: options.modelType || model.config?.architectures?.[0] || model.architecture || 'unknown',
-    quantization: model.quantization || 'F16',
+    modelType: resolvedModelType,
+    quantization: resolvedQuantization,
     quantizationInfo: options.quantizationInfo ?? undefined,
     architecture,
     inference,
     shards,
     tensors: tensorLocations,
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),
-    hashAlgorithm: 'sha256',
+    hashAlgorithm,
     eos_token_id: eosTokenId,
     metadata: {
       source,
@@ -252,12 +325,15 @@ export function createManifest(
   // Include tokenizer if available
   if (model.tokenizerJson) {
     const tokenizer = model.tokenizerJson;
+    const vocabSize =
+      tokenizer.model?.vocab?.length ||
+      Object.keys(tokenizer.model?.vocab || {}).length;
+    if (!vocabSize) {
+      throw new Error('Tokenizer vocab is missing or empty');
+    }
     manifest.tokenizer = {
       type: 'bundled',
-      vocabSize:
-        tokenizer.model?.vocab?.length ||
-        Object.keys(tokenizer.model?.vocab || {}).length ||
-        architecture.vocabSize,
+      vocabSize,
     };
     manifest.metadata.hasTokenizer = true;
   }
@@ -271,14 +347,17 @@ export function createManifest(
 
 
 export async function convertModel(model, io, options = {}) {
-  const {
-    modelId: userModelId,
-    shardSize = SHARD_SIZE,
-    onProgress,
-    signal,
-  } = options;
-
-  const modelId = sanitizeModelId(userModelId || 'converted-model');
+  const { onProgress, signal } = options;
+  const converterConfig = options.converterConfig || createConverterConfig();
+  const shardSize = options.shardSize ?? converterConfig.sharding.shardSizeBytes;
+  if (!shardSize || shardSize <= 0) {
+    throw new Error('Missing shardSize for conversion');
+  }
+  const modelIdInput = options.modelId ?? converterConfig.output.modelId ?? model.modelId ?? model.name;
+  const modelId = modelIdInput ? sanitizeModelId(modelIdInput) : null;
+  if (!modelId) {
+    throw new Error('Missing modelId for conversion');
+  }
   const tensors = model.tensors;
   const totalTensors = tensors.length;
   const shards = [];
@@ -407,7 +486,13 @@ export async function convertModel(model, io, options = {}) {
     message: 'Creating manifest...',
   });
 
-  const manifest = createManifest(modelId, model, shards, tensorLocations);
+  const manifest = createManifest(modelId, model, shards, tensorLocations, {
+    source: 'convert-core',
+    modelType: options.modelType,
+    quantization: options.quantization,
+    quantizationInfo: options.quantizationInfo,
+    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+  });
 
   // Write manifest
   await io.writeManifest(manifest);

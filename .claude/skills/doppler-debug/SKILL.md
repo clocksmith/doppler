@@ -152,8 +152,8 @@ npm run debug -- --config ./trace-ffn.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 # Subsequent runs: reuses model via CDP (much faster, ~5s)
 npm run debug -- --config ./trace-ffn.json -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
 
-# After code changes: rebuild then run
-npm run build && npm run debug -- --config debug -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
+# After code changes: just re-run (no build step needed)
+npm run debug -- --config debug -m MODEL --skip-load 2>&1 | sed '/DOPPLER:DONE/q'
 
 # Keep browser open for multiple runs
 npm run debug -- --config debug -m MODEL --warm

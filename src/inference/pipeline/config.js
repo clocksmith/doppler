@@ -6,11 +6,11 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 // Model Detection Functions
 // =============================================================================
 
-export function getStopTokenIds(config, manifest) {
+export function getStopTokenIds(manifest) {
   const eosTokenId = manifest?.eos_token_id;
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
-  const modelId = manifest?.modelId ?? config?.modelId ?? 'unknown';
+  const modelId = manifest?.modelId ?? 'unknown';
   throw new Error(
     `Manifest "${modelId}" is missing eos_token_id. Re-convert the model with tokenizer metadata.`
   );
@@ -230,7 +230,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
 
   // Get stop token IDs (cast to Manifest for compatibility)
-  const stopTokenIds = getStopTokenIds(config, manifest);
+  const stopTokenIds = getStopTokenIds(manifest);
 
   // Get MoE config
   const moeConfig = manifest.moeConfig ?? null;
@@ -322,7 +322,7 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   // Merge manifest inference with runtime overrides
   const merged = mergeConfig(
     {
-      modelId: manifest.modelId ?? manifest.model_id ?? 'unknown',
+      modelId: manifest.modelId ?? 'unknown',
       inference: manifest.inference,
       architecture: manifest.architecture,
     },
@@ -352,7 +352,7 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
 export function parseModelConfig(manifest, runtimeOverrides) {
   // Manifest-first architecture: inference config is required
   if (!hasManifestInference(manifest)) {
-    const modelId = manifest.modelId ?? manifest.model_id ?? 'unknown';
+    const modelId = manifest.modelId ?? 'unknown';
     throw new Error(
       `Manifest "${modelId}" is missing inference config. ` +
       `Re-convert the model using the latest converter to add manifest.inference. ` +

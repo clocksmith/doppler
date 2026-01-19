@@ -35,7 +35,7 @@
   "shards": [
     {
       "index": 0,
-      "fileName": "shard_00000.bin",
+      "filename": "shard_00000.bin",
       "size": 925952,
       "hash": "5d1c4694d84c97b68dbbd3d124c3e95c55c45be3ee6bfc6ac20b10c79d4bf72f",
       "hashAlgorithm": "sha256"

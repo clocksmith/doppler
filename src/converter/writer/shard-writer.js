@@ -59,13 +59,13 @@ export class ShardWriter {
     }
 
     const hash = await computeHash(shardData, this.#hashAlgorithm);
-    const shardFileName = `shard_${String(this.#currentShardIndex).padStart(5, '0')}.bin`;
-    const shardPath = join(this.#outputDir, shardFileName);
+    const shardFilename = `shard_${String(this.#currentShardIndex).padStart(5, '0')}.bin`;
+    const shardPath = join(this.#outputDir, shardFilename);
     await writeFile(shardPath, shardData);
 
     this.#shards.push({
       index: this.#currentShardIndex,
-      fileName: shardFileName,
+      filename: shardFilename,
       size: totalSize,
       hash,
       hashAlgorithm: this.#hashAlgorithm,

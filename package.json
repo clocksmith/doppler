@@ -25,8 +25,6 @@
     "test": "tsx cli/index.js test",
     "bench": "tsx cli/index.js bench",
     "debug": "tsx cli/index.js debug",
-    "build": "tsc --project tsconfig.build.json",
-    "build:benchmark": "node -e \"const esbuild = require('esbuild'); const files = require('fs').readdirSync('tests/benchmark').filter(f => f.endsWith('.ts')); files.forEach(f => esbuild.buildSync({ entryPoints: ['tests/benchmark/' + f], outfile: 'tests/benchmark/' + f.replace('.ts', '.js'), format: 'esm', platform: 'browser', target: 'es2022', bundle: false }));\"",
     "kernels:validate": "tsx tools/validate-kernel-registry.js",
     "kernels:lint": "tsx tools/lint-wgsl-overrides.js",
     "kernels:check": "npm run kernels:validate && npm run kernels:lint"

@@ -1,7 +1,6 @@
 
 
 import {
-  SHARD_SIZE,
   generateShardFilename,
   classifyTensor,
   classifyTensorRole,
@@ -29,9 +28,18 @@ export class ShardPacker {
 
   constructor(io, options = {}) {
     this.#io = io;
-    this.#shardSize = options.shardSize ?? SHARD_SIZE;
-    this.#hashAlgorithm = options.hashAlgorithm ?? 'sha256';
-    this.#modelType = options.modelType ?? 'transformer';
+    this.#shardSize = options.shardSize;
+    this.#hashAlgorithm = options.hashAlgorithm;
+    this.#modelType = options.modelType;
+    if (!this.#shardSize || this.#shardSize <= 0) {
+      throw new Error('Missing shard size for shard packer');
+    }
+    if (!this.#hashAlgorithm) {
+      throw new Error('Missing hashAlgorithm for shard packer');
+    }
+    if (!this.#modelType) {
+      throw new Error('Missing modelType for shard packer');
+    }
   }
 
   
@@ -236,7 +244,10 @@ export function sortTensorsByGroup(tensors, modelType = 'transformer') {
 }
 
 
-export function estimateShardCount(tensors, shardSize = SHARD_SIZE) {
+export function estimateShardCount(tensors, shardSize) {
+  if (!shardSize || shardSize <= 0) {
+    throw new Error('Missing shard size for shard count estimate');
+  }
   const totalSize = tensors.reduce((sum, t) => sum + t.size, 0);
   return Math.ceil(totalSize / shardSize);
 }

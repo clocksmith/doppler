@@ -433,4 +433,3 @@ npx tsx src/converter/node-converter.js \
 - [Browser Training](design/BROWSER_TRAINING.md)
 - [FunctionGemma Refactor](design/FUNCTION_GEMMA.md)
 - [GEPA Synergy](design/GEPA_SYNERGY.md)
-- [Competitive Analysis](COMPETITIVE_ANALYSIS.md)

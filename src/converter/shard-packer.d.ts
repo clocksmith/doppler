@@ -64,9 +64,9 @@ export type TensorLocation = TensorLocationSingle | TensorLocationMulti;
  * Shard packer options
  */
 export interface ShardPackerOptions {
-  shardSize?: number;
-  hashAlgorithm?: HashAlgorithm;
-  modelType?: ModelType;
+  shardSize: number;
+  hashAlgorithm: HashAlgorithm;
+  modelType: ModelType;
   onProgress?: (current: number, total: number, tensorName: string) => void;
   signal?: AbortSignal;
 }
@@ -97,7 +97,7 @@ export interface PackerTensorInput {
  * Platform-agnostic shard packer.
  */
 export declare class ShardPacker {
-  constructor(io: ShardIO, options?: ShardPackerOptions);
+  constructor(io: ShardIO, options: ShardPackerOptions);
 
   pack(
     tensors: PackerTensorInput[],
@@ -120,5 +120,5 @@ export declare function sortTensorsByGroup(
  */
 export declare function estimateShardCount(
   tensors: TensorInfoSchema[],
-  shardSize?: number
+  shardSize: number
 ): number;

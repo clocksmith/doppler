@@ -278,9 +278,12 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
       const manifest = getManifest();
       const algorithm = requireManifestHashAlgorithm(manifest, 'shard write');
       const hash = await computeHash(bytes, algorithm);
-      const expectedHash = shardInfo.hash || shardInfo.blake3;
-
-      if (expectedHash && hash !== expectedHash) {
+      const expectedHash = shardInfo.hash;
+      if (!expectedHash) {
+        await backend.deleteFile(shardInfo.filename);
+        throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
+      }
+      if (hash !== expectedHash) {
         await backend.deleteFile(shardInfo.filename);
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
@@ -322,9 +325,11 @@ export async function loadShard(shardIndex, options = { verify: false }) {
       const manifest = getManifest();
       const algorithm = requireManifestHashAlgorithm(manifest, 'shard load');
       const hash = await computeHash(buffer, algorithm);
-      const expectedHash = shardInfo.hash || shardInfo.blake3;
-
-      if (expectedHash && hash !== expectedHash) {
+      const expectedHash = shardInfo.hash;
+      if (!expectedHash) {
+        throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
+      }
+      if (hash !== expectedHash) {
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
     }
@@ -381,9 +386,12 @@ export async function verifyIntegrity() {
       const buffer = await loadShard(i, { verify: false });
       const hash = await computeHash(buffer, algorithm);
       const shardInfo = getShardInfo(i);
-      const expectedHash = shardInfo?.hash || shardInfo?.blake3;
-
-      if (expectedHash && hash !== expectedHash) {
+      const expectedHash = shardInfo?.hash;
+      if (!expectedHash) {
+        corruptShards.push(i);
+        continue;
+      }
+      if (hash !== expectedHash) {
         corruptShards.push(i);
       }
     } catch (_error) {

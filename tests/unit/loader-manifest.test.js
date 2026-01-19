@@ -302,8 +302,8 @@ describe('loader/manifest - manifest parsing', () => {
       expect(miniManifest.shards[0].index).toBe(0);
     });
 
-    it('shard has correct fileName', () => {
-      expect(miniManifest.shards[0].fileName).toBe('shard-0.bin');
+    it('shard has correct filename', () => {
+      expect(miniManifest.shards[0].filename).toBe('shard-0.bin');
     });
 
     it('shard has correct size', () => {

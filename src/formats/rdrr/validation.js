@@ -150,7 +150,7 @@ export function validateManifest(manifest) {
         errors.push(`Shard ${i} has invalid size`);
       }
 
-      const hash = shard.hash || shard.blake3;
+      const hash = shard.hash;
       if (!hash || typeof hash !== 'string' || hash.length !== 64) {
         errors.push(`Shard ${i} has invalid hash`);
       }

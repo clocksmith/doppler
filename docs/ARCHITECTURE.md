@@ -612,7 +612,7 @@ This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes
 - `undefined` = not specified (validation error)
 Runtime overrides only apply when values are non-null; runtime `null` does not
 unset a manifest value.
-Architecture fields fall back only when `manifest.architecture` is a legacy
+Architecture fields are required; `manifest.architecture` must be present
 string; defaults like `DEFAULT_MAX_POSITION_EMBEDDINGS` and `DEFAULT_RMS_NORM_EPS`
 apply only in that path.
 

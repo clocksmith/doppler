@@ -3,7 +3,6 @@
 import {
   RDRR_VERSION,
   SHARD_SIZE,
-  TENSORS_FILENAME,
 } from './types.js';
 import { validateManifest } from './validation.js';
 import { getShardInfo } from './parsing.js';
@@ -40,7 +39,6 @@ export function createShardLayout(
       filename: generateShardFilename(i),
       size,
       hash: hashes[i],
-      blake3: hashes[i],
       offset,
     });
 
@@ -57,12 +55,12 @@ export function createManifest(options) {
     modelType: options.modelType,
     quantization: options.quantization,
     quantizationInfo: options.quantizationInfo,
-    hashAlgorithm: options.hashAlgorithm ?? 'sha256',
+    hashAlgorithm: options.hashAlgorithm,
     architecture: options.architecture,
     groups: options.groups,
     shards: options.shards,
     totalSize: options.totalSize,
-    tensorsFile: options.tensorsFile || TENSORS_FILENAME,
+    tensorsFile: options.tensorsFile,
     tensorCount: options.tensorCount,
     tokenizer: options.tokenizer,
     moeConfig: options.moeConfig,

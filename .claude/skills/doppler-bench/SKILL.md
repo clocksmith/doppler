@@ -146,8 +146,8 @@ npm run bench -- inference --config '{"runtime":{"inference":{"kernelPath":"gemm
 # Quick single run
 npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 
-# After code changes: rebuild then benchmark
-npm run build && npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
+# After code changes: just re-run (no build step needed)
+npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 ```
 
 Use `sed '/DOPPLER:DONE/q'` to exit immediately after benchmark completes.

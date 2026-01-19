@@ -32,7 +32,7 @@ test.describe('Batch Generation Correctness', () => {
 
       const loadShard = async (idx) => {
         const shard = manifest.shards[idx];
-        const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+        const resp = await fetch(`${MODEL_URL}/${shard.filename}`);
         return new Uint8Array(await resp.arrayBuffer());
       };
 
@@ -95,7 +95,7 @@ test.describe('Batch Generation Correctness', () => {
 
       const loadShard = async (idx) => {
         const shard = manifest.shards[idx];
-        const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+        const resp = await fetch(`${MODEL_URL}/${shard.filename}`);
         return new Uint8Array(await resp.arrayBuffer());
       };
 

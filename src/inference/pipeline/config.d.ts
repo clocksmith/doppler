@@ -83,15 +83,13 @@ export interface TensorInfo {
 }
 
 export interface Manifest {
-  architecture?: string;
+  architecture?: ArchitectureSchema;
   config?: RawConfig | Record<string, unknown>;
   tensors?: Record<string, TensorInfo>;
   tokenizer?: Record<string, unknown> & { vocab_size?: number };
   quantization?: string;
   eos_token_id?: number | number[];
   modelId?: string;
-  model_id?: string;
-  name?: string;
   draftModel?: { numTokens?: number };
   optimizations?: {
     useBatching?: boolean;
@@ -163,7 +161,7 @@ export interface ParsedModelConfig {
   kernelPath?: KernelPathRef;
 }
 
-export function getStopTokenIds(config: RawConfig, manifest: Manifest): number[];
+export function getStopTokenIds(manifest: Manifest): number[];
 
 /**
  * Extended manifest with inference config for manifest-first parsing.
@@ -176,7 +174,6 @@ export interface ManifestWithInference {
   tokenizer?: Record<string, unknown> & { vocab_size?: number };
   quantization?: string;
   modelId?: string;
-  model_id?: string;
   eos_token_id: number | number[];
 }
 
