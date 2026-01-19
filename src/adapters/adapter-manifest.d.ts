@@ -10,6 +10,13 @@
 
 import type { LoRAModuleName } from '../inference/pipeline/lora-types.js';
 
+export declare const DEFAULT_ADAPTER_MANIFEST_DEFAULTS: {
+  readonly version: '1.0.0';
+  readonly checksumAlgorithm: 'sha256';
+  readonly weightsFormat: 'safetensors';
+  readonly tensorDtype: 'f32';
+};
+
 /**
  * JSON Schema for adapter manifests.
  * Can be used with JSON Schema validators like Ajv.
@@ -257,6 +264,8 @@ export interface ManifestValidationError {
  * Validates an adapter manifest against the schema.
  */
 export declare function validateManifest(manifest: unknown): ManifestValidationResult;
+
+export declare function applyAdapterManifestDefaults<T extends Record<string, unknown>>(manifest: T): T;
 
 /**
  * Parses and validates a manifest from JSON string.

@@ -26,17 +26,7 @@ export function getShardsForExpert(layerIdx, expertIdx) {
   if (group) {
     return group.shards;
   }
-
-  // Fallback to legacy moeConfig
-  if (!manifest?.moeConfig?.expertShardMap) {
-    return [];
-  }
-  const key = `${layerIdx}_${expertIdx}`;
-  const shardIndices = manifest.moeConfig.expertShardMap[key];
-  if (!shardIndices) {
-    return [];
-  }
-  return Array.isArray(shardIndices) ? shardIndices : [shardIndices];
+  throw new Error(`Missing expert group mapping: ${groupId}`);
 }
 
 export function getTensorsForExpert(layerIdx, expertIdx) {
@@ -46,13 +36,7 @@ export function getTensorsForExpert(layerIdx, expertIdx) {
   if (group) {
     return group.tensors;
   }
-
-  // Fallback to legacy moeConfig
-  if (!manifest?.moeConfig?.expertTensors) {
-    return [];
-  }
-  const key = `${layerIdx}_${expertIdx}`;
-  return manifest.moeConfig.expertTensors[key] || [];
+  throw new Error(`Missing expert group mapping: ${groupId}`);
 }
 
 export function getExpertBytes() {

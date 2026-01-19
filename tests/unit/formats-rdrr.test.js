@@ -119,13 +119,6 @@ function createValidTensorMap() {
   };
 }
 
-function setLegacyManifestForTensorMap() {
-  const manifest = createValidManifest({
-    config: { model_type: 'test' },
-  });
-  setManifest(manifest);
-}
-
 describe('formats/rdrr/manifest', () => {
   describe('generateShardFilename', () => {
     it('generates padded filenames', () => {
@@ -356,22 +349,6 @@ describe('formats/rdrr/parsing', () => {
       expect(parsed.shards[0].filename).toBe('shard_00000.bin');
     });
 
-    it('normalizes architecture numKeyValueHeads', () => {
-      const manifest = createValidManifest();
-      const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.architecture.numKeyValueHeads).toBe(12);
-    });
-
-    it('calculates headDim', () => {
-      const manifest = createValidManifest();
-      const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.architecture.headDim).toBe(64);
-    });
-
     it('sets current manifest', () => {
       const manifest = createValidManifest();
       const json = JSON.stringify(manifest);
@@ -390,27 +367,9 @@ describe('formats/rdrr/parsing', () => {
       expect(() => parseManifest(json)).toThrow(/Invalid manifest/);
     });
 
-    it('normalizes legacy eos_token_id from config', () => {
+    it('throws on missing eos_token_id', () => {
       const manifest = createValidManifest();
       delete manifest.eos_token_id;
-      manifest.config = {
-        model_type: 'test',
-        eos_token_id: [2, 3],
-      };
-      const json = JSON.stringify(manifest);
-      const parsed = parseManifest(json);
-
-      expect(parsed.eos_token_id).toEqual([2, 3]);
-    });
-
-    it('does not normalize eos_token_id for non-legacy manifests', () => {
-      const manifest = createValidManifest();
-      delete manifest.eos_token_id;
-      manifest.groups = {};
-      manifest.config = {
-        model_type: 'test',
-        eos_token_id: 2,
-      };
       const json = JSON.stringify(manifest);
 
       expect(() => parseManifest(json)).toThrow(/Missing eos_token_id/);
@@ -435,33 +394,6 @@ describe('formats/rdrr/parsing', () => {
       const json = JSON.stringify(tensorMap);
 
       expect(() => parseTensorMap(json)).toThrow(/missing role/);
-    });
-
-    it('infers roles from legacy group fields', () => {
-      setLegacyManifestForTensorMap();
-      const tensorMap = {
-        'model.embed_tokens.weight': { shard: 0, offset: 0, size: 100, shape: [10], group: 'embed' },
-        'model.norm.weight': { shard: 0, offset: 100, size: 100, shape: [10], group: 'head' },
-        'output.weight': { shard: 0, offset: 200, size: 100, shape: [10], group: 'head' },
-      };
-      const json = JSON.stringify(tensorMap);
-      const parsed = parseTensorMap(json);
-
-      expect(parsed['model.embed_tokens.weight'].role).toBe('embedding');
-      expect(parsed['model.norm.weight'].role).toBe('norm');
-      expect(parsed['output.weight'].role).toBe('lm_head');
-    });
-
-    it('backfills group for head roles', () => {
-      const tensorMap = {
-        'final_norm.weight': { shard: 0, offset: 0, size: 100, shape: [10], role: 'norm' },
-        'lm_head.weight': { shard: 0, offset: 100, size: 100, shape: [10], role: 'lm_head' },
-      };
-      const json = JSON.stringify(tensorMap);
-      const parsed = parseTensorMap(json);
-
-      expect(parsed['final_norm.weight'].group).toBe('head');
-      expect(parsed['lm_head.weight'].group).toBe('head');
     });
 
     it('throws on missing shard index', () => {

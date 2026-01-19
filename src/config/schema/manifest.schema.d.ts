@@ -382,7 +382,7 @@ export interface ManifestSchema {
   totalSize: number;
   eos_token_id: number | number[];
 
-  // Architecture (required, but can be string for legacy)
+  // Architecture (required)
   architecture: ArchitectureSchema;
 
   // Inference configuration (required, populated by converter)
@@ -398,7 +398,7 @@ export interface ManifestSchema {
   // v1: Component groups
   groups?: Record<string, ComponentGroupSchema>;
 
-  // Legacy: Inline tensors (deprecated in v1)
+  // Inline tensors (deprecated in v1)
   tensors?: TensorMapSchema;
 
   // Optional
@@ -417,8 +417,6 @@ export interface ManifestSchema {
   // Provenance (for merged/frankenstein models)
   provenance?: ProvenanceSchema;
 
-  // Legacy field aliases
-  name?: string;
 }
 
 /** Check if manifest is v1 format (has groups) */
@@ -429,7 +427,7 @@ export declare function hasMoEConfig(manifest: ManifestSchema): boolean;
 
 /**
  * Validate manifest has required inference configuration.
- * Throws if manifest is missing inference field (legacy manifest).
+ * Throws if manifest is missing inference field.
  */
 export declare function validateManifestInference(
   manifest: { modelId: string; inference?: ManifestInferenceSchema }

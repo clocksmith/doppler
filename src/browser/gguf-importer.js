@@ -9,12 +9,11 @@ import {
   deleteModel,
 } from '../storage/shard-manager.js';
 import {
-  SHARD_SIZE,
   RDRR_VERSION,
   generateShardFilename,
 } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
-import { detectPreset, resolvePreset } from '../config/index.js';
+import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 // Header size to read for parsing (10MB should cover any GGUF header)
@@ -49,14 +48,13 @@ async function computeSHA256(data) {
 
 
 function sanitizeModelId(name) {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 64) || 'imported-model'
-  );
+  const sanitized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 64);
+  return sanitized || null;
 }
 
 // ============================================================================
@@ -66,11 +64,13 @@ function sanitizeModelId(name) {
 
 export async function importGGUFFile(
   file,
-  { onProgress, signal } = {}
+  { onProgress, signal, modelId: userModelId, converterConfig } = {}
 ) {
   let modelId = null;
   let modelDir = null;
   const shardInfos = [];
+  const resolvedConverterConfig = converterConfig || createConverterConfig();
+  const shardingConfig = resolvedConverterConfig.sharding;
 
   try {
     // Initialize OPFS
@@ -94,9 +94,13 @@ export async function importGGUFFile(
     const ggufInfo = parseGGUFHeader(headerBuffer);
 
     // Generate model ID from filename or GGUF metadata
-    modelId = sanitizeModelId(
-      ggufInfo.modelName !== 'unknown' ? ggufInfo.modelName : file.name.replace(/\.gguf$/i, '')
-    );
+    const ggufName = ggufInfo.modelName !== 'unknown'
+      ? ggufInfo.modelName
+      : file.name.replace(/\.gguf$/i, '');
+    modelId = sanitizeModelId(userModelId || ggufName);
+    if (!modelId) {
+      throw new Error('Missing modelId. Provide modelId explicitly or include a name in GGUF metadata.');
+    }
 
     onProgress?.({
       stage: ImportStage.PARSING,
@@ -114,7 +118,11 @@ export async function importGGUFFile(
 
     // Calculate expected shard count
     const totalDataSize = file.size - ggufInfo.tensorDataOffset;
-    const expectedShards = Math.ceil(totalDataSize / SHARD_SIZE);
+    const shardSizeBytes = shardingConfig?.shardSizeBytes;
+    if (!shardSizeBytes || shardSizeBytes <= 0) {
+      throw new Error('Invalid converter shard size configuration');
+    }
+    const expectedShards = Math.ceil(totalDataSize / shardSizeBytes);
 
     onProgress?.({
       stage: ImportStage.SHARDING,
@@ -131,13 +139,13 @@ export async function importGGUFFile(
 
     // Stream the file and create shards
     if (canStreamFile(file)) {
-      await streamToShards(file, ggufInfo, modelDir, shardInfos, {
+      await streamToShards(file, ggufInfo, modelDir, shardInfos, shardSizeBytes, {
         onProgress,
         signal,
       });
     } else {
       // Fallback for browsers without streaming
-      await bufferToShards(file, ggufInfo, modelDir, shardInfos, {
+      await bufferToShards(file, ggufInfo, modelDir, shardInfos, shardSizeBytes, {
         onProgress,
         signal,
       });
@@ -194,11 +202,12 @@ async function streamToShards(
   ggufInfo,
   modelDir,
   shardInfos,
+  shardSizeBytes,
   { onProgress, signal }
 ) {
   const tensorDataOffset = ggufInfo.tensorDataOffset;
   const totalDataSize = file.size - tensorDataOffset;
-  const expectedShards = Math.ceil(totalDataSize / SHARD_SIZE);
+  const expectedShards = Math.ceil(totalDataSize / shardSizeBytes);
 
   // Slice to just tensor data
   const tensorBlob = file.slice(tensorDataOffset);
@@ -206,7 +215,7 @@ async function streamToShards(
   const reader = stream.getReader();
 
   let shardIndex = 0;
-  let shardBuffer = new Uint8Array(SHARD_SIZE);
+  let shardBuffer = new Uint8Array(shardSizeBytes);
   let shardOffset = 0;
   let totalProcessed = 0;
 
@@ -223,7 +232,7 @@ async function streamToShards(
       if (done) {
         // Write final partial shard if any data remains
         if (shardOffset > 0) {
-          await writeShard(modelDir, shardIndex, shardBuffer.slice(0, shardOffset), shardInfos);
+          await writeShard(modelDir, shardIndex, shardBuffer.slice(0, shardOffset), shardInfos, shardSizeBytes);
           shardIndex++;
         }
         break;
@@ -232,7 +241,7 @@ async function streamToShards(
       // Process chunk
       let chunkOffset = 0;
       while (chunkOffset < value.length) {
-        const remaining = SHARD_SIZE - shardOffset;
+        const remaining = shardSizeBytes - shardOffset;
         const toCopy = Math.min(remaining, value.length - chunkOffset);
 
         shardBuffer.set(value.subarray(chunkOffset, chunkOffset + toCopy), shardOffset);
@@ -241,11 +250,11 @@ async function streamToShards(
         totalProcessed += toCopy;
 
         // Shard full, write it
-        if (shardOffset === SHARD_SIZE) {
-          await writeShard(modelDir, shardIndex, shardBuffer, shardInfos);
+        if (shardOffset === shardSizeBytes) {
+          await writeShard(modelDir, shardIndex, shardBuffer, shardInfos, shardSizeBytes);
 
           shardIndex++;
-          shardBuffer = new Uint8Array(SHARD_SIZE);
+          shardBuffer = new Uint8Array(shardSizeBytes);
           shardOffset = 0;
 
           onProgress?.({
@@ -269,11 +278,12 @@ async function bufferToShards(
   ggufInfo,
   modelDir,
   shardInfos,
+  shardSizeBytes,
   { onProgress, signal }
 ) {
   const tensorDataOffset = ggufInfo.tensorDataOffset;
   const totalDataSize = file.size - tensorDataOffset;
-  const expectedShards = Math.ceil(totalDataSize / SHARD_SIZE);
+  const expectedShards = Math.ceil(totalDataSize / shardSizeBytes);
 
   log.warn('GGUF Import', 'Using buffer fallback - large files may cause memory issues');
 
@@ -286,12 +296,12 @@ async function bufferToShards(
       throw new DOMException('Import cancelled', 'AbortError');
     }
 
-    const end = Math.min(offset + SHARD_SIZE, file.size);
+    const end = Math.min(offset + shardSizeBytes, file.size);
     const blob = file.slice(offset, end);
     const buffer = await blob.arrayBuffer();
     const data = new Uint8Array(buffer);
 
-    await writeShard(modelDir, shardIndex, data, shardInfos);
+    await writeShard(modelDir, shardIndex, data, shardInfos, shardSizeBytes);
 
     shardIndex++;
     offset = end;
@@ -311,7 +321,8 @@ async function writeShard(
   modelDir,
   shardIndex,
   data,
-  shardInfos
+  shardInfos,
+  shardSizeBytes
 ) {
   const filename = generateShardFilename(shardIndex);
   const hash = await computeSHA256(data);
@@ -328,7 +339,7 @@ async function writeShard(
     filename,
     size: data.length,
     hash: hash, // SHA-256 hash
-    offset: shardIndex * SHARD_SIZE,
+    offset: shardIndex * shardSizeBytes,
   });
 }
 

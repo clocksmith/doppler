@@ -5,6 +5,13 @@ import {
   DEFAULT_ADAPTER_VALIDATION_CONFIG,
 } from '../config/schema/index.js';
 
+export const DEFAULT_ADAPTER_MANIFEST_DEFAULTS = {
+  version: '1.0.0',
+  checksumAlgorithm: 'sha256',
+  weightsFormat: 'safetensors',
+  tensorDtype: 'f32',
+};
+
 // ============================================================================
 // JSON Schema Definition (as TypeScript const for runtime validation)
 // ============================================================================
@@ -33,7 +40,7 @@ export const ADAPTER_MANIFEST_SCHEMA = {
       type: 'string',
       description: 'Semantic version of the adapter',
       pattern: '^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$',
-      default: '1.0.0',
+      default: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.version,
     },
     description: {
       type: 'string',
@@ -75,13 +82,13 @@ export const ADAPTER_MANIFEST_SCHEMA = {
       type: 'string',
       description: 'Algorithm used for checksum',
       enum: ['sha256', 'blake3'],
-      default: 'sha256',
+      default: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.checksumAlgorithm,
     },
     weightsFormat: {
       type: 'string',
       description: 'Format of the weight tensors',
       enum: ['safetensors', 'npz', 'json', 'binary'],
-      default: 'safetensors',
+      default: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.weightsFormat,
     },
     weightsPath: {
       type: 'string',
@@ -109,7 +116,7 @@ export const ADAPTER_MANIFEST_SCHEMA = {
           dtype: {
             type: 'string',
             enum: ['f32', 'f16', 'bf16'],
-            default: 'f32',
+            default: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.tensorDtype,
           },
           data: {
             type: 'array',
@@ -238,6 +245,34 @@ export function validateManifest(manifest) {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+export function applyAdapterManifestDefaults(manifest) {
+  if (!manifest || typeof manifest !== 'object') {
+    throw new Error('Adapter manifest must be an object');
+  }
+
+  const merged = { ...manifest };
+  if (!merged.version) {
+    merged.version = DEFAULT_ADAPTER_MANIFEST_DEFAULTS.version;
+  }
+  if (!merged.checksumAlgorithm) {
+    merged.checksumAlgorithm = DEFAULT_ADAPTER_MANIFEST_DEFAULTS.checksumAlgorithm;
+  }
+  if (!merged.weightsFormat) {
+    merged.weightsFormat = DEFAULT_ADAPTER_MANIFEST_DEFAULTS.weightsFormat;
+  }
+
+  if (Array.isArray(merged.tensors)) {
+    merged.tensors = merged.tensors.map((tensor) => {
+      if (tensor && typeof tensor === 'object' && !tensor.dtype) {
+        return { ...tensor, dtype: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.tensorDtype };
+      }
+      return tensor;
+    });
+  }
+
+  return merged;
 }
 
 

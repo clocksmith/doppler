@@ -8,9 +8,12 @@
     },
     "shared": {
       "debug": {
+        "pipeline": {
+          "enabled": true
+        },
         "trace": {
           "enabled": true,
-          "categories": ["all"],
+          "categories": ["loader", "kernels", "logits", "embed", "attn", "ffn", "kv", "sample", "perf"],
           "maxDecodeSteps": 1
         },
         "probes": [

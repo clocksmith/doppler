@@ -54,8 +54,14 @@ export function validateManifest(manifest) {
   if (!isLoRAAdapter && manifest.architecture && typeof manifest.architecture === 'object') {
     const arch = manifest.architecture;
     const requiredFields = [
-      'numLayers', 'hiddenSize', 'intermediateSize',
-      'numAttentionHeads', 'vocabSize', 'maxSeqLen'
+      'numLayers',
+      'hiddenSize',
+      'intermediateSize',
+      'numAttentionHeads',
+      'numKeyValueHeads',
+      'headDim',
+      'vocabSize',
+      'maxSeqLen',
     ];
     for (const field of requiredFields) {
       const value = arch[field];
@@ -63,8 +69,8 @@ export function validateManifest(manifest) {
         errors.push(`Invalid architecture.${field}`);
       }
     }
-  } else if (!isLoRAAdapter && !manifest.architecture && !manifest.config) {
-    errors.push('Missing architecture or config field');
+  } else if (!isLoRAAdapter && !manifest.architecture) {
+    errors.push('Missing architecture field');
   }
 
   // Groups validation

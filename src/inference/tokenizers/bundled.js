@@ -139,7 +139,7 @@ export class BundledTokenizer extends BaseTokenizer {
   
   #tokenTypes = [];
   
-  #type = 'bpe';
+  #type = null;
   
   #byteTokens = new Map();
   
@@ -187,7 +187,13 @@ export class BundledTokenizer extends BaseTokenizer {
   
   #loadHuggingFaceFormat(hf) {
     const model = hf.model;
-    this.#type =  (model.type?.toLowerCase()) || 'bpe';
+    if (typeof model.type !== 'string') {
+      throw new Error('[Tokenizer] Missing model.type in HuggingFace tokenizer JSON.');
+    }
+    this.#type = model.type.toLowerCase();
+    if (this.#type !== 'bpe' && this.#type !== 'unigram') {
+      throw new Error(`[Tokenizer] Unsupported tokenizer type: ${model.type}`);
+    }
     log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.#type}"`);
     let maxId = -1;
 
@@ -207,9 +213,9 @@ export class BundledTokenizer extends BaseTokenizer {
           this.#byteTokens.set(byteVal, i);
         }
       }
-    } else {
+    } else if (this.#type === 'bpe' && model.vocab && typeof model.vocab === 'object') {
       // BPE format: { token: id }
-      for (const [token, id] of Object.entries(model.vocab || {})) {
+      for (const [token, id] of Object.entries(model.vocab)) {
         const numId = typeof id === 'number' ? id : parseInt( (id), 10);
         this.#vocab.set(token, numId);
         this.#reverseVocab.set(numId, token);
@@ -221,6 +227,8 @@ export class BundledTokenizer extends BaseTokenizer {
           this.#byteTokens.set(byteVal, numId);
         }
       }
+    } else {
+      throw new Error(`[Tokenizer] Missing vocab for tokenizer type: ${model.type}`);
     }
 
     this.vocabSize = this.#vocab.size;
@@ -357,7 +365,13 @@ export class BundledTokenizer extends BaseTokenizer {
 
   
   #loadBundledFormat(tokenizerJson) {
-    this.#type =  (tokenizerJson.type) || 'bpe';
+    if (typeof tokenizerJson.type !== 'string') {
+      throw new Error('[Tokenizer] Missing tokenizer.type in bundled tokenizer JSON.');
+    }
+    this.#type = tokenizerJson.type.toLowerCase();
+    if (this.#type !== 'bpe' && this.#type !== 'unigram') {
+      throw new Error(`[Tokenizer] Unsupported tokenizer type: ${tokenizerJson.type}`);
+    }
 
     // Build vocab maps
     for (const [token, id] of Object.entries(tokenizerJson.vocab)) {

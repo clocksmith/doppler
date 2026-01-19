@@ -356,3 +356,41 @@ Decode: 6400ms (5 tok/s)
 GPU Submits: 48 prefill, 256 decode
 Latency P50/P90/P99: 200/215/280ms
 ```
+
+## Additional Metrics (Dec 2025)
+**Scale (Oct 2025):**
+- **1.4 million unique monthly users**
+- **155 supported architectures**
+- WebGPU mode: up to **100x faster** than WASM
+
+Source: [JSNation 2025 Talk](https://gitnation.com/contents/transformersjs-state-of-the-art-machine-learning-for-the-web), [Transformers.js v3 Blog](https://huggingface.co/blog/transformersjs-v3), Oct 2024
+
+> "Currently, there is no way for ONNX Runtime Web to run models larger than 4GB... WebAssembly has a memory limit of 4GB. This is the maximum amount of memory that a WebAssembly module can access because of the 32-bit addressing."
+>
+> Source: [ONNX Runtime Docs](https://onnxruntime.ai/docs/tutorials/web/large-models.html), Dec 2025
+
+**Quantization:** fp32, fp16, q8 (default WASM), q4
+
+**Notable demos:** SmolVLM (multimodal), Phi-3.5-WebGPU, Whisper-WebGPU
+
+**Roadmap:**
+- WebNN integration - in progress
+- More architectures - ongoing (155→?)
+- **WASM64 or direct GPU loading** - "may support in future" (would remove 4GB limit)
+
+**Threat if 4GB limit removed:** Instant access to larger models for 1.4M users
+
+### Google MediaPipe LLM
+
+Google's official solution with custom workarounds for browser limits.
+
+> "MediaPipe's earlier web APIs made heavy use of JavaScript primitives like ArrayBuffer when loading data, but many of these cannot support sizes past ~2GB. For the initial web LLM launch, they worked around the 2GB limitation by creating custom data copying routines... Google has since redesigned the model loading system to run much larger models like Gemma 1.1 7B. This 8.6GB model comprising 7 billion parameters is several times larger than any model they've run in a browser previously."
+>
+> Source: [Google AI Blog](https://research.google/blog/unlocking-7b-language-models-in-your-browser-a-deep-dive-with-google-ai-edges-mediapipe/), 2024
+
+**Model Catalog (Dec 2025):**
+
+| Model | Params | Multimodal | Notes |
+|-------|--------|------------|-------|
+| Gemma-3n E2B | 2B | Image + Audio | Latest (Dec 2025) |
+| Gemma-3n E4B | 4B | Image + Audio | Latest (Dec 2025) |

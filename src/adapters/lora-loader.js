@@ -1,7 +1,7 @@
 
 
 import { LORA_MODULE_ALIASES } from '../inference/pipeline/lora.js';
-import { validateManifest } from './adapter-manifest.js';
+import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../debug/index.js';
 
 // ============================================================================
@@ -61,7 +61,10 @@ const toFloat32Array = async (tensor, options) => {
 
 
 const validateShape = (tensor, data) => {
-  const dtype = tensor.dtype || 'f32';
+  const dtype = tensor.dtype;
+  if (!dtype) {
+    throw new Error(`LoRA tensor ${tensor.name} missing dtype`);
+  }
   if (dtype !== 'f32') {
     throw new Error(`LoRA tensor ${tensor.name} has unsupported dtype: ${dtype}`);
   }
@@ -119,6 +122,7 @@ export async function loadLoRAWeights(path, options = {}) {
     throw new Error(`Invalid LoRA manifest JSON: ${e.message}`);
   }
 
+  manifest = applyAdapterManifestDefaults(manifest);
   const validation = validateManifest(manifest);
   if (!validation.valid) {
     const errors = validation.errors.map(e => `${e.field}: ${e.message}`).join('; ');
@@ -150,7 +154,7 @@ export async function loadLoRAWeights(path, options = {}) {
   // Verify checksum if provided
   let checksumValid;
   if (manifest.checksum && !options.skipVerify) {
-    const algorithm = manifest.checksumAlgorithm || 'sha256';
+    const algorithm = manifest.checksumAlgorithm;
     if (algorithm !== 'sha256') {
       log.warn('LoRA', `Unsupported checksum algorithm: ${algorithm}, skipping verification`);
     } else if (manifest.weightsPath) {
@@ -209,7 +213,10 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
     layers: new Map(),
   };
 
-  const tensors = manifest.tensors || [];
+  const tensors = manifest.tensors;
+  if (!Array.isArray(tensors)) {
+    throw new Error('LoRA manifest missing tensors array');
+  }
   const total = tensors.length;
   let loaded = 0;
 
