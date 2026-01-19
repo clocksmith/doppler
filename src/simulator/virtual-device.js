@@ -1,11 +1,3 @@
-/**
- * Virtual Device Layer for NVIDIA Superchip Simulation
- *
- * Provides VirtualGPU and VirtualCluster abstractions that map
- * emulated GPU resources to local VRAM, RAM, and OPFS storage.
- *
- * @module simulator/virtual-device
- */
 
 // Re-export all components for backward compatibility
 export { generateBufferId } from './virtual-utils.js';

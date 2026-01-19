@@ -12,6 +12,7 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     M: u32,           // Always 1 for GEMV
@@ -30,7 +31,7 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
 // Shared memory for parallel reduction
-var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(

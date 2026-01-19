@@ -1,3 +1,5 @@
+// bias_add_f16.wgsl
+
 /**
  * Bias Add Kernel (F16)
  *

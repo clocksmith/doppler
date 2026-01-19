@@ -2,11 +2,7 @@
 
 import { log } from '../src/debug/index.js';
 
-/**
- * Detects and reports browser/GPU capabilities for the demo app.
- */
 export class CapabilitiesDetector {
-  /** @type {CapabilitiesState} */
   #state = {
     webgpu: false,
     f16: false,
@@ -14,16 +10,10 @@ export class CapabilitiesDetector {
     memory64: false,
   };
 
-  /** @type {GPUAdapterInfo|null} */
   #adapterInfo = null;
 
-  /** @type {GPUAdapter|null} */
   #adapter = null;
 
-  /**
-   * Detect all capabilities.
-   * @returns {Promise<CapabilitiesState>}
-   */
   async detect() {
     log.debug('Capabilities', 'Detecting capabilities...');
 
@@ -33,9 +23,6 @@ export class CapabilitiesDetector {
     return this.#state;
   }
 
-  /**
-   * Detect WebGPU and related features.
-   */
   async #detectWebGPU() {
     if (!navigator.gpu) {
       return;
@@ -60,13 +47,10 @@ export class CapabilitiesDetector {
     }
   }
 
-  /**
-   * Detect WebAssembly Memory64 support.
-   */
   async #detectMemory64() {
     try {
       const memory64Test = new Uint8Array([
-        0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x05, 0x04, 0x01, 0x04, 0x01, 0x00,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x05, 0x04, 0x01, 0x04, 0x01, 0x00,
       ]);
       await WebAssembly.compile(memory64Test);
       this.#state.memory64 = true;
@@ -75,35 +59,18 @@ export class CapabilitiesDetector {
     }
   }
 
-  /**
-   * Get current capabilities state.
-   * @returns {CapabilitiesState}
-   */
   getState() {
     return { ...this.#state };
   }
 
-  /**
-   * Get the GPU adapter (if available).
-   * @returns {GPUAdapter|null}
-   */
   getAdapter() {
     return this.#adapter;
   }
 
-  /**
-   * Get adapter info (if available).
-   * @returns {GPUAdapterInfo|null}
-   */
   getAdapterInfo() {
     return this.#adapterInfo;
   }
 
-  /**
-   * Resolve a human-readable GPU name from adapter info.
-   * @param {GPUAdapterInfo} info
-   * @returns {string}
-   */
   resolveGPUName(info) {
     const vendor = (info.vendor || '').toLowerCase();
     const device = (info.device || '').toLowerCase();
@@ -115,8 +82,8 @@ export class CapabilitiesDetector {
       if (appleMatch) {
         const chip = appleMatch[1].toUpperCase();
         const variant = appleMatch[2]
-          ? ` ${appleMatch[2].charAt(0).toUpperCase() + appleMatch[2].slice(1)}`
-          : '';
+        ? ` ${appleMatch[2].charAt(0).toUpperCase() + appleMatch[2].slice(1)}`
+        : '';
         return `Apple ${chip}${variant}`;
       }
       if (arch.length > 3 && !arch.startsWith('0x')) {
@@ -139,11 +106,6 @@ export class CapabilitiesDetector {
     return 'Unknown GPU';
   }
 
-  /**
-   * Check if the system uses unified memory architecture (Apple Silicon, etc).
-   * @param {GPUAdapterInfo} info
-   * @returns {boolean}
-   */
   isUnifiedMemoryArchitecture(info) {
     const arch = info.architecture?.toLowerCase() || '';
     const vendor = info.vendor?.toLowerCase() || '';
@@ -170,10 +132,6 @@ export class CapabilitiesDetector {
     return false;
   }
 
-  /**
-   * Get GPU limits from the adapter.
-   * @returns {{maxBufferSize: number, maxStorageSize: number}|null}
-   */
   getGPULimits() {
     if (!this.#adapter) {
       return null;
@@ -186,19 +144,8 @@ export class CapabilitiesDetector {
     };
   }
 
-  /**
-   * Check if timestamp queries are supported.
-   * @returns {boolean}
-   */
   hasTimestampQuery() {
     return this.#adapter?.features.has('timestamp-query') ?? false;
   }
 }
 
-/**
- * @typedef {Object} CapabilitiesState
- * @property {boolean} webgpu
- * @property {boolean} f16
- * @property {boolean} subgroups
- * @property {boolean} memory64
- */

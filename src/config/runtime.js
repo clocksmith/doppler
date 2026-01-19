@@ -1,5 +1,5 @@
 import { createDopplerConfig, setKernelThresholds } from './schema/index.js';
-import { validateRuntimeOverrides } from './param-validator.js';
+import { validateRuntimeConfig, validateRuntimeOverrides } from './param-validator.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
 setKernelThresholds(runtimeConfig.shared.kernelThresholds);
@@ -20,6 +20,7 @@ export function setRuntimeConfig(overrides) {
 
   const merged = createDopplerConfig({ runtime: overrides }).runtime;
 
+  validateRuntimeConfig(merged);
   runtimeConfig = merged;
   setKernelThresholds(runtimeConfig.shared.kernelThresholds);
   return runtimeConfig;

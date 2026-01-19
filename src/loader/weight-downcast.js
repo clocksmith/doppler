@@ -124,7 +124,14 @@ async function downcastWeightBuffer(buf, options) {
 
 
 async function downcastGPUBuffer(buf, options) {
-  const dtype = getWeightDtype(buf) || 'f32';
+  const dtype = options.dtype ?? getWeightDtype(buf);
+  if (dtype == null) {
+    return {
+      buffer: buf,
+      wasDowncast: false,
+      newBuffer: null,
+    };
+  }
   if (dtype !== 'f32') {
     // Already F16 or other dtype
     return {

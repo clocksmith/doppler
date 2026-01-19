@@ -1,3 +1,5 @@
+// scale_backward.wgsl
+
 /**
  * Scale backward kernel.
  */

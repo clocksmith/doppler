@@ -12,6 +12,7 @@ import {
   getKernelPathActivationDtype,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
+import { configurePerfGuards } from '../gpu/perf-guards.js';
 import { MoERouter } from './moe-router.js';
 import { DecodeBufferManager } from './decode-buffers.js';
 
@@ -71,6 +72,7 @@ export class InferencePipeline extends PipelineState {
     const sharedDebug = this.runtimeConfig.shared.debug;
     applyDebugConfig(sharedDebug);
     applyPipelineDebugConfig(sharedDebug.pipeline);
+    configurePerfGuards(sharedDebug.perfGuards);
 
     if (contexts.gpu?.device) {
       this.gpuContext = { device: contexts.gpu.device };

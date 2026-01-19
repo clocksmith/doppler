@@ -1,60 +1,33 @@
-/**
- * Virtual GPU representing one emulated GPU's memory space.
- * @module simulator/virtual-gpu
- */
 
 import { log } from '../debug/index.js';
 import { getBufferPool } from '../memory/buffer-pool.js';
 import { MODULE, DEFAULT_VRAM_BUDGET_BYTES, generateBufferId } from './virtual-utils.js';
 
-/**
- * Virtual GPU representing one emulated GPU's memory space
- */
 export class VirtualGPU {
-  /**
-   * @param {number} index - GPU index in cluster
-   * @param {import('../config/schema/emulation.schema.js').EmulatedGPUSpec} spec - GPU specification
-   * @param {string} opfsRootPath - Root path for OPFS storage
-   */
   constructor(index, spec, opfsRootPath) {
-    /** @type {number} */
     this.index = index;
-    /** @type {import('../config/schema/emulation.schema.js').EmulatedGPUSpec} */
     this.spec = spec;
-    /** @type {string} */
     this.opfsPath = `${opfsRootPath}/gpu${index}`;
 
-    /** @type {Map<string, import('./virtual-device.js').VirtualBufferMetadata>} */
     this._buffers = new Map();
 
-    /** @type {Map<string, ArrayBuffer>} RAM-staged buffers */
     this._ramBuffers = new Map();
 
-    /** @type {Map<string, GPUBuffer>} Actual VRAM buffers */
     this._vramBuffers = new Map();
 
-    /** @type {FileSystemDirectoryHandle|null} */
     this._opfsDir = null;
 
-    /** @type {number} Current VRAM budget */
     this._vramBudget = DEFAULT_VRAM_BUDGET_BYTES;
 
-    /** @type {number} Current VRAM usage */
     this._vramUsed = 0;
 
-    /** @type {number} Current RAM usage */
     this._ramUsed = 0;
 
-    /** @type {number} Current OPFS usage */
     this._opfsUsed = 0;
 
-    /** @type {boolean} */
     this._initialized = false;
   }
 
-  /**
-   * Initialize OPFS storage for this GPU
-   */
   async initialize() {
     if (this._initialized) return;
 
@@ -85,12 +58,6 @@ export class VirtualGPU {
     }
   }
 
-  /**
-   * Allocate a virtual buffer on this GPU
-   * @param {number} sizeBytes - Size in bytes
-   * @param {string} [label] - Optional label for debugging
-   * @returns {Promise<import('./virtual-device.js').VirtualBufferRef>}
-   */
   async allocate(sizeBytes, label) {
     await this.initialize();
 
@@ -103,7 +70,6 @@ export class VirtualGPU {
       location = 'vram';
     }
 
-    /** @type {import('./virtual-device.js').VirtualBufferMetadata} */
     const metadata = {
       id,
       sizeBytes,
@@ -134,11 +100,6 @@ export class VirtualGPU {
     return this._createBufferRef(metadata);
   }
 
-  /**
-   * Create a buffer reference object
-   * @param {import('./virtual-device.js').VirtualBufferMetadata} metadata
-   * @returns {import('./virtual-device.js').VirtualBufferRef}
-   */
   _createBufferRef(metadata) {
     const gpu = this;
     return {
@@ -155,11 +116,6 @@ export class VirtualGPU {
     };
   }
 
-  /**
-   * Promote a buffer to VRAM
-   * @param {string} bufferId - Buffer ID
-   * @returns {Promise<GPUBuffer>}
-   */
   async _promoteToVram(bufferId) {
     const metadata = this._buffers.get(bufferId);
     if (!metadata) {
@@ -190,9 +146,9 @@ export class VirtualGPU {
     // Allocate GPU buffer and upload
     const pool = getBufferPool();
     const gpuBuffer = pool.acquire(
-      metadata.sizeBytes,
-      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-      metadata.label
+    metadata.sizeBytes,
+    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+    metadata.label
     );
     pool.uploadData(gpuBuffer, data);
 
@@ -213,12 +169,6 @@ export class VirtualGPU {
     return gpuBuffer;
   }
 
-  /**
-   * Write data to a buffer
-   * @param {string} bufferId - Buffer ID
-   * @param {ArrayBuffer} data - Data to write
-   * @param {number} [offset=0] - Offset in bytes
-   */
   async write(bufferId, data, offset = 0) {
     const metadata = this._buffers.get(bufferId);
     if (!metadata) {
@@ -243,13 +193,6 @@ export class VirtualGPU {
     }
   }
 
-  /**
-   * Read data from a buffer
-   * @param {string} bufferId - Buffer ID
-   * @param {number} [offset=0] - Offset in bytes
-   * @param {number} [length] - Length in bytes
-   * @returns {Promise<ArrayBuffer>}
-   */
   async read(bufferId, offset = 0, length) {
     const metadata = this._buffers.get(bufferId);
     if (!metadata) {
@@ -275,10 +218,6 @@ export class VirtualGPU {
     }
   }
 
-  /**
-   * Free a virtual buffer
-   * @param {string} bufferId - Buffer ID
-   */
   async free(bufferId) {
     const metadata = this._buffers.get(bufferId);
     if (!metadata) return;
@@ -303,10 +242,6 @@ export class VirtualGPU {
     log.verbose(MODULE, `GPU ${this.index}: Freed ${metadata.label || bufferId}`);
   }
 
-  /**
-   * Pin buffer in VRAM
-   * @param {string} bufferId - Buffer ID
-   */
   async pin(bufferId) {
     const metadata = this._buffers.get(bufferId);
     if (!metadata) {
@@ -321,10 +256,6 @@ export class VirtualGPU {
     metadata.pinned = true;
   }
 
-  /**
-   * Unpin buffer
-   * @param {string} bufferId - Buffer ID
-   */
   async unpin(bufferId) {
     const metadata = this._buffers.get(bufferId);
     if (metadata) {
@@ -332,27 +263,14 @@ export class VirtualGPU {
     }
   }
 
-  /**
-   * Get buffer metadata
-   * @param {string} bufferId - Buffer ID
-   * @returns {import('./virtual-device.js').VirtualBufferMetadata|null}
-   */
   getBufferInfo(bufferId) {
     return this._buffers.get(bufferId) || null;
   }
 
-  /**
-   * Get all buffer IDs
-   * @returns {string[]}
-   */
   listBuffers() {
     return Array.from(this._buffers.keys());
   }
 
-  /**
-   * Get memory statistics for this GPU
-   * @returns {import('./virtual-device.js').VirtualGPUMemoryStats}
-   */
   getMemoryStats() {
     let pinnedCount = 0;
     for (const meta of this._buffers.values()) {
@@ -371,11 +289,6 @@ export class VirtualGPU {
     };
   }
 
-  /**
-   * Evict least recently used buffers to free VRAM
-   * @param {number} bytesNeeded - Bytes to free
-   * @returns {Promise<number>} Bytes actually freed
-   */
   async evictLRU(bytesNeeded) {
     // Collect evictable buffers (in VRAM, not pinned)
     const evictable = [];
@@ -415,11 +328,6 @@ export class VirtualGPU {
     return freed;
   }
 
-  /**
-   * Read buffer data from OPFS
-   * @param {string} bufferId - Buffer ID
-   * @returns {Promise<ArrayBuffer>}
-   */
   async _readFromOpfs(bufferId) {
     if (!this._opfsDir) {
       throw new Error('OPFS not initialized');
@@ -430,11 +338,6 @@ export class VirtualGPU {
     return file.arrayBuffer();
   }
 
-  /**
-   * Write buffer data to OPFS
-   * @param {string} bufferId - Buffer ID
-   * @param {ArrayBuffer} data - Data to write
-   */
   async _writeToOpfs(bufferId, data) {
     if (!this._opfsDir) {
       throw new Error('OPFS not initialized');
@@ -446,10 +349,6 @@ export class VirtualGPU {
     await writable.close();
   }
 
-  /**
-   * Delete buffer from OPFS
-   * @param {string} bufferId - Buffer ID
-   */
   async _deleteFromOpfs(bufferId) {
     if (!this._opfsDir) return;
 
@@ -460,9 +359,6 @@ export class VirtualGPU {
     }
   }
 
-  /**
-   * Destroy and clean up all resources
-   */
   async destroy() {
     const pool = getBufferPool();
 

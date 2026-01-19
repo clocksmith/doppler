@@ -1,3 +1,5 @@
+// embed_backward.wgsl
+
 /**
  * Embedding backward kernel (placeholder).
  */

@@ -1,3 +1,5 @@
+// gather_vec4.wgsl
+
 /**
  * Gather Kernel (vec4) - Token Embedding Lookup
  *

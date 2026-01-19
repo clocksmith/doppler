@@ -13,59 +13,31 @@ import { getHeapManager } from '../src/memory/heap-manager.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../src/gpu/device.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
 
-/**
- * Handles loading and unloading inference pipelines.
- */
 export class ModelLoader {
-  /** @type {object|null} */
   #pipeline = null;
 
-  /** @type {ModelInfo|null} */
   #currentModel = null;
 
-  /** @type {object|null} */
   #memoryCapabilities = null;
 
-  /** @type {ModelLoaderCallbacks} */
   #callbacks;
 
-  /**
-   * @param {ModelLoaderCallbacks} callbacks
-   */
   constructor(callbacks = {}) {
     this.#callbacks = callbacks;
   }
 
-  /**
-   * Get the current pipeline.
-   * @returns {object|null}
-   */
   get pipeline() {
     return this.#pipeline;
   }
 
-  /**
-   * Get the currently loaded model.
-   * @returns {ModelInfo|null}
-   */
   get currentModel() {
     return this.#currentModel;
   }
 
-  /**
-   * Get memory capabilities (available after first load).
-   * @returns {object|null}
-   */
   get memoryCapabilities() {
     return this.#memoryCapabilities;
   }
 
-  /**
-   * Load a model from the specified source.
-   * @param {ModelInfo} model
-   * @param {LoadOptions} [options]
-   * @returns {Promise<object>} The loaded pipeline
-   */
   async load(model, options = {}) {
     const sources = model.sources || {};
     const hasServer = !!sources.server;
@@ -164,10 +136,6 @@ export class ModelLoader {
     return this.#pipeline;
   }
 
-  /**
-   * Handle progress updates from pipeline creation.
-   * @param {object} progress
-   */
   #handlePipelineProgress(progress) {
     const stage = progress.stage || 'layers';
 
@@ -198,9 +166,6 @@ export class ModelLoader {
     }
   }
 
-  /**
-   * Unload the current model.
-   */
   async unload() {
     if (!this.#pipeline) return;
 
@@ -214,9 +179,6 @@ export class ModelLoader {
     this.#currentModel = null;
   }
 
-  /**
-   * Clear all memory (unload + buffer pool + heap).
-   */
   async clearAllMemory() {
     await this.unload();
 
@@ -235,10 +197,6 @@ export class ModelLoader {
     log.info('ModelLoader', 'All memory cleared');
   }
 
-  /**
-   * Get memory stats from the pipeline.
-   * @returns {object|null}
-   */
   getMemoryStats() {
     if (!this.#pipeline || typeof this.#pipeline.getMemoryStats !== 'function') {
       return null;
@@ -246,10 +204,6 @@ export class ModelLoader {
     return this.#pipeline.getMemoryStats();
   }
 
-  /**
-   * Get KV cache stats from the pipeline.
-   * @returns {object|null}
-   */
   getKVCacheStats() {
     if (!this.#pipeline || typeof this.#pipeline.getKVCacheStats !== 'function') {
       return null;
@@ -257,9 +211,6 @@ export class ModelLoader {
     return this.#pipeline.getKVCacheStats();
   }
 
-  /**
-   * Clear the KV cache.
-   */
   clearKVCache() {
     if (this.#pipeline && typeof this.#pipeline.clearKVCache === 'function') {
       this.#pipeline.clearKVCache();
@@ -267,36 +218,7 @@ export class ModelLoader {
   }
 }
 
-/**
- * @typedef {Object} ModelLoaderCallbacks
- * @property {(progress: LoadProgress) => void} [onProgress]
- * @property {(sourceType: string) => void} [onSourceType]
- */
 
-/**
- * @typedef {Object} LoadProgress
- * @property {string} phase - 'source' or 'gpu'
- * @property {number} percent
- * @property {string} [message]
- * @property {number} [bytesLoaded]
- * @property {number} [totalBytes]
- * @property {number} [speed]
- */
 
-/**
- * @typedef {Object} LoadOptions
- * @property {'server'|'browser'} [preferredSource]
- */
 
-/**
- * @typedef {Object} ModelInfo
- * @property {string} key
- * @property {string} name
- * @property {ModelSources} sources
- */
 
-/**
- * @typedef {Object} ModelSources
- * @property {{id: string, url: string}} [server]
- * @property {{id: string}} [browser]
- */

@@ -1,8 +1,5 @@
 
 
-/**
- * Test suite definitions (composable).
- */
 
 export const KERNEL_TESTS = [
   'matmul',
@@ -48,5 +45,4 @@ export const KERNEL_BENCHMARKS = [
   'moe',
 ];
 
-/** Quick validation - subset for fast CI */
 export const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'];

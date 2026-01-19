@@ -10,6 +10,7 @@ const BLOCK_SIZE: u32 = 144u;
 const SUBBLOCK_SIZE: u32 = 32u;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     M: u32,
@@ -85,7 +86,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;
 
-var<workgroup> multicol_sums: array<f32, WORKGROUP_SIZE>;
+var<workgroup> multicol_sums: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol_f16a(

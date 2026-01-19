@@ -260,7 +260,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   
   const cacheConfig = {
     numLayers: modelConfig.numLayers,
-    numHeads: modelConfig.numKVHeads || modelConfig.numHeads,
+    numHeads: modelConfig.numKVHeads,
     headDim: modelConfig.headDim,
     maxSeqLen: cacheMaxSeqLen,
     useGPU,
@@ -585,15 +585,6 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
 // Emulation Setup
 // ============================================================================
 
-/**
- * Initialize NVIDIA superchip emulation if enabled in runtime config.
- *
- * This creates an EmulationContext that provides virtual GPUs, CPUs,
- * and interconnect simulation for testing distributed inference patterns.
- *
- * @param {import('../../config/schema/doppler.schema.js').RuntimeConfigSchema} runtimeConfig
- * @returns {Promise<import('../../simulator/index.js').EmulationContext|null>}
- */
 export async function initEmulation(runtimeConfig) {
   const emulationConfig = runtimeConfig?.emulation;
 
@@ -627,11 +618,6 @@ export async function initEmulation(runtimeConfig) {
   }
 }
 
-/**
- * Destroy emulation context and clean up resources.
- *
- * @param {import('../../simulator/index.js').EmulationContext|null} emulation
- */
 export async function destroyEmulation(emulation) {
   if (emulation) {
     try {

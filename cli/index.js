@@ -3,7 +3,9 @@
 
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { rmSync } from 'fs';
+import { open, writeFile, mkdir, readFile } from 'fs/promises';
+import { tmpdir } from 'os';
 
 import { loadConfig, listPresets, dumpConfig } from './config/index.js';
 
@@ -50,18 +52,101 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const CLI_LOCK_FILENAME = 'doppler-cli.lock';
+
+let cliLockPath = null;
+
+function getCliLockPath() {
+  return resolve(tmpdir(), CLI_LOCK_FILENAME);
+}
+
+function isProcessAlive(pid) {
+  if (!Number.isFinite(pid)) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return err?.code !== 'ESRCH';
+  }
+}
+
+function registerCliLockCleanup(lockPath) {
+  if (cliLockPath) return;
+  cliLockPath = lockPath;
+  const cleanup = () => {
+    if (!cliLockPath) return;
+    try {
+      rmSync(cliLockPath, { force: true });
+    } catch {}
+  };
+  process.on('exit', cleanup);
+  process.on('SIGINT', () => {
+    cleanup();
+    process.exit(130);
+  });
+  process.on('SIGTERM', () => {
+    cleanup();
+    process.exit(143);
+  });
+}
+
+async function acquireCliLock(command) {
+  const lockPath = getCliLockPath();
+  const payload = {
+    pid: process.pid,
+    command,
+    cwd: process.cwd(),
+    startedAt: new Date().toISOString(),
+  };
+
+  try {
+    const handle = await open(lockPath, 'wx');
+    await handle.writeFile(JSON.stringify(payload, null, 2));
+    await handle.close();
+    registerCliLockCleanup(lockPath);
+    return;
+  } catch (err) {
+    if (err?.code !== 'EEXIST') {
+      throw err;
+    }
+  }
+
+  let existing = null;
+  try {
+    const raw = await readFile(lockPath, 'utf-8');
+    existing = JSON.parse(raw);
+  } catch {}
+
+  const existingPid = existing?.pid;
+  if (isProcessAlive(existingPid)) {
+    const meta = existing?.startedAt ? ` started=${existing.startedAt}` : '';
+    const cmd = existing?.command ? ` command=${existing.command}` : '';
+    throw new Error(
+      `Another DOPPLER CLI run is active (pid=${existingPid}${cmd}${meta}). ` +
+      `If this is stale, remove ${lockPath}.`
+    );
+  }
+
+  try {
+    rmSync(lockPath, { force: true });
+  } catch {}
+
+  const handle = await open(lockPath, 'wx');
+  await handle.writeFile(JSON.stringify(payload, null, 2));
+  await handle.close();
+  registerCliLockCleanup(lockPath);
+}
 
 // ============================================================================
 // Main
 // ============================================================================
 
 async function main() {
-  /** @type {import('./args/index.js').CLIOptions} */
-  let opts;
+    let opts;
   try {
     opts = parseArgs(process.argv.slice(2));
   } catch (err) {
-    console.error(`Error: ${/** @type {Error} */ (err).message}`);
+    console.error(`Error: ${ (err).message}`);
     console.error('Run with --help for usage.');
     process.exit(1);
   }
@@ -80,7 +165,7 @@ async function main() {
       if (!acc[p.source]) acc[p.source] = [];
       acc[p.source].push(p);
       return acc;
-    }, /** @type {Record<string, typeof presets>} */ ({}));
+    },  ({}));
 
     for (const [source, items] of Object.entries(grouped)) {
       console.log(`  ${source.toUpperCase()}:`);
@@ -99,10 +184,19 @@ async function main() {
       const loaded = await loadConfig(configRef);
       console.log('\n' + dumpConfig(loaded));
     } catch (err) {
-      console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
+      console.error(`Failed to load config "${configRef}": ${ (err).message}`);
       process.exit(1);
     }
     process.exit(0);
+  }
+
+  if (opts.command === 'debug' || opts.command === 'test' || opts.command === 'bench') {
+    try {
+      await acquireCliLock(opts.command);
+    } catch (err) {
+      console.error(`Error: ${ (err).message}`);
+      process.exit(1);
+    }
   }
 
   // Default presets for config-driven commands
@@ -117,8 +211,7 @@ async function main() {
   }
 
   // Load config (default + overrides)
-  /** @type {any} */
-  let loadedConfig = null;
+    let loadedConfig = null;
   const configRef = opts.config || opts.mode || 'default';
   const shouldLogConfig = Boolean(opts.config || opts.mode);
   try {
@@ -135,20 +228,19 @@ async function main() {
     if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
 
     // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
-    const cli = /** @type {any} */ (loadedConfig.raw.cli);
+    const cli =  (loadedConfig.raw.cli);
     if (cli) {
       const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
       if (cli.headed && !hasHeadlessFlag) opts.headless = false;
       if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
     }
   } catch (err) {
-    console.error(`Failed to load config "${configRef}": ${/** @type {Error} */ (err).message}`);
+    console.error(`Failed to load config "${configRef}": ${ (err).message}`);
     process.exit(1);
   }
 
   // Handle 'bench' command - performance mode
   if (opts.command === 'bench') {
-    opts.command = 'test';
     opts.perf = true;
     if (opts.suite === 'quick') {
       opts.suite = 'inference';
@@ -190,13 +282,12 @@ async function main() {
   const scope = opts.perf ? 'bench' : 'test';
   const context = await createBrowserContext(opts, { scope });
   const page = await setupPage(context, opts);
-  /** @type {import('./output.js').SuiteResult[]} */
-  const suites = [];
+    const suites = [];
 
   try {
     if (opts.command === 'debug') {
       await runDebugMode(page, opts, context);
-    } else if (opts.command === 'test') {
+    } else if (opts.command === 'test' || opts.command === 'bench') {
       await runTestCommand(page, opts, suites, context, loadedConfig);
     }
 
@@ -219,18 +310,12 @@ async function main() {
     const hasFailed = suites.some((s) => s.failed > 0);
     process.exit(hasFailed ? 1 : 0);
   } catch (err) {
-    console.error('\nTest runner failed:', /** @type {Error} */ (err).message);
+    console.error('\nTest runner failed:',  (err).message);
     await context.close();
     process.exit(1);
   }
 }
 
-/**
- * Run debug mode - interactive tensor inspection.
- * @param {import('playwright').Page} page
- * @param {import('./args/index.js').CLIOptions} opts
- * @param {import('playwright').BrowserContext} context
- */
 async function runDebugMode(page, opts, context) {
   console.log('\n' + '='.repeat(60));
   console.log('DEBUG MODE');
@@ -290,14 +375,6 @@ async function runDebugMode(page, opts, context) {
   }
 }
 
-/**
- * Run test command (correctness or performance).
- * @param {import('playwright').Page} page
- * @param {import('./args/index.js').CLIOptions} opts
- * @param {import('./output.js').SuiteResult[]} suites
- * @param {import('playwright').BrowserContext} context
- * @param {any} loadedConfig
- */
 async function runTestCommand(page, opts, suites, context, loadedConfig) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -380,11 +457,6 @@ async function runTestCommand(page, opts, suites, context, loadedConfig) {
   }
 }
 
-/**
- * Run full inference benchmark with comparison and baseline checks.
- * @param {import('./args/index.js').CLIOptions} opts
- * @param {any} loadedConfig
- */
 async function runInferenceBenchmark(opts, loadedConfig) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -419,7 +491,7 @@ async function runInferenceBenchmark(opts, loadedConfig) {
         }
       }
     } catch (err) {
-      console.error(`\nFailed to load baseline registry: ${/** @type {Error} */ (err).message}`);
+      console.error(`\nFailed to load baseline registry: ${ (err).message}`);
     }
   }
 
@@ -431,8 +503,7 @@ async function runInferenceBenchmark(opts, loadedConfig) {
   }
 
   // Compare against baseline if provided
-  /** @type {any} */
-  let baseline = null;
+    let baseline = null;
   if (opts.compare) {
     try {
       const baselinePath = resolve(opts.compare);
@@ -465,7 +536,7 @@ async function runInferenceBenchmark(opts, loadedConfig) {
         process.exit(1);
       }
     } catch (err) {
-      console.error(`\nFailed to load baseline for comparison: ${/** @type {Error} */ (err).message}`);
+      console.error(`\nFailed to load baseline for comparison: ${ (err).message}`);
     }
   }
 
@@ -503,12 +574,6 @@ async function runInferenceBenchmark(opts, loadedConfig) {
   process.exit(0);
 }
 
-/**
- * Run model loading benchmark.
- * @param {import('playwright').Page} page
- * @param {import('./args/index.js').CLIOptions} opts
- * @param {import('./output.js').SuiteResult[]} suites
- */
 async function runLoadingBenchmark(page, opts, suites) {
   console.log('\n' + '='.repeat(60));
   console.log('MODEL LOADING BENCHMARK');
@@ -528,7 +593,7 @@ async function runLoadingBenchmark(page, opts, suites) {
 
   const loadStart = Date.now();
   await page.waitForFunction(
-    () => /** @type {any} */ (window).testState?.loaded === true,
+    () =>  (window).testState?.loaded === true,
     { timeout: opts.timeout }
   );
   const loadDuration = Date.now() - loadStart;

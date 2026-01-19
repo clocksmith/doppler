@@ -1,3 +1,5 @@
+// gather_f16_f16_out.wgsl
+
 /**
  * Gather Kernel (F16 input -> F16 output)
  *

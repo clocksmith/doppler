@@ -1,3 +1,5 @@
+// split_qkv.wgsl
+
 /**
  * Split fused QKV output into separate Q, K, V buffers.
  *

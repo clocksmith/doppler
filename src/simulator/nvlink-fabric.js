@@ -1,11 +1,3 @@
-/**
- * NVLink Fabric Module
- *
- * Simulates GPU-to-GPU communication over NVLink for tensor parallelism,
- * pipeline parallelism, and collective operations.
- *
- * @module simulator/nvlink-fabric
- */
 
 import { log } from '../debug/index.js';
 
@@ -15,74 +7,41 @@ import { log } from '../debug/index.js';
 
 const MODULE = 'NVLinkFabric';
 
-/** Cross-node bandwidth reduction factor */
 const CROSS_NODE_BANDWIDTH_FACTOR = 0.8;
 
-/** Operation ID counter */
 let operationIdCounter = 0;
 
 // =============================================================================
 // NVLink Fabric Controller
 // =============================================================================
 
-/**
- * NVLink fabric controller for GPU-to-GPU communication
- */
 export class NVLinkFabric {
-  /**
-   * @param {import('../config/schema/emulation.schema.js').NVLinkSpec} spec
-   * @param {import('../config/schema/emulation.schema.js').EmulatedClusterTopology} topology
-   * @param {import('./timing-model.js').TimingModel} timingModel
-   * @param {import('./virtual-device.js').VirtualCluster} cluster
-   */
   constructor(spec, topology, timingModel, cluster) {
-    /** @type {import('../config/schema/emulation.schema.js').NVLinkSpec} */
     this.spec = spec;
 
-    /** @type {import('../config/schema/emulation.schema.js').EmulatedClusterTopology} */
     this.topology = topology;
 
-    /** @type {import('./timing-model.js').TimingModel} */
     this.timingModel = timingModel;
 
-    /** @type {import('./virtual-device.js').VirtualCluster} */
     this._cluster = cluster;
 
     // Stats
-    /** @type {number} */
     this._totalP2PTransfers = 0;
-    /** @type {number} */
     this._totalCollectives = 0;
-    /** @type {number} */
     this._totalBytesTransferred = 0;
-    /** @type {number} */
     this._totalSimulatedTimeMs = 0;
-    /** @type {number} */
     this._totalActualTimeMs = 0;
-    /** @type {Map<string, {count: number, bytes: number, timeMs: number}>} */
     this._collectiveBreakdown = new Map();
 
     log.verbose(MODULE, `Initialized: ${topology.gpuCount} GPUs, ${topology.nodeCount} nodes, ${spec.bandwidthBytesPerSec / 1e9} GB/s`);
   }
 
-  /**
-   * Check if two GPUs are in the same node
-   * @param {number} gpu1
-   * @param {number} gpu2
-   * @returns {boolean}
-   */
   sameNode(gpu1, gpu2) {
     const node1 = Math.floor(gpu1 / this.topology.gpusPerNode);
     const node2 = Math.floor(gpu2 / this.topology.gpusPerNode);
     return node1 === node2;
   }
 
-  /**
-   * Get effective bandwidth between two GPUs
-   * @param {number} gpu1
-   * @param {number} gpu2
-   * @returns {number}
-   */
   getEffectiveBandwidth(gpu1, gpu2) {
     if (this.sameNode(gpu1, gpu2)) {
       return this.spec.bandwidthBytesPerSec;
@@ -91,15 +50,6 @@ export class NVLinkFabric {
     return this.spec.bandwidthBytesPerSec * CROSS_NODE_BANDWIDTH_FACTOR;
   }
 
-  /**
-   * Send data from one GPU to another
-   * @param {number} srcGpu
-   * @param {string} srcBufferId
-   * @param {number} dstGpu
-   * @param {string} [dstBufferId]
-   * @param {number} [sizeBytes]
-   * @returns {Promise<import('./nvlink-fabric.js').P2PTransferResult>}
-   */
   async send(srcGpu, srcBufferId, dstGpu, dstBufferId, sizeBytes) {
     const start = performance.now();
     const transferId = `nvlink_p2p_${Date.now()}_${operationIdCounter++}`;
@@ -146,14 +96,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Copy data between GPUs
-   * @param {number} srcGpu
-   * @param {string} srcBufferId
-   * @param {number} dstGpu
-   * @param {string} [label]
-   * @returns {Promise<{bufferRef: import('./virtual-device.js').VirtualBufferRef, transfer: import('./nvlink-fabric.js').P2PTransferResult}>}
-   */
   async copy(srcGpu, srcBufferId, dstGpu, label) {
     const srcGpuDev = this._cluster.getGPU(srcGpu);
     const dstGpuDev = this._cluster.getGPU(dstGpu);
@@ -169,12 +111,6 @@ export class NVLinkFabric {
     return { bufferRef, transfer };
   }
 
-  /**
-   * All-reduce: Sum buffers across GPUs
-   * @param {Map<number, string>} bufferIds
-   * @param {number[]} gpuIndices
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async allReduce(bufferIds, gpuIndices) {
     const start = performance.now();
     const operationId = `all_reduce_${Date.now()}_${operationIdCounter++}`;
@@ -193,10 +129,10 @@ export class NVLinkFabric {
 
     // Simulate the reduction: read all buffers, sum, write back
     const buffers = await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        return gpu.read(bufferIds.get(gpuIdx));
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      return gpu.read(bufferIds.get(gpuIdx));
+    })
     );
 
     // Sum all buffers (assuming F32 for simplicity)
@@ -210,10 +146,10 @@ export class NVLinkFabric {
 
     // Write result back to all GPUs
     await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        await gpu.write(bufferIds.get(gpuIdx), result.buffer);
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      await gpu.write(bufferIds.get(gpuIdx), result.buffer);
+    })
     );
 
     const actualTimeMs = performance.now() - start;
@@ -233,12 +169,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * All-gather: Gather buffers from all GPUs to all GPUs
-   * @param {Map<number, string>} bufferIds
-   * @param {number[]} gpuIndices
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async allGather(bufferIds, gpuIndices) {
     const start = performance.now();
     const operationId = `all_gather_${Date.now()}_${operationIdCounter++}`;
@@ -257,10 +187,10 @@ export class NVLinkFabric {
 
     // Read all buffers
     const buffers = await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        return gpu.read(bufferIds.get(gpuIdx));
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      return gpu.read(bufferIds.get(gpuIdx));
+    })
     );
 
     // Concatenate all buffers
@@ -275,11 +205,11 @@ export class NVLinkFabric {
     // Allocate new buffers on each GPU to hold gathered result
     // In real all-gather, each GPU ends up with the full concatenated result
     await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        const resultBuf = await gpu.allocate(totalSize, `all_gather_result`);
-        await gpu.write(resultBuf.metadata.id, gathered.buffer);
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      const resultBuf = await gpu.allocate(totalSize, `all_gather_result`);
+      await gpu.write(resultBuf.metadata.id, gathered.buffer);
+    })
     );
 
     const actualTimeMs = performance.now() - start;
@@ -299,12 +229,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Reduce-scatter: Reduce then scatter result shards
-   * @param {Map<number, string>} bufferIds
-   * @param {number[]} gpuIndices
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async reduceScatter(bufferIds, gpuIndices) {
     const start = performance.now();
     const operationId = `reduce_scatter_${Date.now()}_${operationIdCounter++}`;
@@ -323,10 +247,10 @@ export class NVLinkFabric {
 
     // Read all buffers and reduce
     const buffers = await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        return gpu.read(bufferIds.get(gpuIdx));
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      return gpu.read(bufferIds.get(gpuIdx));
+    })
     );
 
     const reduced = new Float32Array(totalSize / 4);
@@ -339,14 +263,14 @@ export class NVLinkFabric {
 
     // Scatter shards to each GPU
     await Promise.all(
-      gpuIndices.map(async (gpuIdx, i) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        const shardStart = i * (shardSize / 4);
-        const shardEnd = shardStart + (shardSize / 4);
-        const shard = reduced.slice(shardStart, shardEnd);
-        const shardBuf = await gpu.allocate(shardSize, `reduce_scatter_shard`);
-        await gpu.write(shardBuf.metadata.id, shard.buffer);
-      })
+    gpuIndices.map(async (gpuIdx, i) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      const shardStart = i * (shardSize / 4);
+      const shardEnd = shardStart + (shardSize / 4);
+      const shard = reduced.slice(shardStart, shardEnd);
+      const shardBuf = await gpu.allocate(shardSize, `reduce_scatter_shard`);
+      await gpu.write(shardBuf.metadata.id, shard.buffer);
+    })
     );
 
     const actualTimeMs = performance.now() - start;
@@ -366,13 +290,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Broadcast: Send from one GPU to all others
-   * @param {number} srcGpu
-   * @param {string} srcBufferId
-   * @param {number[]} gpuIndices
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async broadcast(srcGpu, srcBufferId, gpuIndices) {
     const start = performance.now();
     const operationId = `broadcast_${Date.now()}_${operationIdCounter++}`;
@@ -390,11 +307,11 @@ export class NVLinkFabric {
     // Write to all destination GPUs
     const dstGpus = gpuIndices.filter(g => g !== srcGpu);
     await Promise.all(
-      dstGpus.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        const bufRef = await gpu.allocate(bufferSize, `broadcast_from_gpu${srcGpu}`);
-        await gpu.write(bufRef.metadata.id, data);
-      })
+    dstGpus.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      const bufRef = await gpu.allocate(bufferSize, `broadcast_from_gpu${srcGpu}`);
+      await gpu.write(bufRef.metadata.id, data);
+    })
     );
 
     const actualTimeMs = performance.now() - start;
@@ -414,13 +331,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Scatter: Distribute chunks from one GPU to all others
-   * @param {number} srcGpu
-   * @param {string} srcBufferId
-   * @param {number[]} gpuIndices
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async scatter(srcGpu, srcBufferId, gpuIndices) {
     const start = performance.now();
     const operationId = `scatter_${Date.now()}_${operationIdCounter++}`;
@@ -437,16 +347,16 @@ export class NVLinkFabric {
 
     // Distribute chunks
     await Promise.all(
-      gpuIndices.map(async (gpuIdx, i) => {
-        const chunk = data.slice(i * chunkSize, (i + 1) * chunkSize);
-        if (gpuIdx === srcGpu) {
-          // Source GPU keeps its chunk
-          return;
-        }
-        const gpu = this._cluster.getGPU(gpuIdx);
-        const bufRef = await gpu.allocate(chunkSize, `scatter_chunk_${i}`);
-        await gpu.write(bufRef.metadata.id, chunk);
-      })
+    gpuIndices.map(async (gpuIdx, i) => {
+      const chunk = data.slice(i * chunkSize, (i + 1) * chunkSize);
+      if (gpuIdx === srcGpu) {
+        // Source GPU keeps its chunk
+        return;
+      }
+      const gpu = this._cluster.getGPU(gpuIdx);
+      const bufRef = await gpu.allocate(chunkSize, `scatter_chunk_${i}`);
+      await gpu.write(bufRef.metadata.id, chunk);
+    })
     );
 
     const actualTimeMs = performance.now() - start;
@@ -464,12 +374,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Gather: Collect chunks from all GPUs to one GPU
-   * @param {Map<number, string>} bufferIds
-   * @param {number} dstGpu
-   * @returns {Promise<import('./nvlink-fabric.js').CollectiveResult>}
-   */
   async gather(bufferIds, dstGpu) {
     const start = performance.now();
     const operationId = `gather_${Date.now()}_${operationIdCounter++}`;
@@ -478,10 +382,10 @@ export class NVLinkFabric {
 
     // Read all chunks
     const chunks = await Promise.all(
-      gpuIndices.map(async (gpuIdx) => {
-        const gpu = this._cluster.getGPU(gpuIdx);
-        return { gpuIdx, data: await gpu.read(bufferIds.get(gpuIdx)) };
-      })
+    gpuIndices.map(async (gpuIdx) => {
+      const gpu = this._cluster.getGPU(gpuIdx);
+      return { gpuIdx, data: await gpu.read(bufferIds.get(gpuIdx)) };
+    })
     );
 
     // Sort by GPU index for consistent ordering
@@ -521,13 +425,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Update collective statistics
-   * @param {string} type
-   * @param {number} bytes
-   * @param {number} simTimeMs
-   * @param {number} actualTimeMs
-   */
   _updateCollectiveStats(type, bytes, simTimeMs, actualTimeMs) {
     this._totalCollectives++;
     this._totalBytesTransferred += bytes;
@@ -543,10 +440,6 @@ export class NVLinkFabric {
     stats.timeMs += simTimeMs;
   }
 
-  /**
-   * Get statistics
-   * @returns {import('./nvlink-fabric.js').NVLinkFabricStats}
-   */
   getStats() {
     return {
       totalP2PTransfers: this._totalP2PTransfers,
@@ -558,9 +451,6 @@ export class NVLinkFabric {
     };
   }
 
-  /**
-   * Reset statistics
-   */
   resetStats() {
     this._totalP2PTransfers = 0;
     this._totalCollectives = 0;
@@ -575,14 +465,6 @@ export class NVLinkFabric {
 // Factory Function
 // =============================================================================
 
-/**
- * Create an NVLink fabric controller
- * @param {import('../config/schema/emulation.schema.js').NVLinkSpec} spec
- * @param {import('../config/schema/emulation.schema.js').EmulatedClusterTopology} topology
- * @param {import('./timing-model.js').TimingModel} timingModel
- * @param {import('./virtual-device.js').VirtualCluster} cluster
- * @returns {NVLinkFabric}
- */
 export function createNVLinkFabric(spec, topology, timingModel, cluster) {
   return new NVLinkFabric(spec, topology, timingModel, cluster);
 }

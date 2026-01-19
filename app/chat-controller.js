@@ -3,23 +3,15 @@
 import { log } from '../src/debug/index.js';
 import { formatChatMessages } from '../src/inference/pipeline/chat-format.js';
 
-/**
- * Controls chat generation, sampling parameters, and conversation state.
- */
 export class ChatController {
-  /** @type {ChatMessage[]} */
   #messages = [];
 
-  /** @type {boolean} */
   #isGenerating = false;
 
-  /** @type {AbortController|null} */
   #abortController = null;
 
-  /** @type {ChatControllerCallbacks} */
   #callbacks;
 
-  /** @type {SamplingParams} */
   #samplingParams = {
     temperature: 0.7,
     topP: 0.9,
@@ -27,51 +19,26 @@ export class ChatController {
     maxTokens: 512,
   };
 
-  /**
-   * @param {ChatControllerCallbacks} callbacks
-   */
   constructor(callbacks = {}) {
     this.#callbacks = callbacks;
   }
 
-  /**
-   * Check if currently generating.
-   * @returns {boolean}
-   */
   get isGenerating() {
     return this.#isGenerating;
   }
 
-  /**
-   * Get current messages.
-   * @returns {ChatMessage[]}
-   */
   get messages() {
     return [...this.#messages];
   }
 
-  /**
-   * Update sampling parameters.
-   * @param {Partial<SamplingParams>} params
-   */
   setSamplingParams(params) {
     Object.assign(this.#samplingParams, params);
   }
 
-  /**
-   * Get current sampling parameters.
-   * @returns {SamplingParams}
-   */
   getSamplingParams() {
     return { ...this.#samplingParams };
   }
 
-  /**
-   * Generate a response for the given user message.
-   * @param {string} message
-   * @param {object} pipeline - The inference pipeline
-   * @returns {Promise<string>} The generated response
-   */
   async generate(message, pipeline) {
     if (!pipeline) {
       throw new Error('Pipeline not initialized');
@@ -94,8 +61,8 @@ export class ChatController {
     const chatTemplateEnabled = runtimeChat?.enabled ?? pipeline.modelConfig?.chatTemplateEnabled ?? false;
     const chatTemplateType = pipeline.modelConfig?.chatTemplateType ?? null;
     const prompt = formatChatMessages(
-      this.#messages,
-      chatTemplateEnabled ? chatTemplateType : null
+    this.#messages,
+    chatTemplateEnabled ? chatTemplateType : null
     );
 
     this.#callbacks.onGenerationStart?.();
@@ -162,19 +129,12 @@ export class ChatController {
     }
   }
 
-  /**
-   * Stop the current generation.
-   */
   stop() {
     if (this.#abortController) {
       this.#abortController.abort();
     }
   }
 
-  /**
-   * Clear the conversation history.
-   * @param {object} [pipeline] - Pipeline to clear KV cache
-   */
   clear(pipeline) {
     if (pipeline && typeof pipeline.clearKVCache === 'function') {
       pipeline.clearKVCache();
@@ -184,34 +144,6 @@ export class ChatController {
   }
 }
 
-/**
- * @typedef {Object} ChatMessage
- * @property {'user'|'assistant'|'system'} role
- * @property {string} content
- */
 
-/**
- * @typedef {Object} SamplingParams
- * @property {number} temperature
- * @property {number} topP
- * @property {number} topK
- * @property {number} maxTokens
- */
 
-/**
- * @typedef {Object} ChatControllerCallbacks
- * @property {(message: string) => void} [onUserMessage]
- * @property {() => void} [onGenerationStart]
- * @property {(token: string) => void} [onToken]
- * @property {(stats: {tokensPerSec: number}) => void} [onStats]
- * @property {(result: GenerationResult) => void} [onGenerationComplete]
- * @property {(partialText: string) => void} [onGenerationAborted]
- * @property {(error: Error) => void} [onGenerationError]
- */
 
-/**
- * @typedef {Object} GenerationResult
- * @property {string} text
- * @property {number} tokenCount
- * @property {number} tokensPerSec
- */

@@ -13,7 +13,7 @@ General coding conventions and patterns for the DOPPLER codebase.
 
 ## Language Policy: JavaScript + Declaration Files
 
-Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module.
+Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/`, `app/`, `cli/`, and `serve.js`. Tests and tools may omit `.d.ts` unless they export public types.
 
 | File | Contains |
 |------|----------|
@@ -47,7 +47,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 | Format | Use For |
 |--------|---------|
 | **JavaScript (.js)** | All source code (clean, no type annotations) |
-| **Declaration files (.d.ts)** | Type specs for every module |
+| **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `app/`, `cli/`, `serve.js`) |
 | **JSON (.json)** | Static presets, manifests, fixtures |
 | **WGSL (.wgsl)** | GPU shaders |
 

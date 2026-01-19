@@ -1,3 +1,5 @@
+// bias_add.wgsl
+
 /**
  * Bias Add Kernel
  *

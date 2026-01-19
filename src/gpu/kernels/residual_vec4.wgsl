@@ -1,3 +1,5 @@
+// residual_vec4.wgsl
+
 /**
  * Residual Add Kernel (vec4)
  *

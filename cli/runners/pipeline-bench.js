@@ -1,17 +1,8 @@
 
 
-/**
- * Simple pipeline benchmark (for bench:all).
- */
 
 import { appendRuntimeConfigParams } from '../args/index.js';
 
-/**
- * Run pipeline benchmark.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runPipelineBenchmark(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('PIPELINE BENCHMARK');
@@ -56,7 +47,7 @@ export async function runPipelineBenchmark(page, opts) {
   `;
 
   try {
-    const result = /** @type {any} */ (await page.evaluate(script));
+    const result =  (await page.evaluate(script));
 
     console.log(`\n  TTFT: ${result.metrics?.ttft_ms || 'N/A'}ms`);
     console.log(`  Prefill: ${result.metrics?.prefill_tokens_per_sec || 'N/A'} tok/s`);
@@ -77,7 +68,7 @@ export async function runPipelineBenchmark(page, opts) {
       ],
     };
   } catch (err) {
-    console.log(`  \x1b[31mFAIL\x1b[0m: ${/** @type {Error} */ (err).message}`);
+    console.log(`  \x1b[31mFAIL\x1b[0m: ${ (err).message}`);
     return {
       suite: 'bench:pipeline',
       passed: 0,
@@ -89,7 +80,7 @@ export async function runPipelineBenchmark(page, opts) {
           name: 'pipeline',
           passed: false,
           duration: 0,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };

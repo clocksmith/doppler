@@ -1,3 +1,5 @@
+// adam.wgsl
+
 /**
  * Adam optimizer kernel.
  */

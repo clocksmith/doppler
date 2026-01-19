@@ -1,3 +1,5 @@
+// residual_f16.wgsl
+
 /**
  * Residual Add Kernel (F16)
  *

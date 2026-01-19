@@ -1,3 +1,5 @@
+// topk_f16.wgsl
+
 /**
  * Top-K Selection Kernel for MoE Routing (f16 logits)
  *
@@ -10,6 +12,7 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     num_tokens: u32,
@@ -23,8 +26,8 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> out_indices: array<u32>;
 @group(0) @binding(3) var<storage, read_write> out_weights: array<f32>;
 
-var<workgroup> shared_probs: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
+var<workgroup> shared_probs: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn softmax_topk(

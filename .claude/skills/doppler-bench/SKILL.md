@@ -1,20 +1,21 @@
 ---
-name: doppler-benchmark
+name: doppler-bench
 description: Run DOPPLER performance benchmarks to measure throughput, compare against baselines, and detect regressions across models or kernel settings. Use when validating speed changes or collecting JSON benchmark artifacts. (project)
 ---
 
-# DOPPLER Benchmark Skill
+# DOPPLER Bench Skill
 
 Use this skill to measure DOPPLER inference performance.
 
 ## Critical: Inference vs Kernel Benchmarks
 
 ```bash
-npm run bench                # Runs INFERENCE benchmark (tok/s) - DEFAULT
-npm run bench -- --kernels   # Runs KERNEL microbenchmarks (matmul, attention, etc.)
+npm run bench -- inference    # Runs INFERENCE benchmark (tok/s)
+npm run bench -- --kernels    # Runs KERNEL microbenchmarks (matmul, attention, etc.)
+npm run bench                # Defaults to kernel microbenchmarks
 ```
 
-**Inference benchmarks are the default.** Use `--kernels` only for microbench.
+**Inference benchmarks require `inference` or `--inference`.** Use `--kernels` for microbench.
 
 ## Completion Signals
 
@@ -62,7 +63,7 @@ npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
 
 **Common Model Names:**
 - `gemma-2-2b-it-wf16` - Gemma 2 2B (F16 weights)
-- `gemma-3-1b-it-q4` - Gemma 3 1B (Q4_K quantized, ~500MB)
+- `gemma-3-1b-it-wq4k` - Gemma 3 1B (Q4_K_M weights, ~565MB)
 
 **First-Time Setup:** Models must be downloaded/converted before benchmarking. If you see "Not found" errors, the model may not exist in `models/` directory.
 
@@ -70,19 +71,19 @@ npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
 
 ```bash
 # Quick inference benchmark - single run
-npm run bench -- --config bench -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|tok/s"
+npm run bench -- inference --config bench -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|tok/s"
 
 # Multiple runs for statistical confidence (recommended)
-npm run bench -- --config ./bench-3runs.json -m MODEL
+npm run bench -- inference --config ./bench-3runs.json -m MODEL
 
 # Save results to JSON for later comparison
-npm run bench -- --config ./bench-3runs.json -m MODEL -o results.json
+npm run bench -- inference --config ./bench-3runs.json -m MODEL -o results.json
 
 # Compare against saved baseline
-npm run bench -- --config bench -m MODEL --compare baseline.json
+npm run bench -- inference --config bench -m MODEL --compare baseline.json
 
 # Extract full result JSON
-npm run bench -- --config bench -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
+npm run bench -- inference --config bench -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
 ```
 
 ## Configuration via --config
@@ -91,16 +92,16 @@ Use config files or inline JSON. CLI flags must not override runtime tunables.
 
 ```bash
 # Fix decode length for apples-to-apples comparisons (inline JSON config)
-npm run bench -- --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}' -m MODEL
+npm run bench -- inference --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}' -m MODEL
 
 # Combine with runs and warmup in config
-npm run bench -- --config ./bench-3runs.json -m MODEL
+npm run bench -- inference --config ./bench-3runs.json -m MODEL
 
 # Use a preset
-npm run bench -- --config bench -m MODEL
+npm run bench -- inference --config bench -m MODEL
 
 # Use a config file
-npm run bench -- --config ./my-bench-config.json -m MODEL
+npm run bench -- inference --config ./my-bench-config.json -m MODEL
 ```
 
 Example `my-bench-config.json`:
@@ -130,23 +131,23 @@ Test different kernel thresholds or variants via `--config`:
 
 ```bash
 # Test with fused kernel disabled (set threshold below model's hidden size)
-npm run bench -- --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
+npm run bench -- inference --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
 
 # Test with fused kernel enabled
-npm run bench -- --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
+npm run bench -- inference --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
 
 # Explicit kernel path (config-only)
-npm run bench -- --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
+npm run bench -- inference --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
 ## Fast Iteration Pattern
 
 ```bash
 # Quick single run
-npm run bench -- --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
+npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 
 # After code changes: rebuild then benchmark
-npm run build && npm run bench -- --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
+npm run build && npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
 ```
 
 Use `sed '/DOPPLER:DONE/q'` to exit immediately after benchmark completes.
@@ -160,7 +161,7 @@ For fastest iteration, start Chrome once and reuse it across benchmarks:
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
 
 # Step 1: Run benchmarks reusing the browser (avoids startup overhead)
-node cli/index.js bench inference --config ./bench-3runs.json -m MODEL \
+npm run bench -- inference --config ./bench-3runs.json -m MODEL \
   --no-server --reuse-browser --cdp-endpoint http://localhost:9222
 ```
 
@@ -180,12 +181,12 @@ When asked "Is this slower?" or investigating performance regressions:
 1. **Establish baseline** (if not already saved; use a clean worktree):
    ```bash
    git checkout main
-   npm run bench -- --config ./bench-3runs.json -m MODEL -o baseline.json
+   npm run bench -- inference --config ./bench-3runs.json -m MODEL -o baseline.json
    ```
 
 2. **Benchmark current code**:
    ```bash
-   npm run bench -- --config ./bench-3runs.json -m MODEL --compare baseline.json
+   npm run bench -- inference --config ./bench-3runs.json -m MODEL --compare baseline.json
    ```
 
 3. **Interpret results**:

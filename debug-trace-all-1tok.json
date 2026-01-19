@@ -1,0 +1,22 @@
+{
+  "extends": "debug",
+  "runtime": {
+    "inference": {
+      "prompt": "The sky is",
+      "batching": { "maxTokens": 1 },
+      "sampling": { "temperature": 0 }
+    },
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["all"],
+          "maxDecodeSteps": 1
+        },
+        "probes": [
+          { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [138, 496, 0, 1, 2, 3] }
+        ]
+      }
+    }
+  }
+}

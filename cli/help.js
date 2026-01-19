@@ -1,22 +1,19 @@
 
 
-/**
- * CLI help text.
- */
 
-/**
- * Print CLI help message.
- */
 export function printHelp() {
   console.log(`
 DOPPLER CLI - Test, Benchmark, Debug, Simulation
 
-Four commands, four purposes:
+Commands:
 
+  doppler run    ->  Serve demo UI (dev server)
   doppler test   ->  Correctness (does it work?)
   doppler bench  ->  Performance (how fast?)
   doppler debug  ->  Debugging (why is it broken?)
-  doppler simulate -> Simulation (pod emulation)
+
+Simulation is a test suite:
+  doppler test simulation   (or: doppler simulate)
 
 ===============================================================
 
@@ -29,9 +26,10 @@ TEST - Correctness Tests
   doppler test --filter matmul        Filter to specific kernel
 
 BENCH - Performance Benchmarks
-  doppler bench                       Full inference benchmark (tok/s)
+  doppler bench inference             Full inference benchmark (tok/s)
   doppler bench --kernels             Kernel microbenchmarks only
-  doppler bench --compare base.json   Compare against baseline
+  doppler bench                       Defaults to kernel microbench
+  doppler bench inference --compare base.json   Compare against baseline
 
 DEBUG - Interactive Debugging
   doppler debug                       Debug mode (config-driven)

@@ -1,3 +1,5 @@
+// fused_swiglu_f16.wgsl
+
 /**
  * SwiGLU Activation Kernel (Row-Split Fused Gate/Up, f16 IO)
  */

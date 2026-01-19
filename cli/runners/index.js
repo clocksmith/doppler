@@ -1,8 +1,5 @@
 
 
-/**
- * Test and benchmark runners.
- */
 
 export { runCorrectnessTests } from './correctness.js';
 export { runTrainingTests } from './training.js';

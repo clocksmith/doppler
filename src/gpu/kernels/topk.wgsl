@@ -1,3 +1,5 @@
+// topk.wgsl
+
 /**
  * Top-K Selection Kernel for MoE Routing
  *
@@ -11,6 +13,7 @@
  */
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     num_tokens: u32,     // Number of tokens
@@ -26,8 +29,8 @@ struct Uniforms {
 
 // Workgroup shared memory for sorting
 // Supports up to WORKGROUP_SIZE experts (default 256; covers DeepSeek-V2's 160, Snowflake Arctic's 128, etc.)
-var<workgroup> shared_probs: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
+var<workgroup> shared_probs: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
 // Main kernel: one workgroup per token
 // Workgroup size WORKGROUP_SIZE to support loading up to WORKGROUP_SIZE experts in parallel

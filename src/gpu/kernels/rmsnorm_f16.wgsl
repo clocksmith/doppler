@@ -9,6 +9,7 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
 override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
 
@@ -26,7 +27,7 @@ struct Uniforms {
 @group(0) @binding(4) var<storage, read> residual: array<f16>; // Optional residual
 
 // Shared memory for reduction (F32 for precision)
-var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
 
 fn apply_weight(w: f32) -> f32 {
     if (RMS_NORM_OFFSET) {

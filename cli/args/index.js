@@ -1,8 +1,5 @@
 
 
-/**
- * CLI argument parsing.
- */
 
 import { FLAG_HANDLERS } from './flags.js';
 import { resolveFlagAlias, suggestClosestFlags } from './suggestions.js';
@@ -16,44 +13,7 @@ export {
   suggestClosestFlags,
 } from './suggestions.js';
 
-/**
- * @typedef {Object} CLIOptions
- * @property {Set<string>} cliFlags
- * @property {string} command
- * @property {string} suite
- * @property {string} model
- * @property {string} baseUrl
- * @property {string|null} config
- * @property {string|null} mode
- * @property {object|null} runtimeConfig
- * @property {string[]|null} configChain
- * @property {boolean} dumpConfig
- * @property {boolean} listPresets
- * @property {boolean} noServer
- * @property {boolean} headless
- * @property {boolean} minimized
- * @property {boolean} reuseBrowser
- * @property {string} cdpEndpoint
- * @property {boolean} verbose
- * @property {string|null} filter
- * @property {number} timeout
- * @property {string|null} output
- * @property {string|null} html
- * @property {string|null} compare
- * @property {string|null} profileDir
- * @property {number} retries
- * @property {boolean} quiet
- * @property {boolean} help
- * @property {boolean} perf
- * @property {boolean} skipLoad
- * @property {boolean} warm
- */
 
-/**
- * Normalize suite name (handle legacy aliases).
- * @param {string} suite
- * @returns {string}
- */
 export function normalizeSuite(suite) {
   const legacyMap = {
     'bench:kernels': 'kernels',
@@ -65,11 +25,6 @@ export function normalizeSuite(suite) {
   return legacyMap[suite] || suite;
 }
 
-/**
- * Parse command line arguments.
- * @param {string[]} argv
- * @returns {CLIOptions}
- */
 export function parseArgs(argv) {
   const opts = {
     cliFlags: new Set(),
@@ -145,21 +100,10 @@ export function parseArgs(argv) {
   return opts;
 }
 
-/**
- * Check if CLI flags were explicitly provided.
- * @param {CLIOptions} opts
- * @param {string[]} flags
- * @returns {boolean}
- */
 export function hasCliFlag(opts, flags) {
   return flags.some((flag) => opts.cliFlags.has(flag));
 }
 
-/**
- * Append runtime config to URL params.
- * @param {URLSearchParams} params
- * @param {CLIOptions} opts
- */
 export function appendRuntimeConfigParams(params, opts) {
   if (opts.runtimeConfig) {
     params.set('runtimeConfig', JSON.stringify(opts.runtimeConfig));
@@ -169,11 +113,6 @@ export function appendRuntimeConfigParams(params, opts) {
   }
 }
 
-/**
- * Set harness-specific config in runtime config.
- * @param {CLIOptions} opts
- * @param {object} updates
- */
 export function setHarnessConfig(opts, updates) {
   const harness = opts.runtimeConfig?.shared?.harness;
   if (!harness) {

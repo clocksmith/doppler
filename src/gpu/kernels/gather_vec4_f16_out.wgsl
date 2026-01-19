@@ -1,3 +1,5 @@
+// gather_vec4_f16_out.wgsl
+
 /**
  * Gather Kernel (vec4, F16 output)
  *

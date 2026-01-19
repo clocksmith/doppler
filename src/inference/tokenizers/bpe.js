@@ -96,7 +96,10 @@ export class BPETokenizer extends BaseTokenizer {
     const ids = [];
 
     if (this.addBosToken) {
-      ids.push(this.specialTokens.bos ?? 1);
+      if (this.specialTokens.bos == null) {
+        throw new Error('[Tokenizer] bos token is required when addBosToken is enabled.');
+      }
+      ids.push(this.specialTokens.bos);
     }
 
     // Simple word-level tokenization then BPE
@@ -122,13 +125,19 @@ export class BPETokenizer extends BaseTokenizer {
           ids.push(id);
         } else {
           // Unknown token
-          ids.push(this.specialTokens.unk ?? 0);
+          if (this.specialTokens.unk == null) {
+            throw new Error('[Tokenizer] unk token is required to encode unknown tokens.');
+          }
+          ids.push(this.specialTokens.unk);
         }
       }
     }
 
     if (this.addEosToken) {
-      ids.push(this.specialTokens.eos ?? 2);
+      if (this.specialTokens.eos == null) {
+        throw new Error('[Tokenizer] eos token is required when addEosToken is enabled.');
+      }
+      ids.push(this.specialTokens.eos);
     }
 
     return ids;

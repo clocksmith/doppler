@@ -1,3 +1,5 @@
+// scatter_add_vec4.wgsl
+
 /**
  * Scatter-Add Kernel (vec4)
  *

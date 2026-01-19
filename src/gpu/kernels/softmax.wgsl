@@ -11,6 +11,7 @@
 enable subgroups;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 32u;
 
 struct Uniforms {
@@ -25,8 +26,8 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 
 // Shared memory for reduction
-var<workgroup> shared_max: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_max: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
 
 // Main softmax kernel - one workgroup per row
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

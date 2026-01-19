@@ -8,43 +8,23 @@ import {
   ConvertStage,
 } from '../src/browser/browser-converter.js';
 
-/**
- * Controls browser-based model conversion.
- */
 export class ConverterController {
-  /** @type {boolean} */
   #isConverting = false;
 
-  /** @type {ConverterCallbacks} */
   #callbacks;
 
-  /**
-   * @param {ConverterCallbacks} callbacks
-   */
   constructor(callbacks = {}) {
     this.#callbacks = callbacks;
   }
 
-  /**
-   * Check if conversion is supported in this browser.
-   * @returns {boolean}
-   */
   static isSupported() {
     return isConversionSupported();
   }
 
-  /**
-   * Check if currently converting.
-   * @returns {boolean}
-   */
   get isConverting() {
     return this.#isConverting;
   }
 
-  /**
-   * Start the conversion process (file picker + convert).
-   * @returns {Promise<string|null>} The model ID if successful, null if cancelled
-   */
   async convert() {
     if (this.#isConverting) {
       return null;
@@ -99,12 +79,3 @@ export class ConverterController {
   }
 }
 
-/**
- * @typedef {Object} ConverterCallbacks
- * @property {() => void} [onStart]
- * @property {(percent: number, message: string) => void} [onProgress]
- * @property {(modelId: string) => void} [onComplete]
- * @property {() => void} [onCancel]
- * @property {(error: Error) => void} [onError]
- * @property {() => void} [onFinish]
- */

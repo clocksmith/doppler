@@ -1,11 +1,3 @@
-/**
- * Emulated VRAM Storage
- *
- * OPFS-backed storage for virtual GPU memory that simulates
- * HBM3e VRAM with tiered storage (actual VRAM → RAM → OPFS).
- *
- * @module storage/emulated-vram
- */
 
 import { log } from '../debug/index.js';
 import { getBufferPool } from '../memory/buffer-pool.js';
@@ -16,79 +8,50 @@ import { getBufferPool } from '../memory/buffer-pool.js';
 
 const MODULE = 'EmulatedVRAM';
 
-/** Default VRAM budget (2GB) */
 const DEFAULT_VRAM_BUDGET = 2 * 1024 * 1024 * 1024;
 
-/** Default RAM budget (8GB) */
 const DEFAULT_RAM_BUDGET = 8 * 1024 * 1024 * 1024;
 
-/** Chunk ID counter */
 let chunkIdCounter = 0;
 
 // =============================================================================
 // Emulated VRAM Store
 // =============================================================================
 
-/**
- * OPFS-backed storage for emulated VRAM
- */
 export class EmulatedVramStore {
-  /**
-   * @param {string} rootPath - Root path in OPFS
-   * @param {number} vramBudgetBytes - Max bytes in actual VRAM
-   * @param {number} ramBudgetBytes - Max bytes in RAM
-   */
-  constructor(rootPath, vramBudgetBytes = DEFAULT_VRAM_BUDGET, ramBudgetBytes = DEFAULT_RAM_BUDGET) {
-    /** @type {string} */
-    this.rootPath = rootPath;
+    constructor(rootPath, vramBudgetBytes = DEFAULT_VRAM_BUDGET, ramBudgetBytes = DEFAULT_RAM_BUDGET) {
+        this.rootPath = rootPath;
 
-    /** @type {number} */
-    this.vramBudgetBytes = vramBudgetBytes;
+        this.vramBudgetBytes = vramBudgetBytes;
 
-    /** @type {number} */
-    this.ramBudgetBytes = ramBudgetBytes;
+        this.ramBudgetBytes = ramBudgetBytes;
 
-    /** @type {Map<string, import('./emulated-vram.js').MemoryChunk>} */
-    this._chunks = new Map();
+        this._chunks = new Map();
 
-    /** @type {Map<string, ArrayBuffer>} Chunks in RAM */
-    this._ramStore = new Map();
+        this._ramStore = new Map();
 
-    /** @type {Map<string, GPUBuffer>} Chunks in VRAM */
-    this._vramStore = new Map();
+        this._vramStore = new Map();
 
-    /** @type {Map<string, import('./emulated-vram.js').PartitionConfig>} */
-    this._partitions = new Map();
+        this._partitions = new Map();
 
-    /** @type {Map<string, FileSystemDirectoryHandle>} */
-    this._opfsDirs = new Map();
+        this._opfsDirs = new Map();
 
-    /** @type {number} */
-    this._vramUsed = 0;
+        this._vramUsed = 0;
 
-    /** @type {number} */
-    this._ramUsed = 0;
+        this._ramUsed = 0;
 
-    /** @type {number} */
-    this._opfsUsed = 0;
+        this._opfsUsed = 0;
 
-    /** @type {number} */
-    this._evictionCount = 0;
+        this._evictionCount = 0;
 
-    /** @type {number} */
-    this._totalBytesEvicted = 0;
+        this._totalBytesEvicted = 0;
 
-    /** @type {FileSystemDirectoryHandle|null} */
-    this._rootDir = null;
+        this._rootDir = null;
 
-    /** @type {boolean} */
-    this._initialized = false;
+        this._initialized = false;
   }
 
-  /**
-   * Initialize the store
-   */
-  async initialize() {
+    async initialize() {
     if (this._initialized) return;
 
     if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) {
@@ -116,11 +79,7 @@ export class EmulatedVramStore {
     }
   }
 
-  /**
-   * Create a new partition
-   * @param {import('./emulated-vram.js').PartitionConfig} config
-   */
-  async createPartition(config) {
+    async createPartition(config) {
     await this.initialize();
 
     if (this._partitions.has(config.name)) {
@@ -143,14 +102,7 @@ export class EmulatedVramStore {
     log.verbose(MODULE, `Created partition ${config.name} (max: ${config.maxBytes} bytes)`);
   }
 
-  /**
-   * Allocate a new chunk
-   * @param {string} partition - Partition name
-   * @param {number} sizeBytes - Chunk size
-   * @param {string} [label] - Optional label
-   * @returns {Promise<string>} Chunk ID
-   */
-  async allocate(partition, sizeBytes, label) {
+    async allocate(partition, sizeBytes, label) {
     await this.initialize();
 
     if (!this._partitions.has(partition)) {
@@ -168,8 +120,7 @@ export class EmulatedVramStore {
       tier = 'ram';
     }
 
-    /** @type {import('./emulated-vram.js').MemoryChunk} */
-    const chunk = {
+        const chunk = {
       id,
       sizeBytes,
       tier,
@@ -204,14 +155,7 @@ export class EmulatedVramStore {
     return id;
   }
 
-  /**
-   * Write data to a chunk
-   * @param {string} chunkId
-   * @param {ArrayBuffer} data
-   * @param {number} [offset=0]
-   * @returns {Promise<import('./emulated-vram.js').ChunkWriteResult>}
-   */
-  async write(chunkId, data, offset = 0) {
+    async write(chunkId, data, offset = 0) {
     const start = performance.now();
     const chunk = this._chunks.get(chunkId);
     if (!chunk) {
@@ -241,14 +185,7 @@ export class EmulatedVramStore {
     };
   }
 
-  /**
-   * Read data from a chunk
-   * @param {string} chunkId
-   * @param {number} [offset=0]
-   * @param {number} [length]
-   * @returns {Promise<import('./emulated-vram.js').ChunkReadResult>}
-   */
-  async read(chunkId, offset = 0, length) {
+    async read(chunkId, offset = 0, length) {
     const start = performance.now();
     const chunk = this._chunks.get(chunkId);
     if (!chunk) {
@@ -281,11 +218,7 @@ export class EmulatedVramStore {
     };
   }
 
-  /**
-   * Free a chunk
-   * @param {string} chunkId
-   */
-  async free(chunkId) {
+    async free(chunkId) {
     const chunk = this._chunks.get(chunkId);
     if (!chunk) return;
 
@@ -309,34 +242,21 @@ export class EmulatedVramStore {
     log.verbose(MODULE, `Freed chunk ${chunkId}`);
   }
 
-  /**
-   * Lock a chunk
-   * @param {string} chunkId
-   */
-  async lock(chunkId) {
+    async lock(chunkId) {
     const chunk = this._chunks.get(chunkId);
     if (chunk) {
       chunk.locked = true;
     }
   }
 
-  /**
-   * Unlock a chunk
-   * @param {string} chunkId
-   */
-  async unlock(chunkId) {
+    async unlock(chunkId) {
     const chunk = this._chunks.get(chunkId);
     if (chunk) {
       chunk.locked = false;
     }
   }
 
-  /**
-   * Promote a chunk to higher tier
-   * @param {string} chunkId
-   * @param {import('./emulated-vram.js').StorageTier} targetTier
-   */
-  async promote(chunkId, targetTier) {
+    async promote(chunkId, targetTier) {
     const chunk = this._chunks.get(chunkId);
     if (!chunk) {
       throw new Error(`Chunk ${chunkId} not found`);
@@ -383,12 +303,7 @@ export class EmulatedVramStore {
     log.verbose(MODULE, `Promoted ${chunkId} to ${targetTier}`);
   }
 
-  /**
-   * Demote a chunk to lower tier
-   * @param {string} chunkId
-   * @param {import('./emulated-vram.js').StorageTier} targetTier
-   */
-  async demote(chunkId, targetTier) {
+    async demote(chunkId, targetTier) {
     const chunk = this._chunks.get(chunkId);
     if (!chunk) {
       throw new Error(`Chunk ${chunkId} not found`);
@@ -425,12 +340,7 @@ export class EmulatedVramStore {
     log.verbose(MODULE, `Demoted ${chunkId} to ${targetTier}`);
   }
 
-  /**
-   * Free chunk from its current tier (internal helper)
-   * @param {string} chunkId
-   * @param {import('./emulated-vram.js').MemoryChunk} chunk
-   */
-  async _freeFromTier(chunkId, chunk) {
+    async _freeFromTier(chunkId, chunk) {
     if (chunk.tier === 'vram') {
       const pool = getBufferPool();
       const gpuBuffer = this._vramStore.get(chunkId);
@@ -448,21 +358,11 @@ export class EmulatedVramStore {
     }
   }
 
-  /**
-   * Get chunk metadata
-   * @param {string} chunkId
-   * @returns {import('./emulated-vram.js').MemoryChunk|null}
-   */
-  getChunkInfo(chunkId) {
+    getChunkInfo(chunkId) {
     return this._chunks.get(chunkId) || null;
   }
 
-  /**
-   * List chunks in a partition
-   * @param {string} partition
-   * @returns {string[]}
-   */
-  listChunks(partition) {
+    listChunks(partition) {
     const result = [];
     for (const [id, chunk] of this._chunks) {
       if (chunk.partition === partition) {
@@ -472,11 +372,7 @@ export class EmulatedVramStore {
     return result;
   }
 
-  /**
-   * Get storage statistics
-   * @returns {import('./emulated-vram.js').EmulatedVramStats}
-   */
-  getStats() {
+    getStats() {
     const partitionStats = [];
 
     for (const [name, config] of this._partitions) {
@@ -509,13 +405,7 @@ export class EmulatedVramStore {
     };
   }
 
-  /**
-   * Evict chunks to free space
-   * @param {import('./emulated-vram.js').StorageTier} tier
-   * @param {number} bytesNeeded
-   * @returns {Promise<number>} Bytes freed
-   */
-  async evict(tier, bytesNeeded) {
+    async evict(tier, bytesNeeded) {
     // Collect evictable chunks
     const evictable = [];
     for (const [id, chunk] of this._chunks) {
@@ -542,13 +432,7 @@ export class EmulatedVramStore {
     return freed;
   }
 
-  /**
-   * Read from OPFS
-   * @param {string} chunkId
-   * @param {string} partition
-   * @returns {Promise<ArrayBuffer>}
-   */
-  async _readFromOpfs(chunkId, partition) {
+    async _readFromOpfs(chunkId, partition) {
     const dir = this._opfsDirs.get(partition);
     if (!dir) {
       throw new Error(`OPFS partition ${partition} not found`);
@@ -559,13 +443,7 @@ export class EmulatedVramStore {
     return file.arrayBuffer();
   }
 
-  /**
-   * Write to OPFS
-   * @param {string} chunkId
-   * @param {string} partition
-   * @param {ArrayBuffer} data
-   */
-  async _writeToOpfs(chunkId, partition, data) {
+    async _writeToOpfs(chunkId, partition, data) {
     const dir = this._opfsDirs.get(partition);
     if (!dir) {
       // Fallback to RAM if OPFS not available
@@ -580,12 +458,7 @@ export class EmulatedVramStore {
     await writable.close();
   }
 
-  /**
-   * Delete from OPFS
-   * @param {string} chunkId
-   * @param {string} partition
-   */
-  async _deleteFromOpfs(chunkId, partition) {
+    async _deleteFromOpfs(chunkId, partition) {
     const dir = this._opfsDirs.get(partition);
     if (!dir) return;
 
@@ -596,10 +469,7 @@ export class EmulatedVramStore {
     }
   }
 
-  /**
-   * Destroy the store
-   */
-  async destroy() {
+    async destroy() {
     const pool = getBufferPool();
 
     // Release all VRAM buffers
@@ -626,19 +496,10 @@ export class EmulatedVramStore {
 // Factory Functions
 // =============================================================================
 
-/**
- * Create an emulated VRAM store with auto-detected budgets
- * @param {string} rootPath
- * @returns {EmulatedVramStore}
- */
 export function createEmulatedVramStore(rootPath) {
   return new EmulatedVramStore(rootPath, DEFAULT_VRAM_BUDGET, DEFAULT_RAM_BUDGET);
 }
 
-/**
- * Detect available local resources
- * @returns {Promise<{vramBytes: number, ramBytes: number, storageBytes: number}>}
- */
 export async function detectLocalResources() {
   let vramBytes = 2 * 1024 * 1024 * 1024; // Default 2GB
   let ramBytes = 8 * 1024 * 1024 * 1024;  // Default 8GB

@@ -4,16 +4,8 @@ import { validateManifest } from './validation.js';
 
 let currentManifest = null;
 
-export function parseManifest(jsonString) {
-  let manifest;
-
-  try {
-    manifest = JSON.parse(jsonString);
-  } catch (e) {
-    throw new Error(`Failed to parse manifest JSON: ${e.message}`);
-  }
-
-  // Normalize eos_token_id from legacy config if not at top level
+function isLegacyManifest(manifest) {
+  if (!manifest) return false;
   const version = typeof manifest.version === 'string'
     ? parseFloat(manifest.version)
     : manifest.version;
@@ -24,10 +16,22 @@ export function parseManifest(jsonString) {
       manifest.config.transformers_version
     )
   );
-  const isLegacyManifest = version === 1 && !manifest.groups && hasLegacyConfig;
+  return version === 1 && !manifest.groups && hasLegacyConfig;
+}
+
+export function parseManifest(jsonString) {
+  let manifest;
+
+  try {
+    manifest = JSON.parse(jsonString);
+  } catch (e) {
+    throw new Error(`Failed to parse manifest JSON: ${e.message}`);
+  }
+
+  // Normalize eos_token_id from legacy config if not at top level
   if (manifest.eos_token_id === undefined &&
       manifest.config?.eos_token_id !== undefined &&
-      isLegacyManifest) {
+      isLegacyManifest(manifest)) {
     manifest.eos_token_id = manifest.config.eos_token_id;
   }
 
@@ -72,6 +76,7 @@ export function parseManifest(jsonString) {
 export function parseTensorMap(jsonString) {
   try {
     const tensorMap = JSON.parse(jsonString);
+    const allowLegacyRoleInference = isLegacyManifest(currentManifest);
 
     for (const [name, loc] of Object.entries(tensorMap)) {
       if (typeof loc.shard !== 'number') {
@@ -88,7 +93,7 @@ export function parseTensorMap(jsonString) {
       }
       // Normalize group to role (backward compatibility)
       // Legacy tensors may include group but no role
-      if (loc.role === undefined && loc.group !== undefined) {
+      if (allowLegacyRoleInference && loc.role === undefined && loc.group !== undefined) {
         if (loc.group === 'embed') {
           loc.role = 'embedding';
         } else if (loc.group === 'head') {

@@ -119,6 +119,13 @@ function createValidTensorMap() {
   };
 }
 
+function setLegacyManifestForTensorMap() {
+  const manifest = createValidManifest({
+    config: { model_type: 'test' },
+  });
+  setManifest(manifest);
+}
+
 describe('formats/rdrr/manifest', () => {
   describe('generateShardFilename', () => {
     it('generates padded filenames', () => {
@@ -431,6 +438,7 @@ describe('formats/rdrr/parsing', () => {
     });
 
     it('infers roles from legacy group fields', () => {
+      setLegacyManifestForTensorMap();
       const tensorMap = {
         'model.embed_tokens.weight': { shard: 0, offset: 0, size: 100, shape: [10], group: 'embed' },
         'model.norm.weight': { shard: 0, offset: 100, size: 100, shape: [10], group: 'head' },

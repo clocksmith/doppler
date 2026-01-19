@@ -95,7 +95,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
 
     // Set up special tokens
-    this.#unkId = this.specialTokens.unk ?? 0;
+    if (this.specialTokens.unk == null) {
+      throw new Error('[Tokenizer] unk token is required for SentencePiece.');
+    }
+    this.#unkId = this.specialTokens.unk;
 
     // Determine algorithm from model characteristics
     // (Unigram has scores, BPE typically doesn't)
@@ -213,7 +216,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     const ids = [];
 
     if (this.addBosToken) {
-      ids.push(this.specialTokens.bos ?? 1);
+      if (this.specialTokens.bos == null) {
+        throw new Error('[Tokenizer] bos token is required when addBosToken is enabled.');
+      }
+      ids.push(this.specialTokens.bos);
     }
 
     // Normalize: add sentence piece prefix (▁ for word start)
@@ -227,7 +233,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
 
     if (this.addEosToken) {
-      ids.push(this.specialTokens.eos ?? 2);
+      if (this.specialTokens.eos == null) {
+        throw new Error('[Tokenizer] eos token is required when addEosToken is enabled.');
+      }
+      ids.push(this.specialTokens.eos);
     }
 
     return ids;

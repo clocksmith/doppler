@@ -1,17 +1,8 @@
 
 
-/**
- * Flag suggestion utilities for CLI typo correction.
- */
 
 import { KNOWN_FLAGS } from './flags.js';
 
-/**
- * Calculate Levenshtein distance between two strings.
- * @param {string} a
- * @param {string} b
- * @returns {number}
- */
 export function levenshteinDistance(a, b) {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
@@ -38,20 +29,10 @@ export function levenshteinDistance(a, b) {
   return prev[b.length];
 }
 
-/**
- * Normalize a flag to lowercase kebab-case without prefix.
- * @param {string} flag
- * @returns {string}
- */
 export function normalizeFlag(flag) {
   return flag.replace(/^-+/, '').replace(/_/g, '-').toLowerCase();
 }
 
-/**
- * Suggest camelCase -> kebab-case conversion if applicable.
- * @param {string} flag
- * @returns {string|null}
- */
 export function suggestFlag(flag) {
   if (!flag.startsWith('--')) return null;
   if (!/[A-Z]/.test(flag)) return null;
@@ -59,11 +40,6 @@ export function suggestFlag(flag) {
   return KNOWN_FLAGS.has(kebab) ? kebab : null;
 }
 
-/**
- * Resolve flag alias (underscore/camelCase normalization).
- * @param {string} flag
- * @returns {string|null}
- */
 export function resolveFlagAlias(flag) {
   if (!flag.startsWith('--')) return null;
   const raw = flag.slice(2);
@@ -76,11 +52,6 @@ export function resolveFlagAlias(flag) {
   return KNOWN_FLAGS.has(candidate) ? candidate : null;
 }
 
-/**
- * Suggest closest matching flags for a typo.
- * @param {string} flag
- * @returns {string[]}
- */
 export function suggestClosestFlags(flag) {
   const camelSuggestion = suggestFlag(flag);
   if (camelSuggestion) return [camelSuggestion];

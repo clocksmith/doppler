@@ -197,6 +197,7 @@ Once you identify the failure class, apply the appropriate fix:
 | Softcapping disabled | Check `attnLogitSoftcapping` and `finalLogitSoftcapping` in manifest |
 | Quantization drift | Re-convert model with `-w f16` to isolate Q4K bugs |
 | Sliding window wrong | Check `slidingWindow` and layer pattern in model preset |
+| Manifest validation error | Ensure `eos_token_id` and required inference fields are present; re-convert if needed |
 
 ## Key Grep Patterns
 

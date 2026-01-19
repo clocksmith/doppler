@@ -10,7 +10,7 @@ import type { LayerWeights, LayerContext, SandwichNormInfo } from './types.js';
 /**
  * Detect sandwich norm architecture (Gemma 3).
  */
-export function detectSandwichNorm(layerWeights: LayerWeights | null): SandwichNormInfo;
+export function detectSandwichNorm(config: ParsedModelConfig | null): SandwichNormInfo;
 
 /**
  * Check if a layer is a MoE layer.

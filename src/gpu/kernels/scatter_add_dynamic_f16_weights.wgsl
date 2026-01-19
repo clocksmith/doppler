@@ -1,3 +1,5 @@
+// scatter_add_dynamic_f16_weights.wgsl
+
 /**
  * Scatter-Add Kernel (dynamic layout, f16 outputs, f16 weights)
  */

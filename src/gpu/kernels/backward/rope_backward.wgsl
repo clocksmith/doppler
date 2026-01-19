@@ -1,3 +1,5 @@
+// rope_backward.wgsl
+
 /**
  * RoPE backward kernel.
  */

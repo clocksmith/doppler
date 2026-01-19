@@ -1,16 +1,6 @@
 
 
-/**
- * UI helper functions for status, stats, and error display.
- */
 
-/**
- * Update the status indicator.
- * @param {HTMLElement|null} dotEl
- * @param {HTMLElement|null} textEl
- * @param {'ready'|'loading'|'error'} state
- * @param {string} text
- */
 export function setStatus(dotEl, textEl, state, text) {
   if (dotEl) {
     dotEl.className = `status-dot ${state}`;
@@ -20,11 +10,6 @@ export function setStatus(dotEl, textEl, state, text) {
   }
 }
 
-/**
- * Update capabilities UI list.
- * @param {HTMLElement|null} listEl
- * @param {Record<string, boolean>} capabilities
- */
 export function updateCapabilitiesUI(listEl, capabilities) {
   if (!listEl) return;
 
@@ -43,11 +28,6 @@ export function updateCapabilitiesUI(listEl, capabilities) {
   });
 }
 
-/**
- * Populate GPU info panel.
- * @param {GPUInfoElements} elements
- * @param {GPUInfoData} data
- */
 export function populateGPUInfo(elements, data) {
   if (!elements.device) return;
 
@@ -58,8 +38,8 @@ export function populateGPUInfo(elements, data) {
   // VRAM/buffer limit
   if (elements.vram) {
     elements.vram.textContent = data.bufferLimitBytes > 0
-      ? formatBytes(data.bufferLimitBytes)
-      : 'Unknown';
+    ? formatBytes(data.bufferLimitBytes)
+    : 'Unknown';
   }
 
   // System RAM (for unified memory)
@@ -89,16 +69,11 @@ export function populateGPUInfo(elements, data) {
   }
 }
 
-/**
- * Update generation stats display.
- * @param {StatsElements} elements
- * @param {StatsData} stats
- */
 export function updateStats(elements, stats) {
   if (elements.tps && stats.tps !== undefined) {
     elements.tps.textContent = typeof stats.tps === 'number'
-      ? stats.tps.toFixed(1)
-      : stats.tps;
+    ? stats.tps.toFixed(1)
+    : stats.tps;
   }
 
   if (elements.memory && stats.memoryMB !== undefined) {
@@ -114,10 +89,6 @@ export function updateStats(elements, stats) {
   }
 }
 
-/**
- * Reset stats to initial "ready" state.
- * @param {StatsElements} elements
- */
 export function resetStats(elements) {
   if (elements.tps) elements.tps.textContent = '--';
   if (elements.memory) elements.memory.textContent = '--';
@@ -125,13 +96,6 @@ export function resetStats(elements) {
   if (elements.kv) elements.kv.textContent = '--';
 }
 
-/**
- * Show an error modal.
- * @param {HTMLElement|null} modalEl
- * @param {HTMLElement|null} messageEl
- * @param {HTMLElement|null} closeBtn
- * @param {string} message
- */
 export function showError(modalEl, messageEl, closeBtn, message) {
   if (messageEl) {
     messageEl.textContent = message;
@@ -149,11 +113,6 @@ export function showError(modalEl, messageEl, closeBtn, message) {
   closeBtn?.addEventListener('click', close);
 }
 
-/**
- * Format bytes to human-readable string.
- * @param {number} bytes
- * @returns {string}
- */
 export function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -162,53 +121,12 @@ export function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-/**
- * Clamp a numeric input value.
- * @param {HTMLInputElement} input
- * @param {number} min
- * @param {number} max
- */
 export function clampInputValue(input, min, max) {
   const n = parseFloat(input.value);
   if (!Number.isFinite(n)) return;
   input.value = Math.min(max, Math.max(min, n)).toString();
 }
 
-/**
- * @typedef {Object} GPUInfoElements
- * @property {HTMLElement|null} device
- * @property {HTMLElement|null} vram
- * @property {HTMLElement|null} vramLabel
- * @property {HTMLElement|null} ram
- * @property {HTMLElement|null} ramRow
- * @property {HTMLElement|null} features
- * @property {HTMLElement|null} unifiedNote
- */
 
-/**
- * @typedef {Object} GPUInfoData
- * @property {string} deviceName
- * @property {number} bufferLimitBytes
- * @property {boolean} isUnifiedMemory
- * @property {number} [systemMemoryGB]
- * @property {boolean} hasF16
- * @property {boolean} hasSubgroups
- * @property {boolean} hasTimestamps
- */
 
-/**
- * @typedef {Object} StatsElements
- * @property {HTMLElement|null} tps
- * @property {HTMLElement|null} memory
- * @property {HTMLElement|null} gpu
- * @property {HTMLElement|null} kv
- */
 
-/**
- * @typedef {Object} StatsData
- * @property {number|string} [tps]
- * @property {number} [memoryMB]
- * @property {number} [gpuBuffers]
- * @property {number} [kvSeqLen]
- * @property {number} [kvMaxLen]
- */

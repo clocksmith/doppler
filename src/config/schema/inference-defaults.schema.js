@@ -70,6 +70,7 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   moe: DEFAULT_MOE_RUNTIME_CONFIG,
   speculative: DEFAULT_SPECULATIVE_CONFIG,
   prompt: 'The color of the sky is',
+  debugTokens: false,
   pipeline: null,
   kernelPath: undefined,
 };

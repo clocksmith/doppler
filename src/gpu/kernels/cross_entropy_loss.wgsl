@@ -1,3 +1,5 @@
+// cross_entropy_loss.wgsl
+
 /**
  * Cross-entropy loss kernel (expects softmax input).
  */

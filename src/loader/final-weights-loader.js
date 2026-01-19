@@ -212,6 +212,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   const result = await maybeDowncastToF16(lmHead, {
     label: lmHeadName ?? 'lm_head',
     keepF32: ctx.keepF32Weights,
+    dtype,
     shape: isWeightBuffer(lmHead)
       ? Array.from(lmHead.shape)
       : (lmHeadLoc?.shape ?? [elems]),

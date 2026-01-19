@@ -1,3 +1,5 @@
+// scatter_add.wgsl
+
 /**
  * Scatter-Add Kernel for MoE Output Combination
  *

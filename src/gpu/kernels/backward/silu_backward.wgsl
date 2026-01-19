@@ -1,3 +1,5 @@
+// silu_backward.wgsl
+
 /**
  * SiLU backward kernel.
  */

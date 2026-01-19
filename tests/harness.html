@@ -14,7 +14,7 @@
       margin-top: var(--space-md);
       padding: var(--space-sm);
       border: var(--border-sm) solid var(--fg);
-      max-height: 40vh;
+      max-height: 75vh;
       overflow: auto;
       background: var(--bg);
     }
@@ -282,6 +282,7 @@
         const maxTokens = runtimeConfig.inference.batching.maxTokens;
         const temperature = runtimeConfig.inference.sampling.temperature;
         const profile = runtimeConfig.shared.debug.profiler?.enabled === true;
+        const debugTokens = runtimeConfig.inference.debugTokens === true;
 
         try {
           let pipeline;
@@ -320,15 +321,24 @@
 
           console.log(`4. Generating from: "${prompt}"`);
           const tokens = [];
+          const tokenIds = [];
           const startTime = performance.now();
 
           for await (const tokenText of pipeline.generate(prompt, {
             maxTokens,
             temperature,
             profile,
+            onToken: (tokenId, tokenText) => {
+              tokenIds.push(tokenId);
+              if (debugTokens) {
+                console.log(`[Token] ${tokenIds.length}: id=${tokenId} text=${JSON.stringify(tokenText)}`);
+              }
+            },
           })) {
             tokens.push(tokenText);
-            console.log(`[Token] ${tokens.length}: "${tokenText}"`);
+            if (!debugTokens) {
+              console.log(`[Token] ${tokens.length}: "${tokenText}"`);
+            }
           }
 
           const elapsed = performance.now() - startTime;
@@ -337,6 +347,7 @@
 
           window.testState.output = output;
           window.testState.tokens = tokens;
+          window.testState.tokenIds = tokenIds;
           window.testState.done = true;
 
           console.log(`${SIGNALS.RESULT} ${JSON.stringify({ output, tokens: tokens.length, elapsed, tokensPerSecond: tokPerSec })}`);

@@ -2,42 +2,25 @@
 
 import { getBufferPool } from '../src/memory/buffer-pool.js';
 
-/**
- * Monitors and reports memory usage (JS heap, GPU buffers, KV cache, OPFS).
- */
 export class MemoryMonitor {
-  /** @type {MemoryElements} */
   #elements;
 
-  /** @type {number|null} */
   #pollInterval = null;
 
-  /** @type {number} */
   #pollIntervalMs = 2000;
 
-  /** @type {number|null} */
   #estimatedSystemMemoryBytes = null;
 
-  /** @type {number|null} */
   #gpuBufferLimitBytes = null;
 
-  /** @type {boolean} */
   #isUnifiedMemory = false;
 
-  /** @type {(() => object|null)|null} */
   #getPipelineMemoryStats = null;
 
-  /**
-   * @param {MemoryElements} elements - DOM elements for memory display
-   */
   constructor(elements) {
     this.#elements = elements;
   }
 
-  /**
-   * Configure the monitor.
-   * @param {MemoryMonitorConfig} config
-   */
   configure(config) {
     if (config.estimatedSystemMemoryBytes !== undefined) {
       this.#estimatedSystemMemoryBytes = config.estimatedSystemMemoryBytes;
@@ -56,17 +39,11 @@ export class MemoryMonitor {
     }
   }
 
-  /**
-   * Start memory polling.
-   */
   start() {
     this.update();
     this.#pollInterval = setInterval(() => this.update(), this.#pollIntervalMs);
   }
 
-  /**
-   * Stop memory polling.
-   */
   stop() {
     if (this.#pollInterval) {
       clearInterval(this.#pollInterval);
@@ -74,9 +51,6 @@ export class MemoryMonitor {
     }
   }
 
-  /**
-   * Update all memory stats.
-   */
   update() {
     if (!this.#elements.heapBar) return;
 
@@ -88,10 +62,6 @@ export class MemoryMonitor {
     this.#updateTotalUI(stats);
   }
 
-  /**
-   * Gather current memory statistics.
-   * @returns {MemoryStats}
-   */
   #gatherStats() {
     let usedHeap = 0;
     let totalHeapLimit = 0;
@@ -134,10 +104,6 @@ export class MemoryMonitor {
     };
   }
 
-  /**
-   * Update heap UI elements.
-   * @param {MemoryStats} stats
-   */
   #updateHeapUI(stats) {
     const memory = performance.memory;
     if (memory && this.#elements.heapBar && this.#elements.heapValue) {
@@ -149,10 +115,6 @@ export class MemoryMonitor {
     }
   }
 
-  /**
-   * Update GPU UI elements.
-   * @param {MemoryStats} stats
-   */
   #updateGPUUI(stats) {
     if (!this.#elements.gpuBar || !this.#elements.gpuValue) return;
 
@@ -164,10 +126,6 @@ export class MemoryMonitor {
     this.#elements.gpuValue.textContent = this.formatBytes(stats.usedGpuTotal);
   }
 
-  /**
-   * Update KV cache UI elements.
-   * @param {MemoryStats} stats
-   */
   #updateKVUI(stats) {
     if (!this.#elements.kvBar || !this.#elements.kvValue) return;
 
@@ -179,9 +137,6 @@ export class MemoryMonitor {
     this.#elements.kvValue.textContent = stats.usedKv > 0 ? this.formatBytes(stats.usedKv) : '--';
   }
 
-  /**
-   * Update OPFS UI elements (async).
-   */
   #updateOPFSUI() {
     if (!this.#elements.opfsBar || !this.#elements.opfsValue) return;
 
@@ -197,10 +152,6 @@ export class MemoryMonitor {
     });
   }
 
-  /**
-   * Update total/stacked memory UI.
-   * @param {MemoryStats} stats
-   */
   #updateTotalUI(stats) {
     if (!this.#elements.heapStackedBar || !this.#elements.gpuStackedBar) return;
 
@@ -223,10 +174,6 @@ export class MemoryMonitor {
     this.#updateHeadroomUI(totalUsed);
   }
 
-  /**
-   * Update swap indicator visibility.
-   * @param {number} totalUsed
-   */
   #updateSwapIndicator(totalUsed) {
     if (!this.#elements.swapIndicator) return;
 
@@ -237,10 +184,6 @@ export class MemoryMonitor {
     }
   }
 
-  /**
-   * Update headroom UI.
-   * @param {number} totalUsed
-   */
   #updateHeadroomUI(totalUsed) {
     if (!this.#elements.headroomValue || !this.#elements.headroomBar) return;
 
@@ -257,19 +200,10 @@ export class MemoryMonitor {
     this.#elements.headroomBar.style.width = `${headroomPercent}%`;
   }
 
-  /**
-   * Get estimated system memory.
-   * @returns {number|null}
-   */
   #getEstimatedSystemMemory() {
     return this.#estimatedSystemMemoryBytes;
   }
 
-  /**
-   * Format bytes to human-readable string.
-   * @param {number} bytes
-   * @returns {string}
-   */
   formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -279,39 +213,5 @@ export class MemoryMonitor {
   }
 }
 
-/**
- * @typedef {Object} MemoryElements
- * @property {HTMLElement|null} heapBar
- * @property {HTMLElement|null} heapValue
- * @property {HTMLElement|null} gpuBar
- * @property {HTMLElement|null} gpuValue
- * @property {HTMLElement|null} kvBar
- * @property {HTMLElement|null} kvValue
- * @property {HTMLElement|null} opfsBar
- * @property {HTMLElement|null} opfsValue
- * @property {HTMLElement|null} headroomBar
- * @property {HTMLElement|null} headroomValue
- * @property {HTMLElement|null} heapStackedBar
- * @property {HTMLElement|null} gpuStackedBar
- * @property {HTMLElement|null} totalValue
- * @property {HTMLElement|null} swapIndicator
- */
 
-/**
- * @typedef {Object} MemoryMonitorConfig
- * @property {number} [estimatedSystemMemoryBytes]
- * @property {number} [gpuBufferLimitBytes]
- * @property {boolean} [isUnifiedMemory]
- * @property {() => object|null} [getPipelineMemoryStats]
- * @property {number} [pollIntervalMs]
- */
 
-/**
- * @typedef {Object} MemoryStats
- * @property {number} usedHeap
- * @property {number} totalHeapLimit
- * @property {number} usedGpuPool
- * @property {number} usedKv
- * @property {number} peakGpuBytes
- * @property {number} usedGpuTotal
- */

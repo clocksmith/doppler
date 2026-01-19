@@ -70,7 +70,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 ### Claude Skill
 
-Use `doppler-benchmark` skill (`../../.claude/skills/doppler-benchmark/SKILL.md`) for guided benchmarking.
+Use `doppler-bench` skill (`../../.claude/skills/doppler-bench/SKILL.md`) for guided benchmarking.
 
 ---
 
@@ -489,4 +489,3 @@ if (history.length >= 2) {
 | `short` | 16-64 | Quick validation |
 | `medium` | 256-512 | Standard benchmark |
 | `long` | ~2048 | Stress test |
-

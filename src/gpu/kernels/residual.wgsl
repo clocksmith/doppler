@@ -1,3 +1,5 @@
+// residual.wgsl
+
 /**
  * Residual Add Kernel
  *

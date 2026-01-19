@@ -49,10 +49,8 @@ function analyzeOutputQuality(runs) {
   const controlChars = countControlChars(text);
   const emptyText = text.trim().length === 0;
 
-  /** @type {string[]} */
-  const reasons = [];
-  /** @type {string[]} */
-  const warnings = [];
+    const reasons = [];
+    const warnings = [];
 
   if (totalTokens === 0) reasons.push('no_tokens');
   if (emptyText) reasons.push('empty_text');

@@ -1,25 +1,14 @@
 
 
-/**
- * Converter UI test.
- */
 
-/**
- * Run converter UI test.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runConverterTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('CONVERTER UI TEST');
   console.log('='.repeat(60));
 
   const startTime = Date.now();
-  /** @type {Array<{name: string, passed: boolean, duration: number, error?: string}>} */
-  const results = [];
-  /** @type {string[]} */
-  const errors = [];
+    const results = [];
+    const errors = [];
 
   // Setup console capture
   page.on('console', (msg) => {
@@ -142,7 +131,7 @@ export async function runConverterTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'converter',
@@ -155,7 +144,7 @@ export async function runConverterTest(page, opts) {
           name: 'converter-ui',
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };

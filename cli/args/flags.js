@@ -1,16 +1,7 @@
 
 
-/**
- * CLI flag specifications and handlers.
- */
 
-/**
- * @typedef {Object} FlagSpec
- * @property {string[]} names - Flag names (e.g., ['--help', '-h'])
- * @property {(opts: object, tokens: string[]) => void} handler - Handler function
- */
 
-/** @type {FlagSpec[]} */
 export const FLAG_SPECS = [
   { names: ['--help', '-h'], handler: (opts) => { opts.help = true; } },
   { names: ['--config'], handler: (opts, tokens) => { opts.config = tokens.shift() || null; } },
@@ -44,10 +35,6 @@ export const FLAG_SPECS = [
   { names: ['--perf'], handler: (opts) => { opts.perf = true; } },
 ];
 
-/**
- * Build flag handlers map from specs.
- * @returns {Map<string, (opts: object, tokens: string[]) => void>}
- */
 function buildFlagHandlers() {
   const handlers = new Map();
   for (const spec of FLAG_SPECS) {
@@ -58,8 +45,6 @@ function buildFlagHandlers() {
   return handlers;
 }
 
-/** @type {Map<string, (opts: object, tokens: string[]) => void>} */
 export const FLAG_HANDLERS = buildFlagHandlers();
 
-/** @type {Set<string>} */
 export const KNOWN_FLAGS = new Set(FLAG_HANDLERS.keys());

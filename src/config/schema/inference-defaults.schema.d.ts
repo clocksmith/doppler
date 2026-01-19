@@ -155,6 +155,8 @@ export interface InferenceDefaultsConfigSchema {
   speculative: SpeculativeConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
+  /** Log token ids in test harness output */
+  debugTokens?: boolean;
   pipeline?: LayerPipelineSchema | null;
   /**
    * Kernel path for explicit kernel dispatch ordering.

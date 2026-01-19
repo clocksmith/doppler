@@ -1,18 +1,10 @@
 
 
 import { log, trace } from '../debug/index.js';
+import { DEFAULT_PERF_GUARDS_CONFIG } from '../config/schema/index.js';
 
 
-const DEFAULT_CONFIG = {
-  allowGPUReadback: true, // Default to allowed for backward compatibility
-  trackSubmitCount: false,
-  trackAllocations: false,
-  logExpensiveOps: false,
-  strictMode: false,
-};
-
-
-let config = { ...DEFAULT_CONFIG };
+let config = { ...DEFAULT_PERF_GUARDS_CONFIG };
 
 
 let counters = {

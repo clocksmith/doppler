@@ -1,3 +1,5 @@
+// transpose.wgsl
+
 /**
  * Matrix transpose kernel.
  */

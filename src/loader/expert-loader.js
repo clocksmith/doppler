@@ -257,6 +257,7 @@ async function downcastExpertWeights(ctx, weights) {
     const result = await maybeDowncastToF16( (buf), {
       label: `expert_${k}`,
       keepF32: ctx.keepF32Weights,
+      dtype: isWeightBuffer(buf) ? buf.dtype : null,
     });
 
     if (result?.wasDowncast) {

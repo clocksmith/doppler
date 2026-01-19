@@ -592,8 +592,7 @@ export class DopplerLoader {
 
     if (expertBytes > 0) {
       const denseBytes = totalBytes - expertBytes;
-      log.info(
-        'Loader',
+      debugTrace.loader(
         `Weights: dense=${formatBytes(denseBytes)}, experts=${formatBytes(expertBytes)} (total=${formatBytes(totalBytes)})`
       );
     }

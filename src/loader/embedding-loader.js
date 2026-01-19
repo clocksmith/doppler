@@ -139,6 +139,7 @@ async function maybeDowncastEmbeddings(ctx, current, name, loc) {
   const result = await maybeDowncastToF16(current, {
     label: name,
     keepF32: ctx.keepF32Weights,
+    dtype,
     shape: isWeightBuffer(current)
       ? Array.from(current.shape)
       : (loc?.shape ?? [elems]),

@@ -15,6 +15,8 @@ export interface DowncastOptions {
   label: string;
   /** Keep F32 weights (skip downcast) */
   keepF32: boolean;
+  /** Resolved dtype for non-WeightBuffer inputs */
+  dtype?: string;
   /** Shape for the resulting WeightBuffer */
   shape?: number[];
   /** Layout preference (defaults to preserving existing or 'row') */

@@ -76,6 +76,7 @@ export interface MemoryElements {
   opfsValue: HTMLElement | null;
   headroomBar: HTMLElement | null;
   headroomValue: HTMLElement | null;
+  swapIndicator: HTMLElement | null;
   heapStackedBar: HTMLElement | null;
   gpuStackedBar: HTMLElement | null;
   totalValue: HTMLElement | null;

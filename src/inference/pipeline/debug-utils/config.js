@@ -1,20 +1,25 @@
 
 
+import { getRuntimeConfig } from '../../../config/runtime.js';
+
 // ============================================================================
 // Module State
 // ============================================================================
 
 
-const defaultConfig = {
-  categories: {},
-  layers: [],
-  maxDecodeSteps: 5,
-  maxAbsThreshold: 10000,
-  bufferStats: false,
-};
+function readDefaultConfig() {
+  const pipeline = getRuntimeConfig().shared.debug.pipeline;
+  return {
+    categories: {},
+    layers: pipeline.layers ?? null,
+    maxDecodeSteps: pipeline.maxDecodeSteps,
+    maxAbsThreshold: pipeline.maxAbsThreshold,
+    bufferStats: pipeline.bufferStats,
+  };
+}
 
 
-let config = { ...defaultConfig };
+let config = readDefaultConfig();
 let decodeStep = 0;
 
 // ============================================================================
@@ -32,7 +37,7 @@ export function setDebugCategories(categories, options) {
 
 
 export function resetDebugConfig() {
-  config = { ...defaultConfig, categories: {} };
+  config = readDefaultConfig();
   decodeStep = 0;
 }
 
@@ -99,10 +104,7 @@ export function getDecodeStep() {
 
 export function shouldDebugLayerOutput(layerIdx, debugLayers) {
   if (debugLayers === null) return false;
-  if (debugLayers === undefined || debugLayers.length === 0) {
-    // Backward compat: default to layers 0, 2, 17 (where Q4K issues were found)
-    return layerIdx === 0 || layerIdx === 2 || layerIdx === 17;
-  }
+  if (!Array.isArray(debugLayers) || debugLayers.length === 0) return true;
   return debugLayers.includes(layerIdx);
 }
 
@@ -145,10 +147,10 @@ export function formatTag(category, layerIdx, step) {
 
 
 export function isBufferStatsEnabled() {
-  return config.bufferStats ?? false;
+  return config.bufferStats;
 }
 
 
 export function getMaxAbsThreshold() {
-  return config.maxAbsThreshold ?? 10000;
+  return config.maxAbsThreshold;
 }

@@ -1,23 +1,7 @@
 
 
-/**
- * CLI output formatting.
- */
 
-/**
- * @typedef {Object} SuiteResult
- * @property {string} suite
- * @property {number} passed
- * @property {number} failed
- * @property {number} skipped
- * @property {number} duration
- * @property {Array<{name: string, passed: boolean, duration: number, error?: string}>} results
- */
 
-/**
- * Print summary of all test suites.
- * @param {SuiteResult[]} suites
- */
 export function printSummary(suites) {
   console.log('\n' + '='.repeat(60));
   console.log('SUMMARY');

@@ -161,7 +161,9 @@ function mergeInferenceConfig(
           cache: { ...base.moe.cache, ...overrides.moe.cache },
         }
       : { ...base.moe },
+    speculative: { ...base.speculative, ...overrides.speculative },
     prompt: overrides.prompt ?? base.prompt,
+    debugTokens: overrides.debugTokens ?? base.debugTokens,
     pipeline: overrides.pipeline ?? base.pipeline,
     kernelPath: overrides.kernelPath ?? base.kernelPath,
     chatTemplate: overrides.chatTemplate
@@ -204,6 +206,7 @@ function mergeDebugConfig(
     pipeline: { ...base.pipeline, ...overrides.pipeline },
     probes: overrides.probes ?? base.probes,
     profiler: { ...base.profiler, ...overrides.profiler },
+    perfGuards: { ...base.perfGuards, ...overrides.perfGuards },
   };
 }
 

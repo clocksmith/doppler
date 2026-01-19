@@ -1,17 +1,8 @@
 
 
-/**
- * Inference smoke test.
- */
 
 import { setHarnessConfig, appendRuntimeConfigParams } from '../args/index.js';
 
-/**
- * Run inference test (model load + generate).
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runInferenceTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('INFERENCE TEST');
@@ -37,23 +28,24 @@ export async function runInferenceTest(page, opts) {
   try {
     await page.waitForFunction(
       () => {
-        const state = /** @type {any} */ (window).testState;
+        const state =  (window).testState;
         return state && state.done === true;
       },
       { timeout: opts.timeout }
     );
 
-    const testState = await page.evaluate(() => /** @type {any} */ (window).testState);
+    const testState = await page.evaluate(() =>  (window).testState);
     const duration = Date.now() - startTime;
 
     const passed = testState.loaded && testState.tokens?.length > 0 && testState.errors?.length === 0;
 
     if (passed) {
-      const output = /** @type {string} */ (testState.output || '');
+      const output =  (testState.output || '');
       const outputPreview = output.slice(0, 100);
-      const outputLabel = outputPreview.trim().length === 0
+      const outputEscaped = JSON.stringify(outputPreview);
+      const outputLabel = output.length === 0
         ? '<empty>'
-        : `${outputPreview}${output.length > 100 ? '...' : ''}`;
+        : `${outputEscaped}${output.length > 100 ? '...' : ''}`;
       console.log(`\n  \x1b[32mPASS\x1b[0m Model loaded and generated ${testState.tokens?.length || 0} tokens`);
       console.log(`  Output: ${outputLabel}`);
     } else {
@@ -83,7 +75,7 @@ export async function runInferenceTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'inference',
@@ -96,7 +88,7 @@ export async function runInferenceTest(page, opts) {
           name: `inference:${opts.model}`,
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };

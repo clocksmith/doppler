@@ -1,3 +1,5 @@
+// moe_gather_f16.wgsl
+
 /**
  * MoE Gather Kernel - f16 inputs/outputs
  */

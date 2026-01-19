@@ -399,7 +399,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
 
-  const stopTokenIds = config.stopTokenIds || [];
+  const stopTokenIds = config.stopTokenIds;
   const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
   const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad ?? null;
   const logitSoftcap = config.finalLogitSoftcapping === null

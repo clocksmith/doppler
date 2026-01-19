@@ -24,10 +24,10 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 // ============================================================================
 
 
-export function detectSandwichNorm(layerWeights) {
-  const hasPreFeedforwardNorm = Boolean(layerWeights?.preFeedforwardNorm);
-  const hasPostFeedforwardNorm = Boolean(layerWeights?.postFeedforwardNorm);
-  const hasPostAttentionNorm = Boolean(layerWeights?.postAttentionNorm);
+export function detectSandwichNorm(config) {
+  const hasPreFeedforwardNorm = config?.preFeedforwardNorm === true;
+  const hasPostFeedforwardNorm = config?.postFeedforwardNorm === true;
+  const hasPostAttentionNorm = config?.postAttentionNorm === true;
 
   return {
     useSandwichNorm: hasPreFeedforwardNorm || hasPostFeedforwardNorm,
@@ -107,7 +107,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
 
   const layerWeights =  (weights.get(`layer_${layerIdx}`));
-  const sandwichNorm = detectSandwichNorm(layerWeights ?? null);
+  const sandwichNorm = detectSandwichNorm(config);
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
   if (context.pipelinePlan) {

@@ -1,3 +1,5 @@
+import { getRuntimeConfig } from '../runtime.js';
+
 let currentPlatform = null;
 
 let currentCapabilities = null;
@@ -159,7 +161,8 @@ export function prefersUnifiedMemory() {
 }
 
 export function getBufferAlignment() {
-  return getMemoryHints()?.bufferAlignment ?? 256;
+  const fallback = getRuntimeConfig().loading.storage.alignment.bufferAlignmentBytes;
+  return getMemoryHints()?.bufferAlignment ?? fallback;
 }
 
 export function clearPlatformCache() {

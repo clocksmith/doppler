@@ -1,3 +1,5 @@
+// residual_f16_vec4.wgsl
+
 /**
  * Residual Add Kernel (F16, vec4)
  *

@@ -140,6 +140,9 @@ export interface ParsedModelConfig {
   quantMethod: string | null;
   rmsNormEps: number;
   rmsNormWeightOffset: boolean;
+  postAttentionNorm: boolean;
+  preFeedforwardNorm: boolean;
+  postFeedforwardNorm: boolean;
   scaleEmbeddings: boolean;
   useTiedEmbeddings: boolean;
   embeddingTranspose: boolean;

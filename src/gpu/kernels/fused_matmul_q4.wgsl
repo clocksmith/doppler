@@ -19,6 +19,7 @@ const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
 
 struct Uniforms {
@@ -222,7 +223,7 @@ override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
 
 // Shared memory for reduction (one slot per thread)
-var<workgroup> multicol_sums: array<f32, WORKGROUP_SIZE>;
+var<workgroup> multicol_sums: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(

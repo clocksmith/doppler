@@ -18,6 +18,7 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 override COLS_PER_WG: u32 = 4u;
 override THREADS_PER_COL: u32 = 64u;  // WORKGROUP_SIZE / COLS_PER_WG
 override RMS_NORM_OFFSET: bool = false;
@@ -42,9 +43,9 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> residual: array<f16>;    // [1, N] - optional residual
 
 // Shared memory for reduction (f32 for numerical stability)
-var<workgroup> shared_partial: array<f32, WORKGROUP_SIZE>;  // Partial dot products
-var<workgroup> shared_output: array<f32, WORKGROUP_SIZE>;   // Output values for RMSNorm
-var<workgroup> shared_sum_sq: array<f32, WORKGROUP_SIZE>;   // Sum of squares for reduction
+var<workgroup> shared_partial: array<f32, MAX_WORKGROUP_SIZE>;  // Partial dot products
+var<workgroup> shared_output: array<f32, MAX_WORKGROUP_SIZE>;   // Output values for RMSNorm
+var<workgroup> shared_sum_sq: array<f32, MAX_WORKGROUP_SIZE>;   // Sum of squares for reduction
 
 fn apply_weight(w: f32) -> f32 {
     if (RMS_NORM_OFFSET) {

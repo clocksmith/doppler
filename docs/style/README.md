@@ -16,7 +16,7 @@ Coding conventions for the DOPPLER codebase.
 
 ### Language Policy
 
-Doppler uses **JavaScript** with optional **.d.ts** declaration files. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
+Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (src/app/cli/serve). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
 
 ### Config Flow
 
@@ -37,5 +37,5 @@ manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
 | Pattern | Example | Use |
 |---------|---------|-----|
 | `kebab-case.js` | `model-config.js` | JavaScript source |
-| `kebab-case.d.ts` | `model-config.d.ts` | Type declarations (optional) |
+| `kebab-case.d.ts` | `model-config.d.ts` | Type declarations (required for modules) |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |

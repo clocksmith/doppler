@@ -1,3 +1,5 @@
+// sample.wgsl
+
 /**
  * GPU-Side Sampling Kernel
  *
@@ -15,6 +17,7 @@
 
 // Configuration
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;  // Max top-k supported
 
 struct Uniforms {
@@ -44,8 +47,8 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
 @group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;     // [topK] - intermediate
 
 // Shared memory for workgroup-level reduction
-var<workgroup> shared_values: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
+var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
 // Phase 1: Find local max in each workgroup for parallel top-k
 // Each thread scans a chunk of vocabulary, keeps local top element

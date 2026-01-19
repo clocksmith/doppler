@@ -18,6 +18,7 @@ enable f16;
 enable subgroups;
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 const COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
 const THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
 const MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
@@ -160,7 +161,7 @@ const MULTICOL_THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
 const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
 // Shared memory for reduction (one slot per thread)
-var<workgroup> multicol_wg_sums: array<f32, WORKGROUP_SIZE>;
+var<workgroup> multicol_wg_sums: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(

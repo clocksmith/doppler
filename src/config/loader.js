@@ -247,9 +247,18 @@ export function resolveConfig(
   // Merge loading config: defaults + preset overrides
   const loading = mergeLoadingConfig(preset.loading);
 
+  const modelType = manifest.modelType ?? preset.modelType;
+  if (!modelType) {
+    const modelId = manifest?.modelId ?? 'unknown';
+    throw createDopplerError(
+      ERROR_CODES.LOADER_MANIFEST_INVALID,
+      `Manifest "${modelId}" is missing modelType. Re-convert the model with modelType set.`
+    );
+  }
+
   return {
     preset: id,
-    modelType: preset.modelType || manifest.modelType || 'transformer',
+    modelType,
     architecture,
     inference,
     tokenizer,

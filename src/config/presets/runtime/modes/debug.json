@@ -18,6 +18,9 @@
           "maxDecodeSteps": 100
         }
       }
+    },
+    "inference": {
+      "debugTokens": true
     }
   },
   "cli": {

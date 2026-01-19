@@ -34,7 +34,7 @@
         "cdnBasePath": "https://huggingface.co",
         "progressUpdateIntervalMs": 100
       },
-      "allowF32UpcastNonMatmul": true
+      "allowF32UpcastNonMatmul": false
     },
     "inference": {
       "compute": {

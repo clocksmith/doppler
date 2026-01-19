@@ -1,3 +1,5 @@
+// gelu_backward.wgsl
+
 /**
  * GELU backward kernel.
  */

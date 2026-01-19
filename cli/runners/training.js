@@ -1,21 +1,11 @@
 
 
-/**
- * Training correctness tests.
- */
 
 import { resolve } from 'path';
 import { writeFile } from 'fs/promises';
 
 import { setHarnessConfig, appendRuntimeConfigParams } from '../args/index.js';
 
-/**
- * Run training tests.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @param {string[]} tests
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runTrainingTests(page, opts, tests) {
   console.log('\n' + '='.repeat(60));
   console.log('TRAINING CORRECTNESS TESTS');
@@ -37,14 +27,13 @@ export async function runTrainingTests(page, opts, tests) {
 
   await page.waitForFunction(
     () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       return Boolean(w.trainingHarness);
     },
     { timeout: 30000 }
   );
 
-  /** @type {Array<{name: string, passed: boolean, duration: number, error?: string}>} */
-  const results = [];
+    const results = [];
   const startTime = Date.now();
 
   const testsToRun = opts.filter
@@ -58,7 +47,7 @@ export async function runTrainingTests(page, opts, tests) {
     try {
       const result = await page.evaluate(
         async (name) => {
-          const harness = /** @type {any} */ (window).trainingHarness;
+          const harness =  (window).trainingHarness;
           if (harness?.getGPU) {
             await harness.getGPU();
           }
@@ -103,8 +92,8 @@ export async function runTrainingTests(page, opts, tests) {
     console.log(`\nResults written to ${outputPath}`);
   }
 
-  if (await page.evaluate(() => /** @type {any} */ (window).renderResults)) {
-    await page.evaluate((res) => /** @type {any} */ (window).renderResults(res), results);
+  if (await page.evaluate(() =>  (window).renderResults)) {
+    await page.evaluate((res) =>  (window).renderResults(res), results);
   }
 
   return {

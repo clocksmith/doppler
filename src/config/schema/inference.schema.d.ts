@@ -157,13 +157,13 @@ export type GlobalLayerPattern =
 
 /** Layer pattern for hybrid architectures */
 export interface LayerPatternSchema {
-  /** Pattern type: 'all_attention', 'alternating', 'custom' */
-  type: 'all_attention' | 'alternating' | 'custom';
+  /** Pattern type: 'all_attention', 'alternating', 'every_n', 'custom' */
+  type: 'all_attention' | 'alternating' | 'every_n' | 'custom';
   /** For 'alternating': pattern for global/full attention layers */
   globalPattern?: GlobalLayerPattern;
-  /** For 'alternating' with 'every_n': the N value (e.g., 6 for Gemma 3) */
-  globalPatternN?: number;
-  /** @deprecated Use globalPattern instead */
+  /** For 'every_n': the period value (e.g., 6 for Gemma 3) */
+  period?: number;
+  /** @deprecated Use globalPattern/period instead */
   attentionLayers?: number[];
   /** For 'custom': explicit layer type mapping */
   layerTypes?: LayerType[];

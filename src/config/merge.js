@@ -225,13 +225,13 @@ function mergeChatTemplate(
   return {
     type: overlay(
       `${prefix}.type`,
-      manifest?.type ?? null,
+      manifest?.type,
       runtime?.type,
       sources
     ),
     enabled: overlay(
       `${prefix}.enabled`,
-      manifest?.enabled ?? false,
+      manifest?.enabled,
       runtime?.enabled,
       sources
     ),

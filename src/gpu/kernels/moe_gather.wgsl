@@ -1,3 +1,5 @@
+// moe_gather.wgsl
+
 /**
  * MoE Gather Kernel - Gather tokens by expert for batched execution
  *

@@ -1,3 +1,5 @@
+// matmul_backward.wgsl
+
 /**
  * Matmul backward kernel (placeholder).
  */

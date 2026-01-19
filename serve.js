@@ -316,7 +316,6 @@ async function main() {
         return res.end('Forbidden');
       }
 
-      /** @type {import('fs').Stats} */
       let stats;
       try {
         stats = await stat(filePath);

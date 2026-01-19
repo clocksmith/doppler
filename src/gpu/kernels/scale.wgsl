@@ -1,3 +1,5 @@
+// scale.wgsl
+
 /**
  * Scale kernel - multiply each element by a scalar factor
  * Used for embedding scaling in Gemma models (sqrt(hidden_size))

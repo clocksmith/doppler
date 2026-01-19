@@ -233,46 +233,52 @@ export class BundledTokenizer extends BaseTokenizer {
       }
     }
 
-    const specialTokensRaw = hf.special_tokens_map || hf.specialTokens || hf.special_tokens || null;
-    const fallbackTokens = {
-      ...this.specialTokens,
-      pad: model.pad_id ?? this.specialTokens.pad,
-      bos: model.bos_id ?? this.specialTokens.bos,
-      eos: model.eos_id ?? this.specialTokens.eos,
-      unk: model.unk_id ?? this.specialTokens.unk,
+    const addedTokens = Array.isArray(hf.added_tokens) ? hf.added_tokens : [];
+    const specialTokenIds = new Set();
+    const specialTokenPatterns = [];
+    const derivedSpecialTokens = {
+      pad: null,
+      bos: null,
+      eos: null,
+      unk: null,
     };
-    this.specialTokens = resolveSpecialTokens(specialTokensRaw, fallbackTokens, this.#vocab);
-    this.#specialTokenIds = new Set();
-
-    for (const token of hf.added_tokens || []) {
+    for (const token of addedTokens) {
+      const content = token.content;
+      const id = typeof token.id === 'number' ? token.id : parseInt( (token.id), 10);
+      if (!Number.isFinite(id) || !content) continue;
+      if (!this.#vocab.has(content)) {
+        this.#vocab.set(content, id);
+        this.#reverseVocab.set(id, content);
+      }
+      if (id > maxId) maxId = id;
       if (token.special) {
-        const content = token.content;
-        const id = typeof token.id === 'number' ? token.id : parseInt( (token.id), 10);
-        if (Number.isFinite(id) && id > maxId) maxId = id;
-        if (Number.isFinite(id)) {
-          this.#specialTokenIds.add(id);
-        }
-        // Add to vocab if not already there
-        if (!this.#vocab.has(content)) {
-          this.#vocab.set(content, id);
-          this.#reverseVocab.set(id, content);
-        }
-        // Store for pattern matching during encode (skip single-char tokens)
+        specialTokenIds.add(id);
         if (content.length > 1) {
-          this.#specialTokenPatterns.push({ content, id });
+          specialTokenPatterns.push({ content, id });
         }
-        // Identify special token types
-        if (this.specialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
-          this.specialTokens.bos = id;
-        } else if (this.specialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
-          this.specialTokens.eos = id;
-        } else if (this.specialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
-          this.specialTokens.pad = id;
-        } else if (this.specialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
-          this.specialTokens.unk = id;
+        if (derivedSpecialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
+          derivedSpecialTokens.bos = id;
+        } else if (derivedSpecialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
+          derivedSpecialTokens.eos = id;
+        } else if (derivedSpecialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
+          derivedSpecialTokens.pad = id;
+        } else if (derivedSpecialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
+          derivedSpecialTokens.unk = id;
         }
       }
     }
+
+    const specialTokensRaw = hf.special_tokens_map || hf.specialTokens || hf.special_tokens || null;
+    const fallbackTokens = {
+      ...this.specialTokens,
+      pad: model.pad_id ?? this.specialTokens.pad ?? derivedSpecialTokens.pad,
+      bos: model.bos_id ?? this.specialTokens.bos ?? derivedSpecialTokens.bos,
+      eos: model.eos_id ?? this.specialTokens.eos ?? derivedSpecialTokens.eos,
+      unk: model.unk_id ?? this.specialTokens.unk ?? derivedSpecialTokens.unk,
+    };
+    this.specialTokens = resolveSpecialTokens(specialTokensRaw, fallbackTokens, this.#vocab);
+    this.#specialTokenIds = specialTokenIds;
+    this.#specialTokenPatterns = specialTokenPatterns;
     const builtinSpecials = [
       this.specialTokens.pad,
       this.specialTokens.bos,

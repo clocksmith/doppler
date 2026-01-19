@@ -20,6 +20,7 @@ enable subgroups;
 // =============================================================================
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 // Feature flags - compiler eliminates dead branches
 override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
@@ -50,7 +51,7 @@ struct Uniforms {
 // Shared Memory
 // =============================================================================
 
-var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
 
 // =============================================================================
 // Helper Functions

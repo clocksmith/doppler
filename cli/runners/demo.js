@@ -1,23 +1,12 @@
 
 
-/**
- * Demo UI test.
- */
 
 import { appendRuntimeConfigParams } from '../args/index.js';
 
-/** Good token patterns for quality analysis */
 const GOOD_TOKENS = ['blue', 'sky', 'the', 'is', 'clear', 'clouds', 'sun', 'day', 'night', 'color'];
 
-/** Bad token patterns (garbage output) */
 const BAD_TOKENS = ['<unk>', '####', '\u0000', '\uFFFD'];
 
-/**
- * Run demo UI test.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runDemoTest(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('DEMO UI TEST');
@@ -32,10 +21,8 @@ export async function runDemoTest(page, opts) {
   const followupPrompt = 'and at night?';
 
   const startTime = Date.now();
-  /** @type {string[]} */
-  const errors = [];
-  /** @type {string[]} */
-  const logs = [];
+    const errors = [];
+    const logs = [];
 
   // Setup console capture
   page.on('console', (msg) => {
@@ -74,7 +61,7 @@ export async function runDemoTest(page, opts) {
       for (const btn of buttons) {
         const text = btn.textContent?.toLowerCase() || '';
         if (text.includes(modelPattern.toLowerCase())) {
-          /** @type {HTMLElement} */ (btn).click();
+           (btn).click();
           return true;
         }
       }
@@ -89,7 +76,7 @@ export async function runDemoTest(page, opts) {
     console.log('  Step 4: Waiting for model to load...');
     await page.waitForFunction(
       () => {
-        const textarea = /** @type {HTMLTextAreaElement} */ (document.querySelector('#chat-input'));
+        const textarea =  (document.querySelector('#chat-input'));
         return textarea && !textarea.disabled;
       },
       { timeout: 90000 }
@@ -215,7 +202,7 @@ export async function runDemoTest(page, opts) {
     };
   } catch (err) {
     const duration = Date.now() - startTime;
-    console.log(`\n  \x1b[31mFAIL\x1b[0m ${/** @type {Error} */ (err).message}`);
+    console.log(`\n  \x1b[31mFAIL\x1b[0m ${ (err).message}`);
 
     return {
       suite: 'demo',
@@ -228,7 +215,7 @@ export async function runDemoTest(page, opts) {
           name: `demo:${opts.model}`,
           passed: false,
           duration,
-          error: /** @type {Error} */ (err).message,
+          error:  (err).message,
         },
       ],
     };

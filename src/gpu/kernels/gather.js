@@ -25,7 +25,11 @@ function getOutputBinding(variant, useF16Output) {
     return 3; // F32 output always uses binding 3
   }
   const config = getKernelConfig('gather', variant);
-  return config.variantMetadata?.outputBinding ?? 4;
+  const outputBinding = config.variantMetadata?.outputBinding;
+  if (outputBinding == null) {
+    throw new Error(`[Gather] Missing outputBinding for variant "${variant}" with f16 output.`);
+  }
+  return outputBinding;
 }
 
 

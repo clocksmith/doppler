@@ -1,18 +1,8 @@
 
 
-/**
- * Kernel correctness tests.
- */
 
 import { setHarnessConfig, appendRuntimeConfigParams } from '../args/index.js';
 
-/**
- * Run kernel correctness tests.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @param {string[]} tests
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runCorrectnessTests(page, opts, tests) {
   console.log('\n' + '='.repeat(60));
   console.log('KERNEL CORRECTNESS TESTS');
@@ -34,7 +24,7 @@ export async function runCorrectnessTests(page, opts, tests) {
 
   try {
     await page.evaluate(async () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       if (!w.gpuReady && w.testHarness?.getGPU) {
         await w.testHarness.getGPU();
         w.gpuReady = true;
@@ -46,7 +36,7 @@ export async function runCorrectnessTests(page, opts, tests) {
 
   await page.waitForFunction(
     () => {
-      const w = /** @type {any} */ (window);
+      const w =  (window);
       if (w.gpuError) {
         throw new Error(`WebGPU init failed: ${w.gpuError}`);
       }
@@ -55,8 +45,7 @@ export async function runCorrectnessTests(page, opts, tests) {
     { timeout: 30000 }
   );
 
-  /** @type {Array<{name: string, passed: boolean, duration: number, error?: string}>} */
-  const results = [];
+    const results = [];
   const startTime = Date.now();
 
   const testsToRun = opts.filter
@@ -70,7 +59,7 @@ export async function runCorrectnessTests(page, opts, tests) {
     try {
       const result = await page.evaluate(
         async (name) => {
-          const harness = /** @type {any} */ (window).testHarness;
+          const harness =  (window).testHarness;
           const gpu = await harness.getGPU();
           const refs = harness.references;
 
@@ -298,10 +287,8 @@ export async function runCorrectnessTests(page, opts, tests) {
               const gpuResult = await harness.runSoftmaxTopK(gpu.device, logits, numTokens, numExperts, topK);
               let passed = true;
               for (let t = 0; t < numTokens; t++) {
-                /** @type {Set<number>} */
-                const refSet = new Set();
-                /** @type {Set<number>} */
-                const gpuSet = new Set();
+                                const refSet = new Set();
+                                const gpuSet = new Set();
                 for (let k = 0; k < topK; k++) {
                   refSet.add(ref.indices[t * topK + k]);
                   gpuSet.add(gpuResult.indices[t * topK + k]);
@@ -546,10 +533,10 @@ export async function runCorrectnessTests(page, opts, tests) {
         name: testName,
         passed: false,
         duration,
-        error: /** @type {Error} */ (err).message,
+        error:  (err).message,
       });
       console.log(`  \x1b[31mFAIL\x1b[0m ${testName} (${duration}ms)`);
-      console.log(`    Error: ${/** @type {Error} */ (err).message}`);
+      console.log(`    Error: ${ (err).message}`);
     }
   }
 

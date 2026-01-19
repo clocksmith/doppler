@@ -1,3 +1,5 @@
+// softmax_backward.wgsl
+
 /**
  * Softmax backward kernel.
  */

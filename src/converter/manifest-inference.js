@@ -167,20 +167,20 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     } else if (presetType === 'alternating') {
       if (presetPattern.globalPattern === 'every_n') {
         manifestType = 'every_n';
-        period = presetPattern.globalPatternN ?? null;
+        period = presetPattern.period ?? null;
       } else {
         manifestType = 'alternating';
         globalPattern = presetPattern.globalPattern ?? null;
       }
     } else if (presetType === 'every_n') {
       manifestType = 'every_n';
-      period = presetPattern.globalPatternN ?? null;
+      period = presetPattern.period ?? null;
     }
 
     if (manifestType === 'every_n') {
       if (!Number.isFinite(period) || period <= 0) {
         throw new Error(
-          `Preset "${preset.id ?? 'unknown'}" layerPattern requires globalPatternN > 0 for every_n.`
+          `Preset "${preset.id ?? 'unknown'}" layerPattern requires period > 0 for every_n.`
         );
       }
       globalPattern = null;

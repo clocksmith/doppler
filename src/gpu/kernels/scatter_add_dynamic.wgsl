@@ -1,3 +1,5 @@
+// scatter_add_dynamic.wgsl
+
 /**
  * Scatter-Add Kernel (dynamic layout)
  *

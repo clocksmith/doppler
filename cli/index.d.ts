@@ -13,7 +13,7 @@
  *   doppler run                              # Serve demo at :8080
  *   doppler test kernels --filter matmul     # Kernel correctness tests
  *   doppler bench inference                 # Full inference benchmark
- *   doppler debug --model gemma-1b --layer 5 # Inspect layer 5
+ *   doppler debug --model gemma-2-2b-it-wf16 --config debug
  */
 
 import type { Page } from 'playwright';

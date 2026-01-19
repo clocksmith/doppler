@@ -1,3 +1,5 @@
+// gather.wgsl
+
 /**
  * Gather Kernel - Token Embedding Lookup
  *

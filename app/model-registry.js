@@ -9,27 +9,15 @@ import {
 import { parseManifest } from '../src/storage/rdrr-format.js';
 import { QUICKSTART_MODELS } from '../src/storage/quickstart-downloader.js';
 
-/**
- * Discovers and manages the model registry from multiple sources.
- */
 export class ModelRegistry {
-  /** @type {ModelInfo[]} */
   #models = [];
 
-  /** @type {RemoteModelConfig[]} */
   #remoteModels = [];
 
-  /**
-   * @param {RemoteModelConfig[]} [remoteModels] - Remote models available for download
-   */
   constructor(remoteModels = []) {
     this.#remoteModels = remoteModels;
   }
 
-  /**
-   * Discover models from all sources and build the registry.
-   * @returns {Promise<ModelInfo[]>}
-   */
   async discover() {
     log.debug('ModelRegistry', 'Discovering models...');
 
@@ -103,10 +91,6 @@ export class ModelRegistry {
     return this.#models;
   }
 
-  /**
-   * Discover models available on the local server.
-   * @returns {Promise<ServerModelInfo[]>}
-   */
   async #discoverServerModels() {
     const baseUrl = window.location.origin;
 
@@ -117,11 +101,11 @@ export class ModelRegistry {
       const models = await response.json();
       return models.map((m) => {
         let modelName = m.name
-          .replace(/-rdrr$/, '')
-          .replace(/-q4$/, '')
-          .split('-')
-          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-          .join(' ');
+        .replace(/-rdrr$/, '')
+        .replace(/-q4$/, '')
+        .split('-')
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ');
 
         const inferredParams = m.size || (m.numLayers ? `${m.numLayers}L` : 'Unknown');
 
@@ -141,10 +125,6 @@ export class ModelRegistry {
     }
   }
 
-  /**
-   * Discover models cached in OPFS.
-   * @returns {Promise<CachedModelInfo[]>}
-   */
   async #discoverCachedModels() {
     const results = [];
 
@@ -171,8 +151,8 @@ export class ModelRegistry {
 
         // Estimate param count from hidden size
         const hiddenSize = typeof archInfo === 'object' && archInfo !== null
-          ? archInfo.hiddenSize || 0
-          : 0;
+        ? archInfo.hiddenSize || 0
+        : 0;
         let paramStr = 'Unknown';
         if (hiddenSize >= 4096) paramStr = '7B+';
         else if (hiddenSize >= 2048) paramStr = '1-3B';
@@ -194,14 +174,6 @@ export class ModelRegistry {
     return results;
   }
 
-  /**
-   * Add or merge a model into the map.
-   * @param {Map<string, ModelInfo>} map
-   * @param {string} key
-   * @param {Partial<ModelInfo>} info
-   * @param {string} sourceType
-   * @param {object} sourceData
-   */
   #addModel(map, key, info, sourceType, sourceData) {
     if (map.has(key)) {
       const existing = map.get(key);
@@ -221,29 +193,17 @@ export class ModelRegistry {
     }
   }
 
-  /**
-   * Generate a stable key for a model.
-   * @param {string} arch
-   * @param {string} quant
-   * @param {number} _size
-   * @returns {string}
-   */
   #getModelKey(arch, quant, _size) {
     const normArch = (arch || 'unknown')
-      .toLowerCase()
-      .replace(/forcausallm|forconditionalgeneration|model/gi, '')
-      .replace(/[^a-z0-9]/g, '');
+    .toLowerCase()
+    .replace(/forcausallm|forconditionalgeneration|model/gi, '')
+    .replace(/[^a-z0-9]/g, '');
 
     const normQuant = (quant || 'unknown').toLowerCase().replace(/[^a-z0-9]/g, '');
 
     return `${normArch}:${normQuant}`;
   }
 
-  /**
-   * Get availability score for sorting.
-   * @param {ModelInfo} model
-   * @returns {number}
-   */
   #getAvailabilityScore(model) {
     let score = 0;
     if (model.sources.server) score += 2;
@@ -251,112 +211,42 @@ export class ModelRegistry {
     return score;
   }
 
-  /**
-   * Format a model ID into a display name.
-   * @param {string} modelId
-   * @returns {string}
-   */
   #formatModelName(modelId) {
     let name = modelId
-      .replace(/^custom-\d+$/, 'Custom Model')
-      .replace(/^tools\//, '')
-      .replace(/-rdrr$/, '')
-      .replace(/-q4$/, '')
-      .replace(/-q4_k_m$/i, '');
+    .replace(/^custom-\d+$/, 'Custom Model')
+    .replace(/^tools\//, '')
+    .replace(/-rdrr$/, '')
+    .replace(/-q4$/, '')
+    .replace(/-q4_k_m$/i, '');
 
     if (/^custom-\d+$/.test(modelId)) {
       return 'Custom Model';
     }
 
     return name
-      .split(/[-_]/)
-      .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
-      .join(' ');
+    .split(/[-_]/)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+    .join(' ');
   }
 
-  /**
-   * Get all models in the registry.
-   * @returns {ModelInfo[]}
-   */
   getModels() {
     return this.#models;
   }
 
-  /**
-   * Find a model by key.
-   * @param {string} key
-   * @returns {ModelInfo|undefined}
-   */
   findByKey(key) {
     return this.#models.find((m) => m.key === key);
   }
 
-  /**
-   * Find a model by browser cache ID.
-   * @param {string} id
-   * @returns {ModelInfo|undefined}
-   */
   findByBrowserId(id) {
     return this.#models.find((m) => m.sources.browser?.id === id);
   }
 
-  /**
-   * Check if a model is available locally (server or browser).
-   * @param {ModelInfo} model
-   * @returns {boolean}
-   */
   isAvailableLocally(model) {
     return !!(model.sources.server || model.sources.browser);
   }
 }
 
-/**
- * @typedef {Object} ModelInfo
- * @property {string} key
- * @property {string} name
- * @property {string} size
- * @property {string} quantization
- * @property {number} downloadSize
- * @property {string} architecture
- * @property {boolean} [quickStartAvailable]
- * @property {ModelSources} sources
- */
 
-/**
- * @typedef {Object} ModelSources
- * @property {{id: string, url: string}} [server]
- * @property {{id: string}} [browser]
- * @property {{id: string, url: string}} [remote]
- */
 
-/**
- * @typedef {Object} ServerModelInfo
- * @property {string} id
- * @property {string} name
- * @property {string} size
- * @property {string} quantization
- * @property {number} downloadSize
- * @property {string} url
- * @property {string} architecture
- */
 
-/**
- * @typedef {Object} CachedModelInfo
- * @property {string} id
- * @property {string} name
- * @property {string} architecture
- * @property {string} size
- * @property {string} quantization
- * @property {number} downloadSize
- */
 
-/**
- * @typedef {Object} RemoteModelConfig
- * @property {string} id
- * @property {string} name
- * @property {string} size
- * @property {string} quantization
- * @property {number} downloadSize
- * @property {string} url
- * @property {string} [architecture]
- */

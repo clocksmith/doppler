@@ -1,3 +1,5 @@
+// cross_entropy_backward.wgsl
+
 /**
  * Cross-entropy backward kernel (expects softmax input).
  */

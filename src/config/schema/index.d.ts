@@ -338,6 +338,7 @@ export {
   type PipelineDebugCategory,
   type PipelineDebugConfigSchema,
   type ProfilerConfigSchema,
+  type PerfGuardsConfigSchema,
   type ProbeStage,
   type ProbeConfigSchema,
   type DebugConfigSchema,
@@ -352,6 +353,7 @@ export {
   DEFAULT_TRACE_CONFIG,
   DEFAULT_PIPELINE_DEBUG_CONFIG,
   DEFAULT_PROFILER_CONFIG,
+  DEFAULT_PERF_GUARDS_CONFIG,
   DEFAULT_DEBUG_CONFIG,
 } from './debug.schema.js';
 

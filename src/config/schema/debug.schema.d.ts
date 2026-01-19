@@ -152,6 +152,27 @@ export interface ProfilerConfigSchema {
 /** Default profiler configuration */
 export declare const DEFAULT_PROFILER_CONFIG: ProfilerConfigSchema;
 
+/**
+ * Performance guard configuration.
+ *
+ * Controls GPU readback and tracking behavior.
+ */
+export interface PerfGuardsConfigSchema {
+  /** Allow GPU readbacks (default: true) */
+  allowGPUReadback: boolean;
+  /** Track queue.submit() calls (default: false) */
+  trackSubmitCount: boolean;
+  /** Track buffer allocations (default: false) */
+  trackAllocations: boolean;
+  /** Log expensive operations (default: false) */
+  logExpensiveOps: boolean;
+  /** Throw on blocked operations (default: false) */
+  strictMode: boolean;
+}
+
+/** Default performance guard configuration */
+export declare const DEFAULT_PERF_GUARDS_CONFIG: PerfGuardsConfigSchema;
+
 /** Pipeline probe stages */
 export type ProbeStage =
   | 'embed_out'
@@ -215,6 +236,7 @@ export interface DebugConfigSchema {
   pipeline: PipelineDebugConfigSchema;
   probes: ProbeConfigSchema[];
   profiler: ProfilerConfigSchema;
+  perfGuards: PerfGuardsConfigSchema;
 }
 
 /** Default debug configuration */

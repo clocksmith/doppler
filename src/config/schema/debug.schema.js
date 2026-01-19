@@ -66,6 +66,18 @@ export const DEFAULT_PROFILER_CONFIG = {
 };
 
 // =============================================================================
+// Perf Guard Config
+// =============================================================================
+
+export const DEFAULT_PERF_GUARDS_CONFIG = {
+  allowGPUReadback: true,
+  trackSubmitCount: false,
+  trackAllocations: false,
+  logExpensiveOps: false,
+  strictMode: false,
+};
+
+// =============================================================================
 // Complete Debug Config
 // =============================================================================
 
@@ -77,4 +89,5 @@ export const DEFAULT_DEBUG_CONFIG = {
   pipeline: DEFAULT_PIPELINE_DEBUG_CONFIG,
   probes: [],
   profiler: DEFAULT_PROFILER_CONFIG,
+  perfGuards: DEFAULT_PERF_GUARDS_CONFIG,
 };

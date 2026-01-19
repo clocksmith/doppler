@@ -1,18 +1,9 @@
 
 
-/**
- * Kernel microbenchmarks.
- */
 
 import { setHarnessConfig, appendRuntimeConfigParams } from '../args/index.js';
 import { KERNEL_BENCHMARKS } from '../suites.js';
 
-/**
- * Run kernel benchmarks.
- * @param {import('playwright').Page} page
- * @param {import('../args/index.js').CLIOptions} opts
- * @returns {Promise<import('../output.js').SuiteResult>}
- */
 export async function runKernelBenchmarks(page, opts) {
   console.log('\n' + '='.repeat(60));
   console.log('KERNEL BENCHMARKS');
@@ -25,8 +16,7 @@ export async function runKernelBenchmarks(page, opts) {
   const benchmarkRun = runtimeConfig.shared.benchmark.run;
 
   await page.addInitScript(() => {
-    /** @type {any} */
-    (window).__name = (target) => target;
+        (window).__name = (target) => target;
   });
 
   setHarnessConfig(opts, {
@@ -42,12 +32,11 @@ export async function runKernelBenchmarks(page, opts) {
   });
 
   await page.waitForFunction(
-    () => /** @type {any} */ (window).testHarness && /** @type {any} */ (window).testHarness.references,
+    () =>  (window).testHarness &&  (window).testHarness.references,
     { timeout: 10000 }
   );
 
-  /** @type {Array<{name: string, passed: boolean, duration: number, error?: string}>} */
-  const results = [];
+    const results = [];
   const startTime = Date.now();
 
   const benchmarks = opts.filter
@@ -62,11 +51,10 @@ export async function runKernelBenchmarks(page, opts) {
         async (config) => {
           const __name = (target) => target;
           const { name, warmup, runs } = config;
-          const harness = /** @type {any} */ (window).testHarness;
+          const harness =  (window).testHarness;
           const gpu = await harness.getGPU();
 
-          /** @type {Record<string, () => Promise<void>>} */
-          const benchmarks = {
+                    const benchmarks = {
             matmul: async () => {
               const M = 1, N = 4096, K = 4096;
               const A = new Float32Array(M * K).fill(1);
@@ -116,8 +104,7 @@ export async function runKernelBenchmarks(page, opts) {
             await gpu.device.queue.onSubmittedWorkDone();
           }
 
-          /** @type {number[]} */
-          const times = [];
+                    const times = [];
           for (let i = 0; i < runs; i++) {
             const start = performance.now();
             await fn();
@@ -161,9 +148,9 @@ export async function runKernelBenchmarks(page, opts) {
         name: benchName,
         passed: false,
         duration: 0,
-        error: /** @type {Error} */ (err).message,
+        error:  (err).message,
       });
-      console.log(`  \x1b[31mFAIL\x1b[0m ${benchName}: ${/** @type {Error} */ (err).message}`);
+      console.log(`  \x1b[31mFAIL\x1b[0m ${benchName}: ${ (err).message}`);
     }
   }
 

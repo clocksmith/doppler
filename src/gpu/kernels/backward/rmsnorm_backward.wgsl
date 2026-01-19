@@ -1,3 +1,5 @@
+// rmsnorm_backward.wgsl
+
 /**
  * RMSNorm Backward Kernel (GPU)
  *
@@ -5,6 +7,7 @@
  * Uses shared-memory reduction for per-token stats.
  */
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     num_tokens: u32,
@@ -19,8 +22,8 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read> grad_output: array<f32>;
 @group(0) @binding(4) var<storage, read_write> output: array<f32>;
 
-var<workgroup> shared_sum_sq: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_sum_gx: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum_sq: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_sum_gx: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(

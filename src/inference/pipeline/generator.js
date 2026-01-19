@@ -141,11 +141,19 @@ export class PipelineGenerator {
 
       generatedIds.push(firstToken);
 
-      const firstText = this.#state.tokenizer.decode([firstToken], true, false);
+      const decodeToken = (tokenId) => {
+        const text = this.#state.tokenizer.decode([tokenId], true, false);
+        if (text.length > 0) return text;
+        const raw = this.#state.tokenizer.decode([tokenId], false, false);
+        if (raw.length > 0) return raw;
+        return `[${tokenId}]`;
+      };
+
+      const firstText = decodeToken(firstToken);
       yield firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
-      const stopTokenIds = this.#state.modelConfig.stopTokenIds || [];
+      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
       const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
       let tokensGenerated = 1;
 
@@ -179,7 +187,7 @@ export class PipelineGenerator {
               generatedIds.push(tokenId);
               tokensGenerated++;
 
-              const tokenText = this.#state.tokenizer.decode([tokenId], true, false);
+              const tokenText = decodeToken(tokenId);
               yield tokenText;
               if (options.onToken) options.onToken(tokenId, tokenText);
               batchTokens.push({ id: tokenId, text: tokenText });
@@ -201,7 +209,7 @@ export class PipelineGenerator {
             generatedIds.push(nextToken);
             tokensGenerated++;
 
-            const tokenText = this.#state.tokenizer.decode([nextToken], true, false);
+            const tokenText = decodeToken(nextToken);
             yield tokenText;
             if (options.onToken) options.onToken(nextToken, tokenText);
 
@@ -214,7 +222,7 @@ export class PipelineGenerator {
           generatedIds.push(nextToken);
           tokensGenerated++;
 
-          const tokenText = this.#state.tokenizer.decode([nextToken], true, false);
+          const tokenText = decodeToken(nextToken);
           yield tokenText;
           if (options.onToken) options.onToken(nextToken, tokenText);
 
@@ -371,7 +379,7 @@ export class PipelineGenerator {
       yield firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
-      const stopTokenIds = this.#state.modelConfig.stopTokenIds || [];
+      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
       const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
       let tokensGenerated = 1;
 

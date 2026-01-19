@@ -1,3 +1,5 @@
+// moe_gather_vec4.wgsl
+
 /**
  * MoE Gather Kernel (vec4) - Gather tokens by expert for batched execution
  *

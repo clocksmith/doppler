@@ -1,3 +1,5 @@
+// sample_f16.wgsl
+
 /**
  * GPU-Side Sampling Kernel (f16 logits)
  *
@@ -9,6 +11,7 @@ enable f16;
 
 // Configuration
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;
 
 struct Uniforms {
@@ -35,8 +38,8 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
 @group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;
 @group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;
 
-var<workgroup> shared_values: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_indices: array<u32, WORKGROUP_SIZE>;
+var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn find_topk_phase1(
