@@ -1,7 +1,8 @@
-
+import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 
 export function validateManifest(manifest) {
   const errors = [];
+  const warnings = [];
 
   // Version check
   const version = typeof manifest.version === 'string'
@@ -170,5 +171,15 @@ export function validateManifest(manifest) {
     }
   }
 
-  return { valid: errors.length === 0, errors };
+  // Tensor-config consistency validation
+  // This catches bugs like postFeedforwardNorm=false when the weights exist
+  const tensorConfigResult = validateTensorConfigConsistency(manifest);
+  for (const err of tensorConfigResult.errors) {
+    errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` → ${err.suggestion}` : ''}`);
+  }
+  for (const warn of tensorConfigResult.warnings) {
+    warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` → ${warn.suggestion}` : ''}`);
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
 }

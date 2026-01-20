@@ -101,6 +101,205 @@ export function generateSVGLineChart(data, width = 400, height = 150, title = ''
 }
 
 // ============================================================================
+// Memory Time Series Chart
+// ============================================================================
+
+export function generateMemoryTimeSeriesChart(timeSeries, width = 700, height = 200, title = 'Memory Usage Over Time') {
+  if (!timeSeries || timeSeries.length === 0) return '';
+
+  const margin = { top: 30, right: 80, bottom: 40, left: 70 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
+  const gpuValues = timeSeries.map(d => d.gpu || 0);
+  const jsHeapValues = timeSeries.map(d => d.jsHeap || 0);
+  const times = timeSeries.map(d => d.t || 0);
+
+  const maxGpu = Math.max(...gpuValues) / (1024 * 1024 * 1024); // GB
+  const maxTime = Math.max(...times);
+  const maxValue = maxGpu * 1.1;
+
+  let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>
+    .chart-title { font: bold 12px sans-serif; }
+    .axis-label { font: 10px sans-serif; fill: #666; }
+    .legend { font: 10px sans-serif; }
+    .line-gpu { fill: none; stroke: #4a90d9; stroke-width: 2; }
+    .line-requested { fill: none; stroke: #f59e0b; stroke-width: 2; stroke-dasharray: 4,2; }
+    .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+    .phase-line { stroke: #ef4444; stroke-width: 1; stroke-dasharray: 2,2; }
+    .phase-label { font: 9px sans-serif; fill: #ef4444; }
+  </style>`;
+
+  svg += `<text x="${width / 2}" y="15" text-anchor="middle" class="chart-title">${title}</text>`;
+
+  // Y-axis grid and labels
+  for (let i = 0; i <= 4; i++) {
+    const y = margin.top + (chartHeight * i) / 4;
+    svg += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="grid-line"/>`;
+    const val = (maxValue * (4 - i)) / 4;
+    svg += `<text x="${margin.left - 5}" y="${y + 4}" text-anchor="end" class="axis-label">${val.toFixed(1)} GB</text>`;
+  }
+
+  // X-axis label
+  svg += `<text x="${margin.left + chartWidth / 2}" y="${height - 5}" text-anchor="middle" class="axis-label">Time (ms)</text>`;
+
+  // GPU allocated line
+  const gpuPoints = timeSeries.map((d, i) => {
+    const x = margin.left + (d.t / maxTime) * chartWidth;
+    const y = margin.top + chartHeight - ((d.gpu / (1024 * 1024 * 1024)) / maxValue) * chartHeight;
+    return `${x},${y}`;
+  });
+  svg += `<polyline points="${gpuPoints.join(' ')}" class="line-gpu"/>`;
+
+  // GPU requested line (if available)
+  if (timeSeries[0]?.gpuRequested) {
+    const requestedPoints = timeSeries.map((d, i) => {
+      const x = margin.left + (d.t / maxTime) * chartWidth;
+      const y = margin.top + chartHeight - ((d.gpuRequested / (1024 * 1024 * 1024)) / maxValue) * chartHeight;
+      return `${x},${y}`;
+    });
+    svg += `<polyline points="${requestedPoints.join(' ')}" class="line-requested"/>`;
+  }
+
+  // Phase markers
+  const phases = timeSeries.filter(d => d.phase && d.phase !== 'sample');
+  phases.forEach(d => {
+    const x = margin.left + (d.t / maxTime) * chartWidth;
+    svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + chartHeight}" class="phase-line"/>`;
+    svg += `<text x="${x + 3}" y="${margin.top + 12}" class="phase-label">${d.phase}</text>`;
+  });
+
+  // Legend
+  svg += `<rect x="${width - 75}" y="${margin.top}" width="12" height="12" fill="#4a90d9"/>`;
+  svg += `<text x="${width - 60}" y="${margin.top + 10}" class="legend">Allocated</text>`;
+  svg += `<rect x="${width - 75}" y="${margin.top + 18}" width="12" height="12" fill="#f59e0b"/>`;
+  svg += `<text x="${width - 60}" y="${margin.top + 28}" class="legend">Requested</text>`;
+
+  svg += '</svg>';
+  return svg;
+}
+
+// ============================================================================
+// Latency Histogram
+// ============================================================================
+
+export function generateLatencyHistogram(latencies, width = 400, height = 180, title = 'Latency Distribution') {
+  if (!latencies || latencies.length === 0) return '';
+
+  const margin = { top: 30, right: 20, bottom: 40, left: 50 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
+  // Create histogram bins
+  const minVal = Math.min(...latencies);
+  const maxVal = Math.max(...latencies);
+  const binCount = 15;
+  const binWidth = (maxVal - minVal) / binCount;
+  const bins = Array(binCount).fill(0);
+
+  latencies.forEach(v => {
+    const binIndex = Math.min(Math.floor((v - minVal) / binWidth), binCount - 1);
+    bins[binIndex]++;
+  });
+
+  const maxBin = Math.max(...bins);
+  const barW = chartWidth / binCount - 2;
+
+  let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>
+    .chart-title { font: bold 12px sans-serif; }
+    .axis-label { font: 10px sans-serif; fill: #666; }
+    .bar { fill: #4a90d9; }
+    .bar:hover { fill: #2563eb; }
+    .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+  </style>`;
+
+  svg += `<text x="${width / 2}" y="15" text-anchor="middle" class="chart-title">${title}</text>`;
+
+  // Y-axis
+  for (let i = 0; i <= 3; i++) {
+    const y = margin.top + (chartHeight * i) / 3;
+    svg += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="grid-line"/>`;
+    const val = Math.round((maxBin * (3 - i)) / 3);
+    svg += `<text x="${margin.left - 5}" y="${y + 4}" text-anchor="end" class="axis-label">${val}</text>`;
+  }
+
+  // Bars
+  bins.forEach((count, i) => {
+    const barHeight = (count / maxBin) * chartHeight;
+    const x = margin.left + i * (chartWidth / binCount) + 1;
+    const y = margin.top + chartHeight - barHeight;
+    svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barHeight}" class="bar"/>`;
+  });
+
+  // X-axis labels
+  svg += `<text x="${margin.left}" y="${height - 5}" text-anchor="start" class="axis-label">${minVal.toFixed(0)}ms</text>`;
+  svg += `<text x="${width - margin.right}" y="${height - 5}" text-anchor="end" class="axis-label">${maxVal.toFixed(0)}ms</text>`;
+
+  svg += '</svg>';
+  return svg;
+}
+
+// ============================================================================
+// Buffer Pool Stats Chart
+// ============================================================================
+
+export function generateBufferPoolChart(metrics, width = 350, height = 180) {
+  if (!metrics) return '';
+
+  const hitRate = metrics.buffer_pool_hit_rate || 0;
+  const missRate = 100 - hitRate;
+
+  const cx = width / 2;
+  const cy = 90;
+  const r = 60;
+
+  // Calculate arc paths for donut chart
+  const hitAngle = (hitRate / 100) * 2 * Math.PI - Math.PI / 2;
+  const hitEndX = cx + r * Math.cos(hitAngle);
+  const hitEndY = cy + r * Math.sin(hitAngle);
+  const largeArc = hitRate > 50 ? 1 : 0;
+
+  let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>
+    .chart-title { font: bold 12px sans-serif; }
+    .center-text { font: bold 20px sans-serif; fill: #333; }
+    .center-label { font: 11px sans-serif; fill: #666; }
+    .legend { font: 10px sans-serif; }
+  </style>`;
+
+  svg += `<text x="${width / 2}" y="15" text-anchor="middle" class="chart-title">Buffer Pool Efficiency</text>`;
+
+  // Background circle (miss)
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="20"/>`;
+
+  // Hit rate arc
+  if (hitRate > 0) {
+    svg += `<path d="M ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${hitEndX} ${hitEndY}" fill="none" stroke="#22c55e" stroke-width="20" stroke-linecap="round"/>`;
+  }
+
+  // Center text
+  svg += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" class="center-text">${hitRate.toFixed(1)}%</text>`;
+  svg += `<text x="${cx}" y="${cy + 20}" text-anchor="middle" class="center-label">hit rate</text>`;
+
+  // Legend and stats
+  const stats = [
+    { label: 'Allocations', value: metrics.buffer_pool_allocations || 0, color: '#94a3b8' },
+    { label: 'Reuses', value: metrics.buffer_pool_reuses || 0, color: '#22c55e' },
+  ];
+
+  stats.forEach((s, i) => {
+    const y = height - 30 + i * 14;
+    svg += `<rect x="20" y="${y - 8}" width="10" height="10" fill="${s.color}"/>`;
+    svg += `<text x="35" y="${y}" class="legend">${s.label}: ${s.value.toLocaleString()}</text>`;
+  });
+
+  svg += '</svg>';
+  return svg;
+}
+
+// ============================================================================
 // HTML Report Generation
 // ============================================================================
 
@@ -113,6 +312,9 @@ export function generateHTMLReport(results, baseline) {
   const model = firstResult.model?.modelName || firstResult.model?.modelId || 'Unknown Model';
   const timestamp = new Date().toISOString();
   const env = firstResult.env || {};
+
+  const modelInfo = firstResult.model || {};
+  const modelSizeMB = modelInfo.totalSizeBytes ? (modelInfo.totalSizeBytes / 1024 / 1024).toFixed(1) : null;
 
   let html = `<!DOCTYPE html>
 <html lang="en">
@@ -129,9 +331,13 @@ export function generateHTMLReport(results, baseline) {
     h2 { color: #555; border-bottom: 2px solid #4a90d9; padding-bottom: 8px; }
     h3 { color: #666; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
     .metric { padding: 15px; background: #f8f9fa; border-radius: 6px; }
+    .metric-sm { padding: 12px; background: #f8f9fa; border-radius: 6px; text-align: center; }
     .metric-value { font-size: 28px; font-weight: bold; color: #4a90d9; }
+    .metric-value-sm { font-size: 20px; font-weight: bold; color: #4a90d9; }
     .metric-label { font-size: 14px; color: #666; }
+    .metric-label-sm { font-size: 12px; color: #666; }
     .metric-unit { font-size: 14px; color: #999; }
     table { width: 100%; border-collapse: collapse; margin: 10px 0; }
     th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0; }
@@ -141,6 +347,8 @@ export function generateHTMLReport(results, baseline) {
     .chart-container { margin: 20px 0; text-align: center; }
     .env-info { font-size: 13px; color: #666; }
     .timestamp { font-size: 12px; color: #999; }
+    .model-badge { display: inline-block; background: #4a90d9; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; margin-right: 8px; }
+    .quant-badge { background: #f59e0b; }
   </style>
 </head>
 <body>
@@ -149,10 +357,42 @@ export function generateHTMLReport(results, baseline) {
       <h1>DOPPLER Benchmark Report</h1>
       <p class="timestamp">Generated: ${timestamp}</p>
       <div class="env-info">
-        <strong>Model:</strong> ${model} |
         <strong>Browser:</strong> ${env.browser?.name || 'Unknown'} ${env.browser?.version || ''} |
         <strong>GPU:</strong> ${env.gpu?.description || env.gpu?.device || 'Unknown'} |
         <strong>OS:</strong> ${env.os?.name || 'Unknown'}
+        ${env.webgpu?.hasF16 ? ' | <strong>F16:</strong> Yes' : ''}
+        ${env.webgpu?.hasSubgroups ? ' | <strong>Subgroups:</strong> Yes' : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Model: ${model}</h2>
+      <div style="margin-bottom: 15px;">
+        ${modelInfo.quantization ? `<span class="model-badge quant-badge">${modelInfo.quantization}</span>` : ''}
+        ${modelInfo.numLayers ? `<span class="model-badge">${modelInfo.numLayers} layers</span>` : ''}
+        ${modelInfo.hiddenSize ? `<span class="model-badge">${modelInfo.hiddenSize} hidden</span>` : ''}
+      </div>
+      <div class="grid-4">
+        ${modelSizeMB ? `
+        <div class="metric-sm">
+          <div class="metric-value-sm">${modelSizeMB}<span class="metric-unit">MB</span></div>
+          <div class="metric-label-sm">Model Size</div>
+        </div>` : ''}
+        ${modelInfo.tensorCount ? `
+        <div class="metric-sm">
+          <div class="metric-value-sm">${modelInfo.tensorCount}</div>
+          <div class="metric-label-sm">Tensors</div>
+        </div>` : ''}
+        ${modelInfo.numLayers ? `
+        <div class="metric-sm">
+          <div class="metric-value-sm">${modelInfo.numLayers}</div>
+          <div class="metric-label-sm">Layers</div>
+        </div>` : ''}
+        ${modelInfo.hiddenSize ? `
+        <div class="metric-sm">
+          <div class="metric-value-sm">${modelInfo.hiddenSize}</div>
+          <div class="metric-label-sm">Hidden Size</div>
+        </div>` : ''}
       </div>
     </div>
 `;
@@ -206,8 +446,30 @@ export function generateHTMLReport(results, baseline) {
     if (result.raw?.decode_latencies_ms?.length > 0) {
       const latencies = result.raw.decode_latencies_ms;
       html += `
+      <h3>Decode Performance</h3>
+      <div class="chart-container" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        ${generateSVGLineChart(latencies, 550, 150, 'Decode Latency per Token', 'ms')}
+        ${generateLatencyHistogram(latencies, 350, 150, 'Latency Distribution')}
+      </div>
+`;
+    }
+
+    // Memory time series chart
+    if (result.raw?.memory_time_series?.length > 0) {
+      html += `
+      <h3>Memory Usage</h3>
       <div class="chart-container">
-        ${generateSVGLineChart(latencies, 600, 150, 'Decode Latency per Token', 'ms')}
+        ${generateMemoryTimeSeriesChart(result.raw.memory_time_series, 800, 200, 'GPU Memory Over Time')}
+      </div>
+`;
+    }
+
+    // Buffer pool efficiency
+    if (m.buffer_pool_hit_rate !== undefined) {
+      html += `
+      <h3>Resource Efficiency</h3>
+      <div class="chart-container" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        ${generateBufferPoolChart(m, 300, 180)}
       </div>
 `;
     }

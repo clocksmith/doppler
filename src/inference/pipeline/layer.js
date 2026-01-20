@@ -231,6 +231,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: attnOutput.dtype,
   });
 
   // 2. Handle residual connection based on architecture
@@ -295,6 +296,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: postAttn.dtype,
   });
 
   // 3. Feed-forward network

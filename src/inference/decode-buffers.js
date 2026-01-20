@@ -2,6 +2,7 @@
 
 import { getDevice } from '../gpu/device.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { padToQ4KBlock } from '../config/schema/index.js';
 
 
 
@@ -51,8 +52,16 @@ export class DecodeBufferManager {
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
       dtype: normalizedConfig.activationDtype,
     });
-    const hiddenBytes = normalizedConfig.hiddenSize * bytesPerElement;
-    const intermediateBytes = normalizedConfig.intermediateSize * bytesPerElement;
+
+    // Pad dimensions to Q4K super-block alignment for fused kernels.
+    // Q4K kernels process 256 elements per block and read out of bounds
+    // without padding. Extra padding elements remain zero (from WebGPU
+    // buffer init) since all kernels write exactly hiddenSize/intermediateSize.
+    const paddedHiddenSize = padToQ4KBlock(normalizedConfig.hiddenSize);
+    const paddedIntermediateSize = padToQ4KBlock(normalizedConfig.intermediateSize);
+
+    const hiddenBytes = paddedHiddenSize * bytesPerElement;
+    const intermediateBytes = paddedIntermediateSize * bytesPerElement;
 
     const hidden = device.createBuffer({
       label: 'decode_hidden',

@@ -1,10 +1,15 @@
 
 
 import { log, trace } from '../debug/index.js';
-import { DEFAULT_PERF_GUARDS_CONFIG } from '../config/schema/index.js';
 
-
-let config = { ...DEFAULT_PERF_GUARDS_CONFIG };
+// Initial config uses inline defaults; caller should configure via configurePerfGuards()
+let config = {
+  allowGPUReadback: true,
+  trackSubmitCount: false,
+  trackAllocations: false,
+  logExpensiveOps: false,
+  strictMode: false,
+};
 
 
 let counters = {

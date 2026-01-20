@@ -3,7 +3,12 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { computeHash, alignOffset, createPadding } from './utils.js';
+import { formatBytes, MB } from '../../config/schema/index.js';
 
+function formatDuration(ms) {
+  if (ms < 1000) return `${ms.toFixed(0)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+}
 
 export class ShardWriter {
   #outputDir;
@@ -15,6 +20,8 @@ export class ShardWriter {
   #currentShardIndex = 0;
   #currentShardOffset = 0;
   #cumulativeOffset = 0;
+  #shardStartTime = null;
+  #totalTensorsInShard = 0;
 
   constructor(outputDir, shardSize, hashAlgorithm) {
     this.#outputDir = outputDir;
@@ -44,6 +51,9 @@ export class ShardWriter {
       data: [],
       size: 0,
     };
+    this.#shardStartTime = performance.now();
+    this.#totalTensorsInShard = 0;
+    console.log(`  Shard ${this.#currentShardIndex}: writing...`);
   }
 
   async finalizeShard() {
@@ -64,6 +74,14 @@ export class ShardWriter {
     const shardPath = join(this.#outputDir, shardFilename);
     await writeFile(shardPath, shardData);
 
+    const elapsed = this.#shardStartTime ? performance.now() - this.#shardStartTime : 0;
+    const throughput = elapsed > 0 ? (totalSize / MB) / (elapsed / 1000) : 0;
+    console.log(
+      `  Shard ${this.#currentShardIndex}: done ` +
+      `(${formatBytes(totalSize)}, ${this.#totalTensorsInShard} tensors, ` +
+      `${formatDuration(elapsed)}, ${throughput.toFixed(1)} MB/s)`
+    );
+
     this.#shards.push({
       index: this.#currentShardIndex,
       filename: shardFilename,
@@ -79,7 +97,7 @@ export class ShardWriter {
     this.#currentShard = null;
   }
 
-  
+
   async writeData(data) {
     if (!this.#currentShard) {
       this.startNewShard();
@@ -94,6 +112,8 @@ export class ShardWriter {
       await this.finalizeShard();
       this.startNewShard();
     }
+
+    this.#totalTensorsInShard++;
 
     // Add padding for alignment
     const paddingNeeded = alignOffset(this.#currentShardOffset) - this.#currentShardOffset;

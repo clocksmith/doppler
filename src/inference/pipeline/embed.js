@@ -268,6 +268,7 @@ export async function embed(tokenIds, embedBuffer, config) {
         hiddenSize,
         probes: config.debugProbes,
         recorder,
+        dtype: 'f16',
       });
       return f16Tensor;
     }
@@ -355,11 +356,12 @@ export async function embed(tokenIds, embedBuffer, config) {
       hiddenSize,
       probes: config.debugProbes,
       recorder,
+      dtype: gatherOptions.outputDtype,
     });
     return gatherOutput;
   }
 
-  // Apply Gemma scaling: sqrt(hiddenSize)
+  // Apply embedding scaling: sqrt(hiddenSize)
   const scaleFactor = Math.sqrt(hiddenSize);
 
   // Debug: check raw embedding values before scaling
@@ -413,6 +415,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     hiddenSize,
     probes: config.debugProbes,
     recorder,
+    dtype,
   });
 
   return createTensor(scaledBuffer, dtype, [numTokens, hiddenSize], 'embed_output');

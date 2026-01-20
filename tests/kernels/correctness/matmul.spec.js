@@ -241,7 +241,7 @@ test.describe('Matrix Multiplication Kernel', () => {
         const { matmulRef, quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
 
         // M=1 uses q4_fused kernel (GEMV variant)
-        const M = 1, K = 256, N = 4;  // K must be multiple of 256 for Q4K
+        const M = 1, K = 256, N = 4;  // aligned baseline
 
         // Create activation matrix A[M, K]
         const A = new Float32Array(M * K);
@@ -292,12 +292,60 @@ test.describe('Matrix Multiplication Kernel', () => {
       expect(result.maxError).toBeLessThan(0.1);
     });
 
+    test('should compute C = A @ dequant(B_q4k) correctly for M=1 with non-aligned K', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+
+        const M = 1, K = 1152, N = 4;
+        const paddedK = Math.ceil(K / 256) * 256;
+
+        const A = new Float32Array(M * K);
+        for (let i = 0; i < A.length; i++) {
+          A[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+
+        const B_padded = new Float32Array(N * paddedK);
+        for (let n = 0; n < N; n++) {
+          const rowBase = n * paddedK;
+          for (let k = 0; k < K; k++) {
+            B_padded[rowBase + k] = (Math.random() * 2 - 1) * 0.5;
+          }
+        }
+
+        const numBlocks = N * (paddedK / 256);
+        const B_q4k = quantizeQ4_KRef(B_padded, numBlocks);
+        const B_dequant = dequantQ4_KRef(B_q4k, numBlocks);
+
+        const refC = new Float32Array(M * N);
+        for (let n = 0; n < N; n++) {
+          let sum = 0;
+          const rowBase = n * paddedK;
+          for (let k = 0; k < K; k++) {
+            sum += A[k] * B_dequant[rowBase + k];
+          }
+          refC[n] = sum;
+        }
+
+        const gpu = await window.testHarness.getGPU();
+        const gpuC = await window.testHarness.runMatmulQ4K(gpu.device, A, B_q4k, M, N, K);
+
+        let maxError = 0;
+        for (let i = 0; i < refC.length; i++) {
+          maxError = Math.max(maxError, Math.abs(gpuC[i] - refC[i]));
+        }
+
+        return { maxError, M, K, N };
+      });
+
+      expect(result.maxError).toBeLessThan(0.1);
+    });
+
     test('should compute C = A @ dequant(B_q4k) correctly for M>1 (batched)', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async () => {
         const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
 
         // M>1 uses q4_fused_batched kernel (tests the subgroup column mixing fix)
-        const M = 4, K = 256, N = 8;  // K must be multiple of 256 for Q4K
+        const M = 4, K = 256, N = 8;
 
         // Create activation matrix A[M, K]
         const A = new Float32Array(M * K);

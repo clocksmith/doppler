@@ -6,9 +6,9 @@ export {
   isMoELayerLocal,
   hasLoggedFusedDownNorm,
   setLoggedFusedDownNorm,
-  // Sandwich norm FFN (Gemma 3 style)
+  // Sandwich norm FFN (pre+post FFN normalization)
   processFFNWithSandwichNorm,
-  // Standard FFN (LLaMA style)
+  // Standard FFN (single post-attention norm)
   processFFNStandard,
   // Dense FFN operations
   runDenseFFNGPU,

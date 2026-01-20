@@ -256,6 +256,12 @@ export declare const DEFAULT_CAST_THRESHOLDS: CastThresholdsSchema;
 export declare const DTYPE_SIZES: Record<string, number>;
 
 /**
+ * Get byte size for a dtype string.
+ * Throws if dtype is unknown.
+ */
+export declare function getDtypeSize(dtype: string): number;
+
+/**
  * All kernel thresholds in a single configuration object.
  */
 export interface KernelThresholdsConfigSchema {

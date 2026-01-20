@@ -31,7 +31,16 @@ function resolveExpertFormat(config, modelType) {
   return 'mixtral';
 }
 
+function formatDuration(ms) {
+  if (ms < 1000) return `${ms.toFixed(0)}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  const mins = Math.floor(ms / 60000);
+  const secs = ((ms % 60000) / 1000).toFixed(1);
+  return `${mins}m ${secs}s`;
+}
+
 export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {}) {
+  const conversionStart = performance.now();
   const config = modelInfo.config;
   const architecture = modelInfo.architecture ?? (config ? extractArchitecture(config) : null);
   const resolvedQuantization = modelInfo.quantization ?? options.quantization;
@@ -102,6 +111,8 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
     const progressCallback = options.onProgress || (() => {});
     const totalTensors = modelInfo.tensors.length;
 
+    console.log(`\nWriting ${totalTensors} tensors to shards...`);
+
     for (let i = 0; i < modelInfo.tensors.length; i++) {
       const tensor = modelInfo.tensors[i];
       const data = await getTensorData(tensor);
@@ -120,6 +131,9 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
     }
 
     const result = await writer.finalize();
+    const totalTime = performance.now() - conversionStart;
+    console.log(`\nConversion completed in ${formatDuration(totalTime)}`);
+
     progressCallback({ stage: 'complete', ...result });
 
     return result;

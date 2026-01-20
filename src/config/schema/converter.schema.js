@@ -12,7 +12,8 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   vision: DEFAULT_QUANTIZATION_DEFAULTS.visionDtype,
   audio: DEFAULT_QUANTIZATION_DEFAULTS.audioDtype,
   projector: DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype,
-  q4kLayout: 'column_wise',
+  // Q4K layout: 'row' (fused kernel compatible, fast) or 'col' (dequant fallback)
+  q4kLayout: 'row',
   computePrecision: 'f16',
 };
 

@@ -10,6 +10,19 @@ export function matchesRule(match, context) {
       if ('lt' in expected && actual >= expected.lt) return false;
       if ('lte' in expected && actual > expected.lte) return false;
       if ('in' in expected && !expected.in.includes(actual)) return false;
+      // String pattern matching
+      if ('contains' in expected) {
+        const patterns = Array.isArray(expected.contains) ? expected.contains : [expected.contains];
+        if (!patterns.some(p => typeof actual === 'string' && actual.includes(p))) return false;
+      }
+      if ('startsWith' in expected) {
+        const patterns = Array.isArray(expected.startsWith) ? expected.startsWith : [expected.startsWith];
+        if (!patterns.some(p => typeof actual === 'string' && actual.startsWith(p))) return false;
+      }
+      if ('endsWith' in expected) {
+        const patterns = Array.isArray(expected.endsWith) ? expected.endsWith : [expected.endsWith];
+        if (!patterns.some(p => typeof actual === 'string' && actual.endsWith(p))) return false;
+      }
       continue;
     }
     if (actual !== expected) return false;

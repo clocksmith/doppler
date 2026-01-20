@@ -1,6 +1,7 @@
 
 
 import { log } from '../debug/index.js';
+import { GB } from '../config/schema/index.js';
 
 // ============================================================================
 // Detection Functions
@@ -97,7 +98,6 @@ function checkUnifiedIndicators(
   const maxStorage = limits.maxStorageBufferBindingSize || 0;
 
   // 4GB+ buffer limits suggest unified memory
-  const GB = 1024 * 1024 * 1024;
   const largeBuffers = maxBuffer >= 4 * GB || maxStorage >= 2 * GB;
 
   return {
@@ -165,7 +165,7 @@ export async function detectUnifiedMemory() {
         estimatedMemoryGB = apple.mSeriesGen >= 4 ? 128 : 64;
       } else {
         // Fallback: estimate from max buffer size
-        const maxBufferGB = (limits.maxBufferSize || 0) / (1024 * 1024 * 1024);
+        const maxBufferGB = (limits.maxBufferSize || 0) / GB;
         estimatedMemoryGB = Math.min(128, Math.max(8, Math.floor(maxBufferGB * 2)));
       }
     } else if (amd.isStrix) {

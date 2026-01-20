@@ -493,7 +493,8 @@ export class KVCache {
       maxSeqLen: this.maxSeqLen,
       useGPU: false, // Always clone to CPU
       layout: 'contiguous', // Simplify for clone
-      pageSize: this.pageSize
+      pageSize: this.pageSize,
+      kvDtype: this.kvDtype
     });
 
     cloned.currentSeqLen = this.currentSeqLen;

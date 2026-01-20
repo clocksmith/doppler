@@ -5,10 +5,11 @@ import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 import { castF16ToF32, recordCastF16ToF32 } from '../cast.js';
+import { DEFAULT_HIGH_PRECISION_EPS } from '../../../config/schema/index.js';
 
 export async function runRmsNormBackward(input, weight, gradOutput, options = {}) {
   const device = getDevice();
-  const { numTokens, hiddenSize, eps = 1e-6, outputBuffer = null } = options;
+  const { numTokens, hiddenSize, eps = DEFAULT_HIGH_PRECISION_EPS, outputBuffer = null } = options;
 
   if (!numTokens || !hiddenSize) {
     throw new Error('rmsnorm backward requires numTokens and hiddenSize');
@@ -56,7 +57,7 @@ export async function runRmsNormBackward(input, weight, gradOutput, options = {}
 
 export async function recordRmsNormBackward(recorder, input, weight, gradOutput, options = {}) {
   const device = recorder.device;
-  const { numTokens, hiddenSize, eps = 1e-6, outputBuffer = null } = options;
+  const { numTokens, hiddenSize, eps = DEFAULT_HIGH_PRECISION_EPS, outputBuffer = null } = options;
 
   if (!numTokens || !hiddenSize) {
     throw new Error('rmsnorm backward requires numTokens and hiddenSize');

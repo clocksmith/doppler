@@ -3,6 +3,7 @@
 import { trace } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
+import { f16ToF32 } from '../../loader/dtype-utils.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
@@ -87,7 +88,7 @@ function getTraceLogger(category, layerIdx) {
 
 
 export async function runProbes(stage, buffer, options) {
-  const { layerIdx, numTokens, hiddenSize, probes, recorder } = options;
+  const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
   if (!probes || probes.length === 0) return;
   if (!buffer) return;
   if (recorder) return;
@@ -99,6 +100,9 @@ export async function runProbes(stage, buffer, options) {
   const stageProbes = probes.filter((probe) => probe.stage === stage);
   if (stageProbes.length === 0) return;
   if (!isCpuBuffer && !allowReadback(`probe.${stage}`)) return;
+
+  // Determine bytes per element based on dtype
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
 
   for (const probe of stageProbes) {
     if (!matchesLayer(probe.layers, layerIdx)) continue;
@@ -116,7 +120,7 @@ export async function runProbes(stage, buffer, options) {
     const probeId = probe.id ? ` ${probe.id}` : '';
 
     for (const tokenIdx of tokens) {
-      
+
       const values = [];
       for (const dimIdx of dims) {
         if (dimIdx < 0 || dimIdx >= hiddenSize) {
@@ -129,13 +133,26 @@ export async function runProbes(stage, buffer, options) {
           values.push(`${dimIdx}=${value.toFixed(4)}`);
           continue;
         }
-        const offset = (tokenIdx * hiddenSize + dimIdx) * 4;
-        const staging =  (device).createBuffer({ size: 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const elementOffset = tokenIdx * hiddenSize + dimIdx;
+        const byteOffset = elementOffset * bytesPerElement;
+        // WebGPU requires offset and size to be multiples of 4
+        const alignedOffset = Math.floor(byteOffset / 4) * 4;
+        const offsetWithinRead = byteOffset - alignedOffset;
+        const readSize = 4; // Always read 4 bytes (aligned)
+        const staging =  (device).createBuffer({ size: readSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
         const enc =  (device).createCommandEncoder();
-        enc.copyBufferToBuffer( (buffer), offset, staging, 0, 4);
+        enc.copyBufferToBuffer( (buffer), alignedOffset, staging, 0, readSize);
          (device).queue.submit([enc.finish()]);
         await staging.mapAsync(GPUMapMode.READ);
-        const value = new Float32Array(staging.getMappedRange().slice(0))[0];
+        let value;
+        if (dtype === 'f16') {
+          // offsetWithinRead is 0 or 2 for F16 - extract correct u16
+          const u16Array = new Uint16Array(staging.getMappedRange().slice(0));
+          const u16Index = offsetWithinRead / 2;
+          value = f16ToF32(u16Array[u16Index]);
+        } else {
+          value = new Float32Array(staging.getMappedRange().slice(0))[0];
+        }
         staging.unmap();
         staging.destroy();
         values.push(`${dimIdx}=${value.toFixed(4)}`);

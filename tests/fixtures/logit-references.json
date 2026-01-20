@@ -1,0 +1,28 @@
+{
+  "gemma-3-1b-it-wf16": {
+    "prompt": "The color of the sky is",
+    "description": "Reference logits from HuggingFace transformers for Gemma 3 1B",
+    "referenceLogits": {
+      "138": {
+        "expected": -5.5,
+        "tolerance": 1.0,
+        "description": "Double-space token - should have NEGATIVE logit"
+      },
+      "651": {
+        "expected": 4.0,
+        "tolerance": 2.0,
+        "description": "Common continuation token"
+      }
+    },
+    "expectedFirstToken": {
+      "notEquals": 138,
+      "description": "First token should NOT be double-space (token 138)"
+    },
+    "metadata": {
+      "source": "HuggingFace transformers 4.47.0",
+      "model": "google/gemma-3-1b-it",
+      "date": "2026-01-19",
+      "notes": "Catches postFeedforwardNorm=false bug (see postmortem 2026-01-19)"
+    }
+  }
+}

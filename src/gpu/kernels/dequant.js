@@ -131,6 +131,67 @@ export async function dequantize(
 }
 
 
+// Row-wise dequant is required when K is not aligned to 256; the standard
+// dequant output uses padded stride (blocksPerRow * 256), but matmul expects K.
+export async function dequantizeRowwise(
+  quantized,
+  rows,
+  K,
+  options = {}
+) {
+  const device = getDevice();
+  const { outputBuffer = null, outputDtype = 'f16' } = options;
+  const caps = getKernelCapabilities();
+  const wantsF16Out = outputDtype === 'f16' && caps.hasF16;
+  const finalOutputDtype = wantsF16Out ? 'f16' : 'f32';
+
+  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const blocksPerRow = Math.ceil(K / QK_K);
+  const numBlocks = rows * blocksPerRow;
+
+  const pipeline = await getPipelineFast(
+    'dequant',
+    wantsF16Out ? 'f16_rowwise' : 'f32_rowwise'
+  );
+
+  const bytesPerElem = finalOutputDtype === 'f16' ? 2 : 4;
+  const outputSize = rows * K * bytesPerElem;
+
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_rowwise_output');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'dequant_rowwise_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, blocksPerRow, true);
+      view.setUint32(8, K, true);
+      view.setUint32(12, rows, true);
+    },
+    null,
+    device
+  );
+
+  const bindGroup = device.createBindGroup({
+    label: 'dequant_rowwise_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: quantized } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  const workgroups = [numBlocks, 1, 1];
+  dispatch(device, pipeline, bindGroup, workgroups, 'dequant_rowwise');
+
+  releaseUniformBuffer(uniformBuffer);
+
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: finalOutputDtype });
+  return createTensor(output, dtype, [rows, K], 'dequant_rowwise_output');
+}
+
+
 export async function dequantizeMXFP4(
   blocks,
   scales,

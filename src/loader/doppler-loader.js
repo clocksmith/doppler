@@ -118,7 +118,7 @@ export class DopplerLoader {
   
   useFusedQ4K = false;
 
-  // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
+  // Q4K layout: 'col' = dequant fallback, 'row' = fused kernel (optimal)
   
   q4kLayout = null;
   

@@ -25,9 +25,9 @@ const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
 struct Uniforms {
     M: u32,                   // Always 1 for GEMV
     N: u32,                   // Output dimension
-    K: u32,                   // Inner dimension (must be multiple of 256 for Q4_K)
+    K: u32,                   // Inner dimension (may be non-256-aligned)
     alpha: f32,
-    num_blocks_per_row: u32,  // K / 256
+    num_blocks_per_row: u32,  // ceil(K / 256)
     _pad0: u32,               // 16-byte alignment padding
     _pad1: u32,
     _pad2: u32,
@@ -121,65 +121,109 @@ fn main(
     if (is_valid) {
         // Each thread processes some Q4_K blocks
         let num_blocks = u.num_blocks_per_row;
+        let tail_size = u.K & 255u;
+        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
         let blocks_per_thread = (num_blocks + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
         let block_start = local_id * blocks_per_thread;
         let block_end = min(block_start + blocks_per_thread, num_blocks);
+        let full_end = min(block_end, full_blocks);
 
         // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
-        // This gives sequential memory access when processing blocks for a single output column
-        for (var b: u32 = block_start; b < block_end; b = b + 1u) {
-        let block = B_q4k[col * num_blocks + b];
+        for (var b: u32 = block_start; b < full_end; b = b + 1u) {
+            let block = B_q4k[col * num_blocks + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
 
-        // Extract super-block scale and min
-        let d = unpack_f16_lo(block.d_dmin);
-        let dmin = unpack_f16_hi(block.d_dmin);
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
 
-        // Base element index for this block
-        let k_base = b * QK_K;
+                let sb_base = sb * SUBBLOCK_SIZE;
 
-        // Process all 256 elements in this block
-        // Unroll by sub-block (8 sub-blocks of 32 elements each)
-        for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
-            let sm = get_scale_min_k4(block.scales, sb);
-            let scale = d * f32(sm.x);
-            let min_val = dmin * f32(sm.y);
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let elem0 = sb_base + i;
+                    let elem1 = sb_base + i + 1u;
+                    let elem2 = sb_base + i + 2u;
+                    let elem3 = sb_base + i + 3u;
 
-            let sb_base = sb * SUBBLOCK_SIZE;
+                    let k0 = k_base + elem0;
+                    let k1 = k_base + elem1;
+                    let k2 = k_base + elem2;
+                    let k3 = k_base + elem3;
 
-            // Process 32 elements in this sub-block
-            // Unroll by 4 for better ILP
-            for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
-                let elem0 = sb_base + i;
-                let elem1 = sb_base + i + 1u;
-                let elem2 = sb_base + i + 2u;
-                let elem3 = sb_base + i + 3u;
+                    let a0 = A[k0];
+                    let a1 = A[k1];
+                    let a2 = A[k2];
+                    let a3 = A[k3];
 
-                let k0 = k_base + elem0;
-                let k1 = k_base + elem1;
-                let k2 = k_base + elem2;
-                let k3 = k_base + elem3;
+                    let q0 = get_q4(block.qs, elem0);
+                    let q1 = get_q4(block.qs, elem1);
+                    let q2 = get_q4(block.qs, elem2);
+                    let q3 = get_q4(block.qs, elem3);
 
-                // Load activations
-                let a0 = A[k0];
-                let a1 = A[k1];
-                let a2 = A[k2];
-                let a3 = A[k3];
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
 
-                // Dequantize weights on-the-fly
-                let q0 = get_q4(block.qs, elem0);
-                let q1 = get_q4(block.qs, elem1);
-                let q2 = get_q4(block.qs, elem2);
-                let q3 = get_q4(block.qs, elem3);
-
-                let w0 = scale * f32(q0) - min_val;
-                let w1 = scale * f32(q1) - min_val;
-                let w2 = scale * f32(q2) - min_val;
-                let w3 = scale * f32(q3) - min_val;
-
-                // Accumulate
-                partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
             }
         }
+
+        if (tail_size > 0u) {
+            let tail_block = full_blocks;
+            if (tail_block >= block_start && tail_block < block_end) {
+                let block = B_q4k[col * num_blocks + tail_block];
+                let d = unpack_f16_lo(block.d_dmin);
+                let dmin = unpack_f16_hi(block.d_dmin);
+                let k_base = tail_block * QK_K;
+
+                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                    let sb_base = sb * SUBBLOCK_SIZE;
+                    if (sb_base >= tail_size) {
+                        break;
+                    }
+                    let sm = get_scale_min_k4(block.scales, sb);
+                    let scale = d * f32(sm.x);
+                    let min_val = dmin * f32(sm.y);
+
+                    for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                        let elem0 = sb_base + i;
+                        let elem1 = sb_base + i + 1u;
+                        let elem2 = sb_base + i + 2u;
+                        let elem3 = sb_base + i + 3u;
+
+                        let k0 = k_base + elem0;
+                        let k1 = k_base + elem1;
+                        let k2 = k_base + elem2;
+                        let k3 = k_base + elem3;
+
+                        var a0: f32 = 0.0;
+                        var a1: f32 = 0.0;
+                        var a2: f32 = 0.0;
+                        var a3: f32 = 0.0;
+                        if (k0 < u.K) { a0 = A[k0]; }
+                        if (k1 < u.K) { a1 = A[k1]; }
+                        if (k2 < u.K) { a2 = A[k2]; }
+                        if (k3 < u.K) { a3 = A[k3]; }
+
+                        let q0 = get_q4(block.qs, elem0);
+                        let q1 = get_q4(block.qs, elem1);
+                        let q2 = get_q4(block.qs, elem2);
+                        let q3 = get_q4(block.qs, elem3);
+
+                        let w0 = scale * f32(q0) - min_val;
+                        let w1 = scale * f32(q1) - min_val;
+                        let w2 = scale * f32(q2) - min_val;
+                        let w3 = scale * f32(q3) - min_val;
+
+                        partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    }
+                }
+            }
         }
     }  // end if (is_valid)
 
@@ -249,10 +293,12 @@ fn main_multicol(
 
     if (is_valid) {
         let num_blocks = u.num_blocks_per_row;
+        let tail_size = u.K & 255u;
+        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
 
         // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
         // Each of the 8 threads processes every 8th block
-        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
+        for (var b: u32 = tid_in_col; b < full_blocks; b = b + THREADS_PER_COL_GEMV) {
             let block = B_q4k[col * num_blocks + b];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
@@ -288,6 +334,54 @@ fn main_multicol(
                     let w3 = scale * f32(q3) - min_val;
 
                     partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+
+        if (tail_size > 0u) {
+            let tail_block = full_blocks;
+            if (tail_block % THREADS_PER_COL_GEMV == tid_in_col) {
+                let block = B_q4k[col * num_blocks + tail_block];
+                let d = unpack_f16_lo(block.d_dmin);
+                let dmin = unpack_f16_hi(block.d_dmin);
+                let k_base = tail_block * QK_K;
+
+                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                    let sb_base = sb * SUBBLOCK_SIZE;
+                    if (sb_base >= tail_size) {
+                        break;
+                    }
+                    let sm = get_scale_min_k4(block.scales, sb);
+                    let scale = d * f32(sm.x);
+                    let min_val = dmin * f32(sm.y);
+
+                    for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                        let k0 = k_base + sb_base + i;
+                        let k1 = k0 + 1u;
+                        let k2 = k0 + 2u;
+                        let k3 = k0 + 3u;
+
+                        var a0: f32 = 0.0;
+                        var a1: f32 = 0.0;
+                        var a2: f32 = 0.0;
+                        var a3: f32 = 0.0;
+                        if (k0 < u.K) { a0 = A[k0]; }
+                        if (k1 < u.K) { a1 = A[k1]; }
+                        if (k2 < u.K) { a2 = A[k2]; }
+                        if (k3 < u.K) { a3 = A[k3]; }
+
+                        let q0 = get_q4(block.qs, sb_base + i);
+                        let q1 = get_q4(block.qs, sb_base + i + 1u);
+                        let q2 = get_q4(block.qs, sb_base + i + 2u);
+                        let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                        let w0 = scale * f32(q0) - min_val;
+                        let w1 = scale * f32(q1) - min_val;
+                        let w2 = scale * f32(q2) - min_val;
+                        let w3 = scale * f32(q3) - min_val;
+
+                        partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    }
                 }
             }
         }

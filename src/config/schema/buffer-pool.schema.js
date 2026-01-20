@@ -1,11 +1,13 @@
+import { MB } from './units.schema.js';
+
 // =============================================================================
 // Buffer Pool Config
 // =============================================================================
 
 export const DEFAULT_BUFFER_POOL_BUCKET_CONFIG = {
-  minBucketSizeBytes: 256, // 256 bytes
-  largeBufferThresholdBytes: 32 * 1024 * 1024, // 32MB
-  largeBufferStepBytes: 16 * 1024 * 1024, // 16MB
+  minBucketSizeBytes: 256, // 256 bytes (WebGPU alignment)
+  largeBufferThresholdBytes: 32 * MB,
+  largeBufferStepBytes: 16 * MB,
 };
 
 // =============================================================================

@@ -68,8 +68,6 @@ export interface FFNSchema {
   activation?: 'silu' | 'gelu' | 'relu' | 'swiglu';
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation?: boolean;
-  /** Use fused gate+up projection */
-  fusedGateUp?: boolean;
   /** Clamp SwiGLU output (null = disabled) */
   swigluLimit?: number | null;
 }

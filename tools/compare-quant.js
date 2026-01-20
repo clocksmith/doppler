@@ -1,10 +1,9 @@
 // Compare converter quantization vs reference quantization
-import { quantizeToQ4KM } from '../src/converter/quantizer.js';
+import { quantizeToQ4KM, QK_K } from '../src/converter/quantizer.js';
 import { quantizeQ4_KRef, dequantQ4_KRef } from '../kernel-tests/src/reference/dequant.js';
 
 const numBlocks = 2;
-const blockSize = 256;
-const total = numBlocks * blockSize;
+const total = numBlocks * QK_K;
 
 // Create deterministic test data
 const values = new Float32Array(total);

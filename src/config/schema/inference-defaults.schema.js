@@ -1,6 +1,19 @@
 import { DEFAULT_KVCACHE_CONFIG } from './kvcache.schema.js';
 import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
 import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
+import { DEFAULT_RMS_NORM_EPS } from './manifest.schema.js';
+
+// =============================================================================
+// Generation Defaults (generator.js runtime options)
+// =============================================================================
+
+export const DEFAULT_GENERATION_CONFIG = {
+  useSpeculative: false,
+  profile: false,
+  benchmark: false,
+  disableCommandBatching: false,
+  disableMultiTokenDecode: false,
+};
 
 // =============================================================================
 // Batching Defaults
@@ -54,6 +67,15 @@ export const DEFAULT_SAMPLING_DEFAULTS = {
 export const DEFAULT_TOKENIZER_DEFAULTS = {
   addBosToken: true,
   addEosToken: false,
+  addSpacePrefix: null,  // null = auto-detect from tokenizer.json
+};
+
+// =============================================================================
+// Chat Template Defaults
+// =============================================================================
+
+export const DEFAULT_CHAT_TEMPLATE_CONFIG = {
+  enabled: false,
 };
 
 // =============================================================================
@@ -69,8 +91,8 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   kvcache: DEFAULT_KVCACHE_CONFIG,
   moe: DEFAULT_MOE_RUNTIME_CONFIG,
   speculative: DEFAULT_SPECULATIVE_CONFIG,
-  prompt: 'The color of the sky is',
-  debugTokens: false,
+  generation: DEFAULT_GENERATION_CONFIG,
+  chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
   pipeline: null,
   kernelPath: undefined,
 };
@@ -89,7 +111,7 @@ export const DEFAULT_PRESET_INFERENCE_CONFIG = {
   },
   normalization: {
     rmsNormWeightOffset: false,
-    rmsNormEps: 1e-5,
+    rmsNormEps: DEFAULT_RMS_NORM_EPS,
     postAttentionNorm: false,
     preFeedforwardNorm: false,
     postFeedforwardNorm: false,
@@ -97,7 +119,6 @@ export const DEFAULT_PRESET_INFERENCE_CONFIG = {
   ffn: {
     activation: 'silu',
     gatedActivation: true,
-    fusedGateUp: false,
   },
   output: {
     finalLogitSoftcapping: null,

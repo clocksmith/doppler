@@ -149,6 +149,8 @@ function mergeInferenceConfig(
   overrides
 ) {
   return {
+    prompt: overrides.prompt ?? base.prompt,
+    debugTokens: overrides.debugTokens ?? base.debugTokens,
     batching: { ...base.batching, ...overrides.batching },
     sampling: { ...base.sampling, ...overrides.sampling },
     compute: { ...base.compute, ...overrides.compute },
@@ -162,8 +164,7 @@ function mergeInferenceConfig(
         }
       : { ...base.moe },
     speculative: { ...base.speculative, ...overrides.speculative },
-    prompt: overrides.prompt ?? base.prompt,
-    debugTokens: overrides.debugTokens ?? base.debugTokens,
+    generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,
     kernelPath: overrides.kernelPath ?? base.kernelPath,
     chatTemplate: overrides.chatTemplate

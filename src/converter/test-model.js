@@ -1,7 +1,7 @@
 
 
 import { RDRRWriter } from './writer.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+import { DEFAULT_MANIFEST_INFERENCE, DEFAULT_RMS_NORM_EPS } from '../config/schema/index.js';
 
 
 export async function createTestModel(outputDir) {
@@ -25,7 +25,7 @@ export async function createTestModel(outputDir) {
       vocabSize,
       maxSeqLen,
       ropeTheta: 10000,
-      rmsNormEps: 1e-5,
+      rmsNormEps: DEFAULT_RMS_NORM_EPS,
     },
     quantization: 'F32',
   });

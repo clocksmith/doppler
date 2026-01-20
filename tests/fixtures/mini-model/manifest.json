@@ -22,6 +22,7 @@
     "variantTag": "wf32"
   },
   "hashAlgorithm": "sha256",
+  "eos_token_id": 2,
   "config": {
     "architectures": ["TestTransformerForCausalLM"],
     "model_type": "test",
@@ -115,7 +116,8 @@
       "queryPreAttnScalar": 5.656854249492381,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
-      "queryKeyNorm": false
+      "queryKeyNorm": false,
+      "attentionBias": false
     },
     "normalization": {
       "rmsNormEps": 0.000001,
@@ -126,7 +128,8 @@
     },
     "ffn": {
       "activation": "silu",
-      "gatedActivation": true
+      "gatedActivation": true,
+      "swigluLimit": null
     },
     "rope": {
       "ropeTheta": 10000,

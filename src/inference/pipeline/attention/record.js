@@ -251,8 +251,8 @@ export async function recordLayerAttentionGPU(
     }
   }
 
-  // Optional per-head Q/K norm (Gemma-family)
-  // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
+  // Optional per-head Q/K normalization.
+  // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
   const wantsQKNorm = config.queryKeyNorm === true;
   if (wantsQKNorm && layerIdx === 0 && (!layerWeights.qNorm || !layerWeights.kNorm)) {
     log.warn('Attention', `Q/K norm requested but weights missing (hasQ=${!!layerWeights.qNorm}, hasK=${!!layerWeights.kNorm}); skipping QK norm.`);
@@ -357,7 +357,7 @@ export async function recordLayerAttentionGPU(
 
   // 5. Attention
   // query_pre_attn_scalar is used as: scale = scalar^(-0.5) = 1/sqrt(scalar)
-  // For Gemma 2 with query_pre_attn_scalar=256: scale = 1/sqrt(256) = 1/16 (standard head_dim scaling)
+  // When scalar equals headDim (e.g., 256): scale = 1/sqrt(256) = 1/16 (standard head_dim scaling)
   const attnScale = queryPreAttnScalar ? 1.0 / Math.sqrt(queryPreAttnScalar) : 1.0 / Math.sqrt(headDim);
 
   // Wrap cached K/V in Tensors (dtype from cache or input tensor)

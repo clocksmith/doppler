@@ -20,6 +20,10 @@ export {
   RDRR_VERSION,
   SHARD_SIZE,
   TENSORS_FILENAME,
+  MAX_HEADER_SIZE,
+  HEADER_READ_SIZE,
+  DEFAULT_RMS_NORM_EPS,
+  DEFAULT_HIGH_PRECISION_EPS,
 
   // Types
   type HashAlgorithm,
@@ -174,6 +178,7 @@ export {
   type LoadingConfigSchema,
 
   // Defaults
+  DEFAULT_Q4K_LAYOUT,
   DEFAULT_SHARD_CACHE_CONFIG,
   DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   DEFAULT_PREFETCH_CONFIG,
@@ -415,6 +420,7 @@ export {
   type SegmentTestingConfigSchema,
   type AddressSpaceConfigSchema,
   type SegmentAllocationConfigSchema,
+  type EmulatedStorageConfigSchema,
   type MemoryLimitsConfigSchema,
 
   // Defaults
@@ -422,6 +428,7 @@ export {
   DEFAULT_SEGMENT_TESTING_CONFIG,
   DEFAULT_ADDRESS_SPACE_CONFIG,
   DEFAULT_SEGMENT_ALLOCATION_CONFIG,
+  DEFAULT_EMULATED_STORAGE_CONFIG,
   DEFAULT_MEMORY_LIMITS_CONFIG,
 } from './memory-limits.schema.js';
 
@@ -472,6 +479,17 @@ export {
 } from './backward-registry.schema.js';
 
 // =============================================================================
+// Unit Constants (Invariants)
+// =============================================================================
+export {
+  KB,
+  MB,
+  GB,
+  formatBytes,
+  formatBytesCompact,
+} from './units.schema.js';
+
+// =============================================================================
 // Quantization Defaults Schema
 // =============================================================================
 export {
@@ -501,6 +519,7 @@ export {
 
   // Constants
   DTYPE_SIZES,
+  getDtypeSize,
 
   // Defaults
   DEFAULT_MATMUL_THRESHOLDS,

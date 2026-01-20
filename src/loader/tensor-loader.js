@@ -2,7 +2,7 @@
 
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
-import { dequantize, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../gpu/kernel-selector.js';
+import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../gpu/kernel-selector.js';
 import { createTensor } from '../gpu/tensor.js';
 import { createWeightBuffer } from '../gpu/weight-buffer.js';
 import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout } from './dtype-utils.js';
@@ -81,7 +81,8 @@ export function getQ4KOutputDtype(location, config) {
 
 export function getWeightLayout(location, config) {
   const isMatmulWeight = shouldDequantizeToF16(location);
-  const useColumnWise = config.q4kLayout === 'column_wise' && isMatmulWeight;
+  // Layout: 'col' = column-wise, 'row' = row-wise (default)
+  const useColumnWise = config.q4kLayout === 'col' && isMatmulWeight;
   return selectRuleValue('loader', 'weights', 'weightLayout', {
     layout: location.layout ?? null,
     useColumnWise,
@@ -138,15 +139,30 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
   device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
 
-  const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
   const outputDtype = getQ4KOutputDtype(location, config);
 
-  debugTrace.loader(
-    `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
-    `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
-  );
+  // Check if this is a 2D matrix with K (columns) not aligned to QK_K (256).
+  // If so, we need row-wise dequant to produce proper row-major output.
+  const is2DMatrix = Array.isArray(location.shape) && location.shape.length === 2;
+  const K = is2DMatrix ? location.shape[1] : 0;
+  const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
 
-  const dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
+  let dequantizedTensor;
+  if (needsRowwise) {
+    const rows = location.shape[0];
+    debugTrace.loader(
+      `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
+      `outputDtype=${outputDtype}`
+    );
+    dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
+  } else {
+    const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
+      `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
+    );
+    dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
+  }
   const dequantized = dequantizedTensor.buffer;
 
   debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
@@ -310,59 +326,54 @@ export async function loadFloat(shardData, location, name, config) {
 // ============================================================================
 
 
-export async function loadTensorToGPU(shardData, location, name, config) {
-  const dtype = location.dtype;
-
-  // Q4_K / Q4_K_M
-  if (dtype === 'Q4_K_M' || dtype === 'Q4_K') {
-    if (shouldUseFusedQ4K(location, config)) {
-      debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
-      return loadQ4KFused(shardData, location, name);
-    }
-
+const GPU_LOADER_DISPATCH = {
+  q4k_fused: (shardData, location, name, _config) => {
+    debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
+    return loadQ4KFused(shardData, location, name);
+  },
+  q4k_dequant: (shardData, location, name, config) => {
     if (config.useFusedQ4K && isPackedQ4K(location)) {
       const [rows, cols] = location.shape;
       debugTrace.loader(`Packed Q4K weight ${name} [${rows},${cols}] incompatible with fused matmul, using dequant`);
     }
-
     return loadQ4KDequant(shardData, location, name, config);
-  }
+  },
+  q6k: (shardData, location, name, _config) => loadQ6K(shardData, location, name),
+  bf16: (shardData, location, name, config) => loadBF16(shardData, location, name, config),
+  float: (shardData, location, name, config) => loadFloat(shardData, location, name, config),
+};
 
-  // Q6_K
-  if (dtype === 'Q6_K') {
-    return loadQ6K(shardData, location, name);
+export async function loadTensorToGPU(shardData, location, name, config) {
+  const dtype = location.dtype;
+  const useFusedQ4K = shouldUseFusedQ4K(location, config);
+  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', { dtype, useFusedQ4K });
+  const loader = GPU_LOADER_DISPATCH[loaderPath];
+  if (!loader) {
+    throw new Error(`Unknown GPU loader path: "${loaderPath}" for dtype "${dtype}"`);
   }
-
-  // BF16
-  if (dtype === 'BF16') {
-    return loadBF16(shardData, location, name, config);
-  }
-
-  // F16 / F32
-  return loadFloat(shardData, location, name, config);
+  return loader(shardData, location, name, config);
 }
 
 
-export function loadTensorToCPU(shardData, location) {
-  const dtype = location.dtype;
-
-  // Quantized data - return raw for CPU
-  if (dtype === 'Q4_K_M' || dtype === 'Q4_K' || dtype === 'Q6_K') {
-    return shardData;
-  }
-
-  // BF16 - convert to F32
-  if (dtype === 'BF16') {
+const CPU_LOADER_DISPATCH = {
+  raw: (shardData, _location) => shardData,
+  bf16_to_f32: (shardData, _location) => {
     const bf16 = new Uint16Array(shardData.slice().buffer);
     return convertBF16ToF32CPU(bf16);
-  }
-
-  // F16 - convert to F32
-  if (dtype === 'F16') {
+  },
+  f16_to_f32: (shardData, _location) => {
     const f16 = new Uint16Array(shardData.slice().buffer);
     return convertF16ToF32CPU(f16);
-  }
+  },
+  f32: (shardData, _location) => new Float32Array(shardData.slice().buffer),
+};
 
-  // F32 - return as Float32Array
-  return new Float32Array(shardData.slice().buffer);
+export function loadTensorToCPU(shardData, location) {
+  const dtype = location.dtype;
+  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'cpuLoaderPath', { dtype });
+  const loader = CPU_LOADER_DISPATCH[loaderPath];
+  if (!loader) {
+    throw new Error(`Unknown CPU loader path: "${loaderPath}" for dtype "${dtype}"`);
+  }
+  return loader(shardData, location);
 }

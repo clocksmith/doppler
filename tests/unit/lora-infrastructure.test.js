@@ -56,21 +56,25 @@ function createTestLoRAManifest() {
       {
         name: 'layer.0.q_proj.lora_a',
         shape: [rank, hiddenSize],
+        dtype: 'f32',
         data: aData,
       },
       {
         name: 'layer.0.q_proj.lora_b',
         shape: [hiddenSize, rank],
+        dtype: 'f32',
         data: bData,
       },
       {
         name: 'layer.0.v_proj.lora_a',
         shape: [rank, hiddenSize],
+        dtype: 'f32',
         data: aData.map(x => x * 0.5),
       },
       {
         name: 'layer.0.v_proj.lora_b',
         shape: [hiddenSize, rank],
+        dtype: 'f32',
         data: bData.map(x => x * 0.5),
       },
     ],

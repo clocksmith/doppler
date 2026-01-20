@@ -205,6 +205,35 @@ When adding a new inference knob or model behavior:
 - Validate it in `parseModelConfigFromManifest()` (null vs undefined rules).
 - Add/extend tests that assert manifest values and override precedence.
 
+### Tensor-Config Consistency
+
+**Config flags must match tensor presence.** If a model has `post_feedforward_layernorm.weight` tensors, the manifest must have `postFeedforwardNorm: true`. Mismatches cause silent model failure.
+
+**Validation**: `validateTensorConfigConsistency()` in `src/formats/rdrr/tensor-config-validator.js` checks:
+- Normalization flags (`postFeedforwardNorm`, `preFeedforwardNorm`, `postAttentionNorm`)
+- QK-norm flag (`queryKeyNorm`)
+- Weight tying (`tieWordEmbeddings`)
+
+**Auto-detection**: The converter auto-detects normalization flags from tensor names. Auto-detected values override preset defaults but not explicit preset values.
+
+**Why this matters**: The 2026-01-19 Gemma 3 postmortem documents complete model failure from a missing `postFeedforwardNorm: true` flag. The weights existed but the norm was skipped, causing logit divergence after 26 layers.
+
+```javascript
+// DON'T: Rely on preset defaults for architecture-specific features
+"normalization": {
+  "preFeedforwardNorm": true
+  // postFeedforwardNorm not set -> defaults to false -> BUG if tensors exist
+}
+
+// DO: Explicitly set all flags that match tensor presence
+"normalization": {
+  "preFeedforwardNorm": true,
+  "postFeedforwardNorm": true  // Matches post_feedforward_layernorm.weight
+}
+```
+
+**Enforcement**: Manifest validation now fails if config flags don't match tensor presence.
+
 ### KV Cache Dtype Policy
 
 - Default KV cache dtype to `f16` when supported.

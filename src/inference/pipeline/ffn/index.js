@@ -3,10 +3,10 @@
 // Types and utilities
 export { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
 
-// Sandwich norm FFN (Gemma 3 style)
+// Sandwich norm FFN (pre+post FFN normalization)
 export { processFFNWithSandwichNorm } from './sandwich.js';
 
-// Standard FFN (LLaMA style)
+// Standard FFN (single post-attention norm)
 export { processFFNStandard } from './standard.js';
 
 // Dense FFN operations

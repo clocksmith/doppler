@@ -3,6 +3,7 @@
 import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
 import { log } from '../debug/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/index.js';
+import { GB } from '../config/schema/index.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
@@ -227,7 +228,7 @@ export async function initDevice() {
     kernelCapabilities.hasF16 && 'f16',
     kernelCapabilities.hasSubgroups && 'subgroups',
   ].filter(Boolean).join('/') || 'basic';
-  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(1) + 'GB');
+  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / GB).toFixed(1) + 'GB');
 
   return gpuDevice;
 }

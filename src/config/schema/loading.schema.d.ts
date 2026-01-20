@@ -11,6 +11,13 @@ import type { DistributionConfigSchema } from './distribution.schema.js';
 import type { StorageFullConfigSchema } from './storage.schema.js';
 
 /**
+ * Default Q4K layout when manifest doesn't specify one (backwards compatibility).
+ * 'row' = row-wise layout, compatible with fused Q4K kernels
+ * 'col' = column-wise layout, requires dequantization
+ */
+export declare const DEFAULT_Q4K_LAYOUT: 'row';
+
+/**
  * Configuration for the shard LRU cache.
  *
  * The cache stores recently-used model shards to avoid redundant disk/network reads.

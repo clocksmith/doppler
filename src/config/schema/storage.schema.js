@@ -1,10 +1,12 @@
+import { KB, MB, GB } from './units.schema.js';
+
 // =============================================================================
 // Quota Config
 // =============================================================================
 
 export const DEFAULT_QUOTA_CONFIG = {
-  lowSpaceThresholdBytes: 500 * 1024 * 1024, // 500MB
-  criticalSpaceThresholdBytes: 100 * 1024 * 1024, // 100MB
+  lowSpaceThresholdBytes: 500 * MB,
+  criticalSpaceThresholdBytes: 100 * MB,
   monitorIntervalMs: 30000, // 30 seconds
 };
 
@@ -14,8 +16,8 @@ export const DEFAULT_QUOTA_CONFIG = {
 
 export const DEFAULT_VRAM_ESTIMATION_CONFIG = {
   unifiedMemoryRatio: 0.5, // 50% of system RAM
-  fallbackVramBytes: 2 * 1024 * 1024 * 1024, // 2GB
-  lowVramHeadroomBytes: 500 * 1024 * 1024, // 500MB
+  fallbackVramBytes: 2 * GB,
+  lowVramHeadroomBytes: 500 * MB,
 };
 
 // =============================================================================
@@ -23,7 +25,7 @@ export const DEFAULT_VRAM_ESTIMATION_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_STORAGE_ALIGNMENT_CONFIG = {
-  bufferAlignmentBytes: 4096, // 4KB alignment (typical page size)
+  bufferAlignmentBytes: 4 * KB, // typical page size
 };
 
 // =============================================================================
@@ -40,14 +42,14 @@ export const DEFAULT_STORAGE_BACKEND_CONFIG = {
     dbName: 'doppler-models',
     shardStore: 'shards',
     metaStore: 'meta',
-    chunkSizeBytes: 4 * 1024 * 1024, // 4MB chunks
+    chunkSizeBytes: 4 * MB,
   },
   memory: {
-    maxBytes: 512 * 1024 * 1024, // 512MB cap for non-persistent fallback
+    maxBytes: 512 * MB, // cap for non-persistent fallback
   },
   streaming: {
-    readChunkBytes: 4 * 1024 * 1024, // 4MB
-    maxInFlightBytes: 64 * 1024 * 1024, // 64MB
+    readChunkBytes: 4 * MB,
+    maxInFlightBytes: 64 * MB,
     useByob: true,
   },
 };

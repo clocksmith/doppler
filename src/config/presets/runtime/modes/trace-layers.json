@@ -1,0 +1,29 @@
+{
+  "name": "trace-layers",
+  "description": "Trace layer outputs for F16 vs Q4K comparison",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["ffn", "attn", "embed", "kernels"],
+          "layers": [0],
+          "maxDecodeSteps": 2
+        },
+        "probes": [
+          { "id": "embed_out", "stage": "embed_out", "tokens": [-1], "dims": [0, 1, 2, 3, 334, 335] },
+          { "id": "attn_input", "stage": "attn_input", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 334, 335] },
+          { "id": "attn_normed", "stage": "attn_normed", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 334, 335] },
+          { "id": "q_proj", "stage": "q_proj", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 334, 335] },
+          { "id": "attn_out", "stage": "attn_out", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 334, 335] }
+        ]
+      }
+    },
+    "inference": {
+      "prompt": "The sky is",
+      "batching": {
+        "maxTokens": 2
+      }
+    }
+  }
+}

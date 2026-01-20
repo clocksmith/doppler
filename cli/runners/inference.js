@@ -9,11 +9,13 @@ export async function runInferenceTest(page, opts) {
   console.log('='.repeat(60));
   console.log(`  Model: ${opts.model}`);
 
+  // Strip 'models/' prefix if present - harness BASE_URL already includes /models
+  const modelId = opts.model.replace(/^models\//, '');
   setHarnessConfig(opts, {
     mode: 'inference',
     autorun: true,
     skipLoad: false,
-    modelId: opts.model,
+    modelId,
   });
   const testParams = new URLSearchParams();
   appendRuntimeConfigParams(testParams, opts);

@@ -1,8 +1,9 @@
 
+import { MB } from '../config/schema/index.js';
 
 export const MAGIC = 0x5245504c;
 export const HEADER_SIZE = 16;
-export const MAX_CHUNK_SIZE = 8 * 1024 * 1024;
+export const MAX_CHUNK_SIZE = 8 * MB;
 export const ACK_SIZE = 4;
 
 export const Command = {

@@ -1,0 +1,18 @@
+{
+  "extends": "bench",
+  "runtime": {
+    "shared": {
+      "benchmark": {
+        "run": {
+          "warmupRuns": 1,
+          "timedRuns": 3
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": { "maxTokens": 64 },
+      "sampling": { "temperature": 0 }
+    }
+  }
+}

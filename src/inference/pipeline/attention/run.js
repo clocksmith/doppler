@@ -20,6 +20,7 @@ import { getLoRAModule } from '../lora.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { runProbes } from '../probes.js';
 
 import {
   shouldDebugLayer,
@@ -344,7 +345,7 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(vTensor.buffer, `L${layerIdx} V after proj (GPU)`, numTokens, numKVHeads * headDim);
   }
 
-  // Optional per-head Q/K norm (Gemma-family)
+  // Optional per-head Q/K normalization
   const wantsQKNorm = config.queryKeyNorm === true;
   const hasQNorm = !!layerWeights.qNorm;
   const hasKNorm = !!layerWeights.kNorm;
@@ -355,9 +356,8 @@ export async function runLayerAttentionGPU(
     log.warn('Attention', `Q/K norm requested but weights missing (hasQ=${hasQNorm}, hasK=${hasKNorm}); skipping QK norm.`);
   }
 
-  // Note: Gemma 3 q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
-  // Same as layer norms - all Gemma 3 norms use (1+weight)
-  // See: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/modeling_gemma3.py
+  // Note: Some models use RMSNorm with (1+weight) offset formula for Q/K norms.
+  // This is controlled by manifest.inference.normalization.rmsNormWeightOffset.
   if (hasQNorm && getNormWeightBuffer && layerWeights.qNorm) {
     const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
     // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
@@ -506,7 +506,7 @@ export async function runLayerAttentionGPU(
 
   // 5. Attention (uses raw GPUBuffers)
   // query_pre_attn_scalar is used as: scale = scalar^(-0.5) = 1/sqrt(scalar)
-  // For Gemma 2 with query_pre_attn_scalar=256: scale = 1/sqrt(256) = 1/16 (standard head_dim scaling)
+  // When scalar equals headDim (e.g., 256): scale = 1/sqrt(256) = 1/16 (standard head_dim scaling)
   const attnScale = queryPreAttnScalar ? 1.0 / Math.sqrt(queryPreAttnScalar) : 1.0 / Math.sqrt(headDim);
   // Debug: log scale on layer 0
   if (layerIdx === 0 && isPrefill) {

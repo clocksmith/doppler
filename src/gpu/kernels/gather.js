@@ -7,7 +7,7 @@ import { dispatch, dispatchIndirect, recordDispatch, recordDispatchIndirect } fr
 import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
-import { DTYPE_SIZES } from '../../config/schema/index.js';
+import { DTYPE_SIZES, padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
@@ -72,9 +72,12 @@ export async function runGather(
   const pipeline = await getPipelineFast('gather', variant);
 
   // Calculate output size using DTYPE_SIZES
+  // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
+  // that read 256-element blocks. Extra padding elements stay zero.
   const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
-  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const paddedHiddenSize = padToQ4KBlock(hiddenSize);
+  const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
 
   // Create uniform buffer
@@ -165,9 +168,12 @@ export async function recordGather(
   const pipeline = await getPipelineFast('gather', variant);
 
   // Calculate output size using DTYPE_SIZES
+  // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
+  // that read 256-element blocks. Extra padding elements stay zero.
   const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
-  const outputSize = numTokens * hiddenSize * bytesPerElement;
+  const paddedHiddenSize = padToQ4KBlock(hiddenSize);
+  const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
 
   // Uniform buffer

@@ -400,6 +400,38 @@
           "workgroup": [32, 1, 1],
           "requires": ["shader-f16"],
           "description": "Q8_0 dequantization (GGUF 8-bit quantization)"
+        },
+        "f32_rowwise": {
+          "wgsl": "dequant_f32_rowwise.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "description": "Q4_K dequantization with row-wise layout (f32 output)",
+          "uniformsOverride": {
+            "size": 16,
+            "fields": [
+              { "name": "num_blocks", "type": "u32", "offset": 0 },
+              { "name": "blocks_per_row", "type": "u32", "offset": 4 },
+              { "name": "K", "type": "u32", "offset": 8 },
+              { "name": "rows", "type": "u32", "offset": 12 }
+            ]
+          }
+        },
+        "f16_rowwise": {
+          "wgsl": "dequant_f16_rowwise.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "description": "Q4_K dequantization with row-wise matrix layout for non-256-aligned K",
+          "uniformsOverride": {
+            "size": 16,
+            "fields": [
+              { "name": "num_blocks", "type": "u32", "offset": 0 },
+              { "name": "blocks_per_row", "type": "u32", "offset": 4 },
+              { "name": "K", "type": "u32", "offset": 8 },
+              { "name": "rows", "type": "u32", "offset": 12 }
+            ]
+          }
         }
       }
     },

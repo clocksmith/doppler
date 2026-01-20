@@ -21,18 +21,21 @@ async function diagnoseModel(modelPath) {
     const manifest = JSON.parse(manifestText);
     result.manifestValid = true;
 
-    // Check Q4K layout
-    const q4kLayout = manifest.config?.q4kLayout;
+    // Check Q4K layout - now in quantizationInfo.layout
+    // 'row' = fused kernel (fast), 'col' = dequant fallback (slow)
+    const q4kLayout = manifest.quantizationInfo?.layout ?? manifest.config?.q4kLayout;
     result.q4kLayout = q4kLayout;
 
     if (!q4kLayout) {
-      result.issues.push('Warning: Missing config.q4kLayout field');
-      result.recommendations.push('Run converter with --q4k-layout column_wise');
-    } else if (q4kLayout !== 'column_wise') {
-      result.issues.push(`Warning: Q4K layout is "${q4kLayout}" (expected "column_wise" for best performance)`);
-      result.recommendations.push('Re-convert model with --q4k-layout column_wise for 14% speedup');
+      result.issues.push('Warning: Missing quantizationInfo.layout field');
+      result.recommendations.push('Re-convert model to add Q4K layout metadata');
+    } else if (q4kLayout === 'col') {
+      result.issues.push('Warning: Q4K layout is "col" (dequant fallback, loses Q4K benefits)');
+      result.recommendations.push('Re-convert model with --q4k-layout row for fused Q4K (faster, smaller)');
+    } else if (q4kLayout === 'row') {
+      log.info('KernelDiag', 'OK Q4K layout: row (fused kernel, optimal)');
     } else {
-      log.info('KernelDiag', 'OK Q4K layout: column_wise (optimal)');
+      log.info('KernelDiag', `Q4K layout: ${q4kLayout}`);
     }
 
     // Check kernel path override (optional)
@@ -66,7 +69,8 @@ async function printDiagnostics(result) {
   log.info('KernelDiag', `Manifest: ${result.manifestValid ? 'OK Valid' : 'ERROR Invalid'}`);
 
   if (result.q4kLayout) {
-    const layoutStatus = result.q4kLayout === 'column_wise' ? 'OK' : 'WARNING';
+    const isOptimal = result.q4kLayout === 'row';
+    const layoutStatus = isOptimal ? 'OK' : 'WARNING';
     log.info('KernelDiag', `Q4K Layout: ${layoutStatus} ${result.q4kLayout}`);
   }
 
@@ -107,7 +111,7 @@ async function main() {
     log.info('KernelDiag', '  npx tsx debug/diagnose-kernels.ts models/gemma-1b-q4-col');
     log.info('KernelDiag', 'Checks:');
     log.info('KernelDiag', '  - Manifest validity');
-    log.info('KernelDiag', '  - Q4K layout configuration (should be column_wise)');
+    log.info('KernelDiag', '  - Q4K layout configuration (row=fused, col=dequant)');
     log.info('KernelDiag', '  - Kernel path override (optional)');
     log.info('KernelDiag', '  - Expected vs actual configuration');
     process.exit(0);

@@ -1,25 +1,54 @@
 
+import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../../config/index.js';
 
-import { DEFAULT_QUANTIZATION_DEFAULTS } from '../../config/index.js';
-
+// Quantization tag aliases mapped to canonical names.
+// Add new aliases here rather than adding if/else branches.
+const QUANT_TAG_ALIASES = {
+  // Q4_K_M variants
+  'q4_k_m': 'q4k',
+  'q4k': 'q4k',
+  'q4': 'q4k',
+  'q4km': 'q4k',
+  // Q6_K variants
+  'q6_k': 'q6k',
+  'q6k': 'q6k',
+  'q6': 'q6k',
+  // Q8_0 variants
+  'q8_0': 'q8_0',
+  'q8': 'q8_0',
+  // MXFP4 variants
+  'mxfp4': 'mxfp4',
+  'mxp4': 'mxfp4',
+  // F16 variants
+  'f16': 'f16',
+  'fp16': 'f16',
+  'float16': 'f16',
+  // BF16 variants
+  'bf16': 'bf16',
+  'bfloat16': 'bf16',
+  // F32 variants
+  'f32': 'f32',
+  'fp32': 'f32',
+  'float32': 'f32',
+  // FP8 E4M3 variants
+  'fp8e4': 'fp8e4',
+  'fp8e4m3': 'fp8e4',
+  'e4m3': 'fp8e4',
+  // FP8 E5M2 variants
+  'fp8e5': 'fp8e5',
+  'fp8e5m2': 'fp8e5',
+  'e5m2': 'fp8e5',
+  // Integer variants
+  'i8': 'i8',
+  'int8': 'i8',
+  'i4': 'i4',
+  'int4': 'i4',
+};
 
 export function normalizeQuantTag(value) {
   if (!value) return 'f16';
   const lower = value.toLowerCase();
-
-  if (lower === 'q4_k_m' || lower === 'q4k' || lower === 'q4' || lower === 'q4km') return 'q4k';
-  if (lower === 'q6_k' || lower === 'q6k' || lower === 'q6') return 'q6k';
-  if (lower === 'q8_0' || lower === 'q8') return 'q8_0';
-  if (lower === 'mxfp4' || lower === 'mxp4') return 'mxfp4';
-  if (lower === 'f16' || lower === 'fp16' || lower === 'float16') return 'f16';
-  if (lower === 'bf16' || lower === 'bfloat16') return 'bf16';
-  if (lower === 'f32' || lower === 'fp32' || lower === 'float32') return 'f32';
-  if (lower === 'fp8e4' || lower === 'fp8e4m3' || lower === 'e4m3') return 'fp8e4';
-  if (lower === 'fp8e5' || lower === 'fp8e5m2' || lower === 'e5m2') return 'fp8e5';
-  if (lower === 'i8' || lower === 'int8') return 'i8';
-  if (lower === 'i4' || lower === 'int4') return 'i4';
-
-  return lower;
+  return QUANT_TAG_ALIASES[lower] ?? lower;
 }
 
 
@@ -43,13 +72,17 @@ export function validateQuantType(value, flagName) {
 }
 
 
+// Canonical dtype to manifest format mapping.
+const MANIFEST_QUANT_NAMES = {
+  'q4k': 'Q4_K_M',
+  'q6k': 'Q6_K',
+  'q8_0': 'Q8_0',
+};
+
 export function resolveManifestQuantization(quantize, fallback) {
   if (!quantize) return fallback;
   const normalized = normalizeQuantTag(quantize);
-  if (normalized === 'q4k') return 'Q4_K_M';
-  if (normalized === 'q6k') return 'Q6_K';
-  if (normalized === 'q8_0') return 'Q8_0';
-  return normalized.toUpperCase();
+  return MANIFEST_QUANT_NAMES[normalized] ?? normalized.toUpperCase();
 }
 
 
@@ -58,8 +91,15 @@ export function buildVariantTag(info) {
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
   const experts = info.experts ?? null;
+  const layout = info.layout ?? null;
 
-  const parts = [`w${weights}`];
+  // For Q4K weights, include layout in tag
+  // 'row' = fused kernel compatible (fast), 'col' = dequant fallback
+  const weightTag = weights === 'q4k' && layout
+    ? `${weights}${layout === 'row' ? '' : '-col'}`  // row is default/preferred, col is explicit
+    : weights;
+
+  const parts = [`w${weightTag}`];
 
   if (embeddings !== weights) {
     parts.push(`e${embeddings}`);
@@ -115,6 +155,21 @@ function resolveExpertFormat(modelConfig, expertQuant) {
   return hasExperts ? 'mixtral' : null;
 }
 
+
+// Q4K layout aliases mapped to canonical names.
+const Q4K_LAYOUT_ALIASES = {
+  'row': 'row',
+  'rowwise': 'row',
+  'col': 'col',
+  'column': 'col',
+  'columnwise': 'col',
+};
+
+export function normalizeQ4KLayout(value) {
+  if (!value) return null;
+  const lower = String(value).toLowerCase().replace(/_/g, '');
+  return Q4K_LAYOUT_ALIASES[lower] ?? null;
+}
 
 export function buildQuantizationInfo(
   opts,
@@ -229,6 +284,13 @@ export function buildQuantizationInfo(
     info.compute = computePrecision;
   }
 
+  // Q4K layout: 'row' (fused kernel compatible) or 'col' (dequant fallback)
+  // Default to 'row' for Q4K weights since that's the performant path
+  const q4kLayoutRaw = opts?.q4kLayout ?? quantization.q4kLayout ?? null;
+  if (weights === 'q4k') {
+    info.layout = normalizeQ4KLayout(q4kLayoutRaw) ?? DEFAULT_Q4K_LAYOUT;
+  }
+
   info.variantTag = buildVariantTag(info);
   return info;
 }
@@ -245,8 +307,12 @@ export function resolveModelId(modelId, baseName, variantTag) {
 }
 
 
+// Canonical dtype to WebGPU dtype mapping.
+const WEBGPU_DTYPE_NAMES = {
+  'q4k': 'Q4_K_M',
+  'bf16': 'F16',  // WebGPU doesn't support bf16, use f16
+};
+
 export function toWebGPUDtype(dtype) {
-  if (dtype === 'q4k') return 'Q4_K_M';
-  if (dtype === 'bf16') return 'F16';
-  return dtype.toUpperCase();
+  return WEBGPU_DTYPE_NAMES[dtype] ?? dtype.toUpperCase();
 }

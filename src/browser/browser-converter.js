@@ -37,6 +37,7 @@ import {
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import { HEADER_READ_SIZE } from '../config/schema/index.js';
 
 // Re-export types for consumers
 export {
@@ -329,7 +330,7 @@ async function parseGGUFModel(
     message: 'Parsing GGUF header...',
   });
 
-  const headerBlob = file.slice(0, 10 * 1024 * 1024);
+  const headerBlob = file.slice(0, HEADER_READ_SIZE);
   const headerBuffer = await headerBlob.arrayBuffer();
   const ggufInfo = parseGGUFHeader(headerBuffer);
 

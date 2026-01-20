@@ -1,0 +1,101 @@
+{
+  "name": "gemma3-q4k-debug",
+  "description": "Debug Gemma 3 1B Q4K inference - check kernel selection and alignment",
+  "extends": "default",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "verbose"
+        },
+        "trace": {
+          "enabled": true,
+          "categories": ["kernels", "ffn", "attn", "embed", "logits"],
+          "layers": [0, 1],
+          "maxDecodeSteps": 5
+        },
+        "probes": [
+          {
+            "id": "embed_out",
+            "stage": "embed_out",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1150, 1151]
+          },
+          {
+            "id": "layer0_attn_input",
+            "stage": "attn_input",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1150, 1151]
+          },
+          {
+            "id": "layer0_attn_normed",
+            "stage": "attn_normed",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1150, 1151]
+          },
+          {
+            "id": "layer0_q_proj",
+            "stage": "q_proj",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1020, 1021, 1022, 1023]
+          },
+          {
+            "id": "layer0_attn_out",
+            "stage": "attn_out",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          },
+          {
+            "id": "layer0_post_attn",
+            "stage": "post_attn",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1150, 1151]
+          },
+          {
+            "id": "layer0_ffn_in",
+            "stage": "ffn_in",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 1150, 1151]
+          },
+          {
+            "id": "layer0_ffn_out",
+            "stage": "ffn_out",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          },
+          {
+            "id": "logits_final",
+            "stage": "logits",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 138, 3730]
+          }
+        ],
+        "kernelTrace": {
+          "layers": [0, 1],
+          "breakOnAnomaly": true,
+          "explosionThreshold": 10,
+          "collapseThreshold": 1e-6,
+          "maxSteps": 100
+        }
+      }
+    },
+    "inference": {
+      "prompt": "Hello",
+      "batching": {
+        "maxTokens": 8
+      }
+    }
+  },
+  "cli": {
+    "headed": true,
+    "timeout": 300000
+  }
+}

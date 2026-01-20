@@ -50,39 +50,6 @@ export async function runBuild(verbose) {
 }
 
 
-export async function runBenchmarkBuild(verbose) {
-  console.log('Building benchmark bundle...');
-  const projectRoot = resolve(__dirname, '../..');
-
-  return new Promise((resolve, reject) => {
-    const build = spawn('npm', ['run', 'build:benchmark'], {
-      cwd: projectRoot,
-      stdio: verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
-      shell: true,
-    });
-
-    let stderr = '';
-    if (!verbose && build.stderr) {
-      build.stderr.on('data', ( data) => {
-        stderr += data.toString();
-      });
-    }
-
-    build.on('error', (err) => {
-      reject(new Error(`Build failed to start: ${err.message}`));
-    });
-
-    build.on('exit', (code) => {
-      if (code === 0) {
-        console.log('Benchmark build complete.');
-        resolve();
-      } else {
-        reject(new Error(`Build failed with code ${code}${stderr ? `: ${stderr}` : ''}`));
-      }
-    });
-  });
-}
-
 // ============================================================================
 // Server Management
 // ============================================================================

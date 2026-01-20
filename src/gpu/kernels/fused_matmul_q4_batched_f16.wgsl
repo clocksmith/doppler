@@ -13,9 +13,9 @@ const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 struct Uniforms {
     M: u32,                   // Always 1 for GEMV
     N: u32,                   // Output dimension
-    K: u32,                   // Inner dimension (must be multiple of 256 for Q4_K)
+    K: u32,                   // Inner dimension (may be non-256-aligned)
     alpha: f32,
-    num_blocks_per_row: u32,  // K / 256
+    num_blocks_per_row: u32,  // ceil(K / 256)
     _pad0: u32,               // 16-byte alignment padding
     _pad1: u32,
     _pad2: u32,

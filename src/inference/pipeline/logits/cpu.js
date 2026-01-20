@@ -1,6 +1,7 @@
 
 
 
+// Caller should pass eps from model config; inline default for safety
 export function rmsNormCPU(
   x,
   weight,

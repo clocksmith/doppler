@@ -5,6 +5,10 @@ export {
   RDRR_VERSION,
   SHARD_SIZE,
   TENSORS_FILENAME,
+  MAX_HEADER_SIZE,
+  HEADER_READ_SIZE,
+  DEFAULT_RMS_NORM_EPS,
+  DEFAULT_HIGH_PRECISION_EPS,
   DEFAULT_MANIFEST_INFERENCE,
   isV1Manifest,
   hasMoEConfig,
@@ -53,6 +57,7 @@ export {
 // Loading Schema
 // =============================================================================
 export {
+  DEFAULT_Q4K_LAYOUT,
   DEFAULT_SHARD_CACHE_CONFIG,
   DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   DEFAULT_PREFETCH_CONFIG,
@@ -83,11 +88,13 @@ export {
 // Inference Defaults Schema
 // =============================================================================
 export {
+  DEFAULT_GENERATION_CONFIG,
   DEFAULT_BATCHING_DEFAULTS,
   DEFAULT_COMPUTE_DEFAULTS,
   DEFAULT_LARGE_WEIGHT_CONFIG,
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
+  DEFAULT_CHAT_TEMPLATE_CONFIG,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
   DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';
@@ -139,6 +146,7 @@ export {
   DEFAULT_LOG_HISTORY_CONFIG,
   DEFAULT_LOG_LEVEL_CONFIG,
   DEFAULT_TRACE_CONFIG,
+  DEFAULT_KERNEL_TRACE_CONFIG,
   DEFAULT_PIPELINE_DEBUG_CONFIG,
   DEFAULT_PROFILER_CONFIG,
   DEFAULT_PERF_GUARDS_CONFIG,
@@ -182,6 +190,7 @@ export {
   DEFAULT_SEGMENT_TESTING_CONFIG,
   DEFAULT_ADDRESS_SPACE_CONFIG,
   DEFAULT_SEGMENT_ALLOCATION_CONFIG,
+  DEFAULT_EMULATED_STORAGE_CONFIG,
   DEFAULT_MEMORY_LIMITS_CONFIG,
 } from './memory-limits.schema.js';
 
@@ -243,11 +252,41 @@ export {
 } from './quantization-defaults.schema.js';
 
 // =============================================================================
+// Quantization Constants (Invariants)
+// =============================================================================
+export {
+  // Constants
+  QK_K,
+  Q4K_BLOCK_BYTES,
+  Q6K_BLOCK_BYTES,
+  Q8_0_BLOCK_BYTES,
+  Q8_0_BLOCK_SIZE,
+  K_SCALE_SIZE,
+  QK4_K_BLOCK_SIZE,
+
+  // Functions
+  padToQ4KBlock,
+  q4kBlockCount,
+} from './quantization.schema.js';
+
+// =============================================================================
+// Unit Constants (Invariants)
+// =============================================================================
+export {
+  KB,
+  MB,
+  GB,
+  formatBytes,
+  formatBytesCompact,
+} from './units.schema.js';
+
+// =============================================================================
 // Kernel Thresholds Schema
 // =============================================================================
 export {
   // Constants
   DTYPE_SIZES,
+  getDtypeSize,
 
   // Defaults
   DEFAULT_MATMUL_THRESHOLDS,

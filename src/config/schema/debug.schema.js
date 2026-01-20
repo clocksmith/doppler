@@ -39,6 +39,18 @@ export const DEFAULT_TRACE_CONFIG = {
 };
 
 // =============================================================================
+// Kernel Trace Config (kernel-trace.js anomaly detection)
+// =============================================================================
+
+export const DEFAULT_KERNEL_TRACE_CONFIG = {
+  layers: [],
+  breakOnAnomaly: false,
+  explosionThreshold: 10,
+  collapseThreshold: 1e-6,
+  maxSteps: 5000,
+};
+
+// =============================================================================
 // Pipeline Debug Config (debug-utils)
 // =============================================================================
 

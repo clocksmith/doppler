@@ -11,11 +11,6 @@ import type { CLIOptions } from './types.js';
 export function runBuild(verbose: boolean): Promise<void>;
 
 /**
- * Run the benchmark build (esbuild bundle)
- */
-export function runBenchmarkBuild(verbose: boolean): Promise<void>;
-
-/**
  * Check if the dev server is already running
  */
 export function isServerRunning(baseUrl: string): Promise<boolean>;

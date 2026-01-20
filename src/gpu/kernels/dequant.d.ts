@@ -44,6 +44,16 @@ export declare function dequantize(
 ): Promise<Tensor>;
 
 /**
+ * Dequantize Q4K weights with row-wise layout for non-256-aligned K.
+ */
+export declare function dequantizeRowwise(
+  quantized: GPUBuffer,
+  rows: number,
+  K: number,
+  options?: OutputBufferOptions & OutputDtypeOptions
+): Promise<Tensor>;
+
+/**
  * Dequantize MXFP4 weights (GPT-OSS format)
  */
 export declare function dequantizeMXFP4(

@@ -142,8 +142,8 @@ export interface KernelCapabilities {
 export interface Q4KConfig {
   /** Use fused Q4K matmul kernels (keeps raw quantized weights) */
   useFusedQ4K: boolean;
-  /** Q4K layout from manifest */
-  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
+  /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
+  q4kLayout: 'row' | 'col' | null;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
 }

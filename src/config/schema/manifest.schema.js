@@ -1,12 +1,35 @@
+import { MB } from './units.schema.js';
+
 // =============================================================================
 // Hash & Versioning
 // =============================================================================
 
 export const RDRR_VERSION = 1;
 
-export const SHARD_SIZE = 64 * 1024 * 1024;
+export const SHARD_SIZE = 64 * MB;
 
 export const TENSORS_FILENAME = 'tensors.json';
+
+// =============================================================================
+// Parser Constants
+// =============================================================================
+
+// Maximum header size for model format parsing.
+// GGUF/SafeTensors headers typically fit in first 100MB even for huge models.
+export const MAX_HEADER_SIZE = 100 * MB;
+
+// Smaller header read for streaming/browser imports (10MB covers typical headers)
+export const HEADER_READ_SIZE = 10 * MB;
+
+// =============================================================================
+// Epsilon Constants
+// =============================================================================
+
+// Default RMS normalization epsilon - used across all model types
+export const DEFAULT_RMS_NORM_EPS = 1e-5;
+
+// Higher precision epsilon for numerical stability in some operations
+export const DEFAULT_HIGH_PRECISION_EPS = 1e-6;
 
 // =============================================================================
 // Inference Schema (Model-Specific Inference Parameters)
@@ -22,7 +45,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     attentionBias: false,
   },
   normalization: {
-    rmsNormEps: 1e-5,
+    rmsNormEps: DEFAULT_RMS_NORM_EPS,
     rmsNormWeightOffset: false,
     postAttentionNorm: false,
     preFeedforwardNorm: false,

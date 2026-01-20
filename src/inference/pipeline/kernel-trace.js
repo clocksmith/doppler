@@ -1,5 +1,4 @@
 
-
 import { log, trace } from '../../debug/index.js';
 import { snapshotTensor as snapshotTensorImpl, snapshotFromArray as snapshotFromArrayImpl } from '../../debug/tensor.js';
 
@@ -42,12 +41,13 @@ class KernelTrace {
   
   enable(options = {}) {
     this._enabled = true;
+    // Caller should pass resolved runtime config values; inline defaults match schema
     this._options = {
       layers: options.layers ?? [],
-      breakOnAnomaly: options.breakOnAnomaly ?? false,
+      breakOnAnomaly: options.breakOnAnomaly ?? true,
       explosionThreshold: options.explosionThreshold ?? 10,
       collapseThreshold: options.collapseThreshold ?? 1e-6,
-      maxSteps: options.maxSteps ?? 5000,
+      maxSteps: options.maxSteps ?? 100,
     };
     this._steps = [];
     this._anomalies = [];
@@ -82,7 +82,7 @@ class KernelTrace {
     if (step.layer >= 0 && !this.shouldTraceLayer(step.layer)) return;
 
     // Add to steps (circular buffer)
-    if (this._steps.length >= (this._options.maxSteps ?? 5000)) {
+    if (this._steps.length >= this._options.maxSteps) {
       this._steps.shift();
     }
     this._steps.push(step);
@@ -130,7 +130,7 @@ class KernelTrace {
       const prevStep = this._steps[stepIdx - 1];
       const prevMaxAbs = prevStep.output.stats.maxAbs;
       const currMaxAbs = output.stats.maxAbs;
-      const threshold = this._options.explosionThreshold ?? 10;
+      const threshold = this._options.explosionThreshold;
 
       if (prevMaxAbs > 0 && currMaxAbs > prevMaxAbs * threshold) {
         return {
@@ -145,7 +145,7 @@ class KernelTrace {
     }
 
     // Warning: Collapse to zeros
-    const collapseThreshold = this._options.collapseThreshold ?? 1e-6;
+    const collapseThreshold = this._options.collapseThreshold;
     if (output.stats.maxAbs < collapseThreshold && output.shape.reduce((a, b) => a * b, 1) > 0) {
       return {
         type: 'collapse',

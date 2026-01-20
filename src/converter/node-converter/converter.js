@@ -32,8 +32,7 @@ import {
 import { extractArchitecture, shouldQuantize as shouldQuantizeCore } from '../core.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from '../manifest-inference.js';
 import { resolvePreset, createConverterConfig } from '../../config/index.js';
-
-const BYTES_PER_MB = 1024 * 1024;
+import { MB } from '../../config/schema/index.js';
 
 function resolveBaseModelId(configRec, inputPath) {
   const candidates = [];
@@ -106,13 +105,12 @@ function isMatmulWeight(name, shape) {
   return false;
 }
 
-function normalizeQ4KLayout(value) {
-  if (value == null) return null;
-  const lower = `${value}`.toLowerCase();
-  if (lower === 'flat' || lower === 'row_wise' || lower === 'column_wise') {
-    return lower;
-  }
-  throw new Error(`Invalid q4k layout: "${value}" (expected flat, row_wise, column_wise)`);
+// Q4K layout mapping for quantization functions
+// 'row' = row-wise (fused kernel compatible), 'col' = column-wise (dequant fallback)
+function getQ4KQuantizeFn(layout) {
+  if (layout === 'col') return quantizeToQ4KMColumnWise;
+  if (layout === 'row') return quantizeToQ4KMRowWise;
+  return quantizeToQ4KM; // flat/default
 }
 
 function resolveConverterConfig(options = {}) {
@@ -129,7 +127,7 @@ function resolveConverterConfig(options = {}) {
   if (options.computePrecision !== undefined) quantization.computePrecision = options.computePrecision;
 
   const sharding = { ...(baseConfig?.sharding ?? {}) };
-  if (options.shardSize != null) sharding.shardSizeBytes = options.shardSize * BYTES_PER_MB;
+  if (options.shardSize != null) sharding.shardSizeBytes = options.shardSize * MB;
   if (options.shardSizeBytes != null) sharding.shardSizeBytes = options.shardSizeBytes;
 
   const output = { ...(baseConfig?.output ?? {}) };
@@ -246,12 +244,11 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
     config
   );
   const baseModelId = resolveBaseModelId(configRec, inputPath);
+  // modelId = baseModelId-variantTag (e.g., google-gemma-3-1b-it-wq4k-ef16)
   const resolvedModelId = resolveModelId(outputConfig.modelId, baseModelId, quantizationInfo.variantTag);
   const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, originalDtype);
-  const q4kLayout = quantizationInfo.weights === 'q4k'
-    ? normalizeQ4KLayout(quantizationConfig.q4kLayout)
-    : null;
-  const manifestModelConfig = q4kLayout == null ? config : { ...config, q4kLayout };
+  // Q4K layout is now in quantizationInfo.layout, not config
+  const manifestModelConfig = config;
 
   const isGptOssPackedExpertTensor = (name) => {
     const lower = name.toLowerCase();
@@ -331,14 +328,10 @@ export async function convertSafetensors(inputPath, outputPath, opts) {
         f32 = new Float32Array(data);
       }
 
-      let q4;
-      if (useMatmulLayout && q4kLayout === 'column_wise') {
-        q4 = quantizeToQ4KMColumnWise(f32, info.shape);
-      } else if (useMatmulLayout && q4kLayout === 'row_wise') {
-        q4 = quantizeToQ4KMRowWise(f32, info.shape);
-      } else {
-        q4 = quantizeToQ4KM(f32, info.shape);
-      }
+      const quantizeFn = useMatmulLayout
+        ? getQ4KQuantizeFn(quantizationInfo.layout)
+        : quantizeToQ4KM;
+      const q4 = quantizeFn(f32, info.shape);
       return q4.quantized.buffer;
     }
 
@@ -474,9 +467,13 @@ export async function convertGGUF(inputPath, outputPath, opts) {
 
   const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
   const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
+  if (!parsed.quantization) {
+    throw new Error('Source file does not specify quantization/dtype. Cannot determine weight format.');
+  }
+  const sourceDtype = parsed.quantization;
   const quantizationInfo = buildQuantizationInfo(
     converterConfig,
-    parsed.quantization || 'F32',
+    sourceDtype,
     embedDtypeRaw,
     lmHeadDtypeRaw,
     false,
@@ -484,15 +481,11 @@ export async function convertGGUF(inputPath, outputPath, opts) {
     false,
     config
   );
+  // modelId = baseModelId-variantTag (e.g., google-gemma-3-1b-it-wq4k-ef16)
   const resolvedModelId = resolveModelId(outputConfig.modelId, modelName, quantizationInfo.variantTag);
-  const manifestQuantization = resolveManifestQuantization(
-    quantizationConfig.weights,
-    parsed.quantization || 'F32'
-  );
-  const q4kLayout = quantizationInfo.weights === 'q4k'
-    ? normalizeQ4KLayout(quantizationConfig.q4kLayout)
-    : null;
-  const manifestModelConfig = q4kLayout == null ? config : { ...config, q4kLayout };
+  const manifestQuantization = resolveManifestQuantization(quantizationConfig.weights, sourceDtype);
+  // Q4K layout is now in quantizationInfo.layout, not config
+  const manifestModelConfig = config;
 
   const modelInfo = {
     modelName: resolvedModelId,

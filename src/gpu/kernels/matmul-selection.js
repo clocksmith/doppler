@@ -313,10 +313,12 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     }
   }
 
-  const allowFused = !isFusedQ4KDisabled();
-  const canFused = bDtype === 'q4k' && capabilities.hasSubgroups && allowFused;
+  const fusedAllowed = !isFusedQ4KDisabled();
+  const isQ4K = bDtype === 'q4k';
   const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
-  const q4kVariant = canFused ? selectQ4KFusedVariant(M === 1, wantF16Output, aDtype) : null;
+  const q4kVariant = isQ4K && capabilities.hasSubgroups && fusedAllowed
+    ? selectQ4KFusedVariant(M === 1, wantF16Output, aDtype)
+    : null;
 
   const effectiveBDtype = bDtype === 'q4k' ? 'f32' : bDtype;
   const matmulVariant = selectMatmulKernel({
@@ -339,7 +341,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const selection = selectKernelRuleValue(
     'matmul',
     'matmulSelection',
-    { canFused, useGemv, q4kVariant, gemvVariant, matmulVariant }
+    { isQ4K, hasSubgroups: capabilities.hasSubgroups, fusedAllowed, useGemv, q4kVariant, gemvVariant, matmulVariant }
   );
   const reason = selection.useQ4KFused
     ? 'q4k_fused'

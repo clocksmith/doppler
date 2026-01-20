@@ -3,6 +3,7 @@ import gh200Preset from '../presets/platforms/nvidia-gh200.json' with { type: 'j
 import gh200Nvl2Preset from '../presets/platforms/nvidia-gh200-nvl2.json' with { type: 'json' };
 import gb2008Preset from '../presets/platforms/nvidia-gb200-8gpu.json' with { type: 'json' };
 import gb200Nvl72Preset from '../presets/platforms/nvidia-gb200-nvl72.json' with { type: 'json' };
+import { GB } from './units.schema.js';
 
 // =============================================================================
 // GPU Specifications
@@ -10,21 +11,21 @@ import gb200Nvl72Preset from '../presets/platforms/nvidia-gb200-nvl72.json' with
 
 export const H100_GPU_SPEC = {
   name: 'H100',
-  vramBytes: 96 * 1024 * 1024 * 1024, // 96GB
+  vramBytes: 96 * GB,
   hbmBandwidthBytesPerSec: 3.35e12,   // 3.35 TB/s HBM3
   fp16Tflops: 1979,                    // ~2 PFLOPS
 };
 
 export const H200_GPU_SPEC = {
   name: 'H200',
-  vramBytes: 144 * 1024 * 1024 * 1024, // 144GB
+  vramBytes: 144 * GB,
   hbmBandwidthBytesPerSec: 4.8e12,     // 4.8 TB/s HBM3e
   fp16Tflops: 1979,                     // ~2 PFLOPS
 };
 
 export const B200_GPU_SPEC = {
   name: 'B200',
-  vramBytes: 192 * 1024 * 1024 * 1024, // 192GB
+  vramBytes: 192 * GB,
   hbmBandwidthBytesPerSec: 8e12,       // 8 TB/s HBM3e
   fp16Tflops: 4500,                     // 4.5 PFLOPS
   fp8Tflops: 9000,                      // 9 PFLOPS FP8
@@ -39,7 +40,7 @@ export const DEFAULT_GH200_GPU_SPEC = H200_GPU_SPEC;
 export const GRACE_CPU_SPEC = {
   name: 'Grace',
   cores: 72,
-  memoryBytes: 480 * 1024 * 1024 * 1024, // 480GB LPDDR5X
+  memoryBytes: 480 * GB, // LPDDR5X
   memoryBandwidthBytesPerSec: 546e9,      // 546 GB/s
 };
 
@@ -166,7 +167,7 @@ export const DEFAULT_EMULATION_CONFIG = {
   timingScaling: DEFAULT_TIMING_SCALING,
   localResources: undefined,
   opfsRootPath: 'emulation',
-  maxActiveWorkingSetBytes: 4 * 1024 * 1024 * 1024, // 4GB default working set
+  maxActiveWorkingSetBytes: 4 * GB, // default working set
   statsEnabled: true,
   logOperations: false,
 };

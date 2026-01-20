@@ -90,9 +90,11 @@ npm run bench -- inference --config bench -m MODEL 2>&1 | grep "DOPPLER:RESULT" 
 
 Use config files or inline JSON. CLI flags must not override runtime tunables.
 
+**Note:** `runtime.inference.prompt` is required for all inference benchmarks. Always include it in your config or inline JSON.
+
 ```bash
 # Fix decode length for apples-to-apples comparisons (inline JSON config)
-npm run bench -- inference --config '{"runtime":{"inference":{"batching":{"maxTokens":64}}}}' -m MODEL
+npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is","batching":{"maxTokens":64}}}}' -m MODEL
 
 # Combine with runs and warmup in config
 npm run bench -- inference --config ./bench-3runs.json -m MODEL
@@ -118,6 +120,7 @@ Example `my-bench-config.json`:
       }
     },
     "inference": {
+      "prompt": "The color of the sky is",
       "batching": { "maxTokens": 64 },
       "sampling": { "temperature": 0 }
     }
@@ -125,19 +128,21 @@ Example `my-bench-config.json`:
 }
 ```
 
+**Note:** The `prompt` field is required. The `extends: "bench"` inherits benchmark settings but not a default prompt.
+
 ## Kernel Configuration Testing
 
 Test different kernel thresholds or variants via `--config`:
 
 ```bash
 # Test with fused kernel disabled (set threshold below model's hidden size)
-npm run bench -- inference --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
+npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is"},"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
 
 # Test with fused kernel enabled
-npm run bench -- inference --config '{"runtime":{"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
+npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is"},"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
 
 # Explicit kernel path (config-only)
-npm run bench -- inference --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
+npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is","kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
 ## Fast Iteration Pattern

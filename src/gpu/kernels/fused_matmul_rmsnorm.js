@@ -7,7 +7,7 @@ import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
 import { trace } from '../../debug/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
@@ -155,7 +155,7 @@ export async function recordMatmulRMSNormFused(
   const {
     N,
     K,
-    eps = 1e-5,
+    eps = 1e-5,  // Caller should pass from model config
     residual = null,
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights

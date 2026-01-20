@@ -131,10 +131,17 @@ export class ConfigLoader {
       throw new Error('debug.pipeline.maxAbsThreshold must be > 0');
     }
 
-    // Validate probes
+    // Validate probes - must match STAGE_DEFAULT_CATEGORY in probes.js
     const validProbeStages = [
-      'embed_out', 'attn_out', 'post_attn', 'ffn_in', 'ffn_out',
-      'layer_out', 'pre_final_norm', 'final_norm', 'logits', 'logits_final'
+      // Embedding
+      'embed_out',
+      // Attention (per-layer)
+      'attn_input', 'attn_normed', 'q_proj', 'k_proj', 'v_proj',
+      'q_rope', 'k_rope', 'attn_scores', 'attn_out', 'o_proj', 'post_attn',
+      // FFN (per-layer)
+      'ffn_normed', 'ffn_in', 'ffn_gate', 'ffn_up', 'ffn_act', 'ffn_out', 'layer_out',
+      // Final
+      'pre_final_norm', 'final_norm', 'logits', 'logits_final'
     ];
     if (debug.probes !== undefined) {
       if (!Array.isArray(debug.probes)) {

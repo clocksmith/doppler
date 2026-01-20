@@ -172,6 +172,7 @@ export async function computeChunkedLogitsGPU(
         numTokens,
         hiddenSize: rowCount,
         probes: debugProbes,
+        dtype: logitsTensor.dtype,
       });
     }
 

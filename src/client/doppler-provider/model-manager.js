@@ -18,6 +18,7 @@ import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../adapters/lora-loade
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
+import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
 
 let pipeline = null;
 let currentModelId = null;
@@ -148,15 +149,15 @@ export async function initDoppler() {
     if (memCaps.isUnifiedMemory) {
       DopplerCapabilities.TIER_LEVEL = 1;
       DopplerCapabilities.TIER_NAME = 'Unified Memory';
-      DopplerCapabilities.MAX_MODEL_SIZE = 60 * 1024 * 1024 * 1024;
+      DopplerCapabilities.MAX_MODEL_SIZE = 60 * GB;
     } else if (memCaps.hasMemory64) {
       DopplerCapabilities.TIER_LEVEL = 2;
       DopplerCapabilities.TIER_NAME = 'Memory64';
-      DopplerCapabilities.MAX_MODEL_SIZE = 40 * 1024 * 1024 * 1024;
+      DopplerCapabilities.MAX_MODEL_SIZE = 40 * GB;
     } else {
       DopplerCapabilities.TIER_LEVEL = 3;
       DopplerCapabilities.TIER_NAME = 'Basic';
-      DopplerCapabilities.MAX_MODEL_SIZE = 8 * 1024 * 1024 * 1024;
+      DopplerCapabilities.MAX_MODEL_SIZE = 8 * GB;
     }
 
     DopplerCapabilities.available = true;
@@ -196,7 +197,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
         if (onProgress) onProgress({ stage: 'connecting', message: 'Connecting to Native Bridge...' });
 
-        const manifestBytes = await bridgeClient.read(manifestPath, 0, 10 * 1024 * 1024);
+        const manifestBytes = await bridgeClient.read(manifestPath, 0, HEADER_READ_SIZE);
         const manifestJson = new TextDecoder().decode(manifestBytes);
         manifest = parseManifest(manifestJson);
 

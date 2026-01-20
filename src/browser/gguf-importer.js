@@ -16,9 +16,7 @@ import { log } from '../debug/index.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { extractArchitecture } from '../converter/core.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
-
-// Header size to read for parsing (10MB should cover any GGUF header)
-const HEADER_READ_SIZE = 10 * 1024 * 1024;
+import { HEADER_READ_SIZE } from '../config/schema/index.js';
 
 // ============================================================================
 // Types

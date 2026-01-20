@@ -6,6 +6,7 @@ import {
   formatGptOssChat,
 } from '../../inference/pipeline/chat-format.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { DEFAULT_CHAT_TEMPLATE_CONFIG } from '../../config/schema/index.js';
 import { getPipeline } from './model-manager.js';
 
 export { formatGemmaChat, formatLlama3Chat, formatGptOssChat };
@@ -14,7 +15,7 @@ function resolveChatTemplate(pipeline, options) {
   const override = options?.useChatTemplate;
   const runtimeEnabled = pipeline?.runtimeConfig?.inference?.chatTemplate?.enabled;
   const modelEnabled = pipeline?.modelConfig?.chatTemplateEnabled;
-  const enabled = override ?? runtimeEnabled ?? modelEnabled ?? false;
+  const enabled = override ?? runtimeEnabled ?? modelEnabled ?? DEFAULT_CHAT_TEMPLATE_CONFIG.enabled;
   const type = pipeline?.modelConfig?.chatTemplateType ?? null;
   return { enabled, type };
 }

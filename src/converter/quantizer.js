@@ -1,13 +1,13 @@
+import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
+import {
+  QK_K,
+  K_SCALE_SIZE,
+  QK4_K_BLOCK_SIZE,
+} from '../config/schema/index.js';
 
-
-
-export const QK_K = 256;
-
-
-export const K_SCALE_SIZE = 12;
-
-
-export const QK4_K_BLOCK_SIZE = 144;
+// Re-export for backward compatibility
+export { QK_K, K_SCALE_SIZE, QK4_K_BLOCK_SIZE };
 
 export function float32ToFloat16(value) {
   const floatView = new Float32Array(1);
@@ -315,12 +315,12 @@ export function getQ4KSize(shape, layout = 'flat') {
 
   const [rows, cols] = shape;
 
-  if (layout === 'row_wise') {
+  if (layout === 'row') {
     const blocksPerRow = Math.ceil(cols / QK_K);
     return rows * blocksPerRow * QK4_K_BLOCK_SIZE;
   }
 
-  if (layout === 'column_wise') {
+  if (layout === 'col') {
     // After transpose: [cols, rows], row-wise on that
     const blocksPerRow = Math.ceil(rows / QK_K);
     return cols * blocksPerRow * QK4_K_BLOCK_SIZE;
@@ -384,31 +384,22 @@ export function shouldQuantize(tensorName, shape, options = {}) {
   const { quantizeEmbeddings = false, modulesToNotConvert = null } = options;
 
   const numElements = shape.reduce((a, b) => a * b, 1);
-  if (numElements < 1024) {
+  const role = classifyTensorRole(tensorName);
+  const lower = tensorName.toLowerCase();
+  const isBias = lower.endsWith('.bias') || lower.endsWith('_bias');
+
+  const shouldQuantizeByRole = selectRuleValue('converter', 'tensorRoles', 'shouldQuantize', {
+    numElements,
+    role,
+    isBias,
+    quantizeEmbeddings,
+  });
+
+  if (!shouldQuantizeByRole) {
     return false;
   }
 
-  const lowerName = tensorName.toLowerCase();
-
-  // Embeddings: skip unless explicitly enabled
-  if (lowerName.includes('embed') || lowerName.includes('lm_head')) {
-    if (!quantizeEmbeddings) {
-      return false;
-    }
-  }
-
-  if (lowerName.includes('norm') || lowerName.includes('ln_')) {
-    return false;
-  }
-
-  if (lowerName.endsWith('.bias') || lowerName.endsWith('_bias')) {
-    return false;
-  }
-
-  if (lowerName.includes('router') || lowerName.includes('gate.weight')) {
-    return false;
-  }
-
+  // Additional exclusion via modulesToNotConvert patterns
   if (modulesToNotConvert && Array.isArray(modulesToNotConvert)) {
     for (const pattern of modulesToNotConvert) {
       const regexPattern = pattern

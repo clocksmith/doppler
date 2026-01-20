@@ -4,13 +4,11 @@ import { getMemoryCapabilities } from '../memory/capability.js';
 import { getQuotaInfo, formatBytes } from './quota.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { getStorageCapabilities } from './shard-manager.js';
+import { GB, MB } from '../config/schema/index.js';
 
 // ============================================================================
 // Model Requirements Constants
 // ============================================================================
-
-const GB = 1024 * 1024 * 1024;
-const MB = 1024 * 1024;
 
 
 export const GEMMA_1B_REQUIREMENTS = {

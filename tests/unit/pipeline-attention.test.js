@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import {
   parseModelConfig,
   hasManifestInference,
-  inferAttentionParams,
 } from '../../src/inference/pipeline/config.js';
 
 import {
@@ -46,6 +45,7 @@ function makeManifest(overrides = {}) {
     modelId: 'test-attention-model',
     modelType: 'transformer',
     quantization: 'F16',
+    eos_token_id: 2,
     shards: [],
     totalSize: 0,
     tensorsFile: 'tensors.json',
@@ -197,45 +197,6 @@ describe('QKV projection dimensions', () => {
     });
   });
 
-  describe('tensor shape inference', () => {
-    it('returns null when no tensors present', () => {
-      const manifest = { tensors: {} };
-      const result = inferAttentionParams(manifest, 256);
-      expect(result).toBeNull();
-    });
-
-    it('infers params from q_proj and k_proj shapes', () => {
-      const manifest = {
-        tensors: {
-          'model.layers.0.self_attn.q_proj.weight': { shape: [256, 512] },
-          'model.layers.0.self_attn.k_proj.weight': { shape: [256, 128] },
-        },
-      };
-
-      const result = inferAttentionParams(manifest, 256);
-
-      expect(result).not.toBeNull();
-      expect(result.numHeads).toBeGreaterThan(0);
-      expect(result.numKVHeads).toBeGreaterThan(0);
-      expect(result.headDim).toBeGreaterThan(0);
-    });
-
-    it('uses known numHeads when provided', () => {
-      const manifest = {
-        tensors: {
-          'model.layers.0.self_attn.q_proj.weight': { shape: [256, 512] },
-          'model.layers.0.self_attn.k_proj.weight': { shape: [256, 128] },
-        },
-      };
-
-      const result = inferAttentionParams(manifest, 256, 8);
-
-      expect(result).not.toBeNull();
-      expect(result.numHeads).toBe(8);
-      expect(result.headDim).toBe(64);
-      expect(result.numKVHeads).toBe(2);
-    });
-  });
 });
 
 describe('attention scaling (queryPreAttnScalar)', () => {

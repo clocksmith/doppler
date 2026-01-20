@@ -18,6 +18,7 @@ import { f16ToF32Array } from '../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getCachedDequant, setCachedDequant, getDequantCacheStats } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe-helpers.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+import { QK_K } from '../../config/schema/index.js';
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -228,7 +229,7 @@ export async function moeFeedForwardGPU(
       if (activationDtype === 'f16') {
         const bytesPerTokenAligned = hiddenSize * 2;
         const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-        const alignMultiple = 256 / gcd(256, bytesPerTokenAligned);
+        const alignMultiple = QK_K / gcd(QK_K, bytesPerTokenAligned);
         maxTokensPerExpert = Math.ceil(maxTokensPerExpert / alignMultiple) * alignMultiple;
       } else {
         maxTokensPerExpert = Math.min(maxTokensPerExpert, numTokens);

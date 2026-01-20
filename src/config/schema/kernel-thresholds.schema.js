@@ -110,15 +110,32 @@ export const DEFAULT_CAST_THRESHOLDS = {
 
 export const DTYPE_SIZES = {
   f32: 4,
+  float32: 4,
   f16: 2,
+  float16: 2,
   bf16: 2,
+  bfloat16: 2,
   i32: 4,
+  int32: 4,
   u32: 4,
+  uint32: 4,
   i16: 2,
+  int16: 2,
   u16: 2,
+  uint16: 2,
   i8: 1,
+  int8: 1,
   u8: 1,
+  uint8: 1,
 };
+
+export function getDtypeSize(dtype) {
+  const size = DTYPE_SIZES[dtype?.toLowerCase()];
+  if (size === undefined) {
+    throw new Error(`Unknown dtype: "${dtype}". Valid: ${Object.keys(DTYPE_SIZES).join(', ')}`);
+  }
+  return size;
+}
 
 // =============================================================================
 // Combined Kernel Thresholds

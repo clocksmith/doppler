@@ -19,6 +19,13 @@ const FIXTURES_DIR = join(__dirname, '..', 'fixtures', 'mini-model');
 
 const KB = 1024;
 const MB = 1024 * 1024;
+const DEFAULT_KV_CONFIG = {
+  useGPU: false,
+  layout: 'contiguous',
+  pageSize: 256,
+  kvDtype: 'f16',
+  windowSize: 1024,
+};
 
 class MockGPUBuffer {
   constructor(size) {
@@ -80,10 +87,22 @@ vi.mock('../../src/config/runtime.js', () => ({
   }),
 }));
 
+function createKVCacheConfig(overrides = {}) {
+  return { ...DEFAULT_KV_CONFIG, ...overrides };
+}
+
+function createKVCache(overrides) {
+  return new KVCache(createKVCacheConfig(overrides));
+}
+
+function createSlidingKVCache(overrides) {
+  return new SlidingWindowKVCache(createKVCacheConfig(overrides));
+}
+
 describe('inference/kv-cache', () => {
   describe('KVCacheConfig parsing', () => {
     it('creates cache with required config fields', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 4,
         numHeads: 8,
         headDim: 64,
@@ -97,7 +116,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses default layout from runtime config when not specified', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -108,7 +127,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses specified layout over default', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -120,7 +139,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses default kvDtype from runtime config when not specified', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -131,7 +150,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses specified kvDtype over default', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -143,7 +162,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses default pageSize from runtime config when not specified', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -155,7 +174,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('uses specified pageSize over default', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -172,7 +191,7 @@ describe('inference/kv-cache', () => {
     it('calculates kvSize correctly', () => {
       const numHeads = 8;
       const headDim = 64;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 4,
         numHeads,
         headDim,
@@ -183,7 +202,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('calculates bytesPerElem correctly for f16', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 4,
         numHeads: 8,
         headDim: 64,
@@ -195,7 +214,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('calculates bytesPerElem correctly for f32', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 4,
         numHeads: 8,
         headDim: 64,
@@ -213,7 +232,7 @@ describe('inference/kv-cache', () => {
       const maxSeqLen = 1024;
       const bytesPerElem = 4;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers,
         numHeads,
         headDim,
@@ -234,7 +253,7 @@ describe('inference/kv-cache', () => {
       const maxSeqLen = 512;
       const bytesPerElem = 4;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers,
         numHeads,
         headDim,
@@ -251,7 +270,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('tracks memory usage as zero initially for paged layout', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -265,7 +284,7 @@ describe('inference/kv-cache', () => {
 
   describe('position tracking', () => {
     it('starts with currentSeqLen of 0', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -281,7 +300,7 @@ describe('inference/kv-cache', () => {
       const numLayers = 2;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers,
         numHeads,
         headDim,
@@ -304,7 +323,7 @@ describe('inference/kv-cache', () => {
       const numLayers = 2;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers,
         numHeads,
         headDim,
@@ -334,7 +353,7 @@ describe('inference/kv-cache', () => {
       const numLayers = 3;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers,
         numHeads,
         headDim,
@@ -360,7 +379,7 @@ describe('inference/kv-cache', () => {
       const kvSize = numHeads * headDim;
       const maxSeqLen = 10;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -379,7 +398,7 @@ describe('inference/kv-cache', () => {
       const kvSize = numHeads * headDim;
       const maxSeqLen = 10;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -395,7 +414,7 @@ describe('inference/kv-cache', () => {
 
   describe('cache dtype selection', () => {
     it('defaults to f16 from runtime config', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -407,7 +426,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('respects explicit f32 dtype', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -420,7 +439,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('respects explicit f16 dtype', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -435,7 +454,7 @@ describe('inference/kv-cache', () => {
 
   describe('cache layout', () => {
     it('defaults to contiguous layout from runtime config', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -446,7 +465,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('creates contiguous layer structures', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -461,7 +480,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('creates paged layer structures', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -476,7 +495,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('reports layout in memory stats', () => {
-      const contiguousCache = new KVCache({
+      const contiguousCache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -484,7 +503,7 @@ describe('inference/kv-cache', () => {
         layout: 'contiguous',
       });
 
-      const pagedCache = new KVCache({
+      const pagedCache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -502,7 +521,7 @@ describe('inference/kv-cache', () => {
       const maxSeqLen = 512;
       const expectedSize = maxSeqLen * numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -519,7 +538,7 @@ describe('inference/kv-cache', () => {
       const maxSeqLen = 256;
       const expectedPages = Math.ceil(maxSeqLen / pageSize);
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -542,7 +561,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -564,7 +583,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -587,7 +606,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -613,7 +632,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -640,7 +659,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -664,7 +683,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -691,7 +710,7 @@ describe('inference/kv-cache', () => {
       const kvSize = numHeads * headDim;
       const prefillTokens = 64;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -716,7 +735,7 @@ describe('inference/kv-cache', () => {
       const kvSize = numHeads * headDim;
       const prefillTokens = 64;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -744,7 +763,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -773,7 +792,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -801,7 +820,7 @@ describe('inference/kv-cache', () => {
 
   describe('type guards', () => {
     it('isContiguousLayer returns true for contiguous layers', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -813,7 +832,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('isContiguousLayer returns false for paged layers', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -825,7 +844,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('isPagedLayer returns true for paged layers', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -837,7 +856,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('isPagedLayer returns false for contiguous layers', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -902,7 +921,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -930,7 +949,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -956,7 +975,7 @@ describe('inference/kv-cache', () => {
 
   describe('memory stats', () => {
     it('returns correct shape', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -979,7 +998,7 @@ describe('inference/kv-cache', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -997,7 +1016,7 @@ describe('inference/kv-cache', () => {
     });
 
     it('maxSeqLen matches config', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1012,7 +1031,7 @@ describe('inference/kv-cache', () => {
 describe('inference/kv-cache/sliding-window', () => {
   describe('SlidingWindowKVCache construction', () => {
     it('creates cache with windowSize', () => {
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1024,7 +1043,7 @@ describe('inference/kv-cache/sliding-window', () => {
     });
 
     it('uses default windowSize from runtime config when not specified', () => {
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1035,7 +1054,7 @@ describe('inference/kv-cache/sliding-window', () => {
     });
 
     it('initializes totalTokensSeen to 0', () => {
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1049,7 +1068,7 @@ describe('inference/kv-cache/sliding-window', () => {
 
   describe('SlidingWindowKVCache memory stats', () => {
     it('includes windowSize in memory stats', () => {
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1066,7 +1085,7 @@ describe('inference/kv-cache/sliding-window', () => {
       const headDim = 32;
       const kvSize = numHeads * headDim;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1091,7 +1110,7 @@ describe('inference/kv-cache/sliding-window', () => {
       const kvSize = numHeads * headDim;
       const windowSize = 100;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1113,7 +1132,7 @@ describe('inference/kv-cache/sliding-window', () => {
       const kvSize = numHeads * headDim;
       const windowSize = 50;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1142,7 +1161,7 @@ describe('inference/kv-cache/sliding-window', () => {
       const kvSize = numHeads * headDim;
       const windowSize = 50;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1175,7 +1194,7 @@ describe('paged layout operations', () => {
       const kvSize = numHeads * headDim;
       const pageSize = 16;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1201,7 +1220,7 @@ describe('paged layout operations', () => {
       const kvSize = numHeads * headDim;
       const pageSize = 16;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1223,7 +1242,7 @@ describe('paged layout operations', () => {
       const kvSize = numHeads * headDim;
       const pageSize = 16;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1251,7 +1270,7 @@ describe('paged layout operations', () => {
       const kvSize = numHeads * headDim;
       const pageSize = 16;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1281,7 +1300,7 @@ describe('paged layout operations', () => {
       const kvSize = numHeads * headDim;
       const pageSize = 8;
 
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads,
         headDim,
@@ -1310,7 +1329,7 @@ describe('paged layout operations', () => {
 describe('GPU cache helpers', () => {
   describe('hasGPUCache', () => {
     it('returns false when useGPU is false', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1324,7 +1343,7 @@ describe('GPU cache helpers', () => {
 
   describe('getGPUBuffers', () => {
     it('returns null when no GPU buffers exist', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1336,7 +1355,7 @@ describe('GPU cache helpers', () => {
     });
 
     it('returns null for paged layout', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1350,7 +1369,7 @@ describe('GPU cache helpers', () => {
 
   describe('getKeyCache and getValueCache', () => {
     it('returns CPU arrays for contiguous layout without GPU', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1367,7 +1386,7 @@ describe('GPU cache helpers', () => {
     });
 
     it('returns null for paged layout', () => {
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: 2,
         numHeads: 4,
         headDim: 32,
@@ -1393,7 +1412,7 @@ describe('mini-model fixture integration', () => {
   describe('KV cache allocation from manifest', () => {
     it('creates cache matching mini-model architecture', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1408,7 +1427,7 @@ describe('mini-model fixture integration', () => {
 
     it('calculates correct kvSize from manifest dimensions', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1422,7 +1441,7 @@ describe('mini-model fixture integration', () => {
 
     it('allocates correct memory for mini-model with f32', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1441,7 +1460,7 @@ describe('mini-model fixture integration', () => {
 
     it('allocates correct memory for mini-model with f16', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1462,7 +1481,7 @@ describe('mini-model fixture integration', () => {
   describe('position tracking with mini-model', () => {
     it('handles prefill up to mini-model maxSeqLen', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1484,7 +1503,7 @@ describe('mini-model fixture integration', () => {
 
     it('handles decode after prefill within mini-model limits', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1513,7 +1532,7 @@ describe('mini-model fixture integration', () => {
 
     it('throws on overflow beyond mini-model maxSeqLen', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1533,7 +1552,7 @@ describe('mini-model fixture integration', () => {
   describe('F16 vs F32 dtype with mini-model', () => {
     it('uses f16 bytesPerElem correctly', () => {
       const arch = manifest.architecture;
-      const cacheF16 = new KVCache({
+      const cacheF16 = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1547,7 +1566,7 @@ describe('mini-model fixture integration', () => {
 
     it('uses f32 bytesPerElem correctly', () => {
       const arch = manifest.architecture;
-      const cacheF32 = new KVCache({
+      const cacheF32 = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1562,7 +1581,7 @@ describe('mini-model fixture integration', () => {
     it('f16 cache uses half the memory of f32', () => {
       const arch = manifest.architecture;
 
-      const cacheF16 = new KVCache({
+      const cacheF16 = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1571,7 +1590,7 @@ describe('mini-model fixture integration', () => {
         layout: 'contiguous',
       });
 
-      const cacheF32 = new KVCache({
+      const cacheF32 = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1587,7 +1606,7 @@ describe('mini-model fixture integration', () => {
   describe('cache update on decode with mini-model', () => {
     it('stores and retrieves values correctly', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1616,7 +1635,7 @@ describe('mini-model fixture integration', () => {
 
     it('appends decode tokens correctly', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1651,7 +1670,7 @@ describe('mini-model fixture integration', () => {
 
     it('maintains layer independence during decode', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1687,7 +1706,7 @@ describe('mini-model fixture integration', () => {
   describe('sequence length limits with mini-model', () => {
     it('respects maxSeqLen from manifest', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1700,7 +1719,7 @@ describe('mini-model fixture integration', () => {
 
     it('allows exact maxSeqLen fill', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1722,7 +1741,7 @@ describe('mini-model fixture integration', () => {
 
     it('reports sequence length in memory stats', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1744,7 +1763,7 @@ describe('mini-model fixture integration', () => {
 
     it('calculates memory efficiency correctly', () => {
       const arch = manifest.architecture;
-      const cache = new KVCache({
+      const cache = createKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1774,7 +1793,7 @@ describe('mini-model fixture integration', () => {
       const arch = manifest.architecture;
       const windowSize = 64;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,
@@ -1790,7 +1809,7 @@ describe('mini-model fixture integration', () => {
       const arch = manifest.architecture;
       const windowSize = 32;
 
-      const cache = new SlidingWindowKVCache({
+      const cache = createSlidingKVCache({
         numLayers: arch.numLayers,
         numHeads: arch.numKeyValueHeads,
         headDim: arch.headDim,

@@ -1,4 +1,5 @@
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { QK_K } from '../../config/schema/index.js';
 
 const dequantCache = new Map();
 let dequantCacheMaxEntriesOverride = null;
@@ -22,7 +23,7 @@ export function resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSiz
   if (activationDtype === 'f16') {
     const bytesPerToken = hiddenSize * 2;
     const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-    const alignMultiple = 256 / gcd(256, bytesPerToken);
+    const alignMultiple = QK_K / gcd(QK_K, bytesPerToken);
     let aligned = Math.ceil(target / alignMultiple) * alignMultiple;
 
     if (maxTokensPerExpertCap > 0) {

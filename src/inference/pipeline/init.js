@@ -9,7 +9,6 @@ import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice, trace as debugTrace } from '../../debug/index.js';
-import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
@@ -25,20 +24,22 @@ function resolveQ4KConfig(manifest) {
   const pathSource = getActiveKernelPathSource();
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
-  const q4kLayout =  (manifest?.config)?.q4kLayout;
+  // Layout in quantizationInfo: 'row' (fused) or 'col' (dequant)
+  const q4kLayout = manifest?.quantizationInfo?.layout ?? null;
   const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
 
   let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
-  if (q4kLayout === 'column_wise') {
+  if (q4kLayout === 'col') {
     useFused = false;
   }
 
   const pathLabel = activeKernelPath?.id ?? 'auto';
-  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${pathSource}, layout=${q4kLayout ?? 'default'}, subgroups=${hasSubgroups}`);
+  const resolvedLayout = q4kLayout ?? 'row';  // Manifest layout or default row-major
+  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${pathSource}, layout=${resolvedLayout}, subgroups=${hasSubgroups}`);
 
   return {
     useFusedQ4K: useFused,
-    q4kLayout:  (q4kLayout) ?? null,
+    q4kLayout: resolvedLayout,
     keepF32Weights,
   };
 }
@@ -135,8 +136,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
   );
 
-  // Compute local (sliding_attention) frequencies if different from global
-  // Gemma 3 uses 10K for local layers and 1M for global layers
+  // Compute local (sliding_attention) frequencies if different from global.
+  // Models with dual RoPE use different theta for local vs global attention layers.
   
   let localFreqs = null;
   if (ropeLocalTheta && ropeLocalTheta !== ropeTheta) {
@@ -237,7 +238,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
 
   // Use f16 KV cache when supported to reduce VRAM.
-  // For attention logit softcapping (e.g., Gemma 2), allow forcing F32 via runtime config
+  // For models with attention logit softcapping, allow forcing F32 via runtime config
   // to avoid precision issues in attention. See: https://github.com/ggerganov/llama.cpp/issues/8853
   const gpuCaps = getKernelCapabilities();
   // Use config value directly instead of model detection flag (manifest-first architecture)
@@ -396,52 +397,57 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 // Chat Templates
 // ============================================================================
 
+// Simple prompt templates for single-turn chat.
+// For multi-turn conversations, use formatChatMessages from chat-format.js.
 
-export function applyGemmaChatTemplate(prompt) {
+function applyTurnBasedTemplate(prompt) {
+  // Turn-based format: <start_of_turn>role\ncontent<end_of_turn>
   const userTurn = `<start_of_turn>user\n${prompt}<end_of_turn>\n`;
   const modelTurn = `<start_of_turn>model\n`;
   return userTurn + modelTurn;
 }
 
-
-export function applyLlama3ChatTemplate(prompt) {
+function applyHeaderBasedTemplate(prompt) {
+  // Header-based format: <|start_header_id|>role<|end_header_id|>\n\ncontent<|eot_id|>
   return `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`;
 }
 
-
-export function applyGptOssChatTemplate(prompt) {
+function applyChannelBasedTemplate(prompt) {
+  // Channel-based format: <|start|>role<|message|>content<|end|>
   return `<|start|>user<|message|>${prompt}<|end|><|start|>assistant<|channel|>final<|message|>`;
 }
 
-export function applyChatMLTemplate(prompt) {
+function applyChatMLTemplate(prompt) {
+  // ChatML format: <|im_start|>role\ncontent<|im_end|>
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 }
 
-
-export function applyQwenChatTemplate(prompt) {
-  return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
-}
-
+// Template type to formatter mapping.
+// Add new template types here rather than adding switch cases.
+const PROMPT_TEMPLATES = {
+  'gemma': applyTurnBasedTemplate,
+  'llama3': applyHeaderBasedTemplate,
+  'gpt-oss': applyChannelBasedTemplate,
+  'chatml': applyChatMLTemplate,
+  'qwen': applyChatMLTemplate,  // Qwen uses ChatML format
+};
 
 export function applyChatTemplate(prompt, templateType) {
-  switch (templateType) {
-    case 'gemma':
-      return applyGemmaChatTemplate(prompt);
-    case 'llama3':
-      return applyLlama3ChatTemplate(prompt);
-    case 'gpt-oss':
-      return applyGptOssChatTemplate(prompt);
-    case 'chatml':
-      return applyChatMLTemplate(prompt);
-    case 'qwen':
-      return applyQwenChatTemplate(prompt);
-    case null:
-    case undefined:
-      return prompt;
-    default:
-      throw new Error(`Unsupported chat template type: ${templateType}`);
+  if (templateType == null) {
+    return prompt;
   }
+  const formatter = PROMPT_TEMPLATES[templateType];
+  if (formatter) {
+    return formatter(prompt);
+  }
+  throw new Error(`Unsupported chat template type: ${templateType}`);
 }
+
+// Legacy exports for backwards compatibility
+export const applyGemmaChatTemplate = applyTurnBasedTemplate;
+export const applyLlama3ChatTemplate = applyHeaderBasedTemplate;
+export const applyGptOssChatTemplate = applyChannelBasedTemplate;
+export const applyQwenChatTemplate = applyChatMLTemplate;
 
 
 export function isStopToken(token, stopTokenIds, eosTokenId) {

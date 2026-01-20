@@ -134,14 +134,13 @@ export async function computeLogits(
     device.queue.writeBuffer(inputBuffer, 0, (hiddenStates));
     inputBufferOwned = true;
   }
+  const inputDtype = inputIsGPU ? activationDtype : 'f32';
   await runProbes('pre_final_norm', inputBuffer, {
     numTokens,
     hiddenSize,
     probes: debugProbes,
+    dtype: inputDtype,
   });
-
-  
-  const inputDtype = inputIsGPU ? activationDtype : 'f32';
 
   // 2. Apply final RMSNorm
   
@@ -173,6 +172,7 @@ export async function computeLogits(
     numTokens,
     hiddenSize,
     probes: debugProbes,
+    dtype: normedTensor.dtype,
   });
 
   // Trace final norm output
@@ -240,6 +240,7 @@ export async function computeLogits(
     numTokens,
     hiddenSize: matmulVocabSize,
     probes: debugProbes,
+    dtype: logitsTensor.dtype,
   });
 
   // Trace lm_head output

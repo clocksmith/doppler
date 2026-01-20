@@ -20,6 +20,7 @@ export function runProbes(
     hiddenSize: number;
     probes?: ProbeConfigSchema[] | null;
     recorder?: CommandRecorder | null;
+    dtype?: 'f16' | 'f32';
   }
 ): Promise<void>;
 

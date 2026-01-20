@@ -1,9 +1,4 @@
-// =============================================================================
-// Unit Constants
-// =============================================================================
-
-const MB = 1024 * 1024;
-const GB = 1024 * MB;
+import { MB, GB } from './units.schema.js';
 
 // =============================================================================
 // Heap Testing Config
@@ -41,6 +36,15 @@ export const DEFAULT_SEGMENT_ALLOCATION_CONFIG = {
 };
 
 // =============================================================================
+// Emulated Storage Config
+// =============================================================================
+
+export const DEFAULT_EMULATED_STORAGE_CONFIG = {
+  vramBudgetBytes: 2 * GB,
+  ramBudgetBytes: 8 * GB,
+};
+
+// =============================================================================
 // Complete Memory Limits Config
 // =============================================================================
 
@@ -49,4 +53,5 @@ export const DEFAULT_MEMORY_LIMITS_CONFIG = {
   segmentTesting: DEFAULT_SEGMENT_TESTING_CONFIG,
   addressSpace: DEFAULT_ADDRESS_SPACE_CONFIG,
   segmentAllocation: DEFAULT_SEGMENT_ALLOCATION_CONFIG,
+  emulatedStorage: DEFAULT_EMULATED_STORAGE_CONFIG,
 };

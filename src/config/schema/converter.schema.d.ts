@@ -14,7 +14,8 @@ import type {
 } from './manifest.schema.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
-export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise' | null;
+/** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
+export type Q4KLayout = 'row' | 'col' | null;
 
 export interface ConverterQuantizationConfigSchema {
   weights: QuantizationValue | null;

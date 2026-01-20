@@ -14,6 +14,7 @@ import {
   parseTokenizerConfigJsonText,
   parseTokenizerJsonText,
 } from '../tokenizer/types.js';
+import { MAX_HEADER_SIZE } from '../../config/schema/index.js';
 
 export { DTYPE_SIZE, DTYPE_MAP } from './types.js';
 
@@ -34,7 +35,7 @@ export async function parseSafetensorsFile(filePath) {
     const headerSizeHigh = headerSizeBuffer.readUInt32LE(4);
     const headerSize = headerSizeHigh * 0x100000000 + headerSizeLow;
 
-    if (headerSize > 100 * 1024 * 1024) {
+    if (headerSize > MAX_HEADER_SIZE) {
       throw new Error(`Header too large: ${headerSize} bytes`);
     }
 

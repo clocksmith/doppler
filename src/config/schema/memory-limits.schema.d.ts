@@ -73,16 +73,34 @@ export interface SegmentAllocationConfigSchema {
 export declare const DEFAULT_SEGMENT_ALLOCATION_CONFIG: SegmentAllocationConfigSchema;
 
 /**
+ * Configuration for emulated storage budgets.
+ *
+ * Controls default VRAM and RAM budgets for the EmulatedVramStore
+ * tiered storage system.
+ */
+export interface EmulatedStorageConfigSchema {
+  /** Default VRAM budget (bytes) */
+  vramBudgetBytes: number;
+
+  /** Default RAM budget (bytes) */
+  ramBudgetBytes: number;
+}
+
+/** Default emulated storage configuration */
+export declare const DEFAULT_EMULATED_STORAGE_CONFIG: EmulatedStorageConfigSchema;
+
+/**
  * Complete memory limits configuration schema.
  *
  * Combines heap testing, segment testing, address space,
- * and segment allocation settings.
+ * segment allocation, and emulated storage settings.
  */
 export interface MemoryLimitsConfigSchema {
   heapTesting: HeapTestingConfigSchema;
   segmentTesting: SegmentTestingConfigSchema;
   addressSpace: AddressSpaceConfigSchema;
   segmentAllocation: SegmentAllocationConfigSchema;
+  emulatedStorage: EmulatedStorageConfigSchema;
 }
 
 /** Default memory limits configuration */

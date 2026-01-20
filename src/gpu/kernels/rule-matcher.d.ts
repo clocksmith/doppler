@@ -11,6 +11,9 @@ export interface RuleMatch {
         lt?: number;
         lte?: number;
         in?: Array<string | number | boolean>;
+        contains?: string | string[];
+        startsWith?: string | string[];
+        endsWith?: string | string[];
       };
 }
 

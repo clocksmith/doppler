@@ -12,6 +12,7 @@ import {
   parseTokenizerJsonText,
   parseTokenizerConfigJsonText,
 } from '../formats/tokenizer.js';
+import { MAX_HEADER_SIZE, MB } from '../config/schema/index.js';
 
 export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
 
@@ -26,7 +27,7 @@ export async function parseSafetensorsFile(file) {
   const headerSizeLow = headerSizeView.getUint32(0, true);
   const headerSizeHigh = headerSizeView.getUint32(4, true);
   const headerSize = headerSizeHigh * 0x100000000 + headerSizeLow;
-  if (headerSize > 100 * 1024 * 1024) {
+  if (headerSize > MAX_HEADER_SIZE) {
     throw new Error(`Header too large: ${headerSize} bytes`);
   }
 
@@ -114,7 +115,7 @@ export async function readTensorData(tensor) {
 
 export async function* streamTensorData(
   tensor,
-  chunkSize = 64 * 1024 * 1024
+  chunkSize = 64 * MB
 ) {
   const file = tensor.file;
   if (!file) {

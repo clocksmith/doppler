@@ -1,5 +1,15 @@
 import { DEFAULT_DISTRIBUTION_CONFIG } from './distribution.schema.js';
 import { DEFAULT_STORAGE_FULL_CONFIG } from './storage.schema.js';
+import { MB, GB } from './units.schema.js';
+
+// =============================================================================
+// Q4K Layout Default
+// =============================================================================
+
+// Default Q4K layout when manifest doesn't specify one (backwards compatibility).
+// 'row' = row-wise layout, compatible with fused Q4K kernels
+// 'col' = column-wise layout, requires dequantization
+export const DEFAULT_Q4K_LAYOUT = 'row';
 
 // =============================================================================
 // Shard Cache Config
@@ -19,7 +29,7 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
 
 export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
   flushIntervalLayers: 4,
-  flushThresholdBytes: 256 * 1024 * 1024, // 256MB
+  flushThresholdBytes: 256 * MB,
   gpuQueueFlushLayers: 4,
   logIntervalMs: 30000, // 30 seconds
 };
@@ -47,9 +57,9 @@ export const DEFAULT_OPFS_PATH_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_EXPERT_CACHE_CONFIG = {
-  defaultSizeBytes: 2 * 1024 * 1024 * 1024, // 2GB
+  defaultSizeBytes: 2 * GB,
   maxBufferPercentage: 0.25, // 25% of max buffer
-  maxBufferFallbackBytes: 256 * 1024 * 1024, // 256MB
+  maxBufferFallbackBytes: 256 * MB,
 };
 
 // =============================================================================

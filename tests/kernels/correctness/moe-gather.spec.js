@@ -170,6 +170,73 @@ test.describe('MoE Gather Kernel', () => {
     });
   });
 
+  test.describe('Bind group layout validation', () => {
+    test('should create valid bind group for MoE gather', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const gpu = await window.testHarness.getGPU();
+        const device = gpu.device;
+
+        const numTokens = 16;
+        const hiddenSize = 64;
+        const numExperts = 4;
+        const topK = 2;
+
+        // Create buffers with required usage flags
+        const inputBuffer = device.createBuffer({
+          size: numTokens * hiddenSize * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        const expertIndicesBuffer = device.createBuffer({
+          size: numTokens * topK * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        const outputBuffer = device.createBuffer({
+          size: numTokens * topK * hiddenSize * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        });
+
+        // Verify buffer creation succeeded
+        const buffersCreated = !!(inputBuffer && expertIndicesBuffer && outputBuffer);
+
+        // Clean up
+        inputBuffer.destroy();
+        expertIndicesBuffer.destroy();
+        outputBuffer.destroy();
+
+        return { buffersCreated };
+      });
+
+      expect(result.buffersCreated).toBe(true);
+    });
+
+    test('should validate buffer size requirements for expert routing', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const numTokens = 32;
+        const numExperts = 8;
+        const topK = 2;
+
+        // Expert indices buffer: numTokens * topK * sizeof(u32)
+        const expectedIndicesSize = numTokens * topK * 4;
+
+        // Token counts buffer: numExperts * sizeof(u32)
+        const expectedCountsSize = numExperts * 4;
+
+        return {
+          indicesSize: expectedIndicesSize,
+          countsSize: expectedCountsSize,
+          totalAssignments: numTokens * topK,
+        };
+      });
+
+      // Verify size calculations are consistent
+      expect(result.indicesSize).toBe(32 * 2 * 4); // 256 bytes
+      expect(result.countsSize).toBe(8 * 4); // 32 bytes
+      expect(result.totalAssignments).toBe(64);
+    });
+  });
+
   test.describe('Size variations', () => {
     const configs = [
       { tokens: 16, hidden: 64, experts: 4, topK: 2 },

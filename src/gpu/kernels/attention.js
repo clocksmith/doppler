@@ -5,7 +5,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { TILE_SIZES } from './constants.js';
-import { getKernelThresholds } from '../../config/schema/kernel-thresholds.schema.js';
+import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js';
 import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
@@ -491,7 +491,9 @@ export async function runAttention(
     throw new Error(`[Attention] outputDtype is required for variant "${plan.variant}".`);
   }
   const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
-  const outputSize = seqLen * numHeads * headDim * bytesPerElement;
+  // Pad output to Q4K alignment (256) so downstream o_proj can read full blocks
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   // Create uniform buffer
@@ -599,7 +601,9 @@ export async function recordAttention(
     throw new Error(`Kernel config missing outputDtype for attention variant "${plan.variant}".`);
   }
   const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
-  const outputSize = seqLen * numHeads * headDim * bytesPerElement;
+  // Pad output to Q4K alignment (256) so downstream o_proj can read full blocks
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_output');
 
   const uniformBuffer = createAttentionUniformBuffer(device, recorder, {

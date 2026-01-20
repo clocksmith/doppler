@@ -24,7 +24,9 @@ import layerRules from './inference/layer.rules.json' with { type: 'json' };
 import layerPatternRules from './inference/layer-pattern.rules.json' with { type: 'json' };
 import inferenceMoeRules from './inference/moe.rules.json' with { type: 'json' };
 import tokenizerRules from './converter/tokenizer.rules.json' with { type: 'json' };
+import tensorRolesRules from './converter/tensor-roles.rules.json' with { type: 'json' };
 import loaderWeightRules from './loader/weights.rules.json' with { type: 'json' };
+import tensorLoaderRules from './loader/tensor-loader.rules.json' with { type: 'json' };
 
 const RULE_SETS = {
   shared: {
@@ -60,9 +62,11 @@ const RULE_SETS = {
   },
   loader: {
     weights: loaderWeightRules,
+    tensorLoader: tensorLoaderRules,
   },
   converter: {
     tokenizer: tokenizerRules,
+    tensorRoles: tensorRolesRules,
   },
 };
 

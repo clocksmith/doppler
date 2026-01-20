@@ -5,10 +5,12 @@ import {
   SHARD_SIZE as SCHEMA_SHARD_SIZE,
   RDRR_VERSION as SCHEMA_RDRR_VERSION,
   ConversionStage as SchemaConversionStage,
+  formatBytes,
 } from '../config/schema/index.js';
 
 import { classifyTensorRole, generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
@@ -40,31 +42,27 @@ export function sanitizeModelId(name) {
 }
 
 
-export function formatBytes(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
+// Re-export formatBytes from schema for backward compatibility
+export { formatBytes };
 
 
-export function shouldQuantize(tensorName, shape) {
+export function shouldQuantize(tensorName, shape, options = {}) {
   if (!shape || !Array.isArray(shape) || shape.length === 0) {
     log.warn('Convert', `Invalid shape for tensor "${tensorName}": ${JSON.stringify(shape)}`);
     return false;
   }
   const numElements = shape.reduce((a, b) => a * b, 1);
-  if (numElements < 1024) return false;
-
+  const role = classifyTensorRole(tensorName);
   const lower = tensorName.toLowerCase();
-  // Skip embeddings and output head (usually want full precision)
-  if (lower.includes('embed') || lower.includes('lm_head')) return false;
-  // Skip normalization layers (small, need precision)
-  if (lower.includes('norm') || lower.includes('ln_')) return false;
-  // Skip biases (small, need precision)
-  if (lower.endsWith('.bias') || lower.endsWith('_bias')) return false;
+  const isBias = lower.endsWith('.bias') || lower.endsWith('_bias');
+  const quantizeEmbeddings = options.quantizeEmbeddings ?? false;
 
-  return true;
+  return selectRuleValue('converter', 'tensorRoles', 'shouldQuantize', {
+    numElements,
+    role,
+    isBias,
+    quantizeEmbeddings,
+  });
 }
 
 

@@ -8,6 +8,7 @@ Quick reference for debugging history and lessons learned.
 
 | Post-Mortem | Date | Status | Root Cause |
 |-------------|------|--------|------------|
+| [Gemma 3 Post-Feedforward Norm](#2026-01-19-gemma3-postfeedforwardnorm) | 2026-01-19 | RESOLVED | Missing `postFeedforwardNorm: true` in preset - weights existed but norm was skipped |
 | [Gemma 2 F16 End-to-End Pipeline](#2026-01-05-gemma2-f16-end-to-end) | 2026-01-05 | RESOLVED | F16 activations not fully plumbed through attention/logits/sampling + kernel path selection ignored activation dtype |
 | [Gemma 2 Activation Dtype Mismatch](#2026-01-04-gemma2-activation-dtype-mismatch) | 2026-01-04 | RESOLVED | F16 matmul override on F32 activations + phase-agnostic attention lookup |
 | [Performance Gaps (F16)](#2026-01-03-performance-gaps) | 2026-01-03 | **OPEN** | Matmul/attention throughput still behind WebLLM; F16 activations now end-to-end |
@@ -28,6 +29,14 @@ Quick reference for debugging history and lessons learned.
 ---
 
 ## Post-Mortem Details
+
+### 2026-01-19-gemma3-postfeedforwardnorm
+
+**Status:** RESOLVED | **File:** [2026-01-19-gemma3-postfeedforwardnorm.md](postmortems/2026-01-19-gemma3-postfeedforwardnorm.md)
+
+Gemma 3 produced gibberish (token 138 repeated). Root cause: `postFeedforwardNorm: false` in preset but model has `post_feedforward_layernorm.weight` tensors. Sandwich norm (Peri-LN) requires normalizing FFN output. Fix: set `postFeedforwardNorm: true` and added tensor-config consistency validator.
+
+---
 
 ### 2026-01-05-gemma2-f16-end-to-end
 
@@ -158,6 +167,12 @@ Model output `<unused16>` tokens. Root cause: quantizer used wrong format - `q *
 ---
 
 ## Common Patterns
+
+### Config-Tensor Mismatch (NEW)
+- Preset/manifest sets feature flag to `false` but model has the weight tensors
+- Validation only checked schema, not tensor presence
+- Fix: tensor-config consistency validator now fails on mismatch
+- Prevention: auto-detect normalization flags from tensor names in converter
 
 ### Buffer Lifecycle Bugs
 - Ping-pong release: index-based lookup missed alternate buffer after swap

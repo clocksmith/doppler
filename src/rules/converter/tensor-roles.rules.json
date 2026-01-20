@@ -1,0 +1,13 @@
+{
+  "shouldQuantize": [
+    { "match": { "numElements": { "lt": 1024 } }, "value": false },
+    { "match": { "role": "embedding", "quantizeEmbeddings": true }, "value": true },
+    { "match": { "role": "embedding" }, "value": false },
+    { "match": { "role": "lm_head", "quantizeEmbeddings": true }, "value": true },
+    { "match": { "role": "lm_head" }, "value": false },
+    { "match": { "role": "norm" }, "value": false },
+    { "match": { "role": "router" }, "value": false },
+    { "match": { "isBias": true }, "value": false },
+    { "match": {}, "value": true }
+  ]
+}

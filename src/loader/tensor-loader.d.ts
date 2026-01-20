@@ -20,8 +20,8 @@ export interface TensorLoadConfig {
   keepF32Weights: boolean;
   /** Allow F16->F32 upcast for non-matmul weights */
   allowF32UpcastNonMatmul: boolean;
-  /** Q4K layout from manifest */
-  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
+  /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
+  q4kLayout: 'row' | 'col' | null;
   /** GPU capabilities */
   gpuCapabilities: KernelCapabilities | null;
 }

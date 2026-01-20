@@ -4,13 +4,12 @@ import { getMemoryCapabilities } from './capability.js';
 import { AddressTable } from './address-table.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { log } from '../debug/index.js';
+import { GB, MB } from '../config/schema/index.js';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const GB = 1024 * 1024 * 1024;
-const MB = 1024 * 1024;
 const PAGE_SIZE = 65536; // WASM page = 64KB
 
 // ============================================================================

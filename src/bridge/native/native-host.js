@@ -4,6 +4,7 @@
 import { statSync, readdirSync } from 'fs';
 import { promises as fsPromises } from 'fs';
 import { resolve, normalize, join } from 'path';
+import { MB } from '../../config/schema/index.js';
 import { DEFAULT_BRIDGE_CONFIG } from '../../config/schema/bridge.schema.js';
 import { DEFAULT_DISTRIBUTION_CONFIG } from '../../config/schema/distribution.schema.js';
 import { log } from '../../debug/index.js';
@@ -296,7 +297,7 @@ async function main() {
       while (buffer.length >= 4) {
         const msgLen = buffer.readUInt32LE(0);
 
-        if (msgLen === 0 || msgLen > 1024 * 1024) {
+        if (msgLen === 0 || msgLen > MB) {
           log.error('DopplerBridge', `Invalid message length: ${msgLen}`);
           buffer = buffer.slice(4);
           continue;

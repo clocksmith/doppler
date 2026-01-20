@@ -278,6 +278,124 @@ test.describe('Type Casting Kernels', () => {
     });
   });
 
+  test.describe('BF16 2D dispatch linearization', () => {
+    test('should handle 2D matrix layout with row-major linearization', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        // Test a 2D matrix layout: [rows, cols]
+        const rows = 64;
+        const cols = 128; // Non-power-of-2 to test edge cases
+        const numElements = rows * cols;
+
+        // Create 2D data in row-major order
+        const testValues = new Float32Array(numElements);
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            // Encode row/col in value for verification
+            testValues[r * cols + c] = r * 0.01 + c * 0.001;
+          }
+        }
+
+        // Convert F32 to BF16
+        const bf16Data = new Uint16Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          const view = new DataView(new ArrayBuffer(4));
+          view.setFloat32(0, testValues[i], true);
+          const bits = view.getUint32(0, true);
+          bf16Data[i] = (bits >> 16) & 0xFFFF;
+        }
+
+        // Run GPU kernel
+        const gpu = await window.testHarness.getGPU();
+        const actualF32 = await window.testHarness.runBF16ToF32(gpu.device, bf16Data);
+
+        // Verify 2D layout is preserved
+        let maxError = 0;
+        let layoutErrors = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const idx = r * cols + c;
+            const expected = r * 0.01 + c * 0.001;
+            const error = Math.abs(actualF32[idx] - expected);
+            if (error > 0.001) layoutErrors++;
+            maxError = Math.max(maxError, error);
+          }
+        }
+
+        return {
+          rows,
+          cols,
+          maxError,
+          layoutErrors,
+          totalElements: numElements,
+        };
+      });
+
+      // Should preserve 2D layout with minimal errors
+      expect(result.layoutErrors).toBe(0);
+      expect(result.maxError).toBeLessThan(0.001);
+      expect(result.totalElements).toBe(64 * 128);
+    });
+
+    test('should handle non-aligned dimensions (1152 cols)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        // Test with Gemma-3-like dimensions: 1152 is not power of 2
+        const rows = 32;
+        const cols = 1152; // Gemma 3 1B hidden size
+        const numElements = rows * cols;
+
+        const testValues = new Float32Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          testValues[i] = (Math.random() - 0.5) * 2.0;
+        }
+
+        // Convert F32 to BF16
+        const bf16Data = new Uint16Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          const view = new DataView(new ArrayBuffer(4));
+          view.setFloat32(0, testValues[i], true);
+          const bits = view.getUint32(0, true);
+          bf16Data[i] = (bits >> 16) & 0xFFFF;
+        }
+
+        // Expected F32 from BF16
+        const expectedF32 = new Float32Array(numElements);
+        for (let i = 0; i < numElements; i++) {
+          const view = new DataView(new ArrayBuffer(4));
+          view.setUint32(0, bf16Data[i] << 16, true);
+          expectedF32[i] = view.getFloat32(0, true);
+        }
+
+        // Run GPU kernel
+        const gpu = await window.testHarness.getGPU();
+        const actualF32 = await window.testHarness.runBF16ToF32(gpu.device, bf16Data);
+
+        // Verify all elements processed correctly
+        let maxError = 0;
+        let mismatchCount = 0;
+        for (let i = 0; i < numElements; i++) {
+          const error = Math.abs(actualF32[i] - expectedF32[i]);
+          if (error > 1e-6) mismatchCount++;
+          maxError = Math.max(maxError, error);
+        }
+
+        return {
+          cols,
+          totalElements: numElements,
+          maxError,
+          mismatchCount,
+          // Check last row to ensure boundary handled
+          lastRowStart: (rows - 1) * cols,
+          lastRowEndValue: actualF32[numElements - 1] !== 0,
+        };
+      });
+
+      expect(result.cols).toBe(1152);
+      expect(result.mismatchCount).toBe(0);
+      expect(result.maxError).toBeLessThan(1e-6);
+      expect(result.lastRowEndValue).toBe(true);
+    });
+  });
+
   test.describe('BF16 to F16 Conversion', () => {
     test('should convert BF16 to F16 correctly', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async () => {

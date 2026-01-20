@@ -4,23 +4,37 @@
   "extends": "modes/debug",
   "runtime": {
     "inference": {
-      "prompt": "The color of the sky is"
+      "prompt": "The color of the sky is",
+      "batching": {
+        "maxTokens": 2
+      }
     },
     "shared": {
       "debug": {
         "trace": {
           "enabled": true,
-          "categories": ["embed", "attn", "ffn"],
-          "layers": [0, 1, 2, 25],
+          "categories": ["embed", "attn", "logits"],
+          "layers": [0],
           "maxDecodeSteps": 1
         },
         "probes": [
           {
-            "id": "layer0-out",
-            "stage": "layer_out",
-            "layers": [0],
+            "id": "embed",
+            "stage": "embed_out",
             "tokens": [-1],
             "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "final-norm",
+            "stage": "final_norm",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "logits",
+            "stage": "logits",
+            "tokens": [-1],
+            "dims": [138, 3730, 4781, 3187, 496, 506]
           }
         ]
       }

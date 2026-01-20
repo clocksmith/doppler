@@ -33,6 +33,7 @@ export {
   selectDequantKernel,
   createDequantBindGroupLayout,
   dequantize,
+  dequantizeRowwise,
   dequantizeQ6K,
   dequantizeQ8_0,
   dequantizeMXFP4,

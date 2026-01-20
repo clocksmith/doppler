@@ -58,7 +58,7 @@ export declare function quantizeToQ4KMColumnWise(
   shape: [number, number]
 ): QuantizeResult & { transposedShape: [number, number] };
 
-export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise';
+export type Q4KLayout = 'row' | 'col' | null;
 
 /**
  * Get expected Q4K size for different layouts.

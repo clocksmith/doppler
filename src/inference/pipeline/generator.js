@@ -56,6 +56,7 @@ export class PipelineGenerator {
     const runtimeDefaults = this.#state.runtimeConfig.inference;
     const samplingDefaults = runtimeDefaults.sampling;
     const batchingDefaults = runtimeDefaults.batching;
+    const generationDefaults = runtimeDefaults.generation;
 
     const opts = {
       maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
@@ -64,17 +65,17 @@ export class PipelineGenerator {
       topK: options.topK ?? samplingDefaults.topK,
       repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
-      useSpeculative: options.useSpeculative ?? false,
+      useSpeculative: options.useSpeculative ?? generationDefaults.useSpeculative,
       useChatTemplate: options.useChatTemplate
         ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
         ?? this.#state.modelConfig?.chatTemplateEnabled
         ?? false,
       debug: options.debug ?? this.#state.debug,
       debugLayers: options.debugLayers,
-      profile: options.profile ?? false,
-      benchmark: options.benchmark ?? false,
-      disableCommandBatching: options.disableCommandBatching ?? false,
-      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
+      profile: options.profile ?? generationDefaults.profile,
+      benchmark: options.benchmark ?? generationDefaults.benchmark,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
       batchSize: options.batchSize ?? batchingDefaults.batchSize,
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
@@ -265,6 +266,8 @@ export class PipelineGenerator {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     this.#state.stats.gpuTimePrefillMs = undefined;
 
+    const generationDefaults = this.#state.runtimeConfig.inference.generation;
+
     const opts = {
       useChatTemplate: options.useChatTemplate
         ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
@@ -272,9 +275,9 @@ export class PipelineGenerator {
         ?? false,
       debug: options.debug ?? this.#state.debug,
       debugLayers: options.debugLayers,
-      profile: options.profile ?? false,
-      disableCommandBatching: options.disableCommandBatching ?? false,
-      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
+      profile: options.profile ?? generationDefaults.profile,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
     };
 
     let processedPrompt = prompt;
@@ -327,6 +330,7 @@ export class PipelineGenerator {
     const runtimeDefaults = this.#state.runtimeConfig.inference;
     const samplingDefaults = runtimeDefaults.sampling;
     const batchingDefaults = runtimeDefaults.batching;
+    const generationDefaults = runtimeDefaults.generation;
 
     const opts = {
       maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
@@ -335,17 +339,17 @@ export class PipelineGenerator {
       topK: options.topK ?? samplingDefaults.topK,
       repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
       stopSequences: options.stopSequences ?? [],
-      useSpeculative: options.useSpeculative ?? false,
+      useSpeculative: options.useSpeculative ?? generationDefaults.useSpeculative,
       useChatTemplate: options.useChatTemplate
         ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
         ?? this.#state.modelConfig?.chatTemplateEnabled
         ?? false,
       debug: options.debug ?? this.#state.debug,
       debugLayers: options.debugLayers,
-      profile: options.profile ?? false,
-      benchmark: options.benchmark ?? false,
-      disableCommandBatching: options.disableCommandBatching ?? false,
-      disableMultiTokenDecode: options.disableMultiTokenDecode ?? false,
+      profile: options.profile ?? generationDefaults.profile,
+      benchmark: options.benchmark ?? generationDefaults.benchmark,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
       batchSize: options.batchSize ?? batchingDefaults.batchSize,
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };

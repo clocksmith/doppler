@@ -20,7 +20,10 @@
       }
     },
     "inference": {
-      "debugTokens": true
+      "debugTokens": true,
+      "batching": {
+        "maxTokens": 64
+      }
     }
   },
   "cli": {

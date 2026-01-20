@@ -147,4 +147,88 @@ test.describe('Batch Generation Correctness', () => {
     // Last batch should be <= batchSize
     expect(result.batchCalls[result.batchCalls.length - 1]).toBeLessThanOrEqual(TEST_CONFIG.batchSize);
   });
+
+  test('batched decode produces non-repetitive tokens (sampling works)', async ({ page }) => {
+    const testUrl = `/doppler/tests/harness.html`;
+    await page.goto(testUrl);
+    await page.waitForLoadState('domcontentloaded');
+
+    const result = await page.evaluate(async (config) => {
+      const { initDevice, getDevice } = await import('/doppler/dist/gpu/device.js');
+      await initDevice();
+      const device = getDevice();
+
+      const MODEL_URL = `http://localhost:8080/doppler/models/${config.model}`;
+      const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
+      const manifest = await manifestResp.json();
+
+      const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
+
+      const loadShard = async (idx) => {
+        const shard = manifest.shards[idx];
+        const resp = await fetch(`${MODEL_URL}/${shard.filename}`);
+        return new Uint8Array(await resp.arrayBuffer());
+      };
+
+      const pipeline = await createPipeline(manifest, {
+        storage: { loadShard },
+        gpu: { device },
+        baseUrl: MODEL_URL,
+        runtimeConfig: {
+          inference: {
+            batching: { batchSize: config.batchSize },
+          },
+        },
+      });
+
+      // Use a prompt that should produce varied output
+      const testPrompt = 'Once upon a time in a land far away, there lived a';
+      const tokens = [];
+      const tokenIds = [];
+
+      for await (const text of pipeline.generate(testPrompt, {
+        maxTokens: 16,
+        temperature: 0.7, // Non-zero temperature to allow variation
+        onToken: (id, text) => {
+          tokenIds.push(id);
+        },
+      })) {
+        tokens.push(text);
+      }
+
+      // Check for repetition: count consecutive identical tokens
+      let maxConsecutiveRepeat = 1;
+      let currentRepeat = 1;
+      for (let i = 1; i < tokenIds.length; i++) {
+        if (tokenIds[i] === tokenIds[i - 1]) {
+          currentRepeat++;
+          maxConsecutiveRepeat = Math.max(maxConsecutiveRepeat, currentRepeat);
+        } else {
+          currentRepeat = 1;
+        }
+      }
+
+      // Count unique tokens
+      const uniqueTokens = new Set(tokenIds).size;
+
+      return {
+        output: tokens.join(''),
+        tokenCount: tokenIds.length,
+        uniqueTokens,
+        maxConsecutiveRepeat,
+        tokenIds: tokenIds.slice(0, 8), // First 8 for debug
+      };
+    }, TEST_CONFIG);
+
+    console.log('Non-repetition test output:', result.output);
+    console.log('Token IDs (first 8):', result.tokenIds);
+    console.log(`Unique tokens: ${result.uniqueTokens}/${result.tokenCount}`);
+
+    // Should have variety in output
+    expect(result.uniqueTokens).toBeGreaterThan(1);
+
+    // Should not have long runs of identical tokens (indicates sampling bug)
+    // Allow some repetition (like repeated spaces) but not excessive
+    expect(result.maxConsecutiveRepeat).toBeLessThan(5);
+  });
 });

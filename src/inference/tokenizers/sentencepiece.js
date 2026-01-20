@@ -25,7 +25,12 @@ export class SentencePieceTokenizer extends BaseTokenizer {
 
   
   constructor(config = {}) {
-    super(config);
+    // SentencePieceTokenizer gets vocabSize from load(), so defer validation
+    super({
+      ...config,
+      vocabSize: config.vocabSize ?? 0,
+      deferSpecialTokens: config.deferSpecialTokens ?? true,
+    });
   }
 
   

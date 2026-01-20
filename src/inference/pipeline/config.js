@@ -209,7 +209,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     if (patternKind) {
       layerTypes = Array.from({ length: numLayers }, (_, i) => {
         const isEven = i % 2 === 0;
-        // HF Gemma-3: sliding if ((i+1) % pattern) != 0, so global layers at 5, 11, 17, 23...
+        // For every_n pattern: sliding if ((i+1) % period) != 0, so global at period-1, 2*period-1, etc.
         const isStride = period == null ? false : (i + 1) % period === 0;
         return selectRuleValue(
           'inference',

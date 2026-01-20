@@ -1,5 +1,7 @@
 
 
+import { DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
+
 export const GGUFValueType = {
   UINT8: 0,
   INT8: 1,
@@ -260,8 +262,8 @@ function extractModelConfig(metadata, architecture) {
     feedForwardLength: get(`${prefix}feed_forward_length`),
     attentionHeadCount: get(`${prefix}attention.head_count`),
     attentionHeadCountKV: get(`${prefix}attention.head_count_kv`),
-    attentionLayerNormEpsilon: get(`${prefix}attention.layer_norm_epsilon`) ?? 1e-5,
-    attentionLayerNormRMSEpsilon: get(`${prefix}attention.layer_norm_rms_epsilon`) ?? 1e-5,
+    attentionLayerNormEpsilon: get(`${prefix}attention.layer_norm_epsilon`) ?? DEFAULT_RMS_NORM_EPS,
+    attentionLayerNormRMSEpsilon: get(`${prefix}attention.layer_norm_rms_epsilon`) ?? DEFAULT_RMS_NORM_EPS,
     ropeFreqBase: get(`${prefix}rope.freq_base`) ?? 10000,
     ropeScalingType: get(`${prefix}rope.scaling.type`),
     ropeScalingFactor: get(`${prefix}rope.scaling.factor`),

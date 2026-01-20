@@ -49,19 +49,53 @@ export function inferEmbeddingOutputConfig(tensorLocations) {
 }
 
 
-export function detectScaleEmbeddings(preset, config) {
-  // Check preset ID (covers gemma2, gemma3, functiongemma, codegemma if they extend gemma)
-  if (preset.id?.toLowerCase().includes('gemma')) return true;
+// NOTE: detectScaleEmbeddings removed - use preset.inference.output.scaleEmbeddings instead
+// Model-family detection via string matching violates "Manifest as Source of Truth" principle
 
-  // Check architecture string from HF config
-  const architectures = config.architectures;
-  if (architectures?.some((arch) => arch.toLowerCase().includes('gemma'))) return true;
+// Auto-detect normalization config from tensor names.
+// Prevents bugs like postFeedforwardNorm=false when weights actually exist.
+function detectNormalizationFromTensors(tensorNames) {
+  const detected = {};
 
-  // Check model_type from HF config
-  const modelType = config.model_type;
-  if (modelType?.toLowerCase().includes('gemma')) return true;
+  // Post-attention norm (sandwich norm pattern)
+  if (tensorNames.some(name => /post_attention_layernorm\.weight$/.test(name))) {
+    detected.postAttentionNorm = true;
+  }
 
-  return false;
+  // Pre-feedforward norm (sandwich norm pattern)
+  if (tensorNames.some(name => /pre_feedforward_layernorm\.weight$/.test(name))) {
+    detected.preFeedforwardNorm = true;
+  }
+
+  // Post-feedforward norm (sandwich norm pattern)
+  if (tensorNames.some(name => /post_feedforward_layernorm\.weight$/.test(name))) {
+    detected.postFeedforwardNorm = true;
+  }
+
+  // Per-head query/key normalization
+  if (tensorNames.some(name => /self_attn\.(q_norm|k_norm)\.weight$/.test(name))) {
+    detected.queryKeyNorm = true;
+  }
+
+  return detected;
+}
+
+// Build normalization config with auto-detection from tensor names.
+// Priority: auto-detected > preset > default
+function buildNormalizationConfig(presetInference, modelConfig, defaults, tensorNames) {
+  const detected = tensorNames ? detectNormalizationFromTensors(tensorNames) : {};
+
+  return {
+    rmsNormEps: presetInference.normalization?.rmsNormEps ??
+      modelConfig.rms_norm_eps ??
+      modelConfig.attentionLayerNormRMSEpsilon ??
+      defaults.normalization.rmsNormEps,
+    rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? defaults.normalization.rmsNormWeightOffset,
+    // For norm flags: auto-detected > preset > default
+    postAttentionNorm: detected.postAttentionNorm ?? presetInference.normalization?.postAttentionNorm ?? defaults.normalization.postAttentionNorm,
+    preFeedforwardNorm: detected.preFeedforwardNorm ?? presetInference.normalization?.preFeedforwardNorm ?? defaults.normalization.preFeedforwardNorm,
+    postFeedforwardNorm: detected.postFeedforwardNorm ?? presetInference.normalization?.postFeedforwardNorm ?? defaults.normalization.postFeedforwardNorm,
+  };
 }
 
 function normalizeKernelDtype(value) {
@@ -74,7 +108,7 @@ function normalizeKernelDtype(value) {
   return lower;
 }
 
-function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
+function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayout = null) {
   const kernelPaths = presetInference?.kernelPaths;
   if (!kernelPaths) {
     return presetInference?.kernelPath ?? null;
@@ -84,20 +118,32 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo) {
   const computeKey = normalizeKernelDtype(quantizationInfo?.compute) ?? (quantizationInfo ? 'f16' : null);
 
   const entry = (weightKey && kernelPaths[weightKey]) || kernelPaths.default;
+  let resolved = null;
   if (typeof entry === 'string') {
-    return entry;
+    resolved = entry;
+  } else if (entry && computeKey && entry[computeKey]) {
+    resolved = entry[computeKey];
+  } else if (entry && entry.default) {
+    resolved = entry.default;
+  } else {
+    resolved = presetInference?.kernelPath ?? null;
   }
-  if (entry && computeKey && entry[computeKey]) {
-    return entry[computeKey];
+
+  // When q4kLayout is 'col' (column-wise), fused Q4K kernels cannot be used.
+  // Try to find a corresponding dequant kernel path.
+  if (resolved && q4kLayout === 'col' && resolved.includes('-fused-')) {
+    const dequantPath = resolved.replace('-fused-', '-dequant-');
+    // Return dequant variant (caller should verify it exists)
+    return dequantPath;
   }
-  if (entry && entry.default) {
-    return entry.default;
-  }
-  return presetInference?.kernelPath ?? null;
+
+  return resolved;
 }
 
 
-export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null) {
+// Build manifest inference config from preset and HuggingFace config.
+// See manifest-inference.d.ts for type signature.
+export function buildManifestInference(preset, config, headDim = 64, quantizationInfo = null, tensorNames = null) {
   const defaults = DEFAULT_MANIFEST_INFERENCE;
   const presetInference = preset.inference || {};
   const modelConfig = config?.text_config ?? config ?? {};
@@ -123,16 +169,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       attentionBias: presetInference.attention?.attentionBias ??
         modelConfig.attention_bias ?? defaults.attention.attentionBias,
     },
-    normalization: {
-      rmsNormEps: presetInference.normalization?.rmsNormEps ??
-        modelConfig.rms_norm_eps ??
-        modelConfig.attentionLayerNormRMSEpsilon ??
-        defaults.normalization.rmsNormEps,
-      rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? defaults.normalization.rmsNormWeightOffset,
-      postAttentionNorm: presetInference.normalization?.postAttentionNorm ?? defaults.normalization.postAttentionNorm,
-      preFeedforwardNorm: presetInference.normalization?.preFeedforwardNorm ?? defaults.normalization.preFeedforwardNorm,
-      postFeedforwardNorm: presetInference.normalization?.postFeedforwardNorm ?? defaults.normalization.postFeedforwardNorm,
-    },
+    normalization: buildNormalizationConfig(presetInference, modelConfig, defaults, tensorNames),
     ffn: {
       activation: presetInference.ffn?.activation ?? defaults.ffn.activation,
       gatedActivation: presetInference.ffn?.gatedActivation ??
@@ -145,7 +182,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
         modelConfig.final_logit_softcapping ?? defaults.output.finalLogitSoftcapping,
       tieWordEmbeddings: presetInference.output?.tieWordEmbeddings ??
         modelConfig.tie_word_embeddings ?? defaults.output.tieWordEmbeddings,
-      scaleEmbeddings: detectScaleEmbeddings(preset, config),
+      scaleEmbeddings: presetInference.output?.scaleEmbeddings ?? defaults.output.scaleEmbeddings,
       embeddingTranspose: defaults.output.embeddingTranspose,
       embeddingVocabSize: defaults.output.embeddingVocabSize,
     },
@@ -200,8 +237,10 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     };
   }
 
-  // Add default kernel path based on preset ID and quantization
-  inference.defaultKernelPath = resolveKernelPathFromPreset(presetInference, quantizationInfo) ?? defaults.defaultKernelPath;
+  // Add default kernel path based on preset ID, quantization, and q4k layout
+  // Layout is now in quantizationInfo.layout: 'row' (fused) or 'col' (dequant)
+  const q4kLayout = quantizationInfo?.layout ?? null;
+  inference.defaultKernelPath = resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayout) ?? defaults.defaultKernelPath;
 
   return inference;
 }

@@ -86,8 +86,8 @@ export declare class DopplerLoader {
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   useFusedQ4K: boolean;
 
-  // Q4K layout from manifest: 'column_wise' means weights are pre-transposed
-  q4kLayout: 'flat' | 'row_wise' | 'column_wise' | null;
+  // Q4K layout: 'row' = fused kernel compatible (fast), 'col' = dequant fallback
+  q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
 
   constructor(loadingConfig?: LoadingConfigSchema);

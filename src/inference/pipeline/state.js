@@ -103,7 +103,7 @@ export class PipelineState {
     this.ropeFreqsCos = null;
     
     this.ropeFreqsSin = null;
-    // Local RoPE frequencies for sliding_attention layers (Gemma 3: 10K theta vs 1M global)
+    // Local RoPE frequencies for sliding_attention layers (different theta than global)
     
     this.ropeLocalCos = null;
     

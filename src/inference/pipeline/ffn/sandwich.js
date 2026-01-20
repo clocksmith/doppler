@@ -50,6 +50,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: ffnInput.dtype,
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -119,6 +120,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: ffnOutput.dtype,
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
@@ -174,6 +176,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: output.dtype,
   });
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {

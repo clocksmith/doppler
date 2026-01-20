@@ -1,0 +1,25 @@
+{
+  "extends": "debug",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["ffn", "attn", "logits"],
+          "layers": [0, 12, 25]
+        },
+        "probes": [
+          { "id": "layer0_out", "stage": "layer_out", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 334] },
+          { "id": "layer12_out", "stage": "layer_out", "layers": [12], "tokens": [-1], "dims": [0, 1, 2, 334] },
+          { "id": "layer25_out", "stage": "layer_out", "layers": [25], "tokens": [-1], "dims": [0, 1, 2, 334] },
+          { "id": "logits_final", "stage": "logits_final", "tokens": [-1], "dims": [0, 1, 2, 3, 4] }
+        ]
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": { "maxTokens": 16 },
+      "sampling": { "temperature": 0 }
+    }
+  }
+}

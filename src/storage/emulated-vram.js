@@ -1,16 +1,13 @@
 
 import { log } from '../debug/index.js';
 import { getBufferPool } from '../memory/buffer-pool.js';
+import { GB, DEFAULT_EMULATED_STORAGE_CONFIG } from '../config/schema/index.js';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
 const MODULE = 'EmulatedVRAM';
-
-const DEFAULT_VRAM_BUDGET = 2 * 1024 * 1024 * 1024;
-
-const DEFAULT_RAM_BUDGET = 8 * 1024 * 1024 * 1024;
 
 let chunkIdCounter = 0;
 
@@ -19,7 +16,7 @@ let chunkIdCounter = 0;
 // =============================================================================
 
 export class EmulatedVramStore {
-    constructor(rootPath, vramBudgetBytes = DEFAULT_VRAM_BUDGET, ramBudgetBytes = DEFAULT_RAM_BUDGET) {
+    constructor(rootPath, vramBudgetBytes = DEFAULT_EMULATED_STORAGE_CONFIG.vramBudgetBytes, ramBudgetBytes = DEFAULT_EMULATED_STORAGE_CONFIG.ramBudgetBytes) {
         this.rootPath = rootPath;
 
         this.vramBudgetBytes = vramBudgetBytes;
@@ -497,13 +494,13 @@ export class EmulatedVramStore {
 // =============================================================================
 
 export function createEmulatedVramStore(rootPath) {
-  return new EmulatedVramStore(rootPath, DEFAULT_VRAM_BUDGET, DEFAULT_RAM_BUDGET);
+  return new EmulatedVramStore(rootPath);
 }
 
 export async function detectLocalResources() {
-  let vramBytes = 2 * 1024 * 1024 * 1024; // Default 2GB
-  let ramBytes = 8 * 1024 * 1024 * 1024;  // Default 8GB
-  let storageBytes = 100 * 1024 * 1024 * 1024; // Default 100GB
+  let vramBytes = DEFAULT_EMULATED_STORAGE_CONFIG.vramBudgetBytes;
+  let ramBytes = DEFAULT_EMULATED_STORAGE_CONFIG.ramBudgetBytes;
+  let storageBytes = 100 * GB;
 
   if (typeof navigator === 'undefined') {
     return { vramBytes, ramBytes, storageBytes };
@@ -516,7 +513,7 @@ export async function detectLocalResources() {
       if (adapter) {
         // WebGPU doesn't expose VRAM directly, but we can use maxBufferSize as a hint
         const device = await adapter.requestDevice();
-        vramBytes = Math.min(device.limits.maxBufferSize, 8 * 1024 * 1024 * 1024);
+        vramBytes = Math.min(device.limits.maxBufferSize, 8 * GB);
         device.destroy();
       }
     }
@@ -528,7 +525,7 @@ export async function detectLocalResources() {
   // @ts-ignore - navigator.deviceMemory is not in TypeScript types
   if (navigator.deviceMemory) {
     // @ts-ignore
-    ramBytes = navigator.deviceMemory * 1024 * 1024 * 1024;
+    ramBytes = navigator.deviceMemory * GB;
   }
 
   // Try to detect storage quota

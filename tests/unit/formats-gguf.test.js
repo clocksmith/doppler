@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { execFileSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,6 +21,13 @@ import { parseGGUFFile } from '../../src/formats/gguf/parser.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
+const FIXTURE_SCRIPT = join(FIXTURES_DIR, 'generate-fixtures.js');
+
+function ensureFixtureFile(filePath) {
+  if (!existsSync(filePath)) {
+    execFileSync(process.execPath, [FIXTURE_SCRIPT], { stdio: 'ignore' });
+  }
+}
 
 function createMinimalGGUFBuffer() {
   const encoder = new TextEncoder();
@@ -340,6 +349,10 @@ describe('formats/gguf', () => {
 
 describe('formats/gguf with fixture file', () => {
   const fixturePath = join(FIXTURES_DIR, 'sample.gguf');
+
+  beforeAll(() => {
+    ensureFixtureFile(fixturePath);
+  });
 
   describe('parseGGUFFile', () => {
     it('parses fixture file correctly', async () => {

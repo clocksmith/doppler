@@ -23,7 +23,8 @@
       "activation": "gelu"
     },
     "output": {
-      "finalLogitSoftcapping": 30.0
+      "finalLogitSoftcapping": 30.0,
+      "scaleEmbeddings": true
     },
     "layerPattern": {
       "type": "alternating",

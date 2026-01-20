@@ -66,14 +66,19 @@ function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab) {
 
 
 export class TransformersTokenizer extends BaseTokenizer {
-  
+
   #tokenizer = null;
-  
+
   #modelId;
 
-  
+
   constructor(config = {}) {
-    super(config);
+    // TransformersTokenizer gets vocabSize from setTokenizer(), so defer validation
+    super({
+      ...config,
+      vocabSize: config.vocabSize ?? 0,
+      deferSpecialTokens: config.deferSpecialTokens ?? true,
+    });
     this.#modelId = config.modelId;
   }
 
@@ -153,7 +158,12 @@ export class BundledTokenizer extends BaseTokenizer {
 
   
   constructor(config = {}) {
-    super(config);
+    // BundledTokenizer gets vocabSize from load(), so defer validation
+    super({
+      ...config,
+      vocabSize: config.vocabSize ?? 0,
+      deferSpecialTokens: config.deferSpecialTokens ?? true,
+    });
   }
 
   
@@ -234,10 +244,14 @@ export class BundledTokenizer extends BaseTokenizer {
     this.vocabSize = this.#vocab.size;
 
     // Load merges from model.merges
+    // Handle both string format ("token1 token2") and array format (["token1", "token2"])
     if (model.merges && model.merges.length > 0) {
-      this.#merges = model.merges;
-      for (let i = 0; i < this.#merges.length; i++) {
-        this.#mergeRanks.set(this.#merges[i], i);
+      for (let i = 0; i < model.merges.length; i++) {
+        const merge = model.merges[i];
+        // Convert array format to string format for consistent lookup
+        const mergeKey = Array.isArray(merge) ? merge.join(' ') : merge;
+        this.#merges.push(mergeKey);
+        this.#mergeRanks.set(mergeKey, i);
       }
     }
 
@@ -319,10 +333,19 @@ export class BundledTokenizer extends BaseTokenizer {
     if (this.addEosToken && this.specialTokens.eos == null) {
       throw new Error('[Tokenizer] addEosToken is enabled but eos token is missing.');
     }
-    // NOTE: Default to FALSE for add_prefix_space - HuggingFace tokenizers typically
-    // don't add a space prefix to the first token. Models like Gemma, Llama use
-    // the normalizer/pre_tokenizer to handle spaces within text, not at the start.
-    this.#addSpacePrefix = model.add_prefix_space ?? model.add_dummy_prefix ?? false;
+    // Determine if we should add a space prefix to the input
+    // Check multiple locations where HuggingFace stores this:
+    // - model.add_prefix_space / model.add_dummy_prefix (GPT-style)
+    // - decoder.add_prefix_space (SentencePiece decoder)
+    // - decoder.prepend_scheme === "always" (Metaspace decoder, used by Gemma)
+    // - normalizer.prepend_scheme === "always" (Metaspace normalizer)
+    // - runtime config addSpacePrefix (user override or null for auto-detect)
+    const decoderPrepend = hf.decoder?.prepend_scheme === 'always' || hf.decoder?.add_prefix_space === true;
+    const normalizerPrepend = hf.normalizer?.prepend_scheme === 'always' || hf.normalizer?.add_prefix_space === true;
+    const runtimeSpacePrefix = runtimeDefaults.addSpacePrefix;
+    // Use explicit runtime config if set (non-null), otherwise auto-detect from tokenizer.json
+    this.#addSpacePrefix = runtimeSpacePrefix ?? model.add_prefix_space ?? model.add_dummy_prefix ?? decoderPrepend ?? normalizerPrepend ?? false;
+    log.debug('Tokenizer', `addSpacePrefix=${this.#addSpacePrefix} (runtime=${runtimeSpacePrefix}, model=${model.add_prefix_space ?? model.add_dummy_prefix}, decoder=${decoderPrepend}, normalizer=${normalizerPrepend})`);
 
     // Detect space prefix style by checking which WORD tokens exist in vocab
     // GPT-style uses 'Ġ' (U+0120), SentencePiece uses '▁' (U+2581)
@@ -543,11 +566,19 @@ export class BundledTokenizer extends BaseTokenizer {
 
   
   #encodeUnigram(text) {
+    if (text.length === 0) return [];
+
+    // Add space prefix at start if configured (SentencePiece add_dummy_prefix)
+    // This matches HuggingFace behavior: "The" → " The" → "▁The"
+    let normalized = text;
+    if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
+      normalized = ` ${normalized}`;
+    }
+
     // Normalize: convert spaces to the model's space prefix character
-    // This turns "The color of" into "The▁color▁of"
-    // Note: we do NOT add an extra prefix at the start - the first word has no prefix
+    // This turns " The color of" into "▁The▁color▁of"
     const sp = this.#spacePrefixChar;
-    const prefixed = text.replace(/ /g, sp);
+    const prefixed = normalized.replace(/ /g, sp);
 
     const n = prefixed.length;
     if (n === 0) return [];

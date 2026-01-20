@@ -2,6 +2,7 @@
 
 import { createHash } from 'crypto';
 import { ALIGNMENT } from './types.js';
+import { DTYPE_SIZES } from '../../config/schema/index.js';
 
 
 export async function computeHash(data, algorithm = 'sha256') {
@@ -32,15 +33,9 @@ export function createPadding(size) {
 
 
 export function getBytesPerElement(dtype) {
-  const dtypeLower = dtype.toLowerCase();
-  if (dtypeLower === 'f32' || dtypeLower === 'float32') return 4;
-  if (dtypeLower === 'f16' || dtypeLower === 'float16') return 2;
-  if (dtypeLower === 'bf16' || dtypeLower === 'bfloat16') return 2;
-  if (dtypeLower === 'i32' || dtypeLower === 'int32') return 4;
-  if (dtypeLower === 'i16' || dtypeLower === 'int16') return 2;
-  if (dtypeLower === 'i8' || dtypeLower === 'int8') return 1;
-  // Q4_K, Q8_0, etc. - these are block-quantized, don't transpose
-  return 0;
+  const size = DTYPE_SIZES[dtype?.toLowerCase()];
+  // Return 0 for quantized types (Q4_K, Q8_0, etc.) - block-quantized, don't transpose
+  return size ?? 0;
 }
 
 

@@ -1,8 +1,10 @@
 
 
 
+import { QK_K, Q4K_BLOCK_BYTES } from '../../config/schema/index.js';
+
 export const WORKGROUP_SIZES = {
-  
+
   DEFAULT: 256,
 
   
@@ -42,30 +44,31 @@ export const GPU_LIMITS = {
 };
 
 export const TILE_SIZES = {
-  
+
   ATTENTION_LARGE_BLOCK_SIZE: 32,
   ATTENTION_LARGE_HEAD_TILE: 64,
 
-  
+
   ATTENTION_SMALL_BLOCK_SIZE: 32,
   ATTENTION_SMALL_HEAD_TILE: 32,
 
-  
+
   MATMUL_M: 16,
   MATMUL_N: 16,
   MATMUL_K: 16,
 
-  
+  // Q4K tile size (sub-blocks within super-block)
   Q4K_BLOCK_SIZE: 32,
-  Q4K_SUPER_BLOCK_SIZE: 256,
+  // Q4K super-block size imported from schema (single source of truth)
+  Q4K_SUPER_BLOCK_SIZE: QK_K,
 };
 
 
 export const QUANTIZATION = {
-  
+
   Q4K_BITS: 4.5,
-  
-  Q4K_BLOCK_BYTES: 144,
+  // Q4K block bytes imported from schema (single source of truth)
+  Q4K_BLOCK_BYTES,
 
   
   Q8_BITS: 8.5,
@@ -117,29 +120,8 @@ export const PERFORMANCE = {
 };
 
 
-export const DTYPE_SIZES = {
-  u8: 1,
-  i8: 1,
-  u16: 2,
-  i16: 2,
-  f16: 2,
-  bf16: 2,
-  u32: 4,
-  i32: 4,
-  f32: 4,
-  f64: 8,
-};
-
-
-export function getDtypeSize(dtype) {
-  return DTYPE_SIZES[dtype];
-}
-
-
-export function calculateBufferSize(shape, dtype) {
-  const elements = shape.reduce((a, b) => a * b, 1);
-  return elements * getDtypeSize(dtype);
-}
+// DTYPE_SIZES and getDtypeSize moved to config/schema/kernel-thresholds.schema.js
+// Import from config/schema/index.js for the canonical source
 
 
 export function alignSize(size, alignment = ALIGNMENT.BUFFER) {

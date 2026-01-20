@@ -35,6 +35,45 @@ Example output:
 [DOPPLER:DONE] {"status":"success","elapsed":1234.5,"tokens":8,"tokensPerSecond":6.5}
 ```
 
+## Required Config Fields
+
+**`runtime.inference.prompt` is required for all debug runs.** The debug preset does not include a default prompt.
+
+### Starter Debug Config Template
+
+Create a file (e.g., `tmp-debug.json`):
+
+```json
+{
+  "extends": "debug",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["ffn", "attn", "logits"],
+          "layers": [0, 12, 25]
+        },
+        "probes": [
+          { "id": "layer_out", "stage": "layer_out", "layers": [0, 12, 25], "tokens": [-1], "dims": [0, 1, 2, 334] },
+          { "id": "logits_final", "stage": "logits_final", "tokens": [-1], "dims": [0, 1, 2, 3, 4] }
+        ]
+      }
+    },
+    "inference": {
+      "prompt": "The color of the sky is",
+      "batching": { "maxTokens": 16 },
+      "sampling": { "temperature": 0 }
+    }
+  }
+}
+```
+
+Then run:
+```bash
+npm run debug -- --config ./tmp-debug.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
+```
+
 ## Quick Diagnostic Commands
 
 ```bash
@@ -87,7 +126,7 @@ Use kernel path overrides to isolate kernel-specific issues without editing code
 
 ```bash
 # Override kernel path for A/B testing
-npm run debug -- --config '{"runtime":{"inference":{"kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
+npm run debug -- --config '{"runtime":{"inference":{"prompt":"The color of the sky is","kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
 ```
 
 ## Config-Driven Probes (Required—No Ad-Hoc Logs Allowed)
@@ -100,6 +139,7 @@ Use probes to read specific token/dimension values without editing code. Configu
 # Probe specific dimensions at layer_out for layers 0, 17, 25
 npm run debug -- -m MODEL --config '{
   "runtime": {
+    "inference": { "prompt": "The color of the sky is" },
     "shared": {
       "debug": {
         "trace": { "enabled": true, "categories": ["ffn"] },
@@ -114,6 +154,7 @@ npm run debug -- -m MODEL --config '{
 # Post-softcap logits probe for HF parity (Gemma 2 finalLogitSoftcapping)
 npm run debug -- -m MODEL --config '{
   "runtime": {
+    "inference": { "prompt": "The color of the sky is" },
     "shared": {
       "debug": {
         "trace": { "enabled": true, "categories": ["logits"] },
@@ -134,6 +175,7 @@ To trace only specific layers, use config:
 # Trace only layers 0, 12, 25
 npm run debug -- -m MODEL --config '{
   "runtime": {
+    "inference": { "prompt": "The color of the sky is" },
     "shared": {
       "debug": {
         "trace": { "enabled": true, "categories": ["ffn"], "layers": [0, 12, 25] }
@@ -174,6 +216,7 @@ python3 src/debug/reference/hf_layer_out.py --model HF_MODEL_NAME --layers 0,12,
 # Then trace DOPPLER at same layers via config
 npm run debug -- -m MODEL --config '{
   "runtime": {
+    "inference": { "prompt": "The color of the sky is" },
     "shared": {
       "debug": {
         "trace": { "enabled": true, "categories": ["ffn"], "layers": [0, 12, 25] }

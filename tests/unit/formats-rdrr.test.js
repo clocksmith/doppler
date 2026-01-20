@@ -178,6 +178,7 @@ describe('formats/rdrr/manifest', () => {
         modelType: 'transformer',
         quantization: 'F16',
         hashAlgorithm: 'sha256',
+        eos_token_id: 1,
         architecture: {
           numLayers: 12,
           hiddenSize: 768,
@@ -320,7 +321,9 @@ describe('formats/rdrr/parsing', () => {
       delete manifest.shards[1].offset;
 
       const json = JSON.stringify(manifest);
-      expect(() => parseManifest(json)).toThrow(/incorrect offset/i);
+      const parsed = parseManifest(json);
+      expect(parsed.shards[0].offset).toBe(0);
+      expect(parsed.shards[1].offset).toBe(parsed.shards[0].size);
     });
 
     it('throws on missing shard index', () => {
@@ -329,7 +332,9 @@ describe('formats/rdrr/parsing', () => {
       delete manifest.shards[1].index;
 
       const json = JSON.stringify(manifest);
-      expect(() => parseManifest(json)).toThrow(/incorrect index/i);
+      const parsed = parseManifest(json);
+      expect(parsed.shards[0].index).toBe(0);
+      expect(parsed.shards[1].index).toBe(1);
     });
 
     it('throws on missing shard filename', () => {

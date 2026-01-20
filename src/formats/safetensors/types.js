@@ -1,5 +1,7 @@
 
 
+import { MAX_HEADER_SIZE } from '../../config/schema/index.js';
+
 export const DTYPE_SIZE = {
   F64: 8,
   F32: 4,
@@ -37,7 +39,7 @@ export function parseSafetensorsHeader(buffer) {
   const headerSizeHigh = view.getUint32(4, true);
   const headerSize = headerSizeHigh * 0x100000000 + headerSizeLow;
 
-  if (headerSize > 100 * 1024 * 1024) {
+  if (headerSize > MAX_HEADER_SIZE) {
     throw new Error(`Header too large: ${headerSize} bytes`);
   }
 

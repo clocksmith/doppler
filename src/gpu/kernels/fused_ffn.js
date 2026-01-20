@@ -5,10 +5,10 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { createUniformBufferWithView } from './utils.js';
-import { trace } from '../../debug/index.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholds, QK_K } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 
 class FusedFFNKernel extends KernelBase {
@@ -29,15 +29,17 @@ class FusedFFNKernel extends KernelBase {
 }
 
 
-function selectFFNVariant(batchSize, weightDtype, intermediateSize) {
+function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
-  const canUseQ4K = weightDtype === 'q4k' && !isFusedQ4KDisabled();
+  const isQ4K = weightDtype === 'q4k';
+  const fusedAllowed = !isFusedQ4KDisabled();
+  const hiddenAligned = hiddenSize % QK_K === 0;
   const useMultiOutput = intermediateSize <= multiOutputThreshold;
 
   return selectRuleValue(
     'fusedFfn',
     'variant',
-    { canUseQ4K, batchSize, weightDtype, useMultiOutput }
+    { isQ4K, fusedAllowed, hiddenAligned, batchSize, weightDtype, useMultiOutput }
   );
 }
 
@@ -108,7 +110,7 @@ export async function runFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize,  (gateDtype), intermediateSize);
+  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize);
 
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
@@ -207,7 +209,7 @@ export async function recordFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize,  (gateDtype), intermediateSize);
+  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize);
 
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 

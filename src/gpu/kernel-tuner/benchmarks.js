@@ -1,6 +1,9 @@
 
 
 
+import { DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
+
+
 export async function benchmarkPipeline(
   device,
   pipeline,
@@ -626,7 +629,7 @@ export async function tuneRMSNorm(
       const uniformView = new DataView(uniformData);
       uniformView.setUint32(0, hiddenSize, true);
       uniformView.setUint32(4, numTokens, true);
-      uniformView.setFloat32(8, 1e-5, true);
+      uniformView.setFloat32(8, DEFAULT_RMS_NORM_EPS, true);
       uniformView.setUint32(12, 0, true);
       device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 

@@ -859,3 +859,51 @@ describe('loader/tensor - consistency with manifest', () => {
     expect(totalTensorSize).toBeLessThanOrEqual(manifest.totalSize);
   });
 });
+
+describe('loader/tensor - Q4K alignment fallback', () => {
+  // Import directly since we're testing the logic without GPU
+  const QK_K = 256; // Q4K super block size
+
+  describe('K alignment detection', () => {
+    it('identifies K aligned to 256 (should use fused)', () => {
+      const K = 2048; // Common LLaMA hidden size, divisible by 256
+      expect(K % QK_K).toBe(0);
+    });
+
+    it('identifies K not aligned to 256 (should use dequant fallback)', () => {
+      const K = 1152; // Gemma 3 1B hidden size, NOT divisible by 256
+      expect(K % QK_K).not.toBe(0);
+      expect(K % QK_K).toBe(128); // 1152 = 4*256 + 128
+    });
+
+    it('identifies various model hidden sizes', () => {
+      // Models with aligned hidden sizes (can use fused Q4K)
+      const alignedSizes = [2048, 4096, 8192, 3072]; // LLaMA-7B, LLaMA-13B, etc.
+      for (const size of alignedSizes) {
+        expect(size % QK_K, `hidden size ${size}`).toBe(0);
+      }
+
+      // Models with non-aligned hidden sizes (must use dequant fallback)
+      const nonAlignedSizes = [1152, 896, 960]; // Examples not divisible by 256
+      for (const size of nonAlignedSizes) {
+        expect(size % QK_K, `hidden size ${size}`).not.toBe(0);
+      }
+    });
+  });
+
+  describe('location shape parsing', () => {
+    it('extracts K from 2D weight shape [N, K]', () => {
+      // Weight matrix is typically [output, input] = [N, K]
+      const location = { shape: [4096, 1152], dtype: 'Q4_K' };
+      const [N, K] = location.shape;
+      expect(K).toBe(1152);
+      expect(K % QK_K).not.toBe(0); // Not aligned, needs fallback
+    });
+
+    it('handles 1D shapes (embeddings)', () => {
+      const location = { shape: [32000], dtype: 'Q4_K' };
+      expect(location.shape.length).toBe(1);
+      // 1D shapes don't need K alignment check
+    });
+  });
+});

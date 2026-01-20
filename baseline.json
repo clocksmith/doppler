@@ -1,0 +1,6925 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-01-20T02:02:45.490Z",
+  "suite": "pipeline",
+  "runType": "warm",
+  "env": {
+    "browser": {
+      "name": "Chrome",
+      "version": "143.0.0.0"
+    },
+    "os": {
+      "name": "macOS",
+      "version": "10.15.7"
+    },
+    "gpu": {
+      "vendor": "unknown",
+      "device": "unknown",
+      "description": "unknown"
+    },
+    "webgpu": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasTimestampQuery": true
+    }
+  },
+  "model": {
+    "modelId": "google-gemma-3-1b-it-wq4k-ef16",
+    "quantization": "Q4_K_M",
+    "totalSizeBytes": 1025908480,
+    "tensorCount": 340,
+    "numLayers": 26,
+    "hiddenSize": 1152
+  },
+  "workload": {
+    "promptName": "medium",
+    "promptTokens": 130,
+    "maxNewTokens": 128,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "config": {
+    "chain": [
+      "default",
+      "bench",
+      "./tmp-profile.json"
+    ],
+    "runtime": {
+      "shared": {
+        "debug": {
+          "logOutput": {
+            "stdout": true,
+            "file": null,
+            "append": true
+          },
+          "logHistory": {
+            "maxLogHistoryEntries": 1000
+          },
+          "logLevel": {
+            "defaultLogLevel": "silent"
+          },
+          "trace": {
+            "enabled": false,
+            "categories": [
+              "all"
+            ],
+            "layers": null,
+            "maxDecodeSteps": 0,
+            "file": null
+          },
+          "pipeline": {
+            "enabled": false,
+            "categories": [],
+            "layers": null,
+            "maxDecodeSteps": 0,
+            "maxAbsThreshold": 10000,
+            "bufferStats": false,
+            "readbackSampleSize": 512
+          },
+          "probes": [],
+          "profiler": {
+            "enabled": false,
+            "queryCapacity": 256,
+            "maxQueries": 16384,
+            "defaultQueryLimit": 4096,
+            "maxSamples": 100,
+            "maxDurationMs": 60000
+          },
+          "perfGuards": {
+            "allowGPUReadback": true,
+            "trackSubmitCount": false,
+            "trackAllocations": false,
+            "logExpensiveOps": false,
+            "strictMode": false
+          }
+        },
+        "benchmark": {
+          "output": {
+            "schemaVersion": 1
+          },
+          "run": {
+            "promptName": "medium",
+            "customPrompt": null,
+            "maxNewTokens": 128,
+            "runType": "warm",
+            "warmupRuns": 1,
+            "timedRuns": 3,
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            },
+            "debug": false,
+            "profile": true,
+            "captureMemoryTimeSeries": true,
+            "memoryTimeSeriesIntervalMs": 50
+          },
+          "stats": {
+            "outlierIqrMultiplier": 1.5,
+            "warmupStabilityPercent": 10,
+            "thermalSlowdownPercent": 10,
+            "minSamplesForComparison": 3
+          },
+          "comparison": {
+            "regressionThresholdPercent": 10,
+            "failOnRegression": true
+          },
+          "baselines": {
+            "enabled": true,
+            "file": "tests/baselines.json",
+            "failOnOutOfRange": true,
+            "requireQualityOk": true
+          }
+        },
+        "harness": {
+          "mode": "bench",
+          "autorun": false,
+          "skipLoad": false,
+          "modelId": null
+        },
+        "platform": null,
+        "kernelRegistry": {
+          "url": null
+        },
+        "kernelThresholds": {
+          "matmul": {
+            "multicolThreshold": 256
+          },
+          "rmsnorm": {
+            "smallThreshold": 256
+          },
+          "softmax": {
+            "smallThreshold": 256
+          },
+          "ffn": {
+            "multiOutputThreshold": 1024
+          },
+          "sample": {
+            "argmaxReduceVocabThreshold": 65536,
+            "singlePassTopKThreshold": 100
+          },
+          "rope": {
+            "defaultTheta": 10000,
+            "uniformSize": 32,
+            "defaultStartPos": 0
+          },
+          "attention": {
+            "chunkedMaxKVLen": 2048,
+            "minHeadDimForChunked": 128,
+            "tierHeadDimLimits": {
+              "tier3": 64,
+              "tier2": 128,
+              "tier1": 256
+            },
+            "tierMinSharedMemory": {
+              "tier3": 16384,
+              "tier2": 32768,
+              "tier1": 65536
+            },
+            "largeMaxHeadDim": 64,
+            "smallMaxHeadDim": 256,
+            "subgroupMaxHeadDim": 256,
+            "largeSharedF32": 20480,
+            "largeSharedF16": 49152,
+            "smallSharedF32": 8192,
+            "smallSharedF16": 4096,
+            "subgroupShared": 8192
+          },
+          "fusedMatmul": {
+            "maxMediumN": 4096,
+            "maxMediumK": 8192,
+            "colsPerWg": 4
+          },
+          "cast": {
+            "maxWorkgroupsPerDim": 65535
+          },
+          "tuner": {
+            "maxComputeWorkgroupSizeX": 256,
+            "maxComputeWorkgroupSizeY": 256,
+            "maxComputeInvocationsPerWorkgroup": 256
+          }
+        },
+        "bufferPool": {
+          "bucket": {
+            "minBucketSizeBytes": 256,
+            "largeBufferThresholdBytes": 33554432,
+            "largeBufferStepBytes": 16777216
+          },
+          "limits": {
+            "maxBuffersPerBucket": 8,
+            "maxTotalPooledBuffers": 64
+          },
+          "alignment": {
+            "alignmentBytes": 256
+          }
+        },
+        "gpuCache": {
+          "uniformCacheMaxEntries": 256,
+          "uniformCacheMaxAgeMs": 60000
+        },
+        "memory": {
+          "heapTesting": {
+            "heapTestSizes": [
+              17179869184,
+              8589934592,
+              4294967296,
+              2147483648,
+              1073741824
+            ],
+            "fallbackMaxHeapBytes": 1073741824
+          },
+          "segmentTesting": {
+            "segmentTestSizes": [
+              1073741824,
+              536870912,
+              268435456,
+              134217728
+            ],
+            "safeSegmentSizeBytes": 268435456
+          },
+          "addressSpace": {
+            "targetAddressSpaceBytes": 8589934592
+          },
+          "segmentAllocation": {
+            "fallbackSegmentSizeBytes": 4294967296,
+            "segmentFallbackSizes": [
+              536870912,
+              268435456,
+              134217728
+            ]
+          },
+          "emulatedStorage": {
+            "vramBudgetBytes": 2147483648,
+            "ramBudgetBytes": 8589934592
+          }
+        },
+        "tuner": {
+          "cacheKeyPrefix": "doppler_kernel_tune_",
+          "defaultWarmupIterations": 3,
+          "defaultTimedIterations": 10,
+          "fallbackWorkgroupSizes": {
+            "matmul": [
+              16,
+              16,
+              1
+            ],
+            "attention": [
+              256,
+              1,
+              1
+            ],
+            "rmsnorm": [
+              256,
+              1,
+              1
+            ],
+            "softmax": [
+              256,
+              1,
+              1
+            ],
+            "dequant": [
+              64,
+              1,
+              1
+            ],
+            "default": [
+              256,
+              1,
+              1
+            ]
+          }
+        },
+        "hotSwap": {
+          "enabled": false,
+          "localOnly": false,
+          "allowUnsignedLocal": false,
+          "trustedSigners": [],
+          "manifestUrl": null
+        },
+        "intentBundle": {
+          "enabled": false,
+          "bundleUrl": null,
+          "bundle": null,
+          "requireBaseModelHash": true,
+          "requireKernelRegistryVersion": true,
+          "enforceDeterministicOutput": false
+        },
+        "bridge": {
+          "maxReadSizeBytes": 104857600,
+          "allowedDirectories": "/Users:/home:/tmp:/var/tmp",
+          "timeouts": {
+            "pingTimeoutMs": 5000,
+            "readTimeoutMs": 60000,
+            "listTimeoutMs": 30000,
+            "defaultTimeoutMs": 30000
+          }
+        }
+      },
+      "loading": {
+        "storage": {
+          "quota": {
+            "lowSpaceThresholdBytes": 524288000,
+            "criticalSpaceThresholdBytes": 104857600,
+            "monitorIntervalMs": 30000
+          },
+          "vramEstimation": {
+            "unifiedMemoryRatio": 0.5,
+            "fallbackVramBytes": 2147483648,
+            "lowVramHeadroomBytes": 524288000
+          },
+          "alignment": {
+            "bufferAlignmentBytes": 256
+          },
+          "backend": {
+            "backend": "auto",
+            "opfs": {
+              "useSyncAccessHandle": true,
+              "maxConcurrentHandles": 2
+            },
+            "indexeddb": {
+              "dbName": "doppler-models",
+              "shardStore": "shards",
+              "metaStore": "meta",
+              "chunkSizeBytes": 4194304
+            },
+            "memory": {
+              "maxBytes": 536870912
+            },
+            "streaming": {
+              "readChunkBytes": 4194304,
+              "maxInFlightBytes": 67108864,
+              "useByob": true
+            }
+          }
+        },
+        "distribution": {
+          "concurrentDownloads": 3,
+          "maxRetries": 3,
+          "initialRetryDelayMs": 1000,
+          "maxRetryDelayMs": 30000,
+          "maxChunkSizeBytes": 8388608,
+          "cdnBasePath": "https://huggingface.co",
+          "progressUpdateIntervalMs": 100
+        },
+        "shardCache": {
+          "opfsEntries": 2,
+          "networkEntries": 16,
+          "moeMaxEntries": 16,
+          "verifyHashes": true,
+          "maxConcurrentLoads": 0
+        },
+        "memoryManagement": {
+          "flushIntervalLayers": 4,
+          "flushThresholdBytes": 268435456,
+          "gpuQueueFlushLayers": 4,
+          "logIntervalMs": 30000
+        },
+        "prefetch": {
+          "enabled": false,
+          "layersAhead": 1,
+          "maxShards": 8
+        },
+        "opfsPath": {
+          "opfsRootDir": "doppler-models"
+        },
+        "expertCache": {
+          "defaultSizeBytes": 2147483648,
+          "maxBufferPercentage": 0.25,
+          "maxBufferFallbackBytes": 268435456
+        },
+        "allowF32UpcastNonMatmul": false
+      },
+      "inference": {
+        "batching": {
+          "batchSize": 1,
+          "maxTokens": 64,
+          "stopCheckMode": "batch"
+        },
+        "sampling": {
+          "temperature": 0,
+          "topP": 0.95,
+          "topK": 50,
+          "repetitionPenalty": 1,
+          "greedyThreshold": 0.01,
+          "repetitionPenaltyWindow": 100
+        },
+        "compute": {
+          "activationDtype": "f16",
+          "largeModelParamThreshold": 4000000000,
+          "paramEstimationMultiplier": 12,
+          "keepF32Weights": false
+        },
+        "tokenizer": {
+          "addBosToken": true,
+          "addEosToken": false,
+          "addSpacePrefix": null
+        },
+        "largeWeights": {
+          "enabled": true,
+          "safetyRatio": 0.9,
+          "preferF16": true,
+          "lmHeadChunkRows": null
+        },
+        "kvcache": {
+          "maxSeqLen": 8192,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "windowSize": 1024
+        },
+        "moe": {
+          "routing": {
+            "numExperts": 8,
+            "topK": 2,
+            "normalizeWeights": true,
+            "routerDtype": "f32",
+            "maxTokensPerExpert": 0,
+            "maxTokensPerExpertHeadroom": 2,
+            "maxTokensPerExpertMin": 4,
+            "maxTokensPerExpertCap": 0
+          },
+          "cache": {
+            "dequantCacheMaxEntries": 8
+          }
+        },
+        "speculative": {
+          "numDraftTokens": 5,
+          "maxRejectionRetries": 3,
+          "enableTreeDraft": false,
+          "temperature": 1
+        },
+        "generation": {
+          "useSpeculative": false,
+          "profile": false,
+          "benchmark": false,
+          "disableCommandBatching": false,
+          "disableMultiTokenDecode": false
+        },
+        "chatTemplate": {
+          "enabled": false
+        },
+        "pipeline": null,
+        "prompt": "The color of the sky is"
+      },
+      "emulation": {
+        "enabled": false,
+        "targetChip": "gh200",
+        "timingMode": "functional",
+        "gpuSpec": {
+          "name": "H200",
+          "vramBytes": 154618822656,
+          "hbmBandwidthBytesPerSec": 4800000000000,
+          "fp16Tflops": 1979
+        },
+        "cpuSpec": {
+          "name": "Grace",
+          "cores": 72,
+          "memoryBytes": 515396075520,
+          "memoryBandwidthBytesPerSec": 546000000000
+        },
+        "topology": {
+          "gpuCount": 1,
+          "gpusPerNode": 1,
+          "nodeCount": 1,
+          "cpuCount": 1
+        },
+        "nvlink": {
+          "bandwidthBytesPerSec": 900000000000,
+          "latencyUs": 1
+        },
+        "nvlinkC2C": {
+          "bandwidthBytesPerSec": 900000000000,
+          "latencyUs": 0.5,
+          "coherent": true
+        },
+        "parallelism": {
+          "tensorParallel": {
+            "enabled": false,
+            "degree": 1
+          },
+          "pipelineParallel": {
+            "enabled": false,
+            "stages": 1,
+            "microBatches": 1
+          },
+          "dataParallel": {
+            "enabled": false,
+            "degree": 1
+          },
+          "expertParallel": {
+            "enabled": false,
+            "degree": 1
+          }
+        },
+        "timingScaling": {
+          "computeScale": 1,
+          "memoryScale": 1,
+          "nvlinkScale": 1
+        },
+        "opfsRootPath": "emulation",
+        "maxActiveWorkingSetBytes": 4294967296,
+        "statsEnabled": true,
+        "logOperations": false
+      }
+    },
+    "benchmark": {
+      "promptName": "medium",
+      "customPrompt": null,
+      "maxNewTokens": 128,
+      "warmupRuns": 1,
+      "timedRuns": 3,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      },
+      "debug": false,
+      "profile": true
+    }
+  },
+  "metrics": {
+    "ttft_ms": 1698,
+    "prefill_ms": 1686,
+    "prefill_tokens_per_sec": 77,
+    "decode_ms_total": 32709,
+    "decode_tokens_per_sec": 4,
+    "gpu_submit_count_prefill": 6,
+    "gpu_submit_count_decode": 762,
+    "gpu_submit_count_total": 768,
+    "gpu_allocation_count_total": 39616,
+    "gpu_readback_count_total": 256,
+    "decode_ms_per_token_p50": 251.09999990463257,
+    "decode_ms_per_token_p90": 272.7999999523163,
+    "decode_ms_per_token_p99": 282.81999998092647,
+    "gpu_readback_bytes_total": 3147252,
+    "buffer_pool_allocations_total": 39616,
+    "buffer_pool_reuses_total": 4595,
+    "buffer_pool_hit_rate_pct": 10.4,
+    "buffer_pool_active_buffers_avg": 344,
+    "buffer_pool_pooled_buffers_avg": 64,
+    "gpu_timestamp_available": true,
+    "gpu_time_ms_prefill": 1698,
+    "gpu_time_ms_decode": 29582,
+    "estimated_vram_bytes_peak": 2746601728,
+    "estimated_vram_bytes_peak_requested": 2352324096,
+    "estimated_vram_bytes_peak_model_ratio": 2.68,
+    "estimated_vram_bytes_peak_requested_model_ratio": 2.29,
+    "opfs_usage_bytes": 2580991403,
+    "storage_persisted": false
+  },
+  "quality": {
+    "ok": true,
+    "reasons": [],
+    "warnings": [],
+    "stats": {
+      "totalRuns": 3,
+      "totalTokens": 384,
+      "uniqueTokens": 83,
+      "uniqueRatio": 0.216,
+      "mostFrequentRatio": 0.047,
+      "replacementChars": 0,
+      "controlChars": 0
+    }
+  },
+  "raw": {
+    "decode_latencies_ms": [
+      279.40000009536743,
+      246.70000004768372,
+      248.20000004768372,
+      248.29999995231628,
+      246.79999995231628,
+      246.90000009536743,
+      245.89999985694885,
+      245.70000004768372,
+      246.40000009536743,
+      247.09999990463257,
+      248.70000004768372,
+      248.09999990463257,
+      246.40000009536743,
+      246.5,
+      248.89999985694885,
+      245.90000009536743,
+      245.20000004768372,
+      245.5,
+      245.59999990463257,
+      245.5,
+      246,
+      248.29999995231628,
+      247.40000009536743,
+      249,
+      246.29999995231628,
+      248.70000004768372,
+      247.90000009536743,
+      248.29999995231628,
+      246.59999990463257,
+      250.5,
+      247.60000014305115,
+      247.79999995231628,
+      245.59999990463257,
+      247.10000014305115,
+      246.09999990463257,
+      247.40000009536743,
+      246.79999995231628,
+      246.20000004768372,
+      247.69999980926514,
+      248.60000014305115,
+      249.20000004768372,
+      246.19999980926514,
+      246.40000009536743,
+      245.79999995231628,
+      249.5,
+      246.20000004768372,
+      247.5,
+      248.79999995231628,
+      248.60000014305115,
+      247.19999980926514,
+      249.40000009536743,
+      248.79999995231628,
+      247,
+      247.29999995231628,
+      246.90000009536743,
+      249.59999990463257,
+      247.5,
+      246.5,
+      248,
+      251.40000009536743,
+      250.20000004768372,
+      246.70000004768372,
+      247.29999995231628,
+      247.79999995231628,
+      248,
+      247.09999990463257,
+      249.10000014305115,
+      247.29999995231628,
+      248.20000004768372,
+      246.70000004768372,
+      248.39999985694885,
+      247.5,
+      248,
+      248.10000014305115,
+      249.29999995231628,
+      246.09999990463257,
+      245,
+      245.29999995231628,
+      246.20000004768372,
+      245.29999995231628,
+      248.20000004768372,
+      248.10000014305115,
+      245.69999980926514,
+      246.30000019073486,
+      246,
+      245.79999995231628,
+      248,
+      247.09999990463257,
+      245.40000009536743,
+      247.79999995231628,
+      245.90000009536743,
+      244.89999985694885,
+      246.60000014305115,
+      248,
+      247.39999985694885,
+      246.60000014305115,
+      263.69999980926514,
+      246.80000019073486,
+      247.19999980926514,
+      246.70000004768372,
+      246.70000004768372,
+      245.90000009536743,
+      247.09999990463257,
+      248.20000004768372,
+      250.20000004768372,
+      248.19999980926514,
+      249.10000014305115,
+      247.5,
+      247.09999990463257,
+      245.40000009536743,
+      247.5,
+      251.20000004768372,
+      247.89999985694885,
+      246,
+      248.10000014305115,
+      247.89999985694885,
+      248.20000004768372,
+      246.59999990463257,
+      248.70000004768372,
+      249.10000014305115,
+      247.39999985694885,
+      246.29999995231628,
+      247,
+      246.10000014305115,
+      246.5,
+      248.20000004768372,
+      245.79999995231628
+    ],
+    "submit_times_ms": [
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.19999980926513672,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.20000004768371582,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.19999980926513672,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0.20000004768371582,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.20000004768371582,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.20000004768371582,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0.10000014305114746,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0.10000014305114746,
+      0.09999990463256836,
+      0.09999990463256836,
+      0,
+      0,
+      0,
+      0
+    ],
+    "generated_token_ids": [
+      108,
+      18664,
+      236764,
+      3249,
+      506,
+      3435,
+      6417,
+      532,
+      8991,
+      529,
+      1699,
+      74175,
+      528,
+      2455,
+      236772,
+      7669,
+      3797,
+      236761,
+      108,
+      1018,
+      7925,
+      53121,
+      108,
+      1018,
+      236770,
+      236761,
+      2900,
+      3590,
+      496,
+      2608,
+      9273,
+      573,
+      74175,
+      236881,
+      1018,
+      108,
+      236776,
+      2608,
+      563,
+      9273,
+      573,
+      74175,
+      1056,
+      625,
+      740,
+      577,
+      14769,
+      11207,
+      1679,
+      1131,
+      7100,
+      236764,
+      1265,
+      236772,
+      32596,
+      1159,
+      105275,
+      236761,
+      138,
+      2094,
+      2820,
+      600,
+      506,
+      2608,
+      236789,
+      236751,
+      3904,
+      89091,
+      4850,
+      531,
+      1646,
+      20978,
+      684,
+      11687,
+      4850,
+      607,
+      7100,
+      14273,
+      529,
+      506,
+      1638,
+      2608,
+      236761,
+      138,
+      174355,
+      236764,
+      4078,
+      600,
+      735,
+      496,
+      3582,
+      236764,
+      43064,
+      3759,
+      659,
+      7436,
+      573,
+      74175,
+      236761,
+      108,
+      1018,
+      236778,
+      236761,
+      2088,
+      1677,
+      506,
+      2246,
+      10166,
+      981,
+      1913,
+      59285,
+      14860,
+      236881,
+      1018,
+      108,
+      818,
+      2246,
+      10166,
+      563,
+      496,
+      4128,
+      529,
+      6571,
+      1456,
+      684,
+      496,
+      1948,
+      531
+    ],
+    "generated_text": "\n\nFinally, discuss the potential benefits and challenges of using recursion in large-scale systems.\n\n**Answer:**\n\n**1. What makes a problem suitable for recursion?**\n\nA problem is suitable for recursion when it can be naturally broken down into smaller, self-similar subproblems.  This means that the problem's structure lends itself to being solved by calling itself with smaller versions of the same problem.  Essentially, problems that have a clear, repeating pattern are ideal for recursion.\n\n**2. How does the call stack work during recursive execution?**\n\nThe call stack is a region of memory used by a program to",
+    "memory_time_series": [
+      {
+        "t": 0,
+        "phase": "start",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1128023067
+      },
+      {
+        "t": 0,
+        "phase": "prefill_start",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1128023067
+      },
+      {
+        "t": 51,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128001816
+      },
+      {
+        "t": 101,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128002872
+      },
+      {
+        "t": 152,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128003928
+      },
+      {
+        "t": 201,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128003928
+      },
+      {
+        "t": 251,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128006028
+      },
+      {
+        "t": 301,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128007084
+      },
+      {
+        "t": 351,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128008140
+      },
+      {
+        "t": 401,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128008140
+      },
+      {
+        "t": 451,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128010252
+      },
+      {
+        "t": 501,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128011308
+      },
+      {
+        "t": 552,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128012364
+      },
+      {
+        "t": 602,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128013420
+      },
+      {
+        "t": 652,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128014476
+      },
+      {
+        "t": 702,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128015532
+      },
+      {
+        "t": 752,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128016588
+      },
+      {
+        "t": 802,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128017644
+      },
+      {
+        "t": 852,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128018880
+      },
+      {
+        "t": 901,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128018880
+      },
+      {
+        "t": 951,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128020992
+      },
+      {
+        "t": 1001,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128022036
+      },
+      {
+        "t": 1051,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128023092
+      },
+      {
+        "t": 1101,
+        "phase": "sample",
+        "gpu": 2746601728,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2352324096,
+        "jsHeap": 1128024148
+      },
+      {
+        "t": 1681,
+        "phase": "prefill_end",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1331144484
+      },
+      {
+        "t": 1681,
+        "phase": "decode_start",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1331144484
+      },
+      {
+        "t": 1682,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1331144484
+      },
+      {
+        "t": 1702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1331144484
+      },
+      {
+        "t": 1751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332867492
+      },
+      {
+        "t": 1800,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332867492
+      },
+      {
+        "t": 1852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332869604
+      },
+      {
+        "t": 1902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332870660
+      },
+      {
+        "t": 1952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332871716
+      },
+      {
+        "t": 2002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332871716
+      },
+      {
+        "t": 2050,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330524208
+      },
+      {
+        "t": 2101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330525264
+      },
+      {
+        "t": 2151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330526320
+      },
+      {
+        "t": 2201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330526320
+      },
+      {
+        "t": 2252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332306156
+      },
+      {
+        "t": 2302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332307212
+      },
+      {
+        "t": 2351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332307212
+      },
+      {
+        "t": 2401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332309312
+      },
+      {
+        "t": 2451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332310368
+      },
+      {
+        "t": 2502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330282520
+      },
+      {
+        "t": 2551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330282520
+      },
+      {
+        "t": 2601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330284968
+      },
+      {
+        "t": 2651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330286024
+      },
+      {
+        "t": 2701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330287068
+      },
+      {
+        "t": 2752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332008924
+      },
+      {
+        "t": 2802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332008924
+      },
+      {
+        "t": 2852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332011036
+      },
+      {
+        "t": 2902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332012092
+      },
+      {
+        "t": 2950,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1332012092
+      },
+      {
+        "t": 3002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330334136
+      },
+      {
+        "t": 3051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330334136
+      },
+      {
+        "t": 3102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330336248
+      },
+      {
+        "t": 3152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330337304
+      },
+      {
+        "t": 3200,
+        "phase": "sample",
+        "gpu": 2382708992,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067314944,
+        "jsHeap": 1330337304
+      },
+      {
+        "t": 3251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332088260
+      },
+      {
+        "t": 3302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332089316
+      },
+      {
+        "t": 3351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332089316
+      },
+      {
+        "t": 3401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332091416
+      },
+      {
+        "t": 3450,
+        "phase": "sample",
+        "gpu": 2383734016,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068142848,
+        "jsHeap": 1332091416
+      },
+      {
+        "t": 3501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330460328
+      },
+      {
+        "t": 3552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330461384
+      },
+      {
+        "t": 3601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330461384
+      },
+      {
+        "t": 3651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330463496
+      },
+      {
+        "t": 3701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332188344
+      },
+      {
+        "t": 3751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332188344
+      },
+      {
+        "t": 3801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332190444
+      },
+      {
+        "t": 3851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332191500
+      },
+      {
+        "t": 3901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332191500
+      },
+      {
+        "t": 3952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330670708
+      },
+      {
+        "t": 4001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330670708
+      },
+      {
+        "t": 4052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330672820
+      },
+      {
+        "t": 4102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330673876
+      },
+      {
+        "t": 4151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330673876
+      },
+      {
+        "t": 4202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332400348
+      },
+      {
+        "t": 4251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332400348
+      },
+      {
+        "t": 4301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332402460
+      },
+      {
+        "t": 4351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332403516
+      },
+      {
+        "t": 4401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332404560
+      },
+      {
+        "t": 4452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330689760
+      },
+      {
+        "t": 4501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330689760
+      },
+      {
+        "t": 4551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330692440
+      },
+      {
+        "t": 4601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330692440
+      },
+      {
+        "t": 4651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330694552
+      },
+      {
+        "t": 4701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332443860
+      },
+      {
+        "t": 4751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332444916
+      },
+      {
+        "t": 4801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332445960
+      },
+      {
+        "t": 4851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332447016
+      },
+      {
+        "t": 4901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1332448072
+      },
+      {
+        "t": 4952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330847564
+      },
+      {
+        "t": 5002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330848620
+      },
+      {
+        "t": 5052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330849676
+      },
+      {
+        "t": 5102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330850732
+      },
+      {
+        "t": 5152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330851788
+      },
+      {
+        "t": 5200,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1330851788
+      },
+      {
+        "t": 5252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1329956624
+      },
+      {
+        "t": 5302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1329957680
+      },
+      {
+        "t": 5352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1329958736
+      },
+      {
+        "t": 5400,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1329958736
+      },
+      {
+        "t": 5452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127252952
+      },
+      {
+        "t": 5502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127254008
+      },
+      {
+        "t": 5551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127254008
+      },
+      {
+        "t": 5601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127256120
+      },
+      {
+        "t": 5652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127257176
+      },
+      {
+        "t": 5702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127257176
+      },
+      {
+        "t": 5752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125655456
+      },
+      {
+        "t": 5802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125656512
+      },
+      {
+        "t": 5852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125657568
+      },
+      {
+        "t": 5902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125658624
+      },
+      {
+        "t": 5951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125658624
+      },
+      {
+        "t": 6001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127384208
+      },
+      {
+        "t": 6051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127384208
+      },
+      {
+        "t": 6101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127386320
+      },
+      {
+        "t": 6151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127387376
+      },
+      {
+        "t": 6202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125784408
+      },
+      {
+        "t": 6252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125785464
+      },
+      {
+        "t": 6302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125786520
+      },
+      {
+        "t": 6351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125786520
+      },
+      {
+        "t": 6402,
+        "phase": "sample",
+        "gpu": 2382352896,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067405312,
+        "jsHeap": 1125839092
+      },
+      {
+        "t": 6450,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125839092
+      },
+      {
+        "t": 6501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127514296
+      },
+      {
+        "t": 6552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127515352
+      },
+      {
+        "t": 6601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127515352
+      },
+      {
+        "t": 6650,
+        "phase": "sample",
+        "gpu": 2382375680,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067019264,
+        "jsHeap": 1127810688
+      },
+      {
+        "t": 6702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125900928
+      },
+      {
+        "t": 6752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125901984
+      },
+      {
+        "t": 6802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125903040
+      },
+      {
+        "t": 6852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125904096
+      },
+      {
+        "t": 6900,
+        "phase": "sample",
+        "gpu": 2383367936,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067847168,
+        "jsHeap": 1125904096
+      },
+      {
+        "t": 6952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127654456
+      },
+      {
+        "t": 7002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127654456
+      },
+      {
+        "t": 7052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127656568
+      },
+      {
+        "t": 7102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127657624
+      },
+      {
+        "t": 7150,
+        "phase": "sample",
+        "gpu": 2383660800,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068083712,
+        "jsHeap": 1127657624
+      },
+      {
+        "t": 7201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126045168
+      },
+      {
+        "t": 7251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126046224
+      },
+      {
+        "t": 7302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126047280
+      },
+      {
+        "t": 7351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126047280
+      },
+      {
+        "t": 7401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127775584
+      },
+      {
+        "t": 7452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127776640
+      },
+      {
+        "t": 7502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127777696
+      },
+      {
+        "t": 7552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127778752
+      },
+      {
+        "t": 7602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127779808
+      },
+      {
+        "t": 7650,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127779808
+      },
+      {
+        "t": 7701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126141828
+      },
+      {
+        "t": 7751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126142872
+      },
+      {
+        "t": 7801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126143928
+      },
+      {
+        "t": 7851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126144984
+      },
+      {
+        "t": 7901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126144984
+      },
+      {
+        "t": 7952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127873364
+      },
+      {
+        "t": 8002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127874420
+      },
+      {
+        "t": 8052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127875476
+      },
+      {
+        "t": 8101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127875476
+      },
+      {
+        "t": 8152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126279360
+      },
+      {
+        "t": 8202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126280416
+      },
+      {
+        "t": 8252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126281472
+      },
+      {
+        "t": 8302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126282528
+      },
+      {
+        "t": 8351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126282528
+      },
+      {
+        "t": 8401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128032788
+      },
+      {
+        "t": 8450,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128032788
+      },
+      {
+        "t": 8501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128034900
+      },
+      {
+        "t": 8551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128034900
+      },
+      {
+        "t": 8601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128037012
+      },
+      {
+        "t": 8651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128037012
+      },
+      {
+        "t": 8701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126388212
+      },
+      {
+        "t": 8752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126389268
+      },
+      {
+        "t": 8801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126389268
+      },
+      {
+        "t": 8850,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126391380
+      },
+      {
+        "t": 8906,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125499848
+      },
+      {
+        "t": 8952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125499848
+      },
+      {
+        "t": 9002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125503084
+      },
+      {
+        "t": 9051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125503084
+      },
+      {
+        "t": 9102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125505196
+      },
+      {
+        "t": 9151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125505196
+      },
+      {
+        "t": 9201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127271752
+      },
+      {
+        "t": 9252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127272808
+      },
+      {
+        "t": 9301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127272808
+      },
+      {
+        "t": 9351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127274920
+      },
+      {
+        "t": 9401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127274920
+      },
+      {
+        "t": 9451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125706320
+      },
+      {
+        "t": 9502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125707376
+      },
+      {
+        "t": 9552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125708432
+      },
+      {
+        "t": 9602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125709488
+      },
+      {
+        "t": 9652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125709488
+      },
+      {
+        "t": 9702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127435184
+      },
+      {
+        "t": 9751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127435184
+      },
+      {
+        "t": 9801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127437296
+      },
+      {
+        "t": 9852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127438352
+      },
+      {
+        "t": 9900,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127438352
+      },
+      {
+        "t": 9951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125820588
+      },
+      {
+        "t": 10001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125820588
+      },
+      {
+        "t": 10052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125822700
+      },
+      {
+        "t": 10101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125822700
+      },
+      {
+        "t": 10152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127548040
+      },
+      {
+        "t": 10202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127549096
+      },
+      {
+        "t": 10252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127550152
+      },
+      {
+        "t": 10302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127551208
+      },
+      {
+        "t": 10352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127552264
+      },
+      {
+        "t": 10402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125904440
+      },
+      {
+        "t": 10452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125905496
+      },
+      {
+        "t": 10501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125905496
+      },
+      {
+        "t": 10550,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125907596
+      },
+      {
+        "t": 10601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125908640
+      },
+      {
+        "t": 10652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127657780
+      },
+      {
+        "t": 10702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127658836
+      },
+      {
+        "t": 10751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127658836
+      },
+      {
+        "t": 10801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127660948
+      },
+      {
+        "t": 10851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127662004
+      },
+      {
+        "t": 10901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127662004
+      },
+      {
+        "t": 10951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126081236
+      },
+      {
+        "t": 11002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126082292
+      },
+      {
+        "t": 11052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126083348
+      },
+      {
+        "t": 11100,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126083348
+      },
+      {
+        "t": 11152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127811812
+      },
+      {
+        "t": 11202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127812868
+      },
+      {
+        "t": 11252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127813924
+      },
+      {
+        "t": 11302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127814980
+      },
+      {
+        "t": 11351,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1127814980
+      },
+      {
+        "t": 11402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126206620
+      },
+      {
+        "t": 11452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126207676
+      },
+      {
+        "t": 11502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126208732
+      },
+      {
+        "t": 11551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126208732
+      },
+      {
+        "t": 11600,
+        "phase": "sample",
+        "gpu": 2382375680,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067019264,
+        "jsHeap": 1126506276
+      },
+      {
+        "t": 11652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127935444
+      },
+      {
+        "t": 11702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127936500
+      },
+      {
+        "t": 11751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127936500
+      },
+      {
+        "t": 11801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127940052
+      },
+      {
+        "t": 11850,
+        "phase": "sample",
+        "gpu": 2382562560,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067196672,
+        "jsHeap": 1127940052
+      },
+      {
+        "t": 11902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126278936
+      },
+      {
+        "t": 11952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126279992
+      },
+      {
+        "t": 12001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126279992
+      },
+      {
+        "t": 12051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126282104
+      },
+      {
+        "t": 12100,
+        "phase": "sample",
+        "gpu": 2383514368,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067965440,
+        "jsHeap": 1126282104
+      },
+      {
+        "t": 12151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128032064
+      },
+      {
+        "t": 12202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128033120
+      },
+      {
+        "t": 12252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128034176
+      },
+      {
+        "t": 12302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128035232
+      },
+      {
+        "t": 12350,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128035232
+      },
+      {
+        "t": 12401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126374344
+      },
+      {
+        "t": 12452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126375400
+      },
+      {
+        "t": 12502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126376456
+      },
+      {
+        "t": 12551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126376456
+      },
+      {
+        "t": 12616,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125509820
+      },
+      {
+        "t": 12651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125509820
+      },
+      {
+        "t": 12702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125513056
+      },
+      {
+        "t": 12752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125514112
+      },
+      {
+        "t": 12802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125515168
+      },
+      {
+        "t": 12851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125515168
+      },
+      {
+        "t": 12901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127281600
+      },
+      {
+        "t": 12951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127282656
+      },
+      {
+        "t": 13002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127283712
+      },
+      {
+        "t": 13051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127283712
+      },
+      {
+        "t": 13102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125697584
+      },
+      {
+        "t": 13151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125697584
+      },
+      {
+        "t": 13201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125699684
+      },
+      {
+        "t": 13251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125700728
+      },
+      {
+        "t": 13301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125701784
+      },
+      {
+        "t": 13351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127425928
+      },
+      {
+        "t": 13401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127426984
+      },
+      {
+        "t": 13452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127428040
+      },
+      {
+        "t": 13501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127428040
+      },
+      {
+        "t": 13551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127430152
+      },
+      {
+        "t": 13602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125821764
+      },
+      {
+        "t": 13651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125821764
+      },
+      {
+        "t": 13702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125823876
+      },
+      {
+        "t": 13752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125824932
+      },
+      {
+        "t": 13801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125824932
+      },
+      {
+        "t": 13851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127550368
+      },
+      {
+        "t": 13901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127551424
+      },
+      {
+        "t": 13951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127552480
+      },
+      {
+        "t": 14002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127553536
+      },
+      {
+        "t": 14052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127554592
+      },
+      {
+        "t": 14101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127554592
+      },
+      {
+        "t": 14151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125936896
+      },
+      {
+        "t": 14201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125937952
+      },
+      {
+        "t": 14251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125938996
+      },
+      {
+        "t": 14301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125940040
+      },
+      {
+        "t": 14352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127688920
+      },
+      {
+        "t": 14402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127689976
+      },
+      {
+        "t": 14452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127691032
+      },
+      {
+        "t": 14501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127691032
+      },
+      {
+        "t": 14551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127693144
+      },
+      {
+        "t": 14602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126062596
+      },
+      {
+        "t": 14651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126062596
+      },
+      {
+        "t": 14701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126064708
+      },
+      {
+        "t": 14752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126065764
+      },
+      {
+        "t": 14801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126065764
+      },
+      {
+        "t": 14852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127791516
+      },
+      {
+        "t": 14902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127792572
+      },
+      {
+        "t": 14951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127792572
+      },
+      {
+        "t": 15002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127794684
+      },
+      {
+        "t": 15051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127794684
+      },
+      {
+        "t": 15102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126187312
+      },
+      {
+        "t": 15152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126188368
+      },
+      {
+        "t": 15202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126189424
+      },
+      {
+        "t": 15252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126190480
+      },
+      {
+        "t": 15301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126190480
+      },
+      {
+        "t": 15351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127915532
+      },
+      {
+        "t": 15402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127916588
+      },
+      {
+        "t": 15452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127917644
+      },
+      {
+        "t": 15501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127917644
+      },
+      {
+        "t": 15551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127919756
+      },
+      {
+        "t": 15601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126338164
+      },
+      {
+        "t": 15651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126339220
+      },
+      {
+        "t": 15702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126340276
+      },
+      {
+        "t": 15752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126341332
+      },
+      {
+        "t": 15802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126342388
+      },
+      {
+        "t": 15851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126342388
+      },
+      {
+        "t": 15901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128093456
+      },
+      {
+        "t": 15951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128094512
+      },
+      {
+        "t": 16000,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128094512
+      },
+      {
+        "t": 16052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128096624
+      },
+      {
+        "t": 16102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126398232
+      },
+      {
+        "t": 16152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126398232
+      },
+      {
+        "t": 16202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126400344
+      },
+      {
+        "t": 16252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126401400
+      },
+      {
+        "t": 16302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126402456
+      },
+      {
+        "t": 16351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126402456
+      },
+      {
+        "t": 16401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125520368
+      },
+      {
+        "t": 16452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125521424
+      },
+      {
+        "t": 16501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125521424
+      },
+      {
+        "t": 16551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125523524
+      },
+      {
+        "t": 16601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127293260
+      },
+      {
+        "t": 16651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127294316
+      },
+      {
+        "t": 16701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127295372
+      },
+      {
+        "t": 16752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127296428
+      },
+      {
+        "t": 16802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127297484
+      },
+      {
+        "t": 16851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127297484
+      },
+      {
+        "t": 16902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125723008
+      },
+      {
+        "t": 16951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125723008
+      },
+      {
+        "t": 17001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125725120
+      },
+      {
+        "t": 17051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125726176
+      },
+      {
+        "t": 17102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127451308
+      },
+      {
+        "t": 17152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127452364
+      },
+      {
+        "t": 17201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127452364
+      },
+      {
+        "t": 17251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127454476
+      },
+      {
+        "t": 17301,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1127454476
+      },
+      {
+        "t": 17351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125840288
+      },
+      {
+        "t": 17400,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125840288
+      },
+      {
+        "t": 17451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125842400
+      },
+      {
+        "t": 17501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125843456
+      },
+      {
+        "t": 17550,
+        "phase": "sample",
+        "gpu": 2382416128,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067078400,
+        "jsHeap": 1125843456
+      },
+      {
+        "t": 17602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127569024
+      },
+      {
+        "t": 17652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127570080
+      },
+      {
+        "t": 17701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127570080
+      },
+      {
+        "t": 17751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127572192
+      },
+      {
+        "t": 17800,
+        "phase": "sample",
+        "gpu": 2382855424,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067433216,
+        "jsHeap": 1127572192
+      },
+      {
+        "t": 17852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125941008
+      },
+      {
+        "t": 17901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125941008
+      },
+      {
+        "t": 17952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125943120
+      },
+      {
+        "t": 18001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125943120
+      },
+      {
+        "t": 18050,
+        "phase": "sample",
+        "gpu": 2383514368,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067965440,
+        "jsHeap": 1127186036
+      },
+      {
+        "t": 18102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127694508
+      },
+      {
+        "t": 18152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127695564
+      },
+      {
+        "t": 18202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127696620
+      },
+      {
+        "t": 18252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127697676
+      },
+      {
+        "t": 18300,
+        "phase": "sample",
+        "gpu": 2383807232,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068201984,
+        "jsHeap": 1127697676
+      },
+      {
+        "t": 18352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126067712
+      },
+      {
+        "t": 18401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126067712
+      },
+      {
+        "t": 18451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126069812
+      },
+      {
+        "t": 18501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126070868
+      },
+      {
+        "t": 18550,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126070868
+      },
+      {
+        "t": 18601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127796596
+      },
+      {
+        "t": 18652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127797652
+      },
+      {
+        "t": 18702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127798708
+      },
+      {
+        "t": 18751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127798708
+      },
+      {
+        "t": 18801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126220996
+      },
+      {
+        "t": 18851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126222052
+      },
+      {
+        "t": 18902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126223108
+      },
+      {
+        "t": 18951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126223108
+      },
+      {
+        "t": 19001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126225220
+      },
+      {
+        "t": 19051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126225220
+      },
+      {
+        "t": 19101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127950752
+      },
+      {
+        "t": 19151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127951796
+      },
+      {
+        "t": 19201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127952840
+      },
+      {
+        "t": 19251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127953884
+      },
+      {
+        "t": 19301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127953884
+      },
+      {
+        "t": 19350,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126273180
+      },
+      {
+        "t": 19401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126274236
+      },
+      {
+        "t": 19451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126274236
+      },
+      {
+        "t": 19501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126276348
+      },
+      {
+        "t": 19551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128025420
+      },
+      {
+        "t": 19601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128025420
+      },
+      {
+        "t": 19651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128027532
+      },
+      {
+        "t": 19701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128028588
+      },
+      {
+        "t": 19751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128029632
+      },
+      {
+        "t": 19802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126494704
+      },
+      {
+        "t": 19852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126494704
+      },
+      {
+        "t": 19902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126496816
+      },
+      {
+        "t": 19952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126497872
+      },
+      {
+        "t": 20001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126497872
+      },
+      {
+        "t": 20055,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125527547
+      },
+      {
+        "t": 20101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125527547
+      },
+      {
+        "t": 20151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125530771
+      },
+      {
+        "t": 20202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125531827
+      },
+      {
+        "t": 20252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125532883
+      },
+      {
+        "t": 20302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125532883
+      },
+      {
+        "t": 20352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127299595
+      },
+      {
+        "t": 20402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127300651
+      },
+      {
+        "t": 20452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127301707
+      },
+      {
+        "t": 20502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127302763
+      },
+      {
+        "t": 20552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127302763
+      },
+      {
+        "t": 20602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125701591
+      },
+      {
+        "t": 20652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125702647
+      },
+      {
+        "t": 20702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125703703
+      },
+      {
+        "t": 20752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125703703
+      },
+      {
+        "t": 20801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127428847
+      },
+      {
+        "t": 20851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127429903
+      },
+      {
+        "t": 20901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127430959
+      },
+      {
+        "t": 20951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127432003
+      },
+      {
+        "t": 21000,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127432003
+      },
+      {
+        "t": 21051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125878655
+      },
+      {
+        "t": 21101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125879711
+      },
+      {
+        "t": 21152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125880767
+      },
+      {
+        "t": 21201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125880767
+      },
+      {
+        "t": 21252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125882879
+      },
+      {
+        "t": 21302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127607803
+      },
+      {
+        "t": 21351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127607803
+      },
+      {
+        "t": 21401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127609915
+      },
+      {
+        "t": 21451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127610959
+      },
+      {
+        "t": 21501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127612003
+      },
+      {
+        "t": 21551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125946887
+      },
+      {
+        "t": 21602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125947943
+      },
+      {
+        "t": 21652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125948999
+      },
+      {
+        "t": 21702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125950055
+      },
+      {
+        "t": 21751,
+        "phase": "sample",
+        "gpu": 2382352896,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067405312,
+        "jsHeap": 1125950055
+      },
+      {
+        "t": 21802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127700319
+      },
+      {
+        "t": 21852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127701375
+      },
+      {
+        "t": 21902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127702431
+      },
+      {
+        "t": 21952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127703487
+      },
+      {
+        "t": 22001,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1127703487
+      },
+      {
+        "t": 22052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126105011
+      },
+      {
+        "t": 22102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126106067
+      },
+      {
+        "t": 22150,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126106067
+      },
+      {
+        "t": 22202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126108179
+      },
+      {
+        "t": 22250,
+        "phase": "sample",
+        "gpu": 2383001856,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067551488,
+        "jsHeap": 1126108179
+      },
+      {
+        "t": 22302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127836331
+      },
+      {
+        "t": 22352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127837387
+      },
+      {
+        "t": 22402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127838443
+      },
+      {
+        "t": 22452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127839499
+      },
+      {
+        "t": 22500,
+        "phase": "sample",
+        "gpu": 2383953664,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068320256,
+        "jsHeap": 1127839499
+      },
+      {
+        "t": 22551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126202095
+      },
+      {
+        "t": 22601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126203151
+      },
+      {
+        "t": 22651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126204207
+      },
+      {
+        "t": 22701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126205251
+      },
+      {
+        "t": 22751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127930095
+      },
+      {
+        "t": 22801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127931151
+      },
+      {
+        "t": 22852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127932207
+      },
+      {
+        "t": 22902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127933263
+      },
+      {
+        "t": 22952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127934319
+      },
+      {
+        "t": 23002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126319955
+      },
+      {
+        "t": 23051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126319955
+      },
+      {
+        "t": 23102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126322067
+      },
+      {
+        "t": 23152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126323123
+      },
+      {
+        "t": 23202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126324179
+      },
+      {
+        "t": 23252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126324179
+      },
+      {
+        "t": 23302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128074879
+      },
+      {
+        "t": 23351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128074879
+      },
+      {
+        "t": 23401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128076991
+      },
+      {
+        "t": 23450,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128076991
+      },
+      {
+        "t": 23502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126414715
+      },
+      {
+        "t": 23552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126415771
+      },
+      {
+        "t": 23602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126416827
+      },
+      {
+        "t": 23651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126416827
+      },
+      {
+        "t": 23701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126418939
+      },
+      {
+        "t": 23754,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125532843
+      },
+      {
+        "t": 23801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125532843
+      },
+      {
+        "t": 23852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125536079
+      },
+      {
+        "t": 23902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125537135
+      },
+      {
+        "t": 23952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125538191
+      },
+      {
+        "t": 24002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125538191
+      },
+      {
+        "t": 24051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127304747
+      },
+      {
+        "t": 24102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127305803
+      },
+      {
+        "t": 24152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127306859
+      },
+      {
+        "t": 24202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127307915
+      },
+      {
+        "t": 24252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125703991
+      },
+      {
+        "t": 24301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125703991
+      },
+      {
+        "t": 24350,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125706103
+      },
+      {
+        "t": 24401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125707147
+      },
+      {
+        "t": 24451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125708203
+      },
+      {
+        "t": 24502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127439627
+      },
+      {
+        "t": 24552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127440683
+      },
+      {
+        "t": 24602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127441739
+      },
+      {
+        "t": 24652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127442795
+      },
+      {
+        "t": 24702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127443851
+      },
+      {
+        "t": 24752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127443851
+      },
+      {
+        "t": 24802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125896651
+      },
+      {
+        "t": 24851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125896651
+      },
+      {
+        "t": 24901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125898763
+      },
+      {
+        "t": 24952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125899819
+      },
+      {
+        "t": 25001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125899819
+      },
+      {
+        "t": 25051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127625335
+      },
+      {
+        "t": 25102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127626391
+      },
+      {
+        "t": 25152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127627447
+      },
+      {
+        "t": 25202,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127628503
+      },
+      {
+        "t": 25251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127628503
+      },
+      {
+        "t": 25301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125999243
+      },
+      {
+        "t": 25351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126000299
+      },
+      {
+        "t": 25402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126001355
+      },
+      {
+        "t": 25451,
+        "phase": "sample",
+        "gpu": 2382352896,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067405312,
+        "jsHeap": 1126001355
+      },
+      {
+        "t": 25501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127773047
+      },
+      {
+        "t": 25551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127773047
+      },
+      {
+        "t": 25601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127775147
+      },
+      {
+        "t": 25651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127776203
+      },
+      {
+        "t": 25716,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1125643991
+      },
+      {
+        "t": 25751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125643991
+      },
+      {
+        "t": 25801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127202691
+      },
+      {
+        "t": 25851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127203735
+      },
+      {
+        "t": 25901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127203735
+      },
+      {
+        "t": 25951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127205847
+      },
+      {
+        "t": 26001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128957675
+      },
+      {
+        "t": 26051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128957675
+      },
+      {
+        "t": 26101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128959775
+      },
+      {
+        "t": 26151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128960831
+      },
+      {
+        "t": 26201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128961887
+      },
+      {
+        "t": 26252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130739399
+      },
+      {
+        "t": 26302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130740455
+      },
+      {
+        "t": 26351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130740455
+      },
+      {
+        "t": 26401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130742567
+      },
+      {
+        "t": 26451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130742567
+      },
+      {
+        "t": 26502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125797395
+      },
+      {
+        "t": 26552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125798451
+      },
+      {
+        "t": 26602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125799507
+      },
+      {
+        "t": 26652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125800563
+      },
+      {
+        "t": 26701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125800563
+      },
+      {
+        "t": 26751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127508675
+      },
+      {
+        "t": 26802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127509731
+      },
+      {
+        "t": 26852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127510787
+      },
+      {
+        "t": 26902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127511843
+      },
+      {
+        "t": 26950,
+        "phase": "sample",
+        "gpu": 2382375680,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067019264,
+        "jsHeap": 1127511843
+      },
+      {
+        "t": 27001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129288991
+      },
+      {
+        "t": 27051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129288991
+      },
+      {
+        "t": 27101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129291091
+      },
+      {
+        "t": 27151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129292147
+      },
+      {
+        "t": 27200,
+        "phase": "sample",
+        "gpu": 2383001856,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067551488,
+        "jsHeap": 1129292147
+      },
+      {
+        "t": 27252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131045555
+      },
+      {
+        "t": 27301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131045555
+      },
+      {
+        "t": 27351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131047655
+      },
+      {
+        "t": 27401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131048699
+      },
+      {
+        "t": 27450,
+        "phase": "sample",
+        "gpu": 2383294720,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067788032,
+        "jsHeap": 1131048699
+      },
+      {
+        "t": 27501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126062075
+      },
+      {
+        "t": 27552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126063131
+      },
+      {
+        "t": 27602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126064187
+      },
+      {
+        "t": 27651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126064187
+      },
+      {
+        "t": 27700,
+        "phase": "sample",
+        "gpu": 2383221504,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067728896,
+        "jsHeap": 1127049563
+      },
+      {
+        "t": 27751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127798027
+      },
+      {
+        "t": 27801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127799083
+      },
+      {
+        "t": 27851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127799083
+      },
+      {
+        "t": 27902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127801195
+      },
+      {
+        "t": 27950,
+        "phase": "sample",
+        "gpu": 2383734016,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068142848,
+        "jsHeap": 1127801195
+      },
+      {
+        "t": 28002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129555751
+      },
+      {
+        "t": 28051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129555751
+      },
+      {
+        "t": 28102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129561263
+      },
+      {
+        "t": 28152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129562319
+      },
+      {
+        "t": 28200,
+        "phase": "sample",
+        "gpu": 2384026880,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068379392,
+        "jsHeap": 1129562319
+      },
+      {
+        "t": 28251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131315227
+      },
+      {
+        "t": 28301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131315227
+      },
+      {
+        "t": 28352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131317339
+      },
+      {
+        "t": 28401,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131317339
+      },
+      {
+        "t": 28451,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126283295
+      },
+      {
+        "t": 28501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126284351
+      },
+      {
+        "t": 28550,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126284351
+      },
+      {
+        "t": 28601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126286451
+      },
+      {
+        "t": 28651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126287507
+      },
+      {
+        "t": 28701,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126287507
+      },
+      {
+        "t": 28752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127995543
+      },
+      {
+        "t": 28801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127995543
+      },
+      {
+        "t": 28851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127997655
+      },
+      {
+        "t": 28901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127997655
+      },
+      {
+        "t": 28951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129750879
+      },
+      {
+        "t": 29001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129751923
+      },
+      {
+        "t": 29051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129752979
+      },
+      {
+        "t": 29101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129754035
+      },
+      {
+        "t": 29151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129754035
+      },
+      {
+        "t": 29207,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125578843
+      },
+      {
+        "t": 29252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125578843
+      },
+      {
+        "t": 29301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125582079
+      },
+      {
+        "t": 29351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125583135
+      },
+      {
+        "t": 29402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125584191
+      },
+      {
+        "t": 29452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127314455
+      },
+      {
+        "t": 29502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127315511
+      },
+      {
+        "t": 29551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127315511
+      },
+      {
+        "t": 29601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127317623
+      },
+      {
+        "t": 29652,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127318679
+      },
+      {
+        "t": 29702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129070219
+      },
+      {
+        "t": 29752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129071275
+      },
+      {
+        "t": 29802,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129072331
+      },
+      {
+        "t": 29852,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129073387
+      },
+      {
+        "t": 29902,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129074443
+      },
+      {
+        "t": 29952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129074443
+      },
+      {
+        "t": 30002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130852415
+      },
+      {
+        "t": 30052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130853471
+      },
+      {
+        "t": 30102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130854527
+      },
+      {
+        "t": 30152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130855583
+      },
+      {
+        "t": 30201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1130855583
+      },
+      {
+        "t": 30251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125892095
+      },
+      {
+        "t": 30300,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125892095
+      },
+      {
+        "t": 30352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125894207
+      },
+      {
+        "t": 30402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125895263
+      },
+      {
+        "t": 30452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127602243
+      },
+      {
+        "t": 30502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127603299
+      },
+      {
+        "t": 30552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127604355
+      },
+      {
+        "t": 30601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127604355
+      },
+      {
+        "t": 30651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127606467
+      },
+      {
+        "t": 30702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129383911
+      },
+      {
+        "t": 30751,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129383911
+      },
+      {
+        "t": 30801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129386023
+      },
+      {
+        "t": 30851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129387079
+      },
+      {
+        "t": 30901,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129388135
+      },
+      {
+        "t": 30952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131139935
+      },
+      {
+        "t": 31002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131140991
+      },
+      {
+        "t": 31052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131142047
+      },
+      {
+        "t": 31102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131142047
+      },
+      {
+        "t": 31152,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131144159
+      },
+      {
+        "t": 31201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131144159
+      },
+      {
+        "t": 31251,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126124027
+      },
+      {
+        "t": 31301,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126125071
+      },
+      {
+        "t": 31351,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126125071
+      },
+      {
+        "t": 31402,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126127183
+      },
+      {
+        "t": 31452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126127183
+      },
+      {
+        "t": 31501,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127859883
+      },
+      {
+        "t": 31551,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127859883
+      },
+      {
+        "t": 31601,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127861995
+      },
+      {
+        "t": 31651,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127863051
+      },
+      {
+        "t": 31702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129620687
+      },
+      {
+        "t": 31752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129621743
+      },
+      {
+        "t": 31801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129621743
+      },
+      {
+        "t": 31851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129623855
+      },
+      {
+        "t": 31900,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1129623855
+      },
+      {
+        "t": 31951,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131376747
+      },
+      {
+        "t": 32001,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131377791
+      },
+      {
+        "t": 32051,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131378835
+      },
+      {
+        "t": 32101,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131379891
+      },
+      {
+        "t": 32151,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1131380947
+      },
+      {
+        "t": 32201,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126461915
+      },
+      {
+        "t": 32252,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126462971
+      },
+      {
+        "t": 32302,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126464027
+      },
+      {
+        "t": 32352,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1126465083
+      },
+      {
+        "t": 32400,
+        "phase": "sample",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066900992,
+        "jsHeap": 1126465083
+      },
+      {
+        "t": 32452,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128173063
+      },
+      {
+        "t": 32502,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128174119
+      },
+      {
+        "t": 32552,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128175175
+      },
+      {
+        "t": 32602,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1128176231
+      },
+      {
+        "t": 32650,
+        "phase": "sample",
+        "gpu": 2382855424,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067433216,
+        "jsHeap": 1128176231
+      },
+      {
+        "t": 32702,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125692359
+      },
+      {
+        "t": 32752,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125694539
+      },
+      {
+        "t": 32801,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125694539
+      },
+      {
+        "t": 32851,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1125696651
+      },
+      {
+        "t": 32900,
+        "phase": "sample",
+        "gpu": 2383441152,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2067906304,
+        "jsHeap": 1125696651
+      },
+      {
+        "t": 32952,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127481727
+      },
+      {
+        "t": 33002,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127482783
+      },
+      {
+        "t": 33052,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127483839
+      },
+      {
+        "t": 33102,
+        "phase": "sample",
+        "gpu": 2384080384,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2068950016,
+        "jsHeap": 1127484895
+      },
+      {
+        "t": 33140,
+        "phase": "end",
+        "gpu": 2382352640,
+        "gpuPeak": 2746601728,
+        "gpuRequested": 2066880768,
+        "jsHeap": 1127484895
+      }
+    ],
+    "buffer_pool_runs": [
+      {
+        "allocations": 39616,
+        "reuses": 4595,
+        "hitRatePct": 10.4,
+        "activeBuffers": 344,
+        "pooledBuffers": 64,
+        "currentBytesAllocated": 2382352640,
+        "currentBytesRequested": 2066880768
+      },
+      {
+        "allocations": 39616,
+        "reuses": 4595,
+        "hitRatePct": 10.4,
+        "activeBuffers": 344,
+        "pooledBuffers": 64,
+        "currentBytesAllocated": 2382352640,
+        "currentBytesRequested": 2066880768
+      },
+      {
+        "allocations": 39616,
+        "reuses": 4595,
+        "hitRatePct": 10.4,
+        "activeBuffers": 344,
+        "pooledBuffers": 64,
+        "currentBytesAllocated": 2382352640,
+        "currentBytesRequested": 2066880768
+      }
+    ],
+    "gpu_profiler_timing": {
+      "prefill": {
+        "avg": 1681.2999999523163,
+        "min": 1681.2999999523163,
+        "max": 1681.2999999523163,
+        "count": 1,
+        "total": 1681.2999999523163
+      },
+      "decode": {
+        "avg": 31459,
+        "min": 31459,
+        "max": 31459,
+        "count": 1,
+        "total": 31459
+      }
+    }
+  }
+}

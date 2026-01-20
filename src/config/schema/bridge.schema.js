@@ -1,3 +1,5 @@
+import { MB } from './units.schema.js';
+
 // =============================================================================
 // Timeout Config
 // =============================================================================
@@ -14,7 +16,7 @@ export const DEFAULT_BRIDGE_TIMEOUT_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_BRIDGE_CONFIG = {
-  maxReadSizeBytes: 100 * 1024 * 1024, // 100MB
+  maxReadSizeBytes: 100 * MB,
   allowedDirectories: '/Users:/home:/tmp:/var/tmp',
   timeouts: DEFAULT_BRIDGE_TIMEOUT_CONFIG,
 };

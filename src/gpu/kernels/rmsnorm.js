@@ -6,7 +6,7 @@ import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { trace } from '../../debug/index.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
 
@@ -106,8 +106,10 @@ export async function runRMSNorm(
   const pipeline = await getPipelineFast('rmsnorm', variant, null, constants);
 
   // Create output buffer if not provided
+  // Pad to Q4K alignment (256) so downstream Q4K matmul can read full blocks
   const bytesPerElement = isF16 ? 2 : 4;
-  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
+  const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
+  const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
   // Create uniform buffer
@@ -187,7 +189,9 @@ export async function recordRMSNorm(
   }
   // Resolve weight dtype via rule (explicit option or inferred from buffer)
   const weightDtype = resolveNormWeightDtype({ ...options, _weightBuffer: weight }, inferredHiddenSize);
-  const outputSize = batchSize * inferredHiddenSize * bytesPerElement;
+  // Pad to Q4K alignment (256) so downstream Q4K matmul can read full blocks
+  const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
+  const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
 
   // Define constants for the pipeline
   const constants = {

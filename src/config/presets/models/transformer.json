@@ -19,8 +19,7 @@
     },
     "ffn": {
       "activation": "silu",
-      "gatedActivation": true,
-      "fusedGateUp": false
+      "gatedActivation": true
     },
     "output": {
       "finalLogitSoftcapping": null,

@@ -32,7 +32,7 @@
     { "match": {}, "value": "f32" }
   ],
   "matmulSelection": [
-    { "match": { "canFused": true }, "value": { "variant": { "context": "q4kVariant" }, "useQ4KFused": true, "useGemv": false } },
+    { "match": { "isQ4K": true, "hasSubgroups": true, "fusedAllowed": true }, "value": { "variant": { "context": "q4kVariant" }, "useQ4KFused": true, "useGemv": false } },
     { "match": { "useGemv": true }, "value": { "variant": { "context": "gemvVariant" }, "useQ4KFused": false, "useGemv": true } },
     { "match": {}, "value": { "variant": { "context": "matmulVariant" }, "useQ4KFused": false, "useGemv": false } }
   ],

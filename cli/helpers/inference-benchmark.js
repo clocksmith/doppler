@@ -1,6 +1,6 @@
 
 
-import { runBenchmarkBuild, ensureServerRunning, createBrowserContext, installLocalDopplerRoutes } from './utils.js';
+import { ensureServerRunning, createBrowserContext, installLocalDopplerRoutes } from './utils.js';
 
 
 function buildBenchmarkScript(opts, modelPath) {
@@ -90,7 +90,6 @@ function buildBenchmarkScript(opts, modelPath) {
 
 
 export async function runFullInferenceBenchmark(opts) {
-  await runBenchmarkBuild(opts.verbose);
   if (!opts.noServer) {
     await ensureServerRunning(opts.baseUrl, opts.verbose);
   } else {

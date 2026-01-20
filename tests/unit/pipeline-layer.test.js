@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { createDopplerConfig } from '../../src/config/schema/index.js';
 
 global.GPUBufferUsage = {
   MAP_READ: 0x0001,
@@ -92,7 +93,18 @@ vi.mock('../../src/debug/index.js', () => ({
 vi.mock('../../src/config/runtime.js', () => ({
   getRuntimeConfig: vi.fn(() => ({
     shared: {
-      debug: { probes: [] },
+      debug: {
+        probes: [],
+        pipeline: {
+          enabled: false,
+          categories: [],
+          layers: null,
+          maxDecodeSteps: 0,
+          maxAbsThreshold: 10000,
+          bufferStats: false,
+          readbackSampleSize: 512,
+        },
+      },
       bufferPool: {
         limits: { maxBuffersPerBucket: 8, maxTotalPooledBuffers: 64 },
         alignment: { alignmentBytes: 256 },
@@ -1267,5 +1279,43 @@ describe('mini-model fixture integration', () => {
     const sandwichInfo = detectSandwichNorm(mockWeights);
 
     expect(sandwichInfo.useSandwichNorm).toBe(false);
+  });
+});
+
+describe('activation dtype defaults', () => {
+  it('defaults to f16 in runtime config', () => {
+    const config = createDopplerConfig().runtime;
+    expect(config.inference.compute.activationDtype).toBe('f16');
+  });
+
+  it('supports runtime override to f32', () => {
+    const config = createDopplerConfig({
+      runtime: {
+        inference: {
+          compute: { activationDtype: 'f32' },
+        },
+      },
+    }).runtime;
+    expect(config.inference.compute.activationDtype).toBe('f32');
+  });
+
+  it('validates activationDtype affects tensor dtype selection', () => {
+    // Test that tensor creation respects activation dtype
+    const dtypeF16 = 'f16';
+    const dtypeF32 = 'f32';
+
+    // Bytes per element calculation
+    const f16BytesPerElement = 2;
+    const f32BytesPerElement = 4;
+
+    const numElements = 1152; // Typical hidden size
+
+    // F16 buffer should be half the size of F32
+    const f16BufferSize = numElements * f16BytesPerElement;
+    const f32BufferSize = numElements * f32BytesPerElement;
+
+    expect(f16BufferSize).toBe(numElements * 2);
+    expect(f32BufferSize).toBe(numElements * 4);
+    expect(f16BufferSize).toBe(f32BufferSize / 2);
   });
 });

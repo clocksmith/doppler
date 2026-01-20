@@ -18,6 +18,7 @@ function makeManifest(inference, overrides = {}) {
     modelId: 'test-ffn-model',
     modelType: 'transformer',
     quantization: 'F16',
+    eos_token_id: 2,
     shards: [],
     totalSize: 0,
     tensorsFile: 'tensors.json',

@@ -78,11 +78,31 @@ vi.mock('../../src/debug/index.js', () => ({
   trace: {
     buffers: vi.fn(),
   },
+  isTraceEnabled: vi.fn(() => false),
 }));
 
 vi.mock('../../src/config/runtime.js', () => ({
   getRuntimeConfig: vi.fn(() => ({
     shared: {
+      debug: {
+        profiler: {
+          enabled: false,
+          queryCapacity: 256,
+          maxQueries: 16384,
+          defaultQueryLimit: 4096,
+          maxSamples: 100,
+          maxDurationMs: 60000,
+        },
+        pipeline: {
+          enabled: false,
+          categories: [],
+          layers: null,
+          maxDecodeSteps: 0,
+          maxAbsThreshold: 10000,
+          bufferStats: false,
+          readbackSampleSize: 512,
+        },
+      },
       bufferPool: {
         limits: {
           maxBuffersPerBucket: 8,

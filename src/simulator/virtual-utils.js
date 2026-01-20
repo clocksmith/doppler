@@ -1,7 +1,9 @@
 
+import { GB } from '../config/schema/index.js';
+
 export const MODULE = 'VirtualDevice';
 
-export const DEFAULT_VRAM_BUDGET_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
+export const DEFAULT_VRAM_BUDGET_BYTES = 2 * GB;
 
 let bufferIdCounter = 0;
 

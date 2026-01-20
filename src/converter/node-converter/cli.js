@@ -2,12 +2,11 @@
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { createConverterConfig } from '../../config/schema/index.js';
+import { createConverterConfig, MB } from '../../config/schema/index.js';
 
 const DEFAULT_CONFIG = createConverterConfig();
-const BYTES_PER_MB = 1024 * 1024;
 const DEFAULT_SHARD_SIZE_MB = Math.round(
-  DEFAULT_CONFIG.sharding.shardSizeBytes / BYTES_PER_MB
+  DEFAULT_CONFIG.sharding.shardSizeBytes / MB
 );
 
 
@@ -172,7 +171,7 @@ Quantization Options:
   --vision-quant <type>      Vision encoder quantization (multimodal models)
   --audio-quant <type>       Audio encoder quantization (speech models)
   --projector-quant <type>   Cross-modal projector quantization
-  --q4k-layout <layout>      Q4K layout: flat, row_wise, column_wise (default: column_wise)
+  --q4k-layout <layout>      Q4K layout: row (fused, fast), col (dequant fallback) (default: row)
 
 Runtime Plan (stored in manifest, not in filename):
   --compute-precision <p> Compute precision hint: f16, f32, auto (default: f16)

@@ -1,5 +1,5 @@
 
-
+import { KB, MB } from '../../config/schema/index.js';
 import { log as debugLog } from '../../debug/index.js';
 
 
@@ -30,7 +30,7 @@ export function logConversionComplete(manifestPath, shardCount, tensorCount, tot
   console.log(`  Manifest: ${manifestPath}`);
   console.log(`  Shards: ${shardCount}`);
   console.log(`  Tensors: ${tensorCount}`);
-  console.log(`  Size: ${(totalSize / (1024 * 1024)).toFixed(1)} MB`);
+  console.log(`  Size: ${(totalSize / MB).toFixed(1)} MB`);
 }
 
 
@@ -39,7 +39,7 @@ export function logTestFixtureComplete(manifestPath, shardCount, tensorCount, to
   console.log(`  Manifest: ${manifestPath}`);
   console.log(`  Shards: ${shardCount}`);
   console.log(`  Tensors: ${tensorCount}`);
-  console.log(`  Size: ${(totalSize / 1024).toFixed(1)} KB`);
+  console.log(`  Size: ${(totalSize / KB).toFixed(1)} KB`);
 }
 
 

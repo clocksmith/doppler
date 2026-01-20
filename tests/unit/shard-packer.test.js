@@ -5,6 +5,7 @@ import {
   sortTensorsByGroup,
   estimateShardCount,
 } from '../../src/converter/shard-packer.js';
+import { SHARD_SIZE } from '../../src/config/schema/index.js';
 
 
 class MockShardIO {
@@ -37,6 +38,16 @@ class MockShardIO {
   }
 }
 
+const DEFAULT_PACKER_OPTIONS = {
+  shardSize: 1024,
+  hashAlgorithm: 'sha256',
+  modelType: 'transformer',
+};
+
+function createPacker(io, overrides = {}) {
+  return new ShardPacker(io, { ...DEFAULT_PACKER_OPTIONS, ...overrides });
+}
+
 
 function createTensor(name, size, shape = [size]) {
   return {
@@ -60,7 +71,7 @@ describe('ShardPacker', () => {
   describe('pack', () => {
     it('packs small tensors into single shard', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('model.embed', 100),
@@ -79,7 +90,7 @@ describe('ShardPacker', () => {
     it('splits large tensor across multiple shards', async () => {
       const io = new MockShardIO();
       const shardSize = 100;
-      const packer = new ShardPacker(io, { shardSize });
+      const packer = createPacker(io, { shardSize });
 
       // Tensor larger than one shard
       const tensors = [createTensor('large.tensor', 250)];
@@ -100,7 +111,7 @@ describe('ShardPacker', () => {
 
     it('records single-shard tensor location correctly', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('tensor.a', 100),
@@ -123,7 +134,7 @@ describe('ShardPacker', () => {
 
     it('records multi-span tensor location correctly', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 64 });
+      const packer = createPacker(io, { shardSize: 64 });
 
       const tensors = [createTensor('spanning.tensor', 150)];
 
@@ -141,7 +152,7 @@ describe('ShardPacker', () => {
 
     it('classifies tensors into component groups', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('model.embed_tokens.weight', 100),
@@ -164,7 +175,7 @@ describe('ShardPacker', () => {
 
     it('calls progress callback for each tensor', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('tensor.a', 100),
@@ -188,7 +199,7 @@ describe('ShardPacker', () => {
 
     it('throws on abort signal', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const controller = new AbortController();
       controller.abort();
@@ -201,7 +212,7 @@ describe('ShardPacker', () => {
 
     it('flushes final partial shard', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1000 });
+      const packer = createPacker(io, { shardSize: 1000 });
 
       // Total 500 bytes, less than shard size
       const tensors = [
@@ -218,7 +229,7 @@ describe('ShardPacker', () => {
 
     it('handles empty tensor list', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const result = await packer.pack([]);
 
@@ -228,23 +239,16 @@ describe('ShardPacker', () => {
       expect(Object.keys(result.tensors).length).toBe(0);
     });
 
-    it('uses default shard size when not specified', async () => {
+    it('requires shard size in constructor', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io); // No options
-
-      // Create tensor smaller than default 64MB
-      const tensors = [createTensor('small', 1000)];
-
-      const result = await packer.pack(tensors);
-
-      expect(result.shards.length).toBe(1);
+      expect(() => new ShardPacker(io)).toThrow('Missing shard size for shard packer');
     });
   });
 
   describe('buildGroups', () => {
     it('creates embed/layer/head groups', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('model.embed_tokens.weight', 100),
@@ -261,7 +265,7 @@ describe('ShardPacker', () => {
 
     it('extracts layer indices from group IDs', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       const tensors = [
         createTensor('model.layers.5.weight', 100),
@@ -276,7 +280,7 @@ describe('ShardPacker', () => {
 
     it('extracts expert indices for MoE', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024, modelType: 'mixtral' });
+      const packer = createPacker(io, { modelType: 'mixtral' });
 
       const tensors = [
         createTensor('model.layers.0.block_sparse_moe.experts.0.w1.weight', 100),
@@ -292,7 +296,7 @@ describe('ShardPacker', () => {
 
     it('tracks which shards each group spans', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 100 });
+      const packer = createPacker(io, { shardSize: 100 });
 
       const tensors = [
         createTensor('model.embed_tokens.weight', 250), // Spans 3 shards
@@ -307,7 +311,7 @@ describe('ShardPacker', () => {
   describe('reset', () => {
     it('clears state for reuse', async () => {
       const io = new MockShardIO();
-      const packer = new ShardPacker(io, { shardSize: 1024 });
+      const packer = createPacker(io);
 
       // First pack
       await packer.pack([createTensor('first', 100)]);
@@ -384,7 +388,7 @@ describe('estimateShardCount', () => {
     ];
 
     // Total: 600 bytes, default shard size 64MB
-    const count = estimateShardCount(tensors);
+    const count = estimateShardCount(tensors, SHARD_SIZE);
     expect(count).toBe(1); // All fit in one shard
   });
 
@@ -407,7 +411,7 @@ describe('estimateShardCount', () => {
   });
 
   it('returns zero for empty tensor list', () => {
-    const count = estimateShardCount([]);
+    const count = estimateShardCount([], SHARD_SIZE);
     expect(count).toBe(0);
   });
 });

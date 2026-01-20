@@ -148,6 +148,50 @@ test.describe('Attention Kernel', () => {
     });
   });
 
+  test.describe('Q/K normalization with weight offset', () => {
+    test('should apply (1+w) formula when rmsNormWeightOffset=true', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const seqLen = 4;
+        const numHeads = 2;
+        const headDim = 8;
+
+        // Q values that will be normalized
+        const Q = new Float32Array(seqLen * numHeads * headDim);
+        for (let i = 0; i < Q.length; i++) Q[i] = 1.0;
+
+        // Q norm weight = zeros
+        const qNormWeight = new Float32Array(headDim);
+        for (let i = 0; i < headDim; i++) qNormWeight[i] = 0.0;
+
+        const gpu = await window.testHarness.getGPU();
+
+        // With offset=false: result = x/rms * 0 = 0
+        const qNoOffset = await window.testHarness.runRMSNorm(
+          gpu.device, Q, qNormWeight, seqLen * numHeads, headDim, 1e-6,
+          { rmsNormWeightOffset: false }
+        );
+
+        // With offset=true: result = x/rms * (1+0) = x/rms
+        const qWithOffset = await window.testHarness.runRMSNorm(
+          gpu.device, Q, qNormWeight, seqLen * numHeads, headDim, 1e-6,
+          { rmsNormWeightOffset: true }
+        );
+
+        // Without offset, output should be ~0
+        const noOffsetMaxAbs = Math.max(...Array.from(qNoOffset).map(Math.abs));
+        // With offset, output should be non-zero (~1.0 since input is ones)
+        const withOffsetMaxAbs = Math.max(...Array.from(qWithOffset).map(Math.abs));
+
+        return { noOffsetMaxAbs, withOffsetMaxAbs };
+      });
+
+      // No offset: weight of 0 → output ≈ 0
+      expect(result.noOffsetMaxAbs).toBeLessThan(1e-5);
+      // With offset: (1+0)=1 → output ≈ 1.0 (normalized ones)
+      expect(result.withOffsetMaxAbs).toBeGreaterThan(0.9);
+    });
+  });
+
   test.describe('Numerical stability', () => {
     test('should handle large attention scores', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async () => {

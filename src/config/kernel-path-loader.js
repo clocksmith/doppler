@@ -11,6 +11,7 @@ import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a
 import gemma2F16F16A from './presets/kernel-paths/gemma2-f16-f16a.json' with { type: 'json' };
 import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { type: 'json' };
 import gemma3F16F16A from './presets/kernel-paths/gemma3-f16-f16a.json' with { type: 'json' };
+import gemma3Q4kFusedF16A from './presets/kernel-paths/gemma3-q4k-fused-f16a.json' with { type: 'json' };
 import gemma3Q4kDequantF16A from './presets/kernel-paths/gemma3-q4k-dequant-f16a.json' with { type: 'json' };
 
 const KERNEL_PATH_REGISTRY = {
@@ -25,6 +26,7 @@ const KERNEL_PATH_REGISTRY = {
 
   // Gemma 3 variants
   'gemma3-f16-f16a': gemma3F16F16A,
+  'gemma3-q4k-fused-f16a': gemma3Q4kFusedF16A,
   'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
 };
 

@@ -337,11 +337,13 @@ async function runDebugMode(page, opts, context) {
     generationError = true;
   });
 
+  // Strip 'models/' prefix if present - harness BASE_URL already includes /models
+  const modelId = opts.model.replace(/^models\//, '');
   setHarnessConfig(opts, {
     mode: 'inference',
     autorun: true,
     skipLoad: opts.skipLoad,
-    modelId: opts.model,
+    modelId,
   });
 
   const debugParams = new URLSearchParams();

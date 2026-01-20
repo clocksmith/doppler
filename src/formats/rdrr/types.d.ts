@@ -41,7 +41,7 @@ export type TensorRole = SchemaTensorRole;
 // Kernel Types
 // =============================================================================
 
-export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise';
+export type Q4KLayout = 'row' | 'col' | null;
 
 // =============================================================================
 // Manifest Types
