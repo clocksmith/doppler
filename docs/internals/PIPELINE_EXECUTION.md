@@ -1220,7 +1220,7 @@ graph TD
     end
 
     subgraph Stage2["2. Conversion"]
-        Conv["node-converter.js<br/>--quantize q4_k_m<br/>--q4k-layout column_wise<br/>--compute-precision auto"]
+        Conv["node-converter.js (config-only)<br/>weights=q4_k_m<br/>q4kLayout=col<br/>computePrecision=auto"]
     end
 
     subgraph Stage3["3. RDRR Output"]
@@ -2013,7 +2013,7 @@ fn main(@builtin(local_invocation_id) lid: vec3<u32>) {
 
 ### Current Mitigation
 
-- Converter defaults to `--q4k-layout column_wise`
+- Set `converter.quantization.q4kLayout="col"` when fused Q4K is inefficient for small K
 - Use kernel path overrides (`gemma2-q4k-dequant-f16a` / `gemma2-q4k-dequant-f32a`) to bypass fused Q4K when needed
 - Fused kernel still available for future optimization
 
@@ -2581,18 +2581,18 @@ Norms:       BF16 → F32 (for numerical stability)
 
 ## Available Quantization Functions
 
-- `quantizeToQ4KMColumnWise(data, shape)` - Column-aligned Q4K blocks **(DEFAULT)**
+- `quantizeToQ4KMColumnWise(data, shape)` - Column-aligned Q4K blocks (layout=col)
 - `quantizeToQ4KMRowWise(data, shape)` - Row-aligned Q4K blocks
 - `quantizeToQ4KM(data, shape)` - Flat sequential packing
 - `getQ4KSize(shape, layout)` - Calculate expected Q4K size
 
 **Usage:**
 ```bash
-# Convert with column-wise Q4K (default - fastest for GEMV decode)
-npx tsx doppler/src/converter/node-converter.js model/ output/ --quantize q4_k_m
+# Convert with column-wise Q4K (set converter.quantization.q4kLayout="col")
+doppler --config ./tmp-q4k-col.json
 
-# Explicitly specify layout
-npx tsx doppler/src/converter/node-converter.js model/ output/ --quantize q4_k_m --q4k-layout column_wise
+# Explicitly specify layout (row or col) in converter config
+doppler --config ./tmp-q4k-row.json
 ```
 
 ---
@@ -2834,9 +2834,11 @@ explicitly in a config preset.
 
 ### Kernel Changes
 
-1. `npm test -- --filter matmul`
-2. `npm test -- --filter rmsnorm`
-3. `npm run bench -- --config <ref>`
+1. `doppler --config <ref>`
+   - `<ref>`: `cli.command="test"`, `cli.suite="kernels"`, `cli.filter="matmul"`
+2. `doppler --config <ref>`
+   - `<ref>`: `cli.command="test"`, `cli.suite="kernels"`, `cli.filter="rmsnorm"`
+3. `doppler --config <ref>`
    - `<ref>`: `cli.command="bench"`, `cli.suite="kernels"`
 
 ### Inference Changes

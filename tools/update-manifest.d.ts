@@ -1,22 +1,18 @@
 /**
  * Update manifest settings without touching shards.
  *
- * Safe edits (default):
- * - optimizations.kernelPath
- *
- * Unsafe edits (require --allow-unsafe):
- * - config.q4kLayout
- * - defaultWeightLayout
+ * Config requirements (tools.updateManifest):
+ * - input (string, required)
+ * - kernelPath (string|object|null)
+ * - clearKernelPath (boolean)
+ * - q4kLayout (string|null)
+ * - defaultWeightLayout (string|null)
+ * - allowUnsafe (boolean)
+ * - dryRun (boolean)
  */
 
 export interface UpdateOptions {
-  input: string | null;
-  kernelPath: string | Record<string, unknown> | null;
-  clearKernelPath: boolean;
-  q4kLayout: string | null;
-  defaultWeightLayout: string | null;
-  allowUnsafe: boolean;
-  dryRun: boolean;
+  config: string | null;
   help: boolean;
 }
 

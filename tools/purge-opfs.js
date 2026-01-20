@@ -2,63 +2,35 @@
 
 
 import { resolve } from 'path';
+import { loadConfig } from '../cli/config/index.js';
 import { ensureServerRunning, createBrowserContext, setupPage } from '../cli/helpers/utils.js';
 import { DEFAULT_OPFS_PATH_CONFIG } from '../src/config/schema/loading.schema.js';
 
 
 function parseArgs(argv) {
-  
-  const opts = {
-    model: null,
-    baseUrl: 'http://localhost:8080',
-    headless: true,
-    noServer: false,
-    profileDir: null,
-    verbose: false,
-    help: false,
-  };
-
+  const opts = { config: null, help: false };
   let i = 0;
   while (i < argv.length) {
     const arg = argv[i];
-    switch (arg) {
-      case '--help':
-      case '-h':
-        opts.help = true;
-        break;
-      case '--model':
-      case '-m':
-        opts.model = argv[++i] || null;
-        break;
-      case '--base-url':
-      case '-u':
-        opts.baseUrl = argv[++i] || opts.baseUrl;
-        break;
-      case '--headless':
-        opts.headless = true;
-        break;
-      case '--headed':
-        opts.headless = false;
-        break;
-      case '--no-server':
-        opts.noServer = true;
-        break;
-      case '--profile-dir':
-        opts.profileDir = argv[++i] || null;
-        break;
-      case '--verbose':
-      case '-v':
-        opts.verbose = true;
-        break;
-      default:
-        if (!arg.startsWith('-') && !opts.model) {
-          opts.model = arg;
-        }
-        break;
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i++;
+      continue;
     }
-    i++;
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i++;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
   }
-
   return opts;
 }
 
@@ -68,16 +40,17 @@ function printHelp() {
 Purge a model from OPFS cache.
 
 Usage:
-  node purge-opfs.js --model <model-id> [options]
+  doppler --config <ref>
+
+Config requirements:
+  model (string, required)
+  cli.baseUrl (string, required)
+  cli.noServer (boolean, required)
+  cli.headless (boolean, required)
+  cli.profileDir (string|null, required)
 
 Options:
-  --model, -m <id>      Model ID to delete (required)
-  --base-url, -u <url>  Base URL (default: http://localhost:8080)
-  --no-server           Serve assets from disk via Playwright routing
-  --profile-dir <path>  Persistent browser profile dir (OPFS cache)
-  --headless            Run headless (default)
-  --headed              Run with visible browser window
-  --verbose, -v         Verbose logging
+  --config, -c <ref>    Config preset or path
   --help, -h            Show this help
 `);
 }
@@ -89,13 +62,28 @@ async function main() {
     printHelp();
     process.exit(0);
   }
-  if (!opts.model) {
-    console.error('Error: --model is required');
+  if (!opts.config) {
+    console.error('Error: --config is required');
     process.exit(1);
   }
 
-  if (!opts.noServer) {
-    await ensureServerRunning(opts.baseUrl, opts.verbose);
+  const loaded = await loadConfig(opts.config);
+  const raw = loaded.raw ?? {};
+  const runtime = loaded.runtime ?? {};
+  const modelId = raw.model;
+  const cli = raw.cli ?? null;
+
+  if (typeof modelId !== 'string' || modelId.trim() === '') {
+    throw new Error('model is required in config');
+  }
+  if (!cli) {
+    throw new Error('cli is required in config');
+  }
+
+  const verbose = runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose';
+
+  if (!cli.noServer) {
+    await ensureServerRunning(cli.baseUrl, verbose);
   } else {
     console.log('No-server mode enabled (serving assets from disk)...');
   }
@@ -104,16 +92,16 @@ async function main() {
   const cliOptions = {
     command: 'test',
     suite: 'quick',
-    model: opts.model,
-    baseUrl: opts.baseUrl,
-    noServer: opts.noServer,
-    headless: opts.headless,
-    minimized: false,
-    reuseBrowser: true,
-    cdpEndpoint: 'http://localhost:9222',
-    verbose: opts.verbose,
-    timeout: 60000,
-    profileDir: opts.profileDir,
+    model: modelId,
+    baseUrl: cli.baseUrl,
+    noServer: cli.noServer,
+    headless: cli.headless,
+    minimized: cli.minimized,
+    reuseBrowser: cli.reuseBrowser,
+    cdpEndpoint: cli.cdpEndpoint,
+    verbose,
+    timeout: cli.timeout,
+    profileDir: cli.profileDir,
     quiet: true,
     help: false,
     perf: false,
@@ -129,7 +117,7 @@ async function main() {
     const url = `${opts.baseUrl}/d`;
     await page.goto(url, { timeout: 30000 });
     const opfsRootDir = DEFAULT_OPFS_PATH_CONFIG.opfsRootDir || 'doppler-models';
-    const deleted = await page.evaluate(async ( params) => {
+    const deleted = await page.evaluate(async (params) => {
       const { modelId, rootDir } = params;
       // Access OPFS directly in browser context
       const root = await navigator.storage.getDirectory();
@@ -152,12 +140,12 @@ async function main() {
       } catch {
         return false;
       }
-    }, { modelId: opts.model, rootDir: opfsRootDir });
+    }, { modelId, rootDir: opfsRootDir });
 
     if (deleted) {
-      console.log(`OPFS purge complete: ${opts.model}`);
+      console.log(`OPFS purge complete: ${modelId}`);
     } else {
-      console.log(`No OPFS entry found for: ${opts.model}`);
+      console.log(`No OPFS entry found for: ${modelId}`);
     }
   } finally {
     await context.close();

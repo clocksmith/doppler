@@ -1,31 +1,90 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { loadConfig } from '../cli/config/index.js';
 import { validateManifest } from '../src/adapters/adapter-manifest.js';
 
 function parseArgs(argv) {
-  const args = { manifest: null, out: null };
-  for (let i = 0; i < argv.length; i += 1) {
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
     const arg = argv[i];
-    if (arg === '--manifest') {
-      args.manifest = argv[i + 1];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
       i += 1;
-    } else if (arg === '--out') {
-      args.out = argv[i + 1];
-      i += 1;
+      continue;
     }
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i += 1;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
   }
-  return args;
+  return opts;
+}
+
+function printHelp() {
+  console.log(`
+RDRR-LoRA to GGUF plan helper.
+
+Usage:
+  doppler --config <ref>
+
+Config requirements:
+  tools.rdrrLoraToGguf.manifest (string, required)
+  tools.rdrrLoraToGguf.outputDir (string|null, optional)
+`);
+}
+
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  assertString(value, label);
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  if (!args.manifest) {
-    console.error('Usage: node tools/rdrr-lora-to-gguf.js --manifest adapter.json [--out ./out]');
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.help) {
+    printHelp();
+    process.exit(0);
+  }
+  if (!parsed.config) {
+    console.error('Error: --config is required');
+    printHelp();
     process.exit(1);
   }
 
-  const manifestPath = resolve(args.manifest);
-  const outDir = args.out ? resolve(args.out) : process.cwd();
+  const loaded = await loadConfig(parsed.config);
+  const raw = loaded.raw ?? {};
+  assertObject(raw.tools, 'tools');
+  const toolConfig = raw.tools?.rdrrLoraToGguf;
+  if (!toolConfig || typeof toolConfig !== 'object') {
+    throw new Error('tools.rdrrLoraToGguf is required in config');
+  }
+
+  assertString(toolConfig.manifest, 'tools.rdrrLoraToGguf.manifest');
+  assertStringOrNull(toolConfig.outputDir ?? null, 'tools.rdrrLoraToGguf.outputDir');
+
+  const manifestPath = resolve(toolConfig.manifest);
+  const outDir = toolConfig.outputDir ? resolve(toolConfig.outputDir) : process.cwd();
   const manifestText = await readFile(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestText);
   const validation = validateManifest(manifest);

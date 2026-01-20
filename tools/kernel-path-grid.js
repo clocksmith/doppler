@@ -10,108 +10,52 @@ import { loadConfig } from '../cli/config/index.js';
 const PROJECT_ROOT = resolve(new URL('.', import.meta.url).pathname, '..');
 const KERNEL_PATH_DIR = join(PROJECT_ROOT, 'src', 'config', 'presets', 'kernel-paths');
 
-const DEFAULTS = {
-  model: 'gemma-2-2b-it-wf16',
-  config: 'bench',
-  retries: 2,
-  noServer: true,
-  profileDirBase: '.benchmark-grid-cache',
-  outputDir: 'tests/results',
-  kernelPrefix: null,
-  kernelPaths: null,
-  includeF32A: false,
-};
-
 function printHelp() {
   console.log(`
 Kernel Path Grid Benchmark
 
 Usage:
-  node tools/kernel-path-grid.js [options]
+  doppler --config <ref>
 
-Options:
-  --model <id>            Model id (default: ${DEFAULTS.model})
-  --config <ref>          Base runtime config (default: ${DEFAULTS.config})
-  --retries <n>           Retries per run (default: ${DEFAULTS.retries})
-  --no-server             Use Playwright local routing (default: on)
-  --profile-dir-base <p>  Profile dir base (default: ${DEFAULTS.profileDirBase})
-  --output-dir <p>        Output directory (default: ${DEFAULTS.outputDir})
-  --kernel-prefix <p>     Filter kernel path ids by prefix
-  --kernel-paths <ids>    Comma-separated kernel path ids (overrides prefix)
-  --include-f32a          Include f32 activation kernel paths
-  --help                  Show help
-
-Examples:
-  node tools/kernel-path-grid.js --model gemma-2-2b-it-wf16 --kernel-prefix gemma2
-  node tools/kernel-path-grid.js --kernel-paths gemma2-f16-f16a,gemma2-f16-f32a
+Config requirements:
+  model (string, required)
+  cli (object, required)
+  tools.kernelPathGrid.outputDir (string)
+  tools.kernelPathGrid.profileDirBase (string|null)
+  tools.kernelPathGrid.kernelPrefix (string|null)
+  tools.kernelPathGrid.kernelPaths (string[]|null)
+  tools.kernelPathGrid.includeF32A (boolean)
 
 Notes:
   Kernel selection is config-only; this tool writes a config file per kernel path.
+  Provide either kernelPrefix or kernelPaths (one required).
 `);
 }
 
 function parseArgs(argv) {
-  const opts = { ...DEFAULTS };
-  const args = [...argv];
-
-  while (args.length) {
-    const arg = args.shift();
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
     if (arg === '--help' || arg === '-h') {
-      printHelp();
-      process.exit(0);
-    }
-    if (arg === '--no-server') {
-      opts.noServer = true;
+      opts.help = true;
+      i++;
       continue;
     }
-    if (arg === '--include-f32a') {
-      opts.includeF32A = true;
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
       continue;
     }
-    if (!arg || !arg.startsWith('--')) {
-      console.error(`Unknown argument: ${arg}`);
-      printHelp();
-      process.exit(1);
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i++;
+      continue;
     }
-    const key = arg.slice(2);
-    const value = args.shift();
-    if (value == null) {
-      console.error(`Missing value for --${key}`);
-      process.exit(1);
-    }
-    switch (key) {
-      case 'model':
-        opts.model = value;
-        break;
-      case 'config':
-        opts.config = value;
-        break;
-      case 'retries':
-        opts.retries = Number(value);
-        break;
-      case 'profile-dir-base':
-        opts.profileDirBase = value;
-        break;
-      case 'output-dir':
-        opts.outputDir = value;
-        break;
-      case 'kernel-prefix':
-        opts.kernelPrefix = value;
-        break;
-      case 'kernel-paths':
-        opts.kernelPaths = value.split(',').map((v) => v.trim()).filter(Boolean);
-        break;
-      default:
-        console.error(`Unknown option: --${key}`);
-        process.exit(1);
-    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
   }
-
-  if (Number.isNaN(opts.retries) || opts.retries < 0) {
-    console.error('Invalid --retries value');
-    process.exit(1);
-  }
-
   return opts;
 }
 
@@ -133,13 +77,56 @@ function inferKernelWeightType(id) {
   return null;
 }
 
-function deriveKernelPrefix(modelId) {
-  const lower = modelId.toLowerCase();
-  if (lower.includes('gemma-2') || lower.includes('gemma2')) return 'gemma2';
-  if (lower.includes('gemma-3') || lower.includes('gemma3')) return 'gemma3';
-  if (lower.includes('llama-3') || lower.includes('llama3')) return 'llama3';
-  if (lower.includes('qwen3')) return 'qwen3';
-  return null;
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertStringArray(value, label) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array`);
+  }
+  for (const entry of value) {
+    if (typeof entry !== 'string' || entry.trim() === '') {
+      throw new Error(`${label} entries must be non-empty strings`);
+    }
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string or null`);
+  }
+}
+
+function assertBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function assertNumber(value, label, { min = null } = {}) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new Error(`${label} must be a number`);
+  }
+  if (min !== null && value < min) {
+    throw new Error(`${label} must be >= ${min}`);
+  }
+}
+
+function assertIntent(value) {
+  const allowed = new Set(['calibrate', 'investigate']);
+  if (!allowed.has(value)) {
+    throw new Error('runtime.shared.tooling.intent must be "calibrate" or "investigate"');
+  }
 }
 
 async function loadKernelPathIds(prefix, explicitList) {
@@ -179,33 +166,29 @@ async function runBench(opts, kernelId, runtimeConfig) {
     },
   };
   const configPayload = {
+    model: opts.model,
+    cli: {
+      ...opts.cli,
+      command: 'bench',
+      suite: 'inference',
+      output: outputFile,
+      profileDir,
+    },
     runtime,
   };
   await writeFile(configFile, JSON.stringify(configPayload, null, 2), 'utf-8');
 
   const args = [
-    'run',
-    'bench',
-    '--',
-    'inference',
+    'cli/index.js',
     '--config',
     configFile,
-    '--model',
-    opts.model,
-    '--retries',
-    String(opts.retries),
-    '--output',
-    outputFile,
   ];
-
-  if (opts.noServer) args.push('--no-server');
-  if (profileDir) args.push('--profile-dir', profileDir);
 
   console.log(`\n==> ${kernelId}`);
   console.log(`    output: ${outputFile}`);
 
   const result = await new Promise((resolvePromise) => {
-    const child = spawn('npm', args, {
+    const child = spawn(process.execPath, args, {
       stdio: 'inherit',
       cwd: PROJECT_ROOT,
       env: process.env,
@@ -235,12 +218,78 @@ function formatNumber(value) {
 }
 
 async function main() {
-  const opts = parseArgs(process.argv.slice(2));
-  const loadedConfig = await loadConfig(opts.config);
-  const runtimeConfig = loadedConfig.runtime;
-  if (!opts.kernelPrefix && !opts.kernelPaths?.length) {
-    opts.kernelPrefix = deriveKernelPrefix(opts.model);
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    printHelp();
+    process.exit(0);
   }
+  if (!args.config) {
+    console.error('Error: --config is required');
+    console.error('Run with --help for usage.');
+    process.exit(1);
+  }
+
+  const loadedConfig = await loadConfig(args.config);
+  const raw = loadedConfig.raw ?? {};
+  assertString(raw.model, 'model');
+
+  assertObject(raw.cli, 'cli');
+  const cli = raw.cli;
+  const requiredCli = [
+    'command', 'suite', 'baseUrl', 'noServer', 'headless', 'minimized',
+    'reuseBrowser', 'cdpEndpoint', 'timeout', 'retries', 'profileDir',
+    'output', 'html', 'compare', 'filter',
+  ];
+  for (const key of requiredCli) {
+    if (!(key in cli)) throw new Error(`cli.${key} is required`);
+  }
+  assertString(cli.command, 'cli.command');
+  assertStringOrNull(cli.suite, 'cli.suite');
+  assertString(cli.baseUrl, 'cli.baseUrl');
+  assertBoolean(cli.noServer, 'cli.noServer');
+  assertBoolean(cli.headless, 'cli.headless');
+  assertBoolean(cli.minimized, 'cli.minimized');
+  assertBoolean(cli.reuseBrowser, 'cli.reuseBrowser');
+  assertStringOrNull(cli.cdpEndpoint, 'cli.cdpEndpoint');
+  assertNumber(cli.timeout, 'cli.timeout', { min: 1 });
+  assertNumber(cli.retries, 'cli.retries', { min: 0 });
+  assertStringOrNull(cli.profileDir, 'cli.profileDir');
+  assertStringOrNull(cli.output, 'cli.output');
+  assertStringOrNull(cli.html, 'cli.html');
+  assertStringOrNull(cli.compare, 'cli.compare');
+  assertStringOrNull(cli.filter, 'cli.filter');
+
+  const runtimeConfig = loadedConfig.runtime;
+  const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
+  if (!intent) {
+    throw new Error('runtime.shared.tooling.intent is required');
+  }
+  assertIntent(intent);
+
+  assertObject(raw.tools, 'tools');
+  assertObject(raw.tools.kernelPathGrid, 'tools.kernelPathGrid');
+  const tool = raw.tools.kernelPathGrid;
+  assertString(tool.outputDir, 'tools.kernelPathGrid.outputDir');
+  assertStringOrNull(tool.profileDirBase, 'tools.kernelPathGrid.profileDirBase');
+  assertStringOrNull(tool.kernelPrefix, 'tools.kernelPathGrid.kernelPrefix');
+  if (tool.kernelPaths !== null && tool.kernelPaths !== undefined) {
+    assertStringArray(tool.kernelPaths, 'tools.kernelPathGrid.kernelPaths');
+  }
+  assertBoolean(tool.includeF32A, 'tools.kernelPathGrid.includeF32A');
+
+  if (!tool.kernelPrefix && (!tool.kernelPaths || tool.kernelPaths.length === 0)) {
+    throw new Error('tools.kernelPathGrid.kernelPrefix or kernelPaths is required');
+  }
+
+  const opts = {
+    model: raw.model,
+    cli,
+    outputDir: tool.outputDir,
+    profileDirBase: tool.profileDirBase,
+    kernelPrefix: tool.kernelPrefix,
+    kernelPaths: tool.kernelPaths ?? null,
+    includeF32A: tool.includeF32A,
+  };
 
   const kernelIds = await loadKernelPathIds(opts.kernelPrefix, opts.kernelPaths);
   if (!kernelIds.length) {

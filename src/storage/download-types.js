@@ -41,3 +41,8 @@ export function getCdnBasePath() {
 export function getProgressUpdateIntervalMs() {
   return getDistributionConfig().progressUpdateIntervalMs;
 }
+
+
+export function getRequiredContentEncoding() {
+  return getDistributionConfig().requiredContentEncoding;
+}

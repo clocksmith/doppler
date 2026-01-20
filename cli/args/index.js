@@ -15,6 +15,7 @@ export function parseArgs(argv) {
   const opts = {
     command: null,
     suite: null,
+    tool: null,
     model: null,
     baseUrl: null,
     config: null,

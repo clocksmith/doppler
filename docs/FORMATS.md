@@ -473,10 +473,10 @@ This ensures compatibility across converter versions.
 
 ```bash
 # From GGUF
-npx tsx src/converter/node-converter.js model.gguf ./output-rdrr
+doppler --config ./tmp-gguf-convert.json
 
 # From Safetensors (HuggingFace format)
-npx tsx src/converter/node-converter.js ./hf-model-dir ./output-rdrr --quantize q4_k_m
+doppler --config ./tmp-hf-convert.json
 
 Browser conversion is also available via `src/browser/browser-converter.js` with OPFS output.
 The Node converter is the primary workflow today; browser conversion is still maturing.
@@ -486,10 +486,28 @@ The Node converter is the primary workflow today; browser conversion is still ma
 
 ```bash
 # Serve converted model
-npx tsx cli/commands/serve.js ./model-rdrr --port 8765
+doppler --config ./tmp-serve-rdrr.json
 
 # Convert and serve in one step
-npx tsx cli/commands/serve.js model.gguf
+doppler --config ./tmp-serve-gguf.json
+```
+
+Example config:
+
+```json
+{
+  "cli": {
+    "command": "tool",
+    "tool": "serve"
+  },
+  "tools": {
+    "serve": {
+      "input": "./model-rdrr",
+      "port": 8765,
+      "open": true
+    }
+  }
+}
 ```
 
 ### Loading in Browser
@@ -631,7 +649,7 @@ RDRR-LoRA is optimized for Doppler. If you need GGUF:
 An optional helper script is provided:
 
 ```
-node tools/rdrr-lora-to-gguf.js --manifest adapter.json --out ./out
+doppler --config ./tmp-rdrr-lora-to-gguf.json
 ```
 
 The script emits recommended conversion steps and paths, but does not run external tools.

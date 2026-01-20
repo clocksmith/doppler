@@ -416,16 +416,10 @@ huggingface-cli download google/gemma-2-9b-it
 ## Conversion Commands
 
 ```bash
-# After downloading, convert to RDRR format (Node CLI):
-npx tsx src/converter/node-converter.js \
-  ~/.cache/huggingface/hub/models--microsoft--Phi-3.5-mini-instruct/snapshots/<hash>/ \
-  models/phi-3.5-mini \
-  --quantize q4_k_m
-
-npx tsx src/converter/node-converter.js \
-  ~/.cache/huggingface/hub/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/<hash>/ \
-  models/llama-3.1-8b \
-  --quantize q4_k_m
+# After downloading, convert to RDRR format (Node CLI, config-only):
+# Set converter.paths.input/output and converter.quantization.weights="q4_k_m"
+doppler --config ./tmp-phi-3.5-mini.json
+doppler --config ./tmp-llama-3.1-8b.json
 
 # Browser conversion is also supported via src/browser/browser-converter.js (OPFS output).
 ```

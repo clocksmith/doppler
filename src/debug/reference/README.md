@@ -1,6 +1,6 @@
 # Reference Model Debug Scripts
 
-These scripts run the original SafeTensor model weights via PyTorch/transformers to compare against DOPPLER's quantized inference. Use these to isolate whether bugs are in DOPPLER's kernels, weight loading, or architecture implementation.
+These scripts run the original SafeTensor model weights via PyTorch/transformers to compare against DOPPLER's quantized inference. Use these to isolate whether bugs are in DOPPLER's kernels, weight loading, or architecture implementation. They are config-only and accept a single JSON config path (no flags).
 
 ## Setup
 
@@ -13,36 +13,82 @@ pip install torch transformers
 ### hf_embed_check.py
 Compare embeddings and layer 0 outputs.
 
+```json
+// tmp-hf-embed.json
+{
+  "model": "google/gemma-2-2b-it",
+  "prompt": "The color of the sky is"
+}
+```
+
 ```bash
-python hf_embed_check.py --model google/gemma-2-2b-it --prompt "The color of the sky is"
+python hf_embed_check.py ./tmp-hf-embed.json
 ```
 
 ### hf_attn_debug.py
 Full attention debug: traces input_norm -> Q/K/V projections.
 
+```json
+// tmp-hf-attn.json
+{
+  "model": "google/gemma-2-2b-it",
+  "prompt": "The color of the sky is",
+  "layer": 0
+}
+```
+
 ```bash
-python hf_attn_debug.py --model google/gemma-2-2b-it --layer 0
+python hf_attn_debug.py ./tmp-hf-attn.json
 ```
 
 ### hf_weights.py
 Dump Q/K/V/O projection weights for comparison.
 
+```json
+// tmp-hf-weights.json
+{
+  "model": "google/gemma-2-2b-it",
+  "layer": 0,
+  "proj": "v"
+}
+```
+
 ```bash
-python hf_weights.py --model google/gemma-2-2b-it --layer 0 --proj v
+python hf_weights.py ./tmp-hf-weights.json
 ```
 
 ### hf_rope_check.py
 Verify RoPE frequencies and rotations.
 
+```json
+// tmp-hf-rope.json
+{
+  "model": "google/gemma-2-2b-it",
+  "pos": 6,
+  "dim": 256,
+  "theta": 10000.0
+}
+```
+
 ```bash
-python hf_rope_check.py --model google/gemma-2-2b-it --pos 6 --dim 256
+python hf_rope_check.py ./tmp-hf-rope.json
 ```
 
 ### hf_layer_out.py
 Compare hidden states at specific layers.
 
+```json
+// tmp-hf-layer.json
+{
+  "model": "google/gemma-2-2b-it",
+  "prompt": "The color of the sky is",
+  "layers": [0, 12, 25],
+  "token": -1
+}
+```
+
 ```bash
-python hf_layer_out.py --model google/gemma-2-2b-it --layers 0,12,25
+python hf_layer_out.py ./tmp-hf-layer.json
 ```
 
 ## Debugging Process

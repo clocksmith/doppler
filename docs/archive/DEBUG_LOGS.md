@@ -71,7 +71,7 @@ Use probes to read specific token/dimension values without adding ad-hoc logs:
 
 ```bash
 # Post-softcap logits probe (Gemma 2 parity)
-npm run debug -- --config '{
+doppler --config '{
   "extends": "debug",
   "model": "<model-id>",
   "cli": { "command": "debug" },

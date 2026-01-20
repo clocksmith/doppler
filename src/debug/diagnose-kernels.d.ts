@@ -8,10 +8,11 @@
  * 3. GPU capabilities are correctly detected
  *
  * Usage:
- *   npx tsx debug/diagnose-kernels.ts <model-path>
+ *   doppler --config <ref>
  *
- * Example:
- *   npx tsx debug/diagnose-kernels.ts models/gemma-1b-q4-col
+ * Config:
+ *   - model (string, required)
+ *   - tools.diagnoseKernels.modelPath (string, optional; overrides models/<model>)
  */
 
 export interface DiagnosticResult {

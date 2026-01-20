@@ -892,12 +892,9 @@ Platform-agnostic types and pure functions shared between CLI and browser conver
 
 ### node-converter.js - Model Conversion
 
-Converts HuggingFace models to RDRR format:
+Converts HuggingFace models to RDRR format (config-only):
 ```bash
-npx tsx src/converter/node-converter.js \
-  --input ./hf-model \
-  --output ./rdrr-model \
-  --quantize Q4_K_M
+doppler --config ./tmp-convert.json
 ```
 
 ### quantizer.js - Q4_K Quantization

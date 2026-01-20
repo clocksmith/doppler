@@ -12,4 +12,5 @@ export const DEFAULT_DISTRIBUTION_CONFIG = {
   maxChunkSizeBytes: 8 * MB,
   cdnBasePath: null,
   progressUpdateIntervalMs: 100,
+  requiredContentEncoding: null,
 };

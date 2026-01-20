@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * DOPPLER CLI - Unified testing, benchmarking, and debugging
+ * DOPPLER CLI - Unified testing, benchmarking, debugging, and tooling
  *
  * Usage:
- *   npx tsx cli/index.ts --config <ref>
+ *   doppler --config <ref>
  *
  * Examples:
  *   doppler --config ./tmp-bench.json        # Bench config file
  *   doppler --config ./tmp-gemma3-debug.json # Debug config file
+ *   doppler --config ./tmp-convert.json      # Converter config file
  */
 
 import type { Page } from 'playwright';

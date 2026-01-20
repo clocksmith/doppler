@@ -1,0 +1,19 @@
+{
+  "extends": "bench",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "cli": {
+    "command": "bench",
+    "suite": "kernels",
+    "filter": "matmul"
+  },
+  "runtime": {
+    "shared": {
+      "benchmark": {
+        "run": {
+          "warmupRuns": 2,
+          "timedRuns": 5
+        }
+      }
+    }
+  }
+}

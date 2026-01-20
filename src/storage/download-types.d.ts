@@ -127,3 +127,4 @@ export declare function getInitialRetryDelayMs(): number;
 export declare function getMaxRetryDelayMs(): number;
 export declare function getCdnBasePath(): string | null;
 export declare function getProgressUpdateIntervalMs(): number;
+export declare function getRequiredContentEncoding(): string | null;

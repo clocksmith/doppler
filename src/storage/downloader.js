@@ -37,6 +37,7 @@ import {
   getInitialRetryDelayMs,
   getMaxRetryDelayMs,
   getProgressUpdateIntervalMs,
+  getRequiredContentEncoding,
 } from './download-types.js';
 
 // ============================================================================
@@ -231,6 +232,25 @@ function buildShardUrl(baseUrl, shardInfo) {
   return `${base}/${shardInfo.filename}`;
 }
 
+function normalizeContentEncodings(value) {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function assertRequiredContentEncoding(response, requiredEncoding, context) {
+  if (!requiredEncoding) return;
+  const required = requiredEncoding.trim().toLowerCase();
+  if (!required) return;
+  const encodings = normalizeContentEncodings(response.headers.get('content-encoding'));
+  if (!encodings.includes(required)) {
+    const found = encodings.length > 0 ? encodings.join(', ') : 'none';
+    throw new Error(`Missing required content-encoding "${required}" for ${context} (found: ${found})`);
+  }
+}
+
 function bytesToHex(bytes) {
   return Array.from(bytes)
     .map(b => b.toString(16).padStart(2, '0'))
@@ -243,7 +263,7 @@ async function downloadShard(
   shardInfo,
   options = {}
 ) {
-  const { signal, onProgress, algorithm } = options;
+  const { signal, onProgress, algorithm, requiredEncoding } = options;
   if (!algorithm) {
     throw new Error('Missing hash algorithm for shard download verification.');
   }
@@ -251,6 +271,7 @@ async function downloadShard(
 
   const url = buildShardUrl(baseUrl, shardInfo);
   const response = await fetchWithRetry(url, { signal });
+  assertRequiredContentEncoding(response, requiredEncoding, `shard ${shardIndex}`);
 
   if (!response.body) {
     const buffer = await response.arrayBuffer();
@@ -387,6 +408,7 @@ export async function downloadModel(
   });
 
   const totalShards = manifest.shards.length;
+  const requiredEncoding = getRequiredContentEncoding();
   
   const pendingShards = [];
 
@@ -473,6 +495,7 @@ export async function downloadModel(
       const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
         algorithm,
+        requiredEncoding,
         onProgress: ( p) => {
           const prev = shardProgress.get(shardIndex) || 0;
           const delta = Math.max(0, p.receivedBytes - prev);

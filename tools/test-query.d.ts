@@ -3,9 +3,7 @@
  * Quick test query runner - minimal Playwright script for ad-hoc inference testing
  *
  * Usage:
- *   npx tsx tools/test-query.ts --config debug
- *   npx tsx tools/test-query.ts --model gemma-3-1b-it-q4 --config debug
- *   npx tsx tools/test-query.ts --config debug --repl  # Interactive mode with cached model
+ *   doppler --config <ref>
  */
 
 import type { BrowserContext, Page } from 'playwright';
@@ -14,12 +12,10 @@ export interface Options {
   prompt: string | null;
   model: string;
   baseUrl: string;
-  config: string;
-  timeout: number;
   repl: boolean;
 }
 
-export declare function parseArgs(argv: string[]): Options;
+export declare function parseArgs(argv: string[]): { config: string | null; help: boolean };
 export declare function launchBrowser(): Promise<{ context: BrowserContext; page: Page }>;
 export declare function loadModel(page: Page, baseUrl: string, model: string): Promise<void>;
 export declare function runQuery(page: Page, prompt: string): Promise<{ output: string; tokenCount: number; elapsedMs: number; tokensPerSec: number }>;

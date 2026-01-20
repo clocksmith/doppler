@@ -2,14 +2,83 @@
 
 
 import { createTestModel } from '../src/converter/test-model.js';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { loadConfig } from '../cli/config/index.js';
+import { resolve } from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+function parseArgs(argv) {
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i += 1;
+      continue;
+    }
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i += 1;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
+  }
+  return opts;
+}
+
+function printHelp() {
+  console.log(`
+Generate a tiny test model fixture.
+
+Usage:
+  doppler --config <ref>
+
+Config requirements:
+  tools.generateFixture.outputDir (string, required)
+`);
+}
+
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
 
 
 async function main() {
-  const outputDir = process.argv[2] || resolve(__dirname, '../tests/fixtures/tiny-model');
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.help) {
+    printHelp();
+    process.exit(0);
+  }
+  if (!parsed.config) {
+    console.error('Error: --config is required');
+    printHelp();
+    process.exit(1);
+  }
+
+  const loaded = await loadConfig(parsed.config);
+  const raw = loaded.raw ?? {};
+  assertObject(raw.tools, 'tools');
+  const toolConfig = raw.tools?.generateFixture;
+  if (!toolConfig || typeof toolConfig !== 'object') {
+    throw new Error('tools.generateFixture is required in config');
+  }
+
+  assertString(toolConfig.outputDir, 'tools.generateFixture.outputDir');
+  const outputDir = resolve(toolConfig.outputDir);
 
   console.log(`Generating test model fixture...`);
   console.log(`Output: ${outputDir}`);

@@ -12,75 +12,70 @@ const __dirname = dirname(__filename);
 
 
 function parseArgs(argv) {
-  
-  const opts = {
-    prompt: null,
-    model: 'gemma-3-1b-it-q4',
-    baseUrl: 'http://localhost:8080/d',
-    config: 'default',
-    timeout: 120000,
-    repl: false,
-  };
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i++;
+      continue;
+    }
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i++;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
+  }
+  return opts;
+}
 
-  const tokens = [...argv];
-  while (tokens.length) {
-    const arg =  (tokens.shift());
-    switch (arg) {
-      case '--model':
-      case '-m':
-        opts.model = tokens.shift() || opts.model;
-        break;
-      case '--base-url':
-      case '-u':
-        opts.baseUrl = tokens.shift() || opts.baseUrl;
-        break;
-      case '--config':
-        opts.config = tokens.shift() || opts.config;
-        break;
-      case '--timeout':
-        opts.timeout = parseInt(tokens.shift() || '120000', 10);
-        break;
-      case '--repl':
-      case '-i':
-        opts.repl = true;
-        break;
-      case '--help':
-      case '-h':
-        console.log(`
+function printHelp() {
+  console.log(`
 Quick test query for DOPPLER
 
 Usage:
-  npx tsx tools/test-query.ts [options]
-  npx tsx tools/test-query.ts --repl   # Interactive REPL mode (prompt via stdin)
+  doppler --config <ref>
 
-Options:
-  --model, -m <name>   Model name (default: gemma-3-1b-it-q4)
-  --base-url, -u <url> Server URL (default: http://localhost:8080/d)
-  --config <ref>       Runtime config preset or path (default: default)
-  --timeout <ms>       Timeout (default: 120000)
-  --repl, -i           Interactive REPL mode (model cached in memory)
-  --help, -h           Show this help
-
-Notes:
-  Single-query mode uses runtime.inference.prompt from the config.
+Config requirements:
+  model (string, required)
+  tools.testQuery.baseUrl (string, required)
+  tools.testQuery.repl (boolean, required)
+  tools.testQuery.prompt (string|null, required; null uses runtime.inference.prompt)
 
 REPL Commands:
   <text>               Run inference with prompt
   /clear               Clear KV cache (new conversation)
   /reload              Reload model from scratch
   /quit                Exit
-
-Examples:
-  npx tsx tools/test-query.ts --config debug
-  npx tsx tools/test-query.ts --repl
 `);
-        process.exit(0);
-      default:
-        break;
-    }
-  }
+}
 
-  return opts;
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string or null`);
+  }
 }
 
 
@@ -307,13 +302,43 @@ async function runRepl(page, opts) {
 
 
 async function main() {
-  const opts = parseArgs(process.argv.slice(2));
-  const loadedConfig = await loadConfig(opts.config);
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.help) {
+    printHelp();
+    process.exit(0);
+  }
+  if (!parsed.config) {
+    console.error('Error: --config is required');
+    printHelp();
+    process.exit(1);
+  }
+
+  const loadedConfig = await loadConfig(parsed.config);
+  const raw = loadedConfig.raw ?? {};
+  const toolConfig = raw.tools?.testQuery;
+
+  assertString(raw.model, 'model');
+  if (!toolConfig || typeof toolConfig !== 'object') {
+    throw new Error('tools.testQuery is required in config');
+  }
+  assertString(toolConfig.baseUrl, 'tools.testQuery.baseUrl');
+  assertBoolean(toolConfig.repl, 'tools.testQuery.repl');
+  if (!('prompt' in toolConfig)) {
+    throw new Error('tools.testQuery.prompt is required in config');
+  }
+  assertStringOrNull(toolConfig.prompt, 'tools.testQuery.prompt');
+
+  const opts = {
+    prompt: toolConfig.prompt,
+    model: raw.model,
+    baseUrl: toolConfig.baseUrl,
+    repl: toolConfig.repl,
+  };
 
   console.log(`\n\x1b[36mDOPPLER Test Query\x1b[0m`);
   console.log(`${'─'.repeat(50)}`);
   console.log(`Model:      ${opts.model}`);
-  console.log(`Config:     ${loadedConfig.chain.join(' -> ')}`);
+  console.log(`Config:     ${(loadedConfig.chain ?? []).join(' -> ')}`);
   console.log(`Mode:       ${opts.repl ? 'REPL (interactive)' : 'single query'}`);
   console.log(`${'─'.repeat(50)}\n`);
 

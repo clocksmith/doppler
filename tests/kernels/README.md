@@ -12,10 +12,10 @@ npm install
 npm run test:unit
 
 # Run GPU tests (config-driven)
-npm run test:gpu -- --config <ref>
+doppler --config <ref>
 
 # Run benchmarks (config-driven)
-npm run bench -- --config <ref>
+doppler --config <ref>
 
 # Serve test page for manual testing
 npm start

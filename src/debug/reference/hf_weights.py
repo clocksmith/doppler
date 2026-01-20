@@ -3,27 +3,48 @@
 Dump weight values for Q/K/V/O projections from HuggingFace model.
 
 Usage:
-    python hf_weights.py [--model MODEL_ID] [--layer LAYER] [--proj PROJ]
+    python hf_weights.py <config.json>
+
+Config (JSON):
+    {
+      "model": "google/gemma-2-2b-it",
+      "layer": 0,
+      "proj": "all"
+    }
 
 Requires: pip install torch transformers
 """
 
-import argparse
+import json
+import sys
 import torch
 from transformers import AutoModelForCausalLM
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Dump projection weights")
-    parser.add_argument("--model", "-m", default="google/gemma-2-2b-it", help="HuggingFace model ID")
-    parser.add_argument("--layer", "-l", type=int, default=0, help="Layer index")
-    parser.add_argument("--proj", "-p", choices=["q", "k", "v", "o", "all"], default="all", help="Which projection")
-    args = parser.parse_args()
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python hf_weights.py <config.json>")
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        config = json.load(handle)
+    if not isinstance(config, dict):
+        raise SystemExit("Config must be a JSON object")
 
-    print(f"Loading model: {args.model}")
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32, device_map="cpu")
+    model_id = config.get("model")
+    layer_index = config.get("layer")
+    proj = config.get("proj")
 
-    layer = model.model.layers[args.layer]
+    if not isinstance(model_id, str) or not model_id.strip():
+        raise SystemExit('Config "model" must be a non-empty string')
+    if not isinstance(layer_index, int):
+        raise SystemExit('Config "layer" must be an integer')
+    if proj not in ["q", "k", "v", "o", "all"]:
+        raise SystemExit('Config "proj" must be one of: q, k, v, o, all')
+
+    print(f"Loading model: {model_id}")
+    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="cpu")
+
+    layer = model.model.layers[layer_index]
     attn = layer.self_attn
 
     projections = {
@@ -33,7 +54,7 @@ def main():
         "o": attn.o_proj,
     }
 
-    projs_to_show = list(projections.keys()) if args.proj == "all" else [args.proj]
+    projs_to_show = list(projections.keys()) if proj == "all" else [proj]
 
     for name in projs_to_show:
         proj = projections[name]

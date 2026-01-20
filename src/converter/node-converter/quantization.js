@@ -52,7 +52,7 @@ export function normalizeQuantTag(value) {
 }
 
 
-export function validateQuantType(value, flagName) {
+export function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
@@ -68,7 +68,7 @@ export function validateQuantType(value, flagName) {
     );
   }
 
-  throw new Error(`Unknown quantization type: "${value}" (flag: ${flagName})`);
+  throw new Error(`Unknown quantization type: "${value}" (source: ${source})`);
 }
 
 
@@ -205,12 +205,12 @@ export function buildQuantizationInfo(
   const projectorQuant = quantization.projector ?? null;
   const computePrecision = quantization.computePrecision ?? null;
 
-  validateQuantType(weightQuant, '--weight-quant');
-  validateQuantType(embedQuant, '--embed-quant');
-  validateQuantType(headQuant, '--head-quant');
-  validateQuantType(visionQuant, '--vision-quant');
-  validateQuantType(audioQuant, '--audio-quant');
-  validateQuantType(projectorQuant, '--projector-quant');
+  validateQuantType(weightQuant, 'converter.quantization.weights');
+  validateQuantType(embedQuant, 'converter.quantization.embeddings');
+  validateQuantType(headQuant, 'converter.quantization.lmHead');
+  validateQuantType(visionQuant, 'converter.quantization.vision');
+  validateQuantType(audioQuant, 'converter.quantization.audio');
+  validateQuantType(projectorQuant, 'converter.quantization.projector');
 
   const webgpuSafe = (dtype) => {
     const normalized = normalizeQuantTag(dtype);

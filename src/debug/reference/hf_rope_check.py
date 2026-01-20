@@ -3,13 +3,22 @@
 Verify RoPE (Rotary Position Embedding) values match between HF and DOPPLER.
 
 Usage:
-    python hf_rope_check.py [--model MODEL_ID] [--pos POSITION] [--dim HEAD_DIM]
+    python hf_rope_check.py <config.json>
+
+Config (JSON):
+    {
+      "model": "google/gemma-2-2b-it",
+      "pos": 6,
+      "dim": 256,
+      "theta": 10000.0
+    }
 
 Requires: pip install torch transformers
 """
 
-import argparse
+import json
 import math
+import sys
 import torch
 from transformers import AutoModelForCausalLM
 
@@ -44,41 +53,56 @@ def apply_rope_to_vector(x: torch.Tensor, pos: int, freqs: torch.Tensor):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check RoPE values")
-    parser.add_argument("--model", "-m", default="google/gemma-2-2b-it", help="HuggingFace model ID")
-    parser.add_argument("--pos", "-p", type=int, default=6, help="Position to check")
-    parser.add_argument("--dim", "-d", type=int, default=256, help="Head dimension")
-    parser.add_argument("--theta", "-t", type=float, default=10000.0, help="RoPE theta")
-    args = parser.parse_args()
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python hf_rope_check.py <config.json>")
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        config = json.load(handle)
+    if not isinstance(config, dict):
+        raise SystemExit("Config must be a JSON object")
 
-    print(f"RoPE Check for position {args.pos}, head_dim={args.dim}, theta={args.theta}")
+    model_id = config.get("model")
+    pos = config.get("pos")
+    dim = config.get("dim")
+    theta = config.get("theta")
+
+    if not isinstance(model_id, str) or not model_id.strip():
+        raise SystemExit('Config "model" must be a non-empty string')
+    if not isinstance(pos, int):
+        raise SystemExit('Config "pos" must be an integer')
+    if not isinstance(dim, int):
+        raise SystemExit('Config "dim" must be an integer')
+    if not isinstance(theta, (int, float)):
+        raise SystemExit('Config "theta" must be a number')
+
+    print(f"RoPE Check for position {pos}, head_dim={dim}, theta={theta}")
 
     # Compute frequencies
-    freqs = compute_rope_freqs(args.dim, args.theta)
+    freqs = compute_rope_freqs(dim, theta)
     print(f"\nFrequencies (first 8): {freqs[:8].tolist()}")
 
     # Compute angles at position
-    angles = args.pos * freqs
-    print(f"Angles at pos {args.pos} (first 8): {angles[:8].tolist()}")
+    angles = pos * freqs
+    print(f"Angles at pos {pos} (first 8): {angles[:8].tolist()}")
 
     # Compute cos/sin
     cos = torch.cos(angles)
     sin = torch.sin(angles)
-    print(f"Cos at pos {args.pos} (first 8): {cos[:8].tolist()}")
-    print(f"Sin at pos {args.pos} (first 8): {sin[:8].tolist()}")
+    print(f"Cos at pos {pos} (first 8): {cos[:8].tolist()}")
+    print(f"Sin at pos {pos} (first 8): {sin[:8].tolist()}")
 
     # Test with a sample vector
-    test_vec = torch.randn(args.dim)
+    test_vec = torch.randn(dim)
     test_vec[0] = 1.0
     test_vec[1] = 0.0
     print(f"\nTest vector (first 8): {test_vec[:8].tolist()}")
 
-    rotated = apply_rope_to_vector(test_vec, args.pos, freqs)
+    rotated = apply_rope_to_vector(test_vec, pos, freqs)
     print(f"After RoPE (first 8): {rotated[:8].tolist()}")
 
     # Also load model and check actual RoPE config
-    print(f"\nLoading model to verify config: {args.model}")
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32, device_map="cpu")
+    print(f"\nLoading model to verify config: {model_id}")
+    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="cpu")
     config = model.config
 
     print(f"\nModel RoPE config:")

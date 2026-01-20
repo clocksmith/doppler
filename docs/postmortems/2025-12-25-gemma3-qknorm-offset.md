@@ -112,14 +112,28 @@ DOPPLER uses a hybrid approach:
 
 Since the model was previously converted with `tryLoad()` for q_norm/k_norm (no +1 offset), the stored weights in OPFS were incorrect. Simply fixing the runtime code wasn't enough - the model needed reconversion to bake in the correct +1 offset.
 
+**Reconversion config**:
+```json
+{
+  "converter": {
+    "paths": {
+      "input": "~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752/",
+      "output": "models/gemma-3-1b-it-q4"
+    },
+    "verbose": true,
+    "quantization": {
+      "weights": "q4_k_m"
+    },
+    "output": {
+      "modelId": "gemma-3-1b-it-q4"
+    }
+  }
+}
+```
+
 **Reconversion command**:
 ```bash
-npx tsx src/converter/node-converter.js \
-  ~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752/ \
-  models/gemma-3-1b-it-q4 \
-  --quantize q4_k_m \
-  --model-id gemma-3-1b-it-q4 \
-  --verbose
+doppler --config ./tmp-gemma3-qknorm-reconvert.json
 ```
 
 ---

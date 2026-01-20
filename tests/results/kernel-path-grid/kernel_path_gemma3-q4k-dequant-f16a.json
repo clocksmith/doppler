@@ -1,0 +1,511 @@
+{
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "cli": {
+    "command": "bench",
+    "suite": "inference",
+    "baseUrl": "http://localhost:8080",
+    "noServer": false,
+    "headless": true,
+    "minimized": false,
+    "reuseBrowser": true,
+    "cdpEndpoint": "http://localhost:9222",
+    "timeout": 300000,
+    "retries": 2,
+    "profileDir": "tests/results/kernel-path-grid/profiles-gemma3-q4k-dequant-f16a",
+    "output": "/Users/xyz/deco/ouroboros/doppler/tests/results/kernel-path-grid/grid_google-gemma-3-1b-it-wq4k-ef16_gemma3-q4k-dequant-f16a.json",
+    "html": null,
+    "compare": null,
+    "filter": null,
+    "tool": "kernel-path-grid"
+  },
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": true,
+          "file": null,
+          "append": true
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 1000
+        },
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        },
+        "trace": {
+          "enabled": false,
+          "categories": [
+            "all"
+          ],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "file": null
+        },
+        "pipeline": {
+          "enabled": false,
+          "categories": [],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "maxAbsThreshold": 10000,
+          "bufferStats": false,
+          "readbackSampleSize": 512
+        },
+        "probes": [],
+        "profiler": {
+          "enabled": false,
+          "queryCapacity": 256,
+          "maxQueries": 16384,
+          "defaultQueryLimit": 4096,
+          "maxSamples": 100,
+          "maxDurationMs": 60000
+        },
+        "perfGuards": {
+          "allowGPUReadback": true,
+          "trackSubmitCount": false,
+          "trackAllocations": false,
+          "logExpensiveOps": false,
+          "strictMode": false
+        }
+      },
+      "benchmark": {
+        "output": {
+          "schemaVersion": 1
+        },
+        "run": {
+          "promptName": "medium",
+          "customPrompt": null,
+          "maxNewTokens": 128,
+          "runType": "warm",
+          "warmupRuns": 2,
+          "timedRuns": 3,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "debug": false,
+          "profile": false,
+          "captureMemoryTimeSeries": false,
+          "memoryTimeSeriesIntervalMs": 100
+        },
+        "stats": {
+          "outlierIqrMultiplier": 1.5,
+          "warmupStabilityPercent": 10,
+          "thermalSlowdownPercent": 10,
+          "minSamplesForComparison": 3
+        },
+        "comparison": {
+          "regressionThresholdPercent": 10,
+          "failOnRegression": true
+        },
+        "baselines": {
+          "enabled": true,
+          "file": "tests/baselines.json",
+          "failOnOutOfRange": true,
+          "requireQualityOk": true
+        }
+      },
+      "harness": {
+        "mode": "kernels",
+        "autorun": false,
+        "skipLoad": false,
+        "modelId": null
+      },
+      "tooling": {
+        "intent": "calibrate",
+        "diagnostics": "on_failure"
+      },
+      "platform": null,
+      "kernelRegistry": {
+        "url": null
+      },
+      "kernelThresholds": {
+        "matmul": {
+          "multicolThreshold": 256
+        },
+        "rmsnorm": {
+          "smallThreshold": 256
+        },
+        "softmax": {
+          "smallThreshold": 256
+        },
+        "ffn": {
+          "multiOutputThreshold": 1024
+        },
+        "sample": {
+          "argmaxReduceVocabThreshold": 65536,
+          "singlePassTopKThreshold": 100
+        },
+        "rope": {
+          "defaultTheta": 10000,
+          "uniformSize": 32,
+          "defaultStartPos": 0
+        },
+        "attention": {
+          "chunkedMaxKVLen": 2048,
+          "minHeadDimForChunked": 128,
+          "tierHeadDimLimits": {
+            "tier3": 64,
+            "tier2": 128,
+            "tier1": 256
+          },
+          "tierMinSharedMemory": {
+            "tier3": 16384,
+            "tier2": 32768,
+            "tier1": 65536
+          },
+          "largeMaxHeadDim": 64,
+          "smallMaxHeadDim": 256,
+          "subgroupMaxHeadDim": 256,
+          "largeSharedF32": 20480,
+          "largeSharedF16": 49152,
+          "smallSharedF32": 8192,
+          "smallSharedF16": 4096,
+          "subgroupShared": 8192
+        },
+        "fusedMatmul": {
+          "maxMediumN": 4096,
+          "maxMediumK": 8192,
+          "colsPerWg": 4
+        },
+        "cast": {
+          "maxWorkgroupsPerDim": 65535
+        },
+        "tuner": {
+          "maxComputeWorkgroupSizeX": 256,
+          "maxComputeWorkgroupSizeY": 256,
+          "maxComputeInvocationsPerWorkgroup": 256
+        }
+      },
+      "bufferPool": {
+        "bucket": {
+          "minBucketSizeBytes": 256,
+          "largeBufferThresholdBytes": 33554432,
+          "largeBufferStepBytes": 16777216
+        },
+        "limits": {
+          "maxBuffersPerBucket": 8,
+          "maxTotalPooledBuffers": 64
+        },
+        "alignment": {
+          "alignmentBytes": 256
+        }
+      },
+      "gpuCache": {
+        "uniformCacheMaxEntries": 256,
+        "uniformCacheMaxAgeMs": 60000
+      },
+      "memory": {
+        "heapTesting": {
+          "heapTestSizes": [
+            17179869184,
+            8589934592,
+            4294967296,
+            2147483648,
+            1073741824
+          ],
+          "fallbackMaxHeapBytes": 1073741824
+        },
+        "segmentTesting": {
+          "segmentTestSizes": [
+            1073741824,
+            536870912,
+            268435456,
+            134217728
+          ],
+          "safeSegmentSizeBytes": 268435456
+        },
+        "addressSpace": {
+          "targetAddressSpaceBytes": 8589934592
+        },
+        "segmentAllocation": {
+          "fallbackSegmentSizeBytes": 4294967296,
+          "segmentFallbackSizes": [
+            536870912,
+            268435456,
+            134217728
+          ]
+        },
+        "emulatedStorage": {
+          "vramBudgetBytes": 2147483648,
+          "ramBudgetBytes": 8589934592
+        }
+      },
+      "tuner": {
+        "cacheKeyPrefix": "doppler_kernel_tune_",
+        "defaultWarmupIterations": 3,
+        "defaultTimedIterations": 10,
+        "fallbackWorkgroupSizes": {
+          "matmul": [
+            16,
+            16,
+            1
+          ],
+          "attention": [
+            256,
+            1,
+            1
+          ],
+          "rmsnorm": [
+            256,
+            1,
+            1
+          ],
+          "softmax": [
+            256,
+            1,
+            1
+          ],
+          "dequant": [
+            64,
+            1,
+            1
+          ],
+          "default": [
+            256,
+            1,
+            1
+          ]
+        }
+      },
+      "hotSwap": {
+        "enabled": false,
+        "localOnly": false,
+        "allowUnsignedLocal": false,
+        "trustedSigners": [],
+        "manifestUrl": null
+      },
+      "intentBundle": {
+        "enabled": false,
+        "bundleUrl": null,
+        "bundle": null,
+        "requireBaseModelHash": true,
+        "requireKernelRegistryVersion": true,
+        "enforceDeterministicOutput": false
+      },
+      "bridge": {
+        "maxReadSizeBytes": 104857600,
+        "allowedDirectories": "/Users:/home:/tmp:/var/tmp",
+        "timeouts": {
+          "pingTimeoutMs": 5000,
+          "readTimeoutMs": 60000,
+          "listTimeoutMs": 30000,
+          "defaultTimeoutMs": 30000
+        }
+      }
+    },
+    "loading": {
+      "storage": {
+        "quota": {
+          "lowSpaceThresholdBytes": 524288000,
+          "criticalSpaceThresholdBytes": 104857600,
+          "monitorIntervalMs": 30000
+        },
+        "vramEstimation": {
+          "unifiedMemoryRatio": 0.5,
+          "fallbackVramBytes": 2147483648,
+          "lowVramHeadroomBytes": 524288000
+        },
+        "alignment": {
+          "bufferAlignmentBytes": 256
+        },
+        "backend": {
+          "backend": "auto",
+          "opfs": {
+            "useSyncAccessHandle": true,
+            "maxConcurrentHandles": 2
+          },
+          "indexeddb": {
+            "dbName": "doppler-models",
+            "shardStore": "shards",
+            "metaStore": "meta",
+            "chunkSizeBytes": 4194304
+          },
+          "memory": {
+            "maxBytes": 536870912
+          },
+          "streaming": {
+            "readChunkBytes": 4194304,
+            "maxInFlightBytes": 67108864,
+            "useByob": true
+          }
+        }
+      },
+      "distribution": {
+        "concurrentDownloads": 3,
+        "maxRetries": 3,
+        "initialRetryDelayMs": 1000,
+        "maxRetryDelayMs": 30000,
+        "maxChunkSizeBytes": 8388608,
+        "cdnBasePath": "https://huggingface.co",
+        "progressUpdateIntervalMs": 100,
+        "requiredContentEncoding": null
+      },
+      "shardCache": {
+        "opfsEntries": 2,
+        "networkEntries": 16,
+        "moeMaxEntries": 16,
+        "verifyHashes": true,
+        "maxConcurrentLoads": 0
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 4,
+        "flushThresholdBytes": 268435456,
+        "gpuQueueFlushLayers": 4,
+        "logIntervalMs": 30000
+      },
+      "prefetch": {
+        "enabled": false,
+        "layersAhead": 1,
+        "maxShards": 8
+      },
+      "opfsPath": {
+        "opfsRootDir": "doppler-models"
+      },
+      "expertCache": {
+        "defaultSizeBytes": 2147483648,
+        "maxBufferPercentage": 0.25,
+        "maxBufferFallbackBytes": 268435456
+      },
+      "allowF32UpcastNonMatmul": false
+    },
+    "inference": {
+      "batching": {
+        "batchSize": 1,
+        "maxTokens": 64,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0,
+        "topP": 0.95,
+        "topK": 50,
+        "repetitionPenalty": 1,
+        "greedyThreshold": 0.01,
+        "repetitionPenaltyWindow": 100
+      },
+      "compute": {
+        "activationDtype": "f16",
+        "largeModelParamThreshold": 4000000000,
+        "paramEstimationMultiplier": 12,
+        "keepF32Weights": false
+      },
+      "tokenizer": {
+        "addBosToken": true,
+        "addEosToken": false,
+        "addSpacePrefix": null
+      },
+      "largeWeights": {
+        "enabled": true,
+        "safetyRatio": 0.9,
+        "preferF16": true,
+        "lmHeadChunkRows": null
+      },
+      "kvcache": {
+        "maxSeqLen": 8192,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "windowSize": 1024
+      },
+      "moe": {
+        "routing": {
+          "numExperts": 8,
+          "topK": 2,
+          "normalizeWeights": true,
+          "routerDtype": "f32",
+          "maxTokensPerExpert": 0,
+          "maxTokensPerExpertHeadroom": 2,
+          "maxTokensPerExpertMin": 4,
+          "maxTokensPerExpertCap": 0
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 8
+        }
+      },
+      "speculative": {
+        "numDraftTokens": 5,
+        "maxRejectionRetries": 3,
+        "enableTreeDraft": false,
+        "temperature": 1
+      },
+      "generation": {
+        "useSpeculative": false,
+        "profile": false,
+        "benchmark": false,
+        "disableCommandBatching": false,
+        "disableMultiTokenDecode": false
+      },
+      "chatTemplate": {
+        "enabled": false
+      },
+      "pipeline": null,
+      "kernelPath": "gemma3-q4k-dequant-f16a"
+    },
+    "emulation": {
+      "enabled": false,
+      "targetChip": "gh200",
+      "timingMode": "functional",
+      "gpuSpec": {
+        "name": "H200",
+        "vramBytes": 154618822656,
+        "hbmBandwidthBytesPerSec": 4800000000000,
+        "fp16Tflops": 1979
+      },
+      "cpuSpec": {
+        "name": "Grace",
+        "cores": 72,
+        "memoryBytes": 515396075520,
+        "memoryBandwidthBytesPerSec": 546000000000
+      },
+      "topology": {
+        "gpuCount": 1,
+        "gpusPerNode": 1,
+        "nodeCount": 1,
+        "cpuCount": 1
+      },
+      "nvlink": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 1
+      },
+      "nvlinkC2C": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 0.5,
+        "coherent": true
+      },
+      "parallelism": {
+        "tensorParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "pipelineParallel": {
+          "enabled": false,
+          "stages": 1,
+          "microBatches": 1
+        },
+        "dataParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "expertParallel": {
+          "enabled": false,
+          "degree": 1
+        }
+      },
+      "timingScaling": {
+        "computeScale": 1,
+        "memoryScale": 1,
+        "nvlinkScale": 1
+      },
+      "opfsRootPath": "emulation",
+      "maxActiveWorkingSetBytes": 4294967296,
+      "statsEnabled": true,
+      "logOperations": false
+    }
+  }
+}

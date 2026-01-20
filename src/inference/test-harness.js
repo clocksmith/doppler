@@ -92,9 +92,29 @@ export function parseRuntimeOverridesFromURL(searchParams) {
 // Shard Loading
 // ============================================================================
 
+function normalizeContentEncodings(value) {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function assertRequiredContentEncoding(response, requiredEncoding, context) {
+  if (!requiredEncoding) return;
+  const required = requiredEncoding.trim().toLowerCase();
+  if (!required) return;
+  const encodings = normalizeContentEncodings(response.headers.get('content-encoding'));
+  if (!encodings.includes(required)) {
+    const found = encodings.length > 0 ? encodings.join(', ') : 'none';
+    throw new Error(`Missing required content-encoding "${required}" for ${context} (found: ${found})`);
+  }
+}
+
 
 export function createHttpShardLoader(baseUrl, manifest, log) {
   const totalShards = manifest.shards?.length || 0;
+  const requiredEncoding = getRuntimeConfig().loading.distribution.requiredContentEncoding;
   
   const shardCache = new Map();
   
@@ -127,6 +147,7 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
       if (!resp.ok) {
         throw new Error(`Failed to load shard ${idx}: ${resp.status}`);
       }
+      assertRequiredContentEncoding(resp, requiredEncoding, `shard ${idx}`);
 
       const data = new Uint8Array(await resp.arrayBuffer());
       shardCache.set(idx, data);

@@ -37,6 +37,8 @@ Commands should map to intent and be stable:
 - `debug`: interactive or trace-focused runs
 - `test`: correctness validation
 - `bench`: performance measurement
+- `convert`: model conversion (config-only, no harness)
+- `tool`: tooling utilities (config-only, may or may not use harness)
 
 If new verbs are added, they must:
 - map to an existing subsystem boundary,
@@ -61,7 +63,7 @@ doppler --config ./tmp-debug.json
 ```
 
 The browser command interface must emit a config (or config ref) that includes
-`cli.command`, `cli.suite`, and `model` (required for all CLI runs).
+`cli.command`, `cli.suite`, and `model` (required when the command needs a model).
 `runtime.shared.tooling.intent` must be set and must match the command intent.
 
 ---
@@ -82,6 +84,19 @@ Allowed options should only select or load config:
 If a user needs to change a tunable, they must supply a config or preset. This
 rule applies equally to CLI flags and browser UI controls. There are no implicit
 defaults for command, suite, or model selection.
+
+---
+
+## Tool + Converter Commands
+
+These commands are config-only and do not require the browser harness unless
+the tool explicitly uses it.
+
+- `cli.command="convert"` requires `config.converter`.
+- `cli.command="tool"` requires `cli.tool` and `config.tools.<toolKey>`.
+
+Tooling intent is enforced for `test`, `bench`, and `debug`. It is optional for
+`convert` and `tool`.
 
 ---
 
@@ -110,6 +125,7 @@ See `BENCHMARK_STYLE_GUIDE.md` for output schema and baseline rules.
 - Do not silently mutate or fill missing tunables in interface logic.
 - Prefer “config is invalid” over “fallback to defaults”.
 - `calibrate` intent must reject tracing, profiling, and probes.
+- Benchmark runs with profiling must use `investigate` intent.
 
 ---
 

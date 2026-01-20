@@ -86,7 +86,7 @@ Runtime presets control logging, tracing, benchmarking, and inference parameters
 ### Override Hierarchy
 
 ```
-defaults → preset → config file → inline JSON → CLI flags
+defaults → preset → config file → inline JSON
 ```
 
 ## Adding a New Model Family
@@ -104,7 +104,7 @@ defaults → preset → config file → inline JSON → CLI flags
    - Add to `KERNEL_PATH_REGISTRY`
 
 4. **Test**:
-   - Convert model: `npx tsx src/converter/node-converter.js ...`
+   - Convert model: `doppler --config ./converter.json`
    - Verify manifest has `defaultKernelPath`
    - Run inference: `doppler --config <ref>` (config must set `model`)
 

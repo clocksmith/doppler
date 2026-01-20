@@ -7,24 +7,21 @@
 import type { ArchitectureSchema, ConverterConfigSchema, QuantizationInfoSchema } from '../../config/index.js';
 
 export interface ConvertOptions {
-  input: string;
-  output: string;
-  weightQuant: string | null;
-  embedQuant: string | null;
-  headQuant: string | null;
-  visionQuant: string | null;
-  audioQuant: string | null;
-  projectorQuant: string | null;
-  computePrecision: 'f16' | 'f32' | 'auto' | null;
-  shardSize: number;
-  shardSizeBytes?: number;
-  modelId: string | null;
-  textOnly: boolean;
-  fast: boolean;
-  verbose: boolean;
-  test: boolean;
-  help: boolean;
   converterConfig?: Partial<ConverterConfigSchema>;
+  weightQuant?: string | null;
+  embedQuant?: string | null;
+  headQuant?: string | null;
+  visionQuant?: string | null;
+  audioQuant?: string | null;
+  projectorQuant?: string | null;
+  q4kLayout?: string | null;
+  computePrecision?: 'f16' | 'f32' | 'auto' | null;
+  shardSize?: number;
+  shardSizeBytes?: number;
+  modelId?: string | null;
+  textOnly?: boolean;
+  fast?: boolean;
+  verbose?: boolean;
 }
 
 export interface TensorInfo {

@@ -4,40 +4,41 @@
 import http from 'http';
 import { stat, readdir, rm, mkdir } from 'fs/promises';
 import { createReadStream } from 'fs';
-import path, { extname, resolve, join, dirname } from 'path';
+import path, { extname, resolve, join } from 'path';
 import os from 'os';
-import { spawn, exec } from 'child_process';
-import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 import { URL } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { loadConfig } from '../config/index.js';
+import { createConverterConfig } from '../../src/config/index.js';
+import { convertGGUF } from '../../src/converter/node-converter/converter.js';
 
 
 function parseArgs(argv) {
-  
-  const args = {
-    input: null,
-    port: 8765,
-    output: null,
-    keep: false,
-    open: true,
-    dopplerUrl: 'http://localhost:5173',
-    help: false,
-  };
-
-  const tokens = [...argv];
-  while (tokens.length) {
-    const arg = tokens.shift();
-    if (arg === '--help' || arg === '-h') args.help = true;
-    else if (arg === '--port' || arg === '-p') args.port = parseInt(tokens.shift() || '8765', 10);
-    else if (arg === '--output' || arg === '-o') args.output = tokens.shift() || null;
-    else if (arg === '--keep') args.keep = true;
-    else if (arg === '--no-open') args.open = false;
-    else if (arg === '--doppler-url') args.dopplerUrl = tokens.shift() || args.dopplerUrl;
-    else if (!args.input) args.input = arg;
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i += 1;
+      continue;
+    }
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i += 1;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
   }
-  return args;
+  return opts;
 }
 
 
@@ -46,24 +47,25 @@ function printHelp() {
 DOPPLER Serve - Convert + Serve models for the DOPPLER provider
 
 Usage:
-  node serve-cli.js <input> [options]
+  doppler --config <ref>
 
-Input:
-  - GGUF file (e.g., model.gguf)
-  - .rdrr folder containing manifest.json and shard_*.bin
+Config requirements:
+  cli.command = "tool"
+  cli.tool = "serve"
+  tools.serve.input (string, required)
+  tools.serve.port (number, optional; default 8765)
+  tools.serve.output (string|null, optional; null uses temp dir)
+  tools.serve.keep (boolean, optional; default false)
+  tools.serve.open (boolean, optional; default true)
+  tools.serve.dopplerUrl (string, optional; default http://localhost:5173)
 
-Options:
-  --port, -p <num>   Port to serve on (default: 8765)
-  --output, -o <dir> Output directory for converted .rdrr (default: temp)
-  --keep             Keep converted .rdrr directory after exit
-  --no-open          Don't auto-open browser
-  --doppler-url      Base URL for DOPPLER (default: http://localhost:5173)
-  --help             Show this help
+Optional converter overrides:
+  converter.quantization, converter.sharding, converter.weightLayout,
+  converter.manifest, converter.output, converter.presets, converter.verbose
 
 Examples:
-  node serve-cli.js model.gguf
-  node serve-cli.js ./model-rdrr-folder --port 9000
-  node serve-cli.js model.gguf --no-open
+  doppler --config ./tmp-serve-gguf.json
+  doppler --config ./tmp-serve-rdrr.json
 `);
 }
 
@@ -97,30 +99,86 @@ async function detectInputType(inputPath) {
 }
 
 
-async function runConvert(inputPath, outputDir) {
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  assertString(value, label);
+}
+
+function assertBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function assertNumber(value, label) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new Error(`${label} must be a number`);
+  }
+}
+
+function resolveServeConfig(raw) {
+  assertObject(raw, 'config');
+  const tool = raw.tools?.serve ?? null;
+  if (!tool) {
+    throw new Error('tools.serve is required in config');
+  }
+  assertObject(tool, 'tools.serve');
+  assertString(tool.input, 'tools.serve.input');
+
+  if (tool.port !== undefined) assertNumber(tool.port, 'tools.serve.port');
+  if (tool.output !== undefined) assertStringOrNull(tool.output, 'tools.serve.output');
+  if (tool.keep !== undefined) assertBoolean(tool.keep, 'tools.serve.keep');
+  if (tool.open !== undefined) assertBoolean(tool.open, 'tools.serve.open');
+  if (tool.dopplerUrl !== undefined) assertString(tool.dopplerUrl, 'tools.serve.dopplerUrl');
+
+  return {
+    input: tool.input,
+    port: tool.port ?? 8765,
+    output: tool.output ?? null,
+    keep: tool.keep ?? false,
+    open: tool.open ?? true,
+    dopplerUrl: tool.dopplerUrl ?? 'http://localhost:5173',
+  };
+}
+
+function resolveConverterConfig(raw) {
+  const converter = raw?.converter ?? null;
+  if (!converter) {
+    return {
+      converterConfig: createConverterConfig(),
+      verbose: false,
+    };
+  }
+  assertObject(converter, 'converter');
+  return {
+    converterConfig: createConverterConfig({
+      quantization: converter.quantization,
+      sharding: converter.sharding,
+      weightLayout: converter.weightLayout,
+      manifest: converter.manifest,
+      output: converter.output,
+      presets: converter.presets,
+    }),
+    verbose: converter.verbose === true,
+  };
+}
+
+async function runConvert(inputPath, outputDir, converterConfig, verbose) {
   await mkdir(outputDir, { recursive: true });
   console.log(`[serve-cli] Converting GGUF -> .rdrr at ${outputDir}`);
-
-  // Detect if running from TypeScript source or compiled JavaScript
-  const isTypeScript = __filename.endsWith('.ts');
-  const cliBasename = isTypeScript ? 'node-converter.ts' : 'node-converter.js';
-  // Navigate from cli/commands/ to tools/
-  const cliPath = resolve(__dirname, `../../tools/${cliBasename}`);
-
-  // When running TypeScript directly, use tsx or ts-node loader
-  const spawnArgs = isTypeScript
-    ? ['--import', 'tsx', cliPath, inputPath, outputDir]
-    : [cliPath, inputPath, outputDir];
-
-  await new Promise((resolvePromise, rejectPromise) => {
-    const proc = spawn(process.execPath, spawnArgs, {
-      stdio: 'inherit',
-    });
-    proc.on('exit', (code) => {
-      if (code === 0) resolvePromise(undefined);
-      else rejectPromise(new Error(`node-converter exited with code ${code}`));
-    });
-  });
+  await convertGGUF(inputPath, outputDir, { converterConfig, verbose });
   return outputDir;
 }
 
@@ -234,28 +292,46 @@ function startServer(serveDir, args) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  if (args.help || !args.input) {
+  if (args.help) {
     printHelp();
-    process.exit(args.help ? 0 : 1);
+    process.exit(0);
+  }
+  if (!args.config) {
+    console.error('Error: --config is required');
+    process.exit(1);
   }
 
-  const inputPath = resolve(args.input);
+  let loaded;
+  try {
+    loaded = await loadConfig(args.config);
+  } catch (err) {
+    console.error(`Failed to load config "${args.config}": ${err.message}`);
+    process.exit(1);
+  }
+
+  const raw = loaded.raw ?? {};
+  const serveConfig = resolveServeConfig(raw);
+  const converter = resolveConverterConfig(raw);
+
+  const inputPath = resolve(serveConfig.input);
   const inputType = await detectInputType(inputPath);
 
   let serveDir = inputPath;
-  
+
   let tempDir = null;
 
   if (inputType === 'gguf') {
-    tempDir = args.output ? resolve(args.output) : path.join(os.tmpdir(), `doppler-rdrr-${Date.now()}`);
-    serveDir = await runConvert(inputPath, tempDir);
+    tempDir = serveConfig.output
+      ? resolve(serveConfig.output)
+      : path.join(os.tmpdir(), `doppler-rdrr-${Date.now()}`);
+    serveDir = await runConvert(inputPath, tempDir, converter.converterConfig, converter.verbose);
   }
 
   await validateRDRR(serveDir);
-  startServer(serveDir, args);
+  startServer(serveDir, serveConfig);
 
   const cleanup = async () => {
-    if (!args.keep && tempDir) {
+    if (!serveConfig.keep && tempDir) {
       try {
         await rm(tempDir, { recursive: true, force: true });
         console.log(`[serve-cli] Removed temp directory ${tempDir}`);

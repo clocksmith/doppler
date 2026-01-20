@@ -20,7 +20,7 @@ Two issues combined to produce incoherent output during Gemma 2 debugging:
 
 ## Impact
 
-- Debug runs with `--trace kernels` showed invalid GPU buffer copy ranges.
+- Debug runs with `runtime.shared.debug.trace.categories=["kernels"]` showed invalid GPU buffer copy ranges.
 - Short outputs (1-2 tokens) with `<unused*>` tokens instead of coherent text.
 - Kernel path overrides became unreliable due to ambiguous variant selection.
 

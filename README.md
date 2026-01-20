@@ -23,7 +23,7 @@ Doppler and Reploid share a browser process. Kernel registry/config changes appl
 ```bash
 npm install
 npm start         # Dev server at http://localhost:8080
-npm run bench -- --config ./tmp-bench.json
+doppler --config ./tmp-bench.json
 ```
 
 ## Architecture

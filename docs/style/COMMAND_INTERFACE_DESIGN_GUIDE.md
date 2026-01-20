@@ -56,14 +56,14 @@ has a distinct exit condition and is enforced in config.
 
 All command interfaces emit a config object with these fields:
 
-- `cli.command` (run/test/bench/debug)
+- `cli.command` (run/test/bench/debug/convert/tool)
 - `cli.suite` (optional, depending on command)
 - `model` (required when the suite needs a model)
 - `runtime.shared.tooling.intent` (verify/investigate/calibrate)
 
 Commands are rejected if:
 - `cli.command` is missing
-- `runtime.shared.tooling.intent` is missing
+- `runtime.shared.tooling.intent` is missing (for test/bench/debug)
 - intent does not match the command
 - calibrate intent enables tracing/profiling/probes
 
@@ -76,6 +76,12 @@ Commands are rejected if:
 | `test` | `verify` | Deterministic correctness gate |
 | `debug` | `investigate` | Traces, profiling, probes allowed |
 | `bench` | `calibrate` | Baseline metrics only |
+
+Bench runs that enable profiling must switch intent to `investigate`; calibrate
+must keep profiling/tracing off.
+
+Maintenance commands (`convert`, `tool`) are config-only but do not require a
+tooling intent unless they run harnessed workloads.
 
 If a command needs mixed behavior, split it into two runs with two configs.
 Do not overload a single run.

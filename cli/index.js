@@ -2,6 +2,7 @@
 
 
 import { resolve, dirname } from 'path';
+import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { rmSync } from 'fs';
 import { open, writeFile, mkdir, readFile } from 'fs/promises';
@@ -37,6 +38,7 @@ import { parseArgs, setHarnessConfig, appendRuntimeConfigParams } from './args/i
 import { printHelp } from './help.js';
 import { KERNEL_TESTS, TRAINING_TESTS, QUICK_TESTS } from './suites.js';
 import { printSummary } from './output.js';
+import { getTool, listTools } from './tools/registry.js';
 
 import {
   runCorrectnessTests,
@@ -55,7 +57,7 @@ const CLI_LOCK_FILENAME = 'doppler-cli.lock';
 
 let cliLockPath = null;
 
-const COMMANDS = new Set(['run', 'test', 'bench', 'debug']);
+const COMMANDS = new Set(['run', 'test', 'bench', 'debug', 'convert', 'tool']);
 const TEST_SUITES = new Set([
   'kernels',
   'inference',
@@ -189,12 +191,31 @@ function assertNumber(value, label, { min = null } = {}) {
   }
 }
 
+function assertConverterConfig(raw) {
+  if (!raw?.converter) {
+    throw new Error('converter is required in config for cli.command="convert"');
+  }
+  assertObject(raw.converter, 'converter');
+}
+
+function assertToolConfig(raw, tool) {
+  if (!tool?.configKey) return;
+  const tools = raw?.tools;
+  if (!tools || typeof tools !== 'object') {
+    throw new Error(`tools.${tool.configKey} is required for cli.tool="${tool.id}"`);
+  }
+  if (!Object.prototype.hasOwnProperty.call(tools, tool.configKey)) {
+    throw new Error(`tools.${tool.configKey} is required for cli.tool="${tool.id}"`);
+  }
+}
+
 function parseCliConfig(cliConfig) {
   assertObject(cliConfig, 'cli');
 
   const allowedKeys = new Set([
     'command',
     'suite',
+    'tool',
     'baseUrl',
     'noServer',
     'headless',
@@ -216,34 +237,6 @@ function parseCliConfig(cliConfig) {
     }
   }
 
-  if (!('baseUrl' in cliConfig)) throw new Error('cli.baseUrl is required');
-  if (!('noServer' in cliConfig)) throw new Error('cli.noServer is required');
-  if (!('headless' in cliConfig)) throw new Error('cli.headless is required');
-  if (!('minimized' in cliConfig)) throw new Error('cli.minimized is required');
-  if (!('reuseBrowser' in cliConfig)) throw new Error('cli.reuseBrowser is required');
-  if (!('cdpEndpoint' in cliConfig)) throw new Error('cli.cdpEndpoint is required');
-  if (!('timeout' in cliConfig)) throw new Error('cli.timeout is required');
-  if (!('retries' in cliConfig)) throw new Error('cli.retries is required');
-  if (!('profileDir' in cliConfig)) throw new Error('cli.profileDir is required');
-  if (!('output' in cliConfig)) throw new Error('cli.output is required');
-  if (!('html' in cliConfig)) throw new Error('cli.html is required');
-  if (!('compare' in cliConfig)) throw new Error('cli.compare is required');
-  if (!('filter' in cliConfig)) throw new Error('cli.filter is required');
-
-  assertString(cliConfig.baseUrl, 'cli.baseUrl');
-  assertBoolean(cliConfig.noServer, 'cli.noServer');
-  assertBoolean(cliConfig.headless, 'cli.headless');
-  assertBoolean(cliConfig.minimized, 'cli.minimized');
-  assertBoolean(cliConfig.reuseBrowser, 'cli.reuseBrowser');
-  assertStringOrNull(cliConfig.cdpEndpoint, 'cli.cdpEndpoint');
-  assertNumber(cliConfig.timeout, 'cli.timeout', { min: 1 });
-  assertNumber(cliConfig.retries, 'cli.retries', { min: 0 });
-  assertStringOrNull(cliConfig.profileDir, 'cli.profileDir');
-  assertStringOrNull(cliConfig.output, 'cli.output');
-  assertStringOrNull(cliConfig.html, 'cli.html');
-  assertStringOrNull(cliConfig.compare, 'cli.compare');
-  assertStringOrNull(cliConfig.filter, 'cli.filter');
-
   if (!('command' in cliConfig)) {
     throw new Error('cli.command is required');
   }
@@ -256,23 +249,56 @@ function parseCliConfig(cliConfig) {
   if (suite !== null) {
     assertString(suite, 'cli.suite');
   }
+  const tool = cliConfig.tool ?? null;
+  if (tool !== null) {
+    assertString(tool, 'cli.tool');
+  }
+
+  const baseUrl = cliConfig.baseUrl ?? null;
+  const noServer = cliConfig.noServer ?? null;
+  const headless = cliConfig.headless ?? null;
+  const minimized = cliConfig.minimized ?? null;
+  const reuseBrowser = cliConfig.reuseBrowser ?? null;
+  const cdpEndpoint = cliConfig.cdpEndpoint ?? null;
+  const timeout = cliConfig.timeout ?? null;
+  const retries = cliConfig.retries ?? null;
+  const profileDir = cliConfig.profileDir ?? null;
+  const output = cliConfig.output ?? null;
+  const html = cliConfig.html ?? null;
+  const compare = cliConfig.compare ?? null;
+  const filter = cliConfig.filter ?? null;
+
+  if (baseUrl !== null) assertString(baseUrl, 'cli.baseUrl');
+  if (noServer !== null) assertBoolean(noServer, 'cli.noServer');
+  if (headless !== null) assertBoolean(headless, 'cli.headless');
+  if (minimized !== null) assertBoolean(minimized, 'cli.minimized');
+  if (reuseBrowser !== null) assertBoolean(reuseBrowser, 'cli.reuseBrowser');
+  if (cdpEndpoint !== null) assertStringOrNull(cdpEndpoint, 'cli.cdpEndpoint');
+  if (timeout !== null) assertNumber(timeout, 'cli.timeout', { min: 1 });
+  if (retries !== null) assertNumber(retries, 'cli.retries', { min: 0 });
+  if (profileDir !== null) assertStringOrNull(profileDir, 'cli.profileDir');
+  if (output !== null) assertStringOrNull(output, 'cli.output');
+  if (html !== null) assertStringOrNull(html, 'cli.html');
+  if (compare !== null) assertStringOrNull(compare, 'cli.compare');
+  if (filter !== null) assertStringOrNull(filter, 'cli.filter');
 
   return {
     command: cliConfig.command,
     suite,
-    baseUrl: cliConfig.baseUrl,
-    noServer: cliConfig.noServer,
-    headless: cliConfig.headless,
-    minimized: cliConfig.minimized,
-    reuseBrowser: cliConfig.reuseBrowser,
-    cdpEndpoint: cliConfig.cdpEndpoint,
-    timeout: cliConfig.timeout,
-    retries: cliConfig.retries,
-    profileDir: cliConfig.profileDir,
-    output: cliConfig.output,
-    html: cliConfig.html,
-    compare: cliConfig.compare,
-    filter: cliConfig.filter,
+    tool,
+    baseUrl,
+    noServer,
+    headless,
+    minimized,
+    reuseBrowser,
+    cdpEndpoint,
+    timeout,
+    retries,
+    profileDir,
+    output,
+    html,
+    compare,
+    filter,
   };
 }
 
@@ -290,6 +316,13 @@ function resolveCommandAndSuite(cliConfig) {
   if (command === 'debug') {
     if (suite) {
       throw new Error('cli.suite must be null for command "debug"');
+    }
+    return { command, suite: null };
+  }
+
+  if (command === 'convert' || command === 'tool') {
+    if (suite) {
+      throw new Error(`cli.suite must be null for command "${command}"`);
     }
     return { command, suite: null };
   }
@@ -315,7 +348,7 @@ function resolveModel(raw) {
 }
 
 function assertToolingIntent(command, runtime) {
-  if (command === 'run') return;
+  if (command === 'run' || command === 'convert' || command === 'tool') return;
   const intent = runtime?.shared?.tooling?.intent ?? null;
   if (!intent) {
     throw new Error('runtime.shared.tooling.intent is required for CLI runs.');
@@ -333,6 +366,61 @@ function assertToolingIntent(command, runtime) {
       `${[...allowed].join(' or ')}.`
     );
   }
+}
+
+function assertCliRequirements(command, cliConfig) {
+  if (command === 'convert' || command === 'tool') {
+    return;
+  }
+
+  if (cliConfig.baseUrl === null) throw new Error('cli.baseUrl is required');
+  if (cliConfig.noServer === null) throw new Error('cli.noServer is required');
+  if (cliConfig.headless === null) throw new Error('cli.headless is required');
+  if (cliConfig.minimized === null) throw new Error('cli.minimized is required');
+  if (cliConfig.reuseBrowser === null) throw new Error('cli.reuseBrowser is required');
+  if (cliConfig.cdpEndpoint === null) throw new Error('cli.cdpEndpoint is required');
+  if (cliConfig.timeout === null) throw new Error('cli.timeout is required');
+  if (cliConfig.retries === null) throw new Error('cli.retries is required');
+  if (cliConfig.profileDir === null) throw new Error('cli.profileDir is required');
+  if (cliConfig.output === null) throw new Error('cli.output is required');
+  if (cliConfig.html === null) throw new Error('cli.html is required');
+  if (cliConfig.compare === null) throw new Error('cli.compare is required');
+  if (cliConfig.filter === null) throw new Error('cli.filter is required');
+}
+
+function resolveToolId(tool) {
+  if (!tool) {
+    throw new Error('cli.tool is required for command "tool"');
+  }
+  return tool;
+}
+
+async function runNodeScript(script, args) {
+  await new Promise((resolvePromise, reject) => {
+    const child = spawn(process.execPath, [script, ...args], { stdio: 'inherit' });
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolvePromise();
+        return;
+      }
+      reject(new Error(`Process exited with code ${code}`));
+    });
+  });
+}
+
+async function runConverterCommand(configRef) {
+  const script = resolve(__dirname, '..', 'src', 'converter', 'node-converter.js');
+  await runNodeScript(script, ['--config', configRef]);
+}
+
+async function runToolCommand(toolId, configRef) {
+  const tool = getTool(toolId);
+  if (!tool) {
+    const available = listTools().join(', ');
+    throw new Error(`Unknown tool "${toolId}". Available: ${available}`);
+  }
+  await runNodeScript(tool.script, ['--config', configRef]);
 }
 
 // ============================================================================
@@ -376,8 +464,10 @@ async function main() {
 
     const cliConfig = parseCliConfig(loadedConfig.raw?.cli);
     const resolved = resolveCommandAndSuite(cliConfig);
+    assertCliRequirements(resolved.command, cliConfig);
     opts.command = resolved.command;
     opts.suite = resolved.suite;
+    opts.tool = cliConfig.tool ?? null;
     opts.baseUrl = cliConfig.baseUrl;
     opts.noServer = cliConfig.noServer;
     opts.headless = cliConfig.headless;
@@ -392,6 +482,19 @@ async function main() {
     opts.compare = cliConfig.compare;
     opts.filter = cliConfig.filter;
 
+    if (opts.command === 'convert') {
+      assertConverterConfig(loadedConfig.raw);
+    }
+
+    if (opts.command === 'tool') {
+      const toolEntry = getTool(opts.tool ?? '');
+      if (!toolEntry) {
+        const available = listTools().join(', ');
+        throw new Error(`Unknown tool "${opts.tool}". Available: ${available}`);
+      }
+      assertToolConfig(loadedConfig.raw, toolEntry);
+    }
+
     opts.model = resolveModel(loadedConfig.raw?.model);
     const harnessModel = runtime.shared?.harness?.modelId ?? null;
     if (harnessModel && opts.model && harnessModel !== opts.model) {
@@ -399,7 +502,8 @@ async function main() {
         `Model mismatch: config.model="${opts.model}" vs runtime.shared.harness.modelId="${harnessModel}"`
       );
     }
-    if (!opts.model) {
+    const requiresModel = new Set(['run', 'test', 'bench', 'debug']);
+    if (requiresModel.has(opts.command) && !opts.model) {
       throw new Error('config.model is required for CLI runs.');
     }
 
@@ -412,6 +516,27 @@ async function main() {
   if (opts.command === 'debug' || opts.command === 'test' || opts.command === 'bench') {
     try {
       await acquireCliLock(opts.command);
+    } catch (err) {
+      console.error(`Error: ${ (err).message}`);
+      process.exit(1);
+    }
+  }
+
+  if (opts.command === 'convert') {
+    try {
+      await runConverterCommand(opts.config);
+      process.exit(0);
+    } catch (err) {
+      console.error(`Error: ${ (err).message}`);
+      process.exit(1);
+    }
+  }
+
+  if (opts.command === 'tool') {
+    const toolId = resolveToolId(opts.tool);
+    try {
+      await runToolCommand(toolId, opts.config);
+      process.exit(0);
     } catch (err) {
       console.error(`Error: ${ (err).message}`);
       process.exit(1);

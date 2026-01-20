@@ -4,7 +4,7 @@
 
 import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 
-export type Command = 'run' | 'test' | 'bench' | 'debug';
+export type Command = 'run' | 'test' | 'bench' | 'debug' | 'convert' | 'tool';
 
 export type TestSuite =
   | 'kernels'          // Kernel correctness tests
@@ -28,6 +28,7 @@ export type SuiteType = TestSuite | BenchSuite;
 export interface CLIOptions {
   command: Command | null;
   suite: SuiteType | null;
+  tool: string | null;
   model: string | null;
   baseUrl: string | null;
   /** Config preset or path (resolves: name -> path -> URL -> inline JSON) */

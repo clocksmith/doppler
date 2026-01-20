@@ -714,10 +714,10 @@ This rule exists to support the hot-swap architecture: change configs, not code.
 log.info('Config', `LayerTypes: ${layerTypes.slice(0, 10).join(', ')}`);
 
 // DO: Use config-driven tracing
-npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
+doppler --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
 
 // DO: Use probes for specific values
-npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
+doppler --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
 ```
 
 If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point—don't add throwaway log statements.

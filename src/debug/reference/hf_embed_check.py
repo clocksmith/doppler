@@ -3,30 +3,54 @@
 Compare embeddings and layer outputs between HuggingFace and DOPPLER.
 
 Usage:
-    python hf_embed_check.py [--model MODEL_ID] [--prompt "TEXT"]
+    python hf_embed_check.py <config.json>
+
+Config (JSON):
+    {
+      "model": "google/gemma-2-2b-it",
+      "prompt": "The color of the sky is"
+    }
 
 Requires: pip install torch transformers
 """
 
-import argparse
+import json
+import sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
+def load_config():
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python hf_embed_check.py <config.json>")
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        config = json.load(handle)
+    if not isinstance(config, dict):
+        raise SystemExit("Config must be a JSON object")
+    return config
+
+
+def require_string(config, key):
+    value = config.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit(f'Config "{key}" must be a non-empty string')
+    return value
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Check embeddings against HuggingFace")
-    parser.add_argument("--model", "-m", default="google/gemma-2-2b-it", help="HuggingFace model ID")
-    parser.add_argument("--prompt", "-p", default="The color of the sky is", help="Prompt text")
-    args = parser.parse_args()
+    config = load_config()
+    model_id = require_string(config, "model")
+    prompt = require_string(config, "prompt")
 
-    print(f"Loading model: {args.model}")
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32, device_map="cpu")
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    print(f"Loading model: {model_id}")
+    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="cpu")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-    inputs = tokenizer(args.prompt, return_tensors="pt")
+    inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs['input_ids']
 
-    print(f"\nPrompt: {args.prompt}")
+    print(f"\nPrompt: {prompt}")
     print(f"Token IDs: {input_ids[0].tolist()}")
 
     # Get embeddings (raw, not scaled)

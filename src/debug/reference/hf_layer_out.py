@@ -3,36 +3,62 @@
 Compare layer outputs at each layer between HuggingFace and DOPPLER.
 
 Usage:
-    python hf_layer_out.py [--model MODEL_ID] [--prompt "TEXT"] [--layers 0,5,10]
+    python hf_layer_out.py <config.json>
+
+Config (JSON):
+    {
+      "model": "google/gemma-2-2b-it",
+      "prompt": "The color of the sky is",
+      "layers": [0, 12, 25],
+      "token": -1
+    }
 
 Requires: pip install torch transformers
 """
 
-import argparse
+import json
+import sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare layer outputs")
-    parser.add_argument("--model", "-m", default="google/gemma-2-2b-it", help="HuggingFace model ID")
-    parser.add_argument("--prompt", "-p", default="The color of the sky is", help="Prompt text")
-    parser.add_argument("--layers", "-l", default="0,12,25", help="Comma-separated layer indices")
-    parser.add_argument("--token", "-t", type=int, default=-1, help="Token index (-1 for last)")
-    args = parser.parse_args()
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python hf_layer_out.py <config.json>")
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        config = json.load(handle)
+    if not isinstance(config, dict):
+        raise SystemExit("Config must be a JSON object")
 
-    layer_indices = [int(x) for x in args.layers.split(",")]
+    model_id = config.get("model")
+    prompt = config.get("prompt")
+    layers = config.get("layers")
+    token = config.get("token")
 
-    print(f"Loading model: {args.model}")
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32, device_map="cpu")
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    if not isinstance(model_id, str) or not model_id.strip():
+        raise SystemExit('Config "model" must be a non-empty string')
+    if not isinstance(prompt, str) or not prompt.strip():
+        raise SystemExit('Config "prompt" must be a non-empty string')
+    if not isinstance(layers, list) or not layers:
+        raise SystemExit('Config "layers" must be a non-empty array')
+    if not all(isinstance(x, int) for x in layers):
+        raise SystemExit('Config "layers" entries must be integers')
+    if not isinstance(token, int):
+        raise SystemExit('Config "token" must be an integer')
 
-    inputs = tokenizer(args.prompt, return_tensors="pt")
+    layer_indices = layers
+
+    print(f"Loading model: {model_id}")
+    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="cpu")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+    inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs['input_ids']
     num_tokens = input_ids.shape[1]
-    token_idx = args.token if args.token >= 0 else num_tokens + args.token
+    token_idx = token if token >= 0 else num_tokens + token
 
-    print(f"\nPrompt: {args.prompt}")
+    print(f"\nPrompt: {prompt}")
     print(f"Token IDs: {input_ids[0].tolist()}")
     print(f"Checking token index: {token_idx}")
 

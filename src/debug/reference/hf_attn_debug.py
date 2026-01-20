@@ -5,32 +5,64 @@ Full attention debug: traces all intermediate values through layer 0.
 Outputs: input_norm -> Q/K/V projections -> RoPE -> attention scores -> output
 
 Usage:
-    python hf_attn_debug.py [--model MODEL_ID] [--prompt "TEXT"] [--layer LAYER]
+    python hf_attn_debug.py <config.json>
+
+Config (JSON):
+    {
+      "model": "google/gemma-2-2b-it",
+      "prompt": "The color of the sky is",
+      "layer": 0
+    }
 
 Requires: pip install torch transformers
 """
 
-import argparse
+import json
+import sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
+def load_config():
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python hf_attn_debug.py <config.json>")
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        config = json.load(handle)
+    if not isinstance(config, dict):
+        raise SystemExit("Config must be a JSON object")
+    return config
+
+
+def require_string(config, key):
+    value = config.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit(f'Config "{key}" must be a non-empty string')
+    return value
+
+
+def require_int(config, key):
+    value = config.get(key)
+    if not isinstance(value, int):
+        raise SystemExit(f'Config "{key}" must be an integer')
+    return value
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Debug attention intermediate values")
-    parser.add_argument("--model", "-m", default="google/gemma-2-2b-it", help="HuggingFace model ID")
-    parser.add_argument("--prompt", "-p", default="The color of the sky is", help="Prompt text")
-    parser.add_argument("--layer", "-l", type=int, default=0, help="Layer to debug")
-    args = parser.parse_args()
+    config = load_config()
+    model_id = require_string(config, "model")
+    prompt = require_string(config, "prompt")
+    layer_index = require_int(config, "layer")
 
-    print(f"Loading model: {args.model}")
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32, device_map="cpu")
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    print(f"Loading model: {model_id}")
+    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="cpu")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-    inputs = tokenizer(args.prompt, return_tensors="pt")
+    inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs['input_ids']
     num_tokens = input_ids.shape[1]
 
-    print(f"\nPrompt: {args.prompt}")
+    print(f"\nPrompt: {prompt}")
     print(f"Token IDs: {input_ids[0].tolist()}")
     print(f"Num tokens: {num_tokens}")
 
@@ -42,7 +74,7 @@ def main():
     print(f"  num_key_value_heads: {config.num_key_value_heads}")
     print(f"  head_dim: {config.head_dim}")
 
-    layer = model.model.layers[args.layer]
+    layer = model.model.layers[layer_index]
     attn = layer.self_attn
 
     # Get scaled embeddings as input

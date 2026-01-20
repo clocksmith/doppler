@@ -25,7 +25,7 @@ This document describes the benchmark configurations and expected baseline perfo
 
 ## Benchmark Results
 
-> **Note**: Run `npm run bench -- --config <ref>` to collect numbers on your hardware.
+> **Note**: Run `doppler --config <ref>` to collect numbers on your hardware.
 > The config must set `cli.command="bench"` and `cli.suite="kernels"`.
 > Results vary significantly by GPU vendor and driver version.
 
@@ -76,7 +76,7 @@ This document describes the benchmark configurations and expected baseline perfo
 
 ```bash
 # Run all benchmarks (config-driven)
-npm run bench -- --config <ref>
+doppler --config <ref>
 
 # Run specific benchmark file
 npx playwright test tests/benchmarks/matmul.bench.ts

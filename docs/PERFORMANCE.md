@@ -337,7 +337,7 @@ Used when `subgroups` feature is unavailable:
 
 ## Verification
 
-1. Run `npm run bench -- --config ./tmp-bench.json` to collect fresh metrics
+1. Run `doppler --config ./tmp-bench.json` to collect fresh metrics
 2. Verify VRAM tracking via `estimated_vram_bytes_peak` in output
 3. Test on constrained device (e.g., 4GB VRAM limit) to trigger fallbacks
 4. Check browser matrix by running in Chrome, Edge, Firefox Nightly

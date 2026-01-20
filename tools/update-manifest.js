@@ -3,72 +3,34 @@
 
 import { readFile, writeFile, stat } from 'fs/promises';
 import { resolve, join } from 'path';
+import { loadConfig } from '../cli/config/index.js';
 
 
-function parseArgs(args) {
-  
-  const options = {
-    input: null,
-    kernelPath: null,
-    clearKernelPath: false,
-    q4kLayout: null,
-    defaultWeightLayout: null,
-    allowUnsafe: false,
-    dryRun: false,
-    help: false,
-  };
-
+function parseArgs(argv) {
+  const opts = { config: null, help: false };
   let i = 0;
-  while (i < args.length) {
-    const arg = args[i];
-    switch (arg) {
-      case '--help':
-      case '-h':
-        options.help = true;
-        break;
-      case '--kernel-path': {
-        const raw = args[++i] || '';
-        if (!raw) break;
-        if (raw.trim().startsWith('{')) {
-          try {
-            const parsed = JSON.parse(raw);
-            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-              throw new Error('kernel path must be a JSON object');
-            }
-            options.kernelPath =  (parsed);
-          } catch (err) {
-            throw new Error(`Failed to parse --kernel-path JSON: ${ (err).message}`);
-          }
-        } else {
-          options.kernelPath = raw;
-        }
-        break;
-      }
-      case '--clear-kernel-path':
-        options.clearKernelPath = true;
-        break;
-      case '--q4k-layout':
-        options.q4kLayout = args[++i] || null;
-        break;
-      case '--default-weight-layout':
-        options.defaultWeightLayout = args[++i] || null;
-        break;
-      case '--allow-unsafe':
-        options.allowUnsafe = true;
-        break;
-      case '--dry-run':
-        options.dryRun = true;
-        break;
-      default:
-        if (!arg.startsWith('-') && !options.input) {
-          options.input = arg;
-        }
-        break;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i++;
+      continue;
     }
-    i++;
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i++;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
   }
-
-  return options;
+  return opts;
 }
 
 
@@ -77,20 +39,20 @@ function printHelp() {
 Update DOPPLER manifest settings (no shard changes).
 
 Usage:
-  node update-manifest.js <model-dir|manifest.json> [options]
+  doppler --config <ref>
 
-Safe options:
-  --kernel-path <id|json>   Build-time manifest edit (not a runtime override)
-  --clear-kernel-path
-  --dry-run
+Config requirements:
+  tools.updateManifest.input (string, required)
+  tools.updateManifest.kernelPath (string|object|null)
+  tools.updateManifest.clearKernelPath (boolean)
+  tools.updateManifest.q4kLayout (string|null)
+  tools.updateManifest.defaultWeightLayout (string|null)
+  tools.updateManifest.allowUnsafe (boolean)
+  tools.updateManifest.dryRun (boolean)
 
-Unsafe options (require --allow-unsafe):
-  --q4k-layout <flat|row_wise|column_wise>
-  --default-weight-layout <row|column>
-
-Examples:
-  node update-manifest.js ./models/gemma-1b-q4-row --kernel-path gemma2-q4k-fused
-  node update-manifest.js ./models/gemma-1b-q4-row --kernel-path '{"id":"gemma2-q4k-dequant-f16"}'
+Notes:
+  - kernelPath is a build-time manifest edit (not a runtime override)
+  - q4kLayout/defaultWeightLayout require allowUnsafe=true
 `);
 }
 
@@ -104,6 +66,62 @@ async function resolveManifestPath(input) {
   return resolved;
 }
 
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string or null`);
+  }
+}
+
+function assertBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function assertKernelPath(value, label) {
+  if (value === null) return;
+  if (typeof value === 'string') {
+    if (value.trim() === '') {
+      throw new Error(`${label} must be a non-empty string, object, or null`);
+    }
+    return;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be a non-empty string, object, or null`);
+  }
+}
+
+function assertQ4KLayout(value, label) {
+  if (value === null) return;
+  assertString(value, label);
+  const normalized = value.toLowerCase();
+  if (normalized !== 'row' && normalized !== 'col') {
+    throw new Error(`${label} must be "row", "col", or null`);
+  }
+}
+
+function assertWeightLayout(value, label) {
+  if (value === null) return;
+  assertString(value, label);
+  const normalized = value.toLowerCase();
+  if (normalized !== 'row' && normalized !== 'column') {
+    throw new Error(`${label} must be "row", "column", or null`);
+  }
+}
+
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
@@ -112,44 +130,75 @@ async function main() {
     process.exit(0);
   }
 
-  if (!options.input) {
-    console.error('Error: model directory or manifest.json path is required.');
+  if (!options.config) {
+    console.error('Error: --config is required.');
     process.exit(1);
   }
 
-  const manifestPath = await resolveManifestPath(options.input);
+  const loaded = await loadConfig(options.config);
+  const raw = loaded.raw ?? {};
+  const toolConfig = raw.tools?.updateManifest;
+
+  if (!toolConfig || typeof toolConfig !== 'object') {
+    throw new Error('tools.updateManifest is required in config');
+  }
+
+  const required = [
+    'input',
+    'kernelPath',
+    'clearKernelPath',
+    'q4kLayout',
+    'defaultWeightLayout',
+    'allowUnsafe',
+    'dryRun',
+  ];
+  for (const key of required) {
+    if (!(key in toolConfig)) {
+      throw new Error(`tools.updateManifest.${key} is required in config`);
+    }
+  }
+
+  assertString(toolConfig.input, 'tools.updateManifest.input');
+  assertKernelPath(toolConfig.kernelPath, 'tools.updateManifest.kernelPath');
+  assertBoolean(toolConfig.clearKernelPath, 'tools.updateManifest.clearKernelPath');
+  assertQ4KLayout(toolConfig.q4kLayout, 'tools.updateManifest.q4kLayout');
+  assertWeightLayout(toolConfig.defaultWeightLayout, 'tools.updateManifest.defaultWeightLayout');
+  assertBoolean(toolConfig.allowUnsafe, 'tools.updateManifest.allowUnsafe');
+  assertBoolean(toolConfig.dryRun, 'tools.updateManifest.dryRun');
+
+  const manifestPath = await resolveManifestPath(toolConfig.input);
   const manifestJson = await readFile(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestJson);
   let changed = false;
 
-  if (options.clearKernelPath) {
+  if (toolConfig.clearKernelPath) {
     if (manifest.optimizations?.kernelPath) {
       delete manifest.optimizations.kernelPath;
       changed = true;
     }
   }
 
-  if (options.kernelPath !== null) {
+  if (toolConfig.kernelPath !== null) {
     manifest.optimizations = manifest.optimizations || {};
-    manifest.optimizations.kernelPath = options.kernelPath;
+    manifest.optimizations.kernelPath = toolConfig.kernelPath;
     changed = true;
   }
 
-  if (options.q4kLayout) {
-    if (!options.allowUnsafe) {
-      console.warn('Skipping --q4k-layout (use --allow-unsafe to force).');
+  if (toolConfig.q4kLayout) {
+    if (!toolConfig.allowUnsafe) {
+      console.warn('Skipping q4kLayout (set tools.updateManifest.allowUnsafe=true to apply).');
     } else {
-      manifest.config = manifest.config || {};
-      manifest.config.q4kLayout = options.q4kLayout;
+      manifest.quantizationInfo = manifest.quantizationInfo || {};
+      manifest.quantizationInfo.layout = toolConfig.q4kLayout;
       changed = true;
     }
   }
 
-  if (options.defaultWeightLayout) {
-    if (!options.allowUnsafe) {
-      console.warn('Skipping --default-weight-layout (use --allow-unsafe to force).');
+  if (toolConfig.defaultWeightLayout) {
+    if (!toolConfig.allowUnsafe) {
+      console.warn('Skipping defaultWeightLayout (set tools.updateManifest.allowUnsafe=true to apply).');
     } else {
-      manifest.defaultWeightLayout = options.defaultWeightLayout;
+      manifest.defaultWeightLayout = toolConfig.defaultWeightLayout;
       changed = true;
     }
   }
@@ -159,7 +208,7 @@ async function main() {
     return;
   }
 
-  if (options.dryRun) {
+  if (toolConfig.dryRun) {
     console.log(`Dry run: changes applied in memory for ${manifestPath}`);
     return;
   }

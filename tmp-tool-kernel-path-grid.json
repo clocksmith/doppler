@@ -1,0 +1,29 @@
+{
+  "extends": "bench",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "cli": {
+    "command": "tool",
+    "tool": "kernel-path-grid",
+    "profileDir": "tests/results/kernel-path-grid/profiles",
+    "output": "tests/results/kernel-path-grid/placeholder.json",
+    "html": null,
+    "compare": null,
+    "filter": null
+  },
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "calibrate"
+      }
+    }
+  },
+  "tools": {
+    "kernelPathGrid": {
+      "outputDir": "tests/results/kernel-path-grid",
+      "profileDirBase": "tests/results/kernel-path-grid/profiles",
+      "kernelPrefix": "gemma3-q4k",
+      "kernelPaths": null,
+      "includeF32A": false
+    }
+  }
+}

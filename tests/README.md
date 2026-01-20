@@ -74,7 +74,7 @@ console.log('Errors:', state.errors);
 Shell for Playwright to inject benchmark scripts. Initializes WebGPU and signals
 ready via `window.dopplerReady = true`.
 
-Used by CLI bench runs (e.g., `npm run bench -- --config <ref>`).
+Used by CLI bench runs (e.g., `doppler --config <ref>`).
 
 ---
 
@@ -88,10 +88,10 @@ npm start
 npm run test:unit
 
 # GPU kernel tests (cli.command=test, cli.suite=kernels)
-npm run test:gpu -- --config <ref>
+doppler --config <ref>
 
 # Inference smoke test (cli.command=test, cli.suite=inference)
-npm run test:gpu -- --config <ref>
+doppler --config <ref>
 
 # Manual browser testing
 # Manual browser testing (runtimeConfig defines harness mode)

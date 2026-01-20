@@ -35,6 +35,9 @@ export interface DistributionConfigSchema {
 
   /** Minimum interval between progress callbacks in milliseconds */
   progressUpdateIntervalMs: number;
+
+  /** Require a specific Content-Encoding for shard downloads (null disables check) */
+  requiredContentEncoding: string | null;
 }
 
 /** Default distribution configuration */

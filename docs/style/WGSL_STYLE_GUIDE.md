@@ -639,5 +639,5 @@ Kernel paths are explicit dispatch sequences. See `../CONFIG.md`.
 Manifest updates in OPFS require a purge to take effect:
 
 ```bash
-npx tsx doppler/tools/purge-opfs.js --model gemma-1b-q4-row
+doppler --config ./tmp-opfs-purge.json
 ```

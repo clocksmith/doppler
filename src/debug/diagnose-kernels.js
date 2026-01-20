@@ -4,6 +4,42 @@
 import { readFile } from 'fs/promises';
 import { resolve, join } from 'path';
 import { log } from './index.js';
+import { loadConfig } from '../../cli/config/index.js';
+
+const PROJECT_ROOT = resolve(new URL('.', import.meta.url).pathname, '..', '..');
+
+function parseArgs(argv) {
+  const opts = { config: null, help: false };
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      opts.help = true;
+      i++;
+      continue;
+    }
+    if (arg === '--config' || arg === '-c') {
+      opts.config = argv[i + 1] || null;
+      i += 2;
+      continue;
+    }
+    if (!arg.startsWith('-') && !opts.config) {
+      opts.config = arg;
+      i++;
+      continue;
+    }
+    console.error(`Unknown argument: ${arg}`);
+    opts.help = true;
+    break;
+  }
+  return opts;
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
 
 async function diagnoseModel(modelPath) {
   const result = {
@@ -23,7 +59,7 @@ async function diagnoseModel(modelPath) {
 
     // Check Q4K layout - now in quantizationInfo.layout
     // 'row' = fused kernel (fast), 'col' = dequant fallback (slow)
-    const q4kLayout = manifest.quantizationInfo?.layout ?? manifest.config?.q4kLayout;
+    const q4kLayout = manifest.quantizationInfo?.layout ?? null;
     result.q4kLayout = q4kLayout;
 
     if (!q4kLayout) {
@@ -31,7 +67,7 @@ async function diagnoseModel(modelPath) {
       result.recommendations.push('Re-convert model to add Q4K layout metadata');
     } else if (q4kLayout === 'col') {
       result.issues.push('Warning: Q4K layout is "col" (dequant fallback, loses Q4K benefits)');
-      result.recommendations.push('Re-convert model with --q4k-layout row for fused Q4K (faster, smaller)');
+      result.recommendations.push('Re-convert model with converter.quantization.q4kLayout="row" for fused Q4K (faster, smaller)');
     } else if (q4kLayout === 'row') {
       log.info('KernelDiag', 'OK Q4K layout: row (fused kernel, optimal)');
     } else {
@@ -95,20 +131,20 @@ async function printDiagnostics(result) {
     log.info('KernelDiag', 'Expected Performance:');
     log.info('KernelDiag', '  - Gemma 3 1B: ~8 tok/s (Apple M3)');
     log.info('KernelDiag', '  - Column-wise layout: +14% vs flat');
-    log.info('KernelDiag', 'Run benchmark:');
-    log.info('KernelDiag', `  npx tsx cli/index.ts bench inference --model ${result.modelPath.split('/').pop()} --config bench`);
+    log.info('KernelDiag', 'Run benchmark via config (cli.command=bench, cli.suite=inference).');
   }
 
   log.info('KernelDiag', '='.repeat(70));
 }
 
 async function main() {
-  const args = process.argv.slice(2);
+  const args = parseArgs(process.argv.slice(2));
 
-  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    log.info('KernelDiag', 'Usage: npx tsx debug/diagnose-kernels.ts <model-path>');
-    log.info('KernelDiag', 'Example:');
-    log.info('KernelDiag', '  npx tsx debug/diagnose-kernels.ts models/gemma-1b-q4-col');
+  if (args.help) {
+    log.info('KernelDiag', 'Usage: doppler --config <ref>');
+    log.info('KernelDiag', 'Config requirements:');
+    log.info('KernelDiag', '  - model (string, required)');
+    log.info('KernelDiag', '  - tools.diagnoseKernels.modelPath (string, optional; overrides models/<model>)');
     log.info('KernelDiag', 'Checks:');
     log.info('KernelDiag', '  - Manifest validity');
     log.info('KernelDiag', '  - Q4K layout configuration (row=fused, col=dequant)');
@@ -117,7 +153,21 @@ async function main() {
     process.exit(0);
   }
 
-  const modelPath = resolve(args[0]);
+  if (!args.config) {
+    console.error('Error: --config is required');
+    process.exit(1);
+  }
+
+  const loadedConfig = await loadConfig(args.config);
+  const raw = loadedConfig.raw ?? {};
+  assertString(raw.model, 'model');
+  const tool = raw.tools?.diagnoseKernels ?? {};
+  if (tool.modelPath !== undefined) {
+    assertString(tool.modelPath, 'tools.diagnoseKernels.modelPath');
+  }
+  const modelPath = tool.modelPath
+    ? resolve(PROJECT_ROOT, tool.modelPath)
+    : join(PROJECT_ROOT, 'models', raw.model);
   const result = await diagnoseModel(modelPath);
   await printDiagnostics(result);
 

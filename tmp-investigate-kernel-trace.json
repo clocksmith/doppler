@@ -1,0 +1,47 @@
+{
+  "extends": "bench",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "cli": {
+    "command": "bench",
+    "suite": "inference"
+  },
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
+      "debug": {
+        "logLevel": { "defaultLogLevel": "warn" },
+        "trace": {
+          "enabled": true,
+          "categories": ["kernels"],
+          "maxDecodeSteps": 1
+        }
+      },
+      "benchmark": {
+        "run": {
+          "promptName": "short",
+          "maxNewTokens": 4,
+          "warmupRuns": 0,
+          "timedRuns": 1,
+          "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
+          "debug": true,
+          "profile": false,
+          "captureMemoryTimeSeries": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "batchSize": 4,
+        "maxTokens": 4,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 4,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": { "temperature": 0 }
+    }
+  }
+}
