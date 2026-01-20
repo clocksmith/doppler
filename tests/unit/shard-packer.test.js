@@ -106,6 +106,71 @@ class MockStreamingShardIO {
   }
 }
 
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+class StreamingHasherIO {
+  shards = new Map();
+  lastShardHash = null;
+
+  async writeShard(index, data) {
+    this.shards.set(index, new Uint8Array(data));
+    return this.computeHash(data);
+  }
+
+  async computeHash(data) {
+    const bytes = new Uint8Array(data);
+    let total = bytes.length;
+    let last = bytes.length > 0 ? bytes[bytes.length - 1] : 0;
+    const hash = new Uint8Array([total & 0xff, last & 0xff]);
+    const hex = bytesToHex(hash);
+    this.lastShardHash = hex;
+    return hex;
+  }
+
+  async createShardWriter(index) {
+    const chunks = [];
+    let total = 0;
+    return {
+      write: async (chunk) => {
+        const bytes = new Uint8Array(chunk);
+        if (bytes.length === 0) return;
+        chunks.push(bytes);
+        total += bytes.length;
+      },
+      close: async () => {
+        const combined = new Uint8Array(total);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        this.shards.set(index, combined);
+      },
+      abort: async () => {
+        chunks.length = 0;
+      },
+    };
+  }
+
+  createHasher() {
+    let total = 0;
+    let last = 0;
+    return {
+      update: (chunk) => {
+        const bytes = new Uint8Array(chunk);
+        if (bytes.length === 0) return;
+        total += bytes.length;
+        last = bytes[bytes.length - 1];
+      },
+      finalize: async () => new Uint8Array([total & 0xff, last & 0xff]),
+    };
+  }
+}
+
 const DEFAULT_PACKER_OPTIONS = {
   shardSize: 1024,
   hashAlgorithm: 'sha256',
@@ -347,6 +412,51 @@ describe('ShardPacker', () => {
     it('requires shard size in constructor', async () => {
       const io = new MockShardIO();
       expect(() => new ShardPacker(io)).toThrow('Missing shard size for shard packer');
+    });
+
+    it('computes group hashes from streaming data', async () => {
+      const io = new StreamingHasherIO();
+      const packer = createPacker(io, { shardSize: 256 });
+
+      const tensorA = createStreamingTensor('layers.0.weight', 16, [16], 8);
+      const tensorB = createStreamingTensor('layers.0.bias', 8, [8], 8);
+
+      const result = await packer.pack([tensorA, tensorB]);
+      const group = result.groups['layer.0'];
+
+      const combined = new Uint8Array(24);
+      combined.set(await tensorA.getData(), 0);
+      combined.set(await tensorB.getData(), 16);
+      const expected = bytesToHex(new Uint8Array([combined.length & 0xff, combined[combined.length - 1] & 0xff]));
+
+      expect(group.hash).toBe(expected);
+    });
+
+    it('records shard hash from streaming hasher', async () => {
+      const io = new StreamingHasherIO();
+      const packer = createPacker(io, { shardSize: 256 });
+
+      const tensor = createStreamingTensor('layers.1.weight', 20, [20], 10);
+      const result = await packer.pack([tensor]);
+
+      expect(result.shards.length).toBe(1);
+      expect(result.shards[0].hash).toBe(io.lastShardHash);
+    });
+
+    it('groups MoE expert tensors', async () => {
+      const io = new MockShardIO();
+      const packer = createPacker(io, { shardSize: 256 });
+
+      const tensors = [
+        createTensor('layers.2.experts.3.w1.weight', 4, [4]),
+        createTensor('layers.2.shared_expert.w1.weight', 4, [4]),
+        createTensor('layers.2.block_sparse_moe.gate.weight', 4, [4]),
+      ];
+
+      const result = await packer.pack(tensors);
+      expect(Object.keys(result.groups)).toEqual(
+        expect.arrayContaining(['layer.2.expert.3', 'layer.2.shared_expert', 'layer.2.shared'])
+      );
     });
   });
 

@@ -179,6 +179,9 @@ export function decodeTensorToFloat32(buffer, sourceDtype) {
 }
 
 export async function* createQ4KChunkStream(chunks, sourceDtype, shape, layout, chunkSizeBytes) {
+  if (layout === 'col') {
+    throw new Error('Column-wise Q4_K_M quantization is not supported in streaming mode.');
+  }
   const totalElements = shape.reduce((a, b) => a * b, 1);
   const rowLayout = layout === 'row' && shape.length === 2;
   const cols = rowLayout ? shape[1] : 0;

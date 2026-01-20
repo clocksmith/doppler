@@ -112,5 +112,14 @@ export async function createHttpTensorSource(url, options = {}) {
 
       return response.arrayBuffer();
     },
+    async readAll() {
+      return this.readRange(0, size);
+    },
+    async close() {
+      return;
+    },
+    async getAuxFiles() {
+      return {};
+    },
   };
 }

@@ -25,6 +25,18 @@ export function createFileTensorSource(file) {
       const blob = file.slice(start, end);
       return blob.arrayBuffer();
     },
+    async readAll() {
+      if (typeof file.arrayBuffer === 'function') {
+        return file.arrayBuffer();
+      }
+      return this.readRange(0, file.size ?? 0);
+    },
+    async close() {
+      return;
+    },
+    async getAuxFiles() {
+      return {};
+    },
   };
 }
 

@@ -103,6 +103,19 @@
     .convert-description { margin-bottom: var(--space-sm); }
     .convert-status { margin-top: var(--space-sm); }
 
+
+    /* Workspace */
+    .workspace-actions { display: flex; gap: var(--space-sm); }
+    .workspace-status { margin-top: var(--space-xs); }
+    .workspace-files {
+      border: var(--border-sm) solid var(--fg);
+      padding: var(--space-sm);
+      max-height: 180px;
+      overflow: auto;
+      background: var(--bg);
+    }
+    .workspace-file { margin-bottom: 2px; }
+
     /* Logs */
     .log-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
     #log-panel {
@@ -308,6 +321,17 @@
             <span id="convert-message" class="type-caption">Ready</span>
           </div>
         </section>
+
+        <section class="panel workspace-panel">
+          <h2 class="type-label">Workspace</h2>
+          <div class="workspace-actions">
+            <button id="workspace-import-btn" class="btn">Import Folder</button>
+            <button id="workspace-refresh-btn" class="btn">Refresh</button>
+          </div>
+          <div class="workspace-status type-caption" id="workspace-status">Idle</div>
+          <div class="workspace-files type-caption" id="workspace-files"></div>
+        </section>
+
       </aside>
 
       <!-- Chat Area -->

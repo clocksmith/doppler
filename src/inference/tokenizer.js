@@ -16,6 +16,7 @@ export class Tokenizer {
 
   
   async initialize(manifest, options = {}) {
+    const modelId = manifest?.modelId || 'unknown';
     // Merge tokenizer config: preset provides fallback hints, manifest takes precedence
     const presetTokenizer = options.presetTokenizer || {};
     const tokenizerConfig = { ...presetTokenizer, ...(manifest.tokenizer || {}) };
@@ -86,7 +87,8 @@ export class Tokenizer {
 
       // No external fallback - bundled tokenizer is required
       throw new Error(
-        '[Tokenizer] Bundled tokenizer not found. ' +
+        `[Tokenizer] Bundled tokenizer not found for model "${modelId}". ` +
+        `Expected tokenizer file: "${tokenizerConfig.file}". ` +
         'Ensure tokenizer.json is in OPFS or model directory. ' +
         'Clear browser storage and re-download the model.'
       );
@@ -138,7 +140,7 @@ export class Tokenizer {
        (this.backend).load(tokenizerConfig.vocab, tokenizerConfig.merges);
     } else {
       throw new Error(
-        '[Tokenizer] No valid tokenizer configuration in manifest. ' +
+        `[Tokenizer] No valid tokenizer configuration in manifest for model "${modelId}". ` +
         'Provide tokenizer.hfModel or bundle tokenizer.json (tokenizer.type="bundled", tokenizer.file="tokenizer.json").'
       );
     }

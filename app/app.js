@@ -17,6 +17,7 @@ import { ModelDownloader } from './model-downloader.js';
 import { ChatController } from './chat-controller.js';
 import { ConverterController } from './converter-controller.js';
 import { QuickStartController } from './quickstart-controller.js';
+import { WorkspaceController } from './workspace-controller.js';
 
 // UI Helpers
 import {
@@ -43,12 +44,19 @@ export class DopplerDemo {
   #chatController = null;
   #converterController = null;
   #quickStartController = null;
+  #workspaceController = null;
 
   // UI Components
   #modelSelector = null;
   #chatUI = null;
   #progressUI = null;
   #quickStartUI = null;
+
+  // Workspace UI
+  #workspaceImportBtn = null;
+  #workspaceRefreshBtn = null;
+  #workspaceStatus = null;
+  #workspaceFiles = null;
 
   // DOM references
   #statusDot = null;
@@ -132,6 +140,12 @@ export class DopplerDemo {
     await this.#modelRegistry.discover();
     this.#modelSelector?.setModels(this.#modelRegistry.getModels());
 
+    try {
+      await this.#workspaceController?.init();
+    } catch (error) {
+      log.warn('App', 'Workspace init failed', error);
+    }
+
     // Set initial status
     if (caps.webgpu) {
       this.#setStatus('ready', 'Ready');
@@ -196,6 +210,11 @@ export class DopplerDemo {
     this.#convertStatus = document.querySelector('#convert-status');
     this.#convertProgress = document.querySelector('#convert-progress');
     this.#convertMessage = document.querySelector('#convert-message');
+
+    this.#workspaceImportBtn = document.querySelector('#workspace-import-btn');
+    this.#workspaceRefreshBtn = document.querySelector('#workspace-refresh-btn');
+    this.#workspaceStatus = document.querySelector('#workspace-status');
+    this.#workspaceFiles = document.querySelector('#workspace-files');
   }
 
   #initControllers() {
@@ -306,6 +325,14 @@ export class DopplerDemo {
       onError: (error) => {
         this.#quickStartUI?.showError(error);
       },
+    });
+
+
+    this.#workspaceController = new WorkspaceController({
+      importButton: this.#workspaceImportBtn,
+      refreshButton: this.#workspaceRefreshBtn,
+      statusEl: this.#workspaceStatus,
+      filesEl: this.#workspaceFiles,
     });
   }
 

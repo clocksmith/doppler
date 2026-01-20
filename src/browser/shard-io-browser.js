@@ -1,19 +1,21 @@
 
 
 import { generateShardFilename } from '../storage/rdrr-format.js';
+import { createStreamingHasher } from '../storage/shard-manager.js';
 
 
 export class BrowserShardIO {
-  constructor(modelDir) {
+  constructor(modelDir, options = {}) {
     this.modelDir = modelDir;
+    this.hashAlgorithm = options.hashAlgorithm ?? 'sha256';
   }
 
   
-  static async create(modelId) {
+  static async create(modelId, options = {}) {
     const opfsRoot = await navigator.storage.getDirectory();
     const modelsDir = await opfsRoot.getDirectoryHandle('models', { create: true });
     const modelDir = await modelsDir.getDirectoryHandle(modelId, { create: true });
-    return new BrowserShardIO(modelDir);
+    return new BrowserShardIO(modelDir, options);
   }
 
   
@@ -30,13 +32,10 @@ export class BrowserShardIO {
 
   
   async computeHash(data) {
-    // Use ArrayBuffer slice for SubtleCrypto compatibility
-    const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = new Uint8Array(hashBuffer);
-    return Array.from(hashArray)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    const hasher = await createStreamingHasher(this.hashAlgorithm);
+    hasher.update(data);
+    const hashBytes = await hasher.finalize();
+    return bytesToHex(hashBytes);
   }
 
   
@@ -81,4 +80,10 @@ export function isOPFSSupported() {
     'storage' in navigator &&
     'getDirectory' in (navigator.storage)
   );
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }

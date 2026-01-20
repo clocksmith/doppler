@@ -261,3 +261,9 @@ export async function hash(data) {
   hasher.update(data);
   return hasher.finalize();
 }
+
+if (typeof globalThis !== 'undefined') {
+  if (!globalThis.blake3) {
+    globalThis.blake3 = { hash, createHasher };
+  }
+}

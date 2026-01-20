@@ -13,6 +13,9 @@ export interface TensorSource {
   file?: File;
   url?: string;
   readRange(offset: number, length: number): Promise<ArrayBuffer>;
+  readAll(): Promise<ArrayBuffer>;
+  close(): Promise<void>;
+  getAuxFiles(): Promise<Record<string, unknown>>;
   cleanup?: () => Promise<void> | void;
 }
 

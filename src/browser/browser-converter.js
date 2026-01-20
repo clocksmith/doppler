@@ -9,7 +9,6 @@ import {
   parseConfigJson,
   parseTokenizerJson,
   parseIndexJson,
-  readTensorData,
   streamTensorData,
   detectModelFormat,
   getAuxiliaryFiles,
@@ -47,8 +46,6 @@ import {
   getQ4KOutputSize,
   createQ4KChunkStream,
   createF16ChunkStream,
-  decodeTensorToFloat32,
-  quantizeToQ4KColumnWise,
 } from './quantization.js';
 
 // Import shared types and functions from convert-core
@@ -130,6 +127,10 @@ export async function convertModel(files, options = {}) {
   const cleanupTasks = [];
 
   try {
+    if (!isOPFSAvailable() && !isIndexedDBAvailable()) {
+      throw new Error('No supported storage backend available for browser conversion. Supported: opfs, indexeddb.');
+    }
+
     // Initialize storage
     await initStorage();
     const persistence = await requestPersistence();
@@ -308,6 +309,12 @@ export async function convertModel(files, options = {}) {
       const q4kLayout = targetDtype === 'Q4_K_M'
         ? resolveQ4KLayout(tensor.name, tensor.shape, quantizationInfo)
         : null;
+      if (q4kLayout === 'col') {
+        throw new Error(
+          'Column-wise Q4_K_M quantization requires full tensor reads and is not supported in browser conversion. ' +
+          'Use row layout or provide pre-quantized weights.'
+        );
+      }
       const numElements = tensor.shape.reduce((a, b) => a * b, 1);
       const targetSize = targetDtype === 'Q4_K_M'
         ? getQ4KOutputSize(tensor.shape, q4kLayout)
@@ -318,12 +325,6 @@ export async function convertModel(files, options = {}) {
             : tensor.size;
 
       const getQ4KData = async () => {
-        if (q4kLayout === 'col') {
-          const data = await readTensorData(tensor);
-          const f32 = decodeTensorToFloat32(data, tensor.dtype);
-          const q4 = quantizeToQ4KColumnWise(f32, tensor.shape);
-          return q4.quantized;
-        }
         const chunks = createQ4KChunkStream(
           sourceChunksFor(tensor),
           tensor.dtype,
@@ -344,17 +345,13 @@ export async function convertModel(files, options = {}) {
 
       if (targetDtype === 'Q4_K_M') {
         getData = getQ4KData;
-        getChunks = q4kLayout === 'col'
-          ? async function* () {
-            yield await getQ4KData();
-          }
-          : () => createQ4KChunkStream(
-            sourceChunksFor(tensor),
-            tensor.dtype,
-            tensor.shape,
-            q4kLayout,
-            chunkSizeBytes
-          );
+        getChunks = () => createQ4KChunkStream(
+          sourceChunksFor(tensor),
+          tensor.dtype,
+          tensor.shape,
+          q4kLayout,
+          chunkSizeBytes
+        );
       } else if (targetDtype === 'F16' && tensor.dtype !== 'F16') {
         getData = getF16Data;
         getChunks = () => createF16ChunkStream(sourceChunksFor(tensor), tensor.dtype);
@@ -532,10 +529,6 @@ export async function convertModel(files, options = {}) {
       message: error.message,
       error: error,
     });
-
-    if (cleanupTasks.length > 0) {
-      await Promise.allSettled(cleanupTasks.map((task) => task()));
-    }
 
     throw error;
   }

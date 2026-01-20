@@ -12,13 +12,13 @@ import type { ShardIO } from '../converter/shard-packer.js';
  * Browser/OPFS implementation of ShardIO interface.
  */
 export declare class BrowserShardIO implements ShardIO {
-  constructor(modelDir: FileSystemDirectoryHandle);
+  constructor(modelDir: FileSystemDirectoryHandle, options?: { hashAlgorithm?: string });
 
   /**
    * Create a BrowserShardIO from a model ID.
    * Opens or creates the model directory in OPFS.
    */
-  static create(modelId: string): Promise<BrowserShardIO>;
+  static create(modelId: string, options?: { hashAlgorithm?: string }): Promise<BrowserShardIO>;
 
   /**
    * Write shard data to OPFS, returns hash.
@@ -26,7 +26,7 @@ export declare class BrowserShardIO implements ShardIO {
   writeShard(index: number, data: Uint8Array): Promise<string>;
 
   /**
-   * Compute SHA-256 hash using Web Crypto API.
+   * Compute hash using the configured hash algorithm.
    */
   computeHash(data: Uint8Array): Promise<string>;
 

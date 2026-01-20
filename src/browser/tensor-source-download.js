@@ -136,6 +136,16 @@ async function downloadToIdb(url, options = {}) {
         const end = Math.min(start + length, bytes.byteLength);
         return bytes.slice(start, end).buffer;
       },
+      readAll: async () => {
+        const bytes = await readAll();
+        return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      },
+      close: async () => {
+        return;
+      },
+      getAuxFiles: async () => {
+        return {};
+      },
       cleanup: async () => {
         await store.deleteModel(modelId);
         await store.cleanup();
