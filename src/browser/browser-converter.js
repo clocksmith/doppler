@@ -234,20 +234,27 @@ export async function convertModel(files, options = {}) {
     if (!headDim) {
       throw new Error('Missing headDim in architecture');
     }
-    const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(modelInfo.tensors);
+    const tensors = modelInfo.tensors;
+    const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(tensors);
     if (!sourceQuantization) {
       throw new Error('Missing quantization for model conversion');
     }
-    const embedDtypeRaw = findTensorDtype(modelInfo.tensors, isEmbeddingTensorName);
-    const lmHeadDtypeRaw = findTensorDtype(modelInfo.tensors, isLmHeadTensorName);
+    const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
+    const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
+    const visionPatterns = ['vision_', 'vision_tower', 'vision_model', 'image_encoder'];
+    const audioPatterns = ['audio_', 'audio_encoder', 'whisper', 'wav2vec'];
+    const projectorPatterns = ['multi_modal_projector', 'mm_projector', 'projector'];
+    const hasVision = tensors.some((t) => visionPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
+    const hasAudio = tensors.some((t) => audioPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
+    const hasProjector = tensors.some((t) => projectorPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
     const quantizationInfo = buildQuantizationInfo(
       resolvedConverterConfig,
       sourceQuantization,
       embedDtypeRaw,
       lmHeadDtypeRaw,
-      false,
-      false,
-      false,
+      hasVision,
+      hasAudio,
+      hasProjector,
       rawConfig
     );
     const manifestQuantization = resolveManifestQuantization(

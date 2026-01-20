@@ -326,30 +326,30 @@ Agent 3 - Browser Converter Orchestration
   - [x] Browser conversion uses streaming packer, stores tokenizer, preflights storage, and cleans temp sources.
 
 Agent 4 - TensorSource Abstraction + Remote Support
-- Implement TensorSource types.
-  - `src/browser/tensor-source-file.js` for File handles.
-  - `src/browser/tensor-source-http.js` for Range-capable URLs.
-  - `src/browser/tensor-source-download.js` for download-first fallback to storage.
-- Add Range detection and fallback.
-  - `HEAD` validation for `Accept-Ranges: bytes` and `Content-Length`.
-  - If Range missing, fallback to download-first path.
-- Update parsers to use TensorSource.
-  - `src/browser/safetensors-parser-browser.js`.
-  - `src/browser/gguf-parser-browser.js`.
-- Deliverables
-  - Unified TensorSource abstraction, Range support, download-first fallback.
+- [x] Implement TensorSource types.
+  - [x] `src/browser/tensor-source-file.js` for File handles.
+  - [x] `src/browser/tensor-source-http.js` for Range-capable URLs.
+  - [x] `src/browser/tensor-source-download.js` for download-first fallback to storage.
+- [x] Add Range detection and fallback.
+  - [x] `HEAD` validation for `Accept-Ranges: bytes` and `Content-Length`.
+  - [x] If Range missing, fallback to download-first path.
+- [x] Update parsers to use TensorSource.
+  - [x] `src/browser/safetensors-parser-browser.js`.
+  - [x] `src/browser/gguf-parser-browser.js`.
+- [x] Deliverables
+  - [x] Unified TensorSource abstraction, Range support, download-first fallback.
 
 Agent 5 - Browser Quantization Path
-- Implement Q4_K quantization in browser conversion.
-  - Use `src/converter/quantizer.js` exports.
-  - Follow node defaults for weights, embeddings, and lm_head per config.
-- Streaming-safe quantization.
-  - Quantize per block (QK_K) without full tensor buffers.
-  - Provide helpers for BF16/F16 to F32 conversion per chunk.
-- Integrate with browser converter.
-  - Expose a function that returns an async chunk generator for quantized output.
-- Deliverables
-  - Streaming-safe quantization path with layout awareness.
+- [x] Implement Q4_K quantization in browser conversion.
+  - [x] Use `src/converter/quantizer.js` exports.
+  - [x] Follow node defaults for weights, embeddings, and lm_head per config.
+- [x] Streaming-safe quantization.
+  - [x] Quantize per block (QK_K) without full tensor buffers.
+  - [x] Provide helpers for BF16/F16 to F32 conversion per chunk.
+- [x] Integrate with browser converter.
+  - [x] Expose a function that returns an async chunk generator for quantized output.
+- [x] Deliverables
+  - [x] Streaming-safe quantization path with layout awareness.
 
 Agent 6 - Diagnostics Harness + Reports
 - Build browser diagnostics harness.
