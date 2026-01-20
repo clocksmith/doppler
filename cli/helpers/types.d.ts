@@ -7,8 +7,7 @@ import type { RuntimeConfigSchema } from '../../src/config/schema/index.js';
 export type Command = 'run' | 'test' | 'bench' | 'debug';
 
 export type TestSuite =
-  | 'kernels'          // Kernel correctness tests (renamed from 'correctness')
-  | 'correctness'      // DEPRECATED: alias for 'kernels'
+  | 'kernels'          // Kernel correctness tests
   | 'demo'             // Demo UI test (model load + generate via app)
   | 'converter'        // Converter UI test
   | 'inference'        // Quick inference validation
@@ -24,65 +23,45 @@ export type BenchSuite =
   | 'system'           // Storage/OPFS benchmarks
   | 'all';             // All benchmarks
 
-// Legacy suite types for backward compatibility
-export type LegacySuite =
-  | 'bench:kernels'
-  | 'bench:pipeline'
-  | 'bench:system';
-
-export type SuiteType = TestSuite | BenchSuite | LegacySuite;
+export type SuiteType = TestSuite | BenchSuite;
 
 export interface CLIOptions {
-  /** Raw CLI flags passed by the user (for config override precedence). */
-  cliFlags: Set<string>;
-  command: Command;
-  suite: SuiteType;
-  model: string;
-  baseUrl: string;
+  command: Command | null;
+  suite: SuiteType | null;
+  model: string | null;
+  baseUrl: string | null;
   /** Config preset or path (resolves: name -> path -> URL -> inline JSON) */
   config: string | null;
-  /** Mode preset shortcut (mapped to runtime presets) */
-  mode: string | null;
   /** Loaded runtime config (merged with defaults) */
   runtimeConfig: RuntimeConfigSchema | null;
   /** Config inheritance chain for debugging (e.g., ['debug', 'default']) */
   configChain: string[] | null;
-  /** Dump resolved config and exit */
-  dumpConfig: boolean;
-  /** List available presets and exit */
-  listPresets: boolean;
   /** Serve files directly from disk via Playwright routing (no dev server). */
-  noServer: boolean;
-  /** Run headless (no browser window). Default is headless with real GPU. */
-  headless: boolean;
+  noServer: boolean | null;
+  /** Run headless (no browser window). */
+  headless: boolean | null;
   /** Position browser window off-screen to avoid focus stealing. */
-  minimized: boolean;
+  minimized: boolean | null;
   /** Try to connect to existing Chrome via CDP before launching new instance.
    *  Avoids focus stealing by reusing already-open browser window.
    *  Start Chrome with: chrome --remote-debugging-port=9222 */
-  reuseBrowser: boolean;
-  /** CDP endpoint URL for reuseBrowser mode. Default: http://localhost:9222 */
-  cdpEndpoint: string;
+  reuseBrowser: boolean | null;
+  /** CDP endpoint URL for reuseBrowser mode. */
+  cdpEndpoint: string | null;
   verbose: boolean;
   filter: string | null;
-  timeout: number;
+  timeout: number | null;
   output: string | null;
   html: string | null;       // HTML report path (bench only)
   compare: string | null;    // Compare against baseline
   /** Playwright persistent profile directory.
    *  Controls browser storage persistence, including OPFS model cache. */
   profileDir: string | null;
-  retries: number;           // Number of retries on failure
+  retries: number | null;    // Number of retries on failure
   quiet: boolean;            // Suppress JSON output
   help: boolean;
   /** Run in performance/benchmark mode (measure throughput instead of correctness). */
   perf: boolean;
-
-  // Warm mode options (preserve model in GPU RAM)
-  /** Skip model loading, assume pipeline already exists in window.pipeline */
-  skipLoad: boolean;
-  /** Keep browser open with model loaded for subsequent runs */
-  warm: boolean;
 }
 
 // Alias for backward compatibility

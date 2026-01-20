@@ -74,7 +74,7 @@ console.log('Errors:', state.errors);
 Shell for Playwright to inject benchmark scripts. Initializes WebGPU and signals
 ready via `window.dopplerReady = true`.
 
-Used by `npm run bench` — the CLI injects the `PipelineBenchmark` class.
+Used by CLI bench runs (e.g., `npm run bench -- --config <ref>`).
 
 ---
 
@@ -84,14 +84,14 @@ Used by `npm run bench` — the CLI injects the `PipelineBenchmark` class.
 # Start dev server
 npm start
 
-# Run all kernel tests (default)
-npm test
+# CPU unit tests
+npm run test:unit
 
-# Run quick kernel subset
-npm test -- --quick
+# GPU kernel tests (cli.command=test, cli.suite=kernels)
+npm run test:gpu -- --config <ref>
 
-# Run inference smoke test
-npm test -- --inference
+# Inference smoke test (cli.command=test, cli.suite=inference)
+npm run test:gpu -- --config <ref>
 
 # Manual browser testing
 # Manual browser testing (runtimeConfig defines harness mode)

@@ -11,44 +11,6 @@ const __dirname = dirname(__filename);
 
 let serverProcess = null;
 
-// ============================================================================
-// Build Management
-// ============================================================================
-
-
-export async function runBuild(verbose) {
-  console.log('Building kernel tests...');
-  const projectRoot = resolve(__dirname, '../..');
-
-  return new Promise((resolve, reject) => {
-    const build = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
-      cwd: projectRoot,
-      stdio: verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
-      shell: true,
-    });
-
-    let stderr = '';
-    if (!verbose && build.stderr) {
-      build.stderr.on('data', ( data) => {
-        stderr += data.toString();
-      });
-    }
-
-    build.on('error', (err) => {
-      reject(new Error(`Build failed to start: ${err.message}`));
-    });
-
-    build.on('exit', (code) => {
-      if (code === 0) {
-        console.log('Build complete.');
-        resolve();
-      } else {
-        reject(new Error(`Build failed with code ${code}${stderr ? `: ${stderr}` : ''}`));
-      }
-    });
-  });
-}
-
 
 // ============================================================================
 // Server Management
@@ -56,6 +18,7 @@ export async function runBuild(verbose) {
 
 
 export async function isServerRunning(baseUrl) {
+  if (!baseUrl) return false;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2000);
@@ -69,6 +32,9 @@ export async function isServerRunning(baseUrl) {
 
 
 export async function ensureServerRunning(baseUrl, verbose) {
+  if (!baseUrl) {
+    throw new Error('cli.baseUrl is required to start the dev server.');
+  }
   if (await isServerRunning(baseUrl)) {
     if (verbose) {
       console.log('Server already running at', baseUrl);

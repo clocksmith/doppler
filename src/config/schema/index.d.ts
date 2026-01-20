@@ -552,6 +552,23 @@ export {
 } from './shared-runtime.schema.js';
 
 // =============================================================================
+// Tooling Schema
+// =============================================================================
+export {
+  // Types
+  type ToolingConfigSchema,
+  type ToolingIntent,
+  type ToolingDiagnosticsMode,
+
+  // Constants
+  TOOLING_INTENTS,
+  TOOLING_DIAGNOSTICS,
+
+  // Defaults
+  DEFAULT_TOOLING_CONFIG,
+} from './tooling.schema.js';
+
+// =============================================================================
 // Harness Schema
 // =============================================================================
 export {

@@ -64,8 +64,12 @@ F16 activations now run end-to-end on supported devices:
 Example:
 
 ```bash
-npm run debug -- --model gemma-2-2b-it-wf16 --max-tokens 8 --chat \
-  --text "Explain why the sky is blue." --trace kernels
+doppler --config <ref>
+# <ref>: extends "debug", cli.command="debug", model="gemma-2-2b-it-wf16"
+# runtime.inference.prompt="Explain why the sky is blue."
+# runtime.inference.batching.maxTokens=8
+# runtime.inference.chatTemplate.enabled=true
+# runtime.shared.debug.trace.enabled=true, categories=["kernels"]
 ```
 
 Expected trace: `gather_f16*`, `attention_small_f16`, `sample_f16`, and GEMV F16 variants.

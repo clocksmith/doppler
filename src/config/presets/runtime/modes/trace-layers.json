@@ -3,6 +3,9 @@
   "description": "Trace layer outputs for F16 vs Q4K comparison",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
       "debug": {
         "trace": {
           "enabled": true,

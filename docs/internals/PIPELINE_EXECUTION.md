@@ -1775,9 +1775,12 @@ For prompt "the sky is", Gemma 3 1B should generate coherent continuations like:
 
 ```bash
 # From reploid root
-doppler test demo --headed           # Demo UI test
-doppler test inference               # Quick inference validation
-doppler bench inference --headed     # Full inference benchmark
+doppler --config <ref>               # Demo UI test
+doppler --config <ref>               # Quick inference validation
+doppler --config <ref>               # Full inference benchmark
+# Demo ref: cli.command="test", cli.suite="demo", cli.headless=false
+# Inference ref: cli.command="test", cli.suite="inference"
+# Bench ref: cli.command="bench", cli.suite="inference", cli.headless=false
 ```
 
 ### 2. Run Demo (Manual)
@@ -2611,7 +2614,7 @@ table when adding a new model family or quantization path.
 
 1. Convert model with target quantization + layout.
 2. Run inference smoke test (short prompt) to verify output quality.
-3. Run pipeline benchmark in `--mode bench` for throughput.
+3. Run pipeline benchmark with `cli.command="bench"` for throughput.
 4. Record results and update `tests/baselines.json` where applicable.
 
 ## References
@@ -2833,12 +2836,15 @@ explicitly in a config preset.
 
 1. `npm test -- --filter matmul`
 2. `npm test -- --filter rmsnorm`
-3. `npm run bench -- --kernels --config bench`
+3. `npm run bench -- --config <ref>`
+   - `<ref>`: `cli.command="bench"`, `cli.suite="kernels"`
 
 ### Inference Changes
 
-1. `npm test -- --inference --config bench`
-2. `npm run bench -- --config bench --model gemma-2-2b-it-wf16`
+1. `doppler --config <ref>`
+   - `<ref>`: `cli.command="test"`, `cli.suite="inference"`, `model="<model-id>"`
+2. `doppler --config <ref>`
+   - `<ref>`: `cli.command="bench"`, `cli.suite="inference"`, `model="gemma-2-2b-it-wf16"`
 
 ### Kernel Path A/B
 
@@ -2846,6 +2852,12 @@ Create a small runtime config that pins `runtime.inference.kernelPath`:
 
 ```json
 {
+  "extends": "bench",
+  "model": "gemma-2-2b-it-wf16",
+  "cli": {
+    "command": "bench",
+    "suite": "inference"
+  },
   "runtime": {
     "inference": {
       "kernelPath": "gemma2-f16-f16a"
@@ -2857,7 +2869,7 @@ Create a small runtime config that pins `runtime.inference.kernelPath`:
 Then run:
 
 ```bash
-npm run bench -- --config ./gemma2-f16a.json --model gemma-2-2b-it-wf16
+doppler --config ./gemma2-f16a.json
 ```
 
 Record results in `tests/results/` and update `tests/baselines.json` if the

@@ -3,17 +3,11 @@
  * DOPPLER CLI - Unified testing, benchmarking, and debugging
  *
  * Usage:
- *   npx tsx cli/index.ts run                    # Serve demo page
- *   npx tsx cli/index.ts test <suite> [options] # Run tests
- *   npx tsx cli/index.ts bench <suite> [options] # Run benchmarks
- *   npx tsx cli/index.ts debug [options]        # Debug mode
- *   npx tsx cli/index.ts test simulation        # Simulation mode
+ *   npx tsx cli/index.ts --config <ref>
  *
  * Examples:
- *   doppler run                              # Serve demo at :8080
- *   doppler test kernels --filter matmul     # Kernel correctness tests
- *   doppler bench inference                 # Full inference benchmark
- *   doppler debug --model gemma-2-2b-it-wf16 --config debug
+ *   doppler --config ./tmp-bench.json        # Bench config file
+ *   doppler --config ./tmp-gemma3-debug.json # Debug config file
  */
 
 import type { Page } from 'playwright';
@@ -34,10 +28,8 @@ export interface FlagSpec {
 export declare const KERNEL_TESTS: readonly string[];
 export declare const KERNEL_BENCHMARKS: readonly string[];
 export declare const QUICK_TESTS: readonly string[];
-export declare const KERNEL_PROFILE_PATHS: Record<string, string>;
 
 export declare function parseArgs(argv: string[]): CLIOptions;
-export declare function hasCliFlag(opts: CLIOptions, flags: string[]): boolean;
 export declare function printHelp(): void;
 export declare function printSummary(suites: SuiteResult[]): void;
 

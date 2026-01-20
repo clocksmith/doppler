@@ -146,10 +146,10 @@ DOPPLER's architecture ensures only ONE readback per token: the final logits for
 
 | Capability | Requires | WebLLM | DOPPLER |
 |------------|----------|--------|---------|
-| 90GB MoE on 8GB VRAM | Expert paging | **No** | **Yes** |
-| P2P kernel evolution | Plain-text WGSL | **No** | **Yes** |
+| 90GB MoE on 8GB VRAM | Expert paging | **No** | **Planned** |
+| P2P kernel evolution | Plain-text WGSL | **No** | **Planned** |
 | LoRA without recompile | Generic kernels | **No** | **Yes** |
-| Device-specific optimization | Runtime kernel swap | **No** | **Yes** |
+| Device-specific optimization | Runtime kernel swap | **No** | **Planned** |
 | Speculative decoding | Multi-model coordination | Awkward | **Native** |
 
 ---
@@ -162,9 +162,9 @@ WebLLM uses Apache TVM to pre-compile model-specific WGSL kernels with auto-tuni
 |--------|------------|---------|
 | Kernel performance | ~80% native (auto-tuned) | ~60-70% native (manual) |
 | New model support | Requires offline compilation | Runtime-compatible |
-| Dynamic sharding | Not possible (fixed in binary) | Load/unload experts freely |
-| P2P distribution | Distribute compiled .wasm | Distribute weight shards only |
-| Model evolution | Recompile entire model | Swap shards, keep kernels |
+| Dynamic sharding | Not possible (fixed in binary) | Planned (expert paging) |
+| P2P distribution | Distribute compiled .wasm | Planned (RDRR shards over P2P) |
+| Model evolution | Recompile entire model | Planned (hotswap manifests) |
 | LoRA adapters | Recompile with LoRA fused | Hot-swap at runtime |
 | Browser-only operation | Needs compilation toolchain | Fully in-browser |
 
@@ -194,7 +194,7 @@ Mixtral 8x7B: 8 experts × ~3GB each = 24GB. Only 2 active per token.
 WebLLM: All 8 experts compiled into binary
         └─ Must fit all 24GB in VRAM or fail
 
-DOPPLER: Generic FFN kernel + weight buffer binding
+DOPPLER (planned): Generic FFN kernel + weight buffer binding
         ├─ Load expert_2 from OPFS → bind → run kernel
         ├─ Evict expert_2 (release buffer)
         ├─ Load expert_7 from peer → bind → same kernel
@@ -209,7 +209,7 @@ The real P2P value is **evolving dynamic components**, not distributing static w
 WebLLM: Kernels frozen in compiled binary
         └─ Everyone uses same TVM-generated kernels forever
 
-DOPPLER: Kernels are plain text, evolve across swarm
+DOPPLER (planned): Kernels are plain text, evolve across swarm
         ├─ User discovers 2x faster attention on M3 Max
         ├─ Shares kernel hash → peers benchmark → confirm
         ├─ Best kernels propagate by device class

@@ -22,11 +22,11 @@
   "homepage": "https://github.com/clocksmith/doppler",
   "scripts": {
     "start": "tsx serve.js",
-    "test": "vitest run && tsx cli/index.js test",
+    "test": "vitest run",
     "test:unit": "vitest run",
-    "test:gpu": "tsx cli/index.js test",
-    "bench": "tsx cli/index.js bench",
-    "debug": "tsx cli/index.js debug",
+    "test:gpu": "tsx cli/index.js",
+    "bench": "tsx cli/index.js",
+    "debug": "tsx cli/index.js",
     "kernels:validate": "tsx tools/validate-kernel-registry.js",
     "kernels:lint": "tsx tools/lint-wgsl-overrides.js",
     "kernels:check": "npm run kernels:validate && npm run kernels:lint"

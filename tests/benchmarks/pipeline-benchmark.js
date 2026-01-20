@@ -498,6 +498,8 @@ export class PipelineBenchmark {
     // Resolve GPU timestamps
     let gpuTimePrefillMs;
     let gpuTimeDecodeMs;
+    let gpuKernelTimePrefillMs = null;
+    let gpuKernelTimeDecodeMs = null;
     let profilerResults = null;
     if (this.profiler) {
       await this.profiler.resolve();
@@ -524,11 +526,14 @@ export class PipelineBenchmark {
 
     // Get pipeline stats
     const pipelineStats = this.pipeline.getStats();
+    const decodeRingStats = pipelineStats.decodeRing ?? null;
     if (pipelineStats.gpuTimePrefillMs !== undefined) {
       gpuTimePrefillMs = pipelineStats.gpuTimePrefillMs;
+      gpuKernelTimePrefillMs = pipelineStats.gpuTimePrefillMs;
     }
     if (pipelineStats.gpuTimeDecodeMs !== undefined) {
       gpuTimeDecodeMs = pipelineStats.gpuTimeDecodeMs;
+      gpuKernelTimeDecodeMs = pipelineStats.gpuTimeDecodeMs;
     }
 
     // Get buffer pool stats for peak VRAM
@@ -558,6 +563,8 @@ export class PipelineBenchmark {
       submitTimesMs: globalStats.timestamps,
       gpuTimePrefillMs,
       gpuTimeDecodeMs,
+      gpuKernelTimePrefillMs,
+      gpuKernelTimeDecodeMs,
       gpuReadbackBytes: getReadbackBytes(),
       peakVramBytes: bufferStatsEnd.peakBytesAllocated,
       peakVramBytesRequested: bufferStatsEnd.peakBytesRequested,
@@ -566,6 +573,10 @@ export class PipelineBenchmark {
       perfReadbacks: getPerfCounters().readbacks,
       memoryTimeSeries: memoryTimeSeries?.getSamples() ?? null,
       bufferPool: bufferPoolStats,
+      decodeRing: decodeRingStats,
+      decodeRecordMs: pipelineStats.decodeRecordMs ?? null,
+      decodeSubmitWaitMs: pipelineStats.decodeSubmitWaitMs ?? null,
+      decodeReadbackWaitMs: pipelineStats.decodeReadbackWaitMs ?? null,
       batchingConfig: {
         batchSize: this.pipeline.runtimeConfig?.inference?.batching?.batchSize ?? null,
         readbackInterval: this.pipeline.runtimeConfig?.inference?.batching?.readbackInterval ?? null,
@@ -638,6 +649,67 @@ export class PipelineBenchmark {
       );
     }
 
+    const recordTimes = runs.map(r => r.decodeRecordMs).filter(t => t !== undefined && t !== null);
+    if (recordTimes.length > 0) {
+      metrics.decode_record_ms = Math.round(this.average(recordTimes));
+    }
+
+    const submitWaitTimes = runs.map(r => r.decodeSubmitWaitMs).filter(t => t !== undefined && t !== null);
+    if (submitWaitTimes.length > 0) {
+      metrics.decode_submit_wait_ms = Math.round(this.average(submitWaitTimes));
+    }
+
+    const readbackTimes = runs.map(r => r.decodeReadbackWaitMs).filter(t => t !== undefined && t !== null);
+    if (readbackTimes.length > 0) {
+      metrics.decode_readback_wait_ms = Math.round(this.average(readbackTimes));
+    }
+
+    const ringStats = runs.map(r => r.decodeRing).filter(Boolean);
+    if (ringStats.length > 0) {
+      metrics.decode_ring_tokens_allocated = Math.round(
+        this.average(ringStats.map(r => r.tokens?.allocated ?? 0))
+      );
+      metrics.decode_ring_tokens_uses_total = Math.round(
+        this.average(ringStats.map(r => r.tokens?.uses ?? 0))
+      );
+      metrics.decode_ring_tokens_reuses_total = Math.round(
+        this.average(ringStats.map(r => r.tokens?.reuses ?? 0))
+      );
+      metrics.decode_ring_stop_allocated = Math.round(
+        this.average(ringStats.map(r => r.stop?.allocated ?? 0))
+      );
+      metrics.decode_ring_stop_uses_total = Math.round(
+        this.average(ringStats.map(r => r.stop?.uses ?? 0))
+      );
+      metrics.decode_ring_stop_reuses_total = Math.round(
+        this.average(ringStats.map(r => r.stop?.reuses ?? 0))
+      );
+      metrics.decode_ring_staging_tokens_allocated = Math.round(
+        this.average(ringStats.map(r => r.stagingTokens?.allocated ?? 0))
+      );
+      metrics.decode_ring_staging_tokens_uses_total = Math.round(
+        this.average(ringStats.map(r => r.stagingTokens?.uses ?? 0))
+      );
+      metrics.decode_ring_staging_tokens_reuses_total = Math.round(
+        this.average(ringStats.map(r => r.stagingTokens?.reuses ?? 0))
+      );
+      metrics.decode_ring_staging_stop_allocated = Math.round(
+        this.average(ringStats.map(r => r.stagingStop?.allocated ?? 0))
+      );
+      metrics.decode_ring_staging_stop_uses_total = Math.round(
+        this.average(ringStats.map(r => r.stagingStop?.uses ?? 0))
+      );
+      metrics.decode_ring_staging_stop_reuses_total = Math.round(
+        this.average(ringStats.map(r => r.stagingStop?.reuses ?? 0))
+      );
+      metrics.decode_ring_acquires_total = Math.round(
+        this.average(ringStats.map(r => r.acquires ?? 0))
+      );
+      metrics.decode_ring_advances_total = Math.round(
+        this.average(ringStats.map(r => r.advances ?? 0))
+      );
+    }
+
     // GPU timestamp timing (if available)
     const gpuPrefillTimes = runs.map(r => r.gpuTimePrefillMs).filter(t => t !== undefined);
     const gpuDecodeTimes = runs.map(r => r.gpuTimeDecodeMs).filter(t => t !== undefined);
@@ -650,6 +722,30 @@ export class PipelineBenchmark {
     }
     if (gpuPrefillTimes.length === 0 && gpuDecodeTimes.length === 0) {
       metrics.gpu_timestamp_available = false;
+    }
+
+    const gpuKernelPrefillTimes = runs
+      .map(r => r.gpuKernelTimePrefillMs)
+      .filter(t => t !== undefined && t !== null);
+    const gpuKernelDecodeTimes = runs
+      .map(r => r.gpuKernelTimeDecodeMs)
+      .filter(t => t !== undefined && t !== null);
+
+    if (gpuKernelPrefillTimes.length > 0) {
+      const avgKernelPrefill = this.average(gpuKernelPrefillTimes);
+      metrics.prefill_gpu_kernels_ms = Math.round(avgKernelPrefill);
+      metrics.prefill_non_kernel_ms = Math.round(Math.max(0, avgPrefill - avgKernelPrefill));
+      metrics.prefill_gpu_kernels_pct = avgPrefill > 0
+        ? Number(((avgKernelPrefill / avgPrefill) * 100).toFixed(1))
+        : 0;
+    }
+    if (gpuKernelDecodeTimes.length > 0) {
+      const avgKernelDecode = this.average(gpuKernelDecodeTimes);
+      metrics.decode_gpu_kernels_ms = Math.round(avgKernelDecode);
+      metrics.decode_non_kernel_ms = Math.round(Math.max(0, avgDecodeTotal - avgKernelDecode));
+      metrics.decode_gpu_kernels_pct = avgDecodeTotal > 0
+        ? Number(((avgKernelDecode / avgDecodeTotal) * 100).toFixed(1))
+        : 0;
     }
 
     // Peak VRAM (max across all runs)
@@ -693,6 +789,11 @@ export class PipelineBenchmark {
       submit_times_ms: lastRun?.submitTimesMs,
       generated_token_ids: lastRun?.tokens,
       generated_text: lastRun?.text,
+      prefill_gpu_kernels_ms: lastRun?.gpuKernelTimePrefillMs ?? null,
+      decode_gpu_kernels_ms: lastRun?.gpuKernelTimeDecodeMs ?? null,
+      decode_record_ms: lastRun?.decodeRecordMs ?? null,
+      decode_submit_wait_ms: lastRun?.decodeSubmitWaitMs ?? null,
+      decode_readback_wait_ms: lastRun?.decodeReadbackWaitMs ?? null,
     };
 
     // Include memory time series if captured
@@ -703,6 +804,7 @@ export class PipelineBenchmark {
     if (runs.length > 0) {
       raw.buffer_pool_runs = runs.map(r => r.bufferPool ?? null);
       raw.batching_config_runs = runs.map(r => r.batchingConfig ?? null);
+      raw.decode_ring_runs = runs.map(r => r.decodeRing ?? null);
     }
 
     // Include profiler results (per-kernel timing) if available
@@ -723,6 +825,8 @@ export class PipelineBenchmark {
       modelId: m?.id ?? m?.modelId ?? 'unknown',
       modelName: m?.name ?? m?.modelName ?? undefined,
       quantization: m?.quantization ?? 'unknown',
+      kernelPath: this.pipeline?.resolvedKernelPath?.id ?? null,
+      kernelPathSource: this.pipeline?.kernelPathSource ?? 'none',
       totalSizeBytes: m?.totalSize ?? m?.totalSizeBytes ?? 0,
       tensorCount: m?.tensors?.length ?? m?.tensorCount ?? 0,
       numLayers: m?.config?.num_hidden_layers ?? m?.numLayers ?? undefined,

@@ -69,9 +69,20 @@
     }
   },
   "cli": {
-    "headed": false,
-    "warm": false,
+    "command": null,
+    "suite": null,
+    "baseUrl": "http://localhost:8080",
+    "noServer": false,
+    "headless": true,
+    "minimized": false,
+    "reuseBrowser": true,
+    "cdpEndpoint": "http://localhost:9222",
     "timeout": 300000,
-    "kernelProfile": null
+    "retries": 0,
+    "profileDir": null,
+    "output": null,
+    "html": null,
+    "compare": null,
+    "filter": null
   }
 }

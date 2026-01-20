@@ -7,10 +7,9 @@ import { rmSync } from 'fs';
 import { open, writeFile, mkdir, readFile } from 'fs/promises';
 import { tmpdir } from 'os';
 
-import { loadConfig, listPresets, dumpConfig } from './config/index.js';
+import { loadConfig } from './config/index.js';
 
 import {
-  runBuild,
   ensureServerRunning,
   createBrowserContext,
   setupPage,
@@ -34,7 +33,7 @@ import {
 import { generateHTMLReport } from './helpers/html-report.js';
 import { loadBaselineRegistry, findBaselineForResult, evaluateBaseline } from './helpers/baselines.js';
 
-import { parseArgs, hasCliFlag, setHarnessConfig, appendRuntimeConfigParams } from './args/index.js';
+import { parseArgs, setHarnessConfig, appendRuntimeConfigParams } from './args/index.js';
 import { printHelp } from './help.js';
 import { KERNEL_TESTS, TRAINING_TESTS, QUICK_TESTS } from './suites.js';
 import { printSummary } from './output.js';
@@ -55,6 +54,25 @@ const __dirname = dirname(__filename);
 const CLI_LOCK_FILENAME = 'doppler-cli.lock';
 
 let cliLockPath = null;
+
+const COMMANDS = new Set(['run', 'test', 'bench', 'debug']);
+const TEST_SUITES = new Set([
+  'kernels',
+  'inference',
+  'demo',
+  'converter',
+  'simulation',
+  'training',
+  'quick',
+  'all',
+]);
+const BENCH_SUITES = new Set([
+  'kernels',
+  'inference',
+  'loading',
+  'system',
+  'all',
+]);
 
 function getCliLockPath() {
   return resolve(tmpdir(), CLI_LOCK_FILENAME);
@@ -137,12 +155,192 @@ async function acquireCliLock(command) {
   registerCliLockCleanup(lockPath);
 }
 
+function assertObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function assertStringOrNull(value, label) {
+  if (value === null) return;
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string or null`);
+  }
+}
+
+function assertBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function assertNumber(value, label, { min = null } = {}) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new Error(`${label} must be a number`);
+  }
+  if (min !== null && value < min) {
+    throw new Error(`${label} must be >= ${min}`);
+  }
+}
+
+function parseCliConfig(cliConfig) {
+  assertObject(cliConfig, 'cli');
+
+  const allowedKeys = new Set([
+    'command',
+    'suite',
+    'baseUrl',
+    'noServer',
+    'headless',
+    'minimized',
+    'reuseBrowser',
+    'cdpEndpoint',
+    'timeout',
+    'retries',
+    'profileDir',
+    'output',
+    'html',
+    'compare',
+    'filter',
+  ]);
+
+  for (const key of Object.keys(cliConfig)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`cli.${key} is not supported`);
+    }
+  }
+
+  if (!('baseUrl' in cliConfig)) throw new Error('cli.baseUrl is required');
+  if (!('noServer' in cliConfig)) throw new Error('cli.noServer is required');
+  if (!('headless' in cliConfig)) throw new Error('cli.headless is required');
+  if (!('minimized' in cliConfig)) throw new Error('cli.minimized is required');
+  if (!('reuseBrowser' in cliConfig)) throw new Error('cli.reuseBrowser is required');
+  if (!('cdpEndpoint' in cliConfig)) throw new Error('cli.cdpEndpoint is required');
+  if (!('timeout' in cliConfig)) throw new Error('cli.timeout is required');
+  if (!('retries' in cliConfig)) throw new Error('cli.retries is required');
+  if (!('profileDir' in cliConfig)) throw new Error('cli.profileDir is required');
+  if (!('output' in cliConfig)) throw new Error('cli.output is required');
+  if (!('html' in cliConfig)) throw new Error('cli.html is required');
+  if (!('compare' in cliConfig)) throw new Error('cli.compare is required');
+  if (!('filter' in cliConfig)) throw new Error('cli.filter is required');
+
+  assertString(cliConfig.baseUrl, 'cli.baseUrl');
+  assertBoolean(cliConfig.noServer, 'cli.noServer');
+  assertBoolean(cliConfig.headless, 'cli.headless');
+  assertBoolean(cliConfig.minimized, 'cli.minimized');
+  assertBoolean(cliConfig.reuseBrowser, 'cli.reuseBrowser');
+  assertStringOrNull(cliConfig.cdpEndpoint, 'cli.cdpEndpoint');
+  assertNumber(cliConfig.timeout, 'cli.timeout', { min: 1 });
+  assertNumber(cliConfig.retries, 'cli.retries', { min: 0 });
+  assertStringOrNull(cliConfig.profileDir, 'cli.profileDir');
+  assertStringOrNull(cliConfig.output, 'cli.output');
+  assertStringOrNull(cliConfig.html, 'cli.html');
+  assertStringOrNull(cliConfig.compare, 'cli.compare');
+  assertStringOrNull(cliConfig.filter, 'cli.filter');
+
+  if (!('command' in cliConfig)) {
+    throw new Error('cli.command is required');
+  }
+  assertString(cliConfig.command, 'cli.command');
+  if (!COMMANDS.has(cliConfig.command)) {
+    throw new Error(`cli.command must be one of: ${[...COMMANDS].join(', ')}`);
+  }
+
+  const suite = cliConfig.suite ?? null;
+  if (suite !== null) {
+    assertString(suite, 'cli.suite');
+  }
+
+  return {
+    command: cliConfig.command,
+    suite,
+    baseUrl: cliConfig.baseUrl,
+    noServer: cliConfig.noServer,
+    headless: cliConfig.headless,
+    minimized: cliConfig.minimized,
+    reuseBrowser: cliConfig.reuseBrowser,
+    cdpEndpoint: cliConfig.cdpEndpoint,
+    timeout: cliConfig.timeout,
+    retries: cliConfig.retries,
+    profileDir: cliConfig.profileDir,
+    output: cliConfig.output,
+    html: cliConfig.html,
+    compare: cliConfig.compare,
+    filter: cliConfig.filter,
+  };
+}
+
+function resolveCommandAndSuite(cliConfig) {
+  const command = cliConfig.command;
+  const suite = cliConfig.suite ?? null;
+
+  if (command === 'run') {
+    if (suite) {
+      throw new Error('cli.suite must be null for command "run"');
+    }
+    return { command, suite: null };
+  }
+
+  if (command === 'debug') {
+    if (suite) {
+      throw new Error('cli.suite must be null for command "debug"');
+    }
+    return { command, suite: null };
+  }
+
+  if (!suite) {
+    throw new Error(`cli.suite is required for command "${command}"`);
+  }
+
+  if (command === 'test' && !TEST_SUITES.has(suite)) {
+    throw new Error(`Unknown test suite "${suite}"`);
+  }
+  if (command === 'bench' && !BENCH_SUITES.has(suite)) {
+    throw new Error(`Unknown benchmark suite "${suite}"`);
+  }
+
+  return { command, suite };
+}
+
+function resolveModel(raw) {
+  if (raw === undefined) return null;
+  assertString(raw, 'model');
+  return raw;
+}
+
+function assertToolingIntent(command, runtime) {
+  if (command === 'run') return;
+  const intent = runtime?.shared?.tooling?.intent ?? null;
+  if (!intent) {
+    throw new Error('runtime.shared.tooling.intent is required for CLI runs.');
+  }
+
+  const allowed = {
+    debug: new Set(['investigate']),
+    test: new Set(['verify']),
+    bench: new Set(['calibrate', 'investigate']),
+  }[command];
+
+  if (allowed && !allowed.has(intent)) {
+    throw new Error(
+      `cli.command="${command}" requires runtime.shared.tooling.intent to be ` +
+      `${[...allowed].join(' or ')}.`
+    );
+  }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
 
 async function main() {
-    let opts;
+  let opts;
   try {
     opts = parseArgs(process.argv.slice(2));
   } catch (err) {
@@ -156,38 +354,59 @@ async function main() {
     process.exit(0);
   }
 
-  // Handle --list-presets
-  if (opts.listPresets) {
-    console.log('\nAvailable Config Presets:\n');
-    const presets = await listPresets();
-
-    const grouped = presets.reduce((acc, p) => {
-      if (!acc[p.source]) acc[p.source] = [];
-      acc[p.source].push(p);
-      return acc;
-    },  ({}));
-
-    for (const [source, items] of Object.entries(grouped)) {
-      console.log(`  ${source.toUpperCase()}:`);
-      for (const preset of items) {
-        console.log(`    ${preset.name.padEnd(15)} ${preset.path}`);
-      }
-      console.log('');
-    }
-    process.exit(0);
+  if (!opts.config) {
+    console.error('Error: --config is required.');
+    console.error('Run with --help for usage.');
+    process.exit(1);
   }
 
-  // Handle --dump-config
-  if (opts.dumpConfig) {
-    const configRef = opts.config || opts.mode || 'default';
-    try {
-      const loaded = await loadConfig(configRef);
-      console.log('\n' + dumpConfig(loaded));
-    } catch (err) {
-      console.error(`Failed to load config "${configRef}": ${ (err).message}`);
-      process.exit(1);
+  // Load config
+  let loadedConfig = null;
+  const configRef = opts.config;
+  try {
+    loadedConfig = await loadConfig(configRef);
+    console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
+    opts.runtimeConfig = loadedConfig.runtime;
+    opts.configChain = loadedConfig.chain;
+
+    // Apply runtime config to opts
+    const runtime = loadedConfig.runtime;
+    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
+    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
+
+    const cliConfig = parseCliConfig(loadedConfig.raw?.cli);
+    const resolved = resolveCommandAndSuite(cliConfig);
+    opts.command = resolved.command;
+    opts.suite = resolved.suite;
+    opts.baseUrl = cliConfig.baseUrl;
+    opts.noServer = cliConfig.noServer;
+    opts.headless = cliConfig.headless;
+    opts.minimized = cliConfig.minimized;
+    opts.reuseBrowser = cliConfig.reuseBrowser;
+    opts.cdpEndpoint = cliConfig.cdpEndpoint;
+    opts.timeout = cliConfig.timeout;
+    opts.retries = cliConfig.retries;
+    opts.profileDir = cliConfig.profileDir;
+    opts.output = cliConfig.output;
+    opts.html = cliConfig.html;
+    opts.compare = cliConfig.compare;
+    opts.filter = cliConfig.filter;
+
+    opts.model = resolveModel(loadedConfig.raw?.model);
+    const harnessModel = runtime.shared?.harness?.modelId ?? null;
+    if (harnessModel && opts.model && harnessModel !== opts.model) {
+      throw new Error(
+        `Model mismatch: config.model="${opts.model}" vs runtime.shared.harness.modelId="${harnessModel}"`
+      );
     }
-    process.exit(0);
+    if (!opts.model) {
+      throw new Error('config.model is required for CLI runs.');
+    }
+
+    assertToolingIntent(opts.command, runtime);
+  } catch (err) {
+    console.error(`Failed to load config "${configRef}": ${ (err).message}`);
+    process.exit(1);
   }
 
   if (opts.command === 'debug' || opts.command === 'test' || opts.command === 'bench') {
@@ -199,71 +418,28 @@ async function main() {
     }
   }
 
-  // Default presets for config-driven commands
-  if (opts.command === 'debug' && !opts.config && !opts.mode) {
-    opts.mode = 'debug';
-  }
-  if (opts.command === 'bench' && !opts.config && !opts.mode) {
-    opts.mode = 'bench';
-  }
-  if (opts.command === 'test' && opts.suite === 'simulation' && !opts.config && !opts.mode) {
-    opts.mode = 'simulation';
-  }
-
-  // Load config (default + overrides)
-    let loadedConfig = null;
-  const configRef = opts.config || opts.mode || 'default';
-  const shouldLogConfig = Boolean(opts.config || opts.mode);
-  try {
-    loadedConfig = await loadConfig(configRef);
-    if (shouldLogConfig) {
-      console.log(`Config loaded: ${loadedConfig.chain.join(' -> ')}`);
-    }
-    opts.runtimeConfig = loadedConfig.runtime;
-    opts.configChain = loadedConfig.chain;
-
-    // Apply runtime config to opts
-    const runtime = loadedConfig.runtime;
-    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'verbose') opts.verbose = true;
-    if (runtime.shared?.debug?.logLevel?.defaultLogLevel === 'silent') opts.quiet = true;
-
-    // Apply CLI-specific config from raw preset (not part of RuntimeConfigSchema)
-    const cli =  (loadedConfig.raw.cli);
-    if (cli) {
-      const hasHeadlessFlag = hasCliFlag(opts, ['--headless', '--headed', '--no-headless']);
-      if (cli.headed && !hasHeadlessFlag) opts.headless = false;
-      if (typeof cli.timeout === 'number' && !hasCliFlag(opts, ['--timeout'])) opts.timeout = cli.timeout;
-    }
-  } catch (err) {
-    console.error(`Failed to load config "${configRef}": ${ (err).message}`);
-    process.exit(1);
-  }
-
   // Handle 'bench' command - performance mode
   if (opts.command === 'bench') {
     opts.perf = true;
-    if (opts.suite === 'quick') {
-      opts.suite = 'inference';
-    }
   }
 
   // Handle 'run' command - just start the server
   if (opts.command === 'run') {
     console.log('\nDOPPLER CLI - Starting demo server...');
-    console.log(`Open http://localhost:8080/d in your browser`);
+    console.log(`Open ${opts.baseUrl}/d in your browser`);
     await ensureServerRunning(opts.baseUrl, opts.verbose);
     await new Promise(() => {}); // Never resolves
   }
 
   console.log('\nDOPPLER CLI');
   console.log(`Command: ${opts.command}`);
-  console.log(`Suite: ${opts.suite}`);
+  console.log(`Suite: ${opts.suite ?? '-'}`);
   console.log(`Base URL: ${opts.baseUrl}`);
 
   // Warn if running test --inference (smoke test) when they probably want debug
   if (opts.command === 'test' && opts.suite === 'inference') {
     console.log('\n\x1b[33m' + 'WARNING'.repeat(4) + '\x1b[0m');
-    console.log('\x1b[33mNOTE: "test --inference" is a SMOKE TEST only.\x1b[0m');
+    console.log('\x1b[33mNOTE: "test inference" is a SMOKE TEST only.\x1b[0m');
     console.log('\x1b[33mFor debugging with kernel trace, use: doppler debug\x1b[0m');
     console.log('\x1b[33m' + 'WARNING'.repeat(4) + '\x1b[0m\n');
   }
@@ -271,8 +447,6 @@ async function main() {
     console.log(`Profile Dir: ${opts.profileDir}`);
   }
 
-  // Skip TypeScript build - using esbuild
-  console.log('Skipping TypeScript build (using esbuild)...');
   if (!opts.noServer) {
     await ensureServerRunning(opts.baseUrl, opts.verbose);
   } else {
@@ -282,7 +456,7 @@ async function main() {
   const scope = opts.perf ? 'bench' : 'test';
   const context = await createBrowserContext(opts, { scope });
   const page = await setupPage(context, opts);
-    const suites = [];
+  const suites = [];
 
   try {
     if (opts.command === 'debug') {
@@ -339,10 +513,11 @@ async function runDebugMode(page, opts, context) {
 
   // Strip 'models/' prefix if present - harness BASE_URL already includes /models
   const modelId = opts.model.replace(/^models\//, '');
+  const skipLoad = opts.runtimeConfig?.shared?.harness?.skipLoad ?? false;
   setHarnessConfig(opts, {
     mode: 'inference',
     autorun: true,
-    skipLoad: opts.skipLoad,
+    skipLoad,
     modelId,
   });
 
@@ -378,18 +553,14 @@ async function runDebugMode(page, opts, context) {
 }
 
 async function runTestCommand(page, opts, suites, context, loadedConfig) {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-
   if (opts.perf) {
     // PERFORMANCE MODE
     switch (opts.suite) {
       case 'kernels':
-      case 'bench:kernels':
         suites.push(await runKernelBenchmarks(page, opts));
         break;
 
       case 'inference':
-      case 'bench:pipeline':
         await context.close();
         await runInferenceBenchmark(opts, loadedConfig);
         break;
@@ -399,7 +570,6 @@ async function runTestCommand(page, opts, suites, context, loadedConfig) {
         break;
 
       case 'system':
-      case 'bench:system':
         console.log('System benchmark not yet implemented');
         suites.push({ suite: 'system', passed: 0, failed: 0, skipped: 1, duration: 0, results: [] });
         break;
@@ -422,7 +592,6 @@ async function runTestCommand(page, opts, suites, context, loadedConfig) {
         break;
 
       case 'kernels':
-      case 'correctness':
         suites.push(await runCorrectnessTests(page, opts, KERNEL_TESTS));
         break;
 

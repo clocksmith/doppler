@@ -101,7 +101,9 @@ Previous hypothesis about "explosion" was WRONG - comparing maxAbs=821 to "expec
 
 ```bash
 # Run inference with debug
-npm run doppler -- bench inference --prompt xs --debug
+doppler --config <ref>
+# <ref>: extends="debug", cli.command="bench", cli.suite="inference", model="<model-id>"
+# runtime.shared.benchmark.run.promptName="xs"
 
 # Compare with HuggingFace reference
 python3 -c "
@@ -154,4 +156,3 @@ for i, h in enumerate(outputs.hidden_states):
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
-

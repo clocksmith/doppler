@@ -9,6 +9,7 @@ import { DEFAULT_BRIDGE_CONFIG } from './bridge.schema.js';
 import { DEFAULT_BENCHMARK_CONFIG } from './benchmark.schema.js';
 import { DEFAULT_HARNESS_CONFIG } from './harness.schema.js';
 import { DEFAULT_INTENT_BUNDLE_CONFIG } from './intent-bundle.schema.js';
+import { DEFAULT_TOOLING_CONFIG } from './tooling.schema.js';
 
 // =============================================================================
 // Kernel Registry Config
@@ -26,6 +27,7 @@ export const DEFAULT_SHARED_RUNTIME_CONFIG = {
   debug: DEFAULT_DEBUG_CONFIG,
   benchmark: DEFAULT_BENCHMARK_CONFIG,
   harness: DEFAULT_HARNESS_CONFIG,
+  tooling: DEFAULT_TOOLING_CONFIG,
   platform: null,
   kernelRegistry: DEFAULT_KERNEL_REGISTRY_CONFIG,
   kernelThresholds: DEFAULT_KERNEL_THRESHOLDS,

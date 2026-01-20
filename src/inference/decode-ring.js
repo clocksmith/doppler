@@ -10,6 +10,47 @@ function clampRingSize(size) {
   return Math.floor(size);
 }
 
+function createSlotStats(allocated) {
+  return { allocated, uses: 0, reuses: 0 };
+}
+
+function resetSlotStats(stats) {
+  stats.uses = 0;
+  stats.reuses = 0;
+}
+
+function trackSlotUse(stats) {
+  stats.uses += 1;
+  if (stats.uses > stats.allocated) {
+    stats.reuses += 1;
+  }
+}
+
+function createRingStats(buffers, config, ringSize) {
+  return {
+    tokens: createSlotStats(buffers.tokens?.length ?? 0),
+    stop: createSlotStats(buffers.stop?.length ?? 0),
+    stagingTokens: createSlotStats(buffers.stagingTokens?.length ?? 0),
+    stagingStop: createSlotStats(buffers.stagingStop?.length ?? 0),
+    acquires: 0,
+    advances: 0,
+    resets: 0,
+    ringSize,
+    tokensPerInterval: config.tokensPerInterval,
+  };
+}
+
+function resetRingUsage(stats) {
+  if (!stats) return;
+  stats.acquires = 0;
+  stats.advances = 0;
+  stats.resets += 1;
+  resetSlotStats(stats.tokens);
+  resetSlotStats(stats.stop);
+  resetSlotStats(stats.stagingTokens);
+  resetSlotStats(stats.stagingStop);
+}
+
 function assertBufferFits(label, size, isStorage, limits) {
   if (!limits) return;
   const maxBufferSize = limits.maxBufferSize ?? Infinity;
@@ -42,6 +83,7 @@ export class DecodeRing {
   index = 0;
   ringSize = 0;
   zeroStopData = null;
+  stats = null;
 
   ensure(config) {
     if (!config) {
@@ -79,7 +121,7 @@ export class DecodeRing {
     const limits = getDeviceLimits();
 
     const tokensBytes = (normalized.tokensPerInterval + 1) * TOKEN_BYTES;
-    const stopBytes = normalized.tokensPerInterval * TOKEN_BYTES;
+    const stopBytes = (normalized.tokensPerInterval + 1) * TOKEN_BYTES;
     const stagingBytes = normalized.tokensPerInterval * TOKEN_BYTES;
 
     assertBufferFits('tokens', tokensBytes, true, limits);
@@ -146,8 +188,9 @@ export class DecodeRing {
       normalized.ringStaging
     );
     this.zeroStopData = normalized.stopCheckMode === 'per-token'
-      ? new Uint32Array(normalized.tokensPerInterval)
+      ? new Uint32Array(normalized.tokensPerInterval + 1)
       : null;
+    this.stats = createRingStats(buffers, normalized, this.ringSize);
   }
 
   acquire() {
@@ -166,6 +209,14 @@ export class DecodeRing {
       ? this.buffers.stagingStop[idx % this.buffers.stagingStop.length]
       : null;
 
+    if (this.stats) {
+      this.stats.acquires += 1;
+      if (tokens) trackSlotUse(this.stats.tokens);
+      if (stop) trackSlotUse(this.stats.stop);
+      if (stagingTokens) trackSlotUse(this.stats.stagingTokens);
+      if (stagingStop) trackSlotUse(this.stats.stagingStop);
+    }
+
     return {
       index: idx,
       tokens,
@@ -180,10 +231,29 @@ export class DecodeRing {
   advance() {
     if (!this.buffers) return;
     this.index = (this.index + 1) % this.ringSize;
+    if (this.stats) {
+      this.stats.advances += 1;
+    }
   }
 
   reset() {
     this.index = 0;
+    resetRingUsage(this.stats);
+  }
+
+  getStats() {
+    if (!this.stats) return null;
+    return {
+      tokens: { ...this.stats.tokens },
+      stop: { ...this.stats.stop },
+      stagingTokens: { ...this.stats.stagingTokens },
+      stagingStop: { ...this.stats.stagingStop },
+      acquires: this.stats.acquires,
+      advances: this.stats.advances,
+      resets: this.stats.resets,
+      ringSize: this.stats.ringSize,
+      tokensPerInterval: this.stats.tokensPerInterval,
+    };
   }
 
   release() {
@@ -198,5 +268,6 @@ export class DecodeRing {
     this.index = 0;
     this.ringSize = 0;
     this.zeroStopData = null;
+    this.stats = null;
   }
 }

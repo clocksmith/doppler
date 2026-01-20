@@ -59,6 +59,8 @@ Kernel path overrides are config-only; CLI flags must not set kernel selection.
 
 ## CLI Override Rules
 
+- CLI accepts only config-loader flags (`--config`, `--help`).
+- Command, suite, model id, and harness options must live in config (`cli.*`, top-level `model`).
 - CLI flags must not override runtime config tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 - Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
 See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.

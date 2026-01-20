@@ -77,6 +77,9 @@ function mergeSharedRuntimeConfig(
     harness: overrides.harness
       ? { ...base.harness, ...overrides.harness }
       : { ...base.harness },
+    tooling: overrides.tooling
+      ? { ...base.tooling, ...overrides.tooling }
+      : { ...base.tooling },
     platform: overrides.platform ?? base.platform,
     kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
     kernelThresholds: overrides.kernelThresholds

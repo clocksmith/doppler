@@ -85,6 +85,9 @@ export class PipelineState {
       memoryUsageBytes: 0,
       tokensGenerated: 0,
       totalTimeMs: 0,
+      decodeRecordMs: 0,
+      decodeSubmitWaitMs: 0,
+      decodeReadbackWaitMs: 0,
     };
 
     

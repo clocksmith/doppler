@@ -1,14 +1,9 @@
 /**
- * CLI Utilities - Server management, browser setup, and build helpers
+ * CLI Utilities - Server management and browser setup helpers
  */
 
 import type { Page, BrowserContext } from 'playwright';
 import type { CLIOptions } from './types.js';
-
-/**
- * Run TypeScript compilation for kernel tests
- */
-export function runBuild(verbose: boolean): Promise<void>;
 
 /**
  * Check if the dev server is already running

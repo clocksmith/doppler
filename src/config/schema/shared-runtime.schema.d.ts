@@ -18,6 +18,7 @@ import type { IntentBundleConfigSchema } from './intent-bundle.schema.js';
 import type { BridgeConfigSchema } from './bridge.schema.js';
 import type { PlatformSchema } from './platform.schema.js';
 import type { HarnessConfigSchema } from './harness.schema.js';
+import type { ToolingConfigSchema } from './tooling.schema.js';
 
 /**
  * Kernel registry configuration (source/override).
@@ -40,6 +41,8 @@ export interface SharedRuntimeConfigSchema {
   benchmark: BenchmarkConfig;
   /** Harness configuration (CLI/test runner) */
   harness: HarnessConfigSchema;
+  /** Tooling intent and diagnostics policy */
+  tooling: ToolingConfigSchema;
   /** Optional platform override (auto-detect when null) */
   platform: Partial<PlatformSchema> | null;
   /** Kernel registry source config */

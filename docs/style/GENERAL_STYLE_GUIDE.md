@@ -24,7 +24,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 
 | Reason | Explanation |
 |--------|-------------|
-| **Hot-swap architecture** | JS/WGSL/JSON artifacts swap at runtime without rebuild |
+| **Runtime compilation** | JS/WGSL/JSON changes compile without rebuild; hot-swap plumbing is planned |
 | **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
 | **Tests are the type system** | Comprehensive tests catch type errors pre-production |
 | **Simpler toolchain** | Edit JS/WGSL/JSON and run directly; `tsc` only emits/validates `.d.ts` |
@@ -192,6 +192,8 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 
 - Runtime tunables are configured via runtime config only; CLI flags must not override tunables.
 - Forbidden CLI overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
+- CLI accepts only config-loader flags (`--config`, `--help`).
+- Command, suite, model id, and harness options must live in config (`cli.*`, top-level `model`).
 - Harnesses must not accept URL query overrides for runtime tunables; only `runtimeConfig` and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
 See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
@@ -701,7 +703,7 @@ trace.attn(layerIdx, 'Q maxAbs=1.2');
 
 **Do not add temporary log statements to source files for debugging.** All debugging must use:
 
-1. **Existing trace categories** via `--config debug` or custom config
+1. **Existing trace categories** via config presets or custom config
 2. **Config-driven probes** for inspecting specific values
 3. **Extended trace categories** if needed visibility doesn't exist (permanent addition, not temporary)
 
@@ -712,10 +714,10 @@ This rule exists to support the hot-swap architecture: change configs, not code.
 log.info('Config', `LayerTypes: ${layerTypes.slice(0, 10).join(', ')}`);
 
 // DO: Use config-driven tracing
-npm run debug -- --config '{"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
+npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
 
 // DO: Use probes for specific values
-npm run debug -- --config '{"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
+npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
 ```
 
 If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point—don't add throwaway log statements.

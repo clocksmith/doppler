@@ -51,6 +51,10 @@ export class CommandRecorder {
   #nextQueryIndex = 0;
   
   #queryCapacity = 0;
+
+  #submitStartMs = null;
+
+  #submitLatencyMs = null;
   
   
   constructor(device = null, label = 'command_recorder', options = {}) {
@@ -267,8 +271,10 @@ export class CommandRecorder {
     }
 
     // Submit commands
+    const submitStart = performance.now();
     this.device.queue.submit([this.#encoder.finish()]);
     this.#submitted = true;
+    this.#submitStartMs = submitStart;
 
     const buffersToDestroy = this.#tempBuffers;
     const buffersToRelease = this.#pooledBuffers;
@@ -276,6 +282,7 @@ export class CommandRecorder {
     this.#pooledBuffers = [];
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
+      this.#submitLatencyMs = performance.now() - submitStart;
       // Destroy buffers created directly by the recorder
       for (const buffer of buffersToDestroy) {
         buffer.destroy();
@@ -311,6 +318,10 @@ export class CommandRecorder {
       pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
     };
+  }
+
+  getSubmitLatencyMs() {
+    return this.#submitLatencyMs;
   }
 
 

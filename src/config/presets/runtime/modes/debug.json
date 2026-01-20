@@ -4,6 +4,9 @@
   "extends": "default",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "verbose"
@@ -27,7 +30,7 @@
     }
   },
   "cli": {
-    "headed": true,
+    "headless": false,
     "timeout": 600000
   }
 }

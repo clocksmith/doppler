@@ -4,6 +4,9 @@
   "extends": "default",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "calibrate"
+      },
       "debug": {
         "logOutput": {
           "stdout": true,
@@ -27,7 +30,8 @@
     }
   },
   "cli": {
-    "headed": false,
-    "timeout": 300000
+    "headless": true,
+    "timeout": 300000,
+    "retries": 2
   }
 }

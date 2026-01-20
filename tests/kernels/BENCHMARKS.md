@@ -25,7 +25,8 @@ This document describes the benchmark configurations and expected baseline perfo
 
 ## Benchmark Results
 
-> **Note**: Run `npm run bench` to collect actual numbers on your hardware.
+> **Note**: Run `npm run bench -- --config <ref>` to collect numbers on your hardware.
+> The config must set `cli.command="bench"` and `cli.suite="kernels"`.
 > Results vary significantly by GPU vendor and driver version.
 
 ### Expected Ranges (Apple M1/M2/M3)
@@ -74,15 +75,14 @@ This document describes the benchmark configurations and expected baseline perfo
 ## Running Benchmarks
 
 ```bash
-# Run all benchmarks
-npm run bench
+# Run all benchmarks (config-driven)
+npm run bench -- --config <ref>
 
 # Run specific benchmark file
 npx playwright test tests/benchmarks/matmul.bench.ts
-
-# Run with verbose output
-npm run bench -- --reporter=list
 ```
+
+For extra output, use `runtime.shared.debug.logLevel` or trace categories in the config.
 
 ## Interpreting Results
 

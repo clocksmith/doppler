@@ -4,6 +4,9 @@
   "extends": "default",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
       "debug": {
         "logOutput": {
           "stdout": false,
@@ -33,6 +36,6 @@
     }
   },
   "cli": {
-    "headed": false
+    "headless": true
   }
 }

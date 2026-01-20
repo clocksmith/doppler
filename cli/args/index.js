@@ -1,6 +1,3 @@
-
-
-
 import { FLAG_HANDLERS } from './flags.js';
 import { resolveFlagAlias, suggestClosestFlags } from './suggestions.js';
 
@@ -14,53 +11,34 @@ export {
 } from './suggestions.js';
 
 
-export function normalizeSuite(suite) {
-  const legacyMap = {
-    'bench:kernels': 'kernels',
-    'bench:pipeline': 'inference',
-    'bench:system': 'system',
-    'correctness': 'kernels',
-    'simulate': 'simulation',
-  };
-  return legacyMap[suite] || suite;
-}
-
 export function parseArgs(argv) {
   const opts = {
-    cliFlags: new Set(),
-    command: 'test',
-    suite: 'kernels',
-    model: 'gemma-2-2b-it-wf16',
-    baseUrl: 'http://localhost:8080',
+    command: null,
+    suite: null,
+    model: null,
+    baseUrl: null,
     config: null,
-    mode: null,
     runtimeConfig: null,
     configChain: null,
-    dumpConfig: false,
-    listPresets: false,
-    noServer: false,
-    headless: true,
-    minimized: false,
-    reuseBrowser: true,
-    cdpEndpoint: 'http://localhost:9222',
+    noServer: null,
+    headless: null,
+    minimized: null,
+    reuseBrowser: null,
+    cdpEndpoint: null,
     verbose: false,
     filter: null,
-    timeout: 300000,
+    timeout: null,
     output: null,
     html: null,
     compare: null,
     profileDir: null,
-    retries: 2,
+    retries: null,
     quiet: false,
     help: false,
     perf: false,
-    skipLoad: false,
-    warm: false,
   };
 
   const tokens = [...argv];
-  let positionalIndex = 0;
-
   while (tokens.length) {
     const arg = tokens.shift();
     if (arg.startsWith('-')) {
@@ -80,28 +58,13 @@ export function parseArgs(argv) {
           : '';
         throw new Error(`Unknown flag "${arg}".${hint}`);
       }
-      opts.cliFlags.add(resolvedFlag);
       handler(opts, tokens);
       continue;
     }
-
-    if (positionalIndex === 0) {
-      if (arg === 'run' || arg === 'test' || arg === 'bench' || arg === 'debug') {
-        opts.command = arg;
-      } else {
-        opts.suite = normalizeSuite(arg);
-      }
-    } else if (positionalIndex === 1) {
-      opts.suite = normalizeSuite(arg);
-    }
-    positionalIndex++;
+    throw new Error(`Unexpected argument "${arg}". Use --config for CLI configuration.`);
   }
 
   return opts;
-}
-
-export function hasCliFlag(opts, flags) {
-  return flags.some((flag) => opts.cliFlags.has(flag));
 }
 
 export function appendRuntimeConfigParams(params, opts) {

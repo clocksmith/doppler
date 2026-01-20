@@ -63,6 +63,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const numTokens = 1;
   const config = state.modelConfig;
   const samplingDefaults = state.runtimeConfig.inference.sampling;
+  const batchingConfig = state.runtimeConfig.inference.batching;
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
   state.decodeStepCount++;
@@ -166,6 +167,20 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const useFusedDecode = recorder && useGPUSampling && !state.disableFusedDecode;
 
   if (useFusedDecode) {
+    const ring = state.decodeRing;
+    let ringSlot = null;
+    if (ring) {
+      ring.ensure({
+        batchSize: 1,
+        tokensPerInterval: 1,
+        stopCheckMode: batchingConfig.stopCheckMode,
+        ringTokens: batchingConfig.ringTokens,
+        ringStop: batchingConfig.ringStop,
+        ringStaging: batchingConfig.ringStaging,
+      });
+      ringSlot = ring.acquire();
+    }
+
     const { logitsBuffer, vocabSize, logitsDtype } = await recordLogitsGPU(
       recorder,
       hiddenStates,
@@ -174,14 +189,22 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       helpers.getLogitsConfig(),
     );
 
+    const ringTokensBuffer = ringSlot?.tokens ?? null;
     const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
-      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
+      ? await recordArgmax(recorder, logitsBuffer, vocabSize, {
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputBuffer: ringTokensBuffer ?? undefined,
+          outputIndex: 0,
+        })
       : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
           temperature: opts.temperature,
           topK: opts.topK,
           padTokenId,
           logitSoftcap,
           logitsDtype,
+          outputBuffer: ringTokensBuffer ?? undefined,
           outputIndex: 0,
           greedyThreshold: samplingDefaults.greedyThreshold,
         });
@@ -194,11 +217,14 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
     }
 
-    const stagingBuffer = device.createBuffer({
+    const ringStagingBuffer = ringSlot?.stagingTokens ?? null;
+    const stagingBuffer = ringStagingBuffer ?? device.createBuffer({
       label: 'sample_staging',
       size: 4,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
+    const ownsStagingBuffer = !ringStagingBuffer;
+    const ownsSampleOutputBuffer = !ringTokensBuffer || sampleOutputBuffer !== ringTokensBuffer;
 
     const copyEncoder = device.createCommandEncoder({ label: 'sample_copy' });
     copyEncoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
@@ -207,7 +233,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     const nextToken = new Uint32Array(stagingBuffer.getMappedRange())[0];
     stagingBuffer.unmap();
-    stagingBuffer.destroy();
+    if (ownsStagingBuffer) {
+      stagingBuffer.destroy();
+    }
+    ring?.advance();
 
     log.debug('Decode', `Step ${state.decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
@@ -243,7 +272,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
 
     releaseBuffer(logitsBuffer);
-    releaseBuffer(sampleOutputBuffer);
+    if (ownsSampleOutputBuffer) {
+      releaseBuffer(sampleOutputBuffer);
+    }
 
     if (benchmarkSubmits) {
       logSubmitStats(`Decode step ${state.decodeStepCount} (${config.numLayers} layers, fused)`);
@@ -448,6 +479,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const maxTokens = opts.maxTokens ?? batchingConfig.maxTokens;
   const maxSeqLen = state.currentSeqLen + maxTokens;
 
+  const recordStart = performance.now();
+
   const ring = state.decodeRing;
   let ringSlot = null;
   if (ring) {
@@ -469,7 +502,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   });
   const ownsTokensBuffer = !ringSlot?.tokens;
 
-  const stopCapacity = ringSlot?.stop ? ringSlot.tokensPerInterval : N;
+  const stopCapacity = ringSlot?.stop ? ringSlot.tokensPerInterval + 1 : N + 1;
   const stopBuffer = effectiveStopCheckMode === 'per-token'
     ? ringSlot?.stop ?? device.createBuffer({
         size: stopCapacity * 4,
@@ -598,6 +631,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
   }
 
+  const recordMs = performance.now() - recordStart;
+  state.stats.decodeRecordMs = (state.stats.decodeRecordMs ?? 0) + recordMs;
+
   recorder.submit();
 
   if (!allowReadback('pipeline.decode.sample')) {
@@ -608,15 +644,23 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   copyEncoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
 
   if (effectiveStopCheckMode === 'per-token' && stopBuffer && stopStagingBuffer) {
-    copyEncoder.copyBufferToBuffer(stopBuffer, 0, stopStagingBuffer, 0, N * 4);
+    copyEncoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
   }
   device.queue.submit([copyEncoder.finish()]);
 
+  const readbackStart = performance.now();
   const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
   if (stopStagingBuffer) {
     mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
   }
   await Promise.all(mapPromises);
+  const readbackWaitMs = performance.now() - readbackStart;
+  state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
+
+  const submitWaitMs = recorder.getSubmitLatencyMs();
+  if (submitWaitMs != null) {
+    state.stats.decodeSubmitWaitMs = (state.stats.decodeSubmitWaitMs ?? 0) + submitWaitMs;
+  }
 
   getUniformCache().flushPendingDestruction();
 

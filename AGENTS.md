@@ -44,7 +44,7 @@ doppler/
 
 ### Before Starting
 - Read `docs/ARCHITECTURE.md` for system overview
-- Read `docs/spec/RDRR_FORMAT.md` for model format specification
+- Read `docs/FORMATS.md` for model format specification
 - Review `src/inference/pipeline.js` for inference flow
 - Review `src/config/runtime.js` and `cli/config/` for runtime config plumbing
 
@@ -53,23 +53,22 @@ doppler/
 | Script | Purpose |
 |--------|---------|
 | `npm start` | Dev server at localhost:8080 |
-| `npm test` | Kernel correctness tests |
-| `npm run bench` | Performance benchmarks |
-| `npm run debug` | Debug preset (trace/logs via config) |
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:gpu` | GPU/browser tests (config-only) |
+| `npm run bench` | Performance benchmarks (config-only) |
+| `npm run debug` | Debug runs (config-only) |
 
 ```bash
-npm test -- --filter matmul      # Filter to specific kernel
-npm run bench -- --config bench  # Benchmark preset
-npm run debug -- --config debug  # Debug preset (trace/logs via config)
+npm test -- --filter matmul          # Filter to specific kernel
+npm run test:gpu -- --config <ref>   # GPU/browser suite via config
+npm run bench -- --config bench      # Benchmark preset
+npm run debug -- --config debug      # Debug preset (trace/logs via config)
 ```
 
-### Common Flags
+### CLI Interface
 
-| Flag | Description |
-|------|-------------|
-| `--model, -m <name>` | Model to use (default: gemma-3-1b-it-q4) |
-| `--config <preset>` | Runtime preset or config file (trace/logging set in config) |
-| `--headed` | Show browser window |
+The DOPPLER CLI is config-only. The only supported CLI flags are `--config` and `--help`.
+Model selection, headless/headed, command, and suite must live in the config.
 
 ### Config System
 
@@ -89,6 +88,7 @@ npm run bench -- --config ./my-config.json   # Use file
 - For per-instance overrides, pass `PipelineContexts.runtimeConfig` to `createPipeline()`.
 - Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
 - Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is removed.
+- `runtime.shared.tooling.intent` is required for CLI runs (verify/investigate/calibrate).
 
 **Layer Pipeline Plans (experimental):**
 - Model presets may define `inference.pipeline` to drive per-layer step order.

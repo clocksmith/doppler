@@ -19,6 +19,7 @@ import type { CommandRecorder } from '../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
 import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
+import type { DecodeRingStats } from '../decode-ring.js';
 
 // ============================================================================
 // Core Context Types
@@ -438,6 +439,10 @@ export interface PipelineStats {
   totalTimeMs: number;
   gpuTimePrefillMs?: number;
   gpuTimeDecodeMs?: number;
+  decodeRecordMs?: number;
+  decodeSubmitWaitMs?: number;
+  decodeReadbackWaitMs?: number;
+  decodeRing?: DecodeRingStats | null;
 }
 
 /**

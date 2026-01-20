@@ -11,7 +11,8 @@
 
 ```bash
 # Reproduce the garbage output bug
-doppler bench inference --config debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN|blue|Kaw|Generated"
+doppler --config <ref> 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN|blue|Kaw|Generated"
+# <ref>: cli.command="bench", cli.suite="inference"
 
 # Look for: ALL POSITIVE values at last position
 # FINAL_HIDDEN[pos=6]: [183.x, 42.x, 201.x, ...] - ALL POSITIVE (bug!)
@@ -71,6 +72,9 @@ Use probes to read specific token/dimension values without adding ad-hoc logs:
 ```bash
 # Post-softcap logits probe (Gemma 2 parity)
 npm run debug -- --config '{
+  "extends": "debug",
+  "model": "<model-id>",
+  "cli": { "command": "debug" },
   "runtime": {
     "shared": {
       "debug": {
@@ -90,19 +94,24 @@ Probes run on CPU or GPU buffers; they are skipped when CommandRecorder batching
 
 ```bash
 # Debug with verbose loader output
-doppler debug 2>&1 | grep -E "Loader.*Shard|Loader.*Layer" | head -50
+doppler --config <ref> 2>&1 | grep -E "Loader.*Shard|Loader.*Layer" | head -50
+# <ref>: cli.command="debug"
 
 # Layer-by-layer debug output
-doppler debug 2>&1 | grep -E "Layer[0-9]" | head -50
+doppler --config <ref> 2>&1 | grep -E "Layer[0-9]" | head -50
+# <ref>: cli.command="debug"
 
 # Full debug with logits and generated text
-doppler debug 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
+doppler --config <ref> 2>&1 | grep -E "Layer|logits|top-5|Generated" | head -50
+# <ref>: cli.command="debug"
 
 # Position-specific hidden state debug
-doppler debug 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN" | head -20
+doppler --config <ref> 2>&1 | grep -E "FINAL_HIDDEN|LAST_TOKEN" | head -20
+# <ref>: cli.command="debug"
 
 # Trace-level output (tensor details)
-doppler debug --config debug 2>&1 | head -200
+doppler --config <ref> 2>&1 | head -200
+# <ref>: cli.command="debug"
 ```
 
 **If logs don't appear:** Check your grep pattern includes the tag (e.g., `Loader` for loader output).
@@ -116,10 +125,12 @@ doppler debug --config debug 2>&1 | head -200
 
 ```bash
 # Fast benchmark (no debug output)
-doppler bench inference --config bench --headed
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", cli.headless=false
 
 # Slow benchmark with debug GPU readbacks
-doppler bench inference --config debug
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference"
 ```
 
 ```typescript
@@ -158,14 +169,16 @@ For Gemma 3 1B (26 layers), typical checkpoint choices:
 The benchmark runs inside a persistent Playwright profile directory. This preserves browser storage between runs, including the OPFS model cache.
 
 - Default inference benchmark profile: `doppler/.benchmark-cache/`
-- Override with `--profile-dir <path>` (relative to `doppler/` or absolute)
+- Override with `cli.profileDir` (relative to `doppler/` or absolute)
 
 ```bash
 # Warm run (reuse existing OPFS cache)
-doppler bench inference --config bench --profile-dir .benchmark-cache
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", cli.profileDir=".benchmark-cache"
 
 # Cold run (fresh profile dir)
-doppler bench inference --config bench --profile-dir .benchmark-cache-cold
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", cli.profileDir=".benchmark-cache-cold"
 ```
 
 ## CommandRecorder Gotcha
@@ -225,10 +238,12 @@ Use the kernel benchmark harness to measure per-kernel timings:
 
 ```bash
 # Kernel microbenchmarks
-doppler test kernels --perf
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="kernels"
 
 # Full inference benchmark (for tok/s + latency)
-doppler test inference --perf
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference"
 ```
 
 ### Expected Breakdown (Gemma 3 1B)
@@ -392,13 +407,16 @@ if (M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32') {
 
 ```bash
 # Run kernel benchmarks
-doppler test kernels --perf
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="kernels"
 
 # Full inference benchmark
-doppler test inference --perf
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference"
 
 # Enable kernel trace logging
-doppler test inference --config debug
+doppler --config <ref>
+# <ref>: cli.command="test", cli.suite="inference"
 ```
 
 ## Success Metrics

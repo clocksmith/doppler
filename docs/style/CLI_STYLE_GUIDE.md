@@ -24,6 +24,7 @@ front-ends for the same command model and config pipeline.
 - **Config ref**: preset name or config file path.
 - **Runtime config**: merged config passed into the harness.
 - **Harness**: browser runner that executes the command workload.
+- **Tooling intent**: `runtime.shared.tooling.intent` (`verify`, `investigate`, `calibrate`).
 
 ---
 
@@ -41,25 +42,27 @@ If new verbs are added, they must:
 - map to an existing subsystem boundary,
 - reuse the same harness pipeline,
 - remain config-driven.
+Each command must declare a tooling intent and enforce it in config.
 
 ### Structure
 
-Preferred format:
+Preferred format (config-only):
 
 ```
-command <suite> [options]
+command-interface --config <ref>
 ```
 
 Examples (conceptual, npm-agnostic):
 
 ```
-doppler bench inference --config bench --model gemma-3-1b
-doppler test kernels --config ci
-doppler debug inference --config debug
+doppler --config ./tmp-bench.json
+doppler --config ./tmp-test-kernels.json
+doppler --config ./tmp-debug.json
 ```
 
-The browser command interface should expose the same fields: command, suite,
-config ref, model id, and harness options.
+The browser command interface must emit a config (or config ref) that includes
+`cli.command`, `cli.suite`, and `model` (required for all CLI runs).
+`runtime.shared.tooling.intent` must be set and must match the command intent.
 
 ---
 
@@ -74,11 +77,11 @@ Runtime tunables are config-only. Command interfaces must not override:
 
 Allowed options should only select or load config:
 - `--config <preset|file>`
-- `--model <id>`
-- harness-only toggles (e.g. `--headed`)
+- `--help`
 
 If a user needs to change a tunable, they must supply a config or preset. This
-rule applies equally to CLI flags and browser UI controls.
+rule applies equally to CLI flags and browser UI controls. There are no implicit
+defaults for command, suite, or model selection.
 
 ---
 
@@ -106,6 +109,7 @@ See `BENCHMARK_STYLE_GUIDE.md` for output schema and baseline rules.
 - Use error codes where available (e.g. `DOPPLER_*`).
 - Do not silently mutate or fill missing tunables in interface logic.
 - Prefer “config is invalid” over “fallback to defaults”.
+- `calibrate` intent must reject tracing, profiling, and probes.
 
 ---
 
@@ -118,9 +122,9 @@ The browser command UI must:
 - preserve logs and artifacts for the current run.
 
 The browser UI must not add per-field overrides. It should only:
-- pick a preset or config file,
-- set the model id,
-- choose harness flags (headed, timeout, profile dir).
+- pick a preset or config file (or emit a full config object),
+- set `cli.command`/`cli.suite` inside that config,
+- set `model` and any harness flags inside that config.
 
 ---
 
@@ -142,3 +146,9 @@ should live in runtime config or the harness. Any new option must be:
 3) surfaced in both CLI and browser UI.
 
 If parity breaks, prefer fixing the config system, not adding UI exceptions.
+
+---
+
+## See Also
+
+- `COMMAND_INTERFACE_DESIGN_GUIDE.md`

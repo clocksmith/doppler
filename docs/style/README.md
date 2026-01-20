@@ -12,6 +12,7 @@ Coding conventions for the DOPPLER codebase.
 | [Benchmark Style Guide](./BENCHMARK_STYLE_GUIDE.md) | Benchmark harnesses, output schema, baselines |
 | [Config Style Guide](./CONFIG_STYLE_GUIDE.md) | Config ownership, merge order, runtime boundaries |
 | [Command Interface Style Guide](./CLI_STYLE_GUIDE.md) | CLI/browser command model, config-only rules |
+| [Command Interface Design Guide](./COMMAND_INTERFACE_DESIGN_GUIDE.md) | Intent clusters, exit conditions, interface contract |
 
 ## Quick Reference
 

@@ -35,6 +35,7 @@ ManifestInferenceSchema (embedded in manifest.json)
 
 SharedRuntimeConfigSchema (cross-cutting for loading + inference)
 - debug
+- tooling
 - benchmark
 - platform
 - kernelRegistry
@@ -75,7 +76,7 @@ InferenceConfigSchema (runtime.inference)
 - maxTokens
 - stopCheckMode
 - readbackInterval (null = read back each batch)
-- ringTokens / ringStop / ringStaging (null = disable ring allocation)
+- ringTokens / ringStop / ringStaging (null = disable ring allocation; used for batch decode and single-token GPU sampling readback reuse)
 
 ---
 
@@ -103,6 +104,10 @@ InferenceConfigSchema (runtime.inference)
 
 Runtime tunables are config-only when using the CLI or test harnesses:
 
+- CLI accepts only config-loader flags (`--config`, `--help`).
+- Command, suite, model id, and harness options live in config (`cli.*`, top-level `model`). Model is required for all CLI runs.
+- CLI runs require `runtime.shared.tooling.intent` (verify/investigate/calibrate).
+- `calibrate` intent forbids tracing, profiling, probes, and debug-only benchmarks.
 - CLI flags must not override prompt, max tokens, sampling, trace, log levels, or warmup/timed runs.
 - Harness URLs accept only `runtimeConfig` and optional `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.

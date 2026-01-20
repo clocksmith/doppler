@@ -374,10 +374,10 @@ Enable kernel trace output to see kernel selection decisions:
 
 ```bash
 # CLI (preferred): trace only kernels
-npm run debug -- --config debug
+npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
 
 # Config-driven (repeatable)
-npm run debug -- --config '{"runtime":{"inference":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
+npm run debug -- --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["kernels"]}}}}}'
 ```
 
 Use config-only kernel path overrides for testing (see `style/WGSL_STYLE_GUIDE.md`).

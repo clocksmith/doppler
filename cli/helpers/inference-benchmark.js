@@ -240,6 +240,30 @@ export function formatBenchmarkResult(result) {
     );
   }
 
+  if (m.decode_ring_tokens_uses_total !== undefined) {
+    const tokensAlloc = m.decode_ring_tokens_allocated ?? 0;
+    const tokensUses = m.decode_ring_tokens_uses_total ?? 0;
+    const tokensReuse = m.decode_ring_tokens_reuses_total ?? 0;
+    const stopAlloc = m.decode_ring_stop_allocated ?? 0;
+    const stopUses = m.decode_ring_stop_uses_total ?? 0;
+    const stopReuse = m.decode_ring_stop_reuses_total ?? 0;
+    console.log(
+      `Decode Ring:   tokens alloc=${tokensAlloc} uses=${tokensUses} reuse=${tokensReuse} ` +
+      `stop alloc=${stopAlloc} uses=${stopUses} reuse=${stopReuse}`
+    );
+
+    const stagingAlloc = m.decode_ring_staging_tokens_allocated ?? 0;
+    const stagingUses = m.decode_ring_staging_tokens_uses_total ?? 0;
+    const stagingReuse = m.decode_ring_staging_tokens_reuses_total ?? 0;
+    const stagingStopAlloc = m.decode_ring_staging_stop_allocated ?? 0;
+    const stagingStopUses = m.decode_ring_staging_stop_uses_total ?? 0;
+    const stagingStopReuse = m.decode_ring_staging_stop_reuses_total ?? 0;
+    console.log(
+      `Decode Ring:   staging alloc=${stagingAlloc} uses=${stagingUses} reuse=${stagingReuse} ` +
+      `stagingStop alloc=${stagingStopAlloc} uses=${stagingStopUses} reuse=${stagingStopReuse}`
+    );
+  }
+
   if (m.decode_ms_per_token_p50) {
     console.log(`Latency P50/90/99: ${m.decode_ms_per_token_p50}/${m.decode_ms_per_token_p90}/${m.decode_ms_per_token_p99} ms`);
   }

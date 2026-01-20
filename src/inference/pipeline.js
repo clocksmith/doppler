@@ -370,7 +370,12 @@ export class InferencePipeline extends PipelineState {
 
   
   getStats() {
-    return { ...this.stats };
+    const stats = { ...this.stats };
+    const ringStats = this.decodeRing?.getStats();
+    if (ringStats) {
+      stats.decodeRing = ringStats;
+    }
+    return stats;
   }
 
   

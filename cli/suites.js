@@ -37,12 +37,26 @@ export const TRAINING_TESTS = [
 
 export const KERNEL_BENCHMARKS = [
   'matmul',
+  'matmul-q4k',
+  'matmul-q4k-large',
+  'matmul-f16w',
   'attention',
   'softmax',
   'rmsnorm',
   'silu',
   'rope',
+  'swiglu',
+  'gather',
+  'scatter-add',
+  'moe-gather',
   'moe',
+  'residual',
+  'scale',
+  'topk',
+  'dequant-q4k',
+  'dequant-q4k-f16',
+  'dequant-q6k',
+  'sample',
 ];
 
 export const QUICK_TESTS = ['matmul', 'rmsnorm', 'softmax', 'gather'];

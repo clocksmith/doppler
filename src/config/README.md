@@ -106,7 +106,7 @@ defaults → preset → config file → inline JSON → CLI flags
 4. **Test**:
    - Convert model: `npx tsx src/converter/node-converter.js ...`
    - Verify manifest has `defaultKernelPath`
-   - Run inference: `npm run debug -- -m MODEL`
+   - Run inference: `doppler --config <ref>` (config must set `model`)
 
 ## MoE Models (GPT-OSS, Mixtral)
 

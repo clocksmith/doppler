@@ -4,6 +4,9 @@
   "extends": "default",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
       "harness": {
         "mode": "simulation",
         "autorun": true,
@@ -20,7 +23,7 @@
     }
   },
   "cli": {
-    "headed": true,
+    "headless": false,
     "timeout": 600000
   }
 }

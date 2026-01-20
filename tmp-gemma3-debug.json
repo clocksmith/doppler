@@ -1,5 +1,9 @@
 {
   "extends": "debug",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "cli": {
+    "command": "debug"
+  },
   "runtime": {
     "shared": {
       "debug": {

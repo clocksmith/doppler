@@ -124,6 +124,11 @@ export declare class CommandRecorder {
   getStats(): RecorderStats;
 
   /**
+   * Get the submit completion latency in milliseconds (null if not resolved yet).
+   */
+  getSubmitLatencyMs(): number | null;
+
+  /**
    * Abort recording without submitting (cleanup only).
    * Use if an error occurs during recording.
    */

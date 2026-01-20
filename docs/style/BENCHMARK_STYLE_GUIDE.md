@@ -14,7 +14,7 @@ Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime
 
 ## Baseline Comparison
 
-- Use the CLI `--compare <baseline.json>` for regression checks.
+- Use `cli.compare` in config for regression checks.
 - Respect `runtime.shared.benchmark.comparison.regressionThresholdPercent`.
 - Fail the run when `failOnRegression` is enabled and any metric regresses beyond the threshold.
 
@@ -26,6 +26,8 @@ Baseline registry rules live under `runtime.shared.benchmark.baselines`.
 
 - Keep warmup and timed run counts in `runtime.shared.benchmark.run`.
 - Use `runtime.shared.benchmark.stats` for outlier filtering, warmup stability, and thermal detection thresholds.
+- Set `runtime.shared.tooling.intent = "calibrate"` for baseline benchmarks.
+  If profiling, tracing, or probes are required, switch intent to `investigate`.
 
 ---
 
@@ -37,6 +39,8 @@ Baseline registry rules live under `runtime.shared.benchmark.baselines`.
 ---
 
 ## Profiling
+
+Profiling is an investigation workflow. Do not profile while calibrating.
 
 - Use `gpu/profiler.js` for GPU timestamps (not ad-hoc timers).
 - Keep CPU timing in benchmark harnesses as a fallback.
@@ -77,7 +81,7 @@ Use `doppler-bench` skill (`../../.claude/skills/doppler-bench/SKILL.md`) for gu
 ## Config
 
 Benchmark defaults live in `runtime.shared.benchmark` (see `src/config/schema/benchmark.schema.js`).
-CLI `--mode bench` loads the preset; runtime config is the source of truth.
+Use `extends: "bench"` in config; runtime config is the source of truth.
 Baseline registry settings live under `runtime.shared.benchmark.baselines`.
 
 ---
@@ -188,10 +192,10 @@ Each benchmark suite runs:
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
 
-When running via CLI, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
+When running via CLI, OPFS persistence depends on using a stable Playwright profile directory. Use `cli.profileDir` to explicitly control this:
 
-- `warm`: reuse the same `--profile-dir`
-- `cold`: use a fresh `--profile-dir` (or delete the profile dir)
+- `warm`: reuse the same `cli.profileDir`
+- `cold`: use a fresh `cli.profileDir` (or delete the profile dir)
 
 ### Warmup
 
@@ -411,12 +415,12 @@ Before claiming performance parity or superiority to WebLLM:
 
 ### CLI (Recommended)
 
-The CLI is the single entry point for running benchmarks (server auto-starts):
+The CLI is the single entry point for running benchmarks (server auto-starts).
+Command, suite, model id, and harness options live in config:
 
 ```bash
-doppler bench inference --config bench --headed
-doppler bench inference --config bench
-doppler bench inference --config ./bench-xs.json
+doppler --config ./tmp-bench.json
+doppler --config ./tmp-bench-xs.json
 doppler --help
 ```
 

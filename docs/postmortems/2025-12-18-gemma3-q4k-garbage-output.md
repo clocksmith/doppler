@@ -131,7 +131,11 @@ This restores correctness for already-converted models without requiring reconve
 Command:
 
 ```bash
-npm run doppler -- bench inference --prompt xs --max-tokens 1 --retries 0 --quiet
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", model="gemma-3-1b-it-q4k-ef16"
+# runtime.shared.benchmark.run.promptName="xs"
+# runtime.inference.batching.maxTokens=1
+# cli.retries=0
 ```
 
 Expected behavior:
@@ -175,4 +179,3 @@ Verified with `transformers` local snapshot `dcc83ea8…` using `output_hidden_s
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
-

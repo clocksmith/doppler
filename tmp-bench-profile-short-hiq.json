@@ -7,35 +7,34 @@
   },
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
       "debug": {
-        "logLevel": {
-          "defaultLogLevel": "warn"
-        },
-        "trace": {
-          "enabled": false
-        },
+        "logLevel": { "defaultLogLevel": "warn" },
+        "trace": { "enabled": false },
         "profiler": {
-          "enabled": true
+          "enabled": true,
+          "queryCapacity": 2048,
+          "maxQueries": 32768,
+          "defaultQueryLimit": 8192,
+          "maxSamples": 200,
+          "maxDurationMs": 60000
         }
       },
       "benchmark": {
         "run": {
-          "profile": true,
-          "captureMemoryTimeSeries": true,
-          "memoryTimeSeriesIntervalMs": 50,
+          "promptName": "medium",
+          "maxNewTokens": 16,
           "warmupRuns": 1,
-          "timedRuns": 3
+          "timedRuns": 1,
+          "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
+          "profile": true,
+          "captureMemoryTimeSeries": false
         }
       }
     },
     "inference": {
-      "prompt": "The color of the sky is",
       "batching": {
         "batchSize": 4,
-        "maxTokens": 128,
+        "maxTokens": 16,
         "stopCheckMode": "per-token",
         "readbackInterval": 4,
         "ringTokens": 1,

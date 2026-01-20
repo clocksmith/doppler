@@ -66,11 +66,19 @@ F16 activations were enabled, but critical pieces of the pipeline still assumed 
 Run:
 
 ```bash
-npm run debug -- --model gemma-2-2b-it-wf16 --max-tokens 8 --chat \
-  --text "Explain why the sky is blue." --trace kernels
+doppler --config <ref>
+# <ref>: extends "debug", cli.command="debug", model="gemma-2-2b-it-wf16"
+# runtime.inference.prompt="Explain why the sky is blue."
+# runtime.inference.batching.maxTokens=8
+# runtime.inference.chatTemplate.enabled=true
+# runtime.shared.debug.trace.enabled=true, categories=["kernels"]
 
-npm run debug -- --model gemma-2-2b-it-wq4k-ef16 --max-tokens 8 --chat \
-  --text "Explain why the sky is blue." --trace kernels
+doppler --config <ref>
+# <ref>: extends "debug", cli.command="debug", model="gemma-2-2b-it-wq4k-ef16"
+# runtime.inference.prompt="Explain why the sky is blue."
+# runtime.inference.batching.maxTokens=8
+# runtime.inference.chatTemplate.enabled=true
+# runtime.shared.debug.trace.enabled=true, categories=["kernels"]
 ```
 
 Expected:

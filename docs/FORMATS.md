@@ -14,7 +14,7 @@ See also: `ARCHITECTURE.md` for system overview.
 - Support per-shard integrity verification (P2P distribution is optional/future)
 - Provide browser-native storage via OPFS (Origin Private File System)
 - Support multiple quantization formats (Q4_K_M, F16, F32)
-- Enable component-level grouping for hot-swap capability (v1)
+- Enable component-level grouping for future hot-swap capability (v1)
 - Support multiple architectures: transformer, mamba, rwkv, jamba, mixtral, deepseek
 
 ---
@@ -152,7 +152,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
 
 ### Component Groups
 
-Groups enable per-component hot-swap and version tracking:
+Groups enable per-component version tracking; runtime hot-swap is planned:
 
 ```json
 {
@@ -479,6 +479,7 @@ npx tsx src/converter/node-converter.js model.gguf ./output-rdrr
 npx tsx src/converter/node-converter.js ./hf-model-dir ./output-rdrr --quantize q4_k_m
 
 Browser conversion is also available via `src/browser/browser-converter.js` with OPFS output.
+The Node converter is the primary workflow today; browser conversion is still maturing.
 ```
 
 ### Serving Models

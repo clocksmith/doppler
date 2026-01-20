@@ -49,7 +49,7 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
-| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification, expert paging, LoRA hot-swap |
+| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification; LoRA swaps today, expert paging planned |
 | **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
 | **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
@@ -84,7 +84,7 @@ DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it
 
 | Capability | Why Impossible with TVM |
 |------------|------------------------|
-| 90GB MoE on 8GB VRAM | Expert paging requires dynamic buffer binding |
+| 90GB MoE on 8GB VRAM | Expert paging requires dynamic buffer binding (planned) |
 | Shard distribution | Can't split compiled binary across peers |
 | LoRA hot-swap | Compiled model can't change weights at runtime |
 | Speculative decoding | Coordinating two compiled models is awkward |
@@ -184,7 +184,7 @@ See `ROADMAP.md` for the current migration status.
 | `storage/` | OPFS shard management, download |
 | `memory/` | Heap manager + Memory64/unified detection for loader/preflight |
 | `adapters/` | LoRA adapter loading/management |
-| `hotswap/` | Runtime model hot-swap |
+| `hotswap/` | Planned runtime swap |
 | `client/` | Public API (doppler-provider) |
 | `bridge/` | Native Bridge for local file access |
 | `browser/` | Browser import, parsing, and conversion helpers |
@@ -248,7 +248,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │ (Node-only)       │ (LoRA hot-swap)    │ (Extension IPC)                     │
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
 │ hotswap/          │ client/            │ browser/                            │
-│ (Runtime swap)    │ (Public API)       │ (Demo harness)                      │
+│ (Planned swap)    │ (Public API)       │ (Demo harness)                      │
 └───────────────────┴────────────────────┴────────────────────────────────────┘
 ```
 
@@ -265,11 +265,11 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ### Debug Infrastructure Layers
 
 ```
-CLI/Browser
-  --mode bench|debug
-  --compare baseline.json
+CLI/Browser (config-only)
+  cli.command / cli.suite
+  cli.compare / cli.filter
         |
-Runtime Config (runtime.shared.debug, runtime.shared.benchmark)
+Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.benchmark)
         |
   debug/            gpu/                   inference/pipeline/
   - log.js          - profiler.js           - kernel-trace.js

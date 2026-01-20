@@ -131,13 +131,22 @@ if (layerIdx === 0 && debug) {
 npm run build:doppler
 
 # Test inference with debug
-npm run doppler -- bench inference --model gemma-3-1b-it-q4 --prompt xs --debug
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", model="gemma-3-1b-it-q4"
+# runtime.shared.benchmark.run.promptName="xs"
+# runtime.shared.benchmark.run.debug=true
 
 # Check if attention debug is working
-npm run doppler -- bench inference --model gemma-3-1b-it-q4 --prompt xs --debug 2>&1 | grep -E "runLayerAttentionGPU|Attn L0"
+doppler --config <ref> 2>&1 | grep -E "runLayerAttentionGPU|Attn L0"
+# <ref>: cli.command="bench", cli.suite="inference", model="gemma-3-1b-it-q4"
+# runtime.shared.benchmark.run.promptName="xs"
+# runtime.shared.benchmark.run.debug=true
 
 # Verify Llama still works (should output "blue")
-npm run doppler -- bench inference --model llama-3.2-1b-instruct-q4 --prompt xs --debug
+doppler --config <ref>
+# <ref>: cli.command="bench", cli.suite="inference", model="llama-3.2-1b-instruct-q4"
+# runtime.shared.benchmark.run.promptName="xs"
+# runtime.shared.benchmark.run.debug=true
 ```
 
 ---

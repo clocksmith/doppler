@@ -96,9 +96,13 @@ Phase-specific kernels have different expected shapes, workgroup dimensions, and
 Command:
 
 ```bash
-npm run debug -- --model gemma-2-2b-it-wf16 --config gemma2-debug \
-  --max-tokens 16 --chat --text "Explain why the sky is blue." \
-  --trace attn,logits --trace-layers 0
+doppler --config <ref>
+# <ref>: extends "debug", cli.command="debug", model="gemma-2-2b-it-wf16"
+# runtime.inference.prompt="Explain why the sky is blue."
+# runtime.inference.batching.maxTokens=16
+# runtime.inference.chatTemplate.enabled=true
+# runtime.shared.debug.trace.enabled=true
+# runtime.shared.debug.trace.categories=["attn","logits"], layers=[0]
 ```
 
 Observed:

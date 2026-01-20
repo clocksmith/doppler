@@ -5,6 +5,9 @@
   "model": "google-gemma-3-1b-it-wq4k-ef16",
   "runtime": {
     "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "verbose"
@@ -95,7 +98,8 @@
     }
   },
   "cli": {
-    "headed": true,
+    "command": "debug",
+    "headless": false,
     "timeout": 300000
   }
 }

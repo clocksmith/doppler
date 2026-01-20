@@ -155,7 +155,12 @@ Batching would provide 37% speedup if working.
 
 ```bash
 # Set batchSize: 4 in defaults, then:
-npm run debug -- -m gemma-2-2b-it --prompt "The sky is" --max-tokens 32 --temperature 0 --no-chat
+doppler --config <ref>
+# <ref>: extends "debug", cli.command="debug", model="gemma-2-2b-it"
+# runtime.inference.prompt="The sky is"
+# runtime.inference.batching.maxTokens=32, batchSize=4
+# runtime.inference.sampling.temperature=0
+# runtime.inference.chatTemplate.enabled=false
 
 # Compare with batchSize: 1
 ```

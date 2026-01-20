@@ -52,6 +52,9 @@ export class PipelineGenerator {
     this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
+    this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeSubmitWaitMs = 0;
+    this.#state.stats.decodeReadbackWaitMs = 0;
     const startTime = performance.now();
 
     const runtimeDefaults = this.#state.runtimeConfig.inference;
@@ -341,6 +344,9 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
     this.#state.decodeRing?.reset();
+    this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeSubmitWaitMs = 0;
+    this.#state.stats.decodeReadbackWaitMs = 0;
     const startTime = performance.now();
 
     const runtimeDefaults = this.#state.runtimeConfig.inference;

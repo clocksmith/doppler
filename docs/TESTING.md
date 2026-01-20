@@ -13,19 +13,19 @@
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │              End-to-End Inference                    │   │
-│  │         doppler test inference (Playwright)          │   │
+│  │   doppler --config (cli.command=test, suite=inference)│   │
 │  │    Model load → Pipeline → Generate → Validate       │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │              GPU Kernel Correctness                  │   │
-│  │         doppler test kernels (Playwright+WebGPU)     │   │
+│  │    doppler --config (cli.command=test, suite=kernels)│   │
 │  │    WGSL kernels vs CPU reference implementations     │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │                 CPU Unit Tests                       │   │
-│  │              npm run test:vitest                     │   │
+│  │              npm run test:unit                       │   │
 │  │    Tokenizer, manifest parsing, utilities            │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
@@ -36,6 +36,7 @@
 - **GPU tests** require Chrome/Chromium with WebGPU (Playwright handles this)
 - **CPU tests** run in Node.js via Vitest (no GPU needed)
 - **Benchmarks** measure performance, not correctness (separate from tests)
+- **CLI runs** require `runtime.shared.tooling.intent` (verify/investigate/calibrate)
 
 ## Related Documentation
 
@@ -54,55 +55,70 @@
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `doppler test` | Quick kernel tests | CI, before commits |
-| `doppler test --full` | Full kernel correctness | After GPU kernel changes |
-| `doppler test --inference` | Model load + generate | After pipeline changes |
-| `npm run test:vitest` | CPU unit tests | After non-GPU code changes |
-| `doppler bench` | Inference benchmark | Performance measurement |
-| `doppler bench --kernels` | Kernel benchmarks | Before/after kernel optimizations |
-| `doppler debug` | Debug with trace | Investigating inference bugs |
+| `doppler --config <ref>` | Quick kernel tests (`cli.command=test`, `cli.suite=quick`) | CI, before commits |
+| `doppler --config <ref>` | Full kernel correctness (`cli.command=test`, `cli.suite=kernels`) | After GPU kernel changes |
+| `doppler --config <ref>` | Model load + generate (`cli.command=test`, `cli.suite=inference`) | After pipeline changes |
+| `npm run test:unit` | CPU unit tests | After non-GPU code changes |
+| `doppler --config <ref>` | Inference benchmark (`cli.command=bench`, `cli.suite=inference`) | Performance measurement |
+| `doppler --config <ref>` | Kernel benchmarks (`cli.command=bench`, `cli.suite=kernels`) | Before/after kernel optimizations |
+| `doppler --config <ref>` | Debug with trace (`cli.command=debug`) | Investigating inference bugs |
 
 ## Test Systems
 
-### 1. Kernel Tests (`doppler test kernels`)
+### 1. Kernel Tests (config: `cli.command=test`, `cli.suite=kernels`)
 
 GPU kernel correctness validation via Playwright + WebGPU.
 
-```bash
-# Quick validation (CI default)
-doppler test quick
+Create a config file (example):
 
-# Full kernel suite
-doppler test kernels
-
-# With visible browser
-doppler test kernels --headed
-
-# Filter specific kernel
-doppler test kernels --filter matmul
-
-# Save results to file
-doppler test kernels -o results.json
-
-# With performance benchmarks
-doppler test kernels --perf
+```json
+{
+  "extends": "ci",
+  "model": "gemma-3-1b-it-q4",
+  "cli": {
+    "command": "test",
+    "suite": "kernels",
+    "filter": "matmul",
+    "headless": true,
+    "output": "results.json"
+  }
+}
 ```
+
+Run the suite:
+
+```bash
+doppler --config ./kernel-tests.json
+```
+
+Set `cli.suite` to `quick` for CI defaults, toggle `cli.headless` for a visible
+browser, set `cli.filter` for a specific kernel, and use `cli.output` to write
+results.
 
 **Kernels tested:** matmul, attention, rmsnorm, softmax, rope, silu, gather, scatter-add, moe-gather, residual, topk, dequant
 
-### 2. Inference Test (`doppler test inference`)
+### 2. Inference Test (config: `cli.command=test`, `cli.suite=inference`)
 
 End-to-end model loading and token generation.
 
+Create a config file (example):
+
+```json
+{
+  "extends": "debug",
+  "model": "mistral-7b-q4",
+  "cli": {
+    "command": "test",
+    "suite": "inference",
+    "headless": false
+  }
+}
+```
+
+Run the test:
+
 ```bash
-# Default model (gemma3-1b-q4)
-doppler test inference
-
-# Specific model
-doppler test inference --model mistral-7b-q4
-
-# With visible browser
-doppler test inference --headed
+doppler --config ./inference-test.json
 ```
 
 **What it tests:**
@@ -112,30 +128,27 @@ doppler test inference --headed
 - Pipeline creation
 - Token generation (50 tokens)
 
-### 3. CPU Unit Tests (`npm run test:vitest`)
+### 3. CPU Unit Tests (`npm run test:unit`)
 
 Non-GPU JavaScript/TypeScript unit tests.
 
 ```bash
-npm run test:vitest           # Run once
-npm run test:vitest:watch     # Watch mode
-npm run test:vitest:ui        # Interactive UI
-npm run test:vitest:coverage  # With coverage report
+npm run test:unit             # Run once
+npx vitest --watch            # Watch mode
+npx vitest --ui               # Interactive UI
+npx vitest run --coverage     # With coverage report
 ```
 
-### 4. Performance Benchmarks (`doppler bench`)
+### 4. Performance Benchmarks (config: `cli.command=bench`)
 
-Use `doppler bench` for performance measurement.
+Use `doppler --config <ref>` with `cli.command=bench` for performance measurement.
 
 ```bash
-# Full inference benchmark
-doppler bench
+# Inference benchmark (config specifies command/suite/model)
+doppler --config <ref>
 
-# Kernel microbenchmarks
-doppler bench --kernels
-
-# Multiple runs for statistics (via config)
-doppler bench --config bench
+# Kernel microbenchmarks (config with cli.suite="kernels")
+doppler --config <ref>
 ```
 
 **Prompt sizes:** `xs` (6-10 tokens), `short`, `medium`, `long` (set via `runtime.shared.benchmark.run.promptName`)
@@ -153,7 +166,7 @@ Control loader output verbosity via runtime config:
 
 ```bash
 # Show shard sources (RAM/OPFS/network)
-doppler bench --config debug
+doppler --config ./debug-bench.json
 ```
 
 ## Prerequisites
@@ -193,16 +206,19 @@ Add `.test.js` files to `tests/` directory.
 
 ## CI Integration
 
-GitHub Actions runs `npm test` (quick kernel suite) on push/PR.
+GitHub Actions runs `npm test` (unit tests) on push/PR.
 
 For local CI simulation:
 ```bash
-doppler test quick && npm run test:vitest
+doppler --config <ref> && npm run test:unit
+# <ref> should set cli.command="test" and cli.suite="quick"
 ```
 
 For full validation before merging:
 ```bash
-doppler test kernels && doppler test inference && npm run test:vitest
+doppler --config <ref> && doppler --config <ref> && npm run test:unit
+# First <ref>: cli.command="test", cli.suite="kernels"
+# Second <ref>: cli.command="test", cli.suite="inference"
 ```
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->

@@ -97,7 +97,8 @@ uniformView.setFloat32(8, 1.0, true);            // temperature (default 1.0)
 
 ### Test Command
 ```bash
-npm run doppler -- test correctness --filter softmax
+doppler --config <ref>
+# <ref>: cli.command="test", cli.suite="kernels", cli.filter="softmax"
 ```
 
 ### Before Fix
@@ -231,4 +232,3 @@ The kernel correctness test suite successfully identified this bug. Maintaining 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `../style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
-

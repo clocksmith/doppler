@@ -1,5 +1,6 @@
 import { log } from '../debug/index.js';
 import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
+import { TOOLING_INTENTS, TOOLING_DIAGNOSTICS } from './schema/tooling.schema.js';
 
 export function validateCallTimeOptions(options) {
   if (!options) return;
@@ -57,6 +58,8 @@ export function validateRuntimeConfig(runtimeConfig) {
   assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
   assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
 
+  validateToolingIntent(runtimeConfig);
+
   const debug = runtimeConfig.shared?.debug;
   const debugEnabled = isDebugMode(debug);
   const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
@@ -75,6 +78,50 @@ export function validateRuntimeConfig(runtimeConfig) {
       'or runtime.shared.debug.trace.enabled (or set log level to debug/verbose).'
     );
   }
+}
+
+function validateToolingIntent(runtimeConfig) {
+  const tooling = runtimeConfig.shared?.tooling;
+  const intent = tooling?.intent ?? null;
+  const diagnostics = tooling?.diagnostics ?? null;
+
+  if (intent !== null && !TOOLING_INTENTS.includes(intent)) {
+    throw new Error(
+      `DopplerConfigError: runtime.shared.tooling.intent must be one of ` +
+      `${TOOLING_INTENTS.join(', ')} or null.`
+    );
+  }
+
+  if (diagnostics !== null && !TOOLING_DIAGNOSTICS.includes(diagnostics)) {
+    throw new Error(
+      `DopplerConfigError: runtime.shared.tooling.diagnostics must be one of ` +
+      `${TOOLING_DIAGNOSTICS.join(', ')}.`
+    );
+  }
+
+  if (intent !== 'calibrate') return;
+
+  const debug = runtimeConfig.shared?.debug;
+  const benchmarkRun = runtimeConfig.shared?.benchmark?.run;
+  const violations = [];
+
+  if (debug?.trace?.enabled) violations.push('runtime.shared.debug.trace.enabled');
+  if (debug?.pipeline?.enabled) violations.push('runtime.shared.debug.pipeline.enabled');
+  if (debug?.probes?.length) violations.push('runtime.shared.debug.probes');
+  if (debug?.profiler?.enabled) violations.push('runtime.shared.debug.profiler.enabled');
+  if (benchmarkRun?.debug) violations.push('runtime.shared.benchmark.run.debug');
+  if (benchmarkRun?.profile) violations.push('runtime.shared.benchmark.run.profile');
+  if (benchmarkRun?.captureMemoryTimeSeries) {
+    violations.push('runtime.shared.benchmark.run.captureMemoryTimeSeries');
+  }
+
+  if (violations.length === 0) return;
+
+  throw new Error(
+    'DopplerConfigError: runtime.shared.tooling.intent="calibrate" forbids ' +
+    'investigation instrumentation.\n' +
+    `Disable ${violations.join(', ')} or set runtime.shared.tooling.intent="investigate".`
+  );
 }
 
 function flattenObject(obj, prefix = '') {

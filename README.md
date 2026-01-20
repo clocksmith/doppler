@@ -9,13 +9,13 @@ Doppler is the engine, tuned and swapped as Reploid drives a recursive self-impr
 
 ## Why This Works
 
-Doppler and Reploid share a browser process. Kernel updates apply without process restart.
+Doppler and Reploid share a browser process. Kernel registry/config changes apply without rebuild; full kernel hot-swap is planned.
 
 | Capability | Claim |
 |------------|-------|
 | **80% native performance** | [WebLLM 2024](https://arxiv.org/abs/2412.15803) |
 | **JIT kernel generation** | Hours → seconds ([nnJIT MobiSys 2024](https://dl.acm.org/doi/10.1145/3643832.3661892)) |
-| **Kernel hot-swap** | Runtime shader creation ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
+| **Runtime WGSL compilation** | No build step for kernel changes ([W3C WGSL Spec](https://www.w3.org/TR/WGSL/)) |
 | **Shared memory** | CPU↔GPU via SharedArrayBuffer ([WgPy 2025](https://arxiv.org/pdf/2503.00279), [WebGPU Explainer](https://gpuweb.github.io/gpuweb/explainer/)) |
 
 ## Quick Start
@@ -23,7 +23,7 @@ Doppler and Reploid share a browser process. Kernel updates apply without proces
 ```bash
 npm install
 npm start         # Dev server at http://localhost:8080
-npm run bench     # Run benchmarks
+npm run bench -- --config ./tmp-bench.json
 ```
 
 ## Architecture
@@ -56,8 +56,8 @@ See `docs/CONFIG.md` and `docs/FORMATS.md` for the full contract.
 
 ## Why Pure JS + WGSL
 
-DOPPLER uses JavaScript orchestration with hand-written WGSL kernels so code can
-hot-swap without a build step. GPU compute dominates decode time, so the focus
+DOPPLER uses JavaScript orchestration with hand-written WGSL kernels so changes
+compile at runtime without a build step (hot-swap plumbing is planned). GPU compute dominates decode time, so the focus
 is on kernel performance and debuggability. Type contracts live in `.d.ts`
 files; see `docs/style/GENERAL_STYLE_GUIDE.md` for the full rationale.
 

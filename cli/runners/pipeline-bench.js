@@ -54,7 +54,7 @@ export async function runPipelineBenchmark(page, opts) {
     console.log(`  Decode: ${result.metrics?.decode_tokens_per_sec || 'N/A'} tok/s`);
 
     return {
-      suite: 'bench:pipeline',
+      suite: 'inference',
       passed: 1,
       failed: 0,
       skipped: 0,
@@ -70,7 +70,7 @@ export async function runPipelineBenchmark(page, opts) {
   } catch (err) {
     console.log(`  \x1b[31mFAIL\x1b[0m: ${ (err).message}`);
     return {
-      suite: 'bench:pipeline',
+      suite: 'inference',
       passed: 0,
       failed: 1,
       skipped: 0,

@@ -5,24 +5,23 @@ GPU kernel correctness validation and benchmarks for the DOPPLER WebGPU inferenc
 ## Quick Start
 
 ```bash
-cd kernel-tests
+# From repo root
 npm install
 
-# Run all tests
-npm test
+# CPU unit tests
+npm run test:unit
 
-# Run GPU tests only
-npm run test:gpu
+# Run GPU tests (config-driven)
+npm run test:gpu -- --config <ref>
 
-# Run GPU tests headed (see browser)
-npm run test:gpu:headed
-
-# Run benchmarks
-npm run bench
+# Run benchmarks (config-driven)
+npm run bench -- --config <ref>
 
 # Serve test page for manual testing
-npm run serve
+npm start
 ```
+
+Headed GPU runs: set `cli.headless=false` in the config.
 
 ## Structure
 
