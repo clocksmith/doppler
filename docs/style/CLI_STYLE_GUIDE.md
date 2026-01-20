@@ -85,6 +85,9 @@ If a user needs to change a tunable, they must supply a config or preset. This
 rule applies equally to CLI flags and browser UI controls. There are no implicit
 defaults for command, suite, or model selection.
 
+Use `null` to explicitly disable a config field; avoid leaving keys `undefined`
+once they are introduced in schema/presets.
+
 ---
 
 ## Tool + Converter Commands

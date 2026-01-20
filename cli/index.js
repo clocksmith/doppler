@@ -382,10 +382,6 @@ function assertCliRequirements(command, cliConfig) {
   if (cliConfig.timeout === null) throw new Error('cli.timeout is required');
   if (cliConfig.retries === null) throw new Error('cli.retries is required');
   if (cliConfig.profileDir === null) throw new Error('cli.profileDir is required');
-  if (cliConfig.output === null) throw new Error('cli.output is required');
-  if (cliConfig.html === null) throw new Error('cli.html is required');
-  if (cliConfig.compare === null) throw new Error('cli.compare is required');
-  if (cliConfig.filter === null) throw new Error('cli.filter is required');
 }
 
 function resolveToolId(tool) {

@@ -28,8 +28,8 @@ Config requirements:
   - config.cli (required) with fields:
       command, suite (suite required for test/bench; null for run/debug/convert/tool),
       tool (required for tool), baseUrl/noServer/headless/minimized/reuseBrowser/
-      cdpEndpoint/timeout/retries/profileDir/output/html/compare/filter
-      (required for run/test/bench/debug)
+      cdpEndpoint/timeout/retries/profileDir (required for run/test/bench/debug),
+      output/html/compare/filter (optional)
   - config.converter (required for convert)
   - config.tools.<toolKey> (required for tool-specific settings)
   - runtime.shared.tooling.intent (required for test/bench/debug):
