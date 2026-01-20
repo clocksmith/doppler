@@ -645,6 +645,8 @@ Please re-convert the model using the latest converter.
 - `contiguous`: Single buffer per K/V (default for <8K)
 - `paged`: Block-based (future, for very long contexts)
 
+KV paging is not shipped yet; current inference keeps KV cache in VRAM and relies on sliding windows or RoPE scaling for long context.
+
 **KV dtype:** F16 when supported, halves VRAM usage.
 
 ### tokenizer.js - Tokenization

@@ -17,13 +17,9 @@ struct StopUniforms {
     tokenIndex: u32,
 }
 
-struct ScalarU32 {
-    value: u32,
-}
-
 @group(0) @binding(0) var<uniform> uniforms: StopUniforms;
 @group(0) @binding(1) var<storage, read> sampledToken: array<u32>;
-@group(0) @binding(2) var<storage, read_write> shouldStop: ScalarU32;
+@group(0) @binding(2) var<storage, read_write> shouldStop: array<u32>;
 
 @compute @workgroup_size(1, 1, 1)
 fn main() {
@@ -31,11 +27,7 @@ fn main() {
     let isEOS = (token == uniforms.eosTokenId);
     let reachedMax = (uniforms.currentPos >= uniforms.maxTokens);
 
-    if (isEOS || reachedMax) {
-        shouldStop.value = 1u;
-    } else {
-        shouldStop.value = 0u;
-    }
+    shouldStop[uniforms.tokenIndex] = select(0u, 1u, isEOS || reachedMax);
 }
 `;
 
@@ -78,18 +70,22 @@ export function recordCheckStop(
 ) {
   const device = getDevice();
   const pipeline = getCheckStopPipeline();
+  const tokenIndex = params.tokenIndex ?? 0;
 
   // Create uniform buffer
   const uniformData = new Uint32Array([
     params.eosTokenId,
     params.maxTokens,
     params.currentPos,
-    params.tokenIndex ?? 0,
+    tokenIndex,
   ]);
   const uniformBuffer = createUniformBufferFromData('check_stop_uniforms', uniformData, recorder);
 
   // Create output buffer
-  const shouldStopBuffer = acquireBuffer(4, undefined, 'check_stop_output');
+  const shouldStopBuffer = params.shouldStopBuffer ?? acquireBuffer(4, undefined, 'check_stop_output');
+  if (shouldStopBuffer.size < (tokenIndex + 1) * 4) {
+    throw new Error('[CheckStop] shouldStopBuffer too small for tokenIndex.');
+  }
 
   // Create bind group
   const bindGroup = device.createBindGroup({
@@ -115,18 +111,23 @@ export async function checkStop(params) {
   const device = getDevice();
   const pipeline = getCheckStopPipeline();
 
+  const tokenIndex = params.tokenIndex ?? 0;
   const uniformData = new Uint32Array([
     params.eosTokenId,
     params.maxTokens,
     params.currentPos,
-    params.tokenIndex ?? 0,
+    tokenIndex,
   ]);
   const uniformBuffer = createUniformBufferFromData('check_stop_uniforms', uniformData, null, device);
 
-  const shouldStopBuffer = device.createBuffer({
+  const shouldStopBuffer = params.shouldStopBuffer ?? device.createBuffer({
     size: 4,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
+  const ownsStopBuffer = !params.shouldStopBuffer;
+  if (shouldStopBuffer.size < (tokenIndex + 1) * 4) {
+    throw new Error('[CheckStop] shouldStopBuffer too small for tokenIndex.');
+  }
 
   const bindGroup = device.createBindGroup({
     layout: getCheckStopBindGroupLayout(device),
@@ -157,7 +158,9 @@ export async function checkStop(params) {
   stagingBuffer.unmap();
 
   uniformBuffer.destroy();
-  shouldStopBuffer.destroy();
+  if (ownsStopBuffer) {
+    shouldStopBuffer.destroy();
+  }
   stagingBuffer.destroy();
 
   return result === 1;

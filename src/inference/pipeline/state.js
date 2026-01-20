@@ -16,6 +16,8 @@ export class PipelineState {
 
     this.decodeBuffers = null;
 
+    this.decodeRing = null;
+
     // Emulation context (null when emulation is disabled)
     // @type {import('../../simulator/index.js').EmulationContext|null}
 

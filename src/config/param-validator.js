@@ -47,6 +47,16 @@ export function validateRuntimeOverrides(overrides) {
 export function validateRuntimeConfig(runtimeConfig) {
   if (!runtimeConfig) return;
 
+  const batching = runtimeConfig.inference?.batching;
+  if (!batching) {
+    throw new Error('DopplerConfigError: runtime.inference.batching is required.');
+  }
+
+  assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
+  assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
+  assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
+  assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
+
   const debug = runtimeConfig.shared?.debug;
   const debugEnabled = isDebugMode(debug);
   const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
@@ -87,4 +97,14 @@ function isDebugMode(debug) {
   if (debug.trace?.enabled) return true;
   const level = debug.logLevel?.defaultLogLevel;
   return level === 'debug' || level === 'verbose';
+}
+
+function assertNullablePositiveInt(label, value) {
+  if (value === undefined) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (value === null) return;
+  if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
+    throw new Error(`DopplerConfigError: ${label} must be a positive integer or null.`);
+  }
 }

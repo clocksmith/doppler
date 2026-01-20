@@ -15,6 +15,7 @@ import {
 import { configurePerfGuards } from '../gpu/perf-guards.js';
 import { MoERouter } from './moe-router.js';
 import { DecodeBufferManager } from './decode-buffers.js';
+import { DecodeRing } from './decode-ring.js';
 
 // Pipeline sub-modules
 import { PipelineState } from './pipeline/state.js';
@@ -56,6 +57,7 @@ export class InferencePipeline extends PipelineState {
     super();
     this.generator = new PipelineGenerator(this);
     this.decodeBuffers = new DecodeBufferManager();
+    this.decodeRing = new DecodeRing();
   }
 
   // ==========================================================================
@@ -103,6 +105,7 @@ export class InferencePipeline extends PipelineState {
   
   async loadModel(manifest) {
     this.manifest = manifest;
+    this.decodeRing?.release();
     // Pass runtime model overrides to merge with manifest inference config
     const modelOverrides =  (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
@@ -421,6 +424,7 @@ export class InferencePipeline extends PipelineState {
   async unload() {
     await destroyEmulation(this.emulation);
     this.emulation = null;
+    this.decodeRing?.release();
     this.kvCache?.clear();
     this.weights.clear();
     this.expertWeights.clear();
@@ -448,6 +452,7 @@ export class InferencePipeline extends PipelineState {
     this.decodeStepCount = 0;
     this.debugFlags = {};
     this.decodeBuffers?.resetPingPong();
+    this.decodeRing?.reset();
     // Reset stats
     this.stats.tokensGenerated = 0;
     this.stats.totalTimeMs = 0;
@@ -460,6 +465,7 @@ export class InferencePipeline extends PipelineState {
   
   releaseGPUResources() {
     this.decodeBuffers?.release();
+    this.decodeRing?.release();
   }
 }
 

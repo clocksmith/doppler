@@ -14,6 +14,7 @@ import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
 import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
 import { DecodeBufferManager } from '../decode-buffers.js';
+import { DecodeRing } from '../decode-ring.js';
 import type { Manifest, ParsedModelConfig } from './config.js';
 import type { LayerWeights, ExpertWeights, RouterWeights, PipelineStats, BatchingStats } from './types.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../gpu/weight-buffer.js';
@@ -33,6 +34,7 @@ export class PipelineState {
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;
+  decodeRing: DecodeRing | null;
 
   // Emulation context (null when emulation is disabled)
   emulation: EmulationContext | null;

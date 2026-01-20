@@ -23,6 +23,10 @@ export const DEFAULT_BATCHING_DEFAULTS = {
   batchSize: 1,  // Compare single-token
   maxTokens: 512,
   stopCheckMode: 'batch',
+  readbackInterval: 1,
+  ringTokens: 1,
+  ringStop: 1,
+  ringStaging: 1,
 };
 
 // =============================================================================

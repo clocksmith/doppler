@@ -25,7 +25,7 @@ The industry is fixated on a false dichotomy: **privacy vs. performance**. That 
 
 Reploid's value proposition is **Capability**. The architecture is designed to eventually run a 600B+ parameter model on a MacBook Air without lobotomizing the weights.
 
-We achieve this by inverting the standard stack. Instead of bringing the data to a centralized model, we mount a **Distributed Mixture-of-Experts (MoE)** directly to the browser runtime via DOPPLER. The P2P mesh becomes an infinite-capacity cache tier for model weights.
+We achieve this by inverting the standard stack. Instead of bringing the data to a centralized model, we mount a **Distributed Mixture-of-Experts (MoE)** directly to the browser runtime via DOPPLER. The P2P mesh becomes an infinite-capacity cache tier for model weights. KV cache is still GPU-resident today; paged KV layouts are future work (see ARCHITECTURE.md).
 
 **Vision (Phase 3+):**
 
@@ -62,7 +62,7 @@ A frontier-class model (e.g., DeepSeek-V3, 671B parameters) is not a monolithic 
 
 | Tier | Capacity | Latency | Contents |
 |------|----------|---------|----------|
-| GPU VRAM | 8-24GB | <1ms | Active experts, KV cache |
+| GPU VRAM | 8-24GB | <1ms | Active experts, KV cache (paged KV is future) |
 | Unified RAM | 32-128GB | ~5ms | Warm experts, session state |
 | OPFS | 10-50GB | ~50ms | Cold experts, cached shards |
 | P2P Swarm | Unlimited | ~200ms | Rare experts, full model |
@@ -198,7 +198,7 @@ DOPPLER: Generic FFN kernel + weight buffer binding
         ├─ Load expert_2 from OPFS → bind → run kernel
         ├─ Evict expert_2 (release buffer)
         ├─ Load expert_7 from peer → bind → same kernel
-        └─ Run 90GB model on 8GB VRAM via paging
+        └─ Run 90GB model on 8GB VRAM via paging (weights; KV cache remains VRAM-resident today)
 ```
 
 ### P2P Evolution (Dynamic Components)
@@ -416,7 +416,7 @@ huggingface-cli download google/gemma-2-9b-it
 ## Conversion Commands
 
 ```bash
-# After downloading, convert to RDRR format:
+# After downloading, convert to RDRR format (Node CLI):
 npx tsx src/converter/node-converter.js \
   ~/.cache/huggingface/hub/models--microsoft--Phi-3.5-mini-instruct/snapshots/<hash>/ \
   models/phi-3.5-mini \
@@ -426,6 +426,8 @@ npx tsx src/converter/node-converter.js \
   ~/.cache/huggingface/hub/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/<hash>/ \
   models/llama-3.1-8b \
   --quantize q4_k_m
+
+# Browser conversion is also supported via src/browser/browser-converter.js (OPFS output).
 ```
 
 

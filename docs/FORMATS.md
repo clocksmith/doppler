@@ -477,6 +477,8 @@ npx tsx src/converter/node-converter.js model.gguf ./output-rdrr
 
 # From Safetensors (HuggingFace format)
 npx tsx src/converter/node-converter.js ./hf-model-dir ./output-rdrr --quantize q4_k_m
+
+Browser conversion is also available via `src/browser/browser-converter.js` with OPFS output.
 ```
 
 ### Serving Models

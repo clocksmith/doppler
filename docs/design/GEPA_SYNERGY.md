@@ -12,7 +12,7 @@ GEPA provides the **learning algorithm** (evolutionary prompt mutation).
 Reploid provides the **substrate infrastructure** (slots, rollback, safety).
 Doppler provides the **compute layer** (local inference, LoRA swapping).
 
-Together, they form a complete browser-native RSI platform. But Reploid/Doppler can also **go beyond GEPA** by evolving things GEPA cannot touch: executable code, kernel configurations, and runtime adapters.
+Together, they describe a path toward a browser-native RSI platform. The RSI loop itself is not a shipped feature; this document explores design space. Reploid/Doppler can also **go beyond GEPA** by evolving things GEPA cannot touch: executable code, kernel configurations, and runtime adapters.
 
 ---
 

@@ -11,6 +11,7 @@ Coding conventions for the DOPPLER codebase.
 | [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) | Shader structure, constants vs uniforms, bindings |
 | [Benchmark Style Guide](./BENCHMARK_STYLE_GUIDE.md) | Benchmark harnesses, output schema, baselines |
 | [Config Style Guide](./CONFIG_STYLE_GUIDE.md) | Config ownership, merge order, runtime boundaries |
+| [Command Interface Style Guide](./CLI_STYLE_GUIDE.md) | CLI/browser command model, config-only rules |
 
 ## Quick Reference
 

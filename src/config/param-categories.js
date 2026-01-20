@@ -38,6 +38,10 @@ export const PARAM_CATEGORIES = Object.freeze({
   activationDtype: ParamCategory.SESSION,
   kvDtype: ParamCategory.SESSION,
   batchSize: ParamCategory.SESSION,
+  readbackInterval: ParamCategory.SESSION,
+  ringTokens: ParamCategory.SESSION,
+  ringStop: ParamCategory.SESSION,
+  ringStaging: ParamCategory.SESSION,
   logLevel: ParamCategory.SESSION,
 
   // Hybrid params

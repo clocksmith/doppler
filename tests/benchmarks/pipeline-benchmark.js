@@ -566,6 +566,13 @@ export class PipelineBenchmark {
       perfReadbacks: getPerfCounters().readbacks,
       memoryTimeSeries: memoryTimeSeries?.getSamples() ?? null,
       bufferPool: bufferPoolStats,
+      batchingConfig: {
+        batchSize: this.pipeline.runtimeConfig?.inference?.batching?.batchSize ?? null,
+        readbackInterval: this.pipeline.runtimeConfig?.inference?.batching?.readbackInterval ?? null,
+        ringTokens: this.pipeline.runtimeConfig?.inference?.batching?.ringTokens ?? null,
+        ringStop: this.pipeline.runtimeConfig?.inference?.batching?.ringStop ?? null,
+        ringStaging: this.pipeline.runtimeConfig?.inference?.batching?.ringStaging ?? null,
+      },
       profilerResults,
     };
   }
@@ -598,6 +605,9 @@ export class PipelineBenchmark {
       gpu_allocation_count_total: Math.round(this.average(runs.map(r => r.perfAllocations))),
       gpu_readback_count_total: Math.round(this.average(runs.map(r => r.perfReadbacks))),
     };
+    metrics.gpu_submit_count_decode_per_token = avgGeneratedTokens > 1
+      ? Number((metrics.gpu_submit_count_decode / Math.max(avgGeneratedTokens - 1, 1)).toFixed(3))
+      : 0;
 
     // Percentiles
     if (sortedLatencies.length > 0) {
@@ -692,6 +702,7 @@ export class PipelineBenchmark {
 
     if (runs.length > 0) {
       raw.buffer_pool_runs = runs.map(r => r.bufferPool ?? null);
+      raw.batching_config_runs = runs.map(r => r.batchingConfig ?? null);
     }
 
     // Include profiler results (per-kernel timing) if available

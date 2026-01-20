@@ -51,6 +51,21 @@ export interface BatchingDefaultsSchema {
 
   /** When to check for stop conditions: per-token or per-batch (default: 'batch') */
   stopCheckMode: 'per-token' | 'batch';
+
+  /**
+   * Number of GPU decode batches to run before readback.
+   * null means read back after every batch (default: 1).
+   */
+  readbackInterval: number | null;
+
+  /** Ring size for token output buffers (null = disable ring) */
+  ringTokens: number | null;
+
+  /** Ring size for per-token stop buffers (null = disable ring) */
+  ringStop: number | null;
+
+  /** Ring size for staging readback buffers (null = disable ring) */
+  ringStaging: number | null;
 }
 
 /** Default batching configuration */

@@ -69,6 +69,14 @@ InferenceConfigSchema (runtime.inference)
 - prompt
 - modelOverrides
 
+### Batching Defaults (runtime.inference.batching)
+
+- batchSize
+- maxTokens
+- stopCheckMode
+- readbackInterval (null = read back each batch)
+- ringTokens / ringStop / ringStaging (null = disable ring allocation)
+
 ---
 
 ## Category Rules

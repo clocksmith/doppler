@@ -20,7 +20,7 @@ import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
-import { decodeStep, generateNTokensGPU, sumProfileTimings } from './generator-steps.js';
+import { decodeStep, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
@@ -49,6 +49,7 @@ export class PipelineGenerator {
     this.#state.decodeStepCount = 0;
     this.#state.disableRecordedLogits = false;
     this.#state.disableFusedDecode = false;
+    this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
     const startTime = performance.now();
@@ -161,14 +162,23 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const useBatchPath = opts.batchSize > 1
-        && this.#state.useGPU
-        && isGPUSamplingAvailable()
-        && !opts.disableMultiTokenDecode
-        && !opts.disableCommandBatching;
+      const gpuSamplingAvailable = isGPUSamplingAvailable();
+      let useBatchPath = shouldUseBatchDecode({
+        batchSize: opts.batchSize,
+        useGPU: this.#state.useGPU,
+        gpuSamplingAvailable,
+        disableMultiTokenDecode: opts.disableMultiTokenDecode,
+        disableCommandBatching: opts.disableCommandBatching,
+      });
+      const intervalBatches = batchingDefaults.readbackInterval == null
+        ? 1
+        : batchingDefaults.readbackInterval;
 
       if (opts.debug && useBatchPath) {
-        log.debug('Pipeline', `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}`);
+        log.debug(
+          'Pipeline',
+          `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}, readbackInterval=${batchingDefaults.readbackInterval}`
+        );
       }
 
       while (tokensGenerated < opts.maxTokens) {
@@ -176,14 +186,14 @@ export class PipelineGenerator {
 
         if (useBatchPath) {
           const remaining = opts.maxTokens - tokensGenerated;
-          const thisBatchSize = Math.min(opts.batchSize, remaining);
+          const thisBatchSize = Math.min(opts.batchSize * intervalBatches, remaining);
           const lastToken = generatedIds[generatedIds.length - 1];
 
           try {
             const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
 
             
-            const batchTokens = [];
+            let batchTokens = [];
             for (const tokenId of batchResult.tokens) {
               generatedIds.push(tokenId);
               tokensGenerated++;
@@ -192,9 +202,13 @@ export class PipelineGenerator {
               yield tokenText;
               if (options.onToken) options.onToken(tokenId, tokenText);
               batchTokens.push({ id: tokenId, text: tokenText });
+              if (batchTokens.length === opts.batchSize) {
+                if (options.onBatch) options.onBatch(batchTokens);
+                batchTokens = [];
+              }
             }
 
-            if (options.onBatch) options.onBatch(batchTokens);
+            if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
 
             if (batchResult.actualCount < thisBatchSize) {
               break;
@@ -206,6 +220,7 @@ export class PipelineGenerator {
             }
           } catch (error) {
             log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
+            useBatchPath = false;
             const nextToken = await this._decodeStep(generatedIds, opts);
             generatedIds.push(nextToken);
             tokensGenerated++;
@@ -325,6 +340,7 @@ export class PipelineGenerator {
     this.#state.decodeStepCount = 0;
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
+    this.#state.decodeRing?.reset();
     const startTime = performance.now();
 
     const runtimeDefaults = this.#state.runtimeConfig.inference;
@@ -390,24 +406,30 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const useBatchPath = opts.batchSize > 1
-        && this.#state.useGPU
-        && isGPUSamplingAvailable()
-        && !opts.disableMultiTokenDecode
-        && !opts.disableCommandBatching;
+      const gpuSamplingAvailable = isGPUSamplingAvailable();
+      let useBatchPath = shouldUseBatchDecode({
+        batchSize: opts.batchSize,
+        useGPU: this.#state.useGPU,
+        gpuSamplingAvailable,
+        disableMultiTokenDecode: opts.disableMultiTokenDecode,
+        disableCommandBatching: opts.disableCommandBatching,
+      });
+      const intervalBatches = batchingDefaults.readbackInterval == null
+        ? 1
+        : batchingDefaults.readbackInterval;
 
       while (tokensGenerated < opts.maxTokens) {
         if (options.signal?.aborted) break;
 
         if (useBatchPath) {
           const remaining = opts.maxTokens - tokensGenerated;
-          const thisBatchSize = Math.min(opts.batchSize, remaining);
+          const thisBatchSize = Math.min(opts.batchSize * intervalBatches, remaining);
           const lastToken = generatedIds[generatedIds.length - 1];
 
           try {
             const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
             
-            const batchTokens = [];
+            let batchTokens = [];
             for (const tokenId of batchResult.tokens) {
               generatedIds.push(tokenId);
               tokensGenerated++;
@@ -415,8 +437,12 @@ export class PipelineGenerator {
               yield tokenText;
               if (options.onToken) options.onToken(tokenId, tokenText);
               batchTokens.push({ id: tokenId, text: tokenText });
+              if (batchTokens.length === opts.batchSize) {
+                if (options.onBatch) options.onBatch(batchTokens);
+                batchTokens = [];
+              }
             }
-            if (options.onBatch) options.onBatch(batchTokens);
+            if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
             if (batchResult.actualCount < thisBatchSize) break;
             if (opts.stopSequences.length > 0) {
               const fullText = this.#state.tokenizer.decode(generatedIds.slice(promptTokenCount), false);
@@ -424,6 +450,7 @@ export class PipelineGenerator {
             }
           } catch (error) {
             log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
+            useBatchPath = false;
             const nextToken = await this._decodeStep(generatedIds, opts);
             generatedIds.push(nextToken);
             tokensGenerated++;

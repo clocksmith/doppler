@@ -1,7 +1,8 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
-import { validateCallTimeOptions, validateRuntimeOverrides } from '../../src/config/param-validator.js';
+import { validateCallTimeOptions, validateRuntimeConfig, validateRuntimeOverrides } from '../../src/config/param-validator.js';
 import { log, setLogLevel } from '../../src/debug/index.js';
+import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 
 describe('param-validator', () => {
   
@@ -35,6 +36,10 @@ describe('param-validator', () => {
   it('throws for session params at call-time', () => {
     expect(() => validateCallTimeOptions({ batchSize: 4 }))
       .toThrow(/session param/);
+    expect(() => validateCallTimeOptions({ readbackInterval: 2 }))
+      .toThrow(/session param/);
+    expect(() => validateCallTimeOptions({ ringTokens: 2 }))
+      .toThrow(/session param/);
   });
 
   it('warns when runtime overrides model params', () => {
@@ -64,5 +69,19 @@ describe('param-validator', () => {
     });
 
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('validates batching readback settings', () => {
+    const runtime = createDopplerConfig().runtime;
+    runtime.inference.batching.readbackInterval = 0;
+    expect(() => validateRuntimeConfig(runtime))
+      .toThrow(/readbackInterval/);
+
+    runtime.inference.batching.readbackInterval = null;
+    runtime.inference.batching.ringTokens = null;
+    runtime.inference.batching.ringStop = null;
+    runtime.inference.batching.ringStaging = null;
+    expect(() => validateRuntimeConfig(runtime))
+      .not.toThrow();
   });
 });

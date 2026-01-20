@@ -95,6 +95,17 @@ describe('config schema validation', () => {
       expect(DEFAULT_INFERENCE_DEFAULTS_CONFIG.generation).toBe(DEFAULT_GENERATION_CONFIG);
     });
 
+    it('batching defaults include readback and ring settings', () => {
+      const batching = DEFAULT_INFERENCE_DEFAULTS_CONFIG.batching;
+      expect(batching.readbackInterval).toBeDefined();
+      expect(batching.ringTokens).toBeDefined();
+      expect(batching.ringStop).toBeDefined();
+      expect(batching.ringStaging).toBeDefined();
+      expect(typeof batching.ringTokens).toBe('number');
+      expect(typeof batching.ringStop).toBe('number');
+      expect(typeof batching.ringStaging).toBe('number');
+    });
+
     it('chat template config is wired correctly', () => {
       expect(DEFAULT_INFERENCE_DEFAULTS_CONFIG.chatTemplate).toBe(DEFAULT_CHAT_TEMPLATE_CONFIG);
     });
@@ -145,6 +156,21 @@ describe('config merge validation', () => {
       expect(config.runtime.inference.sampling.temperature).toBe(0.5);
       expect(config.runtime.inference.sampling.topK).toBeDefined();
       expect(config.runtime.inference.sampling.topP).toBeDefined();
+    });
+
+    it('batching overrides preserve readback and ring defaults', () => {
+      const config = createDopplerConfig({
+        runtime: {
+          inference: {
+            batching: { batchSize: 4, readbackInterval: null },
+          },
+        },
+      });
+      expect(config.runtime.inference.batching.batchSize).toBe(4);
+      expect(config.runtime.inference.batching.readbackInterval).toBeNull();
+      expect(config.runtime.inference.batching.ringTokens).toBeDefined();
+      expect(config.runtime.inference.batching.ringStop).toBeDefined();
+      expect(config.runtime.inference.batching.ringStaging).toBeDefined();
     });
 
     it('nested MoE config merges correctly', () => {

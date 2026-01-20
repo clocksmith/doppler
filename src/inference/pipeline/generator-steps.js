@@ -28,6 +28,36 @@ export function sumProfileTimings(timings) {
   return total;
 }
 
+export function shouldUseBatchDecode(config) {
+  return config.batchSize > 1
+    && config.useGPU
+    && config.gpuSamplingAvailable
+    && !config.disableMultiTokenDecode
+    && !config.disableCommandBatching;
+}
+
+export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
+  let actualCount = tokens.length;
+  if (stopFlags) {
+    const maxFlags = Math.min(stopFlags.length, tokens.length);
+    for (let i = 0; i < maxFlags; i++) {
+      if (stopFlags[i] === 1) {
+        actualCount = i + 1;
+        break;
+      }
+    }
+  }
+
+  for (let i = 0; i < actualCount; i++) {
+    if (isStopToken(tokens[i], stopTokenIds, eosTokenId)) {
+      actualCount = i + 1;
+      break;
+    }
+  }
+
+  return actualCount;
+}
+
 export async function decodeStep(state, currentIds, opts, helpers) {
   const lastToken = currentIds[currentIds.length - 1];
   const numTokens = 1;
@@ -381,6 +411,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const device = getDevice();
   const config = state.modelConfig;
   const samplingDefaults = state.runtimeConfig.inference.sampling;
+  const batchingConfig = state.runtimeConfig.inference.batching;
+  const batchSize = opts.batchSize ?? batchingConfig.batchSize;
+  const readbackInterval = batchingConfig.readbackInterval == null ? 1 : batchingConfig.readbackInterval;
+  const stopCheckMode = opts.stopCheckMode ?? batchingConfig.stopCheckMode;
+  const effectiveStopCheckMode = readbackInterval > 1 ? 'per-token' : stopCheckMode;
+  const tokensPerInterval = batchSize * readbackInterval;
   const recorder = opts.profile
     ? createProfilingRecorder('batch_decode')
     : createCommandRecorder('batch_decode');
@@ -389,15 +425,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');
   }
 
-  const stopCheckMode = opts.stopCheckMode ?? state.runtimeConfig.inference.batching.stopCheckMode;
-
-  const stopBufferSize = stopCheckMode === 'per-token' ? N * 4 : 0;
-  const stopBuffer = stopCheckMode === 'per-token'
-    ? device.createBuffer({
-      size: stopBufferSize,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-    })
-    : null;
+  if (!Number.isFinite(N) || N <= 0) {
+    throw new Error('[Pipeline] generateNTokensGPU requires N > 0.');
+  }
+  if (N > tokensPerInterval) {
+    throw new Error('[Pipeline] Batch size exceeds decode ring capacity.');
+  }
 
   const stopTokenIds = config.stopTokenIds;
   const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
@@ -412,13 +445,62 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (eosTokenId == null) {
     throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
   }
-  const maxTokens = opts.maxTokens ?? state.runtimeConfig.inference.batching.maxTokens;
+  const maxTokens = opts.maxTokens ?? batchingConfig.maxTokens;
+  const maxSeqLen = state.currentSeqLen + maxTokens;
 
-  const tokensBuffer = device.createBuffer({
-    size: (N + 1) * 4,
+  const ring = state.decodeRing;
+  let ringSlot = null;
+  if (ring) {
+    ring.ensure({
+      batchSize,
+      tokensPerInterval,
+      stopCheckMode: effectiveStopCheckMode,
+      ringTokens: batchingConfig.ringTokens,
+      ringStop: batchingConfig.ringStop,
+      ringStaging: batchingConfig.ringStaging,
+    });
+    ringSlot = ring.acquire();
+  }
+
+  const tokenCapacity = ringSlot?.tokens ? ringSlot.tokensPerInterval : N;
+  const tokensBuffer = ringSlot?.tokens ?? device.createBuffer({
+    size: (tokenCapacity + 1) * 4,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
   });
+  const ownsTokensBuffer = !ringSlot?.tokens;
+
+  const stopCapacity = ringSlot?.stop ? ringSlot.tokensPerInterval : N;
+  const stopBuffer = effectiveStopCheckMode === 'per-token'
+    ? ringSlot?.stop ?? device.createBuffer({
+        size: stopCapacity * 4,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+      })
+    : null;
+  const ownsStopBuffer = effectiveStopCheckMode === 'per-token' && !ringSlot?.stop;
+
+  const tokensStagingBuffer = ringSlot?.stagingTokens ?? device.createBuffer({
+    size: N * 4,
+    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+  });
+  const ownsTokensStaging = !ringSlot?.stagingTokens;
+
+  const stopStagingBuffer = effectiveStopCheckMode === 'per-token'
+    ? ringSlot?.stagingStop ?? device.createBuffer({
+        size: N * 4,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      })
+    : null;
+  const ownsStopStaging = effectiveStopCheckMode === 'per-token' && !ringSlot?.stagingStop;
+
   device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
+  if (stopBuffer) {
+    const stopElements = stopBuffer.size / 4;
+    const zeroStopData = ringSlot?.zeroStopData;
+    const clearData = zeroStopData && zeroStopData.length <= stopElements
+      ? zeroStopData
+      : new Uint32Array(stopElements);
+    device.queue.writeBuffer(stopBuffer, 0, clearData);
+  }
 
   const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
   const embedBufferRaw = state.weights.get('embed');
@@ -472,20 +554,37 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     );
     const { logitsBuffer, vocabSize, logitsDtype } = logits;
 
-    const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-      ? await recordArgmax(recorder, logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
-      : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
-          temperature: opts.temperature,
-          topK: opts.topK,
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputIndex: 0,
-          greedyThreshold: samplingDefaults.greedyThreshold,
-        });
+    const outputIndex = i + 1;
+    if (opts.temperature < samplingDefaults.greedyThreshold) {
+      await recordArgmax(recorder, logitsBuffer, vocabSize, {
+        padTokenId,
+        logitSoftcap,
+        logitsDtype,
+        outputBuffer: tokensBuffer,
+        outputIndex,
+      });
+    } else {
+      await recordGPUSample(recorder, logitsBuffer, vocabSize, {
+        temperature: opts.temperature,
+        topK: opts.topK,
+        padTokenId,
+        logitSoftcap,
+        logitsDtype,
+        outputBuffer: tokensBuffer,
+        outputIndex,
+        greedyThreshold: samplingDefaults.greedyThreshold,
+      });
+    }
 
-    const stopCheck = stopCheckMode === 'per-token'
-      ? await recordCheckStop(recorder, nextToken, stopBuffer, i, { eosTokenId })
+    const stopCheck = effectiveStopCheckMode === 'per-token'
+      ? recordCheckStop(recorder, {
+          sampledTokenBuffer: tokensBuffer,
+          shouldStopBuffer: stopBuffer,
+          tokenIndex: outputIndex,
+          eosTokenId,
+          maxTokens: maxSeqLen,
+          currentPos,
+        })
       : null;
 
     if (hiddenStatesBuffer instanceof GPUBuffer && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
@@ -494,10 +593,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     if (logitsBuffer instanceof GPUBuffer) {
       recorder.trackTemporaryBuffer(logitsBuffer);
     }
-    if (nextToken instanceof GPUBuffer) {
-      recorder.trackTemporaryBuffer(nextToken);
-    }
-    if (stopCheck instanceof GPUBuffer) {
+    if (stopCheck instanceof GPUBuffer && stopCheck !== stopBuffer) {
       recorder.trackTemporaryBuffer(stopCheck);
     }
   }
@@ -508,19 +604,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     throw new Error('[Pipeline] GPU readback disabled for sampling');
   }
 
-  const tokensStagingBuffer = device.createBuffer({
-    size: N * 4,
-    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-  });
   const copyEncoder = device.createCommandEncoder({ label: 'tokens_copy' });
   copyEncoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
 
-  let stopStagingBuffer = null;
-  if (stopCheckMode === 'per-token' && stopBuffer) {
-    stopStagingBuffer = device.createBuffer({
-      size: N * 4,
-      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-    });
+  if (effectiveStopCheckMode === 'per-token' && stopBuffer && stopStagingBuffer) {
     copyEncoder.copyBufferToBuffer(stopBuffer, 0, stopStagingBuffer, 0, N * 4);
   }
   device.queue.submit([copyEncoder.finish()]);
@@ -534,36 +621,29 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   getUniformCache().flushPendingDestruction();
 
   const tokensView = new Uint32Array(tokensStagingBuffer.getMappedRange());
-  const tokens = Array.from(tokensView);
+  const tokens = Array.from(tokensView.subarray(0, N));
 
-  let actualCount = N;
-  if (stopCheckMode === 'per-token' && stopStagingBuffer) {
-    const stopFlags = new Uint32Array(stopStagingBuffer.getMappedRange().slice(0));
+  const stopFlags = stopStagingBuffer
+    ? new Uint32Array(stopStagingBuffer.getMappedRange().slice(0, N * 4))
+    : null;
+
+  if (stopFlags) {
     log.debug('Pipeline', `[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
-    for (let i = 0; i < N; i++) {
-      if (stopFlags[i] === 1) {
-        actualCount = i + 1;
-        break;
-      }
-    }
-    stopStagingBuffer.unmap();
-  } else {
-    for (let i = 0; i < N; i++) {
-      if (isStopToken(tokens[i], stopTokenIds, eosToken)) {
-        actualCount = i + 1;
-        break;
-      }
-    }
   }
 
+  const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
+
   tokensStagingBuffer.unmap();
+  if (stopStagingBuffer) {
+    stopStagingBuffer.unmap();
+  }
 
   const generatedTokens = tokens.slice(0, actualCount);
 
-  tokensBuffer.destroy();
-  stopBuffer?.destroy();
-  tokensStagingBuffer.destroy();
-  if (stopStagingBuffer) stopStagingBuffer.destroy();
+  if (ownsTokensBuffer) tokensBuffer.destroy();
+  if (ownsStopBuffer) stopBuffer?.destroy();
+  if (ownsTokensStaging) tokensStagingBuffer.destroy();
+  if (ownsStopStaging) stopStagingBuffer?.destroy();
 
   if (opts.profile && recorder.isProfilingEnabled()) {
     const timings = await recorder.resolveProfileTimings();
@@ -578,6 +658,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   }
 
   state.currentSeqLen += actualCount;
+  ring?.advance();
 
   return { tokens: generatedTokens, actualCount };
 }

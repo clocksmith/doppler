@@ -16,6 +16,9 @@ import type { WeightBufferConfig } from './weights.js';
 export declare class PipelineGenerator {
   constructor(state: PipelineState);
 
+  /**
+   * Batching and readback cadence are controlled by runtime.inference.batching.
+   */
   generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
   prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
   generateWithPrefixKV(
