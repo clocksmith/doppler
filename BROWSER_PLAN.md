@@ -39,14 +39,14 @@ Provide a fully browser-native Doppler pipeline that performs model conversion, 
 - Browser test harness: `src/inference/test-harness.js`
 
 ## Known Gaps (Must Fix)
-- Tokenizer persistence: browser conversion does not save `tokenizer.json` to storage. Runtime expects `manifest.tokenizer.file` to resolve in OPFS/IDB.
-- Hash algorithm mismatch: browser conversion uses SHA-256 in `BrowserShardIO`, but manifest can declare blake3.
-- Group hashes: browser conversion builds group maps but does not compute `manifest.groups[*].hash` like the node writer.
-- Memory spikes: conversion reads full tensors into RAM, then builds full shard buffers.
-- Remote conversion: no Range-based tensor source; no streaming fetch path; no download fallback.
-- Quota handling: conversion does not request persistence or check space.
-- UI integration: no browser-native harness for CLI-equivalent runs.
-- In-browser quantization: no browser path for Q4_K quantization of F16/BF16 weights.
+- [x] Tokenizer persistence: browser conversion saves `tokenizer.json` to storage and sets `manifest.tokenizer.file`.
+- [ ] Hash algorithm mismatch: browser conversion uses SHA-256 in `BrowserShardIO`, but manifest can declare blake3.
+- [x] Group hashes: browser conversion computes `manifest.groups[*].hash` like the node writer.
+- [~] Memory spikes: conversion reads full tensors into RAM (Q4K col path still full-read).
+- [x] Remote conversion: Range-based tensor source + download-first fallback implemented.
+- [x] Quota handling: conversion requests persistence and checks storage space.
+- [x] UI integration: browser-native harness for CLI-equivalent runs wired into UI.
+- [x] In-browser quantization: Q4_K path implemented for F16/BF16 weights.
 
 ## Architecture Overview
 High-level flow:
@@ -62,8 +62,8 @@ Component mapping:
 
 ## Detailed End-to-End Flow
 1) Bootstrap + UI
-   - Provide a minimal browser UI with actions: Select source, Convert, Verify, Run diagnostics.
-   - UI stores options in runtime config and passes them to the converter.
+   - [x] Provide a minimal browser UI with actions: Select source, Convert, Verify, Run diagnostics.
+   - [~] UI stores options in runtime config and passes them to the converter.
 
 2) Conversion to RDRR (Browser)
    - Preflight
@@ -103,9 +103,9 @@ Component mapping:
    - Pipeline uploads tensors to GPU and runs inference.
 
 5) Diagnostics and Reports
-   - Provide a browser harness that wraps `test-harness.js` and pipeline creation.
-   - Implement suites: kernels, inference, bench, debug.
-   - Store structured results as JSON in storage.
+   - [x] Provide a browser harness that wraps `test-harness.js` and pipeline creation.
+   - [x] Implement suites: kernels, inference, bench, debug.
+   - [x] Store structured results as JSON in storage.
 
 ## Data Structures and Interfaces
 
@@ -235,18 +235,19 @@ G) Optional VFS Boot
 
 ## Testing Plan
 - Unit tests
-  - Streaming shard packer span correctness.
-  - Per-group hash correctness matches node writer.
-  - Per-shard hash correctness.
+  - [x] Streaming shard packer span correctness.
+  - [ ] Per-group hash correctness matches node writer.
+  - [ ] Per-shard hash correctness.
+  - [x] Browser harness runtime config load/validation.
 - Browser tests
-  - Convert small GGUF and safetensors locally.
-  - `verifyIntegrity()` passes after conversion.
-  - Tokenizer loads from storage.
+  - [ ] Convert small GGUF and safetensors locally.
+  - [ ] `verifyIntegrity()` passes after conversion.
+  - [ ] Tokenizer loads from storage.
 - Remote tests
-  - Range-supported source.
-  - No-Range source triggers download-first fallback.
+  - [ ] Range-supported source.
+  - [ ] No-Range source triggers download-first fallback.
 - Diagnostics tests
-  - Inference test suite produces report saved to storage.
+  - [ ] Inference test suite produces report saved to storage.
 
 ## Milestones
 1) Correctness fixes
@@ -352,16 +353,16 @@ Agent 5 - Browser Quantization Path
   - [x] Streaming-safe quantization path with layout awareness.
 
 Agent 6 - Diagnostics Harness + Reports
-- Build browser diagnostics harness.
-  - New file: `src/inference/browser-harness.js`.
-  - Wrap `test-harness.js` and pipeline creation.
-- Persist reports.
-  - New file: `src/storage/reports.js`.
-  - Save report JSON under `reports/<modelId>/<timestamp>.json`.
-- Provide runtime preset selection.
-  - Expose config loader to UI and call `setRuntimeConfig()`.
-- Deliverables
-  - Browser harness for kernels/inference/bench/debug plus report persistence.
+- [x] Build browser diagnostics harness.
+  - [x] New file: `src/inference/browser-harness.js`.
+  - [x] Wrap `test-harness.js` and pipeline creation.
+- [x] Persist reports.
+  - [x] New file: `src/storage/reports.js`.
+  - [x] Save report JSON under `reports/<modelId>/<timestamp>.json`.
+- [x] Provide runtime preset selection.
+  - [x] Expose config loader to UI and call `setRuntimeConfig()`.
+- [x] Deliverables
+  - [x] Browser harness for kernels/inference/bench/debug plus report persistence.
 
 Agent 7 - Optional VFS Boot (Optional)
 - Add VFS bootstrap.

@@ -3,6 +3,7 @@ export interface WorkspaceControllerOptions {
   refreshButton?: HTMLElement | null;
   statusEl?: HTMLElement | null;
   filesEl?: HTMLElement | null;
+  onVfsReady?: (vfs: unknown) => void;
 }
 
 export declare class WorkspaceController {

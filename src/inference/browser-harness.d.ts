@@ -23,8 +23,50 @@ export interface RuntimeConfigLoadOptions {
   signal?: AbortSignal;
 }
 
+export type BrowserSuite = 'kernels' | 'inference' | 'bench' | 'debug';
+
+export interface SuiteTestResult {
+  name: string;
+  passed: boolean;
+  duration: number;
+  error?: string;
+  skipped?: boolean;
+}
+
+export interface SuiteSummary {
+  suite: string;
+  passed: number;
+  failed: number;
+  skipped: number;
+  duration: number;
+  results: SuiteTestResult[];
+}
+
+export interface BrowserSuiteOptions extends InferenceHarnessOptions {
+  suite?: BrowserSuite;
+  modelUrl?: string;
+  modelId?: string;
+  runtimePreset?: string | null;
+  prompt?: string;
+  maxTokens?: number;
+  sampling?: Record<string, number>;
+  keepPipeline?: boolean;
+  report?: Record<string, unknown>;
+  timestamp?: string | Date;
+  searchParams?: URLSearchParams;
+}
+
 export interface BrowserHarnessResult extends InitializeResult {
   runtime: RuntimeOverrides;
+  report: Record<string, unknown>;
+  reportInfo: SavedReportInfo;
+}
+
+export interface BrowserSuiteResult extends SuiteSummary {
+  modelId?: string;
+  metrics?: Record<string, unknown>;
+  output?: string | null;
+  deviceInfo?: Record<string, unknown> | null;
   report: Record<string, unknown>;
   reportInfo: SavedReportInfo;
 }
@@ -62,3 +104,7 @@ export declare function saveBrowserReport(
 export declare function runBrowserHarness(
   options: BrowserHarnessOptions
 ): Promise<BrowserHarnessResult>;
+
+export declare function runBrowserSuite(
+  options: BrowserSuiteOptions
+): Promise<BrowserSuiteResult>;

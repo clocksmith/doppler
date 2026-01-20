@@ -21,4 +21,6 @@ export declare class ConverterController {
   get isConverting(): boolean;
 
   convert(): Promise<string | null>;
+
+  convertRemote(urls: string[], options?: Record<string, unknown>): Promise<string | null>;
 }

@@ -20,6 +20,14 @@ function normalizePresetPath(value) {
   return trimmed.endsWith('.json') ? trimmed : `${trimmed}.json`;
 }
 
+function resolvePresetBaseUrl() {
+  try {
+    return new URL('../config/presets/runtime/', import.meta.url).toString().replace(/\/$/, '');
+  } catch {
+    return '/src/config/presets/runtime';
+  }
+}
+
 function resolveRuntimeFromConfig(config) {
   if (!config || typeof config !== 'object') return null;
   if (config.runtime && typeof config.runtime === 'object') return config.runtime;
@@ -50,7 +58,7 @@ export async function applyRuntimeConfigFromUrl(url, options = {}) {
 }
 
 export async function loadRuntimePreset(presetId, options = {}) {
-  const baseUrl = options.baseUrl || '/doppler/src/config/presets/runtime';
+  const baseUrl = options.baseUrl || resolvePresetBaseUrl();
   const normalized = normalizePresetPath(presetId);
   if (!normalized) {
     throw new Error('runtime preset id is required');
@@ -291,7 +299,7 @@ async function runGeneration(pipeline, runtimeConfig, options = {}) {
   const tokenIds = [];
   const prompt = resolvePrompt(runtimeConfig, options);
   const maxTokens = resolveMaxTokens(runtimeConfig, options);
-  const sampling = runtimeConfig.inference?.sampling || {};
+  const sampling = { ...(runtimeConfig.inference?.sampling || {}), ...(options.sampling || {}) };
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const disableCommandBatching = Array.isArray(debugProbes) && debugProbes.length > 0;
@@ -390,6 +398,7 @@ async function runBenchSuite(options = {}) {
     const run = await runGeneration(harness.pipeline, runtimeConfig, {
       ...options,
       maxTokens: maxTokens ?? options.maxTokens,
+      sampling: benchConfig.sampling,
     });
     if (i >= warmupRuns) {
       tokensPerSec.push(run.tokensPerSec);

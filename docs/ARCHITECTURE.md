@@ -191,8 +191,11 @@ See `ROADMAP.md` for the current migration status.
 | `debug/` | Logging, trace categories, probes |
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
+| `simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
 | `training/` | Training utilities (browser + node) |
 | `types/` | Shared TypeScript types |
+
+See `src/simulator/README.md` for details on the emulation subsystem.
 
 ---
 

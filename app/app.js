@@ -16,6 +16,7 @@ import { ModelLoader } from './model-loader.js';
 import { ModelDownloader } from './model-downloader.js';
 import { ChatController } from './chat-controller.js';
 import { ConverterController } from './converter-controller.js';
+import { DiagnosticsController } from './diagnostics-controller.js';
 import { QuickStartController } from './quickstart-controller.js';
 import { WorkspaceController } from './workspace-controller.js';
 
@@ -43,6 +44,7 @@ export class DopplerDemo {
   #modelDownloader = null;
   #chatController = null;
   #converterController = null;
+  #diagnosticsController = null;
   #quickStartController = null;
   #workspaceController = null;
 
@@ -88,6 +90,18 @@ export class DopplerDemo {
   #convertStatus = null;
   #convertProgress = null;
   #convertMessage = null;
+  #convertUrlInput = null;
+  #convertUrlBtn = null;
+
+  // Diagnostics UI
+  #diagnosticsModelSelect = null;
+  #runtimePresetSelect = null;
+  #diagnosticsSuiteSelect = null;
+  #diagnosticsPromptInput = null;
+  #diagnosticsMaxTokensInput = null;
+  #diagnosticsRunBtn = null;
+  #diagnosticsVerifyBtn = null;
+  #diagnosticsStatus = null;
 
   async init() {
     log.info('App', 'Initializing...');
@@ -139,6 +153,7 @@ export class DopplerDemo {
     // Discover models
     await this.#modelRegistry.discover();
     this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+    this.#updateDiagnosticsModels();
 
     try {
       await this.#workspaceController?.init();
@@ -210,6 +225,17 @@ export class DopplerDemo {
     this.#convertStatus = document.querySelector('#convert-status');
     this.#convertProgress = document.querySelector('#convert-progress');
     this.#convertMessage = document.querySelector('#convert-message');
+    this.#convertUrlInput = document.querySelector('#convert-url-input');
+    this.#convertUrlBtn = document.querySelector('#convert-url-btn');
+
+    this.#diagnosticsModelSelect = document.querySelector('#diagnostics-model');
+    this.#runtimePresetSelect = document.querySelector('#runtime-preset');
+    this.#diagnosticsSuiteSelect = document.querySelector('#diagnostics-suite');
+    this.#diagnosticsPromptInput = document.querySelector('#diagnostics-prompt');
+    this.#diagnosticsMaxTokensInput = document.querySelector('#diagnostics-max-tokens');
+    this.#diagnosticsRunBtn = document.querySelector('#diagnostics-run-btn');
+    this.#diagnosticsVerifyBtn = document.querySelector('#diagnostics-verify-btn');
+    this.#diagnosticsStatus = document.querySelector('#diagnostics-status');
 
     this.#workspaceImportBtn = document.querySelector('#workspace-import-btn');
     this.#workspaceRefreshBtn = document.querySelector('#workspace-refresh-btn');
@@ -279,6 +305,7 @@ export class DopplerDemo {
     this.#converterController = new ConverterController({
       onStart: () => {
         if (this.#convertBtn) this.#convertBtn.disabled = true;
+        if (this.#convertUrlBtn) this.#convertUrlBtn.disabled = true;
         if (this.#convertStatus) this.#convertStatus.hidden = false;
       },
       onProgress: (percent, message) => {
@@ -288,6 +315,7 @@ export class DopplerDemo {
       onComplete: async (modelId) => {
         await this.#modelRegistry.discover();
         this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+        this.#updateDiagnosticsModels();
         setTimeout(() => {
           if (this.#convertStatus) this.#convertStatus.hidden = true;
         }, 3000);
@@ -297,6 +325,43 @@ export class DopplerDemo {
       },
       onFinish: () => {
         if (this.#convertBtn) this.#convertBtn.disabled = false;
+        if (this.#convertUrlBtn) this.#convertUrlBtn.disabled = false;
+      },
+    });
+
+    this.#diagnosticsController = new DiagnosticsController({
+      onSuiteStart: (suite) => {
+        this.#setDiagnosticsStatus(`Running ${suite}...`);
+        if (this.#diagnosticsRunBtn) this.#diagnosticsRunBtn.disabled = true;
+      },
+      onSuiteComplete: (result) => {
+        this.#setDiagnosticsStatus(
+          `Done: ${result.suite} (${result.passed} passed, ${result.failed} failed)`
+        );
+      },
+      onSuiteError: (error) => {
+        this.#setDiagnosticsStatus(`Error: ${error.message}`);
+        this.#showError(`Diagnostics failed: ${error.message}`);
+      },
+      onSuiteFinish: () => {
+        if (this.#diagnosticsRunBtn) this.#diagnosticsRunBtn.disabled = false;
+      },
+      onVerifyStart: () => {
+        this.#setDiagnosticsStatus('Verifying...');
+        if (this.#diagnosticsVerifyBtn) this.#diagnosticsVerifyBtn.disabled = true;
+      },
+      onVerifyComplete: (result) => {
+        const status = result.valid
+          ? 'Verification passed'
+          : `Missing: ${result.missingShards.length}, Corrupt: ${result.corruptShards.length}`;
+        this.#setDiagnosticsStatus(status);
+      },
+      onVerifyError: (error) => {
+        this.#setDiagnosticsStatus(`Verify error: ${error.message}`);
+        this.#showError(`Verify failed: ${error.message}`);
+      },
+      onVerifyFinish: () => {
+        if (this.#diagnosticsVerifyBtn) this.#diagnosticsVerifyBtn.disabled = false;
       },
     });
 
@@ -318,6 +383,7 @@ export class DopplerDemo {
         this.#quickStartUI?.showReady(modelId);
         await this.#modelRegistry.discover();
         this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+        this.#updateDiagnosticsModels();
       },
       onDeclined: () => {
         this.#quickStartUI?.hide();
@@ -391,6 +457,26 @@ export class DopplerDemo {
         this.#convertBtn.title = 'Model conversion requires File System Access API (Chrome/Edge)';
       }
     }
+    if (this.#convertUrlBtn) {
+      if (ConverterController.isSupported()) {
+        this.#convertUrlBtn.addEventListener('click', () => this.#convertFromUrls());
+      } else {
+        this.#convertUrlBtn.disabled = true;
+        this.#convertUrlBtn.title = 'Model conversion requires File System Access API (Chrome/Edge)';
+      }
+    }
+
+    if (this.#diagnosticsMaxTokensInput) {
+      this.#diagnosticsMaxTokensInput.addEventListener('change', () =>
+        clampInputValue(this.#diagnosticsMaxTokensInput, 1, 4096)
+      );
+    }
+    if (this.#diagnosticsRunBtn) {
+      this.#diagnosticsRunBtn.addEventListener('click', () => this.#runDiagnosticsSuite());
+    }
+    if (this.#diagnosticsVerifyBtn) {
+      this.#diagnosticsVerifyBtn.addEventListener('click', () => this.#verifyDiagnosticsModel());
+    }
 
     // Memory control buttons
     if (this.#unloadModelBtn) {
@@ -432,6 +518,7 @@ export class DopplerDemo {
       await this.#modelLoader.load(modelInfo, { preferredSource: opts.preferredSource });
 
       this.#modelSelector?.setActiveModel(modelInfo.key);
+      this.#updateDiagnosticsModels();
       this.#progressUI?.hide();
       this.#setStatus('ready', `${modelInfo.name} loaded`);
       this.#chatUI?.setInputEnabled(true);
@@ -455,6 +542,7 @@ export class DopplerDemo {
       this.#setStatus('ready', 'Download complete');
       await this.#modelRegistry.discover();
       this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+      this.#updateDiagnosticsModels();
 
       if (opts.runAfter) {
         const updatedModel = this.#modelRegistry.findByKey(model.key);
@@ -481,6 +569,7 @@ export class DopplerDemo {
       this.#setStatus('ready', 'Cache cleared');
       await this.#modelRegistry.discover();
       this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+      this.#updateDiagnosticsModels();
     } catch (error) {
       log.error('App', 'Delete failed:', error);
       this.#showError(`Delete failed: ${error.message}`);
@@ -575,6 +664,106 @@ export class DopplerDemo {
     }
   }
 
+  #setDiagnosticsStatus(message) {
+    if (this.#diagnosticsStatus) {
+      this.#diagnosticsStatus.textContent = message;
+    }
+  }
+
+  #updateDiagnosticsModels() {
+    if (!this.#diagnosticsModelSelect) return;
+    const models = this.#modelRegistry.getModels();
+    const activeKey = this.#modelLoader.currentModel?.key || null;
+    const current = this.#diagnosticsModelSelect.value || activeKey || '';
+
+    this.#diagnosticsModelSelect.innerHTML = '';
+
+    for (const model of models) {
+      const option = document.createElement('option');
+      option.value = model.key;
+      const sourceLabel = model.sources?.browser
+        ? 'cache'
+        : (model.sources?.server ? 'server' : (model.sources?.remote ? 'remote' : 'unknown'));
+      option.textContent = `${model.name} (${sourceLabel})`;
+      this.#diagnosticsModelSelect.appendChild(option);
+    }
+
+    if (current) {
+      this.#diagnosticsModelSelect.value = current;
+    }
+  }
+
+  #getDiagnosticsModel() {
+    const key = this.#diagnosticsModelSelect?.value;
+    if (!key) return null;
+    return this.#modelRegistry.findByKey(key);
+  }
+
+  #parseUrlList(value) {
+    return String(value || '')
+      .split(/\\r?\\n|,/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  async #convertFromUrls() {
+    const urls = this.#parseUrlList(this.#convertUrlInput?.value);
+    if (urls.length === 0) {
+      this.#showError('Provide at least one URL to convert.');
+      return;
+    }
+
+    try {
+      await this.#converterController.convertRemote(urls);
+    } catch (error) {
+      this.#showError(`Conversion failed: ${error.message}`);
+    }
+  }
+
+  async #runDiagnosticsSuite() {
+    const suite = this.#diagnosticsSuiteSelect?.value || 'inference';
+    const model = this.#getDiagnosticsModel();
+
+    if (suite !== 'kernels' && !model) {
+      this.#showError('Select a model to run diagnostics.');
+      return;
+    }
+
+    const runtimePreset = this.#runtimePresetSelect?.value || null;
+    const prompt = this.#diagnosticsPromptInput?.value || '';
+    const maxTokensValue = parseInt(this.#diagnosticsMaxTokensInput?.value || '', 10);
+    const maxTokens = Number.isFinite(maxTokensValue) ? maxTokensValue : undefined;
+
+    try {
+      await this.#diagnosticsController.runSuite(model, {
+        suite,
+        runtimePreset,
+        prompt,
+        maxTokens,
+      });
+    } catch (error) {
+      this.#showError(`Diagnostics failed: ${error.message}`);
+    }
+  }
+
+  async #verifyDiagnosticsModel() {
+    const model = this.#getDiagnosticsModel();
+    if (!model) {
+      this.#showError('Select a model to verify.');
+      return;
+    }
+    if (!model.sources?.browser?.id) {
+      this.#showError('Verify requires a cached (browser) model.');
+      return;
+    }
+
+    try {
+      await this.#diagnosticsController.verifyModel(model);
+    } catch (error) {
+      this.#showError(`Verify failed: ${error.message}`);
+    }
+  }
+
   async #unloadCurrentModel() {
     if (!this.#modelLoader.pipeline) return;
 
@@ -628,6 +817,7 @@ export class DopplerDemo {
     if (!model) {
       await this.#modelRegistry.discover();
       this.#modelSelector?.setModels(this.#modelRegistry.getModels());
+      this.#updateDiagnosticsModels();
       model = this.#modelRegistry.findByKey(modelId) ||
               this.#modelRegistry.findByBrowserId(modelId);
     }

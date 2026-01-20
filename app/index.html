@@ -102,6 +102,12 @@
     /* Convert */
     .convert-description { margin-bottom: var(--space-sm); }
     .convert-status { margin-top: var(--space-sm); }
+    .convert-url-input { min-height: 70px; }
+
+    /* Diagnostics */
+    .diagnostics-field { display: flex; flex-direction: column; gap: var(--space-xs); }
+    .diagnostics-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-xs); }
+    .diagnostics-status { margin-top: var(--space-sm); }
 
 
     /* Workspace */
@@ -314,12 +320,53 @@
             </svg>
             Select Files
           </button>
+          <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
+          <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
+          <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
           <div id="convert-status" class="convert-status" hidden>
             <div class="progress progress-sm">
               <div id="convert-progress" class="progress-fill"></div>
             </div>
             <span id="convert-message" class="type-caption">Ready</span>
           </div>
+        </section>
+
+        <section class="panel diagnostics-panel">
+          <h2 class="type-label">Diagnostics</h2>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diagnostics-model">Model</label>
+            <select id="diagnostics-model" class="w-full"></select>
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="runtime-preset">Runtime preset</label>
+            <select id="runtime-preset" class="w-full">
+              <option value="default">default</option>
+              <option value="modes/debug">modes/debug</option>
+              <option value="modes/bench">modes/bench</option>
+            </select>
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diagnostics-suite">Suite</label>
+            <select id="diagnostics-suite" class="w-full">
+              <option value="kernels">kernels</option>
+              <option value="inference">inference</option>
+              <option value="bench">bench</option>
+              <option value="debug">debug</option>
+            </select>
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diagnostics-prompt">Prompt</label>
+            <input id="diagnostics-prompt" class="w-full" type="text" placeholder="Optional prompt" />
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diagnostics-max-tokens">Max tokens</label>
+            <input id="diagnostics-max-tokens" class="w-full" type="number" min="1" step="1" placeholder="Default" />
+          </div>
+          <div class="diagnostics-actions">
+            <button id="diagnostics-verify-btn" class="btn">Verify</button>
+            <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
+          </div>
+          <div id="diagnostics-status" class="diagnostics-status type-caption muted">Idle</div>
         </section>
 
         <section class="panel workspace-panel">

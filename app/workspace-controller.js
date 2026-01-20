@@ -9,6 +9,7 @@ export class WorkspaceController {
   #refreshButton = null;
   #statusEl = null;
   #filesEl = null;
+  #onVfsReady = null;
 
   #workspaceId = 'default';
   #vfs = null;
@@ -19,6 +20,7 @@ export class WorkspaceController {
     this.#refreshButton = options.refreshButton || null;
     this.#statusEl = options.statusEl || null;
     this.#filesEl = options.filesEl || null;
+    this.#onVfsReady = options.onVfsReady || null;
   }
 
   async init() {
@@ -75,6 +77,9 @@ export class WorkspaceController {
   async #initVfs() {
     this.#vfs = await createWorkspaceVfs({ workspaceId: this.#workspaceId });
     this.#setStatus(`Backend: ${this.#vfs.backendType}`);
+    if (this.#onVfsReady) {
+      this.#onVfsReady(this.#vfs);
+    }
   }
 
   #bind() {
