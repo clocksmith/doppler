@@ -1,0 +1,3235 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-20T19:57:22.417Z",
+  "root": "/",
+  "files": [
+    {
+      "path": "/src/adapters/adapter-manager.js",
+      "url": "/src/adapters/adapter-manager.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 12248
+    },
+    {
+      "path": "/src/adapters/adapter-manifest.js",
+      "url": "/src/adapters/adapter-manifest.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10578
+    },
+    {
+      "path": "/src/adapters/adapter-registry.js",
+      "url": "/src/adapters/adapter-registry.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 12131
+    },
+    {
+      "path": "/src/adapters/index.js",
+      "url": "/src/adapters/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 742
+    },
+    {
+      "path": "/src/adapters/lora-loader.js",
+      "url": "/src/adapters/lora-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 12458
+    },
+    {
+      "path": "/src/boot/vfs-bootstrap.js",
+      "url": "/src/boot/vfs-bootstrap.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4912
+    },
+    {
+      "path": "/src/bootstrap.js",
+      "url": "/src/bootstrap.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2691
+    },
+    {
+      "path": "/src/bridge/extension-client.js",
+      "url": "/src/bridge/extension-client.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9506
+    },
+    {
+      "path": "/src/bridge/extension/background.js",
+      "url": "/src/bridge/extension/background.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4135
+    },
+    {
+      "path": "/src/bridge/extension/manifest.json",
+      "url": "/src/bridge/extension/manifest.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 665
+    },
+    {
+      "path": "/src/bridge/index.js",
+      "url": "/src/bridge/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1041
+    },
+    {
+      "path": "/src/bridge/native/native-host.js",
+      "url": "/src/bridge/native/native-host.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10016
+    },
+    {
+      "path": "/src/bridge/protocol.js",
+      "url": "/src/bridge/protocol.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3060
+    },
+    {
+      "path": "/src/browser/browser-converter.js",
+      "url": "/src/browser/browser-converter.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 13146
+    },
+    {
+      "path": "/src/browser/file-picker.js",
+      "url": "/src/browser/file-picker.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6411
+    },
+    {
+      "path": "/src/browser/gguf-importer.js",
+      "url": "/src/browser/gguf-importer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 14658
+    },
+    {
+      "path": "/src/browser/gguf-parser-browser.js",
+      "url": "/src/browser/gguf-parser-browser.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 38
+    },
+    {
+      "path": "/src/browser/safetensors-parser-browser.js",
+      "url": "/src/browser/safetensors-parser-browser.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5677
+    },
+    {
+      "path": "/src/browser/shard-io-browser.js",
+      "url": "/src/browser/shard-io-browser.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2462
+    },
+    {
+      "path": "/src/client/doppler-provider.js",
+      "url": "/src/client/doppler-provider.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 724
+    },
+    {
+      "path": "/src/client/doppler-provider/generation.js",
+      "url": "/src/client/doppler-provider/generation.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3813
+    },
+    {
+      "path": "/src/client/doppler-provider/index.js",
+      "url": "/src/client/doppler-provider/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 734
+    },
+    {
+      "path": "/src/client/doppler-provider/model-manager.js",
+      "url": "/src/client/doppler-provider/model-manager.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 13905
+    },
+    {
+      "path": "/src/client/doppler-provider/provider.js",
+      "url": "/src/client/doppler-provider/provider.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1604
+    },
+    {
+      "path": "/src/client/doppler-provider/types.js",
+      "url": "/src/client/doppler-provider/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 378
+    },
+    {
+      "path": "/src/config/backward-registry-loader.js",
+      "url": "/src/config/backward-registry-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 273
+    },
+    {
+      "path": "/src/config/index.js",
+      "url": "/src/config/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 597
+    },
+    {
+      "path": "/src/config/kernel-path-loader.js",
+      "url": "/src/config/kernel-path-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10430
+    },
+    {
+      "path": "/src/config/kernels/backward-registry.json",
+      "url": "/src/config/kernels/backward-registry.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1161
+    },
+    {
+      "path": "/src/config/kernels/registry.js",
+      "url": "/src/config/kernels/registry.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2938
+    },
+    {
+      "path": "/src/config/kernels/registry.json",
+      "url": "/src/config/kernels/registry.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 66651
+    },
+    {
+      "path": "/src/config/loader.js",
+      "url": "/src/config/loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 14994
+    },
+    {
+      "path": "/src/config/merge.js",
+      "url": "/src/config/merge.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8270
+    },
+    {
+      "path": "/src/config/param-categories.js",
+      "url": "/src/config/param-categories.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2108
+    },
+    {
+      "path": "/src/config/param-validator.js",
+      "url": "/src/config/param-validator.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5817
+    },
+    {
+      "path": "/src/config/platforms/amd-rdna3.json",
+      "url": "/src/config/platforms/amd-rdna3.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 534
+    },
+    {
+      "path": "/src/config/platforms/apple-m1.json",
+      "url": "/src/config/platforms/apple-m1.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 587
+    },
+    {
+      "path": "/src/config/platforms/apple-m2.json",
+      "url": "/src/config/platforms/apple-m2.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 663
+    },
+    {
+      "path": "/src/config/platforms/apple-m3.json",
+      "url": "/src/config/platforms/apple-m3.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 771
+    },
+    {
+      "path": "/src/config/platforms/generic.json",
+      "url": "/src/config/platforms/generic.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 407
+    },
+    {
+      "path": "/src/config/platforms/loader.js",
+      "url": "/src/config/platforms/loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4708
+    },
+    {
+      "path": "/src/config/platforms/nvidia-rtx30.json",
+      "url": "/src/config/platforms/nvidia-rtx30.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 615
+    },
+    {
+      "path": "/src/config/platforms/nvidia-rtx40.json",
+      "url": "/src/config/platforms/nvidia-rtx40.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 742
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma2-f16-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma2-f16-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4248
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma2-f16-f32a.json",
+      "url": "/src/config/presets/kernel-paths/gemma2-f16-f32a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 3965
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma2-q4k-dequant-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma2-q4k-dequant-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4274
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma2-q4k-fused-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma2-q4k-fused-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 5327
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma2-q4k-fused-f32a.json",
+      "url": "/src/config/presets/kernel-paths/gemma2-q4k-fused-f32a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4018
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma3-f16-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma3-f16-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4063
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4068
+    },
+    {
+      "path": "/src/config/presets/kernel-paths/gemma3-q4k-fused-f16a.json",
+      "url": "/src/config/presets/kernel-paths/gemma3-q4k-fused-f16a.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4368
+    },
+    {
+      "path": "/src/config/presets/models/deepseek.json",
+      "url": "/src/config/presets/models/deepseek.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 387
+    },
+    {
+      "path": "/src/config/presets/models/functiongemma.json",
+      "url": "/src/config/presets/models/functiongemma.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 731
+    },
+    {
+      "path": "/src/config/presets/models/gemma2.json",
+      "url": "/src/config/presets/models/gemma2.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1200
+    },
+    {
+      "path": "/src/config/presets/models/gemma3.json",
+      "url": "/src/config/presets/models/gemma3.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1223
+    },
+    {
+      "path": "/src/config/presets/models/gpt-oss.json",
+      "url": "/src/config/presets/models/gpt-oss.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1219
+    },
+    {
+      "path": "/src/config/presets/models/kimi-k2.json",
+      "url": "/src/config/presets/models/kimi-k2.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 432
+    },
+    {
+      "path": "/src/config/presets/models/llama3.json",
+      "url": "/src/config/presets/models/llama3.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 742
+    },
+    {
+      "path": "/src/config/presets/models/mamba.json",
+      "url": "/src/config/presets/models/mamba.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 558
+    },
+    {
+      "path": "/src/config/presets/models/mixtral.json",
+      "url": "/src/config/presets/models/mixtral.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 790
+    },
+    {
+      "path": "/src/config/presets/models/qwen3.json",
+      "url": "/src/config/presets/models/qwen3.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 652
+    },
+    {
+      "path": "/src/config/presets/models/transformer.json",
+      "url": "/src/config/presets/models/transformer.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1766
+    },
+    {
+      "path": "/src/config/presets/platforms/nvidia-gb200-8gpu.json",
+      "url": "/src/config/presets/platforms/nvidia-gb200-8gpu.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1171
+    },
+    {
+      "path": "/src/config/presets/platforms/nvidia-gb200-nvl72.json",
+      "url": "/src/config/presets/platforms/nvidia-gb200-nvl72.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1170
+    },
+    {
+      "path": "/src/config/presets/platforms/nvidia-gh200-nvl2.json",
+      "url": "/src/config/presets/platforms/nvidia-gh200-nvl2.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1151
+    },
+    {
+      "path": "/src/config/presets/platforms/nvidia-gh200.json",
+      "url": "/src/config/presets/platforms/nvidia-gh200.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1140
+    },
+    {
+      "path": "/src/config/presets/runtime/compute/f16-activations.json",
+      "url": "/src/config/presets/runtime/compute/f16-activations.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 292
+    },
+    {
+      "path": "/src/config/presets/runtime/compute/f16-batched.json",
+      "url": "/src/config/presets/runtime/compute/f16-batched.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 304
+    },
+    {
+      "path": "/src/config/presets/runtime/default.json",
+      "url": "/src/config/presets/runtime/default.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1901
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/dequant-f16-q4k.json",
+      "url": "/src/config/presets/runtime/kernels/dequant-f16-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 370
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/dequant-f32-q4k.json",
+      "url": "/src/config/presets/runtime/kernels/dequant-f32-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 369
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/fused-q4k-wg128.json",
+      "url": "/src/config/presets/runtime/kernels/fused-q4k-wg128.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 234
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/fused-q4k.json",
+      "url": "/src/config/presets/runtime/kernels/fused-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 361
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/q4k-tiling-tuner.json",
+      "url": "/src/config/presets/runtime/kernels/q4k-tiling-tuner.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 524
+    },
+    {
+      "path": "/src/config/presets/runtime/kernels/safe-q4k.json",
+      "url": "/src/config/presets/runtime/kernels/safe-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 361
+    },
+    {
+      "path": "/src/config/presets/runtime/model/gemma2-debug.json",
+      "url": "/src/config/presets/runtime/model/gemma2-debug.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 917
+    },
+    {
+      "path": "/src/config/presets/runtime/model/gemma2-pipeline-debug.json",
+      "url": "/src/config/presets/runtime/model/gemma2-pipeline-debug.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 949
+    },
+    {
+      "path": "/src/config/presets/runtime/model/gemma2-pipeline.json",
+      "url": "/src/config/presets/runtime/model/gemma2-pipeline.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 875
+    },
+    {
+      "path": "/src/config/presets/runtime/model/gemma3-layer-probe.json",
+      "url": "/src/config/presets/runtime/model/gemma3-layer-probe.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1015
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/bench.json",
+      "url": "/src/config/presets/runtime/modes/bench.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 678
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/ci.json",
+      "url": "/src/config/presets/runtime/modes/ci.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 772
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/debug.json",
+      "url": "/src/config/presets/runtime/modes/debug.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 713
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/low-memory.json",
+      "url": "/src/config/presets/runtime/modes/low-memory.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 539
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/production.json",
+      "url": "/src/config/presets/runtime/modes/production.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 751
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/simulation.json",
+      "url": "/src/config/presets/runtime/modes/simulation.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 579
+    },
+    {
+      "path": "/src/config/presets/runtime/modes/trace-layers.json",
+      "url": "/src/config/presets/runtime/modes/trace-layers.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1104
+    },
+    {
+      "path": "/src/config/presets/runtime/platform/metal-apple-q4k.json",
+      "url": "/src/config/presets/runtime/platform/metal-apple-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 159
+    },
+    {
+      "path": "/src/config/runtime.js",
+      "url": "/src/config/runtime.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1757
+    },
+    {
+      "path": "/src/config/schema/adapter.schema.js",
+      "url": "/src/config/schema/adapter.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1773
+    },
+    {
+      "path": "/src/config/schema/backward-registry.schema.js",
+      "url": "/src/config/schema/backward-registry.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1530
+    },
+    {
+      "path": "/src/config/schema/benchmark.schema.js",
+      "url": "/src/config/schema/benchmark.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2351
+    },
+    {
+      "path": "/src/config/schema/bridge.schema.js",
+      "url": "/src/config/schema/bridge.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 718
+    },
+    {
+      "path": "/src/config/schema/buffer-pool.schema.js",
+      "url": "/src/config/schema/buffer-pool.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1398
+    },
+    {
+      "path": "/src/config/schema/conversion.schema.js",
+      "url": "/src/config/schema/conversion.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 393
+    },
+    {
+      "path": "/src/config/schema/converter.schema.js",
+      "url": "/src/config/schema/converter.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2978
+    },
+    {
+      "path": "/src/config/schema/debug.schema.js",
+      "url": "/src/config/schema/debug.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3208
+    },
+    {
+      "path": "/src/config/schema/distribution.schema.js",
+      "url": "/src/config/schema/distribution.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 489
+    },
+    {
+      "path": "/src/config/schema/doppler.schema.js",
+      "url": "/src/config/schema/doppler.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8690
+    },
+    {
+      "path": "/src/config/schema/emulation.schema.js",
+      "url": "/src/config/schema/emulation.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8311
+    },
+    {
+      "path": "/src/config/schema/gpu-cache.schema.js",
+      "url": "/src/config/schema/gpu-cache.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 315
+    },
+    {
+      "path": "/src/config/schema/harness.schema.js",
+      "url": "/src/config/schema/harness.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 297
+    },
+    {
+      "path": "/src/config/schema/hotswap.schema.js",
+      "url": "/src/config/schema/hotswap.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 335
+    },
+    {
+      "path": "/src/config/schema/index.js",
+      "url": "/src/config/schema/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11460
+    },
+    {
+      "path": "/src/config/schema/inference-defaults.schema.js",
+      "url": "/src/config/schema/inference-defaults.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4684
+    },
+    {
+      "path": "/src/config/schema/inference.schema.js",
+      "url": "/src/config/schema/inference.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1285
+    },
+    {
+      "path": "/src/config/schema/intent-bundle.schema.js",
+      "url": "/src/config/schema/intent-bundle.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 394
+    },
+    {
+      "path": "/src/config/schema/kernel-path.schema.js",
+      "url": "/src/config/schema/kernel-path.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 305
+    },
+    {
+      "path": "/src/config/schema/kernel-registry.schema.js",
+      "url": "/src/config/schema/kernel-registry.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1284
+    },
+    {
+      "path": "/src/config/schema/kernel-thresholds.schema.js",
+      "url": "/src/config/schema/kernel-thresholds.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5706
+    },
+    {
+      "path": "/src/config/schema/kvcache.schema.js",
+      "url": "/src/config/schema/kvcache.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 436
+    },
+    {
+      "path": "/src/config/schema/loading.schema.js",
+      "url": "/src/config/schema/loading.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2777
+    },
+    {
+      "path": "/src/config/schema/lora.schema.js",
+      "url": "/src/config/schema/lora.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 376
+    },
+    {
+      "path": "/src/config/schema/manifest.schema.js",
+      "url": "/src/config/schema/manifest.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3860
+    },
+    {
+      "path": "/src/config/schema/memory-limits.schema.js",
+      "url": "/src/config/schema/memory-limits.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2107
+    },
+    {
+      "path": "/src/config/schema/moe.schema.js",
+      "url": "/src/config/schema/moe.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1000
+    },
+    {
+      "path": "/src/config/schema/platform.schema.js",
+      "url": "/src/config/schema/platform.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 65
+    },
+    {
+      "path": "/src/config/schema/preset.schema.js",
+      "url": "/src/config/schema/preset.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 65
+    },
+    {
+      "path": "/src/config/schema/quantization-defaults.schema.js",
+      "url": "/src/config/schema/quantization-defaults.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 118
+    },
+    {
+      "path": "/src/config/schema/quantization.schema.js",
+      "url": "/src/config/schema/quantization.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1059
+    },
+    {
+      "path": "/src/config/schema/shared-runtime.schema.js",
+      "url": "/src/config/schema/shared-runtime.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1840
+    },
+    {
+      "path": "/src/config/schema/speculative.schema.js",
+      "url": "/src/config/schema/speculative.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 334
+    },
+    {
+      "path": "/src/config/schema/storage.schema.js",
+      "url": "/src/config/schema/storage.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2120
+    },
+    {
+      "path": "/src/config/schema/tooling.schema.js",
+      "url": "/src/config/schema/tooling.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 416
+    },
+    {
+      "path": "/src/config/schema/training.schema.js",
+      "url": "/src/config/schema/training.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2156
+    },
+    {
+      "path": "/src/config/schema/tuner.schema.js",
+      "url": "/src/config/schema/tuner.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 332
+    },
+    {
+      "path": "/src/config/schema/units.schema.js",
+      "url": "/src/config/schema/units.schema.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1011
+    },
+    {
+      "path": "/src/config/training-defaults.js",
+      "url": "/src/config/training-defaults.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1319
+    },
+    {
+      "path": "/src/converter/core.js",
+      "url": "/src/converter/core.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15221
+    },
+    {
+      "path": "/src/converter/index.js",
+      "url": "/src/converter/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 937
+    },
+    {
+      "path": "/src/converter/io/node.js",
+      "url": "/src/converter/io/node.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1367
+    },
+    {
+      "path": "/src/converter/manifest-inference.js",
+      "url": "/src/converter/manifest-inference.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9658
+    },
+    {
+      "path": "/src/converter/node-converter.js",
+      "url": "/src/converter/node-converter.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 345
+    },
+    {
+      "path": "/src/converter/node-converter/cli.js",
+      "url": "/src/converter/node-converter/cli.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1770
+    },
+    {
+      "path": "/src/converter/node-converter/converter.js",
+      "url": "/src/converter/node-converter/converter.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 20796
+    },
+    {
+      "path": "/src/converter/node-converter/detection.js",
+      "url": "/src/converter/node-converter/detection.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2611
+    },
+    {
+      "path": "/src/converter/node-converter/index.js",
+      "url": "/src/converter/node-converter/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5816
+    },
+    {
+      "path": "/src/converter/node-converter/progress.js",
+      "url": "/src/converter/node-converter/progress.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1490
+    },
+    {
+      "path": "/src/converter/node-converter/quantization.js",
+      "url": "/src/converter/node-converter/quantization.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8829
+    },
+    {
+      "path": "/src/converter/node-converter/types.js",
+      "url": "/src/converter/node-converter/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 53
+    },
+    {
+      "path": "/src/converter/quantizer.js",
+      "url": "/src/converter/quantizer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11506
+    },
+    {
+      "path": "/src/converter/rope-config.js",
+      "url": "/src/converter/rope-config.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2938
+    },
+    {
+      "path": "/src/converter/shard-packer.js",
+      "url": "/src/converter/shard-packer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6869
+    },
+    {
+      "path": "/src/converter/test-model.js",
+      "url": "/src/converter/test-model.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3918
+    },
+    {
+      "path": "/src/converter/tokenizer-utils.js",
+      "url": "/src/converter/tokenizer-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 982
+    },
+    {
+      "path": "/src/converter/writer.js",
+      "url": "/src/converter/writer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 84
+    },
+    {
+      "path": "/src/converter/writer/index.js",
+      "url": "/src/converter/writer/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4711
+    },
+    {
+      "path": "/src/converter/writer/manifest-writer.js",
+      "url": "/src/converter/writer/manifest-writer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4528
+    },
+    {
+      "path": "/src/converter/writer/shard-writer.js",
+      "url": "/src/converter/writer/shard-writer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4316
+    },
+    {
+      "path": "/src/converter/writer/tokenizer-writer.js",
+      "url": "/src/converter/writer/tokenizer-writer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3124
+    },
+    {
+      "path": "/src/converter/writer/types.js",
+      "url": "/src/converter/writer/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 255
+    },
+    {
+      "path": "/src/converter/writer/utils.js",
+      "url": "/src/converter/writer/utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1497
+    },
+    {
+      "path": "/src/converter/writer/writer.js",
+      "url": "/src/converter/writer/writer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15161
+    },
+    {
+      "path": "/src/debug/config.js",
+      "url": "/src/debug/config.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5954
+    },
+    {
+      "path": "/src/debug/diagnose-kernels.js",
+      "url": "/src/debug/diagnose-kernels.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6051
+    },
+    {
+      "path": "/src/debug/history.js",
+      "url": "/src/debug/history.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1775
+    },
+    {
+      "path": "/src/debug/index.js",
+      "url": "/src/debug/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4254
+    },
+    {
+      "path": "/src/debug/log.js",
+      "url": "/src/debug/log.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3094
+    },
+    {
+      "path": "/src/debug/perf.js",
+      "url": "/src/debug/perf.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1211
+    },
+    {
+      "path": "/src/debug/signals.js",
+      "url": "/src/debug/signals.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 624
+    },
+    {
+      "path": "/src/debug/stats.js",
+      "url": "/src/debug/stats.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3910
+    },
+    {
+      "path": "/src/debug/tensor.js",
+      "url": "/src/debug/tensor.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7638
+    },
+    {
+      "path": "/src/debug/trace.js",
+      "url": "/src/debug/trace.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4140
+    },
+    {
+      "path": "/src/errors/doppler-error.js",
+      "url": "/src/errors/doppler-error.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 459
+    },
+    {
+      "path": "/src/errors/index.js",
+      "url": "/src/errors/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 70
+    },
+    {
+      "path": "/src/formats/gguf.js",
+      "url": "/src/formats/gguf.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 35
+    },
+    {
+      "path": "/src/formats/gguf/index.js",
+      "url": "/src/formats/gguf/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 157
+    },
+    {
+      "path": "/src/formats/gguf/parser.js",
+      "url": "/src/formats/gguf/parser.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1011
+    },
+    {
+      "path": "/src/formats/gguf/types.js",
+      "url": "/src/formats/gguf/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11123
+    },
+    {
+      "path": "/src/formats/index.js",
+      "url": "/src/formats/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 268
+    },
+    {
+      "path": "/src/formats/rdrr/classification.js",
+      "url": "/src/formats/rdrr/classification.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4857
+    },
+    {
+      "path": "/src/formats/rdrr/groups.js",
+      "url": "/src/formats/rdrr/groups.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2189
+    },
+    {
+      "path": "/src/formats/rdrr/index.js",
+      "url": "/src/formats/rdrr/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 326
+    },
+    {
+      "path": "/src/formats/rdrr/manifest.js",
+      "url": "/src/formats/rdrr/manifest.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2719
+    },
+    {
+      "path": "/src/formats/rdrr/parsing.js",
+      "url": "/src/formats/rdrr/parsing.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2635
+    },
+    {
+      "path": "/src/formats/rdrr/tensor-config-validator.js",
+      "url": "/src/formats/rdrr/tensor-config-validator.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4904
+    },
+    {
+      "path": "/src/formats/rdrr/types.js",
+      "url": "/src/formats/rdrr/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 552
+    },
+    {
+      "path": "/src/formats/rdrr/validation.js",
+      "url": "/src/formats/rdrr/validation.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6735
+    },
+    {
+      "path": "/src/formats/safetensors.js",
+      "url": "/src/formats/safetensors.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 42
+    },
+    {
+      "path": "/src/formats/safetensors/index.js",
+      "url": "/src/formats/safetensors/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 341
+    },
+    {
+      "path": "/src/formats/safetensors/parser.js",
+      "url": "/src/formats/safetensors/parser.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7382
+    },
+    {
+      "path": "/src/formats/safetensors/types.js",
+      "url": "/src/formats/safetensors/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2401
+    },
+    {
+      "path": "/src/formats/tokenizer.js",
+      "url": "/src/formats/tokenizer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 40
+    },
+    {
+      "path": "/src/formats/tokenizer/index.js",
+      "url": "/src/formats/tokenizer/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 30
+    },
+    {
+      "path": "/src/formats/tokenizer/types.js",
+      "url": "/src/formats/tokenizer/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 532
+    },
+    {
+      "path": "/src/gpu/command-recorder.js",
+      "url": "/src/gpu/command-recorder.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 12590
+    },
+    {
+      "path": "/src/gpu/device.js",
+      "url": "/src/gpu/device.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10186
+    },
+    {
+      "path": "/src/gpu/kernel-runtime.js",
+      "url": "/src/gpu/kernel-runtime.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 596
+    },
+    {
+      "path": "/src/gpu/kernel-selection-cache.js",
+      "url": "/src/gpu/kernel-selection-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 185
+    },
+    {
+      "path": "/src/gpu/kernel-selection-log.js",
+      "url": "/src/gpu/kernel-selection-log.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 520
+    },
+    {
+      "path": "/src/gpu/kernel-selector.js",
+      "url": "/src/gpu/kernel-selector.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 117
+    },
+    {
+      "path": "/src/gpu/kernel-tuner.js",
+      "url": "/src/gpu/kernel-tuner.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 160
+    },
+    {
+      "path": "/src/gpu/kernel-tuner/benchmarks.js",
+      "url": "/src/gpu/kernel-tuner/benchmarks.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 22545
+    },
+    {
+      "path": "/src/gpu/kernel-tuner/cache.js",
+      "url": "/src/gpu/kernel-tuner/cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1695
+    },
+    {
+      "path": "/src/gpu/kernel-tuner/index.js",
+      "url": "/src/gpu/kernel-tuner/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 654
+    },
+    {
+      "path": "/src/gpu/kernel-tuner/tuner.js",
+      "url": "/src/gpu/kernel-tuner/tuner.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4829
+    },
+    {
+      "path": "/src/gpu/kernel-tuner/types.js",
+      "url": "/src/gpu/kernel-tuner/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 76
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_chunked_f16.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_chunked_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4413
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_chunked_f16kv.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_chunked_f16kv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5974
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_f16.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5633
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_f16kv.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_f16kv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7279
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_optimized.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_optimized.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 15187
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode_subgroup.wgsl",
+      "url": "/src/gpu/kernels/attention_decode_subgroup.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 6897
+    },
+    {
+      "path": "/src/gpu/kernels/attention_decode.wgsl",
+      "url": "/src/gpu/kernels/attention_decode.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7719
+    },
+    {
+      "path": "/src/gpu/kernels/attention_f16.wgsl",
+      "url": "/src/gpu/kernels/attention_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 6252
+    },
+    {
+      "path": "/src/gpu/kernels/attention_f16kv.wgsl",
+      "url": "/src/gpu/kernels/attention_f16kv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 8336
+    },
+    {
+      "path": "/src/gpu/kernels/attention_small_f16.wgsl",
+      "url": "/src/gpu/kernels/attention_small_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7335
+    },
+    {
+      "path": "/src/gpu/kernels/attention_small_f16kv.wgsl",
+      "url": "/src/gpu/kernels/attention_small_f16kv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7891
+    },
+    {
+      "path": "/src/gpu/kernels/attention_small.wgsl",
+      "url": "/src/gpu/kernels/attention_small.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 8982
+    },
+    {
+      "path": "/src/gpu/kernels/attention_streaming_f16.wgsl",
+      "url": "/src/gpu/kernels/attention_streaming_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4015
+    },
+    {
+      "path": "/src/gpu/kernels/attention_streaming_f16kv.wgsl",
+      "url": "/src/gpu/kernels/attention_streaming_f16kv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4310
+    },
+    {
+      "path": "/src/gpu/kernels/attention_streaming.wgsl",
+      "url": "/src/gpu/kernels/attention_streaming.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4412
+    },
+    {
+      "path": "/src/gpu/kernels/attention.js",
+      "url": "/src/gpu/kernels/attention.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 20162
+    },
+    {
+      "path": "/src/gpu/kernels/attention.wgsl",
+      "url": "/src/gpu/kernels/attention.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 8802
+    },
+    {
+      "path": "/src/gpu/kernels/backward/adam.js",
+      "url": "/src/gpu/kernels/backward/adam.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3171
+    },
+    {
+      "path": "/src/gpu/kernels/backward/adam.wgsl",
+      "url": "/src/gpu/kernels/backward/adam.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1168
+    },
+    {
+      "path": "/src/gpu/kernels/backward/attention_backward.js",
+      "url": "/src/gpu/kernels/backward/attention_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5137
+    },
+    {
+      "path": "/src/gpu/kernels/backward/attention_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/attention_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1245
+    },
+    {
+      "path": "/src/gpu/kernels/backward/cross_entropy_backward.js",
+      "url": "/src/gpu/kernels/backward/cross_entropy_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3553
+    },
+    {
+      "path": "/src/gpu/kernels/backward/cross_entropy_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/cross_entropy_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1039
+    },
+    {
+      "path": "/src/gpu/kernels/backward/embed_backward.js",
+      "url": "/src/gpu/kernels/backward/embed_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 582
+    },
+    {
+      "path": "/src/gpu/kernels/backward/embed_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/embed_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 651
+    },
+    {
+      "path": "/src/gpu/kernels/backward/gelu_backward.js",
+      "url": "/src/gpu/kernels/backward/gelu_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 578
+    },
+    {
+      "path": "/src/gpu/kernels/backward/gelu_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/gelu_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1083
+    },
+    {
+      "path": "/src/gpu/kernels/backward/index.js",
+      "url": "/src/gpu/kernels/backward/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 859
+    },
+    {
+      "path": "/src/gpu/kernels/backward/matmul_backward.js",
+      "url": "/src/gpu/kernels/backward/matmul_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 901
+    },
+    {
+      "path": "/src/gpu/kernels/backward/matmul_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/matmul_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 649
+    },
+    {
+      "path": "/src/gpu/kernels/backward/rmsnorm_backward.js",
+      "url": "/src/gpu/kernels/backward/rmsnorm_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4074
+    },
+    {
+      "path": "/src/gpu/kernels/backward/rmsnorm_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/rmsnorm_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2373
+    },
+    {
+      "path": "/src/gpu/kernels/backward/rope_backward.js",
+      "url": "/src/gpu/kernels/backward/rope_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3807
+    },
+    {
+      "path": "/src/gpu/kernels/backward/rope_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/rope_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1667
+    },
+    {
+      "path": "/src/gpu/kernels/backward/scale_backward.js",
+      "url": "/src/gpu/kernels/backward/scale_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 880
+    },
+    {
+      "path": "/src/gpu/kernels/backward/scale_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/scale_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 643
+    },
+    {
+      "path": "/src/gpu/kernels/backward/silu_backward.js",
+      "url": "/src/gpu/kernels/backward/silu_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 578
+    },
+    {
+      "path": "/src/gpu/kernels/backward/silu_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/silu_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 759
+    },
+    {
+      "path": "/src/gpu/kernels/backward/softmax_backward.js",
+      "url": "/src/gpu/kernels/backward/softmax_backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 900
+    },
+    {
+      "path": "/src/gpu/kernels/backward/softmax_backward.wgsl",
+      "url": "/src/gpu/kernels/backward/softmax_backward.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 990
+    },
+    {
+      "path": "/src/gpu/kernels/backward/utils.js",
+      "url": "/src/gpu/kernels/backward/utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3155
+    },
+    {
+      "path": "/src/gpu/kernels/bf16_to_f16.wgsl",
+      "url": "/src/gpu/kernels/bf16_to_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1706
+    },
+    {
+      "path": "/src/gpu/kernels/bf16_to_f32.wgsl",
+      "url": "/src/gpu/kernels/bf16_to_f32.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2401
+    },
+    {
+      "path": "/src/gpu/kernels/bias_add_f16.wgsl",
+      "url": "/src/gpu/kernels/bias_add_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1146
+    },
+    {
+      "path": "/src/gpu/kernels/bias_add.wgsl",
+      "url": "/src/gpu/kernels/bias_add.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1090
+    },
+    {
+      "path": "/src/gpu/kernels/cast_f16_to_f32.wgsl",
+      "url": "/src/gpu/kernels/cast_f16_to_f32.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 628
+    },
+    {
+      "path": "/src/gpu/kernels/cast_f32_to_f16.wgsl",
+      "url": "/src/gpu/kernels/cast_f32_to_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 933
+    },
+    {
+      "path": "/src/gpu/kernels/cast.js",
+      "url": "/src/gpu/kernels/cast.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 14041
+    },
+    {
+      "path": "/src/gpu/kernels/check-stop.js",
+      "url": "/src/gpu/kernels/check-stop.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4964
+    },
+    {
+      "path": "/src/gpu/kernels/constants.js",
+      "url": "/src/gpu/kernels/constants.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1689
+    },
+    {
+      "path": "/src/gpu/kernels/cross_entropy_loss.js",
+      "url": "/src/gpu/kernels/cross_entropy_loss.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3781
+    },
+    {
+      "path": "/src/gpu/kernels/cross_entropy_loss.wgsl",
+      "url": "/src/gpu/kernels/cross_entropy_loss.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 940
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_f16_out_vec4.wgsl",
+      "url": "/src/gpu/kernels/dequant_f16_out_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4695
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_f16_out.wgsl",
+      "url": "/src/gpu/kernels/dequant_f16_out.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4648
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_f16_rowwise.wgsl",
+      "url": "/src/gpu/kernels/dequant_f16_rowwise.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3908
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_f32_rowwise.wgsl",
+      "url": "/src/gpu/kernels/dequant_f32_rowwise.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3735
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_mxfp4_expert_f16.wgsl",
+      "url": "/src/gpu/kernels/dequant_mxfp4_expert_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3022
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_mxfp4_expert.wgsl",
+      "url": "/src/gpu/kernels/dequant_mxfp4_expert.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4691
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_mxfp4_vec4.wgsl",
+      "url": "/src/gpu/kernels/dequant_mxfp4_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3757
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_mxfp4.wgsl",
+      "url": "/src/gpu/kernels/dequant_mxfp4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4017
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_q6k.wgsl",
+      "url": "/src/gpu/kernels/dequant_q6k.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4621
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_q8_0.wgsl",
+      "url": "/src/gpu/kernels/dequant_q8_0.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2825
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_shared_vec4.wgsl",
+      "url": "/src/gpu/kernels/dequant_shared_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5018
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_shared.wgsl",
+      "url": "/src/gpu/kernels/dequant_shared.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 6437
+    },
+    {
+      "path": "/src/gpu/kernels/dequant_subgroup.wgsl",
+      "url": "/src/gpu/kernels/dequant_subgroup.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7194
+    },
+    {
+      "path": "/src/gpu/kernels/dequant.js",
+      "url": "/src/gpu/kernels/dequant.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15197
+    },
+    {
+      "path": "/src/gpu/kernels/dispatch.js",
+      "url": "/src/gpu/kernels/dispatch.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4421
+    },
+    {
+      "path": "/src/gpu/kernels/feature-check.js",
+      "url": "/src/gpu/kernels/feature-check.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2451
+    },
+    {
+      "path": "/src/gpu/kernels/fused_ffn_q4k.wgsl",
+      "url": "/src/gpu/kernels/fused_ffn_q4k.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 13812
+    },
+    {
+      "path": "/src/gpu/kernels/fused_ffn.js",
+      "url": "/src/gpu/kernels/fused_ffn.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9110
+    },
+    {
+      "path": "/src/gpu/kernels/fused_ffn.wgsl",
+      "url": "/src/gpu/kernels/fused_ffn.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 13652
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_batched_f16.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_batched_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5744
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_batched_f16a.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_batched_f16a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 4605
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_batched.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_batched.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7004
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_f16a.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_f16a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7392
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_multicol_f16.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_multicol_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 7817
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4_multicol_f16a.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4_multicol_f16a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 6987
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_q4.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_q4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 15258
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_residual.js",
+      "url": "/src/gpu/kernels/fused_matmul_residual.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4711
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_rmsnorm_f16.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_rmsnorm_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 11108
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_rmsnorm.js",
+      "url": "/src/gpu/kernels/fused_matmul_rmsnorm.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8757
+    },
+    {
+      "path": "/src/gpu/kernels/fused_matmul_rmsnorm.wgsl",
+      "url": "/src/gpu/kernels/fused_matmul_rmsnorm.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 12369
+    },
+    {
+      "path": "/src/gpu/kernels/fused_swiglu_f16.wgsl",
+      "url": "/src/gpu/kernels/fused_swiglu_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1328
+    },
+    {
+      "path": "/src/gpu/kernels/fused_swiglu.wgsl",
+      "url": "/src/gpu/kernels/fused_swiglu.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1704
+    },
+    {
+      "path": "/src/gpu/kernels/gather_f16_f16_out.wgsl",
+      "url": "/src/gpu/kernels/gather_f16_f16_out.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1598
+    },
+    {
+      "path": "/src/gpu/kernels/gather_f16_out.wgsl",
+      "url": "/src/gpu/kernels/gather_f16_out.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1624
+    },
+    {
+      "path": "/src/gpu/kernels/gather_f16_vec4_f16_out.wgsl",
+      "url": "/src/gpu/kernels/gather_f16_vec4_f16_out.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2380
+    },
+    {
+      "path": "/src/gpu/kernels/gather_f16_vec4.wgsl",
+      "url": "/src/gpu/kernels/gather_f16_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2762
+    },
+    {
+      "path": "/src/gpu/kernels/gather_f16.wgsl",
+      "url": "/src/gpu/kernels/gather_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2120
+    },
+    {
+      "path": "/src/gpu/kernels/gather_vec4_f16_out.wgsl",
+      "url": "/src/gpu/kernels/gather_vec4_f16_out.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2416
+    },
+    {
+      "path": "/src/gpu/kernels/gather_vec4.wgsl",
+      "url": "/src/gpu/kernels/gather_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2669
+    },
+    {
+      "path": "/src/gpu/kernels/gather.js",
+      "url": "/src/gpu/kernels/gather.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8010
+    },
+    {
+      "path": "/src/gpu/kernels/gather.wgsl",
+      "url": "/src/gpu/kernels/gather.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2036
+    },
+    {
+      "path": "/src/gpu/kernels/gelu_f16.wgsl",
+      "url": "/src/gpu/kernels/gelu_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1932
+    },
+    {
+      "path": "/src/gpu/kernels/gelu.js",
+      "url": "/src/gpu/kernels/gelu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3714
+    },
+    {
+      "path": "/src/gpu/kernels/gelu.wgsl",
+      "url": "/src/gpu/kernels/gelu.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1918
+    },
+    {
+      "path": "/src/gpu/kernels/index.js",
+      "url": "/src/gpu/kernels/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3768
+    },
+    {
+      "path": "/src/gpu/kernels/kernel-base.js",
+      "url": "/src/gpu/kernels/kernel-base.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 688
+    },
+    {
+      "path": "/src/gpu/kernels/kernel-configs.js",
+      "url": "/src/gpu/kernels/kernel-configs.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1510
+    },
+    {
+      "path": "/src/gpu/kernels/kernel-tuning.js",
+      "url": "/src/gpu/kernels/kernel-tuning.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4343
+    },
+    {
+      "path": "/src/gpu/kernels/logit-merge.js",
+      "url": "/src/gpu/kernels/logit-merge.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10121
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_f16.wgsl",
+      "url": "/src/gpu/kernels/matmul_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5916
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_f16w_f32a.wgsl",
+      "url": "/src/gpu/kernels/matmul_f16w_f32a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2476
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_f32.wgsl",
+      "url": "/src/gpu/kernels/matmul_f32.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3395
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv_f16a.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv_f16a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2661
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv_residual_f16.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv_residual_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2544
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv_residual.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv_residual.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3757
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv_subgroup_f16a.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv_subgroup_f16a.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 19119
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 12601
+    },
+    {
+      "path": "/src/gpu/kernels/matmul_gemv.wgsl",
+      "url": "/src/gpu/kernels/matmul_gemv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2600
+    },
+    {
+      "path": "/src/gpu/kernels/matmul-dispatch.js",
+      "url": "/src/gpu/kernels/matmul-dispatch.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4681
+    },
+    {
+      "path": "/src/gpu/kernels/matmul-selection.js",
+      "url": "/src/gpu/kernels/matmul-selection.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 12821
+    },
+    {
+      "path": "/src/gpu/kernels/matmul.js",
+      "url": "/src/gpu/kernels/matmul.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10530
+    },
+    {
+      "path": "/src/gpu/kernels/moe_gather_f16.wgsl",
+      "url": "/src/gpu/kernels/moe_gather_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2530
+    },
+    {
+      "path": "/src/gpu/kernels/moe_gather_vec4.wgsl",
+      "url": "/src/gpu/kernels/moe_gather_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2720
+    },
+    {
+      "path": "/src/gpu/kernels/moe_gather.wgsl",
+      "url": "/src/gpu/kernels/moe_gather.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 6398
+    },
+    {
+      "path": "/src/gpu/kernels/moe.js",
+      "url": "/src/gpu/kernels/moe.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 22466
+    },
+    {
+      "path": "/src/gpu/kernels/pipeline-cache.js",
+      "url": "/src/gpu/kernels/pipeline-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5106
+    },
+    {
+      "path": "/src/gpu/kernels/residual_f16_vec4.wgsl",
+      "url": "/src/gpu/kernels/residual_f16_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1337
+    },
+    {
+      "path": "/src/gpu/kernels/residual_f16.wgsl",
+      "url": "/src/gpu/kernels/residual_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 794
+    },
+    {
+      "path": "/src/gpu/kernels/residual_vec4.wgsl",
+      "url": "/src/gpu/kernels/residual_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1274
+    },
+    {
+      "path": "/src/gpu/kernels/residual.js",
+      "url": "/src/gpu/kernels/residual.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8224
+    },
+    {
+      "path": "/src/gpu/kernels/residual.wgsl",
+      "url": "/src/gpu/kernels/residual.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1446
+    },
+    {
+      "path": "/src/gpu/kernels/rmsnorm_f16.wgsl",
+      "url": "/src/gpu/kernels/rmsnorm_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 5284
+    },
+    {
+      "path": "/src/gpu/kernels/rmsnorm.js",
+      "url": "/src/gpu/kernels/rmsnorm.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8657
+    },
+    {
+      "path": "/src/gpu/kernels/rmsnorm.wgsl",
+      "url": "/src/gpu/kernels/rmsnorm.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 14417
+    },
+    {
+      "path": "/src/gpu/kernels/rope_f16.wgsl",
+      "url": "/src/gpu/kernels/rope_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 8087
+    },
+    {
+      "path": "/src/gpu/kernels/rope.js",
+      "url": "/src/gpu/kernels/rope.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4927
+    },
+    {
+      "path": "/src/gpu/kernels/rope.wgsl",
+      "url": "/src/gpu/kernels/rope.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 10639
+    },
+    {
+      "path": "/src/gpu/kernels/rule-matcher.js",
+      "url": "/src/gpu/kernels/rule-matcher.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1835
+    },
+    {
+      "path": "/src/gpu/kernels/rule-registry.js",
+      "url": "/src/gpu/kernels/rule-registry.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 333
+    },
+    {
+      "path": "/src/gpu/kernels/sample_f16.wgsl",
+      "url": "/src/gpu/kernels/sample_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 10083
+    },
+    {
+      "path": "/src/gpu/kernels/sample.js",
+      "url": "/src/gpu/kernels/sample.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 20735
+    },
+    {
+      "path": "/src/gpu/kernels/sample.wgsl",
+      "url": "/src/gpu/kernels/sample.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 12698
+    },
+    {
+      "path": "/src/gpu/kernels/scale.js",
+      "url": "/src/gpu/kernels/scale.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3477
+    },
+    {
+      "path": "/src/gpu/kernels/scale.wgsl",
+      "url": "/src/gpu/kernels/scale.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 943
+    },
+    {
+      "path": "/src/gpu/kernels/scatter_add_dynamic_f16_weights.wgsl",
+      "url": "/src/gpu/kernels/scatter_add_dynamic_f16_weights.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1508
+    },
+    {
+      "path": "/src/gpu/kernels/scatter_add_dynamic_f16.wgsl",
+      "url": "/src/gpu/kernels/scatter_add_dynamic_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1492
+    },
+    {
+      "path": "/src/gpu/kernels/scatter_add_dynamic.wgsl",
+      "url": "/src/gpu/kernels/scatter_add_dynamic.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2283
+    },
+    {
+      "path": "/src/gpu/kernels/scatter_add_vec4.wgsl",
+      "url": "/src/gpu/kernels/scatter_add_vec4.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2362
+    },
+    {
+      "path": "/src/gpu/kernels/scatter_add.wgsl",
+      "url": "/src/gpu/kernels/scatter_add.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2989
+    },
+    {
+      "path": "/src/gpu/kernels/shader-cache.js",
+      "url": "/src/gpu/kernels/shader-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3887
+    },
+    {
+      "path": "/src/gpu/kernels/silu_f16.wgsl",
+      "url": "/src/gpu/kernels/silu_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2480
+    },
+    {
+      "path": "/src/gpu/kernels/silu.js",
+      "url": "/src/gpu/kernels/silu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9850
+    },
+    {
+      "path": "/src/gpu/kernels/silu.wgsl",
+      "url": "/src/gpu/kernels/silu.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 2811
+    },
+    {
+      "path": "/src/gpu/kernels/softmax.js",
+      "url": "/src/gpu/kernels/softmax.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5820
+    },
+    {
+      "path": "/src/gpu/kernels/softmax.wgsl",
+      "url": "/src/gpu/kernels/softmax.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 18260
+    },
+    {
+      "path": "/src/gpu/kernels/split_qkv_f16.wgsl",
+      "url": "/src/gpu/kernels/split_qkv_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1991
+    },
+    {
+      "path": "/src/gpu/kernels/split_qkv.js",
+      "url": "/src/gpu/kernels/split_qkv.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4628
+    },
+    {
+      "path": "/src/gpu/kernels/split_qkv.wgsl",
+      "url": "/src/gpu/kernels/split_qkv.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 1968
+    },
+    {
+      "path": "/src/gpu/kernels/topk_f16_weights.wgsl",
+      "url": "/src/gpu/kernels/topk_f16_weights.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3101
+    },
+    {
+      "path": "/src/gpu/kernels/topk_f16.wgsl",
+      "url": "/src/gpu/kernels/topk_f16.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 3226
+    },
+    {
+      "path": "/src/gpu/kernels/topk.wgsl",
+      "url": "/src/gpu/kernels/topk.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 8120
+    },
+    {
+      "path": "/src/gpu/kernels/transpose.js",
+      "url": "/src/gpu/kernels/transpose.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2721
+    },
+    {
+      "path": "/src/gpu/kernels/transpose.wgsl",
+      "url": "/src/gpu/kernels/transpose.wgsl",
+      "contentType": "text/plain; charset=utf-8",
+      "size": 688
+    },
+    {
+      "path": "/src/gpu/kernels/types.js",
+      "url": "/src/gpu/kernels/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 66
+    },
+    {
+      "path": "/src/gpu/kernels/uniform-utils.js",
+      "url": "/src/gpu/kernels/uniform-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1603
+    },
+    {
+      "path": "/src/gpu/kernels/utils.js",
+      "url": "/src/gpu/kernels/utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4597
+    },
+    {
+      "path": "/src/gpu/multi-model-recorder.js",
+      "url": "/src/gpu/multi-model-recorder.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 439
+    },
+    {
+      "path": "/src/gpu/partitioned-buffer-pool.js",
+      "url": "/src/gpu/partitioned-buffer-pool.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 849
+    },
+    {
+      "path": "/src/gpu/perf-guards.js",
+      "url": "/src/gpu/perf-guards.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2882
+    },
+    {
+      "path": "/src/gpu/profiler.js",
+      "url": "/src/gpu/profiler.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9570
+    },
+    {
+      "path": "/src/gpu/submit-tracker.js",
+      "url": "/src/gpu/submit-tracker.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5801
+    },
+    {
+      "path": "/src/gpu/tensor.js",
+      "url": "/src/gpu/tensor.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1476
+    },
+    {
+      "path": "/src/gpu/uniform-cache.js",
+      "url": "/src/gpu/uniform-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5206
+    },
+    {
+      "path": "/src/gpu/weight-buffer.js",
+      "url": "/src/gpu/weight-buffer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1176
+    },
+    {
+      "path": "/src/hotswap/intent-bundle.js",
+      "url": "/src/hotswap/intent-bundle.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4371
+    },
+    {
+      "path": "/src/hotswap/manifest.js",
+      "url": "/src/hotswap/manifest.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3621
+    },
+    {
+      "path": "/src/hotswap/runtime.js",
+      "url": "/src/hotswap/runtime.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 175
+    },
+    {
+      "path": "/src/index.js",
+      "url": "/src/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1454
+    },
+    {
+      "path": "/src/inference/decode-buffers.js",
+      "url": "/src/inference/decode-buffers.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5191
+    },
+    {
+      "path": "/src/inference/decode-ring.js",
+      "url": "/src/inference/decode-ring.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8089
+    },
+    {
+      "path": "/src/inference/expert-router.js",
+      "url": "/src/inference/expert-router.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1070
+    },
+    {
+      "path": "/src/inference/functiongemma.js",
+      "url": "/src/inference/functiongemma.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1957
+    },
+    {
+      "path": "/src/inference/kv-cache.js",
+      "url": "/src/inference/kv-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 266
+    },
+    {
+      "path": "/src/inference/kv-cache/base.js",
+      "url": "/src/inference/kv-cache/base.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 19854
+    },
+    {
+      "path": "/src/inference/kv-cache/index.js",
+      "url": "/src/inference/kv-cache/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 400
+    },
+    {
+      "path": "/src/inference/kv-cache/sliding-window.js",
+      "url": "/src/inference/kv-cache/sliding-window.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5281
+    },
+    {
+      "path": "/src/inference/kv-cache/types.js",
+      "url": "/src/inference/kv-cache/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1903
+    },
+    {
+      "path": "/src/inference/moe-router.js",
+      "url": "/src/inference/moe-router.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15380
+    },
+    {
+      "path": "/src/inference/multi-model-network.js",
+      "url": "/src/inference/multi-model-network.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11344
+    },
+    {
+      "path": "/src/inference/multi-pipeline-pool.js",
+      "url": "/src/inference/multi-pipeline-pool.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3453
+    },
+    {
+      "path": "/src/inference/network-evolution.js",
+      "url": "/src/inference/network-evolution.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2083
+    },
+    {
+      "path": "/src/inference/pipeline.js",
+      "url": "/src/inference/pipeline.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15479
+    },
+    {
+      "path": "/src/inference/pipeline/attention.js",
+      "url": "/src/inference/pipeline/attention.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 203
+    },
+    {
+      "path": "/src/inference/pipeline/attention/index.js",
+      "url": "/src/inference/pipeline/attention/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 302
+    },
+    {
+      "path": "/src/inference/pipeline/attention/record.js",
+      "url": "/src/inference/pipeline/attention/record.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 17839
+    },
+    {
+      "path": "/src/inference/pipeline/attention/run.js",
+      "url": "/src/inference/pipeline/attention/run.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 25529
+    },
+    {
+      "path": "/src/inference/pipeline/attention/types.js",
+      "url": "/src/inference/pipeline/attention/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1841
+    },
+    {
+      "path": "/src/inference/pipeline/buffer-types.js",
+      "url": "/src/inference/pipeline/buffer-types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 79
+    },
+    {
+      "path": "/src/inference/pipeline/chat-format.js",
+      "url": "/src/inference/pipeline/chat-format.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3198
+    },
+    {
+      "path": "/src/inference/pipeline/config.js",
+      "url": "/src/inference/pipeline/config.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 13785
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils.js",
+      "url": "/src/inference/pipeline/debug-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 591
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils/config.js",
+      "url": "/src/inference/pipeline/debug-utils/config.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3812
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils/index.js",
+      "url": "/src/inference/pipeline/debug-utils/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 637
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils/logging.js",
+      "url": "/src/inference/pipeline/debug-utils/logging.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4653
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils/tensor.js",
+      "url": "/src/inference/pipeline/debug-utils/tensor.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7190
+    },
+    {
+      "path": "/src/inference/pipeline/debug-utils/utils.js",
+      "url": "/src/inference/pipeline/debug-utils/utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3217
+    },
+    {
+      "path": "/src/inference/pipeline/embed.js",
+      "url": "/src/inference/pipeline/embed.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 16112
+    },
+    {
+      "path": "/src/inference/pipeline/ffn.js",
+      "url": "/src/inference/pipeline/ffn.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 446
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/dense.js",
+      "url": "/src/inference/pipeline/ffn/dense.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 18823
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/index.js",
+      "url": "/src/inference/pipeline/ffn/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 495
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/moe.js",
+      "url": "/src/inference/pipeline/ffn/moe.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1300
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/sandwich.js",
+      "url": "/src/inference/pipeline/ffn/sandwich.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6602
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/standard.js",
+      "url": "/src/inference/pipeline/ffn/standard.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2423
+    },
+    {
+      "path": "/src/inference/pipeline/ffn/types.js",
+      "url": "/src/inference/pipeline/ffn/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 560
+    },
+    {
+      "path": "/src/inference/pipeline/generator-helpers.js",
+      "url": "/src/inference/pipeline/generator-helpers.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4971
+    },
+    {
+      "path": "/src/inference/pipeline/generator-steps.js",
+      "url": "/src/inference/pipeline/generator-steps.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 26650
+    },
+    {
+      "path": "/src/inference/pipeline/generator.js",
+      "url": "/src/inference/pipeline/generator.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 35195
+    },
+    {
+      "path": "/src/inference/pipeline/init.js",
+      "url": "/src/inference/pipeline/init.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 23297
+    },
+    {
+      "path": "/src/inference/pipeline/kernel-trace.js",
+      "url": "/src/inference/pipeline/kernel-trace.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9246
+    },
+    {
+      "path": "/src/inference/pipeline/layer-plan.js",
+      "url": "/src/inference/pipeline/layer-plan.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5198
+    },
+    {
+      "path": "/src/inference/pipeline/layer.js",
+      "url": "/src/inference/pipeline/layer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 22225
+    },
+    {
+      "path": "/src/inference/pipeline/logits.js",
+      "url": "/src/inference/pipeline/logits.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 247
+    },
+    {
+      "path": "/src/inference/pipeline/logits/cpu.js",
+      "url": "/src/inference/pipeline/logits/cpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1984
+    },
+    {
+      "path": "/src/inference/pipeline/logits/gpu.js",
+      "url": "/src/inference/pipeline/logits/gpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11559
+    },
+    {
+      "path": "/src/inference/pipeline/logits/index.js",
+      "url": "/src/inference/pipeline/logits/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9518
+    },
+    {
+      "path": "/src/inference/pipeline/logits/types.js",
+      "url": "/src/inference/pipeline/logits/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 151
+    },
+    {
+      "path": "/src/inference/pipeline/logits/utils.js",
+      "url": "/src/inference/pipeline/logits/utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1306
+    },
+    {
+      "path": "/src/inference/pipeline/lora-apply.js",
+      "url": "/src/inference/pipeline/lora-apply.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2296
+    },
+    {
+      "path": "/src/inference/pipeline/lora-types.js",
+      "url": "/src/inference/pipeline/lora-types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 371
+    },
+    {
+      "path": "/src/inference/pipeline/lora.js",
+      "url": "/src/inference/pipeline/lora.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 355
+    },
+    {
+      "path": "/src/inference/pipeline/moe-cache.js",
+      "url": "/src/inference/pipeline/moe-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3213
+    },
+    {
+      "path": "/src/inference/pipeline/moe-cpu.js",
+      "url": "/src/inference/pipeline/moe-cpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3484
+    },
+    {
+      "path": "/src/inference/pipeline/moe-gpu.js",
+      "url": "/src/inference/pipeline/moe-gpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 20166
+    },
+    {
+      "path": "/src/inference/pipeline/moe-helpers.js",
+      "url": "/src/inference/pipeline/moe-helpers.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 677
+    },
+    {
+      "path": "/src/inference/pipeline/moe-impl.js",
+      "url": "/src/inference/pipeline/moe-impl.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 377
+    },
+    {
+      "path": "/src/inference/pipeline/ops.js",
+      "url": "/src/inference/pipeline/ops.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5106
+    },
+    {
+      "path": "/src/inference/pipeline/probes.js",
+      "url": "/src/inference/pipeline/probes.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5331
+    },
+    {
+      "path": "/src/inference/pipeline/sampling.js",
+      "url": "/src/inference/pipeline/sampling.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4591
+    },
+    {
+      "path": "/src/inference/pipeline/state.js",
+      "url": "/src/inference/pipeline/state.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2668
+    },
+    {
+      "path": "/src/inference/pipeline/types.js",
+      "url": "/src/inference/pipeline/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 72
+    },
+    {
+      "path": "/src/inference/pipeline/weights.js",
+      "url": "/src/inference/pipeline/weights.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4484
+    },
+    {
+      "path": "/src/inference/speculative.js",
+      "url": "/src/inference/speculative.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8113
+    },
+    {
+      "path": "/src/inference/test-harness.js",
+      "url": "/src/inference/test-harness.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9905
+    },
+    {
+      "path": "/src/inference/tokenizer.js",
+      "url": "/src/inference/tokenizer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6256
+    },
+    {
+      "path": "/src/inference/tokenizers/base.js",
+      "url": "/src/inference/tokenizers/base.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1697
+    },
+    {
+      "path": "/src/inference/tokenizers/bpe.js",
+      "url": "/src/inference/tokenizers/bpe.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3828
+    },
+    {
+      "path": "/src/inference/tokenizers/bundled.js",
+      "url": "/src/inference/tokenizers/bundled.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 26783
+    },
+    {
+      "path": "/src/inference/tokenizers/sentencepiece.js",
+      "url": "/src/inference/tokenizers/sentencepiece.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 11091
+    },
+    {
+      "path": "/src/inference/tokenizers/types.js",
+      "url": "/src/inference/tokenizers/types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 155
+    },
+    {
+      "path": "/src/loader/doppler-loader.js",
+      "url": "/src/loader/doppler-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 25367
+    },
+    {
+      "path": "/src/loader/dtype-utils.js",
+      "url": "/src/loader/dtype-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3323
+    },
+    {
+      "path": "/src/loader/embedding-loader.js",
+      "url": "/src/loader/embedding-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5083
+    },
+    {
+      "path": "/src/loader/expert-cache.js",
+      "url": "/src/loader/expert-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7781
+    },
+    {
+      "path": "/src/loader/expert-loader.js",
+      "url": "/src/loader/expert-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 9342
+    },
+    {
+      "path": "/src/loader/final-weights-loader.js",
+      "url": "/src/loader/final-weights-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6780
+    },
+    {
+      "path": "/src/loader/layer-loader.js",
+      "url": "/src/loader/layer-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7824
+    },
+    {
+      "path": "/src/loader/loader-state.js",
+      "url": "/src/loader/loader-state.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3237
+    },
+    {
+      "path": "/src/loader/loader-types.js",
+      "url": "/src/loader/loader-types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 79
+    },
+    {
+      "path": "/src/loader/lora-loader.js",
+      "url": "/src/loader/lora-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3399
+    },
+    {
+      "path": "/src/loader/lora-utils.js",
+      "url": "/src/loader/lora-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1689
+    },
+    {
+      "path": "/src/loader/manifest-config.js",
+      "url": "/src/loader/manifest-config.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4617
+    },
+    {
+      "path": "/src/loader/memory-monitor.js",
+      "url": "/src/loader/memory-monitor.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5998
+    },
+    {
+      "path": "/src/loader/multi-model-loader.js",
+      "url": "/src/loader/multi-model-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2352
+    },
+    {
+      "path": "/src/loader/quantization-constants.js",
+      "url": "/src/loader/quantization-constants.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 275
+    },
+    {
+      "path": "/src/loader/shard-cache.js",
+      "url": "/src/loader/shard-cache.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8812
+    },
+    {
+      "path": "/src/loader/shard-resolver.js",
+      "url": "/src/loader/shard-resolver.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2744
+    },
+    {
+      "path": "/src/loader/tensor-loader.js",
+      "url": "/src/loader/tensor-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 13074
+    },
+    {
+      "path": "/src/loader/tensor-reader.js",
+      "url": "/src/loader/tensor-reader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1331
+    },
+    {
+      "path": "/src/loader/tensor-role.js",
+      "url": "/src/loader/tensor-role.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 380
+    },
+    {
+      "path": "/src/loader/weight-downcast.js",
+      "url": "/src/loader/weight-downcast.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5715
+    },
+    {
+      "path": "/src/loader/weights.js",
+      "url": "/src/loader/weights.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 74
+    },
+    {
+      "path": "/src/memory/address-table.js",
+      "url": "/src/memory/address-table.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3033
+    },
+    {
+      "path": "/src/memory/buffer-pool.js",
+      "url": "/src/memory/buffer-pool.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15871
+    },
+    {
+      "path": "/src/memory/capability.js",
+      "url": "/src/memory/capability.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2636
+    },
+    {
+      "path": "/src/memory/heap-manager.js",
+      "url": "/src/memory/heap-manager.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7107
+    },
+    {
+      "path": "/src/memory/unified-detect.js",
+      "url": "/src/memory/unified-detect.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5785
+    },
+    {
+      "path": "/src/rules/converter/tensor-roles.rules.json",
+      "url": "/src/rules/converter/tensor-roles.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 576
+    },
+    {
+      "path": "/src/rules/converter/tokenizer.rules.json",
+      "url": "/src/rules/converter/tokenizer.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 172
+    },
+    {
+      "path": "/src/rules/inference/attention.rules.json",
+      "url": "/src/rules/inference/attention.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 465
+    },
+    {
+      "path": "/src/rules/inference/config.rules.json",
+      "url": "/src/rules/inference/config.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 357
+    },
+    {
+      "path": "/src/rules/inference/dtype.rules.json",
+      "url": "/src/rules/inference/dtype.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 2129
+    },
+    {
+      "path": "/src/rules/inference/ffn.rules.json",
+      "url": "/src/rules/inference/ffn.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 503
+    },
+    {
+      "path": "/src/rules/inference/layer-pattern.rules.json",
+      "url": "/src/rules/inference/layer-pattern.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 896
+    },
+    {
+      "path": "/src/rules/inference/layer.rules.json",
+      "url": "/src/rules/inference/layer.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 188
+    },
+    {
+      "path": "/src/rules/inference/moe.rules.json",
+      "url": "/src/rules/inference/moe.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1187
+    },
+    {
+      "path": "/src/rules/kernels/attention.rules.json",
+      "url": "/src/rules/kernels/attention.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1620
+    },
+    {
+      "path": "/src/rules/kernels/dequant.rules.json",
+      "url": "/src/rules/kernels/dequant.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 786
+    },
+    {
+      "path": "/src/rules/kernels/fused-ffn.rules.json",
+      "url": "/src/rules/kernels/fused-ffn.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 480
+    },
+    {
+      "path": "/src/rules/kernels/fused-matmul-residual.rules.json",
+      "url": "/src/rules/kernels/fused-matmul-residual.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 116
+    },
+    {
+      "path": "/src/rules/kernels/fused-matmul-rmsnorm.rules.json",
+      "url": "/src/rules/kernels/fused-matmul-rmsnorm.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 252
+    },
+    {
+      "path": "/src/rules/kernels/gather.rules.json",
+      "url": "/src/rules/kernels/gather.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 602
+    },
+    {
+      "path": "/src/rules/kernels/gelu.rules.json",
+      "url": "/src/rules/kernels/gelu.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 248
+    },
+    {
+      "path": "/src/rules/kernels/matmul.rules.json",
+      "url": "/src/rules/kernels/matmul.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 2612
+    },
+    {
+      "path": "/src/rules/kernels/moe.rules.json",
+      "url": "/src/rules/kernels/moe.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 347
+    },
+    {
+      "path": "/src/rules/kernels/residual.rules.json",
+      "url": "/src/rules/kernels/residual.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 418
+    },
+    {
+      "path": "/src/rules/kernels/rmsnorm.rules.json",
+      "url": "/src/rules/kernels/rmsnorm.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 465
+    },
+    {
+      "path": "/src/rules/kernels/rope.rules.json",
+      "url": "/src/rules/kernels/rope.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 124
+    },
+    {
+      "path": "/src/rules/kernels/sample.rules.json",
+      "url": "/src/rules/kernels/sample.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 109
+    },
+    {
+      "path": "/src/rules/kernels/scale.rules.json",
+      "url": "/src/rules/kernels/scale.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 121
+    },
+    {
+      "path": "/src/rules/kernels/silu.rules.json",
+      "url": "/src/rules/kernels/silu.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 892
+    },
+    {
+      "path": "/src/rules/kernels/softmax.rules.json",
+      "url": "/src/rules/kernels/softmax.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 487
+    },
+    {
+      "path": "/src/rules/kernels/split-qkv.rules.json",
+      "url": "/src/rules/kernels/split-qkv.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 122
+    },
+    {
+      "path": "/src/rules/loader/tensor-loader.rules.json",
+      "url": "/src/rules/loader/tensor-loader.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 631
+    },
+    {
+      "path": "/src/rules/loader/weights.rules.json",
+      "url": "/src/rules/loader/weights.rules.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1752
+    },
+    {
+      "path": "/src/rules/rule-registry.js",
+      "url": "/src/rules/rule-registry.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5370
+    },
+    {
+      "path": "/src/simulator/index.js",
+      "url": "/src/simulator/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8284
+    },
+    {
+      "path": "/src/simulator/nvlink-c2c.js",
+      "url": "/src/simulator/nvlink-c2c.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8238
+    },
+    {
+      "path": "/src/simulator/nvlink-fabric.js",
+      "url": "/src/simulator/nvlink-fabric.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15608
+    },
+    {
+      "path": "/src/simulator/timing-model.js",
+      "url": "/src/simulator/timing-model.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8281
+    },
+    {
+      "path": "/src/simulator/virtual-cluster.js",
+      "url": "/src/simulator/virtual-cluster.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3378
+    },
+    {
+      "path": "/src/simulator/virtual-cpu.js",
+      "url": "/src/simulator/virtual-cpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2540
+    },
+    {
+      "path": "/src/simulator/virtual-device.js",
+      "url": "/src/simulator/virtual-device.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 282
+    },
+    {
+      "path": "/src/simulator/virtual-gpu.js",
+      "url": "/src/simulator/virtual-gpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10542
+    },
+    {
+      "path": "/src/simulator/virtual-utils.js",
+      "url": "/src/simulator/virtual-utils.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 257
+    },
+    {
+      "path": "/src/storage/backends/idb-store.js",
+      "url": "/src/storage/backends/idb-store.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 10427
+    },
+    {
+      "path": "/src/storage/backends/memory-store.js",
+      "url": "/src/storage/backends/memory-store.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4801
+    },
+    {
+      "path": "/src/storage/backends/opfs-store.js",
+      "url": "/src/storage/backends/opfs-store.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7196
+    },
+    {
+      "path": "/src/storage/blake3.js",
+      "url": "/src/storage/blake3.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6842
+    },
+    {
+      "path": "/src/storage/download-types.js",
+      "url": "/src/storage/download-types.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 980
+    },
+    {
+      "path": "/src/storage/downloader.js",
+      "url": "/src/storage/downloader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 21792
+    },
+    {
+      "path": "/src/storage/emulated-vram.js",
+      "url": "/src/storage/emulated-vram.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15508
+    },
+    {
+      "path": "/src/storage/preflight.js",
+      "url": "/src/storage/preflight.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8329
+    },
+    {
+      "path": "/src/storage/quickstart-downloader.js",
+      "url": "/src/storage/quickstart-downloader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6403
+    },
+    {
+      "path": "/src/storage/quota.js",
+      "url": "/src/storage/quota.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 7103
+    },
+    {
+      "path": "/src/storage/rdrr-format.js",
+      "url": "/src/storage/rdrr-format.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 44
+    },
+    {
+      "path": "/src/storage/shard-manager.js",
+      "url": "/src/storage/shard-manager.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 15150
+    },
+    {
+      "path": "/src/sw-module-loader.js",
+      "url": "/src/sw-module-loader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3213
+    },
+    {
+      "path": "/src/training/attention-backward.js",
+      "url": "/src/training/attention-backward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 6740
+    },
+    {
+      "path": "/src/training/attention-forward.js",
+      "url": "/src/training/attention-forward.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1656
+    },
+    {
+      "path": "/src/training/autograd.js",
+      "url": "/src/training/autograd.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5771
+    },
+    {
+      "path": "/src/training/checkpoint.js",
+      "url": "/src/training/checkpoint.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1406
+    },
+    {
+      "path": "/src/training/clip.js",
+      "url": "/src/training/clip.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1118
+    },
+    {
+      "path": "/src/training/dataloader.js",
+      "url": "/src/training/dataloader.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 913
+    },
+    {
+      "path": "/src/training/datasets/index.js",
+      "url": "/src/training/datasets/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 267
+    },
+    {
+      "path": "/src/training/datasets/jsonl.js",
+      "url": "/src/training/datasets/jsonl.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1205
+    },
+    {
+      "path": "/src/training/datasets/reploid.js",
+      "url": "/src/training/datasets/reploid.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1077
+    },
+    {
+      "path": "/src/training/datasets/text-pairs.js",
+      "url": "/src/training/datasets/text-pairs.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1138
+    },
+    {
+      "path": "/src/training/datasets/token-batch.js",
+      "url": "/src/training/datasets/token-batch.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1410
+    },
+    {
+      "path": "/src/training/export.js",
+      "url": "/src/training/export.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2953
+    },
+    {
+      "path": "/src/training/index.js",
+      "url": "/src/training/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 749
+    },
+    {
+      "path": "/src/training/lora.js",
+      "url": "/src/training/lora.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1673
+    },
+    {
+      "path": "/src/training/loss-scaling.js",
+      "url": "/src/training/loss-scaling.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2170
+    },
+    {
+      "path": "/src/training/loss.js",
+      "url": "/src/training/loss.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1365
+    },
+    {
+      "path": "/src/training/optimizer.js",
+      "url": "/src/training/optimizer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1315
+    },
+    {
+      "path": "/src/training/runner.js",
+      "url": "/src/training/runner.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 4051
+    },
+    {
+      "path": "/src/training/trainer.js",
+      "url": "/src/training/trainer.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1881
+    },
+    {
+      "path": "/src/types/gpu.js",
+      "url": "/src/types/gpu.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 99
+    },
+    {
+      "path": "/src/types/index.js",
+      "url": "/src/types/index.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 86
+    },
+    {
+      "path": "/src/types/inference.js",
+      "url": "/src/types/inference.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 105
+    },
+    {
+      "path": "/src/types/model.js",
+      "url": "/src/types/model.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 101
+    }
+  ]
+}

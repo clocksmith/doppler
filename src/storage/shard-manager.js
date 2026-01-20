@@ -10,6 +10,7 @@ import {
   checkSpaceAvailable,
 } from './quota.js';
 import { log } from '../debug/index.js';
+import { createHasher as createBlake3Hasher, hash as blake3Hash } from './blake3.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
@@ -80,20 +81,20 @@ async function initBlake3(requiredAlgorithm = null) {
   if (blake3Module && hashAlgorithm) return;
 
   try {
-    const globalBlake3 = globalThis.blake3;
-    if (globalBlake3 !== undefined) {
-      blake3Module = globalBlake3;
-      hashAlgorithm = 'blake3';
-      return;
-    }
+    blake3Module = {
+      hash: blake3Hash,
+      createHasher: createBlake3Hasher,
+    };
+    hashAlgorithm = 'blake3';
+    return;
   } catch (e) {
-    log.warn('ShardManager', `BLAKE3 WASM module not available: ${e.message}`);
+    log.warn('ShardManager', `BLAKE3 module not available: ${e.message}`);
   }
 
   if (requiredAlgorithm === 'blake3') {
     throw new Error(
       'BLAKE3 required by manifest but not available. ' +
-      'Install blake3 WASM module or re-convert model with SHA-256.'
+      'Install the JS blake3 module or re-convert model with SHA-256.'
     );
   }
 

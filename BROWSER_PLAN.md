@@ -280,19 +280,20 @@ G) Optional VFS Boot
 ## Task Breakdown (Parallelizable)
 
 Agent 1 - Hashing and Storage Integration
-- Implement a pure JS blake3 hasher.
-  - Add `src/storage/blake3.js` (or `src/storage/hashers/blake3.js`).
-  - Expose `hash(bytes: Uint8Array): Promise<Uint8Array>` and `createHasher(): { update(bytes), finalize(): Promise<Uint8Array> }`.
-  - No WASM usage. Keep it self-contained.
-- Wire blake3 into `src/storage/shard-manager.js`.
-  - Replace `initBlake3` to use the JS hasher.
-  - Ensure `createStreamingHasher()` and `computeHash()` pick blake3 when requested.
-  - Update error messages to note JS-only blake3 requirement.
-- Add verification tests.
-  - Create a small test file (location TBD) with known blake3 vectors.
-  - Validate `computeHash()` and streaming hasher output.
+- [x] Implement a pure JS blake3 hasher.
+  - [x] Add `src/storage/blake3.js` (or `src/storage/hashers/blake3.js`).
+  - [x] Expose `hash(bytes: Uint8Array): Promise<Uint8Array>` and `createHasher(): { update(bytes), finalize(): Promise<Uint8Array> }`.
+  - [x] No WASM usage. Keep it self-contained.
+- [x] Wire blake3 into `src/storage/shard-manager.js`.
+  - [x] Replace `initBlake3` to use the JS hasher.
+  - [x] Ensure `createStreamingHasher()` and `computeHash()` pick blake3 when requested.
+  - [x] Update error messages to note JS-only blake3 requirement.
+- [ ] Add verification tests.
+  - [ ] Create a small test file (location TBD) with known blake3 vectors.
+  - [ ] Validate `computeHash()` and streaming hasher output.
 - Deliverables
-  - Pure JS blake3 module, shard-manager integration, tests.
+  - [x] Pure JS blake3 module and shard-manager integration.
+  - [ ] Tests for blake3 hash and streaming hasher.
 
 Agent 2 - Streaming Shard Packer + Group Hashes
 - Extend shard packing to support streaming tensor chunks.

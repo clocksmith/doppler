@@ -527,7 +527,7 @@
     console.log('[LogBridge] Console proxy active (app)');
   </script>
 
-  <!-- Module Scripts (built from TypeScript via ./build.sh) -->
-  <script type="module" src="./app.js"></script>
+  <!-- Bootstrap entry (registers VFS + loads app) -->
+  <script type="module" src="/bootstrap.js"></script>
 </body>
 </html>
