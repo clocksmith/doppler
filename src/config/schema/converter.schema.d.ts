@@ -32,6 +32,10 @@ export interface ConverterShardingConfigSchema {
   shardSizeBytes: number;
 }
 
+export interface ConverterStreamingConfigSchema {
+  chunkSizeBytes: number;
+}
+
 export interface ConverterWeightLayoutConfigSchema {
   transposeWeights: boolean;
   fuseGateUp: boolean;
@@ -56,6 +60,7 @@ export interface ConverterPresetConfigSchema {
 export interface ConverterConfigSchema {
   quantization: ConverterQuantizationConfigSchema;
   sharding: ConverterShardingConfigSchema;
+  streaming: ConverterStreamingConfigSchema;
   weightLayout: ConverterWeightLayoutConfigSchema;
   manifest: ConverterManifestConfigSchema;
   output: ConverterOutputConfigSchema;
@@ -64,6 +69,7 @@ export interface ConverterConfigSchema {
 
 export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;
 export declare const DEFAULT_CONVERTER_SHARDING_CONFIG: ConverterShardingConfigSchema;
+export declare const DEFAULT_CONVERTER_STREAMING_CONFIG: ConverterStreamingConfigSchema;
 export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayoutConfigSchema;
 export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
 export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;

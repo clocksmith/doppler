@@ -74,6 +74,10 @@ export function createShardWriter(
   shardIndex: number
 ): Promise<ShardWriteStream>;
 
+export function createConversionShardWriter(
+  shardIndex: number
+): Promise<ShardWriteStream>;
+
 export function loadShard(
   shardIndex: number,
   options?: ShardReadOptions

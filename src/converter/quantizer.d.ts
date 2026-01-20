@@ -32,6 +32,8 @@ export declare function float32ToFloat16(value: number): number;
 
 export declare function float16ToFloat32(h: number): number;
 
+export declare function quantizeQ4KBlock(data: Float32Array, offset: number): Uint8Array;
+
 /**
  * Flat Q4K quantization (original behavior).
  * Packs all elements sequentially - blocks may cross row boundaries.

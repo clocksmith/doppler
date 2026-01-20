@@ -288,42 +288,42 @@ Agent 1 - Hashing and Storage Integration
   - [x] Replace `initBlake3` to use the JS hasher.
   - [x] Ensure `createStreamingHasher()` and `computeHash()` pick blake3 when requested.
   - [x] Update error messages to note JS-only blake3 requirement.
-- [ ] Add verification tests.
-  - [ ] Create a small test file (location TBD) with known blake3 vectors.
-  - [ ] Validate `computeHash()` and streaming hasher output.
-- Deliverables
+- [x] Add verification tests.
+  - [x] Create a small test file (location TBD) with known blake3 vectors.
+  - [x] Validate `computeHash()` and streaming hasher output.
+- [x] Deliverables
   - [x] Pure JS blake3 module and shard-manager integration.
-  - [ ] Tests for blake3 hash and streaming hasher.
+  - [x] Tests for blake3 hash and streaming hasher.
 
 Agent 2 - Streaming Shard Packer + Group Hashes
-- Extend shard packing to support streaming tensor chunks.
-  - Update `src/converter/shard-packer.js`.
-  - Accept a streaming tensor interface: `getChunks(): AsyncIterable<Uint8Array>`.
-  - Maintain per-tensor spans and per-shard offsets while streaming.
-- Add per-group hash tracking.
-  - Maintain per-group hashers and update with tensor chunk bytes.
-  - Populate `manifest.groups[*].hash` in pack output.
-- Add converter chunk size config.
-  - Extend `src/config/schema/converter.schema.js` and `.d.ts` to include `streaming.chunkSizeBytes`.
-  - Propagate in `createConverterConfig()` and schema exports.
-- Deliverables
-  - Streaming-capable shard packer, group hash output, config for chunk size.
+- [x] Extend shard packing to support streaming tensor chunks.
+  - [x] Update `src/converter/shard-packer.js`.
+  - [x] Accept a streaming tensor interface: `getChunks(): AsyncIterable<Uint8Array>`.
+  - [x] Maintain per-tensor spans and per-shard offsets while streaming.
+- [x] Add per-group hash tracking.
+  - [x] Maintain per-group hashers and update with tensor chunk bytes.
+  - [x] Populate `manifest.groups[*].hash` in pack output.
+- [x] Add converter chunk size config.
+  - [x] Extend `src/config/schema/converter.schema.js` and `.d.ts` to include `streaming.chunkSizeBytes`.
+  - [x] Propagate in `createConverterConfig()` and schema exports.
+- [x] Deliverables
+  - [x] Streaming-capable shard packer, group hash output, config for chunk size.
 
 Agent 3 - Browser Converter Orchestration
-- Update browser conversion flow.
-  - File: `src/browser/browser-converter.js`.
-  - Use streaming shard packer API from Agent 2.
-  - Read chunk size from `converter.streaming.chunkSizeBytes`.
-- Storage preflight.
-  - Call `requestPersistence()` and `checkSpaceAvailable()` before conversion.
-  - Report backend selection (OPFS vs IDB) in progress callbacks.
-- Tokenizer persistence and manifest updates.
-  - Save `tokenizer.json` using `saveTokenizer()`.
-  - Ensure `manifest.tokenizer.file = "tokenizer.json"`.
-- Temporary download cleanup.
-  - If conversion used download-first fallback, delete temporary source files after success.
-- Deliverables
-  - Browser conversion uses streaming packer, stores tokenizer, preflights storage, and cleans temp sources.
+- [x] Update browser conversion flow.
+  - [x] File: `src/browser/browser-converter.js`.
+  - [x] Use streaming shard packer API from Agent 2.
+  - [x] Read chunk size from `converter.streaming.chunkSizeBytes`.
+- [x] Storage preflight.
+  - [x] Call `requestPersistence()` and `checkSpaceAvailable()` before conversion.
+  - [x] Report backend selection (OPFS vs IDB) in progress callbacks.
+- [x] Tokenizer persistence and manifest updates.
+  - [x] Save `tokenizer.json` using `saveTokenizer()`.
+  - [x] Ensure `manifest.tokenizer.file = "tokenizer.json"`.
+- [x] Temporary download cleanup.
+  - [x] If conversion used download-first fallback, delete temporary source files after success.
+- [x] Deliverables
+  - [x] Browser conversion uses streaming packer, stores tokenizer, preflights storage, and cleans temp sources.
 
 Agent 4 - TensorSource Abstraction + Remote Support
 - Implement TensorSource types.

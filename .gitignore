@@ -45,5 +45,9 @@ functiongemma-safetensors/
 test-results/
 tests/results/*.json
 tests/results/*.html
+tests/results/kernel-path-grid/profiles-*/
 kernel-tests/results/
 playwright-report/
+
+# Experiments
+experimental/

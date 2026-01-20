@@ -8,6 +8,7 @@
  */
 
 import type { SafetensorsTensor as CoreSafetensorsTensor, SafetensorsIndexJson } from '../formats/safetensors.js';
+import type { TensorSource } from './tensor-source-file.js';
 
 export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
 
@@ -18,6 +19,7 @@ export type { SafetensorsDtype, SafetensorsIndexJson } from '../formats/safetens
  */
 export type SafetensorsTensor = CoreSafetensorsTensor & {
   file?: File;
+  source?: TensorSource;
   elemSize: number;
   dtypeOriginal: string;
 };
@@ -30,7 +32,8 @@ export interface ParsedSafetensorsFile {
   dataOffset: number;
   metadata: Record<string, unknown>;
   tensors: SafetensorsTensor[];
-  file: File;
+  file?: File;
+  source: TensorSource;
   fileSize: number;
   fileName: string;
   config?: ModelConfig;
@@ -52,7 +55,7 @@ export interface ParsedSafetensorsSharded {
   metadata: Record<string, unknown>;
   shards: ShardInfo[];
   tensors: SafetensorsTensor[];
-  fileMap: Map<string, File>;
+  fileMap: Map<string, TensorSource>;
   config?: ModelConfig;
 }
 
@@ -61,35 +64,35 @@ export interface ParsedSafetensorsSharded {
  */
 export interface ModelFormatInfo {
   type: 'single' | 'sharded' | 'sharded-no-index' | 'gguf' | 'unknown';
-  indexFile?: File;
-  safetensorsFile?: File;
-  safetensorsFiles?: File[];
-  ggufFile?: File;
-  files?: File[];
+  indexFile?: File | TensorSource;
+  safetensorsFile?: File | TensorSource;
+  safetensorsFiles?: Array<File | TensorSource>;
+  ggufFile?: File | TensorSource;
+  files?: Array<File | TensorSource>;
 }
 
 /**
  * Auxiliary files from model directory
  */
 export interface AuxiliaryFiles {
-  config?: File;
-  tokenizerConfig?: File;
-  tokenizer?: File;
-  tokenizerModel?: File;
-  specialTokensMap?: File;
-  generationConfig?: File;
+  config?: File | TensorSource;
+  tokenizerConfig?: File | TensorSource;
+  tokenizer?: File | TensorSource;
+  tokenizerModel?: File | TensorSource;
+  specialTokensMap?: File | TensorSource;
+  generationConfig?: File | TensorSource;
 }
 
 /**
  * Parse safetensors header from File object
  */
-export declare function parseSafetensorsFile(file: File): Promise<ParsedSafetensorsFile>;
+export declare function parseSafetensorsFile(file: File | TensorSource): Promise<ParsedSafetensorsFile>;
 
 /**
  * Parse sharded safetensors model from multiple files
  */
 export declare function parseSafetensorsSharded(
-  files: File[],
+  files: Array<File | TensorSource>,
   indexJson?: SafetensorsIndexJson | null
 ): Promise<ParsedSafetensorsSharded>;
 
@@ -109,29 +112,29 @@ export declare function streamTensorData(
 /**
  * Parse config.json from File
  */
-export declare function parseConfigJson(configFile: File): Promise<Record<string, unknown>>;
+export declare function parseConfigJson(configFile: File | TensorSource): Promise<Record<string, unknown>>;
 
-export declare function parseTokenizerConfigJson(tokenizerConfigFile: File): Promise<Record<string, unknown>>;
+export declare function parseTokenizerConfigJson(tokenizerConfigFile: File | TensorSource): Promise<Record<string, unknown>>;
 
 /**
  * Parse tokenizer.json from File
  */
-export declare function parseTokenizerJson(tokenizerFile: File): Promise<Record<string, unknown>>;
+export declare function parseTokenizerJson(tokenizerFile: File | TensorSource): Promise<Record<string, unknown>>;
 
 /**
  * Parse model.safetensors.index.json from File
  */
-export declare function parseIndexJson(indexFile: File): Promise<SafetensorsIndexJson>;
+export declare function parseIndexJson(indexFile: File | TensorSource): Promise<SafetensorsIndexJson>;
 
 /**
  * Detect model format from selected files
  */
-export declare function detectModelFormat(files: File[]): ModelFormatInfo;
+export declare function detectModelFormat(files: Array<File | TensorSource>): ModelFormatInfo;
 
 /**
  * Get auxiliary files from selection
  */
-export declare function getAuxiliaryFiles(files: File[]): AuxiliaryFiles;
+export declare function getAuxiliaryFiles(files: Array<File | TensorSource>): AuxiliaryFiles;
 
 /**
  * Calculate total model size

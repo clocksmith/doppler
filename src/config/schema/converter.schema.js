@@ -1,5 +1,6 @@
 import { SHARD_SIZE } from './manifest.schema.js';
 import { DEFAULT_QUANTIZATION_DEFAULTS } from './quantization-defaults.schema.js';
+import { MB } from './units.schema.js';
 
 // =============================================================================
 // Converter Config
@@ -19,6 +20,10 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
 
 export const DEFAULT_CONVERTER_SHARDING_CONFIG = {
   shardSizeBytes: SHARD_SIZE,
+};
+
+export const DEFAULT_CONVERTER_STREAMING_CONFIG = {
+  chunkSizeBytes: 64 * MB,
 };
 
 export const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG = {
@@ -45,6 +50,7 @@ export const DEFAULT_CONVERTER_PRESET_CONFIG = {
 export const DEFAULT_CONVERTER_CONFIG = {
   quantization: DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
   sharding: DEFAULT_CONVERTER_SHARDING_CONFIG,
+  streaming: DEFAULT_CONVERTER_STREAMING_CONFIG,
   weightLayout: DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
@@ -56,6 +62,7 @@ export function createConverterConfig(overrides) {
     return {
       quantization: { ...DEFAULT_CONVERTER_QUANTIZATION_CONFIG },
       sharding: { ...DEFAULT_CONVERTER_SHARDING_CONFIG },
+      streaming: { ...DEFAULT_CONVERTER_STREAMING_CONFIG },
       weightLayout: { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG },
       manifest: { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
       output: { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
@@ -70,6 +77,9 @@ export function createConverterConfig(overrides) {
     sharding: overrides.sharding
       ? { ...DEFAULT_CONVERTER_SHARDING_CONFIG, ...overrides.sharding }
       : { ...DEFAULT_CONVERTER_SHARDING_CONFIG },
+    streaming: overrides.streaming
+      ? { ...DEFAULT_CONVERTER_STREAMING_CONFIG, ...overrides.streaming }
+      : { ...DEFAULT_CONVERTER_STREAMING_CONFIG },
     weightLayout: overrides.weightLayout
       ? { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG, ...overrides.weightLayout }
       : { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG },

@@ -136,6 +136,7 @@ export {
   type ComputePrecision,
   type ConverterQuantizationConfigSchema,
   type ConverterShardingConfigSchema,
+  type ConverterStreamingConfigSchema,
   type ConverterWeightLayoutConfigSchema,
   type ConverterManifestConfigSchema,
   type ConverterOutputConfigSchema,
@@ -145,6 +146,7 @@ export {
   // Defaults
   DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
   DEFAULT_CONVERTER_SHARDING_CONFIG,
+  DEFAULT_CONVERTER_STREAMING_CONFIG,
   DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
   DEFAULT_CONVERTER_MANIFEST_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,

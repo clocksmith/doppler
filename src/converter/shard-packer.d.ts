@@ -22,6 +22,19 @@ import type {
 export interface ShardIO {
   writeShard(index: number, data: Uint8Array): Promise<string>;
   computeHash(data: Uint8Array): Promise<string>;
+  createShardWriter?: (index: number) => Promise<ShardWriteStream>;
+  createHasher?: () => StreamingHasher | Promise<StreamingHasher>;
+}
+
+export interface ShardWriteStream {
+  write(chunk: Uint8Array): Promise<void>;
+  close(): Promise<void>;
+  abort(): Promise<void>;
+}
+
+export interface StreamingHasher {
+  update(data: Uint8Array): void;
+  finalize(): Uint8Array | Promise<Uint8Array>;
 }
 
 /**
@@ -91,6 +104,7 @@ export interface PackerTensorInput {
   dtype: string;
   size: number;
   getData: () => Promise<Uint8Array>;
+  getChunks?: () => AsyncIterable<Uint8Array>;
 }
 
 /**

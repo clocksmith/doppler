@@ -185,7 +185,6 @@ class Blake3Hasher {
     this.chunkLen = 0;
     this.chunkCounter = 0;
     this.cvStack = [];
-    this.lastChunkOutput = null;
   }
 
   update(data) {
@@ -213,46 +212,43 @@ class Blake3Hasher {
       this.chunkLen = 0;
     }
 
-    let cv = null;
-    let rootOutput = null;
-
     if (this.cvStack.length === 0) {
-      rootOutput = this.lastChunkOutput;
-    } else {
-      cv = this.cvStack.pop().cv;
-      while (this.cvStack.length > 0) {
-        const left = this.cvStack.pop().cv;
-        if (this.cvStack.length === 0) {
-          rootOutput = parentOutput(left, cv, this.key);
-        }
-        cv = parentCv(left, cv, this.key);
-      }
-      if (!rootOutput) {
-        rootOutput = this.lastChunkOutput;
-      }
+      throw new Error('BLAKE3 finalize called with no chunks.');
     }
 
-    return outputBytes(rootOutput, OUT_LEN);
+    let right = this.cvStack.pop();
+    while (this.cvStack.length > 0) {
+      const left = this.cvStack.pop();
+      const output = parentOutput(left.cv, right.cv, this.key);
+      right = {
+        cv: parentCv(left.cv, right.cv, this.key),
+        output,
+        level: left.level + 1,
+      };
+    }
+
+    return outputBytes(right.output, OUT_LEN);
   }
 
   #commitChunk(chunkBytes, chunkLen) {
     const { cv, output } = createChunkOutput(chunkBytes, chunkLen, this.chunkCounter, this.key);
-    this.lastChunkOutput = output;
     this.chunkCounter += 1;
-    this.#pushCv(cv);
+    this.#pushCv(cv, output);
   }
 
-  #pushCv(cv) {
+  #pushCv(cv, output) {
     let level = 0;
     let current = cv;
+    let currentOutput = output;
 
     while (this.cvStack.length > 0 && this.cvStack[this.cvStack.length - 1].level === level) {
-      const left = this.cvStack.pop().cv;
-      current = parentCv(left, current, this.key);
+      const left = this.cvStack.pop();
+      currentOutput = parentOutput(left.cv, current, this.key);
+      current = parentCv(left.cv, current, this.key);
       level += 1;
     }
 
-    this.cvStack.push({ cv: current, level });
+    this.cvStack.push({ cv: current, output: currentOutput, level });
   }
 }
 

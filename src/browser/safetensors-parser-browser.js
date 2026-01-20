@@ -13,6 +13,7 @@ import {
   parseTokenizerConfigJsonText,
 } from '../formats/tokenizer.js';
 import { MAX_HEADER_SIZE, MB } from '../config/schema/index.js';
+import { normalizeTensorSource } from './tensor-source-file.js';
 
 export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
 
@@ -21,8 +22,17 @@ export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
 // ============================================================================
 
 
+async function readTextFromSource(source) {
+  if (source?.file && typeof source.file.text === 'function') {
+    return source.file.text();
+  }
+  const buffer = await source.readRange(0, source.size);
+  return new TextDecoder().decode(buffer);
+}
+
 export async function parseSafetensorsFile(file) {
-  const headerSizeBuffer = await file.slice(0, 8).arrayBuffer();
+  const source = normalizeTensorSource(file);
+  const headerSizeBuffer = await source.readRange(0, 8);
   const headerSizeView = new DataView(headerSizeBuffer);
   const headerSizeLow = headerSizeView.getUint32(0, true);
   const headerSizeHigh = headerSizeView.getUint32(4, true);
@@ -31,7 +41,7 @@ export async function parseSafetensorsFile(file) {
     throw new Error(`Header too large: ${headerSize} bytes`);
   }
 
-  const headerBuffer = await file.slice(8, 8 + headerSize).arrayBuffer();
+  const headerBuffer = await source.readRange(8, headerSize);
   const combined = new Uint8Array(8 + headerSize);
   combined.set(new Uint8Array(headerSizeBuffer), 0);
   combined.set(new Uint8Array(headerBuffer), 8);
@@ -41,7 +51,8 @@ export async function parseSafetensorsFile(file) {
     ...tensor,
     elemSize: tensor.elemSize ?? DTYPE_SIZE[tensor.dtype] ?? 4,
     dtypeOriginal: tensor.dtypeOriginal ?? tensor.dtype,
-    file,
+    file: source.file,
+    source,
   }));
 
   return {
@@ -49,9 +60,10 @@ export async function parseSafetensorsFile(file) {
     dataOffset: parsedHeader.dataOffset,
     metadata: parsedHeader.metadata,
     tensors,
-    file,
-    fileSize: file.size,
-    fileName: file.name,
+    file: source.file,
+    source,
+    fileSize: source.size,
+    fileName: source.name,
   };
 }
 
@@ -62,7 +74,8 @@ export async function parseSafetensorsSharded(
 ) {
   const fileMap = new Map();
   for (const file of files) {
-    fileMap.set(file.name, file);
+    const source = normalizeTensorSource(file);
+    fileMap.set(source.name, source);
   }
 
   // If we have an index, use it to determine tensor locations
@@ -77,18 +90,19 @@ export async function parseSafetensorsSharded(
   const allTensors = [];
 
   for (const file of files) {
-    if (!file.name.endsWith('.safetensors')) continue;
+    const source = normalizeTensorSource(file);
+    if (!source.name.endsWith('.safetensors')) continue;
 
-    const parsed = await parseSafetensorsFile(file);
+    const parsed = await parseSafetensorsFile(source);
     shards.push({
-      file: file.name,
-      size: file.size,
+      file: source.name,
+      size: source.size,
       tensorCount: parsed.tensors.length,
     });
 
     // Add shard info to tensors
     for (const tensor of parsed.tensors) {
-      tensor.shardFile = file.name;
+      tensor.shardFile = source.name;
       allTensors.push(tensor);
     }
   }
@@ -103,13 +117,11 @@ export async function parseSafetensorsSharded(
 
 
 export async function readTensorData(tensor) {
-  const file = tensor.file;
-  if (!file) {
-    throw new Error('No file reference for tensor');
+  const source = tensor.source ?? (tensor.file ? normalizeTensorSource(tensor.file) : null);
+  if (!source) {
+    throw new Error('No source reference for tensor');
   }
-
-  const blob = file.slice(tensor.offset, tensor.offset + tensor.size);
-  return blob.arrayBuffer();
+  return source.readRange(tensor.offset, tensor.size);
 }
 
 
@@ -117,9 +129,9 @@ export async function* streamTensorData(
   tensor,
   chunkSize = 64 * MB
 ) {
-  const file = tensor.file;
-  if (!file) {
-    throw new Error('No file reference for tensor');
+  const source = tensor.source ?? (tensor.file ? normalizeTensorSource(tensor.file) : null);
+  if (!source) {
+    throw new Error('No source reference for tensor');
   }
 
   let offset = tensor.offset;
@@ -127,8 +139,7 @@ export async function* streamTensorData(
 
   while (offset < endOffset) {
     const end = Math.min(offset + chunkSize, endOffset);
-    const blob = file.slice(offset, end);
-    const buffer = await blob.arrayBuffer();
+    const buffer = await source.readRange(offset, end - offset);
     yield new Uint8Array(buffer);
     offset = end;
   }
@@ -136,24 +147,28 @@ export async function* streamTensorData(
 
 
 export async function parseConfigJson(configFile) {
-  const text = await configFile.text();
+  const source = normalizeTensorSource(configFile);
+  const text = await readTextFromSource(source);
   return parseConfigJsonText(text);
 }
 
 export async function parseTokenizerConfigJson(tokenizerConfigFile) {
-  const text = await tokenizerConfigFile.text();
+  const source = normalizeTensorSource(tokenizerConfigFile);
+  const text = await readTextFromSource(source);
   return parseTokenizerConfigJsonText(text);
 }
 
 
 export async function parseTokenizerJson(tokenizerFile) {
-  const text = await tokenizerFile.text();
+  const source = normalizeTensorSource(tokenizerFile);
+  const text = await readTextFromSource(source);
   return parseTokenizerJsonText(text);
 }
 
 
 export async function parseIndexJson(indexFile) {
-  const text = await indexFile.text();
+  const source = normalizeTensorSource(indexFile);
+  const text = await readTextFromSource(source);
   return parseSafetensorsIndexJsonText(text);
 }
 

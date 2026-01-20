@@ -2,6 +2,7 @@ import {
   getManifest,
   getShardInfo,
   getShardCount,
+  generateShardFilename,
 } from './rdrr-format.js';
 import {
   isOPFSAvailable,
@@ -309,6 +310,19 @@ export async function createShardWriter(shardIndex) {
     throw new Error('Storage backend does not support streaming writes');
   }
   return backend.createWriteStream(shardInfo.filename);
+}
+
+export async function createConversionShardWriter(shardIndex) {
+  await ensureBackend();
+  requireModel();
+  if (!Number.isInteger(shardIndex) || shardIndex < 0) {
+    throw new Error(`Invalid shard index: ${shardIndex}`);
+  }
+  if (!backend.createWriteStream) {
+    throw new Error('Storage backend does not support streaming writes');
+  }
+  const filename = generateShardFilename(shardIndex);
+  return backend.createWriteStream(filename);
 }
 
 export async function loadShard(shardIndex, options = { verify: false }) {

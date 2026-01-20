@@ -3,6 +3,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   hexToBytes,
   computeSHA256,
+  computeBlake3,
+  createStreamingHasher,
   getHashAlgorithm,
   getOpfsPathConfig,
   setOpfsPathConfig,
@@ -121,6 +123,27 @@ describe('storage/shard-manager', () => {
       const hash = await computeSHA256(data);
 
       expect(hash.length).toBe(64);
+    });
+  });
+
+  describe('computeBlake3', () => {
+    it('hashes empty input', async () => {
+      const empty = new Uint8Array(0);
+      const hash = await computeBlake3(empty);
+
+      expect(hash).toBe('af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262');
+    });
+
+    it('matches streaming hasher output', async () => {
+      const data = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+      const expected = await computeBlake3(data);
+      const hasher = await createStreamingHasher('blake3');
+      hasher.update(data.subarray(0, 3));
+      hasher.update(data.subarray(3));
+      const bytes = await hasher.finalize();
+
+      const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+      expect(hex).toBe(expected);
     });
   });
 

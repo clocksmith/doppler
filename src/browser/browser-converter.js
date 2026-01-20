@@ -1,6 +1,8 @@
 
 
-import { parseGGUFHeader } from './gguf-parser-browser.js';
+import { parseGGUFHeaderFromSource } from './gguf-parser-browser.js';
+import { isTensorSource, normalizeTensorSource } from './tensor-source-file.js';
+import { createRemoteTensorSource } from './tensor-source-download.js';
 import {
   parseSafetensorsFile,
   parseSafetensorsSharded,
@@ -8,23 +10,46 @@ import {
   parseTokenizerJson,
   parseIndexJson,
   readTensorData,
+  streamTensorData,
   detectModelFormat,
   getAuxiliaryFiles,
-  calculateTotalSize,
 } from './safetensors-parser-browser.js';
 import {
   initStorage,
   openModelStore,
   saveManifest,
+  saveTokenizer,
   deleteModel,
+  createConversionShardWriter,
+  computeHash,
+  createStreamingHasher,
+  getStorageBackendType,
 } from '../storage/shard-manager.js';
+import {
+  checkSpaceAvailable,
+  requestPersistence,
+  isOPFSAvailable,
+  isIndexedDBAvailable,
+  QuotaExceededError,
+} from '../storage/quota.js';
 
 // Import shared shard packing logic
 import {
   ShardPacker,
-  sortTensorsByGroup,
 } from '../converter/shard-packer.js';
-import { BrowserShardIO, isOPFSSupported } from './shard-io-browser.js';
+import { classifyTensorRole } from '../storage/rdrr-format.js';
+import {
+  buildQuantizationInfo,
+  resolveManifestQuantization,
+  resolveModelId,
+  resolveTensorDtype,
+  resolveQ4KLayout,
+  getQ4KOutputSize,
+  createQ4KChunkStream,
+  createF16ChunkStream,
+  decodeTensorToFloat32,
+  quantizeToQ4KColumnWise,
+} from './quantization.js';
 
 // Import shared types and functions from convert-core
 import {
@@ -37,15 +62,32 @@ import {
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
-import { HEADER_READ_SIZE } from '../config/schema/index.js';
 
 // Re-export types for consumers
 export {
   ConvertStage,
 };
 
-// Re-export OPFS support check
-export { isOPFSSupported as isConversionSupported };
+export function isConversionSupported() {
+  return isOPFSAvailable() || isIndexedDBAvailable();
+}
+
+export async function createRemoteModelSources(urls, options = {}) {
+  if (!Array.isArray(urls) || urls.length === 0) {
+    throw new Error('Remote conversion requires at least one URL.');
+  }
+
+  const sources = [];
+  for (const url of urls) {
+    if (typeof url !== 'string' || url.length === 0) {
+      throw new Error('Remote conversion URLs must be non-empty strings.');
+    }
+    const result = await createRemoteTensorSource(url, options);
+    sources.push(result.source);
+  }
+
+  return sources;
+}
 
 // ============================================================================
 // Main Convert Function
@@ -66,17 +108,38 @@ function inferQuantizationFromTensors(tensors) {
   return Array.from(weightDtypes)[0];
 }
 
+function isEmbeddingTensorName(name) {
+  return classifyTensorRole(name) === 'embedding';
+}
+
+function isLmHeadTensorName(name) {
+  return classifyTensorRole(name) === 'lm_head';
+}
+
+function findTensorDtype(tensors, matcher) {
+  const match = tensors.find((t) => matcher(t.name));
+  return match?.dtype ?? null;
+}
+
 export async function convertModel(files, options = {}) {
   const { modelId: userModelId, onProgress, signal, converterConfig } = options;
   const resolvedConverterConfig = converterConfig || createConverterConfig();
 
   let modelId = null;
-  let modelDir = null;
   const shardInfos = [];
+  const cleanupTasks = [];
 
   try {
-    // Initialize OPFS
+    // Initialize storage
     await initStorage();
+    const persistence = await requestPersistence();
+    const backendType = getStorageBackendType();
+    onProgress?.({
+      stage: ConvertStage.DETECTING,
+      message: `Storage backend: ${backendType ?? 'unknown'}`,
+      backend: backendType,
+      persistence,
+    });
 
     // Detect format
     onProgress?.({
@@ -88,6 +151,17 @@ export async function convertModel(files, options = {}) {
 
     const format = detectModelFormat(files);
     const auxiliary = getAuxiliaryFiles(files);
+    for (const file of files) {
+      if (isTensorSource(file) && typeof file.cleanup === 'function') {
+        cleanupTasks.push(file.cleanup);
+      }
+    }
+    if (!auxiliary.tokenizer) {
+      if (auxiliary.tokenizerModel) {
+        throw new Error('tokenizer.model is not supported in browser conversion. Provide tokenizer.json instead.');
+      }
+      throw new Error('Missing tokenizer.json for browser conversion.');
+    }
 
     onProgress?.({
       stage: ConvertStage.DETECTING,
@@ -132,28 +206,6 @@ export async function convertModel(files, options = {}) {
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    // Determine model ID
-    const detectedModelId = extractModelId(files, config);
-    modelId = userModelId || detectedModelId;
-    modelId = modelId ? sanitizeModelId(modelId) : null;
-    if (!modelId) {
-      throw new Error('Missing modelId. Provide modelId explicitly or include a name in config files.');
-    }
-
-    onProgress?.({
-      stage: ConvertStage.PARSING,
-      message: `Model: ${modelId}`,
-      modelId,
-      tensorCount: modelInfo.tensors.length,
-      totalSize: formatBytes(calculateTotalSize(modelInfo)),
-    });
-
-    // Open model directory in OPFS
-    modelDir = await openModelStore(modelId);
-    if (!modelDir) {
-      throw new Error('OPFS required for browser conversion');
-    }
-
     // Detect model type using preset system
     const rawConfig = (config || modelInfo.config || {});
     const presetId = detectPreset(rawConfig, modelInfo.architecture);
@@ -182,42 +234,187 @@ export async function convertModel(files, options = {}) {
     if (!headDim) {
       throw new Error('Missing headDim in architecture');
     }
-    const quantization = modelInfo.quantization || inferQuantizationFromTensors(modelInfo.tensors);
-    if (!quantization) {
+    const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(modelInfo.tensors);
+    if (!sourceQuantization) {
       throw new Error('Missing quantization for model conversion');
     }
-    const quantizationInfo = modelInfo.quantization
-      ? { weights: modelInfo.quantization, compute: resolvedConverterConfig.quantization.computePrecision }
-      : null;
+    const embedDtypeRaw = findTensorDtype(modelInfo.tensors, isEmbeddingTensorName);
+    const lmHeadDtypeRaw = findTensorDtype(modelInfo.tensors, isLmHeadTensorName);
+    const quantizationInfo = buildQuantizationInfo(
+      resolvedConverterConfig,
+      sourceQuantization,
+      embedDtypeRaw,
+      lmHeadDtypeRaw,
+      false,
+      false,
+      false,
+      rawConfig
+    );
+    const manifestQuantization = resolveManifestQuantization(
+      resolvedConverterConfig.quantization.weights ?? null,
+      sourceQuantization
+    );
     const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
 
+    const detectedModelId = extractModelId(files, config);
+    const baseModelId = userModelId ?? resolvedConverterConfig.output?.modelId ?? detectedModelId;
+    const resolvedModelId = baseModelId
+      ? resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo.variantTag)
+      : null;
+    modelId = resolvedModelId ? sanitizeModelId(resolvedModelId) : null;
+    if (!modelId) {
+      throw new Error('Missing modelId. Provide modelId explicitly or include a name in config files.');
+    }
+
+    const chunkSizeBytes = resolvedConverterConfig.streaming.chunkSizeBytes;
+    if (!chunkSizeBytes || chunkSizeBytes <= 0) {
+      throw new Error('Invalid converter streaming chunk size');
+    }
+
+    const collectChunks = async (chunks) => {
+      const buffers = [];
+      let total = 0;
+      for await (const chunk of chunks) {
+        const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+        if (bytes.length === 0) continue;
+        buffers.push(bytes);
+        total += bytes.length;
+      }
+      const output = new Uint8Array(total);
+      let offset = 0;
+      for (const buffer of buffers) {
+        output.set(buffer, offset);
+        offset += buffer.length;
+      }
+      return output;
+    };
+
+    const sourceChunksFor = (tensor) => {
+      if (modelInfo.format === 'gguf' && tensor.source) {
+        return streamSourceRange(tensor.source, tensor.offset, tensor.size, chunkSizeBytes);
+      }
+      return streamTensorData(tensor, chunkSizeBytes);
+    };
+
+    const tensorPlans = modelInfo.tensors.map((tensor) => {
+      const targetDtype = resolveTensorDtype(tensor.name, tensor.shape, tensor.dtype, quantizationInfo);
+      const q4kLayout = targetDtype === 'Q4_K_M'
+        ? resolveQ4KLayout(tensor.name, tensor.shape, quantizationInfo)
+        : null;
+      const numElements = tensor.shape.reduce((a, b) => a * b, 1);
+      const targetSize = targetDtype === 'Q4_K_M'
+        ? getQ4KOutputSize(tensor.shape, q4kLayout)
+        : targetDtype === 'F16'
+          ? numElements * 2
+          : targetDtype === 'F32'
+            ? numElements * 4
+            : tensor.size;
+
+      const getQ4KData = async () => {
+        if (q4kLayout === 'col') {
+          const data = await readTensorData(tensor);
+          const f32 = decodeTensorToFloat32(data, tensor.dtype);
+          const q4 = quantizeToQ4KColumnWise(f32, tensor.shape);
+          return q4.quantized;
+        }
+        const chunks = createQ4KChunkStream(
+          sourceChunksFor(tensor),
+          tensor.dtype,
+          tensor.shape,
+          q4kLayout,
+          chunkSizeBytes
+        );
+        return collectChunks(chunks);
+      };
+
+      const getF16Data = async () => {
+        const chunks = createF16ChunkStream(sourceChunksFor(tensor), tensor.dtype);
+        return collectChunks(chunks);
+      };
+
+      let getData;
+      let getChunks;
+
+      if (targetDtype === 'Q4_K_M') {
+        getData = getQ4KData;
+        getChunks = q4kLayout === 'col'
+          ? async function* () {
+            yield await getQ4KData();
+          }
+          : () => createQ4KChunkStream(
+            sourceChunksFor(tensor),
+            tensor.dtype,
+            tensor.shape,
+            q4kLayout,
+            chunkSizeBytes
+          );
+      } else if (targetDtype === 'F16' && tensor.dtype !== 'F16') {
+        getData = getF16Data;
+        getChunks = () => createF16ChunkStream(sourceChunksFor(tensor), tensor.dtype);
+      } else {
+        getData = async () => {
+          const data = await readTensorData(tensor);
+          return new Uint8Array(data);
+        };
+        getChunks = () => sourceChunksFor(tensor);
+      }
+
+      return {
+        name: tensor.name,
+        shape: tensor.shape,
+        dtype: targetDtype,
+        size: targetSize,
+        offset: tensor.offset,
+        getData,
+        getChunks,
+      };
+    });
+
+    const totalSizeBytes = tensorPlans.reduce((sum, tensor) => sum + tensor.size, 0);
+    const spaceCheck = await checkSpaceAvailable(totalSizeBytes);
+    if (!spaceCheck.hasSpace) {
+      throw new QuotaExceededError(totalSizeBytes, spaceCheck.info.available);
+    }
+
+    onProgress?.({
+      stage: ConvertStage.PARSING,
+      message: `Model: ${modelId}`,
+      modelId,
+      tensorCount: modelInfo.tensors.length,
+      totalSize: formatBytes(totalSizeBytes),
+    });
+
+    await openModelStore(modelId);
+
+    const hashAlgorithm = resolvedConverterConfig.manifest.hashAlgorithm;
+
     // Create shard I/O adapter
-    const shardIO = new BrowserShardIO(modelDir);
+    const shardIO = {
+      writeShard: async (index, data) => {
+        const writer = await createConversionShardWriter(index);
+        try {
+          await writer.write(data);
+          await writer.close();
+        } catch (error) {
+          await writer.abort();
+          throw error;
+        }
+        return computeHash(data, hashAlgorithm);
+      },
+      computeHash: (data) => computeHash(data, hashAlgorithm),
+      createShardWriter: (index) => createConversionShardWriter(index),
+      createHasher: () => createStreamingHasher(hashAlgorithm),
+    };
 
     // Create shard packer
     const packer = new ShardPacker(shardIO, {
       modelType,
       shardSize: resolvedConverterConfig.sharding.shardSizeBytes,
-      hashAlgorithm: resolvedConverterConfig.manifest.hashAlgorithm,
+      hashAlgorithm,
     });
 
     // Prepare tensors for packing
-    const packerTensors = modelInfo.tensors.map(tensor => ({
-      name: tensor.name,
-      shape: tensor.shape,
-      dtype: tensor.dtype,
-      size: tensor.size,
-      getData: async () => {
-        // Handle GGUF format (data is relative to tensorDataOffset)
-        if (modelInfo.format === 'gguf' && modelInfo.file) {
-          const blob = modelInfo.file.slice(tensor.offset, tensor.offset + tensor.size);
-          return new Uint8Array(await blob.arrayBuffer());
-        }
-        // Safetensors format
-        const data = await readTensorData(tensor);
-        return new Uint8Array(data);
-      },
-    }));
+    const packerTensors = tensorPlans;
 
     // Pack tensors into shards
     onProgress?.({
@@ -259,7 +456,7 @@ export async function convertModel(files, options = {}) {
 
     // Convert to ParsedModel format for createManifest
     const parsedModel = {
-      tensors: modelInfo.tensors.map(t => ({
+      tensors: tensorPlans.map(t => ({
         name: t.name,
         shape: t.shape,
         dtype: t.dtype,
@@ -268,7 +465,7 @@ export async function convertModel(files, options = {}) {
       })),
       config: (config || modelInfo.config || {}),
       architecture: modelInfo.architecture,
-      quantization: quantization,
+      quantization: manifestQuantization,
       tokenizerJson,
     };
 
@@ -281,11 +478,21 @@ export async function convertModel(files, options = {}) {
         source: 'browser-converter',
         inference: manifestInference,
         modelType,
-        quantization,
+        quantization: manifestQuantization,
         quantizationInfo,
-        hashAlgorithm: resolvedConverterConfig.manifest.hashAlgorithm,
+        hashAlgorithm,
       }
     );
+
+    manifest.groups = packResult.groups;
+    manifest.tensorCount = packResult.tensorCount;
+    if (manifest.tokenizer) {
+      manifest.tokenizer.file = 'tokenizer.json';
+    }
+
+    if (tokenizerJson) {
+      await saveTokenizer(JSON.stringify(tokenizerJson));
+    }
 
     // Save manifest
     await saveManifest(JSON.stringify(manifest, null, 2));
@@ -297,6 +504,10 @@ export async function convertModel(files, options = {}) {
       shardCount: shardInfos.length,
       totalSize: formatBytes(result.totalSize),
     });
+
+    if (cleanupTasks.length > 0) {
+      await Promise.allSettled(cleanupTasks.map((task) => task()));
+    }
 
     return modelId;
   } catch (error) {
@@ -315,6 +526,10 @@ export async function convertModel(files, options = {}) {
       error: error,
     });
 
+    if (cleanupTasks.length > 0) {
+      await Promise.allSettled(cleanupTasks.map((task) => task()));
+    }
+
     throw error;
   }
 }
@@ -330,23 +545,37 @@ async function parseGGUFModel(
     message: 'Parsing GGUF header...',
   });
 
-  const headerBlob = file.slice(0, HEADER_READ_SIZE);
-  const headerBuffer = await headerBlob.arrayBuffer();
-  const ggufInfo = parseGGUFHeader(headerBuffer);
+  const source = normalizeTensorSource(file);
+  const ggufInfo = await parseGGUFHeaderFromSource(source);
 
   return {
     format: 'gguf',
     tensors: ggufInfo.tensors.map((t) => ({
       ...t,
-      file,
+      file: source.file,
+      source,
       offset: t.offset,
     })),
     config: ggufInfo.config,
     architecture: ggufInfo.architecture,
     quantization: ggufInfo.quantization,
     tensorDataOffset: ggufInfo.tensorDataOffset,
-    file,
+    file: source.file,
+    source,
   };
+}
+
+
+async function* streamSourceRange(source, offset, size, chunkSize) {
+  let cursor = offset;
+  const end = offset + size;
+
+  while (cursor < end) {
+    const next = Math.min(cursor + chunkSize, end);
+    const buffer = await source.readRange(cursor, next - cursor);
+    yield new Uint8Array(buffer);
+    cursor = next;
+  }
 }
 
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-20T19:57:22.417Z",
+  "generatedAt": "2026-01-20T22:01:15.336Z",
   "root": "/",
   "files": [
     {
@@ -85,7 +85,7 @@
       "path": "/src/browser/browser-converter.js",
       "url": "/src/browser/browser-converter.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 13146
+      "size": 19514
     },
     {
       "path": "/src/browser/file-picker.js",
@@ -103,19 +103,43 @@
       "path": "/src/browser/gguf-parser-browser.js",
       "url": "/src/browser/gguf-parser-browser.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 38
+      "size": 546
+    },
+    {
+      "path": "/src/browser/quantization.js",
+      "url": "/src/browser/quantization.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 8506
     },
     {
       "path": "/src/browser/safetensors-parser-browser.js",
       "url": "/src/browser/safetensors-parser-browser.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 5677
+      "size": 6492
     },
     {
       "path": "/src/browser/shard-io-browser.js",
       "url": "/src/browser/shard-io-browser.js",
       "contentType": "application/javascript; charset=utf-8",
       "size": 2462
+    },
+    {
+      "path": "/src/browser/tensor-source-download.js",
+      "url": "/src/browser/tensor-source-download.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5184
+    },
+    {
+      "path": "/src/browser/tensor-source-file.js",
+      "url": "/src/browser/tensor-source-file.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 967
+    },
+    {
+      "path": "/src/browser/tensor-source-http.js",
+      "url": "/src/browser/tensor-source-http.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 3018
     },
     {
       "path": "/src/client/doppler-provider.js",
@@ -571,7 +595,7 @@
       "path": "/src/config/schema/converter.schema.js",
       "url": "/src/config/schema/converter.schema.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 2978
+      "size": 3370
     },
     {
       "path": "/src/config/schema/debug.schema.js",
@@ -619,7 +643,7 @@
       "path": "/src/config/schema/index.js",
       "url": "/src/config/schema/index.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 11460
+      "size": 11498
     },
     {
       "path": "/src/config/schema/inference-defaults.schema.js",
@@ -841,7 +865,7 @@
       "path": "/src/converter/quantizer.js",
       "url": "/src/converter/quantizer.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 11506
+      "size": 11513
     },
     {
       "path": "/src/converter/rope-config.js",
@@ -853,7 +877,7 @@
       "path": "/src/converter/shard-packer.js",
       "url": "/src/converter/shard-packer.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 6869
+      "size": 12185
     },
     {
       "path": "/src/converter/test-model.js",
@@ -2200,6 +2224,12 @@
       "size": 1454
     },
     {
+      "path": "/src/inference/browser-harness.js",
+      "url": "/src/inference/browser-harness.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 1424
+    },
+    {
       "path": "/src/inference/decode-buffers.js",
       "url": "/src/inference/decode-buffers.js",
       "contentType": "application/javascript; charset=utf-8",
@@ -3037,7 +3067,7 @@
       "path": "/src/storage/blake3.js",
       "url": "/src/storage/blake3.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 6842
+      "size": 6829
     },
     {
       "path": "/src/storage/download-types.js",
@@ -3082,16 +3112,22 @@
       "size": 44
     },
     {
+      "path": "/src/storage/reports.js",
+      "url": "/src/storage/reports.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 2374
+    },
+    {
       "path": "/src/storage/shard-manager.js",
       "url": "/src/storage/shard-manager.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 15150
+      "size": 15619
     },
     {
       "path": "/src/sw-module-loader.js",
       "url": "/src/sw-module-loader.js",
       "contentType": "application/javascript; charset=utf-8",
-      "size": 3213
+      "size": 3737
     },
     {
       "path": "/src/training/attention-backward.js",

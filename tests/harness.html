@@ -150,9 +150,16 @@
     async function loadRuntimeConfig() {
       const { parseRuntimeOverridesFromURL } = await import('/doppler/src/inference/test-harness.js');
       const { getRuntimeConfig, setRuntimeConfig } = await import('/doppler/src/config/index.js');
+      const { applyRuntimePreset, applyRuntimeConfigFromUrl } = await import('/doppler/src/inference/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
+      const runtimePreset = params.get('runtimePreset');
+      const runtimeConfigUrl = params.get('runtimeConfigUrl');
       if (runtimeOverrides.runtimeConfig) {
         setRuntimeConfig(runtimeOverrides.runtimeConfig);
+      } else if (runtimeConfigUrl) {
+        await applyRuntimeConfigFromUrl(runtimeConfigUrl);
+      } else if (runtimePreset) {
+        await applyRuntimePreset(runtimePreset);
       }
       const resolved = getRuntimeConfig();
       const harness = resolved.shared?.harness;

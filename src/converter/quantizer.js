@@ -74,7 +74,7 @@ function findMinMax(data, offset, length) {
   return { min, max };
 }
 
-function quantizeQ4KBlock(data, offset) {
+export function quantizeQ4KBlock(data, offset) {
   const block = new Uint8Array(QK4_K_BLOCK_SIZE);
   const blockView = new DataView(block.buffer);
 

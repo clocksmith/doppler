@@ -9,7 +9,7 @@
  * - Single safetensors files
  * - Sharded HuggingFace models (multiple safetensors + config)
  *
- * Output is written to OPFS (Origin Private File System).
+ * Output is written to OPFS when available, with IndexedDB fallback.
  *
  * @module browser/browser-converter
  */
@@ -22,6 +22,8 @@ import type {
   ShardInfo,
   RDRRManifest,
 } from '../converter/core.js';
+import type { TensorSource } from './tensor-source-file.js';
+import type { HttpTensorSourceOptions } from './tensor-source-http.js';
 
 export { ConvertStage } from '../converter/core.js';
 export type {
@@ -32,8 +34,16 @@ export type {
   RDRRManifest,
 };
 
-// Re-export OPFS support check
-export { isOPFSSupported as isConversionSupported } from './shard-io-browser.js';
+/** Check if browser conversion is supported (OPFS or IndexedDB). */
+export declare function isConversionSupported(): boolean;
+
+/**
+ * Create TensorSource entries for remote model files.
+ */
+export declare function createRemoteModelSources(
+  urls: string[],
+  options?: HttpTensorSourceOptions
+): Promise<TensorSource[]>;
 
 /**
  * Browser conversion options (extends core with File[] input)
@@ -49,7 +59,7 @@ export interface ConvertOptions extends CoreConvertOptions {
  * @param options - Conversion options
  * @returns Model ID
  */
-export declare function convertModel(files: File[], options?: ConvertOptions): Promise<string>;
+export declare function convertModel(files: Array<File | TensorSource>, options?: ConvertOptions): Promise<string>;
 
 /**
  * Pick model files using File System Access API

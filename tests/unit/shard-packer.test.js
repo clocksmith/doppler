@@ -38,6 +38,74 @@ class MockShardIO {
   }
 }
 
+class MockStreamingShardIO {
+  shards = new Map();
+
+  async writeShard(index, data) {
+    this.shards.set(index, new Uint8Array(data));
+    return this.computeHash(data);
+  }
+
+  async computeHash(data) {
+    const first = data.length > 0 ? data[0] : 0;
+    const last = data.length > 0 ? data[data.length - 1] : 0;
+    return `mock-${data.length}-${first}-${last}`;
+  }
+
+  async createShardWriter(index) {
+    const chunks = [];
+    let total = 0;
+    return {
+      write: async (chunk) => {
+        const bytes = new Uint8Array(chunk);
+        chunks.push(bytes);
+        total += bytes.length;
+      },
+      close: async () => {
+        const combined = new Uint8Array(total);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        this.shards.set(index, combined);
+      },
+      abort: async () => {
+        chunks.length = 0;
+      },
+    };
+  }
+
+  createHasher() {
+    let total = 0;
+    let first = 0;
+    let last = 0;
+    let hasData = false;
+    return {
+      update: (chunk) => {
+        const bytes = new Uint8Array(chunk);
+        if (bytes.length === 0) return;
+        if (!hasData) {
+          first = bytes[0];
+          hasData = true;
+        }
+        last = bytes[bytes.length - 1];
+        total += bytes.length;
+      },
+      finalize: async () => new Uint8Array([
+        total & 0xff,
+        (total >> 8) & 0xff,
+        first,
+        last,
+      ]),
+    };
+  }
+
+  getShard(index) {
+    return this.shards.get(index);
+  }
+}
+
 const DEFAULT_PACKER_OPTIONS = {
   shardSize: 1024,
   hashAlgorithm: 'sha256',
@@ -63,6 +131,28 @@ function createTensor(name, size, shape = [size]) {
         data[i] = (seed + i) % 256;
       }
       return data;
+    },
+  };
+}
+
+function createStreamingTensor(name, size, shape = [size], chunkSize = 32) {
+  const data = new Uint8Array(size);
+  const seed = name.charCodeAt(0);
+  for (let i = 0; i < size; i++) {
+    data[i] = (seed + i) % 256;
+  }
+
+  return {
+    name,
+    shape,
+    dtype: 'F16',
+    size,
+    getData: async () => data,
+    getChunks: async function* () {
+      for (let offset = 0; offset < size; offset += chunkSize) {
+        const end = Math.min(offset + chunkSize, size);
+        yield data.subarray(offset, end);
+      }
     },
   };
 }
@@ -107,6 +197,20 @@ describe('ShardPacker', () => {
       expect(loc.spans[0].size).toBe(100);
       expect(loc.spans[1].size).toBe(100);
       expect(loc.spans[2].size).toBe(50);
+    });
+
+    it('streams tensor chunks when available', async () => {
+      const io = new MockStreamingShardIO();
+      const shardSize = 64;
+      const packer = createPacker(io, { shardSize });
+
+      const tensors = [createStreamingTensor('stream.tensor', 150, [150], 40)];
+      const result = await packer.pack(tensors);
+
+      expect(result.shards.length).toBe(3);
+      expect(io.getShard(0)?.length).toBe(64);
+      expect(io.getShard(1)?.length).toBe(64);
+      expect(io.getShard(2)?.length).toBe(22);
     });
 
     it('records single-shard tensor location correctly', async () => {
@@ -171,6 +275,7 @@ describe('ShardPacker', () => {
       expect(result.groups['embed'].tensors).toContain('model.embed_tokens.weight');
       expect(result.groups['layer.0'].tensors).toContain('model.layers.0.self_attn.q_proj.weight');
       expect(result.groups['head'].tensors).toContain('lm_head.weight');
+      expect(result.groups['embed'].hash).toBeTruthy();
     });
 
     it('calls progress callback for each tensor', async () => {
