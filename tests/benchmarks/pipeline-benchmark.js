@@ -7,6 +7,7 @@ import { applyChatTemplate } from '../../src/inference/pipeline/init.js';
 import { setRuntimeConfig } from '../../src/config/runtime.js';
 import { percentile } from '../../src/debug/stats.js';
 import { parseManifest } from '../../src/storage/rdrr-format.js';
+import { resetKernelSelectionLog, getKernelSelectionLog } from '../../src/gpu/kernel-selection-log.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -113,6 +114,7 @@ export class PipelineBenchmark {
   
   async run() {
     const startTime = performance.now();
+    resetKernelSelectionLog();
 
     // Collect environment info
     const env = await this.collectEnvironment();
@@ -145,6 +147,7 @@ export class PipelineBenchmark {
     // Aggregate metrics
     const metrics = this.aggregateMetrics(runResults, loadMetrics);
     const raw = this.collectRawMetrics(runResults);
+    raw.kernelSelections = getKernelSelectionLog();
     const quality = analyzeOutputQuality(runResults);
     const configSnapshot = {
       chain: this.config.configChain ?? null,
@@ -534,6 +537,7 @@ export class PipelineBenchmark {
     const pipelineStats = this.pipeline.getStats();
     const decodeRingStats = pipelineStats.decodeRing ?? null;
     const decodeProfileSteps = pipelineStats.decodeProfileSteps ?? null;
+    const attentionInputs = pipelineStats.attentionInputs ?? null;
     if (pipelineStats.gpuTimePrefillMs !== undefined) {
       gpuTimePrefillMs = pipelineStats.gpuTimePrefillMs;
       gpuKernelTimePrefillMs = pipelineStats.gpuTimePrefillMs;
@@ -585,6 +589,7 @@ export class PipelineBenchmark {
       decodeSubmitWaitMs: pipelineStats.decodeSubmitWaitMs ?? null,
       decodeReadbackWaitMs: pipelineStats.decodeReadbackWaitMs ?? null,
       decodeProfileSteps,
+      attentionInputs,
       batchingConfig: {
         batchSize: this.pipeline.runtimeConfig?.inference?.batching?.batchSize ?? null,
         readbackInterval: this.pipeline.runtimeConfig?.inference?.batching?.readbackInterval ?? null,
@@ -674,48 +679,96 @@ export class PipelineBenchmark {
 
     const ringStats = runs.map(r => r.decodeRing).filter(Boolean);
     if (ringStats.length > 0) {
-      metrics.decode_ring_tokens_allocated = Math.round(
+      const tokensAllocated = Math.round(
         this.average(ringStats.map(r => r.tokens?.allocated ?? 0))
       );
-      metrics.decode_ring_tokens_uses_total = Math.round(
+      const tokensUses = Math.round(
         this.average(ringStats.map(r => r.tokens?.uses ?? 0))
       );
-      metrics.decode_ring_tokens_reuses_total = Math.round(
+      const tokensReuses = Math.round(
         this.average(ringStats.map(r => r.tokens?.reuses ?? 0))
       );
-      metrics.decode_ring_stop_allocated = Math.round(
+      const stopAllocated = Math.round(
         this.average(ringStats.map(r => r.stop?.allocated ?? 0))
       );
-      metrics.decode_ring_stop_uses_total = Math.round(
+      const stopUses = Math.round(
         this.average(ringStats.map(r => r.stop?.uses ?? 0))
       );
-      metrics.decode_ring_stop_reuses_total = Math.round(
+      const stopReuses = Math.round(
         this.average(ringStats.map(r => r.stop?.reuses ?? 0))
       );
-      metrics.decode_ring_staging_tokens_allocated = Math.round(
+      const stagingTokensAllocated = Math.round(
         this.average(ringStats.map(r => r.stagingTokens?.allocated ?? 0))
       );
-      metrics.decode_ring_staging_tokens_uses_total = Math.round(
+      const stagingTokensUses = Math.round(
         this.average(ringStats.map(r => r.stagingTokens?.uses ?? 0))
       );
-      metrics.decode_ring_staging_tokens_reuses_total = Math.round(
+      const stagingTokensReuses = Math.round(
         this.average(ringStats.map(r => r.stagingTokens?.reuses ?? 0))
       );
-      metrics.decode_ring_staging_stop_allocated = Math.round(
+      const stagingStopAllocated = Math.round(
         this.average(ringStats.map(r => r.stagingStop?.allocated ?? 0))
       );
-      metrics.decode_ring_staging_stop_uses_total = Math.round(
+      const stagingStopUses = Math.round(
         this.average(ringStats.map(r => r.stagingStop?.uses ?? 0))
       );
-      metrics.decode_ring_staging_stop_reuses_total = Math.round(
+      const stagingStopReuses = Math.round(
         this.average(ringStats.map(r => r.stagingStop?.reuses ?? 0))
       );
-      metrics.decode_ring_acquires_total = Math.round(
+      const ringAcquires = Math.round(
         this.average(ringStats.map(r => r.acquires ?? 0))
       );
-      metrics.decode_ring_advances_total = Math.round(
+      const ringAdvances = Math.round(
         this.average(ringStats.map(r => r.advances ?? 0))
       );
+
+      metrics.decode_ring_tokens_allocated = tokensAllocated;
+      metrics.decode_ring_tokens_uses_total = tokensUses;
+      metrics.decode_ring_tokens_reuses_total = tokensReuses;
+      metrics.decode_ring_stop_allocated = stopAllocated;
+      metrics.decode_ring_stop_uses_total = stopUses;
+      metrics.decode_ring_stop_reuses_total = stopReuses;
+      metrics.decode_ring_staging_tokens_allocated = stagingTokensAllocated;
+      metrics.decode_ring_staging_tokens_uses_total = stagingTokensUses;
+      metrics.decode_ring_staging_tokens_reuses_total = stagingTokensReuses;
+      metrics.decode_ring_staging_stop_allocated = stagingStopAllocated;
+      metrics.decode_ring_staging_stop_uses_total = stagingStopUses;
+      metrics.decode_ring_staging_stop_reuses_total = stagingStopReuses;
+      metrics.decode_ring_acquires_total = ringAcquires;
+      metrics.decode_ring_advances_total = ringAdvances;
+
+      const ringAlloc = tokensAllocated + stopAllocated + stagingTokensAllocated + stagingStopAllocated;
+      const ringReuse = tokensReuses + stopReuses + stagingTokensReuses + stagingStopReuses;
+      const ringOps = ringAlloc + ringReuse;
+      metrics.decode_ring_reuse_rate_pct = ringOps > 0
+        ? Number(((ringReuse / ringOps) * 100).toFixed(1))
+        : 0;
+    }
+
+    const fusedDownUsed = runs.some(r => (r.decodeProfileSteps ?? []).some((step) => {
+      const timings = step?.timings;
+      if (!timings) return false;
+      return Object.keys(timings).some((label) => label.startsWith('matmul_rmsnorm_fused'));
+    }));
+    metrics.decode_fused_down_norm_used = fusedDownUsed;
+
+    if (metrics.buffer_pool_allocations_total !== undefined && metrics.decode_ring_reuse_rate_pct !== undefined) {
+      const poolAlloc = metrics.buffer_pool_allocations_total ?? 0;
+      const poolReuse = metrics.buffer_pool_reuses_total ?? 0;
+      const ringAlloc = (metrics.decode_ring_tokens_allocated ?? 0)
+        + (metrics.decode_ring_stop_allocated ?? 0)
+        + (metrics.decode_ring_staging_tokens_allocated ?? 0)
+        + (metrics.decode_ring_staging_stop_allocated ?? 0);
+      const ringReuse = (metrics.decode_ring_tokens_reuses_total ?? 0)
+        + (metrics.decode_ring_stop_reuses_total ?? 0)
+        + (metrics.decode_ring_staging_tokens_reuses_total ?? 0)
+        + (metrics.decode_ring_staging_stop_reuses_total ?? 0);
+      const totalAlloc = poolAlloc + ringAlloc;
+      const totalReuse = poolReuse + ringReuse;
+      const totalOps = totalAlloc + totalReuse;
+      metrics.buffer_reuse_effective_pct = totalOps > 0
+        ? Number(((totalReuse / totalOps) * 100).toFixed(1))
+        : 0;
     }
 
     // GPU timestamp timing (if available)
@@ -821,6 +874,9 @@ export class PipelineBenchmark {
     }
     if (lastRun?.decodeProfileSteps?.length) {
       raw.decode_step_profile_ms = lastRun.decodeProfileSteps;
+    }
+    if (lastRun?.attentionInputs?.length) {
+      raw.attention_inputs = lastRun.attentionInputs;
     }
 
     return raw;

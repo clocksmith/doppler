@@ -264,6 +264,16 @@ export function formatBenchmarkResult(result) {
     );
   }
 
+  if (m.decode_ring_reuse_rate_pct !== undefined || m.buffer_reuse_effective_pct !== undefined) {
+    const ringReuse = m.decode_ring_reuse_rate_pct ?? 0;
+    const effectiveReuse = m.buffer_reuse_effective_pct ?? 0;
+    console.log(`Reuse Summary: ring=${ringReuse}% effective=${effectiveReuse}%`);
+  }
+
+  if (m.decode_fused_down_norm_used !== undefined) {
+    console.log(`FFN Fused:    down+norm=${m.decode_fused_down_norm_used ? 'yes' : 'no'}`);
+  }
+
   if (m.decode_ms_per_token_p50) {
     console.log(`Latency P50/90/99: ${m.decode_ms_per_token_p50}/${m.decode_ms_per_token_p90}/${m.decode_ms_per_token_p99} ms`);
   }

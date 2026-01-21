@@ -451,7 +451,13 @@ export async function runDenseFFNWithFusedPostNormGPU(
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_gate_up' },
+      {
+        transposeB: 'auto',
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_gate_up',
+        label: `L${layerIdx}.ffn_gate_up`,
+        layerIdx,
+      },
       recorder
     );
 
@@ -499,7 +505,13 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const gateOutput = await doMatmul(
       inputTensor, gateWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_gate' },
+      {
+        transposeB: 'auto',
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_gate',
+        label: `L${layerIdx}.ffn_gate`,
+        layerIdx,
+      },
       recorder
     );
     if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
@@ -509,7 +521,13 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const upOutput = await doMatmul(
       inputTensor, upWeight,
       numTokens, intermediateSize, hiddenSize,
-      { transposeB: 'auto', outputDtype: matmulOutputDtype, role: 'ffn_up' },
+      {
+        transposeB: 'auto',
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_up',
+        label: `L${layerIdx}.ffn_up`,
+        layerIdx,
+      },
       recorder
     );
     if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
@@ -546,6 +564,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       residual: residualTensor,
       outputBuffer,
       transposeB,
+      label: `L${layerIdx}.ffn_down`,
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     },
     recorder

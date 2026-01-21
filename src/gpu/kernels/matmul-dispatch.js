@@ -15,8 +15,8 @@ export class MatmulKernel extends KernelBase {
   }
 
   
-  record(recorder, pipeline, bindGroup, workgroups) {
-    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'matmul');
+  record(recorder, pipeline, bindGroup, workgroups, label = 'matmul') {
+    this.recordKernel(recorder, pipeline, bindGroup, workgroups, label);
   }
 }
 

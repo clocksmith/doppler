@@ -54,6 +54,7 @@ export async function runMatmulRMSNormFused(
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
     rmsNormWeightOffset = false,
+    label = null,
   } = options;
   if (eps == null) {
     throw new Error('[MatmulRMSNormFused] eps is required.');
@@ -133,7 +134,8 @@ export async function runMatmulRMSNormFused(
   
   const workgroups = 1;
 
-  dispatch(device, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
+  const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
+  dispatch(device, pipeline, bindGroup, workgroups, dispatchLabel);
 
   // Cleanup
   uniformBuffer.destroy();
@@ -160,6 +162,7 @@ export async function recordMatmulRMSNormFused(
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
     rmsNormWeightOffset = false,
+    label = null,
   } = options;
 
   const { maxMediumN } = getKernelThresholds().fusedMatmul;
@@ -235,7 +238,8 @@ export async function recordMatmulRMSNormFused(
   
   const workgroups = 1;
 
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_rmsnorm_fused');
+  const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, dispatchLabel);
 
   // Track placeholder for cleanup
   if (!residual) {

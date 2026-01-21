@@ -4,3 +4,9 @@ export declare function logKernelSelectionOnce(
 ): void;
 
 export declare function resetKernelSelectionLog(): void;
+
+export declare function getKernelSelectionLog(): Array<{
+  operation: string;
+  variant: string;
+  reason: string | null;
+}>;

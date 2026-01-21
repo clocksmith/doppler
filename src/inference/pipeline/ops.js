@@ -130,6 +130,7 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
     outputBuffer: options.outputBuffer,
     transposeB: options.transposeB,
     rmsNormWeightOffset: options.rmsNormWeightOffset,
+    label: options.label ?? null,
   };
   const resultTensor = recorder
     ? await recordMatmulRMSNormFused(recorder, input, weight, normWeight, fusedOptions)

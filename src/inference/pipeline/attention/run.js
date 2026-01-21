@@ -29,6 +29,17 @@ import {
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
+function recordAttentionInputs(state, info) {
+  if (!state?.stats || !info) return;
+  if (!state.stats.attentionInputs) {
+    state.stats.attentionInputs = [];
+  }
+  const exists = state.stats.attentionInputs.some(
+    (entry) => entry.phase === info.phase && entry.layerIdx === info.layerIdx
+  );
+  if (exists) return;
+  state.stats.attentionInputs.push(info);
+}
 
 export async function runLayerAttentionGPU(
   input,
@@ -523,6 +534,28 @@ export async function runLayerAttentionGPU(
   });
   const cachedKTensor = createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
   const cachedVTensor = createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
+
+  recordAttentionInputs(state, {
+    phase: isPrefill ? 'prefill' : 'decode',
+    layerIdx,
+    numTokens,
+    kvLen: kvLenForAttention,
+    numHeads,
+    numKVHeads,
+    headDim,
+    activationDtype: config.activationDtype ?? null,
+    inputDtype: input.dtype,
+    normedDtype: normed.dtype,
+    useF16Activations,
+    matmulOutputDtype,
+    kvCacheDtype: state.kvCache?.kvDtype ?? null,
+    cachedKDtype,
+    cachedVDtype,
+    qDtype: qTensor?.dtype ?? null,
+    kDtype: kTensor?.dtype ?? null,
+    vDtype: vTensor?.dtype ?? null,
+    useFusedQKV,
+  });
 
   let attnOutput = await runAttention(qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
     seqLen: numTokens,

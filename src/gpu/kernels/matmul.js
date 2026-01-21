@@ -334,6 +334,9 @@ export async function recordMatmul(recorder, A, B, M, N, K, options = {}) {
     entries,
   });
 
-  kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups);
+  const layerLabel = Number.isFinite(options.layerIdx) ? `:L${options.layerIdx}` : '';
+  const roleLabel = options.role ? `:${options.role}` : '';
+  const profileLabel = `matmul${roleLabel}${layerLabel}`;
+  kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups, profileLabel);
   return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
 }

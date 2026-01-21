@@ -1,20 +1,24 @@
 {
   "extends": "bench",
-  "model": "google-gemma-3-1b-it-wf16",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
   "cli": {
     "command": "bench",
     "suite": "inference",
-    "profileDir": "tests/results/bench-gemma3-decode-wf16"
+    "profileDir": "tests/results/bench-gemma3-q4k-unfused-ffn"
   },
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
+      "tooling": { "intent": "investigate" },
       "debug": {
         "logLevel": { "defaultLogLevel": "warn" },
         "trace": { "enabled": false },
         "profiler": { "enabled": true }
+      },
+      "kernelThresholds": {
+        "fusedMatmul": {
+          "maxMediumK": 0,
+          "maxMediumN": 0
+        }
       },
       "benchmark": {
         "run": {

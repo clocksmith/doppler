@@ -147,6 +147,8 @@ export interface ProfilerConfigSchema {
   maxSamples: number;
   /** GPU timing sanity limit before falling back to CPU */
   maxDurationMs: number;
+  /** Log every N decode profile steps (<=1 logs all steps) */
+  logEveryDecodeSteps: number;
 }
 
 /** Default profiler configuration */

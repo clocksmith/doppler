@@ -28,6 +28,13 @@ export function sumProfileTimings(timings) {
   return total;
 }
 
+function shouldLogProfileStep(state, step) {
+  const profilerConfig = state.runtimeConfig?.shared?.debug?.profiler;
+  const every = profilerConfig?.logEveryDecodeSteps ?? 1;
+  if (!Number.isFinite(every) || every <= 1) return true;
+  return step === 1 || step % every === 0;
+}
+
 function recordDecodeProfileStep(state, entry) {
   if (!entry || !entry.timings) return;
   if (!state.stats.decodeProfileSteps) {
@@ -297,8 +304,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       }
       if (timings) {
         recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
-        log.warn('Profile', `Decode step ${state.decodeStepCount}:`);
-        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        if (shouldLogProfileStep(state, state.decodeStepCount)) {
+          log.warn('Profile', `Decode step ${state.decodeStepCount}:`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        }
       }
     }
 
@@ -349,8 +358,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       }
       if (timings) {
         recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
-        log.warn('Profile', `Decode step ${state.decodeStepCount} (layers only):`);
-        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        if (shouldLogProfileStep(state, state.decodeStepCount)) {
+          log.warn('Profile', `Decode step ${state.decodeStepCount} (layers only):`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        }
       }
     }
   }
@@ -713,8 +724,11 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         timings,
         totalMs: total ?? undefined,
       });
-      log.warn('Profile', `Batch decode (N=${N}):`);
-      log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+      const stepStart = state.decodeStepCount + 1;
+      if (shouldLogProfileStep(state, stepStart)) {
+        log.warn('Profile', `Batch decode (N=${N}):`);
+        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+      }
     }
   }
 

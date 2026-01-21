@@ -4,13 +4,11 @@
   "cli": {
     "command": "bench",
     "suite": "inference",
-    "profileDir": "tests/results/bench-gemma3-decode"
+    "profileDir": "tests/results/bench-gemma3-q4k"
   },
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
+      "tooling": { "intent": "investigate" },
       "debug": {
         "logLevel": { "defaultLogLevel": "warn" },
         "trace": { "enabled": false },

@@ -300,7 +300,7 @@ export function generateLatencyHistogram(latencies, width = 400, height = 180, t
 export function generateBufferPoolChart(metrics, width = 350, height = 180) {
   if (!metrics) return '';
 
-  const hitRate = metrics.buffer_pool_hit_rate || 0;
+  const hitRate = metrics.buffer_pool_hit_rate_pct || 0;
   const missRate = 100 - hitRate;
 
   const cx = width / 2;
@@ -337,8 +337,8 @@ export function generateBufferPoolChart(metrics, width = 350, height = 180) {
 
   // Legend and stats
   const stats = [
-    { label: 'Allocations', value: metrics.buffer_pool_allocations || 0, color: '#94a3b8' },
-    { label: 'Reuses', value: metrics.buffer_pool_reuses || 0, color: '#22c55e' },
+    { label: 'Allocations', value: metrics.buffer_pool_allocations_total || 0, color: '#94a3b8' },
+    { label: 'Reuses', value: metrics.buffer_pool_reuses_total || 0, color: '#22c55e' },
   ];
 
   stats.forEach((s, i) => {
@@ -574,12 +574,21 @@ export function generateHTMLReport(results, baseline) {
     }
 
     // Buffer pool efficiency
-    if (m.buffer_pool_hit_rate !== undefined) {
+    if (m.buffer_pool_hit_rate_pct !== undefined) {
       html += `
       <h3>Resource Efficiency</h3>
       <div class="chart-container" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
         ${generateBufferPoolChart(m, 300, 180)}
       </div>
+      <table>
+        <tr><th>Buffer Pool Hit Rate</th><th>Decode Ring Reuse</th><th>Effective Reuse</th><th>FFN Fused Down+Norm</th></tr>
+        <tr>
+          <td>${m.buffer_pool_hit_rate_pct}%</td>
+          <td>${m.decode_ring_reuse_rate_pct ?? 'n/a'}%</td>
+          <td>${m.buffer_reuse_effective_pct ?? 'n/a'}%</td>
+          <td>${m.decode_fused_down_norm_used === undefined ? 'n/a' : (m.decode_fused_down_norm_used ? 'yes' : 'no')}</td>
+        </tr>
+      </table>
 `;
     }
 

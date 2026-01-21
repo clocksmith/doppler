@@ -1,38 +1,40 @@
 {
   "extends": "bench",
-  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "model": "google-gemma-3-1b-it-wf16",
   "cli": {
     "command": "bench",
-    "suite": "inference"
+    "suite": "inference",
+    "profileDir": "tests/results/bench-gemma3-wf16"
   },
   "runtime": {
     "shared": {
+      "tooling": { "intent": "investigate" },
       "debug": {
-        "logLevel": { "defaultLogLevel": "silent" },
+        "logLevel": { "defaultLogLevel": "warn" },
         "trace": { "enabled": false },
-        "profiler": { "enabled": false }
+        "profiler": { "enabled": true }
       },
       "benchmark": {
         "run": {
-          "promptName": "medium",
-          "maxNewTokens": 128,
+          "promptName": "xs",
+          "maxNewTokens": 256,
           "warmupRuns": 1,
-          "timedRuns": 3,
+          "timedRuns": 1,
           "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
-          "profile": false,
+          "profile": true,
           "captureMemoryTimeSeries": false
         }
       }
     },
     "inference": {
       "batching": {
-        "batchSize": 4,
-        "maxTokens": 128,
+        "batchSize": 1,
+        "maxTokens": 256,
         "stopCheckMode": "per-token",
         "readbackInterval": 8,
-        "ringTokens": 2,
-        "ringStop": 2,
-        "ringStaging": 2
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
       },
       "sampling": { "temperature": 0 }
     }

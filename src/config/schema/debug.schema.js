@@ -75,6 +75,7 @@ export const DEFAULT_PROFILER_CONFIG = {
   defaultQueryLimit: 4096,
   maxSamples: 100,
   maxDurationMs: 60000,
+  logEveryDecodeSteps: 64,
 };
 
 // =============================================================================
