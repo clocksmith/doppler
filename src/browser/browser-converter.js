@@ -24,6 +24,7 @@ import {
   createStreamingHasher,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
+import { registerModel } from '../storage/registry.js';
 import {
   checkSpaceAvailable,
   requestPersistence,
@@ -69,17 +70,29 @@ export function isConversionSupported() {
   return isOPFSAvailable() || isIndexedDBAvailable();
 }
 
+function resolveRemoteOptions(options) {
+  const http = options?.converterConfig?.http || null;
+  return {
+    headers: options?.headers,
+    signal: options?.signal,
+    name: options?.name,
+    allowDownloadFallback: http?.allowDownloadFallback,
+    maxDownloadBytes: http?.maxDownloadBytes,
+  };
+}
+
 export async function createRemoteModelSources(urls, options = {}) {
   if (!Array.isArray(urls) || urls.length === 0) {
     throw new Error('Remote conversion requires at least one URL.');
   }
 
   const sources = [];
+  const remoteOptions = resolveRemoteOptions(options);
   for (const url of urls) {
     if (typeof url !== 'string' || url.length === 0) {
       throw new Error('Remote conversion URLs must be non-empty strings.');
     }
-    const result = await createRemoteTensorSource(url, options);
+    const result = await createRemoteTensorSource(url, remoteOptions);
     sources.push(result.source);
   }
 
@@ -209,7 +222,8 @@ export async function convertModel(files, options = {}) {
 
     // Detect model type using preset system
     const rawConfig = (config || modelInfo.config || {});
-    const presetId = detectPreset(rawConfig, modelInfo.architecture);
+    const presetOverride = resolvedConverterConfig.presets?.model;
+    const presetId = presetOverride || detectPreset(rawConfig, modelInfo.architecture);
     if (presetId === 'transformer') {
       const modelType = rawConfig.model_type ?? 'unknown';
       throw new Error(
@@ -500,6 +514,18 @@ export async function convertModel(files, options = {}) {
 
     // Save manifest
     await saveManifest(JSON.stringify(manifest, null, 2));
+
+    try {
+      await registerModel({
+        modelId,
+        totalSize: manifest.totalSize ?? result.totalSize,
+        quantization: manifest.quantization,
+        hashAlgorithm: manifest.hashAlgorithm,
+        backend: getStorageBackendType(),
+      });
+    } catch {
+      // Registry is optional; ignore failures
+    }
 
     onProgress?.({
       stage: ConvertStage.COMPLETE,

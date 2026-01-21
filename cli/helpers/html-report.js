@@ -100,6 +100,58 @@ export function generateSVGLineChart(data, width = 400, height = 150, title = ''
   return svg;
 }
 
+export function generateMultiLineChart(series, width = 600, height = 200, title = '', yLabel = '') {
+  if (!series || series.length === 0) return '';
+  const dataLength = Math.max(...series.map(s => s.values.length));
+  if (!dataLength) return '';
+
+  const margin = { top: 30, right: 90, bottom: 30, left: 50 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
+  const allValues = series.flatMap(s => s.values);
+  const maxValue = Math.max(...allValues) * 1.1;
+  const minValue = Math.min(...allValues) * 0.9;
+  const range = maxValue - minValue || 1;
+
+  let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>
+    .chart-title { font: bold 12px sans-serif; }
+    .axis-label { font: 10px sans-serif; fill: #666; }
+    .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+    .legend { font: 10px sans-serif; }
+  </style>`;
+
+  if (title) {
+    svg += `<text x="${width / 2}" y="15" text-anchor="middle" class="chart-title">${title}</text>`;
+  }
+  if (yLabel) {
+    svg += `<text x="12" y="${height / 2}" text-anchor="middle" transform="rotate(-90, 12, ${height / 2})" class="axis-label">${yLabel}</text>`;
+  }
+
+  for (let i = 0; i <= 4; i++) {
+    const y = margin.top + (chartHeight * i) / 4;
+    svg += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="grid-line"/>`;
+    const val = maxValue - (range * i) / 4;
+    svg += `<text x="${margin.left - 5}" y="${y + 4}" text-anchor="end" class="axis-label">${val.toFixed(1)}</text>`;
+  }
+
+  series.forEach((s, idx) => {
+    const points = s.values.map((v, i) => {
+      const x = margin.left + (i / Math.max(dataLength - 1, 1)) * chartWidth;
+      const y = margin.top + ((maxValue - v) / range) * chartHeight;
+      return `${x},${y}`;
+    });
+    svg += `<polyline points="${points.join(' ')}" fill="none" stroke="${s.color}" stroke-width="2"/>`;
+    const legendY = margin.top + idx * 14;
+    svg += `<rect x="${width - margin.right + 10}" y="${legendY - 8}" width="10" height="10" fill="${s.color}"/>`;
+    svg += `<text x="${width - margin.right + 25}" y="${legendY}" class="legend">${s.label}</text>`;
+  });
+
+  svg += '</svg>';
+  return svg;
+}
+
 // ============================================================================
 // Memory Time Series Chart
 // ============================================================================
@@ -407,6 +459,9 @@ export function generateHTMLReport(results, baseline) {
     const peakVramRequestedMB = m.estimated_vram_bytes_peak_requested
       ? (m.estimated_vram_bytes_peak_requested / 1024 / 1024).toFixed(1)
       : null;
+    const decodeProfileSteps = (result.raw?.decode_step_profile_ms || [])
+      .filter((step) => step && !step.batch && Number.isFinite(step.step))
+      .sort((a, b) => a.step - b.step);
 
     html += `
     <div class="card">
@@ -452,6 +507,35 @@ export function generateHTMLReport(results, baseline) {
         ${generateLatencyHistogram(latencies, 350, 150, 'Latency Distribution')}
       </div>
 `;
+    }
+
+    if (decodeProfileSteps.length > 1) {
+      const kernelTotals = new Map();
+      for (const step of decodeProfileSteps) {
+        for (const [label, time] of Object.entries(step.timings || {})) {
+          const prev = kernelTotals.get(label) || { total: 0, count: 0 };
+          kernelTotals.set(label, { total: prev.total + time, count: prev.count + 1 });
+        }
+      }
+      const kernelsByAvg = [...kernelTotals.entries()]
+        .map(([label, stats]) => ({ label, avg: stats.total / Math.max(stats.count, 1) }))
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, 3);
+      const colors = ['#2563eb', '#10b981', '#f59e0b'];
+      const series = kernelsByAvg.map((kernel, idx) => ({
+        label: kernel.label,
+        color: colors[idx % colors.length],
+        values: decodeProfileSteps.map((step) => step.timings?.[kernel.label] ?? 0),
+      }));
+
+      if (series.length > 0) {
+        html += `
+      <h3>Decode Kernel Timing</h3>
+      <div class="chart-container">
+        ${generateMultiLineChart(series, 800, 220, 'Top Decode Kernels per Step', 'ms')}
+      </div>
+`;
+      }
     }
 
     // Memory time series chart

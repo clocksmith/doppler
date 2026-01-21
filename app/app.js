@@ -1,6 +1,7 @@
 
 
 import { log } from '../src/debug/index.js';
+import { createConverterConfig, getRuntimeConfig, listPresets, MB } from '../src/config/index.js';
 
 // UI Components
 import { ModelSelector } from './model-selector.js';
@@ -19,6 +20,7 @@ import { ConverterController } from './converter-controller.js';
 import { DiagnosticsController } from './diagnostics-controller.js';
 import { QuickStartController } from './quickstart-controller.js';
 import { WorkspaceController } from './workspace-controller.js';
+import { ToolingController } from './tooling-controller.js';
 
 // UI Helpers
 import {
@@ -47,6 +49,7 @@ export class DopplerDemo {
   #diagnosticsController = null;
   #quickStartController = null;
   #workspaceController = null;
+  #toolingController = null;
 
   // UI Components
   #modelSelector = null;
@@ -59,6 +62,12 @@ export class DopplerDemo {
   #workspaceRefreshBtn = null;
   #workspaceStatus = null;
   #workspaceFiles = null;
+  #toolSelect = null;
+  #toolArgs = null;
+  #toolRunBtn = null;
+  #toolRefreshBtn = null;
+  #toolOutput = null;
+  #toolStatus = null;
 
   // DOM references
   #statusDot = null;
@@ -92,16 +101,25 @@ export class DopplerDemo {
   #convertMessage = null;
   #convertUrlInput = null;
   #convertUrlBtn = null;
+  #convertPresetSelect = null;
+  #convertAllowDownloadInput = null;
+  #convertMaxDownloadInput = null;
 
   // Diagnostics UI
   #diagnosticsModelSelect = null;
   #runtimePresetSelect = null;
+  #runtimeConfigFileInput = null;
+  #runtimeConfigClearBtn = null;
+  #runtimeConfigStatus = null;
   #diagnosticsSuiteSelect = null;
-  #diagnosticsPromptInput = null;
-  #diagnosticsMaxTokensInput = null;
   #diagnosticsRunBtn = null;
   #diagnosticsVerifyBtn = null;
+  #diagnosticsExportBtn = null;
   #diagnosticsStatus = null;
+  #diagnosticsReport = null;
+
+  #diagnosticsRuntimeConfig = null;
+  #diagnosticsRuntimeLabel = null;
 
   async init() {
     log.info('App', 'Initializing...');
@@ -109,6 +127,9 @@ export class DopplerDemo {
     this.#initDOMReferences();
     this.#initControllers();
     this.#initUIComponents();
+    this.#populateConverterPresets();
+    this.#syncConverterUIFromConfig();
+    this.#updateRuntimeConfigStatus();
     this.#initEventListeners();
 
     // Detect capabilities
@@ -227,20 +248,37 @@ export class DopplerDemo {
     this.#convertMessage = document.querySelector('#convert-message');
     this.#convertUrlInput = document.querySelector('#convert-url-input');
     this.#convertUrlBtn = document.querySelector('#convert-url-btn');
+    this.#convertPresetSelect = document.querySelector('#convert-model-preset');
+    this.#convertAllowDownloadInput = document.querySelector('#convert-allow-download');
+    this.#convertMaxDownloadInput = document.querySelector('#convert-max-download');
 
     this.#diagnosticsModelSelect = document.querySelector('#diagnostics-model');
     this.#runtimePresetSelect = document.querySelector('#runtime-preset');
+    this.#runtimeConfigFileInput = document.querySelector('#runtime-config-file');
+    this.#runtimeConfigClearBtn = document.querySelector('#runtime-config-clear');
+    this.#runtimeConfigStatus = document.querySelector('#runtime-config-status');
     this.#diagnosticsSuiteSelect = document.querySelector('#diagnostics-suite');
-    this.#diagnosticsPromptInput = document.querySelector('#diagnostics-prompt');
-    this.#diagnosticsMaxTokensInput = document.querySelector('#diagnostics-max-tokens');
     this.#diagnosticsRunBtn = document.querySelector('#diagnostics-run-btn');
     this.#diagnosticsVerifyBtn = document.querySelector('#diagnostics-verify-btn');
+    this.#diagnosticsExportBtn = document.querySelector('#diagnostics-export-btn');
     this.#diagnosticsStatus = document.querySelector('#diagnostics-status');
+    this.#diagnosticsReport = document.querySelector('#diagnostics-report');
+
+    if (this.#diagnosticsExportBtn) {
+      this.#diagnosticsExportBtn.disabled = true;
+    }
 
     this.#workspaceImportBtn = document.querySelector('#workspace-import-btn');
     this.#workspaceRefreshBtn = document.querySelector('#workspace-refresh-btn');
     this.#workspaceStatus = document.querySelector('#workspace-status');
     this.#workspaceFiles = document.querySelector('#workspace-files');
+
+    this.#toolSelect = document.querySelector('#tool-select');
+    this.#toolArgs = document.querySelector('#tool-args');
+    this.#toolRunBtn = document.querySelector('#tool-run-btn');
+    this.#toolRefreshBtn = document.querySelector('#tool-refresh-btn');
+    this.#toolOutput = document.querySelector('#tool-output');
+    this.#toolStatus = document.querySelector('#tool-status');
   }
 
   #initControllers() {
@@ -333,15 +371,23 @@ export class DopplerDemo {
       onSuiteStart: (suite) => {
         this.#setDiagnosticsStatus(`Running ${suite}...`);
         if (this.#diagnosticsRunBtn) this.#diagnosticsRunBtn.disabled = true;
+        if (this.#diagnosticsExportBtn) this.#diagnosticsExportBtn.disabled = true;
+        this.#setDiagnosticsReport('');
       },
       onSuiteComplete: (result) => {
         this.#setDiagnosticsStatus(
           `Done: ${result.suite} (${result.passed} passed, ${result.failed} failed)`
         );
+        const reportPath = result.reportInfo?.path ? `Report: ${result.reportInfo.path}` : '';
+        this.#setDiagnosticsReport(reportPath);
+        if (this.#diagnosticsExportBtn) {
+          this.#diagnosticsExportBtn.disabled = !result.report;
+        }
       },
       onSuiteError: (error) => {
         this.#setDiagnosticsStatus(`Error: ${error.message}`);
         this.#showError(`Diagnostics failed: ${error.message}`);
+        this.#setDiagnosticsReport('');
       },
       onSuiteFinish: () => {
         if (this.#diagnosticsRunBtn) this.#diagnosticsRunBtn.disabled = false;
@@ -393,12 +439,23 @@ export class DopplerDemo {
       },
     });
 
+    this.#toolingController = new ToolingController({
+      toolSelect: this.#toolSelect,
+      argsInput: this.#toolArgs,
+      runButton: this.#toolRunBtn,
+      refreshButton: this.#toolRefreshBtn,
+      outputEl: this.#toolOutput,
+      statusEl: this.#toolStatus,
+    });
+    this.#toolingController.init();
+
 
     this.#workspaceController = new WorkspaceController({
       importButton: this.#workspaceImportBtn,
       refreshButton: this.#workspaceRefreshBtn,
       statusEl: this.#workspaceStatus,
       filesEl: this.#workspaceFiles,
+      onVfsReady: (vfs) => this.#toolingController?.setVfs(vfs),
     });
   }
 
@@ -451,7 +508,10 @@ export class DopplerDemo {
     // Convert button
     if (this.#convertBtn) {
       if (ConverterController.isSupported()) {
-        this.#convertBtn.addEventListener('click', () => this.#converterController.convert());
+        this.#convertBtn.addEventListener('click', () => {
+          const converterConfig = this.#getConverterConfig();
+          this.#converterController.convert(converterConfig ? { converterConfig } : {});
+        });
       } else {
         this.#convertBtn.disabled = true;
         this.#convertBtn.title = 'Model conversion requires File System Access API (Chrome/Edge)';
@@ -466,16 +526,27 @@ export class DopplerDemo {
       }
     }
 
-    if (this.#diagnosticsMaxTokensInput) {
-      this.#diagnosticsMaxTokensInput.addEventListener('change', () =>
-        clampInputValue(this.#diagnosticsMaxTokensInput, 1, 4096)
-      );
+    if (this.#runtimeConfigFileInput) {
+      this.#runtimeConfigFileInput.addEventListener('change', (event) => {
+        const file = event.target?.files?.[0];
+        if (!file) return;
+        this.#loadRuntimeConfigFile(file);
+      });
+    }
+    if (this.#runtimePresetSelect) {
+      this.#runtimePresetSelect.addEventListener('change', () => this.#updateRuntimeConfigStatus());
+    }
+    if (this.#runtimeConfigClearBtn) {
+      this.#runtimeConfigClearBtn.addEventListener('click', () => this.#clearRuntimeConfigOverride());
     }
     if (this.#diagnosticsRunBtn) {
       this.#diagnosticsRunBtn.addEventListener('click', () => this.#runDiagnosticsSuite());
     }
     if (this.#diagnosticsVerifyBtn) {
       this.#diagnosticsVerifyBtn.addEventListener('click', () => this.#verifyDiagnosticsModel());
+    }
+    if (this.#diagnosticsExportBtn) {
+      this.#diagnosticsExportBtn.addEventListener('click', () => this.#exportDiagnosticsReport());
     }
 
     // Memory control buttons
@@ -670,6 +741,137 @@ export class DopplerDemo {
     }
   }
 
+  #setDiagnosticsReport(message) {
+    if (this.#diagnosticsReport) {
+      this.#diagnosticsReport.textContent = message;
+    }
+  }
+
+  #populateConverterPresets() {
+    if (!this.#convertPresetSelect) return;
+    const presets = listPresets().slice().sort();
+    this.#convertPresetSelect.innerHTML = '';
+
+    const autoOption = document.createElement('option');
+    autoOption.value = '';
+    autoOption.textContent = 'auto-detect';
+    this.#convertPresetSelect.appendChild(autoOption);
+
+    for (const preset of presets) {
+      const option = document.createElement('option');
+      option.value = preset;
+      option.textContent = preset;
+      this.#convertPresetSelect.appendChild(option);
+    }
+  }
+
+  #syncConverterUIFromConfig() {
+    const runtime = getRuntimeConfig();
+    const overrides = runtime?.shared?.tooling?.converter;
+    const config = createConverterConfig(overrides && typeof overrides === 'object' ? overrides : {});
+
+    if (this.#convertPresetSelect && config.presets?.model) {
+      const presetId = config.presets.model;
+      const hasPreset = Array.from(this.#convertPresetSelect.options)
+        .some((option) => option.value === presetId);
+      if (!hasPreset) {
+        const option = document.createElement('option');
+        option.value = presetId;
+        option.textContent = presetId;
+        this.#convertPresetSelect.appendChild(option);
+      }
+      this.#convertPresetSelect.value = presetId;
+    }
+    if (this.#convertAllowDownloadInput) {
+      this.#convertAllowDownloadInput.checked = config.http?.allowDownloadFallback !== false;
+    }
+    if (this.#convertMaxDownloadInput) {
+      const maxBytes = config.http?.maxDownloadBytes;
+      const maxValue = Number.isFinite(maxBytes) && maxBytes > 0 ? Math.round(maxBytes / MB) : '';
+      this.#convertMaxDownloadInput.value = maxValue ? String(maxValue) : '';
+    }
+  }
+
+  #updateRuntimeConfigStatus() {
+    if (!this.#runtimeConfigStatus) return;
+    if (this.#diagnosticsRuntimeConfig) {
+      const label = this.#diagnosticsRuntimeLabel || 'runtime.json';
+      this.#runtimeConfigStatus.textContent = `File: ${label}`;
+    } else {
+      const preset = this.#runtimePresetSelect?.value || 'default';
+      this.#runtimeConfigStatus.textContent = `Preset: ${preset}`;
+    }
+    if (this.#runtimePresetSelect) {
+      this.#runtimePresetSelect.disabled = Boolean(this.#diagnosticsRuntimeConfig);
+    }
+    if (this.#runtimeConfigClearBtn) {
+      this.#runtimeConfigClearBtn.disabled = !this.#diagnosticsRuntimeConfig;
+    }
+  }
+
+  #resolveRuntimeFromConfig(config) {
+    if (!config || typeof config !== 'object') return null;
+    if (config.runtime && typeof config.runtime === 'object') return config.runtime;
+    if (config.shared || config.loading || config.inference || config.emulation) return config;
+    return null;
+  }
+
+  async #loadRuntimeConfigFile(file) {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const runtime = this.#resolveRuntimeFromConfig(parsed);
+      if (!runtime) {
+        throw new Error('Runtime config is missing runtime fields.');
+      }
+      this.#diagnosticsRuntimeConfig = runtime;
+      this.#diagnosticsRuntimeLabel = file.name;
+      this.#updateRuntimeConfigStatus();
+    } catch (error) {
+      this.#clearRuntimeConfigOverride();
+      this.#showError(`Failed to load runtime config: ${error.message}`);
+    }
+  }
+
+  #clearRuntimeConfigOverride() {
+    this.#diagnosticsRuntimeConfig = null;
+    this.#diagnosticsRuntimeLabel = null;
+    if (this.#runtimeConfigFileInput) {
+      this.#runtimeConfigFileInput.value = '';
+    }
+    this.#updateRuntimeConfigStatus();
+  }
+
+  #exportDiagnosticsReport() {
+    try {
+      this.#diagnosticsController?.exportLastReport();
+    } catch (error) {
+      this.#showError(error.message);
+    }
+  }
+
+  #getConverterConfig() {
+    const runtime = getRuntimeConfig();
+    const overrides = runtime?.shared?.tooling?.converter;
+    const config = createConverterConfig(overrides && typeof overrides === 'object' ? overrides : {});
+
+    const presetOverride = this.#convertPresetSelect?.value || '';
+    config.presets.model = presetOverride || null;
+
+    if (this.#convertAllowDownloadInput) {
+      config.http.allowDownloadFallback = this.#convertAllowDownloadInput.checked;
+    }
+
+    const maxValue = parseInt(this.#convertMaxDownloadInput?.value || '', 10);
+    if (Number.isFinite(maxValue)) {
+      config.http.maxDownloadBytes = Math.max(1, Math.floor(maxValue)) * MB;
+    } else {
+      config.http.maxDownloadBytes = null;
+    }
+
+    return config;
+  }
+
   #updateDiagnosticsModels() {
     if (!this.#diagnosticsModelSelect) return;
     const models = this.#modelRegistry.getModels();
@@ -714,7 +916,8 @@ export class DopplerDemo {
     }
 
     try {
-      await this.#converterController.convertRemote(urls);
+      const converterConfig = this.#getConverterConfig();
+      await this.#converterController.convertRemote(urls, converterConfig ? { converterConfig } : {});
     } catch (error) {
       this.#showError(`Conversion failed: ${error.message}`);
     }
@@ -729,17 +932,14 @@ export class DopplerDemo {
       return;
     }
 
-    const runtimePreset = this.#runtimePresetSelect?.value || null;
-    const prompt = this.#diagnosticsPromptInput?.value || '';
-    const maxTokensValue = parseInt(this.#diagnosticsMaxTokensInput?.value || '', 10);
-    const maxTokens = Number.isFinite(maxTokensValue) ? maxTokensValue : undefined;
+    const runtimePreset = this.#diagnosticsRuntimeConfig ? null : (this.#runtimePresetSelect?.value || null);
+    const runtimeConfig = this.#diagnosticsRuntimeConfig;
 
     try {
       await this.#diagnosticsController.runSuite(model, {
         suite,
         runtimePreset,
-        prompt,
-        maxTokens,
+        runtimeConfig,
       });
     } catch (error) {
       this.#showError(`Diagnostics failed: ${error.message}`);

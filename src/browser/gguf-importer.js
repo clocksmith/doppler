@@ -7,6 +7,8 @@ import {
   openModelStore,
   saveManifest,
   deleteModel,
+  computeHash,
+  getStorageBackendType,
 } from '../storage/shard-manager.js';
 import {
   RDRR_VERSION,
@@ -17,6 +19,7 @@ import { createConverterConfig, detectPreset, resolvePreset } from '../config/in
 import { extractArchitecture } from '../converter/core.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
 import { HEADER_READ_SIZE } from '../config/schema/index.js';
+import { registerModel } from '../storage/registry.js';
 
 // ============================================================================
 // Types
@@ -34,16 +37,6 @@ export const ImportStage = {
 // ============================================================================
 // Helper Functions
 // ============================================================================
-
-
-async function computeSHA256(data) {
-  const buffer = data instanceof ArrayBuffer ? data : data.buffer;
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  const hashArray = new Uint8Array(hashBuffer);
-  return Array.from(hashArray)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
 
 
 function sanitizeModelId(name) {
@@ -172,6 +165,18 @@ export async function importGGUFFile(
     // Save manifest to OPFS
     await saveManifest(JSON.stringify(manifest, null, 2));
 
+    try {
+      await registerModel({
+        modelId,
+        totalSize: file.size,
+        quantization: ggufInfo.quantization,
+        hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+        backend: getStorageBackendType(),
+      });
+    } catch {
+      // Registry is optional; ignore failures
+    }
+
     onProgress?.({
       stage: ImportStage.COMPLETE,
       message: 'Import complete!',
@@ -237,7 +242,14 @@ async function streamToShards(
       if (done) {
         // Write final partial shard if any data remains
         if (shardOffset > 0) {
-          await writeShard(modelDir, shardIndex, shardBuffer.slice(0, shardOffset), shardInfos, shardSizeBytes);
+          await writeShard(
+            modelDir,
+            shardIndex,
+            shardBuffer.slice(0, shardOffset),
+            shardInfos,
+            shardSizeBytes,
+            converterConfig.manifest.hashAlgorithm
+          );
           shardIndex++;
         }
         break;
@@ -256,7 +268,14 @@ async function streamToShards(
 
         // Shard full, write it
         if (shardOffset === shardSizeBytes) {
-          await writeShard(modelDir, shardIndex, shardBuffer, shardInfos, shardSizeBytes);
+          await writeShard(
+            modelDir,
+            shardIndex,
+            shardBuffer,
+            shardInfos,
+            shardSizeBytes,
+            converterConfig.manifest.hashAlgorithm
+          );
 
           shardIndex++;
           shardBuffer = new Uint8Array(shardSizeBytes);
@@ -306,7 +325,7 @@ async function bufferToShards(
     const buffer = await blob.arrayBuffer();
     const data = new Uint8Array(buffer);
 
-    await writeShard(modelDir, shardIndex, data, shardInfos, shardSizeBytes);
+      await writeShard(modelDir, shardIndex, data, shardInfos, shardSizeBytes, converterConfig.manifest.hashAlgorithm);
 
     shardIndex++;
     offset = end;
@@ -327,10 +346,11 @@ async function writeShard(
   shardIndex,
   data,
   shardInfos,
-  shardSizeBytes
+  shardSizeBytes,
+  hashAlgorithm
 ) {
   const filename = generateShardFilename(shardIndex);
-  const hash = await computeSHA256(data);
+  const hash = await computeHash(data, hashAlgorithm);
 
   // Get file handle and write
   const fileHandle = await modelDir.getFileHandle(filename, { create: true });
@@ -407,7 +427,8 @@ function createManifest(
     };
   }
 
-  const presetId = detectPreset(rawConfig, ggufInfo.architecture);
+  const presetOverride = converterConfig.presets?.model;
+  const presetId = presetOverride || detectPreset(rawConfig, ggufInfo.architecture);
   if (presetId === 'transformer') {
     const modelType = rawConfig.model_type ?? 'unknown';
     throw new Error(

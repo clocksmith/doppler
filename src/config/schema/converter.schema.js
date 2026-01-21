@@ -26,6 +26,11 @@ export const DEFAULT_CONVERTER_STREAMING_CONFIG = {
   chunkSizeBytes: 64 * MB,
 };
 
+export const DEFAULT_CONVERTER_HTTP_CONFIG = {
+  allowDownloadFallback: true,
+  maxDownloadBytes: null,
+};
+
 export const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG = {
   transposeWeights: false,
   fuseGateUp: false,
@@ -51,6 +56,7 @@ export const DEFAULT_CONVERTER_CONFIG = {
   quantization: DEFAULT_CONVERTER_QUANTIZATION_CONFIG,
   sharding: DEFAULT_CONVERTER_SHARDING_CONFIG,
   streaming: DEFAULT_CONVERTER_STREAMING_CONFIG,
+  http: DEFAULT_CONVERTER_HTTP_CONFIG,
   weightLayout: DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
@@ -63,6 +69,7 @@ export function createConverterConfig(overrides) {
       quantization: { ...DEFAULT_CONVERTER_QUANTIZATION_CONFIG },
       sharding: { ...DEFAULT_CONVERTER_SHARDING_CONFIG },
       streaming: { ...DEFAULT_CONVERTER_STREAMING_CONFIG },
+      http: { ...DEFAULT_CONVERTER_HTTP_CONFIG },
       weightLayout: { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG },
       manifest: { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
       output: { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
@@ -80,6 +87,9 @@ export function createConverterConfig(overrides) {
     streaming: overrides.streaming
       ? { ...DEFAULT_CONVERTER_STREAMING_CONFIG, ...overrides.streaming }
       : { ...DEFAULT_CONVERTER_STREAMING_CONFIG },
+    http: overrides.http
+      ? { ...DEFAULT_CONVERTER_HTTP_CONFIG, ...overrides.http }
+      : { ...DEFAULT_CONVERTER_HTTP_CONFIG },
     weightLayout: overrides.weightLayout
       ? { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG, ...overrides.weightLayout }
       : { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG },

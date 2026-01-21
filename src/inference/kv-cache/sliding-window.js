@@ -22,6 +22,12 @@ export class SlidingWindowKVCache extends KVCache {
   }
 
   
+  clear() {
+    super.clear();
+    this.totalTokensSeen = 0;
+  }
+
+  
   update(
     layerIdx,
     keys,

@@ -5,6 +5,7 @@ import {
   sortTensorsByGroup,
   estimateShardCount,
 } from '../../src/converter/shard-packer.js';
+import { computeHash, createStreamingHasher } from '../../src/storage/shard-manager.js';
 import { SHARD_SIZE } from '../../src/config/schema/index.js';
 
 
@@ -168,6 +169,48 @@ class StreamingHasherIO {
       },
       finalize: async () => new Uint8Array([total & 0xff, last & 0xff]),
     };
+  }
+}
+
+class HashingShardIO {
+  shards = new Map();
+  #algorithm;
+
+  constructor(algorithm) {
+    this.#algorithm = algorithm;
+  }
+
+  async createShardWriter(index) {
+    const chunks = [];
+    let total = 0;
+    return {
+      write: async (chunk) => {
+        const bytes = new Uint8Array(chunk);
+        if (bytes.length === 0) return;
+        chunks.push(bytes);
+        total += bytes.length;
+      },
+      close: async () => {
+        const combined = new Uint8Array(total);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        this.shards.set(index, combined);
+      },
+      abort: async () => {
+        chunks.length = 0;
+      },
+    };
+  }
+
+  createHasher() {
+    return createStreamingHasher(this.#algorithm);
+  }
+
+  async computeHash(data) {
+    return computeHash(data, this.#algorithm);
   }
 }
 
@@ -441,6 +484,38 @@ describe('ShardPacker', () => {
 
       expect(result.shards.length).toBe(1);
       expect(result.shards[0].hash).toBe(io.lastShardHash);
+    });
+
+    it('matches group hash with computeHash', async () => {
+      const io = new HashingShardIO('blake3');
+      const packer = createPacker(io, { shardSize: 256, hashAlgorithm: 'blake3' });
+
+      const tensorA = createStreamingTensor('model.layers.0.weight', 16, [16], 8);
+      const tensorB = createStreamingTensor('model.layers.0.bias', 8, [8], 8);
+
+      const result = await packer.pack([tensorA, tensorB]);
+      const group = result.groups['layer.0'];
+
+      const combined = new Uint8Array(24);
+      combined.set(await tensorA.getData(), 0);
+      combined.set(await tensorB.getData(), 16);
+      const expected = await computeHash(combined, 'blake3');
+
+      expect(group.hash).toBe(expected);
+    });
+
+    it('matches shard hashes with computeHash', async () => {
+      const io = new HashingShardIO('blake3');
+      const packer = createPacker(io, { shardSize: 32, hashAlgorithm: 'blake3' });
+
+      const tensor = createStreamingTensor('model.layers.1.weight', 64, [64], 16);
+      const result = await packer.pack([tensor]);
+
+      for (const shard of result.shards) {
+        const data = io.shards.get(shard.index);
+        const expected = await computeHash(data, 'blake3');
+        expect(shard.hash).toBe(expected);
+      }
     });
 
     it('groups MoE expert tensors', async () => {

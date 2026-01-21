@@ -24,6 +24,7 @@ import type {
 } from '../converter/core.js';
 import type { TensorSource } from './tensor-source-file.js';
 import type { HttpTensorSourceOptions } from './tensor-source-http.js';
+import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
 export { ConvertStage } from '../converter/core.js';
 export type {
@@ -42,7 +43,7 @@ export declare function isConversionSupported(): boolean;
  */
 export declare function createRemoteModelSources(
   urls: string[],
-  options?: HttpTensorSourceOptions
+  options?: HttpTensorSourceOptions & { converterConfig?: ConverterConfigSchema }
 ): Promise<TensorSource[]>;
 
 /**

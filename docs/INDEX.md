@@ -7,6 +7,7 @@ Quick index for DOPPLER documentation.
 ## Core Docs
 
 - [Architecture](ARCHITECTURE.md) - System overview and pipeline.
+- [Browser vs CLI Capabilities](browser-vs-cli-capabilities.md) - Parity matrix, gaps, and references.
 - [Config](CONFIG.md) - Kernel paths and error codes.
 - [Formats](FORMATS.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](OPERATIONS.md) - Troubleshooting, debug notes, perf investigations, results.

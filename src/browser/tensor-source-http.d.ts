@@ -19,6 +19,8 @@ export interface HttpTensorSourceOptions {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   name?: string;
+  allowDownloadFallback?: boolean;
+  maxDownloadBytes?: number | null;
 }
 
 export declare function probeHttpRange(url: string, options?: HttpTensorSourceOptions): Promise<HttpRangeProbe>;

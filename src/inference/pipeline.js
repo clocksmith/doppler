@@ -465,6 +465,7 @@ export class InferencePipeline extends PipelineState {
     this.stats.decodeTimeMs = 0;
     this.stats.gpuTimePrefillMs = undefined;
     this.stats.gpuTimeDecodeMs = undefined;
+    this.stats.decodeProfileSteps = [];
   }
 
   

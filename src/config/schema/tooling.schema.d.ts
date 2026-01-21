@@ -7,6 +7,8 @@
  * @module config/schema/tooling
  */
 
+import type { ConverterConfigSchema } from './converter.schema.js';
+
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
 export type ToolingDiagnosticsMode = 'off' | 'on_failure' | 'always';
 
@@ -15,6 +17,8 @@ export interface ToolingConfigSchema {
   intent: ToolingIntent;
   /** Diagnostics policy for verification runs */
   diagnostics: ToolingDiagnosticsMode;
+  /** Optional converter config overrides for browser tooling */
+  converter?: Partial<ConverterConfigSchema> | null;
 }
 
 /** Allowed tooling intents */

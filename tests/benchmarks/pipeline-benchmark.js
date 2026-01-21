@@ -125,6 +125,7 @@ export class PipelineBenchmark {
 
     // Warmup runs (not measured)
     for (let i = 0; i < this.config.warmupRuns; i++) {
+      this.pipeline.reset();
       await this.runInference(prompt, true);
       this.pipeline.reset();
     }
@@ -134,6 +135,7 @@ export class PipelineBenchmark {
     console.warn(`[Benchmark] Starting ${this.config.timedRuns} timed runs`);
     for (let i = 0; i < this.config.timedRuns; i++) {
       console.warn(`[Benchmark] Run ${i + 1}/${this.config.timedRuns}`);
+      this.pipeline.reset();
       const result = await this.runInference(prompt, false);
       runResults.push(result);
       this.pipeline.reset();
@@ -377,6 +379,10 @@ export class PipelineBenchmark {
     const { enableBenchmarkMode, resetPerfCounters, getPerfCounters } = await import('../../src/gpu/perf-guards.js');
     const { MemoryTimeSeries } = await import('../../src/loader/memory-monitor.js');
 
+    if (this.pipeline?.reset) {
+      this.pipeline.reset();
+    }
+
     // Enable submit tracking
     setTrackSubmits(true);
     resetSubmitStats();
@@ -527,6 +533,7 @@ export class PipelineBenchmark {
     // Get pipeline stats
     const pipelineStats = this.pipeline.getStats();
     const decodeRingStats = pipelineStats.decodeRing ?? null;
+    const decodeProfileSteps = pipelineStats.decodeProfileSteps ?? null;
     if (pipelineStats.gpuTimePrefillMs !== undefined) {
       gpuTimePrefillMs = pipelineStats.gpuTimePrefillMs;
       gpuKernelTimePrefillMs = pipelineStats.gpuTimePrefillMs;
@@ -577,6 +584,7 @@ export class PipelineBenchmark {
       decodeRecordMs: pipelineStats.decodeRecordMs ?? null,
       decodeSubmitWaitMs: pipelineStats.decodeSubmitWaitMs ?? null,
       decodeReadbackWaitMs: pipelineStats.decodeReadbackWaitMs ?? null,
+      decodeProfileSteps,
       batchingConfig: {
         batchSize: this.pipeline.runtimeConfig?.inference?.batching?.batchSize ?? null,
         readbackInterval: this.pipeline.runtimeConfig?.inference?.batching?.readbackInterval ?? null,
@@ -810,6 +818,9 @@ export class PipelineBenchmark {
     // Include profiler results (per-kernel timing) if available
     if (lastRun?.profilerResults) {
       raw.gpu_profiler_timing = lastRun.profilerResults;
+    }
+    if (lastRun?.decodeProfileSteps?.length) {
+      raw.decode_step_profile_ms = lastRun.decodeProfileSteps;
     }
 
     return raw;

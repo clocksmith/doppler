@@ -4,7 +4,7 @@
   "cli": {
     "command": "bench",
     "suite": "inference",
-    "profileDir": "tests/results/bench-gemma3-profile"
+    "profileDir": "tests/results/bench-gemma3-decode"
   },
   "runtime": {
     "shared": {
@@ -18,8 +18,8 @@
       },
       "benchmark": {
         "run": {
-          "promptName": "medium",
-          "maxNewTokens": 16,
+          "promptName": "xs",
+          "maxNewTokens": 256,
           "warmupRuns": 1,
           "timedRuns": 1,
           "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
@@ -30,10 +30,10 @@
     },
     "inference": {
       "batching": {
-        "batchSize": 4,
-        "maxTokens": 16,
+        "batchSize": 1,
+        "maxTokens": 256,
         "stopCheckMode": "per-token",
-        "readbackInterval": 4,
+        "readbackInterval": 8,
         "ringTokens": 1,
         "ringStop": 1,
         "ringStaging": 1

@@ -443,6 +443,14 @@ export interface PipelineStats {
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;
   decodeRing?: DecodeRingStats | null;
+  decodeProfileSteps?: Array<{
+    step?: number;
+    stepStart?: number;
+    stepCount?: number;
+    batch?: boolean;
+    timings: Record<string, number>;
+    totalMs?: number;
+  }>;
 }
 
 /**

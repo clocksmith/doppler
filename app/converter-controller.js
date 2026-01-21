@@ -56,14 +56,14 @@ export class ConverterController {
     return modelId;
   }
 
-  async convert() {
+  async convert(options = {}) {
     if (this.#isConverting) {
       return null;
     }
 
     try {
       const files = await pickModelFiles();
-      return await this.#runConversion(files);
+      return await this.#runConversion(files, options);
     } catch (error) {
       if (error.name === 'AbortError') {
         log.info('Converter', 'Conversion cancelled');

@@ -28,6 +28,14 @@ export function sumProfileTimings(timings) {
   return total;
 }
 
+function recordDecodeProfileStep(state, entry) {
+  if (!entry || !entry.timings) return;
+  if (!state.stats.decodeProfileSteps) {
+    state.stats.decodeProfileSteps = [];
+  }
+  state.stats.decodeProfileSteps.push(entry);
+}
+
 export function shouldUseBatchDecode(config) {
   return config.batchSize > 1
     && config.useGPU
@@ -288,6 +296,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
       }
       if (timings) {
+        recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
         log.warn('Profile', `Decode step ${state.decodeStepCount}:`);
         log.warn('Profile', CommandRecorder.formatProfileReport(timings));
       }
@@ -339,6 +348,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
       }
       if (timings) {
+        recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
         log.warn('Profile', `Decode step ${state.decodeStepCount} (layers only):`);
         log.warn('Profile', CommandRecorder.formatProfileReport(timings));
       }
@@ -696,6 +706,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
     }
     if (timings) {
+      recordDecodeProfileStep(state, {
+        batch: true,
+        stepStart: state.decodeStepCount + 1,
+        stepCount: actualCount,
+        timings,
+        totalMs: total ?? undefined,
+      });
       log.warn('Profile', `Batch decode (N=${N}):`);
       log.warn('Profile', CommandRecorder.formatProfileReport(timings));
     }

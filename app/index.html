@@ -101,12 +101,17 @@
 
     /* Convert */
     .convert-description { margin-bottom: var(--space-sm); }
+    .convert-note { margin: 0; }
+    .convert-field { display: flex; flex-direction: column; gap: var(--space-xs); }
+    .convert-toggle { display: flex; align-items: center; gap: var(--space-xs); }
     .convert-status { margin-top: var(--space-sm); }
     .convert-url-input { min-height: 70px; }
 
     /* Diagnostics */
     .diagnostics-field { display: flex; flex-direction: column; gap: var(--space-xs); }
-    .diagnostics-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-xs); }
+    .diagnostics-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-xs); }
+    .diagnostics-config-row { display: flex; align-items: center; gap: var(--space-sm); }
+    .diagnostics-report { margin-top: var(--space-xs); }
     .diagnostics-status { margin-top: var(--space-sm); }
 
 
@@ -121,6 +126,24 @@
       background: var(--bg);
     }
     .workspace-file { margin-bottom: 2px; }
+
+    /* Tools */
+    .tool-row { display: flex; gap: var(--space-sm); align-items: center; }
+    .tool-select { flex: 1; }
+    .tool-args {
+      min-height: 80px;
+      font-family: var(--font-mono);
+      resize: vertical;
+    }
+    .tool-actions { display: flex; align-items: center; gap: var(--space-sm); }
+    .tool-output {
+      border: var(--border-sm) solid var(--fg);
+      padding: var(--space-sm);
+      max-height: 180px;
+      overflow: auto;
+      background: var(--bg);
+      white-space: pre-wrap;
+    }
 
     /* Logs */
     .log-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
@@ -314,12 +337,27 @@
         <section class="panel convert-panel">
           <h2 class="type-label">Convert Model</h2>
           <p class="convert-description">Import GGUF or HuggingFace models</p>
+          <p class="convert-note type-caption muted">Requires tokenizer.json (tokenizer.model is not supported).</p>
+          <p class="convert-note type-caption muted">Remote conversion uses HTTP range when available; otherwise it downloads into temporary OPFS/IndexedDB storage and cleans up.</p>
+          <p class="convert-note type-caption muted">Q4_K_M column layout is not supported; use row layout or pre-quantized weights.</p>
+          <div class="convert-field">
+            <label class="type-caption muted" for="convert-model-preset">Model preset override</label>
+            <select id="convert-model-preset" class="w-full"></select>
+          </div>
           <button id="convert-btn" class="btn btn-primary w-full">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
             Select Files
           </button>
+          <label class="convert-toggle type-caption muted">
+            <input id="convert-allow-download" type="checkbox" checked />
+            Allow full download fallback for non-range servers
+          </label>
+          <div class="convert-field">
+            <label class="type-caption muted" for="convert-max-download">Max download size (MB, optional)</label>
+            <input id="convert-max-download" class="w-full" type="number" min="1" step="1" placeholder="No limit" />
+          </div>
           <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
           <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
           <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
@@ -341,9 +379,18 @@
             <label class="type-caption muted" for="runtime-preset">Runtime preset</label>
             <select id="runtime-preset" class="w-full">
               <option value="default">default</option>
+              <option value="modes/ci">modes/ci</option>
               <option value="modes/debug">modes/debug</option>
               <option value="modes/bench">modes/bench</option>
             </select>
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="runtime-config-file">Runtime config (JSON)</label>
+            <div class="diagnostics-config-row">
+              <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
+              <button id="runtime-config-clear" class="btn">Clear</button>
+            </div>
+            <div class="type-caption muted" id="runtime-config-status">Preset: default</div>
           </div>
           <div class="diagnostics-field">
             <label class="type-caption muted" for="diagnostics-suite">Suite</label>
@@ -354,18 +401,12 @@
               <option value="debug">debug</option>
             </select>
           </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diagnostics-prompt">Prompt</label>
-            <input id="diagnostics-prompt" class="w-full" type="text" placeholder="Optional prompt" />
-          </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diagnostics-max-tokens">Max tokens</label>
-            <input id="diagnostics-max-tokens" class="w-full" type="number" min="1" step="1" placeholder="Default" />
-          </div>
           <div class="diagnostics-actions">
             <button id="diagnostics-verify-btn" class="btn">Verify</button>
             <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
+            <button id="diagnostics-export-btn" class="btn">Export JSON</button>
           </div>
+          <div class="diagnostics-report type-caption muted" id="diagnostics-report"></div>
           <div id="diagnostics-status" class="diagnostics-status type-caption muted">Idle</div>
         </section>
 
@@ -377,6 +418,21 @@
           </div>
           <div class="workspace-status type-caption" id="workspace-status">Idle</div>
           <div class="workspace-files type-caption" id="workspace-files"></div>
+        </section>
+
+        <section class="panel tools-panel">
+          <h2 class="type-label">Tools</h2>
+          <div class="tool-row">
+            <select id="tool-select" class="tool-select"></select>
+            <button id="tool-refresh-btn" class="btn">Refresh</button>
+          </div>
+          <label class="type-caption muted" for="tool-args">Args (JSON)</label>
+          <textarea id="tool-args" class="tool-args" rows="4"></textarea>
+          <div class="tool-actions">
+            <button id="tool-run-btn" class="btn btn-primary">Run</button>
+            <span class="type-caption" id="tool-status">Idle</span>
+          </div>
+          <pre class="tool-output type-caption" id="tool-output"></pre>
         </section>
 
       </aside>

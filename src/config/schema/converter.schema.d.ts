@@ -36,6 +36,11 @@ export interface ConverterStreamingConfigSchema {
   chunkSizeBytes: number;
 }
 
+export interface ConverterHttpConfigSchema {
+  allowDownloadFallback: boolean;
+  maxDownloadBytes: number | null;
+}
+
 export interface ConverterWeightLayoutConfigSchema {
   transposeWeights: boolean;
   fuseGateUp: boolean;
@@ -61,6 +66,7 @@ export interface ConverterConfigSchema {
   quantization: ConverterQuantizationConfigSchema;
   sharding: ConverterShardingConfigSchema;
   streaming: ConverterStreamingConfigSchema;
+  http: ConverterHttpConfigSchema;
   weightLayout: ConverterWeightLayoutConfigSchema;
   manifest: ConverterManifestConfigSchema;
   output: ConverterOutputConfigSchema;
@@ -70,6 +76,7 @@ export interface ConverterConfigSchema {
 export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;
 export declare const DEFAULT_CONVERTER_SHARDING_CONFIG: ConverterShardingConfigSchema;
 export declare const DEFAULT_CONVERTER_STREAMING_CONFIG: ConverterStreamingConfigSchema;
+export declare const DEFAULT_CONVERTER_HTTP_CONFIG: ConverterHttpConfigSchema;
 export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayoutConfigSchema;
 export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
 export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;

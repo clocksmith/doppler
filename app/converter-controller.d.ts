@@ -4,6 +4,8 @@
  * @module app/converter-controller
  */
 
+import type { ConverterConfigSchema } from '../src/config/schema/index.js';
+
 export interface ConverterControllerCallbacks {
   onStart?: () => void;
   onProgress?: (percent: number, message: string) => void;
@@ -13,6 +15,13 @@ export interface ConverterControllerCallbacks {
   onFinish?: () => void;
 }
 
+export interface ConverterControllerOptions {
+  converterConfig?: ConverterConfigSchema;
+  modelId?: string;
+  signal?: AbortSignal;
+  [key: string]: unknown;
+}
+
 export declare class ConverterController {
   constructor(callbacks?: ConverterControllerCallbacks);
 
@@ -20,7 +29,7 @@ export declare class ConverterController {
 
   get isConverting(): boolean;
 
-  convert(): Promise<string | null>;
+  convert(options?: ConverterControllerOptions): Promise<string | null>;
 
-  convertRemote(urls: string[], options?: Record<string, unknown>): Promise<string | null>;
+  convertRemote(urls: string[], options?: ConverterControllerOptions): Promise<string | null>;
 }

@@ -11,6 +11,7 @@ import { parseManifest } from '../storage/rdrr-format.js';
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
   if (options.searchParams) return parseRuntimeOverridesFromURL(options.searchParams);
+  if (typeof window === 'undefined') return parseRuntimeOverridesFromURL(new URLSearchParams());
   return parseRuntimeOverridesFromURL();
 }
 

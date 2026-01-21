@@ -26,23 +26,32 @@ function resolveModelSource(model) {
   return { modelId: model?.key || null, sourceType: 'unknown' };
 }
 
-function applyRuntimeOverrides({ prompt, maxTokens }) {
-  const current = getRuntimeConfig();
-  const next = {
-    ...current,
-    inference: {
-      ...current.inference,
-      prompt: typeof prompt === 'string' && prompt.trim() ? prompt.trim() : current.inference?.prompt,
-      batching: {
-        ...current.inference?.batching,
-        maxTokens: Number.isFinite(maxTokens)
-          ? Math.max(1, Math.floor(maxTokens))
-          : current.inference?.batching?.maxTokens,
-      },
-    },
-  };
-  setRuntimeConfig(next);
-  return next;
+function resolveSuiteCommand(suite) {
+  const normalized = String(suite || '').trim().toLowerCase();
+  if (normalized === 'bench') return 'bench';
+  if (normalized === 'debug') return 'debug';
+  return 'test';
+}
+
+function assertToolingIntent(command, runtime) {
+  if (command === 'run' || command === 'convert' || command === 'tool') return;
+  const intent = runtime?.shared?.tooling?.intent ?? null;
+  if (!intent) {
+    throw new Error('runtime.shared.tooling.intent is required for diagnostics runs.');
+  }
+
+  const allowed = {
+    debug: new Set(['investigate']),
+    test: new Set(['verify']),
+    bench: new Set(['calibrate', 'investigate']),
+  }[command];
+
+  if (allowed && !allowed.has(intent)) {
+    throw new Error(
+      `diagnostics suite "${command}" requires runtime.shared.tooling.intent to be ` +
+      `${[...allowed].join(' or ')}.`
+    );
+  }
 }
 
 export class DiagnosticsController {
@@ -51,6 +60,10 @@ export class DiagnosticsController {
   #isVerifying = false;
 
   #callbacks;
+
+  #lastReport = null;
+
+  #lastReportInfo = null;
 
   constructor(callbacks = {}) {
     this.#callbacks = callbacks;
@@ -103,26 +116,33 @@ export class DiagnosticsController {
 
     const suite = options.suite || 'inference';
     const runtimePreset = options.runtimePreset || null;
+    const runtimeConfig = options.runtimeConfig || null;
     const resolved = resolveModelSource(model);
 
     this.#isRunning = true;
     this.#callbacks.onSuiteStart?.(suite, resolved);
 
     try {
-      if (runtimePreset) {
+      if (runtimeConfig) {
+        setRuntimeConfig(runtimeConfig);
+      } else if (runtimePreset) {
         await applyRuntimePreset(runtimePreset);
       }
-      applyRuntimeOverrides({ prompt: options.prompt, maxTokens: options.maxTokens });
+
+      const runtime = getRuntimeConfig();
+      const command = resolveSuiteCommand(suite);
+      assertToolingIntent(command, runtime);
 
       const result = await runBrowserSuite({
         suite,
         modelId: resolved.modelId,
         modelUrl: resolved.modelUrl,
         runtimePreset,
-        prompt: options.prompt,
-        maxTokens: options.maxTokens,
+        runtime,
       });
 
+      this.#lastReport = result.report ?? null;
+      this.#lastReportInfo = result.reportInfo ?? null;
       this.#callbacks.onSuiteComplete?.(result);
       return result;
     } catch (error) {
@@ -133,5 +153,22 @@ export class DiagnosticsController {
       this.#isRunning = false;
       this.#callbacks.onSuiteFinish?.();
     }
+  }
+
+  exportLastReport() {
+    if (!this.#lastReport) {
+      throw new Error('No diagnostics report available to export.');
+    }
+    const timestamp = String(this.#lastReport.timestamp || new Date().toISOString()).replace(/[:]/g, '-');
+    const modelId = String(this.#lastReport.modelId || 'report').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `${modelId}-${timestamp}.json`;
+    const payload = JSON.stringify(this.#lastReport, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 }

@@ -8,6 +8,7 @@ import {
 } from '../src/storage/shard-manager.js';
 import { parseManifest } from '../src/storage/rdrr-format.js';
 import { QUICKSTART_MODELS } from '../src/storage/quickstart-downloader.js';
+import { listRegisteredModels } from '../src/storage/registry.js';
 
 export class ModelRegistry {
   #models = [];
@@ -127,14 +128,31 @@ export class ModelRegistry {
 
   async #discoverCachedModels() {
     const results = [];
+    const registryEntries = [];
 
     let cachedIds = [];
+    try {
+      const registered = await listRegisteredModels();
+      if (Array.isArray(registered)) {
+        registryEntries.push(...registered);
+      }
+    } catch (err) {
+      log.debug('ModelRegistry', `No registry entries available: ${err.message}`);
+    }
+
+    const registryMap = new Map(
+      registryEntries.map((entry) => [entry.modelId, entry])
+    );
+
     try {
       cachedIds = await listModels();
       log.debug('ModelRegistry', 'Found cached models in OPFS:', cachedIds);
     } catch (err) {
       log.warn('ModelRegistry', 'Could not query cached models:', err.message);
-      return results;
+      if (registryEntries.length === 0) {
+        return results;
+      }
+      cachedIds = registryEntries.map((entry) => entry.modelId);
     }
 
     for (const cachedId of cachedIds) {
@@ -146,8 +164,12 @@ export class ModelRegistry {
         const manifest = parseManifest(manifestText);
         const archInfo = manifest.architecture;
         const archLabel = typeof archInfo === 'string' ? archInfo : manifest.modelType;
-        const quant = manifest.quantization || 'Unknown';
-        const totalSize = (manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
+        const registryEntry = registryMap.get(cachedId);
+        const quant = manifest.quantization || registryEntry?.quantization || 'Unknown';
+        const totalSize = manifest.totalSize
+          ?? (manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0)
+          ?? registryEntry?.totalSize
+          ?? 0;
 
         // Estimate param count from hidden size
         const hiddenSize = typeof archInfo === 'object' && archInfo !== null
@@ -167,7 +189,19 @@ export class ModelRegistry {
           downloadSize: totalSize,
         });
       } catch (e) {
-        log.warn('ModelRegistry', `Could not load manifest for cached model ${cachedId}:`, e.message);
+        const registryEntry = registryMap.get(cachedId);
+        if (registryEntry) {
+          results.push({
+            id: cachedId,
+            name: registryEntry.modelId || this.#formatModelName(cachedId),
+            architecture: 'Unknown',
+            size: 'Unknown',
+            quantization: registryEntry.quantization || 'Unknown',
+            downloadSize: registryEntry.totalSize || 0,
+          });
+        } else {
+          log.warn('ModelRegistry', `Could not load manifest for cached model ${cachedId}:`, e.message);
+        }
       }
     }
 
@@ -245,7 +279,6 @@ export class ModelRegistry {
     return !!(model.sources.server || model.sources.browser);
   }
 }
-
 
 
 

@@ -7,6 +7,7 @@
 import type { ModelInfo } from './model-selector.js';
 import type { BrowserSuite, BrowserSuiteResult } from '../src/inference/browser-harness.js';
 import type { IntegrityResult } from '../src/storage/shard-manager.js';
+import type { RuntimeConfigSchema } from '../src/config/schema/index.js';
 
 export interface DiagnosticsControllerCallbacks {
   onSuiteStart?: (suite: string, model: { modelId: string | null; modelUrl?: string; sourceType?: string }) => void;
@@ -22,8 +23,7 @@ export interface DiagnosticsControllerCallbacks {
 export interface DiagnosticsSuiteOptions {
   suite?: BrowserSuite;
   runtimePreset?: string | null;
-  prompt?: string;
-  maxTokens?: number;
+  runtimeConfig?: RuntimeConfigSchema | null;
 }
 
 export declare class DiagnosticsController {
@@ -35,4 +35,6 @@ export declare class DiagnosticsController {
   verifyModel(model: ModelInfo): Promise<IntegrityResult | null>;
 
   runSuite(model: ModelInfo | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult | null>;
+
+  exportLastReport(): void;
 }

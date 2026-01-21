@@ -9,6 +9,13 @@ import { createHttpTensorSource } from './tensor-source-http.js';
 const TEMP_DIR = 'temp-downloads';
 const TEMP_MODEL_PREFIX = '__temp_download__';
 
+function resolveMaxDownloadBytes(options) {
+  const raw = options?.maxDownloadBytes;
+  if (!Number.isFinite(raw)) return null;
+  const normalized = Math.max(0, Math.floor(raw));
+  return normalized > 0 ? normalized : null;
+}
+
 function inferNameFromUrl(url) {
   try {
     const parsed = new URL(url, typeof window !== 'undefined' ? window.location.href : undefined);
@@ -34,9 +41,16 @@ function buildTempFilename(name) {
 
 async function streamDownload(url, options, onChunk) {
   const { headers, signal } = options;
+  const maxBytes = resolveMaxDownloadBytes(options);
   const response = await fetch(url, { headers, signal });
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status}`);
+  }
+
+  const lengthHeader = response.headers.get('content-length');
+  const contentLength = Number.parseInt(lengthHeader || '', 10);
+  if (maxBytes !== null && Number.isFinite(contentLength) && contentLength > maxBytes) {
+    throw new Error(`Download exceeds limit (${maxBytes} bytes).`);
   }
 
   let totalBytes = 0;
@@ -46,12 +60,22 @@ async function streamDownload(url, options, onChunk) {
       const { done, value } = await reader.read();
       if (done) break;
       if (value) {
-        totalBytes += value.byteLength;
+        const nextTotal = totalBytes + value.byteLength;
+        if (maxBytes !== null && nextTotal > maxBytes) {
+          if (typeof reader.cancel === 'function') {
+            await reader.cancel();
+          }
+          throw new Error(`Download exceeds limit (${maxBytes} bytes).`);
+        }
+        totalBytes = nextTotal;
         await onChunk(value);
       }
     }
   } else {
     const buffer = new Uint8Array(await response.arrayBuffer());
+    if (maxBytes !== null && buffer.byteLength > maxBytes) {
+      throw new Error(`Download exceeds limit (${maxBytes} bytes).`);
+    }
     totalBytes = buffer.byteLength;
     await onChunk(buffer);
   }
@@ -73,11 +97,26 @@ async function downloadToOpfs(url, options = {}) {
   const fileHandle = await tempDir.getFileHandle(tempName, { create: true });
   const writable = await fileHandle.createWritable();
 
-  const result = await streamDownload(url, options, async (chunk) => {
-    await writable.write(chunk);
-  });
+  let result;
+  try {
+    result = await streamDownload(url, options, async (chunk) => {
+      await writable.write(chunk);
+    });
+    await writable.close();
+  } catch (error) {
+    if (typeof writable.abort === 'function') {
+      await writable.abort();
+    } else {
+      await writable.close();
+    }
+    try {
+      await tempDir.removeEntry(tempName);
+    } catch {
+      // ignore cleanup errors
+    }
+    throw error;
+  }
 
-  await writable.close();
   const file = await fileHandle.getFile();
   const source = createFileTensorSource(file);
   const size = file.size || result.totalBytes;
@@ -106,11 +145,20 @@ async function downloadToIdb(url, options = {}) {
   await store.openModel(modelId, { create: true });
   const stream = await store.createWriteStream(tempName);
 
-  const result = await streamDownload(url, options, async (chunk) => {
-    await stream.write(chunk);
-  });
-
-  await stream.close();
+  let result;
+  try {
+    result = await streamDownload(url, options, async (chunk) => {
+      await stream.write(chunk);
+    });
+    await stream.close();
+  } catch (error) {
+    if (typeof stream.abort === 'function') {
+      await stream.abort();
+    }
+    await store.deleteModel(modelId);
+    await store.cleanup();
+    throw error;
+  }
 
   let cached = null;
   const readAll = async () => {
@@ -170,6 +218,9 @@ export async function createRemoteTensorSource(url, options = {}) {
     const source = await createHttpTensorSource(url, options);
     return { source, size: source.size, supportsRange: true };
   } catch (_error) {
+    if (options.allowDownloadFallback === false) {
+      throw _error;
+    }
     const downloaded = await createDownloadTensorSource(url, options);
     return { ...downloaded, supportsRange: false };
   }
