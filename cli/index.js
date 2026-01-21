@@ -856,13 +856,6 @@ async function runInferenceBenchmark(opts, loadedConfig) {
     console.log(`Results also saved to: ${outputPath}`);
   }
 
-  if (!opts.quiet) {
-    console.log('\n' + '-'.repeat(60));
-    console.log('JSON Output:');
-    console.log('-'.repeat(60));
-    console.log(JSON.stringify(benchResults, null, 2));
-  }
-
   process.exit(0);
 }
 

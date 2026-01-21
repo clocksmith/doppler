@@ -500,11 +500,15 @@ export function generateHTMLReport(results, baseline) {
 
     if (result.raw?.decode_latencies_ms?.length > 0) {
       const latencies = result.raw.decode_latencies_ms;
+      const tokPerSec = latencies.map((ms) => (ms > 0 ? 1000 / ms : 0));
       html += `
       <h3>Decode Performance</h3>
       <div class="chart-container" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
         ${generateSVGLineChart(latencies, 550, 150, 'Decode Latency per Token', 'ms')}
         ${generateLatencyHistogram(latencies, 350, 150, 'Latency Distribution')}
+      </div>
+      <div class="chart-container">
+        ${generateSVGLineChart(tokPerSec, 800, 150, 'Decode Throughput per Token', 'tok/s')}
       </div>
 `;
     }
@@ -527,6 +531,20 @@ export function generateHTMLReport(results, baseline) {
         color: colors[idx % colors.length],
         values: decodeProfileSteps.map((step) => step.timings?.[kernel.label] ?? 0),
       }));
+      const attentionEntry = kernelsByAvg.find((k) => k.label === 'attention');
+      let crossover = null;
+      if (attentionEntry) {
+        for (const step of decodeProfileSteps) {
+          const timings = step.timings || {};
+          const attention = timings.attention ?? 0;
+          const matmul = timings.matmul ?? 0;
+          const fused = timings.matmul_rmsnorm_fused ?? 0;
+          if (attention >= Math.max(matmul, fused)) {
+            crossover = step.step ?? null;
+            break;
+          }
+        }
+      }
 
       if (series.length > 0) {
         html += `
@@ -534,6 +552,13 @@ export function generateHTMLReport(results, baseline) {
       <div class="chart-container">
         ${generateMultiLineChart(series, 800, 220, 'Top Decode Kernels per Step', 'ms')}
       </div>
+      <table>
+        <tr><th>Top Kernels (avg ms)</th><th>Attention Crossover Step</th></tr>
+        <tr>
+          <td>${kernelsByAvg.map((k) => `${k.label}: ${k.avg.toFixed(2)}ms`).join(', ')}</td>
+          <td>${crossover ?? 'n/a'}</td>
+        </tr>
+      </table>
 `;
       }
     }
