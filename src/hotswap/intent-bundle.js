@@ -100,14 +100,7 @@ async function computeSha256Hex(value) {
     return bytesToHex(new Uint8Array(hashBuffer));
   }
 
-  try {
-    const { createHash } = await import('crypto');
-    return createHash('sha256').update(bytes).digest('hex');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    log.warn('IntentBundle', `SHA-256 unavailable: ${message}`);
-    throw new Error('SHA-256 unavailable');
-  }
+  throw new Error('WebCrypto/SHA-256 unavailable (secure context required)');
 }
 
 function bytesToHex(bytes) {

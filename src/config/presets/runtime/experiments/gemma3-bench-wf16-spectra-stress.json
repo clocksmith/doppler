@@ -4,7 +4,8 @@
   "cli": {
     "command": "bench",
     "suite": "inference",
-    "profileDir": "tests/results/bench-gemma3-wf16"
+    "profileDir": "tests/results/bench-gemma3-wf16-spectra-stress",
+    "timeout": 900000
   },
   "runtime": {
     "shared": {
@@ -16,8 +17,8 @@
       },
       "benchmark": {
         "run": {
-          "promptName": "xs",
-          "maxNewTokens": 256,
+          "promptName": "long",
+          "maxNewTokens": 2048,
           "warmupRuns": 1,
           "timedRuns": 1,
           "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
@@ -27,16 +28,21 @@
       }
     },
     "inference": {
+      "kernelPath": "gemma3-f16-f16a-online",
       "batching": {
         "batchSize": 1,
-        "maxTokens": 256,
+        "maxTokens": 2048,
         "stopCheckMode": "per-token",
         "readbackInterval": 8,
         "ringTokens": 1,
         "ringStop": 1,
         "ringStaging": 1
       },
-      "sampling": { "temperature": 0 }
+      "sampling": { "temperature": 0 },
+      "kvcache": {
+        "layout": "contiguous",
+        "windowSize": 256
+      }
     }
   }
 }

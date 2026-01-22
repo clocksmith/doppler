@@ -282,7 +282,15 @@ export async function initializeInference(modelUrl, options = {}) {
   onProgress('complete', 1, 'Ready');
   log('Pipeline ready');
 
-  return { pipeline, manifest, capabilities };
+  // Snapshot active configuration for diffing
+  const configSnapshot = {
+     kernelPathId: pipeline.resolvedKernelPath?.id || null,
+     kernelPathName: pipeline.resolvedKernelPath?.name || null,
+     activeOverrides: options.runtime?.runtimeConfig?.inference?.kernelOverrides || null,
+     // Detailed per-op view could be expanded here if needed
+  };
+
+  return { pipeline, manifest, capabilities, configSnapshot };
 }
 
 // ============================================================================

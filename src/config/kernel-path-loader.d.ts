@@ -11,6 +11,7 @@ import type {
   KernelPathRef,
   KernelStepSchema,
 } from './schema/kernel-path.schema.js';
+import type { InferenceKernelOverridesSchema } from './schema/inference.schema.js';
 
 /**
  * Get a kernel path by ID.
@@ -34,6 +35,14 @@ export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
 export function getKernelPathActivationDtype(
   path: KernelPathSchema | null
 ): string | null;
+
+/**
+ * Apply runtime kernel overrides to a kernel path.
+ */
+export function applyKernelOverrides(
+  path: KernelPathSchema,
+  overrides: InferenceKernelOverridesSchema | null
+): KernelPathSchema;
 
 /**
  * Resolve layer index template in weight references.

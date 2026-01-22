@@ -3,7 +3,7 @@
 import { parseModelConfig } from './config.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
-import { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
+import { KVCache, SlidingWindowKVCache, TieredKVCache } from '../kv-cache.js';
 import { Tokenizer } from '../tokenizer.js';
 import { MoERouter } from '../moe-router.js';
 import { SpeculativeDecoder } from '../speculative.js';
@@ -219,22 +219,18 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (!cacheLayout) {
     throw new Error('runtime.inference.kvcache.layout is required.');
   }
+  if (cacheLayout === 'tiered' && !runtimeKV.tiering) {
+    throw new Error('runtime.inference.kvcache.tiering is required for tiered layout.');
+  }
 
-  // Sliding-window attention only needs a bounded KV cache
+  // Sliding-window attention only needs a bounded KV cache on contiguous layouts.
   if (slidingWindow && Number.isFinite(slidingWindow) && slidingWindow > 0) {
     if (runtimeKV.windowSize > 0) {
       slidingWindow = Math.min(slidingWindow, runtimeKV.windowSize);
     }
-    cacheMaxSeqLen = Math.min(cacheMaxSeqLen, slidingWindow);
-    cacheLayout = 'contiguous';
-  }
-
-  // GPU paged KV cache is not implemented yet
-  if (useGPU && cacheLayout === 'paged') {
-    const fallbackMaxSeqLen = runtimeKV.gpuPagedFallbackMaxSeqLen;
-    cacheMaxSeqLen = Math.min(modelMaxSeqLen, fallbackMaxSeqLen);
-    cacheLayout = 'contiguous';
-    log.warn('Pipeline', `Paged GPU KV cache not supported. Capping KV cache to ${cacheMaxSeqLen} tokens.`);
+    if (cacheLayout !== 'paged') {
+      cacheMaxSeqLen = Math.min(cacheMaxSeqLen, slidingWindow);
+    }
   }
 
   // Use f16 KV cache when supported to reduce VRAM.
@@ -257,6 +253,9 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (forceF32KV && debug) {
     log.debug('Pipeline', `Forcing F32 KV cache (attnLogitSoftcapping=${modelConfig.attnLogitSoftcapping}, forceF32Softcap=true)`);
   }
+  if (cacheLayout === 'tiered' && kvDtype !== 'f16') {
+    throw new Error('Tiered KV cache requires kvDtype="f16" (no f32 tiered kernels yet).');
+  }
 
   
   const cacheConfig = {
@@ -273,10 +272,15 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   
   let kvCache;
 
-  if (modelConfig.slidingWindow) {
+  if (modelConfig.slidingWindow && cacheLayout !== 'paged' && cacheLayout !== 'tiered') {
     kvCache = new SlidingWindowKVCache({
       ...cacheConfig,
       windowSize: slidingWindow ?? modelConfig.slidingWindow,
+    });
+  } else if (cacheLayout === 'tiered') {
+    kvCache = new TieredKVCache({
+      ...cacheConfig,
+      tiering: runtimeKV.tiering,
     });
   } else {
     kvCache = new KVCache(cacheConfig);

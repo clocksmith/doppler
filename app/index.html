@@ -1,123 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOPPLER - Browser LLM</title>
-  <base href="/dr/app/">
+  <base href="/app/">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="./rd.css">
   <style>
     /* App Layout - Positioning Only */
-    :root { --space-xs: 4px; --space-xl: 32px; }
+    :root {
+      --space-xs: 4px;
+      --space-xl: 32px;
+    }
 
     /* App Shell */
-    #app { display: flex; flex-direction: column; height: 100vh; }
-    .header { display: flex; align-items: center; gap: var(--space-md); }
-    .main-layout { display: flex; flex: 1; overflow: hidden; }
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
 
     /* Sidebar */
-    .sidebar { width: 400px; overflow-y: auto; display: flex; flex-direction: column; }
-    .panel { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .status-indicator { margin-left: auto; display: flex; align-items: center; gap: var(--space-sm); }
+    .sidebar {
+      width: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .status-indicator {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
 
     /* Model List */
-    .model-list { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .model-item { display: flex; flex-direction: column; gap: var(--space-xs); }
-    .model-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-xs); margin-top: var(--space-sm); }
-    .model-section { margin-bottom: var(--space-md); }
-    .model-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
-    .storage-info { display: flex; justify-content: space-between; margin-top: var(--space-sm); }
+    .model-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .model-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .model-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xs);
+      margin-top: var(--space-sm);
+    }
+
+    .model-section {
+      margin-bottom: var(--space-md);
+    }
+
+    .model-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+    }
+
+    .storage-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-sm);
+    }
 
     /* GPU/Memory Info */
-    .gpu-info { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .gpu-row { display: flex; justify-content: space-between; }
-    .memory-bars { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .memory-bar-row { display: flex; align-items: center; gap: var(--space-sm); }
-    .memory-label { width: 60px; flex-shrink: 0; }
-    .memory-bar-container { flex: 1; }
-    .memory-value { width: 60px; text-align: right; }
-    .memory-bar-stacked { display: flex; }
-    .memory-total-row { margin-bottom: var(--space-xs); }
-    .memory-actions { display: flex; gap: var(--space-sm); }
+    .gpu-info {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .gpu-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .memory-bars {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .memory-bar-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .memory-label {
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .memory-bar-container {
+      flex: 1;
+    }
+
+    .memory-value {
+      width: 60px;
+      text-align: right;
+    }
+
+    .memory-bar-stacked {
+      display: flex;
+    }
+
+    .memory-total-row {
+      margin-bottom: var(--space-xs);
+    }
+
+    .memory-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
 
     /* Sampling */
-    .sampling-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-sm); }
-    .sampling-row label { flex: 1; }
-    .sampling-input { width: 80px; }
+    .sampling-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .sampling-row label {
+      flex: 1;
+    }
+
+    .sampling-input {
+      width: 80px;
+    }
 
     /* Stats */
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
-    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
     /* Chat */
-    .chat-container { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-    .chat-messages { flex: 1; overflow-y: auto; }
-    .chat-input-wrapper { display: flex; gap: var(--space-sm); align-items: flex-end; }
-    .chat-input { flex: 1; resize: none; min-height: 44px; }
-    .chat-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
-    .send-btn { width: 44px; height: 44px; padding: 0; flex-shrink: 0; }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      resize: none;
+      min-height: 44px;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      flex-shrink: 0;
+    }
 
     /* Welcome */
-    .welcome-message { text-align: center; max-width: 600px; margin: 0 auto; }
-    .welcome-message h2 { margin-bottom: var(--space-sm); }
-    .welcome-message p { margin: var(--space-xs) 0; }
+    .welcome-message {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .welcome-message h2 {
+      margin-bottom: var(--space-sm);
+    }
+
+    .welcome-message p {
+      margin: var(--space-xs) 0;
+    }
 
     /* Overlays */
-    .progress-overlay, .quickstart-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; }
-    .quickstart-overlay { z-index: 20; }
-    .progress-overlay[hidden], .quickstart-overlay[hidden] { display: none; }
-    .progress-content, .quickstart-content { width: 400px; max-width: 90%; }
-    .quickstart-panel[hidden] { display: none; }
+    .progress-overlay,
+    .quickstart-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .quickstart-overlay {
+      z-index: 20;
+    }
+
+    .progress-overlay[hidden],
+    .quickstart-overlay[hidden] {
+      display: none;
+    }
+
+    .progress-content,
+    .quickstart-content {
+      width: 400px;
+      max-width: 90%;
+    }
+
+    .quickstart-panel[hidden] {
+      display: none;
+    }
 
     /* Progress Phases */
-    .progress-title, .quickstart-title { text-align: center; margin-bottom: var(--space-md); }
-    .progress-phases { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .progress-phase-row { display: grid; grid-template-columns: 70px 1fr 100px; gap: var(--space-sm); align-items: center; }
-    .progress-phase-value { text-align: right; }
+    .progress-title,
+    .quickstart-title {
+      text-align: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .progress-phases {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .progress-phase-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 100px;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .progress-phase-value {
+      text-align: right;
+    }
 
     /* Quickstart */
-    .quickstart-info { margin-bottom: var(--space-md); }
-    .quickstart-info .info-row { display: flex; justify-content: space-between; }
-    .quickstart-note { margin: 0 0 var(--space-md); line-height: 1.5; }
-    .quickstart-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; }
-    .quickstart-stats { display: flex; justify-content: space-between; margin-bottom: var(--space-sm); }
-    .quickstart-detail { text-align: center; }
+    .quickstart-info {
+      margin-bottom: var(--space-md);
+    }
+
+    .quickstart-info .info-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .quickstart-note {
+      margin: 0 0 var(--space-md);
+      line-height: 1.5;
+    }
+
+    .quickstart-actions {
+      display: flex;
+      gap: var(--space-sm);
+      justify-content: flex-end;
+    }
+
+    .quickstart-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+    }
+
+    .quickstart-detail {
+      text-align: center;
+    }
 
     /* Messages */
-    .message { max-width: 800px; margin: 0 auto var(--space-md); }
-    .message-user { margin-left: var(--space-xl); }
-    .message-assistant { margin-right: var(--space-xl); }
-    .message-role { margin-bottom: var(--space-sm); }
-    .message-content { white-space: pre-wrap; word-break: break-word; }
-    .message-stats { margin-top: var(--space-sm); }
+    .message {
+      max-width: 800px;
+      margin: 0 auto var(--space-md);
+    }
+
+    .message-user {
+      margin-left: var(--space-xl);
+    }
+
+    .message-assistant {
+      margin-right: var(--space-xl);
+    }
+
+    .message-role {
+      margin-bottom: var(--space-sm);
+    }
+
+    .message-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message-stats {
+      margin-top: var(--space-sm);
+    }
 
     /* Modal */
-    .modal-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .modal-overlay[hidden] { display: none; }
-    .modal-content { width: 400px; max-width: 90%; }
-    .modal-title { margin-bottom: var(--space-sm); }
-    .modal-message { margin-bottom: var(--space-md); }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-overlay[hidden] {
+      display: none;
+    }
+
+    .modal-content {
+      width: 400px;
+      max-width: 90%;
+    }
+
+    .modal-title {
+      margin-bottom: var(--space-sm);
+    }
+
+    .modal-message {
+      margin-bottom: var(--space-md);
+    }
 
     /* Convert */
-    .convert-description { margin-bottom: var(--space-sm); }
-    .convert-note { margin: 0; }
-    .convert-field { display: flex; flex-direction: column; gap: var(--space-xs); }
-    .convert-toggle { display: flex; align-items: center; gap: var(--space-xs); }
-    .convert-status { margin-top: var(--space-sm); }
-    .convert-url-input { min-height: 70px; }
+    .convert-description {
+      margin-bottom: var(--space-sm);
+    }
+
+    .convert-note {
+      margin: 0;
+    }
+
+    .convert-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .convert-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .convert-status {
+      margin-top: var(--space-sm);
+    }
+
+    .convert-url-input {
+      min-height: 70px;
+    }
 
     /* Diagnostics */
-    .diagnostics-field { display: flex; flex-direction: column; gap: var(--space-xs); }
-    .diagnostics-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-xs); }
-    .diagnostics-config-row { display: flex; align-items: center; gap: var(--space-sm); }
-    .diagnostics-report { margin-top: var(--space-xs); }
-    .diagnostics-status { margin-top: var(--space-sm); }
+    .diagnostics-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .diagnostics-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xs);
+    }
+
+    .diagnostics-config-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .diagnostics-report {
+      margin-top: var(--space-xs);
+    }
+
+    .diagnostics-status {
+      margin-top: var(--space-sm);
+    }
 
 
     /* Workspace */
-    .workspace-actions { display: flex; gap: var(--space-sm); }
-    .workspace-status { margin-top: var(--space-xs); }
+    .workspace-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .workspace-status {
+      margin-top: var(--space-xs);
+    }
+
     .workspace-files {
       border: var(--border-sm) solid var(--fg);
       padding: var(--space-sm);
@@ -125,17 +441,34 @@
       overflow: auto;
       background: var(--bg);
     }
-    .workspace-file { margin-bottom: 2px; }
+
+    .workspace-file {
+      margin-bottom: 2px;
+    }
 
     /* Tools */
-    .tool-row { display: flex; gap: var(--space-sm); align-items: center; }
-    .tool-select { flex: 1; }
+    .tool-row {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .tool-select {
+      flex: 1;
+    }
+
     .tool-args {
       min-height: 80px;
       font-family: var(--font-mono);
       resize: vertical;
     }
-    .tool-actions { display: flex; align-items: center; gap: var(--space-sm); }
+
+    .tool-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
     .tool-output {
       border: var(--border-sm) solid var(--fg);
       padding: var(--space-sm);
@@ -146,7 +479,12 @@
     }
 
     /* Logs */
-    .log-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .log-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
     #log-panel {
       border: var(--border-sm) solid var(--fg);
       padding: var(--space-sm);
@@ -154,6 +492,7 @@
       overflow: auto;
       background: var(--bg);
     }
+
     .log-line {
       font-family: var(--font-mono);
       font-size: 12px;
@@ -161,6 +500,7 @@
       word-break: break-word;
       margin-bottom: 2px;
     }
+
     .log-level {
       opacity: var(--opacity-muted);
       margin-right: var(--space-xs);
@@ -168,11 +508,18 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .main-layout { flex-direction: column; }
-      .sidebar { width: 100%; max-height: 200px; }
+      .main-layout {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-height: 200px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div id="app">
     <!-- Header -->
@@ -265,7 +612,8 @@
               <span class="memory-value" id="memory-opfs">--</span>
             </div>
             <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label" title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
+              <span class="memory-label"
+                title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
                 Headroom
               </span>
               <div class="memory-bar-container">
@@ -280,7 +628,8 @@
           <h2 class="type-label">Sampling</h2>
           <div class="sampling-row">
             <label for="temperature-input">Temperature</label>
-            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1" value="1.0">
+            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1"
+              value="1.0">
           </div>
           <div class="sampling-row">
             <label for="top-p-input">Top-p</label>
@@ -338,15 +687,17 @@
           <h2 class="type-label">Convert Model</h2>
           <p class="convert-description">Import GGUF or HuggingFace models</p>
           <p class="convert-note type-caption muted">Requires tokenizer.json (tokenizer.model is not supported).</p>
-          <p class="convert-note type-caption muted">Remote conversion uses HTTP range when available; otherwise it downloads into temporary OPFS/IndexedDB storage and cleans up.</p>
-          <p class="convert-note type-caption muted">Q4_K_M column layout is not supported; use row layout or pre-quantized weights.</p>
+          <p class="convert-note type-caption muted">Remote conversion uses HTTP range when available; otherwise it
+            downloads into temporary OPFS/IndexedDB storage and cleans up.</p>
+          <p class="convert-note type-caption muted">Q4_K_M column layout is not supported; use row layout or
+            pre-quantized weights.</p>
           <div class="convert-field">
             <label class="type-caption muted" for="convert-model-preset">Model preset override</label>
             <select id="convert-model-preset" class="w-full"></select>
           </div>
           <button id="convert-btn" class="btn btn-primary w-full">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
             </svg>
             Select Files
           </button>
@@ -359,7 +710,8 @@
             <input id="convert-max-download" class="w-full" type="number" min="1" step="1" placeholder="No limit" />
           </div>
           <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
-          <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
+          <textarea id="convert-url-input" class="convert-url-input w-full"
+            placeholder="https://host/model.safetensors"></textarea>
           <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
           <div id="convert-status" class="convert-status" hidden>
             <div class="progress progress-sm">
@@ -545,7 +897,8 @@
           <div class="welcome-message" id="welcome-message">
             <h2>Welcome to DOPPLER</h2>
             <p>Select a model from the sidebar to begin.</p>
-            <p class="requirements-note">Requires WebGPU-enabled browser (Chrome 113+, Edge 113+, or Firefox Nightly)</p>
+            <p class="requirements-note">Requires WebGPU-enabled browser (Chrome 113+, Edge 113+, or Firefox Nightly)
+            </p>
           </div>
           <!-- Sample messages (hidden until model loaded, shown here for CSS coverage) -->
           <div class="chat-message" id="sample-messages" hidden>
@@ -557,16 +910,10 @@
         <!-- Chat Input -->
         <div class="chat-input-container">
           <div class="chat-input-wrapper">
-            <textarea
-              id="chat-input"
-              class="chat-input"
-              placeholder="Type a message..."
-              rows="1"
-              disabled
-            ></textarea>
+            <textarea id="chat-input" class="chat-input" placeholder="Type a message..." rows="1" disabled></textarea>
             <button id="send-btn" class="btn btn-primary send-btn" disabled>
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             </button>
           </div>
@@ -657,4 +1004,5 @@
   <!-- Bootstrap entry (registers VFS + loads app) -->
   <script type="module" src="/bootstrap.js"></script>
 </body>
+
 </html>

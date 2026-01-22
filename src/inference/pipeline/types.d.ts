@@ -18,7 +18,7 @@ import type { DecodeBufferManager } from '../decode-buffers.js';
 import type { CommandRecorder } from '../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
-import type { KVCache, SlidingWindowKVCache } from '../kv-cache.js';
+import type { KVCache, SlidingWindowKVCache, TieredKVCache } from '../kv-cache.js';
 import type { DecodeRingStats } from '../decode-ring.js';
 
 // ============================================================================
@@ -40,7 +40,7 @@ export interface LayerContext {
   /** Layer weights map */
   weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer>;
   /** KV cache instance */
-  kvCache: KVCache | SlidingWindowKVCache;
+  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache;
   /** Current sequence length */
   currentSeqLen: number;
   /** Whether to use GPU */
@@ -157,9 +157,26 @@ export interface PipelineContext {
 
 /** GPU buffer result for KV cache layer */
 export interface GPUBuffersResult {
-  keysGPU: GPUBuffer;
-  valuesGPU: GPUBuffer;
+  keysGPU?: GPUBuffer;
+  valuesGPU?: GPUBuffer;
   seqLen: number;
+  layout?: 'contiguous' | 'paged' | 'tiered';
+  pageTableGPU?: GPUBuffer;
+  pageSize?: number;
+  hotKeysGPU?: GPUBuffer;
+  hotValuesGPU?: GPUBuffer;
+  hotSeqLen?: number;
+  hotStart?: number;
+  hotWindow?: number;
+  coldKeysGPU?: GPUBuffer;
+  coldValuesGPU?: GPUBuffer;
+  coldScalesKGPU?: GPUBuffer;
+  coldScalesVGPU?: GPUBuffer;
+  coldSeqLen?: number;
+  coldPageTableGPU?: GPUBuffer;
+  coldPageSize?: number;
+  coldPackedStride?: number;
+  coldQuantMode?: 'none' | 'int8' | 'int4';
 }
 
 /**
@@ -199,17 +216,17 @@ export interface KVCacheInterface {
     valuesBuffer: GPUBuffer,
     startPos: number,
     numTokens: number
-  ): void;
+  ): void | Promise<void>;
 
   /** Record GPU-based update using command encoder */
   recordUpdateFromGPU?(
-    encoder: GPUCommandEncoder,
+    recorder: CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
     numTokens: number
-  ): void;
+  ): void | Promise<void>;
 
   /** Get GPU buffers for a layer */
   getGPUBuffers?(layerIdx: number): GPUBuffersResult | null;

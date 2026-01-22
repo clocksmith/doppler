@@ -59,6 +59,8 @@ export class KVCache {
     this.layers = new Array(this.numLayers);
     
     this.currentSeqLen = 0;
+    
+    this.totalTokensSeen = 0;
 
     // Memory usage tracking
     
@@ -132,14 +134,57 @@ export class KVCache {
   
   _initializePagedStorage() {
     const numPages = Math.ceil(this.maxSeqLen / this.pageSize);
+    const device = this.useGPU ? getDevice() : null;
+    const sizePerLayer = this.maxSeqLen * this.kvSize;
+    const bytesPerLayer = sizePerLayer * this.bytesPerElem;
+    const pageTableBytes = numPages * 4;
 
     for (let l = 0; l < this.numLayers; l++) {
-      this.layers[l] = {
-        keyPages: new Array(numPages).fill(null),
-        valuePages: new Array(numPages).fill(null),
-        allocatedPages: 0,
-        seqLen: 0
-      };
+      if (device && this.useGPU) {
+        const keysGPU = device.createBuffer({
+          label: `kv_cache_keys_paged_layer_${l}`,
+          size: bytesPerLayer,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+        const valuesGPU = device.createBuffer({
+          label: `kv_cache_values_paged_layer_${l}`,
+          size: bytesPerLayer,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+        const pageTable = new Uint32Array(numPages);
+        for (let i = 0; i < numPages; i++) {
+          pageTable[i] = i;
+        }
+        const pageTableGPU = device.createBuffer({
+          label: `kv_cache_page_table_layer_${l}`,
+          size: pageTableBytes,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+        device.queue.writeBuffer(pageTableGPU, 0, pageTable);
+
+        this.layers[l] = {
+          keyPages: new Array(numPages).fill(null),
+          valuePages: new Array(numPages).fill(null),
+          allocatedPages: numPages,
+          seqLen: 0,
+          keysGPU,
+          valuesGPU,
+          pageTable,
+          pageTableGPU,
+        };
+        this.memoryUsage += (bytesPerLayer * 2) + pageTableBytes;
+      } else {
+        this.layers[l] = {
+          keyPages: new Array(numPages).fill(null),
+          valuePages: new Array(numPages).fill(null),
+          allocatedPages: 0,
+          seqLen: 0,
+          keysGPU: null,
+          valuesGPU: null,
+          pageTable: null,
+          pageTableGPU: null,
+        };
+      }
     }
   }
 
@@ -211,6 +256,7 @@ export class KVCache {
     }
 
     layer.seqLen = Math.max(layer.seqLen, startPos + numNewTokens);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numNewTokens);
 
     // Update global sequence length if this is the last layer
     if (layerIdx === this.numLayers - 1) {
@@ -249,6 +295,7 @@ export class KVCache {
     device.queue.submit([encoder.finish()]);
 
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
     if (layerIdx === this.numLayers - 1) {
       this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
@@ -257,13 +304,14 @@ export class KVCache {
 
   
   recordUpdateFromGPU(
-    encoder,
+    recorder,
     layerIdx,
     keysBuffer,
     valuesBuffer,
     startPos,
     numTokens
   ) {
+    const encoder = recorder.getEncoder();
     const layer =  (this.layers[layerIdx]);
 
     if (!layer.keysGPU) {
@@ -285,6 +333,7 @@ export class KVCache {
 
     // Update seqLen metadata (this happens immediately, copies happen when encoder is submitted)
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
     if (layerIdx === this.numLayers - 1) {
       this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
@@ -370,6 +419,10 @@ export class KVCache {
     const layer = this.layers[layerIdx];
     const actualEndPos = endPos ?? layer.seqLen;
 
+    if (this.layout === 'paged' && this.useGPU) {
+      throw new Error('Paged GPU cache does not support CPU readback via get().');
+    }
+
     if (this.layout === 'paged') {
       return this._getPaged( (layer), startPos, actualEndPos);
     } else {
@@ -383,6 +436,9 @@ export class KVCache {
     if (isContiguousLayer(layer)) {
       return layer.keysGPU || layer.keys;
     }
+    if (this.layout === 'paged') {
+      return layer.keysGPU || null;
+    }
     return null;
   }
 
@@ -392,12 +448,28 @@ export class KVCache {
     if (isContiguousLayer(layer)) {
       return layer.valuesGPU || layer.values;
     }
+    if (this.layout === 'paged') {
+      return layer.valuesGPU || null;
+    }
     return null;
   }
 
   
   getGPUBuffers(layerIdx) {
     const layer = this.layers[layerIdx];
+
+    if (this.layout === 'paged') {
+      if (!layer.keysGPU || !layer.valuesGPU || !layer.pageTableGPU) {
+        return null;
+      }
+      return {
+        keysGPU: layer.keysGPU,
+        valuesGPU: layer.valuesGPU,
+        seqLen: layer.seqLen,
+        pageTableGPU: layer.pageTableGPU,
+        pageSize: this.pageSize,
+      };
+    }
 
     if (!isContiguousLayer(layer) || !layer.keysGPU || !layer.valuesGPU) {
       return null;
@@ -413,7 +485,11 @@ export class KVCache {
   
   hasGPUCache() {
     const firstLayer = this.layers[0];
-    return this.useGPU && isContiguousLayer(firstLayer) && firstLayer.keysGPU != null;
+    if (!this.useGPU) return false;
+    if (this.layout === 'paged') {
+      return firstLayer.keysGPU != null && firstLayer.valuesGPU != null;
+    }
+    return isContiguousLayer(firstLayer) && firstLayer.keysGPU != null;
   }
 
   
@@ -467,6 +543,7 @@ export class KVCache {
   
   clear() {
     this.currentSeqLen = 0;
+    this.totalTokensSeen = 0;
 
     for (let l = 0; l < this.numLayers; l++) {
       const layer = this.layers[l];
@@ -486,6 +563,57 @@ export class KVCache {
 
   
   clone() {
+    if (this.useGPU && this.layout === 'paged') {
+      const cloned = new KVCache({
+        numLayers: this.numLayers,
+        numHeads: this.numHeads,
+        headDim: this.headDim,
+        maxSeqLen: this.maxSeqLen,
+        useGPU: true,
+        layout: 'paged',
+        pageSize: this.pageSize,
+        kvDtype: this.kvDtype
+      });
+
+      cloned.currentSeqLen = this.currentSeqLen;
+      cloned.totalTokensSeen = this.totalTokensSeen;
+
+      const device = getDevice();
+      if (!device) {
+        throw new Error('GPU device not initialized');
+      }
+
+      for (let l = 0; l < this.numLayers; l++) {
+        const src = this.layers[l];
+        const dst = cloned.layers[l];
+
+        if (!src.keysGPU || !src.valuesGPU || !dst.keysGPU || !dst.valuesGPU) {
+          continue;
+        }
+
+        const usedBytes = src.seqLen * this.kvSize * this.bytesPerElem;
+        if (usedBytes > 0) {
+          const encoder = device.createCommandEncoder({ label: `kv_cache_clone_paged_${l}` });
+          encoder.copyBufferToBuffer(src.keysGPU, 0, dst.keysGPU, 0, usedBytes);
+          encoder.copyBufferToBuffer(src.valuesGPU, 0, dst.valuesGPU, 0, usedBytes);
+          device.queue.submit([encoder.finish()]);
+        }
+
+        if (src.pageTable && dst.pageTableGPU) {
+          dst.pageTable.set(src.pageTable);
+          device.queue.writeBuffer(dst.pageTableGPU, 0, src.pageTable);
+        }
+
+        if (typeof src.allocatedPages === 'number') {
+          dst.allocatedPages = src.allocatedPages;
+        }
+
+        dst.seqLen = src.seqLen;
+      }
+
+      return cloned;
+    }
+
     const cloned = new KVCache({
       numLayers: this.numLayers,
       numHeads: this.numHeads,
@@ -515,6 +643,7 @@ export class KVCache {
     if (length >= this.currentSeqLen) return;
 
     this.currentSeqLen = length;
+    this.totalTokensSeen = Math.min(this.totalTokensSeen, length);
     for (let l = 0; l < this.numLayers; l++) {
       this.layers[l].seqLen = Math.min(this.layers[l].seqLen, length);
     }
@@ -681,6 +810,21 @@ export class KVCache {
   destroy() {
     for (let l = 0; l < this.numLayers; l++) {
       const layer = this.layers[l];
+      if (this.layout === 'paged') {
+        if (layer.keysGPU) {
+          layer.keysGPU.destroy();
+          layer.keysGPU = null;
+        }
+        if (layer.valuesGPU) {
+          layer.valuesGPU.destroy();
+          layer.valuesGPU = null;
+        }
+        if (layer.pageTableGPU) {
+          layer.pageTableGPU.destroy();
+          layer.pageTableGPU = null;
+        }
+        continue;
+      }
       if (isContiguousLayer(layer)) {
         if (layer.keysGPU) {
           layer.keysGPU.destroy();

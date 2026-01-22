@@ -12,6 +12,7 @@ type KernelRuleGroup =
   | 'fusedMatmulRmsnorm'
   | 'gather'
   | 'gelu'
+  | 'kv_quantize'
   | 'matmul'
   | 'moe'
   | 'residual'

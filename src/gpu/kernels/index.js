@@ -45,6 +45,10 @@ export {
 export {
   runAttention,
   recordAttention,
+  runAttentionTiered,
+  recordAttentionTiered,
+  runAttentionTieredQuant,
+  recordAttentionTieredQuant,
 } from './attention.js';
 
 // RMSNorm
@@ -60,6 +64,12 @@ export {
   runSoftmaxTopK,
   recordSoftmax,
 } from './softmax.js';
+
+// KV Quantization
+export {
+  runKVQuantize,
+  recordKVQuantize,
+} from './kv-quantize.js';
 
 // Loss
 export {

@@ -13,6 +13,7 @@ export {
   type PageLocation,
   type KVGetResult,
   type GPUBuffersResult,
+  type TieredGPUBuffersResult,
   type MemoryStats,
   type GPUContext,
   isContiguousLayer,
@@ -26,6 +27,7 @@ export {
 // Classes
 export { KVCache } from './base.js';
 export { SlidingWindowKVCache } from './sliding-window.js';
+export { TieredKVCache } from './tiered.js';
 
 // Default export for backward compatibility
 export { KVCache as default } from './base.js';

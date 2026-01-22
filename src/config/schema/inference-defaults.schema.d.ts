@@ -14,6 +14,7 @@
 import type {
   ChatTemplateSchema,
   InferenceConfigSchema,
+  InferenceKernelOverridesSchema,
   LayerPipelineSchema,
   SamplingSchema,
   TokenizerConfigSchema,
@@ -179,6 +180,8 @@ export interface InferenceDefaultsConfigSchema {
    * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
    */
   kernelPath?: KernelPathRef;
+  /** Optional kernel overrides for targeted variants. */
+  kernelOverrides?: InferenceKernelOverridesSchema | null;
   /**
    * Chat template override for runtime config.
    * When set, overrides the model preset's chatTemplate.enabled setting.

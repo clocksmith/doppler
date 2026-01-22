@@ -1,5 +1,5 @@
 
-import { parseGGUFHeader } from '../formats/gguf.js';
+import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { HEADER_READ_SIZE } from '../config/schema/index.js';
 import { normalizeTensorSource } from './tensor-source-file.js';
 
@@ -14,4 +14,4 @@ export async function parseGGUFHeaderFromSource(source) {
   };
 }
 
-export * from '../formats/gguf.js';
+export * from '../formats/gguf/types.js';

@@ -58,7 +58,7 @@ export class SlidingWindowKVCache extends KVCache {
    * Does NOT submit - caller is responsible for submitting the encoder.
    */
   recordUpdateFromGPU(
-    encoder: GPUCommandEncoder,
+    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,

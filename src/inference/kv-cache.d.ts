@@ -16,6 +16,7 @@ export {
   type PageLocation,
   type KVGetResult,
   type GPUBuffersResult,
+  type TieredGPUBuffersResult,
   type MemoryStats,
   type GPUContext,
   isContiguousLayer,
@@ -27,6 +28,7 @@ export {
   // Classes
   KVCache,
   SlidingWindowKVCache,
+  TieredKVCache,
   // Default
   KVCache as default,
 } from './kv-cache/index.js';

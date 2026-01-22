@@ -1,4 +1,5 @@
 import { log } from '../src/debug/index.js';
+import { ValidateKernelsTool } from './tools/validate-kernels-tool.js';
 import { ToolRunner } from './tool-runner.js';
 
 const DEFAULT_ARGS = '{\n  \n}';
@@ -52,6 +53,13 @@ export class ToolingController {
     this.#vfs = vfs;
     if (!this.#runner) {
       this.#runner = new ToolRunner({ vfs });
+      // Register system tools
+      const validator = new ValidateKernelsTool(vfs);
+      this.#runner.registerBuiltin(
+        validator.id,
+        (args) => validator.run(args),
+        { name: validator.name, description: validator.description }
+      );
     } else {
       this.#runner.setVfs(vfs);
     }

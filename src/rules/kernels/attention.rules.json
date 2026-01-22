@@ -19,7 +19,26 @@
     { "match": { "useF16": true }, "value": "decode_chunked_f16" },
     { "match": {}, "value": "decode_chunked_f16kv" }
   ],
+  "pagedVariant": [
+    { "match": { "useF16": true }, "value": "decode_paged_f16" },
+    { "match": {}, "value": "decode_paged_f16kv" }
+  ],
+  "optimizedVariant": [
+    { "match": { "useF16": true }, "value": "decode_online_f16" },
+    { "match": {}, "value": "decode_online_f16kv" }
+  ],
+  "tieredVariant": [
+    { "match": { "useF16": true }, "value": "decode_tiered_f16" },
+    { "match": {}, "value": "decode_tiered_f16kv" }
+  ],
+  "tieredQuantVariant": [
+    { "match": { "mode": "int4" }, "value": "decode_tiered_int4_f16kv" },
+    { "match": { "mode": "int8" }, "value": "decode_tiered_int8_f16kv" },
+    { "match": {}, "value": "decode_tiered_int8_f16kv" }
+  ],
   "variant": [
+    { "match": { "canUseDecodeOptimized": true }, "value": { "context": "optimizedVariant" } },
+    { "match": { "isPaged": true, "isDecode": true, "canUseChunked": true }, "value": { "context": "pagedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true, "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "decode_streaming{suffix}" } },
     { "match": { "tier": "subgroup", "canUseDecodeSubgroup": true }, "value": "decode_subgroup" },

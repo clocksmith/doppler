@@ -100,7 +100,7 @@ export class SlidingWindowKVCache extends KVCache {
 
   
   recordUpdateFromGPU(
-    encoder,
+    recorder,
     layerIdx,
     keysBuffer,
     valuesBuffer,
@@ -108,6 +108,7 @@ export class SlidingWindowKVCache extends KVCache {
     numTokens
   ) {
     const layer =  (this.layers[layerIdx]);
+    const encoder = recorder.getEncoder();
 
     if (!layer.keysGPU) {
       throw new Error('GPU cache not initialized');

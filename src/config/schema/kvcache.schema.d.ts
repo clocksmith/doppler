@@ -21,7 +21,64 @@ export type KVDtype = 'f16' | 'f32';
  * - 'contiguous': Single contiguous buffer per layer (simpler, better for short sequences)
  * - 'paged': Page-based allocation (better memory efficiency for variable sequences)
  */
-export type KVLayout = 'contiguous' | 'paged';
+export type KVLayout = 'contiguous' | 'paged' | 'tiered';
+
+/**
+ * Tiered KV cache mode.
+ *
+ * - 'off': Disable tiering (use layout directly)
+ * - 'fp16': Hot ring + cold FP16 pages
+ * - 'int8': Cold tier compressed to int8
+ * - 'int4': Cold tier compressed to int4 (experimental)
+ */
+export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4';
+
+/**
+ * Cold tier compression mode.
+ *
+ * - 'none': Keep cold tier in FP16/FP32
+ * - 'int8': Block-wise int8 compression
+ * - 'int4': Block-wise int4 compression
+ */
+export type KVCompressionMode = 'none' | 'int8' | 'int4';
+
+/**
+ * Gating mode for tiered compression.
+ *
+ * - 'auto': Use device heuristics to enable/disable compression
+ * - 'force_on': Always enable compression
+ * - 'force_off': Always disable compression
+ */
+export type KVTieringGatingMode = 'auto' | 'force_on' | 'force_off';
+
+export interface KVTieringCompressionSchema {
+  /** Compression mode for cold tier */
+  mode: KVCompressionMode;
+  /** Compression block size (tokens). Currently only 1 is supported. */
+  blockSize: number;
+}
+
+export interface KVTieringGatingSchema {
+  /** Compression gating strategy */
+  mode: KVTieringGatingMode;
+  /** Minimum ALU/BW ratio to enable compression (0 disables gating) */
+  minAluBwRatio: number;
+}
+
+export interface KVTieringConfigSchema {
+  /** Tiering mode */
+  mode: KVTieringMode;
+  /** Number of tokens kept hot in ring buffer */
+  hotWindow: number;
+  /** Page size for cold tier paging */
+  coldPageSize: number;
+  /** Cold tier dtype before compression */
+  coldDtype: KVDtype;
+  /** Cold tier compression settings */
+  compression: KVTieringCompressionSchema;
+  /** Compression gating settings */
+  gating: KVTieringGatingSchema;
+}
 
 /**
  * Configuration for the key-value cache.
@@ -54,6 +111,9 @@ export interface KVCacheConfigSchema {
 
   /** Sliding window size for sliding window attention models */
   windowSize: number;
+
+  /** Tiered cache configuration (hot ring + cold pages) */
+  tiering: KVTieringConfigSchema;
 }
 
 /** Default KV cache configuration */

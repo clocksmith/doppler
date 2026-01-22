@@ -1,7 +1,7 @@
 import { log } from './debug/index.js';
 import { loadVfsManifest, seedVfsFromManifest } from './boot/vfs-bootstrap.js';
 
-const SW_URL = '/sw-module-loader.js';
+const SW_URL = '/sw.js';
 const MANIFEST_URL = '/config/vfs-manifest.json';
 const APP_ENTRY_URL = '/app/app.js';
 const RELOAD_KEY = 'doppler_vfs_reload';

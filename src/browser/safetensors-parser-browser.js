@@ -6,16 +6,17 @@ import {
   parseSafetensorsIndexJsonText,
   groupTensorsByLayer as groupTensorsByLayerCore,
   calculateTotalSize as calculateTotalSizeCore,
-} from '../formats/safetensors.js';
+  DTYPE_MAP,
+} from '../formats/safetensors/types.js';
 import {
   parseConfigJsonText,
   parseTokenizerJsonText,
   parseTokenizerConfigJsonText,
-} from '../formats/tokenizer.js';
+} from '../formats/tokenizer/types.js';
 import { MAX_HEADER_SIZE, MB } from '../config/schema/index.js';
 import { normalizeTensorSource } from './tensor-source-file.js';
 
-export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
+export { DTYPE_SIZE, DTYPE_MAP };
 
 // ============================================================================
 // Public API

@@ -11,6 +11,7 @@ import {
   getKernelPathStats,
   getKernelPathActivationDtype,
   setActiveKernelPath,
+  applyKernelOverrides,
 } from '../config/kernel-path-loader.js';
 import { configurePerfGuards } from '../gpu/perf-guards.js';
 import { MoERouter } from './moe-router.js';
@@ -133,6 +134,16 @@ export class InferencePipeline extends PipelineState {
             : 'manifest';
       try {
         this.resolvedKernelPath = resolveKernelPath(kernelPathRef);
+        
+        // Apply runtime kernel overrides if configured
+        if (this.runtimeConfig.inference.kernelOverrides) {
+          log.info('Pipeline', 'Applying kernel path overrides', this.runtimeConfig.inference.kernelOverrides);
+          this.resolvedKernelPath = applyKernelOverrides(
+            this.resolvedKernelPath,
+            this.runtimeConfig.inference.kernelOverrides
+          );
+        }
+
         const stats = getKernelPathStats(this.resolvedKernelPath);
         log.info('Pipeline', `KernelPath: ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels)`);
       } catch (e) {
@@ -466,6 +477,7 @@ export class InferencePipeline extends PipelineState {
     this.stats.gpuTimePrefillMs = undefined;
     this.stats.gpuTimeDecodeMs = undefined;
     this.stats.decodeProfileSteps = [];
+    this.stats.attentionInputs = [];
   }
 
   

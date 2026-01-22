@@ -34,6 +34,34 @@ function getChunkedMaxKVLen() {
   return _chunkedMaxKVLen;
 }
 
+let _tieredMaxKVLen = null;
+
+function getTieredMaxKVLen() {
+  if (_tieredMaxKVLen === null) {
+    const config = getKernelConfig('attention_tiered', 'decode_tiered_f16');
+    const maxKVLen = config.variantMetadata?.maxKVLen;
+    if (!Number.isFinite(maxKVLen)) {
+      throw new Error('Kernel config missing attention_tiered.decode_tiered_f16 maxKVLen');
+    }
+    _tieredMaxKVLen = maxKVLen;
+  }
+  return _tieredMaxKVLen;
+}
+
+let _tieredQuantMaxKVLen = null;
+
+function getTieredQuantMaxKVLen() {
+  if (_tieredQuantMaxKVLen === null) {
+    const config = getKernelConfig('attention_tiered_quant', 'decode_tiered_int8_f16kv');
+    const maxKVLen = config.variantMetadata?.maxKVLen;
+    if (!Number.isFinite(maxKVLen)) {
+      throw new Error('Kernel config missing attention_tiered_quant.decode_tiered_int8_f16kv maxKVLen');
+    }
+    _tieredQuantMaxKVLen = maxKVLen;
+  }
+  return _tieredQuantMaxKVLen;
+}
+
 
 let kvLenFallbackBuffer = null;
 
@@ -50,6 +78,19 @@ function getKvLenFallbackBuffer(device) {
   return kvLenFallbackBuffer;
 }
 
+let pageTableFallbackBuffer = null;
+
+function getPageTableFallbackBuffer(device) {
+  if (!pageTableFallbackBuffer) {
+    pageTableFallbackBuffer = device.createBuffer({
+      label: 'attention_page_table_fallback',
+      size: 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(pageTableFallbackBuffer, 0, new Uint32Array([0]));
+  }
+  return pageTableFallbackBuffer;
+}
 
 
 
@@ -77,6 +118,58 @@ class AttentionKernel extends KernelBase {
     workgroups
   ) {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention');
+  }
+}
+
+class AttentionTieredKernel extends KernelBase {
+  
+  async getPipeline(variant) {
+    return this.getPipelineFor('attention_tiered', variant);
+  }
+
+  
+  dispatch(
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_tiered');
+  }
+
+  
+  record(
+    recorder,
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_tiered');
+  }
+}
+
+class AttentionTieredQuantKernel extends KernelBase {
+  
+  async getPipeline(variant) {
+    return this.getPipelineFor('attention_tiered_quant', variant);
+  }
+
+  
+  dispatch(
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_tiered_quant');
+  }
+
+  
+  record(
+    recorder,
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_tiered_quant');
   }
 }
 
@@ -158,7 +251,10 @@ function resolveAttentionVariant(
   useF16Q,
   numHeads,
   headDim,
-  kvLen
+  kvLen,
+  isPaged,
+  caps,
+  sharedLimit
 ) {
   const base = selectKernelRuleValue('attention', 'phase', { isDecode });
   const useF16 = useF16KV && useF16Q;
@@ -175,6 +271,12 @@ function resolveAttentionVariant(
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
   const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
+  const canUseDecodeOptimized = isDecode
+    && useF16KV
+    && caps.hasF16
+    && caps.hasSubgroups
+    && headDim <= decodeSubgroupMaxHeadDim
+    && sharedLimit >= getKernelThresholds().attention.subgroupShared;
   const chunkedVariant = selectKernelRuleValue('attention', 'chunkedVariant', { useF16 });
   const variant = selectKernelRuleValue(
     'attention',
@@ -184,9 +286,12 @@ function resolveAttentionVariant(
       useF16KV,
       canUseChunked,
       canUseDecodeSubgroup,
+      canUseDecodeOptimized,
       base,
       suffix,
       chunkedVariant,
+      isPaged,
+      isDecode,
     }
   );
 
@@ -215,6 +320,8 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
 
 function inferAttentionTierFromVariant(variant) {
   if (variant === 'decode_subgroup') return 'subgroup';
+  if (variant.startsWith('decode_online')) return 'subgroup';
+  if (variant.startsWith('decode_paged')) return 'tiled_large';
   if (variant.startsWith('prefill_streaming') || variant.startsWith('decode_streaming') || variant === 'decode_chunked_f16kv') {
     return 'streaming';
   }
@@ -305,10 +412,25 @@ function validateAttentionVariant(
     }
   }
 
+  if (normalized.startsWith('decode_online')) {
+    if (!caps.hasSubgroups) {
+      throw new Error(`Attention kernel "${variant}" requires subgroup support.`);
+    }
+    if (headDim > thresholds.subgroupMaxHeadDim) {
+      throw new Error(`Attention kernel "${variant}" requires headDim <= ${thresholds.subgroupMaxHeadDim} but got ${headDim}.`);
+    }
+    if (sharedLimit < thresholds.subgroupShared) {
+      throw new Error(`Attention kernel "${variant}" requires shared >= ${thresholds.subgroupShared} but got ${sharedLimit}.`);
+    }
+  }
+
   if (normalized.startsWith('prefill') || normalized.startsWith('decode')) {
     const isSmall = normalized.includes('_small');
     const isStreaming = normalized.includes('_streaming');
-    const isTiled = !isStreaming && !normalized.startsWith('decode_subgroup') && !isChunked;
+    const isTiled = !isStreaming
+      && !normalized.startsWith('decode_subgroup')
+      && !normalized.startsWith('decode_online')
+      && !isChunked;
     if (isTiled) {
       const requiredShared = isSmall
         ? (useF16KV ? thresholds.smallSharedF16 : thresholds.smallSharedF32)
@@ -336,7 +458,8 @@ function resolveAttentionPlan(
   qDtype,
   sharedLimit,
   caps,
-  layerIdx
+  layerIdx,
+  isPaged
 ) {
   const useF16KV = kvDtype === 'f16';
   const useF16Q = qDtype === 'f16';
@@ -366,7 +489,18 @@ function resolveAttentionPlan(
 
   const selection = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps);
   const tier = selection.tier;
-  const variant = resolveAttentionVariant(tier, isDecode, useF16KV, useF16Q, numHeads, headDim, kvLen);
+  const variant = resolveAttentionVariant(
+    tier,
+    isDecode,
+    useF16KV,
+    useF16Q,
+    numHeads,
+    headDim,
+    kvLen,
+    isPaged,
+    caps,
+    sharedLimit
+  );
   const validatedVariant = validateAttentionVariant(
     variant,
     isDecode,
@@ -396,7 +530,8 @@ export function resolveAttentionPlanForTest(
   qDtype,
   sharedLimit,
   caps,
-  layerIdx
+  layerIdx,
+  isPaged = false
 ) {
   return resolveAttentionPlan(
     seqLen,
@@ -407,7 +542,8 @@ export function resolveAttentionPlanForTest(
     qDtype,
     sharedLimit,
     caps,
-    layerIdx
+    layerIdx,
+    isPaged
   );
 }
 
@@ -419,7 +555,7 @@ function createAttentionUniformBuffer(
 ) {
   return createUniformBufferWithView(
     'attention_uniforms',
-    48, // 44 bytes used + 4 padding for 16-byte alignment
+    64, // 60 bytes used + 4 padding for 16-byte alignment
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -432,6 +568,72 @@ function createAttentionUniformBuffer(
       view.setFloat32(32, params.attnSoftcap, true); // Gemma 2: 50.0, 0 = disabled
       view.setUint32(36, params.slidingWindow, true); // Sliding window size, 0 = disabled
       view.setUint32(40, params.kvLenSource, true); // 0 = uniform kvLen, 1 = buffer
+      view.setUint32(44, params.kvStart ?? 0, true);
+      view.setUint32(48, params.pageSize ?? 0, true);
+      view.setUint32(52, params.kvLayout ?? 0, true);
+      view.setUint32(56, 0, true);
+    },
+    recorder,
+    device
+  );
+}
+
+function createTieredAttentionUniformBuffer(
+  device,
+  recorder,
+  params
+) {
+  return createUniformBufferWithView(
+    'attention_tiered_uniforms',
+    80,
+    (view) => {
+      view.setUint32(0, params.numHeads, true);
+      view.setUint32(4, params.numKVHeads, true);
+      view.setUint32(8, params.headDim, true);
+      view.setUint32(12, params.coldLen, true);
+      view.setUint32(16, params.hotLen, true);
+      view.setUint32(20, params.seqLen, true);
+      view.setFloat32(24, params.scale, true);
+      view.setUint32(28, params.causal ? 1 : 0, true);
+      view.setUint32(32, params.startPos, true);
+      view.setFloat32(36, params.attnSoftcap, true);
+      view.setUint32(40, params.slidingWindow, true);
+      view.setUint32(44, params.hotWindow, true);
+      view.setUint32(48, params.hotStart, true);
+      view.setUint32(52, params.coldPageSize, true);
+      view.setUint32(56, params.coldLayout ?? 0, true);
+      view.setUint32(60, params.hotLayout ?? 1, true);
+      view.setUint32(64, 0, true);
+    },
+    recorder,
+    device
+  );
+}
+
+function createTieredQuantAttentionUniformBuffer(
+  device,
+  recorder,
+  params
+) {
+  return createUniformBufferWithView(
+    'attention_tiered_quant_uniforms',
+    64,
+    (view) => {
+      view.setUint32(0, params.numHeads, true);
+      view.setUint32(4, params.numKVHeads, true);
+      view.setUint32(8, params.headDim, true);
+      view.setUint32(12, params.coldLen, true);
+      view.setUint32(16, params.hotLen, true);
+      view.setUint32(20, params.seqLen, true);
+      view.setFloat32(24, params.scale, true);
+      view.setUint32(28, params.causal ? 1 : 0, true);
+      view.setUint32(32, params.startPos, true);
+      view.setFloat32(36, params.attnSoftcap, true);
+      view.setUint32(40, params.slidingWindow, true);
+      view.setUint32(44, params.hotWindow, true);
+      view.setUint32(48, params.hotStart, true);
+      view.setUint32(52, params.packedStride, true);
+      view.setUint32(56, 0, true);
     },
     recorder,
     device
@@ -463,6 +665,10 @@ export async function runAttention(
     kvLenBuffer = null,
     indirectBuffer = null,
     indirectOffset = 0,
+    kvStart = 0,
+    kvLayout = 'contiguous',
+    kvPageTable = null,
+    kvPageSize = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -471,6 +677,7 @@ export async function runAttention(
   
   const kvDtype = K.dtype;
   const qDtype = Q.dtype;
+  const isPaged = kvLayout === 'paged';
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
@@ -480,7 +687,8 @@ export async function runAttention(
     qDtype,
     sharedLimit,
     caps,
-    layerIdx
+    layerIdx,
+    isPaged
   );
   const kernel = new AttentionKernel(device);
   const pipeline = await kernel.getPipeline(plan.variant);
@@ -509,10 +717,14 @@ export async function runAttention(
     attnSoftcap,
     slidingWindow,
     kvLenSource: kvLenBuffer ? 1 : 0,
+    kvStart,
+    pageSize: kvPageSize,
+    kvLayout: kvLayout === 'paged' ? 2 : (kvLayout === 'ring' ? 1 : 0),
   });
 
   // Create bind group
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
+  const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
   const bindGroup = device.createBindGroup({
     label: 'attention_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -523,6 +735,7 @@ export async function runAttention(
       { binding: 3, resource: { buffer: V.buffer } },
       { binding: 4, resource: { buffer: outputBuf } },
       { binding: 5, resource: { buffer: kvLenBinding } },
+      { binding: 6, resource: { buffer: pageTableBinding } },
     ],
   });
 
@@ -570,6 +783,10 @@ export async function recordAttention(
     kvLenBuffer = null,
     indirectBuffer = null,
     indirectOffset = 0,
+    kvStart = 0,
+    kvLayout = 'contiguous',
+    kvPageTable = null,
+    kvPageSize = 0,
   } = options;
 
   const limits = getDeviceLimits();
@@ -578,6 +795,7 @@ export async function recordAttention(
   
   const kvDtype = K.dtype;
   const qDtype = Q.dtype;
+  const isPaged = kvLayout === 'paged';
   const plan = resolveAttentionPlan(
     seqLen,
     kvLen,
@@ -587,7 +805,8 @@ export async function recordAttention(
     qDtype,
     sharedLimit,
     caps,
-    layerIdx
+    layerIdx,
+    isPaged
   );
 
   trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
@@ -618,9 +837,13 @@ export async function recordAttention(
     attnSoftcap,
     slidingWindow,
     kvLenSource: kvLenBuffer ? 1 : 0,
+    kvStart,
+    pageSize: kvPageSize,
+    kvLayout: kvLayout === 'paged' ? 2 : (kvLayout === 'ring' ? 1 : 0),
   });
 
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
+  const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
   const bindGroup = device.createBindGroup({
     label: 'attention_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -631,6 +854,7 @@ export async function recordAttention(
       { binding: 3, resource: { buffer: V.buffer } },
       { binding: 4, resource: { buffer: outputBuf } },
       { binding: 5, resource: { buffer: kvLenBinding } },
+      { binding: 6, resource: { buffer: pageTableBinding } },
     ],
   });
 
@@ -648,4 +872,416 @@ export async function recordAttention(
   }
 
   return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
+}
+
+
+export async function runAttentionTiered(
+  Q,
+  hotK,
+  hotV,
+  coldK,
+  coldV,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    seqLen = 1,
+    coldLen = 0,
+    hotLen = 0,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    hotWindow = hotLen,
+    hotStart = 0,
+    coldPageTable = null,
+    coldPageSize = 0,
+    coldLayout = 2,
+    hotLayout = 1,
+  } = options;
+
+  const totalLen = coldLen + hotLen;
+  const maxKVLen = getTieredMaxKVLen();
+  if (totalLen > maxKVLen) {
+    throw new Error(`Tiered attention requires total KV len <= ${maxKVLen} but got ${totalLen}.`);
+  }
+
+  const useF16 = Q.dtype === 'f16' && hotK.dtype === 'f16' && coldK.dtype === 'f16';
+  const useF16KV = hotK.dtype === 'f16' && coldK.dtype === 'f16';
+  const variant = selectKernelRuleValue('attention', 'tieredVariant', { useF16 });
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_tiered', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`Tiered attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+  if (!useF16KV) {
+    throw new Error('Tiered attention requires f16 KV buffers.');
+  }
+
+  const kernel = new AttentionTieredKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_tiered variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_tiered_output');
+
+  const uniformBuffer = createTieredAttentionUniformBuffer(device, null, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    coldLen,
+    hotLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+    hotWindow,
+    hotStart,
+    coldPageSize,
+    coldLayout,
+    hotLayout,
+  });
+
+  const pageTableBinding = coldPageTable || getPageTableFallbackBuffer(device);
+  const bindGroup = device.createBindGroup({
+    label: 'attention_tiered_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: hotK.buffer } },
+      { binding: 3, resource: { buffer: hotV.buffer } },
+      { binding: 4, resource: { buffer: coldK.buffer } },
+      { binding: 5, resource: { buffer: coldV.buffer } },
+      { binding: 6, resource: { buffer: outputBuf } },
+      { binding: 7, resource: { buffer: pageTableBinding } },
+    ],
+  });
+
+  const workgroups = numHeads;
+  kernel.dispatch(pipeline, bindGroup, workgroups);
+  releaseUniformBuffer(uniformBuffer);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_tiered_output');
+}
+
+
+export async function recordAttentionTiered(
+  recorder,
+  Q,
+  hotK,
+  hotV,
+  coldK,
+  coldV,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = recorder.device;
+  const {
+    seqLen = 1,
+    coldLen = 0,
+    hotLen = 0,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    hotWindow = hotLen,
+    hotStart = 0,
+    coldPageTable = null,
+    coldPageSize = 0,
+    coldLayout = 2,
+    hotLayout = 1,
+  } = options;
+
+  const totalLen = coldLen + hotLen;
+  const maxKVLen = getTieredMaxKVLen();
+  if (totalLen > maxKVLen) {
+    throw new Error(`Tiered attention requires total KV len <= ${maxKVLen} but got ${totalLen}.`);
+  }
+
+  const useF16 = Q.dtype === 'f16' && hotK.dtype === 'f16' && coldK.dtype === 'f16';
+  const useF16KV = hotK.dtype === 'f16' && coldK.dtype === 'f16';
+  const variant = selectKernelRuleValue('attention', 'tieredVariant', { useF16 });
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_tiered', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`Tiered attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+  if (!useF16KV) {
+    throw new Error('Tiered attention requires f16 KV buffers.');
+  }
+
+  const kernel = new AttentionTieredKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_tiered variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_tiered_output');
+
+  const uniformBuffer = createTieredAttentionUniformBuffer(device, recorder, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    coldLen,
+    hotLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+    hotWindow,
+    hotStart,
+    coldPageSize,
+    coldLayout,
+    hotLayout,
+  });
+
+  const pageTableBinding = coldPageTable || getPageTableFallbackBuffer(device);
+  const bindGroup = device.createBindGroup({
+    label: 'attention_tiered_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: hotK.buffer } },
+      { binding: 3, resource: { buffer: hotV.buffer } },
+      { binding: 4, resource: { buffer: coldK.buffer } },
+      { binding: 5, resource: { buffer: coldV.buffer } },
+      { binding: 6, resource: { buffer: outputBuf } },
+      { binding: 7, resource: { buffer: pageTableBinding } },
+    ],
+  });
+
+  const workgroups = numHeads;
+  kernel.record(recorder, pipeline, bindGroup, workgroups);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_tiered_output');
+}
+
+
+export async function runAttentionTieredQuant(
+  Q,
+  hotK,
+  hotV,
+  coldPackedK,
+  coldPackedV,
+  coldScalesK,
+  coldScalesV,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    seqLen = 1,
+    coldLen = 0,
+    hotLen = 0,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    hotWindow = hotLen,
+    hotStart = 0,
+    packedStride = 0,
+    mode = 'int8',
+  } = options;
+
+  const totalLen = coldLen + hotLen;
+  const maxKVLen = getTieredQuantMaxKVLen();
+  if (totalLen > maxKVLen) {
+    throw new Error(`Tiered quant attention requires total KV len <= ${maxKVLen} but got ${totalLen}.`);
+  }
+  if (!Number.isFinite(packedStride) || packedStride <= 0) {
+    throw new Error('Tiered quant attention requires packedStride > 0.');
+  }
+
+  if (Q.dtype !== 'f32') {
+    throw new Error('Tiered quant attention requires f32 Q.');
+  }
+
+  const variant = selectKernelRuleValue('attention', 'tieredQuantVariant', { mode });
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_tiered_quant', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`Tiered quant attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  const kernel = new AttentionTieredQuantKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_tiered_quant variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_tiered_quant_output');
+
+  const uniformBuffer = createTieredQuantAttentionUniformBuffer(device, null, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    coldLen,
+    hotLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+    hotWindow,
+    hotStart,
+    packedStride,
+  });
+
+  const bindGroup = device.createBindGroup({
+    label: 'attention_tiered_quant_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: hotK.buffer } },
+      { binding: 3, resource: { buffer: hotV.buffer } },
+      { binding: 4, resource: { buffer: coldPackedK } },
+      { binding: 5, resource: { buffer: coldPackedV } },
+      { binding: 6, resource: { buffer: coldScalesK } },
+      { binding: 7, resource: { buffer: coldScalesV } },
+      { binding: 8, resource: { buffer: outputBuf } },
+    ],
+  });
+
+  const workgroups = numHeads;
+  kernel.dispatch(pipeline, bindGroup, workgroups);
+  releaseUniformBuffer(uniformBuffer);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_tiered_quant_output');
+}
+
+
+export async function recordAttentionTieredQuant(
+  recorder,
+  Q,
+  hotK,
+  hotV,
+  coldPackedK,
+  coldPackedV,
+  coldScalesK,
+  coldScalesV,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = recorder.device;
+  const {
+    seqLen = 1,
+    coldLen = 0,
+    hotLen = 0,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    hotWindow = hotLen,
+    hotStart = 0,
+    packedStride = 0,
+    mode = 'int8',
+  } = options;
+
+  const totalLen = coldLen + hotLen;
+  const maxKVLen = getTieredQuantMaxKVLen();
+  if (totalLen > maxKVLen) {
+    throw new Error(`Tiered quant attention requires total KV len <= ${maxKVLen} but got ${totalLen}.`);
+  }
+  if (!Number.isFinite(packedStride) || packedStride <= 0) {
+    throw new Error('Tiered quant attention requires packedStride > 0.');
+  }
+
+  if (Q.dtype !== 'f32') {
+    throw new Error('Tiered quant attention requires f32 Q.');
+  }
+
+  const variant = selectKernelRuleValue('attention', 'tieredQuantVariant', { mode });
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_tiered_quant', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`Tiered quant attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  const kernel = new AttentionTieredQuantKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_tiered_quant variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_tiered_quant_output');
+
+  const uniformBuffer = createTieredQuantAttentionUniformBuffer(device, recorder, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    coldLen,
+    hotLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+    hotWindow,
+    hotStart,
+    packedStride,
+  });
+
+  const bindGroup = device.createBindGroup({
+    label: 'attention_tiered_quant_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: hotK.buffer } },
+      { binding: 3, resource: { buffer: hotV.buffer } },
+      { binding: 4, resource: { buffer: coldPackedK } },
+      { binding: 5, resource: { buffer: coldPackedV } },
+      { binding: 6, resource: { buffer: coldScalesK } },
+      { binding: 7, resource: { buffer: coldScalesV } },
+      { binding: 8, resource: { buffer: outputBuf } },
+    ],
+  });
+
+  const workgroups = numHeads;
+  kernel.record(recorder, pipeline, bindGroup, workgroups);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_tiered_quant_output');
 }

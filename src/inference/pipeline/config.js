@@ -209,8 +209,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     if (patternKind) {
       layerTypes = Array.from({ length: numLayers }, (_, i) => {
         const isEven = i % 2 === 0;
-        // For every_n pattern: sliding if ((i+1) % period) != 0, so global at period-1, 2*period-1, etc.
-        const isStride = period == null ? false : (i + 1) % period === 0;
+        // For every_n pattern: global at layer 0 and every N thereafter.
+        const isStride = period == null ? false : (i % period) === 0;
         return selectRuleValue(
           'inference',
           'layerPattern',
@@ -314,6 +314,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateType,
     chatTemplateEnabled,
     kernelPath: inf.defaultKernelPath,
+    isGemma2: inf.attention.attnLogitSoftcapping != null,
+    isGemma3: inf.rope.ropeLocalTheta != null,
   };
 }
 

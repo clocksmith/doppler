@@ -322,6 +322,12 @@
       "size": 4063
     },
     {
+      "path": "/src/config/presets/kernel-paths/gemma3-f16-f16a-online.json",
+      "url": "/src/config/presets/kernel-paths/gemma3-f16-f16a-online.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 4088
+    },
+    {
       "path": "/src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a.json",
       "url": "/src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a.json",
       "contentType": "application/json; charset=utf-8",
@@ -500,6 +506,114 @@
       "url": "/src/config/presets/runtime/model/gemma3-layer-probe.json",
       "contentType": "application/json; charset=utf-8",
       "size": 1015
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-batch-profile.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-batch-profile.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 757
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-q4k-dequant.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-q4k-dequant.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1164
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-q4k-unfused-ffn.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-q4k-unfused-ffn.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1160
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-q4k.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1023
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-online.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-online.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1151
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-spectra-stress.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-spectra-stress.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1193
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-spectra.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-bench-wf16-spectra.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1460
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-debug-q4k.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-debug-q4k.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 2670
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-debug-trace.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-debug-trace.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 931
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-investigate-kernel-trace.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-investigate-kernel-trace.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 1054
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-investigate-queue-short.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-investigate-queue-short.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 984
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-investigate-readback-r1.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-investigate-readback-r1.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 947
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-investigate-readback-r8.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-investigate-readback-r8.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 947
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-profile.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-profile.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 998
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-test-kernels.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-test-kernels.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 258
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-tool-diagnose-kernels.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-tool-diagnose-kernels.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 248
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-tool-kernel-path-grid.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-tool-kernel-path-grid.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 682
+    },
+    {
+      "path": "/src/config/presets/runtime/experiments/gemma3-verify.json",
+      "url": "/src/config/presets/runtime/experiments/gemma3-verify.json",
+      "contentType": "application/json; charset=utf-8",
+      "size": 586
     },
     {
       "path": "/src/config/presets/runtime/modes/bench.json",
@@ -3124,8 +3238,6 @@
       "size": 15619
     },
     {
-      "path": "/src/sw-module-loader.js",
-      "url": "/src/sw-module-loader.js",
       "contentType": "application/javascript; charset=utf-8",
       "size": 3737
     },

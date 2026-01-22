@@ -165,6 +165,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       ?  (context.ropeLocalSin)
       :  (ropeFreqsSin),
     kvCache:  ( (kvCache)),
+    stats: context.stats,
   };
 
   const attnResult = await doAttention(

@@ -1,5 +1,6 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
+import { getKernelConfig } from '../gpu/kernels/utils.js';
+import { log } from '../debug/index.js';
 
 // =============================================================================
 // Built-in Kernel Paths (imported at build time)
@@ -11,6 +12,7 @@ import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a
 import gemma2F16F16A from './presets/kernel-paths/gemma2-f16-f16a.json' with { type: 'json' };
 import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { type: 'json' };
 import gemma3F16F16A from './presets/kernel-paths/gemma3-f16-f16a.json' with { type: 'json' };
+import gemma3F16F16AOnline from './presets/kernel-paths/gemma3-f16-f16a-online.json' with { type: 'json' };
 import gemma3Q4kFusedF16A from './presets/kernel-paths/gemma3-q4k-fused-f16a.json' with { type: 'json' };
 import gemma3Q4kDequantF16A from './presets/kernel-paths/gemma3-q4k-dequant-f16a.json' with { type: 'json' };
 
@@ -26,6 +28,7 @@ const KERNEL_PATH_REGISTRY = {
 
   // Gemma 3 variants
   'gemma3-f16-f16a': gemma3F16F16A,
+  'gemma3-f16-f16a-online': gemma3F16F16AOnline,
   'gemma3-q4k-fused-f16a': gemma3Q4kFusedF16A,
   'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
 };
@@ -56,6 +59,113 @@ export function resolveKernelPath(ref) {
 export function getKernelPathActivationDtype(path) {
   if (!path?.activationDtype) return null;
   return path.activationDtype;
+}
+
+export function applyKernelOverrides(path, overrides) {
+  if (!overrides) return path;
+
+  const cloned = structuredClone(path);
+
+  const resolveOverrideConfig = (variantId, opCandidates) => {
+    const ops = Array.isArray(opCandidates) ? opCandidates : [opCandidates];
+    for (const op of ops) {
+      try {
+        return getKernelConfig(op, variantId);
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  };
+
+  const applyToStep = (steps, stepOp, variantId, opCandidates) => {
+    if (!steps || variantId == null) return;
+    const step = steps.find((s) => s.op === stepOp);
+    if (!step) return;
+    const config = resolveOverrideConfig(variantId, opCandidates);
+    if (!config) {
+      log.warn('KernelOverrides', `Variant '${variantId}' not found for op '${stepOp}'.`);
+      return;
+    }
+    step.kernel = config.shaderFile;
+    step.entry = config.entryPoint;
+  };
+
+  // 1. Attention Overrides
+  if (overrides.attention) {
+    if (overrides.attention.decode) {
+      applyToStep(cloned.decode?.steps, 'attention', overrides.attention.decode, 'attention');
+    }
+    if (overrides.attention.prefill) {
+      applyToStep(cloned.prefill?.steps, 'attention', overrides.attention.prefill, 'attention');
+    }
+  }
+
+  // 2. Matmul Overrides (Layer & Head)
+  if (overrides.matmul) {
+    const matmulOps = [
+      'q_proj', 'k_proj', 'v_proj', 'o_proj',
+      'gate_proj', 'up_proj', 'down_proj'
+    ];
+    
+    // Apply to both decode and prefill phases for layer weights
+    for (const op of matmulOps) {
+      if (overrides.matmul[op]) {
+        applyToStep(cloned.decode?.steps, op, overrides.matmul[op], 'matmul');
+        applyToStep(cloned.prefill?.steps, op, overrides.matmul[op], 'matmul');
+      }
+    }
+
+    // LM Head (Post-layer)
+    if (overrides.matmul.lm_head) {
+      applyToStep(cloned.postLayer, 'lm_head', overrides.matmul.lm_head, 'matmul');
+      applyToStep(cloned.postLayer, 'lm_head_prefill', overrides.matmul.lm_head, 'matmul');
+    }
+  }
+
+  // 3. FFN Overrides
+  if (overrides.ffn) {
+    if (overrides.ffn.activation) {
+      applyToStep(cloned.decode?.steps, 'activation', overrides.ffn.activation, ['gelu', 'silu']);
+      applyToStep(cloned.prefill?.steps, 'activation', overrides.ffn.activation, ['gelu', 'silu']);
+    }
+    if (overrides.ffn.rmsnorm) {
+      // Maps to post_attn_norm (the FFN input norm)
+      applyToStep(cloned.decode?.steps, 'post_attn_norm', overrides.ffn.rmsnorm, 'rmsnorm');
+      applyToStep(cloned.prefill?.steps, 'post_attn_norm', overrides.ffn.rmsnorm, 'rmsnorm');
+    }
+  }
+
+  // 4. RoPE Overrides
+  if (overrides.rope) {
+    if (overrides.rope.q) {
+      applyToStep(cloned.decode?.steps, 'rope_q', overrides.rope.q, 'rope');
+      applyToStep(cloned.prefill?.steps, 'rope_q', overrides.rope.q, 'rope');
+    }
+    if (overrides.rope.k) {
+      applyToStep(cloned.decode?.steps, 'rope_k', overrides.rope.k, 'rope');
+      applyToStep(cloned.prefill?.steps, 'rope_k', overrides.rope.k, 'rope');
+    }
+  }
+
+  // 5. Residual Overrides
+  if (overrides.residual) {
+    if (overrides.residual.attn) {
+      applyToStep(cloned.decode?.steps, 'attn_residual', overrides.residual.attn, 'residual');
+      applyToStep(cloned.prefill?.steps, 'attn_residual', overrides.residual.attn, 'residual');
+    }
+    if (overrides.residual.ffn) {
+      applyToStep(cloned.decode?.steps, 'ffn_residual', overrides.residual.ffn, 'residual');
+      applyToStep(cloned.prefill?.steps, 'ffn_residual', overrides.residual.ffn, 'residual');
+    }
+  }
+
+  if (overrides.kv?.quantize) {
+    applyToStep(cloned.decode?.steps, 'kv_quantize', overrides.kv.quantize, 'kv_quantize');
+    applyToStep(cloned.prefill?.steps, 'kv_quantize', overrides.kv.quantize, 'kv_quantize');
+  }
+
+  return cloned;
 }
 
 // =============================================================================

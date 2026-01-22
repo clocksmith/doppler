@@ -26,6 +26,10 @@ struct Uniforms {
     attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
     sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
     kv_len_source: u32,   // 0 = use uniform seq_len, 1 = use buffer
+    kv_start: u32,
+    page_size: u32,
+    kv_layout: u32,
+    _pad: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -34,6 +38,7 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read> V: array<f16>;       // [seq_len, num_kv_heads, head_dim]
 @group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+@group(0) @binding(6) var<storage, read> page_table: array<u32>;
 
 // Shared memory for tiled computation
 var<workgroup> shared_K: array<f32, MAX_BLOCK_SIZE * MAX_HEAD_TILE>;
@@ -50,7 +55,7 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
 // Check if position should be masked (causal + sliding window attention)
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     let abs_query = query_pos + u.start_pos;
-    let abs_key = key_pos;
+    let abs_key = u.kv_start + key_pos;
     // Causal mask
     if (u.is_causal != 0u && abs_key > abs_query) { return true; }
     // Sliding window mask
@@ -58,6 +63,20 @@ fn is_masked(query_pos: u32, key_pos: u32) -> bool {
         if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
     }
     return false;
+}
+
+fn get_kv_pos(key_pos: u32) -> u32 {
+    let abs_key = u.kv_start + key_pos;
+    if (u.kv_layout == 1u && u.sliding_window > 0u) {
+        return abs_key % u.sliding_window;
+    }
+    if (u.kv_layout == 2u) {
+        let page_idx = abs_key / u.page_size;
+        let in_page = abs_key - (page_idx * u.page_size);
+        let phys_page = page_table[page_idx];
+        return phys_page * u.page_size + in_page;
+    }
+    return abs_key;
 }
 
 fn get_kv_len() -> u32 {
@@ -122,7 +141,8 @@ fn main(
         // Collaborative load of K block into shared memory
         let k_load_idx = kv_block_start + thread_idx;
         if (k_load_idx < seq_len) {
-            let k_offset = k_load_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+            let k_idx = get_kv_pos(k_load_idx);
+            let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
                 shared_K[thread_idx * head_dim + d] = f32(K[k_offset + d]);
             }
@@ -135,7 +155,8 @@ fn main(
         // Load V block
         let v_load_idx = kv_block_start + thread_idx;
         if (v_load_idx < seq_len) {
-            let v_offset = v_load_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+            let v_idx = get_kv_pos(v_load_idx);
+            let v_offset = v_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
                 shared_V[thread_idx * head_dim + d] = f32(V[v_offset + d]);
             }

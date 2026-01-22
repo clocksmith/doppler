@@ -19,6 +19,7 @@ const MIME_TYPES = {
   '.mjs': 'application/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.bin': 'application/octet-stream',
   '.wasm': 'application/wasm',
   '.wgsl': 'text/plain; charset=utf-8',
@@ -34,7 +35,7 @@ const MIME_TYPES = {
 
 
 function parseArgs(argv) {
-  
+
   const args = {
     port: 8080,
     open: false,
@@ -85,7 +86,7 @@ Models are served from:
 
 function openBrowser(url) {
   const platform = process.platform;
-  
+
   let cmd;
 
   if (platform === 'darwin') {
@@ -117,7 +118,7 @@ async function main() {
   const dopplerDir = __dirname;
   const rootDir = dopplerDir;
 
-  
+
   function serveFile(filePath, stats, req, res) {
     const ext = extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -144,7 +145,7 @@ async function main() {
       }
     }
 
-    
+
     const headers = {
       'Content-Type': contentType,
       'Content-Length': stats.size,
@@ -188,7 +189,7 @@ async function main() {
         const modelsDir = join(dopplerDir, 'models');
         try {
           const entries = await readdir(modelsDir, { withFileTypes: true });
-          
+
           const models = [];
           for (const entry of entries) {
             if (!entry.isDirectory()) continue;
@@ -199,7 +200,7 @@ async function main() {
               const manifest = JSON.parse(manifestData);
               const config = manifest.config || {};
               const textConfig = config.text_config || config;
-              const totalSize = (manifest.shards || []).reduce(( sum,  s) => sum + (s.size || 0), 0);
+              const totalSize = (manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
               models.push({
                 path: modelPath,
                 name: entry.name,
@@ -248,11 +249,13 @@ async function main() {
       if (pathname === '/kernel-tests/browser/registry.json') {
         pathname = '/config/kernels/registry.json';
       }
+      if (pathname === '/manifest.json') {
+        pathname = '/public/manifest.json';
+      }
       if (
         pathname === '/favicon.ico' ||
         pathname === '/favicon.svg' ||
         pathname === '/site.webmanifest' ||
-        pathname === '/manifest.json' ||
         pathname === '/browserconfig.xml' ||
         pathname === '/apple-touch-icon.png' ||
         pathname === '/apple-touch-icon-precomposed.png' ||

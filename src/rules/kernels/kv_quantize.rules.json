@@ -1,0 +1,7 @@
+{
+  "variant": [
+    { "match": { "mode": "int4" }, "value": "int4" },
+    { "match": { "mode": "int8" }, "value": "int8" },
+    { "match": {}, "value": "int8" }
+  ]
+}

@@ -159,6 +159,8 @@ export interface ParsedModelConfig {
   chatTemplateType?: string | null;
   chatTemplateEnabled: boolean;
   kernelPath?: KernelPathRef;
+  isGemma2: boolean;
+  isGemma3: boolean;
 }
 
 export function getStopTokenIds(manifest: Manifest): number[];

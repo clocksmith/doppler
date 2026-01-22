@@ -91,6 +91,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     currentSeqLen: state.currentSeqLen,
     useGPU: state.useGPU,
     debug: state.debug,
+    stats: state.stats,
     ropeFreqsCos: state.ropeFreqsCos,
     ropeFreqsSin: state.ropeFreqsSin,
     ropeLocalCos: state.ropeLocalCos,

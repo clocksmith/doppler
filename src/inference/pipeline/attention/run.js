@@ -8,6 +8,8 @@ import {
   runRMSNorm,
   runRoPE,
   runAttention,
+  runAttentionTieredQuant,
+  runAttentionTiered,
   castF16ToF32,
   castF32ToF16,
   runMatmulResidualFused,
@@ -21,6 +23,7 @@ import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
+import { SlidingWindowKVCache } from '../../kv-cache.js';
 
 import {
   shouldDebugLayer,
@@ -471,6 +474,25 @@ export async function runLayerAttentionGPU(
   let kvLenForAttention = currentSeqLen + numTokens;
   let causalForAttention = true;
   let startPosForMask = currentSeqLen;
+  let kvStart = 0;
+  let kvLayout = 'contiguous';
+  let kvPageTable = null;
+  let kvPageSize = 0;
+  let cachedKHot;
+  let cachedVHot;
+  let cachedKCold;
+  let cachedVCold;
+  let coldScalesK = null;
+  let coldScalesV = null;
+  let coldPackedStride = 0;
+  let coldQuantMode = 'none';
+  let coldLen = 0;
+  let hotLen = 0;
+  let hotStart = 0;
+  let hotWindow = 0;
+  let coldPageTable = null;
+  let coldPageSize = 0;
+  const totalSeqLen = currentSeqLen + numTokens;
 
   const hasCache = state.kvCache?.hasGPUCache?.();
 
@@ -480,18 +502,44 @@ export async function runLayerAttentionGPU(
       const kCasted = kTensor.dtype === 'f16' ? kTensor : await castF32ToF16(kTensor);
       const vCasted = vTensor.dtype === 'f16' ? vTensor : await castF32ToF16(vTensor);
 
-      state.kvCache.updateFromGPU(layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens);
+      await state.kvCache.updateFromGPU(layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens);
 
       // Only release if we created new buffers
       if (kTensor.dtype !== 'f16') releaseBuffer(kCasted.buffer);
       if (vTensor.dtype !== 'f16') releaseBuffer(vCasted.buffer);
     } else {
-      state.kvCache.updateFromGPU(layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens);
+      await state.kvCache.updateFromGPU(layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens);
     }
     const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
-    cachedK = gpuBuffers.keysGPU;
-    cachedV = gpuBuffers.valuesGPU;
-    kvLenForAttention = gpuBuffers.seqLen;
+    if (gpuBuffers?.layout === 'tiered') {
+      cachedKHot = gpuBuffers.hotKeysGPU;
+      cachedVHot = gpuBuffers.hotValuesGPU;
+      cachedKCold = gpuBuffers.coldKeysGPU;
+      cachedVCold = gpuBuffers.coldValuesGPU;
+      coldScalesK = gpuBuffers.coldScalesKGPU ?? null;
+      coldScalesV = gpuBuffers.coldScalesVGPU ?? null;
+      coldPackedStride = gpuBuffers.coldPackedStride ?? 0;
+      coldQuantMode = gpuBuffers.coldQuantMode ?? 'none';
+      hotLen = gpuBuffers.hotSeqLen ?? 0;
+      coldLen = gpuBuffers.coldSeqLen ?? 0;
+      hotStart = gpuBuffers.hotStart ?? 0;
+      hotWindow = gpuBuffers.hotWindow ?? 0;
+      coldPageTable = gpuBuffers.coldPageTableGPU ?? null;
+      coldPageSize = gpuBuffers.coldPageSize ?? state.kvCache.coldPageSize ?? 0;
+      kvLenForAttention = coldLen + hotLen;
+      kvLayout = 'tiered';
+    } else {
+      cachedK = gpuBuffers.keysGPU;
+      cachedV = gpuBuffers.valuesGPU;
+      kvLenForAttention = gpuBuffers.seqLen;
+      kvPageTable = gpuBuffers.pageTableGPU ?? null;
+      kvPageSize = gpuBuffers.pageSize ?? state.kvCache.pageSize ?? 0;
+      if (state.kvCache instanceof SlidingWindowKVCache) {
+        kvLayout = 'ring';
+      } else if (state.kvCache.layout === 'paged') {
+        kvLayout = 'paged';
+      }
+    }
 
     // Kernel step debug: KV cache state after update
     if (isKernelDebugEnabled(layerIdx)) {
@@ -505,11 +553,36 @@ export async function runLayerAttentionGPU(
     startPosForMask = 0;
   }
 
+  if (kvLayout === 'tiered' && numTokens > 1) {
+    kvLayout = 'contiguous';
+    cachedK = kTensor.buffer;
+    cachedV = vTensor.buffer;
+    kvLenForAttention = numTokens;
+    startPosForMask = 0;
+    cachedKHot = null;
+    cachedVHot = null;
+    cachedKCold = null;
+    cachedVCold = null;
+    coldQuantMode = 'none';
+  }
+
   // Sliding window attention for specific layers
   // The kernel now handles both causal AND sliding window masking together.
   // We no longer need to disable causal masking for sliding layers.
-  const isLayerSliding = layerType === 'sliding_attention';
+  const hasSlidingWindow = Number.isFinite(slidingWindow) && slidingWindow > 0;
+  const hasLayerTypes = Array.isArray(config.layerTypes);
+  const isLayerSliding = layerType === 'sliding_attention' || (hasSlidingWindow && !hasLayerTypes);
   const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
+
+  const canWindow = hasCache && effectiveSlidingWindow;
+  if (kvLayout !== 'tiered') {
+    if (canWindow && kvLenForAttention > effectiveSlidingWindow) {
+      kvLenForAttention = effectiveSlidingWindow;
+    }
+    if (hasCache && (kvLayout === 'ring' || (canWindow && kvLenForAttention < totalSeqLen))) {
+      kvStart = Math.max(0, totalSeqLen - kvLenForAttention);
+    }
+  }
 
   if (kvLenForAttention <= 0) {
     throw new Error(`Invalid kvLen ${kvLenForAttention} at layer ${layerIdx}`);
@@ -532,8 +605,12 @@ export async function runLayerAttentionGPU(
     kvDtype: state.kvCache?.kvDtype,
     fallback: vTensor.dtype,
   });
-  const cachedKTensor = createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
-  const cachedVTensor = createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
+  const cachedKTensor = kvLayout === 'tiered'
+    ? null
+    : createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
+  const cachedVTensor = kvLayout === 'tiered'
+    ? null
+    : createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
   recordAttentionInputs(state, {
     phase: isPrefill ? 'prefill' : 'decode',
@@ -555,19 +632,86 @@ export async function runLayerAttentionGPU(
     kDtype: kTensor?.dtype ?? null,
     vDtype: vTensor?.dtype ?? null,
     useFusedQKV,
+    kvStart,
+    kvLayout,
+    kvPageSize: kvLayout === 'tiered' ? (coldPageSize || null) : (kvPageSize || null),
+    hotLen: kvLayout === 'tiered' ? hotLen : null,
+    coldLen: kvLayout === 'tiered' ? coldLen : null,
+    hotWindow: kvLayout === 'tiered' ? hotWindow : null,
+    hotStart: kvLayout === 'tiered' ? hotStart : null,
+    coldQuantMode: kvLayout === 'tiered' ? coldQuantMode : null,
   });
 
-  let attnOutput = await runAttention(qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
-    seqLen: numTokens,
-    kvLen: kvLenForAttention,
-    numKVHeads,
-    causal: causalForAttention,
-    startPos: startPosForMask,
-    layerIdx,
-    slidingWindow: effectiveSlidingWindow,
-    attnSoftcap,
-    scale: attnScale,
-  });
+  let attnOutput;
+  if (kvLayout === 'tiered') {
+    let qForAttention = qTensor;
+    let qTemp = null;
+    if (coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {
+      qForAttention = await castF16ToF32(qTensor);
+      qTemp = qForAttention;
+    }
+    const cachedHotKTensor = createTensor(cachedKHot, cachedKDtype, [hotLen, numKVHeads * headDim], 'cached_K_hot');
+    const cachedHotVTensor = createTensor(cachedVHot, cachedVDtype, [hotLen, numKVHeads * headDim], 'cached_V_hot');
+    if (coldQuantMode !== 'none') {
+      if (!coldScalesK || !coldScalesV) {
+        throw new Error('Tiered quant attention requires cold scale buffers.');
+      }
+      attnOutput = await runAttentionTieredQuant(qForAttention, cachedHotKTensor, cachedHotVTensor, cachedKCold, cachedVCold, coldScalesK, coldScalesV, numHeads, headDim, {
+        seqLen: numTokens,
+        coldLen,
+        hotLen,
+        numKVHeads,
+        causal: causalForAttention,
+        startPos: startPosForMask,
+        slidingWindow: effectiveSlidingWindow ?? 0,
+        attnSoftcap,
+        scale: attnScale,
+        hotWindow,
+        hotStart,
+        packedStride: coldPackedStride,
+        mode: coldQuantMode,
+      });
+    } else {
+      const cachedColdKTensor = createTensor(cachedKCold, cachedKDtype, [coldLen, numKVHeads * headDim], 'cached_K_cold');
+      const cachedColdVTensor = createTensor(cachedVCold, cachedVDtype, [coldLen, numKVHeads * headDim], 'cached_V_cold');
+      attnOutput = await runAttentionTiered(qForAttention, cachedHotKTensor, cachedHotVTensor, cachedColdKTensor, cachedColdVTensor, numHeads, headDim, {
+        seqLen: numTokens,
+        coldLen,
+        hotLen,
+        numKVHeads,
+        causal: causalForAttention,
+        startPos: startPosForMask,
+        slidingWindow: effectiveSlidingWindow ?? 0,
+        attnSoftcap,
+        scale: attnScale,
+        hotWindow,
+        hotStart,
+        coldPageTable,
+        coldPageSize,
+        coldLayout: coldPageTable ? 2 : 0,
+        hotLayout: hotWindow > 0 ? 1 : 0,
+      });
+    }
+    if (qTemp) {
+      releaseBuffer(qTemp.buffer);
+    }
+  } else {
+    attnOutput = await runAttention(qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
+      seqLen: numTokens,
+      kvLen: kvLenForAttention,
+      numKVHeads,
+      causal: causalForAttention,
+      startPos: startPosForMask,
+      layerIdx,
+      slidingWindow: effectiveSlidingWindow,
+      attnSoftcap,
+      scale: attnScale,
+      kvStart,
+      kvLayout,
+      kvPageTable,
+      kvPageSize,
+    });
+  }
 
   // Trace attention output
   if (kernelTrace.enabled) {
@@ -594,9 +738,16 @@ export async function runLayerAttentionGPU(
   
   let output;
   let residualFused = false;
+  let oProjInput = attnOutput;
+  let oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
+
+    if (matmulOutputDtype === 'f16' && attnOutput.dtype !== 'f16') {
+      oProjInput = await castF32ToF16(attnOutput);
+      oProjInputTemp = oProjInput;
+    }
 
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
@@ -604,15 +755,15 @@ export async function runLayerAttentionGPU(
     const canUseFused = selectRuleValue('inference', 'attention', 'useFusedOProjResidual', {
       allowFusedResidual: shouldUseFusedMatmulResidual(numTokens),
       hasResidual: Boolean(residualTensor),
-      residualMatches: Boolean(residualTensor && residualTensor.dtype === attnOutput.dtype),
-      attnIsF32: attnOutput.dtype === 'f32',
+      residualMatches: Boolean(residualTensor && residualTensor.dtype === oProjInput.dtype),
+      attnIsF32: oProjInput.dtype === 'f32',
       hasLoRA: Boolean(loraO),
       oProjIsF16: oProjDtype === 'f16',
     });  // GEMV kernel expects f16 weights
 
     if (canUseFused && residualTensor) {
       // FUSED PATH: o_proj matmul + residual add in one dispatch
-      output = await runMatmulResidualFused(attnOutput, oProjBuf, residualTensor, {
+      output = await runMatmulResidualFused(oProjInput, oProjBuf, residualTensor, {
         N: hiddenSize,
         K: numHeads * headDim,
       });
@@ -623,7 +774,7 @@ export async function runLayerAttentionGPU(
       }
     } else {
       // STANDARD PATH: o_proj matmul only (residual will be added by layer.ts)
-      output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
+      output = await runMatmul(oProjInput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
         transposeB: 'auto',
         role: 'o_proj',
         layerIdx,
@@ -650,6 +801,7 @@ export async function runLayerAttentionGPU(
         dtype: output.dtype,
       });
     }
+
   } else {
     output = attnOutput;
   }
@@ -659,7 +811,7 @@ export async function runLayerAttentionGPU(
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
     if (loraO && getWeightBuffer) {
       const combined = await applyLoRA(
-        attnOutput,
+        oProjInput,
         output,
         loraO,
         { M: numTokens, N: hiddenSize, K: numHeads * headDim },
@@ -670,6 +822,10 @@ export async function runLayerAttentionGPU(
         output = combined;
       }
     }
+  }
+
+  if (oProjInputTemp) {
+    releaseBuffer(oProjInputTemp.buffer);
   }
 
   // Debug: o_proj output for configured layers

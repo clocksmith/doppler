@@ -39,6 +39,7 @@ export class KVCache {
   useGPU: boolean;
   layers: LayerCache[];
   currentSeqLen: number;
+  totalTokensSeen: number;
   memoryUsage: number;
   gpuContext: GPUContext | null;
 
@@ -77,7 +78,7 @@ export class KVCache {
    * Does NOT submit - caller is responsible for submitting the encoder.
    */
   recordUpdateFromGPU(
-    encoder: GPUCommandEncoder,
+    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,

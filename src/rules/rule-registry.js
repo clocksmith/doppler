@@ -6,6 +6,7 @@ import fusedMatmulResidualRules from './kernels/fused-matmul-residual.rules.json
 import fusedMatmulRmsnormRules from './kernels/fused-matmul-rmsnorm.rules.json' with { type: 'json' };
 import gatherRules from './kernels/gather.rules.json' with { type: 'json' };
 import geluRules from './kernels/gelu.rules.json' with { type: 'json' };
+import kvQuantizeRules from './kernels/kv_quantize.rules.json' with { type: 'json' };
 import matmulRules from './kernels/matmul.rules.json' with { type: 'json' };
 import kernelMoeRules from './kernels/moe.rules.json' with { type: 'json' };
 import residualRules from './kernels/residual.rules.json' with { type: 'json' };
@@ -40,6 +41,7 @@ const RULE_SETS = {
     fusedMatmulRmsnorm: fusedMatmulRmsnormRules,
     gather: gatherRules,
     gelu: geluRules,
+    kv_quantize: kvQuantizeRules,
     matmul: matmulRules,
     moe: kernelMoeRules,
     residual: residualRules,

@@ -28,10 +28,52 @@ export interface AttentionOptions extends OutputBufferOptions {
   attnSoftcap?: number;
   /** Optional GPU buffer containing KV length (u32). When provided, kernel reads KV length from buffer. */
   kvLenBuffer?: GPUBuffer | null;
+  /** Optional KV start offset for windowed attention (absolute position). */
+  kvStart?: number;
+  /** KV cache layout (contiguous, ring, paged). */
+  kvLayout?: 'contiguous' | 'ring' | 'paged';
+  /** Optional page table buffer for paged KV cache. */
+  kvPageTable?: GPUBuffer | null;
+  /** Page size for paged KV cache. */
+  kvPageSize?: number;
   /** Optional indirect dispatch buffer for GPU-driven workgroup counts. */
   indirectBuffer?: GPUBuffer | null;
   /** Byte offset into indirect dispatch buffer (default: 0). */
   indirectOffset?: number;
+}
+
+export interface TieredAttentionOptions extends OutputBufferOptions {
+  seqLen?: number;
+  coldLen?: number;
+  hotLen?: number;
+  numKVHeads?: number;
+  scale?: number;
+  causal?: boolean;
+  startPos?: number;
+  attnSoftcap?: number;
+  slidingWindow?: number;
+  hotWindow?: number;
+  hotStart?: number;
+  coldPageTable?: GPUBuffer | null;
+  coldPageSize?: number;
+  coldLayout?: number;
+  hotLayout?: number;
+}
+
+export interface TieredQuantAttentionOptions extends OutputBufferOptions {
+  seqLen?: number;
+  coldLen?: number;
+  hotLen?: number;
+  numKVHeads?: number;
+  scale?: number;
+  causal?: boolean;
+  startPos?: number;
+  attnSoftcap?: number;
+  slidingWindow?: number;
+  hotWindow?: number;
+  hotStart?: number;
+  packedStride?: number;
+  mode?: 'int8' | 'int4';
 }
 
 export type AttentionTier = 'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming';
@@ -50,6 +92,9 @@ export interface AttentionVariantContext {
   useF16KV: boolean;
   canUseChunked: boolean;
   canUseDecodeSubgroup: boolean;
+  canUseDecodeOptimized?: boolean;
+  isPaged?: boolean;
+  isDecode?: boolean;
 }
 
 /**
@@ -79,6 +124,56 @@ export declare function recordAttention(
   options?: AttentionOptions
 ): Promise<Tensor>;
 
+export declare function runAttentionTiered(
+  Q: Tensor,
+  hotK: Tensor,
+  hotV: Tensor,
+  coldK: Tensor,
+  coldV: Tensor,
+  numHeads: number,
+  headDim: number,
+  options?: TieredAttentionOptions
+): Promise<Tensor>;
+
+export declare function recordAttentionTiered(
+  recorder: CommandRecorder,
+  Q: Tensor,
+  hotK: Tensor,
+  hotV: Tensor,
+  coldK: Tensor,
+  coldV: Tensor,
+  numHeads: number,
+  headDim: number,
+  options?: TieredAttentionOptions
+): Promise<Tensor>;
+
+export declare function runAttentionTieredQuant(
+  Q: Tensor,
+  hotK: Tensor,
+  hotV: Tensor,
+  coldPackedK: GPUBuffer,
+  coldPackedV: GPUBuffer,
+  coldScalesK: GPUBuffer,
+  coldScalesV: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: TieredQuantAttentionOptions
+): Promise<Tensor>;
+
+export declare function recordAttentionTieredQuant(
+  recorder: CommandRecorder,
+  Q: Tensor,
+  hotK: Tensor,
+  hotV: Tensor,
+  coldPackedK: GPUBuffer,
+  coldPackedV: GPUBuffer,
+  coldScalesK: GPUBuffer,
+  coldScalesV: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: TieredQuantAttentionOptions
+): Promise<Tensor>;
+
 export declare function resolveAttentionPlanForTest(
   seqLen: number,
   kvLen: number,
@@ -88,7 +183,8 @@ export declare function resolveAttentionPlanForTest(
   qDtype: 'f16' | 'f32',
   sharedLimit: number,
   caps: { hasSubgroups: boolean; hasF16?: boolean },
-  layerIdx?: number
+  layerIdx?: number,
+  isPaged?: boolean
 ): {
   tier: AttentionTier;
   variant: string;

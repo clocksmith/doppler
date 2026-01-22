@@ -99,6 +99,7 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
   pipeline: null,
   kernelPath: undefined,
+  kernelOverrides: null,
 };
 
 // =============================================================================

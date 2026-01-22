@@ -17,11 +17,20 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'paged';
+  layout: 'contiguous' | 'paged' | 'tiered';
   pageSize: number;
   kvDtype: 'f16' | 'f32';
   /** Window size for sliding window cache */
   windowSize?: number;
+  /** Tiered KV cache settings (required when layout = 'tiered') */
+  tiering?: {
+    mode: 'off' | 'fp16' | 'int8' | 'int4';
+    hotWindow: number;
+    coldPageSize: number;
+    coldDtype: 'f16' | 'f32';
+    compression: { mode: 'none' | 'int8' | 'int4'; blockSize: number };
+    gating: { mode: 'auto' | 'force_on' | 'force_off'; minAluBwRatio: number };
+  };
 }
 
 // ============================================================================
@@ -45,6 +54,10 @@ export interface ContiguousLayerCache {
 export interface PagedLayerCache {
   keyPages: (Float32Array | null)[];
   valuePages: (Float32Array | null)[];
+  keysGPU?: GPUBuffer | null;
+  valuesGPU?: GPUBuffer | null;
+  pageTable?: Uint32Array | null;
+  pageTableGPU?: GPUBuffer | null;
   allocatedPages: number;
   seqLen: number;
 }
@@ -81,6 +94,27 @@ export interface GPUBuffersResult {
   keysGPU: GPUBuffer;
   valuesGPU: GPUBuffer;
   seqLen: number;
+  pageTableGPU?: GPUBuffer;
+  pageSize?: number;
+}
+
+export interface TieredGPUBuffersResult {
+  layout: 'tiered';
+  seqLen: number;
+  hotKeysGPU: GPUBuffer;
+  hotValuesGPU: GPUBuffer;
+  hotSeqLen: number;
+  hotStart: number;
+  hotWindow: number;
+  coldKeysGPU: GPUBuffer;
+  coldValuesGPU: GPUBuffer;
+  coldScalesKGPU?: GPUBuffer;
+  coldScalesVGPU?: GPUBuffer;
+  coldSeqLen: number;
+  coldPageTableGPU?: GPUBuffer;
+  coldPageSize?: number;
+  coldPackedStride?: number;
+  coldQuantMode?: 'none' | 'int8' | 'int4';
 }
 
 /**
@@ -93,7 +127,7 @@ export interface MemoryStats {
   efficiency: number;
   seqLen: number;
   maxSeqLen: number;
-  layout: 'contiguous' | 'paged';
+  layout: 'contiguous' | 'paged' | 'tiered';
 }
 
 /**

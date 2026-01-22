@@ -89,6 +89,7 @@ export class PipelineState {
       decodeSubmitWaitMs: 0,
       decodeReadbackWaitMs: 0,
       decodeProfileSteps: [],
+      attentionInputs: [],
     };
 
     

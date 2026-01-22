@@ -21,10 +21,15 @@ export class ToolRunner {
   #root = DEFAULT_ROOT;
   #tools = new Map();
   #toolInfo = new Map();
+  #builtins = new Map();
 
   constructor(options = {}) {
     this.#vfs = options.vfs || null;
     this.#root = normalizeRoot(options.root);
+  }
+
+  registerBuiltin(name, handler, info = {}) {
+    this.#builtins.set(name, { handler, info });
   }
 
   setVfs(vfs) {
@@ -52,6 +57,14 @@ export class ToolRunner {
 
     this.#tools.clear();
     this.#toolInfo.clear();
+
+    // Load builtins first
+    for (const [name, { handler, info }] of this.#builtins) {
+      this.#tools.set(name, handler);
+      this.#toolInfo.set(name, { name, ...info });
+    }
+
+    if (!vfs) return { tools: this.list(), errors: [] };
 
     const loaded = [];
     const errors = [];
