@@ -1,8 +1,14 @@
 
-import gh200Preset from '../presets/platforms/nvidia-gh200.json' with { type: 'json' };
-import gh200Nvl2Preset from '../presets/platforms/nvidia-gh200-nvl2.json' with { type: 'json' };
-import gb2008Preset from '../presets/platforms/nvidia-gb200-8gpu.json' with { type: 'json' };
-import gb200Nvl72Preset from '../presets/platforms/nvidia-gb200-nvl72.json' with { type: 'json' };
+const loadJson = async (path) => {
+  const response = await fetch(new URL(path, import.meta.url));
+  if (!response.ok) throw new Error(`Failed to load preset: ${path}`);
+  return response.json();
+};
+
+const gh200Preset = await loadJson('../presets/platforms/nvidia-gh200.json');
+const gh200Nvl2Preset = await loadJson('../presets/platforms/nvidia-gh200-nvl2.json');
+const gb2008Preset = await loadJson('../presets/platforms/nvidia-gb200-8gpu.json');
+const gb200Nvl72Preset = await loadJson('../presets/platforms/nvidia-gb200-nvl72.json');
 import { GB } from './units.schema.js';
 
 // =============================================================================

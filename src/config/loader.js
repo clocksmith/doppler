@@ -6,17 +6,23 @@ import {
 import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 
 // Static imports keep presets bundled for browser use.
-import transformerPreset from './presets/models/transformer.json' with { type: 'json' };
-import gemma2Preset from './presets/models/gemma2.json' with { type: 'json' };
-import gemma3Preset from './presets/models/gemma3.json' with { type: 'json' };
-import functiongemmaPreset from './presets/models/functiongemma.json' with { type: 'json' };
-import llama3Preset from './presets/models/llama3.json' with { type: 'json' };
-import mixtralPreset from './presets/models/mixtral.json' with { type: 'json' };
-import deepseekPreset from './presets/models/deepseek.json' with { type: 'json' };
-import mambaPreset from './presets/models/mamba.json' with { type: 'json' };
-import qwen3Preset from './presets/models/qwen3.json' with { type: 'json' };
-import kimiK2Preset from './presets/models/kimi-k2.json' with { type: 'json' };
-import gptOssPreset from './presets/models/gpt-oss.json' with { type: 'json' };
+const loadJson = async (path) => {
+  const response = await fetch(new URL(path, import.meta.url));
+  if (!response.ok) throw new Error(`Failed to load preset: ${path}`);
+  return response.json();
+};
+
+const transformerPreset = await loadJson('./presets/models/transformer.json');
+const gemma2Preset = await loadJson('./presets/models/gemma2.json');
+const gemma3Preset = await loadJson('./presets/models/gemma3.json');
+const functiongemmaPreset = await loadJson('./presets/models/functiongemma.json');
+const llama3Preset = await loadJson('./presets/models/llama3.json');
+const mixtralPreset = await loadJson('./presets/models/mixtral.json');
+const deepseekPreset = await loadJson('./presets/models/deepseek.json');
+const mambaPreset = await loadJson('./presets/models/mamba.json');
+const qwen3Preset = await loadJson('./presets/models/qwen3.json');
+const kimiK2Preset = await loadJson('./presets/models/kimi-k2.json');
+const gptOssPreset = await loadJson('./presets/models/gpt-oss.json');
 
 // =============================================================================
 // Preset Registry

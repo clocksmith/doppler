@@ -1,12 +1,10 @@
 
 
 import {
-  DTYPE_SIZE,
   parseSafetensorsHeader,
   parseSafetensorsIndexJsonText,
   groupTensorsByLayer as groupTensorsByLayerCore,
   calculateTotalSize as calculateTotalSizeCore,
-  DTYPE_MAP,
 } from '../formats/safetensors/types.js';
 import {
   parseConfigJsonText,
@@ -16,7 +14,31 @@ import {
 import { MAX_HEADER_SIZE, MB } from '../config/schema/index.js';
 import { normalizeTensorSource } from './tensor-source-file.js';
 
-export { DTYPE_SIZE, DTYPE_MAP };
+export const DTYPE_SIZE = {
+  F64: 8,
+  F32: 4,
+  F16: 2,
+  BF16: 2,
+  I64: 8,
+  I32: 4,
+  I16: 2,
+  I8: 1,
+  U8: 1,
+  BOOL: 1,
+};
+
+export const DTYPE_MAP = {
+  F64: 'F64',
+  F32: 'F32',
+  F16: 'F16',
+  BF16: 'BF16',
+  I64: 'I64',
+  I32: 'I32',
+  I16: 'I16',
+  I8: 'I8',
+  U8: 'U8',
+  BOOL: 'BOOL',
+};
 
 // ============================================================================
 // Public API

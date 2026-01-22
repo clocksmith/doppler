@@ -1,4 +1,10 @@
-import registry from '../../config/kernels/registry.json' with { type: 'json' };
+const loadJson = async (path) => {
+  const response = await fetch(new URL(path, import.meta.url));
+  if (!response.ok) throw new Error(`Failed to load registry: ${path}`);
+  return response.json();
+};
+
+const registry = await loadJson('../../config/kernels/registry.json');
 import { resolveKernelConfig } from '../../config/schema/kernel-registry.schema.js';
 
 export const KERNEL_CONFIGS = Object.fromEntries(

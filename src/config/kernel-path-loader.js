@@ -6,15 +6,21 @@ import { log } from '../debug/index.js';
 // Built-in Kernel Paths (imported at build time)
 // =============================================================================
 
-import gemma2Q4kFusedF16A from './presets/kernel-paths/gemma2-q4k-fused-f16a.json' with { type: 'json' };
-import gemma2Q4kFusedF32A from './presets/kernel-paths/gemma2-q4k-fused-f32a.json' with { type: 'json' };
-import gemma2Q4kDequantF16A from './presets/kernel-paths/gemma2-q4k-dequant-f16a.json' with { type: 'json' };
-import gemma2F16F16A from './presets/kernel-paths/gemma2-f16-f16a.json' with { type: 'json' };
-import gemma2F16F32A from './presets/kernel-paths/gemma2-f16-f32a.json' with { type: 'json' };
-import gemma3F16F16A from './presets/kernel-paths/gemma3-f16-f16a.json' with { type: 'json' };
-import gemma3F16F16AOnline from './presets/kernel-paths/gemma3-f16-f16a-online.json' with { type: 'json' };
-import gemma3Q4kFusedF16A from './presets/kernel-paths/gemma3-q4k-fused-f16a.json' with { type: 'json' };
-import gemma3Q4kDequantF16A from './presets/kernel-paths/gemma3-q4k-dequant-f16a.json' with { type: 'json' };
+const loadJson = async (path) => {
+  const response = await fetch(new URL(path, import.meta.url));
+  if (!response.ok) throw new Error(`Failed to load kernel path: ${path}`);
+  return response.json();
+};
+
+const gemma2Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a.json');
+const gemma2Q4kFusedF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f32a.json');
+const gemma2Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f16a.json');
+const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.json');
+const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
+const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
+const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
+const gemma3Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-fused-f16a.json');
+const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
 
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
@@ -107,7 +113,7 @@ export function applyKernelOverrides(path, overrides) {
       'q_proj', 'k_proj', 'v_proj', 'o_proj',
       'gate_proj', 'up_proj', 'down_proj'
     ];
-    
+
     // Apply to both decode and prefill phases for layer weights
     for (const op of matmulOps) {
       if (overrides.matmul[op]) {

@@ -3238,10 +3238,6 @@
       "size": 15619
     },
     {
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 3737
-    },
-    {
       "path": "/src/training/attention-backward.js",
       "url": "/src/training/attention-backward.js",
       "contentType": "application/javascript; charset=utf-8",
