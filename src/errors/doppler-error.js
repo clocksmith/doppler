@@ -1,0 +1,13 @@
+export const ERROR_CODES = {
+  CONFIG_PRESET_UNKNOWN: 'DOPPLER_CONFIG_PRESET_UNKNOWN',
+  GPU_UNAVAILABLE: 'DOPPLER_GPU_UNAVAILABLE',
+  GPU_DEVICE_FAILED: 'DOPPLER_GPU_DEVICE_FAILED',
+  LOADER_MANIFEST_INVALID: 'DOPPLER_LOADER_MANIFEST_INVALID',
+  LOADER_SHARD_INDEX_INVALID: 'DOPPLER_LOADER_SHARD_INDEX_INVALID',
+};
+
+export function createDopplerError(code, message) {
+  const error = new Error(`[${code}] ${message}`);
+  error.code = code;
+  return error;
+}
