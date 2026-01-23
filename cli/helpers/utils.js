@@ -208,18 +208,18 @@ export async function installLocalDopplerRoutes(page, opts) {
     if (safePath === '/d' || safePath === '/d/') {
       return route.fulfill({
         status: 302,
-        headers: { 'Location': '/' },
+        headers: { 'Location': '/doppler' },
       });
     }
 
     if (safePath.startsWith('/doppler/')) {
       safePath = safePath.replace('/doppler/', '/');
     } else if (safePath === '/doppler') {
-      safePath = '/app/index.html';
+      safePath = '/demo/index.html';
     }
 
     if (safePath === '/rd.css') {
-      safePath = '/app/rd.css';
+      safePath = '/demo/rd.css';
     }
     if (safePath === '/kernel-tests/browser/registry.json') {
       safePath = '/config/kernels/registry.json';
@@ -240,7 +240,7 @@ export async function installLocalDopplerRoutes(page, opts) {
     }
 
     if (safePath === '/' || safePath === '') {
-      safePath = '/app/index.html';
+      safePath = '/demo/index.html';
     }
 
     let filePath;

@@ -59,7 +59,7 @@
       "@doppler/bridge/*": ["./src/bridge/*"],
       "@doppler/memory/*": ["./src/memory/*"],
       "@doppler/debug/*": ["./src/debug/*"],
-      "@doppler/app/*": ["./app/*"]
+      "@doppler/demo/*": ["./demo/*"]
     },
 
     // Skip type-checking node_modules

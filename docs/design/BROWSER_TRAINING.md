@@ -15,7 +15,7 @@ Implemented in `src/training` with a runnable demo harness and test coverage.
 
 Key entry points:
 - Training engine overview: `../src/training/README.md`
-- Demo harness: `app/training.html` + `app/training-harness.js`
+- Demo harness: `demo/training.html` + `demo/training-harness.js`
 - Training tests: `tests/training/browser/test-page.js` and `doppler --config <ref>` (`cli.command="test"`, `cli.suite="training"`)
 - Export spec: `FORMATS.md`
 
@@ -856,4 +856,3 @@ Phase 1 complete when:
 *Created: January 2026*
 *Status: Implemented (engine primitives)*
 *Last updated: January 2026 (loss + clipping + adapter export)*
-

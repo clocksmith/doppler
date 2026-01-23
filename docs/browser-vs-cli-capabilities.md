@@ -8,10 +8,10 @@ implementation context.
 
 | Area | Browser Runtime | Original Runtime (Node/CLI) | Key References |
 |---|---|---|---|
-| Conversion | In-app GGUF/safetensors -> RDRR; remote URLs with HTTP range + download-first fallback; tokenizer.json only; Q4_K_M col layout blocked; converter HTTP knobs in schema and UI. | Node converter CLI with filesystem access and CLI entrypoints for GGUF/safetensors conversion. | Browser: `src/browser/browser-converter.js:69`, `src/browser/browser-converter.js:84`, `src/browser/browser-converter.js:134`, `src/browser/browser-converter.js:173`, `src/browser/browser-converter.js:321`, `src/browser/tensor-source-http.js:25`, `src/browser/tensor-source-download.js:216`, `src/config/schema/converter.schema.js:25`, `app/index.html:337` · Node: `src/converter/node-converter/index.js:7` |
+| Conversion | In-app GGUF/safetensors -> RDRR; remote URLs with HTTP range + download-first fallback; tokenizer.json only; Q4_K_M col layout blocked; converter HTTP knobs in schema and UI. | Node converter CLI with filesystem access and CLI entrypoints for GGUF/safetensors conversion. | Browser: `src/browser/browser-converter.js:69`, `src/browser/browser-converter.js:84`, `src/browser/browser-converter.js:134`, `src/browser/browser-converter.js:173`, `src/browser/browser-converter.js:321`, `src/browser/tensor-source-http.js:25`, `src/browser/tensor-source-download.js:216`, `src/config/schema/converter.schema.js:25`, `demo/index.html:337` · Node: `src/converter/node-converter/index.js:7` |
 | Loading | OPFS/IDB shard storage via shard manager; OPFS backend support with sync access handle when available. | CLI drives browser harness for loading via tests/harness page; same loader/storage path executed in browser context. | Browser: `src/storage/shard-manager.js:46`, `src/storage/backends/opfs-store.js:27` · CLI harness: `cli/runners/inference.js:4` |
-| Inference | WebGPU pipeline in browser; suites run via browser harness; UI-triggered diagnostics. | CLI runs suites (test/bench/debug) via runners and harness URLs for automation. | Browser: `src/inference/pipeline.js:482`, `src/inference/browser-harness.js:440`, `app/diagnostics-controller.js:112` · CLI: `cli/runners/index.js:4`, `cli/runners/inference.js:6` |
-| Tooling | Diagnostics UI with intent-gated runs + report export; optional browser tool runner for workspace tools. | CLI tooling intent enforcement and tool registry for scripts/bench tools. | Browser: `app/diagnostics-controller.js:36`, `src/storage/reports.js:48`, `app/tooling-controller.js:6` · CLI: `cli/index.js:350`, `cli/tools/registry.js:7` |
+| Inference | WebGPU pipeline in browser; suites run via browser harness; UI-triggered diagnostics. | CLI runs suites (test/bench/debug) via runners and harness URLs for automation. | Browser: `src/inference/pipeline.js:482`, `src/inference/browser-harness.js:440`, `demo/diagnostics-controller.js:112` · CLI: `cli/runners/index.js:4`, `cli/runners/inference.js:6` |
+| Tooling | Diagnostics UI with intent-gated runs + report export; optional browser tool runner for workspace tools. | CLI tooling intent enforcement and tool registry for scripts/bench tools. | Browser: `demo/diagnostics-controller.js:36`, `src/storage/reports.js:48`, `demo/tooling-controller.js:6` · CLI: `cli/index.js:350`, `cli/tools/registry.js:7` |
 
 ## Parity Goals and Gaps
 
@@ -37,7 +37,7 @@ implementation context.
 
 ### Tooling
 - Browser: diagnostics runs with intent enforcement and report export; UI-driven.
-  - Reference: `app/diagnostics-controller.js:36`, `src/storage/reports.js:48`
+  - Reference: `demo/diagnostics-controller.js:36`, `src/storage/reports.js:48`
 - Node/CLI: tool registry and CLI-only scripts for kernel and manifest tooling.
   - Reference: `cli/tools/registry.js:7`
 
@@ -46,4 +46,4 @@ implementation context.
   automatic download-first fallback into OPFS/IDB when range is unavailable.
   - Reference: `src/browser/tensor-source-http.js:25`, `src/browser/tensor-source-download.js:216`
 - Runtime config intent enforcement is applied in both CLI and browser diagnostics.
-  - Reference: `cli/index.js:350`, `app/diagnostics-controller.js:36`
+  - Reference: `cli/index.js:350`, `demo/diagnostics-controller.js:36`

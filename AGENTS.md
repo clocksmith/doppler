@@ -37,7 +37,7 @@ doppler/
 │   ├── memory/           # Heap management, capability detection
 │   └── debug/            # Logging and tracing
 ├── tests/kernels/        # GPU kernel validation
-├── app/                  # Demo UI
+├── demo/                 # Demo UI
 ├── cli/                  # CLI entry point
 └── docs/                 # Documentation
 ```

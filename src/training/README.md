@@ -146,5 +146,5 @@ includes kernel numerics, gradient checks, parity fixtures, and leak/perf checks
 Open the demo harness in the browser to run a toy training loop:
 
 ```
-http://localhost:8080/doppler/app/training.html?steps=5&lr=0.1
+http://localhost:8080/doppler/demo/training.html?steps=5&lr=0.1
 ```

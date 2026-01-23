@@ -935,7 +935,7 @@ Use consistent module names matching the file/class:
 | `gpu/kernels/attention.js` | `'Attention'` |
 | `inference/pipeline/layer.js` | `'Layer'` or `'Pipeline'` |
 | `loader/doppler-loader.js` | `'Loader'` |
-| `app/app.js` | `'App'` or `'DopplerDemo'` |
+| `demo/app.js` | `'App'` or `'DopplerDemo'` |
 
 ### Exceptions
 

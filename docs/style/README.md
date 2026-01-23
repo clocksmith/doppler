@@ -18,7 +18,7 @@ Coding conventions for the DOPPLER codebase.
 
 ### Language Policy
 
-Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (src/app/cli/serve). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
+Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (demo/cli/serve). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
 
 ### Config Flow
 

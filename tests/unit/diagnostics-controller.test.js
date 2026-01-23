@@ -24,7 +24,7 @@ vi.mock('../../src/inference/browser-harness.js', () => ({
   })),
 }));
 
-import { DiagnosticsController } from '../../app/diagnostics-controller.js';
+import { DiagnosticsController } from '../../demo/diagnostics-controller.js';
 import { runBrowserSuite } from '../../src/inference/browser-harness.js';
 
 const fakeModel = {

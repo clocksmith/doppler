@@ -75,7 +75,7 @@ Options:
   --help, -h           Show this help
 
 URLs:
-  http://localhost:<port>/           DOPPLER app
+  http://localhost:<port>/doppler    DOPPLER demo
   http://localhost:<port>/models/    Model files
 
 Models are served from:
@@ -243,15 +243,15 @@ async function main() {
         pathname = pathname.replace('/dr/', '/doppler/');
       }
 
-      // Standalone mode: serve app/index.html at /
+      // Standalone mode: serve demo/index.html at /
       // Strip /doppler/ prefix for prefixed routing.
       if (pathname.startsWith('/doppler/')) {
         pathname = pathname.replace('/doppler/', '/');
       } else if (pathname === '/doppler') {
-        pathname = '/app/index.html';
+        pathname = '/demo/index.html';
       }
       if (pathname === '/rd.css') {
-        pathname = '/app/rd.css';
+        pathname = '/demo/rd.css';
       }
       if (pathname === '/kernel-tests/browser/registry.json') {
         pathname = '/config/kernels/registry.json';
@@ -271,7 +271,7 @@ async function main() {
         return res.end();
       }
       if (pathname === '/' || pathname === '') {
-        pathname = '/app/index.html';
+        pathname = '/demo/index.html';
       }
 
       // Serve JS and JSON files from dist/ (TypeScript is compiled there)
@@ -361,7 +361,7 @@ async function main() {
     console.log(`
 DOPPLER Development Server
 ==========================
-App:    ${baseUrl}/
+App:    ${baseUrl}/doppler
 Models: ${baseUrl}/models/
 
 Repository: https://github.com/clocksmith/doppler

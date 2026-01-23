@@ -322,7 +322,7 @@ Used when `subgroups` feature is unavailable:
 | `src/config/schema/memory-limits.schema.js` | VRAM probe sizes and fallbacks |
 | `src/gpu/device.js` | WebGPU feature detection |
 | `src/gpu/kernels/constants.js` | Quantization specs (Q4K, Q8_0) |
-| `app/quickstart-ui.js` | VRAM blocker UI |
+| `demo/quickstart-ui.js` | VRAM blocker UI |
 | `src/gpu/kernels/matmul_f32.wgsl` | F32 fallback kernel |
 | `src/gpu/kernels/dequant_shared.wgsl` | Shared memory dequant fallback |
 | `src/gpu/kernels/dequant_subgroup.wgsl` | Subgroup-optimized dequant |
