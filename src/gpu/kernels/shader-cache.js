@@ -21,14 +21,13 @@ function getKernelBasePath() {
   // Check if we're running from /doppler/ path (replo.id deployment)
   if (typeof location !== 'undefined') {
     const path = location.pathname || '';
-    if (path === '/dr' || path.startsWith('/dr/')) {
-      return '/dr/src/gpu/kernels';
-    }
     if (
       path === '/d' ||
       path.startsWith('/d/') ||
       path === '/doppler' ||
       path.startsWith('/doppler/') ||
+      path === '/dr' ||
+      path.startsWith('/dr/') ||
       location.host.includes('replo')
     ) {
       return '/doppler/src/gpu/kernels';
