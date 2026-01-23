@@ -46,6 +46,7 @@ test-results/
 tests/results/*.json
 tests/results/*.html
 tests/results/kernel-path-grid/profiles-*/
+tests/results/**/Default/
 kernel-tests/results/
 playwright-report/
 
