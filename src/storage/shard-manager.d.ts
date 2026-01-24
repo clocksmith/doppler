@@ -102,5 +102,7 @@ export function loadManifestFromStore(): Promise<string | null>;
 export function loadTensorsFromStore(): Promise<string | null>;
 export function saveTokenizer(tokenizerJson: string): Promise<void>;
 export function loadTokenizerFromStore(): Promise<string | null>;
+export function saveTokenizerModel(tokenizerModel: ArrayBuffer | Uint8Array): Promise<void>;
+export function loadTokenizerModelFromStore(): Promise<ArrayBuffer | null>;
 
 export function cleanup(): Promise<void>;

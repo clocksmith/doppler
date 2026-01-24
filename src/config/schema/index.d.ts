@@ -544,6 +544,17 @@ export {
 } from './kernel-thresholds.schema.js';
 
 // =============================================================================
+// Kernel Warmup Schema
+// =============================================================================
+export {
+  // Types
+  type KernelWarmupConfigSchema,
+
+  // Defaults
+  DEFAULT_KERNEL_WARMUP_CONFIG,
+} from './kernel-warmup.schema.js';
+
+// =============================================================================
 // Shared Runtime Schema
 // =============================================================================
 export {

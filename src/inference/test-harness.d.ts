@@ -106,7 +106,7 @@ export declare function parseRuntimeOverridesFromURL(
 /**
  * Create an HTTP-based shard loader for a model.
  *
- * @param baseUrl - Base URL for the model (e.g., http://localhost:8080/doppler/models/gemma-1b-q4)
+ * @param baseUrl - Base URL for the model (e.g., http://localhost:8080/models/gemma-1b-q4)
  * @param manifest - Parsed model manifest
  * @param log - Optional logging function
  * @returns Async function that loads a shard by index
@@ -154,11 +154,11 @@ export declare function initializeInference(
 ): Promise<InitializeResult>;
 
 // ============================================================================
-// Test State (for Playwright automation)
+// Test State (for browser automation)
 // ============================================================================
 
 /**
- * Standard test state interface for Playwright automation.
+ * Standard test state interface for browser automation.
  */
 export interface TestState {
   ready: boolean;

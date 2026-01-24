@@ -1,4 +1,4 @@
-# Doppler Traction Section
+# Doppler Performance
 
 Performance-anchored document demonstrating Doppler's browser-native inference capabilities with real metrics extracted from the codebase.
 
@@ -13,7 +13,7 @@ Performance-anchored document demonstrating Doppler's browser-native inference c
 
 **Note**: Codebase benchmarks are on 1-2B models. Larger models would require multi-shard streaming via OPFS tier.
 
-**Source**: `tests/benchmarks/pipeline-benchmark.js`
+**Source**: Demo diagnostics bench runs (see `src/inference/browser-harness.js`).
 
 ---
 
@@ -99,7 +99,7 @@ export function isWebGPUAvailable() {
 |--------------|-----------|------------|--------|
 | **WebGPU unavailable** | `navigator.gpu` check | Show VRAM blocker UI | `device.js:32-34`, `quickstart-ui.js:205-214` |
 | **Adapter request fail** | `requestAdapter()` returns null | Try fallback power preferences | `device.js:37-62` |
-| **VRAM exceeded** | Peak tracking in buffer-pool | LRU eviction, OPFS tier fallback | `pipeline-benchmark.js:482` |
+| **VRAM exceeded** | Peak tracking in buffer-pool | LRU eviction, OPFS tier fallback | `src/memory/buffer-pool.js` |
 | **shader-f16 missing** | `adapter.features.has('shader-f16')` | `matmul_f32.wgsl` fallback kernel | `device.js:81-83` |
 | **Subgroups missing** | `adapter.features.has('subgroups')` | `dequant_shared.wgsl` fallback | `device.js:86-88` |
 | **Segment allocation fail** | Probe failure cascade | 512MB -> 256MB -> 128MB fallback | `memory-limits.schema.js:40` |
@@ -128,7 +128,7 @@ From `quickstart-ui.js:205-214`:
 
 ## Latency Distribution (Pipeline Benchmark)
 
-**Source**: `tests/benchmarks/pipeline-benchmark.js:532-550`
+**Source**: `src/inference/browser-harness.js` + `docs/spec/BENCHMARK_SCHEMA.json`
 
 ### Metrics Tracked
 
@@ -318,7 +318,7 @@ Used when `subgroups` feature is unavailable:
 
 | File | Purpose |
 |------|---------|
-| `tests/benchmarks/pipeline-benchmark.js` | Benchmark runner with P50/P90/P99 tracking |
+| `src/inference/browser-harness.js` | Benchmark runner with P50/P90/P99 tracking |
 | `src/config/schema/memory-limits.schema.js` | VRAM probe sizes and fallbacks |
 | `src/gpu/device.js` | WebGPU feature detection |
 | `src/gpu/kernels/constants.js` | Quantization specs (Q4K, Q8_0) |
@@ -337,7 +337,7 @@ Used when `subgroups` feature is unavailable:
 
 ## Verification
 
-1. Run `doppler --config ./tmp-bench.json` to collect fresh metrics
+1. Run the demo diagnostics (`/demo/`) or `tests/harness.html` in `bench` mode to collect fresh metrics
 2. Verify VRAM tracking via `estimated_vram_bytes_peak` in output
 3. Test on constrained device (e.g., 4GB VRAM limit) to trigger fallbacks
 4. Check browser matrix by running in Chrome, Edge, Firefox Nightly

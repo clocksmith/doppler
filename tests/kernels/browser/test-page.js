@@ -213,7 +213,7 @@ async function readBufferData(buffer, size) {
 }
 
 // ============================================================================
-// Test Harness - Exposed to window for Playwright
+// Test Harness - Exposed to window for browser automation
 // ============================================================================
 
 const testHarness = {
@@ -1370,7 +1370,7 @@ const testHarness = {
   },
 };
 
-// Expose to window for Playwright (type declared in tests/correctness/setup.ts)
+// Expose to window for browser automation
 window.testHarness = testHarness;
 window.gpuReady = false;
 window.gpuError = undefined;

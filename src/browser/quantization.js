@@ -17,7 +17,7 @@ import {
   resolveManifestQuantization,
   resolveModelId,
   toWebGPUDtype,
-} from '../converter/node-converter/quantization.js';
+} from '../converter/quantization-info.js';
 
 export {
   buildQuantizationInfo,
@@ -180,7 +180,33 @@ export function decodeTensorToFloat32(buffer, sourceDtype) {
 
 export async function* createQ4KChunkStream(chunks, sourceDtype, shape, layout, chunkSizeBytes) {
   if (layout === 'col') {
-    throw new Error('Column-wise Q4_K_M quantization is not supported in streaming mode.');
+    const totalElements = shape.reduce((a, b) => a * b, 1);
+    const data = new Float32Array(totalElements);
+    let offset = 0;
+
+    for await (const values of decodeFloat32Chunks(chunks, sourceDtype)) {
+      const remaining = totalElements - offset;
+      const count = Math.min(values.length, remaining);
+      data.set(values.subarray(0, count), offset);
+      offset += count;
+      if (offset >= totalElements) {
+        if (values.length > count) {
+          throw new Error('Quantization stream exceeded expected tensor length');
+        }
+        break;
+      }
+    }
+
+    if (offset < totalElements) {
+      throw new Error('Quantization stream ended early');
+    }
+
+    const result = quantizeToQ4KMColumnWise(data, shape);
+    const targetChunkSize = Math.max(chunkSizeBytes || QK4_K_BLOCK_SIZE, QK4_K_BLOCK_SIZE);
+    for (let i = 0; i < result.quantized.length; i += targetChunkSize) {
+      yield result.quantized.subarray(i, i + targetChunkSize);
+    }
+    return;
   }
   const totalElements = shape.reduce((a, b) => a * b, 1);
   const rowLayout = layout === 'row' && shape.length === 2;

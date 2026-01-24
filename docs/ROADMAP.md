@@ -246,7 +246,7 @@ DOPPLER: Draft model = small model weights
 | **4** | P2P Distribution | Design |
 | **5** | Evolution | Design |
 
-**Task tracking:** See `feature-log/doppler/*.jsonl` for detailed task database.
+**Task tracking:** See this roadmap and project issues for the current task list.
 
 ```
 Phase 1: Performance Parity ──┐
@@ -278,7 +278,7 @@ Phase 2: MoE Efficiency ──────┤
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current system design |
 | [CONFIG.md](CONFIG.md) | Kernel paths and runtime config |
 | [OPERATIONS.md](OPERATIONS.md) | Troubleshooting and perf investigations |
-| [POSTMORTEMS.md](POSTMORTEMS.md) | Incident summaries |
+| Internal postmortems (private wrapper repo) | Incident summaries |
 
 ---
 
@@ -309,17 +309,6 @@ Phase 2: MoE Efficiency ──────┤
 See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
 
 
-## Roadmap Tasks
-
-**All tasks are now tracked in the feature-log system.**
-
-See:
-- `feature-log/doppler/*.jsonl` - JSONL database of all features and tasks
-- `/feature-log-query --status planned` - Query planned tasks
-- `/feature-log-query --priority P0` - Query P0 tasks
-
----
-
 ## Technical Deep-Dives
 
 For technical implementation details, see:
@@ -332,8 +321,8 @@ For technical implementation details, see:
 ## Status Overview
 
 For current operational status, test results, and recent fixes, see:
-- [Postmortems](POSTMORTEMS.md) (Issue history)
-- [Architecture](ARCHITECTURE.md) (System design)
+- Internal postmortems (private wrapper repo) for issue history
+- [Architecture](ARCHITECTURE.md) for system design
 
 
 ## Target Models
@@ -415,14 +404,9 @@ huggingface-cli download google/gemma-2-9b-it
 
 ## Conversion Commands
 
-```bash
-# After downloading, convert to RDRR format (Node CLI, config-only):
-# Set converter.paths.input/output and converter.quantization.weights="q4_k_m"
-doppler --config ./tmp-phi-3.5-mini.json
-doppler --config ./tmp-llama-3.1-8b.json
-
-# Browser conversion is also supported via src/browser/browser-converter.js (OPFS output).
-```
+Use the browser conversion UI in `/demo/` to convert to RDRR. For programmatic
+conversion, import `src/browser/browser-converter.js` in the browser and write
+to OPFS.
 
 
 ## Detailed Specs

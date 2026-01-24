@@ -13,6 +13,7 @@ import type { BufferPoolConfigSchema } from './buffer-pool.schema.js';
 import type { GpuCacheConfigSchema } from './gpu-cache.schema.js';
 import type { MemoryLimitsConfigSchema } from './memory-limits.schema.js';
 import type { TunerConfigSchema } from './tuner.schema.js';
+import type { KernelWarmupConfigSchema } from './kernel-warmup.schema.js';
 import type { HotSwapConfigSchema } from './hotswap.schema.js';
 import type { IntentBundleConfigSchema } from './intent-bundle.schema.js';
 import type { BridgeConfigSchema } from './bridge.schema.js';
@@ -49,6 +50,8 @@ export interface SharedRuntimeConfigSchema {
   kernelRegistry: KernelRegistryConfigSchema;
   /** Kernel selection thresholds */
   kernelThresholds: KernelThresholdsConfigSchema;
+  /** Kernel prewarm and auto-tuning settings */
+  kernelWarmup: KernelWarmupConfigSchema;
   /** GPU buffer pool sizing */
   bufferPool: BufferPoolConfigSchema;
   /** Uniform cache limits */

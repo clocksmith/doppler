@@ -1,18 +1,21 @@
 {
   "extends": "bench",
   "model": "google-gemma-3-1b-it-wq4k-ef16",
-  "cli": {
-    "command": "bench",
-    "suite": "inference",
-    "profileDir": "tests/results/bench-gemma3-q4k-unfused-ffn"
-  },
   "runtime": {
     "shared": {
-      "tooling": { "intent": "investigate" },
+      "tooling": {
+        "intent": "investigate"
+      },
       "debug": {
-        "logLevel": { "defaultLogLevel": "warn" },
-        "trace": { "enabled": false },
-        "profiler": { "enabled": true }
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": true
+        }
       },
       "kernelThresholds": {
         "fusedMatmul": {
@@ -26,7 +29,11 @@
           "maxNewTokens": 256,
           "warmupRuns": 1,
           "timedRuns": 1,
-          "sampling": { "temperature": 0, "topK": 1, "topP": 1 },
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
           "profile": true,
           "captureMemoryTimeSeries": false
         }
@@ -42,7 +49,9 @@
         "ringStop": 1,
         "ringStaging": 1
       },
-      "sampling": { "temperature": 0 }
+      "sampling": {
+        "temperature": 0
+      }
     }
   }
 }

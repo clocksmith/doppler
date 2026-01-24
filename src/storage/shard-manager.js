@@ -551,6 +551,25 @@ export async function loadTokenizerFromStore() {
   }
 }
 
+export async function saveTokenizerModel(tokenizerModel) {
+  await ensureBackend();
+  requireModel();
+  const data = tokenizerModel instanceof Uint8Array
+    ? tokenizerModel
+    : new Uint8Array(tokenizerModel);
+  await backend.writeFile('tokenizer.model', data);
+}
+
+export async function loadTokenizerModelFromStore() {
+  await ensureBackend();
+  requireModel();
+  try {
+    return await backend.readFile('tokenizer.model');
+  } catch (_error) {
+    return null;
+  }
+}
+
 export async function cleanup() {
   if (backend?.cleanup) {
     await backend.cleanup();

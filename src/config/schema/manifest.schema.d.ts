@@ -354,6 +354,23 @@ export interface TokenizerSchema {
   type: string;
   file?: string;
   vocabSize: number;
+  modelId?: string;
+  sentencepieceModel?: string;
+  hfModel?: string;
+  allowArchFallback?: boolean;
+  bosTokenId?: number;
+  eosTokenId?: number;
+  eosTokens?: number[];
+  padTokenId?: number;
+  unkTokenId?: number;
+  addBosToken?: boolean;
+  addEosToken?: boolean;
+  specialTokens?: {
+    pad?: number;
+    bos?: number;
+    eos?: number;
+    unk?: number;
+  };
 }
 
 /** Runtime optimization plan */

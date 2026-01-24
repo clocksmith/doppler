@@ -1,5 +1,12 @@
 # Reference Model Debug Scripts
 
+Purpose: PyTorch-based reference checks for validating Doppler inference outputs.
+
+## Scope
+
+- Scripted comparisons for embeddings, attention, weights, and layer outputs.
+- Debug workflow for isolating divergence sources.
+
 These scripts run the original SafeTensor model weights via PyTorch/transformers to compare against DOPPLER's quantized inference. Use these to isolate whether bugs are in DOPPLER's kernels, weight loading, or architecture implementation. They are config-only and accept a single JSON config path (no flags).
 
 ## Setup

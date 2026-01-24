@@ -41,6 +41,13 @@ Inference Phase (per token)
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+## Ouroboros Integration
+
+Doppler integrates with Reploid via the minimal Ouroboros substrate contract:
+SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
+results. The contract surface and kernel evolution flow are documented in
+`reploid/docs/design/SUBSTRATE.md`.
+
 ## Design Philosophy
 
 DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled approaches like WebLLM/TVM. These enable capabilities that are impossible with monolithic compiled models.
@@ -192,7 +199,7 @@ See `ROADMAP.md` for the current migration status.
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
 | `simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
-| `training/` | Training utilities (browser + node) |
+| `training/` | Training utilities (browser-only) |
 | `types/` | Shared TypeScript types |
 
 See `src/simulator/README.md` for details on the emulation subsystem.
@@ -268,9 +275,8 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ### Debug Infrastructure Layers
 
 ```
-CLI/Browser (config-only)
-  cli.command / cli.suite
-  cli.compare / cli.filter
+Browser harness (config-only)
+  runtime.shared.harness.mode / runtime.shared.harness.modelId
         |
 Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.benchmark)
         |
@@ -403,7 +409,8 @@ Use this for understanding build order and what can be tested independently.
 
 
 ## 1. GPU Subsystem
-Moved to [docs/internals/GPU_SUBSYSTEM.md](internals/GPU_SUBSYSTEM.md)
+Core GPU stack lives under `src/gpu/` and `src/memory/`. It covers device init,
+buffer pooling, kernel selection, profiling, and scheduling.
 
 ## 2. Inference Pipeline (`inference/`)
 
@@ -543,7 +550,7 @@ DOPPLER uses a **manifest-first** architecture where all model-specific inferenc
 ```
 CONVERSION TIME:
 ┌─────────────────────────────────────────────────────────────────────┐
-│ HuggingFace/GGUF Model → node-converter.js                          │
+│ HuggingFace/GGUF Model → browser-converter.js                       │
 │   - Detect model family (gemma2, llama3, etc.)                      │
 │   - Build ManifestInferenceSchema from preset + HF config           │
 │   - Write inference config to manifest.json                         │
@@ -846,13 +853,9 @@ Handles native messaging and file operations for the extension bridge.
 
 Defines extension permissions and background entry points.
 
-### native/native-host.js - Native Host
+### Native Host (removed)
 
-Implements the native host process that services file read/list commands.
-
-### native/doppler-bridge.sh and native/install.sh - Host Scripts
-
-Shell helpers for installing and running the native bridge.
+The native host process and install scripts were removed in the browser-only migration.
 
 ### protocol.js - Bridge Protocol
 
@@ -888,17 +891,14 @@ Converts source formats into RDRR with progress reporting. Uses shared types and
 
 ### core.js - Shared Conversion Core
 
-Platform-agnostic types and pure functions shared between CLI and browser converters:
+Platform-agnostic types and pure functions shared across converter paths:
 - **Types**: `TensorInfo`, `ParsedModel`, `ConvertOptions`, `RDRRManifest`, `ShardInfo`, `TensorLocation`
 - **Functions**: `sanitizeModelId()`, `formatBytes()`, `shouldQuantize()`, `extractArchitecture()`, `buildTensorMap()`, `createManifest()`
 - **I/O Adapter**: `ConvertIO` interface for platform-specific file operations
 
-### node-converter.js - Model Conversion
+### browser-converter.js - Model Conversion
 
-Converts HuggingFace models to RDRR format (config-only):
-```bash
-doppler --config ./tmp-convert.json
-```
+Converts HuggingFace models to RDRR format in-browser (demo UI or programmatic API).
 
 ### quantizer.js - Q4_K Quantization
 
@@ -915,16 +915,16 @@ value = d * scale * q - dmin * min
 // - min is stored as positive offset to subtract
 ```
 
-**Post-mortem note:** Early bug stored `min` with different sign convention, causing all dequantized values to be positive. See `postmortems/2025-12-16-gemma3-debug.md`.
+**Post-mortem note:** Early bug stored `min` with different sign convention,
+causing all dequantized values to be positive. Internal postmortem notes track
+the full debugging timeline.
 
 ---
 
-## 9. Tools (`tools/`)
+## 9. Tools
 
-Developer utilities for validation, profiling, and local maintenance:
-- Kernel registry validation and WGSL override linting
-- OPFS cache purge and test harnesses
-- One-off debugging scripts
+Legacy Node tooling has been removed in the browser-only migration. Use the
+demo UI and browser harness for diagnostics and validation workflows.
 
 ---
 
@@ -1096,14 +1096,13 @@ See `CONFIG.md` for kernel selection rules and runtime overrides.
 | `src/storage/shard-manager.js` | 816 | OPFS shard management |
 | `src/converter/quantizer.js` | 492 | Q4_K quantization |
 | `src/converter/core.js` | 527 | Shared conversion types/functions |
-| `src/converter/node-converter.js` | 1170 | Model conversion CLI |
+| `src/browser/browser-converter.js` | 800 | Browser model conversion |
 | `src/browser/browser-converter.js` | 499 | Browser model conversion |
 
 ---
 
 ## Related Documentation
 
-- `postmortems/2025-12-16-gemma3-debug.md` - Q4_K quantizer bug analysis
 - `ROADMAP.md` - Memory tiers and distribution goals
 - `FORMATS.md` - RDRR format specification
 
@@ -1118,4 +1117,4 @@ See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge help
 
 
 ## Execution Pipeline & System Flow
-Moved to [docs/internals/PIPELINE_EXECUTION.md](internals/PIPELINE_EXECUTION.md)
+Detailed token-level execution walkthroughs are maintained in internal docs.

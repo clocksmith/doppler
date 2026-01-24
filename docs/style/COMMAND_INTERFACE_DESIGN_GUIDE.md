@@ -1,7 +1,7 @@
 # DOPPLER Command Interface Design Guide
 
 Design rules for the command interface, independent of the UI surface.
-This applies to the CLI and any future browser-based command console.
+This applies to the browser harness and demo diagnostics UI.
 
 ---
 
@@ -56,31 +56,30 @@ has a distinct exit condition and is enforced in config.
 
 All command interfaces emit a config object with these fields:
 
-- `cli.command` (run/test/bench/debug/convert/tool)
-- `cli.suite` (optional, depending on command)
-- `model` (required when the suite needs a model)
+- `runtime.shared.harness.mode` (kernels/inference/training/bench/simulation)
+- `runtime.shared.harness.modelId` (required when the mode needs a model)
 - `runtime.shared.tooling.intent` (verify/investigate/calibrate)
 
 Commands are rejected if:
-- `cli.command` is missing
-- `runtime.shared.tooling.intent` is missing (for test/bench/debug)
-- intent does not match the command
+- `runtime.shared.harness.mode` is missing
+- `runtime.shared.tooling.intent` is missing (for verify/bench/debug flows)
+- intent does not match the workload
 - calibrate intent enables tracing/profiling/probes
 
 ---
 
 ## Intent Mapping
 
-| Command | Intent | Notes |
-|---------|--------|-------|
-| `test` | `verify` | Deterministic correctness gate |
-| `debug` | `investigate` | Traces, profiling, probes allowed |
+| Harness Mode | Intent | Notes |
+|--------------|--------|-------|
+| `kernels` / `training` | `verify` | Deterministic correctness gate |
+| `inference` (debug) | `investigate` | Traces, profiling, probes allowed |
 | `bench` | `calibrate` | Baseline metrics only |
 
 Bench runs that enable profiling must switch intent to `investigate`; calibrate
 must keep profiling/tracing off.
 
-Maintenance commands (`convert`, `tool`) are config-only but do not require a
+Maintenance flows (conversion, OPFS cleanup) are config-only but do not require a
 tooling intent unless they run harnessed workloads.
 
 If a command needs mixed behavior, split it into two runs with two configs.
@@ -103,7 +102,7 @@ Do not overload a single run.
 - **Investigation**: trace files, profiler output, or live stream.
 - **Calibration**: JSON metrics + optional HTML report.
 
-Outputs must be consistent across CLI and browser UIs.
+Outputs must be consistent across browser surfaces (harness + demo).
 
 ---
 
@@ -112,7 +111,7 @@ Outputs must be consistent across CLI and browser UIs.
 Any new command capability must be:
 1) Defined in config schema,
 2) Validated in runtime config validation,
-3) Available in both CLI and browser command surfaces.
+3) Available in both harness and demo surfaces.
 
 Do not add UI-only switches.
 
@@ -120,6 +119,6 @@ Do not add UI-only switches.
 
 ## References
 
-- `docs/style/CLI_STYLE_GUIDE.md`
+- `docs/style/HARNESS_STYLE_GUIDE.md`
 - `docs/style/CONFIG_STYLE_GUIDE.md`
 - `docs/style/BENCHMARK_STYLE_GUIDE.md`

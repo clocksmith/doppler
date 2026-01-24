@@ -72,9 +72,7 @@ classifyTask(description) → taskType
 
 | File | Change |
 |------|--------|
-| `ARCHITECTURE.md` | Add "Engine vs Driver Boundary" section |
-| `../../reploid/docs/design/FUNCTIONGEMMA.md` | Clarify Doppler provides primitives only |
-| `../../ARCHITECTURE.md` | Add cross-project boundary definition |
+| `../ARCHITECTURE.md` | Add "Engine vs Driver Boundary" section |
 
 ## GPU Multi-Model Primitives
 
@@ -107,7 +105,7 @@ When multiple models are loaded, these operations MUST stay on GPU:
 ## Verification
 
 After refactor:
-1. `npm test` passes in Doppler
+1. Kernel tests pass via `tests/harness.html` in `kernels` mode
 2. Reploid's `functiongemma-orchestrator.js` works with cleaned Doppler primitives
 3. No hardcoded prompts remain in Doppler
 4. No loop/evolution logic remains in Doppler
@@ -115,5 +113,3 @@ After refactor:
 ---
 
 *Created: January 2026*
-
-

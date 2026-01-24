@@ -17,7 +17,9 @@
         },
         "trace": {
           "enabled": false,
-          "categories": ["all"],
+          "categories": [
+            "all"
+          ],
           "layers": null,
           "maxDecodeSteps": 0,
           "file": null
@@ -67,22 +69,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "command": null,
-    "suite": null,
-    "baseUrl": "http://localhost:8080",
-    "noServer": false,
-    "headless": true,
-    "minimized": false,
-    "reuseBrowser": true,
-    "cdpEndpoint": "http://localhost:9222",
-    "timeout": 300000,
-    "retries": 0,
-    "profileDir": null,
-    "output": null,
-    "html": null,
-    "compare": null,
-    "filter": null
   }
 }

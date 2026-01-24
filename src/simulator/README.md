@@ -1,5 +1,12 @@
 # Simulator
 
+Purpose: Hardware emulation layer for browser-only performance experiments.
+
+## Scope
+
+- Virtual GPUs/CPUs, interconnects, and VRAM storage emulation.
+- Config-gated timing model integration with inference runtime.
+
 Hardware emulation layer for browser-only performance experiments. The simulator
 creates virtual GPUs/CPUs, NVLink fabrics, and an emulated VRAM store, then
 injects timing delays and memory constraints based on the runtime emulation
@@ -17,7 +24,7 @@ is true.
 
 - `src/inference/pipeline/init.js` dynamically imports the simulator and creates
   an emulation context when enabled in runtime config.
-- `cli/runners/simulation.js` provides the CLI entrypoint for simulation runs.
+- Use `tests/harness.html` in `simulation` mode or the demo diagnostics UI to run emulation flows.
 - Emulation is optional and is skipped entirely when disabled.
 
 ## Key Dependencies

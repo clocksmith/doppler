@@ -30,6 +30,96 @@ export const RDRR_VERSION = SCHEMA_RDRR_VERSION;
 // Pure Functions (no I/O, no platform dependencies)
 // ============================================================================
 
+function resolveTokenizerId(value) {
+  if (typeof value === 'number') return value;
+  return null;
+}
+
+function resolveTokenizerIds(value) {
+  if (Array.isArray(value) && value.every((id) => typeof id === 'number')) {
+    return value;
+  }
+  if (typeof value === 'number') return [value];
+  return null;
+}
+
+function resolveTokenizerField(tokenizerConfig, ...keys) {
+  if (!tokenizerConfig) return null;
+  for (const key of keys) {
+    if (tokenizerConfig[key] != null) {
+      return tokenizerConfig[key];
+    }
+  }
+  return null;
+}
+
+function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
+  const configVocab = rawConfig?.vocab_size ?? rawConfig?.text_config?.vocab_size;
+  const tokenizerVocab = tokenizerConfig?.vocab_size ?? tokenizerConfig?.vocabSize;
+  const archVocab = architecture?.vocabSize;
+  return tokenizerVocab ?? configVocab ?? archVocab ?? null;
+}
+
+function resolveConfigTokenId(rawConfig, key) {
+  const direct = rawConfig?.[key];
+  const nested = rawConfig?.text_config?.[key];
+  return resolveTokenizerId(direct ?? nested);
+}
+
+function resolveConfigTokenIds(rawConfig, key) {
+  const direct = rawConfig?.[key];
+  const nested = rawConfig?.text_config?.[key];
+  return resolveTokenizerIds(direct ?? nested);
+}
+
+function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architecture, modelTokenizerModel) {
+  if (!modelTokenizerModel) return null;
+
+  const vocabSize = resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture);
+  const sentencepieceModel = typeof modelTokenizerModel === 'string'
+    ? modelTokenizerModel
+    : modelTokenizerModel?.file ?? 'tokenizer.model';
+
+  const bosTokenId = resolveTokenizerId(
+    resolveTokenizerField(tokenizerConfig, 'bos_token_id', 'bosTokenId')
+    ?? resolveConfigTokenId(rawConfig, 'bos_token_id')
+  );
+  const eosTokenId = resolveTokenizerId(
+    resolveTokenizerField(tokenizerConfig, 'eos_token_id', 'eosTokenId')
+    ?? resolveConfigTokenId(rawConfig, 'eos_token_id')
+  );
+  const eosTokens = resolveTokenizerIds(
+    resolveTokenizerField(tokenizerConfig, 'eos_token_ids', 'eosTokens', 'eos_token_id')
+    ?? resolveConfigTokenIds(rawConfig, 'eos_token_ids')
+  );
+  const padTokenId = resolveTokenizerId(
+    resolveTokenizerField(tokenizerConfig, 'pad_token_id', 'padTokenId')
+    ?? resolveConfigTokenId(rawConfig, 'pad_token_id')
+  );
+  const unkTokenId = resolveTokenizerId(
+    resolveTokenizerField(tokenizerConfig, 'unk_token_id', 'unkTokenId')
+    ?? resolveConfigTokenId(rawConfig, 'unk_token_id')
+  );
+  const addBosToken = resolveTokenizerField(tokenizerConfig, 'add_bos_token', 'addBosToken');
+  const addEosToken = resolveTokenizerField(tokenizerConfig, 'add_eos_token', 'addEosToken');
+
+  const tokenizer = {
+    type: 'sentencepiece',
+    sentencepieceModel,
+    vocabSize: vocabSize ?? 0,
+  };
+
+  if (bosTokenId != null) tokenizer.bosTokenId = bosTokenId;
+  if (eosTokenId != null) tokenizer.eosTokenId = eosTokenId;
+  if (eosTokens) tokenizer.eosTokens = eosTokens;
+  if (padTokenId != null) tokenizer.padTokenId = padTokenId;
+  if (unkTokenId != null) tokenizer.unkTokenId = unkTokenId;
+  if (addBosToken != null) tokenizer.addBosToken = addBosToken;
+  if (addEosToken != null) tokenizer.addEosToken = addEosToken;
+
+  return tokenizer;
+}
+
 
 export function sanitizeModelId(name) {
   const sanitized = name
@@ -334,6 +424,17 @@ export function createManifest(
       vocabSize,
     };
     manifest.metadata.hasTokenizer = true;
+  } else {
+    const tokenizer = buildSentencepieceTokenizer(
+      model.tokenizerConfig ?? null,
+      rawConfig,
+      architecture,
+      model.tokenizerModel ?? null
+    );
+    if (tokenizer) {
+      manifest.tokenizer = tokenizer;
+      manifest.metadata.hasTokenizer = true;
+    }
   }
 
   return manifest;

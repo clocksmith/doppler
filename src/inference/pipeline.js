@@ -14,6 +14,7 @@ import {
   applyKernelOverrides,
 } from '../config/kernel-path-loader.js';
 import { configurePerfGuards } from '../gpu/perf-guards.js';
+import { autoTuneKernels, prewarmKernels } from '../gpu/kernels/index.js';
 import { MoERouter } from './moe-router.js';
 import { DecodeBufferManager } from './decode-buffers.js';
 import { DecodeRing } from './decode-ring.js';
@@ -113,6 +114,27 @@ export class InferencePipeline extends PipelineState {
     this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
     this.embeddingTranspose = this.modelConfig.embeddingTranspose;
+
+    const kernelWarmup = this.runtimeConfig.shared?.kernelWarmup;
+    if (this.useGPU && kernelWarmup?.prewarm) {
+      const mode = kernelWarmup.prewarmMode ?? 'parallel';
+      log.info('Pipeline', `Kernel prewarm enabled (mode=${mode})`);
+      try {
+        await prewarmKernels({ mode });
+        markKernelCacheWarmed();
+      } catch (e) {
+        log.warn('Pipeline', `Kernel prewarm failed: ${ (e).message}`);
+      }
+    }
+    if (this.useGPU && kernelWarmup?.autoTune) {
+      log.info('Pipeline', 'Kernel auto-tune enabled');
+      try {
+        await autoTuneKernels(this.modelConfig);
+        markKernelCacheWarmed();
+      } catch (e) {
+        log.warn('Pipeline', `Kernel auto-tune failed: ${ (e).message}`);
+      }
+    }
 
     // Kernel path resolution
     log.debug('Pipeline', `kernelPath sources: runtime=${this.runtimeKernelPath}, config=${this.runtimeConfig.inference.kernelPath}, model=${this.modelConfig.kernelPath}`);

@@ -16,14 +16,6 @@ export {
 } from './core.js';
 
 // RDRR Writer
-export {
-  RDRRWriter,
-  writeRDRR,
-  createTestModel,
-  DEFAULT_SHARD_SIZE,
-  ALIGNMENT,
-  computeHash,
-} from './writer.js';
 
 // Quantization
 export {
@@ -49,6 +41,3 @@ export {
   sortTensorsByGroup,
   estimateShardCount,
 } from './shard-packer.js';
-
-// Node.js I/O (for CLI usage)
-export { NodeShardIO } from './io/node.js';

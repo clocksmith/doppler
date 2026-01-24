@@ -18,7 +18,10 @@
         },
         "trace": {
           "enabled": true,
-          "categories": ["kernels", "perf"],
+          "categories": [
+            "kernels",
+            "perf"
+          ],
           "file": "./logs/trace.jsonl"
         }
       }
@@ -31,9 +34,5 @@
         "temperature": 0
       }
     }
-  },
-  "cli": {
-    "headless": true,
-    "timeout": 180000
   }
 }

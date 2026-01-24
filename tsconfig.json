@@ -54,7 +54,6 @@
       "@doppler/gpu/*": ["./src/gpu/*"],
       "@doppler/storage/*": ["./src/storage/*"],
       "@doppler/loader/*": ["./src/loader/*"],
-      "@doppler/tools/*": ["./tools/*"],
       "@doppler/browser/*": ["./src/browser/*"],
       "@doppler/bridge/*": ["./src/bridge/*"],
       "@doppler/memory/*": ["./src/memory/*"],
@@ -66,7 +65,7 @@
     "skipLibCheck": true,
 
     // Types
-    "types": ["node", "@webgpu/types"]
+    "types": []
   },
 
   "include": [

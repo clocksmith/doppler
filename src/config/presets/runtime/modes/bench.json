@@ -28,10 +28,5 @@
         "temperature": 0
       }
     }
-  },
-  "cli": {
-    "headless": true,
-    "timeout": 300000,
-    "retries": 2
   }
 }

@@ -683,7 +683,69 @@ export class KVCache {
   
   _migrateToGPU(device) {
     if (this.layout === 'paged') {
-      log.warn('KVCache', 'GPU migration not supported for paged layout');
+      log.info('KVCache', `Migrating ${this.currentSeqLen} positions to GPU (paged)...`);
+      const numPages = Math.ceil(this.maxSeqLen / this.pageSize);
+      const sizePerLayer = this.maxSeqLen * this.kvSize;
+      const bytesPerLayer = sizePerLayer * this.bytesPerElem;
+      const pageTableBytes = numPages * 4;
+
+      for (let l = 0; l < this.numLayers; l++) {
+        const layer =  (this.layers[l]);
+
+        if (!layer.keysGPU) {
+          layer.keysGPU = device.createBuffer({
+            label: `kv_cache_keys_paged_layer_${l}`,
+            size: bytesPerLayer,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+        }
+        if (!layer.valuesGPU) {
+          layer.valuesGPU = device.createBuffer({
+            label: `kv_cache_values_paged_layer_${l}`,
+            size: bytesPerLayer,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+        }
+
+        if (!layer.pageTable) {
+          layer.pageTable = new Uint32Array(numPages);
+          for (let i = 0; i < numPages; i++) {
+            layer.pageTable[i] = i;
+          }
+        }
+        if (!layer.pageTableGPU) {
+          layer.pageTableGPU = device.createBuffer({
+            label: `kv_cache_page_table_layer_${l}`,
+            size: pageTableBytes,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+          });
+        }
+        device.queue.writeBuffer(layer.pageTableGPU, 0, layer.pageTable);
+
+        const allocatedPages = layer.allocatedPages ?? 0;
+        if (allocatedPages > 0) {
+          const pageElems = this.pageSize * this.kvSize;
+          const pageBytes = pageElems * this.bytesPerElem;
+          for (let p = 0; p < allocatedPages; p++) {
+            const keyPage = layer.keyPages?.[p];
+            const valuePage = layer.valuePages?.[p];
+            if (!keyPage || !valuePage) continue;
+            const byteOffset = p * pageBytes;
+            if (this.kvDtype === 'f16') {
+              const keysF16 = f32ToF16Array(keyPage);
+              const valuesF16 = f32ToF16Array(valuePage);
+              device.queue.writeBuffer(layer.keysGPU, byteOffset, keysF16);
+              device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuesF16);
+            } else {
+              device.queue.writeBuffer(layer.keysGPU, byteOffset, keyPage);
+              device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuePage);
+            }
+          }
+        }
+      }
+
+      this.useGPU = true;
+      log.info('KVCache', 'Paged migration complete');
       return;
     }
 

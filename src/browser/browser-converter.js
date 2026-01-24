@@ -7,6 +7,7 @@ import {
   parseSafetensorsFile,
   parseSafetensorsSharded,
   parseConfigJson,
+  parseTokenizerConfigJson,
   parseTokenizerJson,
   parseIndexJson,
   streamTensorData,
@@ -18,6 +19,7 @@ import {
   openModelStore,
   saveManifest,
   saveTokenizer,
+  saveTokenizerModel,
   deleteModel,
   createConversionShardWriter,
   computeHash,
@@ -163,19 +165,18 @@ export async function convertModel(files, options = {}) {
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    const format = detectModelFormat(files);
-    const auxiliary = getAuxiliaryFiles(files);
-    for (const file of files) {
-      if (isTensorSource(file) && typeof file.cleanup === 'function') {
-        cleanupTasks.push(file.cleanup);
-      }
+  const format = detectModelFormat(files);
+  const auxiliary = getAuxiliaryFiles(files);
+  for (const file of files) {
+    if (isTensorSource(file) && typeof file.cleanup === 'function') {
+      cleanupTasks.push(file.cleanup);
     }
-    if (!auxiliary.tokenizer) {
-      if (auxiliary.tokenizerModel) {
-        throw new Error('tokenizer.model is not supported in browser conversion. Provide tokenizer.json instead.');
-      }
-      throw new Error('Missing tokenizer.json for browser conversion.');
-    }
+  }
+  const hasTokenizerJson = !!auxiliary.tokenizer;
+  const hasTokenizerModel = !!auxiliary.tokenizerModel;
+  if (!hasTokenizerJson && !hasTokenizerModel) {
+    throw new Error('Missing tokenizer.json or tokenizer.model for browser conversion.');
+  }
 
     onProgress?.({
       stage: ConvertStage.DETECTING,
@@ -187,6 +188,8 @@ export async function convertModel(files, options = {}) {
     let modelInfo;
     let config = null;
     let tokenizerJson = null;
+    let tokenizerConfig = null;
+    let tokenizerModel = null;
 
     if (format.type === 'gguf') {
       modelInfo = await parseGGUFModel(format.ggufFile, onProgress, signal);
@@ -216,6 +219,15 @@ export async function convertModel(files, options = {}) {
     if (auxiliary.tokenizer) {
       tokenizerJson = await parseTokenizerJson(auxiliary.tokenizer);
       modelInfo.tokenizerJson = tokenizerJson;
+    }
+    if (auxiliary.tokenizerConfig) {
+      tokenizerConfig = await parseTokenizerConfigJson(auxiliary.tokenizerConfig);
+      modelInfo.tokenizerConfig = tokenizerConfig;
+    }
+    if (auxiliary.tokenizerModel) {
+      const source = normalizeTensorSource(auxiliary.tokenizerModel);
+      tokenizerModel = await source.readRange(0, source.size);
+      modelInfo.tokenizerModel = tokenizerModel;
     }
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
@@ -323,12 +335,6 @@ export async function convertModel(files, options = {}) {
       const q4kLayout = targetDtype === 'Q4_K_M'
         ? resolveQ4KLayout(tensor.name, tensor.shape, quantizationInfo)
         : null;
-      if (q4kLayout === 'col') {
-        throw new Error(
-          'Column-wise Q4_K_M quantization requires full tensor reads and is not supported in browser conversion. ' +
-          'Use row layout or provide pre-quantized weights.'
-        );
-      }
       const numElements = tensor.shape.reduce((a, b) => a * b, 1);
       const targetSize = targetDtype === 'Q4_K_M'
         ? getQ4KOutputSize(tensor.shape, q4kLayout)
@@ -485,6 +491,8 @@ export async function convertModel(files, options = {}) {
       architecture: modelInfo.architecture,
       quantization: manifestQuantization,
       tokenizerJson,
+      tokenizerConfig,
+      tokenizerModel: tokenizerModel ? 'tokenizer.model' : null,
     };
 
     const manifest = createManifest(
@@ -505,11 +513,19 @@ export async function convertModel(files, options = {}) {
     manifest.groups = packResult.groups;
     manifest.tensorCount = packResult.tensorCount;
     if (manifest.tokenizer) {
-      manifest.tokenizer.file = 'tokenizer.json';
+      if (manifest.tokenizer.type === 'bundled' || manifest.tokenizer.type === 'huggingface') {
+        manifest.tokenizer.file = manifest.tokenizer.file ?? 'tokenizer.json';
+      }
+      if (manifest.tokenizer.type === 'sentencepiece') {
+        manifest.tokenizer.sentencepieceModel = manifest.tokenizer.sentencepieceModel ?? 'tokenizer.model';
+      }
     }
 
     if (tokenizerJson) {
       await saveTokenizer(JSON.stringify(tokenizerJson));
+    }
+    if (tokenizerModel) {
+      await saveTokenizerModel(tokenizerModel);
     }
 
     // Save manifest

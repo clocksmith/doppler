@@ -100,19 +100,16 @@ InferenceConfigSchema (runtime.inference)
 
 ---
 
-## CLI + Harness Restrictions
+## Harness Restrictions
 
-Runtime tunables are config-only when using the CLI or test harnesses:
+Runtime tunables are config-only when using the browser harness:
 
-- CLI accepts only config-loader flags (`--config`, `--help`).
-- Command, suite, model id, and harness options live in config (`cli.*`, top-level `model`). Model is required for all CLI runs.
-- CLI runs require `runtime.shared.tooling.intent` (verify/investigate/calibrate).
+- Command intent and harness options live in config (`runtime.shared.harness` and `runtime.shared.tooling.intent`).
 - `calibrate` intent forbids tracing, profiling, probes, and debug-only benchmarks.
-- CLI flags must not override prompt, max tokens, sampling, trace, log levels, or warmup/timed runs.
-- Harness URLs accept only `runtimeConfig` and optional `configChain`. No per-field URL overrides.
+- Harness URLs accept only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
 
-When you need a change, create a preset or pass `--config` with a runtime config file.
+When you need a change, create a preset or pass a runtime config file via `runtimeConfigUrl`.
 
 ---
 

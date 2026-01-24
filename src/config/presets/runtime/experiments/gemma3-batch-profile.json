@@ -1,10 +1,6 @@
 {
   "extends": "bench",
   "model": "google-gemma-3-1b-it-wq4k-ef16",
-  "cli": {
-    "command": "bench",
-    "suite": "inference"
-  },
   "runtime": {
     "shared": {
       "tooling": {
@@ -26,7 +22,9 @@
         "maxTokens": 64,
         "batchSize": 8
       },
-      "sampling": { "temperature": 0 },
+      "sampling": {
+        "temperature": 0
+      },
       "generation": {
         "disableCommandBatching": false,
         "disableMultiTokenDecode": false

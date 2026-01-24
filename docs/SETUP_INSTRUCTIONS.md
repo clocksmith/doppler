@@ -24,19 +24,18 @@ For Ollama and other local server options, see [LOCAL_MODELS.md](./LOCAL_MODELS.
 
 ## Setup Methods
 
-1) Serve CLI (all browsers)
-- From the DOPPLER repo: `node tools/serve-cli.ts /path/to/model.gguf`
-- Converts GGUF → .rpl (temp dir) and serves with CORS (default http://localhost:8765).
-- In the boot UI, pick provider "DOPPLER" and paste the Model URL. DOPPLER downloads into OPFS and caches it.
+1) Serve local models (all browsers)
+- Place an RDRR model under `/models/<model-id>/` with `manifest.json` and shard files.
+- Serve the repo root with `python3 -m http.server 8080`.
+- In the diagnostics UI (`/demo/`), pick the model from the local list.
 
-2) Import GGUF in-browser (Chrome/Edge)
-- In the model form, choose "DOPPLER" → click "Import GGUF from Disk".
-- Streams GGUF → .rpl directly into OPFS with progress UI. No CLI/server needed.
+2) Import GGUF or safetensors in-browser (Chrome/Edge)
+- Open the demo UI (`/demo/`) and use the import flow.
+- Streams GGUF/safetensors → RDRR directly into OPFS with progress UI. No CLI/server needed.
 
-3) Native Bridge (extension + host, with browse modal)
-- Load the Chrome extension from `bridge/extension/` in the DOPPLER repo (dev mode).
-- Run `bridge/native/install.sh <extension-id>` from the DOPPLER repo to install the native host.
-- In the model form, choose "DOPPLER"; a Local Path field and browse button appear. Browse to a local `.rpl` directory; shards stream from disk with hash verification.
+3) Convert via remote URLs
+- Use the demo UI URL import to stream remote safetensors shards (with HTTP range + download fallback).
+- Converted output is cached in OPFS.
 
 Notes:
 - Manifests include tensor locations and shard hashes; `hashAlgorithm` may be `sha256` or `blake3`.
@@ -58,15 +57,8 @@ Notes:
 |---------|----------|
 | "Out of memory" | Try smaller model or close other tabs |
 | "Shader compilation failed" | Update GPU drivers, check WebGPU status |
-| "Network error" | Check CORS settings on serve-cli |
+| "Network error" | Check CORS settings on the static server or remote host |
 | "Hash mismatch" | Re-download model, check disk integrity |
-
-### Extension/Bridge Issues
-
-1. **Extension install:** Load from `bridge/extension/` in the DOPPLER repo (dev mode)
-2. **Native host:** Run `bridge/native/install.sh <extension-id>` in the DOPPLER repo
-3. **Connectivity test:** Use `bridge/native/test-host.ts` in the DOPPLER repo (PING/READ/LIST)
-4. **Check logs:** DevTools console for importer/bridge logs
 
 ### Storage Management
 

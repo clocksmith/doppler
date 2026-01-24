@@ -16,7 +16,9 @@
         },
         "trace": {
           "enabled": true,
-          "categories": ["all"],
+          "categories": [
+            "all"
+          ],
           "layers": null,
           "maxDecodeSteps": 100
         }
@@ -28,9 +30,5 @@
         "maxTokens": 64
       }
     }
-  },
-  "cli": {
-    "headless": false,
-    "timeout": 600000
   }
 }

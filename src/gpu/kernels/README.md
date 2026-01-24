@@ -1,5 +1,12 @@
 # WGSL Kernels
 
+Purpose: Catalog and guidance for Doppler's WGSL kernel library.
+
+## Scope
+
+- Kernel categories, counts, and naming conventions.
+- Entry points, uniforms, and reuse strategies.
+
 79 WebGPU compute shaders for LLM inference.
 
 ## Categories

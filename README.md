@@ -21,10 +21,10 @@ Doppler and Reploid share a browser process. Kernel registry/config changes appl
 ## Quick Start
 
 ```bash
-npm install
-npm start         # Dev server at http://localhost:8080
-doppler --config ./tmp-bench.json
+python3 -m http.server 8080
 ```
+
+Open `http://localhost:8080/demo/` for the conversion + diagnostics UI.
 
 ## Architecture
 

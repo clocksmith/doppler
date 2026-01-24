@@ -2,6 +2,8 @@
 
 Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime code.
 
+**Note:** Browser-only. Use the demo diagnostics UI and harness.
+
 ---
 
 ## Output Schema
@@ -14,7 +16,7 @@ Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime
 
 ## Baseline Comparison
 
-- Use `cli.compare` in config for regression checks.
+- Use `runtime.shared.benchmark.comparison` in config for regression checks.
 - Respect `runtime.shared.benchmark.comparison.regressionThresholdPercent`.
 - Fail the run when `failOnRegression` is enabled and any metric regresses beyond the threshold.
 
@@ -55,22 +57,22 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Kernel microbenchmarks | ✓ Implemented | `tests/kernels/benchmarks/` |
-| Pipeline benchmark harness | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
-| System benchmarks | ✓ Implemented | `tests/benchmarks/system-benchmark.js` |
-| Standard prompts | ✓ Implemented | `tests/benchmarks/prompts.js` |
+| Kernel microbenchmarks | ✓ Implemented | `tests/kernels/browser/test-page.js` |
+| Pipeline benchmark harness | ✓ Implemented | `src/inference/browser-harness.js` |
+| System benchmarks | Planned | (TBD) |
+| Standard prompts | ✓ Implemented | `demo/bench-manifest.json` |
 | JSON result schema | ✓ Implemented | `../spec/BENCHMARK_SCHEMA.json` |
-| GPU timestamp queries | ✓ Implemented | Uses `gpu/profiler.js` |
-| GPU readback tracking | ✓ Implemented | Tracked in harness |
-| Peak VRAM estimation | ✓ Implemented | Uses `memory/buffer-pool.js` |
-| Output quality check | ✓ Implemented | `tests/benchmarks/pipeline-benchmark.js` |
-| Baseline registry checks | ✓ Implemented | `tests/baselines.json` + CLI |
+| GPU timestamp queries | ✓ Implemented | `src/gpu/profiler.js` |
+| GPU readback tracking | ✓ Implemented | `src/gpu/perf-guards.js` |
+| Peak VRAM estimation | ✓ Implemented | `src/memory/buffer-pool.js` |
+| Output quality check | Planned | (TBD) |
+| Baseline registry checks | ✓ Implemented | `tests/baselines.json` + runtime config |
 | OPFS storage metrics | ✓ Implemented | Via Storage API |
-| Results storage (IndexedDB) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
-| Results export (JSON) | ✓ Implemented | `tests/benchmarks/results-storage.js` |
+| Results storage (IndexedDB) | ✓ Implemented | `src/storage/reports.js` |
+| Results export (JSON) | ✓ Implemented | `src/storage/reports.js` |
 | Results directory | ✓ Implemented | `tests/results/` |
-| Comparison utilities | ✓ Implemented | `tests/benchmarks/results-storage.js` |
-| CLI tool | ✓ Implemented | `cli/index.js` |
+| Comparison utilities | Planned | (TBD) |
+| Browser diagnostics UI | ✓ Implemented | `demo/diagnostics-controller.js` |
 
 ### Claude Skill
 
@@ -192,10 +194,10 @@ Each benchmark suite runs:
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
 
-When running via CLI, OPFS persistence depends on using a stable Playwright profile directory. Use `cli.profileDir` to explicitly control this:
+OPFS persistence depends on the browser profile:
 
-- `warm`: reuse the same `cli.profileDir`
-- `cold`: use a fresh `cli.profileDir` (or delete the profile dir)
+- `warm`: reuse the same browser profile (or keep the same tab/profile open)
+- `cold`: clear OPFS via the purge helper or use a fresh profile/incognito window
 
 ### Warmup
 
@@ -405,84 +407,59 @@ Before claiming performance parity or superiority to WebLLM:
 
 ## Recommended Repo Layout (Non-binding)
 
-- Kernel microbenchmarks: `tests/kernels/tests/benchmarks/`
-- Pipeline benchmark harness: `tests/benchmark/`
+- Kernel microbenchmarks: `tests/kernels/browser/test-page.js`
+- Pipeline benchmark harness: `src/inference/browser-harness.js`
 - Saved result JSON: `tests/results/`
 
 ---
 
 ## Usage
 
-### CLI (Recommended)
+### Browser (Recommended)
 
-The CLI is the single entry point for running benchmarks (server auto-starts).
-Command, suite, model id, and harness options live in config:
+Use the demo diagnostics UI (`/demo/`) and select the `bench` suite, or use the
+unified harness in `bench` mode:
 
-```bash
-doppler --config ./tmp-bench.json
-doppler --config ./tmp-bench-xs.json
-doppler --help
+```
+http://localhost:8080/tests/harness.html?runtimeConfig=...
 ```
 
-Results auto-save to `tests/results/{suite}_{model}_{timestamp}.json`.
+`runtime.shared.harness.mode` must be `bench`, and `runtime.shared.tooling.intent`
+should be `calibrate`. Save results under `tests/results/` for comparisons.
 
 ### Browser Console
 
 Quick pipeline benchmark:
 
 ```typescript
-import { runQuickBenchmark, formatBenchmarkSummary } from './tests/benchmark/index.js';
+import { runBrowserSuite } from './src/inference/browser-harness.js';
 
-const result = await runQuickBenchmark('http://localhost:8080/models/gemma-3-1b-q4');
-console.log(formatBenchmarkSummary(result));
-console.log(JSON.stringify(result, null, 2));
-```
-
-Full pipeline benchmark:
-
-```typescript
-import { PipelineBenchmark } from './tests/benchmark/index.js';
-
-const harness = new PipelineBenchmark({
-  modelPath: 'http://localhost:8080/models/gemma-3-1b-q4',
-  promptName: 'medium',
-  maxNewTokens: 128,
-  warmupRuns: 2,
-  timedRuns: 3,
-  sampling: { temperature: 0, topK: 1, topP: 1 },
+const result = await runBrowserSuite({
+  suite: 'bench',
+  modelUrl: 'http://localhost:8080/models/gemma-3-1b-q4',
+  runtimePreset: 'experiments/gemma3-bench-q4k',
 });
 
-const result = await harness.run();
+console.log(result.report);
 ```
 
-System benchmark (download/storage):
+Manifest-driven benchmark:
 
 ```typescript
-import { runSystemBenchmark, formatSystemSummary } from './tests/benchmark/index.js';
+import { runBrowserManifest } from './src/inference/browser-harness.js';
 
-const result = await runSystemBenchmark('http://localhost:8080/models/gemma-3-1b-q4');
-console.log(formatSystemSummary(result));
+const manifest = await (await fetch('/doppler/demo/bench-manifest.json')).json();
+const result = await runBrowserManifest(manifest);
+console.log(result.report);
 ```
 
-Save and compare results:
+Save results:
 
 ```typescript
-import {
-  saveResult,
-  downloadAsJSON,
-  loadResultsByModel,
-  comparePipelineResults,
-  formatComparison
-} from './tests/benchmark/index.js';
+import { saveReport } from './src/storage/reports.js';
 
-await saveResult(result);
-downloadAsJSON(result);
-
-const history = await loadResultsByModel('gemma-3-1b-q4');
-if (history.length >= 2) {
-  const deltas = comparePipelineResults(history[0], history[1]);
-  console.log(formatComparison(deltas));
-}
+const reportInfo = await saveReport(result.report.modelId ?? 'bench', result.report);
+console.log(reportInfo);
 ```
 
 ### Available Prompts

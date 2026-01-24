@@ -294,7 +294,7 @@ export async function initializeInference(modelUrl, options = {}) {
 }
 
 // ============================================================================
-// Test State (for Playwright automation)
+// Test State (for browser automation)
 // ============================================================================
 
 

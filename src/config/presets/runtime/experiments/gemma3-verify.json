@@ -1,24 +1,33 @@
 {
   "extends": "bench",
   "model": "google-gemma-3-1b-it-wf16",
-  "cli": {
-    "command": "test",
-    "suite": "inference",
-    "profileDir": "tests/results/verify-gemma3"
-  },
   "runtime": {
     "shared": {
-      "tooling": { "intent": "verify" },
+      "tooling": {
+        "intent": "verify"
+      },
       "debug": {
-        "logLevel": { "defaultLogLevel": "warn" },
-        "trace": { "enabled": false },
-        "profiler": { "enabled": false }
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
       }
     },
     "inference": {
       "prompt": "The color of the sky is",
-      "batching": { "maxTokens": 64 },
-      "sampling": { "temperature": 0, "topK": 1, "topP": 1 }
+      "batching": {
+        "maxTokens": 64
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
     }
   }
 }

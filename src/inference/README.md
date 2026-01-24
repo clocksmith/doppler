@@ -1,5 +1,12 @@
 # Inference Module
 
+Purpose: End-to-end inference pipeline orchestration and helpers.
+
+## Scope
+
+- Pipeline orchestration, tokenization, KV cache, MoE routing, sampling.
+- Modular pipeline helpers and refactor checklist context.
+
 This directory contains DOPPLER's inference pipeline and its main building blocks:
 
 - `pipeline.js`: end-to-end orchestration (prefill, decode loop, sampling, debug)
@@ -8,11 +15,12 @@ This directory contains DOPPLER's inference pipeline and its main building block
 - `moe-router.js`: MoE routing and expert execution planning
 - `speculative.js`: speculative decoding scaffolding
 - `pipeline/`: modular helpers (10 modules split for maintainability)
-  - **WIRED**: `config.js`, `sampling.js` (imported by pipeline.js)
-  - **NOT wired**: `generate.js`, `layer.js`, `prefill.js`, `decode.js`, `embed.js`, `stats.js`, `stopping.js`
-  - See `REFACTOR-PLAN.md` for migration checklist
+  - **WIRED**: `config.js`, `init.js`, `generator.js`, `generator-steps.js`,
+    `embed.js`, `layer.js`, `logits.js`, `sampling.js`, `attention/`, `ffn/`
+  - Modular entrypoints are used by `pipeline.js` + `pipeline/generator.js`
+  - No separate prefill/decode modules are required in current layout
 
-See also:
+## Related
 - [Line-by-Line Pipeline Steps](#line-by-line-pipeline-steps) below for detailed execution map
 - `docs/GLOSSARY.md` for terms (logits, KV cache, workgroup, subgroups)
 - `gpu/kernel-selector.js` for the WGSL wrapper API (`run*` and `record*`)

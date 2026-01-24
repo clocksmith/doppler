@@ -16,7 +16,7 @@ Implemented in `src/training` with a runnable demo harness and test coverage.
 Key entry points:
 - Training engine overview: `../src/training/README.md`
 - Demo harness: `demo/training.html` + `demo/training-harness.js`
-- Training tests: `tests/training/browser/test-page.js` and `doppler --config <ref>` (`cli.command="test"`, `cli.suite="training"`)
+- Training tests: `tests/training/browser/test-page.js` and `tests/harness.html` (mode `training`, intent `verify`)
 - Export spec: `FORMATS.md`
 
 This document now serves as a historical design reference.

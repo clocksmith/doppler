@@ -13,6 +13,7 @@ import {
   deleteShard,
   saveManifest,
   saveTokenizer,
+  saveTokenizerModel,
   createShardWriter,
   createStreamingHasher,
   computeHash,
@@ -579,7 +580,7 @@ export async function downloadModel(
       // Save manifest to OPFS
       await saveManifest(manifestJson);
 
-      // Download and save tokenizer.json if bundled/huggingface tokenizer is specified
+      // Download tokenizer assets if specified
       const tokenizer =  (manifest.tokenizer);
       const hasBundledTokenizer = (tokenizer?.type === 'bundled' || tokenizer?.type === 'huggingface') && tokenizer?.file;
       if (hasBundledTokenizer) {
@@ -593,6 +594,21 @@ export async function downloadModel(
         } catch (err) {
           log.warn('Downloader', `Failed to download tokenizer.json: ${ (err).message}`);
           // Non-fatal - model will fall back to HuggingFace tokenizer
+        }
+      }
+
+      const sentencepieceModel = tokenizer?.sentencepieceModel
+        ?? (tokenizer?.type === 'sentencepiece' ? 'tokenizer.model' : null);
+      if (sentencepieceModel) {
+        try {
+          const modelUrl = `${baseUrl}/${sentencepieceModel}`;
+          log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
+          const modelResponse = await fetchWithRetry(modelUrl);
+          const modelBuffer = await modelResponse.arrayBuffer();
+          await saveTokenizerModel(modelBuffer);
+          log.verbose('Downloader', 'Saved tokenizer.model');
+        } catch (err) {
+          log.warn('Downloader', `Failed to download tokenizer.model: ${ (err).message}`);
         }
       }
 

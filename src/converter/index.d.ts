@@ -38,32 +38,6 @@ export {
 } from './core.js';
 
 export {
-  RDRRWriter,
-  type WriterOptions,
-  type WriteResult,
-  type TensorInfo as WriterTensorInfo,
-  type MoEConfig,
-  type ComponentGroup,
-  type TensorMap,
-  type ConversionInfo,
-  type RuntimeOptimizations,
-  type TensorMetadata,
-  type TensorLocation as WriterTensorLocation,
-  type ShardData,
-  type ShardRecord,
-  type TokenizerConfig,
-  type HuggingFaceTokenizer,
-  type ModelInfo,
-  type ProgressEvent,
-  type WriteRDRROptions,
-  writeRDRR,
-  createTestModel,
-  DEFAULT_SHARD_SIZE,
-  ALIGNMENT,
-  computeHash,
-} from './writer.js';
-
-export {
   type QuantizeResult,
   type QuantizationError,
   type QuantizeOptions,
@@ -97,5 +71,3 @@ export {
   sortTensorsByGroup,
   estimateShardCount,
 } from './shard-packer.js';
-
-export { NodeShardIO } from './io/node.js';

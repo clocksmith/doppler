@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>DOPPLER Test Harness</title>
-  <link rel="stylesheet" href="/doppler/demo/rd.css">
+  <link rel="stylesheet" href="/styles/rd.css">
   <style>
     body { padding: var(--space-lg); }
     h1 { margin-bottom: var(--space-md); }
@@ -52,7 +52,7 @@
 
   <script type="module">
     // ==========================================================================
-    // Log Bridge: console -> UI + stdout (Playwright)
+    // Log Bridge: console -> UI
     // ==========================================================================
 
     const logPanel = document.getElementById('log-panel');
@@ -146,11 +146,56 @@
     const params = new URLSearchParams(window.location.search);
     let runtimeConfig = null;
     let harnessConfig = null;
+    const manifestUrl = params.get('manifestUrl') || params.get('autorunManifestUrl');
+
+    function renderManifestResults(report) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      const summary = document.createElement('div');
+      const summaryText = report?.summary
+        ? `${report.summary.passedRuns}/${report.summary.totalRuns} runs passed • ${Math.round(report.summary.durationMs)}ms`
+        : 'Manifest completed';
+      summary.className = 'section type-label';
+      summary.textContent = summaryText;
+      container.appendChild(summary);
+
+      for (const run of report?.runs || []) {
+        const row = document.createElement('div');
+        const passed = (run.results || []).every((r) => r.passed || r.skipped);
+        row.className = `row ${passed ? 'pass' : 'fail'}`;
+        const label = run.label || run.modelId || run.suite || 'run';
+        row.innerHTML = `<span>${passed ? '\u2713' : '\u2717'} ${label}</span><span class="type-caption muted">${run.suite || 'inference'}</span>`;
+        container.appendChild(row);
+      }
+
+      container.classList.add('show');
+    }
+
+    async function runManifestMode(url) {
+      const status = document.getElementById('status');
+      status.textContent = 'Loading manifest...';
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error(`Failed to load manifest: ${resp.status}`);
+      }
+      const manifest = await resp.json();
+      const { runBrowserManifest } = await import('../src/inference/browser-harness.js');
+      const result = await runBrowserManifest(manifest, {
+        onProgress: ({ index, total, label }) => {
+          status.textContent = `Running ${index}/${total}: ${label}`;
+        },
+      });
+      window.harnessReport = result.report;
+      renderManifestResults(result.report);
+      status.textContent = result.reportInfo?.path
+        ? `Report saved: ${result.reportInfo.path}`
+        : 'Manifest complete';
+    }
 
     async function loadRuntimeConfig() {
-      const { parseRuntimeOverridesFromURL } = await import('/doppler/src/inference/test-harness.js');
-      const { getRuntimeConfig, setRuntimeConfig } = await import('/doppler/src/config/index.js');
-      const { applyRuntimePreset, applyRuntimeConfigFromUrl } = await import('/doppler/src/inference/browser-harness.js');
+      const { parseRuntimeOverridesFromURL } = await import('../src/inference/test-harness.js');
+      const { getRuntimeConfig, setRuntimeConfig } = await import('../src/config/index.js');
+      const { applyRuntimePreset, applyRuntimeConfigFromUrl } = await import('../src/inference/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
       const runtimePreset = params.get('runtimePreset');
       const runtimeConfigUrl = params.get('runtimeConfigUrl');
@@ -175,7 +220,7 @@
     // ==========================================================================
 
     async function initGPU() {
-      const { initializeDevice } = await import('/doppler/src/inference/test-harness.js');
+      const { initializeDevice } = await import('../src/inference/test-harness.js');
       const caps = await initializeDevice();
       console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
       return caps;
@@ -186,7 +231,7 @@
     // ==========================================================================
 
     async function initKernelMode() {
-      const { testHarness, getGPU } = await import('/doppler/tests/kernels/browser/test-page.js');
+      const { testHarness, getGPU } = await import('../tests/kernels/browser/test-page.js');
 
       // Wait for GPU init
       await new Promise(r => setTimeout(r, 100));
@@ -198,10 +243,10 @@
 
       console.log(`[GPU] ${gpu.adapterInfo?.description || 'unknown'}, ${gpu.capabilities?.hasF16 ? 'f16' : 'f32'}/${gpu.capabilities?.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${((gpu.adapterInfo?.memorySize || 0) / 1e9).toFixed(1)}GB`);
 
-      // Expose test harness for Playwright
+      // Expose test harness for UI automation
       window.testHarness = testHarness;
 
-      // Expose render function for Playwright to call when done
+      // Expose render function for external callers
       window.renderResults = (testResults) => {
         const container = document.getElementById('results');
         let passed = 0, failed = 0, totalTime = 0;
@@ -234,7 +279,7 @@
     // ==========================================================================
 
     async function initTrainingMode() {
-      const { trainingHarness } = await import('/doppler/tests/training/browser/test-page.js');
+      const { trainingHarness } = await import('../tests/training/browser/test-page.js');
 
       await initGPU();
       window.trainingHarness = trainingHarness;
@@ -277,11 +322,11 @@
         fetchManifest,
         initializeDevice,
         createTestState,
-      } = await import('/doppler/src/inference/test-harness.js');
-      const { getRuntimeConfig } = await import('/doppler/src/config/index.js');
-      const { createPipeline } = await import('/doppler/src/inference/pipeline.js');
-      const { getDevice } = await import('/doppler/src/gpu/device.js');
-      const { SIGNALS } = await import('/doppler/src/debug/index.js');
+      } = await import('../src/inference/test-harness.js');
+      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { createPipeline } = await import('../src/inference/pipeline.js');
+      const { getDevice } = await import('../src/gpu/device.js');
+      const { SIGNALS } = await import('../src/debug/index.js');
 
       const runtimeConfig = getRuntimeConfig();
       const harnessConfig = runtimeConfig.shared.harness;
@@ -292,16 +337,16 @@
         throw new Error('runtime.shared.harness.modelId must be set for inference mode.');
       }
 
-      const BASE_URL = 'http://localhost:8080/doppler/models';
+      const baseUrl = new URL('../models', window.location.href).toString().replace(/\/$/, '');
 
-      // Test state for Playwright
+      // Test state for external callers
       window.testState = createTestState();
 
       // Check if pipeline already exists from previous warm run
       const existingPipeline = window.pipeline;
 
       async function run() {
-        const MODEL_URL = `${BASE_URL}/${paramModel}`;
+        const MODEL_URL = `${baseUrl}/${paramModel}`;
         const prompt = runtimeConfig.inference.prompt;
         if (!prompt) {
           throw new Error('runtime.inference.prompt must be set for inference tests.');
@@ -456,9 +501,9 @@
     // ==========================================================================
 
     async function initSimulationMode() {
-      const { createTestState } = await import('/doppler/src/inference/test-harness.js');
-      const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('/doppler/src/simulator/index.js');
-      const { formatBytes } = await import('/doppler/src/config/schema/emulation.schema.js');
+      const { createTestState } = await import('../src/inference/test-harness.js');
+      const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('../src/simulator/index.js');
+      const { formatBytes } = await import('../src/config/schema/emulation.schema.js');
 
       const paramAutorun = harnessConfig.autorun;
 
@@ -539,7 +584,7 @@
     // ==========================================================================
 
     async function initBenchMode() {
-      // Benchmark mode just needs GPU ready - Playwright injects the benchmark script
+      // Benchmark mode just needs GPU ready - external caller can inject the benchmark script
       await initGPU();
 
       // Signal ready for benchmark injection
@@ -555,6 +600,18 @@
     // ==========================================================================
 
     async function main() {
+      if (manifestUrl) {
+        document.getElementById('title').textContent = 'DOPPLER HARNESS MANIFEST';
+        try {
+          await runManifestMode(manifestUrl);
+        } catch (e) {
+          console.error(`[Harness] Error: ${e.message}`);
+          document.getElementById('status').textContent = `Error: ${e.message}`;
+          document.getElementById('status').classList.add('border-error');
+          window.harnessError = e.message;
+        }
+        return;
+      }
       await loadRuntimeConfig();
       const mode = harnessConfig.mode;
       const titles = {

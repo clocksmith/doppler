@@ -2,6 +2,8 @@
 
 Purpose: provide a claims-based change proposal with evidence, so reviewers can validate intent quickly.
 
+See spec: `../../docs/INTENT_BUNDLE.md`
+
 ---
 
 ## 1) Intent Summary
@@ -81,4 +83,3 @@ Purpose: provide a claims-based change proposal with evidence, so reviewers can 
 - [ ] Benchmarks include baseline and delta
 - [ ] No hidden defaults introduced
 - [ ] Docs updated (if user-facing)
-

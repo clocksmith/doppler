@@ -4,6 +4,7 @@ import { DEFAULT_BUFFER_POOL_CONFIG } from './buffer-pool.schema.js';
 import { DEFAULT_GPU_CACHE_CONFIG } from './gpu-cache.schema.js';
 import { DEFAULT_MEMORY_LIMITS_CONFIG } from './memory-limits.schema.js';
 import { DEFAULT_TUNER_CONFIG } from './tuner.schema.js';
+import { DEFAULT_KERNEL_WARMUP_CONFIG } from './kernel-warmup.schema.js';
 import { DEFAULT_HOTSWAP_CONFIG } from './hotswap.schema.js';
 import { DEFAULT_BRIDGE_CONFIG } from './bridge.schema.js';
 import { DEFAULT_BENCHMARK_CONFIG } from './benchmark.schema.js';
@@ -31,6 +32,7 @@ export const DEFAULT_SHARED_RUNTIME_CONFIG = {
   platform: null,
   kernelRegistry: DEFAULT_KERNEL_REGISTRY_CONFIG,
   kernelThresholds: DEFAULT_KERNEL_THRESHOLDS,
+  kernelWarmup: DEFAULT_KERNEL_WARMUP_CONFIG,
   bufferPool: DEFAULT_BUFFER_POOL_CONFIG,
   gpuCache: DEFAULT_GPU_CACHE_CONFIG,
   memory: DEFAULT_MEMORY_LIMITS_CONFIG,

@@ -34,8 +34,5 @@
         "kvDtype": "f16"
       }
     }
-  },
-  "cli": {
-    "headless": true
   }
 }

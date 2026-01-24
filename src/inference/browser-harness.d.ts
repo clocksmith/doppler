@@ -71,6 +71,32 @@ export interface BrowserSuiteResult extends SuiteSummary {
   reportInfo: SavedReportInfo;
 }
 
+export interface BrowserManifestRun extends BrowserSuiteOptions {
+  label?: string;
+  runtimeConfigUrl?: string | null;
+  runtimeConfig?: Record<string, unknown> | null;
+}
+
+export interface BrowserManifest {
+  defaults?: BrowserManifestRun;
+  runs: BrowserManifestRun[];
+  reportModelId?: string;
+  id?: string;
+  report?: Record<string, unknown> | null;
+}
+
+export interface BrowserManifestResult {
+  results: BrowserSuiteResult[];
+  summary: {
+    totalRuns: number;
+    passedRuns: number;
+    failedRuns: number;
+    durationMs: number;
+  };
+  report: Record<string, unknown>;
+  reportInfo: SavedReportInfo | null;
+}
+
 export declare function initializeBrowserHarness(
   options: BrowserHarnessOptions
 ): Promise<InitializeResult & { runtime: RuntimeOverrides }>;
@@ -108,3 +134,12 @@ export declare function runBrowserHarness(
 export declare function runBrowserSuite(
   options: BrowserSuiteOptions
 ): Promise<BrowserSuiteResult>;
+
+export declare function runBrowserManifest(
+  manifest: BrowserManifest,
+  options?: RuntimeConfigLoadOptions & {
+    saveReport?: boolean;
+    timestamp?: string | Date;
+    onProgress?: (progress: { index: number; total: number; label: string }) => void;
+  }
+): Promise<BrowserManifestResult>;

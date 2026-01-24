@@ -55,14 +55,13 @@ Validation should check `=== undefined` for nullable fields and `== null` for no
 ## Kernel Path Only
 
 Kernel selection overrides must use `kernelPath`. `kernelPlan` is removed and must not be reintroduced.
-Kernel path overrides are config-only; CLI flags must not set kernel selection.
+Kernel path overrides are config-only; harness/UI surfaces must not set kernel selection via ad-hoc flags.
 
-## CLI Override Rules
+## Harness Override Rules
 
-- CLI accepts only config-loader flags (`--config`, `--help`).
-- Command, suite, model id, and harness options must live in config (`cli.*`, top-level `model`).
-- CLI flags must not override runtime config tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
-- Harnesses should only accept `runtimeConfig` (and optional `configChain`) via URL; do not add per-field URL overrides.
+- Harness options must live in config (`runtime.shared.harness`).
+- Per-field URL overrides are forbidden; use `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`.
+- Harness/UI controls must not override runtime tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
 ## Runtime Configuration (Performance Invariants)
@@ -875,7 +874,7 @@ tracking answers that instantly.
 
 ## Logging
 
-All library code MUST use the unified debug module (`debug/index.js`) instead of raw `console.*` calls. Exceptions: `tools/`, `kernel-tests/`, CLI entry points, and one-time startup messages in `src/gpu/device.js`.
+All library code MUST use the unified debug module (`debug/index.js`) instead of raw `console.*` calls. Exceptions: `tests/` harnesses, demo entry points, and one-time startup messages in `src/gpu/device.js`.
 
 ### Import
 
@@ -941,11 +940,10 @@ Use consistent module names matching the file/class:
 
 Raw `console.*` is acceptable in:
 
-1. **CLI entry points** (`cli/`, `serve.js`, `src/converter/node-converter.js`) - Direct terminal output
-2. **Tools** (`tools/*.js`) - Direct terminal output
-3. **Test files** (`tests/kernels/`, `tests/`) - Test harness output
-4. **Benchmarks** - Formatted results tables
-5. **One-time startup** - GPU device info in `device.js`
+1. **Demo entry points** (`demo/`, `tests/harness.html`) - User-facing status output
+2. **Test files** (`tests/kernels/`, `tests/benchmarks/`, `tests/training/`) - Test harness output
+3. **Benchmarks** - Formatted results tables
+4. **One-time startup** - GPU device info in `device.js`
 
 ### Browser Console API
 
@@ -968,46 +966,39 @@ Tests are JavaScript. Same rules as source code: clean JS, types in `.d.ts` if n
 ### File Naming
 
 ```
-tests/unit/
-  config-loader.test.js      # Unit tests
+tests/kernels/browser/
+  test-page.js               # Kernel harness
 
-tests/kernels/correctness/
-  matmul.spec.js             # Kernel correctness
+tests/benchmarks/
+  README.md                  # Benchmark entrypoint notes
 
-tests/kernels/benchmarks/
-  matmul.bench.js            # Performance benchmarks
+tests/training/browser/
+  test-page.js               # Training harness
 ```
 
 ### Structure
 
 ```javascript
-// matmul.spec.js
-import { describe, it, expect } from 'vitest';
-import { runMatmul } from '../../src/gpu/kernels/matmul.js';
-
-describe('matmul', () => {
-  it('computes C = A × B correctly', async () => {
-    const result = await runMatmul(a, b, m, n, k);
-    expect(result).toBeCloseTo(expected, 5);
-  });
-});
+// In browser console (tests/harness.html, mode: kernels)
+const gpu = await window.testHarness.getGPU();
+const result = await window.testHarness.runMatmul(gpu.device, a, b, m, n, k);
+console.log('max error', Math.max(...result));
 ```
 
 ### What to Test
 
 | Test Type | Purpose | Location |
 |-----------|---------|----------|
-| **Unit** | Single function correctness | `tests/unit/` |
-| **Kernel correctness** | GPU output matches CPU reference | `tests/kernels/tests/correctness/` |
-| **Integration** | End-to-end pipeline flow | `tests/correctness/` |
-| **Benchmark** | Performance regression detection | `tests/kernels/tests/benchmarks/` |
+| **Kernel harness** | GPU output matches CPU reference | `tests/kernels/browser/test-page.js` |
+| **Training harness** | Training kernel validation | `tests/training/browser/test-page.js` |
+| **Benchmark** | Performance regression detection | `src/inference/browser-harness.js` |
 
 ### Reference Implementations
 
 Kernel tests compare GPU output against CPU reference implementations:
 
 ```javascript
-// tests/kernels/src/reference/matmul.js
+// tests/kernels/reference/matmul.js
 export function matmulReference(a, b, m, n, k) {
   const c = new Float32Array(m * n);
   for (let i = 0; i < m; i++) {

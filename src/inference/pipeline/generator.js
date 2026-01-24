@@ -165,7 +165,13 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const gpuSamplingAvailable = isGPUSamplingAvailable();
+      const lmHead = this.#state.weights.get('lm_head');
+      const embedBuffer = this.#state.weights.get('embed');
+      const hasCpuWeights = isCpuWeightBuffer(lmHead)
+        || isCpuWeightBuffer(embedBuffer)
+        || lmHead instanceof Float32Array
+        || embedBuffer instanceof Float32Array;
+      const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
       let useBatchPath = shouldUseBatchDecode({
         batchSize: opts.batchSize,
         useGPU: this.#state.useGPU,
@@ -412,7 +418,13 @@ export class PipelineGenerator {
       markKernelCacheWarmed();
 
       const decodeStart = performance.now();
-      const gpuSamplingAvailable = isGPUSamplingAvailable();
+      const lmHead = this.#state.weights.get('lm_head');
+      const embedBuffer = this.#state.weights.get('embed');
+      const hasCpuWeights = isCpuWeightBuffer(lmHead)
+        || isCpuWeightBuffer(embedBuffer)
+        || lmHead instanceof Float32Array
+        || embedBuffer instanceof Float32Array;
+      const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
       let useBatchPath = shouldUseBatchDecode({
         batchSize: opts.batchSize,
         useGPU: this.#state.useGPU,

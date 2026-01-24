@@ -471,44 +471,20 @@ This ensures compatibility across converter versions.
 
 ### Converting Models
 
-```bash
-# From GGUF
-doppler --config ./tmp-gguf-convert.json
+Use the browser conversion UI in `demo/index.html`. The converter writes RDRR
+artifacts into OPFS and is the primary workflow.
 
-# From Safetensors (HuggingFace format)
-doppler --config ./tmp-hf-convert.json
+For programmatic conversion in the browser, import the converter directly:
 
-Browser conversion is also available via `src/browser/browser-converter.js` with OPFS output.
-The Node converter is the primary workflow today; browser conversion is still maturing.
+```javascript
+import convertModel from '../src/browser/browser-converter.js';
 ```
 
 ### Serving Models
 
-```bash
-# Serve converted model
-doppler --config ./tmp-serve-rdrr.json
-
-# Convert and serve in one step
-doppler --config ./tmp-serve-gguf.json
-```
-
-Example config:
-
-```json
-{
-  "cli": {
-    "command": "tool",
-    "tool": "serve"
-  },
-  "tools": {
-    "serve": {
-      "input": "./model-rdrr",
-      "port": 8765,
-      "open": true
-    }
-  }
-}
-```
+Serve models via a static server. Place converted artifacts under `models/<model-id>/`
+and run a local server (e.g. `python3 -m http.server 8080`). The loader will
+fetch from `http://localhost:8080/models/<model-id>`.
 
 ### Loading in Browser
 
@@ -546,7 +522,7 @@ for await (const token of pipeline.generate('Hello')) {
 
 - `src/formats/rdrr/manifest.js`: Parser and validation
 - `src/converter/core.js`: Platform-agnostic conversion types and functions
-- `src/converter/writer.js`: Node.js writer for CLI conversion
+- `src/browser/browser-converter.js`: Browser writer for in-app conversion
 - `src/browser/browser-converter.js`: Browser conversion with OPFS output
 - `storage/shard-manager.js`: OPFS shard management
 - `storage/downloader.js`: Resumable downloads
@@ -646,13 +622,8 @@ RDRR-LoRA is optimized for Doppler. If you need GGUF:
 2. Convert tensors to a LoRA safetensors/npz format.
 3. Use llama.cpp conversion tooling to emit GGUF.
 
-An optional helper script is provided:
-
-```
-doppler --config ./tmp-rdrr-lora-to-gguf.json
-```
-
-The script emits recommended conversion steps and paths, but does not run external tools.
+Conversion to GGUF is external to Doppler. Use the adapter export helper and
+llama.cpp tooling; there is no in-repo browser command runner for this flow.
 
 
 ## Adapter Manifest

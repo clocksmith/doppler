@@ -306,7 +306,7 @@ async function testTrainingLoopLeakAndPerf() {
 }
 
 async function testParityFixture() {
-  const res = await fetch('/doppler/tests/fixtures/training/python-parity.json');
+  const res = await fetch('/tests/fixtures/training/python-parity.json');
   const fixture = await res.json();
   const logits = new Float32Array(fixture.logits);
   const rows = fixture.rows;

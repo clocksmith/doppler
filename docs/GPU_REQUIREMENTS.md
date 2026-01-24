@@ -2,6 +2,8 @@
 
 This document describes GPU hardware requirements for running Doppler WebGPU inference and expected performance metrics.
 
+**Note:** Browser-only. Use the harness and demo diagnostics UI for validation.
+
 ## WebGPU Tier System
 
 Doppler automatically detects GPU capabilities and assigns a tier level that determines which models can run efficiently.
@@ -173,14 +175,10 @@ Typical limits:
 ### Running Performance Tests
 
 ```bash
-# Unit tests (mock inference)
-npm test -- --grep "Doppler Inference"
+# Start a static server
+python3 -m http.server 8080
 
-# E2E with real Doppler inference
-DOPPLER=true npx playwright test tests/e2e/rsi-loop.spec.js --headed
-
-# Specific model benchmark
-TEST_MODEL=gemma3-4b-q4 DOPPLER=true npx playwright test tests/e2e/rsi-loop.spec.js
+# Run benchmarks in the demo diagnostics UI (/demo/)
 ```
 
 ### Metrics Collected

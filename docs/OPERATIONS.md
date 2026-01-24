@@ -4,23 +4,20 @@
 
 Comprehensive debugging strategies for DOPPLER WebGPU inference issues. Written for future developers and Claude agents.
 
-**Note:** Headless/minimized behavior is configured via `cli.headless` and `cli.minimized` in config.
-**Config-only overrides:** CLI accepts only `--config`. Command, suite, model, and harness options live in config (`cli.*`, top-level `model`). Prompt size, sampling, warmup/runs, trace, and log levels are configured via `runtime.shared.benchmark.run` and `runtime.shared.debug`.
+**Note:** Doppler is browser-only. Use the demo diagnostics UI or `tests/harness.html`
+with `runtimeConfig` to run suites. Runtime behavior is controlled via `runtime.*`
+and `runtime.shared.tooling.intent`.
 
 ---
 
 ## Quick Start: Systematic Debug Workflow
 
 ### 1. Run Kernel Tests First
-```bash
-doppler --config ./kernel-tests.json
-```
+Open `tests/harness.html` in `kernels` mode (runtime config sets `runtime.shared.tooling.intent = "verify"`).
 If any kernel fails, **fix it first**. Expected: all PASS except scatter-add.
 
 ### 2. Run Inference Debug
-```bash
-doppler --config ./tmp-gemma3-debug.json
-```
+Use the demo diagnostics UI with the `debug` runtime preset and run the inference suite.
 
 ### 3. Compare Against Reference
 ```bash
@@ -45,7 +42,7 @@ If reference works but DOPPLER doesn't, the bug is in DOPPLER implementation.
 
 Check the converted RDRR model's `manifest.json`.
 
-**Source formats:** DOPPLER's `node-converter` supports both **safetensors** (HuggingFace) and **GGUF** (llama.cpp) as input formats. The resulting RDRR format is the same regardless of source. If debugging issues, compare against the original source (HuggingFace for safetensors, llama.cpp for GGUF).
+**Source formats:** DOPPLER's browser converter supports both **safetensors** (HuggingFace) and **GGUF** (llama.cpp) as input formats. The resulting RDRR format is the same regardless of source. If debugging issues, compare against the original source (HuggingFace for safetensors, llama.cpp for GGUF).
 
 ```bash
 cat model/manifest.json | jq '{
@@ -78,10 +75,8 @@ cat model/manifest.json | jq '{
 
 ### Weight Statistics Verification
 
-```bash
-# During inference debug, check weight loading
-doppler --config ./debug-bench.json 2>&1 | grep -E "weight|norm.*min|norm.*max"
-```
+Use the demo diagnostics UI with a debug preset and inspect the DevTools console.
+Filter logs for `weight` or `norm` to spot range anomalies.
 
 **Expected Gemma 3 norm weight ranges:**
 - `input_layernorm`: min ~2.5, max ~55 (before +1 offset)
@@ -105,12 +100,8 @@ Token IDs must match exactly.
 
 ### Quantization Verification (Q4_K)
 
-```bash
-# Verify dequantization produces correct values
-doppler --config ./kernel-tests.json   # set cli.filter="dequant"
-doppler --config ./kernel-tests.json   # set cli.filter="matmul-q4k"
-doppler --config ./kernel-tests.json   # set cli.filter="matmul-q4k-large"
-```
+Open `tests/harness.html` in `kernels` mode and call the dequant helpers from the console:
+`window.testHarness.runDequantQ4K(...)` or `window.testHarness.runDequantAndMatmulF16W(...)`.
 
 ---
 
@@ -219,65 +210,41 @@ DOPPLER uses a unified logging system controlled by runtime config:
 [Loader] Complete: 640.0 MB in 2.34s (273.5 MB/s)
 ```
 
-### CLI Log Forwarding (IMPORTANT)
+### Browser Log Filtering
 
-The DOPPLER CLI (`cli/index.js`) runs Playwright and filters browser console logs before forwarding to stdout. Only logs with these tags are shown:
+All logs stay in the browser console. Use DevTools filtering or the log history API.
 
-```
-[Benchmark], [Pipeline], [Loader], [GPU], [Kernel], [Layer], [KERNEL], [KV], [ATTN], [FFN], ERROR, WARN
-```
+Example DevTools filters:
 
-**If your logs don't appear:**
-1. Check your grep pattern includes the tag (e.g., `Loader` to match loader output)
-2. Use a config preset (e.g., `debug`) to enable verbose logging and trace
-3. Some debug readbacks skip when using CommandRecorder (batched mode) - this is by design
+- `/Loader.*(Shard|Layer)/`
+- `/^\\[LOGITS\\]/`
+- `/^\\[LAYER\\]\\[L0\\]/`
+- `/^\\[(ATTN|FFN)\\]/`
 
-```bash
-# Show shard sources and layer timing
-doppler --config <ref> 2>&1 | grep -E "Loader.*Shard|Loader.*Layer"
-# <ref>: cli.command="bench", cli.suite="inference"
+Example log history slicing:
 
-# Show everything including tensor details
-doppler --config <ref> 2>&1 | head -200
-# <ref>: cli.command="debug"
+```javascript
+const logs = DOPPLER.getLogHistory();
+const hits = logs.filter((entry) => entry.message?.includes('Loader'));
+console.log(hits.slice(0, 200));
 ```
 
-### OPFS Cache Persistence (Faster Reruns)
+### OPFS Cache Persistence
 
-The CLI uses a persistent Playwright profile directory to preserve browser storage between runs. This includes the OPFS model cache, so the second run should skip downloads.
+OPFS is persisted per browser profile. For warm runs, reuse the same profile or
+keep a tab open. For cold runs, clear OPFS or use a fresh profile/incognito.
 
-- Default profile dirs:
-  - Tests: `doppler/.test-cache/`
-  - Inference benchmarks: `doppler/.benchmark-cache/`
-- Override with `cli.profileDir` (relative to `doppler/` or absolute)
-
-```bash
-# Reuse the same profile across runs (warm OPFS)
-doppler --config <ref>
-# <ref>: cli.command="bench", cli.suite="inference", cli.profileDir=".benchmark-cache"
-
-# Use a fresh profile for a cold-start run
-doppler --config <ref>
-# <ref>: cli.command="bench", cli.suite="inference", cli.profileDir=".benchmark-cache-cold"
+```javascript
+const { listModels, deleteModel } = await import('../src/storage/shard-manager.js');
+for (const modelId of await listModels()) {
+  await deleteModel(modelId);
+}
 ```
 
 ### Log Format for Post-Filtering
 
-All logs use a consistent format: `[CATEGORY][L{layer}][S{step}] message`
-
-This enables grep-based filtering:
-
-```bash
-# Filter for specific categories
-doppler --config <ref> 2>&1 | grep -E "^\[LOGITS\]"
-doppler --config <ref> 2>&1 | grep -E "^\[LAYER\]\[L0\]"
-doppler --config <ref> 2>&1 | grep -E "^\[ATTN\]|\[FFN\]"
-# <ref>: cli.command="bench", cli.suite="inference"
-
-# Watch layer 0 through decode steps
-doppler --config <ref> 2>&1 | grep "\[L0\]" | head -20
-# <ref>: cli.command="bench", cli.suite="inference"
-```
+All logs use a consistent format: `[CATEGORY][L{layer}][S{step}] message`. Use
+DevTools filters or `DOPPLER.getLogHistory()` to slice by category/layer.
 
 ### Debug Options
 
@@ -419,10 +386,11 @@ if (!recorder) {
 
 ## 4. Common Bug Patterns (Consolidated from Postmortems)
 
-These patterns are consolidated from actual debugging sessions. Each links to its detailed postmortem.
+These patterns are consolidated from actual debugging sessions. Detailed
+postmortems are tracked internally.
 
 ### Pattern A: Uniform Buffer Layout Mismatch
-**Postmortem**: [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/2025-12-17-softmax-uniform-buffer.md)
+**Postmortem**: Internal - SOFTMAX-UNIFORM-BUFFER
 
 **Symptom**: Kernel correctness test fails, wrong results despite no errors.
 
@@ -443,34 +411,29 @@ uniformView.setUint32(4, outerSize, true);   // offset 4
 ```
 
 ### Pattern B: Q4_K Quantization Format Mismatch
-**Postmortem**: [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/2025-12-16-gemma3-debug.md)
+**Postmortem**: Internal - GEMMA3-DEBUG
 
 **Symptom**: All dequantized values positive, no negative weights.
 
 **Root cause**: Quantizer stores `min` differently than llama.cpp format. Must store `-actual_min` as positive offset.
 
-**Quick check**:
-```bash
-# Round-trip test
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="kernels", cli.filter="dequant"
-```
+**Quick check**: Open `tests/harness.html` in `kernels` mode and run the
+dequant round-trip from the console:
+`window.testHarness.runDequantQ4K(...)` or `window.testHarness.runDequantAndMatmulF16W(...)`.
 
 **Fix**: `value = d * sc * q - dmin * min` (subtract, not add)
 
 ### Pattern C: 2D Dispatch Without Linearization
-**Postmortem**: [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/2025-12-20-bf16-2d-dispatch.md)
+**Postmortem**: Internal - BF16-2D-DISPATCH
 
 **Symptom**: Works for small tensors, zeros/garbage for large tensors (>65K workgroups).
 
 **Root cause**: Kernel ignores `global_id.y` in 2D dispatch. WebGPU limits 65535 workgroups per dimension.
 
-**Quick check**:
-```bash
-# Test high token IDs (set runtime.shared.benchmark.run.customPrompt in config)
-doppler --config ./bench-token-10000.json
-# bench-token-10000.json should set cli.command="bench", cli.suite="inference"
-```
+**Quick check**: Run inference or bench mode with a long prompt. Set
+`runtime.shared.benchmark.run.customPrompt` (or `runtime.inference.prompt`)
+to a 10k-token string and launch `tests/harness.html` in `bench` or `inference`
+mode.
 
 **Fix**:
 ```wgsl
@@ -478,7 +441,7 @@ let linear_idx = global_id.y * (uniforms.workgroupsX * WORKGROUP_SIZE) + global_
 ```
 
 ### Pattern D: 'auto' Layout Silent Failure
-**Postmortem**: [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/2025-12-22-moe-explicit-layout.md)
+**Postmortem**: Internal - MOE-EXPLICIT-LAYOUT
 
 **Symptom**: Kernel runs without errors but outputs all zeros.
 
@@ -492,34 +455,27 @@ const layout = device.createBindGroupLayout({ entries: [/* ALL bindings */] });
 ```
 
 ### Pattern E: FFN Value Explosion (Masked by Sandwich Norm)
-**Postmortem**: [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/2025-12-19-pipeline-verification.md)
+**Postmortem**: Internal - PIPELINE-VERIFICATION
 
 **Symptom**: Near-uniform logits (<10% top token probability).
 
 **Root cause**: FFN explodes but post-FFN norm masks it. Information already destroyed.
 
-**Quick check**:
-```bash
-# Check FFN values BEFORE normalization
-doppler --config <ref> 2>&1 | grep "FFN.*down\|FFN.*FINAL"
-# Values > 1000 = explosion
-# <ref>: cli.command="bench", cli.suite="inference"
-```
+**Quick check**: Enable `runtime.shared.debug.trace` with categories `ffn`
+and filter the console with `/FFN.*(down|FINAL)/`. Values > 1000 indicate
+an explosion.
 
 **Fix**: Track values at every stage BEFORE normalization.
 
 ### Pattern F: Hidden State Explosion
-**Postmortem**: [POSTMORTEMS.md](POSTMORTEMS.md) - See q_norm/k_norm and Q4K sections
+**Postmortem**: Internal index (q_norm/k_norm and Q4K sections)
 
 **Symptom**: maxAbs grows from ~20 to 800+ through layers. Output is garbage Unicode.
 
 **Root cause**: q_norm/k_norm weights missing +1 offset (Gemma 3 uses `(1 + weight)` formula for ALL norms), combined with Q4K layout mismatch causing fallback to dequantized weights.
 
-**Quick check**:
-```bash
-doppler --config <ref> 2>&1 | grep -E "TRACE|explosion"
-# <ref>: cli.command="debug"
-```
+**Quick check**: Enable `runtime.shared.debug.trace` and filter the console
+with `/TRACE|explosion/` or slice `DOPPLER.getLogHistory()`.
 
 **Fix**: Use `getNormWeightBuffer()` for q_norm/k_norm in attention.js. Reconvert model after loader fix.
 
@@ -527,26 +483,21 @@ doppler --config <ref> 2>&1 | grep -E "TRACE|explosion"
 
 ## 4.1 Experimental Debug Techniques
 
-### One-Liner Debug Scripts
+### Browser Debug Helpers
 
-```bash
-# Watch hidden state explosion in real-time
-doppler --config <ref> 2>&1 | \
-  grep -E "LAYER_[0-9]+.*maxAbs" | \
-  while read line; do
-    abs=$(echo "$line" | grep -oP 'maxAbs=[\d.]+' | cut -d= -f2)
-    [ $(echo "$abs > 500" | bc -l) -eq 1 ] && echo "EXPLOSION: $line" || echo "$line"
-  done
+```javascript
+// Watch hidden state maxAbs values
+const logs = DOPPLER.getLogHistory({ last: 500 });
+const maxAbs = logs
+  .filter((entry) => entry.message.includes('maxAbs='))
+  .map((entry) => entry.message);
+console.log(maxAbs);
 
-# Compare logit rankings for specific tokens
-doppler --config <ref> 2>&1 | \
-  grep -E "blue=|BLUE=|sky=" | tail -5
-
-# Extract just the layer-by-layer maxAbs values for plotting
-doppler --config <ref> 2>&1 | \
-  grep "LAYER.*maxAbs" | \
-  sed 's/.*LAYER_\([0-9]*\).*maxAbs=\([0-9.]*\).*/\1 \2/' > /tmp/layer_maxabs.dat
-# <ref>: cli.command="bench", cli.suite="inference"
+// Compare recent top-5 logits
+const top5 = logs
+  .filter((entry) => entry.message.includes('top-5'))
+  .slice(-5);
+console.log(top5.map((entry) => entry.message));
 ```
 
 ### Diff Against Reference Implementation
@@ -586,28 +537,14 @@ if (layerIdx === 14) {  // Explosion starts here
 
 ### Binary Search for Bug Location
 
-```bash
-# If output is garbage, binary search which layer breaks it
-for layer in 0 5 10 15 20 25; do
-  echo "Testing up to layer $layer"
-  # Modify pipeline to exit early at $layer
-  npm run build:doppler
-  doppler --config <ref> 2>&1 | grep "top-5"
-done
-# <ref>: cli.command="bench", cli.suite="inference"
-```
+Use `runtime.shared.debug.trace.layers` or `runtime.shared.debug.pipeline.layers`
+to focus logs on specific layers. If you must hard-stop execution at a layer,
+add a temporary guard in the pipeline and reload the browser.
 
 ### Buffer Content Comparison
 
-```bash
-# Dump buffer contents for offline analysis
-doppler --config <ref> 2>&1 | \
-  grep -A 20 "FINAL_HIDDEN" > /tmp/doppler_hidden.txt
-# <ref>: cli.command="bench", cli.suite="inference"
-
-# Compare with previous run
-diff /tmp/doppler_hidden_good.txt /tmp/doppler_hidden.txt
-```
+Use `DOPPLER.getLogHistory()` to collect buffer readback logs and copy them
+from the DevTools console for offline diffing.
 
 ---
 
@@ -752,44 +689,39 @@ console.log('[Pool]', getPoolStats());
 
 ---
 
-## 11. Test Commands
+## 11. Test Runs (Browser)
 
-All CLI commands are config-only. Headless/headed is set via `cli.headless`.
-Set `runtime.shared.tooling.intent` to match the command (verify/test, investigate/debug, calibrate/bench):
+All test flows run via `tests/harness.html` or the demo UI. Set
+`runtime.shared.tooling.intent` to match the workload (verify/investigate/calibrate).
 
-```bash
-# Quick kernel validation
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="quick"
+Example configs:
 
-# Inference test with debug output
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="inference", runtime.shared.debug.logLevel.defaultLogLevel="verbose"
-
-# Layer-by-layer analysis
-doppler --config <ref> 2>&1 | grep -E "LAYER_[0-9]+_LAST"
-# <ref>: cli.command="bench", cli.suite="inference"
-
-# Final hidden state and logits
-doppler --config <ref> 2>&1 | grep -E "FINAL_HIDDEN|logits|top-5|Generated"
-# <ref>: cli.command="bench", cli.suite="inference"
-
-# Specific kernel test
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="kernels", cli.filter="matmul-q4k"
-
-# Specific model
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="inference", model="gemma3-1b-q4"
-
-# Headless mode (for CI)
-doppler --config <ref>
-# <ref>: cli.command="test", cli.suite="kernels", cli.headless=true
-doppler --config <ref>
-# <ref>: cli.command="bench", cli.suite="inference", cli.headless=true
+```json
+{
+  "shared": {
+    "tooling": { "intent": "verify" },
+    "harness": { "mode": "kernels", "autorun": true }
+  }
+}
 ```
 
-**Manual browser testing:** Run `npm start` first, then open `http://localhost:8080/d`.
+```json
+{
+  "shared": {
+    "tooling": { "intent": "verify" },
+    "debug": { "logLevel": { "defaultLogLevel": "verbose" } },
+    "harness": { "mode": "inference", "autorun": true, "modelId": "gemma3-1b-q4" }
+  },
+  "inference": { "prompt": "Hello from Doppler." }
+}
+```
+
+Use DevTools filters for layer-by-layer analysis (e.g. `/LAYER_.*_LAST/`) and
+top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
+`window.testHarness.runMatmul(...)` or related helpers from the console.
+
+**Manual browser testing:** Run `python3 -m http.server 8080`, then open
+`http://localhost:8080/tests/harness.html` or `http://localhost:8080/demo/`.
 
 ---
 
@@ -848,13 +780,13 @@ await recorder.submitAndWait();
 
 | Issue | Root Cause | File | Status |
 |-------|-----------|------|--------|
-| Garbage tokens (unused16) | Q4_K quantization format | [GEMMA3-DEBUG-POSTMORTEM.md](postmortems/2025-12-16-gemma3-debug.md) | Fixed |
-| FFN value explosion | Quantization + sign handling | [PIPELINE-VERIFICATION-POSTMORTEM.md](postmortems/2025-12-19-pipeline-verification.md) | Fixed |
-| Zero embeddings high token IDs | 2D dispatch linearization | [BF16-2D-DISPATCH-POSTMORTEM.md](postmortems/2025-12-20-bf16-2d-dispatch.md) | Fixed |
-| Kernel outputs zeros | 'auto' layout mismatch | [MOE-EXPLICIT-LAYOUT-POSTMORTEM.md](postmortems/2025-12-22-moe-explicit-layout.md) | Fixed |
+| Garbage tokens (unused16) | Q4_K quantization format | GEMMA3-DEBUG (internal) | Fixed |
+| FFN value explosion | Quantization + sign handling | PIPELINE-VERIFICATION (internal) | Fixed |
+| Zero embeddings high token IDs | 2D dispatch linearization | BF16-2D-DISPATCH (internal) | Fixed |
+| Kernel outputs zeros | 'auto' layout mismatch | MOE-EXPLICIT-LAYOUT (internal) | Fixed |
 | Decode broken, prefill works | SiLU gating bug | (this guide, Pattern A) | Fixed |
-| Softmax test failure | Uniform buffer layout swapped | [SOFTMAX-UNIFORM-BUFFER-POSTMORTEM.md](postmortems/2025-12-17-softmax-uniform-buffer.md) | Fixed |
-| Hidden state explosion | q_norm/k_norm +1 offset + Q4K layout | [POSTMORTEMS.md](POSTMORTEMS.md) | Fixed |
+| Softmax test failure | Uniform buffer layout swapped | SOFTMAX-UNIFORM-BUFFER (internal) | Fixed |
+| Hidden state explosion | q_norm/k_norm +1 offset + Q4K layout | Internal postmortem index | Fixed |
 
 ---
 
@@ -867,7 +799,7 @@ When debugging DOPPLER issues:
 3. **Check value ranges** - maxAbs explosion is a red flag
 4. **Verify shapes** - Buffer sizes must match expected dimensions
 5. **Test boundaries** - Token IDs, sequence lengths, layer indices
-6. **Check postmortems index** - See `POSTMORTEMS.md` for common patterns and lessons learned
+6. **Check postmortems index** - Internal postmortems cover common patterns and lessons learned
 7. **Compare references** - llama.cpp or transformers.js as ground truth
 
 ### Key Files to Instrument

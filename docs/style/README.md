@@ -11,14 +11,14 @@ Coding conventions for the DOPPLER codebase.
 | [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) | Shader structure, constants vs uniforms, bindings |
 | [Benchmark Style Guide](./BENCHMARK_STYLE_GUIDE.md) | Benchmark harnesses, output schema, baselines |
 | [Config Style Guide](./CONFIG_STYLE_GUIDE.md) | Config ownership, merge order, runtime boundaries |
-| [Command Interface Style Guide](./CLI_STYLE_GUIDE.md) | CLI/browser command model, config-only rules |
+| [Harness Interface Style Guide](./HARNESS_STYLE_GUIDE.md) | Browser harness interface and config-only rules |
 | [Command Interface Design Guide](./COMMAND_INTERFACE_DESIGN_GUIDE.md) | Intent clusters, exit conditions, interface contract |
 
 ## Quick Reference
 
 ### Language Policy
 
-Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (demo/cli/serve). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
+Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (`src/` and `demo/`). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
 
 ### Config Flow
 

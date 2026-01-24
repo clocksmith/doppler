@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOPPLER - Browser LLM</title>
   <link rel="icon" type="image/svg+xml" href="/src/favicon.svg">
-  <link rel="manifest" href="/doppler/manifest.json">
-  <link rel="stylesheet" href="/doppler/demo/rd.css">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="/styles/rd.css">
   <style>
     /* App Layout - Positioning Only */
     :root {
@@ -395,6 +395,75 @@
       min-height: 70px;
     }
 
+    .convert-actions,
+    .convert-queue-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .convert-queue {
+      min-height: 72px;
+      padding: var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .queue-item {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .queue-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .queue-item[data-state="error"] {
+      opacity: var(--opacity-muted);
+      text-decoration: line-through;
+    }
+
+    .queue-status {
+      opacity: var(--opacity-muted);
+    }
+
+    /* Downloader */
+    .download-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .download-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-xs);
+    }
+
+    .download-status {
+      margin-top: var(--space-sm);
+    }
+
+    .download-list {
+      margin-top: var(--space-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .download-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
     /* Diagnostics */
     .diagnostics-field {
       display: flex;
@@ -685,21 +754,23 @@
         <section class="panel convert-panel">
           <h2 class="type-label">Convert Model</h2>
           <p class="convert-description">Import GGUF or HuggingFace models</p>
-          <p class="convert-note type-caption muted">Requires tokenizer.json (tokenizer.model is not supported).</p>
+          <p class="convert-note type-caption muted">Supports tokenizer.json or tokenizer.model.</p>
           <p class="convert-note type-caption muted">Remote conversion uses HTTP range when available; otherwise it
             downloads into temporary OPFS/IndexedDB storage and cleans up.</p>
-          <p class="convert-note type-caption muted">Q4_K_M column layout is not supported; use row layout or
-            pre-quantized weights.</p>
+          <p class="convert-note type-caption muted">Q4_K_M row/column layout supported (column uses buffered reads).</p>
           <div class="convert-field">
             <label class="type-caption muted" for="convert-model-preset">Model preset override</label>
             <select id="convert-model-preset" class="w-full"></select>
           </div>
-          <button id="convert-btn" class="btn btn-primary w-full">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>
-            Select Files
-          </button>
+          <div class="convert-actions">
+            <button id="convert-btn" class="btn btn-primary w-full">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
+              Select Files
+            </button>
+            <button id="convert-queue-files" class="btn w-full">Queue Files</button>
+          </div>
           <label class="convert-toggle type-caption muted">
             <input id="convert-allow-download" type="checkbox" checked />
             Allow full download fallback for non-range servers
@@ -711,13 +782,50 @@
           <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
           <textarea id="convert-url-input" class="convert-url-input w-full"
             placeholder="https://host/model.safetensors"></textarea>
-          <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
+          <div class="convert-actions">
+            <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
+            <button id="convert-queue-urls" class="btn w-full">Queue URLs</button>
+          </div>
+          <div class="convert-field">
+            <label class="type-caption muted">Conversion queue</label>
+            <div id="convert-queue" class="convert-queue type-caption muted">Queue empty</div>
+          </div>
+          <div class="convert-queue-actions">
+            <button id="convert-queue-run" class="btn btn-primary w-full">Run Queue</button>
+            <button id="convert-queue-clear" class="btn w-full">Clear Queue</button>
+          </div>
           <div id="convert-status" class="convert-status" hidden>
             <div class="progress progress-sm">
               <div id="convert-progress" class="progress-fill"></div>
             </div>
             <span id="convert-message" class="type-caption">Ready</span>
           </div>
+        </section>
+
+        <section class="panel download-panel">
+          <h2 class="type-label">Downloader</h2>
+          <div class="download-field">
+            <label class="type-caption muted" for="download-base-url">Base URL (manifest.json + shards)</label>
+            <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
+          </div>
+          <div class="download-field">
+            <label class="type-caption muted" for="download-model-id">Storage model ID (optional)</label>
+            <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
+          </div>
+          <div class="download-actions">
+            <button id="download-start-btn" class="btn btn-primary">Start</button>
+            <button id="download-pause-btn" class="btn">Pause</button>
+            <button id="download-resume-btn" class="btn">Resume</button>
+            <button id="download-cancel-btn" class="btn">Cancel</button>
+            <button id="download-refresh-btn" class="btn">Refresh</button>
+          </div>
+          <div id="download-status" class="download-status" hidden>
+            <div class="progress progress-sm">
+              <div id="download-progress" class="progress-fill"></div>
+            </div>
+            <span id="download-message" class="type-caption">Idle</span>
+          </div>
+          <div id="download-list" class="download-list type-caption muted"></div>
         </section>
 
         <section class="panel diagnostics-panel">
@@ -1001,7 +1109,7 @@
   </script>
 
   <!-- Bootstrap entry (registers VFS + loads app) -->
-  <script type="module" src="/doppler/src/bootstrap.js"></script>
+  <script type="module" src="../src/bootstrap.js"></script>
 </body>
 
 </html>

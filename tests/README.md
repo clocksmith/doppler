@@ -2,16 +2,12 @@
 
 ## Overview
 
-This directory contains the unified test harness for Doppler inference and GPU kernels.
-The harness supports multiple modes via runtime config, consolidating what were previously
-separate test pages.
-
-> **Note:** Unit tests (Vitest) live in [`tests/unit/`](../tests/unit/).
-> GPU kernel correctness specs live in [`tests/kernels/`](../tests/kernels/).
+This directory contains the browser-only test harnesses for Doppler inference and GPU kernels.
+The unified harness supports multiple modes via runtime config.
 
 ## Unified Test Harness
 
-**URL:** `http://localhost:8080/doppler/tests/harness.html`
+**URL:** `http://localhost:8080/tests/harness.html` (serve repo root with a static server)
 
 ### Modes
 
@@ -22,7 +18,8 @@ URL parameter. The harness does not accept per-field query overrides.
 |------|---------|
 | `kernels` | GPU kernel correctness tests |
 | `inference` | Inference pipeline tests |
-| `bench` | Benchmark injection shell |
+| `bench` | Benchmark runner shell |
+| `training` | Training kernel tests |
 
 ### Mode: Kernels
 
@@ -30,26 +27,22 @@ Tests 30+ kernel functions (matmul, attention, softmax, RoPE, etc.) by comparing
 GPU output against CPU reference implementations.
 
 **Features:**
-- `window.testHarness` for Playwright automation
+- `window.testHarness` for manual runs
 - GPU capability detection (F16, subgroups, memory limits)
 
-**Playwright automation:**
 ```javascript
 // Run a specific kernel test
-const result = await page.evaluate(async () => {
-  const { testHarness } = window;
-  return await testHarness.runMatmul({ M: 128, N: 256, K: 64 });
-});
+const result = await window.testHarness.runMatmul({ M: 128, N: 256, K: 64 });
 ```
 
 ### Mode: Inference
 
-CI/automation testing of the inference pipeline.
+Manual testing of the inference pipeline.
 
 **Features:**
 - Model loading and token generation
-- Query param automation for CI integration
-- Playwright integration via `window.testState` and `window.pipeline`
+- Query param automation via `runtimeConfig`
+- Status exposed on `window.testState` and `window.pipeline`
 
 **Query Parameters:**
 
@@ -58,46 +51,23 @@ CI/automation testing of the inference pipeline.
 | `runtimeConfig` | JSON-encoded runtime config | `&runtimeConfig={...}` |
 | `configChain` | JSON-encoded config chain | `&configChain=["debug","default"]` |
 
-**Playwright automation:**
-```javascript
-// Wait for test to complete
-await page.waitForFunction(() => window.testState?.done === true);
-
-// Check results
-const state = await page.evaluate(() => window.testState);
-console.log('Output:', state.output);
-console.log('Errors:', state.errors);
-```
-
 ### Mode: Bench
 
-Shell for Playwright to inject benchmark scripts. Initializes WebGPU and signals
-ready via `window.dopplerReady = true`.
-
-Used by CLI bench runs (e.g., `doppler --config <ref>`).
+Initializes WebGPU and signals ready via `window.dopplerReady = true`.
+You can run `runBrowserSuite({ suite: 'bench', modelId })` from the console or use the demo diagnostics UI.
 
 ---
 
 ## Running Tests
 
 ```bash
-# Start dev server
-npm start
+# Start a static server
+python3 -m http.server 8080
 
-# CPU unit tests
-npm run test:unit
-
-# GPU kernel tests (cli.command=test, cli.suite=kernels)
-doppler --config <ref>
-
-# Inference smoke test (cli.command=test, cli.suite=inference)
-doppler --config <ref>
-
-# Manual browser testing
 # Manual browser testing (runtimeConfig defines harness mode)
-node -e "const cfg={shared:{harness:{mode:'inference',autorun:true,skipLoad:false,modelId:'gemma3-1b-q4'}}};console.log(encodeURIComponent(JSON.stringify(cfg)));"
-# Paste output into:
-# http://localhost:8080/doppler/tests/harness.html?runtimeConfig=...
+# Example runtimeConfig:
+# {"shared":{"harness":{"mode":"inference","autorun":true,"skipLoad":false,"modelId":"gemma3-1b-q4"}}}
+# Encode with encodeURIComponent(JSON.stringify(...)) in devtools.
 ```
 
 ## Shared Test Utilities
@@ -106,13 +76,13 @@ The `inference/test-harness.js` module provides shared utilities:
 
 ```typescript
 import {
-  discoverModels,           // Fetch models from /api/models
+  discoverModels,             // Fetch models from /api/models (optional)
   parseRuntimeOverridesFromURL, // Parse runtimeConfig from URL params
-  createHttpShardLoader,    // Create HTTP-based shard loader
-  fetchManifest,            // Fetch and parse manifest.json
-  initializeDevice,         // Initialize WebGPU device
-  createTestState,          // Create standard test state object
-} from '/doppler/dist/inference/test-harness.js';
+  createHttpShardLoader,      // Create HTTP-based shard loader
+  fetchManifest,              // Fetch and parse manifest.json
+  initializeDevice,           // Initialize WebGPU device
+  createTestState,            // Create standard test state object
+} from '/src/inference/test-harness.js';
 ```
 
 ## Related Documentation

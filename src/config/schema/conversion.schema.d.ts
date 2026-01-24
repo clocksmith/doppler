@@ -33,6 +33,8 @@ export interface ParsedModelSchema {
   architecture?: string;
   quantization?: string;
   tokenizerJson?: unknown;
+  tokenizerConfig?: unknown;
+  tokenizerModel?: unknown;
 }
 
 /** Raw config from source (HuggingFace or GGUF style) */

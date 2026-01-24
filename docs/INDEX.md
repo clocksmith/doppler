@@ -7,14 +7,16 @@ Quick index for DOPPLER documentation.
 ## Core Docs
 
 - [Architecture](ARCHITECTURE.md) - System overview and pipeline.
-- [Browser vs CLI Capabilities](browser-vs-cli-capabilities.md) - Parity matrix, gaps, and references.
+- [Browser Capabilities](../../docs/BROWSER_CAPABILITIES.md) - Browser-only matrix, gaps, and references.
 - [Config](CONFIG.md) - Kernel paths and error codes.
 - [Formats](FORMATS.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](OPERATIONS.md) - Troubleshooting, debug notes, perf investigations, results.
+- [Benchmarking](BENCHMARKING.md) - Default bench workflow and baseline targets.
 - [Testing](TESTING.md) - Testing strategy, kernel testing, known-good matrix.
+- [Agent Intent Bundle Template](AGENT_INTENT_BUNDLE.md) - Review-ready change proposal checklist.
+- [Intent Bundle Spec](../../docs/INTENT_BUNDLE.md) - Canonical schema and examples.
 - [Roadmap](ROADMAP.md) - Vision, plans, competitive notes.
-- [Postmortems](POSTMORTEMS.md) - Incident summaries and links.
-- [Traction](TRACTION.md) - Performance metrics, VRAM constraints, browser matrix, failure modes.
+- [Traction](PERFORMANCE.md) - Performance metrics, VRAM constraints, browser matrix, failure modes.
 
 ---
 
@@ -33,3 +35,5 @@ Quick index for DOPPLER documentation.
 - [Kernel Benchmarks](../tests/kernels/BENCHMARKS.md) - Baseline expectations and notes.
 
 *Last updated: January 2026*
+
+Note: Internal postmortems and deep-dive subsystem notes live in the private wrapper repo.

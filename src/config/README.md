@@ -1,5 +1,12 @@
 # DOPPLER Config System
 
+Purpose: Runtime configuration, schemas, and kernel-path selection for inference.
+
+## Scope
+
+- Runtime config APIs, schemas, and preset loading.
+- Model family presets and kernel path registries.
+
 This directory contains the configuration system for DOPPLER inference.
 
 ## Directory Structure
@@ -104,9 +111,9 @@ defaults → preset → config file → inline JSON
    - Add to `KERNEL_PATH_REGISTRY`
 
 4. **Test**:
-   - Convert model: `doppler --config ./converter.json`
+   - Convert model in the demo UI (Import → Convert)
    - Verify manifest has `defaultKernelPath`
-   - Run inference: `doppler --config <ref>` (config must set `model`)
+   - Run inference via diagnostics UI or `tests/harness.html` (runtime config defines model)
 
 ## MoE Models (GPT-OSS, Mixtral)
 

@@ -224,14 +224,6 @@ export async function decodeStep(state, currentIds, opts, helpers) {
           greedyThreshold: samplingDefaults.greedyThreshold,
         });
 
-    const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
-
-    recorder.submit();
-
-    if (!allowReadback('pipeline.decode.sample')) {
-      throw new Error('[Pipeline] GPU readback disabled for sampling');
-    }
-
     const ringStagingBuffer = ringSlot?.stagingTokens ?? null;
     const stagingBuffer = ringStagingBuffer ?? device.createBuffer({
       label: 'sample_staging',
@@ -241,9 +233,15 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const ownsStagingBuffer = !ringStagingBuffer;
     const ownsSampleOutputBuffer = !ringTokensBuffer || sampleOutputBuffer !== ringTokensBuffer;
 
-    const copyEncoder = device.createCommandEncoder({ label: 'sample_copy' });
-    copyEncoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
-    device.queue.submit([copyEncoder.finish()]);
+    const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+    const encoder = recorder.getEncoder();
+    encoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
+
+    recorder.submit();
+
+    if (!allowReadback('pipeline.decode.sample')) {
+      throw new Error('[Pipeline] GPU readback disabled for sampling');
+    }
 
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     const nextToken = new Uint32Array(stagingBuffer.getMappedRange())[0];
@@ -655,19 +653,17 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const recordMs = performance.now() - recordStart;
   state.stats.decodeRecordMs = (state.stats.decodeRecordMs ?? 0) + recordMs;
 
+  const encoder = recorder.getEncoder();
+  encoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
+  if (effectiveStopCheckMode === 'per-token' && stopBuffer && stopStagingBuffer) {
+    encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
+  }
+
   recorder.submit();
 
   if (!allowReadback('pipeline.decode.sample')) {
     throw new Error('[Pipeline] GPU readback disabled for sampling');
   }
-
-  const copyEncoder = device.createCommandEncoder({ label: 'tokens_copy' });
-  copyEncoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
-
-  if (effectiveStopCheckMode === 'per-token' && stopBuffer && stopStagingBuffer) {
-    copyEncoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
-  }
-  device.queue.submit([copyEncoder.finish()]);
 
   const readbackStart = performance.now();
   const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];

@@ -169,7 +169,7 @@ This is the key design decision for kernel variants.
 **Strict Rule (The "Topology Test"):**
 Do not fork entry points for data values, dimensions, or optional math operations. Only fork entry points when the **loop nesting order** or **synchronization strategy** changes.
 
-**Config Reminder:** Runtime tunables live in config only. Do not add WGSL-side flags that are toggled via CLI/URL overrides.
+**Config Reminder:** Runtime tunables live in config only. Do not add WGSL-side flags that are toggled via URL overrides.
 
 | Mechanism | When Set | Perf Cost | Use For |
 |-----------|----------|-----------|---------|
@@ -320,11 +320,8 @@ Keep non-optimized baseline variants available for debugging:
 
 ### Enforcement
 
-Validate kernel registry and check for policy violations:
-
-```bash
-npm run kernels:check   # Registry validation + override-array lint
-```
+Validate kernel registry and check for policy violations by running the kernel
+harness (`tests/harness.html`, mode `kernels`) and reviewing console warnings.
 
 ---
 
@@ -636,8 +633,12 @@ Kernel paths are explicit dispatch sequences. See `../CONFIG.md`.
 
 ### OPFS Purge Helper
 
-Manifest updates in OPFS require a purge to take effect:
+Manifest updates in OPFS require a purge to take effect. In DevTools (from
+`/tests/harness.html` or `/demo/`), run:
 
-```bash
-doppler --config ./tmp-opfs-purge.json
+```javascript
+const { listModels, deleteModel } = await import('../src/storage/shard-manager.js');
+for (const modelId of await listModels()) {
+  await deleteModel(modelId);
+}
 ```

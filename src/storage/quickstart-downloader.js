@@ -37,8 +37,8 @@ function getEffectiveCDNBaseUrl() {
     }
     return `${window.location.origin}/models`;
   }
-  // Fallback for Node.js/SSR
-  return '/doppler/models';
+  // Fallback for non-window contexts
+  return '/models';
 }
 
 

@@ -116,8 +116,8 @@ export async function recordTopK(recorder, probs, numTokens, numExperts, topK, o
   return { indices, weights };
 }
 
-// Cached explicit bind group layout for MoE gather (all 6 bindings)
-// See docs/postmortems/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md for why this is needed
+// Cached explicit bind group layout for MoE gather (all 6 bindings).
+// Internal postmortems cover why this explicit layout is required.
 
 let moeGatherBindGroupLayout = null;
 

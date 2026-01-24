@@ -38,7 +38,6 @@ doppler/
 │   └── debug/            # Logging and tracing
 ├── tests/kernels/        # GPU kernel validation
 ├── demo/                 # Demo UI
-├── cli/                  # CLI entry point
 └── docs/                 # Documentation
 ```
 
@@ -46,49 +45,28 @@ doppler/
 - Read `docs/ARCHITECTURE.md` for system overview
 - Read `docs/FORMATS.md` for model format specification
 - Review `src/inference/pipeline.js` for inference flow
-- Review `src/config/runtime.js` and `cli/config/` for runtime config plumbing
+- Review `src/config/runtime.js` and `src/inference/browser-harness.js` for runtime config plumbing
 
-### CLI Commands
+### Browser Entry Points
 
-| Script | Purpose |
-|--------|---------|
-| `npm start` | Dev server at localhost:8080 |
-| `npm test` | Unit tests (Vitest) |
-| `npm run test:gpu` | GPU/browser tests (config-only) |
-| `npm run bench` | Performance benchmarks (config-only) |
-| `npm run debug` | Debug runs (config-only) |
-
-```bash
-npm test -- --filter matmul          # Filter to specific kernel
-npm run test:gpu -- --config <ref>   # GPU/browser suite via config
-npm run bench -- --config bench      # Benchmark preset
-npm run debug -- --config debug      # Debug preset (trace/logs via config)
-```
-
-### CLI Interface
-
-The DOPPLER CLI is config-only. The only supported CLI flags are `--config` and `--help`.
-Model selection, headless/headed, command, and suite must live in the config.
+- `demo/index.html` — conversion + diagnostics UI
+- `tests/harness.html` — kernels/inference/training harness
 
 ### Config System
 
-```bash
-npm run debug -- --config debug              # Use preset
-npm run bench -- --config ./my-config.json   # Use file
-```
+Use runtime presets or `runtimeConfig` URL params in the browser harness or demo UI.
 
 **Preset Rules:**
-- Runtime presets live in `src/config/presets/runtime`. CLI only loads these.
+- Runtime presets live in `src/config/presets/runtime` and are applied by the browser harness.
 - Model presets live in `src/config/presets/models`. Loader uses these for model detection.
 - Do not mix model presets with runtime presets.
 
 **Runtime Config Plumbing:**
-- CLI `--config` loads a runtime config (merged with defaults) and passes it via the `runtimeConfig` URL param to the browser harness.
-- Test harnesses parse `runtimeConfig` and call `setRuntimeConfig()` before pipeline/loader init.
+- The browser harness parses `runtimeConfig` and calls `setRuntimeConfig()` before pipeline/loader init.
 - For per-instance overrides, pass `PipelineContexts.runtimeConfig` to `createPipeline()`.
 - Subsystems should read tunables via `getRuntimeConfig()`; avoid importing `DEFAULT_*` in runtime code.
 - Canonical max tokens lives in `runtime.inference.batching.maxTokens`. `runtime.inference.sampling.maxTokens` is removed.
-- `runtime.shared.tooling.intent` is required for CLI runs (verify/investigate/calibrate).
+- `runtime.shared.tooling.intent` is required for diagnostics/bench runs (verify/investigate/calibrate).
 
 **Layer Pipeline Plans (experimental):**
 - Model presets may define `inference.pipeline` to drive per-layer step order.
@@ -122,7 +100,7 @@ trace.kernels(`matmul M=${M} N=${N}`);
 ```
 
 Exceptions: `tools/`, `tests/kernels/`, and one-time startup messages in `src/gpu/device.js`.
-Also acceptable: CLI entry points (`cli/`, `serve.js`, `src/converter/node-converter.js`) for direct terminal output.
+Also acceptable: demo entry points (`demo/`, `tests/harness.html`) for direct console output.
 
 ### No Ad-Hoc Debug Logging
 
@@ -168,15 +146,10 @@ Use config-driven probes to inspect values—do not add ad-hoc log statements:
 | `topk` | Top-K selection |
 | `sample` | GPU sampling |
 
-### CLI Tools
+### Browser Tools
 
-```bash
-# Convert model to RDRR format
-npx tsx src/converter/node-converter.js model.gguf ./output
-
-# Dev server
-npx tsx serve.js --port 3000
-```
+- Use the demo UI (`demo/index.html`) for conversion and diagnostics.
+- Use a static server (e.g. `python3 -m http.server 8080`) for local runs.
 
 
 ### Skills

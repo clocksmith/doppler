@@ -1,23 +1,5 @@
 {
   "model": "google-gemma-3-1b-it-wq4k-ef16",
-  "cli": {
-    "command": "bench",
-    "suite": "inference",
-    "baseUrl": "http://localhost:8080",
-    "noServer": false,
-    "headless": true,
-    "minimized": false,
-    "reuseBrowser": true,
-    "cdpEndpoint": "http://localhost:9222",
-    "timeout": 300000,
-    "retries": 2,
-    "profileDir": "tests/results/kernel-path-grid/profiles-gemma3-q4k-fused-f16a",
-    "output": "/Users/xyz/deco/ouroboros/doppler/tests/results/kernel-path-grid/grid_google-gemma-3-1b-it-wq4k-ef16_gemma3-q4k-fused-f16a.json",
-    "html": null,
-    "compare": null,
-    "filter": null,
-    "tool": "kernel-path-grid"
-  },
   "runtime": {
     "shared": {
       "debug": {

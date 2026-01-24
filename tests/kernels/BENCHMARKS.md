@@ -25,8 +25,7 @@ This document describes the benchmark configurations and expected baseline perfo
 
 ## Benchmark Results
 
-> **Note**: Run `doppler --config <ref>` to collect numbers on your hardware.
-> The config must set `cli.command="bench"` and `cli.suite="kernels"`.
+> **Note**: Run benchmarks in the browser harness to collect numbers on your hardware.
 > Results vary significantly by GPU vendor and driver version.
 
 ### Expected Ranges (Apple M1/M2/M3)
@@ -75,14 +74,12 @@ This document describes the benchmark configurations and expected baseline perfo
 ## Running Benchmarks
 
 ```bash
-# Run all benchmarks (config-driven)
-doppler --config <ref>
-
-# Run specific benchmark file
-npx playwright test tests/benchmarks/matmul.bench.ts
+python3 -m http.server 8080
+# Open http://localhost:8080/tests/harness.html?runtimeConfig=...
+# Then invoke benchmark helpers from the console (window.testHarness).
 ```
 
-For extra output, use `runtime.shared.debug.logLevel` or trace categories in the config.
+For extra output, use `runtime.shared.debug.logLevel` or trace categories in the runtime config.
 
 ## Interpreting Results
 
@@ -117,10 +114,9 @@ For extra output, use `runtime.shared.debug.logLevel` or trace categories in the
 
 ## Adding New Benchmarks
 
-1. Add configuration to `tests/benchmarks/config.ts`
-2. Create benchmark file in `tests/benchmarks/`
-3. Use `BENCHMARK_SETTINGS` for warmup/iteration counts
-4. Report median time and derived metrics
+1. Add a benchmark helper in `tests/kernels/browser/test-page.js`
+2. Use `KernelBenchmark` for warmup/iteration counts
+3. Report median time and derived metrics in the console
 
 Example:
 ```javascript

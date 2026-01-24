@@ -2,158 +2,98 @@
 
 ## Testing Strategy
 
-> For cross-project test strategy and Ouroboros testing, see [TEST_PLAN.md](../../TEST_PLAN.md)
-
 ## Test Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     DOPPLER Test Pyramid                     │
+│                     DOPPLER Test Stack                      │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              End-to-End Inference                    │   │
-│  │   doppler --config (cli.command=test, suite=inference)│   │
-│  │    Model load → Pipeline → Generate → Validate       │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                           │                                 │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              GPU Kernel Correctness                  │   │
-│  │    doppler --config (cli.command=test, suite=kernels)│   │
-│  │    WGSL kernels vs CPU reference implementations     │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                           │                                 │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                 CPU Unit Tests                       │   │
-│  │              npm run test:unit                       │   │
-│  │    Tokenizer, manifest parsing, utilities            │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
+│  End-to-end inference + bench (browser harness + demo)      │
+├─────────────────────────────────────────────────────────────┤
+│  GPU kernel correctness (tests/kernels/browser)             │
+├─────────────────────────────────────────────────────────────┤
+│  Training kernels + parity (tests/training/browser)         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Key Points:**
-- **GPU tests** require Chrome/Chromium with WebGPU (Playwright handles this)
-- **CPU tests** run in Node.js via Vitest (no GPU needed)
-- **Benchmarks** measure performance, not correctness (separate from tests)
-- **CLI runs** require `runtime.shared.tooling.intent` (verify/investigate/calibrate)
+- **All test flows run in the browser** (no Node/Vitest/Playwright).
+- **Runtime config drives behavior**; set `runtime.shared.tooling.intent` for verify/debug/bench.
+- **Models load from OPFS/IndexedDB or `/models/<id>` when served locally.**
 
 ## Related Documentation
 
 | Doc | Purpose |
 |-----|---------|
-| [TEST_PLAN.md](../../TEST_PLAN.md) | Cross-project test strategy |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture context |
 | `../tests/kernels/README.md` | Kernel test coverage and design notes |
 | `style/BENCHMARK_STYLE_GUIDE.md` | Benchmark methodology |
-| `POSTMORTEMS.md` | Test-related incident history |
+| Internal postmortems (private wrapper repo) | Test-related incident history |
 | `../tests/kernels/BENCHMARKS.md` | Benchmark baselines |
 
 ---
 
 ## Quick Reference
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `doppler --config <ref>` | Quick kernel tests (`cli.command=test`, `cli.suite=quick`) | CI, before commits |
-| `doppler --config <ref>` | Full kernel correctness (`cli.command=test`, `cli.suite=kernels`) | After GPU kernel changes |
-| `doppler --config <ref>` | Model load + generate (`cli.command=test`, `cli.suite=inference`) | After pipeline changes |
-| `npm run test:unit` | CPU unit tests | After non-GPU code changes |
-| `doppler --config <ref>` | Inference benchmark (`cli.command=bench`, `cli.suite=inference`) | Performance measurement |
-| `doppler --config <ref>` | Kernel benchmarks (`cli.command=bench`, `cli.suite=kernels`) | Before/after kernel optimizations |
-| `doppler --config <ref>` | Debug with trace (`cli.command=debug`) | Investigating inference bugs |
+| Action | How | When to Use |
+|--------|-----|-------------|
+| Kernel correctness | `tests/harness.html` mode `kernels` | After GPU kernel changes |
+| Inference smoke test | `tests/harness.html` mode `inference` | After pipeline changes |
+| Benchmarks | Demo diagnostics (suite: `bench`) | Performance measurement |
+| Training kernels | `tests/harness.html` mode `training` | Training work |
 
 ## Test Systems
 
-### 1. Kernel Tests (config: `cli.command=test`, `cli.suite=kernels`)
+### 1. Kernel Tests (mode: `kernels`)
 
-GPU kernel correctness validation via Playwright + WebGPU.
+GPU kernel correctness validation via the browser harness.
 
-Create a config file (example):
+Example runtime config:
 
 ```json
 {
-  "extends": "ci",
-  "model": "gemma-3-1b-it-q4",
-  "cli": {
-    "command": "test",
-    "suite": "kernels",
-    "filter": "matmul",
-    "headless": true,
-    "output": "results.json"
+  "shared": {
+    "tooling": { "intent": "verify" },
+    "harness": {
+      "mode": "kernels",
+      "autorun": true
+    }
   }
 }
 ```
 
-Run the suite:
+Open:
+`http://localhost:8080/tests/harness.html?runtimeConfig=...`
 
-```bash
-doppler --config ./kernel-tests.json
-```
-
-Set `cli.suite` to `quick` for CI defaults, toggle `cli.headless` for a visible
-browser, set `cli.filter` for a specific kernel, and use `cli.output` to write
-results.
-
-**Kernels tested:** matmul, attention, rmsnorm, softmax, rope, silu, gather, scatter-add, moe-gather, residual, topk, dequant
-
-### 2. Inference Test (config: `cli.command=test`, `cli.suite=inference`)
+### 2. Inference Test (mode: `inference`)
 
 End-to-end model loading and token generation.
 
-Create a config file (example):
+Example runtime config:
 
 ```json
 {
-  "extends": "debug",
-  "model": "mistral-7b-q4",
-  "cli": {
-    "command": "test",
-    "suite": "inference",
-    "headless": false
+  "shared": {
+    "tooling": { "intent": "verify" },
+    "harness": {
+      "mode": "inference",
+      "autorun": true,
+      "skipLoad": false,
+      "modelId": "gemma3-1b-q4"
+    }
+  },
+  "inference": {
+    "prompt": "Hello from Doppler."
   }
 }
 ```
 
-Run the test:
+### 3. Performance Benchmarks
 
-```bash
-doppler --config ./inference-test.json
-```
+Use the demo diagnostics UI (`/demo/`) and choose `bench` as the suite. The
+bench runner uses `runtime.shared.benchmark.run` for warmups and timing.
 
-**What it tests:**
-- WebGPU initialization
-- Model manifest parsing
-- Shard loading
-- Pipeline creation
-- Token generation (50 tokens)
-
-### 3. CPU Unit Tests (`npm run test:unit`)
-
-Non-GPU JavaScript/TypeScript unit tests.
-
-```bash
-npm run test:unit             # Run once
-npx vitest --watch            # Watch mode
-npx vitest --ui               # Interactive UI
-npx vitest run --coverage     # With coverage report
-```
-
-### 4. Performance Benchmarks (config: `cli.command=bench`)
-
-Use `doppler --config <ref>` with `cli.command=bench` for performance measurement.
-
-```bash
-# Inference benchmark (config specifies command/suite/model)
-doppler --config <ref>
-
-# Kernel microbenchmarks (config with cli.suite="kernels")
-doppler --config <ref>
-```
-
-**Prompt sizes:** `xs` (6-10 tokens), `short`, `medium`, `long` (set via `runtime.shared.benchmark.run.promptName`)
-
-### 5. Log Levels
+### 4. Log Levels
 
 Control loader output verbosity via runtime config:
 
@@ -164,62 +104,47 @@ Control loader output verbosity via runtime config:
 | `runtime.shared.debug.trace.enabled=true` | trace | + Tensor shapes, dequant ops |
 | `...=silent` | silent | Errors only |
 
-```bash
-# Show shard sources (RAM/OPFS/network)
-doppler --config ./debug-bench.json
-```
-
 ## Prerequisites
 
-- **CLI commands:** Server auto-starts, no manual setup needed
-- **For inference/pipeline tests:** Ensure model is available at `/doppler/models/<model-name>/`
-- **For headed mode:** Chrome with WebGPU support required
+- WebGPU-capable browser (Chrome/Chromium recommended)
+- Static server for local files (e.g. `python3 -m http.server 8080`)
 
 ## Test URLs (Manual Browser Testing)
 
-For manual browser testing, start the server first: `npm start`
+Start the server first: `python3 -m http.server 8080`
 
-Open in browser while dev server is running:
-
-- **Unified test harness:** http://localhost:8080/doppler/tests/harness.html
+- **Unified test harness:** http://localhost:8080/tests/harness.html
   - Modes are configured via `runtime.shared.harness` and passed in `runtimeConfig`
   - The harness does not accept per-field URL overrides
-- **Demo UI:** http://localhost:8080/d
+- **Demo UI:** http://localhost:8080/demo/
 
 Example (inference mode):
-```bash
-node -e "const cfg={shared:{harness:{mode:'inference',autorun:true,skipLoad:false,modelId:'gemma3-1b-q4'}}};console.log(encodeURIComponent(JSON.stringify(cfg)));"
-# Paste output into:
-# http://localhost:8080/doppler/tests/harness.html?runtimeConfig=...
+```
+const cfg = {
+  shared: { harness: { mode: 'inference', autorun: true, skipLoad: false, modelId: 'gemma3-1b-q4' } }
+};
+encodeURIComponent(JSON.stringify(cfg));
 ```
 
 ## Adding New Tests
 
 ### Kernel Tests
-Add to `tests/kernels/` and update `cli/index.js` switch statement.
+Add to `tests/kernels/browser/test-page.js` and reference the new kernel in the harness.
 
 ### Inference Tests
-Modify `tests/harness.html` inference mode for test logic.
+Modify `tests/harness.html` inference mode or `src/inference/browser-harness.js`.
 
-### Unit Tests
-Add `.test.js` files to `tests/` directory.
+### Benchmarks
+Extend `tests/benchmarks/` and wire into the diagnostics flow as needed. The
+browser harness lives in `src/inference/browser-harness.js`.
+
+### Training Tests
+Add to `tests/training/browser/test-page.js`.
 
 ## CI Integration
 
-GitHub Actions runs `npm test` (unit tests) on push/PR.
-
-For local CI simulation:
-```bash
-doppler --config <ref> && npm run test:unit
-# <ref> should set cli.command="test" and cli.suite="quick"
-```
-
-For full validation before merging:
-```bash
-doppler --config <ref> && doppler --config <ref> && npm run test:unit
-# First <ref>: cli.command="test", cli.suite="kernels"
-# Second <ref>: cli.command="test", cli.suite="inference"
-```
+Browser automation is not wired in this repo yet. Run the harness and diagnostics
+flows locally for validation until a browser CI runner is added.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
@@ -364,13 +289,11 @@ For failures, store:
 
 | Type | Location | Notes |
 |------|----------|-------|
-| Kernel tests | `tests/kernels/tests/correctness/` | Unit tests per kernel |
-| Benchmarks | `tests/kernels/tests/benchmarks/` | Performance measurement |
-| References | `tests/kernels/src/reference/` | CPU reference implementations |
-| Harness | `tests/kernels/src/harness/` | Test utilities |
+| Kernel tests | `tests/kernels/browser/test-page.js` | Harness-based kernel checks |
+| Benchmarks | `tests/benchmarks/` | Performance measurement |
+| References | `tests/kernels/reference/` | CPU reference implementations |
+| Harness | `tests/kernels/harness/` | Test utilities |
 | Browser | `tests/kernels/browser/` | WebGPU test page |
-
-For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON outputs.
 
 ---
 
@@ -379,31 +302,3 @@ For pipeline segment tests, use `tests/segments/` with CPU refs and saved JSON o
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
 See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
-
-
-## Known-Good Matrix
-
-This matrix defines the smallest set of fixtures that must load and produce
-stable outputs. Keep it narrow and deterministic.
-
-## Fixtures
-
-| Fixture | Format | Quant | Notes | Test |
-| --- | --- | --- | --- | --- |
-| `tests/fixtures/mini-model` | RDRR | F32 | Small 2-layer transformer, bundled tokenizer | `tests/correctness/known-good-fixtures.spec.js` |
-| `tests/fixtures/tiny-model` | RDRR | F32 | Alternate shape/layout for loader coverage | `tests/correctness/known-good-fixtures.spec.js` |
-| `tests/fixtures/sample.gguf` | GGUF | F32 | Parser coverage only (no inference) | `tests/unit/formats-gguf.test.js` |
-
-## Output Checksums
-
-Known-good outputs are stored in:
-
-```
-tests/fixtures/known-good-outputs.json
-```
-
-To update:
-
-```
-DOPPLER_UPDATE_KNOWN_GOOD=1 npx playwright test -c tests/correctness/playwright.config.js
-```

@@ -137,9 +137,10 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 }
 ```
 
-### CLI
+### Harness
 
-Kernel selection is config-only; CLI flags must not set kernel paths.
+Kernel selection is config-only; harnesses must not add per-field URL overrides
+for kernel paths.
 
 ## Creating Custom Paths
 

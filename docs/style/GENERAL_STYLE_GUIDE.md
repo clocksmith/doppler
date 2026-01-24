@@ -13,7 +13,7 @@ General coding conventions and patterns for the DOPPLER codebase.
 
 ## Language Policy: JavaScript + Declaration Files
 
-Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/`, `demo/`, `cli/`, and `serve.js`. Tests and tools may omit `.d.ts` unless they export public types.
+Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/` and `demo/`. Tests and tools may omit `.d.ts` unless they export public types.
 
 | File | Contains |
 |------|----------|
@@ -47,7 +47,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 | Format | Use For |
 |--------|---------|
 | **JavaScript (.js)** | All source code (clean, no type annotations) |
-| **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `demo/`, `cli/`, `serve.js`) |
+| **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `demo/`) |
 | **JSON (.json)** | Static presets, manifests, fixtures |
 | **WGSL (.wgsl)** | GPU shaders |
 
@@ -183,18 +183,17 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Runtime: `runtime.inference.kernelPath`
 - Legacy `kernelPlan` is removed; do not add new references.
 - Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
-- Kernel path overrides are config-only; do not add CLI flags for kernel selection.
+- Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
  - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 
-### Config-Only Overrides (CLI + Harness)
+### Config-Only Overrides (Harness)
 
-- Runtime tunables are configured via runtime config only; CLI flags must not override tunables.
-- Forbidden CLI overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
-- CLI accepts only config-loader flags (`--config`, `--help`).
-- Command, suite, model id, and harness options must live in config (`cli.*`, top-level `model`).
-- Harnesses must not accept URL query overrides for runtime tunables; only `runtimeConfig` and `configChain` are allowed.
+- Runtime tunables are configured via runtime config only; harness/UI controls must not override tunables.
+- Forbidden overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
+- Command intent and harness options must live in config (`runtime.shared.harness`, `runtime.shared.tooling.intent`).
+- Harnesses must not accept per-field URL overrides; only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
 See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
 
@@ -256,7 +255,7 @@ If `shader-f16` is unavailable, `f32` is required and should be treated as a cap
 
 **Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.
 
-**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the CLI and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so presets should place overrides under the correct section.
+**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the browser harness (`runtimePreset`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so presets should place overrides under the correct section.
 
 The merge order for runtime config:
 1. Runtime default config (schema default configs)
@@ -681,7 +680,7 @@ async function runKernel(...args) {
 
 ## Logging
 
-Use the unified debug system. Exceptions: `tools/`, `kernel-tests/`, CLI entry points, and one-time startup messages in `src/gpu/device.js`.
+Use the unified debug system. Exceptions: `tests/` harnesses, demo entry points, and one-time startup messages in `src/gpu/device.js`.
 
 ```javascript
 import { log, trace } from '../debug/index.js';
@@ -713,11 +712,15 @@ This rule exists to support the hot-swap architecture: change configs, not code.
 // DON'T: Add temporary debug logging
 log.info('Config', `LayerTypes: ${layerTypes.slice(0, 10).join(', ')}`);
 
-// DO: Use config-driven tracing
-doppler --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"trace":{"enabled":true,"categories":["all"]}}}}}'
+// DO: Use config-driven tracing (via runtimeConfig URL param)
+const traceConfig = {
+  shared: { debug: { trace: { enabled: true, categories: ['all'] } } }
+};
 
 // DO: Use probes for specific values
-doppler --config '{"extends":"debug","model":"<model-id>","cli":{"command":"debug"},"runtime":{"shared":{"debug":{"probes":[{"id":"layer0","stage":"layer_out","layers":[0]}]}}}}'
+const probeConfig = {
+  shared: { debug: { probes: [{ id: 'layer0', stage: 'layer_out', layers: [0] }] } }
+};
 ```
 
 If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point—don't add throwaway log statements.
@@ -729,63 +732,33 @@ If the trace system lacks visibility you need, extend it permanently with a new 
 ### Unit Tests (Kernel Correctness)
 
 ```javascript
-// tests/kernels/correctness/matmul.spec.js
-
-describe('matmul', () => {
-  it('f16 produces correct output', async () => {
-    const A = createTestBuffer([4, 8], 'f16');
-    const B = createTestBuffer([8, 4], 'f16');
-    const C = await runMatmul(A, B, 4, 4, 8, { variant: 'f16' });
-
-    expect(await readBuffer(C)).toBeCloseTo(expectedOutput, 1e-3);
-  });
-
-  it('handles non-aligned dimensions', async () => {
-    // K=1152 is not divisible by typical tile sizes
-    const C = await runMatmul(A, B, 1, 2048, 1152);
-    expect(await readBuffer(C)).toBeCloseTo(expectedOutput, 1e-3);
-  });
-});
+// tests/kernels/browser/test-page.js (excerpt)
+const gpu = await testHarness.getGPU();
+const output = await testHarness.runMatmul(gpu.device, A, B, 4, 4, 8);
+if (!output) throw new Error('matmul output missing');
 ```
 
-### Config Tests (Rule Coverage)
+### Config Checks (Rule Coverage)
 
 ```javascript
-// tests/unit/kernel-selection.test.js
-
-describe('MATMUL_VARIANTS', () => {
-  it('selects q4_fused for Q4K decode with subgroups', () => {
-    const ctx = { bDtype: 'q4k', M: 1, hasSubgroups: true, N: 2048 };
-    expect(selectMatmulVariant(ctx)).toBe('q4_fused');
-  });
-
-  it('falls back to f32 when no rules match', () => {
-    const ctx = { bDtype: 'unknown', M: 4, hasSubgroups: false, N: 512 };
-    expect(selectMatmulVariant(ctx)).toBe('f32');
-  });
-});
+// tests/kernels/browser/test-page.js (excerpt)
+const ctx = { bDtype: 'q4k', M: 1, hasSubgroups: true, N: 2048 };
+const variant = selectMatmulVariant(ctx);
+if (variant !== 'q4_fused') throw new Error(`expected q4_fused, got ${variant}`);
 ```
 
-### Integration Tests (E2E)
+### Integration Runs (E2E)
 
 ```javascript
-// tests/unit/golden-path.test.js
-
-describe('inference', () => {
-  it('generates coherent output', async () => {
-    const pipeline = await createPipeline(modelPath);
-    const output = await pipeline.generate('The color of the sky is', { maxTokens: 10 });
-
-    expect(output).toContain('blue');
-  });
-});
+// In browser console (demo diagnostics or harness)
+await runBrowserSuite({ suite: 'inference', modelId: 'gemma3-1b-q4' });
 ```
 
 ---
 
 ## Enforcement
 
-- `npm run kernels:check` validates the kernel registry and WGSL overrides.
+- Use `tests/kernels/browser/test-page.js` to validate kernel registry and WGSL overrides.
 - Pull tunables from schema/config, not literals.
 - Import format constants from a single source of truth.
 - Preserve working configs as presets (configuration is documentation).

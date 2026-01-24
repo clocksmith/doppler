@@ -1,5 +1,12 @@
 # Training (Engine)
 
+Purpose: Training primitives for Doppler, including autograd, losses, and adapter export.
+
+## Scope
+
+- Autograd tape, backward kernels, and loss scaling.
+- Training runner, optimizers, datasets, and LoRA export helpers.
+
 This directory provides training primitives for Doppler:
 
 - Autograd tape + backward kernels
@@ -127,24 +134,13 @@ const { manifest, json } = await exportLoRAAdapter({
 Format reference:
 - `docs/spec/RDRR_LORA_FORMAT.md`
 
-Optional GGUF conversion helper:
-- `tools/rdrr-lora-to-gguf.js`
+Optional GGUF conversion helper: removed in browser-only migration.
 
 ## Tests
 
-Run training correctness tests via CLI:
-
-```
-npm test -- --training
-```
-
-This uses the browser harness (`tests/training/browser/test-page.js`) and
+Run training correctness tests via the browser harness (`tests/training/browser/test-page.js`). This
 includes kernel numerics, gradient checks, parity fixtures, and leak/perf checks.
 
 ## Training Harness
 
-Open the demo harness in the browser to run a toy training loop:
-
-```
-http://localhost:8080/doppler/demo/training.html?steps=5&lr=0.1
-```
+Open the unified harness in the browser with `runtime.shared.harness.mode = "training"` to run a toy training loop.

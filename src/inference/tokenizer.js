@@ -6,6 +6,9 @@ import { TransformersTokenizer, BundledTokenizer } from './tokenizers/bundled.js
 import { SentencePieceTokenizer } from './tokenizers/sentencepiece.js';
 import { BPETokenizer } from './tokenizers/bpe.js';
 
+function hasScheme(value) {
+  return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
+}
 
 export class Tokenizer {
   
@@ -94,13 +97,14 @@ export class Tokenizer {
       );
     }
 
-    const hfModel = tokenizerConfig.hfModel;
+    let hfModel = tokenizerConfig.hfModel;
     const allowArchFallback = tokenizerConfig.allowArchFallback === true;
     if (allowArchFallback && !hfModel) {
-      throw new Error(
-        '[Tokenizer] tokenizer.allowArchFallback is not supported. ' +
-        'Provide tokenizer.hfModel or bundle tokenizer.json.'
-      );
+      const inferred = this._inferHuggingFaceModel(manifest);
+      if (inferred) {
+        hfModel = inferred;
+        log.warn('Tokenizer', `Using inferred HuggingFace model: ${inferred}`);
+      }
     }
 
     if (hfModel) {
@@ -124,9 +128,22 @@ export class Tokenizer {
         // Use provided shard loader
         modelData = await tokenizerConfig.loadShard(tokenizerConfig.sentencepieceModel);
       } else if (typeof tokenizerConfig.sentencepieceModel === 'string') {
-        // Try to fetch as URL
-        const response = await fetch(tokenizerConfig.sentencepieceModel);
-        modelData = await response.arrayBuffer();
+        if (options.baseUrl && !hasScheme(tokenizerConfig.sentencepieceModel)) {
+          const url = `${options.baseUrl}/${tokenizerConfig.sentencepieceModel}`;
+          const response = await fetch(url);
+          modelData = await response.arrayBuffer();
+        } else if (hasScheme(tokenizerConfig.sentencepieceModel)) {
+          const response = await fetch(tokenizerConfig.sentencepieceModel);
+          modelData = await response.arrayBuffer();
+        } else {
+          try {
+            const { loadTokenizerModelFromStore } = await import('../storage/shard-manager.js');
+            modelData = await loadTokenizerModelFromStore();
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            log.warn('Tokenizer', `Failed to load tokenizer.model from OPFS: ${message}`);
+          }
+        }
       }
 
       if (modelData) {
@@ -146,6 +163,21 @@ export class Tokenizer {
     }
 
     this.config = tokenizerConfig;
+  }
+
+  
+  _inferHuggingFaceModel(manifest) {
+    const tokenizer = manifest?.tokenizer ?? {};
+    if (typeof tokenizer.modelId === 'string' && tokenizer.modelId.length > 0) {
+      return tokenizer.modelId;
+    }
+    if (typeof tokenizer.hfModel === 'string' && tokenizer.hfModel.length > 0) {
+      return tokenizer.hfModel;
+    }
+    if (typeof manifest?.modelId === 'string' && manifest.modelId.length > 0) {
+      return manifest.modelId;
+    }
+    return null;
   }
 
   

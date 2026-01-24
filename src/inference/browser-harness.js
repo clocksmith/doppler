@@ -466,3 +466,111 @@ export async function runBrowserSuite(options = {}) {
   const reportInfo = await saveReport(modelId, report, { timestamp: options.timestamp });
   return { ...suiteResult, report, reportInfo };
 }
+
+function normalizeManifest(manifest) {
+  if (!manifest || typeof manifest !== 'object') {
+    throw new Error('Harness manifest must be an object.');
+  }
+  const runs = Array.isArray(manifest.runs) ? manifest.runs : [];
+  if (!runs.length) {
+    throw new Error('Harness manifest must include at least one run.');
+  }
+  return {
+    defaults: manifest.defaults ?? {},
+    runs,
+    reportModelId: manifest.reportModelId ?? manifest.id ?? 'manifest',
+    report: manifest.report ?? null,
+  };
+}
+
+function mergeRunDefaults(defaults, run) {
+  return {
+    ...defaults,
+    ...run,
+    runtimePreset: run.runtimePreset ?? defaults.runtimePreset ?? null,
+    runtimeConfigUrl: run.runtimeConfigUrl ?? defaults.runtimeConfigUrl ?? null,
+    runtimeConfig: run.runtimeConfig ?? defaults.runtimeConfig ?? null,
+    suite: run.suite ?? defaults.suite ?? 'inference',
+  };
+}
+
+async function applyRuntimeForRun(run, options) {
+  if (run.runtimeConfig) {
+    const runtime = resolveRuntimeFromConfig(run.runtimeConfig);
+    if (!runtime) {
+      throw new Error('runtimeConfig is missing runtime fields');
+    }
+    setRuntimeConfig(runtime);
+    return;
+  }
+  if (run.runtimeConfigUrl) {
+    await applyRuntimeConfigFromUrl(run.runtimeConfigUrl, options);
+    return;
+  }
+  if (run.runtimePreset) {
+    await applyRuntimePreset(run.runtimePreset, options);
+  }
+}
+
+function summarizeManifestRuns(results) {
+  let passedRuns = 0;
+  let failedRuns = 0;
+  let durationMs = 0;
+  for (const result of results) {
+    const failures = (result.results || []).filter((entry) => !entry.passed && !entry.skipped);
+    if (failures.length > 0) {
+      failedRuns += 1;
+    } else {
+      passedRuns += 1;
+    }
+    durationMs += result.duration || 0;
+  }
+  return {
+    totalRuns: results.length,
+    passedRuns,
+    failedRuns,
+    durationMs,
+  };
+}
+
+export async function runBrowserManifest(manifest, options = {}) {
+  const normalized = normalizeManifest(manifest);
+  const results = [];
+
+  for (let i = 0; i < normalized.runs.length; i++) {
+    const run = mergeRunDefaults(normalized.defaults, normalized.runs[i] || {});
+    await applyRuntimeForRun(run, options);
+    const result = await runBrowserSuite(run);
+    results.push({
+      ...result,
+      label: run.label ?? `${run.suite || 'inference'}:${result.modelId || 'unknown'}`,
+    });
+    options.onProgress?.({
+      index: i + 1,
+      total: normalized.runs.length,
+      label: run.label ?? result.modelId ?? run.suite ?? 'run',
+    });
+  }
+
+  const summary = summarizeManifestRuns(results);
+  const report = {
+    timestamp: new Date().toISOString(),
+    summary,
+    runs: results.map((result) => ({
+      label: result.label,
+      suite: result.suite,
+      modelId: result.modelId,
+      results: result.results,
+      metrics: result.metrics ?? null,
+      output: result.output ?? null,
+      reportInfo: result.reportInfo ?? null,
+    })),
+    manifest: normalized.report ?? null,
+  };
+
+  const reportInfo = options.saveReport === false
+    ? null
+    : await saveReport(normalized.reportModelId, report, { timestamp: options.timestamp });
+
+  return { results, summary, report, reportInfo };
+}

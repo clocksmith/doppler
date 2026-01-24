@@ -21,9 +21,5 @@
       "statsEnabled": true,
       "logOperations": false
     }
-  },
-  "cli": {
-    "headless": false,
-    "timeout": 600000
   }
 }
