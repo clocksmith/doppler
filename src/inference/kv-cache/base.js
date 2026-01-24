@@ -361,6 +361,15 @@ export class KVCache {
     encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
     device.queue.submit([encoder.finish()]);
 
+    if (this.layout === 'paged') {
+      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
+      if (Number.isFinite(layer.allocatedPages)) {
+        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
+      } else {
+        layer.allocatedPages = neededPages;
+      }
+    }
+
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
     this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
@@ -409,6 +418,15 @@ export class KVCache {
     // Record copy operations to the provided encoder (no submit)
     encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
     encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
+
+    if (this.layout === 'paged') {
+      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
+      if (Number.isFinite(layer.allocatedPages)) {
+        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
+      } else {
+        layer.allocatedPages = neededPages;
+      }
+    }
 
     // Update seqLen metadata (this happens immediately, copies happen when encoder is submitted)
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
@@ -665,13 +683,13 @@ export class KVCache {
 
   
   clone() {
-    if (this.useGPU && this.layout === 'paged') {
+    if (this.layout === 'paged') {
       const cloned = new KVCache({
         numLayers: this.numLayers,
         numHeads: this.numHeads,
         headDim: this.headDim,
         maxSeqLen: this.maxSeqLen,
-        useGPU: true,
+        useGPU: this.useGPU,
         layout: 'paged',
         pageSize: this.pageSize,
         kvDtype: this.kvDtype
@@ -680,8 +698,8 @@ export class KVCache {
       cloned.currentSeqLen = this.currentSeqLen;
       cloned.totalTokensSeen = this.totalTokensSeen;
 
-      const device = getDevice();
-      if (!device) {
+      const device = this.useGPU ? getDevice() : null;
+      if (this.useGPU && !device) {
         throw new Error('GPU device not initialized');
       }
 
@@ -689,28 +707,43 @@ export class KVCache {
         const src = this.layers[l];
         const dst = cloned.layers[l];
 
-        if (!src.keysGPU || !src.valuesGPU || !dst.keysGPU || !dst.valuesGPU) {
-          continue;
+        const inferredPages = Math.ceil(src.seqLen / this.pageSize);
+        const allocatedPages = Number.isFinite(src.allocatedPages)
+          ? Math.max(src.allocatedPages, inferredPages)
+          : inferredPages;
+        dst.allocatedPages = allocatedPages;
+        dst.seqLen = src.seqLen;
+
+        if (this.useGPU && src.keysGPU && src.valuesGPU && dst.keysGPU && dst.valuesGPU) {
+          const usedBytes = src.seqLen * this.kvSize * this.bytesPerElem;
+          if (usedBytes > 0) {
+            const encoder = device.createCommandEncoder({ label: `kv_cache_clone_paged_${l}` });
+            encoder.copyBufferToBuffer(src.keysGPU, 0, dst.keysGPU, 0, usedBytes);
+            encoder.copyBufferToBuffer(src.valuesGPU, 0, dst.valuesGPU, 0, usedBytes);
+            device.queue.submit([encoder.finish()]);
+          }
         }
 
-        const usedBytes = src.seqLen * this.kvSize * this.bytesPerElem;
-        if (usedBytes > 0) {
-          const encoder = device.createCommandEncoder({ label: `kv_cache_clone_paged_${l}` });
-          encoder.copyBufferToBuffer(src.keysGPU, 0, dst.keysGPU, 0, usedBytes);
-          encoder.copyBufferToBuffer(src.valuesGPU, 0, dst.valuesGPU, 0, usedBytes);
-          device.queue.submit([encoder.finish()]);
-        }
-
-        if (src.pageTable && dst.pageTableGPU) {
+        if (src.pageTable && dst.pageTable && dst.pageTableGPU && device) {
           dst.pageTable.set(src.pageTable);
           device.queue.writeBuffer(dst.pageTableGPU, 0, src.pageTable);
         }
 
-        if (typeof src.allocatedPages === 'number') {
-          dst.allocatedPages = src.allocatedPages;
+        if (!this.useGPU) {
+          for (let p = 0; p < allocatedPages; p++) {
+            const keyPage = src.keyPages?.[p];
+            const valuePage = src.valuePages?.[p];
+            if (!keyPage || !valuePage) {
+              continue;
+            }
+            const nextKeyPage = cloned._allocatePage();
+            nextKeyPage.set(keyPage);
+            const nextValuePage = cloned._allocatePage();
+            nextValuePage.set(valuePage);
+            dst.keyPages[p] = nextKeyPage;
+            dst.valuePages[p] = nextValuePage;
+          }
         }
-
-        dst.seqLen = src.seqLen;
       }
 
       return cloned;

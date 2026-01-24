@@ -1,7 +1,7 @@
 
 
 import { parseModelConfig } from './config.js';
-import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
+import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { KVCache, SlidingWindowKVCache, TieredKVCache } from '../kv-cache.js';
 import { Tokenizer } from '../tokenizer.js';
@@ -10,6 +10,7 @@ import { SpeculativeDecoder } from '../speculative.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log, setGPUDevice, trace as debugTrace } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../config/schema/index.js';
 import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 
@@ -222,13 +223,29 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (cacheLayout === 'tiered' && !runtimeKV.tiering) {
     throw new Error('runtime.inference.kvcache.tiering is required for tiered layout.');
   }
+  const tieringMode = runtimeKV.tiering?.mode ?? 'off';
+  let layoutSource = 'runtime';
+  if (tieringMode !== 'off' && cacheLayout !== 'tiered') {
+    if (cacheLayout !== 'contiguous') {
+      throw new Error('runtime.inference.kvcache.layout must be "tiered" when tiering.mode is enabled.');
+    }
+    cacheLayout = 'tiered';
+    layoutSource = 'tiering';
+  }
+  if (cacheLayout === 'contiguous' && cacheMaxSeqLen >= PAGED_LAYOUT_SEQ_LEN_THRESHOLD) {
+    cacheLayout = 'paged';
+    layoutSource = 'threshold';
+  }
+  if (debug && cacheLayout !== runtimeKV.layout) {
+    log.debug('Pipeline', `KV cache layout override: ${runtimeKV.layout} -> ${cacheLayout} (${layoutSource})`);
+  }
 
   // Sliding-window attention only needs a bounded KV cache on contiguous layouts.
   if (slidingWindow && Number.isFinite(slidingWindow) && slidingWindow > 0) {
     if (runtimeKV.windowSize > 0) {
       slidingWindow = Math.min(slidingWindow, runtimeKV.windowSize);
     }
-    if (cacheLayout !== 'paged') {
+    if (cacheLayout !== 'paged' && cacheLayout !== 'tiered') {
       cacheMaxSeqLen = Math.min(cacheMaxSeqLen, slidingWindow);
     }
   }
@@ -255,6 +272,29 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
   if (cacheLayout === 'tiered' && kvDtype !== 'f16') {
     throw new Error('Tiered KV cache requires kvDtype="f16" (no f32 tiered kernels yet).');
+  }
+
+  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered')) {
+    const limits = getDeviceLimits();
+    if (limits) {
+      const bytesPerToken = modelConfig.numKVHeads * modelConfig.headDim * (kvDtype === 'f16' ? 2 : 4);
+      const maxByBinding = Math.floor(limits.maxStorageBufferBindingSize / bytesPerToken);
+      const maxByBuffer = Math.floor(limits.maxBufferSize / bytesPerToken);
+      const fallbackMax = Number.isFinite(runtimeKV.gpuPagedFallbackMaxSeqLen) && runtimeKV.gpuPagedFallbackMaxSeqLen > 0
+        ? runtimeKV.gpuPagedFallbackMaxSeqLen
+        : Infinity;
+      const limitMax = Math.min(maxByBinding, maxByBuffer, fallbackMax);
+      if (!Number.isFinite(limitMax) || limitMax <= 0) {
+        throw new Error('KV cache maxSeqLen exceeds device buffer limits.');
+      }
+      if (Number.isFinite(limitMax) && limitMax > 0 && limitMax < cacheMaxSeqLen) {
+        log.warn(
+          'Pipeline',
+          `KV cache maxSeqLen capped ${cacheMaxSeqLen} -> ${limitMax} (layout=${cacheLayout}, limit=${limits.maxStorageBufferBindingSize}).`
+        );
+        cacheMaxSeqLen = limitMax;
+      }
+    }
   }
 
   

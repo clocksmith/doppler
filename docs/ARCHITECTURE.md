@@ -157,21 +157,15 @@ When multiple models are loaded, these GPU operations **must** stay in DOPPLER (
 
 ### Migration Note
 
-The `FunctionGemma` class in `src/inference/functiongemma.js` is **deprecated**. Use REPLOID's `FunctionGemmaOrchestrator` for orchestration. DOPPLER's `MultiModelNetwork` provides the primitives:
+The `FunctionGemma` wrapper has been removed from DOPPLER. Use REPLOID's `FunctionGemmaOrchestrator` for orchestration. DOPPLER's `MultiModelNetwork` provides the primitives:
 
 ```javascript
-// ❌ Old (orchestration in DOPPLER)
-import { FunctionGemma } from 'doppler/inference/functiongemma.js';
-const fg = new FunctionGemma(pipeline);
-await fg.runEvolution(task);  // Policy in engine!
-
-// ✅ New (orchestration in REPLOID)
 import { MultiModelNetwork } from 'doppler/inference/functiongemma.js';
 import FunctionGemmaOrchestrator from 'reploid/capabilities/intelligence/functiongemma-orchestrator.js';
 
 const network = new MultiModelNetwork(pipeline);
 const orchestrator = FunctionGemmaOrchestrator.factory(deps);
-await orchestrator.runEvolution(task);  // Policy in driver
+await orchestrator.runEvolution(task);
 ```
 
 See the internal roadmap for the current migration status.
