@@ -160,7 +160,7 @@ Recommended minimum matrix:
 
 - Browsers: Chrome, Safari (macOS), Firefox (if usable)
 - GPUs: Apple Silicon (unified), AMD (Linux), NVIDIA (discrete)
-- Models: one small dense (1B), one medium dense (3B-8B), one MoE (Mixtral or GPT-OSS)
+- Models: one small dense (1B), one medium dense (3B-8B), one MoE (GPT-OSS-20B)
 
 ---
 

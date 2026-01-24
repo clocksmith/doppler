@@ -10,9 +10,8 @@ Quick index for DOPPLER documentation.
 - [Config](config.md) - Kernel paths and error codes.
 - [Formats](formats.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](operations.md) - Troubleshooting, debug notes, perf investigations, results.
-- [Benchmarking](benchmarking.md) - Default bench workflow and baseline targets.
 - [Testing](testing.md) - Testing strategy, kernel testing, known-good matrix.
-- [Traction](performance.md) - Performance metrics, VRAM constraints, browser matrix, failure modes.
+- [Performance](performance.md) - Performance metrics, benchmarking workflow, VRAM constraints, browser matrix, failure modes.
 
 ---
 
