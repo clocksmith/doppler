@@ -18,7 +18,7 @@ Optional follow-ups:
 
 ## Quick Run (Demo UI)
 
-1) Open `/doppler/demo`.
+1) Open `/demo`.
 2) Set Runtime Preset: `experiments/gemma3-bench-q4k`.
 3) Diagnostics -> Suite = `bench`.
 4) Run and export the report (JSON).
@@ -46,12 +46,12 @@ runtime now defaults `kernelWarmup.prewarm` to `true` unless explicitly set.
 
 ## Manifest Run (Console)
 
-The demo ships a manifest file at `/doppler/demo/bench-manifest.json`.
+The demo ships a manifest file at `/demo/bench-manifest.json`.
 You can run it directly from DevTools:
 
 ```js
-const manifest = await (await fetch('/doppler/demo/bench-manifest.json')).json();
-const { runBrowserManifest } = await import('/doppler/src/inference/browser-harness.js');
+const manifest = await (await fetch('/demo/bench-manifest.json')).json();
+const { runBrowserManifest } = await import('/src/inference/browser-harness.js');
 const result = await runBrowserManifest(manifest);
 console.log(result.report);
 ```
@@ -70,7 +70,7 @@ Update `docs/performance.md` with the measured TTFT and TPS values.
 Validate stored results against the benchmark schema:
 
 ```bash
-node reploid/doppler/tests/validate-benchmark-results.js
+node tests/validate-benchmark-results.js
 ```
 
 ## Expected Outputs
