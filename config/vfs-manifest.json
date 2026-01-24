@@ -2956,60 +2956,6 @@
       "size": 5370
     },
     {
-      "path": "/src/simulator/index.js",
-      "url": "/src/simulator/index.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 8284
-    },
-    {
-      "path": "/src/simulator/nvlink-c2c.js",
-      "url": "/src/simulator/nvlink-c2c.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 8238
-    },
-    {
-      "path": "/src/simulator/nvlink-fabric.js",
-      "url": "/src/simulator/nvlink-fabric.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 15608
-    },
-    {
-      "path": "/src/simulator/timing-model.js",
-      "url": "/src/simulator/timing-model.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 8281
-    },
-    {
-      "path": "/src/simulator/virtual-cluster.js",
-      "url": "/src/simulator/virtual-cluster.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 3378
-    },
-    {
-      "path": "/src/simulator/virtual-cpu.js",
-      "url": "/src/simulator/virtual-cpu.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 2540
-    },
-    {
-      "path": "/src/simulator/virtual-device.js",
-      "url": "/src/simulator/virtual-device.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 282
-    },
-    {
-      "path": "/src/simulator/virtual-gpu.js",
-      "url": "/src/simulator/virtual-gpu.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 10542
-    },
-    {
-      "path": "/src/simulator/virtual-utils.js",
-      "url": "/src/simulator/virtual-utils.js",
-      "contentType": "application/javascript; charset=utf-8",
-      "size": 257
-    },
-    {
       "path": "/src/storage/backends/idb-store.js",
       "url": "/src/storage/backends/idb-store.js",
       "contentType": "application/javascript; charset=utf-8",

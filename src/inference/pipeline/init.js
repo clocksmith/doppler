@@ -608,7 +608,22 @@ export async function initEmulation(runtimeConfig) {
 
   try {
     // Dynamically import to avoid loading emulation code when disabled
-    const { createEmulationContext, isEmulationSupported } = await import('../../simulator/index.js');
+    const { setSimulatorEnv } = await import('/proto/simulator/env.js');
+    const { createEmulationConfig, formatBytes, formatBandwidth } = await import('../../config/schema/emulation.schema.js');
+    const { EmulatedVramStore, detectLocalResources } = await import('../../storage/emulated-vram.js');
+    const { getBufferPool } = await import('../../memory/buffer-pool.js');
+    const { createEmulationContext, isEmulationSupported } = await import('/proto/simulator/index.js');
+
+    setSimulatorEnv({
+      log,
+      bufferPool: getBufferPool,
+      createEmulationConfig,
+      formatBytes,
+      formatBandwidth,
+      detectLocalResources,
+      createVramStore: (config, budgets) =>
+        new EmulatedVramStore(config.opfsRootPath, budgets.vramBudgetBytes, budgets.ramBudgetBytes),
+    });
 
     // Check if emulation is supported
     const supported = await isEmulationSupported();

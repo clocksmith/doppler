@@ -10,10 +10,10 @@ Target devices for initial baselines:
 - NVIDIA RTX 4070/4090 class (discrete, 12-24GB)
 
 Primary baseline model:
-- `gemma-3-1b-it-wq4k`
+- `gemma-3-1b-it-q4`
 
 Optional follow-ups:
-- `gemma-3-1b-it-wf16`
+- `gemma-3-1b-it-f16` (when assets are available)
 - `mixtral-8x7b-q4` (once model assets are ready)
 
 ## Quick Run (Demo UI)
@@ -60,14 +60,24 @@ console.log(result.report);
 
 Save exported JSON reports under `tests/results/` with a stable naming scheme:
 
-- `tests/results/bench_gemma3_1b_wq4k_<device>_<date>.json`
+- `tests/results/bench_<modelId>_<prompt>_<preset>.json`
+- `tests/results/pipeline_<modelId>_<preset>_<timestamp>.json` (legacy suite)
 
-Update `docs/PERFORMANCE.md` with the measured TTFT and TPS values.
+Update `docs/performance.md` with the measured TTFT and TPS values.
+
+## Schema Validation
+
+Validate stored results against the benchmark schema:
+
+```bash
+node reploid/doppler/tests/validate-benchmark-results.js
+```
 
 ## Expected Outputs
 
-Bench runs return the schema in `docs/spec/BENCHMARK_SCHEMA.json`, including:
-- `metrics.medianTokensPerSec`
-- `metrics.avgTokensPerSec`
-- `metrics.maxTokens`
-- `deviceInfo` (WebGPU capabilities)
+Bench runs return the schema in `docs/BENCHMARK_SCHEMA.json`, including:
+- Required: `schemaVersion`, `timestamp`, `suite`
+- `env` (browser/OS/GPU/WebGPU features)
+- `model` (modelId, quantization, sizes)
+- `workload` (prompt name, token counts, sampling)
+- `metrics` (ttft/prefill/decode timings, GPU submits, VRAM usage)

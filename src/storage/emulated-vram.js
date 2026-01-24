@@ -99,7 +99,7 @@ export class EmulatedVramStore {
     log.verbose(MODULE, `Created partition ${config.name} (max: ${config.maxBytes} bytes)`);
   }
 
-    async allocate(partition, sizeBytes, label) {
+  async allocate(partition, sizeBytes, label) {
     await this.initialize();
 
     if (!this._partitions.has(partition)) {
@@ -149,6 +149,41 @@ export class EmulatedVramStore {
     }
 
     log.verbose(MODULE, `Allocated ${label || id} (${sizeBytes} bytes) in ${tier}`);
+    return id;
+  }
+
+    registerVramBuffer(partition, buffer, sizeBytes, label, options = {}) {
+    if (!this._partitions.has(partition)) {
+      throw new Error(`Partition ${partition} does not exist`);
+    }
+    const bytes = Number.isFinite(sizeBytes) ? sizeBytes : buffer?.size;
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+      throw new Error('registerVramBuffer requires a valid sizeBytes.');
+    }
+    if (!buffer) {
+      throw new Error('registerVramBuffer requires a GPU buffer.');
+    }
+    if (this._vramUsed + bytes > this.vramBudgetBytes) {
+      throw new Error(`registerVramBuffer exceeds VRAM budget (${this.vramBudgetBytes} bytes).`);
+    }
+
+    const id = `chunk_${Date.now()}_${chunkIdCounter++}`;
+    const now = Date.now();
+    const chunk = {
+      id,
+      sizeBytes: bytes,
+      tier: 'vram',
+      partition,
+      locked: options.locked !== false,
+      lastAccessMs: now,
+      accessCount: 0,
+    };
+
+    this._chunks.set(id, chunk);
+    this._vramStore.set(id, buffer);
+    this._vramUsed += bytes;
+
+    log.verbose(MODULE, `Registered ${label || id} (${bytes} bytes) in vram`);
     return id;
   }
 

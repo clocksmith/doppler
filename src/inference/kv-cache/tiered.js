@@ -69,6 +69,14 @@ export class TieredKVCache {
     this.memoryUsage = 0;
     
     this.gpuContext = null;
+    
+    this.coldStore = caches?.coldStore ?? null;
+    
+    this.coldStorePartition = caches?.coldStorePartition ?? 'kv-cache';
+    
+    this.coldStoreRegistered = false;
+    
+    this.coldStoreChunks = [];
 
     if (this.kvDtype !== 'f16' || this.coldDtype !== 'f16') {
       throw new Error('TieredKVCache currently requires f16 KV storage.');
@@ -196,6 +204,69 @@ export class TieredKVCache {
   }
 
   
+  _getColdStoreBytes() {
+    if (this.coldCache) {
+      return this.coldCache.getMemoryStats().theoretical;
+    }
+    return this._coldQuantizedBytes();
+  }
+
+  
+  async _registerColdStoreBuffers() {
+    if (!this.coldStore || this.coldStoreRegistered) return;
+
+    if (typeof this.coldStore.initialize === 'function') {
+      await this.coldStore.initialize();
+    }
+    if (typeof this.coldStore.createPartition === 'function') {
+      await this.coldStore.createPartition({
+        name: this.coldStorePartition,
+        maxBytes: this._getColdStoreBytes(),
+        opfsPath: this.coldStorePartition,
+      });
+    }
+
+    if (typeof this.coldStore.registerVramBuffer !== 'function') {
+      this.coldStoreRegistered = true;
+      return;
+    }
+
+    const register = (buffer, label) => {
+      if (!buffer) return;
+      const sizeBytes = buffer.size;
+      if (!Number.isFinite(sizeBytes) || sizeBytes <= 0) {
+        throw new Error('TieredKVCache cold store requires GPU buffer sizes.');
+      }
+      const id = this.coldStore.registerVramBuffer(
+        this.coldStorePartition,
+        buffer,
+        sizeBytes,
+        label,
+        { locked: true }
+      );
+      this.coldStoreChunks.push(id);
+    };
+
+    if (this.coldCache) {
+      for (let l = 0; l < this.numLayers; l++) {
+        const layer = this.coldCache.layers[l];
+        register(layer.keysGPU, `kv_cache_cold_keys_${l}`);
+        register(layer.valuesGPU, `kv_cache_cold_values_${l}`);
+      }
+    } else if (this.coldLayers) {
+      for (let l = 0; l < this.numLayers; l++) {
+        const layer = this.coldLayers[l];
+        register(layer.keysPackedGPU, `kv_cache_cold_keys_packed_${l}`);
+        register(layer.valuesPackedGPU, `kv_cache_cold_values_packed_${l}`);
+        register(layer.scalesKGPU, `kv_cache_cold_scales_k_${l}`);
+        register(layer.scalesVGPU, `kv_cache_cold_scales_v_${l}`);
+      }
+    }
+
+    this.coldStoreRegistered = true;
+  }
+
+  
   clear() {
     this.hotCache.clear();
     if (this.coldCache) {
@@ -222,6 +293,23 @@ export class TieredKVCache {
 
   
   async updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    if (!Number.isInteger(startPos) || startPos < 0) {
+      throw new Error('TieredKVCache updateFromGPU requires a non-negative startPos.');
+    }
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('TieredKVCache updateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+    if (startPos + numTokens > this.maxSeqLen) {
+      throw new Error(
+        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
+      );
+    }
+
+    await this._registerColdStoreBuffers();
+
     if (this.coldCache) {
       this.coldCache.updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens);
       this.currentSeqLen = this.coldCache.currentSeqLen;
@@ -253,6 +341,23 @@ export class TieredKVCache {
 
   
   async recordUpdateFromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    if (!Number.isInteger(startPos) || startPos < 0) {
+      throw new Error('TieredKVCache recordUpdateFromGPU requires a non-negative startPos.');
+    }
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('TieredKVCache recordUpdateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+    if (startPos + numTokens > this.maxSeqLen) {
+      throw new Error(
+        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
+      );
+    }
+
+    await this._registerColdStoreBuffers();
+
     if (this.coldCache) {
       this.coldCache.recordUpdateFromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens);
     } else {

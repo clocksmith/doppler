@@ -38,7 +38,13 @@ export class SlidingWindowKVCache extends KVCache {
       throw new Error('Use updateFromGPU for GPU buffer inputs');
     }
 
-    const numNewTokens = keys.length / this.kvSize;
+    const { numNewTokens } = this._resolveTokenCount(keys, values);
+    if (!Number.isInteger(numNewTokens) || numNewTokens < 0) {
+      throw new Error('SlidingWindowKVCache update requires a non-negative integer token count.');
+    }
+    if (numNewTokens === 0) {
+      return;
+    }
     this.totalTokensSeen += numNewTokens;
 
     // Check if we need to slide the window
@@ -58,6 +64,15 @@ export class SlidingWindowKVCache extends KVCache {
     startPos,
     numTokens
   ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('SlidingWindowKVCache updateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
     const layer =  (this.layers[layerIdx]);
     const device = getDevice();
 
@@ -67,7 +82,21 @@ export class SlidingWindowKVCache extends KVCache {
 
     const windowSize = this.windowSize;
     const bytesPerToken = this.kvSize * this.bytesPerElem;
+    const fullStart = startPos;
+    const fullTokens = numTokens;
+    let srcByteOffset = 0;
+
+    if (numTokens > windowSize) {
+      const dropTokens = numTokens - windowSize;
+      startPos += dropTokens;
+      numTokens = windowSize;
+      srcByteOffset = dropTokens * bytesPerToken;
+    }
     const writePos = startPos % windowSize;
+    const bytesNeeded = srcByteOffset + (numTokens * bytesPerToken);
+    if (bytesNeeded > keysBuffer.size || bytesNeeded > valuesBuffer.size) {
+      throw new Error('SlidingWindowKVCache updateFromGPU buffer size is smaller than requested write.');
+    }
 
     const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
     const firstChunkBytes = firstChunkTokens * bytesPerToken;
@@ -77,18 +106,18 @@ export class SlidingWindowKVCache extends KVCache {
     const encoder = device.createCommandEncoder({ label: 'kv_cache_update_sliding' });
 
     const destByteOffset1 = writePos * bytesPerToken;
-    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, destByteOffset1, firstChunkBytes);
-    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, destByteOffset1, firstChunkBytes);
+    encoder.copyBufferToBuffer(keysBuffer, srcByteOffset, layer.keysGPU, destByteOffset1, firstChunkBytes);
+    encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset, layer.valuesGPU, destByteOffset1, firstChunkBytes);
 
     if (secondChunkTokens > 0) {
-      const srcByteOffset2 = firstChunkBytes;
+      const srcByteOffset2 = srcByteOffset + firstChunkBytes;
       encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
       encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU, 0, secondChunkBytes);
     }
 
     device.queue.submit([encoder.finish()]);
 
-    const seen = Math.max(this.totalTokensSeen, startPos + numTokens);
+    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
     this.totalTokensSeen = seen;
     const storedLen = Math.min(windowSize, seen);
 
@@ -107,6 +136,15 @@ export class SlidingWindowKVCache extends KVCache {
     startPos,
     numTokens
   ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('SlidingWindowKVCache recordUpdateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
     const layer =  (this.layers[layerIdx]);
     const encoder = recorder.getEncoder();
 
@@ -116,7 +154,21 @@ export class SlidingWindowKVCache extends KVCache {
 
     const windowSize = this.windowSize;
     const bytesPerToken = this.kvSize * this.bytesPerElem;
+    const fullStart = startPos;
+    const fullTokens = numTokens;
+    let srcByteOffset = 0;
+
+    if (numTokens > windowSize) {
+      const dropTokens = numTokens - windowSize;
+      startPos += dropTokens;
+      numTokens = windowSize;
+      srcByteOffset = dropTokens * bytesPerToken;
+    }
     const writePos = startPos % windowSize;
+    const bytesNeeded = srcByteOffset + (numTokens * bytesPerToken);
+    if (bytesNeeded > keysBuffer.size || bytesNeeded > valuesBuffer.size) {
+      throw new Error('SlidingWindowKVCache recordUpdateFromGPU buffer size is smaller than requested write.');
+    }
 
     const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
     const firstChunkBytes = firstChunkTokens * bytesPerToken;
@@ -124,17 +176,17 @@ export class SlidingWindowKVCache extends KVCache {
     const secondChunkBytes = secondChunkTokens * bytesPerToken;
 
     const destByteOffset1 = writePos * bytesPerToken;
-    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, destByteOffset1, firstChunkBytes);
-    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, destByteOffset1, firstChunkBytes);
+    encoder.copyBufferToBuffer(keysBuffer, srcByteOffset, layer.keysGPU, destByteOffset1, firstChunkBytes);
+    encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset, layer.valuesGPU, destByteOffset1, firstChunkBytes);
 
     if (secondChunkTokens > 0) {
-      const srcByteOffset2 = firstChunkBytes;
+      const srcByteOffset2 = srcByteOffset + firstChunkBytes;
       encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
       encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU, 0, secondChunkBytes);
     }
 
     // Update metadata (copies happen when encoder is submitted)
-    const seen = Math.max(this.totalTokensSeen, startPos + numTokens);
+    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
     this.totalTokensSeen = seen;
     const storedLen = Math.min(windowSize, seen);
 

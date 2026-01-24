@@ -165,7 +165,7 @@ export class KVCache {
         this.layers[l] = {
           keyPages: new Array(numPages).fill(null),
           valuePages: new Array(numPages).fill(null),
-          allocatedPages: numPages,
+          allocatedPages: 0,
           seqLen: 0,
           keysGPU,
           valuesGPU,
@@ -228,15 +228,70 @@ export class KVCache {
   // ==========================================================================
 
   
+  _assertLayerIndex(layerIdx) {
+    if (!Number.isInteger(layerIdx) || layerIdx < 0 || layerIdx >= this.numLayers) {
+      throw new Error(`KVCache layer index out of range: ${layerIdx}`);
+    }
+  }
+
+  
+  _assertStartPos(startPos) {
+    if (!Number.isInteger(startPos) || startPos < 0) {
+      throw new Error('KVCache startPos must be a non-negative integer.');
+    }
+  }
+
+  
+  _resolveTokenCount(keys, values) {
+    const bytesPerToken = this.kvSize * this.bytesPerElem;
+    const keysIsGPU = keys instanceof GPUBuffer;
+    const valuesIsGPU = values instanceof GPUBuffer;
+
+    if (keysIsGPU || valuesIsGPU) {
+      if (!keysIsGPU || !valuesIsGPU) {
+        throw new Error('KVCache update requires both keys and values as GPU buffers.');
+      }
+      if (!Number.isFinite(keys.size) || !Number.isFinite(values.size)) {
+        throw new Error('KVCache update requires GPU buffer sizes.');
+      }
+      if (keys.size !== values.size) {
+        throw new Error('KVCache update requires matching GPU buffer sizes.');
+      }
+      if (keys.size % bytesPerToken !== 0) {
+        throw new Error('KVCache update GPU buffer size must align to kvSize.');
+      }
+      return { numNewTokens: keys.size / bytesPerToken, isGPU: true };
+    }
+
+    if (!Number.isFinite(keys?.length) || !Number.isFinite(values?.length)) {
+      throw new Error('KVCache update requires typed array inputs.');
+    }
+    if (keys.length !== values.length) {
+      throw new Error('KVCache update requires matching keys and values lengths.');
+    }
+    if (keys.length % this.kvSize !== 0) {
+      throw new Error('KVCache update array length must align to kvSize.');
+    }
+    return { numNewTokens: keys.length / this.kvSize, isGPU: false };
+  }
+
+  
   update(
     layerIdx,
     keys,
     values,
     startPos = this.currentSeqLen
   ) {
-    const numNewTokens = keys instanceof GPUBuffer
-      ? keys.size / (this.kvSize * this.bytesPerElem)
-      : keys.length / this.kvSize;
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+
+    const { numNewTokens } = this._resolveTokenCount(keys, values);
+    if (!Number.isInteger(numNewTokens) || numNewTokens < 0) {
+      throw new Error('KVCache update requires a non-negative integer token count.');
+    }
+    if (numNewTokens === 0) {
+      return;
+    }
 
     if (startPos + numNewTokens > this.maxSeqLen) {
       throw new Error(
@@ -250,7 +305,7 @@ export class KVCache {
       if (keys instanceof GPUBuffer || values instanceof GPUBuffer) {
         throw new Error('Paged layout does not support GPU buffer inputs');
       }
-      this._updatePaged( (layer), keys, values, startPos, numNewTokens);
+      this._updatePaged(layerIdx,  (layer), keys, values, startPos, numNewTokens);
     } else {
       this._updateContiguous( (layer), keys, values, startPos, numNewTokens);
     }
@@ -272,6 +327,15 @@ export class KVCache {
     startPos,
     numTokens
   ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('KVCache updateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
     const layer =  (this.layers[layerIdx]);
     const device = getDevice();
 
@@ -287,6 +351,9 @@ export class KVCache {
 
     const byteOffset = startPos * this.kvSize * this.bytesPerElem;
     const byteSize = numTokens * this.kvSize * this.bytesPerElem;
+    if (byteSize > keysBuffer.size || byteSize > valuesBuffer.size) {
+      throw new Error('KVCache updateFromGPU buffer size is smaller than requested write.');
+    }
 
     // Copy directly from source buffers to cache buffers
     const encoder = device.createCommandEncoder({ label: 'kv_cache_update' });
@@ -311,6 +378,15 @@ export class KVCache {
     startPos,
     numTokens
   ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('KVCache recordUpdateFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
     const encoder = recorder.getEncoder();
     const layer =  (this.layers[layerIdx]);
 
@@ -326,6 +402,9 @@ export class KVCache {
 
     const byteOffset = startPos * this.kvSize * this.bytesPerElem;
     const byteSize = numTokens * this.kvSize * this.bytesPerElem;
+    if (byteSize > keysBuffer.size || byteSize > valuesBuffer.size) {
+      throw new Error('KVCache recordUpdateFromGPU buffer size is smaller than requested write.');
+    }
 
     // Record copy operations to the provided encoder (no submit)
     encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
@@ -386,15 +465,30 @@ export class KVCache {
 
   
   _updatePaged(
+    layerIdx,
     layer,
     keys,
     values,
     startPos,
     numNewTokens
   ) {
+    const device = getDevice();
+    if (layer.keysGPU && layer.valuesGPU && device) {
+      const byteOffset = startPos * this.kvSize * this.bytesPerElem;
+      if (this.kvDtype === 'f16') {
+        const keysF16 = f32ToF16Array( (keys));
+        const valuesF16 = f32ToF16Array( (values));
+        device.queue.writeBuffer(layer.keysGPU, byteOffset, keysF16);
+        device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuesF16);
+      } else {
+        device.queue.writeBuffer(layer.keysGPU, byteOffset,  (keys));
+        device.queue.writeBuffer(layer.valuesGPU, byteOffset,  (values));
+      }
+    }
+
     for (let t = 0; t < numNewTokens; t++) {
       const pos = startPos + t;
-      this._ensurePagesAllocated(this.layers.indexOf(layer), pos);
+      this._ensurePagesAllocated(layerIdx, pos);
 
       const { pageIdx, offset } = this._getPageLocation(pos);
       const srcOffset = t * this.kvSize;
@@ -416,8 +510,16 @@ export class KVCache {
 
   
   get(layerIdx, startPos = 0, endPos) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
     const layer = this.layers[layerIdx];
     const actualEndPos = endPos ?? layer.seqLen;
+    if (!Number.isInteger(actualEndPos) || actualEndPos < startPos) {
+      throw new Error('KVCache get requires endPos >= startPos.');
+    }
+    if (actualEndPos > layer.seqLen) {
+      throw new Error('KVCache get range exceeds cached sequence length.');
+    }
 
     if (this.layout === 'paged' && this.useGPU) {
       throw new Error('Paged GPU cache does not support CPU readback via get().');
@@ -520,15 +622,15 @@ export class KVCache {
     let destOffset = 0;
     for (let pos = startPos; pos < endPos; pos++) {
       const { pageIdx, offset } = this._getPageLocation(pos);
+      const keyPage = layer.keyPages[pageIdx];
+      const valuePage = layer.valuePages[pageIdx];
+      if (!keyPage || !valuePage) {
+        destOffset += this.kvSize;
+        continue;
+      }
 
-      keys.set(
-        layer.keyPages[pageIdx].subarray(offset, offset + this.kvSize),
-        destOffset
-      );
-      values.set(
-        layer.valuePages[pageIdx].subarray(offset, offset + this.kvSize),
-        destOffset
-      );
+      keys.set(keyPage.subarray(offset, offset + this.kvSize), destOffset);
+      values.set(valuePage.subarray(offset, offset + this.kvSize), destOffset);
 
       destOffset += this.kvSize;
     }

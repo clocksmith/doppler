@@ -113,6 +113,22 @@ export declare class EmulatedVramStore {
   allocate(partition: string, sizeBytes: number, label?: string): Promise<string>;
 
   /**
+   * Register an existing GPU buffer as a VRAM chunk
+   * @param partition - Partition name
+   * @param buffer - GPU buffer to track
+   * @param sizeBytes - Chunk size
+   * @param label - Optional label for debugging
+   * @param options - Registration options
+   */
+  registerVramBuffer(
+    partition: string,
+    buffer: GPUBuffer,
+    sizeBytes: number,
+    label?: string,
+    options?: { locked?: boolean }
+  ): string;
+
+  /**
    * Write data to a chunk
    * @param chunkId - Chunk ID
    * @param data - Data to write

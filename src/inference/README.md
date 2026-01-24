@@ -583,4 +583,4 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/WGSL_STYLE_GUIDE.md` for runtime kernel modes (4-bit/9-bit) and the OPFS purge helper.
+See `docs/style/WGSL_style-guide.md` for runtime kernel modes (4-bit/9-bit) and the OPFS purge helper.

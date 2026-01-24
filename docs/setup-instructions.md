@@ -2,7 +2,7 @@
 
 DOPPLER is the local WebGPU inference engine for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models.
 
-For Ollama and other local server options, see [LOCAL_MODELS.md](./LOCAL_MODELS.md).
+For Ollama and other local server options, see [local-models.md](./local-models.md).
 
 ---
 
@@ -70,9 +70,9 @@ Notes:
 
 ## Related Documentation
 
-- [LOCAL_MODELS.md](./LOCAL_MODELS.md) - Ollama and server-based local models
-- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - General troubleshooting
-- [SECURITY.md](./SECURITY.md) - Security considerations for local execution
+- [local-models.md](./local-models.md) - Ollama and server-based local models
+- [troubleshooting.md](./troubleshooting.md) - General troubleshooting
+- [security.md](./security.md) - Security considerations for local execution
 
 ---
 

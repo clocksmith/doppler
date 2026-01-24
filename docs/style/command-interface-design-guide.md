@@ -119,6 +119,6 @@ Do not add UI-only switches.
 
 ## References
 
-- `docs/style/HARNESS_STYLE_GUIDE.md`
-- `docs/style/CONFIG_STYLE_GUIDE.md`
-- `docs/style/BENCHMARK_STYLE_GUIDE.md`
+- `docs/style/harness-style-guide.md`
+- `docs/style/config-style-guide.md`
+- `docs/style/benchmark-style-guide.md`

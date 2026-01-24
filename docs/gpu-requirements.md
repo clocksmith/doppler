@@ -236,6 +236,6 @@ The test suite measures:
 
 ## See Also
 
-- [Doppler Architecture](./ARCHITECTURE.md)
+- [Doppler Architecture](./architecture.md)
 - [Kernel Compatibility](./KERNEL_COMPATIBILITY.md)
-- [Testing Guide](./TESTING.md)
+- [Testing Guide](./testing.md)

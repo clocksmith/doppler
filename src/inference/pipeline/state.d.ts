@@ -25,7 +25,7 @@ import type { RuntimeConfigSchema, KernelPathRef, KernelPathSchema } from '../..
 import type { WeightDebugFlags } from './weights.js';
 import type { LogitsDebugFlags } from './logits.js';
 import type { KernelPathSource } from '../../config/kernel-path-loader.js';
-import type { EmulationContext } from '../../simulator/index.js';
+import type { EmulationContext } from '/proto/simulator/index.js';
 
 export class PipelineState {
   // Components

@@ -2,7 +2,7 @@
 
 JavaScript conventions for kernel wrappers and pipeline code.
 
-See [General Style Guide](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for the rationale behind JavaScript-first development.
+See [General Style Guide](./general-style-guide.md#language-policy-javascript--declaration-files) for the rationale behind JavaScript-first development.
 
 ## Core Principle: Config as Code
 
@@ -62,7 +62,7 @@ Kernel path overrides are config-only; harness/UI surfaces must not set kernel s
 - Harness options must live in config (`runtime.shared.harness`).
 - Per-field URL overrides are forbidden; use `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`.
 - Harness/UI controls must not override runtime tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
-See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
+See `config-style-guide.md` for merge order and category rules.
 
 ## Runtime Configuration (Performance Invariants)
 
@@ -1022,5 +1022,5 @@ export function matmulReference(a, b, m, n, k) {
 
 ## See Also
 
-- [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
-- [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns
+- [WGSL Style Guide](./WGSL_style-guide.md) - Shader conventions
+- [General Style Guide](./general-style-guide.md) - General patterns

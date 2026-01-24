@@ -128,7 +128,7 @@ From `quickstart-ui.js:205-214`:
 
 ## Latency Distribution (Pipeline Benchmark)
 
-**Source**: `src/inference/browser-harness.js` + `docs/spec/BENCHMARK_SCHEMA.json`
+**Source**: `src/inference/browser-harness.js` + `docs/BENCHMARK_SCHEMA.json`
 
 ### Metrics Tracked
 
@@ -192,7 +192,7 @@ The emulation layer enables running large models on constrained hardware by emul
 
 ### Tiered Storage System
 
-**Source**: `src/storage/emulated-vram.js`, `src/simulator/index.js`
+**Source**: `src/storage/emulated-vram.js`, `proto/simulator/index.js`
 
 The `EmulatedVramStore` implements a three-tier memory hierarchy:
 
@@ -328,7 +328,7 @@ Used when `subgroups` feature is unavailable:
 | `src/gpu/kernels/dequant_subgroup.wgsl` | Subgroup-optimized dequant |
 | `src/gpu/kernels/matmul_f16.wgsl` | F16 optimized matmul |
 | `src/config/schema/emulation.schema.js` | Emulation config, chip presets, parallelism defaults |
-| `src/simulator/index.js` | Emulation context factory, VirtualCluster integration |
+| `proto/simulator/index.js` | Emulation context factory, VirtualCluster integration |
 | `src/storage/emulated-vram.js` | Tiered storage (VRAM/RAM/OPFS) with LRU eviction |
 | `src/inference/pipeline/init.js` | `initEmulation()` and `destroyEmulation()` |
 | `src/config/presets/platforms/nvidia-gb200-nvl72.json` | NVL72 (72 GPU) preset |

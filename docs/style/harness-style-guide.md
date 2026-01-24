@@ -78,6 +78,6 @@ Benchmark results should be saved as JSON under `tests/results/` when captured.
 
 ## See Also
 
-- `COMMAND_INTERFACE_DESIGN_GUIDE.md`
-- `CONFIG_STYLE_GUIDE.md`
-- `../TESTING.md`
+- `command-interface-design-guide.md`
+- `config-style-guide.md`
+- `../testing.md`

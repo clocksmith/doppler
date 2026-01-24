@@ -10,9 +10,9 @@ Repository: https://github.com/clocksmith/doppler
 
 **Before writing ANY code, you MUST read the relevant style guides:**
 
-1. **[General Style Guide](docs/style/GENERAL_STYLE_GUIDE.md)** - Architecture patterns, naming conventions, file organization
-2. **[JavaScript Guide](docs/style/JAVASCRIPT_STYLE_GUIDE.md)** - Config-as-code, kernel wrappers, .d.ts requirements
-3. **[WGSL Guide](docs/style/WGSL_STYLE_GUIDE.md)** - Shader structure, optimization patterns, shared memory usage
+1. **[General Style Guide](docs/style/general-style-guide.md)** - Architecture patterns, naming conventions, file organization
+2. **[JavaScript Guide](docs/style/javascript-style-guide.md)** - Config-as-code, kernel wrappers, .d.ts requirements
+3. **[WGSL Guide](docs/style/WGSL_style-guide.md)** - Shader structure, optimization patterns, shared memory usage
 
 These guides contain critical performance patterns and architectural decisions. Ignoring them leads to:
 - Kernels with O(N²) complexity when O(N) is possible
@@ -42,8 +42,8 @@ doppler/
 ```
 
 ### Before Starting
-- Read `docs/ARCHITECTURE.md` for system overview
-- Read `docs/FORMATS.md` for model format specification
+- Read `docs/architecture.md` for system overview
+- Read `docs/formats.md` for model format specification
 - Review `src/inference/pipeline.js` for inference flow
 - Review `src/config/runtime.js` and `src/inference/browser-harness.js` for runtime config plumbing
 
@@ -110,7 +110,7 @@ Also acceptable: demo entry points (`demo/`, `tests/harness.html`) for direct co
 2. Config-driven probes for specific values
 3. Extended trace categories (permanent additions only)
 
-See `docs/style/GENERAL_STYLE_GUIDE.md` for details.
+See `docs/style/general-style-guide.md` for details.
 
 ### Debug Probes
 

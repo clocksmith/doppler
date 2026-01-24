@@ -7,6 +7,7 @@ import type {
   MemoryStats,
   GPUContext,
 } from './types.js';
+import type { EmulatedVramStore } from '../../storage/emulated-vram.js';
 
 /**
  * Tiered KV cache: hot ring buffer + cold paged cache.
@@ -35,6 +36,10 @@ export class TieredKVCache {
   totalTokensSeen: number;
   memoryUsage: number;
   gpuContext: GPUContext | null;
+  coldStore: EmulatedVramStore | null;
+  coldStorePartition: string;
+  coldStoreRegistered: boolean;
+  coldStoreChunks: string[];
   hotCache: SlidingWindowKVCache;
   coldCache: KVCache | null;
   coldLayers: Array<{
@@ -45,7 +50,22 @@ export class TieredKVCache {
     seqLen: number;
   }> | null;
 
-  constructor(config: KVCacheConfig, caches?: { hotCache: SlidingWindowKVCache; coldCache: KVCache } | null);
+  constructor(
+    config: KVCacheConfig,
+    caches?: {
+      hotCache: SlidingWindowKVCache;
+      coldCache?: KVCache | null;
+      coldLayers?: Array<{
+        keysPackedGPU: GPUBuffer;
+        valuesPackedGPU: GPUBuffer;
+        scalesKGPU: GPUBuffer;
+        scalesVGPU: GPUBuffer;
+        seqLen: number;
+      }> | null;
+      coldStore?: EmulatedVramStore | null;
+      coldStorePartition?: string;
+    } | null
+  );
   clear(): void;
   update(layerIdx: number, keys: Float32Array, values: Float32Array, startPos?: number): void;
   updateFromGPU(layerIdx: number, keysBuffer: GPUBuffer, valuesBuffer: GPUBuffer, startPos: number, numTokens: number): Promise<void>;

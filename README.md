@@ -52,14 +52,14 @@ The converter embeds model-specific inference parameters in `manifest.json`.
 Runtime reads config directly (no model-family detection). Missing fields fail
 fast; `null` explicitly disables a feature. Kernel paths resolve at conversion
 time and can be overridden via `runtime.inference.kernelPath` or per-run context.
-See `docs/CONFIG.md` and `docs/FORMATS.md` for the full contract.
+See `docs/config.md` and `docs/formats.md` for the full contract.
 
 ## Why Pure JS + WGSL
 
 DOPPLER uses JavaScript orchestration with hand-written WGSL kernels so changes
 compile at runtime without a build step (hot-swap plumbing is planned). GPU compute dominates decode time, so the focus
 is on kernel performance and debuggability. Type contracts live in `.d.ts`
-files; see `docs/style/GENERAL_STYLE_GUIDE.md` for the full rationale.
+files; see `docs/style/general-style-guide.md` for the full rationale.
 
 ## Model Support
 
@@ -73,13 +73,11 @@ files; see `docs/style/GENERAL_STYLE_GUIDE.md` for the full rationale.
 ## Documentation
 
 Start at `docs/INDEX.md`, then:
-- `docs/ARCHITECTURE.md`
-- `docs/CONFIG.md`
-- `docs/FORMATS.md`
-- `docs/OPERATIONS.md`
-- `docs/TESTING.md`
-- `docs/ROADMAP.md`
-- `docs/AGENT_INTENT_BUNDLE.md`
+- `docs/architecture.md`
+- `docs/config.md`
+- `docs/formats.md`
+- `docs/operations.md`
+- `docs/testing.md`
 
 ## Requirements
 

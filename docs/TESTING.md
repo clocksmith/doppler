@@ -25,11 +25,11 @@
 
 | Doc | Purpose |
 |-----|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture context |
+| [architecture.md](architecture.md) | System architecture context |
 | `../tests/kernels/README.md` | Kernel test coverage and design notes |
-| `style/BENCHMARK_STYLE_GUIDE.md` | Benchmark methodology |
+| `style/benchmark-style-guide.md` | Benchmark methodology |
 | Internal postmortems (private wrapper repo) | Test-related incident history |
-| `../tests/kernels/BENCHMARKS.md` | Benchmark baselines |
+| `../tests/kernels/benchmarks.md` | Benchmark baselines |
 
 ---
 
@@ -148,7 +148,7 @@ flows locally for validation until a browser CI runner is added.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## Kernel Testing
@@ -156,7 +156,7 @@ See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge help
 Defines the testing framework design for WGSL kernels and kernel combinations.
 
 **Implementation status:** See `../tests/kernels/README.md`
-**Benchmark baselines:** See `../tests/kernels/BENCHMARKS.md`
+**Benchmark baselines:** See `../tests/kernels/benchmarks.md`
 
 ---
 
@@ -301,4 +301,4 @@ For failures, store:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.

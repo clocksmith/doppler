@@ -87,7 +87,7 @@ import {
 
 ## Related Documentation
 
-- [ARCHITECTURE.md](../docs/ARCHITECTURE.md) — System overview
+- [architecture.md](../docs/architecture.md) — System overview
 - [KERNEL_COMPATIBILITY.md](../docs/KERNEL_COMPATIBILITY.md) — Kernel modes and runtime flags
 - [RDRR_FORMAT.md](../docs/spec/RDRR_FORMAT.md) — Model format specification
-- [TESTING.md](../docs/TESTING.md) — Full testing documentation
+- [testing.md](../docs/testing.md) — Full testing documentation

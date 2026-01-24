@@ -10,4 +10,4 @@ Recommended paths:
 - Manifest runs: `runBrowserManifest(manifest)`
 
 Benchmark outputs should be saved under `tests/results/` (JSON) and referenced
-from `docs/PERFORMANCE.md`.
+from `docs/performance.md`.

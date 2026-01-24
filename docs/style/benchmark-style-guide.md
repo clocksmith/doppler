@@ -8,7 +8,7 @@ Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime
 
 ## Output Schema
 
-- Emit JSON that conforms to `../spec/BENCHMARK_SCHEMA.json`.
+- Emit JSON that conforms to `../BENCHMARK_SCHEMA.json`.
 - Always include `schemaVersion`, `timestamp`, and `suite`.
 - Include `env`, `model`, `config`, `workload`, `metrics`, `quality`, and `raw` when available.
 
@@ -61,7 +61,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Pipeline benchmark harness | ✓ Implemented | `src/inference/browser-harness.js` |
 | System benchmarks | Planned | (TBD) |
 | Standard prompts | ✓ Implemented | `demo/bench-manifest.json` |
-| JSON result schema | ✓ Implemented | `../spec/BENCHMARK_SCHEMA.json` |
+| JSON result schema | ✓ Implemented | `../BENCHMARK_SCHEMA.json` |
 | GPU timestamp queries | ✓ Implemented | `src/gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | `src/gpu/perf-guards.js` |
 | Peak VRAM estimation | ✓ Implemented | `src/memory/buffer-pool.js` |

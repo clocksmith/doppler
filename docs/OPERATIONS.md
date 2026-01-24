@@ -819,7 +819,7 @@ When debugging DOPPLER issues:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
 
 

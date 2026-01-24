@@ -590,8 +590,8 @@ struct Uniforms {
 
 ## See Also
 
-- [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
-- [General Style Guide](./GENERAL_STYLE_GUIDE.md) - General patterns
+- [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
+- [General Style Guide](./general-style-guide.md) - General patterns
 
 ---
 
@@ -618,7 +618,7 @@ Priority (low to high):
 2. manifest `inference.defaultKernelPath`
 3. runtime config `runtime.inference.kernelPath`
 
-Kernel paths are explicit dispatch sequences. See `../CONFIG.md`.
+Kernel paths are explicit dispatch sequences. See `../config.md`.
 
 ### RDRR Layout vs Runtime Kernels
 

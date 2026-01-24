@@ -46,7 +46,7 @@ Inference Phase (per token)
 Doppler integrates with Reploid via the minimal Ouroboros substrate contract:
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
 results. The contract surface and kernel evolution flow are documented in
-`reploid/docs/design/SUBSTRATE.md`.
+`reploid/docs/substrate.md`.
 
 ## Design Philosophy
 
@@ -96,7 +96,7 @@ DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it
 | LoRA hot-swap | Compiled model can't change weights at runtime |
 | Speculative decoding | Coordinating two compiled models is awkward |
 
-See `ROADMAP.md` for rationale, goals, and current status.
+See the internal roadmap for rationale, goals, and current status.
 
 ---
 
@@ -174,7 +174,7 @@ const orchestrator = FunctionGemmaOrchestrator.factory(deps);
 await orchestrator.runEvolution(task);  // Policy in driver
 ```
 
-See `ROADMAP.md` for the current migration status.
+See the internal roadmap for the current migration status.
 
 ---
 
@@ -198,11 +198,11 @@ See `ROADMAP.md` for the current migration status.
 | `debug/` | Logging, trace categories, probes |
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
-| `simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
+| `proto/simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
 | `training/` | Training utilities (browser-only) |
 | `types/` | Shared TypeScript types |
 
-See `src/simulator/README.md` for details on the emulation subsystem.
+See `proto/simulator/README.md` for details on the emulation subsystem.
 
 ---
 
@@ -653,9 +653,10 @@ Please re-convert the model using the latest converter.
 
 **Layouts:**
 - `contiguous`: Single buffer per K/V (default for <8K)
-- `paged`: Block-based (future, for very long contexts)
+- `paged`: Block-based allocation for long contexts
+- `tiered`: Hot ring + cold pages (optional tiered storage tracking)
 
-KV paging is not shipped yet; current inference keeps KV cache in VRAM and relies on sliding windows or RoPE scaling for long context.
+Paged and tiered layouts keep K/V in GPU buffers; sliding windows or RoPE scaling still cap active context.
 
 **KV dtype:** F16 when supported, halves VRAM usage.
 
@@ -1074,7 +1075,7 @@ Different devices get different kernel implementations:
 - Subgroup support → shuffle-based reductions
 - Large context → streaming attention
 
-See `CONFIG.md` for kernel selection rules and runtime overrides.
+See `config.md` for kernel selection rules and runtime overrides.
 
 ---
 
@@ -1103,8 +1104,8 @@ See `CONFIG.md` for kernel selection rules and runtime overrides.
 
 ## Related Documentation
 
-- `ROADMAP.md` - Memory tiers and distribution goals
-- `FORMATS.md` - RDRR format specification
+- Internal roadmap - Memory tiers and distribution goals
+- `formats.md` - RDRR format specification
 
 ---
 
@@ -1112,7 +1113,7 @@ See `CONFIG.md` for kernel selection rules and runtime overrides.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_STYLE_GUIDE.md` for runtime kernel modes and the OPFS purge helper.
+See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
 
 

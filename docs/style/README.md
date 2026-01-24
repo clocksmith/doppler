@@ -6,19 +6,19 @@ Coding conventions for the DOPPLER codebase.
 
 | Guide | Scope |
 |-------|-------|
-| [General Style Guide](./GENERAL_STYLE_GUIDE.md) | Architecture, language policy, file organization, naming |
-| [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) | Kernel wrappers, config-as-code, JSDoc, rule maps |
-| [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) | Shader structure, constants vs uniforms, bindings |
-| [Benchmark Style Guide](./BENCHMARK_STYLE_GUIDE.md) | Benchmark harnesses, output schema, baselines |
-| [Config Style Guide](./CONFIG_STYLE_GUIDE.md) | Config ownership, merge order, runtime boundaries |
-| [Harness Interface Style Guide](./HARNESS_STYLE_GUIDE.md) | Browser harness interface and config-only rules |
-| [Command Interface Design Guide](./COMMAND_INTERFACE_DESIGN_GUIDE.md) | Intent clusters, exit conditions, interface contract |
+| [General Style Guide](./general-style-guide.md) | Architecture, language policy, file organization, naming |
+| [JavaScript Style Guide](./javascript-style-guide.md) | Kernel wrappers, config-as-code, JSDoc, rule maps |
+| [WGSL Style Guide](./WGSL_style-guide.md) | Shader structure, constants vs uniforms, bindings |
+| [Benchmark Style Guide](./benchmark-style-guide.md) | Benchmark harnesses, output schema, baselines |
+| [Config Style Guide](./config-style-guide.md) | Config ownership, merge order, runtime boundaries |
+| [Harness Interface Style Guide](./harness-style-guide.md) | Browser harness interface and config-only rules |
+| [Command Interface Design Guide](./command-interface-design-guide.md) | Intent clusters, exit conditions, interface contract |
 
 ## Quick Reference
 
 ### Language Policy
 
-Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (`src/` and `demo/`). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./GENERAL_STYLE_GUIDE.md#language-policy-javascript--declaration-files) for rationale.
+Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (`src/` and `demo/`). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./general-style-guide.md#language-policy-javascript--declaration-files) for rationale.
 
 ### Config Flow
 

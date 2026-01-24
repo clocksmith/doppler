@@ -195,7 +195,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Command intent and harness options must live in config (`runtime.shared.harness`, `runtime.shared.tooling.intent`).
 - Harnesses must not accept per-field URL overrides; only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
-See `CONFIG_STYLE_GUIDE.md` for merge order and category rules.
+See `config-style-guide.md` for merge order and category rules.
 
 ### Manifest-First Change Checklist
 
@@ -855,6 +855,6 @@ function runKernel(spec) {
 
 ## See Also
 
-- [WGSL Style Guide](./WGSL_STYLE_GUIDE.md) - Shader conventions
-- [JavaScript Style Guide](./JAVASCRIPT_STYLE_GUIDE.md) - Kernel wrapper conventions
-- [Kernel Compatibility](./WGSL_STYLE_GUIDE.md) - Runtime modes and flags
+- [WGSL Style Guide](./WGSL_style-guide.md) - Shader conventions
+- [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
+- [Kernel Compatibility](./WGSL_style-guide.md) - Runtime modes and flags
