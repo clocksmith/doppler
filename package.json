@@ -2,18 +2,19 @@
   "name": "@clocksmith/doppler",
   "version": "0.1.0",
   "description": "WebGPU-based local inference engine for quantized LLMs",
-  "main": "dist/src/index.js",
-  "types": "dist/types/src/index.d.ts",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/types/src/index.d.ts",
-      "import": "./dist/src/index.js"
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
     },
     "./provider": {
-      "types": "./dist/types/client/doppler-provider.d.ts",
-      "import": "./dist/client/doppler-provider.js"
-    }
+      "types": "./src/client/doppler-provider.d.ts",
+      "import": "./src/client/doppler-provider.js"
+    },
+    "./*": "./src/*"
   },
   "repository": {
     "type": "git",
@@ -32,7 +33,7 @@
   "author": "",
   "license": "MIT",
   "files": [
-    "dist",
+    "src",
     "src/gpu/kernels/*.wgsl",
     "README.md"
   ]
