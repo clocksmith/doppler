@@ -1,36 +1,54 @@
 ---
 name: doppler-bench
-description: Run DOPPLER performance benchmarks to measure throughput, compare against baselines, and detect regressions across models or kernel settings. Use when validating speed changes or collecting JSON benchmark artifacts. (project)
+description: Run DOPPLER performance benchmarks in the browser (demo UI or harness), capture JSON reports, and compare against baselines. Use when validating speed changes or collecting benchmark artifacts. (project)
 ---
 
-# DOPPLER Bench Skill
+# DOPPLER Bench Skill (Browser)
 
-Use this skill to measure DOPPLER inference performance.
+Use this skill to measure DOPPLER inference performance **in the browser**. This repo does not use npm/CLI benchmark commands.
 
-## Critical: Inference vs Kernel Benchmarks
+## Quick Start (Demo UI)
+
+1) Serve the repo root:
+```bash
+python3 -m http.server 8080
+```
+2) Open `http://localhost:8080/demo/`.
+3) Select the target model from the local list.
+4) Set Runtime Preset to `experiments/gemma3-bench-q4k` (or the model-specific bench preset).
+5) Diagnostics -> Suite = `bench` -> Run.
+6) Export the report JSON and save it under `tests/results/`.
+
+## Browser Console (Repeatable)
+
+In DevTools (Demo UI or `tests/harness.html`):
+```js
+const manifest = await (await fetch('/demo/bench-manifest.json')).json();
+const { runBrowserManifest } = await import('/src/inference/browser-harness.js');
+const result = await runBrowserManifest(manifest);
+console.log(result.report);
+```
+
+Optional suite runner:
+```js
+const { runBrowserSuite } = await import('/src/inference/browser-harness.js');
+const result = await runBrowserSuite({
+  suite: 'bench',
+  runtimePreset: 'experiments/gemma3-bench-q4k'
+});
+console.log(result.report);
+```
+
+## Kernel Microbenchmarks (Browser)
+
+- Open `http://localhost:8080/tests/kernels/browser/test-page.js`
+- Use the perf/bench mode to measure kernel timings.
+
+## Discovery
 
 ```bash
-npm run bench -- inference    # Runs INFERENCE benchmark (tok/s)
-npm run bench -- --kernels    # Runs KERNEL microbenchmarks (matmul, attention, etc.)
-npm run bench                # Defaults to kernel microbenchmarks
-```
-
-**Inference benchmarks require `inference` or `--inference`.** Use `--kernels` for microbench.
-
-## Completion Signals
-
-DOPPLER emits standardized signals for CLI/automation detection:
-
-| Signal | Meaning |
-|--------|---------|
-| `[DOPPLER:DONE]` | Task completed (success or error) - always emitted at end |
-| `[DOPPLER:RESULT]` | Full benchmark result JSON - emitted before DONE |
-| `[DOPPLER:ERROR]` | Error occurred - emitted before DONE on failure |
-
-Example output:
-```
-[DOPPLER:RESULT] {"schemaVersion":1,"metrics":{"decode_tokens_per_sec":42.5,...}}
-[DOPPLER:DONE] {"status":"success","elapsed":1234}
+ls models/
+ls src/config/presets/models/
 ```
 
 ## Key Metrics
@@ -43,161 +61,21 @@ Example output:
 | `decode_ms_per_token_p99` | 99th percentile per-token decode latency (ms) | Flag if >100ms for interactive use |
 | `estimated_vram_bytes_peak` | Peak GPU memory usage (bytes) | Lower means more headroom |
 
-## Discovery Commands
+## Report Storage + Validation
 
-Before benchmarking, discover available models and current configuration:
-
+- Save exported JSON reports under `tests/results/`:
+  - `tests/results/bench_<modelId>_<prompt>_<preset>.json`
+- Validate against schema:
 ```bash
-# List models in RDRR format (ready to use)
-ls models/
-
-# List model presets (shows supported model families and their configs)
-ls src/config/presets/models/
-
-# Dump resolved runtime config
-npm run bench -- --config bench --dump-config
-
-# Check GPU capabilities (shader-f16 determines if F16 activations are available)
-npm run debug -- -m MODEL 2>&1 | grep -i "shader-f16\|features"
+node tests/validate-benchmark-results.js
 ```
 
-**Common Model Names:**
-- `gemma-2-2b-it-wf16` - Gemma 2 2B (F16 weights)
-- `gemma-3-1b-it-wq4k` - Gemma 3 1B (Q4_K_M weights, ~565MB)
+## Regression Detection Protocol (Browser)
 
-**First-Time Setup:** Models must be downloaded/converted before benchmarking. If you see "Not found" errors, the model may not exist in `models/` directory.
-
-## Standard Benchmark Commands
-
-```bash
-# Quick inference benchmark - single run
-npm run bench -- inference --config bench -m MODEL 2>&1 | grep -E "TTFT|Prefill|Decode|tok/s"
-
-# Multiple runs for statistical confidence (recommended)
-npm run bench -- inference --config ./bench-3runs.json -m MODEL
-
-# Save results to JSON for later comparison
-npm run bench -- inference --config ./bench-3runs.json -m MODEL -o results.json
-
-# Compare against saved baseline
-npm run bench -- inference --config bench -m MODEL --compare baseline.json
-
-# Extract full result JSON
-npm run bench -- inference --config bench -m MODEL 2>&1 | grep "DOPPLER:RESULT" | sed 's/.*DOPPLER:RESULT] //'
-```
-
-## Configuration via --config
-
-Use config files or inline JSON. CLI flags must not override runtime tunables.
-
-**Note:** `runtime.inference.prompt` is required for all inference benchmarks. Always include it in your config or inline JSON.
-
-```bash
-# Fix decode length for apples-to-apples comparisons (inline JSON config)
-npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is","batching":{"maxTokens":64}}}}' -m MODEL
-
-# Combine with runs and warmup in config
-npm run bench -- inference --config ./bench-3runs.json -m MODEL
-
-# Use a preset
-npm run bench -- inference --config bench -m MODEL
-
-# Use a config file
-npm run bench -- inference --config ./my-bench-config.json -m MODEL
-```
-
-Example `my-bench-config.json`:
-```json
-{
-  "extends": "bench",
-  "runtime": {
-    "shared": {
-      "benchmark": {
-        "run": {
-          "warmupRuns": 1,
-          "timedRuns": 3
-        }
-      }
-    },
-    "inference": {
-      "prompt": "The color of the sky is",
-      "batching": { "maxTokens": 64 },
-      "sampling": { "temperature": 0 }
-    }
-  }
-}
-```
-
-**Note:** The `prompt` field is required. The `extends: "bench"` inherits benchmark settings but not a default prompt.
-
-## Kernel Configuration Testing
-
-Test different kernel thresholds or variants via `--config`:
-
-```bash
-# Test with fused kernel disabled (set threshold below model's hidden size)
-npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is"},"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":0}}}}}' -m MODEL
-
-# Test with fused kernel enabled
-npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is"},"shared":{"kernelThresholds":{"fusedMatmul":{"maxMediumN":4096}}}}}' -m MODEL
-
-# Explicit kernel path (config-only)
-npm run bench -- inference --config '{"extends":"bench","runtime":{"inference":{"prompt":"The color of the sky is","kernelPath":"gemma2-q4k-dequant-f16a"}}}' -m MODEL
-```
-
-## Fast Iteration Pattern
-
-```bash
-# Quick single run
-npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
-
-# After code changes: just re-run (no build step needed)
-npm run bench -- inference --config ./bench-1run.json -m MODEL 2>&1 | sed '/DOPPLER:DONE/q'
-```
-
-Use `sed '/DOPPLER:DONE/q'` to exit immediately after benchmark completes.
-
-## CDP Browser Reuse (Best Performance)
-
-For fastest iteration, start Chrome once and reuse it across benchmarks:
-
-```bash
-# Step 0: Start Chrome with CDP (once per session)
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-
-# Step 1: Run benchmarks reusing the browser (avoids startup overhead)
-npm run bench -- inference --config ./bench-3runs.json -m MODEL \
-  --no-server --reuse-browser --cdp-endpoint http://localhost:9222
-```
-
-**CDP flags:**
-| Flag | Description |
-|------|-------------|
-| `--no-server` | Skip dev server (faster startup) |
-| `--reuse-browser` | Don't close browser after run |
-| `--cdp-endpoint <url>` | CDP endpoint (default: http://localhost:9222) |
-
-This pattern is especially useful when A/B testing kernel configurations.
-
-## Regression Detection Protocol
-
-When asked "Is this slower?" or investigating performance regressions:
-
-1. **Establish baseline** (if not already saved; use a clean worktree):
-   ```bash
-   git checkout main
-   npm run bench -- inference --config ./bench-3runs.json -m MODEL -o baseline.json
-   ```
-
-2. **Benchmark current code**:
-   ```bash
-   npm run bench -- inference --config ./bench-3runs.json -m MODEL --compare baseline.json
-   ```
-
-3. **Interpret results**:
-   - **<5% difference**: Within noise, not significant
-   - **5-10% difference**: Investigate, may be real
-   - **>10% difference**: Significant regression, needs fix
+1) Capture a baseline report JSON under `tests/results/`.
+2) Re-run the same preset + prompt + token count.
+3) Compare metrics in the reports (TTFT, decode tok/s, p99).
+4) **<5% difference**: within noise; **5-10%**: investigate; **>10%**: likely regression.
 
 ## Interpretation Guidelines
 
@@ -208,24 +86,12 @@ When asked "Is this slower?" or investigating performance regressions:
 | High variance | Background processes, thermal throttling |
 | Memory regression | Buffer pool usage, tensor allocation |
 
-## Key Grep Patterns
-
-| Pattern | Purpose |
-|---------|---------|
-| `"DOPPLER:DONE\|DOPPLER:ERROR"` | Check completion status |
-| `"DOPPLER:RESULT"` | Extract full result JSON |
-| `"tok/s\|tokens_per"` | Find throughput metrics |
-| `"TTFT\|ttft"` | Find latency metrics |
-| `"memory\|Memory"` | Find memory usage |
-| `"regression\|slower"` | Find comparison results |
-
 ## Reference Files
 
-For detailed information, consult these files:
-
-- **Benchmark harness**: `cli/helpers/inference-benchmark.js`
-- **CLI implementation**: `cli/index.js`
-- **Config resolution**: `docs/style/CONFIG_STYLE_GUIDE.md`
+- **Benchmark harness**: `src/inference/browser-harness.js`
+- **Demo manifest**: `demo/bench-manifest.json`
+- **Benchmark guide**: `docs/style/benchmark-style-guide.md`
+- **Performance workflow**: `docs/performance.md`
 - **Historical results**: `tests/results/*.json`
 
 ## Related Skills

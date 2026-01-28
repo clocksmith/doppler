@@ -29,23 +29,29 @@
     }
 
     .main-layout {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      grid-template-rows: auto minmax(320px, 1fr);
+      gap: var(--space-md);
       flex: 1;
-      overflow: hidden;
+      overflow-y: auto;
+      padding: var(--space-md);
     }
 
     /* Sidebar */
     .sidebar {
-      width: 400px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
+      grid-auto-rows: 260px;
+      gap: var(--space-md);
     }
 
     .panel {
       display: flex;
       flex-direction: column;
       gap: var(--space-sm);
+      overflow: auto;
     }
 
     .status-indicator {
@@ -175,7 +181,8 @@
 
     /* Chat */
     .chat-container {
-      flex: 1;
+      grid-column: 1 / -1;
+      min-height: 320px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -213,19 +220,6 @@
     }
 
     /* Welcome */
-    .welcome-message {
-      text-align: center;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .welcome-message h2 {
-      margin-bottom: var(--space-sm);
-    }
-
-    .welcome-message p {
-      margin: var(--space-xs) 0;
-    }
 
     /* Overlays */
     .progress-overlay,
@@ -577,12 +571,13 @@
     /* Responsive */
     @media (max-width: 768px) {
       .main-layout {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(280px, 1fr);
       }
 
       .sidebar {
-        width: 100%;
-        max-height: 200px;
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
       }
     }
   </style>
@@ -1001,12 +996,6 @@
 
         <!-- Chat Messages -->
         <div class="chat-messages" id="chat-messages">
-          <div class="welcome-message" id="welcome-message">
-            <h2>Welcome to DOPPLER</h2>
-            <p>Select a model from the sidebar to begin.</p>
-            <p class="requirements-note">Requires WebGPU-enabled browser (Chrome 113+, Edge 113+, or Firefox Nightly)
-            </p>
-          </div>
           <!-- Sample messages (hidden until model loaded, shown here for CSS coverage) -->
           <div class="chat-message" id="sample-messages" hidden>
             <div class="chat-message-role type-label">User</div>

@@ -280,7 +280,7 @@ Notes:
 
 - Ensure hardware acceleration is enabled
 - Check for thermal throttling
-- Run `doppler test kernels --perf` to benchmark kernels
+- Open `/tests/kernels/browser/test-page.js` in a WebGPU browser to benchmark kernels
 
 ### Storage Management
 
