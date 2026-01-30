@@ -78,15 +78,20 @@ export function getOrCreatePipelineLayout(
 // ============================================================================
 
 
+function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout) {
+  const constantsKey = constants
+    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
+    : '';
+  const layoutKey = bindGroupLayout ? `:${bindGroupLayout.label || 'layout'}` : '';
+  return `${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
+}
+
 export function getCachedPipeline(
   operation,
   variant,
   constants = null
 ) {
-  const constantsKey = constants
-    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
-    : '';
-  const cacheKey = `${operation}:${variant}${constants ? ':' + constantsKey : ''}`;
+  const cacheKey = buildPipelineCacheKey(operation, variant, constants, null);
   return pipelineCache.get(cacheKey) || null;
 }
 
@@ -97,11 +102,15 @@ export async function getPipelineFast(
   bindGroupLayout = null,
   constants = null
 ) {
-  const cached = getCachedPipeline(operation, variant, constants);
-  if (cached) {
-    return cached;
+  if (bindGroupLayout) {
+    const layoutKey = buildPipelineCacheKey(operation, variant, constants, bindGroupLayout);
+    const cached = pipelineCache.get(layoutKey);
+    if (cached) return cached;
+    return createPipeline(operation, variant, bindGroupLayout, constants);
   }
-  return createPipeline(operation, variant, bindGroupLayout, constants);
+  const cached = getCachedPipeline(operation, variant, constants);
+  if (cached) return cached;
+  return createPipeline(operation, variant, null, constants);
 }
 
 
@@ -111,11 +120,10 @@ export async function createPipeline(
   bindGroupLayout = null,
   constants = null
 ) {
-  // Serialize constants for cache key if present
   const constantsKey = constants
     ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';
-  const cacheKey = `${operation}:${variant}${constants ? ':' + constantsKey : ''}`;
+  const cacheKey = buildPipelineCacheKey(operation, variant, constants, bindGroupLayout);
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {

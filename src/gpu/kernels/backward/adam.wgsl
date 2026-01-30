@@ -31,8 +31,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 
     let g = grads[idx];
-    let m = moment1[idx];
-    let v = moment2[idx];
+    var m = moment1[idx];
+    var v = moment2[idx];
 
     let beta1 = u.beta1;
     let beta2 = u.beta2;

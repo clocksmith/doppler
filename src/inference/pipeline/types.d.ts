@@ -439,6 +439,9 @@ export interface PipelineStats {
   /** Total prefill time in milliseconds */
   prefillTimeMs: number;
 
+  /** Time to first token in milliseconds */
+  ttftMs: number;
+
   /** Total decode time in milliseconds */
   decodeTimeMs: number;
 

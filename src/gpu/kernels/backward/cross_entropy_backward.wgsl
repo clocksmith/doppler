@@ -29,9 +29,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     let token_idx = idx / u.vocab_size;
     let class_idx = idx % u.vocab_size;
-    let target = targets[token_idx];
-    let grad = softmax[idx];
-    if (class_idx == target) {
+    let target_idx = targets[token_idx];
+    var grad = softmax[idx];
+    if (class_idx == target_idx) {
         grad = grad - 1.0;
     }
     let scale = grad_output[token_idx];

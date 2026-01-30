@@ -37,10 +37,15 @@ import { DiagnosticsController } from './diagnostics-controller.js';
 
 const state = {
   runtimeOverride: null,
+  runtimeOverrideBase: null,
   runtimeOverrideLabel: null,
+  runtimeSamplingOverride: null,
+  runtimeSamplingLabel: null,
+  samplingSyncing: false,
   lastReport: null,
   lastReportInfo: null,
   lastMetrics: null,
+  lastInferenceStats: null,
   lastMemoryStats: null,
   activePipeline: null,
   activeModelId: null,
@@ -359,6 +364,13 @@ function renderModelList(models) {
   }
 }
 
+function updateSidebarLayout(models) {
+  const sidebar = $('sidebar');
+  if (!sidebar) return;
+  const hasModels = Array.isArray(models) && models.length > 0;
+  sidebar.dataset.layout = hasModels ? 'ready' : 'empty';
+}
+
 function selectDiagnosticsModel(modelId) {
   const modelSelect = $('diagnostics-model');
   if (!modelSelect) return;
@@ -410,6 +422,7 @@ async function refreshModelList() {
     }
   }
   renderModelList(models);
+  updateSidebarLayout(models);
   await updateStorageInfo();
 }
 
@@ -483,6 +496,8 @@ function updatePerformancePanel(snapshot) {
   const memoryEl = $('stat-memory');
   const gpuEl = $('stat-gpu');
   const kvEl = $('stat-kv');
+  const prefillEl = $('stat-prefill');
+  const decodeEl = $('stat-decode');
 
   const metrics = state.lastMetrics || {};
   const tps = Number.isFinite(metrics.tokensPerSec)
@@ -506,6 +521,38 @@ function updatePerformancePanel(snapshot) {
 
   const kvBytes = state.lastMemoryStats?.kvCache?.allocated ?? null;
   setText(kvEl, Number.isFinite(kvBytes) ? formatBytes(kvBytes) : '--');
+
+  const stats = state.lastInferenceStats || {};
+  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
+  const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
+  const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime;
+  const prefillRate = (prefillTokens != null && prefillTime && prefillTime > 0)
+    ? prefillTokens / (prefillTime / 1000)
+    : null;
+  if (prefillEl) {
+    if (prefillTokens == null && ttftMs == null && prefillRate == null) {
+      setText(prefillEl, '--');
+    } else {
+      const ttftLabel = ttftMs != null ? `TTFT ${Math.round(ttftMs)}ms` : 'TTFT --';
+      const tokenLabel = prefillTokens != null ? `${prefillTokens} tok` : '--';
+      const rateLabel = prefillRate != null ? `${prefillRate.toFixed(2)} tok/s` : '--';
+      setText(prefillEl, `${ttftLabel} • ${tokenLabel} @ ${rateLabel}`);
+    }
+  }
+
+  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
+  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+  if (decodeEl) {
+    if (decodeTokens == null && decodeTime == null) {
+      setText(decodeEl, '--');
+    } else {
+      const tokenLabel = decodeTokens != null ? `${decodeTokens} tok` : '--';
+      const rateLabel = (decodeTokens != null && decodeTime && decodeTime > 0)
+        ? `${(decodeTokens / (decodeTime / 1000)).toFixed(2)} tok/s`
+        : '--';
+      setText(decodeEl, `${tokenLabel} • ${rateLabel}`);
+    }
+  }
 }
 
 function updateMemoryPanel(snapshot) {
@@ -628,24 +675,55 @@ function clearChatMessages() {
   state.chatMessages = [];
 }
 
-function getSamplingOverrides() {
+function buildSamplingOverride() {
   const tempInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
   const temperature = Number.parseFloat(tempInput?.value ?? '');
   const topP = Number.parseFloat(topPInput?.value ?? '');
   const topK = Number.parseInt(topKInput?.value ?? '', 10);
-  const overrides = {};
+  const sampling = {};
+  let hasValue = false;
   if (Number.isFinite(temperature)) {
-    overrides.temperature = Math.max(0, temperature);
+    sampling.temperature = Math.max(0, temperature);
+    hasValue = true;
   }
   if (Number.isFinite(topP)) {
-    overrides.topP = Math.max(0, Math.min(1, topP));
+    sampling.topP = Math.max(0, Math.min(1, topP));
+    hasValue = true;
   }
   if (Number.isFinite(topK)) {
-    overrides.topK = Math.max(0, topK);
+    sampling.topK = Math.max(0, topK);
+    hasValue = true;
   }
-  return overrides;
+  if (!hasValue) return null;
+  return {
+    inference: {
+      sampling,
+    },
+  };
+}
+
+function syncSamplingInputsFromRuntime() {
+  if (state.runtimeSamplingOverride) return;
+  const tempInput = $('temperature-input');
+  const topPInput = $('top-p-input');
+  const topKInput = $('top-k-input');
+  if (!tempInput || !topPInput || !topKInput) return;
+  const sampling = getRuntimeConfig().inference?.sampling || {};
+  state.samplingSyncing = true;
+  tempInput.value = Number.isFinite(sampling.temperature) ? String(sampling.temperature) : '';
+  topPInput.value = Number.isFinite(sampling.topP) ? String(sampling.topP) : '';
+  topKInput.value = Number.isFinite(sampling.topK) ? String(sampling.topK) : '';
+  state.samplingSyncing = false;
+}
+
+function applySamplingOverrideFromInputs() {
+  if (state.samplingSyncing) return;
+  const override = buildSamplingOverride();
+  state.runtimeSamplingOverride = override;
+  state.runtimeSamplingLabel = override ? 'sampling' : null;
+  applySelectedRuntimePreset();
 }
 
 function showProgressOverlay(title) {
@@ -758,7 +836,6 @@ async function handleChatSend() {
     return;
   }
 
-  const sampling = getSamplingOverrides();
   const controller = new AbortController();
   state.chatAbortController = controller;
   setChatGenerating(true);
@@ -771,7 +848,6 @@ async function handleChatSend() {
 
   try {
     for await (const token of pipeline.generate(prompt, {
-      ...sampling,
       useChatTemplate: false,
       signal: controller.signal,
     })) {
@@ -794,6 +870,7 @@ async function handleChatSend() {
       state.chatMessages[messageIndex].content = output;
     }
     state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+    state.lastInferenceStats = pipeline?.getStats?.() ?? state.lastInferenceStats;
     const snapshot = captureMemorySnapshot();
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
@@ -817,6 +894,7 @@ async function unloadActivePipeline() {
   }
   state.activePipeline = null;
   state.lastMemoryStats = null;
+  state.lastInferenceStats = null;
   updateMemoryControls();
   const snapshot = captureMemorySnapshot();
   updateMemoryPanel(snapshot);
@@ -1074,7 +1152,14 @@ function updateRuntimeConfigStatus(presetId) {
   if (!status) return;
   const presetLabel = presetId || 'default';
   if (state.runtimeOverride) {
-    const overrideLabel = state.runtimeOverrideLabel || 'custom';
+    const labels = [];
+    if (state.runtimeOverrideLabel) {
+      labels.push(state.runtimeOverrideLabel);
+    }
+    if (state.runtimeSamplingLabel) {
+      labels.push(state.runtimeSamplingLabel);
+    }
+    const overrideLabel = labels.length ? labels.join(' + ') : 'custom';
     status.textContent = `Preset: ${presetLabel} • Override: ${overrideLabel}`;
     return;
   }
@@ -1082,7 +1167,7 @@ function updateRuntimeConfigStatus(presetId) {
 }
 
 async function setRuntimeOverride(runtime, label) {
-  state.runtimeOverride = runtime;
+  state.runtimeOverrideBase = runtime;
   state.runtimeOverrideLabel = label || null;
   await applySelectedRuntimePreset();
 }
@@ -1108,7 +1193,7 @@ async function handleRuntimeConfigFile(file) {
 
 async function applyRuntimeConfigPreset(presetId) {
   if (!presetId) {
-    state.runtimeOverride = null;
+    state.runtimeOverrideBase = null;
     state.runtimeOverrideLabel = null;
     await applySelectedRuntimePreset();
     return;
@@ -1121,17 +1206,24 @@ async function applyRuntimeConfigPreset(presetId) {
   }
 }
 
+function getMergedRuntimeOverride() {
+  return mergeRuntimeOverrides(state.runtimeOverrideBase, state.runtimeSamplingOverride);
+}
+
 async function applySelectedRuntimePreset() {
   const presetSelect = $('runtime-preset');
   if (!presetSelect) return;
   const presetId = presetSelect.value || 'default';
   try {
     await applyRuntimePreset(presetId);
-    if (state.runtimeOverride) {
-      const mergedRuntime = mergeRuntimeOverrides(getRuntimeConfig(), state.runtimeOverride);
+    const mergedOverride = getMergedRuntimeOverride();
+    state.runtimeOverride = mergedOverride;
+    if (mergedOverride) {
+      const mergedRuntime = mergeRuntimeOverrides(getRuntimeConfig(), mergedOverride);
       setRuntimeConfig(mergedRuntime);
     }
     updateRuntimeConfigStatus(presetId);
+    syncSamplingInputsFromRuntime();
   } catch (error) {
     updateDiagnosticsStatus(`Preset error: ${error.message}`, true);
   }
@@ -1144,7 +1236,6 @@ async function handleDiagnosticsRun(mode) {
   const suite = suiteSelect?.value || 'inference';
   const modelId = modelSelect?.value || null;
   const runtimePreset = presetSelect?.value || 'default';
-  const samplingOverrides = getSamplingOverrides();
 
   updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${suite}...`);
   try {
@@ -1166,9 +1257,6 @@ async function handleDiagnosticsRun(mode) {
       runtimePreset,
       modelId,
     };
-    if (suite !== 'kernels' && Object.keys(samplingOverrides).length > 0) {
-      options.sampling = samplingOverrides;
-    }
     if (state.runtimeOverride) {
       options.runtimeConfig = getRuntimeConfig();
     }
@@ -1186,6 +1274,7 @@ async function handleDiagnosticsRun(mode) {
       state.activePipeline = result.pipeline;
     }
     state.activeModelId = modelId || null;
+    state.lastInferenceStats = result.pipeline?.getStats?.() ?? state.lastInferenceStats;
     updateDiagnosticsStatus(`Complete (${result.suite})`);
     if (result.reportInfo?.path) {
       updateDiagnosticsReport(result.reportInfo.path);
@@ -1243,6 +1332,9 @@ function bindUI() {
   const sendBtn = $('send-btn');
   const stopBtn = $('stop-btn');
   const clearBtn = $('clear-btn');
+  const temperatureInput = $('temperature-input');
+  const topPInput = $('top-p-input');
+  const topKInput = $('top-k-input');
 
   convertBtn?.addEventListener('click', () => {
     resetConvertStatus();
@@ -1301,13 +1393,20 @@ function bindUI() {
 
   runtimeClear?.addEventListener('click', () => {
     state.runtimeOverride = null;
+    state.runtimeOverrideBase = null;
     state.runtimeOverrideLabel = null;
+    state.runtimeSamplingOverride = null;
+    state.runtimeSamplingLabel = null;
     runtimeFile.value = '';
     if (runtimeConfigPreset) {
       runtimeConfigPreset.value = '';
     }
     applySelectedRuntimePreset();
   });
+
+  temperatureInput?.addEventListener('input', applySamplingOverrideFromInputs);
+  topPInput?.addEventListener('input', applySamplingOverrideFromInputs);
+  topKInput?.addEventListener('input', applySamplingOverrideFromInputs);
 
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));

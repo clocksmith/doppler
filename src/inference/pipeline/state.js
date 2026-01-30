@@ -80,6 +80,7 @@ export class PipelineState {
     this.stats = {
       prefillTimeMs: 0,
       decodeTimeMs: 0,
+      ttftMs: 0,
       prefillTokens: 0,
       decodeTokens: 0,
       memoryUsageBytes: 0,

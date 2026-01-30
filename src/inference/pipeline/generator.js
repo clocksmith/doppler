@@ -55,6 +55,7 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
     const runtimeDefaults = this.#state.runtimeConfig.inference;
@@ -97,6 +98,7 @@ export class PipelineGenerator {
 
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
       const generatedIds = [...inputIds];
+      this.#state.stats.prefillTokens = inputIds.length;
 
       if (opts.debug) {
         log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
@@ -145,6 +147,7 @@ export class PipelineGenerator {
       }
 
       generatedIds.push(firstToken);
+      this.#state.stats.ttftMs = performance.now() - startTime;
 
       const decodeToken = (tokenId) => {
         const text = this.#state.tokenizer.decode([tokenId], true, false);
@@ -268,6 +271,7 @@ export class PipelineGenerator {
 
       this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
       this.#state.stats.tokensGenerated = tokensGenerated;
+      this.#state.stats.decodeTokens = tokensGenerated;
       this.#state.stats.totalTimeMs = performance.now() - startTime;
 
       if (opts.debug) {
@@ -275,7 +279,7 @@ export class PipelineGenerator {
       }
 
       if (opts.benchmark) {
-        const ttft = this.#state.stats.prefillTimeMs;
+        const ttft = this.#state.stats.ttftMs || this.#state.stats.prefillTimeMs;
         const decodeTokens = tokensGenerated - 1;
         const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
         log.info('Benchmark', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
@@ -353,6 +357,7 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
     const runtimeDefaults = this.#state.runtimeConfig.inference;
@@ -391,6 +396,7 @@ export class PipelineGenerator {
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
       const generatedIds = [...prefix.tokens, ...inputIds];
       const promptTokenCount = generatedIds.length;
+      this.#state.stats.prefillTokens = inputIds.length;
 
       const prefillStart = performance.now();
       const prefillLogits = await this._prefill(inputIds, opts);
@@ -406,6 +412,7 @@ export class PipelineGenerator {
       });
 
       generatedIds.push(firstToken);
+      this.#state.stats.ttftMs = performance.now() - startTime;
 
       const firstText = this.#state.tokenizer.decode([firstToken], true, false);
       yield firstText;
@@ -503,6 +510,7 @@ export class PipelineGenerator {
 
       this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
       this.#state.stats.tokensGenerated = tokensGenerated;
+      this.#state.stats.decodeTokens = tokensGenerated;
       this.#state.stats.totalTimeMs = performance.now() - startTime;
     } finally {
       this.#state.isGenerating = false;

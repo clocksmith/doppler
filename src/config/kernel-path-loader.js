@@ -1,5 +1,5 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { getKernelConfig } from '../gpu/kernels/utils.js';
+import { KERNEL_CONFIGS, getKernelConfig } from '../gpu/kernels/utils.js';
 import { log } from '../debug/index.js';
 
 // =============================================================================

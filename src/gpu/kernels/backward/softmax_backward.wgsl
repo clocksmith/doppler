@@ -21,7 +21,8 @@ struct Uniforms {
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
-    if (idx >= u.size) {
+    let total = u.rows * u.cols;
+    if (idx >= total) {
         return;
     }
     let cols = u.cols;

@@ -27,13 +27,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         return;
     }
 
-    let target = targets[token_idx];
-    if (target >= u.vocab_size) {
+    let target_idx = targets[token_idx];
+    if (target_idx >= u.vocab_size) {
         output[token_idx] = 0.0;
         return;
     }
 
-    let offset = token_idx * u.vocab_size + target;
+    let offset = token_idx * u.vocab_size + target_idx;
     let p = max(softmax[offset], EPSILON);
     output[token_idx] = -log(p);
 }
