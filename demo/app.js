@@ -53,6 +53,8 @@ const state = {
   chatAbortController: null,
   chatGenerating: false,
   chatLoading: false,
+  convertActive: false,
+  downloadActive: false,
   storageUsageBytes: 0,
   storageQuotaBytes: 0,
   gpuMaxBytes: 0,
@@ -91,6 +93,47 @@ function $(id) {
 function setText(el, text) {
   if (!el) return;
   el.textContent = text;
+}
+
+const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
+
+function setStatusIndicator(message, tone) {
+  const indicator = $('status-indicator');
+  if (!indicator) return;
+  const textEl = indicator.querySelector('.status-text');
+  const dot = indicator.querySelector('.status-dot');
+  setText(textEl, message);
+  indicator.classList.remove(...STATUS_CLASSES);
+  if (tone) {
+    indicator.classList.add(`status-${tone}`);
+  }
+  if (dot) {
+    if (tone) {
+      dot.classList.add('status-dot-filled');
+    } else {
+      dot.classList.remove('status-dot-filled');
+    }
+  }
+}
+
+function updateStatusIndicator() {
+  if (state.chatLoading) {
+    setStatusIndicator('Loading model', 'info');
+    return;
+  }
+  if (state.convertActive) {
+    setStatusIndicator('Converting', 'info');
+    return;
+  }
+  if (state.chatGenerating) {
+    setStatusIndicator('Generating', 'info');
+    return;
+  }
+  if (state.downloadActive) {
+    setStatusIndicator('Downloading', 'info');
+    return;
+  }
+  setStatusIndicator('Ready', 'success');
 }
 
 function setHidden(el, hidden) {
@@ -633,6 +676,7 @@ function setChatGenerating(isGenerating) {
   if (chatInput) chatInput.disabled = state.chatGenerating || state.chatLoading;
   if (sendBtn) sendBtn.disabled = state.chatGenerating || state.chatLoading;
   if (stopBtn) setHidden(stopBtn, !state.chatGenerating);
+  updateStatusIndicator();
 }
 
 function setChatLoading(isLoading) {
@@ -641,6 +685,7 @@ function setChatLoading(isLoading) {
   const sendBtn = $('send-btn');
   if (chatInput) chatInput.disabled = state.chatGenerating || state.chatLoading;
   if (sendBtn) sendBtn.disabled = state.chatGenerating || state.chatLoading;
+  updateStatusIndicator();
 }
 
 function scrollChatToBottom() {
@@ -967,18 +1012,25 @@ async function runConversion(files, converterConfig, label, modelIdOverride) {
     throw new Error('Browser conversion requires OPFS or IndexedDB.');
   }
   updateConvertStatus(`Preparing conversion${label ? ` (${label})` : ''}...`, 0);
-  const resultModelId = await convertModel(files, {
-    modelId: modelIdOverride || undefined,
-    converterConfig,
-    onProgress: (update) => {
-      if (!update) return;
-      const percent = Number.isFinite(update.percent) ? update.percent : null;
-      const message = update.message || 'Converting...';
-      updateConvertStatus(label ? `${message} (${label})` : message, percent);
-    },
-  });
-  updateConvertStatus(`Conversion complete: ${resultModelId}`, 100);
-  await refreshModelList();
+  state.convertActive = true;
+  updateStatusIndicator();
+  try {
+    const resultModelId = await convertModel(files, {
+      modelId: modelIdOverride || undefined,
+      converterConfig,
+      onProgress: (update) => {
+        if (!update) return;
+        const percent = Number.isFinite(update.percent) ? update.percent : null;
+        const message = update.message || 'Converting...';
+        updateConvertStatus(label ? `${message} (${label})` : message, percent);
+      },
+    });
+    updateConvertStatus(`Conversion complete: ${resultModelId}`, 100);
+    await refreshModelList();
+  } finally {
+    state.convertActive = false;
+    updateStatusIndicator();
+  }
 }
 
 async function handleConvertFiles() {
@@ -1048,10 +1100,16 @@ function updateDownloadStatus(progress) {
     setHidden(status, true);
     bar.style.width = '0%';
     setText(label, 'Idle');
+    state.downloadActive = false;
+    updateStatusIndicator();
     return;
   }
   setHidden(status, false);
   const percent = Number.isFinite(progress.percent) ? progress.percent : 0;
+  const statusText = String(progress.status || '');
+  const isComplete = statusText.toLowerCase().includes('complete');
+  state.downloadActive = !isComplete;
+  updateStatusIndicator();
   bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
   const remaining = Math.max(0, (progress.totalBytes || 0) - (progress.downloadedBytes || 0));
   const speed = Number(progress.speed || 0);
@@ -1089,6 +1147,9 @@ async function refreshDownloads() {
   try {
     const downloads = await listDownloads();
     renderDownloadList(downloads);
+    const active = downloads.some((entry) => String(entry.status || '').toLowerCase() === 'downloading');
+    state.downloadActive = active;
+    updateStatusIndicator();
   } catch (error) {
     renderDownloadList([]);
     updateDownloadStatus({ status: `Error: ${error.message}`, percent: 0, downloadedBytes: 0, totalBytes: 0 });
@@ -1456,6 +1517,7 @@ function bindUI() {
 }
 
 async function init() {
+  setStatusIndicator('Initializing', 'info');
   populateModelPresets();
   populateRuntimeConfigPresets();
   await refreshModelList();
@@ -1467,6 +1529,7 @@ async function init() {
   startTelemetryLoop();
   setChatLoading(false);
   setChatGenerating(false);
+  updateStatusIndicator();
   bindUI();
 }
 
