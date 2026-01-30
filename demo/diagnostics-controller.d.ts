@@ -21,6 +21,8 @@ export interface DiagnosticsSuiteOptions {
   modelUrl?: string | null;
   prompt?: string;
   maxTokens?: number;
+  sampling?: Record<string, number>;
+  keepPipeline?: boolean;
   report?: Record<string, unknown>;
 }
 

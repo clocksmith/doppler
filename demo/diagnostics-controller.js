@@ -88,6 +88,7 @@ export class DiagnosticsController {
       prompt: options.prompt,
       maxTokens: options.maxTokens,
       report: options.report,
+      keepPipeline: options.keepPipeline,
     });
 
     this.lastReport = result.report ?? null;

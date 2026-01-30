@@ -9,6 +9,13 @@ const EMBEDDING_TENSOR_NAMES = [
   'wte.weight',
   'transformer.wte.weight',
 ];
+const EMBEDDING_TENSOR_PATTERNS = [
+  'embed_tokens.weight',
+  'token_embd.weight',
+  'wte.weight',
+  'transformer.wte.weight',
+  'word_embeddings',
+];
 
 
 export function inferEmbeddingOutputConfig(tensorLocations) {
@@ -78,6 +85,34 @@ function detectNormalizationFromTensors(tensorNames) {
   }
 
   return detected;
+}
+
+function detectTieWordEmbeddingsFromTensors(tensorNames) {
+  if (!Array.isArray(tensorNames) || tensorNames.length === 0) {
+    return null;
+  }
+
+  let hasEmbedding = false;
+  let hasLmHead = false;
+
+  for (const name of tensorNames) {
+    const lower = name.toLowerCase();
+    if (!hasEmbedding && EMBEDDING_TENSOR_PATTERNS.some((pattern) => lower.includes(pattern))) {
+      hasEmbedding = true;
+    }
+    if (!hasLmHead) {
+      if (lower.includes('lm_head')) {
+        hasLmHead = true;
+      } else if (lower.endsWith('output.weight') && !lower.includes('attn_')) {
+        hasLmHead = true;
+      }
+    }
+    if (hasEmbedding && hasLmHead) break;
+  }
+
+  if (hasLmHead) return false;
+  if (hasEmbedding) return true;
+  return null;
 }
 
 // Build normalization config with auto-detection from tensor names.
@@ -157,6 +192,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
 
   // Build inference config with all required fields explicitly set
   // Use null for "not applicable" - no undefined allowed
+  const detectedTieWordEmbeddings = detectTieWordEmbeddingsFromTensors(tensorNames);
   const inference = {
     presetId: preset.id ?? null,
     attention: {
@@ -180,7 +216,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     output: {
       finalLogitSoftcapping: presetInference.output?.finalLogitSoftcapping ??
         modelConfig.final_logit_softcapping ?? defaults.output.finalLogitSoftcapping,
-      tieWordEmbeddings: presetInference.output?.tieWordEmbeddings ??
+      tieWordEmbeddings: detectedTieWordEmbeddings ??
+        presetInference.output?.tieWordEmbeddings ??
         modelConfig.tie_word_embeddings ?? defaults.output.tieWordEmbeddings,
       scaleEmbeddings: presetInference.output?.scaleEmbeddings ?? defaults.output.scaleEmbeddings,
       embeddingTranspose: defaults.output.embeddingTranspose,

@@ -54,6 +54,22 @@
       overflow: auto;
     }
 
+    .panel-subsection {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .live-panel {
+      grid-column: 1 / -1;
+      grid-row: span 2;
+    }
+
+    .diagnostics-panel {
+      grid-column: 1 / -1;
+      grid-row: span 2;
+    }
+
     .status-indicator {
       margin-left: auto;
       display: flex;
@@ -72,6 +88,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-xs);
+      cursor: pointer;
     }
 
     .model-actions {
@@ -90,6 +107,12 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: var(--space-sm);
+    }
+
+    .model-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
     }
 
     .storage-info {
@@ -389,43 +412,10 @@
       min-height: 70px;
     }
 
-    .convert-actions,
-    .convert-queue-actions {
+    .convert-actions {
       display: flex;
       flex-direction: column;
       gap: var(--space-xs);
-    }
-
-    .convert-queue {
-      min-height: 72px;
-      padding: var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .queue-item {
-      display: flex;
-      justify-content: space-between;
-      gap: var(--space-sm);
-    }
-
-    .queue-label {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .queue-item[data-state="error"] {
-      opacity: var(--opacity-muted);
-      text-decoration: line-through;
-    }
-
-    .queue-status {
-      opacity: var(--opacity-muted);
     }
 
     /* Downloader */
@@ -485,89 +475,6 @@
       margin-top: var(--space-sm);
     }
 
-
-    /* Workspace */
-    .workspace-actions {
-      display: flex;
-      gap: var(--space-sm);
-    }
-
-    .workspace-status {
-      margin-top: var(--space-xs);
-    }
-
-    .workspace-files {
-      border: var(--border-sm) solid var(--fg);
-      padding: var(--space-sm);
-      max-height: 180px;
-      overflow: auto;
-      background: var(--bg);
-    }
-
-    .workspace-file {
-      margin-bottom: 2px;
-    }
-
-    /* Tools */
-    .tool-row {
-      display: flex;
-      gap: var(--space-sm);
-      align-items: center;
-    }
-
-    .tool-select {
-      flex: 1;
-    }
-
-    .tool-args {
-      min-height: 80px;
-      font-family: var(--font-mono);
-      resize: vertical;
-    }
-
-    .tool-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .tool-output {
-      border: var(--border-sm) solid var(--fg);
-      padding: var(--space-sm);
-      max-height: 180px;
-      overflow: auto;
-      background: var(--bg);
-      white-space: pre-wrap;
-    }
-
-    /* Logs */
-    .log-panel {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    #log-panel {
-      border: var(--border-sm) solid var(--fg);
-      padding: var(--space-sm);
-      max-height: 240px;
-      overflow: auto;
-      background: var(--bg);
-    }
-
-    .log-line {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 2px;
-    }
-
-    .log-level {
-      opacity: var(--opacity-muted);
-      margin-right: var(--space-xs);
-    }
-
     /* Responsive */
     @media (max-width: 768px) {
       .main-layout {
@@ -597,164 +504,73 @@
 
     <!-- Main Layout -->
     <main class="main-layout">
-      <!-- Sidebar: Model Selection -->
+      <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <section class="panel model-panel">
-          <h2 class="type-label">Models</h2>
-          <div id="model-list" class="model-list">
-            <!-- Model items populated by model-selector.js -->
+          <h2 class="type-label">Model Selector</h2>
+          <div class="model-field">
+            <label class="type-caption muted" for="diagnostics-model">Active model</label>
+            <select id="diagnostics-model" class="w-full"></select>
+          </div>
+          <div class="model-field">
+            <span class="type-caption muted">Local models</span>
+            <div id="model-list" class="model-list">
+            </div>
           </div>
           <div class="storage-info" id="storage-info">
             <span class="storage-label">Storage:</span>
             <span class="storage-value" id="storage-used">-- / --</span>
           </div>
-        </section>
-
-        <section class="panel gpu-panel">
-          <h2 class="type-label">GPU Info</h2>
-          <div class="gpu-info" id="gpu-info">
-            <div class="gpu-row">
-              <span class="type-caption muted">Device</span>
-              <span class="type-caption" id="gpu-device">--</span>
+          <div class="model-field">
+            <span class="type-caption muted">Export RDRR</span>
+            <div class="convert-actions">
+              <button id="export-model-btn" class="btn w-full">Export active model</button>
             </div>
-            <div class="gpu-row" id="gpu-ram-row" hidden>
-              <span class="type-caption muted">System RAM</span>
-              <span class="type-caption" id="gpu-ram">--</span>
-            </div>
-            <div class="gpu-row">
-              <span class="type-caption muted" id="gpu-vram-label">Buffer Limit</span>
-              <span class="type-caption" id="gpu-vram">--</span>
-            </div>
-            <div class="gpu-row">
-              <span class="type-caption muted">Features</span>
-              <span class="type-caption" id="gpu-features">--</span>
-            </div>
-          </div>
-          <div class="gpu-note" id="gpu-unified-note" hidden>
-            Unified memory: GPU shares system RAM
-          </div>
-        </section>
-
-        <section class="panel memory-panel">
-          <h2 class="type-label">Memory Usage</h2>
-          <div class="memory-bars" id="memory-bars">
-            <div class="memory-bar-row memory-total-row">
-              <span class="memory-label">Total</span>
-              <div class="memory-bar-container memory-bar-stacked">
-                <div class="memory-bar memory-bar-heap-stacked" id="memory-bar-heap-stacked" style="width: 0%"></div>
-                <div class="memory-bar memory-bar-gpu-stacked" id="memory-bar-gpu-stacked" style="width: 0%"></div>
+            <div id="export-status" class="convert-status">
+              <div class="progress progress-sm">
+                <div id="export-progress" class="progress-fill"></div>
               </div>
-              <span class="memory-value" id="memory-total">--</span>
+              <span id="export-message" class="type-caption">Idle</span>
             </div>
-            <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label">JS Heap</span>
-              <div class="memory-bar-container">
-                <div class="memory-bar" id="memory-bar-heap" style="width: 0%"></div>
+          </div>
+          <div class="model-field">
+            <span class="type-caption muted">GPU Info</span>
+            <div class="gpu-info" id="gpu-info">
+              <div class="gpu-row">
+                <span class="type-caption muted">Device</span>
+                <span class="type-caption" id="gpu-device">--</span>
               </div>
-              <span class="memory-value" id="memory-heap">--</span>
-            </div>
-            <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label">GPU</span>
-              <div class="memory-bar-container">
-                <div class="memory-bar memory-bar-gpu" id="memory-bar-gpu" style="width: 0%"></div>
+              <div class="gpu-row" id="gpu-ram-row" hidden>
+                <span class="type-caption muted">System RAM</span>
+                <span class="type-caption" id="gpu-ram">--</span>
               </div>
-              <span class="memory-value" id="memory-gpu">--</span>
-            </div>
-            <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label">KV Cache</span>
-              <div class="memory-bar-container">
-                <div class="memory-bar memory-bar-kv" id="memory-bar-kv" style="width: 0%"></div>
+              <div class="gpu-row">
+                <span class="type-caption muted" id="gpu-vram-label">Buffer Limit</span>
+                <span class="type-caption" id="gpu-vram">--</span>
               </div>
-              <span class="memory-value" id="memory-kv">--</span>
-            </div>
-            <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label">Cache</span>
-              <div class="memory-bar-container">
-                <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
+              <div class="gpu-row">
+                <span class="type-caption muted">Features</span>
+                <span class="type-caption" id="gpu-features">--</span>
               </div>
-              <span class="memory-value" id="memory-opfs">--</span>
             </div>
-            <div class="memory-bar-row memory-sub-row">
-              <span class="memory-label"
-                title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
-                Headroom
-              </span>
-              <div class="memory-bar-container">
-                <div class="memory-bar memory-bar-headroom" id="memory-bar-headroom" style="width: 0%"></div>
-              </div>
-              <span class="memory-value" id="memory-headroom">--</span>
+            <div class="gpu-note" id="gpu-unified-note" hidden>
+              Unified memory: GPU shares system RAM
             </div>
-          </div>
-        </section>
-
-        <section class="panel sampling-panel">
-          <h2 class="type-label">Sampling</h2>
-          <div class="sampling-row">
-            <label for="temperature-input">Temperature</label>
-            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1"
-              value="1.0">
-          </div>
-          <div class="sampling-row">
-            <label for="top-p-input">Top-p</label>
-            <input id="top-p-input" class="sampling-input" type="number" min="0" max="1" step="0.05" value="0.95">
-          </div>
-          <div class="sampling-row">
-            <label for="top-k-input">Top-k</label>
-            <input id="top-k-input" class="sampling-input" type="number" min="0" max="200" step="1" value="40">
-          </div>
-        </section>
-
-        <section class="panel stats-panel">
-          <h2 class="type-label">Performance</h2>
-          <div class="stats-grid" id="stats-grid">
-            <div class="stat-item">
-              <span class="stat-label">Tokens/sec</span>
-              <span class="stat-value" id="stat-tps">--</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Memory</span>
-              <span class="stat-value" id="stat-memory">--</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">GPU Buffers</span>
-              <span class="stat-value" id="stat-gpu">--</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">KV Cache</span>
-              <span class="stat-value" id="stat-kv">--</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel log-panel">
-          <h2 class="type-label">Logs</h2>
-          <div id="log-panel" class="type-caption"></div>
-        </section>
-
-        <section class="panel memory-actions-panel">
-          <h2 class="type-label">Memory Control</h2>
-          <div class="memory-actions">
-            <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
-              Unload Model
-            </button>
-            <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
-              Clear All Memory
-            </button>
-          </div>
-          <div class="swap-indicator" id="swap-indicator" hidden>
-            <span class="swap-warning">Swapping to disk detected</span>
           </div>
         </section>
 
         <section class="panel convert-panel">
           <h2 class="type-label">Convert Model</h2>
-          <p class="convert-description">Import GGUF or HuggingFace models</p>
-          <p class="convert-note type-caption muted">Supports tokenizer.json or tokenizer.model.</p>
-          <p class="convert-note type-caption muted">Remote conversion uses HTTP range when available; otherwise it
-            downloads into temporary OPFS/IndexedDB storage and cleans up.</p>
-          <p class="convert-note type-caption muted">Q4_K_M row/column layout supported (column uses buffered reads).</p>
+          <p class="convert-description">Import GGUF or safetensors into browser storage.</p>
+          <p class="convert-note type-caption muted">Requires tokenizer.json or tokenizer.model (config.json recommended).</p>
+          <div id="convert-status" class="convert-status">
+            <div class="progress progress-sm">
+              <div id="convert-progress" class="progress-fill"></div>
+            </div>
+            <span id="convert-message" class="type-caption">Ready</span>
+          </div>
           <div class="convert-field">
-            <label class="type-caption muted" for="convert-model-preset">Model preset override</label>
+            <label class="type-caption muted" for="convert-model-preset">Model preset override (optional)</label>
             <select id="convert-model-preset" class="w-full"></select>
           </div>
           <div class="convert-actions">
@@ -762,45 +578,22 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
-              Select Files
+              Select Folder or Files
             </button>
-            <button id="convert-queue-files" class="btn w-full">Queue Files</button>
           </div>
-          <label class="convert-toggle type-caption muted">
-            <input id="convert-allow-download" type="checkbox" checked />
-            Allow full download fallback for non-range servers
-          </label>
           <div class="convert-field">
-            <label class="type-caption muted" for="convert-max-download">Max download size (MB, optional)</label>
-            <input id="convert-max-download" class="w-full" type="number" min="1" step="1" placeholder="No limit" />
+            <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
+            <textarea id="convert-url-input" class="convert-url-input w-full"
+              placeholder="https://host/model.safetensors"></textarea>
           </div>
-          <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
-          <textarea id="convert-url-input" class="convert-url-input w-full"
-            placeholder="https://host/model.safetensors"></textarea>
           <div class="convert-actions">
             <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
-            <button id="convert-queue-urls" class="btn w-full">Queue URLs</button>
           </div>
           <div class="convert-field">
-            <label class="type-caption muted">Conversion queue</label>
-            <div id="convert-queue" class="convert-queue type-caption muted">Queue empty</div>
+            <span class="type-caption muted">Download RDRR (manifest + shards)</span>
           </div>
-          <div class="convert-queue-actions">
-            <button id="convert-queue-run" class="btn btn-primary w-full">Run Queue</button>
-            <button id="convert-queue-clear" class="btn w-full">Clear Queue</button>
-          </div>
-          <div id="convert-status" class="convert-status" hidden>
-            <div class="progress progress-sm">
-              <div id="convert-progress" class="progress-fill"></div>
-            </div>
-            <span id="convert-message" class="type-caption">Ready</span>
-          </div>
-        </section>
-
-        <section class="panel download-panel">
-          <h2 class="type-label">Downloader</h2>
           <div class="download-field">
-            <label class="type-caption muted" for="download-base-url">Base URL (manifest.json + shards)</label>
+            <label class="type-caption muted" for="download-base-url">Base URL</label>
             <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
           </div>
           <div class="download-field">
@@ -823,12 +616,115 @@
           <div id="download-list" class="download-list type-caption muted"></div>
         </section>
 
+        <section class="panel sampling-panel">
+          <h2 class="type-label">Runtime Params</h2>
+          <div class="sampling-row">
+            <label for="temperature-input">Temperature</label>
+            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1"
+              value="1.0">
+          </div>
+          <div class="sampling-row">
+            <label for="top-p-input">Top-p</label>
+            <input id="top-p-input" class="sampling-input" type="number" min="0" max="1" step="0.05" value="0.95">
+          </div>
+          <div class="sampling-row">
+            <label for="top-k-input">Top-k</label>
+            <input id="top-k-input" class="sampling-input" type="number" min="0" max="200" step="1" value="40">
+          </div>
+        </section>
+
+        <section class="panel live-panel">
+          <h2 class="type-label">Live Stats</h2>
+          <div class="panel-subsection">
+            <span class="type-caption muted">Performance</span>
+            <div class="stats-grid" id="stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">Tokens/sec</span>
+                <span class="stat-value" id="stat-tps">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Memory</span>
+                <span class="stat-value" id="stat-memory">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">GPU Buffers</span>
+                <span class="stat-value" id="stat-gpu">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">KV Cache</span>
+                <span class="stat-value" id="stat-kv">--</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">Memory</span>
+            <div class="memory-bars" id="memory-bars">
+              <div class="memory-bar-row memory-total-row">
+                <span class="memory-label">Total</span>
+                <div class="memory-bar-container memory-bar-stacked">
+                  <div class="memory-bar memory-bar-heap-stacked" id="memory-bar-heap-stacked" style="width: 0%"></div>
+                  <div class="memory-bar memory-bar-gpu-stacked" id="memory-bar-gpu-stacked" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-total">--</span>
+              </div>
+              <div class="memory-bar-row memory-sub-row">
+                <span class="memory-label">JS Heap</span>
+                <div class="memory-bar-container">
+                  <div class="memory-bar" id="memory-bar-heap" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-heap">--</span>
+              </div>
+              <div class="memory-bar-row memory-sub-row">
+                <span class="memory-label">GPU</span>
+                <div class="memory-bar-container">
+                  <div class="memory-bar memory-bar-gpu" id="memory-bar-gpu" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-gpu">--</span>
+              </div>
+              <div class="memory-bar-row memory-sub-row">
+                <span class="memory-label">KV Cache</span>
+                <div class="memory-bar-container">
+                  <div class="memory-bar memory-bar-kv" id="memory-bar-kv" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-kv">--</span>
+              </div>
+              <div class="memory-bar-row memory-sub-row">
+                <span class="memory-label">Cache</span>
+                <div class="memory-bar-container">
+                  <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-opfs">--</span>
+              </div>
+              <div class="memory-bar-row memory-sub-row">
+                <span class="memory-label"
+                  title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
+                  Headroom
+                </span>
+                <div class="memory-bar-container">
+                  <div class="memory-bar memory-bar-headroom" id="memory-bar-headroom" style="width: 0%"></div>
+                </div>
+                <span class="memory-value" id="memory-headroom">--</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">Memory Control</span>
+            <div class="memory-actions">
+              <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
+                Unload Model
+              </button>
+              <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
+                Clear All Memory
+              </button>
+            </div>
+            <div class="swap-indicator" id="swap-indicator" hidden>
+              <span class="swap-warning">Swapping to disk detected</span>
+            </div>
+          </div>
+        </section>
+
         <section class="panel diagnostics-panel">
           <h2 class="type-label">Diagnostics</h2>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diagnostics-model">Model</label>
-            <select id="diagnostics-model" class="w-full"></select>
-          </div>
           <div class="diagnostics-field">
             <label class="type-caption muted" for="runtime-preset">Runtime preset</label>
             <select id="runtime-preset" class="w-full">
@@ -847,6 +743,10 @@
             <div class="type-caption muted" id="runtime-config-status">Preset: default</div>
           </div>
           <div class="diagnostics-field">
+            <label class="type-caption muted" for="runtime-config-preset">Runtime config preset (override)</label>
+            <select id="runtime-config-preset" class="w-full"></select>
+          </div>
+          <div class="diagnostics-field">
             <label class="type-caption muted" for="diagnostics-suite">Suite</label>
             <select id="diagnostics-suite" class="w-full">
               <option value="kernels">kernels</option>
@@ -862,31 +762,6 @@
           </div>
           <div class="diagnostics-report type-caption muted" id="diagnostics-report"></div>
           <div id="diagnostics-status" class="diagnostics-status type-caption muted">Idle</div>
-        </section>
-
-        <section class="panel workspace-panel">
-          <h2 class="type-label">Workspace</h2>
-          <div class="workspace-actions">
-            <button id="workspace-import-btn" class="btn">Import Folder</button>
-            <button id="workspace-refresh-btn" class="btn">Refresh</button>
-          </div>
-          <div class="workspace-status type-caption" id="workspace-status">Idle</div>
-          <div class="workspace-files type-caption" id="workspace-files"></div>
-        </section>
-
-        <section class="panel tools-panel">
-          <h2 class="type-label">Tools</h2>
-          <div class="tool-row">
-            <select id="tool-select" class="tool-select"></select>
-            <button id="tool-refresh-btn" class="btn">Refresh</button>
-          </div>
-          <label class="type-caption muted" for="tool-args">Args (JSON)</label>
-          <textarea id="tool-args" class="tool-args" rows="4"></textarea>
-          <div class="tool-actions">
-            <button id="tool-run-btn" class="btn btn-primary">Run</button>
-            <span class="type-caption" id="tool-status">Idle</span>
-          </div>
-          <pre class="tool-output type-caption" id="tool-output"></pre>
         </section>
 
       </aside>
@@ -1030,72 +905,6 @@
       </div>
     </div>
   </div>
-
-  <script type="module">
-    const logPanel = document.getElementById('log-panel');
-    const originalConsole = {
-      log: console.log.bind(console),
-      error: console.error.bind(console),
-      warn: console.warn.bind(console),
-      debug: console.debug.bind(console),
-    };
-
-    function formatArg(arg) {
-      if (arg instanceof Error) {
-        return arg.stack || arg.message;
-      }
-      if (typeof arg === 'string') return arg;
-      if (arg === null || arg === undefined) return String(arg);
-      try {
-        return JSON.stringify(arg);
-      } catch {
-        return String(arg);
-      }
-    }
-
-    function appendLog(level, args) {
-      if (!logPanel) return;
-      const line = document.createElement('div');
-      line.className = 'log-line';
-      const label = document.createElement('span');
-      label.className = 'log-level';
-      label.textContent = `[${level}]`;
-      line.appendChild(label);
-      line.append(` ${args.map(formatArg).join(' ')}`);
-      logPanel.appendChild(line);
-      logPanel.scrollTop = logPanel.scrollHeight;
-    }
-
-    console.log = (...args) => {
-      appendLog('log', args);
-      originalConsole.log(...args);
-    };
-
-    console.error = (...args) => {
-      appendLog('error', args);
-      originalConsole.error(...args);
-    };
-
-    console.warn = (...args) => {
-      appendLog('warn', args);
-      originalConsole.warn(...args);
-    };
-
-    console.debug = (...args) => {
-      appendLog('debug', args);
-      originalConsole.debug(...args);
-    };
-
-    window.addEventListener('error', (event) => {
-      console.error(event.error || event.message);
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error(event.reason || 'Unhandled promise rejection');
-    });
-
-    console.log('[LogBridge] Console proxy active (app)');
-  </script>
 
   <!-- Bootstrap entry (registers VFS + loads app) -->
   <script type="module" src="../src/bootstrap.js"></script>

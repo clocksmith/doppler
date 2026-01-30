@@ -5,6 +5,7 @@
  */
 
 import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
+import type { InferencePipeline } from './pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 
 export interface BrowserHarnessOptions extends InferenceHarnessOptions {
@@ -67,6 +68,8 @@ export interface BrowserSuiteResult extends SuiteSummary {
   metrics?: Record<string, unknown>;
   output?: string | null;
   deviceInfo?: Record<string, unknown> | null;
+  memoryStats?: ReturnType<InferencePipeline['getMemoryStats']> | null;
+  pipeline?: InferencePipeline | null;
   report: Record<string, unknown>;
   reportInfo: SavedReportInfo;
 }

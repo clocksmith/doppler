@@ -354,7 +354,10 @@ export function createManifest(
     if (!headDim) {
       throw new Error('Missing headDim in architecture');
     }
-    inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null);
+    const tensorNames = Array.isArray(model.tensors)
+      ? model.tensors.map((tensor) => tensor.name)
+      : null;
+    inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null, tensorNames);
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);

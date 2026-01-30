@@ -9,7 +9,7 @@ export declare function inferEmbeddingOutputConfig(
 
 /**
  * Build ManifestInferenceSchema from resolved preset.
- * Auto-detects normalization flags from tensor names when provided.
+ * Auto-detects normalization flags and tied embeddings from tensor names when provided.
  */
 export declare function buildManifestInference(
   preset: PresetSchema,

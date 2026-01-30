@@ -343,6 +343,9 @@ async function runInferenceSuite(options = {}) {
   const harness = await initializeSuiteModel(options);
   const runtimeConfig = getRuntimeConfig();
   const run = await runGeneration(harness.pipeline, runtimeConfig, options);
+  const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
+    ? harness.pipeline.getMemoryStats()
+    : null;
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
   }
@@ -367,7 +370,9 @@ async function runInferenceSuite(options = {}) {
       tokensGenerated: run.tokens.length,
       tokensPerSec: Number(run.tokensPerSec.toFixed(2)),
     },
+    memoryStats,
     deviceInfo: getKernelCapabilities(),
+    pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
 
@@ -399,7 +404,7 @@ async function runBenchSuite(options = {}) {
     const run = await runGeneration(harness.pipeline, runtimeConfig, {
       ...options,
       maxTokens: maxTokens ?? options.maxTokens,
-      sampling: benchConfig.sampling,
+      sampling: { ...(benchConfig.sampling || {}), ...(options.sampling || {}) },
     });
     if (i >= warmupRuns) {
       tokensPerSec.push(run.tokensPerSec);
@@ -407,6 +412,10 @@ async function runBenchSuite(options = {}) {
       tokensGenerated.push(run.tokens.length);
     }
   }
+
+  const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
+    ? harness.pipeline.getMemoryStats()
+    : null;
 
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
@@ -433,7 +442,9 @@ async function runBenchSuite(options = {}) {
       avgTokensPerSec: Number((tokensPerSec.reduce((a, b) => a + b, 0) / (tokensPerSec.length || 1)).toFixed(2)),
       avgTokensGenerated: Math.round(tokensGenerated.reduce((a, b) => a + b, 0) / (tokensGenerated.length || 1)),
     },
+    memoryStats,
     deviceInfo: getKernelCapabilities(),
+    pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
 
@@ -461,6 +472,7 @@ export async function runBrowserSuite(options = {}) {
     timestamp: new Date().toISOString(),
     metrics: suiteResult.metrics ?? null,
     output: suiteResult.output ?? null,
+    memory: suiteResult.memoryStats ?? null,
     ...options.report,
   };
   const reportInfo = await saveReport(modelId, report, { timestamp: options.timestamp });

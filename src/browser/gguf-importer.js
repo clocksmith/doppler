@@ -450,7 +450,8 @@ function createManifest(
   const quantizationInfo = ggufInfo.quantization
     ? { weights: ggufInfo.quantization, compute: converterConfig.quantization.computePrecision }
     : null;
-  const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
+  const tensorNames = ggufInfo.tensors?.map((tensor) => tensor.name) ?? null;
+  const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard

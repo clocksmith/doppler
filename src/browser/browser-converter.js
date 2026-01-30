@@ -262,6 +262,7 @@ export async function convertModel(files, options = {}) {
       throw new Error('Missing headDim in architecture');
     }
     const tensors = modelInfo.tensors;
+    const tensorNames = tensors.map((tensor) => tensor.name);
     const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(tensors);
     if (!sourceQuantization) {
       throw new Error('Missing quantization for model conversion');
@@ -288,7 +289,7 @@ export async function convertModel(files, options = {}) {
       resolvedConverterConfig.quantization.weights ?? null,
       sourceQuantization
     );
-    const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo);
+    const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
 
     const detectedModelId = extractModelId(files, config);
     const baseModelId = userModelId ?? resolvedConverterConfig.output?.modelId ?? detectedModelId;
