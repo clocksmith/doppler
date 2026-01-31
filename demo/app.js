@@ -55,6 +55,7 @@ const state = {
   chatLoading: false,
   convertActive: false,
   downloadActive: false,
+  uiMode: 'run',
   storageUsageBytes: 0,
   storageQuotaBytes: 0,
   gpuMaxBytes: 0,
@@ -134,6 +135,27 @@ function updateStatusIndicator() {
     return;
   }
   setStatusIndicator('Ready', 'success');
+}
+
+function applyModeVisibility(mode) {
+  const panels = document.querySelectorAll('[data-modes]');
+  panels.forEach((panel) => {
+    const modes = panel.dataset.modes?.split(/\s+/).filter(Boolean) || [];
+    panel.hidden = modes.length > 0 && !modes.includes(mode);
+  });
+}
+
+function setUiMode(mode) {
+  const app = $('app');
+  if (!app) return;
+  state.uiMode = mode;
+  app.dataset.mode = mode;
+  document.querySelectorAll('.mode-tab').forEach((button) => {
+    const isActive = button.dataset.mode === mode;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+  applyModeVisibility(mode);
 }
 
 function setHidden(el, hidden) {
@@ -412,6 +434,9 @@ function updateSidebarLayout(models) {
   if (!sidebar) return;
   const hasModels = Array.isArray(models) && models.length > 0;
   sidebar.dataset.layout = hasModels ? 'ready' : 'empty';
+  if (!hasModels && state.uiMode !== 'models') {
+    setUiMode('models');
+  }
 }
 
 function selectDiagnosticsModel(modelId) {
@@ -1397,6 +1422,13 @@ function bindUI() {
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
 
+  document.querySelectorAll('.mode-tab').forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.mode || 'run';
+      setUiMode(mode);
+    });
+  });
+
   convertBtn?.addEventListener('click', () => {
     resetConvertStatus();
     handleConvertFiles().catch((error) => {
@@ -1520,6 +1552,7 @@ async function init() {
   setStatusIndicator('Initializing', 'info');
   populateModelPresets();
   populateRuntimeConfigPresets();
+  setUiMode(state.uiMode);
   await refreshModelList();
   await refreshGpuInfo();
   await applySelectedRuntimePreset();
