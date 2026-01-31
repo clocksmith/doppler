@@ -97,6 +97,7 @@ export {
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_CHAT_TEMPLATE_CONFIG,
+  DEFAULT_DIFFUSION_CONFIG,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
   DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';
@@ -116,6 +117,20 @@ export {
   DEFAULT_MOE_CACHE_CONFIG,
   DEFAULT_MOE_RUNTIME_CONFIG,
 } from './moe.schema.js';
+
+// =============================================================================
+// Diffusion Schema
+// =============================================================================
+export {
+  DEFAULT_DIFFUSION_SCHEDULER_CONFIG,
+  DEFAULT_DIFFUSION_LATENT_CONFIG,
+  DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG,
+  DEFAULT_DIFFUSION_DECODE_CONFIG,
+  DEFAULT_DIFFUSION_TILING_CONFIG,
+  DEFAULT_DIFFUSION_SWAPPER_CONFIG,
+  DEFAULT_DIFFUSION_QUANTIZATION_CONFIG,
+  DEFAULT_DIFFUSION_CONFIG,
+} from './diffusion.schema.js';
 
 // =============================================================================
 // KV Cache Schema

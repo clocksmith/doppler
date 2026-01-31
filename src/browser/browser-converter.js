@@ -20,6 +20,7 @@ import {
   saveManifest,
   saveTokenizer,
   saveTokenizerModel,
+  saveAuxFile,
   deleteModel,
   createConversionShardWriter,
   computeHash,
@@ -62,6 +63,7 @@ import {
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 
 // Re-export types for consumers
 export {
@@ -133,6 +135,250 @@ function findTensorDtype(tensors, matcher) {
   return match?.dtype ?? null;
 }
 
+function getFilePath(file) {
+  if (!file) return '';
+  if (typeof file.relativePath === 'string' && file.relativePath.length > 0) {
+    return file.relativePath;
+  }
+  if (typeof file.webkitRelativePath === 'string' && file.webkitRelativePath.length > 0) {
+    return file.webkitRelativePath;
+  }
+  if (typeof file.name === 'string') return file.name;
+  return '';
+}
+
+function normalizePath(path) {
+  return String(path || '').replace(/\\/g, '/');
+}
+
+function getBaseName(path) {
+  const normalized = normalizePath(path);
+  if (!normalized) return '';
+  const parts = normalized.split('/');
+  return parts[parts.length - 1] || '';
+}
+
+function pathEndsWith(path, suffix) {
+  const normalized = normalizePath(path);
+  return normalized.endsWith(suffix);
+}
+
+function findFileBySuffix(files, suffix) {
+  return files.find((file) => pathEndsWith(getFilePath(file), suffix)) || null;
+}
+
+function filterFilesByPrefix(files, prefix) {
+  const normalizedPrefix = normalizePath(prefix).replace(/\/+$/, '') + '/';
+  return files.filter((file) => normalizePath(getFilePath(file)).startsWith(normalizedPrefix));
+}
+
+async function readTextFile(file, label = 'file') {
+  if (!file || typeof file.text !== 'function') {
+    throw new Error(`Missing ${label}`);
+  }
+  return file.text();
+}
+
+async function parseJsonFile(file, label = 'json') {
+  const text = await readTextFile(file, label);
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`[${label}] Failed to parse JSON: ${message}`);
+  }
+}
+
+function isDiffusionInput(files) {
+  return files.some((file) => getBaseName(getFilePath(file)) === 'model_index.json');
+}
+
+function pickFirstBySuffix(files, suffixes) {
+  for (const suffix of suffixes) {
+    const match = findFileBySuffix(files, suffix);
+    if (match) return match;
+  }
+  return null;
+}
+
+async function parseDiffusionModel(files, onProgress, signal) {
+  const modelIndexFile = findFileBySuffix(files, 'model_index.json');
+  if (!modelIndexFile) return null;
+
+  onProgress?.({
+    stage: ConvertStage.PARSING,
+    message: 'Parsing diffusion model_index.json...',
+  });
+
+  const modelIndex = await parseJsonFile(modelIndexFile, 'model_index.json');
+  const diffusionConfig = {
+    modelIndex,
+    components: {},
+  };
+  const auxFiles = [];
+  const tensors = [];
+
+  const addPrefixedTensors = (componentId, parsed) => {
+    for (const tensor of parsed.tensors) {
+      tensors.push({
+        ...tensor,
+        name: `${componentId}.${tensor.name}`,
+      });
+    }
+  };
+
+  const parseComponentConfig = async (componentId, suffix) => {
+    const file = findFileBySuffix(files, suffix);
+    if (!file) return null;
+    const config = await parseJsonFile(file, `${componentId} config`);
+    diffusionConfig.components[componentId] = {
+      ...(diffusionConfig.components[componentId] || {}),
+      config,
+    };
+    return config;
+  };
+
+  const parseSingleSafetensors = async (componentId, file) => {
+    if (!file) {
+      throw new Error(`Missing ${componentId} safetensors file`);
+    }
+    const parsed = await parseSafetensorsFile(file);
+    addPrefixedTensors(componentId, parsed);
+  };
+
+  const parseShardedSafetensors = async (componentId, indexFile) => {
+    if (!indexFile) {
+      throw new Error(`Missing ${componentId} sharded index file`);
+    }
+    const indexJson = await parseJsonFile(indexFile, `${componentId} index`);
+    const weightMap = indexJson?.weight_map || {};
+    const shardNames = Array.from(new Set(Object.values(weightMap)));
+    if (shardNames.length === 0) {
+      throw new Error(`No shards listed in ${componentId} index file`);
+    }
+    const indexPath = normalizePath(getFilePath(indexFile));
+    const baseDir = indexPath.includes('/') ? indexPath.split('/').slice(0, -1).join('/') : '';
+    const shardFiles = shardNames.map((name) => {
+      const suffix = baseDir ? `${baseDir}/${name}` : name;
+      return findFileBySuffix(files, suffix);
+    }).filter(Boolean);
+    if (shardFiles.length !== shardNames.length) {
+      throw new Error(`Missing shard files for ${componentId} (${shardFiles.length}/${shardNames.length} found)`);
+    }
+    const parsed = await parseSafetensorsSharded(shardFiles, indexJson);
+    addPrefixedTensors(componentId, parsed);
+  };
+
+  if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+
+  await parseComponentConfig('transformer', 'transformer/config.json');
+  await parseComponentConfig('text_encoder', 'text_encoder/config.json');
+  await parseComponentConfig('text_encoder_2', 'text_encoder_2/config.json');
+  await parseComponentConfig('text_encoder_3', 'text_encoder_3/config.json');
+  await parseComponentConfig('vae', 'vae/config.json');
+  await parseComponentConfig('scheduler', 'scheduler/scheduler_config.json');
+
+  onProgress?.({
+    stage: ConvertStage.PARSING,
+    message: 'Parsing diffusion weights...',
+  });
+
+  const transformerFile = pickFirstBySuffix(files, [
+    'sd3.5_medium.safetensors',
+    'transformer/diffusion_pytorch_model.safetensors',
+    'transformer/model.safetensors',
+    'transformer/model.fp16.safetensors',
+  ]);
+  await parseSingleSafetensors('transformer', transformerFile);
+
+  const textEncoderFile = pickFirstBySuffix(files, [
+    'text_encoder/model.safetensors',
+    'text_encoder/model.fp16.safetensors',
+  ]);
+  await parseSingleSafetensors('text_encoder', textEncoderFile);
+
+  const textEncoder2File = pickFirstBySuffix(files, [
+    'text_encoder_2/model.safetensors',
+    'text_encoder_2/model.fp16.safetensors',
+  ]);
+  await parseSingleSafetensors('text_encoder_2', textEncoder2File);
+
+  const textEncoder3Index = pickFirstBySuffix(files, [
+    'text_encoder_3/model.safetensors.index.json',
+    'text_encoder_3/model.safetensors.index.fp16.json',
+  ]);
+  await parseShardedSafetensors('text_encoder_3', textEncoder3Index);
+
+  const vaeFile = pickFirstBySuffix(files, [
+    'vae/diffusion_pytorch_model.safetensors',
+    'vae/model.safetensors',
+  ]);
+  await parseSingleSafetensors('vae', vaeFile);
+
+  const storeTextAsset = async (label, suffix, targetName) => {
+    const file = findFileBySuffix(files, suffix);
+    if (!file) return;
+    const text = await readTextFile(file, label);
+    auxFiles.push({ name: targetName, data: text });
+  };
+
+  const storeBinaryAsset = async (label, suffix, targetName) => {
+    const file = findFileBySuffix(files, suffix);
+    if (!file) return;
+    if (typeof file.arrayBuffer !== 'function') {
+      throw new Error(`Missing binary data for ${label}`);
+    }
+    const buffer = await file.arrayBuffer();
+    auxFiles.push({ name: targetName, data: buffer });
+  };
+
+  await storeTextAsset('tokenizer vocab', 'tokenizer/vocab.json', 'tokenizer_vocab.json');
+  await storeTextAsset('tokenizer merges', 'tokenizer/merges.txt', 'tokenizer_merges.txt');
+  await storeTextAsset('tokenizer config', 'tokenizer/tokenizer_config.json', 'tokenizer_config.json');
+  await storeTextAsset('tokenizer special tokens', 'tokenizer/special_tokens_map.json', 'tokenizer_special_tokens_map.json');
+
+  await storeTextAsset('tokenizer_2 vocab', 'tokenizer_2/vocab.json', 'tokenizer_2_vocab.json');
+  await storeTextAsset('tokenizer_2 merges', 'tokenizer_2/merges.txt', 'tokenizer_2_merges.txt');
+  await storeTextAsset('tokenizer_2 config', 'tokenizer_2/tokenizer_config.json', 'tokenizer_2_config.json');
+  await storeTextAsset('tokenizer_2 special tokens', 'tokenizer_2/special_tokens_map.json', 'tokenizer_2_special_tokens_map.json');
+
+  await storeTextAsset('tokenizer_3 json', 'tokenizer_3/tokenizer.json', 'tokenizer_3_tokenizer.json');
+  await storeBinaryAsset('tokenizer_3 spiece', 'tokenizer_3/spiece.model', 'tokenizer_3_spiece.model');
+  await storeTextAsset('tokenizer_3 config', 'tokenizer_3/tokenizer_config.json', 'tokenizer_3_config.json');
+  await storeTextAsset('tokenizer_3 special tokens', 'tokenizer_3/special_tokens_map.json', 'tokenizer_3_special_tokens_map.json');
+
+  diffusionConfig.tokenizers = {
+    text_encoder: {
+      type: 'bpe',
+      vocabFile: 'tokenizer_vocab.json',
+      mergesFile: 'tokenizer_merges.txt',
+      configFile: 'tokenizer_config.json',
+      specialTokensFile: 'tokenizer_special_tokens_map.json',
+    },
+    text_encoder_2: {
+      type: 'bpe',
+      vocabFile: 'tokenizer_2_vocab.json',
+      mergesFile: 'tokenizer_2_merges.txt',
+      configFile: 'tokenizer_2_config.json',
+      specialTokensFile: 'tokenizer_2_special_tokens_map.json',
+    },
+    text_encoder_3: {
+      type: 'sentencepiece',
+      tokenizerFile: 'tokenizer_3_tokenizer.json',
+      spieceFile: 'tokenizer_3_spiece.model',
+      configFile: 'tokenizer_3_config.json',
+      specialTokensFile: 'tokenizer_3_special_tokens_map.json',
+    },
+  };
+
+  return {
+    tensors,
+    config: { diffusion: diffusionConfig },
+    auxFiles,
+    architecture: 'diffusion',
+  };
+}
+
 export async function convertModel(files, options = {}) {
   const { modelId: userModelId, onProgress, signal, converterConfig } = options;
   const resolvedConverterConfig = converterConfig || createConverterConfig();
@@ -140,6 +386,13 @@ export async function convertModel(files, options = {}) {
   let modelId = null;
   const shardInfos = [];
   const cleanupTasks = [];
+  const inputFiles = Array.isArray(files) ? files : [];
+  const hasOnlyFiles = inputFiles.every((file) => !isTensorSource(file));
+  const diffusionCandidate = hasOnlyFiles && isDiffusionInput(inputFiles);
+  let diffusionInfo = null;
+  let diffusionAuxFiles = null;
+  let diffusionArchitecture = null;
+  let diffusionEosTokenId = undefined;
 
   try {
     if (!isOPFSAvailable() && !isIndexedDBAvailable()) {
@@ -165,18 +418,27 @@ export async function convertModel(files, options = {}) {
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-  const format = detectModelFormat(files);
-  const auxiliary = getAuxiliaryFiles(files);
-  for (const file of files) {
-    if (isTensorSource(file) && typeof file.cleanup === 'function') {
-      cleanupTasks.push(file.cleanup);
+    if (diffusionCandidate) {
+      diffusionInfo = await parseDiffusionModel(inputFiles, onProgress, signal);
+      diffusionAuxFiles = diffusionInfo?.auxFiles ?? null;
+      diffusionArchitecture = diffusionInfo?.architecture ?? null;
+      diffusionEosTokenId = null;
     }
-  }
-  const hasTokenizerJson = !!auxiliary.tokenizer;
-  const hasTokenizerModel = !!auxiliary.tokenizerModel;
-  if (!hasTokenizerJson && !hasTokenizerModel) {
-    throw new Error('Missing tokenizer.json or tokenizer.model for browser conversion.');
-  }
+
+    const format = diffusionInfo ? { type: 'diffusion' } : detectModelFormat(files);
+    const auxiliary = diffusionInfo ? null : getAuxiliaryFiles(files);
+    for (const file of files) {
+      if (isTensorSource(file) && typeof file.cleanup === 'function') {
+        cleanupTasks.push(file.cleanup);
+      }
+    }
+    if (!diffusionInfo) {
+      const hasTokenizerJson = !!auxiliary.tokenizer;
+      const hasTokenizerModel = !!auxiliary.tokenizerModel;
+      if (!hasTokenizerJson && !hasTokenizerModel) {
+        throw new Error('Missing tokenizer.json or tokenizer.model for browser conversion.');
+      }
+    }
 
     onProgress?.({
       stage: ConvertStage.DETECTING,
@@ -191,7 +453,15 @@ export async function convertModel(files, options = {}) {
     let tokenizerConfig = null;
     let tokenizerModel = null;
 
-    if (format.type === 'gguf') {
+    if (format.type === 'diffusion') {
+      modelInfo = {
+        tensors: diffusionInfo.tensors,
+        config: diffusionInfo.config,
+        architecture: diffusionArchitecture,
+        format: 'safetensors',
+      };
+      config = diffusionInfo.config;
+    } else if (format.type === 'gguf') {
       modelInfo = await parseGGUFModel(format.ggufFile, onProgress, signal);
     } else if (format.type === 'single') {
       const parsed = await parseSafetensorsFile(format.safetensorsFile);
@@ -215,54 +485,67 @@ export async function convertModel(files, options = {}) {
       throw new Error(`Unsupported format: ${format.type}`);
     }
 
-    // Parse tokenizer if available
-    if (auxiliary.tokenizer) {
-      tokenizerJson = await parseTokenizerJson(auxiliary.tokenizer);
-      modelInfo.tokenizerJson = tokenizerJson;
-    }
-    if (auxiliary.tokenizerConfig) {
-      tokenizerConfig = await parseTokenizerConfigJson(auxiliary.tokenizerConfig);
-      modelInfo.tokenizerConfig = tokenizerConfig;
-    }
-    if (auxiliary.tokenizerModel) {
-      const source = normalizeTensorSource(auxiliary.tokenizerModel);
-      tokenizerModel = await source.readRange(0, source.size);
-      modelInfo.tokenizerModel = tokenizerModel;
+    // Parse tokenizer if available (text models only)
+    if (!diffusionInfo) {
+      if (auxiliary.tokenizer) {
+        tokenizerJson = await parseTokenizerJson(auxiliary.tokenizer);
+        modelInfo.tokenizerJson = tokenizerJson;
+      }
+      if (auxiliary.tokenizerConfig) {
+        tokenizerConfig = await parseTokenizerConfigJson(auxiliary.tokenizerConfig);
+        modelInfo.tokenizerConfig = tokenizerConfig;
+      }
+      if (auxiliary.tokenizerModel) {
+        const source = normalizeTensorSource(auxiliary.tokenizerModel);
+        tokenizerModel = await source.readRange(0, source.size);
+        modelInfo.tokenizerModel = tokenizerModel;
+      }
     }
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    // Detect model type using preset system
+    // Detect model type using preset system (skip for diffusion)
     const rawConfig = (config || modelInfo.config || {});
-    const presetOverride = resolvedConverterConfig.presets?.model;
-    const presetId = presetOverride || detectPreset(rawConfig, modelInfo.architecture);
-    if (presetId === 'transformer') {
-      const modelType = rawConfig.model_type ?? 'unknown';
-      throw new Error(
-        `Unknown model family: architecture="${modelInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
-        `DOPPLER requires a known model preset to generate correct inference config.\n` +
-        `The manifest-first architecture does not support generic defaults.\n\n` +
-        `Options:\n` +
-        `  1. Wait for official support of this model family\n` +
-        `  2. Create a custom preset in src/config/presets/models/\n` +
-        `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-        `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
-      );
-    }
-    const preset = resolvePreset(presetId);
-    const modelType = preset.modelType;
-    if (!modelType) {
-      throw new Error(`Preset "${presetId}" missing modelType`);
-    }
-    const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config));
-    const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
-    const architecture = extractArchitecture(hfConfig || {}, ggufConfig);
-    const headDim = architecture.headDim;
-    if (!headDim) {
-      throw new Error('Missing headDim in architecture');
+    let preset = null;
+    let modelType = null;
+    let manifestInference = null;
+    let headDim = null;
+    let tensorNames = null;
+
+    if (diffusionInfo) {
+      modelType = 'diffusion';
+      manifestInference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
+    } else {
+      const presetOverride = resolvedConverterConfig.presets?.model;
+      const presetId = presetOverride || detectPreset(rawConfig, modelInfo.architecture);
+      if (presetId === 'transformer') {
+        const modelType = rawConfig.model_type ?? 'unknown';
+        throw new Error(
+          `Unknown model family: architecture="${modelInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
+          `DOPPLER requires a known model preset to generate correct inference config.\n` +
+          `The manifest-first architecture does not support generic defaults.\n\n` +
+          `Options:\n` +
+          `  1. Wait for official support of this model family\n` +
+          `  2. Create a custom preset in src/config/presets/models/\n` +
+          `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+          `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+        );
+      }
+      preset = resolvePreset(presetId);
+      modelType = preset.modelType;
+      if (!modelType) {
+        throw new Error(`Preset "${presetId}" missing modelType`);
+      }
+      const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config));
+      const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
+      const architecture = extractArchitecture(hfConfig || {}, ggufConfig);
+      headDim = architecture.headDim;
+      if (!headDim) {
+        throw new Error('Missing headDim in architecture');
+      }
+      tensorNames = modelInfo.tensors.map((tensor) => tensor.name);
     }
     const tensors = modelInfo.tensors;
-    const tensorNames = tensors.map((tensor) => tensor.name);
     const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(tensors);
     if (!sourceQuantization) {
       throw new Error('Missing quantization for model conversion');
@@ -289,7 +572,11 @@ export async function convertModel(files, options = {}) {
       resolvedConverterConfig.quantization.weights ?? null,
       sourceQuantization
     );
-    const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
+    if (!diffusionInfo) {
+      const inferredHeadDim = headDim ?? preset?.architecture?.headDim ?? null;
+      const names = tensorNames ?? tensors.map((tensor) => tensor.name);
+      manifestInference = buildManifestInference(preset, rawConfig, inferredHeadDim, quantizationInfo, names);
+    }
 
     const detectedModelId = extractModelId(files, config);
     const baseModelId = userModelId ?? resolvedConverterConfig.output?.modelId ?? detectedModelId;

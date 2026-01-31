@@ -56,6 +56,8 @@ const state = {
   convertActive: false,
   downloadActive: false,
   uiMode: 'run',
+  runLog: [],
+  runCounter: 0,
   storageUsageBytes: 0,
   storageQuotaBytes: 0,
   gpuMaxBytes: 0,
@@ -172,6 +174,16 @@ function setBarWidth(id, percent) {
   const el = $(id);
   if (!el) return;
   el.style.width = `${clampPercent(percent)}%`;
+}
+
+function formatRate(value) {
+  if (!Number.isFinite(value)) return '--';
+  return `${value.toFixed(2)} tok/s`;
+}
+
+function formatMs(value) {
+  if (!Number.isFinite(value)) return '--';
+  return `${Math.round(value)}ms`;
 }
 
 function normalizeRuntimeConfig(raw) {
@@ -564,13 +576,17 @@ function updatePerformancePanel(snapshot) {
   const memoryEl = $('stat-memory');
   const gpuEl = $('stat-gpu');
   const kvEl = $('stat-kv');
+  const e2eEl = $('stat-e2e');
   const prefillEl = $('stat-prefill');
   const decodeEl = $('stat-decode');
 
   const metrics = state.lastMetrics || {};
-  const tps = Number.isFinite(metrics.tokensPerSec)
-    ? metrics.tokensPerSec
-    : (Number.isFinite(metrics.medianTokensPerSec) ? metrics.medianTokensPerSec : null);
+  const liveTps = state.chatGenerating ? metrics.liveTokensPerSec : null;
+  const tps = Number.isFinite(liveTps)
+    ? liveTps
+    : (Number.isFinite(metrics.tokensPerSec)
+      ? metrics.tokensPerSec
+      : (Number.isFinite(metrics.medianTokensPerSec) ? metrics.medianTokensPerSec : null));
   setText(tpsEl, tps !== null ? `${tps.toFixed(2)}` : '--');
 
   const gpuBytes = snapshot?.gpu?.currentBytes ?? null;
@@ -587,8 +603,16 @@ function updatePerformancePanel(snapshot) {
     setText(gpuEl, '--');
   }
 
-  const kvBytes = state.lastMemoryStats?.kvCache?.allocated ?? null;
-  setText(kvEl, Number.isFinite(kvBytes) ? formatBytes(kvBytes) : '--');
+  const kvStats = state.lastMemoryStats?.kvCache ?? null;
+  const kvBytes = kvStats?.allocated ?? null;
+  const kvSeq = kvStats?.seqLen ?? null;
+  const kvMax = kvStats?.maxSeqLen ?? null;
+  if (Number.isFinite(kvBytes)) {
+    const usage = Number.isFinite(kvSeq) && Number.isFinite(kvMax) ? ` (${kvSeq}/${kvMax})` : '';
+    setText(kvEl, `${formatBytes(kvBytes)}${usage}`);
+  } else {
+    setText(kvEl, '--');
+  }
 
   const stats = state.lastInferenceStats || {};
   const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
@@ -597,6 +621,17 @@ function updatePerformancePanel(snapshot) {
   const prefillRate = (prefillTokens != null && prefillTime && prefillTime > 0)
     ? prefillTokens / (prefillTime / 1000)
     : null;
+  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
+  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+  const e2eTime = (Number.isFinite(stats.totalTimeMs) && stats.totalTimeMs > 0)
+    ? stats.totalTimeMs
+    : (Number.isFinite(prefillTime) && Number.isFinite(decodeTime) ? prefillTime + decodeTime : null);
+  const e2eRate = (decodeTokens != null && e2eTime && e2eTime > 0)
+    ? decodeTokens / (e2eTime / 1000)
+    : null;
+  if (e2eEl) {
+    setText(e2eEl, formatRate(e2eRate));
+  }
   if (prefillEl) {
     if (prefillTokens == null && ttftMs == null && prefillRate == null) {
       setText(prefillEl, '--');
@@ -608,8 +643,6 @@ function updatePerformancePanel(snapshot) {
     }
   }
 
-  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
-  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
   if (decodeEl) {
     if (decodeTokens == null && decodeTime == null) {
       setText(decodeEl, '--');
@@ -743,6 +776,56 @@ function clearChatMessages() {
     container.innerHTML = '';
   }
   state.chatMessages = [];
+}
+
+function renderRunLog() {
+  const container = $('run-log-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  for (const entry of state.runLog) {
+    const row = document.createElement('div');
+    row.className = 'run-log-row';
+    const cells = [
+      entry.label,
+      formatMs(entry.ttftMs),
+      formatRate(entry.prefillRate),
+      formatRate(entry.decodeRate),
+      formatRate(entry.e2eRate),
+    ];
+    for (const value of cells) {
+      const cell = document.createElement('span');
+      cell.textContent = value;
+      row.appendChild(cell);
+    }
+    container.appendChild(row);
+  }
+}
+
+function recordRunLog(stats, label) {
+  if (!stats) return;
+  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
+  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
+  const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
+  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+  const totalTime = Number.isFinite(stats.totalTimeMs)
+    ? stats.totalTimeMs
+    : ((prefillTime && decodeTime) ? prefillTime + decodeTime : null);
+  const entry = {
+    label,
+    ttftMs: Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime,
+    prefillRate: (prefillTokens != null && prefillTime && prefillTime > 0)
+      ? prefillTokens / (prefillTime / 1000)
+      : null,
+    decodeRate: (decodeTokens != null && decodeTime && decodeTime > 0)
+      ? decodeTokens / (decodeTime / 1000)
+      : null,
+    e2eRate: (decodeTokens != null && totalTime && totalTime > 0)
+      ? decodeTokens / (totalTime / 1000)
+      : null,
+  };
+  state.runLog.unshift(entry);
+  state.runLog = state.runLog.slice(0, 8);
+  renderRunLog();
 }
 
 function buildSamplingOverride() {
@@ -915,6 +998,7 @@ async function handleChatSend() {
   let output = '';
   let tokenCount = 0;
   const start = performance.now();
+  let firstTokenAt = null;
 
   try {
     for await (const token of pipeline.generate(prompt, {
@@ -924,6 +1008,18 @@ async function handleChatSend() {
       if (controller.signal.aborted) break;
       output += token;
       tokenCount += 1;
+      const now = performance.now();
+      if (!firstTokenAt) {
+        firstTokenAt = now;
+      }
+      if (firstTokenAt) {
+        const elapsedDecode = Math.max(1, now - firstTokenAt);
+        const liveTokensPerSec = tokenCount / (elapsedDecode / 1000);
+        state.lastMetrics = {
+          ...(state.lastMetrics || {}),
+          liveTokensPerSec,
+        };
+      }
       if (assistantEl) assistantEl.textContent = output;
       scrollChatToBottom();
     }
@@ -935,12 +1031,15 @@ async function handleChatSend() {
     state.lastMetrics = {
       ...(state.lastMetrics || {}),
       tokensPerSec,
+      liveTokensPerSec: null,
     };
     if (state.chatMessages[messageIndex]) {
       state.chatMessages[messageIndex].content = output;
     }
     state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
     state.lastInferenceStats = pipeline?.getStats?.() ?? state.lastInferenceStats;
+    state.runCounter += 1;
+    recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
     const snapshot = captureMemorySnapshot();
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
@@ -1361,6 +1460,10 @@ async function handleDiagnosticsRun(mode) {
     }
     state.activeModelId = modelId || null;
     state.lastInferenceStats = result.pipeline?.getStats?.() ?? state.lastInferenceStats;
+    if (state.lastInferenceStats) {
+      state.runCounter += 1;
+      recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
+    }
     updateDiagnosticsStatus(`Complete (${result.suite})`);
     if (result.reportInfo?.path) {
       updateDiagnosticsReport(result.reportInfo.path);
@@ -1421,6 +1524,14 @@ function bindUI() {
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
+  const diffusionPrompt = $('diffusion-prompt');
+  const diffusionNegative = $('diffusion-negative');
+  const diffusionSteps = $('diffusion-steps');
+  const diffusionGuidance = $('diffusion-guidance');
+  const diffusionSeed = $('diffusion-seed');
+  const diffusionWidth = $('diffusion-width');
+  const diffusionHeight = $('diffusion-height');
+  const diffusionClear = $('diffusion-clear-btn');
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
     button.addEventListener('click', () => {
@@ -1544,6 +1655,16 @@ function bindUI() {
 
   clearBtn?.addEventListener('click', () => {
     clearChatMessages();
+  });
+
+  diffusionClear?.addEventListener('click', () => {
+    if (diffusionPrompt) diffusionPrompt.value = '';
+    if (diffusionNegative) diffusionNegative.value = '';
+    if (diffusionSteps) diffusionSteps.value = '20';
+    if (diffusionGuidance) diffusionGuidance.value = '7.5';
+    if (diffusionSeed) diffusionSeed.value = '';
+    if (diffusionWidth) diffusionWidth.value = '512';
+    if (diffusionHeight) diffusionHeight.value = '512';
   });
 
 }

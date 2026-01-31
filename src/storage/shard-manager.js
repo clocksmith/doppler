@@ -570,6 +570,61 @@ export async function loadTokenizerModelFromStore() {
   }
 }
 
+export async function saveAuxFile(filename, data) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('saveAuxFile requires a filename');
+  }
+  const bytes = typeof data === 'string'
+    ? new TextEncoder().encode(data)
+    : data instanceof ArrayBuffer
+      ? new Uint8Array(data)
+      : data instanceof Uint8Array
+        ? data
+        : null;
+  if (!bytes) {
+    throw new Error('saveAuxFile requires string, ArrayBuffer, or Uint8Array data');
+  }
+  await backend.writeFile(filename, bytes);
+}
+
+export async function loadAuxFile(filename) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('loadAuxFile requires a filename');
+  }
+  try {
+    return await backend.readFile(filename);
+  } catch (error) {
+    if (error?.name === 'NotFoundError') {
+      return null;
+    }
+    return null;
+  }
+}
+
+export async function loadAuxText(filename) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('loadAuxText requires a filename');
+  }
+  if (backend.readText) {
+    return backend.readText(filename);
+  }
+  try {
+    const buffer = await backend.readFile(filename);
+    return new TextDecoder().decode(buffer);
+  } catch (error) {
+    if (error?.name === 'NotFoundError') {
+      return null;
+    }
+    return null;
+  }
+}
+
 export async function cleanup() {
   if (backend?.cleanup) {
     await backend.cleanup();

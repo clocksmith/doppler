@@ -4,16 +4,29 @@
 // Constants
 // ============================================================================
 
-const MODEL_FILE_EXTENSIONS = ['.gguf', '.safetensors', '.bin', '.json'];
+const MODEL_FILE_EXTENSIONS = ['.gguf', '.safetensors', '.bin', '.json', '.txt', '.model'];
 const MODEL_FILE_TYPES = [
   {
     description: 'Model Files (GGUF, SafeTensors)',
     accept: {
-      'application/octet-stream': ['.gguf', '.safetensors', '.bin'],
+      'application/octet-stream': ['.gguf', '.safetensors', '.bin', '.model'],
       'application/json': ['.json'],
+      'text/plain': ['.txt'],
     },
   },
 ];
+
+function attachRelativePath(file, relativePath) {
+  if (!file || !relativePath) return;
+  try {
+    Object.defineProperty(file, 'relativePath', {
+      value: relativePath,
+      configurable: true,
+    });
+  } catch {
+    // Ignore if File is non-extensible in this environment
+  }
+}
 
 // ============================================================================
 // Public API
@@ -105,6 +118,7 @@ async function pickDirectoryWithFileSystemAccess() {
 
 async function collectModelFilesFromDirectory(
   dirHandle,
+  basePath = '',
   maxDepth = 2
 ) {
   const files = [];
@@ -115,12 +129,15 @@ async function collectModelFilesFromDirectory(
       if (MODEL_FILE_EXTENSIONS.some(ext => name.endsWith(ext))) {
         const fileHandle = entry;
         const file = await fileHandle.getFile();
+        const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+        attachRelativePath(file, relativePath);
         files.push(file);
       }
     } else if (entry.kind === 'directory' && maxDepth > 0) {
       // Recurse into subdirectories (but not too deep)
       const subDirHandle = entry;
-      const subFiles = await collectModelFilesFromDirectory(subDirHandle, maxDepth - 1);
+      const nextBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      const subFiles = await collectModelFilesFromDirectory(subDirHandle, nextBasePath, maxDepth - 1);
       files.push(...subFiles);
     }
   }
@@ -194,6 +211,14 @@ function pickDirectoryWithFileInput() {
       let directoryName;
       if (allFiles.length > 0 && allFiles[0].webkitRelativePath) {
         directoryName = allFiles[0].webkitRelativePath.split('/')[0];
+      }
+
+      for (const file of modelFiles) {
+        if (!file.webkitRelativePath) continue;
+        const parts = file.webkitRelativePath.split('/').filter(Boolean);
+        if (parts.length > 1) {
+          attachRelativePath(file, parts.slice(1).join('/'));
+        }
       }
 
       cleanup();

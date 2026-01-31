@@ -37,6 +37,7 @@ import {
 import { applyPipelineDebugConfig } from './pipeline/debug-utils.js';
 import { resolveLayerPipeline } from './pipeline/layer-plan.js';
 import { getDopplerLoader } from '../loader/doppler-loader.js';
+import { registerPipeline, getPipelineFactory } from './pipeline/registry.js';
 
 
 
@@ -514,11 +515,29 @@ export class InferencePipeline extends PipelineState {
 // ============================================================================
 
 
-export async function createPipeline(manifest, contexts = {}) {
+async function createTransformerPipeline(manifest, contexts = {}) {
   const pipeline = new InferencePipeline();
   await pipeline.initialize(contexts);
   await pipeline.loadModel(manifest);
   return pipeline;
+}
+
+registerPipeline('transformer', createTransformerPipeline);
+
+export async function createPipeline(manifest, contexts = {}) {
+  const modelType = manifest?.modelType || 'transformer';
+  let factory = getPipelineFactory(modelType);
+
+  if (!factory && modelType === 'diffusion') {
+    await import('./diffusion/pipeline.js');
+    factory = getPipelineFactory(modelType);
+  }
+
+  if (!factory) {
+    throw new Error(`No pipeline registered for modelType "${modelType}".`);
+  }
+
+  return factory(manifest, contexts);
 }
 
 export { InferencePipeline as Pipeline };

@@ -167,6 +167,22 @@ function mergeInferenceConfig(
     tokenizer: { ...base.tokenizer, ...overrides.tokenizer },
     largeWeights: { ...base.largeWeights, ...overrides.largeWeights },
     kvcache: { ...base.kvcache, ...overrides.kvcache },
+    diffusion: overrides.diffusion
+      ? {
+          ...base.diffusion,
+          ...overrides.diffusion,
+          scheduler: { ...base.diffusion.scheduler, ...overrides.diffusion.scheduler },
+          latent: { ...base.diffusion.latent, ...overrides.diffusion.latent },
+          textEncoder: { ...base.diffusion.textEncoder, ...overrides.diffusion.textEncoder },
+          decode: {
+            ...base.diffusion.decode,
+            ...overrides.diffusion.decode,
+            tiling: { ...base.diffusion.decode.tiling, ...overrides.diffusion.decode?.tiling },
+          },
+          swapper: { ...base.diffusion.swapper, ...overrides.diffusion.swapper },
+          quantization: { ...base.diffusion.quantization, ...overrides.diffusion.quantization },
+        }
+      : { ...base.diffusion },
     moe: overrides.moe
       ? {
           routing: { ...base.moe.routing, ...overrides.moe.routing },

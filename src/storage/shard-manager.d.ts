@@ -105,4 +105,8 @@ export function loadTokenizerFromStore(): Promise<string | null>;
 export function saveTokenizerModel(tokenizerModel: ArrayBuffer | Uint8Array): Promise<void>;
 export function loadTokenizerModelFromStore(): Promise<ArrayBuffer | null>;
 
+export function saveAuxFile(filename: string, data: string | ArrayBuffer | Uint8Array): Promise<void>;
+export function loadAuxFile(filename: string): Promise<ArrayBuffer | null>;
+export function loadAuxText(filename: string): Promise<string | null>;
+
 export function cleanup(): Promise<void>;

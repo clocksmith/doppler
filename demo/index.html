@@ -118,6 +118,21 @@
       grid-row: 2 / span 1;
     }
 
+    #app[data-mode="diffusion"] .diffusion-panel {
+      grid-column: 1 / span 8;
+      grid-row: 1 / span 2;
+    }
+
+    #app[data-mode="diffusion"] .model-panel {
+      grid-column: 9 / span 4;
+      grid-row: 1 / span 1;
+    }
+
+    #app[data-mode="diffusion"] .live-panel {
+      grid-column: 9 / span 4;
+      grid-row: 2 / span 1;
+    }
+
     .mode-tabs {
       display: flex;
       align-items: center;
@@ -257,6 +272,26 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
+    }
+
+    .run-log {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .run-log-row {
+      display: grid;
+      grid-template-columns: 44px repeat(4, minmax(0, 1fr));
+      gap: var(--space-xs);
+      align-items: baseline;
+      font-size: 12px;
+    }
+
+    .run-log-header {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
 
     /* Chat */
@@ -578,6 +613,7 @@
         <div class="mode-tabs" id="mode-tabs">
           <button class="btn mode-tab" data-mode="run" type="button">Run</button>
           <button class="btn mode-tab" data-mode="models" type="button">Models</button>
+          <button class="btn mode-tab" data-mode="diffusion" type="button">Diffusion</button>
           <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
         </div>
         <div id="status-indicator" class="status-indicator">
@@ -721,7 +757,7 @@
           </div>
         </section>
 
-        <section class="panel live-panel" data-modes="run diagnostics">
+        <section class="panel live-panel" data-modes="run diagnostics diffusion">
           <h2 class="type-label">Live Stats</h2>
           <div class="panel-subsection">
             <span class="type-caption muted">Performance</span>
@@ -743,6 +779,10 @@
                 <span class="stat-value" id="stat-kv">--</span>
               </div>
               <div class="stat-item">
+                <span class="stat-label">End-to-end</span>
+                <span class="stat-value" id="stat-e2e">--</span>
+              </div>
+              <div class="stat-item">
                 <span class="stat-label">Prefill</span>
                 <span class="stat-value" id="stat-prefill">--</span>
               </div>
@@ -750,6 +790,19 @@
                 <span class="stat-label">Decode</span>
                 <span class="stat-value" id="stat-decode">--</span>
               </div>
+            </div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">Recent Runs</span>
+            <div class="run-log">
+              <div class="run-log-row run-log-header">
+                <span>Run</span>
+                <span>TTFT</span>
+                <span>Prefill</span>
+                <span>Decode</span>
+                <span>E2E</span>
+              </div>
+              <div id="run-log-rows"></div>
             </div>
           </div>
           <div class="panel-subsection">
@@ -816,6 +869,46 @@
             <div class="swap-indicator" id="swap-indicator" hidden>
               <span class="swap-warning">Swapping to disk detected</span>
             </div>
+          </div>
+        </section>
+
+        <section class="panel diffusion-panel" data-modes="diffusion">
+          <h2 class="type-label">Diffusion Controls</h2>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diffusion-prompt">Prompt</label>
+            <textarea id="diffusion-prompt" class="w-full" rows="3" placeholder="Describe the image..."></textarea>
+          </div>
+          <div class="diagnostics-field">
+            <label class="type-caption muted" for="diffusion-negative">Negative prompt</label>
+            <textarea id="diffusion-negative" class="w-full" rows="2" placeholder="What to avoid..."></textarea>
+          </div>
+          <div class="diagnostics-actions">
+            <div class="download-field">
+              <label class="type-caption muted" for="diffusion-steps">Steps</label>
+              <input id="diffusion-steps" class="w-full" type="number" min="1" max="100" value="20" />
+            </div>
+            <div class="download-field">
+              <label class="type-caption muted" for="diffusion-guidance">Guidance</label>
+              <input id="diffusion-guidance" class="w-full" type="number" min="0" max="20" step="0.5" value="7.5" />
+            </div>
+            <div class="download-field">
+              <label class="type-caption muted" for="diffusion-seed">Seed</label>
+              <input id="diffusion-seed" class="w-full" type="number" min="0" step="1" placeholder="random" />
+            </div>
+          </div>
+          <div class="diagnostics-actions">
+            <div class="download-field">
+              <label class="type-caption muted" for="diffusion-width">Width</label>
+              <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="512" />
+            </div>
+            <div class="download-field">
+              <label class="type-caption muted" for="diffusion-height">Height</label>
+              <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="512" />
+            </div>
+          </div>
+          <div class="diagnostics-actions">
+            <button class="btn btn-primary" id="diffusion-run-btn" disabled>Generate (coming soon)</button>
+            <button class="btn" id="diffusion-clear-btn">Clear</button>
           </div>
         </section>
 

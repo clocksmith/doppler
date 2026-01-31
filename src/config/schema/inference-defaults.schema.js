@@ -2,6 +2,7 @@ import { DEFAULT_KVCACHE_CONFIG } from './kvcache.schema.js';
 import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
 import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
 import { DEFAULT_RMS_NORM_EPS } from './manifest.schema.js';
+import { DEFAULT_DIFFUSION_CONFIG } from './diffusion.schema.js';
 
 // =============================================================================
 // Generation Defaults (generator.js runtime options)
@@ -97,6 +98,7 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   speculative: DEFAULT_SPECULATIVE_CONFIG,
   generation: DEFAULT_GENERATION_CONFIG,
   chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
+  diffusion: DEFAULT_DIFFUSION_CONFIG,
   pipeline: null,
   kernelPath: undefined,
   kernelOverrides: null,

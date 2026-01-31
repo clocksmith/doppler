@@ -24,6 +24,7 @@ import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { ManifestInferenceSchema } from './manifest.schema.js';
 import type { SpeculativeConfigSchema } from './speculative.schema.js';
+import type { DiffusionConfigSchema } from './diffusion.schema.js';
 
 // Re-export for convenience
 export type { ManifestInferenceSchema };
@@ -169,6 +170,8 @@ export interface InferenceDefaultsConfigSchema {
   moe: MoERuntimeConfigSchema;
   /** Speculative decoding configuration */
   speculative: SpeculativeConfigSchema;
+  /** Diffusion pipeline configuration */
+  diffusion: DiffusionConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   /** Log token ids in test harness output */

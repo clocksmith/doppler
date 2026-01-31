@@ -107,6 +107,32 @@ export {
 } from './inference.schema.js';
 
 // =============================================================================
+// Diffusion Schema
+// =============================================================================
+export {
+  type DiffusionConfigSchema,
+  type DiffusionSchedulerConfigSchema,
+  type DiffusionLatentConfigSchema,
+  type DiffusionTextEncoderConfigSchema,
+  type DiffusionDecodeConfigSchema,
+  type DiffusionTilingConfigSchema,
+  type DiffusionSwapperConfigSchema,
+  type DiffusionQuantizationConfigSchema,
+  type DiffusionSchedulerType,
+  type DiffusionDtype,
+  type DiffusionQuantDtype,
+  type DiffusionSwapperStrategy,
+  DEFAULT_DIFFUSION_SCHEDULER_CONFIG,
+  DEFAULT_DIFFUSION_LATENT_CONFIG,
+  DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG,
+  DEFAULT_DIFFUSION_DECODE_CONFIG,
+  DEFAULT_DIFFUSION_TILING_CONFIG,
+  DEFAULT_DIFFUSION_SWAPPER_CONFIG,
+  DEFAULT_DIFFUSION_QUANTIZATION_CONFIG,
+  DEFAULT_DIFFUSION_CONFIG,
+} from './diffusion.schema.js';
+
+// =============================================================================
 // Conversion Schema
 // =============================================================================
 export {
@@ -265,6 +291,7 @@ export {
   DEFAULT_LARGE_WEIGHT_CONFIG,
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
+  DEFAULT_DIFFUSION_CONFIG,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
   DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';

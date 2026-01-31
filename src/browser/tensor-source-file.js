@@ -9,7 +9,12 @@ export function createFileTensorSource(file) {
     throw new Error('File tensor source requires a File or Blob');
   }
 
-  const name = typeof file.name === 'string' ? file.name : 'unknown';
+  const relativePath = typeof file.relativePath === 'string' && file.relativePath.length > 0
+    ? file.relativePath
+    : typeof file.webkitRelativePath === 'string' && file.webkitRelativePath.length > 0
+      ? file.webkitRelativePath
+      : null;
+  const name = relativePath || (typeof file.name === 'string' ? file.name : 'unknown');
 
   return {
     sourceType: 'file',
