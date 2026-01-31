@@ -167,11 +167,6 @@ function findFileBySuffix(files, suffix) {
   return files.find((file) => pathEndsWith(getFilePath(file), suffix)) || null;
 }
 
-function filterFilesByPrefix(files, prefix) {
-  const normalizedPrefix = normalizePath(prefix).replace(/\/+$/, '') + '/';
-  return files.filter((file) => normalizePath(getFilePath(file)).startsWith(normalizedPrefix));
-}
-
 async function readTextFile(file, label = 'file') {
   if (!file || typeof file.text !== 'function') {
     throw new Error(`Missing ${label}`);
@@ -346,6 +341,25 @@ async function parseDiffusionModel(files, onProgress, signal) {
   await storeBinaryAsset('tokenizer_3 spiece', 'tokenizer_3/spiece.model', 'tokenizer_3_spiece.model');
   await storeTextAsset('tokenizer_3 config', 'tokenizer_3/tokenizer_config.json', 'tokenizer_3_config.json');
   await storeTextAsset('tokenizer_3 special tokens', 'tokenizer_3/special_tokens_map.json', 'tokenizer_3_special_tokens_map.json');
+
+  const requireTokenizerAsset = (label, suffix) => {
+    if (!findFileBySuffix(files, suffix)) {
+      throw new Error(`Missing ${label} (${suffix}) for diffusion conversion.`);
+    }
+  };
+
+  if (modelIndex?.tokenizer) {
+    requireTokenizerAsset('tokenizer vocab', 'tokenizer/vocab.json');
+    requireTokenizerAsset('tokenizer merges', 'tokenizer/merges.txt');
+  }
+  if (modelIndex?.tokenizer_2) {
+    requireTokenizerAsset('tokenizer_2 vocab', 'tokenizer_2/vocab.json');
+    requireTokenizerAsset('tokenizer_2 merges', 'tokenizer_2/merges.txt');
+  }
+  if (modelIndex?.tokenizer_3) {
+    requireTokenizerAsset('tokenizer_3 json', 'tokenizer_3/tokenizer.json');
+    requireTokenizerAsset('tokenizer_3 spiece', 'tokenizer_3/spiece.model');
+  }
 
   diffusionConfig.tokenizers = {
     text_encoder: {
@@ -698,6 +712,12 @@ export async function convertModel(files, options = {}) {
 
     await openModelStore(modelId);
 
+    if (diffusionAuxFiles && diffusionAuxFiles.length > 0) {
+      for (const asset of diffusionAuxFiles) {
+        await saveAuxFile(asset.name, asset.data);
+      }
+    }
+
     const hashAlgorithm = resolvedConverterConfig.manifest.hashAlgorithm;
 
     // Create shard I/O adapter
@@ -795,6 +815,8 @@ export async function convertModel(files, options = {}) {
         quantization: manifestQuantization,
         quantizationInfo,
         hashAlgorithm,
+        architecture: diffusionArchitecture ?? undefined,
+        eosTokenId: diffusionEosTokenId,
       }
     );
 
@@ -916,10 +938,15 @@ function extractModelId(files, config) {
     return parts[parts.length - 1];
   }
 
-  // Try first safetensors file name
-  const stFile = files.find((f) => f.name.endsWith('.safetensors'));
+  const safetensorsFiles = files.filter((f) => getBaseName(getFilePath(f)).toLowerCase().endsWith('.safetensors'));
+  const rootSafetensors = safetensorsFiles.find((f) => !normalizePath(getFilePath(f)).includes('/'));
+  const stFile = rootSafetensors || safetensorsFiles.find((f) => {
+    const base = getBaseName(getFilePath(f)).toLowerCase();
+    return !base.startsWith('model-') && !base.includes('-of-');
+  }) || safetensorsFiles[0];
   if (stFile) {
-    return stFile.name.replace(/\.safetensors$/, '').replace(/model[-_.]?/, '');
+    const base = getBaseName(getFilePath(stFile));
+    return base.replace(/\.safetensors$/, '').replace(/model[-_.]?/, '');
   }
 
   // Try GGUF file name

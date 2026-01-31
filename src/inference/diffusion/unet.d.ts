@@ -4,4 +4,11 @@
  * @module inference/diffusion/unet
  */
 
-export declare function runUnetStep(): Promise<never>;
+import type { DiffusionScheduler } from './scheduler.js';
+
+export declare function runUnetStep(
+  latents: Float32Array,
+  scheduler: DiffusionScheduler,
+  stepIndex: number,
+  guidanceScale?: number
+): Float32Array;

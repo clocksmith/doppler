@@ -4,6 +4,8 @@ export function validateManifest(manifest) {
   const errors = [];
   const warnings = [];
 
+  const isDiffusion = manifest.modelType === 'diffusion';
+
   // Version check
   const version = typeof manifest.version === 'string'
     ? parseFloat(manifest.version)
@@ -37,22 +39,32 @@ export function validateManifest(manifest) {
     errors.push(`Invalid hashAlgorithm: ${manifest.hashAlgorithm}`);
   }
 
-  // EOS token ID (required)
+  // EOS token ID (required for text models)
   const eosTokenId = manifest.eos_token_id;
-  if (eosTokenId === undefined) {
-    errors.push('Missing eos_token_id');
-  } else if (Array.isArray(eosTokenId)) {
-    if (eosTokenId.length === 0 || eosTokenId.some((id) => typeof id !== 'number')) {
-      errors.push('Invalid eos_token_id array');
+  if (!isDiffusion) {
+    if (eosTokenId === undefined) {
+      errors.push('Missing eos_token_id');
+    } else if (Array.isArray(eosTokenId)) {
+      if (eosTokenId.length === 0 || eosTokenId.some((id) => typeof id !== 'number')) {
+        errors.push('Invalid eos_token_id array');
+      }
+    } else if (typeof eosTokenId !== 'number') {
+      errors.push('Invalid eos_token_id');
     }
-  } else if (typeof eosTokenId !== 'number') {
-    errors.push('Invalid eos_token_id');
+  } else if (eosTokenId != null) {
+    if (Array.isArray(eosTokenId)) {
+      if (eosTokenId.length === 0 || eosTokenId.some((id) => typeof id !== 'number')) {
+        errors.push('Invalid eos_token_id array');
+      }
+    } else if (typeof eosTokenId !== 'number') {
+      errors.push('Invalid eos_token_id');
+    }
   }
 
   // Architecture validation (skip for LoRA adapters)
   const isLoRAAdapter = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
 
-  if (!isLoRAAdapter && manifest.architecture && typeof manifest.architecture === 'object') {
+  if (!isLoRAAdapter && !isDiffusion && manifest.architecture && typeof manifest.architecture === 'object') {
     const arch = manifest.architecture;
     const requiredFields = [
       'numLayers',
@@ -70,7 +82,7 @@ export function validateManifest(manifest) {
         errors.push(`Invalid architecture.${field}`);
       }
     }
-  } else if (!isLoRAAdapter && !manifest.architecture) {
+  } else if (!isLoRAAdapter && !isDiffusion && !manifest.architecture) {
     errors.push('Missing architecture field');
   }
 
@@ -173,12 +185,14 @@ export function validateManifest(manifest) {
 
   // Tensor-config consistency validation
   // This catches bugs like postFeedforwardNorm=false when the weights exist
-  const tensorConfigResult = validateTensorConfigConsistency(manifest);
-  for (const err of tensorConfigResult.errors) {
-    errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` → ${err.suggestion}` : ''}`);
-  }
-  for (const warn of tensorConfigResult.warnings) {
-    warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` → ${warn.suggestion}` : ''}`);
+  if (!isDiffusion) {
+    const tensorConfigResult = validateTensorConfigConsistency(manifest);
+    for (const err of tensorConfigResult.errors) {
+      errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` → ${err.suggestion}` : ''}`);
+    }
+    for (const warn of tensorConfigResult.warnings) {
+      warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` → ${warn.suggestion}` : ''}`);
+    }
   }
 
   return { valid: errors.length === 0, errors, warnings };

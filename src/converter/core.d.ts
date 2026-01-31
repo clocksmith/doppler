@@ -103,13 +103,13 @@ export interface RDRRManifest {
   modelType: string;
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
-  architecture: ArchitectureConfig;
+  architecture: ArchitectureConfig | string;
   inference: ManifestInferenceSchema;
   shards: ShardInfo[];
   tensors: Record<string, TensorLocation>;
   totalSize: number;
   hashAlgorithm: string;
-  eos_token_id: number | number[];
+  eos_token_id: number | number[] | null;
   tokenizer?: TokenizerInfo;
   metadata: {
     source: string;
@@ -125,6 +125,8 @@ export interface CreateManifestOptions {
   quantization?: string;
   quantizationInfo?: QuantizationInfoSchema;
   hashAlgorithm: string;
+  architecture?: ArchitectureConfig | string;
+  eosTokenId?: number | number[] | null;
 }
 
 /**

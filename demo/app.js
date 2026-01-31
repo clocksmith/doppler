@@ -53,6 +53,8 @@ const state = {
   chatAbortController: null,
   chatGenerating: false,
   chatLoading: false,
+  diffusionGenerating: false,
+  diffusionLoading: false,
   convertActive: false,
   downloadActive: false,
   uiMode: 'run',
@@ -124,11 +126,19 @@ function updateStatusIndicator() {
     setStatusIndicator('Loading model', 'info');
     return;
   }
+  if (state.diffusionLoading) {
+    setStatusIndicator('Loading diffusion', 'info');
+    return;
+  }
   if (state.convertActive) {
     setStatusIndicator('Converting', 'info');
     return;
   }
   if (state.chatGenerating) {
+    setStatusIndicator('Generating', 'info');
+    return;
+  }
+  if (state.diffusionGenerating) {
     setStatusIndicator('Generating', 'info');
     return;
   }
@@ -231,6 +241,12 @@ function resetConvertStatus() {
   setHidden(status, false);
   progress.style.width = '0%';
   setText(label, 'Ready');
+}
+
+function updateDiffusionStatus(message) {
+  const status = $('diffusion-output-status');
+  if (!status) return;
+  setText(status, message || 'Idle');
 }
 
 function updateExportStatus(message, percent) {
@@ -963,6 +979,108 @@ async function ensureChatPipeline() {
   }
 }
 
+async function ensureDiffusionPipeline() {
+  const modelId = getSelectedModelId();
+  if (!modelId) {
+    throw new Error('Select a model before generating');
+  }
+  if (state.activePipeline && state.activeModelId === modelId) {
+    return state.activePipeline;
+  }
+  if (state.activePipeline) {
+    await unloadActivePipeline();
+  }
+  showProgressOverlay('Loading Diffusion Model');
+  state.diffusionLoading = true;
+  updateStatusIndicator();
+  try {
+    const pipeline = await loadPipelineFromStorage(modelId);
+    state.activePipeline = pipeline;
+    state.activeModelId = modelId;
+    state.lastMemoryStats = pipeline.getMemoryStats?.() ?? null;
+    updateMemoryControls();
+    const snapshot = captureMemorySnapshot();
+    updateMemoryPanel(snapshot);
+    updatePerformancePanel(snapshot);
+    return pipeline;
+  } finally {
+    hideProgressOverlay();
+    state.diffusionLoading = false;
+    updateStatusIndicator();
+  }
+}
+
+function drawDiffusionCanvas(result) {
+  const canvas = $('diffusion-canvas');
+  if (!canvas || !result) return;
+  canvas.width = result.width;
+  canvas.height = result.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const imageData = new ImageData(result.pixels, result.width, result.height);
+  ctx.putImageData(imageData, 0, 0);
+}
+
+async function handleDiffusionRun() {
+  if (state.diffusionGenerating || state.diffusionLoading) return;
+  const promptEl = $('diffusion-prompt');
+  const negativeEl = $('diffusion-negative');
+  const stepsEl = $('diffusion-steps');
+  const guidanceEl = $('diffusion-guidance');
+  const seedEl = $('diffusion-seed');
+  const widthEl = $('diffusion-width');
+  const heightEl = $('diffusion-height');
+
+  const request = {
+    prompt: promptEl?.value?.trim() || '',
+    negativePrompt: negativeEl?.value?.trim() || '',
+    steps: stepsEl?.value ? Number(stepsEl.value) : undefined,
+    guidanceScale: guidanceEl?.value ? Number(guidanceEl.value) : undefined,
+    seed: seedEl?.value ? Number(seedEl.value) : undefined,
+    width: widthEl?.value ? Number(widthEl.value) : undefined,
+    height: heightEl?.value ? Number(heightEl.value) : undefined,
+  };
+
+  updateDiffusionStatus('Preparing...');
+  state.diffusionGenerating = true;
+  updateStatusIndicator();
+  try {
+    const pipeline = await ensureDiffusionPipeline();
+    if (!pipeline.generate) {
+      throw new Error('Selected model does not support diffusion generation.');
+    }
+    updateDiffusionStatus('Generating...');
+    const result = await pipeline.generate(request);
+    drawDiffusionCanvas(result);
+    state.lastInferenceStats = pipeline.getStats?.() ?? null;
+    state.lastMemoryStats = pipeline.getMemoryStats?.() ?? state.lastMemoryStats;
+    if (state.lastInferenceStats) {
+      state.runCounter += 1;
+      recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
+    }
+    updateDiffusionStatus('Complete');
+    const snapshot = captureMemorySnapshot();
+    updateMemoryPanel(snapshot);
+    updatePerformancePanel(snapshot);
+  } catch (error) {
+    updateDiffusionStatus(`Error: ${error.message}`);
+  } finally {
+    state.diffusionGenerating = false;
+    updateStatusIndicator();
+  }
+}
+
+function handleDiffusionClear() {
+  const canvas = $('diffusion-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  updateDiffusionStatus('Idle');
+}
+
 async function handleChatSend() {
   if (state.chatGenerating || state.chatLoading) return;
   const input = $('chat-input');
@@ -1531,6 +1649,7 @@ function bindUI() {
   const diffusionSeed = $('diffusion-seed');
   const diffusionWidth = $('diffusion-width');
   const diffusionHeight = $('diffusion-height');
+  const diffusionRun = $('diffusion-run-btn');
   const diffusionClear = $('diffusion-clear-btn');
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
@@ -1665,6 +1784,13 @@ function bindUI() {
     if (diffusionSeed) diffusionSeed.value = '';
     if (diffusionWidth) diffusionWidth.value = '512';
     if (diffusionHeight) diffusionHeight.value = '512';
+    handleDiffusionClear();
+  });
+
+  diffusionRun?.addEventListener('click', () => {
+    handleDiffusionRun().catch((error) => {
+      updateDiffusionStatus(`Error: ${error.message}`);
+    });
   });
 
 }
@@ -1683,6 +1809,7 @@ async function init() {
   startTelemetryLoop();
   setChatLoading(false);
   setChatGenerating(false);
+  updateDiffusionStatus('Idle');
   updateStatusIndicator();
   bindUI();
 }

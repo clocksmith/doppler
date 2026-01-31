@@ -5,6 +5,7 @@ import {
   SHARD_SIZE as SCHEMA_SHARD_SIZE,
   RDRR_VERSION as SCHEMA_RDRR_VERSION,
   ConversionStage as SchemaConversionStage,
+  DEFAULT_MANIFEST_INFERENCE,
   formatBytes,
 } from '../config/schema/index.js';
 
@@ -331,33 +332,48 @@ export function createManifest(
   if (!source) {
     throw new Error('Missing manifest source');
   }
-  const architecture = extractArchitecture(model.config, model.ggufConfig);
+  const resolvedModelType =
+    options.modelType ??
+    model.modelType ??
+    model.config?.architectures?.[0] ??
+    model.architecture;
+  if (!resolvedModelType) {
+    throw new Error('Missing modelType for manifest');
+  }
+  const isDiffusion = resolvedModelType === 'diffusion';
+  const architecture = options.architecture ?? model.architecture ?? (
+    isDiffusion ? 'diffusion' : extractArchitecture(model.config, model.ggufConfig)
+  );
   const rawConfig = model.config || {};
   let inference = options.inference;
   if (!inference) {
-    const presetId = detectPreset(rawConfig, model.architecture);
-    if (presetId === 'transformer') {
-      const modelType = rawConfig.model_type ?? 'unknown';
-      throw new Error(
-        `Unknown model family: architecture="${model.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
-        `DOPPLER requires a known model preset to generate correct inference config.\n` +
-        `The manifest-first architecture does not support generic defaults.\n\n` +
-        `Options:\n` +
-        `  1. Wait for official support of this model family\n` +
-        `  2. Create a custom preset in src/config/presets/models/\n` +
-        `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-        `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
-      );
+    if (isDiffusion) {
+      inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
+    } else {
+      const presetId = detectPreset(rawConfig, model.architecture);
+      if (presetId === 'transformer') {
+        const modelType = rawConfig.model_type ?? 'unknown';
+        throw new Error(
+          `Unknown model family: architecture="${model.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
+          `DOPPLER requires a known model preset to generate correct inference config.\n` +
+          `The manifest-first architecture does not support generic defaults.\n\n` +
+          `Options:\n` +
+          `  1. Wait for official support of this model family\n` +
+          `  2. Create a custom preset in src/config/presets/models/\n` +
+          `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+          `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba`
+        );
+      }
+      const preset = resolvePreset(presetId);
+      const headDim = rawConfig.head_dim ?? (architecture && typeof architecture === 'object' ? architecture.headDim : null);
+      if (!headDim) {
+        throw new Error('Missing headDim in architecture');
+      }
+      const tensorNames = Array.isArray(model.tensors)
+        ? model.tensors.map((tensor) => tensor.name)
+        : null;
+      inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null, tensorNames);
     }
-    const preset = resolvePreset(presetId);
-    const headDim = rawConfig.head_dim ?? architecture.headDim;
-    if (!headDim) {
-      throw new Error('Missing headDim in architecture');
-    }
-    const tensorNames = Array.isArray(model.tensors)
-      ? model.tensors.map((tensor) => tensor.name)
-      : null;
-    inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null, tensorNames);
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
@@ -371,20 +387,15 @@ export function createManifest(
     };
   }
 
-  const eosTokenId = resolveEosTokenId({
-    config: rawConfig,
-    tokenizer: model.tokenizer ?? model.tokenizerConfig ?? null,
-    tokenizerJson: model.tokenizerJson ?? null,
-  });
-
-  const resolvedModelType =
-    options.modelType ??
-    model.modelType ??
-    model.config?.architectures?.[0] ??
-    model.architecture;
-  if (!resolvedModelType) {
-    throw new Error('Missing modelType for manifest');
-  }
+  const eosTokenId = options.eosTokenId !== undefined
+    ? options.eosTokenId
+    : isDiffusion
+      ? null
+      : resolveEosTokenId({
+          config: rawConfig,
+          tokenizer: model.tokenizer ?? model.tokenizerConfig ?? null,
+          tokenizerJson: model.tokenizerJson ?? null,
+        });
   const resolvedQuantization = options.quantization ?? model.quantization;
   if (!resolvedQuantization) {
     throw new Error('Missing quantization for manifest');

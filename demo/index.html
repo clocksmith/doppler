@@ -133,6 +133,20 @@
       grid-row: 2 / span 1;
     }
 
+    .diffusion-output {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+    }
+
+    .diffusion-canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #0e0e0e;
+    }
+
     .mode-tabs {
       display: flex;
       align-items: center;
@@ -907,8 +921,13 @@
             </div>
           </div>
           <div class="diagnostics-actions">
-            <button class="btn btn-primary" id="diffusion-run-btn" disabled>Generate (coming soon)</button>
+            <button class="btn btn-primary" id="diffusion-run-btn">Generate</button>
             <button class="btn" id="diffusion-clear-btn">Clear</button>
+          </div>
+          <div class="diffusion-output">
+            <div class="type-caption muted">Output</div>
+            <canvas id="diffusion-canvas" class="diffusion-canvas" width="512" height="512"></canvas>
+            <div id="diffusion-output-status" class="type-caption muted">Idle</div>
           </div>
         </section>
 

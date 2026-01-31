@@ -13,6 +13,7 @@ const loadJson = async (path) => {
 };
 
 const transformerPreset = await loadJson('./presets/models/transformer.json');
+const diffusionPreset = await loadJson('./presets/models/diffusion.json');
 const gemma2Preset = await loadJson('./presets/models/gemma2.json');
 const gemma3Preset = await loadJson('./presets/models/gemma3.json');
 const functiongemmaPreset = await loadJson('./presets/models/functiongemma.json');
@@ -29,6 +30,7 @@ const gptOssPreset = await loadJson('./presets/models/gpt-oss.json');
 // =============================================================================
 
 export const PRESET_REGISTRY = {
+  diffusion: diffusionPreset,
   transformer: transformerPreset,
   gemma2: gemma2Preset,
   gemma3: gemma3Preset,
@@ -79,6 +81,7 @@ export function resolvePreset(id) {
 const PRESET_DETECTION_ORDER = [
   // Most specific first (model variants)
   'functiongemma',
+  'diffusion',
   // Model families (check more specific patterns first)
   'gemma2',
   'gemma3',

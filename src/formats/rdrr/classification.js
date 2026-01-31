@@ -4,6 +4,18 @@
 export function classifyTensor(name, modelType) {
   const lower = name.toLowerCase();
 
+  if (modelType === 'diffusion') {
+    const prefix = lower.split('.')[0];
+    if (prefix === 'text_encoder' || prefix === 'text_encoder_2' || prefix === 'text_encoder_3') {
+      return prefix;
+    }
+    if (prefix === 'vae') return 'vae';
+    if (prefix === 'transformer' || prefix === 'unet' || prefix === 'mmdit') {
+      return 'transformer';
+    }
+    return 'other';
+  }
+
   // Embeddings
   if (lower.includes('embed_tokens') || lower.includes('token_embd') ||
       lower.includes('wte.weight') || lower.includes('word_embeddings')) {
@@ -126,6 +138,12 @@ export function classifyTensorRole(name) {
 
 
 export function getGroupType(groupId, modelType) {
+  if (modelType === 'diffusion') {
+    if (groupId.startsWith('text_encoder')) return 'text_encoder';
+    if (groupId === 'transformer' || groupId === 'unet' || groupId === 'mmdit') return 'transformer';
+    if (groupId === 'vae') return 'vae';
+    return 'layer';
+  }
   if (groupId === 'embed') return 'embed';
   if (groupId === 'head') return 'head';
   if (groupId === 'other') return 'layer';
@@ -161,6 +179,22 @@ export function sortGroupIds(groupIds) {
     if (b === 'embed') return 1;
     if (a === 'head') return 1;
     if (b === 'head') return -1;
+    if (a.startsWith('text_encoder') || b.startsWith('text_encoder')) {
+      const order = ['text_encoder', 'text_encoder_2', 'text_encoder_3'];
+      const indexA = order.indexOf(a);
+      const indexB = order.indexOf(b);
+      if (indexA !== indexB) {
+        return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
+      }
+    }
+    if (a === 'transformer' || b === 'transformer') {
+      if (a === 'transformer') return -1;
+      if (b === 'transformer') return 1;
+    }
+    if (a === 'vae' || b === 'vae') {
+      if (a === 'vae') return 1;
+      if (b === 'vae') return -1;
+    }
 
     const layerA = parseGroupLayerIndex(a) ?? Infinity;
     const layerB = parseGroupLayerIndex(b) ?? Infinity;

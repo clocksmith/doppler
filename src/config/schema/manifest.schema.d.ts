@@ -30,6 +30,7 @@ export type ModelType =
   | 'jamba'        // Hybrid Mamba + Attention + MoE
   | 'mixtral'      // MoE transformer (Mixtral, Arctic)
   | 'deepseek'     // MoE with shared experts
+  | 'diffusion'    // Diffusion pipelines (Stable Diffusion, SD3)
   | string;        // Allow future extensions
 
 /** Component group types */
@@ -41,7 +42,10 @@ export type ComponentGroupType =
   | 'shared'  // MoE shared components (router, etc.)
   | 'mamba'   // Mamba block in hybrid
   | 'rwkv'    // RWKV block
-  | 'attn';   // Attention block in hybrid
+  | 'attn'    // Attention block in hybrid
+  | 'text_encoder' // Diffusion text encoders
+  | 'transformer'  // Diffusion transformer (UNet/DiT)
+  | 'vae';         // Diffusion VAE
 
 /** Weight storage layout */
 export type WeightLayout = 'row' | 'column';
@@ -397,10 +401,10 @@ export interface ManifestSchema {
   quantizationInfo?: QuantizationInfoSchema;
   hashAlgorithm: HashAlgorithm;
   totalSize: number;
-  eos_token_id: number | number[];
+  eos_token_id: number | number[] | null;
 
   // Architecture (required)
-  architecture: ArchitectureSchema;
+  architecture: ArchitectureSchema | string;
 
   // Inference configuration (required, populated by converter)
   inference: ManifestInferenceSchema;

@@ -113,7 +113,7 @@ export interface RDRRManifest {
   quantization: string;
   quantizationInfo?: QuantizationInfo;
   hashAlgorithm: HashAlgorithm;
-  eos_token_id: number | number[];
+  eos_token_id: number | number[] | null;
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
   shards: ShardInfo[];
