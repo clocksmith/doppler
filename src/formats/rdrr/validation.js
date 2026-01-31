@@ -188,10 +188,10 @@ export function validateManifest(manifest) {
   if (!isDiffusion) {
     const tensorConfigResult = validateTensorConfigConsistency(manifest);
     for (const err of tensorConfigResult.errors) {
-      errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` → ${err.suggestion}` : ''}`);
+      errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` -> ${err.suggestion}` : ''}`);
     }
     for (const warn of tensorConfigResult.warnings) {
-      warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` → ${warn.suggestion}` : ''}`);
+      warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` -> ${warn.suggestion}` : ''}`);
     }
   }
 

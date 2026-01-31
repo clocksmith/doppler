@@ -420,7 +420,7 @@ export function isActiveKernelPathDequant() {
 // =============================================================================
 
 export function formatKernelPath(path) {
-  const decodeOps = path.decode.steps.map(s => s.op).join(' → ');
+  const decodeOps = path.decode.steps.map(s => s.op).join(' -> ');
   return `${path.id}: ${decodeOps}`;
 }
 

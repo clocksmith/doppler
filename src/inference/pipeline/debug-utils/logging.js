@@ -45,7 +45,7 @@ export function logLayer(layerIdx, phase, isPrefill, info) {
   // Warn on explosion
   const maxAbsThreshold = getMaxAbsThreshold();
   if (info.maxAbs !== undefined && info.maxAbs > maxAbsThreshold) {
-    msg += ` ☡ EXPLOSION`;
+    msg += ` △ EXPLOSION`;
   }
 
   log.debug('Debug', msg);

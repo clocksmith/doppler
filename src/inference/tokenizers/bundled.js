@@ -569,7 +569,7 @@ export class BundledTokenizer extends BaseTokenizer {
     if (text.length === 0) return [];
 
     // Add space prefix at start if configured (SentencePiece add_dummy_prefix)
-    // This matches HuggingFace behavior: "The" → " The" → "▁The"
+    // This matches HuggingFace behavior: "The" -> " The" -> "▁The"
     let normalized = text;
     if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
       normalized = ` ${normalized}`;

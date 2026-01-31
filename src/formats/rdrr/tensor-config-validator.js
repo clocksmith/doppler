@@ -133,7 +133,7 @@ export function formatValidationResult(result) {
     for (const err of result.errors) {
       lines.push(`  [${err.code}] ${err.message}`);
       if (err.suggestion) {
-        lines.push(`    → ${err.suggestion}`);
+        lines.push(`    -> ${err.suggestion}`);
       }
     }
   }
@@ -143,7 +143,7 @@ export function formatValidationResult(result) {
     for (const warn of result.warnings) {
       lines.push(`  [${warn.code}] ${warn.message}`);
       if (warn.suggestion) {
-        lines.push(`    → ${warn.suggestion}`);
+        lines.push(`    -> ${warn.suggestion}`);
       }
     }
   }

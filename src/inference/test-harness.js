@@ -78,7 +78,7 @@ export function parseRuntimeOverridesFromURL(searchParams) {
       const parsed = JSON.parse(configChainRaw);
       if (Array.isArray(parsed)) {
         runtime.configChain = parsed;
-        debugLog.info('TestHarness', `Config chain: ${parsed.join(' → ')}`);
+        debugLog.info('TestHarness', `Config chain: ${parsed.join(' -> ')}`);
       }
     } catch (e) {
       debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${ (e).message}`);

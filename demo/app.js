@@ -446,7 +446,7 @@ function renderModelList(models) {
     const detail = document.createElement('span');
     detail.className = 'type-caption muted';
     const sizeLabel = Number.isFinite(model.totalSize) ? formatBytes(model.totalSize) : 'Size: --';
-    const backendLabel = model.backend ? ` • ${model.backend}` : '';
+    const backendLabel = model.backend ? ` - ${model.backend}` : '';
     detail.textContent = `${sizeLabel}${backendLabel}`;
     item.appendChild(header);
     item.appendChild(detail);
@@ -458,10 +458,10 @@ function renderModelList(models) {
 }
 
 function updateSidebarLayout(models) {
-  const sidebar = $('sidebar');
-  if (!sidebar) return;
+  const panelGrid = $('panel-grid');
+  if (!panelGrid) return;
   const hasModels = Array.isArray(models) && models.length > 0;
-  sidebar.dataset.layout = hasModels ? 'ready' : 'empty';
+  panelGrid.dataset.layout = hasModels ? 'ready' : 'empty';
   if (!hasModels && state.uiMode !== 'models') {
     setUiMode('models');
   }
@@ -655,7 +655,7 @@ function updatePerformancePanel(snapshot) {
       const ttftLabel = ttftMs != null ? `TTFT ${Math.round(ttftMs)}ms` : 'TTFT --';
       const tokenLabel = prefillTokens != null ? `${prefillTokens} tok` : '--';
       const rateLabel = prefillRate != null ? `${prefillRate.toFixed(2)} tok/s` : '--';
-      setText(prefillEl, `${ttftLabel} • ${tokenLabel} @ ${rateLabel}`);
+      setText(prefillEl, `${ttftLabel} - ${tokenLabel} @ ${rateLabel}`);
     }
   }
 
@@ -667,7 +667,7 @@ function updatePerformancePanel(snapshot) {
       const rateLabel = (decodeTokens != null && decodeTime && decodeTime > 0)
         ? `${(decodeTokens / (decodeTime / 1000)).toFixed(2)} tok/s`
         : '--';
-      setText(decodeEl, `${tokenLabel} • ${rateLabel}`);
+      setText(decodeEl, `${tokenLabel} - ${rateLabel}`);
     }
   }
 }
@@ -1358,7 +1358,7 @@ function updateDownloadStatus(progress) {
   const eta = speed > 0 ? estimateTimeRemaining(remaining, speed) : 'Calculating...';
   const detail = `${formatBytes(progress.downloadedBytes || 0)} / ${formatBytes(progress.totalBytes || 0)}`;
   const speedLabel = speed > 0 ? formatSpeed(speed) : '--';
-  setText(label, `${progress.status || 'downloading'} • ${percent.toFixed(1)}% • ${detail} • ${speedLabel} • ETA ${eta}`);
+  setText(label, `${progress.status || 'downloading'} - ${percent.toFixed(1)}% - ${detail} - ${speedLabel} - ETA ${eta}`);
 }
 
 function renderDownloadList(downloads) {
@@ -1378,7 +1378,7 @@ function renderDownloadList(downloads) {
     name.textContent = entry.modelId || 'unknown';
     const stats = document.createElement('span');
     const percent = Number.isFinite(entry.percent) ? entry.percent : 0;
-    stats.textContent = `${percent.toFixed(1)}% • ${entry.status || 'idle'}`;
+    stats.textContent = `${percent.toFixed(1)}% - ${entry.status || 'idle'}`;
     row.appendChild(name);
     row.appendChild(stats);
     container.appendChild(row);
@@ -1463,7 +1463,7 @@ function updateRuntimeConfigStatus(presetId) {
       labels.push(state.runtimeSamplingLabel);
     }
     const overrideLabel = labels.length ? labels.join(' + ') : 'custom';
-    status.textContent = `Preset: ${presetLabel} • Override: ${overrideLabel}`;
+    status.textContent = `Preset: ${presetLabel} - Override: ${overrideLabel}`;
     return;
   }
   status.textContent = `Preset: ${presetLabel}`;

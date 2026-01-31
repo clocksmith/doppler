@@ -236,9 +236,9 @@ export async function runBF16ToF32(
 
   if (outputSize > maxBufferSize) {
     throw new Error(
-      `BF16→F32 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}). ` +
+      `BF16->F32 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}). ` +
       `This often happens for large-vocab models when converting embeddings/LM head. ` +
-      `Enable F16 and use BF16→F16 weights, or run on a device with a higher maxBufferSize.`
+      `Enable F16 and use BF16->F16 weights, or run on a device with a higher maxBufferSize.`
     );
   }
 
@@ -310,12 +310,12 @@ export async function runBF16ToF16(
 
   if (outputSize > maxBufferSize) {
     throw new Error(
-      `BF16→F16 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}).`
+      `BF16->F16 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}).`
     );
   }
   if (outputSize > maxBindingSize) {
     throw new Error(
-      `BF16→F16 output (${outputSize} bytes) exceeds device maxStorageBufferBindingSize (${maxBindingSize}).`
+      `BF16->F16 output (${outputSize} bytes) exceeds device maxStorageBufferBindingSize (${maxBindingSize}).`
     );
   }
 
@@ -376,7 +376,7 @@ async function runBF16ToF32Chunked(
   let maxElementsPerChunk = Math.floor(maxBindingSize / DTYPE_SIZES.f32); // F32 output bytes
   maxElementsPerChunk -= maxElementsPerChunk % elemAlign;
   if (maxElementsPerChunk <= 0) {
-    throw new Error(`BF16→F32 chunk size underflow (maxBindingSize=${maxBindingSize}, alignment=${alignmentBytes})`);
+    throw new Error(`BF16->F32 chunk size underflow (maxBindingSize=${maxBindingSize}, alignment=${alignmentBytes})`);
   }
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
 

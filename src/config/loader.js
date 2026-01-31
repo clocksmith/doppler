@@ -103,7 +103,7 @@ export function detectPreset(
   const archLower = (architecture || '').toLowerCase();
   const modelType = (config.model_type || '').toLowerCase();
 
-  // Check presets in deterministic order (specific → generic)
+  // Check presets in deterministic order (specific -> generic)
   for (const id of PRESET_DETECTION_ORDER) {
     const preset = PRESET_REGISTRY[id];
     if (!preset?.detection) continue;

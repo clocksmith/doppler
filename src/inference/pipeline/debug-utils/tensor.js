@@ -78,13 +78,13 @@ export async function dumpTensor(buffer, label, options = {}) {
 
     // Warnings
     if (maxAbs > warnThreshold) {
-      msg += `\n  ☡ VALUE EXPLOSION: maxAbs=${maxAbs.toFixed(1)} > ${warnThreshold}`;
+      msg += `\n  △ VALUE EXPLOSION: maxAbs=${maxAbs.toFixed(1)} > ${warnThreshold}`;
     }
     if (nanCount > 0 || infCount > 0) {
-      msg += `\n  ☡ NUMERICAL INSTABILITY: ${nanCount} NaN, ${infCount} Inf`;
+      msg += `\n  △ NUMERICAL INSTABILITY: ${nanCount} NaN, ${infCount} Inf`;
     }
     if (nonZero === 0 && arr.length > 0) {
-      msg += `\n  ☡ ALL ZEROS`;
+      msg += `\n  △ ALL ZEROS`;
     }
 
     log.debug('Debug', msg);
@@ -177,13 +177,13 @@ export async function dumpTokenVector(buffer, label, options) {
     msg += `\n  sample=[${sample.map(v => v.toFixed(4)).join(', ')}]`;
 
     if (maxAbs > warnThreshold) {
-      msg += `\n  ☡ VALUE EXPLOSION: maxAbs=${maxAbs.toFixed(1)} > ${warnThreshold}`;
+      msg += `\n  △ VALUE EXPLOSION: maxAbs=${maxAbs.toFixed(1)} > ${warnThreshold}`;
     }
     if (nanCount > 0 || infCount > 0) {
-      msg += `\n  ☡ NUMERICAL INSTABILITY: ${nanCount} NaN, ${infCount} Inf`;
+      msg += `\n  △ NUMERICAL INSTABILITY: ${nanCount} NaN, ${infCount} Inf`;
     }
     if (nonZero === 0 && row.length > 0) {
-      msg += `\n  ☡ ALL ZEROS`;
+      msg += `\n  △ ALL ZEROS`;
     }
 
     log.debug('Debug', msg);

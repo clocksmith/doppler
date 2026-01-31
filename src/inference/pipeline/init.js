@@ -603,9 +603,9 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
     });
 
     // Copy Q, K, V weights into fused buffer
-    // Q: [qSize, hiddenSize] → offset 0
-    // K: [kSize, hiddenSize] → offset qSize * hiddenSize * bytesPerElement
-    // V: [vSize, hiddenSize] → offset (qSize + kSize) * hiddenSize * bytesPerElement
+    // Q: [qSize, hiddenSize] -> offset 0
+    // K: [kSize, hiddenSize] -> offset qSize * hiddenSize * bytesPerElement
+    // V: [vSize, hiddenSize] -> offset (qSize + kSize) * hiddenSize * bytesPerElement
     const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
     encoder.copyBufferToBuffer(
       weights.qProj, 0,

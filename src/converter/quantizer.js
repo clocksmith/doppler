@@ -291,7 +291,7 @@ export function transposeF32(data, shape) {
 export function quantizeToQ4KMColumnWise(data, shape) {
   const [rows, cols] = shape;
 
-  // Transpose: W[out, K] → W^T[K, out]
+  // Transpose: W[out, K] -> W^T[K, out]
   const transposed = transposeF32(data, shape);
   const transposedShape = [cols, rows];
 

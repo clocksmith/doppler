@@ -379,7 +379,7 @@ export class DopplerLoader {
       const speed = elapsed > 0 ? bytesLoaded / elapsed : 0;
       const speedStr = speed > 0 ? `${formatBytes(speed)}/s` : '';
       const message = detail ||
-        `${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} ${speedStr ? `• ${speedStr}` : ''}`;
+        `${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} ${speedStr ? `- ${speedStr}` : ''}`;
       onProgress({
         stage,
         progress: baseProgress,

@@ -222,11 +222,11 @@ export async function loadBF16(shardData, location, name, config) {
   const caps = config.gpuCapabilities || getKernelCapabilities();
   const isMatmulWeight = shouldDequantizeToF16(location);
 
-  // For matmul weights with F16 support: BF16 → F16 directly
+  // For matmul weights with F16 support: BF16 -> F16 directly
   if (caps?.hasF16 && isMatmulWeight) {
     const f16Tensor = await runBF16ToF16(srcBuffer, [numElements], name);
     releaseBuffer(srcBuffer);
-    debugTrace.loader(`BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
+    debugTrace.loader(`BF16->F16 for matmul weight: ${name} (${numElements} elements)`);
 
     
     const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
@@ -239,7 +239,7 @@ export async function loadBF16(shardData, location, name, config) {
     };
   }
 
-  // Standard path: BF16 → F32
+  // Standard path: BF16 -> F32
   const dstBuffer = await convertBF16ToF32GPU(srcBuffer, numElements, name);
   releaseBuffer(srcBuffer);
 
@@ -304,10 +304,10 @@ export async function loadFloat(shardData, location, name, config) {
     }
     const numElements = location.shape.reduce((a, b) => a * b, 1);
     logF32UpcastNonMatmul(name, numElements, buffer.size);
-    debugTrace.loader(`F16→F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
+    debugTrace.loader(`F16->F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
     const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);
     const f32Tensor = await castF16ToF32(inputTensor);
-    debugTrace.loader(`F16→F32 complete: ${name} resultSize=${f32Tensor.buffer.size}`);
+    debugTrace.loader(`F16->F32 complete: ${name} resultSize=${f32Tensor.buffer.size}`);
     releaseBuffer(buffer);
     return {
       data: applyBufferLayout(f32Tensor.buffer, location),

@@ -6,25 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOPPLER - Browser LLM</title>
   <link rel="icon" type="image/svg+xml" href="/src/favicon.svg">
-  <link rel="manifest" href="../manifest.json">
+  <link rel="manifest" href="/doppler/manifest.json">
   <link rel="stylesheet" href="/styles/rd.css">
   <style>
-    /* App Layout - Positioning Only */
-    :root {
-      --space-xs: 4px;
-      --space-xl: 32px;
-    }
-
     /* App Shell */
     #app {
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
+    }
+
+    .page-shell {
+      width: 100%;
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: var(--space-lg) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
     }
 
     .header {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       gap: var(--space-md);
     }
 
@@ -32,6 +37,13 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-xs);
+      min-width: 0;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-md);
     }
 
     .header-actions {
@@ -41,19 +53,22 @@
       gap: var(--space-md);
     }
 
+    .intro-tagline {
+      display: block;
+      margin-top: var(--space-xs);
+    }
+
     .main-layout {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(260px, 1fr));
-      grid-template-rows: minmax(240px, 0.6fr) minmax(320px, 1fr);
-      gap: var(--space-md);
+      display: flex;
+      flex-direction: column;
       flex: 1;
       min-height: 0;
       overflow-y: auto;
-      padding: var(--space-md);
+      margin-top: var(--space-md);
     }
 
     /* Sidebar */
-    .sidebar {
+    .panel-grid {
       grid-column: 1 / -1;
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -62,6 +77,15 @@
       min-height: 0;
       overflow: auto;
       align-content: start;
+    }
+
+    .panel-grid .panel {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+
+    #app[data-mode="run"] .live-panel {
+      grid-column: 1 / span 6;
     }
 
     .panel {
@@ -83,12 +107,12 @@
     }
 
     #app[data-mode="run"] .live-panel {
-      grid-column: 5 / span 5;
+      grid-column: 5 / span 4;
       grid-row: 1 / span 1;
     }
 
-    #app[data-mode="run"] .sampling-panel {
-      grid-column: 10 / span 3;
+    #app[data-mode="run"] .chat-container {
+      grid-column: 9 / span 4;
       grid-row: 1 / span 1;
     }
 
@@ -137,6 +161,13 @@
       grid-row: 2 / span 1;
     }
 
+    #app[data-mode="run"] [data-modes]:not([data-modes~="run"]),
+    #app[data-mode="models"] [data-modes]:not([data-modes~="models"]),
+    #app[data-mode="diagnostics"] [data-modes]:not([data-modes~="diagnostics"]),
+    #app[data-mode="diffusion"] [data-modes]:not([data-modes~="diffusion"]) {
+      display: none;
+    }
+
     .diffusion-output {
       display: flex;
       flex-direction: column;
@@ -147,14 +178,24 @@
     .diffusion-canvas {
       width: 100%;
       height: auto;
-      border: 1px solid var(--line);
-      background: #0e0e0e;
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
     }
 
     .mode-tabs {
       display: flex;
       align-items: center;
       gap: var(--space-xs);
+    }
+
+    .mode-tab {
+      border-style: dotted;
+      opacity: var(--opacity-secondary);
+    }
+
+    .mode-tab.is-active {
+      border-style: solid;
+      opacity: 1;
     }
 
     .mode-tab.is-active {
@@ -206,8 +247,10 @@
     }
 
     .storage-info {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: var(--space-sm);
       margin-top: var(--space-sm);
     }
 
@@ -219,8 +262,14 @@
     }
 
     .gpu-row {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .gpu-row span:last-child {
+      text-align: right;
     }
 
     .memory-bars {
@@ -245,7 +294,7 @@
     }
 
     .memory-value {
-      width: 60px;
+      width: 96px;
       text-align: right;
     }
 
@@ -262,34 +311,28 @@
       gap: var(--space-sm);
     }
 
-    /* Sampling */
-    .sampling-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-sm);
-      margin-bottom: var(--space-sm);
-    }
-
-    .sampling-row label {
-      flex: 1;
-    }
-
-    .sampling-input {
-      width: 80px;
-    }
-
     /* Stats */
     .stats-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-sm);
+      grid-template-columns: 1fr;
+      gap: var(--space-xs);
     }
 
     .stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .stat-label {
+      justify-self: start;
+    }
+
+    .stat-value {
+      justify-self: end;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .run-log {
@@ -306,6 +349,14 @@
       font-size: 12px;
     }
 
+    .run-log-row > span {
+      text-align: left;
+    }
+
+    .run-log-row > span:last-child {
+      text-align: right;
+    }
+
     .run-log-header {
       font-weight: 600;
       text-transform: uppercase;
@@ -320,6 +371,10 @@
       position: relative;
       overflow: hidden;
       min-height: 0;
+    }
+
+    #app:not([data-mode="run"]) .chat-container {
+      display: none;
     }
 
     .chat-messages {
@@ -414,8 +469,10 @@
     }
 
     .quickstart-info .info-row {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: var(--space-sm);
     }
 
     .quickstart-note {
@@ -553,8 +610,9 @@
     }
 
     .download-row {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
       gap: var(--space-sm);
     }
 
@@ -587,11 +645,6 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .main-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(280px, 1fr);
-      }
-
       .header {
         flex-direction: column;
         align-items: flex-start;
@@ -606,12 +659,12 @@
         flex-wrap: wrap;
       }
 
-      .sidebar {
+      .panel-grid {
         grid-template-columns: 1fr;
         grid-auto-rows: auto;
       }
 
-      .sidebar .panel {
+      .panel-grid .panel {
         grid-column: auto;
         grid-row: auto;
       }
@@ -620,31 +673,34 @@
 </head>
 
 <body>
-  <div id="app">
-    <!-- Header -->
-    <header class="header app-header">
-      <div class="brand-block">
-        <h1 class="type-display">DOPPLER</h1>
-        <span class="type-caption muted">LLM Inference entirely local in browser with only JavaScript and WGSL</span>
-      </div>
-      <div class="header-actions">
-        <div class="mode-tabs" id="mode-tabs">
-          <button class="btn mode-tab" data-mode="run" type="button">Run</button>
-          <button class="btn mode-tab" data-mode="models" type="button">Models</button>
-          <button class="btn mode-tab" data-mode="diffusion" type="button">Diffusion</button>
-          <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
+  <div id="app" data-mode="run">
+    <div class="page-shell">
+      <!-- Header -->
+      <header class="header app-header">
+        <div class="brand-block">
+        <div class="brand-row">
+          <h1 class="type-display">DOPPLER</h1>
         </div>
-        <div id="status-indicator" class="status-indicator">
-          <span class="status-dot"></span>
-          <span class="status-text type-caption">Initializing...</span>
+          <a class="intro-tagline link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">local WebGPU inference in the browser -> view source code</a>
         </div>
-      </div>
-    </header>
+        <div class="header-actions">
+          <div class="mode-tabs" id="mode-tabs">
+            <button class="btn mode-tab" data-mode="run" type="button">Chat</button>
+            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
+            <button class="btn mode-tab" data-mode="diffusion" type="button">Diffusion</button>
+            <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
+          </div>
+          <div id="status-indicator" class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text type-caption">Initializing...</span>
+          </div>
+        </div>
+      </header>
 
-    <!-- Main Layout -->
-    <main class="main-layout">
-      <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar" data-layout="empty">
+      <!-- Main Layout -->
+      <main class="main-layout">
+        <!-- Sidebar -->
+        <aside class="panel-grid" id="panel-grid" data-layout="empty">
         <section class="panel model-panel" data-modes="run models diagnostics">
           <h2 class="type-label">Active Model</h2>
           <div class="model-field">
@@ -689,6 +745,21 @@
             </div>
             <div class="gpu-note" id="gpu-unified-note" hidden>
               Unified memory: GPU shares system RAM
+            </div>
+          </div>
+          <div class="panel-subsection" data-modes="run">
+            <span class="type-caption muted">Runtime Params</span>
+            <div class="model-field">
+              <label class="type-caption muted" for="temperature-input">Temperature</label>
+              <input id="temperature-input" class="w-full" type="number" min="0.1" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="model-field">
+              <label class="type-caption muted" for="top-p-input">Top-p</label>
+              <input id="top-p-input" class="w-full" type="number" min="0" max="1" step="0.05" value="0.95">
+            </div>
+            <div class="model-field">
+              <label class="type-caption muted" for="top-k-input">Top-k</label>
+              <input id="top-k-input" class="w-full" type="number" min="0" max="200" step="1" value="40">
             </div>
           </div>
         </section>
@@ -756,23 +827,6 @@
             <span id="download-message" class="type-caption">Idle</span>
           </div>
           <div id="download-list" class="download-list type-caption muted"></div>
-        </section>
-
-        <section class="panel sampling-panel" data-modes="run">
-          <h2 class="type-label">Runtime Params</h2>
-          <div class="sampling-row">
-            <label for="temperature-input">Temperature</label>
-            <input id="temperature-input" class="sampling-input" type="number" min="0.1" max="2.0" step="0.1"
-              value="1.0">
-          </div>
-          <div class="sampling-row">
-            <label for="top-p-input">Top-p</label>
-            <input id="top-p-input" class="sampling-input" type="number" min="0" max="1" step="0.05" value="0.95">
-          </div>
-          <div class="sampling-row">
-            <label for="top-k-input">Top-k</label>
-            <input id="top-k-input" class="sampling-input" type="number" min="0" max="200" step="1" value="40">
-          </div>
         </section>
 
         <section class="panel live-panel" data-modes="run diagnostics diffusion">
@@ -890,6 +944,135 @@
           </div>
         </section>
 
+        <!-- Chat Area -->
+        <section class="panel chat-container" id="chat-container">
+          <!-- Progress Overlay -->
+          <div class="progress-overlay" id="progress-overlay" hidden>
+            <div class="progress-content">
+              <div class="progress-title" id="progress-title">Loading Model</div>
+              <div class="progress-phases" id="progress-phases">
+                <!-- Source Phase (dynamically labeled: Network/Disk/Cache) -->
+                <div class="progress-phase-row" data-phase="source">
+                  <span class="progress-phase-label">Source</span>
+                  <div class="progress">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <span class="progress-phase-value">--</span>
+                </div>
+                <!-- GPU Phase -->
+                <div class="progress-phase-row" data-phase="gpu">
+                  <span class="progress-phase-label">GPU</span>
+                  <div class="progress">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <span class="progress-phase-value">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick-Start Overlay -->
+          <div class="quickstart-overlay" id="quickstart-overlay" hidden>
+            <div class="quickstart-content">
+              <!-- Storage Consent Panel -->
+              <div class="quickstart-panel" id="quickstart-consent" hidden>
+                <h3 class="quickstart-title">Download Model?</h3>
+                <div class="quickstart-info">
+                  <div class="info-row">
+                    <span class="info-label">Download Size</span>
+                    <span class="info-value" id="quickstart-download-size">--</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Storage Available</span>
+                    <span class="info-value" id="quickstart-storage-available">--</span>
+                  </div>
+                </div>
+                <p class="quickstart-note">
+                  Model will be stored in your browser for offline use.
+                </p>
+                <div class="quickstart-actions">
+                  <button class="btn" id="quickstart-cancel">Cancel</button>
+                  <button class="btn btn-primary" id="quickstart-confirm">Download</button>
+                </div>
+              </div>
+
+              <!-- VRAM Blocker Panel -->
+              <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
+                <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
+                <div class="quickstart-info">
+                  <div class="info-row">
+                    <span class="info-label">Required</span>
+                    <span class="info-value" id="quickstart-vram-required">--</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Available</span>
+                    <span class="info-value" id="quickstart-vram-available">--</span>
+                  </div>
+                </div>
+                <p class="quickstart-note error">
+                  Your GPU does not have enough memory to run this model.
+                  Try a smaller model or use a device with more VRAM.
+                </p>
+                <div class="quickstart-actions">
+                  <button class="btn btn-primary" id="quickstart-blocker-close">Close</button>
+                </div>
+              </div>
+
+              <!-- Download Progress Panel -->
+              <div class="quickstart-panel" id="quickstart-progress" hidden>
+                <h3 class="quickstart-title">Downloading Model</h3>
+                <div class="progress quickstart-progress">
+                  <div class="progress-fill" id="quickstart-progress-bar"></div>
+                </div>
+                <div class="quickstart-stats">
+                  <span id="quickstart-progress-percent">0%</span>
+                  <span id="quickstart-progress-speed">-- MB/s</span>
+                  <span id="quickstart-progress-eta">--</span>
+                </div>
+                <div class="quickstart-detail" id="quickstart-progress-detail">
+                  Preparing download...
+                </div>
+              </div>
+
+              <!-- Ready Panel -->
+              <div class="quickstart-panel" id="quickstart-ready" hidden>
+                <h3 class="quickstart-title success">Model Ready!</h3>
+                <p class="quickstart-note">
+                  Model downloaded and verified. Ready to chat.
+                </p>
+                <div class="quickstart-actions">
+                  <button class="btn btn-primary" id="quickstart-run">Start Chat</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Messages -->
+          <div class="chat-messages" id="chat-messages">
+            <!-- Sample messages (hidden until model loaded, shown here for CSS coverage) -->
+            <div class="chat-message" id="sample-messages" hidden>
+              <div class="chat-message-role type-label">User</div>
+              <div class="chat-message-content">Hello, how are you?</div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+              <textarea id="chat-input" class="chat-input" placeholder="Type a message..." rows="1" disabled></textarea>
+              <button id="send-btn" class="btn btn-primary send-btn" disabled>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              </button>
+            </div>
+            <div class="chat-actions">
+              <button id="stop-btn" class="btn" hidden>Stop</button>
+              <button id="clear-btn" class="btn">Clear</button>
+            </div>
+          </div>
+        </section>
+
         <section class="panel diffusion-panel" data-modes="diffusion">
           <h2 class="type-label">Diffusion Controls</h2>
           <div class="diagnostics-field">
@@ -978,136 +1161,8 @@
         </section>
 
       </aside>
-
-      <!-- Chat Area -->
-      <section class="chat-container" id="chat-container">
-        <!-- Progress Overlay -->
-        <div class="progress-overlay" id="progress-overlay" hidden>
-          <div class="progress-content">
-            <div class="progress-title" id="progress-title">Loading Model</div>
-            <div class="progress-phases" id="progress-phases">
-              <!-- Source Phase (dynamically labeled: Network/Disk/Cache) -->
-              <div class="progress-phase-row" data-phase="source">
-                <span class="progress-phase-label">Source</span>
-                <div class="progress">
-                  <div class="progress-fill"></div>
-                </div>
-                <span class="progress-phase-value">--</span>
-              </div>
-              <!-- GPU Phase -->
-              <div class="progress-phase-row" data-phase="gpu">
-                <span class="progress-phase-label">GPU</span>
-                <div class="progress">
-                  <div class="progress-fill"></div>
-                </div>
-                <span class="progress-phase-value">--</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick-Start Overlay -->
-        <div class="quickstart-overlay" id="quickstart-overlay" hidden>
-          <div class="quickstart-content">
-            <!-- Storage Consent Panel -->
-            <div class="quickstart-panel" id="quickstart-consent" hidden>
-              <h3 class="quickstart-title">Download Model?</h3>
-              <div class="quickstart-info">
-                <div class="info-row">
-                  <span class="info-label">Download Size</span>
-                  <span class="info-value" id="quickstart-download-size">--</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Storage Available</span>
-                  <span class="info-value" id="quickstart-storage-available">--</span>
-                </div>
-              </div>
-              <p class="quickstart-note">
-                Model will be stored in your browser for offline use.
-              </p>
-              <div class="quickstart-actions">
-                <button class="btn" id="quickstart-cancel">Cancel</button>
-                <button class="btn btn-primary" id="quickstart-confirm">Download</button>
-              </div>
-            </div>
-
-            <!-- VRAM Blocker Panel -->
-            <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
-              <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
-              <div class="quickstart-info">
-                <div class="info-row">
-                  <span class="info-label">Required</span>
-                  <span class="info-value" id="quickstart-vram-required">--</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Available</span>
-                  <span class="info-value" id="quickstart-vram-available">--</span>
-                </div>
-              </div>
-              <p class="quickstart-note error">
-                Your GPU does not have enough memory to run this model.
-                Try a smaller model or use a device with more VRAM.
-              </p>
-              <div class="quickstart-actions">
-                <button class="btn btn-primary" id="quickstart-blocker-close">Close</button>
-              </div>
-            </div>
-
-            <!-- Download Progress Panel -->
-            <div class="quickstart-panel" id="quickstart-progress" hidden>
-              <h3 class="quickstart-title">Downloading Model</h3>
-              <div class="progress quickstart-progress">
-                <div class="progress-fill" id="quickstart-progress-bar"></div>
-              </div>
-              <div class="quickstart-stats">
-                <span id="quickstart-progress-percent">0%</span>
-                <span id="quickstart-progress-speed">-- MB/s</span>
-                <span id="quickstart-progress-eta">--</span>
-              </div>
-              <div class="quickstart-detail" id="quickstart-progress-detail">
-                Preparing download...
-              </div>
-            </div>
-
-            <!-- Ready Panel -->
-            <div class="quickstart-panel" id="quickstart-ready" hidden>
-              <h3 class="quickstart-title success">Model Ready!</h3>
-              <p class="quickstart-note">
-                Model downloaded and verified. Ready to chat.
-              </p>
-              <div class="quickstart-actions">
-                <button class="btn btn-primary" id="quickstart-run">Start Chat</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chat Messages -->
-        <div class="chat-messages" id="chat-messages">
-          <!-- Sample messages (hidden until model loaded, shown here for CSS coverage) -->
-          <div class="chat-message" id="sample-messages" hidden>
-            <div class="chat-message-role type-label">User</div>
-            <div class="chat-message-content">Hello, how are you?</div>
-          </div>
-        </div>
-
-        <!-- Chat Input -->
-        <div class="chat-input-container">
-          <div class="chat-input-wrapper">
-            <textarea id="chat-input" class="chat-input" placeholder="Type a message..." rows="1" disabled></textarea>
-            <button id="send-btn" class="btn btn-primary send-btn" disabled>
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            </button>
-          </div>
-          <div class="chat-actions">
-            <button id="stop-btn" class="btn" hidden>Stop</button>
-            <button id="clear-btn" class="btn">Clear</button>
-          </div>
-        </div>
-      </section>
-    </main>
+      </main>
+    </div>
 
     <!-- Error Modal -->
     <div class="modal-overlay" id="error-modal" hidden>
@@ -1120,7 +1175,7 @@
   </div>
 
   <!-- Bootstrap entry (registers VFS + loads app) -->
-  <script type="module" src="../src/bootstrap.js"></script>
+  <script type="module" src="/doppler/src/bootstrap.js"></script>
 </body>
 
 </html>
