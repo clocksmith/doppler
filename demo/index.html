@@ -786,6 +786,14 @@
             <label class="type-caption muted" for="convert-model-preset">Model preset override (optional)</label>
             <select id="convert-model-preset" class="w-full"></select>
           </div>
+          <div class="convert-field">
+            <label class="type-caption muted" for="convert-weight-dtype">Weight dtype override (optional)</label>
+            <select id="convert-weight-dtype" class="w-full">
+              <option value="">auto</option>
+              <option value="f16">f16</option>
+              <option value="bf16">bf16</option>
+            </select>
+          </div>
           <div class="convert-actions">
             <button id="convert-btn" class="btn btn-primary w-full">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

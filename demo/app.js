@@ -1241,10 +1241,15 @@ function populateRuntimeConfigPresets() {
 function buildConverterConfig() {
   const presetSelect = $('convert-model-preset');
   const presetId = presetSelect?.value?.trim() || null;
+  const weightSelect = $('convert-weight-dtype');
+  const weightOverride = weightSelect?.value?.trim().toLowerCase() || null;
 
   const config = createConverterConfig();
   if (presetId) {
     config.presets.model = presetId;
+  }
+  if (weightOverride) {
+    config.quantization.weights = weightOverride;
   }
   return config;
 }

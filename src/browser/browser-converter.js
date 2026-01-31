@@ -560,7 +560,8 @@ export async function convertModel(files, options = {}) {
       tensorNames = modelInfo.tensors.map((tensor) => tensor.name);
     }
     const tensors = modelInfo.tensors;
-    const sourceQuantization = modelInfo.quantization || inferQuantizationFromTensors(tensors);
+    const weightOverride = resolvedConverterConfig.quantization?.weights ?? null;
+    const sourceQuantization = weightOverride || modelInfo.quantization || inferQuantizationFromTensors(tensors);
     if (!sourceQuantization) {
       throw new Error('Missing quantization for model conversion');
     }
