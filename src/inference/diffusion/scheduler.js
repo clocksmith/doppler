@@ -1,7 +1,10 @@
 export function buildScheduler(config, stepsOverride = null) {
+  if (!config) {
+    throw new Error('Scheduler config is required');
+  }
   const stepCount = Number.isFinite(stepsOverride) && stepsOverride > 0
     ? Math.floor(stepsOverride)
-    : Math.floor(config?.numSteps ?? 1);
+    : Math.floor(config.numSteps);
   const steps = Math.max(1, stepCount);
   const sigmas = new Float32Array(steps);
   if (steps === 1) {
@@ -12,7 +15,7 @@ export function buildScheduler(config, stepsOverride = null) {
     }
   }
   return {
-    type: config?.type ?? 'ddim',
+    type: config.type,
     steps,
     sigmas,
   };

@@ -17,6 +17,7 @@ import type { Manifest } from './pipeline/config.js';
 import type { WeightLoadResult, PipelineContexts } from './pipeline/init.js';
 import type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
+import type { DiffusionPipeline } from './diffusion/pipeline.js';
 import { getBufferPool as getGlobalBufferPool } from '../memory/buffer-pool.js';
 import type { EmulationStats } from '../config/schema/index.js';
 
@@ -103,6 +104,9 @@ export declare class InferencePipeline extends PipelineState {
 // Factory Function
 // ============================================================================
 
-export declare function createPipeline(manifest: Manifest, contexts?: PipelineContexts): Promise<InferencePipeline>;
+export declare function createPipeline(
+  manifest: Manifest,
+  contexts?: PipelineContexts
+): Promise<InferencePipeline | DiffusionPipeline>;
 
 export { InferencePipeline as Pipeline };

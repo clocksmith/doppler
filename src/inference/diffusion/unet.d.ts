@@ -10,5 +10,5 @@ export declare function runUnetStep(
   latents: Float32Array,
   scheduler: DiffusionScheduler,
   stepIndex: number,
-  guidanceScale?: number
+  guidanceScale: number
 ): Float32Array;

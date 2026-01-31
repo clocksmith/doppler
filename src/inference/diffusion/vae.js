@@ -3,12 +3,30 @@ function clamp(value, min, max) {
 }
 
 export function decodeLatents(latents, options) {
-  const width = options?.width ?? 512;
-  const height = options?.height ?? 512;
-  const latentWidth = options?.latentWidth ?? Math.max(1, Math.floor(width / 8));
-  const latentHeight = options?.latentHeight ?? Math.max(1, Math.floor(height / 8));
-  const channels = options?.latentChannels ?? 4;
-  const scale = options?.latentScale ?? 8;
+  if (!options) {
+    throw new Error('decodeLatents requires options');
+  }
+  const width = options.width;
+  const height = options.height;
+  const scale = options.latentScale;
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    throw new Error('decodeLatents requires width/height');
+  }
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new Error('decodeLatents requires latentScale');
+  }
+  const latentWidth = Number.isFinite(options.latentWidth)
+    ? options.latentWidth
+    : Math.max(1, Math.floor(width / scale));
+  const latentHeight = Number.isFinite(options.latentHeight)
+    ? options.latentHeight
+    : Math.max(1, Math.floor(height / scale));
+  const channels = Number.isFinite(options.latentChannels)
+    ? options.latentChannels
+    : 0;
+  if (!Number.isFinite(channels) || channels <= 0) {
+    throw new Error('decodeLatents requires latentChannels');
+  }
   const output = new Uint8ClampedArray(width * height * 4);
 
   for (let y = 0; y < height; y++) {

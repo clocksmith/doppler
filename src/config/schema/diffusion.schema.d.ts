@@ -24,6 +24,7 @@ export interface DiffusionSchedulerConfigSchema {
 export interface DiffusionLatentConfigSchema {
   width: number;
   height: number;
+  scale: number;
   channels: number;
   dtype: DiffusionDtype;
 }

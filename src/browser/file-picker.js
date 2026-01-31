@@ -5,6 +5,7 @@
 // ============================================================================
 
 const MODEL_FILE_EXTENSIONS = ['.gguf', '.safetensors', '.bin', '.json', '.txt', '.model'];
+const MODEL_DIRECTORY_MAX_DEPTH = 4;
 const MODEL_FILE_TYPES = [
   {
     description: 'Model Files (GGUF, SafeTensors)',
@@ -119,7 +120,7 @@ async function pickDirectoryWithFileSystemAccess() {
 async function collectModelFilesFromDirectory(
   dirHandle,
   basePath = '',
-  maxDepth = 2
+  maxDepth = MODEL_DIRECTORY_MAX_DEPTH
 ) {
   const files = [];
 

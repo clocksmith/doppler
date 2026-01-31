@@ -27,7 +27,7 @@ export function mergeDiffusionConfig(baseConfig, overrideConfig) {
   };
 }
 
-function resolveLatentScale(modelConfig) {
+function resolveLatentScale(modelConfig, runtimeConfig) {
   const transformerSize = modelConfig?.components?.transformer?.config?.sample_size;
   const vaeSize = modelConfig?.components?.vae?.config?.sample_size;
   if (Number.isFinite(transformerSize) && Number.isFinite(vaeSize) && transformerSize > 0) {
@@ -36,7 +36,9 @@ function resolveLatentScale(modelConfig) {
       return ratio;
     }
   }
-  return 8;
+  const runtimeScale = runtimeConfig?.latent?.scale;
+  if (Number.isFinite(runtimeScale) && runtimeScale > 0) return runtimeScale;
+  return DEFAULT_DIFFUSION_CONFIG.latent.scale;
 }
 
 function resolveLatentChannels(modelConfig, runtimeConfig) {
@@ -54,7 +56,7 @@ export function initializeDiffusion(manifest, runtimeConfig) {
   }
 
   const runtime = mergeDiffusionConfig(runtimeConfig?.inference?.diffusion, null);
-  const latentScale = resolveLatentScale(modelConfig);
+  const latentScale = resolveLatentScale(modelConfig, runtime);
   const latentChannels = resolveLatentChannels(modelConfig, runtime);
 
   return {

@@ -30,6 +30,7 @@ export interface DiffusionSchedulerConfig {
 export interface DiffusionLatentConfig {
   width: number;
   height: number;
+  scale: number;
   channels: number;
   dtype: string;
 }

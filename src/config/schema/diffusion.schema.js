@@ -8,6 +8,7 @@ export const DEFAULT_DIFFUSION_SCHEDULER_CONFIG = {
 export const DEFAULT_DIFFUSION_LATENT_CONFIG = {
   width: 512,
   height: 512,
+  scale: 8,
   channels: 4,
   dtype: 'f16',
 };

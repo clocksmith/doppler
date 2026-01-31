@@ -4,6 +4,8 @@
  * @module inference/diffusion/scheduler
  */
 
+import type { DiffusionSchedulerConfig } from './types.js';
+
 export interface DiffusionScheduler {
   type: string;
   steps: number;
@@ -11,6 +13,6 @@ export interface DiffusionScheduler {
 }
 
 export declare function buildScheduler(
-  config: { type?: string; numSteps?: number } | null | undefined,
+  config: DiffusionSchedulerConfig,
   stepsOverride?: number | null
 ): DiffusionScheduler;
