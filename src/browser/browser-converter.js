@@ -108,12 +108,17 @@ export async function createRemoteModelSources(urls, options = {}) {
 // ============================================================================
 
 
+function normalizeWeightDtype(dtype) {
+  const upper = String(dtype || '').toUpperCase();
+  return upper === 'BF16' ? 'F16' : upper;
+}
+
 function inferQuantizationFromTensors(tensors) {
   const weightDtypes = new Set();
   for (const tensor of tensors) {
     if (!tensor?.name || typeof tensor.dtype !== 'string') continue;
     if (!tensor.name.includes('.weight')) continue;
-    weightDtypes.add(tensor.dtype.toUpperCase());
+    weightDtypes.add(normalizeWeightDtype(tensor.dtype));
   }
   if (weightDtypes.size === 0) return null;
   if (weightDtypes.size > 1) {
