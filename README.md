@@ -2,7 +2,7 @@
 
 **D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid ([Reploid](https://github.com/clocksmith/reploid))
 
-Browser-native WebGPU inference and post-training engine for local model execution.
+Browser-native WebGPU inference, diffusion sampling, and post-training engine for local model execution.
 Doppler is the engine, tuned and swapped as Reploid drives a recursive self-improvement loop when linked.
 
 **[Try it live](https://replo.id/d)**
