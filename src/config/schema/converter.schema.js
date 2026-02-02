@@ -37,7 +37,7 @@ export const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG = {
 };
 
 export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
-  hashAlgorithm: 'sha256',
+  hashAlgorithm: 'blake3',
   optimizations: null,
   conversion: null,
 };

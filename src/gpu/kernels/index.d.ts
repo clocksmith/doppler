@@ -77,6 +77,14 @@ export {
   type RMSNormOptions,
 } from './rmsnorm.js';
 
+// LayerNorm
+export {
+  selectLayerNormKernel,
+  runLayerNorm,
+  recordLayerNorm,
+  type LayerNormOptions,
+} from './layernorm.js';
+
 // Softmax
 export {
   runSoftmax,
@@ -130,12 +138,26 @@ export {
   type ScaleOptions,
 } from './scale.js';
 
+// Conv2D
+export {
+  runConv2D,
+  recordConv2D,
+  type Conv2DOptions,
+} from './conv2d.js';
+
 // Gather (Embedding Lookup)
 export {
   runGather,
   recordGather,
   type GatherOptions,
 } from './gather.js';
+
+// GroupNorm
+export {
+  runGroupNorm,
+  recordGroupNorm,
+  type GroupNormOptions,
+} from './groupnorm.js';
 
 // Residual Connections
 export {
@@ -145,6 +167,13 @@ export {
   recordBiasAdd,
   type ResidualOptions,
 } from './residual.js';
+
+// Upsample2D
+export {
+  runUpsample2D,
+  recordUpsample2D,
+  type Upsample2DOptions,
+} from './upsample2d.js';
 
 // Mixture of Experts
 export {

@@ -6,13 +6,16 @@ type RuleDomain = 'kernels' | 'inference' | 'shared' | 'loader' | 'converter';
 
 type KernelRuleGroup =
   | 'attention'
+  | 'conv2d'
   | 'dequant'
   | 'fusedFfn'
   | 'fusedMatmulResidual'
   | 'fusedMatmulRmsnorm'
   | 'gather'
   | 'gelu'
+  | 'groupnorm'
   | 'kv_quantize'
+  | 'layernorm'
   | 'matmul'
   | 'moe'
   | 'residual'
@@ -22,7 +25,8 @@ type KernelRuleGroup =
   | 'scale'
   | 'silu'
   | 'splitQkv'
-  | 'softmax';
+  | 'softmax'
+  | 'upsample2d';
 
 type RuleGroup = KernelRuleGroup | string;
 

@@ -418,6 +418,7 @@ export function createManifest(
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),
     hashAlgorithm,
     eos_token_id: eosTokenId,
+    config: isDiffusion ? rawConfig : undefined,
     metadata: {
       source,
       convertedAt: new Date().toISOString(),

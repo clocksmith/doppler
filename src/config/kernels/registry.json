@@ -870,6 +870,39 @@
         }
       }
     },
+    "layernorm": {
+      "description": "Layer normalization kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "bias", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "hidden_size", "type": "u32", "offset": 0 },
+          { "name": "num_tokens", "type": "u32", "offset": 4 },
+          { "name": "eps", "type": "f32", "offset": 8 },
+          { "name": "_pad", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "layernorm.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "default_f16": {
+          "wgsl": "layernorm_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    },
     "fused_matmul_rmsnorm": {
       "description": "Fused GEMV + RMSNorm for decode (M=1)",
       "baseBindings": [
@@ -2070,6 +2103,163 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []
+        }
+      }
+    },
+    "conv2d": {
+      "description": "Conv2D (NCHW)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "bias", "type": "read-only-storage" },
+        { "index": 4, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          { "name": "in_channels", "type": "u32", "offset": 0 },
+          { "name": "out_channels", "type": "u32", "offset": 4 },
+          { "name": "height", "type": "u32", "offset": 8 },
+          { "name": "width", "type": "u32", "offset": 12 },
+          { "name": "out_height", "type": "u32", "offset": 16 },
+          { "name": "out_width", "type": "u32", "offset": 20 },
+          { "name": "kernel_h", "type": "u32", "offset": 24 },
+          { "name": "kernel_w", "type": "u32", "offset": 28 },
+          { "name": "stride", "type": "u32", "offset": 32 },
+          { "name": "pad", "type": "u32", "offset": 36 },
+          { "name": "_pad0", "type": "u32", "offset": 40 },
+          { "name": "_pad1", "type": "u32", "offset": 44 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "conv2d.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "conv2d_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
+        }
+      }
+    },
+    "groupnorm_stats": {
+      "description": "GroupNorm stats (mean/var) for each group",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "stats", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "channels", "type": "u32", "offset": 0 },
+          { "name": "height", "type": "u32", "offset": 4 },
+          { "name": "width", "type": "u32", "offset": 8 },
+          { "name": "num_groups", "type": "u32", "offset": 12 },
+          { "name": "eps", "type": "f32", "offset": 16 },
+          { "name": "_pad0", "type": "u32", "offset": 20 },
+          { "name": "_pad1", "type": "u32", "offset": 24 },
+          { "name": "_pad2", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "stats": {
+          "wgsl": "groupnorm_stats.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "stats_f16": {
+          "wgsl": "groupnorm_stats_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
+        }
+      }
+    },
+    "groupnorm_apply": {
+      "description": "GroupNorm apply (NCHW)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "stats", "type": "read-only-storage" },
+        { "index": 3, "name": "weight", "type": "read-only-storage" },
+        { "index": 4, "name": "bias", "type": "read-only-storage" },
+        { "index": 5, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "channels", "type": "u32", "offset": 0 },
+          { "name": "height", "type": "u32", "offset": 4 },
+          { "name": "width", "type": "u32", "offset": 8 },
+          { "name": "num_groups", "type": "u32", "offset": 12 },
+          { "name": "eps", "type": "f32", "offset": 16 },
+          { "name": "_pad0", "type": "u32", "offset": 20 },
+          { "name": "_pad1", "type": "u32", "offset": 24 },
+          { "name": "_pad2", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "apply": {
+          "wgsl": "groupnorm_apply.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "apply_f16": {
+          "wgsl": "groupnorm_apply_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
+        }
+      }
+    },
+    "upsample2d": {
+      "description": "Upsample2D (nearest, NCHW)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "channels", "type": "u32", "offset": 0 },
+          { "name": "in_height", "type": "u32", "offset": 4 },
+          { "name": "in_width", "type": "u32", "offset": 8 },
+          { "name": "out_height", "type": "u32", "offset": 12 },
+          { "name": "out_width", "type": "u32", "offset": 16 },
+          { "name": "scale", "type": "u32", "offset": 20 },
+          { "name": "_pad0", "type": "u32", "offset": 24 },
+          { "name": "_pad1", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "upsample2d.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "upsample2d_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f16"
         }
       }
     },

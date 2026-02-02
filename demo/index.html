@@ -254,6 +254,98 @@
       margin-top: var(--space-sm);
     }
 
+    .storage-inspector {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .storage-inspector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .storage-inspector-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .storage-inspector-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .storage-entry {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+      padding: var(--space-sm);
+    }
+
+    .storage-entry.is-active {
+      border-style: solid;
+      background: var(--bg-contrast);
+    }
+
+    .storage-entry-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .storage-entry-title {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .storage-tag {
+      border: var(--border-sm) solid var(--fg);
+      padding: 1px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 10px;
+    }
+
+    .storage-tag.orphan {
+      opacity: 0.7;
+      border-style: dotted;
+    }
+
+    .storage-tag.missing {
+      opacity: 0.7;
+      border-style: dashed;
+    }
+
+    .storage-entry-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      align-items: flex-end;
+    }
+
+    .storage-system {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      margin-top: var(--space-sm);
+      border-top: var(--border-sm) dashed var(--fg);
+      padding-top: var(--space-sm);
+    }
+
+    .storage-tag.system {
+      opacity: 0.7;
+      border-style: dotted;
+    }
+
     /* GPU/Memory Info */
     .gpu-info {
       display: flex;
@@ -701,7 +793,7 @@
       <main class="main-layout">
         <!-- Sidebar -->
         <aside class="panel-grid" id="panel-grid" data-layout="empty">
-        <section class="panel model-panel" data-modes="run models diagnostics">
+        <section class="panel model-panel" data-modes="run models diagnostics diffusion">
           <h2 class="type-label">Active Model</h2>
           <div class="model-field">
             <label class="type-caption muted" for="diagnostics-model">Active model</label>
@@ -769,6 +861,25 @@
           <div class="model-field">
             <span class="type-caption muted">Local models</span>
             <div id="model-list" class="model-list"></div>
+          </div>
+        </section>
+
+        <section class="panel storage-panel" data-modes="models">
+          <h2 class="type-label">Storage Inspector</h2>
+          <div class="storage-inspector">
+            <div class="storage-inspector-header">
+              <div class="storage-inspector-meta">
+                <span class="type-caption muted" id="storage-inspector-backend">OPFS: --</span>
+                <span class="type-caption muted" id="storage-inspector-summary">--</span>
+              </div>
+              <button id="storage-inspector-refresh" class="btn btn-small" type="button">Refresh</button>
+            </div>
+            <div id="storage-inspector-status" class="type-caption muted">Idle</div>
+            <div id="storage-inspector-list" class="storage-inspector-list"></div>
+            <div id="storage-inspector-system-section" class="storage-system" hidden>
+              <span class="type-caption muted">System</span>
+              <div id="storage-inspector-system" class="storage-inspector-list"></div>
+            </div>
           </div>
         </section>
 

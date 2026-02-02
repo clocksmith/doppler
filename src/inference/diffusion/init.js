@@ -14,6 +14,15 @@ function mergeDecodeConfig(base, override) {
   };
 }
 
+function mergeBackendConfig(base, override) {
+  if (!override) return { ...base, scaffold: { ...base.scaffold } };
+  return {
+    ...base,
+    ...override,
+    scaffold: mergeSection(base.scaffold || {}, override.scaffold || {}),
+  };
+}
+
 export function mergeDiffusionConfig(baseConfig, overrideConfig) {
   const base = baseConfig || DEFAULT_DIFFUSION_CONFIG;
   const override = overrideConfig || {};
@@ -24,6 +33,7 @@ export function mergeDiffusionConfig(baseConfig, overrideConfig) {
     decode: mergeDecodeConfig(base.decode, override.decode),
     swapper: mergeSection(base.swapper, override.swapper),
     quantization: mergeSection(base.quantization, override.quantization),
+    backend: mergeBackendConfig(base.backend, override.backend),
   };
 }
 

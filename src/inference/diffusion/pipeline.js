@@ -1,5 +1,5 @@
 import { getDevice, setDevice } from '../../gpu/device.js';
-import { log, applyDebugConfig, setGPUDevice } from '../../debug/index.js';
+import { log, trace, applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { registerPipeline } from '../pipeline/registry.js';
 import { initializeDiffusion } from './init.js';
@@ -7,6 +7,8 @@ import { loadDiffusionTokenizers, encodePrompt } from './text-encoder.js';
 import { buildScheduler } from './scheduler.js';
 import { runUnetStep } from './unet.js';
 import { decodeLatents } from './vae.js';
+import { initializeDiffusionGpuScaffold, runDiffusionGpuScaffold, logDiffusionGpuScaffold } from './gpu-ops.js';
+import { createDiffusionWeightLoader } from './weights.js';
 
 function createRng(seed) {
   let state = seed >>> 0;
@@ -50,6 +52,9 @@ export class DiffusionPipeline {
   baseUrl = null;
   
   _onProgress = null;
+  gpuScaffold = null;
+  weightLoader = null;
+  vaeWeights = null;
 
   async initialize(contexts = {}) {
     if (contexts.runtimeConfig) {
@@ -84,7 +89,19 @@ export class DiffusionPipeline {
       baseUrl: this.baseUrl,
     });
     log.info('Diffusion', `Loaded diffusion model "${manifest.modelId}" with ${Object.keys(this.tokenizers || {}).length} tokenizers`);
-    log.warn('Diffusion', 'Diffusion kernels are not implemented yet; using CPU placeholder pipeline.');
+    this.weightLoader = await createDiffusionWeightLoader(manifest, {
+      baseUrl: this.baseUrl,
+      runtimeConfig: this.runtimeConfig,
+    });
+    const pipelineMode = this.diffusionState.runtime?.backend?.pipeline;
+    if (pipelineMode === 'gpu_scaffold') {
+      this.gpuScaffold = initializeDiffusionGpuScaffold(this.diffusionState.runtime);
+      logDiffusionGpuScaffold(this.gpuScaffold);
+    } else if (pipelineMode === 'gpu') {
+      log.info('Diffusion', 'GPU VAE decode enabled; diffusion transformer kernels pending.');
+    } else {
+      log.warn('Diffusion', 'Diffusion kernels are not implemented yet; using CPU placeholder pipeline.');
+    }
   }
 
   getStats() {
@@ -99,9 +116,31 @@ export class DiffusionPipeline {
   }
 
   async unload() {
+    this.vaeWeights?.release?.();
     this.tokenizers = null;
     this.manifest = null;
     this.diffusionState = null;
+    this.gpuScaffold = null;
+    this.weightLoader = null;
+    this.vaeWeights = null;
+  }
+
+  async ensureVaeWeights() {
+    if (this.vaeWeights) return;
+    if (!this.weightLoader) {
+      if (!this.manifest) throw new Error('Diffusion weight loader not initialized.');
+      this.weightLoader = await createDiffusionWeightLoader(this.manifest, {
+        baseUrl: this.baseUrl,
+        runtimeConfig: this.runtimeConfig,
+      });
+    }
+    this.vaeWeights = await this.weightLoader.loadComponentWeights('vae', {
+      filter: (name) => (
+        name.startsWith('vae.decoder.') ||
+        name.startsWith('vae.quant_conv.') ||
+        name.startsWith('vae.post_quant_conv.')
+      ),
+    });
   }
 
   async generate(request = {}) {
@@ -110,11 +149,25 @@ export class DiffusionPipeline {
     }
     const start = performance.now();
     const runtime = this.diffusionState.runtime;
-    const width = request.width ?? runtime.latent.width;
-    const height = request.height ?? runtime.latent.height;
-    const steps = request.steps ?? runtime.scheduler.numSteps;
-    const guidanceScale = request.guidanceScale ?? runtime.scheduler.guidanceScale;
+    const defaultWidth = runtime.latent.width;
+    const defaultHeight = runtime.latent.height;
+    const width = Number.isFinite(request.width) && request.width > 0
+      ? request.width
+      : defaultWidth;
+    const height = Number.isFinite(request.height) && request.height > 0
+      ? request.height
+      : defaultHeight;
+    const steps = Number.isFinite(request.steps) && request.steps > 0
+      ? request.steps
+      : runtime.scheduler.numSteps;
+    const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
+      ? request.guidanceScale
+      : runtime.scheduler.guidanceScale;
     const seed = request.seed ?? Math.floor(Math.random() * 1e9);
+
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
+    }
 
     const promptStart = performance.now();
     const encoded = encodePrompt(
@@ -137,6 +190,9 @@ export class DiffusionPipeline {
 
     const decodeStart = performance.now();
     for (let i = 0; i < scheduler.steps; i++) {
+      if (this.gpuScaffold) {
+        await runDiffusionGpuScaffold(this.gpuScaffold, { stepIndex: i });
+      }
       runUnetStep(latents, scheduler, i, guidanceScale);
       if (i % 5 === 0 || i === scheduler.steps - 1) {
         this._onProgress?.({
@@ -148,14 +204,23 @@ export class DiffusionPipeline {
     }
     const decodeEnd = performance.now();
 
-    const pixels = decodeLatents(latents, {
+    const vaeStart = performance.now();
+    const useGpuVae = this.diffusionState.runtime?.backend?.pipeline === 'gpu';
+    if (useGpuVae) {
+      await this.ensureVaeWeights();
+    }
+    const pixels = await decodeLatents(latents, {
       width,
       height,
       latentWidth,
       latentHeight,
       latentChannels,
       latentScale,
+      weights: useGpuVae ? this.vaeWeights : null,
+      modelConfig: this.diffusionState.modelConfig,
+      runtime: this.diffusionState.runtime,
     });
+    const vaeEnd = performance.now();
 
     const end = performance.now();
     this.stats = {
@@ -165,6 +230,21 @@ export class DiffusionPipeline {
       decodeTimeMs: decodeEnd - decodeStart,
       decodeTokens: scheduler.steps,
     };
+
+    log.info('Diffusion', `Prompt encode: ${(promptEnd - promptStart).toFixed(0)}ms (${encoded.totalTokens} tokens)`);
+    log.info('Diffusion', `Denoise: ${(decodeEnd - decodeStart).toFixed(0)}ms (${scheduler.steps} steps)`);
+    log.info('Diffusion', `VAE decode: ${(vaeEnd - vaeStart).toFixed(0)}ms (${width}x${height})`);
+    log.info('Diffusion', `Total: ${(end - start).toFixed(0)}ms`);
+    trace.perf('Diffusion summary', {
+      prefillMs: promptEnd - promptStart,
+      prefillTokens: encoded.totalTokens,
+      denoiseMs: decodeEnd - decodeStart,
+      steps: scheduler.steps,
+      vaeMs: vaeEnd - vaeStart,
+      totalMs: end - start,
+      width,
+      height,
+    });
 
     return { width, height, pixels };
   }

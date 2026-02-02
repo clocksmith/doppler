@@ -7,7 +7,7 @@ import { markWarmed as markKernelCacheWarmed } from '../../gpu/kernel-selection-
 import { resetSubmitStats, logSubmitStats } from '../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../gpu/command-recorder.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
-import { log } from '../../debug/index.js';
+import { log, trace } from '../../debug/index.js';
 import { validateCallTimeOptions } from '../../config/param-validator.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 
@@ -278,12 +278,22 @@ export class PipelineGenerator {
         log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.#state.stats.totalTimeMs.toFixed(0)}ms`);
       }
 
+      const ttft = this.#state.stats.ttftMs || this.#state.stats.prefillTimeMs;
+      const decodeTokens = Math.max(0, tokensGenerated - 1);
+      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
       if (opts.benchmark) {
-        const ttft = this.#state.stats.ttftMs || this.#state.stats.prefillTimeMs;
-        const decodeTokens = tokensGenerated - 1;
-        const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
         log.info('Benchmark', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+      } else {
+        log.info('Perf', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
       }
+      trace.perf('Decode summary', {
+        ttftMs: ttft,
+        prefillMs: this.#state.stats.prefillTimeMs,
+        decodeMs: this.#state.stats.decodeTimeMs,
+        decodeTokens,
+        decodeSpeed,
+        totalMs: this.#state.stats.totalTimeMs,
+      });
     } finally {
       this.#state.isGenerating = false;
     }

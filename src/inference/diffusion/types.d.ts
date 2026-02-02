@@ -41,6 +41,7 @@ export interface DiffusionTextEncoderConfig {
 
 export interface DiffusionDecodeConfig {
   outputDtype: string;
+  groupNormEps: number;
   tiling: {
     enabled: boolean;
     tileSize: number;
@@ -60,6 +61,17 @@ export interface DiffusionQuantizationConfig {
   dequantize: string;
 }
 
+export interface DiffusionBackendConfig {
+  pipeline: string;
+  scaffold: {
+    tokens: number;
+    hiddenSize: number;
+    numHeads: number;
+    seed?: number;
+    layerNormEps: number;
+  };
+}
+
 export interface DiffusionRuntimeConfig {
   scheduler: DiffusionSchedulerConfig;
   latent: DiffusionLatentConfig;
@@ -67,6 +79,7 @@ export interface DiffusionRuntimeConfig {
   decode: DiffusionDecodeConfig;
   swapper: DiffusionSwapperConfig;
   quantization: DiffusionQuantizationConfig;
+  backend: DiffusionBackendConfig;
 }
 
 export interface DiffusionTokenizerConfig {

@@ -5,6 +5,7 @@
  */
 
 import type { DiffusionRequest, DiffusionResult, DiffusionStats, DiffusionRuntimeConfig } from './types.js';
+import type { DiffusionWeightLoader, DiffusionWeightEntry } from './weights.js';
 
 export declare class DiffusionPipeline {
   runtimeConfig: { inference?: { diffusion?: DiffusionRuntimeConfig } } | null;
@@ -12,6 +13,9 @@ export declare class DiffusionPipeline {
   diffusionState: Record<string, unknown> | null;
   tokenizers: Record<string, unknown> | null;
   stats: DiffusionStats;
+  gpuScaffold: Record<string, unknown> | null;
+  weightLoader: DiffusionWeightLoader | null;
+  vaeWeights: DiffusionWeightEntry | null;
 
   initialize(contexts?: Record<string, unknown>): Promise<void>;
   loadModel(manifest: Record<string, unknown>): Promise<void>;

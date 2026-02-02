@@ -1,8 +1,5 @@
-/**
- * Diffusion VAE scaffold.
- *
- * @module inference/diffusion/vae
- */
+import type { DiffusionModelConfig, DiffusionRuntimeConfig } from './types.js';
+import type { DiffusionWeightEntry } from './weights.js';
 
 export interface DecodeLatentsOptions {
   width: number;
@@ -11,9 +8,12 @@ export interface DecodeLatentsOptions {
   latentHeight: number;
   latentChannels: number;
   latentScale: number;
+  weights?: DiffusionWeightEntry | null;
+  modelConfig?: DiffusionModelConfig | null;
+  runtime?: DiffusionRuntimeConfig | null;
 }
 
 export declare function decodeLatents(
   latents: Float32Array,
   options: DecodeLatentsOptions
-): Uint8ClampedArray;
+): Promise<Uint8ClampedArray>;

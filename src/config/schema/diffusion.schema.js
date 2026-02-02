@@ -19,6 +19,18 @@ export const DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG = {
 
 export const DEFAULT_DIFFUSION_DECODE_CONFIG = {
   outputDtype: 'f16',
+  groupNormEps: 1e-5,
+};
+
+export const DEFAULT_DIFFUSION_BACKEND_CONFIG = {
+  pipeline: 'cpu',
+  scaffold: {
+    tokens: 64,
+    hiddenSize: 128,
+    numHeads: 4,
+    seed: 1337,
+    layerNormEps: 1e-5,
+  },
 };
 
 export const DEFAULT_DIFFUSION_TILING_CONFIG = {
@@ -49,4 +61,5 @@ export const DEFAULT_DIFFUSION_CONFIG = {
   },
   swapper: DEFAULT_DIFFUSION_SWAPPER_CONFIG,
   quantization: DEFAULT_DIFFUSION_QUANTIZATION_CONFIG,
+  backend: DEFAULT_DIFFUSION_BACKEND_CONFIG,
 };

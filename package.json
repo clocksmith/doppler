@@ -1,5 +1,5 @@
 {
-  "name": "@clocksmith/doppler",
+  "name": "@doppler/core",
   "version": "0.1.0",
   "description": "WebGPU-based local inference engine for quantized LLMs",
   "main": "src/index.js",

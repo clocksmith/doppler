@@ -64,6 +64,8 @@ import { buildManifestInference } from '../converter/manifest-inference.js';
 
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+import { MB, GB } from '../config/schema/units.schema.js';
+import { log, trace } from '../debug/index.js';
 
 // Re-export types for consumers
 export {
@@ -72,6 +74,37 @@ export {
 
 export function isConversionSupported() {
   return isOPFSAvailable() || isIndexedDBAvailable();
+}
+
+const LARGE_MODEL_THRESHOLD_BYTES = 8 * GB;
+const LARGE_MODEL_CHUNK_BYTES = 128 * MB;
+const LARGE_MODEL_SHARD_BYTES = 256 * MB;
+
+function tuneConverterConfig(config, totalInputBytes, modelType) {
+  if (!config) return;
+  const isLarge = Number.isFinite(totalInputBytes) && totalInputBytes >= LARGE_MODEL_THRESHOLD_BYTES;
+  const isDiffusion = modelType === 'diffusion';
+  if (!isLarge && !isDiffusion) return;
+
+  if (config.streaming?.chunkSizeBytes) {
+    config.streaming.chunkSizeBytes = Math.max(config.streaming.chunkSizeBytes, LARGE_MODEL_CHUNK_BYTES);
+  }
+  if (config.sharding?.shardSizeBytes) {
+    config.sharding.shardSizeBytes = Math.max(config.sharding.shardSizeBytes, LARGE_MODEL_SHARD_BYTES);
+  }
+}
+
+function createStageTimer(label) {
+  const start = performance.now();
+  return {
+    stop: (extra, data) => {
+      const elapsed = performance.now() - start;
+      const suffix = extra ? ` - ${extra}` : '';
+      log.info('Convert', `${label}: ${elapsed.toFixed(0)}ms${suffix}`);
+      trace.perf(`Convert ${label}: ${elapsed.toFixed(0)}ms`, data);
+      return elapsed;
+    },
+  };
 }
 
 function resolveRemoteOptions(options) {
@@ -406,12 +439,18 @@ export async function convertModel(files, options = {}) {
   const shardInfos = [];
   const cleanupTasks = [];
   const inputFiles = Array.isArray(files) ? files : [];
+  const totalInputBytes = inputFiles.reduce((sum, file) => sum + (file?.size || 0), 0);
   const hasOnlyFiles = inputFiles.every((file) => !isTensorSource(file));
   const diffusionCandidate = hasOnlyFiles && isDiffusionInput(inputFiles);
   let diffusionInfo = null;
   let diffusionAuxFiles = null;
   let diffusionArchitecture = null;
   let diffusionEosTokenId = undefined;
+  const conversionStart = performance.now();
+  log.info(
+    'Convert',
+    `Start: ${inputFiles.length} files, ${formatBytes(totalInputBytes)}`
+  );
 
   try {
     if (!isOPFSAvailable() && !isIndexedDBAvailable()) {
@@ -437,6 +476,7 @@ export async function convertModel(files, options = {}) {
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
+    const detectTimer = createStageTimer('Detect format');
     if (diffusionCandidate) {
       diffusionInfo = await parseDiffusionModel(inputFiles, onProgress, signal);
       diffusionAuxFiles = diffusionInfo?.auxFiles ?? null;
@@ -445,6 +485,7 @@ export async function convertModel(files, options = {}) {
     }
 
     const format = diffusionInfo ? { type: 'diffusion' } : detectModelFormat(files);
+    detectTimer.stop(`type=${format.type}`);
     const auxiliary = diffusionInfo ? null : getAuxiliaryFiles(files);
     for (const file of files) {
       if (isTensorSource(file) && typeof file.cleanup === 'function') {
@@ -472,6 +513,7 @@ export async function convertModel(files, options = {}) {
     let tokenizerConfig = null;
     let tokenizerModel = null;
 
+    const parseTimer = createStageTimer('Parse tensors');
     if (format.type === 'diffusion') {
       modelInfo = {
         tensors: diffusionInfo.tensors,
@@ -520,6 +562,7 @@ export async function convertModel(files, options = {}) {
         modelInfo.tokenizerModel = tokenizerModel;
       }
     }
+    parseTimer.stop(`${modelInfo.tensors.length} tensors`);
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
@@ -565,6 +608,7 @@ export async function convertModel(files, options = {}) {
       tensorNames = modelInfo.tensors.map((tensor) => tensor.name);
     }
     const tensors = modelInfo.tensors;
+    const totalTensorBytes = tensors.reduce((sum, tensor) => sum + (tensor.size || 0), 0);
     const weightOverride = resolvedConverterConfig.quantization?.weights ?? null;
     const sourceQuantization = weightOverride || modelInfo.quantization || inferQuantizationFromTensors(tensors);
     if (!sourceQuantization) {
@@ -607,6 +651,8 @@ export async function convertModel(files, options = {}) {
     if (!modelId) {
       throw new Error('Missing modelId. Provide modelId explicitly or include a name in config files.');
     }
+
+    tuneConverterConfig(resolvedConverterConfig, totalTensorBytes, modelType);
 
     const chunkSizeBytes = resolvedConverterConfig.streaming.chunkSizeBytes;
     if (!chunkSizeBytes || chunkSizeBytes <= 0) {
@@ -760,6 +806,7 @@ export async function convertModel(files, options = {}) {
       message: 'Packing tensors...',
     });
 
+    const packTimer = createStageTimer('Pack shards');
     const packResult = await packer.pack(packerTensors, {
       onProgress: (current, total, tensorName) => {
         onProgress?.({
@@ -772,6 +819,9 @@ export async function convertModel(files, options = {}) {
       },
       signal,
     });
+    packTimer.stop(
+      `${packResult.shards.length} shards, ${formatBytes(packResult.totalSize)}`
+    );
 
     // Convert pack result to expected format
     const result = {
@@ -809,6 +859,7 @@ export async function convertModel(files, options = {}) {
       tokenizerModel: tokenizerModel ? 'tokenizer.model' : null,
     };
 
+    const manifestTimer = createStageTimer('Manifest');
     const manifest = createManifest(
       modelId,
       parsedModel,
@@ -858,6 +909,7 @@ export async function convertModel(files, options = {}) {
     } catch {
       // Registry is optional; ignore failures
     }
+    manifestTimer.stop();
 
     onProgress?.({
       stage: ConvertStage.COMPLETE,
@@ -871,8 +923,22 @@ export async function convertModel(files, options = {}) {
       await Promise.allSettled(cleanupTasks.map((task) => task()));
     }
 
+    const totalMs = performance.now() - conversionStart;
+    log.info(
+      'Convert',
+      `Complete: ${formatBytes(result.totalSize)} in ${totalMs.toFixed(0)}ms`
+    );
+    trace.perf('Convert total', {
+      ms: totalMs,
+      tensors: modelInfo.tensors.length,
+      totalSize: result.totalSize,
+      shardCount: shardInfos.length,
+    });
+
     return modelId;
   } catch (error) {
+    const totalMs = performance.now() - conversionStart;
+    log.error('Convert', `Failed after ${totalMs.toFixed(0)}ms: ${error.message}`);
     // Cleanup on error
     if (modelId) {
       try {

@@ -118,10 +118,13 @@ export {
   type DiffusionTilingConfigSchema,
   type DiffusionSwapperConfigSchema,
   type DiffusionQuantizationConfigSchema,
+  type DiffusionBackendConfigSchema,
+  type DiffusionScaffoldConfigSchema,
   type DiffusionSchedulerType,
   type DiffusionDtype,
   type DiffusionQuantDtype,
   type DiffusionSwapperStrategy,
+  type DiffusionBackendPipeline,
   DEFAULT_DIFFUSION_SCHEDULER_CONFIG,
   DEFAULT_DIFFUSION_LATENT_CONFIG,
   DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG,
@@ -129,6 +132,7 @@ export {
   DEFAULT_DIFFUSION_TILING_CONFIG,
   DEFAULT_DIFFUSION_SWAPPER_CONFIG,
   DEFAULT_DIFFUSION_QUANTIZATION_CONFIG,
+  DEFAULT_DIFFUSION_BACKEND_CONFIG,
   DEFAULT_DIFFUSION_CONFIG,
 } from './diffusion.schema.js';
 

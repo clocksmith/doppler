@@ -6,13 +6,16 @@ const loadJson = async (path) => {
 };
 
 const attentionRules = await loadJson('./kernels/attention.rules.json');
+const conv2dRules = await loadJson('./kernels/conv2d.rules.json');
 const dequantRules = await loadJson('./kernels/dequant.rules.json');
 const fusedFfnRules = await loadJson('./kernels/fused-ffn.rules.json');
 const fusedMatmulResidualRules = await loadJson('./kernels/fused-matmul-residual.rules.json');
 const fusedMatmulRmsnormRules = await loadJson('./kernels/fused-matmul-rmsnorm.rules.json');
 const gatherRules = await loadJson('./kernels/gather.rules.json');
 const geluRules = await loadJson('./kernels/gelu.rules.json');
+const groupnormRules = await loadJson('./kernels/groupnorm.rules.json');
 const kvQuantizeRules = await loadJson('./kernels/kv_quantize.rules.json');
+const layernormRules = await loadJson('./kernels/layernorm.rules.json');
 const matmulRules = await loadJson('./kernels/matmul.rules.json');
 const kernelMoeRules = await loadJson('./kernels/moe.rules.json');
 const residualRules = await loadJson('./kernels/residual.rules.json');
@@ -23,6 +26,7 @@ const scaleRules = await loadJson('./kernels/scale.rules.json');
 const siluRules = await loadJson('./kernels/silu.rules.json');
 const splitQkvRules = await loadJson('./kernels/split-qkv.rules.json');
 const softmaxRules = await loadJson('./kernels/softmax.rules.json');
+const upsample2dRules = await loadJson('./kernels/upsample2d.rules.json');
 const configRules = await loadJson('./inference/config.rules.json');
 const inferenceAttentionRules = await loadJson('./inference/attention.rules.json');
 const dtypeRules = await loadJson('./inference/dtype.rules.json');
@@ -41,13 +45,16 @@ const RULE_SETS = {
   },
   kernels: {
     attention: attentionRules,
+    conv2d: conv2dRules,
     dequant: dequantRules,
     fusedFfn: fusedFfnRules,
     fusedMatmulResidual: fusedMatmulResidualRules,
     fusedMatmulRmsnorm: fusedMatmulRmsnormRules,
     gather: gatherRules,
     gelu: geluRules,
+    groupnorm: groupnormRules,
     kv_quantize: kvQuantizeRules,
+    layernorm: layernormRules,
     matmul: matmulRules,
     moe: kernelMoeRules,
     residual: residualRules,
@@ -58,6 +65,7 @@ const RULE_SETS = {
     silu: siluRules,
     splitQkv: splitQkvRules,
     softmax: softmaxRules,
+    upsample2d: upsample2dRules,
   },
   inference: {
     config: configRules,

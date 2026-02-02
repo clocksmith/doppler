@@ -58,6 +58,13 @@ export {
   recordRMSNorm,
 } from './rmsnorm.js';
 
+// LayerNorm
+export {
+  selectLayerNormKernel,
+  runLayerNorm,
+  recordLayerNorm,
+} from './layernorm.js';
+
 // Softmax
 export {
   runSoftmax,
@@ -104,11 +111,23 @@ export {
   recordScale,
 } from './scale.js';
 
+// Conv2D
+export {
+  runConv2D,
+  recordConv2D,
+} from './conv2d.js';
+
 // Gather (Embedding Lookup)
 export {
   runGather,
   recordGather,
 } from './gather.js';
+
+// GroupNorm
+export {
+  runGroupNorm,
+  recordGroupNorm,
+} from './groupnorm.js';
 
 // Residual Connections
 export {
@@ -117,6 +136,12 @@ export {
   recordResidualAdd,
   recordBiasAdd,
 } from './residual.js';
+
+// Upsample2D
+export {
+  runUpsample2D,
+  recordUpsample2D,
+} from './upsample2d.js';
 
 // Mixture of Experts
 export {

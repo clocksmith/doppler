@@ -1,7 +1,7 @@
 import { log } from '../src/debug/index.js';
 import { listPresets, createConverterConfig } from '../src/config/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
-import { listRegisteredModels } from '../src/storage/registry.js';
+import { listRegisteredModels, removeRegisteredModel } from '../src/storage/registry.js';
 import { formatBytes, getQuotaInfo } from '../src/storage/quota.js';
 import {
   openModelStore,
@@ -10,6 +10,7 @@ import {
   loadTensorsFromStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
+  deleteModel,
 } from '../src/storage/shard-manager.js';
 import { parseManifest, getManifest, setManifest, clearManifest } from '../src/storage/rdrr-format.js';
 import {
@@ -62,6 +63,8 @@ const state = {
   runCounter: 0,
   storageUsageBytes: 0,
   storageQuotaBytes: 0,
+  storageInspectorScanning: false,
+  storageInspectorLastScan: 0,
   gpuMaxBytes: 0,
   systemMemoryBytes: 0,
   uiIntervalId: null,
@@ -168,6 +171,9 @@ function setUiMode(mode) {
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
   applyModeVisibility(mode);
+  if (mode === 'models') {
+    refreshStorageInspector();
+  }
 }
 
 function setHidden(el, hidden) {
@@ -494,6 +500,273 @@ async function updateStorageInfo() {
   }
 }
 
+async function scanOpfsDirectory(dirHandle) {
+  let totalBytes = 0;
+  let fileCount = 0;
+  let shardCount = 0;
+  let hasManifest = false;
+
+  for await (const entry of dirHandle.values()) {
+    if (entry.kind === 'file') {
+      const file = await entry.getFile();
+      totalBytes += file.size;
+      fileCount += 1;
+      if (entry.name === 'manifest.json') {
+        hasManifest = true;
+      }
+      if (entry.name.startsWith('shard_') && entry.name.endsWith('.bin')) {
+        shardCount += 1;
+      }
+    } else if (entry.kind === 'directory') {
+      const child = await scanOpfsDirectory(entry);
+      totalBytes += child.totalBytes;
+      fileCount += child.fileCount;
+      shardCount += child.shardCount;
+      hasManifest = hasManifest || child.hasManifest;
+    }
+  }
+
+  return {
+    totalBytes,
+    fileCount,
+    shardCount,
+    hasManifest,
+  };
+}
+
+function setStorageInspectorStatus(message) {
+  const status = $('storage-inspector-status');
+  if (!status) return;
+  status.textContent = message;
+}
+
+async function handleDeleteStorageEntry(entry) {
+  if (!entry?.modelId) return;
+  if (entry.modelId === state.activeModelId && state.activePipeline) {
+    window.alert('Unload the active model before deleting its storage.');
+    return;
+  }
+  const sizeLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : 'unknown size';
+  const confirmed = window.confirm(`Delete ${entry.modelId} (${sizeLabel}) from OPFS?`);
+  if (!confirmed) return;
+
+  try {
+    await deleteModel(entry.modelId);
+  } catch (error) {
+    log.warn('DopplerDemo', `Failed to delete ${entry.modelId}: ${error.message}`);
+  }
+
+  try {
+    await removeRegisteredModel(entry.modelId);
+  } catch (error) {
+    log.warn('DopplerDemo', `Failed to remove registry entry: ${error.message}`);
+  }
+
+  await refreshModelList();
+  await refreshStorageInspector();
+}
+
+async function refreshStorageInspector() {
+  const listEl = $('storage-inspector-list');
+  const backendEl = $('storage-inspector-backend');
+  const summaryEl = $('storage-inspector-summary');
+  const systemSection = $('storage-inspector-system-section');
+  const systemList = $('storage-inspector-system');
+  if (!listEl || !backendEl || !summaryEl || !systemSection || !systemList) return;
+  if (state.storageInspectorScanning) return;
+
+  state.storageInspectorScanning = true;
+  listEl.innerHTML = '';
+  systemList.innerHTML = '';
+  systemSection.hidden = true;
+  setStorageInspectorStatus('Scanning storage...');
+
+  const runtime = getRuntimeConfig();
+  const opfsRootDir = runtime?.loading?.opfsPath?.opfsRootDir || 'doppler-models';
+  backendEl.textContent = navigator.storage?.getDirectory
+    ? `OPFS: ${opfsRootDir}`
+    : 'OPFS: unavailable';
+
+  let registryIds = new Set();
+  try {
+    const registry = await listRegisteredModels();
+    registryIds = new Set(
+      registry.map((entry) => entry.modelId || entry.id).filter(Boolean)
+    );
+  } catch (error) {
+    log.warn('DopplerDemo', `Registry unavailable: ${error.message}`);
+  }
+
+  try {
+    if (!navigator.storage?.getDirectory) {
+      summaryEl.textContent = '--';
+      setStorageInspectorStatus('OPFS not available in this browser.');
+      return;
+    }
+
+    const root = await navigator.storage.getDirectory();
+    let opfsRoot = null;
+    try {
+      opfsRoot = await root.getDirectoryHandle(opfsRootDir);
+    } catch (error) {
+      summaryEl.textContent = '--';
+      setStorageInspectorStatus('No OPFS storage found for Doppler.');
+      return;
+    }
+
+    const entries = [];
+    const systemEntries = [];
+    for await (const entry of opfsRoot.values()) {
+      if (entry.kind !== 'directory') continue;
+      const stats = await scanOpfsDirectory(entry);
+      if (entry.name === 'reports') {
+        systemEntries.push({
+          label: 'Reports',
+          modelId: entry.name,
+          totalBytes: stats.totalBytes,
+          fileCount: stats.fileCount,
+        });
+      } else {
+        entries.push({
+          modelId: entry.name,
+          totalBytes: stats.totalBytes,
+          fileCount: stats.fileCount,
+          shardCount: stats.shardCount,
+          hasManifest: stats.hasManifest,
+          registered: registryIds.has(entry.name),
+        });
+      }
+    }
+
+    entries.sort((a, b) => b.totalBytes - a.totalBytes);
+
+    const totalBytes = entries.reduce((sum, entry) => sum + entry.totalBytes, 0);
+    const systemBytes = systemEntries.reduce((sum, entry) => sum + entry.totalBytes, 0);
+    const summaryParts = [];
+    if (entries.length) {
+      summaryParts.push(`Models: ${entries.length}`);
+      summaryParts.push(`OPFS: ${formatBytes(totalBytes)}`);
+    }
+    if (systemEntries.length) {
+      summaryParts.push(`Reports: ${formatBytes(systemBytes)}`);
+    }
+    summaryEl.textContent = summaryParts.length
+      ? summaryParts.join(' • ')
+      : 'No OPFS models found';
+
+    if (!entries.length) {
+      listEl.innerHTML = '<div class="type-caption muted">No OPFS models found.</div>';
+      setStorageInspectorStatus('Ready');
+      return;
+    }
+
+    for (const entry of entries) {
+      const row = document.createElement('div');
+      row.className = 'storage-entry';
+      if (entry.modelId === state.activeModelId) {
+        row.classList.add('is-active');
+      }
+
+      const main = document.createElement('div');
+      main.className = 'storage-entry-main';
+
+      const title = document.createElement('div');
+      title.className = 'storage-entry-title';
+
+      const name = document.createElement('span');
+      name.className = 'type-caption';
+      name.textContent = entry.modelId;
+      title.appendChild(name);
+
+      const tag = document.createElement('span');
+      tag.className = `storage-tag${entry.registered ? '' : ' orphan'}`;
+      tag.textContent = entry.registered ? 'registered' : 'orphan';
+      title.appendChild(tag);
+
+      if (!entry.hasManifest) {
+        const missing = document.createElement('span');
+        missing.className = 'storage-tag missing';
+        missing.textContent = 'no manifest';
+        title.appendChild(missing);
+      }
+
+      main.appendChild(title);
+
+      const shardLabel = entry.shardCount
+        ? `${entry.shardCount} shards`
+        : `${entry.fileCount} files`;
+      const detail = document.createElement('span');
+      detail.className = 'type-caption muted';
+      detail.textContent = `${formatBytes(entry.totalBytes)} • ${shardLabel}`;
+      main.appendChild(detail);
+
+      const actions = document.createElement('div');
+      actions.className = 'storage-entry-actions';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-small';
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = 'Delete';
+      if (entry.modelId === state.activeModelId && state.activePipeline) {
+        deleteBtn.disabled = true;
+        deleteBtn.title = 'Unload the active model before deleting.';
+      }
+      deleteBtn.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        await handleDeleteStorageEntry(entry);
+      });
+      actions.appendChild(deleteBtn);
+
+      row.appendChild(main);
+      row.appendChild(actions);
+      row.addEventListener('click', () => selectDiagnosticsModel(entry.modelId));
+      listEl.appendChild(row);
+    }
+
+    if (systemEntries.length) {
+      systemSection.hidden = false;
+      for (const entry of systemEntries) {
+        const row = document.createElement('div');
+        row.className = 'storage-entry';
+
+        const main = document.createElement('div');
+        main.className = 'storage-entry-main';
+
+        const title = document.createElement('div');
+        title.className = 'storage-entry-title';
+
+        const name = document.createElement('span');
+        name.className = 'type-caption';
+        name.textContent = entry.label;
+        title.appendChild(name);
+
+        const tag = document.createElement('span');
+        tag.className = 'storage-tag system';
+        tag.textContent = 'system';
+        title.appendChild(tag);
+
+        main.appendChild(title);
+
+        const detail = document.createElement('span');
+        detail.className = 'type-caption muted';
+        detail.textContent = `${formatBytes(entry.totalBytes)} • ${entry.fileCount} files`;
+        main.appendChild(detail);
+
+        row.appendChild(main);
+        systemList.appendChild(row);
+      }
+    }
+
+    setStorageInspectorStatus('Ready');
+  } catch (error) {
+    summaryEl.textContent = '--';
+    setStorageInspectorStatus(`Storage scan failed: ${error.message}`);
+  } finally {
+    state.storageInspectorScanning = false;
+    state.storageInspectorLastScan = Date.now();
+  }
+}
+
 async function refreshModelList() {
   const modelSelect = $('diagnostics-model');
   if (!modelSelect) return;
@@ -520,6 +793,9 @@ async function refreshModelList() {
   renderModelList(models);
   updateSidebarLayout(models);
   await updateStorageInfo();
+  if (state.uiMode === 'models') {
+    await refreshStorageInspector();
+  }
 }
 
 async function refreshGpuInfo() {
@@ -1049,8 +1325,14 @@ async function handleDiffusionRun() {
     if (!pipeline.generate) {
       throw new Error('Selected model does not support diffusion generation.');
     }
+    if (!pipeline.manifest || pipeline.manifest.modelType !== 'diffusion') {
+      throw new Error('Selected model is not a diffusion model.');
+    }
     updateDiffusionStatus('Generating...');
     const result = await pipeline.generate(request);
+    if (!Number.isFinite(result?.width) || result.width <= 0 || !Number.isFinite(result?.height) || result.height <= 0) {
+      throw new Error('Diffusion output dimensions are invalid.');
+    }
     drawDiffusionCanvas(result);
     state.lastInferenceStats = pipeline.getStats?.() ?? null;
     state.lastMemoryStats = pipeline.getMemoryStats?.() ?? state.lastMemoryStats;
@@ -1640,6 +1922,7 @@ function bindUI() {
   const exportModelBtn = $('export-model-btn');
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
+  const storageInspectorRefresh = $('storage-inspector-refresh');
   const chatInput = $('chat-input');
   const sendBtn = $('send-btn');
   const stopBtn = $('stop-btn');
@@ -1696,6 +1979,10 @@ function bindUI() {
 
   downloadRefresh?.addEventListener('click', () => {
     refreshDownloads();
+  });
+
+  storageInspectorRefresh?.addEventListener('click', () => {
+    refreshStorageInspector();
   });
 
   runtimePreset?.addEventListener('change', () => {
