@@ -313,7 +313,6 @@ async function runGeneration(pipeline, runtimeConfig, options = {}) {
     topK: sampling.topK,
     repetitionPenalty: sampling.repetitionPenalty,
     greedyThreshold: sampling.greedyThreshold,
-    useChatTemplate: false,
     profile,
     disableCommandBatching,
     onToken: (tokenId) => {
