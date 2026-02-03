@@ -444,26 +444,32 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       hiddenSize,
     });
 
-    const qWeight = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.SelfAttention.q.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.0.SelfAttention.q.weight`
-    );
-    const kWeight = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.SelfAttention.k.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.0.SelfAttention.k.weight`
-    );
-    const vWeight = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.SelfAttention.v.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.0.SelfAttention.v.weight`
-    );
-    const oWeight = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.SelfAttention.o.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.0.SelfAttention.o.weight`
-    );
+    const qName = `encoder.block.${layerIdx}.layer.0.SelfAttention.q.weight`;
+    const kName = `encoder.block.${layerIdx}.layer.0.SelfAttention.k.weight`;
+    const vName = `encoder.block.${layerIdx}.layer.0.SelfAttention.v.weight`;
+    const oName = `encoder.block.${layerIdx}.layer.0.SelfAttention.o.weight`;
+    const qKey = `${prefix}.${qName}`;
+    const kKey = `${prefix}.${kName}`;
+    const vKey = `${prefix}.${vName}`;
+    const oKey = `${prefix}.${oName}`;
 
-    let q = await runMatmul(normed, qWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    let k = await runMatmul(normed, kWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    let v = await runMatmul(normed, vWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    const qWeight = expectWeight(getWeight(weights, prefix, qName), qKey);
+    const kWeight = expectWeight(getWeight(weights, prefix, kName), kKey);
+    const vWeight = expectWeight(getWeight(weights, prefix, vName), vKey);
+    const oWeight = expectWeight(getWeight(weights, prefix, oName), oKey);
+
+    let q = await matmul(normed, qWeight, qKey, maxLength, hiddenSize, hiddenSize, {
+      outputDtype: activationDtype,
+      transposeB: 'auto',
+    });
+    let k = await matmul(normed, kWeight, kKey, maxLength, hiddenSize, hiddenSize, {
+      outputDtype: activationDtype,
+      transposeB: 'auto',
+    });
+    let v = await matmul(normed, vWeight, vKey, maxLength, hiddenSize, hiddenSize, {
+      outputDtype: activationDtype,
+      transposeB: 'auto',
+    });
 
     const attn = await runAttention(q, k, v, null, numHeads, headDim, {
       seqLen: maxLength,
@@ -472,7 +478,10 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       causal: false,
     });
 
-    const attnOut = await runMatmul(attn, oWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    const attnOut = await matmul(attn, oWeight, oKey, maxLength, hiddenSize, hiddenSize, {
+      outputDtype: activationDtype,
+      transposeB: 'auto',
+    });
     const attnResidual = await runResidualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
 
     releaseBuffer(normed.buffer);
@@ -494,31 +503,28 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       hiddenSize,
     });
 
-    const wi0 = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_0.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_0.weight`
-    );
-    const wi1 = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_1.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_1.weight`
-    );
-    const wo = expectWeight(
-      getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.1.DenseReluDense.wo.weight`),
-      `${prefix}.encoder.block.${layerIdx}.layer.1.DenseReluDense.wo.weight`
-    );
+    const wi0Name = `encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_0.weight`;
+    const wi1Name = `encoder.block.${layerIdx}.layer.1.DenseReluDense.wi_1.weight`;
+    const woName = `encoder.block.${layerIdx}.layer.1.DenseReluDense.wo.weight`;
+    const wi0Key = `${prefix}.${wi0Name}`;
+    const wi1Key = `${prefix}.${wi1Name}`;
+    const woKey = `${prefix}.${woName}`;
+    const wi0 = expectWeight(getWeight(weights, prefix, wi0Name), wi0Key);
+    const wi1 = expectWeight(getWeight(weights, prefix, wi1Name), wi1Key);
+    const wo = expectWeight(getWeight(weights, prefix, woName), woKey);
 
     const dff = wi0.shape[0];
     const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
     const combinedSize = maxLength * dff * 2 * bytesPerElement;
     const combinedBuffer = acquireBuffer(combinedSize, undefined, 't5_ff_combined');
 
-    const wi0Out = await runMatmul(norm2, wi0, maxLength, dff, hiddenSize, {
+    const wi0Out = await matmul(norm2, wi0, wi0Key, maxLength, dff, hiddenSize, {
       outputDtype: activationDtype,
       transposeB: 'auto',
       outputBuffer: combinedBuffer,
       cOffset: 0,
     });
-    const wi1Out = await runMatmul(norm2, wi1, maxLength, dff, hiddenSize, {
+    const wi1Out = await matmul(norm2, wi1, wi1Key, maxLength, dff, hiddenSize, {
       outputDtype: activationDtype,
       transposeB: 'auto',
       outputBuffer: combinedBuffer,
@@ -535,7 +541,10 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
 
     releaseBuffer(combinedTensor.buffer);
 
-    const ffOut = await runMatmul(gated, wo, maxLength, hiddenSize, dff, { outputDtype: activationDtype, transposeB: 'auto' });
+    const ffOut = await matmul(gated, wo, woKey, maxLength, hiddenSize, dff, {
+      outputDtype: activationDtype,
+      transposeB: 'auto',
+    });
     const ffResidual = await runResidualAdd(hidden, ffOut, maxLength * hiddenSize, { useVec4: true });
 
     releaseBuffer(norm2.buffer);
@@ -599,16 +608,20 @@ export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, 
   const activationDtype = resolveActivationDtype(runtime);
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
-  const textLinear1 = resolver.get('time_text_embed.text_embedder.linear_1.weight');
+  const matmul = (input, weight, name, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+  const textLinear1Name = 'time_text_embed.text_embedder.linear_1.weight';
+  const textLinear2Name = 'time_text_embed.text_embedder.linear_2.weight';
+  const textLinear1 = resolver.get(textLinear1Name);
   const textLinear1Bias = resolver.get('time_text_embed.text_embedder.linear_1.bias');
-  const textLinear2 = resolver.get('time_text_embed.text_embedder.linear_2.weight');
+  const textLinear2 = resolver.get(textLinear2Name);
   const textLinear2Bias = resolver.get('time_text_embed.text_embedder.linear_2.bias');
   if (!textLinear1 || !textLinear2) {
     throw new Error('Missing diffusion time_text_embed text weights.');
   }
 
   const pooledTensor = createVectorTensor(device, pooled, activationDtype, 'sd3_pooled');
-  let text = await runMatmul(pooledTensor, textLinear1, 1, textLinear1.shape[0], textLinear1.shape[1], {
+  let text = await matmul(pooledTensor, textLinear1, textLinear1Name, 1, textLinear1.shape[0], textLinear1.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -618,7 +631,7 @@ export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, 
   const textAct = await runSiLU(text, { size: textLinear1.shape[0], swigluLimit: null });
   releaseBuffer(text.buffer);
 
-  let textOut = await runMatmul(textAct, textLinear2, 1, textLinear2.shape[0], textLinear2.shape[1], {
+  let textOut = await matmul(textAct, textLinear2, textLinear2Name, 1, textLinear2.shape[0], textLinear2.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -651,15 +664,19 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
   const embTensor = createVectorTensor(device, emb, activationDtype, 'sd3_timestep');
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
-  const linear1 = resolver.get('time_text_embed.timestep_embedder.linear_1.weight');
+  const matmul = (input, weight, name, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+  const linear1Name = 'time_text_embed.timestep_embedder.linear_1.weight';
+  const linear2Name = 'time_text_embed.timestep_embedder.linear_2.weight';
+  const linear1 = resolver.get(linear1Name);
   const linear1Bias = resolver.get('time_text_embed.timestep_embedder.linear_1.bias');
-  const linear2 = resolver.get('time_text_embed.timestep_embedder.linear_2.weight');
+  const linear2 = resolver.get(linear2Name);
   const linear2Bias = resolver.get('time_text_embed.timestep_embedder.linear_2.bias');
   if (!linear1 || !linear2) {
     throw new Error('Missing diffusion time_text_embed timestep weights.');
   }
 
-  let out = await runMatmul(embTensor, linear1, 1, linear1.shape[0], linear1.shape[1], {
+  let out = await matmul(embTensor, linear1, linear1Name, 1, linear1.shape[0], linear1.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -669,7 +686,7 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
   const act = await runSiLU(out, { size: linear1.shape[0], swigluLimit: null });
   releaseBuffer(out.buffer);
 
-  let out2 = await runMatmul(act, linear2, 1, linear2.shape[0], linear2.shape[1], {
+  let out2 = await matmul(act, linear2, linear2Name, 1, linear2.shape[0], linear2.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -692,7 +709,10 @@ export async function combineTimeTextEmbeddings(time, text, hiddenSize) {
 
 export async function projectContext(context, weightsEntry, modelConfig, runtime) {
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
-  const projWeight = resolver.get('context_embedder.weight');
+  const matmul = (input, weight, name, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+  const projWeightName = 'context_embedder.weight';
+  const projWeight = resolver.get(projWeightName);
   const projBias = resolver.get('context_embedder.bias');
   if (!projWeight) {
     throw new Error('Missing diffusion context_embedder weight.');
@@ -701,7 +721,7 @@ export async function projectContext(context, weightsEntry, modelConfig, runtime
   const inDim = context.shape[1];
   const outDim = projWeight.shape[0];
   const activationDtype = resolveActivationDtype(runtime);
-  let projected = await runMatmul(context, projWeight, numTokens, outDim, inDim, {
+  let projected = await matmul(context, projWeight, projWeightName, numTokens, outDim, inDim, {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });

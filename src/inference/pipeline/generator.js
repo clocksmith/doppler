@@ -20,7 +20,7 @@ import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
-import { decodeStep, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
+import { decodeStep, decodeStepLogits, advanceWithToken, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
@@ -32,6 +32,37 @@ export class PipelineGenerator {
   
   constructor(state) {
     this.#state = state;
+  }
+
+  _resolveStepOptions(options = {}) {
+    const runtimeDefaults = this.#state.runtimeConfig.inference;
+    const samplingDefaults = runtimeDefaults.sampling;
+    const batchingDefaults = runtimeDefaults.batching;
+    const generationDefaults = runtimeDefaults.generation;
+
+    return {
+      temperature: options.temperature ?? samplingDefaults.temperature,
+      topP: options.topP ?? samplingDefaults.topP,
+      topK: options.topK ?? samplingDefaults.topK,
+      repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
+      debug: options.debug ?? this.#state.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? generationDefaults.profile,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
+      batchSize: options.batchSize ?? batchingDefaults.batchSize,
+      stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
+    };
+  }
+
+  _getDecodeHelpers(debugCheckBuffer) {
+    return {
+      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
+        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
+      getLogitsWeights: () => getLogitsWeights(this.#state),
+      getLogitsConfig: () => getLogitsConfig(this.#state),
+      debugCheckBuffer,
+    };
   }
 
   // ==========================================================================
@@ -831,13 +862,37 @@ export class PipelineGenerator {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
-    return decodeStep(this.#state, currentIds, opts, {
-      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
-        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
-      getLogitsWeights: () => getLogitsWeights(this.#state),
-      getLogitsConfig: () => getLogitsConfig(this.#state),
-      debugCheckBuffer,
-    });
+    return decodeStep(this.#state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+  }
+
+  async decodeStepLogits(currentIds, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
+
+    const opts = this._resolveStepOptions(options);
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
+
+    return decodeStepLogits(this.#state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+  }
+
+  async advanceWithToken(tokenId, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
+
+    const opts = this._resolveStepOptions(options);
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
+
+    await advanceWithToken(this.#state, tokenId, opts, this._getDecodeHelpers(debugCheckBuffer));
   }
 
   async _generateNTokensGPU(startToken, N, currentIds, opts) {
@@ -845,11 +900,6 @@ export class PipelineGenerator {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
-    return generateNTokensGPU(this.#state, startToken, N, currentIds, opts, {
-      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
-        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
-      getLogitsWeights: () => getLogitsWeights(this.#state),
-      getLogitsConfig: () => getLogitsConfig(this.#state),
-    });
+    return generateNTokensGPU(this.#state, startToken, N, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
   }
 }

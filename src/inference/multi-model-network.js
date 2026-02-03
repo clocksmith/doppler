@@ -2,6 +2,68 @@
 
 import { ExpertRouter } from './expert-router.js';
 import { MultiModelRecorder } from '../gpu/multi-model-recorder.js';
+import { applyRepetitionPenalty, sample, getTopK } from './pipeline/sampling.js';
+import { finalizeLogits, extractLastPositionLogits } from './pipeline/logits.js';
+import { isStopToken } from './pipeline/init.js';
+import { mergeMultipleLogits } from '../gpu/kernels/logit-merge.js';
+import { releaseBuffer, readBuffer } from '../memory/buffer-pool.js';
+
+const MIN_AGREEMENT_WEIGHT = 1e-4;
+
+function buildAgreementWeights(logitsList, agreementTopK, decode) {
+  const topKByModel = logitsList.map((logits) => getTopK(logits, agreementTopK, decode));
+
+  const counts = new Map();
+  const probSums = new Map();
+  for (const top of topKByModel) {
+    for (const entry of top) {
+      const current = counts.get(entry.token) ?? 0;
+      counts.set(entry.token, current + 1);
+      probSums.set(entry.token, (probSums.get(entry.token) ?? 0) + entry.prob);
+    }
+  }
+
+  let agreedToken = topKByModel[0]?.[0]?.token ?? 0;
+  let bestCount = -1;
+  let bestProbSum = -Infinity;
+  for (const [token, count] of counts.entries()) {
+    const probSum = probSums.get(token) ?? 0;
+    if (count > bestCount || (count === bestCount && probSum > bestProbSum)) {
+      agreedToken = token;
+      bestCount = count;
+      bestProbSum = probSum;
+    }
+  }
+
+  const weights = topKByModel.map((top) => {
+    const match = top.find((entry) => entry.token === agreedToken);
+    return Math.max(match?.prob ?? 0, MIN_AGREEMENT_WEIGHT);
+  });
+
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  const normalized = total > 0
+    ? weights.map((weight) => weight / total)
+    : weights.map(() => 1 / weights.length);
+
+  const agreement = bestCount > 0 ? bestCount / logitsList.length : 0;
+
+  return { weights: normalized, agreedToken, agreement };
+}
+
+function mergeLogitsCpu(logitsList, weights) {
+  const vocabSize = logitsList[0].length;
+  const merged = new Float32Array(vocabSize);
+
+  for (let i = 0; i < logitsList.length; i++) {
+    const logits = logitsList[i];
+    const weight = weights[i] ?? 0;
+    for (let j = 0; j < vocabSize; j++) {
+      merged[j] += logits[j] * weight;
+    }
+  }
+
+  return merged;
+}
 
 
 
@@ -203,6 +265,191 @@ export class MultiModelNetwork {
     );
 
     return Object.fromEntries(entries);
+  }
+
+  async *generateWithABE(prompt, options = {}) {
+    if (!this.pipelinePool) {
+      throw new Error('MultiModelNetwork requires a pipeline pool for ABE generation.');
+    }
+
+    const expertIds = options.expertIds ?? this.listExperts().map((expert) => expert.id);
+    if (!expertIds.length) {
+      throw new Error('No experts available for ABE generation.');
+    }
+
+    const voterIds = options.voterIds ?? expertIds;
+    const voterSet = new Set(voterIds);
+
+    const pipelines = new Map();
+    for (const expertId of expertIds) {
+      const expert = this.getExpert(expertId);
+      if (!expert) {
+        throw new Error(`Unknown expert: ${expertId}`);
+      }
+      const pipeline = await this.pipelinePool.getPipeline(expertId);
+      pipeline.setLoRAAdapter(this.resolveAdapter(expert, options.adapterName, options.adapter));
+      pipelines.set(expertId, pipeline);
+    }
+
+    const basePipeline = pipelines.get(voterIds[0]) ?? pipelines.get(expertIds[0]);
+    if (!basePipeline) {
+      throw new Error('Base pipeline unavailable for ABE generation.');
+    }
+
+    const runtimeDefaults = basePipeline.runtimeConfig.inference;
+    const samplingDefaults = runtimeDefaults.sampling;
+    const batchingDefaults = runtimeDefaults.batching;
+    const generationDefaults = runtimeDefaults.generation;
+
+    const opts = {
+      maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
+      temperature: options.temperature ?? samplingDefaults.temperature,
+      topP: options.topP ?? samplingDefaults.topP,
+      topK: options.topK ?? samplingDefaults.topK,
+      repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
+      stopSequences: options.stopSequences ?? [],
+      useChatTemplate: options.useChatTemplate
+        ?? basePipeline.runtimeConfig.inference.chatTemplate?.enabled
+        ?? basePipeline.modelConfig?.chatTemplateEnabled
+        ?? false,
+      debug: options.debug ?? basePipeline.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? generationDefaults.profile,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
+      batchSize: options.batchSize ?? batchingDefaults.batchSize,
+      stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
+    };
+
+    const agreementTopK = options.agreementTopK ?? Math.min(opts.topK ?? 5, 8);
+    const minAgreement = options.minAgreement ?? 0;
+    const mergeOnGpu = options.mergeOnGpu ?? false;
+    const padTokenId = basePipeline.tokenizer?.getSpecialTokens?.()?.pad ?? null;
+    const stopTokenIds = basePipeline.modelConfig.stopTokenIds;
+    const eosToken = basePipeline.tokenizer?.getSpecialTokens?.()?.eos;
+
+    let prefix = options.prefix ?? this.getSharedPrefixSnapshot();
+    let prefetchedFromBase = false;
+    if (!prefix) {
+      prefix = await basePipeline.prefillKVOnly(prompt, opts);
+      prefetchedFromBase = true;
+    }
+    for (const pipeline of pipelines.values()) {
+      if (prefetchedFromBase && pipeline === basePipeline) continue;
+      pipeline.applyKVCacheSnapshot(prefix);
+    }
+
+    const currentIds = new Map();
+    for (const expertId of expertIds) {
+      currentIds.set(expertId, [...prefix.tokens]);
+    }
+
+    const generatedIds = [...prefix.tokens];
+    const promptTokenCount = prefix.tokens.length;
+    let tokensGenerated = 0;
+
+    while (tokensGenerated < opts.maxTokens) {
+      if (options.signal?.aborted) break;
+
+      const voterResults = await Promise.all(
+        voterIds.map(async (expertId) => {
+          const pipeline = pipelines.get(expertId);
+          if (!pipeline) {
+            throw new Error(`Missing pipeline for expert ${expertId}`);
+          }
+          const ids = currentIds.get(expertId);
+          if (!ids) {
+            throw new Error(`Missing token history for expert ${expertId}`);
+          }
+          return pipeline.decodeStepLogits(ids, opts);
+        })
+      );
+
+      const logitsList = voterResults.map((result) => result.logits);
+      const { weights, agreement } = buildAgreementWeights(
+        logitsList,
+        agreementTopK,
+        (tokens) => basePipeline.tokenizer?.decode?.(tokens) ?? ''
+      );
+
+      const normalizedWeights = agreement < minAgreement
+        ? weights.map(() => 1 / weights.length)
+        : weights;
+
+      let mergedLogits = null;
+      const rawVocabSize = voterResults[0]?.rawVocabSize ?? basePipeline.modelConfig.vocabSize;
+      const canMergeOnGpu = mergeOnGpu
+        && basePipeline.modelConfig.finalLogitSoftcapping == null
+        && voterResults.every((result) => result.logitsBuffer && result.logitsDtype === 'f32')
+        && voterResults.every((result) => result.rawVocabSize === rawVocabSize);
+
+      if (canMergeOnGpu) {
+        const buffers = voterResults.map((result) => result.logitsBuffer);
+        const mergedBuffer = await mergeMultipleLogits(buffers, rawVocabSize, normalizedWeights, 1.0);
+        const mergedData = await readBuffer(mergedBuffer, rawVocabSize * 4);
+        releaseBuffer(mergedBuffer);
+        const rawMerged = new Float32Array(mergedData);
+        const finalized = await finalizeLogits(
+          rawMerged,
+          1,
+          rawVocabSize,
+          basePipeline.modelConfig.vocabSize,
+          basePipeline.modelConfig,
+          basePipeline.runtimeConfig.shared.debug.probes
+        );
+        mergedLogits = extractLastPositionLogits(
+          finalized,
+          1,
+          basePipeline.modelConfig.vocabSize
+        );
+      } else {
+        mergedLogits = mergeLogitsCpu(logitsList, normalizedWeights);
+      }
+
+      for (const result of voterResults) {
+        if (result.logitsBuffer) {
+          releaseBuffer(result.logitsBuffer);
+        }
+      }
+
+      applyRepetitionPenalty(mergedLogits, generatedIds, opts.repetitionPenalty);
+      const nextToken = sample(mergedLogits, {
+        temperature: opts.temperature,
+        topP: opts.topP,
+        topK: opts.topK,
+        padTokenId,
+      });
+
+      generatedIds.push(nextToken);
+      tokensGenerated++;
+
+      for (const expertId of expertIds) {
+        const ids = currentIds.get(expertId);
+        if (!ids) continue;
+        ids.push(nextToken);
+      }
+
+      const followers = expertIds.filter((expertId) => !voterSet.has(expertId));
+      if (followers.length > 0) {
+        await Promise.all(
+          followers.map(async (expertId) => {
+            const pipeline = pipelines.get(expertId);
+            if (!pipeline) return;
+            await pipeline.advanceWithToken(nextToken, opts);
+          })
+        );
+      }
+
+      const tokenText = basePipeline.tokenizer.decode([nextToken], true, false);
+      yield tokenText;
+      if (options.onToken) options.onToken(nextToken, tokenText);
+
+      if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+      if (opts.stopSequences.length > 0) {
+        const fullText = basePipeline.tokenizer.decode(generatedIds.slice(promptTokenCount), false);
+        if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+      }
+    }
   }
 
   

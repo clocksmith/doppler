@@ -319,6 +319,26 @@ export interface GenerateOptions {
 }
 
 /**
+ * Result of a logits-only decode step.
+ */
+export interface LogitsStepResult {
+  /** Finalized logits for the next token */
+  logits: Float32Array;
+
+  /** Vocabulary size for finalized logits */
+  vocabSize: number;
+
+  /** Raw vocab size from the LM head matmul */
+  rawVocabSize: number;
+
+  /** Optional GPU buffer containing raw logits */
+  logitsBuffer?: GPUBuffer | null;
+
+  /** Dtype of logitsBuffer when present */
+  logitsDtype?: string | null;
+}
+
+/**
  * Result of text generation.
  */
 export interface GenerationResult {

@@ -13,7 +13,7 @@ import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './samplin
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils.js';
 
@@ -71,6 +71,57 @@ export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   }
 
   return actualCount;
+}
+
+async function runDecodeLayers(state, tokenId, opts, helpers) {
+  const config = state.modelConfig;
+  const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
+
+  const context = helpers.buildLayerContext(undefined, true, opts.debugLayers);
+
+  state.decodeBuffers.resetPingPong();
+
+  const decodeHiddenBuffer = state.decodeBuffers.getHiddenBuffer();
+  const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
+
+  const embedBufferRaw = state.weights.get('embed');
+  if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+    throw new Error('Embed buffer not found or not a supported buffer type');
+  }
+  const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
+  const embedDtype = isWeightBuffer(embedBufferRaw)
+    ? getWeightDtype(embedBufferRaw)
+    : isCpuWeightBuffer(embedBufferRaw)
+      ? embedBufferRaw.dtype
+      : null;
+  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+
+  const embedTensor = await embed([tokenId], embedBuffer, {
+    hiddenSize: config.hiddenSize,
+    vocabSize: config.vocabSize,
+    scaleEmbeddings: config.scaleEmbeddings,
+    outputBuffer: decodeHiddenBuffer ?? undefined,
+    transpose: state.embeddingTranspose,
+    debugProbes: state.runtimeConfig.shared.debug.probes,
+    activationDtype,
+    embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+  });
+
+  let hiddenStates = embedTensor.buffer;
+
+  for (let l = 0; l < config.numLayers; l++) {
+    const prevStates = hiddenStates;
+    hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
+    state.decodeBuffers.swapPingPong();
+    if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
+      const isPreAllocated = prevStates === decodeHiddenBuffer || prevStates === decodeAltBuffer;
+      if (!isPreAllocated) {
+        releaseBuffer(prevStates);
+      }
+    }
+  }
+
+  return { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer, context };
 }
 
 export async function decodeStep(state, currentIds, opts, helpers) {
@@ -455,6 +506,103 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
   state.currentSeqLen++;
   return nextToken;
+}
+
+export async function decodeStepLogits(state, currentIds, opts, helpers) {
+  const lastToken = currentIds[currentIds.length - 1];
+  const numTokens = 1;
+  const config = state.modelConfig;
+
+  state.decodeStepCount++;
+
+  const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
+    state,
+    lastToken,
+    opts,
+    helpers
+  );
+
+  let logitsBuffer = null;
+  let logitsDtype = null;
+  let rawVocabSize = config.vocabSize;
+  let logits = null;
+
+  if (state.useGPU && !isCpuWeightBuffer(state.weights.get('lm_head'))) {
+    const logitsResult = await computeLogitsGPU(
+      hiddenStates,
+      numTokens,
+      helpers.getLogitsWeights(),
+      helpers.getLogitsConfig(),
+      state.debugFlags
+    );
+
+    if (logitsResult) {
+      logitsBuffer = logitsResult.logitsBuffer;
+      logitsDtype = logitsResult.logitsDtype;
+      rawVocabSize = logitsResult.vocabSize;
+
+      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+      const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
+      const rawLogits = decodeReadback(logitsData, logitsDtype);
+      const finalized = await finalizeLogits(
+        rawLogits,
+        numTokens,
+        rawVocabSize,
+        config.vocabSize,
+        config,
+        state.runtimeConfig.shared.debug.probes
+      );
+      logits = extractLastPositionLogits(finalized, numTokens, config.vocabSize);
+    }
+  }
+
+  if (!logits) {
+    const rawLogits = await computeLogits(
+      hiddenStates,
+      numTokens,
+      helpers.getLogitsWeights(),
+      helpers.getLogitsConfig(),
+      state.useGPU,
+      state.debugFlags,
+      undefined,
+      debugCheckBuffer,
+      state.runtimeConfig.shared.debug.probes
+    );
+    logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+  }
+
+  const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+  if (!isPreAllocated) {
+    releaseBuffer(hiddenStates);
+  }
+
+  state.currentSeqLen++;
+
+  return {
+    logits,
+    logitsBuffer,
+    logitsDtype,
+    rawVocabSize,
+    vocabSize: config.vocabSize,
+  };
+}
+
+export async function advanceWithToken(state, tokenId, opts, helpers) {
+  state.decodeStepCount++;
+
+  const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer } = await runDecodeLayers(
+    state,
+    tokenId,
+    opts,
+    helpers
+  );
+
+  const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+  if (!isPreAllocated) {
+    releaseBuffer(hiddenStates);
+  }
+
+  state.currentSeqLen++;
 }
 
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {

@@ -15,14 +15,14 @@ import { PipelineState } from './pipeline/state.js';
 import { PipelineGenerator } from './pipeline/generator.js';
 import type { Manifest } from './pipeline/config.js';
 import type { WeightLoadResult, PipelineContexts } from './pipeline/init.js';
-import type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
 import { getBufferPool as getGlobalBufferPool } from '../memory/buffer-pool.js';
 import type { EmulationStats } from '../config/schema/index.js';
 
 // Re-export types for external use
-export type { GenerateOptions, KVCacheSnapshot, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
+export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
 export type { PipelineContexts };
 
 // ============================================================================
@@ -59,6 +59,10 @@ export declare class InferencePipeline extends PipelineState {
   // ==========================================================================
 
   generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+
+  decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
+
+  advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
 
   prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
 

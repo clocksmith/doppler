@@ -376,6 +376,14 @@ export class InferencePipeline extends PipelineState {
     return this.generator.generate(prompt, options);
   }
 
+  decodeStepLogits(currentIds, options = {}) {
+    return this.generator.decodeStepLogits(currentIds, options);
+  }
+
+  advanceWithToken(tokenId, options = {}) {
+    return this.generator.advanceWithToken(tokenId, options);
+  }
+
   
   prefillKVOnly(prompt, options = {}) {
     return this.generator.prefillKVOnly(prompt, options);

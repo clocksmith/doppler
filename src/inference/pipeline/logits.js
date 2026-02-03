@@ -10,6 +10,7 @@ export {
   recordLogitsGPU,
   // Utilities
   extractLastPositionLogits,
+  finalizeLogits,
   // Main orchestrator
   computeLogits,
 } from './logits/index.js';

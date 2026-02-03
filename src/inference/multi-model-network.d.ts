@@ -22,6 +22,17 @@ export interface CombinerConfig {
   weights?: number[];
 }
 
+export interface AbeOptions extends GenerateOptions {
+  expertIds?: string[];
+  voterIds?: string[];
+  agreementTopK?: number;
+  minAgreement?: number;
+  mergeOnGpu?: boolean;
+  prefix?: KVCacheSnapshot | null;
+  adapterName?: string;
+  adapter?: LoRAAdapter | null;
+}
+
 export type TopologyRouter = (context: {
   parent: ExpertNode;
   prompt: string;
@@ -102,6 +113,8 @@ export declare class MultiModelNetwork {
   executeBatch(tasks: ExpertTask[], options?: GenerateOptions): Promise<Record<string, string>>;
 
   executeParallel(tasks: ExpertTask[], options?: GenerateOptions): Promise<Record<string, string>>;
+
+  generateWithABE(prompt: string, options?: AbeOptions): AsyncGenerator<string, void, void>;
 
   selectExpertsByEmbedding(embedding: number[], topK?: number): ExpertNode[];
 
