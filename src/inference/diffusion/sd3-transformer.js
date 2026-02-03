@@ -82,8 +82,25 @@ function resolveMatmulDtype(weight, resolver, name) {
   return normalizeMatmulLocationDtype(locationDtype);
 }
 
+function inferMatmulDtypeFromBuffer(weight, N, K, preferred) {
+  const buffer = getBuffer(weight);
+  if (!buffer || !Number.isFinite(N) || !Number.isFinite(K)) return preferred;
+  if (preferred === 'q4k') return preferred;
+  const expectedF16 = N * K * 2;
+  const expectedF32 = N * K * 4;
+  if (preferred === 'f32' && buffer.size < expectedF32 && buffer.size >= expectedF16) {
+    return 'f16';
+  }
+  if (!preferred) {
+    if (buffer.size >= expectedF32) return 'f32';
+    if (buffer.size >= expectedF16) return 'f16';
+  }
+  return preferred;
+}
+
 async function runMatmulResolved(input, weight, resolver, name, M, N, K, options = {}) {
-  const bDtype = resolveMatmulDtype(weight, resolver, name);
+  const resolved = resolveMatmulDtype(weight, resolver, name);
+  const bDtype = inferMatmulDtypeFromBuffer(weight, N, K, resolved);
   const nextOptions = bDtype ? { ...options, bDtype } : options;
   return runMatmul(input, weight, M, N, K, nextOptions);
 }

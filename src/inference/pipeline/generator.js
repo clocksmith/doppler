@@ -373,6 +373,49 @@ export class PipelineGenerator {
     };
   }
 
+  async prefillWithLogits(prompt, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    this.#state.stats.gpuTimePrefillMs = undefined;
+
+    const generationDefaults = this.#state.runtimeConfig.inference.generation;
+
+    const opts = {
+      useChatTemplate: options.useChatTemplate
+        ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
+        ?? this.#state.modelConfig?.chatTemplateEnabled
+        ?? false,
+      debug: options.debug ?? this.#state.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? generationDefaults.profile,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
+    };
+
+    let processedPrompt = prompt;
+    if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
+      processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
+    }
+
+    const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    if (opts.debug) {
+      log.debug('Pipeline', `PrefillWithLogits: ${inputIds.length} tokens`);
+    }
+
+    const logits = await this._prefill(inputIds, opts);
+
+    const snapshot = this.#state.kvCache?.clone();
+    if (!snapshot) {
+      throw new Error('KV cache unavailable after prefill');
+    }
+
+    return {
+      cache: snapshot,
+      seqLen: this.#state.currentSeqLen,
+      tokens: inputIds,
+      logits,
+    };
+  }
+
   
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');

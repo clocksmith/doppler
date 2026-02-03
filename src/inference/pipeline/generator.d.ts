@@ -9,7 +9,7 @@
 
 import type { CommandRecorder, ProfileTimings } from '../../gpu/command-recorder.js';
 import type { PipelineState } from './state.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, LayerContext } from './types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, LayerContext } from './types.js';
 import type { LogitsConfig, LogitsWeights } from './logits.js';
 import type { WeightBufferConfig } from './weights.js';
 
@@ -21,6 +21,7 @@ export declare class PipelineGenerator {
    */
   generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
   prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  prefillWithLogits(prompt: string, options?: GenerateOptions): Promise<PrefillResult>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
   generateWithPrefixKV(

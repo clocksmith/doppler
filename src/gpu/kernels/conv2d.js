@@ -1,6 +1,6 @@
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -74,7 +74,14 @@ export async function runConv2D(
   );
 
   const weightBuffer = getBuffer(weight);
-  const biasBuffer = getBuffer(bias);
+  let biasBuffer = getBuffer(bias);
+  let tempBias = null;
+  if (!biasBuffer) {
+    const biasSize = outChannels * bytesPerElement;
+    tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
+    biasBuffer = tempBias;
+    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(biasSize));
+  }
 
   const bindGroup = device.createBindGroup({
     label: 'conv2d_bind_group',
@@ -92,6 +99,9 @@ export async function runConv2D(
   dispatch(device, pipeline, bindGroup, workgroups, 'conv2d');
 
   uniformBuffer.destroy();
+  if (tempBias) {
+    releaseBuffer(tempBias);
+  }
 
   return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'conv2d_output');
 }
@@ -158,7 +168,14 @@ export async function recordConv2D(
   );
 
   const weightBuffer = getBuffer(weight);
-  const biasBuffer = getBuffer(bias);
+  let biasBuffer = getBuffer(bias);
+  let tempBias = null;
+  if (!biasBuffer) {
+    const biasSize = outChannels * bytesPerElement;
+    tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
+    biasBuffer = tempBias;
+    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(biasSize));
+  }
 
   const bindGroup = device.createBindGroup({
     label: 'conv2d_bind_group',
@@ -174,6 +191,9 @@ export async function recordConv2D(
 
   const workgroups = Math.ceil((outChannels * outHeight * outWidth) / 256);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'conv2d');
+  if (tempBias) {
+    recorder.trackTemporaryBuffer(tempBias);
+  }
 
   return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'conv2d_output');
 }

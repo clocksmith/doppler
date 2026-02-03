@@ -28,6 +28,7 @@ export interface AbeOptions extends GenerateOptions {
   agreementTopK?: number;
   minAgreement?: number;
   mergeOnGpu?: boolean;
+  prefillMode?: 'shared' | 'per-expert';
   prefix?: KVCacheSnapshot | null;
   adapterName?: string;
   adapter?: LoRAAdapter | null;

@@ -278,6 +278,9 @@ export class MultiModelNetwork {
     }
 
     const voterIds = options.voterIds ?? expertIds;
+    if (!voterIds.length) {
+      throw new Error('No voter experts provided for ABE generation.');
+    }
     const voterSet = new Set(voterIds);
 
     const pipelines = new Map();
@@ -295,6 +298,8 @@ export class MultiModelNetwork {
     if (!basePipeline) {
       throw new Error('Base pipeline unavailable for ABE generation.');
     }
+    const baseEntry = Array.from(pipelines.entries()).find(([, pipeline]) => pipeline === basePipeline);
+    const basePipelineId = baseEntry?.[0] ?? voterIds[0];
 
     const runtimeDefaults = basePipeline.runtimeConfig.inference;
     const samplingDefaults = runtimeDefaults.sampling;
@@ -321,32 +326,119 @@ export class MultiModelNetwork {
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
     };
 
-    const agreementTopK = options.agreementTopK ?? Math.min(opts.topK ?? 5, 8);
+    const defaultAgreementTopK = opts.topK && opts.topK > 0 ? opts.topK : 5;
+    const agreementTopK = Math.max(1, options.agreementTopK ?? Math.min(defaultAgreementTopK, 8));
     const minAgreement = options.minAgreement ?? 0;
     const mergeOnGpu = options.mergeOnGpu ?? false;
     const padTokenId = basePipeline.tokenizer?.getSpecialTokens?.()?.pad ?? null;
     const stopTokenIds = basePipeline.modelConfig.stopTokenIds;
     const eosToken = basePipeline.tokenizer?.getSpecialTokens?.()?.eos;
 
-    let prefix = options.prefix ?? this.getSharedPrefixSnapshot();
-    let prefetchedFromBase = false;
-    if (!prefix) {
-      prefix = await basePipeline.prefillKVOnly(prompt, opts);
-      prefetchedFromBase = true;
-    }
-    for (const pipeline of pipelines.values()) {
-      if (prefetchedFromBase && pipeline === basePipeline) continue;
-      pipeline.applyKVCacheSnapshot(prefix);
+    const sharedPrefix = options.prefix ?? this.getSharedPrefixSnapshot();
+    const prefillMode = options.prefillMode ?? (sharedPrefix ? 'shared' : 'per-expert');
+    if (prefillMode === 'shared' && !voterSet.has(basePipelineId)) {
+      throw new Error('Shared prefix mode requires the base pipeline to be a voter.');
     }
 
     const currentIds = new Map();
-    for (const expertId of expertIds) {
-      currentIds.set(expertId, [...prefix.tokens]);
+    const prefillLogits = new Map();
+
+    if (prefillMode === 'per-expert') {
+      const prefillResults = await Promise.all(
+        expertIds.map(async (expertId) => {
+          const pipeline = pipelines.get(expertId);
+          if (!pipeline) {
+            throw new Error(`Missing pipeline for expert ${expertId}`);
+          }
+          return { expertId, result: await pipeline.prefillWithLogits(prompt, opts) };
+        })
+      );
+
+      const baseTokens = prefillResults[0]?.result.tokens ?? [];
+      for (const { expertId, result } of prefillResults) {
+        if (result.tokens.length !== baseTokens.length) {
+          throw new Error('Tokenizer mismatch across ABE prefill results.');
+        }
+        currentIds.set(expertId, [...result.tokens]);
+        prefillLogits.set(expertId, result.logits);
+      }
+    } else {
+      let prefix = sharedPrefix;
+      let prefetchedFromBase = false;
+      let basePrefill = null;
+
+      if (!prefix) {
+        basePrefill = await basePipeline.prefillWithLogits(prompt, opts);
+        prefix = basePrefill;
+        prefillLogits.set(basePipelineId, basePrefill.logits);
+        prefetchedFromBase = true;
+      } else {
+        basePrefill = await basePipeline.prefillWithLogits(prompt, opts);
+        if (basePrefill.tokens.length !== prefix.tokens.length) {
+          throw new Error('Shared prefix tokens do not match prompt tokenization.');
+        }
+        prefillLogits.set(basePipelineId, basePrefill.logits);
+      }
+
+      for (const pipeline of pipelines.values()) {
+        if (prefetchedFromBase && pipeline === basePipeline) continue;
+        pipeline.applyKVCacheSnapshot(prefix);
+      }
+
+      for (const expertId of expertIds) {
+        currentIds.set(expertId, [...prefix.tokens]);
+      }
     }
 
-    const generatedIds = [...prefix.tokens];
-    const promptTokenCount = prefix.tokens.length;
+    const baseTokenList = currentIds.get(expertIds[0]) ?? [];
+    const generatedIds = [...baseTokenList];
+    const promptTokenCount = generatedIds.length;
     let tokensGenerated = 0;
+
+    if (tokensGenerated < opts.maxTokens) {
+      const voterLogits = voterIds
+        .map((expertId) => prefillLogits.get(expertId))
+        .filter(Boolean);
+
+      if (voterLogits.length > 0) {
+        const logitsList = voterLogits;
+        const { weights, agreement } = buildAgreementWeights(
+          logitsList,
+          agreementTopK,
+          (tokens) => basePipeline.tokenizer?.decode?.(tokens) ?? ''
+        );
+        const normalizedWeights = agreement < minAgreement
+          ? weights.map(() => 1 / weights.length)
+          : weights;
+        const merged = mergeLogitsCpu(logitsList, normalizedWeights);
+        applyRepetitionPenalty(merged, generatedIds, opts.repetitionPenalty);
+        const firstToken = sample(merged, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+        });
+        generatedIds.push(firstToken);
+        tokensGenerated++;
+        for (const expertId of expertIds) {
+          const ids = currentIds.get(expertId);
+          if (!ids) continue;
+          ids.push(firstToken);
+        }
+        const tokenText = basePipeline.tokenizer.decode([firstToken], true, false);
+        yield tokenText;
+        if (options.onToken) options.onToken(firstToken, tokenText);
+        if (isStopToken(firstToken, stopTokenIds, eosToken)) {
+          return;
+        }
+        if (opts.stopSequences.length > 0) {
+          const fullText = basePipeline.tokenizer.decode(generatedIds.slice(promptTokenCount), false);
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+            return;
+          }
+        }
+      }
+    }
 
     while (tokensGenerated < opts.maxTokens) {
       if (options.signal?.aborted) break;

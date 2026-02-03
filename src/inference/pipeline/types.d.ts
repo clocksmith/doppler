@@ -339,6 +339,14 @@ export interface LogitsStepResult {
 }
 
 /**
+ * Result of prefill with logits.
+ */
+export interface PrefillResult extends KVCacheSnapshot {
+  /** Finalized logits for the next token after prefill */
+  logits: Float32Array;
+}
+
+/**
  * Result of text generation.
  */
 export interface GenerationResult {

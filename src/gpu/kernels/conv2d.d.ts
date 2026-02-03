@@ -21,7 +21,7 @@ export interface Conv2DSelectionContext {
 export declare function runConv2D(
   input: Tensor,
   weight: GPUBuffer | WeightBuffer,
-  bias: GPUBuffer | WeightBuffer,
+  bias: GPUBuffer | WeightBuffer | null,
   options: Conv2DOptions
 ): Promise<Tensor>;
 
@@ -29,6 +29,6 @@ export declare function recordConv2D(
   recorder: CommandRecorder,
   input: Tensor,
   weight: GPUBuffer | WeightBuffer,
-  bias: GPUBuffer | WeightBuffer,
+  bias: GPUBuffer | WeightBuffer | null,
   options: Conv2DOptions
 ): Promise<Tensor>;
