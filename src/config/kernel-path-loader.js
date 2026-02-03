@@ -95,6 +95,9 @@ export function applyKernelOverrides(path, overrides) {
     }
     step.kernel = config.shaderFile;
     step.entry = config.entryPoint;
+    if (config.wgslOverrides && Object.keys(config.wgslOverrides).length > 0) {
+      step.constants = { ...(step.constants ?? {}), ...config.wgslOverrides };
+    }
   };
 
   // 1. Attention Overrides
@@ -273,11 +276,33 @@ function findStepByOp(steps, op) {
   return steps.find((step) => step.op === op) ?? null;
 }
 
+function pickOverrideConstants(constants, overrideKeys) {
+  if (!constants || overrideKeys.size === 0) return {};
+  const selected = {};
+  for (const key of overrideKeys) {
+    if (constants[key] !== undefined) {
+      selected[key] = constants[key];
+    }
+  }
+  return selected;
+}
+
+function overridesEqual(a, b) {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+}
+
 function findKernelVariant(
   operation,
   kernel,
   entry,
-  phase
+  phase,
+  constants
 ) {
   const variants = KERNEL_CONFIGS[operation];
   if (!variants) return null;
@@ -293,18 +318,34 @@ function findKernelVariant(
     fallbackVariant = variant;
     fallbackCount += 1;
     if (config.entryPoint === normalizedEntry) {
-      entryMatches.push(variant);
+      entryMatches.push({ variant, config });
     }
   }
 
   if (entryMatches.length === 1) {
-    return entryMatches[0];
+    return entryMatches[0].variant;
+  }
+  if (entryMatches.length > 1) {
+    const overrideKeys = new Set();
+    for (const { config } of entryMatches) {
+      const keys = Object.keys(config.wgslOverrides ?? {});
+      for (const key of keys) overrideKeys.add(key);
+    }
+    if (overrideKeys.size > 0) {
+      const requestedOverrides = pickOverrideConstants(constants, overrideKeys);
+      const overrideMatches = entryMatches.filter(({ config }) =>
+        overridesEqual(config.wgslOverrides ?? {}, requestedOverrides)
+      );
+      if (overrideMatches.length === 1) {
+        return overrideMatches[0].variant;
+      }
+    }
   }
   if (entryMatches.length > 1 && phase) {
     const phasePrefix = `${phase}_`;
-    const phaseMatch = entryMatches.find((variant) => variant.startsWith(phasePrefix));
+    const phaseMatch = entryMatches.find(({ variant }) => variant.startsWith(phasePrefix));
     if (phaseMatch) {
-      return phaseMatch;
+      return phaseMatch.variant;
     }
   }
 
@@ -321,7 +362,7 @@ export function getKernelPathMatmulVariant(
 ) {
   const step = getKernelPathMatmulStep(role, phase, layerIndex);
   if (!step) return null;
-  return findKernelVariant('matmul', step.kernel, step.entry, phase);
+  return findKernelVariant('matmul', step.kernel, step.entry, phase, step.constants);
 }
 
 export function getKernelPathMatmulConstants(
@@ -364,7 +405,7 @@ export function getKernelPathAttentionVariant(
   const steps = getKernelPathStepsForSection(activeKernelPath, 'layer', phase, layerIndex ?? 0);
   const step = findStepByOp(steps, 'attention');
   if (!step) return null;
-  return findKernelVariant('attention', step.kernel, step.entry, phase);
+  return findKernelVariant('attention', step.kernel, step.entry, phase, step.constants);
 }
 
 // =============================================================================

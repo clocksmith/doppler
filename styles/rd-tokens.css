@@ -1,0 +1,44 @@
+/* ============================================
+   RD Design System - Tokens
+   CSS Custom Properties (Design Tokens)
+   ============================================ */
+
+:root {
+  /* === COLORS === */
+  --fg: #000000;
+  --bg: #FFFFFF;
+
+  /* === FONTS === */
+  /* System monospace only */
+  --font-a: 'SF Mono', 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+  --font-b: 'Courier New', 'Courier', 'Liberation Mono', 'Nimbus Mono L', monospace;
+
+  /* === FONT SIZES === */
+  --font-sm: 13px;
+  --font-xs: 11px;
+
+  /* === SPACING === */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* === BORDER WIDTHS === */
+  --border-sm: 1px;
+  --border-md: 2px;
+  --border-lg: 3px;
+
+  /* === OPACITY === */
+  --opacity-ghost: 0.7;
+  --opacity-secondary: 0.6;
+  --opacity-muted: 0.5;
+  --opacity-disabled: 0.3;
+
+  /* === ACCENT === */
+  /* Prism gradient (max 1 per page) */
+  --prism: conic-gradient(
+    from var(--prism-angle, 0deg),
+    #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff, #ff0080, #ff0000
+  );
+}

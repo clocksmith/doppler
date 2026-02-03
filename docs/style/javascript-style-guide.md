@@ -560,7 +560,7 @@ This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<
 
 ## Quantization Format Constants
 
-Centralize quantization block sizes in a single module. Format-specific constants are **invariants** derived from the quantization spec—they should never be redefined.
+Centralize quantization block sizes in a single module. Format-specific constants are **invariants** derived from the quantization spec. They should never be redefined.
 
 ```javascript
 // loader/quantization-constants.js
@@ -847,7 +847,7 @@ if (maxSeq === undefined) throw new Error('maxSeqLen is required');
 const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTokens;
 ```
 
-**Rule:** If a value has a fallback, the fallback must be a named constant or config getter. If the value is truly required, don't provide a fallback—fail fast with a descriptive error.
+**Rule:** If a value has a fallback, the fallback must be a named constant or config getter. If the value is truly required, don't provide a fallback. Fail fast with a descriptive error.
 
 ---
 
@@ -1022,5 +1022,5 @@ export function matmulReference(a, b, m, n, k) {
 
 ## See Also
 
-- [WGSL Style Guide](./WGSL_style-guide.md) - Shader conventions
+- [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [General Style Guide](./general-style-guide.md) - General patterns

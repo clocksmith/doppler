@@ -331,8 +331,8 @@ For adapters (separate or merged), the naming extends with `+` or `~`:
 | `~lora-{name}-{quant}r{rank}` | Merged adapter (baked into weights) |
 
 Examples:
-- `gemma-2b-wq4k+lora-coding-f16r16` — Standalone coding adapter
-- `gemma-2b-wq4k~lora-instruct-f16r32` — Instruct adapter merged in
+- `gemma-2b-wq4k+lora-coding-f16r16` - Standalone coding adapter
+- `gemma-2b-wq4k~lora-instruct-f16r32` - Instruct adapter merged in
 
 ### Multi-Shard Tensors
 
@@ -514,7 +514,6 @@ for await (const token of pipeline.generate('Hello')) {
 | Version | Changes |
 |---------|---------|
 | 1 | Component groups, external tensors.json, multi-architecture support |
-| 0.x | Initial format with inline tensors (deprecated) |
 
 ---
 
@@ -522,7 +521,6 @@ for await (const token of pipeline.generate('Hello')) {
 
 - `src/formats/rdrr/manifest.js`: Parser and validation
 - `src/converter/core.js`: Platform-agnostic conversion types and functions
-- `src/browser/browser-converter.js`: Browser writer for in-app conversion
 - `src/browser/browser-converter.js`: Browser conversion with OPFS output
 - `storage/shard-manager.js`: OPFS shard management
 - `storage/downloader.js`: Resumable downloads
@@ -533,7 +531,7 @@ for await (const token of pipeline.generate('Hello')) {
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `style/wgsl-style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
 
 ## RDRR LoRA Format

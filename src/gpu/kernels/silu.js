@@ -37,16 +37,13 @@ function resolveSwigluLimit(value, context) {
 
 
 function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
-  
-  const entries = [
+  const gateBuffer = gate?.buffer ?? input.buffer;
+  return [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: input.buffer } },
     { binding: 2, resource: { buffer: output } },
+    { binding: 3, resource: { buffer: gateBuffer } },
   ];
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
-  }
-  return entries;
 }
 
 
@@ -188,7 +185,8 @@ export async function runSiLURowSplit(
     device
   );
 
-  // Create bind group - rowsplit only needs uniforms, input, and output (no gate binding)
+  // Bind group: provide a dummy gate buffer to satisfy the fixed layout
+  const gateBuffer = input.buffer;
   const bindGroup = device.createBindGroup({
     label: 'silu_rowsplit_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -196,6 +194,7 @@ export async function runSiLURowSplit(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: gateBuffer } },
     ],
   });
 
@@ -240,7 +239,7 @@ export async function recordSiLURowSplit(
     recorder
   );
 
-  // Rowsplit only needs uniforms, input, and output (no gate binding)
+  const gateBuffer = input.buffer;
   const bindGroup = device.createBindGroup({
     label: 'silu_rowsplit_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -248,6 +247,7 @@ export async function recordSiLURowSplit(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input.buffer } },
       { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: gateBuffer } },
     ],
   });
 

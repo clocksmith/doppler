@@ -49,6 +49,9 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
   // Extract underlying GPUBuffer from WeightBuffer if needed
   const bBuffer = getBuffer(B);
   const weightDtype = getWeightDtype(B);
+  const weightLabel = (B && typeof B === 'object' ? B.label : null) ?? bBuffer?.label ?? null;
+  const weightLayout = getLayout(B);
+  const weightShape = B?.shape ? `[${B.shape.join(', ')}]` : null;
 
   // Debug: log what options are being passed
   if (isTraceEnabled('kernels') && _runMatmulDebugCount < 20) {
@@ -101,19 +104,35 @@ export async function runMatmul(A, B, M, N, K, options = {}) {
     matmulADtype = 'f32';
   }
 
-  const { aBindingSize, bBindingSize } = getMatmulBindingSizes(
-    'runMatmul',
-    matmulInput.buffer,
-    bBuffer,
-    M,
-    N,
-    K,
-    matmulADtype,
-    bDtype,
-    transposeB,
-    aOffset,
-    bOffset
-  );
+  let aBindingSize;
+  let bBindingSize;
+  try {
+    ({ aBindingSize, bBindingSize } = getMatmulBindingSizes(
+      'runMatmul',
+      matmulInput.buffer,
+      bBuffer,
+      M,
+      N,
+      K,
+      matmulADtype,
+      bDtype,
+      transposeB,
+      aOffset,
+      bOffset
+    ));
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('B buffer too small')) {
+      const detailParts = [];
+      if (weightLabel) detailParts.push(`label=${weightLabel}`);
+      if (weightDtype) detailParts.push(`weightDtype=${weightDtype}`);
+      if (weightLayout) detailParts.push(`layout=${weightLayout}`);
+      if (weightShape) detailParts.push(`shape=${weightShape}`);
+      if (Number.isFinite(bBuffer?.size)) detailParts.push(`bSize=${bBuffer.size}`);
+      const detail = detailParts.length ? ` (${detailParts.join(', ')})` : '';
+      throw new Error(`${err.message}${detail}`);
+    }
+    throw err;
+  }
 
   if (isTraceEnabled('kernels') && bDtype === 'q4k') {
     if (useQ4KFused) {

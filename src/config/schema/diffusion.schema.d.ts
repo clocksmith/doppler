@@ -6,7 +6,7 @@
  * @module config/schema/diffusion
  */
 
-export type DiffusionSchedulerType = 'ddim' | 'euler' | 'euler_a' | 'dpmpp_2m';
+export type DiffusionSchedulerType = 'ddim' | 'euler' | 'euler_a' | 'dpmpp_2m' | 'flowmatch_euler';
 
 export type DiffusionDtype = 'f16' | 'f32';
 
@@ -21,6 +21,8 @@ export interface DiffusionSchedulerConfigSchema {
   numSteps: number;
   guidanceScale: number;
   eta: number;
+  numTrainTimesteps: number;
+  shift: number;
 }
 
 export interface DiffusionLatentConfigSchema {

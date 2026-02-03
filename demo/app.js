@@ -1,6 +1,7 @@
 import { log } from '../src/debug/index.js';
-import { listPresets, createConverterConfig } from '../src/config/index.js';
+import { listPresets, createConverterConfig, detectPreset, resolvePreset } from '../src/config/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../src/config/schema/index.js';
 import { listRegisteredModels, removeRegisteredModel } from '../src/storage/registry.js';
 import { formatBytes, getQuotaInfo } from '../src/storage/quota.js';
 import {
@@ -8,11 +9,13 @@ import {
   loadManifestFromStore,
   loadShard,
   loadTensorsFromStore,
+  saveManifest,
+  saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
   deleteModel,
 } from '../src/storage/shard-manager.js';
-import { parseManifest, getManifest, setManifest, clearManifest } from '../src/storage/rdrr-format.js';
+import { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from '../src/storage/rdrr-format.js';
 import {
   downloadModel,
   pauseDownload,
@@ -27,6 +30,7 @@ import {
   createRemoteModelSources,
   isConversionSupported,
 } from '../src/browser/browser-converter.js';
+import { buildManifestInference, inferEmbeddingOutputConfig } from '../src/converter/manifest-inference.js';
 import { pickModelDirectory, pickModelFiles } from '../src/browser/file-picker.js';
 import { applyRuntimePreset, loadRuntimePreset } from '../src/inference/browser-harness.js';
 import { createPipeline } from '../src/inference/pipeline.js';
@@ -49,7 +53,10 @@ const state = {
   lastInferenceStats: null,
   lastMemoryStats: null,
   activePipeline: null,
+  activePipelineModelId: null,
   activeModelId: null,
+  modelTypeCache: {},
+  modeModelId: { run: null, diffusion: null },
   chatMessages: [],
   chatAbortController: null,
   chatGenerating: false,
@@ -174,6 +181,9 @@ function setUiMode(mode) {
   if (mode === 'models') {
     refreshStorageInspector();
   }
+  syncModelForMode(mode).catch((error) => {
+    log.warn('DopplerDemo', `Mode model sync failed: ${error.message}`);
+  });
 }
 
 function setHidden(el, hidden) {
@@ -314,6 +324,105 @@ function resolveActiveModelId() {
   const selected = modelSelect?.value?.trim();
   if (selected) return selected;
   return state.activeModelId || null;
+}
+
+function normalizeModelType(value) {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  return normalized || null;
+}
+
+function isCompatibleModelType(modelType, mode) {
+  const normalized = normalizeModelType(modelType);
+  if (mode === 'diffusion') {
+    return normalized === 'diffusion';
+  }
+  if (mode === 'run') {
+    return normalized !== 'diffusion';
+  }
+  return true;
+}
+
+function isModeModelSelectable(mode) {
+  return mode === 'run' || mode === 'diffusion';
+}
+
+async function getModelTypeForId(modelId) {
+  if (!modelId) return null;
+  const cached = state.modelTypeCache[modelId];
+  if (cached) return cached;
+  try {
+    await openModelStore(modelId);
+    const manifestText = await loadManifestFromStore();
+    if (!manifestText) return null;
+    const manifest = JSON.parse(manifestText);
+    const modelType = normalizeModelType(manifest?.modelType) || 'transformer';
+    state.modelTypeCache[modelId] = modelType;
+    return modelType;
+  } catch (error) {
+    log.warn('DopplerDemo', `Failed to read manifest for ${modelId}: ${error.message}`);
+    return null;
+  }
+}
+
+async function resolveCompatibleModelId(mode) {
+  if (!isModeModelSelectable(mode)) return null;
+  let models = [];
+  try {
+    models = await listRegisteredModels();
+  } catch (error) {
+    log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
+  }
+  const modelIds = models
+    .map((entry) => entry.modelId || entry.id)
+    .filter(Boolean);
+  if (!modelIds.length) return null;
+
+  const pipelineId = state.activePipelineModelId;
+  if (pipelineId && modelIds.includes(pipelineId)) {
+    const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType)
+      || await getModelTypeForId(pipelineId);
+    if (isCompatibleModelType(pipelineType, mode)) {
+      return pipelineId;
+    }
+  }
+
+  const preferred = state.modeModelId?.[mode] || null;
+  if (preferred && modelIds.includes(preferred)) {
+    const preferredType = await getModelTypeForId(preferred);
+    if (isCompatibleModelType(preferredType, mode)) {
+      return preferred;
+    }
+  }
+
+  const current = state.activeModelId;
+  if (current && modelIds.includes(current)) {
+    const currentType = await getModelTypeForId(current);
+    if (isCompatibleModelType(currentType, mode)) {
+      return current;
+    }
+  }
+
+  for (const modelId of modelIds) {
+    const modelType = await getModelTypeForId(modelId);
+    if (isCompatibleModelType(modelType, mode)) {
+      return modelId;
+    }
+  }
+  return null;
+}
+
+async function syncModelForMode(mode) {
+  if (!isModeModelSelectable(mode)) return;
+  const compatibleId = await resolveCompatibleModelId(mode);
+  if (!compatibleId) return;
+  if (state.activeModelId !== compatibleId) {
+    if (state.activePipeline && state.activePipelineModelId && state.activePipelineModelId !== compatibleId) {
+      await unloadActivePipeline();
+    }
+    selectDiagnosticsModel(compatibleId);
+  }
+  state.modeModelId[mode] = compatibleId;
 }
 
 async function writeFileToDirectory(dirHandle, name, data) {
@@ -478,6 +587,9 @@ function selectDiagnosticsModel(modelId) {
   if (!modelSelect) return;
   modelSelect.value = modelId;
   state.activeModelId = modelId || null;
+  if (isModeModelSelectable(state.uiMode)) {
+    state.modeModelId[state.uiMode] = modelId || null;
+  }
 }
 
 async function updateStorageInfo() {
@@ -793,6 +905,7 @@ async function refreshModelList() {
   renderModelList(models);
   updateSidebarLayout(models);
   await updateStorageInfo();
+  await syncModelForMode(state.uiMode);
   if (state.uiMode === 'models') {
     await refreshStorageInspector();
   }
@@ -1243,6 +1356,11 @@ async function ensureChatPipeline() {
     const pipeline = await loadPipelineFromStorage(modelId);
     state.activePipeline = pipeline;
     state.activeModelId = modelId;
+    state.activePipelineModelId = modelId;
+    if (pipeline?.manifest?.modelType) {
+      state.modelTypeCache[modelId] = normalizeModelType(pipeline.manifest.modelType);
+    }
+    state.modeModelId.run = modelId;
     state.lastMemoryStats = pipeline.getMemoryStats?.() ?? null;
     updateMemoryControls();
     const snapshot = captureMemorySnapshot();
@@ -1273,6 +1391,11 @@ async function ensureDiffusionPipeline() {
     const pipeline = await loadPipelineFromStorage(modelId);
     state.activePipeline = pipeline;
     state.activeModelId = modelId;
+    state.activePipelineModelId = modelId;
+    if (pipeline?.manifest?.modelType) {
+      state.modelTypeCache[modelId] = normalizeModelType(pipeline.manifest.modelType);
+    }
+    state.modeModelId.diffusion = modelId;
     state.lastMemoryStats = pipeline.getMemoryStats?.() ?? null;
     updateMemoryControls();
     const snapshot = captureMemorySnapshot();
@@ -1345,6 +1468,7 @@ async function handleDiffusionRun() {
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
   } catch (error) {
+    log.error('DopplerDemo', `Diffusion run failed: ${error.message}`);
     updateDiffusionStatus(`Error: ${error.message}`);
   } finally {
     state.diffusionGenerating = false;
@@ -1462,6 +1586,7 @@ async function unloadActivePipeline() {
     log.warn('DopplerDemo', `Unload failed: ${error.message}`);
   }
   state.activePipeline = null;
+  state.activePipelineModelId = null;
   state.lastMemoryStats = null;
   state.lastInferenceStats = null;
   updateMemoryControls();
@@ -1556,6 +1681,117 @@ async function runConversion(files, converterConfig, label, modelIdOverride) {
     });
     updateConvertStatus(`Conversion complete: ${resultModelId}`, 100);
     await refreshModelList();
+  } finally {
+    state.convertActive = false;
+    updateStatusIndicator();
+  }
+}
+
+async function regenerateManifest(modelId) {
+  if (!modelId) {
+    throw new Error('Select a model before regenerating the manifest.');
+  }
+
+  await openModelStore(modelId);
+  const manifestText = await loadManifestFromStore();
+  if (!manifestText) {
+    throw new Error('Manifest not found in storage.');
+  }
+
+  const manifest = parseManifest(manifestText);
+  let tensorMap = manifest.tensors ?? null;
+  if (!tensorMap && manifest.tensorsFile) {
+    const tensorsText = await loadTensorsFromStore();
+    if (!tensorsText) {
+      throw new Error('tensors.json not found in storage.');
+    }
+    tensorMap = JSON.parse(tensorsText);
+  }
+  if (!tensorMap) {
+    throw new Error('Manifest is missing tensor locations.');
+  }
+
+  const tensorNames = Object.keys(tensorMap);
+  for (const name of tensorNames) {
+    const entry = tensorMap[name];
+    if (entry) {
+      entry.role = classifyTensorRole(name);
+    }
+  }
+
+  let inference = manifest.inference;
+  if (manifest.modelType === 'diffusion') {
+    if (!inference) {
+      inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
+    }
+  } else {
+    const rawConfig = manifest.config ?? {};
+    const architectureHint = rawConfig.architectures?.[0] ?? rawConfig.model_type ?? '';
+    const presetId = manifest.inference?.presetId || detectPreset(rawConfig, architectureHint);
+    if (presetId === 'transformer') {
+      const modelType = rawConfig.model_type ?? 'unknown';
+      throw new Error(
+        `Unknown model family: architecture="${architectureHint || 'unknown'}", model_type="${modelType}"`
+      );
+    }
+    const preset = resolvePreset(presetId);
+    const headDim = rawConfig.head_dim
+      ?? (manifest.architecture && typeof manifest.architecture === 'object' ? manifest.architecture.headDim : null);
+    if (!headDim) {
+      throw new Error('Missing headDim in manifest config.');
+    }
+    inference = buildManifestInference(
+      preset,
+      rawConfig,
+      headDim,
+      manifest.quantizationInfo ?? null,
+      tensorNames
+    );
+  }
+
+  const embeddingOutput = inferEmbeddingOutputConfig(tensorMap);
+  if (embeddingOutput && inference?.output) {
+    inference = {
+      ...inference,
+      output: {
+        ...inference.output,
+        ...embeddingOutput,
+      },
+    };
+  }
+
+  const updatedManifest = {
+    ...manifest,
+    inference,
+    tensors: tensorMap,
+    tensorCount: tensorNames.length,
+    metadata: {
+      ...(manifest.metadata || {}),
+      manifestRegeneratedAt: new Date().toISOString(),
+    },
+  };
+
+  await saveManifest(JSON.stringify(updatedManifest, null, 2));
+  if (manifest.tensorsFile) {
+    await saveTensorsToStore(JSON.stringify(tensorMap, null, 2));
+  }
+
+  return updatedManifest;
+}
+
+async function handleRegenerateManifest() {
+  if (state.convertActive) return;
+  const modelId = getSelectedModelId();
+  updateConvertStatus(`Regenerating manifest${modelId ? ` (${modelId})` : ''}...`, 0);
+  state.convertActive = true;
+  updateStatusIndicator();
+  try {
+    await regenerateManifest(modelId);
+    updateConvertStatus(`Manifest regenerated: ${modelId}`, 100);
+    await refreshModelList();
+  } catch (error) {
+    log.error('DopplerDemo', `Manifest regenerate failed: ${error.message}`);
+    updateConvertStatus(`Manifest error: ${error.message}`, 0);
   } finally {
     state.convertActive = false;
     updateStatusIndicator();
@@ -1906,6 +2142,7 @@ function exportDiagnosticsReport() {
 function bindUI() {
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
+  const regenManifestBtn = $('regen-manifest-btn');
   const downloadStart = $('download-start-btn');
   const downloadPause = $('download-pause-btn');
   const downloadResume = $('download-resume-btn');
@@ -1961,6 +2198,13 @@ function bindUI() {
     });
   });
 
+  regenManifestBtn?.addEventListener('click', () => {
+    resetConvertStatus();
+    handleRegenerateManifest().catch((error) => {
+      updateConvertStatus(`Manifest error: ${error.message}`);
+    });
+  });
+
   downloadStart?.addEventListener('click', () => {
     startDownload();
   });
@@ -1990,7 +2234,7 @@ function bindUI() {
   });
 
   diagnosticsModelSelect?.addEventListener('change', () => {
-    state.activeModelId = diagnosticsModelSelect.value || null;
+    selectDiagnosticsModel(diagnosticsModelSelect.value || null);
   });
 
   runtimeFile?.addEventListener('change', () => {
@@ -2074,13 +2318,14 @@ function bindUI() {
     if (diffusionSteps) diffusionSteps.value = '20';
     if (diffusionGuidance) diffusionGuidance.value = '7.5';
     if (diffusionSeed) diffusionSeed.value = '';
-    if (diffusionWidth) diffusionWidth.value = '512';
-    if (diffusionHeight) diffusionHeight.value = '512';
+    if (diffusionWidth) diffusionWidth.value = '256';
+    if (diffusionHeight) diffusionHeight.value = '256';
     handleDiffusionClear();
   });
 
   diffusionRun?.addEventListener('click', () => {
     handleDiffusionRun().catch((error) => {
+      log.error('DopplerDemo', `Diffusion run failed: ${error.message}`);
       updateDiffusionStatus(`Error: ${error.message}`);
     });
   });

@@ -159,6 +159,13 @@ export {
   type GroupNormOptions,
 } from './groupnorm.js';
 
+// Modulate
+export {
+  runModulate,
+  recordModulate,
+  type ModulateOptions,
+} from './modulate.js';
+
 // Residual Connections
 export {
   runResidualAdd,
@@ -167,6 +174,13 @@ export {
   recordBiasAdd,
   type ResidualOptions,
 } from './residual.js';
+
+// Pixel Shuffle
+export {
+  runPixelShuffle,
+  recordPixelShuffle,
+  type PixelShuffleOptions,
+} from './pixel_shuffle.js';
 
 // Upsample2D
 export {

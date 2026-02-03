@@ -3,6 +3,8 @@ export const DEFAULT_DIFFUSION_SCHEDULER_CONFIG = {
   numSteps: 20,
   guidanceScale: 7.5,
   eta: 0.0,
+  numTrainTimesteps: 1000,
+  shift: 1.0,
 };
 
 export const DEFAULT_DIFFUSION_LATENT_CONFIG = {

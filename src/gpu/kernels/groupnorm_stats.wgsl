@@ -2,6 +2,7 @@
 // Computes mean and inv-std for each group.
 
 override WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     channels: u32,
@@ -18,8 +19,8 @@ struct Uniforms {
 @group(0) @binding(1) var<storage, read> input: array<f32>;
 @group(0) @binding(2) var<storage, read_write> stats: array<f32>;
 
-var<workgroup> shared_sum: array<f32, WORKGROUP_SIZE>;
-var<workgroup> shared_sq: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_sq: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
@@ -28,6 +29,9 @@ fn main(
 ) {
     let group = wid.x;
     if (group >= u.num_groups) {
+        return;
+    }
+    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || (WORKGROUP_SIZE & (WORKGROUP_SIZE - 1u)) != 0u) {
         return;
     }
 

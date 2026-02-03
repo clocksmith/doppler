@@ -264,6 +264,9 @@ async function parseDiffusionModel(files, onProgress, signal) {
     const file = findFileBySuffix(files, suffix);
     if (!file) return null;
     const config = await parseJsonFile(file, `${componentId} config`);
+    if (componentId === 'transformer' && config && !config.weight_format) {
+      config.weight_format = 'diffusers';
+    }
     diffusionConfig.components[componentId] = {
       ...(diffusionConfig.components[componentId] || {}),
       config,
@@ -317,10 +320,10 @@ async function parseDiffusionModel(files, onProgress, signal) {
   });
 
   const transformerFile = pickFirstBySuffix(files, [
-    'sd3.5_medium.safetensors',
     'transformer/diffusion_pytorch_model.safetensors',
     'transformer/model.safetensors',
     'transformer/model.fp16.safetensors',
+    'sd3.5_medium.safetensors',
   ]);
   await parseSingleSafetensors('transformer', transformerFile);
 
@@ -434,6 +437,37 @@ async function parseDiffusionModel(files, onProgress, signal) {
 export async function convertModel(files, options = {}) {
   const { modelId: userModelId, onProgress, signal, converterConfig } = options;
   const resolvedConverterConfig = converterConfig || createConverterConfig();
+  const progressState = {
+    lastStage: null,
+    lastMessage: null,
+    lastPercentBucket: null,
+  };
+  const reportProgress = (update) => {
+    if (update) {
+      const stage = update.stage ?? null;
+      const message = update.message ? String(update.message) : '';
+      const percent = Number.isFinite(update.percent) ? update.percent : null;
+      if (stage && stage !== progressState.lastStage) {
+        progressState.lastStage = stage;
+        progressState.lastMessage = null;
+        progressState.lastPercentBucket = null;
+        log.info('Convert', message ? `${stage}: ${message}` : `${stage}`);
+      } else if (stage === ConvertStage.WRITING && percent !== null) {
+        const bucket = Math.floor(percent / 5) * 5;
+        if (bucket !== progressState.lastPercentBucket) {
+          progressState.lastPercentBucket = bucket;
+          const counts = Number.isFinite(update.current) && Number.isFinite(update.total)
+            ? ` (${update.current}/${update.total})`
+            : '';
+          log.info('Convert', `Writing ${bucket}%${counts}`);
+        }
+      } else if (message && message !== progressState.lastMessage) {
+        progressState.lastMessage = message;
+        log.info('Convert', message);
+      }
+    }
+    onProgress?.(update);
+  };
 
   let modelId = null;
   const shardInfos = [];
@@ -461,7 +495,7 @@ export async function convertModel(files, options = {}) {
     await initStorage();
     const persistence = await requestPersistence();
     const backendType = getStorageBackendType();
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.DETECTING,
       message: `Storage backend: ${backendType ?? 'unknown'}`,
       backend: backendType,
@@ -469,7 +503,7 @@ export async function convertModel(files, options = {}) {
     });
 
     // Detect format
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.DETECTING,
       message: 'Detecting model format...',
     });
@@ -478,7 +512,7 @@ export async function convertModel(files, options = {}) {
 
     const detectTimer = createStageTimer('Detect format');
     if (diffusionCandidate) {
-      diffusionInfo = await parseDiffusionModel(inputFiles, onProgress, signal);
+      diffusionInfo = await parseDiffusionModel(inputFiles, reportProgress, signal);
       diffusionAuxFiles = diffusionInfo?.auxFiles ?? null;
       diffusionArchitecture = diffusionInfo?.architecture ?? null;
       diffusionEosTokenId = null;
@@ -500,7 +534,7 @@ export async function convertModel(files, options = {}) {
       }
     }
 
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.DETECTING,
       message: `Format: ${format.type}`,
       format: format.type,
@@ -523,7 +557,7 @@ export async function convertModel(files, options = {}) {
       };
       config = diffusionInfo.config;
     } else if (format.type === 'gguf') {
-      modelInfo = await parseGGUFModel(format.ggufFile, onProgress, signal);
+      modelInfo = await parseGGUFModel(format.ggufFile, reportProgress, signal);
     } else if (format.type === 'single') {
       const parsed = await parseSafetensorsFile(format.safetensorsFile);
       modelInfo = { tensors: parsed.tensors, config: parsed.config };
@@ -754,7 +788,7 @@ export async function convertModel(files, options = {}) {
       throw new QuotaExceededError(totalSizeBytes, spaceCheck.info.available);
     }
 
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.PARSING,
       message: `Model: ${modelId}`,
       modelId,
@@ -801,7 +835,7 @@ export async function convertModel(files, options = {}) {
     const packerTensors = tensorPlans;
 
     // Pack tensors into shards
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.WRITING,
       message: 'Packing tensors...',
     });
@@ -809,7 +843,7 @@ export async function convertModel(files, options = {}) {
     const packTimer = createStageTimer('Pack shards');
     const packResult = await packer.pack(packerTensors, {
       onProgress: (current, total, tensorName) => {
-        onProgress?.({
+        reportProgress({
           stage: ConvertStage.WRITING,
           message: `Processing ${tensorName}`,
           current,
@@ -837,7 +871,7 @@ export async function convertModel(files, options = {}) {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
     // Create manifest using shared function
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.MANIFEST,
       message: 'Creating manifest...',
     });
@@ -911,7 +945,7 @@ export async function convertModel(files, options = {}) {
     }
     manifestTimer.stop();
 
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.COMPLETE,
       message: 'Conversion complete!',
       modelId,
@@ -948,7 +982,7 @@ export async function convertModel(files, options = {}) {
       }
     }
 
-    onProgress?.({
+    reportProgress({
       stage: ConvertStage.ERROR,
       message: error.message,
       error: error,

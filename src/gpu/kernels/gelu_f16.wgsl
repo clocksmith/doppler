@@ -6,6 +6,8 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
+override HAS_GATE: bool = false;
+override USE_ROWSPLIT: bool = false;
 
 struct Uniforms {
     size: u32,          // Total output elements
@@ -36,40 +38,27 @@ fn main(
         return;
     }
 
+    if (USE_ROWSPLIT) {
+        if (u.rowsplit_dim == 0u) {
+            return;
+        }
+        let dim = u.rowsplit_dim;
+        let token_idx = idx / dim;
+        let dim_idx = idx % dim;
+        let row_base = token_idx * dim * 2u;
+        let g = f32(input[row_base + dim_idx]);
+        let up = f32(input[row_base + dim + dim_idx]);
+        output[idx] = f16(gelu(g) * up);
+        return;
+    }
+
+    if (HAS_GATE) {
+        let up = f32(input[idx]);
+        let g = f32(gate[idx]);
+        output[idx] = f16(gelu(g) * up);
+        return;
+    }
+
     let x = f32(input[idx]);
     output[idx] = f16(gelu(x));
-}
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn geglu_f16(
-    @builtin(global_invocation_id) global_id: vec3<u32>
-) {
-    let idx = global_id.x;
-    if (idx >= u.size) {
-        return;
-    }
-
-    let up = f32(input[idx]);
-    let g = f32(gate[idx]);
-    output[idx] = f16(gelu(g) * up);
-}
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn geglu_rowsplit_f16(
-    @builtin(global_invocation_id) global_id: vec3<u32>
-) {
-    let idx = global_id.x;
-    if (idx >= u.size || u.rowsplit_dim == 0u) {
-        return;
-    }
-
-    let dim = u.rowsplit_dim;
-    let token_idx = idx / dim;
-    let dim_idx = idx % dim;
-
-    let row_base = token_idx * dim * 2u;
-    let g = f32(input[row_base + dim_idx]);
-    let up = f32(input[row_base + dim + dim_idx]);
-
-    output[idx] = f16(gelu(g) * up);
 }

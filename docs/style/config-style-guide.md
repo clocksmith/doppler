@@ -84,9 +84,9 @@ InferenceConfigSchema (runtime.inference)
 
 | Category | Resolution Order | Call-time | Runtime | Manifest |
 | --- | --- | --- | --- | --- |
-| Generation | call → runtime → default | ✓ | ✓ | — |
+| Generation | call → runtime → default | ✓ | ✓ | n/a |
 | Model | runtime (experimental) → manifest → default | ✗ (throw) | ✓ (warn) | ✓ |
-| Session | runtime → default | ✗ (throw) | ✓ | — |
+| Session | runtime → default | ✗ (throw) | ✓ | n/a |
 | Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
 
 ### Examples

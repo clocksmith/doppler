@@ -18,7 +18,7 @@
       { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",        "entry": "main" },
       { "op": "gate_proj",    "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4",  "weights": "layer.{L}.mlp.gate_proj" },
       { "op": "up_proj",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4",  "weights": "layer.{L}.mlp.up_proj" },
-      { "op": "activation",   "kernel": "gelu_f16.wgsl",            "entry": "geglu_f16" },
+      { "op": "activation",   "kernel": "gelu_f16.wgsl",            "entry": "main", "constants": { "HAS_GATE": true } },
       { "op": "down_proj",    "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4",  "weights": "layer.{L}.mlp.down_proj" },
       { "op": "ffn_residual", "kernel": "residual_f16.wgsl",        "entry": "main" }
     ]
@@ -38,7 +38,7 @@
       { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",        "entry": "main" },
       { "op": "gate_proj",    "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.gate_proj" },
       { "op": "up_proj",      "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.up_proj" },
-      { "op": "activation",   "kernel": "gelu_f16.wgsl",            "entry": "geglu_f16" },
+      { "op": "activation",   "kernel": "gelu_f16.wgsl",            "entry": "main", "constants": { "HAS_GATE": true } },
       { "op": "down_proj",    "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.down_proj" },
       { "op": "ffn_residual", "kernel": "residual_f16.wgsl",        "entry": "main" }
     ]

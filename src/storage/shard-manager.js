@@ -523,6 +523,18 @@ export async function loadTensorsFromStore() {
   }
 }
 
+export async function saveTensorsToStore(tensorsJson) {
+  await ensureBackend();
+  requireModel();
+  const encoder = new TextEncoder();
+  const payload = encoder.encode(tensorsJson);
+  if (backend.writeText) {
+    await backend.writeText('tensors.json', tensorsJson);
+    return;
+  }
+  await backend.writeFile('tensors.json', payload);
+}
+
 export async function saveTokenizer(tokenizerJson) {
   await ensureBackend();
   requireModel();

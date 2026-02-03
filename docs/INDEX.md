@@ -11,7 +11,6 @@ Quick index for DOPPLER documentation.
 - [Formats](formats.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](operations.md) - Troubleshooting, debug notes, perf investigations, results.
 - [Testing](testing.md) - Testing strategy, kernel testing, known-good matrix.
-- [Performance](performance.md) - Performance metrics, benchmarking workflow, VRAM constraints, browser matrix, failure modes.
 
 ---
 

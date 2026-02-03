@@ -16,13 +16,21 @@ export declare class DiffusionPipeline {
   gpuScaffold: Record<string, unknown> | null;
   weightLoader: DiffusionWeightLoader | null;
   vaeWeights: DiffusionWeightEntry | null;
+  textEncoderWeights: Record<string, DiffusionWeightEntry> | null;
+  transformerWeights: DiffusionWeightEntry | null;
 
   initialize(contexts?: Record<string, unknown>): Promise<void>;
   loadModel(manifest: Record<string, unknown>): Promise<void>;
   getStats(): DiffusionStats;
   getMemoryStats(): { used: number; kvCache: null };
   unload(): Promise<void>;
+  ensureTextEncoderWeights(): Promise<Record<string, DiffusionWeightEntry>>;
+  ensureTransformerWeights(): Promise<DiffusionWeightEntry>;
+  releaseTextEncoderWeights(): void;
+  releaseTransformerWeights(): void;
   generate(request: DiffusionRequest): Promise<DiffusionResult>;
+  generateCPU(request: DiffusionRequest): Promise<DiffusionResult>;
+  generateGPU(request: DiffusionRequest): Promise<DiffusionResult>;
 }
 
 export declare function createDiffusionPipeline(

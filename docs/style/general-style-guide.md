@@ -33,7 +33,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 
 | Reason | Explanation |
 |--------|-------------|
-| **Type context for agents** | Agents read .d.ts files directly—no JSDoc pollution in JS |
+| **Type context for agents** | Agents read .d.ts files directly. No JSDoc pollution in JS |
 | **Consumer compatibility** | Type-aware consumers can import Doppler with full type safety via `.d.ts` |
 | **Self-documenting** | Types describe interfaces without runtime cost |
 
@@ -450,7 +450,7 @@ Model presets may define `inference.pipeline` to drive per-layer step order. Run
 
 ### When NOT to Use
 
-For production inference, let the hardcoded path run—it's optimized for the common case.
+For production inference, let the hardcoded path run. It is optimized for the common case.
 
 ---
 
@@ -723,7 +723,7 @@ const probeConfig = {
 };
 ```
 
-If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point—don't add throwaway log statements.
+If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point. Do not add throwaway log statements.
 
 ---
 
@@ -855,6 +855,6 @@ function runKernel(spec) {
 
 ## See Also
 
-- [WGSL Style Guide](./WGSL_style-guide.md) - Shader conventions
+- [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
-- [Kernel Compatibility](./WGSL_style-guide.md) - Runtime modes and flags
+- [Kernel Compatibility](./wgsl-style-guide.md) - Runtime modes and flags

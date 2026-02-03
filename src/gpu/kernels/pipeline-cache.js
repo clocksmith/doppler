@@ -86,12 +86,25 @@ function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout) {
   return `${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
 }
 
+function resolveConstants(operation, variant, constants) {
+  const config = getKernelConfig(operation, variant);
+  const overrides = config.wgslOverrides;
+  if (!overrides || Object.keys(overrides).length === 0) {
+    return constants;
+  }
+  if (!constants || Object.keys(constants).length === 0) {
+    return { ...overrides };
+  }
+  return { ...constants, ...overrides };
+}
+
 export function getCachedPipeline(
   operation,
   variant,
   constants = null
 ) {
-  const cacheKey = buildPipelineCacheKey(operation, variant, constants, null);
+  const resolvedConstants = resolveConstants(operation, variant, constants);
+  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null);
   return pipelineCache.get(cacheKey) || null;
 }
 
@@ -102,13 +115,14 @@ export async function getPipelineFast(
   bindGroupLayout = null,
   constants = null
 ) {
+  const resolvedConstants = resolveConstants(operation, variant, constants);
   if (bindGroupLayout) {
-    const layoutKey = buildPipelineCacheKey(operation, variant, constants, bindGroupLayout);
+    const layoutKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout);
     const cached = pipelineCache.get(layoutKey);
     if (cached) return cached;
     return createPipeline(operation, variant, bindGroupLayout, constants);
   }
-  const cached = getCachedPipeline(operation, variant, constants);
+  const cached = getCachedPipeline(operation, variant, resolvedConstants);
   if (cached) return cached;
   return createPipeline(operation, variant, null, constants);
 }
@@ -120,22 +134,22 @@ export async function createPipeline(
   bindGroupLayout = null,
   constants = null
 ) {
-  const constantsKey = constants
-    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
-    : '';
-  const cacheKey = buildPipelineCacheKey(operation, variant, constants, bindGroupLayout);
-
-  // Return cached pipeline if available
-  if (pipelineCache.has(cacheKey)) {
-    return pipelineCache.get(cacheKey);
-  }
-
   const device = getDevice();
   if (!device) {
     throw new Error('Device not initialized');
   }
 
   const config = getKernelConfig(operation, variant);
+  const resolvedConstants = resolveConstants(operation, variant, constants);
+  const constantsKey = resolvedConstants
+    ? Object.entries(resolvedConstants).sort().map(([k, v]) => `${k}=${v}`).join('|')
+    : '';
+  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout);
+
+  // Return cached pipeline if available
+  if (pipelineCache.has(cacheKey)) {
+    return pipelineCache.get(cacheKey);
+  }
   const capabilities = getKernelCapabilities();
 
   // Verify requirements
@@ -149,7 +163,7 @@ export async function createPipeline(
     `KernelLayout: ${operation}/${variant} file=${config.shaderFile} entry=${config.entryPoint} ` +
     `workgroup=[${config.workgroupSize.join(',')}] requires=` +
     `${config.requires.length > 0 ? config.requires.join('|') : 'none'}` +
-    `${constants ? ' constants=' + constantsKey : ''}`
+    `${resolvedConstants ? ' constants=' + constantsKey : ''}`
   );
 
   // Compile or reuse shader module
@@ -166,7 +180,7 @@ export async function createPipeline(
     compute: {
       module: shaderModule,
       entryPoint: config.entryPoint,
-      constants: constants || undefined,
+      constants: resolvedConstants || undefined,
     },
   };
 

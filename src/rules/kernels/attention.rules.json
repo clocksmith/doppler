@@ -40,13 +40,13 @@
     { "match": { "canUseDecodeOptimized": true }, "value": { "context": "optimizedVariant" } },
     { "match": { "isPaged": true, "isDecode": true, "canUseChunked": true }, "value": { "context": "pagedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true, "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
-    { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "decode_streaming{suffix}" } },
+    { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "prefill_streaming{suffix}" } },
     { "match": { "tier": "subgroup", "canUseDecodeSubgroup": true }, "value": "decode_subgroup" },
-    { "match": { "tier": "subgroup" }, "value": "decode_streaming" },
+    { "match": { "tier": "subgroup" }, "value": "prefill_streaming" },
     { "match": { "tier": "tiled_large" }, "value": { "template": "{base}{suffix}" } },
-    { "match": { "tier": "tiled_small" }, "value": { "template": "{base}_small{suffix}" } },
+    { "match": { "tier": "tiled_small" }, "value": { "template": "prefill_small{suffix}" } },
     { "match": { "tier": "streaming", "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
-    { "match": { "tier": "streaming" }, "value": { "template": "{base}_streaming{suffix}" } },
-    { "match": {}, "value": { "template": "{base}_streaming{suffix}" } }
+    { "match": { "tier": "streaming" }, "value": { "template": "prefill_streaming{suffix}" } },
+    { "match": {}, "value": { "template": "prefill_streaming{suffix}" } }
   ]
 }

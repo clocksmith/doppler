@@ -82,6 +82,9 @@ export function classifyTensorRole(name) {
   const embeddingPatterns = [
     'embed_tokens.weight',
     'token_embd.weight',
+    'token_embedding.weight',
+    'position_embedding.weight',
+    'shared.weight',
     'wte.weight',
     'transformer.wte.weight',
     'word_embeddings',
@@ -101,11 +104,9 @@ export function classifyTensorRole(name) {
     return 'router';
   }
 
-  if (lower.includes('norm') || lower.includes('ln_') || lower.includes('layernorm')) {
-    return 'norm';
-  }
-
   const matmulSuffixes = [
+    'in_proj.weight',
+    'in_proj_weight',
     'q_proj.weight',
     'k_proj.weight',
     'v_proj.weight',
@@ -113,11 +114,15 @@ export function classifyTensorRole(name) {
     'to_q.weight',
     'to_k.weight',
     'to_v.weight',
+    'to_qkv.weight',
     'to_out.0.weight',
+    'to_add_out.weight',
     'attention.wq.weight',
     'attention.wk.weight',
     'attention.wv.weight',
     'attention.wo.weight',
+    'out_proj.weight',
+    'selfattention.o.weight',
     'gate_proj.weight',
     'up_proj.weight',
     'down_proj.weight',
@@ -134,8 +139,19 @@ export function classifyTensorRole(name) {
     'ffn_gate_up.weight',
     'proj_in.weight',
     'proj_out.weight',
+    'text_projection.weight',
+    'projection.weight',
     'proj.weight',
+    'wi_0.weight',
+    'wi_1.weight',
+    'wo.weight',
+    'linear_1.weight',
+    'linear_2.weight',
+    'linear1.weight',
+    'linear2.weight',
     'linear.weight',
+    'net.0.weight',
+    'net.2.weight',
     'q.weight',
     'k.weight',
     'v.weight',
@@ -146,6 +162,31 @@ export function classifyTensorRole(name) {
     'caption_projection.weight',
   ];
   if (matmulSuffixes.some((suffix) => lower.endsWith(suffix))) {
+    return 'matmul';
+  }
+
+  // Diffusion modulation linears include "norm" in the name but are matmuls.
+  if (lower.endsWith('norm1.linear.weight') ||
+      lower.endsWith('norm1_context.linear.weight') ||
+      lower.endsWith('norm_out.linear.weight')) {
+    return 'matmul';
+  }
+
+  if (lower.includes('norm') || lower.includes('ln_') || lower.includes('layernorm')) {
+    return 'norm';
+  }
+
+  const diffusionWeightPrefixes = [
+    'transformer.',
+    'mmdit.',
+    'unet.',
+    'diffusion_model.',
+    'model.diffusion_model.',
+    'text_encoder',
+    'vae.',
+  ];
+  if ((lower.endsWith('.weight') || lower.endsWith('_weight')) &&
+      diffusionWeightPrefixes.some((prefix) => lower.startsWith(prefix))) {
     return 'matmul';
   }
 

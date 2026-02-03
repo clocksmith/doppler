@@ -16,7 +16,7 @@
     },
     "attention": {
       "preferred": "decode_subgroup",
-      "avoid": ["decode_streaming"]
+      "avoid": ["prefill_streaming"]
     },
     "dequant": {
       "preferred": "subgroup_f16out"

@@ -46,7 +46,7 @@ Inference Phase (per token)
 Doppler integrates with Reploid via the minimal Ouroboros substrate contract:
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
 results. The contract surface and kernel evolution flow are documented in
-`reploid/docs/substrate.md`.
+`../../docs/substrate.md`.
 
 ## Design Philosophy
 
@@ -196,7 +196,7 @@ See the internal roadmap for the current migration status.
 | `training/` | Training utilities (browser-only) |
 | `types/` | Shared TypeScript types |
 
-See `proto/simulator/README.md` for details on the emulation subsystem.
+See `../../../proto/simulator/README.md` for details on the emulation subsystem.
 
 ---
 
@@ -311,11 +311,11 @@ This shows actual import dependencies. Use for refactoring decisions.
 ```
 
 **Key observations:**
-- `inference` depends directly on `gpu` (skips `loader`) — intentional for kernel dispatch
-- `config/schema` is imported by almost everything — source of truth for defaults
-- `kernel-configs` mediates between inference and raw WGSL kernels (derived from `registry.json`)
+- `inference` depends directly on `gpu` (skips `loader`). Intentional for kernel dispatch.
+- `config/schema` is imported by almost everything. Source of truth for defaults.
+- `kernel-configs` mediates between inference and raw WGSL kernels (derived from `src/config/kernels/registry.json`)
 - `types`, `memory`, `debug` have no internal dependencies (true foundation)
-- `storage` and `gpu` are orthogonal — neither imports the other
+- `storage` and `gpu` are orthogonal. Neither imports the other.
 
 **Circular dependency risks:**
 - `inference ↔ loader`: loader needs inference config, inference needs loaded weights
@@ -348,14 +348,14 @@ Use this view when debugging inference or optimizing performance.
 ```
 
 **Data flow per token:**
-1. **Tokenize**: `tokenizer.js` → token IDs
-2. **Embed**: `gather.wgsl` → hidden state [seq, hidden_dim]
+1. **Tokenize**: `src/inference/tokenizer.js` → token IDs
+2. **Embed**: `src/gpu/kernels/gather.wgsl` → hidden state [seq, hidden_dim]
 3. **Layer×N**: For each transformer layer:
    - RMSNorm → Attention (Q/K/V matmul, RoPE, softmax, output) → Residual
    - RMSNorm → FFN (gate, up, activation, down) → Residual
-4. **LM Head**: `matmul.wgsl` → logits [vocab_size]
+4. **LM Head**: `src/gpu/kernels/matmul_*` → logits [vocab_size]
 5. **Sample**: CPU top-k/top-p → next token ID
-6. **Decode**: `tokenizer.js` → output text
+6. **Decode**: `src/inference/tokenizer.js` → output text
 
 ### Build Layers (Onboarding View)
 
@@ -392,7 +392,7 @@ Use this for understanding build order and what can be tested independently.
 **Caveats (why strict layering is approximate):**
 - `inference` imports `gpu` directly for kernel dispatch (skips `loader`)
 - `loader` imports `config` for manifest validation (skips `formats`)
-- `gpu/kernels` are WGSL files, not JS — they don't "import" anything
+- `gpu/kernels` are WGSL files, not JS. They do not import anything.
 
 **Testing implications:**
 - Layers 1-3 can be unit tested without WebGPU
@@ -469,7 +469,7 @@ Example (LLaMA-style residuals):
 
 **Norm weight names** (canonical):
 - `input` - input layernorm
-- `post_attn` - post-attention norm (preferred; `post_attention` is deprecated)
+- `post_attn` - post-attention norm (preferred). `post_attention` is kept only for legacy manifests.
 - `pre_ffn` - pre-feedforward norm (Gemma 2/3 sandwich)
 - `post_ffn` - post-feedforward norm (Gemma 2/3 sandwich)
 
@@ -494,7 +494,7 @@ Example (skip FFN on layer 0):
 }
 ```
 
-**Runtime presets:** See `src/config/presets/runtime/gemma2-pipeline.json` for a complete Gemma 2 example.
+**Runtime presets:** See `src/config/presets/runtime/model/gemma2-pipeline.json` for a complete Gemma 2 example.
 
 ### multi-pipeline-pool.js - Concurrent Pipelines
 
@@ -520,20 +520,24 @@ Evolution helpers for mutating and scoring expert network topologies.
 
 ### Pipeline Submodules (`inference/pipeline/`)
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `config.js` | 325 | Pipeline configuration, model params |
-| `sampling.js` | 203 | Token sampling (top-k, top-p, temperature) |
-| `generate.js` | 279 | Generation loop helpers |
-| `layer.js` | 180 | Per-layer processing |
-| `prefill.js` | 131 | Prompt prefill phase |
-| `decode.js` | 144 | Autoregressive decode phase |
-| `embed.js` | 173 | Token embedding |
-| `stats.js` | 174 | Performance statistics |
-| `stopping.js` | 178 | Stop condition detection |
-| `index.js` | 150 | Module exports |
+| Module | Purpose |
+|--------|---------|
+| `src/inference/pipeline/config.js` | Pipeline configuration and model params |
+| `src/inference/pipeline/state.js` | Runtime state container |
+| `src/inference/pipeline/generator.js` | Main generation loop |
+| `src/inference/pipeline/generator-steps.js` | Step orchestration for prefill and decode |
+| `src/inference/pipeline/generator-helpers.js` | Shared generation helpers |
+| `src/inference/pipeline/layer.js` | Per-layer processing |
+| `src/inference/pipeline/embed.js` | Token embedding |
+| `src/inference/pipeline/sampling.js` | Token sampling (top-k, top-p, temperature) |
+| `src/inference/pipeline/registry.js` | Pipeline registry and factory |
+| `src/inference/pipeline/kernel-trace.js` | Kernel trace and instrumentation |
+| `src/inference/pipeline/probes.js` | Debug probes |
+| `src/inference/pipeline/attention/` | Attention kernels and helpers |
+| `src/inference/pipeline/ffn/` | Feed-forward kernels and helpers |
+| `src/inference/pipeline/logits/` | Logits projection |
 
-**Note:** These modules are split for maintainability but the main `pipeline.js` still uses internal methods. Full wiring is in progress.
+**Note:** `src/inference/pipeline.js` composes these modules. Some helpers are used indirectly via `src/inference/pipeline/init.js` and `src/inference/pipeline/generator-steps.js`.
 
 ### Manifest-First Config Architecture
 
@@ -597,15 +601,15 @@ The converter (`manifest-inference.js:136`) performs this mapping. Presets use `
 
 **RoPE Theta Sourcing:**
 
-`ropeTheta` has a defined precedence during conversion (`rope-config.js`):
+`ropeTheta` has a defined precedence during conversion (`src/converter/rope-config.js`):
 
-1. **HuggingFace config** (`config.rope_theta`) — source of truth
-2. **Preset** (`preset.inference.rope.ropeTheta`) — fallback
-3. **Default** (`10000`) — last resort
+1. **HuggingFace config** (`config.rope_theta`). Source of truth.
+2. **Preset** (`preset.inference.rope.ropeTheta`). Fallback.
+3. **Default** (`10000`). Last resort.
 
 This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes from the HuggingFace config during conversion. Gemma 3 presets set `ropeTheta: 1000000` explicitly because it's a defining characteristic.
 
-`ropeLocalTheta` (for dual-RoPE models like Gemma 3) always comes from the preset—there's no HuggingFace config equivalent.
+`ropeLocalTheta` (for dual-RoPE models like Gemma 3) always comes from the preset. There is no HuggingFace config equivalent.
 
 **Source Tracking (`ConfigSource`):**
 - `'manifest'` - Value came from manifest (converter output)
@@ -657,10 +661,10 @@ Paged and tiered layouts keep K/V in GPU buffers; sliding windows or RoPE scalin
 ### tokenizer.js - Tokenization
 
 Loads tokenizer from:
-1. Bundled `tokenizer.json` in model directory
+1. Bundled tokenizer.json in model directory
 2. HuggingFace-format vocab files
 
-Supports chat templates via `tokenizer_config.json`.
+Supports chat templates via tokenizer_config.json.
 
 ### moe-router.js - Mixture of Experts
 
@@ -680,7 +684,7 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 ---
 
-## 3. Loader (`loader/doppler-loader.js`)
+## 3. Loader (`src/loader/doppler-loader.js`)
 
 ### Weight Loading Pipeline
 
@@ -721,7 +725,7 @@ GPU-native routing avoids CPU readback of routing decisions.
 
 **Multi-shard tensors:** Large tensors span multiple 64MB shards. Loader streams spans directly to GPU to avoid JS heap exhaustion.
 
-**Gemma 2/3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. This is applied **at runtime** via the `rmsNormWeightOffset` flag passed to RMSNorm kernels—not during weight loading. The manifest `inference.normalization.rmsNormWeightOffset` field controls this behavior.
+**Gemma 2/3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. This is applied **at runtime** via the `rmsNormWeightOffset` flag passed to RMSNorm kernels. It is not applied during weight loading. The manifest `inference.normalization.rmsNormWeightOffset` field controls this behavior.
 
 ### multi-model-loader.js - Base + Adapter Loading
 
@@ -735,7 +739,7 @@ Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
 Custom model format optimized for browser streaming:
 
-Note: `storage/rdrr-format.js` is a compatibility re-export of `formats/rdrr/`.
+Note: `src/storage/rdrr-format.js` is a compatibility re-export of `formats/rdrr/`.
 
 ```
 model-directory/
@@ -1073,32 +1077,33 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 ---
 
-## File Reference
+## Key Files
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `src/client/doppler-provider.js` | 972 | Public API, LLM client integration |
-| `src/inference/pipeline.js` | 2227 | Main inference orchestration |
-| `src/inference/kv-cache.js` | 1007 | KV cache management |
-| `src/inference/tokenizer.js` | 1614 | Tokenization wrapper |
-| `src/inference/moe-router.js` | 624 | MoE expert routing |
-| `src/loader/doppler-loader.js` | 2313 | Weight loading, dequant |
-| `src/gpu/device.js` | 408 | WebGPU initialization |
-| `src/gpu/kernels/index.js` | 168 | Kernel selection + dispatch exports |
-| `src/gpu/kernel-tuner.js` | 1261 | Auto-tuning benchmarks |
-| `src/memory/buffer-pool.js` | 586 | Buffer pooling |
-| `src/formats/rdrr/manifest.js` | 111 | RDRR manifest parsing |
-| `src/storage/shard-manager.js` | 816 | OPFS shard management |
-| `src/converter/quantizer.js` | 492 | Q4_K quantization |
-| `src/converter/core.js` | 527 | Shared conversion types/functions |
-| `src/browser/browser-converter.js` | 800 | Browser model conversion |
-| `src/browser/browser-converter.js` | 499 | Browser model conversion |
+| File | Purpose |
+|------|---------|
+| `src/client/doppler-provider.js` | Public API entry point |
+| `src/client/doppler-provider/provider.js` | Provider implementation |
+| `src/inference/pipeline.js` | Main inference orchestration |
+| `src/inference/pipeline/generator.js` | Generation loop |
+| `src/inference/kv-cache.js` | KV cache management |
+| `src/inference/tokenizer.js` | Tokenizer selection and initialization |
+| `src/inference/moe-router.js` | MoE expert routing |
+| `src/loader/doppler-loader.js` | Weight loading and dequant |
+| `src/gpu/device.js` | WebGPU initialization |
+| `src/gpu/kernels/index.js` | Kernel selection and dispatch exports |
+| `src/gpu/kernel-tuner.js` | Kernel tuning harness |
+| `src/memory/buffer-pool.js` | Buffer pooling |
+| `src/formats/rdrr/manifest.js` | RDRR manifest parsing |
+| `src/storage/shard-manager.js` | OPFS shard management |
+| `src/converter/core.js` | Shared conversion types and functions |
+| `src/converter/quantizer.js` | Q4_K quantization |
+| `src/browser/browser-converter.js` | Browser model conversion |
 
 ---
 
 ## Related Documentation
 
-- Internal roadmap - Memory tiers and distribution goals
+- `../../docs/doppler-roadmap.md` - Memory tiers and distribution goals
 - `formats.md` - RDRR format specification
 
 ---
@@ -1107,7 +1112,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `style/wgsl-style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
 
 

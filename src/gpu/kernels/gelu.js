@@ -51,14 +51,13 @@ export async function runGeLU(
 
   // Create bind group
   
+  const gateBuffer = gate?.buffer ?? input.buffer;
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: input.buffer } },
     { binding: 2, resource: { buffer: output } },
+    { binding: 3, resource: { buffer: gateBuffer } },
   ];
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
-  }
   const bindGroup = device.createBindGroup({
     label: 'gelu_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -106,16 +105,13 @@ export async function recordGeLU(
 
   // Bind group entries - gate variant needs binding 3
   
+  const gateBuffer = gate?.buffer ?? input.buffer;
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
     { binding: 1, resource: { buffer: input.buffer } },
     { binding: 2, resource: { buffer: output } },
+    { binding: 3, resource: { buffer: gateBuffer } },
   ];
-
-  // Add gate binding for gated variant
-  if (gate) {
-    entries.push({ binding: 3, resource: { buffer: gate.buffer } });
-  }
 
   const bindGroup = device.createBindGroup({
     label: 'gelu_bind_group',

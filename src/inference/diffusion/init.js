@@ -37,6 +37,34 @@ export function mergeDiffusionConfig(baseConfig, overrideConfig) {
   };
 }
 
+function resolveSchedulerType(modelScheduler, runtimeScheduler) {
+  const modelClass = modelScheduler?._class_name;
+  if (modelClass === 'FlowMatchEulerDiscreteScheduler') {
+    return 'flowmatch_euler';
+  }
+  if (modelClass === 'EulerDiscreteScheduler') {
+    return 'euler';
+  }
+  if (modelClass === 'EulerAncestralDiscreteScheduler') {
+    return 'euler_a';
+  }
+  if (modelClass === 'DPMSolverMultistepScheduler') {
+    return 'dpmpp_2m';
+  }
+  return runtimeScheduler?.type || DEFAULT_DIFFUSION_CONFIG.scheduler.type;
+}
+
+function mergeSchedulerConfig(modelConfig, runtimeScheduler) {
+  const modelScheduler = modelConfig?.components?.scheduler?.config || {};
+  const type = resolveSchedulerType(modelScheduler, runtimeScheduler);
+  return {
+    ...runtimeScheduler,
+    type,
+    numTrainTimesteps: modelScheduler.num_train_timesteps ?? runtimeScheduler.numTrainTimesteps,
+    shift: modelScheduler.shift ?? runtimeScheduler.shift,
+  };
+}
+
 function resolveLatentScale(modelConfig, runtimeConfig) {
   const transformerSize = modelConfig?.components?.transformer?.config?.sample_size;
   const vaeSize = modelConfig?.components?.vae?.config?.sample_size;
@@ -65,7 +93,14 @@ export function initializeDiffusion(manifest, runtimeConfig) {
     throw new Error('Diffusion manifest missing config.diffusion.');
   }
 
-  const runtime = mergeDiffusionConfig(runtimeConfig?.inference?.diffusion, null);
+  const runtimeBase = mergeDiffusionConfig(DEFAULT_DIFFUSION_CONFIG, runtimeConfig?.inference?.diffusion);
+  const runtime = {
+    ...runtimeBase,
+    scheduler: mergeSchedulerConfig(modelConfig, runtimeBase.scheduler),
+  };
+  if (modelConfig?.components?.transformer && runtime.backend?.pipeline === 'cpu') {
+    runtime.backend = { ...runtime.backend, pipeline: 'gpu' };
+  }
   const latentScale = resolveLatentScale(modelConfig, runtime);
   const latentChannels = resolveLatentChannels(modelConfig, runtime);
 

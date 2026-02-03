@@ -5,8 +5,8 @@
 
 enable f16;
 
-override WORKGROUP_SIZE: u32 = 32u;
 const BLOCK_SIZE: u32 = 32u;
+const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
 const HEAD_TILE: u32 = 32u;
 const MAX_HEAD_DIM: u32 = 256u;
 

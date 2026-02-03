@@ -3,10 +3,5 @@
     "prompt": "hello",
     "maxTokens": 2,
     "checksum": null
-  },
-  "tiny-model": {
-    "prompt": "hello",
-    "maxTokens": 2,
-    "checksum": null
   }
 }

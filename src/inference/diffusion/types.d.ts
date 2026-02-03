@@ -25,6 +25,8 @@ export interface DiffusionSchedulerConfig {
   numSteps: number;
   guidanceScale: number;
   eta: number;
+  numTrainTimesteps: number;
+  shift: number;
 }
 
 export interface DiffusionLatentConfig {

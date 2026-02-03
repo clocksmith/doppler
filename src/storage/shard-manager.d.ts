@@ -100,6 +100,7 @@ export function modelExists(modelId: string): Promise<boolean>;
 export function saveManifest(manifestJson: string): Promise<void>;
 export function loadManifestFromStore(): Promise<string | null>;
 export function loadTensorsFromStore(): Promise<string | null>;
+export function saveTensorsToStore(tensorsJson: string): Promise<void>;
 export function saveTokenizer(tokenizerJson: string): Promise<void>;
 export function loadTokenizerFromStore(): Promise<string | null>;
 export function saveTokenizerModel(tokenizerModel: ArrayBuffer | Uint8Array): Promise<void>;

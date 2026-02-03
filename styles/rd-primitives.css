@@ -1,0 +1,159 @@
+/* ============================================
+   RD Design System - Primitives (Doppler subset)
+   Reset, Typography, Borders, Utilities
+   ============================================ */
+
+/* === RESET === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-a);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* === LINKS === */
+a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: var(--border-sm) dotted var(--fg);
+}
+
+a:hover {
+  border-bottom-style: solid;
+}
+
+a.link-secondary {
+  text-decoration: none;
+  border-bottom: var(--border-sm) dotted var(--fg);
+  opacity: var(--opacity-secondary);
+  cursor: pointer;
+}
+
+a.link-secondary:hover {
+  opacity: 1;
+  border-bottom-style: solid;
+}
+
+/* === TYPOGRAPHY === */
+.type-display {
+  font: 300 28px/1.2 var(--font-a);
+  letter-spacing: 0.25em;
+}
+
+.type-h1 {
+  font: 500 18px/1.3 var(--font-a);
+  letter-spacing: 0.02em;
+}
+
+.type-label {
+  font: 700 11px/1.2 var(--font-a);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.type-caption {
+  font: 400 11px/1.4 var(--font-b);
+  letter-spacing: 0;
+}
+
+/* === BORDERS === */
+.panel,
+.btn,
+input,
+textarea,
+select {
+  border: var(--border-md) solid var(--fg);
+}
+
+.progress {
+  border: var(--border-sm) solid var(--fg);
+}
+
+/* === INPUTS === */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: var(--space-sm);
+  font-family: var(--font-b);
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+input:placeholder-shown,
+textarea:placeholder-shown {
+  border-style: dotted;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-style: solid;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  border-style: solid;
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--fg);
+  opacity: var(--opacity-muted);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* === BUTTONS === */
+.btn {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-a);
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.btn:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* === UTILITIES === */
+.muted { opacity: var(--opacity-muted); }
+.w-full { width: 100%; }
+
+[hidden] { display: none !important; }

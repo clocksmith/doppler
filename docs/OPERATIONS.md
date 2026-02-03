@@ -445,7 +445,7 @@ let linear_idx = global_id.y * (uniforms.workgroupsX * WORKGROUP_SIZE) + global_
 
 **Symptom**: Kernel runs without errors but outputs all zeros.
 
-**Root cause**: `layout: 'auto'` with multi-entry-point shaders—WebGPU silently ignores binding mismatches.
+**Root cause**: `layout: 'auto'` with multi-entry-point shaders. WebGPU silently ignores binding mismatches.
 
 **Quick check**: Create minimal test kernel with single binding to isolate.
 
@@ -821,7 +821,3 @@ When debugging DOPPLER issues:
 ## Kernel Overrides & Compatibility
 See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
 
-
-
-## Archived Logs
-Debug sessions and regression investigations moved to [docs/archive/DEBUG_LOGS.md](archive/DEBUG_LOGS.md)

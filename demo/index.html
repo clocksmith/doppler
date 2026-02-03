@@ -7,7 +7,7 @@
   <title>DOPPLER - Browser LLM</title>
   <link rel="icon" type="image/svg+xml" href="/src/favicon.svg">
   <link rel="manifest" href="/doppler/manifest.json">
-  <link rel="stylesheet" href="/styles/rd.css">
+  <link rel="stylesheet" href="../styles/rd.css">
   <style>
     /* App Shell */
     #app {
@@ -777,9 +777,9 @@
         </div>
         <div class="header-actions">
           <div class="mode-tabs" id="mode-tabs">
-            <button class="btn mode-tab" data-mode="run" type="button">Chat</button>
-            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
+            <button class="btn mode-tab" data-mode="run" type="button">Decoding</button>
             <button class="btn mode-tab" data-mode="diffusion" type="button">Diffusion</button>
+            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
             <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
           </div>
           <div id="status-indicator" class="status-indicator">
@@ -912,6 +912,9 @@
               </svg>
               Select Folder or Files
             </button>
+          </div>
+          <div class="convert-actions">
+            <button id="regen-manifest-btn" class="btn w-full">Regenerate Manifest</button>
           </div>
           <div class="convert-field">
             <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
@@ -1157,10 +1160,10 @@
               <div class="quickstart-panel" id="quickstart-ready" hidden>
                 <h3 class="quickstart-title success">Model Ready!</h3>
                 <p class="quickstart-note">
-                  Model downloaded and verified. Ready to chat.
+                  Model downloaded and verified. Ready to decode.
                 </p>
                 <div class="quickstart-actions">
-                  <button class="btn btn-primary" id="quickstart-run">Start Chat</button>
+                  <button class="btn btn-primary" id="quickstart-run">Start Decoding</button>
                 </div>
               </div>
             </div>
@@ -1219,11 +1222,11 @@
           <div class="diagnostics-actions">
             <div class="download-field">
               <label class="type-caption muted" for="diffusion-width">Width</label>
-              <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="512" />
+              <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="256" />
             </div>
             <div class="download-field">
               <label class="type-caption muted" for="diffusion-height">Height</label>
-              <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="512" />
+              <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="256" />
             </div>
           </div>
           <div class="diagnostics-actions">
@@ -1232,7 +1235,7 @@
           </div>
           <div class="diffusion-output">
             <div class="type-caption muted">Output</div>
-            <canvas id="diffusion-canvas" class="diffusion-canvas" width="512" height="512"></canvas>
+            <canvas id="diffusion-canvas" class="diffusion-canvas" width="256" height="256"></canvas>
             <div id="diffusion-output-status" class="type-caption muted">Idle</div>
           </div>
         </section>

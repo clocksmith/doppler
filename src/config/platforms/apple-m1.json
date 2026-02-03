@@ -11,7 +11,7 @@
       "avoid": ["f32"]
     },
     "attention": {
-      "avoid": ["decode_streaming"]
+      "avoid": ["prefill_streaming"]
     }
   },
   "memoryHints": {

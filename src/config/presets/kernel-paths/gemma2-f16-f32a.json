@@ -18,7 +18,7 @@
       { "op": "post_attn_norm","kernel": "rmsnorm.wgsl",        "entry": "main" },
       { "op": "gate_proj",    "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.gate_proj" },
       { "op": "up_proj",      "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.up_proj" },
-      { "op": "activation",   "kernel": "gelu.wgsl",            "entry": "geglu" },
+      { "op": "activation",   "kernel": "gelu.wgsl",            "entry": "main", "constants": { "HAS_GATE": true } },
       { "op": "down_proj",    "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.down_proj" },
       { "op": "ffn_residual", "kernel": "residual.wgsl",        "entry": "main" }
     ]
@@ -38,7 +38,7 @@
       { "op": "post_attn_norm","kernel": "rmsnorm.wgsl",        "entry": "main" },
       { "op": "gate_proj",    "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.gate_proj" },
       { "op": "up_proj",      "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.up_proj" },
-      { "op": "activation",   "kernel": "gelu.wgsl",            "entry": "geglu" },
+      { "op": "activation",   "kernel": "gelu.wgsl",            "entry": "main", "constants": { "HAS_GATE": true } },
       { "op": "down_proj",    "kernel": "matmul_f16w_f32a.wgsl","entry": "main",  "weights": "layer.{L}.mlp.down_proj" },
       { "op": "ffn_residual", "kernel": "residual.wgsl",        "entry": "main" }
     ]

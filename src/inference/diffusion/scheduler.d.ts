@@ -10,6 +10,7 @@ export interface DiffusionScheduler {
   type: string;
   steps: number;
   sigmas: Float32Array;
+  timesteps: Float32Array;
 }
 
 export declare function buildScheduler(
