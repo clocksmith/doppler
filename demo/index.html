@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOPPLER - Browser LLM</title>
   <link rel="icon" type="image/svg+xml" href="/src/favicon.svg">
-  <link rel="manifest" href="/doppler/manifest.json">
+  <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
   <style>
     /* App Shell */
@@ -735,6 +735,14 @@
       margin-top: var(--space-sm);
     }
 
+    .diagnostics-summary {
+      margin-bottom: var(--space-sm);
+    }
+
+    .diagnostics-requirements {
+      margin-top: var(--space-xs);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .header {
@@ -1242,27 +1250,34 @@
 
         <section class="panel diagnostics-panel" data-modes="diagnostics">
           <h2 class="type-label">Diagnostics</h2>
+          <div class="type-caption muted diagnostics-summary">Runs harness suites using the Active model and runtime config.</div>
           <div class="diagnostics-field">
             <label class="type-caption muted" for="runtime-preset">Runtime preset</label>
             <select id="runtime-preset" class="w-full">
-              <option value="default">default</option>
-              <option value="modes/ci">modes/ci</option>
               <option value="modes/debug">modes/debug</option>
               <option value="modes/bench">modes/bench</option>
+              <option value="modes/ci">modes/ci</option>
             </select>
+            <div class="type-caption muted">Base runtime config. Overrides merge on top.</div>
           </div>
           <div class="diagnostics-field">
-            <label class="type-caption muted" for="runtime-config-file">Runtime config (JSON)</label>
+            <label class="type-caption muted" for="runtime-config-file">Runtime override (JSON file)</label>
             <div class="diagnostics-config-row">
               <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
               <button id="runtime-config-clear" class="btn">Reset Overrides</button>
             </div>
-            <div class="type-caption muted" id="runtime-config-status">Preset: default</div>
-            <div class="type-caption muted">Applies on next model load.</div>
+            <div class="type-caption muted" id="runtime-config-status">Preset: modes/debug</div>
+            <div class="type-caption muted">Overrides apply on next model load.</div>
           </div>
           <div class="diagnostics-field">
-            <label class="type-caption muted" for="runtime-config-preset">Runtime config preset (override)</label>
+            <label class="type-caption muted" for="runtime-config-preset">Runtime override preset</label>
             <select id="runtime-config-preset" class="w-full"></select>
+            <div class="type-caption muted">Optional overlay, same as JSON overrides.</div>
+          </div>
+          <div class="diagnostics-field">
+            <div class="type-caption muted">Tooling intent</div>
+            <div class="type-caption" id="diagnostics-intent">--</div>
+            <div class="type-caption muted">Set via preset/override. Bench requires investigate or calibrate.</div>
           </div>
           <div class="diagnostics-field">
             <label class="type-caption muted" for="diagnostics-suite">Suite</label>
@@ -1272,12 +1287,14 @@
               <option value="bench">bench</option>
               <option value="debug">debug</option>
             </select>
+            <div class="type-caption muted" id="diagnostics-suite-help"></div>
           </div>
           <div class="diagnostics-actions">
-            <button id="diagnostics-verify-btn" class="btn">Verify</button>
+            <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
             <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
             <button id="diagnostics-export-btn" class="btn">Export JSON</button>
           </div>
+          <div class="type-caption muted diagnostics-requirements" id="diagnostics-requirements"></div>
           <div class="diagnostics-report type-caption muted" id="diagnostics-report"></div>
           <div id="diagnostics-status" class="diagnostics-status type-caption muted">Idle</div>
         </section>
@@ -1297,7 +1314,7 @@
   </div>
 
   <!-- Bootstrap entry (registers VFS + loads app) -->
-  <script type="module" src="/doppler/src/bootstrap.js"></script>
+  <script type="module" src="/src/bootstrap.js"></script>
 </body>
 
 </html>

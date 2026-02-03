@@ -14,7 +14,7 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> mod: array<f32>;
+@group(0) @binding(2) var<storage, read> mod_params: array<f32>;
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 
 @compute @workgroup_size(256, 1, 1)
@@ -26,12 +26,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 
     let dim = idx % u.hidden_size;
-    let raw_scale = mod[u.scale_offset + dim];
-    let shift = mod[u.shift_offset + dim];
+    let raw_scale = mod_params[u.scale_offset + dim];
+    let shift = mod_params[u.shift_offset + dim];
     let scale = select(raw_scale, 1.0 + raw_scale, u.add_one != 0u);
     var value = input[idx] * scale + shift;
     if (u.has_gate != 0u) {
-        let gate = mod[u.gate_offset + dim];
+        let gate = mod_params[u.gate_offset + dim];
         value = value * gate;
     }
     output[idx] = value;

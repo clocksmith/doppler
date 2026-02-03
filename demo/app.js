@@ -77,6 +77,7 @@ const state = {
   uiIntervalId: null,
   lastStorageRefresh: 0,
   activeDownloadId: null,
+  runtimeBaseConfig: null,
 };
 
 const RUNTIME_CONFIG_PRESETS = [
@@ -99,6 +100,32 @@ const RUNTIME_CONFIG_PRESETS = [
   { id: 'experiments/gemma3-debug-q4k', label: 'experiments/gemma3-debug-q4k' },
 ];
 
+const DIAGNOSTICS_SUITE_INFO = {
+  kernels: {
+    description: 'Validates GPU kernels only (no model required).',
+    requiresModel: false,
+    requiresBenchIntent: false,
+  },
+  inference: {
+    description: 'Runs a short generation with the Active model.',
+    requiresModel: true,
+    requiresBenchIntent: false,
+  },
+  bench: {
+    description: 'Benchmarks tokens/sec for the Active model.',
+    requiresModel: true,
+    requiresBenchIntent: true,
+  },
+  debug: {
+    description: 'Runs inference with debug tracing enabled by runtime config.',
+    requiresModel: true,
+    requiresBenchIntent: false,
+  },
+};
+
+const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
+const DEFAULT_RUNTIME_PRESET = 'modes/debug';
+
 const controller = new DiagnosticsController({ log });
 
 function $(id) {
@@ -108,6 +135,14 @@ function $(id) {
 function setText(el, text) {
   if (!el) return;
   el.textContent = text;
+}
+
+function cloneRuntimeConfig(config) {
+  try {
+    return structuredClone(config);
+  } catch {
+    return JSON.parse(JSON.stringify(config));
+  }
 }
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
@@ -170,6 +205,7 @@ function applyModeVisibility(mode) {
 function setUiMode(mode) {
   const app = $('app');
   if (!app) return;
+  const previousMode = state.uiMode;
   state.uiMode = mode;
   app.dataset.mode = mode;
   document.querySelectorAll('.mode-tab').forEach((button) => {
@@ -181,9 +217,22 @@ function setUiMode(mode) {
   if (mode === 'models') {
     refreshStorageInspector();
   }
+  if (mode === 'diagnostics' && previousMode !== 'diagnostics') {
+    enterDiagnosticsMode();
+  } else if (previousMode === 'diagnostics' && mode !== 'diagnostics') {
+    exitDiagnosticsMode();
+  }
   syncModelForMode(mode).catch((error) => {
     log.warn('DopplerDemo', `Mode model sync failed: ${error.message}`);
   });
+}
+
+function enterDiagnosticsMode() {
+  applySelectedRuntimePreset();
+}
+
+function exitDiagnosticsMode() {
+  applyRunRuntimeConfig();
 }
 
 function setHidden(el, hidden) {
@@ -535,6 +584,55 @@ function updateDiagnosticsReport(text) {
   report.textContent = text;
 }
 
+function getDiagnosticsSuiteInfo(suite) {
+  const key = String(suite || 'inference').trim().toLowerCase();
+  return DIAGNOSTICS_SUITE_INFO[key] || DIAGNOSTICS_SUITE_INFO.inference;
+}
+
+function updateDiagnosticsGuidance() {
+  const suiteSelect = $('diagnostics-suite');
+  const modelSelect = $('diagnostics-model');
+  const intentEl = $('diagnostics-intent');
+  const suiteHelp = $('diagnostics-suite-help');
+  const requirements = $('diagnostics-requirements');
+  const runBtn = $('diagnostics-run-btn');
+  const verifyBtn = $('diagnostics-verify-btn');
+  if (!suiteSelect || !intentEl || !suiteHelp || !requirements) return;
+
+  const suite = suiteSelect.value || 'inference';
+  const info = getDiagnosticsSuiteInfo(suite);
+  const runtimeConfig = getRuntimeConfig();
+  const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
+  const modelId = modelSelect?.value || '';
+
+  intentEl.textContent = intent || 'unset';
+  suiteHelp.textContent = info.description;
+
+  const issues = [];
+  if (!intent) {
+    issues.push('Set runtime.shared.tooling.intent via preset or override.');
+  } else if (info.requiresBenchIntent && !BENCH_INTENTS.has(intent)) {
+    issues.push('Bench requires intent investigate or calibrate.');
+  }
+  if (info.requiresModel && !modelId) {
+    issues.push('Select an Active model to run this suite.');
+  }
+
+  if (issues.length > 0) {
+    requirements.textContent = issues.join(' ');
+    requirements.classList.remove('muted');
+  } else {
+    const ready = info.requiresModel ? `Ready. Using model ${modelId}.` : 'Ready. No model required.';
+    requirements.textContent = ready;
+    requirements.classList.add('muted');
+  }
+
+  const canVerify = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
+  const canRun = canVerify && (!info.requiresModel || Boolean(modelId));
+  if (verifyBtn) verifyBtn.disabled = !canVerify;
+  if (runBtn) runBtn.disabled = !canRun;
+}
+
 function renderModelList(models) {
   const list = $('model-list');
   if (!list) return;
@@ -590,6 +688,7 @@ function selectDiagnosticsModel(modelId) {
   if (isModeModelSelectable(state.uiMode)) {
     state.modeModelId[state.uiMode] = modelId || null;
   }
+  updateDiagnosticsGuidance();
 }
 
 async function updateStorageInfo() {
@@ -1276,12 +1375,26 @@ function syncSamplingInputsFromRuntime() {
   state.samplingSyncing = false;
 }
 
+function applyRunRuntimeConfig() {
+  const base = state.runtimeBaseConfig || getRuntimeConfig();
+  const merged = state.runtimeSamplingOverride
+    ? mergeRuntimeOverrides(base, state.runtimeSamplingOverride)
+    : base;
+  setRuntimeConfig(merged);
+  syncSamplingInputsFromRuntime();
+  updateDiagnosticsGuidance();
+}
+
 function applySamplingOverrideFromInputs() {
   if (state.samplingSyncing) return;
   const override = buildSamplingOverride();
   state.runtimeSamplingOverride = override;
   state.runtimeSamplingLabel = override ? 'sampling' : null;
-  applySelectedRuntimePreset();
+  if (state.uiMode === 'diagnostics') {
+    applySelectedRuntimePreset();
+  } else {
+    applyRunRuntimeConfig();
+  }
 }
 
 function showProgressOverlay(title) {
@@ -1976,7 +2089,7 @@ async function cancelActiveDownload() {
 function updateRuntimeConfigStatus(presetId) {
   const status = $('runtime-config-status');
   if (!status) return;
-  const presetLabel = presetId || 'default';
+  const presetLabel = presetId || DEFAULT_RUNTIME_PRESET;
   if (state.runtimeOverride) {
     const labels = [];
     if (state.runtimeOverrideLabel) {
@@ -2039,17 +2152,25 @@ function getMergedRuntimeOverride() {
 async function applySelectedRuntimePreset() {
   const presetSelect = $('runtime-preset');
   if (!presetSelect) return;
-  const presetId = presetSelect.value || 'default';
+  const presetId = presetSelect.value || DEFAULT_RUNTIME_PRESET;
+  if (!presetSelect.value) {
+    presetSelect.value = presetId;
+  }
+  const mergedOverride = getMergedRuntimeOverride();
+  state.runtimeOverride = mergedOverride;
+  updateRuntimeConfigStatus(presetId);
+  if (state.uiMode !== 'diagnostics') {
+    updateDiagnosticsGuidance();
+    return;
+  }
   try {
     await applyRuntimePreset(presetId);
-    const mergedOverride = getMergedRuntimeOverride();
-    state.runtimeOverride = mergedOverride;
     if (mergedOverride) {
       const mergedRuntime = mergeRuntimeOverrides(getRuntimeConfig(), mergedOverride);
       setRuntimeConfig(mergedRuntime);
     }
-    updateRuntimeConfigStatus(presetId);
     syncSamplingInputsFromRuntime();
+    updateDiagnosticsGuidance();
   } catch (error) {
     updateDiagnosticsStatus(`Preset error: ${error.message}`, true);
   }
@@ -2061,7 +2182,7 @@ async function handleDiagnosticsRun(mode) {
   const presetSelect = $('runtime-preset');
   const suite = suiteSelect?.value || 'inference';
   const modelId = modelSelect?.value || null;
-  const runtimePreset = presetSelect?.value || 'default';
+  const runtimePreset = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
 
   updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${suite}...`);
   try {
@@ -2153,6 +2274,7 @@ function bindUI() {
   const runtimeClear = $('runtime-config-clear');
   const runtimeConfigPreset = $('runtime-config-preset');
   const diagnosticsModelSelect = $('diagnostics-model');
+  const diagnosticsSuite = $('diagnostics-suite');
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
@@ -2235,6 +2357,10 @@ function bindUI() {
 
   diagnosticsModelSelect?.addEventListener('change', () => {
     selectDiagnosticsModel(diagnosticsModelSelect.value || null);
+  });
+
+  diagnosticsSuite?.addEventListener('change', () => {
+    updateDiagnosticsGuidance();
   });
 
   runtimeFile?.addEventListener('change', () => {
@@ -2339,7 +2465,8 @@ async function init() {
   setUiMode(state.uiMode);
   await refreshModelList();
   await refreshGpuInfo();
-  await applySelectedRuntimePreset();
+  state.runtimeBaseConfig = cloneRuntimeConfig(getRuntimeConfig());
+  applyRunRuntimeConfig();
   await refreshDownloads();
   updateMemoryControls();
   resetExportStatus();

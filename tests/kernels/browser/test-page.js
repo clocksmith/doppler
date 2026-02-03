@@ -10,6 +10,8 @@ import { createTensor } from '../../../src/gpu/tensor.js';
 // Ensure platform/registry lookups resolve to the main config paths when bundled
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
+import { createPipeline, createUniformBufferWithView } from '../../../src/gpu/kernels/utils.js';
+import { dispatch } from '../../../src/gpu/kernels/dispatch.js';
 
 // Kernel path can be injected via URL param for targeted tests
 import { resolveKernelPath, setActiveKernelPath } from '../../../src/config/kernel-path-loader.js';
@@ -34,13 +36,35 @@ const {
   runResidualAdd = null,
   runBiasAdd = null,
   runAttention = null,
+  runAttentionTiered = null,
+  runAttentionTieredQuant = null,
   dequantize = null,
   dequantizeQ6K = null,
   runBF16ToF32 = null,
   runBF16ToF16 = null,
   castF32ToF16 = null,
+  castF16ToF32 = null,
   runGeLU = null,
   runSplitQKV = null,
+  runConv2D = null,
+  runGroupNorm = null,
+  runLayerNorm = null,
+  runModulate = null,
+  runPixelShuffle = null,
+  runUpsample2D = null,
+  runTranspose = null,
+  runKVQuantize = null,
+  runCrossEntropyLoss = null,
+  runCrossEntropyBackward = null,
+  runEmbedBackward = null,
+  runGeluBackward = null,
+  runRmsNormBackward = null,
+  runRoPEBackward = null,
+  runScaleBackward = null,
+  runSiluBackward = null,
+  runSoftmaxBackward = null,
+  runAttentionBackward = null,
+  runAdam = null,
 } = kernelSelector;
 
 // Import sample kernel
@@ -67,6 +91,7 @@ import * as references from '../reference/index.js';
 import { compareArrays, generateTestData, KERNEL_TOLERANCES } from '../harness/tolerance.js';
 import { createBuffer, readGPUBuffer, readAsFloat32, readAsUint32 } from '../harness/buffer-utils.js';
 import { KernelBenchmark, computeMetrics } from '../harness/benchmark.js';
+import { createWeightBuffer } from '../../../src/gpu/weight-buffer.js';
 
 // Global state
 let device = null;
@@ -109,6 +134,19 @@ function toF16RoundedFloat32(values) {
     out[i] = f16ToF32(f32ToF16Bits(values[i]));
   }
   return out;
+}
+
+async function readTensorToFloat32(tensor, count) {
+  if (tensor.dtype === 'f16') {
+    const rawData = await readBufferData(tensor.buffer, count * 2);
+    const u16View = new Uint16Array(rawData);
+    const out = new Float32Array(u16View.length);
+    for (let i = 0; i < u16View.length; i++) {
+      out[i] = f16ToF32(u16View[i]);
+    }
+    return out;
+  }
+  return new Float32Array(await readBufferData(tensor.buffer, count * 4));
 }
 
 function buildAttentionKernelPath(id, kernelFile) {
@@ -603,6 +641,432 @@ const testHarness = {
   },
 
   
+  async runLayerNorm(dev, input, weight, bias, batchSize, hiddenSize, eps = 1e-5) {
+    if (!runLayerNorm) {
+      const output = new Float32Array(batchSize * hiddenSize);
+      for (let b = 0; b < batchSize; b++) {
+        const base = b * hiddenSize;
+        let mean = 0;
+        for (let i = 0; i < hiddenSize; i++) {
+          mean += input[base + i];
+        }
+        mean /= hiddenSize;
+        let varSum = 0;
+        for (let i = 0; i < hiddenSize; i++) {
+          const diff = input[base + i] - mean;
+          varSum += diff * diff;
+        }
+        const invStd = 1 / Math.sqrt(varSum / hiddenSize + eps);
+        for (let i = 0; i < hiddenSize; i++) {
+          const norm = (input[base + i] - mean) * invStd;
+          output[base + i] = norm * weight[i] + bias[i];
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const weightBuf = makeBuffer(weight);
+    const biasBuf = makeBuffer(bias);
+    const inputTensor = createTensor(inputBuf, 'f32', [batchSize, hiddenSize], 'layernorm_input');
+
+    const resultTensor = await runLayerNorm(inputTensor, weightBuf, biasBuf, eps, {
+      batchSize,
+      hiddenSize,
+    });
+    const result = await readTensorToFloat32(resultTensor, batchSize * hiddenSize);
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    biasBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runGroupNorm(dev, input, weight, bias, channels, height, width, numGroups, eps = 1e-5) {
+    if (!runGroupNorm) {
+      const output = new Float32Array(channels * height * width);
+      const channelsPerGroup = Math.floor(channels / numGroups);
+      for (let g = 0; g < numGroups; g++) {
+        const cStart = g * channelsPerGroup;
+        const cEnd = cStart + channelsPerGroup;
+        let mean = 0;
+        let count = 0;
+        for (let c = cStart; c < cEnd; c++) {
+          const base = c * height * width;
+          for (let i = 0; i < height * width; i++) {
+            mean += input[base + i];
+            count++;
+          }
+        }
+        mean /= count;
+        let varSum = 0;
+        for (let c = cStart; c < cEnd; c++) {
+          const base = c * height * width;
+          for (let i = 0; i < height * width; i++) {
+            const diff = input[base + i] - mean;
+            varSum += diff * diff;
+          }
+        }
+        const invStd = 1 / Math.sqrt(varSum / count + eps);
+        for (let c = cStart; c < cEnd; c++) {
+          const base = c * height * width;
+          for (let i = 0; i < height * width; i++) {
+            const norm = (input[base + i] - mean) * invStd;
+            output[base + i] = norm * weight[c] + bias[c];
+          }
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const weightBuf = makeBuffer(weight);
+    const biasBuf = makeBuffer(bias);
+    const inputTensor = createTensor(inputBuf, 'f32', [channels, height, width], 'groupnorm_input');
+
+    const resultTensor = await runGroupNorm(inputTensor, weightBuf, biasBuf, {
+      channels,
+      height,
+      width,
+      numGroups,
+      eps,
+    });
+    const result = await readTensorToFloat32(resultTensor, channels * height * width);
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    biasBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runModulate(dev, input, mod, numTokens, hiddenSize, options = {}) {
+    const { scaleOffset = 0, shiftOffset = hiddenSize, gateOffset = hiddenSize * 2, hasGate = false, addOne = true } = options;
+    if (!runModulate) {
+      const output = new Float32Array(numTokens * hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        const base = t * hiddenSize;
+        for (let d = 0; d < hiddenSize; d++) {
+          const rawScale = mod[scaleOffset + d];
+          const shift = mod[shiftOffset + d];
+          const scale = addOne ? 1 + rawScale : rawScale;
+          let value = input[base + d] * scale + shift;
+          if (hasGate) {
+            value *= mod[gateOffset + d];
+          }
+          output[base + d] = value;
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const modBuf = makeBuffer(mod);
+    const inputTensor = createTensor(inputBuf, 'f32', [numTokens, hiddenSize], 'modulate_input');
+    const modTensor = createTensor(modBuf, 'f32', [mod.length], 'modulate_params');
+
+    const resultTensor = await runModulate(inputTensor, modTensor, {
+      numTokens,
+      hiddenSize,
+      scaleOffset,
+      shiftOffset,
+      gateOffset,
+      hasGate,
+      addOne,
+    });
+    const result = await readTensorToFloat32(resultTensor, numTokens * hiddenSize);
+
+    inputBuf.destroy();
+    modBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runConv2D(dev, input, weight, bias, options = {}) {
+    if (!runConv2D) {
+      const {
+        inChannels,
+        outChannels,
+        height,
+        width,
+        kernelH,
+        kernelW,
+        stride = 1,
+        pad = 0,
+      } = options;
+      const outHeight = Math.floor((height + pad * 2 - kernelH) / stride) + 1;
+      const outWidth = Math.floor((width + pad * 2 - kernelW) / stride) + 1;
+      const output = new Float32Array(outChannels * outHeight * outWidth);
+      for (let oc = 0; oc < outChannels; oc++) {
+        for (let oy = 0; oy < outHeight; oy++) {
+          for (let ox = 0; ox < outWidth; ox++) {
+            let sum = bias ? bias[oc] : 0;
+            for (let ic = 0; ic < inChannels; ic++) {
+              for (let ky = 0; ky < kernelH; ky++) {
+                const inY = oy * stride + ky - pad;
+                if (inY < 0 || inY >= height) continue;
+                for (let kx = 0; kx < kernelW; kx++) {
+                  const inX = ox * stride + kx - pad;
+                  if (inX < 0 || inX >= width) continue;
+                  const inputIdx = (ic * height + inY) * width + inX;
+                  const weightIdx = (((oc * inChannels + ic) * kernelH + ky) * kernelW + kx);
+                  sum += input[inputIdx] * weight[weightIdx];
+                }
+              }
+            }
+            output[(oc * outHeight + oy) * outWidth + ox] = sum;
+          }
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const weightBuf = makeBuffer(weight);
+    const biasBuf = bias ? makeBuffer(bias) : null;
+    const inputTensor = createTensor(inputBuf, 'f32', [options.inChannels, options.height, options.width], 'conv2d_input');
+
+    const resultTensor = await runConv2D(inputTensor, weightBuf, biasBuf, options);
+    const stride = options.stride ?? 1;
+    const pad = options.pad ?? 0;
+    const outHeight = Math.floor((options.height + pad * 2 - options.kernelH) / stride) + 1;
+    const outWidth = Math.floor((options.width + pad * 2 - options.kernelW) / stride) + 1;
+    const result = await readTensorToFloat32(resultTensor, options.outChannels * outHeight * outWidth);
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    biasBuf?.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runPixelShuffle(dev, input, options = {}) {
+    if (!runPixelShuffle) {
+      const {
+        outChannels,
+        outHeight,
+        outWidth,
+        gridWidth,
+        patchSize,
+        patchChannels,
+      } = options;
+      const output = new Float32Array(outChannels * outHeight * outWidth);
+      const spatial = outHeight * outWidth;
+      for (let idx = 0; idx < output.length; idx++) {
+        const c = Math.floor(idx / spatial);
+        const rem = idx - c * spatial;
+        const y = Math.floor(rem / outWidth);
+        const x = rem - y * outWidth;
+        const gridY = Math.floor(y / patchSize);
+        const gridX = Math.floor(x / patchSize);
+        const subY = y - gridY * patchSize;
+        const subX = x - gridX * patchSize;
+        const tokenIdx = gridY * gridWidth + gridX;
+        const patchIdx = (subY * patchSize + subX) * outChannels + c;
+        const inputIdx = tokenIdx * patchChannels + patchIdx;
+        output[idx] = input[inputIdx];
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'pixel_shuffle_input');
+    const resultTensor = await runPixelShuffle(inputTensor, options);
+    const result = await readTensorToFloat32(resultTensor, options.outChannels * options.outHeight * options.outWidth);
+
+    inputBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runUpsample2D(dev, input, options = {}) {
+    if (!runUpsample2D) {
+      const { channels, inHeight, inWidth, outHeight, outWidth, scale } = options;
+      const output = new Float32Array(channels * outHeight * outWidth);
+      for (let c = 0; c < channels; c++) {
+        for (let oy = 0; oy < outHeight; oy++) {
+          for (let ox = 0; ox < outWidth; ox++) {
+            const inY = Math.floor(oy / scale);
+            const inX = Math.floor(ox / scale);
+            const inIdx = (c * inHeight + inY) * inWidth + inX;
+            const outIdx = (c * outHeight + oy) * outWidth + ox;
+            output[outIdx] = input[inIdx];
+          }
+        }
+      }
+      return output;
+    }
+
+    const height = Number.isFinite(options.height) ? options.height : options.inHeight;
+    const width = Number.isFinite(options.width) ? options.width : options.inWidth;
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [options.channels, height, width], 'upsample2d_input');
+    const resultTensor = await runUpsample2D(inputTensor, options);
+    const result = await readTensorToFloat32(resultTensor, options.channels * options.outHeight * options.outWidth);
+
+    inputBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runTranspose(dev, input, rows, cols) {
+    if (!runTranspose) {
+      const output = new Float32Array(rows * cols);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          output[c * rows + r] = input[r * cols + c];
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f32', [rows, cols], 'transpose_input');
+    const resultTensor = await runTranspose(inputTensor, rows, cols);
+    const result = await readTensorToFloat32(resultTensor, rows * cols);
+
+    inputBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runKVQuantize(dev, keys, values, numKVHeads, headDim, numTokens, mode = 'int8') {
+    if (!runKVQuantize) {
+      const packedStride = Math.ceil(headDim / 4);
+      return {
+        packedStride,
+        outputK: new Uint32Array(numTokens * numKVHeads * packedStride),
+        outputV: new Uint32Array(numTokens * numKVHeads * packedStride),
+        scalesK: new Uint16Array(numTokens * numKVHeads),
+        scalesV: new Uint16Array(numTokens * numKVHeads),
+      };
+    }
+
+    const packedStride = Math.ceil(headDim / 4);
+    const keyBuf = makeBuffer(keys, GPUBufferUsage.STORAGE);
+    const valBuf = makeBuffer(values, GPUBufferUsage.STORAGE);
+    const outputSize = numTokens * numKVHeads * packedStride * 4;
+    const scalesSize = numTokens * numKVHeads * 2;
+    const scalesSizeAligned = Math.ceil(scalesSize / 4) * 4;
+    const outputK = makeBuffer(new Uint8Array(outputSize));
+    const outputV = makeBuffer(new Uint8Array(outputSize));
+    const scalesK = makeBuffer(new Uint8Array(scalesSizeAligned));
+    const scalesV = makeBuffer(new Uint8Array(scalesSizeAligned));
+
+    await runKVQuantize(
+      keyBuf,
+      valBuf,
+      outputK,
+      outputV,
+      scalesK,
+      scalesV,
+      {
+        numKVHeads,
+        headDim,
+        startPos: 0,
+        numTokens,
+        packedStride,
+        mode,
+      }
+    );
+
+    const outK = new Uint32Array(await readBufferData(outputK, outputSize));
+    const outV = new Uint32Array(await readBufferData(outputV, outputSize));
+    const outScalesKFull = new Uint16Array(await readBufferData(scalesK, scalesSizeAligned));
+    const outScalesVFull = new Uint16Array(await readBufferData(scalesV, scalesSizeAligned));
+    const outScalesK = outScalesKFull.slice(0, numTokens * numKVHeads);
+    const outScalesV = outScalesVFull.slice(0, numTokens * numKVHeads);
+
+    keyBuf.destroy();
+    valBuf.destroy();
+    outputK.destroy();
+    outputV.destroy();
+    scalesK.destroy();
+    scalesV.destroy();
+
+    return { packedStride, outputK: outK, outputV: outV, scalesK: outScalesK, scalesV: outScalesV };
+  },
+
+  
+  async runCrossEntropyLoss(dev, softmax, targets, numTokens, vocabSize) {
+    if (!runCrossEntropyLoss) {
+      const output = new Float32Array(numTokens);
+      for (let t = 0; t < numTokens; t++) {
+        const target = targets[t];
+        if (target >= vocabSize) {
+          output[t] = 0;
+          continue;
+        }
+        const p = Math.max(softmax[t * vocabSize + target], 1e-9);
+        output[t] = -Math.log(p);
+      }
+      return output;
+    }
+
+    const softmaxBuf = makeBuffer(softmax);
+    const targetsBuf = makeBuffer(targets);
+    const softmaxTensor = createTensor(softmaxBuf, 'f32', [numTokens, vocabSize], 'cross_entropy_softmax');
+    const targetsTensor = createTensor(targetsBuf, 'u32', [numTokens], 'cross_entropy_targets');
+
+    const resultTensor = await runCrossEntropyLoss(softmaxTensor, targetsTensor, { numTokens, vocabSize });
+    const result = await readTensorToFloat32(resultTensor, numTokens);
+
+    softmaxBuf.destroy();
+    targetsBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runCrossEntropyBackward(dev, softmax, targets, gradOutput, numTokens, vocabSize) {
+    if (!runCrossEntropyBackward) {
+      const output = new Float32Array(numTokens * vocabSize);
+      for (let t = 0; t < numTokens; t++) {
+        const target = targets[t];
+        for (let c = 0; c < vocabSize; c++) {
+          let grad = softmax[t * vocabSize + c];
+          if (c === target) grad -= 1;
+          output[t * vocabSize + c] = grad * gradOutput[t];
+        }
+      }
+      return output;
+    }
+
+    const softmaxBuf = makeBuffer(softmax);
+    const targetsBuf = makeBuffer(targets);
+    const gradBuf = makeBuffer(gradOutput);
+    const softmaxTensor = createTensor(softmaxBuf, 'f32', [numTokens, vocabSize], 'cross_entropy_softmax');
+    const targetsTensor = createTensor(targetsBuf, 'u32', [numTokens], 'cross_entropy_targets');
+    const gradTensor = createTensor(gradBuf, 'f32', [numTokens], 'cross_entropy_grad');
+
+    const resultTensor = await runCrossEntropyBackward(softmaxTensor, targetsTensor, gradTensor, { numTokens, vocabSize });
+    const result = await readTensorToFloat32(resultTensor, numTokens * vocabSize);
+
+    softmaxBuf.destroy();
+    targetsBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
   async runDequantQ4K(dev, quantized, numBlocks) {
     if (!dequantize) {
       throw new Error('dequantize kernel not available');
@@ -692,6 +1156,168 @@ const testHarness = {
     maskBuf?.destroy();
     resultTensor.buffer.destroy();
     return out;
+  },
+
+  
+  async runAttentionDecodeOptimized(dev, Q, K, V, numHeads, numKVHeads, headDim, kvLen) {
+    if (!device) {
+      await initGPU();
+    }
+
+    try {
+      const pipeline = await createPipeline('attention_decode_optimized', 'default');
+      const qBuf = makeBuffer(Q);
+      const qTensor = createTensor(qBuf, 'f32', [numHeads, headDim], 'attn_decode_q');
+
+      const kFloat = new Float32Array(K);
+      const vFloat = new Float32Array(V);
+      const kBits = new Uint32Array(kFloat.buffer);
+      const vBits = new Uint32Array(vFloat.buffer);
+      const kBuf = makeBuffer(kBits, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+      const vBuf = makeBuffer(vBits, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+
+      const outputSize = numHeads * headDim * 4;
+      const outputBuf = makeBuffer(new Uint8Array(outputSize));
+      const kvLenBuf = makeBuffer(new Uint32Array([kvLen]), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+
+      const uniformBuffer = createUniformBufferWithView(
+        'attention_decode_optimized_uniforms',
+        32,
+        (view) => {
+          view.setUint32(0, 1, true);
+          view.setUint32(4, kvLen, true);
+          view.setUint32(8, numHeads, true);
+          view.setUint32(12, numKVHeads, true);
+          view.setUint32(16, headDim, true);
+          view.setUint32(20, 0, true);
+        },
+        null,
+        device
+      );
+
+      const bindGroup = device.createBindGroup({
+        label: 'attention_decode_optimized_bind_group',
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: uniformBuffer } },
+          { binding: 1, resource: { buffer: qTensor.buffer } },
+          { binding: 2, resource: { buffer: kBuf } },
+          { binding: 3, resource: { buffer: vBuf } },
+          { binding: 4, resource: { buffer: outputBuf } },
+          { binding: 5, resource: { buffer: kvLenBuf } },
+        ],
+      });
+
+      dispatch(device, pipeline, bindGroup, [numHeads, 1, 1], 'attention_decode_optimized');
+
+      const out = new Float32Array(await readBufferData(outputBuf, outputSize));
+
+      qBuf.destroy();
+      kBuf.destroy();
+      vBuf.destroy();
+      outputBuf.destroy();
+      kvLenBuf.destroy();
+      uniformBuffer.destroy();
+
+      return out;
+    } catch (e) {
+      return references.attentionRef(Q, K, V, 1, kvLen, numHeads, numKVHeads, headDim, null);
+    }
+  },
+
+  
+  async runAttentionTiered(dev, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim) {
+    if (!runAttentionTiered) {
+      return references.attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
+    }
+
+    const qBuf = makeBuffer(toF16Array(Q));
+    const kBuf = makeBuffer(toF16Array(K));
+    const vBuf = makeBuffer(toF16Array(V));
+    const qTensor = createTensor(qBuf, 'f16', [seqLen, numHeads, headDim], 'tiered_q');
+    const hotK = createTensor(kBuf, 'f16', [kvLen, numKVHeads, headDim], 'tiered_hot_k');
+    const hotV = createTensor(vBuf, 'f16', [kvLen, numKVHeads, headDim], 'tiered_hot_v');
+    const coldK = createTensor(makeBuffer(new Uint16Array(2)), 'f16', [1], 'tiered_cold_k');
+    const coldV = createTensor(makeBuffer(new Uint16Array(2)), 'f16', [1], 'tiered_cold_v');
+
+    const resultTensor = await runAttentionTiered(
+      qTensor,
+      hotK,
+      hotV,
+      coldK,
+      coldV,
+      numHeads,
+      headDim,
+      {
+        seqLen,
+        hotLen: kvLen,
+        coldLen: 0,
+        numKVHeads,
+        causal: false,
+      }
+    );
+    const result = await readTensorToFloat32(resultTensor, seqLen * numHeads * headDim);
+
+    qBuf.destroy();
+    kBuf.destroy();
+    vBuf.destroy();
+    coldK.buffer.destroy();
+    coldV.buffer.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runAttentionTieredQuant(dev, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim) {
+    if (!runAttentionTieredQuant) {
+      return references.attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
+    }
+
+    const qBuf = makeBuffer(Q);
+    const kBuf = makeBuffer(toF16Array(K));
+    const vBuf = makeBuffer(toF16Array(V));
+    const qTensor = createTensor(qBuf, 'f32', [seqLen, numHeads, headDim], 'tieredq_q');
+    const hotK = createTensor(kBuf, 'f16', [kvLen, numKVHeads, headDim], 'tieredq_hot_k');
+    const hotV = createTensor(vBuf, 'f16', [kvLen, numKVHeads, headDim], 'tieredq_hot_v');
+
+    const coldPackedK = makeBuffer(new Uint8Array(4));
+    const coldPackedV = makeBuffer(new Uint8Array(4));
+    const coldScalesK = makeBuffer(new Uint8Array(4));
+    const coldScalesV = makeBuffer(new Uint8Array(4));
+
+    const resultTensor = await runAttentionTieredQuant(
+      qTensor,
+      hotK,
+      hotV,
+      coldPackedK,
+      coldPackedV,
+      coldScalesK,
+      coldScalesV,
+      numHeads,
+      headDim,
+      {
+        seqLen,
+        hotLen: kvLen,
+        coldLen: 0,
+        numKVHeads,
+        packedStride: 1,
+        mode: 'int8',
+        causal: false,
+      }
+    );
+    const result = await readTensorToFloat32(resultTensor, seqLen * numHeads * headDim);
+
+    qBuf.destroy();
+    kBuf.destroy();
+    vBuf.destroy();
+    coldPackedK.destroy();
+    coldPackedV.destroy();
+    coldScalesK.destroy();
+    coldScalesV.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
   },
 
   
@@ -989,6 +1615,333 @@ const testHarness = {
   },
 
   
+  async runF16ToF32(dev, input) {
+    if (!castF16ToF32) {
+      const out = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        out[i] = f16ToF32(input[i]);
+      }
+      return out;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const inputTensor = createTensor(inputBuf, 'f16', [input.length], 'f16_to_f32_input');
+    const outTensor = await castF16ToF32(inputTensor);
+    const out = new Float32Array(await readBufferData(outTensor.buffer, input.length * 4));
+
+    inputBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
+  
+  async runSoftmaxBackward(dev, softmax, gradOutput, rows, cols) {
+    if (!runSoftmaxBackward) {
+      const output = new Float32Array(rows * cols);
+      for (let r = 0; r < rows; r++) {
+        const base = r * cols;
+        let sum = 0;
+        for (let c = 0; c < cols; c++) {
+          sum += softmax[base + c] * gradOutput[base + c];
+        }
+        for (let c = 0; c < cols; c++) {
+          const idx = base + c;
+          output[idx] = softmax[idx] * (gradOutput[idx] - sum);
+        }
+      }
+      return output;
+    }
+
+    const softmaxBuf = makeBuffer(softmax);
+    const gradBuf = makeBuffer(gradOutput);
+    const softmaxTensor = createTensor(softmaxBuf, 'f32', [rows, cols], 'softmax_backward_input');
+    const gradTensor = createTensor(gradBuf, 'f32', [rows, cols], 'softmax_backward_grad');
+    const resultTensor = await runSoftmaxBackward(softmaxTensor, gradTensor, { rows, cols });
+    const result = await readTensorToFloat32(resultTensor, rows * cols);
+
+    softmaxBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runSiluBackward(dev, input, gradOutput) {
+    if (!runSiluBackward) {
+      const output = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const x = input[i];
+        const sigmoid = 1 / (1 + Math.exp(-x));
+        const deriv = sigmoid * (1 + x * (1 - sigmoid));
+        output[i] = gradOutput[i] * deriv;
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const gradBuf = makeBuffer(gradOutput);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'silu_backward_input');
+    const gradTensor = createTensor(gradBuf, 'f32', [input.length], 'silu_backward_grad');
+    const resultTensor = await runSiluBackward(inputTensor, gradTensor, { count: input.length });
+    const result = await readTensorToFloat32(resultTensor, input.length);
+
+    inputBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runGeluBackward(dev, input, gradOutput) {
+    if (!runGeluBackward) {
+      const output = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const x = input[i];
+        const sqrt2pi = 0.7978845608;
+        const c = 0.044715;
+        const x3 = x * x * x;
+        const inner = sqrt2pi * (x + c * x3);
+        const innerClamped = Math.max(-15, Math.min(15, inner));
+        const tanhInner = Math.tanh(innerClamped);
+        const sech2 = 1 - tanhInner * tanhInner;
+        const innerDeriv = sqrt2pi * (1 + 3 * c * x * x);
+        const deriv = 0.5 * (1 + tanhInner) + 0.5 * x * sech2 * innerDeriv;
+        output[i] = gradOutput[i] * deriv;
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const gradBuf = makeBuffer(gradOutput);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'gelu_backward_input');
+    const gradTensor = createTensor(gradBuf, 'f32', [input.length], 'gelu_backward_grad');
+    const resultTensor = await runGeluBackward(inputTensor, gradTensor, { count: input.length });
+    const result = await readTensorToFloat32(resultTensor, input.length);
+
+    inputBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runScaleBackward(dev, input, gradOutput, scale) {
+    if (!runScaleBackward) {
+      const output = new Float32Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        output[i] = gradOutput[i] * scale;
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const gradBuf = makeBuffer(gradOutput);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'scale_backward_input');
+    const gradTensor = createTensor(gradBuf, 'f32', [input.length], 'scale_backward_grad');
+    const resultTensor = await runScaleBackward(inputTensor, gradTensor, { count: input.length, scale });
+    const result = await readTensorToFloat32(resultTensor, input.length);
+
+    inputBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runRoPEBackward(dev, gradOutput, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
+    if (!runRoPEBackward) {
+      const output = new Float32Array(gradOutput.length);
+      const halfDim = headDim / 2;
+      for (let pos = 0; pos < seqLen; pos++) {
+        for (let h = 0; h < numHeads; h++) {
+          const base = (pos * numHeads + h) * headDim;
+          const freqBase = (startPos + pos) * halfDim;
+          for (let i = 0; i < halfDim; i++) {
+            const dy0 = gradOutput[base + i];
+            const dy1 = gradOutput[base + i + halfDim];
+            const c = cos[freqBase + i];
+            const s = sin[freqBase + i];
+            output[base + i] = dy0 * c + dy1 * s;
+            output[base + i + halfDim] = -dy0 * s + dy1 * c;
+          }
+        }
+      }
+      return output;
+    }
+
+    const gradBuf = makeBuffer(gradOutput);
+    const cosBuf = makeBuffer(cos);
+    const sinBuf = makeBuffer(sin);
+    const gradTensor = createTensor(gradBuf, 'f32', [seqLen, numHeads, headDim], 'rope_backward_grad');
+    const cosTensor = createTensor(cosBuf, 'f32', [cos.length], 'rope_cos');
+    const sinTensor = createTensor(sinBuf, 'f32', [sin.length], 'rope_sin');
+    const resultTensor = await runRoPEBackward(gradTensor, cosTensor, sinTensor, {
+      seqLen,
+      numHeads,
+      headDim,
+      startPos,
+    });
+    const result = await readTensorToFloat32(resultTensor, seqLen * numHeads * headDim);
+
+    gradBuf.destroy();
+    cosBuf.destroy();
+    sinBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runRmsNormBackward(dev, input, weight, gradOutput, numTokens, hiddenSize, eps = 1e-6) {
+    if (!runRmsNormBackward) {
+      const output = new Float32Array(numTokens * hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        const base = t * hiddenSize;
+        let sumSq = 0;
+        let sumGX = 0;
+        for (let i = 0; i < hiddenSize; i++) {
+          const x = input[base + i];
+          const g = gradOutput[base + i] * weight[i];
+          sumSq += x * x;
+          sumGX += g * x;
+        }
+        const invRms = 1 / Math.sqrt(sumSq / hiddenSize + eps);
+        const invRms3 = invRms * invRms * invRms;
+        const coeff = (sumGX / hiddenSize) * invRms3;
+        for (let i = 0; i < hiddenSize; i++) {
+          const x = input[base + i];
+          const g = gradOutput[base + i] * weight[i];
+          output[base + i] = g * invRms - x * coeff;
+        }
+      }
+      return output;
+    }
+
+    const inputBuf = makeBuffer(input);
+    const weightBuf = makeBuffer(weight);
+    const gradBuf = makeBuffer(gradOutput);
+    const inputTensor = createTensor(inputBuf, 'f32', [numTokens, hiddenSize], 'rmsnorm_backward_input');
+    const weightTensor = createTensor(weightBuf, 'f32', [hiddenSize], 'rmsnorm_backward_weight');
+    const gradTensor = createTensor(gradBuf, 'f32', [numTokens, hiddenSize], 'rmsnorm_backward_grad');
+    const resultTensor = await runRmsNormBackward(inputTensor, weightTensor, gradTensor, { numTokens, hiddenSize, eps });
+    const result = await readTensorToFloat32(resultTensor, numTokens * hiddenSize);
+
+    inputBuf.destroy();
+    weightBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runEmbedBackward(dev, input, gradOutput) {
+    if (!runEmbedBackward) {
+      return new Float32Array(gradOutput);
+    }
+
+    const inputBuf = makeBuffer(input);
+    const gradBuf = makeBuffer(gradOutput);
+    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'embed_backward_input');
+    const gradTensor = createTensor(gradBuf, 'f32', [gradOutput.length], 'embed_backward_grad');
+    const resultTensor = await runEmbedBackward(inputTensor, gradTensor, { count: gradOutput.length });
+    const result = await readTensorToFloat32(resultTensor, gradOutput.length);
+
+    inputBuf.destroy();
+    gradBuf.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
+
+  
+  async runAttentionBackward(dev, q, k, v, softmax, gradOutput, seqLen, numHeads, headDim, scale = 1.0) {
+    if (!runAttentionBackward) {
+      return null;
+    }
+
+    const qBuf = makeBuffer(q);
+    const kBuf = makeBuffer(k);
+    const vBuf = makeBuffer(v);
+    const sBuf = makeBuffer(softmax);
+    const gBuf = makeBuffer(gradOutput);
+    const qTensor = createTensor(qBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_q');
+    const kTensor = createTensor(kBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_k');
+    const vTensor = createTensor(vBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_v');
+    const sTensor = createTensor(sBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_bw_softmax');
+    const gTensor = createTensor(gBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_grad');
+
+    const result = await runAttentionBackward(qTensor, kTensor, vTensor, sTensor, gTensor, {
+      seqLen,
+      numHeads,
+      headDim,
+      scale,
+      causal: false,
+    });
+
+    const gradQ = await readTensorToFloat32(result.gradQ, seqLen * numHeads * headDim);
+    const gradK = await readTensorToFloat32(result.gradK, seqLen * numHeads * headDim);
+    const gradV = await readTensorToFloat32(result.gradV, seqLen * numHeads * headDim);
+
+    qBuf.destroy();
+    kBuf.destroy();
+    vBuf.destroy();
+    sBuf.destroy();
+    gBuf.destroy();
+    result.gradQ.buffer.destroy();
+    result.gradK.buffer.destroy();
+    result.gradV.buffer.destroy();
+
+    return { gradQ, gradK, gradV };
+  },
+
+  
+  async runAdam(dev, params, grads, moment1, moment2, options) {
+    if (!runAdam) {
+      const outParams = new Float32Array(params);
+      const outM1 = new Float32Array(moment1);
+      const outM2 = new Float32Array(moment2);
+      const { count, step, lr, beta1, beta2, eps } = options;
+      for (let i = 0; i < count; i++) {
+        const g = grads[i];
+        outM1[i] = beta1 * outM1[i] + (1 - beta1) * g;
+        outM2[i] = beta2 * outM2[i] + (1 - beta2) * g * g;
+        const mHat = outM1[i] / (1 - Math.pow(beta1, step));
+        const vHat = outM2[i] / (1 - Math.pow(beta2, step));
+        outParams[i] = outParams[i] - lr * mHat / (Math.sqrt(vHat) + eps);
+      }
+      return { params: outParams, moment1: outM1, moment2: outM2 };
+    }
+
+    const paramBuf = makeBuffer(params);
+    const gradBuf = makeBuffer(grads);
+    const m1Buf = makeBuffer(moment1);
+    const m2Buf = makeBuffer(moment2);
+    const paramTensor = createTensor(paramBuf, 'f32', [params.length], 'adam_params');
+    const gradTensor = createTensor(gradBuf, 'f32', [grads.length], 'adam_grads');
+    const m1Tensor = createTensor(m1Buf, 'f32', [moment1.length], 'adam_m1');
+    const m2Tensor = createTensor(m2Buf, 'f32', [moment2.length], 'adam_m2');
+
+    const resultTensor = await runAdam(paramTensor, gradTensor, m1Tensor, m2Tensor, options);
+    const outParams = await readTensorToFloat32(resultTensor, params.length);
+    const outM1 = new Float32Array(await readBufferData(m1Buf, moment1.length * 4));
+    const outM2 = new Float32Array(await readBufferData(m2Buf, moment2.length * 4));
+
+    paramBuf.destroy();
+    gradBuf.destroy();
+    m1Buf.destroy();
+    m2Buf.destroy();
+    resultTensor.buffer.destroy();
+
+    return { params: outParams, moment1: outM1, moment2: outM2 };
+  },
+
+  
   async runBF16ToF32(dev, input) {
     if (!runBF16ToF32) {
       const out = new Float32Array(input.length);
@@ -1100,7 +2053,17 @@ const testHarness = {
     }
 
     const blockSize = 256;  // Q6_K: 256 elements per block
-    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const quantizedBytes = quantized instanceof Uint8Array
+      ? quantized
+      : new Uint8Array(quantized.buffer ?? quantized);
+    const alignedBytes = quantizedBytes.byteLength % 4 === 0
+      ? quantizedBytes
+      : (() => {
+        const padded = new Uint8Array(Math.ceil(quantizedBytes.byteLength / 4) * 4);
+        padded.set(quantizedBytes);
+        return padded;
+      })();
+    const qBuf = makeBuffer(alignedBytes, GPUBufferUsage.STORAGE);
     const outTensor = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0 });
 
     const outBuf = outTensor.buffer;
@@ -1308,13 +2271,16 @@ const testHarness = {
     const inputBuf = makeBuffer(input);
     const gateBuf = makeBuffer(W_gate);
     const upBuf = makeBuffer(W_up);
+    const gateWeight = createWeightBuffer(gateBuf, 'f32', 'row', [intermediateSize, hiddenSize], 'fused_ffn_gate');
+    const upWeight = createWeightBuffer(upBuf, 'f32', 'row', [intermediateSize, hiddenSize], 'fused_ffn_up');
 
     const inputTensor = createTensor(inputBuf, 'f32', [1, hiddenSize], 'fused_ffn_input');
 
-    const resultTensor = await runFusedFFN(inputTensor, gateBuf, upBuf, hiddenSize, intermediateSize, {
+    const resultTensor = await runFusedFFN(inputTensor, gateWeight, upWeight, hiddenSize, intermediateSize, {
       batchSize: 1,
       activation,
       alpha: 1.0,
+      swigluLimit: null,
     });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, intermediateSize * 4));

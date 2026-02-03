@@ -25,9 +25,39 @@ export declare function decodeStep(
     buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
-    debugCheckBuffer: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
   }
 ): Promise<number>;
+
+export declare function decodeStepLogits(
+  state: unknown,
+  currentIds: number[],
+  opts: Record<string, unknown>,
+  helpers: {
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    getLogitsWeights: () => unknown;
+    getLogitsConfig: () => unknown;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+  }
+): Promise<{
+  logits: Float32Array;
+  logitsBuffer: GPUBuffer | null;
+  logitsDtype: string | null;
+  rawVocabSize: number;
+  vocabSize: number;
+}>;
+
+export declare function advanceWithToken(
+  state: unknown,
+  tokenId: number,
+  opts: Record<string, unknown>,
+  helpers: {
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    getLogitsWeights: () => unknown;
+    getLogitsConfig: () => unknown;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+  }
+): Promise<void>;
 
 export declare function generateNTokensGPU(
   state: unknown,

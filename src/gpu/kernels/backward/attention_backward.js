@@ -90,10 +90,16 @@ export async function runAttentionBackward(
     const dHead = createTensor(dHeadBuf, 'f32', [seqLen, headDim], 'attn_d_head');
 
     const sTransposed = await runTranspose(sHead, seqLen, seqLen);
-    const dV = await runMatmul(sTransposed, dHead, seqLen, headDim, seqLen, { transposeB: false });
+    const dV = await runMatmul(sTransposed, dHead.buffer, seqLen, headDim, seqLen, {
+      transposeB: false,
+      bDtype: 'f32',
+    });
 
     const vTransposed = await runTranspose(vHead, seqLen, headDim);
-    const dS = await runMatmul(dHead, vTransposed, seqLen, seqLen, headDim, { transposeB: false });
+    const dS = await runMatmul(dHead, vTransposed.buffer, seqLen, seqLen, headDim, {
+      transposeB: false,
+      bDtype: 'f32',
+    });
     const dQK = causal
       ? await runBackwardKernel(
         'attention_backward',
@@ -108,9 +114,17 @@ export async function runAttentionBackward(
       )
       : await runSoftmaxBackward(sHead, dS, { rows: seqLen, cols: seqLen });
 
-    const dQ = await runMatmul(dQK, kHead, seqLen, headDim, seqLen, { transposeB: false, alpha: scale });
+    const dQ = await runMatmul(dQK, kHead.buffer, seqLen, headDim, seqLen, {
+      transposeB: false,
+      alpha: scale,
+      bDtype: 'f32',
+    });
     const dQKTransposed = await runTranspose(dQK, seqLen, seqLen);
-    const dK = await runMatmul(dQKTransposed, qHead, seqLen, headDim, seqLen, { transposeB: false, alpha: scale });
+    const dK = await runMatmul(dQKTransposed, qHead.buffer, seqLen, headDim, seqLen, {
+      transposeB: false,
+      alpha: scale,
+      bDtype: 'f32',
+    });
 
     await copyInto(device, [
       { source: dQ.buffer, target: gradQBuf, offset: qOffset, size: headBytes },
