@@ -91,6 +91,28 @@ function resolveEmbeddingDtype(weight, weightsEntry, key, runtime) {
   return allowUpcast ? 'f32' : 'f16';
 }
 
+function normalizeMatmulLocationDtype(dtype) {
+  if (!dtype) return null;
+  const normalized = String(dtype).toLowerCase();
+  if (normalized === 'f16' || normalized === 'float16') return 'f16';
+  if (normalized === 'bf16' || normalized === 'bfloat16') return 'bf16';
+  if (normalized === 'f32' || normalized === 'float32') return 'f32';
+  if (normalized === 'q4_k' || normalized === 'q4_k_m') return 'q4k';
+  return normalized;
+}
+
+function resolveMatmulDtype(weight, weightsEntry, key) {
+  if (weight && weight.dtype) return weight.dtype;
+  const locationDtype = weightsEntry?.dtypes?.get(key);
+  return normalizeMatmulLocationDtype(locationDtype);
+}
+
+async function runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options = {}) {
+  const bDtype = resolveMatmulDtype(weight, weightsEntry, key);
+  const nextOptions = bDtype ? { ...options, bDtype } : options;
+  return runMatmul(input, weight, M, N, K, nextOptions);
+}
+
 async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options = {}) {
   const device = getDevice();
   if (!device) throw new Error('CLIP encoder requires a WebGPU device.');
@@ -107,6 +129,8 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const padTokenId = config.pad_token_id ?? 0;
   const eosTokenId = config.eos_token_id ?? null;
   const activationDtype = resolveActivationDtype(runtime);
+  const matmul = (input, weight, key, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options);
 
   const padded = padTokens(tokens, maxLength, padTokenId);
   const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);
@@ -186,17 +210,20 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       hiddenSize,
     });
 
+    const qKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`;
+    const kKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.weight`;
+    const vKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`;
     const qWeight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`
+      qKey
     );
     const kWeight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.k_proj.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.weight`
+      kKey
     );
     const vWeight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`
+      vKey
     );
     const qBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`),
@@ -210,18 +237,19 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`
     );
+    const outKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`;
     const outWeight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`
+      outKey
     );
     const outBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`
     );
 
-    let q = await runMatmul(norm1, qWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    let k = await runMatmul(norm1, kWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    let v = await runMatmul(norm1, vWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    let q = await matmul(norm1, qWeight, qKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    let k = await matmul(norm1, kWeight, kKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    let v = await matmul(norm1, vWeight, vKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     if (qBias) q = await runBiasAdd(q, createBiasTensor(getBuffer(qBias), hiddenSize, `${prefix}_q_bias`), maxLength, hiddenSize);
     if (kBias) k = await runBiasAdd(k, createBiasTensor(getBuffer(kBias), hiddenSize, `${prefix}_k_bias`), maxLength, hiddenSize);
     if (vBias) v = await runBiasAdd(v, createBiasTensor(getBuffer(vBias), hiddenSize, `${prefix}_v_bias`), maxLength, hiddenSize);
@@ -233,7 +261,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       causal: false,
     });
 
-    let attnOut = await runMatmul(attn, outWeight, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    let attnOut = await matmul(attn, outWeight, outKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     if (outBias) attnOut = await runBiasAdd(attnOut, createBiasTensor(getBuffer(outBias), hiddenSize, `${prefix}_out_bias`), maxLength, hiddenSize);
 
     const attnResidual = await runResidualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
@@ -253,17 +281,19 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       hiddenSize,
     });
 
+    const fc1Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`;
     const fc1Weight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`
+      fc1Key
     );
     const fc1Bias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`
     );
+    const fc2Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`;
     const fc2Weight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`
+      fc2Key
     );
     const fc2Bias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`),
@@ -271,13 +301,13 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     );
 
     const intermediate = fc1Weight.shape[0];
-    let mlp = await runMatmul(norm2, fc1Weight, maxLength, intermediate, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+    let mlp = await matmul(norm2, fc1Weight, fc1Key, maxLength, intermediate, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     if (fc1Bias) mlp = await runBiasAdd(mlp, createBiasTensor(getBuffer(fc1Bias), intermediate, `${prefix}_fc1_bias`), maxLength, intermediate);
 
     const gelu = await runGeLU(mlp, { size: maxLength * intermediate });
     releaseBuffer(mlp.buffer);
 
-    let mlpOut = await runMatmul(gelu, fc2Weight, maxLength, hiddenSize, intermediate, { outputDtype: activationDtype, transposeB: 'auto' });
+    let mlpOut = await matmul(gelu, fc2Weight, fc2Key, maxLength, hiddenSize, intermediate, { outputDtype: activationDtype, transposeB: 'auto' });
     if (fc2Bias) mlpOut = await runBiasAdd(mlpOut, createBiasTensor(getBuffer(fc2Bias), hiddenSize, `${prefix}_fc2_bias`), maxLength, hiddenSize);
 
     const mlpResidual = await runResidualAdd(hidden, mlpOut, maxLength * hiddenSize, { useVec4: true });
@@ -320,11 +350,12 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   );
   eosIdxBuffer.destroy();
 
+  const textProjKey = `${prefix}.text_projection.weight`;
   const textProj = expectWeight(
     getWeight(weights, prefix, 'text_projection.weight'),
-    `${prefix}.text_projection.weight`
+    textProjKey
   );
-  let pooled = await runMatmul(pooledToken, textProj, 1, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
+  let pooled = await matmul(pooledToken, textProj, textProjKey, 1, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
   releaseBuffer(pooledToken.buffer);
 
   const pooledData = await readBuffer(pooled.buffer, hiddenSize * (pooled.dtype === 'f16' ? 2 : 4));
@@ -374,6 +405,8 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   const maxLength = options.maxLength;
   const padTokenId = config.pad_token_id ?? 0;
   const activationDtype = resolveActivationDtype(runtime);
+  const matmul = (input, weight, key, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options);
 
   const padded = padTokens(tokens, maxLength, padTokenId);
   const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);

@@ -1072,60 +1072,11 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
-        "gate": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "HAS_GATE": true }
-        },
-        "gate_split": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "USE_SPLIT": true }
-        },
-        "vec4": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "USE_VEC4": true }
-        },
-        "gate_rowsplit": {
-          "wgsl": "silu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "USE_ROWSPLIT": true }
-        },
         "default_f16": {
           "wgsl": "silu_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
-        },
-        "gate_f16": {
-          "wgsl": "silu_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"],
-          "wgslOverrides": { "HAS_GATE": true }
-        },
-        "vec4_f16": {
-          "wgsl": "silu_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"],
-          "wgslOverrides": { "USE_VEC4": true }
-        },
-        "gate_rowsplit_f16": {
-          "wgsl": "silu_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"],
-          "wgslOverrides": { "USE_ROWSPLIT": true }
         }
       }
     },
@@ -1151,39 +1102,11 @@
           "workgroup": [256, 1, 1],
           "requires": []
         },
-        "geglu": {
-          "wgsl": "gelu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "HAS_GATE": true }
-        },
-        "geglu_rowsplit": {
-          "wgsl": "gelu.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": [],
-          "wgslOverrides": { "USE_ROWSPLIT": true }
-        },
         "gelu_f16": {
           "wgsl": "gelu_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
-        },
-        "geglu_f16": {
-          "wgsl": "gelu_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"],
-          "wgslOverrides": { "HAS_GATE": true }
-        },
-        "geglu_rowsplit_f16": {
-          "wgsl": "gelu_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [256, 1, 1],
-          "requires": ["shader-f16"],
-          "wgslOverrides": { "USE_ROWSPLIT": true }
         }
       }
     },

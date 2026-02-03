@@ -5,7 +5,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 
 
@@ -14,8 +14,13 @@ function canUseF16(input) {
 }
 
 
-function selectGeluVariant(hasGate, isF16) {
-  return selectRuleValue('gelu', 'variant', { hasGate, isF16 });
+function selectGeluVariant(isF16) {
+  return selectRuleValue('gelu', 'variant', { isF16 });
+}
+
+function resolveOverrides(context) {
+  const overrides = selectRuleValue('gelu', 'overrides', context);
+  return overrides && Object.keys(overrides).length > 0 ? overrides : null;
 }
 
 
@@ -29,9 +34,13 @@ export async function runGeLU(
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
 
-  // Select gated variant when gate buffer is provided
-  const variant = selectGeluVariant(Boolean(gate), isF16);
-  const pipeline = await createPipeline('gelu', variant);
+  // Select variant + overrides (gate handled via overrides)
+  const variant = selectGeluVariant(isF16);
+  const overrides = resolveOverrides({
+    hasGate: Boolean(gate),
+    useRowsplit: false,
+  });
+  const pipeline = await getPipelineFast('gelu', variant, null, overrides);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
@@ -84,9 +93,13 @@ export async function recordGeLU(
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
 
-  // Select gated variant when gate buffer is provided
-  const variant = selectGeluVariant(Boolean(gate), isF16);
-  const pipeline = await createPipeline('gelu', variant);
+  // Select variant + overrides (gate handled via overrides)
+  const variant = selectGeluVariant(isF16);
+  const overrides = resolveOverrides({
+    hasGate: Boolean(gate),
+    useRowsplit: false,
+  });
+  const pipeline = await getPipelineFast('gelu', variant, null, overrides);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;

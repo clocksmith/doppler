@@ -13,13 +13,14 @@ function canUseF16(input) {
 }
 
 
-function selectSiLUVariant(base, isF16) {
-  return selectRuleValue('silu', 'variant', { base, isF16 });
+function selectSiLUVariant(isF16) {
+  return selectRuleValue('silu', 'variant', { isF16 });
 }
 
 
-function selectRowSplitVariant(activation, isF16) {
-  return selectRuleValue('silu', 'rowsplitVariant', { activation, isF16 });
+function resolveOverrides(group, context) {
+  const overrides = selectRuleValue(group, 'overrides', context);
+  return overrides && Object.keys(overrides).length > 0 ? overrides : null;
 }
 
 
@@ -59,9 +60,14 @@ export async function runSiLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select variant using lookup table
-  const baseVariant = selectRuleValue('silu', 'baseVariant', { gate: Boolean(gate), useVec4 });
-  const variant = selectSiLUVariant(baseVariant, isF16);
-  const pipeline = await getPipelineFast('silu', variant);
+  const variant = selectSiLUVariant(isF16);
+  const overrides = resolveOverrides('silu', {
+    hasGate: Boolean(gate),
+    useVec4,
+    useSplit: false,
+    useRowsplit: false,
+  });
+  const pipeline = await getPipelineFast('silu', variant, null, overrides);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
@@ -165,8 +171,9 @@ export async function runSiLURowSplit(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   const op = selectRuleValue('silu', 'activationOp', { activation });
-  const variant = selectRowSplitVariant(activation, isF16);
-  const pipeline = await getPipelineFast(op, variant);
+  const variant = selectRuleValue(op, 'variant', { isF16 });
+  const overrides = resolveOverrides(op, { useRowsplit: true });
+  const pipeline = await getPipelineFast(op, variant, null, overrides);
 
   const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
@@ -220,8 +227,9 @@ export async function recordSiLURowSplit(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   const op = selectRuleValue('silu', 'activationOp', { activation });
-  const variant = selectRowSplitVariant(activation, isF16);
-  const pipeline = await getPipelineFast(op, variant);
+  const variant = selectRuleValue(op, 'variant', { isF16 });
+  const overrides = resolveOverrides(op, { useRowsplit: true });
+  const pipeline = await getPipelineFast(op, variant, null, overrides);
 
   const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
@@ -271,9 +279,14 @@ export async function recordSiLU(
   const bytesPerElement = dtypeBytes(input.dtype);
 
   // Select variant using lookup table
-  const baseVariant = selectRuleValue('silu', 'baseVariant', { gate: Boolean(gate), useVec4: false });
-  const variant = selectSiLUVariant(baseVariant, isF16);
-  const pipeline = await getPipelineFast('silu', variant);
+  const variant = selectSiLUVariant(isF16);
+  const overrides = resolveOverrides('silu', {
+    hasGate: Boolean(gate),
+    useVec4: false,
+    useSplit: false,
+    useRowsplit: false,
+  });
+  const pipeline = await getPipelineFast('silu', variant, null, overrides);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;

@@ -65,6 +65,29 @@ function resolveEmbeddingDtype(weight, weightsEntry, key, runtime) {
   return allowUpcast ? 'f32' : 'f16';
 }
 
+function normalizeMatmulLocationDtype(dtype) {
+  if (!dtype) return null;
+  const normalized = String(dtype).toLowerCase();
+  if (normalized === 'f16' || normalized === 'float16') return 'f16';
+  if (normalized === 'bf16' || normalized === 'bfloat16') return 'bf16';
+  if (normalized === 'f32' || normalized === 'float32') return 'f32';
+  if (normalized === 'q4_k' || normalized === 'q4_k_m') return 'q4k';
+  return normalized;
+}
+
+function resolveMatmulDtype(weight, resolver, name) {
+  if (weight && weight.dtype) return weight.dtype;
+  if (!resolver || !name) return null;
+  const locationDtype = resolver.dtype(name);
+  return normalizeMatmulLocationDtype(locationDtype);
+}
+
+async function runMatmulResolved(input, weight, resolver, name, M, N, K, options = {}) {
+  const bDtype = resolveMatmulDtype(weight, resolver, name);
+  const nextOptions = bDtype ? { ...options, bDtype } : options;
+  return runMatmul(input, weight, M, N, K, nextOptions);
+}
+
 function expectWeight(weight, label) {
   if (!weight) {
     throw new Error(`Missing diffusion weight: ${label}`);
@@ -98,8 +121,8 @@ async function splitQKV(qkv, numTokens, hiddenSize, label) {
   };
 }
 
-async function runFusedQKV(input, weight, bias, numTokens, hiddenSize, outputDtype, label) {
-  const qkv = await runMatmul(input, weight, numTokens, hiddenSize * 3, hiddenSize, {
+async function runFusedQKV(input, weight, bias, numTokens, hiddenSize, outputDtype, label, matmul, weightName) {
+  const qkv = await matmul(input, weight, weightName, numTokens, hiddenSize * 3, hiddenSize, {
     outputDtype,
     transposeB: 'auto',
   });
@@ -115,19 +138,38 @@ async function runFusedQKV(input, weight, bias, numTokens, hiddenSize, outputDty
   return split;
 }
 
-async function runQKV(input, weights, bias, numTokens, hiddenSize, label) {
+async function runQKV(input, weights, bias, numTokens, hiddenSize, label, matmul, weightNames) {
   const outputDtype = input.dtype;
   if (weights.qkv) {
-    return runFusedQKV(input, weights.qkv, bias?.qkv ?? null, numTokens, hiddenSize, outputDtype, label);
+    return runFusedQKV(
+      input,
+      weights.qkv,
+      bias?.qkv ?? null,
+      numTokens,
+      hiddenSize,
+      outputDtype,
+      label,
+      matmul,
+      weightNames?.qkv ?? null
+    );
   }
 
   const qWeight = expectWeight(weights.q, `${label}.q`);
   const kWeight = expectWeight(weights.k, `${label}.k`);
   const vWeight = expectWeight(weights.v, `${label}.v`);
 
-  let q = await runMatmul(input, qWeight, numTokens, hiddenSize, hiddenSize, { outputDtype, transposeB: 'auto' });
-  let k = await runMatmul(input, kWeight, numTokens, hiddenSize, hiddenSize, { outputDtype, transposeB: 'auto' });
-  let v = await runMatmul(input, vWeight, numTokens, hiddenSize, hiddenSize, { outputDtype, transposeB: 'auto' });
+  let q = await matmul(input, qWeight, weightNames?.q ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype,
+    transposeB: 'auto',
+  });
+  let k = await matmul(input, kWeight, weightNames?.k ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype,
+    transposeB: 'auto',
+  });
+  let v = await matmul(input, vWeight, weightNames?.v ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype,
+    transposeB: 'auto',
+  });
 
   if (bias?.q) q = await runBiasAdd(q, bias.q, numTokens, hiddenSize);
   if (bias?.k) k = await runBiasAdd(k, bias.k, numTokens, hiddenSize);
@@ -157,10 +199,19 @@ async function concatKV(a, b, numTokensA, numTokensB, hiddenSize) {
   return createTensor(output, a.dtype, [numTokensA + numTokensB, hiddenSize], 'kv_concat');
 }
 
-async function runAttentionBlock(input, weights, bias, numTokens, hiddenSize, numHeads, headDim, normWeights, eps) {
-  let q = await runMatmul(input, weights.q, numTokens, hiddenSize, hiddenSize, { outputDtype: input.dtype, transposeB: 'auto' });
-  let k = await runMatmul(input, weights.k, numTokens, hiddenSize, hiddenSize, { outputDtype: input.dtype, transposeB: 'auto' });
-  let v = await runMatmul(input, weights.v, numTokens, hiddenSize, hiddenSize, { outputDtype: input.dtype, transposeB: 'auto' });
+async function runAttentionBlock(input, weights, bias, numTokens, hiddenSize, numHeads, headDim, normWeights, eps, matmul, weightNames) {
+  let q = await matmul(input, weights.q, weightNames?.q ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype: input.dtype,
+    transposeB: 'auto',
+  });
+  let k = await matmul(input, weights.k, weightNames?.k ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype: input.dtype,
+    transposeB: 'auto',
+  });
+  let v = await matmul(input, weights.v, weightNames?.v ?? null, numTokens, hiddenSize, hiddenSize, {
+    outputDtype: input.dtype,
+    transposeB: 'auto',
+  });
 
   if (bias?.q) q = await runBiasAdd(q, bias.q, numTokens, hiddenSize);
   if (bias?.k) k = await runBiasAdd(k, bias.k, numTokens, hiddenSize);
@@ -191,7 +242,7 @@ async function runAttentionBlock(input, weights, bias, numTokens, hiddenSize, nu
   return attn;
 }
 
-async function buildModulation(timeText, weight, bias, hiddenSize, segments, runtime) {
+async function buildModulation(timeText, weight, bias, hiddenSize, segments, runtime, matmul, weightName) {
   const device = getDevice();
   const activationDtype = resolveActivationDtype(runtime);
   const outDim = hiddenSize * segments;
@@ -199,7 +250,7 @@ async function buildModulation(timeText, weight, bias, hiddenSize, segments, run
   const bufferSize = (outDim + hiddenSize) * bytesPerElement;
   const outputBuffer = acquireBuffer(bufferSize, undefined, 'sd3_modulate');
 
-  const mod = await runMatmul(timeText, weight, 1, outDim, hiddenSize, {
+  const mod = await matmul(timeText, weight, weightName, 1, outDim, hiddenSize, {
     outputDtype: activationDtype,
     transposeB: 'auto',
     outputBuffer,
@@ -249,11 +300,11 @@ async function applyGate(output, mod, offsets, options = {}) {
   return gated;
 }
 
-async function runFFN(input, weights, bias, numTokens, hiddenSize, runtime) {
+async function runFFN(input, weights, bias, numTokens, hiddenSize, runtime, matmul, weightNames) {
   const activationDtype = resolveActivationDtype(runtime);
   const upDim = weights.up.shape[0];
   const downInput = weights.down.shape[1];
-  let up = await runMatmul(input, weights.up, numTokens, upDim, hiddenSize, {
+  let up = await matmul(input, weights.up, weightNames?.up ?? null, numTokens, upDim, hiddenSize, {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -274,7 +325,7 @@ async function runFFN(input, weights, bias, numTokens, hiddenSize, runtime) {
   }
   releaseBuffer(up.buffer);
 
-  let down = await runMatmul(act, weights.down, numTokens, hiddenSize, intermediate, {
+  let down = await matmul(act, weights.down, weightNames?.down ?? null, numTokens, hiddenSize, intermediate, {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
@@ -290,6 +341,8 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   }
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
+  const matmul = (input, weight, name, M, N, K, options = {}) =>
+    runMatmulResolved(input, weight, resolver, name, M, N, K, options);
   const config = modelConfig?.components?.transformer?.config || {};
   const hiddenSize = config.num_attention_heads * config.attention_head_dim;
   const numHeads = config.num_attention_heads;
@@ -377,12 +430,13 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const numLayers = config.num_layers;
 
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
+    const modWeightName = `transformer_blocks.${layerIdx}.norm1.linear.weight`;
     const modWeight = expectWeight(
-      resolver.get(`transformer_blocks.${layerIdx}.norm1.linear.weight`),
-      `transformer_blocks.${layerIdx}.norm1.linear.weight`
+      resolver.get(modWeightName),
+      modWeightName
     );
     const modBias = resolver.get(`transformer_blocks.${layerIdx}.norm1.linear.bias`);
-    const mod = await buildModulation(timeText, modWeight, modBias, hiddenSize, 9, runtime);
+    const mod = await buildModulation(timeText, modWeight, modBias, hiddenSize, 9, runtime, matmul, modWeightName);
 
     const offsets = {
       attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
@@ -393,12 +447,13 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
     let ctxMod = null;
     let ctxOffsets = null;
     if (dualLayers.has(layerIdx)) {
+      const ctxWeightName = `transformer_blocks.${layerIdx}.norm1_context.linear.weight`;
       const ctxWeight = expectWeight(
-        resolver.get(`transformer_blocks.${layerIdx}.norm1_context.linear.weight`),
-        `transformer_blocks.${layerIdx}.norm1_context.linear.weight`
+        resolver.get(ctxWeightName),
+        ctxWeightName
       );
       const ctxBias = resolver.get(`transformer_blocks.${layerIdx}.norm1_context.linear.bias`);
-      ctxMod = await buildModulation(timeText, ctxWeight, ctxBias, hiddenSize, 6, runtime);
+      ctxMod = await buildModulation(timeText, ctxWeight, ctxBias, hiddenSize, 6, runtime, matmul, ctxWeightName);
       ctxOffsets = {
         attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
         ff: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
@@ -428,11 +483,17 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         { numTokens: ctx.shape[0], hiddenSize }
       );
 
+      const attnWeightNames = {
+        q: `transformer_blocks.${layerIdx}.attn.to_q.weight`,
+        k: `transformer_blocks.${layerIdx}.attn.to_k.weight`,
+        v: `transformer_blocks.${layerIdx}.attn.to_v.weight`,
+        qkv: `transformer_blocks.${layerIdx}.attn.qkv.weight`,
+      };
       const attnWeights = {
-        q: resolver.get(`transformer_blocks.${layerIdx}.attn.to_q.weight`),
-        k: resolver.get(`transformer_blocks.${layerIdx}.attn.to_k.weight`),
-        v: resolver.get(`transformer_blocks.${layerIdx}.attn.to_v.weight`),
-        qkv: resolver.get(`transformer_blocks.${layerIdx}.attn.qkv.weight`),
+        q: resolver.get(attnWeightNames.q),
+        k: resolver.get(attnWeightNames.k),
+        v: resolver.get(attnWeightNames.v),
+        qkv: resolver.get(attnWeightNames.qkv),
       };
       const attnBias = {
         q: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn.to_q.bias`), hiddenSize, 'sd3_attn_q_bias'),
@@ -440,11 +501,17 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         v: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn.to_v.bias`), hiddenSize, 'sd3_attn_v_bias'),
         qkv: resolver.get(`transformer_blocks.${layerIdx}.attn.qkv.bias`),
       };
+      const addWeightNames = {
+        q: `transformer_blocks.${layerIdx}.attn.add_q_proj.weight`,
+        k: `transformer_blocks.${layerIdx}.attn.add_k_proj.weight`,
+        v: `transformer_blocks.${layerIdx}.attn.add_v_proj.weight`,
+        qkv: `transformer_blocks.${layerIdx}.attn.add_qkv.weight`,
+      };
       const addWeights = {
-        q: resolver.get(`transformer_blocks.${layerIdx}.attn.add_q_proj.weight`),
-        k: resolver.get(`transformer_blocks.${layerIdx}.attn.add_k_proj.weight`),
-        v: resolver.get(`transformer_blocks.${layerIdx}.attn.add_v_proj.weight`),
-        qkv: resolver.get(`transformer_blocks.${layerIdx}.attn.add_qkv.weight`),
+        q: resolver.get(addWeightNames.q),
+        k: resolver.get(addWeightNames.k),
+        v: resolver.get(addWeightNames.v),
+        qkv: resolver.get(addWeightNames.qkv),
       };
       const addBias = {
         q: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn.add_q_proj.bias`), hiddenSize, 'sd3_attn_add_q_bias'),
@@ -466,7 +533,9 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         attnBias,
         tokenCount,
         hiddenSize,
-        `sd3_attn_${layerIdx}`
+        `sd3_attn_${layerIdx}`,
+        matmul,
+        attnWeightNames
       );
 
       let { q: qc, k: kc, v: vc } = await runQKV(
@@ -475,7 +544,9 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         addBias,
         ctx.shape[0],
         hiddenSize,
-        `sd3_attn_add_${layerIdx}`
+        `sd3_attn_add_${layerIdx}`,
+        matmul,
+        addWeightNames
       );
 
       if (normWeights.q) {
@@ -516,21 +587,29 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         causal: false,
       });
 
+      const outWeightName = `transformer_blocks.${layerIdx}.attn.to_out.0.weight`;
       const outWeight = expectWeight(
-        resolver.get(`transformer_blocks.${layerIdx}.attn.to_out.0.weight`),
-        `transformer_blocks.${layerIdx}.attn.to_out.0.weight`
+        resolver.get(outWeightName),
+        outWeightName
       );
       const outBias = resolver.get(`transformer_blocks.${layerIdx}.attn.to_out.0.bias`);
+      const outAddWeightName = `transformer_blocks.${layerIdx}.attn.to_add_out.weight`;
       const outAddWeight = expectWeight(
-        resolver.get(`transformer_blocks.${layerIdx}.attn.to_add_out.weight`),
-        `transformer_blocks.${layerIdx}.attn.to_add_out.weight`
+        resolver.get(outAddWeightName),
+        outAddWeightName
       );
       const outAddBias = resolver.get(`transformer_blocks.${layerIdx}.attn.to_add_out.bias`);
 
-      let attnOutX = await runMatmul(attnX, outWeight, tokenCount, hiddenSize, hiddenSize, { outputDtype: attnX.dtype, transposeB: 'auto' });
+      let attnOutX = await matmul(attnX, outWeight, outWeightName, tokenCount, hiddenSize, hiddenSize, {
+        outputDtype: attnX.dtype,
+        transposeB: 'auto',
+      });
       if (outBias) attnOutX = await runBiasAdd(attnOutX, createBiasTensor(outBias, hiddenSize, 'sd3_attn_out_bias'), tokenCount, hiddenSize);
 
-      let attnOutC = await runMatmul(attnC, outAddWeight, ctx.shape[0], hiddenSize, hiddenSize, { outputDtype: attnC.dtype, transposeB: 'auto' });
+      let attnOutC = await matmul(attnC, outAddWeight, outAddWeightName, ctx.shape[0], hiddenSize, hiddenSize, {
+        outputDtype: attnC.dtype,
+        transposeB: 'auto',
+      });
       if (outAddBias) attnOutC = await runBiasAdd(attnOutC, createBiasTensor(outAddBias, hiddenSize, 'sd3_attn_out_add_bias'), ctx.shape[0], hiddenSize);
 
       const gatedX = await applyGate(attnOutX, mod, offsets.attn, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
@@ -570,14 +649,18 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         { numTokens: ctx.shape[0], hiddenSize }
       );
 
+      const ffCtxWeightNames = {
+        up: `transformer_blocks.${layerIdx}.ff_context.net.0.proj.weight`,
+        down: `transformer_blocks.${layerIdx}.ff_context.net.2.weight`,
+      };
       const ffCtxWeights = {
         up: expectWeight(
-          resolver.get(`transformer_blocks.${layerIdx}.ff_context.net.0.proj.weight`),
-          `transformer_blocks.${layerIdx}.ff_context.net.0.proj.weight`
+          resolver.get(ffCtxWeightNames.up),
+          ffCtxWeightNames.up
         ),
         down: expectWeight(
-          resolver.get(`transformer_blocks.${layerIdx}.ff_context.net.2.weight`),
-          `transformer_blocks.${layerIdx}.ff_context.net.2.weight`
+          resolver.get(ffCtxWeightNames.down),
+          ffCtxWeightNames.down
         ),
       };
       const ffCtxBias = {
@@ -592,7 +675,16 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
           'sd3_ff_ctx_down_bias'
         ),
       };
-      const ffCtxOut = await runFFN(ctxFfIn, ffCtxWeights, ffCtxBias, ctx.shape[0], hiddenSize, runtime);
+      const ffCtxOut = await runFFN(
+        ctxFfIn,
+        ffCtxWeights,
+        ffCtxBias,
+        ctx.shape[0],
+        hiddenSize,
+        runtime,
+        matmul,
+        ffCtxWeightNames
+      );
       const ffCtxGated = await applyGate(ffCtxOut, ctxMod, ctxOffsets.ff, { numTokens: ctx.shape[0], hiddenSize, zeroOffset: ctxMod.zeroOffset });
       const ctxRes2 = await runResidualAdd(ctx, ffCtxGated, ctx.shape[0] * hiddenSize, { useVec4: true });
 
@@ -616,11 +708,17 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       { numTokens: tokenCount, hiddenSize }
     );
 
+    const attn2WeightNames = {
+      q: `transformer_blocks.${layerIdx}.attn2.to_q.weight`,
+      k: `transformer_blocks.${layerIdx}.attn2.to_k.weight`,
+      v: `transformer_blocks.${layerIdx}.attn2.to_v.weight`,
+      qkv: `transformer_blocks.${layerIdx}.attn2.qkv.weight`,
+    };
     const attn2Weights = {
-      q: resolver.get(`transformer_blocks.${layerIdx}.attn2.to_q.weight`),
-      k: resolver.get(`transformer_blocks.${layerIdx}.attn2.to_k.weight`),
-      v: resolver.get(`transformer_blocks.${layerIdx}.attn2.to_v.weight`),
-      qkv: resolver.get(`transformer_blocks.${layerIdx}.attn2.qkv.weight`),
+      q: resolver.get(attn2WeightNames.q),
+      k: resolver.get(attn2WeightNames.k),
+      v: resolver.get(attn2WeightNames.v),
+      qkv: resolver.get(attn2WeightNames.qkv),
     };
     const attn2Bias = {
       q: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_q.bias`), hiddenSize, 'sd3_attn2_q_bias'),
@@ -635,7 +733,9 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       attn2Bias,
       tokenCount,
       hiddenSize,
-      `sd3_attn2_${layerIdx}`
+      `sd3_attn2_${layerIdx}`,
+      matmul,
+      attn2WeightNames
     );
 
     const normQ2 = resolver.get(`transformer_blocks.${layerIdx}.attn2.norm_q.weight`);
@@ -658,12 +758,16 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       causal: false,
     });
 
+    const attn2OutWeightName = `transformer_blocks.${layerIdx}.attn2.to_out.0.weight`;
     const attn2OutWeight = expectWeight(
-      resolver.get(`transformer_blocks.${layerIdx}.attn2.to_out.0.weight`),
-      `transformer_blocks.${layerIdx}.attn2.to_out.0.weight`
+      resolver.get(attn2OutWeightName),
+      attn2OutWeightName
     );
     const attn2OutBias = resolver.get(`transformer_blocks.${layerIdx}.attn2.to_out.0.bias`);
-    let attn2Out = await runMatmul(attn2, attn2OutWeight, tokenCount, hiddenSize, hiddenSize, { outputDtype: attn2.dtype, transposeB: 'auto' });
+    let attn2Out = await matmul(attn2, attn2OutWeight, attn2OutWeightName, tokenCount, hiddenSize, hiddenSize, {
+      outputDtype: attn2.dtype,
+      transposeB: 'auto',
+    });
     if (attn2OutBias) attn2Out = await runBiasAdd(attn2Out, createBiasTensor(attn2OutBias, hiddenSize, 'sd3_attn2_out_bias'), tokenCount, hiddenSize);
 
     const gated2 = await applyGate(attn2Out, mod, offsets.attn2, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
@@ -691,14 +795,18 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       { numTokens: tokenCount, hiddenSize }
     );
 
+    const ffWeightNames = {
+      up: `transformer_blocks.${layerIdx}.ff.net.0.proj.weight`,
+      down: `transformer_blocks.${layerIdx}.ff.net.2.weight`,
+    };
     const ffWeights = {
       up: expectWeight(
-        resolver.get(`transformer_blocks.${layerIdx}.ff.net.0.proj.weight`),
-        `transformer_blocks.${layerIdx}.ff.net.0.proj.weight`
+        resolver.get(ffWeightNames.up),
+        ffWeightNames.up
       ),
       down: expectWeight(
-        resolver.get(`transformer_blocks.${layerIdx}.ff.net.2.weight`),
-        `transformer_blocks.${layerIdx}.ff.net.2.weight`
+        resolver.get(ffWeightNames.down),
+        ffWeightNames.down
       ),
     };
     const ffBias = {
@@ -714,7 +822,16 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       ),
     };
 
-    const ffOut = await runFFN(xFfIn, ffWeights, ffBias, tokenCount, hiddenSize, runtime);
+    const ffOut = await runFFN(
+      xFfIn,
+      ffWeights,
+      ffBias,
+      tokenCount,
+      hiddenSize,
+      runtime,
+      matmul,
+      ffWeightNames
+    );
     const ffGated = await applyGate(ffOut, mod, offsets.ff, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
     const xRes3 = await runResidualAdd(x, ffGated, tokenCount * hiddenSize, { useVec4: true });
 
@@ -730,9 +847,10 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
     }
   }
 
-  const normOutWeight = expectWeight(resolver.get('norm_out.linear.weight'), 'norm_out.linear.weight');
+  const normOutWeightName = 'norm_out.linear.weight';
+  const normOutWeight = expectWeight(resolver.get(normOutWeightName), normOutWeightName);
   const normOutBias = resolver.get('norm_out.linear.bias');
-  const normOut = await buildModulation(timeText, normOutWeight, normOutBias, hiddenSize, 2, runtime);
+  const normOut = await buildModulation(timeText, normOutWeight, normOutBias, hiddenSize, 2, runtime, matmul, normOutWeightName);
 
   const xNorm = await runLayerNorm(x, onesBuf, zerosBuf, layerNormEps, { batchSize: tokenCount, hiddenSize });
   const xMod = await runModulate(xNorm, normOut.tensor, {
@@ -751,9 +869,13 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   releaseBuffer(onesBuf);
   releaseBuffer(zerosBuf);
 
-  const projOutWeight = expectWeight(resolver.get('proj_out.weight'), 'proj_out.weight');
+  const projOutWeightName = 'proj_out.weight';
+  const projOutWeight = expectWeight(resolver.get(projOutWeightName), projOutWeightName);
   const projOutBias = resolver.get('proj_out.bias');
-  let patch = await runMatmul(xMod, projOutWeight, tokenCount, projOutWeight.shape[0], hiddenSize, { outputDtype: xMod.dtype, transposeB: 'auto' });
+  let patch = await matmul(xMod, projOutWeight, projOutWeightName, tokenCount, projOutWeight.shape[0], hiddenSize, {
+    outputDtype: xMod.dtype,
+    transposeB: 'auto',
+  });
   if (projOutBias) patch = await runBiasAdd(patch, createBiasTensor(projOutBias, projOutWeight.shape[0], 'sd3_proj_out_bias'), tokenCount, projOutWeight.shape[0]);
 
   releaseBuffer(xMod.buffer);

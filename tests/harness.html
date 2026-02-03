@@ -10,6 +10,14 @@
     #status { margin-bottom: var(--space-md); }
     #results { display: none; }
     #results.show { display: block; }
+    #controls {
+      display: none;
+      gap: var(--space-sm);
+      align-items: center;
+      margin-bottom: var(--space-md);
+      flex-wrap: wrap;
+    }
+    #controls.show { display: flex; }
     #log-panel {
       margin-top: var(--space-md);
       padding: var(--space-sm);
@@ -47,6 +55,10 @@
 <body>
   <h1 class="type-h1" id="title">DOPPLER TEST HARNESS</h1>
   <div id="status" class="muted type-caption">Initializing...</div>
+  <div id="controls" class="section">
+    <button id="run-all-kernels" class="btn btn-primary">Run All Kernels</button>
+    <span id="controls-status" class="muted type-caption"></span>
+  </div>
   <div id="results"></div>
   <div id="log-panel" class="type-caption"></div>
 
@@ -270,6 +282,7 @@
         document.getElementById('status').style.display = 'none';
       };
 
+      setupKernelControls();
       console.log('[KernelTests] Ready for test execution');
       return 'kernels';
     }
@@ -655,6 +668,331 @@
         document.getElementById('status').classList.add('border-error');
         window.harnessError = e.message;
       }
+    }
+
+    function setupKernelControls() {
+      const controls = document.getElementById('controls');
+      const runAllButton = document.getElementById('run-all-kernels');
+      if (!controls || !runAllButton) return;
+      controls.classList.add('show');
+      runAllButton.addEventListener('click', async () => {
+        runAllButton.disabled = true;
+        updateControlsStatus('Running kernel tests...');
+        document.getElementById('results').innerHTML = '';
+        try {
+          const results = await runKernelSuite();
+          window.renderResults(results);
+          updateControlsStatus('');
+        } catch (e) {
+          console.error('[KernelTests] Run failed:', e);
+          updateControlsStatus(e?.message || 'Kernel run failed');
+        } finally {
+          runAllButton.disabled = false;
+        }
+      });
+    }
+
+    function updateControlsStatus(text) {
+      const status = document.getElementById('controls-status');
+      if (status) status.textContent = text || '';
+    }
+
+    function generateUint32(size, max, seed = 123) {
+      const out = new Uint32Array(size);
+      let state = seed >>> 0;
+      for (let i = 0; i < size; i++) {
+        state = (state * 1664525 + 1013904223) >>> 0;
+        out[i] = max === 0 ? 0 : state % max;
+      }
+      return out;
+    }
+
+    function generateNormalizedWeights(numTokens, topK, seed = 321) {
+      const weights = new Float32Array(numTokens * topK);
+      let state = seed >>> 0;
+      for (let t = 0; t < numTokens; t++) {
+        let sum = 0;
+        for (let k = 0; k < topK; k++) {
+          state = (state * 1103515245 + 12345) >>> 0;
+          const val = (state & 0xffff) / 0xffff;
+          weights[t * topK + k] = val;
+          sum += val;
+        }
+        if (sum > 0) {
+          for (let k = 0; k < topK; k++) {
+            weights[t * topK + k] /= sum;
+          }
+        }
+      }
+      return weights;
+    }
+
+    function compareExact(expected, actual) {
+      if (expected.length !== actual.length) return false;
+      for (let i = 0; i < expected.length; i++) {
+        if (expected[i] !== actual[i]) return false;
+      }
+      return true;
+    }
+
+    async function runKernelSuite() {
+      const h = window.testHarness;
+      if (!h) throw new Error('Kernel harness not ready');
+
+      const tests = [];
+
+      tests.push([
+        'matmul_f32',
+        async () => {
+          const M = 32, N = 48, K = 16;
+          const A = h.generateTestData(M * K, 42);
+          const B = h.generateTestData(K * N, 1337);
+          const expected = h.matmulRef(A, B, M, N, K, 1.0);
+          const actual = await h.runMatmul(null, A, B, M, N, K, 1.0);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f32);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'softmax',
+        async () => {
+          const outerSize = 4;
+          const innerSize = 32;
+          const input = h.generateTestData(outerSize * innerSize, 7);
+          const expected = h.softmax(input, innerSize, outerSize, 1.0);
+          const actual = await h.runSoftmax(null, input, innerSize, outerSize, 1.0);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.softmax);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'rmsnorm',
+        async () => {
+          const numTokens = 4;
+          const hiddenSize = 32;
+          const input = h.generateTestData(numTokens * hiddenSize, 91);
+          const weight = h.generateTestData(hiddenSize, 92);
+          const expected = h.references.rmsNormRef(input, weight, numTokens, hiddenSize, 1e-6);
+          const actual = await h.runRMSNorm(null, input, weight, numTokens, hiddenSize, 1e-6);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'rope',
+        async () => {
+          const seqLen = 4;
+          const numHeads = 2;
+          const headDim = 8;
+          const input = h.generateTestData(seqLen * numHeads * headDim, 314);
+          const { cos, sin } = h.references.computeRopeFreqs(headDim, seqLen);
+          const expected = h.references.ropeRef(input, cos, sin, seqLen, numHeads, headDim, 0);
+          const actual = await h.runRoPE(null, input, seqLen, numHeads, headDim, 0);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rope);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'silu',
+        async () => {
+          const input = h.generateTestData(1024, 123);
+          const expected = h.references.siluRef(input);
+          const actual = await h.runSiLU(null, input);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.silu);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'silu_gated',
+        async () => {
+          const gate = h.generateTestData(1024, 124);
+          const up = h.generateTestData(1024, 125);
+          const expected = h.references.siluGatedRef(gate, up);
+          const actual = await h.runSiLUGated(null, gate, up);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.silu);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'gelu',
+        async () => {
+          const input = h.generateTestData(1024, 201);
+          const expected = h.references.geluRef(input);
+          const actual = await h.runGeLU(null, input);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.silu);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'geglu',
+        async () => {
+          const gate = h.generateTestData(1024, 202);
+          const up = h.generateTestData(1024, 203);
+          const expected = h.references.gegluRef(gate, up);
+          const actual = await h.runGeGLU(null, gate, up);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.silu);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'gather',
+        async () => {
+          const vocabSize = 64;
+          const embedDim = 16;
+          const numTokens = 8;
+          const embeddings = h.generateTestData(vocabSize * embedDim, 401);
+          const indices = generateUint32(numTokens, vocabSize, 402);
+          const expected = h.references.gatherRef(embeddings, indices, vocabSize, embedDim);
+          const actual = await h.runGather(null, embeddings, indices, vocabSize, embedDim);
+          const result = h.compareArrays(expected, actual, { rtol: 0, atol: 0 });
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'residual',
+        async () => {
+          const x = h.generateTestData(512, 501);
+          const residual = h.generateTestData(512, 502);
+          const expected = h.references.residualAddRef(x, residual);
+          const actual = await h.runResidual(null, x, residual);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'topk',
+        async () => {
+          const numTokens = 2;
+          const numExperts = 16;
+          const topK = 4;
+          const probs = h.generateTestData(numTokens * numExperts, 601, { min: 0, max: 1 });
+          const expected = h.references.topkRef(probs, numTokens, numExperts, topK, true);
+          const actual = await h.runTopK(null, probs, numTokens, numExperts, topK, { normalize: true });
+          const indicesMatch = compareExact(expected.indices, actual.indices);
+          const weightsMatch = h.compareArrays(
+            expected.weights,
+            actual.weights,
+            h.KERNEL_TOLERANCES.topk.weights
+          ).passed;
+          return indicesMatch && weightsMatch;
+        },
+      ]);
+
+      tests.push([
+        'softmax_topk',
+        async () => {
+          const numTokens = 2;
+          const numExperts = 16;
+          const topK = 4;
+          const logits = h.generateTestData(numTokens * numExperts, 602);
+          const expected = h.references.softmaxTopkRef(logits, numTokens, numExperts, topK, true);
+          const actual = await h.runSoftmaxTopK(null, logits, numTokens, numExperts, topK, { normalize: true });
+          const indicesMatch = compareExact(expected.indices, actual.indices);
+          const weightsMatch = h.compareArrays(
+            expected.weights,
+            actual.weights,
+            h.KERNEL_TOLERANCES.topk.weights
+          ).passed;
+          return indicesMatch && weightsMatch;
+        },
+      ]);
+
+      tests.push([
+        'scatter_add',
+        async () => {
+          const numTokens = 4;
+          const hiddenSize = 8;
+          const numExperts = 3;
+          const topK = 2;
+          const expertOutputs = h.generateTestData(numExperts * numTokens * hiddenSize, 701);
+          const indices = generateUint32(numTokens * topK, numExperts, 702);
+          const weights = generateNormalizedWeights(numTokens, topK, 703);
+          const expected = h.references.scatterAddRef(
+            expertOutputs,
+            indices,
+            weights,
+            numTokens,
+            hiddenSize,
+            numExperts,
+            topK
+          );
+          const actual = await h.runScatterAdd(
+            null,
+            expertOutputs,
+            indices,
+            weights,
+            numTokens,
+            hiddenSize,
+            numExperts,
+            topK
+          );
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.scatter_add);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'moe_gather',
+        async () => {
+          const numTokens = 4;
+          const hiddenSize = 8;
+          const numExperts = 3;
+          const topK = 2;
+          const tokens = h.generateTestData(numTokens * hiddenSize, 801);
+          const indices = generateUint32(numTokens * topK, numExperts, 802);
+          const expected = h.references.moeGatherRef(tokens, indices, numTokens, hiddenSize, numExperts, topK);
+          const actual = await h.runMoEGather(null, tokens, indices, numTokens, hiddenSize, numExperts, topK);
+          const tokensMatch = h.compareArrays(
+            expected.gatheredTokens,
+            actual.gatheredTokens,
+            h.KERNEL_TOLERANCES.moe_gather
+          ).passed;
+          const countsMatch = compareExact(expected.tokenCounts, actual.tokenCounts);
+          return tokensMatch && countsMatch;
+        },
+      ]);
+
+      tests.push([
+        'attention',
+        async () => {
+          const seqLen = 2;
+          const kvLen = 4;
+          const numHeads = 2;
+          const numKVHeads = 1;
+          const headDim = 8;
+          const Q = h.generateTestData(seqLen * numHeads * headDim, 901);
+          const K = h.generateTestData(kvLen * numKVHeads * headDim, 902);
+          const V = h.generateTestData(kvLen * numKVHeads * headDim, 903);
+          const expected = h.references.attentionRef(Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
+          const actual = await h.runAttention(null, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.attention);
+          return result.passed;
+        },
+      ]);
+
+      const results = [];
+      for (const [name, fn] of tests) {
+        const start = performance.now();
+        try {
+          const passed = await fn();
+          results.push({ name, passed, duration: Math.round(performance.now() - start) });
+        } catch (e) {
+          console.error(`[KernelTests] ${name} failed:`, e);
+          results.push({ name, passed: false, duration: Math.round(performance.now() - start) });
+        }
+      }
+
+      return results;
     }
 
     main();

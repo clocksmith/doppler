@@ -1,22 +1,18 @@
 {
   "variant": [
-    { "match": { "isF16": true }, "value": { "template": "{base}_f16" } },
-    { "match": {}, "value": { "context": "base" } }
-  ],
-  "baseVariant": [
-    { "match": { "gate": true }, "value": "gate" },
-    { "match": { "useVec4": true }, "value": "vec4" },
+    { "match": { "isF16": true }, "value": "default_f16" },
     { "match": {}, "value": "default" }
+  ],
+  "overrides": [
+    { "match": { "useRowsplit": true }, "value": { "USE_ROWSPLIT": true } },
+    { "match": { "useSplit": true }, "value": { "USE_SPLIT": true } },
+    { "match": { "hasGate": true }, "value": { "HAS_GATE": true } },
+    { "match": { "useVec4": true }, "value": { "USE_VEC4": true } },
+    { "match": {}, "value": {} }
   ],
   "activationOp": [
     { "match": { "activation": "gelu" }, "value": "gelu" },
     { "match": {}, "value": "silu" }
-  ],
-  "rowsplitVariant": [
-    { "match": { "activation": "gelu", "isF16": true }, "value": "geglu_rowsplit_f16" },
-    { "match": { "activation": "gelu" }, "value": "geglu_rowsplit" },
-    { "match": { "isF16": true }, "value": "gate_rowsplit_f16" },
-    { "match": {}, "value": "gate_rowsplit" }
   ],
   "swigluRowsplitBiasVariant": [
     { "match": { "isF16": true }, "value": "rowsplit_bias_f16" },
