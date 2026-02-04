@@ -80,7 +80,8 @@ export async function runConv2D(
     const biasSize = outChannels * bytesPerElement;
     tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
     biasBuffer = tempBias;
-    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(biasSize));
+    const paddedSize = Math.ceil(biasSize / 4) * 4;
+    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
   }
 
   const bindGroup = device.createBindGroup({
@@ -174,7 +175,8 @@ export async function recordConv2D(
     const biasSize = outChannels * bytesPerElement;
     tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
     biasBuffer = tempBias;
-    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(biasSize));
+    const paddedSize = Math.ceil(biasSize / 4) * 4;
+    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
   }
 
   const bindGroup = device.createBindGroup({

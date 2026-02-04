@@ -1906,7 +1906,9 @@
           for (let i = 0; i < qF16.length; i++) qRounded[i] = f16ToF32(qF16[i]);
           for (let i = 0; i < kF16.length; i++) kRounded[i] = f16ToF32(kF16[i]);
           for (let i = 0; i < vF16.length; i++) vRounded[i] = f16ToF32(vF16[i]);
-          const expected = h.references.attentionRef(qRounded, kRounded, vRounded, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
+          const expected = h.toF16RoundedFloat32(
+            h.references.attentionRef(qRounded, kRounded, vRounded, seqLen, kvLen, numHeads, numKVHeads, headDim, null)
+          );
           const actual = await h.runAttentionTiered(null, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim);
           const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.attention);
           if (!result.passed) {

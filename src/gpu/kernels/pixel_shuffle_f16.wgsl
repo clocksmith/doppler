@@ -1,5 +1,7 @@
 // Pixel shuffle (tokens -> CHW) f16
 
+enable f16;
+
 struct Uniforms {
     out_channels: u32,
     out_height: u32,

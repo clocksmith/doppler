@@ -272,6 +272,7 @@ const testHarness = {
   compareArrays,
   makeBuffer,
   readBufferData,
+  toF16RoundedFloat32,
   KERNEL_TOLERANCES,
 
   // ============================================================================

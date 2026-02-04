@@ -4,6 +4,7 @@ import { createTensor, dtypeBytes } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { releaseUniformBuffer } from '../../uniform-cache.js';
 
 export async function runBackwardKernel(
   opName,
@@ -47,7 +48,7 @@ export async function runBackwardKernel(
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
   dispatch(device, pipeline, bindGroup, workgroups, opName);
 
-  uniformBuffer.destroy();
+  releaseUniformBuffer(uniformBuffer);
 
   return createTensor(outputBuf, gradOutput.dtype, [...gradOutput.shape], `${opName}_output`);
 }
