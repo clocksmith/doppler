@@ -814,6 +814,22 @@
       return output;
     }
 
+    function matmulRefRowMajorB(input, weights, M, N, K) {
+      const output = new Float32Array(M * N);
+      for (let m = 0; m < M; m++) {
+        const aBase = m * K;
+        for (let n = 0; n < N; n++) {
+          const bBase = n * K;
+          let sum = 0;
+          for (let k = 0; k < K; k++) {
+            sum += input[aBase + k] * weights[bBase + k];
+          }
+          output[m * N + n] = sum;
+        }
+      }
+      return output;
+    }
+
     function biasAddRef(data, bias, numTokens, dim) {
       const output = new Float32Array(data.length);
       for (let t = 0; t < numTokens; t++) {
@@ -1132,6 +1148,61 @@
           const expected = h.matmulRef(A, B, M, N, K, 1.0);
           const actual = await h.runMatmul(null, A, B, M, N, K, 1.0);
           const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f32);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'matmul_q4k',
+        async () => {
+          const M = 2, N = 4, K = 256;
+          const A = h.generateTestData(M * K, 2101, { min: -0.5, max: 0.5 });
+          const B = h.generateTestData(N * K, 2102, { min: -0.5, max: 0.5 });
+          const numBlocks = N;
+          const B_q4k = h.references.quantizeQ4_KRef(B, numBlocks);
+          const B_dequant = h.references.dequantQ4_KRef(B_q4k, numBlocks);
+          const expected = matmulRefRowMajorB(A, B_dequant, M, N, K);
+          const actual = await h.runMatmulQ4K(null, A, B_q4k, M, N, K, 1.0);
+          const result = h.compareArrays(expected, actual, { rtol: 1e-2, atol: 1e-2 });
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'matmul_f16w',
+        async () => {
+          const M = 2, N = 6, K = 32;
+          const A = h.generateTestData(M * K, 2201);
+          const B = h.generateTestData(N * K, 2202);
+          const B_f16 = f32ArrayToF16(B);
+          const B_rounded = new Float32Array(B_f16.length);
+          for (let i = 0; i < B_f16.length; i++) {
+            B_rounded[i] = f16ToF32(B_f16[i]);
+          }
+          const expected = matmulRefRowMajorB(A, B_rounded, M, N, K);
+          const actual = await h.runMatmulF16W(null, A, B_f16, M, N, K);
+          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f16);
+          return result.passed;
+        },
+      ]);
+
+      tests.push([
+        'dequant_matmul_f16w',
+        async () => {
+          const M = 2, N = 4, K = 256;
+          const A = h.generateTestData(M * K, 2301, { min: -0.5, max: 0.5 });
+          const B = h.generateTestData(N * K, 2302, { min: -0.5, max: 0.5 });
+          const numBlocks = N;
+          const B_q4k = h.references.quantizeQ4_KRef(B, numBlocks);
+          const B_dequant = h.references.dequantQ4_KRef(B_q4k, numBlocks);
+          const B_f16 = f32ArrayToF16(B_dequant);
+          const B_rounded = new Float32Array(B_f16.length);
+          for (let i = 0; i < B_f16.length; i++) {
+            B_rounded[i] = f16ToF32(B_f16[i]);
+          }
+          const expected = matmulRefRowMajorB(A, B_rounded, M, N, K);
+          const actual = await h.runDequantAndMatmulF16W(null, A, B_q4k, M, N, K, numBlocks);
+          const result = h.compareArrays(expected, actual, { rtol: 1e-2, atol: 1e-2 });
           return result.passed;
         },
       ]);
@@ -1928,6 +1999,18 @@
           const randomValue = h.references.seededRandom(42);
           const actual = await h.runSampleTopK(null, logits, temperature, topK, randomValue);
           return Number.isFinite(actual) && actual >= 0 && actual < logits.length;
+        },
+      ]);
+
+      tests.push([
+        'check_stop',
+        async () => {
+          const eosTokenId = 2;
+          const maxTokens = 5;
+          const case1 = await h.runCheckStop(null, 1, eosTokenId, maxTokens, 3);
+          const case2 = await h.runCheckStop(null, 2, eosTokenId, maxTokens, 3);
+          const case3 = await h.runCheckStop(null, 1, eosTokenId, maxTokens, 5);
+          return case1 === false && case2 === true && case3 === true;
         },
       ]);
 

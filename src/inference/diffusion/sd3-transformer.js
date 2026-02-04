@@ -82,6 +82,14 @@ function resolveMatmulDtype(weight, resolver, name) {
   return normalizeMatmulLocationDtype(locationDtype);
 }
 
+function resolveBiasDtype(weight, resolver, name) {
+  if (weight && weight.dtype) return weight.dtype;
+  if (!resolver || !name) return 'f32';
+  const locationDtype = resolver.dtype(name);
+  const mapped = normalizeLocationDtype(locationDtype);
+  return mapped || 'f32';
+}
+
 function inferMatmulDtypeFromBuffer(weight, N, K, preferred) {
   const buffer = getBuffer(weight);
   if (!buffer || !Number.isFinite(N) || !Number.isFinite(K)) return preferred;
@@ -115,6 +123,12 @@ function expectWeight(weight, label) {
 function createBiasTensor(weight, size, label) {
   if (!weight) return null;
   return createTensor(getBuffer(weight), 'f32', [size], label);
+}
+
+function createBiasTensorWithDtype(weight, size, label, resolver, name) {
+  if (!weight) return null;
+  const dtype = resolveBiasDtype(weight, resolver, name);
+  return createTensor(getBuffer(weight), dtype, [size], label);
 }
 
 async function splitQKV(qkv, numTokens, hiddenSize, label) {
@@ -448,12 +462,20 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
 
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
     const modWeightName = `transformer_blocks.${layerIdx}.norm1.linear.weight`;
+    const modBiasName = `transformer_blocks.${layerIdx}.norm1.linear.bias`;
     const modWeight = expectWeight(
       resolver.get(modWeightName),
       modWeightName
     );
-    const modBias = resolver.get(`transformer_blocks.${layerIdx}.norm1.linear.bias`);
-    const mod = await buildModulation(timeText, modWeight, modBias, hiddenSize, 9, runtime, matmul, modWeightName);
+    const modBias = resolver.get(modBiasName);
+    const modBiasTensor = createBiasTensorWithDtype(
+      modBias,
+      hiddenSize * 9,
+      'sd3_mod_bias',
+      resolver,
+      modBiasName
+    );
+    const mod = await buildModulation(timeText, modWeight, modBiasTensor, hiddenSize, 9, runtime, matmul, modWeightName);
 
     const offsets = {
       attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
@@ -465,12 +487,20 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
     let ctxOffsets = null;
     if (dualLayers.has(layerIdx)) {
       const ctxWeightName = `transformer_blocks.${layerIdx}.norm1_context.linear.weight`;
+      const ctxBiasName = `transformer_blocks.${layerIdx}.norm1_context.linear.bias`;
       const ctxWeight = expectWeight(
         resolver.get(ctxWeightName),
         ctxWeightName
       );
-      const ctxBias = resolver.get(`transformer_blocks.${layerIdx}.norm1_context.linear.bias`);
-      ctxMod = await buildModulation(timeText, ctxWeight, ctxBias, hiddenSize, 6, runtime, matmul, ctxWeightName);
+      const ctxBias = resolver.get(ctxBiasName);
+      const ctxBiasTensor = createBiasTensorWithDtype(
+        ctxBias,
+        hiddenSize * 6,
+        'sd3_ctx_mod_bias',
+        resolver,
+        ctxBiasName
+      );
+      ctxMod = await buildModulation(timeText, ctxWeight, ctxBiasTensor, hiddenSize, 6, runtime, matmul, ctxWeightName);
       ctxOffsets = {
         attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
         ff: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
