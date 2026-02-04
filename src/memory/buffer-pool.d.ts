@@ -24,6 +24,12 @@ export interface PoolStats {
   hitRate: string;
 }
 
+export interface LabelStats {
+  label: string;
+  bytes: number;
+  count: number;
+}
+
 /**
  * Pool configuration
  */
@@ -127,6 +133,11 @@ export declare class BufferPool {
    * Get pool statistics
    */
   getStats(): PoolStats;
+
+  /**
+   * Get aggregated stats by buffer label (active buffers only)
+   */
+  getLabelStats(): LabelStats[];
 
   /**
    * Configure pool settings

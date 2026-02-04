@@ -38,6 +38,17 @@ export interface WeightBuffer {
 }
 
 /**
+ * Tensor-like buffer with dtype + shape metadata.
+ * Used by matmul when activations are passed in place of weights.
+ */
+export interface TensorLike {
+  readonly buffer: GPUBuffer;
+  readonly dtype: 'f16' | 'f32';
+  readonly shape: readonly number[];
+  readonly label?: string;
+}
+
+/**
  * Create a weight buffer from a GPU buffer with explicit metadata.
  */
 export function createWeightBuffer(
@@ -79,15 +90,15 @@ export function isCpuWeightBuffer(value: unknown): value is CpuWeightBuffer;
  * Extract the raw GPUBuffer from either a WeightBuffer or raw GPUBuffer.
  * Used for backwards compatibility during migration.
  */
-export function getBuffer(weight: GPUBuffer | WeightBuffer): GPUBuffer;
+export function getBuffer(weight: GPUBuffer | WeightBuffer | TensorLike): GPUBuffer;
 
 /**
  * Get layout from WeightBuffer, or null for raw GPUBuffer.
  * Used for auto-resolving transposeB in matmul.
  */
-export function getLayout(weight: GPUBuffer | WeightBuffer): WeightLayout | null;
+export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike): WeightLayout | null;
 
 /**
  * Get dtype from WeightBuffer, or null for raw GPUBuffer.
  */
-export function getWeightDtype(weight: GPUBuffer | WeightBuffer): WeightDtype | null;
+export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike): WeightDtype | TensorLike['dtype'] | null;

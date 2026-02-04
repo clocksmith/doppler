@@ -821,7 +821,7 @@ async function refreshStorageInspector() {
       opfsRoot = await root.getDirectoryHandle(opfsRootDir);
     } catch (error) {
       summaryEl.textContent = '--';
-      setStorageInspectorStatus('No OPFS storage found for Doppler.');
+    setStorageInspectorStatus('No OPFS storage found for D4DA.');
       return;
     }
 
@@ -1077,12 +1077,11 @@ async function refreshGpuInfo() {
 
 function updatePerformancePanel(snapshot) {
   const tpsEl = $('stat-tps');
-  const memoryEl = $('stat-memory');
-  const gpuEl = $('stat-gpu');
-  const kvEl = $('stat-kv');
+  const ttftEl = $('stat-ttft');
   const e2eEl = $('stat-e2e');
   const prefillEl = $('stat-prefill');
   const decodeEl = $('stat-decode');
+  const tokensEl = $('stat-tokens');
 
   const metrics = state.lastMetrics || {};
   const liveTps = state.chatGenerating ? metrics.liveTokensPerSec : null;
@@ -1092,31 +1091,6 @@ function updatePerformancePanel(snapshot) {
       ? metrics.tokensPerSec
       : (Number.isFinite(metrics.medianTokensPerSec) ? metrics.medianTokensPerSec : null));
   setText(tpsEl, tps !== null ? `${tps.toFixed(2)}` : '--');
-
-  const gpuBytes = snapshot?.gpu?.currentBytes ?? null;
-  const usedBytes = Number.isFinite(state.lastMemoryStats?.used)
-    ? state.lastMemoryStats.used
-    : gpuBytes;
-  setText(memoryEl, Number.isFinite(usedBytes) ? formatBytes(usedBytes) : '--');
-
-  const activeBuffers = snapshot?.gpu?.activeBuffers ?? null;
-  const pooledBuffers = snapshot?.gpu?.pooledBuffers ?? null;
-  if (Number.isFinite(activeBuffers) && Number.isFinite(pooledBuffers)) {
-    setText(gpuEl, `${activeBuffers}/${pooledBuffers}`);
-  } else {
-    setText(gpuEl, '--');
-  }
-
-  const kvStats = state.lastMemoryStats?.kvCache ?? null;
-  const kvBytes = kvStats?.allocated ?? null;
-  const kvSeq = kvStats?.seqLen ?? null;
-  const kvMax = kvStats?.maxSeqLen ?? null;
-  if (Number.isFinite(kvBytes)) {
-    const usage = Number.isFinite(kvSeq) && Number.isFinite(kvMax) ? ` (${kvSeq}/${kvMax})` : '';
-    setText(kvEl, `${formatBytes(kvBytes)}${usage}`);
-  } else {
-    setText(kvEl, '--');
-  }
 
   const stats = state.lastInferenceStats || {};
   const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
@@ -1133,6 +1107,9 @@ function updatePerformancePanel(snapshot) {
   const e2eRate = (decodeTokens != null && e2eTime && e2eTime > 0)
     ? decodeTokens / (e2eTime / 1000)
     : null;
+  if (ttftEl) {
+    setText(ttftEl, formatMs(ttftMs));
+  }
   if (e2eEl) {
     setText(e2eEl, formatRate(e2eRate));
   }
@@ -1140,10 +1117,9 @@ function updatePerformancePanel(snapshot) {
     if (prefillTokens == null && ttftMs == null && prefillRate == null) {
       setText(prefillEl, '--');
     } else {
-      const ttftLabel = ttftMs != null ? `TTFT ${Math.round(ttftMs)}ms` : 'TTFT --';
       const tokenLabel = prefillTokens != null ? `${prefillTokens} tok` : '--';
       const rateLabel = prefillRate != null ? `${prefillRate.toFixed(2)} tok/s` : '--';
-      setText(prefillEl, `${ttftLabel} - ${tokenLabel} @ ${rateLabel}`);
+      setText(prefillEl, `${tokenLabel} @ ${rateLabel}`);
     }
   }
 
@@ -1158,53 +1134,135 @@ function updatePerformancePanel(snapshot) {
       setText(decodeEl, `${tokenLabel} - ${rateLabel}`);
     }
   }
+
+  if (tokensEl) {
+    if (prefillTokens == null && decodeTokens == null) {
+      setText(tokensEl, '--');
+    } else {
+      const promptLabel = prefillTokens != null ? prefillTokens : '--';
+      const genLabel = decodeTokens != null ? decodeTokens : '--';
+      setText(tokensEl, `${promptLabel} / ${genLabel}`);
+    }
+  }
 }
 
 function updateMemoryPanel(snapshot) {
-  const hasHeap = Number.isFinite(snapshot?.jsHeapUsed);
-  const jsHeapUsed = hasHeap ? snapshot.jsHeapUsed : 0;
-  const jsHeapLimit = Number.isFinite(snapshot?.jsHeapLimit) ? snapshot.jsHeapLimit : 0;
-  const hasGpu = Number.isFinite(snapshot?.gpu?.currentBytes);
-  const gpuBytes = hasGpu ? snapshot.gpu.currentBytes : 0;
+  const poolStats = state.lastMemoryStats?.pool || null;
+  const gpuStats = snapshot?.gpu || null;
+  const gpuCurrent = Number.isFinite(gpuStats?.currentBytes) ? gpuStats.currentBytes : null;
+  const gpuPeak = Number.isFinite(gpuStats?.peakBytes) ? gpuStats.peakBytes : null;
+  const gpuRequested = Number.isFinite(gpuStats?.currentBytesRequested) ? gpuStats.currentBytesRequested : null;
+  const activeBuffers = gpuStats?.activeBuffers ?? null;
+  const pooledBuffers = gpuStats?.pooledBuffers ?? null;
   const gpuLimit = state.gpuMaxBytes || 0;
+
+  setText($('stat-gpu-tracked'), Number.isFinite(gpuCurrent) ? formatBytes(gpuCurrent) : '--');
+  setText($('stat-gpu-peak'), Number.isFinite(gpuPeak) ? formatBytes(gpuPeak) : '--');
+  if (Number.isFinite(activeBuffers) && Number.isFinite(pooledBuffers)) {
+    setText($('stat-gpu-buffers'), `${activeBuffers}/${pooledBuffers}`);
+  } else {
+    setText($('stat-gpu-buffers'), '--');
+  }
+  if (Number.isFinite(gpuRequested) && Number.isFinite(gpuCurrent)) {
+    const requestedLabel = `${formatBytes(gpuRequested)} / ${formatBytes(gpuCurrent)}`;
+    setText($('stat-gpu-requested'), requestedLabel);
+  } else {
+    setText($('stat-gpu-requested'), '--');
+  }
+  if (poolStats?.hitRate) {
+    setText($('stat-gpu-hit'), poolStats.hitRate);
+  } else {
+    setText($('stat-gpu-hit'), '--');
+  }
+  if (gpuLimit) {
+    setText($('stat-gpu-limit'), formatBytes(gpuLimit));
+  } else {
+    setText($('stat-gpu-limit'), '--');
+  }
+
+  const labelList = $('gpu-label-list');
+  if (labelList) {
+    const pool = state.activePipeline?.getBufferPool?.();
+    const labelStats = typeof pool?.getLabelStats === 'function' ? pool.getLabelStats() : null;
+    labelList.innerHTML = '';
+    if (!labelStats || labelStats.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'type-caption muted';
+      empty.textContent = 'No tracked buffers yet.';
+      labelList.appendChild(empty);
+    } else {
+      const sorted = [...labelStats].sort((a, b) => (b.bytes || 0) - (a.bytes || 0));
+      const top = sorted.slice(0, 6);
+      for (const entry of top) {
+        const row = document.createElement('div');
+        row.className = 'stats-breakdown-row';
+
+        const label = document.createElement('span');
+        label.className = 'stats-breakdown-label';
+        label.textContent = entry.label || 'unlabeled';
+
+        const bytes = document.createElement('span');
+        bytes.className = 'stats-breakdown-meta';
+        bytes.textContent = Number.isFinite(entry.bytes) ? formatBytes(entry.bytes) : '--';
+
+        const count = document.createElement('span');
+        count.className = 'stats-breakdown-meta';
+        count.textContent = Number.isFinite(entry.count) ? `${entry.count}` : '--';
+
+        row.appendChild(label);
+        row.appendChild(bytes);
+        row.appendChild(count);
+        labelList.appendChild(row);
+      }
+    }
+  }
+
   const kvStats = state.lastMemoryStats?.kvCache || null;
-  const hasKv = Number.isFinite(kvStats?.allocated);
-  const kvBytes = hasKv ? kvStats.allocated : 0;
+  const kvAllocated = Number.isFinite(kvStats?.allocated) ? kvStats.allocated : null;
+  const kvUsed = Number.isFinite(kvStats?.used) ? kvStats.used : null;
+  const kvEff = Number.isFinite(kvStats?.efficiency) ? kvStats.efficiency : null;
+  const kvSeq = Number.isFinite(kvStats?.seqLen) ? kvStats.seqLen : null;
+  const kvMax = Number.isFinite(kvStats?.maxSeqLen) ? kvStats.maxSeqLen : null;
+  const kvLayout = kvStats?.layout || null;
 
-  const totalCapacity = state.systemMemoryBytes || (jsHeapLimit + gpuLimit) || gpuLimit || jsHeapLimit || 0;
-  const totalUsed = jsHeapUsed + gpuBytes;
-  const headroom = totalCapacity > 0 ? Math.max(0, totalCapacity - totalUsed) : 0;
-
-  setText($('memory-total'), totalCapacity ? `${formatBytes(totalUsed)} / ${formatBytes(totalCapacity)}` : '--');
-  setBarWidth('memory-bar-heap-stacked', totalCapacity ? (jsHeapUsed / totalCapacity) * 100 : 0);
-  setBarWidth('memory-bar-gpu-stacked', totalCapacity ? (gpuBytes / totalCapacity) * 100 : 0);
-
-  if (hasHeap) {
-    setText($('memory-heap'), jsHeapLimit ? `${formatBytes(jsHeapUsed)} / ${formatBytes(jsHeapLimit)}` : formatBytes(jsHeapUsed));
+  setText($('stat-kv-allocated'), Number.isFinite(kvAllocated) ? formatBytes(kvAllocated) : '--');
+  setText($('stat-kv-used'), Number.isFinite(kvUsed) ? formatBytes(kvUsed) : '--');
+  if (Number.isFinite(kvEff)) {
+    setText($('stat-kv-eff'), `${(kvEff * 100).toFixed(1)}%`);
   } else {
-    setText($('memory-heap'), '--');
+    setText($('stat-kv-eff'), '--');
   }
-  setBarWidth('memory-bar-heap', jsHeapLimit ? (jsHeapUsed / jsHeapLimit) * 100 : (totalCapacity ? (jsHeapUsed / totalCapacity) * 100 : 0));
-
-  if (hasGpu) {
-    setText($('memory-gpu'), gpuLimit ? `${formatBytes(gpuBytes)} / ${formatBytes(gpuLimit)}` : formatBytes(gpuBytes));
+  if (Number.isFinite(kvSeq) && Number.isFinite(kvMax)) {
+    setText($('stat-kv-seq'), `${kvSeq} / ${kvMax}`);
   } else {
-    setText($('memory-gpu'), '--');
+    setText($('stat-kv-seq'), '--');
   }
-  setBarWidth('memory-bar-gpu', gpuLimit ? (gpuBytes / gpuLimit) * 100 : (totalCapacity ? (gpuBytes / totalCapacity) * 100 : 0));
+  setText($('stat-kv-layout'), kvLayout || '--');
 
-  const kvLabel = hasKv ? formatBytes(kvBytes) : '--';
-  const kvMeta = kvStats?.seqLen && kvStats?.maxSeqLen ? ` (${kvStats.seqLen}/${kvStats.maxSeqLen})` : '';
-  setText($('memory-kv'), kvLabel + kvMeta);
-  setBarWidth('memory-bar-kv', gpuLimit ? (kvBytes / gpuLimit) * 100 : 0);
+  const jsHeapUsed = Number.isFinite(snapshot?.jsHeapUsed) ? snapshot.jsHeapUsed : null;
+  const jsHeapLimit = Number.isFinite(snapshot?.jsHeapLimit) ? snapshot.jsHeapLimit : null;
+  if (Number.isFinite(jsHeapUsed) && Number.isFinite(jsHeapLimit) && jsHeapLimit > 0) {
+    setText($('stat-heap'), `${formatBytes(jsHeapUsed)} / ${formatBytes(jsHeapLimit)}`);
+  } else if (Number.isFinite(jsHeapUsed)) {
+    setText($('stat-heap'), formatBytes(jsHeapUsed));
+  } else {
+    setText($('stat-heap'), '--');
+  }
+
+  if (state.systemMemoryBytes) {
+    setText($('stat-ram-est'), formatBytes(state.systemMemoryBytes));
+  } else {
+    setText($('stat-ram-est'), '--');
+  }
 
   const storageUsage = state.storageUsageBytes || 0;
   const storageQuota = state.storageQuotaBytes || 0;
-  setText($('memory-opfs'), storageQuota ? `${formatBytes(storageUsage)} / ${formatBytes(storageQuota)}` : '--');
-  setBarWidth('memory-bar-opfs', storageQuota ? (storageUsage / storageQuota) * 100 : 0);
-
-  setText($('memory-headroom'), totalCapacity ? formatBytes(headroom) : '--');
-  setBarWidth('memory-bar-headroom', totalCapacity ? (headroom / totalCapacity) * 100 : 0);
+  if (storageQuota) {
+    setText($('stat-opfs'), `${formatBytes(storageUsage)} / ${formatBytes(storageQuota)}`);
+  } else {
+    setText($('stat-opfs'), '--');
+  }
+  setText($('stat-active-model'), state.activeModelId || 'none');
 }
 
 function updateMemoryControls() {

@@ -1573,6 +1573,9 @@
           const expected = scaleBackwardRef(gradOutput, scale);
           const actual = await h.runScaleBackward(null, input, gradOutput, scale);
           const result = h.compareArrays(expected, actual, { rtol: 1e-5, atol: 1e-6 });
+          if (!result.passed) {
+            console.error('[KernelTests] scale_backward mismatch', result);
+          }
           return result.passed;
         },
       ]);
@@ -1906,6 +1909,9 @@
           const expected = h.references.attentionRef(qRounded, kRounded, vRounded, seqLen, kvLen, numHeads, numKVHeads, headDim, null);
           const actual = await h.runAttentionTiered(null, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim);
           const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.attention);
+          if (!result.passed) {
+            console.error('[KernelTests] attention_tiered mismatch', result);
+          }
           return result.passed;
         },
       ]);
@@ -2022,6 +2028,9 @@
           const expected = embedBackwardRef(gradOutput);
           const actual = await h.runEmbedBackward(null, input, gradOutput);
           const result = h.compareArrays(expected, actual, { rtol: 1e-5, atol: 1e-6 });
+          if (!result.passed) {
+            console.error('[KernelTests] embed_backward mismatch', result);
+          }
           return result.passed;
         },
       ]);

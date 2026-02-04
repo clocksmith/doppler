@@ -63,9 +63,21 @@ export function isCpuWeightBuffer(value) {
   );
 }
 
+function isTensorLike(value) {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'buffer' in value &&
+    'dtype' in value &&
+    'shape' in value
+  );
+}
+
 
 export function getBuffer(weight) {
-  return isWeightBuffer(weight) ? weight.buffer : weight;
+  if (isWeightBuffer(weight)) return weight.buffer;
+  if (isTensorLike(weight)) return weight.buffer;
+  return weight;
 }
 
 
@@ -75,5 +87,7 @@ export function getLayout(weight) {
 
 
 export function getWeightDtype(weight) {
-  return isWeightBuffer(weight) ? weight.dtype : null;
+  if (isWeightBuffer(weight)) return weight.dtype;
+  if (isTensorLike(weight)) return weight.dtype;
+  return null;
 }

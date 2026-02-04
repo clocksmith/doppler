@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOPPLER - Browser LLM</title>
+  <title>D4DA - Doppler Showcase</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
@@ -406,8 +406,8 @@
     /* Stats */
     .stats-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-xs);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-xs) var(--space-md);
     }
 
     .stat-item {
@@ -423,6 +423,50 @@
 
     .stat-value {
       justify-self: end;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-note {
+      margin-top: var(--space-xs);
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .stats-breakdown {
+      margin-top: var(--space-xs);
+      padding-top: var(--space-xs);
+      border-top: var(--border-sm) dashed var(--fg);
+    }
+
+    .stats-breakdown-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: var(--space-xs);
+      opacity: 0.7;
+    }
+
+    .stats-breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xxs);
+    }
+
+    .stats-breakdown-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: var(--space-sm);
+      align-items: baseline;
+    }
+
+    .stats-breakdown-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stats-breakdown-meta {
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
@@ -779,9 +823,9 @@
       <header class="header app-header">
         <div class="brand-block">
         <div class="brand-row">
-          <h1 class="type-display">DOPPLER</h1>
+          <h1 class="type-display">D4DA</h1>
         </div>
-          <a class="intro-tagline link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">local WebGPU inference in the browser -> view source code</a>
+          <a class="intro-tagline link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">Doppler showcase -> view source code</a>
         </div>
         <div class="header-actions">
           <div class="mode-tabs" id="mode-tabs">
@@ -963,34 +1007,30 @@
           <h2 class="type-label">Live Stats</h2>
           <div class="panel-subsection">
             <span class="type-caption muted">Performance</span>
-            <div class="stats-grid" id="stats-grid">
+            <div class="stats-grid" id="stats-performance">
               <div class="stat-item">
                 <span class="stat-label">Tokens/sec</span>
                 <span class="stat-value" id="stat-tps">--</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Memory</span>
-                <span class="stat-value" id="stat-memory">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">GPU Buffers</span>
-                <span class="stat-value" id="stat-gpu">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">KV Cache</span>
-                <span class="stat-value" id="stat-kv">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">End-to-end</span>
-                <span class="stat-value" id="stat-e2e">--</span>
+                <span class="stat-label">TTFT</span>
+                <span class="stat-value" id="stat-ttft">--</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">Prefill</span>
                 <span class="stat-value" id="stat-prefill">--</span>
               </div>
               <div class="stat-item">
+                <span class="stat-label">End-to-end</span>
+                <span class="stat-value" id="stat-e2e">--</span>
+              </div>
+              <div class="stat-item">
                 <span class="stat-label">Decode</span>
                 <span class="stat-value" id="stat-decode">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Prompt / Gen</span>
+                <span class="stat-value" id="stat-tokens">--</span>
               </div>
             </div>
           </div>
@@ -1008,53 +1048,94 @@
             </div>
           </div>
           <div class="panel-subsection">
-            <span class="type-caption muted">Memory</span>
-            <div class="memory-bars" id="memory-bars">
-              <div class="memory-bar-row memory-total-row">
-                <span class="memory-label">Total</span>
-                <div class="memory-bar-container memory-bar-stacked">
-                  <div class="memory-bar memory-bar-heap-stacked" id="memory-bar-heap-stacked" style="width: 0%"></div>
-                  <div class="memory-bar memory-bar-gpu-stacked" id="memory-bar-gpu-stacked" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-total">--</span>
+            <span class="type-caption muted">GPU Memory (tracked)</span>
+            <div class="stats-grid" id="stats-gpu">
+              <div class="stat-item">
+                <span class="stat-label">Tracked GPU</span>
+                <span class="stat-value" id="stat-gpu-tracked">--</span>
               </div>
-              <div class="memory-bar-row memory-sub-row">
-                <span class="memory-label">JS Heap</span>
-                <div class="memory-bar-container">
-                  <div class="memory-bar" id="memory-bar-heap" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-heap">--</span>
+              <div class="stat-item">
+                <span class="stat-label">Peak GPU</span>
+                <span class="stat-value" id="stat-gpu-peak">--</span>
               </div>
-              <div class="memory-bar-row memory-sub-row">
-                <span class="memory-label">GPU</span>
-                <div class="memory-bar-container">
-                  <div class="memory-bar memory-bar-gpu" id="memory-bar-gpu" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-gpu">--</span>
+              <div class="stat-item">
+                <span class="stat-label">Buffers</span>
+                <span class="stat-value" id="stat-gpu-buffers">--</span>
               </div>
-              <div class="memory-bar-row memory-sub-row">
-                <span class="memory-label">KV Cache</span>
-                <div class="memory-bar-container">
-                  <div class="memory-bar memory-bar-kv" id="memory-bar-kv" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-kv">--</span>
+              <div class="stat-item">
+                <span class="stat-label">Requested</span>
+                <span class="stat-value" id="stat-gpu-requested">--</span>
               </div>
-              <div class="memory-bar-row memory-sub-row">
-                <span class="memory-label">Cache</span>
-                <div class="memory-bar-container">
-                  <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-opfs">--</span>
+              <div class="stat-item">
+                <span class="stat-label">Pool hit rate</span>
+                <span class="stat-value" id="stat-gpu-hit">--</span>
               </div>
-              <div class="memory-bar-row memory-sub-row">
-                <span class="memory-label"
-                  title="Estimated headroom based on system RAM for unified memory. WebGPU does not expose total VRAM.">
-                  Headroom
-                </span>
-                <div class="memory-bar-container">
-                  <div class="memory-bar memory-bar-headroom" id="memory-bar-headroom" style="width: 0%"></div>
-                </div>
-                <span class="memory-value" id="memory-headroom">--</span>
+              <div class="stat-item">
+                <span class="stat-label">Max buffer</span>
+                <span class="stat-value" id="stat-gpu-limit">--</span>
+              </div>
+            </div>
+            <div class="stats-breakdown">
+              <div class="stats-breakdown-header">Top buffers (tracked)</div>
+              <div class="stats-breakdown-list" id="gpu-label-list">
+                <div class="type-caption muted">No tracked buffers yet.</div>
+              </div>
+              <div class="stat-note">Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted.</div>
+            </div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">KV Cache</span>
+            <div class="stats-grid" id="stats-kv">
+              <div class="stat-item">
+                <span class="stat-label">Allocated</span>
+                <span class="stat-value" id="stat-kv-allocated">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Used</span>
+                <span class="stat-value" id="stat-kv-used">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Efficiency</span>
+                <span class="stat-value" id="stat-kv-eff">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Seq / Max</span>
+                <span class="stat-value" id="stat-kv-seq">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Layout</span>
+                <span class="stat-value" id="stat-kv-layout">--</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">JS / CPU</span>
+            <div class="stats-grid" id="stats-cpu">
+              <div class="stat-item">
+                <span class="stat-label">JS Heap</span>
+                <span class="stat-value" id="stat-heap">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">System RAM (est)</span>
+                <span class="stat-value" id="stat-ram-est">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Swap</span>
+                <span class="stat-value" id="stat-swap">Not available</span>
+              </div>
+            </div>
+            <div class="stat-note">Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only.</div>
+          </div>
+          <div class="panel-subsection">
+            <span class="type-caption muted">Storage (OPFS)</span>
+            <div class="stats-grid" id="stats-storage">
+              <div class="stat-item">
+                <span class="stat-label">OPFS usage</span>
+                <span class="stat-value" id="stat-opfs">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Active model</span>
+                <span class="stat-value" id="stat-active-model">--</span>
               </div>
             </div>
           </div>
@@ -1067,9 +1148,6 @@
               <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
                 Clear All Memory
               </button>
-            </div>
-            <div class="swap-indicator" id="swap-indicator" hidden>
-              <span class="swap-warning">Swapping to disk detected</span>
             </div>
           </div>
         </section>

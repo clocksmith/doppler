@@ -527,6 +527,20 @@ export class BufferPool {
   }
 
   
+  getLabelStats() {
+    const totals = new Map();
+    for (const buffer of this.#activeBuffers) {
+      const label = this.#bufferLabels.get(buffer) || 'unlabeled';
+      const bytes = this.#requestedSizes.get(buffer) || 0;
+      const entry = totals.get(label) || { label, bytes: 0, count: 0 };
+      entry.bytes += bytes;
+      entry.count += 1;
+      totals.set(label, entry);
+    }
+    return Array.from(totals.values());
+  }
+
+  
   configure(config) {
     Object.assign(this.#config, config);
   }

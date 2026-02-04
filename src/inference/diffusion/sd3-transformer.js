@@ -273,6 +273,44 @@ async function runAttentionBlock(input, weights, bias, numTokens, hiddenSize, nu
   return attn;
 }
 
+function resolveModulationSegments(weight, hiddenSize, fallbackSegments, resolver, name) {
+  const shape = weight?.shape || (resolver && name ? resolver.shape(name) : null);
+  const rows = Array.isArray(shape) ? shape[0] : null;
+  if (Number.isFinite(rows) && Number.isFinite(hiddenSize) && hiddenSize > 0) {
+    const segments = rows / hiddenSize;
+    if (Number.isInteger(segments) && segments > 0) {
+      return segments;
+    }
+    log.warn(
+      'Diffusion',
+      `Modulation segments mismatch for ${name || 'unknown'}: rows=${rows}, hidden=${hiddenSize}, fallback=${fallbackSegments}`
+    );
+  }
+  return fallbackSegments;
+}
+
+function resolveModulationOffsets(segments, hiddenSize) {
+  if (segments >= 9) {
+    return {
+      attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
+      attn2: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
+      ff: { scale: hiddenSize * 6, shift: hiddenSize * 7, gate: hiddenSize * 8 },
+    };
+  }
+  if (segments >= 6) {
+    if (segments !== 6) {
+      log.warn('Diffusion', `Unexpected modulation segment count=${segments}; using 6-segment layout.`);
+    }
+    const attn = { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 };
+    return {
+      attn,
+      attn2: { ...attn },
+      ff: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
+    };
+  }
+  throw new Error(`Unsupported modulation segments=${segments} (expected >= 6).`);
+}
+
 async function buildModulation(timeText, weight, bias, hiddenSize, segments, runtime, matmul, weightName) {
   const device = getDevice();
   const activationDtype = resolveActivationDtype(runtime);
@@ -458,6 +496,9 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const zerosBuf = createVectorBuffer(device, zeros, 'sd3_ln_bias');
 
   const dualLayers = new Set(config.dual_attention_layers || []);
+  const attn2Layers = Array.isArray(config.attn2_layers)
+    ? new Set(config.attn2_layers)
+    : null;
   const numLayers = config.num_layers;
 
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
@@ -468,23 +509,28 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       modWeightName
     );
     const modBias = resolver.get(modBiasName);
+    const modSegments = resolveModulationSegments(modWeight, hiddenSize, 9, resolver, modWeightName);
+    if (modSegments < 6) {
+      throw new Error(`Unsupported modulation segments=${modSegments} for ${modWeightName}`);
+    }
     const modBiasTensor = createBiasTensorWithDtype(
       modBias,
-      hiddenSize * 9,
+      hiddenSize * modSegments,
       'sd3_mod_bias',
       resolver,
       modBiasName
     );
-    const mod = await buildModulation(timeText, modWeight, modBiasTensor, hiddenSize, 9, runtime, matmul, modWeightName);
+    const mod = await buildModulation(timeText, modWeight, modBiasTensor, hiddenSize, modSegments, runtime, matmul, modWeightName);
 
-    const offsets = {
-      attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
-      attn2: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
-      ff: { scale: hiddenSize * 6, shift: hiddenSize * 7, gate: hiddenSize * 8 },
-    };
+    const offsets = resolveModulationOffsets(modSegments, hiddenSize);
+    const attnOffsets = offsets.attn;
+    const attn2Offsets = offsets.attn2;
+    const ffOffsets = offsets.ff;
 
     let ctxMod = null;
     let ctxOffsets = null;
+    let ctxAttnOffsets = null;
+    let ctxFfOffsets = null;
     if (dualLayers.has(layerIdx)) {
       const ctxWeightName = `transformer_blocks.${layerIdx}.norm1_context.linear.weight`;
       const ctxBiasName = `transformer_blocks.${layerIdx}.norm1_context.linear.bias`;
@@ -493,18 +539,21 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         ctxWeightName
       );
       const ctxBias = resolver.get(ctxBiasName);
+      const ctxSegments = resolveModulationSegments(ctxWeight, hiddenSize, 6, resolver, ctxWeightName);
+      if (ctxSegments < 6) {
+        throw new Error(`Unsupported modulation segments=${ctxSegments} for ${ctxWeightName}`);
+      }
       const ctxBiasTensor = createBiasTensorWithDtype(
         ctxBias,
-        hiddenSize * 6,
+        hiddenSize * ctxSegments,
         'sd3_ctx_mod_bias',
         resolver,
         ctxBiasName
       );
-      ctxMod = await buildModulation(timeText, ctxWeight, ctxBiasTensor, hiddenSize, 6, runtime, matmul, ctxWeightName);
-      ctxOffsets = {
-        attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
-        ff: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
-      };
+      ctxMod = await buildModulation(timeText, ctxWeight, ctxBiasTensor, hiddenSize, ctxSegments, runtime, matmul, ctxWeightName);
+      ctxOffsets = resolveModulationOffsets(ctxSegments, hiddenSize);
+      ctxAttnOffsets = ctxOffsets.attn;
+      ctxFfOffsets = ctxOffsets.ff;
     }
 
     const xAttnIn = await applyAdaLayerNorm(
@@ -513,7 +562,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       zerosBuf,
       layerNormEps,
       mod,
-      offsets.attn,
+      attnOffsets,
       runtime,
       { numTokens: tokenCount, hiddenSize }
     );
@@ -525,7 +574,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         zerosBuf,
         layerNormEps,
         ctxMod,
-        ctxOffsets.attn,
+        ctxAttnOffsets,
         runtime,
         { numTokens: ctx.shape[0], hiddenSize }
       );
@@ -659,8 +708,8 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       });
       if (outAddBias) attnOutC = await runBiasAdd(attnOutC, createBiasTensor(outAddBias, hiddenSize, 'sd3_attn_out_add_bias'), ctx.shape[0], hiddenSize);
 
-      const gatedX = await applyGate(attnOutX, mod, offsets.attn, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
-      const gatedC = await applyGate(attnOutC, ctxMod, ctxOffsets.attn, { numTokens: ctx.shape[0], hiddenSize, zeroOffset: ctxMod.zeroOffset });
+      const gatedX = await applyGate(attnOutX, mod, attnOffsets, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
+      const gatedC = await applyGate(attnOutC, ctxMod, ctxAttnOffsets, { numTokens: ctx.shape[0], hiddenSize, zeroOffset: ctxMod.zeroOffset });
 
       const xRes = await runResidualAdd(x, gatedX, tokenCount * hiddenSize, { useVec4: true });
       const cRes = await runResidualAdd(ctx, gatedC, ctx.shape[0] * hiddenSize, { useVec4: true });
@@ -691,7 +740,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         zerosBuf,
         layerNormEps,
         ctxMod,
-        ctxOffsets.ff,
+        ctxFfOffsets,
         runtime,
         { numTokens: ctx.shape[0], hiddenSize }
       );
@@ -732,7 +781,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         matmul,
         ffCtxWeightNames
       );
-      const ffCtxGated = await applyGate(ffCtxOut, ctxMod, ctxOffsets.ff, { numTokens: ctx.shape[0], hiddenSize, zeroOffset: ctxMod.zeroOffset });
+      const ffCtxGated = await applyGate(ffCtxOut, ctxMod, ctxFfOffsets, { numTokens: ctx.shape[0], hiddenSize, zeroOffset: ctxMod.zeroOffset });
       const ctxRes2 = await runResidualAdd(ctx, ffCtxGated, ctx.shape[0] * hiddenSize, { useVec4: true });
 
       releaseBuffer(ctxFfIn.buffer);
@@ -744,92 +793,95 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       releaseBuffer(xAttnIn.buffer);
     }
 
-    const xAttn2In = await applyAdaLayerNorm(
-      x,
-      onesBuf,
-      zerosBuf,
-      layerNormEps,
-      mod,
-      offsets.attn2,
-      runtime,
-      { numTokens: tokenCount, hiddenSize }
-    );
+    const hasAttn2 = attn2Layers ? attn2Layers.has(layerIdx) : config.dual_attention_layers ? dualLayers.has(layerIdx) : true;
+    if (hasAttn2) {
+      const xAttn2In = await applyAdaLayerNorm(
+        x,
+        onesBuf,
+        zerosBuf,
+        layerNormEps,
+        mod,
+        attn2Offsets,
+        runtime,
+        { numTokens: tokenCount, hiddenSize }
+      );
 
-    const attn2WeightNames = {
-      q: `transformer_blocks.${layerIdx}.attn2.to_q.weight`,
-      k: `transformer_blocks.${layerIdx}.attn2.to_k.weight`,
-      v: `transformer_blocks.${layerIdx}.attn2.to_v.weight`,
-      qkv: `transformer_blocks.${layerIdx}.attn2.qkv.weight`,
-    };
-    const attn2Weights = {
-      q: resolver.get(attn2WeightNames.q),
-      k: resolver.get(attn2WeightNames.k),
-      v: resolver.get(attn2WeightNames.v),
-      qkv: resolver.get(attn2WeightNames.qkv),
-    };
-    const attn2Bias = {
-      q: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_q.bias`), hiddenSize, 'sd3_attn2_q_bias'),
-      k: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_k.bias`), hiddenSize, 'sd3_attn2_k_bias'),
-      v: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_v.bias`), hiddenSize, 'sd3_attn2_v_bias'),
-      qkv: resolver.get(`transformer_blocks.${layerIdx}.attn2.qkv.bias`),
-    };
+      const attn2WeightNames = {
+        q: `transformer_blocks.${layerIdx}.attn2.to_q.weight`,
+        k: `transformer_blocks.${layerIdx}.attn2.to_k.weight`,
+        v: `transformer_blocks.${layerIdx}.attn2.to_v.weight`,
+        qkv: `transformer_blocks.${layerIdx}.attn2.qkv.weight`,
+      };
+      const attn2Weights = {
+        q: resolver.get(attn2WeightNames.q),
+        k: resolver.get(attn2WeightNames.k),
+        v: resolver.get(attn2WeightNames.v),
+        qkv: resolver.get(attn2WeightNames.qkv),
+      };
+      const attn2Bias = {
+        q: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_q.bias`), hiddenSize, 'sd3_attn2_q_bias'),
+        k: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_k.bias`), hiddenSize, 'sd3_attn2_k_bias'),
+        v: createBiasTensor(resolver.get(`transformer_blocks.${layerIdx}.attn2.to_v.bias`), hiddenSize, 'sd3_attn2_v_bias'),
+        qkv: resolver.get(`transformer_blocks.${layerIdx}.attn2.qkv.bias`),
+      };
 
-    let { q: q2, k: k2, v: v2 } = await runQKV(
-      xAttn2In,
-      attn2Weights,
-      attn2Bias,
-      tokenCount,
-      hiddenSize,
-      `sd3_attn2_${layerIdx}`,
-      matmul,
-      attn2WeightNames
-    );
+      let { q: q2, k: k2, v: v2 } = await runQKV(
+        xAttn2In,
+        attn2Weights,
+        attn2Bias,
+        tokenCount,
+        hiddenSize,
+        `sd3_attn2_${layerIdx}`,
+        matmul,
+        attn2WeightNames
+      );
 
-    const normQ2 = resolver.get(`transformer_blocks.${layerIdx}.attn2.norm_q.weight`);
-    const normK2 = resolver.get(`transformer_blocks.${layerIdx}.attn2.norm_k.weight`);
-    if (normQ2) {
-      const normed = await applyQKNorm(q2, normQ2, tokenCount, numHeads, headDim, layerNormEps);
+      const normQ2 = resolver.get(`transformer_blocks.${layerIdx}.attn2.norm_q.weight`);
+      const normK2 = resolver.get(`transformer_blocks.${layerIdx}.attn2.norm_k.weight`);
+      if (normQ2) {
+        const normed = await applyQKNorm(q2, normQ2, tokenCount, numHeads, headDim, layerNormEps);
+        releaseBuffer(q2.buffer);
+        q2 = normed;
+      }
+      if (normK2) {
+        const normed = await applyQKNorm(k2, normK2, tokenCount, numHeads, headDim, layerNormEps);
+        releaseBuffer(k2.buffer);
+        k2 = normed;
+      }
+
+      const attn2 = await runAttention(q2, k2, v2, null, numHeads, headDim, {
+        seqLen: tokenCount,
+        kvLen: tokenCount,
+        numKVHeads: numHeads,
+        causal: false,
+      });
+
+      const attn2OutWeightName = `transformer_blocks.${layerIdx}.attn2.to_out.0.weight`;
+      const attn2OutWeight = expectWeight(
+        resolver.get(attn2OutWeightName),
+        attn2OutWeightName
+      );
+      const attn2OutBias = resolver.get(`transformer_blocks.${layerIdx}.attn2.to_out.0.bias`);
+      let attn2Out = await matmul(attn2, attn2OutWeight, attn2OutWeightName, tokenCount, hiddenSize, hiddenSize, {
+        outputDtype: attn2.dtype,
+        transposeB: 'auto',
+      });
+      if (attn2OutBias) attn2Out = await runBiasAdd(attn2Out, createBiasTensor(attn2OutBias, hiddenSize, 'sd3_attn2_out_bias'), tokenCount, hiddenSize);
+
+      const gated2 = await applyGate(attn2Out, mod, attn2Offsets, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
+      const xRes2 = await runResidualAdd(x, gated2, tokenCount * hiddenSize, { useVec4: true });
+
+      releaseBuffer(xAttn2In.buffer);
       releaseBuffer(q2.buffer);
-      q2 = normed;
-    }
-    if (normK2) {
-      const normed = await applyQKNorm(k2, normK2, tokenCount, numHeads, headDim, layerNormEps);
       releaseBuffer(k2.buffer);
-      k2 = normed;
+      releaseBuffer(v2.buffer);
+      releaseBuffer(attn2.buffer);
+      releaseBuffer(attn2Out.buffer);
+      releaseBuffer(gated2.buffer);
+      releaseBuffer(x.buffer);
+
+      x = createTensor(xRes2.buffer, xRes2.dtype, [tokenCount, hiddenSize], 'sd3_x');
     }
-
-    const attn2 = await runAttention(q2, k2, v2, null, numHeads, headDim, {
-      seqLen: tokenCount,
-      kvLen: tokenCount,
-      numKVHeads: numHeads,
-      causal: false,
-    });
-
-    const attn2OutWeightName = `transformer_blocks.${layerIdx}.attn2.to_out.0.weight`;
-    const attn2OutWeight = expectWeight(
-      resolver.get(attn2OutWeightName),
-      attn2OutWeightName
-    );
-    const attn2OutBias = resolver.get(`transformer_blocks.${layerIdx}.attn2.to_out.0.bias`);
-    let attn2Out = await matmul(attn2, attn2OutWeight, attn2OutWeightName, tokenCount, hiddenSize, hiddenSize, {
-      outputDtype: attn2.dtype,
-      transposeB: 'auto',
-    });
-    if (attn2OutBias) attn2Out = await runBiasAdd(attn2Out, createBiasTensor(attn2OutBias, hiddenSize, 'sd3_attn2_out_bias'), tokenCount, hiddenSize);
-
-    const gated2 = await applyGate(attn2Out, mod, offsets.attn2, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
-    const xRes2 = await runResidualAdd(x, gated2, tokenCount * hiddenSize, { useVec4: true });
-
-    releaseBuffer(xAttn2In.buffer);
-    releaseBuffer(q2.buffer);
-    releaseBuffer(k2.buffer);
-    releaseBuffer(v2.buffer);
-    releaseBuffer(attn2.buffer);
-    releaseBuffer(attn2Out.buffer);
-    releaseBuffer(gated2.buffer);
-    releaseBuffer(x.buffer);
-
-    x = createTensor(xRes2.buffer, xRes2.dtype, [tokenCount, hiddenSize], 'sd3_x');
 
     const xFfIn = await applyAdaLayerNorm(
       x,
@@ -837,7 +889,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       zerosBuf,
       layerNormEps,
       mod,
-      offsets.ff,
+      ffOffsets,
       runtime,
       { numTokens: tokenCount, hiddenSize }
     );
@@ -879,7 +931,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       matmul,
       ffWeightNames
     );
-    const ffGated = await applyGate(ffOut, mod, offsets.ff, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
+    const ffGated = await applyGate(ffOut, mod, ffOffsets, { numTokens: tokenCount, hiddenSize, zeroOffset: mod.zeroOffset });
     const xRes3 = await runResidualAdd(x, ffGated, tokenCount * hiddenSize, { useVec4: true });
 
     releaseBuffer(xFfIn.buffer);
@@ -897,7 +949,15 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const normOutWeightName = 'norm_out.linear.weight';
   const normOutWeight = expectWeight(resolver.get(normOutWeightName), normOutWeightName);
   const normOutBias = resolver.get('norm_out.linear.bias');
-  const normOut = await buildModulation(timeText, normOutWeight, normOutBias, hiddenSize, 2, runtime, matmul, normOutWeightName);
+  const normOutSegments = resolveModulationSegments(normOutWeight, hiddenSize, 2, resolver, normOutWeightName);
+  const normOutBiasTensor = createBiasTensorWithDtype(
+    normOutBias,
+    hiddenSize * normOutSegments,
+    'sd3_norm_out_bias',
+    resolver,
+    'norm_out.linear.bias'
+  );
+  const normOut = await buildModulation(timeText, normOutWeight, normOutBiasTensor, hiddenSize, normOutSegments, runtime, matmul, normOutWeightName);
 
   const xNorm = await runLayerNorm(x, onesBuf, zerosBuf, layerNormEps, { batchSize: tokenCount, hiddenSize });
   const xMod = await runModulate(xNorm, normOut.tensor, {
