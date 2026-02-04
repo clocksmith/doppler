@@ -29,9 +29,7 @@ export async function runBackwardKernel(
     uniformSize,
     (view) => {
       writeUniforms(view, inferredCount);
-    },
-    null,
-    device
+    }
   );
 
   const bindGroup = device.createBindGroup({

@@ -29,6 +29,34 @@ function logF32UpcastNonMatmul(name, numElements, bufferSize) {
   );
 }
 
+function alignTo4(size) {
+  return Math.ceil(size / 4) * 4;
+}
+
+function toUint8View(data) {
+  if (data instanceof Uint8Array) return data;
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  return new Uint8Array(data);
+}
+
+function writeBufferAligned(device, buffer, data) {
+  const bytes = toUint8View(data);
+  const alignedSize = alignTo4(bytes.byteLength);
+  if (alignedSize === bytes.byteLength) {
+    device.queue.writeBuffer(buffer, 0, bytes);
+    return;
+  }
+  const padded = new Uint8Array(alignedSize);
+  padded.set(bytes);
+  device.queue.writeBuffer(buffer, 0, padded);
+}
+
+function acquireAlignedBuffer(size, label) {
+  return acquireBuffer(alignTo4(size), undefined, label);
+}
+
 
 export function isPackedQ4K(location) {
   if (!Array.isArray(location.shape) || location.shape.length !== 2) {
@@ -124,8 +152,8 @@ export function convertF16ToF32CPU(f16Data) {
 
 export async function loadQ4KFused(shardData, location, name) {
   const device = getDevice();
-  const buffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
-  device.queue.writeBuffer(buffer, 0,  ( (shardData)));
+  const buffer = acquireAlignedBuffer(location.size, `q4k_${name}`);
+  writeBufferAligned(device, buffer, shardData);
 
   return {
     data: createWeightBuffer(buffer, 'q4k', 'row', location.shape, name),
@@ -136,8 +164,8 @@ export async function loadQ4KFused(shardData, location, name) {
 
 export async function loadQ4KDequant(shardData, location, name, config) {
   const device = getDevice();
-  const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-  device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
+  const quantBuffer = acquireAlignedBuffer(location.size, `quant_${name}`);
+  writeBufferAligned(device, quantBuffer, shardData);
 
   const outputDtype = getQ4KOutputDtype(location, config);
 
@@ -183,8 +211,8 @@ export async function loadQ6K(shardData, location, name) {
   const device = getDevice();
 
   debugTrace.loader(`Loading Q6_K tensor "${name}", size=${location.size}`);
-  const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
-  device.queue.writeBuffer(quantBuffer, 0,  ( (shardData)));
+  const quantBuffer = acquireAlignedBuffer(location.size, `quant_${name}`);
+  writeBufferAligned(device, quantBuffer, shardData);
 
   const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
   debugTrace.loader(
@@ -215,8 +243,8 @@ export async function loadQ6K(shardData, location, name) {
 
 export async function loadBF16(shardData, location, name, config) {
   const device = getDevice();
-  const srcBuffer = acquireBuffer(shardData.byteLength, undefined, `${name}_bf16`);
-  device.queue.writeBuffer(srcBuffer, 0,  ( (shardData)));
+  const srcBuffer = acquireAlignedBuffer(shardData.byteLength, `${name}_bf16`);
+  writeBufferAligned(device, srcBuffer, shardData);
 
   const numElements = shardData.byteLength / 2;
   const caps = config.gpuCapabilities || getKernelCapabilities();
@@ -274,8 +302,8 @@ export async function loadFloat(shardData, location, name, config) {
     throw new Error('Tensor load config is required.');
   }
   const device = getDevice();
-  const buffer = acquireBuffer(location.size, undefined, name);
-  device.queue.writeBuffer(buffer, 0,  ( (shardData)));
+  const buffer = acquireAlignedBuffer(location.size, name);
+  writeBufferAligned(device, buffer, shardData);
 
   const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
     locationDtype: location.dtype,

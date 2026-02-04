@@ -1910,7 +1910,8 @@
             h.references.attentionRef(qRounded, kRounded, vRounded, seqLen, kvLen, numHeads, numKVHeads, headDim, null)
           );
           const actual = await h.runAttentionTiered(null, Q, K, V, seqLen, kvLen, numHeads, numKVHeads, headDim);
-          const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.attention);
+          const tieredTolerance = { rtol: 1e-3, atol: 1e-4 };
+          const result = h.compareArrays(expected, actual, tieredTolerance);
           if (!result.passed) {
             console.error('[KernelTests] attention_tiered mismatch', result);
           }
