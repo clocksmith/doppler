@@ -310,10 +310,10 @@
       "size": 4063
     },
     {
-      "path": "/src/config/presets/kernel-paths/gemma3-f16-f16a-online.json",
-      "url": "/src/config/presets/kernel-paths/gemma3-f16-f16a-online.json",
+      "path": "/src/config/presets/kernel-paths/experimental/gemma3-f16-f16a-online.json",
+      "url": "/src/config/presets/kernel-paths/experimental/gemma3-f16-f16a-online.json",
       "contentType": "application/json; charset=utf-8",
-      "size": 4088
+      "size": 4172
     },
     {
       "path": "/src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a.json",
@@ -596,12 +596,6 @@
       "url": "/src/config/presets/runtime/modes/bench.json",
       "contentType": "application/json; charset=utf-8",
       "size": 678
-    },
-    {
-      "path": "/src/config/presets/runtime/modes/ci.json",
-      "url": "/src/config/presets/runtime/modes/ci.json",
-      "contentType": "application/json; charset=utf-8",
-      "size": 772
     },
     {
       "path": "/src/config/presets/runtime/modes/debug.json",
@@ -2996,6 +2990,12 @@
       "url": "/src/storage/emulated-vram.js",
       "contentType": "application/javascript; charset=utf-8",
       "size": 15508
+    },
+    {
+      "path": "/src/storage/inventory.js",
+      "url": "/src/storage/inventory.js",
+      "contentType": "application/javascript; charset=utf-8",
+      "size": 5598
     },
     {
       "path": "/src/storage/preflight.js",

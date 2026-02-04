@@ -1,12 +1,13 @@
 import { getDevice } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer, isBufferActive } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
-import { runConv2D } from '../../gpu/kernels/conv2d.js';
-import { runGroupNorm } from '../../gpu/kernels/groupnorm.js';
-import { runSiLU } from '../../gpu/kernels/silu.js';
-import { runResidualAdd } from '../../gpu/kernels/residual.js';
-import { runUpsample2D } from '../../gpu/kernels/upsample2d.js';
-import { castF32ToF16 } from '../../gpu/kernels/cast.js';
+import { CommandRecorder } from '../../gpu/command-recorder.js';
+import { runConv2D, recordConv2D } from '../../gpu/kernels/conv2d.js';
+import { runGroupNorm, recordGroupNorm } from '../../gpu/kernels/groupnorm.js';
+import { runSiLU, recordSiLU } from '../../gpu/kernels/silu.js';
+import { runResidualAdd, recordResidualAdd } from '../../gpu/kernels/residual.js';
+import { runUpsample2D, recordUpsample2D } from '../../gpu/kernels/upsample2d.js';
+import { castF32ToF16, recordCastF32ToF16 } from '../../gpu/kernels/cast.js';
 import { f16ToF32 } from '../../loader/dtype-utils.js';
 import { log } from '../../debug/index.js';
 
@@ -55,7 +56,46 @@ function buildIndexList(weights, prefix) {
   return Array.from(indices).sort((a, b) => a - b);
 }
 
-async function applyConv2D(state, weights, shapes, namePrefix, options = {}) {
+function createKernelOps(recorder) {
+  if (!recorder) {
+    return {
+      conv2d: runConv2D,
+      groupNorm: runGroupNorm,
+      silu: runSiLU,
+      residualAdd: runResidualAdd,
+      upsample2d: runUpsample2D,
+      castF32ToF16,
+    };
+  }
+  return {
+    conv2d: (...args) => recordConv2D(recorder, ...args),
+    groupNorm: (...args) => recordGroupNorm(recorder, ...args),
+    silu: (...args) => recordSiLU(recorder, ...args),
+    residualAdd: (...args) => recordResidualAdd(recorder, ...args),
+    upsample2d: (...args) => recordUpsample2D(recorder, ...args),
+    castF32ToF16: (...args) => recordCastF32ToF16(recorder, ...args),
+  };
+}
+
+function createBufferReleaser(recorder) {
+  if (!recorder) {
+    return (buffer) => {
+      if (!buffer || !isBufferActive(buffer)) return;
+      releaseBuffer(buffer);
+    };
+  }
+  return (buffer) => {
+    if (!buffer) return;
+    recorder.trackTemporaryBuffer(buffer);
+  };
+}
+
+function sumProfileTimings(timings) {
+  if (!timings) return null;
+  return Object.values(timings).reduce((sum, value) => sum + value, 0);
+}
+
+async function applyConv2D(state, weights, shapes, namePrefix, options = {}, ops, release) {
   const weightName = `${namePrefix}.weight`;
   const biasName = `${namePrefix}.bias`;
   const weight = getWeight(weights, shapes, weightName);
@@ -66,7 +106,7 @@ async function applyConv2D(state, weights, shapes, namePrefix, options = {}) {
     log.warn('Diffusion', `VAE conv channel mismatch: ${namePrefix} in=${inChannels} state=${state.channels}`);
   }
 
-  const output = await runConv2D(
+  const output = await ops.conv2d(
     state.tensor,
     weight.value,
     bias.value,
@@ -82,7 +122,7 @@ async function applyConv2D(state, weights, shapes, namePrefix, options = {}) {
     }
   );
 
-  releaseBuffer(state.tensor.buffer);
+  release(state.tensor.buffer);
 
   return {
     tensor: output,
@@ -92,14 +132,14 @@ async function applyConv2D(state, weights, shapes, namePrefix, options = {}) {
   };
 }
 
-async function runResnetBlock(state, weights, shapes, prefix, config) {
+async function runResnetBlock(state, weights, shapes, prefix, config, ops, release) {
   const numGroups = config.numGroups;
   const eps = config.eps;
   const channels = state.channels;
 
   const norm1 = getWeight(weights, shapes, `${prefix}.norm1.weight`);
   const norm1Bias = getWeight(weights, shapes, `${prefix}.norm1.bias`);
-  const normed1 = await runGroupNorm(state.tensor, norm1.value, norm1Bias.value, {
+  const normed1 = await ops.groupNorm(state.tensor, norm1.value, norm1Bias.value, {
     channels,
     height: state.height,
     width: state.width,
@@ -107,15 +147,23 @@ async function runResnetBlock(state, weights, shapes, prefix, config) {
     eps,
   });
 
-  const silu1 = await runSiLU(normed1, { size: channels * state.height * state.width, swigluLimit: null });
-  releaseBuffer(normed1.buffer);
+  const silu1 = await ops.silu(normed1, { size: channels * state.height * state.width, swigluLimit: null });
+  release(normed1.buffer);
   const silu1View = reshapeTensor(silu1, [channels, state.height, state.width], 'vae_resnet_silu1');
 
-  const conv1 = await applyConv2D({ tensor: silu1View, channels, height: state.height, width: state.width }, weights, shapes, `${prefix}.conv1`, { pad: 1 });
+  const conv1 = await applyConv2D(
+    { tensor: silu1View, channels, height: state.height, width: state.width },
+    weights,
+    shapes,
+    `${prefix}.conv1`,
+    { pad: 1 },
+    ops,
+    release
+  );
 
   const norm2 = getWeight(weights, shapes, `${prefix}.norm2.weight`);
   const norm2Bias = getWeight(weights, shapes, `${prefix}.norm2.bias`);
-  const normed2 = await runGroupNorm(conv1.tensor, norm2.value, norm2Bias.value, {
+  const normed2 = await ops.groupNorm(conv1.tensor, norm2.value, norm2Bias.value, {
     channels: conv1.channels,
     height: conv1.height,
     width: conv1.width,
@@ -123,24 +171,32 @@ async function runResnetBlock(state, weights, shapes, prefix, config) {
     eps,
   });
 
-  releaseBuffer(conv1.tensor.buffer);
+  release(conv1.tensor.buffer);
 
-  const silu2 = await runSiLU(normed2, { size: conv1.channels * conv1.height * conv1.width, swigluLimit: null });
-  releaseBuffer(normed2.buffer);
+  const silu2 = await ops.silu(normed2, { size: conv1.channels * conv1.height * conv1.width, swigluLimit: null });
+  release(normed2.buffer);
   const silu2View = reshapeTensor(silu2, [conv1.channels, conv1.height, conv1.width], 'vae_resnet_silu2');
 
-  const conv2 = await applyConv2D({ tensor: silu2View, channels: conv1.channels, height: conv1.height, width: conv1.width }, weights, shapes, `${prefix}.conv2`, { pad: 1 });
+  const conv2 = await applyConv2D(
+    { tensor: silu2View, channels: conv1.channels, height: conv1.height, width: conv1.width },
+    weights,
+    shapes,
+    `${prefix}.conv2`,
+    { pad: 1 },
+    ops,
+    release
+  );
 
   let residualTensor = state.tensor;
 
   if (weights.has(`${prefix}.conv_shortcut.weight`)) {
-    const shortcut = await applyConv2D(state, weights, shapes, `${prefix}.conv_shortcut`, { pad: 0 });
+    const shortcut = await applyConv2D(state, weights, shapes, `${prefix}.conv_shortcut`, { pad: 0 }, ops, release);
     residualTensor = shortcut.tensor;
   }
 
   const size = conv2.channels * conv2.height * conv2.width;
   const residual = reshapeTensor(residualTensor, [size], 'vae_resnet_residual');
-  const output = await runResidualAdd(
+  const output = await ops.residualAdd(
     reshapeTensor(conv2.tensor, [size], 'vae_resnet_main'),
     residual,
     size,
@@ -148,12 +204,12 @@ async function runResnetBlock(state, weights, shapes, prefix, config) {
   );
 
   if (residualTensor === state.tensor) {
-    releaseBuffer(state.tensor.buffer);
+    release(state.tensor.buffer);
   } else {
-    releaseBuffer(residualTensor.buffer);
+    release(residualTensor.buffer);
   }
 
-  releaseBuffer(conv2.tensor.buffer);
+  release(conv2.tensor.buffer);
 
   return {
     tensor: reshapeTensor(output, [conv2.channels, conv2.height, conv2.width], 'vae_resnet_output'),
@@ -168,6 +224,15 @@ async function decodeLatentsGPU(latents, options) {
   if (!device) {
     throw new Error('VAE GPU decode requires a WebGPU device.');
   }
+
+  const profileTarget = options.profile ?? null;
+  const wantsProfile = profileTarget === true || typeof profileTarget === 'object';
+  const localRecorder = wantsProfile
+    ? new CommandRecorder(device, 'vae_decode', { profile: true })
+    : null;
+  const recorder = localRecorder;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
 
   const config = options.modelConfig?.components?.vae?.config || {};
   const runtime = options.runtime || {};
@@ -209,12 +274,15 @@ async function decodeLatentsGPU(latents, options) {
     width: options.latentWidth,
   };
 
-  const computeDtype = runtime.latent?.dtype ?? 'f16';
+  const computeDtype = runtime.latent?.dtype;
+  if (!computeDtype) {
+    throw new Error('VAE decode requires runtime.latent.dtype.');
+  }
   if (computeDtype !== 'f16') {
     log.warn('Diffusion', `VAE GPU decode supports f16 only (requested ${computeDtype}). Using f16.`);
   }
-  const casted = await castF32ToF16(state.tensor);
-  releaseBuffer(state.tensor.buffer);
+  const casted = await ops.castF32ToF16(state.tensor);
+  release(state.tensor.buffer);
   state = {
     tensor: reshapeTensor(casted, [state.channels, state.height, state.width], 'vae_latents_f16'),
     channels: state.channels,
@@ -222,12 +290,12 @@ async function decodeLatentsGPU(latents, options) {
     width: state.width,
   };
 
-  state = await applyConv2D(state, weights, shapes, 'vae.decoder.conv_in', { pad: 1 });
+  state = await applyConv2D(state, weights, shapes, 'vae.decoder.conv_in', { pad: 1 }, ops, release);
 
   const midResnetPrefix = 'vae.decoder.mid_block.resnets.';
   const midResnetIds = buildIndexList(weights, midResnetPrefix);
   for (const idx of midResnetIds) {
-    state = await runResnetBlock(state, weights, shapes, `${midResnetPrefix}${idx}`, { numGroups, eps });
+    state = await runResnetBlock(state, weights, shapes, `${midResnetPrefix}${idx}`, { numGroups, eps }, ops, release);
   }
 
   if (weights.has('vae.decoder.mid_block.attentions.0.to_q.weight')) {
@@ -240,18 +308,18 @@ async function decodeLatentsGPU(latents, options) {
     const resnetPrefix = `${upBlockPrefix}${blockIdx}.resnets.`;
     const resnetIds = buildIndexList(weights, resnetPrefix);
     for (const idx of resnetIds) {
-      state = await runResnetBlock(state, weights, shapes, `${resnetPrefix}${idx}`, { numGroups, eps });
+      state = await runResnetBlock(state, weights, shapes, `${resnetPrefix}${idx}`, { numGroups, eps }, ops, release);
     }
 
     const upsampleWeightName = `${upBlockPrefix}${blockIdx}.upsamplers.0.conv.weight`;
     if (weights.has(upsampleWeightName)) {
-      const upsample = await runUpsample2D(state.tensor, {
+      const upsample = await ops.upsample2d(state.tensor, {
         channels: state.channels,
         height: state.height,
         width: state.width,
         scale: 2,
       });
-      releaseBuffer(state.tensor.buffer);
+      release(state.tensor.buffer);
       state = {
         tensor: reshapeTensor(upsample, [state.channels, state.height * 2, state.width * 2], 'vae_upsample'),
         channels: state.channels,
@@ -259,23 +327,23 @@ async function decodeLatentsGPU(latents, options) {
         width: state.width * 2,
       };
 
-      state = await applyConv2D(state, weights, shapes, `${upBlockPrefix}${blockIdx}.upsamplers.0.conv`, { pad: 1 });
+      state = await applyConv2D(state, weights, shapes, `${upBlockPrefix}${blockIdx}.upsamplers.0.conv`, { pad: 1 }, ops, release);
     }
   }
 
   const normOut = getWeight(weights, shapes, 'vae.decoder.conv_norm_out.weight');
   const normOutBias = getWeight(weights, shapes, 'vae.decoder.conv_norm_out.bias');
-  const normed = await runGroupNorm(state.tensor, normOut.value, normOutBias.value, {
+  const normed = await ops.groupNorm(state.tensor, normOut.value, normOutBias.value, {
     channels: state.channels,
     height: state.height,
     width: state.width,
     numGroups,
     eps,
   });
-  releaseBuffer(state.tensor.buffer);
+  release(state.tensor.buffer);
 
-  const siluOut = await runSiLU(normed, { size: state.channels * state.height * state.width, swigluLimit: null });
-  releaseBuffer(normed.buffer);
+  const siluOut = await ops.silu(normed, { size: state.channels * state.height * state.width, swigluLimit: null });
+  release(normed.buffer);
   state = {
     tensor: reshapeTensor(siluOut, [state.channels, state.height, state.width], 'vae_norm_out'),
     channels: state.channels,
@@ -283,11 +351,22 @@ async function decodeLatentsGPU(latents, options) {
     width: state.width,
   };
 
-  state = await applyConv2D(state, weights, shapes, 'vae.decoder.conv_out', { pad: 1 });
+  state = await applyConv2D(state, weights, shapes, 'vae.decoder.conv_out', { pad: 1 }, ops, release);
 
   const outputSize = state.channels * state.height * state.width * dtypeBytes(state.tensor.dtype);
+  if (localRecorder) {
+    localRecorder.submit();
+  }
   const outputRaw = await readBuffer(state.tensor.buffer, outputSize);
   releaseBuffer(state.tensor.buffer);
+
+  if (localRecorder) {
+    const timings = await localRecorder.resolveProfileTimings();
+    if (profileTarget && typeof profileTarget === 'object') {
+      profileTarget.totalMs = sumProfileTimings(timings) ?? null;
+      profileTarget.timings = timings ?? null;
+    }
+  }
 
   const output = state.tensor.dtype === 'f16'
     ? new Uint16Array(outputRaw)

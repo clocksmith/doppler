@@ -22,6 +22,12 @@ export interface IdbStore {
   deleteFile(filename: string): Promise<boolean>;
   listFiles(): Promise<string[]>;
   listModels(): Promise<string[]>;
+  getModelStats(modelId: string): Promise<{
+    totalBytes: number;
+    fileCount: number;
+    shardCount: number;
+    hasManifest: boolean;
+  }>;
   deleteModel(modelId: string): Promise<boolean>;
   writeManifest(text: string): Promise<void>;
   readManifest(): Promise<string | null>;

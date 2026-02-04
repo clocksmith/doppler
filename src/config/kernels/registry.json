@@ -934,7 +934,9 @@
         "size": 16,
         "fields": [
           { "name": "inner_size", "type": "u32", "offset": 0 },
-          { "name": "outer_size", "type": "u32", "offset": 4 }
+          { "name": "outer_size", "type": "u32", "offset": 4 },
+          { "name": "temperature", "type": "f32", "offset": 8 },
+          { "name": "_pad", "type": "u32", "offset": 12 }
         ]
       },
       "variants": {
@@ -951,13 +953,13 @@
           "requires": []
         },
         "small_subgroup": {
-          "wgsl": "softmax.wgsl",
+          "wgsl": "softmax_subgroup.wgsl",
           "entryPoint": "softmax_small_subgroup",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"]
         },
         "subgroup": {
-          "wgsl": "softmax.wgsl",
+          "wgsl": "softmax_subgroup.wgsl",
           "entryPoint": "main_subgroup",
           "workgroup": [256, 1, 1],
           "requires": ["subgroups"]
@@ -1136,6 +1138,151 @@
           "entryPoint": "main_inplace",
           "workgroup": [256, 1, 1],
           "requires": []
+        }
+      }
+    },
+    "energy_eval": {
+      "description": "Energy evaluation kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "state", "type": "read-only-storage" },
+        { "index": 2, "name": "target", "type": "read-only-storage" },
+        { "index": 3, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "count", "type": "u32", "offset": 0 },
+          { "name": "scale", "type": "f32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "eval": {
+          "wgsl": "energy_eval.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "eval_f16": {
+          "wgsl": "energy_eval_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
+        }
+      }
+    },
+    "energy_update": {
+      "description": "Energy update kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "state", "type": "storage" },
+        { "index": 2, "name": "target", "type": "read-only-storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "count", "type": "u32", "offset": 0 },
+          { "name": "stepSize", "type": "f32", "offset": 4 },
+          { "name": "gradientScale", "type": "f32", "offset": 8 }
+        ]
+      },
+      "variants": {
+        "update": {
+          "wgsl": "energy_update.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "update_f16": {
+          "wgsl": "energy_update_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    },
+    "energy_quintel_update": {
+      "description": "Quintel energy update kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "state", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          { "name": "count", "type": "u32", "offset": 0 },
+          { "name": "size", "type": "u32", "offset": 4 },
+          { "name": "flags", "type": "u32", "offset": 8 },
+          { "name": "_pad0", "type": "u32", "offset": 12 },
+          { "name": "stepSize", "type": "f32", "offset": 16 },
+          { "name": "gradientScale", "type": "f32", "offset": 20 },
+          { "name": "countDiff", "type": "f32", "offset": 24 },
+          { "name": "centerTarget", "type": "f32", "offset": 28 },
+          { "name": "symmetryWeight", "type": "f32", "offset": 32 },
+          { "name": "countWeight", "type": "f32", "offset": 36 },
+          { "name": "centerWeight", "type": "f32", "offset": 40 },
+          { "name": "binarizeWeight", "type": "f32", "offset": 44 },
+          { "name": "clampMin", "type": "f32", "offset": 48 },
+          { "name": "clampMax", "type": "f32", "offset": 52 },
+          { "name": "_pad1", "type": "f32", "offset": 56 },
+          { "name": "_pad2", "type": "f32", "offset": 60 }
+        ]
+      },
+      "variants": {
+        "quintel_update": {
+          "wgsl": "energy_quintel_update.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        },
+        "quintel_update_f16": {
+          "wgsl": "energy_quintel_update_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
+        }
+      }
+    },
+    "energy_quintel_reduce": {
+      "description": "Quintel energy reduction kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "state", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          { "name": "count", "type": "u32", "offset": 0 },
+          { "name": "size", "type": "u32", "offset": 4 },
+          { "name": "flags", "type": "u32", "offset": 8 },
+          { "name": "_pad0", "type": "u32", "offset": 12 },
+          { "name": "symmetryWeight", "type": "f32", "offset": 16 },
+          { "name": "centerWeight", "type": "f32", "offset": 20 },
+          { "name": "binarizeWeight", "type": "f32", "offset": 24 },
+          { "name": "centerTarget", "type": "f32", "offset": 28 },
+          { "name": "_pad1", "type": "f32", "offset": 32 },
+          { "name": "_pad2", "type": "f32", "offset": 36 },
+          { "name": "_pad3", "type": "f32", "offset": 40 },
+          { "name": "_pad4", "type": "f32", "offset": 44 }
+        ]
+      },
+      "variants": {
+        "quintel_reduce": {
+          "wgsl": "energy_quintel_reduce.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "quintel_reduce_f16": {
+          "wgsl": "energy_quintel_reduce_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         }
       }
     },

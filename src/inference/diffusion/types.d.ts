@@ -106,4 +106,12 @@ export interface DiffusionStats {
   prefillTokens?: number;
   decodeTimeMs?: number;
   decodeTokens?: number;
+  vaeTimeMs?: number;
+  gpu?: {
+    available: boolean;
+    totalMs?: number;
+    prefillMs?: number;
+    denoiseMs?: number;
+    vaeMs?: number;
+  };
 }

@@ -17,11 +17,9 @@ export interface DiagnosticsSuiteOptions {
   suite?: BrowserSuite;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
   runtimePreset?: string | null;
+  captureOutput?: boolean;
   modelId?: string | null;
   modelUrl?: string | null;
-  prompt?: string;
-  maxTokens?: number;
-  sampling?: Record<string, number>;
   keepPipeline?: boolean;
   report?: Record<string, unknown>;
 }

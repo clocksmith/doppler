@@ -44,8 +44,9 @@ export class DiagnosticsController {
     if (!intent || !ALLOWED_INTENTS.has(intent)) {
       throw new Error('runtime.shared.tooling.intent is required for diagnostics');
     }
-    if (suite === 'bench' && !BENCH_INTENTS.has(intent)) {
-      throw new Error('runtime.shared.tooling.intent must be investigate or calibrate for bench');
+    if ((suite === 'bench' || suite === 'diffusion') && !BENCH_INTENTS.has(intent)) {
+      const target = suite === 'diffusion' ? 'diffusion' : 'bench';
+      throw new Error(`runtime.shared.tooling.intent must be investigate or calibrate for ${target}`);
     }
     return intent;
   }
@@ -84,9 +85,8 @@ export class DiagnosticsController {
       modelId,
       modelUrl,
       runtimePreset: options.runtimePreset ?? null,
+      captureOutput: options.captureOutput === true,
       runtime,
-      prompt: options.prompt,
-      maxTokens: options.maxTokens,
       report: options.report,
       keepPipeline: options.keepPipeline,
     });

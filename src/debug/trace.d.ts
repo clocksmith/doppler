@@ -11,6 +11,7 @@ export interface TraceInterface {
   sample(message: string, data?: unknown): void;
   buffers(message: string, data?: unknown): void;
   perf(message: string, data?: unknown): void;
+  energy(message: string, data?: unknown): void;
 }
 
 export const trace: TraceInterface;

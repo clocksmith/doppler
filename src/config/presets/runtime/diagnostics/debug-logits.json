@@ -1,4 +1,7 @@
 {
+  "name": "debug-logits",
+  "description": "Trace sample + logits with a top-k probe for a single token.",
+  "extends": "modes/debug",
   "runtime": {
     "inference": {
       "prompt": "The sky is",

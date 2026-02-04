@@ -8,6 +8,7 @@ const loadJson = async (path) => {
 const attentionRules = await loadJson('./kernels/attention.rules.json');
 const conv2dRules = await loadJson('./kernels/conv2d.rules.json');
 const dequantRules = await loadJson('./kernels/dequant.rules.json');
+const energyRules = await loadJson('./kernels/energy.rules.json');
 const fusedFfnRules = await loadJson('./kernels/fused-ffn.rules.json');
 const fusedMatmulResidualRules = await loadJson('./kernels/fused-matmul-residual.rules.json');
 const fusedMatmulRmsnormRules = await loadJson('./kernels/fused-matmul-rmsnorm.rules.json');
@@ -49,6 +50,7 @@ const RULE_SETS = {
     attention: attentionRules,
     conv2d: conv2dRules,
     dequant: dequantRules,
+    energy: energyRules,
     fusedFfn: fusedFfnRules,
     fusedMatmulResidual: fusedMatmulResidualRules,
     fusedMatmulRmsnorm: fusedMatmulRmsnormRules,

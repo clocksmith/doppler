@@ -186,7 +186,8 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
- - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
+- Experimental kernel paths live under `src/config/presets/kernel-paths/experimental/`. Semantic suffixes are allowed there because they are non-canonical and should be removed after validation.
+- Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 
 ### Config-Only Overrides (Harness)
 

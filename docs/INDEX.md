@@ -10,6 +10,7 @@ Quick index for DOPPLER documentation.
 - [Config](config.md) - Kernel paths and error codes.
 - [Formats](formats.md) - RDRR and LoRA formats, adapter manifest.
 - [Operations](operations.md) - Troubleshooting, debug notes, perf investigations, results.
+- [Roadmap](roadmap.md) - Engine milestones and research staging.
 - [Testing](testing.md) - Testing strategy, kernel testing, known-good matrix.
 
 ---

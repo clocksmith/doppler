@@ -12,11 +12,15 @@ DOPPLER is browser-only; all command surfaces emit runtime config.
 - **Minimal surface area**: harness modes are stable; add new ones sparingly.
 - **Safe defaults**: avoid destructive or implicit behavior changes.
 
+## Demo UI Exception
+
+The demo diagnostics UI is an explicit interactive-dev exception. It may build a temporary runtime config by merging UI selections and then call `setRuntimeConfig()` before a run. The browser harness (`tests/harness.html` + `browser-harness.js`) remains strict: no per-run overrides and no per-field URL params.
+
 ---
 
 ## Vocabulary
 
-- **Harness mode**: `runtime.shared.harness.mode` (`kernels`, `inference`, `training`, `bench`, `simulation`).
+- **Harness mode**: `runtime.shared.harness.mode` (`kernels`, `inference`, `training`, `bench`, `simulation`, `energy`).
 - **Runtime preset**: named runtime config in `src/config/presets/runtime/`.
 - **Runtime config**: merged config passed into the harness.
 - **Runtime override**: `runtimeConfig` (JSON) or `runtimeConfigUrl` (URL).

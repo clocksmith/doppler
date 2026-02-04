@@ -98,6 +98,33 @@ function resolveConstants(operation, variant, constants) {
   return { ...constants, ...overrides };
 }
 
+function isPowerOfTwo(value) {
+  return Number.isInteger(value) && value > 0 && (value & (value - 1)) === 0;
+}
+
+function assertWorkgroupPowerOfTwo(operation, variant, workgroupSize, constants) {
+  if (Array.isArray(workgroupSize)) {
+    for (const dim of workgroupSize) {
+      if (!isPowerOfTwo(dim)) {
+        throw new Error(
+          `Kernel ${operation}/${variant} requires power-of-two workgroup size, got [${workgroupSize.join(', ')}]`
+        );
+      }
+    }
+  }
+
+  if (!constants) return;
+  for (const [key, value] of Object.entries(constants)) {
+    if (!Number.isFinite(value)) continue;
+    if (!key.includes('WORKGROUP_SIZE')) continue;
+    if (!isPowerOfTwo(value)) {
+      throw new Error(
+        `Kernel ${operation}/${variant} requires power-of-two ${key}, got ${value}`
+      );
+    }
+  }
+}
+
 export function getCachedPipeline(
   operation,
   variant,
@@ -158,6 +185,8 @@ export async function createPipeline(
       `Kernel ${operation}/${variant} requires features: ${config.requires.join(', ')}`
     );
   }
+
+  assertWorkgroupPowerOfTwo(operation, variant, config.workgroupSize, resolvedConstants);
 
   trace.kernels(
     `KernelLayout: ${operation}/${variant} file=${config.shaderFile} entry=${config.entryPoint} ` +

@@ -183,6 +183,27 @@ function mergeInferenceConfig(
           quantization: { ...base.diffusion.quantization, ...overrides.diffusion.quantization },
         }
       : { ...base.diffusion },
+    energy: overrides.energy
+      ? {
+          ...base.energy,
+          ...overrides.energy,
+          problem: overrides.energy.problem ?? base.energy.problem,
+          state: { ...base.energy.state, ...overrides.energy.state },
+          init: { ...base.energy.init, ...overrides.energy.init },
+          target: { ...base.energy.target, ...overrides.energy.target },
+          loop: { ...base.energy.loop, ...overrides.energy.loop },
+          diagnostics: { ...base.energy.diagnostics, ...overrides.energy.diagnostics },
+          quintel: overrides.energy.quintel
+            ? {
+                ...base.energy.quintel,
+                ...overrides.energy.quintel,
+                rules: { ...base.energy.quintel.rules, ...overrides.energy.quintel.rules },
+                weights: { ...base.energy.quintel.weights, ...overrides.energy.quintel.weights },
+                clamp: { ...base.energy.quintel.clamp, ...overrides.energy.quintel.clamp },
+              }
+            : { ...base.energy.quintel },
+        }
+      : { ...base.energy },
     moe: overrides.moe
       ? {
           routing: { ...base.moe.routing, ...overrides.moe.routing },

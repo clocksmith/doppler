@@ -1,7 +1,8 @@
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { getBuffer } from '../../gpu/weight-buffer.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer, isBufferActive } from '../../memory/buffer-pool.js';
+import { CommandRecorder } from '../../gpu/command-recorder.js';
 import {
   runGather,
   runLayerNorm,
@@ -13,9 +14,20 @@ import {
   runSiLURowSplit,
   runResidualAdd,
   runBiasAdd,
+  recordGather,
+  recordLayerNorm,
+  recordRMSNorm,
+  recordMatmul,
+  recordAttention,
+  recordGeLU,
+  recordSiLU,
+  recordSiLURowSplit,
+  recordResidualAdd,
+  recordBiasAdd,
 } from '../../gpu/kernels/index.js';
 import { log } from '../../debug/index.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
+import { f32ToF16Array } from '../kv-cache/types.js';
 
 function resolveActivationDtype(runtime) {
   const caps = getKernelCapabilities();
@@ -51,13 +63,95 @@ function createIndexBuffer(device, indices, label) {
 }
 
 function createVectorTensor(device, data, dtype, label) {
-  const buffer = acquireBuffer(data.byteLength, undefined, label);
-  device.queue.writeBuffer(buffer, 0, data);
-  return createTensor(buffer, dtype, [1, data.length], label);
+  const length = data.length;
+  let payload = data;
+  if (dtype === 'f16') {
+    if (!(data instanceof Uint16Array)) {
+      const f32 = data instanceof Float32Array ? data : new Float32Array(data);
+      payload = f32ToF16Array(f32);
+    }
+  } else if (!(data instanceof Float32Array)) {
+    payload = new Float32Array(data);
+  }
+  const byteLength = payload.byteLength;
+  const alignedLength = Math.ceil(byteLength / 4) * 4;
+  const buffer = acquireBuffer(alignedLength, undefined, label);
+  if (alignedLength === byteLength) {
+    device.queue.writeBuffer(buffer, 0, payload);
+  } else {
+    const padded = new Uint8Array(alignedLength);
+    padded.set(new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength));
+    device.queue.writeBuffer(buffer, 0, padded);
+  }
+  return createTensor(buffer, dtype, [1, length], label);
 }
 
-function createBiasTensor(buffer, size, label) {
-  return createTensor(buffer, 'f32', [size], label);
+function resolveBiasDtype(weight, weightsEntry, key) {
+  if (weight && weight.dtype) return weight.dtype;
+  const locationDtype = weightsEntry?.dtypes?.get(key);
+  const mapped = normalizeLocationDtype(locationDtype);
+  return mapped || 'f32';
+}
+
+function createBiasTensorWithDtype(weight, weightsEntry, key, size, label) {
+  if (!weight) return null;
+  const dtype = resolveBiasDtype(weight, weightsEntry, key);
+  return createTensor(getBuffer(weight), dtype, [size], label);
+}
+
+function createKernelOps(recorder) {
+  if (!recorder) {
+    return {
+      gather: runGather,
+      layerNorm: runLayerNorm,
+      rmsNorm: runRMSNorm,
+      matmul: runMatmul,
+      attention: runAttention,
+      gelu: runGeLU,
+      silu: runSiLU,
+      siluRowSplit: runSiLURowSplit,
+      residualAdd: runResidualAdd,
+      biasAdd: runBiasAdd,
+    };
+  }
+  return {
+    gather: (...args) => recordGather(recorder, ...args),
+    layerNorm: (...args) => recordLayerNorm(recorder, ...args),
+    rmsNorm: (...args) => recordRMSNorm(recorder, ...args),
+    matmul: (...args) => recordMatmul(recorder, ...args),
+    attention: (...args) => recordAttention(recorder, ...args),
+    gelu: (...args) => recordGeLU(recorder, ...args),
+    silu: (...args) => recordSiLU(recorder, ...args),
+    siluRowSplit: (...args) => recordSiLURowSplit(recorder, ...args),
+    residualAdd: (...args) => recordResidualAdd(recorder, ...args),
+    biasAdd: (...args) => recordBiasAdd(recorder, ...args),
+  };
+}
+
+function createBufferReleaser(recorder) {
+  if (!recorder) {
+    return (buffer) => {
+      if (!buffer || !isBufferActive(buffer)) return;
+      releaseBuffer(buffer);
+    };
+  }
+  return (buffer) => {
+    if (!buffer) return;
+    recorder.trackTemporaryBuffer(buffer);
+  };
+}
+
+function createBufferDestroyer(recorder) {
+  if (!recorder) return (buffer) => buffer?.destroy();
+  return (buffer) => {
+    if (!buffer) return;
+    recorder.trackTemporaryBuffer(buffer);
+  };
+}
+
+function sumProfileTimings(timings) {
+  if (!timings) return null;
+  return Object.values(timings).reduce((sum, value) => sum + value, 0);
 }
 
 function getWeight(weights, prefix, name) {
@@ -124,9 +218,13 @@ function inferMatmulDtypeFromBuffer(weight, N, K, preferred) {
 }
 
 async function runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options = {}) {
+  const { recorder = null, ...rest } = options;
   const resolved = resolveMatmulDtype(weight, weightsEntry, key);
   const bDtype = inferMatmulDtypeFromBuffer(weight, N, K, resolved);
-  const nextOptions = bDtype ? { ...options, bDtype } : options;
+  const nextOptions = bDtype ? { ...rest, bDtype } : rest;
+  if (recorder) {
+    return recordMatmul(recorder, input, weight, M, N, K, nextOptions);
+  }
   return runMatmul(input, weight, M, N, K, nextOptions);
 }
 
@@ -138,6 +236,13 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   }
 
   const prefix = options.prefix;
+  const localRecorder = options.recorder
+    ? null
+    : (options.profile ? new CommandRecorder(device, `${prefix || 'clip'}_encoder`, { profile: true }) : null);
+  const recorder = options.recorder ?? localRecorder;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
+  const destroy = createBufferDestroyer(recorder);
   const weights = weightsEntry.weights;
   const hiddenSize = config.hidden_size;
   const numHeads = config.num_attention_heads;
@@ -147,7 +252,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const eosTokenId = config.eos_token_id ?? null;
   const activationDtype = resolveActivationDtype(runtime);
   const matmul = (input, weight, key, M, N, K, options = {}) =>
-    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options);
+    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, { ...options, recorder });
 
   const padded = padTokens(tokens, maxLength, padTokenId);
   const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);
@@ -166,7 +271,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const tokenEmbedDtype = resolveEmbeddingDtype(tokenEmbedWeight, weightsEntry, tokenEmbedKey, runtime);
   const posEmbedDtype = resolveEmbeddingDtype(posEmbedWeight, weightsEntry, posEmbedKey, runtime);
 
-  let hidden = await runGather(
+  let hidden = await ops.gather(
     tokenBuffer,
     getBuffer(tokenEmbedWeight),
     maxLength,
@@ -182,7 +287,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const posIndices = new Uint32Array(maxLength);
   for (let i = 0; i < maxLength; i++) posIndices[i] = i;
   const posBuffer = createIndexBuffer(device, posIndices, `${prefix}_pos_idx`);
-  const pos = await runGather(
+  const pos = await ops.gather(
     posBuffer,
     getBuffer(posEmbedWeight),
     maxLength,
@@ -195,12 +300,12 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     }
   );
 
-  posBuffer.destroy();
-  tokenBuffer.destroy();
+  destroy(posBuffer);
+  destroy(tokenBuffer);
 
-  const combined = await runResidualAdd(hidden, pos, maxLength * hiddenSize, { useVec4: true });
-  releaseBuffer(hidden.buffer);
-  releaseBuffer(pos.buffer);
+  const combined = await ops.residualAdd(hidden, pos, maxLength * hiddenSize, { useVec4: true });
+  release(hidden.buffer);
+  release(pos.buffer);
   hidden = createTensor(combined.buffer, combined.dtype, [maxLength, hiddenSize], 'clip_embed');
 
   const layerCount = config.num_hidden_layers;
@@ -222,7 +327,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm2.bias`
     );
 
-    const norm1 = await runLayerNorm(hidden, getBuffer(ln1Weight), getBuffer(ln1Bias), config.layer_norm_eps, {
+    const norm1 = await ops.layerNorm(hidden, getBuffer(ln1Weight), getBuffer(ln1Bias), config.layer_norm_eps, {
       batchSize: maxLength,
       hiddenSize,
     });
@@ -242,36 +347,40 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`),
       vKey
     );
+    const qBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`;
+    const kBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.bias`;
+    const vBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`;
     const qBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`
+      qBiasKey
     );
     const kBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.k_proj.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.bias`
+      kBiasKey
     );
     const vBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`
+      vBiasKey
     );
     const outKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`;
     const outWeight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`),
       outKey
     );
+    const outBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`;
     const outBias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`
+      outBiasKey
     );
 
     let q = await matmul(norm1, qWeight, qKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     let k = await matmul(norm1, kWeight, kKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     let v = await matmul(norm1, vWeight, vKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    if (qBias) q = await runBiasAdd(q, createBiasTensor(getBuffer(qBias), hiddenSize, `${prefix}_q_bias`), maxLength, hiddenSize);
-    if (kBias) k = await runBiasAdd(k, createBiasTensor(getBuffer(kBias), hiddenSize, `${prefix}_k_bias`), maxLength, hiddenSize);
-    if (vBias) v = await runBiasAdd(v, createBiasTensor(getBuffer(vBias), hiddenSize, `${prefix}_v_bias`), maxLength, hiddenSize);
+    if (qBias) q = await ops.biasAdd(q, createBiasTensorWithDtype(qBias, weightsEntry, qBiasKey, hiddenSize, `${prefix}_q_bias`), maxLength, hiddenSize);
+    if (kBias) k = await ops.biasAdd(k, createBiasTensorWithDtype(kBias, weightsEntry, kBiasKey, hiddenSize, `${prefix}_k_bias`), maxLength, hiddenSize);
+    if (vBias) v = await ops.biasAdd(v, createBiasTensorWithDtype(vBias, weightsEntry, vBiasKey, hiddenSize, `${prefix}_v_bias`), maxLength, hiddenSize);
 
-    const attn = await runAttention(q, k, v, null, numHeads, headDim, {
+    const attn = await ops.attention(q, k, v, null, numHeads, headDim, {
       seqLen: maxLength,
       kvLen: maxLength,
       numKVHeads: numHeads,
@@ -279,21 +388,21 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     });
 
     let attnOut = await matmul(attn, outWeight, outKey, maxLength, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    if (outBias) attnOut = await runBiasAdd(attnOut, createBiasTensor(getBuffer(outBias), hiddenSize, `${prefix}_out_bias`), maxLength, hiddenSize);
+    if (outBias) attnOut = await ops.biasAdd(attnOut, createBiasTensorWithDtype(outBias, weightsEntry, outBiasKey, hiddenSize, `${prefix}_out_bias`), maxLength, hiddenSize);
 
-    const attnResidual = await runResidualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
+    const attnResidual = await ops.residualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
 
-    releaseBuffer(norm1.buffer);
-    releaseBuffer(q.buffer);
-    releaseBuffer(k.buffer);
-    releaseBuffer(v.buffer);
-    releaseBuffer(attn.buffer);
-    releaseBuffer(attnOut.buffer);
-    releaseBuffer(hidden.buffer);
+    release(norm1.buffer);
+    release(q.buffer);
+    release(k.buffer);
+    release(v.buffer);
+    release(attn.buffer);
+    release(attnOut.buffer);
+    release(hidden.buffer);
 
     hidden = createTensor(attnResidual.buffer, attnResidual.dtype, [maxLength, hiddenSize], 'clip_attn_out');
 
-    const norm2 = await runLayerNorm(hidden, getBuffer(ln2Weight), getBuffer(ln2Bias), config.layer_norm_eps, {
+    const norm2 = await ops.layerNorm(hidden, getBuffer(ln2Weight), getBuffer(ln2Bias), config.layer_norm_eps, {
       batchSize: maxLength,
       hiddenSize,
     });
@@ -303,36 +412,38 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`),
       fc1Key
     );
+    const fc1BiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`;
     const fc1Bias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`
+      fc1BiasKey
     );
     const fc2Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`;
     const fc2Weight = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`),
       fc2Key
     );
+    const fc2BiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`;
     const fc2Bias = expectWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`),
-      `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`
+      fc2BiasKey
     );
 
     const intermediate = fc1Weight.shape[0];
     let mlp = await matmul(norm2, fc1Weight, fc1Key, maxLength, intermediate, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-    if (fc1Bias) mlp = await runBiasAdd(mlp, createBiasTensor(getBuffer(fc1Bias), intermediate, `${prefix}_fc1_bias`), maxLength, intermediate);
+    if (fc1Bias) mlp = await ops.biasAdd(mlp, createBiasTensorWithDtype(fc1Bias, weightsEntry, fc1BiasKey, intermediate, `${prefix}_fc1_bias`), maxLength, intermediate);
 
-    const gelu = await runGeLU(mlp, { size: maxLength * intermediate });
-    releaseBuffer(mlp.buffer);
+    const gelu = await ops.gelu(mlp, { size: maxLength * intermediate });
+    release(mlp.buffer);
 
     let mlpOut = await matmul(gelu, fc2Weight, fc2Key, maxLength, hiddenSize, intermediate, { outputDtype: activationDtype, transposeB: 'auto' });
-    if (fc2Bias) mlpOut = await runBiasAdd(mlpOut, createBiasTensor(getBuffer(fc2Bias), hiddenSize, `${prefix}_fc2_bias`), maxLength, hiddenSize);
+    if (fc2Bias) mlpOut = await ops.biasAdd(mlpOut, createBiasTensorWithDtype(fc2Bias, weightsEntry, fc2BiasKey, hiddenSize, `${prefix}_fc2_bias`), maxLength, hiddenSize);
 
-    const mlpResidual = await runResidualAdd(hidden, mlpOut, maxLength * hiddenSize, { useVec4: true });
+    const mlpResidual = await ops.residualAdd(hidden, mlpOut, maxLength * hiddenSize, { useVec4: true });
 
-    releaseBuffer(norm2.buffer);
-    releaseBuffer(gelu.buffer);
-    releaseBuffer(mlpOut.buffer);
-    releaseBuffer(hidden.buffer);
+    release(norm2.buffer);
+    release(gelu.buffer);
+    release(mlpOut.buffer);
+    release(hidden.buffer);
 
     hidden = createTensor(mlpResidual.buffer, mlpResidual.dtype, [maxLength, hiddenSize], 'clip_mlp_out');
   }
@@ -345,15 +456,15 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     getWeight(weights, prefix, 'text_model.final_layer_norm.bias'),
     `${prefix}.text_model.final_layer_norm.bias`
   );
-  const final = await runLayerNorm(hidden, getBuffer(finalLnWeight), getBuffer(finalLnBias), config.layer_norm_eps, {
+  const final = await ops.layerNorm(hidden, getBuffer(finalLnWeight), getBuffer(finalLnBias), config.layer_norm_eps, {
     batchSize: maxLength,
     hiddenSize,
   });
-  releaseBuffer(hidden.buffer);
+  release(hidden.buffer);
 
   const eosIndex = findEosIndex(padded, eosTokenId);
   const eosIdxBuffer = createIndexBuffer(device, new Uint32Array([eosIndex]), `${prefix}_eos_idx`);
-  const pooledToken = await runGather(
+  const pooledToken = await ops.gather(
     eosIdxBuffer,
     final.buffer,
     1,
@@ -365,7 +476,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
       transpose: false,
     }
   );
-  eosIdxBuffer.destroy();
+  destroy(eosIdxBuffer);
 
   const textProjKey = `${prefix}.text_projection.weight`;
   const textProj = expectWeight(
@@ -373,10 +484,24 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     textProjKey
   );
   let pooled = await matmul(pooledToken, textProj, textProjKey, 1, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
-  releaseBuffer(pooledToken.buffer);
+  release(pooledToken.buffer);
 
-  const pooledData = await readBuffer(pooled.buffer, hiddenSize * (pooled.dtype === 'f16' ? 2 : 4));
-  releaseBuffer(pooled.buffer);
+  const pooledBuffer = pooled.buffer;
+  if (recorder) {
+    recorder.submit();
+  }
+  const pooledData = await readBuffer(pooledBuffer, hiddenSize * (pooled.dtype === 'f16' ? 2 : 4));
+  if (recorder) {
+    releaseBuffer(pooledBuffer);
+  } else {
+    release(pooledBuffer);
+  }
+
+  let profile = null;
+  if (localRecorder) {
+    const timings = await localRecorder.resolveProfileTimings();
+    profile = timings ? { totalMs: sumProfileTimings(timings) ?? 0, timings } : { totalMs: null };
+  }
 
   const pooledView = pooled.dtype === 'f16'
     ? new Float32Array(new Uint16Array(pooledData).length)
@@ -404,6 +529,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     pooled: pooledView,
     maxLength,
     hiddenSize,
+    profile,
   };
 }
 
@@ -415,6 +541,13 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   }
 
   const prefix = options.prefix;
+  const localRecorder = options.recorder
+    ? null
+    : (options.profile ? new CommandRecorder(device, `${prefix || 't5'}_encoder`, { profile: true }) : null);
+  const recorder = options.recorder ?? localRecorder;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
+  const destroy = createBufferDestroyer(recorder);
   const weights = weightsEntry.weights;
   const hiddenSize = config.d_model;
   const numHeads = config.num_heads;
@@ -423,7 +556,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   const padTokenId = config.pad_token_id ?? 0;
   const activationDtype = resolveActivationDtype(runtime);
   const matmul = (input, weight, key, M, N, K, options = {}) =>
-    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options);
+    runMatmulResolved(input, weight, weightsEntry, key, M, N, K, { ...options, recorder });
 
   const padded = padTokens(tokens, maxLength, padTokenId);
   const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);
@@ -436,7 +569,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   const embedKey = `${prefix}.shared.weight`;
   const embedDtype = resolveEmbeddingDtype(embedWeight, weightsEntry, embedKey, runtime);
 
-  let hidden = await runGather(
+  let hidden = await ops.gather(
     tokenBuffer,
     getBuffer(embedWeight),
     maxLength,
@@ -448,7 +581,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       transpose: false,
     }
   );
-  tokenBuffer.destroy();
+  destroy(tokenBuffer);
 
   const layerCount = config.num_layers;
   for (let layerIdx = 0; layerIdx < layerCount; layerIdx++) {
@@ -456,7 +589,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.layer_norm.weight`),
       `${prefix}.encoder.block.${layerIdx}.layer.0.layer_norm.weight`
     );
-    const normed = await runRMSNorm(hidden, getBuffer(lnWeight), config.layer_norm_epsilon, {
+    const normed = await ops.rmsNorm(hidden, getBuffer(lnWeight), config.layer_norm_epsilon, {
       batchSize: maxLength,
       hiddenSize,
     });
@@ -488,7 +621,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       transposeB: 'auto',
     });
 
-    const attn = await runAttention(q, k, v, null, numHeads, headDim, {
+    const attn = await ops.attention(q, k, v, null, numHeads, headDim, {
       seqLen: maxLength,
       kvLen: maxLength,
       numKVHeads: numHeads,
@@ -499,15 +632,15 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       outputDtype: activationDtype,
       transposeB: 'auto',
     });
-    const attnResidual = await runResidualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
+    const attnResidual = await ops.residualAdd(hidden, attnOut, maxLength * hiddenSize, { useVec4: true });
 
-    releaseBuffer(normed.buffer);
-    releaseBuffer(q.buffer);
-    releaseBuffer(k.buffer);
-    releaseBuffer(v.buffer);
-    releaseBuffer(attn.buffer);
-    releaseBuffer(attnOut.buffer);
-    releaseBuffer(hidden.buffer);
+    release(normed.buffer);
+    release(q.buffer);
+    release(k.buffer);
+    release(v.buffer);
+    release(attn.buffer);
+    release(attnOut.buffer);
+    release(hidden.buffer);
 
     hidden = createTensor(attnResidual.buffer, attnResidual.dtype, [maxLength, hiddenSize], 't5_attn_out');
 
@@ -515,7 +648,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
       getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.1.layer_norm.weight`),
       `${prefix}.encoder.block.${layerIdx}.layer.1.layer_norm.weight`
     );
-    const norm2 = await runRMSNorm(hidden, getBuffer(ln2Weight), config.layer_norm_epsilon, {
+    const norm2 = await ops.rmsNorm(hidden, getBuffer(ln2Weight), config.layer_norm_epsilon, {
       batchSize: maxLength,
       hiddenSize,
     });
@@ -549,25 +682,25 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     });
 
     const combinedTensor = createTensor(combinedBuffer, activationDtype, [maxLength, dff * 2], 't5_ff_combined');
-    const gated = await runSiLURowSplit(combinedTensor, {
+    const gated = await ops.siluRowSplit(combinedTensor, {
       numTokens: maxLength,
       dim: dff,
       activation: 'gelu',
       swigluLimit: null,
     });
 
-    releaseBuffer(combinedTensor.buffer);
+    release(combinedTensor.buffer);
 
     const ffOut = await matmul(gated, wo, woKey, maxLength, hiddenSize, dff, {
       outputDtype: activationDtype,
       transposeB: 'auto',
     });
-    const ffResidual = await runResidualAdd(hidden, ffOut, maxLength * hiddenSize, { useVec4: true });
+    const ffResidual = await ops.residualAdd(hidden, ffOut, maxLength * hiddenSize, { useVec4: true });
 
-    releaseBuffer(norm2.buffer);
-    releaseBuffer(gated.buffer);
-    releaseBuffer(ffOut.buffer);
-    releaseBuffer(hidden.buffer);
+    release(norm2.buffer);
+    release(gated.buffer);
+    release(ffOut.buffer);
+    release(hidden.buffer);
 
     hidden = createTensor(ffResidual.buffer, ffResidual.dtype, [maxLength, hiddenSize], 't5_ff_out');
   }
@@ -576,34 +709,46 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     getWeight(weights, prefix, 'encoder.final_layer_norm.weight'),
     `${prefix}.encoder.final_layer_norm.weight`
   );
-  const final = await runRMSNorm(hidden, getBuffer(finalLn), config.layer_norm_epsilon, {
+  const final = await ops.rmsNorm(hidden, getBuffer(finalLn), config.layer_norm_epsilon, {
     batchSize: maxLength,
     hiddenSize,
   });
-  releaseBuffer(hidden.buffer);
+  release(hidden.buffer);
+
+  let profile = null;
+  if (localRecorder) {
+    localRecorder.submit();
+    const timings = await localRecorder.resolveProfileTimings();
+    profile = timings ? { totalMs: sumProfileTimings(timings) ?? 0, timings } : { totalMs: null };
+  }
 
   return {
     hidden: final,
     maxLength,
     hiddenSize,
+    profile,
   };
 }
 
-export async function runTextEncodersForPrompt(tokensByEncoder, weightsByComponent, modelConfig, runtime) {
+export async function runTextEncodersForPrompt(tokensByEncoder, weightsByComponent, modelConfig, runtime, options = {}) {
   const clipConfig = modelConfig?.components?.text_encoder?.config || {};
   const clip2Config = modelConfig?.components?.text_encoder_2?.config || {};
   const t5Config = modelConfig?.components?.text_encoder_3?.config || {};
   const t5MaxLength = runtime?.textEncoder?.maxLength ?? 256;
+  const profileEnabled = options.profile === true;
 
   const clip = await runClipTextEncoder(tokensByEncoder.text_encoder, weightsByComponent.text_encoder, clipConfig, runtime, {
     prefix: 'text_encoder',
+    profile: profileEnabled,
   });
   const clip2 = await runClipTextEncoder(tokensByEncoder.text_encoder_2, weightsByComponent.text_encoder_2, clip2Config, runtime, {
     prefix: 'text_encoder_2',
+    profile: profileEnabled,
   });
   const t5 = await runT5Encoder(tokensByEncoder.text_encoder_3, weightsByComponent.text_encoder_3, t5Config, runtime, {
     prefix: 'text_encoder_3',
     maxLength: t5MaxLength,
+    profile: profileEnabled,
   });
 
   const pooled = new Float32Array(clip.pooled.length + clip2.pooled.length);
@@ -613,26 +758,47 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
   releaseBuffer(clip.hidden.buffer);
   releaseBuffer(clip2.hidden.buffer);
 
+  const clipMs = clip.profile?.totalMs ?? null;
+  const clip2Ms = clip2.profile?.totalMs ?? null;
+  const t5Ms = t5.profile?.totalMs ?? null;
+  const totalMs = [clipMs, clip2Ms, t5Ms].reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+  const profile = profileEnabled
+    ? {
+        totalMs: Number.isFinite(totalMs) ? totalMs : null,
+        clipMs,
+        clip2Ms,
+        t5Ms,
+      }
+    : null;
+
   return {
     pooled,
     context: t5.hidden,
+    profile,
   };
 }
 
-export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, runtime) {
+export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, runtime, options = {}) {
   const device = getDevice();
   if (!device) throw new Error('TimeText embedding requires a WebGPU device.');
   const activationDtype = resolveActivationDtype(runtime);
+  const recorder = options.recorder ?? null;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
-    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, { ...options, recorder });
   const textLinear1Name = 'time_text_embed.text_embedder.linear_1.weight';
   const textLinear2Name = 'time_text_embed.text_embedder.linear_2.weight';
   const textLinear1 = resolver.get(textLinear1Name);
-  const textLinear1Bias = resolver.get('time_text_embed.text_embedder.linear_1.bias');
+  const textLinear1BiasName = 'time_text_embed.text_embedder.linear_1.bias';
+  const textLinear1Bias = resolver.get(textLinear1BiasName);
+  const textLinear1BiasKey = resolver.key(textLinear1BiasName);
   const textLinear2 = resolver.get(textLinear2Name);
-  const textLinear2Bias = resolver.get('time_text_embed.text_embedder.linear_2.bias');
+  const textLinear2BiasName = 'time_text_embed.text_embedder.linear_2.bias';
+  const textLinear2Bias = resolver.get(textLinear2BiasName);
+  const textLinear2BiasKey = resolver.key(textLinear2BiasName);
   if (!textLinear1 || !textLinear2) {
     throw new Error('Missing diffusion time_text_embed text weights.');
   }
@@ -643,21 +809,31 @@ export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, 
     transposeB: 'auto',
   });
   if (textLinear1Bias) {
-    text = await runBiasAdd(text, createBiasTensor(getBuffer(textLinear1Bias), textLinear1.shape[0], 'sd3_text_bias1'), 1, textLinear1.shape[0]);
+    text = await ops.biasAdd(
+      text,
+      createBiasTensorWithDtype(textLinear1Bias, weightsEntry, textLinear1BiasKey, textLinear1.shape[0], 'sd3_text_bias1'),
+      1,
+      textLinear1.shape[0]
+    );
   }
-  const textAct = await runSiLU(text, { size: textLinear1.shape[0], swigluLimit: null });
-  releaseBuffer(text.buffer);
+  const textAct = await ops.silu(text, { size: textLinear1.shape[0], swigluLimit: null });
+  release(text.buffer);
 
   let textOut = await matmul(textAct, textLinear2, textLinear2Name, 1, textLinear2.shape[0], textLinear2.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
   if (textLinear2Bias) {
-    textOut = await runBiasAdd(textOut, createBiasTensor(getBuffer(textLinear2Bias), textLinear2.shape[0], 'sd3_text_bias2'), 1, textLinear2.shape[0]);
+    textOut = await ops.biasAdd(
+      textOut,
+      createBiasTensorWithDtype(textLinear2Bias, weightsEntry, textLinear2BiasKey, textLinear2.shape[0], 'sd3_text_bias2'),
+      1,
+      textLinear2.shape[0]
+    );
   }
 
-  releaseBuffer(textAct.buffer);
-  releaseBuffer(pooledTensor.buffer);
+  release(textAct.buffer);
+  release(pooledTensor.buffer);
 
   return textOut;
 }
@@ -678,17 +854,24 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
   }
 
   const activationDtype = resolveActivationDtype(runtime);
+  const recorder = options.recorder ?? null;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
   const embTensor = createVectorTensor(device, emb, activationDtype, 'sd3_timestep');
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
-    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, { ...options, recorder });
   const linear1Name = 'time_text_embed.timestep_embedder.linear_1.weight';
   const linear2Name = 'time_text_embed.timestep_embedder.linear_2.weight';
   const linear1 = resolver.get(linear1Name);
-  const linear1Bias = resolver.get('time_text_embed.timestep_embedder.linear_1.bias');
+  const linear1BiasName = 'time_text_embed.timestep_embedder.linear_1.bias';
+  const linear1Bias = resolver.get(linear1BiasName);
+  const linear1BiasKey = resolver.key(linear1BiasName);
   const linear2 = resolver.get(linear2Name);
-  const linear2Bias = resolver.get('time_text_embed.timestep_embedder.linear_2.bias');
+  const linear2BiasName = 'time_text_embed.timestep_embedder.linear_2.bias';
+  const linear2Bias = resolver.get(linear2BiasName);
+  const linear2BiasKey = resolver.key(linear2BiasName);
   if (!linear1 || !linear2) {
     throw new Error('Missing diffusion time_text_embed timestep weights.');
   }
@@ -698,39 +881,57 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
     transposeB: 'auto',
   });
   if (linear1Bias) {
-    out = await runBiasAdd(out, createBiasTensor(getBuffer(linear1Bias), linear1.shape[0], 'sd3_time_bias1'), 1, linear1.shape[0]);
+    out = await ops.biasAdd(
+      out,
+      createBiasTensorWithDtype(linear1Bias, weightsEntry, linear1BiasKey, linear1.shape[0], 'sd3_time_bias1'),
+      1,
+      linear1.shape[0]
+    );
   }
-  const act = await runSiLU(out, { size: linear1.shape[0], swigluLimit: null });
-  releaseBuffer(out.buffer);
+  const act = await ops.silu(out, { size: linear1.shape[0], swigluLimit: null });
+  release(out.buffer);
 
   let out2 = await matmul(act, linear2, linear2Name, 1, linear2.shape[0], linear2.shape[1], {
     outputDtype: activationDtype,
     transposeB: 'auto',
   });
   if (linear2Bias) {
-    out2 = await runBiasAdd(out2, createBiasTensor(getBuffer(linear2Bias), linear2.shape[0], 'sd3_time_bias2'), 1, linear2.shape[0]);
+    out2 = await ops.biasAdd(
+      out2,
+      createBiasTensorWithDtype(linear2Bias, weightsEntry, linear2BiasKey, linear2.shape[0], 'sd3_time_bias2'),
+      1,
+      linear2.shape[0]
+    );
   }
 
-  releaseBuffer(act.buffer);
-  releaseBuffer(embTensor.buffer);
+  release(act.buffer);
+  release(embTensor.buffer);
 
   return out2;
 }
 
-export async function combineTimeTextEmbeddings(time, text, hiddenSize) {
-  const combined = await runResidualAdd(time, text, hiddenSize, { useVec4: true });
-  releaseBuffer(time.buffer);
-  releaseBuffer(text.buffer);
+export async function combineTimeTextEmbeddings(time, text, hiddenSize, options = {}) {
+  const recorder = options.recorder ?? null;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
+  const combined = await ops.residualAdd(time, text, hiddenSize, { useVec4: true });
+  release(time.buffer);
+  release(text.buffer);
   return createTensor(combined.buffer, combined.dtype, [1, hiddenSize], 'sd3_time_text');
 }
 
-export async function projectContext(context, weightsEntry, modelConfig, runtime) {
+export async function projectContext(context, weightsEntry, modelConfig, runtime, options = {}) {
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
+  const recorder = options.recorder ?? null;
+  const ops = createKernelOps(recorder);
+  const release = createBufferReleaser(recorder);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
-    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, options);
+    runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, { ...options, recorder });
   const projWeightName = 'context_embedder.weight';
   const projWeight = resolver.get(projWeightName);
-  const projBias = resolver.get('context_embedder.bias');
+  const projBiasName = 'context_embedder.bias';
+  const projBias = resolver.get(projBiasName);
+  const projBiasKey = resolver.key(projBiasName);
   if (!projWeight) {
     throw new Error('Missing diffusion context_embedder weight.');
   }
@@ -743,9 +944,14 @@ export async function projectContext(context, weightsEntry, modelConfig, runtime
     transposeB: 'auto',
   });
   if (projBias) {
-    projected = await runBiasAdd(projected, createBiasTensor(getBuffer(projBias), outDim, 'sd3_ctx_bias'), numTokens, outDim);
+    projected = await ops.biasAdd(
+      projected,
+      createBiasTensorWithDtype(projBias, weightsEntry, projBiasKey, outDim, 'sd3_ctx_bias'),
+      numTokens,
+      outDim
+    );
   }
-  releaseBuffer(context.buffer);
+  release(context.buffer);
   return projected;
 }
 

@@ -4,6 +4,7 @@
  * @module inference/diffusion/text-encoder-gpu
  */
 
+import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import type { Tensor } from '../../gpu/tensor.js';
 import type { DiffusionModelConfig, DiffusionRuntimeConfig } from './types.js';
 
@@ -29,20 +30,28 @@ export interface DiffusionTextTokens {
 export interface DiffusionTextConditioning {
   pooled: Float32Array;
   context: Tensor;
+  profile?: {
+    totalMs?: number | null;
+    clipMs?: number | null;
+    clip2Ms?: number | null;
+    t5Ms?: number | null;
+  } | null;
 }
 
 export declare function runTextEncodersForPrompt(
   tokensByEncoder: DiffusionTextTokens,
   weightsByComponent: DiffusionTextEncoderWeights,
   modelConfig: DiffusionModelConfig,
-  runtime: DiffusionRuntimeConfig
+  runtime: DiffusionRuntimeConfig,
+  options?: { profile?: boolean }
 ): Promise<DiffusionTextConditioning>;
 
 export declare function buildTimeTextEmbedding(
   pooled: Float32Array,
   weightsEntry: DiffusionTextEncoderWeightsEntry,
   modelConfig: DiffusionModelConfig,
-  runtime: DiffusionRuntimeConfig
+  runtime: DiffusionRuntimeConfig,
+  options?: { recorder?: CommandRecorder | null }
 ): Promise<Tensor>;
 
 export declare function buildTimestepEmbedding(
@@ -50,20 +59,22 @@ export declare function buildTimestepEmbedding(
   weightsEntry: DiffusionTextEncoderWeightsEntry,
   modelConfig: DiffusionModelConfig,
   runtime: DiffusionRuntimeConfig,
-  options?: { dim?: number }
+  options?: { dim?: number; recorder?: CommandRecorder | null }
 ): Promise<Tensor>;
 
 export declare function combineTimeTextEmbeddings(
   time: Tensor,
   text: Tensor,
-  hiddenSize: number
+  hiddenSize: number,
+  options?: { recorder?: CommandRecorder | null }
 ): Promise<Tensor>;
 
 export declare function projectContext(
   context: Tensor,
   weightsEntry: DiffusionTextEncoderWeightsEntry,
   modelConfig: DiffusionModelConfig,
-  runtime: DiffusionRuntimeConfig
+  runtime: DiffusionRuntimeConfig,
+  options?: { recorder?: CommandRecorder | null }
 ): Promise<Tensor>;
 
 export declare function logQuickGeluWarning(config: { hidden_act?: string }): void;

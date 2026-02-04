@@ -1,0 +1,18 @@
+{
+  "evalVariant": [
+    { "match": { "isF16": true }, "value": "eval_f16" },
+    { "match": {}, "value": "eval" }
+  ],
+  "updateVariant": [
+    { "match": { "isF16": true }, "value": "update_f16" },
+    { "match": {}, "value": "update" }
+  ],
+  "quintelUpdateVariant": [
+    { "match": { "isF16": true }, "value": "quintel_update_f16" },
+    { "match": {}, "value": "quintel_update" }
+  ],
+  "quintelReduceVariant": [
+    { "match": { "isF16": true }, "value": "quintel_reduce_f16" },
+    { "match": {}, "value": "quintel_reduce" }
+  ]
+}

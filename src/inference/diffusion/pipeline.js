@@ -21,8 +21,9 @@ import { runSD3Transformer } from './sd3-transformer.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { CommandRecorder } from '../../gpu/command-recorder.js';
 import { castF32ToF16 } from '../../gpu/kernels/cast.js';
-import { runResidualAdd, runScale } from '../../gpu/kernels/index.js';
+import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../gpu/kernels/index.js';
 import { f16ToF32 } from '../../loader/dtype-utils.js';
 
 function createRng(seed) {
@@ -66,6 +67,24 @@ function getTensorSize(shape) {
   return shape.reduce((acc, value) => acc * value, 1);
 }
 
+function sumProfileTimings(timings) {
+  if (!timings) return null;
+  return Object.values(timings).reduce((sum, value) => sum + value, 0);
+}
+
+function createRecorderReleaser(recorder) {
+  if (!recorder) {
+    return (buffer) => {
+      if (!buffer) return;
+      releaseBuffer(buffer);
+    };
+  }
+  return (buffer) => {
+    if (!buffer) return;
+    recorder.trackTemporaryBuffer(buffer);
+  };
+}
+
 async function createLatentTensor(latents, shape, runtime) {
   const device = getDevice();
   if (!device) {
@@ -105,21 +124,30 @@ async function readTensorToFloat32(tensor) {
   return new Float32Array(data);
 }
 
-async function applyGuidance(uncond, cond, guidanceScale, size) {
+async function applyGuidance(uncond, cond, guidanceScale, size, options = {}) {
   if (!uncond || !Number.isFinite(guidanceScale) || guidanceScale <= 1) {
     return cond;
   }
 
-  const negUncond = await runScale(uncond, -1, { count: size });
-  const diff = await runResidualAdd(cond, negUncond, size, { useVec4: true });
-  releaseBuffer(negUncond.buffer);
+  const recorder = options.recorder ?? null;
+  const release = options.release ?? createRecorderReleaser(recorder);
+  const scale = recorder
+    ? (input, scalar, opts) => recordScale(recorder, input, scalar, opts)
+    : runScale;
+  const residualAdd = recorder
+    ? (left, right, count, opts) => recordResidualAdd(recorder, left, right, count, opts)
+    : runResidualAdd;
+
+  const negUncond = await scale(uncond, -1, { count: size });
+  const diff = await residualAdd(cond, negUncond, size, { useVec4: true });
+  release(negUncond.buffer);
 
   const diffTensor = createTensor(diff.buffer, diff.dtype, [...cond.shape], 'sd3_guidance_diff');
-  const scaled = await runScale(diffTensor, guidanceScale, { count: size });
-  releaseBuffer(diffTensor.buffer);
+  const scaled = await scale(diffTensor, guidanceScale, { count: size });
+  release(diffTensor.buffer);
 
-  const guided = await runResidualAdd(uncond, scaled, size, { useVec4: true });
-  releaseBuffer(scaled.buffer);
+  const guided = await residualAdd(uncond, scaled, size, { useVec4: true });
+  release(scaled.buffer);
 
   return createTensor(guided.buffer, guided.dtype, [...cond.shape], 'sd3_guided');
 }
@@ -317,6 +345,12 @@ export class DiffusionPipeline {
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
     const seed = request.seed ?? Math.floor(Math.random() * 1e9);
+    const pipelineMode = this.diffusionState.runtime?.backend?.pipeline;
+    const profilerEnabled = this.runtimeConfig?.shared?.debug?.profiler?.enabled === true;
+    const canProfileGpu = pipelineMode === 'gpu' && profilerEnabled && getKernelCapabilities().hasTimestampQuery;
+    let gpuPrefillMs = canProfileGpu ? 0 : null;
+    let gpuDenoiseMs = canProfileGpu ? 0 : null;
+    let gpuVaeMs = canProfileGpu ? 0 : null;
 
     if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
       throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
@@ -328,6 +362,7 @@ export class DiffusionPipeline {
       this.tokenizers || {},
       { maxLength: runtime.textEncoder.maxLength }
     );
+    const promptEnd = performance.now();
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
     if (scheduler.type !== 'flowmatch_euler') {
@@ -378,12 +413,29 @@ export class DiffusionPipeline {
     const vaeEnd = performance.now();
 
     const end = performance.now();
+    const cpuPrefillMs = promptEnd - promptStart;
+    const cpuDenoiseMs = decodeEnd - decodeStart;
+    const cpuVaeMs = vaeEnd - vaeStart;
+    const gpuTotalMs = canProfileGpu
+      ? [gpuPrefillMs, gpuDenoiseMs, gpuVaeMs].reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0)
+      : null;
+
     this.stats = {
       totalTimeMs: end - start,
-      prefillTimeMs: promptEnd - promptStart,
+      prefillTimeMs: cpuPrefillMs,
       prefillTokens: encoded.totalTokens,
-      decodeTimeMs: decodeEnd - decodeStart,
+      decodeTimeMs: cpuDenoiseMs,
       decodeTokens: scheduler.steps,
+      vaeTimeMs: cpuVaeMs,
+      gpu: canProfileGpu
+        ? {
+            available: true,
+            totalMs: gpuTotalMs,
+            prefillMs: gpuPrefillMs,
+            denoiseMs: gpuDenoiseMs,
+            vaeMs: gpuVaeMs,
+          }
+        : { available: false },
     };
 
     log.info('Diffusion', `Prompt encode: ${(promptEnd - promptStart).toFixed(0)}ms (${encoded.totalTokens} tokens)`);
@@ -391,12 +443,16 @@ export class DiffusionPipeline {
     log.info('Diffusion', `VAE decode: ${(vaeEnd - vaeStart).toFixed(0)}ms (${width}x${height})`);
     log.info('Diffusion', `Total: ${(end - start).toFixed(0)}ms`);
     trace.perf('Diffusion summary', {
-      prefillMs: promptEnd - promptStart,
+      prefillMs: cpuPrefillMs,
       prefillTokens: encoded.totalTokens,
-      denoiseMs: decodeEnd - decodeStart,
+      denoiseMs: cpuDenoiseMs,
       steps: scheduler.steps,
-      vaeMs: vaeEnd - vaeStart,
+      vaeMs: cpuVaeMs,
       totalMs: end - start,
+      gpuPrefillMs: canProfileGpu ? gpuPrefillMs : null,
+      gpuDenoiseMs: canProfileGpu ? gpuDenoiseMs : null,
+      gpuVaeMs: canProfileGpu ? gpuVaeMs : null,
+      gpuTotalMs: canProfileGpu ? gpuTotalMs : null,
       width,
       height,
     });
@@ -422,6 +478,11 @@ export class DiffusionPipeline {
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
     const seed = request.seed ?? Math.floor(Math.random() * 1e9);
+    const profilerEnabled = this.runtimeConfig?.shared?.debug?.profiler?.enabled === true;
+    const canProfileGpu = profilerEnabled && getKernelCapabilities().hasTimestampQuery;
+    let gpuPrefillMs = canProfileGpu ? 0 : null;
+    let gpuDenoiseMs = canProfileGpu ? 0 : null;
+    let gpuVaeMs = canProfileGpu ? 0 : null;
 
     if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
       throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
@@ -451,10 +512,20 @@ export class DiffusionPipeline {
     const shouldUseUncond = guidanceScale > 1.0;
 
     const textWeights = await this.ensureTextEncoderWeights();
-    const promptCondition = await runTextEncodersForPrompt(promptTokens, textWeights, modelConfig, runtime);
+    const promptCondition = await runTextEncodersForPrompt(promptTokens, textWeights, modelConfig, runtime, {
+      profile: canProfileGpu,
+    });
+    if (canProfileGpu && Number.isFinite(promptCondition.profile?.totalMs)) {
+      gpuPrefillMs += promptCondition.profile.totalMs;
+    }
     let negativeCondition = null;
     if (shouldUseUncond) {
-      negativeCondition = await runTextEncodersForPrompt(negativeTokens, textWeights, modelConfig, runtime);
+      negativeCondition = await runTextEncodersForPrompt(negativeTokens, textWeights, modelConfig, runtime, {
+        profile: canProfileGpu,
+      });
+      if (canProfileGpu && Number.isFinite(negativeCondition.profile?.totalMs)) {
+        gpuPrefillMs += negativeCondition.profile.totalMs;
+      }
     }
     const promptEnd = performance.now();
 
@@ -472,10 +543,25 @@ export class DiffusionPipeline {
     if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
       throw new Error('Diffusion transformer config missing num_attention_heads/attention_head_dim.');
     }
-    const condContext = await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime);
-    const uncondContext = shouldUseUncond && negativeCondition
-      ? await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime)
+    const prefillRecorder = canProfileGpu
+      ? new CommandRecorder(getDevice(), 'diffusion_prefill', { profile: true })
       : null;
+    const condContext = await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime, {
+      recorder: prefillRecorder,
+    });
+    const uncondContext = shouldUseUncond && negativeCondition
+      ? await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime, {
+          recorder: prefillRecorder,
+        })
+      : null;
+    if (prefillRecorder) {
+      prefillRecorder.submit();
+      const timings = await prefillRecorder.resolveProfileTimings();
+      const contextMs = sumProfileTimings(timings);
+      if (Number.isFinite(contextMs)) {
+        gpuPrefillMs += contextMs;
+      }
+    }
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
     const latentScale = this.diffusionState.latentScale;
@@ -511,33 +597,73 @@ export class DiffusionPipeline {
       const sigma = scheduler.sigmas[i];
       const sigmaNext = i + 1 < scheduler.steps ? scheduler.sigmas[i + 1] : 0;
       const delta = sigmaNext - sigma;
+      const stepRecorder = canProfileGpu
+        ? new CommandRecorder(getDevice(), `diffusion_step_${i}`, { profile: true })
+        : null;
+      const releaseStep = createRecorderReleaser(stepRecorder);
+      const scale = stepRecorder
+        ? (input, scalar, options) => recordScale(stepRecorder, input, scalar, options)
+        : runScale;
+      const residualAdd = stepRecorder
+        ? (left, right, count, options) => recordResidualAdd(stepRecorder, left, right, count, options)
+        : runResidualAdd;
 
-      const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, { dim: timeEmbedDim });
-      const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime);
-      const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize);
-      const condPred = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime);
-      releaseBuffer(timeTextCond.buffer);
+      const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+        dim: timeEmbedDim,
+        recorder: stepRecorder,
+      });
+      const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime, {
+        recorder: stepRecorder,
+      });
+      const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize, {
+        recorder: stepRecorder,
+      });
+      const condPred = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime, {
+        recorder: stepRecorder,
+      });
+      releaseStep(timeTextCond.buffer);
 
       let pred = condPred;
       if (shouldUseUncond && uncondContext && negativeCondition) {
-        const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, { dim: timeEmbedDim });
-        const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime);
-        const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize);
-        const uncondPred = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime);
-        releaseBuffer(timeTextUncond.buffer);
-        pred = await applyGuidance(uncondPred, condPred, guidanceScale, latentSize);
-        releaseBuffer(uncondPred.buffer);
-        releaseBuffer(condPred.buffer);
+        const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+          dim: timeEmbedDim,
+          recorder: stepRecorder,
+        });
+        const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime, {
+          recorder: stepRecorder,
+        });
+        const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize, {
+          recorder: stepRecorder,
+        });
+        const uncondPred = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime, {
+          recorder: stepRecorder,
+        });
+        releaseStep(timeTextUncond.buffer);
+        pred = await applyGuidance(uncondPred, condPred, guidanceScale, latentSize, {
+          recorder: stepRecorder,
+          release: releaseStep,
+        });
+        releaseStep(uncondPred.buffer);
+        releaseStep(condPred.buffer);
       }
 
-      const scaled = await runScale(pred, delta, { count: latentSize });
-      const updated = await runResidualAdd(latentsTensor, scaled, latentSize, { useVec4: true });
+      const scaled = await scale(pred, delta, { count: latentSize });
+      const updated = await residualAdd(latentsTensor, scaled, latentSize, { useVec4: true });
 
-      releaseBuffer(latentsTensor.buffer);
-      releaseBuffer(scaled.buffer);
-      releaseBuffer(pred.buffer);
+      releaseStep(latentsTensor.buffer);
+      releaseStep(scaled.buffer);
+      releaseStep(pred.buffer);
 
       latentsTensor = createTensor(updated.buffer, updated.dtype, [latentChannels, latentHeight, latentWidth], 'sd3_latents');
+
+      if (stepRecorder) {
+        stepRecorder.submit();
+        const timings = await stepRecorder.resolveProfileTimings();
+        const stepMs = sumProfileTimings(timings);
+        if (Number.isFinite(stepMs)) {
+          gpuDenoiseMs += stepMs;
+        }
+      }
 
       if (i % 5 === 0 || i === scheduler.steps - 1) {
         this._onProgress?.({
@@ -564,6 +690,7 @@ export class DiffusionPipeline {
     const latentArray = await readTensorToFloat32(latentsTensor);
     releaseBuffer(latentsTensor.buffer);
 
+    const vaeProfile = canProfileGpu ? {} : null;
     const pixels = await decodeLatents(latentArray, {
       width,
       height,
@@ -574,16 +701,36 @@ export class DiffusionPipeline {
       weights: useGpuVae ? this.vaeWeights : null,
       modelConfig,
       runtime,
+      profile: vaeProfile,
     });
     const vaeEnd = performance.now();
+    if (vaeProfile && Number.isFinite(vaeProfile.totalMs)) {
+      gpuVaeMs = vaeProfile.totalMs;
+    }
 
     const end = performance.now();
+    const cpuPrefillMs = promptEnd - promptStart;
+    const cpuDenoiseMs = decodeEnd - decodeStart;
+    const cpuVaeMs = vaeEnd - vaeStart;
+    const gpuTotalMs = canProfileGpu
+      ? [gpuPrefillMs, gpuDenoiseMs, gpuVaeMs].reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0)
+      : null;
     this.stats = {
       totalTimeMs: end - start,
-      prefillTimeMs: promptEnd - promptStart,
+      prefillTimeMs: cpuPrefillMs,
       prefillTokens: encoded.totalTokens,
-      decodeTimeMs: decodeEnd - decodeStart,
+      decodeTimeMs: cpuDenoiseMs,
       decodeTokens: scheduler.steps,
+      vaeTimeMs: cpuVaeMs,
+      gpu: canProfileGpu
+        ? {
+            available: true,
+            totalMs: gpuTotalMs,
+            prefillMs: gpuPrefillMs,
+            denoiseMs: gpuDenoiseMs,
+            vaeMs: gpuVaeMs,
+          }
+        : { available: false },
     };
 
     log.info('Diffusion', `Prompt encode: ${(promptEnd - promptStart).toFixed(0)}ms (${encoded.totalTokens} tokens)`);
@@ -591,12 +738,16 @@ export class DiffusionPipeline {
     log.info('Diffusion', `VAE decode: ${(vaeEnd - vaeStart).toFixed(0)}ms (${width}x${height})`);
     log.info('Diffusion', `Total: ${(end - start).toFixed(0)}ms`);
     trace.perf('Diffusion summary', {
-      prefillMs: promptEnd - promptStart,
+      prefillMs: cpuPrefillMs,
       prefillTokens: encoded.totalTokens,
-      denoiseMs: decodeEnd - decodeStart,
+      denoiseMs: cpuDenoiseMs,
       steps: scheduler.steps,
-      vaeMs: vaeEnd - vaeStart,
+      vaeMs: cpuVaeMs,
       totalMs: end - start,
+      gpuPrefillMs: canProfileGpu ? gpuPrefillMs : null,
+      gpuDenoiseMs: canProfileGpu ? gpuDenoiseMs : null,
+      gpuVaeMs: canProfileGpu ? gpuVaeMs : null,
+      gpuTotalMs: canProfileGpu ? gpuTotalMs : null,
       width,
       height,
     });

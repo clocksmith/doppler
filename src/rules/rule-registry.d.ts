@@ -8,6 +8,7 @@ type KernelRuleGroup =
   | 'attention'
   | 'conv2d'
   | 'dequant'
+  | 'energy'
   | 'fusedFfn'
   | 'fusedMatmulResidual'
   | 'fusedMatmulRmsnorm'

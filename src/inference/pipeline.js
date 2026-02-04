@@ -545,6 +545,11 @@ export async function createPipeline(manifest, contexts = {}) {
     factory = getPipelineFactory(modelType);
   }
 
+  if (!factory && modelType === 'energy') {
+    await import('./energy/pipeline.js');
+    factory = getPipelineFactory(modelType);
+  }
+
   if (!factory) {
     throw new Error(`No pipeline registered for modelType "${modelType}".`);
   }

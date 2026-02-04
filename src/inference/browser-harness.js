@@ -7,6 +7,7 @@ import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { createPipeline } from './pipeline.js';
 import { openModelStore, loadManifestFromStore, loadShard } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
+import { computeSampleStats } from '../debug/stats.js';
 
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
@@ -25,6 +26,9 @@ function resolvePresetBaseUrl() {
   try {
     return new URL('../config/presets/runtime/', import.meta.url).toString().replace(/\/$/, '');
   } catch {
+    if (typeof window !== 'undefined' && window.location?.href) {
+      return new URL('/src/config/presets/runtime/', window.location.href).toString().replace(/\/$/, '');
+    }
     return '/src/config/presets/runtime';
   }
 }
@@ -36,20 +40,171 @@ function resolveRuntimeFromConfig(config) {
   return null;
 }
 
-export async function loadRuntimeConfigFromUrl(url, options = {}) {
-  if (!url) {
-    throw new Error('runtime config url is required');
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeRuntimeValues(base, override) {
+  if (override === undefined) return base;
+  if (override === null) return null;
+  if (!isPlainObject(base) || !isPlainObject(override)) {
+    return override;
   }
+  const merged = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    if (value === undefined) continue;
+    merged[key] = mergeRuntimeValues(base[key], value);
+  }
+  return merged;
+}
+
+function normalizeExtends(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry || '').trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  return [];
+}
+
+function normalizeExtendsPath(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return null;
+  return trimmed.endsWith('.json') ? trimmed : `${trimmed}.json`;
+}
+
+function resolveAbsoluteUrl(target, base) {
+  try {
+    if (base) {
+      return new URL(target, base).toString();
+    }
+    if (typeof window !== 'undefined' && window.location?.href) {
+      return new URL(target, window.location.href).toString();
+    }
+    return new URL(target, import.meta.url).toString();
+  } catch {
+    return target;
+  }
+}
+
+function isAbsoluteUrl(value) {
+  return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
+}
+
+function joinUrl(base, path) {
+  if (!base) return path;
+  if (isAbsoluteUrl(base)) {
+    return new URL(path, base.endsWith('/') ? base : `${base}/`).toString();
+  }
+  const normalizedBase = base.replace(/\/$/, '');
+  const normalizedPath = path.replace(/^\//, '');
+  return `${normalizedBase}/${normalizedPath}`;
+}
+
+function resolveExtendCandidates(ref, context) {
+  const normalized = normalizeExtendsPath(ref);
+  if (!normalized) return [];
+  if (isAbsoluteUrl(normalized) || normalized.startsWith('/')) {
+    return [normalized];
+  }
+  if (normalized.startsWith('./') || normalized.startsWith('../')) {
+    return [resolveAbsoluteUrl(normalized, context.sourceUrl)];
+  }
+  if (normalized.includes('/')) {
+    return [joinUrl(context.presetBaseUrl, normalized)];
+  }
+  const candidates = [];
+  if (context.sourceUrl) {
+    const sourceDir = resolveAbsoluteUrl('./', context.sourceUrl);
+    candidates.push(resolveAbsoluteUrl(normalized, sourceDir));
+  }
+  if (context.presetBaseUrl) {
+    candidates.push(joinUrl(context.presetBaseUrl, normalized));
+    candidates.push(joinUrl(context.presetBaseUrl, `modes/${normalized}`));
+  }
+  return [...new Set(candidates)];
+}
+
+async function fetchRuntimeConfig(url, options = {}) {
   const response = await fetch(url, { signal: options.signal });
   if (!response.ok) {
-    throw new Error(`Failed to load runtime config: ${response.status}`);
+    const error = new Error(`Failed to load runtime config: ${response.status}`);
+    error.code = response.status === 404 ? 'runtime_config_not_found' : 'runtime_config_fetch_failed';
+    throw error;
   }
-  const config = await response.json();
+  return response.json();
+}
+
+async function resolveRuntimeConfigExtends(config, context) {
   const runtime = resolveRuntimeFromConfig(config);
   if (!runtime) {
     throw new Error('Runtime config is missing runtime fields');
   }
-  return { config, runtime };
+
+  const extendsRefs = normalizeExtends(config.extends);
+  let mergedRuntime = null;
+  let mergedConfig = null;
+
+  for (const ref of extendsRefs) {
+    const base = await loadRuntimeConfigFromRef(ref, context);
+    mergedRuntime = mergedRuntime ? mergeRuntimeValues(mergedRuntime, base.runtime) : base.runtime;
+    mergedConfig = mergedConfig ? mergeRuntimeValues(mergedConfig, base.config) : base.config;
+  }
+
+  const combinedRuntime = mergedRuntime ? mergeRuntimeValues(mergedRuntime, runtime) : runtime;
+  const combinedConfig = mergedConfig ? mergeRuntimeValues(mergedConfig, config) : { ...config };
+  const resolved = { ...combinedConfig, runtime: combinedRuntime };
+  if (resolved.extends !== undefined) {
+    delete resolved.extends;
+  }
+  return { config: resolved, runtime: combinedRuntime };
+}
+
+async function loadRuntimeConfigChain(url, options = {}, stack = []) {
+  const presetBaseUrl = options.presetBaseUrl || options.baseUrl || resolvePresetBaseUrl();
+  const resolvedUrl = resolveAbsoluteUrl(url);
+  if (stack.includes(resolvedUrl)) {
+    throw new Error(`Runtime config extends cycle: ${[...stack, resolvedUrl].join(' -> ')}`);
+  }
+  const config = await fetchRuntimeConfig(resolvedUrl, options);
+  return resolveRuntimeConfigExtends(config, {
+    ...options,
+    sourceUrl: resolvedUrl,
+    presetBaseUrl,
+    stack: [...stack, resolvedUrl],
+  });
+}
+
+async function loadRuntimeConfigFromRef(ref, context) {
+  const candidates = resolveExtendCandidates(ref, context);
+  if (!candidates.length) {
+    throw new Error(`Runtime config extends is invalid: ${ref}`);
+  }
+  let lastError = null;
+  for (const candidate of candidates) {
+    try {
+      return await loadRuntimeConfigChain(candidate, context, context.stack ?? []);
+    } catch (error) {
+      if (error?.code === 'runtime_config_not_found') {
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+  if (lastError) {
+    throw lastError;
+  }
+  throw new Error(`Runtime config extends not found: ${ref}`);
+}
+
+export async function loadRuntimeConfigFromUrl(url, options = {}) {
+  if (!url) {
+    throw new Error('runtime config url is required');
+  }
+  return loadRuntimeConfigChain(url, options);
 }
 
 export async function applyRuntimeConfigFromUrl(url, options = {}) {
@@ -65,7 +220,7 @@ export async function loadRuntimePreset(presetId, options = {}) {
     throw new Error('runtime preset id is required');
   }
   const url = `${baseUrl.replace(/\/$/, '')}/${normalized}`;
-  return loadRuntimeConfigFromUrl(url, options);
+  return loadRuntimeConfigFromUrl(url, { ...options, presetBaseUrl: baseUrl });
 }
 
 export async function applyRuntimePreset(presetId, options = {}) {
@@ -273,34 +428,28 @@ async function runKernelSuite(options = {}) {
   };
 }
 
-function resolvePrompt(runtimeConfig, options = {}) {
-  if (typeof options.prompt === 'string' && options.prompt.trim()) {
-    return options.prompt.trim();
-  }
+function resolvePrompt(runtimeConfig) {
   const runtimePrompt = runtimeConfig?.inference?.prompt;
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt.trim();
   }
-  return 'Hello from Doppler.';
+  throw new Error('runtime.inference.prompt must be set for harness runs.');
 }
 
-function resolveMaxTokens(runtimeConfig, options = {}) {
-  if (Number.isFinite(options.maxTokens)) {
-    return Math.max(1, Math.floor(options.maxTokens));
-  }
+function resolveMaxTokens(runtimeConfig) {
   const runtimeMax = runtimeConfig?.inference?.batching?.maxTokens;
   if (Number.isFinite(runtimeMax)) {
     return Math.max(1, Math.floor(runtimeMax));
   }
-  return 64;
+  throw new Error('runtime.inference.batching.maxTokens must be set for harness runs.');
 }
 
-async function runGeneration(pipeline, runtimeConfig, options = {}) {
+async function runGeneration(pipeline, runtimeConfig) {
   const tokens = [];
   const tokenIds = [];
-  const prompt = resolvePrompt(runtimeConfig, options);
-  const maxTokens = resolveMaxTokens(runtimeConfig, options);
-  const sampling = { ...(runtimeConfig.inference?.sampling || {}), ...(options.sampling || {}) };
+  const prompt = resolvePrompt(runtimeConfig);
+  const maxTokens = resolveMaxTokens(runtimeConfig);
+  const sampling = runtimeConfig.inference?.sampling || {};
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const disableCommandBatching = Array.isArray(debugProbes) && debugProbes.length > 0;
@@ -341,7 +490,7 @@ async function runInferenceSuite(options = {}) {
   const startTime = performance.now();
   const harness = await initializeSuiteModel(options);
   const runtimeConfig = getRuntimeConfig();
-  const run = await runGeneration(harness.pipeline, runtimeConfig, options);
+  const run = await runGeneration(harness.pipeline, runtimeConfig);
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
@@ -392,6 +541,20 @@ async function runBenchSuite(options = {}) {
   const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
   const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
   const maxTokens = Number.isFinite(benchConfig.maxNewTokens) ? benchConfig.maxNewTokens : undefined;
+  const benchSampling = isPlainObject(benchConfig.sampling) ? benchConfig.sampling : null;
+  const benchOverrides = {};
+  if (Number.isFinite(maxTokens)) {
+    benchOverrides.inference = { batching: { maxTokens } };
+  }
+  if (benchSampling) {
+    benchOverrides.inference = {
+      ...(benchOverrides.inference || {}),
+      sampling: benchSampling,
+    };
+  }
+  const benchRuntime = Object.keys(benchOverrides).length > 0
+    ? mergeRuntimeValues(runtimeConfig, benchOverrides)
+    : runtimeConfig;
 
   const harness = await initializeSuiteModel(options);
   const tokensPerSec = [];
@@ -400,11 +563,7 @@ async function runBenchSuite(options = {}) {
 
   for (let i = 0; i < warmupRuns + timedRuns; i++) {
     harness.pipeline.reset?.();
-    const run = await runGeneration(harness.pipeline, runtimeConfig, {
-      ...options,
-      maxTokens: maxTokens ?? options.maxTokens,
-      sampling: { ...(benchConfig.sampling || {}), ...(options.sampling || {}) },
-    });
+    const run = await runGeneration(harness.pipeline, benchRuntime);
     if (i >= warmupRuns) {
       tokensPerSec.push(run.tokensPerSec);
       durations.push(run.durationMs);
@@ -436,10 +595,186 @@ async function runBenchSuite(options = {}) {
     metrics: {
       warmupRuns,
       timedRuns,
-      maxTokens: maxTokens ?? resolveMaxTokens(runtimeConfig, options),
+      maxTokens: resolveMaxTokens(benchRuntime),
       medianTokensPerSec: Number(median(tokensPerSec).toFixed(2)),
       avgTokensPerSec: Number((tokensPerSec.reduce((a, b) => a + b, 0) / (tokensPerSec.length || 1)).toFixed(2)),
       avgTokensGenerated: Math.round(tokensGenerated.reduce((a, b) => a + b, 0) / (tokensGenerated.length || 1)),
+    },
+    memoryStats,
+    deviceInfo: getKernelCapabilities(),
+    pipeline: options.keepPipeline ? harness.pipeline : null,
+  };
+}
+
+async function runDiffusionSuite(options = {}) {
+  const startTime = performance.now();
+  const runtimeConfig = getRuntimeConfig();
+  const captureOutput = options.captureOutput === true;
+  const benchConfig = runtimeConfig.shared?.benchmark?.run || {};
+  const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
+  const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
+
+  const diffusionConfig = runtimeConfig.inference?.diffusion || {};
+  const scheduler = diffusionConfig.scheduler || {};
+  const latent = diffusionConfig.latent || {};
+  const prompt = resolvePrompt(runtimeConfig);
+  const negativePrompt = diffusionConfig.negativePrompt ?? '';
+
+  const width = Number.isFinite(latent.width) ? latent.width : 512;
+  const height = Number.isFinite(latent.height) ? latent.height : 512;
+  const steps = Number.isFinite(scheduler.numSteps) ? scheduler.numSteps : 20;
+  const guidanceScale = Number.isFinite(scheduler.guidanceScale) ? scheduler.guidanceScale : 7.5;
+
+  const harness = await initializeSuiteModel(options);
+  const totalMs = [];
+  const prefillMs = [];
+  const denoiseMs = [];
+  const vaeMs = [];
+  const prefillTokens = [];
+  const decodeTokens = [];
+  const gpuTotalMs = [];
+  const gpuPrefillMs = [];
+  const gpuDenoiseMs = [];
+  const gpuVaeMs = [];
+  let output = null;
+
+  for (let i = 0; i < warmupRuns + timedRuns; i++) {
+    harness.pipeline.reset?.();
+    const result = await harness.pipeline.generate({
+      prompt,
+      negativePrompt,
+      steps,
+      guidanceScale,
+      width,
+      height,
+    });
+    if (captureOutput && i === warmupRuns + timedRuns - 1) {
+      output = result;
+    }
+
+    if (i < warmupRuns) continue;
+
+    const stats = harness.pipeline.getStats?.() ?? {};
+    if (Number.isFinite(stats.totalTimeMs)) totalMs.push(stats.totalTimeMs);
+    if (Number.isFinite(stats.prefillTimeMs)) prefillMs.push(stats.prefillTimeMs);
+    if (Number.isFinite(stats.decodeTimeMs)) denoiseMs.push(stats.decodeTimeMs);
+    if (Number.isFinite(stats.vaeTimeMs)) vaeMs.push(stats.vaeTimeMs);
+    if (Number.isFinite(stats.prefillTokens)) prefillTokens.push(stats.prefillTokens);
+    if (Number.isFinite(stats.decodeTokens)) decodeTokens.push(stats.decodeTokens);
+
+    const gpu = stats.gpu ?? null;
+    if (gpu?.available) {
+      if (Number.isFinite(gpu.totalMs)) gpuTotalMs.push(gpu.totalMs);
+      if (Number.isFinite(gpu.prefillMs)) gpuPrefillMs.push(gpu.prefillMs);
+      if (Number.isFinite(gpu.denoiseMs)) gpuDenoiseMs.push(gpu.denoiseMs);
+      if (Number.isFinite(gpu.vaeMs)) gpuVaeMs.push(gpu.vaeMs);
+    }
+  }
+
+  const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
+    ? harness.pipeline.getMemoryStats()
+    : null;
+
+  if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
+    await harness.pipeline.unload();
+  }
+
+  const results = [
+    {
+      name: 'diffusion',
+      passed: totalMs.length > 0,
+      duration: totalMs.reduce((sum, value) => sum + value, 0),
+      error: totalMs.length > 0 ? undefined : 'No diffusion runs completed',
+    },
+  ];
+
+  const summary = buildSuiteSummary('diffusion', results, startTime);
+  const cpuStats = {
+    totalMs: computeSampleStats(totalMs),
+    prefillMs: computeSampleStats(prefillMs),
+    denoiseMs: computeSampleStats(denoiseMs),
+    vaeMs: computeSampleStats(vaeMs),
+  };
+  const gpuStats = gpuTotalMs.length > 0
+    ? {
+        available: true,
+        totalMs: computeSampleStats(gpuTotalMs),
+        prefillMs: computeSampleStats(gpuPrefillMs),
+        denoiseMs: computeSampleStats(gpuDenoiseMs),
+        vaeMs: computeSampleStats(gpuVaeMs),
+      }
+    : { available: false };
+
+  const avgPrefillTokens = prefillTokens.length
+    ? Math.round(prefillTokens.reduce((a, b) => a + b, 0) / prefillTokens.length)
+    : 0;
+  const avgDecodeTokens = decodeTokens.length
+    ? Math.round(decodeTokens.reduce((a, b) => a + b, 0) / decodeTokens.length)
+    : 0;
+
+  return {
+    ...summary,
+    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    output,
+    metrics: {
+      warmupRuns,
+      timedRuns,
+      width,
+      height,
+      steps,
+      guidanceScale,
+      prompt,
+      avgPrefillTokens,
+      avgDecodeTokens,
+      cpu: cpuStats,
+      gpu: gpuStats,
+    },
+    memoryStats,
+    deviceInfo: getKernelCapabilities(),
+    pipeline: options.keepPipeline ? harness.pipeline : null,
+  };
+}
+
+async function runEnergySuite(options = {}) {
+  const startTime = performance.now();
+  const harness = await initializeSuiteModel(options);
+  if (harness.manifest?.modelType !== 'energy') {
+    throw new Error('Energy suite requires an energy model manifest.');
+  }
+
+  const result = await harness.pipeline.generate();
+  const stats = harness.pipeline.getStats?.() ?? {};
+
+  const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
+    ? harness.pipeline.getMemoryStats()
+    : null;
+
+  if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
+    await harness.pipeline.unload();
+  }
+
+  const results = [
+    {
+      name: 'energy',
+      passed: Number.isFinite(result.energy ?? NaN),
+      duration: result.totalTimeMs ?? Math.max(0, performance.now() - startTime),
+      error: Number.isFinite(result.energy ?? NaN) ? undefined : 'Energy did not converge',
+    },
+  ];
+
+  const summary = buildSuiteSummary('energy', results, startTime);
+  return {
+    ...summary,
+    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    metrics: {
+      steps: result.steps,
+      energy: result.energy ?? null,
+      dtype: result.dtype,
+      shape: result.shape,
+      totalTimeMs: result.totalTimeMs ?? null,
+      energyHistory: result.energyHistory ?? [],
+      stateStats: result.stateStats ?? null,
+      readbackCount: stats.readbackCount ?? null,
     },
     memoryStats,
     deviceInfo: getKernelCapabilities(),
@@ -454,6 +789,10 @@ export async function runBrowserSuite(options = {}) {
     suiteResult = await runKernelSuite(options);
   } else if (suite === 'bench') {
     suiteResult = await runBenchSuite(options);
+  } else if (suite === 'diffusion') {
+    suiteResult = await runDiffusionSuite(options);
+  } else if (suite === 'energy') {
+    suiteResult = await runEnergySuite(options);
   } else if (suite === 'debug') {
     suiteResult = await runInferenceSuite({ ...options, suiteName: 'debug' });
   } else {
@@ -461,6 +800,7 @@ export async function runBrowserSuite(options = {}) {
   }
 
   const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
+  const reportOutput = typeof suiteResult.output === 'string' ? suiteResult.output : null;
   const report = {
     suite,
     modelId,
@@ -470,7 +810,7 @@ export async function runBrowserSuite(options = {}) {
     durationMs: suiteResult.duration,
     timestamp: new Date().toISOString(),
     metrics: suiteResult.metrics ?? null,
-    output: suiteResult.output ?? null,
+    output: reportOutput,
     memory: suiteResult.memoryStats ?? null,
     ...options.report,
   };
@@ -573,7 +913,7 @@ export async function runBrowserManifest(manifest, options = {}) {
       modelId: result.modelId,
       results: result.results,
       metrics: result.metrics ?? null,
-      output: result.output ?? null,
+      output: typeof result.output === 'string' ? result.output : null,
       reportInfo: result.reportInfo ?? null,
     })),
     manifest: normalized.report ?? null,

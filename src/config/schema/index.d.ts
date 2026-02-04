@@ -137,6 +137,33 @@ export {
 } from './diffusion.schema.js';
 
 // =============================================================================
+// Energy Schema
+// =============================================================================
+export {
+  type EnergyStateConfigSchema,
+  type EnergyInitConfigSchema,
+  type EnergyTargetConfigSchema,
+  type EnergyLoopConfigSchema,
+  type EnergyDiagnosticsConfigSchema,
+  type EnergyQuintelRulesConfigSchema,
+  type EnergyQuintelWeightsConfigSchema,
+  type EnergyQuintelClampConfigSchema,
+  type EnergyQuintelConfigSchema,
+  type EnergyConfigSchema,
+  type EnergyModelConfigSchema,
+  DEFAULT_ENERGY_STATE_CONFIG,
+  DEFAULT_ENERGY_INIT_CONFIG,
+  DEFAULT_ENERGY_TARGET_CONFIG,
+  DEFAULT_ENERGY_LOOP_CONFIG,
+  DEFAULT_ENERGY_DIAGNOSTICS_CONFIG,
+  DEFAULT_ENERGY_QUINTEL_RULES,
+  DEFAULT_ENERGY_QUINTEL_WEIGHTS,
+  DEFAULT_ENERGY_QUINTEL_CLAMP,
+  DEFAULT_ENERGY_QUINTEL_CONFIG,
+  DEFAULT_ENERGY_CONFIG,
+} from './energy.schema.js';
+
+// =============================================================================
 // Conversion Schema
 // =============================================================================
 export {
@@ -536,6 +563,21 @@ export {
   // Defaults
   DEFAULT_QUANTIZATION_DEFAULTS,
 } from './quantization-defaults.schema.js';
+
+// =============================================================================
+// Quantization Constants (Invariants)
+// =============================================================================
+export {
+  QK_K,
+  Q4K_BLOCK_BYTES,
+  Q6K_BLOCK_BYTES,
+  Q8_0_BLOCK_BYTES,
+  Q8_0_BLOCK_SIZE,
+  K_SCALE_SIZE,
+  QK4_K_BLOCK_SIZE,
+  padToQ4KBlock,
+  q4kBlockCount,
+} from './quantization.schema.js';
 
 // =============================================================================
 // Kernel Thresholds Schema

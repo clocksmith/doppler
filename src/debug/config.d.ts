@@ -8,7 +8,7 @@ export interface LogLevels {
 }
 
 export type LogLevelName = 'debug' | 'verbose' | 'info' | 'warn' | 'error' | 'silent';
-export type TraceCategory = 'loader' | 'kernels' | 'logits' | 'embed' | 'attn' | 'ffn' | 'kv' | 'sample' | 'buffers' | 'perf';
+export type TraceCategory = 'loader' | 'kernels' | 'logits' | 'embed' | 'attn' | 'ffn' | 'kv' | 'sample' | 'buffers' | 'perf' | 'energy';
 
 export interface TraceOptions {
   layers?: number[];

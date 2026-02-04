@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>D4DA - Doppler Showcase</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/pwa-manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
   <style>
     /* App Shell */
@@ -67,25 +67,45 @@
       margin-top: var(--space-md);
     }
 
-    /* Sidebar */
+    /* Layout */
     .panel-grid {
-      grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      grid-auto-rows: minmax(220px, auto);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
       gap: var(--space-md);
       min-height: 0;
-      overflow: auto;
-      align-content: start;
+      align-items: start;
     }
 
-    .panel-grid .panel {
-      grid-column: 1 / -1;
+    #app[data-mode="run"] .panel-grid,
+    #app[data-mode="diffusion"] .panel-grid,
+    #app[data-mode="energy"] .panel-grid,
+    #app[data-mode="diagnostics"] .panel-grid,
+    #app[data-mode="models"] .panel-grid {
+      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+    }
+
+    #app[data-mode="run"] .panel-stack-primary,
+    #app[data-mode="diffusion"] .panel-stack-primary,
+    #app[data-mode="energy"] .panel-stack-primary,
+    #app[data-mode="diagnostics"] .panel-stack-primary,
+    #app[data-mode="models"] .panel-stack-primary {
+      order: 2;
+    }
+
+    #app[data-mode="run"] .panel-stack-rail,
+    #app[data-mode="diffusion"] .panel-stack-rail,
+    #app[data-mode="energy"] .panel-stack-rail,
+    #app[data-mode="diagnostics"] .panel-stack-rail,
+    #app[data-mode="models"] .panel-stack-rail {
+      order: 1;
+    }
+
+    .panel-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      min-height: 0;
       min-width: 0;
-    }
-
-    #app[data-mode="run"] .live-panel {
-      grid-column: 1 / span 6;
     }
 
     .panel {
@@ -101,85 +121,110 @@
       gap: var(--space-sm);
     }
 
-    #app[data-mode="run"] .model-panel {
-      grid-column: 1 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="run"] .live-panel {
-      grid-column: 5 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="run"] .chat-container {
-      grid-column: 9 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="models"] .convert-panel {
-      grid-column: 1 / span 8;
-      grid-row: 1 / span 2;
-    }
-
-    #app[data-mode="models"] .model-panel {
-      grid-column: 9 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="models"] .library-panel {
-      grid-column: 9 / span 4;
-      grid-row: 2 / span 1;
-    }
-
-    #app[data-mode="diagnostics"] .diagnostics-panel {
-      grid-column: 1 / span 8;
-      grid-row: 1 / span 2;
-    }
-
-    #app[data-mode="diagnostics"] .model-panel {
-      grid-column: 9 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="diagnostics"] .live-panel {
-      grid-column: 9 / span 4;
-      grid-row: 2 / span 1;
-    }
-
-    #app[data-mode="diffusion"] .diffusion-panel {
-      grid-column: 1 / span 8;
-      grid-row: 1 / span 2;
-    }
-
-    #app[data-mode="diffusion"] .model-panel {
-      grid-column: 9 / span 4;
-      grid-row: 1 / span 1;
-    }
-
-    #app[data-mode="diffusion"] .live-panel {
-      grid-column: 9 / span 4;
-      grid-row: 2 / span 1;
-    }
-
     #app[data-mode="run"] [data-modes]:not([data-modes~="run"]),
     #app[data-mode="models"] [data-modes]:not([data-modes~="models"]),
     #app[data-mode="diagnostics"] [data-modes]:not([data-modes~="diagnostics"]),
-    #app[data-mode="diffusion"] [data-modes]:not([data-modes~="diffusion"]) {
+    #app[data-mode="diffusion"] [data-modes]:not([data-modes~="diffusion"]),
+    #app[data-mode="energy"] [data-modes]:not([data-modes~="energy"]) {
       display: none;
     }
 
-    .diffusion-output {
+    .playground-output {
       display: flex;
       flex-direction: column;
       gap: var(--space-sm);
-      margin-top: var(--space-md);
+      min-width: 0;
     }
 
-    .diffusion-canvas {
+    .primary-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      min-height: 0;
+    }
+
+    .playground-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .playground-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .playground-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .playground-output-box {
+      min-height: 240px;
+      padding: var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+      font-family: var(--font-b);
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .playground-output-canvas {
       width: 100%;
       height: auto;
       border: var(--border-sm) solid var(--fg);
       background: var(--bg);
+    }
+
+    .energy-chart {
+      width: 100%;
+      height: auto;
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+    }
+
+    .energy-board {
+      display: grid;
+      grid-template-columns: repeat(var(--energy-grid-size, 5), minmax(0, 1fr));
+      gap: 2px;
+      padding: var(--space-xs);
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+    }
+
+    .energy-cell {
+      aspect-ratio: 1 / 1;
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+    }
+
+    .energy-cell.is-on {
+      background: var(--fg);
+    }
+
+    .energy-board-intensity .energy-cell {
+      background: var(--bg);
+    }
+
+    .energy-vector {
+      padding: var(--space-xs);
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
+      font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: pre;
+      min-height: 80px;
+    }
+
+    .check-field {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-size: 12px;
     }
 
     .mode-tabs {
@@ -203,42 +248,46 @@
     }
 
     .status-indicator {
-      display: flex;
+      --status-accent: var(--fg);
+      display: inline-flex;
       align-items: center;
       gap: var(--space-sm);
+      padding: 4px var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+      background: var(--bg);
     }
 
-    /* Model List */
-    .model-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
+    .status-indicator.status-success,
+    .status-indicator.status-warning,
+    .status-indicator.status-error,
+    .status-indicator.status-info {
+      border-color: var(--fg);
     }
 
-    .model-item {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-      cursor: pointer;
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: var(--border-sm) solid var(--status-accent);
+      background: transparent;
     }
 
-    .model-actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-xs);
-      margin-top: var(--space-sm);
+    .status-dot-filled {
+      background: var(--status-accent);
     }
 
-    .model-section {
-      margin-bottom: var(--space-md);
-    }
-
-    .model-section-header {
-      display: flex;
-      justify-content: space-between;
+    .status-symbol {
+      display: inline-flex;
       align-items: center;
-      margin-bottom: var(--space-sm);
+      justify-content: center;
+      width: 12px;
+      font-family: var(--font-b);
+      font-size: 12px;
+      line-height: 1;
     }
+
+    
 
     .model-field {
       display: flex;
@@ -291,6 +340,11 @@
     .storage-entry.is-active {
       border-style: solid;
       background: var(--bg-contrast);
+    }
+
+    .storage-entry.is-missing {
+      border-style: dashed;
+      opacity: 0.7;
     }
 
     .storage-entry-main {
@@ -410,6 +464,10 @@
       gap: var(--space-xs) var(--space-md);
     }
 
+    .stats-grid-compact {
+      grid-template-columns: 1fr;
+    }
+
     .stat-item {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -499,56 +557,10 @@
       letter-spacing: 0.02em;
     }
 
-    /* Chat */
-    .chat-container {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    #app:not([data-mode="run"]) .chat-container {
-      display: none;
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .chat-input-wrapper {
-      display: flex;
-      gap: var(--space-sm);
-      align-items: flex-end;
-    }
-
-    .chat-input {
-      flex: 1;
-      resize: none;
-      min-height: 44px;
-    }
-
-    .chat-actions {
-      display: flex;
-      gap: var(--space-sm);
-      margin-top: var(--space-sm);
-    }
-
-    .send-btn {
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      flex-shrink: 0;
-    }
-
-    /* Welcome */
-
     /* Overlays */
     .progress-overlay,
     .quickstart-overlay {
-      position: absolute;
+      position: fixed;
       inset: 0;
       display: flex;
       align-items: center;
@@ -630,33 +642,6 @@
 
     .quickstart-detail {
       text-align: center;
-    }
-
-    /* Messages */
-    .message {
-      max-width: 800px;
-      margin: 0 auto var(--space-md);
-    }
-
-    .message-user {
-      margin-left: var(--space-xl);
-    }
-
-    .message-assistant {
-      margin-right: var(--space-xl);
-    }
-
-    .message-role {
-      margin-bottom: var(--space-sm);
-    }
-
-    .message-content {
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .message-stats {
-      margin-top: var(--space-sm);
     }
 
     /* Modal */
@@ -787,6 +772,32 @@
       margin-top: var(--space-xs);
     }
 
+    .diagnostics-accordion {
+      margin-top: var(--space-md);
+    }
+
+    .diagnostics-output {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding: var(--space-sm);
+      border: var(--border-sm) solid var(--fg);
+    }
+
+    .diagnostics-output-text {
+      min-height: 80px;
+      margin: 0;
+      font-family: var(--font-b);
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    .diagnostics-output-canvas {
+      width: 100%;
+      height: auto;
+      border: var(--border-sm) solid var(--fg);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .header {
@@ -812,6 +823,10 @@
         grid-column: auto;
         grid-row: auto;
       }
+
+      .playground-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -829,13 +844,15 @@
         </div>
         <div class="header-actions">
           <div class="mode-tabs" id="mode-tabs">
-            <button class="btn mode-tab" data-mode="run" type="button">Decoding</button>
-            <button class="btn mode-tab" data-mode="diffusion" type="button">Diffusion</button>
-            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
+            <button class="btn mode-tab" data-mode="run" type="button">Text</button>
+            <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
+            <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
             <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
+            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
           </div>
           <div id="status-indicator" class="status-indicator">
-            <span class="status-dot"></span>
+            <span class="status-dot" aria-hidden="true"></span>
+            <span class="status-symbol" aria-hidden="true"></span>
             <span class="status-text type-caption">Initializing...</span>
           </div>
         </div>
@@ -843,542 +860,762 @@
 
       <!-- Main Layout -->
       <main class="main-layout">
-        <!-- Sidebar -->
-        <aside class="panel-grid" id="panel-grid" data-layout="empty">
-        <section class="panel model-panel" data-modes="run models diagnostics diffusion">
-          <h2 class="type-label">Active Model</h2>
-          <div class="model-field">
-            <label class="type-caption muted" for="diagnostics-model">Active model</label>
-            <select id="diagnostics-model" class="w-full"></select>
-          </div>
-          <div class="storage-info" id="storage-info">
-            <span class="storage-label">Storage:</span>
-            <span class="storage-value" id="storage-used">-- / --</span>
-          </div>
-          <div class="model-field">
-            <span class="type-caption muted">Export RDRR</span>
-            <div class="convert-actions">
-              <button id="export-model-btn" class="btn w-full">Export active model</button>
-            </div>
-            <div id="export-status" class="convert-status">
-              <div class="progress progress-sm">
-                <div id="export-progress" class="progress-fill"></div>
-              </div>
-              <span id="export-message" class="type-caption">Idle</span>
-            </div>
-          </div>
-          <div class="model-field">
-            <span class="type-caption muted">GPU Info</span>
-            <div class="gpu-info" id="gpu-info">
-              <div class="gpu-row">
-                <span class="type-caption muted">Device</span>
-                <span class="type-caption" id="gpu-device">--</span>
-              </div>
-              <div class="gpu-row" id="gpu-ram-row" hidden>
-                <span class="type-caption muted">System RAM</span>
-                <span class="type-caption" id="gpu-ram">--</span>
-              </div>
-              <div class="gpu-row">
-                <span class="type-caption muted" id="gpu-vram-label">Buffer Limit</span>
-                <span class="type-caption" id="gpu-vram">--</span>
-              </div>
-              <div class="gpu-row">
-                <span class="type-caption muted">Features</span>
-                <span class="type-caption" id="gpu-features">--</span>
-              </div>
-            </div>
-            <div class="gpu-note" id="gpu-unified-note" hidden>
-              Unified memory: GPU shares system RAM
-            </div>
-          </div>
-          <div class="panel-subsection" data-modes="run">
-            <span class="type-caption muted">Runtime Params</span>
-            <div class="model-field">
-              <label class="type-caption muted" for="temperature-input">Temperature</label>
-              <input id="temperature-input" class="w-full" type="number" min="0.1" max="2.0" step="0.1" value="1.0">
-            </div>
-            <div class="model-field">
-              <label class="type-caption muted" for="top-p-input">Top-p</label>
-              <input id="top-p-input" class="w-full" type="number" min="0" max="1" step="0.05" value="0.95">
-            </div>
-            <div class="model-field">
-              <label class="type-caption muted" for="top-k-input">Top-k</label>
-              <input id="top-k-input" class="w-full" type="number" min="0" max="200" step="1" value="40">
-            </div>
-          </div>
-        </section>
-
-        <section class="panel library-panel" data-modes="models">
-          <h2 class="type-label">Model Library</h2>
-          <div class="model-field">
-            <span class="type-caption muted">Local models</span>
-            <div id="model-list" class="model-list"></div>
-          </div>
-        </section>
-
-        <section class="panel storage-panel" data-modes="models">
-          <h2 class="type-label">Storage Inspector</h2>
-          <div class="storage-inspector">
-            <div class="storage-inspector-header">
-              <div class="storage-inspector-meta">
-                <span class="type-caption muted" id="storage-inspector-backend">OPFS: --</span>
-                <span class="type-caption muted" id="storage-inspector-summary">--</span>
-              </div>
-              <button id="storage-inspector-refresh" class="btn btn-small" type="button">Refresh</button>
-            </div>
-            <div id="storage-inspector-status" class="type-caption muted">Idle</div>
-            <div id="storage-inspector-list" class="storage-inspector-list"></div>
-            <div id="storage-inspector-system-section" class="storage-system" hidden>
-              <span class="type-caption muted">System</span>
-              <div id="storage-inspector-system" class="storage-inspector-list"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel convert-panel" data-modes="models">
-          <h2 class="type-label">Model Intake</h2>
-          <p class="convert-description">Import GGUF or safetensors into browser storage.</p>
-          <p class="convert-note type-caption muted">Requires tokenizer.json or tokenizer.model (config.json recommended).</p>
-          <div id="convert-status" class="convert-status">
-            <div class="progress progress-sm">
-              <div id="convert-progress" class="progress-fill"></div>
-            </div>
-            <span id="convert-message" class="type-caption">Ready</span>
-          </div>
-          <div class="convert-field">
-            <label class="type-caption muted" for="convert-model-preset">Model preset override (optional)</label>
-            <select id="convert-model-preset" class="w-full"></select>
-          </div>
-          <div class="convert-field">
-            <label class="type-caption muted" for="convert-weight-dtype">Weight dtype override (optional)</label>
-            <select id="convert-weight-dtype" class="w-full">
-              <option value="">auto</option>
-              <option value="f16">f16</option>
-              <option value="bf16">bf16</option>
-            </select>
-          </div>
-          <div class="convert-actions">
-            <button id="convert-btn" class="btn btn-primary w-full">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </svg>
-              Select Folder or Files
-            </button>
-          </div>
-          <div class="convert-actions">
-            <button id="regen-manifest-btn" class="btn w-full">Regenerate Manifest</button>
-          </div>
-          <div class="convert-field">
-            <label class="type-caption muted" for="convert-url-input">Remote URLs (one per line)</label>
-            <textarea id="convert-url-input" class="convert-url-input w-full"
-              placeholder="https://host/model.safetensors"></textarea>
-          </div>
-          <div class="convert-actions">
-            <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
-          </div>
-          <div class="convert-field">
-            <span class="type-caption muted">Download RDRR (manifest + shards)</span>
-          </div>
-          <div class="download-field">
-            <label class="type-caption muted" for="download-base-url">Base URL</label>
-            <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
-          </div>
-          <div class="download-field">
-            <label class="type-caption muted" for="download-model-id">Storage model ID (optional)</label>
-            <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
-          </div>
-          <div class="download-actions">
-            <button id="download-start-btn" class="btn btn-primary">Start</button>
-            <button id="download-pause-btn" class="btn">Pause</button>
-            <button id="download-resume-btn" class="btn">Resume</button>
-            <button id="download-cancel-btn" class="btn">Cancel</button>
-            <button id="download-refresh-btn" class="btn">Refresh</button>
-          </div>
-          <div id="download-status" class="download-status" hidden>
-            <div class="progress progress-sm">
-              <div id="download-progress" class="progress-fill"></div>
-            </div>
-            <span id="download-message" class="type-caption">Idle</span>
-          </div>
-          <div id="download-list" class="download-list type-caption muted"></div>
-        </section>
-
-        <section class="panel live-panel" data-modes="run diagnostics diffusion">
-          <h2 class="type-label">Live Stats</h2>
-          <div class="panel-subsection">
-            <span class="type-caption muted">Performance</span>
-            <div class="stats-grid" id="stats-performance">
-              <div class="stat-item">
-                <span class="stat-label">Tokens/sec</span>
-                <span class="stat-value" id="stat-tps">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">TTFT</span>
-                <span class="stat-value" id="stat-ttft">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Prefill</span>
-                <span class="stat-value" id="stat-prefill">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">End-to-end</span>
-                <span class="stat-value" id="stat-e2e">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Decode</span>
-                <span class="stat-value" id="stat-decode">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Prompt / Gen</span>
-                <span class="stat-value" id="stat-tokens">--</span>
-              </div>
-            </div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">Recent Runs</span>
-            <div class="run-log">
-              <div class="run-log-row run-log-header">
-                <span>Run</span>
-                <span>TTFT</span>
-                <span>Prefill</span>
-                <span>Decode</span>
-                <span>E2E</span>
-              </div>
-              <div id="run-log-rows"></div>
-            </div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">GPU Memory (tracked)</span>
-            <div class="stats-grid" id="stats-gpu">
-              <div class="stat-item">
-                <span class="stat-label">Tracked GPU</span>
-                <span class="stat-value" id="stat-gpu-tracked">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Peak GPU</span>
-                <span class="stat-value" id="stat-gpu-peak">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Buffers</span>
-                <span class="stat-value" id="stat-gpu-buffers">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Requested</span>
-                <span class="stat-value" id="stat-gpu-requested">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Pool hit rate</span>
-                <span class="stat-value" id="stat-gpu-hit">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Max buffer</span>
-                <span class="stat-value" id="stat-gpu-limit">--</span>
-              </div>
-            </div>
-            <div class="stats-breakdown">
-              <div class="stats-breakdown-header">Top buffers (tracked)</div>
-              <div class="stats-breakdown-list" id="gpu-label-list">
-                <div class="type-caption muted">No tracked buffers yet.</div>
-              </div>
-              <div class="stat-note">Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted.</div>
-            </div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">KV Cache</span>
-            <div class="stats-grid" id="stats-kv">
-              <div class="stat-item">
-                <span class="stat-label">Allocated</span>
-                <span class="stat-value" id="stat-kv-allocated">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Used</span>
-                <span class="stat-value" id="stat-kv-used">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Efficiency</span>
-                <span class="stat-value" id="stat-kv-eff">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Seq / Max</span>
-                <span class="stat-value" id="stat-kv-seq">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Layout</span>
-                <span class="stat-value" id="stat-kv-layout">--</span>
-              </div>
-            </div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">JS / CPU</span>
-            <div class="stats-grid" id="stats-cpu">
-              <div class="stat-item">
-                <span class="stat-label">JS Heap</span>
-                <span class="stat-value" id="stat-heap">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">System RAM (est)</span>
-                <span class="stat-value" id="stat-ram-est">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Swap</span>
-                <span class="stat-value" id="stat-swap">Not available</span>
-              </div>
-            </div>
-            <div class="stat-note">Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only.</div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">Storage (OPFS)</span>
-            <div class="stats-grid" id="stats-storage">
-              <div class="stat-item">
-                <span class="stat-label">OPFS usage</span>
-                <span class="stat-value" id="stat-opfs">--</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Active model</span>
-                <span class="stat-value" id="stat-active-model">--</span>
-              </div>
-            </div>
-          </div>
-          <div class="panel-subsection">
-            <span class="type-caption muted">Memory Control</span>
-            <div class="memory-actions">
-              <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
-                Unload Model
-              </button>
-              <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
-                Clear All Memory
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Chat Area -->
-        <section class="panel chat-container" id="chat-container">
-          <!-- Progress Overlay -->
-          <div class="progress-overlay" id="progress-overlay" hidden>
-            <div class="progress-content">
-              <div class="progress-title" id="progress-title">Loading Model</div>
-              <div class="progress-phases" id="progress-phases">
-                <!-- Source Phase (dynamically labeled: Network/Disk/Cache) -->
-                <div class="progress-phase-row" data-phase="source">
-                  <span class="progress-phase-label">Source</span>
-                  <div class="progress">
-                    <div class="progress-fill"></div>
-                  </div>
-                  <span class="progress-phase-value">--</span>
-                </div>
-                <!-- GPU Phase -->
-                <div class="progress-phase-row" data-phase="gpu">
-                  <span class="progress-phase-label">GPU</span>
-                  <div class="progress">
-                    <div class="progress-fill"></div>
-                  </div>
-                  <span class="progress-phase-value">--</span>
+        <div class="panel-grid" id="panel-grid" data-layout="empty">
+          <div class="panel-stack panel-stack-primary">
+            <section class="panel run-panel" data-modes="run">
+              <h2 class="type-label">Text Decoding</h2>
+              <div class="primary-stack">
+                <div class="playground-output">
+                  <div class="type-caption">Output</div>
+                  <pre id="run-output" class="playground-output-box"></pre>
+                  <div id="run-output-status" class="type-caption">Idle</div>
                 </div>
               </div>
-            </div>
-          </div>
+            </section>
 
-          <!-- Quick-Start Overlay -->
-          <div class="quickstart-overlay" id="quickstart-overlay" hidden>
-            <div class="quickstart-content">
-              <!-- Storage Consent Panel -->
-              <div class="quickstart-panel" id="quickstart-consent" hidden>
-                <h3 class="quickstart-title">Download Model?</h3>
-                <div class="quickstart-info">
-                  <div class="info-row">
-                    <span class="info-label">Download Size</span>
-                    <span class="info-value" id="quickstart-download-size">--</span>
+            <section class="panel diffusion-panel" data-modes="diffusion">
+              <h2 class="type-label">Image Decoding</h2>
+              <div class="primary-stack">
+                <div class="playground-output">
+                  <div class="type-caption">Output</div>
+                  <canvas id="diffusion-canvas" class="playground-output-canvas" width="256" height="256"></canvas>
+                  <div id="diffusion-output-status" class="type-caption">Idle</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel energy-panel" data-modes="energy">
+              <h2 class="type-label">Energy</h2>
+              <div class="panel-subsection">
+                <span class="type-caption">Board (thresholded)</span>
+                <div id="energy-board" class="energy-board"></div>
+                <span class="type-caption">Vector (thresholded)</span>
+                <pre id="energy-vector" class="energy-vector"></pre>
+                <div id="energy-output-status" class="type-caption">Idle</div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Board (intensity)</span>
+                <div id="energy-board-intensity" class="energy-board energy-board-intensity"></div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Energy over time</span>
+                <canvas id="energy-chart" class="energy-chart" width="640" height="240"></canvas>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Stats</span>
+                <div class="stats-grid" id="energy-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Steps</span>
+                    <span class="stat-value" id="energy-stat-steps">--</span>
                   </div>
-                  <div class="info-row">
-                    <span class="info-label">Storage Available</span>
-                    <span class="info-value" id="quickstart-storage-available">--</span>
+                  <div class="stat-item">
+                    <span class="stat-label">Energy</span>
+                    <span class="stat-value" id="energy-stat-energy">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label" id="energy-stat-label-symmetry">Symmetry</span>
+                    <span class="stat-value" id="energy-stat-symmetry">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label" id="energy-stat-label-count">Count</span>
+                    <span class="stat-value" id="energy-stat-count">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label" id="energy-stat-label-binarize">Binarize</span>
+                    <span class="stat-value" id="energy-stat-binarize">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Dtype</span>
+                    <span class="stat-value" id="energy-stat-dtype">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Shape</span>
+                    <span class="stat-value" id="energy-stat-shape">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">State mean</span>
+                    <span class="stat-value" id="energy-stat-mean">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">State std</span>
+                    <span class="stat-value" id="energy-stat-std">--</span>
                   </div>
                 </div>
-                <p class="quickstart-note">
-                  Model will be stored in your browser for offline use.
-                </p>
-                <div class="quickstart-actions">
-                  <button class="btn" id="quickstart-cancel">Cancel</button>
-                  <button class="btn btn-primary" id="quickstart-confirm">Download</button>
-                </div>
               </div>
+            </section>
 
-              <!-- VRAM Blocker Panel -->
-              <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
-                <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
-                <div class="quickstart-info">
-                  <div class="info-row">
-                    <span class="info-label">Required</span>
-                    <span class="info-value" id="quickstart-vram-required">--</span>
+            <section class="panel diagnostics-panel" data-modes="diagnostics">
+              <h2 class="type-label">Diagnostics</h2>
+              <div class="type-caption diagnostics-summary">Optional harness checks for the active model.</div>
+              <div class="diagnostics-actions">
+                <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
+                <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
+                <button id="diagnostics-export-btn" class="btn">Export JSON</button>
+              </div>
+              <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
+              <div class="diagnostics-report type-caption" id="diagnostics-report"></div>
+              <div id="diagnostics-status" class="diagnostics-status type-caption">Idle</div>
+              <div class="diagnostics-output" id="diagnostics-output" hidden>
+                <div class="type-caption">Diagnostics output (debug)</div>
+                <pre id="diagnostics-output-text" class="diagnostics-output-text"></pre>
+                <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
+              </div>
+          <div class="panel-subsection">
+            <span class="type-caption">Advanced Diagnostics</span>
+            <div class="diagnostics-field">
+              <label class="type-caption" for="runtime-preset">Runtime preset</label>
+              <select id="runtime-preset" class="w-full">
+              </select>
+              <div class="type-caption">Base runtime config. Overrides merge on top.</div>
+            </div>
+            <div class="diagnostics-field">
+              <label class="type-caption" for="runtime-config-file">Runtime override (JSON file)</label>
+              <div class="diagnostics-config-row">
+                <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
+                <button id="runtime-config-clear" class="btn">Reset Overrides</button>
+              </div>
+              <div class="type-caption" id="runtime-config-status">Preset: modes/debug</div>
+              <div class="type-caption">Overrides apply on next diagnostics run.</div>
+            </div>
+            <div class="diagnostics-field">
+              <label class="type-caption" for="runtime-config-preset">Runtime override preset</label>
+              <select id="runtime-config-preset" class="w-full"></select>
+              <div class="type-caption">Optional overlay, same as JSON overrides.</div>
+            </div>
+            <div class="diagnostics-field">
+              <div class="type-caption">Tooling intent</div>
+              <div class="type-caption" id="diagnostics-intent">--</div>
+              <div class="type-caption">Set via preset/override. Bench requires investigate or calibrate.</div>
+            </div>
+            <div class="diagnostics-field">
+              <label class="type-caption" for="diagnostics-suite">Suite</label>
+              <select id="diagnostics-suite" class="w-full">
+                <option value="inference">inference</option>
+                <option value="diffusion">diffusion</option>
+                <option value="energy">energy</option>
+                <option value="kernels">kernels</option>
+                <option value="bench">bench</option>
+                <option value="debug">debug</option>
+              </select>
+              <div class="type-caption" id="diagnostics-suite-help"></div>
+            </div>
+          </div>
+            </section>
+
+            <section class="panel convert-panel" data-modes="models">
+              <h2 class="type-label">Model Intake</h2>
+              <p class="convert-description">Import GGUF or safetensors into browser storage.</p>
+              <p class="convert-note type-caption">Requires tokenizer.json or tokenizer.model (config.json recommended).</p>
+              <div id="convert-status" class="convert-status">
+                <div class="progress progress-sm">
+                  <div id="convert-progress" class="progress-fill"></div>
+                </div>
+                <span id="convert-message" class="type-caption">Ready</span>
+              </div>
+              <div class="convert-field">
+                <label class="type-caption" for="convert-model-preset">Model preset override (optional)</label>
+                <select id="convert-model-preset" class="w-full"></select>
+              </div>
+              <div class="convert-field">
+                <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>
+                <select id="convert-weight-dtype" class="w-full">
+                  <option value="">auto</option>
+                  <option value="f16">f16</option>
+                  <option value="bf16">bf16</option>
+                </select>
+              </div>
+              <div class="convert-actions">
+                <button id="convert-btn" class="btn btn-primary w-full">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                  </svg>
+                  Select Folder or Files
+                </button>
+              </div>
+              <div class="convert-actions">
+                <button id="regen-manifest-btn" class="btn w-full">Regenerate Manifest</button>
+              </div>
+              <div class="convert-field">
+                <label class="type-caption" for="convert-url-input">Remote URLs (one per line)</label>
+                <textarea id="convert-url-input" class="convert-url-input w-full"
+                  placeholder="https://host/model.safetensors"></textarea>
+              </div>
+              <div class="convert-actions">
+                <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
+              </div>
+              <div class="convert-field">
+                <span class="type-caption">Download RDRR (manifest + shards)</span>
+              </div>
+              <div class="download-field">
+                <label class="type-caption" for="download-base-url">Base URL</label>
+                <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
+              </div>
+              <div class="download-field">
+                <label class="type-caption" for="download-model-id">Storage model ID (optional)</label>
+                <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
+              </div>
+              <div class="download-actions">
+                <button id="download-start-btn" class="btn btn-primary">Start</button>
+                <button id="download-pause-btn" class="btn">Pause</button>
+                <button id="download-resume-btn" class="btn">Resume</button>
+                <button id="download-cancel-btn" class="btn">Cancel</button>
+                <button id="download-refresh-btn" class="btn">Refresh</button>
+              </div>
+              <div id="download-status" class="download-status" hidden>
+                <div class="progress progress-sm">
+                  <div id="download-progress" class="progress-fill"></div>
+                </div>
+                <span id="download-message" class="type-caption">Idle</span>
+              </div>
+              <div id="download-list" class="download-list type-caption"></div>
+            </section>
+
+            <section class="panel storage-panel" data-modes="models">
+              <h2 class="type-label">Models & Storage</h2>
+              <div class="type-caption">Registry metadata + storage inventory.</div>
+              <div class="storage-inspector">
+                <div class="storage-inspector-header">
+                  <div class="storage-inspector-meta">
+                    <span class="type-caption" id="storage-inspector-backend">OPFS: --</span>
+                    <span class="type-caption" id="storage-inspector-summary">--</span>
                   </div>
-                  <div class="info-row">
-                    <span class="info-label">Available</span>
-                    <span class="info-value" id="quickstart-vram-available">--</span>
+                  <button id="storage-inspector-refresh" class="btn btn-small" type="button">Refresh</button>
+                </div>
+                <div id="storage-inspector-status" class="type-caption">Idle</div>
+                <div id="storage-inspector-list" class="storage-inspector-list"></div>
+                <div id="storage-inspector-system-section" class="storage-system" hidden>
+                  <span class="type-caption">System</span>
+                  <div id="storage-inspector-system" class="storage-inspector-list"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="panel-stack panel-stack-rail">
+            <section class="panel model-panel" data-modes="run diffusion energy diagnostics models">
+              <h2 class="type-label">Active Model</h2>
+              <div class="model-field">
+                <label class="type-caption" for="diagnostics-model">Active model</label>
+                <select id="diagnostics-model" class="w-full"></select>
+              </div>
+              <div data-modes="models">
+                <div class="storage-info" id="storage-info">
+                  <span class="storage-label">Storage:</span>
+                  <span class="storage-value" id="storage-used">-- / --</span>
+                </div>
+                <div class="model-field">
+                  <span class="type-caption">Export RDRR</span>
+                  <div class="convert-actions">
+                    <button id="export-model-btn" class="btn w-full">Export active model</button>
+                  </div>
+                  <div id="export-status" class="convert-status">
+                    <div class="progress progress-sm">
+                      <div id="export-progress" class="progress-fill"></div>
+                    </div>
+                    <span id="export-message" class="type-caption">Idle</span>
                   </div>
                 </div>
-                <p class="quickstart-note error">
-                  Your GPU does not have enough memory to run this model.
-                  Try a smaller model or use a device with more VRAM.
-                </p>
-                <div class="quickstart-actions">
-                  <button class="btn btn-primary" id="quickstart-blocker-close">Close</button>
+                <div class="model-field">
+                  <span class="type-caption">GPU Info</span>
+                  <div class="gpu-info" id="gpu-info">
+                    <div class="gpu-row">
+                      <span class="type-caption">Device</span>
+                      <span class="type-caption" id="gpu-device">--</span>
+                    </div>
+                    <div class="gpu-row" id="gpu-ram-row" hidden>
+                      <span class="type-caption">System RAM</span>
+                      <span class="type-caption" id="gpu-ram">--</span>
+                    </div>
+                    <div class="gpu-row">
+                      <span class="type-caption" id="gpu-vram-label">Buffer Limit</span>
+                      <span class="type-caption" id="gpu-vram">--</span>
+                    </div>
+                    <div class="gpu-row">
+                      <span class="type-caption">Features</span>
+                      <span class="type-caption" id="gpu-features">--</span>
+                    </div>
+                  </div>
+                  <div class="gpu-note" id="gpu-unified-note" hidden>
+                    Unified memory: GPU shares system RAM
+                  </div>
                 </div>
               </div>
+            </section>
 
-              <!-- Download Progress Panel -->
-              <div class="quickstart-panel" id="quickstart-progress" hidden>
-                <h3 class="quickstart-title">Downloading Model</h3>
-                <div class="progress quickstart-progress">
-                  <div class="progress-fill" id="quickstart-progress-bar"></div>
+            <section class="panel diagnostics-stats-panel" data-modes="diagnostics">
+              <h2 class="type-label">Diagnostics Stats</h2>
+              <div class="panel-subsection">
+                <span class="type-caption">GPU Memory (tracked)</span>
+                <div class="stats-grid" id="stats-gpu">
+                  <div class="stat-item">
+                    <span class="stat-label">Tracked GPU</span>
+                    <span class="stat-value" id="stat-gpu-tracked">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Peak GPU</span>
+                    <span class="stat-value" id="stat-gpu-peak">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Buffers</span>
+                    <span class="stat-value" id="stat-gpu-buffers">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Requested</span>
+                    <span class="stat-value" id="stat-gpu-requested">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Pool hit rate</span>
+                    <span class="stat-value" id="stat-gpu-hit">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Max buffer</span>
+                    <span class="stat-value" id="stat-gpu-limit">--</span>
+                  </div>
                 </div>
-                <div class="quickstart-stats">
-                  <span id="quickstart-progress-percent">0%</span>
-                  <span id="quickstart-progress-speed">-- MB/s</span>
-                  <span id="quickstart-progress-eta">--</span>
-                </div>
-                <div class="quickstart-detail" id="quickstart-progress-detail">
-                  Preparing download...
+                <div class="stats-breakdown">
+                  <div class="stats-breakdown-header">Top buffers (tracked)</div>
+                  <div class="stats-breakdown-list" id="gpu-label-list">
+                    <div class="type-caption">No tracked buffers yet.</div>
+                  </div>
+                  <div class="stat-note">Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted.</div>
                 </div>
               </div>
-
-              <!-- Ready Panel -->
-              <div class="quickstart-panel" id="quickstart-ready" hidden>
-                <h3 class="quickstart-title success">Model Ready!</h3>
-                <p class="quickstart-note">
-                  Model downloaded and verified. Ready to decode.
-                </p>
-                <div class="quickstart-actions">
-                  <button class="btn btn-primary" id="quickstart-run">Start Decoding</button>
+              <div class="panel-subsection">
+                <span class="type-caption">JS / CPU</span>
+                <div class="stats-grid" id="stats-cpu">
+                  <div class="stat-item">
+                    <span class="stat-label">JS Heap</span>
+                    <span class="stat-value" id="stat-heap">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">System RAM (est)</span>
+                    <span class="stat-value" id="stat-ram-est">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Swap</span>
+                    <span class="stat-value" id="stat-swap">Not available</span>
+                  </div>
+                </div>
+                <div class="stat-note">Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only.</div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Storage (OPFS)</span>
+                <div class="stats-grid" id="stats-storage">
+                  <div class="stat-item">
+                    <span class="stat-label">OPFS usage</span>
+                    <span class="stat-value" id="stat-opfs">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Active model</span>
+                    <span class="stat-value" id="stat-active-model">--</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Memory Control</span>
+                <div class="memory-actions">
+                  <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
+                    Unload Model
+                  </button>
+                  <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
+                    Clear All Memory
+                  </button>
+                </div>
+              </div>
+            </section>
 
-          <!-- Chat Messages -->
-          <div class="chat-messages" id="chat-messages">
-            <!-- Sample messages (hidden until model loaded, shown here for CSS coverage) -->
-            <div class="chat-message" id="sample-messages" hidden>
-              <div class="chat-message-role type-label">User</div>
-              <div class="chat-message-content">Hello, how are you?</div>
-            </div>
-          </div>
+            <section class="panel run-controls-panel" data-modes="run">
+              <h2 class="type-label">Run Controls</h2>
+              <div class="playground-field">
+                <label class="type-caption" for="run-prompt">Prompt</label>
+                <textarea id="run-prompt" class="w-full" rows="6" placeholder="Ask a question or provide a prompt..."></textarea>
+              </div>
+              <div class="panel-subsection">
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="temperature-input">Temperature</label>
+                    <input id="temperature-input" class="w-full" type="number" min="0" step="0.05" placeholder="auto" />
+                    <div class="type-caption" id="temperature-auto">auto: --</div>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="top-p-input">Top P</label>
+                    <input id="top-p-input" class="w-full" type="number" min="0" max="1" step="0.01" placeholder="auto" />
+                    <div class="type-caption" id="top-p-auto">auto: --</div>
+                  </div>
+                </div>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="top-k-input">Top K</label>
+                    <input id="top-k-input" class="w-full" type="number" min="0" step="1" placeholder="auto" />
+                    <div class="type-caption" id="top-k-auto">auto: --</div>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="max-tokens-input">Max tokens</label>
+                    <input id="max-tokens-input" class="w-full" type="number" min="1" step="1" placeholder="auto" />
+                    <div class="type-caption" id="max-tokens-auto">auto: --</div>
+                  </div>
+                </div>
+              </div>
+              <div class="playground-actions">
+                <button id="run-generate-btn" class="btn btn-primary" type="button">Generate</button>
+                <button id="run-stop-btn" class="btn" type="button" hidden>Stop</button>
+                <button id="run-clear-btn" class="btn" type="button">Clear</button>
+              </div>
+            </section>
 
-          <!-- Chat Input -->
-          <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-              <textarea id="chat-input" class="chat-input" placeholder="Type a message..." rows="1" disabled></textarea>
-              <button id="send-btn" class="btn btn-primary send-btn" disabled>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-              </button>
-            </div>
-            <div class="chat-actions">
-              <button id="stop-btn" class="btn" hidden>Stop</button>
-              <button id="clear-btn" class="btn">Clear</button>
-            </div>
-          </div>
-        </section>
+            <section class="panel diffusion-controls-panel" data-modes="diffusion">
+              <h2 class="type-label">Diffusion Controls</h2>
+              <div class="playground-field">
+                <label class="type-caption" for="diffusion-prompt">Prompt</label>
+                <textarea id="diffusion-prompt" class="w-full" rows="3" placeholder="Describe the image..."></textarea>
+              </div>
+              <div class="playground-field">
+                <label class="type-caption" for="diffusion-negative">Negative prompt</label>
+                <textarea id="diffusion-negative" class="w-full" rows="2" placeholder="What to avoid..."></textarea>
+              </div>
+              <div class="playground-row">
+                <div class="playground-field">
+                  <label class="type-caption" for="diffusion-steps">Steps</label>
+                  <input id="diffusion-steps" class="w-full" type="number" min="1" max="100" value="20" />
+                </div>
+                <div class="playground-field">
+                  <label class="type-caption" for="diffusion-guidance">Guidance</label>
+                  <input id="diffusion-guidance" class="w-full" type="number" min="0" max="20" step="0.5" value="7.5" />
+                </div>
+                <div class="playground-field">
+                  <label class="type-caption" for="diffusion-seed">Seed</label>
+                  <input id="diffusion-seed" class="w-full" type="number" min="0" step="1" placeholder="random" />
+                </div>
+              </div>
+              <div class="playground-row">
+                <div class="playground-field">
+                  <label class="type-caption" for="diffusion-width">Width</label>
+                  <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="256" />
+                </div>
+                <div class="playground-field">
+                  <label class="type-caption" for="diffusion-height">Height</label>
+                  <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="256" />
+                </div>
+              </div>
+              <div class="playground-actions">
+                <button class="btn btn-primary" id="diffusion-run-btn" type="button">Generate</button>
+                <button class="btn" id="diffusion-clear-btn" type="button">Clear</button>
+              </div>
+            </section>
 
-        <section class="panel diffusion-panel" data-modes="diffusion">
-          <h2 class="type-label">Diffusion Controls</h2>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diffusion-prompt">Prompt</label>
-            <textarea id="diffusion-prompt" class="w-full" rows="3" placeholder="Describe the image..."></textarea>
-          </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diffusion-negative">Negative prompt</label>
-            <textarea id="diffusion-negative" class="w-full" rows="2" placeholder="What to avoid..."></textarea>
-          </div>
-          <div class="diagnostics-actions">
-            <div class="download-field">
-              <label class="type-caption muted" for="diffusion-steps">Steps</label>
-              <input id="diffusion-steps" class="w-full" type="number" min="1" max="100" value="20" />
-            </div>
-            <div class="download-field">
-              <label class="type-caption muted" for="diffusion-guidance">Guidance</label>
-              <input id="diffusion-guidance" class="w-full" type="number" min="0" max="20" step="0.5" value="7.5" />
-            </div>
-            <div class="download-field">
-              <label class="type-caption muted" for="diffusion-seed">Seed</label>
-              <input id="diffusion-seed" class="w-full" type="number" min="0" step="1" placeholder="random" />
-            </div>
-          </div>
-          <div class="diagnostics-actions">
-            <div class="download-field">
-              <label class="type-caption muted" for="diffusion-width">Width</label>
-              <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="256" />
-            </div>
-            <div class="download-field">
-              <label class="type-caption muted" for="diffusion-height">Height</label>
-              <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="256" />
-            </div>
-          </div>
-          <div class="diagnostics-actions">
-            <button class="btn btn-primary" id="diffusion-run-btn">Generate</button>
-            <button class="btn" id="diffusion-clear-btn">Clear</button>
-          </div>
-          <div class="diffusion-output">
-            <div class="type-caption muted">Output</div>
-            <canvas id="diffusion-canvas" class="diffusion-canvas" width="256" height="256"></canvas>
-            <div id="diffusion-output-status" class="type-caption muted">Idle</div>
-          </div>
-        </section>
+            <section class="panel energy-controls-panel" data-modes="energy">
+              <h2 class="type-label">Energy Controls</h2>
+              <div class="playground-field">
+                <label class="type-caption" for="energy-demo-select">Energy demo</label>
+                <select id="energy-demo-select" class="w-full"></select>
+                <div class="type-caption" id="energy-demo-description"></div>
+              </div>
+              <div id="energy-quintel-controls" data-energy-problem="quintel">
+                <div class="panel-subsection">
+                  <span class="type-caption">Board</span>
+                  <div class="playground-row">
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-quintel-size">Size</label>
+                      <input id="energy-quintel-size" class="w-full" type="number" min="3" step="1" value="5" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-quintel-threshold">Display threshold</label>
+                      <input id="energy-quintel-threshold" class="w-full" type="number" min="0" max="1" step="0.05" value="0.2" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-quintel-count-target">Count target</label>
+                      <input id="energy-quintel-count-target" class="w-full" type="number" min="0" step="1" value="12" />
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-subsection">
+                  <span class="type-caption">Rules</span>
+                  <div class="playground-row">
+                    <label class="check-field" for="energy-rule-mirror-x">
+                      <input id="energy-rule-mirror-x" type="checkbox" checked />
+                      Mirror X
+                    </label>
+                    <label class="check-field" for="energy-rule-mirror-y">
+                      <input id="energy-rule-mirror-y" type="checkbox" checked />
+                      Mirror Y
+                    </label>
+                    <label class="check-field" for="energy-rule-diagonal">
+                      <input id="energy-rule-diagonal" type="checkbox" />
+                      Diagonal
+                    </label>
+                    <label class="check-field" for="energy-rule-count">
+                      <input id="energy-rule-count" type="checkbox" checked />
+                      Count
+                    </label>
+                  </div>
+                </div>
+                <div class="panel-subsection">
+                  <span class="type-caption">Weights</span>
+                  <div class="playground-row">
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-weight-symmetry">Symmetry</label>
+                      <input id="energy-weight-symmetry" class="w-full" type="number" step="0.1" value="1.0" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-weight-count">Count</label>
+                      <input id="energy-weight-count" class="w-full" type="number" step="0.1" value="0.2" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-weight-binarize">Binarize</label>
+                      <input id="energy-weight-binarize" class="w-full" type="number" step="0.01" value="0.01" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection" id="energy-vliw-controls" data-energy-problem="vliw" hidden>
+                <span class="type-caption">VLIW SIMD</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-dataset">Dataset</label>
+                    <select id="energy-vliw-dataset" class="w-full">
+                      <option value="vliw-simd">VLIW SIMD schedule sample</option>
+                    </select>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-bundle-limit">Bundle limit</label>
+                    <input id="energy-vliw-bundle-limit" class="w-full" type="number" min="10" step="10" value="120" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-restarts">Restarts</label>
+                    <input id="energy-vliw-restarts" class="w-full" type="number" min="1" step="1" value="2" />
+                  </div>
+                </div>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-temp-start">Temp start</label>
+                    <input id="energy-vliw-temp-start" class="w-full" type="number" step="0.1" value="2.5" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-temp-decay">Temp decay</label>
+                    <input id="energy-vliw-temp-decay" class="w-full" type="number" step="0.001" value="0.985" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-mutation">Mutation count</label>
+                    <input id="energy-vliw-mutation" class="w-full" type="number" min="1" step="1" value="6" />
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Init</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-init-mode">Mode</label>
+                    <select id="energy-init-mode" class="w-full">
+                      <option value="uniform" selected>uniform</option>
+                      <option value="normal">normal</option>
+                      <option value="zeros">zeros</option>
+                    </select>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-init-seed">Seed</label>
+                    <input id="energy-init-seed" class="w-full" type="number" min="0" step="1" value="1337" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-init-scale">Scale</label>
+                    <input id="energy-init-scale" class="w-full" type="number" step="0.1" value="0.6" />
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Loop</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-steps">Steps</label>
+                    <input id="energy-steps" class="w-full" type="number" min="1" step="1" value="200" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-step-size">Step size</label>
+                    <input id="energy-step-size" class="w-full" type="number" step="0.01" value="0.02" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-gradient-scale">Gradient scale</label>
+                    <input id="energy-gradient-scale" class="w-full" type="number" step="0.1" value="0.5" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-convergence">Convergence</label>
+                    <input id="energy-convergence" class="w-full" type="number" step="0.0001" value="0.00001" />
+                  </div>
+                </div>
+              </div>
+              <div class="playground-actions">
+                <button class="btn btn-primary" id="energy-run-btn" type="button">Run</button>
+                <button class="btn" id="energy-clear-btn" type="button">Clear</button>
+              </div>
+            </section>
 
-        <section class="panel diagnostics-panel" data-modes="diagnostics">
-          <h2 class="type-label">Diagnostics</h2>
-          <div class="type-caption muted diagnostics-summary">Runs harness suites using the Active model and runtime config.</div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="runtime-preset">Runtime preset</label>
-            <select id="runtime-preset" class="w-full">
-              <option value="modes/debug">modes/debug</option>
-              <option value="modes/bench">modes/bench</option>
-              <option value="modes/ci">modes/ci</option>
-            </select>
-            <div class="type-caption muted">Base runtime config. Overrides merge on top.</div>
-          </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="runtime-config-file">Runtime override (JSON file)</label>
-            <div class="diagnostics-config-row">
-              <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
-              <button id="runtime-config-clear" class="btn">Reset Overrides</button>
-            </div>
-            <div class="type-caption muted" id="runtime-config-status">Preset: modes/debug</div>
-            <div class="type-caption muted">Overrides apply on next model load.</div>
-          </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="runtime-config-preset">Runtime override preset</label>
-            <select id="runtime-config-preset" class="w-full"></select>
-            <div class="type-caption muted">Optional overlay, same as JSON overrides.</div>
-          </div>
-          <div class="diagnostics-field">
-            <div class="type-caption muted">Tooling intent</div>
-            <div class="type-caption" id="diagnostics-intent">--</div>
-            <div class="type-caption muted">Set via preset/override. Bench requires investigate or calibrate.</div>
-          </div>
-          <div class="diagnostics-field">
-            <label class="type-caption muted" for="diagnostics-suite">Suite</label>
-            <select id="diagnostics-suite" class="w-full">
-              <option value="kernels">kernels</option>
-              <option value="inference">inference</option>
-              <option value="bench">bench</option>
-              <option value="debug">debug</option>
-            </select>
-            <div class="type-caption muted" id="diagnostics-suite-help"></div>
-          </div>
-          <div class="diagnostics-actions">
-            <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
-            <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
-            <button id="diagnostics-export-btn" class="btn">Export JSON</button>
-          </div>
-          <div class="type-caption muted diagnostics-requirements" id="diagnostics-requirements"></div>
-          <div class="diagnostics-report type-caption muted" id="diagnostics-report"></div>
-          <div id="diagnostics-status" class="diagnostics-status type-caption muted">Idle</div>
-        </section>
+            <section class="panel live-panel" data-modes="run diffusion energy">
+              <h2 class="type-label">Inference Pulse</h2>
+              <div class="panel-subsection">
+                <span class="type-caption">Performance</span>
+                <div class="stats-grid" id="stats-performance">
+                  <div class="stat-item" id="stat-tps-item">
+                    <span class="stat-label" id="stat-tps-label">Tokens/sec</span>
+                    <span class="stat-value" id="stat-tps">--</span>
+                  </div>
+                  <div class="stat-item" id="stat-ttft-item">
+                    <span class="stat-label" id="stat-ttft-label">TTFT</span>
+                    <span class="stat-value" id="stat-ttft">--</span>
+                  </div>
+                  <div class="stat-item" id="stat-prefill-item">
+                    <span class="stat-label" id="stat-prefill-label">Prefill</span>
+                    <span class="stat-value" id="stat-prefill">--</span>
+                  </div>
+                  <div class="stat-item" id="stat-e2e-item">
+                    <span class="stat-label" id="stat-e2e-label">End-to-end</span>
+                    <span class="stat-value" id="stat-e2e">--</span>
+                  </div>
+                  <div class="stat-item" id="stat-decode-item">
+                    <span class="stat-label" id="stat-decode-label">Decode</span>
+                    <span class="stat-value" id="stat-decode">--</span>
+                  </div>
+                  <div class="stat-item" id="stat-tokens-item">
+                    <span class="stat-label" id="stat-tokens-label">Prompt / Gen</span>
+                    <span class="stat-value" id="stat-tokens">--</span>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Recent Runs</span>
+                <div class="run-log">
+                  <div class="run-log-row run-log-header">
+                    <span id="run-log-label">Run</span>
+                    <span id="run-log-ttft-label">TTFT</span>
+                    <span id="run-log-prefill-label">Prefill</span>
+                    <span id="run-log-decode-label">Decode</span>
+                    <span id="run-log-e2e-label">E2E</span>
+                  </div>
+                  <div id="run-log-rows"></div>
+                </div>
+              </div>
+              <div class="panel-subsection" data-modes="run">
+                <span class="type-caption">KV Cache</span>
+                <div class="stats-grid" id="stats-kv">
+                  <div class="stat-item">
+                    <span class="stat-label">Allocated</span>
+                    <span class="stat-value" id="stat-kv-allocated">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Used</span>
+                    <span class="stat-value" id="stat-kv-used">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Efficiency</span>
+                    <span class="stat-value" id="stat-kv-eff">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Seq / Max</span>
+                    <span class="stat-value" id="stat-kv-seq">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Layout</span>
+                    <span class="stat-value" id="stat-kv-layout">--</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+        </div>
+      </div>
+    </main>
+    </div>
 
-      </aside>
-      </main>
+    <!-- Progress Overlay -->
+    <div class="progress-overlay" id="progress-overlay" hidden>
+      <div class="progress-content">
+        <div class="progress-title" id="progress-title">Loading Model</div>
+        <div class="progress-phases" id="progress-phases">
+          <div class="progress-phase-row" data-phase="source">
+            <span class="progress-phase-label">Source</span>
+            <div class="progress">
+              <div class="progress-fill"></div>
+            </div>
+            <span class="progress-phase-value">--</span>
+          </div>
+          <div class="progress-phase-row" data-phase="gpu">
+            <span class="progress-phase-label">GPU</span>
+            <div class="progress">
+              <div class="progress-fill"></div>
+            </div>
+            <span class="progress-phase-value">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick-Start Overlay -->
+    <div class="quickstart-overlay" id="quickstart-overlay" hidden>
+      <div class="quickstart-content">
+        <div class="quickstart-panel" id="quickstart-consent" hidden>
+          <h3 class="quickstart-title">Download Model?</h3>
+          <div class="quickstart-info">
+            <div class="info-row">
+              <span class="info-label">Download Size</span>
+              <span class="info-value" id="quickstart-download-size">--</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Storage Available</span>
+              <span class="info-value" id="quickstart-storage-available">--</span>
+            </div>
+          </div>
+          <p class="quickstart-note">
+            Model will be stored in your browser for offline use.
+          </p>
+          <div class="quickstart-actions">
+            <button class="btn" id="quickstart-cancel">Cancel</button>
+            <button class="btn btn-primary" id="quickstart-confirm">Download</button>
+          </div>
+        </div>
+
+        <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
+          <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
+          <div class="quickstart-info">
+            <div class="info-row">
+              <span class="info-label">Required</span>
+              <span class="info-value" id="quickstart-vram-required">--</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Available</span>
+              <span class="info-value" id="quickstart-vram-available">--</span>
+            </div>
+          </div>
+          <p class="quickstart-note error">
+            Your GPU does not have enough memory to run this model.
+            Try a smaller model or use a device with more VRAM.
+          </p>
+          <div class="quickstart-actions">
+            <button class="btn btn-primary" id="quickstart-blocker-close">Close</button>
+          </div>
+        </div>
+
+        <div class="quickstart-panel" id="quickstart-progress" hidden>
+          <h3 class="quickstart-title">Downloading Model</h3>
+          <div class="progress quickstart-progress">
+            <div class="progress-fill" id="quickstart-progress-bar"></div>
+          </div>
+          <div class="quickstart-stats">
+            <span id="quickstart-progress-percent">0%</span>
+            <span id="quickstart-progress-speed">-- MB/s</span>
+            <span id="quickstart-progress-eta">--</span>
+          </div>
+          <div class="quickstart-detail" id="quickstart-progress-detail">
+            Preparing download...
+          </div>
+        </div>
+
+        <div class="quickstart-panel" id="quickstart-ready" hidden>
+          <h3 class="quickstart-title success">Model Ready!</h3>
+          <p class="quickstart-note">
+            Model downloaded and verified. Ready to decode.
+          </p>
+          <div class="quickstart-actions">
+            <button class="btn btn-primary" id="quickstart-run">Start Decoding</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Error Modal -->

@@ -18,7 +18,7 @@ const gemma2Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-d
 const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.json');
 const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
 const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
-const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
+const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/experimental/gemma3-f16-f16a-online.json');
 const gemma3Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-fused-f16a.json');
 const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
 

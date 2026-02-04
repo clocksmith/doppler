@@ -138,6 +138,19 @@ export {
   type ScaleOptions,
 } from './scale.js';
 
+// Energy (EBM helpers)
+export {
+  runEnergyEval,
+  recordEnergyEval,
+  runEnergyUpdate,
+  recordEnergyUpdate,
+  runEnergyQuintelUpdate,
+  recordEnergyQuintelUpdate,
+  type EnergyEvalOptions,
+  type EnergyUpdateOptions,
+  type EnergyQuintelUpdateOptions,
+} from './energy.js';
+
 // Conv2D
 export {
   runConv2D,

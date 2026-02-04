@@ -133,6 +133,22 @@ export {
 } from './diffusion.schema.js';
 
 // =============================================================================
+// Energy Schema
+// =============================================================================
+export {
+  DEFAULT_ENERGY_STATE_CONFIG,
+  DEFAULT_ENERGY_INIT_CONFIG,
+  DEFAULT_ENERGY_TARGET_CONFIG,
+  DEFAULT_ENERGY_LOOP_CONFIG,
+  DEFAULT_ENERGY_DIAGNOSTICS_CONFIG,
+  DEFAULT_ENERGY_QUINTEL_RULES,
+  DEFAULT_ENERGY_QUINTEL_WEIGHTS,
+  DEFAULT_ENERGY_QUINTEL_CLAMP,
+  DEFAULT_ENERGY_QUINTEL_CONFIG,
+  DEFAULT_ENERGY_CONFIG,
+} from './energy.schema.js';
+
+// =============================================================================
 // KV Cache Schema
 // =============================================================================
 export {

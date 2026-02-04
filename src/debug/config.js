@@ -22,6 +22,7 @@ export const TRACE_CATEGORIES = [
   'sample',
   'buffers',
   'perf',
+  'energy',
 ];
 
 // Global state

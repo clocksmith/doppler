@@ -42,6 +42,7 @@
       "compute": {
         "activationDtype": "f16"
       },
+      "prompt": "Hello from Doppler.",
       "batching": {
         "maxTokens": 512
       },

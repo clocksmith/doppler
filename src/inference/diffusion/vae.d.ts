@@ -11,6 +11,7 @@ export interface DecodeLatentsOptions {
   weights?: DiffusionWeightEntry | null;
   modelConfig?: DiffusionModelConfig | null;
   runtime?: DiffusionRuntimeConfig | null;
+  profile?: { totalMs?: number | null; timings?: Record<string, number> | null } | boolean | null;
 }
 
 export declare function decodeLatents(

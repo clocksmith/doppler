@@ -1103,7 +1103,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 ## Related Documentation
 
-- `../../docs/doppler-roadmap.md` - Memory tiers and distribution goals
+- `roadmap.md` - Memory tiers and distribution goals
 - `formats.md` - RDRR format specification
 
 ---

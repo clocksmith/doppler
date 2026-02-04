@@ -345,7 +345,12 @@ export async function loadShard(shardIndex, options = { verify: false }) {
         throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
       }
       if (hash !== expectedHash) {
-        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
+        try {
+          await backend.deleteFile(shardInfo.filename);
+        } catch {}
+        throw new Error(
+          `Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}. Corrupt shard removed; re-import or re-download the model.`
+        );
       }
     }
     return buffer;

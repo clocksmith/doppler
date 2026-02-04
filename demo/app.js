@@ -2,8 +2,9 @@ import { log } from '../src/debug/index.js';
 import { listPresets, createConverterConfig, detectPreset, resolvePreset } from '../src/config/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../src/config/schema/index.js';
-import { listRegisteredModels, removeRegisteredModel } from '../src/storage/registry.js';
+import { listRegisteredModels, registerModel, removeRegisteredModel } from '../src/storage/registry.js';
 import { formatBytes, getQuotaInfo } from '../src/storage/quota.js';
+import { listStorageInventory, deleteStorageEntry } from '../src/storage/inventory.js';
 import {
   openModelStore,
   loadManifestFromStore,
@@ -13,7 +14,6 @@ import {
   saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
-  deleteModel,
 } from '../src/storage/shard-manager.js';
 import { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from '../src/storage/rdrr-format.js';
 import {
@@ -32,9 +32,8 @@ import {
 } from '../src/browser/browser-converter.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from '../src/converter/manifest-inference.js';
 import { pickModelDirectory, pickModelFiles } from '../src/browser/file-picker.js';
-import { applyRuntimePreset, loadRuntimePreset } from '../src/inference/browser-harness.js';
+import { loadRuntimePreset } from '../src/inference/browser-harness.js';
 import { createPipeline } from '../src/inference/pipeline.js';
-import { formatChatMessages } from '../src/inference/pipeline/chat-format.js';
 import { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from '../src/gpu/device.js';
 import { captureMemorySnapshot } from '../src/loader/memory-monitor.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
@@ -44,9 +43,12 @@ const state = {
   runtimeOverride: null,
   runtimeOverrideBase: null,
   runtimeOverrideLabel: null,
-  runtimeSamplingOverride: null,
-  runtimeSamplingLabel: null,
-  samplingSyncing: false,
+  diagnosticsRuntimeConfig: null,
+  diagnosticsRuntimePresetId: null,
+  diagnosticsSelections: {},
+  lastDiagnosticsSuite: null,
+  lastDiffusionRequest: null,
+  lastEnergyRequest: null,
   lastReport: null,
   lastReportInfo: null,
   lastMetrics: null,
@@ -56,13 +58,14 @@ const state = {
   activePipelineModelId: null,
   activeModelId: null,
   modelTypeCache: {},
-  modeModelId: { run: null, diffusion: null },
-  chatMessages: [],
-  chatAbortController: null,
-  chatGenerating: false,
-  chatLoading: false,
+  modeModelId: { run: null, diffusion: null, energy: null },
+  runAbortController: null,
+  runGenerating: false,
+  runLoading: false,
   diffusionGenerating: false,
   diffusionLoading: false,
+  energyGenerating: false,
+  energyLoading: false,
   convertActive: false,
   downloadActive: false,
   uiMode: 'run',
@@ -77,27 +80,184 @@ const state = {
   uiIntervalId: null,
   lastStorageRefresh: 0,
   activeDownloadId: null,
-  runtimeBaseConfig: null,
+  energyDemoId: null,
 };
 
-const RUNTIME_CONFIG_PRESETS = [
-  { id: '', label: 'none' },
-  { id: 'modes/production', label: 'modes/production' },
-  { id: 'modes/low-memory', label: 'modes/low-memory' },
-  { id: 'modes/simulation', label: 'modes/simulation' },
-  { id: 'modes/trace-layers', label: 'modes/trace-layers' },
-  { id: 'kernels/safe-q4k', label: 'kernels/safe-q4k' },
-  { id: 'kernels/fused-q4k', label: 'kernels/fused-q4k' },
-  { id: 'kernels/dequant-f16-q4k', label: 'kernels/dequant-f16-q4k' },
-  { id: 'kernels/dequant-f32-q4k', label: 'kernels/dequant-f32-q4k' },
-  { id: 'compute/f16-activations', label: 'compute/f16-activations' },
-  { id: 'compute/f16-batched', label: 'compute/f16-batched' },
-  { id: 'platform/metal-apple-q4k', label: 'platform/metal-apple-q4k' },
-  { id: 'model/gemma3-layer-probe', label: 'model/gemma3-layer-probe' },
-  { id: 'model/gemma2-pipeline', label: 'model/gemma2-pipeline' },
-  { id: 'model/gemma2-pipeline-debug', label: 'model/gemma2-pipeline-debug' },
-  { id: 'experiments/gemma3-verify', label: 'experiments/gemma3-verify' },
-  { id: 'experiments/gemma3-debug-q4k', label: 'experiments/gemma3-debug-q4k' },
+const VLIW_DATASETS = {
+  'vliw-simd': {
+    id: 'vliw-simd',
+    label: 'VLIW SIMD schedule sample',
+    path: 'data/vliw-simd.json',
+  },
+};
+
+const energyDatasetCache = new Map();
+
+const ENERGY_DEMOS = [
+  {
+    id: 'quintel-cross',
+    problem: 'quintel',
+    label: 'Quintel: Cross (mirror + count)',
+    description: 'Mirror X/Y with a count target. Produces a symmetric cross pattern.',
+    defaults: {
+      size: 5,
+      displayThreshold: 0.2,
+      countTarget: 12,
+      rules: {
+        mirrorX: true,
+        mirrorY: true,
+        diagonal: false,
+        count: true,
+      },
+      weights: {
+        symmetry: 1.0,
+        count: 0.2,
+        binarize: 0.01,
+      },
+      init: {
+        mode: 'uniform',
+        seed: 1337,
+        scale: 0.6,
+      },
+      loop: {
+        steps: 200,
+        stepSize: 0.02,
+        gradientScale: 0.5,
+        convergence: 0.00001,
+      },
+    },
+  },
+  {
+    id: 'quintel-diagonal',
+    problem: 'quintel',
+    label: 'Quintel: Diagonal symmetry',
+    description: 'Diagonal symmetry with a softer count target.',
+    defaults: {
+      size: 5,
+      displayThreshold: 0.35,
+      countTarget: 10,
+      rules: {
+        mirrorX: false,
+        mirrorY: false,
+        diagonal: true,
+        count: true,
+      },
+      weights: {
+        symmetry: 0.8,
+        count: 0.15,
+        binarize: 0.02,
+      },
+      init: {
+        mode: 'uniform',
+        seed: 1337,
+        scale: 0.55,
+      },
+      loop: {
+        steps: 240,
+        stepSize: 0.02,
+        gradientScale: 0.5,
+        convergence: 0.00001,
+      },
+    },
+  },
+  {
+    id: 'quintel-symmetry',
+    problem: 'quintel',
+    label: 'Quintel: Symmetry only',
+    description: 'Mirror constraints only (no count rule).',
+    defaults: {
+      size: 5,
+      displayThreshold: 0.45,
+      countTarget: 12,
+      rules: {
+        mirrorX: true,
+        mirrorY: true,
+        diagonal: false,
+        count: false,
+      },
+      weights: {
+        symmetry: 1.0,
+        count: 0.0,
+        binarize: 0.02,
+      },
+      init: {
+        mode: 'uniform',
+        seed: 1337,
+        scale: 0.5,
+      },
+      loop: {
+        steps: 160,
+        stepSize: 0.02,
+        gradientScale: 0.5,
+        convergence: 0.00001,
+      },
+    },
+  },
+  {
+    id: 'vliw-simd',
+    problem: 'vliw',
+    label: 'VLIW SIMD: Schedule search',
+    description: 'Searches for a shorter VLIW SIMD schedule under slot caps.',
+    defaults: {
+      displayThreshold: 0.5,
+      vliw: {
+        dataset: 'vliw-simd',
+        bundleLimit: 120,
+        restarts: 2,
+        temperatureStart: 2.5,
+        temperatureDecay: 0.985,
+        mutationCount: 6,
+      },
+      init: {
+        mode: 'normal',
+        seed: 1337,
+        scale: 0.35,
+      },
+      loop: {
+        steps: 240,
+        stepSize: 0.2,
+        gradientScale: 1.2,
+        convergence: 0,
+      },
+    },
+  },
+];
+
+const DEFAULT_ENERGY_DEMO_ID = ENERGY_DEMOS[0]?.id || 'quintel-cross';
+
+const ENERGY_METRIC_LABELS = {
+  quintel: {
+    symmetry: 'Symmetry',
+    count: 'Count',
+    binarize: 'Binarize',
+  },
+  vliw: {
+    symmetry: 'Cycles',
+    count: 'Utilization',
+    binarize: 'Violations',
+  },
+};
+
+const RUNTIME_PRESET_REGISTRY = [
+  { id: '', label: 'none', base: false, override: true },
+  { id: 'modes/debug', label: 'modes/debug', base: true, override: false },
+  { id: 'modes/bench', label: 'modes/bench', base: true, override: false },
+  { id: 'modes/production', label: 'modes/production', base: false, override: true },
+  { id: 'modes/low-memory', label: 'modes/low-memory', base: false, override: true },
+  { id: 'modes/simulation', label: 'modes/simulation', base: false, override: true },
+  { id: 'modes/trace-layers', label: 'modes/trace-layers', base: false, override: true },
+  { id: 'kernels/safe-q4k', label: 'kernels/safe-q4k', base: false, override: true },
+  { id: 'kernels/fused-q4k', label: 'kernels/fused-q4k', base: false, override: true },
+  { id: 'kernels/dequant-f16-q4k', label: 'kernels/dequant-f16-q4k', base: false, override: true },
+  { id: 'kernels/dequant-f32-q4k', label: 'kernels/dequant-f32-q4k', base: false, override: true },
+  { id: 'compute/f16-activations', label: 'compute/f16-activations', base: false, override: true },
+  { id: 'compute/f16-batched', label: 'compute/f16-batched', base: false, override: true },
+  { id: 'platform/metal-apple-q4k', label: 'platform/metal-apple-q4k', base: false, override: true },
+  { id: 'model/gemma3-layer-probe', label: 'model/gemma3-layer-probe', base: false, override: true },
+  { id: 'model/gemma2-pipeline', label: 'model/gemma2-pipeline', base: false, override: true },
+  { id: 'model/gemma2-pipeline-debug', label: 'model/gemma2-pipeline-debug', base: false, override: true },
+  { id: 'experiments/gemma3-verify', label: 'experiments/gemma3-verify', base: false, override: true },
+  { id: 'experiments/gemma3-debug-q4k', label: 'experiments/gemma3-debug-q4k', base: false, override: true },
 ];
 
 const DIAGNOSTICS_SUITE_INFO = {
@@ -121,10 +281,26 @@ const DIAGNOSTICS_SUITE_INFO = {
     requiresModel: true,
     requiresBenchIntent: false,
   },
+  diffusion: {
+    description: 'Benchmarks diffusion generation using the Active model.',
+    requiresModel: true,
+    requiresBenchIntent: true,
+  },
+  energy: {
+    description: 'Runs an energy loop with the Active model and reports convergence stats.',
+    requiresModel: true,
+    requiresBenchIntent: false,
+  },
 };
 
 const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 const DEFAULT_RUNTIME_PRESET = 'modes/debug';
+const DIAGNOSTICS_DEFAULTS = {
+  run: { suite: 'inference' },
+  diffusion: { suite: 'diffusion' },
+  energy: { suite: 'energy' },
+  diagnostics: { suite: 'inference' },
+};
 
 const controller = new DiagnosticsController({ log });
 
@@ -146,12 +322,19 @@ function cloneRuntimeConfig(config) {
 }
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
+const STATUS_SYMBOLS = {
+  success: '&#9733;',
+  warning: '&#9761;',
+  error: '&#9746;',
+  info: '&#9755;',
+};
 
 function setStatusIndicator(message, tone) {
   const indicator = $('status-indicator');
   if (!indicator) return;
   const textEl = indicator.querySelector('.status-text');
   const dot = indicator.querySelector('.status-dot');
+  const symbol = indicator.querySelector('.status-symbol');
   setText(textEl, message);
   indicator.classList.remove(...STATUS_CLASSES);
   if (tone) {
@@ -164,10 +347,13 @@ function setStatusIndicator(message, tone) {
       dot.classList.remove('status-dot-filled');
     }
   }
+  if (symbol) {
+    symbol.innerHTML = tone ? (STATUS_SYMBOLS[tone] || '') : '';
+  }
 }
 
 function updateStatusIndicator() {
-  if (state.chatLoading) {
+  if (state.runLoading) {
     setStatusIndicator('Loading model', 'info');
     return;
   }
@@ -175,11 +361,15 @@ function updateStatusIndicator() {
     setStatusIndicator('Loading diffusion', 'info');
     return;
   }
+  if (state.energyLoading) {
+    setStatusIndicator('Loading energy', 'info');
+    return;
+  }
   if (state.convertActive) {
     setStatusIndicator('Converting', 'info');
     return;
   }
-  if (state.chatGenerating) {
+  if (state.runGenerating) {
     setStatusIndicator('Generating', 'info');
     return;
   }
@@ -187,11 +377,46 @@ function updateStatusIndicator() {
     setStatusIndicator('Generating', 'info');
     return;
   }
+  if (state.energyGenerating) {
+    setStatusIndicator('Running energy', 'info');
+    return;
+  }
   if (state.downloadActive) {
     setStatusIndicator('Downloading', 'info');
     return;
   }
   setStatusIndicator('Ready', 'success');
+}
+
+function getStatsMode() {
+  if (state.uiMode === 'energy') return 'energy';
+  if (state.uiMode === 'diffusion') return 'diffusion';
+  if (state.uiMode === 'diagnostics' && state.lastDiagnosticsSuite === 'energy') {
+    return 'energy';
+  }
+  if (state.uiMode === 'diagnostics' && state.lastDiagnosticsSuite === 'diffusion') {
+    return 'diffusion';
+  }
+  const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType);
+  if (pipelineType === 'energy') return 'energy';
+  if (pipelineType === 'diffusion') return 'diffusion';
+  return 'text';
+}
+
+function setStatLabels(labels) {
+  setText($('stat-tps-label'), labels.tps);
+  setText($('stat-ttft-label'), labels.ttft);
+  setText($('stat-prefill-label'), labels.prefill);
+  setText($('stat-e2e-label'), labels.e2e);
+  setText($('stat-decode-label'), labels.decode);
+  setText($('stat-tokens-label'), labels.tokens);
+}
+
+function setRunLogLabels(labels) {
+  setText($('run-log-ttft-label'), labels.ttft);
+  setText($('run-log-prefill-label'), labels.prefill);
+  setText($('run-log-decode-label'), labels.decode);
+  setText($('run-log-e2e-label'), labels.e2e);
 }
 
 function applyModeVisibility(mode) {
@@ -214,25 +439,20 @@ function setUiMode(mode) {
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
   applyModeVisibility(mode);
+  updatePerformancePanel();
+  renderRunLog();
   if (mode === 'models') {
     refreshStorageInspector();
   }
-  if (mode === 'diagnostics' && previousMode !== 'diagnostics') {
-    enterDiagnosticsMode();
-  } else if (previousMode === 'diagnostics' && mode !== 'diagnostics') {
-    exitDiagnosticsMode();
-  }
-  syncModelForMode(mode).catch((error) => {
-    log.warn('DopplerDemo', `Mode model sync failed: ${error.message}`);
+  refreshModelList().catch((error) => {
+    log.warn('DopplerDemo', `Model list refresh failed: ${error.message}`);
   });
-}
-
-function enterDiagnosticsMode() {
-  applySelectedRuntimePreset();
-}
-
-function exitDiagnosticsMode() {
-  applyRunRuntimeConfig();
+  syncDiagnosticsDefaultsForMode(mode).catch((error) => {
+    updateDiagnosticsStatus(`Diagnostics config error: ${error.message}`, true);
+  });
+  if (mode === 'energy') {
+    syncEnergyDemoSelection();
+  }
 }
 
 function setHidden(el, hidden) {
@@ -261,6 +481,11 @@ function formatMs(value) {
   return `${Math.round(value)}ms`;
 }
 
+function formatScalar(value, digits = 4) {
+  if (!Number.isFinite(value)) return '--';
+  return value.toFixed(digits);
+}
+
 function normalizeRuntimeConfig(raw) {
   if (!raw || typeof raw !== 'object') return null;
   if (raw.runtime && typeof raw.runtime === 'object') return raw.runtime;
@@ -286,6 +511,40 @@ function mergeRuntimeOverrides(base, override) {
   return merged;
 }
 
+function getDiagnosticsDefaultSuite(mode) {
+  return DIAGNOSTICS_DEFAULTS[mode]?.suite || 'inference';
+}
+
+function getDiagnosticsRuntimeConfig() {
+  return state.diagnosticsRuntimeConfig || getRuntimeConfig();
+}
+
+async function refreshDiagnosticsRuntimeConfig(presetId) {
+  const targetPreset = presetId || DEFAULT_RUNTIME_PRESET;
+  const { runtime } = await loadRuntimePreset(targetPreset);
+  const mergedOverride = getMergedRuntimeOverride();
+  const mergedRuntime = mergedOverride ? mergeRuntimeOverrides(runtime, mergedOverride) : runtime;
+  state.diagnosticsRuntimeConfig = mergedRuntime;
+  state.diagnosticsRuntimePresetId = targetPreset;
+  return mergedRuntime;
+}
+
+async function syncDiagnosticsDefaultsForMode(mode) {
+  if (mode !== 'run' && mode !== 'diffusion' && mode !== 'energy' && mode !== 'diagnostics') return;
+  const suiteSelect = $('diagnostics-suite');
+  const presetSelect = $('runtime-preset');
+  const selections = state.diagnosticsSelections[mode] || {};
+  const targetSuite = selections.suite || getDiagnosticsDefaultSuite(mode);
+  if (suiteSelect && targetSuite) {
+    suiteSelect.value = targetSuite;
+  }
+  if (presetSelect) {
+    const targetPreset = selections.preset || DEFAULT_RUNTIME_PRESET;
+    presetSelect.value = targetPreset;
+  }
+  await applySelectedRuntimePreset();
+}
+
 function updateConvertStatus(message, percent) {
   const status = $('convert-status');
   const progress = $('convert-progress');
@@ -308,10 +567,73 @@ function resetConvertStatus() {
   setText(label, 'Ready');
 }
 
+function updateRunStatus(message) {
+  const status = $('run-output-status');
+  if (!status) return;
+  setText(status, message || 'Idle');
+}
+
 function updateDiffusionStatus(message) {
   const status = $('diffusion-output-status');
   if (!status) return;
   setText(status, message || 'Idle');
+}
+
+function clearDiagnosticsOutput() {
+  const container = $('diagnostics-output');
+  const textEl = $('diagnostics-output-text');
+  const canvas = $('diagnostics-output-canvas');
+  if (textEl) textEl.textContent = '';
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    canvas.hidden = true;
+  }
+  if (container) container.hidden = true;
+}
+
+function drawDiagnosticsCanvas(output) {
+  const canvas = $('diagnostics-output-canvas');
+  if (!canvas || !output) return;
+  canvas.width = output.width;
+  canvas.height = output.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const imageData = new ImageData(output.pixels, output.width, output.height);
+  ctx.putImageData(imageData, 0, 0);
+  canvas.hidden = false;
+}
+
+function renderDiagnosticsOutput(result, suite, captureOutput) {
+  const container = $('diagnostics-output');
+  if (!container) return;
+  if (!captureOutput) {
+    clearDiagnosticsOutput();
+    return;
+  }
+  container.hidden = false;
+  const textEl = $('diagnostics-output-text');
+  const output = result?.output ?? null;
+  if (suite === 'diffusion') {
+    if (output && typeof output === 'object' && output.pixels) {
+      if (textEl) textEl.textContent = '';
+      drawDiagnosticsCanvas(output);
+      return;
+    }
+    if (textEl) textEl.textContent = 'No diffusion output captured.';
+    return;
+  }
+  if (suite === 'inference' || suite === 'debug') {
+    if (typeof output === 'string' && output.length > 0) {
+      if (textEl) textEl.textContent = output;
+      return;
+    }
+    if (textEl) textEl.textContent = 'No output captured.';
+    return;
+  }
+  if (textEl) textEl.textContent = 'Output is only captured for debug runs.';
 }
 
 function updateExportStatus(message, percent) {
@@ -386,14 +708,57 @@ function isCompatibleModelType(modelType, mode) {
   if (mode === 'diffusion') {
     return normalized === 'diffusion';
   }
+  if (mode === 'energy') {
+    return normalized === 'energy';
+  }
   if (mode === 'run') {
-    return normalized !== 'diffusion';
+    return normalized !== 'diffusion' && normalized !== 'energy';
   }
   return true;
 }
 
 function isModeModelSelectable(mode) {
-  return mode === 'run' || mode === 'diffusion';
+  return mode === 'run' || mode === 'diffusion' || mode === 'energy';
+}
+
+function getModeModelLabel(mode) {
+  if (mode === 'diffusion') return 'diffusion';
+  if (mode === 'energy') return 'energy';
+  if (mode === 'run') return 'text';
+  return 'local';
+}
+
+async function filterModelsForMode(models, mode) {
+  if (!isModeModelSelectable(mode)) return models;
+  const filtered = [];
+  for (const model of models) {
+    const modelId = model.modelId || model.id;
+    if (!modelId) continue;
+    const modelType = await getModelTypeForId(modelId);
+    if (isCompatibleModelType(modelType, mode)) {
+      filtered.push(model);
+    }
+  }
+  return filtered;
+}
+
+async function registerDownloadedModel(modelId) {
+  if (!modelId) return null;
+  await openModelStore(modelId);
+  const manifestText = await loadManifestFromStore();
+  if (!manifestText) return null;
+  const manifest = parseManifest(manifestText);
+  const entry = {
+    modelId,
+    totalSize: manifest.totalSize,
+    quantization: manifest.quantization,
+    hashAlgorithm: manifest.hashAlgorithm,
+    modelType: manifest.modelType,
+  };
+  if (manifest.modelId && manifest.modelId !== modelId) {
+    entry.sourceModelId = manifest.modelId;
+  }
+  return registerModel(entry);
 }
 
 async function getModelTypeForId(modelId) {
@@ -599,9 +964,9 @@ function updateDiagnosticsGuidance() {
   const verifyBtn = $('diagnostics-verify-btn');
   if (!suiteSelect || !intentEl || !suiteHelp || !requirements) return;
 
-  const suite = suiteSelect.value || 'inference';
+  const suite = suiteSelect.value || getDiagnosticsDefaultSuite(state.uiMode);
   const info = getDiagnosticsSuiteInfo(suite);
-  const runtimeConfig = getRuntimeConfig();
+  const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const modelId = modelSelect?.value || '';
 
@@ -620,54 +985,15 @@ function updateDiagnosticsGuidance() {
 
   if (issues.length > 0) {
     requirements.textContent = issues.join(' ');
-    requirements.classList.remove('muted');
   } else {
     const ready = info.requiresModel ? `Ready. Using model ${modelId}.` : 'Ready. No model required.';
     requirements.textContent = ready;
-    requirements.classList.add('muted');
   }
 
   const canVerify = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
   const canRun = canVerify && (!info.requiresModel || Boolean(modelId));
   if (verifyBtn) verifyBtn.disabled = !canVerify;
   if (runBtn) runBtn.disabled = !canRun;
-}
-
-function renderModelList(models) {
-  const list = $('model-list');
-  if (!list) return;
-  list.innerHTML = '';
-  if (!models || models.length === 0) {
-    list.textContent = 'No local models';
-    list.classList.add('muted');
-    return;
-  }
-  list.classList.remove('muted');
-  for (const model of models) {
-    const item = document.createElement('div');
-    item.className = 'model-item';
-    const header = document.createElement('div');
-    header.className = 'model-section-header';
-    const name = document.createElement('span');
-    name.className = 'type-label';
-    name.textContent = model.modelId || model.id || 'unknown';
-    const meta = document.createElement('span');
-    meta.className = 'type-caption muted';
-    meta.textContent = model.quantization || model.hashAlgorithm || model.backend || '';
-    header.appendChild(name);
-    header.appendChild(meta);
-    const detail = document.createElement('span');
-    detail.className = 'type-caption muted';
-    const sizeLabel = Number.isFinite(model.totalSize) ? formatBytes(model.totalSize) : 'Size: --';
-    const backendLabel = model.backend ? ` - ${model.backend}` : '';
-    detail.textContent = `${sizeLabel}${backendLabel}`;
-    item.appendChild(header);
-    item.appendChild(detail);
-    item.addEventListener('click', () => {
-      selectDiagnosticsModel(model.modelId || model.id || '');
-    });
-    list.appendChild(item);
-  }
 }
 
 function updateSidebarLayout(models) {
@@ -711,38 +1037,31 @@ async function updateStorageInfo() {
   }
 }
 
-async function scanOpfsDirectory(dirHandle) {
-  let totalBytes = 0;
-  let fileCount = 0;
-  let shardCount = 0;
-  let hasManifest = false;
+function getRegistryModelId(entry) {
+  if (!entry) return '';
+  return entry.modelId || entry.id || '';
+}
 
-  for await (const entry of dirHandle.values()) {
-    if (entry.kind === 'file') {
-      const file = await entry.getFile();
-      totalBytes += file.size;
-      fileCount += 1;
-      if (entry.name === 'manifest.json') {
-        hasManifest = true;
-      }
-      if (entry.name.startsWith('shard_') && entry.name.endsWith('.bin')) {
-        shardCount += 1;
-      }
-    } else if (entry.kind === 'directory') {
-      const child = await scanOpfsDirectory(entry);
-      totalBytes += child.totalBytes;
-      fileCount += child.fileCount;
-      shardCount += child.shardCount;
-      hasManifest = hasManifest || child.hasManifest;
+function getRegistryTags(entry) {
+  if (!entry) return [];
+  const tags = [];
+  const quant = entry.quantization ? String(entry.quantization).toLowerCase() : '';
+  if (quant) {
+    if (quant === 'f16' || quant === 'bf16' || quant === 'f32') {
+      tags.push(`weights:${quant}`);
+    } else if (
+      quant.startsWith('w') &&
+      (quant.endsWith('f16') || quant.endsWith('bf16') || quant.endsWith('f32'))
+    ) {
+      tags.push(`weights:${quant.slice(1)}`);
+    } else {
+      tags.push(`quant:${quant}`);
     }
   }
-
-  return {
-    totalBytes,
-    fileCount,
-    shardCount,
-    hasManifest,
-  };
+  if (entry.hashAlgorithm) {
+    tags.push(String(entry.hashAlgorithm));
+  }
+  return tags;
 }
 
 function setStorageInspectorStatus(message) {
@@ -758,11 +1077,12 @@ async function handleDeleteStorageEntry(entry) {
     return;
   }
   const sizeLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : 'unknown size';
-  const confirmed = window.confirm(`Delete ${entry.modelId} (${sizeLabel}) from OPFS?`);
+  const backendLabel = entry.backend ? entry.backend.toUpperCase() : 'storage';
+  const confirmed = window.confirm(`Delete ${entry.modelId} (${sizeLabel}) from ${backendLabel}?`);
   if (!confirmed) return;
 
   try {
-    await deleteModel(entry.modelId);
+    await deleteStorageEntry(entry);
   } catch (error) {
     log.warn('DopplerDemo', `Failed to delete ${entry.modelId}: ${error.message}`);
   }
@@ -793,145 +1113,220 @@ async function refreshStorageInspector() {
   setStorageInspectorStatus('Scanning storage...');
 
   const runtime = getRuntimeConfig();
-  const opfsRootDir = runtime?.loading?.opfsPath?.opfsRootDir || 'doppler-models';
-  backendEl.textContent = navigator.storage?.getDirectory
-    ? `OPFS: ${opfsRootDir}`
-    : 'OPFS: unavailable';
 
-  let registryIds = new Set();
+  let registryEntries = [];
+  const registryIds = new Set();
+  const registryById = new Map();
   try {
-    const registry = await listRegisteredModels();
-    registryIds = new Set(
-      registry.map((entry) => entry.modelId || entry.id).filter(Boolean)
-    );
+    registryEntries = await listRegisteredModels();
+    for (const entry of registryEntries) {
+      const id = getRegistryModelId(entry);
+      if (!id) continue;
+      registryIds.add(id);
+      registryById.set(id, entry);
+    }
   } catch (error) {
     log.warn('DopplerDemo', `Registry unavailable: ${error.message}`);
   }
 
   try {
-    if (!navigator.storage?.getDirectory) {
-      summaryEl.textContent = '--';
-      setStorageInspectorStatus('OPFS not available in this browser.');
-      return;
+    const inventory = await listStorageInventory();
+    const storageEntries = inventory.entries.map((entry) => ({
+      ...entry,
+      registered: registryIds.has(entry.modelId),
+      registryEntry: registryById.get(entry.modelId) || null,
+    }));
+    const storageIds = new Set(storageEntries.map((entry) => entry.modelId));
+    const registryOnlyEntries = [];
+    for (const [modelId, registryEntry] of registryById.entries()) {
+      if (storageIds.has(modelId)) continue;
+      const totalBytes = Number.isFinite(registryEntry?.totalSize)
+        ? registryEntry.totalSize
+        : Number.NaN;
+      registryOnlyEntries.push({
+        modelId,
+        backend: registryEntry?.backend || 'unknown',
+        root: '',
+        totalBytes,
+        fileCount: 0,
+        shardCount: 0,
+        hasManifest: false,
+        registered: true,
+        missingStorage: true,
+        registryEntry,
+      });
+    }
+    const entries = [...storageEntries, ...registryOnlyEntries];
+    const systemEntries = inventory.systemEntries;
+    const opfsRoots = inventory.opfsRoots;
+    const backendParts = [];
+
+    if (inventory.backendAvailability.opfs) {
+      backendParts.push(
+        opfsRoots.length ? `OPFS: ${opfsRoots.join(', ')}` : 'OPFS: empty'
+      );
+    } else {
+      backendParts.push('OPFS: unavailable');
     }
 
-    const root = await navigator.storage.getDirectory();
-    let opfsRoot = null;
-    try {
-      opfsRoot = await root.getDirectoryHandle(opfsRootDir);
-    } catch (error) {
-      summaryEl.textContent = '--';
-    setStorageInspectorStatus('No OPFS storage found for D4DA.');
-      return;
+    const idbName = runtime?.loading?.storage?.backend?.indexeddb?.dbName || 'indexeddb';
+    if (inventory.backendAvailability.indexeddb) {
+      backendParts.push(`IDB: ${idbName}`);
+    } else {
+      backendParts.push('IDB: unavailable');
     }
+    backendEl.textContent = backendParts.join(' • ');
 
-    const entries = [];
-    const systemEntries = [];
-    for await (const entry of opfsRoot.values()) {
-      if (entry.kind !== 'directory') continue;
-      const stats = await scanOpfsDirectory(entry);
-      if (entry.name === 'reports') {
-        systemEntries.push({
-          label: 'Reports',
-          modelId: entry.name,
-          totalBytes: stats.totalBytes,
-          fileCount: stats.fileCount,
-        });
-      } else {
-        entries.push({
-          modelId: entry.name,
-          totalBytes: stats.totalBytes,
-          fileCount: stats.fileCount,
-          shardCount: stats.shardCount,
-          hasManifest: stats.hasManifest,
-          registered: registryIds.has(entry.name),
-        });
+    entries.sort((a, b) => {
+      const aMissing = a.missingStorage ? 1 : 0;
+      const bMissing = b.missingStorage ? 1 : 0;
+      if (aMissing !== bMissing) return aMissing - bMissing;
+      const aSize = Number.isFinite(a.totalBytes) ? a.totalBytes : 0;
+      const bSize = Number.isFinite(b.totalBytes) ? b.totalBytes : 0;
+      return bSize - aSize;
+    });
+
+    const totals = new Map();
+    const counts = new Map();
+    for (const entry of storageEntries) {
+      const backend = entry.backend || 'unknown';
+      counts.set(backend, (counts.get(backend) || 0) + 1);
+      if (Number.isFinite(entry.totalBytes)) {
+        totals.set(backend, (totals.get(backend) || 0) + entry.totalBytes);
       }
     }
 
-    entries.sort((a, b) => b.totalBytes - a.totalBytes);
-
-    const totalBytes = entries.reduce((sum, entry) => sum + entry.totalBytes, 0);
     const systemBytes = systemEntries.reduce((sum, entry) => sum + entry.totalBytes, 0);
     const summaryParts = [];
     if (entries.length) {
       summaryParts.push(`Models: ${entries.length}`);
-      summaryParts.push(`OPFS: ${formatBytes(totalBytes)}`);
+    }
+    if (registryOnlyEntries.length) {
+      summaryParts.push(`Registry-only: ${registryOnlyEntries.length}`);
+    }
+    const orderedBackends = ['opfs', 'indexeddb', 'memory', 'unknown'];
+    for (const backend of orderedBackends) {
+      const count = counts.get(backend);
+      if (!count) continue;
+      const bytes = totals.get(backend);
+      const label = backend === 'indexeddb' ? 'IDB' : backend.toUpperCase();
+      if (Number.isFinite(bytes) && bytes > 0) {
+        summaryParts.push(`${label}: ${formatBytes(bytes)} (${count})`);
+      } else {
+        summaryParts.push(`${label}: ${count}`);
+      }
     }
     if (systemEntries.length) {
-      summaryParts.push(`Reports: ${formatBytes(systemBytes)}`);
+      summaryParts.push(`System: ${formatBytes(systemBytes)}`);
     }
     summaryEl.textContent = summaryParts.length
       ? summaryParts.join(' • ')
-      : 'No OPFS models found';
+      : 'No models found';
 
     if (!entries.length) {
-      listEl.innerHTML = '<div class="type-caption muted">No OPFS models found.</div>';
+      listEl.innerHTML = '<div class="type-caption">No models found.</div>';
       setStorageInspectorStatus('Ready');
-      return;
-    }
+    } else {
+      for (const entry of entries) {
+        const row = document.createElement('div');
+        row.className = 'storage-entry';
+        if (entry.modelId === state.activeModelId) {
+          row.classList.add('is-active');
+        }
+        if (entry.missingStorage) {
+          row.classList.add('is-missing');
+        }
 
-    for (const entry of entries) {
-      const row = document.createElement('div');
-      row.className = 'storage-entry';
-      if (entry.modelId === state.activeModelId) {
-        row.classList.add('is-active');
+        const main = document.createElement('div');
+        main.className = 'storage-entry-main';
+
+        const title = document.createElement('div');
+        title.className = 'storage-entry-title';
+
+        const name = document.createElement('span');
+        name.className = 'type-caption';
+        name.textContent = entry.modelId;
+        title.appendChild(name);
+
+        const backendTag = document.createElement('span');
+        backendTag.className = 'storage-tag';
+        backendTag.textContent = entry.backend === 'indexeddb' ? 'idb' : entry.backend;
+        title.appendChild(backendTag);
+
+        const tag = document.createElement('span');
+        tag.className = `storage-tag${entry.registered ? '' : ' orphan'}`;
+        tag.textContent = entry.registered ? 'registered' : 'orphan';
+        title.appendChild(tag);
+
+        const registryTags = getRegistryTags(entry.registryEntry);
+        for (const registryTag of registryTags) {
+          const registryTagEl = document.createElement('span');
+          registryTagEl.className = 'storage-tag';
+          registryTagEl.textContent = registryTag;
+          title.appendChild(registryTagEl);
+        }
+
+        if (entry.missingStorage) {
+          const missingStorage = document.createElement('span');
+          missingStorage.className = 'storage-tag missing';
+          missingStorage.textContent = 'registry only';
+          title.appendChild(missingStorage);
+        }
+
+        if (!entry.hasManifest) {
+          const missing = document.createElement('span');
+          missing.className = 'storage-tag missing';
+          missing.textContent = 'no manifest';
+          title.appendChild(missing);
+        }
+
+        main.appendChild(title);
+
+        const shardLabel = entry.missingStorage
+          ? 'registry only'
+          : entry.shardCount
+            ? `${entry.shardCount} shards`
+            : `${entry.fileCount} files`;
+        const detail = document.createElement('span');
+        detail.className = 'type-caption';
+        const rootLabel = entry.root ? ` • root: ${entry.root}` : '';
+        const sizeBytes = Number.isFinite(entry.totalBytes)
+          ? entry.totalBytes
+          : Number.isFinite(entry.registryEntry?.totalSize)
+            ? entry.registryEntry.totalSize
+            : Number.NaN;
+        const sizeLabel = Number.isFinite(sizeBytes)
+          ? formatBytes(sizeBytes)
+          : 'unknown size';
+        detail.textContent = entry.missingStorage
+          ? `${sizeLabel} • ${shardLabel}`
+          : `${sizeLabel} • ${shardLabel}${rootLabel}`;
+        main.appendChild(detail);
+
+        row.appendChild(main);
+
+        if (!entry.missingStorage) {
+          const actions = document.createElement('div');
+          actions.className = 'storage-entry-actions';
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn btn-small';
+          deleteBtn.type = 'button';
+          deleteBtn.textContent = 'Delete';
+          if (entry.modelId === state.activeModelId && state.activePipeline) {
+            deleteBtn.disabled = true;
+            deleteBtn.title = 'Unload the active model before deleting.';
+          }
+          deleteBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            await handleDeleteStorageEntry(entry);
+          });
+          actions.appendChild(deleteBtn);
+          row.appendChild(actions);
+          row.addEventListener('click', () => selectDiagnosticsModel(entry.modelId));
+        }
+        listEl.appendChild(row);
       }
-
-      const main = document.createElement('div');
-      main.className = 'storage-entry-main';
-
-      const title = document.createElement('div');
-      title.className = 'storage-entry-title';
-
-      const name = document.createElement('span');
-      name.className = 'type-caption';
-      name.textContent = entry.modelId;
-      title.appendChild(name);
-
-      const tag = document.createElement('span');
-      tag.className = `storage-tag${entry.registered ? '' : ' orphan'}`;
-      tag.textContent = entry.registered ? 'registered' : 'orphan';
-      title.appendChild(tag);
-
-      if (!entry.hasManifest) {
-        const missing = document.createElement('span');
-        missing.className = 'storage-tag missing';
-        missing.textContent = 'no manifest';
-        title.appendChild(missing);
-      }
-
-      main.appendChild(title);
-
-      const shardLabel = entry.shardCount
-        ? `${entry.shardCount} shards`
-        : `${entry.fileCount} files`;
-      const detail = document.createElement('span');
-      detail.className = 'type-caption muted';
-      detail.textContent = `${formatBytes(entry.totalBytes)} • ${shardLabel}`;
-      main.appendChild(detail);
-
-      const actions = document.createElement('div');
-      actions.className = 'storage-entry-actions';
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn btn-small';
-      deleteBtn.type = 'button';
-      deleteBtn.textContent = 'Delete';
-      if (entry.modelId === state.activeModelId && state.activePipeline) {
-        deleteBtn.disabled = true;
-        deleteBtn.title = 'Unload the active model before deleting.';
-      }
-      deleteBtn.addEventListener('click', async (event) => {
-        event.stopPropagation();
-        await handleDeleteStorageEntry(entry);
-      });
-      actions.appendChild(deleteBtn);
-
-      row.appendChild(main);
-      row.appendChild(actions);
-      row.addEventListener('click', () => selectDiagnosticsModel(entry.modelId));
-      listEl.appendChild(row);
     }
 
     if (systemEntries.length) {
@@ -959,8 +1354,9 @@ async function refreshStorageInspector() {
         main.appendChild(title);
 
         const detail = document.createElement('span');
-        detail.className = 'type-caption muted';
-        detail.textContent = `${formatBytes(entry.totalBytes)} • ${entry.fileCount} files`;
+        detail.className = 'type-caption';
+        const systemRoot = entry.root ? ` • root: ${entry.root}` : '';
+        detail.textContent = `${formatBytes(entry.totalBytes)} • ${entry.fileCount} files${systemRoot}`;
         main.appendChild(detail);
 
         row.appendChild(main);
@@ -988,20 +1384,20 @@ async function refreshModelList() {
   } catch (error) {
     log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
   }
-  if (!models.length) {
+  const filteredModels = await filterModelsForMode(models, state.uiMode);
+  if (!filteredModels.length) {
     const opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'No local models';
+    opt.textContent = `No ${getModeModelLabel(state.uiMode)} models`;
     modelSelect.appendChild(opt);
   } else {
-    for (const model of models) {
+    for (const model of filteredModels) {
       const opt = document.createElement('option');
       opt.value = model.modelId || model.id || '';
       opt.textContent = model.modelId || model.id || 'unknown';
       modelSelect.appendChild(opt);
     }
   }
-  renderModelList(models);
   updateSidebarLayout(models);
   await updateStorageInfo();
   await syncModelForMode(state.uiMode);
@@ -1082,17 +1478,109 @@ function updatePerformancePanel(snapshot) {
   const prefillEl = $('stat-prefill');
   const decodeEl = $('stat-decode');
   const tokensEl = $('stat-tokens');
+  const mode = getStatsMode();
 
   const metrics = state.lastMetrics || {};
-  const liveTps = state.chatGenerating ? metrics.liveTokensPerSec : null;
+  const liveTps = state.runGenerating ? metrics.liveTokensPerSec : null;
   const tps = Number.isFinite(liveTps)
     ? liveTps
     : (Number.isFinite(metrics.tokensPerSec)
       ? metrics.tokensPerSec
       : (Number.isFinite(metrics.medianTokensPerSec) ? metrics.medianTokensPerSec : null));
+  const stats = state.lastInferenceStats || {};
+  if (mode === 'energy') {
+    setStatLabels({
+      tps: 'Steps/sec',
+      ttft: 'Steps',
+      prefill: 'Avg step',
+      e2e: 'Energy',
+      decode: 'Total',
+      tokens: 'Shape',
+    });
+
+    const steps = Number.isFinite(stats.steps) ? stats.steps : null;
+    const totalMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : null;
+    const energy = Number.isFinite(stats.energy) ? stats.energy : null;
+    const avgStepMs = (steps != null && totalMs && totalMs > 0) ? totalMs / steps : null;
+    const stepsPerSec = (steps != null && totalMs && totalMs > 0)
+      ? steps / (totalMs / 1000)
+      : null;
+
+    setText(tpsEl, stepsPerSec != null ? stepsPerSec.toFixed(2) : '--');
+    setText(ttftEl, steps != null ? String(steps) : '--');
+    setText(prefillEl, avgStepMs != null ? formatMs(avgStepMs) : '--');
+    setText(decodeEl, formatMs(totalMs));
+    setText(e2eEl, energy != null ? formatScalar(energy, 6) : '--');
+
+    const request = state.lastEnergyRequest || {};
+    const shape = Array.isArray(request.shape) ? request.shape : null;
+    if (shape && shape.length) {
+      setText(tokensEl, shape.join(' x '));
+    } else if (
+      Number.isFinite(request.height) &&
+      Number.isFinite(request.width) &&
+      Number.isFinite(request.channels)
+    ) {
+      setText(tokensEl, `${request.height}x${request.width}x${request.channels}`);
+    } else {
+      setText(tokensEl, '--');
+    }
+    return;
+  }
+  if (mode === 'diffusion') {
+    setStatLabels({
+      tps: 'Steps/sec',
+      ttft: 'Prompt',
+      prefill: 'Denoise',
+      e2e: 'Total',
+      decode: 'VAE',
+      tokens: 'Resolution / Steps',
+    });
+
+    const steps = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
+    const denoiseMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+    const promptMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
+    const vaeMs = Number.isFinite(stats.vaeTimeMs) ? stats.vaeTimeMs : null;
+    const totalMs = Number.isFinite(stats.totalTimeMs)
+      ? stats.totalTimeMs
+      : (Number.isFinite(promptMs) && Number.isFinite(denoiseMs)
+        ? promptMs + denoiseMs + (Number.isFinite(vaeMs) ? vaeMs : 0)
+        : null);
+    const stepsPerSec = (steps != null && denoiseMs && denoiseMs > 0)
+      ? steps / (denoiseMs / 1000)
+      : null;
+
+    setText(tpsEl, stepsPerSec != null ? stepsPerSec.toFixed(2) : '--');
+    setText(ttftEl, formatMs(promptMs));
+    setText(prefillEl, formatMs(denoiseMs));
+    setText(decodeEl, formatMs(vaeMs));
+    setText(e2eEl, formatMs(totalMs));
+
+    const request = state.lastDiffusionRequest || {};
+    const width = Number.isFinite(request.width) ? request.width : null;
+    const height = Number.isFinite(request.height) ? request.height : null;
+    const stepsLabel = steps != null ? steps : '--';
+    if (width && height) {
+      setText(tokensEl, `${width}x${height} / ${stepsLabel}`);
+    } else if (steps != null) {
+      setText(tokensEl, `-- / ${stepsLabel}`);
+    } else {
+      setText(tokensEl, '--');
+    }
+    return;
+  }
+
+  setStatLabels({
+    tps: 'Tokens/sec',
+    ttft: 'TTFT',
+    prefill: 'Prefill',
+    e2e: 'End-to-end',
+    decode: 'Decode',
+    tokens: 'Prompt / Gen',
+  });
+
   setText(tpsEl, tps !== null ? `${tps.toFixed(2)}` : '--');
 
-  const stats = state.lastInferenceStats || {};
   const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
   const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
   const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime;
@@ -1144,6 +1632,7 @@ function updatePerformancePanel(snapshot) {
       setText(tokensEl, `${promptLabel} / ${genLabel}`);
     }
   }
+
 }
 
 function updateMemoryPanel(snapshot) {
@@ -1187,7 +1676,7 @@ function updateMemoryPanel(snapshot) {
     labelList.innerHTML = '';
     if (!labelStats || labelStats.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'type-caption muted';
+      empty.className = 'type-caption';
       empty.textContent = 'No tracked buffers yet.';
       labelList.appendChild(empty);
     } else {
@@ -1288,72 +1777,95 @@ function getSelectedModelId() {
   return null;
 }
 
-function setChatGenerating(isGenerating) {
-  state.chatGenerating = Boolean(isGenerating);
-  const chatInput = $('chat-input');
-  const sendBtn = $('send-btn');
-  const stopBtn = $('stop-btn');
-  if (chatInput) chatInput.disabled = state.chatGenerating || state.chatLoading;
-  if (sendBtn) sendBtn.disabled = state.chatGenerating || state.chatLoading;
-  if (stopBtn) setHidden(stopBtn, !state.chatGenerating);
+function syncRunControls() {
+  const runPrompt = $('run-prompt');
+  const runGenerate = $('run-generate-btn');
+  const runStop = $('run-stop-btn');
+  const runClear = $('run-clear-btn');
+  const temperatureInput = $('temperature-input');
+  const topPInput = $('top-p-input');
+  const topKInput = $('top-k-input');
+  const maxTokensInput = $('max-tokens-input');
+  const disabled = state.runGenerating || state.runLoading;
+  if (runPrompt) runPrompt.disabled = disabled;
+  if (runGenerate) runGenerate.disabled = disabled;
+  if (runClear) runClear.disabled = disabled;
+  if (temperatureInput) temperatureInput.disabled = disabled;
+  if (topPInput) topPInput.disabled = disabled;
+  if (topKInput) topKInput.disabled = disabled;
+  if (maxTokensInput) maxTokensInput.disabled = disabled;
+  if (runStop) setHidden(runStop, !state.runGenerating);
+}
+
+function setRunGenerating(isGenerating) {
+  state.runGenerating = Boolean(isGenerating);
+  syncRunControls();
   updateStatusIndicator();
 }
 
-function setChatLoading(isLoading) {
-  state.chatLoading = Boolean(isLoading);
-  const chatInput = $('chat-input');
-  const sendBtn = $('send-btn');
-  if (chatInput) chatInput.disabled = state.chatGenerating || state.chatLoading;
-  if (sendBtn) sendBtn.disabled = state.chatGenerating || state.chatLoading;
+function setRunLoading(isLoading) {
+  state.runLoading = Boolean(isLoading);
+  syncRunControls();
   updateStatusIndicator();
-}
-
-function scrollChatToBottom() {
-  const container = $('chat-messages');
-  if (!container) return;
-  container.scrollTop = container.scrollHeight;
-}
-
-function appendChatMessage(role, content) {
-  const container = $('chat-messages');
-  if (!container) return null;
-  const message = document.createElement('div');
-  message.className = `message message-${role}`;
-  const label = document.createElement('div');
-  label.className = 'message-role type-label';
-  label.textContent = role === 'assistant' ? 'Assistant' : 'User';
-  const body = document.createElement('div');
-  body.className = 'message-content';
-  body.textContent = content || '';
-  message.appendChild(label);
-  message.appendChild(body);
-  container.appendChild(message);
-  scrollChatToBottom();
-  return body;
-}
-
-function clearChatMessages() {
-  const container = $('chat-messages');
-  if (container) {
-    container.innerHTML = '';
-  }
-  state.chatMessages = [];
 }
 
 function renderRunLog() {
   const container = $('run-log-rows');
   if (!container) return;
+  const mode = getStatsMode();
   container.innerHTML = '';
-  for (const entry of state.runLog) {
+  const entries = state.runLog.filter((entry) => entry.mode === mode);
+  if (mode === 'diffusion') {
+    setRunLogLabels({
+      ttft: 'Prompt',
+      prefill: 'Denoise',
+      decode: 'VAE',
+      e2e: 'Total',
+    });
+  } else if (mode === 'energy') {
+    setRunLogLabels({
+      ttft: 'Steps',
+      prefill: 'Avg step',
+      decode: 'Total',
+      e2e: 'Energy',
+    });
+  } else {
+    setRunLogLabels({
+      ttft: 'TTFT',
+      prefill: 'Prefill',
+      decode: 'Decode',
+      e2e: 'E2E',
+    });
+  }
+  for (const entry of entries) {
     const row = document.createElement('div');
     row.className = 'run-log-row';
-    const cells = [
-      entry.label,
-      formatMs(entry.ttftMs),
-      formatRate(entry.prefillRate),
-      formatRate(entry.decodeRate),
-      formatRate(entry.e2eRate),
-    ];
+    let cells;
+    if (mode === 'diffusion') {
+      cells = [
+        entry.label,
+        formatMs(entry.promptMs),
+        formatMs(entry.denoiseMs),
+        formatMs(entry.vaeMs),
+        formatMs(entry.totalMs),
+      ];
+    } else if (mode === 'energy') {
+      cells = [
+        entry.label,
+        entry.steps != null ? String(entry.steps) : '--',
+        formatMs(entry.avgStepMs),
+        formatMs(entry.totalMs),
+        entry.energy != null ? formatScalar(entry.energy, 6) : '--',
+      ];
+    } else {
+      cells = [
+        entry.label,
+        formatMs(entry.ttftMs),
+        formatRate(entry.prefillRate),
+        formatRate(entry.decodeRate),
+        formatRate(entry.e2eRate),
+      ];
+    }
     for (const value of cells) {
       const cell = document.createElement('span');
       cell.textContent = value;
@@ -1363,96 +1875,120 @@ function renderRunLog() {
   }
 }
 
-function recordRunLog(stats, label) {
+function recordRunLog(stats, label, modeOverride) {
   if (!stats) return;
+  const inferredMode = Number.isFinite(stats.vaeTimeMs)
+    ? 'diffusion'
+    : (Number.isFinite(stats.energy) || Array.isArray(stats.energyHistory) ? 'energy' : 'text');
+  const mode = modeOverride || inferredMode;
   const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
   const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
   const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
   const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+  const vaeTime = Number.isFinite(stats.vaeTimeMs) ? stats.vaeTimeMs : null;
   const totalTime = Number.isFinite(stats.totalTimeMs)
     ? stats.totalTimeMs
     : ((prefillTime && decodeTime) ? prefillTime + decodeTime : null);
-  const entry = {
-    label,
-    ttftMs: Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime,
-    prefillRate: (prefillTokens != null && prefillTime && prefillTime > 0)
-      ? prefillTokens / (prefillTime / 1000)
-      : null,
-    decodeRate: (decodeTokens != null && decodeTime && decodeTime > 0)
-      ? decodeTokens / (decodeTime / 1000)
-      : null,
-    e2eRate: (decodeTokens != null && totalTime && totalTime > 0)
-      ? decodeTokens / (totalTime / 1000)
-      : null,
-  };
+  let entry = null;
+  if (mode === 'diffusion') {
+    entry = {
+      mode,
+      label,
+      promptMs: prefillTime,
+      denoiseMs: decodeTime,
+      vaeMs: vaeTime,
+      totalMs: Number.isFinite(stats.totalTimeMs)
+        ? stats.totalTimeMs
+        : ((prefillTime && decodeTime)
+          ? prefillTime + decodeTime + (Number.isFinite(vaeTime) ? vaeTime : 0)
+          : null),
+    };
+  } else if (mode === 'energy') {
+    const steps = Number.isFinite(stats.steps) ? stats.steps : null;
+    const energy = Number.isFinite(stats.energy) ? stats.energy : null;
+    const totalMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : null;
+    const avgStepMs = (steps != null && totalMs && totalMs > 0) ? totalMs / steps : null;
+    entry = {
+      mode,
+      label,
+      steps,
+      avgStepMs,
+      totalMs,
+      energy,
+    };
+  } else {
+    entry = {
+      mode,
+      label,
+      ttftMs: Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime,
+      prefillRate: (prefillTokens != null && prefillTime && prefillTime > 0)
+        ? prefillTokens / (prefillTime / 1000)
+        : null,
+      decodeRate: (decodeTokens != null && decodeTime && decodeTime > 0)
+        ? decodeTokens / (decodeTime / 1000)
+        : null,
+      e2eRate: (decodeTokens != null && totalTime && totalTime > 0)
+        ? decodeTokens / (totalTime / 1000)
+        : null,
+    };
+  }
   state.runLog.unshift(entry);
   state.runLog = state.runLog.slice(0, 8);
   renderRunLog();
 }
 
-function buildSamplingOverride() {
-  const tempInput = $('temperature-input');
-  const topPInput = $('top-p-input');
-  const topKInput = $('top-k-input');
-  const temperature = Number.parseFloat(tempInput?.value ?? '');
-  const topP = Number.parseFloat(topPInput?.value ?? '');
-  const topK = Number.parseInt(topKInput?.value ?? '', 10);
-  const sampling = {};
-  let hasValue = false;
-  if (Number.isFinite(temperature)) {
-    sampling.temperature = Math.max(0, temperature);
-    hasValue = true;
-  }
-  if (Number.isFinite(topP)) {
-    sampling.topP = Math.max(0, Math.min(1, topP));
-    hasValue = true;
-  }
-  if (Number.isFinite(topK)) {
-    sampling.topK = Math.max(0, topK);
-    hasValue = true;
-  }
-  if (!hasValue) return null;
-  return {
-    inference: {
-      sampling,
-    },
-  };
+function readOptionalNumber(el, { integer = false } = {}) {
+  const raw = el?.value;
+  if (raw === '' || raw == null) return undefined;
+  const parsed = integer ? Number.parseInt(raw, 10) : Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function syncSamplingInputsFromRuntime() {
-  if (state.runtimeSamplingOverride) return;
-  const tempInput = $('temperature-input');
-  const topPInput = $('top-p-input');
-  const topKInput = $('top-k-input');
-  if (!tempInput || !topPInput || !topKInput) return;
-  const sampling = getRuntimeConfig().inference?.sampling || {};
-  state.samplingSyncing = true;
-  tempInput.value = Number.isFinite(sampling.temperature) ? String(sampling.temperature) : '';
-  topPInput.value = Number.isFinite(sampling.topP) ? String(sampling.topP) : '';
-  topKInput.value = Number.isFinite(sampling.topK) ? String(sampling.topK) : '';
-  state.samplingSyncing = false;
+function formatAutoValue(value, { integer = false } = {}) {
+  if (!Number.isFinite(value)) return '--';
+  if (integer) return `${Math.round(value)}`;
+  const rounded = Math.round(value * 1000) / 1000;
+  return `${rounded}`;
 }
 
-function applyRunRuntimeConfig() {
-  const base = state.runtimeBaseConfig || getRuntimeConfig();
-  const merged = state.runtimeSamplingOverride
-    ? mergeRuntimeOverrides(base, state.runtimeSamplingOverride)
-    : base;
-  setRuntimeConfig(merged);
-  syncSamplingInputsFromRuntime();
-  updateDiagnosticsGuidance();
+function setRunAutoLabel(inputId, labelId, value, options) {
+  const input = $(inputId);
+  const label = $(labelId);
+  if (!label) return;
+  const hasOverride = input?.value != null && input.value !== '';
+  const prefix = hasOverride ? 'default' : 'auto';
+  label.textContent = `${prefix}: ${formatAutoValue(value, options)}`;
 }
 
-function applySamplingOverrideFromInputs() {
-  if (state.samplingSyncing) return;
-  const override = buildSamplingOverride();
-  state.runtimeSamplingOverride = override;
-  state.runtimeSamplingLabel = override ? 'sampling' : null;
-  if (state.uiMode === 'diagnostics') {
-    applySelectedRuntimePreset();
-  } else {
-    applyRunRuntimeConfig();
+function updateRunAutoLabels() {
+  const runtime = getRuntimeConfig();
+  const sampling = runtime?.inference?.sampling ?? {};
+  const batching = runtime?.inference?.batching ?? {};
+  setRunAutoLabel('temperature-input', 'temperature-auto', sampling.temperature);
+  setRunAutoLabel('top-p-input', 'top-p-auto', sampling.topP);
+  setRunAutoLabel('top-k-input', 'top-k-auto', sampling.topK, { integer: true });
+  setRunAutoLabel('max-tokens-input', 'max-tokens-auto', batching.maxTokens, { integer: true });
+}
+
+function buildRunGenerateOptions() {
+  const temperature = readOptionalNumber($('temperature-input'));
+  const topP = readOptionalNumber($('top-p-input'));
+  const topK = readOptionalNumber($('top-k-input'), { integer: true });
+  const maxTokens = readOptionalNumber($('max-tokens-input'), { integer: true });
+  const options = {};
+  if (temperature != null) {
+    options.temperature = Math.max(0, temperature);
   }
+  if (topP != null) {
+    options.topP = Math.max(0, Math.min(1, topP));
+  }
+  if (topK != null) {
+    options.topK = Math.max(0, topK);
+  }
+  if (maxTokens != null && maxTokens > 0) {
+    options.maxTokens = Math.max(1, maxTokens);
+  }
+  return options;
 }
 
 function showProgressOverlay(title) {
@@ -1510,10 +2046,10 @@ async function loadPipelineFromStorage(modelId) {
   });
 }
 
-async function ensureChatPipeline() {
+async function ensureRunPipeline() {
   const modelId = getSelectedModelId();
   if (!modelId) {
-    throw new Error('Select a model before chatting');
+    throw new Error('Select a model before generating');
   }
   if (state.activePipeline && state.activeModelId === modelId) {
     return state.activePipeline;
@@ -1522,7 +2058,7 @@ async function ensureChatPipeline() {
     await unloadActivePipeline();
   }
   showProgressOverlay('Loading Model');
-  setChatLoading(true);
+  setRunLoading(true);
   try {
     const pipeline = await loadPipelineFromStorage(modelId);
     state.activePipeline = pipeline;
@@ -1540,7 +2076,7 @@ async function ensureChatPipeline() {
     return pipeline;
   } finally {
     hideProgressOverlay();
-    setChatLoading(false);
+    setRunLoading(false);
   }
 }
 
@@ -1610,6 +2146,7 @@ async function handleDiffusionRun() {
     width: widthEl?.value ? Number(widthEl.value) : undefined,
     height: heightEl?.value ? Number(heightEl.value) : undefined,
   };
+  state.lastDiffusionRequest = { ...request };
 
   updateDiffusionStatus('Preparing...');
   state.diffusionGenerating = true;
@@ -1624,6 +2161,13 @@ async function handleDiffusionRun() {
     }
     updateDiffusionStatus('Generating...');
     const result = await pipeline.generate(request);
+    if (result) {
+      state.lastDiffusionRequest = {
+        ...state.lastDiffusionRequest,
+        width: result.width,
+        height: result.height,
+      };
+    }
     if (!Number.isFinite(result?.width) || result.width <= 0 || !Number.isFinite(result?.height) || result.height <= 0) {
       throw new Error('Diffusion output dimensions are invalid.');
     }
@@ -1658,38 +2202,576 @@ function handleDiffusionClear() {
   updateDiffusionStatus('Idle');
 }
 
-async function handleChatSend() {
-  if (state.chatGenerating || state.chatLoading) return;
-  const input = $('chat-input');
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
+function updateEnergyStatus(message) {
+  const status = $('energy-output-status');
+  if (!status) return;
+  setText(status, message || 'Idle');
+}
 
-  appendChatMessage('user', text);
-  state.chatMessages.push({ role: 'user', content: text });
-  input.value = '';
+function clearEnergyChart() {
+  const canvas = $('energy-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
 
-  const assistantEl = appendChatMessage('assistant', '');
-  const messageIndex = state.chatMessages.length;
-  state.chatMessages.push({ role: 'assistant', content: '' });
+function getEnergyDemoById(id) {
+  return ENERGY_DEMOS.find((demo) => demo.id === id) || null;
+}
 
+function setEnergyMetricLabels(problem) {
+  const labels = ENERGY_METRIC_LABELS[problem] || ENERGY_METRIC_LABELS.quintel;
+  setText($('energy-stat-label-symmetry'), labels.symmetry);
+  setText($('energy-stat-label-count'), labels.count);
+  setText($('energy-stat-label-binarize'), labels.binarize);
+}
+
+function toggleEnergyProblemControls(problem) {
+  const quintelControls = $('energy-quintel-controls');
+  const vliwControls = $('energy-vliw-controls');
+  if (quintelControls) {
+    quintelControls.hidden = problem !== 'quintel';
+  }
+  if (vliwControls) {
+    vliwControls.hidden = problem !== 'vliw';
+  }
+}
+
+function syncEnergyDemoSelection() {
+  const select = $('energy-demo-select');
+  if (!select) return;
+  const selected = select.value || state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
+  const demo = getEnergyDemoById(selected) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
+  if (!demo) return;
+  state.energyDemoId = demo.id;
+  if (select.value !== demo.id) {
+    select.value = demo.id;
+  }
+  setText($('energy-demo-description'), demo.description || '');
+  setEnergyMetricLabels(demo.problem || 'quintel');
+  toggleEnergyProblemControls(demo.problem || 'quintel');
+}
+
+function populateEnergyDemoSelect() {
+  const select = $('energy-demo-select');
+  if (!select) return;
+  select.innerHTML = '';
+  ENERGY_DEMOS.forEach((demo) => {
+    const option = document.createElement('option');
+    option.value = demo.id;
+    option.textContent = demo.label;
+    select.appendChild(option);
+  });
+  const initial = state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
+  const demo = getEnergyDemoById(initial) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
+  if (!demo) return;
+  state.energyDemoId = demo.id;
+  select.value = demo.id;
+  setText($('energy-demo-description'), demo.description || '');
+  setEnergyMetricLabels(demo.problem || 'quintel');
+  toggleEnergyProblemControls(demo.problem || 'quintel');
+  applyEnergyDemoDefaults(demo);
+}
+
+function applyEnergyDemoDefaults(demo) {
+  if (!demo || !demo.defaults) return;
+  const defaults = demo.defaults;
+  const energyQuintelSize = $('energy-quintel-size');
+  const energyQuintelThreshold = $('energy-quintel-threshold');
+  const energyQuintelCountTarget = $('energy-quintel-count-target');
+  const energyRuleMirrorX = $('energy-rule-mirror-x');
+  const energyRuleMirrorY = $('energy-rule-mirror-y');
+  const energyRuleDiagonal = $('energy-rule-diagonal');
+  const energyRuleCount = $('energy-rule-count');
+  const energyWeightSymmetry = $('energy-weight-symmetry');
+  const energyWeightCount = $('energy-weight-count');
+  const energyWeightBinarize = $('energy-weight-binarize');
+  const energyInitMode = $('energy-init-mode');
+  const energyInitSeed = $('energy-init-seed');
+  const energyInitScale = $('energy-init-scale');
+  const energySteps = $('energy-steps');
+  const energyStepSize = $('energy-step-size');
+  const energyGradientScale = $('energy-gradient-scale');
+  const energyConvergence = $('energy-convergence');
+  const energyVliwDataset = $('energy-vliw-dataset');
+  const energyVliwBundleLimit = $('energy-vliw-bundle-limit');
+  const energyVliwRestarts = $('energy-vliw-restarts');
+  const energyVliwTempStart = $('energy-vliw-temp-start');
+  const energyVliwTempDecay = $('energy-vliw-temp-decay');
+  const energyVliwMutation = $('energy-vliw-mutation');
+
+  if (energyQuintelSize && Number.isFinite(defaults.size)) {
+    energyQuintelSize.value = String(defaults.size);
+  }
+  if (energyQuintelThreshold && Number.isFinite(defaults.displayThreshold)) {
+    energyQuintelThreshold.value = String(defaults.displayThreshold);
+  }
+  if (energyQuintelCountTarget && Number.isFinite(defaults.countTarget)) {
+    energyQuintelCountTarget.value = String(defaults.countTarget);
+  }
+  if (energyRuleMirrorX && typeof defaults.rules?.mirrorX === 'boolean') {
+    energyRuleMirrorX.checked = defaults.rules.mirrorX;
+  }
+  if (energyRuleMirrorY && typeof defaults.rules?.mirrorY === 'boolean') {
+    energyRuleMirrorY.checked = defaults.rules.mirrorY;
+  }
+  if (energyRuleDiagonal && typeof defaults.rules?.diagonal === 'boolean') {
+    energyRuleDiagonal.checked = defaults.rules.diagonal;
+  }
+  if (energyRuleCount && typeof defaults.rules?.count === 'boolean') {
+    energyRuleCount.checked = defaults.rules.count;
+  }
+  if (energyWeightSymmetry && Number.isFinite(defaults.weights?.symmetry)) {
+    energyWeightSymmetry.value = String(defaults.weights.symmetry);
+  }
+  if (energyWeightCount && Number.isFinite(defaults.weights?.count)) {
+    energyWeightCount.value = String(defaults.weights.count);
+  }
+  if (energyWeightBinarize && Number.isFinite(defaults.weights?.binarize)) {
+    energyWeightBinarize.value = String(defaults.weights.binarize);
+  }
+  if (energyInitMode && defaults.init?.mode) {
+    energyInitMode.value = defaults.init.mode;
+  }
+  if (energyInitSeed && Number.isFinite(defaults.init?.seed)) {
+    energyInitSeed.value = String(defaults.init.seed);
+  }
+  if (energyInitScale && Number.isFinite(defaults.init?.scale)) {
+    energyInitScale.value = String(defaults.init.scale);
+  }
+  if (energySteps && Number.isFinite(defaults.loop?.steps)) {
+    energySteps.value = String(defaults.loop.steps);
+  }
+  if (energyStepSize && Number.isFinite(defaults.loop?.stepSize)) {
+    energyStepSize.value = String(defaults.loop.stepSize);
+  }
+  if (energyGradientScale && Number.isFinite(defaults.loop?.gradientScale)) {
+    energyGradientScale.value = String(defaults.loop.gradientScale);
+  }
+  if (energyConvergence && Number.isFinite(defaults.loop?.convergence)) {
+    energyConvergence.value = String(defaults.loop.convergence);
+  }
+  if (energyVliwDataset && defaults.vliw?.dataset) {
+    energyVliwDataset.value = defaults.vliw.dataset;
+  }
+  if (energyVliwBundleLimit && Number.isFinite(defaults.vliw?.bundleLimit)) {
+    energyVliwBundleLimit.value = String(defaults.vliw.bundleLimit);
+  }
+  if (energyVliwRestarts && Number.isFinite(defaults.vliw?.restarts)) {
+    energyVliwRestarts.value = String(defaults.vliw.restarts);
+  }
+  if (energyVliwTempStart && Number.isFinite(defaults.vliw?.temperatureStart)) {
+    energyVliwTempStart.value = String(defaults.vliw.temperatureStart);
+  }
+  if (energyVliwTempDecay && Number.isFinite(defaults.vliw?.temperatureDecay)) {
+    energyVliwTempDecay.value = String(defaults.vliw.temperatureDecay);
+  }
+  if (energyVliwMutation && Number.isFinite(defaults.vliw?.mutationCount)) {
+    energyVliwMutation.value = String(defaults.vliw.mutationCount);
+  }
+}
+
+async function loadVliwDataset(datasetId) {
+  const entry = VLIW_DATASETS[datasetId];
+  if (!entry) {
+    throw new Error(`Unknown VLIW dataset "${datasetId}".`);
+  }
+  if (energyDatasetCache.has(datasetId)) {
+    return energyDatasetCache.get(datasetId);
+  }
+  const response = await fetch(entry.path);
+  if (!response.ok) {
+    throw new Error(`Failed to load VLIW dataset: ${response.status}`);
+  }
+  const payload = await response.json();
+  energyDatasetCache.set(datasetId, payload);
+  return payload;
+}
+
+function sliceVliwDataset(dataset, bundleLimit) {
+  if (!dataset || !Array.isArray(dataset.tasks)) {
+    return { tasks: [], caps: {} };
+  }
+  const limit = Number.isFinite(bundleLimit) ? Math.max(1, Math.floor(bundleLimit)) : null;
+  const tasks = limit == null
+    ? dataset.tasks
+    : dataset.tasks.filter((task) => (task.bundle ?? 0) < limit);
+  const idMap = new Map();
+  const remapped = [];
+  tasks.forEach((task, index) => {
+    idMap.set(task.id, index);
+    remapped.push({ ...task, id: index });
+  });
+  remapped.forEach((task) => {
+    const deps = Array.isArray(task.deps) ? task.deps : [];
+    task.deps = deps.map((dep) => idMap.get(dep)).filter((dep) => dep != null);
+  });
+  return {
+    tasks: remapped,
+    caps: dataset.caps ?? {},
+  };
+}
+
+function clearEnergyBoard() {
+  const board = $('energy-board');
+  if (!board) return;
+  board.innerHTML = '';
+  clearEnergyVector();
+  clearEnergyIntensityBoard();
+}
+
+function clearEnergyVector() {
+  const vector = $('energy-vector');
+  if (!vector) return;
+  vector.textContent = '';
+}
+
+function clearEnergyIntensityBoard() {
+  const board = $('energy-board-intensity');
+  if (!board) return;
+  board.innerHTML = '';
+}
+
+function resolveEnergyGrid(shapeOrSize) {
+  if (Array.isArray(shapeOrSize) && shapeOrSize.length >= 2) {
+    const rows = Math.max(1, Math.floor(shapeOrSize[0]));
+    const cols = Math.max(1, Math.floor(shapeOrSize[1]));
+    return { rows, cols };
+  }
+  const size = Math.max(1, Math.floor(shapeOrSize ?? 1));
+  return { rows: size, cols: size };
+}
+
+function renderEnergyBoard(state, shapeOrSize, threshold) {
+  const board = $('energy-board');
+  if (!board) return;
+  board.innerHTML = '';
+  if (!state) return;
+  const { rows, cols } = resolveEnergyGrid(shapeOrSize);
+  const safeThreshold = Number.isFinite(threshold) ? threshold : 0.5;
+  board.style.setProperty('--energy-grid-size', `${cols}`);
+  const cellCount = rows * cols;
+  for (let i = 0; i < cellCount; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'energy-cell';
+    const value = state[i];
+    if (Number.isFinite(value) && value >= safeThreshold) {
+      cell.classList.add('is-on');
+    }
+    if (Number.isFinite(value)) {
+      cell.title = value.toFixed(2);
+    }
+    board.appendChild(cell);
+  }
+  renderEnergyVector(state, rows, cols, safeThreshold);
+  renderEnergyIntensityBoard(state, rows, cols);
+}
+
+function renderEnergyVector(state, rows, cols, threshold) {
+  const vector = $('energy-vector');
+  if (!vector) return;
+  vector.textContent = '';
+  if (!state || !Number.isFinite(rows) || !Number.isFinite(cols)) return;
+  const gridRows = Math.max(1, Math.floor(rows));
+  const gridCols = Math.max(1, Math.floor(cols));
+  const safeThreshold = Number.isFinite(threshold) ? threshold : 0.5;
+  const lines = [];
+  for (let row = 0; row < gridRows; row++) {
+    const cells = [];
+    for (let col = 0; col < gridCols; col++) {
+      const index = row * gridCols + col;
+      const value = state[index];
+      const bit = Number.isFinite(value) && value >= safeThreshold ? '1' : '0';
+      cells.push(bit);
+    }
+    lines.push(cells.join(' '));
+  }
+  vector.textContent = lines.join('\n');
+}
+
+function renderEnergyIntensityBoard(state, rows, cols) {
+  const board = $('energy-board-intensity');
+  if (!board) return;
+  board.innerHTML = '';
+  if (!state || !Number.isFinite(rows) || !Number.isFinite(cols)) return;
+  const gridRows = Math.max(1, Math.floor(rows));
+  const gridCols = Math.max(1, Math.floor(cols));
+  board.style.setProperty('--energy-grid-size', `${gridCols}`);
+  const cellCount = gridRows * gridCols;
+  for (let i = 0; i < cellCount; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'energy-cell';
+    const value = state[i];
+    if (Number.isFinite(value)) {
+      const alpha = Math.max(0, Math.min(1, value));
+      cell.style.backgroundColor = `rgba(0, 0, 0, ${alpha.toFixed(3)})`;
+      cell.title = value.toFixed(2);
+    }
+    board.appendChild(cell);
+  }
+}
+
+function drawEnergyChart(history = []) {
+  const canvas = $('energy-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  clearEnergyChart();
+
+  const values = Array.isArray(history)
+    ? history.filter((value) => Number.isFinite(value))
+    : [];
+  if (!values.length) return;
+
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const range = maxValue - minValue || 1;
+  const padding = 12;
+  const width = canvas.width;
+  const height = canvas.height;
+
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  values.forEach((value, index) => {
+    const t = values.length > 1 ? index / (values.length - 1) : 0;
+    const x = padding + t * (width - padding * 2);
+    const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+}
+
+function updateEnergyStats(result) {
+  if (!result) {
+    setText($('energy-stat-steps'), '--');
+    setText($('energy-stat-energy'), '--');
+    setText($('energy-stat-symmetry'), '--');
+    setText($('energy-stat-count'), '--');
+    setText($('energy-stat-binarize'), '--');
+    setText($('energy-stat-dtype'), '--');
+    setText($('energy-stat-shape'), '--');
+    setText($('energy-stat-mean'), '--');
+    setText($('energy-stat-std'), '--');
+    return;
+  }
+  const problem = result.problem || 'quintel';
+  setText($('energy-stat-steps'), Number.isFinite(result.steps) ? String(result.steps) : '--');
+  setText($('energy-stat-energy'), Number.isFinite(result.energy) ? formatScalar(result.energy, 6) : '--');
+  if (problem === 'vliw' && result.metrics) {
+    setText($('energy-stat-symmetry'), formatScalar(result.metrics.cycles, 0));
+    setText($('energy-stat-count'), formatScalar(result.metrics.utilization, 4));
+    setText($('energy-stat-binarize'), formatScalar(result.metrics.violations, 0));
+  } else {
+    setText($('energy-stat-symmetry'), formatScalar(result.energyComponents?.symmetry, 6));
+    setText($('energy-stat-count'), formatScalar(result.energyComponents?.count, 6));
+    setText($('energy-stat-binarize'), formatScalar(result.energyComponents?.binarize, 6));
+  }
+  setText($('energy-stat-dtype'), result.dtype || '--');
+  const shape = Array.isArray(result.shape) ? result.shape.join(' x ') : '--';
+  setText($('energy-stat-shape'), shape);
+  setText($('energy-stat-mean'), formatScalar(result.stateStats?.mean, 6));
+  setText($('energy-stat-std'), formatScalar(result.stateStats?.std, 6));
+}
+
+async function ensureEnergyPipeline() {
+  const modelId = getSelectedModelId();
+  if (!modelId) {
+    throw new Error('Select a model before running energy.');
+  }
+  if (state.activePipeline && state.activeModelId === modelId) {
+    return state.activePipeline;
+  }
+  if (state.activePipeline) {
+    await unloadActivePipeline();
+  }
+  showProgressOverlay('Loading Energy Model');
+  state.energyLoading = true;
+  updateStatusIndicator();
+  try {
+    const pipeline = await loadPipelineFromStorage(modelId);
+    state.activePipeline = pipeline;
+    state.activeModelId = modelId;
+    state.activePipelineModelId = modelId;
+    if (pipeline?.manifest?.modelType) {
+      state.modelTypeCache[modelId] = normalizeModelType(pipeline.manifest.modelType);
+    }
+    state.modeModelId.energy = modelId;
+    state.lastMemoryStats = pipeline.getMemoryStats?.() ?? null;
+    updateMemoryControls();
+    const snapshot = captureMemorySnapshot();
+    updateMemoryPanel(snapshot);
+    updatePerformancePanel(snapshot);
+    return pipeline;
+  } finally {
+    hideProgressOverlay();
+    state.energyLoading = false;
+    updateStatusIndicator();
+  }
+}
+
+async function handleEnergyRun() {
+  if (state.energyGenerating || state.energyLoading) return;
+  const demo = getEnergyDemoById(state.energyDemoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
+  const problem = demo?.problem || 'quintel';
+  const size = readOptionalNumber($('energy-quintel-size'), { integer: true });
+  const displayThreshold = readOptionalNumber($('energy-quintel-threshold'));
+  const countTarget = readOptionalNumber($('energy-quintel-count-target'), { integer: true });
+  const mirrorX = $('energy-rule-mirror-x')?.checked ?? false;
+  const mirrorY = $('energy-rule-mirror-y')?.checked ?? false;
+  const diagonal = $('energy-rule-diagonal')?.checked ?? false;
+  const countRule = $('energy-rule-count')?.checked ?? false;
+  const symmetryWeight = readOptionalNumber($('energy-weight-symmetry'));
+  const countWeight = readOptionalNumber($('energy-weight-count'));
+  const binarizeWeight = readOptionalNumber($('energy-weight-binarize'));
+  const initMode = $('energy-init-mode')?.value || undefined;
+  const initSeed = readOptionalNumber($('energy-init-seed'), { integer: true });
+  const initScale = readOptionalNumber($('energy-init-scale'));
+  const steps = readOptionalNumber($('energy-steps'), { integer: true });
+  const stepSize = readOptionalNumber($('energy-step-size'));
+  const gradientScale = readOptionalNumber($('energy-gradient-scale'));
+  const convergenceThreshold = readOptionalNumber($('energy-convergence'));
+
+  const request = {
+    problem,
+    initMode,
+    seed: initSeed,
+    initScale,
+    steps,
+    stepSize,
+    gradientScale,
+    convergenceThreshold,
+  };
+
+  if (problem === 'quintel') {
+    const quintelRules = {
+      mirrorX,
+      mirrorY,
+      diagonal,
+      count: countRule,
+      center: false,
+    };
+    const quintel = {
+      rules: quintelRules,
+    };
+    if (size != null) quintel.size = size;
+    if (Number.isFinite(countTarget)) quintel.countTarget = countTarget;
+    const weights = {};
+    if (Number.isFinite(symmetryWeight)) weights.symmetry = symmetryWeight;
+    if (Number.isFinite(countWeight)) weights.count = countWeight;
+    if (Number.isFinite(binarizeWeight)) weights.binarize = binarizeWeight;
+    if (Object.keys(weights).length) quintel.weights = weights;
+    request.quintel = quintel;
+  }
+
+  if (problem === 'vliw') {
+    const datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd';
+    const bundleLimit = readOptionalNumber($('energy-vliw-bundle-limit'), { integer: true });
+    const restarts = readOptionalNumber($('energy-vliw-restarts'), { integer: true });
+    const tempStart = readOptionalNumber($('energy-vliw-temp-start'));
+    const tempDecay = readOptionalNumber($('energy-vliw-temp-decay'));
+    const mutationCount = readOptionalNumber($('energy-vliw-mutation'), { integer: true });
+    const dataset = await loadVliwDataset(datasetId);
+    const sliced = sliceVliwDataset(dataset, bundleLimit);
+    request.vliw = {
+      tasks: sliced.tasks,
+      caps: sliced.caps,
+      search: {
+        restarts,
+        temperatureStart: tempStart,
+        temperatureDecay: tempDecay,
+        mutationCount,
+      },
+    };
+  }
+  state.lastEnergyRequest = {
+    size,
+    displayThreshold,
+  };
+
+  updateEnergyStatus('Preparing...');
+  state.energyGenerating = true;
+  updateStatusIndicator();
+  try {
+    const pipeline = await ensureEnergyPipeline();
+    if (!pipeline.generate) {
+      throw new Error('Selected model does not support energy generation.');
+    }
+    if (!pipeline.manifest || pipeline.manifest.modelType !== 'energy') {
+      throw new Error('Selected model is not an energy model.');
+    }
+    updateEnergyStatus('Running...');
+    const result = await pipeline.generate(request);
+    if (result?.shape) {
+      state.lastEnergyRequest = {
+        shape: result.shape,
+        size: result.shape[0],
+        displayThreshold,
+      };
+    }
+    drawEnergyChart(result?.energyHistory || []);
+    updateEnergyStats(result);
+    renderEnergyBoard(result?.state, result?.shape ?? size, displayThreshold);
+    state.lastInferenceStats = pipeline.getStats?.() ?? null;
+    state.lastMemoryStats = pipeline.getMemoryStats?.() ?? state.lastMemoryStats;
+    if (state.lastInferenceStats) {
+      state.runCounter += 1;
+      recordRunLog(state.lastInferenceStats, `#${state.runCounter}`, 'energy');
+    }
+    updateEnergyStatus('Complete');
+    const snapshot = captureMemorySnapshot();
+    updateMemoryPanel(snapshot);
+    updatePerformancePanel(snapshot);
+  } catch (error) {
+    log.error('DopplerDemo', `Energy run failed: ${error.message}`);
+    updateEnergyStatus(`Error: ${error.message}`);
+  } finally {
+    state.energyGenerating = false;
+    updateStatusIndicator();
+  }
+}
+
+function handleEnergyClear() {
+  clearEnergyChart();
+  clearEnergyBoard();
+  updateEnergyStats(null);
+  updateEnergyStatus('Idle');
+}
+
+async function handleRunGenerate() {
+  if (state.runGenerating || state.runLoading) return;
+  const promptEl = $('run-prompt');
+  const outputEl = $('run-output');
+  const prompt = promptEl?.value?.trim() || '';
+  if (!prompt) {
+    updateRunStatus('Enter a prompt to generate.');
+    return;
+  }
+
+  updateRunStatus('Preparing...');
   let pipeline;
   try {
-    pipeline = await ensureChatPipeline();
-  } catch (error) {
-    if (assistantEl) assistantEl.textContent = error.message;
-    if (state.chatMessages[messageIndex]) {
-      state.chatMessages[messageIndex].content = error.message;
+    pipeline = await ensureRunPipeline();
+    if (pipeline?.manifest?.modelType === 'diffusion' || pipeline?.manifest?.modelType === 'energy') {
+      throw new Error('Selected model is not a text model.');
     }
+  } catch (error) {
+    updateRunStatus(`Error: ${error.message}`);
     return;
   }
 
   const controller = new AbortController();
-  state.chatAbortController = controller;
-  setChatGenerating(true);
+  state.runAbortController = controller;
+  setRunGenerating(true);
+  updateRunStatus('Generating...');
+  if (outputEl) outputEl.textContent = '';
 
-  const templateType = pipeline?.modelConfig?.chatTemplateType ?? null;
-  const prompt = formatChatMessages(state.chatMessages, templateType);
+  const options = buildRunGenerateOptions();
   let output = '';
   let tokenCount = 0;
   const start = performance.now();
@@ -1697,7 +2779,7 @@ async function handleChatSend() {
 
   try {
     for await (const token of pipeline.generate(prompt, {
-      useChatTemplate: false,
+      ...options,
       signal: controller.signal,
     })) {
       if (controller.signal.aborted) break;
@@ -1715,11 +2797,15 @@ async function handleChatSend() {
           liveTokensPerSec,
         };
       }
-      if (assistantEl) assistantEl.textContent = output;
-      scrollChatToBottom();
+      if (outputEl) outputEl.textContent = output;
     }
+    updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
   } catch (error) {
-    if (assistantEl) assistantEl.textContent = `Error: ${error.message}`;
+    if (controller.signal.aborted) {
+      updateRunStatus('Stopped');
+    } else {
+      updateRunStatus(`Error: ${error.message}`);
+    }
   } finally {
     const elapsed = Math.max(1, performance.now() - start);
     const tokensPerSec = tokenCount > 0 ? Number(((tokenCount / elapsed) * 1000).toFixed(2)) : null;
@@ -1728,25 +2814,32 @@ async function handleChatSend() {
       tokensPerSec,
       liveTokensPerSec: null,
     };
-    if (state.chatMessages[messageIndex]) {
-      state.chatMessages[messageIndex].content = output;
-    }
     state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
     state.lastInferenceStats = pipeline?.getStats?.() ?? state.lastInferenceStats;
-    state.runCounter += 1;
-    recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
+    if (state.lastInferenceStats) {
+      state.runCounter += 1;
+      recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
+    }
     const snapshot = captureMemorySnapshot();
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
-    setChatGenerating(false);
-    state.chatAbortController = null;
+    setRunGenerating(false);
+    state.runAbortController = null;
   }
 }
 
-function stopChatGeneration() {
-  if (state.chatAbortController) {
-    state.chatAbortController.abort();
+function stopRunGeneration() {
+  if (state.runAbortController) {
+    state.runAbortController.abort();
   }
+}
+
+function handleRunClear() {
+  const promptEl = $('run-prompt');
+  const outputEl = $('run-output');
+  if (promptEl) promptEl.value = '';
+  if (outputEl) outputEl.textContent = '';
+  updateRunStatus('Idle');
 }
 
 async function unloadActivePipeline() {
@@ -1804,16 +2897,33 @@ function populateModelPresets() {
   }
 }
 
-function populateRuntimeConfigPresets() {
-  const presetSelect = $('runtime-config-preset');
-  if (!presetSelect) return;
-  presetSelect.innerHTML = '';
-  for (const entry of RUNTIME_CONFIG_PRESETS) {
+function populateRuntimePresetSelect(select, entries, fallbackValue) {
+  if (!select) return;
+  const previous = select.value;
+  select.innerHTML = '';
+  for (const entry of entries) {
     const opt = document.createElement('option');
     opt.value = entry.id;
     opt.textContent = entry.label;
-    presetSelect.appendChild(opt);
+    select.appendChild(opt);
   }
+  const target = previous || fallbackValue;
+  if (target !== undefined && entries.some((entry) => entry.id === target)) {
+    select.value = target;
+    return;
+  }
+  if (entries.length > 0) {
+    select.value = entries[0].id;
+  }
+}
+
+function populateRuntimePresetSelects() {
+  const baseSelect = $('runtime-preset');
+  const overrideSelect = $('runtime-config-preset');
+  const baseEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.base);
+  const overrideEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.override);
+  populateRuntimePresetSelect(baseSelect, baseEntries, DEFAULT_RUNTIME_PRESET);
+  populateRuntimePresetSelect(overrideSelect, overrideEntries, '');
 }
 
 function buildConverterConfig() {
@@ -2061,10 +3171,8 @@ function renderDownloadList(downloads) {
   container.innerHTML = '';
   if (!downloads || downloads.length === 0) {
     container.textContent = 'No downloads tracked';
-    container.classList.add('muted');
     return;
   }
-  container.classList.remove('muted');
   for (const entry of downloads) {
     const row = document.createElement('div');
     row.className = 'download-row';
@@ -2099,13 +3207,18 @@ async function startDownload() {
     return;
   }
   const modelIdOverride = $('download-model-id')?.value?.trim() || undefined;
+  let downloadedModelId = modelIdOverride ?? null;
   updateDownloadStatus({ status: 'Starting...', percent: 0, downloadedBytes: 0, totalBytes: 0 });
   try {
     await downloadModel(baseUrl, (progress) => {
       if (!progress) return;
       state.activeDownloadId = progress.modelId || modelIdOverride || null;
+      downloadedModelId = progress.modelId || downloadedModelId;
       updateDownloadStatus(progress);
     }, { modelId: modelIdOverride });
+    if (downloadedModelId) {
+      await registerDownloadedModel(downloadedModelId);
+    }
     updateDownloadStatus({ status: 'Complete', percent: 100, downloadedBytes: 0, totalBytes: 0 });
     await refreshModelList();
     await refreshDownloads();
@@ -2152,9 +3265,6 @@ function updateRuntimeConfigStatus(presetId) {
     const labels = [];
     if (state.runtimeOverrideLabel) {
       labels.push(state.runtimeOverrideLabel);
-    }
-    if (state.runtimeSamplingLabel) {
-      labels.push(state.runtimeSamplingLabel);
     }
     const overrideLabel = labels.length ? labels.join(' + ') : 'custom';
     status.textContent = `Preset: ${presetLabel} - Override: ${overrideLabel}`;
@@ -2204,7 +3314,7 @@ async function applyRuntimeConfigPreset(presetId) {
 }
 
 function getMergedRuntimeOverride() {
-  return mergeRuntimeOverrides(state.runtimeOverrideBase, state.runtimeSamplingOverride);
+  return state.runtimeOverrideBase;
 }
 
 async function applySelectedRuntimePreset() {
@@ -2217,17 +3327,8 @@ async function applySelectedRuntimePreset() {
   const mergedOverride = getMergedRuntimeOverride();
   state.runtimeOverride = mergedOverride;
   updateRuntimeConfigStatus(presetId);
-  if (state.uiMode !== 'diagnostics') {
-    updateDiagnosticsGuidance();
-    return;
-  }
   try {
-    await applyRuntimePreset(presetId);
-    if (mergedOverride) {
-      const mergedRuntime = mergeRuntimeOverrides(getRuntimeConfig(), mergedOverride);
-      setRuntimeConfig(mergedRuntime);
-    }
-    syncSamplingInputsFromRuntime();
+    await refreshDiagnosticsRuntimeConfig(presetId);
     updateDiagnosticsGuidance();
   } catch (error) {
     updateDiagnosticsStatus(`Preset error: ${error.message}`, true);
@@ -2238,18 +3339,25 @@ async function handleDiagnosticsRun(mode) {
   const suiteSelect = $('diagnostics-suite');
   const modelSelect = $('diagnostics-model');
   const presetSelect = $('runtime-preset');
-  const suite = suiteSelect?.value || 'inference';
+  const suite = suiteSelect?.value || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
   const runtimePreset = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const captureOutput = runtimePreset === 'modes/debug';
+  const previousRuntime = cloneRuntimeConfig(getRuntimeConfig());
+  let runtimeConfig = state.diagnosticsRuntimeConfig;
 
   updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${suite}...`);
   try {
+    if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimePreset) {
+      runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimePreset);
+    }
     if (mode === 'verify') {
       await controller.verifySuite(null, {
         suite,
-        runtimeConfig: getRuntimeConfig(),
+        runtimeConfig,
       });
       updateDiagnosticsStatus('Verified');
+      clearDiagnosticsOutput();
       return;
     }
 
@@ -2261,10 +3369,9 @@ async function handleDiagnosticsRun(mode) {
       suite,
       runtimePreset,
       modelId,
+      runtimeConfig,
+      captureOutput,
     };
-    if (state.runtimeOverride) {
-      options.runtimeConfig = getRuntimeConfig();
-    }
     const result = await controller.runSuite(
       modelId ? { sources: { browser: { id: modelId } } } : null,
       { ...options, keepPipeline: true }
@@ -2272,6 +3379,7 @@ async function handleDiagnosticsRun(mode) {
     state.lastReport = result.report;
     state.lastReportInfo = result.reportInfo;
     state.lastMetrics = result.metrics ?? null;
+    state.lastDiagnosticsSuite = result.suite;
     if (result.memoryStats) {
       state.lastMemoryStats = result.memoryStats;
     }
@@ -2284,6 +3392,34 @@ async function handleDiagnosticsRun(mode) {
       state.runCounter += 1;
       recordRunLog(state.lastInferenceStats, `#${state.runCounter}`);
     }
+    if (result.suite === 'diffusion' && result.metrics) {
+      state.lastDiffusionRequest = {
+        width: result.metrics.width,
+        height: result.metrics.height,
+        steps: result.metrics.steps,
+      };
+    }
+    if (result.suite === 'energy' && result.metrics) {
+      const shape = Array.isArray(result.metrics.shape) ? result.metrics.shape : null;
+      if (shape) {
+        state.lastEnergyRequest = {
+          shape,
+          height: shape[0],
+          width: shape[1],
+          channels: shape[2],
+        };
+      }
+      if (Array.isArray(result.metrics.energyHistory)) {
+        drawEnergyChart(result.metrics.energyHistory);
+      }
+      updateEnergyStats({
+        steps: result.metrics.steps,
+        energy: result.metrics.energy,
+        dtype: result.metrics.dtype,
+        shape,
+        stateStats: result.metrics.stateStats,
+      });
+    }
     updateDiagnosticsStatus(`Complete (${result.suite})`);
     if (result.reportInfo?.path) {
       updateDiagnosticsReport(result.reportInfo.path);
@@ -2294,8 +3430,13 @@ async function handleDiagnosticsRun(mode) {
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
     updateMemoryControls();
+    renderDiagnosticsOutput(result, suite, captureOutput);
   } catch (error) {
     updateDiagnosticsStatus(error.message, true);
+    clearDiagnosticsOutput();
+  } finally {
+    setRuntimeConfig(previousRuntime);
+    updateRunAutoLabels();
   }
 }
 
@@ -2340,13 +3481,14 @@ function bindUI() {
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
   const storageInspectorRefresh = $('storage-inspector-refresh');
-  const chatInput = $('chat-input');
-  const sendBtn = $('send-btn');
-  const stopBtn = $('stop-btn');
-  const clearBtn = $('clear-btn');
+  const runPrompt = $('run-prompt');
+  const runGenerate = $('run-generate-btn');
+  const runStop = $('run-stop-btn');
+  const runClear = $('run-clear-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
+  const maxTokensInput = $('max-tokens-input');
   const diffusionPrompt = $('diffusion-prompt');
   const diffusionNegative = $('diffusion-negative');
   const diffusionSteps = $('diffusion-steps');
@@ -2356,6 +3498,9 @@ function bindUI() {
   const diffusionHeight = $('diffusion-height');
   const diffusionRun = $('diffusion-run-btn');
   const diffusionClear = $('diffusion-clear-btn');
+  const energyDemoSelect = $('energy-demo-select');
+  const energyRun = $('energy-run-btn');
+  const energyClear = $('energy-clear-btn');
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
     button.addEventListener('click', () => {
@@ -2410,6 +3555,16 @@ function bindUI() {
   });
 
   runtimePreset?.addEventListener('change', () => {
+    const mode = state.uiMode;
+    if (mode === 'run' || mode === 'diffusion' || mode === 'energy') {
+      state.diagnosticsSelections[mode] = {
+        ...(state.diagnosticsSelections[mode] || {}),
+        preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET,
+      };
+    }
+    if (runtimePreset.value !== 'modes/debug') {
+      clearDiagnosticsOutput();
+    }
     applySelectedRuntimePreset();
   });
 
@@ -2418,6 +3573,13 @@ function bindUI() {
   });
 
   diagnosticsSuite?.addEventListener('change', () => {
+    const mode = state.uiMode;
+    if (mode === 'run' || mode === 'diffusion' || mode === 'energy') {
+      state.diagnosticsSelections[mode] = {
+        ...(state.diagnosticsSelections[mode] || {}),
+        suite: diagnosticsSuite.value || getDiagnosticsDefaultSuite(mode),
+      };
+    }
     updateDiagnosticsGuidance();
   });
 
@@ -2438,18 +3600,12 @@ function bindUI() {
     state.runtimeOverride = null;
     state.runtimeOverrideBase = null;
     state.runtimeOverrideLabel = null;
-    state.runtimeSamplingOverride = null;
-    state.runtimeSamplingLabel = null;
     runtimeFile.value = '';
     if (runtimeConfigPreset) {
       runtimeConfigPreset.value = '';
     }
     applySelectedRuntimePreset();
   });
-
-  temperatureInput?.addEventListener('input', applySamplingOverrideFromInputs);
-  topPInput?.addEventListener('input', applySamplingOverrideFromInputs);
-  topKInput?.addEventListener('input', applySamplingOverrideFromInputs);
 
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));
@@ -2473,28 +3629,33 @@ function bindUI() {
     });
   });
 
-  sendBtn?.addEventListener('click', () => {
-    handleChatSend().catch((error) => {
-      log.warn('DopplerDemo', `Chat send failed: ${error.message}`);
+  runGenerate?.addEventListener('click', () => {
+    handleRunGenerate().catch((error) => {
+      log.warn('DopplerDemo', `Run generate failed: ${error.message}`);
     });
   });
 
-  chatInput?.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
+  runPrompt?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
-      handleChatSend().catch((error) => {
-        log.warn('DopplerDemo', `Chat send failed: ${error.message}`);
+      handleRunGenerate().catch((error) => {
+        log.warn('DopplerDemo', `Run generate failed: ${error.message}`);
       });
     }
   });
 
-  stopBtn?.addEventListener('click', () => {
-    stopChatGeneration();
+  runStop?.addEventListener('click', () => {
+    stopRunGeneration();
   });
 
-  clearBtn?.addEventListener('click', () => {
-    clearChatMessages();
+  runClear?.addEventListener('click', () => {
+    handleRunClear();
   });
+
+  temperatureInput?.addEventListener('input', updateRunAutoLabels);
+  topPInput?.addEventListener('input', updateRunAutoLabels);
+  topKInput?.addEventListener('input', updateRunAutoLabels);
+  maxTokensInput?.addEventListener('input', updateRunAutoLabels);
 
   diffusionClear?.addEventListener('click', () => {
     if (diffusionPrompt) diffusionPrompt.value = '';
@@ -2514,26 +3675,55 @@ function bindUI() {
     });
   });
 
+  energyDemoSelect?.addEventListener('change', () => {
+    const demoId = energyDemoSelect.value || DEFAULT_ENERGY_DEMO_ID;
+    const demo = getEnergyDemoById(demoId);
+    if (!demo) return;
+    state.energyDemoId = demo.id;
+    setText($('energy-demo-description'), demo.description || '');
+    setEnergyMetricLabels(demo.problem || 'quintel');
+    toggleEnergyProblemControls(demo.problem || 'quintel');
+    applyEnergyDemoDefaults(demo);
+  });
+
+  energyClear?.addEventListener('click', () => {
+    const demoId = state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
+    const demo = getEnergyDemoById(demoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
+    if (demo) {
+      applyEnergyDemoDefaults(demo);
+    }
+    handleEnergyClear();
+  });
+
+  energyRun?.addEventListener('click', () => {
+    handleEnergyRun().catch((error) => {
+      log.error('DopplerDemo', `Energy run failed: ${error.message}`);
+      updateEnergyStatus(`Error: ${error.message}`);
+    });
+  });
+
+  updateRunAutoLabels();
 }
 
 async function init() {
   setStatusIndicator('Initializing', 'info');
+  bindUI();
   populateModelPresets();
-  populateRuntimeConfigPresets();
+  populateRuntimePresetSelects();
+  populateEnergyDemoSelect();
   setUiMode(state.uiMode);
   await refreshModelList();
   await refreshGpuInfo();
-  state.runtimeBaseConfig = cloneRuntimeConfig(getRuntimeConfig());
-  applyRunRuntimeConfig();
   await refreshDownloads();
   updateMemoryControls();
   resetExportStatus();
   startTelemetryLoop();
-  setChatLoading(false);
-  setChatGenerating(false);
+  setRunLoading(false);
+  setRunGenerating(false);
+  updateRunStatus('Idle');
   updateDiffusionStatus('Idle');
+  updateEnergyStatus('Idle');
   updateStatusIndicator();
-  bindUI();
 }
 
 init().catch((error) => {

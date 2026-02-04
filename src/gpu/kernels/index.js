@@ -111,6 +111,16 @@ export {
   recordScale,
 } from './scale.js';
 
+// Energy (EBM helpers)
+export {
+  runEnergyEval,
+  recordEnergyEval,
+  runEnergyUpdate,
+  recordEnergyUpdate,
+  runEnergyQuintelUpdate,
+  recordEnergyQuintelUpdate,
+} from './energy.js';
+
 // Conv2D
 export {
   runConv2D,

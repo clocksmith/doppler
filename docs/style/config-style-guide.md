@@ -135,6 +135,10 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 
 ---
 
+## Generated Assets
+
+- `config/vfs-manifest.json` is generated. Regenerate it whenever files are added, moved, or removed so VFS boot paths stay accurate.
+
 ## Rules
 
 - Converter → manifest is the only bridge into runtime.

@@ -54,10 +54,10 @@
 </head>
 <body>
   <h1 class="type-h1" id="title">DOPPLER TEST HARNESS</h1>
-  <div id="status" class="muted type-caption">Initializing...</div>
+  <div id="status" class="type-caption">Initializing...</div>
   <div id="controls" class="section">
     <button id="run-all-kernels" class="btn btn-primary">Run All Kernels</button>
-    <span id="controls-status" class="muted type-caption"></span>
+    <span id="controls-status" class="type-caption"></span>
   </div>
   <div id="results"></div>
   <div id="log-panel" class="type-caption"></div>
@@ -152,7 +152,7 @@
 
     // ==========================================================================
     // Unified Test Harness
-    // Modes: kernels, inference, simulation, bench, training
+    // Modes: kernels, inference, energy, simulation, bench, training
     // ==========================================================================
 
     const params = new URLSearchParams(window.location.search);
@@ -176,7 +176,7 @@
         const passed = (run.results || []).every((r) => r.passed || r.skipped);
         row.className = `row ${passed ? 'pass' : 'fail'}`;
         const label = run.label || run.modelId || run.suite || 'run';
-        row.innerHTML = `<span>${passed ? '\u2713' : '\u2717'} ${label}</span><span class="type-caption muted">${run.suite || 'inference'}</span>`;
+        row.innerHTML = `<span>${passed ? '\u2713' : '\u2717'} ${label}</span><span class="type-caption">${run.suite || 'inference'}</span>`;
         container.appendChild(row);
       }
 
@@ -244,6 +244,7 @@
 
     async function initKernelMode() {
       const { testHarness, getGPU } = await import('../tests/kernels/browser/test-page.js');
+      const { getKernelCapabilities } = await import('../src/gpu/device.js');
 
       // Wait for GPU init
       await new Promise(r => setTimeout(r, 100));
@@ -253,7 +254,8 @@
         throw new Error('WebGPU device not available');
       }
 
-      console.log(`[GPU] ${gpu.adapterInfo?.description || 'unknown'}, ${gpu.capabilities?.hasF16 ? 'f16' : 'f32'}/${gpu.capabilities?.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${((gpu.adapterInfo?.memorySize || 0) / 1e9).toFixed(1)}GB`);
+      const caps = getKernelCapabilities();
+      console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
 
       // Expose test harness for UI automation
       window.testHarness = testHarness;
@@ -266,7 +268,7 @@
         for (const r of testResults) {
           const row = document.createElement('div');
           row.className = `row ${r.passed ? 'pass' : 'fail'}`;
-          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption muted">${r.duration}ms</span>`;
+          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption">${r.duration}ms</span>`;
           container.appendChild(row);
 
           if (r.passed) passed++; else failed++;
@@ -275,7 +277,7 @@
 
         const summary = document.createElement('div');
         summary.id = 'summary';
-        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span class="muted">${totalTime}ms</span>`;
+        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span >${totalTime}ms</span>`;
         container.appendChild(summary);
 
         container.classList.add('show');
@@ -304,7 +306,7 @@
         for (const r of testResults) {
           const row = document.createElement('div');
           row.className = `row ${r.passed ? 'pass' : 'fail'}`;
-          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption muted">${r.duration}ms</span>`;
+          row.innerHTML = `<span>${r.passed ? '\u2713' : '\u2717'} ${r.name}</span><span class="type-caption">${r.duration}ms</span>`;
           container.appendChild(row);
 
           if (r.passed) passed++; else failed++;
@@ -313,7 +315,7 @@
 
         const summary = document.createElement('div');
         summary.id = 'summary';
-        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span class="muted">${totalTime}ms</span>`;
+        summary.innerHTML = `<span class="badge badge-filled">${passed}/${passed + failed} PASSED</span> <span >${totalTime}ms</span>`;
         container.appendChild(summary);
 
         container.classList.add('show');
@@ -465,33 +467,33 @@
         const container = document.getElementById('results');
         container.innerHTML = `
           <div class="section">
-            <div class="type-label muted">Model</div>
+            <div class="type-label">Model</div>
             <div>${r.model}</div>
           </div>
           <div class="section">
-            <div class="type-label muted">Prompt</div>
+            <div class="type-label">Prompt</div>
             <div>${r.prompt}</div>
           </div>
           <div class="section">
-            <div class="type-label muted">Output</div>
+            <div class="type-label">Output</div>
             <div class="output">${r.output}</div>
           </div>
           <div class="section stats">
             <div class="stat">
               <div class="stat-value">${r.tokens}</div>
-              <div class="type-caption muted">tokens</div>
+              <div class="type-caption">tokens</div>
             </div>
             <div class="stat">
               <div class="stat-value">${r.elapsed}ms</div>
-              <div class="type-caption muted">total</div>
+              <div class="type-caption">total</div>
             </div>
             <div class="stat">
               <div class="stat-value">${r.tokPerSec}</div>
-              <div class="type-caption muted">tok/s</div>
+              <div class="type-caption">tok/s</div>
             </div>
           </div>
           <div class="section">
-            <div class="${r.passed ? 'badge badge-filled' : 'badge border-error muted'}">${r.passed ? 'PASS' : 'FAIL'}</div>
+            <div class="${r.passed ? 'badge badge-filled' : 'badge border-error'}">${r.passed ? 'PASS' : 'FAIL'}</div>
           </div>
         `;
         container.classList.add('show');
@@ -507,6 +509,169 @@
       }
 
       return 'inference';
+    }
+
+    // ==========================================================================
+    // Mode: Energy
+    // ==========================================================================
+
+    async function initEnergyMode() {
+      const {
+        fetchManifest,
+        initializeDevice,
+        createTestState,
+      } = await import('../src/inference/test-harness.js');
+      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { createPipeline } = await import('../src/inference/pipeline.js');
+      const { getDevice } = await import('../src/gpu/device.js');
+      const { SIGNALS } = await import('../src/debug/index.js');
+
+      const runtimeConfig = getRuntimeConfig();
+      const harnessConfig = runtimeConfig.shared.harness;
+      const paramModel = harnessConfig.modelId;
+      const paramAutorun = harnessConfig.autorun;
+      const paramSkipLoad = harnessConfig.skipLoad;
+      if (!paramModel) {
+        throw new Error('runtime.shared.harness.modelId must be set for energy mode.');
+      }
+
+      const baseUrl = new URL('../models', window.location.href).toString().replace(/\/$/, '');
+
+      window.testState = createTestState();
+
+      const existingPipeline = window.pipeline;
+
+      async function run() {
+        const MODEL_URL = `${baseUrl}/${paramModel}`;
+        try {
+          let pipeline;
+
+          if (paramSkipLoad && existingPipeline) {
+            console.log('[Warm] Reusing existing pipeline from previous run');
+            pipeline = existingPipeline;
+            window.testState.loaded = true;
+          } else {
+            console.log('[Loader] 1. Initializing WebGPU...');
+            const caps = await initializeDevice();
+            const device = getDevice();
+            console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
+
+            console.log('[Loader] 2. Loading manifest...');
+            const manifest = await fetchManifest(`${MODEL_URL}/manifest.json`);
+            if (manifest.modelType !== 'energy') {
+              throw new Error(`Energy mode requires modelType "energy" (got "${manifest.modelType || 'unknown'}").`);
+            }
+            const modelLabel = manifest.modelId || manifest.modelType || paramModel;
+            console.log(`[Model] ${modelLabel}`);
+
+            pipeline = await createPipeline(manifest, {
+              gpu: { device },
+              baseUrl: MODEL_URL,
+            });
+
+            window.pipeline = pipeline;
+            window.testState.loaded = true;
+            console.log('[Model] Loaded');
+          }
+
+          console.log('[Energy] 3. Running energy loop...');
+          const startTime = performance.now();
+          const result = await pipeline.generate();
+          const elapsed = performance.now() - startTime;
+
+          window.testState.output = JSON.stringify({
+            steps: result.steps,
+            energy: result.energy,
+            dtype: result.dtype,
+            shape: result.shape,
+          });
+          window.testState.done = true;
+
+          const summary = {
+            steps: result.steps,
+            energy: result.energy,
+            elapsed,
+            dtype: result.dtype,
+            shape: result.shape,
+          };
+
+          console.log(`${SIGNALS.RESULT} ${JSON.stringify(summary)}`);
+          console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'success', elapsed, steps: result.steps })}`);
+
+          renderEnergyResults({
+            model: paramModel,
+            shape: result.shape,
+            dtype: result.dtype,
+            steps: result.steps,
+            energy: result.energy,
+            elapsed: elapsed.toFixed(0),
+            energyHistory: result.energyHistory,
+            stateStats: result.stateStats,
+            passed: Number.isFinite(result.energy),
+          });
+        } catch (e) {
+          console.error(e.stack);
+          window.testState.errors.push(e.message);
+          window.testState.done = true;
+          console.log(`${SIGNALS.ERROR} ${JSON.stringify({ error: e.message })}`);
+          console.log(`${SIGNALS.DONE} ${JSON.stringify({ status: 'error', elapsed: 0, error: e.message })}`);
+          document.getElementById('status').textContent = `Error: ${e.message}`;
+          document.getElementById('status').classList.add('border-error');
+        }
+      }
+
+      function renderEnergyResults(r) {
+        const container = document.getElementById('results');
+        const energy = Number.isFinite(r.energy) ? r.energy.toFixed(6) : 'n/a';
+        const historyCount = r.energyHistory?.length ?? 0;
+        const statsJson = r.stateStats ? JSON.stringify(r.stateStats, null, 2) : '';
+        container.innerHTML = `
+          <div class="section">
+            <div class="type-label">Model</div>
+            <div>${r.model}</div>
+          </div>
+          <div class="section">
+            <div class="type-label">State</div>
+            <div>${r.shape.join(' x ')} (${r.dtype})</div>
+          </div>
+          <div class="section stats">
+            <div class="stat">
+              <div class="stat-value">${r.steps}</div>
+              <div class="type-caption">steps</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${energy}</div>
+              <div class="type-caption">energy</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${r.elapsed}ms</div>
+              <div class="type-caption">total</div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="type-label">Energy history</div>
+            <div>${historyCount} samples</div>
+          </div>
+          <div class="section">
+            <div class="type-label">State stats</div>
+            <div class="output">${statsJson}</div>
+          </div>
+          <div class="section">
+            <div class="${r.passed ? 'badge badge-filled' : 'badge border-error'}">${r.passed ? 'PASS' : 'FAIL'}</div>
+          </div>
+        `;
+        container.classList.add('show');
+        document.getElementById('status').style.display = 'none';
+      }
+
+      if (paramAutorun) {
+        document.getElementById('status').textContent = 'Running...';
+        run();
+      } else {
+        document.getElementById('status').textContent = 'Ready (autorun disabled in config)';
+      }
+
+      return 'energy';
     }
 
     // ==========================================================================
@@ -567,15 +732,15 @@
         const container = document.getElementById('results');
         container.innerHTML = `
           <div class="section">
-            <div class="type-label muted">Target Chip</div>
+            <div class="type-label">Target Chip</div>
             <div>${r.targetChip}</div>
           </div>
           <div class="section">
-            <div class="type-label muted">Timing Mode</div>
+            <div class="type-label">Timing Mode</div>
             <div>${r.timingMode}</div>
           </div>
           <div class="section">
-            <div class="type-label muted">Stats</div>
+            <div class="type-label">Stats</div>
             <div class="output">${r.statsJson}</div>
           </div>
         `;
@@ -630,6 +795,7 @@
       const titles = {
         kernels: 'DOPPLER KERNEL TESTS',
         inference: 'DOPPLER INFERENCE TEST',
+        energy: 'DOPPLER ENERGY TEST',
         simulation: 'DOPPLER SIMULATION',
         bench: 'DOPPLER BENCHMARK',
         training: 'DOPPLER TRAINING TESTS',
@@ -650,6 +816,9 @@
             break;
           case 'inference':
             result = await initInferenceMode();
+            break;
+          case 'energy':
+            result = await initEnergyMode();
             break;
           case 'simulation':
             result = await initSimulationMode();

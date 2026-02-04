@@ -25,6 +25,7 @@ import type { KernelPathRef } from './kernel-path.schema.js';
 import type { ManifestInferenceSchema } from './manifest.schema.js';
 import type { SpeculativeConfigSchema } from './speculative.schema.js';
 import type { DiffusionConfigSchema } from './diffusion.schema.js';
+import type { EnergyConfigSchema } from './energy.schema.js';
 
 // Re-export for convenience
 export type { ManifestInferenceSchema };
@@ -172,6 +173,8 @@ export interface InferenceDefaultsConfigSchema {
   speculative: SpeculativeConfigSchema;
   /** Diffusion pipeline configuration */
   diffusion: DiffusionConfigSchema;
+  /** Energy pipeline configuration */
+  energy: EnergyConfigSchema;
   /** Optional default prompt text for test harnesses */
   prompt?: string | null;
   /** Log token ids in test harness output */

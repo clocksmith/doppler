@@ -126,3 +126,65 @@ select {
 .modal-message {
   margin: 0 0 var(--space-md);
 }
+
+/* === ACCORDION === */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-sm) solid var(--fg);
+}
+
+.accordion-item {
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.accordion-item:last-child {
+  border-bottom: none;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg);
+  color: var(--fg);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.accordion-header:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.accordion-header[aria-expanded="true"] {
+  background: var(--fg);
+  color: var(--bg);
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.accordion-header::after {
+  content: '+';
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.accordion-header[aria-expanded="true"]::after {
+  content: '-';
+}
+
+.accordion-content {
+  display: none;
+  padding: var(--space-md);
+}
+
+.accordion-content[aria-hidden="false"] {
+  display: block;
+}

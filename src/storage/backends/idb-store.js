@@ -277,6 +277,51 @@ export function createIdbStore(config) {
     return results;
   }
 
+  async function getModelStats(modelId) {
+    await init();
+    const tx = db.transaction(metaStore, 'readonly');
+    const store = tx.objectStore(metaStore);
+    const prefix = buildFileKey(modelId, '');
+    let totalBytes = 0;
+    let fileCount = 0;
+    let shardCount = 0;
+    let hasManifest = false;
+
+    const request = store.openCursor();
+    await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (!cursor) {
+          resolve();
+          return;
+        }
+        const key = cursor.key;
+        if (typeof key === 'string' && key.startsWith(prefix)) {
+          const filename = key.substring(prefix.length);
+          const meta = cursor.value?.value;
+          const size = meta?.size ?? 0;
+          totalBytes += size;
+          fileCount += 1;
+          if (filename === 'manifest.json') {
+            hasManifest = true;
+          }
+          if (filename.startsWith('shard_') && filename.endsWith('.bin')) {
+            shardCount += 1;
+          }
+        }
+        cursor.continue();
+      };
+    });
+    await transactionDone(tx);
+    return {
+      totalBytes,
+      fileCount,
+      shardCount,
+      hasManifest,
+    };
+  }
+
   async function deleteModel(modelId) {
     await init();
     const tx = db.transaction([shardStore, metaStore], 'readwrite');
@@ -352,6 +397,7 @@ export function createIdbStore(config) {
     readManifest,
     writeTokenizer,
     readTokenizer,
+    getModelStats,
     cleanup,
   };
 }

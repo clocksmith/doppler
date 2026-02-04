@@ -459,17 +459,18 @@ export class BufferPool {
       throw new Error('Device not initialized');
     }
 
+    const alignedSize = Math.ceil(size / 4) * 4;
     // Create staging buffer
-    const staging = this.createStagingBuffer(size);
+    const staging = this.createStagingBuffer(alignedSize);
 
     // Copy to staging
     const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
-    encoder.copyBufferToBuffer(buffer, 0, staging, 0, size);
+    encoder.copyBufferToBuffer(buffer, 0, staging, 0, alignedSize);
     device.queue.submit([encoder.finish()]);
 
     // Map and read
     await staging.mapAsync(GPUMapMode.READ);
-    const data = staging.getMappedRange(0, size).slice(0);
+    const data = staging.getMappedRange(0, alignedSize).slice(0, size);
     staging.unmap();
 
     // Release staging buffer

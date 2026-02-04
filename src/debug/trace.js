@@ -153,4 +153,15 @@ export const trace = {
       console.log(formatted);
     }
   },
+
+  energy(message, data) {
+    if (!isEnabled('energy')) return;
+    const formatted = formatTraceMessage('energy', message);
+    storeTrace('energy', 'Energy', message, data);
+    if (data !== undefined) {
+      console.log(formatted, data);
+    } else {
+      console.log(formatted);
+    }
+  },
 };

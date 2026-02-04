@@ -1,12 +1,5 @@
 
-/**
- * Platform-agnostic kernel validation logic.
- * Designed to work with both Node.js fs implementation and Browser WorkspaceVfs.
- */
 export class KernelValidator {
-    /**
-     * @param {object} fs - File system interface (readText, exists, list)
-     */
     constructor(fs) {
         this.fs = fs;
     }

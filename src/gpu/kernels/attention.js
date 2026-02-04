@@ -278,6 +278,8 @@ function resolveAttentionVariant(
     && headDim <= decodeSubgroupMaxHeadDim
     && sharedLimit >= getKernelThresholds().attention.subgroupShared;
   const chunkedVariant = selectKernelRuleValue('attention', 'chunkedVariant', { useF16 });
+  const pagedVariant = selectKernelRuleValue('attention', 'pagedVariant', { useF16 });
+  const optimizedVariant = selectKernelRuleValue('attention', 'optimizedVariant', { useF16 });
   const variant = selectKernelRuleValue(
     'attention',
     'variant',
@@ -290,6 +292,8 @@ function resolveAttentionVariant(
       base,
       suffix,
       chunkedVariant,
+      pagedVariant,
+      optimizedVariant,
       isPaged,
       isDecode,
     }

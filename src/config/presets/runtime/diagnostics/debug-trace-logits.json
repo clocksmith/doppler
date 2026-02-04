@@ -1,4 +1,7 @@
 {
+  "name": "debug-trace-logits",
+  "description": "Trace logits with probes for a single-token decode.",
+  "extends": "modes/debug",
   "runtime": {
     "inference": {
       "prompt": "The sky is",
@@ -7,10 +10,10 @@
     },
     "shared": {
       "debug": {
-        "logLevel": { "defaultLogLevel": "debug" },
         "trace": {
           "enabled": true,
-          "categories": ["logits"]
+          "categories": ["logits"],
+          "maxDecodeSteps": 1
         },
         "probes": [
           { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [138, 496, 0, 1, 2, 3] }

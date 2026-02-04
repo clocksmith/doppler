@@ -1,5 +1,7 @@
 {
-  "extends": "debug",
+  "name": "debug-logits2",
+  "description": "Trace logits only with a top-k probe (single token).",
+  "extends": "modes/debug",
   "runtime": {
     "inference": {
       "prompt": "The sky is",
@@ -8,16 +10,12 @@
     },
     "shared": {
       "debug": {
-        "pipeline": {
-          "enabled": true
-        },
+        "logLevel": { "defaultLogLevel": "debug" },
         "trace": {
           "enabled": true,
-          "categories": ["loader", "kernels", "logits", "embed", "attn", "ffn", "kv", "sample", "perf"],
-          "maxDecodeSteps": 1
+          "categories": ["logits"]
         },
         "probes": [
-          { "id": "layer0_out", "stage": "layer_out", "layers": [0], "tokens": [-1], "dims": [0, 1, 2, 3, 4, 5] },
           { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [138, 496, 0, 1, 2, 3] }
         ]
       }

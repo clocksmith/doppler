@@ -9,6 +9,7 @@
 
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { LayerPipelineSchema } from './inference.schema.js';
+import type { EnergyModelConfigSchema } from './energy.schema.js';
 
 /** Supported hash algorithms */
 export type HashAlgorithm = 'sha256' | 'blake3';
@@ -31,6 +32,7 @@ export type ModelType =
   | 'mixtral'      // MoE transformer (Mixtral, Arctic)
   | 'deepseek'     // MoE with shared experts
   | 'diffusion'    // Diffusion pipelines (Stable Diffusion, SD3)
+  | 'energy'       // Energy-based models (EBM/JEM-style demos)
   | string;        // Allow future extensions
 
 /** Component group types */
@@ -428,6 +430,7 @@ export interface ManifestSchema {
   moeConfig?: MoEConfigSchema | null;
   optimizations?: RuntimeOptimizationsSchema;
   conversion?: ConversionInfoSchema;
+  energy?: EnergyModelConfigSchema;
 
   // Adapter support (for LoRA/QLoRA)
   adapterType?: 'lora' | 'qlora';

@@ -6,6 +6,8 @@
 
 import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
 import type { InferencePipeline } from './pipeline.js';
+import type { DiffusionPipeline } from './diffusion/pipeline.js';
+import type { EnergyPipeline } from './energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 
 export interface BrowserHarnessOptions extends InferenceHarnessOptions {
@@ -21,10 +23,11 @@ export interface BrowserHarnessOptions extends InferenceHarnessOptions {
 
 export interface RuntimeConfigLoadOptions {
   baseUrl?: string;
+  presetBaseUrl?: string;
   signal?: AbortSignal;
 }
 
-export type BrowserSuite = 'kernels' | 'inference' | 'bench' | 'debug';
+export type BrowserSuite = 'kernels' | 'inference' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface SuiteTestResult {
   name: string;
@@ -43,14 +46,18 @@ export interface SuiteSummary {
   results: SuiteTestResult[];
 }
 
+export interface DiffusionOutput {
+  pixels: Uint8ClampedArray;
+  width: number;
+  height: number;
+}
+
 export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   suite?: BrowserSuite;
   modelUrl?: string;
   modelId?: string;
   runtimePreset?: string | null;
-  prompt?: string;
-  maxTokens?: number;
-  sampling?: Record<string, number>;
+  captureOutput?: boolean;
   keepPipeline?: boolean;
   report?: Record<string, unknown>;
   timestamp?: string | Date;
@@ -66,10 +73,10 @@ export interface BrowserHarnessResult extends InitializeResult {
 export interface BrowserSuiteResult extends SuiteSummary {
   modelId?: string;
   metrics?: Record<string, unknown>;
-  output?: string | null;
+  output?: string | DiffusionOutput | null;
   deviceInfo?: Record<string, unknown> | null;
   memoryStats?: ReturnType<InferencePipeline['getMemoryStats']> | null;
-  pipeline?: InferencePipeline | null;
+  pipeline?: InferencePipeline | DiffusionPipeline | EnergyPipeline | null;
   report: Record<string, unknown>;
   reportInfo: SavedReportInfo;
 }
