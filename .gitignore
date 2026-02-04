@@ -44,6 +44,7 @@ functiongemma-safetensors/
 
 # Test artifacts
 test-results/
+tests/results/**
 tests/results/*.json
 tests/results/*.html
 tests/results/kernel-path-grid/profiles-*/
