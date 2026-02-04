@@ -81,12 +81,15 @@ const state = {
   lastStorageRefresh: 0,
   activeDownloadId: null,
   energyDemoId: null,
+  energyVliw: null,
+  energyVliwBundle: null,
+  energyVliwMeta: null,
 };
 
 const VLIW_DATASETS = {
   'vliw-simd': {
     id: 'vliw-simd',
-    label: 'VLIW SIMD schedule sample',
+    label: 'VLIW SIMD schedule (full kernel)',
     path: 'data/vliw-simd.json',
   },
 };
@@ -197,16 +200,16 @@ const ENERGY_DEMOS = [
     id: 'vliw-simd',
     problem: 'vliw',
     label: 'VLIW SIMD: Schedule search',
-    description: 'Searches for a shorter VLIW SIMD schedule under slot caps.',
+    description: 'Searches for a shorter VLIW SIMD schedule under slot caps (full kernel by default).',
     defaults: {
       displayThreshold: 0.5,
       vliw: {
         dataset: 'vliw-simd',
-        bundleLimit: 120,
-        restarts: 2,
-        temperatureStart: 2.5,
-        temperatureDecay: 0.985,
-        mutationCount: 6,
+        bundleLimit: 0,
+        restarts: 6,
+        temperatureStart: 3.0,
+        temperatureDecay: 0.99,
+        mutationCount: 8,
       },
       init: {
         mode: 'normal',
@@ -214,9 +217,9 @@ const ENERGY_DEMOS = [
         scale: 0.35,
       },
       loop: {
-        steps: 240,
-        stepSize: 0.2,
-        gradientScale: 1.2,
+        steps: 600,
+        stepSize: 0.15,
+        gradientScale: 1.0,
         convergence: 0,
       },
     },
@@ -2220,11 +2223,19 @@ function setEnergyMetricLabels(problem) {
 function toggleEnergyProblemControls(problem) {
   const quintelControls = $('energy-quintel-controls');
   const vliwControls = $('energy-vliw-controls');
+  const summary = $('energy-kernel-summary')?.parentElement || null;
+  const bundle = $('energy-bundle-view')?.parentElement || null;
   if (quintelControls) {
     quintelControls.hidden = problem !== 'quintel';
   }
   if (vliwControls) {
     vliwControls.hidden = problem !== 'vliw';
+  }
+  if (summary) {
+    summary.hidden = problem !== 'vliw';
+  }
+  if (bundle) {
+    bundle.hidden = problem !== 'vliw';
   }
 }
 
@@ -2390,8 +2401,11 @@ function sliceVliwDataset(dataset, bundleLimit) {
     : dataset.tasks.filter((task) => (task.bundle ?? 0) < limit);
   const idMap = new Map();
   const remapped = [];
+  let maxBundle = -1;
   tasks.forEach((task, index) => {
     idMap.set(task.id, index);
+    const bundle = Number.isFinite(task.bundle) ? task.bundle : 0;
+    if (bundle > maxBundle) maxBundle = bundle;
     remapped.push({ ...task, id: index });
   });
   remapped.forEach((task) => {
@@ -2401,6 +2415,8 @@ function sliceVliwDataset(dataset, bundleLimit) {
   return {
     tasks: remapped,
     caps: dataset.caps ?? {},
+    bundleCount: maxBundle + 1,
+    taskCount: remapped.length,
   };
 }
 
@@ -2410,6 +2426,8 @@ function clearEnergyBoard() {
   board.innerHTML = '';
   clearEnergyVector();
   clearEnergyIntensityBoard();
+  clearEnergyKernelSummary();
+  clearEnergyBundleView();
 }
 
 function clearEnergyVector() {
@@ -2422,6 +2440,19 @@ function clearEnergyIntensityBoard() {
   const board = $('energy-board-intensity');
   if (!board) return;
   board.innerHTML = '';
+}
+
+function clearEnergyKernelSummary() {
+  const summary = $('energy-kernel-summary');
+  if (!summary) return;
+  summary.textContent = '';
+}
+
+function clearEnergyBundleView() {
+  const view = $('energy-bundle-view');
+  if (view) view.textContent = '';
+  const select = $('energy-vliw-bundle-select');
+  if (select) select.innerHTML = '';
 }
 
 function resolveEnergyGrid(shapeOrSize) {
@@ -2501,6 +2532,110 @@ function renderEnergyIntensityBoard(state, rows, cols) {
     }
     board.appendChild(cell);
   }
+}
+
+function formatVliwSlotLabel(engine, slotIndex) {
+  if (!engine) return `slot${slotIndex}`;
+  return `${engine}${slotIndex}`;
+}
+
+function renderVliwKernelSummary(summary, datasetMeta) {
+  const summaryEl = $('energy-kernel-summary');
+  if (!summaryEl) return;
+  if (!summary) {
+    summaryEl.textContent = '';
+    return;
+  }
+  const lines = [];
+  if (datasetMeta?.label) {
+    lines.push(`Dataset: ${datasetMeta.label}`);
+  }
+  if (Number.isFinite(datasetMeta?.bundleCount)) {
+    lines.push(`Bundles: ${datasetMeta.bundleCount}`);
+  }
+  if (Number.isFinite(datasetMeta?.taskCount)) {
+    lines.push(`Tasks: ${datasetMeta.taskCount}`);
+  }
+  if (Number.isFinite(datasetMeta?.baselineCycles)) {
+    lines.push(`Baseline cycles: ${datasetMeta.baselineCycles}`);
+  }
+  if (Number.isFinite(summary.bestCycles)) {
+    lines.push(`Best cycles: ${summary.bestCycles}`);
+  }
+  if (Number.isFinite(summary.utilization)) {
+    lines.push(`Utilization: ${formatScalar(summary.utilization, 4)}`);
+  }
+  if (Array.isArray(summary.candidates) && summary.candidates.length) {
+    lines.push('Top candidates:');
+    summary.candidates.forEach((candidate, index) => {
+      const parts = [
+        `#${index + 1}`,
+        `restart ${candidate.restart}`,
+        `cycles ${candidate.cycles}`,
+        `util ${formatScalar(candidate.utilization, 4)}`,
+        `viol ${candidate.violations}`,
+        `steps ${candidate.steps}`,
+      ];
+      lines.push(`  ${parts.join(' • ')}`);
+    });
+  }
+  summaryEl.textContent = lines.join('\n');
+}
+
+function populateVliwBundleSelect(bundleCount) {
+  const select = $('energy-vliw-bundle-select');
+  if (!select) return;
+  select.innerHTML = '';
+  const allOption = document.createElement('option');
+  allOption.value = '';
+  allOption.textContent = 'All bundles';
+  select.appendChild(allOption);
+  if (!Number.isFinite(bundleCount) || bundleCount <= 0) return;
+  for (let i = 0; i < bundleCount; i++) {
+    const option = document.createElement('option');
+    option.value = String(i);
+    option.textContent = `Bundle ${i}`;
+    select.appendChild(option);
+  }
+}
+
+function renderVliwBundleView(vliwState, selectedBundle) {
+  const view = $('energy-bundle-view');
+  if (!view) return;
+  view.textContent = '';
+  if (!vliwState || !vliwState.schedule) return;
+  const { slotAssignments, slotEngines, slotIndices } = vliwState.schedule;
+  if (!slotAssignments || !slotEngines || !slotIndices) return;
+  const slotsPerCycle = slotEngines.length;
+  if (!slotsPerCycle) return;
+  const cycles = Math.floor(slotAssignments.length / slotsPerCycle);
+  const lines = [];
+  const showBundle = Number.isFinite(selectedBundle) ? selectedBundle : null;
+  for (let cycle = 0; cycle < cycles; cycle++) {
+    const parts = [`C${String(cycle).padStart(4, '0')}`];
+    const baseIndex = cycle * slotsPerCycle;
+    for (let slot = 0; slot < slotsPerCycle; slot++) {
+      const taskId = slotAssignments[baseIndex + slot];
+      const engine = slotEngines[slot];
+      const slotIndex = slotIndices[slot];
+      if (taskId == null || taskId < 0) {
+        parts.push(`${formatVliwSlotLabel(engine, slotIndex)}=--`);
+        continue;
+      }
+      const meta = vliwState.taskMeta?.[taskId] || {};
+      const bundle = Number.isFinite(meta.bundle) ? meta.bundle : '--';
+      const deps = Number.isFinite(meta.deps) ? meta.deps : 0;
+      const reads = Number.isFinite(meta.reads) ? meta.reads : 0;
+      const writes = Number.isFinite(meta.writes) ? meta.writes : 0;
+      const highlight = showBundle != null && bundle === showBundle;
+      const prefix = highlight ? '*' : '';
+      parts.push(
+        `${prefix}${formatVliwSlotLabel(engine, slotIndex)}=${taskId}[b${bundle} d${deps} r${reads} w${writes}]`,
+      );
+    }
+    lines.push(parts.join(' '));
+  }
+  view.textContent = lines.join('\n');
 }
 
 function drawEnergyChart(history = []) {
@@ -2641,6 +2776,14 @@ async function handleEnergyRun() {
     convergenceThreshold,
   };
 
+  if (problem !== 'vliw') {
+    state.energyVliw = null;
+    state.energyVliwBundle = null;
+    state.energyVliwMeta = null;
+    clearEnergyKernelSummary();
+    clearEnergyBundleView();
+  }
+
   if (problem === 'quintel') {
     const quintelRules = {
       mirrorX,
@@ -2671,6 +2814,12 @@ async function handleEnergyRun() {
     const mutationCount = readOptionalNumber($('energy-vliw-mutation'), { integer: true });
     const dataset = await loadVliwDataset(datasetId);
     const sliced = sliceVliwDataset(dataset, bundleLimit);
+    state.energyVliwMeta = {
+      label: dataset.label || VLIW_DATASETS[datasetId]?.label || datasetId,
+      bundleCount: sliced.bundleCount ?? dataset.bundleCount,
+      taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
+      baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
+    };
     request.vliw = {
       tasks: sliced.tasks,
       caps: sliced.caps,
@@ -2700,6 +2849,33 @@ async function handleEnergyRun() {
     }
     updateEnergyStatus('Running...');
     const result = await pipeline.generate(request);
+    if (problem === 'vliw') {
+      state.energyVliw = {
+        schedule: result?.schedule || null,
+        taskMeta: result?.taskMeta || null,
+      };
+      const candidates = Array.isArray(result?.candidates) ? result.candidates.slice() : [];
+      candidates.sort((a, b) => a.cycles - b.cycles);
+      const summary = {
+        bestCycles: result?.metrics?.cycles ?? null,
+        utilization: result?.metrics?.utilization ?? null,
+        candidates: candidates.slice(0, 6),
+      };
+      renderVliwKernelSummary(summary, state.energyVliwMeta);
+      const bundleCount = state.energyVliwMeta?.bundleCount;
+      populateVliwBundleSelect(bundleCount);
+      const bundleSelect = $('energy-vliw-bundle-select');
+      if (bundleSelect) {
+        const selected = Number.isFinite(state.energyVliwBundle)
+          ? state.energyVliwBundle
+          : null;
+        if (selected != null && selected >= 0) {
+          bundleSelect.value = String(selected);
+        }
+        state.energyVliwBundle = selected;
+      }
+      renderVliwBundleView(state.energyVliw, state.energyVliwBundle);
+    }
     if (result?.shape) {
       state.lastEnergyRequest = {
         shape: result.shape,
@@ -2734,6 +2910,9 @@ function handleEnergyClear() {
   clearEnergyBoard();
   updateEnergyStats(null);
   updateEnergyStatus('Idle');
+  state.energyVliw = null;
+  state.energyVliwBundle = null;
+  state.energyVliwMeta = null;
 }
 
 async function handleRunGenerate() {
@@ -3693,6 +3872,14 @@ function bindUI() {
       log.error('DopplerDemo', `Energy run failed: ${error.message}`);
       updateEnergyStatus(`Error: ${error.message}`);
     });
+  });
+
+  const energyBundleSelect = $('energy-vliw-bundle-select');
+  energyBundleSelect?.addEventListener('change', () => {
+    const value = energyBundleSelect.value;
+    const bundle = value === '' ? null : Number.parseInt(value, 10);
+    state.energyVliwBundle = Number.isFinite(bundle) ? bundle : null;
+    renderVliwBundleView(state.energyVliw, state.energyVliwBundle);
   });
 
   updateRunAutoLabels();

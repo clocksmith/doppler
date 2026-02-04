@@ -30,7 +30,7 @@ struct Uniforms {
 @group(0) @binding(1) var<storage, read> state: array<f16>;
 @group(0) @binding(2) var<storage, read_write> output: array<vec4<f32>>;
 
-var<workgroup> shared: array<vec4<f32>, WORKGROUP_SIZE>;
+var<workgroup> sharedAccum: array<vec4<f32>, WORKGROUP_SIZE>;
 
 fn hasFlag(mask: u32) -> bool {
     return (u.flags & mask) != 0u;
@@ -93,7 +93,7 @@ fn main(
         }
     }
 
-    shared[lid.x] = accum;
+    sharedAccum[lid.x] = accum;
     workgroupBarrier();
 
     var stride = WORKGROUP_SIZE / 2u;
@@ -102,13 +102,13 @@ fn main(
             break;
         }
         if (lid.x < stride) {
-            shared[lid.x] = shared[lid.x] + shared[lid.x + stride];
+            sharedAccum[lid.x] = sharedAccum[lid.x] + sharedAccum[lid.x + stride];
         }
         workgroupBarrier();
         stride = stride / 2u;
     }
 
     if (lid.x == 0u) {
-        output[wid.x] = shared[0];
+        output[wid.x] = sharedAccum[0];
     }
 }

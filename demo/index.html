@@ -220,6 +220,16 @@
       min-height: 80px;
     }
 
+    .energy-summary {
+      min-height: 120px;
+    }
+
+    .energy-bundle-view {
+      min-height: 200px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
     .check-field {
       display: flex;
       align-items: center;
@@ -876,6 +886,21 @@
 
             <section class="panel energy-panel" data-modes="energy">
               <h2 class="type-label">Energy</h2>
+              <div class="panel-subsection">
+                <span class="type-caption">Kernel search summary</span>
+                <div id="energy-kernel-summary" class="playground-output-box energy-summary"></div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Bundle selector</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-bundle-select">Bundle</label>
+                    <select id="energy-vliw-bundle-select"></select>
+                  </div>
+                </div>
+                <span class="type-caption">Bundle schedule (slot-by-slot)</span>
+                <pre id="energy-bundle-view" class="energy-vector energy-bundle-view"></pre>
+              </div>
               <div class="panel-subsection">
                 <span class="type-caption">Board (thresholded)</span>
                 <div id="energy-board" class="energy-board"></div>

@@ -43,12 +43,24 @@ function buildGraph(tasks) {
 
 function computeEngineOffsets(caps) {
   const offsets = {};
+  const slotEngines = [];
+  const slotIndices = [];
   let cursor = 0;
   ENGINE_ORDER.forEach((engine) => {
     offsets[engine] = cursor;
-    cursor += Math.max(0, caps[engine] || 0);
+    const cap = Math.max(0, caps[engine] || 0);
+    for (let i = 0; i < cap; i++) {
+      slotEngines.push(engine);
+      slotIndices.push(i);
+    }
+    cursor += cap;
   });
-  return { offsets, totalSlots: cursor };
+  return {
+    offsets,
+    totalSlots: cursor,
+    slotEngines,
+    slotIndices,
+  };
 }
 
 function scheduleWithPriority(tasks, caps, priorities, graph) {
@@ -60,8 +72,14 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
     if (remaining[i] === 0) ready.push(i);
   }
 
-  const { offsets, totalSlots } = computeEngineOffsets(caps);
+  const {
+    offsets,
+    totalSlots,
+    slotEngines,
+    slotIndices,
+  } = computeEngineOffsets(caps);
   const gridRows = [];
+  const assignmentRows = [];
   let scheduled = 0;
   let usedSlots = 0;
   let cycles = 0;
@@ -79,6 +97,8 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
       usage[engine] = 0;
     });
     const row = new Float32Array(totalSlots);
+    const assignmentRow = new Int32Array(totalSlots);
+    assignmentRow.fill(-1);
     const nextReady = [];
     const scheduledThis = [];
 
@@ -94,6 +114,7 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
         const slotIndex = offsets[engine] + usage[engine];
         usage[engine] += 1;
         row[slotIndex] = 1;
+        assignmentRow[slotIndex] = taskId;
         scheduledThis.push(taskId);
         scheduled += 1;
         usedSlots += 1;
@@ -117,6 +138,7 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
     ready.length = 0;
     ready.push(...nextReady);
     gridRows.push(row);
+    assignmentRows.push(assignmentRow);
     cycles += 1;
   }
 
@@ -128,6 +150,10 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
   gridRows.forEach((row, rowIndex) => {
     grid.set(row, rowIndex * totalSlots);
   });
+  const slotAssignments = new Int32Array(assignmentRows.length * totalSlots);
+  assignmentRows.forEach((row, rowIndex) => {
+    slotAssignments.set(row, rowIndex * totalSlots);
+  });
 
   return {
     cycles,
@@ -135,6 +161,9 @@ function scheduleWithPriority(tasks, caps, priorities, graph) {
     violations,
     grid,
     gridShape: [gridRows.length, totalSlots, 1],
+    slotAssignments,
+    slotEngines,
+    slotIndices,
   };
 }
 
@@ -183,6 +212,14 @@ export function runVliwEnergyLoop({
   }
   const taskList = buildTaskIndex(tasks);
   const graph = buildGraph(taskList);
+  const taskMeta = taskList.map((task) => ({
+    id: task.id,
+    engine: task.engine,
+    bundle: task.bundle ?? null,
+    deps: Array.isArray(task.deps) ? task.deps.length : 0,
+    reads: Array.isArray(task.reads) ? task.reads.length : 0,
+    writes: Array.isArray(task.writes) ? task.writes.length : 0,
+  }));
   const maxSteps = Math.max(1, Math.floor(loop?.maxSteps ?? 200));
   const minSteps = Math.max(1, Math.floor(loop?.minSteps ?? 1));
   const stepSize = Number.isFinite(loop?.stepSize) ? loop.stepSize : 0.25;
@@ -200,13 +237,13 @@ export function runVliwEnergyLoop({
   const mutationCount = Math.max(1, Math.floor(search?.mutationCount ?? Math.max(1, gradientScale * 4)));
 
   const rng = createRng(seed ?? 1337);
-  let best = null;
   let bestEnergy = Number.POSITIVE_INFINITY;
-  let bestMetrics = null;
+  let bestSchedule = null;
   let bestHistory = [];
   let bestState = null;
   let bestShape = null;
   let bestSteps = 0;
+  const candidates = [];
 
   const totalStart = performance.now();
 
@@ -217,6 +254,9 @@ export function runVliwEnergyLoop({
     let currentEnergy = currentSchedule.cycles;
     let temperature = tempStart;
     const energyHistory = [];
+    let restartBestEnergy = currentEnergy;
+    let restartBestSchedule = currentSchedule;
+    let restartBestSteps = 1;
 
     if (onTrace) {
       onTrace(0, currentEnergy, { cycles: currentEnergy, utilization: currentSchedule.utilization });
@@ -232,12 +272,20 @@ export function runVliwEnergyLoop({
         currentSchedule = candidateSchedule;
         currentEnergy = candidateEnergy;
       }
+      if (currentEnergy < restartBestEnergy) {
+        restartBestEnergy = currentEnergy;
+        restartBestSchedule = currentSchedule;
+        restartBestSteps = step + 1;
+      }
       if (currentEnergy < bestEnergy) {
         bestEnergy = currentEnergy;
-        best = current;
-        bestMetrics = currentSchedule;
+        bestSchedule = currentSchedule;
         bestState = currentSchedule.grid;
         bestShape = currentSchedule.gridShape;
+        bestSteps = step + 1;
+        if (energyHistory.length) {
+          bestHistory = energyHistory.slice();
+        }
       }
 
       if (step % readbackEvery === 0 || step === maxSteps - 1) {
@@ -254,20 +302,22 @@ export function runVliwEnergyLoop({
         });
       }
       if (convergenceThreshold != null && step >= minSteps && currentEnergy <= convergenceThreshold) {
-        bestSteps = step + 1;
         break;
       }
       temperature *= tempDecay;
-      bestSteps = step + 1;
     }
 
-    if (best && bestEnergy < Number.POSITIVE_INFINITY && energyHistory.length) {
-      bestHistory = energyHistory;
-    }
+    candidates.push({
+      restart: restart + 1,
+      cycles: restartBestEnergy,
+      utilization: restartBestSchedule.utilization,
+      violations: restartBestSchedule.violations,
+      steps: restartBestSteps,
+    });
   }
 
   const totalTimeMs = performance.now() - totalStart;
-  if (!bestMetrics || !bestState || !bestShape) {
+  if (!bestSchedule || !bestState || !bestShape) {
     throw new Error('VLIW search failed to produce a schedule.');
   }
 
@@ -278,10 +328,17 @@ export function runVliwEnergyLoop({
     state: bestState,
     shape: bestShape,
     metrics: {
-      cycles: bestMetrics.cycles,
-      utilization: bestMetrics.utilization,
-      violations: bestMetrics.violations,
+      cycles: bestSchedule.cycles,
+      utilization: bestSchedule.utilization,
+      violations: bestSchedule.violations,
     },
+    schedule: {
+      slotAssignments: bestSchedule.slotAssignments,
+      slotEngines: bestSchedule.slotEngines,
+      slotIndices: bestSchedule.slotIndices,
+    },
+    candidates,
+    taskMeta,
     totalTimeMs,
   };
 }

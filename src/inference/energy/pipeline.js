@@ -94,6 +94,9 @@ function diffEnergySection(section, defaults) {
 function diffQuintelConfig(config, defaults) {
   if (!config) return {};
   const out = {};
+  if (typeof config.backend === 'string' && config.backend !== defaults?.backend) {
+    out.backend = config.backend;
+  }
   if (Number.isFinite(config.size) && !Object.is(config.size, defaults?.size)) {
     out.size = config.size;
   }
@@ -321,7 +324,17 @@ export class EnergyPipeline {
       };
 
       const device = getDevice();
+      const requestedBackend = typeof quintelConfig.backend === 'string'
+        ? quintelConfig.backend.toLowerCase()
+        : 'cpu';
+      const resolvedBackend = requestedBackend === 'auto'
+        ? (device ? 'gpu' : 'cpu')
+        : requestedBackend;
+      if (resolvedBackend !== 'gpu') {
+        return runCpu();
+      }
       if (!device) {
+        log.warn('Energy', 'Quintel GPU backend requested, but no WebGPU device is available.');
         return runCpu();
       }
 
@@ -353,7 +366,7 @@ export class EnergyPipeline {
         let lastCountDiff = 0.0;
 
         const traceInterval = Math.max(0, Math.floor(traceEvery ?? diagnosticsConfig.traceEvery ?? 0));
-        const reduceInterval = Math.max(1, Math.floor(readbackEvery));
+        const reduceInterval = hasCountRule ? 1 : Math.max(1, Math.floor(readbackEvery));
         const reduceWorkgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
         const reduceBytes = reduceWorkgroups * 16;
         const reduceBuffer = acquireBuffer(reduceBytes, undefined, 'energy_quintel_reduce_output');
@@ -369,6 +382,7 @@ export class EnergyPipeline {
         for (let step = 0; step < maxSteps; step++) {
           const stepStart = performance.now();
           const shouldReduce = step % reduceInterval === 0 || step === maxSteps - 1;
+          const shouldRecord = step % readbackEvery === 0 || step === maxSteps - 1;
           if (shouldReduce) {
             await runEnergyQuintelReduce(stateTensor, {
               count: elementCount,
@@ -411,9 +425,11 @@ export class EnergyPipeline {
             lastEnergy = energy;
             lastComponents = components;
 
-            energyHistory.push(energy);
-            if (energyHistory.length > historyLimit) {
-              energyHistory.shift();
+            if (shouldRecord) {
+              energyHistory.push(energy);
+              if (energyHistory.length > historyLimit) {
+                energyHistory.shift();
+              }
             }
 
             if (traceInterval > 0 && traceEvery > 0 && step % traceInterval === 0) {
@@ -557,6 +573,9 @@ export class EnergyPipeline {
         stateStats: computeArrayStats(result.state),
         totalTimeMs: result.totalTimeMs,
         metrics: result.metrics,
+        schedule: result.schedule,
+        candidates: result.candidates,
+        taskMeta: result.taskMeta,
         problem,
       };
     }

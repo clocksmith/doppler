@@ -60,6 +60,7 @@ export interface EnergyQuintelClampConfigSchema {
 }
 
 export interface EnergyQuintelConfigSchema {
+  backend: 'cpu' | 'gpu' | 'auto';
   size: number;
   rules: EnergyQuintelRulesConfigSchema;
   weights: EnergyQuintelWeightsConfigSchema;

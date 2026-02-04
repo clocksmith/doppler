@@ -69,6 +69,26 @@ export interface EnergyResult {
     utilization: number;
     violations: number;
   };
+  schedule?: {
+    slotAssignments: Int32Array;
+    slotEngines: string[];
+    slotIndices: number[];
+  };
+  candidates?: Array<{
+    restart: number;
+    cycles: number;
+    utilization: number;
+    violations: number;
+    steps: number;
+  }>;
+  taskMeta?: Array<{
+    id: number;
+    engine: string;
+    bundle?: number | null;
+    deps: number;
+    reads: number;
+    writes: number;
+  }>;
   problem?: EnergyProblem;
 }
 

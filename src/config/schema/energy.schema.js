@@ -52,6 +52,7 @@ export const DEFAULT_ENERGY_QUINTEL_CLAMP = {
 };
 
 export const DEFAULT_ENERGY_QUINTEL_CONFIG = {
+  backend: 'cpu',
   size: 5,
   rules: DEFAULT_ENERGY_QUINTEL_RULES,
   weights: DEFAULT_ENERGY_QUINTEL_WEIGHTS,
