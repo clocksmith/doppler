@@ -2,8 +2,9 @@
 
 **D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid ([Reploid](https://github.com/clocksmith/reploid))
 
-Browser-native WebGPU inference, diffusion sampling, and post-training engine for local model execution.
+Browser-native WebGPU inference for decoding, diffusion sampling, and energy-based inference, plus a post-training engine for local model execution.
 Doppler runs standalone as the engine; Reploid is an optional driver that can link in for orchestration.
+In a neurosymbolic future, a combined stack is essential because decoding handles discrete reasoning, diffusion supplies rich generative priors, and energy models enforce constraints and verification across both.
 
 **[Try it live](https://d4da.com)**
 
@@ -29,21 +30,19 @@ Open `http://localhost:8080/demo/` for the conversion + diagnostics UI.
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Demo UI                          │
-├─────────────────────────────────────────────────────┤
-│             DOPPLER Inference Pipeline              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│  │ Tokenize │→│ Forward  │→│ Sample   │→ tokens    │
-│  └──────────┘ └──────────┘ └──────────┘            │
-├─────────────────────────────────────────────────────┤
-│              GPU Kernels (WebGPU)                   │
-│  MatMul │ RMSNorm │ RoPE │ Attention │ SiLU        │
-├─────────────────────────────────────────────────────┤
-│           Memory / Buffer Management                │
-├─────────────────────────────────────────────────────┤
-│  Storage (OPFS)  │  RDRR Loader  │  Tokenizer      │
-└─────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│                        Browser App                          │
+├────────────────────────────────────────────────────────────┤
+│                 JS Runtime / Orchestrator                   │
+│   Decode (LM) │ Diffusion (image/audio) │ Energy (EBM)      │
+├────────────────────────────────────────────────────────────┤
+│                  WGSL Kernel Pipeline                       │
+│   MatMul │ Attention │ Conv │ Sampling │ Scoring            │
+├────────────────────────────────────────────────────────────┤
+│                       WebGPU Device                          │
+├────────────────────────────────────────────────────────────┤
+│  Memory/Buffer Mgmt │ Model Storage (OPFS) │ Tokenizer/IO    │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ## Manifest-First Config

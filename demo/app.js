@@ -322,19 +322,12 @@ function cloneRuntimeConfig(config) {
 }
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
-const STATUS_SYMBOLS = {
-  success: '&#9733;',
-  warning: '&#9761;',
-  error: '&#9746;',
-  info: '&#9755;',
-};
 
 function setStatusIndicator(message, tone) {
   const indicator = $('status-indicator');
   if (!indicator) return;
   const textEl = indicator.querySelector('.status-text');
   const dot = indicator.querySelector('.status-dot');
-  const symbol = indicator.querySelector('.status-symbol');
   setText(textEl, message);
   indicator.classList.remove(...STATUS_CLASSES);
   if (tone) {
@@ -346,9 +339,6 @@ function setStatusIndicator(message, tone) {
     } else {
       dot.classList.remove('status-dot-filled');
     }
-  }
-  if (symbol) {
-    symbol.innerHTML = tone ? (STATUS_SYMBOLS[tone] || '') : '';
   }
 }
 
@@ -2393,7 +2383,8 @@ function sliceVliwDataset(dataset, bundleLimit) {
   if (!dataset || !Array.isArray(dataset.tasks)) {
     return { tasks: [], caps: {} };
   }
-  const limit = Number.isFinite(bundleLimit) ? Math.max(1, Math.floor(bundleLimit)) : null;
+  const rawLimit = Number.isFinite(bundleLimit) ? Math.floor(bundleLimit) : null;
+  const limit = rawLimit && rawLimit > 0 ? Math.max(1, rawLimit) : null;
   const tasks = limit == null
     ? dataset.tasks
     : dataset.tasks.filter((task) => (task.bundle ?? 0) < limit);
@@ -2555,6 +2546,7 @@ function updateEnergyStats(result) {
     setText($('energy-stat-count'), '--');
     setText($('energy-stat-binarize'), '--');
     setText($('energy-stat-dtype'), '--');
+    setText($('energy-stat-backend'), '--');
     setText($('energy-stat-shape'), '--');
     setText($('energy-stat-mean'), '--');
     setText($('energy-stat-std'), '--');
@@ -2573,6 +2565,7 @@ function updateEnergyStats(result) {
     setText($('energy-stat-binarize'), formatScalar(result.energyComponents?.binarize, 6));
   }
   setText($('energy-stat-dtype'), result.dtype || '--');
+  setText($('energy-stat-backend'), result.backend || '--');
   const shape = Array.isArray(result.shape) ? result.shape.join(' x ') : '--';
   setText($('energy-stat-shape'), shape);
   setText($('energy-stat-mean'), formatScalar(result.stateStats?.mean, 6));

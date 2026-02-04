@@ -1,14 +1,20 @@
 import { getDevice, setDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import { runEnergyEval, runEnergyUpdate, runEnergyQuintelUpdate } from '../../gpu/kernels/index.js';
+import {
+  runEnergyEval,
+  runEnergyUpdate,
+  runEnergyQuintelUpdate,
+  runEnergyQuintelReduce,
+} from '../../gpu/kernels/index.js';
+import { WORKGROUP_SIZES } from '../../gpu/kernels/constants.js';
 import { computeArrayStats } from '../../debug/stats.js';
 import { log, trace, applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { DEFAULT_ENERGY_CONFIG } from '../../config/schema/energy.schema.js';
 import { f32ToF16Array, f16ToF32Array } from '../kv-cache/types.js';
 import { registerPipeline } from '../pipeline/registry.js';
-import { computeQuintelEnergy, mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
+import { mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
 import { runVliwEnergyLoop } from './vliw.js';
 
 function createRng(seed) {
@@ -288,6 +294,7 @@ export class EnergyPipeline {
         const stateStats = computeArrayStats(result.state);
 
         this.stats = {
+          backend: 'CPU',
           totalTimeMs: result.totalTimeMs,
           steps: result.steps,
           stepTimesMs: result.stepTimesMs,
@@ -299,6 +306,7 @@ export class EnergyPipeline {
         };
 
         return {
+          backend: 'CPU',
           shape,
           dtype: 'f32',
           steps: result.steps,
@@ -342,35 +350,83 @@ export class EnergyPipeline {
         const stepTimesMs = [];
         let lastEnergy = null;
         let lastComponents = null;
+        let lastCountDiff = 0.0;
 
         const traceInterval = Math.max(0, Math.floor(traceEvery ?? diagnosticsConfig.traceEvery ?? 0));
+        const reduceInterval = Math.max(1, Math.floor(readbackEvery));
+        const reduceWorkgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+        const reduceBytes = reduceWorkgroups * 16;
+        const reduceBuffer = acquireBuffer(reduceBytes, undefined, 'energy_quintel_reduce_output');
+        const countTarget = Number.isFinite(quintelConfig.countTarget)
+          ? quintelConfig.countTarget
+          : size * size * 0.5;
+        const hasSymmetryRules = !!rules.mirrorX || !!rules.mirrorY || !!rules.diagonal;
+        const hasCountRule = !!rules.count;
+        const hasCenterRule = !!rules.center;
+        const hasBinarizeRule = Number.isFinite(binarizeWeight) && binarizeWeight > 0;
         const start = performance.now();
 
         for (let step = 0; step < maxSteps; step++) {
           const stepStart = performance.now();
-          const stateData = await readTensorToFloat32(stateTensor);
-          const { energy, components, countDiff } = computeQuintelEnergy(stateData, size, quintelConfig);
-          lastEnergy = energy;
-          lastComponents = components;
+          const shouldReduce = step % reduceInterval === 0 || step === maxSteps - 1;
+          if (shouldReduce) {
+            await runEnergyQuintelReduce(stateTensor, {
+              count: elementCount,
+              size,
+              symmetryWeight,
+              centerWeight,
+              binarizeWeight,
+              centerTarget,
+              rules,
+              outputBuffer: reduceBuffer,
+            });
 
-          const shouldRecord = step % readbackEvery === 0 || step === maxSteps - 1;
-          if (shouldRecord) {
+            const reduceData = await readBuffer(reduceBuffer, reduceBytes);
+            const reduceValues = new Float32Array(reduceData);
+            let sumState = 0.0;
+            let symmetryEnergy = 0.0;
+            let binarizeEnergy = 0.0;
+            let centerEnergy = 0.0;
+            for (let i = 0; i < reduceValues.length; i += 4) {
+              sumState += reduceValues[i];
+              symmetryEnergy += reduceValues[i + 1];
+              binarizeEnergy += reduceValues[i + 2];
+              centerEnergy += reduceValues[i + 3];
+            }
+
+            const countDiff = hasCountRule ? sumState - countTarget : 0.0;
+            lastCountDiff = countDiff;
+
+            const components = {
+              symmetry: hasSymmetryRules ? symmetryEnergy : null,
+              count: hasCountRule ? countWeight * countDiff * countDiff : null,
+              center: hasCenterRule ? centerEnergy : null,
+              binarize: hasBinarizeRule ? binarizeEnergy : null,
+            };
+            const energy = (components.symmetry ?? 0)
+              + (components.count ?? 0)
+              + (components.center ?? 0)
+              + (components.binarize ?? 0);
+
+            lastEnergy = energy;
+            lastComponents = components;
+
             energyHistory.push(energy);
             if (energyHistory.length > historyLimit) {
               energyHistory.shift();
             }
+
+            if (traceInterval > 0 && traceEvery > 0 && step % traceInterval === 0) {
+              trace.energy(`step=${step} energy=${energy.toFixed(6)}`, components);
+            }
+
+            if (step >= minSteps && convergenceThreshold != null && energy <= convergenceThreshold) {
+              stepTimesMs.push(performance.now() - stepStart);
+              break;
+            }
           }
 
-          if (traceInterval > 0 && traceEvery > 0 && step % traceInterval === 0) {
-            trace.energy(`step=${step} energy=${energy.toFixed(6)}`, components);
-          }
-
-          if (step >= minSteps && convergenceThreshold != null && energy <= convergenceThreshold) {
-            stepTimesMs.push(performance.now() - stepStart);
-            break;
-          }
-
-          const safeCountDiff = Number.isFinite(countDiff) ? countDiff : 0.0;
+          const safeCountDiff = Number.isFinite(lastCountDiff) ? lastCountDiff : 0.0;
           await runEnergyQuintelUpdate(stateTensor, {
             count: elementCount,
             size,
@@ -403,8 +459,10 @@ export class EnergyPipeline {
         const stateStats = computeArrayStats(finalState);
 
         releaseBuffer(stateTensor.buffer);
+        releaseBuffer(reduceBuffer);
 
         this.stats = {
+          backend: 'GPU',
           totalTimeMs,
           steps: stepTimesMs.length,
           stepTimesMs,
@@ -416,6 +474,7 @@ export class EnergyPipeline {
         };
 
         return {
+          backend: 'GPU',
           shape,
           dtype,
           steps: stepTimesMs.length,
@@ -475,6 +534,7 @@ export class EnergyPipeline {
       };
 
       this.stats = {
+        backend: 'CPU',
         totalTimeMs: result.totalTimeMs,
         steps: result.steps,
         stepTimesMs: null,
@@ -486,6 +546,7 @@ export class EnergyPipeline {
       };
 
       return {
+        backend: 'CPU',
         shape: result.shape,
         dtype: 'f32',
         steps: result.steps,
@@ -612,6 +673,7 @@ export class EnergyPipeline {
     releaseBuffer(energyBuffer);
 
     this.stats = {
+      backend: 'GPU',
       totalTimeMs,
       steps: stepTimes.length,
       stepTimesMs: stepTimes,
@@ -622,6 +684,7 @@ export class EnergyPipeline {
     };
 
     return {
+      backend: 'GPU',
       shape,
       dtype,
       steps: stepTimes.length,

@@ -146,9 +146,12 @@ export {
   recordEnergyUpdate,
   runEnergyQuintelUpdate,
   recordEnergyQuintelUpdate,
+  runEnergyQuintelReduce,
+  recordEnergyQuintelReduce,
   type EnergyEvalOptions,
   type EnergyUpdateOptions,
   type EnergyQuintelUpdateOptions,
+  type EnergyQuintelReduceOptions,
 } from './energy.js';
 
 // Conv2D

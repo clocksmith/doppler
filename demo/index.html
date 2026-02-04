@@ -277,15 +277,6 @@
       background: var(--status-accent);
     }
 
-    .status-symbol {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 12px;
-      font-family: var(--font-b);
-      font-size: 12px;
-      line-height: 1;
-    }
 
     
 
@@ -852,7 +843,6 @@
           </div>
           <div id="status-indicator" class="status-indicator">
             <span class="status-dot" aria-hidden="true"></span>
-            <span class="status-symbol" aria-hidden="true"></span>
             <span class="status-text type-caption">Initializing...</span>
           </div>
         </div>
@@ -927,6 +917,10 @@
                   <div class="stat-item">
                     <span class="stat-label">Dtype</span>
                     <span class="stat-value" id="energy-stat-dtype">--</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Backend</span>
+                    <span class="stat-value" id="energy-stat-backend">--</span>
                   </div>
                   <div class="stat-item">
                     <span class="stat-label">Shape</span>
@@ -1377,8 +1371,8 @@
                     </select>
                   </div>
                   <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-bundle-limit">Bundle limit</label>
-                    <input id="energy-vliw-bundle-limit" class="w-full" type="number" min="10" step="10" value="120" />
+                    <label class="type-caption" for="energy-vliw-bundle-limit">Bundle limit (0 = all)</label>
+                    <input id="energy-vliw-bundle-limit" class="w-full" type="number" min="0" step="10" value="120" />
                   </div>
                   <div class="playground-field">
                     <label class="type-caption" for="energy-vliw-restarts">Restarts</label>

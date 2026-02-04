@@ -54,6 +54,7 @@ export interface EnergyRequest {
 }
 
 export interface EnergyResult {
+  backend?: string;
   shape: number[];
   dtype: string;
   steps: number;
@@ -72,6 +73,7 @@ export interface EnergyResult {
 }
 
 export interface EnergyStats {
+  backend?: string;
   totalTimeMs?: number;
   steps?: number;
   stepTimesMs?: number[];
