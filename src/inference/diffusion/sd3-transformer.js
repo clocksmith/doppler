@@ -1,7 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
 import { getBuffer } from '../../gpu/weight-buffer.js';
-import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, isBufferActive } from '../../memory/buffer-pool.js';
 import {
   runConv2D,
   runTranspose,
@@ -44,6 +44,11 @@ function createIndexBuffer(device, indices, label) {
   });
   device.queue.writeBuffer(buffer, 0, indices);
   return buffer;
+}
+
+function releaseIfActive(buffer) {
+  if (!buffer || !isBufferActive(buffer)) return;
+  releaseBuffer(buffer);
 }
 
 function normalizeLocationDtype(dtype) {
@@ -728,8 +733,8 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       releaseBuffer(attnC.buffer);
       releaseBuffer(gatedX.buffer);
       releaseBuffer(gatedC.buffer);
-      releaseBuffer(x.buffer);
-      releaseBuffer(ctx.buffer);
+      releaseIfActive(x.buffer);
+      releaseIfActive(ctx.buffer);
 
       x = createTensor(xRes.buffer, xRes.dtype, [tokenCount, hiddenSize], 'sd3_x');
       ctx = createTensor(cRes.buffer, cRes.dtype, [ctx.shape[0], hiddenSize], 'sd3_ctx');
@@ -786,7 +791,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
 
       releaseBuffer(ctxFfIn.buffer);
       releaseBuffer(ffCtxGated.buffer);
-      releaseBuffer(ctx.buffer);
+      releaseIfActive(ctx.buffer);
       ctx = createTensor(ctxRes2.buffer, ctxRes2.dtype, [ctx.shape[0], hiddenSize], 'sd3_ctx');
 
     } else {
@@ -878,7 +883,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       releaseBuffer(attn2.buffer);
       releaseBuffer(attn2Out.buffer);
       releaseBuffer(gated2.buffer);
-      releaseBuffer(x.buffer);
+      releaseIfActive(x.buffer);
 
       x = createTensor(xRes2.buffer, xRes2.dtype, [tokenCount, hiddenSize], 'sd3_x');
     }
@@ -936,7 +941,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
 
     releaseBuffer(xFfIn.buffer);
     releaseBuffer(ffGated.buffer);
-    releaseBuffer(x.buffer);
+    releaseIfActive(x.buffer);
 
     x = createTensor(xRes3.buffer, xRes3.dtype, [tokenCount, hiddenSize], 'sd3_x');
 
@@ -971,7 +976,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   });
 
   releaseBuffer(xNorm.buffer);
-  releaseBuffer(x.buffer);
+  releaseIfActive(x.buffer);
   releaseBuffer(normOut.tensor.buffer);
   releaseBuffer(onesBuf);
   releaseBuffer(zerosBuf);
