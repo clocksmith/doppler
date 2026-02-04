@@ -494,6 +494,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
 
   let x = createTensor(xCombined.buffer, xCombined.dtype, [tokenCount, hiddenSize], 'sd3_tokens');
   let ctx = context;
+  let ctxOwned = false;
 
   const ones = new Float32Array(hiddenSize).fill(1.0);
   const zeros = new Float32Array(hiddenSize);
@@ -734,10 +735,13 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       releaseBuffer(gatedX.buffer);
       releaseBuffer(gatedC.buffer);
       releaseIfActive(x.buffer);
-      releaseIfActive(ctx.buffer);
+      if (ctxOwned) {
+        releaseBuffer(ctx.buffer);
+      }
 
       x = createTensor(xRes.buffer, xRes.dtype, [tokenCount, hiddenSize], 'sd3_x');
       ctx = createTensor(cRes.buffer, cRes.dtype, [ctx.shape[0], hiddenSize], 'sd3_ctx');
+      ctxOwned = true;
 
       const ctxFfIn = await applyAdaLayerNorm(
         ctx,
@@ -791,8 +795,11 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
 
       releaseBuffer(ctxFfIn.buffer);
       releaseBuffer(ffCtxGated.buffer);
-      releaseIfActive(ctx.buffer);
+      if (ctxOwned) {
+        releaseBuffer(ctx.buffer);
+      }
       ctx = createTensor(ctxRes2.buffer, ctxRes2.dtype, [ctx.shape[0], hiddenSize], 'sd3_ctx');
+      ctxOwned = true;
 
     } else {
       releaseBuffer(xAttnIn.buffer);
@@ -978,6 +985,9 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   releaseBuffer(xNorm.buffer);
   releaseIfActive(x.buffer);
   releaseBuffer(normOut.tensor.buffer);
+  if (ctxOwned) {
+    releaseBuffer(ctx.buffer);
+  }
   releaseBuffer(onesBuf);
   releaseBuffer(zerosBuf);
 

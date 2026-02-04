@@ -1725,9 +1725,8 @@
       "description": "SiLU backward",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
-        { "index": 1, "name": "input", "type": "read-only-storage" },
-        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
         "size": 16,
@@ -1751,9 +1750,8 @@
       "description": "Embedding backward",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
-        { "index": 1, "name": "input", "type": "read-only-storage" },
-        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
-        { "index": 3, "name": "output", "type": "storage" }
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
       ],
       "baseUniforms": {
         "size": 16,

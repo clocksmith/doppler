@@ -34,7 +34,7 @@ function createRemoteShardLoader(baseUrl, manifest) {
 function createLoaderConfig(runtime, manifest) {
   const caps = getKernelCapabilities();
   const keepF32Weights = runtime?.inference?.compute?.keepF32Weights === true;
-  const allowF32UpcastNonMatmul = runtime?.loading?.allowF32UpcastNonMatmul !== false;
+  const allowF32UpcastNonMatmul = false;
   return {
     gpuCapabilities: caps,
     useFusedQ4K: false,
