@@ -119,6 +119,8 @@ export {
   recordEnergyUpdate,
   runEnergyQuintelUpdate,
   recordEnergyQuintelUpdate,
+  runEnergyQuintelReduce,
+  recordEnergyQuintelReduce,
 } from './energy.js';
 
 // Conv2D

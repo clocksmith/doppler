@@ -5,7 +5,7 @@
 Browser-native WebGPU inference, diffusion sampling, and post-training engine for local model execution.
 Doppler runs standalone as the engine; Reploid is an optional driver that can link in for orchestration.
 
-**[Try it live](https://replo.id/d)**
+**[Try it live](https://d4da.com)**
 
 ## Why This Works
 

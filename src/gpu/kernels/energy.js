@@ -37,6 +37,10 @@ function selectEnergyQuintelUpdateVariant(dtype) {
   return selectRuleValue('energy', 'quintelUpdateVariant', { isF16: dtype === 'f16' });
 }
 
+function selectEnergyQuintelReduceVariant(dtype) {
+  return selectRuleValue('energy', 'quintelReduceVariant', { isF16: dtype === 'f16' });
+}
+
 function resolveQuintelSize(state, sizeOverride) {
   if (Number.isFinite(sizeOverride) && sizeOverride > 0) {
     return Math.floor(sizeOverride);
@@ -304,6 +308,71 @@ export async function runEnergyQuintelUpdate(
   return state;
 }
 
+export async function runEnergyQuintelReduce(
+  state,
+  options = {}
+) {
+  if (state.dtype !== 'f16' && state.dtype !== 'f32') {
+    throw new Error(`runEnergyQuintelReduce: unsupported dtype ${state.dtype}.`);
+  }
+  const device = getDevice();
+  const {
+    count,
+    size,
+    symmetryWeight = 1.0,
+    centerWeight = 1.0,
+    binarizeWeight = 0.0,
+    centerTarget = 1.0,
+    rules = {},
+    outputBuffer = null,
+  } = options;
+  const elementCount = inferCount(state, count);
+  const boardSize = resolveQuintelSize(state, size);
+  if (!boardSize) {
+    throw new Error('runEnergyQuintelReduce: size is required for quintel reduction.');
+  }
+
+  const variant = selectEnergyQuintelReduceVariant(state.dtype);
+  const pipeline = await getPipelineFast('energy_quintel_reduce', variant);
+  const flags = buildQuintelFlags(rules, binarizeWeight);
+
+  const uniformBuffer = createUniformBufferWithView(
+    'energy_quintel_reduce_uniforms',
+    48,
+    (view) => {
+      view.setUint32(0, elementCount, true);
+      view.setUint32(4, boardSize, true);
+      view.setUint32(8, flags, true);
+      view.setFloat32(16, symmetryWeight, true);
+      view.setFloat32(20, centerWeight, true);
+      view.setFloat32(24, binarizeWeight, true);
+      view.setFloat32(28, centerTarget, true);
+    },
+    null,
+    device
+  );
+
+  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+  const outputSize = workgroups * 16;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'energy_quintel_reduce_output');
+
+  const bindGroup = device.createBindGroup({
+    label: 'energy_quintel_reduce_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: state.buffer } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  dispatch(device, pipeline, bindGroup, workgroups, 'energy_quintel_reduce');
+
+  uniformBuffer.destroy();
+
+  return createTensor(output, 'f32', [workgroups, 4], 'energy_quintel_reduce_output');
+}
+
 export async function recordEnergyQuintelUpdate(
   recorder,
   state,
@@ -372,4 +441,67 @@ export async function recordEnergyQuintelUpdate(
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'energy_quintel_update');
 
   return state;
+}
+
+export async function recordEnergyQuintelReduce(
+  recorder,
+  state,
+  options = {}
+) {
+  if (state.dtype !== 'f16' && state.dtype !== 'f32') {
+    throw new Error(`recordEnergyQuintelReduce: unsupported dtype ${state.dtype}.`);
+  }
+  const device = recorder.device;
+  const {
+    count,
+    size,
+    symmetryWeight = 1.0,
+    centerWeight = 1.0,
+    binarizeWeight = 0.0,
+    centerTarget = 1.0,
+    rules = {},
+    outputBuffer = null,
+  } = options;
+  const elementCount = inferCount(state, count);
+  const boardSize = resolveQuintelSize(state, size);
+  if (!boardSize) {
+    throw new Error('recordEnergyQuintelReduce: size is required for quintel reduction.');
+  }
+
+  const variant = selectEnergyQuintelReduceVariant(state.dtype);
+  const pipeline = await getPipelineFast('energy_quintel_reduce', variant);
+  const flags = buildQuintelFlags(rules, binarizeWeight);
+
+  const uniformBuffer = createUniformBufferWithView(
+    'energy_quintel_reduce_uniforms',
+    48,
+    (view) => {
+      view.setUint32(0, elementCount, true);
+      view.setUint32(4, boardSize, true);
+      view.setUint32(8, flags, true);
+      view.setFloat32(16, symmetryWeight, true);
+      view.setFloat32(20, centerWeight, true);
+      view.setFloat32(24, binarizeWeight, true);
+      view.setFloat32(28, centerTarget, true);
+    },
+    recorder
+  );
+
+  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+  const outputSize = workgroups * 16;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'energy_quintel_reduce_output');
+
+  const bindGroup = device.createBindGroup({
+    label: 'energy_quintel_reduce_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: state.buffer } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'energy_quintel_reduce');
+
+  return createTensor(output, 'f32', [workgroups, 4], 'energy_quintel_reduce_output');
 }

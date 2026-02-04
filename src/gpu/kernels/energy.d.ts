@@ -35,6 +35,23 @@ export interface EnergyQuintelUpdateOptions {
   };
 }
 
+export interface EnergyQuintelReduceOptions {
+  count?: number;
+  size?: number;
+  symmetryWeight?: number;
+  centerWeight?: number;
+  binarizeWeight?: number;
+  centerTarget?: number;
+  rules?: {
+    mirrorX?: boolean;
+    mirrorY?: boolean;
+    diagonal?: boolean;
+    count?: boolean;
+    center?: boolean;
+  };
+  outputBuffer?: GPUBuffer | null;
+}
+
 export declare function runEnergyEval(
   state: Tensor,
   target: Tensor,
@@ -70,4 +87,15 @@ export declare function recordEnergyQuintelUpdate(
   recorder: KernelRecorder,
   state: Tensor,
   options?: EnergyQuintelUpdateOptions
+): Promise<Tensor>;
+
+export declare function runEnergyQuintelReduce(
+  state: Tensor,
+  options?: EnergyQuintelReduceOptions
+): Promise<Tensor>;
+
+export declare function recordEnergyQuintelReduce(
+  recorder: KernelRecorder,
+  state: Tensor,
+  options?: EnergyQuintelReduceOptions
 ): Promise<Tensor>;
