@@ -9,6 +9,7 @@ export interface VliwTask {
   writes: number[];
   deps: number[];
   bundle: number | null;
+  temp?: string | string[];
 }
 
 export interface VliwDependencyModel {
@@ -17,7 +18,14 @@ export interface VliwDependencyModel {
   includes_war: boolean;
   temp_hazard_tags: boolean;
   read_after_read: boolean;
-  latency: { default: number };
+  latency: {
+    default: number;
+    raw?: number;
+    waw?: number;
+    war?: number;
+    temp?: number;
+    rar?: number;
+  };
 }
 
 export interface VliwDataset {
@@ -34,5 +42,9 @@ export interface VliwDataset {
   dependencyModel: VliwDependencyModel;
 }
 
-export function buildVliwDatasetFromSpec(specInput: VliwSpec): VliwDataset;
+export function buildLayout(specInput: VliwSpec): unknown;
+export function buildVliwDatasetFromSpec(
+  specInput: VliwSpec,
+  options?: { mode?: 'parity' | 'relaxed'; capsMode?: 'slot_limits' | 'spec' },
+): VliwDataset;
 export function getDefaultSpec(): VliwSpec;

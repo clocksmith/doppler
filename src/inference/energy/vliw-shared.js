@@ -6,4 +6,5 @@ export const SLOT_LIMITS = {
   load: 2,
   store: 2,
   flow: 1,
+  debug: 64,
 };

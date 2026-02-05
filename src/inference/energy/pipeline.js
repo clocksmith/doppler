@@ -530,6 +530,7 @@ export class EnergyPipeline {
       const result = runVliwEnergyLoop({
         tasks,
         caps,
+        dependencyModel: vliwConfig.dependencyModel,
         loop,
         search: vliwConfig.search,
         seed: request.seed ?? runtimeConfig.init.seed,
@@ -573,9 +574,17 @@ export class EnergyPipeline {
         stateStats: computeArrayStats(result.state),
         totalTimeMs: result.totalTimeMs,
         metrics: result.metrics,
+        baseline: result.baseline,
         schedule: result.schedule,
         candidates: result.candidates,
         taskMeta: result.taskMeta,
+        scheduler: result.scheduler,
+        schedulerPolicy: result.schedulerPolicy,
+        schedulerPolicies: result.schedulerPolicies,
+        scoreMode: result.scoreMode,
+        engineOrder: result.engineOrder,
+        capsSource: result.capsSource,
+        mode: result.mode,
         problem,
       };
     }

@@ -1322,76 +1322,83 @@
               </div>
             </section>
 
-            <section class="panel energy-controls-panel" data-modes="energy">
-              <h2 class="type-label">Energy Controls</h2>
+            <section class="panel energy-mode-panel" data-modes="energy">
+              <h2 class="type-label">Energy Mode</h2>
               <div class="playground-field">
                 <label class="type-caption" for="energy-demo-select">Energy demo</label>
                 <select id="energy-demo-select" class="w-full"></select>
                 <div class="type-caption" id="energy-demo-description"></div>
               </div>
-              <div id="energy-quintel-controls" data-energy-problem="quintel">
-                <div class="panel-subsection">
-                  <span class="type-caption">Board</span>
-                  <div class="playground-row">
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-quintel-size">Size</label>
-                      <input id="energy-quintel-size" class="w-full" type="number" min="3" step="1" value="5" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-quintel-threshold">Display threshold</label>
-                      <input id="energy-quintel-threshold" class="w-full" type="number" min="0" max="1" step="0.05" value="0.2" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-quintel-count-target">Count target</label>
-                      <input id="energy-quintel-count-target" class="w-full" type="number" min="0" step="1" value="12" />
-                    </div>
+            </section>
+
+            <section class="panel energy-quintel-controls-panel" data-modes="energy" data-energy-problem="quintel">
+              <h2 class="type-label">Quintel Controls</h2>
+              <div class="panel-subsection">
+                <span class="type-caption">Board</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-quintel-size">Size</label>
+                    <input id="energy-quintel-size" class="w-full" type="number" min="3" step="1" value="5" />
                   </div>
-                </div>
-                <div class="panel-subsection">
-                  <span class="type-caption">Rules</span>
-                  <div class="playground-row">
-                    <label class="check-field" for="energy-rule-mirror-x">
-                      <input id="energy-rule-mirror-x" type="checkbox" checked />
-                      Mirror X
-                    </label>
-                    <label class="check-field" for="energy-rule-mirror-y">
-                      <input id="energy-rule-mirror-y" type="checkbox" checked />
-                      Mirror Y
-                    </label>
-                    <label class="check-field" for="energy-rule-diagonal">
-                      <input id="energy-rule-diagonal" type="checkbox" />
-                      Diagonal
-                    </label>
-                    <label class="check-field" for="energy-rule-count">
-                      <input id="energy-rule-count" type="checkbox" checked />
-                      Count
-                    </label>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-quintel-threshold">Display threshold</label>
+                    <input id="energy-quintel-threshold" class="w-full" type="number" min="0" max="1" step="0.05" value="0.2" />
                   </div>
-                </div>
-                <div class="panel-subsection">
-                  <span class="type-caption">Weights</span>
-                  <div class="playground-row">
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-weight-symmetry">Symmetry</label>
-                      <input id="energy-weight-symmetry" class="w-full" type="number" step="0.1" value="1.0" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-weight-count">Count</label>
-                      <input id="energy-weight-count" class="w-full" type="number" step="0.1" value="0.2" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-weight-binarize">Binarize</label>
-                      <input id="energy-weight-binarize" class="w-full" type="number" step="0.01" value="0.01" />
-                    </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-quintel-count-target">Count target</label>
+                    <input id="energy-quintel-count-target" class="w-full" type="number" min="0" step="1" value="12" />
                   </div>
                 </div>
               </div>
-              <div class="panel-subsection" id="energy-vliw-controls" data-energy-problem="vliw" hidden>
+              <div class="panel-subsection">
+                <span class="type-caption">Rules</span>
+                <div class="playground-row">
+                  <label class="check-field" for="energy-rule-mirror-x">
+                    <input id="energy-rule-mirror-x" type="checkbox" checked />
+                    Mirror X
+                  </label>
+                  <label class="check-field" for="energy-rule-mirror-y">
+                    <input id="energy-rule-mirror-y" type="checkbox" checked />
+                    Mirror Y
+                  </label>
+                  <label class="check-field" for="energy-rule-diagonal">
+                    <input id="energy-rule-diagonal" type="checkbox" />
+                    Diagonal
+                  </label>
+                  <label class="check-field" for="energy-rule-count">
+                    <input id="energy-rule-count" type="checkbox" checked />
+                    Count
+                  </label>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <span class="type-caption">Weights</span>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-weight-symmetry">Symmetry</label>
+                    <input id="energy-weight-symmetry" class="w-full" type="number" step="0.1" value="1.0" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-weight-count">Count</label>
+                    <input id="energy-weight-count" class="w-full" type="number" step="0.1" value="0.2" />
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-weight-binarize">Binarize</label>
+                    <input id="energy-weight-binarize" class="w-full" type="number" step="0.01" value="0.01" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel energy-vliw-controls-panel" data-modes="energy" data-energy-problem="vliw" hidden>
+              <h2 class="type-label">VLIW Controls</h2>
+              <div class="panel-subsection" id="energy-vliw-controls">
                 <span class="type-caption">VLIW SIMD</span>
                 <div class="playground-row">
                 <div class="playground-field">
                   <label class="type-caption" for="energy-vliw-dataset">Dataset</label>
                   <select id="energy-vliw-dataset" class="w-full">
+                    <option value="vliw-simd-frozen">VLIW SIMD schedule (frozen workload)</option>
                     <option value="vliw-simd-real">VLIW SIMD schedule (real spec)</option>
                     <option value="vliw-simd">VLIW SIMD schedule (full kernel)</option>
                   </select>
@@ -1412,6 +1419,24 @@
                   <div class="playground-field">
                     <label class="type-caption" for="energy-vliw-restarts">Restarts</label>
                     <input id="energy-vliw-restarts" class="w-full" type="number" min="1" step="1" value="2" />
+                  </div>
+                </div>
+                <div class="playground-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-mode">Mode</label>
+                    <select id="energy-vliw-mode" class="w-full">
+                      <option value="parity">parity</option>
+                      <option value="relaxed">relaxed</option>
+                    </select>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="energy-vliw-score-mode">Score mode</label>
+                    <select id="energy-vliw-score-mode" class="w-full">
+                      <option value="auto">auto</option>
+                      <option value="bundle">bundle</option>
+                      <option value="graph">graph</option>
+                      <option value="lb">lb</option>
+                    </select>
                   </div>
                 </div>
                 <div class="playground-row">
@@ -1475,11 +1500,15 @@
                   <div class="playground-row">
                     <div class="playground-field">
                       <label class="type-caption" for="energy-vliw-spec-inner-steps">Inner steps</label>
-                      <input id="energy-vliw-spec-inner-steps" class="w-full" type="number" min="1" step="1" value="60" />
+                      <input id="energy-vliw-spec-inner-steps" class="w-full" type="number" min="1" step="1" value="40" />
                     </div>
                   </div>
                 </div>
               </div>
+            </section>
+
+            <section class="panel energy-solver-panel" data-modes="energy">
+              <h2 class="type-label">Energy Solver</h2>
               <div class="panel-subsection">
                 <span class="type-caption">Init</span>
                 <div class="playground-row">
@@ -1525,6 +1554,7 @@
               </div>
               <div class="playground-actions">
                 <button class="btn btn-primary" id="energy-run-btn" type="button">Run</button>
+                <button class="btn" id="energy-export-btn" type="button">Export</button>
                 <button class="btn" id="energy-clear-btn" type="button">Clear</button>
               </div>
             </section>

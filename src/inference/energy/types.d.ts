@@ -29,6 +29,21 @@ export interface EnergyRequest {
       bundle?: number;
     }>;
     caps?: Record<string, number>;
+    dependencyModel?: {
+      includes_raw: boolean;
+      includes_waw: boolean;
+      includes_war: boolean;
+      temp_hazard_tags: boolean;
+      read_after_read: boolean;
+      latency?: {
+        default: number;
+        raw?: number;
+        waw?: number;
+        war?: number;
+        temp?: number;
+        rar?: number;
+      };
+    };
     search?: {
       restarts?: number;
       temperatureStart?: number;
@@ -36,6 +51,14 @@ export interface EnergyRequest {
       mutationCount?: number;
       policy?: 'weights' | 'priorities';
       jitter?: number;
+      mode?: 'parity' | 'relaxed';
+      scoreMode?: 'auto' | 'bundle' | 'graph' | 'lb';
+      schedulerPolicies?: Array<'height' | 'slack' | 'mix'>;
+      schedulerRestarts?: number;
+      schedulerSeed?: number;
+      schedulerJitter?: number;
+      capsSource?: 'slot_limits' | 'spec';
+      engineOrder?: string[];
     };
   };
   shape?: number[];
@@ -85,6 +108,8 @@ export interface EnergyResult {
     slotAssignments: Int32Array;
     slotEngines: string[];
     slotIndices: number[];
+    duplicates: number;
+    missing: number;
   };
   candidates?: Array<{
     restart: number;
@@ -101,6 +126,13 @@ export interface EnergyResult {
     reads: number;
     writes: number;
   }>;
+  scheduler?: string;
+  schedulerPolicy?: string;
+  schedulerPolicies?: string[];
+  scoreMode?: string;
+  engineOrder?: string[];
+  capsSource?: string;
+  mode?: string;
   problem?: EnergyProblem;
 }
 

@@ -20,6 +20,14 @@ export interface VliwSearchConfig {
   mutationCount?: number;
   policy?: 'weights' | 'priorities';
   jitter?: number;
+  mode?: 'parity' | 'relaxed';
+  scoreMode?: 'auto' | 'bundle' | 'graph' | 'lb';
+  schedulerPolicies?: Array<'height' | 'slack' | 'mix'>;
+  schedulerRestarts?: number;
+  schedulerSeed?: number;
+  schedulerJitter?: number;
+  capsSource?: 'slot_limits' | 'spec';
+  engineOrder?: string[];
 }
 
 export interface VliwEnergyLoopConfig {
@@ -60,6 +68,8 @@ export interface VliwEnergyResult {
     slotAssignments: Int32Array;
     slotEngines: string[];
     slotIndices: number[];
+    duplicates: number;
+    missing: number;
   };
   candidates: Array<{
     restart: number;
@@ -77,11 +87,33 @@ export interface VliwEnergyResult {
     writes: number;
   }>;
   totalTimeMs: number;
+  scheduler?: string;
+  schedulerPolicy?: string;
+  schedulerPolicies?: string[];
+  scoreMode?: string;
+  engineOrder?: string[];
+  capsSource?: string;
+  mode?: string;
 }
 
 export declare function runVliwEnergyLoop(input: {
   tasks: VliwTask[];
   caps: Record<string, number>;
+  dependencyModel?: {
+    includes_raw?: boolean;
+    includes_waw?: boolean;
+    includes_war?: boolean;
+    temp_hazard_tags?: boolean;
+    read_after_read?: boolean;
+    latency?: {
+      default?: number;
+      raw?: number;
+      waw?: number;
+      war?: number;
+      temp?: number;
+      rar?: number;
+    };
+  };
   loop?: VliwEnergyLoopConfig;
   search?: VliwSearchConfig;
   seed?: number;

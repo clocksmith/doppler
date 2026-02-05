@@ -38,228 +38,72 @@ import { createPipeline } from '../src/inference/pipeline.js';
 import { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from '../src/gpu/device.js';
 import { captureMemorySnapshot } from '../src/loader/memory-monitor.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
-import { buildVliwDatasetFromSpec, getDefaultSpec } from '../src/inference/energy/vliw-generator.js';
 import { DiagnosticsController } from './diagnostics-controller.js';
-
-const state = {
-  runtimeOverride: null,
-  runtimeOverrideBase: null,
-  runtimeOverrideLabel: null,
-  diagnosticsRuntimeConfig: null,
-  diagnosticsRuntimePresetId: null,
-  diagnosticsSelections: {},
-  lastDiagnosticsSuite: null,
-  lastDiffusionRequest: null,
-  lastEnergyRequest: null,
-  lastReport: null,
-  lastReportInfo: null,
-  lastMetrics: null,
-  lastInferenceStats: null,
-  lastMemoryStats: null,
-  activePipeline: null,
-  activePipelineModelId: null,
-  activeModelId: null,
-  modelTypeCache: {},
-  modeModelId: { run: null, diffusion: null, energy: null },
-  runAbortController: null,
-  runGenerating: false,
-  runLoading: false,
-  diffusionGenerating: false,
-  diffusionLoading: false,
-  energyGenerating: false,
-  energyLoading: false,
-  convertActive: false,
-  downloadActive: false,
-  uiMode: 'run',
-  runLog: [],
-  runCounter: 0,
-  storageUsageBytes: 0,
-  storageQuotaBytes: 0,
-  storageInspectorScanning: false,
-  storageInspectorLastScan: 0,
-  gpuMaxBytes: 0,
-  systemMemoryBytes: 0,
-  uiIntervalId: null,
-  lastStorageRefresh: 0,
-  activeDownloadId: null,
-  energyDemoId: null,
-  energyVliw: null,
-  energyVliwBundle: null,
-  energyVliwMeta: null,
-};
-
-const VLIW_DATASETS = {
-  'vliw-simd': {
-    id: 'vliw-simd',
-    label: 'VLIW SIMD schedule (full kernel)',
-    path: 'data/vliw-simd.json',
-  },
-  'vliw-simd-real': {
-    id: 'vliw-simd-real',
-    label: 'VLIW SIMD schedule (real spec)',
-    path: 'data/vliw-simd-real.json',
-  },
-};
-
-const energyDatasetCache = new Map();
-const energySpecCache = new Map();
-const energySpecEvalCache = new Map();
-
-const ENERGY_DEMOS = [
-  {
-    id: 'quintel-cross',
-    problem: 'quintel',
-    label: 'Quintel: Cross (mirror + count)',
-    description: 'Mirror X/Y with a count target. Produces a symmetric cross pattern.',
-    defaults: {
-      size: 5,
-      displayThreshold: 0.2,
-      countTarget: 12,
-      rules: {
-        mirrorX: true,
-        mirrorY: true,
-        diagonal: false,
-        count: true,
-      },
-      weights: {
-        symmetry: 1.0,
-        count: 0.2,
-        binarize: 0.01,
-      },
-      init: {
-        mode: 'uniform',
-        seed: 1337,
-        scale: 0.6,
-      },
-      loop: {
-        steps: 20000,
-        stepSize: 0.02,
-        gradientScale: 0.5,
-        convergence: 0.00001,
-      },
-    },
-  },
-  {
-    id: 'vliw-simd',
-    problem: 'vliw',
-    label: 'VLIW SIMD: Schedule search',
-    description: 'Searches for a shorter VLIW SIMD schedule under slot caps (full kernel by default).',
-    defaults: {
-      displayThreshold: 0.5,
-      vliw: {
-        dataset: 'vliw-simd-real',
-        bundleLimit: 0,
-        restarts: 6,
-        temperatureStart: 3.0,
-        temperatureDecay: 0.99,
-        mutationCount: 8,
-        policy: 'weights',
-        specSearch: {
-          enabled: true,
-          restarts: 2,
-          steps: 40,
-          temperatureStart: 2.5,
-          temperatureDecay: 0.95,
-          mutationCount: 2,
-          seed: 1337,
-          penaltyGate: 2,
-          cycleLambda: 1.0,
-          innerSteps: 60,
-        },
-      },
-      init: {
-        mode: 'baseline',
-        seed: 1337,
-        scale: 0.35,
-      },
-      loop: {
-        steps: 100,
-        stepSize: 0.15,
-        gradientScale: 1.0,
-        convergence: 0,
-      },
-    },
-  },
-];
-
-const DEFAULT_ENERGY_DEMO_ID = ENERGY_DEMOS[0]?.id || 'quintel-cross';
-
-const ENERGY_METRIC_LABELS = {
-  quintel: {
-    symmetry: 'Symmetry',
-    count: 'Count',
-    binarize: 'Binarize',
-  },
-  vliw: {
-    symmetry: 'Cycles',
-    count: 'Utilization',
-    binarize: 'Violations',
-  },
-};
-
-const RUNTIME_PRESET_REGISTRY = [
-  { id: '', label: 'none', base: false, override: true },
-  { id: 'modes/debug', label: 'modes/debug', base: true, override: false },
-  { id: 'modes/bench', label: 'modes/bench', base: true, override: false },
-  { id: 'modes/production', label: 'modes/production', base: false, override: true },
-  { id: 'modes/low-memory', label: 'modes/low-memory', base: false, override: true },
-  { id: 'modes/simulation', label: 'modes/simulation', base: false, override: true },
-  { id: 'modes/trace-layers', label: 'modes/trace-layers', base: false, override: true },
-  { id: 'kernels/safe-q4k', label: 'kernels/safe-q4k', base: false, override: true },
-  { id: 'kernels/fused-q4k', label: 'kernels/fused-q4k', base: false, override: true },
-  { id: 'kernels/dequant-f16-q4k', label: 'kernels/dequant-f16-q4k', base: false, override: true },
-  { id: 'kernels/dequant-f32-q4k', label: 'kernels/dequant-f32-q4k', base: false, override: true },
-  { id: 'compute/f16-activations', label: 'compute/f16-activations', base: false, override: true },
-  { id: 'compute/f16-batched', label: 'compute/f16-batched', base: false, override: true },
-  { id: 'platform/metal-apple-q4k', label: 'platform/metal-apple-q4k', base: false, override: true },
-  { id: 'model/gemma3-layer-probe', label: 'model/gemma3-layer-probe', base: false, override: true },
-  { id: 'model/gemma2-pipeline', label: 'model/gemma2-pipeline', base: false, override: true },
-  { id: 'model/gemma2-pipeline-debug', label: 'model/gemma2-pipeline-debug', base: false, override: true },
-  { id: 'experiments/gemma3-verify', label: 'experiments/gemma3-verify', base: false, override: true },
-  { id: 'experiments/gemma3-debug-q4k', label: 'experiments/gemma3-debug-q4k', base: false, override: true },
-];
-
-const DIAGNOSTICS_SUITE_INFO = {
-  kernels: {
-    description: 'Validates GPU kernels only (no model required).',
-    requiresModel: false,
-    requiresBenchIntent: false,
-  },
-  inference: {
-    description: 'Runs a short generation with the Active model.',
-    requiresModel: true,
-    requiresBenchIntent: false,
-  },
-  bench: {
-    description: 'Benchmarks tokens/sec for the Active model.',
-    requiresModel: true,
-    requiresBenchIntent: true,
-  },
-  debug: {
-    description: 'Runs inference with debug tracing enabled by runtime config.',
-    requiresModel: true,
-    requiresBenchIntent: false,
-  },
-  diffusion: {
-    description: 'Benchmarks diffusion generation using the Active model.',
-    requiresModel: true,
-    requiresBenchIntent: true,
-  },
-  energy: {
-    description: 'Runs an energy loop with the Active model and reports convergence stats.',
-    requiresModel: true,
-    requiresBenchIntent: false,
-  },
-};
-
-const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
-const DEFAULT_RUNTIME_PRESET = 'modes/debug';
-const DIAGNOSTICS_DEFAULTS = {
-  run: { suite: 'inference' },
-  diffusion: { suite: 'diffusion' },
-  energy: { suite: 'energy' },
-  diagnostics: { suite: 'inference' },
-};
+import { state } from './app/state.js';
+import { $, setText, setHidden } from './app/dom.js';
+import { formatAutoValue } from './app/format.js';
+import { readOptionalNumber } from './app/input.js';
+import {
+  showProgressOverlay,
+  hideProgressOverlay,
+  updateProgressFromLoader,
+} from './app/progress.js';
+import {
+  setStatusIndicator,
+  updateStatusIndicator,
+  clampPercent,
+} from './app/ui.js';
+import {
+  updatePerformancePanel,
+  updateMemoryPanel,
+  updateMemoryControls,
+  renderRunLog,
+  recordRunLog,
+} from './app/stats.js';
+import {
+  VLIW_DATASETS,
+  ENERGY_DEMOS,
+  DEFAULT_ENERGY_DEMO_ID,
+  ENERGY_METRIC_LABELS,
+  RUNTIME_PRESET_REGISTRY,
+  DIAGNOSTICS_SUITE_INFO,
+  BENCH_INTENTS,
+  DEFAULT_RUNTIME_PRESET,
+  DIAGNOSTICS_DEFAULTS,
+} from './app/constants.js';
+import {
+  updateEnergyStatus,
+  getEnergyDemoById,
+  setEnergyMetricLabels,
+  toggleEnergyProblemControls,
+  syncEnergyDemoSelection,
+  populateEnergyDemoSelect,
+  applyEnergyDemoDefaults,
+} from './app/energy/controls.js';
+import {
+  clearEnergyBoard,
+  clearEnergyChart,
+  clearEnergyKernelSummary,
+  clearEnergyBundleView,
+  renderEnergyBoard,
+  renderEnergyVector,
+  renderEnergyIntensityBoard,
+  renderVliwKernelSummary,
+  populateVliwBundleSelect,
+  renderVliwBundleView,
+  drawEnergyChart,
+  updateEnergyStats,
+} from './app/energy/render.js';
+import {
+  loadVliwDataset,
+  buildVliwDatasetFromSpecInput,
+  sliceVliwDataset,
+} from './app/energy/datasets.js';
+import {
+  resolveBaseSpec,
+  runVliwSpecSearch,
+  formatSpecSignature,
+} from './app/energy/spec-search.js';
 
 function getDiagnosticsRequiredModelType(suite) {
   const key = String(suite || 'inference').trim().toLowerCase();
@@ -287,14 +131,6 @@ function formatDiagnosticsModelTypeLabel(requiredType) {
 
 const controller = new DiagnosticsController({ log });
 
-function $(id) {
-  return document.getElementById(id);
-}
-
-function setText(el, text) {
-  if (!el) return;
-  el.textContent = text;
-}
 
 function cloneRuntimeConfig(config) {
   try {
@@ -302,94 +138,6 @@ function cloneRuntimeConfig(config) {
   } catch {
     return JSON.parse(JSON.stringify(config));
   }
-}
-
-const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
-
-function setStatusIndicator(message, tone) {
-  const indicator = $('status-indicator');
-  if (!indicator) return;
-  const textEl = indicator.querySelector('.status-text');
-  const dot = indicator.querySelector('.status-dot');
-  setText(textEl, message);
-  indicator.classList.remove(...STATUS_CLASSES);
-  if (tone) {
-    indicator.classList.add(`status-${tone}`);
-  }
-  if (dot) {
-    if (tone) {
-      dot.classList.add('status-dot-filled');
-    } else {
-      dot.classList.remove('status-dot-filled');
-    }
-  }
-}
-
-function updateStatusIndicator() {
-  if (state.runLoading) {
-    setStatusIndicator('Loading model', 'info');
-    return;
-  }
-  if (state.diffusionLoading) {
-    setStatusIndicator('Loading diffusion', 'info');
-    return;
-  }
-  if (state.energyLoading) {
-    setStatusIndicator('Loading energy', 'info');
-    return;
-  }
-  if (state.convertActive) {
-    setStatusIndicator('Converting', 'info');
-    return;
-  }
-  if (state.runGenerating) {
-    setStatusIndicator('Generating', 'info');
-    return;
-  }
-  if (state.diffusionGenerating) {
-    setStatusIndicator('Generating', 'info');
-    return;
-  }
-  if (state.energyGenerating) {
-    setStatusIndicator('Running energy', 'info');
-    return;
-  }
-  if (state.downloadActive) {
-    setStatusIndicator('Downloading', 'info');
-    return;
-  }
-  setStatusIndicator('Ready', 'success');
-}
-
-function getStatsMode() {
-  if (state.uiMode === 'energy') return 'energy';
-  if (state.uiMode === 'diffusion') return 'diffusion';
-  if (state.uiMode === 'diagnostics' && state.lastDiagnosticsSuite === 'energy') {
-    return 'energy';
-  }
-  if (state.uiMode === 'diagnostics' && state.lastDiagnosticsSuite === 'diffusion') {
-    return 'diffusion';
-  }
-  const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType);
-  if (pipelineType === 'energy') return 'energy';
-  if (pipelineType === 'diffusion') return 'diffusion';
-  return 'text';
-}
-
-function setStatLabels(labels) {
-  setText($('stat-tps-label'), labels.tps);
-  setText($('stat-ttft-label'), labels.ttft);
-  setText($('stat-prefill-label'), labels.prefill);
-  setText($('stat-e2e-label'), labels.e2e);
-  setText($('stat-decode-label'), labels.decode);
-  setText($('stat-tokens-label'), labels.tokens);
-}
-
-function setRunLogLabels(labels) {
-  setText($('run-log-ttft-label'), labels.ttft);
-  setText($('run-log-prefill-label'), labels.prefill);
-  setText($('run-log-decode-label'), labels.decode);
-  setText($('run-log-e2e-label'), labels.e2e);
 }
 
 function applyModeVisibility(mode) {
@@ -426,37 +174,6 @@ function setUiMode(mode) {
   if (mode === 'energy') {
     syncEnergyDemoSelection();
   }
-}
-
-function setHidden(el, hidden) {
-  if (!el) return;
-  el.hidden = Boolean(hidden);
-}
-
-function clampPercent(value) {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.min(100, value));
-}
-
-function setBarWidth(id, percent) {
-  const el = $(id);
-  if (!el) return;
-  el.style.width = `${clampPercent(percent)}%`;
-}
-
-function formatRate(value) {
-  if (!Number.isFinite(value)) return '--';
-  return `${value.toFixed(2)} tok/s`;
-}
-
-function formatMs(value) {
-  if (!Number.isFinite(value)) return '--';
-  return `${Math.round(value)}ms`;
-}
-
-function formatScalar(value, digits = 4) {
-  if (!Number.isFinite(value)) return '--';
-  return value.toFixed(digits);
 }
 
 function normalizeRuntimeConfig(raw) {
@@ -1459,296 +1176,6 @@ async function refreshGpuInfo() {
   }
 }
 
-function updatePerformancePanel(snapshot) {
-  const tpsEl = $('stat-tps');
-  const ttftEl = $('stat-ttft');
-  const e2eEl = $('stat-e2e');
-  const prefillEl = $('stat-prefill');
-  const decodeEl = $('stat-decode');
-  const tokensEl = $('stat-tokens');
-  const mode = getStatsMode();
-
-  const metrics = state.lastMetrics || {};
-  const liveTps = state.runGenerating ? metrics.liveTokensPerSec : null;
-  const tps = Number.isFinite(liveTps)
-    ? liveTps
-    : (Number.isFinite(metrics.tokensPerSec)
-      ? metrics.tokensPerSec
-      : (Number.isFinite(metrics.medianTokensPerSec) ? metrics.medianTokensPerSec : null));
-  const stats = state.lastInferenceStats || {};
-  if (mode === 'energy') {
-    setStatLabels({
-      tps: 'Steps/sec',
-      ttft: 'Steps',
-      prefill: 'Avg step',
-      e2e: 'Energy',
-      decode: 'Total',
-      tokens: 'Shape',
-    });
-
-    const steps = Number.isFinite(stats.steps) ? stats.steps : null;
-    const totalMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : null;
-    const energy = Number.isFinite(stats.energy) ? stats.energy : null;
-    const avgStepMs = (steps != null && totalMs && totalMs > 0) ? totalMs / steps : null;
-    const stepsPerSec = (steps != null && totalMs && totalMs > 0)
-      ? steps / (totalMs / 1000)
-      : null;
-
-    setText(tpsEl, stepsPerSec != null ? stepsPerSec.toFixed(2) : '--');
-    setText(ttftEl, steps != null ? String(steps) : '--');
-    setText(prefillEl, avgStepMs != null ? formatMs(avgStepMs) : '--');
-    setText(decodeEl, formatMs(totalMs));
-    setText(e2eEl, energy != null ? formatScalar(energy, 6) : '--');
-
-    const request = state.lastEnergyRequest || {};
-    const shape = Array.isArray(request.shape) ? request.shape : null;
-    if (shape && shape.length) {
-      setText(tokensEl, shape.join(' x '));
-    } else if (
-      Number.isFinite(request.height) &&
-      Number.isFinite(request.width) &&
-      Number.isFinite(request.channels)
-    ) {
-      setText(tokensEl, `${request.height}x${request.width}x${request.channels}`);
-    } else {
-      setText(tokensEl, '--');
-    }
-    return;
-  }
-  if (mode === 'diffusion') {
-    setStatLabels({
-      tps: 'Steps/sec',
-      ttft: 'Prompt',
-      prefill: 'Denoise',
-      e2e: 'Total',
-      decode: 'VAE',
-      tokens: 'Resolution / Steps',
-    });
-
-    const steps = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
-    const denoiseMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
-    const promptMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
-    const vaeMs = Number.isFinite(stats.vaeTimeMs) ? stats.vaeTimeMs : null;
-    const totalMs = Number.isFinite(stats.totalTimeMs)
-      ? stats.totalTimeMs
-      : (Number.isFinite(promptMs) && Number.isFinite(denoiseMs)
-        ? promptMs + denoiseMs + (Number.isFinite(vaeMs) ? vaeMs : 0)
-        : null);
-    const stepsPerSec = (steps != null && denoiseMs && denoiseMs > 0)
-      ? steps / (denoiseMs / 1000)
-      : null;
-
-    setText(tpsEl, stepsPerSec != null ? stepsPerSec.toFixed(2) : '--');
-    setText(ttftEl, formatMs(promptMs));
-    setText(prefillEl, formatMs(denoiseMs));
-    setText(decodeEl, formatMs(vaeMs));
-    setText(e2eEl, formatMs(totalMs));
-
-    const request = state.lastDiffusionRequest || {};
-    const width = Number.isFinite(request.width) ? request.width : null;
-    const height = Number.isFinite(request.height) ? request.height : null;
-    const stepsLabel = steps != null ? steps : '--';
-    if (width && height) {
-      setText(tokensEl, `${width}x${height} / ${stepsLabel}`);
-    } else if (steps != null) {
-      setText(tokensEl, `-- / ${stepsLabel}`);
-    } else {
-      setText(tokensEl, '--');
-    }
-    return;
-  }
-
-  setStatLabels({
-    tps: 'Tokens/sec',
-    ttft: 'TTFT',
-    prefill: 'Prefill',
-    e2e: 'End-to-end',
-    decode: 'Decode',
-    tokens: 'Prompt / Gen',
-  });
-
-  setText(tpsEl, tps !== null ? `${tps.toFixed(2)}` : '--');
-
-  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
-  const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
-  const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime;
-  const prefillRate = (prefillTokens != null && prefillTime && prefillTime > 0)
-    ? prefillTokens / (prefillTime / 1000)
-    : null;
-  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
-  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
-  const e2eTime = (Number.isFinite(stats.totalTimeMs) && stats.totalTimeMs > 0)
-    ? stats.totalTimeMs
-    : (Number.isFinite(prefillTime) && Number.isFinite(decodeTime) ? prefillTime + decodeTime : null);
-  const e2eRate = (decodeTokens != null && e2eTime && e2eTime > 0)
-    ? decodeTokens / (e2eTime / 1000)
-    : null;
-  if (ttftEl) {
-    setText(ttftEl, formatMs(ttftMs));
-  }
-  if (e2eEl) {
-    setText(e2eEl, formatRate(e2eRate));
-  }
-  if (prefillEl) {
-    if (prefillTokens == null && ttftMs == null && prefillRate == null) {
-      setText(prefillEl, '--');
-    } else {
-      const tokenLabel = prefillTokens != null ? `${prefillTokens} tok` : '--';
-      const rateLabel = prefillRate != null ? `${prefillRate.toFixed(2)} tok/s` : '--';
-      setText(prefillEl, `${tokenLabel} @ ${rateLabel}`);
-    }
-  }
-
-  if (decodeEl) {
-    if (decodeTokens == null && decodeTime == null) {
-      setText(decodeEl, '--');
-    } else {
-      const tokenLabel = decodeTokens != null ? `${decodeTokens} tok` : '--';
-      const rateLabel = (decodeTokens != null && decodeTime && decodeTime > 0)
-        ? `${(decodeTokens / (decodeTime / 1000)).toFixed(2)} tok/s`
-        : '--';
-      setText(decodeEl, `${tokenLabel} - ${rateLabel}`);
-    }
-  }
-
-  if (tokensEl) {
-    if (prefillTokens == null && decodeTokens == null) {
-      setText(tokensEl, '--');
-    } else {
-      const promptLabel = prefillTokens != null ? prefillTokens : '--';
-      const genLabel = decodeTokens != null ? decodeTokens : '--';
-      setText(tokensEl, `${promptLabel} / ${genLabel}`);
-    }
-  }
-
-}
-
-function updateMemoryPanel(snapshot) {
-  const poolStats = state.lastMemoryStats?.pool || null;
-  const gpuStats = snapshot?.gpu || null;
-  const gpuCurrent = Number.isFinite(gpuStats?.currentBytes) ? gpuStats.currentBytes : null;
-  const gpuPeak = Number.isFinite(gpuStats?.peakBytes) ? gpuStats.peakBytes : null;
-  const gpuRequested = Number.isFinite(gpuStats?.currentBytesRequested) ? gpuStats.currentBytesRequested : null;
-  const activeBuffers = gpuStats?.activeBuffers ?? null;
-  const pooledBuffers = gpuStats?.pooledBuffers ?? null;
-  const gpuLimit = state.gpuMaxBytes || 0;
-
-  setText($('stat-gpu-tracked'), Number.isFinite(gpuCurrent) ? formatBytes(gpuCurrent) : '--');
-  setText($('stat-gpu-peak'), Number.isFinite(gpuPeak) ? formatBytes(gpuPeak) : '--');
-  if (Number.isFinite(activeBuffers) && Number.isFinite(pooledBuffers)) {
-    setText($('stat-gpu-buffers'), `${activeBuffers}/${pooledBuffers}`);
-  } else {
-    setText($('stat-gpu-buffers'), '--');
-  }
-  if (Number.isFinite(gpuRequested) && Number.isFinite(gpuCurrent)) {
-    const requestedLabel = `${formatBytes(gpuRequested)} / ${formatBytes(gpuCurrent)}`;
-    setText($('stat-gpu-requested'), requestedLabel);
-  } else {
-    setText($('stat-gpu-requested'), '--');
-  }
-  if (poolStats?.hitRate) {
-    setText($('stat-gpu-hit'), poolStats.hitRate);
-  } else {
-    setText($('stat-gpu-hit'), '--');
-  }
-  if (gpuLimit) {
-    setText($('stat-gpu-limit'), formatBytes(gpuLimit));
-  } else {
-    setText($('stat-gpu-limit'), '--');
-  }
-
-  const labelList = $('gpu-label-list');
-  if (labelList) {
-    const pool = state.activePipeline?.getBufferPool?.();
-    const labelStats = typeof pool?.getLabelStats === 'function' ? pool.getLabelStats() : null;
-    labelList.innerHTML = '';
-    if (!labelStats || labelStats.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'type-caption';
-      empty.textContent = 'No tracked buffers yet.';
-      labelList.appendChild(empty);
-    } else {
-      const sorted = [...labelStats].sort((a, b) => (b.bytes || 0) - (a.bytes || 0));
-      const top = sorted.slice(0, 6);
-      for (const entry of top) {
-        const row = document.createElement('div');
-        row.className = 'stats-breakdown-row';
-
-        const label = document.createElement('span');
-        label.className = 'stats-breakdown-label';
-        label.textContent = entry.label || 'unlabeled';
-
-        const bytes = document.createElement('span');
-        bytes.className = 'stats-breakdown-meta';
-        bytes.textContent = Number.isFinite(entry.bytes) ? formatBytes(entry.bytes) : '--';
-
-        const count = document.createElement('span');
-        count.className = 'stats-breakdown-meta';
-        count.textContent = Number.isFinite(entry.count) ? `${entry.count}` : '--';
-
-        row.appendChild(label);
-        row.appendChild(bytes);
-        row.appendChild(count);
-        labelList.appendChild(row);
-      }
-    }
-  }
-
-  const kvStats = state.lastMemoryStats?.kvCache || null;
-  const kvAllocated = Number.isFinite(kvStats?.allocated) ? kvStats.allocated : null;
-  const kvUsed = Number.isFinite(kvStats?.used) ? kvStats.used : null;
-  const kvEff = Number.isFinite(kvStats?.efficiency) ? kvStats.efficiency : null;
-  const kvSeq = Number.isFinite(kvStats?.seqLen) ? kvStats.seqLen : null;
-  const kvMax = Number.isFinite(kvStats?.maxSeqLen) ? kvStats.maxSeqLen : null;
-  const kvLayout = kvStats?.layout || null;
-
-  setText($('stat-kv-allocated'), Number.isFinite(kvAllocated) ? formatBytes(kvAllocated) : '--');
-  setText($('stat-kv-used'), Number.isFinite(kvUsed) ? formatBytes(kvUsed) : '--');
-  if (Number.isFinite(kvEff)) {
-    setText($('stat-kv-eff'), `${(kvEff * 100).toFixed(1)}%`);
-  } else {
-    setText($('stat-kv-eff'), '--');
-  }
-  if (Number.isFinite(kvSeq) && Number.isFinite(kvMax)) {
-    setText($('stat-kv-seq'), `${kvSeq} / ${kvMax}`);
-  } else {
-    setText($('stat-kv-seq'), '--');
-  }
-  setText($('stat-kv-layout'), kvLayout || '--');
-
-  const jsHeapUsed = Number.isFinite(snapshot?.jsHeapUsed) ? snapshot.jsHeapUsed : null;
-  const jsHeapLimit = Number.isFinite(snapshot?.jsHeapLimit) ? snapshot.jsHeapLimit : null;
-  if (Number.isFinite(jsHeapUsed) && Number.isFinite(jsHeapLimit) && jsHeapLimit > 0) {
-    setText($('stat-heap'), `${formatBytes(jsHeapUsed)} / ${formatBytes(jsHeapLimit)}`);
-  } else if (Number.isFinite(jsHeapUsed)) {
-    setText($('stat-heap'), formatBytes(jsHeapUsed));
-  } else {
-    setText($('stat-heap'), '--');
-  }
-
-  if (state.systemMemoryBytes) {
-    setText($('stat-ram-est'), formatBytes(state.systemMemoryBytes));
-  } else {
-    setText($('stat-ram-est'), '--');
-  }
-
-  const storageUsage = state.storageUsageBytes || 0;
-  const storageQuota = state.storageQuotaBytes || 0;
-  if (storageQuota) {
-    setText($('stat-opfs'), `${formatBytes(storageUsage)} / ${formatBytes(storageQuota)}`);
-  } else {
-    setText($('stat-opfs'), '--');
-  }
-  setText($('stat-active-model'), state.activeModelId || 'none');
-}
-
-function updateMemoryControls() {
-  const unloadBtn = $('unload-model-btn');
-  if (unloadBtn) {
-    unloadBtn.disabled = !state.activePipeline;
-  }
-}
-
 function getSelectedModelId() {
   if (state.activeModelId) return state.activeModelId;
   const modelSelect = $('diagnostics-model');
@@ -1797,148 +1224,6 @@ function setRunLoading(isLoading) {
   updateStatusIndicator();
 }
 
-function renderRunLog() {
-  const container = $('run-log-rows');
-  if (!container) return;
-  const mode = getStatsMode();
-  container.innerHTML = '';
-  const entries = state.runLog.filter((entry) => entry.mode === mode);
-  if (mode === 'diffusion') {
-    setRunLogLabels({
-      ttft: 'Prompt',
-      prefill: 'Denoise',
-      decode: 'VAE',
-      e2e: 'Total',
-    });
-  } else if (mode === 'energy') {
-    setRunLogLabels({
-      ttft: 'Steps',
-      prefill: 'Avg step',
-      decode: 'Total',
-      e2e: 'Energy',
-    });
-  } else {
-    setRunLogLabels({
-      ttft: 'TTFT',
-      prefill: 'Prefill',
-      decode: 'Decode',
-      e2e: 'E2E',
-    });
-  }
-  for (const entry of entries) {
-    const row = document.createElement('div');
-    row.className = 'run-log-row';
-    let cells;
-    if (mode === 'diffusion') {
-      cells = [
-        entry.label,
-        formatMs(entry.promptMs),
-        formatMs(entry.denoiseMs),
-        formatMs(entry.vaeMs),
-        formatMs(entry.totalMs),
-      ];
-    } else if (mode === 'energy') {
-      cells = [
-        entry.label,
-        entry.steps != null ? String(entry.steps) : '--',
-        formatMs(entry.avgStepMs),
-        formatMs(entry.totalMs),
-        entry.energy != null ? formatScalar(entry.energy, 6) : '--',
-      ];
-    } else {
-      cells = [
-        entry.label,
-        formatMs(entry.ttftMs),
-        formatRate(entry.prefillRate),
-        formatRate(entry.decodeRate),
-        formatRate(entry.e2eRate),
-      ];
-    }
-    for (const value of cells) {
-      const cell = document.createElement('span');
-      cell.textContent = value;
-      row.appendChild(cell);
-    }
-    container.appendChild(row);
-  }
-}
-
-function recordRunLog(stats, label, modeOverride) {
-  if (!stats) return;
-  const inferredMode = Number.isFinite(stats.vaeTimeMs)
-    ? 'diffusion'
-    : (Number.isFinite(stats.energy) || Array.isArray(stats.energyHistory) ? 'energy' : 'text');
-  const mode = modeOverride || inferredMode;
-  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
-  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
-  const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
-  const decodeTime = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
-  const vaeTime = Number.isFinite(stats.vaeTimeMs) ? stats.vaeTimeMs : null;
-  const totalTime = Number.isFinite(stats.totalTimeMs)
-    ? stats.totalTimeMs
-    : ((prefillTime && decodeTime) ? prefillTime + decodeTime : null);
-  let entry = null;
-  if (mode === 'diffusion') {
-    entry = {
-      mode,
-      label,
-      promptMs: prefillTime,
-      denoiseMs: decodeTime,
-      vaeMs: vaeTime,
-      totalMs: Number.isFinite(stats.totalTimeMs)
-        ? stats.totalTimeMs
-        : ((prefillTime && decodeTime)
-          ? prefillTime + decodeTime + (Number.isFinite(vaeTime) ? vaeTime : 0)
-          : null),
-    };
-  } else if (mode === 'energy') {
-    const steps = Number.isFinite(stats.steps) ? stats.steps : null;
-    const energy = Number.isFinite(stats.energy) ? stats.energy : null;
-    const totalMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : null;
-    const avgStepMs = (steps != null && totalMs && totalMs > 0) ? totalMs / steps : null;
-    entry = {
-      mode,
-      label,
-      steps,
-      avgStepMs,
-      totalMs,
-      energy,
-    };
-  } else {
-    entry = {
-      mode,
-      label,
-      ttftMs: Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillTime,
-      prefillRate: (prefillTokens != null && prefillTime && prefillTime > 0)
-        ? prefillTokens / (prefillTime / 1000)
-        : null,
-      decodeRate: (decodeTokens != null && decodeTime && decodeTime > 0)
-        ? decodeTokens / (decodeTime / 1000)
-        : null,
-      e2eRate: (decodeTokens != null && totalTime && totalTime > 0)
-        ? decodeTokens / (totalTime / 1000)
-        : null,
-    };
-  }
-  state.runLog.unshift(entry);
-  state.runLog = state.runLog.slice(0, 8);
-  renderRunLog();
-}
-
-function readOptionalNumber(el, { integer = false } = {}) {
-  const raw = el?.value;
-  if (raw === '' || raw == null) return undefined;
-  const parsed = integer ? Number.parseInt(raw, 10) : Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function formatAutoValue(value, { integer = false } = {}) {
-  if (!Number.isFinite(value)) return '--';
-  if (integer) return `${Math.round(value)}`;
-  const rounded = Math.round(value * 1000) / 1000;
-  return `${rounded}`;
-}
-
 function setRunAutoLabel(inputId, labelId, value, options) {
   const input = $(inputId);
   const label = $(labelId);
@@ -1977,44 +1262,6 @@ function buildRunGenerateOptions() {
     options.maxTokens = Math.max(1, maxTokens);
   }
   return options;
-}
-
-function showProgressOverlay(title) {
-  const overlay = $('progress-overlay');
-  const titleEl = $('progress-title');
-  if (titleEl && title) titleEl.textContent = title;
-  setProgressPhase('source', 0, '--');
-  setProgressPhase('gpu', 0, '--');
-  if (overlay) overlay.hidden = false;
-}
-
-function hideProgressOverlay() {
-  const overlay = $('progress-overlay');
-  if (overlay) overlay.hidden = true;
-}
-
-function setProgressPhase(phase, percent, label) {
-  const row = document.querySelector(`.progress-phase-row[data-phase="${phase}"]`);
-  if (!row) return;
-  const fill = row.querySelector('.progress-fill');
-  const value = row.querySelector('.progress-phase-value');
-  if (fill) fill.style.width = `${clampPercent(percent)}%`;
-  if (value) value.textContent = label ?? `${Math.round(clampPercent(percent))}%`;
-}
-
-function updateProgressFromLoader(info) {
-  if (!info) return;
-  const stage = info.stage || '';
-  const percent = Number.isFinite(info.progress) ? info.progress * 100 : 0;
-  const label = info.message || `${Math.round(percent)}%`;
-  const phase = (stage === 'layers' || stage === 'gpu_transfer' || stage === 'complete' || stage === 'pipeline')
-    ? 'gpu'
-    : 'source';
-  setProgressPhase(phase, percent, label);
-  const titleEl = $('progress-title');
-  if (titleEl && info.message) {
-    titleEl.textContent = info.message;
-  }
 }
 
 async function loadPipelineFromStorage(modelId) {
@@ -2190,1261 +1437,8 @@ function handleDiffusionClear() {
   updateDiffusionStatus('Idle');
 }
 
-function updateEnergyStatus(message) {
-  const status = $('energy-output-status');
-  if (!status) return;
-  setText(status, message || 'Idle');
-}
 
-function clearEnergyChart() {
-  const canvas = $('energy-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
 
-function getEnergyDemoById(id) {
-  return ENERGY_DEMOS.find((demo) => demo.id === id) || null;
-}
-
-function setEnergyMetricLabels(problem) {
-  const labels = ENERGY_METRIC_LABELS[problem] || ENERGY_METRIC_LABELS.quintel;
-  setText($('energy-stat-label-symmetry'), labels.symmetry);
-  setText($('energy-stat-label-count'), labels.count);
-  setText($('energy-stat-label-binarize'), labels.binarize);
-}
-
-function toggleEnergyProblemControls(problem) {
-  const targets = document.querySelectorAll('[data-energy-problem]');
-  targets.forEach((element) => {
-    const target = element.dataset.energyProblem;
-    const matches = target === problem;
-    element.hidden = !matches;
-  });
-}
-
-function syncEnergyDemoSelection() {
-  const select = $('energy-demo-select');
-  if (!select) return;
-  const selected = select.value || state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
-  const demo = getEnergyDemoById(selected) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
-  if (!demo) return;
-  state.energyDemoId = demo.id;
-  if (select.value !== demo.id) {
-    select.value = demo.id;
-  }
-  setText($('energy-demo-description'), demo.description || '');
-  setEnergyMetricLabels(demo.problem || 'quintel');
-  toggleEnergyProblemControls(demo.problem || 'quintel');
-}
-
-function populateEnergyDemoSelect() {
-  const select = $('energy-demo-select');
-  if (!select) return;
-  select.innerHTML = '';
-  ENERGY_DEMOS.forEach((demo) => {
-    const option = document.createElement('option');
-    option.value = demo.id;
-    option.textContent = demo.label;
-    select.appendChild(option);
-  });
-  const initial = state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
-  const demo = getEnergyDemoById(initial) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
-  if (!demo) return;
-  state.energyDemoId = demo.id;
-  select.value = demo.id;
-  setText($('energy-demo-description'), demo.description || '');
-  setEnergyMetricLabels(demo.problem || 'quintel');
-  toggleEnergyProblemControls(demo.problem || 'quintel');
-  applyEnergyDemoDefaults(demo);
-}
-
-function applyEnergyDemoDefaults(demo) {
-  if (!demo || !demo.defaults) return;
-  const defaults = demo.defaults;
-  const energyQuintelSize = $('energy-quintel-size');
-  const energyQuintelThreshold = $('energy-quintel-threshold');
-  const energyQuintelCountTarget = $('energy-quintel-count-target');
-  const energyRuleMirrorX = $('energy-rule-mirror-x');
-  const energyRuleMirrorY = $('energy-rule-mirror-y');
-  const energyRuleDiagonal = $('energy-rule-diagonal');
-  const energyRuleCount = $('energy-rule-count');
-  const energyWeightSymmetry = $('energy-weight-symmetry');
-  const energyWeightCount = $('energy-weight-count');
-  const energyWeightBinarize = $('energy-weight-binarize');
-  const energyInitMode = $('energy-init-mode');
-  const energyInitSeed = $('energy-init-seed');
-  const energyInitScale = $('energy-init-scale');
-  const energySteps = $('energy-steps');
-  const energyStepSize = $('energy-step-size');
-  const energyGradientScale = $('energy-gradient-scale');
-  const energyConvergence = $('energy-convergence');
-  const energyVliwDataset = $('energy-vliw-dataset');
-  const energyVliwBundleLimit = $('energy-vliw-bundle-limit');
-  const energyVliwRestarts = $('energy-vliw-restarts');
-  const energyVliwTempStart = $('energy-vliw-temp-start');
-  const energyVliwTempDecay = $('energy-vliw-temp-decay');
-  const energyVliwMutation = $('energy-vliw-mutation');
-  const energyVliwSpecSearch = $('energy-vliw-spec-search');
-  const energyVliwSpecRestarts = $('energy-vliw-spec-restarts');
-  const energyVliwSpecSteps = $('energy-vliw-spec-steps');
-  const energyVliwSpecTempStart = $('energy-vliw-spec-temp-start');
-  const energyVliwSpecTempDecay = $('energy-vliw-spec-temp-decay');
-  const energyVliwSpecMutation = $('energy-vliw-spec-mutation');
-  const energyVliwSpecSeed = $('energy-vliw-spec-seed');
-  const energyVliwSpecPenalty = $('energy-vliw-spec-penalty');
-  const energyVliwSpecLambda = $('energy-vliw-spec-lambda');
-  const energyVliwSpecInnerSteps = $('energy-vliw-spec-inner-steps');
-
-  if (energyQuintelSize && Number.isFinite(defaults.size)) {
-    energyQuintelSize.value = String(defaults.size);
-  }
-  if (energyQuintelThreshold && Number.isFinite(defaults.displayThreshold)) {
-    energyQuintelThreshold.value = String(defaults.displayThreshold);
-  }
-  if (energyQuintelCountTarget && Number.isFinite(defaults.countTarget)) {
-    energyQuintelCountTarget.value = String(defaults.countTarget);
-  }
-  if (energyRuleMirrorX && typeof defaults.rules?.mirrorX === 'boolean') {
-    energyRuleMirrorX.checked = defaults.rules.mirrorX;
-  }
-  if (energyRuleMirrorY && typeof defaults.rules?.mirrorY === 'boolean') {
-    energyRuleMirrorY.checked = defaults.rules.mirrorY;
-  }
-  if (energyRuleDiagonal && typeof defaults.rules?.diagonal === 'boolean') {
-    energyRuleDiagonal.checked = defaults.rules.diagonal;
-  }
-  if (energyRuleCount && typeof defaults.rules?.count === 'boolean') {
-    energyRuleCount.checked = defaults.rules.count;
-  }
-  if (energyWeightSymmetry && Number.isFinite(defaults.weights?.symmetry)) {
-    energyWeightSymmetry.value = String(defaults.weights.symmetry);
-  }
-  if (energyWeightCount && Number.isFinite(defaults.weights?.count)) {
-    energyWeightCount.value = String(defaults.weights.count);
-  }
-  if (energyWeightBinarize && Number.isFinite(defaults.weights?.binarize)) {
-    energyWeightBinarize.value = String(defaults.weights.binarize);
-  }
-  if (energyInitMode && defaults.init?.mode) {
-    energyInitMode.value = defaults.init.mode;
-  }
-  if (energyInitSeed && Number.isFinite(defaults.init?.seed)) {
-    energyInitSeed.value = String(defaults.init.seed);
-  }
-  if (energyInitScale && Number.isFinite(defaults.init?.scale)) {
-    energyInitScale.value = String(defaults.init.scale);
-  }
-  if (energySteps && Number.isFinite(defaults.loop?.steps)) {
-    energySteps.value = String(defaults.loop.steps);
-  }
-  if (energyStepSize && Number.isFinite(defaults.loop?.stepSize)) {
-    energyStepSize.value = String(defaults.loop.stepSize);
-  }
-  if (energyGradientScale && Number.isFinite(defaults.loop?.gradientScale)) {
-    energyGradientScale.value = String(defaults.loop.gradientScale);
-  }
-  if (energyConvergence && Number.isFinite(defaults.loop?.convergence)) {
-    energyConvergence.value = String(defaults.loop.convergence);
-  }
-  if (energyVliwDataset && defaults.vliw?.dataset) {
-    energyVliwDataset.value = defaults.vliw.dataset;
-  }
-  if (energyVliwBundleLimit && Number.isFinite(defaults.vliw?.bundleLimit)) {
-    energyVliwBundleLimit.value = String(defaults.vliw.bundleLimit);
-  }
-  if (energyVliwRestarts && Number.isFinite(defaults.vliw?.restarts)) {
-    energyVliwRestarts.value = String(defaults.vliw.restarts);
-  }
-  if (energyVliwTempStart && Number.isFinite(defaults.vliw?.temperatureStart)) {
-    energyVliwTempStart.value = String(defaults.vliw.temperatureStart);
-  }
-  if (energyVliwTempDecay && Number.isFinite(defaults.vliw?.temperatureDecay)) {
-    energyVliwTempDecay.value = String(defaults.vliw.temperatureDecay);
-  }
-  if (energyVliwMutation && Number.isFinite(defaults.vliw?.mutationCount)) {
-    energyVliwMutation.value = String(defaults.vliw.mutationCount);
-  }
-  if (energyVliwSpecSearch && typeof defaults.vliw?.specSearch?.enabled === 'boolean') {
-    energyVliwSpecSearch.checked = defaults.vliw.specSearch.enabled;
-  }
-  if (energyVliwSpecRestarts && Number.isFinite(defaults.vliw?.specSearch?.restarts)) {
-    energyVliwSpecRestarts.value = String(defaults.vliw.specSearch.restarts);
-  }
-  if (energyVliwSpecSteps && Number.isFinite(defaults.vliw?.specSearch?.steps)) {
-    energyVliwSpecSteps.value = String(defaults.vliw.specSearch.steps);
-  }
-  if (energyVliwSpecTempStart && Number.isFinite(defaults.vliw?.specSearch?.temperatureStart)) {
-    energyVliwSpecTempStart.value = String(defaults.vliw.specSearch.temperatureStart);
-  }
-  if (energyVliwSpecTempDecay && Number.isFinite(defaults.vliw?.specSearch?.temperatureDecay)) {
-    energyVliwSpecTempDecay.value = String(defaults.vliw.specSearch.temperatureDecay);
-  }
-  if (energyVliwSpecMutation && Number.isFinite(defaults.vliw?.specSearch?.mutationCount)) {
-    energyVliwSpecMutation.value = String(defaults.vliw.specSearch.mutationCount);
-  }
-  if (energyVliwSpecSeed && Number.isFinite(defaults.vliw?.specSearch?.seed)) {
-    energyVliwSpecSeed.value = String(defaults.vliw.specSearch.seed);
-  }
-  if (energyVliwSpecPenalty && Number.isFinite(defaults.vliw?.specSearch?.penaltyGate)) {
-    energyVliwSpecPenalty.value = String(defaults.vliw.specSearch.penaltyGate);
-  }
-  if (energyVliwSpecLambda && Number.isFinite(defaults.vliw?.specSearch?.cycleLambda)) {
-    energyVliwSpecLambda.value = String(defaults.vliw.specSearch.cycleLambda);
-  }
-  if (energyVliwSpecInnerSteps && Number.isFinite(defaults.vliw?.specSearch?.innerSteps)) {
-    energyVliwSpecInnerSteps.value = String(defaults.vliw.specSearch.innerSteps);
-  }
-}
-
-async function loadVliwDataset(datasetId) {
-  const entry = VLIW_DATASETS[datasetId];
-  if (!entry) {
-    throw new Error(`Unknown VLIW dataset "${datasetId}".`);
-  }
-  if (energyDatasetCache.has(datasetId)) {
-    return energyDatasetCache.get(datasetId);
-  }
-  const response = await fetch(entry.path);
-  if (!response.ok) {
-    throw new Error(`Failed to load VLIW dataset: ${response.status}`);
-  }
-  const payload = await response.json();
-  energyDatasetCache.set(datasetId, payload);
-  return payload;
-}
-
-async function computeDagHash(tasks, caps) {
-  const capsOrdered = {};
-  Object.keys(caps || {}).sort().forEach((key) => {
-    capsOrdered[key] = caps[key];
-  });
-  const payload = {
-    caps: capsOrdered,
-    tasks: tasks.map((task) => ({
-      engine: task.engine,
-      reads: Array.isArray(task.reads) ? task.reads : [],
-      writes: Array.isArray(task.writes) ? task.writes : [],
-      deps: Array.isArray(task.deps) ? task.deps : [],
-    })),
-  };
-  const encoded = new TextEncoder().encode(JSON.stringify(payload));
-  return computeHash(encoded, 'sha256');
-}
-
-async function buildVliwDatasetFromSpecInput(specInput, cacheKey) {
-  const key = cacheKey || JSON.stringify(specInput);
-  if (energySpecCache.has(key)) {
-    return energySpecCache.get(key);
-  }
-  const dataset = buildVliwDatasetFromSpec(specInput);
-  const dagHash = await computeDagHash(dataset.tasks, dataset.caps);
-  dataset.dag = {
-    taskCount: dataset.taskCount ?? dataset.tasks.length,
-    caps: dataset.caps,
-    hash: dagHash,
-  };
-  energySpecCache.set(key, dataset);
-  return dataset;
-}
-
-const SPEC_SEARCH_PRESETS = {
-  baseCachedRounds: {
-    top4: [0, 1, 2, 3, 11, 12, 13, 14],
-    skip_r3: [0, 1, 2, 11, 12, 13, 14],
-    skip_r3_r13: [0, 1, 2, 11, 12, 14],
-    loadbound: [0, 1, 2, 11, 12, 13],
-  },
-  selectionByRound: {
-    none: null,
-    bitmask_11_14: {
-      11: 'bitmask',
-      12: 'bitmask',
-      13: 'bitmask',
-      14: 'bitmask',
-    },
-    mask_precompute_11_14: {
-      11: 'mask_precompute',
-      12: 'mask_precompute',
-      13: 'mask_precompute',
-      14: 'mask_precompute',
-    },
-  },
-};
-
-const SPEC_SEARCH_SPACE = {
-  selection_mode: ['eq', 'bitmask', 'mask', 'mask_precompute'],
-  idx_shifted: [false, true],
-  vector_block: [0, 4, 8, 16, 32],
-  extra_vecs: [0, 1, 2, 3, 4],
-  reset_on_valu: [false, true],
-  shifts_on_valu: [false, true],
-  cached_nodes: [null, 7, 15, 31, 63],
-  base_cached_rounds: Object.keys(SPEC_SEARCH_PRESETS.baseCachedRounds),
-  depth4_rounds: [0, 1],
-  x4: [0, 8, 12, 15, 24, 32],
-  selection_mode_by_round: Object.keys(SPEC_SEARCH_PRESETS.selectionByRound),
-  cached_round_x: [null, 8, 16, 24, 32],
-  offload_op1: [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600],
-  offload_hash_op1: [false, true],
-  offload_hash_shift: [false, true],
-  offload_hash_op2: [false, true],
-  offload_parity: [false, true],
-  offload_node_xor: [false, true],
-  node_ptr_incremental: [false, true],
-  ptr_setup_engine: ['flow', 'alu'],
-  setup_style: ['inline', 'packed'],
-};
-
-function mulberry32(seed) {
-  let t = seed >>> 0;
-  return () => {
-    t += 0x6D2B79F5;
-    let r = t;
-    r = Math.imul(r ^ (r >>> 15), r | 1);
-    r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function stableStringify(value) {
-  if (Array.isArray(value)) {
-    return `[${value.map((entry) => stableStringify(entry)).join(',')}]`;
-  }
-  if (value && typeof value === 'object') {
-    const keys = Object.keys(value).sort();
-    const body = keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',');
-    return `{${body}}`;
-  }
-  return JSON.stringify(value);
-}
-
-function cloneSpec(spec) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(spec);
-  }
-  return JSON.parse(JSON.stringify(spec));
-}
-
-function canonicalDepthForRound(round) {
-  const idx = Number.parseInt(round, 10);
-  if (idx === 0 || idx === 11) return 0;
-  if (idx === 1 || idx === 12) return 1;
-  if (idx === 2 || idx === 13) return 2;
-  if (idx === 3 || idx === 14) return 3;
-  return null;
-}
-
-function requiredCachedNodes(maxDepth) {
-  if (maxDepth >= 5) return 63;
-  if (maxDepth >= 4) return 31;
-  if (maxDepth >= 3) return 15;
-  if (maxDepth >= 2) return 7;
-  if (maxDepth >= 1) return 3;
-  return 1;
-}
-
-function normalizeSpecCandidate(spec, baseSpec) {
-  const out = spec;
-  out.rounds = baseSpec.rounds;
-  out.vectors = baseSpec.vectors;
-  out.vlen = baseSpec.vlen;
-  out.total_cycles = baseSpec.total_cycles;
-  out.base_cached_rounds = Array.isArray(out.base_cached_rounds) ? out.base_cached_rounds.slice() : [];
-  out.depth4_cached_rounds = Array.isArray(out.depth4_cached_rounds) ? out.depth4_cached_rounds.slice() : [];
-  out.selection_mode_by_round = out.selection_mode_by_round && typeof out.selection_mode_by_round === 'object' && !Array.isArray(out.selection_mode_by_round)
-    ? { ...out.selection_mode_by_round }
-    : {};
-  out.cached_round_depth = out.cached_round_depth && typeof out.cached_round_depth === 'object' && !Array.isArray(out.cached_round_depth)
-    ? { ...out.cached_round_depth }
-    : {};
-  out.cached_round_x = out.cached_round_x && typeof out.cached_round_x === 'object' && !Array.isArray(out.cached_round_x)
-    ? { ...out.cached_round_x }
-    : {};
-  out.depth4_rounds = Number.isFinite(out.depth4_rounds)
-    ? Math.max(0, Math.min(1, Math.round(out.depth4_rounds)))
-    : 0;
-  out.x4 = Number.isFinite(out.x4) ? Math.max(0, Math.round(out.x4)) : 0;
-  out.x5 = Number.isFinite(out.x5) ? Math.max(0, Math.round(out.x5)) : 0;
-  if (out.depth4_rounds === 0) {
-    out.depth4_cached_rounds = [];
-    out.x4 = 0;
-  } else if (!out.depth4_cached_rounds.length) {
-    out.depth4_cached_rounds = [4];
-  }
-  return out;
-}
-
-function resolveBaseSpec(specInput) {
-  const base = { ...getDefaultSpec(), ...(specInput || {}) };
-  return normalizeSpecCandidate(base, base);
-}
-
-function applySelectionModeByRound(spec, presetKey) {
-  const preset = SPEC_SEARCH_PRESETS.selectionByRound[presetKey] || null;
-  spec.selection_mode_by_round = preset ? { ...preset } : {};
-  if (!preset) return;
-  const modes = new Set(Object.values(preset));
-  if (modes.has('mask_precompute')) {
-    spec.selection_mode = 'mask_precompute';
-    spec.use_bitmask_selection = false;
-    return;
-  }
-  if (modes.has('mask')) {
-    spec.selection_mode = 'mask';
-    spec.use_bitmask_selection = false;
-    return;
-  }
-  if (modes.has('bitmask')) {
-    spec.selection_mode = 'bitmask';
-    spec.use_bitmask_selection = true;
-  }
-}
-
-function applyBaseCachedRoundsPreset(spec, presetKey) {
-  const preset = SPEC_SEARCH_PRESETS.baseCachedRounds[presetKey];
-  spec.base_cached_rounds = preset ? preset.slice() : [];
-}
-
-function applyCachedRoundX(spec, value) {
-  spec.cached_round_x = {};
-  if (!Number.isFinite(value) || value <= 0) return;
-  const rounds = Array.isArray(spec.base_cached_rounds) ? spec.base_cached_rounds : [];
-  rounds.forEach((round) => {
-    if (canonicalDepthForRound(round) == null) return;
-    if (Number.parseInt(round, 10) === 4) return;
-    spec.cached_round_x[round] = value;
-  });
-}
-
-function choose(rng, values) {
-  return values[Math.floor(rng() * values.length)];
-}
-
-function mutateSpecCandidate(baseSpec, rng, mutationCount) {
-  const spec = normalizeSpecCandidate(cloneSpec(baseSpec), baseSpec);
-  const mutations = Math.max(1, mutationCount);
-  const mutators = [
-    (s) => {
-      const value = choose(rng, SPEC_SEARCH_SPACE.selection_mode);
-      s.selection_mode = value;
-      s.use_bitmask_selection = value === 'bitmask';
-    },
-    (s) => {
-      s.idx_shifted = choose(rng, SPEC_SEARCH_SPACE.idx_shifted);
-    },
-    (s) => {
-      s.vector_block = choose(rng, SPEC_SEARCH_SPACE.vector_block);
-    },
-    (s) => {
-      s.extra_vecs = choose(rng, SPEC_SEARCH_SPACE.extra_vecs);
-    },
-    (s) => {
-      s.reset_on_valu = choose(rng, SPEC_SEARCH_SPACE.reset_on_valu);
-    },
-    (s) => {
-      s.shifts_on_valu = choose(rng, SPEC_SEARCH_SPACE.shifts_on_valu);
-    },
-    (s) => {
-      s.cached_nodes = choose(rng, SPEC_SEARCH_SPACE.cached_nodes);
-    },
-    (s) => {
-      applyBaseCachedRoundsPreset(s, choose(rng, SPEC_SEARCH_SPACE.base_cached_rounds));
-    },
-    (s) => {
-      s.depth4_rounds = choose(rng, SPEC_SEARCH_SPACE.depth4_rounds);
-      s.depth4_cached_rounds = s.depth4_rounds > 0 ? [4] : [];
-      if (s.depth4_rounds === 0) s.x4 = 0;
-    },
-    (s) => {
-      s.x4 = choose(rng, SPEC_SEARCH_SPACE.x4);
-      if (!s.depth4_rounds) s.x4 = 0;
-    },
-    (s) => {
-      applySelectionModeByRound(s, choose(rng, SPEC_SEARCH_SPACE.selection_mode_by_round));
-    },
-    (s) => {
-      applyCachedRoundX(s, choose(rng, SPEC_SEARCH_SPACE.cached_round_x));
-    },
-    (s) => {
-      s.offload_op1 = choose(rng, SPEC_SEARCH_SPACE.offload_op1);
-    },
-    (s) => {
-      s.offload_hash_op1 = choose(rng, SPEC_SEARCH_SPACE.offload_hash_op1);
-    },
-    (s) => {
-      s.offload_hash_shift = choose(rng, SPEC_SEARCH_SPACE.offload_hash_shift);
-    },
-    (s) => {
-      s.offload_hash_op2 = choose(rng, SPEC_SEARCH_SPACE.offload_hash_op2);
-    },
-    (s) => {
-      s.offload_parity = choose(rng, SPEC_SEARCH_SPACE.offload_parity);
-    },
-    (s) => {
-      s.offload_node_xor = choose(rng, SPEC_SEARCH_SPACE.offload_node_xor);
-    },
-    (s) => {
-      s.node_ptr_incremental = choose(rng, SPEC_SEARCH_SPACE.node_ptr_incremental);
-    },
-    (s) => {
-      s.ptr_setup_engine = choose(rng, SPEC_SEARCH_SPACE.ptr_setup_engine);
-    },
-    (s) => {
-      s.setup_style = choose(rng, SPEC_SEARCH_SPACE.setup_style);
-    },
-  ];
-  for (let i = 0; i < mutations; i++) {
-    const mutator = choose(rng, mutators);
-    mutator(spec);
-  }
-  return normalizeSpecCandidate(spec, baseSpec);
-}
-
-function evaluateSpecConstraints(spec) {
-  const issues = [];
-  let penalty = 0;
-  let hardFail = false;
-  const vectors = Number.isFinite(spec.vectors) ? spec.vectors : 32;
-  const depth4Rounds = Number.isFinite(spec.depth4_rounds) ? spec.depth4_rounds : 0;
-  const depth4List = Array.isArray(spec.depth4_cached_rounds) ? spec.depth4_cached_rounds : [];
-  const x4 = Number.isFinite(spec.x4) ? spec.x4 : 0;
-
-  if (depth4Rounds === 0 && x4 > 0) {
-    hardFail = true;
-    issues.push('x4 requires depth4_rounds');
-  }
-  if (x4 > vectors) {
-    hardFail = true;
-    issues.push('x4 exceeds vectors');
-  }
-  if (Number.isFinite(spec.x5) && spec.x5 > vectors) {
-    hardFail = true;
-    issues.push('x5 exceeds vectors');
-  }
-  if (depth4Rounds !== depth4List.length) {
-    hardFail = true;
-    issues.push('depth4_rounds mismatch');
-  }
-  if (depth4Rounds === 0 && depth4List.length) {
-    hardFail = true;
-    issues.push('depth4_cached_rounds requires depth4_rounds');
-  }
-
-  const cachedRoundDepth = spec.cached_round_depth || {};
-  Object.keys(cachedRoundDepth).forEach((round) => {
-    const canonical = canonicalDepthForRound(round);
-    const value = cachedRoundDepth[round];
-    if (canonical == null || canonical !== value || value >= 4) {
-      hardFail = true;
-      issues.push(`invalid cached_round_depth for round ${round}`);
-    }
-  });
-
-  const cachedRoundX = spec.cached_round_x || {};
-  Object.keys(cachedRoundX).forEach((round) => {
-    const canonical = canonicalDepthForRound(round);
-    const value = cachedRoundX[round];
-    if (canonical == null || Number.parseInt(round, 10) === 4) {
-      hardFail = true;
-      issues.push(`invalid cached_round_x round ${round}`);
-      return;
-    }
-    if (!Number.isFinite(value) || value <= 0 || value > vectors) {
-      hardFail = true;
-      issues.push(`invalid cached_round_x value for round ${round}`);
-    }
-  });
-
-  let maxDepth = 0;
-  const baseCached = Array.isArray(spec.base_cached_rounds) ? spec.base_cached_rounds : [];
-  baseCached.forEach((round) => {
-    const canonical = canonicalDepthForRound(round);
-    if (canonical != null && canonical > maxDepth) maxDepth = canonical;
-  });
-  if (depth4Rounds > 0) maxDepth = Math.max(maxDepth, 4);
-  if (Number.isFinite(spec.x5) && spec.x5 > 0) maxDepth = Math.max(maxDepth, 5);
-  if (spec.cached_nodes != null) {
-    const required = requiredCachedNodes(maxDepth);
-    if (spec.cached_nodes < required) {
-      hardFail = true;
-      issues.push(`cached_nodes < ${required}`);
-    }
-  }
-
-  const extraVecs = Number.isFinite(spec.extra_vecs) ? spec.extra_vecs : 0;
-  if (spec.selection_mode === 'mask_precompute') {
-    if (extraVecs < 4) {
-      penalty += 2;
-      issues.push('mask_precompute extra_vecs < 4');
-    }
-    if (!spec.idx_shifted) {
-      penalty += 1;
-      issues.push('mask_precompute requires idx_shifted');
-    }
-  }
-  if (spec.selection_mode === 'bitmask') {
-    const required = depth4Rounds > 0 ? 3 : 1;
-    if (extraVecs < required) {
-      penalty += 1;
-      issues.push('bitmask extra_vecs too small');
-    }
-  }
-
-  const vectorBlock = Number.isFinite(spec.vector_block) ? spec.vector_block : 0;
-  if (vectorBlock > 0 && vectors % vectorBlock !== 0) {
-    penalty += 1;
-    issues.push('vector_block not divisible');
-  }
-
-  const selectionByRound = spec.selection_mode_by_round || {};
-  Object.keys(selectionByRound).forEach((round) => {
-    if (canonicalDepthForRound(round) == null) {
-      penalty += 0.5;
-      issues.push(`selection_mode_by_round unused (${round})`);
-    }
-  });
-
-  return { penalty, hardFail, issues };
-}
-
-function computeOffloadPenalty(spec, offloadableCount) {
-  if (!Number.isFinite(offloadableCount) || offloadableCount <= 0) return 0;
-  if (!Number.isFinite(spec.offload_op1) || spec.offload_op1 <= 0) return 0;
-  const ratio = spec.offload_op1 / offloadableCount;
-  if (ratio <= 1) return 0;
-  return (ratio - 1) * 2;
-}
-
-function formatSpecSignature(spec) {
-  const parts = [
-    `sel=${spec.selection_mode || 'eq'}`,
-    `idx=${spec.idx_shifted ? 1 : 0}`,
-    `vb=${spec.vector_block ?? 0}`,
-    `extra=${spec.extra_vecs ?? 0}`,
-    `cached=${spec.cached_nodes == null ? 'auto' : spec.cached_nodes}`,
-    `d4=${spec.depth4_rounds ?? 0}`,
-    `x4=${spec.x4 ?? 0}`,
-    `off1=${spec.offload_op1 ?? 0}`,
-    `ptr=${spec.ptr_setup_engine || 'flow'}`,
-    `setup=${spec.setup_style || 'inline'}`,
-  ];
-  return parts.join(' ');
-}
-
-async function runVliwSpecSearch({
-  pipeline,
-  baseSpec,
-  innerRequestBase,
-  vliwSearch,
-  bundleLimit,
-  specSearch,
-}) {
-  const restarts = Number.isFinite(specSearch.restarts) ? Math.max(1, Math.floor(specSearch.restarts)) : 1;
-  const steps = Number.isFinite(specSearch.steps) ? Math.max(1, Math.floor(specSearch.steps)) : 20;
-  const tempStart = Number.isFinite(specSearch.temperatureStart) ? specSearch.temperatureStart : 2.0;
-  const tempDecay = Number.isFinite(specSearch.temperatureDecay) ? specSearch.temperatureDecay : 0.95;
-  const mutationCount = Number.isFinite(specSearch.mutationCount) ? Math.max(1, Math.floor(specSearch.mutationCount)) : 2;
-  const penaltyGate = Number.isFinite(specSearch.penaltyGate) ? specSearch.penaltyGate : 2;
-  const cycleLambda = Number.isFinite(specSearch.cycleLambda) ? specSearch.cycleLambda : 1.0;
-  const innerSteps = Number.isFinite(specSearch.innerSteps)
-    ? Math.max(1, Math.floor(specSearch.innerSteps))
-    : null;
-  const rng = mulberry32(Number.isFinite(specSearch.seed) ? specSearch.seed : 1337);
-  const start = performance.now();
-  let best = null;
-  let bestEnergy = Number.POSITIVE_INFINITY;
-  const candidates = [];
-
-  async function evaluateSpec(spec) {
-    const specKey = stableStringify(spec);
-    if (energySpecEvalCache.has(specKey)) {
-      return energySpecEvalCache.get(specKey);
-    }
-    const constraint = evaluateSpecConstraints(spec);
-    let penalty = constraint.penalty;
-    if (constraint.hardFail || penalty > penaltyGate) {
-      const payload = {
-        spec,
-        specKey,
-        penalty,
-        cycles: Number.POSITIVE_INFINITY,
-        energy: Number.POSITIVE_INFINITY,
-        issues: constraint.issues,
-        datasetMeta: null,
-      };
-      energySpecEvalCache.set(specKey, payload);
-      return payload;
-    }
-    let dataset = null;
-    try {
-      dataset = await buildVliwDatasetFromSpecInput(spec, specKey);
-    } catch (error) {
-      const payload = {
-        spec,
-        specKey,
-        penalty: Number.POSITIVE_INFINITY,
-        cycles: Number.POSITIVE_INFINITY,
-        energy: Number.POSITIVE_INFINITY,
-        issues: [`spec build failed: ${error.message}`],
-        datasetMeta: null,
-      };
-      energySpecEvalCache.set(specKey, payload);
-      return payload;
-    }
-    penalty += computeOffloadPenalty(spec, dataset.offloadableCount);
-    if (penalty > penaltyGate) {
-      const payload = {
-        spec,
-        specKey,
-        penalty,
-        cycles: Number.POSITIVE_INFINITY,
-        energy: Number.POSITIVE_INFINITY,
-        issues: constraint.issues,
-        datasetMeta: {
-          label: dataset.label,
-          bundleCount: dataset.bundleCount,
-          taskCount: dataset.taskCount,
-          baselineCycles: dataset.baselineCycles,
-          dagHash: dataset.dag?.hash ?? dataset.dagHash,
-          dependencyModel: dataset.dependencyModel ?? null,
-          spec: dataset.spec ?? null,
-        },
-      };
-      energySpecEvalCache.set(specKey, payload);
-      return payload;
-    }
-    const sliced = sliceVliwDataset(dataset, bundleLimit);
-    const innerRequest = {
-      ...innerRequestBase,
-      steps: innerSteps ?? innerRequestBase.steps,
-      vliw: {
-        tasks: sliced.tasks,
-        caps: sliced.caps,
-        search: vliwSearch,
-      },
-    };
-    const result = await pipeline.generate(innerRequest);
-    const cycles = result?.metrics?.cycles ?? Number.POSITIVE_INFINITY;
-    const energy = Number.isFinite(cycles) ? penalty + cycleLambda * cycles : Number.POSITIVE_INFINITY;
-    const payload = {
-      spec,
-      specKey,
-      penalty,
-      cycles,
-      energy,
-      issues: constraint.issues,
-      datasetMeta: {
-        label: dataset.label,
-        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
-        taskCount: sliced.taskCount ?? dataset.taskCount,
-        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
-        dagHash: dataset.dag?.hash ?? dataset.dagHash,
-        dependencyModel: dataset.dependencyModel ?? null,
-        spec: dataset.spec ?? null,
-      },
-    };
-    energySpecEvalCache.set(specKey, payload);
-    return payload;
-  }
-
-  function pushCandidate(entry) {
-    if (!entry || !Number.isFinite(entry.energy)) return;
-    candidates.push(entry);
-    candidates.sort((a, b) => a.energy - b.energy);
-    if (candidates.length > 6) {
-      candidates.length = 6;
-    }
-  }
-
-  for (let restart = 0; restart < restarts; restart++) {
-    let current = await evaluateSpec(normalizeSpecCandidate(cloneSpec(baseSpec), baseSpec));
-    let currentEnergy = current.energy;
-    let temperature = tempStart;
-    if (Number.isFinite(currentEnergy) && currentEnergy < bestEnergy) {
-      bestEnergy = currentEnergy;
-      best = current;
-      pushCandidate(current);
-    }
-    for (let step = 0; step < steps; step++) {
-      const candidateSpec = mutateSpecCandidate(current.spec, rng, mutationCount);
-      const candidate = await evaluateSpec(candidateSpec);
-      const candidateEnergy = candidate.energy;
-      const delta = candidateEnergy - currentEnergy;
-      const accept = (
-        (!Number.isFinite(currentEnergy) && Number.isFinite(candidateEnergy))
-        || (Number.isFinite(candidateEnergy)
-          && (delta <= 0 || rng() < Math.exp(-delta / Math.max(temperature, 1e-6))))
-      );
-      if (accept) {
-        current = candidate;
-        currentEnergy = candidateEnergy;
-      }
-      if (Number.isFinite(candidateEnergy) && candidateEnergy < bestEnergy) {
-        bestEnergy = candidateEnergy;
-        best = candidate;
-      }
-      pushCandidate(candidate);
-      temperature *= tempDecay;
-    }
-  }
-
-  if (!best || !Number.isFinite(best.energy)) {
-    throw new Error('Spec search failed to find a valid configuration.');
-  }
-
-  const finalDataset = await buildVliwDatasetFromSpecInput(best.spec, best.specKey);
-  const sliced = sliceVliwDataset(finalDataset, bundleLimit);
-  const finalRequest = {
-    ...innerRequestBase,
-    vliw: {
-      tasks: sliced.tasks,
-      caps: sliced.caps,
-      search: vliwSearch,
-    },
-  };
-  const finalResult = await pipeline.generate(finalRequest);
-
-  return {
-    bestSpec: best.spec,
-    bestEnergy: best.energy,
-    bestPenalty: best.penalty,
-    bestCycles: best.cycles,
-    candidates: candidates.slice(),
-    dataset: finalDataset,
-    sliced,
-    result: finalResult,
-    totalMs: performance.now() - start,
-    restarts,
-    steps,
-    cycleLambda,
-    penaltyGate,
-    innerSteps,
-  };
-}
-
-function sliceVliwDataset(dataset, bundleLimit) {
-  if (!dataset || !Array.isArray(dataset.tasks)) {
-    return { tasks: [], caps: {} };
-  }
-  const rawLimit = Number.isFinite(bundleLimit) ? Math.floor(bundleLimit) : null;
-  const limit = rawLimit && rawLimit > 0 ? Math.max(1, rawLimit) : null;
-  const tasks = limit == null
-    ? dataset.tasks
-    : dataset.tasks.filter((task) => (task.bundle ?? 0) < limit);
-  const idMap = new Map();
-  const remapped = [];
-  let maxBundle = -1;
-  tasks.forEach((task, index) => {
-    idMap.set(task.id, index);
-    const bundle = Number.isFinite(task.bundle) ? task.bundle : 0;
-    if (bundle > maxBundle) maxBundle = bundle;
-    remapped.push({ ...task, id: index });
-  });
-  remapped.forEach((task) => {
-    const deps = Array.isArray(task.deps) ? task.deps : [];
-    task.deps = deps.map((dep) => idMap.get(dep)).filter((dep) => dep != null);
-  });
-  return {
-    tasks: remapped,
-    caps: dataset.caps ?? {},
-    bundleCount: maxBundle + 1,
-    taskCount: remapped.length,
-  };
-}
-
-function clearEnergyBoard() {
-  const board = $('energy-board');
-  if (!board) return;
-  board.innerHTML = '';
-  clearEnergyVector();
-  clearEnergyIntensityBoard();
-  clearEnergyKernelSummary();
-  clearEnergyBundleView();
-}
-
-function clearEnergyVector() {
-  const vector = $('energy-vector');
-  if (!vector) return;
-  vector.textContent = '';
-}
-
-function clearEnergyIntensityBoard() {
-  const board = $('energy-board-intensity');
-  if (!board) return;
-  board.innerHTML = '';
-}
-
-function clearEnergyKernelSummary() {
-  const summary = $('energy-kernel-summary');
-  if (!summary) return;
-  summary.textContent = '';
-}
-
-function clearEnergyBundleView() {
-  const view = $('energy-bundle-view');
-  if (view) view.textContent = '';
-  const select = $('energy-vliw-bundle-select');
-  if (select) select.innerHTML = '';
-}
-
-function resolveEnergyGrid(shapeOrSize) {
-  if (Array.isArray(shapeOrSize) && shapeOrSize.length >= 2) {
-    const rows = Math.max(1, Math.floor(shapeOrSize[0]));
-    const cols = Math.max(1, Math.floor(shapeOrSize[1]));
-    return { rows, cols };
-  }
-  const size = Math.max(1, Math.floor(shapeOrSize ?? 1));
-  return { rows: size, cols: size };
-}
-
-function renderEnergyBoard(state, shapeOrSize, threshold) {
-  const board = $('energy-board');
-  if (!board) return;
-  board.innerHTML = '';
-  if (!state) return;
-  const { rows, cols } = resolveEnergyGrid(shapeOrSize);
-  const safeThreshold = Number.isFinite(threshold) ? threshold : 0.5;
-  board.style.setProperty('--energy-grid-size', `${cols}`);
-  const cellCount = rows * cols;
-  for (let i = 0; i < cellCount; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'energy-cell';
-    const value = state[i];
-    if (Number.isFinite(value) && value >= safeThreshold) {
-      cell.classList.add('is-on');
-    }
-    if (Number.isFinite(value)) {
-      cell.title = value.toFixed(2);
-    }
-    board.appendChild(cell);
-  }
-  renderEnergyVector(state, rows, cols, safeThreshold);
-  renderEnergyIntensityBoard(state, rows, cols);
-}
-
-function renderEnergyVector(state, rows, cols, threshold) {
-  const vector = $('energy-vector');
-  if (!vector) return;
-  vector.textContent = '';
-  if (!state || !Number.isFinite(rows) || !Number.isFinite(cols)) return;
-  const gridRows = Math.max(1, Math.floor(rows));
-  const gridCols = Math.max(1, Math.floor(cols));
-  const safeThreshold = Number.isFinite(threshold) ? threshold : 0.5;
-  const lines = [];
-  for (let row = 0; row < gridRows; row++) {
-    const cells = [];
-    for (let col = 0; col < gridCols; col++) {
-      const index = row * gridCols + col;
-      const value = state[index];
-      const bit = Number.isFinite(value) && value >= safeThreshold ? '1' : '0';
-      cells.push(bit);
-    }
-    lines.push(cells.join(' '));
-  }
-  vector.textContent = lines.join('\n');
-}
-
-function renderEnergyIntensityBoard(state, rows, cols) {
-  const board = $('energy-board-intensity');
-  if (!board) return;
-  board.innerHTML = '';
-  if (!state || !Number.isFinite(rows) || !Number.isFinite(cols)) return;
-  const gridRows = Math.max(1, Math.floor(rows));
-  const gridCols = Math.max(1, Math.floor(cols));
-  board.style.setProperty('--energy-grid-size', `${gridCols}`);
-  const cellCount = gridRows * gridCols;
-  for (let i = 0; i < cellCount; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'energy-cell';
-    const value = state[i];
-    if (Number.isFinite(value)) {
-      const alpha = Math.max(0, Math.min(1, value));
-      cell.style.backgroundColor = `rgba(0, 0, 0, ${alpha.toFixed(3)})`;
-      cell.title = value.toFixed(2);
-    }
-    board.appendChild(cell);
-  }
-}
-
-function formatVliwSlotLabel(engine, slotIndex) {
-  if (!engine) return `slot${slotIndex}`;
-  return `${engine}${slotIndex}`;
-}
-
-function formatSpecValue(value) {
-  if (value == null) return 'null';
-  if (Array.isArray(value)) return JSON.stringify(value);
-  if (typeof value === 'object') return JSON.stringify(value);
-  return String(value);
-}
-
-function formatSpecLines(spec) {
-  if (!spec || typeof spec !== 'object') return [];
-  const keys = Object.keys(spec).sort();
-  return keys.map((key) => `  ${key}: ${formatSpecValue(spec[key])}`);
-}
-
-function renderVliwKernelSummary(summary, datasetMeta) {
-  const summaryEl = $('energy-kernel-summary');
-  if (!summaryEl) return;
-  if (!summary) {
-    summaryEl.textContent = '';
-    return;
-  }
-  const lines = [];
-  if (datasetMeta?.label) {
-    lines.push(`Dataset: ${datasetMeta.label}`);
-  }
-  if (Number.isFinite(datasetMeta?.bundleCount)) {
-    lines.push(`Bundles: ${datasetMeta.bundleCount}`);
-  }
-  if (Number.isFinite(datasetMeta?.taskCount)) {
-    lines.push(`Tasks: ${datasetMeta.taskCount}`);
-  }
-  if (Number.isFinite(datasetMeta?.baselineCycles)) {
-    lines.push(`Baseline cycles: ${datasetMeta.baselineCycles}`);
-  }
-  if (Number.isFinite(summary.bestCycles)) {
-    lines.push(`Best cycles: ${summary.bestCycles}`);
-  }
-  if (Number.isFinite(summary.utilization)) {
-    lines.push(`Utilization: ${formatScalar(summary.utilization, 4)}`);
-  }
-  if (datasetMeta?.dagHash) {
-    lines.push(`DAG hash: ${datasetMeta.dagHash}`);
-  }
-  if (datasetMeta?.dependencyModel) {
-    const dm = datasetMeta.dependencyModel;
-    const latency = dm?.latency?.default ?? 1;
-    lines.push('Dependency model:');
-    lines.push(
-      `  RAW=${!!dm.includes_raw} WAW=${!!dm.includes_waw} WAR=${!!dm.includes_war} temp=${!!dm.temp_hazard_tags} RAR=${!!dm.read_after_read} latency=${latency}`,
-    );
-  }
-  if (datasetMeta?.spec) {
-    lines.push('Spec:');
-    lines.push(...formatSpecLines(datasetMeta.spec));
-  }
-  if (summary.baseline) {
-    const baselineCycles = summary.baseline.cycles;
-    if (Number.isFinite(baselineCycles)) {
-      lines.push(`Baseline schedule cycles: ${baselineCycles}`);
-    }
-    if (Number.isFinite(summary.baseline.utilization)) {
-      lines.push(`Baseline utilization: ${formatScalar(summary.baseline.utilization, 4)}`);
-    }
-    if (Number.isFinite(summary.baseline.violations)) {
-      lines.push(`Baseline violations: ${summary.baseline.violations}`);
-    }
-    if (Number.isFinite(datasetMeta?.baselineCycles) && Number.isFinite(baselineCycles)) {
-      if (datasetMeta.baselineCycles !== baselineCycles) {
-        lines.push(`Baseline mismatch: dataset=${datasetMeta.baselineCycles} schedule=${baselineCycles}`);
-      }
-    }
-  }
-  if (summary.specSearch) {
-    const search = summary.specSearch;
-    lines.push('Spec search (Layer 0):');
-    if (Number.isFinite(search.restarts) && Number.isFinite(search.steps)) {
-      lines.push(`  restarts ${search.restarts} • steps ${search.steps}`);
-    }
-    if (Number.isFinite(search.cycleLambda)) {
-      lines.push(`  lambda ${formatScalar(search.cycleLambda, 3)} • gate ${formatScalar(search.penaltyGate, 3)}`);
-    }
-    if (Number.isFinite(search.bestCycles)) {
-      lines.push(`  best cycles ${search.bestCycles} • penalty ${formatScalar(search.bestPenalty, 3)}`);
-    }
-    if (search.bestSpecSignature) {
-      lines.push(`  best spec ${search.bestSpecSignature}`);
-    }
-    if (Array.isArray(search.candidates) && search.candidates.length) {
-      lines.push('  top specs:');
-      search.candidates.forEach((candidate, index) => {
-        const parts = [
-          `#${index + 1}`,
-          `cycles ${candidate.cycles}`,
-          `pen ${formatScalar(candidate.penalty, 3)}`,
-          candidate.signature,
-        ];
-        lines.push(`    ${parts.join(' • ')}`);
-      });
-    }
-  }
-  if (Array.isArray(summary.candidates) && summary.candidates.length) {
-    lines.push('Top candidates:');
-    summary.candidates.forEach((candidate, index) => {
-      const parts = [
-        `#${index + 1}`,
-        `restart ${candidate.restart}`,
-        `cycles ${candidate.cycles}`,
-        `util ${formatScalar(candidate.utilization, 4)}`,
-        `viol ${candidate.violations}`,
-        `steps ${candidate.steps}`,
-      ];
-      lines.push(`  ${parts.join(' • ')}`);
-    });
-  }
-  summaryEl.textContent = lines.join('\n');
-}
-
-function populateVliwBundleSelect(bundleCount) {
-  const select = $('energy-vliw-bundle-select');
-  if (!select) return;
-  select.innerHTML = '';
-  const allOption = document.createElement('option');
-  allOption.value = '';
-  allOption.textContent = 'All bundles';
-  select.appendChild(allOption);
-  if (!Number.isFinite(bundleCount) || bundleCount <= 0) return;
-  for (let i = 0; i < bundleCount; i++) {
-    const option = document.createElement('option');
-    option.value = String(i);
-    option.textContent = `Bundle ${i}`;
-    select.appendChild(option);
-  }
-}
-
-function renderVliwBundleView(vliwState, selectedBundle) {
-  const view = $('energy-bundle-view');
-  if (!view) return;
-  view.textContent = '';
-  if (!vliwState || !vliwState.schedule) return;
-  const { slotAssignments, slotEngines, slotIndices } = vliwState.schedule;
-  if (!slotAssignments || !slotEngines || !slotIndices) return;
-  const slotsPerCycle = slotEngines.length;
-  if (!slotsPerCycle) return;
-  const cycles = Math.floor(slotAssignments.length / slotsPerCycle);
-  const lines = [];
-  const showBundle = Number.isFinite(selectedBundle) ? selectedBundle : null;
-  let matchedCycles = 0;
-  let matchedTasks = 0;
-  for (let cycle = 0; cycle < cycles; cycle++) {
-    const parts = [`C${String(cycle).padStart(4, '0')}`];
-    const baseIndex = cycle * slotsPerCycle;
-    let cycleHasMatch = false;
-    for (let slot = 0; slot < slotsPerCycle; slot++) {
-      const taskId = slotAssignments[baseIndex + slot];
-      const engine = slotEngines[slot];
-      const slotIndex = slotIndices[slot];
-      if (taskId == null || taskId < 0) {
-        parts.push(`${formatVliwSlotLabel(engine, slotIndex)}=--`);
-        continue;
-      }
-      const meta = vliwState.taskMeta?.[taskId] || {};
-      const bundleValue = Number.isFinite(meta.bundle) ? meta.bundle : null;
-      const bundle = bundleValue ?? '--';
-      const deps = Number.isFinite(meta.deps) ? meta.deps : 0;
-      const reads = Number.isFinite(meta.reads) ? meta.reads : 0;
-      const writes = Number.isFinite(meta.writes) ? meta.writes : 0;
-      const highlight = showBundle != null && bundleValue === showBundle;
-      const prefix = highlight ? '*' : '';
-      if (highlight) {
-        cycleHasMatch = true;
-        matchedTasks += 1;
-      }
-      parts.push(
-        `${prefix}${formatVliwSlotLabel(engine, slotIndex)}=${taskId}[b${bundle} d${deps} r${reads} w${writes}]`,
-      );
-    }
-    if (showBundle != null && !cycleHasMatch) {
-      continue;
-    }
-    if (cycleHasMatch) {
-      matchedCycles += 1;
-    }
-    lines.push(parts.join(' '));
-  }
-  if (showBundle != null) {
-    lines.unshift(`Filter: bundle ${showBundle} (cycles ${matchedCycles}/${cycles}, tasks ${matchedTasks})`);
-    if (!matchedCycles) {
-      lines.push('No matching tasks for selected bundle.');
-    }
-  }
-  view.textContent = lines.join('\n');
-}
-
-function drawEnergyChart(history = []) {
-  const canvas = $('energy-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  clearEnergyChart();
-
-  const values = Array.isArray(history)
-    ? history.filter((value) => Number.isFinite(value))
-    : [];
-  if (!values.length) return;
-
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  const range = maxValue - minValue || 1;
-  const padding = 12;
-  const width = canvas.width;
-  const height = canvas.height;
-
-  ctx.strokeStyle = '#111';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  values.forEach((value, index) => {
-    const t = values.length > 1 ? index / (values.length - 1) : 0;
-    const x = padding + t * (width - padding * 2);
-    const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
-    if (index === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  });
-  ctx.stroke();
-}
-
-function updateEnergyStats(result) {
-  if (!result) {
-    setText($('energy-stat-steps'), '--');
-    setText($('energy-stat-energy'), '--');
-    setText($('energy-stat-symmetry'), '--');
-    setText($('energy-stat-count'), '--');
-    setText($('energy-stat-binarize'), '--');
-    setText($('energy-stat-dtype'), '--');
-    setText($('energy-stat-backend'), '--');
-    setText($('energy-stat-shape'), '--');
-    setText($('energy-stat-mean'), '--');
-    setText($('energy-stat-std'), '--');
-    return;
-  }
-  const problem = result.problem || 'quintel';
-  if (
-    problem === 'vliw'
-    && Number.isFinite(result.stepsPerRestart)
-    && Number.isFinite(result.restarts)
-  ) {
-    const totalSteps = Number.isFinite(result.steps) ? result.steps : null;
-    const label = totalSteps != null
-      ? `${result.stepsPerRestart} (x${result.restarts} = ${totalSteps})`
-      : String(result.stepsPerRestart);
-    setText($('energy-stat-steps'), label);
-  } else {
-    setText($('energy-stat-steps'), Number.isFinite(result.steps) ? String(result.steps) : '--');
-  }
-  setText($('energy-stat-energy'), Number.isFinite(result.energy) ? formatScalar(result.energy, 6) : '--');
-  if (problem === 'vliw' && result.metrics) {
-    setText($('energy-stat-symmetry'), formatScalar(result.metrics.cycles, 0));
-    setText($('energy-stat-count'), formatScalar(result.metrics.utilization, 4));
-    setText($('energy-stat-binarize'), formatScalar(result.metrics.violations, 0));
-  } else {
-    setText($('energy-stat-symmetry'), formatScalar(result.energyComponents?.symmetry, 6));
-    setText($('energy-stat-count'), formatScalar(result.energyComponents?.count, 6));
-    setText($('energy-stat-binarize'), formatScalar(result.energyComponents?.binarize, 6));
-  }
-  setText($('energy-stat-dtype'), result.dtype || '--');
-  setText($('energy-stat-backend'), result.backend || '--');
-  const shape = Array.isArray(result.shape) ? result.shape.join(' x ') : '--';
-  setText($('energy-stat-shape'), shape);
-  setText($('energy-stat-mean'), formatScalar(result.stateStats?.mean, 6));
-  setText($('energy-stat-std'), formatScalar(result.stateStats?.std, 6));
-}
 
 async function ensureEnergyPipeline() {
   const modelId = getSelectedModelId();
@@ -3515,11 +1509,18 @@ async function handleEnergyRun() {
     convergenceThreshold,
   };
   let vliwRun = null;
+  let vliwBundleLimit = null;
 
   if (problem !== 'vliw') {
     state.energyVliw = null;
+    state.energyVliwTasks = null;
+    state.energyVliwCaps = null;
     state.energyVliwBundle = null;
+    state.energyVliwBundleLimit = null;
     state.energyVliwMeta = null;
+    state.energyVliwDatasetId = null;
+    state.energyVliwSpecSearch = null;
+    state.lastEnergyResult = null;
     clearEnergyKernelSummary();
     clearEnergyBundleView();
   }
@@ -3556,6 +1557,15 @@ async function handleEnergyRun() {
     const demoDefaults = demo?.defaults ?? {};
     const policy = demoDefaults.vliw?.policy;
     const jitter = demoDefaults.vliw?.jitter;
+    const vliwMode = $('energy-vliw-mode')?.value || demoDefaults.vliw?.mode || 'parity';
+    const scoreMode = $('energy-vliw-score-mode')?.value || demoDefaults.vliw?.scoreMode || 'auto';
+    const schedulerPolicies = Array.isArray(demoDefaults.vliw?.schedulerPolicies)
+      ? demoDefaults.vliw.schedulerPolicies
+      : null;
+    const schedulerRestarts = Number.isFinite(demoDefaults.vliw?.schedulerRestarts)
+      ? demoDefaults.vliw.schedulerRestarts
+      : null;
+    const capsSource = vliwMode === 'parity' ? 'slot_limits' : 'spec';
     const vliwSearch = {
       restarts,
       temperatureStart: tempStart,
@@ -3563,7 +1573,14 @@ async function handleEnergyRun() {
       mutationCount,
       ...(policy ? { policy } : {}),
       ...(Number.isFinite(jitter) ? { jitter } : {}),
+      ...(vliwMode ? { mode: vliwMode } : {}),
+      ...(scoreMode ? { scoreMode } : {}),
+      ...(capsSource ? { capsSource } : {}),
+      ...(schedulerPolicies ? { schedulerPolicies } : {}),
+      ...(Number.isFinite(schedulerRestarts) ? { schedulerRestarts } : {}),
     };
+    const constraintDefaults = demoDefaults.vliw?.specSearch?.constraints || {};
+    const specSearchDefaults = demoDefaults.vliw?.specSearch || {};
     const specSearch = {
       enabled: $('energy-vliw-spec-search')?.checked ?? false,
       restarts: readOptionalNumber($('energy-vliw-spec-restarts'), { integer: true }),
@@ -3575,8 +1592,16 @@ async function handleEnergyRun() {
       penaltyGate: readOptionalNumber($('energy-vliw-spec-penalty')),
       cycleLambda: readOptionalNumber($('energy-vliw-spec-lambda')),
       innerSteps: readOptionalNumber($('energy-vliw-spec-inner-steps'), { integer: true }),
+      lbPenalty: specSearchDefaults.lbPenalty,
+      targetCycles: specSearchDefaults.targetCycles,
+      scoreMode: specSearchDefaults.scoreMode || scoreMode,
+      constraints: {
+        mode: vliwMode === 'relaxed' ? 'relaxed' : 'parity',
+        fallbackCycles: constraintDefaults.fallbackCycles ?? 10000,
+      },
     };
     if (specSearch.enabled) {
+      vliwBundleLimit = vliwMode === 'parity' ? 0 : bundleLimit;
       let baseSpecInput = null;
       let baseDataset = null;
       if (specText) {
@@ -3608,12 +1633,26 @@ async function handleEnergyRun() {
         } catch (error) {
           throw new Error(`Spec JSON parse error: ${error.message}`);
         }
-        dataset = await buildVliwDatasetFromSpecInput(specInput, specText);
+        dataset = await buildVliwDatasetFromSpecInput(specInput, specText, {
+          mode: vliwMode,
+          capsMode: capsSource,
+        });
         datasetId = 'vliw-generated';
       } else {
         dataset = await loadVliwDataset(datasetId);
       }
-      const sliced = sliceVliwDataset(dataset, bundleLimit);
+      if (Number.isFinite(dataset?.spec?.sched_seed)) {
+        vliwSearch.schedulerSeed = dataset.spec.sched_seed;
+      }
+      if (Number.isFinite(dataset?.spec?.sched_jitter)) {
+        vliwSearch.schedulerJitter = dataset.spec.sched_jitter;
+      }
+      if (Number.isFinite(dataset?.spec?.sched_restarts)) {
+        vliwSearch.schedulerRestarts = dataset.spec.sched_restarts;
+      }
+      const effectiveBundleLimit = vliwSearch.mode === 'parity' ? 0 : bundleLimit;
+      vliwBundleLimit = effectiveBundleLimit;
+      const sliced = sliceVliwDataset(dataset, effectiveBundleLimit);
       state.energyVliwMeta = {
         label: dataset.label || VLIW_DATASETS[datasetId]?.label || datasetId,
         bundleCount: sliced.bundleCount ?? dataset.bundleCount,
@@ -3623,9 +1662,14 @@ async function handleEnergyRun() {
         dependencyModel: dataset.dependencyModel ?? null,
         spec: dataset.spec ?? null,
       };
+      state.energyVliwTasks = sliced.tasks;
+      state.energyVliwCaps = sliced.caps;
+      state.energyVliwDatasetId = datasetId;
+      state.energyVliwBundleLimit = vliwBundleLimit;
       request.vliw = {
         tasks: sliced.tasks,
         caps: sliced.caps,
+        dependencyModel: dataset.dependencyModel ?? null,
         search: vliwSearch,
       };
     }
@@ -3671,13 +1715,24 @@ async function handleEnergyRun() {
         dependencyModel: dataset.dependencyModel ?? null,
         spec: dataset.spec ?? specSearchResult.bestSpec ?? null,
       };
+      state.energyVliwTasks = sliced.tasks;
+      state.energyVliwCaps = sliced.caps;
+      state.energyVliwDatasetId = vliwRun.datasetId || datasetId || 'vliw-spec-search';
+      state.energyVliwBundleLimit = vliwBundleLimit;
       specSearchSummary = {
         restarts: specSearchResult.restarts,
         steps: specSearchResult.steps,
         cycleLambda: specSearchResult.cycleLambda,
         penaltyGate: specSearchResult.penaltyGate,
+        fallbackCycles: specSearchResult.fallbackCycles,
+        lbPenalty: specSearchResult.lbPenalty,
+        targetCycles: specSearchResult.targetCycles,
+        scoreMode: specSearchResult.scoreMode,
+        constraintMode: specSearchResult.constraintMode,
+        scheduler: specSearchResult.scheduler,
         bestCycles: specSearchResult.bestCycles,
         bestPenalty: specSearchResult.bestPenalty,
+        bestEnergy: specSearchResult.bestEnergy,
         bestSpecSignature: specSearchResult.bestSpec ? formatSpecSignature(specSearchResult.bestSpec) : null,
         candidates: specSearchResult.candidates.map((candidate) => ({
           cycles: candidate.cycles,
@@ -3685,6 +1740,7 @@ async function handleEnergyRun() {
           signature: formatSpecSignature(candidate.spec),
         })),
       };
+      state.energyVliwSpecSearch = specSearchSummary;
     } else {
       result = await pipeline.generate(request);
     }
@@ -3693,6 +1749,9 @@ async function handleEnergyRun() {
         schedule: result?.schedule || null,
         taskMeta: result?.taskMeta || null,
       };
+      if (!vliwRun || vliwRun.mode !== 'spec-search') {
+        state.energyVliwSpecSearch = null;
+      }
       const candidates = Array.isArray(result?.candidates) ? result.candidates.slice() : [];
       candidates.sort((a, b) => a.cycles - b.cycles);
       const summary = {
@@ -3701,6 +1760,14 @@ async function handleEnergyRun() {
         candidates: candidates.slice(0, 6),
         baseline: result?.baseline ?? null,
         specSearch: specSearchSummary,
+        scheduler: result?.scheduler ?? null,
+        schedulerPolicy: result?.schedulerPolicy ?? null,
+        schedulerPolicies: result?.schedulerPolicies ?? null,
+        scoreMode: result?.scoreMode ?? null,
+        engineOrder: result?.engineOrder ?? null,
+        capsSource: result?.capsSource ?? null,
+        bundleLimit: vliwBundleLimit,
+        mode: result?.mode ?? null,
       };
       renderVliwKernelSummary(summary, state.energyVliwMeta);
       const bundleCount = state.energyVliwMeta?.bundleCount;
@@ -3717,6 +1784,7 @@ async function handleEnergyRun() {
       }
       renderVliwBundleView(state.energyVliw, state.energyVliwBundle);
     }
+    state.lastEnergyResult = result;
     if (result?.shape) {
       state.lastEnergyRequest = {
         shape: result.shape,
@@ -3752,8 +1820,14 @@ function handleEnergyClear() {
   updateEnergyStats(null);
   updateEnergyStatus('Idle');
   state.energyVliw = null;
+  state.energyVliwTasks = null;
+  state.energyVliwCaps = null;
   state.energyVliwBundle = null;
+  state.energyVliwBundleLimit = null;
   state.energyVliwMeta = null;
+  state.energyVliwDatasetId = null;
+  state.energyVliwSpecSearch = null;
+  state.lastEnergyResult = null;
 }
 
 async function handleRunGenerate() {
@@ -4472,6 +2546,70 @@ function exportDiagnosticsReport() {
   URL.revokeObjectURL(url);
 }
 
+function serializeTypedArray(value) {
+  if (!value) return null;
+  if (ArrayBuffer.isView(value)) return Array.from(value);
+  return value;
+}
+
+function serializeSchedule(schedule) {
+  if (!schedule) return null;
+  return {
+    slotAssignments: serializeTypedArray(schedule.slotAssignments),
+    slotEngines: Array.isArray(schedule.slotEngines) ? schedule.slotEngines.slice() : schedule.slotEngines,
+    slotIndices: Array.isArray(schedule.slotIndices) ? schedule.slotIndices.slice() : schedule.slotIndices,
+  };
+}
+
+function exportEnergyRun() {
+  if (!state.lastEnergyResult || !state.energyVliwTasks || !state.energyVliwCaps) {
+    updateEnergyStatus('No VLIW run available to export.');
+    return;
+  }
+  const payload = {
+    timestamp: new Date().toISOString(),
+    problem: 'vliw',
+    mode: state.lastEnergyResult.mode ?? null,
+    scoreMode: state.lastEnergyResult.scoreMode ?? null,
+    scheduler: state.lastEnergyResult.scheduler ?? null,
+    schedulerPolicy: state.lastEnergyResult.schedulerPolicy ?? null,
+    schedulerPolicies: state.lastEnergyResult.schedulerPolicies ?? null,
+    engineOrder: state.lastEnergyResult.engineOrder ?? null,
+    capsSource: state.lastEnergyResult.capsSource ?? null,
+    bundleLimit: state.energyVliwBundleLimit ?? null,
+    dataset: {
+      id: state.energyVliwDatasetId ?? null,
+      label: state.energyVliwMeta?.label ?? null,
+      dagHash: state.energyVliwMeta?.dagHash ?? null,
+      bundleCount: state.energyVliwMeta?.bundleCount ?? null,
+      taskCount: state.energyVliwMeta?.taskCount ?? null,
+      baselineCycles: state.energyVliwMeta?.baselineCycles ?? null,
+      dependencyModel: state.energyVliwMeta?.dependencyModel ?? null,
+      spec: state.energyVliwMeta?.spec ?? null,
+    },
+    tasks: state.energyVliwTasks,
+    caps: state.energyVliwCaps,
+    result: {
+      metrics: state.lastEnergyResult.metrics ?? null,
+      baseline: state.lastEnergyResult.baseline ?? null,
+      candidates: state.lastEnergyResult.candidates ?? null,
+      energyHistory: state.lastEnergyResult.energyHistory ?? null,
+      schedule: serializeSchedule(state.lastEnergyResult.schedule),
+    },
+    specSearch: state.energyVliwSpecSearch ?? null,
+  };
+  const filename = `doppler-energy-export-${payload.timestamp.replace(/[:]/g, '-')}.json`;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function bindUI() {
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
@@ -4513,6 +2651,7 @@ function bindUI() {
   const diffusionClear = $('diffusion-clear-btn');
   const energyDemoSelect = $('energy-demo-select');
   const energyRun = $('energy-run-btn');
+  const energyExport = $('energy-export-btn');
   const energyClear = $('energy-clear-btn');
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
@@ -4713,6 +2852,10 @@ function bindUI() {
       log.error('DopplerDemo', `Energy run failed: ${error.message}`);
       updateEnergyStatus(`Error: ${error.message}`);
     });
+  });
+
+  energyExport?.addEventListener('click', () => {
+    exportEnergyRun();
   });
 
   const energyBundleSelect = $('energy-vliw-bundle-select');
