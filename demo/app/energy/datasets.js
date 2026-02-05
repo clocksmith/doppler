@@ -4,6 +4,18 @@ import { VLIW_DATASETS } from '../constants.js';
 import { energyDatasetCache, energySpecCache } from './cache.js';
 import { stableStringify } from './utils.js';
 
+export function applyWorkloadSpec(specInput, workloadSpec) {
+  if (!workloadSpec) return specInput;
+  const out = { ...(specInput || {}) };
+  const fields = ['rounds', 'vectors', 'vlen', 'total_cycles'];
+  fields.forEach((field) => {
+    if (Number.isFinite(workloadSpec[field])) {
+      out[field] = workloadSpec[field];
+    }
+  });
+  return out;
+}
+
 export async function loadVliwDataset(datasetId) {
   const entry = VLIW_DATASETS[datasetId];
   if (!entry) {
@@ -18,6 +30,7 @@ export async function loadVliwDataset(datasetId) {
       mode: entry.mode,
       capsMode: entry.capsMode,
       dependencyModel: entry.dependencyModel,
+      workloadSpec: entry.spec,
     });
     dataset.label = entry.label || dataset.label;
     dataset.source = entry.source || dataset.source;
@@ -60,7 +73,10 @@ export async function computeDagHash(dataset) {
 }
 
 export async function buildVliwDatasetFromSpecInput(specInput, cacheKey, options = {}) {
-  const specKey = cacheKey || stableStringify(specInput);
+  const resolvedSpecInput = applyWorkloadSpec(specInput, options.workloadSpec);
+  const specKey = cacheKey && !options.workloadSpec
+    ? cacheKey
+    : stableStringify(resolvedSpecInput);
   const key = stableStringify({
     spec: specKey,
     options: {
@@ -72,7 +88,7 @@ export async function buildVliwDatasetFromSpecInput(specInput, cacheKey, options
   if (energySpecCache.has(key)) {
     return energySpecCache.get(key);
   }
-  const dataset = buildVliwDatasetFromSpec(specInput, options);
+  const dataset = buildVliwDatasetFromSpec(resolvedSpecInput, options);
   const dagHash = await computeDagHash(dataset);
   dataset.dag = {
     taskCount: dataset.taskCount ?? dataset.tasks.length,

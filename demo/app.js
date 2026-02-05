@@ -96,6 +96,7 @@ import {
 } from './app/energy/render.js';
 import {
   loadVliwDataset,
+  applyWorkloadSpec,
   buildVliwDatasetFromSpecInput,
   sliceVliwDataset,
 } from './app/energy/datasets.js';
@@ -1547,7 +1548,8 @@ async function handleEnergyRun() {
   }
 
   if (problem === 'vliw') {
-    let datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd-real';
+    let datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd-frozen';
+    const selectedDatasetId = datasetId;
     const specText = $('energy-vliw-spec')?.value?.trim() || '';
     const bundleLimit = readOptionalNumber($('energy-vliw-bundle-limit'), { integer: true });
     const restarts = readOptionalNumber($('energy-vliw-restarts'), { integer: true });
@@ -1581,6 +1583,7 @@ async function handleEnergyRun() {
     };
     const constraintDefaults = demoDefaults.vliw?.specSearch?.constraints || {};
     const specSearchDefaults = demoDefaults.vliw?.specSearch || {};
+    const frozenWorkloadSpec = VLIW_DATASETS[selectedDatasetId]?.spec || null;
     const specSearch = {
       enabled: $('energy-vliw-spec-search')?.checked ?? false,
       restarts: readOptionalNumber($('energy-vliw-spec-restarts'), { integer: true }),
@@ -1614,6 +1617,9 @@ async function handleEnergyRun() {
         baseDataset = await loadVliwDataset(datasetId);
         baseSpecInput = baseDataset?.spec ?? null;
       }
+      if (frozenWorkloadSpec) {
+        baseSpecInput = applyWorkloadSpec(baseSpecInput, frozenWorkloadSpec);
+      }
       const baseSpec = resolveBaseSpec(baseSpecInput);
       vliwRun = {
         mode: 'spec-search',
@@ -1636,6 +1642,7 @@ async function handleEnergyRun() {
         dataset = await buildVliwDatasetFromSpecInput(specInput, specText, {
           mode: vliwMode,
           capsMode: capsSource,
+          workloadSpec: frozenWorkloadSpec,
         });
         datasetId = 'vliw-generated';
       } else {

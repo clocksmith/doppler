@@ -13,6 +13,7 @@ export function scheduleWithPriority(tasks, caps, priorities, graph) {
   const {
     offsets,
     totalSlots,
+    totalSlotsNonDebug,
     slotEngines,
     slotIndices,
   } = computeEngineOffsets(caps);
@@ -21,6 +22,7 @@ export function scheduleWithPriority(tasks, caps, priorities, graph) {
   let scheduled = 0;
   let duplicates = 0;
   let usedSlots = 0;
+  let usedSlotsNonDebug = 0;
   let cycles = 0;
   let violations = 0;
   const taskCycles = new Int32Array(n);
@@ -64,6 +66,9 @@ export function scheduleWithPriority(tasks, caps, priorities, graph) {
         }
         scheduled += 1;
         usedSlots += 1;
+        if (engine !== 'debug') {
+          usedSlotsNonDebug += 1;
+        }
       } else {
         nextReady.push(taskId);
       }
@@ -88,8 +93,8 @@ export function scheduleWithPriority(tasks, caps, priorities, graph) {
     cycles += 1;
   }
 
-  const utilization = cycles > 0 && totalSlots > 0
-    ? usedSlots / (cycles * totalSlots)
+  const utilization = cycles > 0 && totalSlotsNonDebug > 0
+    ? usedSlotsNonDebug / (cycles * totalSlotsNonDebug)
     : 0;
 
   const grid = new Float32Array(gridRows.length * totalSlots);
@@ -143,6 +148,7 @@ export function scheduleWithHeuristic({
   const {
     offsets,
     totalSlots,
+    totalSlotsNonDebug,
     slotEngines,
     slotIndices,
   } = computeEngineOffsets(caps);
@@ -151,6 +157,7 @@ export function scheduleWithHeuristic({
   let scheduled = 0;
   let duplicates = 0;
   let usedSlots = 0;
+  let usedSlotsNonDebug = 0;
   let cycles = 0;
   let violations = 0;
   const taskCycles = new Int32Array(n);
@@ -259,6 +266,9 @@ export function scheduleWithHeuristic({
         }
         scheduled += 1;
         usedSlots += 1;
+        if (engine !== 'debug') {
+          usedSlotsNonDebug += 1;
+        }
         scheduledFlags[taskId] = 1;
       }
     }
@@ -298,8 +308,8 @@ export function scheduleWithHeuristic({
     cycles += 1;
   }
 
-  const utilization = cycles > 0 && totalSlots > 0
-    ? usedSlots / (cycles * totalSlots)
+  const utilization = cycles > 0 && totalSlotsNonDebug > 0
+    ? usedSlotsNonDebug / (cycles * totalSlotsNonDebug)
     : 0;
 
   const grid = new Float32Array(gridRows.length * totalSlots);

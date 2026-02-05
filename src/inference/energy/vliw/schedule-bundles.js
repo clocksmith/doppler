@@ -6,6 +6,7 @@ export function scheduleFromBundles(tasks, caps) {
   const {
     offsets,
     totalSlots,
+    totalSlotsNonDebug,
     slotEngines,
     slotIndices,
   } = computeEngineOffsets(caps);
@@ -39,6 +40,7 @@ export function scheduleFromBundles(tasks, caps) {
   let scheduled = 0;
   let duplicates = 0;
   let usedSlots = 0;
+  let usedSlotsNonDebug = 0;
   let violations = 0;
   const taskCycles = new Int32Array(n);
   taskCycles.fill(-1);
@@ -69,6 +71,9 @@ export function scheduleFromBundles(tasks, caps) {
         }
         scheduled += 1;
         usedSlots += 1;
+        if (engine !== 'debug') {
+          usedSlotsNonDebug += 1;
+        }
       }
     });
     if (rowUsed) cyclesUsed += 1;
@@ -81,8 +86,8 @@ export function scheduleFromBundles(tasks, caps) {
     if (taskCycles[i] === -1) missing += 1;
   }
   const cycles = cyclesUsed;
-  const utilization = cyclesUsed > 0 && totalSlots > 0
-    ? usedSlots / (cyclesUsed * totalSlots)
+  const utilization = cyclesUsed > 0 && totalSlotsNonDebug > 0
+    ? usedSlotsNonDebug / (cyclesUsed * totalSlotsNonDebug)
     : 0;
 
   const grid = new Float32Array(gridRows.length * totalSlots);

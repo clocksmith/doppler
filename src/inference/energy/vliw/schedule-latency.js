@@ -227,6 +227,7 @@ export function scheduleGraphOnce(
   const {
     offsets,
     totalSlots,
+    totalSlotsNonDebug,
     slotEngines,
     slotIndices,
   } = computeEngineOffsets(caps);
@@ -237,6 +238,7 @@ export function scheduleGraphOnce(
   let remaining = n;
   let cycle = 0;
   let usedSlots = 0;
+  let usedSlotsNonDebug = 0;
   let duplicates = 0;
   let violations = 0;
 
@@ -280,6 +282,9 @@ export function scheduleGraphOnce(
         engineCounts[engine] = (engineCounts[engine] || 0) + 1;
         writes.forEach((addr) => writesCycle.add(addr));
         usedSlots += 1;
+        if (engine !== 'debug') {
+          usedSlotsNonDebug += 1;
+        }
       }
     }
 
@@ -337,8 +342,8 @@ export function scheduleGraphOnce(
     if (taskCycles[i] === -1) missing += 1;
   }
   const cycles = gridRows.length;
-  const utilization = cycles > 0 && totalSlots > 0
-    ? usedSlots / (cycles * totalSlots)
+  const utilization = cycles > 0 && totalSlotsNonDebug > 0
+    ? usedSlotsNonDebug / (cycles * totalSlotsNonDebug)
     : 0;
 
   const grid = new Float32Array(gridRows.length * totalSlots);
