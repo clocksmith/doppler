@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-02-23",
+  "instructionCanonicalPath": "AGENTS.md",
+  "instructionAliases": [
+    {
+      "path": "CLAUDE.md",
+      "target": "AGENTS.md"
+    },
+    {
+      "path": "GEMINI.md",
+      "target": "AGENTS.md"
+    }
+  ],
+  "skillAliases": [
+    {
+      "path": ".claude/skills",
+      "target": "../skills"
+    },
+    {
+      "path": ".gemini/skills",
+      "target": "../skills"
+    }
+  ],
+  "requiredSkills": [
+    "doppler-debug",
+    "doppler-bench",
+    "doppler-perf-squeeze",
+    "doppler-convert",
+    "doppler-kernel-reviewer"
+  ],
+  "requiredAgentsMarkers": [
+    "### MANDATORY: Read Style Guides First",
+    "### Command Surfaces (1:1 Contract)",
+    "### Config System",
+    "### Guardrails",
+    "### Core Principles (Policy Contract)",
+    "### Doppler Non-negotiables"
+  ]
+}
