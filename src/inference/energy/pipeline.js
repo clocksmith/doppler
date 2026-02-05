@@ -31,7 +31,7 @@ function createRng(seed) {
 
 function generateRandomArray(count, mode, seed, scale) {
   const out = new Float32Array(count);
-  if (mode === 'zeros') {
+  if (mode === 'zeros' || mode === 'baseline') {
     return out;
   }
   const rand = createRng(seed);

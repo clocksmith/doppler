@@ -14,6 +14,7 @@ import {
   saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
+  computeHash,
 } from '../src/storage/shard-manager.js';
 import { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from '../src/storage/rdrr-format.js';
 import {
@@ -37,6 +38,7 @@ import { createPipeline } from '../src/inference/pipeline.js';
 import { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from '../src/gpu/device.js';
 import { captureMemorySnapshot } from '../src/loader/memory-monitor.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
+import { buildVliwDatasetFromSpec, getDefaultSpec } from '../src/inference/energy/vliw-generator.js';
 import { DiagnosticsController } from './diagnostics-controller.js';
 
 const state = {
@@ -92,9 +94,16 @@ const VLIW_DATASETS = {
     label: 'VLIW SIMD schedule (full kernel)',
     path: 'data/vliw-simd.json',
   },
+  'vliw-simd-real': {
+    id: 'vliw-simd-real',
+    label: 'VLIW SIMD schedule (real spec)',
+    path: 'data/vliw-simd-real.json',
+  },
 };
 
 const energyDatasetCache = new Map();
+const energySpecCache = new Map();
+const energySpecEvalCache = new Map();
 
 const ENERGY_DEMOS = [
   {
@@ -123,73 +132,7 @@ const ENERGY_DEMOS = [
         scale: 0.6,
       },
       loop: {
-        steps: 200,
-        stepSize: 0.02,
-        gradientScale: 0.5,
-        convergence: 0.00001,
-      },
-    },
-  },
-  {
-    id: 'quintel-diagonal',
-    problem: 'quintel',
-    label: 'Quintel: Diagonal symmetry',
-    description: 'Diagonal symmetry with a softer count target.',
-    defaults: {
-      size: 5,
-      displayThreshold: 0.35,
-      countTarget: 10,
-      rules: {
-        mirrorX: false,
-        mirrorY: false,
-        diagonal: true,
-        count: true,
-      },
-      weights: {
-        symmetry: 0.8,
-        count: 0.15,
-        binarize: 0.02,
-      },
-      init: {
-        mode: 'uniform',
-        seed: 1337,
-        scale: 0.55,
-      },
-      loop: {
-        steps: 240,
-        stepSize: 0.02,
-        gradientScale: 0.5,
-        convergence: 0.00001,
-      },
-    },
-  },
-  {
-    id: 'quintel-symmetry',
-    problem: 'quintel',
-    label: 'Quintel: Symmetry only',
-    description: 'Mirror constraints only (no count rule).',
-    defaults: {
-      size: 5,
-      displayThreshold: 0.45,
-      countTarget: 12,
-      rules: {
-        mirrorX: true,
-        mirrorY: true,
-        diagonal: false,
-        count: false,
-      },
-      weights: {
-        symmetry: 1.0,
-        count: 0.0,
-        binarize: 0.02,
-      },
-      init: {
-        mode: 'uniform',
-        seed: 1337,
-        scale: 0.5,
-      },
-      loop: {
-        steps: 160,
+        steps: 20000,
         stepSize: 0.02,
         gradientScale: 0.5,
         convergence: 0.00001,
@@ -204,20 +147,33 @@ const ENERGY_DEMOS = [
     defaults: {
       displayThreshold: 0.5,
       vliw: {
-        dataset: 'vliw-simd',
+        dataset: 'vliw-simd-real',
         bundleLimit: 0,
         restarts: 6,
         temperatureStart: 3.0,
         temperatureDecay: 0.99,
         mutationCount: 8,
+        policy: 'weights',
+        specSearch: {
+          enabled: true,
+          restarts: 2,
+          steps: 40,
+          temperatureStart: 2.5,
+          temperatureDecay: 0.95,
+          mutationCount: 2,
+          seed: 1337,
+          penaltyGate: 2,
+          cycleLambda: 1.0,
+          innerSteps: 60,
+        },
       },
       init: {
-        mode: 'normal',
+        mode: 'baseline',
         seed: 1337,
         scale: 0.35,
       },
       loop: {
-        steps: 600,
+        steps: 100,
         stepSize: 0.15,
         gradientScale: 1.0,
         convergence: 0,
@@ -304,6 +260,30 @@ const DIAGNOSTICS_DEFAULTS = {
   energy: { suite: 'energy' },
   diagnostics: { suite: 'inference' },
 };
+
+function getDiagnosticsRequiredModelType(suite) {
+  const key = String(suite || 'inference').trim().toLowerCase();
+  if (key === 'kernels') return null;
+  if (key === 'diffusion') return 'diffusion';
+  if (key === 'energy') return 'energy';
+  return 'text';
+}
+
+function isSuiteCompatibleModelType(modelType, suite) {
+  const normalized = normalizeModelType(modelType);
+  const required = getDiagnosticsRequiredModelType(suite);
+  if (!required) return true;
+  if (required === 'text') {
+    return normalized !== 'diffusion' && normalized !== 'energy';
+  }
+  return normalized === required;
+}
+
+function formatDiagnosticsModelTypeLabel(requiredType) {
+  if (requiredType === 'diffusion') return 'diffusion';
+  if (requiredType === 'energy') return 'energy';
+  return 'text (non-diffusion, non-energy)';
+}
 
 const controller = new DiagnosticsController({ log });
 
@@ -962,6 +942,8 @@ function updateDiagnosticsGuidance() {
   const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const modelId = modelSelect?.value || '';
+  const modelType = modelId ? state.modelTypeCache[modelId] : null;
+  const requiredModelType = getDiagnosticsRequiredModelType(suite);
 
   intentEl.textContent = intent || 'unset';
   suiteHelp.textContent = info.description;
@@ -974,6 +956,17 @@ function updateDiagnosticsGuidance() {
   }
   if (info.requiresModel && !modelId) {
     issues.push('Select an Active model to run this suite.');
+  } else if (info.requiresModel && modelId && requiredModelType) {
+    if (modelType) {
+      if (!isSuiteCompatibleModelType(modelType, suite)) {
+        const expected = formatDiagnosticsModelTypeLabel(requiredModelType);
+        issues.push(`Suite requires a ${expected} model (selected: ${modelType}).`);
+      }
+    } else {
+      getModelTypeForId(modelId)
+        .then(() => updateDiagnosticsGuidance())
+        .catch(() => {});
+    }
   }
 
   if (issues.length > 0) {
@@ -984,7 +977,9 @@ function updateDiagnosticsGuidance() {
   }
 
   const canVerify = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
-  const canRun = canVerify && (!info.requiresModel || Boolean(modelId));
+  const modelOk = !info.requiresModel
+    || (Boolean(modelId) && (!requiredModelType || (modelType && isSuiteCompatibleModelType(modelType, suite))));
+  const canRun = canVerify && modelOk;
   if (verifyBtn) verifyBtn.disabled = !canVerify;
   if (runBtn) runBtn.disabled = !canRun;
 }
@@ -2221,22 +2216,12 @@ function setEnergyMetricLabels(problem) {
 }
 
 function toggleEnergyProblemControls(problem) {
-  const quintelControls = $('energy-quintel-controls');
-  const vliwControls = $('energy-vliw-controls');
-  const summary = $('energy-kernel-summary')?.parentElement || null;
-  const bundle = $('energy-bundle-view')?.parentElement || null;
-  if (quintelControls) {
-    quintelControls.hidden = problem !== 'quintel';
-  }
-  if (vliwControls) {
-    vliwControls.hidden = problem !== 'vliw';
-  }
-  if (summary) {
-    summary.hidden = problem !== 'vliw';
-  }
-  if (bundle) {
-    bundle.hidden = problem !== 'vliw';
-  }
+  const targets = document.querySelectorAll('[data-energy-problem]');
+  targets.forEach((element) => {
+    const target = element.dataset.energyProblem;
+    const matches = target === problem;
+    element.hidden = !matches;
+  });
 }
 
 function syncEnergyDemoSelection() {
@@ -2301,6 +2286,16 @@ function applyEnergyDemoDefaults(demo) {
   const energyVliwTempStart = $('energy-vliw-temp-start');
   const energyVliwTempDecay = $('energy-vliw-temp-decay');
   const energyVliwMutation = $('energy-vliw-mutation');
+  const energyVliwSpecSearch = $('energy-vliw-spec-search');
+  const energyVliwSpecRestarts = $('energy-vliw-spec-restarts');
+  const energyVliwSpecSteps = $('energy-vliw-spec-steps');
+  const energyVliwSpecTempStart = $('energy-vliw-spec-temp-start');
+  const energyVliwSpecTempDecay = $('energy-vliw-spec-temp-decay');
+  const energyVliwSpecMutation = $('energy-vliw-spec-mutation');
+  const energyVliwSpecSeed = $('energy-vliw-spec-seed');
+  const energyVliwSpecPenalty = $('energy-vliw-spec-penalty');
+  const energyVliwSpecLambda = $('energy-vliw-spec-lambda');
+  const energyVliwSpecInnerSteps = $('energy-vliw-spec-inner-steps');
 
   if (energyQuintelSize && Number.isFinite(defaults.size)) {
     energyQuintelSize.value = String(defaults.size);
@@ -2371,6 +2366,36 @@ function applyEnergyDemoDefaults(demo) {
   if (energyVliwMutation && Number.isFinite(defaults.vliw?.mutationCount)) {
     energyVliwMutation.value = String(defaults.vliw.mutationCount);
   }
+  if (energyVliwSpecSearch && typeof defaults.vliw?.specSearch?.enabled === 'boolean') {
+    energyVliwSpecSearch.checked = defaults.vliw.specSearch.enabled;
+  }
+  if (energyVliwSpecRestarts && Number.isFinite(defaults.vliw?.specSearch?.restarts)) {
+    energyVliwSpecRestarts.value = String(defaults.vliw.specSearch.restarts);
+  }
+  if (energyVliwSpecSteps && Number.isFinite(defaults.vliw?.specSearch?.steps)) {
+    energyVliwSpecSteps.value = String(defaults.vliw.specSearch.steps);
+  }
+  if (energyVliwSpecTempStart && Number.isFinite(defaults.vliw?.specSearch?.temperatureStart)) {
+    energyVliwSpecTempStart.value = String(defaults.vliw.specSearch.temperatureStart);
+  }
+  if (energyVliwSpecTempDecay && Number.isFinite(defaults.vliw?.specSearch?.temperatureDecay)) {
+    energyVliwSpecTempDecay.value = String(defaults.vliw.specSearch.temperatureDecay);
+  }
+  if (energyVliwSpecMutation && Number.isFinite(defaults.vliw?.specSearch?.mutationCount)) {
+    energyVliwSpecMutation.value = String(defaults.vliw.specSearch.mutationCount);
+  }
+  if (energyVliwSpecSeed && Number.isFinite(defaults.vliw?.specSearch?.seed)) {
+    energyVliwSpecSeed.value = String(defaults.vliw.specSearch.seed);
+  }
+  if (energyVliwSpecPenalty && Number.isFinite(defaults.vliw?.specSearch?.penaltyGate)) {
+    energyVliwSpecPenalty.value = String(defaults.vliw.specSearch.penaltyGate);
+  }
+  if (energyVliwSpecLambda && Number.isFinite(defaults.vliw?.specSearch?.cycleLambda)) {
+    energyVliwSpecLambda.value = String(defaults.vliw.specSearch.cycleLambda);
+  }
+  if (energyVliwSpecInnerSteps && Number.isFinite(defaults.vliw?.specSearch?.innerSteps)) {
+    energyVliwSpecInnerSteps.value = String(defaults.vliw.specSearch.innerSteps);
+  }
 }
 
 async function loadVliwDataset(datasetId) {
@@ -2388,6 +2413,615 @@ async function loadVliwDataset(datasetId) {
   const payload = await response.json();
   energyDatasetCache.set(datasetId, payload);
   return payload;
+}
+
+async function computeDagHash(tasks, caps) {
+  const capsOrdered = {};
+  Object.keys(caps || {}).sort().forEach((key) => {
+    capsOrdered[key] = caps[key];
+  });
+  const payload = {
+    caps: capsOrdered,
+    tasks: tasks.map((task) => ({
+      engine: task.engine,
+      reads: Array.isArray(task.reads) ? task.reads : [],
+      writes: Array.isArray(task.writes) ? task.writes : [],
+      deps: Array.isArray(task.deps) ? task.deps : [],
+    })),
+  };
+  const encoded = new TextEncoder().encode(JSON.stringify(payload));
+  return computeHash(encoded, 'sha256');
+}
+
+async function buildVliwDatasetFromSpecInput(specInput, cacheKey) {
+  const key = cacheKey || JSON.stringify(specInput);
+  if (energySpecCache.has(key)) {
+    return energySpecCache.get(key);
+  }
+  const dataset = buildVliwDatasetFromSpec(specInput);
+  const dagHash = await computeDagHash(dataset.tasks, dataset.caps);
+  dataset.dag = {
+    taskCount: dataset.taskCount ?? dataset.tasks.length,
+    caps: dataset.caps,
+    hash: dagHash,
+  };
+  energySpecCache.set(key, dataset);
+  return dataset;
+}
+
+const SPEC_SEARCH_PRESETS = {
+  baseCachedRounds: {
+    top4: [0, 1, 2, 3, 11, 12, 13, 14],
+    skip_r3: [0, 1, 2, 11, 12, 13, 14],
+    skip_r3_r13: [0, 1, 2, 11, 12, 14],
+    loadbound: [0, 1, 2, 11, 12, 13],
+  },
+  selectionByRound: {
+    none: null,
+    bitmask_11_14: {
+      11: 'bitmask',
+      12: 'bitmask',
+      13: 'bitmask',
+      14: 'bitmask',
+    },
+    mask_precompute_11_14: {
+      11: 'mask_precompute',
+      12: 'mask_precompute',
+      13: 'mask_precompute',
+      14: 'mask_precompute',
+    },
+  },
+};
+
+const SPEC_SEARCH_SPACE = {
+  selection_mode: ['eq', 'bitmask', 'mask', 'mask_precompute'],
+  idx_shifted: [false, true],
+  vector_block: [0, 4, 8, 16, 32],
+  extra_vecs: [0, 1, 2, 3, 4],
+  reset_on_valu: [false, true],
+  shifts_on_valu: [false, true],
+  cached_nodes: [null, 7, 15, 31, 63],
+  base_cached_rounds: Object.keys(SPEC_SEARCH_PRESETS.baseCachedRounds),
+  depth4_rounds: [0, 1],
+  x4: [0, 8, 12, 15, 24, 32],
+  selection_mode_by_round: Object.keys(SPEC_SEARCH_PRESETS.selectionByRound),
+  cached_round_x: [null, 8, 16, 24, 32],
+  offload_op1: [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600],
+  offload_hash_op1: [false, true],
+  offload_hash_shift: [false, true],
+  offload_hash_op2: [false, true],
+  offload_parity: [false, true],
+  offload_node_xor: [false, true],
+  node_ptr_incremental: [false, true],
+  ptr_setup_engine: ['flow', 'alu'],
+  setup_style: ['inline', 'packed'],
+};
+
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t += 0x6D2B79F5;
+    let r = t;
+    r = Math.imul(r ^ (r >>> 15), r | 1);
+    r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableStringify(entry)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    const body = keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',');
+    return `{${body}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function cloneSpec(spec) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(spec);
+  }
+  return JSON.parse(JSON.stringify(spec));
+}
+
+function canonicalDepthForRound(round) {
+  const idx = Number.parseInt(round, 10);
+  if (idx === 0 || idx === 11) return 0;
+  if (idx === 1 || idx === 12) return 1;
+  if (idx === 2 || idx === 13) return 2;
+  if (idx === 3 || idx === 14) return 3;
+  return null;
+}
+
+function requiredCachedNodes(maxDepth) {
+  if (maxDepth >= 5) return 63;
+  if (maxDepth >= 4) return 31;
+  if (maxDepth >= 3) return 15;
+  if (maxDepth >= 2) return 7;
+  if (maxDepth >= 1) return 3;
+  return 1;
+}
+
+function normalizeSpecCandidate(spec, baseSpec) {
+  const out = spec;
+  out.rounds = baseSpec.rounds;
+  out.vectors = baseSpec.vectors;
+  out.vlen = baseSpec.vlen;
+  out.total_cycles = baseSpec.total_cycles;
+  out.base_cached_rounds = Array.isArray(out.base_cached_rounds) ? out.base_cached_rounds.slice() : [];
+  out.depth4_cached_rounds = Array.isArray(out.depth4_cached_rounds) ? out.depth4_cached_rounds.slice() : [];
+  out.selection_mode_by_round = out.selection_mode_by_round && typeof out.selection_mode_by_round === 'object' && !Array.isArray(out.selection_mode_by_round)
+    ? { ...out.selection_mode_by_round }
+    : {};
+  out.cached_round_depth = out.cached_round_depth && typeof out.cached_round_depth === 'object' && !Array.isArray(out.cached_round_depth)
+    ? { ...out.cached_round_depth }
+    : {};
+  out.cached_round_x = out.cached_round_x && typeof out.cached_round_x === 'object' && !Array.isArray(out.cached_round_x)
+    ? { ...out.cached_round_x }
+    : {};
+  out.depth4_rounds = Number.isFinite(out.depth4_rounds)
+    ? Math.max(0, Math.min(1, Math.round(out.depth4_rounds)))
+    : 0;
+  out.x4 = Number.isFinite(out.x4) ? Math.max(0, Math.round(out.x4)) : 0;
+  out.x5 = Number.isFinite(out.x5) ? Math.max(0, Math.round(out.x5)) : 0;
+  if (out.depth4_rounds === 0) {
+    out.depth4_cached_rounds = [];
+    out.x4 = 0;
+  } else if (!out.depth4_cached_rounds.length) {
+    out.depth4_cached_rounds = [4];
+  }
+  return out;
+}
+
+function resolveBaseSpec(specInput) {
+  const base = { ...getDefaultSpec(), ...(specInput || {}) };
+  return normalizeSpecCandidate(base, base);
+}
+
+function applySelectionModeByRound(spec, presetKey) {
+  const preset = SPEC_SEARCH_PRESETS.selectionByRound[presetKey] || null;
+  spec.selection_mode_by_round = preset ? { ...preset } : {};
+  if (!preset) return;
+  const modes = new Set(Object.values(preset));
+  if (modes.has('mask_precompute')) {
+    spec.selection_mode = 'mask_precompute';
+    spec.use_bitmask_selection = false;
+    return;
+  }
+  if (modes.has('mask')) {
+    spec.selection_mode = 'mask';
+    spec.use_bitmask_selection = false;
+    return;
+  }
+  if (modes.has('bitmask')) {
+    spec.selection_mode = 'bitmask';
+    spec.use_bitmask_selection = true;
+  }
+}
+
+function applyBaseCachedRoundsPreset(spec, presetKey) {
+  const preset = SPEC_SEARCH_PRESETS.baseCachedRounds[presetKey];
+  spec.base_cached_rounds = preset ? preset.slice() : [];
+}
+
+function applyCachedRoundX(spec, value) {
+  spec.cached_round_x = {};
+  if (!Number.isFinite(value) || value <= 0) return;
+  const rounds = Array.isArray(spec.base_cached_rounds) ? spec.base_cached_rounds : [];
+  rounds.forEach((round) => {
+    if (canonicalDepthForRound(round) == null) return;
+    if (Number.parseInt(round, 10) === 4) return;
+    spec.cached_round_x[round] = value;
+  });
+}
+
+function choose(rng, values) {
+  return values[Math.floor(rng() * values.length)];
+}
+
+function mutateSpecCandidate(baseSpec, rng, mutationCount) {
+  const spec = normalizeSpecCandidate(cloneSpec(baseSpec), baseSpec);
+  const mutations = Math.max(1, mutationCount);
+  const mutators = [
+    (s) => {
+      const value = choose(rng, SPEC_SEARCH_SPACE.selection_mode);
+      s.selection_mode = value;
+      s.use_bitmask_selection = value === 'bitmask';
+    },
+    (s) => {
+      s.idx_shifted = choose(rng, SPEC_SEARCH_SPACE.idx_shifted);
+    },
+    (s) => {
+      s.vector_block = choose(rng, SPEC_SEARCH_SPACE.vector_block);
+    },
+    (s) => {
+      s.extra_vecs = choose(rng, SPEC_SEARCH_SPACE.extra_vecs);
+    },
+    (s) => {
+      s.reset_on_valu = choose(rng, SPEC_SEARCH_SPACE.reset_on_valu);
+    },
+    (s) => {
+      s.shifts_on_valu = choose(rng, SPEC_SEARCH_SPACE.shifts_on_valu);
+    },
+    (s) => {
+      s.cached_nodes = choose(rng, SPEC_SEARCH_SPACE.cached_nodes);
+    },
+    (s) => {
+      applyBaseCachedRoundsPreset(s, choose(rng, SPEC_SEARCH_SPACE.base_cached_rounds));
+    },
+    (s) => {
+      s.depth4_rounds = choose(rng, SPEC_SEARCH_SPACE.depth4_rounds);
+      s.depth4_cached_rounds = s.depth4_rounds > 0 ? [4] : [];
+      if (s.depth4_rounds === 0) s.x4 = 0;
+    },
+    (s) => {
+      s.x4 = choose(rng, SPEC_SEARCH_SPACE.x4);
+      if (!s.depth4_rounds) s.x4 = 0;
+    },
+    (s) => {
+      applySelectionModeByRound(s, choose(rng, SPEC_SEARCH_SPACE.selection_mode_by_round));
+    },
+    (s) => {
+      applyCachedRoundX(s, choose(rng, SPEC_SEARCH_SPACE.cached_round_x));
+    },
+    (s) => {
+      s.offload_op1 = choose(rng, SPEC_SEARCH_SPACE.offload_op1);
+    },
+    (s) => {
+      s.offload_hash_op1 = choose(rng, SPEC_SEARCH_SPACE.offload_hash_op1);
+    },
+    (s) => {
+      s.offload_hash_shift = choose(rng, SPEC_SEARCH_SPACE.offload_hash_shift);
+    },
+    (s) => {
+      s.offload_hash_op2 = choose(rng, SPEC_SEARCH_SPACE.offload_hash_op2);
+    },
+    (s) => {
+      s.offload_parity = choose(rng, SPEC_SEARCH_SPACE.offload_parity);
+    },
+    (s) => {
+      s.offload_node_xor = choose(rng, SPEC_SEARCH_SPACE.offload_node_xor);
+    },
+    (s) => {
+      s.node_ptr_incremental = choose(rng, SPEC_SEARCH_SPACE.node_ptr_incremental);
+    },
+    (s) => {
+      s.ptr_setup_engine = choose(rng, SPEC_SEARCH_SPACE.ptr_setup_engine);
+    },
+    (s) => {
+      s.setup_style = choose(rng, SPEC_SEARCH_SPACE.setup_style);
+    },
+  ];
+  for (let i = 0; i < mutations; i++) {
+    const mutator = choose(rng, mutators);
+    mutator(spec);
+  }
+  return normalizeSpecCandidate(spec, baseSpec);
+}
+
+function evaluateSpecConstraints(spec) {
+  const issues = [];
+  let penalty = 0;
+  let hardFail = false;
+  const vectors = Number.isFinite(spec.vectors) ? spec.vectors : 32;
+  const depth4Rounds = Number.isFinite(spec.depth4_rounds) ? spec.depth4_rounds : 0;
+  const depth4List = Array.isArray(spec.depth4_cached_rounds) ? spec.depth4_cached_rounds : [];
+  const x4 = Number.isFinite(spec.x4) ? spec.x4 : 0;
+
+  if (depth4Rounds === 0 && x4 > 0) {
+    hardFail = true;
+    issues.push('x4 requires depth4_rounds');
+  }
+  if (x4 > vectors) {
+    hardFail = true;
+    issues.push('x4 exceeds vectors');
+  }
+  if (Number.isFinite(spec.x5) && spec.x5 > vectors) {
+    hardFail = true;
+    issues.push('x5 exceeds vectors');
+  }
+  if (depth4Rounds !== depth4List.length) {
+    hardFail = true;
+    issues.push('depth4_rounds mismatch');
+  }
+  if (depth4Rounds === 0 && depth4List.length) {
+    hardFail = true;
+    issues.push('depth4_cached_rounds requires depth4_rounds');
+  }
+
+  const cachedRoundDepth = spec.cached_round_depth || {};
+  Object.keys(cachedRoundDepth).forEach((round) => {
+    const canonical = canonicalDepthForRound(round);
+    const value = cachedRoundDepth[round];
+    if (canonical == null || canonical !== value || value >= 4) {
+      hardFail = true;
+      issues.push(`invalid cached_round_depth for round ${round}`);
+    }
+  });
+
+  const cachedRoundX = spec.cached_round_x || {};
+  Object.keys(cachedRoundX).forEach((round) => {
+    const canonical = canonicalDepthForRound(round);
+    const value = cachedRoundX[round];
+    if (canonical == null || Number.parseInt(round, 10) === 4) {
+      hardFail = true;
+      issues.push(`invalid cached_round_x round ${round}`);
+      return;
+    }
+    if (!Number.isFinite(value) || value <= 0 || value > vectors) {
+      hardFail = true;
+      issues.push(`invalid cached_round_x value for round ${round}`);
+    }
+  });
+
+  let maxDepth = 0;
+  const baseCached = Array.isArray(spec.base_cached_rounds) ? spec.base_cached_rounds : [];
+  baseCached.forEach((round) => {
+    const canonical = canonicalDepthForRound(round);
+    if (canonical != null && canonical > maxDepth) maxDepth = canonical;
+  });
+  if (depth4Rounds > 0) maxDepth = Math.max(maxDepth, 4);
+  if (Number.isFinite(spec.x5) && spec.x5 > 0) maxDepth = Math.max(maxDepth, 5);
+  if (spec.cached_nodes != null) {
+    const required = requiredCachedNodes(maxDepth);
+    if (spec.cached_nodes < required) {
+      hardFail = true;
+      issues.push(`cached_nodes < ${required}`);
+    }
+  }
+
+  const extraVecs = Number.isFinite(spec.extra_vecs) ? spec.extra_vecs : 0;
+  if (spec.selection_mode === 'mask_precompute') {
+    if (extraVecs < 4) {
+      penalty += 2;
+      issues.push('mask_precompute extra_vecs < 4');
+    }
+    if (!spec.idx_shifted) {
+      penalty += 1;
+      issues.push('mask_precompute requires idx_shifted');
+    }
+  }
+  if (spec.selection_mode === 'bitmask') {
+    const required = depth4Rounds > 0 ? 3 : 1;
+    if (extraVecs < required) {
+      penalty += 1;
+      issues.push('bitmask extra_vecs too small');
+    }
+  }
+
+  const vectorBlock = Number.isFinite(spec.vector_block) ? spec.vector_block : 0;
+  if (vectorBlock > 0 && vectors % vectorBlock !== 0) {
+    penalty += 1;
+    issues.push('vector_block not divisible');
+  }
+
+  const selectionByRound = spec.selection_mode_by_round || {};
+  Object.keys(selectionByRound).forEach((round) => {
+    if (canonicalDepthForRound(round) == null) {
+      penalty += 0.5;
+      issues.push(`selection_mode_by_round unused (${round})`);
+    }
+  });
+
+  return { penalty, hardFail, issues };
+}
+
+function computeOffloadPenalty(spec, offloadableCount) {
+  if (!Number.isFinite(offloadableCount) || offloadableCount <= 0) return 0;
+  if (!Number.isFinite(spec.offload_op1) || spec.offload_op1 <= 0) return 0;
+  const ratio = spec.offload_op1 / offloadableCount;
+  if (ratio <= 1) return 0;
+  return (ratio - 1) * 2;
+}
+
+function formatSpecSignature(spec) {
+  const parts = [
+    `sel=${spec.selection_mode || 'eq'}`,
+    `idx=${spec.idx_shifted ? 1 : 0}`,
+    `vb=${spec.vector_block ?? 0}`,
+    `extra=${spec.extra_vecs ?? 0}`,
+    `cached=${spec.cached_nodes == null ? 'auto' : spec.cached_nodes}`,
+    `d4=${spec.depth4_rounds ?? 0}`,
+    `x4=${spec.x4 ?? 0}`,
+    `off1=${spec.offload_op1 ?? 0}`,
+    `ptr=${spec.ptr_setup_engine || 'flow'}`,
+    `setup=${spec.setup_style || 'inline'}`,
+  ];
+  return parts.join(' ');
+}
+
+async function runVliwSpecSearch({
+  pipeline,
+  baseSpec,
+  innerRequestBase,
+  vliwSearch,
+  bundleLimit,
+  specSearch,
+}) {
+  const restarts = Number.isFinite(specSearch.restarts) ? Math.max(1, Math.floor(specSearch.restarts)) : 1;
+  const steps = Number.isFinite(specSearch.steps) ? Math.max(1, Math.floor(specSearch.steps)) : 20;
+  const tempStart = Number.isFinite(specSearch.temperatureStart) ? specSearch.temperatureStart : 2.0;
+  const tempDecay = Number.isFinite(specSearch.temperatureDecay) ? specSearch.temperatureDecay : 0.95;
+  const mutationCount = Number.isFinite(specSearch.mutationCount) ? Math.max(1, Math.floor(specSearch.mutationCount)) : 2;
+  const penaltyGate = Number.isFinite(specSearch.penaltyGate) ? specSearch.penaltyGate : 2;
+  const cycleLambda = Number.isFinite(specSearch.cycleLambda) ? specSearch.cycleLambda : 1.0;
+  const innerSteps = Number.isFinite(specSearch.innerSteps)
+    ? Math.max(1, Math.floor(specSearch.innerSteps))
+    : null;
+  const rng = mulberry32(Number.isFinite(specSearch.seed) ? specSearch.seed : 1337);
+  const start = performance.now();
+  let best = null;
+  let bestEnergy = Number.POSITIVE_INFINITY;
+  const candidates = [];
+
+  async function evaluateSpec(spec) {
+    const specKey = stableStringify(spec);
+    if (energySpecEvalCache.has(specKey)) {
+      return energySpecEvalCache.get(specKey);
+    }
+    const constraint = evaluateSpecConstraints(spec);
+    let penalty = constraint.penalty;
+    if (constraint.hardFail || penalty > penaltyGate) {
+      const payload = {
+        spec,
+        specKey,
+        penalty,
+        cycles: Number.POSITIVE_INFINITY,
+        energy: Number.POSITIVE_INFINITY,
+        issues: constraint.issues,
+        datasetMeta: null,
+      };
+      energySpecEvalCache.set(specKey, payload);
+      return payload;
+    }
+    let dataset = null;
+    try {
+      dataset = await buildVliwDatasetFromSpecInput(spec, specKey);
+    } catch (error) {
+      const payload = {
+        spec,
+        specKey,
+        penalty: Number.POSITIVE_INFINITY,
+        cycles: Number.POSITIVE_INFINITY,
+        energy: Number.POSITIVE_INFINITY,
+        issues: [`spec build failed: ${error.message}`],
+        datasetMeta: null,
+      };
+      energySpecEvalCache.set(specKey, payload);
+      return payload;
+    }
+    penalty += computeOffloadPenalty(spec, dataset.offloadableCount);
+    if (penalty > penaltyGate) {
+      const payload = {
+        spec,
+        specKey,
+        penalty,
+        cycles: Number.POSITIVE_INFINITY,
+        energy: Number.POSITIVE_INFINITY,
+        issues: constraint.issues,
+        datasetMeta: {
+          label: dataset.label,
+          bundleCount: dataset.bundleCount,
+          taskCount: dataset.taskCount,
+          baselineCycles: dataset.baselineCycles,
+          dagHash: dataset.dag?.hash ?? dataset.dagHash,
+          dependencyModel: dataset.dependencyModel ?? null,
+          spec: dataset.spec ?? null,
+        },
+      };
+      energySpecEvalCache.set(specKey, payload);
+      return payload;
+    }
+    const sliced = sliceVliwDataset(dataset, bundleLimit);
+    const innerRequest = {
+      ...innerRequestBase,
+      steps: innerSteps ?? innerRequestBase.steps,
+      vliw: {
+        tasks: sliced.tasks,
+        caps: sliced.caps,
+        search: vliwSearch,
+      },
+    };
+    const result = await pipeline.generate(innerRequest);
+    const cycles = result?.metrics?.cycles ?? Number.POSITIVE_INFINITY;
+    const energy = Number.isFinite(cycles) ? penalty + cycleLambda * cycles : Number.POSITIVE_INFINITY;
+    const payload = {
+      spec,
+      specKey,
+      penalty,
+      cycles,
+      energy,
+      issues: constraint.issues,
+      datasetMeta: {
+        label: dataset.label,
+        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
+        taskCount: sliced.taskCount ?? dataset.taskCount,
+        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
+        dagHash: dataset.dag?.hash ?? dataset.dagHash,
+        dependencyModel: dataset.dependencyModel ?? null,
+        spec: dataset.spec ?? null,
+      },
+    };
+    energySpecEvalCache.set(specKey, payload);
+    return payload;
+  }
+
+  function pushCandidate(entry) {
+    if (!entry || !Number.isFinite(entry.energy)) return;
+    candidates.push(entry);
+    candidates.sort((a, b) => a.energy - b.energy);
+    if (candidates.length > 6) {
+      candidates.length = 6;
+    }
+  }
+
+  for (let restart = 0; restart < restarts; restart++) {
+    let current = await evaluateSpec(normalizeSpecCandidate(cloneSpec(baseSpec), baseSpec));
+    let currentEnergy = current.energy;
+    let temperature = tempStart;
+    if (Number.isFinite(currentEnergy) && currentEnergy < bestEnergy) {
+      bestEnergy = currentEnergy;
+      best = current;
+      pushCandidate(current);
+    }
+    for (let step = 0; step < steps; step++) {
+      const candidateSpec = mutateSpecCandidate(current.spec, rng, mutationCount);
+      const candidate = await evaluateSpec(candidateSpec);
+      const candidateEnergy = candidate.energy;
+      const delta = candidateEnergy - currentEnergy;
+      const accept = (
+        (!Number.isFinite(currentEnergy) && Number.isFinite(candidateEnergy))
+        || (Number.isFinite(candidateEnergy)
+          && (delta <= 0 || rng() < Math.exp(-delta / Math.max(temperature, 1e-6))))
+      );
+      if (accept) {
+        current = candidate;
+        currentEnergy = candidateEnergy;
+      }
+      if (Number.isFinite(candidateEnergy) && candidateEnergy < bestEnergy) {
+        bestEnergy = candidateEnergy;
+        best = candidate;
+      }
+      pushCandidate(candidate);
+      temperature *= tempDecay;
+    }
+  }
+
+  if (!best || !Number.isFinite(best.energy)) {
+    throw new Error('Spec search failed to find a valid configuration.');
+  }
+
+  const finalDataset = await buildVliwDatasetFromSpecInput(best.spec, best.specKey);
+  const sliced = sliceVliwDataset(finalDataset, bundleLimit);
+  const finalRequest = {
+    ...innerRequestBase,
+    vliw: {
+      tasks: sliced.tasks,
+      caps: sliced.caps,
+      search: vliwSearch,
+    },
+  };
+  const finalResult = await pipeline.generate(finalRequest);
+
+  return {
+    bestSpec: best.spec,
+    bestEnergy: best.energy,
+    bestPenalty: best.penalty,
+    bestCycles: best.cycles,
+    candidates: candidates.slice(),
+    dataset: finalDataset,
+    sliced,
+    result: finalResult,
+    totalMs: performance.now() - start,
+    restarts,
+    steps,
+    cycleLambda,
+    penaltyGate,
+    innerSteps,
+  };
 }
 
 function sliceVliwDataset(dataset, bundleLimit) {
@@ -2539,6 +3173,19 @@ function formatVliwSlotLabel(engine, slotIndex) {
   return `${engine}${slotIndex}`;
 }
 
+function formatSpecValue(value) {
+  if (value == null) return 'null';
+  if (Array.isArray(value)) return JSON.stringify(value);
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function formatSpecLines(spec) {
+  if (!spec || typeof spec !== 'object') return [];
+  const keys = Object.keys(spec).sort();
+  return keys.map((key) => `  ${key}: ${formatSpecValue(spec[key])}`);
+}
+
 function renderVliwKernelSummary(summary, datasetMeta) {
   const summaryEl = $('energy-kernel-summary');
   if (!summaryEl) return;
@@ -2564,6 +3211,66 @@ function renderVliwKernelSummary(summary, datasetMeta) {
   }
   if (Number.isFinite(summary.utilization)) {
     lines.push(`Utilization: ${formatScalar(summary.utilization, 4)}`);
+  }
+  if (datasetMeta?.dagHash) {
+    lines.push(`DAG hash: ${datasetMeta.dagHash}`);
+  }
+  if (datasetMeta?.dependencyModel) {
+    const dm = datasetMeta.dependencyModel;
+    const latency = dm?.latency?.default ?? 1;
+    lines.push('Dependency model:');
+    lines.push(
+      `  RAW=${!!dm.includes_raw} WAW=${!!dm.includes_waw} WAR=${!!dm.includes_war} temp=${!!dm.temp_hazard_tags} RAR=${!!dm.read_after_read} latency=${latency}`,
+    );
+  }
+  if (datasetMeta?.spec) {
+    lines.push('Spec:');
+    lines.push(...formatSpecLines(datasetMeta.spec));
+  }
+  if (summary.baseline) {
+    const baselineCycles = summary.baseline.cycles;
+    if (Number.isFinite(baselineCycles)) {
+      lines.push(`Baseline schedule cycles: ${baselineCycles}`);
+    }
+    if (Number.isFinite(summary.baseline.utilization)) {
+      lines.push(`Baseline utilization: ${formatScalar(summary.baseline.utilization, 4)}`);
+    }
+    if (Number.isFinite(summary.baseline.violations)) {
+      lines.push(`Baseline violations: ${summary.baseline.violations}`);
+    }
+    if (Number.isFinite(datasetMeta?.baselineCycles) && Number.isFinite(baselineCycles)) {
+      if (datasetMeta.baselineCycles !== baselineCycles) {
+        lines.push(`Baseline mismatch: dataset=${datasetMeta.baselineCycles} schedule=${baselineCycles}`);
+      }
+    }
+  }
+  if (summary.specSearch) {
+    const search = summary.specSearch;
+    lines.push('Spec search (Layer 0):');
+    if (Number.isFinite(search.restarts) && Number.isFinite(search.steps)) {
+      lines.push(`  restarts ${search.restarts} • steps ${search.steps}`);
+    }
+    if (Number.isFinite(search.cycleLambda)) {
+      lines.push(`  lambda ${formatScalar(search.cycleLambda, 3)} • gate ${formatScalar(search.penaltyGate, 3)}`);
+    }
+    if (Number.isFinite(search.bestCycles)) {
+      lines.push(`  best cycles ${search.bestCycles} • penalty ${formatScalar(search.bestPenalty, 3)}`);
+    }
+    if (search.bestSpecSignature) {
+      lines.push(`  best spec ${search.bestSpecSignature}`);
+    }
+    if (Array.isArray(search.candidates) && search.candidates.length) {
+      lines.push('  top specs:');
+      search.candidates.forEach((candidate, index) => {
+        const parts = [
+          `#${index + 1}`,
+          `cycles ${candidate.cycles}`,
+          `pen ${formatScalar(candidate.penalty, 3)}`,
+          candidate.signature,
+        ];
+        lines.push(`    ${parts.join(' • ')}`);
+      });
+    }
   }
   if (Array.isArray(summary.candidates) && summary.candidates.length) {
     lines.push('Top candidates:');
@@ -2611,9 +3318,12 @@ function renderVliwBundleView(vliwState, selectedBundle) {
   const cycles = Math.floor(slotAssignments.length / slotsPerCycle);
   const lines = [];
   const showBundle = Number.isFinite(selectedBundle) ? selectedBundle : null;
+  let matchedCycles = 0;
+  let matchedTasks = 0;
   for (let cycle = 0; cycle < cycles; cycle++) {
     const parts = [`C${String(cycle).padStart(4, '0')}`];
     const baseIndex = cycle * slotsPerCycle;
+    let cycleHasMatch = false;
     for (let slot = 0; slot < slotsPerCycle; slot++) {
       const taskId = slotAssignments[baseIndex + slot];
       const engine = slotEngines[slot];
@@ -2623,17 +3333,34 @@ function renderVliwBundleView(vliwState, selectedBundle) {
         continue;
       }
       const meta = vliwState.taskMeta?.[taskId] || {};
-      const bundle = Number.isFinite(meta.bundle) ? meta.bundle : '--';
+      const bundleValue = Number.isFinite(meta.bundle) ? meta.bundle : null;
+      const bundle = bundleValue ?? '--';
       const deps = Number.isFinite(meta.deps) ? meta.deps : 0;
       const reads = Number.isFinite(meta.reads) ? meta.reads : 0;
       const writes = Number.isFinite(meta.writes) ? meta.writes : 0;
-      const highlight = showBundle != null && bundle === showBundle;
+      const highlight = showBundle != null && bundleValue === showBundle;
       const prefix = highlight ? '*' : '';
+      if (highlight) {
+        cycleHasMatch = true;
+        matchedTasks += 1;
+      }
       parts.push(
         `${prefix}${formatVliwSlotLabel(engine, slotIndex)}=${taskId}[b${bundle} d${deps} r${reads} w${writes}]`,
       );
     }
+    if (showBundle != null && !cycleHasMatch) {
+      continue;
+    }
+    if (cycleHasMatch) {
+      matchedCycles += 1;
+    }
     lines.push(parts.join(' '));
+  }
+  if (showBundle != null) {
+    lines.unshift(`Filter: bundle ${showBundle} (cycles ${matchedCycles}/${cycles}, tasks ${matchedTasks})`);
+    if (!matchedCycles) {
+      lines.push('No matching tasks for selected bundle.');
+    }
   }
   view.textContent = lines.join('\n');
 }
@@ -2688,7 +3415,19 @@ function updateEnergyStats(result) {
     return;
   }
   const problem = result.problem || 'quintel';
-  setText($('energy-stat-steps'), Number.isFinite(result.steps) ? String(result.steps) : '--');
+  if (
+    problem === 'vliw'
+    && Number.isFinite(result.stepsPerRestart)
+    && Number.isFinite(result.restarts)
+  ) {
+    const totalSteps = Number.isFinite(result.steps) ? result.steps : null;
+    const label = totalSteps != null
+      ? `${result.stepsPerRestart} (x${result.restarts} = ${totalSteps})`
+      : String(result.stepsPerRestart);
+    setText($('energy-stat-steps'), label);
+  } else {
+    setText($('energy-stat-steps'), Number.isFinite(result.steps) ? String(result.steps) : '--');
+  }
   setText($('energy-stat-energy'), Number.isFinite(result.energy) ? formatScalar(result.energy, 6) : '--');
   if (problem === 'vliw' && result.metrics) {
     setText($('energy-stat-symmetry'), formatScalar(result.metrics.cycles, 0));
@@ -2775,6 +3514,7 @@ async function handleEnergyRun() {
     gradientScale,
     convergenceThreshold,
   };
+  let vliwRun = null;
 
   if (problem !== 'vliw') {
     state.energyVliw = null;
@@ -2806,30 +3546,89 @@ async function handleEnergyRun() {
   }
 
   if (problem === 'vliw') {
-    const datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd';
+    let datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd-real';
+    const specText = $('energy-vliw-spec')?.value?.trim() || '';
     const bundleLimit = readOptionalNumber($('energy-vliw-bundle-limit'), { integer: true });
     const restarts = readOptionalNumber($('energy-vliw-restarts'), { integer: true });
     const tempStart = readOptionalNumber($('energy-vliw-temp-start'));
     const tempDecay = readOptionalNumber($('energy-vliw-temp-decay'));
     const mutationCount = readOptionalNumber($('energy-vliw-mutation'), { integer: true });
-    const dataset = await loadVliwDataset(datasetId);
-    const sliced = sliceVliwDataset(dataset, bundleLimit);
-    state.energyVliwMeta = {
-      label: dataset.label || VLIW_DATASETS[datasetId]?.label || datasetId,
-      bundleCount: sliced.bundleCount ?? dataset.bundleCount,
-      taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
-      baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
+    const demoDefaults = demo?.defaults ?? {};
+    const policy = demoDefaults.vliw?.policy;
+    const jitter = demoDefaults.vliw?.jitter;
+    const vliwSearch = {
+      restarts,
+      temperatureStart: tempStart,
+      temperatureDecay: tempDecay,
+      mutationCount,
+      ...(policy ? { policy } : {}),
+      ...(Number.isFinite(jitter) ? { jitter } : {}),
     };
-    request.vliw = {
-      tasks: sliced.tasks,
-      caps: sliced.caps,
-      search: {
-        restarts,
-        temperatureStart: tempStart,
-        temperatureDecay: tempDecay,
-        mutationCount,
-      },
+    const specSearch = {
+      enabled: $('energy-vliw-spec-search')?.checked ?? false,
+      restarts: readOptionalNumber($('energy-vliw-spec-restarts'), { integer: true }),
+      steps: readOptionalNumber($('energy-vliw-spec-steps'), { integer: true }),
+      temperatureStart: readOptionalNumber($('energy-vliw-spec-temp-start')),
+      temperatureDecay: readOptionalNumber($('energy-vliw-spec-temp-decay')),
+      mutationCount: readOptionalNumber($('energy-vliw-spec-mutation'), { integer: true }),
+      seed: readOptionalNumber($('energy-vliw-spec-seed'), { integer: true }),
+      penaltyGate: readOptionalNumber($('energy-vliw-spec-penalty')),
+      cycleLambda: readOptionalNumber($('energy-vliw-spec-lambda')),
+      innerSteps: readOptionalNumber($('energy-vliw-spec-inner-steps'), { integer: true }),
     };
+    if (specSearch.enabled) {
+      let baseSpecInput = null;
+      let baseDataset = null;
+      if (specText) {
+        try {
+          baseSpecInput = JSON.parse(specText);
+        } catch (error) {
+          throw new Error(`Spec JSON parse error: ${error.message}`);
+        }
+      } else {
+        baseDataset = await loadVliwDataset(datasetId);
+        baseSpecInput = baseDataset?.spec ?? null;
+      }
+      const baseSpec = resolveBaseSpec(baseSpecInput);
+      vliwRun = {
+        mode: 'spec-search',
+        baseSpec,
+        baseDataset,
+        datasetId,
+        bundleLimit,
+        specSearch,
+        vliwSearch,
+      };
+    } else {
+      let dataset = null;
+      if (specText) {
+        let specInput = null;
+        try {
+          specInput = JSON.parse(specText);
+        } catch (error) {
+          throw new Error(`Spec JSON parse error: ${error.message}`);
+        }
+        dataset = await buildVliwDatasetFromSpecInput(specInput, specText);
+        datasetId = 'vliw-generated';
+      } else {
+        dataset = await loadVliwDataset(datasetId);
+      }
+      const sliced = sliceVliwDataset(dataset, bundleLimit);
+      state.energyVliwMeta = {
+        label: dataset.label || VLIW_DATASETS[datasetId]?.label || datasetId,
+        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
+        taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
+        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
+        dagHash: dataset.dag?.hash ?? dataset.dagHash,
+        dependencyModel: dataset.dependencyModel ?? null,
+        spec: dataset.spec ?? null,
+      };
+      request.vliw = {
+        tasks: sliced.tasks,
+        caps: sliced.caps,
+        search: vliwSearch,
+      };
+    }
   }
   state.lastEnergyRequest = {
     size,
@@ -2848,7 +3647,47 @@ async function handleEnergyRun() {
       throw new Error('Selected model is not an energy model.');
     }
     updateEnergyStatus('Running...');
-    const result = await pipeline.generate(request);
+    let result = null;
+    let specSearchSummary = null;
+    if (problem === 'vliw' && vliwRun?.mode === 'spec-search') {
+      updateEnergyStatus('Spec search (Layer 0)...');
+      const specSearchResult = await runVliwSpecSearch({
+        pipeline,
+        baseSpec: vliwRun.baseSpec,
+        innerRequestBase: request,
+        vliwSearch: vliwRun.vliwSearch,
+        bundleLimit: vliwRun.bundleLimit,
+        specSearch: vliwRun.specSearch,
+      });
+      result = specSearchResult.result;
+      const dataset = specSearchResult.dataset;
+      const sliced = specSearchResult.sliced;
+      state.energyVliwMeta = {
+        label: dataset.label || 'Spec search (Layer 0)',
+        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
+        taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
+        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
+        dagHash: dataset.dag?.hash ?? dataset.dagHash,
+        dependencyModel: dataset.dependencyModel ?? null,
+        spec: dataset.spec ?? specSearchResult.bestSpec ?? null,
+      };
+      specSearchSummary = {
+        restarts: specSearchResult.restarts,
+        steps: specSearchResult.steps,
+        cycleLambda: specSearchResult.cycleLambda,
+        penaltyGate: specSearchResult.penaltyGate,
+        bestCycles: specSearchResult.bestCycles,
+        bestPenalty: specSearchResult.bestPenalty,
+        bestSpecSignature: specSearchResult.bestSpec ? formatSpecSignature(specSearchResult.bestSpec) : null,
+        candidates: specSearchResult.candidates.map((candidate) => ({
+          cycles: candidate.cycles,
+          penalty: candidate.penalty,
+          signature: formatSpecSignature(candidate.spec),
+        })),
+      };
+    } else {
+      result = await pipeline.generate(request);
+    }
     if (problem === 'vliw') {
       state.energyVliw = {
         schedule: result?.schedule || null,
@@ -2860,6 +3699,8 @@ async function handleEnergyRun() {
         bestCycles: result?.metrics?.cycles ?? null,
         utilization: result?.metrics?.utilization ?? null,
         candidates: candidates.slice(0, 6),
+        baseline: result?.baseline ?? null,
+        specSearch: specSearchSummary,
       };
       renderVliwKernelSummary(summary, state.energyVliwMeta);
       const bundleCount = state.energyVliwMeta?.bundleCount;

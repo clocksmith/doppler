@@ -34,6 +34,8 @@ export interface EnergyRequest {
       temperatureStart?: number;
       temperatureDecay?: number;
       mutationCount?: number;
+      policy?: 'weights' | 'priorities';
+      jitter?: number;
     };
   };
   shape?: number[];
@@ -46,7 +48,7 @@ export interface EnergyRequest {
   convergenceThreshold?: number;
   seed?: number;
   targetSeed?: number;
-  initMode?: 'normal' | 'uniform' | 'zeros';
+  initMode?: 'normal' | 'uniform' | 'zeros' | 'baseline';
   targetMode?: 'normal' | 'uniform' | 'zeros';
   initScale?: number;
   targetScale?: number;
@@ -68,6 +70,16 @@ export interface EnergyResult {
     cycles: number;
     utilization: number;
     violations: number;
+  };
+  stepsPerRestart?: number;
+  bestStep?: number;
+  restarts?: number;
+  baseline?: {
+    cycles: number;
+    utilization: number;
+    violations: number;
+    scheduled: number;
+    energy: number;
   };
   schedule?: {
     slotAssignments: Int32Array;

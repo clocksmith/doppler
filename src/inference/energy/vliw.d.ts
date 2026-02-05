@@ -18,6 +18,8 @@ export interface VliwSearchConfig {
   temperatureStart?: number;
   temperatureDecay?: number;
   mutationCount?: number;
+  policy?: 'weights' | 'priorities';
+  jitter?: number;
 }
 
 export interface VliwEnergyLoopConfig {
@@ -44,6 +46,16 @@ export interface VliwEnergyResult {
     utilization: number;
     violations: number;
   };
+  baseline: {
+    cycles: number;
+    utilization: number;
+    violations: number;
+    scheduled: number;
+    energy: number;
+  };
+  stepsPerRestart: number;
+  bestStep: number;
+  restarts: number;
   schedule: {
     slotAssignments: Int32Array;
     slotEngines: string[];
@@ -73,7 +85,7 @@ export declare function runVliwEnergyLoop(input: {
   loop?: VliwEnergyLoopConfig;
   search?: VliwSearchConfig;
   seed?: number;
-  initMode?: 'normal' | 'uniform' | 'zeros';
+  initMode?: 'normal' | 'uniform' | 'zeros' | 'baseline';
   initScale?: number;
   diagnostics?: VliwEnergyDiagnostics;
   onProgress?: (payload: { stage?: string; percent: number; message?: string }) => void;
