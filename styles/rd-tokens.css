@@ -25,9 +25,9 @@
   --space-xl: 32px;
 
   /* === BORDER WIDTHS === */
-  --border-sm: 1px;
-  --border-md: 2px;
-  --border-lg: 3px;
+  --border-sm: 0.5px;
+  --border-md: 1px;
+  --border-lg: 2px;
 
   /* === OPACITY === */
   --opacity-ghost: 0.7;

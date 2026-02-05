@@ -8,828 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/pwa-manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
-  <style>
-    /* App Shell */
-    #app {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .page-shell {
-      width: 100%;
-      max-width: 1024px;
-      margin: 0 auto;
-      padding: var(--space-lg) var(--space-md);
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .header {
-      display: flex;
-      align-items: flex-end;
-      gap: var(--space-md);
-    }
-
-    .brand-block {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-      min-width: 0;
-    }
-
-    .brand-row {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-md);
-    }
-
-    .header-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-    }
-
-    .intro-tagline {
-      display: block;
-      margin-top: var(--space-xs);
-    }
-
-    .main-layout {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      margin-top: var(--space-md);
-    }
-
-    /* Layout */
-    .panel-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
-      gap: var(--space-md);
-      min-height: 0;
-      align-items: start;
-    }
-
-    #app[data-mode="run"] .panel-grid,
-    #app[data-mode="diffusion"] .panel-grid,
-    #app[data-mode="energy"] .panel-grid,
-    #app[data-mode="diagnostics"] .panel-grid,
-    #app[data-mode="models"] .panel-grid {
-      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-    }
-
-    #app[data-mode="run"] .panel-stack-primary,
-    #app[data-mode="diffusion"] .panel-stack-primary,
-    #app[data-mode="energy"] .panel-stack-primary,
-    #app[data-mode="diagnostics"] .panel-stack-primary,
-    #app[data-mode="models"] .panel-stack-primary {
-      order: 2;
-    }
-
-    #app[data-mode="run"] .panel-stack-rail,
-    #app[data-mode="diffusion"] .panel-stack-rail,
-    #app[data-mode="energy"] .panel-stack-rail,
-    #app[data-mode="diagnostics"] .panel-stack-rail,
-    #app[data-mode="models"] .panel-stack-rail {
-      order: 1;
-    }
-
-    .panel-stack {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-md);
-      min-height: 0;
-      min-width: 0;
-    }
-
-    .panel {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-      overflow: auto;
-    }
-
-    .panel-subsection {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    #app[data-mode="run"] [data-modes]:not([data-modes~="run"]),
-    #app[data-mode="models"] [data-modes]:not([data-modes~="models"]),
-    #app[data-mode="diagnostics"] [data-modes]:not([data-modes~="diagnostics"]),
-    #app[data-mode="diffusion"] [data-modes]:not([data-modes~="diffusion"]),
-    #app[data-mode="energy"] [data-modes]:not([data-modes~="energy"]) {
-      display: none;
-    }
-
-    .playground-output {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-      min-width: 0;
-    }
-
-    .primary-stack {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-      min-height: 0;
-    }
-
-    .playground-field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .playground-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: var(--space-xs);
-    }
-
-    .playground-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-    }
-
-    .playground-output-box {
-      min-height: 240px;
-      padding: var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-      font-family: var(--font-b);
-      font-size: 12px;
-      white-space: pre-wrap;
-      overflow: auto;
-    }
-
-    .playground-output-canvas {
-      width: 100%;
-      height: auto;
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-    }
-
-    .energy-chart {
-      width: 100%;
-      height: auto;
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-    }
-
-    .energy-board {
-      display: grid;
-      grid-template-columns: repeat(var(--energy-grid-size, 5), minmax(0, 1fr));
-      gap: 2px;
-      padding: var(--space-xs);
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-    }
-
-    .energy-cell {
-      aspect-ratio: 1 / 1;
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-    }
-
-    .energy-cell.is-on {
-      background: var(--fg);
-    }
-
-    .energy-board-intensity .energy-cell {
-      background: var(--bg);
-    }
-
-    .energy-vector {
-      padding: var(--space-xs);
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-      font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      line-height: 1.2;
-      white-space: pre;
-      min-height: 80px;
-    }
-
-    .energy-summary {
-      min-height: 120px;
-    }
-
-    .energy-bundle-view {
-      min-height: 200px;
-      max-height: 360px;
-      overflow: auto;
-    }
-
-    .check-field {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      font-size: 12px;
-    }
-
-    .mode-tabs {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-    }
-
-    .mode-tab {
-      border-style: dotted;
-      opacity: var(--opacity-secondary);
-    }
-
-    .mode-tab.is-active {
-      border-style: solid;
-      opacity: 1;
-    }
-
-    .mode-tab.is-active {
-      border-color: var(--fg);
-    }
-
-    .status-indicator {
-      --status-accent: var(--fg);
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-sm);
-      padding: 4px var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
-      background: var(--bg);
-    }
-
-    .status-indicator.status-success,
-    .status-indicator.status-warning,
-    .status-indicator.status-error,
-    .status-indicator.status-info {
-      border-color: var(--fg);
-    }
-
-    .status-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: var(--border-sm) solid var(--status-accent);
-      background: transparent;
-    }
-
-    .status-dot-filled {
-      background: var(--status-accent);
-    }
-
-
-    
-
-    .model-field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .storage-info {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      gap: var(--space-sm);
-      margin-top: var(--space-sm);
-    }
-
-    .storage-inspector {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    .storage-inspector-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-sm);
-    }
-
-    .storage-inspector-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .storage-inspector-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .storage-entry {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
-      padding: var(--space-sm);
-    }
-
-    .storage-entry.is-active {
-      border-style: solid;
-      background: var(--bg-contrast);
-    }
-
-    .storage-entry.is-missing {
-      border-style: dashed;
-      opacity: 0.7;
-    }
-
-    .storage-entry-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .storage-entry-title {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: var(--space-xs);
-    }
-
-    .storage-tag {
-      border: var(--border-sm) solid var(--fg);
-      padding: 1px 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-size: 10px;
-    }
-
-    .storage-tag.orphan {
-      opacity: 0.7;
-      border-style: dotted;
-    }
-
-    .storage-tag.missing {
-      opacity: 0.7;
-      border-style: dashed;
-    }
-
-    .storage-entry-actions {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-      align-items: flex-end;
-    }
-
-    .storage-system {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-      margin-top: var(--space-sm);
-      border-top: var(--border-sm) dashed var(--fg);
-      padding-top: var(--space-sm);
-    }
-
-    .storage-tag.system {
-      opacity: 0.7;
-      border-style: dotted;
-    }
-
-    /* GPU/Memory Info */
-    .gpu-info {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    .gpu-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      gap: var(--space-sm);
-    }
-
-    .gpu-row span:last-child {
-      text-align: right;
-    }
-
-    .memory-bars {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    .memory-bar-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .memory-label {
-      width: 60px;
-      flex-shrink: 0;
-    }
-
-    .memory-bar-container {
-      flex: 1;
-    }
-
-    .memory-value {
-      width: 96px;
-      text-align: right;
-    }
-
-    .memory-bar-stacked {
-      display: flex;
-    }
-
-    .memory-total-row {
-      margin-bottom: var(--space-xs);
-    }
-
-    .memory-actions {
-      display: flex;
-      gap: var(--space-sm);
-    }
-
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: var(--space-xs) var(--space-md);
-    }
-
-    .stats-grid-compact {
-      grid-template-columns: 1fr;
-    }
-
-    .stat-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      gap: var(--space-sm);
-    }
-
-    .stat-label {
-      justify-self: start;
-    }
-
-    .stat-value {
-      justify-self: end;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stat-note {
-      margin-top: var(--space-xs);
-      font-size: 11px;
-      opacity: 0.7;
-    }
-
-    .stats-breakdown {
-      margin-top: var(--space-xs);
-      padding-top: var(--space-xs);
-      border-top: var(--border-sm) dashed var(--fg);
-    }
-
-    .stats-breakdown-header {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: var(--space-xs);
-      opacity: 0.7;
-    }
-
-    .stats-breakdown-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xxs);
-    }
-
-    .stats-breakdown-row {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: var(--space-sm);
-      align-items: baseline;
-    }
-
-    .stats-breakdown-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .stats-breakdown-meta {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .run-log {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .run-log-row {
-      display: grid;
-      grid-template-columns: 44px repeat(4, minmax(0, 1fr));
-      gap: var(--space-xs);
-      align-items: baseline;
-      font-size: 12px;
-    }
-
-    .run-log-row > span {
-      text-align: left;
-    }
-
-    .run-log-row > span:last-child {
-      text-align: right;
-    }
-
-    .run-log-header {
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-
-    /* Overlays */
-    .progress-overlay,
-    .quickstart-overlay {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-    }
-
-    .quickstart-overlay {
-      z-index: 20;
-    }
-
-    .progress-overlay[hidden],
-    .quickstart-overlay[hidden] {
-      display: none;
-    }
-
-    .progress-content,
-    .quickstart-content {
-      width: 400px;
-      max-width: 90%;
-    }
-
-    .quickstart-panel[hidden] {
-      display: none;
-    }
-
-    /* Progress Phases */
-    .progress-title,
-    .quickstart-title {
-      text-align: center;
-      margin-bottom: var(--space-md);
-    }
-
-    .progress-phases {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    .progress-phase-row {
-      display: grid;
-      grid-template-columns: 70px 1fr 100px;
-      gap: var(--space-sm);
-      align-items: center;
-    }
-
-    .progress-phase-value {
-      text-align: right;
-    }
-
-    /* Quickstart */
-    .quickstart-info {
-      margin-bottom: var(--space-md);
-    }
-
-    .quickstart-info .info-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      gap: var(--space-sm);
-    }
-
-    .quickstart-note {
-      margin: 0 0 var(--space-md);
-      line-height: 1.5;
-    }
-
-    .quickstart-actions {
-      display: flex;
-      gap: var(--space-sm);
-      justify-content: flex-end;
-    }
-
-    .quickstart-stats {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: var(--space-sm);
-    }
-
-    .quickstart-detail {
-      text-align: center;
-    }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .modal-overlay[hidden] {
-      display: none;
-    }
-
-    .modal-content {
-      width: 400px;
-      max-width: 90%;
-    }
-
-    .modal-title {
-      margin-bottom: var(--space-sm);
-    }
-
-    .modal-message {
-      margin-bottom: var(--space-md);
-    }
-
-    /* Convert */
-    .convert-description {
-      margin-bottom: var(--space-sm);
-    }
-
-    .convert-note {
-      margin: 0;
-    }
-
-    .convert-field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .convert-toggle {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-    }
-
-    .convert-status {
-      margin-top: var(--space-sm);
-    }
-
-    .convert-url-input {
-      min-height: 70px;
-    }
-
-    .convert-actions {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    /* Downloader */
-    .download-field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .download-actions {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-xs);
-    }
-
-    .download-status {
-      margin-top: var(--space-sm);
-    }
-
-    .download-list {
-      margin-top: var(--space-sm);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .download-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      gap: var(--space-sm);
-    }
-
-    /* Diagnostics */
-    .diagnostics-field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .diagnostics-actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-xs);
-    }
-
-    .diagnostics-config-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .diagnostics-report {
-      margin-top: var(--space-xs);
-    }
-
-    .diagnostics-status {
-      margin-top: var(--space-sm);
-    }
-
-    .diagnostics-summary {
-      margin-bottom: var(--space-sm);
-    }
-
-    .diagnostics-requirements {
-      margin-top: var(--space-xs);
-    }
-
-    .diagnostics-accordion {
-      margin-top: var(--space-md);
-    }
-
-    .diagnostics-output {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-      padding: var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
-    }
-
-    .diagnostics-output-text {
-      min-height: 80px;
-      margin: 0;
-      font-family: var(--font-b);
-      font-size: 12px;
-      white-space: pre-wrap;
-    }
-
-    .diagnostics-output-canvas {
-      width: 100%;
-      height: auto;
-      border: var(--border-sm) solid var(--fg);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .header-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .mode-tabs {
-        flex-wrap: wrap;
-      }
-
-      .panel-grid {
-        grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-      }
-
-      .panel-grid .panel {
-        grid-column: auto;
-        grid-row: auto;
-      }
-
-      .playground-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/demo/app/styles/main.css">
 </head>
 
 <body>
@@ -844,12 +23,22 @@
           <a class="intro-tagline link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">Doppler showcase -> view source code</a>
         </div>
         <div class="header-actions">
-          <div class="mode-tabs" id="mode-tabs">
-            <button class="btn mode-tab" data-mode="run" type="button">Text</button>
-            <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
-            <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
-            <button class="btn mode-tab" data-mode="diagnostics" type="button">Diagnostics</button>
-            <button class="btn mode-tab" data-mode="models" type="button">Models</button>
+          <div class="header-controls">
+            <div class="header-nav">
+              <div class="mode-tabs" id="mode-tabs">
+                <button class="btn mode-tab" data-mode="run" type="button">Text</button>
+                <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
+                <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
+              </div>
+              <div class="mode-tools" id="mode-tools">
+                <button class="btn mode-tool" data-mode="diagnostics" type="button">Diagnostics</button>
+                <button class="btn mode-tool" data-mode="models" type="button">Models</button>
+              </div>
+            </div>
+            <div class="header-model">
+              <label class="type-caption" for="diagnostics-model">Active Model</label>
+              <select id="diagnostics-model" class="w-full"></select>
+            </div>
           </div>
           <div id="status-indicator" class="status-indicator">
             <span class="status-dot" aria-hidden="true"></span>
@@ -963,62 +152,59 @@
               </div>
             </section>
 
-            <section class="panel diagnostics-panel" data-modes="diagnostics">
-              <h2 class="type-label">Diagnostics</h2>
-              <div class="type-caption diagnostics-summary">Optional harness checks for the active model.</div>
+            <section class="panel diagnostics-panel" data-modes="diagnostics kernels">
+              <div class="diagnostics-heading">
+                <h2 class="type-label" id="diagnostics-title">Diagnostics</h2>
+                <div class="diagnostics-mode-tabs" id="diagnostics-mode-tabs">
+                  <button class="btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference Diagnostics</button>
+                  <button class="btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
+                </div>
+              </div>
+              <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
               <div class="diagnostics-actions">
                 <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
                 <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
                 <button id="diagnostics-export-btn" class="btn">Export JSON</button>
               </div>
+              <div class="diagnostics-field" id="diagnostics-suite-field">
+                <label class="type-caption" for="diagnostics-suite">Suite</label>
+                <select id="diagnostics-suite" class="w-full"></select>
+                <div class="type-caption" id="diagnostics-suite-help"></div>
+              </div>
               <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
-              <div class="diagnostics-report type-caption" id="diagnostics-report"></div>
-              <div id="diagnostics-status" class="diagnostics-status type-caption">Idle</div>
-              <div class="diagnostics-output" id="diagnostics-output" hidden>
-                <div class="type-caption">Diagnostics output (debug)</div>
-                <pre id="diagnostics-output-text" class="diagnostics-output-text"></pre>
+              <div class="diagnostics-output" id="diagnostics-output">
+                <div class="diagnostics-output-header">
+                  <span id="diagnostics-status" class="diagnostics-status type-caption">Idle</span>
+                  <span class="diagnostics-report type-caption" id="diagnostics-report"></span>
+                </div>
+                <pre id="diagnostics-output-text" class="diagnostics-output-text">No output yet.</pre>
                 <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
               </div>
-          <div class="panel-subsection">
-            <span class="type-caption">Advanced Diagnostics</span>
-            <div class="diagnostics-field">
-              <label class="type-caption" for="runtime-preset">Runtime preset</label>
-              <select id="runtime-preset" class="w-full">
-              </select>
-              <div class="type-caption">Base runtime config. Overrides merge on top.</div>
-            </div>
-            <div class="diagnostics-field">
-              <label class="type-caption" for="runtime-config-file">Runtime override (JSON file)</label>
-              <div class="diagnostics-config-row">
-                <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
-                <button id="runtime-config-clear" class="btn">Reset Overrides</button>
-              </div>
-              <div class="type-caption" id="runtime-config-status">Preset: modes/debug</div>
-              <div class="type-caption">Overrides apply on next diagnostics run.</div>
-            </div>
-            <div class="diagnostics-field">
-              <label class="type-caption" for="runtime-config-preset">Runtime override preset</label>
-              <select id="runtime-config-preset" class="w-full"></select>
-              <div class="type-caption">Optional overlay, same as JSON overrides.</div>
-            </div>
-            <div class="diagnostics-field">
-              <div class="type-caption">Tooling intent</div>
-              <div class="type-caption" id="diagnostics-intent">--</div>
-              <div class="type-caption">Set via preset/override. Bench requires investigate or calibrate.</div>
-            </div>
-            <div class="diagnostics-field">
-              <label class="type-caption" for="diagnostics-suite">Suite</label>
-              <select id="diagnostics-suite" class="w-full">
-                <option value="inference">inference</option>
-                <option value="diffusion">diffusion</option>
-                <option value="energy">energy</option>
-                <option value="kernels">kernels</option>
-                <option value="bench">bench</option>
-                <option value="debug">debug</option>
-              </select>
-              <div class="type-caption" id="diagnostics-suite-help"></div>
-            </div>
-          </div>
+              <details class="diagnostics-accordion" id="diagnostics-advanced">
+                <summary class="type-caption">Advanced</summary>
+                <div class="panel-subsection">
+                  <div class="diagnostics-field">
+                    <label class="type-caption" for="runtime-preset">Runtime preset</label>
+                    <select id="runtime-preset" class="w-full"></select>
+                  </div>
+                  <div class="diagnostics-field">
+                    <label class="type-caption" for="runtime-config-file">Runtime override (JSON file)</label>
+                    <div class="diagnostics-config-row">
+                      <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
+                      <button id="runtime-config-clear" class="btn">Reset Overrides</button>
+                    </div>
+                    <div class="type-caption" id="runtime-config-status">Preset: modes/debug</div>
+                  </div>
+                  <div class="diagnostics-field">
+                    <label class="type-caption" for="runtime-config-preset">Runtime override preset</label>
+                    <select id="runtime-config-preset" class="w-full"></select>
+                  </div>
+                  <div class="diagnostics-field">
+                    <div class="type-caption">Tooling intent</div>
+                    <div class="type-caption" id="diagnostics-intent">--</div>
+                  </div>
+                </div>
+              </details>
             </section>
 
             <section class="panel convert-panel" data-modes="models">
@@ -1111,13 +297,9 @@
           </div>
 
           <div class="panel-stack panel-stack-rail">
-            <section class="panel model-panel" data-modes="run diffusion energy diagnostics models">
-              <h2 class="type-label">Active Model</h2>
-              <div class="model-field">
-                <label class="type-caption" for="diagnostics-model">Active model</label>
-                <select id="diagnostics-model" class="w-full"></select>
-              </div>
-              <div data-modes="models">
+            <section class="panel model-panel" data-modes="models">
+              <h2 class="type-label">Model Details</h2>
+              <div>
                 <div class="storage-info" id="storage-info">
                   <span class="storage-label">Storage:</span>
                   <span class="storage-value" id="storage-used">-- / --</span>
@@ -1161,7 +343,7 @@
               </div>
             </section>
 
-            <section class="panel diagnostics-stats-panel" data-modes="diagnostics">
+            <section class="panel diagnostics-stats-panel" data-modes="diagnostics kernels">
               <h2 class="type-label">Diagnostics Stats</h2>
               <div class="panel-subsection">
                 <span class="type-caption">GPU Memory (tracked)</span>

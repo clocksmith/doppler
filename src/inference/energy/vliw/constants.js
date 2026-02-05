@@ -1,4 +1,4 @@
-export const ENGINE_ORDER = ['alu', 'valu', 'load', 'store', 'flow', 'debug'];
+export const ENGINE_ORDER = ['valu', 'alu', 'flow', 'load', 'store', 'debug'];
 
 export const WEIGHT_KEYS = {
   height: 0,

@@ -146,11 +146,6 @@ export const RUNTIME_PRESET_REGISTRY = [
 ];
 
 export const DIAGNOSTICS_SUITE_INFO = {
-  kernels: {
-    description: 'Validates GPU kernels only (no model required).',
-    requiresModel: false,
-    requiresBenchIntent: false,
-  },
   inference: {
     description: 'Runs a short generation with the Active model.',
     requiresModel: true,
@@ -176,7 +171,21 @@ export const DIAGNOSTICS_SUITE_INFO = {
     requiresModel: true,
     requiresBenchIntent: false,
   },
+  kernels: {
+    description: 'Validates GPU kernels only (no model required).',
+    requiresModel: false,
+    requiresBenchIntent: false,
+  },
 };
+
+export const DIAGNOSTICS_SUITE_ORDER = [
+  'inference',
+  'debug',
+  'bench',
+  'diffusion',
+  'energy',
+  'kernels',
+];
 
 export const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 export const DEFAULT_RUNTIME_PRESET = 'modes/debug';
@@ -185,4 +194,5 @@ export const DIAGNOSTICS_DEFAULTS = {
   diffusion: { suite: 'diffusion' },
   energy: { suite: 'energy' },
   diagnostics: { suite: 'inference' },
+  kernels: { suite: 'kernels' },
 };

@@ -16,7 +16,7 @@ export function applyWorkloadSpec(specInput, workloadSpec) {
   return out;
 }
 
-export async function loadVliwDataset(datasetId) {
+export async function loadVliwDataset(datasetId, options = {}) {
   const entry = VLIW_DATASETS[datasetId];
   if (!entry) {
     throw new Error(`Unknown VLIW dataset "${datasetId}".`);
@@ -31,6 +31,7 @@ export async function loadVliwDataset(datasetId) {
       capsMode: entry.capsMode,
       dependencyModel: entry.dependencyModel,
       workloadSpec: entry.spec,
+      includeOps: options.includeOps === true,
     });
     dataset.label = entry.label || dataset.label;
     dataset.source = entry.source || dataset.source;
@@ -77,18 +78,20 @@ export async function buildVliwDatasetFromSpecInput(specInput, cacheKey, options
   const specKey = cacheKey && !options.workloadSpec
     ? cacheKey
     : stableStringify(resolvedSpecInput);
+  const includeOps = options.includeOps === true;
   const key = stableStringify({
     spec: specKey,
     options: {
       mode: options.mode ?? null,
       capsMode: options.capsMode ?? null,
       dependencyModel: options.dependencyModel ?? null,
+      includeOps,
     },
   });
   if (energySpecCache.has(key)) {
     return energySpecCache.get(key);
   }
-  const dataset = buildVliwDatasetFromSpec(resolvedSpecInput, options);
+  const dataset = buildVliwDatasetFromSpec(resolvedSpecInput, { ...options, includeOps });
   const dagHash = await computeDagHash(dataset);
   dataset.dag = {
     taskCount: dataset.taskCount ?? dataset.tasks.length,

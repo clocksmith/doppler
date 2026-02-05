@@ -2,9 +2,8 @@ import { log } from '../src/debug/index.js';
 import { listPresets, createConverterConfig, detectPreset, resolvePreset } from '../src/config/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../src/config/schema/index.js';
-import { listRegisteredModels, registerModel, removeRegisteredModel } from '../src/storage/registry.js';
-import { formatBytes, getQuotaInfo } from '../src/storage/quota.js';
-import { listStorageInventory, deleteStorageEntry } from '../src/storage/inventory.js';
+import { formatBytes } from '../src/storage/quota.js';
+import { listRegisteredModels, registerModel } from '../src/storage/registry.js';
 import {
   openModelStore,
   loadManifestFromStore,
@@ -14,18 +13,8 @@ import {
   saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
-  computeHash,
 } from '../src/storage/shard-manager.js';
 import { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from '../src/storage/rdrr-format.js';
-import {
-  downloadModel,
-  pauseDownload,
-  resumeDownload,
-  cancelDownload,
-  listDownloads,
-  formatSpeed,
-  estimateTimeRemaining,
-} from '../src/storage/downloader.js';
 import {
   convertModel,
   createRemoteModelSources,
@@ -33,7 +22,6 @@ import {
 } from '../src/browser/browser-converter.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from '../src/converter/manifest-inference.js';
 import { pickModelDirectory, pickModelFiles } from '../src/browser/file-picker.js';
-import { loadRuntimePreset } from '../src/inference/browser-harness.js';
 import { createPipeline } from '../src/inference/pipeline.js';
 import { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from '../src/gpu/device.js';
 import { captureMemorySnapshot } from '../src/loader/memory-monitor.js';
@@ -64,12 +52,8 @@ import {
   VLIW_DATASETS,
   ENERGY_DEMOS,
   DEFAULT_ENERGY_DEMO_ID,
-  ENERGY_METRIC_LABELS,
-  RUNTIME_PRESET_REGISTRY,
-  DIAGNOSTICS_SUITE_INFO,
-  BENCH_INTENTS,
   DEFAULT_RUNTIME_PRESET,
-  DIAGNOSTICS_DEFAULTS,
+  RUNTIME_PRESET_REGISTRY,
 } from './app/constants.js';
 import {
   updateEnergyStatus,
@@ -105,32 +89,60 @@ import {
   runVliwSpecSearch,
   formatSpecSignature,
 } from './app/energy/spec-search.js';
-
-function getDiagnosticsRequiredModelType(suite) {
-  const key = String(suite || 'inference').trim().toLowerCase();
-  if (key === 'kernels') return null;
-  if (key === 'diffusion') return 'diffusion';
-  if (key === 'energy') return 'energy';
-  return 'text';
-}
-
-function isSuiteCompatibleModelType(modelType, suite) {
-  const normalized = normalizeModelType(modelType);
-  const required = getDiagnosticsRequiredModelType(suite);
-  if (!required) return true;
-  if (required === 'text') {
-    return normalized !== 'diffusion' && normalized !== 'energy';
-  }
-  return normalized === required;
-}
-
-function formatDiagnosticsModelTypeLabel(requiredType) {
-  if (requiredType === 'diffusion') return 'diffusion';
-  if (requiredType === 'energy') return 'energy';
-  return 'text (non-diffusion, non-energy)';
-}
+import {
+  storeDiagnosticsSelection,
+  syncDiagnosticsModeUI,
+  getDiagnosticsDefaultSuite,
+  getDiagnosticsRuntimeConfig,
+  refreshDiagnosticsRuntimeConfig,
+  syncDiagnosticsDefaultsForMode,
+  clearDiagnosticsOutput,
+  renderDiagnosticsOutput,
+  updateDiagnosticsStatus,
+  updateDiagnosticsReport,
+  updateDiagnosticsGuidance,
+  selectDiagnosticsModel,
+  handleRuntimeConfigFile,
+  applyRuntimeConfigPreset,
+  applySelectedRuntimePreset,
+} from './app/diagnostics/index.js';
+import {
+  normalizeModelType,
+  isCompatibleModelType,
+  isModeModelSelectable,
+  getModeModelLabel,
+  getModelTypeForId,
+} from './app/models/utils.js';
+import { updateStorageInfo, refreshStorageInspector } from './app/storage/inspector.js';
+import {
+  configureDownloadCallbacks,
+  refreshDownloads,
+  startDownload,
+  pauseActiveDownload,
+  resumeActiveDownload,
+  cancelActiveDownload,
+} from './app/downloads/index.js';
 
 const controller = new DiagnosticsController({ log });
+
+const PRIMARY_MODES = new Set(['run', 'diffusion', 'energy']);
+
+function updateNavState(mode) {
+  const activePrimary = PRIMARY_MODES.has(mode) ? mode : (state.lastPrimaryMode || 'run');
+  document.querySelectorAll('.mode-tab').forEach((button) => {
+    const isActive = button.dataset.mode === activePrimary;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+  document.querySelectorAll('.mode-tool').forEach((button) => {
+    const target = button.dataset.mode;
+    const isActive = target === 'models'
+      ? mode === 'models'
+      : (mode === 'diagnostics' || mode === 'kernels');
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
 
 
 function cloneRuntimeConfig(config) {
@@ -154,17 +166,20 @@ function setUiMode(mode) {
   if (!app) return;
   const previousMode = state.uiMode;
   state.uiMode = mode;
+  if (PRIMARY_MODES.has(mode)) {
+    state.lastPrimaryMode = mode;
+  }
   app.dataset.mode = mode;
-  document.querySelectorAll('.mode-tab').forEach((button) => {
-    const isActive = button.dataset.mode === mode;
-    button.classList.toggle('is-active', isActive);
-    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-  });
+  updateNavState(mode);
   applyModeVisibility(mode);
+  syncDiagnosticsModeUI(mode);
   updatePerformancePanel();
   renderRunLog();
   if (mode === 'models') {
-    refreshStorageInspector();
+    refreshStorageInspector({
+      onSelectModel: selectDiagnosticsModel,
+      onModelsUpdated: refreshModelList,
+    });
   }
   refreshModelList().catch((error) => {
     log.warn('DopplerDemo', `Model list refresh failed: ${error.message}`);
@@ -175,65 +190,6 @@ function setUiMode(mode) {
   if (mode === 'energy') {
     syncEnergyDemoSelection();
   }
-}
-
-function normalizeRuntimeConfig(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  if (raw.runtime && typeof raw.runtime === 'object') return raw.runtime;
-  if (raw.shared || raw.loading || raw.inference || raw.emulation) return raw;
-  return null;
-}
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function mergeRuntimeOverrides(base, override) {
-  if (override === undefined) return base;
-  if (override === null) return null;
-  if (!isPlainObject(base) || !isPlainObject(override)) {
-    return override;
-  }
-  const merged = { ...base };
-  for (const [key, value] of Object.entries(override)) {
-    if (value === undefined) continue;
-    merged[key] = mergeRuntimeOverrides(base[key], value);
-  }
-  return merged;
-}
-
-function getDiagnosticsDefaultSuite(mode) {
-  return DIAGNOSTICS_DEFAULTS[mode]?.suite || 'inference';
-}
-
-function getDiagnosticsRuntimeConfig() {
-  return state.diagnosticsRuntimeConfig || getRuntimeConfig();
-}
-
-async function refreshDiagnosticsRuntimeConfig(presetId) {
-  const targetPreset = presetId || DEFAULT_RUNTIME_PRESET;
-  const { runtime } = await loadRuntimePreset(targetPreset);
-  const mergedOverride = getMergedRuntimeOverride();
-  const mergedRuntime = mergedOverride ? mergeRuntimeOverrides(runtime, mergedOverride) : runtime;
-  state.diagnosticsRuntimeConfig = mergedRuntime;
-  state.diagnosticsRuntimePresetId = targetPreset;
-  return mergedRuntime;
-}
-
-async function syncDiagnosticsDefaultsForMode(mode) {
-  if (mode !== 'run' && mode !== 'diffusion' && mode !== 'energy' && mode !== 'diagnostics') return;
-  const suiteSelect = $('diagnostics-suite');
-  const presetSelect = $('runtime-preset');
-  const selections = state.diagnosticsSelections[mode] || {};
-  const targetSuite = selections.suite || getDiagnosticsDefaultSuite(mode);
-  if (suiteSelect && targetSuite) {
-    suiteSelect.value = targetSuite;
-  }
-  if (presetSelect) {
-    const targetPreset = selections.preset || DEFAULT_RUNTIME_PRESET;
-    presetSelect.value = targetPreset;
-  }
-  await applySelectedRuntimePreset();
 }
 
 function updateConvertStatus(message, percent) {
@@ -268,63 +224,6 @@ function updateDiffusionStatus(message) {
   const status = $('diffusion-output-status');
   if (!status) return;
   setText(status, message || 'Idle');
-}
-
-function clearDiagnosticsOutput() {
-  const container = $('diagnostics-output');
-  const textEl = $('diagnostics-output-text');
-  const canvas = $('diagnostics-output-canvas');
-  if (textEl) textEl.textContent = '';
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    canvas.hidden = true;
-  }
-  if (container) container.hidden = true;
-}
-
-function drawDiagnosticsCanvas(output) {
-  const canvas = $('diagnostics-output-canvas');
-  if (!canvas || !output) return;
-  canvas.width = output.width;
-  canvas.height = output.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const imageData = new ImageData(output.pixels, output.width, output.height);
-  ctx.putImageData(imageData, 0, 0);
-  canvas.hidden = false;
-}
-
-function renderDiagnosticsOutput(result, suite, captureOutput) {
-  const container = $('diagnostics-output');
-  if (!container) return;
-  if (!captureOutput) {
-    clearDiagnosticsOutput();
-    return;
-  }
-  container.hidden = false;
-  const textEl = $('diagnostics-output-text');
-  const output = result?.output ?? null;
-  if (suite === 'diffusion') {
-    if (output && typeof output === 'object' && output.pixels) {
-      if (textEl) textEl.textContent = '';
-      drawDiagnosticsCanvas(output);
-      return;
-    }
-    if (textEl) textEl.textContent = 'No diffusion output captured.';
-    return;
-  }
-  if (suite === 'inference' || suite === 'debug') {
-    if (typeof output === 'string' && output.length > 0) {
-      if (textEl) textEl.textContent = output;
-      return;
-    }
-    if (textEl) textEl.textContent = 'No output captured.';
-    return;
-  }
-  if (textEl) textEl.textContent = 'Output is only captured for debug runs.';
 }
 
 function updateExportStatus(message, percent) {
@@ -388,37 +287,6 @@ function resolveActiveModelId() {
   return state.activeModelId || null;
 }
 
-function normalizeModelType(value) {
-  if (typeof value !== 'string') return null;
-  const normalized = value.trim().toLowerCase();
-  return normalized || null;
-}
-
-function isCompatibleModelType(modelType, mode) {
-  const normalized = normalizeModelType(modelType);
-  if (mode === 'diffusion') {
-    return normalized === 'diffusion';
-  }
-  if (mode === 'energy') {
-    return normalized === 'energy';
-  }
-  if (mode === 'run') {
-    return normalized !== 'diffusion' && normalized !== 'energy';
-  }
-  return true;
-}
-
-function isModeModelSelectable(mode) {
-  return mode === 'run' || mode === 'diffusion' || mode === 'energy';
-}
-
-function getModeModelLabel(mode) {
-  if (mode === 'diffusion') return 'diffusion';
-  if (mode === 'energy') return 'energy';
-  if (mode === 'run') return 'text';
-  return 'local';
-}
-
 async function filterModelsForMode(models, mode) {
   if (!isModeModelSelectable(mode)) return models;
   const filtered = [];
@@ -450,24 +318,6 @@ async function registerDownloadedModel(modelId) {
     entry.sourceModelId = manifest.modelId;
   }
   return registerModel(entry);
-}
-
-async function getModelTypeForId(modelId) {
-  if (!modelId) return null;
-  const cached = state.modelTypeCache[modelId];
-  if (cached) return cached;
-  try {
-    await openModelStore(modelId);
-    const manifestText = await loadManifestFromStore();
-    if (!manifestText) return null;
-    const manifest = JSON.parse(manifestText);
-    const modelType = normalizeModelType(manifest?.modelType) || 'transformer';
-    state.modelTypeCache[modelId] = modelType;
-    return modelType;
-  } catch (error) {
-    log.warn('DopplerDemo', `Failed to read manifest for ${modelId}: ${error.message}`);
-    return null;
-  }
 }
 
 async function resolveCompatibleModelId(mode) {
@@ -627,456 +477,13 @@ async function exportActiveModel() {
   }
 }
 
-function updateDiagnosticsStatus(message, isError = false) {
-  const status = $('diagnostics-status');
-  if (!status) return;
-  status.textContent = message;
-  status.dataset.state = isError ? 'error' : 'ready';
-}
-
-function updateDiagnosticsReport(text) {
-  const report = $('diagnostics-report');
-  if (!report) return;
-  report.textContent = text;
-}
-
-function getDiagnosticsSuiteInfo(suite) {
-  const key = String(suite || 'inference').trim().toLowerCase();
-  return DIAGNOSTICS_SUITE_INFO[key] || DIAGNOSTICS_SUITE_INFO.inference;
-}
-
-function updateDiagnosticsGuidance() {
-  const suiteSelect = $('diagnostics-suite');
-  const modelSelect = $('diagnostics-model');
-  const intentEl = $('diagnostics-intent');
-  const suiteHelp = $('diagnostics-suite-help');
-  const requirements = $('diagnostics-requirements');
-  const runBtn = $('diagnostics-run-btn');
-  const verifyBtn = $('diagnostics-verify-btn');
-  if (!suiteSelect || !intentEl || !suiteHelp || !requirements) return;
-
-  const suite = suiteSelect.value || getDiagnosticsDefaultSuite(state.uiMode);
-  const info = getDiagnosticsSuiteInfo(suite);
-  const runtimeConfig = getDiagnosticsRuntimeConfig();
-  const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
-  const modelId = modelSelect?.value || '';
-  const modelType = modelId ? state.modelTypeCache[modelId] : null;
-  const requiredModelType = getDiagnosticsRequiredModelType(suite);
-
-  intentEl.textContent = intent || 'unset';
-  suiteHelp.textContent = info.description;
-
-  const issues = [];
-  if (!intent) {
-    issues.push('Set runtime.shared.tooling.intent via preset or override.');
-  } else if (info.requiresBenchIntent && !BENCH_INTENTS.has(intent)) {
-    issues.push('Bench requires intent investigate or calibrate.');
-  }
-  if (info.requiresModel && !modelId) {
-    issues.push('Select an Active model to run this suite.');
-  } else if (info.requiresModel && modelId && requiredModelType) {
-    if (modelType) {
-      if (!isSuiteCompatibleModelType(modelType, suite)) {
-        const expected = formatDiagnosticsModelTypeLabel(requiredModelType);
-        issues.push(`Suite requires a ${expected} model (selected: ${modelType}).`);
-      }
-    } else {
-      getModelTypeForId(modelId)
-        .then(() => updateDiagnosticsGuidance())
-        .catch(() => {});
-    }
-  }
-
-  if (issues.length > 0) {
-    requirements.textContent = issues.join(' ');
-  } else {
-    const ready = info.requiresModel ? `Ready. Using model ${modelId}.` : 'Ready. No model required.';
-    requirements.textContent = ready;
-  }
-
-  const canVerify = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
-  const modelOk = !info.requiresModel
-    || (Boolean(modelId) && (!requiredModelType || (modelType && isSuiteCompatibleModelType(modelType, suite))));
-  const canRun = canVerify && modelOk;
-  if (verifyBtn) verifyBtn.disabled = !canVerify;
-  if (runBtn) runBtn.disabled = !canRun;
-}
-
 function updateSidebarLayout(models) {
   const panelGrid = $('panel-grid');
   if (!panelGrid) return;
   const hasModels = Array.isArray(models) && models.length > 0;
   panelGrid.dataset.layout = hasModels ? 'ready' : 'empty';
-  if (!hasModels && state.uiMode !== 'models') {
+  if (!hasModels && state.uiMode !== 'models' && state.uiMode !== 'kernels' && state.uiMode !== 'diagnostics') {
     setUiMode('models');
-  }
-}
-
-function selectDiagnosticsModel(modelId) {
-  const modelSelect = $('diagnostics-model');
-  if (!modelSelect) return;
-  modelSelect.value = modelId;
-  state.activeModelId = modelId || null;
-  if (isModeModelSelectable(state.uiMode)) {
-    state.modeModelId[state.uiMode] = modelId || null;
-  }
-  updateDiagnosticsGuidance();
-}
-
-async function updateStorageInfo() {
-  const storageUsed = $('storage-used');
-  if (!storageUsed) return;
-  try {
-    const info = await getQuotaInfo();
-    state.storageUsageBytes = info.usage || 0;
-    state.storageQuotaBytes = info.quota || 0;
-    if (!info.quota) {
-      storageUsed.textContent = 'Storage unavailable';
-      return;
-    }
-    const used = formatBytes(info.usage || 0);
-    const total = formatBytes(info.quota || 0);
-    storageUsed.textContent = `${used} / ${total}`;
-    state.lastStorageRefresh = Date.now();
-  } catch (error) {
-    storageUsed.textContent = `Storage error: ${error.message}`;
-  }
-}
-
-function getRegistryModelId(entry) {
-  if (!entry) return '';
-  return entry.modelId || entry.id || '';
-}
-
-function getRegistryTags(entry) {
-  if (!entry) return [];
-  const tags = [];
-  const quant = entry.quantization ? String(entry.quantization).toLowerCase() : '';
-  if (quant) {
-    if (quant === 'f16' || quant === 'bf16' || quant === 'f32') {
-      tags.push(`weights:${quant}`);
-    } else if (
-      quant.startsWith('w') &&
-      (quant.endsWith('f16') || quant.endsWith('bf16') || quant.endsWith('f32'))
-    ) {
-      tags.push(`weights:${quant.slice(1)}`);
-    } else {
-      tags.push(`quant:${quant}`);
-    }
-  }
-  if (entry.hashAlgorithm) {
-    tags.push(String(entry.hashAlgorithm));
-  }
-  return tags;
-}
-
-function setStorageInspectorStatus(message) {
-  const status = $('storage-inspector-status');
-  if (!status) return;
-  status.textContent = message;
-}
-
-async function handleDeleteStorageEntry(entry) {
-  if (!entry?.modelId) return;
-  if (entry.modelId === state.activeModelId && state.activePipeline) {
-    window.alert('Unload the active model before deleting its storage.');
-    return;
-  }
-  const sizeLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : 'unknown size';
-  const backendLabel = entry.backend ? entry.backend.toUpperCase() : 'storage';
-  const confirmed = window.confirm(`Delete ${entry.modelId} (${sizeLabel}) from ${backendLabel}?`);
-  if (!confirmed) return;
-
-  try {
-    await deleteStorageEntry(entry);
-  } catch (error) {
-    log.warn('DopplerDemo', `Failed to delete ${entry.modelId}: ${error.message}`);
-  }
-
-  try {
-    await removeRegisteredModel(entry.modelId);
-  } catch (error) {
-    log.warn('DopplerDemo', `Failed to remove registry entry: ${error.message}`);
-  }
-
-  await refreshModelList();
-  await refreshStorageInspector();
-}
-
-async function refreshStorageInspector() {
-  const listEl = $('storage-inspector-list');
-  const backendEl = $('storage-inspector-backend');
-  const summaryEl = $('storage-inspector-summary');
-  const systemSection = $('storage-inspector-system-section');
-  const systemList = $('storage-inspector-system');
-  if (!listEl || !backendEl || !summaryEl || !systemSection || !systemList) return;
-  if (state.storageInspectorScanning) return;
-
-  state.storageInspectorScanning = true;
-  listEl.innerHTML = '';
-  systemList.innerHTML = '';
-  systemSection.hidden = true;
-  setStorageInspectorStatus('Scanning storage...');
-
-  const runtime = getRuntimeConfig();
-
-  let registryEntries = [];
-  const registryIds = new Set();
-  const registryById = new Map();
-  try {
-    registryEntries = await listRegisteredModels();
-    for (const entry of registryEntries) {
-      const id = getRegistryModelId(entry);
-      if (!id) continue;
-      registryIds.add(id);
-      registryById.set(id, entry);
-    }
-  } catch (error) {
-    log.warn('DopplerDemo', `Registry unavailable: ${error.message}`);
-  }
-
-  try {
-    const inventory = await listStorageInventory();
-    const storageEntries = inventory.entries.map((entry) => ({
-      ...entry,
-      registered: registryIds.has(entry.modelId),
-      registryEntry: registryById.get(entry.modelId) || null,
-    }));
-    const storageIds = new Set(storageEntries.map((entry) => entry.modelId));
-    const registryOnlyEntries = [];
-    for (const [modelId, registryEntry] of registryById.entries()) {
-      if (storageIds.has(modelId)) continue;
-      const totalBytes = Number.isFinite(registryEntry?.totalSize)
-        ? registryEntry.totalSize
-        : Number.NaN;
-      registryOnlyEntries.push({
-        modelId,
-        backend: registryEntry?.backend || 'unknown',
-        root: '',
-        totalBytes,
-        fileCount: 0,
-        shardCount: 0,
-        hasManifest: false,
-        registered: true,
-        missingStorage: true,
-        registryEntry,
-      });
-    }
-    const entries = [...storageEntries, ...registryOnlyEntries];
-    const systemEntries = inventory.systemEntries;
-    const opfsRoots = inventory.opfsRoots;
-    const backendParts = [];
-
-    if (inventory.backendAvailability.opfs) {
-      backendParts.push(
-        opfsRoots.length ? `OPFS: ${opfsRoots.join(', ')}` : 'OPFS: empty'
-      );
-    } else {
-      backendParts.push('OPFS: unavailable');
-    }
-
-    const idbName = runtime?.loading?.storage?.backend?.indexeddb?.dbName || 'indexeddb';
-    if (inventory.backendAvailability.indexeddb) {
-      backendParts.push(`IDB: ${idbName}`);
-    } else {
-      backendParts.push('IDB: unavailable');
-    }
-    backendEl.textContent = backendParts.join(' • ');
-
-    entries.sort((a, b) => {
-      const aMissing = a.missingStorage ? 1 : 0;
-      const bMissing = b.missingStorage ? 1 : 0;
-      if (aMissing !== bMissing) return aMissing - bMissing;
-      const aSize = Number.isFinite(a.totalBytes) ? a.totalBytes : 0;
-      const bSize = Number.isFinite(b.totalBytes) ? b.totalBytes : 0;
-      return bSize - aSize;
-    });
-
-    const totals = new Map();
-    const counts = new Map();
-    for (const entry of storageEntries) {
-      const backend = entry.backend || 'unknown';
-      counts.set(backend, (counts.get(backend) || 0) + 1);
-      if (Number.isFinite(entry.totalBytes)) {
-        totals.set(backend, (totals.get(backend) || 0) + entry.totalBytes);
-      }
-    }
-
-    const systemBytes = systemEntries.reduce((sum, entry) => sum + entry.totalBytes, 0);
-    const summaryParts = [];
-    if (entries.length) {
-      summaryParts.push(`Models: ${entries.length}`);
-    }
-    if (registryOnlyEntries.length) {
-      summaryParts.push(`Registry-only: ${registryOnlyEntries.length}`);
-    }
-    const orderedBackends = ['opfs', 'indexeddb', 'memory', 'unknown'];
-    for (const backend of orderedBackends) {
-      const count = counts.get(backend);
-      if (!count) continue;
-      const bytes = totals.get(backend);
-      const label = backend === 'indexeddb' ? 'IDB' : backend.toUpperCase();
-      if (Number.isFinite(bytes) && bytes > 0) {
-        summaryParts.push(`${label}: ${formatBytes(bytes)} (${count})`);
-      } else {
-        summaryParts.push(`${label}: ${count}`);
-      }
-    }
-    if (systemEntries.length) {
-      summaryParts.push(`System: ${formatBytes(systemBytes)}`);
-    }
-    summaryEl.textContent = summaryParts.length
-      ? summaryParts.join(' • ')
-      : 'No models found';
-
-    if (!entries.length) {
-      listEl.innerHTML = '<div class="type-caption">No models found.</div>';
-      setStorageInspectorStatus('Ready');
-    } else {
-      for (const entry of entries) {
-        const row = document.createElement('div');
-        row.className = 'storage-entry';
-        if (entry.modelId === state.activeModelId) {
-          row.classList.add('is-active');
-        }
-        if (entry.missingStorage) {
-          row.classList.add('is-missing');
-        }
-
-        const main = document.createElement('div');
-        main.className = 'storage-entry-main';
-
-        const title = document.createElement('div');
-        title.className = 'storage-entry-title';
-
-        const name = document.createElement('span');
-        name.className = 'type-caption';
-        name.textContent = entry.modelId;
-        title.appendChild(name);
-
-        const backendTag = document.createElement('span');
-        backendTag.className = 'storage-tag';
-        backendTag.textContent = entry.backend === 'indexeddb' ? 'idb' : entry.backend;
-        title.appendChild(backendTag);
-
-        const tag = document.createElement('span');
-        tag.className = `storage-tag${entry.registered ? '' : ' orphan'}`;
-        tag.textContent = entry.registered ? 'registered' : 'orphan';
-        title.appendChild(tag);
-
-        const registryTags = getRegistryTags(entry.registryEntry);
-        for (const registryTag of registryTags) {
-          const registryTagEl = document.createElement('span');
-          registryTagEl.className = 'storage-tag';
-          registryTagEl.textContent = registryTag;
-          title.appendChild(registryTagEl);
-        }
-
-        if (entry.missingStorage) {
-          const missingStorage = document.createElement('span');
-          missingStorage.className = 'storage-tag missing';
-          missingStorage.textContent = 'registry only';
-          title.appendChild(missingStorage);
-        }
-
-        if (!entry.hasManifest) {
-          const missing = document.createElement('span');
-          missing.className = 'storage-tag missing';
-          missing.textContent = 'no manifest';
-          title.appendChild(missing);
-        }
-
-        main.appendChild(title);
-
-        const shardLabel = entry.missingStorage
-          ? 'registry only'
-          : entry.shardCount
-            ? `${entry.shardCount} shards`
-            : `${entry.fileCount} files`;
-        const detail = document.createElement('span');
-        detail.className = 'type-caption';
-        const rootLabel = entry.root ? ` • root: ${entry.root}` : '';
-        const sizeBytes = Number.isFinite(entry.totalBytes)
-          ? entry.totalBytes
-          : Number.isFinite(entry.registryEntry?.totalSize)
-            ? entry.registryEntry.totalSize
-            : Number.NaN;
-        const sizeLabel = Number.isFinite(sizeBytes)
-          ? formatBytes(sizeBytes)
-          : 'unknown size';
-        detail.textContent = entry.missingStorage
-          ? `${sizeLabel} • ${shardLabel}`
-          : `${sizeLabel} • ${shardLabel}${rootLabel}`;
-        main.appendChild(detail);
-
-        row.appendChild(main);
-
-        if (!entry.missingStorage) {
-          const actions = document.createElement('div');
-          actions.className = 'storage-entry-actions';
-
-          const deleteBtn = document.createElement('button');
-          deleteBtn.className = 'btn btn-small';
-          deleteBtn.type = 'button';
-          deleteBtn.textContent = 'Delete';
-          if (entry.modelId === state.activeModelId && state.activePipeline) {
-            deleteBtn.disabled = true;
-            deleteBtn.title = 'Unload the active model before deleting.';
-          }
-          deleteBtn.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            await handleDeleteStorageEntry(entry);
-          });
-          actions.appendChild(deleteBtn);
-          row.appendChild(actions);
-          row.addEventListener('click', () => selectDiagnosticsModel(entry.modelId));
-        }
-        listEl.appendChild(row);
-      }
-    }
-
-    if (systemEntries.length) {
-      systemSection.hidden = false;
-      for (const entry of systemEntries) {
-        const row = document.createElement('div');
-        row.className = 'storage-entry';
-
-        const main = document.createElement('div');
-        main.className = 'storage-entry-main';
-
-        const title = document.createElement('div');
-        title.className = 'storage-entry-title';
-
-        const name = document.createElement('span');
-        name.className = 'type-caption';
-        name.textContent = entry.label;
-        title.appendChild(name);
-
-        const tag = document.createElement('span');
-        tag.className = 'storage-tag system';
-        tag.textContent = 'system';
-        title.appendChild(tag);
-
-        main.appendChild(title);
-
-        const detail = document.createElement('span');
-        detail.className = 'type-caption';
-        const systemRoot = entry.root ? ` • root: ${entry.root}` : '';
-        detail.textContent = `${formatBytes(entry.totalBytes)} • ${entry.fileCount} files${systemRoot}`;
-        main.appendChild(detail);
-
-        row.appendChild(main);
-        systemList.appendChild(row);
-      }
-    }
-
-    setStorageInspectorStatus('Ready');
-  } catch (error) {
-    summaryEl.textContent = '--';
-    setStorageInspectorStatus(`Storage scan failed: ${error.message}`);
-  } finally {
-    state.storageInspectorScanning = false;
-    state.storageInspectorLastScan = Date.now();
   }
 }
 
@@ -1107,8 +514,12 @@ async function refreshModelList() {
   updateSidebarLayout(models);
   await updateStorageInfo();
   await syncModelForMode(state.uiMode);
+  updateDiagnosticsGuidance();
   if (state.uiMode === 'models') {
-    await refreshStorageInspector();
+    await refreshStorageInspector({
+      onSelectModel: selectDiagnosticsModel,
+      onModelsUpdated: refreshModelList,
+    });
   }
 }
 
@@ -1516,6 +927,7 @@ async function handleEnergyRun() {
     state.energyVliw = null;
     state.energyVliwTasks = null;
     state.energyVliwCaps = null;
+    state.energyVliwOps = null;
     state.energyVliwBundle = null;
     state.energyVliwBundleLimit = null;
     state.energyVliwMeta = null;
@@ -1643,10 +1055,11 @@ async function handleEnergyRun() {
           mode: vliwMode,
           capsMode: capsSource,
           workloadSpec: frozenWorkloadSpec,
+          includeOps: true,
         });
         datasetId = 'vliw-generated';
       } else {
-        dataset = await loadVliwDataset(datasetId);
+        dataset = await loadVliwDataset(datasetId, { includeOps: true });
       }
       if (Number.isFinite(dataset?.spec?.sched_seed)) {
         vliwSearch.schedulerSeed = dataset.spec.sched_seed;
@@ -1671,6 +1084,7 @@ async function handleEnergyRun() {
       };
       state.energyVliwTasks = sliced.tasks;
       state.energyVliwCaps = sliced.caps;
+      state.energyVliwOps = dataset.ops ?? null;
       state.energyVliwDatasetId = datasetId;
       state.energyVliwBundleLimit = vliwBundleLimit;
       request.vliw = {
@@ -1724,6 +1138,7 @@ async function handleEnergyRun() {
       };
       state.energyVliwTasks = sliced.tasks;
       state.energyVliwCaps = sliced.caps;
+      state.energyVliwOps = dataset.ops ?? null;
       state.energyVliwDatasetId = vliwRun.datasetId || datasetId || 'vliw-spec-search';
       state.energyVliwBundleLimit = vliwBundleLimit;
       specSearchSummary = {
@@ -1829,6 +1244,7 @@ function handleEnergyClear() {
   state.energyVliw = null;
   state.energyVliwTasks = null;
   state.energyVliwCaps = null;
+  state.energyVliwOps = null;
   state.energyVliwBundle = null;
   state.energyVliwBundleLimit = null;
   state.energyVliwMeta = null;
@@ -2231,204 +1647,6 @@ async function handleConvertUrls() {
   await runConversion(sources, converterConfig);
 }
 
-function updateDownloadStatus(progress) {
-  const status = $('download-status');
-  const bar = $('download-progress');
-  const label = $('download-message');
-  if (!status || !bar || !label) return;
-  if (!progress) {
-    setHidden(status, true);
-    bar.style.width = '0%';
-    setText(label, 'Idle');
-    state.downloadActive = false;
-    updateStatusIndicator();
-    return;
-  }
-  setHidden(status, false);
-  const percent = Number.isFinite(progress.percent) ? progress.percent : 0;
-  const statusText = String(progress.status || '');
-  const isComplete = statusText.toLowerCase().includes('complete');
-  state.downloadActive = !isComplete;
-  updateStatusIndicator();
-  bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-  const remaining = Math.max(0, (progress.totalBytes || 0) - (progress.downloadedBytes || 0));
-  const speed = Number(progress.speed || 0);
-  const eta = speed > 0 ? estimateTimeRemaining(remaining, speed) : 'Calculating...';
-  const detail = `${formatBytes(progress.downloadedBytes || 0)} / ${formatBytes(progress.totalBytes || 0)}`;
-  const speedLabel = speed > 0 ? formatSpeed(speed) : '--';
-  setText(label, `${progress.status || 'downloading'} - ${percent.toFixed(1)}% - ${detail} - ${speedLabel} - ETA ${eta}`);
-}
-
-function renderDownloadList(downloads) {
-  const container = $('download-list');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!downloads || downloads.length === 0) {
-    container.textContent = 'No downloads tracked';
-    return;
-  }
-  for (const entry of downloads) {
-    const row = document.createElement('div');
-    row.className = 'download-row';
-    const name = document.createElement('span');
-    name.textContent = entry.modelId || 'unknown';
-    const stats = document.createElement('span');
-    const percent = Number.isFinite(entry.percent) ? entry.percent : 0;
-    stats.textContent = `${percent.toFixed(1)}% - ${entry.status || 'idle'}`;
-    row.appendChild(name);
-    row.appendChild(stats);
-    container.appendChild(row);
-  }
-}
-
-async function refreshDownloads() {
-  try {
-    const downloads = await listDownloads();
-    renderDownloadList(downloads);
-    const active = downloads.some((entry) => String(entry.status || '').toLowerCase() === 'downloading');
-    state.downloadActive = active;
-    updateStatusIndicator();
-  } catch (error) {
-    renderDownloadList([]);
-    updateDownloadStatus({ status: `Error: ${error.message}`, percent: 0, downloadedBytes: 0, totalBytes: 0 });
-  }
-}
-
-async function startDownload() {
-  const baseUrl = $('download-base-url')?.value?.trim();
-  if (!baseUrl) {
-    updateDownloadStatus({ status: 'Missing base URL', percent: 0, downloadedBytes: 0, totalBytes: 0 });
-    return;
-  }
-  const modelIdOverride = $('download-model-id')?.value?.trim() || undefined;
-  let downloadedModelId = modelIdOverride ?? null;
-  updateDownloadStatus({ status: 'Starting...', percent: 0, downloadedBytes: 0, totalBytes: 0 });
-  try {
-    await downloadModel(baseUrl, (progress) => {
-      if (!progress) return;
-      state.activeDownloadId = progress.modelId || modelIdOverride || null;
-      downloadedModelId = progress.modelId || downloadedModelId;
-      updateDownloadStatus(progress);
-    }, { modelId: modelIdOverride });
-    if (downloadedModelId) {
-      await registerDownloadedModel(downloadedModelId);
-    }
-    updateDownloadStatus({ status: 'Complete', percent: 100, downloadedBytes: 0, totalBytes: 0 });
-    await refreshModelList();
-    await refreshDownloads();
-  } catch (error) {
-    updateDownloadStatus({ status: `Error: ${error.message}`, percent: 0, downloadedBytes: 0, totalBytes: 0 });
-  }
-}
-
-async function pauseActiveDownload() {
-  const modelId = state.activeDownloadId || $('download-model-id')?.value?.trim();
-  if (!modelId) return;
-  pauseDownload(modelId);
-  await refreshDownloads();
-}
-
-async function resumeActiveDownload() {
-  const modelId = state.activeDownloadId || $('download-model-id')?.value?.trim();
-  if (!modelId) return;
-  try {
-    await resumeDownload(modelId, (progress) => {
-      if (!progress) return;
-      state.activeDownloadId = progress.modelId || modelId;
-      updateDownloadStatus(progress);
-    });
-    await refreshDownloads();
-  } catch (error) {
-    updateDownloadStatus({ status: `Error: ${error.message}`, percent: 0, downloadedBytes: 0, totalBytes: 0 });
-  }
-}
-
-async function cancelActiveDownload() {
-  const modelId = state.activeDownloadId || $('download-model-id')?.value?.trim();
-  if (!modelId) return;
-  await cancelDownload(modelId);
-  await refreshDownloads();
-  updateDownloadStatus(null);
-}
-
-function updateRuntimeConfigStatus(presetId) {
-  const status = $('runtime-config-status');
-  if (!status) return;
-  const presetLabel = presetId || DEFAULT_RUNTIME_PRESET;
-  if (state.runtimeOverride) {
-    const labels = [];
-    if (state.runtimeOverrideLabel) {
-      labels.push(state.runtimeOverrideLabel);
-    }
-    const overrideLabel = labels.length ? labels.join(' + ') : 'custom';
-    status.textContent = `Preset: ${presetLabel} - Override: ${overrideLabel}`;
-    return;
-  }
-  status.textContent = `Preset: ${presetLabel}`;
-}
-
-async function setRuntimeOverride(runtime, label) {
-  state.runtimeOverrideBase = runtime;
-  state.runtimeOverrideLabel = label || null;
-  await applySelectedRuntimePreset();
-}
-
-async function handleRuntimeConfigFile(file) {
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const json = JSON.parse(text);
-    const runtime = normalizeRuntimeConfig(json);
-    if (!runtime) {
-      throw new Error('Runtime config file is missing runtime fields');
-    }
-    await setRuntimeOverride(runtime, file.name);
-    const presetSelect = $('runtime-config-preset');
-    if (presetSelect) {
-      presetSelect.value = '';
-    }
-  } catch (error) {
-    updateDiagnosticsStatus(`Runtime config error: ${error.message}`, true);
-  }
-}
-
-async function applyRuntimeConfigPreset(presetId) {
-  if (!presetId) {
-    state.runtimeOverrideBase = null;
-    state.runtimeOverrideLabel = null;
-    await applySelectedRuntimePreset();
-    return;
-  }
-  try {
-    const { runtime } = await loadRuntimePreset(presetId);
-    await setRuntimeOverride(runtime, presetId);
-  } catch (error) {
-    updateDiagnosticsStatus(`Runtime config preset error: ${error.message}`, true);
-  }
-}
-
-function getMergedRuntimeOverride() {
-  return state.runtimeOverrideBase;
-}
-
-async function applySelectedRuntimePreset() {
-  const presetSelect = $('runtime-preset');
-  if (!presetSelect) return;
-  const presetId = presetSelect.value || DEFAULT_RUNTIME_PRESET;
-  if (!presetSelect.value) {
-    presetSelect.value = presetId;
-  }
-  const mergedOverride = getMergedRuntimeOverride();
-  state.runtimeOverride = mergedOverride;
-  updateRuntimeConfigStatus(presetId);
-  try {
-    await refreshDiagnosticsRuntimeConfig(presetId);
-    updateDiagnosticsGuidance();
-  } catch (error) {
-    updateDiagnosticsStatus(`Preset error: ${error.message}`, true);
-  }
-}
-
 async function handleDiagnosticsRun(mode) {
   const suiteSelect = $('diagnostics-suite');
   const modelSelect = $('diagnostics-model');
@@ -2441,6 +1659,8 @@ async function handleDiagnosticsRun(mode) {
   let runtimeConfig = state.diagnosticsRuntimeConfig;
 
   updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${suite}...`);
+  updateDiagnosticsReport('');
+  clearDiagnosticsOutput();
   try {
     if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimePreset) {
       runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimePreset);
@@ -2568,6 +1788,17 @@ function serializeSchedule(schedule) {
   };
 }
 
+function serializeOps(ops) {
+  if (!Array.isArray(ops)) return null;
+  return ops.map((op) => ({
+    id: op?.id ?? null,
+    engine: op?.engine ?? null,
+    slot: Array.isArray(op?.slot) ? op.slot.slice() : op?.slot ?? null,
+    offloadable: !!op?.offloadable,
+    meta: op?.meta ?? null,
+  }));
+}
+
 function exportEnergyRun() {
   if (!state.lastEnergyResult || !state.energyVliwTasks || !state.energyVliwCaps) {
     updateEnergyStatus('No VLIW run available to export.');
@@ -2595,6 +1826,7 @@ function exportEnergyRun() {
       spec: state.energyVliwMeta?.spec ?? null,
     },
     tasks: state.energyVliwTasks,
+    ops: serializeOps(state.energyVliwOps),
     caps: state.energyVliwCaps,
     result: {
       metrics: state.lastEnergyResult.metrics ?? null,
@@ -2668,6 +1900,20 @@ function bindUI() {
     });
   });
 
+  document.querySelectorAll('.mode-tool').forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.mode || 'diagnostics';
+      setUiMode(mode);
+    });
+  });
+
+  document.querySelectorAll('.diagnostics-mode-tab').forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.diagnosticsMode || 'diagnostics';
+      setUiMode(mode);
+    });
+  });
+
   convertBtn?.addEventListener('click', () => {
     resetConvertStatus();
     handleConvertFiles().catch((error) => {
@@ -2710,17 +1956,15 @@ function bindUI() {
   });
 
   storageInspectorRefresh?.addEventListener('click', () => {
-    refreshStorageInspector();
+    refreshStorageInspector({
+      onSelectModel: selectDiagnosticsModel,
+      onModelsUpdated: refreshModelList,
+    });
   });
 
   runtimePreset?.addEventListener('change', () => {
     const mode = state.uiMode;
-    if (mode === 'run' || mode === 'diffusion' || mode === 'energy') {
-      state.diagnosticsSelections[mode] = {
-        ...(state.diagnosticsSelections[mode] || {}),
-        preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET,
-      };
-    }
+    storeDiagnosticsSelection(mode, { preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET });
     if (runtimePreset.value !== 'modes/debug') {
       clearDiagnosticsOutput();
     }
@@ -2733,12 +1977,7 @@ function bindUI() {
 
   diagnosticsSuite?.addEventListener('change', () => {
     const mode = state.uiMode;
-    if (mode === 'run' || mode === 'diffusion' || mode === 'energy') {
-      state.diagnosticsSelections[mode] = {
-        ...(state.diagnosticsSelections[mode] || {}),
-        suite: diagnosticsSuite.value || getDiagnosticsDefaultSuite(mode),
-      };
-    }
+    storeDiagnosticsSelection(mode, { suite: diagnosticsSuite.value || getDiagnosticsDefaultSuite(mode) });
     updateDiagnosticsGuidance();
   });
 
@@ -2879,6 +2118,10 @@ function bindUI() {
 async function init() {
   setStatusIndicator('Initializing', 'info');
   bindUI();
+  configureDownloadCallbacks({
+    onModelRegistered: registerDownloadedModel,
+    onModelsUpdated: refreshModelList,
+  });
   populateModelPresets();
   populateRuntimePresetSelects();
   populateEnergyDemoSelect();

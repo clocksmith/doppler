@@ -726,6 +726,7 @@ export async function runVliwSpecSearch({
   const finalDataset = await buildVliwDatasetFromSpecInput(best.spec, best.specKey, {
     mode: constraintMode,
     capsMode,
+    includeOps: true,
   });
   const sliced = sliceVliwDataset(finalDataset, effectiveBundleLimit);
   const finalScoreMode = best.scoreMode || resolveScoreMode(scoreModeSetting);

@@ -119,7 +119,7 @@ export function scheduleOpsDepOnce(
     }
   }
 
-  const engineOrderBase = ['alu', 'valu', 'load', 'store', 'flow', 'debug'];
+  const engineOrderBase = ['valu', 'alu', 'flow', 'load', 'store', 'debug'];
   const engineIndex = {};
   engineOrderBase.forEach((eng, idx) => {
     engineIndex[eng] = idx;

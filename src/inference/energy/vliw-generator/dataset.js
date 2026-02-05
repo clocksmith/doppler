@@ -6,6 +6,7 @@ import { scheduleOpsDep, countCycles } from './schedule.js';
 
 export function buildVliwDatasetFromSpec(specInput, options = {}) {
   const mode = options?.mode === 'parity' ? 'parity' : 'relaxed';
+  const includeOps = options?.includeOps === true;
   const spec = normalizeSpec(specInput, { mode });
   const capsMode = options?.capsMode === 'slot_limits' ? 'slot_limits' : 'spec';
   const caps = resolveCaps(spec, { capsMode });
@@ -50,7 +51,7 @@ export function buildVliwDatasetFromSpec(specInput, options = {}) {
   const bundleCount = baselineInstrs.length;
   const baselineCycles = countCycles(baselineInstrs);
 
-  return {
+  const dataset = {
     version: 1,
     label: 'VLIW SIMD schedule (generated)',
     source: 'generated-in-browser',
@@ -68,6 +69,18 @@ export function buildVliwDatasetFromSpec(specInput, options = {}) {
     dependencyModel,
     offloadableCount,
   };
+
+  if (includeOps) {
+    dataset.ops = ops.map((op) => ({
+      id: op.id,
+      engine: op.engine,
+      slot: Array.isArray(op.slot) ? op.slot.slice() : op.slot,
+      offloadable: !!op.offloadable,
+      meta: op.meta ?? null,
+    }));
+  }
+
+  return dataset;
 }
 
 export function getDefaultSpec() {

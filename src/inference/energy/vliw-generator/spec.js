@@ -28,6 +28,9 @@ export function normalizeSpec(input = {}, options = {}) {
   spec.depth4_cached_rounds = cloneArray(input.depth4_cached_rounds, DEFAULT_SPEC.depth4_cached_rounds);
   if (spec.vector_block == null) spec.vector_block = DEFAULT_SPEC.vector_block;
   if (spec.extra_vecs == null) spec.extra_vecs = DEFAULT_SPEC.extra_vecs;
+  if (mode === 'parity') {
+    spec.shifts_on_valu = true;
+  }
   if (mode !== 'parity' && spec.selection_mode && ['bitmask', 'mask', 'mask_precompute'].includes(spec.selection_mode)) {
     if (!Number.isFinite(spec.extra_vecs) || spec.extra_vecs <= 0) {
       spec.extra_vecs = DEFAULT_SPEC.extra_vecs;

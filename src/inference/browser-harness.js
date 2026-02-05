@@ -5,9 +5,17 @@ import { saveReport } from '../storage/reports.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { createPipeline } from './pipeline.js';
+import { parseModelConfigFromManifest } from './pipeline/config.js';
 import { openModelStore, loadManifestFromStore, loadShard } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { computeSampleStats } from '../debug/stats.js';
+import {
+  applyKernelOverrides,
+  resolveKernelPath,
+  setActiveKernelPath,
+  getActiveKernelPath,
+  getActiveKernelPathSource,
+} from '../config/kernel-path-loader.js';
 
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
@@ -292,12 +300,47 @@ function buildSuiteSummary(suite, results, startTime) {
   return { suite, passed, failed, skipped, duration, results };
 }
 
-function buildDeterministicValues(length, scale = 0.01) {
-  const data = new Float32Array(length);
-  for (let i = 0; i < length; i++) {
-    data[i] = Math.sin(i * 0.13) * scale;
+async function resolveKernelPathForModel(options = {}) {
+  const runtimeConfig = options.runtime?.runtimeConfig ?? getRuntimeConfig();
+  const runtimeKernelPath = options.runtime?.kernelPath ?? null;
+  let manifest = null;
+  let manifestModelId = options.modelId || null;
+
+  if (options.modelId) {
+    await openModelStore(options.modelId);
+    const manifestText = await loadManifestFromStore();
+    if (manifestText) {
+      manifest = parseManifest(manifestText);
+      manifestModelId = manifest.modelId ?? options.modelId;
+    }
   }
-  return data;
+
+  if (!manifest) return null;
+
+  const modelConfig = parseModelConfigFromManifest(manifest, runtimeConfig);
+  const kernelPathRef = runtimeKernelPath
+    ?? runtimeConfig?.inference?.kernelPath
+    ?? modelConfig?.kernelPath
+    ?? manifest.optimizations?.kernelPath;
+
+  if (!kernelPathRef) {
+    setActiveKernelPath(null, 'none');
+    return { modelId: manifestModelId, kernelPath: null, source: 'none' };
+  }
+
+  let resolved = resolveKernelPath(kernelPathRef);
+  if (runtimeConfig?.inference?.kernelOverrides) {
+    resolved = applyKernelOverrides(resolved, runtimeConfig.inference.kernelOverrides);
+  }
+  const source = runtimeKernelPath
+    ? 'runtime'
+    : runtimeConfig?.inference?.kernelPath
+      ? 'config'
+      : modelConfig?.kernelPath
+        ? 'model'
+        : 'manifest';
+  setActiveKernelPath(resolved, source);
+  return { modelId: manifestModelId, kernelPath: resolved, source };
 }
 
 async function initializeInferenceFromStorage(modelId, options = {}) {
@@ -353,72 +396,20 @@ async function initializeSuiteModel(options = {}) {
 
 async function runKernelSuite(options = {}) {
   const startTime = performance.now();
-  const results = [];
   const { testHarness, initGPU } = await import('../../tests/kernels/browser/test-page.js');
+  const { runKernelSuite: runAllKernelTests } = await import('../../tests/kernels/browser/kernel-suite.js');
   await initGPU();
 
-  const gpu = await testHarness.getGPU();
-  const checks = [
-    {
-      name: 'matmul',
-      run: async () => {
-        if (!testHarness.runMatmul || !testHarness.references?.matmulRef) {
-          return { skipped: true };
-        }
-        const M = 4;
-        const N = 4;
-        const K = 4;
-        const A = buildDeterministicValues(M * K);
-        const B = buildDeterministicValues(K * N);
-        const expected = testHarness.references.matmulRef(A, B, M, N, K);
-        const actual = await testHarness.runMatmul(gpu.device, A, B, M, N, K);
-        let maxError = 0;
-        for (let i = 0; i < expected.length; i++) {
-          maxError = Math.max(maxError, Math.abs(expected[i] - actual[i]));
-        }
-        if (maxError > 1e-3) {
-          throw new Error(`max error ${maxError.toFixed(6)}`);
-        }
-        return { maxError };
-      },
-    },
-    {
-      name: 'rmsnorm',
-      run: async () => {
-        if (!testHarness.runRMSNorm || !testHarness.references?.rmsNormRef) {
-          return { skipped: true };
-        }
-        const numTokens = 4;
-        const hiddenSize = 8;
-        const input = buildDeterministicValues(numTokens * hiddenSize);
-        const weight = buildDeterministicValues(hiddenSize, 0.02);
-        const expected = testHarness.references.rmsNormRef(input, weight, numTokens, hiddenSize, 1e-5);
-        const actual = await testHarness.runRMSNorm(gpu.device, input, weight, numTokens, hiddenSize, 1e-5);
-        let maxError = 0;
-        for (let i = 0; i < expected.length; i++) {
-          maxError = Math.max(maxError, Math.abs(expected[i] - actual[i]));
-        }
-        if (maxError > 1e-3) {
-          throw new Error(`max error ${maxError.toFixed(6)}`);
-        }
-        return { maxError };
-      },
-    },
-  ];
-
-  for (const check of checks) {
-    const checkStart = performance.now();
-    try {
-      const info = await check.run();
-      if (info?.skipped) {
-        results.push({ name: check.name, passed: false, skipped: true, duration: performance.now() - checkStart });
-      } else {
-        results.push({ name: check.name, passed: true, duration: performance.now() - checkStart });
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      results.push({ name: check.name, passed: false, duration: performance.now() - checkStart, error: message });
-    }
+  const previousKernelPath = getActiveKernelPath();
+  const previousKernelSource = getActiveKernelPathSource();
+  if (options.modelId) {
+    await resolveKernelPathForModel(options);
+  }
+  let results = [];
+  try {
+    results = await runAllKernelTests(testHarness);
+  } finally {
+    setActiveKernelPath(previousKernelPath, previousKernelSource);
   }
 
   const summary = buildSuiteSummary('kernels', results, startTime);

@@ -20,8 +20,8 @@ function readsWrites(op) {
         return { reads: [slot[2]], writes: vecAddrs(slot[1]) };
       case 'load_offset':
         return {
-          reads: [slot[2], ...vecAddrs(slot[3])],
-          writes: vecAddrs(slot[1]),
+          reads: [slot[2] + slot[3]],
+          writes: [slot[1] + slot[3]],
         };
       default:
         throw new Error(`Unknown load op ${slot[0]}`);

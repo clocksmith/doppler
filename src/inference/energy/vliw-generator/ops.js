@@ -560,20 +560,42 @@ export function buildOps(spec, layout, orderedOps) {
     } else {
       const shiftOnValu = spec.shifts_on_valu;
       const tmp2 = layout.tmp2[v];
+      const offloadHashShift = !!spec.offload_hash_shift;
+      const offloadHashOp1 = spec.offload_hash_op1 !== false;
+      const offloadHashOp2 = !!spec.offload_hash_op2;
       linear.forEach((stage, i) => {
         addVmuladd(valuOps, val, val, layout.const_v[stage.mult], layout.const_v[stage.add], { round: r, vec: v, hash: i });
       });
       bitwise.forEach((stage, i) => {
-        if (stage.op2 === '^') {
-          addValu(valuOps, '^', val, val, layout.const_v[stage.const], { round: r, vec: v, hash: i });
-        } else {
-          addValu(valuOps, '+', val, val, layout.const_v[stage.const], { round: r, vec: v, hash: i });
-        }
+        addValu(
+          valuOps,
+          stage.shift_op,
+          tmp2,
+          val,
+          layout.const_v[stage.shift],
+          { round: r, vec: v, hash: i },
+          offloadHashShift,
+        );
+        addValu(
+          valuOps,
+          stage.op1,
+          val,
+          val,
+          layout.const_v[stage.const],
+          { round: r, vec: v, hash: i },
+          offloadHashOp1,
+        );
         if (shiftOnValu) {
-          addValu(valuOps, stage.shift_op, tmp2, val, layout.const_v[stage.shift], { round: r, vec: v, hash: i });
-          addValu(valuOps, stage.op2, val, val, tmp2, { round: r, vec: v, hash: i });
+          addValu(
+            valuOps,
+            stage.op2,
+            val,
+            val,
+            tmp2,
+            { round: r, vec: v, hash: i },
+            offloadHashOp2,
+          );
         } else {
-          addValu(valuOps, stage.shift_op, tmp2, val, layout.const_v[stage.shift], { round: r, vec: v, hash: i });
           addAluVec(aluOps, stage.op2, val, val, tmp2, { round: r, vec: v, hash: i });
         }
       });
