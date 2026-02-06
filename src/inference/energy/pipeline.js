@@ -645,6 +645,7 @@ export class EnergyPipeline {
         engineOrder: result.engineOrder,
         capsSource: result.capsSource,
         mode: result.mode,
+        mlpStats: result.mlpStats ?? null,
         problem,
       };
     }

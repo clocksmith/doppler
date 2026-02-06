@@ -144,6 +144,17 @@ export function renderVliwKernelSummary(summary, datasetMeta) {
   if (summary.schedulerPolicy) {
     lines.push(`Scheduler policy: ${summary.schedulerPolicy}`);
   }
+  if (summary.mlpStats) {
+    const mlp = summary.mlpStats;
+    if (Number.isFinite(mlp.hiddenSize) && Number.isFinite(mlp.lr)) {
+      lines.push(`MLP: hidden ${mlp.hiddenSize} • lr ${formatScalar(mlp.lr, 6)} • train ${mlp.trainSteps} • failures ${mlp.trainFailures}`);
+    } else {
+      lines.push(`MLP: train ${mlp.trainSteps} • failures ${mlp.trainFailures}`);
+    }
+    if (mlp.firstError) {
+      lines.push(`MLP first error: ${mlp.firstError}`);
+    }
+  }
   if (Array.isArray(summary.schedulerPolicies) && summary.schedulerPolicies.length) {
     lines.push(`Scheduler policies: ${summary.schedulerPolicies.join(', ')}`);
   }

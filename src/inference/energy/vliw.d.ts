@@ -56,6 +56,13 @@ export interface VliwEnergyResult {
   energyHistory: number[];
   state: Float32Array;
   shape: number[];
+  mlpStats?: {
+    hiddenSize: number;
+    lr: number;
+    trainSteps: number;
+    trainFailures: number;
+    firstError: string | null;
+  } | null;
   metrics: {
     cycles: number;
     utilization: number;

@@ -149,6 +149,9 @@ export async function runVliwEnergyLoop({
   const candidates = [];
   const graphMetrics = constraintMode === 'relaxed' ? computeGraphMetrics(graph) : null;
   const lbCycles = lowerBoundCycles(taskList, resolvedCaps);
+  let mlpTrainSteps = 0;
+  let mlpTrainFailures = 0;
+  let mlpFirstTrainError = null;
 
   const totalStart = performance.now();
 
@@ -250,12 +253,34 @@ export async function runVliwEnergyLoop({
         jitter,
       });
     let currentEnergy = resolveScheduleEnergy(currentSchedule, taskList.length);
+    if (!Number.isFinite(currentEnergy) && policy === 'mlp') {
+      const retrySeed = Math.floor(rng() * 1e9);
+      const retryMlp = createMlp(mlpInputSize, mlpHiddenSize, retrySeed);
+      const retrySchedule = scheduleWithHeuristic({
+        tasks: taskList,
+        caps: resolvedCaps,
+        graph,
+        features: graphMetrics,
+        weights,
+        mlpModel: retryMlp,
+        basePriorities: baselinePriorities,
+        rng,
+        jitter,
+      });
+      const retryEnergy = resolveScheduleEnergy(retrySchedule, taskList.length);
+      if (Number.isFinite(retryEnergy)) {
+        current = retryMlp;
+        currentSchedule = retrySchedule;
+        currentEnergy = retryEnergy;
+      }
+    }
     let temperature = tempStart;
     const energyHistory = [];
     let restartBestEnergy = currentEnergy;
     let restartBestSchedule = currentSchedule;
     let restartBestSteps = 1;
     let stepsRun = 0;
+    let disableMlpTraining = false;
 
     if (onTrace) {
       onTrace(0, currentEnergy, {
@@ -294,7 +319,7 @@ export async function runVliwEnergyLoop({
           || rng() < Math.exp(-delta / Math.max(temperature, 1e-6));
 
         if (accept) {
-          if (policy === 'mlp' && scoredFeatures && scoredFeatures.length) {
+          if (policy === 'mlp' && !disableMlpTraining && scoredFeatures && scoredFeatures.length) {
             const featureBatch = new Float32Array(scoredFeatures);
             const canTrain = featureBatch.length >= mlpInputSize && featureBatch.length % mlpInputSize === 0;
             if (canTrain) {
@@ -315,7 +340,13 @@ export async function runVliwEnergyLoop({
                   jitter,
                 });
                 currentEnergy = resolveScheduleEnergy(currentSchedule, taskList.length);
-              } catch {
+                mlpTrainSteps += 1;
+              } catch (error) {
+                mlpTrainFailures += 1;
+                if (!mlpFirstTrainError) {
+                  mlpFirstTrainError = error?.message || String(error);
+                }
+                disableMlpTraining = true;
                 current = candidate;
                 currentSchedule = candidateSchedule;
                 currentEnergy = candidateEnergy;
@@ -439,5 +470,16 @@ export async function runVliwEnergyLoop({
     engineOrder,
     capsSource,
     mode: constraintMode,
+    ...(policy === 'mlp'
+      ? {
+        mlpStats: {
+          hiddenSize: mlpHiddenSize,
+          lr: mlpTrainerConfig?.lr ?? DEFAULT_MLP_CONFIG.lr,
+          trainSteps: mlpTrainSteps,
+          trainFailures: mlpTrainFailures,
+          firstError: mlpFirstTrainError,
+        },
+      }
+      : {}),
   };
 }

@@ -101,6 +101,13 @@ export interface EnergyResult {
     utilization: number;
     violations: number;
   };
+  mlpStats?: {
+    hiddenSize: number;
+    lr: number;
+    trainSteps: number;
+    trainFailures: number;
+    firstError: string | null;
+  } | null;
   stepsPerRestart?: number;
   bestStep?: number;
   restarts?: number;

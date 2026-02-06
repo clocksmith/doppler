@@ -1228,6 +1228,7 @@ async function handleEnergyRun() {
         capsSource: result?.capsSource ?? null,
         bundleLimit: vliwBundleLimit,
         mode: result?.mode ?? null,
+        mlpStats: result?.mlpStats ?? null,
       };
       renderVliwKernelSummary(summary, state.energyVliwMeta);
       const bundleCount = state.energyVliwMeta?.bundleCount;
