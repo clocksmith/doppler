@@ -25,18 +25,25 @@
         <div class="header-actions">
           <div class="header-controls">
             <div class="header-nav">
-              <div class="mode-tabs" id="mode-tabs">
-                <button class="btn mode-tab" data-mode="run" type="button">Text</button>
-                <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
-                <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
+              <div class="nav-group">
+                <div class="nav-label type-caption">Run</div>
+                <div class="segmented-control" id="mode-tabs">
+                  <button class="btn mode-tab" data-mode="run" type="button">Text</button>
+                  <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
+                  <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
+                </div>
               </div>
-              <div class="mode-tools" id="mode-tools">
-                <button class="btn mode-tool" data-mode="diagnostics" type="button">Diagnostics</button>
-                <button class="btn mode-tool" data-mode="models" type="button">Models</button>
+              <div class="nav-divider" aria-hidden="true"></div>
+              <div class="nav-group">
+                <div class="nav-label type-caption">Tools</div>
+                <div class="tool-group" id="mode-tools">
+                  <button class="btn mode-tool" data-mode="diagnostics" type="button">Diagnostics</button>
+                  <button class="btn mode-tool" data-mode="models" type="button">Models</button>
+                </div>
               </div>
             </div>
             <div class="header-model">
-              <label class="type-caption" for="diagnostics-model">Active Model</label>
+              <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
               <select id="diagnostics-model" class="w-full"></select>
             </div>
           </div>
@@ -504,19 +511,15 @@
               </div>
             </section>
 
-            <section class="panel energy-mode-panel" data-modes="energy">
-              <h2 class="type-label">Energy Mode</h2>
-              <div class="playground-field">
+            <section class="panel energy-controls-panel" data-modes="energy">
+              <h2 class="type-label">Energy Controls</h2>
+              <div class="panel-subsection">
                 <label class="type-caption" for="energy-demo-select">Energy demo</label>
                 <select id="energy-demo-select" class="w-full"></select>
                 <div class="type-caption" id="energy-demo-description"></div>
               </div>
-            </section>
-
-            <section class="panel energy-quintel-controls-panel" data-modes="energy" data-energy-problem="quintel">
-              <h2 class="type-label">Quintel Controls</h2>
-              <div class="panel-subsection">
-                <span class="type-caption">Board</span>
+              <div class="panel-subsection" data-energy-problem="quintel">
+                <span class="type-caption">Quintel</span>
                 <div class="playground-row">
                   <div class="playground-field">
                     <label class="type-caption" for="energy-quintel-size">Size</label>
@@ -531,158 +534,156 @@
                     <input id="energy-quintel-count-target" class="w-full" type="number" min="0" step="1" value="12" />
                   </div>
                 </div>
-              </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Rules</span>
-                <div class="playground-row">
-                  <label class="check-field" for="energy-rule-mirror-x">
-                    <input id="energy-rule-mirror-x" type="checkbox" checked />
-                    Mirror X
-                  </label>
-                  <label class="check-field" for="energy-rule-mirror-y">
-                    <input id="energy-rule-mirror-y" type="checkbox" checked />
-                    Mirror Y
-                  </label>
-                  <label class="check-field" for="energy-rule-diagonal">
-                    <input id="energy-rule-diagonal" type="checkbox" />
-                    Diagonal
-                  </label>
-                  <label class="check-field" for="energy-rule-count">
-                    <input id="energy-rule-count" type="checkbox" checked />
-                    Count
-                  </label>
-                </div>
-              </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Weights</span>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-weight-symmetry">Symmetry</label>
-                    <input id="energy-weight-symmetry" class="w-full" type="number" step="0.1" value="1.0" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-weight-count">Count</label>
-                    <input id="energy-weight-count" class="w-full" type="number" step="0.1" value="0.2" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-weight-binarize">Binarize</label>
-                    <input id="energy-weight-binarize" class="w-full" type="number" step="0.01" value="0.01" />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel energy-vliw-controls-panel" data-modes="energy" data-energy-problem="vliw" hidden>
-              <h2 class="type-label">VLIW Controls</h2>
-              <div class="panel-subsection" id="energy-vliw-controls">
-                <span class="type-caption">VLIW SIMD</span>
-                <div class="playground-row">
-                <div class="playground-field">
-                  <label class="type-caption" for="energy-vliw-dataset">Dataset</label>
-                  <select id="energy-vliw-dataset" class="w-full">
-                    <option value="vliw-simd-frozen">VLIW SIMD schedule (frozen workload)</option>
-                    <option value="vliw-simd-real">VLIW SIMD schedule (real spec)</option>
-                    <option value="vliw-simd">VLIW SIMD schedule (full kernel)</option>
-                  </select>
-                </div>
-                <div class="playground-field">
-                  <label class="type-caption" for="energy-vliw-spec">Spec JSON (generate DAG)</label>
-                  <textarea
-                    id="energy-vliw-spec"
-                    class="w-full"
-                    rows="6"
-                    placeholder="Paste a spec JSON to generate a DAG in-browser (overrides dataset selection)."
-                  ></textarea>
-                </div>
-                <div class="playground-field">
-                  <label class="type-caption" for="energy-vliw-bundle-limit">Bundle limit (0 = all)</label>
-                  <input id="energy-vliw-bundle-limit" class="w-full" type="number" min="0" step="10" value="120" />
-                </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-restarts">Restarts</label>
-                    <input id="energy-vliw-restarts" class="w-full" type="number" min="1" step="1" value="2" />
-                  </div>
-                </div>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-mode">Mode</label>
-                    <select id="energy-vliw-mode" class="w-full">
-                      <option value="parity">parity</option>
-                      <option value="relaxed">relaxed</option>
-                    </select>
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-score-mode">Score mode</label>
-                    <select id="energy-vliw-score-mode" class="w-full">
-                      <option value="auto">auto</option>
-                      <option value="bundle">bundle</option>
-                      <option value="graph">graph</option>
-                      <option value="lb">lb</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-temp-start">Temp start</label>
-                    <input id="energy-vliw-temp-start" class="w-full" type="number" step="0.1" value="2.5" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-temp-decay">Temp decay</label>
-                    <input id="energy-vliw-temp-decay" class="w-full" type="number" step="0.001" value="0.985" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="energy-vliw-mutation">Mutation count</label>
-                    <input id="energy-vliw-mutation" class="w-full" type="number" min="1" step="1" value="6" />
+                <div class="panel-subsection">
+                  <span class="type-caption">Rules</span>
+                  <div class="playground-row">
+                    <label class="check-field" for="energy-rule-mirror-x">
+                      <input id="energy-rule-mirror-x" type="checkbox" checked />
+                      Mirror X
+                    </label>
+                    <label class="check-field" for="energy-rule-mirror-y">
+                      <input id="energy-rule-mirror-y" type="checkbox" checked />
+                      Mirror Y
+                    </label>
+                    <label class="check-field" for="energy-rule-diagonal">
+                      <input id="energy-rule-diagonal" type="checkbox" />
+                      Diagonal
+                    </label>
+                    <label class="check-field" for="energy-rule-count">
+                      <input id="energy-rule-count" type="checkbox" checked />
+                      Count
+                    </label>
                   </div>
                 </div>
                 <div class="panel-subsection">
-                  <span class="type-caption">Spec search (Layer 0)</span>
+                  <span class="type-caption">Weights</span>
                   <div class="playground-row">
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-search">Enable</label>
-                      <input id="energy-vliw-spec-search" type="checkbox" checked />
+                      <label class="type-caption" for="energy-weight-symmetry">Symmetry</label>
+                      <input id="energy-weight-symmetry" class="w-full" type="number" step="0.1" value="1.0" />
                     </div>
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-restarts">Spec restarts</label>
-                      <input id="energy-vliw-spec-restarts" class="w-full" type="number" min="1" step="1" value="2" />
+                      <label class="type-caption" for="energy-weight-count">Count</label>
+                      <input id="energy-weight-count" class="w-full" type="number" step="0.1" value="0.2" />
                     </div>
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-steps">Spec steps</label>
-                      <input id="energy-vliw-spec-steps" class="w-full" type="number" min="1" step="1" value="32" />
+                      <label class="type-caption" for="energy-weight-binarize">Binarize</label>
+                      <input id="energy-weight-binarize" class="w-full" type="number" step="0.01" value="0.01" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection" data-energy-problem="vliw" hidden>
+                <div class="panel-subsection" id="energy-vliw-controls">
+                  <span class="type-caption">VLIW SIMD</span>
+                  <div class="playground-row">
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-dataset">Dataset</label>
+                      <select id="energy-vliw-dataset" class="w-full">
+                        <option value="vliw-simd-frozen">VLIW SIMD schedule (frozen workload)</option>
+                        <option value="vliw-simd-real">VLIW SIMD schedule (real spec)</option>
+                        <option value="vliw-simd">VLIW SIMD schedule (full kernel)</option>
+                      </select>
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-spec">Spec JSON (generate DAG)</label>
+                      <textarea
+                        id="energy-vliw-spec"
+                        class="w-full"
+                        rows="6"
+                        placeholder="Paste a spec JSON to generate a DAG in-browser (overrides dataset selection)."
+                      ></textarea>
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-bundle-limit">Bundle limit (0 = all)</label>
+                      <input id="energy-vliw-bundle-limit" class="w-full" type="number" min="0" step="10" value="120" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-restarts">Restarts</label>
+                      <input id="energy-vliw-restarts" class="w-full" type="number" min="1" step="1" value="2" />
                     </div>
                   </div>
                   <div class="playground-row">
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-temp-start">Spec temp start</label>
-                      <input id="energy-vliw-spec-temp-start" class="w-full" type="number" step="0.1" value="2.5" />
+                      <label class="type-caption" for="energy-vliw-mode">Mode</label>
+                      <select id="energy-vliw-mode" class="w-full">
+                        <option value="parity">parity</option>
+                        <option value="relaxed">relaxed</option>
+                      </select>
                     </div>
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-temp-decay">Spec temp decay</label>
-                      <input id="energy-vliw-spec-temp-decay" class="w-full" type="number" step="0.001" value="0.95" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-mutation">Spec mutation</label>
-                      <input id="energy-vliw-spec-mutation" class="w-full" type="number" min="1" step="1" value="2" />
-                    </div>
-                  </div>
-                  <div class="playground-row">
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-seed">Spec seed</label>
-                      <input id="energy-vliw-spec-seed" class="w-full" type="number" min="0" step="1" value="1337" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-penalty">Penalty gate</label>
-                      <input id="energy-vliw-spec-penalty" class="w-full" type="number" step="0.1" value="2" />
-                    </div>
-                    <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-lambda">Cycle λ</label>
-                      <input id="energy-vliw-spec-lambda" class="w-full" type="number" step="0.1" value="1" />
+                      <label class="type-caption" for="energy-vliw-score-mode">Score mode</label>
+                      <select id="energy-vliw-score-mode" class="w-full">
+                        <option value="auto">auto</option>
+                        <option value="bundle">bundle</option>
+                        <option value="graph">graph</option>
+                        <option value="lb">lb</option>
+                      </select>
                     </div>
                   </div>
                   <div class="playground-row">
                     <div class="playground-field">
-                      <label class="type-caption" for="energy-vliw-spec-inner-steps">Inner steps</label>
-                      <input id="energy-vliw-spec-inner-steps" class="w-full" type="number" min="1" step="1" value="32" />
+                      <label class="type-caption" for="energy-vliw-temp-start">Temp start</label>
+                      <input id="energy-vliw-temp-start" class="w-full" type="number" step="0.1" value="2.5" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-temp-decay">Temp decay</label>
+                      <input id="energy-vliw-temp-decay" class="w-full" type="number" step="0.001" value="0.985" />
+                    </div>
+                    <div class="playground-field">
+                      <label class="type-caption" for="energy-vliw-mutation">Mutation count</label>
+                      <input id="energy-vliw-mutation" class="w-full" type="number" min="1" step="1" value="6" />
+                    </div>
+                  </div>
+                  <div class="panel-subsection">
+                    <span class="type-caption">Spec search (Layer 0)</span>
+                    <div class="playground-row">
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-search">Enable</label>
+                        <input id="energy-vliw-spec-search" type="checkbox" checked />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-restarts">Spec restarts</label>
+                        <input id="energy-vliw-spec-restarts" class="w-full" type="number" min="1" step="1" value="2" />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-steps">Spec steps</label>
+                        <input id="energy-vliw-spec-steps" class="w-full" type="number" min="1" step="1" value="32" />
+                      </div>
+                    </div>
+                    <div class="playground-row">
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-temp-start">Spec temp start</label>
+                        <input id="energy-vliw-spec-temp-start" class="w-full" type="number" step="0.1" value="2.5" />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-temp-decay">Spec temp decay</label>
+                        <input id="energy-vliw-spec-temp-decay" class="w-full" type="number" step="0.001" value="0.95" />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-mutation">Spec mutation</label>
+                        <input id="energy-vliw-spec-mutation" class="w-full" type="number" min="1" step="1" value="2" />
+                      </div>
+                    </div>
+                    <div class="playground-row">
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-seed">Spec seed</label>
+                        <input id="energy-vliw-spec-seed" class="w-full" type="number" min="0" step="1" value="1337" />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-penalty">Penalty gate</label>
+                        <input id="energy-vliw-spec-penalty" class="w-full" type="number" step="0.1" value="2" />
+                      </div>
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-lambda">Cycle λ</label>
+                        <input id="energy-vliw-spec-lambda" class="w-full" type="number" step="0.1" value="1" />
+                      </div>
+                    </div>
+                    <div class="playground-row">
+                      <div class="playground-field">
+                        <label class="type-caption" for="energy-vliw-spec-inner-steps">Inner steps</label>
+                        <input id="energy-vliw-spec-inner-steps" class="w-full" type="number" min="1" step="1" value="32" />
+                      </div>
                     </div>
                   </div>
                 </div>

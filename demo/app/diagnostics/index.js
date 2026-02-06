@@ -1,5 +1,5 @@
-import { getRuntimeConfig } from '../../src/config/runtime.js';
-import { loadRuntimePreset } from '../../src/inference/browser-harness.js';
+import { getRuntimeConfig } from '../../../src/config/runtime.js';
+import { loadRuntimePreset } from '../../../src/inference/browser-harness.js';
 import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {

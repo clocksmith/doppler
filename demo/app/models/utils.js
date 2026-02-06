@@ -1,5 +1,5 @@
-import { log } from '../../src/debug/index.js';
-import { openModelStore, loadManifestFromStore } from '../../src/storage/shard-manager.js';
+import { log } from '../../../src/debug/index.js';
+import { openModelStore, loadManifestFromStore } from '../../../src/storage/shard-manager.js';
 import { state } from '../state.js';
 
 export function normalizeModelType(value) {
