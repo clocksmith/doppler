@@ -2,7 +2,7 @@ export const DEFAULT_ENERGY_STATE_CONFIG = {
   width: 64,
   height: 64,
   channels: 1,
-  dtype: 'f16',
+  dtype: 'f32',
 };
 
 export const DEFAULT_ENERGY_INIT_CONFIG = {
@@ -52,7 +52,7 @@ export const DEFAULT_ENERGY_QUINTEL_CLAMP = {
 };
 
 export const DEFAULT_ENERGY_QUINTEL_CONFIG = {
-  backend: 'cpu',
+  backend: 'auto',
   size: 5,
   rules: DEFAULT_ENERGY_QUINTEL_RULES,
   weights: DEFAULT_ENERGY_QUINTEL_WEIGHTS,

@@ -124,13 +124,13 @@ function resolveExtendCandidates(ref, context) {
     return [joinUrl(context.presetBaseUrl, normalized)];
   }
   const candidates = [];
-  if (context.sourceUrl) {
-    const sourceDir = resolveAbsoluteUrl('./', context.sourceUrl);
-    candidates.push(resolveAbsoluteUrl(normalized, sourceDir));
-  }
   if (context.presetBaseUrl) {
     candidates.push(joinUrl(context.presetBaseUrl, normalized));
     candidates.push(joinUrl(context.presetBaseUrl, `modes/${normalized}`));
+  }
+  if (context.sourceUrl) {
+    const sourceDir = resolveAbsoluteUrl('./', context.sourceUrl);
+    candidates.push(resolveAbsoluteUrl(normalized, sourceDir));
   }
   return [...new Set(candidates)];
 }
@@ -605,16 +605,32 @@ async function runDiffusionSuite(options = {}) {
   const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
   const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
 
-  const diffusionConfig = runtimeConfig.inference?.diffusion || {};
-  const scheduler = diffusionConfig.scheduler || {};
-  const latent = diffusionConfig.latent || {};
+  const diffusionConfig = runtimeConfig.inference?.diffusion;
+  if (!diffusionConfig) {
+    throw new Error('runtime.inference.diffusion must be set for diffusion harness runs.');
+  }
+  const scheduler = diffusionConfig.scheduler;
+  const latent = diffusionConfig.latent;
   const prompt = resolvePrompt(runtimeConfig);
   const negativePrompt = diffusionConfig.negativePrompt ?? '';
 
-  const width = Number.isFinite(latent.width) ? latent.width : 512;
-  const height = Number.isFinite(latent.height) ? latent.height : 512;
-  const steps = Number.isFinite(scheduler.numSteps) ? scheduler.numSteps : 20;
-  const guidanceScale = Number.isFinite(scheduler.guidanceScale) ? scheduler.guidanceScale : 7.5;
+  const width = Math.floor(latent?.width);
+  const height = Math.floor(latent?.height);
+  const steps = Math.floor(scheduler?.numSteps);
+  const guidanceScale = scheduler?.guidanceScale;
+
+  if (!Number.isFinite(width) || width <= 0) {
+    throw new Error('runtime.inference.diffusion.latent.width must be set for diffusion harness runs.');
+  }
+  if (!Number.isFinite(height) || height <= 0) {
+    throw new Error('runtime.inference.diffusion.latent.height must be set for diffusion harness runs.');
+  }
+  if (!Number.isFinite(steps) || steps <= 0) {
+    throw new Error('runtime.inference.diffusion.scheduler.numSteps must be set for diffusion harness runs.');
+  }
+  if (!Number.isFinite(guidanceScale) || guidanceScale <= 0) {
+    throw new Error('runtime.inference.diffusion.scheduler.guidanceScale must be set for diffusion harness runs.');
+  }
 
   const harness = await initializeSuiteModel(options);
   const totalMs = [];

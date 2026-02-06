@@ -111,6 +111,12 @@ export {
   recordScale,
 } from './scale.js';
 
+// Clamp
+export {
+  runClamp,
+  recordClamp,
+} from './clamp.js';
+
 // Energy (EBM helpers)
 export {
   runEnergyEval,
@@ -121,6 +127,8 @@ export {
   recordEnergyQuintelUpdate,
   runEnergyQuintelReduce,
   recordEnergyQuintelReduce,
+  runEnergyQuintelGrad,
+  recordEnergyQuintelGrad,
 } from './energy.js';
 
 // Conv2D

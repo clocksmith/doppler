@@ -2,6 +2,14 @@
 
 /**
  * Matmul backward kernel (placeholder).
+ *
+ * NOTE: The current implementation of matmul backward lives in
+ * `matmul_backward.js`, which composes `transpose` + forward `matmul`
+ * to compute:
+ *   dX = dY @ W^T
+ *   dW = X^T @ dY
+ *
+ * This WGSL entry point is kept as a stub for a future fused kernel.
  */
 
 override WORKGROUP_SIZE: u32 = 256u;

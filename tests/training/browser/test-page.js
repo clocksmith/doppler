@@ -1,4 +1,5 @@
 import { initDevice } from '../../../src/gpu/device.js';
+import { getDevice } from '../../../src/gpu/device.js';
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
@@ -8,17 +9,35 @@ import {
   runCrossEntropyLoss,
   runCrossEntropyBackward,
   runSoftmaxBackward,
+  recordSoftmax,
+  recordSoftmaxBackward,
   runRmsNormBackward,
+  runEmbedBackward,
   runMatmul,
   runMatmulBackward,
+  runGeLU,
+  runScale,
+  recordMatmul,
+  recordGeLU,
+  recordScale,
+  recordResidualAdd,
+  recordMatmulBackward,
+  recordGeluBackward,
+  recordAdam,
+  createCommandRecorder,
 } from '../../../src/gpu/kernels/index.js';
-import { OpType } from '../../../src/training/autograd.js';
+import { AutogradTape, OpType } from '../../../src/training/autograd.js';
 import { trainStep } from '../../../src/training/trainer.js';
 import { createTrainingConfig } from '../../../src/config/training-defaults.js';
 import { AdamOptimizer } from '../../../src/training/optimizer.js';
 import { crossEntropyLoss } from '../../../src/training/loss.js';
 import { clipGradients } from '../../../src/training/clip.js';
 import { compareArrays, KERNEL_TOLERANCES } from '../../kernels/harness/tolerance.js';
+import { loadBackwardRegistry } from '../../../src/config/backward-registry-loader.js';
+import { releaseBuffer } from '../../../src/memory/buffer-pool.js';
+import { computeSampleStats } from '../../../src/debug/stats.js';
+import { resetSubmitStats, setTrackSubmits, getSubmitStats } from '../../../src/gpu/submit-tracker.js';
+import { getRuntimeConfig } from '../../../src/config/runtime.js';
 
 function toFloat32(arrayBuffer) {
   return new Float32Array(arrayBuffer);
@@ -254,7 +273,406 @@ async function testMatmulBackwardGradient() {
 
   const inputPass = compareArrays(gradInputGPU, gradInputCPU, KERNEL_TOLERANCES.matmul).pass;
   const weightPass = compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).pass;
-  return inputPass && weightPass;
+  if (!inputPass || !weightPass) {
+    return false;
+  }
+
+  const weightStoredT = new Float32Array(N * K);
+  for (let k = 0; k < K; k += 1) {
+    for (let n = 0; n < N; n += 1) {
+      weightStoredT[n * K + k] = weight[k * N + n];
+    }
+  }
+  const weightTensorT = makeTensorFromFloat32(weightStoredT, [N, K], 'matmul_weight_T');
+
+  const gradsT = await runMatmulBackward(inputTensor, weightTensorT, gradTensor, { M, N, K, transposeB: true });
+  const gradInputGPUT = await readTensor(gradsT.gradInput);
+  const gradWeightGPUT = await readTensor(gradsT.gradWeight);
+
+  const gradWeightCPUStoredT = new Float32Array(N * K);
+  for (let k = 0; k < K; k += 1) {
+    for (let n = 0; n < N; n += 1) {
+      gradWeightCPUStoredT[n * K + k] = gradWeightCPU[k * N + n];
+    }
+  }
+
+  const inputPassT = compareArrays(gradInputGPUT, gradInputCPU, KERNEL_TOLERANCES.matmul).pass;
+  const weightPassT = compareArrays(gradWeightGPUT, gradWeightCPUStoredT, KERNEL_TOLERANCES.matmul).pass;
+
+  return inputPassT && weightPassT;
+}
+
+async function testEmbedBackwardScatterAdd() {
+  await initGPU();
+  const numTokens = 5;
+  const hiddenSize = 4;
+  const vocabSize = 6;
+
+  const indices = new Uint32Array([2, 1, 2, 0, 2]);
+  const gradOutput = new Float32Array([
+    0.5, -1.0, 0.25, 2.0,
+    1.5, 0.0, -0.5, 0.75,
+    0.25, 1.25, 0.0, -1.0,
+    -0.25, 0.5, 0.75, 0.0,
+    2.0, -0.5, 1.0, 0.25,
+  ]);
+
+  const indicesTensor = makeTensorFromUint32(indices, [numTokens], 'embed_indices');
+  const gradTensor = makeTensorFromFloat32(gradOutput, [numTokens, hiddenSize], 'embed_grad_out');
+  const gradWeight = await runEmbedBackward(indicesTensor, gradTensor, {
+    numTokens,
+    hiddenSize,
+    vocabSize,
+    transpose: false,
+    indexOffset: 0,
+  });
+
+  const gradWeightGPU = await readTensor(gradWeight);
+
+  const gradWeightCPU = new Float32Array(vocabSize * hiddenSize);
+  for (let t = 0; t < numTokens; t += 1) {
+    const tokenId = indices[t];
+    for (let d = 0; d < hiddenSize; d += 1) {
+      gradWeightCPU[tokenId * hiddenSize + d] += gradOutput[t * hiddenSize + d];
+    }
+  }
+
+  return compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).pass;
+}
+
+function meanSquare(values) {
+  if (!values.length) return 0;
+  let sum = 0;
+  for (let i = 0; i < values.length; i += 1) {
+    const v = values[i];
+    sum += v * v;
+  }
+  return sum / values.length;
+}
+
+async function testEBMStateOptimizeSmoke() {
+  const registry = loadBackwardRegistry();
+  const config = createTrainingConfig({
+    training: {
+      enabled: true,
+      optimizer: {
+        lr: 0.2,
+      },
+    },
+  });
+  const optimizer = new AdamOptimizer(config);
+
+  const M = 8;
+  const K = 16;
+  const H = 32;
+  const O = 1;
+  const stateSize = M * K;
+  const hiddenSize = M * H;
+  const outSize = M * O;
+
+  const stateSeed = 9001;
+  const w1Seed = 9002;
+  const w2Seed = 9003;
+
+  const state = makeTensorFromFloat32(
+    Array.from({ length: stateSize }, (_, i) => Math.sin(i + stateSeed) * 0.25),
+    [M, K],
+    'ebm_state'
+  );
+  const w1 = makeTensorFromFloat32(
+    Array.from({ length: K * H }, (_, i) => Math.cos(i + w1Seed) * 0.2),
+    [K, H],
+    'ebm_w1'
+  );
+  const w2 = makeTensorFromFloat32(
+    Array.from({ length: H * O }, (_, i) => Math.sin(i + w2Seed) * 0.2),
+    [H, O],
+    'ebm_w2'
+  );
+
+  let baseline = null;
+  let latest = null;
+
+  for (let step = 0; step < 8; step += 1) {
+    const tape = new AutogradTape(registry);
+
+    const hidden = await tape.record(
+      OpType.MATMUL,
+      (a, b) => runMatmul(a, b, M, H, K, { transposeB: false }),
+      [state, w1],
+      { M, N: H, K, transposeB: false, computeGradWeight: false }
+    );
+
+    const activated = await tape.record(
+      OpType.GELU,
+      (x) => runGeLU(x, { size: hiddenSize }),
+      [hidden],
+      { count: hiddenSize }
+    );
+
+    const out = await tape.record(
+      OpType.MATMUL,
+      (a, b) => runMatmul(a, b, M, O, H, { transposeB: false }),
+      [activated, w2],
+      { M, N: O, K: H, transposeB: false, computeGradWeight: false }
+    );
+
+    const outF32 = await readTensor(out);
+    const energy = meanSquare(outF32);
+    if (baseline === null) {
+      baseline = energy;
+    }
+    latest = energy;
+
+    const gradScale = outSize > 0 ? (2 / outSize) : 0;
+    const gradOut = await runScale(out, gradScale, { inplace: true });
+    const grads = await tape.backward(gradOut);
+
+    const gradState = grads.get(state);
+    if (!gradState) {
+      throw new Error('EBM smoke test expected gradient for state tensor');
+    }
+
+    await optimizer.step([state], grads, config);
+
+    const buffersToRelease = new Set();
+    for (const grad of grads.values()) {
+      buffersToRelease.add(grad.buffer);
+    }
+    buffersToRelease.add(hidden.buffer);
+    buffersToRelease.add(activated.buffer);
+    buffersToRelease.add(out.buffer);
+    for (const buffer of buffersToRelease) {
+      releaseBuffer(buffer);
+    }
+  }
+
+  return Number.isFinite(baseline) && Number.isFinite(latest) && latest < baseline;
+}
+
+function createRng(seed) {
+  let state = seed >>> 0;
+  if (!state) state = 0x6d2b79f5;
+  return () => {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function fillRandom(array, rng, scale = 1.0) {
+  const safeScale = Number.isFinite(scale) ? scale : 1.0;
+  for (let i = 0; i < array.length; i += 1) {
+    array[i] = (rng() * 2 - 1) * safeScale;
+  }
+  return array;
+}
+
+function mapSubmitStats(stats) {
+  if (!stats) return null;
+  const bySource = stats.bySource instanceof Map
+    ? Object.fromEntries(stats.bySource.entries())
+    : null;
+  return {
+    count: stats.count,
+    totalMs: stats.totalMs,
+    avgMs: stats.avgMs,
+    maxMs: stats.maxMs,
+    minMs: stats.minMs,
+    bySource,
+  };
+}
+
+async function benchEBMRecordedIteration(state, w1, w2, moments, opt, dims) {
+  const { M, K, H, O } = dims;
+  const hiddenSize = M * H;
+  const outSize = M * O;
+  const gradScale = outSize > 0 ? (2 / outSize) : 0;
+  const step = opt.step;
+
+  const forwardRecorder = createCommandRecorder('ebm_fwd');
+  const hidden = await recordMatmul(forwardRecorder, state, w1, M, H, K, { transposeB: false, role: 'fwd_w1' });
+  const activated = await recordGeLU(forwardRecorder, hidden, { size: hiddenSize });
+  const out = await recordMatmul(forwardRecorder, activated, w2, M, O, H, { transposeB: false, role: 'fwd_w2' });
+
+  const forwardStart = performance.now();
+  await forwardRecorder.submitAndWait();
+  const forwardTimeMs = performance.now() - forwardStart;
+
+  const backwardRecorder = createCommandRecorder('ebm_bwd');
+  const gradOut = await recordScale(backwardRecorder, out, gradScale, { inplace: true });
+  const dActivated = (await recordMatmulBackward(
+    backwardRecorder,
+    activated,
+    w2,
+    gradOut,
+    { M, N: O, K: H, transposeB: false, computeGradWeight: false }
+  )).gradInput;
+  if (!dActivated) {
+    throw new Error('EBM bench expected dActivated gradient');
+  }
+  const dHidden = await recordGeluBackward(backwardRecorder, hidden, dActivated, { count: hiddenSize });
+  const dState = (await recordMatmulBackward(
+    backwardRecorder,
+    state,
+    w1,
+    dHidden,
+    { M, N: H, K, transposeB: false, computeGradWeight: false }
+  )).gradInput;
+  if (!dState) {
+    throw new Error('EBM bench expected dState gradient');
+  }
+
+  await recordAdam(backwardRecorder, state, dState, moments.m, moments.v, {
+    count: M * K,
+    step,
+    lr: opt.lr,
+    beta1: opt.beta1,
+    beta2: opt.beta2,
+    eps: opt.eps,
+  });
+
+  const buffersToRelease = new Set([
+    hidden.buffer,
+    activated.buffer,
+    out.buffer,
+    dActivated.buffer,
+    dHidden.buffer,
+    dState.buffer,
+    gradOut.buffer,
+  ]);
+  buffersToRelease.delete(state.buffer);
+  buffersToRelease.delete(w1.buffer);
+  buffersToRelease.delete(w2.buffer);
+  buffersToRelease.delete(moments.m.buffer);
+  buffersToRelease.delete(moments.v.buffer);
+  for (const buffer of buffersToRelease) {
+    backwardRecorder.trackTemporaryBuffer(buffer);
+  }
+
+  const backwardStart = performance.now();
+  await backwardRecorder.submitAndWait();
+  const backwardTimeMs = performance.now() - backwardStart;
+
+  opt.step += 1;
+
+  return { forwardTimeMs, backwardTimeMs };
+}
+
+async function testEBMRecordedBench() {
+  await initGPU();
+  const device = getDevice();
+  if (!device) {
+    throw new Error('EBM bench requires a GPU device');
+  }
+
+  const runtime = getRuntimeConfig();
+  const dims = runtime?.shared?.harness?.trainingBench?.ebmRecorded?.dims;
+  if (!dims) {
+    throw new Error('EBM bench requires runtime.shared.harness.trainingBench.ebmRecorded.dims.');
+  }
+  if (![dims.M, dims.K, dims.H, dims.O].every((value) => Number.isFinite(value) && value > 0 && Math.floor(value) === value)) {
+    throw new Error('EBM bench requires positive integer dims (M, K, H, O).');
+  }
+
+  const rng = createRng(20260206);
+  const stateData = fillRandom(new Float32Array(dims.M * dims.K), rng, 0.25);
+  const w1Data = fillRandom(new Float32Array(dims.K * dims.H), rng, 0.2);
+  const w2Data = fillRandom(new Float32Array(dims.H * dims.O), rng, 0.2);
+
+  const state = makeTensorFromFloat32(stateData, [dims.M, dims.K], 'ebm_bench_state');
+  const w1 = makeTensorFromFloat32(w1Data, [dims.K, dims.H], 'ebm_bench_w1');
+  const w2 = makeTensorFromFloat32(w2Data, [dims.H, dims.O], 'ebm_bench_w2');
+
+  const momentInit = new Float32Array(dims.M * dims.K);
+  const moments = {
+    m: makeTensorFromFloat32(momentInit, [dims.M, dims.K], 'ebm_bench_adam_m'),
+    v: makeTensorFromFloat32(momentInit, [dims.M, dims.K], 'ebm_bench_adam_v'),
+  };
+
+  const opt = {
+    step: 1,
+    lr: 0.2,
+    beta1: 0.9,
+    beta2: 0.999,
+    eps: 1e-8,
+  };
+
+  const pool = getBufferPool();
+  const bytesBefore = pool.getStats().currentBytesAllocated;
+
+  const warmup = runtime?.shared?.benchmark?.run?.warmupRuns;
+  const iters = runtime?.shared?.benchmark?.run?.timedRuns;
+  if (!Number.isFinite(warmup) || warmup < 0 || Math.floor(warmup) !== warmup) {
+    throw new Error('EBM bench requires runtime.shared.benchmark.run.warmupRuns to be a non-negative integer.');
+  }
+  if (!Number.isFinite(iters) || iters <= 0 || Math.floor(iters) !== iters) {
+    throw new Error('EBM bench requires runtime.shared.benchmark.run.timedRuns to be a positive integer.');
+  }
+  for (let i = 0; i < warmup; i += 1) {
+    await benchEBMRecordedIteration(state, w1, w2, moments, opt, dims);
+  }
+
+  setTrackSubmits(true);
+  resetSubmitStats();
+
+  const forwardTimes = [];
+  const backwardTimes = [];
+  const totalTimes = [];
+
+  for (let i = 0; i < iters; i += 1) {
+    const start = performance.now();
+    const { forwardTimeMs, backwardTimeMs } = await benchEBMRecordedIteration(state, w1, w2, moments, opt, dims);
+    const total = performance.now() - start;
+    forwardTimes.push(forwardTimeMs);
+    backwardTimes.push(backwardTimeMs);
+    totalTimes.push(total);
+  }
+
+  const submitStats = getSubmitStats();
+  setTrackSubmits(false);
+
+  const bytesAfter = pool.getStats().currentBytesAllocated;
+
+  const report = {
+    schemaVersion: 1,
+    timestamp: new Date().toISOString(),
+    suite: 'training',
+    benchmark: 'ebm-recorded',
+    workload: {
+      dims,
+      warmup,
+      iters,
+      op: 'state-only',
+      update: 'adam',
+    },
+    metrics: {
+      forwardMs: computeSampleStats(forwardTimes),
+      backwardMs: computeSampleStats(backwardTimes),
+      totalMs: computeSampleStats(totalTimes),
+      backwardToForwardRatio: forwardTimes.length
+        ? (backwardTimes.reduce((a, b) => a + b, 0) / Math.max(1e-9, forwardTimes.reduce((a, b) => a + b, 0)))
+        : 0,
+    },
+    submits: mapSubmitStats(submitStats),
+    memory: {
+      currentBytesAllocatedBefore: bytesBefore,
+      currentBytesAllocatedAfter: bytesAfter,
+      currentBytesAllocatedDelta: bytesAfter - bytesBefore,
+    },
+  };
+
+  console.log('[Benchmark]', JSON.stringify(report));
+
+  releaseBuffer(state.buffer);
+  releaseBuffer(w1.buffer);
+  releaseBuffer(w2.buffer);
+  releaseBuffer(moments.m.buffer);
+  releaseBuffer(moments.v.buffer);
+
+  return true;
 }
 
 async function testTrainingLoopLeakAndPerf() {
@@ -328,6 +746,9 @@ const TESTS = {
   'cross-entropy-backward': testCrossEntropyBackward,
   'rmsnorm-backward': testRmsNormBackward,
   'matmul-backward': testMatmulBackwardGradient,
+  'embed-backward': testEmbedBackwardScatterAdd,
+  'ebm-state-optimize': testEBMStateOptimizeSmoke,
+  'ebm-recorded-bench': testEBMRecordedBench,
   'parity-fixture': testParityFixture,
   'training-leak-perf': testTrainingLoopLeakAndPerf,
 };

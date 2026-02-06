@@ -9,3 +9,11 @@ export const WEIGHT_KEYS = {
 };
 
 export const DEFAULT_WEIGHTS = new Float32Array([1.0, 0.6, 0.4, 0.1, 0.2]);
+
+export const DEFAULT_MLP_CONFIG = {
+  hiddenSize: 16,
+  lr: 0.001,
+  beta1: 0.9,
+  beta2: 0.999,
+  eps: 1e-8,
+};

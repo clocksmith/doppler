@@ -18,7 +18,14 @@ export interface VliwSearchConfig {
   temperatureStart?: number;
   temperatureDecay?: number;
   mutationCount?: number;
-  policy?: 'weights' | 'priorities';
+  policy?: 'weights' | 'priorities' | 'mlp';
+  mlp?: {
+    hiddenSize?: number;
+    lr?: number;
+    beta1?: number;
+    beta2?: number;
+    eps?: number;
+  };
   jitter?: number;
   mode?: 'parity' | 'relaxed';
   scoreMode?: 'auto' | 'bundle' | 'graph' | 'lb';
@@ -122,4 +129,4 @@ export declare function runVliwEnergyLoop(input: {
   diagnostics?: VliwEnergyDiagnostics;
   onProgress?: (payload: { stage?: string; percent: number; message?: string }) => void;
   onTrace?: (step: number, energy: number, metrics: Record<string, number>) => void;
-}): VliwEnergyResult;
+}): Promise<VliwEnergyResult>;

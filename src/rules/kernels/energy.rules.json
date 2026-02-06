@@ -14,5 +14,9 @@
   "quintelReduceVariant": [
     { "match": { "isF16": true }, "value": "quintel_reduce_f16" },
     { "match": {}, "value": "quintel_reduce" }
+  ],
+  "quintelGradVariant": [
+    { "match": { "isF16": true }, "value": "quintel_grad_f16" },
+    { "match": {}, "value": "quintel_grad" }
   ]
 }

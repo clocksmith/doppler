@@ -36,10 +36,13 @@ function resolveActivationDtype(runtime) {
 }
 
 function padTokens(tokens, maxLength, padTokenId) {
-  const length = Math.max(1, Math.min(tokens.length, maxLength));
+  if (!Number.isFinite(maxLength) || maxLength <= 0) {
+    throw new Error(`padTokens requires a positive maxLength (got ${maxLength}).`);
+  }
+  const length = Math.min(tokens.length, maxLength);
   const out = new Uint32Array(maxLength);
   for (let i = 0; i < maxLength; i++) {
-    out[i] = i < length ? tokens[i] : padTokenId;
+    out[i] = i < length ? (tokens[i] ?? padTokenId) : padTokenId;
   }
   return out;
 }
@@ -734,7 +737,10 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
   const clipConfig = modelConfig?.components?.text_encoder?.config || {};
   const clip2Config = modelConfig?.components?.text_encoder_2?.config || {};
   const t5Config = modelConfig?.components?.text_encoder_3?.config || {};
-  const t5MaxLength = runtime?.textEncoder?.maxLength ?? 256;
+  const t5MaxLength = runtime?.textEncoder?.t5MaxLength ?? runtime?.textEncoder?.maxLength;
+  if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
+    throw new Error('T5 encoder requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
+  }
   const profileEnabled = options.profile === true;
 
   const clip = await runClipTextEncoder(tokensByEncoder.text_encoder, weightsByComponent.text_encoder, clipConfig, runtime, {

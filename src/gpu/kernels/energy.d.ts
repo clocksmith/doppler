@@ -1,5 +1,5 @@
 import type { Tensor } from '../tensor.js';
-import type { KernelRecorder } from './types.js';
+import type { CommandRecorder } from '../command-recorder.js';
 
 export interface EnergyEvalOptions {
   count?: number;
@@ -52,6 +52,25 @@ export interface EnergyQuintelReduceOptions {
   outputBuffer?: GPUBuffer | null;
 }
 
+export interface EnergyQuintelGradOptions {
+  count?: number;
+  size?: number;
+  countDiff?: number;
+  symmetryWeight?: number;
+  countWeight?: number;
+  centerWeight?: number;
+  binarizeWeight?: number;
+  centerTarget?: number;
+  rules?: {
+    mirrorX?: boolean;
+    mirrorY?: boolean;
+    diagonal?: boolean;
+    count?: boolean;
+    center?: boolean;
+  };
+  outputBuffer?: GPUBuffer | null;
+}
+
 export declare function runEnergyEval(
   state: Tensor,
   target: Tensor,
@@ -59,7 +78,7 @@ export declare function runEnergyEval(
 ): Promise<Tensor>;
 
 export declare function recordEnergyEval(
-  recorder: KernelRecorder,
+  recorder: CommandRecorder,
   state: Tensor,
   target: Tensor,
   options?: EnergyEvalOptions
@@ -72,7 +91,7 @@ export declare function runEnergyUpdate(
 ): Promise<Tensor>;
 
 export declare function recordEnergyUpdate(
-  recorder: KernelRecorder,
+  recorder: CommandRecorder,
   state: Tensor,
   target: Tensor,
   options?: EnergyUpdateOptions
@@ -84,7 +103,7 @@ export declare function runEnergyQuintelUpdate(
 ): Promise<Tensor>;
 
 export declare function recordEnergyQuintelUpdate(
-  recorder: KernelRecorder,
+  recorder: CommandRecorder,
   state: Tensor,
   options?: EnergyQuintelUpdateOptions
 ): Promise<Tensor>;
@@ -94,8 +113,19 @@ export declare function runEnergyQuintelReduce(
   options?: EnergyQuintelReduceOptions
 ): Promise<Tensor>;
 
+export declare function runEnergyQuintelGrad(
+  state: Tensor,
+  options?: EnergyQuintelGradOptions
+): Promise<Tensor>;
+
 export declare function recordEnergyQuintelReduce(
-  recorder: KernelRecorder,
+  recorder: CommandRecorder,
   state: Tensor,
   options?: EnergyQuintelReduceOptions
+): Promise<Tensor>;
+
+export declare function recordEnergyQuintelGrad(
+  recorder: CommandRecorder,
+  state: Tensor,
+  options?: EnergyQuintelGradOptions
 ): Promise<Tensor>;

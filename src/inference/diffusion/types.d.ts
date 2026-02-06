@@ -39,6 +39,7 @@ export interface DiffusionLatentConfig {
 
 export interface DiffusionTextEncoderConfig {
   maxLength: number;
+  t5MaxLength: number;
 }
 
 export interface DiffusionDecodeConfig {

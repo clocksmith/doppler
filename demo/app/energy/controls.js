@@ -105,6 +105,8 @@ export function applyEnergyDemoDefaults(demo) {
   const energyVliwTempStart = $('energy-vliw-temp-start');
   const energyVliwTempDecay = $('energy-vliw-temp-decay');
   const energyVliwMutation = $('energy-vliw-mutation');
+  const energyVliwMlpHidden = $('energy-vliw-mlp-hidden');
+  const energyVliwMlpLr = $('energy-vliw-mlp-lr');
   const energyVliwSpecSearch = $('energy-vliw-spec-search');
   const energyVliwSpecRestarts = $('energy-vliw-spec-restarts');
   const energyVliwSpecSteps = $('energy-vliw-spec-steps');
@@ -146,14 +148,17 @@ export function applyEnergyDemoDefaults(demo) {
   if (energyWeightBinarize && Number.isFinite(defaults.quintel?.binarizeWeight)) {
     energyWeightBinarize.value = String(defaults.quintel.binarizeWeight);
   }
-  if (energyInitMode && defaults.quintel?.initMode) {
-    energyInitMode.value = defaults.quintel.initMode;
+  const resolvedInitMode = defaults.init?.mode ?? defaults.quintel?.initMode ?? null;
+  const resolvedInitSeed = defaults.init?.seed ?? defaults.quintel?.initSeed ?? null;
+  const resolvedInitScale = defaults.init?.scale ?? defaults.quintel?.initScale ?? null;
+  if (energyInitMode && resolvedInitMode) {
+    energyInitMode.value = resolvedInitMode;
   }
-  if (energyInitSeed && Number.isFinite(defaults.quintel?.initSeed)) {
-    energyInitSeed.value = String(defaults.quintel.initSeed);
+  if (energyInitSeed && Number.isFinite(resolvedInitSeed)) {
+    energyInitSeed.value = String(resolvedInitSeed);
   }
-  if (energyInitScale && Number.isFinite(defaults.quintel?.initScale)) {
-    energyInitScale.value = String(defaults.quintel.initScale);
+  if (energyInitScale && Number.isFinite(resolvedInitScale)) {
+    energyInitScale.value = String(resolvedInitScale);
   }
   if (energySteps && Number.isFinite(defaults.loop?.steps)) {
     energySteps.value = String(defaults.loop.steps);
@@ -199,6 +204,12 @@ export function applyEnergyDemoDefaults(demo) {
   }
   if (energyVliwMutation && Number.isFinite(defaults.vliw?.mutationCount)) {
     energyVliwMutation.value = String(defaults.vliw.mutationCount);
+  }
+  if (energyVliwMlpHidden && Number.isFinite(defaults.vliw?.mlp?.hiddenSize)) {
+    energyVliwMlpHidden.value = String(defaults.vliw.mlp.hiddenSize);
+  }
+  if (energyVliwMlpLr && Number.isFinite(defaults.vliw?.mlp?.lr)) {
+    energyVliwMlpLr.value = String(defaults.vliw.mlp.lr);
   }
   if (energyVliwSpecSearch && typeof defaults.vliw?.specSearch?.enabled === 'boolean') {
     energyVliwSpecSearch.checked = defaults.vliw.specSearch.enabled;

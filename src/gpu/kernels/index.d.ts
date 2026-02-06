@@ -138,6 +138,13 @@ export {
   type ScaleOptions,
 } from './scale.js';
 
+// Clamp
+export {
+  runClamp,
+  recordClamp,
+  type ClampOptions,
+} from './clamp.js';
+
 // Energy (EBM helpers)
 export {
   runEnergyEval,
@@ -148,10 +155,13 @@ export {
   recordEnergyQuintelUpdate,
   runEnergyQuintelReduce,
   recordEnergyQuintelReduce,
+  runEnergyQuintelGrad,
+  recordEnergyQuintelGrad,
   type EnergyEvalOptions,
   type EnergyUpdateOptions,
   type EnergyQuintelUpdateOptions,
   type EnergyQuintelReduceOptions,
+  type EnergyQuintelGradOptions,
 } from './energy.js';
 
 // Conv2D

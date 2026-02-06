@@ -2,6 +2,8 @@ import { log } from '../../../src/debug/index.js';
 import { openModelStore, loadManifestFromStore } from '../../../src/storage/shard-manager.js';
 import { state } from '../state.js';
 
+const modelTypeInflight = new Map();
+
 export function normalizeModelType(value) {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().toLowerCase();
@@ -38,16 +40,36 @@ export async function getModelTypeForId(modelId) {
   if (!modelId) return null;
   const cached = state.modelTypeCache[modelId];
   if (cached) return cached;
-  try {
-    await openModelStore(modelId);
-    const manifestText = await loadManifestFromStore();
-    if (!manifestText) return null;
-    const manifest = JSON.parse(manifestText);
-    const modelType = normalizeModelType(manifest?.modelType) || 'transformer';
-    state.modelTypeCache[modelId] = modelType;
-    return modelType;
-  } catch (error) {
-    log.warn('DopplerDemo', `Failed to read manifest for ${modelId}: ${error.message}`);
-    return null;
-  }
+  const inflight = modelTypeInflight.get(modelId);
+  if (inflight) return inflight;
+
+  const request = (async () => {
+    try {
+      await openModelStore(modelId);
+      const manifestText = await loadManifestFromStore();
+      if (!manifestText) {
+        return null;
+      }
+      let manifest;
+      try {
+        manifest = JSON.parse(manifestText);
+      } catch (error) {
+        log.warn('DopplerDemo', `Failed to parse manifest for ${modelId}: ${error.message}`);
+        state.modelTypeCache[modelId] = 'unknown';
+        return 'unknown';
+      }
+      const modelType = normalizeModelType(manifest?.modelType) || 'transformer';
+      state.modelTypeCache[modelId] = modelType;
+      return modelType;
+    } catch (error) {
+      log.warn('DopplerDemo', `Failed to read manifest for ${modelId}: ${error.message}`);
+      state.modelTypeCache[modelId] = 'unknown';
+      return 'unknown';
+    } finally {
+      modelTypeInflight.delete(modelId);
+    }
+  })();
+
+  modelTypeInflight.set(modelId, request);
+  return request;
 }

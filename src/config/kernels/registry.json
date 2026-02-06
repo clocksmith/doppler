@@ -1141,6 +1141,30 @@
         }
       }
     },
+    "clamp": {
+      "description": "Tensor clamp kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "data", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "size", "type": "u32", "offset": 0 },
+          { "name": "_pad0", "type": "u32", "offset": 4 },
+          { "name": "min", "type": "f32", "offset": 8 },
+          { "name": "max", "type": "f32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "clamp.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
     "energy_eval": {
       "description": "Energy evaluation kernels",
       "baseBindings": [
@@ -1242,6 +1266,51 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": ["shader-f16"]
+        }
+      }
+    },
+    "energy_quintel_grad": {
+      "description": "Quintel energy gradient kernels",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "state", "type": "read-only-storage" },
+        { "index": 2, "name": "output", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          { "name": "count", "type": "u32", "offset": 0 },
+          { "name": "size", "type": "u32", "offset": 4 },
+          { "name": "flags", "type": "u32", "offset": 8 },
+          { "name": "_pad0", "type": "u32", "offset": 12 },
+          { "name": "stepSize", "type": "f32", "offset": 16 },
+          { "name": "gradientScale", "type": "f32", "offset": 20 },
+          { "name": "countDiff", "type": "f32", "offset": 24 },
+          { "name": "centerTarget", "type": "f32", "offset": 28 },
+          { "name": "symmetryWeight", "type": "f32", "offset": 32 },
+          { "name": "countWeight", "type": "f32", "offset": 36 },
+          { "name": "centerWeight", "type": "f32", "offset": 40 },
+          { "name": "binarizeWeight", "type": "f32", "offset": 44 },
+          { "name": "clampMin", "type": "f32", "offset": 48 },
+          { "name": "clampMax", "type": "f32", "offset": 52 },
+          { "name": "_pad1", "type": "f32", "offset": 56 },
+          { "name": "_pad2", "type": "f32", "offset": 60 }
+        ]
+      },
+      "variants": {
+        "quintel_grad": {
+          "wgsl": "energy_quintel_grad.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "quintel_grad_f16": {
+          "wgsl": "energy_quintel_grad_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"],
+          "outputDtype": "f32"
         }
       }
     },
@@ -1897,16 +1966,21 @@
       "description": "Embedding backward",
       "baseBindings": [
         { "index": 0, "name": "uniforms", "type": "uniform" },
-        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
-        { "index": 2, "name": "output", "type": "storage" }
+        { "index": 1, "name": "indices", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_embeddings", "type": "storage" }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
-          { "name": "size", "type": "u32", "offset": 0 },
-          { "name": "_pad0", "type": "u32", "offset": 4 },
-          { "name": "_pad1", "type": "u32", "offset": 8 },
-          { "name": "_pad2", "type": "u32", "offset": 12 }
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "hidden_size", "type": "u32", "offset": 4 },
+          { "name": "vocab_size", "type": "u32", "offset": 8 },
+          { "name": "transpose", "type": "u32", "offset": 12 },
+          { "name": "index_offset", "type": "u32", "offset": 16 },
+          { "name": "_pad0", "type": "u32", "offset": 20 },
+          { "name": "_pad1", "type": "u32", "offset": 24 },
+          { "name": "_pad2", "type": "u32", "offset": 28 }
         ]
       },
       "variants": {

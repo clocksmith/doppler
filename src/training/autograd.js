@@ -11,6 +11,7 @@ import {
   runCrossEntropyBackward,
 } from '../gpu/kernels/backward/index.js';
 import { runResidualAdd } from '../gpu/kernels/residual.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { attentionBackwardCpu } from './attention-backward.js';
 
 export const OpType = {
@@ -73,18 +74,39 @@ export class AutogradTape {
   async runBackward(backwardName, record, gradOut) {
     switch (backwardName) {
       case 'embed_backward': {
-        const input = record.inputs[0];
-        const gradInput = await runEmbedBackward(input, gradOut, record.options);
-        return [{ input, grad: gradInput }];
+        const [indices, weight] = record.inputs;
+        if (!indices || !weight) {
+          throw new Error('embed backward requires [indices, weight] inputs');
+        }
+        const { numTokens, hiddenSize, vocabSize, transpose, indexOffset } = record.options;
+        const gradWeight = await runEmbedBackward(indices, gradOut, {
+          numTokens,
+          hiddenSize,
+          vocabSize,
+          transpose,
+          indexOffset,
+        });
+        return [{ input: weight, grad: gradWeight }];
       }
       case 'matmul_backward': {
         const [input, weight] = record.inputs;
-        const { M, N, K, transposeB } = record.options;
-        const { gradInput, gradWeight } = await runMatmulBackward(input, weight, gradOut, { M, N, K, transposeB });
-        return [
-          { input, grad: gradInput },
-          { input: weight, grad: gradWeight },
-        ];
+        const { M, N, K, transposeB, computeGradInput, computeGradWeight } = record.options;
+        const { gradInput, gradWeight } = await runMatmulBackward(input, weight, gradOut, {
+          M,
+          N,
+          K,
+          transposeB,
+          computeGradInput,
+          computeGradWeight,
+        });
+        const outputs = [];
+        if (gradInput) {
+          outputs.push({ input, grad: gradInput });
+        }
+        if (gradWeight) {
+          outputs.push({ input: weight, grad: gradWeight });
+        }
+        return outputs;
       }
       case 'softmax_backward': {
         const input = record.output;
@@ -179,6 +201,12 @@ export class AutogradTape {
     const size = grad.shape.reduce((acc, value) => acc * value, 1);
     const summed = await runResidualAdd(existing, grad, size);
     grads.set(input, summed);
+    if (existing.buffer !== summed.buffer) {
+      releaseBuffer(existing.buffer);
+    }
+    if (grad.buffer !== summed.buffer && grad.buffer !== existing.buffer) {
+      releaseBuffer(grad.buffer);
+    }
   }
 
   reset() {

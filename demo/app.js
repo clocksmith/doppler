@@ -40,6 +40,7 @@ import {
   setStatusIndicator,
   updateStatusIndicator,
   clampPercent,
+  hideErrorModal,
 } from './app/ui.js';
 import {
   updatePerformancePanel,
@@ -655,6 +656,30 @@ function updateRunAutoLabels() {
   setRunAutoLabel('max-tokens-input', 'max-tokens-auto', batching.maxTokens, { integer: true });
 }
 
+function formatCharCounter(value, maxLength) {
+  const length = String(value || '').length;
+  if (Number.isFinite(maxLength) && maxLength > 0) {
+    return `${length}/${maxLength}`;
+  }
+  return String(length);
+}
+
+function updateDiffusionCharCounters() {
+  const promptEl = $('diffusion-prompt');
+  const negativeEl = $('diffusion-negative');
+  const promptCountEl = $('diffusion-prompt-count');
+  const negativeCountEl = $('diffusion-negative-count');
+
+  if (promptCountEl) {
+    const maxLength = promptEl?.maxLength ?? null;
+    promptCountEl.textContent = formatCharCounter(promptEl?.value, maxLength);
+  }
+  if (negativeCountEl) {
+    const maxLength = negativeEl?.maxLength ?? null;
+    negativeCountEl.textContent = formatCharCounter(negativeEl?.value, maxLength);
+  }
+}
+
 function buildRunGenerateOptions() {
   const temperature = readOptionalNumber($('temperature-input'));
   const topP = readOptionalNumber($('top-p-input'));
@@ -968,9 +993,12 @@ async function handleEnergyRun() {
     const tempStart = readOptionalNumber($('energy-vliw-temp-start'));
     const tempDecay = readOptionalNumber($('energy-vliw-temp-decay'));
     const mutationCount = readOptionalNumber($('energy-vliw-mutation'), { integer: true });
+    const mlpHidden = readOptionalNumber($('energy-vliw-mlp-hidden'), { integer: true });
+    const mlpLr = readOptionalNumber($('energy-vliw-mlp-lr'));
     const demoDefaults = demo?.defaults ?? {};
     const policy = demoDefaults.vliw?.policy;
     const jitter = demoDefaults.vliw?.jitter;
+    const mlpDefaults = demoDefaults.vliw?.mlp ?? null;
     const vliwMode = $('energy-vliw-mode')?.value || demoDefaults.vliw?.mode || 'parity';
     const scoreMode = $('energy-vliw-score-mode')?.value || demoDefaults.vliw?.scoreMode || 'auto';
     const schedulerPolicies = Array.isArray(demoDefaults.vliw?.schedulerPolicies)
@@ -980,12 +1008,22 @@ async function handleEnergyRun() {
       ? demoDefaults.vliw.schedulerRestarts
       : null;
     const capsSource = vliwMode === 'parity' ? 'slot_limits' : 'spec';
+    const mlpConfig = policy === 'mlp'
+      ? {
+        ...(Number.isFinite(mlpHidden) ? { hiddenSize: mlpHidden } : {}),
+        ...(Number.isFinite(mlpLr) ? { lr: mlpLr } : {}),
+        ...(!Number.isFinite(mlpHidden) && Number.isFinite(mlpDefaults?.hiddenSize) ? { hiddenSize: mlpDefaults.hiddenSize } : {}),
+        ...(!Number.isFinite(mlpLr) && Number.isFinite(mlpDefaults?.lr) ? { lr: mlpDefaults.lr } : {}),
+      }
+      : null;
+    const mlp = mlpConfig && Object.keys(mlpConfig).length ? mlpConfig : null;
     const vliwSearch = {
       restarts,
       temperatureStart: tempStart,
       temperatureDecay: tempDecay,
       mutationCount,
       ...(policy ? { policy } : {}),
+      ...(mlp ? { mlp } : {}),
       ...(Number.isFinite(jitter) ? { jitter } : {}),
       ...(vliwMode ? { mode: vliwMode } : {}),
       ...(scoreMode ? { scoreMode } : {}),
@@ -1379,16 +1417,31 @@ async function clearAllMemory() {
 
 function startTelemetryLoop() {
   if (state.uiIntervalId) return;
-  state.uiIntervalId = setInterval(async () => {
-    const now = Date.now();
-    if (now - state.lastStorageRefresh > 15000) {
-      state.lastStorageRefresh = now;
-      await updateStorageInfo();
+
+  let telemetryInFlight = false;
+  const tick = async () => {
+    if (telemetryInFlight) return;
+    telemetryInFlight = true;
+    try {
+      const now = Date.now();
+      if (now - state.lastStorageRefresh > 15000) {
+        state.lastStorageRefresh = now;
+        await updateStorageInfo();
+      }
+      const snapshot = captureMemorySnapshot();
+      updateMemoryPanel(snapshot);
+      updatePerformancePanel(snapshot);
+    } catch (error) {
+      log.warn('DopplerDemo', `Telemetry update failed: ${error.message}`);
+    } finally {
+      telemetryInFlight = false;
     }
-    const snapshot = captureMemorySnapshot();
-    updateMemoryPanel(snapshot);
-    updatePerformancePanel(snapshot);
+  };
+
+  state.uiIntervalId = setInterval(() => {
+    void tick();
   }, 1000);
+  void tick();
 }
 
 function populateModelPresets() {
@@ -1526,10 +1579,25 @@ async function regenerateManifest(modelId) {
       );
     }
     const preset = resolvePreset(presetId);
-    const headDim = rawConfig.head_dim
-      ?? (manifest.architecture && typeof manifest.architecture === 'object' ? manifest.architecture.headDim : null);
+    const modelConfig = rawConfig?.text_config ?? rawConfig ?? {};
+    const hiddenSize = modelConfig.hidden_size ?? modelConfig.n_embd ?? modelConfig.d_model ?? modelConfig.model_dim ?? null;
+    const numHeads = modelConfig.num_attention_heads ?? modelConfig.n_head ?? modelConfig.num_heads ?? null;
+    const derivedHeadDim = (Number.isFinite(hiddenSize) && Number.isFinite(numHeads) && numHeads > 0)
+      ? hiddenSize / numHeads
+      : null;
+    const configHeadDim = Number.isFinite(rawConfig.head_dim) ? rawConfig.head_dim : null;
+    const manifestHeadDim = (
+      manifest.architecture
+      && typeof manifest.architecture === 'object'
+      && Number.isFinite(manifest.architecture.headDim)
+    )
+      ? manifest.architecture.headDim
+      : null;
+    const headDim = configHeadDim
+      ?? manifestHeadDim
+      ?? (Number.isFinite(derivedHeadDim) && Math.floor(derivedHeadDim) === derivedHeadDim ? derivedHeadDim : null);
     if (!headDim) {
-      throw new Error('Missing headDim in manifest config.');
+      throw new Error('Missing headDim in manifest config (head_dim or hidden_size/num_attention_heads).');
     }
     inference = buildManifestInference(
       preset,
@@ -1578,6 +1646,9 @@ async function handleRegenerateManifest() {
   updateStatusIndicator();
   try {
     await regenerateManifest(modelId);
+    if (modelId) {
+      delete state.modelTypeCache[modelId];
+    }
     updateConvertStatus(`Manifest regenerated: ${modelId}`, 100);
     await refreshModelList();
   } catch (error) {
@@ -1850,6 +1921,8 @@ function exportEnergyRun() {
 }
 
 function bindUI() {
+  const errorModal = $('error-modal');
+  const errorClose = $('error-close');
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
   const regenManifestBtn = $('regen-manifest-btn');
@@ -1892,6 +1965,13 @@ function bindUI() {
   const energyRun = $('energy-run-btn');
   const energyExport = $('energy-export-btn');
   const energyClear = $('energy-clear-btn');
+
+  errorClose?.addEventListener('click', () => hideErrorModal());
+  errorModal?.addEventListener('click', (event) => {
+    if (event.target === errorModal) {
+      hideErrorModal();
+    }
+  });
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
     button.addEventListener('click', () => {
@@ -1998,7 +2078,9 @@ function bindUI() {
     state.runtimeOverride = null;
     state.runtimeOverrideBase = null;
     state.runtimeOverrideLabel = null;
-    runtimeFile.value = '';
+    if (runtimeFile) {
+      runtimeFile.value = '';
+    }
     if (runtimeConfigPreset) {
       runtimeConfigPreset.value = '';
     }
@@ -2054,6 +2136,8 @@ function bindUI() {
   topPInput?.addEventListener('input', updateRunAutoLabels);
   topKInput?.addEventListener('input', updateRunAutoLabels);
   maxTokensInput?.addEventListener('input', updateRunAutoLabels);
+  diffusionPrompt?.addEventListener('input', updateDiffusionCharCounters);
+  diffusionNegative?.addEventListener('input', updateDiffusionCharCounters);
 
   diffusionClear?.addEventListener('click', () => {
     if (diffusionPrompt) diffusionPrompt.value = '';
@@ -2063,6 +2147,7 @@ function bindUI() {
     if (diffusionSeed) diffusionSeed.value = '';
     if (diffusionWidth) diffusionWidth.value = '256';
     if (diffusionHeight) diffusionHeight.value = '256';
+    updateDiffusionCharCounters();
     handleDiffusionClear();
   });
 
@@ -2113,6 +2198,7 @@ function bindUI() {
   });
 
   updateRunAutoLabels();
+  updateDiffusionCharCounters();
 }
 
 async function init() {

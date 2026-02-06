@@ -5,6 +5,7 @@ import { formatBytes, getQuotaInfo } from '../../../src/storage/quota.js';
 import { listStorageInventory, deleteStorageEntry } from '../../../src/storage/inventory.js';
 import { state } from '../state.js';
 import { $, setText } from '../dom.js';
+import { showErrorModal } from '../ui.js';
 
 function getRegistryModelId(entry) {
   if (!entry) return '';
@@ -81,6 +82,8 @@ async function handleDeleteStorageEntry(entry, callbacks) {
   } catch (error) {
     log.warn('DopplerDemo', `Failed to remove registry entry: ${error.message}`);
   }
+
+  delete state.modelTypeCache[entry.modelId];
 
   if (callbacks?.onModelsUpdated) {
     await callbacks.onModelsUpdated();
@@ -188,7 +191,9 @@ export async function refreshStorageInspector(callbacks = {}) {
       }
     }
 
-    const systemBytes = systemEntries.reduce((sum, entry) => sum + entry.totalBytes, 0);
+    const systemBytes = systemEntries.reduce((sum, entry) => (
+      sum + (Number.isFinite(entry.totalBytes) ? entry.totalBytes : 0)
+    ), 0);
     const summaryParts = [];
     if (entries.length) {
       summaryParts.push(`Models: ${entries.length}`);
@@ -311,7 +316,12 @@ export async function refreshStorageInspector(callbacks = {}) {
           }
           deleteBtn.addEventListener('click', async (event) => {
             event.stopPropagation();
-            await handleDeleteStorageEntry(entry, callbacks);
+            try {
+              await handleDeleteStorageEntry(entry, callbacks);
+            } catch (error) {
+              log.warn('DopplerDemo', `Delete failed: ${error.message}`);
+              showErrorModal(`Delete failed: ${error.message}`);
+            }
           });
           actions.appendChild(deleteBtn);
           row.appendChild(actions);
@@ -350,7 +360,8 @@ export async function refreshStorageInspector(callbacks = {}) {
         const detail = document.createElement('span');
         detail.className = 'type-caption';
         const systemRoot = entry.root ? ` • root: ${entry.root}` : '';
-        detail.textContent = `${formatBytes(entry.totalBytes)} • ${entry.fileCount} files${systemRoot}`;
+        const bytesLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : '--';
+        detail.textContent = `${bytesLabel} • ${entry.fileCount} files${systemRoot}`;
         main.appendChild(detail);
 
         row.appendChild(main);

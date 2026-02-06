@@ -1,25 +1,45 @@
 import { getDevice } from '../../device.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
-import { createTensor, dtypeBytes } from '../../tensor.js';
+import { createTensor } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
-import { dispatch, recordDispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 
-export async function runEmbedBackward(input, gradOutput, options = {}) {
-  void input;
+function resolveOptions(gradOutput, options) {
+  const numTokens = options.numTokens ?? gradOutput.shape?.[0] ?? null;
+  const hiddenSize = options.hiddenSize ?? gradOutput.shape?.[1] ?? null;
+  const vocabSize = options.vocabSize ?? null;
+  if (!numTokens || !hiddenSize || !vocabSize) {
+    throw new Error('embed backward requires numTokens, hiddenSize, and vocabSize');
+  }
+  const transpose = options.transpose === true;
+  const indexOffset = options.indexOffset ?? 0;
+  if (!Number.isFinite(indexOffset) || indexOffset < 0) {
+    throw new Error('embed backward requires a non-negative indexOffset');
+  }
+  return { numTokens, hiddenSize, vocabSize, transpose, indexOffset };
+}
+
+export async function runEmbedBackward(indices, gradOutput, options = {}) {
   const device = getDevice();
-  const { count, outputBuffer = null } = options;
-  const bytesPerElement = dtypeBytes(gradOutput.dtype);
-  const inferredCount = count ?? Math.floor(gradOutput.buffer.size / bytesPerElement);
-  const outputSize = inferredCount * bytesPerElement;
+  if (gradOutput.dtype !== 'f32') {
+    throw new Error('embed backward requires f32 gradOutput');
+  }
+
+  const { numTokens, hiddenSize, vocabSize, transpose, indexOffset } = resolveOptions(gradOutput, options);
+  const { outputBuffer = null } = options;
+  const outputSize = vocabSize * hiddenSize * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'embed_backward_output');
 
   const pipeline = await createPipeline('embed_backward', 'default');
   const uniformBuffer = createUniformBufferWithView(
     'embed_backward_uniforms',
-    16,
+    32,
     (view) => {
-      view.setUint32(0, inferredCount, true);
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, vocabSize, true);
+      view.setUint32(12, transpose ? 1 : 0, true);
+      view.setUint32(16, indexOffset, true);
     },
     null,
     device
@@ -30,32 +50,47 @@ export async function runEmbedBackward(input, gradOutput, options = {}) {
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: gradOutput.buffer } },
-      { binding: 2, resource: { buffer: outputBuf } },
+      { binding: 1, resource: { buffer: indices.buffer } },
+      { binding: 2, resource: { buffer: gradOutput.buffer } },
+      { binding: 3, resource: { buffer: outputBuf } },
     ],
   });
 
-  const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'embed_backward');
+  const encoder = device.createCommandEncoder({ label: 'embed_backward_encoder' });
+  encoder.clearBuffer(outputBuf);
+  const pass = encoder.beginComputePass({ label: 'embed_backward_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  const workgroups = Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+  device.queue.submit([encoder.finish()]);
   uniformBuffer.destroy();
 
-  return createTensor(outputBuf, gradOutput.dtype, [...gradOutput.shape], 'embed_backward_output');
+  const shape = transpose ? [hiddenSize, vocabSize] : [vocabSize, hiddenSize];
+  return createTensor(outputBuf, 'f32', shape, 'embed_backward_output');
 }
 
-export async function recordEmbedBackward(recorder, input, gradOutput, options = {}) {
-  void input;
-  const { count, outputBuffer = null } = options;
-  const bytesPerElement = dtypeBytes(gradOutput.dtype);
-  const inferredCount = count ?? Math.floor(gradOutput.buffer.size / bytesPerElement);
-  const outputSize = inferredCount * bytesPerElement;
+export async function recordEmbedBackward(recorder, indices, gradOutput, options = {}) {
+  if (gradOutput.dtype !== 'f32') {
+    throw new Error('embed backward requires f32 gradOutput');
+  }
+
+  const { numTokens, hiddenSize, vocabSize, transpose, indexOffset } = resolveOptions(gradOutput, options);
+  const { outputBuffer = null } = options;
+  const outputSize = vocabSize * hiddenSize * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'embed_backward_output');
 
   const pipeline = await createPipeline('embed_backward', 'default');
   const uniformBuffer = createUniformBufferWithView(
     'embed_backward_uniforms',
-    16,
+    32,
     (view) => {
-      view.setUint32(0, inferredCount, true);
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, hiddenSize, true);
+      view.setUint32(8, vocabSize, true);
+      view.setUint32(12, transpose ? 1 : 0, true);
+      view.setUint32(16, indexOffset, true);
     },
     recorder
   );
@@ -65,13 +100,19 @@ export async function recordEmbedBackward(recorder, input, gradOutput, options =
     layout: pipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: gradOutput.buffer } },
-      { binding: 2, resource: { buffer: outputBuf } },
+      { binding: 1, resource: { buffer: indices.buffer } },
+      { binding: 2, resource: { buffer: gradOutput.buffer } },
+      { binding: 3, resource: { buffer: outputBuf } },
     ],
   });
 
-  const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'embed_backward');
+  recorder.getEncoder().clearBuffer(outputBuf);
+  const pass = recorder.beginComputePass('embed_backward');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
+  pass.end();
 
-  return createTensor(outputBuf, gradOutput.dtype, [...gradOutput.shape], 'embed_backward_output');
+  const shape = transpose ? [hiddenSize, vocabSize] : [vocabSize, hiddenSize];
+  return createTensor(outputBuf, 'f32', shape, 'embed_backward_output');
 }

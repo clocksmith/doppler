@@ -184,7 +184,7 @@ function extractSourceFromStack() {
     const line = lines[i];
     // Match file:line pattern in stack trace
     // Example: "at functionName (http://localhost:8080/path/to/file.ts:123:45)"
-    const match = line.match(/\/([^\/]+\.ts):(\d+):/);
+    const match = line.match(/\/([^\/]+\.(?:js|ts)):(\d+):/);
     if (match) {
       return `${match[1]}:${match[2]}`;
     }

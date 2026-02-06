@@ -3,6 +3,20 @@ import { $, setText } from './dom.js';
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
 
+export function showErrorModal(message) {
+  const modal = $('error-modal');
+  const messageEl = $('error-message');
+  if (!modal || !messageEl) return;
+  setText(messageEl, message ? String(message) : 'Unknown error');
+  modal.hidden = false;
+}
+
+export function hideErrorModal() {
+  const modal = $('error-modal');
+  if (!modal) return;
+  modal.hidden = true;
+}
+
 export function setStatusIndicator(message, tone) {
   const indicator = $('status-indicator');
   if (!indicator) return;

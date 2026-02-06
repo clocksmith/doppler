@@ -330,44 +330,47 @@ export class DiffusionPipeline {
   async generateCPU(request = {}) {
     const start = performance.now();
     const runtime = this.diffusionState.runtime;
+    const clipMaxLength = runtime.textEncoder?.maxLength;
+    if (!Number.isFinite(clipMaxLength) || clipMaxLength <= 0) {
+      throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
+    }
+    const t5MaxLength = runtime.textEncoder?.t5MaxLength ?? clipMaxLength;
+    if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
+      throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
+    }
+
     const defaultWidth = runtime.latent.width;
     const defaultHeight = runtime.latent.height;
-    const width = Number.isFinite(request.width) && request.width > 0
-      ? request.width
-      : defaultWidth;
-    const height = Number.isFinite(request.height) && request.height > 0
-      ? request.height
-      : defaultHeight;
-    const steps = Number.isFinite(request.steps) && request.steps > 0
-      ? request.steps
-      : runtime.scheduler.numSteps;
+    const width = Math.floor(Number.isFinite(request.width) && request.width > 0 ? request.width : defaultWidth);
+    const height = Math.floor(Number.isFinite(request.height) && request.height > 0 ? request.height : defaultHeight);
+    const steps = Math.floor(Number.isFinite(request.steps) && request.steps > 0 ? request.steps : runtime.scheduler.numSteps);
     const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
-    const seed = request.seed ?? Math.floor(Math.random() * 1e9);
-    const pipelineMode = this.diffusionState.runtime?.backend?.pipeline;
-    const profilerEnabled = this.runtimeConfig?.shared?.debug?.profiler?.enabled === true;
-    const canProfileGpu = pipelineMode === 'gpu' && profilerEnabled && getKernelCapabilities().hasTimestampQuery;
-    let gpuPrefillMs = canProfileGpu ? 0 : null;
-    let gpuDenoiseMs = canProfileGpu ? 0 : null;
-    let gpuVaeMs = canProfileGpu ? 0 : null;
+    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : Math.floor(Math.random() * 1e9);
 
     if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
       throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
+    }
+    if (!Number.isFinite(steps) || steps <= 0) {
+      throw new Error(`Invalid diffusion steps: ${steps}`);
     }
 
     const promptStart = performance.now();
     const encoded = encodePrompt(
       { prompt: request.prompt ?? '', negativePrompt: request.negativePrompt ?? '' },
       this.tokenizers || {},
-      { maxLength: runtime.textEncoder.maxLength }
+      {
+        maxLengthByTokenizer: {
+          text_encoder: clipMaxLength,
+          text_encoder_2: clipMaxLength,
+          text_encoder_3: t5MaxLength,
+        },
+      }
     );
     const promptEnd = performance.now();
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
-    if (scheduler.type !== 'flowmatch_euler') {
-      log.warn('Diffusion', `GPU pipeline tuned for flowmatch_euler; running "${scheduler.type}" may be inaccurate.`);
-    }
     const latentScale = this.diffusionState.latentScale;
     const latentChannels = this.diffusionState.latentChannels;
     const { latents, latentWidth, latentHeight } = generateLatents(width, height, latentChannels, latentScale, seed);
@@ -395,10 +398,6 @@ export class DiffusionPipeline {
     const decodeEnd = performance.now();
 
     const vaeStart = performance.now();
-    const useGpuVae = this.diffusionState.runtime?.backend?.pipeline === 'gpu';
-    if (useGpuVae) {
-      await this.ensureVaeWeights();
-    }
     const pixels = await decodeLatents(latents, {
       width,
       height,
@@ -406,7 +405,7 @@ export class DiffusionPipeline {
       latentHeight,
       latentChannels,
       latentScale,
-      weights: useGpuVae ? this.vaeWeights : null,
+      weights: null,
       modelConfig: this.diffusionState.modelConfig,
       runtime: this.diffusionState.runtime,
     });
@@ -416,9 +415,6 @@ export class DiffusionPipeline {
     const cpuPrefillMs = promptEnd - promptStart;
     const cpuDenoiseMs = decodeEnd - decodeStart;
     const cpuVaeMs = vaeEnd - vaeStart;
-    const gpuTotalMs = canProfileGpu
-      ? [gpuPrefillMs, gpuDenoiseMs, gpuVaeMs].reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0)
-      : null;
 
     this.stats = {
       totalTimeMs: end - start,
@@ -427,15 +423,7 @@ export class DiffusionPipeline {
       decodeTimeMs: cpuDenoiseMs,
       decodeTokens: scheduler.steps,
       vaeTimeMs: cpuVaeMs,
-      gpu: canProfileGpu
-        ? {
-            available: true,
-            totalMs: gpuTotalMs,
-            prefillMs: gpuPrefillMs,
-            denoiseMs: gpuDenoiseMs,
-            vaeMs: gpuVaeMs,
-          }
-        : { available: false },
+      gpu: { available: false },
     };
 
     log.info('Diffusion', `Prompt encode: ${(promptEnd - promptStart).toFixed(0)}ms (${encoded.totalTokens} tokens)`);
@@ -449,10 +437,10 @@ export class DiffusionPipeline {
       steps: scheduler.steps,
       vaeMs: cpuVaeMs,
       totalMs: end - start,
-      gpuPrefillMs: canProfileGpu ? gpuPrefillMs : null,
-      gpuDenoiseMs: canProfileGpu ? gpuDenoiseMs : null,
-      gpuVaeMs: canProfileGpu ? gpuVaeMs : null,
-      gpuTotalMs: canProfileGpu ? gpuTotalMs : null,
+      gpuPrefillMs: null,
+      gpuDenoiseMs: null,
+      gpuVaeMs: null,
+      gpuTotalMs: null,
       width,
       height,
     });
@@ -463,21 +451,24 @@ export class DiffusionPipeline {
   async generateGPU(request = {}) {
     const start = performance.now();
     const runtime = this.diffusionState.runtime;
+    const clipMaxLength = runtime.textEncoder?.maxLength;
+    if (!Number.isFinite(clipMaxLength) || clipMaxLength <= 0) {
+      throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
+    }
+    const t5MaxLength = runtime.textEncoder?.t5MaxLength ?? clipMaxLength;
+    if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
+      throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
+    }
+
     const defaultWidth = runtime.latent.width;
     const defaultHeight = runtime.latent.height;
-    const width = Number.isFinite(request.width) && request.width > 0
-      ? request.width
-      : defaultWidth;
-    const height = Number.isFinite(request.height) && request.height > 0
-      ? request.height
-      : defaultHeight;
-    const steps = Number.isFinite(request.steps) && request.steps > 0
-      ? request.steps
-      : runtime.scheduler.numSteps;
+    const width = Math.floor(Number.isFinite(request.width) && request.width > 0 ? request.width : defaultWidth);
+    const height = Math.floor(Number.isFinite(request.height) && request.height > 0 ? request.height : defaultHeight);
+    const steps = Math.floor(Number.isFinite(request.steps) && request.steps > 0 ? request.steps : runtime.scheduler.numSteps);
     const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
-    const seed = request.seed ?? Math.floor(Math.random() * 1e9);
+    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : Math.floor(Math.random() * 1e9);
     const profilerEnabled = this.runtimeConfig?.shared?.debug?.profiler?.enabled === true;
     const canProfileGpu = profilerEnabled && getKernelCapabilities().hasTimestampQuery;
     let gpuPrefillMs = canProfileGpu ? 0 : null;
@@ -486,6 +477,9 @@ export class DiffusionPipeline {
 
     if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
       throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
+    }
+    if (!Number.isFinite(steps) || steps <= 0) {
+      throw new Error(`Invalid diffusion steps: ${steps}`);
     }
 
     const modelConfig = this.diffusionState.modelConfig;
@@ -504,7 +498,13 @@ export class DiffusionPipeline {
     const encoded = encodePrompt(
       { prompt: request.prompt ?? '', negativePrompt: request.negativePrompt ?? '' },
       this.tokenizers || {},
-      { maxLength: runtime.textEncoder.maxLength }
+      {
+        maxLengthByTokenizer: {
+          text_encoder: clipMaxLength,
+          text_encoder_2: clipMaxLength,
+          text_encoder_3: t5MaxLength,
+        },
+      }
     );
 
     const promptTokens = extractTokenSet(encoded.tokens, 'prompt');
@@ -564,6 +564,9 @@ export class DiffusionPipeline {
     }
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
+    if (scheduler.type !== 'flowmatch_euler') {
+      log.warn('Diffusion', `GPU pipeline tuned for flowmatch_euler; running "${scheduler.type}" may be inaccurate.`);
+    }
     const latentScale = this.diffusionState.latentScale;
     const latentChannels = this.diffusionState.latentChannels;
     const { latents, latentWidth, latentHeight } = generateLatents(width, height, latentChannels, latentScale, seed);

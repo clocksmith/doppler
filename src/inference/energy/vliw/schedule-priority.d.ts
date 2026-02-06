@@ -1,4 +1,5 @@
 import type { VliwGraph } from './graph.js';
+import type { VliwMlpModel } from './mlp.js';
 export function scheduleWithPriority(
   tasks: Array<{ id: number; engine: string }>,
   caps: Record<string, number>,
@@ -21,7 +22,9 @@ export function scheduleWithHeuristic(params: {
   caps: Record<string, number>;
   graph: VliwGraph;
   features: { height: Float32Array; slack: Float32Array; order: number[] };
-  weights: Float32Array;
+  weights?: Float32Array | null;
+  mlpModel?: VliwMlpModel | null;
+  scoredFeatures?: number[] | null;
   basePriorities?: Float32Array | null;
   rng: () => number;
   jitter?: number;

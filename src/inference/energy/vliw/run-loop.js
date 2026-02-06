@@ -1,4 +1,4 @@
-import { DEFAULT_WEIGHTS, ENGINE_ORDER } from './constants.js';
+import { DEFAULT_MLP_CONFIG, DEFAULT_WEIGHTS, ENGINE_ORDER } from './constants.js';
 import { createRng } from './rng.js';
 import { buildTaskIndex } from './tasks.js';
 import { buildGraph } from './graph.js';
@@ -9,6 +9,8 @@ import { scheduleGraphWithPolicies } from './schedule-latency.js';
 import { scheduleWithPriority, scheduleWithHeuristic } from './schedule-priority.js';
 import { initPriorities, perturbPriorities } from './priorities.js';
 import { initWeights, perturbWeights } from './weights.js';
+import { createMlp, perturbMlp } from './mlp.js';
+import { createMlpTrainer, mlpTrainDistillStep, disposeMlpTrainer } from './mlp-trainer.js';
 import { resolveScheduleEnergy } from './energy.js';
 import { SLOT_LIMITS } from '../vliw-shared.js';
 
@@ -38,7 +40,7 @@ function resolveScoreMode(scoreMode) {
   return 'graph';
 }
 
-export function runVliwEnergyLoop({
+export async function runVliwEnergyLoop({
   tasks,
   caps,
   dependencyModel,
@@ -86,7 +88,25 @@ export function runVliwEnergyLoop({
   let tempStart = Number.isFinite(search?.temperatureStart) ? search.temperatureStart : 2.5;
   const tempDecay = Number.isFinite(search?.temperatureDecay) ? search.temperatureDecay : 0.985;
   const mutationCount = Math.max(1, Math.floor(search?.mutationCount ?? Math.max(1, gradientScale * 4)));
-  const policy = search?.policy === 'priorities' ? 'priorities' : 'weights';
+  const policy = search?.policy === 'priorities'
+    ? 'priorities'
+    : (search?.policy === 'mlp' ? 'mlp' : 'weights');
+  const mlpInputSize = 5;
+  const mlpHiddenSize = policy === 'mlp'
+    ? Math.max(1, Math.floor(
+      Number.isFinite(search?.mlp?.hiddenSize)
+        ? search.mlp.hiddenSize
+        : DEFAULT_MLP_CONFIG.hiddenSize
+    ))
+    : null;
+  const mlpTrainerConfig = policy === 'mlp'
+    ? {
+      lr: Number.isFinite(search?.mlp?.lr) ? search.mlp.lr : DEFAULT_MLP_CONFIG.lr,
+      beta1: Number.isFinite(search?.mlp?.beta1) ? search.mlp.beta1 : DEFAULT_MLP_CONFIG.beta1,
+      beta2: Number.isFinite(search?.mlp?.beta2) ? search.mlp.beta2 : DEFAULT_MLP_CONFIG.beta2,
+      eps: Number.isFinite(search?.mlp?.eps) ? search.mlp.eps : DEFAULT_MLP_CONFIG.eps,
+    }
+    : null;
   const jitter = Number.isFinite(search?.jitter) ? search.jitter : 0;
   const schedulerSeed = Number.isFinite(search?.schedulerSeed) ? search.schedulerSeed : (seed ?? 0);
   const schedulerJitter = Number.isFinite(search?.schedulerJitter) ? search.schedulerJitter : 0;
@@ -96,7 +116,7 @@ export function runVliwEnergyLoop({
   const schedulerRestarts = Number.isFinite(search?.schedulerRestarts) ? search.schedulerRestarts : 1;
   const schedulerLabel = constraintMode === 'parity'
     ? scoreMode
-    : (policy === 'priorities' ? 'priority' : 'heuristic');
+    : (policy === 'priorities' ? 'priority' : (policy === 'mlp' ? 'mlp' : 'heuristic'));
 
   const rng = createRng(seed ?? 1337);
   const baselinePriorities = buildBaselinePriorities(taskList);
@@ -210,7 +230,12 @@ export function runVliwEnergyLoop({
       ? new Float32Array(baselinePriorities)
       : initPriorities(taskList.length, initMode, seedValue, initScale);
     const weights = initWeights(initMode, seedValue, initScale, DEFAULT_WEIGHTS);
-    let current = policy === 'priorities' ? priorities : weights;
+    let current = policy === 'priorities'
+      ? priorities
+      : (policy === 'mlp' ? createMlp(mlpInputSize, mlpHiddenSize, seedValue) : weights);
+
+    let trainer = null;
+
     let currentSchedule = policy === 'priorities'
       ? scheduleWithPriority(taskList, resolvedCaps, current, graph)
       : scheduleWithHeuristic({
@@ -218,7 +243,8 @@ export function runVliwEnergyLoop({
         caps: resolvedCaps,
         graph,
         features: graphMetrics,
-        weights: current,
+        weights: policy === 'weights' ? current : weights,
+        ...(policy === 'mlp' ? { mlpModel: current } : {}),
         basePriorities: baselinePriorities,
         rng,
         jitter,
@@ -238,66 +264,119 @@ export function runVliwEnergyLoop({
       });
     }
 
-    for (let step = 0; step < maxSteps; step++) {
-      stepsRun = step + 1;
-      const candidate = policy === 'priorities'
-        ? perturbPriorities(current, rng, mutationCount, stepSize)
-        : perturbWeights(current, rng, mutationCount, stepSize);
-      const candidateSchedule = policy === 'priorities'
-        ? scheduleWithPriority(taskList, resolvedCaps, candidate, graph)
-        : scheduleWithHeuristic({
-          tasks: taskList,
-          caps: resolvedCaps,
-          graph,
-          features: graphMetrics,
-          weights: candidate,
-          basePriorities: baselinePriorities,
-          rng,
-          jitter,
-        });
-      const candidateEnergy = resolveScheduleEnergy(candidateSchedule, taskList.length);
-      const delta = candidateEnergy - currentEnergy;
-      const accept = (!Number.isFinite(delta) && candidateEnergy < currentEnergy)
-        || delta <= 0
-        || rng() < Math.exp(-delta / Math.max(temperature, 1e-6));
-      if (accept) {
-        current = candidate;
-        currentSchedule = candidateSchedule;
-        currentEnergy = candidateEnergy;
-      }
-      if (currentEnergy < restartBestEnergy) {
-        restartBestEnergy = currentEnergy;
-        restartBestSchedule = currentSchedule;
-        restartBestSteps = step + 1;
-      }
-      if (currentEnergy < bestEnergy) {
-        bestEnergy = currentEnergy;
-        bestSchedule = currentSchedule;
-        bestState = currentSchedule.grid;
-        bestShape = currentSchedule.gridShape;
-        bestSteps = step + 1;
-        if (energyHistory.length) {
-          bestHistory = energyHistory.slice();
-        }
-      }
+    try {
+      for (let step = 0; step < maxSteps; step++) {
+        stepsRun = step + 1;
 
-      if (step % readbackEvery === 0 || step === maxSteps - 1) {
-        energyHistory.push(currentEnergy);
-        if (energyHistory.length > historyLimit) {
-          energyHistory.shift();
+        const scoredFeatures = policy === 'mlp' ? [] : null;
+        const candidate = policy === 'priorities'
+          ? perturbPriorities(current, rng, mutationCount, stepSize)
+          : (policy === 'mlp' ? perturbMlp(current, rng, mutationCount, stepSize) : perturbWeights(current, rng, mutationCount, stepSize));
+
+        const candidateSchedule = policy === 'priorities'
+          ? scheduleWithPriority(taskList, resolvedCaps, candidate, graph)
+          : scheduleWithHeuristic({
+            tasks: taskList,
+            caps: resolvedCaps,
+            graph,
+            features: graphMetrics,
+            weights: policy === 'weights' ? candidate : weights,
+            ...(policy === 'mlp' ? { mlpModel: candidate, scoredFeatures } : {}),
+            basePriorities: baselinePriorities,
+            rng,
+            jitter,
+          });
+
+        const candidateEnergy = resolveScheduleEnergy(candidateSchedule, taskList.length);
+        const delta = candidateEnergy - currentEnergy;
+        const accept = (!Number.isFinite(delta) && candidateEnergy < currentEnergy)
+          || delta <= 0
+          || rng() < Math.exp(-delta / Math.max(temperature, 1e-6));
+
+        if (accept) {
+          if (policy === 'mlp' && scoredFeatures && scoredFeatures.length) {
+            const featureBatch = new Float32Array(scoredFeatures);
+            const canTrain = featureBatch.length >= mlpInputSize && featureBatch.length % mlpInputSize === 0;
+            if (canTrain) {
+              try {
+                if (!trainer) {
+                  trainer = createMlpTrainer(mlpInputSize, mlpHiddenSize, mlpTrainerConfig);
+                }
+                current = await mlpTrainDistillStep(trainer, current, featureBatch, candidate);
+                currentSchedule = scheduleWithHeuristic({
+                  tasks: taskList,
+                  caps: resolvedCaps,
+                  graph,
+                  features: graphMetrics,
+                  weights,
+                  mlpModel: current,
+                  basePriorities: baselinePriorities,
+                  rng,
+                  jitter,
+                });
+                currentEnergy = resolveScheduleEnergy(currentSchedule, taskList.length);
+              } catch {
+                current = candidate;
+                currentSchedule = candidateSchedule;
+                currentEnergy = candidateEnergy;
+              }
+            } else {
+              current = candidate;
+              currentSchedule = candidateSchedule;
+              currentEnergy = candidateEnergy;
+            }
+          } else {
+            current = candidate;
+            currentSchedule = candidateSchedule;
+            currentEnergy = candidateEnergy;
+          }
         }
+
+        let observedEnergy = currentEnergy;
+        let observedSchedule = currentSchedule;
+        if (policy === 'mlp' && candidateEnergy < observedEnergy) {
+          observedEnergy = candidateEnergy;
+          observedSchedule = candidateSchedule;
+        }
+
+        if (observedEnergy < restartBestEnergy) {
+          restartBestEnergy = observedEnergy;
+          restartBestSchedule = observedSchedule;
+          restartBestSteps = step + 1;
+        }
+        if (observedEnergy < bestEnergy) {
+          bestEnergy = observedEnergy;
+          bestSchedule = observedSchedule;
+          bestState = observedSchedule.grid;
+          bestShape = observedSchedule.gridShape;
+          bestSteps = step + 1;
+          if (energyHistory.length) {
+            bestHistory = energyHistory.slice();
+          }
+        }
+
+        if (step % readbackEvery === 0 || step === maxSteps - 1) {
+          energyHistory.push(currentEnergy);
+          if (energyHistory.length > historyLimit) {
+            energyHistory.shift();
+          }
+        }
+        if (onProgress) {
+          onProgress({
+            stage: 'energy',
+            percent: (step + 1) / maxSteps,
+            message: `VLIW search ${restart + 1}/${restarts} • step ${step + 1}/${maxSteps}`,
+          });
+        }
+        if (convergenceThreshold != null && step >= minSteps && currentEnergy <= convergenceThreshold) {
+          break;
+        }
+        temperature *= tempDecay;
       }
-      if (onProgress) {
-        onProgress({
-          stage: 'energy',
-          percent: (step + 1) / maxSteps,
-          message: `VLIW search ${restart + 1}/${restarts} • step ${step + 1}/${maxSteps}`,
-        });
+    } finally {
+      if (trainer) {
+        disposeMlpTrainer(trainer);
       }
-      if (convergenceThreshold != null && step >= minSteps && currentEnergy <= convergenceThreshold) {
-        break;
-      }
-      temperature *= tempDecay;
     }
     totalSteps += stepsRun;
 

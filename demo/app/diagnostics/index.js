@@ -37,6 +37,7 @@ function isSuiteCompatibleModelType(modelType, suite) {
   const normalized = normalizeModelType(modelType);
   const required = getDiagnosticsRequiredModelType(suite);
   if (!required) return true;
+  if (!normalized || normalized === 'unknown') return false;
   if (required === 'text') {
     return normalized !== 'diffusion' && normalized !== 'energy';
   }
@@ -98,6 +99,18 @@ function updateDiagnosticsSuiteOptions(mode, modelId, modelType) {
     const opt = document.createElement('option');
     opt.value = '';
     opt.textContent = 'Loading model type...';
+    suiteSelect.appendChild(opt);
+    suiteSelect.disabled = true;
+    suiteSelect.value = '';
+    return '';
+  }
+
+  const normalizedModelType = normalizeModelType(modelType);
+  if (normalizedModelType === 'unknown') {
+    suiteSelect.innerHTML = '';
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'Model type unavailable (manifest unreadable)';
     suiteSelect.appendChild(opt);
     suiteSelect.disabled = true;
     suiteSelect.value = '';
@@ -385,8 +398,9 @@ export function updateDiagnosticsGuidance() {
 
   const mode = state.uiMode;
   const modelId = modelSelect?.value || '';
-  const modelType = modelId ? state.modelTypeCache[modelId] : null;
-  const resolvedSuite = updateDiagnosticsSuiteOptions(mode, modelId, modelType);
+  const modelType = modelId ? (state.modelTypeCache[modelId] || null) : null;
+  const normalizedModelType = modelType ? normalizeModelType(modelType) : null;
+  const resolvedSuite = updateDiagnosticsSuiteOptions(mode, modelId, normalizedModelType);
   const suite = resolvedSuite || suiteSelect.value || getDiagnosticsDefaultSuite(mode);
   const info = getDiagnosticsSuiteInfo(suite);
   const runtimeConfig = getDiagnosticsRuntimeConfig();
@@ -420,21 +434,21 @@ export function updateDiagnosticsGuidance() {
   } else if (info.requiresBenchIntent && !BENCH_INTENTS.has(intent)) {
     missing.push('bench intent');
   }
-  if (modelId && !modelType) {
+  if (modelId && normalizedModelType == null) {
     getModelTypeForId(modelId)
-      .then(() => updateDiagnosticsGuidance())
+      .then((resolved) => {
+        if (resolved != null) updateDiagnosticsGuidance();
+      })
       .catch(() => {});
   }
 
   if (info.requiresModel && !modelId) {
     missing.push('model');
   } else if (info.requiresModel && modelId && requiredModelType) {
-    if (modelType) {
-      if (!isSuiteCompatibleModelType(modelType, suite)) {
-        missing.push(formatDiagnosticsModelTypeLabel(requiredModelType));
-      }
-    } else {
+    if (!normalizedModelType || normalizedModelType === 'unknown') {
       missing.push('model type');
+    } else if (!isSuiteCompatibleModelType(normalizedModelType, suite)) {
+      missing.push(formatDiagnosticsModelTypeLabel(requiredModelType));
     }
   }
 
@@ -458,7 +472,8 @@ export function updateDiagnosticsGuidance() {
 
   const intentOk = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
   const modelOk = !info.requiresModel
-    || (Boolean(modelId) && (!requiredModelType || (modelType && isSuiteCompatibleModelType(modelType, suite))));
+    || (Boolean(modelId) && normalizedModelType != null && normalizedModelType !== 'unknown'
+      && (!requiredModelType || isSuiteCompatibleModelType(normalizedModelType, suite)));
   const promptOk = !suiteRequiresPrompt(suite) || (promptValue && String(promptValue).trim());
   const maxTokensOk = !suiteRequiresMaxTokens(suite) || Number.isFinite(maxTokensValue);
   const canVerify = intentOk;

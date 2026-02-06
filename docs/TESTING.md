@@ -141,6 +141,14 @@ browser harness lives in `src/inference/browser-harness.js`.
 ### Training Tests
 Add to `tests/training/browser/test-page.js`.
 
+#### Training Bench: EBM Recorded
+
+The training harness includes an EBM viability benchmark (`ebm-recorded-bench`).
+Its tunables are runtime-config driven:
+
+- Dims: `runtime.shared.harness.trainingBench.ebmRecorded.dims` (`M`, `K`, `H`, `O`)
+- Runs: `runtime.shared.benchmark.run.warmupRuns` + `runtime.shared.benchmark.run.timedRuns`
+
 ## CI Integration
 
 Browser automation is not wired in this repo yet. Run the harness and diagnostics

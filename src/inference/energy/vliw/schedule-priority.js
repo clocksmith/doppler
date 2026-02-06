@@ -1,5 +1,6 @@
 import { ENGINE_ORDER, WEIGHT_KEYS } from './constants.js';
 import { computeEngineOffsets } from './schedule-engine.js';
+import { mlpForward } from './mlp.js';
 
 export function scheduleWithPriority(tasks, caps, priorities, graph) {
   const n = tasks.length;
@@ -131,6 +132,8 @@ export function scheduleWithHeuristic({
   graph,
   features,
   weights,
+  mlpModel = null,
+  scoredFeatures = null,
   basePriorities,
   rng,
   jitter,
@@ -171,6 +174,7 @@ export function scheduleWithHeuristic({
   });
 
   const safeJitter = Number.isFinite(jitter) ? jitter : 0;
+  const tmpFeatures = mlpModel ? new Float32Array(5) : null;
 
   while (scheduled < n) {
     if (!ready.length) {
@@ -203,13 +207,26 @@ export function scheduleWithHeuristic({
       const slackScore = -slack;
       const ageScore = age[taskId] || 0;
       const baselineScore = basePriorities ? basePriorities[taskId] || 0 : 0;
-      const score = (
-        weights[WEIGHT_KEYS.height] * height
-        + weights[WEIGHT_KEYS.slack] * slackScore
-        + weights[WEIGHT_KEYS.pressure] * pressure
-        + weights[WEIGHT_KEYS.age] * ageScore
-        + weights[WEIGHT_KEYS.baseline] * baselineScore
-      );
+      let score = 0.0;
+      if (mlpModel && tmpFeatures) {
+        tmpFeatures[0] = height;
+        tmpFeatures[1] = slackScore;
+        tmpFeatures[2] = pressure;
+        tmpFeatures[3] = ageScore;
+        tmpFeatures[4] = baselineScore;
+        score = mlpForward(mlpModel, tmpFeatures);
+      } else {
+        score = (
+          weights[WEIGHT_KEYS.height] * height
+          + weights[WEIGHT_KEYS.slack] * slackScore
+          + weights[WEIGHT_KEYS.pressure] * pressure
+          + weights[WEIGHT_KEYS.age] * ageScore
+          + weights[WEIGHT_KEYS.baseline] * baselineScore
+        );
+      }
+      if (!Number.isFinite(score)) {
+        score = baselineScore;
+      }
       const jitterValue = safeJitter > 0 ? (rng() - 0.5) * safeJitter : 0;
       scoreById[taskId] = score + jitterValue;
     }
@@ -259,10 +276,20 @@ export function scheduleWithHeuristic({
         row[slotIndex] = 1;
         assignmentRow[slotIndex] = taskId;
         scheduledThis.push(taskId);
-        if (taskCycles[taskId] !== -1) {
+        const seen = taskCycles[taskId] !== -1;
+        if (seen) {
           duplicates += 1;
         } else {
           taskCycles[taskId] = cycles;
+          if (scoredFeatures && scoredFeatures.push) {
+            const pressure = engine ? enginePressure[engine] || 0 : 0;
+            const height = features.height[taskId] || 0;
+            const slack = features.slack[taskId] || 0;
+            const slackScore = -slack;
+            const ageScore = age[taskId] || 0;
+            const baselineScore = basePriorities ? basePriorities[taskId] || 0 : 0;
+            scoredFeatures.push(height, slackScore, pressure, ageScore, baselineScore);
+          }
         }
         scheduled += 1;
         usedSlots += 1;

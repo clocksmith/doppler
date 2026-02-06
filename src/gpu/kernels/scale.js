@@ -38,15 +38,22 @@ export async function runScale(
     device
   );
 
+  const bindGroupEntries = inplace
+    ? [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
+    ]
+    : [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
+    ];
+
   // Create bind group
   const bindGroup = device.createBindGroup({
     label: 'scale_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: outputBuf } },
-    ],
+    entries: bindGroupEntries,
   });
 
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
@@ -87,15 +94,22 @@ export async function recordScale(
     recorder
   );
 
+  const bindGroupEntries = inplace
+    ? [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
+    ]
+    : [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input.buffer } },
+      { binding: 2, resource: { buffer: outputBuf } },
+    ];
+
   // Create bind group
   const bindGroup = device.createBindGroup({
     label: 'scale_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: outputBuf } },
-    ],
+    entries: bindGroupEntries,
   });
 
   const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);

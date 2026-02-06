@@ -7,11 +7,13 @@ export interface MatmulBackwardOptions {
   N: number;
   K: number;
   transposeB?: boolean;
+  computeGradInput?: boolean;
+  computeGradWeight?: boolean;
 }
 
 export interface MatmulBackwardResult {
-  gradInput: Tensor;
-  gradWeight: Tensor;
+  gradInput: Tensor | null;
+  gradWeight: Tensor | null;
 }
 
 export declare function runMatmulBackward(
@@ -21,4 +23,10 @@ export declare function runMatmulBackward(
   options: MatmulBackwardOptions
 ): Promise<MatmulBackwardResult>;
 
-export declare function recordMatmulBackward(): Promise<never>;
+export declare function recordMatmulBackward(
+  recorder: CommandRecorder,
+  input: Tensor,
+  weight: Tensor,
+  gradOutput: Tensor,
+  options: MatmulBackwardOptions
+): Promise<MatmulBackwardResult>;

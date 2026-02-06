@@ -158,15 +158,18 @@ function truncateTokens(tokens, maxLength) {
 }
 
 export function encodePrompt(prompts, tokenizers, options = {}) {
-  const { maxLength } = options;
+  const { maxLength, maxLengthByTokenizer } = options;
   const result = {};
   let totalTokens = 0;
 
   for (const [key, tokenizer] of Object.entries(tokenizers || {})) {
     const prompt = prompts?.prompt ?? '';
     const negative = prompts?.negativePrompt ?? '';
-    const promptIds = truncateTokens(tokenizer.encode(prompt), maxLength);
-    const negativeIds = truncateTokens(tokenizer.encode(negative), maxLength);
+    const resolvedMaxLength = (maxLengthByTokenizer && typeof maxLengthByTokenizer === 'object')
+      ? (maxLengthByTokenizer[key] ?? maxLength)
+      : maxLength;
+    const promptIds = truncateTokens(tokenizer.encode(prompt), resolvedMaxLength);
+    const negativeIds = truncateTokens(tokenizer.encode(negative), resolvedMaxLength);
     result[key] = { prompt: promptIds, negative: negativeIds };
     totalTokens += promptIds.length + negativeIds.length;
   }

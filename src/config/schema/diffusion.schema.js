@@ -17,6 +17,7 @@ export const DEFAULT_DIFFUSION_LATENT_CONFIG = {
 
 export const DEFAULT_DIFFUSION_TEXT_ENCODER_CONFIG = {
   maxLength: 77,
+  t5MaxLength: 77,
 };
 
 export const DEFAULT_DIFFUSION_DECODE_CONFIG = {

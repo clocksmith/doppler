@@ -6,6 +6,9 @@ import {
   runEnergyUpdate,
   runEnergyQuintelUpdate,
   runEnergyQuintelReduce,
+  runEnergyQuintelGrad,
+  runClamp,
+  runAdam,
 } from '../../gpu/kernels/index.js';
 import { WORKGROUP_SIZES } from '../../gpu/kernels/constants.js';
 import { computeArrayStats } from '../../debug/stats.js';
@@ -338,6 +341,11 @@ export class EnergyPipeline {
         return runCpu();
       }
 
+      let stateTensor = null;
+      let reduceBuffer = null;
+      let gradBuffer = null;
+      let moment1Buffer = null;
+      let moment2Buffer = null;
       try {
         const caps = getKernelCapabilities();
         const wantsF16 = runtimeConfig.state?.dtype === 'f16';
@@ -348,7 +356,7 @@ export class EnergyPipeline {
         log.info('Energy', 'Quintel backend: GPU');
 
         const statePayload = dtype === 'f16' ? f32ToF16Array(initData) : initData;
-        const stateTensor = await createEnergyTensor(device, statePayload, dtype, shape, 'energy_state');
+        stateTensor = await createEnergyTensor(device, statePayload, dtype, shape, 'energy_state');
 
         const rules = quintelConfig.rules || {};
         const weights = quintelConfig.weights || {};
@@ -365,18 +373,41 @@ export class EnergyPipeline {
         let lastComponents = null;
         let lastCountDiff = 0.0;
 
-        const traceInterval = Math.max(0, Math.floor(traceEvery ?? diagnosticsConfig.traceEvery ?? 0));
-        const reduceInterval = hasCountRule ? 1 : Math.max(1, Math.floor(readbackEvery));
-        const reduceWorkgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
-        const reduceBytes = reduceWorkgroups * 16;
-        const reduceBuffer = acquireBuffer(reduceBytes, undefined, 'energy_quintel_reduce_output');
-        const countTarget = Number.isFinite(quintelConfig.countTarget)
-          ? quintelConfig.countTarget
-          : size * size * 0.5;
+        const useNewStack = dtype === 'f32';
+        let gradTensor = null;
+        let moment1Tensor = null;
+        let moment2Tensor = null;
+        if (useNewStack) {
+          gradBuffer = acquireBuffer(elementCount * 4, undefined, 'energy_quintel_grad_output');
+          moment1Buffer = acquireBuffer(elementCount * 4, undefined, 'energy_quintel_adam_moment1');
+          moment2Buffer = acquireBuffer(elementCount * 4, undefined, 'energy_quintel_adam_moment2');
+
+          const zeros = new Float32Array(elementCount);
+          device.queue.writeBuffer(moment1Buffer, 0, zeros);
+          device.queue.writeBuffer(moment2Buffer, 0, zeros);
+
+          gradTensor = createTensor(gradBuffer, 'f32', [elementCount], 'energy_quintel_grad');
+          moment1Tensor = createTensor(moment1Buffer, 'f32', [elementCount], 'energy_quintel_adam_moment1');
+          moment2Tensor = createTensor(moment2Buffer, 'f32', [elementCount], 'energy_quintel_adam_moment2');
+        }
+
         const hasSymmetryRules = !!rules.mirrorX || !!rules.mirrorY || !!rules.diagonal;
         const hasCountRule = !!rules.count;
         const hasCenterRule = !!rules.center;
         const hasBinarizeRule = Number.isFinite(binarizeWeight) && binarizeWeight > 0;
+
+        const traceInterval = Math.max(0, Math.floor(traceEvery ?? diagnosticsConfig.traceEvery ?? 0));
+        const reduceWorkgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+        const reduceInterval = hasCountRule ? 1 : Math.max(1, Math.floor(readbackEvery));
+        const reduceBytes = reduceWorkgroups * 16;
+        reduceBuffer = acquireBuffer(reduceBytes, undefined, 'energy_quintel_reduce_output');
+        const countTarget = Number.isFinite(quintelConfig.countTarget)
+          ? quintelConfig.countTarget
+          : size * size * 0.5;
+        const adamBeta1 = 0.9;
+        const adamBeta2 = 0.999;
+        const adamEps = 1e-8;
+        const adamLr = stepSize * gradientScale;
         const start = performance.now();
 
         for (let step = 0; step < maxSteps; step++) {
@@ -443,21 +474,47 @@ export class EnergyPipeline {
           }
 
           const safeCountDiff = Number.isFinite(lastCountDiff) ? lastCountDiff : 0.0;
-          await runEnergyQuintelUpdate(stateTensor, {
-            count: elementCount,
-            size,
-            stepSize,
-            gradientScale,
-            countDiff: safeCountDiff,
-            symmetryWeight,
-            countWeight,
-            centerWeight,
-            binarizeWeight,
-            centerTarget,
-            clampMin,
-            clampMax,
-            rules,
-          });
+          if (useNewStack) {
+            await runEnergyQuintelGrad(stateTensor, {
+              count: elementCount,
+              size,
+              countDiff: safeCountDiff,
+              symmetryWeight,
+              countWeight,
+              centerWeight,
+              binarizeWeight,
+              centerTarget,
+              rules,
+              outputBuffer: gradBuffer,
+            });
+
+            await runAdam(stateTensor, gradTensor, moment1Tensor, moment2Tensor, {
+              count: elementCount,
+              step: step + 1,
+              lr: adamLr,
+              beta1: adamBeta1,
+              beta2: adamBeta2,
+              eps: adamEps,
+            });
+
+            await runClamp(stateTensor, clampMin, clampMax, { count: elementCount });
+          } else {
+            await runEnergyQuintelUpdate(stateTensor, {
+              count: elementCount,
+              size,
+              stepSize,
+              gradientScale,
+              countDiff: safeCountDiff,
+              symmetryWeight,
+              countWeight,
+              centerWeight,
+              binarizeWeight,
+              centerTarget,
+              clampMin,
+              clampMax,
+              rules,
+            });
+          }
 
           stepTimesMs.push(performance.now() - stepStart);
 
@@ -473,9 +530,6 @@ export class EnergyPipeline {
         const totalTimeMs = performance.now() - start;
         const finalState = await readTensorToFloat32(stateTensor);
         const stateStats = computeArrayStats(finalState);
-
-        releaseBuffer(stateTensor.buffer);
-        releaseBuffer(reduceBuffer);
 
         this.stats = {
           backend: 'GPU',
@@ -505,6 +559,12 @@ export class EnergyPipeline {
       } catch (error) {
         log.warn('Energy', `GPU quintel path failed: ${error?.message || error}`);
         return runCpu();
+      } finally {
+        if (stateTensor?.buffer) releaseBuffer(stateTensor.buffer);
+        if (reduceBuffer) releaseBuffer(reduceBuffer);
+        if (gradBuffer) releaseBuffer(gradBuffer);
+        if (moment1Buffer) releaseBuffer(moment1Buffer);
+        if (moment2Buffer) releaseBuffer(moment2Buffer);
       }
     }
 
@@ -527,7 +587,7 @@ export class EnergyPipeline {
         historyLimit,
         traceEvery,
       };
-      const result = runVliwEnergyLoop({
+      const result = await runVliwEnergyLoop({
         tasks,
         caps,
         dependencyModel: vliwConfig.dependencyModel,

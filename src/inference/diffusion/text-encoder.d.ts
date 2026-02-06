@@ -25,5 +25,5 @@ export declare function loadDiffusionTokenizers(
 export declare function encodePrompt(
   prompts: { prompt: string; negativePrompt?: string },
   tokenizers: Record<string, BaseTokenizer>,
-  options?: { maxLength?: number }
+  options?: { maxLength?: number; maxLengthByTokenizer?: Record<string, number> }
 ): DiffusionEncodedPrompts;

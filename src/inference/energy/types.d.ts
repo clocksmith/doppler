@@ -49,7 +49,14 @@ export interface EnergyRequest {
       temperatureStart?: number;
       temperatureDecay?: number;
       mutationCount?: number;
-      policy?: 'weights' | 'priorities';
+      policy?: 'weights' | 'priorities' | 'mlp';
+      mlp?: {
+        hiddenSize?: number;
+        lr?: number;
+        beta1?: number;
+        beta2?: number;
+        eps?: number;
+      };
       jitter?: number;
       mode?: 'parity' | 'relaxed';
       scoreMode?: 'auto' | 'bundle' | 'graph' | 'lb';
