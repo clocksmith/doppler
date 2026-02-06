@@ -114,7 +114,7 @@ export const ENERGY_DEMOS = [
         bundleLimit: 120,
         mode: 'relaxed',
         scoreMode: 'graph',
-        restarts: 3,
+        restarts: 2,
         temperatureStart: 1.5,
         temperatureDecay: 0.99,
         mutationCount: 8,
@@ -147,7 +147,7 @@ export const ENERGY_DEMOS = [
         scale: 0.35,
       },
       loop: {
-        steps: 200,
+        steps: 120,
         stepSize: 0.05,
         gradientScale: 1.0,
         convergence: 0,
