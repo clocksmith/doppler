@@ -9,6 +9,12 @@ import {
   runGeluBackward,
   runScaleBackward,
   runCrossEntropyBackward,
+  runLayerNormBackward,
+  runBiasAddBackward,
+  runUpsample2DBackward,
+  runPixelShuffleBackward,
+  runGroupNormBackward,
+  runConv2DBackward,
 } from '../gpu/kernels/backward/index.js';
 import { runResidualAdd } from '../gpu/kernels/residual.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
@@ -18,6 +24,7 @@ export const OpType = {
   EMBED: 'embed',
   MATMUL: 'matmul',
   RMSNORM: 'rmsnorm',
+  LAYERNORM: 'layernorm',
   ATTENTION: 'attention',
   SOFTMAX: 'softmax',
   ROPE: 'rope',
@@ -25,6 +32,11 @@ export const OpType = {
   GELU: 'gelu',
   SCALE: 'scale',
   CROSS_ENTROPY: 'cross_entropy',
+  BIAS_ADD: 'bias_add',
+  UPSAMPLE2D: 'upsample2d',
+  PIXEL_SHUFFLE: 'pixel_shuffle',
+  GROUPNORM: 'groupnorm',
+  CONV2D: 'conv2d',
 };
 
 export class AutogradTape {
@@ -120,6 +132,16 @@ export class AutogradTape {
         const gradInput = await runRmsNormBackward(input, weight, gradOut, { numTokens, hiddenSize, eps });
         return [{ input, grad: gradInput }];
       }
+      case 'layernorm_backward': {
+        const [input, weight, bias] = record.inputs;
+        const { numTokens, hiddenSize, eps } = record.options;
+        const { gradInput, gradWeight, gradBias } = await runLayerNormBackward(input, weight, gradOutput, { numTokens, hiddenSize, eps });
+        return [
+          { input, grad: gradInput },
+          { input: weight, grad: gradWeight },
+          { input: bias, grad: gradBias },
+        ];
+      }
       case 'attention_backward': {
         const [q, k, v, softmax] = record.inputs;
         const { seqLen, numHeads, headDim, scale } = record.options;
@@ -158,10 +180,7 @@ export class AutogradTape {
         const [input, freqsCos, freqsSin] = record.inputs;
         const { seqLen, numHeads, headDim, startPos } = record.options;
         const gradInput = await runRoPEBackward(gradOut, freqsCos, freqsSin, {
-          seqLen,
-          numHeads,
-          headDim,
-          startPos,
+          seqLen, numHeads, headDim, startPos,
         });
         return [{ input, grad: gradInput }];
       }
@@ -186,6 +205,38 @@ export class AutogradTape {
         const { numTokens, vocabSize } = record.options;
         const gradInput = await runCrossEntropyBackward(softmax, targets, gradOut, { numTokens, vocabSize });
         return [{ input: softmax, grad: gradInput }];
+      }
+      case 'bias_add_backward': {
+        const [input, bias] = record.inputs;
+        const { numTokens, dim } = record.options;
+        const gradBias = await runBiasAddBackward(gradOut, { numTokens, dim });
+        return [
+          { input, grad: gradOut }, // gradInput is just gradOut
+          { input: bias, grad: gradBias },
+        ];
+      }
+      case 'upsample2d_backward': {
+        const [input] = record.inputs;
+        const gradInput = await runUpsample2DBackward(gradOut, record.options);
+        return [{ input, grad: gradInput }];
+      }
+      case 'pixel_shuffle_backward': {
+        const [input] = record.inputs;
+        const gradInput = await runPixelShuffleBackward(gradOut, record.options);
+        return [{ input, grad: gradInput }];
+      }
+      case 'groupnorm_backward': {
+        const [input, weight, bias] = record.inputs;
+        const gradInput = await runGroupNormBackward(input, weight, gradOut, record.options);
+        return [{ input, grad: gradInput }];
+      }
+      case 'conv2d_backward': {
+        const [input, weight, bias] = record.inputs;
+        const { gradInput, gradWeight } = await runConv2DBackward(input, weight, gradOut, record.options);
+        return [
+          { input, grad: gradInput },
+          { input: weight, grad: gradWeight },
+        ];
       }
       default:
         throw new Error(`Backward kernel "${backwardName}" not implemented`);

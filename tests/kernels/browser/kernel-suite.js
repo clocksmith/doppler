@@ -298,6 +298,66 @@ function upsample2dRef(input, options) {
   return output;
 }
 
+function upsample2dBackwardRef(gradOutput, options) {
+  const { channels, inHeight, inWidth, outHeight, outWidth, scale } = options;
+  const gradInput = new Float32Array(channels * inHeight * inWidth);
+  for (let c = 0; c < channels; c++) {
+    for (let oy = 0; oy < outHeight; oy++) {
+      for (let ox = 0; ox < outWidth; ox++) {
+        const inY = Math.floor(oy / scale);
+        const inX = Math.floor(ox / scale);
+        if (inY < inHeight && inX < inWidth) {
+          const inIdx = (c * inHeight + inY) * inWidth + inX;
+          const outIdx = (c * outHeight + oy) * outWidth + ox;
+          gradInput[inIdx] += gradOutput[outIdx];
+        }
+      }
+    }
+  }
+  return gradInput;
+}
+
+function conv2dBackwardRef(input, weight, gradOutput, options) {
+  const { inChannels, outChannels, height, width, outHeight, outWidth, kernelH, kernelW, stride, pad } = options;
+  const gradInput = new Float32Array(inChannels * height * width);
+  const gradWeight = new Float32Array(outChannels * inChannels * kernelH * kernelW);
+
+  // dInput
+  for (let oc = 0; oc < outChannels; oc++) {
+    for (let ic = 0; ic < inChannels; ic++) {
+      for (let ky = 0; ky < kernelH; ky++) {
+        for (let kx = 0; kx < kernelW; kx++) {
+          for (let oy = 0; oy < outHeight; oy++) {
+            for (let ox = 0; ox < outWidth; ox++) {
+              const iy = oy * stride + ky - pad;
+              const ix = ox * stride + kx - pad;
+              if (iy >= 0 && iy < height && ix >= 0 && ix < width) {
+                const dy = gradOutput[(oc * outHeight + oy) * outWidth + ox];
+                const w = weight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)];
+                gradInput[(ic * height + iy) * width + ix] += dy * w;
+                
+                const x = input[(ic * height + iy) * width + ix];
+                gradWeight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)] += dy * x;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return { gradInput, gradWeight };
+}
+
+function biasAddBackwardRef(gradOutput, numTokens, dim) {
+  const gradBias = new Float32Array(dim);
+  for (let t = 0; t < numTokens; t++) {
+    for (let d = 0; d < dim; d++) {
+      gradBias[d] += gradOutput[t * dim + d];
+    }
+  }
+  return gradBias;
+}
+
 function softmaxBackwardRef(softmax, gradOutput, rows, cols) {
   const output = new Float32Array(rows * cols);
   for (let r = 0; r < rows; r++) {
@@ -512,6 +572,173 @@ export async function runKernelSuite(harness) {
       const expected = matmulRefRowMajorB(A, B_rounded, M, N, K);
       const actual = await h.runDequantAndMatmulF16W(null, A, B_q4k, M, N, K, numBlocks);
       const result = h.compareArrays(expected, actual, { rtol: 1e-2, atol: 1e-2 });
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'matmul_transpose_a',
+    async () => {
+      const M = 16, N = 32, K = 8;
+      const A_raw = h.generateTestData(K * M, 4201); // A is [K, M]
+      const B = h.generateTestData(K * N, 4202); // B is [K, N]
+      
+      // Reference: C = A^T * B
+      const A_T = transposeRef(A_raw, K, M); // A_T is [M, K]
+      const expected = matmulRefRowMajorB(A_T, B, M, N, K);
+      
+      const actual = await h.runMatmulTransposeA(null, A_raw, B, M, N, K);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f32);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'matmul_f32_unaligned',
+    async () => {
+      const M = 13, N = 17, K = 7;
+      const A = h.generateTestData(M * K, 43);
+      const B = h.generateTestData(K * N, 1338);
+      const expected = h.matmulRef(A, B, M, N, K, 1.0);
+      const actual = await h.runMatmul(null, A, B, M, N, K, 1.0);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f32);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'bias_add_backward',
+    async () => {
+      const numTokens = 3;
+      const dim = 7;
+      const gradOutput = h.generateTestData(numTokens * dim, 1506);
+      const expected = biasAddBackwardRef(gradOutput, numTokens, dim);
+      const actual = await h.runBiasAddBackward(null, gradOutput, numTokens, dim);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'upsample2d_backward',
+    async () => {
+      const options = { channels: 2, inHeight: 3, inWidth: 3, scale: 2 };
+      options.outHeight = options.inHeight * options.scale;
+      options.outWidth = options.inWidth * options.scale;
+      const gradOutput = h.generateTestData(options.channels * options.outHeight * options.outWidth, 1507);
+      const expected = upsample2dBackwardRef(gradOutput, options);
+      const actual = await h.runUpsample2DBackward(null, gradOutput, options);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'conv2d_backward',
+    async () => {
+      const options = {
+        inChannels: 2,
+        outChannels: 2,
+        height: 4,
+        width: 4,
+        kernelH: 3,
+        kernelW: 3,
+        stride: 1,
+        pad: 1,
+      };
+      options.outHeight = options.height;
+      options.outWidth = options.width;
+      const input = h.generateTestData(options.inChannels * options.height * options.width, 1508);
+      const weight = h.generateTestData(options.outChannels * options.inChannels * options.kernelH * options.kernelW, 1509);
+      const gradOutput = h.generateTestData(options.outChannels * options.outHeight * options.outWidth, 1510);
+      
+      const expected = conv2dBackwardRef(input, weight, gradOutput, options);
+      const actual = await h.runConv2DBackward(null, input, weight, gradOutput, options);
+      
+      const inPass = h.compareArrays(expected.gradInput, actual.gradInput, h.KERNEL_TOLERANCES.residual).passed;
+      const wPass = h.compareArrays(expected.gradWeight, actual.gradWeight, h.KERNEL_TOLERANCES.residual).passed;
+      return inPass && wPass;
+    },
+  ]);
+
+  tests.push([
+    'attention_backward',
+    async () => {
+      const seqLen = 3; // Unaligned
+      const kvLen = 5;
+      const numHeads = 2;
+      const numKVHeads = 1;
+      const headDim = 8;
+      const scale = 1.0 / Math.sqrt(headDim);
+      
+      const Q = h.generateTestData(seqLen * numHeads * headDim, 1603);
+      const K = h.generateTestData(kvLen * numKVHeads * headDim, 1604);
+      const V = h.generateTestData(kvLen * numKVHeads * headDim, 1605);
+      const gradOutput = h.generateTestData(seqLen * numHeads * headDim, 1606);
+      
+      // We need a proper softmax matrix for the reference
+      const scores = new Float32Array(numHeads * seqLen * kvLen);
+      const headsPerKV = numHeads / numKVHeads;
+      for (let hIdx = 0; hIdx < numHeads; hIdx++) {
+        const kvHead = Math.floor(hIdx / headsPerKV);
+        for (let q = 0; q < seqLen; q++) {
+          let maxVal = -Infinity;
+          for (let k = 0; k < kvLen; k++) {
+            let score = 0;
+            for (let d = 0; d < headDim; d++) {
+              score += Q[(q * numHeads + hIdx) * headDim + d] * K[(k * numKVHeads + kvHead) * headDim + d];
+            }
+            score *= scale;
+            scores[(hIdx * seqLen + q) * kvLen + k] = score;
+            maxVal = Math.max(maxVal, score);
+          }
+          let sumExp = 0;
+          for (let k = 0; k < kvLen; k++) {
+            const val = Math.exp(scores[(hIdx * seqLen + q) * kvLen + k] - maxVal);
+            scores[(hIdx * seqLen + q) * kvLen + k] = val;
+            sumExp += val;
+          }
+          for (let k = 0; k < kvLen; k++) {
+            scores[(hIdx * seqLen + q) * kvLen + k] /= sumExp;
+          }
+        }
+      }
+
+      const expected = h.references.attentionBackwardRef(Q, K, V, scores, gradOutput, seqLen, kvLen, numHeads, numKVHeads, headDim, scale);
+      const actual = await h.runAttentionBackward(null, Q, K, V, scores, gradOutput, seqLen, numHeads, headDim, scale);
+      
+      const qPass = h.compareArrays(expected.gradQ, actual.gradQ, h.KERNEL_TOLERANCES.attention).passed;
+      const kPass = h.compareArrays(expected.gradK, actual.gradK, h.KERNEL_TOLERANCES.attention).passed;
+      const vPass = h.compareArrays(expected.gradV, actual.gradV, h.KERNEL_TOLERANCES.attention).passed;
+      return qPass && kPass && vPass;
+    },
+  ]);
+
+  tests.push([
+    'rmsnorm_unaligned',
+    async () => {
+      const numTokens = 7;
+      const hiddenSize = 31;
+      const input = h.generateTestData(numTokens * hiddenSize, 93);
+      const weight = h.generateTestData(hiddenSize, 94);
+      const expected = h.references.rmsNormRef(input, weight, numTokens, hiddenSize, 1e-6);
+      const actual = await h.runRMSNorm(null, input, weight, numTokens, hiddenSize, 1e-6);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'layernorm_unaligned',
+    async () => {
+      const batchSize = 3;
+      const hiddenSize = 17;
+      const input = h.generateTestData(batchSize * hiddenSize, 95);
+      const weight = h.generateTestData(hiddenSize, 96);
+      const bias = h.generateTestData(hiddenSize, 97);
+      const expected = layerNormRef(input, weight, bias, batchSize, hiddenSize, 1e-5);
+      const actual = await h.runLayerNorm(null, input, weight, bias, batchSize, hiddenSize, 1e-5);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
       return result.passed;
     },
   ]);
@@ -968,6 +1195,21 @@ export async function runKernelSuite(harness) {
       const bias = h.generateTestData(hiddenSize, 1218);
       const expected = layerNormRef(input, weight, bias, batchSize, hiddenSize, 1e-5);
       const actual = await h.runLayerNorm(null, input, weight, bias, batchSize, hiddenSize, 1e-5);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'layernorm_backward',
+    async () => {
+      const numTokens = 4;
+      const hiddenSize = 16;
+      const input = h.generateTestData(numTokens * hiddenSize, 1235);
+      const weight = h.generateTestData(hiddenSize, 1236);
+      const gradOutput = h.generateTestData(numTokens * hiddenSize, 1237);
+      const expected = h.runLayerNormBackward(null, input, weight, gradOutput, numTokens, hiddenSize, 1e-5);
+      const actual = await h.runLayerNormBackward(null, input, weight, gradOutput, numTokens, hiddenSize, 1e-5);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
       return result.passed;
     },

@@ -15,7 +15,7 @@ export { rmsNormRef, rmsNormNoWeightRef } from './rmsnorm.js';
 export { ropeRef, ropeInterleavedRef, computeRopeFreqs } from './rope.js';
 
 // Attention
-export { attentionRef, createCausalMask, flashAttentionRef, mqaRef } from './attention.js';
+export { attentionRef, attentionBackwardRef, createCausalMask, flashAttentionRef, mqaRef } from './attention.js';
 
 // MoE operations
 export { topkRef, softmaxTopkRef } from './topk.js';

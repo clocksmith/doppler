@@ -740,17 +740,246 @@ async function testParityFixture() {
   return Math.abs(mean - fixture.lossMean) < fixture.tolerance;
 }
 
+async function testAutogradBranching() {
+  await initGPU();
+  const registry = loadBackwardRegistry();
+  const tape = new AutogradTape(registry);
+
+  // Graph:
+  //   x = [1, 2]
+  //   y1 = scale(x, 2)
+  //   y2 = scale(x, 3)
+  //   z = y1 + y2
+  //   Loss = sum(z)
+  // Expected grad x = 2 + 3 = 5
+
+  const xData = new Float32Array([1.0, 2.0]);
+  const x = makeTensorFromFloat32(xData, [2], 'branch_x');
+
+  const y1 = await tape.record(
+    OpType.SCALE,
+    (input) => runScale(input, 2.0),
+    [x],
+    { scale: 2.0 }
+  );
+
+  const y2 = await tape.record(
+    OpType.SCALE,
+    (input) => runScale(input, 3.0),
+    [x],
+    { scale: 3.0 }
+  );
+
+  // We don't have a sum(y1, y2) OpType yet that is registered,
+  // but we can use recordResidualAdd if we wrap it.
+  // Actually, let's just use two scales and sum them manually via tape.backward
+  // by providing gradOutput for BOTH y1 and y2.
+  // Wait, the tape follows the graph. Let's make a real branch.
+
+  // Simplified branch:
+  // x -> scale(2) -> y1
+  // x -> scale(3) -> y2
+  // We want dLoss/dx = dLoss/dy1 * dy1/dx + dLoss/dy2 * dy2/dx
+  // If dLoss/dy1 = 1 and dLoss/dy2 = 1, then dLoss/dx = 1*2 + 1*3 = 5
+
+  const gradY1 = makeTensorFromFloat32([1.0, 1.0], [2], 'grad_y1');
+  const gradY2 = makeTensorFromFloat32([1.0, 1.0], [2], 'grad_y2');
+
+  // Since our tape.backward currently starts from a SINGLE gradOutput,
+  // we need to simulate the merge.
+  // In a real model, z = y1 + y2 would be recorded.
+  // Let's implement a simple 'add' backward logic or just test accumulation directly.
+
+  const grads = new Map();
+  // Simulate the tape reaching y1 and y2
+  const entryScale = registry.ops[OpType.SCALE];
+
+  // Manually run the branching logic that AutogradTape.backward would do
+  // if it encountered the same input tensor twice.
+  const g1 = await tape.runBackward(entryScale.backward, { inputs: [x], options: { scale: 2.0 } }, gradY1);
+  const g2 = await tape.runBackward(entryScale.backward, { inputs: [x], options: { scale: 3.0 } }, gradY2);
+
+  // This calls accumulateGrad internally
+  await tape.accumulateGrad(grads, x, g1[0].grad);
+  await tape.accumulateGrad(grads, x, g2[0].grad);
+
+  const finalGradX = await readTensor(grads.get(x));
+  const expectedGradX = new Float32Array([5.0, 5.0]);
+
+  const pass = compareArrays(finalGradX, expectedGradX, KERNEL_TOLERANCES.residual).pass;
+
+  // Cleanup
+  releaseBuffer(x.buffer);
+  releaseBuffer(y1.buffer);
+  releaseBuffer(y2.buffer);
+  releaseBuffer(gradY1.buffer);
+  releaseBuffer(gradY2.buffer);
+  releaseBuffer(g1[0].grad.buffer);
+  releaseBuffer(g2[0].grad.buffer);
+  releaseBuffer(grads.get(x).buffer);
+
+  return pass;
+}
+
+function layernormBackwardCpu(input, weight, bias, gradOutput, rows, cols, eps) {
+  const gradInput = new Float32Array(rows * cols);
+  const gradWeight = new Float32Array(cols);
+  const gradBias = new Float32Array(cols);
+
+  for (let r = 0; r < rows; r++) {
+    const base = r * cols;
+    let mean = 0;
+    for (let i = 0; i < cols; i++) mean += input[base + i];
+    mean /= cols;
+
+    let varSum = 0;
+    for (let i = 0; i < cols; i++) {
+      const diff = input[base + i] - mean;
+      varSum += diff * diff;
+    }
+    const invStd = 1 / Math.sqrt(varSum / cols + eps);
+
+    let sumGY = 0;
+    let sumGYX = 0;
+    for (let i = 0; i < cols; i++) {
+      const x = input[base + i];
+      const diff = x - mean;
+      const norm = diff * invStd;
+      const dy = gradOutput[base + i];
+      
+      gradWeight[i] += dy * norm;
+      gradBias[i] += dy;
+
+      const gy = dy * weight[i];
+      sumGY += gy;
+      sumGYX += gy * diff;
+    }
+
+    const invStd2 = invStd * invStd;
+    for (let i = 0; i < cols; i++) {
+      const x = input[base + i];
+      const gy = gradOutput[base + i] * weight[i];
+      gradInput[base + i] = invStd * (gy - (sumGY + (x - mean) * invStd2 * sumGYX) / cols);
+    }
+  }
+  return { gradInput, gradWeight, gradBias };
+}
+
+async function testLayernormBackward() {
+  const rows = 2;
+  const cols = 4;
+  const input = new Float32Array([0.2, -0.1, 0.3, 0.5, -0.4, 0.2, 0.1, -0.2]);
+  const weight = new Float32Array([1.0, 1.1, 0.9, 1.05]);
+  const bias = new Float32Array([0.1, -0.1, 0.05, 0.0]);
+  const gradOutput = new Float32Array([0.4, -0.2, 0.1, 0.3, -0.1, 0.2, -0.3, 0.05]);
+  
+  const inputTensor = makeTensorFromFloat32(input, [rows, cols], 'ln_input');
+  const weightTensor = makeTensorFromFloat32(weight, [cols], 'ln_weight');
+  const biasTensor = makeTensorFromFloat32(bias, [cols], 'ln_bias');
+  const gradTensor = makeTensorFromFloat32(gradOutput, [rows, cols], 'ln_grad');
+  const eps = 1e-5;
+
+  const { runLayerNormBackward } = await import('../../../src/gpu/kernels/backward/layernorm_backward.js');
+  const gradsGPU = await runLayerNormBackward(inputTensor, weightTensor, gradTensor, { numTokens: rows, hiddenSize: cols, eps });
+  
+  const giGPU = await readTensor(gradsGPU.gradInput);
+  const gwGPU = await readTensor(gradsGPU.gradWeight);
+  const gbGPU = await readTensor(gradsGPU.gradBias);
+  
+  const expected = layernormBackwardCpu(input, weight, bias, gradOutput, rows, cols, eps);
+
+  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.rmsnorm).pass;
+  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.rmsnorm).pass;
+  const gbPass = compareArrays(gbGPU, expected.gradBias, KERNEL_TOLERANCES.rmsnorm).pass;
+
+  return giPass && gwPass && gbPass;
+}
+
+function conv2dBackwardCpu(input, weight, gradOutput, options) {
+  const { inChannels, outChannels, height, width, outHeight, outWidth, kernelH, kernelW, stride, pad } = options;
+  const gradInput = new Float32Array(inChannels * height * width);
+  const gradWeight = new Float32Array(outChannels * inChannels * kernelH * kernelW);
+
+  for (let oc = 0; oc < outChannels; oc++) {
+    for (let ic = 0; ic < inChannels; ic++) {
+      for (let ky = 0; ky < kernelH; ky++) {
+        for (let kx = 0; kx < kernelW; kx++) {
+          let w_sum = 0;
+          for (let oy = 0; oy < outHeight; oy++) {
+            for (let ox = 0; ox < outWidth; ox++) {
+              const iy = oy * stride + ky - pad;
+              const ix = ox * stride + kx - pad;
+              if (iy >= 0 && iy < height && ix >= 0 && ix < width) {
+                const dy = gradOutput[(oc * outHeight + oy) * outWidth + ox];
+                
+                // dInput accumulation
+                const w = weight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)];
+                gradInput[(ic * height + iy) * width + ix] += dy * w;
+                
+                // dWeight accumulation
+                const x = input[(ic * height + iy) * width + ix];
+                w_sum += dy * x;
+              }
+            }
+          }
+          gradWeight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)] = w_sum;
+        }
+      }
+    }
+  }
+  return { gradInput, gradWeight };
+}
+
+async function testConv2DBackward() {
+  const options = {
+    inChannels: 1,
+    outChannels: 1,
+    height: 4,
+    width: 4,
+    kernelH: 3,
+    kernelW: 3,
+    stride: 1,
+    pad: 1,
+  };
+  options.outHeight = options.height;
+  options.outWidth = options.width;
+
+  const input = new Float32Array(options.height * options.width).map((_, i) => Math.sin(i));
+  const weight = new Float32Array(options.kernelH * options.kernelW).map((_, i) => Math.cos(i));
+  const gradOutput = new Float32Array(options.outHeight * options.outWidth).fill(1.0);
+
+  const inputTensor = makeTensorFromFloat32(input, [options.inChannels, options.height, options.width], 'conv_in');
+  const weightTensor = makeTensorFromFloat32(weight, [options.outChannels, options.inChannels, options.kernelH, options.kernelW], 'conv_w');
+  const gradOutputTensor = makeTensorFromFloat32(gradOutput, [options.outChannels, options.outHeight, options.outWidth], 'conv_grad');
+
+  const { runConv2DBackward } = await import('../../../src/gpu/kernels/backward/conv2d_backward.js');
+  const gradsGPU = await runConv2DBackward(inputTensor, weightTensor, gradOutputTensor, options);
+
+  const giGPU = await readTensor(gradsGPU.gradInput);
+  const gwGPU = await readTensor(gradsGPU.gradWeight);
+
+  const expected = conv2dBackwardCpu(input, weight, gradOutput, options);
+
+  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.residual).pass;
+  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.residual).pass;
+
+  return giPass && gwPass;
+}
+
 const TESTS = {
   'loss-forward': testSoftmaxAndLoss,
   'softmax-backward': testSoftmaxBackward,
   'cross-entropy-backward': testCrossEntropyBackward,
   'rmsnorm-backward': testRmsNormBackward,
+  'layernorm-backward': testLayernormBackward,
+  'conv2d-backward': testConv2DBackward,
   'matmul-backward': testMatmulBackwardGradient,
   'embed-backward': testEmbedBackwardScatterAdd,
   'ebm-state-optimize': testEBMStateOptimizeSmoke,
   'ebm-recorded-bench': testEBMRecordedBench,
   'parity-fixture': testParityFixture,
   'training-leak-perf': testTrainingLoopLeakAndPerf,
+  'autograd-branching': testAutogradBranching,
 };
 
 export const trainingHarness = {

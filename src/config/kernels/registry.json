@@ -1937,6 +1937,32 @@
         }
       }
     },
+    "matmul_transpose_a": {
+      "description": "Matmul with transposed A (C = A^T * B)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "A", "type": "read-only-storage" },
+        { "index": 2, "name": "B", "type": "read-only-storage" },
+        { "index": 3, "name": "C", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "N", "type": "u32", "offset": 4 },
+          { "name": "K", "type": "u32", "offset": 8 },
+          { "name": "alpha", "type": "f32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/matmul_transpose_a.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16, 16, 1],
+          "requires": []
+        }
+      }
+    },
     "silu_backward": {
       "description": "SiLU backward",
       "baseBindings": [
@@ -2117,6 +2143,35 @@
       "variants": {
         "default": {
           "wgsl": "backward/rmsnorm_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "layernorm_backward": {
+      "description": "LayerNorm backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 4, "name": "grad_input", "type": "storage" },
+        { "index": 5, "name": "grad_weight", "type": "storage" },
+        { "index": 6, "name": "grad_bias", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "hidden_size", "type": "u32", "offset": 0 },
+          { "name": "num_tokens", "type": "u32", "offset": 4 },
+          { "name": "eps", "type": "f32", "offset": 8 },
+          { "name": "_pad", "type": "u32", "offset": 12 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/layernorm_backward.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []
@@ -2464,6 +2519,176 @@
       "variants": {
         "default": {
           "wgsl": "backward/adam.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "bias_add_backward": {
+      "description": "Bias add backward (sum reduction)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_bias", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "dim", "type": "u32", "offset": 4 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/bias_add_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "upsample2d_backward": {
+      "description": "Upsample2D backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_input", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "channels", "type": "u32", "offset": 0 },
+          { "name": "in_height", "type": "u32", "offset": 4 },
+          { "name": "in_width", "type": "u32", "offset": 8 },
+          { "name": "out_height", "type": "u32", "offset": 12 },
+          { "name": "out_width", "type": "u32", "offset": 16 },
+          { "name": "scale", "type": "u32", "offset": 20 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/upsample2d_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "pixel_shuffle_backward": {
+      "description": "Pixel shuffle backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "grad_input", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "out_channels", "type": "u32", "offset": 0 },
+          { "name": "out_height", "type": "u32", "offset": 4 },
+          { "name": "out_width", "type": "u32", "offset": 8 },
+          { "name": "grid_width", "type": "u32", "offset": 12 },
+          { "name": "grid_height", "type": "u32", "offset": 16 },
+          { "name": "patch_size", "type": "u32", "offset": 20 },
+          { "name": "patch_channels", "type": "u32", "offset": 24 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/pixel_shuffle_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "groupnorm_backward": {
+      "description": "GroupNorm backward",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "input", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 4, "name": "grad_input", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "channels", "type": "u32", "offset": 0 },
+          { "name": "height", "type": "u32", "offset": 4 },
+          { "name": "width", "type": "u32", "offset": 8 },
+          { "name": "num_groups", "type": "u32", "offset": 12 },
+          { "name": "eps", "type": "f32", "offset": 16 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/groupnorm_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "conv2d_backward_input": {
+      "description": "Conv2D backward (input gradient)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "weight", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_input", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          { "name": "in_channels", "type": "u32", "offset": 0 },
+          { "name": "out_channels", "type": "u32", "offset": 4 },
+          { "name": "height", "type": "u32", "offset": 8 },
+          { "name": "width", "type": "u32", "offset": 12 },
+          { "name": "out_height", "type": "u32", "offset": 16 },
+          { "name": "out_width", "type": "u32", "offset": 20 },
+          { "name": "kernel_h", "type": "u32", "offset": 24 },
+          { "name": "kernel_w", "type": "u32", "offset": 28 },
+          { "name": "stride", "type": "u32", "offset": 32 },
+          { "name": "pad", "type": "u32", "offset": 36 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/conv2d_backward_input.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "conv2d_backward_weight": {
+      "description": "Conv2D backward (weight gradient)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "grad_output", "type": "read-only-storage" },
+        { "index": 2, "name": "input", "type": "read-only-storage" },
+        { "index": 3, "name": "grad_weight", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          { "name": "in_channels", "type": "u32", "offset": 0 },
+          { "name": "out_channels", "type": "u32", "offset": 4 },
+          { "name": "height", "type": "u32", "offset": 8 },
+          { "name": "width", "type": "u32", "offset": 12 },
+          { "name": "out_height", "type": "u32", "offset": 16 },
+          { "name": "out_width", "type": "u32", "offset": 20 },
+          { "name": "kernel_h", "type": "u32", "offset": 24 },
+          { "name": "kernel_w", "type": "u32", "offset": 28 },
+          { "name": "stride", "type": "u32", "offset": 32 },
+          { "name": "pad", "type": "u32", "offset": 36 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/conv2d_backward_weight.wgsl",
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []

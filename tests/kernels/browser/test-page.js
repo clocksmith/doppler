@@ -16,8 +16,11 @@ import { dispatch } from '../../../src/gpu/kernels/dispatch.js';
 // Kernel path can be injected via URL param for targeted tests
 import { resolveKernelPath, setActiveKernelPath } from '../../../src/config/kernel-path-loader.js';
 
-// Import kernel functions - some may not exist, so we import what's available
-import * as kernelSelector from '../../../src/gpu/kernel-selector.js';
+import {
+  runBackwardKernel,
+  recordBackwardKernel,
+  runMatmulTransposeA,
+} from '../../../src/gpu/kernels/backward/utils.js';
 
 // Destructure available functions with defaults
 const {
@@ -49,6 +52,7 @@ const {
   runConv2D = null,
   runGroupNorm = null,
   runLayerNorm = null,
+  runLayerNormBackward = null,
   runModulate = null,
   runPixelShuffle = null,
   runUpsample2D = null,
@@ -56,6 +60,11 @@ const {
   runKVQuantize = null,
   runCrossEntropyLoss = null,
   runCrossEntropyBackward = null,
+  runBiasAddBackward = null,
+  runUpsample2DBackward = null,
+  runPixelShuffleBackward = null,
+  runGroupNormBackward = null,
+  runConv2DBackward = null,
   runEmbedBackward = null,
   runGeluBackward = null,
   runRmsNormBackward = null,
@@ -274,6 +283,22 @@ const testHarness = {
   readBufferData,
   toF16RoundedFloat32,
   KERNEL_TOLERANCES,
+
+  async runMatmulTransposeA(dev, A, B, M, N, K, options = {}) {
+    const bufA = makeBuffer(A);
+    const bufB = makeBuffer(B);
+    const tensorA = createTensor(bufA, 'f32', [K, M], 'matmul_ta_a');
+    const tensorB = createTensor(bufB, 'f32', [K, N], 'matmul_ta_b');
+
+    const resultTensor = await runMatmulTransposeA(tensorA, tensorB, M, N, K, options);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+
+    bufA.destroy();
+    bufB.destroy();
+    resultTensor.buffer.destroy();
+
+    return result;
+  },
 
   // ============================================================================
   // Kernel Runners (match expected interface from tests)
@@ -677,16 +702,133 @@ const testHarness = {
     });
     const result = await readTensorToFloat32(resultTensor, batchSize * hiddenSize);
 
-    inputBuf.destroy();
-    weightBuf.destroy();
-    biasBuf.destroy();
-    resultTensor.buffer.destroy();
+        inputBuf.destroy();
 
-    return result;
-  },
+        weightBuf.destroy();
 
-  
-  async runGroupNorm(dev, input, weight, bias, channels, height, width, numGroups, eps = 1e-5) {
+        biasBuf.destroy();
+
+        resultTensor.buffer.destroy();
+
+    
+
+        return result;
+
+      },
+
+    
+
+      async runLayerNormBackward(dev, input, weight, gradOutput, numTokens, hiddenSize, eps = 1e-5) {
+
+        if (!runLayerNormBackward) {
+
+          // Reference implementation
+
+          const output = new Float32Array(numTokens * hiddenSize);
+
+          for (let b = 0; b < numTokens; b++) {
+
+            const base = b * hiddenSize;
+
+            let mean = 0;
+
+            for (let i = 0; i < hiddenSize; i++) {
+
+              mean += input[base + i];
+
+            }
+
+            mean /= hiddenSize;
+
+            let varSum = 0;
+
+            let sumGY = 0;
+
+            let sumGYX = 0;
+
+            for (let i = 0; i < hiddenSize; i++) {
+
+              const x = input[base + i];
+
+              const diff = x - mean;
+
+              varSum += diff * diff;
+
+              const gy = gradOutput[base + i] * weight[i];
+
+              sumGY += gy;
+
+              sumGYX += gy * diff;
+
+            }
+
+            const invStd = 1 / Math.sqrt(varSum / hiddenSize + eps);
+
+            const invStd2 = invStd * invStd;
+
+            for (let i = 0; i < hiddenSize; i++) {
+
+              const x = input[base + i];
+
+              const gy = gradOutput[base + i] * weight[i];
+
+              output[base + i] = invStd * (gy - (sumGY + (x - mean) * invStd2 * sumGYX) / hiddenSize);
+
+            }
+
+          }
+
+          return output;
+
+        }
+
+    
+
+        const inputBuf = makeBuffer(input);
+
+        const weightBuf = makeBuffer(weight);
+
+        const gradBuf = makeBuffer(gradOutput);
+
+        const inputTensor = createTensor(inputBuf, 'f32', [numTokens, hiddenSize], 'layernorm_bw_input');
+
+        const weightTensor = createTensor(weightBuf, 'f32', [hiddenSize], 'layernorm_bw_weight');
+
+        const gradTensor = createTensor(gradBuf, 'f32', [numTokens, hiddenSize], 'layernorm_bw_grad');
+
+    
+
+        const resultTensor = await runLayerNormBackward(inputTensor, weightTensor, gradTensor, {
+
+          numTokens,
+
+          hiddenSize,
+
+          eps,
+
+        });
+
+        const result = await readTensorToFloat32(resultTensor, numTokens * hiddenSize);
+
+    
+
+        inputBuf.destroy();
+
+        weightBuf.destroy();
+
+        gradBuf.destroy();
+
+        resultTensor.buffer.destroy();
+
+    
+
+        return result;
+
+      },
+
+    
+
+      async runGroupNorm(dev, input, weight, bias, channels, height, width, numGroups, eps = 1e-5) {
     if (!runGroupNorm) {
       const output = new Float32Array(channels * height * width);
       const channelsPerGroup = Math.floor(channels / numGroups);
@@ -1062,13 +1204,82 @@ const testHarness = {
     softmaxBuf.destroy();
     targetsBuf.destroy();
     gradBuf.destroy();
-    resultTensor.buffer.destroy();
-
-    return result;
-  },
-
-  
-  async runDequantQ4K(dev, quantized, numBlocks) {
+        resultTensor.buffer.destroy();
+    
+        return result;
+      },
+    
+      async runBiasAddBackward(dev, gradOutput, numTokens, dim) {
+        if (!runBiasAddBackward) return null;
+        const gBuf = makeBuffer(gradOutput);
+        const resultTensor = await runBiasAddBackward(createTensor(gBuf, 'f32', [numTokens, dim], 'bias_bw_in'), { numTokens, dim });
+        const result = await readTensorToFloat32(resultTensor, dim);
+        gBuf.destroy();
+        resultTensor.buffer.destroy();
+        return result;
+      },
+    
+      async runUpsample2DBackward(dev, gradOutput, options) {
+        if (!runUpsample2DBackward) return null;
+        const gBuf = makeBuffer(gradOutput);
+        const resultTensor = await runUpsample2DBackward(createTensor(gBuf, 'f32', [options.channels, options.outHeight, options.outWidth], 'upsample_bw_in'), options);
+        const result = await readTensorToFloat32(resultTensor, options.channels * options.inHeight * options.inWidth);
+        gBuf.destroy();
+        resultTensor.buffer.destroy();
+        return result;
+      },
+    
+      async runPixelShuffleBackward(dev, gradOutput, options) {
+        if (!runPixelShuffleBackward) return null;
+        const gBuf = makeBuffer(gradOutput);
+        const resultTensor = await runPixelShuffleBackward(createTensor(gBuf, 'f32', [options.outChannels, options.outHeight, options.outWidth], 'pixel_bw_in'), options);
+        const result = await readTensorToFloat32(resultTensor, options.gridWidth * options.gridHeight * options.patchChannels);
+        gBuf.destroy();
+        resultTensor.buffer.destroy();
+        return result;
+      },
+    
+      async runGroupNormBackward(dev, input, weight, gradOutput, options) {
+        if (!runGroupNormBackward) return null;
+        const iBuf = makeBuffer(input);
+        const wBuf = makeBuffer(weight);
+        const gBuf = makeBuffer(gradOutput);
+        const resultTensor = await runGroupNormBackward(
+          createTensor(iBuf, 'f32', [options.channels, options.height, options.width], 'gn_bw_i'),
+          createTensor(wBuf, 'f32', [options.channels], 'gn_bw_w'),
+          createTensor(gBuf, 'f32', [options.channels, options.height, options.width], 'gn_bw_g'),
+          options
+        );
+        const result = await readTensorToFloat32(resultTensor, options.channels * options.height * options.width);
+        iBuf.destroy();
+        wBuf.destroy();
+        gBuf.destroy();
+        resultTensor.buffer.destroy();
+        return result;
+      },
+    
+      async runConv2DBackward(dev, input, weight, gradOutput, options) {
+        if (!runConv2DBackward) return null;
+        const iBuf = makeBuffer(input);
+        const wBuf = makeBuffer(weight);
+        const gBuf = makeBuffer(gradOutput);
+        const result = await runConv2DBackward(
+          createTensor(iBuf, 'f32', [options.inChannels, options.height, options.width], 'conv_bw_i'),
+          createTensor(wBuf, 'f32', [options.outChannels, options.inChannels, options.kernelH, options.kernelW], 'conv_bw_w'),
+          createTensor(gBuf, 'f32', [options.outChannels, options.outHeight, options.outWidth], 'conv_bw_g'),
+          options
+        );
+        const gradInput = await readTensorToFloat32(result.gradInput, options.inChannels * options.height * options.width);
+        const gradWeight = await readTensorToFloat32(result.gradWeight, options.outChannels * options.inChannels * options.kernelH * options.kernelW);
+        iBuf.destroy();
+        wBuf.destroy();
+        gBuf.destroy();
+        result.gradInput.buffer.destroy();
+        result.gradWeight.buffer.destroy();
+        return { gradInput, gradWeight };
+      },
+    
+      async runDequantQ4K(dev, quantized, numBlocks) {
     if (!dequantize) {
       throw new Error('dequantize kernel not available');
     }

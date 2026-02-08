@@ -1,6 +1,7 @@
 import { runMatmul, recordMatmul } from '../matmul.js';
 import { runTranspose, recordTranspose } from '../transpose.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
+import { runMatmulTransposeA, recordMatmulTransposeA } from './utils.js';
 
 export async function runMatmulBackward(input, weight, gradOutput, options = {}) {
   const {
@@ -22,7 +23,11 @@ export async function runMatmulBackward(input, weight, gradOutput, options = {})
   let gradWeight = null;
 
   if (computeGradInput) {
+    // dX = dY @ W (if Y = X @ W^T)
+    // dX = dY @ W^T (if Y = X @ W)
     if (transposeB) {
+      // Y = X @ W^T => dX = dY @ W
+      // dY is [M, N], W is [N, K] => dX is [M, K]
       gradInput = await runMatmul(
         gradOutput,
         weight,
@@ -32,42 +37,46 @@ export async function runMatmulBackward(input, weight, gradOutput, options = {})
         { transposeB: false }
       );
     } else {
-      const weightTransposed = await runTranspose(weight, K, N);
+      // Y = X @ W => dX = dY @ W^T
+      // dY is [M, N], W is [K, N] => dX is [M, K]
+      // Using runMatmul with transposeB=true
       gradInput = await runMatmul(
         gradOutput,
-        weightTransposed,
+        weight,
         M,
         K,
         N,
-        { transposeB: false }
+        { transposeB: true }
       );
-      releaseBuffer(weightTransposed.buffer);
     }
   }
 
   if (computeGradWeight) {
+    // dW = X^T @ dY (if Y = X @ W)
+    // dW = dY^T @ X (if Y = X @ W^T and we want dW [N, K])
     if (transposeB) {
-      const gradOutputTransposed = await runTranspose(gradOutput, M, N);
-      gradWeight = await runMatmul(
-        gradOutputTransposed,
+      // Y = X @ W^T
+      // dW^T = X^T @ dY => dW = dY^T @ X
+      // dY is [M, N], X is [M, K] => dW is [N, K]
+      // Use specialized transposeA matmul: dW = dY^T @ X
+      gradWeight = await runMatmulTransposeA(
+        gradOutput,
         input,
         N,
         K,
-        M,
-        { transposeB: false }
+        M
       );
-      releaseBuffer(gradOutputTransposed.buffer);
     } else {
-      const inputTransposed = await runTranspose(input, M, K);
-      gradWeight = await runMatmul(
-        inputTransposed,
+      // Y = X @ W
+      // dW = X^T @ dY
+      // X is [M, K], dY is [M, N] => dW is [K, N]
+      gradWeight = await runMatmulTransposeA(
+        input,
         gradOutput,
         K,
         N,
-        M,
-        { transposeB: false }
+        M
       );
-      releaseBuffer(inputTransposed.buffer);
     }
   }
 
@@ -111,44 +120,36 @@ export async function recordMatmulBackward(
         { transposeB: false, role: 'bwd_grad_input' }
       );
     } else {
-      const weightTransposed = await recordTranspose(recorder, weight, K, N);
-      recorder.trackTemporaryBuffer(weightTransposed.buffer);
       gradInput = await recordMatmul(
         recorder,
         gradOutput,
-        weightTransposed,
+        weight,
         M,
         K,
         N,
-        { transposeB: false, role: 'bwd_grad_input' }
+        { transposeB: true, role: 'bwd_grad_input' }
       );
     }
   }
 
   if (computeGradWeight) {
     if (transposeB) {
-      const gradOutputTransposed = await recordTranspose(recorder, gradOutput, M, N);
-      recorder.trackTemporaryBuffer(gradOutputTransposed.buffer);
-      gradWeight = await recordMatmul(
+      gradWeight = await recordMatmulTransposeA(
         recorder,
-        gradOutputTransposed,
+        gradOutput,
         input,
         N,
         K,
-        M,
-        { transposeB: false, role: 'bwd_grad_weight' }
+        M
       );
     } else {
-      const inputTransposed = await recordTranspose(recorder, input, M, K);
-      recorder.trackTemporaryBuffer(inputTransposed.buffer);
-      gradWeight = await recordMatmul(
+      gradWeight = await recordMatmulTransposeA(
         recorder,
-        inputTransposed,
+        input,
         gradOutput,
         K,
         N,
-        M,
-        { transposeB: false, role: 'bwd_grad_weight' }
+        M
       );
     }
   }

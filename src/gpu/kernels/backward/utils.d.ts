@@ -24,3 +24,22 @@ export declare function recordBackwardKernel(
   writeUniforms: (view: DataView, count: number) => void,
   options?: BackwardKernelOptions
 ): Promise<Tensor>;
+
+export declare function runMatmulTransposeA(
+  A: Tensor,
+  B: Tensor,
+  M: number,
+  N: number,
+  K: number,
+  options?: { alpha?: number; outputBuffer?: GPUBuffer | null }
+): Promise<Tensor>;
+
+export declare function recordMatmulTransposeA(
+  recorder: CommandRecorder,
+  A: Tensor,
+  B: Tensor,
+  M: number,
+  N: number,
+  K: number,
+  options?: { alpha?: number; outputBuffer?: GPUBuffer | null }
+): Promise<Tensor>;
