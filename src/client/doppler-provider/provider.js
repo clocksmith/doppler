@@ -7,34 +7,10 @@ import {
   unloadLoRAAdapter,
   getActiveLoRA,
   getAvailableModels,
-  getDopplerStorageInfo,
   getPipeline,
   getCurrentModelId,
-  extractTextModelConfig,
-  readOPFSFile,
-  writeOPFSFile,
-  fetchArrayBuffer,
   destroyDoppler,
 } from './model-manager.js';
-import { getRuntimeConfig, setRuntimeConfig, resetRuntimeConfig } from '../../config/runtime.js';
-import {
-  ConvertStage,
-  isConversionSupported,
-  createRemoteModelSources,
-  convertModel,
-  pickModelFiles,
-} from '../../browser/browser-converter.js';
-import {
-  loadRuntimeConfigFromUrl,
-  applyRuntimeConfigFromUrl,
-  loadRuntimePreset,
-  applyRuntimePreset,
-  initializeBrowserHarness,
-  saveBrowserReport,
-  runBrowserHarness,
-  runBrowserSuite,
-  runBrowserManifest,
-} from '../../inference/browser-harness.js';
 import {
   generate,
   prefillKV,
@@ -54,6 +30,10 @@ export const DopplerProvider = {
 
   async loadModel(modelId, modelUrl, onProgress, localPath) {
     return loadModel(modelId, modelUrl ?? null, onProgress ?? null, localPath ?? null);
+  },
+
+  async unloadModel() {
+    return unloadModel();
   },
 
   async chat(messages, options) {
@@ -101,58 +81,12 @@ export const DopplerProvider = {
     return getAvailableModels();
   },
 
-  async getDopplerStorageInfo() {
-    return getDopplerStorageInfo();
-  },
-
   getPipeline() {
     return getPipeline();
   },
 
   getCurrentModelId() {
     return getCurrentModelId();
-  },
-
-  extractTextModelConfig(manifest) {
-    return extractTextModelConfig(manifest);
-  },
-
-  async readOPFSFile(path) {
-    return readOPFSFile(path);
-  },
-
-  async writeOPFSFile(path, data) {
-    return writeOPFSFile(path, data);
-  },
-
-  async fetchArrayBuffer(url) {
-    return fetchArrayBuffer(url);
-  },
-
-  runtime: {
-    getRuntimeConfig,
-    setRuntimeConfig,
-    resetRuntimeConfig,
-  },
-
-  conversion: {
-    ConvertStage,
-    isConversionSupported,
-    createRemoteModelSources,
-    convertModel,
-    pickModelFiles,
-  },
-
-  bench: {
-    loadRuntimeConfigFromUrl,
-    applyRuntimeConfigFromUrl,
-    loadRuntimePreset,
-    applyRuntimePreset,
-    initializeBrowserHarness,
-    saveBrowserReport,
-    runBrowserHarness,
-    runBrowserSuite,
-    runBrowserManifest,
   },
 
   async destroy() {

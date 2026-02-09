@@ -72,19 +72,20 @@ export {
 import { getKernelConfig } from './kernel-configs.js';
 import { getPipelineFast } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
-import { dispatchKernel } from './dispatch.js';
+import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
+import { writeUniformsFromObject } from './uniform-utils.js';
 
 export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null) {
   const device = target?.device || getDevice();
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
-  const config = getKernelConfig(opName);
+  const config = getKernelConfig(opName, variant);
   const pipeline = await getPipelineFast(opName, variant, null, constants);
 
   const uniformBuffer = createUniformBuffer(
     `${opName}_uniforms`,
-    config.baseUniforms.size,
-    (view) => writeUniformsFromObject(view, opName, uniforms),
+    config.uniforms.size,
+    (view) => writeUniformsFromObject(view, config, uniforms),
     recorder,
     device
   );
@@ -93,13 +94,31 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
     { binding: 0, resource: { buffer: uniformBuffer } }
   ];
 
+  const dataBindings = config.bindings
+    .filter(b => b.type !== 'uniform')
+    .slice()
+    .sort((a, b) => a.index - b.index);
+
+  if (bindings.length !== dataBindings.length) {
+    throw new Error(
+      `Kernel "${opName}/${variant}" expected ${dataBindings.length} bindings ` +
+      `(excluding uniforms) but got ${bindings.length}`
+    );
+  }
+
   for (let i = 0; i < bindings.length; i++) {
     const binding = bindings[i];
-    // registry index starts at 1 for data buffers usually
-    const index = config.baseBindings[i + 1].index;
+    const bindingConfig = dataBindings[i];
+    let index = bindingConfig.index;
+
+    // Some variants change output binding index (e.g. gather f16 output uses binding 4).
+    if (bindingConfig.name === 'output' && config.variantMetadata?.outputBinding != null) {
+      index = config.variantMetadata.outputBinding;
+    }
+
     bindGroupEntries.push({
       binding: index,
-      resource: { buffer: binding.buffer || binding }
+      resource: { buffer: binding?.buffer || binding }
     });
   }
 
@@ -109,7 +128,16 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
     entries: bindGroupEntries,
   });
 
-  dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
+  if (workgroups && typeof workgroups === 'object' && workgroups.indirectBuffer) {
+    const indirectOffset = workgroups.indirectOffset ?? 0;
+    if (recorder) {
+      recordDispatchIndirect(recorder, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+    } else {
+      dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+    }
+  } else {
+    dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
+  }
 
   if (!recorder) {
     uniformBuffer.destroy();

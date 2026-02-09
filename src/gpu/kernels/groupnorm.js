@@ -1,8 +1,6 @@
-import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getBuffer } from '../weight-buffer.js';
 
@@ -23,13 +21,8 @@ function validateOptions(options) {
   }
 }
 
-export async function runGroupNorm(
-  input,
-  weight,
-  bias,
-  options = {}
-) {
-  const device = getDevice();
+async function _groupNorm(target, input, weight, bias, options = {}) {
+  const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   validateOptions(options);
 
   const { channels, height, width, numGroups, eps, outputBuffer = null } = options;
@@ -37,40 +30,28 @@ export async function runGroupNorm(
   const statsVariant = selectGroupNormVariant('statsVariant', isF16);
   const applyVariant = selectGroupNormVariant('applyVariant', isF16);
 
-  const statsPipeline = await getPipelineFast('groupnorm_stats', statsVariant);
-  const applyPipeline = await getPipelineFast('groupnorm_apply', applyVariant);
-
-  const uniformBuffer = createUniformBufferWithView(
-    'groupnorm_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, channels, true);
-      view.setUint32(4, height, true);
-      view.setUint32(8, width, true);
-      view.setUint32(12, numGroups, true);
-      view.setFloat32(16, eps, true);
-      view.setUint32(20, 0, true);
-      view.setUint32(24, 0, true);
-      view.setUint32(28, 0, true);
-    },
-    null,
-    device
-  );
+  const uniforms = {
+    channels,
+    height,
+    width,
+    num_groups: numGroups,
+    eps,
+    _pad0: 0,
+    _pad1: 0,
+    _pad2: 0,
+  };
 
   const statsSize = numGroups * 2 * 4;
   const statsBuffer = acquireBuffer(statsSize, undefined, 'groupnorm_stats');
 
-  const statsBindGroup = device.createBindGroup({
-    label: 'groupnorm_stats_bind_group',
-    layout: statsPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: statsBuffer } },
-    ],
-  });
-
-  dispatch(device, statsPipeline, statsBindGroup, numGroups, 'groupnorm_stats');
+  await unifiedKernelWrapper(
+    'groupnorm_stats',
+    target,
+    statsVariant,
+    [input, statsBuffer],
+    uniforms,
+    numGroups
+  );
 
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * height * width * bytesPerElement;
@@ -79,102 +60,32 @@ export async function runGroupNorm(
   const weightBuffer = getBuffer(weight);
   const biasBuffer = getBuffer(bias);
 
-  const applyBindGroup = device.createBindGroup({
-    label: 'groupnorm_apply_bind_group',
-    layout: applyPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: statsBuffer } },
-      { binding: 3, resource: { buffer: weightBuffer } },
-      { binding: 4, resource: { buffer: biasBuffer } },
-      { binding: 5, resource: { buffer: output } },
-    ],
-  });
-
   const total = channels * height * width;
   const workgroups = Math.ceil(total / 256);
-  dispatch(device, applyPipeline, applyBindGroup, workgroups, 'groupnorm_apply');
 
-  uniformBuffer.destroy();
-  releaseBuffer(statsBuffer);
-
-  return createTensor(output, input.dtype, [channels, height, width], 'groupnorm_output');
-}
-
-export async function recordGroupNorm(
-  recorder,
-  input,
-  weight,
-  bias,
-  options = {}
-) {
-  validateOptions(options);
-
-  const { channels, height, width, numGroups, eps, outputBuffer = null } = options;
-  const isF16 = input.dtype === 'f16';
-  const statsVariant = selectGroupNormVariant('statsVariant', isF16);
-  const applyVariant = selectGroupNormVariant('applyVariant', isF16);
-
-  const statsPipeline = await getPipelineFast('groupnorm_stats', statsVariant);
-  const applyPipeline = await getPipelineFast('groupnorm_apply', applyVariant);
-
-  const uniformBuffer = createUniformBufferWithView(
-    'groupnorm_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, channels, true);
-      view.setUint32(4, height, true);
-      view.setUint32(8, width, true);
-      view.setUint32(12, numGroups, true);
-      view.setFloat32(16, eps, true);
-      view.setUint32(20, 0, true);
-      view.setUint32(24, 0, true);
-      view.setUint32(28, 0, true);
-    },
-    recorder
+  await unifiedKernelWrapper(
+    'groupnorm_apply',
+    target,
+    applyVariant,
+    [input, statsBuffer, weightBuffer, biasBuffer, output],
+    uniforms,
+    workgroups
   );
 
-  const statsSize = numGroups * 2 * 4;
-  const statsBuffer = acquireBuffer(statsSize, undefined, 'groupnorm_stats');
-
-  const statsBindGroup = recorder.device.createBindGroup({
-    label: 'groupnorm_stats_bind_group',
-    layout: statsPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: statsBuffer } },
-    ],
-  });
-
-  recordDispatch(recorder, statsPipeline, statsBindGroup, numGroups, 'groupnorm_stats');
-
-  const bytesPerElement = dtypeBytes(input.dtype);
-  const outputSize = channels * height * width * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'groupnorm_output');
-
-  const weightBuffer = getBuffer(weight);
-  const biasBuffer = getBuffer(bias);
-
-  const applyBindGroup = recorder.device.createBindGroup({
-    label: 'groupnorm_apply_bind_group',
-    layout: applyPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: statsBuffer } },
-      { binding: 3, resource: { buffer: weightBuffer } },
-      { binding: 4, resource: { buffer: biasBuffer } },
-      { binding: 5, resource: { buffer: output } },
-    ],
-  });
-
-  const total = channels * height * width;
-  const workgroups = Math.ceil(total / 256);
-  recordDispatch(recorder, applyPipeline, applyBindGroup, workgroups, 'groupnorm_apply');
-
-  recorder.trackTemporaryBuffer(statsBuffer);
+  if (recorder) {
+    recorder.trackTemporaryBuffer(statsBuffer);
+  } else {
+    releaseBuffer(statsBuffer);
+  }
 
   return createTensor(output, input.dtype, [channels, height, width], 'groupnorm_output');
 }
+
+export async function runGroupNorm(input, weight, bias, options = {}) {
+  return _groupNorm(null, input, weight, bias, options);
+}
+
+export async function recordGroupNorm(recorder, input, weight, bias, options = {}) {
+  return _groupNorm(recorder, input, weight, bias, options);
+}
+

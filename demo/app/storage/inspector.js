@@ -1,8 +1,13 @@
-import { log } from '../../../src/debug/index.js';
-import { getRuntimeConfig } from '../../../src/config/runtime.js';
-import { listRegisteredModels, removeRegisteredModel } from '../../../src/storage/registry.js';
-import { formatBytes, getQuotaInfo } from '../../../src/storage/quota.js';
-import { listStorageInventory, deleteStorageEntry } from '../../../src/storage/inventory.js';
+import {
+  log,
+  getRuntimeConfig,
+  listRegisteredModels,
+  removeRegisteredModel,
+  formatBytes,
+  getQuotaInfo,
+  listStorageInventory,
+  deleteStorageEntry,
+} from '@doppler/core';
 import { state } from '../state.js';
 import { $, setText } from '../dom.js';
 import { showErrorModal } from '../ui.js';

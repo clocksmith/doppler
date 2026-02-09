@@ -1,10 +1,15 @@
-import { log } from '../src/debug/index.js';
-import { listPresets, createConverterConfig, detectPreset, resolvePreset } from '../src/config/index.js';
-import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../src/config/schema/index.js';
-import { formatBytes } from '../src/storage/quota.js';
-import { listRegisteredModels, registerModel } from '../src/storage/registry.js';
 import {
+  log,
+  listPresets,
+  createConverterConfig,
+  detectPreset,
+  resolvePreset,
+  getRuntimeConfig,
+  setRuntimeConfig,
+  DEFAULT_MANIFEST_INFERENCE,
+  formatBytes,
+  listRegisteredModels,
+  registerModel,
   openModelStore,
   loadManifestFromStore,
   loadShard,
@@ -13,19 +18,27 @@ import {
   saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
-} from '../src/storage/shard-manager.js';
-import { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from '../src/storage/rdrr-format.js';
-import {
+  parseManifest,
+  getManifest,
+  setManifest,
+  clearManifest,
+  classifyTensorRole,
   convertModel,
   createRemoteModelSources,
   isConversionSupported,
-} from '../src/browser/browser-converter.js';
-import { buildManifestInference, inferEmbeddingOutputConfig } from '../src/converter/manifest-inference.js';
-import { pickModelDirectory, pickModelFiles } from '../src/browser/file-picker.js';
-import { createPipeline } from '../src/inference/pipeline.js';
-import { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from '../src/gpu/device.js';
-import { captureMemorySnapshot } from '../src/loader/memory-monitor.js';
-import { destroyBufferPool } from '../src/memory/buffer-pool.js';
+  buildManifestInference,
+  inferEmbeddingOutputConfig,
+  pickModelDirectory,
+  pickModelFiles,
+  createPipeline,
+  initDevice,
+  getDevice,
+  getKernelCapabilities,
+  getPlatformConfig,
+  isWebGPUAvailable,
+  captureMemorySnapshot,
+  destroyBufferPool,
+} from '@doppler/core';
 import { DiagnosticsController } from './diagnostics-controller.js';
 import { state } from './app/state.js';
 import { $, setText, setHidden } from './app/dom.js';

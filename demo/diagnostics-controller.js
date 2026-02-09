@@ -1,7 +1,11 @@
-import { log } from '../src/debug/index.js';
-import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
-import { TOOLING_INTENTS } from '../src/config/schema/tooling.schema.js';
-import { applyRuntimePreset, runBrowserSuite } from '../src/inference/browser-harness.js';
+import {
+  log,
+  getRuntimeConfig,
+  setRuntimeConfig,
+  TOOLING_INTENTS,
+  applyRuntimePreset,
+  runBrowserSuite,
+} from '@doppler/core';
 
 const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);

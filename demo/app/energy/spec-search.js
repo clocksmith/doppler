@@ -1,4 +1,4 @@
-import { buildLayout, getDefaultSpec } from '../../../src/inference/energy/vliw-generator.js';
+import { buildLayout, getDefaultSpec } from '@doppler/core';
 import { energySpecEvalCache } from './cache.js';
 import { buildVliwDatasetFromSpecInput, sliceVliwDataset } from './datasets.js';
 import {

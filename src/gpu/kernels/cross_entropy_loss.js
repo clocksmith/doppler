@@ -1,10 +1,8 @@
 
-import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { unifiedKernelWrapper } from './utils.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 
 function resolveDimensions(softmax, options) {
@@ -17,87 +15,40 @@ function resolveDimensions(softmax, options) {
   return { numTokens, vocabSize };
 }
 
-export async function runCrossEntropyLoss(softmax, targets, options = {}) {
-  const device = getDevice();
+async function _crossEntropyLoss(target, softmax, targets, options = {}) {
+  const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { outputBuffer = null } = options;
   const { numTokens, vocabSize } = resolveDimensions(softmax, options);
 
-  const inputTensor = softmax.dtype === 'f16' ? await castF16ToF32(softmax) : softmax;
+  const inputTensor = softmax.dtype === 'f16'
+    ? (recorder ? await recordCastF16ToF32(recorder, softmax) : await castF16ToF32(softmax))
+    : softmax;
+
   const outputSize = numTokens * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'cross_entropy_loss_output');
 
-  const pipeline = await createPipeline('cross_entropy_loss', 'default');
-  const uniformBuffer = createUniformBufferWithView(
-    'cross_entropy_loss_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numTokens, true);
-      view.setUint32(4, vocabSize, true);
-    },
-    null,
-    device
+  await unifiedKernelWrapper(
+    'cross_entropy_loss', target, 'default',
+    [inputTensor, targets, outputBuf],
+    { num_tokens: numTokens, vocab_size: vocabSize },
+    Math.ceil(numTokens / WORKGROUP_SIZES.DEFAULT)
   );
 
-  const bindGroup = device.createBindGroup({
-    label: 'cross_entropy_loss_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: inputTensor.buffer } },
-      { binding: 2, resource: { buffer: targets.buffer } },
-      { binding: 3, resource: { buffer: outputBuf } },
-    ],
-  });
-
-  const workgroups = Math.ceil(numTokens / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'cross_entropy_loss');
-
-  uniformBuffer.destroy();
-
   if (inputTensor !== softmax) {
-    releaseBuffer(inputTensor.buffer);
+    if (recorder) {
+      recorder.trackTemporaryBuffer(inputTensor.buffer);
+    } else {
+      releaseBuffer(inputTensor.buffer);
+    }
   }
 
   return createTensor(outputBuf, 'f32', [numTokens], 'cross_entropy_loss_output');
 }
 
+export async function runCrossEntropyLoss(softmax, targets, options = {}) {
+  return _crossEntropyLoss(null, softmax, targets, options);
+}
+
 export async function recordCrossEntropyLoss(recorder, softmax, targets, options = {}) {
-  const device = recorder.device;
-  const { outputBuffer = null } = options;
-  const { numTokens, vocabSize } = resolveDimensions(softmax, options);
-
-  const inputTensor = softmax.dtype === 'f16' ? await recordCastF16ToF32(recorder, softmax) : softmax;
-  if (inputTensor !== softmax) {
-    recorder.trackTemporaryBuffer(inputTensor.buffer);
-  }
-
-  const outputSize = numTokens * 4;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'cross_entropy_loss_output');
-
-  const pipeline = await createPipeline('cross_entropy_loss', 'default');
-  const uniformBuffer = createUniformBufferWithView(
-    'cross_entropy_loss_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numTokens, true);
-      view.setUint32(4, vocabSize, true);
-    },
-    recorder
-  );
-
-  const bindGroup = device.createBindGroup({
-    label: 'cross_entropy_loss_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: inputTensor.buffer } },
-      { binding: 2, resource: { buffer: targets.buffer } },
-      { binding: 3, resource: { buffer: outputBuf } },
-    ],
-  });
-
-  const workgroups = Math.ceil(numTokens / WORKGROUP_SIZES.DEFAULT);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'cross_entropy_loss');
-
-  return createTensor(outputBuf, 'f32', [numTokens], 'cross_entropy_loss_output');
+  return _crossEntropyLoss(recorder, softmax, targets, options);
 }

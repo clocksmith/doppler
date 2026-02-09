@@ -86,6 +86,7 @@ select {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border: var(--border-sm) solid var(--fg);
+  border-color: currentColor;
 }
 
 .border-error {
@@ -187,4 +188,30 @@ select {
 
 .accordion-content[aria-hidden="false"] {
   display: block;
+}
+
+/* === SEGMENTED CONTROLS === */
+/*
+ * For single-select button groups (tabs/toggles).
+ * Mark the active item with `.is-active` or `aria-pressed="true"`.
+ */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.segmented-btn {
+  border-style: dotted;
+  border-radius: 0;
+}
+
+.segmented-btn.is-active,
+.segmented-btn[aria-pressed="true"],
+.segmented-control [aria-pressed="true"] {
+  border-style: solid;
+  border-color: currentColor;
+  background: var(--fg);
+  color: var(--bg);
 }

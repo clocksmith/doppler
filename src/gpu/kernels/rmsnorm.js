@@ -45,8 +45,8 @@ export async function runRMSNorm(
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
-  // Placeholder for residual if not present
-  const residualBuf = residual?.buffer || null;
+  // Shader layout always includes the residual binding; when unused, bind a harmless placeholder.
+  const residualBuf = residual?.buffer || input.buffer;
 
   await unifiedKernelWrapper(
     'rmsnorm',
@@ -78,7 +78,7 @@ export async function recordRMSNorm(
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
-  const residualBuf = residual?.buffer || null;
+  const residualBuf = residual?.buffer || input.buffer;
 
   await unifiedKernelWrapper(
     'rmsnorm',

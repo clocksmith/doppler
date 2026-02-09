@@ -136,27 +136,6 @@ export class AutogradTape {
     return outputs;
   }
 
-  async accumulateGrad(grads, input, grad) {
-    const existing = grads.get(input);
-    if (!existing) {
-      grads.set(input, grad);
-      return;
-    }
-    const size = grad.shape.reduce((acc, value) => acc * value, 1);
-    const summed = await runResidualAdd(existing, grad, size);
-    grads.set(input, summed);
-    if (existing.buffer !== summed.buffer) {
-      releaseBuffer(existing.buffer);
-    }
-    if (grad.buffer !== summed.buffer && grad.buffer !== existing.buffer) {
-      releaseBuffer(grad.buffer);
-    }
-  }
-
-  reset() {
-    this.records = [];
-  }
-}
 
   async accumulateGrad(grads, input, grad) {
     const existing = grads.get(input);

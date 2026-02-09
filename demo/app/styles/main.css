@@ -7,7 +7,7 @@
 
     .page-shell {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: var(--space-lg) var(--space-md);
       display: flex;
@@ -96,13 +96,7 @@
     .mode-tab,
     .mode-tool {
       padding: 6px 12px;
-      border-style: dotted;
       border-radius: 0;
-    }
-
-    .mode-tab.is-active,
-    .mode-tool.is-active {
-      border-style: solid;
     }
 
     .header-model {
@@ -343,12 +337,7 @@
 
     .diagnostics-mode-tab {
       padding: 6px 12px;
-      border-style: dotted;
       border-radius: 0;
-    }
-
-    .diagnostics-mode-tab.is-active {
-      border-style: solid;
     }
 
     #diagnostics-run-btn:disabled {

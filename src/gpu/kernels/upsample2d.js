@@ -1,137 +1,57 @@
-import { getDevice } from '../device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView } from './utils.js';
+import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 
 function selectUpsample2DVariant(isF16) {
   return selectRuleValue('upsample2d', 'variant', { isF16 });
 }
 
-export async function runUpsample2D(
-  input,
-  options = {}
-) {
-  const device = getDevice();
+async function _upsample2d(target, input, options = {}) {
   const {
     channels,
     height,
     width,
+    inHeight,
+    inWidth,
     scale = 2,
     outputBuffer = null,
   } = options;
 
-  if (!Number.isFinite(channels) || !Number.isFinite(height) || !Number.isFinite(width)) {
+  const resolvedHeight = Number.isFinite(height) ? height : inHeight;
+  const resolvedWidth = Number.isFinite(width) ? width : inWidth;
+
+  if (!Number.isFinite(channels) || !Number.isFinite(resolvedHeight) || !Number.isFinite(resolvedWidth)) {
     throw new Error('Upsample2D requires channels/height/width.');
   }
   if (!Number.isFinite(scale) || scale <= 0) {
     throw new Error('Upsample2D requires scale > 0.');
   }
 
-  const isF16 = input.dtype === 'f16';
-  const variant = selectUpsample2DVariant(isF16);
-  const pipeline = await createPipeline('upsample2d', variant);
-
-  const outHeight = height * scale;
-  const outWidth = width * scale;
+  const outHeight = resolvedHeight * scale;
+  const outWidth = resolvedWidth * scale;
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * outHeight * outWidth * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'upsample2d_output');
 
-  const uniformBuffer = createUniformBufferWithView(
-    'upsample2d_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, channels, true);
-      view.setUint32(4, height, true);
-      view.setUint32(8, width, true);
-      view.setUint32(12, outHeight, true);
-      view.setUint32(16, outWidth, true);
-      view.setUint32(20, scale, true);
-      view.setUint32(24, 0, true);
-      view.setUint32(28, 0, true);
+  await unifiedKernelWrapper(
+    'upsample2d', target, selectUpsample2DVariant(input.dtype === 'f16'),
+    [input, output],
+    {
+      channels, in_height: resolvedHeight, in_width: resolvedWidth,
+      out_height: outHeight, out_width: outWidth, scale,
+      _pad0: 0, _pad1: 0,
     },
-    null,
-    device
+    Math.ceil((channels * outHeight * outWidth) / 256)
   );
-
-  const bindGroup = device.createBindGroup({
-    label: 'upsample2d_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
-
-  const workgroups = Math.ceil((channels * outHeight * outWidth) / 256);
-  dispatch(device, pipeline, bindGroup, workgroups, 'upsample2d');
-
-  uniformBuffer.destroy();
 
   return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');
 }
 
-export async function recordUpsample2D(
-  recorder,
-  input,
-  options = {}
-) {
-  const {
-    channels,
-    height,
-    width,
-    scale = 2,
-    outputBuffer = null,
-  } = options;
+export async function runUpsample2D(input, options = {}) {
+  return _upsample2d(null, input, options);
+}
 
-  if (!Number.isFinite(channels) || !Number.isFinite(height) || !Number.isFinite(width)) {
-    throw new Error('Upsample2D requires channels/height/width.');
-  }
-  if (!Number.isFinite(scale) || scale <= 0) {
-    throw new Error('Upsample2D requires scale > 0.');
-  }
-
-  const isF16 = input.dtype === 'f16';
-  const variant = selectUpsample2DVariant(isF16);
-  const pipeline = await createPipeline('upsample2d', variant);
-
-  const outHeight = height * scale;
-  const outWidth = width * scale;
-  const bytesPerElement = dtypeBytes(input.dtype);
-  const outputSize = channels * outHeight * outWidth * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'upsample2d_output');
-
-  const uniformBuffer = createUniformBufferWithView(
-    'upsample2d_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, channels, true);
-      view.setUint32(4, height, true);
-      view.setUint32(8, width, true);
-      view.setUint32(12, outHeight, true);
-      view.setUint32(16, outWidth, true);
-      view.setUint32(20, scale, true);
-      view.setUint32(24, 0, true);
-      view.setUint32(28, 0, true);
-    },
-    recorder
-  );
-
-  const bindGroup = recorder.device.createBindGroup({
-    label: 'upsample2d_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
-
-  const workgroups = Math.ceil((channels * outHeight * outWidth) / 256);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'upsample2d');
-
-  return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');
+export async function recordUpsample2D(recorder, input, options = {}) {
+  return _upsample2d(recorder, input, options);
 }

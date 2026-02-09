@@ -1,10 +1,7 @@
-
-
-import { getDevice, getKernelCapabilities } from '../device.js';
+import { getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
-import { dispatch, dispatchIndirect, recordDispatch, recordDispatchIndirect } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView, getKernelConfig } from './utils.js';
+import { unifiedKernelWrapper } from './utils.js';
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
 import { DTYPE_SIZES, padToQ4KBlock } from '../../config/schema/index.js';
@@ -19,21 +16,8 @@ function selectGatherVariant(useF16Input, useF16Output, useVec4) {
   );
 }
 
-
-function getOutputBinding(variant, useF16Output) {
-  if (!useF16Output) {
-    return 3; // F32 output always uses binding 3
-  }
-  const config = getKernelConfig('gather', variant);
-  const outputBinding = config.variantMetadata?.outputBinding;
-  if (outputBinding == null) {
-    throw new Error(`[Gather] Missing outputBinding for variant "${variant}" with f16 output.`);
-  }
-  return outputBinding;
-}
-
-
-export async function runGather(
+async function _gather(
+  target,
   indices,
   embeddings,
   numTokens,
@@ -41,7 +25,6 @@ export async function runGather(
   vocabSize,
   options = {}
 ) {
-  const device = getDevice();
   const {
     useVec4 = true,
     outputBuffer = null,
@@ -53,7 +36,6 @@ export async function runGather(
     indirectOffset = 0,
   } = options;
 
-  // Detect embedding dtype (F16 embeddings enable optimized lm_head)
   const caps = getKernelCapabilities();
   if (embeddingDtype == null) {
     throw new Error('[Gather] embeddingDtype is required.');
@@ -61,73 +43,67 @@ export async function runGather(
   if (outputDtype == null) {
     throw new Error('[Gather] outputDtype is required.');
   }
-  const detectedDtype = embeddingDtype;
-  const useF16Input = detectedDtype === 'f16' && caps.hasF16;
-  const useF16Output = outputDtype === 'f16' && caps.hasF16;
-  trace.embed(`Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, transpose=${transpose}, indexOffset=${indexOffset}, detectedDtype=${detectedDtype}, useF16Input=${useF16Input}, useF16Output=${useF16Output}`);
 
-  // Select kernel variant using lookup table
+  const useF16Input = embeddingDtype === 'f16' && caps.hasF16;
+  const useF16Output = outputDtype === 'f16' && caps.hasF16;
+
+  trace.embed(
+    `Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
+    `transpose=${transpose}, indexOffset=${indexOffset}, ` +
+    `embeddingDtype=${embeddingDtype}, outputDtype=${outputDtype}, ` +
+    `useF16Input=${useF16Input}, useF16Output=${useF16Output}`
+  );
+
   const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
   trace.embed(`Gather variant: ${variant}`);
-  const pipeline = await getPipelineFast('gather', variant);
 
-  // Calculate output size using DTYPE_SIZES
   // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
   // that read 256-element blocks. Extra padding elements stay zero.
-  const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
-  const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
+  const actualDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
+  const bytesPerElement = DTYPE_SIZES[actualDtype];
   const paddedHiddenSize = padToQ4KBlock(hiddenSize);
   const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
 
-  // Create uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'gather_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, numTokens, true);
-      view.setUint32(4, hiddenSize, true);
-      view.setUint32(8, vocabSize, true);
-      view.setUint32(12, transpose ? 1 : 0, true);
-      view.setUint32(16, indexOffset, true);
-    },
-    null,
-    device
+  const uniforms = {
+    num_tokens: numTokens,
+    hidden_size: hiddenSize,
+    vocab_size: vocabSize,
+    transpose: transpose ? 1 : 0,
+    index_offset: indexOffset,
+    _pad0: 0,
+    _pad1: 0,
+    _pad2: 0,
+  };
+
+  const workgroups = indirectBuffer
+    ? { indirectBuffer, indirectOffset }
+    : (useVec4
+      ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
+      : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
+
+  await unifiedKernelWrapper(
+    'gather',
+    target,
+    variant,
+    [indices, embeddings, output],
+    uniforms,
+    workgroups
   );
 
-  // Create bind group - output binding from kernel config
-  const outputBinding = getOutputBinding(variant, useF16Output);
-  
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: indices } },
-    { binding: 2, resource: { buffer: embeddings } },
-    { binding: outputBinding, resource: { buffer: output } },
-  ];
-  const bindGroup = device.createBindGroup({
-    label: 'gather_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries,
-  });
-
-  // gather.wgsl uses @workgroup_size(256); gather_vec4.wgsl uses @workgroup_size(64)
-  // vec4 variant: 64 threads x 4 floats = 256 floats per workgroup
-  const workgroups = useVec4
-    ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
-    : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
-  if (indirectBuffer) {
-    dispatchIndirect(device, pipeline, bindGroup, indirectBuffer, indirectOffset, 'gather');
-  } else {
-    dispatch(device, pipeline, bindGroup, workgroups, 'gather');
-  }
-
-  uniformBuffer.destroy();
-
-  
-  const actualDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
   return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
 }
 
+export async function runGather(
+  indices,
+  embeddings,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  options = {}
+) {
+  return _gather(null, indices, embeddings, numTokens, hiddenSize, vocabSize, options);
+}
 
 export async function recordGather(
   recorder,
@@ -138,85 +114,6 @@ export async function recordGather(
   vocabSize,
   options = {}
 ) {
-  const device = recorder.device;
-  const {
-    useVec4 = true,
-    outputBuffer = null,
-    embeddingDtype,
-    outputDtype,
-    transpose = false,
-    indexOffset = 0,
-    indirectBuffer = null,
-    indirectOffset = 0,
-  } = options;
-
-  // Detect embedding dtype (same logic as runGather)
-  const caps = getKernelCapabilities();
-  if (embeddingDtype == null) {
-    throw new Error('[Gather] embeddingDtype is required.');
-  }
-  if (outputDtype == null) {
-    throw new Error('[Gather] outputDtype is required.');
-  }
-  const detectedDtype = embeddingDtype;
-  const useF16Input = detectedDtype === 'f16' && caps.hasF16;
-  const useF16Output = outputDtype === 'f16' && caps.hasF16;
-
-  // Select kernel variant using lookup table
-  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
-  trace.embed(`Gather variant: ${variant}`);
-  const pipeline = await getPipelineFast('gather', variant);
-
-  // Calculate output size using DTYPE_SIZES
-  // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
-  // that read 256-element blocks. Extra padding elements stay zero.
-  const outputDtypeKey = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
-  const bytesPerElement = DTYPE_SIZES[outputDtypeKey];
-  const paddedHiddenSize = padToQ4KBlock(hiddenSize);
-  const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
-
-  // Uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'gather_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, numTokens, true);
-      view.setUint32(4, hiddenSize, true);
-      view.setUint32(8, vocabSize, true);
-      view.setUint32(12, transpose ? 1 : 0, true);
-      view.setUint32(16, indexOffset, true);
-    },
-    recorder
-  );
-
-  // Create bind group - output binding from kernel config
-  const outputBinding = getOutputBinding(variant, useF16Output);
-  
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: indices } },
-    { binding: 2, resource: { buffer: embeddings } },
-    { binding: outputBinding, resource: { buffer: output } },
-  ];
-  const bindGroup = device.createBindGroup({
-    label: 'gather_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries,
-  });
-
-  // gather.wgsl uses @workgroup_size(256); gather_vec4.wgsl uses @workgroup_size(64)
-  // vec4 variant: 64 threads x 4 floats = 256 floats per workgroup
-  const workgroups = useVec4
-    ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
-    : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
-  if (indirectBuffer) {
-    recordDispatchIndirect(recorder, pipeline, bindGroup, indirectBuffer, indirectOffset, 'gather');
-  } else {
-    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'gather');
-  }
-
-  
-  const actualDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32', { useF16: useF16Output });
-  return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
+  return _gather(recorder, indices, embeddings, numTokens, hiddenSize, vocabSize, options);
 }
+

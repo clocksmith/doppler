@@ -13,28 +13,6 @@ export {
   type ChatResponse,
   type DopplerCapabilitiesType,
   type DopplerProviderInterface,
-  type DopplerProviderRuntime,
-  type DopplerProviderConversion,
-  type DopplerProviderBench,
-  type RuntimeConfigSchema,
-  type ConvertStageType,
-  type ConvertProgress,
-  type ConvertOptions,
-  type ShardInfo,
-  type TensorLocation,
-  type RDRRManifest,
-  type TensorSource,
-  type HttpTensorSourceOptions,
-  type BrowserHarnessOptions,
-  type BrowserSuiteOptions,
-  type BrowserManifest,
-  type BrowserHarnessResult,
-  type BrowserSuiteResult,
-  type BrowserManifestResult,
-  type BrowserSuite,
-  type SuiteSummary,
-  type SuiteTestResult,
-  type RuntimeConfigLoadOptions,
 
   // Capability flags
   DopplerCapabilities,
@@ -47,14 +25,9 @@ export {
   unloadLoRAAdapter,
   getActiveLoRA,
   getAvailableModels,
-  getDopplerStorageInfo,
   destroyDoppler,
   getPipeline,
   getCurrentModelId,
-  extractTextModelConfig,
-  readOPFSFile,
-  writeOPFSFile,
-  fetchArrayBuffer,
 
   // Generation
   generate,
@@ -66,29 +39,6 @@ export {
   formatChatMessages,
   buildChatPrompt,
   dopplerChat,
-
-  // Runtime config
-  getRuntimeConfig,
-  setRuntimeConfig,
-  resetRuntimeConfig,
-
-  // Conversion
-  ConvertStage,
-  isConversionSupported,
-  createRemoteModelSources,
-  convertModel,
-  pickModelFiles,
-
-  // Harness
-  loadRuntimeConfigFromUrl,
-  applyRuntimeConfigFromUrl,
-  loadRuntimePreset,
-  applyRuntimePreset,
-  initializeBrowserHarness,
-  saveBrowserReport,
-  runBrowserHarness,
-  runBrowserSuite,
-  runBrowserManifest,
 
   // Main provider
   DopplerProvider,

@@ -14,14 +14,9 @@ export {
   unloadLoRAAdapter,
   getActiveLoRA,
   getAvailableModels,
-  getDopplerStorageInfo,
   destroyDoppler,
   getPipeline,
   getCurrentModelId,
-  extractTextModelConfig,
-  readOPFSFile,
-  writeOPFSFile,
-  fetchArrayBuffer,
 
   // Generation
   generate,

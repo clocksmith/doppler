@@ -48,10 +48,10 @@ export type { ExpertNode, ExpertTask } from './inference/multi-model-network.js'
 // LoRA Adapter Infrastructure
 export {
   ADAPTER_MANIFEST_SCHEMA,
-  validateManifest,
-  parseManifest,
-  serializeManifest,
-  createManifest,
+  validateManifest as validateAdapterManifest,
+  parseManifest as parseAdapterManifest,
+  serializeManifest as serializeAdapterManifest,
+  createManifest as createAdapterManifest,
   computeLoRAScale,
   loadLoRAWeights,
   loadLoRAFromManifest,
@@ -65,6 +65,59 @@ export {
   resetAdapterRegistry,
   createMemoryRegistry,
 } from './adapters/index.js';
+
+// ============================================================================
+// Public Tooling Surface (used by the demo + diagnostics)
+// ============================================================================
+
+// Debug
+export { log } from './debug/index.js';
+
+// Config
+export {
+  listPresets,
+  createConverterConfig,
+  detectPreset,
+  resolvePreset,
+} from './config/index.js';
+export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
+export { DEFAULT_MANIFEST_INFERENCE } from './config/schema/index.js';
+export { TOOLING_INTENTS } from './config/schema/tooling.schema.js';
+
+// Storage + manifests
+export { formatBytes, getQuotaInfo } from './storage/quota.js';
+export { listRegisteredModels, registerModel, removeRegisteredModel } from './storage/registry.js';
+export { listStorageInventory, deleteStorageEntry } from './storage/inventory.js';
+export {
+  openModelStore,
+  loadManifestFromStore,
+  loadShard,
+  loadTensorsFromStore,
+  saveManifest,
+  saveTensorsToStore,
+  loadTokenizerFromStore,
+  loadTokenizerModelFromStore,
+  computeHash,
+} from './storage/shard-manager.js';
+export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './storage/rdrr-format.js';
+
+// Browser conversion + file pickers
+export { convertModel, createRemoteModelSources, isConversionSupported } from './browser/browser-converter.js';
+export { pickModelDirectory, pickModelFiles } from './browser/file-picker.js';
+export { buildManifestInference, inferEmbeddingOutputConfig } from './converter/manifest-inference.js';
+
+// GPU init + capabilities
+export { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from './gpu/device.js';
+
+// Memory tooling
+export { captureMemorySnapshot } from './loader/memory-monitor.js';
+export { destroyBufferPool } from './memory/buffer-pool.js';
+
+// Diagnostics harness
+export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './inference/browser-harness.js';
+
+// Energy utilities
+export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/energy/vliw-generator.js';
 
 export type {
   AdapterManifest,

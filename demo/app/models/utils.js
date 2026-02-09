@@ -1,5 +1,4 @@
-import { log } from '../../../src/debug/index.js';
-import { openModelStore, loadManifestFromStore } from '../../../src/storage/shard-manager.js';
+import { log, openModelStore, loadManifestFromStore } from '@doppler/core';
 import { state } from '../state.js';
 
 const modelTypeInflight = new Map();

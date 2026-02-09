@@ -1,5 +1,4 @@
-import { computeHash } from '../../../src/storage/shard-manager.js';
-import { buildVliwDatasetFromSpec } from '../../../src/inference/energy/vliw-generator.js';
+import { computeHash, buildVliwDatasetFromSpec } from '@doppler/core';
 import { VLIW_DATASETS } from '../constants.js';
 import { energyDatasetCache, energySpecCache } from './cache.js';
 import { stableStringify } from './utils.js';

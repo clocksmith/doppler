@@ -5,10 +5,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>D4DA - Doppler Showcase</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="manifest" href="/pwa-manifest.json">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="manifest" href="../pwa-manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
-  <link rel="stylesheet" href="/demo/app/styles/main.css">
+  <!-- Root-safe + prefix-safe:
+       - When hosting rewrites `/` -> `/demo/index.html`, this resolves to `/demo/app/...`
+       - When served under `/doppler/demo/`, this resolves to `/doppler/demo/app/...` -->
+  <link rel="stylesheet" href="../demo/app/styles/main.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@doppler/core": "../src/index.js"
+      }
+    }
+  </script>
 </head>
 
 <body>
@@ -28,17 +38,17 @@
               <div class="nav-group">
                 <div class="nav-label type-caption">Run</div>
                 <div class="segmented-control" id="mode-tabs">
-                  <button class="btn mode-tab" data-mode="run" type="button">Text</button>
-                  <button class="btn mode-tab" data-mode="diffusion" type="button">Image</button>
-                  <button class="btn mode-tab" data-mode="energy" type="button">Energy</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="run" type="button">Text</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="diffusion" type="button">Image</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="energy" type="button">Energy</button>
                 </div>
               </div>
               <div class="nav-divider" aria-hidden="true"></div>
               <div class="nav-group">
                 <div class="nav-label type-caption">Tools</div>
-                <div class="tool-group" id="mode-tools">
-                  <button class="btn mode-tool" data-mode="diagnostics" type="button">Diagnostics</button>
-                  <button class="btn mode-tool" data-mode="models" type="button">Models</button>
+                <div class="tool-group segmented-control" id="mode-tools">
+                  <button class="btn segmented-btn mode-tool" data-mode="diagnostics" type="button">Diagnostics</button>
+                  <button class="btn segmented-btn mode-tool" data-mode="models" type="button">Models</button>
                 </div>
               </div>
             </div>
@@ -162,9 +172,9 @@
             <section class="panel diagnostics-panel" data-modes="diagnostics kernels">
               <div class="diagnostics-heading">
                 <h2 class="type-label" id="diagnostics-title">Diagnostics</h2>
-                <div class="diagnostics-mode-tabs" id="diagnostics-mode-tabs">
-                  <button class="btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference Diagnostics</button>
-                  <button class="btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
+                <div class="diagnostics-mode-tabs segmented-control" id="diagnostics-mode-tabs">
+                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference Diagnostics</button>
+                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
                 </div>
               </div>
               <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
@@ -938,7 +948,7 @@
   </div>
 
   <!-- Bootstrap entry (registers VFS + loads app) -->
-  <script type="module" src="/src/bootstrap.js"></script>
+  <script type="module" src="../src/bootstrap.js"></script>
 </body>
 
 </html>

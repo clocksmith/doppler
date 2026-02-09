@@ -1,4 +1,4 @@
-import { formatBytes } from '../../src/storage/quota.js';
+import { formatBytes } from '@doppler/core';
 import { state } from './state.js';
 import { $ , setText } from './dom.js';
 import { formatRate, formatMs, formatScalar } from './format.js';

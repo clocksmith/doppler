@@ -2,20 +2,20 @@
 
 import { getDevice } from '../device.js';
 import { getUniformCache } from '../uniform-cache.js';
-import { getKernelConfig } from './kernel-configs.js';
 
 // ============================================================================
 // Uniform Buffer Creation
 // ============================================================================
 
-export function writeUniformsFromObject(view, opName, values) {
-  const config = getKernelConfig(opName);
-  const baseUniforms = config.baseUniforms;
-  if (!baseUniforms) {
-    throw new Error(`Kernel "${opName}" has no baseUniforms defined in registry.`);
+export function writeUniformsFromObject(view, config, values) {
+  const uniforms = config?.uniforms;
+  if (!uniforms) {
+    const op = config?.operation ?? 'unknown';
+    const variant = config?.variant ?? 'unknown';
+    throw new Error(`Kernel "${op}/${variant}" has no uniforms defined in registry.`);
   }
 
-  for (const field of baseUniforms.fields) {
+  for (const field of uniforms.fields) {
     const value = values[field.name];
     if (value === undefined) {
       // Optional fields or internal padding can be 0

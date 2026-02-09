@@ -218,7 +218,7 @@ DOPPLER (planned): Kernels are plain text, evolve across swarm
 
 **Static weights** → CDN (HuggingFace). **Dynamic components** → P2P evolution.
 
-See `operations.md` for current benchmarks and constraints.
+See `OPERATIONS.md` for current benchmarks and constraints.
 
 ### Speculative Decoding
 
@@ -277,7 +277,7 @@ Phase 2: MoE Efficiency ──────┤
 |----------|---------|
 | [architecture.md](architecture.md) | Current system design |
 | [config.md](config.md) | Kernel paths and runtime config |
-| [operations.md](operations.md) | Troubleshooting and perf investigations |
+| [OPERATIONS.md](OPERATIONS.md) | Troubleshooting and perf investigations |
 | Internal postmortems (private wrapper repo) | Incident summaries |
 
 ---
@@ -304,9 +304,8 @@ Phase 2: MoE Efficiency ──────┤
 
 *Last updated: December 2025*
 
-<!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 ## Technical Deep-Dives

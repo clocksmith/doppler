@@ -819,5 +819,12 @@ When debugging DOPPLER issues:
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+Canonical reference: `style/wgsl-style-guide.md`.
 
+This section is intentionally centralized here to avoid duplication across docs.
+If you see this referenced elsewhere, follow the link back to this section.
+
+Topics covered by the WGSL style guide:
+- Runtime kernel override modes (how to select/force kernels).
+- Compatibility expectations across browsers/GPUs.
+- OPFS purge helper usage (how to clear cached kernels/shards when debugging).

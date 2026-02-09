@@ -154,9 +154,8 @@ Its tunables are runtime-config driven:
 Browser automation is not wired in this repo yet. Run the harness and diagnostics
 flows locally for validation until a browser CI runner is added.
 
-<!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 ## Kernel Testing
@@ -307,6 +306,5 @@ For failures, store:
 
 *Last updated: December 2025*
 
-<!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/WGSL_style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.

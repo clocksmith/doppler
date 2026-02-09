@@ -1110,9 +1110,8 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 *Last updated: January 2026*
 
-<!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `style/wgsl-style-guide.md` for runtime kernel modes and the OPFS purge helper.
+See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 
