@@ -2,10 +2,41 @@
 
 import { getDevice } from '../device.js';
 import { getUniformCache } from '../uniform-cache.js';
+import { getKernelConfig } from './kernel-configs.js';
 
 // ============================================================================
 // Uniform Buffer Creation
 // ============================================================================
+
+export function writeUniformsFromObject(view, opName, values) {
+  const config = getKernelConfig(opName);
+  const baseUniforms = config.baseUniforms;
+  if (!baseUniforms) {
+    throw new Error(`Kernel "${opName}" has no baseUniforms defined in registry.`);
+  }
+
+  for (const field of baseUniforms.fields) {
+    const value = values[field.name];
+    if (value === undefined) {
+      // Optional fields or internal padding can be 0
+      continue;
+    }
+
+    switch (field.type) {
+      case 'u32':
+        view.setUint32(field.offset, value, true);
+        break;
+      case 'i32':
+        view.setInt32(field.offset, value, true);
+        break;
+      case 'f32':
+        view.setFloat32(field.offset, value, true);
+        break;
+      default:
+        throw new Error(`Unsupported uniform type "${field.type}" for field "${field.name}" in op "${opName}"`);
+    }
+  }
+}
 
 
 export function createUniformBufferFromData(

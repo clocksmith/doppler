@@ -1937,6 +1937,33 @@
         }
       }
     },
+    "matmul_backward": {
+      "description": "Matmul backward dX = dY @ W^T (fused tiled kernel)",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "dY", "type": "read-only-storage" },
+        { "index": 2, "name": "W", "type": "read-only-storage" },
+        { "index": 3, "name": "dX", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "M", "type": "u32", "offset": 0 },
+          { "name": "N", "type": "u32", "offset": 4 },
+          { "name": "K", "type": "u32", "offset": 8 },
+          { "name": "alpha", "type": "f32", "offset": 12 },
+          { "name": "transpose_b", "type": "u32", "offset": 16 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/matmul_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16, 16, 1],
+          "requires": []
+        }
+      }
+    },
     "matmul_transpose_a": {
       "description": "Matmul with transposed A (C = A^T * B)",
       "baseBindings": [

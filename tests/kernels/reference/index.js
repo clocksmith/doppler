@@ -47,3 +47,43 @@ export {
   sampleTopKRef,
   seededRandom,
 } from './sample.js';
+
+// Layer normalization
+export { layerNormRef } from './layernorm.js';
+
+// Group normalization
+export { groupNormRef } from './groupnorm.js';
+
+// Convolution
+export { conv2dRef, conv2dBackwardRef } from './conv2d.js';
+
+// Bias add
+export { biasAddRef, biasAddBackwardRef } from './bias-add.js';
+
+// Pixel shuffle
+export { pixelShuffleRef } from './pixel-shuffle.js';
+
+// Upsample
+export { upsample2dRef, upsample2dBackwardRef } from './upsample2d.js';
+
+// Modulate
+export { modulateRef } from './modulate.js';
+
+// Cross entropy
+export { crossEntropyLossRef, crossEntropyBackwardRef } from './cross-entropy.js';
+
+// Embed backward
+export { embedBackwardRef } from './embed.js';
+
+// Adam optimizer
+export { adamRef } from './adam.js';
+
+// Backward pass references
+export {
+  softmaxBackwardRef,
+  siluBackwardRef,
+  geluBackwardRef,
+  scaleBackwardRef,
+  ropeBackwardRef,
+  rmsNormBackwardRef,
+} from './backward.js';

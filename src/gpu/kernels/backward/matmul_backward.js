@@ -1,7 +1,4 @@
-import { runMatmul, recordMatmul } from '../matmul.js';
-import { runTranspose, recordTranspose } from '../transpose.js';
-import { releaseBuffer } from '../../../memory/buffer-pool.js';
-import { runMatmulTransposeA, recordMatmulTransposeA } from './utils.js';
+import { runMatmulTransposeA, recordMatmulTransposeA, runMatmulBackwardDx, recordMatmulBackwardDx } from './utils.js';
 
 export async function runMatmulBackward(input, weight, gradOutput, options = {}) {
   const {
@@ -23,42 +20,24 @@ export async function runMatmulBackward(input, weight, gradOutput, options = {})
   let gradWeight = null;
 
   if (computeGradInput) {
-    // dX = dY @ W (if Y = X @ W^T)
-    // dX = dY @ W^T (if Y = X @ W)
-    if (transposeB) {
-      // Y = X @ W^T => dX = dY @ W
-      // dY is [M, N], W is [N, K] => dX is [M, K]
-      gradInput = await runMatmul(
-        gradOutput,
-        weight,
-        M,
-        K,
-        N,
-        { transposeB: false }
-      );
-    } else {
-      // Y = X @ W => dX = dY @ W^T
-      // dY is [M, N], W is [K, N] => dX is [M, K]
-      // Using runMatmul with transposeB=true
-      gradInput = await runMatmul(
-        gradOutput,
-        weight,
-        M,
-        K,
-        N,
-        { transposeB: true }
-      );
-    }
+    // dX = dY @ W^T (or dY @ W depending on transposeB)
+    // Fused WGSL kernel handles transpose via uniform flag.
+    gradInput = await runMatmulBackwardDx(
+      gradOutput,
+      weight,
+      M,
+      K,
+      N,
+      { transposeB }
+    );
   }
 
   if (computeGradWeight) {
     // dW = X^T @ dY (if Y = X @ W)
     // dW = dY^T @ X (if Y = X @ W^T and we want dW [N, K])
     if (transposeB) {
-      // Y = X @ W^T
-      // dW^T = X^T @ dY => dW = dY^T @ X
-      // dY is [M, N], X is [M, K] => dW is [N, K]
-      // Use specialized transposeA matmul: dW = dY^T @ X
+      // Y = X @ W^T, W is [N, K]
+      // dW = dY^T @ X: dY is [M, N], X is [M, K] => dW is [N, K]
       gradWeight = await runMatmulTransposeA(
         gradOutput,
         input,
@@ -67,9 +46,8 @@ export async function runMatmulBackward(input, weight, gradOutput, options = {})
         M
       );
     } else {
-      // Y = X @ W
-      // dW = X^T @ dY
-      // X is [M, K], dY is [M, N] => dW is [K, N]
+      // Y = X @ W, W is [K, N]
+      // dW = X^T @ dY: X is [M, K], dY is [M, N] => dW is [K, N]
       gradWeight = await runMatmulTransposeA(
         input,
         gradOutput,
@@ -109,27 +87,15 @@ export async function recordMatmulBackward(
   let gradWeight = null;
 
   if (computeGradInput) {
-    if (transposeB) {
-      gradInput = await recordMatmul(
-        recorder,
-        gradOutput,
-        weight,
-        M,
-        K,
-        N,
-        { transposeB: false, role: 'bwd_grad_input' }
-      );
-    } else {
-      gradInput = await recordMatmul(
-        recorder,
-        gradOutput,
-        weight,
-        M,
-        K,
-        N,
-        { transposeB: true, role: 'bwd_grad_input' }
-      );
-    }
+    gradInput = await recordMatmulBackwardDx(
+      recorder,
+      gradOutput,
+      weight,
+      M,
+      K,
+      N,
+      { transposeB }
+    );
   }
 
   if (computeGradWeight) {

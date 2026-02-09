@@ -1,4 +1,26 @@
 import { testHarness as defaultHarness } from './test-page.js';
+import {
+  layerNormRef,
+  groupNormRef,
+  conv2dRef,
+  conv2dBackwardRef,
+  biasAddRef,
+  biasAddBackwardRef,
+  pixelShuffleRef,
+  upsample2dRef,
+  upsample2dBackwardRef,
+  modulateRef,
+  crossEntropyLossRef,
+  crossEntropyBackwardRef,
+  embedBackwardRef,
+  adamRef,
+  softmaxBackwardRef,
+  siluBackwardRef,
+  geluBackwardRef,
+  scaleBackwardRef,
+  ropeBackwardRef,
+  rmsNormBackwardRef,
+} from '../reference/index.js';
 
 function generateUint32(size, max, seed = 123) {
   const out = new Uint32Array(size);
@@ -133,373 +155,35 @@ function matmulRefRowMajorB(input, weights, M, N, K) {
   return output;
 }
 
-function biasAddRef(data, bias, numTokens, dim) {
-  const output = new Float32Array(data.length);
-  for (let t = 0; t < numTokens; t++) {
-    const base = t * dim;
-    for (let d = 0; d < dim; d++) {
-      output[base + d] = data[base + d] + bias[d];
-    }
-  }
-  return output;
-}
-
-function layerNormRef(data, weight, bias, batchSize, hiddenSize, eps) {
-  const output = new Float32Array(batchSize * hiddenSize);
-  for (let b = 0; b < batchSize; b++) {
-    const base = b * hiddenSize;
-    let mean = 0;
-    for (let i = 0; i < hiddenSize; i++) {
-      mean += data[base + i];
-    }
-    mean /= hiddenSize;
-    let varSum = 0;
-    for (let i = 0; i < hiddenSize; i++) {
-      const diff = data[base + i] - mean;
-      varSum += diff * diff;
-    }
-    const invStd = 1 / Math.sqrt(varSum / hiddenSize + eps);
-    for (let i = 0; i < hiddenSize; i++) {
-      const norm = (data[base + i] - mean) * invStd;
-      output[base + i] = norm * weight[i] + bias[i];
-    }
-  }
-  return output;
-}
-
-function groupNormRef(data, weight, bias, channels, height, width, numGroups, eps) {
-  const output = new Float32Array(channels * height * width);
-  const channelsPerGroup = Math.floor(channels / numGroups);
-  const spatial = height * width;
-  for (let g = 0; g < numGroups; g++) {
-    const cStart = g * channelsPerGroup;
-    const cEnd = cStart + channelsPerGroup;
-    let mean = 0;
-    let count = 0;
-    for (let c = cStart; c < cEnd; c++) {
-      const base = c * spatial;
-      for (let i = 0; i < spatial; i++) {
-        mean += data[base + i];
-        count++;
-      }
-    }
-    mean /= count;
-    let varSum = 0;
-    for (let c = cStart; c < cEnd; c++) {
-      const base = c * spatial;
-      for (let i = 0; i < spatial; i++) {
-        const diff = data[base + i] - mean;
-        varSum += diff * diff;
-      }
-    }
-    const invStd = 1 / Math.sqrt(varSum / count + eps);
-    for (let c = cStart; c < cEnd; c++) {
-      const base = c * spatial;
-      for (let i = 0; i < spatial; i++) {
-        const norm = (data[base + i] - mean) * invStd;
-        output[base + i] = norm * weight[c] + bias[c];
-      }
-    }
-  }
-  return output;
-}
-
-function modulateRef(input, mod, numTokens, hiddenSize, options) {
+async function defineKernelTest(h, name, options) {
   const {
-    scaleOffset = 0,
-    shiftOffset = hiddenSize,
-    gateOffset = hiddenSize * 2,
-    hasGate = false,
-    addOne = true,
+    dims,
+    inputs,
+    ref,
+    gpu,
+    tolerance,
+    seed = 1234
   } = options;
-  const output = new Float32Array(numTokens * hiddenSize);
-  for (let t = 0; t < numTokens; t++) {
-    const base = t * hiddenSize;
-    for (let d = 0; d < hiddenSize; d++) {
-      const rawScale = mod[scaleOffset + d];
-      const shift = mod[shiftOffset + d];
-      const scale = addOne ? 1 + rawScale : rawScale;
-      let value = input[base + d] * scale + shift;
-      if (hasGate) {
-        value *= mod[gateOffset + d];
-      }
-      output[base + d] = value;
+
+  // Generate input data
+  const generatedInputs = {};
+  let currentSeed = seed;
+  for (const [key, type] of Object.entries(inputs)) {
+    if (type === 'float') {
+      generatedInputs[key] = h.generateTestData(Object.values(dims).reduce((a, b) => a * b, 1), currentSeed++);
+    } else if (type === 'uint') {
+      generatedInputs[key] = generateUint32(Object.values(dims).reduce((a, b) => a * b, 1), 100, currentSeed++);
     }
   }
-  return output;
-}
 
-function conv2dRef(input, weight, bias, options) {
-  const { inChannels, outChannels, height, width, kernelH, kernelW, stride = 1, pad = 0 } = options;
-  const outHeight = Math.floor((height + pad * 2 - kernelH) / stride) + 1;
-  const outWidth = Math.floor((width + pad * 2 - kernelW) / stride) + 1;
-  const output = new Float32Array(outChannels * outHeight * outWidth);
-  for (let oc = 0; oc < outChannels; oc++) {
-    for (let oy = 0; oy < outHeight; oy++) {
-      for (let ox = 0; ox < outWidth; ox++) {
-        let sum = bias ? bias[oc] : 0;
-        for (let ic = 0; ic < inChannels; ic++) {
-          for (let ky = 0; ky < kernelH; ky++) {
-            const inY = oy * stride + ky - pad;
-            if (inY < 0 || inY >= height) continue;
-            for (let kx = 0; kx < kernelW; kx++) {
-              const inX = ox * stride + kx - pad;
-              if (inX < 0 || inX >= width) continue;
-              const inputIdx = (ic * height + inY) * width + inX;
-              const weightIdx = (((oc * inChannels + ic) * kernelH + ky) * kernelW + kx);
-              sum += input[inputIdx] * weight[weightIdx];
-            }
-          }
-        }
-        output[(oc * outHeight + oy) * outWidth + ox] = sum;
-      }
-    }
+  const expected = await ref(h, generatedInputs, dims);
+  const actual = await gpu(h, generatedInputs, dims);
+  
+  const result = h.compareArrays(expected, actual, tolerance);
+  if (!result.passed) {
+    console.error(`[KernelTests] ${name} mismatch`, result);
   }
-  return output;
-}
-
-function pixelShuffleRef(input, options) {
-  const { outChannels, outHeight, outWidth, gridWidth, patchSize, patchChannels } = options;
-  const output = new Float32Array(outChannels * outHeight * outWidth);
-  const spatial = outHeight * outWidth;
-  for (let idx = 0; idx < output.length; idx++) {
-    const c = Math.floor(idx / spatial);
-    const rem = idx - c * spatial;
-    const y = Math.floor(rem / outWidth);
-    const x = rem - y * outWidth;
-    const gridY = Math.floor(y / patchSize);
-    const gridX = Math.floor(x / patchSize);
-    const subY = y - gridY * patchSize;
-    const subX = x - gridX * patchSize;
-    const tokenIdx = gridY * gridWidth + gridX;
-    const patchIdx = (subY * patchSize + subX) * outChannels + c;
-    const inputIdx = tokenIdx * patchChannels + patchIdx;
-    output[idx] = input[inputIdx];
-  }
-  return output;
-}
-
-function upsample2dRef(input, options) {
-  const { channels, height, width, inHeight, inWidth, outHeight, outWidth, scale } = options;
-  const srcHeight = Number.isFinite(height) ? height : inHeight;
-  const srcWidth = Number.isFinite(width) ? width : inWidth;
-  const output = new Float32Array(channels * outHeight * outWidth);
-  for (let c = 0; c < channels; c++) {
-    for (let oy = 0; oy < outHeight; oy++) {
-      for (let ox = 0; ox < outWidth; ox++) {
-        const inY = Math.floor(oy / scale);
-        const inX = Math.floor(ox / scale);
-        const inIdx = (c * srcHeight + inY) * srcWidth + inX;
-        const outIdx = (c * outHeight + oy) * outWidth + ox;
-        output[outIdx] = input[inIdx];
-      }
-    }
-  }
-  return output;
-}
-
-function upsample2dBackwardRef(gradOutput, options) {
-  const { channels, inHeight, inWidth, outHeight, outWidth, scale } = options;
-  const gradInput = new Float32Array(channels * inHeight * inWidth);
-  for (let c = 0; c < channels; c++) {
-    for (let oy = 0; oy < outHeight; oy++) {
-      for (let ox = 0; ox < outWidth; ox++) {
-        const inY = Math.floor(oy / scale);
-        const inX = Math.floor(ox / scale);
-        if (inY < inHeight && inX < inWidth) {
-          const inIdx = (c * inHeight + inY) * inWidth + inX;
-          const outIdx = (c * outHeight + oy) * outWidth + ox;
-          gradInput[inIdx] += gradOutput[outIdx];
-        }
-      }
-    }
-  }
-  return gradInput;
-}
-
-function conv2dBackwardRef(input, weight, gradOutput, options) {
-  const { inChannels, outChannels, height, width, outHeight, outWidth, kernelH, kernelW, stride, pad } = options;
-  const gradInput = new Float32Array(inChannels * height * width);
-  const gradWeight = new Float32Array(outChannels * inChannels * kernelH * kernelW);
-
-  // dInput
-  for (let oc = 0; oc < outChannels; oc++) {
-    for (let ic = 0; ic < inChannels; ic++) {
-      for (let ky = 0; ky < kernelH; ky++) {
-        for (let kx = 0; kx < kernelW; kx++) {
-          for (let oy = 0; oy < outHeight; oy++) {
-            for (let ox = 0; ox < outWidth; ox++) {
-              const iy = oy * stride + ky - pad;
-              const ix = ox * stride + kx - pad;
-              if (iy >= 0 && iy < height && ix >= 0 && ix < width) {
-                const dy = gradOutput[(oc * outHeight + oy) * outWidth + ox];
-                const w = weight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)];
-                gradInput[(ic * height + iy) * width + ix] += dy * w;
-                
-                const x = input[(ic * height + iy) * width + ix];
-                gradWeight[(((oc * inChannels + ic) * kernelH + ky) * kernelW + kx)] += dy * x;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return { gradInput, gradWeight };
-}
-
-function biasAddBackwardRef(gradOutput, numTokens, dim) {
-  const gradBias = new Float32Array(dim);
-  for (let t = 0; t < numTokens; t++) {
-    for (let d = 0; d < dim; d++) {
-      gradBias[d] += gradOutput[t * dim + d];
-    }
-  }
-  return gradBias;
-}
-
-function softmaxBackwardRef(softmax, gradOutput, rows, cols) {
-  const output = new Float32Array(rows * cols);
-  for (let r = 0; r < rows; r++) {
-    const base = r * cols;
-    let sum = 0;
-    for (let c = 0; c < cols; c++) {
-      sum += softmax[base + c] * gradOutput[base + c];
-    }
-    for (let c = 0; c < cols; c++) {
-      const idx = base + c;
-      output[idx] = softmax[idx] * (gradOutput[idx] - sum);
-    }
-  }
-  return output;
-}
-
-function siluBackwardRef(input, gradOutput) {
-  const output = new Float32Array(input.length);
-  for (let i = 0; i < input.length; i++) {
-    const x = input[i];
-    const sigmoid = 1 / (1 + Math.exp(-x));
-    const deriv = sigmoid * (1 + x * (1 - sigmoid));
-    output[i] = gradOutput[i] * deriv;
-  }
-  return output;
-}
-
-function geluBackwardRef(input, gradOutput) {
-  const output = new Float32Array(input.length);
-  for (let i = 0; i < input.length; i++) {
-    const x = input[i];
-    const sqrt2pi = 0.7978845608;
-    const c = 0.044715;
-    const x3 = x * x * x;
-    const inner = sqrt2pi * (x + c * x3);
-    const innerClamped = Math.max(-15, Math.min(15, inner));
-    const tanhInner = Math.tanh(innerClamped);
-    const sech2 = 1 - tanhInner * tanhInner;
-    const innerDeriv = sqrt2pi * (1 + 3 * c * x * x);
-    const deriv = 0.5 * (1 + tanhInner) + 0.5 * x * sech2 * innerDeriv;
-    output[i] = gradOutput[i] * deriv;
-  }
-  return output;
-}
-
-function scaleBackwardRef(gradOutput, scale) {
-  const output = new Float32Array(gradOutput.length);
-  for (let i = 0; i < gradOutput.length; i++) {
-    output[i] = gradOutput[i] * scale;
-  }
-  return output;
-}
-
-function ropeBackwardRef(gradOutput, cos, sin, seqLen, numHeads, headDim, startPos) {
-  const output = new Float32Array(gradOutput.length);
-  const halfDim = headDim / 2;
-  for (let pos = 0; pos < seqLen; pos++) {
-    for (let h = 0; h < numHeads; h++) {
-      const base = (pos * numHeads + h) * headDim;
-      const freqBase = (startPos + pos) * halfDim;
-      for (let i = 0; i < halfDim; i++) {
-        const dy0 = gradOutput[base + i];
-        const dy1 = gradOutput[base + i + halfDim];
-        const c = cos[freqBase + i];
-        const s = sin[freqBase + i];
-        output[base + i] = dy0 * c + dy1 * s;
-        output[base + i + halfDim] = -dy0 * s + dy1 * c;
-      }
-    }
-  }
-  return output;
-}
-
-function rmsNormBackwardRef(input, weight, gradOutput, numTokens, hiddenSize, eps) {
-  const output = new Float32Array(numTokens * hiddenSize);
-  for (let t = 0; t < numTokens; t++) {
-    const base = t * hiddenSize;
-    let sumSq = 0;
-    let sumGX = 0;
-    for (let i = 0; i < hiddenSize; i++) {
-      const x = input[base + i];
-      const g = gradOutput[base + i] * weight[i];
-      sumSq += x * x;
-      sumGX += g * x;
-    }
-    const invRms = 1 / Math.sqrt(sumSq / hiddenSize + eps);
-    const invRms3 = invRms * invRms * invRms;
-    const coeff = (sumGX / hiddenSize) * invRms3;
-    for (let i = 0; i < hiddenSize; i++) {
-      const x = input[base + i];
-      const g = gradOutput[base + i] * weight[i];
-      output[base + i] = g * invRms - x * coeff;
-    }
-  }
-  return output;
-}
-
-function crossEntropyLossRef(softmax, targets, numTokens, vocabSize) {
-  const output = new Float32Array(numTokens);
-  for (let t = 0; t < numTokens; t++) {
-    const target = targets[t];
-    if (target >= vocabSize) {
-      output[t] = 0;
-      continue;
-    }
-    const p = Math.max(softmax[t * vocabSize + target], 1e-9);
-    output[t] = -Math.log(p);
-  }
-  return output;
-}
-
-function crossEntropyBackwardRef(softmax, targets, gradOutput, numTokens, vocabSize) {
-  const output = new Float32Array(numTokens * vocabSize);
-  for (let t = 0; t < numTokens; t++) {
-    const target = targets[t];
-    for (let c = 0; c < vocabSize; c++) {
-      let grad = softmax[t * vocabSize + c];
-      if (c === target) grad -= 1;
-      output[t * vocabSize + c] = grad * gradOutput[t];
-    }
-  }
-  return output;
-}
-
-function embedBackwardRef(gradOutput) {
-  return new Float32Array(gradOutput);
-}
-
-function adamRef(params, grads, moment1, moment2, options) {
-  const { count, step, lr, beta1, beta2, eps } = options;
-  const outParams = new Float32Array(params);
-  const outM1 = new Float32Array(moment1);
-  const outM2 = new Float32Array(moment2);
-  for (let i = 0; i < count; i++) {
-    const g = grads[i];
-    outM1[i] = beta1 * outM1[i] + (1 - beta1) * g;
-    outM2[i] = beta2 * outM2[i] + (1 - beta2) * g * g;
-    const mHat = outM1[i] / (1 - Math.pow(beta1, step));
-    const vHat = outM2[i] / (1 - Math.pow(beta2, step));
-    outParams[i] = outParams[i] - lr * mHat / (Math.sqrt(vHat) + eps);
-  }
-  return { params: outParams, moment1: outM1, moment2: outM2 };
+  return result.passed;
 }
 
 export async function runKernelSuite(harness) {

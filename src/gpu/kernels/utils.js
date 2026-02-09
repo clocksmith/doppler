@@ -62,7 +62,61 @@ export {
 export {
   createUniformBufferFromData,
   createUniformBufferWithView,
+  writeUniformsFromObject,
 } from './uniform-utils.js';
+
+// ============================================================================
+// Unified Kernel Helper
+// ============================================================================
+
+import { getKernelConfig } from './kernel-configs.js';
+import { getPipelineFast } from './pipeline-cache.js';
+import { getDevice } from '../device.js';
+import { dispatchKernel } from './dispatch.js';
+import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
+
+export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null) {
+  const device = target?.device || getDevice();
+  const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
+  const config = getKernelConfig(opName);
+  const pipeline = await getPipelineFast(opName, variant, null, constants);
+
+  const uniformBuffer = createUniformBuffer(
+    `${opName}_uniforms`,
+    config.baseUniforms.size,
+    (view) => writeUniformsFromObject(view, opName, uniforms),
+    recorder,
+    device
+  );
+
+  const bindGroupEntries = [
+    { binding: 0, resource: { buffer: uniformBuffer } }
+  ];
+
+  for (let i = 0; i < bindings.length; i++) {
+    const binding = bindings[i];
+    // registry index starts at 1 for data buffers usually
+    const index = config.baseBindings[i + 1].index;
+    bindGroupEntries.push({
+      binding: index,
+      resource: { buffer: binding.buffer || binding }
+    });
+  }
+
+  const bindGroup = device.createBindGroup({
+    label: `${opName}_bind_group`,
+    layout: pipeline.getBindGroupLayout(0),
+    entries: bindGroupEntries,
+  });
+
+  dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
+
+  if (!recorder) {
+    uniformBuffer.destroy();
+  }
+
+  return true;
+}
 
 // ============================================================================
 // Debug Helpers

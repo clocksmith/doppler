@@ -24,6 +24,23 @@ export function dispatch(
 }
 
 
+export function dispatchKernel(
+  target, // device or recorder
+  pipeline,
+  bindGroup,
+  workgroups,
+  label = 'compute'
+) {
+  if (target && typeof target.beginComputePass === 'function') {
+    // Recorder
+    recordDispatch(target, pipeline, bindGroup, workgroups, label);
+  } else {
+    // Device (or null if it should use default)
+    const device = target || require('../device.js').getDevice();
+    dispatch(device, pipeline, bindGroup, workgroups, label);
+  }
+}
+
 export function recordDispatch(
   recorder,
   pipeline,
