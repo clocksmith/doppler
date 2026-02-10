@@ -1,5 +1,6 @@
 import {
   loadShard as loadShardFromStore,
+  loadShardRange as loadShardRangeFromStore,
   computeHash,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
@@ -125,6 +126,41 @@ export class ShardCache {
       // Remove from in-flight map when done (success or error)
       this.#fetchPromises.delete(shardIndex);
     }
+  }
+
+  /**
+   * Load a byte range from a shard.
+   *
+   * If the full shard is already cached, this returns a slice without touching storage.
+   * Otherwise, this will attempt a backend range read (when available) to avoid
+   * materializing the full shard in RAM.
+   */
+  async loadRange(shardIndex, offset = 0, length = null, options = {}) {
+    const start = Math.max(0, offset | 0);
+    const want = length == null ? null : Math.max(0, length | 0);
+
+    if (this.#cache.has(shardIndex)) {
+      const cached = this.#cache.get(shardIndex);
+      // Refresh LRU order
+      this.#cache.delete(shardIndex);
+      this.#cache.set(shardIndex, cached);
+      this.lastSource = { source: 'RAM', elapsed: 0 };
+      const view = new Uint8Array(cached);
+      const end = want == null ? view.length : Math.min(view.length, start + want);
+      // Return a compact ArrayBuffer (downstream expects independent buffers).
+      return view.slice(start, end).buffer;
+    }
+
+    if (this.#customLoader) {
+      // Custom loaders only support whole-shard loads; fall back to full shard then slice.
+      const full = await this.load(shardIndex, options);
+      const view = new Uint8Array(full);
+      const end = want == null ? view.length : Math.min(view.length, start + want);
+      return view.slice(start, end).buffer;
+    }
+
+    // Direct backend range read (no shard cache population).
+    return loadShardRangeFromStore(shardIndex, start, want, options);
   }
 
   prefetch(shardIndex) {

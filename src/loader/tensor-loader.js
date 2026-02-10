@@ -152,8 +152,12 @@ export function convertF16ToF32CPU(f16Data) {
 
 export async function loadQ4KFused(shardData, location, name) {
   const device = getDevice();
-  const buffer = acquireAlignedBuffer(location.size, `q4k_${name}`);
-  writeBufferAligned(device, buffer, shardData);
+  const buffer = shardData instanceof GPUBuffer
+    ? shardData
+    : acquireAlignedBuffer(location.size, `q4k_${name}`);
+  if (!(shardData instanceof GPUBuffer)) {
+    writeBufferAligned(device, buffer, shardData);
+  }
 
   return {
     data: createWeightBuffer(buffer, 'q4k', 'row', location.shape, name),
@@ -164,8 +168,12 @@ export async function loadQ4KFused(shardData, location, name) {
 
 export async function loadQ4KDequant(shardData, location, name, config) {
   const device = getDevice();
-  const quantBuffer = acquireAlignedBuffer(location.size, `quant_${name}`);
-  writeBufferAligned(device, quantBuffer, shardData);
+  const quantBuffer = shardData instanceof GPUBuffer
+    ? shardData
+    : acquireAlignedBuffer(location.size, `quant_${name}`);
+  if (!(shardData instanceof GPUBuffer)) {
+    writeBufferAligned(device, quantBuffer, shardData);
+  }
 
   const outputDtype = getQ4KOutputDtype(location, config);
 
@@ -211,8 +219,12 @@ export async function loadQ6K(shardData, location, name) {
   const device = getDevice();
 
   debugTrace.loader(`Loading Q6_K tensor "${name}", size=${location.size}`);
-  const quantBuffer = acquireAlignedBuffer(location.size, `quant_${name}`);
-  writeBufferAligned(device, quantBuffer, shardData);
+  const quantBuffer = shardData instanceof GPUBuffer
+    ? shardData
+    : acquireAlignedBuffer(location.size, `quant_${name}`);
+  if (!(shardData instanceof GPUBuffer)) {
+    writeBufferAligned(device, quantBuffer, shardData);
+  }
 
   const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
   debugTrace.loader(
@@ -243,10 +255,14 @@ export async function loadQ6K(shardData, location, name) {
 
 export async function loadBF16(shardData, location, name, config) {
   const device = getDevice();
-  const srcBuffer = acquireAlignedBuffer(shardData.byteLength, `${name}_bf16`);
-  writeBufferAligned(device, srcBuffer, shardData);
+  const srcBuffer = shardData instanceof GPUBuffer
+    ? shardData
+    : acquireAlignedBuffer(location.size, `${name}_bf16`);
+  if (!(shardData instanceof GPUBuffer)) {
+    writeBufferAligned(device, srcBuffer, shardData);
+  }
 
-  const numElements = shardData.byteLength / 2;
+  const numElements = location.size / 2;
   const caps = config.gpuCapabilities || getKernelCapabilities();
   const isMatmulWeight = shouldDequantizeToF16(location);
 
@@ -302,8 +318,12 @@ export async function loadFloat(shardData, location, name, config) {
     throw new Error('Tensor load config is required.');
   }
   const device = getDevice();
-  const buffer = acquireAlignedBuffer(location.size, name);
-  writeBufferAligned(device, buffer, shardData);
+  const buffer = shardData instanceof GPUBuffer
+    ? shardData
+    : acquireAlignedBuffer(location.size, name);
+  if (!(shardData instanceof GPUBuffer)) {
+    writeBufferAligned(device, buffer, shardData);
+  }
 
   const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
     locationDtype: location.dtype,

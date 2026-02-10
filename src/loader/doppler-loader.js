@@ -8,10 +8,11 @@ import {
   openModelStore,
   verifyIntegrity,
   loadManifestFromStore,
+  streamShardRange,
 } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { releaseBuffer } from '../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { getExpertCache } from './expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
@@ -354,7 +355,9 @@ export class DopplerLoader {
     }
 
     if (verifyHashes && !this.shardCache.hasCustomLoader) {
-      const integrity = await verifyIntegrity();
+      // Avoid a full re-hash on every warm load. Presence check is enough to
+      // decide "cached vs missing"; hash verification is performed at download/import time.
+      const integrity = await verifyIntegrity({ checkHashes: false });
       if (!integrity.valid) {
         throw new Error(
           `Model integrity check failed. ` +
@@ -639,12 +642,18 @@ export class DopplerLoader {
       debugTrace.loader(`Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
     }
 
-    const shardData = await this.#assembleShardData(location, name);
+    let shardData = (toGPU && this.#shouldStreamUploadToGPU(location))
+      ? await this.#assembleShardDataToGpuBuffer(location, name)
+      : await this.#assembleShardData(location, name);
 
     if (toGPU) {
       const device = getDevice();
       if (!device) {
         log.warn('Loader', 'GPU device not available; falling back to CPU');
+        if (shardData instanceof GPUBuffer) {
+          releaseBuffer(shardData);
+          shardData = await this.#assembleShardData(location, name);
+        }
         return loadTensorToCPU(shardData, location);
       }
 
@@ -670,13 +679,70 @@ export class DopplerLoader {
       return result.data;
     }
 
+    if (shardData instanceof GPUBuffer) {
+      // Shouldn't happen (streaming is only used for toGPU), but keep this leak-proof.
+      releaseBuffer(shardData);
+      shardData = await this.#assembleShardData(location, name);
+    }
     return loadTensorToCPU(shardData, location);
   }
 
   
   async #assembleShardData(location, name) {
     const loadShard = this.#getLoadShard();
-    return assembleShardData(location, name, loadShard);
+    const loadShardRange = (idx, offset, length) => this.shardCache.loadRange(idx, offset, length);
+    return assembleShardData(location, name, loadShard, loadShardRange);
+  }
+
+  #shouldStreamUploadToGPU(location) {
+    if (!location?.size || location.size <= 0) return false;
+    if (this.shardCache.hasCustomLoader) return false;
+    const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
+    if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;
+    // Always stream multi-span tensors to avoid loading whole shards + assembling on CPU.
+    if (location.spans && location.spans.length > 0) {
+      return true;
+    }
+    // Conservative default: only stream "large" single-span tensors to avoid turning
+    // OPFS into many small random reads that can be slower than whole-shard caching.
+    const minStreamBytes = Math.max(16 * 1024 * 1024, chunkBytes * 4);
+    return location.size >= minStreamBytes;
+  }
+
+  async #assembleShardDataToGpuBuffer(location, name) {
+    const device = getDevice();
+    if (!device) {
+      throw new Error('GPU device not available');
+    }
+    const chunkBytes = Math.max(1, this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes | 0);
+
+    // queue.writeBuffer requires 4-byte aligned sizes; we pad the buffer.
+    const alignedSize = Math.ceil(location.size / 4) * 4;
+    const raw = acquireBuffer(alignedSize, undefined, `raw_${name}`);
+
+    let dstOffset = 0;
+    const uploadChunk = (bytes) => {
+      device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
+      dstOffset += bytes.byteLength;
+    };
+
+    if (location.spans) {
+      for (const span of location.spans) {
+        for await (const chunk of streamShardRange(span.shardIndex, span.offset, span.size, { chunkBytes })) {
+          uploadChunk(chunk);
+        }
+      }
+    } else {
+      for await (const chunk of streamShardRange(location.shardIndex, location.offset, location.size, { chunkBytes })) {
+        uploadChunk(chunk);
+      }
+    }
+
+    if (dstOffset < location.size) {
+      log.warn('Loader', `Stream upload short read for "${name}": got=${dstOffset}, expected=${location.size}`);
+    }
+
+    return raw;
   }
 
   

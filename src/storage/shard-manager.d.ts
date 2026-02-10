@@ -83,6 +83,20 @@ export function loadShard(
   options?: ShardReadOptions
 ): Promise<ArrayBuffer>;
 
+export function loadShardRange(
+  shardIndex: number,
+  offset?: number,
+  length?: number | null,
+  options?: ShardReadOptions
+): Promise<ArrayBuffer>;
+
+export function streamShardRange(
+  shardIndex: number,
+  offset?: number,
+  length?: number | null,
+  options?: { chunkBytes?: number }
+): AsyncIterable<Uint8Array>;
+
 export function loadShardSync(
   shardIndex: number,
   offset?: number,
@@ -90,7 +104,7 @@ export function loadShardSync(
 ): Promise<Uint8Array>;
 
 export function shardExists(shardIndex: number): Promise<boolean>;
-export function verifyIntegrity(): Promise<IntegrityResult>;
+export function verifyIntegrity(options?: { checkHashes?: boolean }): Promise<IntegrityResult>;
 export function deleteShard(shardIndex: number): Promise<boolean>;
 export function deleteModel(modelId: string): Promise<boolean>;
 export function listModels(): Promise<string[]>;

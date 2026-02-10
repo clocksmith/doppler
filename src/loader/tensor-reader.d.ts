@@ -17,5 +17,6 @@ import type { ShardLoadOptions, TensorLocation } from './loader-types.js';
 export declare function assembleShardData(
   location: TensorLocation,
   name: string,
-  loadShard: (index: number, options?: ShardLoadOptions) => Promise<ArrayBuffer>
+  loadShard: (index: number, options?: ShardLoadOptions) => Promise<ArrayBuffer>,
+  loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>
 ): Promise<Uint8Array>;

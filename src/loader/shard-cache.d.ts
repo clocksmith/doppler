@@ -23,6 +23,7 @@ export class ShardCache {
   get size(): number;
   get totalBytes(): number;
   load(shardIndex: number, options?: ShardLoadOptions): Promise<ArrayBuffer>;
+  loadRange(shardIndex: number, offset?: number, length?: number | null, options?: ShardLoadOptions): Promise<ArrayBuffer>;
   prefetch(shardIndex: number): Promise<ArrayBuffer>;
   clear(): void;
   configureForModel(manifest: RDRRManifest | null, hasCustomLoader: boolean): void;

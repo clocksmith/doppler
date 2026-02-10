@@ -222,7 +222,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
       let integrity = { valid: false, missingShards: [] };
       if (manifest) {
-        integrity = await verifyIntegrity().catch(() => ({
+        integrity = await verifyIntegrity({ checkHashes: false }).catch(() => ({
           valid: false,
           missingShards: [],
         }));

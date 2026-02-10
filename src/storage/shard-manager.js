@@ -362,12 +362,74 @@ export async function loadShard(shardIndex, options = { verify: false }) {
   }
 }
 
-export async function loadShardSync(shardIndex, offset = 0, length) {
-  const buffer = await loadShard(shardIndex, { verify: false });
-  const view = new Uint8Array(buffer);
+export async function loadShardRange(shardIndex, offset = 0, length = null, options = { verify: false }) {
+  await ensureBackend();
+  requireModel();
+
+  const shardInfo = getShardInfo(shardIndex);
+  if (!shardInfo) {
+    throw new Error(`Invalid shard index: ${shardIndex}`);
+  }
+
+  // Range reads cannot be verified without hashing the full shard.
+  if (options?.verify) {
+    const full = await loadShard(shardIndex, { verify: true });
+    const view = new Uint8Array(full);
+    const start = Math.max(0, offset);
+    const end = length == null ? view.length : Math.min(view.length, start + Math.max(0, length));
+    return view.slice(start, end).buffer;
+  }
+
   const start = Math.max(0, offset);
-  const end = length == null ? view.length : Math.min(view.length, start + length);
-  return view.slice(start, end);
+  const want = length == null ? null : Math.max(0, length);
+
+  try {
+    if (backend && typeof backend.readFileRange === 'function') {
+      return await backend.readFileRange(shardInfo.filename, start, want);
+    }
+    const buffer = await backend.readFile(shardInfo.filename);
+    const view = new Uint8Array(buffer);
+    const end = want == null ? view.length : Math.min(view.length, start + want);
+    return view.slice(start, end).buffer;
+  } catch (error) {
+    if (error.name === 'NotFoundError') {
+      throw new Error(`Shard ${shardIndex} not found`);
+    }
+    throw new Error(`Failed to load shard ${shardIndex} range: ${error.message}`);
+  }
+}
+
+export async function* streamShardRange(shardIndex, offset = 0, length = null, options = {}) {
+  await ensureBackend();
+  requireModel();
+
+  const shardInfo = getShardInfo(shardIndex);
+  if (!shardInfo) {
+    throw new Error(`Invalid shard index: ${shardIndex}`);
+  }
+
+  const start = Math.max(0, offset | 0);
+  const want = length == null ? null : Math.max(0, length | 0);
+  const chunkBytes = Math.max(1, options.chunkBytes | 0);
+
+  // Prefer backend streaming when available.
+  if (backend && typeof backend.readFileRangeStream === 'function') {
+    yield* backend.readFileRangeStream(shardInfo.filename, start, want, { chunkBytes });
+    return;
+  }
+
+  const end = want == null
+    ? shardInfo.size
+    : Math.min(shardInfo.size, start + want);
+  for (let at = start; at < end; at += chunkBytes) {
+    const ab = await loadShardRange(shardIndex, at, Math.min(chunkBytes, end - at), { verify: false });
+    yield new Uint8Array(ab);
+  }
+}
+
+export async function loadShardSync(shardIndex, offset = 0, length) {
+  const ab = await loadShardRange(shardIndex, offset, length ?? null, { verify: false });
+  return new Uint8Array(ab);
 }
 
 export async function shardExists(shardIndex) {
@@ -383,13 +445,16 @@ export async function shardExists(shardIndex) {
   }
 }
 
-export async function verifyIntegrity() {
+export async function verifyIntegrity(options = {}) {
   const manifest = getManifest();
   if (!manifest) {
     throw new Error('No manifest loaded');
   }
 
-  const algorithm = requireManifestHashAlgorithm(manifest, 'integrity check');
+  const checkHashes = options.checkHashes !== false;
+  const algorithm = checkHashes
+    ? requireManifestHashAlgorithm(manifest, 'integrity check')
+    : null;
 
   const missingShards = [];
   const corruptShards = [];
@@ -402,25 +467,27 @@ export async function verifyIntegrity() {
       continue;
     }
 
-    try {
-      const buffer = await loadShard(i, { verify: false });
-      const hash = await computeHash(buffer, algorithm);
-      const shardInfo = getShardInfo(i);
-      const expectedHash = shardInfo?.hash;
-      if (!expectedHash) {
+    if (checkHashes) {
+      try {
+        const buffer = await loadShard(i, { verify: false });
+        const hash = await computeHash(buffer, algorithm);
+        const shardInfo = getShardInfo(i);
+        const expectedHash = shardInfo?.hash;
+        if (!expectedHash) {
+          corruptShards.push(i);
+          continue;
+        }
+        if (hash !== expectedHash) {
+          corruptShards.push(i);
+        }
+      } catch (_error) {
         corruptShards.push(i);
-        continue;
       }
-      if (hash !== expectedHash) {
-        corruptShards.push(i);
-      }
-    } catch (_error) {
-      corruptShards.push(i);
     }
   }
 
   return {
-    valid: missingShards.length === 0 && corruptShards.length === 0,
+    valid: missingShards.length === 0 && (checkHashes ? corruptShards.length === 0 : true),
     missingShards,
     corruptShards
   };

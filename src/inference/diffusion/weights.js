@@ -83,7 +83,12 @@ export async function createDiffusionWeightLoader(manifest, options = {}) {
     const location = tensorLocations.get(name);
     if (!location) return null;
 
-    const shardData = await assembleShardData(location, name, (idx) => shardCache.load(idx));
+    const shardData = await assembleShardData(
+      location,
+      name,
+      (idx) => shardCache.load(idx),
+      (idx, offset, length) => shardCache.loadRange(idx, offset, length)
+    );
 
     if (toGPU) {
       const result = await loadTensorToGPU(shardData, location, name, loaderConfig);

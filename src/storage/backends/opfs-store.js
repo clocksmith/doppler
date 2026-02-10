@@ -34,11 +34,11 @@ export function createOpfsStore(config) {
   let modelsDir = null;
   let currentModelDir = null;
   let currentModelId = null;
+  // SyncAccessHandle is typically only available in dedicated workers, but we
+  // allow an optimistic attempt anywhere and fall back gracefully if the
+  // browser rejects it (NotAllowedError / InvalidStateError).
   const syncAccessEnabled = !!useSyncAccessHandle
-    && typeof FileSystemSyncAccessHandle !== 'undefined'
-    && typeof WorkerGlobalScope !== 'undefined'
-    && typeof self !== 'undefined'
-    && self instanceof WorkerGlobalScope;
+    && typeof FileSystemSyncAccessHandle !== 'undefined';
   const handleLimiter = syncAccessEnabled ? createLimiter(maxConcurrentHandles) : null;
 
   if (syncAccessEnabled && (!Number.isInteger(maxConcurrentHandles) || maxConcurrentHandles < 1)) {
@@ -121,6 +121,83 @@ export function createOpfsStore(config) {
 
     const file = await fileHandle.getFile();
     return file.arrayBuffer();
+  }
+
+  async function readFileRange(filename, offset = 0, length = null) {
+    await ensureModelDir();
+    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const access = await openSyncAccessHandle(fileHandle);
+
+    const start = Math.max(0, offset | 0);
+
+    if (access) {
+      try {
+        const size = access.handle.getSize();
+        const end = length == null
+          ? size
+          : Math.min(size, start + Math.max(0, length | 0));
+        const want = Math.max(0, end - start);
+        const buffer = new Uint8Array(want);
+        let readOffset = 0;
+        while (readOffset < want) {
+          const view = buffer.subarray(readOffset);
+          const read = access.handle.read(view, { at: start + readOffset });
+          if (read <= 0) break;
+          readOffset += read;
+        }
+        return buffer.buffer;
+      } finally {
+        access.release();
+      }
+    }
+
+    const file = await fileHandle.getFile();
+    const end = length == null
+      ? file.size
+      : Math.min(file.size, start + Math.max(0, length | 0));
+    return file.slice(start, end).arrayBuffer();
+  }
+
+  async function* readFileRangeStream(filename, offset = 0, length = null, options = {}) {
+    const chunkBytes = Math.max(1, options.chunkBytes | 0);
+    const start = Math.max(0, offset | 0);
+
+    await ensureModelDir();
+    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const access = await openSyncAccessHandle(fileHandle);
+
+    if (access) {
+      try {
+        const size = access.handle.getSize();
+        const end = length == null
+          ? size
+          : Math.min(size, start + Math.max(0, length | 0));
+        let at = start;
+        const scratch = new Uint8Array(chunkBytes);
+        while (at < end) {
+          const want = Math.min(chunkBytes, end - at);
+          const view = want === scratch.byteLength ? scratch : scratch.subarray(0, want);
+          const read = access.handle.read(view, { at });
+          if (read <= 0) break;
+          // Copy out to avoid consumers seeing a mutated scratch buffer.
+          yield view.slice(0, read);
+          at += read;
+        }
+        return;
+      } finally {
+        access.release();
+      }
+    }
+
+    // Fallback: repeated slice reads (allocates per-chunk, but avoids full-file materialization).
+    const file = await fileHandle.getFile();
+    const end = length == null
+      ? file.size
+      : Math.min(file.size, start + Math.max(0, length | 0));
+    for (let at = start; at < end; at += chunkBytes) {
+      const ab = await file.slice(at, Math.min(end, at + chunkBytes)).arrayBuffer();
+      yield new Uint8Array(ab);
+    }
   }
 
   async function readText(filename) {
@@ -269,6 +346,8 @@ export function createOpfsStore(config) {
     openModel,
     getCurrentModelId,
     readFile,
+    readFileRange,
+    readFileRangeStream,
     readText,
     writeFile,
     createWriteStream,
