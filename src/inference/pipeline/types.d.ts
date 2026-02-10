@@ -31,6 +31,12 @@ export interface KVCacheSnapshot {
   tokens: number[];
 }
 
+export interface AdvanceEmbeddingResult {
+  embedding: Float32Array;
+  embeddingMode: 'last' | 'mean';
+  seqLen: number;
+}
+
 /**
  * Layer context contains all state needed for layer processing.
  */
@@ -316,6 +322,13 @@ export interface GenerateOptions {
 
   /** Stop condition checking mode */
   stopCheckMode?: 'batch' | 'per-token';
+
+  /**
+   * @category prefill When using prefill helpers that return an embedding, controls pooling.
+   * - 'last': last-token hidden state (default)
+   * - 'mean': mean-pooled token hidden states (slower; requires extra readback)
+   */
+  embeddingMode?: 'last' | 'mean';
 }
 
 /**
@@ -344,6 +357,23 @@ export interface LogitsStepResult {
 export interface PrefillResult extends KVCacheSnapshot {
   /** Finalized logits for the next token after prefill */
   logits: Float32Array;
+}
+
+/**
+ * Result of prefill that returns a compact intent embedding (no logits).
+ *
+ * This is the prefill-first "read a lot, output a little" fast path used for:
+ * - intent embedding
+ * - retrieval scoring against catalog descriptors
+ *
+ * It avoids LM-head logits computation, so it is cheaper than PrefillResult.
+ */
+export interface PrefillEmbeddingResult extends KVCacheSnapshot {
+  /** Intent embedding vector (Float32), typically last-token hidden state */
+  embedding: Float32Array;
+
+  /** Pooling mode used to construct embedding */
+  embeddingMode: 'last' | 'mean';
 }
 
 /**

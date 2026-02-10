@@ -20,7 +20,7 @@ import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
-import { decodeStep, decodeStepLogits, advanceWithToken, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
+import { decodeStep, decodeStepLogits, advanceWithToken, advanceWithTokenAndEmbedding, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
@@ -359,7 +359,27 @@ export class PipelineGenerator {
       log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
 
-    await this._prefill(inputIds, opts);
+    const {
+      numTokens,
+      startPos,
+      currentRecorder,
+      recordProfile,
+      currentHiddenBuffer,
+    } = await this._prefillToHidden(inputIds, opts);
+
+    // Ensure prefill work completes before returning a usable snapshot.
+    if (currentRecorder) {
+      await currentRecorder.submitAndWait();
+      await recordProfile(currentRecorder);
+    } else {
+      const device = getDevice();
+      if (device) {
+        await device.queue.onSubmittedWorkDone();
+      }
+    }
+
+    this.#state.currentSeqLen = startPos + numTokens;
+    releaseBuffer(currentHiddenBuffer);
 
     const snapshot = this.#state.kvCache?.clone();
     if (!snapshot) {
@@ -370,6 +390,105 @@ export class PipelineGenerator {
       cache: snapshot,
       seqLen: this.#state.currentSeqLen,
       tokens: inputIds,
+    };
+  }
+
+  async prefillWithEmbedding(prompt, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    this.#state.stats.gpuTimePrefillMs = undefined;
+
+    const generationDefaults = this.#state.runtimeConfig.inference.generation;
+
+    const opts = {
+      useChatTemplate: options.useChatTemplate
+        ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
+        ?? this.#state.modelConfig?.chatTemplateEnabled
+        ?? false,
+      debug: options.debug ?? this.#state.debug,
+      debugLayers: options.debugLayers,
+      profile: options.profile ?? generationDefaults.profile,
+      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
+      embeddingMode: options.embeddingMode ?? 'last',
+    };
+
+    let processedPrompt = prompt;
+    if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
+      processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
+    }
+
+    const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    if (opts.debug) {
+      log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
+    }
+
+    const {
+      numTokens,
+      config,
+      startPos,
+      activationDtype,
+      activationBytes,
+      currentRecorder,
+      recordProfile,
+      currentHiddenBuffer,
+    } = await this._prefillToHidden(inputIds, opts);
+
+    // Ensure prefill work completes before readback.
+    if (currentRecorder) {
+      await currentRecorder.submitAndWait();
+      await recordProfile(currentRecorder);
+    } else {
+      const device = getDevice();
+      if (device) {
+        await device.queue.onSubmittedWorkDone();
+      }
+    }
+
+    if (opts.embeddingMode !== 'last') {
+      // Mean pooling would require reading back or reducing the entire [T,H] buffer.
+      throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${opts.embeddingMode}" (v0 supports "last" only)`);
+    }
+
+    if (!allowReadback('pipeline.prefill.embedding')) {
+      throw new Error('GPU readback disabled; cannot return embedding');
+    }
+
+    const device = getDevice();
+    if (!device) {
+      throw new Error('GPU device not available');
+    }
+
+    const hiddenSize = config.hiddenSize;
+    const lastTokenOffset = (numTokens - 1) * hiddenSize * activationBytes;
+    const sampleSize = hiddenSize * activationBytes;
+
+    const staging = device.createBuffer({
+      size: sampleSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
+    device.queue.submit([enc.finish()]);
+
+    await staging.mapAsync(GPUMapMode.READ);
+    const embedding = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
+    staging.unmap();
+    staging.destroy();
+
+    this.#state.currentSeqLen = startPos + numTokens;
+    releaseBuffer(currentHiddenBuffer);
+
+    const snapshot = this.#state.kvCache?.clone();
+    if (!snapshot) {
+      throw new Error('KV cache unavailable after prefill');
+    }
+
+    return {
+      cache: snapshot,
+      seqLen: this.#state.currentSeqLen,
+      tokens: inputIds,
+      embedding,
+      embeddingMode: opts.embeddingMode,
     };
   }
 
@@ -605,11 +724,17 @@ export class PipelineGenerator {
   // Internal Methods (Prefill, Decode, Helpers)
   // ==========================================================================
 
+  async _prefillToHidden(inputIds, opts) {
+    // Internal-only: reuse the main prefill implementation but stop before logits.
+    return this._prefill(inputIds, { ...opts, _returnHidden: true });
+  }
+
   
   async _prefill(inputIds, opts) {
     const numTokens = inputIds.length;
     const config = this.#state.modelConfig;
     const startPos = this.#state.currentSeqLen;
+    const returnHidden = opts?._returnHidden === true;
     this.#state.stats.gpuTimePrefillMs = undefined;
 
     const embedBufferRaw = this.#state.weights.get('embed');
@@ -800,6 +925,20 @@ export class PipelineGenerator {
       this.#state.stats.gpuTimePrefillMs = gpuTimePrefillMs;
     }
 
+    if (returnHidden) {
+      return {
+        numTokens,
+        config,
+        startPos,
+        activationDtype,
+        activationBytes,
+        currentRecorder,
+        recordProfile,
+        debugCheckBuffer,
+        currentHiddenBuffer,
+      };
+    }
+
     
     let logits;
     let logitsVocabSize = config.vocabSize;
@@ -936,6 +1075,28 @@ export class PipelineGenerator {
       : undefined;
 
     await advanceWithToken(this.#state, tokenId, opts, this._getDecodeHelpers(debugCheckBuffer));
+  }
+
+  async advanceWithTokenAndEmbedding(tokenId, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
+
+    const opts = this._resolveStepOptions(options);
+    const embeddingMode = options.embeddingMode ?? 'last';
+    const debugCheckBuffer = this.#state.debug
+      ? (buffer, label, numTokens, expectedDim) =>
+        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+      : undefined;
+
+    return advanceWithTokenAndEmbedding(
+      this.#state,
+      tokenId,
+      opts,
+      this._getDecodeHelpers(debugCheckBuffer),
+      embeddingMode
+    );
   }
 
   async _generateNTokensGPU(startToken, N, currentIds, opts) {

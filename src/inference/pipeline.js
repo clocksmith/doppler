@@ -384,9 +384,17 @@ export class InferencePipeline extends PipelineState {
     return this.generator.advanceWithToken(tokenId, options);
   }
 
+  advanceWithTokenAndEmbedding(tokenId, options = {}) {
+    return this.generator.advanceWithTokenAndEmbedding(tokenId, options);
+  }
+
   
   prefillKVOnly(prompt, options = {}) {
     return this.generator.prefillKVOnly(prompt, options);
+  }
+
+  prefillWithEmbedding(prompt, options = {}) {
+    return this.generator.prefillWithEmbedding(prompt, options);
   }
 
   prefillWithLogits(prompt, options = {}) {

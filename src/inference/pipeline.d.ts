@@ -15,7 +15,7 @@ import { PipelineState } from './pipeline/state.js';
 import { PipelineGenerator } from './pipeline/generator.js';
 import type { Manifest } from './pipeline/config.js';
 import type { WeightLoadResult, PipelineContexts } from './pipeline/init.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './pipeline/types.js';
 import type { LoRAAdapter } from './pipeline/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
 import type { EnergyPipeline } from './energy/pipeline.js';
@@ -23,7 +23,7 @@ import { getBufferPool as getGlobalBufferPool } from '../memory/buffer-pool.js';
 import type { EmulationStats } from '../config/schema/index.js';
 
 // Re-export types for external use
-export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
+export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
 export type { PipelineContexts };
 
 // ============================================================================
@@ -65,7 +65,11 @@ export declare class InferencePipeline extends PipelineState {
 
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
 
+  advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
+
   prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+
+  prefillWithEmbedding(prompt: string, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
 
   prefillWithLogits(prompt: string, options?: GenerateOptions): Promise<PrefillResult>;
 

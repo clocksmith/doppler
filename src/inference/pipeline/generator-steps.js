@@ -605,6 +605,62 @@ export async function advanceWithToken(state, tokenId, opts, helpers) {
   state.currentSeqLen++;
 }
 
+export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers, embeddingMode = 'last') {
+  if (embeddingMode !== 'last') {
+    throw new Error(`advanceWithTokenAndEmbedding: unsupported embeddingMode "${embeddingMode}" (v0 supports "last" only)`);
+  }
+
+  state.decodeStepCount++;
+
+  const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer } = await runDecodeLayers(
+    state,
+    tokenId,
+    opts,
+    helpers
+  );
+
+  if (!allowReadback('pipeline.advance.embedding')) {
+    throw new Error('GPU readback disabled; cannot return embedding');
+  }
+
+  const device = getDevice();
+  if (!device) {
+    throw new Error('GPU device not available');
+  }
+
+  const config = state.modelConfig;
+  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+  const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+
+  const sampleSize = config.hiddenSize * activationBytes;
+  const staging = device.createBuffer({
+    size: sampleSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+
+  const enc = device.createCommandEncoder({ label: 'advance_with_embedding_copy' });
+  enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+  device.queue.submit([enc.finish()]);
+
+  await staging.mapAsync(GPUMapMode.READ);
+  const embedding = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
+  staging.unmap();
+  staging.destroy();
+
+  const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+  if (!isPreAllocated) {
+    releaseBuffer(hiddenStates);
+  }
+
+  state.currentSeqLen++;
+
+  return {
+    embedding,
+    embeddingMode: 'last',
+    seqLen: state.currentSeqLen,
+  };
+}
+
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {
   const device = getDevice();
   const config = state.modelConfig;

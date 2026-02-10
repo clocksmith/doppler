@@ -293,7 +293,7 @@ Notes:
 ## Related Documentation
 
 - [local-models.md](../../docs/local-models.md) - Ollama and server-based local models
-- [troubleshooting.md](../../docs/troubleshooting.md) - General troubleshooting
+- [quick-start.md](../../docs/quick-start.md) - General setup notes and common issues
 - [security.md](../../docs/security.md) - Security considerations for local execution
 
 ---
