@@ -128,14 +128,15 @@ export function createOpfsStore(config) {
     const fileHandle = await currentModelDir.getFileHandle(filename);
     const access = await openSyncAccessHandle(fileHandle);
 
-    const start = Math.max(0, offset | 0);
+    const startRaw = Number(offset);
+    const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
 
     if (access) {
       try {
         const size = access.handle.getSize();
         const end = length == null
           ? size
-          : Math.min(size, start + Math.max(0, length | 0));
+          : Math.min(size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
         const want = Math.max(0, end - start);
         const buffer = new Uint8Array(want);
         let readOffset = 0;
@@ -154,13 +155,17 @@ export function createOpfsStore(config) {
     const file = await fileHandle.getFile();
     const end = length == null
       ? file.size
-      : Math.min(file.size, start + Math.max(0, length | 0));
+      : Math.min(file.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
     return file.slice(start, end).arrayBuffer();
   }
 
   async function* readFileRangeStream(filename, offset = 0, length = null, options = {}) {
-    const chunkBytes = Math.max(1, options.chunkBytes | 0);
-    const start = Math.max(0, offset | 0);
+    const rawChunkBytes = options?.chunkBytes;
+    const chunkBytes = Number.isFinite(rawChunkBytes) && rawChunkBytes > 0
+      ? Math.floor(rawChunkBytes)
+      : (4 * 1024 * 1024);
+    const startRaw = Number(offset);
+    const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
 
     await ensureModelDir();
     const fileHandle = await currentModelDir.getFileHandle(filename);
@@ -171,7 +176,7 @@ export function createOpfsStore(config) {
         const size = access.handle.getSize();
         const end = length == null
           ? size
-          : Math.min(size, start + Math.max(0, length | 0));
+          : Math.min(size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
         let at = start;
         const scratch = new Uint8Array(chunkBytes);
         while (at < end) {
@@ -193,7 +198,7 @@ export function createOpfsStore(config) {
     const file = await fileHandle.getFile();
     const end = length == null
       ? file.size
-      : Math.min(file.size, start + Math.max(0, length | 0));
+      : Math.min(file.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
     for (let at = start; at < end; at += chunkBytes) {
       const ab = await file.slice(at, Math.min(end, at + chunkBytes)).arrayBuffer();
       yield new Uint8Array(ab);

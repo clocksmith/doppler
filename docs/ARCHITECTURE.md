@@ -781,8 +781,20 @@ Uses config-driven storage backends with OPFS as the preferred path and IndexedD
 - `initStorage()` - Initialize selected backend
 - `openModelStore(modelId)` - Set active model storage
 - `loadShard(idx)` - Read shard to ArrayBuffer
+- `loadShardRange(idx, offset, length)` - Range read (avoid materializing whole shard)
+- `streamShardRange(idx, offset, length, { chunkBytes })` - Chunked range stream
 - `verifyIntegrity()` - Check all shard hashes
 - `computeHash(data, algo)` - Blake3/SHA256
+- `listFilesInStore()` - List files in the currently-open model directory
+- `loadFileFromStore(filename)` - Read an arbitrary file from the open model
+- `streamFileFromStore(filename, { chunkBytes })` - Stream a file in chunks (no full-file RAM load)
+
+### export.js - Export From Local Storage
+
+Exports a stored model (manifest + shards + tokenizer artifacts) from OPFS/IndexedDB to a user-chosen directory using the File System Access API:
+- `exportModelToDirectory(modelId, FileSystemDirectoryHandle, { chunkBytes, onProgress })`
+
+This is designed to be safe for large models: the export path streams bytes and does not require loading entire shards into memory.
 
 ### downloader.js - Model Download
 

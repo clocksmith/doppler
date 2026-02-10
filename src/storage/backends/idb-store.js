@@ -32,12 +32,16 @@ function buildModelKey(modelId) {
 }
 
 export function createIdbStore(config) {
+  const cfg = config ?? {};
   const {
-    dbName,
-    shardStore,
-    metaStore,
+    dbName = 'doppler-models',
+    shardStore = 'shards',
+    metaStore = 'meta',
     chunkSizeBytes,
-  } = config;
+  } = cfg;
+  const chunkSizeBytesResolved = Number.isFinite(chunkSizeBytes) && chunkSizeBytes > 0
+    ? Math.floor(chunkSizeBytes)
+    : (4 * 1024 * 1024);
 
   let db = null;
   let currentModelId = null;
@@ -136,6 +140,114 @@ export function createIdbStore(config) {
     return buffer.buffer;
   }
 
+  async function readFileRange(filename, offset = 0, length = null) {
+    requireModel();
+    const fileKey = buildFileKey(currentModelId, filename);
+    const fileMeta = await readMeta(fileKey);
+    if (!fileMeta) {
+      throw new Error(`File not found: ${filename}`);
+    }
+
+    const startRaw = Number(offset);
+    const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+    const end = length == null
+      ? fileMeta.size
+      : Math.min(fileMeta.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
+    const want = Math.max(0, end - start);
+
+    if (want === 0) {
+      return new Uint8Array(0).buffer;
+    }
+
+    const tx = db.transaction(shardStore, 'readonly');
+    const store = tx.objectStore(shardStore);
+
+    // We still have to walk chunks sequentially because chunk sizes may vary (streaming writes).
+    const out = new Uint8Array(want);
+    let outOff = 0;
+    let inOff = 0;
+
+    for (let i = 0; i < fileMeta.chunkCount; i++) {
+      const entry = await requestToPromise(store.get([currentModelId, filename, i]));
+      if (!entry?.data) {
+        throw new Error(`Missing chunk ${i} for ${filename}`);
+      }
+      const chunk = new Uint8Array(entry.data);
+      const chunkStart = inOff;
+      const chunkEnd = inOff + chunk.byteLength;
+      inOff = chunkEnd;
+
+      if (chunkEnd <= start) continue;
+      if (chunkStart >= end) break;
+
+      const takeStart = Math.max(0, start - chunkStart);
+      const takeEnd = Math.min(chunk.byteLength, end - chunkStart);
+      const slice = chunk.subarray(takeStart, takeEnd);
+      out.set(slice, outOff);
+      outOff += slice.byteLength;
+      if (outOff >= want) break;
+    }
+
+    await transactionDone(tx);
+    return out.buffer;
+  }
+
+  async function* readFileRangeStream(filename, offset = 0, length = null, options = {}) {
+    requireModel();
+    const fileKey = buildFileKey(currentModelId, filename);
+    const fileMeta = await readMeta(fileKey);
+    if (!fileMeta) {
+      throw new Error(`File not found: ${filename}`);
+    }
+
+    const rawChunkBytes = options?.chunkBytes;
+    const chunkBytes = Number.isFinite(rawChunkBytes) && rawChunkBytes > 0
+      ? Math.floor(rawChunkBytes)
+      : chunkSizeBytesResolved;
+    const startRaw = Number(offset);
+    const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+    const end = length == null
+      ? fileMeta.size
+      : Math.min(fileMeta.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
+
+    if (end <= start) return;
+
+    let inOff = 0;
+    let emitted = 0;
+
+    for (let i = 0; i < fileMeta.chunkCount; i++) {
+      // Important: do NOT keep a single IndexedDB transaction open across `yield`.
+      // Transactions can auto-close when the event loop advances, which would make
+      // subsequent requests fail (TransactionInactiveError).
+      const tx = db.transaction(shardStore, 'readonly');
+      const store = tx.objectStore(shardStore);
+      const entry = await requestToPromise(store.get([currentModelId, filename, i]));
+      await transactionDone(tx);
+      if (!entry?.data) {
+        throw new Error(`Missing chunk ${i} for ${filename}`);
+      }
+      const chunk = new Uint8Array(entry.data);
+      const chunkStart = inOff;
+      const chunkEnd = inOff + chunk.byteLength;
+      inOff = chunkEnd;
+
+      if (chunkEnd <= start) continue;
+      if (chunkStart >= end) break;
+
+      const takeStart = Math.max(0, start - chunkStart);
+      const takeEnd = Math.min(chunk.byteLength, end - chunkStart);
+      let view = chunk.subarray(takeStart, takeEnd);
+
+      // Further split into smaller chunks if requested (controls writeBuffer / IO granularity).
+      for (let at = 0; at < view.byteLength; at += chunkBytes) {
+        const part = view.subarray(at, Math.min(view.byteLength, at + chunkBytes));
+        emitted += part.byteLength;
+        yield part.slice(0);
+        if (start + emitted >= end) break;
+      }
+    }
+  }
+
   async function readText(filename) {
     try {
       const buffer = await readFile(filename);
@@ -164,14 +276,14 @@ export function createIdbStore(config) {
     requireModel();
     await deleteFile(filename);
     const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-    const chunkCount = Math.ceil(bytes.byteLength / chunkSizeBytes);
+    const chunkCount = Math.ceil(bytes.byteLength / chunkSizeBytesResolved);
     const tx = db.transaction([shardStore, metaStore], 'readwrite');
     const shardStoreRef = tx.objectStore(shardStore);
     const metaStoreRef = tx.objectStore(metaStore);
 
     for (let i = 0; i < chunkCount; i++) {
-      const start = i * chunkSizeBytes;
-      const end = Math.min(start + chunkSizeBytes, bytes.byteLength);
+      const start = i * chunkSizeBytesResolved;
+      const end = Math.min(start + chunkSizeBytesResolved, bytes.byteLength);
       const chunk = bytes.slice(start, end);
       shardStoreRef.put({
         modelId: currentModelId,

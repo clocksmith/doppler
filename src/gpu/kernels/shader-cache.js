@@ -18,6 +18,13 @@ const shaderModuleCache = new Map();
 
 
 function getKernelBasePath() {
+  // Allow an app to override shader base path without rebuilding Doppler.
+  // Dream uses this when serving Doppler sources from /reploid/doppler/... instead of /src/...
+  const override = (typeof globalThis !== 'undefined') ? globalThis.__DOPPLER_KERNEL_BASE_PATH__ : null;
+  if (typeof override === 'string' && override.trim()) {
+    return override.replace(/\/+$/, '');
+  }
+
   // Check if we're running from /doppler/ path (replo.id deployment)
   if (typeof location !== 'undefined') {
     const path = location.pathname || '';

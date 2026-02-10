@@ -7,6 +7,7 @@ import {
   getQuotaInfo,
   listStorageInventory,
   deleteStorageEntry,
+  exportModelToDirectory,
 } from '@doppler/core';
 import { state } from '../state.js';
 import { $, setText } from '../dom.js';
@@ -43,6 +44,11 @@ function setStorageInspectorStatus(message) {
   const status = $('storage-inspector-status');
   if (!status) return;
   status.textContent = message;
+}
+
+function sanitizeDirectoryName(name) {
+  // Keep consistent with modelId normalization (avoid nested dirs / invalid chars).
+  return String(name).replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
 export async function updateStorageInfo() {
@@ -95,6 +101,50 @@ async function handleDeleteStorageEntry(entry, callbacks) {
     return;
   }
   await refreshStorageInspector(callbacks);
+}
+
+async function handleExportStorageEntry(entry) {
+  if (!entry?.modelId) return;
+  if (entry.missingStorage) {
+    showErrorModal('Export unavailable: model is registry-only (no local storage).');
+    return;
+  }
+  if (typeof window === 'undefined' || typeof window.showDirectoryPicker !== 'function') {
+    showErrorModal('Export requires the File System Access API (showDirectoryPicker). Use a Chromium-based browser.');
+    return;
+  }
+
+  let destRoot;
+  try {
+    destRoot = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch (error) {
+    if (String(error?.name || '').includes('Abort')) return;
+    showErrorModal(`Export canceled: ${error.message}`);
+    return;
+  }
+
+  const dest = await destRoot.getDirectoryHandle(sanitizeDirectoryName(entry.modelId), { create: true });
+  const startedAt = performance.now();
+  setStorageInspectorStatus(`Exporting ${entry.modelId}...`);
+
+  try {
+    await exportModelToDirectory(entry.modelId, dest, {
+      onProgress: (p) => {
+        if (!p) return;
+        if (p.stage === 'file_start') {
+          setStorageInspectorStatus(`Exporting ${entry.modelId}: ${p.filename} (${(p.index ?? 0) + 1}/${p.total ?? 0})`);
+        } else if (p.stage === 'done') {
+          // handled below
+        }
+      },
+    });
+    const elapsed = ((performance.now() - startedAt) / 1000).toFixed(2);
+    setStorageInspectorStatus(`Exported ${entry.modelId} in ${elapsed}s`);
+  } catch (error) {
+    log.warn('DopplerDemo', `Export failed: ${error.message}`);
+    setStorageInspectorStatus('Ready');
+    showErrorModal(`Export failed: ${error.message}`);
+  }
 }
 
 export async function refreshStorageInspector(callbacks = {}) {
@@ -310,6 +360,16 @@ export async function refreshStorageInspector(callbacks = {}) {
         if (!entry.missingStorage) {
           const actions = document.createElement('div');
           actions.className = 'storage-entry-actions';
+
+          const exportBtn = document.createElement('button');
+          exportBtn.className = 'btn btn-small';
+          exportBtn.type = 'button';
+          exportBtn.textContent = 'Export';
+          exportBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            await handleExportStorageEntry(entry);
+          });
+          actions.appendChild(exportBtn);
 
           const deleteBtn = document.createElement('button');
           deleteBtn.className = 'btn btn-small';

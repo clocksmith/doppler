@@ -408,9 +408,15 @@ export async function* streamShardRange(shardIndex, offset = 0, length = null, o
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
 
-  const start = Math.max(0, offset | 0);
-  const want = length == null ? null : Math.max(0, length | 0);
-  const chunkBytes = Math.max(1, options.chunkBytes | 0);
+  const startRaw = Number(offset);
+  const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+  const wantRaw = length == null ? null : Number(length);
+  const want = wantRaw == null ? null : (Number.isFinite(wantRaw) ? Math.max(0, Math.floor(wantRaw)) : 0);
+
+  const runtime = getRuntimeConfig();
+  const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes ?? (4 * 1024 * 1024);
+  const rawChunk = options.chunkBytes ?? runtimeDefault;
+  const chunkBytes = Number.isFinite(rawChunk) && rawChunk > 0 ? Math.floor(rawChunk) : (4 * 1024 * 1024);
 
   // Prefer backend streaming when available.
   if (backend && typeof backend.readFileRangeStream === 'function') {
@@ -515,6 +521,38 @@ export async function deleteModel(modelId) {
 export async function listModels() {
   await ensureBackend();
   return backend.listModels();
+}
+
+export async function listFilesInStore() {
+  await ensureBackend();
+  requireModel();
+  if (!backend.listFiles) {
+    throw new Error('Storage backend does not support listing files');
+  }
+  return backend.listFiles();
+}
+
+export async function loadFileFromStore(filename) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('loadFileFromStore requires a filename');
+  }
+  return backend.readFile(filename);
+}
+
+export function streamFileFromStore(filename, options = {}) {
+  if (!backend || !filename || typeof filename !== 'string') {
+    return null;
+  }
+  const runtime = getRuntimeConfig();
+  const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes ?? (4 * 1024 * 1024);
+  const raw = options.chunkBytes ?? runtimeDefault;
+  const chunkBytes = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : (4 * 1024 * 1024);
+  if (typeof backend.readFileRangeStream === 'function') {
+    return backend.readFileRangeStream(filename, 0, null, { chunkBytes });
+  }
+  return null;
 }
 
 export async function getModelInfo(modelId) {

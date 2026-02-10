@@ -16,6 +16,13 @@ export interface IdbStore {
   openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
   getCurrentModelId(): string | null;
   readFile(filename: string): Promise<ArrayBuffer>;
+  readFileRange(filename: string, offset?: number, length?: number | null): Promise<ArrayBuffer>;
+  readFileRangeStream(
+    filename: string,
+    offset?: number,
+    length?: number | null,
+    options?: { chunkBytes?: number }
+  ): AsyncIterable<Uint8Array>;
   readText(filename: string): Promise<string | null>;
   writeFile(filename: string, data: Uint8Array | ArrayBuffer): Promise<void>;
   createWriteStream(filename: string): Promise<IdbWriteStream>;

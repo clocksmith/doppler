@@ -142,17 +142,18 @@ const controller = new DiagnosticsController({ log });
 const PRIMARY_MODES = new Set(['run', 'diffusion', 'energy']);
 
 function updateNavState(mode) {
-  const activePrimary = PRIMARY_MODES.has(mode) ? mode : (state.lastPrimaryMode || 'run');
+  // Treat the top 5 buttons as a single selection control:
+  // exactly one of {run,diffusion,energy,diagnostics,models} is active.
+  const normalizedMode = mode === 'kernels' ? 'diagnostics' : mode;
+  const isPrimary = PRIMARY_MODES.has(normalizedMode);
+
   document.querySelectorAll('.mode-tab').forEach((button) => {
-    const isActive = button.dataset.mode === activePrimary;
+    const isActive = isPrimary && button.dataset.mode === normalizedMode;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
   document.querySelectorAll('.mode-tool').forEach((button) => {
-    const target = button.dataset.mode;
-    const isActive = target === 'models'
-      ? mode === 'models'
-      : (mode === 'diagnostics' || mode === 'kernels');
+    const isActive = !isPrimary && button.dataset.mode === normalizedMode;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });

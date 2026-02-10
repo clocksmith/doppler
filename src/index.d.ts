@@ -97,8 +97,12 @@ export {
   saveTensorsToStore,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
+  listFilesInStore,
+  loadFileFromStore,
+  streamFileFromStore,
   computeHash,
 } from './storage/shard-manager.js';
+export { exportModelToDirectory } from './storage/export.js';
 export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './storage/rdrr-format.js';
 
 // Browser conversion + file pickers

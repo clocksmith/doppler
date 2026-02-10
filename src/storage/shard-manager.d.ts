@@ -108,6 +108,9 @@ export function verifyIntegrity(options?: { checkHashes?: boolean }): Promise<In
 export function deleteShard(shardIndex: number): Promise<boolean>;
 export function deleteModel(modelId: string): Promise<boolean>;
 export function listModels(): Promise<string[]>;
+export function listFilesInStore(): Promise<string[]>;
+export function loadFileFromStore(filename: string): Promise<ArrayBuffer>;
+export function streamFileFromStore(filename: string, options?: { chunkBytes?: number }): AsyncIterable<Uint8Array> | null;
 export function getModelInfo(modelId: string): Promise<ModelInfo>;
 export function modelExists(modelId: string): Promise<boolean>;
 

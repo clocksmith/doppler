@@ -20,7 +20,20 @@ import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
-import { decodeStep, decodeStepLogits, advanceWithToken, advanceWithTokenAndEmbedding, generateNTokensGPU, shouldUseBatchDecode, sumProfileTimings } from './generator-steps.js';
+// Import as a namespace so the module can still link if the browser cache has a
+// slightly older generator-steps.js (avoids hard "missing export" crashes).
+import * as generatorSteps from './generator-steps.js';
+
+const {
+  decodeStep,
+  decodeStepLogits,
+  advanceWithToken,
+  generateNTokensGPU,
+  shouldUseBatchDecode,
+  sumProfileTimings,
+} = generatorSteps;
+
+const advanceWithTokenAndEmbedding = generatorSteps.advanceWithTokenAndEmbedding ?? null;
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
@@ -28,6 +41,65 @@ import { decodeReadback, getLogitsHealth } from './debug-utils.js';
 export class PipelineGenerator {
   
   #state;
+
+  _assertTokenIdsInRange(tokenIds, context = 'encode') {
+    const vocabSize = this.#state?.modelConfig?.vocabSize;
+    if (!Array.isArray(tokenIds)) {
+      throw new Error(`[Tokenizer] ${context}: expected tokenIds array, got ${typeof tokenIds}`);
+    }
+    if (!Number.isFinite(vocabSize) || vocabSize <= 0) {
+      throw new Error(`[Tokenizer] ${context}: invalid model vocabSize=${vocabSize}`);
+    }
+
+    let firstBadIdx = -1;
+    let firstBadId = -1;
+    let maxId = -1;
+    let badCount = 0;
+    for (let i = 0; i < tokenIds.length; i++) {
+      const id = tokenIds[i];
+      if (!Number.isFinite(id) || id < 0 || id >= vocabSize) {
+        badCount++;
+        if (firstBadIdx < 0) {
+          firstBadIdx = i;
+          firstBadId = id;
+        }
+      }
+      if (Number.isFinite(id) && id > maxId) maxId = id;
+    }
+    if (badCount === 0) return;
+
+    const tok = this.#state?.tokenizer;
+    const tokenizerVocabSize = tok?.getVocabSize?.() ?? null;
+    let badText = null;
+    try {
+      badText = tok?.decode?.([firstBadId], false, false) ?? null;
+    } catch {
+      badText = null;
+    }
+
+    throw new Error(
+      `[Tokenizer] ${context}: token id out of range for model vocab. ` +
+      `modelVocabSize=${vocabSize}, tokenizerVocabSize=${tokenizerVocabSize ?? 'unknown'}, ` +
+      `badCount=${badCount}/${tokenIds.length}, firstBadIdx=${firstBadIdx}, firstBadId=${firstBadId}` +
+      (badText ? ` ("${badText}")` : '') +
+      `, maxId=${maxId}. ` +
+      'This will poison GPU embedding gather (NaNs). Fix by re-converting the model or aligning tokenizer.json IDs to embedding/LM-head shapes.'
+    );
+  }
+
+  _assertTokenIdInRange(tokenId, context = 'token') {
+    const vocabSize = this.#state?.modelConfig?.vocabSize;
+    if (!Number.isFinite(vocabSize) || vocabSize <= 0) {
+      throw new Error(`[Tokenizer] ${context}: invalid model vocabSize=${vocabSize}`);
+    }
+    if (!Number.isFinite(tokenId) || tokenId < 0 || tokenId >= vocabSize) {
+      const tok = this.#state?.tokenizer;
+      const tokenizerVocabSize = tok?.getVocabSize?.() ?? null;
+      throw new Error(
+        `[Tokenizer] ${context}: tokenId=${tokenId} out of range (modelVocabSize=${vocabSize}, tokenizerVocabSize=${tokenizerVocabSize ?? 'unknown'}).`
+      );
+    }
+  }
 
   
   constructor(state) {
@@ -128,6 +200,7 @@ export class PipelineGenerator {
       }
 
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
+      this._assertTokenIdsInRange(inputIds, 'generate.encode');
       const generatedIds = [...inputIds];
       this.#state.stats.prefillTokens = inputIds.length;
 
@@ -355,6 +428,7 @@ export class PipelineGenerator {
     }
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    this._assertTokenIdsInRange(inputIds, 'prefillKVOnly.encode');
     if (opts.debug) {
       log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
@@ -418,6 +492,7 @@ export class PipelineGenerator {
     }
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    this._assertTokenIdsInRange(inputIds, 'prefillWithEmbedding.encode');
     if (opts.debug) {
       log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
     }
@@ -516,6 +591,7 @@ export class PipelineGenerator {
     }
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    this._assertTokenIdsInRange(inputIds, 'prefillWithLogits.encode');
     if (opts.debug) {
       log.debug('Pipeline', `PrefillWithLogits: ${inputIds.length} tokens`);
     }
@@ -597,6 +673,7 @@ export class PipelineGenerator {
       }
 
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
+      this._assertTokenIdsInRange(inputIds, 'generateWithPrefixKV.encode');
       const generatedIds = [...prefix.tokens, ...inputIds];
       const promptTokenCount = generatedIds.length;
       this.#state.stats.prefillTokens = inputIds.length;
@@ -964,28 +1041,35 @@ export class PipelineGenerator {
       releaseBuffer(recorded.logitsBuffer);
       logits = decodeReadback(logitsData, recorded.logitsDtype);
 
-      const health = getLogitsHealth(logits);
-      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
-        log.warn(
-          'Logits',
-          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
-        );
-        this.#state.disableRecordedLogits = true;
-        this.#state.disableFusedDecode = true;
-        logits = await computeLogits(
-          currentHiddenBuffer,
-          numTokens,
-          getLogitsWeights(this.#state),
-          getLogitsConfig(this.#state),
-          this.#state.useGPU,
-          this.#state.debugFlags,
-          undefined,
-          debugCheckBuffer,
-          this.#state.runtimeConfig.shared.debug.probes
-        );
-        logitsVocabSize = config.vocabSize;
-        usedRecordedLogits = false;
-      }
+	      const health = getLogitsHealth(logits);
+	      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
+	        log.warn(
+	          'Logits',
+	          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
+	        );
+	        this.#state.disableRecordedLogits = true;
+	        this.#state.disableFusedDecode = true;
+	        logits = await computeLogits(
+	          currentHiddenBuffer,
+	          numTokens,
+	          getLogitsWeights(this.#state),
+	          getLogitsConfig(this.#state),
+	          this.#state.useGPU,
+	          this.#state.debugFlags,
+	          undefined,
+	          debugCheckBuffer,
+	          this.#state.runtimeConfig.shared.debug.probes
+	        );
+	        const fallbackHealth = getLogitsHealth(logits);
+	        if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
+	          throw new Error(
+	            `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
+	            'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
+	          );
+	        }
+	        logitsVocabSize = config.vocabSize;
+	        usedRecordedLogits = false;
+	      }
 
       releaseBuffer(currentHiddenBuffer);
     } else {
@@ -1074,6 +1158,7 @@ export class PipelineGenerator {
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
 
+    this._assertTokenIdInRange(tokenId, 'advanceWithToken');
     await advanceWithToken(this.#state, tokenId, opts, this._getDecodeHelpers(debugCheckBuffer));
   }
 
@@ -1089,6 +1174,14 @@ export class PipelineGenerator {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
+
+    this._assertTokenIdInRange(tokenId, 'advanceWithTokenAndEmbedding');
+    if (!advanceWithTokenAndEmbedding) {
+      throw new Error(
+        'advanceWithTokenAndEmbedding not available (likely stale module cache). ' +
+        'Hard-reload the page to refresh @doppler/core.'
+      );
+    }
 
     return advanceWithTokenAndEmbedding(
       this.#state,

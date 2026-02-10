@@ -1,6 +1,8 @@
 
 
 
+import { getDevice } from '../device.js';
+
 export function dispatch(
   device,
   pipeline,
@@ -36,7 +38,7 @@ export function dispatchKernel(
     recordDispatch(target, pipeline, bindGroup, workgroups, label);
   } else {
     // Device (or null if it should use default)
-    const device = target || require('../device.js').getDevice();
+    const device = target || getDevice();
     dispatch(device, pipeline, bindGroup, workgroups, label);
   }
 }

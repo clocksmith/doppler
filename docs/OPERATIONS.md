@@ -241,6 +241,24 @@ for (const modelId of await listModels()) {
 }
 ```
 
+### Export A Model From Local Storage (OPFS/IndexedDB)
+
+If you need to move a converted/downloaded RDRR model out of browser storage,
+use the export helper (streams bytes; avoids full-file RAM materialization).
+
+Requires the File System Access API (`showDirectoryPicker`, Chromium-based).
+
+```javascript
+import { exportModelToDirectory } from '../src/index.js';
+
+const destRoot = await window.showDirectoryPicker({ mode: 'readwrite' });
+const dest = await destRoot.getDirectoryHandle('gemma-3-1b-q4', { create: true });
+
+await exportModelToDirectory('gemma-3-1b-q4', dest, {
+  onProgress: (p) => console.log(p),
+});
+```
+
 ### Log Format for Post-Filtering
 
 All logs use a consistent format: `[CATEGORY][L{layer}][S{step}] message`. Use
