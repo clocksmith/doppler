@@ -1,0 +1,27 @@
+{
+  "id": "embeddinggemma",
+  "name": "EmbeddingGemma (Gemma 3 Text Embedding)",
+  "extends": "gemma3",
+  "modelType": "embedding",
+
+  "inference": {
+    "chatTemplate": {
+      "enabled": false
+    },
+    "output": {
+      "tieWordEmbeddings": false
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": [
+      "gemma3textmodel",
+      "Gemma3TextModel",
+      "embeddinggemma"
+    ],
+    "modelTypePatterns": [
+      "gemma3_text",
+      "embeddinggemma"
+    ]
+  }
+}

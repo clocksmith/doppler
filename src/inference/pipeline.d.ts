@@ -71,6 +71,20 @@ export declare class InferencePipeline extends PipelineState {
 
   prefillWithEmbedding(prompt: string, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
 
+  embed(prompt: string, options?: GenerateOptions): Promise<{
+    embedding: Float32Array;
+    tokens: number[];
+    seqLen: number;
+    embeddingMode: string;
+  }>;
+
+  embedBatch(prompts: string[], options?: GenerateOptions): Promise<Array<{
+    embedding: Float32Array;
+    tokens: number[];
+    seqLen: number;
+    embeddingMode: string;
+  }>>;
+
   prefillWithLogits(prompt: string, options?: GenerateOptions): Promise<PrefillResult>;
 
   applyKVCacheSnapshot(snapshot: KVCacheSnapshot): void;
@@ -118,6 +132,10 @@ export declare class InferencePipeline extends PipelineState {
 export declare function createPipeline(
   manifest: Manifest,
   contexts?: PipelineContexts
-): Promise<InferencePipeline | DiffusionPipeline | EnergyPipeline>;
+): Promise<InferencePipeline | EmbeddingPipeline | DiffusionPipeline | EnergyPipeline>;
+
+export declare class EmbeddingPipeline extends InferencePipeline {
+  generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+}
 
 export { InferencePipeline as Pipeline };

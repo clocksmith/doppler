@@ -439,7 +439,7 @@ function createManifest(
       `  1. Wait for official support of this model family\n` +
       `  2. Create a custom preset in src/config/presets/models/\n` +
       `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-      `Supported model families: gemma2, gemma3, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
+      `Supported model families: gemma2, gemma3, embeddinggemma, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
     );
   }
   const preset = resolvePreset(presetId);

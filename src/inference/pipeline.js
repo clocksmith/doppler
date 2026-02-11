@@ -397,6 +397,28 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillWithEmbedding(prompt, options);
   }
 
+  async embed(prompt, options = {}) {
+    const result = await this.prefillWithEmbedding(prompt, options);
+    return {
+      embedding: result.embedding,
+      tokens: result.tokens,
+      seqLen: result.seqLen,
+      embeddingMode: result.embeddingMode,
+    };
+  }
+
+  async embedBatch(prompts, options = {}) {
+    if (!Array.isArray(prompts)) {
+      throw new Error('embedBatch expects an array of prompts');
+    }
+    const outputs = [];
+    for (const prompt of prompts) {
+      outputs.push(await this.embed(prompt, options));
+      this.reset();
+    }
+    return outputs;
+  }
+
   prefillWithLogits(prompt, options = {}) {
     return this.generator.prefillWithLogits(prompt, options);
   }
@@ -543,6 +565,21 @@ async function createTransformerPipeline(manifest, contexts = {}) {
 }
 
 registerPipeline('transformer', createTransformerPipeline);
+
+export class EmbeddingPipeline extends InferencePipeline {
+  async *generate() {
+    throw new Error('Embedding pipeline does not support token generation. Use embed() or prefillWithEmbedding().');
+  }
+}
+
+async function createEmbeddingPipeline(manifest, contexts = {}) {
+  const pipeline = new EmbeddingPipeline();
+  await pipeline.initialize(contexts);
+  await pipeline.loadModel(manifest);
+  return pipeline;
+}
+
+registerPipeline('embedding', createEmbeddingPipeline);
 
 export async function createPipeline(manifest, contexts = {}) {
   const modelType = manifest?.modelType || 'transformer';

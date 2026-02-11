@@ -1335,34 +1335,53 @@ async function handleRunGenerate() {
   if (outputEl) outputEl.textContent = '';
 
   const options = buildRunGenerateOptions();
+  const isEmbeddingModel = pipeline?.manifest?.modelType === 'embedding';
   let output = '';
   let tokenCount = 0;
   const start = performance.now();
   let firstTokenAt = null;
 
   try {
-    for await (const token of pipeline.generate(prompt, {
-      ...options,
-      signal: controller.signal,
-    })) {
-      if (controller.signal.aborted) break;
-      output += token;
-      tokenCount += 1;
-      const now = performance.now();
-      if (!firstTokenAt) {
-        firstTokenAt = now;
-      }
-      if (firstTokenAt) {
-        const elapsedDecode = Math.max(1, now - firstTokenAt);
-        const liveTokensPerSec = tokenCount / (elapsedDecode / 1000);
-        state.lastMetrics = {
-          ...(state.lastMetrics || {}),
-          liveTokensPerSec,
-        };
-      }
+    if (isEmbeddingModel) {
+      const result = await pipeline.embed(prompt, options);
+      const dim = result?.embedding?.length ?? 0;
+      const preview = Array.from(result?.embedding?.slice(0, Math.min(16, dim)) ?? []).map((v) => Number(v.toFixed(6)));
+      output = JSON.stringify(
+        {
+          mode: 'embedding',
+          dimension: dim,
+          tokens: result?.tokens?.length ?? 0,
+          embedding_preview: preview,
+        },
+        null,
+        2
+      );
       if (outputEl) outputEl.textContent = output;
+      updateRunStatus('Complete');
+    } else {
+      for await (const token of pipeline.generate(prompt, {
+        ...options,
+        signal: controller.signal,
+      })) {
+        if (controller.signal.aborted) break;
+        output += token;
+        tokenCount += 1;
+        const now = performance.now();
+        if (!firstTokenAt) {
+          firstTokenAt = now;
+        }
+        if (firstTokenAt) {
+          const elapsedDecode = Math.max(1, now - firstTokenAt);
+          const liveTokensPerSec = tokenCount / (elapsedDecode / 1000);
+          state.lastMetrics = {
+            ...(state.lastMetrics || {}),
+            liveTokensPerSec,
+          };
+        }
+        if (outputEl) outputEl.textContent = output;
+      }
+      updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
     }
-    updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
   } catch (error) {
     if (controller.signal.aborted) {
       updateRunStatus('Stopped');

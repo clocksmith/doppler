@@ -9,7 +9,7 @@ export {
 export { MultiModelLoader } from './loader/multi-model-loader.js';
 
 // Inference pipeline
-export { InferencePipeline, createPipeline } from './inference/pipeline.js';
+export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipeline.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
 export { SpeculativeDecoder } from './inference/speculative.js';

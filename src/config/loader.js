@@ -16,6 +16,7 @@ const transformerPreset = await loadJson('./presets/models/transformer.json');
 const diffusionPreset = await loadJson('./presets/models/diffusion.json');
 const gemma2Preset = await loadJson('./presets/models/gemma2.json');
 const gemma3Preset = await loadJson('./presets/models/gemma3.json');
+const embeddingGemmaPreset = await loadJson('./presets/models/embeddinggemma.json');
 const functiongemmaPreset = await loadJson('./presets/models/functiongemma.json');
 const llama3Preset = await loadJson('./presets/models/llama3.json');
 const mixtralPreset = await loadJson('./presets/models/mixtral.json');
@@ -34,6 +35,7 @@ export const PRESET_REGISTRY = {
   transformer: transformerPreset,
   gemma2: gemma2Preset,
   gemma3: gemma3Preset,
+  embeddinggemma: embeddingGemmaPreset,
   functiongemma: functiongemmaPreset,
   llama3: llama3Preset,
   mixtral: mixtralPreset,
@@ -81,6 +83,7 @@ export function resolvePreset(id) {
 const PRESET_DETECTION_ORDER = [
   // Most specific first (model variants)
   'functiongemma',
+  'embeddinggemma',
   'diffusion',
   // Model families (check more specific patterns first)
   'gemma2',
