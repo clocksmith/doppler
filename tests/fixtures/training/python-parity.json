@@ -1,0 +1,8 @@
+{
+  "rows": 2,
+  "cols": 3,
+  "targets": [2, 0],
+  "logits": [1, 2, 3, 0.5, -1, 2],
+  "lossMean": 1.0744586305507688,
+  "tolerance": 1e-6
+}

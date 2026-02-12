@@ -1,0 +1,39 @@
+{
+  "hosting": {
+    "public": ".",
+    "rewrites": [
+      { "source": "/", "destination": "/demo/index.html" }
+    ],
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      ".gitignore",
+      "README.md",
+      "**/.*",
+      ".github/**",
+      "**/node_modules/**",
+      "**/*.d.ts",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md",
+      "EMOJI.md",
+      "docs/**",
+      "tests/**",
+      "tools/**",
+      "benchmarks/**",
+      "benchmarks/vendors/results/**",
+      "artifacts/**",
+      "external/**",
+      "skills/**",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "firebase-debug.log",
+      ".tjs-bench-profile/**",
+      "tmp/**",
+      "models/converted/**",
+      "models/local/**"
+    ]
+  }
+}
