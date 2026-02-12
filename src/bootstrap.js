@@ -3,6 +3,11 @@ import { log } from './debug/index.js';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+const RELOAD_KEY = 'doppler_vfs_reload';
+
+>>>>>>> Stashed changes
 =======
 const RELOAD_KEY = 'doppler_vfs_reload';
 
@@ -23,7 +28,10 @@ function getBasePath() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
