@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "baselines": [
+    {
+      "id": "example-gemma-2b-apple",
+      "enabled": false,
+      "model": { "match": "gemma-2-2b", "matchType": "includes" },
+      "gpu": { "match": "Apple", "matchType": "includes" },
+      "browser": { "match": "Chrome", "matchType": "includes" },
+      "metrics": {
+        "decode_tokens_per_sec": { "min": 4, "max": 8 },
+        "prefill_tokens_per_sec": { "min": 20, "max": 60 }
+      }
+    }
+  ]
+}

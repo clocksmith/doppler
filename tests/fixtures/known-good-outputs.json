@@ -1,0 +1,7 @@
+{
+  "mini-model": {
+    "prompt": "hello",
+    "maxTokens": 2,
+    "checksum": null
+  }
+}
