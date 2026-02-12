@@ -13,6 +13,11 @@ const CACHE_NAME = 'doppler-app-shell-v2';
 const APP_SHELL = [
     withBase('/app/index.html'),
     withBase('/app/rd.css'),
+<<<<<<< Updated upstream
+=======
+    withBase('/src/bootstrap.js'),
+    withBase('/src/boot/vfs-bootstrap.js'),
+>>>>>>> Stashed changes
     withBase('/src/debug/index.js'),
     '/favicon.svg',
     withBase('/config/vfs-manifest.json'),
@@ -20,6 +25,10 @@ const APP_SHELL = [
 
 const EXTENSIONS = new Set(['.js', '.json', '.wgsl']);
 const BYPASS_PATHS = new Set([
+<<<<<<< Updated upstream
+=======
+    withBase('/src/bootstrap.js'),
+>>>>>>> Stashed changes
     withBase('/sw.js'),
     withBase('/config/vfs-manifest.json'),
 ]);

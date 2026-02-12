@@ -1,5 +1,6 @@
 import { log } from './debug/index.js';
 
+<<<<<<< Updated upstream
 <<<<<<< ours
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -30,11 +31,16 @@ const RELOAD_KEY = 'doppler_vfs_reload';
 const RELOAD_KEY = 'doppler_vfs_reload';
 
 >>>>>>> theirs
+=======
+const RELOAD_KEY = 'doppler_vfs_reload';
+
+>>>>>>> Stashed changes
 function getBasePath() {
   if (typeof location === 'undefined') return '';
   const path = location.pathname || '';
   if (path === '/doppler' || path.startsWith('/doppler/')) return '/doppler';
   return '';
+<<<<<<< Updated upstream
 <<<<<<< ours
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -52,6 +58,8 @@ function getBasePath() {
 >>>>>>> Stashed changes
 =======
 >>>>>>> theirs
+=======
+>>>>>>> Stashed changes
 }
 
 const BASE_PATH = getBasePath();
