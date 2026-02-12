@@ -30,11 +30,15 @@ Open `http://localhost:8080/demo/` for browser UI workflows.
 Node CLI (shared command contract):
 
 ```bash
+npm install --save-optional webgpu
 npm run convert -- <inputDir> <outputDir> --model-id <id>
 npm run debug -- --model-id <id> --runtime-preset modes/debug
 npm run bench -- --model-id <id> --runtime-preset experiments/gemma3-bench-q4k
 npm run test:model -- --suite inference --model-id <id>
 ```
+
+`webgpu` is optional but recommended for Node CLI parity. Without it, harnessed
+commands can still run via browser relay (`--surface browser` or `--surface auto` fallback).
 
 ## Architecture
 

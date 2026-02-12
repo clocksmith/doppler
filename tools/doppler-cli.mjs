@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runNodeCommand, hasNodeWebGPUSupport } from '../src/tooling/node-command-runner.js';
+import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
 
@@ -21,7 +21,7 @@ function usage() {
     '  --keep-pipeline                 Keep loaded pipeline in result payload (node surface only)',
     '  --browser-channel <name>        Browser channel for Playwright launch (e.g. chrome)',
     '  --browser-executable <path>     Browser executable path for Playwright launch',
-    '  --browser-headless <true|false> Headless browser mode (default: true)',
+    '  --browser-headless <true|false> Headless browser mode (must be true)',
     '  --browser-port <port>           Static server port for browser relay (default: random)',
     '  --browser-timeout-ms <ms>       Browser command timeout (default: 180000)',
     '  --browser-url-path <path>       Runner page path (default: /src/tooling/command-runner.html)',
@@ -175,6 +175,10 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
   const port = parseNumberFlag(parsed.flags['browser-port'], '--browser-port');
   const timeoutMs = parseNumberFlag(parsed.flags['browser-timeout-ms'], '--browser-timeout-ms');
 
+  if (headless === false) {
+    throw new Error('--browser-headless=false is not supported. Browser relay always runs headless.');
+  }
+
   const options = {
     channel: parsed.flags['browser-channel'] ?? null,
     executablePath: parsed.flags['browser-executable'] ?? null,
@@ -183,9 +187,7 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
     baseUrl: parsed.flags['browser-base-url'] ?? null,
   };
 
-  if (headless !== null) {
-    options.headless = headless;
-  }
+  options.headless = true;
   if (port !== null) {
     options.port = port;
   }
@@ -233,10 +235,6 @@ async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
 async function runWithAutoSurface(request, parsed, jsonOutput) {
   if (request.command === 'convert') {
     return runCommandOnSurface(request, 'node', parsed, jsonOutput);
-  }
-
-  if (!hasNodeWebGPUSupport()) {
-    return runCommandOnSurface(request, 'browser', parsed, jsonOutput);
   }
 
   try {

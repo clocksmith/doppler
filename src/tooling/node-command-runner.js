@@ -5,6 +5,7 @@ import {
 } from './command-api.js';
 import { convertSafetensorsDirectory } from './node-convert.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
+import { bootstrapNodeWebGPU } from './node-webgpu.js';
 
 function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -46,10 +47,14 @@ export function hasNodeWebGPUSupport() {
   return hasNavigatorGpu && hasGpuEnums;
 }
 
-function assertNodeWebGPUSupport() {
+async function assertNodeWebGPUSupport() {
+  if (!hasNodeWebGPUSupport()) {
+    await bootstrapNodeWebGPU();
+  }
+
   if (hasNodeWebGPUSupport()) return;
   throw new Error(
-    'node command: WebGPU runtime is incomplete in Node. Run under a WebGPU-enabled Node build, or run the same command in browser harness.'
+    'node command: WebGPU runtime is incomplete in Node. Install optional dependency "webgpu", run under a WebGPU-enabled Node build, or run the same command in browser harness.'
   );
 }
 
@@ -108,7 +113,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     };
   }
 
-  assertNodeWebGPUSupport();
+  await assertNodeWebGPUSupport();
   const modules = await loadRuntimeModules();
   await applyRuntimeInputs(request, modules, options.runtimeLoadOptions || {});
   const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request));

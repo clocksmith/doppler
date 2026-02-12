@@ -20,7 +20,6 @@
       "embeddinggemma"
     ],
     "modelTypePatterns": [
-      "gemma3_text",
       "embeddinggemma"
     ]
   }

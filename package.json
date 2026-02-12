@@ -40,6 +40,9 @@
     "browser",
     "local"
   ],
+  "optionalDependencies": {
+    "webgpu": "^0.3.8"
+  },
   "author": "",
   "license": "MIT",
   "files": [
@@ -48,5 +51,8 @@
     "README.md",
     "tools/doppler-cli.mjs",
     "tools/convert-safetensors-node.mjs"
-  ]
+  ],
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
 }

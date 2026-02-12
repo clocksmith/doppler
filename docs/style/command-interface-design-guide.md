@@ -89,6 +89,7 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `auto` first attempts Node for harnessed commands and falls back to browser relay only when Node WebGPU is unavailable.
+- Node runner may bootstrap WebGPU from optional `webgpu` dependency before failing.
 - Browser relay executes `runBrowserCommand()` in a headless browser via `src/tooling/command-runner.html`.
 - Browser relay can attach to an existing server with `--browser-base-url`.
 - `convert` is Node-only in CLI (`--surface browser` is rejected).

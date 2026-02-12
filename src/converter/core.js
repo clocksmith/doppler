@@ -15,6 +15,7 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
+import { float32ToFloat16 } from './quantizer.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -474,6 +475,7 @@ export async function convertModel(model, io, options = {}) {
   }
   const tensors = model.tensors;
   const totalTensors = tensors.length;
+  const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
   const shards = [];
   const tensorLocations = {};
 
@@ -531,7 +533,29 @@ export async function convertModel(model, io, options = {}) {
 
     // Read tensor data
     const data = await io.readTensorData(tensor);
-    const tensorData = new Uint8Array(data);
+    let tensorData = new Uint8Array(data);
+    let outDtype = tensor.dtype;
+
+    // Convert storage to true F16 when requested. This avoids writing F32 bytes
+    // while advertising f16 in manifest metadata.
+    if (targetQuant === 'f16' && String(tensor.dtype).toUpperCase() === 'F32') {
+      if (tensorData.byteLength % 4 !== 0) {
+        throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+      }
+      const f32 = new Float32Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 4
+      );
+      const f16 = new Uint16Array(f32.length);
+      for (let j = 0; j < f32.length; j++) {
+        f16[j] = float32ToFloat16(f32[j]);
+      }
+      tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
+      outDtype = 'F16';
+    }
+
+    const tensorSize = tensorData.byteLength;
 
     // Track tensor location
     const startShard = currentShardIndex;
@@ -569,22 +593,22 @@ export async function convertModel(model, io, options = {}) {
       tensorLocations[tensor.name] = {
         shard: tensorSpans[0].shardIndex,
         offset: tensorSpans[0].offset,
-        size: tensor.size,
+        size: tensorSize,
         shape: tensor.shape,
-        dtype: tensor.dtype,
+        dtype: outDtype,
         role,
       };
     } else {
       tensorLocations[tensor.name] = {
         spans: tensorSpans,
-        size: tensor.size,
+        size: tensorSize,
         shape: tensor.shape,
-        dtype: tensor.dtype,
+        dtype: outDtype,
         role,
       };
     }
 
-    globalOffset += tensor.size;
+    globalOffset += tensorSize;
   }
 
   // Flush final shard
