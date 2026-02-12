@@ -262,6 +262,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     context = await browser.newContext();
     const page = await context.newPage();
     page.setDefaultTimeout(timeoutMs);
+    const pageDiagnostics = [];
 
     if (typeof options.onConsole === 'function') {
       page.on('console', (message) => {
@@ -272,10 +273,29 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       });
     }
 
-    await page.goto(`${resolvedBaseUrl}${runnerPath}`, { waitUntil: 'load' });
-    await page.waitForFunction(() => window.__dopplerRunnerReady === true, null, {
-      timeout: timeoutMs,
+    page.on('pageerror', (error) => {
+      pageDiagnostics.push(`pageerror: ${error?.message || String(error)}`);
     });
+    page.on('requestfailed', (request) => {
+      const failure = request.failure();
+      pageDiagnostics.push(
+        `requestfailed: ${request.url()} (${failure?.errorText || 'unknown error'})`
+      );
+    });
+
+    await page.goto(`${resolvedBaseUrl}${runnerPath}`, { waitUntil: 'load' });
+    try {
+      await page.waitForFunction(() => window.__dopplerRunnerReady === true, null, {
+        timeout: timeoutMs,
+      });
+    } catch (error) {
+      const diagnostics = pageDiagnostics.length
+        ? pageDiagnostics.slice(0, 10).join(' | ')
+        : 'no page diagnostics captured';
+      throw new Error(
+        `browser command: runner did not become ready within ${timeoutMs}ms (${diagnostics}).`
+      );
+    }
 
     const response = await page.evaluate(async (payload) => {
       if (typeof window.__dopplerRunBrowserCommand !== 'function') {
