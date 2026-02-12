@@ -14,6 +14,11 @@ const APP_SHELL = [
     withBase('/app/index.html'),
     withBase('/app/rd.css'),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+    withBase('/src/bootstrap.js'),
+    withBase('/src/boot/vfs-bootstrap.js'),
+>>>>>>> Stashed changes
 =======
     withBase('/src/bootstrap.js'),
     withBase('/src/boot/vfs-bootstrap.js'),
@@ -26,6 +31,10 @@ const APP_SHELL = [
 const EXTENSIONS = new Set(['.js', '.json', '.wgsl']);
 const BYPASS_PATHS = new Set([
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+    withBase('/src/bootstrap.js'),
+>>>>>>> Stashed changes
 =======
     withBase('/src/bootstrap.js'),
 >>>>>>> Stashed changes

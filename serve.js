@@ -224,6 +224,7 @@ async function main() {
       }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
 <<<<<<< Updated upstream
@@ -287,6 +288,22 @@ async function main() {
 
       // Legacy /dr path maps to /doppler (compatibility).
       if (pathname === '/dr' || pathname === '/dr/') {
+=======
+      // Canonical app entry point.
+      if (pathname === '/' || pathname === '') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
+      }
+
+      // Shortcut: /d redirects to the demo app
+      if (pathname === '/d' || pathname === '/d/') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
+      }
+
+      // Legacy /dr path maps to /doppler (compatibility).
+      if (pathname === '/dr' || pathname === '/dr/') {
+>>>>>>> Stashed changes
 =======
       // Canonical app entry point.
       if (pathname === '/' || pathname === '') {
