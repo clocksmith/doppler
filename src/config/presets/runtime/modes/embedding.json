@@ -1,0 +1,39 @@
+{
+  "name": "embedding",
+  "description": "Embedding-focused runtime preset tuned for stable finite vectors",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "debug"
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "prompt": "Search query: local-first AI with WebGPU inference.",
+      "batching": {
+        "maxTokens": 1
+      },
+      "generation": {
+        "embeddingMode": "last"
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "kvcache": {
+        "maxSeqLen": 1024,
+        "kvDtype": "f32"
+      }
+    }
+  }
+}

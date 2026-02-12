@@ -17,19 +17,23 @@ export function isCompatibleModelType(modelType, mode) {
   if (mode === 'energy') {
     return normalized === 'energy';
   }
+  if (mode === 'embedding') {
+    return normalized === 'embedding';
+  }
   if (mode === 'run') {
-    return normalized !== 'diffusion' && normalized !== 'energy';
+    return normalized !== 'diffusion' && normalized !== 'energy' && normalized !== 'embedding';
   }
   return true;
 }
 
 export function isModeModelSelectable(mode) {
-  return mode === 'run' || mode === 'diffusion' || mode === 'energy' || mode === 'kernels';
+  return mode === 'run' || mode === 'embedding' || mode === 'diffusion' || mode === 'energy' || mode === 'kernels';
 }
 
 export function getModeModelLabel(mode) {
   if (mode === 'diffusion') return 'diffusion';
   if (mode === 'energy') return 'energy';
+  if (mode === 'embedding') return 'embedding';
   if (mode === 'run') return 'text';
   if (mode === 'kernels' || mode === 'diagnostics' || mode === 'models') return 'models';
   return 'local';

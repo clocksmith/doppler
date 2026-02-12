@@ -1,0 +1,32 @@
+{
+  "id": "modernbert",
+  "name": "ModernBERT",
+  "extends": "transformer",
+  "modelType": "embedding",
+
+  "inference": {
+    "ffn": {
+      "activation": "gelu"
+    },
+    "chatTemplate": {
+      "enabled": false
+    },
+    "output": {
+      "tieWordEmbeddings": false
+    }
+  },
+
+  "tokenizer": {
+    "addBosToken": false
+  },
+
+  "detection": {
+    "architecturePatterns": [
+      "ModernBertModel",
+      "modernbert"
+    ],
+    "modelTypePatterns": [
+      "modernbert"
+    ]
+  }
+}

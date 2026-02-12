@@ -39,6 +39,7 @@
                 <div class="nav-label type-caption">Run</div>
                 <div class="segmented-control" id="mode-tabs">
                   <button class="btn segmented-btn mode-tab" data-mode="run" type="button">Text</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="embedding" type="button">Embedding</button>
                   <button class="btn segmented-btn mode-tab" data-mode="diffusion" type="button">Image</button>
                   <button class="btn segmented-btn mode-tab" data-mode="energy" type="button">Energy</button>
                 </div>
@@ -68,8 +69,8 @@
       <main class="main-layout">
         <div class="panel-grid" id="panel-grid" data-layout="empty">
           <div class="panel-stack panel-stack-primary">
-            <section class="panel run-panel" data-modes="run">
-              <h2 class="type-label">Text Decoding</h2>
+            <section class="panel run-panel" data-modes="run embedding">
+              <h2 class="type-label" id="run-panel-title">Text Decoding</h2>
               <div class="primary-stack">
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
@@ -184,8 +185,8 @@
                 <button id="diagnostics-export-btn" class="btn">Export JSON</button>
               </div>
               <div class="diagnostics-field" id="diagnostics-suite-field">
-                <label class="type-caption" for="diagnostics-suite">Suite</label>
-                <select id="diagnostics-suite" class="w-full"></select>
+                <label class="type-caption" for="diagnostics-profile">Run Profile</label>
+                <select id="diagnostics-profile" class="w-full"></select>
                 <div class="type-caption" id="diagnostics-suite-help"></div>
               </div>
               <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
@@ -196,12 +197,16 @@
                 </div>
                 <pre id="diagnostics-output-text" class="diagnostics-output-text">No output yet.</pre>
                 <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
+                <details class="diagnostics-output-json" id="diagnostics-output-json-wrap" hidden>
+                  <summary class="type-caption">Raw JSON</summary>
+                  <pre id="diagnostics-output-json" class="diagnostics-output-json-text">No JSON yet.</pre>
+                </details>
               </div>
               <details class="diagnostics-accordion" id="diagnostics-advanced">
                 <summary class="type-caption">Advanced</summary>
                 <div class="panel-subsection">
                   <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-preset">Runtime preset</label>
+                    <label class="type-caption" for="runtime-preset">Runtime preset (advanced override)</label>
                     <select id="runtime-preset" class="w-full"></select>
                   </div>
                   <div class="diagnostics-field">
@@ -226,8 +231,8 @@
 
             <section class="panel convert-panel" data-modes="models">
               <h2 class="type-label">Model Intake</h2>
-              <p class="convert-description">Import GGUF or safetensors into browser storage.</p>
-              <p class="convert-note type-caption">Requires tokenizer.json or tokenizer.model (config.json recommended).</p>
+              <p class="convert-description">Use one folder flow for GGUF, safetensors, or pre-converted RDRR.</p>
+              <p class="convert-note type-caption">RDRR folders (manifest + shards) are imported automatically; raw GGUF/safetensors are converted.</p>
               <div id="convert-status" class="convert-status">
                 <div class="progress progress-sm">
                   <div id="convert-progress" class="progress-fill"></div>
@@ -251,7 +256,7 @@
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                   </svg>
-                  Select Folder or Files
+                  Select Folder or Files (Auto)
                 </button>
               </div>
               <div class="convert-actions">
@@ -442,13 +447,13 @@
               </div>
             </section>
 
-            <section class="panel run-controls-panel" data-modes="run">
-              <h2 class="type-label">Run Controls</h2>
+            <section class="panel run-controls-panel" data-modes="run embedding">
+              <h2 class="type-label" id="run-controls-title">Run Controls</h2>
               <div class="playground-field">
-                <label class="type-caption" for="run-prompt">Prompt</label>
+                <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
                 <textarea id="run-prompt" class="w-full" rows="6" placeholder="Ask a question or provide a prompt..."></textarea>
               </div>
-              <div class="panel-subsection">
+              <div class="panel-subsection" id="run-sampling-controls">
                 <div class="playground-row">
                   <div class="playground-field">
                     <label class="type-caption" for="temperature-input">Temperature</label>
@@ -947,8 +952,8 @@
     </div>
   </div>
 
-  <!-- Bootstrap entry (registers VFS + loads app) -->
-  <script type="module" src="../src/bootstrap.js"></script>
+  <!-- App entry -->
+  <script type="module" src="../demo/app.js"></script>
 </body>
 
 </html>

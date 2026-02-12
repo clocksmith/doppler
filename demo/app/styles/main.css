@@ -901,6 +901,25 @@
       border: var(--border-sm) solid var(--fg);
     }
 
+    .diagnostics-output-json {
+      border-top: var(--border-sm) solid var(--fg);
+      padding-top: var(--space-xs);
+    }
+
+    .diagnostics-output-json > summary {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .diagnostics-output-json-text {
+      margin: var(--space-xs) 0 0;
+      max-height: 260px;
+      overflow: auto;
+      font-family: var(--font-b);
+      font-size: 11px;
+      white-space: pre;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .header {

@@ -4,6 +4,7 @@ import { $ , setText } from './dom.js';
 import { formatRate, formatMs, formatScalar } from './format.js';
 
 export function getStatsMode() {
+  if (state.uiMode === 'embedding') return 'embedding';
   if (state.uiMode === 'energy') return 'energy';
   if (state.uiMode === 'diffusion') return 'diffusion';
   if (state.uiMode === 'diagnostics' && state.lastDiagnosticsSuite === 'energy') {
@@ -13,6 +14,7 @@ export function getStatsMode() {
     return 'diffusion';
   }
   const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType);
+  if (pipelineType === 'embedding') return 'embedding';
   if (pipelineType === 'energy') return 'energy';
   if (pipelineType === 'diffusion') return 'diffusion';
   return 'text';
@@ -130,6 +132,32 @@ export function updatePerformancePanel(snapshot) {
     } else {
       setText(tokensEl, '--');
     }
+    return;
+  }
+
+  if (mode === 'embedding') {
+    setStatLabels({
+      tps: 'Embed/sec',
+      ttft: 'Embedding',
+      prefill: 'Prompt tokens',
+      e2e: 'End-to-end',
+      decode: 'Dimension',
+      tokens: 'Mode',
+    });
+    const embeddingMs = Number.isFinite(metrics.embeddingMs) ? metrics.embeddingMs : null;
+    const embeddingDim = Number.isFinite(metrics.embeddingDim) ? metrics.embeddingDim : null;
+    const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
+    const e2eMs = Number.isFinite(stats.totalTimeMs) && stats.totalTimeMs > 0
+      ? stats.totalTimeMs
+      : embeddingMs;
+    const embedPerSec = embeddingMs && embeddingMs > 0 ? 1000 / embeddingMs : null;
+
+    setText(tpsEl, embedPerSec != null ? embedPerSec.toFixed(2) : '--');
+    setText(ttftEl, formatMs(embeddingMs));
+    setText(prefillEl, prefillTokens != null ? `${prefillTokens} tok` : '--');
+    setText(e2eEl, formatMs(e2eMs));
+    setText(decodeEl, embeddingDim != null ? String(embeddingDim) : '--');
+    setText(tokensEl, 'last');
     return;
   }
 

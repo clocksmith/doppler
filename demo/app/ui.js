@@ -54,6 +54,10 @@ export function updateStatusIndicator() {
     return;
   }
   if (state.runGenerating) {
+    if (state.uiMode === 'embedding') {
+      setStatusIndicator('Embedding', 'info');
+      return;
+    }
     setStatusIndicator('Generating', 'info');
     return;
   }

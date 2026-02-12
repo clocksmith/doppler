@@ -12,31 +12,15 @@ const loadJson = async (path) => {
   return response.json();
 };
 
-const loadJsonOptional = async (path) => {
-  const response = await fetch(new URL(path, import.meta.url));
-  if (!response.ok) {
-    if (response.status === 404) return null;
-    throw new Error(`Failed to load kernel path: ${path}`);
-  }
-  return response.json();
-};
-
 const gemma2Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a.json');
 const gemma2Q4kFusedF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f32a.json');
 const gemma2Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f16a.json');
 const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.json');
 const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
 const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
-const gemma3F16F16AOnline = await loadJsonOptional('./presets/kernel-paths/experimental/gemma3-f16-f16a-online.json');
+const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
 const gemma3Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-fused-f16a.json');
 const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
-
-if (!gemma3F16F16AOnline) {
-  log.warn(
-    'KernelPathLoader',
-    'Missing experimental preset gemma3-f16-f16a-online.json; aliasing to gemma3-f16-f16a.'
-  );
-}
 
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
@@ -50,11 +34,7 @@ const KERNEL_PATH_REGISTRY = {
 
   // Gemma 3 variants
   'gemma3-f16-f16a': gemma3F16F16A,
-  'gemma3-f16-f16a-online': gemma3F16F16AOnline ?? {
-    ...structuredClone(gemma3F16F16A),
-    id: 'gemma3-f16-f16a-online',
-    name: 'Gemma 3 F16/F16A (online alias)',
-  },
+  'gemma3-f16-f16a-online': gemma3F16F16AOnline,
   'gemma3-q4k-fused-f16a': gemma3Q4kFusedF16A,
   'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
 };

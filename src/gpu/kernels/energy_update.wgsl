@@ -12,7 +12,7 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read_write> state: array<f32>;
-@group(0) @binding(2) var<storage, read> target: array<f32>;
+@group(0) @binding(2) var<storage, read> targetBuf: array<f32>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -20,6 +20,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (idx >= u.count) {
         return;
     }
-    let diff = state[idx] - target[idx];
+    let diff = state[idx] - targetBuf[idx];
     state[idx] = state[idx] - (u.stepSize * u.gradientScale * diff);
 }

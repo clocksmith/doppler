@@ -22,6 +22,7 @@ const llama3Preset = await loadJson('./presets/models/llama3.json');
 const mixtralPreset = await loadJson('./presets/models/mixtral.json');
 const deepseekPreset = await loadJson('./presets/models/deepseek.json');
 const mambaPreset = await loadJson('./presets/models/mamba.json');
+const modernbertPreset = await loadJson('./presets/models/modernbert.json');
 const qwen3Preset = await loadJson('./presets/models/qwen3.json');
 const kimiK2Preset = await loadJson('./presets/models/kimi-k2.json');
 const gptOssPreset = await loadJson('./presets/models/gpt-oss.json');
@@ -41,6 +42,7 @@ export const PRESET_REGISTRY = {
   mixtral: mixtralPreset,
   deepseek: deepseekPreset,
   mamba: mambaPreset,
+  modernbert: modernbertPreset,
   qwen3: qwen3Preset,
   kimi_k2: kimiK2Preset,
   gpt_oss: gptOssPreset,
@@ -84,6 +86,7 @@ const PRESET_DETECTION_ORDER = [
   // Most specific first (model variants)
   'functiongemma',
   'embeddinggemma',
+  'modernbert',
   'diffusion',
   // Model families (check more specific patterns first)
   'gemma2',

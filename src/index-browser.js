@@ -67,11 +67,15 @@ export { listRegisteredModels, registerModel, removeRegisteredModel } from './st
 export { listStorageInventory, deleteStorageEntry } from './storage/inventory.js';
 export {
   openModelStore,
+  writeShard,
   loadManifestFromStore,
   loadShard,
   loadTensorsFromStore,
   saveManifest,
   saveTensorsToStore,
+  saveTokenizer,
+  saveTokenizerModel,
+  saveAuxFile,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
   listFilesInStore,
@@ -117,4 +121,3 @@ export {
   ensureCommandSupportedOnSurface,
 } from './tooling/command-api.js';
 export { runBrowserCommand, normalizeBrowserCommand } from './tooling/browser-command-runner.js';
-

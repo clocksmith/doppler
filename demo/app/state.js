@@ -17,7 +17,7 @@ export const state = {
   activePipelineModelId: null,
   activeModelId: null,
   modelTypeCache: {},
-  modeModelId: { run: null, diffusion: null, energy: null },
+  modeModelId: { run: null, embedding: null, diffusion: null, energy: null },
   runAbortController: null,
   runGenerating: false,
   runLoading: false,

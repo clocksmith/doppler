@@ -11,11 +11,15 @@ import {
   listRegisteredModels,
   registerModel,
   openModelStore,
+  writeShard,
   loadManifestFromStore,
   loadShard,
   loadTensorsFromStore,
   saveManifest,
   saveTensorsToStore,
+  saveTokenizer,
+  saveTokenizerModel,
+  saveAuxFile,
   loadTokenizerFromStore,
   loadTokenizerModelFromStore,
   parseManifest,
@@ -139,7 +143,8 @@ import {
 
 const controller = new DiagnosticsController({ log });
 
-const PRIMARY_MODES = new Set(['run', 'diffusion', 'energy']);
+const PRIMARY_MODES = new Set(['run', 'embedding', 'diffusion', 'energy']);
+let modelListRefreshVersion = 0;
 
 function updateNavState(mode) {
   // Treat the top 5 buttons as a single selection control:
@@ -176,6 +181,21 @@ function applyModeVisibility(mode) {
   });
 }
 
+function syncRunModeUI(mode) {
+  const isEmbeddingMode = mode === 'embedding';
+  setText($('run-panel-title'), isEmbeddingMode ? 'Embeddings' : 'Text Decoding');
+  setText($('run-controls-title'), isEmbeddingMode ? 'Embedding Controls' : 'Run Controls');
+  setText($('run-prompt-label'), isEmbeddingMode ? 'Input text' : 'Prompt');
+  setText($('run-generate-btn'), isEmbeddingMode ? 'Embed' : 'Generate');
+  const prompt = $('run-prompt');
+  if (prompt) {
+    prompt.placeholder = isEmbeddingMode
+      ? 'Enter text to embed...'
+      : 'Ask a question or provide a prompt...';
+  }
+  setHidden($('run-sampling-controls'), isEmbeddingMode);
+}
+
 function setUiMode(mode) {
   const app = $('app');
   if (!app) return;
@@ -187,6 +207,7 @@ function setUiMode(mode) {
   app.dataset.mode = mode;
   updateNavState(mode);
   applyModeVisibility(mode);
+  syncRunModeUI(mode);
   syncDiagnosticsModeUI(mode);
   updatePerformancePanel();
   renderRunLog();
@@ -261,6 +282,65 @@ function resetExportStatus() {
   setHidden(status, false);
   progress.style.width = '0%';
   setText(label, 'Idle');
+}
+
+const AUX_IMPORT_FILENAMES = [
+  'config.json',
+  'generation_config.json',
+  'tokenizer_config.json',
+  'special_tokens_map.json',
+  'added_tokens.json',
+  'preprocessor_config.json',
+  'vocab.txt',
+  'merges.txt',
+];
+
+function getPickedFilePath(file) {
+  if (!file) return '';
+  if (typeof file.relativePath === 'string' && file.relativePath.length > 0) {
+    return file.relativePath;
+  }
+  if (typeof file.webkitRelativePath === 'string' && file.webkitRelativePath.length > 0) {
+    return file.webkitRelativePath;
+  }
+  if (typeof file.name === 'string') return file.name;
+  return '';
+}
+
+function normalizePickedPath(path) {
+  return String(path || '')
+    .replace(/\\/g, '/')
+    .replace(/^\.?\//, '')
+    .trim();
+}
+
+function getPathBaseName(path) {
+  const normalized = normalizePickedPath(path);
+  if (!normalized) return '';
+  const parts = normalized.split('/');
+  return parts[parts.length - 1] || '';
+}
+
+function findPickedFileByPath(files, path) {
+  const targetPath = normalizePickedPath(path);
+  if (!targetPath) return null;
+
+  const exact = files.find((file) => normalizePickedPath(getPickedFilePath(file)) === targetPath);
+  if (exact) return exact;
+
+  const targetBase = getPathBaseName(targetPath);
+  if (!targetBase) return null;
+  const baseMatches = files.filter((file) => getPathBaseName(getPickedFilePath(file)) === targetBase);
+  if (baseMatches.length === 1) return baseMatches[0];
+  return null;
+}
+
+function findPickedFileByBaseName(files, name) {
+  const target = String(name || '').trim();
+  if (!target) return null;
+  const matches = files.filter((file) => getPathBaseName(getPickedFilePath(file)) === target);
+  if (matches.length === 0) return null;
+  return matches[0];
 }
 
 async function deriveModelIdFromFiles(files, fallbackLabel) {
@@ -505,7 +585,7 @@ function updateSidebarLayout(models) {
 async function refreshModelList() {
   const modelSelect = $('diagnostics-model');
   if (!modelSelect) return;
-  modelSelect.innerHTML = '';
+  const refreshVersion = ++modelListRefreshVersion;
   let models = [];
   try {
     models = await listRegisteredModels();
@@ -513,16 +593,28 @@ async function refreshModelList() {
     log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
   }
   const filteredModels = await filterModelsForMode(models, state.uiMode);
-  if (!filteredModels.length) {
+  if (refreshVersion !== modelListRefreshVersion) return;
+  modelSelect.innerHTML = '';
+  const modelIds = [];
+  const seenModelIds = new Set();
+  for (const model of filteredModels) {
+    const modelId = typeof model?.modelId === 'string' && model.modelId
+      ? model.modelId
+      : (typeof model?.id === 'string' ? model.id : '');
+    if (!modelId || seenModelIds.has(modelId)) continue;
+    seenModelIds.add(modelId);
+    modelIds.push(modelId);
+  }
+  if (!modelIds.length) {
     const opt = document.createElement('option');
     opt.value = '';
     opt.textContent = `No ${getModeModelLabel(state.uiMode)} models`;
     modelSelect.appendChild(opt);
   } else {
-    for (const model of filteredModels) {
+    for (const modelId of modelIds) {
       const opt = document.createElement('option');
-      opt.value = model.modelId || model.id || '';
-      opt.textContent = model.modelId || model.id || 'unknown';
+      opt.value = modelId;
+      opt.textContent = modelId;
       modelSelect.appendChild(opt);
     }
   }
@@ -695,6 +787,9 @@ function updateDiffusionCharCounters() {
 }
 
 function buildRunGenerateOptions() {
+  if (state.uiMode === 'embedding') {
+    return {};
+  }
   const temperature = readOptionalNumber($('temperature-input'));
   const topP = readOptionalNumber($('top-p-input'));
   const topK = readOptionalNumber($('top-k-input'), { integer: true });
@@ -753,7 +848,8 @@ async function ensureRunPipeline() {
     if (pipeline?.manifest?.modelType) {
       state.modelTypeCache[modelId] = normalizeModelType(pipeline.manifest.modelType);
     }
-    state.modeModelId.run = modelId;
+    const runMode = state.uiMode === 'embedding' ? 'embedding' : 'run';
+    state.modeModelId[runMode] = modelId;
     state.lastMemoryStats = pipeline.getMemoryStats?.() ?? null;
     updateMemoryControls();
     const snapshot = captureMemorySnapshot();
@@ -1311,16 +1407,22 @@ async function handleRunGenerate() {
   const promptEl = $('run-prompt');
   const outputEl = $('run-output');
   const prompt = promptEl?.value?.trim() || '';
+  const isEmbeddingMode = state.uiMode === 'embedding';
   if (!prompt) {
-    updateRunStatus('Enter a prompt to generate.');
+    updateRunStatus(isEmbeddingMode ? 'Enter text to embed.' : 'Enter a prompt to generate.');
     return;
   }
 
   updateRunStatus('Preparing...');
   let pipeline;
+  let modelType = null;
   try {
     pipeline = await ensureRunPipeline();
-    if (pipeline?.manifest?.modelType === 'diffusion' || pipeline?.manifest?.modelType === 'energy') {
+    modelType = normalizeModelType(pipeline?.manifest?.modelType);
+    if (isEmbeddingMode && modelType !== 'embedding') {
+      throw new Error('Selected model is not an embedding model.');
+    }
+    if (!isEmbeddingMode && (modelType === 'diffusion' || modelType === 'energy' || modelType === 'embedding')) {
       throw new Error('Selected model is not a text model.');
     }
   } catch (error) {
@@ -1331,11 +1433,11 @@ async function handleRunGenerate() {
   const controller = new AbortController();
   state.runAbortController = controller;
   setRunGenerating(true);
-  updateRunStatus('Generating...');
+  updateRunStatus(isEmbeddingMode ? 'Embedding...' : 'Generating...');
   if (outputEl) outputEl.textContent = '';
 
   const options = buildRunGenerateOptions();
-  const isEmbeddingModel = pipeline?.manifest?.modelType === 'embedding';
+  const isEmbeddingModel = modelType === 'embedding';
   let output = '';
   let tokenCount = 0;
   const start = performance.now();
@@ -1343,9 +1445,23 @@ async function handleRunGenerate() {
 
   try {
     if (isEmbeddingModel) {
+      const embedStart = performance.now();
       const result = await pipeline.embed(prompt, options);
+      const embeddingMs = Math.max(1, performance.now() - embedStart);
       const dim = result?.embedding?.length ?? 0;
-      const preview = Array.from(result?.embedding?.slice(0, Math.min(16, dim)) ?? []).map((v) => Number(v.toFixed(6)));
+      if (!Number.isFinite(dim) || dim <= 0) {
+        throw new Error('No embedding returned.');
+      }
+      const embeddingValues = result?.embedding ?? [];
+      let nonFiniteCount = 0;
+      for (let i = 0; i < dim; i++) {
+        if (!Number.isFinite(embeddingValues[i])) nonFiniteCount++;
+      }
+      if (nonFiniteCount > 0) {
+        throw new Error(`Embedding contains non-finite values (${nonFiniteCount}/${dim}).`);
+      }
+      const preview = Array.from(embeddingValues.slice(0, Math.min(16, dim)))
+        .map((v) => Number(v.toFixed(6)));
       output = JSON.stringify(
         {
           mode: 'embedding',
@@ -1356,6 +1472,11 @@ async function handleRunGenerate() {
         null,
         2
       );
+      state.lastMetrics = {
+        ...(state.lastMetrics || {}),
+        embeddingDim: dim,
+        embeddingMs: Number(embeddingMs.toFixed(2)),
+      };
       if (outputEl) outputEl.textContent = output;
       updateRunStatus('Complete');
     } else {
@@ -1565,6 +1686,168 @@ async function runConversion(files, converterConfig, label, modelIdOverride) {
   }
 }
 
+function restoreParsedManifest(previousManifest) {
+  if (previousManifest) {
+    setManifest(previousManifest);
+    return;
+  }
+  clearManifest();
+}
+
+async function detectRdrrImport(files) {
+  const manifestFile = findPickedFileByBaseName(files, 'manifest.json');
+  if (!manifestFile) {
+    return { kind: 'none' };
+  }
+
+  const manifestText = await manifestFile.text();
+  const previousManifest = getManifest();
+  let manifest;
+  try {
+    manifest = parseManifest(manifestText);
+  } catch (error) {
+    return {
+      kind: 'invalid',
+      reason: `Found manifest.json but it is not a valid RDRR manifest: ${error.message}`,
+    };
+  } finally {
+    restoreParsedManifest(previousManifest);
+  }
+
+  const shardFiles = new Map();
+  const missing = [];
+  for (const shard of manifest.shards || []) {
+    const shardFile = findPickedFileByPath(files, shard.filename);
+    if (!shardFile) {
+      missing.push(shard.filename || `shard_${shard.index}`);
+      continue;
+    }
+    shardFiles.set(shard.index, shardFile);
+  }
+
+  if (missing.length > 0) {
+    const preview = missing.slice(0, 3).join(', ');
+    const suffix = missing.length > 3 ? ` (+${missing.length - 3} more)` : '';
+    return {
+      kind: 'invalid',
+      reason: `Found RDRR manifest, but shard files are missing: ${preview}${suffix}`,
+    };
+  }
+
+  let tensorsFile = null;
+  if (manifest.tensorsFile) {
+    tensorsFile = findPickedFileByPath(files, manifest.tensorsFile);
+    if (!tensorsFile) {
+      return {
+        kind: 'invalid',
+        reason: `Found RDRR manifest, but missing tensor map file: ${manifest.tensorsFile}`,
+      };
+    }
+  }
+
+  return {
+    kind: 'rdrr',
+    manifest,
+    manifestText,
+    manifestFile,
+    shardFiles,
+    tensorsFile,
+  };
+}
+
+async function importRdrrFromFiles(files, detection, label) {
+  if (!detection || detection.kind !== 'rdrr') {
+    throw new Error('RDRR import requires a valid manifest and shard set.');
+  }
+
+  const previousManifest = getManifest();
+  state.convertActive = true;
+  updateStatusIndicator();
+  try {
+    const manifest = parseManifest(detection.manifestText);
+    const modelId = String(manifest.modelId || '').trim();
+    if (!modelId) {
+      throw new Error('RDRR manifest is missing modelId.');
+    }
+
+    await openModelStore(modelId);
+
+    const shards = Array.isArray(manifest.shards) ? manifest.shards : [];
+    const totalSteps = shards.length + (manifest.tensorsFile ? 1 : 0) + 2;
+    let completed = 0;
+    const step = (message) => {
+      completed += 1;
+      const percent = totalSteps > 0 ? (completed / totalSteps) * 100 : 100;
+      updateConvertStatus(label ? `${message} (${label})` : message, percent);
+    };
+
+    await saveManifest(JSON.stringify(manifest, null, 2));
+    step(`Saved manifest for ${modelId}`);
+
+    if (manifest.tensorsFile) {
+      const tensorsFile = detection.tensorsFile || findPickedFileByPath(files, manifest.tensorsFile);
+      if (!tensorsFile) {
+        throw new Error(`Missing ${manifest.tensorsFile} for RDRR import.`);
+      }
+      const tensorsText = await tensorsFile.text();
+      await saveTensorsToStore(tensorsText);
+      step(`Saved ${manifest.tensorsFile}`);
+    }
+
+    const tokenizerFilePath = manifest.tokenizer?.file || null;
+    let tokenizerJsonFile = tokenizerFilePath ? findPickedFileByPath(files, tokenizerFilePath) : null;
+    let tokenizerModelFile = null;
+    if (tokenizerJsonFile && getPathBaseName(getPickedFilePath(tokenizerJsonFile)) === 'tokenizer.model') {
+      tokenizerModelFile = tokenizerJsonFile;
+      tokenizerJsonFile = null;
+    }
+    if (!tokenizerJsonFile) {
+      tokenizerJsonFile = findPickedFileByBaseName(files, 'tokenizer.json');
+    }
+    if (!tokenizerModelFile) {
+      tokenizerModelFile = findPickedFileByBaseName(files, 'tokenizer.model');
+    }
+
+    if (tokenizerJsonFile) {
+      await saveTokenizer(await tokenizerJsonFile.text());
+    }
+    if (tokenizerModelFile) {
+      await saveTokenizerModel(await tokenizerModelFile.arrayBuffer());
+    }
+
+    for (const filename of AUX_IMPORT_FILENAMES) {
+      const auxFile = findPickedFileByBaseName(files, filename);
+      if (!auxFile) continue;
+      await saveAuxFile(filename, await auxFile.arrayBuffer());
+    }
+
+    for (let i = 0; i < shards.length; i++) {
+      const shard = shards[i];
+      const shardFile = detection.shardFiles.get(shard.index) || findPickedFileByPath(files, shard.filename);
+      if (!shardFile) {
+        throw new Error(`Missing shard file: ${shard.filename}`);
+      }
+      const data = new Uint8Array(await shardFile.arrayBuffer());
+      if (Number.isFinite(shard.size) && data.byteLength !== shard.size) {
+        throw new Error(
+          `Shard size mismatch for ${shard.filename}: expected ${shard.size} bytes, got ${data.byteLength}`
+        );
+      }
+      await writeShard(shard.index, data, { verify: true });
+      step(`Imported shard ${i + 1}/${shards.length}`);
+    }
+
+    await registerDownloadedModel(modelId);
+    delete state.modelTypeCache[modelId];
+    updateConvertStatus(`RDRR import complete: ${modelId}`, 100);
+    await refreshModelList();
+  } finally {
+    restoreParsedManifest(previousManifest);
+    state.convertActive = false;
+    updateStatusIndicator();
+  }
+}
+
 async function regenerateManifest(modelId) {
   if (!modelId) {
     throw new Error('Select a model before regenerating the manifest.');
@@ -1695,6 +1978,7 @@ async function handleRegenerateManifest() {
 }
 
 async function handleConvertFiles() {
+  if (state.convertActive) return;
   updateConvertStatus('Select a model folder or files...', 0);
   let files = null;
   let pickedLabel = null;
@@ -1720,6 +2004,24 @@ async function handleConvertFiles() {
     const name = file.name.toLowerCase();
     return name.endsWith('.safetensors') || name.endsWith('.gguf');
   });
+
+  const rdrrDetection = await detectRdrrImport(files);
+  if (rdrrDetection.kind === 'rdrr') {
+    updateConvertStatus(
+      `Detected pre-converted RDRR package${pickedLabel ? ` in ${pickedLabel}` : ''}. Importing...`,
+      0
+    );
+    await importRdrrFromFiles(files, rdrrDetection, pickedLabel);
+    return;
+  }
+  if (rdrrDetection.kind === 'invalid' && !hasWeights) {
+    updateConvertStatus(rdrrDetection.reason, 0);
+    return;
+  }
+  if (rdrrDetection.kind === 'invalid' && hasWeights) {
+    log.warn('DopplerDemo', rdrrDetection.reason);
+  }
+
   if (!hasWeights) {
     updateConvertStatus('Missing .safetensors or .gguf in the selected folder.', 0);
     return;
@@ -1753,12 +2055,19 @@ async function handleConvertUrls() {
 }
 
 async function handleDiagnosticsRun(mode) {
-  const suiteSelect = $('diagnostics-suite');
+  const profileSelect = $('diagnostics-profile');
   const modelSelect = $('diagnostics-model');
   const presetSelect = $('runtime-preset');
-  const suite = suiteSelect?.value || getDiagnosticsDefaultSuite(state.uiMode);
+  const selections = state.diagnosticsSelections[state.uiMode] || {};
+  const suite = selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
-  const runtimePreset = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimePreset = selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  if (presetSelect && presetSelect.value !== runtimePreset) {
+    presetSelect.value = runtimePreset;
+  }
+  if (profileSelect && selections.profile && profileSelect.value !== selections.profile) {
+    profileSelect.value = selections.profile;
+  }
   const captureOutput = runtimePreset === 'modes/debug';
   const previousRuntime = cloneRuntimeConfig(getRuntimeConfig());
   let runtimeConfig = state.diagnosticsRuntimeConfig;
@@ -1970,7 +2279,7 @@ function bindUI() {
   const runtimeClear = $('runtime-config-clear');
   const runtimeConfigPreset = $('runtime-config-preset');
   const diagnosticsModelSelect = $('diagnostics-model');
-  const diagnosticsSuite = $('diagnostics-suite');
+  const diagnosticsProfile = $('diagnostics-profile');
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
@@ -2078,7 +2387,7 @@ function bindUI() {
 
   runtimePreset?.addEventListener('change', () => {
     const mode = state.uiMode;
-    storeDiagnosticsSelection(mode, { preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET });
+    storeDiagnosticsSelection(mode, { preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET, profile: '' });
     if (runtimePreset.value !== 'modes/debug') {
       clearDiagnosticsOutput();
     }
@@ -2089,9 +2398,7 @@ function bindUI() {
     selectDiagnosticsModel(diagnosticsModelSelect.value || null);
   });
 
-  diagnosticsSuite?.addEventListener('change', () => {
-    const mode = state.uiMode;
-    storeDiagnosticsSelection(mode, { suite: diagnosticsSuite.value || getDiagnosticsDefaultSuite(mode) });
+  diagnosticsProfile?.addEventListener('change', () => {
     updateDiagnosticsGuidance();
   });
 

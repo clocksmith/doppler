@@ -54,6 +54,48 @@ select {
   padding-right: var(--space-lg);
 }
 
+/* === CUSTOM SELECTS === */
+.select-custom {
+  position: relative;
+  display: inline-block;
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.select-trigger::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.select-custom.open .select-trigger::after {
+  border-top: none;
+  border-bottom: 5px solid currentColor;
+}
+
+.select-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.select-custom.open .select-options {
+  display: block;
+}
+
 /* === PROGRESS === */
 .progress {
   height: 8px;

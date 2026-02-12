@@ -223,11 +223,6 @@ async function main() {
         }
       }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
       // Serve demo directly at root.
       if (pathname === '/' || pathname === '') {
         pathname = '/demo/index.html';
@@ -262,102 +257,9 @@ async function main() {
         return res.end();
       }
 
-      // Standalone mode: serve demo/index.html at /
       // Backward compatibility for the removed legacy app surface.
       if (pathname === '/app' || pathname === '/app/' || pathname === '/app/index.html') {
         pathname = '/demo/index.html';
-=======
-      // Canonical app entry point.
-      if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Shortcut: /d redirects to the demo app
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Legacy /dr path maps to /doppler (compatibility).
-      if (pathname === '/dr' || pathname === '/dr/') {
-=======
-      // Canonical app entry point.
-      if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Shortcut: /d redirects to the demo app
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Legacy /dr path maps to /doppler (compatibility).
-      if (pathname === '/dr' || pathname === '/dr/') {
->>>>>>> Stashed changes
-=======
-      // Canonical app entry point.
-      if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Shortcut: /d redirects to the demo app
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Legacy /dr path maps to /doppler (compatibility).
-      if (pathname === '/dr' || pathname === '/dr/') {
->>>>>>> Stashed changes
-=======
-      // Canonical app entry point.
-      if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Shortcut: /d redirects to the demo app
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Legacy /dr path maps to /doppler (compatibility).
-      if (pathname === '/dr' || pathname === '/dr/') {
->>>>>>> Stashed changes
-=======
-      // Canonical app entry point.
-      if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Shortcut: /d redirects to the demo app
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      }
-
-      // Legacy /dr path maps to /doppler (compatibility).
-      if (pathname === '/dr' || pathname === '/dr/') {
->>>>>>> Stashed changes
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      } else if (pathname.startsWith('/dr/')) {
-        pathname = pathname.replace('/dr/', '/doppler/');
-      }
-
-      // Standalone mode: serve app/index.html at /
-      // Strip /doppler/ prefix for prefixed routing.
-      if (pathname.startsWith('/doppler/')) {
-        pathname = pathname.replace('/doppler/', '/');
-      } else if (pathname === '/doppler') {
-        pathname = '/app/index.html';
->>>>>>> Stashed changes
       }
       if (pathname === '/rd.css') {
         pathname = '/styles/rd.css';

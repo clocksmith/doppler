@@ -44,6 +44,49 @@ function mapSuiteToCommand(suite) {
   throw new Error(`Unsupported diagnostics suite "${suite}"`);
 }
 
+function createBenchCompatibleRuntime(runtimeConfig) {
+  if (!runtimeConfig || typeof runtimeConfig !== 'object') {
+    return runtimeConfig;
+  }
+
+  const shared = runtimeConfig.shared ?? {};
+  const debug = shared.debug ?? {};
+  const benchmark = shared.benchmark ?? {};
+  const benchRun = benchmark.run ?? {};
+
+  return {
+    ...runtimeConfig,
+    shared: {
+      ...shared,
+      debug: {
+        ...debug,
+        trace: {
+          ...(debug.trace ?? {}),
+          enabled: false,
+        },
+        pipeline: {
+          ...(debug.pipeline ?? {}),
+          enabled: false,
+        },
+        probes: [],
+        profiler: {
+          ...(debug.profiler ?? {}),
+          enabled: false,
+        },
+      },
+      benchmark: {
+        ...benchmark,
+        run: {
+          ...benchRun,
+          debug: false,
+          profile: false,
+          captureMemoryTimeSeries: false,
+        },
+      },
+    },
+  };
+}
+
 export class DiagnosticsController {
   constructor(options = {}) {
     this.log = options.log || log;
@@ -73,11 +116,13 @@ export class DiagnosticsController {
 
   async runSuite(model, options = {}) {
     const suite = normalizeSuite(options.suite || 'inference');
-    const runtimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(runtimeConfig);
-
     const { modelId, modelUrl } = resolveModelRef(model, options);
     const mapped = mapSuiteToCommand(suite);
+    const baseRuntimeConfig = resolveRuntimeConfig(options);
+    this.requireIntent(baseRuntimeConfig);
+    const effectiveRuntimeConfig = mapped.command === 'bench'
+      ? createBenchCompatibleRuntime(baseRuntimeConfig)
+      : baseRuntimeConfig;
 
     if (suite !== 'kernels' && !modelId && !modelUrl) {
       throw new Error('modelId or modelUrl is required for this suite');
@@ -90,7 +135,7 @@ export class DiagnosticsController {
       modelUrl,
       runtimePreset: options.runtimePreset ?? null,
       runtimeConfigUrl: options.runtimeConfigUrl ?? null,
-      runtimeConfig: options.runtimeConfig ?? null,
+      runtimeConfig: effectiveRuntimeConfig ?? null,
       captureOutput: options.captureOutput === true,
       keepPipeline: options.keepPipeline === true,
       report: options.report ?? null,

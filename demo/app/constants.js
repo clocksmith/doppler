@@ -174,7 +174,9 @@ export const ENERGY_METRIC_LABELS = {
 export const RUNTIME_PRESET_REGISTRY = [
   { id: '', label: 'none', base: false, override: true },
   { id: 'modes/debug', label: 'modes/debug', base: true, override: false },
+  { id: 'modes/embedding', label: 'modes/embedding', base: true, override: false },
   { id: 'modes/bench', label: 'modes/bench', base: true, override: false },
+  { id: 'modes/embedding-bench', label: 'modes/embedding-bench', base: true, override: false },
   { id: 'modes/production', label: 'modes/production', base: false, override: true },
   { id: 'modes/low-memory', label: 'modes/low-memory', base: false, override: true },
   { id: 'modes/simulation', label: 'modes/simulation', base: false, override: true },
@@ -239,6 +241,7 @@ export const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 export const DEFAULT_RUNTIME_PRESET = 'modes/debug';
 export const DIAGNOSTICS_DEFAULTS = {
   run: { suite: 'inference' },
+  embedding: { suite: 'inference', preset: 'modes/embedding' },
   diffusion: { suite: 'diffusion' },
   energy: { suite: 'energy' },
   diagnostics: { suite: 'inference' },

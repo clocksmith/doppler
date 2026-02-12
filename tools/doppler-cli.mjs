@@ -267,6 +267,83 @@ function toSummary(result) {
   return `${suite} model=${modelId}`;
 }
 
+function formatNumber(value, digits = 2) {
+  return Number.isFinite(value) ? Number(value).toFixed(digits) : 'n/a';
+}
+
+function formatMs(value) {
+  return Number.isFinite(value) ? `${Number(value).toFixed(1)}ms` : 'n/a';
+}
+
+function quoteOneLine(value) {
+  const s = String(value ?? '').replace(/\s+/g, ' ').trim();
+  if (!s) return '""';
+  const clipped = s.length > 120 ? `${s.slice(0, 117)}...` : s;
+  return JSON.stringify(clipped);
+}
+
+function printMetricsSummary(result) {
+  if (!result || typeof result !== 'object') return;
+  const suite = String(result.suite || '');
+  const metrics = result.metrics;
+  if (!metrics || typeof metrics !== 'object') return;
+
+  if (suite === 'inference' || suite === 'debug') {
+    const prompt = quoteOneLine(metrics.prompt);
+    console.log(`[metrics] prompt=${prompt}`);
+    console.log(
+      `[metrics] load=${formatMs(metrics.modelLoadMs)} ` +
+      `prefillTokens=${Number.isFinite(metrics.prefillTokens) ? Math.round(metrics.prefillTokens) : 'n/a'} ` +
+      `decodeTokens=${Number.isFinite(metrics.decodeTokens) ? Math.round(metrics.decodeTokens) : 'n/a'} ` +
+      `maxTokens=${Number.isFinite(metrics.maxTokens) ? Math.round(metrics.maxTokens) : 'n/a'}`
+    );
+    console.log(
+      `[metrics] ttft=${formatMs(metrics.ttftMs)} prefill=${formatMs(metrics.prefillMs)} ` +
+      `decode=${formatMs(metrics.decodeMs)} total=${formatMs(metrics.totalMs)}`
+    );
+    console.log(
+      `[metrics] tok/s total=${formatNumber(metrics.tokensPerSec)} ` +
+      `prefill=${formatNumber(metrics.prefillTokensPerSec)} ` +
+      `decode=${formatNumber(metrics.decodeTokensPerSec)}`
+    );
+    return;
+  }
+
+  if (suite === 'bench') {
+    if (Number.isFinite(metrics.embeddingDim) || Number.isFinite(metrics.avgEmbeddingMs)) {
+      console.log(`[metrics] prompt=${quoteOneLine(metrics.prompt)}`);
+      console.log(
+        `[metrics] load=${formatMs(metrics.modelLoadMs)} runs=${Number.isFinite(metrics.warmupRuns) ? metrics.warmupRuns : 'n/a'}+${Number.isFinite(metrics.timedRuns) ? metrics.timedRuns : 'n/a'}`
+      );
+      console.log(
+        `[metrics] embedding dim=${Number.isFinite(metrics.embeddingDim) ? Math.round(metrics.embeddingDim) : 'n/a'} ` +
+        `median=${formatMs(metrics.medianEmbeddingMs)} avg=${formatMs(metrics.avgEmbeddingMs)} ` +
+        `eps=${formatNumber(metrics.avgEmbeddingsPerSec)}`
+      );
+      return;
+    }
+
+    console.log(`[metrics] prompt=${quoteOneLine(metrics.prompt)}`);
+    console.log(
+      `[metrics] load=${formatMs(metrics.modelLoadMs)} runs=${Number.isFinite(metrics.warmupRuns) ? metrics.warmupRuns : 'n/a'}+${Number.isFinite(metrics.timedRuns) ? metrics.timedRuns : 'n/a'} ` +
+      `maxTokens=${Number.isFinite(metrics.maxTokens) ? Math.round(metrics.maxTokens) : 'n/a'}`
+    );
+    console.log(
+      `[metrics] tokens prefill(avg)=${Number.isFinite(metrics.avgPrefillTokens) ? Math.round(metrics.avgPrefillTokens) : 'n/a'} ` +
+      `decode(avg)=${Number.isFinite(metrics.avgDecodeTokens) ? Math.round(metrics.avgDecodeTokens) : 'n/a'} ` +
+      `generated(avg)=${Number.isFinite(metrics.avgTokensGenerated) ? Math.round(metrics.avgTokensGenerated) : 'n/a'}`
+    );
+    console.log(
+      `[metrics] tok/s median=${formatNumber(metrics.medianTokensPerSec)} avg=${formatNumber(metrics.avgTokensPerSec)} ` +
+      `decode median=${formatNumber(metrics.medianDecodeTokensPerSec)} avg=${formatNumber(metrics.avgDecodeTokensPerSec)}`
+    );
+    console.log(
+      `[metrics] latency ttft median=${formatMs(metrics.medianTtftMs)} ` +
+      `prefill median=${formatMs(metrics.medianPrefillMs)} decode median=${formatMs(metrics.medianDecodeMs)}`
+    );
+  }
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   if (!argv.length || argv[0] === '--help' || argv[0] === '-h') {
@@ -297,6 +374,7 @@ async function main() {
   }
 
   console.log(`[ok] ${toSummary(response.result)}`);
+  printMetricsSummary(response.result);
 }
 
 main().catch((error) => {

@@ -1,0 +1,23 @@
+{
+  "name": "embedding-bench",
+  "description": "Benchmark preset for stable embedding runs",
+  "extends": "modes/embedding",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false
+        }
+      }
+    },
+    "inference": {
+      "prompt": "Search query: local-first AI with WebGPU inference.",
+      "batching": {
+        "maxTokens": 1
+      },
+      "generation": {
+        "embeddingMode": "last"
+      }
+    }
+  }
+}

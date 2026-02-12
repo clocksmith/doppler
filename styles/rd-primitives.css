@@ -86,7 +86,9 @@ a.link-secondary:hover {
 .btn,
 input,
 textarea,
-select {
+select,
+.select-trigger,
+.select-options {
   border: var(--border-md) solid var(--fg);
 }
 
@@ -150,6 +152,42 @@ textarea {
 .btn:disabled {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
+}
+
+/* === DROPDOWN SHARED === */
+.select-trigger:hover,
+.select-option:hover,
+.select-option.selected {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.select-option {
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.select-option:last-child {
+  border-bottom: none;
+}
+
+.select-custom,
+.select-trigger {
+  width: 100%;
+}
+
+.select-trigger,
+.select-option {
+  padding: var(--space-sm);
+  font-family: var(--font-b);
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+select,
+.select-trigger,
+.select-option {
+  cursor: pointer;
 }
 
 /* === UTILITIES === */

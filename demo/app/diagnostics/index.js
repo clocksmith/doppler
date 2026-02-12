@@ -7,6 +7,7 @@ import {
   DIAGNOSTICS_DEFAULTS,
   DIAGNOSTICS_SUITE_INFO,
   DIAGNOSTICS_SUITE_ORDER,
+  RUNTIME_PRESET_REGISTRY,
 } from '../constants.js';
 import {
   getModelTypeForId,
@@ -27,8 +28,9 @@ function suiteRequiresPrompt(suite) {
   return key === 'inference' || key === 'debug' || key === 'bench' || key === 'diffusion';
 }
 
-function suiteRequiresMaxTokens(suite) {
+function suiteRequiresMaxTokens(suite, modelType) {
   const key = String(suite || '').trim().toLowerCase();
+  if (normalizeModelType(modelType) === 'embedding') return false;
   return key === 'inference' || key === 'debug' || key === 'bench';
 }
 
@@ -64,102 +66,234 @@ function getDiagnosticsSuiteOrder() {
   return Object.keys(DIAGNOSTICS_SUITE_INFO);
 }
 
-function updateDiagnosticsSuiteOptions(mode, modelId, modelType) {
-  const suiteSelect = $('diagnostics-suite');
-  if (!suiteSelect) return null;
+function getDiagnosticsBasePresetIds() {
+  const ids = RUNTIME_PRESET_REGISTRY
+    .filter((entry) => entry.base && typeof entry.id === 'string' && entry.id.length > 0)
+    .map((entry) => entry.id);
+  if (ids.length === 0) {
+    return [DEFAULT_RUNTIME_PRESET];
+  }
+  if (ids.includes(DEFAULT_RUNTIME_PRESET)) {
+    return [DEFAULT_RUNTIME_PRESET, ...ids.filter((id) => id !== DEFAULT_RUNTIME_PRESET)];
+  }
+  return ids;
+}
+
+function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
+  if (!Array.isArray(presetIds) || presetIds.length === 0) return [];
+  const key = String(suite || '').trim().toLowerCase();
+  const normalizedModelType = normalizeModelType(modelType);
+  const isEmbeddingTarget = mode === 'embedding' || normalizedModelType === 'embedding';
+  const pushUnique = (list, value) => {
+    if (presetIds.includes(value) && !list.includes(value)) list.push(value);
+  };
+
+  if (isEmbeddingTarget) {
+    const ordered = [];
+    if (key === 'inference' || key === 'debug') {
+      pushUnique(ordered, 'modes/embedding');
+      pushUnique(ordered, 'modes/debug');
+      return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+    }
+    if (key === 'bench') {
+      pushUnique(ordered, 'modes/embedding-bench');
+      pushUnique(ordered, 'modes/bench');
+      pushUnique(ordered, 'modes/embedding');
+      pushUnique(ordered, 'modes/debug');
+      return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+    }
+  }
+
+  if (key === 'inference' || key === 'debug' || key === 'energy' || key === 'kernels') {
+    const ordered = [];
+    pushUnique(ordered, 'modes/debug');
+    return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+  }
+
+  if (key === 'bench' || key === 'diffusion') {
+    const ordered = [];
+    pushUnique(ordered, 'modes/bench');
+    pushUnique(ordered, 'modes/debug');
+    return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+  }
+
+  return presetIds.slice(0, 1);
+}
+
+function formatRuntimePresetShortLabel(presetId) {
+  if (typeof presetId !== 'string' || presetId.length === 0) return 'default';
+  return presetId.startsWith('modes/') ? presetId.slice('modes/'.length) : presetId;
+}
+
+function encodeDiagnosticsProfileId(suite, presetId) {
+  return `${suite}|${presetId}`;
+}
+
+function decodeDiagnosticsProfileId(profileId) {
+  if (typeof profileId !== 'string' || profileId.length === 0) return null;
+  const splitAt = profileId.indexOf('|');
+  if (splitAt <= 0 || splitAt >= profileId.length - 1) return null;
+  const suite = profileId.slice(0, splitAt).trim().toLowerCase();
+  const preset = profileId.slice(splitAt + 1).trim();
+  if (!suite || !preset) return null;
+  return { suite, preset };
+}
+
+function getDiagnosticsProfileLabel(suite, presetId) {
+  const key = `${suite}|${presetId}`;
+  const labels = {
+    'inference|modes/debug': 'Quick Check',
+    'inference|modes/embedding': 'Embedding Check',
+    'debug|modes/debug': 'Trace Debug',
+    'debug|modes/embedding': 'Embedding Debug',
+    'bench|modes/bench': 'Performance Bench',
+    'bench|modes/embedding-bench': 'Embedding Bench',
+    'bench|modes/debug': 'Bench with Traces',
+    'diffusion|modes/bench': 'Image Bench',
+    'diffusion|modes/debug': 'Image Bench (Debug)',
+    'energy|modes/debug': 'Energy Run',
+    'kernels|modes/debug': 'Kernel Validation',
+  };
+  if (labels[key]) return labels[key];
+  return `${suite} · ${formatRuntimePresetShortLabel(presetId)}`;
+}
+
+function buildDiagnosticsProfileEntries(suites, mode, modelType) {
+  const entries = [];
+  const basePresetIds = getDiagnosticsBasePresetIds();
+  for (const suite of suites) {
+    const orderedPresets = getDiagnosticsPresetOrderForSuite(suite, basePresetIds, mode, modelType);
+    for (const preset of orderedPresets) {
+      entries.push({
+        id: encodeDiagnosticsProfileId(suite, preset),
+        suite,
+        preset,
+        label: getDiagnosticsProfileLabel(suite, preset),
+      });
+    }
+  }
+  return entries;
+}
+
+function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
+  const profileSelect = $('diagnostics-profile');
+  if (!profileSelect) return null;
 
   const order = getDiagnosticsSuiteOrder();
   const isKernelsMode = mode === 'kernels';
+  const availableSuites = [];
   if (isKernelsMode) {
-    suiteSelect.innerHTML = '';
-    const opt = document.createElement('option');
-    opt.value = 'kernels';
-    opt.textContent = 'kernels';
-    suiteSelect.appendChild(opt);
-    suiteSelect.disabled = true;
-    suiteSelect.value = 'kernels';
-    storeDiagnosticsSelection(mode, { suite: 'kernels' });
-    return 'kernels';
+    availableSuites.push('kernels');
   }
 
-  if (!modelId) {
-    suiteSelect.innerHTML = '';
+  if (!isKernelsMode && !modelId) {
+    profileSelect.innerHTML = '';
     const opt = document.createElement('option');
     opt.value = '';
     opt.textContent = 'Select an active model';
-    suiteSelect.appendChild(opt);
-    suiteSelect.disabled = true;
-    suiteSelect.value = '';
-    return '';
+    profileSelect.appendChild(opt);
+    profileSelect.disabled = true;
+    profileSelect.value = '';
+    return null;
   }
 
-  if (modelId && !modelType) {
-    suiteSelect.innerHTML = '';
+  if (!isKernelsMode && modelId && !modelType) {
+    profileSelect.innerHTML = '';
     const opt = document.createElement('option');
     opt.value = '';
     opt.textContent = 'Loading model type...';
-    suiteSelect.appendChild(opt);
-    suiteSelect.disabled = true;
-    suiteSelect.value = '';
-    return '';
+    profileSelect.appendChild(opt);
+    profileSelect.disabled = true;
+    profileSelect.value = '';
+    return null;
   }
 
-  const normalizedModelType = normalizeModelType(modelType);
-  if (normalizedModelType === 'unknown') {
-    suiteSelect.innerHTML = '';
+  if (!isKernelsMode) {
+    const normalizedModelType = normalizeModelType(modelType);
+    if (normalizedModelType === 'unknown') {
+      profileSelect.innerHTML = '';
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Model type unavailable (manifest unreadable)';
+      profileSelect.appendChild(opt);
+      profileSelect.disabled = true;
+      profileSelect.value = '';
+      return null;
+    }
+    const compatibleSuites = order.filter((suite) => suite !== 'kernels' && isSuiteCompatibleModelType(modelType, suite));
+    availableSuites.push(...compatibleSuites);
+  }
+
+  profileSelect.innerHTML = '';
+  if (!availableSuites.length) {
     const opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'Model type unavailable (manifest unreadable)';
-    suiteSelect.appendChild(opt);
-    suiteSelect.disabled = true;
-    suiteSelect.value = '';
-    return '';
+    opt.textContent = 'No compatible profiles';
+    profileSelect.appendChild(opt);
+    profileSelect.disabled = true;
+    profileSelect.value = '';
+    return null;
   }
 
-  const available = order.filter((suite) => suite !== 'kernels' && isSuiteCompatibleModelType(modelType, suite));
-  suiteSelect.innerHTML = '';
-  if (!available.length) {
+  const entries = buildDiagnosticsProfileEntries(availableSuites, mode, modelType);
+  for (const entry of entries) {
     const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = 'No compatible suites';
-    suiteSelect.appendChild(opt);
-    suiteSelect.disabled = true;
-    suiteSelect.value = '';
-    return '';
+    opt.value = entry.id;
+    opt.textContent = entry.label;
+    profileSelect.appendChild(opt);
   }
 
-  const storedSuite = state.diagnosticsSelections[mode]?.suite || '';
-  const defaultSuite = getDiagnosticsDefaultSuite(mode);
-  const currentValue = suiteSelect.value || '';
-  for (const suite of available) {
-    const opt = document.createElement('option');
-    opt.value = suite;
-    opt.textContent = suite;
-    suiteSelect.appendChild(opt);
+  const selection = state.diagnosticsSelections[mode] || {};
+  const currentValue = profileSelect.value || '';
+  const currentPair = decodeDiagnosticsProfileId(currentValue);
+  const storedPair = selection.profile ? decodeDiagnosticsProfileId(selection.profile) : null;
+  const explicitPair = selection.suite && selection.preset
+    ? { suite: String(selection.suite).trim().toLowerCase(), preset: String(selection.preset).trim() }
+    : null;
+
+  const hasEntry = (pair) => Boolean(pair && entries.some((entry) => entry.suite === pair.suite && entry.preset === pair.preset));
+  let targetPair = null;
+  if (hasEntry(currentPair)) targetPair = currentPair;
+  if (!targetPair && hasEntry(storedPair)) targetPair = storedPair;
+  if (!targetPair && hasEntry(explicitPair)) targetPair = explicitPair;
+  if (!targetPair) {
+    const defaultSuite = getDiagnosticsDefaultSuite(mode);
+    const fallbackSuite = availableSuites.includes(defaultSuite) ? defaultSuite : availableSuites[0];
+    const orderedPresets = getDiagnosticsPresetOrderForSuite(
+      fallbackSuite,
+      getDiagnosticsBasePresetIds(),
+      mode,
+      modelType
+    );
+    targetPair = { suite: fallbackSuite, preset: orderedPresets[0] };
   }
 
-  let target = currentValue;
-  if (!available.includes(target)) target = storedSuite;
-  if (!available.includes(target)) target = defaultSuite;
-  if (!available.includes(target)) target = available[0];
-  suiteSelect.disabled = false;
-  suiteSelect.value = target;
-  storeDiagnosticsSelection(mode, { suite: target });
-  return target;
+  const chosen = entries.find((entry) => entry.suite === targetPair.suite && entry.preset === targetPair.preset) || entries[0];
+  profileSelect.disabled = false;
+  profileSelect.value = chosen.id;
+  storeDiagnosticsSelection(mode, {
+    profile: chosen.id,
+    suite: chosen.suite,
+    preset: chosen.preset,
+  });
+  return chosen;
 }
 
 function updateDiagnosticsSummary({ suite, modelId, modelType, runtimePreset, intent }) {
   const summaryEl = $('diagnostics-summary');
   if (!summaryEl) return;
   const parts = [];
-  if (suite) parts.push(`Suite: ${suite}`);
+  if (suite && runtimePreset) {
+    parts.push(`Profile: ${getDiagnosticsProfileLabel(suite, runtimePreset)}`);
+  } else if (suite) {
+    parts.push(`Suite: ${suite}`);
+  }
   if (modelId) {
     const typeLabel = modelType ? normalizeModelType(modelType) : null;
     parts.push(typeLabel ? `Model: ${modelId} (${typeLabel})` : `Model: ${modelId}`);
   } else if (suite === 'kernels') {
     parts.push('Model: none');
   }
-  if (runtimePreset) parts.push(`Preset: ${runtimePreset}`);
   if (intent) parts.push(`Intent: ${intent}`);
   summaryEl.textContent = parts.join(' · ');
   summaryEl.hidden = parts.length === 0;
@@ -173,7 +307,7 @@ export function syncDiagnosticsModeUI(mode) {
     titleEl.textContent = mode === 'kernels' ? 'Kernel Diagnostics' : 'Inference Diagnostics';
   }
   if (suiteField) {
-    suiteField.hidden = mode === 'kernels';
+    suiteField.hidden = false;
   }
   if (modeTabs.length) {
     modeTabs.forEach((button) => {
@@ -214,6 +348,10 @@ export function getDiagnosticsDefaultSuite(mode) {
   return DIAGNOSTICS_DEFAULTS[mode]?.suite || 'inference';
 }
 
+function getDiagnosticsDefaultPreset(mode) {
+  return DIAGNOSTICS_DEFAULTS[mode]?.preset || DEFAULT_RUNTIME_PRESET;
+}
+
 export function getDiagnosticsRuntimeConfig() {
   return state.diagnosticsRuntimeConfig || getRuntimeConfig();
 }
@@ -229,20 +367,21 @@ export async function refreshDiagnosticsRuntimeConfig(presetId) {
 }
 
 export async function syncDiagnosticsDefaultsForMode(mode) {
-  if (mode !== 'run' && mode !== 'diffusion' && mode !== 'energy' && mode !== 'diagnostics' && mode !== 'kernels') {
+  if (mode !== 'run' && mode !== 'embedding' && mode !== 'diffusion' && mode !== 'energy' && mode !== 'diagnostics' && mode !== 'kernels') {
     return;
   }
-  const suiteSelect = $('diagnostics-suite');
+  const profileSelect = $('diagnostics-profile');
   const presetSelect = $('runtime-preset');
   const selections = state.diagnosticsSelections[mode] || {};
-  const targetSuite = selections.suite || getDiagnosticsDefaultSuite(mode);
-  if (suiteSelect && targetSuite) {
-    suiteSelect.value = targetSuite;
-  }
+  const targetProfile = selections.profile || '';
   if (presetSelect) {
-    const targetPreset = selections.preset || DEFAULT_RUNTIME_PRESET;
+    const targetPreset = selections.preset || getDiagnosticsDefaultPreset(mode);
     presetSelect.value = targetPreset;
   }
+  if (profileSelect && targetProfile) {
+    profileSelect.value = targetProfile;
+  }
+  updateDiagnosticsGuidance();
   await applySelectedRuntimePreset();
 }
 
@@ -275,8 +414,23 @@ function formatDiagnosticsMetricsLine(result, suite) {
   const metrics = result?.metrics;
   if (!metrics || !suite) return '';
   if (suite === 'bench') {
+    if (Number.isFinite(metrics.medianEmbeddingMs)) {
+      const dim = Number.isFinite(metrics.embeddingDim) ? metrics.embeddingDim : '--';
+      const invalidRuns = Number.isFinite(metrics.invalidRuns) ? metrics.invalidRuns : 0;
+      const validRuns = Number.isFinite(metrics.validRuns) ? metrics.validRuns : '--';
+      const p95 = Number.isFinite(metrics.p95EmbeddingMs) ? `${metrics.p95EmbeddingMs}ms` : '--';
+      const minMs = Number.isFinite(metrics.minEmbeddingMs) ? `${metrics.minEmbeddingMs}ms` : '--';
+      const maxMs = Number.isFinite(metrics.maxEmbeddingMs) ? `${metrics.maxEmbeddingMs}ms` : '--';
+      const avgTokens = Number.isFinite(metrics.avgEmbeddingTokens) ? metrics.avgEmbeddingTokens.toFixed(1) : '--';
+      return `Embedding dim ${dim} • Median ${metrics.medianEmbeddingMs}ms • P95 ${p95} • Range ${minMs}-${maxMs} • Tokens ${avgTokens} • Invalid ${invalidRuns} • Valid ${validRuns}`;
+    }
     if (Number.isFinite(metrics.medianTokensPerSec)) {
-      return `Median ${metrics.medianTokensPerSec} tok/s • Avg ${metrics.avgTokensPerSec ?? '--'} tok/s`;
+      const prefill = Number.isFinite(metrics.medianPrefillMs) ? `${metrics.medianPrefillMs}ms` : '--';
+      const ttft = Number.isFinite(metrics.medianTtftMs) ? `${metrics.medianTtftMs}ms` : '--';
+      const decode = Number.isFinite(metrics.medianDecodeTokensPerSec)
+        ? `${metrics.medianDecodeTokensPerSec} tok/s`
+        : '--';
+      return `Median ${metrics.medianTokensPerSec} tok/s • Avg ${metrics.avgTokensPerSec ?? '--'} tok/s • Prefill ${prefill} • TTFT ${ttft} • Decode ${decode}`;
     }
   }
   if (suite === 'energy') {
@@ -290,18 +444,53 @@ function formatDiagnosticsMetricsLine(result, suite) {
     }
   }
   if (suite === 'inference' || suite === 'debug') {
+    if (Number.isFinite(metrics.embeddingDim)) {
+      const embedMs = Number.isFinite(metrics.embeddingMs) ? `${metrics.embeddingMs}ms` : '--';
+      const loadMs = Number.isFinite(metrics.modelLoadMs) ? `${metrics.modelLoadMs}ms` : '--';
+      const nonFinite = Number.isFinite(metrics.nonFiniteValues) ? metrics.nonFiniteValues : 0;
+      const tokens = Number.isFinite(metrics.embeddingTokens) ? metrics.embeddingTokens : '--';
+      const l2Norm = Number.isFinite(metrics.embeddingL2Norm) ? metrics.embeddingL2Norm.toFixed(4) : '--';
+      const maxAbs = Number.isFinite(metrics.embeddingMaxAbs) ? metrics.embeddingMaxAbs.toFixed(4) : '--';
+      return `Embedding dim ${metrics.embeddingDim} • Tokens ${tokens} • Embed ${embedMs} • Load ${loadMs} • L2 ${l2Norm} • MaxAbs ${maxAbs} • Non-finite ${nonFinite}`;
+    }
     if (Number.isFinite(metrics.tokensGenerated)) {
-      return `Tokens ${metrics.tokensGenerated} • ${metrics.tokensPerSec ?? '--'} tok/s`;
+      const prefill = Number.isFinite(metrics.prefillMs) ? `${metrics.prefillMs}ms` : '--';
+      const ttft = Number.isFinite(metrics.ttftMs) ? `${metrics.ttftMs}ms` : '--';
+      const decode = Number.isFinite(metrics.decodeTokensPerSec)
+        ? `${metrics.decodeTokensPerSec} tok/s`
+        : '--';
+      return `Tokens ${metrics.tokensGenerated} • ${metrics.tokensPerSec ?? '--'} tok/s • Prefill ${prefill} • TTFT ${ttft} • Decode ${decode}`;
     }
   }
   return '';
+}
+
+function buildDiagnosticsJsonPayload(result) {
+  if (!result || typeof result !== 'object') return null;
+  if (result.report && typeof result.report === 'object') {
+    return result.report;
+  }
+  return {
+    suite: result.suite ?? null,
+    duration: result.duration ?? null,
+    metrics: result.metrics ?? null,
+    output: result.output ?? null,
+    memoryStats: result.memoryStats ?? null,
+  };
 }
 
 export function clearDiagnosticsOutput() {
   const container = $('diagnostics-output');
   const textEl = $('diagnostics-output-text');
   const canvas = $('diagnostics-output-canvas');
+  const jsonWrap = $('diagnostics-output-json-wrap');
+  const jsonEl = $('diagnostics-output-json');
   if (textEl) textEl.textContent = 'No output yet.';
+  if (jsonEl) jsonEl.textContent = 'No JSON yet.';
+  if (jsonWrap) {
+    jsonWrap.open = false;
+    setHidden(jsonWrap, true);
+  }
   if (canvas) {
     const ctx = canvas.getContext('2d');
     if (ctx) {
@@ -330,8 +519,18 @@ export function renderDiagnosticsOutput(result, suite, captureOutput) {
   container.hidden = false;
   const textEl = $('diagnostics-output-text');
   const canvas = $('diagnostics-output-canvas');
+  const jsonWrap = $('diagnostics-output-json-wrap');
+  const jsonEl = $('diagnostics-output-json');
   if (canvas) {
     canvas.hidden = true;
+  }
+  const jsonPayload = buildDiagnosticsJsonPayload(result);
+  if (jsonWrap && jsonEl && jsonPayload) {
+    jsonEl.textContent = JSON.stringify(jsonPayload, null, 2);
+    setHidden(jsonWrap, false);
+  } else if (jsonWrap) {
+    jsonWrap.open = false;
+    setHidden(jsonWrap, true);
   }
   const output = result?.output ?? null;
   const summary = formatDiagnosticsSummary(result);
@@ -353,6 +552,13 @@ export function renderDiagnosticsOutput(result, suite, captureOutput) {
     if (textEl) {
       const body = prefix ? `${prefix}\n\n${output}` : output;
       textEl.textContent = body;
+    }
+    return;
+  }
+  if ((suite === 'inference' || suite === 'debug') && output && typeof output === 'object') {
+    if (textEl) {
+      const body = JSON.stringify(output, null, 2);
+      textEl.textContent = prefix ? `${prefix}\n\n${body}` : body;
     }
     return;
   }
@@ -386,26 +592,34 @@ function getDiagnosticsSuiteInfo(suite) {
 }
 
 export function updateDiagnosticsGuidance() {
-  const suiteSelect = $('diagnostics-suite');
+  const profileSelect = $('diagnostics-profile');
+  const presetSelect = $('runtime-preset');
   const modelSelect = $('diagnostics-model');
   const intentEl = $('diagnostics-intent');
   const suiteHelp = $('diagnostics-suite-help');
   const requirements = $('diagnostics-requirements');
   const runBtn = $('diagnostics-run-btn');
   const verifyBtn = $('diagnostics-verify-btn');
-  if (!suiteSelect || !intentEl || !suiteHelp || !requirements) return;
+  if (!profileSelect || !intentEl || !suiteHelp || !requirements) return;
 
   const mode = state.uiMode;
   const modelId = modelSelect?.value || '';
   const modelType = modelId ? (state.modelTypeCache[modelId] || null) : null;
   const normalizedModelType = modelType ? normalizeModelType(modelType) : null;
-  const resolvedSuite = updateDiagnosticsSuiteOptions(mode, modelId, normalizedModelType);
-  const suite = resolvedSuite || suiteSelect.value || getDiagnosticsDefaultSuite(mode);
+  const resolvedProfile = updateDiagnosticsProfileOptions(mode, modelId, normalizedModelType);
+  const suite = resolvedProfile?.suite || getDiagnosticsDefaultSuite(mode);
+  if (presetSelect && resolvedProfile?.preset && presetSelect.value !== resolvedProfile.preset) {
+    presetSelect.value = resolvedProfile.preset;
+    if (state.diagnosticsRuntimePresetId !== resolvedProfile.preset) {
+      void applySelectedRuntimePreset();
+    }
+  }
   const info = getDiagnosticsSuiteInfo(suite);
   const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const requiredModelType = getDiagnosticsRequiredModelType(suite);
-  const runtimePreset = $('runtime-preset')?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimePreset = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const needsMaxTokens = suiteRequiresMaxTokens(suite, normalizedModelType);
 
   intentEl.textContent = intent || 'unset';
 
@@ -420,12 +634,13 @@ export function updateDiagnosticsGuidance() {
   if (suiteRequiresPrompt(suite)) {
     requirementHints.push('prompt');
   }
-  if (suiteRequiresMaxTokens(suite)) {
+  if (needsMaxTokens) {
     requirementHints.push('maxTokens');
   }
 
   const hintSuffix = requirementHints.length ? `Requires: ${requirementHints.join(', ')}.` : '';
-  suiteHelp.textContent = [info.description, hintSuffix].filter(Boolean).join(' ');
+  const presetHint = runtimePreset ? `Preset: ${formatRuntimePresetShortLabel(runtimePreset)}.` : '';
+  suiteHelp.textContent = [info.description, presetHint, hintSuffix].filter(Boolean).join(' ');
 
   const missing = [];
   if (!intent) {
@@ -456,7 +671,7 @@ export function updateDiagnosticsGuidance() {
     missing.push('prompt');
   }
   const maxTokensValue = runtimeConfig?.inference?.batching?.maxTokens;
-  if (suiteRequiresMaxTokens(suite) && !Number.isFinite(maxTokensValue)) {
+  if (needsMaxTokens && !Number.isFinite(maxTokensValue)) {
     missing.push('maxTokens');
   }
 
@@ -474,7 +689,7 @@ export function updateDiagnosticsGuidance() {
     || (Boolean(modelId) && normalizedModelType != null && normalizedModelType !== 'unknown'
       && (!requiredModelType || isSuiteCompatibleModelType(normalizedModelType, suite)));
   const promptOk = !suiteRequiresPrompt(suite) || (promptValue && String(promptValue).trim());
-  const maxTokensOk = !suiteRequiresMaxTokens(suite) || Number.isFinite(maxTokensValue);
+  const maxTokensOk = !needsMaxTokens || Number.isFinite(maxTokensValue);
   const canVerify = intentOk;
   const canRun = intentOk && modelOk && promptOk && maxTokensOk;
   if (verifyBtn) verifyBtn.disabled = !canVerify;

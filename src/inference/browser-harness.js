@@ -380,18 +380,23 @@ async function initializeInferenceFromStorage(modelId, options = {}) {
 }
 
 async function initializeSuiteModel(options = {}) {
+  const loadStart = performance.now();
   const runtime = resolveRuntime(options);
+  let harness;
   if (options.modelId && !options.modelUrl) {
-    return initializeInferenceFromStorage(options.modelId, { ...options, runtime });
+    harness = await initializeInferenceFromStorage(options.modelId, { ...options, runtime });
+  } else {
+    if (!options.modelUrl) {
+      throw new Error('modelUrl is required for this suite');
+    }
+    harness = await initializeInference(options.modelUrl, {
+      runtime,
+      onProgress: options.onProgress,
+      log: options.log,
+    });
   }
-  if (!options.modelUrl) {
-    throw new Error('modelUrl is required for this suite');
-  }
-  return initializeInference(options.modelUrl, {
-    runtime,
-    onProgress: options.onProgress,
-    log: options.log,
-  });
+  const modelLoadMs = Math.max(0, performance.now() - loadStart);
+  return { ...harness, modelLoadMs };
 }
 
 async function runKernelSuite(options = {}) {
@@ -421,6 +426,7 @@ async function runKernelSuite(options = {}) {
 
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
+const EMBEDDING_PREVIEW_LENGTH = 16;
 
 function resolvePrompt(runtimeConfig) {
   const runtimePrompt = runtimeConfig?.inference?.prompt;
@@ -436,6 +442,58 @@ function resolveMaxTokens(runtimeConfig) {
     return Math.max(1, Math.floor(runtimeMax));
   }
   return DEFAULT_HARNESS_MAX_TOKENS;
+}
+
+function summarizeEmbeddingValues(embedding) {
+  const values = ArrayBuffer.isView(embedding) || Array.isArray(embedding) ? embedding : null;
+  const embeddingDim = Number.isFinite(values?.length) ? values.length : 0;
+  const preview = [];
+
+  let nonFiniteCount = 0;
+  let finiteCount = 0;
+  let min = Infinity;
+  let max = -Infinity;
+  let maxAbs = 0;
+  let sum = 0;
+  let sumSq = 0;
+
+  for (let i = 0; i < embeddingDim; i++) {
+    const value = Number(values[i]);
+    if (preview.length < EMBEDDING_PREVIEW_LENGTH) {
+      preview.push(Number.isFinite(value) ? Number(value.toFixed(6)) : null);
+    }
+    if (!Number.isFinite(value)) {
+      nonFiniteCount++;
+      continue;
+    }
+    finiteCount++;
+    if (value < min) min = value;
+    if (value > max) max = value;
+    const abs = Math.abs(value);
+    if (abs > maxAbs) maxAbs = abs;
+    sum += value;
+    sumSq += value * value;
+  }
+
+  const mean = finiteCount > 0 ? (sum / finiteCount) : null;
+  const variance = finiteCount > 0 ? Math.max(0, (sumSq / finiteCount) - ((mean || 0) * (mean || 0))) : null;
+  const stdDev = variance == null ? null : Math.sqrt(variance);
+  const l2Norm = finiteCount > 0 ? Math.sqrt(sumSq) : null;
+  const finiteRatio = embeddingDim > 0 ? finiteCount / embeddingDim : 0;
+
+  return {
+    embeddingDim,
+    nonFiniteCount,
+    finiteCount,
+    finiteRatio,
+    min: finiteCount > 0 ? min : null,
+    max: finiteCount > 0 ? max : null,
+    maxAbs: finiteCount > 0 ? maxAbs : null,
+    mean,
+    stdDev,
+    l2Norm,
+    preview,
+  };
 }
 
 async function runGeneration(pipeline, runtimeConfig) {
@@ -469,6 +527,30 @@ async function runGeneration(pipeline, runtimeConfig) {
 
   const durationMs = Math.max(1, performance.now() - start);
   const tokensPerSec = (tokens.length / durationMs) * 1000;
+  const stats = typeof pipeline?.getStats === 'function'
+    ? (pipeline.getStats() || {})
+    : {};
+  const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : 0;
+  const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillMs;
+  const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : 0;
+  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : 0;
+  const decodeTokens = Number.isFinite(stats.decodeTokens)
+    ? stats.decodeTokens
+    : Math.max(0, tokens.length - 1);
+  const decodeTokensPerSec = decodeMs > 0
+    ? (decodeTokens / decodeMs) * 1000
+    : 0;
+  const prefillTokensPerSec = prefillMs > 0
+    ? (prefillTokens / prefillMs) * 1000
+    : 0;
+  const gpu = {};
+  if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
+  if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
+  if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
+  if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
+  if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
+
   return {
     prompt,
     maxTokens,
@@ -477,6 +559,17 @@ async function runGeneration(pipeline, runtimeConfig) {
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
+    phase: {
+      totalMs: Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : durationMs,
+      ttftMs,
+      prefillMs,
+      decodeMs,
+      prefillTokens,
+      decodeTokens,
+      prefillTokensPerSec,
+      decodeTokensPerSec,
+      gpu: gpuPhase,
+    },
   };
 }
 
@@ -485,12 +578,13 @@ async function runEmbedding(pipeline, runtimeConfig) {
   const start = performance.now();
   const result = await pipeline.embed(prompt);
   const durationMs = Math.max(1, performance.now() - start);
-  const embedding = result?.embedding;
-  const embeddingDim = Number.isFinite(embedding?.length) ? embedding.length : 0;
+  const tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
+  const stats = summarizeEmbeddingValues(result?.embedding);
   return {
     prompt,
+    tokenCount,
     durationMs,
-    embeddingDim,
+    ...stats,
   };
 }
 
@@ -506,18 +600,53 @@ async function runInferenceSuite(options = {}) {
 
   if (modelType === 'embedding') {
     const run = await runEmbedding(harness.pipeline, runtimeConfig);
+    const isValidEmbedding = run.embeddingDim > 0 && run.nonFiniteCount === 0;
+    output = {
+      mode: 'embedding',
+      tokens: run.tokenCount,
+      embeddingDim: run.embeddingDim,
+      finiteValues: run.finiteCount,
+      nonFiniteValues: run.nonFiniteCount,
+      finiteRatio: Number((run.finiteRatio ?? 0).toFixed(6)),
+      min: run.min == null ? null : Number(run.min.toFixed(6)),
+      max: run.max == null ? null : Number(run.max.toFixed(6)),
+      maxAbs: run.maxAbs == null ? null : Number(run.maxAbs.toFixed(6)),
+      mean: run.mean == null ? null : Number(run.mean.toFixed(6)),
+      stdDev: run.stdDev == null ? null : Number(run.stdDev.toFixed(6)),
+      l2Norm: run.l2Norm == null ? null : Number(run.l2Norm.toFixed(6)),
+      preview: run.preview,
+    };
     results = [
       {
         name: 'embedding',
-        passed: run.embeddingDim > 0,
+        passed: isValidEmbedding,
         duration: run.durationMs,
-        error: run.embeddingDim > 0 ? undefined : 'No embedding returned',
+        error: isValidEmbedding
+          ? undefined
+          : (
+            run.embeddingDim <= 0
+              ? 'No embedding returned'
+              : `Embedding contains non-finite values (${run.nonFiniteCount}/${run.embeddingDim})`
+          ),
       },
     ];
     metrics = {
       prompt: run.prompt,
+      embeddingTokens: run.tokenCount,
       embeddingDim: run.embeddingDim,
+      finiteValues: run.finiteCount,
+      finiteRatio: Number((run.finiteRatio ?? 0).toFixed(6)),
+      nonFiniteValues: run.nonFiniteCount,
+      embeddingMin: run.min == null ? null : Number(run.min.toFixed(6)),
+      embeddingMax: run.max == null ? null : Number(run.max.toFixed(6)),
+      embeddingMaxAbs: run.maxAbs == null ? null : Number(run.maxAbs.toFixed(6)),
+      embeddingMean: run.mean == null ? null : Number(run.mean.toFixed(6)),
+      embeddingStdDev: run.stdDev == null ? null : Number(run.stdDev.toFixed(6)),
+      embeddingL2Norm: run.l2Norm == null ? null : Number(run.l2Norm.toFixed(6)),
       embeddingMs: Number(run.durationMs.toFixed(2)),
+      modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
+      endToEndMs: Number(((harness.modelLoadMs ?? 0) + run.durationMs).toFixed(2)),
+      embeddingPreview: run.preview,
     };
   } else {
     const run = await runGeneration(harness.pipeline, runtimeConfig);
@@ -535,6 +664,16 @@ async function runInferenceSuite(options = {}) {
       maxTokens: run.maxTokens,
       tokensGenerated: run.tokens.length,
       tokensPerSec: Number(run.tokensPerSec.toFixed(2)),
+      totalMs: Number(run.phase.totalMs.toFixed(2)),
+      ttftMs: Number(run.phase.ttftMs.toFixed(2)),
+      prefillMs: Number(run.phase.prefillMs.toFixed(2)),
+      decodeMs: Number(run.phase.decodeMs.toFixed(2)),
+      prefillTokens: Math.round(run.phase.prefillTokens),
+      decodeTokens: Math.round(run.phase.decodeTokens),
+      prefillTokensPerSec: Number(run.phase.prefillTokensPerSec.toFixed(2)),
+      decodeTokensPerSec: Number(run.phase.decodeTokensPerSec.toFixed(2)),
+      modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
+      gpu: run.phase.gpu,
     };
   }
 
@@ -555,16 +694,6 @@ async function runInferenceSuite(options = {}) {
     deviceInfo: getKernelCapabilities(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
-}
-
-function median(values) {
-  if (!values.length) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 0) {
-    return (sorted[mid - 1] + sorted[mid]) / 2;
-  }
-  return sorted[mid];
 }
 
 async function runBenchSuite(options = {}) {
@@ -597,42 +726,108 @@ async function runBenchSuite(options = {}) {
 
   if (modelType === 'embedding') {
     const durations = [];
+    const timedDurations = [];
     const embeddingDims = [];
+    const embeddingTokenCounts = [];
+    const embeddingNorms = [];
+    let firstTimedEmbeddingMs = null;
+    let invalidRuns = 0;
+    let totalNonFiniteValues = 0;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
       const run = await runEmbedding(harness.pipeline, benchRuntime);
       if (i >= warmupRuns) {
-        durations.push(run.durationMs);
-        embeddingDims.push(run.embeddingDim);
+        timedDurations.push(run.durationMs);
+        if (firstTimedEmbeddingMs == null) {
+          firstTimedEmbeddingMs = run.durationMs;
+        }
+        totalNonFiniteValues += run.nonFiniteCount;
+        if (Number.isFinite(run.tokenCount)) {
+          embeddingTokenCounts.push(run.tokenCount);
+        }
+        if (Number.isFinite(run.l2Norm)) {
+          embeddingNorms.push(run.l2Norm);
+        }
+        if (run.embeddingDim > 0 && run.nonFiniteCount === 0) {
+          durations.push(run.durationMs);
+          embeddingDims.push(run.embeddingDim);
+        } else {
+          invalidRuns++;
+        }
       }
     }
 
-    const avgMs = durations.length > 0
-      ? durations.reduce((a, b) => a + b, 0) / durations.length
-      : 0;
+    const embeddingMsStats = computeSampleStats(durations);
+    const timedEmbeddingMsStats = computeSampleStats(timedDurations);
+    const embeddingDimStats = computeSampleStats(embeddingDims);
+    const embeddingTokensStats = computeSampleStats(embeddingTokenCounts);
+    const embeddingNormStats = computeSampleStats(embeddingNorms);
+    const avgMs = embeddingMsStats.mean;
 
     results = [
       {
         name: 'benchmark-embedding',
-        passed: durations.length > 0,
+        passed: durations.length > 0 && invalidRuns === 0,
         duration: durations.reduce((sum, value) => sum + value, 0),
-        error: durations.length > 0 ? undefined : 'No embedding benchmark runs completed',
+        error: durations.length > 0
+          ? (
+            invalidRuns === 0
+              ? undefined
+              : `Invalid embedding runs: ${invalidRuns} (non-finite values observed)`
+          )
+          : 'No valid embedding benchmark runs completed',
       },
     ];
 
     metrics = {
       warmupRuns,
       timedRuns,
+      validRuns: durations.length,
+      invalidRuns,
+      invalidRatePct: Number((timedRuns > 0 ? (invalidRuns / timedRuns) * 100 : 0).toFixed(2)),
       prompt: resolvePrompt(benchRuntime),
       embeddingDim: Math.round(embeddingDims.reduce((a, b) => a + b, 0) / (embeddingDims.length || 1)),
-      medianEmbeddingMs: Number(median(durations).toFixed(2)),
+      nonFiniteValues: totalNonFiniteValues,
+      firstTimedEmbeddingMs: Number((firstTimedEmbeddingMs ?? 0).toFixed(2)),
+      minEmbeddingMs: Number(embeddingMsStats.min.toFixed(2)),
+      medianEmbeddingMs: Number(embeddingMsStats.median.toFixed(2)),
+      p95EmbeddingMs: Number(embeddingMsStats.p95.toFixed(2)),
+      p99EmbeddingMs: Number(embeddingMsStats.p99.toFixed(2)),
+      maxEmbeddingMs: Number(embeddingMsStats.max.toFixed(2)),
+      stdDevEmbeddingMs: Number(embeddingMsStats.stdDev.toFixed(2)),
+      ci95EmbeddingMs: Number(embeddingMsStats.ci95.toFixed(2)),
       avgEmbeddingMs: Number(avgMs.toFixed(2)),
       avgEmbeddingsPerSec: Number((avgMs > 0 ? (1000 / avgMs) : 0).toFixed(2)),
+      avgEmbeddingTokens: Number(embeddingTokensStats.mean.toFixed(2)),
+      avgEmbeddingL2Norm: Number(embeddingNormStats.mean.toFixed(4)),
+      modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
+      latency: {
+        timedEmbeddingMs: timedEmbeddingMsStats,
+        embeddingMs: embeddingMsStats,
+      },
+      dimensions: {
+        embedding: embeddingDimStats,
+      },
+      embedding: {
+        tokens: embeddingTokensStats,
+        l2Norm: embeddingNormStats,
+      },
     };
   } else {
     const tokensPerSec = [];
     const durations = [];
     const tokensGenerated = [];
+    const ttftMs = [];
+    const prefillMs = [];
+    const decodeMs = [];
+    const prefillTokens = [];
+    const decodeTokens = [];
+    const decodeTokensPerSec = [];
+    const gpuPrefillMs = [];
+    const gpuDecodeMs = [];
+    const gpuDecodeRecordMs = [];
+    const gpuDecodeSubmitWaitMs = [];
+    const gpuDecodeReadbackWaitMs = [];
 
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
@@ -641,8 +836,39 @@ async function runBenchSuite(options = {}) {
         tokensPerSec.push(run.tokensPerSec);
         durations.push(run.durationMs);
         tokensGenerated.push(run.tokens.length);
+        ttftMs.push(run.phase.ttftMs);
+        prefillMs.push(run.phase.prefillMs);
+        decodeMs.push(run.phase.decodeMs);
+        prefillTokens.push(run.phase.prefillTokens);
+        decodeTokens.push(run.phase.decodeTokens);
+        decodeTokensPerSec.push(run.phase.decodeTokensPerSec);
+        if (Number.isFinite(run.phase.gpu?.prefillMs)) gpuPrefillMs.push(run.phase.gpu.prefillMs);
+        if (Number.isFinite(run.phase.gpu?.decodeMs)) gpuDecodeMs.push(run.phase.gpu.decodeMs);
+        if (Number.isFinite(run.phase.gpu?.decodeRecordMs)) gpuDecodeRecordMs.push(run.phase.gpu.decodeRecordMs);
+        if (Number.isFinite(run.phase.gpu?.decodeSubmitWaitMs)) gpuDecodeSubmitWaitMs.push(run.phase.gpu.decodeSubmitWaitMs);
+        if (Number.isFinite(run.phase.gpu?.decodeReadbackWaitMs)) gpuDecodeReadbackWaitMs.push(run.phase.gpu.decodeReadbackWaitMs);
       }
     }
+
+    const totalMsStats = computeSampleStats(durations);
+    const tokensPerSecStats = computeSampleStats(tokensPerSec);
+    const decodeTokensPerSecStats = computeSampleStats(decodeTokensPerSec);
+    const ttftMsStats = computeSampleStats(ttftMs);
+    const prefillMsStats = computeSampleStats(prefillMs);
+    const decodeMsStats = computeSampleStats(decodeMs);
+    const tokensGeneratedStats = computeSampleStats(tokensGenerated);
+    const prefillTokensStats = computeSampleStats(prefillTokens);
+    const decodeTokensStats = computeSampleStats(decodeTokens);
+    const gpuPhaseStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
+      || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
+      ? {
+          prefillMs: computeSampleStats(gpuPrefillMs),
+          decodeMs: computeSampleStats(gpuDecodeMs),
+          decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
+          decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
+          decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
+        }
+      : null;
 
     results = [
       {
@@ -656,10 +882,38 @@ async function runBenchSuite(options = {}) {
     metrics = {
       warmupRuns,
       timedRuns,
+      prompt: resolvePrompt(benchRuntime),
       maxTokens: resolveMaxTokens(benchRuntime),
-      medianTokensPerSec: Number(median(tokensPerSec).toFixed(2)),
-      avgTokensPerSec: Number((tokensPerSec.reduce((a, b) => a + b, 0) / (tokensPerSec.length || 1)).toFixed(2)),
-      avgTokensGenerated: Math.round(tokensGenerated.reduce((a, b) => a + b, 0) / (tokensGenerated.length || 1)),
+      medianTokensPerSec: Number(tokensPerSecStats.median.toFixed(2)),
+      avgTokensPerSec: Number(tokensPerSecStats.mean.toFixed(2)),
+      avgTokensGenerated: Math.round(tokensGeneratedStats.mean),
+      avgPrefillTokens: Math.round(prefillTokensStats.mean),
+      avgDecodeTokens: Math.round(decodeTokensStats.mean),
+      medianDecodeTokensPerSec: Number(decodeTokensPerSecStats.median.toFixed(2)),
+      avgDecodeTokensPerSec: Number(decodeTokensPerSecStats.mean.toFixed(2)),
+      medianTtftMs: Number(ttftMsStats.median.toFixed(2)),
+      avgTtftMs: Number(ttftMsStats.mean.toFixed(2)),
+      medianPrefillMs: Number(prefillMsStats.median.toFixed(2)),
+      avgPrefillMs: Number(prefillMsStats.mean.toFixed(2)),
+      medianDecodeMs: Number(decodeMsStats.median.toFixed(2)),
+      avgDecodeMs: Number(decodeMsStats.mean.toFixed(2)),
+      modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
+      throughput: {
+        tokensPerSec: tokensPerSecStats,
+        decodeTokensPerSec: decodeTokensPerSecStats,
+      },
+      latency: {
+        totalMs: totalMsStats,
+        ttftMs: ttftMsStats,
+        prefillMs: prefillMsStats,
+        decodeMs: decodeMsStats,
+      },
+      tokens: {
+        generated: tokensGeneratedStats,
+        prefill: prefillTokensStats,
+        decode: decodeTokensStats,
+      },
+      gpu: gpuPhaseStats,
     };
   }
 

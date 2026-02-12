@@ -33,7 +33,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> grad_output: array<f32>;
 @group(0) @binding(3) var<storage, read_write> grad_embeddings: array<atomic<u32>>;
 
-fn atomic_add_f32(ptr: ptr<storage, atomic<u32>>, delta: f32) {
+fn atomic_add_f32(ptr: ptr<storage, atomic<u32>, read_write>, delta: f32) {
     var old_bits = atomicLoad(ptr);
     loop {
         let old_val = bitcast<f32>(old_bits);
